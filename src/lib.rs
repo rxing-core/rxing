@@ -1,8 +1,26 @@
+mod common;
 mod aztec;
+mod datamatrix;
+mod maxicode;
+mod oned;
+mod pdf417;
+mod qrcode;
 
 use std::{fmt, collections::HashMap};
 
-use common::{BitArray,BitMatrix};
+use crate::common::{BitArray,BitMatrix};
+use crate::aztec::{AztecReader,AztecWriter};
+use crate::datamatrix::{DataMatrixReader,DataMatrixWriter};
+use crate::maxicode::DataMatrixReader;
+use crate::oned::MultiFormatOneDReader;
+use crate::pdf417::PDF417Reader;
+use crate::qrcode::QRCodeReader;
+
+use crate::oned::{CodaBarWriter,Code128Writer,Code39Writer,Code93Writer,EAN13Writer,EAN8Writer,ITFWriter,UPCAWriter,UPCEWriter};
+use crate::pdf417::PDF417Writer;
+use crate::qrcode::QRCodeWriter;
+
+use crate::common::detector::MathUtils;
 
 // BarcodeFormat.java
 
