@@ -1,4 +1,4 @@
-import com.google.zxing.XRingResult;
+use crate::XRingResult;
 
 // ParsedResultType.java
 /**
