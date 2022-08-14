@@ -1,3 +1,19 @@
+import com.google.zxing.FormatException;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.common.BitArray;
+
+import com.google.zxing.FormatException;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.common.BitArray;
+
+import com.google.zxing.NotFoundException;
+import com.google.zxing.common.BitArray;
+
+import com.google.zxing.FormatException;
+
+
+
+
 // NEW FILE: a_i013103decoder.rs
 /*
  * Copyright (C) 2010 ZXing authors
