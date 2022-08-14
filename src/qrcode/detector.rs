@@ -1,3 +1,32 @@
+import com.google.zxing.ResultPoint;
+
+import com.google.zxing.NotFoundException;
+import com.google.zxing.ResultPointCallback;
+import com.google.zxing.common.BitMatrix;
+
+import com.google.zxing.DecodeHintType;
+import com.google.zxing.FormatException;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.ResultPoint;
+import com.google.zxing.ResultPointCallback;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.common.DetectorResult;
+import com.google.zxing.common.GridSampler;
+import com.google.zxing.common.PerspectiveTransform;
+import com.google.zxing.common.detector.MathUtils;
+import com.google.zxing.qrcode.decoder.Version;
+
+import com.google.zxing.ResultPoint;
+
+
+import com.google.zxing.DecodeHintType;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.ResultPoint;
+import com.google.zxing.ResultPointCallback;
+import com.google.zxing.common.BitMatrix;
+
+
+
 // NEW FILE: alignment_pattern.rs
 /*
  * Copyright 2007 ZXing authors
