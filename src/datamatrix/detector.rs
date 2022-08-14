@@ -1,9 +1,6 @@
-import com.google.zxing.NotFoundException;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DetectorResult;
-import com.google.zxing.common.GridSampler;
-import com.google.zxing.common.detector.WhiteRectangleDetector;
+use crate::{NotFoundException,ResultPoint};
+use crate::common::{BitMatrix,DetectorResult,GridSampler};
+use crate::common::detector::WhiteRectangleDetector;
 
 // Detector.java
 /**

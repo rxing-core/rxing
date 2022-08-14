@@ -1,21 +1,7 @@
-//
+use crate::{FormatException,ChecksumException,FormatException};
+use crate::common::{BitMatrix,DecoderResult,BitSource,ECIStringBuilder};
+use crate::common::reedsolomon::{GenericGF,ReedSolomonDecoder,ReedSolomonException};
 
-import com.google.zxing.FormatException;
-
-import com.google.zxing.ChecksumException;
-import com.google.zxing.FormatException;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderResult;
-import com.google.zxing.common.reedsolomon.GenericGF;
-import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
-import com.google.zxing.common.reedsolomon.ReedSolomonException;
-import com.google.zxing.FormatException;
-import com.google.zxing.common.BitMatrix;
-
-import com.google.zxing.FormatException;
-import com.google.zxing.common.BitSource;
-import com.google.zxing.common.DecoderResult;
-import com.google.zxing.common.ECIStringBuilder;
 
 // BitMatrixParser.java
 /**

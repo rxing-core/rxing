@@ -1,13 +1,5 @@
-
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.common.BitMatrix;
-
-
-import com.google.zxing.ResultPoint;
-import com.google.zxing.common.BitMatrix;
+use crate::{BinaryBitmap,NotFoundException,DecodeHintType,ResultPoint};
+use crate::common::BitMatrix;
 
 // NEW FILE: detector.rs
 /*

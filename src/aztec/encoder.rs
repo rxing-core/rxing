@@ -1,5 +1,5 @@
 use crate::common::{BitArray,BitMatrix,CharacterSetECI};
-use crate::common::reedsolomon{GenericGF,ReedSolomonEncoder};
+use crate::common::reedsolomon::{GenericGF,ReedSolomonEncoder};
 
 // Token.java
 const EMPTY: Token = SimpleToken::new(null, 0, 0);

@@ -1,7 +1,5 @@
-import com.google.zxing.ChecksumException;
-
-import com.google.zxing.pdf417.PDF417Common;
-
+use crate::ChecksumException;
+use crate::pdf417::PDF417Common;
 
 
 

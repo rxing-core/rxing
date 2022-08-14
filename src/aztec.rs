@@ -8,7 +8,7 @@ use crate::{BarcodeFormat,BinaryBitmap,DecodeHintType,FormatException,NotFoundEx
 use crate::aztec::decoder::Decoder;
 use crate::aztec::detector::Detector;
 
-use crate::aztec::encoder{AztecCode,Encoder};
+use crate::aztec::encoder::{AztecCode,Encoder};
 
 
 // AztecDetectorResult.java

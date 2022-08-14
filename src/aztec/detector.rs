@@ -1,13 +1,8 @@
-import com.google.zxing.NotFoundException;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.aztec.AztecDetectorResult;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.GridSampler;
-import com.google.zxing.common.detector.MathUtils;
-import com.google.zxing.common.detector.WhiteRectangleDetector;
-import com.google.zxing.common.reedsolomon.GenericGF;
-import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
-import com.google.zxing.common.reedsolomon.ReedSolomonException;
+use crate::{NotFoundException,ResultPoint};
+use crate::aztec::AztecDetectorResult;
+use crate::common::{BitMatrix,GridSampler};
+use crate::common::detector::{MathUtils,WhiteRectangleDetector};
+use crate::common::reedsolomon::{GenericGF,ReedSolomonDecoder,ReedSolomonException};
 
 
 /**

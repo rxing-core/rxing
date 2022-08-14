@@ -1,15 +1,5 @@
-import com.google.zxing.FormatException;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.common.BitArray;
-
-import com.google.zxing.FormatException;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.common.BitArray;
-
-import com.google.zxing.NotFoundException;
-import com.google.zxing.common.BitArray;
-
-import com.google.zxing.FormatException;
+use crate::{FormatException,NotFoundException};
+use crate::common::BitArray;
 
 
 

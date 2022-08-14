@@ -1,10 +1,5 @@
-import com.google.zxing.WriterException;
-
-import com.google.zxing.WriterException;
-import com.google.zxing.common.CharacterSetECI;
-import com.google.zxing.common.ECIInput;
-import com.google.zxing.common.MinimalECIInput;
-
+use crate::{WriterException,};
+use crate::common::{CharacterSetECI,ECIInput,MinimalECIInput};
 
 
 // NEW FILE: barcode_matrix.rs

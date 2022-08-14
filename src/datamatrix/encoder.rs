@@ -1,5 +1,5 @@
-import com.google.zxing.Dimension;
-import com.google.zxing.common.MinimalECIInput;
+use crate::Dimension;
+use crate::common::MinimalECIInput;
 
 // ASCIIEncoder.java
 

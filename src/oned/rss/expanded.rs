@@ -1,22 +1,8 @@
-import com.google.zxing.common.BitArray;
+use crate::{BarcodeFormat,DecodeHintType,FormatException,NotFoundException,RXingResult,ResultMetadataType,ResultPoint};
+use crate::common::BitArray;
+use crate::oned::rss::{DataCharacter,FinderPattern,AbstractRSSReader,RSSUtils};
+use crate::oned::rss::expanded::decoders::AbstractExpandedDecoder;
 
-import com.google.zxing.oned.rss.DataCharacter;
-import com.google.zxing.oned.rss.FinderPattern;
-
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.FormatException;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.common.BitArray;
-import com.google.zxing.common.detector.MathUtils;
-import com.google.zxing.oned.rss.AbstractRSSReader;
-import com.google.zxing.oned.rss.DataCharacter;
-import com.google.zxing.oned.rss.FinderPattern;
-import com.google.zxing.oned.rss.RSSUtils;
-import com.google.zxing.oned.rss.expanded.decoders.AbstractExpandedDecoder;
 
 // NEW FILE: bit_array_builder.rs
 /*

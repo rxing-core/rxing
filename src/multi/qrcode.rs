@@ -1,5 +1,5 @@
 use crate::{BarcodeFormat,BinaryBitmap,DecodeHintType,NotFoundException,ReaderException,RXingResult,ResultMetadataType,ResultPoint};
-use crate::common{DecoderResult,DetectorResult};
+use crate::common::{DecoderResult,DetectorResult};
 use crate::multi::{MultipleBarcodeReader};
 use crate::multi::qrcode::detector::MultiDetector;
 use create::qrcode::{QRCodeReader};

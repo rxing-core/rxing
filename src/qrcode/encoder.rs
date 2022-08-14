@@ -1,30 +1,7 @@
-import com.google.zxing.EncodeHintType;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitArray;
-import com.google.zxing.common.StringUtils;
-import com.google.zxing.common.CharacterSetECI;
-import com.google.zxing.common.reedsolomon.GenericGF;
-import com.google.zxing.common.reedsolomon.ReedSolomonEncoder;
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
-import com.google.zxing.qrcode.decoder.Mode;
-import com.google.zxing.qrcode.decoder.Version;
-
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitArray;
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
-import com.google.zxing.qrcode.decoder.Version;
-
-import com.google.zxing.qrcode.decoder.Mode;
-import com.google.zxing.qrcode.decoder.Version;
-import com.google.zxing.common.BitArray;
-import com.google.zxing.common.ECIEncoderSet;
-import com.google.zxing.WriterException;
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
-
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
-import com.google.zxing.qrcode.decoder.Mode;
-import com.google.zxing.qrcode.decoder.Version;
-
+use crate::{EncodeHintType,WriterException,};
+use crate::common::{BitArray,StringUtils,CharacterSetECI,ECIEncoderSet,};
+use crate::common::reedsolmon::{GenericGF,ReedSolomonEncoder,};
+use crate::qrcode::decoder::{ErrorCorrectionLevel,Mode,Version,};
 
 // NEW FILE: block_pair.rs
 /*

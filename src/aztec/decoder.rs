@@ -1,11 +1,7 @@
-import com.google.zxing.FormatException;
-import com.google.zxing.aztec.AztecDetectorResult;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.CharacterSetECI;
-import com.google.zxing.common.DecoderResult;
-import com.google.zxing.common.reedsolomon.GenericGF;
-import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
-import com.google.zxing.common.reedsolomon.ReedSolomonException;
+use create::FormatException;
+use crate::aztec::AztecDetectorResult;
+use crate::common::{BitMatrix,CharacterSetECI,DecoderResult};
+use crate::common::reedsolomon::{GenericGF,ReedSolomonDecoder,ReedSolomonException};
 
 /**
  * <p>The main class which implements Aztec Code decoding -- as opposed to locating and extracting

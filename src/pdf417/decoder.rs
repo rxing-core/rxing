@@ -1,31 +1,9 @@
-import com.google.zxing.pdf417.PDF417Common;
+use crate::pdf417::decoder::ec::ErrorCorrection;
+use crate::common::detector::MathUtils;
+use crate::common::{BitMatrix,ECIStringBuilder,DecoderResult};
+use crate::{NotFoundException,ResultPoint,FormatException,ChecksumException,};
+use crate::pdf417::{PDF417Common,PDF417ResultMetadata};
 
-import com.google.zxing.NotFoundException;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.common.BitMatrix;
-
-import com.google.zxing.FormatException;
-import com.google.zxing.common.ECIStringBuilder;
-import com.google.zxing.common.DecoderResult;
-import com.google.zxing.pdf417.PDF417ResultMetadata;
-
-import com.google.zxing.pdf417.PDF417Common;
-
-import com.google.zxing.ResultPoint;
-import com.google.zxing.pdf417.PDF417Common;
-
-import com.google.zxing.common.detector.MathUtils;
-import com.google.zxing.pdf417.PDF417Common;
-
-import com.google.zxing.ChecksumException;
-import com.google.zxing.FormatException;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderResult;
-import com.google.zxing.common.detector.MathUtils;
-import com.google.zxing.pdf417.PDF417Common;
-import com.google.zxing.pdf417.decoder.ec.ErrorCorrection;
 
 // NEW FILE: barcode_metadata.rs
 /*

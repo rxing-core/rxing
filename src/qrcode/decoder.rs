@@ -1,34 +1,6 @@
-import com.google.zxing.FormatException;
-import com.google.zxing.common.BitMatrix;
-
-
-import com.google.zxing.common.BitMatrix;
-
-
-
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.FormatException;
-import com.google.zxing.common.BitSource;
-import com.google.zxing.common.CharacterSetECI;
-import com.google.zxing.common.DecoderResult;
-import com.google.zxing.common.StringUtils;
-
-
-import com.google.zxing.ChecksumException;
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.FormatException;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderResult;
-import com.google.zxing.common.reedsolomon.GenericGF;
-import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
-import com.google.zxing.common.reedsolomon.ReedSolomonException;
-
-
-import com.google.zxing.ResultPoint;
-
-
-import com.google.zxing.FormatException;
-import com.google.zxing.common.BitMatrix;
+use crate::{FormatException,DecodeHintType,ChecksumException,ResultPoint};
+use crate::comon::{BitMatrix,BitSource,CharacterSetECI,DecoderResult,StringUtils};
+use crate::common::reedsolomon::{GenericGF,ReedSolomonDecoder,ReedSolomonException};
 
 
 

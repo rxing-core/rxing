@@ -1,31 +1,10 @@
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.ChecksumException;
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.FormatException;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.Reader;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderResult;
-import com.google.zxing.common.DetectorResult;
-import com.google.zxing.datamatrix.decoder.Decoder;
-import com.google.zxing.datamatrix.detector.Detector;
+use crate::{BarcodeFormat,BinaryBitmap,DecodeHintType,ChecksumException,FormatException,NotFoundException,Reader,RXingResult,ResultMetadataType,ResultPoint,EncodeHintType,Writer,Dimension};
+use crate::common::{DecoderResult,BitMatrix,DetectorResult,};
+use crate::datamatrix::decoder::{Decoder};
+use crate::datamatrix::detector::{Detector};
+use crate::datamatrix::encoder::{DefaultPlacement,ErrorCorrection,HighLevelEncoder,MinimalEncoder,SymbolInfo,SymbolShapeHint};
+use crate::qrcode::encoder::ByteMatrix;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.EncodeHintType;
-import com.google.zxing.Writer;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.datamatrix.encoder.DefaultPlacement;
-import com.google.zxing.Dimension;
-import com.google.zxing.datamatrix.encoder.ErrorCorrection;
-import com.google.zxing.datamatrix.encoder.HighLevelEncoder;
-import com.google.zxing.datamatrix.encoder.MinimalEncoder;
-import com.google.zxing.datamatrix.encoder.SymbolInfo;
-import com.google.zxing.datamatrix.encoder.SymbolShapeHint;
-import com.google.zxing.qrcode.encoder.ByteMatrix;
 
 // DataMatrixReader.java
 /**
