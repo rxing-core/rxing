@@ -10,7 +10,8 @@ pub struct MathUtils {
 
 impl MathUtils {
 
-    fn new() -> MathUtils {
+    fn new() -> Self {
+        Self{}
     }
 
     /**
@@ -58,7 +59,7 @@ impl MathUtils {
    */
     pub fn  sum( array: &Vec<i32>) -> i32  {
          let mut count: i32 = 0;
-        for  let a: i32 in array {
+        for   a in array {
             count += a;
         }
         return count;
@@ -79,13 +80,13 @@ const MAX_MODULES: i32 = 32;
 #[deprecated]
 pub struct MonochromeRectangleDetector {
 
-     let image: BitMatrix;
+     image: BitMatrix
 }
 
 impl MonochromeRectangleDetector {
 
-    pub fn new( image: &BitMatrix) -> MonochromeRectangleDetector {
-        let .image = image;
+    pub fn new( image: &BitMatrix) -> Self {
+        Self{ image };
     }
 
     /**
@@ -119,8 +120,7 @@ impl MonochromeRectangleDetector {
         bottom = point_d.get_y() as i32 + 1;
         // Go try to find point A again with better information -- might have been off at first.
         point_a = self.find_corner_from_center(half_width, 0, left, right, half_height, -delta_y, top, bottom, half_width / 4);
-        return Ok( : vec![ResultPoint; 4] = vec![point_a, point_b, point_c, point_d, ]
-        );
+        return Ok(  vec![point_a, point_b, point_c, point_d, ]);
     }
 
     /**
@@ -141,10 +141,11 @@ impl MonochromeRectangleDetector {
    * @return a {@link ResultPoint} encapsulating the corner that was found
    * @throws NotFoundException if such a point cannot be found
    */
-    fn  find_corner_from_center(&self,  center_x: i32,  delta_x: i32,  left: i32,  right: i32,  center_y: i32,  delta_y: i32,  top: i32,  bottom: i32,  max_white_run: i32) -> /*  throws NotFoundException */Result<ResultPoint, Rc<Exception>>   {
+    fn  find_corner_from_center(&self,  center_x: i32,  delta_x: i32,  left: i32,  right: i32,  center_y: i32,  delta_y: i32,  top: i32,  bottom: i32,  max_white_run: i32) -> Result<ResultPoint, NotFoundException>   {
          let last_range: Vec<i32> = null;
          {
-             let mut y: i32 = center_y, let mut x: i32 = center_x;
+             let mut y: i32 = center_y;
+              let mut x: i32 = center_x;
             while y < bottom && y >= top && x < right && x >= left {
                 {
                      let mut range: Vec<i32>;
@@ -157,7 +158,7 @@ impl MonochromeRectangleDetector {
                     }
                     if range == null {
                         if last_range == null {
-                            throw NotFoundException::get_not_found_instance();
+                            return Err( NotFoundException::get_not_found_instance());
                         }
                         // lastRange was found
                         if delta_x == 0 {
@@ -190,7 +191,7 @@ impl MonochromeRectangleDetector {
              }
          }
 
-        throw NotFoundException::get_not_found_instance();
+        return Err( NotFoundException::get_not_found_instance());
     }
 
     /**
@@ -218,7 +219,9 @@ impl MonochromeRectangleDetector {
                  let white_run_start: i32 = start;
                 loop { {
                     start -= 1;
-                }if !(start >= min_dim && !( if horizontal { self.image.get(start, fixed_dimension) } else { self.image.get(fixed_dimension, start) })) break;}
+                }if !(start >= min_dim && !( if horizontal { self.image.get(start, fixed_dimension) } else { self.image.get(fixed_dimension, start) })) {
+                    break;
+                } }
                  let white_run_size: i32 = white_run_start - start;
                 if start < min_dim || white_run_size > max_white_run {
                     start = white_run_start;
@@ -236,7 +239,7 @@ impl MonochromeRectangleDetector {
                  let white_run_start: i32 = end;
                 loop { {
                     end += 1;
-                }if !(end < max_dim && !( if horizontal { self.image.get(end, fixed_dimension) } else { self.image.get(fixed_dimension, end) })) break;}
+                }if !(end < max_dim && !( if horizontal { self.image.get(end, fixed_dimension) } else { self.image.get(fixed_dimension, end) })) {break;}}
                  let white_run_size: i32 = end - white_run_start;
                 if end >= max_dim || white_run_size > max_white_run {
                     end = white_run_start;
@@ -245,7 +248,7 @@ impl MonochromeRectangleDetector {
             }
         }
         end -= 1;
-        return  if end > start {  : vec![i32; 2] = vec![start, end, ]
+        return  if end > start {   vec![start, end, ]
          } else { null };
     }
 }
@@ -267,24 +270,24 @@ const INIT_SIZE: i32 = 10;
 const CORR: i32 = 1;
 pub struct WhiteRectangleDetector {
 
-    let image: BitMatrix;
+     image: BitMatrix,
 
-    let mut height: i32;
+     height: i32,
 
-    let mut width: i32;
+     width: i32,
 
-    let left_init: i32;
+     left_init: i32,
 
-    let right_init: i32;
+     right_init: i32,
 
-    let down_init: i32;
+     down_init: i32,
 
-    let up_init: i32;
+     up_init: i32
 }
 
 impl WhiteRectangleDetector {
 
-   pub fn new( image: &BitMatrix) -> WhiteRectangleDetector throws NotFoundException {
+   pub fn new( image: &BitMatrix) -> Result<Self, NotFoundException> {
        this(image, INIT_SIZE, image.get_width() / 2, image.get_height() / 2);
    }
 
@@ -295,18 +298,20 @@ impl WhiteRectangleDetector {
   * @param y y position of search center
   * @throws NotFoundException if image is too small to accommodate {@code initSize}
   */
-   pub fn new( image: &BitMatrix,  init_size: i32,  x: i32,  y: i32) -> WhiteRectangleDetector throws NotFoundException {
-       let .image = image;
-       height = image.get_height();
-       width = image.get_width();
+   pub fn new( image: &BitMatrix,  init_size: i32,  x: i32,  y: i32) -> Result<Self,NotFoundException>  {
+    let mut new_wrd : Self;   
+    new_wrd .image = image;
+    new_wrd.height = image.get_height();
+    new_wrd.width = image.get_width();
         let halfsize: i32 = init_size / 2;
-       left_init = x - halfsize;
-       right_init = x + halfsize;
-       up_init = y - halfsize;
-       down_init = y + halfsize;
+        new_wrd.left_init = x - halfsize;
+        new_wrd.right_init = x + halfsize;
+        new_wrd.up_init = y - halfsize;
+        new_wrd.down_init = y + halfsize;
        if up_init < 0 || left_init < 0 || down_init >= height || right_init >= width {
-           throw NotFoundException::get_not_found_instance();
+           return Err( NotFoundException::get_not_found_instance());
        }
+       Ok(new_wrd)
    }
 
    /**
@@ -323,7 +328,7 @@ impl WhiteRectangleDetector {
   *         leftmost and the third, the rightmost
   * @throws NotFoundException if no Data Matrix Code can be found
   */
-   pub fn  detect(&self) -> /*  throws NotFoundException */Result<Vec<ResultPoint>, Rc<Exception>>   {
+   pub fn  detect(&self) -> Result<Vec<ResultPoint>, NotFoundException>   {
         let mut left: i32 = self.left_init;
         let mut right: i32 = self.right_init;
         let mut up: i32 = self.up_init;
@@ -423,7 +428,7 @@ impl WhiteRectangleDetector {
             }
 
            if z == null {
-               throw NotFoundException::get_not_found_instance();
+               return Err( NotFoundException::get_not_found_instance());
            }
             let mut t: ResultPoint = null;
            //go down right
@@ -438,7 +443,7 @@ impl WhiteRectangleDetector {
             }
 
            if t == null {
-               throw NotFoundException::get_not_found_instance();
+               return Err( NotFoundException::get_not_found_instance());
            }
             let mut x: ResultPoint = null;
            //go down left
@@ -453,7 +458,7 @@ impl WhiteRectangleDetector {
             }
 
            if x == null {
-               throw NotFoundException::get_not_found_instance();
+               return Err( NotFoundException::get_not_found_instance());
            }
             let mut y: ResultPoint = null;
            //go up left
@@ -468,11 +473,11 @@ impl WhiteRectangleDetector {
             }
 
            if y == null {
-               throw NotFoundException::get_not_found_instance();
+               return Err( NotFoundException::get_not_found_instance());
            }
            return Ok(self.center_edges(y, z, x, t));
        } else {
-           throw NotFoundException::get_not_found_instance();
+           return Err( NotFoundException::get_not_found_instance());
        }
    }
 
@@ -526,10 +531,10 @@ impl WhiteRectangleDetector {
         let ti: f32 = t.get_x();
         let tj: f32 = t.get_y();
        if yi < self.width / 2.0f {
-           return  : vec![ResultPoint; 4] = vec![ResultPoint::new(ti - CORR, tj + CORR), ResultPoint::new(zi + CORR, zj + CORR), ResultPoint::new(xi - CORR, xj - CORR), ResultPoint::new(yi + CORR, yj - CORR), ]
+           return   vec![ResultPoint::new(ti - CORR, tj + CORR), ResultPoint::new(zi + CORR, zj + CORR), ResultPoint::new(xi - CORR, xj - CORR), ResultPoint::new(yi + CORR, yj - CORR), ]
            ;
        } else {
-           return  : vec![ResultPoint; 4] = vec![ResultPoint::new(ti + CORR, tj + CORR), ResultPoint::new(zi + CORR, zj - CORR), ResultPoint::new(xi - CORR, xj + CORR), ResultPoint::new(yi - CORR, yj - CORR), ]
+           return   vec![ResultPoint::new(ti + CORR, tj + CORR), ResultPoint::new(zi + CORR, zj - CORR), ResultPoint::new(xi - CORR, xj + CORR), ResultPoint::new(yi - CORR, yj - CORR), ]
            ;
        }
    }
