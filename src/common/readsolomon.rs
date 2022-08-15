@@ -10,9 +10,9 @@
  */
 struct GenericGFPoly {
 
-    let field: GenericGF;
+     field: GenericGF,
 
-    let coefficients: Vec<i32>;
+     coefficients: Vec<i32>
 }
 
 impl GenericGFPoly {
@@ -26,11 +26,12 @@ impl GenericGFPoly {
   * or if leading coefficient is 0 and this is not a
   * constant polynomial (that is, it is not the monomial "0")
   */
-   fn new( field: &GenericGF,  coefficients: &Vec<i32>) -> GenericGFPoly {
-       if coefficients.len() == 0 {
-           throw IllegalArgumentException::new();
+   fn new( field: &GenericGF,  coefficients: &Vec<i32>) -> Result<Self,IllegalArgumentException> {
+    let mut new_poly: GenericGFPoly;
+    if coefficients.len() == 0 {
+           return Err(IllegalArgumentException::new());
        }
-       let .field = field;
+       new_poly.field = field;
         let coefficients_length: i32 = coefficients.len();
        if coefficients_length > 1 && coefficients[0] == 0 {
            // Leading term must be non-zero for anything except the constant polynomial "0"
@@ -39,15 +40,15 @@ impl GenericGFPoly {
                first_non_zero += 1;
            }
            if first_non_zero == coefficients_length {
-               let .coefficients =  : vec![i32; 1] = vec![0, ]
-               ;
+               new_poly.coefficients = vec![0, ];
            } else {
-               let .coefficients = : [i32; coefficients_length - first_non_zero] = [0; coefficients_length - first_non_zero];
-               System::arraycopy(&coefficients, first_non_zero, let .coefficients, 0, let .coefficients.len());
+               new_poly.coefficients = coefficients;
+               //System::arraycopy(&coefficients, first_non_zero, let .coefficients, 0, let .coefficients.len());
            }
        } else {
-           let .coefficients = coefficients;
+           new_poly.coefficients = coefficients;
        }
+       Ok(new_poly)
    }
 
    fn  get_coefficients(&self) -> Vec<i32>  {
@@ -86,7 +87,7 @@ impl GenericGFPoly {
        if a == 1 {
            // Just the sum of the coefficients
             let mut result: i32 = 0;
-           for  let coefficient: i32 in self.coefficients {
+           for  coefficient in self.coefficients {
                result = GenericGF::add_or_subtract(result, coefficient);
            }
            return result;
@@ -106,9 +107,9 @@ impl GenericGFPoly {
        return result;
    }
 
-   fn  add_or_subtract(&self,  other: &GenericGFPoly) -> GenericGFPoly  {
+   fn  add_or_subtract(&self,  other: &GenericGFPoly) -> Result<GenericGFPoly,IllegalArgumentException>  {
        if !self.field.equals(other.field) {
-           throw IllegalArgumentException::new("GenericGFPolys do not have same GenericGF field");
+           return Err( IllegalArgumentException::new("GenericGFPolys do not have same GenericGF field") );
        }
        if self.is_zero() {
            return other;
@@ -140,9 +141,9 @@ impl GenericGFPoly {
        return GenericGFPoly::new(self.field, &sum_diff);
    }
 
-   fn  multiply(&self,  other: &GenericGFPoly) -> GenericGFPoly  {
+   fn  multiply(&self,  other: &GenericGFPoly) -> Result<GenericGFPoly,IllegalArgumentException>  {
        if !self.field.equals(other.field) {
-           throw IllegalArgumentException::new("GenericGFPolys do not have same GenericGF field");
+           return Err(IllegalArgumentException::new("GenericGFPolys do not have same GenericGF field"));
        }
        if self.is_zero() || other.is_zero() {
            return self.field.get_zero();
@@ -197,9 +198,9 @@ impl GenericGFPoly {
        return GenericGFPoly::new(self.field, &product);
    }
 
-   fn  multiply_by_monomial(&self,  degree: i32,  coefficient: i32) -> GenericGFPoly  {
+   fn  multiply_by_monomial(&self,  degree: i32,  coefficient: i32) -> Result<GenericGFPoly,IllegalArgumentException>  {
        if degree < 0 {
-           throw IllegalArgumentException::new();
+           return Err( IllegalArgumentException::new());
        }
        if coefficient == 0 {
            return self.field.get_zero();
@@ -219,12 +220,12 @@ impl GenericGFPoly {
        return GenericGFPoly::new(self.field, &product);
    }
 
-   fn  divide(&self,  other: &GenericGFPoly) -> Vec<GenericGFPoly>  {
+   fn  divide(&self,  other: &GenericGFPoly) -> Result<Vec<GenericGFPoly>,IllegalArgumentException>  {
        if !self.field.equals(other.field) {
-           throw IllegalArgumentException::new("GenericGFPolys do not have same GenericGF field");
+           return Err( IllegalArgumentException::new("GenericGFPolys do not have same GenericGF field"));
        }
        if other.is_zero() {
-           throw IllegalArgumentException::new("Divide by 0");
+           return Err( IllegalArgumentException::new("Divide by 0"));
        }
         let mut quotient: GenericGFPoly = self.field.get_zero();
         let mut remainder: GenericGFPoly = self;
@@ -238,7 +239,7 @@ impl GenericGFPoly {
            quotient = quotient.add_or_subtract(iteration_quotient);
            remainder = remainder.add_or_subtract(term);
        }
-       return  : vec![GenericGFPoly; 2] = vec![quotient, remainder, ]
+       return  vec![quotient, remainder, ]
        ;
    }
 
@@ -328,21 +329,22 @@ const AZTEC_DATA_12: GenericGF = GenericGF::new(0x1069, 4096, 1);
  const AZTEC_DATA_8: GenericGF = DATA_MATRIX_FIELD_256;
 
  const MAXICODE_FIELD_64: GenericGF = AZTEC_DATA_6;
+
 pub struct GenericGF {
 
-     let exp_table: Vec<i32>;
+      exp_table: Vec<i32>,
 
-     let log_table: Vec<i32>;
+      log_table: Vec<i32>,
 
-     let mut zero: GenericGFPoly;
+       zero: GenericGFPoly,
 
-     let mut one: GenericGFPoly;
+      one: GenericGFPoly,
 
-     let size: i32;
+      size: i32,
 
-     let primitive: i32;
+      primitive: i32,
 
-     let generator_base: i32;
+      generator_base: i32
 }
 
 impl GenericGF {
@@ -358,12 +360,13 @@ impl GenericGF {
    *  (g(x) = (x+a^b)(x+a^(b+1))...(x+a^(b+2t-1))).
    *  In most cases it should be 1, but for QR code it is 0.
    */
-    pub fn new( primitive: i32,  size: i32,  b: i32) -> GenericGF {
-        let .primitive = primitive;
-        let .size = size;
-        let .generatorBase = b;
-        exp_table = : [i32; size] = [0; size];
-        log_table = : [i32; size] = [0; size];
+    pub fn new( primitive: i32,  size: i32,  b: i32) -> Self {
+        let mut new_generic_gf : GenericGF;
+        new_generic_gf .primitive = primitive;
+        new_generic_gf .size = size;
+        new_generic_gf .generatorBase = b;
+        exp_table   = [0; size];
+        log_table   = [0; size];
          let mut x: i32 = 1;
          {
              let mut i: i32 = 0;
@@ -392,10 +395,10 @@ impl GenericGF {
          }
 
         // logTable[0] == 0 but this should never be used
-        zero = GenericGFPoly::new(let ,  : vec![i32; 1] = vec![0, ]
-        );
-        one = GenericGFPoly::new(let ,  : vec![i32; 1] = vec![1, ]
-        );
+        new_generic_gf.zero = GenericGFPoly::new( vec![0, ]);
+        new_generic_gf.one = GenericGFPoly::new( vec![1, ]);
+
+        new_generic_gf
     }
 
     fn  get_zero(&self) -> GenericGFPoly  {
@@ -409,9 +412,9 @@ impl GenericGF {
     /**
    * @return the monomial representing coefficient * x^degree
    */
-    fn  build_monomial(&self,  degree: i32,  coefficient: i32) -> GenericGFPoly  {
+    fn  build_monomial(&self,  degree: i32,  coefficient: i32) -> Result<GenericGFPoly,IllegalArgumentException>  {
         if degree < 0 {
-            throw IllegalArgumentException::new();
+            return Err( IllegalArgumentException::new());
         }
         if coefficient == 0 {
             return self.zero;
@@ -440,9 +443,9 @@ impl GenericGF {
     /**
    * @return base 2 log of a in GF(size)
    */
-    fn  log(&self,  a: i32) -> i32  {
+    fn  log(&self,  a: i32) -> Result<i32,IllegalArgumentException>  {
         if a == 0 {
-            throw IllegalArgumentException::new();
+            return Err( IllegalArgumentException::new());
         }
         return self.log_table[a];
     }
@@ -450,9 +453,9 @@ impl GenericGF {
     /**
    * @return multiplicative inverse of a
    */
-    fn  inverse(&self,  a: i32) -> i32  {
+    fn  inverse(&self,  a: i32) -> Result<i32,ArithmeticException>  {
         if a == 0 {
-            throw ArithmeticException::new();
+            return Err( ArithmeticException::new());
         }
         return self.exp_table[self.size - self.log_table[a] - 1];
     }
@@ -505,13 +508,13 @@ impl GenericGF {
  */
 pub struct ReedSolomonDecoder {
 
-    let field: GenericGF;
+    field: GenericGF
 }
 
 impl ReedSolomonDecoder {
 
-   pub fn new( field: &GenericGF) -> ReedSolomonDecoder {
-       let .field = field;
+   pub fn new( field: &GenericGF) -> Self {
+       Self{ field }
    }
 
    /**
@@ -523,7 +526,7 @@ impl ReedSolomonDecoder {
   * @param twoS number of error-correction codewords available
   * @throws ReedSolomonException if decoding fails for any reason
   */
-   pub fn  decode(&self,  received: &Vec<i32>,  two_s: i32)  -> /*  throws ReedSolomonException */Result<Void, Rc<Exception>>   {
+   pub fn  decode(&self,  received: &Vec<i32>,  two_s: i32)  -> Result<_, ReedSolomonException>   {
         let poly: GenericGFPoly = GenericGFPoly::new(self.field, &received);
         let syndrome_coefficients: [i32; two_s] = [0; two_s];
         let no_error: bool = true;
@@ -556,7 +559,7 @@ impl ReedSolomonDecoder {
                {
                     let mut position: i32 = received.len() - 1 - self.field.log(error_locations[i]);
                    if position < 0 {
-                       throw ReedSolomonException::new("Bad error location");
+                       return Err( ReedSolomonException::new("Bad error location"));
                    }
                    received[position] = GenericGF::add_or_subtract(received[position], error_magnitudes[i]);
                }
@@ -566,7 +569,7 @@ impl ReedSolomonDecoder {
 
    }
 
-   fn  run_euclidean_algorithm(&self,  a: &GenericGFPoly,  b: &GenericGFPoly,  R: i32) -> /*  throws ReedSolomonException */Result<Vec<GenericGFPoly>, Rc<Exception>>   {
+   fn  run_euclidean_algorithm(&self,  a: &GenericGFPoly,  b: &GenericGFPoly,  R: i32) -> Result<Vec<GenericGFPoly>, ReedSolomonException+IllegalStateException>   {
        // Assume a's degree is >= b's
        if a.get_degree() < b.get_degree() {
             let temp: GenericGFPoly = a;
@@ -586,7 +589,7 @@ impl ReedSolomonDecoder {
            // Divide rLastLast by rLast, with quotient in q and remainder in r
            if r_last.is_zero() {
                // Oops, Euclidean algorithm already terminated?
-               throw ReedSolomonException::new("r_{i-1} was zero");
+               return Err( ReedSolomonException::new("r_{i-1} was zero"));
            }
            r = r_last_last;
             let mut q: GenericGFPoly = self.field.get_zero();
@@ -600,27 +603,25 @@ impl ReedSolomonDecoder {
            }
            t = q.multiply(t_last).add_or_subtract(t_last_last);
            if r.get_degree() >= r_last.get_degree() {
-               throw IllegalStateException::new(format!("Division algorithm failed to reduce polynomial? r: {}, rLast: {}", r, r_last));
+               return Err( IllegalStateException::new(format!("Division algorithm failed to reduce polynomial? r: {}, rLast: {}", r, r_last)));
            }
        }
         let sigma_tilde_at_zero: i32 = t.get_coefficient(0);
        if sigma_tilde_at_zero == 0 {
-           throw ReedSolomonException::new("sigmaTilde(0) was zero");
+           return Err( ReedSolomonException::new("sigmaTilde(0) was zero"));
        }
         let inverse: i32 = self.field.inverse(sigma_tilde_at_zero);
         let sigma: GenericGFPoly = t.multiply(inverse);
         let omega: GenericGFPoly = r.multiply(inverse);
-       return Ok( : vec![GenericGFPoly; 2] = vec![sigma, omega, ]
-       );
+       return Ok(  vec![sigma, omega, ]);
    }
 
-   fn  find_error_locations(&self,  error_locator: &GenericGFPoly) -> /*  throws ReedSolomonException */Result<Vec<i32>, Rc<Exception>>   {
+   fn  find_error_locations(&self,  error_locator: &GenericGFPoly) -> Result<Vec<i32>, ReedSolomonException>   {
        // This is a direct application of Chien's search
         let num_errors: i32 = error_locator.get_degree();
        if num_errors == 1 {
            // shortcut
-           return Ok( : vec![i32; 1] = vec![error_locator.get_coefficient(1), ]
-           );
+           return Ok(  vec![error_locator.get_coefficient(1), ]);
        }
         let mut result: [i32; num_errors] = [0; num_errors];
         let mut e: i32 = 0;
@@ -638,7 +639,7 @@ impl ReedSolomonDecoder {
         }
 
        if e != num_errors {
-           throw ReedSolomonException::new("Error locator degree does not match number of roots");
+           return Err( ReedSolomonException::new("Error locator degree does not match number of roots"));
        }
        return Ok(result);
    }
@@ -663,7 +664,7 @@ impl ReedSolomonDecoder {
                                    // Above should work but fails on some Apple and Linux JDKs due to a Hotspot bug.
                                    // Below is a funny-looking workaround from Steven Parkes
                                     let term: i32 = self.field.multiply(error_locations[j], xi_inverse);
-                                    let term_plus1: i32 =  if (term & 0x1) == 0 { term | 1 } else { term & ~1 };
+                                    let term_plus1: i32 =  if (term & 0x1) == 0 { term | 1 } else { term & 1 };
                                    denominator = self.field.multiply(denominator, term_plus1);
                                }
                            }
@@ -693,18 +694,19 @@ impl ReedSolomonDecoder {
  */
 pub struct ReedSolomonEncoder {
 
-    let field: GenericGF;
+    field: GenericGF,
 
-    let cached_generators: List<GenericGFPoly>;
+     cached_generators: Vector<GenericGFPoly>
 }
 
 impl ReedSolomonEncoder {
 
-   pub fn new( field: &GenericGF) -> ReedSolomonEncoder {
-       let .field = field;
-       let .cachedGenerators = ArrayList<>::new();
-       cached_generators.add(GenericGFPoly::new(field,  : vec![i32; 1] = vec![1, ]
-       ));
+   pub fn new( field: &GenericGF) -> Self {
+    let mut new_rse;
+    new_rse .field = field;
+    new_rse .cachedGenerators = Vector::new();
+       cached_generators.add(GenericGFPoly::new(field, vec![1, ]));
+       new_rse
    }
 
    fn  build_generator(&self,  degree: i32) -> GenericGFPoly  {
@@ -714,8 +716,7 @@ impl ReedSolomonEncoder {
                 let mut d: i32 = self.cached_generators.size();
                while d <= degree {
                    {
-                        let next_generator: GenericGFPoly = last_generator.multiply(GenericGFPoly::new(self.field,  : vec![i32; 2] = vec![1, self.field.exp(d - 1 + self.field.get_generator_base()), ]
-                       ));
+                        let next_generator: GenericGFPoly = last_generator.multiply(GenericGFPoly::new(self.field,   vec![1, self.field.exp(d - 1 + self.field.get_generator_base()), ]));
                        self.cached_generators.add(next_generator);
                        last_generator = next_generator;
                    }
@@ -727,13 +728,13 @@ impl ReedSolomonEncoder {
        return self.cached_generators.get(degree);
    }
 
-   pub fn  encode(&self,  to_encode: &Vec<i32>,  ec_bytes: i32)   {
+   pub fn  encode(&self,  to_encode: &Vec<i32>,  ec_bytes: i32) -> Result<_,IllegalArgumentException>  {
        if ec_bytes == 0 {
-           throw IllegalArgumentException::new("No error correction bytes");
+           return Err( IllegalArgumentException::new("No error correction bytes"));
        }
         let data_bytes: i32 = to_encode.len() - ec_bytes;
        if data_bytes <= 0 {
-           throw IllegalArgumentException::new("No data bytes provided");
+           return Err( IllegalArgumentException::new("No data bytes provided"));
        }
         let generator: GenericGFPoly = self.build_generator(ec_bytes);
         let info_coefficients: [i32; data_bytes] = [0; data_bytes];
@@ -765,12 +766,12 @@ impl ReedSolomonEncoder {
  * @author Sean Owen
  */
 pub struct ReedSolomonException {
-    super: Exception;
+    message: String
 }
 
 impl ReedSolomonException {
 
-    pub fn new( message: &String) -> ReedSolomonException {
-        super(&message);
+    pub fn new( message: &String) -> Self {
+        ReedSolomonException{message}
     }
 }

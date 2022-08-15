@@ -108,7 +108,7 @@ pub trait ECIInput {
  * @author Sean Owen
  */
 
-let grid_sampler: GridSampler = DefaultGridSampler::new();
+let grid_sampler: dyn GridSampler = DefaultGridSampler::new();
 pub struct GridSampler {
 }
 
