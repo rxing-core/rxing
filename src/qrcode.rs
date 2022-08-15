@@ -1,29 +1,8 @@
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.ChecksumException;
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.FormatException;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.Reader;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderResult;
-import com.google.zxing.common.DetectorResult;
-import com.google.zxing.qrcode.decoder.Decoder;
-import com.google.zxing.qrcode.decoder.QRCodeDecoderMetaData;
-import com.google.zxing.qrcode.detector.Detector;
-
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.EncodeHintType;
-import com.google.zxing.Writer;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.encoder.ByteMatrix;
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
-import com.google.zxing.qrcode.encoder.Encoder;
-import com.google.zxing.qrcode.encoder.QRCode;
+use crate::{BarcodeFormat,BinaryBitmap,ChecksumException,DecodeHintType,FormatException,NotFoundException,Reader,XRingResult,ResultMetadataType,ResultPoint,EncodeHintType,Writer,WriterException,};
+use crate::common::{BitMatrix,DecoderResult,DetectorResult,};
+use crate::qrcode::decoder::{Decoder,QRCodeDecoderMetaData};
+use crate::qrcode::detector::{Detector};
+use crate::qrcode::encoder::{ByteMatrix,ErrorCorrectionLevel,Encoder,QRCode};
 
 // NEW FILE: q_r_code_reader.rs
 /*

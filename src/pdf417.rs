@@ -1,27 +1,9 @@
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.ChecksumException;
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.FormatException;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.Reader;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.common.DecoderResult;
-import com.google.zxing.multi.MultipleBarcodeReader;
-import com.google.zxing.pdf417.decoder.PDF417ScanningDecoder;
-import com.google.zxing.pdf417.detector.Detector;
-import com.google.zxing.pdf417.detector.PDF417DetectorResult;
-
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.EncodeHintType;
-import com.google.zxing.Writer;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.pdf417.encoder.Compaction;
-import com.google.zxing.pdf417.encoder.Dimensions;
-import com.google.zxing.pdf417.encoder.PDF417;
+use crate::{BarcodeFormat,BinaryBitmap,ChecksumException,DecodeHintType,FormatException,NotFoundException,Reader,XRingResult,ResultMetadataType,ResultPoint,EncodeHintType,Writer,WriterException,};
+use crate::common::{DecoderResult,BitMatrix};
+use crate::multi::{MultipleBarcodeReader};
+use crate::pdf417::decoder::PDF417ScanningDecoder;
+use crate::pdf417::detector::{Detector,PDF417DetectorResult};
+use crate::pdf417::encoder::{Compaction,Dimensions,PDF417};
 
 // NEW FILE: p_d_f417_common.rs
 /*
