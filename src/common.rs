@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{Binarizer,LuminanceSource,NotFoundException,FormatException,NotFoundException,Binarizer,ResultPoint};
 
 // ECIInput.java
@@ -108,11 +110,16 @@ pub trait ECIInput {
  * @author Sean Owen
  */
 
-let grid_sampler: dyn GridSampler = DefaultGridSampler::new();
+//let grid_sampler: dyn GridSampler = DefaultGridSampler::new();
 pub struct GridSampler {
+    grid_sampler: dyn GridSampler
 }
 
 impl GridSampler {
+
+    pub fn new() -> Self {
+        Self { grid_sampler: DefaultGridSampler::new() }
+    }
 
     /**
    * Sets the implementation of GridSampler used by the library. One global
@@ -163,7 +170,7 @@ impl GridSampler {
    * @throws NotFoundException if image can't be sampled, for example, if the transformation defined
    *   by the given points is invalid or results in sampling outside the image boundaries
    */
-    pub fn  sample_grid(&self,  image: &BitMatrix,  dimension_x: i32,  dimension_y: i32,  p1_to_x: f32,  p1_to_y: f32,  p2_to_x: f32,  p2_to_y: f32,  p3_to_x: f32,  p3_to_y: f32,  p4_to_x: f32,  p4_to_y: f32,  p1_from_x: f32,  p1_from_y: f32,  p2_from_x: f32,  p2_from_y: f32,  p3_from_x: f32,  p3_from_y: f32,  p4_from_x: f32,  p4_from_y: f32) -> /*  throws NotFoundException */Result<BitMatrix, Rc<Exception>>  ;
+    pub fn  sample_grid(&self,  image: &BitMatrix,  dimension_x: i32,  dimension_y: i32,  p1_to_x: f32,  p1_to_y: f32,  p2_to_x: f32,  p2_to_y: f32,  p3_to_x: f32,  p3_to_y: f32,  p4_to_x: f32,  p4_to_y: f32,  p1_from_x: f32,  p1_from_y: f32,  p2_from_x: f32,  p2_from_y: f32,  p3_from_x: f32,  p3_from_y: f32,  p4_from_x: f32,  p4_from_y: f32) -> Result<BitMatrix, NotFoundException>  ;
 
     pub fn  sample_grid(&self,  image: &BitMatrix,  dimension_x: i32,  dimension_y: i32,  transform: &PerspectiveTransform) -> /*  throws NotFoundException */Result<BitMatrix, Rc<Exception>>  ;
 
@@ -182,7 +189,7 @@ impl GridSampler {
    * @param points actual points in x1,y1,...,xn,yn form
    * @throws NotFoundException if an endpoint is lies outside the image boundaries
    */
-    pub fn  check_and_nudge_points( image: &BitMatrix,  points: &Vec<f32>)  -> /*  throws NotFoundException */Result<Void, Rc<Exception>>   {
+    pub fn  check_and_nudge_points( image: &BitMatrix,  points: &Vec<f32>)  -> Result<(), NotFoundException>   {
          let width: i32 = image.get_width();
          let height: i32 = image.get_height();
         // Check and nudge points from start until we see some that are OK:
@@ -196,7 +203,7 @@ impl GridSampler {
                      let x: i32 = points[offset] as i32;
                      let y: i32 = points[offset + 1] as i32;
                     if x < -1 || x > width || y < -1 || y > height {
-                        throw NotFoundException::get_not_found_instance();
+                        return Err( NotFoundException::get_not_found_instance());
                     }
                     nudged = false;
                     if x == -1 {
@@ -227,7 +234,7 @@ impl GridSampler {
                      let x: i32 = points[offset] as i32;
                      let y: i32 = points[offset + 1] as i32;
                     if x < -1 || x > width || y < -1 || y > height {
-                        throw NotFoundException::get_not_found_instance();
+                        return Err( NotFoundException::get_not_found_instance());
                     }
                     nudged = false;
                     if x == -1 {
@@ -248,6 +255,8 @@ impl GridSampler {
                 offset -= 2;
              }
          }
+
+         Ok(())
 
     }
 }
@@ -273,20 +282,20 @@ const LUMINANCE_BUCKETS: i32 = 1 << LUMINANCE_BITS;
 
 const EMPTY: [i8; 0] = [0; 0];
 pub struct GlobalHistogramBinarizer {
-   super: Binarizer;
+   //super: Binarizer;
 
-    let mut luminances: Vec<i8>;
+     luminances: Vec<i8>,
 
-    let mut buckets: Vec<i32>;
+     buckets: Vec<i32>
 }
 
 impl Binarizer for GlobalHistogramBinarizer {
     // Applies simple sharpening to the row data to improve performance of the 1D Readers.
-   pub fn  get_black_row(&self,  y: i32,  row: &BitArray) -> /*  throws NotFoundException */Result<BitArray, Rc<Exception>>   {
+    fn  get_black_row(&self,  y: i32,  row: &BitArray) -> Result<BitArray, NotFoundException>   {
     let source: LuminanceSource = get_luminance_source();
     let width: i32 = source.get_width();
    if row == null || row.get_size() < width {
-       row = BitArray::new(width);
+       row = &BitArray::new(None, Some(width));
    } else {
        row.clear();
    }
@@ -342,11 +351,11 @@ impl Binarizer for GlobalHistogramBinarizer {
 }
 
 // Does not sharpen the data, as this call is intended to only be used by 2D Readers.
-pub fn  get_black_matrix(&self) -> /*  throws NotFoundException */Result<BitMatrix, Rc<Exception>>   {
+ fn  get_black_matrix(&self) -> /*  throws NotFoundException */Result<BitMatrix, Rc<Exception>>   {
     let source: LuminanceSource = get_luminance_source();
     let width: i32 = source.get_width();
     let height: i32 = source.get_height();
-    let matrix: BitMatrix = BitMatrix::new(width, height);
+    let matrix: BitMatrix = BitMatrix::new(width, height, None, None);
    // Quickly calculates the histogram by sampling four rows from the image. This proved to be
    // more robust on the blackbox tests than sampling a diagonal as we used to do.
    self.init_arrays(width);
@@ -405,7 +414,7 @@ pub fn  get_black_matrix(&self) -> /*  throws NotFoundException */Result<BitMatr
    return Ok(matrix);
 }
 
-pub fn  create_binarizer(&self,  source: &LuminanceSource) -> Binarizer  {
+ fn  create_binarizer(&self,  source: &LuminanceSource) -> Binarizer  {
    return GlobalHistogramBinarizer::new(source);
 }
 }
@@ -415,12 +424,12 @@ impl GlobalHistogramBinarizer {
    pub fn new( source: &LuminanceSource) -> GlobalHistogramBinarizer {
        super(source);
        luminances = EMPTY;
-       buckets = : [i32; LUMINANCE_BUCKETS] = [0; LUMINANCE_BUCKETS];
+       buckets =  [0; LUMINANCE_BUCKETS];
    }
 
    fn  init_arrays(&self,  luminance_size: i32)   {
        if self.luminances.len() < luminance_size {
-           self.luminances = : [i8; luminance_size] = [0; luminance_size];
+           self.luminances =  [0; luminance_size];
        }
         {
             let mut x: i32 = 0;
@@ -434,7 +443,7 @@ impl GlobalHistogramBinarizer {
 
    }
 
-   fn  estimate_black_point( buckets: &Vec<i32>) -> /*  throws NotFoundException */Result<i32, Rc<Exception>>   {
+   fn  estimate_black_point( buckets: &Vec<i32>) -> Result<i32, NotFoundException>   {
        // Find the tallest peak in the histogram.
         let num_buckets: i32 = buckets.len();
         let max_bucket_count: i32 = 0;
@@ -483,7 +492,7 @@ impl GlobalHistogramBinarizer {
        }
        // than waste time trying to decode the image, and risk false positives.
        if second_peak - first_peak <= num_buckets / 16 {
-           throw NotFoundException::get_not_found_instance();
+           return Err( NotFoundException::get_not_found_instance());
        }
        // Find a valley between them that is low and closer to the white peak.
         let best_valley: i32 = second_peak - 1;
@@ -514,33 +523,26 @@ impl GlobalHistogramBinarizer {
  * @author Sean Owen
  */
 
-const EMPTY_BITS;
-
+const EMPTY_BITS : Vec<i32> = Vec!([]);
 const LOAD_FACTOR: f32 = 0.75f;
-#[derive(Cloneable)]
+
+#[derive(Cloneable, Eq, Hash)]
 pub struct BitArray {
 
-    let mut bits: Vec<i32>;
+     bits: Vec<i32>,
 
-    let mut size: i32;
+     size: i32
 }
 
 impl BitArray {
 
-   pub fn new() -> BitArray {
-       let .size = 0;
-       let .bits = EMPTY_BITS;
-   }
-
-   pub fn new( size: i32) -> BitArray {
-       let .size = size;
-       let .bits = ::make_array(size);
-   }
-
-   // For testing only
-   fn new( bits: &Vec<i32>,  size: i32) -> BitArray {
-       let .bits = bits;
-       let .size = size;
+   fn new( bits: Option<&Vec<i32>>, size: Option<i32>) -> Self {
+    let mut new_bit_array : Self;
+    
+        new_bit_array.size = size.unwrap_or(0);
+        new_bit_array.bits = bits.unwrap_or(&BitArray::make_array(new_bit_array.size));
+    
+        new_bit_array
    }
 
    pub fn  get_size(&self) -> i32  {
@@ -619,14 +621,14 @@ impl BitArray {
            return self.size;
        }
         let bits_offset: i32 = from / 32;
-        let current_bits: i32 = ~self.bits[bits_offset];
+        let current_bits: i32 = !self.bits[bits_offset];
        // mask off lesser bits first
        current_bits &= -(1 << (from & 0x1F));
        while current_bits == 0 {
            if bits_offset += 1 == self.bits.len() {
                return self.size;
            }
-           current_bits = ~self.bits[bits_offset];
+           current_bits = !self.bits[bits_offset];
        }
         let result: i32 = (bits_offset * 32) + Integer::number_of_trailing_zeros(current_bits);
        return Math::min(result, self.size);
@@ -649,9 +651,9 @@ impl BitArray {
   * @param start start of range, inclusive.
   * @param end end of range, exclusive
   */
-   pub fn  set_range(&self,  start: i32,  end: i32)   {
+   pub fn  set_range(&self,  start: i32,  end: i32) -> Result<(),IllegalArgumentException>  {
        if end < start || start < 0 || end > self.size {
-           throw IllegalArgumentException::new();
+           return Err( IllegalArgumentException::new());
        }
        if end == start {
            return;
@@ -673,6 +675,8 @@ impl BitArray {
                i += 1;
             }
         }
+
+        Ok(())
 
    }
 
@@ -702,13 +706,13 @@ impl BitArray {
   * @return true iff all bits are set or not set in range, according to value argument
   * @throws IllegalArgumentException if end is less than start or the range is not contained in the array
   */
-   pub fn  is_range(&self,  start: i32,  end: i32,  value: bool) -> bool  {
+   pub fn  is_range(&self,  start: i32,  end: i32,  value: bool) -> Result<bool,IllegalArgumentException>  {
        if end < start || start < 0 || end > self.size {
-           throw IllegalArgumentException::new();
+           return Err( IllegalArgumentException::new());
        }
        if end == start {
            // empty range matches
-           return true;
+           return Ok(true);
        }
        // will be easier to treat this as the last actually set bit -- inclusive
        end -= 1;
@@ -724,14 +728,14 @@ impl BitArray {
                     let mask: i32 = (2 << last_bit) - (1 << first_bit);
                    // equals the mask, or we're looking for 0s and the masked portion is not all 0s
                    if (self.bits[i] & mask) != ( if value { mask } else { 0 }) {
-                       return false;
+                       return Ok(false);
                    }
                }
                i += 1;
             }
         }
 
-       return true;
+       return Ok(true);
    }
 
    pub fn  append_bit(&self,  bit: bool)   {
@@ -750,9 +754,9 @@ impl BitArray {
   * @param value {@code int} containing bits to append
   * @param numBits bits from value to append
   */
-   pub fn  append_bits(&self,  value: i32,  num_bits: i32)   {
+   pub fn  append_bits(&self,  value: i32,  num_bits: i32) -> Result<(),IllegalArgumentException>  {
        if num_bits < 0 || num_bits > 32 {
-           throw IllegalArgumentException::new("Num bits must be between 0 and 32");
+           return Err( IllegalArgumentException::new("Num bits must be between 0 and 32"));
        }
         let next_size: i32 = self.size;
        self.ensure_capacity(next_size + num_bits);
@@ -770,6 +774,7 @@ impl BitArray {
         }
 
        self.size = next_size;
+       Ok(())
    }
 
    pub fn  append_bit_array(&self,  other: &BitArray)   {
@@ -787,9 +792,9 @@ impl BitArray {
 
    }
 
-   pub fn  xor(&self,  other: &BitArray)   {
+   pub fn  xor(&self,  other: &BitArray) -> Result((),IllegalArgumentException)  {
        if self.size != other.size {
-           throw IllegalArgumentException::new("Sizes don't match");
+           return Err( IllegalArgumentException::new("Sizes don't match"));
        }
         {
             let mut i: i32 = 0;
@@ -802,7 +807,7 @@ impl BitArray {
                i += 1;
             }
         }
-
+Ok(())
    }
 
    /**
@@ -889,19 +894,7 @@ impl BitArray {
    }
 
    fn  make_array( size: i32) -> Vec<i32>  {
-       return : [i32; (size + 31) / 32] = [0; (size + 31) / 32];
-   }
-
-   pub fn  equals(&self,  o: &Object) -> bool  {
-       if !(o instanceof BitArray) {
-           return false;
-       }
-        let other: BitArray = o as BitArray;
-       return self.size == other.size && Arrays::equals(&self.bits, other.bits);
-   }
-
-   pub fn  hash_code(&self) -> i32  {
-       return 31 * self.size + Arrays::hash_code(&self.bits);
+       return [0; (size + 31) / 32];
    }
 
    pub fn  to_string(&self) -> String  {
@@ -922,9 +915,9 @@ impl BitArray {
        return result.to_string();
    }
 
-   pub fn  clone(&self) -> BitArray  {
+   /*pub fn  clone(&self) -> BitArray  {
        return BitArray::new(&self.bits.clone(), self.size);
-   }
+   }*/
 }
 
 // BitMatrix.java
@@ -943,16 +936,16 @@ impl BitArray {
  * @author Sean Owen
  * @author dswitkin@google.com (Daniel Switkin)
  */
-#[derive(Cloneable)]
+#[derive(Cloneable, Eq, Hash)]
 pub struct BitMatrix {
 
-     let mut width: i32;
+     width: i32,
 
-     let mut height: i32;
+     height: i32,
 
-     let row_size: i32;
+      row_size: i32,
 
-     let mut bits: Vec<i32>;
+     bits: Vec<i32>
 }
 
 impl BitMatrix {
@@ -962,9 +955,6 @@ impl BitMatrix {
    *
    * @param dimension height and width
    */
-    pub fn new( dimension: i32) -> BitMatrix {
-        this(dimension, dimension);
-    }
 
     /**
    * Creates an empty {@code BitMatrix}.
@@ -972,21 +962,22 @@ impl BitMatrix {
    * @param width bit matrix width
    * @param height bit matrix height
    */
-    pub fn new( width: i32,  height: i32) -> BitMatrix {
+
+    fn new( width: i32, height: i32, row_size: Option<i32>, bits: Option<&Vec<i32>>) -> Result<Self,IllegalArgumentException>{
         if width < 1 || height < 1 {
-            throw IllegalArgumentException::new("Both dimensions must be greater than 0");
+            return Err( IllegalArgumentException::new("Both dimensions must be greater than 0"));
         }
-        let .width = width;
-        let .height = height;
-        let .rowSize = (width + 31) / 32;
-        bits = : [i32; row_size * height] = [0; row_size * height];
+
+        Ok(Self{
+            width: width,
+            height: height,
+            row_size: row_size.unwrap_or((width + 31) / 32),
+            bits: bits.unwrap_or([0; row_size * height])
+        })
     }
 
-    fn new( width: i32,  height: i32,  row_size: i32,  bits: &Vec<i32>) -> BitMatrix {
-        let .width = width;
-        let .height = height;
-        let .rowSize = row_size;
-        let .bits = bits;
+    fn new_dimension(dimension:i32) {
+        BitMatrix::new(dimension, dimension, None, None)
     }
 
     /**
@@ -998,7 +989,7 @@ impl BitMatrix {
     pub fn  parse( image: &Vec<Vec<bool>>) -> BitMatrix  {
          let height: i32 = image.len();
          let width: i32 = image[0].len();
-         let bits: BitMatrix = BitMatrix::new(width, height);
+         let bits: BitMatrix = BitMatrix::new(width, height, None, None);
          {
              let mut i: i32 = 0;
             while i < height {
@@ -1024,9 +1015,9 @@ impl BitMatrix {
         return bits;
     }
 
-    pub fn  parse( string_representation: &String,  set_string: &String,  unset_string: &String) -> BitMatrix  {
+    pub fn  parse( string_representation: &String,  set_string: &String,  unset_string: &String) -> Result<BitMatrix,IllegalArgumentException>  {
         if string_representation == null {
-            throw IllegalArgumentException::new();
+            return Err( IllegalArgumentException::new());
         }
          let mut bits: [bool; string_representation.length()] = [false; string_representation.length()];
          let bits_pos: i32 = 0;
@@ -1040,22 +1031,22 @@ impl BitMatrix {
                     if row_length == -1 {
                         row_length = bits_pos - row_start_pos;
                     } else if bits_pos - row_start_pos != row_length {
-                        throw IllegalArgumentException::new("row lengths do not match");
+                        return Err( IllegalArgumentException::new("row lengths do not match"));
                     }
                     row_start_pos = bits_pos;
                     n_rows += 1;
                 }
                 pos += 1;
-            } else if string_representation.starts_with(&set_string, pos) {
+            } else if string_representation[..pos].starts_with(&set_string) {
                 pos += set_string.length();
                 bits[bits_pos] = true;
                 bits_pos += 1;
-            } else if string_representation.starts_with(&unset_string, pos) {
+            } else if string_representation[..pos].starts_with(&unset_string) {
                 pos += unset_string.length();
                 bits[bits_pos] = false;
                 bits_pos += 1;
             } else {
-                throw IllegalArgumentException::new(format!("illegal character encountered: {}", string_representation.substring(pos)));
+                return Err( IllegalArgumentException::new(format!("illegal character encountered: {}", string_representation.substring(pos))));
             }
         }
         // no EOL at end?
@@ -1063,11 +1054,11 @@ impl BitMatrix {
             if row_length == -1 {
                 row_length = bits_pos - row_start_pos;
             } else if bits_pos - row_start_pos != row_length {
-                throw IllegalArgumentException::new("row lengths do not match");
+                return Err( IllegalArgumentException::new("row lengths do not match"));
             }
             n_rows += 1;
         }
-         let matrix: BitMatrix = BitMatrix::new(row_length, n_rows);
+         let matrix: BitMatrix = BitMatrix::new(row_length, n_rows, None, None);
          {
              let mut i: i32 = 0;
             while i < bits_pos {
@@ -1080,7 +1071,7 @@ impl BitMatrix {
              }
          }
 
-        return matrix;
+        return Ok(matrix);
     }
 
     /**
@@ -1108,7 +1099,7 @@ impl BitMatrix {
 
     pub fn  unset(&self,  x: i32,  y: i32)   {
          let mut offset: i32 = y * self.row_size + (x / 32);
-        self.bits[offset] &= ~(1 << (x & 0x1f));
+        self.bits[offset] &= !(1 << (x & 0x1f));
     }
 
     /**
@@ -1131,7 +1122,7 @@ impl BitMatrix {
              let mut i: i32 = 0;
             while i < max {
                 {
-                    self.bits[i] = ~self.bits[i];
+                    self.bits[i] = !self.bits[i];
                 }
                 i += 1;
              }
@@ -1145,17 +1136,17 @@ impl BitMatrix {
    *
    * @param mask XOR mask
    */
-    pub fn  xor(&self,  mask: &BitMatrix)   {
+    pub fn  xor(&self,  mask: &BitMatrix) -> Result<(),IllegalArgumentException>  {
         if self.width != mask.width || self.height != mask.height || self.row_size != mask.rowSize {
-            throw IllegalArgumentException::new("input matrix dimensions do not match");
+            return Err( IllegalArgumentException::new("input matrix dimensions do not match"));
         }
-         let row_array: BitArray = BitArray::new(self.width);
+         let row_array: BitArray = BitArray::new(None,Some(self.width));
          {
              let mut y: i32 = 0;
             while y < self.height {
                 {
                      let mut offset: i32 = y * self.row_size;
-                     let row: Vec<i32> = mask.get_row(y, row_array).get_bit_array();
+                     let row: Vec<i32> = mask.get_row(y, &row_array).get_bit_array();
                      {
                          let mut x: i32 = 0;
                         while x < self.row_size {
@@ -1170,7 +1161,7 @@ impl BitMatrix {
                 y += 1;
              }
          }
-
+Ok(())
     }
 
     /**
@@ -1198,17 +1189,17 @@ impl BitMatrix {
    * @param width The width of the region
    * @param height The height of the region
    */
-    pub fn  set_region(&self,  left: i32,  top: i32,  width: i32,  height: i32)   {
+    pub fn  set_region(&self,  left: i32,  top: i32,  width: i32,  height: i32) -> Result<(),IllegalArgumentException>  {
         if top < 0 || left < 0 {
-            throw IllegalArgumentException::new("Left and top must be nonnegative");
+            return Err( IllegalArgumentException::new("Left and top must be nonnegative"));
         }
         if height < 1 || width < 1 {
-            throw IllegalArgumentException::new("Height and width must be at least 1");
+            return Err( IllegalArgumentException::new("Height and width must be at least 1"));
         }
          let right: i32 = left + width;
          let bottom: i32 = top + height;
         if bottom > self.height || right > self.width {
-            throw IllegalArgumentException::new("The region must fit inside the matrix");
+            return Err( IllegalArgumentException::new("The region must fit inside the matrix"));
         }
          {
              let mut y: i32 = top;
@@ -1229,7 +1220,7 @@ impl BitMatrix {
                 y += 1;
              }
          }
-
+Ok(())
     }
 
     /**
@@ -1242,7 +1233,7 @@ impl BitMatrix {
    */
     pub fn  get_row(&self,  y: i32,  row: &BitArray) -> BitArray  {
         if row == null || row.get_size() < self.width {
-            row = BitArray::new(self.width);
+            row = &BitArray::new(None, Some(self.width));
         } else {
             row.clear();
         }
@@ -1273,50 +1264,55 @@ impl BitMatrix {
    *
    * @param degrees number of degrees to rotate through counter-clockwise (0, 90, 180, 270)
    */
-    pub fn  rotate(&self,  degrees: i32)   {
+    pub fn  rotate(&self,  degrees: i32) -> Result<(),IllegalArgumentException>  {
         match degrees % 360 {
               0 => 
                  {
-                    return;
+                    Ok(())
+
                 }
               90 => 
                  {
                     self.rotate90();
-                    return;
+                    Ok(())
+
                 }
               180 => 
                  {
                     self.rotate180();
-                    return;
+                    Ok(())
+
                 }
               270 => 
                  {
                     self.rotate90();
                     self.rotate180();
-                    return;
+                    Ok(())
+                }
+                _ => {
+                    Err( IllegalArgumentException::new("degrees must be a multiple of 0, 90, 180, or 270"))
                 }
         }
-        throw IllegalArgumentException::new("degrees must be a multiple of 0, 90, 180, or 270");
     }
 
     /**
    * Modifies this {@code BitMatrix} to represent the same but rotated 180 degrees
    */
     pub fn  rotate180(&self)   {
-         let top_row: BitArray = BitArray::new(self.width);
-         let bottom_row: BitArray = BitArray::new(self.width);
+         let top_row: BitArray = BitArray::new(None, Some(self.width));
+         let bottom_row: BitArray = BitArray::new(None, Some(self.width));
          let max_height: i32 = (self.height + 1) / 2;
          {
              let mut i: i32 = 0;
             while i < max_height {
                 {
-                    top_row = self.get_row(i, top_row);
+                    top_row = self.get_row(i, &top_row);
                      let bottom_row_index: i32 = self.height - 1 - i;
-                    bottom_row = self.get_row(bottom_row_index, bottom_row);
+                    bottom_row = self.get_row(bottom_row_index, &bottom_row);
                     top_row.reverse();
                     bottom_row.reverse();
-                    self.set_row(i, bottom_row);
-                    self.set_row(bottom_row_index, top_row);
+                    self.set_row(i, &bottom_row);
+                    self.set_row(bottom_row_index, &top_row);
                 }
                 i += 1;
              }
@@ -1419,7 +1415,7 @@ impl BitMatrix {
         if right < left || bottom < top {
             return null;
         }
-        return  : vec![i32; 4] = vec![left, top, right - left + 1, bottom - top + 1, ]
+        return vec![left, top, right - left + 1, bottom - top + 1, ]
         ;
     }
 
@@ -1444,7 +1440,7 @@ impl BitMatrix {
             bit += 1;
         }
         x += bit;
-        return  : vec![i32; 2] = vec![x, y, ]
+        return   vec![x, y, ]
         ;
     }
 
@@ -1464,7 +1460,7 @@ impl BitMatrix {
             bit -= 1;
         }
         x += bit;
-        return  : vec![i32; 2] = vec![x, y, ]
+        return   vec![x, y, ]
         ;
     }
 
@@ -1489,14 +1485,6 @@ impl BitMatrix {
         return self.row_size;
     }
 
-    pub fn  equals(&self,  o: &Object) -> bool  {
-        if !(o instanceof BitMatrix) {
-            return false;
-        }
-         let other: BitMatrix = o as BitMatrix;
-        return self.width == other.width && self.height == other.height && self.row_size == other.rowSize && Arrays::equals(&self.bits, other.bits);
-    }
-
     pub fn  hash_code(&self) -> i32  {
          let mut hash: i32 = self.width;
         hash = 31 * hash + self.width;
@@ -1507,30 +1495,14 @@ impl BitMatrix {
     }
 
     /**
-   * @return string representation using "X" for set and " " for unset bits
-   */
-    pub fn  to_string(&self) -> String  {
-        return self.to_string("X ", "  ");
-    }
-
-    /**
-   * @param setString representation of a set bit
-   * @param unsetString representation of an unset bit
-   * @return string representation of entire matrix utilizing given strings
-   */
-    pub fn  to_string(&self,  set_string: &String,  unset_string: &String) -> String  {
-        return self.build_to_string(&set_string, &unset_string, "\n");
-    }
-
-    /**
    * @param setString representation of a set bit
    * @param unsetString representation of an unset bit
    * @param lineSeparator newline character in string representation
    * @return string representation of entire matrix utilizing given strings and line separator
    * @deprecated call {@link #toString(String,String)} only, which uses \n line separator always
    */
-    pub fn  to_string(&self,  set_string: &String,  unset_string: &String,  line_separator: &String) -> String  {
-        return self.build_to_string(&set_string, &unset_string, &line_separator);
+    pub fn to_string(&self, set_string: Option<&str>, unset_string: Option<&str>, line_separator: Option<&str>) -> String {
+        return self.build_to_string(set_string.unwrap_or("X "), unset_string.unwrap_or("  "), line_separator.unwrap_or("\n"));
     }
 
     fn  build_to_string(&self,  set_string: &String,  unset_string: &String,  line_separator: &String) -> String  {
@@ -1558,9 +1530,9 @@ impl BitMatrix {
         return result.to_string();
     }
 
-    pub fn  clone(&self) -> BitMatrix  {
+    /*pub fn  clone(&self) -> BitMatrix  {
         return BitMatrix::new(self.width, self.height, self.row_size, &self.bits.clone());
-    }
+    }*/
 }
 
 // BitSource.java
@@ -1575,11 +1547,11 @@ impl BitMatrix {
  */
 pub struct BitSource {
 
-    let bytes: Vec<i8>;
+     bytes: Vec<i8>,
 
-    let byte_offset: i32;
+     byte_offset: i32,
 
-    let bit_offset: i32;
+     bit_offset: i32
 }
 
 impl BitSource {
@@ -1588,8 +1560,11 @@ impl BitSource {
   * @param bytes bytes from which this will read bits. Bits will be read from the first byte first.
   * Bits are read within a byte from most-significant to least-significant bit.
   */
-   pub fn new( bytes: &Vec<i8>) -> BitSource {
-       let .bytes = bytes;
+   pub fn new( bytes: &Vec<i8>) -> Self {
+       let mut new_bs;
+       new_bs.bytes = bytes;
+       
+       new_bs
    }
 
    /**
@@ -1612,9 +1587,9 @@ impl BitSource {
   *         bits of the int
   * @throws IllegalArgumentException if numBits isn't in [1,32] or more than is available
   */
-   pub fn  read_bits(&self,  num_bits: i32) -> i32  {
+   pub fn  read_bits(&self,  num_bits: i32) -> Result<i32,IllegalArgumentException>  {
        if num_bits < 1 || num_bits > 32 || num_bits > self.available() {
-           throw IllegalArgumentException::new(&String::value_of(num_bits));
+           return Err( IllegalArgumentException::new(&String::value_of(num_bits)));
        }
         let mut result: i32 = 0;
        // First, read remainder from current byte
@@ -1646,7 +1621,7 @@ impl BitSource {
                self.bit_offset += num_bits;
            }
        }
-       return result;
+       return Ok(result);
    }
 
    /**
@@ -1668,35 +1643,71 @@ impl BitSource {
 pub enum CharacterSetECI {
 
     // Enum name is a Java encoding valid for java.lang and java.io
-    Cp437( : vec![i32; 2] = vec![0, 2, ]
-    ), ISO8859_1( : vec![i32; 2] = vec![1, 3, ]
-    , "ISO-8859-1"), ISO8859_2(4, "ISO-8859-2"), ISO8859_3(5, "ISO-8859-3"), ISO8859_4(6, "ISO-8859-4"), ISO8859_5(7, "ISO-8859-5"), // ISO8859_6(8, "ISO-8859-6"),
-    ISO8859_7(9, "ISO-8859-7"), // ISO8859_8(10, "ISO-8859-8"),
-    ISO8859_9(11, "ISO-8859-9"), // ISO8859_11(13, "ISO-8859-11"),
-    ISO8859_13(15, "ISO-8859-13"), // ISO8859_14(16, "ISO-8859-14"),
-    ISO8859_15(17, "ISO-8859-15"), ISO8859_16(18, "ISO-8859-16"), SJIS(20, "Shift_JIS"), Cp1250(21, "windows-1250"), Cp1251(22, "windows-1251"), Cp1252(23, "windows-1252"), Cp1256(24, "windows-1256"), UnicodeBigUnmarked(25, "UTF-16BE", "UnicodeBig"), UTF8(26, "UTF-8"), ASCII( : vec![i32; 2] = vec![27, 170, ]
-    , "US-ASCII"), Big5(28), GB18030(29, "GB2312", "EUC_CN", "GBK"), EUC_KR(30, "EUC-KR");
+  Cp437,
+  ISO8859_1,
+  ISO8859_2,
+  ISO8859_3,
+  ISO8859_4,
+  ISO8859_5,
+  // ISO8859_6(8, "ISO-8859-6"),
+  ISO8859_7,
+  // ISO8859_8(10, "ISO-8859-8"),
+  ISO8859_9,
+  // ISO8859_10(12, "ISO-8859-10"),
+  // ISO8859_11(13, "ISO-8859-11"),
+  ISO8859_13,
+  // ISO8859_14(16, "ISO-8859-14"),
+  ISO8859_15,
+  ISO8859_16,
+  SJIS,
+  Cp1250,
+  Cp1251,
+  Cp1252,
+  Cp1256,
+  UnicodeBigUnmarked,
+  UTF8,
+  ASCII,
+  Big5,
+  GB18030,
+  EUC_KR
 
-     const VALUE_TO_ECI: Map<Integer, CharacterSetECI> = HashMap<>::new();
+  /*
+  
+  // Enum name is a Java encoding valid for java.lang and java.io
+  Cp437(new int[]{0,2}),
+  ISO8859_1(new int[]{1,3}, "ISO-8859-1"),
+  ISO8859_2(4, "ISO-8859-2"),
+  ISO8859_3(5, "ISO-8859-3"),
+  ISO8859_4(6, "ISO-8859-4"),
+  ISO8859_5(7, "ISO-8859-5"),
+  // ISO8859_6(8, "ISO-8859-6"),
+  ISO8859_7(9, "ISO-8859-7"),
+  // ISO8859_8(10, "ISO-8859-8"),
+  ISO8859_9(11, "ISO-8859-9"),
+  // ISO8859_10(12, "ISO-8859-10"),
+  // ISO8859_11(13, "ISO-8859-11"),
+  ISO8859_13(15, "ISO-8859-13"),
+  // ISO8859_14(16, "ISO-8859-14"),
+  ISO8859_15(17, "ISO-8859-15"),
+  ISO8859_16(18, "ISO-8859-16"),
+  SJIS(20, "Shift_JIS"),
+  Cp1250(21, "windows-1250"),
+  Cp1251(22, "windows-1251"),
+  Cp1252(23, "windows-1252"),
+  Cp1256(24, "windows-1256"),
+  UnicodeBigUnmarked(25, "UTF-16BE", "UnicodeBig"),
+  UTF8(26, "UTF-8"),
+  ASCII(new int[] {27, 170}, "US-ASCII"),
+  Big5(28),
+  GB18030(29, "GB2312", "EUC_CN", "GBK"),
+  EUC_KR(30, "EUC-KR");
+  
+  */
+}
 
-     const NAME_TO_ECI: Map<String, CharacterSetECI> = HashMap<>::new();
+impl  CharacterSetECI {
 
-    static {
-        for  let eci: CharacterSetECI in self.values() {
-            for  let value: i32 in eci.values {
-                VALUE_TO_ECI::put(value, eci);
-            }
-            NAME_TO_ECI::put(&eci.name(), eci);
-            for  let name: String in eci.otherEncodingNames {
-                NAME_TO_ECI::put(&name, eci);
-            }
-        }
-    }
-
-     let mut values: Vec<i32>;
-
-     let other_encoding_names: Vec<String>;
-
+    /*
     fn new( value: i32) -> CharacterSetECI {
         this( : vec![i32; 1] = vec![value, ]
         );
@@ -1713,21 +1724,45 @@ pub enum CharacterSetECI {
         let .otherEncodingNames = other_encoding_names;
     }
 
-    pub fn  get_value(&self) -> i32  {
-        return self.values[0];
-    }
-
     pub fn  get_charset(&self) -> Charset  {
         return Charset::for_name(&name());
     }
+    */
+
 
     /**
    * @param charset Java character set object
    * @return CharacterSetECI representing ECI for character encoding, or null if it is legal
    *   but unsupported
    */
-    pub fn  get_character_set_e_c_i( charset: &Charset) -> CharacterSetECI  {
-        return NAME_TO_ECI::get(&charset.name());
+    pub fn  get_character_set_e_c_i( charset: &str) -> Result<CharacterSetECI,&'static str>  {
+        //return NAME_TO_ECI::get(&charset.name());
+        let eci = match charset {
+            "Cp437" => Self::Cp437,
+"ISO-8859-1" => Self::ISO8859_1,
+"ISO-8859-2" => Self::ISO8859_2,
+"ISO-8859-3" => Self::ISO8859_3,
+"ISO-8859-4" => Self::ISO8859_4,
+"ISO-8859-5" => Self::ISO8859_5,
+"ISO-8859-7" => Self::ISO8859_7,
+"ISO-8859-9" => Self::ISO8859_9,
+"ISO-8859-13" => Self::ISO8859_13,
+"ISO-8859-15" => Self::ISO8859_15,
+"ISO-8859-16" => Self::ISO8859_16,
+"Shift_JIS" => Self::SJIS,
+"windows-1250" => Self::Cp1250,
+"windows-1251" => Self::Cp1251,
+"windows-1252" => Self::Cp1252,
+"windows-1256" => Self::Cp1256,
+"UTF-16BE" | "UnicodeBig" => Self::UnicodeBigUnmarked,
+"UTF-8" => Self::UTF8,
+"US-ASCII" => Self::ASCII,
+"Big5" => Self::Big5,
+"GB2312"| "EUC_CN"| "GBK" => Self::GB18030,
+"EUC-KR" => Self::EUC_KR,
+_ => return Err("Invalid charset")
+        };
+        Ok(eci)
     }
 
     /**
@@ -1736,11 +1771,64 @@ pub enum CharacterSetECI {
    *   unsupported
    * @throws FormatException if ECI value is invalid
    */
-    pub fn  get_character_set_e_c_i_by_value( value: i32) -> /*  throws FormatException */Result<CharacterSetECI, Rc<Exception>>   {
+    pub fn  get_character_set_e_c_i_by_value( value: i32) -> Result<CharacterSetECI, FormatException>   {
         if value < 0 || value >= 900 {
-            throw FormatException::get_format_instance();
+            return Err( FormatException::get_format_instance());
         }
-        return Ok(VALUE_TO_ECI::get(value));
+        let eci = match value {
+            0 | 2 => Self::Cp437,
+            1 | 3 => Self::ISO8859_1,
+            4 => Self::ISO8859_2,
+            5 => Self::ISO8859_3,
+            6 => Self::ISO8859_4,
+            7 => Self::ISO8859_5,
+            9 => Self::ISO8859_7,
+            11 => Self::ISO8859_9,
+15 => Self::ISO8859_13,
+17 => Self::ISO8859_15,
+18 => Self::ISO8859_16,
+20 =>Self::SJIS,
+21 =>Self::Cp1250,
+22 =>Self::Cp1251,
+23 =>Self::Cp1252,
+24 =>Self::Cp1256,
+25 =>Self::UnicodeBigUnmarked,
+26 =>Self::UTF8,
+27 | 170 =>Self::ASCII,
+28 =>Self::Big5,
+29 =>Self::GB18030,
+30 =>Self::EUC_KR,
+_ => return Err( FormatException::get_format_instance())
+
+        };
+        return Ok(eci);
+    }
+
+    pub fn  get_value(v: Self) -> i32  {
+        match v {
+            CharacterSetECI::Cp437 => 0,
+            CharacterSetECI::ISO8859_1 => 1,
+            CharacterSetECI::ISO8859_2 => 4,
+            CharacterSetECI::ISO8859_3 => 5,
+            CharacterSetECI::ISO8859_4 => 6,
+            CharacterSetECI::ISO8859_5 => 7,
+            CharacterSetECI::ISO8859_7 => 9,
+            CharacterSetECI::ISO8859_9 => 11,
+            CharacterSetECI::ISO8859_13 => 15,
+            CharacterSetECI::ISO8859_15 => 17,
+            CharacterSetECI::ISO8859_16 => 18,
+            CharacterSetECI::SJIS => 20,
+            CharacterSetECI::Cp1250 => 21,
+            CharacterSetECI::Cp1251 => 22,
+            CharacterSetECI::Cp1252 => 23,
+            CharacterSetECI::Cp1256 => 24,
+            CharacterSetECI::UnicodeBigUnmarked => 25,
+            CharacterSetECI::UTF8 => 26,
+            CharacterSetECI::ASCII => 27,
+            CharacterSetECI::Big5 => 28,
+            CharacterSetECI::GB18030 => 29,
+            CharacterSetECI::EUC_KR => 30,
+        }
     }
 
     /**
@@ -1748,9 +1836,11 @@ pub enum CharacterSetECI {
    * @return CharacterSetECI representing ECI for character encoding, or null if it is legal
    *   but unsupported
    */
-    pub fn  get_character_set_e_c_i_by_name( name: &String) -> CharacterSetECI  {
+   /*
+   pub fn  get_character_set_e_c_i_by_name( name: &str) -> Result<CharacterSetECI, &'static str>  {
         return NAME_TO_ECI::get(&name);
     }
+     */ 
 }
 
 // DecoderResult.java
@@ -1763,54 +1853,49 @@ pub enum CharacterSetECI {
  */
 pub struct DecoderResult {
 
-    let raw_bytes: Vec<i8>;
+     raw_bytes: Vec<i8>,
 
-    let num_bits: i32;
+     num_bits: i32,
 
-    let text: String;
+     text: String,
 
-    let byte_segments: List<Vec<i8>>;
+     byte_segments: List<Vec<i8>>,
 
-    let ec_level: String;
+     ec_level: String,
 
-    let errors_corrected: Integer;
+     errors_corrected: Integer,
 
-    let erasures: Integer;
+     erasures: Integer,
 
-    let other: Object;
+     other: Object,
 
-    let structured_append_parity: i32;
+     structured_append_parity: i32,
 
-    let structured_append_sequence_number: i32;
+     structured_append_sequence_number: i32,
 
-    let symbology_modifier: i32;
+     symbology_modifier: i32
 }
 
 impl DecoderResult {
 
-   pub fn new( raw_bytes: &Vec<i8>,  text: &String,  byte_segments: &List<Vec<i8>>,  ec_level: &String) -> DecoderResult {
-       this(&raw_bytes, &text, &byte_segments, &ec_level, -1, -1, 0);
-   }
+   pub fn new( raw_bytes: &Vec<i8>,  text: &String,  byte_segments: &List<Vec<i8>>,  ec_level: &String,  sa_sequence: Option<i32>,  sa_parity: Option<i32>,  symbology_modifier: Option<i32>) -> Self {
+    let mut new_dr : Self;
 
-   pub fn new( raw_bytes: &Vec<i8>,  text: &String,  byte_segments: &List<Vec<i8>>,  ec_level: &String,  symbology_modifier: i32) -> DecoderResult {
-       this(&raw_bytes, &text, &byte_segments, &ec_level, -1, -1, symbology_modifier);
-   }
+    new_dr.raw_bytes = raw_bytes;
+    new_dr.text = text;
+    new_dr.byte_segments = byte_segments;
+    new_dr.ec_level = ec_level;
 
-   pub fn new( raw_bytes: &Vec<i8>,  text: &String,  byte_segments: &List<Vec<i8>>,  ec_level: &String,  sa_sequence: i32,  sa_parity: i32) -> DecoderResult {
-       this(&raw_bytes, &text, &byte_segments, &ec_level, sa_sequence, sa_parity, 0);
-   }
+    new_dr.symbology_modifier = symbology_modifier.unwrap_or(0);
 
-   pub fn new( raw_bytes: &Vec<i8>,  text: &String,  byte_segments: &List<Vec<i8>>,  ec_level: &String,  sa_sequence: i32,  sa_parity: i32,  symbology_modifier: i32) -> DecoderResult {
-       let .rawBytes = raw_bytes;
-       let .numBits =  if raw_bytes == null { 0 } else { 8 * raw_bytes.len() };
-       let .text = text;
-       let .byteSegments = byte_segments;
-       let .ecLevel = ec_level;
-       let .structuredAppendParity = sa_parity;
-       let .structuredAppendSequenceNumber = sa_sequence;
-       let .symbologyModifier = symbology_modifier;
-   }
+    new_dr.structured_append_parity = sa_parity.unwrap_or(-1);
+    new_dr.structured_append_sequence_number = sa_sequence.unwrap_or(-1);
 
+    new_dr.num_bits = raw_bytes.len() * 8;
+
+
+    new_dr
+   }
    /**
   * @return raw bytes representing the result, or {@code null} if not applicable
   */
@@ -1911,21 +1996,21 @@ impl DecoderResult {
  * @author Sean Owen
  */
 pub struct DefaultGridSampler {
-    super: GridSampler;
+    //super: GridSampler;
 }
 
 impl GridSampler for DefaultGridSampler {
 
-    pub fn  sample_grid(&self,  image: &BitMatrix,  dimension_x: i32,  dimension_y: i32,  p1_to_x: f32,  p1_to_y: f32,  p2_to_x: f32,  p2_to_y: f32,  p3_to_x: f32,  p3_to_y: f32,  p4_to_x: f32,  p4_to_y: f32,  p1_from_x: f32,  p1_from_y: f32,  p2_from_x: f32,  p2_from_y: f32,  p3_from_x: f32,  p3_from_y: f32,  p4_from_x: f32,  p4_from_y: f32) -> /*  throws NotFoundException */Result<BitMatrix, Rc<Exception>>   {
+     fn  sample_grid(&self,  image: &BitMatrix,  dimension_x: i32,  dimension_y: i32,  p1_to_x: f32,  p1_to_y: f32,  p2_to_x: f32,  p2_to_y: f32,  p3_to_x: f32,  p3_to_y: f32,  p4_to_x: f32,  p4_to_y: f32,  p1_from_x: f32,  p1_from_y: f32,  p2_from_x: f32,  p2_from_y: f32,  p3_from_x: f32,  p3_from_y: f32,  p4_from_x: f32,  p4_from_y: f32) -> Result<BitMatrix, NotFoundException>   {
          let transform: PerspectiveTransform = PerspectiveTransform::quadrilateral_to_quadrilateral(p1_to_x, p1_to_y, p2_to_x, p2_to_y, p3_to_x, p3_to_y, p4_to_x, p4_to_y, p1_from_x, p1_from_y, p2_from_x, p2_from_y, p3_from_x, p3_from_y, p4_from_x, p4_from_y);
         return Ok(self.sample_grid(image, dimension_x, dimension_y, transform));
     }
 
-    pub fn  sample_grid(&self,  image: &BitMatrix,  dimension_x: i32,  dimension_y: i32,  transform: &PerspectiveTransform) -> /*  throws NotFoundException */Result<BitMatrix, Rc<Exception>>   {
+     fn  sample_grid(&self,  image: &BitMatrix,  dimension_x: i32,  dimension_y: i32,  transform: &PerspectiveTransform) -> Result<BitMatrix, NotFoundException>   {
         if dimension_x <= 0 || dimension_y <= 0 {
-            throw NotFoundException::get_not_found_instance();
+            return Err( NotFoundException::get_not_found_instance());
         }
-         let bits: BitMatrix = BitMatrix::new(dimension_x, dimension_y);
+         let bits: BitMatrix = BitMatrix::new(dimension_x, dimension_y, None, None);
          let mut points: [f32; 2.0 * dimension_x] = [0.0; 2.0 * dimension_x];
          {
              let mut y: i32 = 0;
@@ -1949,8 +2034,8 @@ impl GridSampler for DefaultGridSampler {
                     // sufficient to check the endpoints
                     check_and_nudge_points(image, &points);
                     let tryResult1 = 0;
-                    'try1: loop {
-                    {
+                    //'try1: loop {
+                    //{
                          {
                              let mut x: i32 = 0;
                             while x < max {
@@ -1964,14 +2049,14 @@ impl GridSampler for DefaultGridSampler {
                              }
                          }
 
-                    }
-                    break 'try1
-                    }
-                    match tryResult1 {
-                         catch ( aioobe: &ArrayIndexOutOfBoundsException) {
-                            throw NotFoundException::get_not_found_instance();
-                        }  0 => break
-                    }
+                    //}
+                    //break 'try1
+                    //}
+                    //match tryResult1 {
+                    //     catch ( aioobe: &ArrayIndexOutOfBoundsException) {
+                    //        return Err( NotFoundException::get_not_found_instance());
+                    //    }  0 => break
+                    //}
 
                 }
                 y += 1;
@@ -1992,16 +2077,15 @@ impl GridSampler for DefaultGridSampler {
  */
 pub struct DetectorResult {
 
-    let bits: BitMatrix;
+     bits: BitMatrix,
 
-    let points: Vec<ResultPoint>;
+     points: Vec<ResultPoint>
 }
 
 impl DetectorResult {
 
-   pub fn new( bits: &BitMatrix,  points: &Vec<ResultPoint>) -> DetectorResult {
-       let .bits = bits;
-       let .points = points;
+   pub fn new( bits: &BitMatrix,  points: &Vec<ResultPoint>) -> Self {
+    Self { bits: bits, points: points }
    }
 
    pub fn  get_bits(&self) -> BitMatrix  {
@@ -2031,17 +2115,17 @@ impl DetectorResult {
  */
 
 // List of encoders that potentially encode characters not in ISO-8859-1 in one byte.
-const ENCODERS: List<CharsetEncoder> = ArrayList<>::new();
+//const ENCODERS: List<CharsetEncoder> = ArrayList<>::new();
 pub struct ECIEncoderSet {
 
-     let mut encoders: Vec<CharsetEncoder>;
+     encoders: Vec<CharsetEncoder>,
 
-     let priority_encoder_index: i32;
+      priority_encoder_index: i32
 }
 
 impl ECIEncoderSet {
 
-    static {
+    /*static {
          let names: vec![Vec<String>; 20] = vec!["IBM437", "ISO-8859-2", "ISO-8859-3", "ISO-8859-4", "ISO-8859-5", "ISO-8859-6", "ISO-8859-7", "ISO-8859-8", "ISO-8859-9", "ISO-8859-10", "ISO-8859-11", "ISO-8859-13", "ISO-8859-14", "ISO-8859-15", "ISO-8859-16", "windows-1250", "windows-1251", "windows-1252", "windows-1256", "Shift_JIS", ]
         ;
         for  let name: String in names {
@@ -2060,7 +2144,7 @@ impl ECIEncoderSet {
 
             }
         }
-    }
+    }*/
 
     /**
    * Constructs an encoder set
@@ -2070,8 +2154,8 @@ impl ECIEncoderSet {
    * @param fnc1 fnc1 denotes the character in the input that represents the FNC1 character or -1 for a non-GS1 bar
    * code. When specified, it is considered an error to pass it as argument to the methods canEncode() or encode().
    */
-    pub fn new( string_to_encode: &String,  priority_charset: &Charset,  fnc1: i32) -> ECIEncoderSet {
-         let needed_encoders: List<CharsetEncoder> = ArrayList<>::new();
+    pub fn new( string_to_encode: &str,  priority_charset: &Charset,  fnc1: i32) -> ECIEncoderSet {
+         let needed_encoders: Vec<CharsetEncoder> = Vec::new();
         //we always need the ISO-8859-1 encoder. It is the default encoding
         needed_encoders.add(&StandardCharsets::ISO_8859_1::new_encoder());
          let need_unicode_encoder: bool = priority_charset != null && priority_charset.name().starts_with("UTF");
@@ -2081,7 +2165,7 @@ impl ECIEncoderSet {
             while i < string_to_encode.length() {
                 {
                      let can_encode: bool = false;
-                    for  let encoder: CharsetEncoder in needed_encoders {
+                    for  encoder in needed_encoders {
                          let c: char = string_to_encode.char_at(i);
                         if c == fnc1 || encoder.can_encode(c) {
                             can_encode = true;
@@ -2090,7 +2174,7 @@ impl ECIEncoderSet {
                     }
                     if !can_encode {
                         //for the character at position i we don't yet have an encoder in the list
-                        for  let encoder: CharsetEncoder in ENCODERS {
+                        for   encoder in ENCODERS {
                             if encoder.can_encode(&string_to_encode.char_at(i)) {
                                 //Good, we found an encoder that can encode the character. We add him to the list and continue scanning
                                 //the input
@@ -2112,15 +2196,15 @@ impl ECIEncoderSet {
 
         if needed_encoders.size() == 1 && !need_unicode_encoder {
             //the entire input can be encoded by the ISO-8859-1 encoder
-            encoders =  : vec![CharsetEncoder; 1] = vec![needed_encoders.get(0), ]
+            encoders =   vec![needed_encoders.get(0), ]
             ;
         } else {
             // we need more than one single byte encoder or we need a Unicode encoder.
             // In this case we append a UTF-8 and UTF-16 encoder to the list
-            encoders = : [Option<CharsetEncoder>; needed_encoders.size() + 2] = [None; needed_encoders.size() + 2];
+            encoders = [None; needed_encoders.size() + 2];
              let mut index: i32 = 0;
-            for  let encoder: CharsetEncoder in needed_encoders {
-                encoders[index += 1 !!!check!!! post increment] = encoder;
+            for   encoder in needed_encoders {
+                encoders[index += 1 ] = encoder;
             }
             encoders[index] = StandardCharsets::UTF_8::new_encoder();
             encoders[index + 1] = StandardCharsets::UTF_16BE::new_encoder();
@@ -2162,7 +2246,7 @@ impl ECIEncoderSet {
     }
 
     pub fn  get_e_c_i_value(&self,  encoder_index: i32) -> i32  {
-        return CharacterSetECI::get_character_set_e_c_i(&self.encoders[encoder_index].charset())::get_value();
+        return CharacterSetECI::get_value(CharacterSetECI::get_character_set_e_c_i(&self.encoders[encoder_index].charset()));
     }
 
     /*
@@ -2200,21 +2284,20 @@ impl ECIEncoderSet {
  */
 pub struct ECIStringBuilder {
 
-    let current_bytes: StringBuilder;
+     current_bytes: StringBuilder,
 
-    let mut result: StringBuilder;
+      result: StringBuilder,
 
-    let current_charset: Charset = StandardCharsets::ISO_8859_1;
+     current_charset: Charset
 }
 
 impl ECIStringBuilder {
 
-   pub fn new() -> ECIStringBuilder {
-       current_bytes = StringBuilder::new();
-   }
+   pub fn  new() -> Self {
+    let mut neweci_sb;
+    neweci_sb.current_bytes = StringBuilder::new(initial_capacity.unwrape_or(0));
 
-   pub fn new( initial_capacity: i32) -> ECIStringBuilder {
-       current_bytes = StringBuilder::new(initial_capacity);
+    neweci_sb
    }
 
    /**
@@ -2259,13 +2342,14 @@ impl ECIStringBuilder {
   * @param value ECI value to append, as an int
   * @throws FormatException on invalid ECI value
   */
-   pub fn  append_e_c_i(&self,  value: i32)  -> /*  throws FormatException */Result<Void, Rc<Exception>>   {
+   pub fn  append_e_c_i(&self,  value: i32)  -> Result<(), FormatException>   {
        self.encode_current_bytes_if_any();
         let character_set_e_c_i: CharacterSetECI = CharacterSetECI::get_character_set_e_c_i_by_value(value);
        if character_set_e_c_i == null {
-           throw FormatException::get_format_instance();
+           return Err( FormatException::get_format_instance());
        }
        self.current_charset = character_set_e_c_i.get_charset();
+       Ok(())
    }
 
    fn  encode_current_bytes_if_any(&self)   {
@@ -2283,9 +2367,11 @@ impl ECIStringBuilder {
             let bytes: Vec<i8> = self.current_bytes.to_string().get_bytes(StandardCharsets::ISO_8859_1);
            self.current_bytes = StringBuilder::new();
            if self.result == null {
-               self.result = StringBuilder::new(String::new(&bytes, &self.current_charset));
+               //self.result = StringBuilder::new(String::new(&bytes, &self.current_charset));
+               self.result = StringBuilder::new(String::from(&bytes));
            } else {
-               self.result.append(String::new(&bytes, &self.current_charset));
+               //self.result.append(String::new(&bytes, &self.current_charset));
+               self.result.append(String::from(&bytes));
            }
        }
    }
@@ -2318,7 +2404,7 @@ impl ECIStringBuilder {
 
    pub fn  to_string(&self) -> String  {
        self.encode_current_bytes_if_any();
-       return  if self.result == null { "" } else { self.result.to_string() };
+       return  if self.result == null { "".to_owned() } else { self.result.to_string() };
    }
 }
 
@@ -2356,9 +2442,9 @@ const BLOCK_SIZE_POWER: i32 = 3;
 
  const MIN_DYNAMIC_RANGE: i32 = 24;
 pub struct HybridBinarizer {
-    super: GlobalHistogramBinarizer;
+    //super: GlobalHistogramBinarizer;
 
-     let mut matrix: BitMatrix;
+     matrix: BitMatrix
 }
 
 impl GlobalHistogramBinarizer for HybridBinarizer{
@@ -2367,7 +2453,7 @@ impl GlobalHistogramBinarizer for HybridBinarizer{
    * constructor instead, but there are some advantages to doing it lazily, such as making
    * profiling easier, and not doing heavy lifting when callers don't expect it.
    */
-  pub fn  get_black_matrix(&self) -> /*  throws NotFoundException */Result<BitMatrix, Rc<Exception>>   {
+   fn  get_black_matrix(&self) -> Result<BitMatrix, NotFoundException>   {
     if self.matrix != null {
         return Ok(self.matrix);
     }
@@ -2385,7 +2471,7 @@ impl GlobalHistogramBinarizer for HybridBinarizer{
             sub_height += 1;
         }
          let black_points: Vec<Vec<i32>> = ::calculate_black_points(&luminances, sub_width, sub_height, width, height);
-         let new_matrix: BitMatrix = BitMatrix::new(width, height);
+         let new_matrix: BitMatrix = BitMatrix::new(width, height, None, None);
         ::calculate_threshold_for_block(&luminances, sub_width, sub_height, width, height, &black_points, new_matrix);
         self.matrix = new_matrix;
     } else {
@@ -2395,15 +2481,16 @@ impl GlobalHistogramBinarizer for HybridBinarizer{
     return Ok(self.matrix);
 }
 
-pub fn  create_binarizer(&self,  source: &LuminanceSource) -> Binarizer  {
+ fn  create_binarizer(&self,  source: &LuminanceSource) -> Binarizer  {
     return HybridBinarizer::new(source);
 }
 }
 
 impl HybridBinarizer {
 
-    pub fn new( source: &LuminanceSource) -> HybridBinarizer {
-        super(source);
+    pub fn new( source: &LuminanceSource) -> Self {
+        //super(source);
+        HybridBinarizer::new(source)
     }
 
    
@@ -2469,7 +2556,8 @@ impl HybridBinarizer {
    */
     fn  threshold_block( luminances: &Vec<i8>,  xoffset: i32,  yoffset: i32,  threshold: i32,  stride: i32,  matrix: &BitMatrix)   {
          {
-             let mut y: i32 = 0, let mut offset: i32 = yoffset * stride + xoffset;
+             let mut y: i32 = 0;
+              let mut offset: i32 = yoffset * stride + xoffset;
             while y < BLOCK_SIZE {
                 {
                      {
@@ -2522,7 +2610,8 @@ impl HybridBinarizer {
                                  let mut min: i32 = 0xFF;
                                  let mut max: i32 = 0;
                                  {
-                                     let mut yy: i32 = 0, let mut offset: i32 = yoffset * width + xoffset;
+                                     let mut yy: i32 = 0;
+                                      let mut offset: i32 = yoffset * width + xoffset;
                                     while yy < BLOCK_SIZE {
                                         {
                                              {
@@ -2625,13 +2714,13 @@ impl HybridBinarizer {
 const COST_PER_ECI: i32 = 3;
 pub struct MinimalECIInput {
 
-     let mut bytes: Vec<i32>;
+     bytes: Vec<i32>,
 
-     let fnc1: i32;
+      fnc1: i32
 }
 
 impl ECIInput for MinimalECIInput{
-    pub fn  have_n_characters(&self,  index: i32,  n: i32) -> bool  {
+     fn  have_n_characters(&self,  index: i32,  n: i32) -> bool  {
         if index + n - 1 >= self.bytes.len() {
             return false;
         }
@@ -2668,12 +2757,12 @@ impl ECIInput for MinimalECIInput{
   * @throws  IllegalArgumentException
   *          if the value at the {@code index} argument is not an ECI (@see #isECI)
   */
-  pub fn  get_e_c_i_value(&self,  index: i32) -> i32  {
+   fn  get_e_c_i_value(&self,  index: i32) -> Result<i32,IndexOutOfBoundsException+IllegalArgumentException>  {
     if index < 0 || index >= self.length() {
-        throw IndexOutOfBoundsException::new(format!("{}", index));
+        return Err( IndexOutOfBoundsException::new(format!("{}", index)));
     }
     if !self.is_e_c_i(index) {
-        throw IllegalArgumentException::new(format!("value at {} is not an ECI but a character", index));
+        return Err( IllegalArgumentException::new(format!("value at {} is not an ECI but a character", index)));
     }
     return self.bytes[index] - 256;
 }
@@ -2689,11 +2778,11 @@ impl ECIInput for MinimalECIInput{
   *          if the {@code index} argument is negative or not less than
   *          {@code length()}
   */
-  pub fn  is_e_c_i(&self,  index: i32) -> bool  {
+   fn  is_e_c_i(&self,  index: i32) -> Result<bool,IndexOutOfBoundsException>  {
     if index < 0 || index >= self.length() {
-        throw IndexOutOfBoundsException::new(format!("{}", index));
+        return Err( IndexOutOfBoundsException::new(format!("{}", index)));
     }
-    return self.bytes[index] > 255 && self.bytes[index] <= 999;
+    return Ok(self.bytes[index] > 255 && self.bytes[index] <= 999)
 }
 
 /**
@@ -2716,9 +2805,9 @@ impl ECIInput for MinimalECIInput{
   * @throws  IllegalArgumentException
   *          if a value in the range {@code start}-{@code end} is an ECI (@see #isECI)
   */
-  pub fn  sub_sequence(&self,  start: i32,  end: i32) -> CharSequence  {
+   fn  sub_sequence(&self,  start: i32,  end: i32) -> Result<CharSequence,IndexOutOfBoundsException+IllegalArgumentException>  {
     if start < 0 || start > end || end > self.length() {
-        throw IndexOutOfBoundsException::new(format!("{}", start));
+        return Err( IndexOutOfBoundsException::new(format!("{}", start)));
     }
      let result: StringBuilder = StringBuilder::new();
      {
@@ -2726,7 +2815,7 @@ impl ECIInput for MinimalECIInput{
         while i < end {
             {
                 if self.is_e_c_i(i) {
-                    throw IllegalArgumentException::new(format!("value at {} is not a character but an ECI", i));
+                    return Err( IllegalArgumentException::new(format!("value at {} is not a character but an ECI", i)));
                 }
                 result.append(&self.char_at(i));
             }
@@ -2753,14 +2842,14 @@ impl ECIInput for MinimalECIInput{
   * @throws  IllegalArgumentException
   *          if the value at the {@code index} argument is an ECI (@see #isECI)
   */
-  pub fn  char_at(&self,  index: i32) -> char  {
+   fn  char_at(&self,  index: i32) -> Result<char,IndexOutOfBoundsException+IllegalArgumentException>  {
     if index < 0 || index >= self.length() {
-        throw IndexOutOfBoundsException::new(format!("{}", index));
+        return Err( IndexOutOfBoundsException::new(format!("{}", index)));
     }
     if self.is_e_c_i(index) {
-        throw IllegalArgumentException::new(format!("value at {} is not a character but an ECI", index));
+        return Err( IllegalArgumentException::new(format!("value at {} is not a character but an ECI", index)));
     }
-    return  if self.is_f_n_c1(index) { self.fnc1 as char } else { self.bytes[index] as char };
+    return  if self.is_f_n_c1(index) { Ok(self.fnc1 as char) } else { Ok(self.bytes[index] as char) };
 }
 
 /**
@@ -2769,7 +2858,7 @@ impl ECIInput for MinimalECIInput{
   *
   * @return  the number of {@code char}s in this sequence
   */
-  pub fn  length(&self) -> i32  {
+   fn  length(&self) -> i32  {
     return self.bytes.len();
 }
 
@@ -2789,12 +2878,13 @@ impl MinimalECIInput {
   * @param fnc1 denotes the character in the input that represents the FNC1 character or -1 if this is not GS1
   *   input.
   */
-    pub fn new( string_to_encode: &String,  priority_charset: &Charset,  fnc1: i32) -> MinimalECIInput {
-        let .fnc1 = fnc1;
+    pub fn new( string_to_encode: &String,  priority_charset: &Charset,  fnc1: i32) -> Self {
+        let mut new_mecii: Self;
+        new_mecii .fnc1 = fnc1;
          let encoder_set: ECIEncoderSet = ECIEncoderSet::new(&string_to_encode, &priority_charset, fnc1);
         if encoder_set.length() == 1 {
             //optimization for the case when all can be encoded without ECI in ISO-8859-1
-            bytes = : [i32; string_to_encode.length()] = [0; string_to_encode.length()];
+            bytes =  [0; string_to_encode.length()];
              {
                  let mut i: i32 = 0;
                 while i < bytes.len() {
@@ -2835,11 +2925,11 @@ impl MinimalECIInput {
   *          if the {@code index} argument is negative or not less than
   *          {@code length()}
   */
-    pub fn  is_f_n_c1(&self,  index: i32) -> bool  {
+    pub fn  is_f_n_c1(&self,  index: i32) -> Result<bool,IndexOutOfBoundsException>  {
         if index < 0 || index >= self.length() {
-            throw IndexOutOfBoundsException::new(format!("{}", index));
+            return Err( IndexOutOfBoundsException::new(format!("{}", index)));
         }
-        return self.bytes[index] == 1000;
+        return Ok(self.bytes[index] == 1000);
     }
 
     
@@ -2900,7 +2990,7 @@ impl MinimalECIInput {
 
     }
 
-    fn  encode_minimally( string_to_encode: &String,  encoder_set: &ECIEncoderSet,  fnc1: i32) -> Vec<i32>  {
+    fn  encode_minimally( string_to_encode: &String,  encoder_set: &ECIEncoderSet,  fnc1: i32) -> Result<Vec<i32>,RuntimeException>  {
          let input_length: i32 = string_to_encode.length();
         // Array that represents vertices. There is a vertex for every character and encoding.
          let mut edges: [[Option<InputEdge>; encoder_set.length()]; input_length + 1] = [[None; encoder_set.length()]; input_length + 1];
@@ -2956,9 +3046,9 @@ impl MinimalECIInput {
          }
 
         if minimal_j < 0 {
-            throw RuntimeException::new(format!("Internal error: failed to encode \"{}\"", string_to_encode));
+            return Err( RuntimeException::new(format!("Internal error: failed to encode \"{}\"", string_to_encode)));
         }
-         let ints_a_l: List<Integer> = ArrayList<>::new();
+         let ints_a_l: List<Integer> =Vec::new();
          let mut current: InputEdge = edges[input_length][minimal_j];
         while current != null {
             if current.is_f_n_c1() {
@@ -2998,23 +3088,24 @@ impl MinimalECIInput {
 
     struct InputEdge {
 
-         let c: char;
+          c: char,
 
         //the encoding of this edge
-         let encoder_index: i32;
+          encoder_index: i32,
 
-         let previous: InputEdge;
+          previous: InputEdge,
 
-         let cached_total_size: i32;
+          cached_total_size: i32
     }
     
     impl InputEdge {
 
-        fn new( c: char,  encoder_set: &ECIEncoderSet,  encoder_index: i32,  previous: &InputEdge,  fnc1: i32) -> InputEdge {
-            let .c =  if c == fnc1 { 1000 } else { c };
-            let .encoderIndex = encoder_index;
-            let .previous = previous;
-             let mut size: i32 =  if let .c == 1000 { 1 } else { encoder_set.encode(c, encoder_index).len() };
+        fn new( c: char,  encoder_set: &ECIEncoderSet,  encoder_index: i32,  previous: &InputEdge,  fnc1: i32) -> Self {
+            let mut new_ie : Self;
+            new_ie .c =  if c == fnc1 { 1000 } else { c };
+            new_ie .encoderIndex = encoder_index;
+            new_ie .previous = previous;
+             let mut size: i32 =  if new_ie .c == 1000 { 1 } else { encoder_set.encode(c, encoder_index).len() };
              let previous_encoder_index: i32 =  if previous == null { 0 } else { previous.encoderIndex };
             if previous_encoder_index != encoder_index {
                 size += COST_PER_ECI;
@@ -3022,7 +3113,9 @@ impl MinimalECIInput {
             if previous != null {
                 size += previous.cachedTotalSize;
             }
-            let .cachedTotalSize = size;
+            new_ie .cachedTotalSize = size;
+
+            new_ie
         }
 
         fn  is_f_n_c1(&self) -> bool  {
@@ -3042,43 +3135,35 @@ impl MinimalECIInput {
  */
 pub struct PerspectiveTransform {
 
-    let a11: f32;
+     a11: f32,
 
-    let a12: f32;
+     a12: f32,
 
-    let a13: f32;
+     a13: f32,
 
-    let a21: f32;
+     a21: f32,
 
-    let a22: f32;
+     a22: f32,
 
-    let a23: f32;
+     a23: f32,
 
-    let a31: f32;
+     a31: f32,
 
-    let a32: f32;
+     a32: f32,
 
-    let a33: f32;
+     a33: f32
 }
 
 impl PerspectiveTransform {
 
-   fn new( a11: f32,  a21: f32,  a31: f32,  a12: f32,  a22: f32,  a32: f32,  a13: f32,  a23: f32,  a33: f32) -> PerspectiveTransform {
-       let .a11 = a11;
-       let .a12 = a12;
-       let .a13 = a13;
-       let .a21 = a21;
-       let .a22 = a22;
-       let .a23 = a23;
-       let .a31 = a31;
-       let .a32 = a32;
-       let .a33 = a33;
+   fn new( a11: f32,  a21: f32,  a31: f32,  a12: f32,  a22: f32,  a32: f32,  a13: f32,  a23: f32,  a33: f32) -> Self {
+       Self { a11: a11, a12: a12, a13: a13, a21: a21, a22: a22, a23: a23, a31: a31, a32: a32, a33: a33 }
    }
 
    pub fn  quadrilateral_to_quadrilateral( x0: f32,  y0: f32,  x1: f32,  y1: f32,  x2: f32,  y2: f32,  x3: f32,  y3: f32,  x0p: f32,  y0p: f32,  x1p: f32,  y1p: f32,  x2p: f32,  y2p: f32,  x3p: f32,  y3p: f32) -> PerspectiveTransform  {
         let q_to_s: PerspectiveTransform = ::quadrilateral_to_square(x0, y0, x1, y1, x2, y2, x3, y3);
         let s_to_q: PerspectiveTransform = ::square_to_quadrilateral(x0p, y0p, x1p, y1p, x2p, y2p, x3p, y3p);
-       return s_to_q.times(q_to_s);
+       return s_to_q.times(&q_to_s);
    }
 
    pub fn  transform_points(&self,  points: &Vec<f32>)   {
@@ -3197,7 +3282,7 @@ impl StringUtils {
   *  "SJIS", "UTF8", "ISO8859_1", or the platform default encoding if none
   *  of these can possibly be correct
   */
-   pub fn  guess_encoding( bytes: &Vec<i8>,  hints: &Map<DecodeHintType, ?>) -> String  {
+   pub fn  guess_encoding( bytes: &Vec<i8>,  hints: &HashMap<DecodeHintType, _>) -> &str  {
         let c: Charset = ::guess_charset(&bytes, &hints);
        if c == SHIFT_JIS_CHARSET {
            return "SJIS";
@@ -3218,7 +3303,7 @@ impl StringUtils {
   *  or the platform default encoding if
   *  none of these can possibly be correct
   */
-   pub fn  guess_charset( bytes: &Vec<i8>,  hints: &Map<DecodeHintType, ?>) -> Charset  {
+   pub fn  guess_charset( bytes: &Vec<i8>,  hints: &HashMap<DecodeHintType, _>) -> Charset  {
        if hints != null && hints.contains_key(DecodeHintType::CHARACTER_SET) {
            return Charset::for_name(&hints.get(DecodeHintType::CHARACTER_SET).to_string());
        }
