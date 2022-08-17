@@ -5,6 +5,7 @@ mod maxicode;
 mod oned;
 mod pdf417;
 mod qrcode;
+mod client;
 
 use std::{fmt, collections::HashMap};
 

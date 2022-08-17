@@ -1,5 +1,5 @@
 use crate::XRingResult;
-
+ 
 // ParsedResultType.java
 /**
  * Represents the type of data encoded by a barcode -- from plain text, to a
