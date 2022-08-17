@@ -26,13 +26,13 @@ pub enum ParsedResultType {
  */
 trait ParsedResult {
 
-   pub fn new( type: &ParsedResultType) -> ParsedResult {
+   pub fn new( parsed_type: &ParsedResultType) -> Self; /*{
        let .type = type;
-   }
+   }*/
 
-   pub fn  get_type(&self) -> ParsedResultType  {
+   pub fn  get_type(&self) -> ParsedResultType ;/* {
        return self.type;
-   }
+   }*/
 
    pub fn  get_display_result(&self) -> String ;
 
@@ -40,7 +40,7 @@ trait ParsedResult {
        return self.get_display_result();
    }
 
-   pub fn  maybe_append( value: &String,  result: &StringBuilder)   {
+   pub fn  maybe_append( value: &String,  result: &String)   {
        if value != null && !value.is_empty() {
            // Don't add a newline before the first value
            if result.length() > 0 {
@@ -50,9 +50,9 @@ trait ParsedResult {
        }
    }
 
-   pub fn  maybe_append( values: &Vec<String>,  result: &StringBuilder)   {
+   pub fn  maybe_append( values: &Vec<String>,  result: &String)   {
        if values != null {
-           for  let value: String in values {
+           for  value in values {
                ::maybe_append(&value, &result);
            }
        }
@@ -106,7 +106,7 @@ trait ResultParser {
     }
 
     pub fn  parse_result( the_result: &Result) -> ParsedResult  {
-        for  let parser: ResultParser in PARSERS {
+        for   parser in PARSERS {
              let result: ParsedResult = parser.parse(the_result);
             if result != null {
                 return result;
@@ -115,16 +115,16 @@ trait ResultParser {
         return TextParsedResult::new(&the_result.get_text(), null);
     }
 
-    pub fn  maybe_append( value: &String,  result: &StringBuilder)   {
+    pub fn  maybe_append( value: &String,  result: &String)   {
         if value != null {
             result.append('\n');
             result.append(&value);
         }
     }
 
-    pub fn  maybe_append( value: &Vec<String>,  result: &StringBuilder)   {
+    pub fn  maybe_append( value: &Vec<String>,  result: &String)   {
         if value != null {
-            for  let s: String in value {
+            for   s in value {
                 result.append('\n');
                 result.append(&s);
             }
@@ -142,7 +142,7 @@ trait ResultParser {
             return escaped;
         }
          let max: i32 = escaped.length();
-         let unescaped: StringBuilder = StringBuilder::new(max - 1);
+         let unescaped: String = String::new(max - 1);
         unescaped.append(&escaped.to_char_array(), 0, backslash);
          let next_is_escaped: bool = false;
          {
@@ -627,7 +627,7 @@ impl AddressBookParsedResult {
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: StringBuilder = StringBuilder::new(100);
+         let result: String = String::new(100);
         maybe_append(&self.names, &result);
         maybe_append(&self.nicknames, &result);
         maybe_append(&self.pronunciation, &result);
@@ -904,7 +904,7 @@ impl CalendarParsedResult {
    }
 
    pub fn  get_display_result(&self) -> String  {
-        let result: StringBuilder = StringBuilder::new(100);
+        let result: String = String::new(100);
        maybe_append(&self.summary, &result);
        maybe_append(&::format(self.start_all_day, self.start), &result);
        maybe_append(&::format(self.end_all_day, self.end), &result);
@@ -1064,7 +1064,7 @@ impl EmailAddressParsedResult {
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: StringBuilder = StringBuilder::new(30);
+         let result: String = String::new(30);
         maybe_append(&self.tos, &result);
         maybe_append(&self.ccs, &result);
         maybe_append(&self.bccs, &result);
@@ -1561,7 +1561,7 @@ impl ExpandedProductResultParser {
             return null;
         }
          let raw_text_aux: CharSequence = raw_text.substring(i + 1);
-         let buf: StringBuilder = StringBuilder::new();
+         let buf: String = String::new();
          {
              let mut index: i32 = 0;
             while index < raw_text_aux.length() {
@@ -1583,7 +1583,7 @@ impl ExpandedProductResultParser {
     }
 
     fn  find_value( i: i32,  raw_text: &String) -> String  {
-         let buf: StringBuilder = StringBuilder::new();
+         let buf: String = String::new();
          let raw_text_aux: String = raw_text.substring(i);
          {
              let mut index: i32 = 0;
@@ -1703,7 +1703,7 @@ impl GeoParsedResult {
     }
 
     pub fn  get_geo_u_r_i(&self) -> String  {
-         let result: StringBuilder = StringBuilder::new();
+         let result: String = String::new();
         result.append("geo:");
         result.append(self.latitude);
         result.append(',');
@@ -1748,7 +1748,7 @@ impl GeoParsedResult {
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: StringBuilder = StringBuilder::new(20);
+         let result: String = String::new(20);
         result.append(self.latitude);
         result.append(", ");
         result.append(self.longitude);
@@ -1969,7 +1969,7 @@ impl SMSParsedResult {
     }
 
     pub fn  get_s_m_s_u_r_i(&self) -> String  {
-         let result: StringBuilder = StringBuilder::new();
+         let result: String = String::new();
         result.append("sms:");
          let mut first: bool = true;
          {
@@ -2027,7 +2027,7 @@ impl SMSParsedResult {
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: StringBuilder = StringBuilder::new(100);
+         let result: String = String::new(100);
         maybe_append(&self.numbers, &result);
         maybe_append(&self.subject, &result);
         maybe_append(&self.body, &result);
@@ -2153,7 +2153,7 @@ impl TelParsedResult {
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: StringBuilder = StringBuilder::new(20);
+         let result: String = String::new(20);
         maybe_append(&self.number, &result);
         maybe_append(&self.title, &result);
         return result.to_string();
@@ -2270,7 +2270,7 @@ impl URIParsedResult {
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: StringBuilder = StringBuilder::new(30);
+         let result: String = String::new(30);
         maybe_append(&self.title, &result);
         maybe_append(&self.uri, &result);
         return result.to_string();
@@ -2597,7 +2597,7 @@ impl VCardResultParser {
 
    fn  decode_quoted_printable( value: &CharSequence,  charset: &String) -> String  {
         let length: i32 = value.length();
-        let result: StringBuilder = StringBuilder::new(length);
+        let result: String = String::new(length);
         let fragment_buffer: ByteArrayOutputStream = ByteArrayOutputStream::new();
         {
             let mut i: i32 = 0;
@@ -2644,7 +2644,7 @@ impl VCardResultParser {
        return result.to_string();
    }
 
-   fn  maybe_append_fragment( fragment_buffer: &ByteArrayOutputStream,  charset: &String,  result: &StringBuilder)   {
+   fn  maybe_append_fragment( fragment_buffer: &ByteArrayOutputStream,  charset: &String,  result: &String)   {
        if fragment_buffer.size() > 0 {
             let fragment_bytes: Vec<i8> = fragment_buffer.to_byte_array();
             let mut fragment: String;
@@ -2752,7 +2752,7 @@ impl VCardResultParser {
                    start = end + 1;
                }
                components[component_index] = name.substring(start);
-                let new_name: StringBuilder = StringBuilder::new(100);
+                let new_name: String = String::new(100);
                ::maybe_append_component(&components, 3, &new_name);
                ::maybe_append_component(&components, 1, &new_name);
                ::maybe_append_component(&components, 2, &new_name);
@@ -2763,7 +2763,7 @@ impl VCardResultParser {
        }
    }
 
-   fn  maybe_append_component( components: &Vec<String>,  i: i32,  new_name: &StringBuilder)   {
+   fn  maybe_append_component( components: &Vec<String>,  i: i32,  new_name: &String)   {
        if components[i] != null && !components[i].is_empty() {
            if new_name.length() > 0 {
                new_name.append(' ');
@@ -2973,7 +2973,7 @@ impl VINParsedResult {
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: StringBuilder = StringBuilder::new(50);
+         let result: String = String::new(50);
         result.append(&self.world_manufacturer_i_d).append(' ');
         result.append(&self.vehicle_descriptor_section).append(' ');
         result.append(&self.vehicle_identifier_section).append('\n');
@@ -3302,7 +3302,7 @@ impl WifiParsedResult {
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: StringBuilder = StringBuilder::new(80);
+         let result: String = String::new(80);
         maybe_append(&self.ssid, &result);
         maybe_append(&self.network_encryption, &result);
         maybe_append(&self.password, &result);
