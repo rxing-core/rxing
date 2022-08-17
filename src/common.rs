@@ -1,3 +1,6 @@
+pub mod detector;
+pub mod readsolomon;
+
 use std::collections::HashMap;
 
 use crate::{Binarizer,LuminanceSource,NotFoundException,FormatException,NotFoundException,Binarizer,ResultPoint};
@@ -172,7 +175,7 @@ impl GridSampler {
    */
     pub fn  sample_grid(&self,  image: &BitMatrix,  dimension_x: i32,  dimension_y: i32,  p1_to_x: f32,  p1_to_y: f32,  p2_to_x: f32,  p2_to_y: f32,  p3_to_x: f32,  p3_to_y: f32,  p4_to_x: f32,  p4_to_y: f32,  p1_from_x: f32,  p1_from_y: f32,  p2_from_x: f32,  p2_from_y: f32,  p3_from_x: f32,  p3_from_y: f32,  p4_from_x: f32,  p4_from_y: f32) -> Result<BitMatrix, NotFoundException>  ;
 
-    pub fn  sample_grid(&self,  image: &BitMatrix,  dimension_x: i32,  dimension_y: i32,  transform: &PerspectiveTransform) -> /*  throws NotFoundException */Result<BitMatrix, Rc<Exception>>  ;
+    pub fn  sample_grid(&self,  image: &BitMatrix,  dimension_x: i32,  dimension_y: i32,  transform: &PerspectiveTransform) -> Result<BitMatrix, NotFoundException>  ;
 
     /**
    * <p>Checks a set of points that have been transformed to sample points on an image against
@@ -207,14 +210,14 @@ impl GridSampler {
                     }
                     nudged = false;
                     if x == -1 {
-                        points[offset] = 0.0f;
+                        points[offset] = 0.0f32;
                         nudged = true;
                     } else if x == width {
                         points[offset] = width - 1.0;
                         nudged = true;
                     }
                     if y == -1 {
-                        points[offset + 1] = 0.0f;
+                        points[offset + 1] = 0.0f32;
                         nudged = true;
                     } else if y == height {
                         points[offset + 1] = height - 1.0;
@@ -238,14 +241,14 @@ impl GridSampler {
                     }
                     nudged = false;
                     if x == -1 {
-                        points[offset] = 0.0f;
+                        points[offset] = 0.0f32;
                         nudged = true;
                     } else if x == width {
                         points[offset] = width - 1.0;
                         nudged = true;
                     }
                     if y == -1 {
-                        points[offset + 1] = 0.0f;
+                        points[offset + 1] = 0.0f32;
                         nudged = true;
                     } else if y == height {
                         points[offset + 1] = height - 1.0;
@@ -524,7 +527,7 @@ impl GlobalHistogramBinarizer {
  */
 
 const EMPTY_BITS : Vec<i32> = Vec!([]);
-const LOAD_FACTOR: f32 = 0.75f;
+const LOAD_FACTOR: f32 = 0.75f32;
 
 #[derive(Cloneable, Eq, Hash)]
 pub struct BitArray {
@@ -1362,7 +1365,7 @@ Ok(())
    *
    * @return {@code left,top,width,height} enclosing rectangle of all 1 bits, or null if it is all white
    */
-    pub fn  get_enclosing_rectangle(&self) -> Vec<i32>  {
+    pub fn  get_enclosing_rectangle(&self) -> Option<Vec<i32>>  {
          let mut left: i32 = self.width;
          let mut top: i32 = self.height;
          let mut right: i32 = -1;
@@ -1415,7 +1418,7 @@ Ok(())
         if right < left || bottom < top {
             return null;
         }
-        return vec![left, top, right - left + 1, bottom - top + 1, ]
+        return Some(vec![left, top, right - left + 1, bottom - top + 1, ])
         ;
     }
 
@@ -1424,7 +1427,7 @@ Ok(())
    *
    * @return {@code x,y} coordinate of top-left-most 1 bit, or null if it is all white
    */
-    pub fn  get_top_left_on_bit(&self) -> Vec<i32>  {
+    pub fn  get_top_left_on_bit(&self) -> Option<Vec<i32>>  {
          let bits_offset: i32 = 0;
         while bits_offset < self.bits.len() && self.bits[bits_offset] == 0 {
             bits_offset += 1;
@@ -1440,7 +1443,7 @@ Ok(())
             bit += 1;
         }
         x += bit;
-        return   vec![x, y, ]
+        return   Some(vec![x, y, ])
         ;
     }
 
@@ -1735,7 +1738,7 @@ impl  CharacterSetECI {
    * @return CharacterSetECI representing ECI for character encoding, or null if it is legal
    *   but unsupported
    */
-    pub fn  get_character_set_e_c_i( charset: &str) -> Result<CharacterSetECI,&'static str>  {
+    pub fn  get_character_set_e_c_i( charset: &str) -> Result<Option<CharacterSetECI>,&'static str>  {
         //return NAME_TO_ECI::get(&charset.name());
         let eci = match charset {
             "Cp437" => Self::Cp437,
@@ -1762,7 +1765,7 @@ impl  CharacterSetECI {
 "EUC-KR" => Self::EUC_KR,
 _ => return Err("Invalid charset")
         };
-        Ok(eci)
+        Ok(Some(eci))
     }
 
     /**
@@ -1771,7 +1774,7 @@ _ => return Err("Invalid charset")
    *   unsupported
    * @throws FormatException if ECI value is invalid
    */
-    pub fn  get_character_set_e_c_i_by_value( value: i32) -> Result<CharacterSetECI, FormatException>   {
+    pub fn  get_character_set_e_c_i_by_value( value: i32) -> Result<Option<CharacterSetECI>, FormatException>   {
         if value < 0 || value >= 900 {
             return Err( FormatException::get_format_instance());
         }
@@ -1801,7 +1804,7 @@ _ => return Err("Invalid charset")
 _ => return Err( FormatException::get_format_instance())
 
         };
-        return Ok(eci);
+        return Ok(Some(eci));
     }
 
     pub fn  get_value(v: Self) -> i32  {
@@ -1831,7 +1834,7 @@ _ => return Err( FormatException::get_format_instance())
         }
     }
 
-    /**
+    /*
    * @param name character set ECI encoding name
    * @return CharacterSetECI representing ECI for character encoding, or null if it is legal
    *   but unsupported
@@ -1899,8 +1902,8 @@ impl DecoderResult {
    /**
   * @return raw bytes representing the result, or {@code null} if not applicable
   */
-   pub fn  get_raw_bytes(&self) -> Vec<i8>  {
-       return self.raw_bytes;
+   pub fn  get_raw_bytes(&self) -> Option<Vec<i8>>  {
+       return Some(self.raw_bytes);
    }
 
    /**
@@ -1929,21 +1932,21 @@ impl DecoderResult {
    /**
   * @return list of byte segments in the result, or {@code null} if not applicable
   */
-   pub fn  get_byte_segments(&self) -> List<Vec<i8>>  {
+   pub fn  get_byte_segments(&self) -> Option<Vector<Vec<i8>>>  {
        return self.byte_segments;
    }
 
    /**
   * @return name of error correction level used, or {@code null} if not applicable
   */
-   pub fn  get_e_c_level(&self) -> String  {
-       return self.ec_level;
+   pub fn  get_e_c_level(&self) -> Option<String>  {
+       return Some(self.ec_level);
    }
 
    /**
   * @return number of errors corrected, or {@code null} if not applicable
   */
-   pub fn  get_errors_corrected(&self) -> Integer  {
+   pub fn  get_errors_corrected(&self) -> Option<Integer>  {
        return self.errors_corrected;
    }
 
@@ -1954,7 +1957,7 @@ impl DecoderResult {
    /**
   * @return number of erasures corrected, or {@code null} if not applicable
   */
-   pub fn  get_erasures(&self) -> Integer  {
+   pub fn  get_erasures(&self) -> Option<Integer>  {
        return self.erasures;
    }
 
@@ -2017,12 +2020,12 @@ impl GridSampler for DefaultGridSampler {
             while y < dimension_y {
                 {
                      let max: i32 = points.len();
-                     let i_value: f32 = y + 0.5f;
+                     let i_value: f32 = y + 0.5f32;
                      {
                          let mut x: i32 = 0;
                         while x < max {
                             {
-                                points[x] = (x / 2.0) as f32 + 0.5f;
+                                points[x] = (x / 2.0) as f32 + 0.5f32;
                                 points[x + 1] = i_value;
                             }
                             x += 2;
@@ -3086,43 +3089,43 @@ impl MinimalECIInput {
         return ints;
     }
 
-    struct InputEdge {
+}
 
-          c: char,
+struct InputEdge {
 
-        //the encoding of this edge
-          encoder_index: i32,
+    c: char,
 
-          previous: InputEdge,
+  //the encoding of this edge
+    encoder_index: i32,
 
-          cached_total_size: i32
-    }
-    
-    impl InputEdge {
+    previous: InputEdge,
 
-        fn new( c: char,  encoder_set: &ECIEncoderSet,  encoder_index: i32,  previous: &InputEdge,  fnc1: i32) -> Self {
-            let mut new_ie : Self;
-            new_ie .c =  if c == fnc1 { 1000 } else { c };
-            new_ie .encoderIndex = encoder_index;
-            new_ie .previous = previous;
-             let mut size: i32 =  if new_ie .c == 1000 { 1 } else { encoder_set.encode(c, encoder_index).len() };
-             let previous_encoder_index: i32 =  if previous == null { 0 } else { previous.encoderIndex };
-            if previous_encoder_index != encoder_index {
-                size += COST_PER_ECI;
-            }
-            if previous != null {
-                size += previous.cachedTotalSize;
-            }
-            new_ie .cachedTotalSize = size;
+    cached_total_size: i32
+}
 
-            new_ie
-        }
+impl InputEdge {
 
-        fn  is_f_n_c1(&self) -> bool  {
-            return self.c == 1000;
-        }
-    }
+  fn new( c: char,  encoder_set: &ECIEncoderSet,  encoder_index: i32,  previous: &InputEdge,  fnc1: i32) -> Self {
+      let mut new_ie : Self;
+      new_ie .c =  if c == fnc1 { 1000 } else { c };
+      new_ie .encoderIndex = encoder_index;
+      new_ie .previous = previous;
+       let mut size: i32 =  if new_ie .c == 1000 { 1 } else { encoder_set.encode(c, encoder_index).len() };
+       let previous_encoder_index: i32 =  if previous == null { 0 } else { previous.encoderIndex };
+      if previous_encoder_index != encoder_index {
+          size += COST_PER_ECI;
+      }
+      if previous != null {
+          size += previous.cachedTotalSize;
+      }
+      new_ie .cachedTotalSize = size;
 
+      new_ie
+  }
+
+  fn  is_f_n_c1(&self) -> bool  {
+      return self.c == 1000;
+  }
 }
 
 // PerspectiveTransform.java
@@ -3215,9 +3218,9 @@ impl PerspectiveTransform {
    pub fn  square_to_quadrilateral( x0: f32,  y0: f32,  x1: f32,  y1: f32,  x2: f32,  y2: f32,  x3: f32,  y3: f32) -> PerspectiveTransform  {
         let dx3: f32 = x0 - x1 + x2 - x3;
         let dy3: f32 = y0 - y1 + y2 - y3;
-       if dx3 == 0.0f && dy3 == 0.0f {
+       if dx3 == 0.0f32 && dy3 == 0.0f32 {
            // Affine
-           return PerspectiveTransform::new(x1 - x0, x2 - x1, x0, y1 - y0, y2 - y1, y0, 0.0f, 0.0f, 1.0f);
+           return PerspectiveTransform::new(x1 - x0, x2 - x1, x0, y1 - y0, y2 - y1, y0, 0.0f32, 0.0f32, 1.0f32);
        } else {
             let dx1: f32 = x1 - x2;
             let dx2: f32 = x3 - x2;
@@ -3226,7 +3229,7 @@ impl PerspectiveTransform {
             let denominator: f32 = dx1 * dy2 - dx2 * dy1;
             let a13: f32 = (dx3 * dy2 - dx2 * dy3) / denominator;
             let a23: f32 = (dx1 * dy3 - dx3 * dy1) / denominator;
-           return PerspectiveTransform::new(x1 - x0 + a13 * x1, x3 - x0 + a23 * x3, x0, y1 - y0 + a13 * y1, y3 - y0 + a23 * y3, y0, a13, a23, 1.0f);
+           return PerspectiveTransform::new(x1 - x0 + a13 * x1, x3 - x0 + a23 * x3, x0, y1 - y0 + a13 * y1, y3 - y0 + a23 * y3, y0, a13, a23, 1.0f32);
        }
    }
 

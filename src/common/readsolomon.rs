@@ -138,7 +138,7 @@ impl GenericGFPoly {
             }
         }
 
-       return GenericGFPoly::new(self.field, &sum_diff);
+       return GenericGFPoly::new(&self.field, &sum_diff);
    }
 
    fn  multiply(&self,  other: &GenericGFPoly) -> Result<GenericGFPoly,IllegalArgumentException>  {
@@ -146,7 +146,7 @@ impl GenericGFPoly {
            return Err(IllegalArgumentException::new("GenericGFPolys do not have same GenericGF field"));
        }
        if self.is_zero() || other.is_zero() {
-           return self.field.get_zero();
+           return Ok(self.field.get_zero());
        }
         let a_coefficients: Vec<i32> = self.coefficients;
         let a_length: i32 = a_coefficients.len();
@@ -173,7 +173,7 @@ impl GenericGFPoly {
             }
         }
 
-       return GenericGFPoly::new(self.field, &product);
+       return GenericGFPoly::new(&self.field, &product);
    }
 
    fn  multiply(&self,  scalar: i32) -> GenericGFPoly  {
@@ -195,7 +195,7 @@ impl GenericGFPoly {
             }
         }
 
-       return GenericGFPoly::new(self.field, &product);
+       return GenericGFPoly::new(&self.field, &product);
    }
 
    fn  multiply_by_monomial(&self,  degree: i32,  coefficient: i32) -> Result<GenericGFPoly,IllegalArgumentException>  {
@@ -203,7 +203,7 @@ impl GenericGFPoly {
            return Err( IllegalArgumentException::new());
        }
        if coefficient == 0 {
-           return self.field.get_zero();
+           return Ok(self.field.get_zero());
        }
         let size: i32 = self.coefficients.len();
         let mut product: [i32; size + degree] = [0; size + degree];
@@ -217,7 +217,7 @@ impl GenericGFPoly {
             }
         }
 
-       return GenericGFPoly::new(self.field, &product);
+       return GenericGFPoly::new(&self.field, &product);
    }
 
    fn  divide(&self,  other: &GenericGFPoly) -> Result<Vec<GenericGFPoly>,IllegalArgumentException>  {
@@ -236,16 +236,15 @@ impl GenericGFPoly {
             let scale: i32 = self.field.multiply(&remainder.get_coefficient(&remainder.get_degree()), inverse_denominator_leading_term);
             let term: GenericGFPoly = other.multiply_by_monomial(degree_difference, scale);
             let iteration_quotient: GenericGFPoly = self.field.build_monomial(degree_difference, scale);
-           quotient = quotient.add_or_subtract(iteration_quotient);
-           remainder = remainder.add_or_subtract(term);
+           quotient = quotient.add_or_subtract(&iteration_quotient);
+           remainder = remainder.add_or_subtract(&term);
        }
-       return  vec![quotient, remainder, ]
-       ;
+       return  Ok(vec![quotient, remainder, ]);
    }
 
    pub fn  to_string(&self) -> String  {
        if self.is_zero() {
-           return "0";
+           return "0".to_owned();
        }
         let result: StringBuilder = StringBuilder::new(8 * self.get_degree());
         {
@@ -395,8 +394,8 @@ impl GenericGF {
          }
 
         // logTable[0] == 0 but this should never be used
-        new_generic_gf.zero = GenericGFPoly::new( vec![0, ]);
-        new_generic_gf.one = GenericGFPoly::new( vec![1, ]);
+        new_generic_gf.zero = GenericGFPoly::new( 0, &vec![0, ]);
+        new_generic_gf.one = GenericGFPoly::new( 0, &vec![1, ]);
 
         new_generic_gf
     }
@@ -417,7 +416,7 @@ impl GenericGF {
             return Err( IllegalArgumentException::new());
         }
         if coefficient == 0 {
-            return self.zero;
+            return Ok(self.zero);
         }
          let mut coefficients: [i32; degree + 1] = [0; degree + 1];
         coefficients[0] = coefficient;
@@ -526,8 +525,8 @@ impl ReedSolomonDecoder {
   * @param twoS number of error-correction codewords available
   * @throws ReedSolomonException if decoding fails for any reason
   */
-   pub fn  decode(&self,  received: &Vec<i32>,  two_s: i32)  -> Result<_, ReedSolomonException>   {
-        let poly: GenericGFPoly = GenericGFPoly::new(self.field, &received);
+   pub fn  decode(&self,  received: &Vec<i32>,  two_s: i32)  -> Result<(), ReedSolomonException>   {
+        let poly: GenericGFPoly = GenericGFPoly::new(&self.field, &received);
         let syndrome_coefficients: [i32; two_s] = [0; two_s];
         let no_error: bool = true;
         {
@@ -547,12 +546,12 @@ impl ReedSolomonDecoder {
        if no_error {
            return;
        }
-        let syndrome: GenericGFPoly = GenericGFPoly::new(self.field, &syndrome_coefficients);
-        let sigma_omega: Vec<GenericGFPoly> = self.run_euclidean_algorithm(&self.field.build_monomial(two_s, 1), syndrome, two_s);
+        let syndrome: GenericGFPoly = GenericGFPoly::new(&self.field, &syndrome_coefficients);
+        let sigma_omega: Vec<GenericGFPoly> = self.run_euclidean_algorithm(&self.field.build_monomial(two_s, 1), &syndrome, two_s);
         let sigma: GenericGFPoly = sigma_omega[0];
         let omega: GenericGFPoly = sigma_omega[1];
-        let error_locations: Vec<i32> = self.find_error_locations(sigma);
-        let error_magnitudes: Vec<i32> = self.find_error_magnitudes(omega, &error_locations);
+        let error_locations: Vec<i32> = self.find_error_locations(&sigma);
+        let error_magnitudes: Vec<i32> = self.find_error_magnitudes(&omega, &error_locations);
         {
             let mut i: i32 = 0;
            while i < error_locations.len() {
@@ -566,6 +565,7 @@ impl ReedSolomonDecoder {
                i += 1;
             }
         }
+        Ok(())
 
    }
 
@@ -574,7 +574,7 @@ impl ReedSolomonDecoder {
        if a.get_degree() < b.get_degree() {
             let temp: GenericGFPoly = a;
            a = b;
-           b = temp;
+           b = &temp;
        }
         let r_last: GenericGFPoly = a;
         let mut r: GenericGFPoly = b;
@@ -601,7 +601,7 @@ impl ReedSolomonDecoder {
                q = q.add_or_subtract(&self.field.build_monomial(degree_diff, scale));
                r = r.add_or_subtract(&r_last.multiply_by_monomial(degree_diff, scale));
            }
-           t = q.multiply(t_last).add_or_subtract(t_last_last);
+           t = q.multiply(&t_last).add_or_subtract(t_last_last);
            if r.get_degree() >= r_last.get_degree() {
                return Err( IllegalStateException::new(format!("Division algorithm failed to reduce polynomial? r: {}, rLast: {}", r, r_last)));
            }
@@ -705,7 +705,7 @@ impl ReedSolomonEncoder {
     let mut new_rse;
     new_rse .field = field;
     new_rse .cachedGenerators = Vector::new();
-       cached_generators.add(GenericGFPoly::new(field, vec![1, ]));
+       cached_generators.add(GenericGFPoly::new(field, &vec![1, ]));
        new_rse
    }
 
@@ -716,7 +716,7 @@ impl ReedSolomonEncoder {
                 let mut d: i32 = self.cached_generators.size();
                while d <= degree {
                    {
-                        let next_generator: GenericGFPoly = last_generator.multiply(GenericGFPoly::new(self.field,   vec![1, self.field.exp(d - 1 + self.field.get_generator_base()), ]));
+                        let next_generator: GenericGFPoly = last_generator.multiply(GenericGFPoly::new(&self.field,   &vec![1, self.field.exp(d - 1 + self.field.get_generator_base()), ]));
                        self.cached_generators.add(next_generator);
                        last_generator = next_generator;
                    }
@@ -728,7 +728,7 @@ impl ReedSolomonEncoder {
        return self.cached_generators.get(degree);
    }
 
-   pub fn  encode(&self,  to_encode: &Vec<i32>,  ec_bytes: i32) -> Result<_,IllegalArgumentException>  {
+   pub fn  encode(&self,  to_encode: &Vec<i32>,  ec_bytes: i32) -> Result<(),IllegalArgumentException>  {
        if ec_bytes == 0 {
            return Err( IllegalArgumentException::new("No error correction bytes"));
        }
@@ -739,9 +739,9 @@ impl ReedSolomonEncoder {
         let generator: GenericGFPoly = self.build_generator(ec_bytes);
         let info_coefficients: [i32; data_bytes] = [0; data_bytes];
        System::arraycopy(&to_encode, 0, &info_coefficients, 0, data_bytes);
-        let mut info: GenericGFPoly = GenericGFPoly::new(self.field, &info_coefficients);
+        let mut info: GenericGFPoly = GenericGFPoly::new(&self.field, &info_coefficients);
        info = info.multiply_by_monomial(ec_bytes, 1);
-        let remainder: GenericGFPoly = info.divide(generator)[1];
+        let remainder: GenericGFPoly = info.divide(&generator)[1];
         let coefficients: Vec<i32> = remainder.get_coefficients();
         let num_zero_coefficients: i32 = ec_bytes - coefficients.len();
         {
@@ -755,6 +755,7 @@ impl ReedSolomonEncoder {
         }
 
        System::arraycopy(&coefficients, 0, &to_encode, data_bytes + num_zero_coefficients, coefficients.len());
+       Ok(())
    }
 }
 

@@ -19,13 +19,13 @@ use crate::aztec::encoder::{AztecCode,Encoder};
  * @author Sean Owen
  */
 pub struct AztecDetectorResult {
-    super: DetectorResult;
+    //super: DetectorResult;
 
-     let compact: bool;
+      compact: bool,
 
-     let nb_datablocks: i32;
+      nb_datablocks: i32,
 
-     let nb_layers: i32;
+      nb_layers: i32
 }
 
 impl DetectorResult for AztecDetectorResult {

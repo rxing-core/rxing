@@ -24,7 +24,7 @@ impl MathUtils {
    * @return nearest {@code int}
    */
     pub fn  round( d: f32) -> i32  {
-        return (d + ( if d < 0.0f { -0.5f } else { 0.5f })) as i32;
+        return (d + ( if d < 0.0f32 { -0.5f32 } else { 0.5f32 })) as i32;
     }
 
     /**
@@ -86,7 +86,7 @@ pub struct MonochromeRectangleDetector {
 impl MonochromeRectangleDetector {
 
     pub fn new( image: &BitMatrix) -> Self {
-        Self{ image };
+        Self{ image }
     }
 
     /**
@@ -208,7 +208,7 @@ impl MonochromeRectangleDetector {
    * @return int[] with start and end of found range, or null if no such range is found
    *  (e.g. only white was found)
    */
-    fn  black_white_range(&self,  fixed_dimension: i32,  max_white_run: i32,  min_dim: i32,  max_dim: i32,  horizontal: bool) -> Vec<i32>  {
+    fn  black_white_range(&self,  fixed_dimension: i32,  max_white_run: i32,  min_dim: i32,  max_dim: i32,  horizontal: bool) -> Option<Vec<i32>> {
          let center: i32 = (min_dim + max_dim) / 2;
         // Scan left/up first
          let mut start: i32 = center;
@@ -248,7 +248,7 @@ impl MonochromeRectangleDetector {
             }
         }
         end -= 1;
-        return  if end > start {   vec![start, end, ]
+        return  if end > start {   Some(vec![start, end, ])
          } else { null };
     }
 }
@@ -288,7 +288,7 @@ pub struct WhiteRectangleDetector {
 impl WhiteRectangleDetector {
 
    pub fn new( image: &BitMatrix) -> Result<Self, NotFoundException> {
-       this(image, INIT_SIZE, image.get_width() / 2, image.get_height() / 2);
+       this(image, INIT_SIZE, image.get_width() / 2, image.get_height() / 2)
    }
 
    /**
@@ -475,13 +475,13 @@ impl WhiteRectangleDetector {
            if y == null {
                return Err( NotFoundException::get_not_found_instance());
            }
-           return Ok(self.center_edges(y, z, x, t));
+           return Ok(self.center_edges(&y, &z, &x, &t));
        } else {
            return Err( NotFoundException::get_not_found_instance());
        }
    }
 
-   fn  get_black_point_on_segment(&self,  a_x: f32,  a_y: f32,  b_x: f32,  b_y: f32) -> ResultPoint  {
+   fn  get_black_point_on_segment(&self,  a_x: f32,  a_y: f32,  b_x: f32,  b_y: f32) -> Option<ResultPoint>  {
         let dist: i32 = MathUtils::round(&MathUtils::distance(a_x, a_y, b_x, b_y));
         let x_step: f32 = (b_x - a_x) / dist;
         let y_step: f32 = (b_y - a_y) / dist;
@@ -492,7 +492,7 @@ impl WhiteRectangleDetector {
                     let x: i32 = MathUtils::round(a_x + i * x_step);
                     let y: i32 = MathUtils::round(a_y + i * y_step);
                    if self.image.get(x, y) {
-                       return ResultPoint::new(x, y);
+                       return Some(ResultPoint::new(x, y));
                    }
                }
                i += 1;
@@ -530,7 +530,7 @@ impl WhiteRectangleDetector {
         let xj: f32 = x.get_y();
         let ti: f32 = t.get_x();
         let tj: f32 = t.get_y();
-       if yi < self.width / 2.0f {
+       if yi < self.width / 2.0f32 {
            return   vec![ResultPoint::new(ti - CORR, tj + CORR), ResultPoint::new(zi + CORR, zj + CORR), ResultPoint::new(xi - CORR, xj - CORR), ResultPoint::new(yi + CORR, yj - CORR), ]
            ;
        } else {

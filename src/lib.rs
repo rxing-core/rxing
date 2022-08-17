@@ -201,7 +201,7 @@ impl BinaryBitmap {
   */
    pub fn  crop(&self,  left: i32,  top: i32,  width: i32,  height: i32) -> BinaryBitmap  {
         let new_source: LuminanceSource = self.binarizer.get_luminance_source().crop(left, top, width, height);
-       return BinaryBitmap::new(&self.binarizer.create_binarizer(new_source));
+       return BinaryBitmap::new(&self.binarizer.create_binarizer(&new_source));
    }
 
    /**
@@ -219,7 +219,7 @@ impl BinaryBitmap {
   */
    pub fn  rotate_counter_clockwise(&self) -> BinaryBitmap  {
         let new_source: LuminanceSource = self.binarizer.get_luminance_source().rotate_counter_clockwise();
-       return BinaryBitmap::new(&self.binarizer.create_binarizer(new_source));
+       return BinaryBitmap::new(&self.binarizer.create_binarizer(&new_source));
    }
 
    /**
@@ -230,7 +230,7 @@ impl BinaryBitmap {
   */
    pub fn  rotate_counter_clockwise45(&self) -> BinaryBitmap  {
         let new_source: LuminanceSource = self.binarizer.get_luminance_source().rotate_counter_clockwise45();
-       return BinaryBitmap::new(&self.binarizer.create_binarizer(new_source));
+       return BinaryBitmap::new(&self.binarizer.create_binarizer(&new_source));
    }
 }
 
@@ -823,13 +823,13 @@ pub struct MultiFormatReader<T> {
 
 impl Reader for MultiFormatReader <T>{
     fn  decode<T>(&self,  image: &BinaryBitmap, hints:Option<&HashMap<DecodeHintType, T>>) -> Result<RXingResult, ReaderException>  {
-        self.set_hints(&hints)
+        self.set_hints(&hints);
         Ok(self.decode_internal(image))
     }
 
     fn  reset(&self)   {
         if self.readers != null {
-            for  let reader: Reader in self.readers {
+            for   reader in self.readers {
                 reader.reset();
             }
         }
@@ -863,9 +863,9 @@ impl MultiFormatReader<T> {
    */
     pub fn  set_hints<T>(&self,  hints: &HashMap<DecodeHintType, T>)   {
         self.hints = hints;
-         let try_harder: bool = hints != null && hints.contains_key(DecodeHintType::TRY_HARDER);
-         let formats: Collection<BarcodeFormat> =  if hints == null { null } else { hints.get(DecodeHintType::POSSIBLE_FORMATS) as Collection<BarcodeFormat> };
-         let mut readers: Collection<Reader> = ArrayList<>::new();
+         let try_harder: bool = hints != null && hints.contains_key(&DecodeHintType::TRY_HARDER);
+         let formats: Collection<BarcodeFormat> =  if hints == null { null } else { hints.get(&DecodeHintType::POSSIBLE_FORMATS) as Collection<BarcodeFormat> };
+         let mut readers: Collection<Reader> = Vector::new();
         if formats != null {
              let add_one_d_reader: bool = formats.contains(BarcodeFormat::UPC_A) || formats.contains(BarcodeFormat::UPC_E) || formats.contains(BarcodeFormat::EAN_13) || formats.contains(BarcodeFormat::EAN_8) || formats.contains(BarcodeFormat::CODABAR) || formats.contains(BarcodeFormat::CODE_39) || formats.contains(BarcodeFormat::CODE_93) || formats.contains(BarcodeFormat::CODE_128) || formats.contains(BarcodeFormat::ITF) || formats.contains(BarcodeFormat::RSS_14) || formats.contains(BarcodeFormat::RSS_EXPANDED);
             // Put 1D readers upfront in "normal" mode
@@ -910,7 +910,7 @@ impl MultiFormatReader<T> {
 
     fn  decode_internal(&self,  image: &BinaryBitmap) -> Result<RXingResult, NotFoundException>   {
         if self.readers != null {
-            for  let reader: Reader in self.readers {
+            for   reader in self.readers {
                 if Thread::current_thread()::is_interrupted() {
                     return Err( NotFoundException::get_not_found_instance() );
                 }
@@ -919,10 +919,10 @@ impl MultiFormatReader<T> {
                 
 
             }
-            if self.hints != null && self.hints.contains_key(DecodeHintType::ALSO_INVERTED) {
+            if self.hints != null && self.hints.contains_key(&DecodeHintType::ALSO_INVERTED) {
                 // Calling all readers again with inverted image
                 image.get_black_matrix().flip();
-                for  let reader: Reader in self.readers {
+                for   reader in self.readers {
                     if Thread::current_thread()::is_interrupted() {
                         return Err( NotFoundException::get_not_found_instance());
                     }
@@ -1047,13 +1047,13 @@ pub struct PlanarYUVLuminanceSource {
 }
 
 impl LuminanceSource for PlanarYUVLuminanceSource {
-     fn  get_row(&self,  y: i32,  row: &Vec<i8>) -> Vec<i8>  {
+     fn  get_row(&self,  y: i32,  row: &Vec<i8>) -> Result<Vec<i8>,IllegalArgumentException>  {
         if y < 0 || y >= get_height() {
-            throw IllegalArgumentException::new(format!("Requested row is outside the image: {}", y));
+            return Err( IllegalArgumentException::new(format!("Requested row is outside the image: {}", y)));
         }
          let width: i32 = get_width();
         if row == null || row.len() < width {
-            row = : [i8; width] = [0; width];
+            row =  [0; width];
         }
          let offset: i32 = (y + self.top) * self.data_width + self.left;
         System::arraycopy(&self.yuv_data, offset, &row, 0, width);
@@ -1102,19 +1102,23 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
 
 impl PlanarYUVLuminanceSource {
 
-    pub fn new( yuv_data: &Vec<i8>,  data_width: i32,  data_height: i32,  left: i32,  top: i32,  width: i32,  height: i32,  reverse_horizontal: bool) -> Result<PlanarYUVLuminanceSource,IllegalArgumentException> {
-        super(width, height);
+    pub fn new( yuv_data: &Vec<i8>,  data_width: i32,  data_height: i32,  left: i32,  top: i32,  width: i32,  height: i32,  reverse_horizontal: bool) -> Result<Self,IllegalArgumentException> {
+        let new_pyuvls : Self;
+        new_pyuvls.height = height;
+        new_pyuvls.width = width;
         if left + width > data_width || top + height > data_height {
-            throw IllegalArgumentException::new("Crop rectangle does not fit within image data.");
+            return Err(IllegalArgumentException::new("Crop rectangle does not fit within image data."));
         }
-        let .yuvData = yuv_data;
-        let .dataWidth = data_width;
-        let .dataHeight = data_height;
-        let .left = left;
-        let .top = top;
+        new_pyuvls .yuvData = yuv_data;
+        new_pyuvls .dataWidth = data_width;
+        new_pyuvls .dataHeight = data_height;
+        new_pyuvls .left = left;
+        new_pyuvls .top = top;
         if reverse_horizontal {
             self.reverse_horizontal(width, height);
         }
+
+        Ok(new_pyuvls)
     }
 
     pub fn  render_thumbnail(&self) -> Vec<i32>  {
@@ -1165,12 +1169,14 @@ impl PlanarYUVLuminanceSource {
     fn  reverse_horizontal(&self,  width: i32,  height: i32)   {
          let yuv_data: Vec<i8> = self.yuvData;
          {
-             let mut y: i32 = 0, let row_start: i32 = self.top * self.data_width + self.left;
+             let mut y: i32 = 0;
+              let row_start: i32 = self.top * self.data_width + self.left;
             while y < height {
                 {
                      let middle: i32 = row_start + width / 2;
                      {
-                         let mut x1: i32 = row_start, let mut x2: i32 = row_start + width - 1;
+                         let mut x1: i32 = row_start;
+                          let mut x2: i32 = row_start + width - 1;
                         while x1 < middle {
                             {
                                  let temp: i8 = yuv_data[x1];
@@ -1215,7 +1221,7 @@ pub struct RXingResult {
 }
 
 impl RXingResult {
-
+/*
    pub fn new( text: &String,  raw_bytes: &Vec<i8>,  result_points: &Vec<ResultPoint>,  format: &BarcodeFormat) -> Result {
        this(&text, &raw_bytes, result_points, format, &System::current_time_millis());
    }
@@ -1232,7 +1238,12 @@ impl RXingResult {
        let .format = format;
        let .resultMetadata = null;
        let .timestamp = timestamp;
+   } */
+
+   pub fn new( text: &String,  raw_bytes: &Vec<i8>,  num_bits: Option<i32>,  result_points: &Vec<ResultPoint>,  format: &BarcodeFormat,  timestamp: Option<i64>) -> Self {
+    Self { text: test, raw_bytes: raw_bytes, num_bits: numb_bits, result_points: result_points, format: format, result_metadata: (), timestamp: timestamp.unwrap_or(std::time::SystemTime::now()) }
    }
+
 
    /**
   * @return raw text encoded by the barcode
@@ -1281,11 +1292,11 @@ impl RXingResult {
        return self.result_metadata;
    }
 
-   pub fn  put_metadata(&self,  type: &ResultMetadataType,  value: &Object)   {
+   pub fn  put_metadata(&self,  rtype: &ResultMetadataType,  value: &Object)   {
        if self.result_metadata == null {
-           self.result_metadata = EnumMap<>::new(ResultMetadataType.class);
+           self.result_metadata = Vector::new(ResultMetadataType.class);
        }
-       self.result_metadata.put(type, &value);
+       self.result_metadata.put(rtype, &value);
    }
 
    pub fn  put_all_metadata(&self,  metadata: &HashMap<ResultMetadataType, Object>)   {
@@ -1402,6 +1413,7 @@ pub enum ResultMetadataType {
  *
  * @author Sean Owen
  */
+#[Derive(Eq,Hash)]
 pub struct ResultPoint {
 
      x: f32,
@@ -1411,9 +1423,8 @@ pub struct ResultPoint {
 
 impl ResultPoint {
 
-   pub fn new( x: f32,  y: f32) -> ResultPoint {
-       let .x = x;
-       let .y = y;
+   pub fn new( x: f32,  y: f32) -> Self {
+       Self { x: x, y: y }
    }
 
    pub fn  get_x(&self) -> f32  {
@@ -1423,7 +1434,7 @@ impl ResultPoint {
    pub fn  get_y(&self) -> f32  {
        return self.y;
    }
-
+/*
    pub fn  equals(&self,  other: &Object) -> bool  {
        if other instanceof ResultPoint {
             let other_point: ResultPoint = other as ResultPoint;
@@ -1435,6 +1446,7 @@ impl ResultPoint {
    pub fn  hash_code(&self) -> i32  {
        return 31 * Float::float_to_int_bits(self.x) + Float::float_to_int_bits(self.y);
    }
+    */
 
    pub fn  to_string(&self) -> String  {
        return format!("({},{})", self.x, self.y);
@@ -1469,7 +1481,7 @@ impl ResultPoint {
            point_c = patterns[1];
        }
        // should swap A and C.
-       if common::detector::MathUtils::cross_product_z(point_a, point_b, point_c) < 0.0f {
+       if common::detector::MathUtils::cross_product_z(point_a, point_b, point_c) < 0.0f32 {
             let temp: ResultPoint = point_a;
            point_a = point_c;
            point_c = temp;
@@ -1531,13 +1543,13 @@ pub struct RGBLuminanceSource {
 }
 
 impl LuminanceSource for RGBLuminanceSource {
-     fn  get_row(&self,  y: i32,  row: &Vec<i8>) -> Vec<i8>  {
+     fn  get_row(&self,  y: i32,  row: &Vec<i8>) -> Result<Vec<i8>,IllegalArgumentException>  {
         if y < 0 || y >= get_height() {
-            throw IllegalArgumentException::new(format!("Requested row is outside the image: {}", y));
+            return Err( IllegalArgumentException::new(format!("Requested row is outside the image: {}", y)));
         }
          let width: i32 = get_width();
         if row == null || row.len() < width {
-            row = : [i8; width] = [0; width];
+            row =  [0; width];
         }
          let offset: i32 = (y + self.top) * self.data_width + self.left;
         System::arraycopy(&self.luminances, offset, &row, 0, width);
