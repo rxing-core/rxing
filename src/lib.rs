@@ -798,7 +798,7 @@ pub trait Writer {
    * @return {@link BitMatrix} representing encoded barcode image
    * @throws WriterException if contents cannot be encoded legally in a format
    */
-    fn  encode<T>(&self,  contents: &String,  format: &BarcodeFormat,  width: i32,  height: i32, hints: &HashMap<EncodeHintType, T>) -> Result<BitMatrix, WriterException>  ;
+    fn  encode<T>(&self,  contents: &String,  format: &BarcodeFormat,  width: i32,  height: i32, hints: Option<&HashMap<EncodeHintType, T>>) -> Result<BitMatrix, WriterException>  ;
  
 }
 

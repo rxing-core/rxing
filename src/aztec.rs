@@ -1,8 +1,8 @@
-pub mod decoder;
+pub mod decoder; 
 pub mod detector;
 pub mod encoder;
 
-use crate::{ResultPoint,BarcodeFormat,EncodeHintType,Writer,Reader};
+use crate::{ResultPoint,BarcodeFormat,EncodeHintType,Writer,Reader,ReaderException,WriterException};
 use crate::common::{BitMatrix,DetectorResult,DecoderResult};
 use crate::{BarcodeFormat,BinaryBitmap,DecodeHintType,FormatException,NotFoundException,Reader,Result,ResultMetadataType,ResultPoint,ResultPointCallback};
 use crate::aztec::decoder::Decoder;
@@ -25,20 +25,27 @@ pub struct AztecDetectorResult {
 
       nb_datablocks: i32,
 
-      nb_layers: i32
+      nb_layers: i32,
+
+      bits: BitMatrix,
+
+      points: Vec<ResultPoint>,
 }
 
 impl DetectorResult for AztecDetectorResult {
+     fn get_bits(&self) -> BitMatrix {
+        return self.bits;
+    }
 
+     fn get_points(&self) -> Vec<ResultPoint> {
+        return self.points;
+    }
 }
 
 impl AztecDetectorResult {
 
-    pub fn new( bits: &BitMatrix,  points: &Vec<ResultPoint>,  compact: bool,  nb_datablocks: i32,  nb_layers: i32) -> AztecDetectorResult {
-        super(bits, points);
-        let .compact = compact;
-        let .nbDatablocks = nb_datablocks;
-        let .nbLayers = nb_layers;
+    pub fn new( bits: &BitMatrix,  points: &Vec<ResultPoint>,  compact: bool,  nb_datablocks: i32,  nb_layers: i32) -> Self {
+        Self { compact: compact, nb_datablocks: nd_datablocks, nb_layers: nb_layers, bits: bits, points: points }
     }
 
     pub fn  get_nb_layers(&self) -> i32  {
@@ -73,20 +80,25 @@ impl Reader for AztecReader {
    * @throws NotFoundException if a Data Matrix code cannot be found
    * @throws FormatException if a Data Matrix code cannot be decoded
    */
-    pub fn  decode(&self,  image: &BinaryBitmap) -> /*  throws NotFoundException, FormatException */Result<Result, Rc<Exception>>   {
+     /*fn  decode(&self,  image: &BinaryBitmap) -> /*  throws NotFoundException, FormatException */Result<Result, Rc<Exception>>   {
         return Ok(self.decode(image, null));
-    }
+    }*/
 
-    pub fn  decode(&self,  image: &BinaryBitmap,  hints: &Map<DecodeHintType, ?>) -> /*  throws NotFoundException, FormatException */Result<Result, Rc<Exception>>   {
+     fn  decode(&self,  image: &BinaryBitmap,  hints: &Map<DecodeHintType, _>) -> Result<Result, ReaderException>   {
          let not_found_exception: NotFoundException = null;
          let format_exception: FormatException = null;
          let detector: Detector = Detector::new(&image.get_black_matrix());
          let mut points: Vec<ResultPoint> = null;
          let decoder_result: DecoderResult = null;
-        let tryResult1 = 0;
+
+         let detector_result: AztecDetectorResult = detector.detect(Some(false))?;
+            points = detector_result.get_points()?;
+            decoder_result = Decoder::new().decode(detector_result);
+         /*
+         let tryResult1 = 0;
         'try1: loop {
         {
-             let detector_result: AztecDetectorResult = detector.detect(false);
+             let detector_result: AztecDetectorResult = detector.detect(Some(false));
             points = detector_result.get_points();
             decoder_result = Decoder::new().decode(detector_result);
         }
@@ -123,11 +135,12 @@ impl Reader for AztecReader {
             }
 
         }
+        */
         if hints != null {
              let rpcb: ResultPointCallback = hints.get(DecodeHintType::NEED_RESULT_POINT_CALLBACK) as ResultPointCallback;
             if rpcb != null {
-                for  let point: ResultPoint in points {
-                    rpcb.found_possible_result_point(point);
+                for   point in points {
+                    rpcb.found_possible_result_point(&point);
                 }
             }
         }
@@ -144,7 +157,7 @@ impl Reader for AztecReader {
         return Ok(result);
     }
 
-    pub fn  reset(&self)   {
+     fn  reset(&self)   {
     // do nothing
     }
 }
@@ -159,11 +172,7 @@ pub struct AztecWriter {
 
 impl Writer for AztecWriter {
 
-    pub fn  encode(&self,  contents: &String,  format: &BarcodeFormat,  width: i32,  height: i32) -> BitMatrix  {
-        return ::encode(&contents, format, width, height, null);
-    }
-
-    pub fn  encode(&self,  contents: &String,  format: &BarcodeFormat,  width: i32,  height: i32,  hints: &Map<EncodeHintType, ?>) -> BitMatrix  {
+     fn  encode(&self,  contents: &String,  format: &BarcodeFormat,  width: i32,  height: i32,  hints: Option<&HashMap<EncodeHintType, _>>) -> BitMatrix  {
         // Do not add any ECI code by default
          let mut charset: Charset = null;
          let ecc_percent: i32 = Encoder::DEFAULT_EC_PERCENT;
@@ -181,52 +190,58 @@ impl Writer for AztecWriter {
         }
         return ::encode(&contents, format, width, height, &charset, ecc_percent, layers);
     }
-
+/*
     fn  encode( contents: &String,  format: &BarcodeFormat,  width: i32,  height: i32,  charset: &Charset,  ecc_percent: i32,  layers: i32) -> BitMatrix  {
         if format != BarcodeFormat::AZTEC {
-            throw IllegalArgumentException::new(format!("Can only encode AZTEC, but got {}", format));
+            return Err( IllegalArgumentException::new(format!("Can only encode AZTEC, but got {}", format)));
         }
          let aztec: AztecCode = Encoder::encode(&contents, ecc_percent, layers, &charset);
         return ::render_result(aztec, width, height);
-    }
+    }*/
 
+    
+}
+
+impl AztecWriter {
     fn  render_result( code: &AztecCode,  width: i32,  height: i32) -> BitMatrix  {
-         let input: BitMatrix = code.get_matrix();
-        if input == null {
-            throw IllegalStateException::new();
+        let input: BitMatrix = code.get_matrix();
+       if input == null {
+           return Err( IllegalStateException::new());
+       }
+        let input_width: i32 = input.get_width();
+        let input_height: i32 = input.get_height();
+        let output_width: i32 = Math::max(width, input_width);
+        let output_height: i32 = Math::max(height, input_height);
+        let multiple: i32 = Math::min(output_width / input_width, output_height / input_height);
+        let left_padding: i32 = (output_width - (input_width * multiple)) / 2;
+        let top_padding: i32 = (output_height - (input_height * multiple)) / 2;
+        let output: BitMatrix = BitMatrix::new(output_width, output_height);
+        {
+            let input_y: i32 = 0;
+             let output_y: i32 = top_padding;
+           while input_y < input_height {
+               {
+                   // Write the contents of this row of the barcode
+                    {
+                        let input_x: i32 = 0;
+                         let output_x: i32 = left_padding;
+                       while input_x < input_width {
+                           {
+                               if input.get(input_x, input_y) {
+                                   output.set_region(output_x, output_y, multiple, multiple);
+                               }
+                           }
+                           input_x += 1;
+                           output_x += multiple;
+                        }
+                    }
+
+               }
+               input_y += 1;
+               output_y += multiple;
+            }
         }
-         let input_width: i32 = input.get_width();
-         let input_height: i32 = input.get_height();
-         let output_width: i32 = Math::max(width, input_width);
-         let output_height: i32 = Math::max(height, input_height);
-         let multiple: i32 = Math::min(output_width / input_width, output_height / input_height);
-         let left_padding: i32 = (output_width - (input_width * multiple)) / 2;
-         let top_padding: i32 = (output_height - (input_height * multiple)) / 2;
-         let output: BitMatrix = BitMatrix::new(output_width, output_height);
-         {
-             let input_y: i32 = 0, let output_y: i32 = top_padding;
-            while input_y < input_height {
-                {
-                    // Write the contents of this row of the barcode
-                     {
-                         let input_x: i32 = 0, let output_x: i32 = left_padding;
-                        while input_x < input_width {
-                            {
-                                if input.get(input_x, input_y) {
-                                    output.set_region(output_x, output_y, multiple, multiple);
-                                }
-                            }
-                            input_x += 1;
-                            output_x += multiple;
-                         }
-                     }
 
-                }
-                input_y += 1;
-                output_y += multiple;
-             }
-         }
-
-        return output;
-    }
+       return output;
+   }
 }

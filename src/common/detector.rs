@@ -386,15 +386,6 @@ pub struct WhiteRectangleDetector {
 }
 
 impl WhiteRectangleDetector {
-    pub fn new(image: &BitMatrix) -> Result<Self, NotFoundException> {
-        this(
-            image,
-            INIT_SIZE,
-            image.get_width() / 2,
-            image.get_height() / 2,
-        )
-    }
-
     /**
      * @param image barcode image to find a rectangle in
      * @param initSize initial size of search area around center
@@ -404,22 +395,27 @@ impl WhiteRectangleDetector {
      */
     pub fn new(
         image: &BitMatrix,
-        init_size: i32,
-        x: i32,
-        y: i32,
+        init_size: Option<i32>,
+        x_in: Option<i32>,
+        y_in: Option<i32>,
     ) -> Result<Self, NotFoundException> {
         let mut new_wrd: Self;
+        let x = x_in.unwrap_or(image.get_width() / 2);
+        let y = y_in.unwrap_or(image.get_height() / 2);
+
         new_wrd.image = image;
         new_wrd.height = image.get_height();
         new_wrd.width = image.get_width();
-        let halfsize: i32 = init_size / 2;
+        let halfsize: i32 = init_size.unwrap_or(INIT_SIZE) / 2;
         new_wrd.left_init = x - halfsize;
         new_wrd.right_init = x + halfsize;
         new_wrd.up_init = y - halfsize;
         new_wrd.down_init = y + halfsize;
+
         if up_init < 0 || left_init < 0 || down_init >= height || right_init >= width {
             return Err(NotFoundException::get_not_found_instance());
         }
+
         Ok(new_wrd)
     }
 

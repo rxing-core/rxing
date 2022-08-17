@@ -1,4 +1,7 @@
-use crate::common::{BitArray,BitMatrix,CharacterSetECI};
+use std::cmp::Ordering;
+use std::fmt::format;
+
+use crate::common::{BitArray,BitMatrix,CharacterSetECI}; 
 use crate::common::reedsolomon::{GenericGF,ReedSolomonEncoder};
 
 // Token.java
@@ -6,13 +9,13 @@ const EMPTY: Token = SimpleToken::new(null, 0, 0);
 
 pub trait Token {
 
-    fn new( previous: &Token) -> Token {
+    fn new( previous: &Token) -> Token ; /*{
         let .previous = previous;
-    }
+    }*/
 
-    fn  get_previous(&self) -> Token  {
+    fn  get_previous(&self) -> Token ;  /*{
         return self.previous;
-    }
+    }*/
 
     fn  add(&self,  value: i32,  bit_count: i32) -> Token  {
         return SimpleToken::new(self, value, bit_count);
@@ -34,15 +37,15 @@ pub trait Token {
  */
 pub struct AztecCode {
 
-    let compact: bool;
+     compact: bool,
 
-    let size: i32;
+     size: i32,
 
-    let layers: i32;
+     layers: i32,
 
-    let code_words: i32;
+     code_words: i32,
 
-    let matrix: BitMatrix;
+     matrix: BitMatrix
 }
 
 impl AztecCode {
@@ -204,9 +207,9 @@ impl Encoder {
   *                default encoding of ISO/IEC 8859-1 will be assuming by readers.
   * @return Aztec symbol matrix with metadata
   */
-   pub fn  encode( data: &Vec<i8>,  min_e_c_c_percent: i32,  user_specified_layers: i32,  charset: &Charset) -> AztecCode  {
+   pub fn  encode( data: &Vec<i8>,  min_e_c_c_percent: i32,  user_specified_layers: i32,  charset: Option<&Charset>) -> AztecCode  {
        // High-level encode
-        let bits: BitArray = HighLevelEncoder::new(&data, &charset).encode();
+        let bits: BitArray = HighLevelEncoder::new(&data, charset).encode();
        // stuff bits and choose symbol size
         let ecc_bits: i32 = bits.get_size() * min_e_c_c_percent / 100 + 11;
         let total_size_bits: i32 = bits.get_size() + ecc_bits;
@@ -219,18 +222,18 @@ impl Encoder {
            compact = user_specified_layers < 0;
            layers = Math::abs(user_specified_layers);
            if layers > ( if compact { MAX_NB_BITS_COMPACT } else { MAX_NB_BITS }) {
-               throw IllegalArgumentException::new(&String::format("Illegal value %s for layers", user_specified_layers));
+               return Err( IllegalArgumentException::new(&String::format("Illegal value %s for layers", user_specified_layers)));
            }
            total_bits_in_layer = self.total_bits_in_layer(layers, compact);
            word_size = WORD_SIZE[layers];
             let usable_bits_in_layers: i32 = total_bits_in_layer - (total_bits_in_layer % word_size);
            stuffed_bits = ::stuff_bits(bits, word_size);
            if stuffed_bits.get_size() + ecc_bits > usable_bits_in_layers {
-               throw IllegalArgumentException::new("Data to large for user specified layer");
+               return Err( IllegalArgumentException::new("Data to large for user specified layer"));
            }
            if compact && stuffed_bits.get_size() > word_size * 64 {
                // Compact format only allows 64 data words, though C4 can hold more words than that
-               throw IllegalArgumentException::new("Data to large for user specified layer");
+               return Err( IllegalArgumentException::new("Data to large for user specified layer"));
            }
        } else {
            word_size = 0;
@@ -241,7 +244,7 @@ impl Encoder {
                loop  {
                    {
                        if i > MAX_NB_BITS {
-                           throw IllegalArgumentException::new("Data too large for an Aztec code");
+                           return Err( IllegalArgumentException::new("Data too large for an Aztec code"));
                        }
                        compact = i <= 3;
                        layers =  if compact { i + 1 } else { i };
@@ -310,7 +313,8 @@ impl Encoder {
         let matrix: BitMatrix = BitMatrix::new(matrix_size);
        // draw data bits
         {
-            let mut i: i32 = 0, let row_offset: i32 = 0;
+            let mut i: i32 = 0;
+             let row_offset: i32 = 0;
            while i < layers {
                {
                     let row_size: i32 = (layers - i) * 4 + ( if compact { 9 } else { 12 });
@@ -359,7 +363,8 @@ impl Encoder {
        } else {
            ::draw_bulls_eye(matrix, matrix_size / 2, 7);
             {
-                let mut i: i32 = 0, let mut j: i32 = 0;
+                let mut i: i32 = 0;
+                 let mut j: i32 = 0;
                while i < base_matrix_size / 2 - 1 {
                    {
                         {
@@ -387,7 +392,7 @@ impl Encoder {
        aztec.set_size(matrix_size);
        aztec.set_layers(layers);
        aztec.set_code_words(message_size_in_words);
-       aztec.set_matrix(matrix);
+       aztec.set_matrix(&matrix);
        return aztec;
    }
 
@@ -497,7 +502,7 @@ impl Encoder {
         let start_pad: i32 = total_bits % word_size;
         let message_bits: BitArray = BitArray::new();
        message_bits.append_bits(0, start_pad);
-       for  let message_word: i32 in message_words {
+       for   message_word in message_words {
            message_bits.append_bits(message_word, word_size);
        }
        return message_bits;
@@ -556,7 +561,7 @@ impl Encoder {
                }
            _ => 
                 {
-                   throw IllegalArgumentException::new(format!("Unsupported word size {}", word_size));
+                   return Err( IllegalArgumentException::new(format!("Unsupported word size {}", word_size)));
                }
        }
    }
@@ -606,15 +611,16 @@ impl Encoder {
 
 // BinaryShiftToken.java
 struct BinaryShiftToken {
-    super: Token;
+    //super: Token;
+    previous: dyn Token,
 
-     let binary_shift_start: i32;
+      binary_shift_start: i32,
 
-     let binary_shift_byte_count: i32;
+      binary_shift_byte_count: i32
 }
 
 impl Token for BinaryShiftToken {
-    pub fn  append_to(&self,  bit_array: &BitArray,  text: &Vec<i8>)   {
+     fn  append_to(&self,  bit_array: &BitArray,  text: &Vec<i8>)   {
         let bsbc: i32 = self.binary_shift_byte_count;
         {
             let mut i: i32 = 0;
@@ -643,17 +649,15 @@ impl Token for BinaryShiftToken {
 
    }
 
-   pub fn  to_string(&self) -> String  {
+    fn  to_string(&self) -> String  {
        return format!("<{}::{}>", self.binary_shift_start, (self.binary_shift_start + self.binary_shift_byte_count - 1));
    }
 }
 
 impl BinaryShiftToken {
 
-    fn new( previous: &Token,  binary_shift_start: i32,  binary_shift_byte_count: i32) -> BinaryShiftToken {
-        super(previous);
-        let .binaryShiftStart = binary_shift_start;
-        let .binaryShiftByteCount = binary_shift_byte_count;
+    fn new( previous: &Token,  binary_shift_start: i32,  binary_shift_byte_count: i32) -> Self {
+        Self{ previous, binary_shift_start, binary_shift_byte_count}
     }
 
     
@@ -733,79 +737,76 @@ const MODE_NAMES: vec![Vec<String>; 5] = vec!["UPPER", "LOWER", "DIGIT", "MIXED"
  const SHIFT_TABLE: [[i32; 6]; 6] = [[0; 6]; 6];
 pub struct HighLevelEncoder {
 
-     let text: Vec<i8>;
+      text: Vec<i8>,
 
-     let mut charset: Charset;
+     charset: Charset
 }
 
 impl HighLevelEncoder {
 
-    static {
+    pub fn new( text: &Vec<i8>,  charset: Option<&Charset>) -> Self {
         CHAR_MAP[MODE_UPPER][' '] = 1;
-         {
-             let mut c: i32 = 'A';
-            while c <= 'Z' {
-                {
-                    CHAR_MAP[MODE_UPPER][c] = c - 'A' + 2;
-                }
-                c += 1;
-             }
-         }
+        {
+            let mut c: i32 = 'A';
+           while c <= 'Z' {
+               {
+                   CHAR_MAP[MODE_UPPER][c] = c - 'A' + 2;
+               }
+               c += 1;
+            }
+        }
 
-        CHAR_MAP[MODE_LOWER][' '] = 1;
-         {
-             let mut c: i32 = 'a';
-            while c <= 'z' {
-                {
-                    CHAR_MAP[MODE_LOWER][c] = c - 'a' + 2;
-                }
-                c += 1;
-             }
-         }
+       CHAR_MAP[MODE_LOWER][' '] = 1;
+        {
+            let mut c: i32 = 'a';
+           while c <= 'z' {
+               {
+                   CHAR_MAP[MODE_LOWER][c] = c - 'a' + 2;
+               }
+               c += 1;
+            }
+        }
 
-        CHAR_MAP[MODE_DIGIT][' '] = 1;
-         {
-             let mut c: i32 = '0';
-            while c <= '9' {
-                {
-                    CHAR_MAP[MODE_DIGIT][c] = c - '0' + 2;
-                }
-                c += 1;
-             }
-         }
+       CHAR_MAP[MODE_DIGIT][' '] = 1;
+        {
+            let mut c: i32 = '0';
+           while c <= '9' {
+               {
+                   CHAR_MAP[MODE_DIGIT][c] = c - '0' + 2;
+               }
+               c += 1;
+            }
+        }
 
-        CHAR_MAP[MODE_DIGIT][','] = 12;
-        CHAR_MAP[MODE_DIGIT]['.'] = 13;
-         let mixed_table: vec![Vec<i32>; 28] = vec!['\0', ' ', '\1', '\2', '\3', '\4', '\5', '\6', '\7', '\b', '\t', '\n', '\13', '\f', '\r', '\33', '\34', '\35', '\36', '\37', '@', '\\', '^', '_', '`', '|', '~', '\177', ]
-        ;
-         {
-             let mut i: i32 = 0;
-            while i < mixed_table.len() {
-                {
-                    CHAR_MAP[MODE_MIXED][mixed_table[i]] = i;
-                }
-                i += 1;
-             }
-         }
+       CHAR_MAP[MODE_DIGIT][','] = 12;
+       CHAR_MAP[MODE_DIGIT]['.'] = 13;
+        let mixed_table: vec![Vec<i32>; 28] = vec!['\0', ' ', '\u{0001}', '\u{0002}', '\u{0003}', '\u{0004}', '\u{0005}', '\u{0006}', '\u{0007}', '\u{000b}', '\t', '\n', '\u{000D}', '\u{000f}', '\r', '\u{0021}', '\u{0022}', '\u{0023}', '\u{0024}', '\u{0025}', '@', '\\', '^', '_', '`', '|', '~', '\u{00b1}', ]
+       ;
+        {
+            let mut i: i32 = 0;
+           while i < mixed_table.len() {
+               {
+                   CHAR_MAP[MODE_MIXED][mixed_table[i]] = i;
+               }
+               i += 1;
+            }
+        }
 
-         let punct_table: vec![Vec<i32>; 31] = vec!['\0', '\r', '\0', '\0', '\0', '\0', '!', '\'', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '[', ']', '{', '}', ]
-        ;
-         {
-             let mut i: i32 = 0;
-            while i < punct_table.len() {
-                {
-                    if punct_table[i] > 0 {
-                        CHAR_MAP[MODE_PUNCT][punct_table[i]] = i;
-                    }
-                }
-                i += 1;
-             }
-         }
+        let punct_table: vec![Vec<i32>; 31] = vec!['\0', '\r', '\0', '\0', '\0', '\0', '!', '\'', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '[', ']', '{', '}', ]
+       ;
+        {
+            let mut i: i32 = 0;
+           while i < punct_table.len() {
+               {
+                   if punct_table[i] > 0 {
+                       CHAR_MAP[MODE_PUNCT][punct_table[i]] = i;
+                   }
+               }
+               i += 1;
+            }
+        }
 
-    }
-
-    static {
-        for  let table: Vec<i32> in SHIFT_TABLE {
+        for   table in SHIFT_TABLE {
             Arrays::fill(&table, -1);
         }
         SHIFT_TABLE[MODE_UPPER][MODE_PUNCT] = 0;
@@ -814,16 +815,8 @@ impl HighLevelEncoder {
         SHIFT_TABLE[MODE_MIXED][MODE_PUNCT] = 0;
         SHIFT_TABLE[MODE_DIGIT][MODE_PUNCT] = 0;
         SHIFT_TABLE[MODE_DIGIT][MODE_UPPER] = 15;
-    }
 
-    pub fn new( text: &Vec<i8>) -> HighLevelEncoder {
-        let .text = text;
-        let .charset = null;
-    }
-
-    pub fn new( text: &Vec<i8>,  charset: &Charset) -> HighLevelEncoder {
-        let .text = text;
-        let .charset = charset;
+        Self { text: text, charset: charset }
     }
 
     /**
@@ -834,7 +827,7 @@ impl HighLevelEncoder {
         if self.charset != null {
              let eci: CharacterSetECI = CharacterSetECI::get_character_set_e_c_i(&self.charset);
             if null == eci {
-                throw IllegalArgumentException::new(format!("No ECI code for character set {}", self.charset));
+                return Err( IllegalArgumentException::new(format!("No ECI code for character set {}", self.charset)));
             }
             initial_state = initial_state.append_f_l_gn(&eci.get_value());
         }
@@ -886,12 +879,22 @@ impl HighLevelEncoder {
          }
 
         // We are left with a set of states.  Find the shortest one.
-         let min_state: State = Collections::min(&states, Comparator<State>::new() {
+        let min_state = states.iter().min_by(|a,b| {
+            let c = a.get_bit_count() - b.get_bit_count();
+            if c > 0 {
+                Ordering::Greater
+            } else if c < 0 {
+                Ordering::Less
+            }else {
+                Ordering::Equal
+            }
+        }).unwrap();
+         /*let min_state: State = Collections::min(&states, Comparator<State>::new() {
 
             pub fn  compare(&self,  a: &State,  b: &State) -> i32  {
                 return a.get_bit_count() - b.get_bit_count();
             }
-        });
+        });*/
         // Convert it to a bit array, and return.
         return min_state.to_bit_array(&self.text);
     }
@@ -899,9 +902,9 @@ impl HighLevelEncoder {
     // We update a set of states for a new character by updating each state
     // for the new character, merging the results, and then removing the
     // non-optimal states.
-    fn  update_state_list_for_char(&self,  states: &Iterable<State>,  index: i32) -> Collection<State>  {
-         let result: Collection<State> = LinkedList<>::new();
-        for  let state: State in states {
+    fn  update_state_list_for_char(&self,  states: &Vec<State>,  index: i32) -> Vec<State>  {
+         let result: Vec<State> = Vec::new();
+        for   state in states {
             self.update_state_for_char(state, index, &result);
         }
         return ::simplify_states(&result);
@@ -910,7 +913,7 @@ impl HighLevelEncoder {
     // Return a set of states that represent the possible ways of updating this
     // state for the next character.  The resulting set of states are added to
     // the "result" list.
-    fn  update_state_for_char(&self,  state: &State,  index: i32,  result: &Collection<State>)   {
+    fn  update_state_for_char(&self,  state: &State,  index: i32,  result: &Vec<State>)   {
          let ch: char = (self.text[index] & 0xFF) as char;
          let char_in_current_table: bool = CHAR_MAP[state.get_mode()][ch] > 0;
          let state_no_binary: State = null;
@@ -955,15 +958,15 @@ impl HighLevelEncoder {
         }
     }
 
-    fn  update_state_list_for_pair( states: &Iterable<State>,  index: i32,  pair_code: i32) -> Collection<State>  {
-         let result: Collection<State> = LinkedList<>::new();
-        for  let state: State in states {
+    fn  update_state_list_for_pair( states: &Iterable<State>,  index: i32,  pair_code: i32) -> Vec<State>  {
+         let result: Collection<State> = Vec::new();
+        for   state in states {
             ::update_state_for_pair(state, index, pair_code, &result);
         }
         return ::simplify_states(&result);
     }
 
-    fn  update_state_for_pair( state: &State,  index: i32,  pair_code: i32,  result: &Collection<State>)   {
+    fn  update_state_for_pair( state: &State,  index: i32,  pair_code: i32,  result: &Vec<State>)   {
          let state_no_binary: State = state.end_binary_shift(index);
         // Possibility 1.  Latch to MODE_PUNCT, and then append this code
         result.add(&state_no_binary.latch_and_append(MODE_PUNCT, pair_code));
@@ -988,8 +991,8 @@ impl HighLevelEncoder {
     }
 
     fn  simplify_states( states: &Iterable<State>) -> Collection<State>  {
-         let result: Deque<State> = LinkedList<>::new();
-        for  let new_state: State in states {
+         let result: Deque<State> = Vec::new();
+        for   new_state in states {
              let mut add: bool = true;
              {
                  let iterator: Iterator<State> = result.iterator();
@@ -999,7 +1002,7 @@ impl HighLevelEncoder {
                         add = false;
                         break;
                     }
-                    if new_state.is_better_than_or_equal_to(old_state) {
+                    if new_state.is_better_than_or_equal_to(&old_state) {
                         iterator.remove();
                     }
                 }
@@ -1015,12 +1018,13 @@ impl HighLevelEncoder {
 
 // SimpleToken.java
 struct SimpleToken {
-    super: Token;
+    //super: Token;
+    previous :dyn Token,
 
     // For normal words, indicates value and bitCount
-     let value: i16;
+      value: i16,
 
-     let bit_count: i16;
+      bit_count: i16,
 }
 
 impl Token for SimpleToken {
@@ -1028,19 +1032,18 @@ impl Token for SimpleToken {
         bit_array.append_bits(self.value, self.bit_count);
     }
 
-    pub fn  to_string(&self) -> String  {
+     fn  to_string(&self) -> String  {
          let mut value: i32 = self.value & ((1 << self.bit_count) - 1);
         value |= 1 << self.bit_count;
-        return '<' + Integer::to_binary_string(value | (1 << self.bit_count))::substring(1) + '>';
+        return format!("<{}>",format!("{}",value | (1 << self.bit_count)).as_bytes()[1..]);
+        //return '<' + Integer::to_binary_string(value | (1 << self.bit_count))::substring(1) + '>';
     }
 }
 
 impl SimpleToken {
 
-    fn new( previous: &Token,  value: i32,  bit_count: i32) -> SimpleToken {
-        super(previous);
-        let .value = value as i16;
-        let .bitCount = bit_count as i16;
+    fn new( previous: &Token,  value: i32,  bit_count: i32) -> Self {
+        Self { previous, value, bit_count }
     }
 
 }
@@ -1057,30 +1060,26 @@ struct State {
 
     // The current mode of the encoding (or the mode to which we'll return if
     // we're in Binary Shift mode.
-     let mode: i32;
+      mode: i32,
 
     // The list of tokens that we output.  If we are in Binary Shift mode, this
     // token list does *not* yet included the token for those bytes
-     let token: Token;
+      token: Token,
 
     // If non-zero, the number of most recent bytes that should be output
     // in Binary Shift mode.
-     let binary_shift_byte_count: i32;
+      binary_shift_byte_count: i32,
 
     // The total number of bits generated (including Binary Shift).
-     let bit_count: i32;
+      bit_count: i32,
 
-     let binary_shift_cost: i32;
+      binary_shift_cost: i32
 }
 
 impl State {
 
-    fn new( token: &Token,  mode: i32,  binary_bytes: i32,  bit_count: i32) -> State {
-        let .token = token;
-        let .mode = mode;
-        let .binaryShiftByteCount = binary_bytes;
-        let .bitCount = bit_count;
-        let .binaryShiftCost = ::calculate_binary_shift_cost(binary_bytes);
+    fn new( token: &Token,  mode: i32,  binary_bytes: i32,  bit_count: i32) -> Self {
+        Self{ mode: mode, token: token, binary_shift_byte_count: binary_bytes, bit_count: bit_count, binary_shift_cost: ::calculate_binary_shift_cost(binary_bytes) }
     }
 
     fn  get_mode(&self) -> i32  {
@@ -1108,17 +1107,17 @@ impl State {
             // 0: FNC1
             token = token.add(0, 3);
         } else if eci > 999999 {
-            throw IllegalArgumentException::new("ECI code must be between 0 and 999999");
+            return Err( IllegalArgumentException::new("ECI code must be between 0 and 999999"));
         } else {
-             let eci_digits: Vec<i8> = Integer::to_string(eci)::get_bytes(StandardCharsets::ISO_8859_1);
+             let eci_digits: Vec<i8> = eci.to_string().as_bytes();//Integer::to_string(eci)::get_bytes(StandardCharsets::ISO_8859_1);
             // 1-6: number of ECI digits
             token = token.add(eci_digits.len(), 3);
-            for  let eci_digit: i8 in eci_digits {
+            for   eci_digit in eci_digits {
                 token = token.add(eci_digit - '0' + 2, 4);
             }
             bits_added += eci_digits.len() * 4;
         }
-        return State::new(token, self.mode, 0, self.bit_count + bits_added);
+        return State::new(&token, self.mode, 0, self.bit_count + bits_added);
     }
 
     // Create a new state representing this state with a latch to a (not
@@ -1133,7 +1132,7 @@ impl State {
         }
          let latch_mode_bit_count: i32 =  if mode == HighLevelEncoder::MODE_DIGIT { 4 } else { 5 };
         token = token.add(value, latch_mode_bit_count);
-        return State::new(token, mode, 0, bit_count + latch_mode_bit_count);
+        return State::new(&token, mode, 0, bit_count + latch_mode_bit_count);
     }
 
     // Create a new state representing this state, with a temporary shift
@@ -1144,7 +1143,7 @@ impl State {
         // Shifts exist only to UPPER and PUNCT, both with tokens size 5.
         token = token.add(HighLevelEncoder::SHIFT_TABLE[self.mode][mode], this_mode_bit_count);
         token = token.add(value, 5);
-        return State::new(token, self.mode, 0, self.bitCount + this_mode_bit_count + 5);
+        return State::new(&token, self.mode, 0, self.bitCount + this_mode_bit_count + 5);
     }
 
     // Create a new state representing this state, but an additional character
@@ -1160,7 +1159,7 @@ impl State {
             mode = HighLevelEncoder::MODE_UPPER;
         }
          let delta_bit_count: i32 =  if (self.binary_shift_byte_count == 0 || self.binary_shift_byte_count == 31) { 18 } else {  if (self.binary_shift_byte_count == 62) { 9 } else { 8 } };
-         let mut result: State = State::new(token, mode, self.binary_shift_byte_count + 1, bit_count + delta_bit_count);
+         let mut result: State = State::new(&token, mode, self.binary_shift_byte_count + 1, bit_count + delta_bit_count);
         if result.binaryShiftByteCount == 2047 + 31 {
             // The string is as long as it's allowed to be.  We should end it.
             result = result.end_binary_shift(index + 1);
@@ -1176,7 +1175,7 @@ impl State {
         }
          let mut token: Token = self.token;
         token = token.add_binary_shift(index - self.binary_shift_byte_count, self.binary_shift_byte_count);
-        return State::new(token, self.mode, 0, self.bitCount);
+        return State::new(&token, self.mode, 0, self.bitCount);
     }
 
     // Returns true if "this" state is better (or equal) to be in than "that"
@@ -1194,7 +1193,7 @@ impl State {
     }
 
     fn  to_bit_array(&self,  text: &Vec<i8>) -> BitArray  {
-         let symbols: List<Token> = ArrayList<>::new();
+         let symbols: List<Token> = Vec::new();
          {
              let mut token: Token = self.end_binary_shift(text.len()).token;
             while token != null {

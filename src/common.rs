@@ -2168,7 +2168,8 @@ impl GridSampler for DefaultGridSampler {
  *
  * @author Sean Owen
  */
-pub struct DetectorResult {
+
+/* pub struct DetectorResult {
     bits: BitMatrix,
 
     points: Vec<ResultPoint>,
@@ -2189,6 +2190,13 @@ impl DetectorResult {
     pub fn get_points(&self) -> Vec<ResultPoint> {
         return self.points;
     }
+}
+*/
+
+pub trait DetectorResult {
+    //pub fn new(bits: &BitMatrix, points: &Vec<ResultPoint>) -> Self;
+    pub fn get_bits(&self) -> BitMatrix;
+    pub fn get_points(&self) -> Vec<ResultPoint>;
 }
 
 // ECIEncoderSet.java

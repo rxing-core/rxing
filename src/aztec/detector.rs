@@ -1,4 +1,4 @@
-use crate::{NotFoundException,ResultPoint};
+use crate::{NotFoundException,ResultPoint}; 
 use crate::aztec::AztecDetectorResult;
 use crate::common::{BitMatrix,GridSampler};
 use crate::common::detector::{MathUtils,WhiteRectangleDetector};
@@ -21,27 +21,26 @@ const EXPECTED_CORNER_BITS: vec![Vec<i32>; 4] = vec![// 07340  XXX .XX X.. ...
 ;
 pub struct Detector {
 
-     let image: BitMatrix;
+      image: BitMatrix,
 
-     let mut compact: bool;
+       compact: bool,
 
-     let nb_layers: i32;
+      nb_layers: i32,
 
-     let nb_data_blocks: i32;
+      nb_data_blocks: i32,
 
-     let nb_center_layers: i32;
+      nb_center_layers: i32,
 
-     let mut shift: i32;
+       shift: i32
 }
 
 impl Detector {
 
-    pub fn new( image: &BitMatrix) -> Detector {
-        let .image = image;
-    }
+    pub fn new( image: &BitMatrix) -> Self {
+        let new_d : Self;
+        new_d.image = image;
 
-    pub fn  detect(&self) -> /*  throws NotFoundException */Result<AztecDetectorResult, Rc<Exception>>   {
-        return Ok(self.detect(false));
+        new_d
     }
 
     /**
@@ -51,24 +50,24 @@ impl Detector {
    * @return {@link AztecDetectorResult} encapsulating results of detecting an Aztec Code
    * @throws NotFoundException if no Aztec Code can be found
    */
-    pub fn  detect(&self,  is_mirror: bool) -> /*  throws NotFoundException */Result<AztecDetectorResult, Rc<Exception>>   {
+    pub fn  detect(&self,  is_mirror: Option<bool>) -> Result<AztecDetectorResult,NotFoundException>   {
         // 1. Get the center of the aztec matrix
          let p_center: Point = self.get_matrix_center();
         // 2. Get the center points of the four diagonal points just outside the bull's eye
         //  [topRight, bottomRight, bottomLeft, topLeft]
-         let bulls_eye_corners: Vec<ResultPoint> = self.get_bulls_eye_corners(p_center);
-        if is_mirror {
+         let bulls_eye_corners: Vec<ResultPoint> = self.get_bulls_eye_corners(&p_center);
+        if is_mirror.unwrap_or(false) {
              let temp: ResultPoint = bulls_eye_corners[0];
             bulls_eye_corners[0] = bulls_eye_corners[2];
             bulls_eye_corners[2] = temp;
         }
         // 3. Get the size of the matrix and other parameters from the bull's eye
-        self.extract_parameters(bulls_eye_corners);
+        self.extract_parameters(&bulls_eye_corners);
         // 4. Sample the grid
-         let bits: BitMatrix = self.sample_grid(self.image, bulls_eye_corners[self.shift % 4], bulls_eye_corners[(self.shift + 1) % 4], bulls_eye_corners[(self.shift + 2) % 4], bulls_eye_corners[(self.shift + 3) % 4]);
+         let bits: BitMatrix = self.sample_grid(&self.image, bulls_eye_corners[self.shift % 4], bulls_eye_corners[(self.shift + 1) % 4], bulls_eye_corners[(self.shift + 2) % 4], bulls_eye_corners[(self.shift + 3) % 4]);
         // 5. Get the corners of the matrix.
-         let corners: Vec<ResultPoint> = self.get_matrix_corner_points(bulls_eye_corners);
-        return Ok(AztecDetectorResult::new(bits, corners, self.compact, self.nb_data_blocks, self.nb_layers));
+         let corners: Vec<ResultPoint> = self.get_matrix_corner_points(&bulls_eye_corners);
+        return Ok(AztecDetectorResult::new(&bits, &corners, self.compact, self.nb_data_blocks, self.nb_layers));
     }
 
     /**
@@ -77,17 +76,17 @@ impl Detector {
    * @param bullsEyeCorners the array of bull's eye corners
    * @throws NotFoundException in case of too many errors or invalid parameters
    */
-    fn  extract_parameters(&self,  bulls_eye_corners: &Vec<ResultPoint>)  -> /*  throws NotFoundException */Result<Void, Rc<Exception>>   {
+    fn  extract_parameters(&self,  bulls_eye_corners: &Vec<ResultPoint>)  -> Result<(), NotFoundException>   {
         if !self.is_valid(bulls_eye_corners[0]) || !self.is_valid(bulls_eye_corners[1]) || !self.is_valid(bulls_eye_corners[2]) || !self.is_valid(bulls_eye_corners[3]) {
-            throw NotFoundException::get_not_found_instance();
+            return Err( NotFoundException::get_not_found_instance());
         }
          let length: i32 = 2 * self.nb_center_layers;
         // Get the bits around the bull's eye
          let sides: vec![Vec<i32>; 4] = vec![// Right side
-        self.sample_line(bulls_eye_corners[0], bulls_eye_corners[1], length), // Bottom
-        self.sample_line(bulls_eye_corners[1], bulls_eye_corners[2], length), // Left side
-        self.sample_line(bulls_eye_corners[2], bulls_eye_corners[3], length), // Top
-        self.sample_line(bulls_eye_corners[3], bulls_eye_corners[0], length), ]
+        self.sample_line(&bulls_eye_corners[0], &bulls_eye_corners[1], length), // Bottom
+        self.sample_line(&bulls_eye_corners[1], &bulls_eye_corners[2], length), // Left side
+        self.sample_line(&bulls_eye_corners[2], &bulls_eye_corners[3], length), // Top
+        self.sample_line(&bulls_eye_corners[3], &bulls_eye_corners[0], length), ]
         ;
         // bullsEyeCorners[shift] is the corner of the bulls'eye that has three
         // orientation marks.
@@ -127,9 +126,11 @@ impl Detector {
             self.nb_layers = (corrected_data >> 11) + 1;
             self.nb_data_blocks = (corrected_data & 0x7FF) + 1;
         }
+
+        Ok(())
     }
 
-    fn  get_rotation( sides: &Vec<i32>,  length: i32) -> /*  throws NotFoundException */Result<i32, Rc<Exception>>   {
+    fn  get_rotation( sides: &Vec<i32>,  length: i32) -> Result<i32, NotFoundException>   {
         // In a normal pattern, we expect to See
         //   **    .*             D       A
         //   *      *
@@ -140,7 +141,7 @@ impl Detector {
         // Grab the 3 bits from each of the sides the form the locator pattern and concatenate
         // into a 12-bit integer.  Start with the bit at A
          let corner_bits: i32 = 0;
-        for  let side: i32 in sides {
+        for   side in sides {
             // XX......X where X's are orientation marks
              let t: i32 = ((side >> (length - 2)) << 1) + (side & 1);
             corner_bits = (corner_bits << 3) + t;
@@ -162,7 +163,7 @@ impl Detector {
              }
          }
 
-        throw NotFoundException::get_not_found_instance();
+        return Err(NotFoundException::get_not_found_instance());
     }
 
     /**
@@ -196,11 +197,11 @@ impl Detector {
          }
 
         let tryResult1 = 0;
-        'try1: loop {
-        {
+        /*'try1: loop {
+        {*/
              let rs_decoder: ReedSolomonDecoder = ReedSolomonDecoder::new(GenericGF::AZTEC_PARAM);
             rs_decoder.decode(&parameter_words, num_e_c_codewords);
-        }
+        /*}
         break 'try1
         }
         match tryResult1 {
@@ -208,6 +209,7 @@ impl Detector {
                 throw NotFoundException::get_not_found_instance();
             }  0 => break
         }
+        */
 
         // Toss the error correction.  Just return the data as an integer
          let mut result: i32 = 0;
@@ -243,13 +245,13 @@ impl Detector {
             self.nb_center_layers = 1;
             while self.nb_center_layers < 9 {
                 {
-                     let pouta: Point = self.get_first_different(pina, color, 1, -1);
-                     let poutb: Point = self.get_first_different(pinb, color, 1, 1);
-                     let poutc: Point = self.get_first_different(pinc, color, -1, 1);
-                     let poutd: Point = self.get_first_different(pind, color, -1, -1);
+                     let pouta: Point = self.get_first_different(&pina, color, 1, -1);
+                     let poutb: Point = self.get_first_different(&pinb, color, 1, 1);
+                     let poutc: Point = self.get_first_different(&pinc, color, -1, 1);
+                     let poutd: Point = self.get_first_different(&pind, color, -1, -1);
                     if self.nb_center_layers > 2 {
                          let q: f32 = ::distance(poutd, pouta) * self.nb_center_layers / (::distance(pind, pina) * (self.nb_center_layers + 2));
-                        if q < 0.75 || q > 1.25 || !self.is_white_or_black_rectangle(pouta, poutb, poutc, poutd) {
+                        if q < 0.75 || q > 1.25 || !self.is_white_or_black_rectangle(&pouta, &poutb, &poutc, &poutd) {
                             break;
                         }
                     }
@@ -264,17 +266,17 @@ impl Detector {
          }
 
         if self.nb_center_layers != 5 && self.nb_center_layers != 7 {
-            throw NotFoundException::get_not_found_instance();
+            return Err( NotFoundException::get_not_found_instance());
         }
         self.compact = self.nb_center_layers == 5;
         // Expand the square by .5 pixel in each direction so that we're on the border
         // between the white square and the black square
-         let pinax: ResultPoint = ResultPoint::new(pina.get_x() + 0.5f, pina.get_y() - 0.5f);
-         let pinbx: ResultPoint = ResultPoint::new(pinb.get_x() + 0.5f, pinb.get_y() + 0.5f);
-         let pincx: ResultPoint = ResultPoint::new(pinc.get_x() - 0.5f, pinc.get_y() + 0.5f);
-         let pindx: ResultPoint = ResultPoint::new(pind.get_x() - 0.5f, pind.get_y() - 0.5f);
+         let pinax: ResultPoint = ResultPoint::new(pina.get_x() + 0.5f32, pina.get_y() - 0.5f32);
+         let pinbx: ResultPoint = ResultPoint::new(pinb.get_x() + 0.5f32, pinb.get_y() + 0.5f32);
+         let pincx: ResultPoint = ResultPoint::new(pinc.get_x() - 0.5f32, pinc.get_y() + 0.5f32);
+         let pindx: ResultPoint = ResultPoint::new(pind.get_x() - 0.5f32, pind.get_y() - 0.5f32);
         // just outside the bull's eye.
-        return Ok(::expand_square( : vec![ResultPoint; 4] = vec![pinax, pinbx, pincx, pindx, ]
+        return Ok(::expand_square(  vec![pinax, pinbx, pincx, pindx, ]
         , 2 * self.nb_center_layers - 3, 2 * self.nb_center_layers));
     }
 
@@ -290,54 +292,48 @@ impl Detector {
          let point_d: ResultPoint;
         //Get a white rectangle that can be the border of the matrix in center bull's eye or
         let tryResult1 = 0;
-        'try1: loop {
-        {
-             let corner_points: Vec<ResultPoint> = WhiteRectangleDetector::new(self.image).detect();
+        
+        let corner_points_detector = WhiteRectangleDetector::new(&self.image, None, None, None);
+        if corner_points_detector.is_ok() {
+
+        let corner_points: Vec<ResultPoint> = corner_points_detector.detect();
+        
             point_a = corner_points[0];
             point_b = corner_points[1];
             point_c = corner_points[2];
             point_d = corner_points[3];
-        }
-        break 'try1
-        }
-        match tryResult1 {
-             catch ( e: &NotFoundException) {
-                 let cx: i32 = self.image.get_width() / 2;
-                 let cy: i32 = self.image.get_height() / 2;
-                point_a = self.get_first_different(Point::new(cx + 7, cy - 7), false, 1, -1).to_result_point();
-                point_b = self.get_first_different(Point::new(cx + 7, cy + 7), false, 1, 1).to_result_point();
-                point_c = self.get_first_different(Point::new(cx - 7, cy + 7), false, -1, 1).to_result_point();
-                point_d = self.get_first_different(Point::new(cx - 7, cy - 7), false, -1, -1).to_result_point();
-            }  0 => break
+        }else {
+            let cx: i32 = self.image.get_width() / 2;
+            let cy: i32 = self.image.get_height() / 2;
+           point_a = self.get_first_different(&Point::new(cx + 7, cy - 7), false, 1, -1).to_result_point();
+           point_b = self.get_first_different(&Point::new(cx + 7, cy + 7), false, 1, 1).to_result_point();
+           point_c = self.get_first_different(&Point::new(cx - 7, cy + 7), false, -1, 1).to_result_point();
+           point_d = self.get_first_different(&Point::new(cx - 7, cy - 7), false, -1, -1).to_result_point();
         }
 
         //Compute the center of the rectangle
-         let mut cx: i32 = MathUtils::round((point_a.get_x() + point_d.get_x() + point_b.get_x() + point_c.get_x()) / 4.0f);
-         let mut cy: i32 = MathUtils::round((point_a.get_y() + point_d.get_y() + point_b.get_y() + point_c.get_y()) / 4.0f);
+         let mut cx: i32 = MathUtils::round((point_a.get_x() + point_d.get_x() + point_b.get_x() + point_c.get_x()) / 4.0f32);
+         let mut cy: i32 = MathUtils::round((point_a.get_y() + point_d.get_y() + point_b.get_y() + point_c.get_y()) / 4.0f32);
         // in order to compute a more accurate center.
         let tryResult1 = 0;
-        'try1: loop {
-        {
-             let corner_points: Vec<ResultPoint> = WhiteRectangleDetector::new(self.image, 15, cx, cy).detect();
+
+        let corner_points_wrd = WhiteRectangleDetector::new(&self.image, Some(15), Some(cx), Some(cy));
+        if corner_points_wrd.is_ok() {
+            let corner_points: Vec<ResultPoint> = corner_points_wrd.detect();
             point_a = corner_points[0];
             point_b = corner_points[1];
             point_c = corner_points[2];
             point_d = corner_points[3];
-        }
-        break 'try1
-        }
-        match tryResult1 {
-             catch ( e: &NotFoundException) {
-                point_a = self.get_first_different(Point::new(cx + 7, cy - 7), false, 1, -1).to_result_point();
-                point_b = self.get_first_different(Point::new(cx + 7, cy + 7), false, 1, 1).to_result_point();
-                point_c = self.get_first_different(Point::new(cx - 7, cy + 7), false, -1, 1).to_result_point();
-                point_d = self.get_first_different(Point::new(cx - 7, cy - 7), false, -1, -1).to_result_point();
-            }  0 => break
+        } else {
+            point_a = self.get_first_different(&Point::new(cx + 7, cy - 7), false, 1, -1).to_result_point();
+                point_b = self.get_first_different(&Point::new(cx + 7, cy + 7), false, 1, 1).to_result_point();
+                point_c = self.get_first_different(&Point::new(cx - 7, cy + 7), false, -1, 1).to_result_point();
+                point_d = self.get_first_different(&Point::new(cx - 7, cy - 7), false, -1, -1).to_result_point();
         }
 
         // Recompute the center of the rectangle
-        cx = MathUtils::round((point_a.get_x() + point_d.get_x() + point_b.get_x() + point_c.get_x()) / 4.0f);
-        cy = MathUtils::round((point_a.get_y() + point_d.get_y() + point_b.get_y() + point_c.get_y()) / 4.0f);
+        cx = MathUtils::round((point_a.get_x() + point_d.get_x() + point_b.get_x() + point_c.get_x()) / 4.0f32);
+        cy = MathUtils::round((point_a.get_y() + point_d.get_y() + point_b.get_y() + point_c.get_y()) / 4.0f32);
         return Point::new(cx, cy);
     }
 
@@ -359,8 +355,8 @@ impl Detector {
     fn  sample_grid(&self,  image: &BitMatrix,  top_left: &ResultPoint,  top_right: &ResultPoint,  bottom_right: &ResultPoint,  bottom_left: &ResultPoint) -> /*  throws NotFoundException */Result<BitMatrix, Rc<Exception>>   {
          let sampler: GridSampler = GridSampler::get_instance();
          let dimension: i32 = self.get_dimension();
-         let low: f32 = dimension / 2.0f - self.nb_center_layers;
-         let high: f32 = dimension / 2.0f + self.nb_center_layers;
+         let low: f32 = dimension / 2.0f32 - self.nb_center_layers;
+         let high: f32 = dimension / 2.0f32 + self.nb_center_layers;
         return Ok(sampler.sample_grid(image, dimension, dimension, // topleft
         low, // topleft
         low, // topright
@@ -409,10 +405,10 @@ impl Detector {
    */
     fn  is_white_or_black_rectangle(&self,  p1: &Point,  p2: &Point,  p3: &Point,  p4: &Point) -> bool  {
          let corr: i32 = 3;
-        p1 = Point::new(&Math::max(0, p1.get_x() - corr), &Math::min(self.image.get_height() - 1, p1.get_y() + corr));
-        p2 = Point::new(&Math::max(0, p2.get_x() - corr), &Math::max(0, p2.get_y() - corr));
-        p3 = Point::new(&Math::min(self.image.get_width() - 1, p3.get_x() + corr), &Math::max(0, &Math::min(self.image.get_height() - 1, p3.get_y() - corr)));
-        p4 = Point::new(&Math::min(self.image.get_width() - 1, p4.get_x() + corr), &Math::min(self.image.get_height() - 1, p4.get_y() + corr));
+        p1 = &Point::new(&Math::max(0, p1.get_x() - corr), &Math::min(self.image.get_height() - 1, p1.get_y() + corr));
+        p2 = &Point::new(&Math::max(0, p2.get_x() - corr), &Math::max(0, p2.get_y() - corr));
+        p3 = &Point::new(&Math::min(self.image.get_width() - 1, p3.get_x() + corr), &Math::max(0, &Math::min(self.image.get_height() - 1, p3.get_y() - corr)));
+        p4 = &Point::new(&Math::min(self.image.get_width() - 1, p4.get_x() + corr), &Math::min(self.image.get_height() - 1, p4.get_y() + corr));
          let c_init: i32 = self.get_color(p4, p1);
         if c_init == 0 {
             return false;
@@ -436,7 +432,7 @@ impl Detector {
    */
     fn  get_color(&self,  p1: &Point,  p2: &Point) -> i32  {
          let d: f32 = ::distance(p1, p2);
-        if d == 0.0f {
+        if d == 0.0f32 {
             return 0;
         }
          let dx: f32 = (p2.get_x() - p1.get_x()) / d;
@@ -461,10 +457,10 @@ impl Detector {
          }
 
          let err_ratio: f32 = error / d;
-        if err_ratio > 0.1f && err_ratio < 0.9f {
+        if err_ratio > 0.1f32 && err_ratio < 0.9f32 {
             return 0;
         }
-        return  if (err_ratio <= 0.1f) == color_model { 1 } else { -1 };
+        return  if (err_ratio <= 0.1f32) == color_model { 1 } else { -1 };
     }
 
     /**
@@ -499,28 +495,28 @@ impl Detector {
    * @return the corners of the expanded square
    */
     fn  expand_square( corner_points: &Vec<ResultPoint>,  old_side: i32,  new_side: i32) -> Vec<ResultPoint>  {
-         let ratio: f32 = new_side / (2.0f * old_side);
+         let ratio: f32 = new_side / (2.0f32 * old_side);
          let mut dx: f32 = corner_points[0].get_x() - corner_points[2].get_x();
          let mut dy: f32 = corner_points[0].get_y() - corner_points[2].get_y();
-         let mut centerx: f32 = (corner_points[0].get_x() + corner_points[2].get_x()) / 2.0f;
-         let mut centery: f32 = (corner_points[0].get_y() + corner_points[2].get_y()) / 2.0f;
+         let mut centerx: f32 = (corner_points[0].get_x() + corner_points[2].get_x()) / 2.0f32;
+         let mut centery: f32 = (corner_points[0].get_y() + corner_points[2].get_y()) / 2.0f32;
          let result0: ResultPoint = ResultPoint::new(centerx + ratio * dx, centery + ratio * dy);
          let result2: ResultPoint = ResultPoint::new(centerx - ratio * dx, centery - ratio * dy);
         dx = corner_points[1].get_x() - corner_points[3].get_x();
         dy = corner_points[1].get_y() - corner_points[3].get_y();
-        centerx = (corner_points[1].get_x() + corner_points[3].get_x()) / 2.0f;
-        centery = (corner_points[1].get_y() + corner_points[3].get_y()) / 2.0f;
+        centerx = (corner_points[1].get_x() + corner_points[3].get_x()) / 2.0f32;
+        centery = (corner_points[1].get_y() + corner_points[3].get_y()) / 2.0f32;
          let result1: ResultPoint = ResultPoint::new(centerx + ratio * dx, centery + ratio * dy);
          let result3: ResultPoint = ResultPoint::new(centerx - ratio * dx, centery - ratio * dy);
-        return  : vec![ResultPoint; 4] = vec![result0, result1, result2, result3, ]
+        return  vec![result0, result1, result2, result3, ]
         ;
     }
 
-    fn  is_valid(&self,  x: i32,  y: i32) -> bool  {
+    fn  is_valid_coords(&self,  x: i32,  y: i32) -> bool  {
         return x >= 0 && x < self.image.get_width() && y >= 0 && y < self.image.get_height();
     }
 
-    fn  is_valid(&self,  point: &ResultPoint) -> bool  {
+    fn  is_valid_rp(&self,  point: &ResultPoint) -> bool  {
          let x: i32 = MathUtils::round(&point.get_x());
          let y: i32 = MathUtils::round(&point.get_y());
         return self.is_valid(x, y);
@@ -541,36 +537,36 @@ impl Detector {
         return 4 * self.nb_layers + 2 * ((2 * self.nb_layers + 6) / 15) + 15;
     }
 
-    struct Point {
-
-         let x: i32;
-
-         let y: i32;
-    }
-    
-    impl Point {
-
-        fn  to_result_point(&self) -> ResultPoint  {
-            return ResultPoint::new(self.x, self.y);
-        }
-
-        fn new( x: i32,  y: i32) -> Point {
-            let .x = x;
-            let .y = y;
-        }
-
-        fn  get_x(&self) -> i32  {
-            return self.x;
-        }
-
-        fn  get_y(&self) -> i32  {
-            return self.y;
-        }
-
-        pub fn  to_string(&self) -> String  {
-            return format!("<{} {}>", self.x, self.y);
-        }
-    }
+   
 
 }
 
+struct Point {
+
+     x: i32,
+
+     y: i32
+}
+
+impl Point {
+
+   fn  to_result_point(&self) -> ResultPoint  {
+       return ResultPoint::new(self.x, self.y);
+   }
+
+   fn new( x: i32,  y: i32) -> Self {
+       Self { x: x, y: y }
+   }
+
+   fn  get_x(&self) -> i32  {
+       return self.x;
+   }
+
+   fn  get_y(&self) -> i32  {
+       return self.y;
+   }
+
+   pub fn  to_string(&self) -> String  {
+       return format!("<{} {}>", self.x, self.y);
+   }
+}

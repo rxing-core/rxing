@@ -1,4 +1,4 @@
-use create::FormatException;
+use create::FormatException; 
 use crate::aztec::AztecDetectorResult;
 use crate::common::{BitMatrix,CharacterSetECI,DecoderResult};
 use crate::common::reedsolomon::{GenericGF,ReedSolomonDecoder,ReedSolomonException};
@@ -16,7 +16,7 @@ const UPPER_TABLE: vec![Vec<String>; 32] = vec!["CTRL_PS", " ", "A", "B", "C", "
  const LOWER_TABLE: vec![Vec<String>; 32] = vec!["CTRL_PS", " ", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "CTRL_US", "CTRL_ML", "CTRL_DL", "CTRL_BS", ]
 ;
 
- const MIXED_TABLE: vec![Vec<String>; 32] = vec!["CTRL_PS", " ", "\1", "\2", "\3", "\4", "\5", "\6", "\7", "\b", "\t", "\n", "\13", "\f", "\r", "\33", "\34", "\35", "\36", "\37", "@", "\\", "^", "_", "`", "|", "~", "\177", "CTRL_LL", "CTRL_UL", "CTRL_PL", "CTRL_BS", ]
+ const MIXED_TABLE: vec![Vec<String>; 32] = vec!["CTRL_PS", " ", "\u{0001}", "\u{0002}", "\u{0003}", "\u{0004}", "\u{0005}", "\u{0006}", "\u{0007}", "\u{000b}", "\t", "\n", "\u{000d}", "\u{000f}", "\r", "\u{0021}", "\u{0022}", "\u{0023}", "\u{0024}", "\u{0025}", "@", "\\", "^", "_", "`", "|", "~", "\u{00b1}", "CTRL_LL", "CTRL_UL", "CTRL_PL", "CTRL_BS", ]
 ;
 
  const PUNCT_TABLE: vec![Vec<String>; 32] = vec!["FLG(n)", "\r", "\r\n", ". ", ", ", ": ", "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "<", "=", ">", "?", "[", "]", "{", "}", "CTRL_UL", ]
@@ -28,24 +28,26 @@ const UPPER_TABLE: vec![Vec<String>; 32] = vec!["CTRL_PS", " ", "A", "B", "C", "
  const DEFAULT_ENCODING: Charset = StandardCharsets::ISO_8859_1;
 pub struct Decoder {
 
-     let mut ddata: AztecDetectorResult;
+     ddata: AztecDetectorResult
+}
+
+enum Table {
+
+    UPPER(), LOWER(), MIXED(), DIGIT(), PUNCT(), BINARY()
 }
 
 impl Decoder {
 
-    enum Table {
+    
 
-        UPPER(), LOWER(), MIXED(), DIGIT(), PUNCT(), BINARY()
-    }
-
-    pub fn  decode(&self,  detector_result: &AztecDetectorResult) -> /*  throws FormatException */Result<DecoderResult, Rc<Exception>>   {
+    pub fn  decode(&self,  detector_result: &AztecDetectorResult) -> Result<DecoderResult, FormatException>   {
         self.ddata = detector_result;
          let matrix: BitMatrix = detector_result.get_bits();
-         let rawbits: Vec<bool> = self.extract_bits(matrix);
+         let rawbits: Vec<bool> = self.extract_bits(&matrix);
          let corrected_bits: CorrectedBitsResult = self.correct_bits(&rawbits);
          let raw_bytes: Vec<i8> = ::convert_bool_array_to_byte_array(corrected_bits.correctBits);
          let result: String = ::get_encoded_data(corrected_bits.correctBits);
-         let decoder_result: DecoderResult = DecoderResult::new(&raw_bytes, &result, null, &String::format("%d%%", corrected_bits.ecLevel));
+         let decoder_result: DecoderResult = DecoderResult::new(&raw_bytes, &result, null, &String::format("%d%%", corrected_bits.ecLevel), None, None, None);
         decoder_result.set_num_bits(corrected_bits.correctBits.len());
         return Ok(decoder_result);
     }
@@ -123,17 +125,9 @@ impl Decoder {
                     index += 3;
                     //  flush bytes, FLG changes state
                     let tryResult1 = 0;
-                    'try1: loop {
-                    {
+                    
                         result.append(&decoded_bytes.to_string(&encoding.name()));
-                    }
-                    break 'try1
-                    }
-                    match tryResult1 {
-                         catch ( uee: &UnsupportedEncodingException) {
-                            throw IllegalStateException::new(&uee);
-                        }  0 => break
-                    }
+                    
 
                     decoded_bytes.reset();
                     match n {
@@ -146,7 +140,7 @@ impl Decoder {
                           7 => 
                              {
                                 // FLG(7) is reserved and illegal
-                                throw FormatException::get_format_instance();
+                                return Err( FormatException::get_format_instance());
                             }
                         _ => 
                              {
@@ -155,18 +149,18 @@ impl Decoder {
                                 if end_index - index < 4 * n {
                                     break;
                                 }
-                                while n -= 1 !!!check!!! post decrement > 0 {
+                                while (n -= 1) > 0 {
                                      let next_digit: i32 = ::read_code(&corrected_bits, index, 4);
                                     index += 4;
                                     if next_digit < 2 || next_digit > 11 {
                                         // Not a decimal digit
-                                        throw FormatException::get_format_instance();
+                                        return Err( FormatException::get_format_instance());
                                     }
                                     eci = eci * 10 + (next_digit - 2);
                                 }
                                  let charset_e_c_i: CharacterSetECI = CharacterSetECI::get_character_set_e_c_i_by_value(eci);
                                 if charset_e_c_i == null {
-                                    throw FormatException::get_format_instance();
+                                    return Err( FormatException::get_format_instance());
                                 }
                                 encoding = charset_e_c_i.get_charset();
                             }
@@ -193,18 +187,9 @@ impl Decoder {
                 }
             }
         }
-        let tryResult1 = 0;
-        'try1: loop {
-        {
+        
             result.append(&decoded_bytes.to_string(&encoding.name()));
-        }
-        break 'try1
-        }
-        match tryResult1 {
-             catch ( uee: &UnsupportedEncodingException) {
-                throw IllegalStateException::new(&uee);
-            }  0 => break
-        }
+        
 
         return Ok(result.to_string());
     }
@@ -275,23 +260,8 @@ impl Decoder {
             _ => 
                  {
                     // Should not reach here.
-                    throw IllegalStateException::new("Bad table");
+                    return Err( IllegalStateException::new("Bad table"));
                 }
-        }
-    }
-
-    struct CorrectedBitsResult {
-
-         let correct_bits: Vec<bool>;
-
-         let ec_level: i32;
-    }
-    
-    impl CorrectedBitsResult {
-
-        fn new( correct_bits: &Vec<bool>,  ec_level: i32) -> CorrectedBitsResult {
-            let .correctBits = correct_bits;
-            let .ecLevel = ec_level;
         }
     }
 
@@ -302,7 +272,7 @@ impl Decoder {
    * @return the corrected array
    * @throws FormatException if the input contains too many errors
    */
-    fn  correct_bits(&self,  rawbits: &Vec<bool>) -> /*  throws FormatException */Result<CorrectedBitsResult, Rc<Exception>>   {
+    fn  correct_bits(&self,  rawbits: &Vec<bool>) -> Result<CorrectedBitsResult, FormatException>   {
          let mut gf: GenericGF;
          let codeword_size: i32;
         if self.ddata.get_nb_layers() <= 2 {
@@ -321,7 +291,7 @@ impl Decoder {
          let num_data_codewords: i32 = self.ddata.get_nb_datablocks();
          let num_codewords: i32 = rawbits.len() / codeword_size;
         if num_codewords < num_data_codewords {
-            throw FormatException::get_format_instance();
+            return Err( FormatException::get_format_instance());
         }
          let mut offset: i32 = rawbits.len() % codeword_size;
          let data_words: [i32; num_codewords] = [0; num_codewords];
@@ -337,18 +307,10 @@ impl Decoder {
          }
 
         let tryResult1 = 0;
-        'try1: loop {
-        {
-             let rs_decoder: ReedSolomonDecoder = ReedSolomonDecoder::new(gf);
+        
+             let rs_decoder: ReedSolomonDecoder = ReedSolomonDecoder::new(gf)?;
             rs_decoder.decode(&data_words, num_codewords - num_data_codewords);
-        }
-        break 'try1
-        }
-        match tryResult1 {
-             catch ( ex: &ReedSolomonException) {
-                throw FormatException::get_format_instance(ex);
-            }  0 => break
-        }
+        
 
         // Now perform the unstuffing operation.
         // First, count how many bits are going to be thrown out as stuffing
@@ -360,7 +322,7 @@ impl Decoder {
                 {
                      let data_word: i32 = data_words[i];
                     if data_word == 0 || data_word == mask {
-                        throw FormatException::get_format_instance();
+                        return Err( FormatException::get_format_instance());
                     } else if data_word == 1 || data_word == mask - 1 {
                         stuffed_bits += 1;
                     }
@@ -386,7 +348,7 @@ impl Decoder {
                              let mut bit: i32 = codeword_size - 1;
                             while bit >= 0 {
                                 {
-                                    corrected_bits[index += 1 !!!check!!! post increment] = (data_word & (1 << bit)) != 0;
+                                    corrected_bits[index += 1 ] = (data_word & (1 << bit)) != 0;
                                 }
                                 bit -= 1;
                              }
@@ -442,7 +404,8 @@ impl Decoder {
 
         }
          {
-             let mut i: i32 = 0, let row_offset: i32 = 0;
+             let mut i: i32 = 0;
+              let row_offset: i32 = 0;
             while i < layers {
                 {
                      let row_size: i32 = (layers - i) * 4 + ( if compact { 9 } else { 12 });
@@ -542,3 +505,16 @@ impl Decoder {
     }
 }
 
+struct CorrectedBitsResult {
+
+     correct_bits: Vec<bool>,
+
+     ec_level: i32
+}
+
+impl CorrectedBitsResult {
+
+   fn new( correct_bits: &Vec<bool>,  ec_level: i32) -> Self {
+       Self { correct_bits: correct_bits, ec_level: ec_level }
+   }
+}
