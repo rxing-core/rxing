@@ -132,7 +132,7 @@ trait ResultParser {
     }
 
     pub fn  maybe_wrap( value: &String) -> Vec<String>  {
-        return  if value == null { null } else {  : vec![String; 1] = vec![value, ]
+        return  if value == null { null } else {  vec![value, ]
          };
     }
 
@@ -194,19 +194,23 @@ trait ResultParser {
         if param_start < 0 {
             return null;
         }
-         let result: Map<String, String> = HashMap<>::new(3);
-        for  let key_value: String in AMPERSAND::split(&uri.substring(param_start + 1)) {
+         let result: Map<String, String> = HashMap::new(3);
+        for   key_value in AMPERSAND::split(&uri.substring(param_start + 1)) {
             ::append_key_value(&key_value, &result);
         }
         return result;
     }
 
-    fn  append_key_value( key_value: &CharSequence,  result: &Map<String, String>)   {
+    fn  append_key_value( key_value: &CharSequence,  result: &HasMap<String, String>)   {
          let key_value_tokens: Vec<String> = EQUALS::split(&key_value, 2);
         if key_value_tokens.len() == 2 {
              let key: String = key_value_tokens[0];
              let mut value: String = key_value_tokens[1];
-            let tryResult1 = 0;
+            
+             value = ::url_decode(&value);
+                result.put(&key, &value);
+            
+             /*let tryResult1 = 0;
             'try1: loop {
             {
                 value = ::url_decode(&value);
@@ -217,13 +221,14 @@ trait ResultParser {
             match tryResult1 {
                  catch ( iae: &IllegalArgumentException) {
                 }  0 => break
-            }
+            }*/
 
         }
     }
 
-    fn  url_decode( encoded: &String) -> String  {
-        let tryResult1 = 0;
+    fn  url_decode( encoded: &String) -> Result<String,IllegalStateException>  {
+        return URLDecoder::decode(&encoded, "UTF-8");
+        /*let tryResult1 = 0;
         'try1: loop {
         {
             return URLDecoder::decode(&encoded, "UTF-8");
@@ -235,7 +240,7 @@ trait ResultParser {
                 throw IllegalStateException::new(&uee);
             }  0 => break
         }
-
+*/
     }
 
     fn  match_prefixed_field( prefix: &String,  raw_text: &String,  end_char: char,  trim: bool) -> Vec<String>  {
@@ -265,7 +270,7 @@ trait ResultParser {
                     // found a match
                     if matches == null {
                         // lazy init
-                        matches = ArrayList<>::new(3);
+                        matches = Vec::new(3);
                     }
                      let mut element: String = ::unescape_backslash(&raw_text.substring(start, i));
                     if trim {
@@ -342,9 +347,7 @@ trait AbstractDoCoMoResultParser : ResultParser {
  *
  * @author Sean Owen
  */
-pub struct AddressBookAUResultParser {
-    super: ResultParser;
-}
+pub struct AddressBookAUResultParser;
 
 impl ResultParser for AddressBookAUResultParser{}
 
@@ -364,7 +367,7 @@ impl AddressBookAUResultParser {
          let emails: Vec<String> = ::match_multiple_value_prefix("MAIL", &raw_text);
          let note: String = match_single_prefixed_field("MEMORY:", &raw_text, '\r', false);
          let address: String = match_single_prefixed_field("ADD:", &raw_text, '\r', true);
-         let addresses: Vec<String> =  if address == null { null } else {  : vec![String; 1] = vec![address, ]
+         let addresses: Vec<String> =  if address == null { null } else {   vec![address, ]
          };
         return AddressBookParsedResult::new(&maybe_wrap(&name), null, &pronunciation, &phone_numbers, null, &emails, null, null, &note, &addresses, null, null, null, null, null, null);
     }
@@ -382,7 +385,7 @@ impl AddressBookAUResultParser {
                     }
                     if values == null {
                         // lazy init
-                        values = ArrayList<>::new(3);
+                        values = Vec::new(3);
                     }
                     values.add(&value);
                 }
@@ -413,9 +416,7 @@ impl AddressBookAUResultParser {
  *
  * @author Sean Owen
  */
-pub struct AddressBookDoCoMoResultParser {
-    super: AbstractDoCoMoResultParser;
-}
+pub struct AddressBookDoCoMoResultParser;
 
 impl AbstractDoCoMoResultParser for AddressBookDoCoMoResultParser{}
 
@@ -466,42 +467,44 @@ impl AddressBookDoCoMoResultParser {
  * @author Sean Owen
  */
 pub struct AddressBookParsedResult {
-    super: ParsedResult;
+    //super: ParsedResult;
 
-     let names: Vec<String>;
+      names: Vec<String>,
 
-     let nicknames: Vec<String>;
+      nicknames: Vec<String>,
 
-     let pronunciation: String;
+      pronunciation: String,
 
-     let phone_numbers: Vec<String>;
+      phone_numbers: Vec<String>,
 
-     let phone_types: Vec<String>;
+      phone_types: Vec<String>,
 
-     let emails: Vec<String>;
+      emails: Vec<String>,
 
-     let email_types: Vec<String>;
+      email_types: Vec<String>,
 
-     let instant_messenger: String;
+      instant_messenger: String,
 
-     let note: String;
+      note: String,
 
-     let addresses: Vec<String>;
+      addresses: Vec<String>,
 
-     let address_types: Vec<String>;
+      address_types: Vec<String>,
 
-     let org: String;
+      org: String,
 
-     let birthday: String;
+      birthday: String,
 
-     let title: String;
+      title: String,
 
-     let urls: Vec<String>;
+      urls: Vec<String>,
 
-     let geo: Vec<String>;
+      geo: Vec<String>
 }
 
-impl ParsedResult for AddressBookParsedResult{}
+impl ParsedResult for AddressBookParsedResult{
+
+}
 
 impl AddressBookParsedResult {
 
@@ -653,9 +656,7 @@ impl AddressBookParsedResult {
  *
  * @author Sean Owen
  */
-pub struct BizcardResultParser {
-    super: AbstractDoCoMoResultParser;
-}
+pub struct BizcardResultParser;
 
 impl AbstractDoCoMoResultParser for BizcardResultParser{}
 
@@ -756,29 +757,29 @@ const RFC2445_DURATION_FIELD_UNITS: vec![Vec<i64>; 5] = vec![// 1 week
 
 const DATE_TIME: Pattern = Pattern::compile("[0-9]{8}(T[0-9]{6}Z?)?");
 pub struct CalendarParsedResult {
-   super: ParsedResult;
+   //super: ParsedResult;
 
-    let summary: String;
+     summary: String,
 
-    let mut start: i64;
+     start: i64,
 
-    let start_all_day: bool;
+     start_all_day: bool,
 
-    let mut end: i64;
+     end: i64,
 
-    let end_all_day: bool;
+     end_all_day: bool,
 
-    let location: String;
+     location: String,
 
-    let organizer: String;
+     organizer: String,
 
-    let attendees: Vec<String>;
+     attendees: Vec<String>,
 
-    let description: String;
+     description: String,
 
-    let latitude: f64;
+     latitude: f64,
 
-    let longitude: f64;
+     longitude: f64
 }
 
 impl ParsedResult for CalendarParsedResult{}
@@ -996,17 +997,17 @@ impl CalendarParsedResult {
  * @author Sean Owen
  */
 pub struct EmailAddressParsedResult {
-    super: ParsedResult;
+    //super: ParsedResult;
 
-     let tos: Vec<String>;
+      tos: Vec<String>,
 
-     let ccs: Vec<String>;
+      ccs: Vec<String>,
 
-     let bccs: Vec<String>;
+      bccs: Vec<String>,
 
-     let subject: String;
+      subject: String,
 
-     let body: String;
+      body: String
 }
 
 impl ParsedResult for EmailAddressParsedResult{}
@@ -1084,7 +1085,7 @@ impl EmailAddressParsedResult {
 
 const COMMA: Pattern = Pattern::compile(",");
 pub struct EmailAddressResultParser {
-    super: ResultParser;
+    //super: ResultParser;
 }
 
 impl ResultParser for EmailAddressResultParser{}
@@ -1161,7 +1162,7 @@ impl EmailAddressResultParser {
 
 const ATEXT_ALPHANUMERIC: Pattern = Pattern::compile("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+");
 pub struct EmailDoCoMoResultParser {
-    super: AbstractDoCoMoResultParser;
+    //super: AbstractDoCoMoResultParser;
 }
 
 impl AbstractDoCoMoResultParser for EmailDoCoMoResultParser{}
@@ -1211,38 +1212,38 @@ const KILOGRAM: &'static str = "KG";
 
 const POUND: &'static str = "LB";
 pub struct ExpandedProductParsedResult {
-   super: ParsedResult;
+   //super: ParsedResult;
 
-    let raw_text: String;
+     raw_text: String,
 
-    let product_i_d: String;
+     product_i_d: String,
 
-    let sscc: String;
+     sscc: String,
 
-    let lot_number: String;
+     lot_number: String,
 
-    let production_date: String;
+     production_date: String,
 
-    let packaging_date: String;
+     packaging_date: String,
 
-    let best_before_date: String;
+     best_before_date: String,
 
-    let expiration_date: String;
+     expiration_date: String,
 
-    let weight: String;
+     weight: String,
 
-    let weight_type: String;
+     weight_type: String,
 
-    let weight_increment: String;
+     weight_increment: String,
 
-    let price: String;
+     price: String,
 
-    let price_increment: String;
+     price_increment: String,
 
-    let price_currency: String;
+     price_currency: String,
 
    // For AIS that not exist in this object
-    let uncommon_a_is: Map<String, String>;
+     uncommon_a_is: Map<String, String>,
 }
 
 impl ParsedResult for ExpandedProductParsedResult{}
@@ -1366,7 +1367,7 @@ impl ExpandedProductParsedResult {
  * @author AgustÃ­n Delgado, Servinform, S.A.
  */
 pub struct ExpandedProductResultParser {
-    super: ResultParser;
+    //super: ResultParser;
 }
 
 impl ResultParser for ExpandedProductResultParser{}
@@ -1620,7 +1621,7 @@ impl ExpandedProductResultParser {
 
 const GEO_URL_PATTERN: Pattern = Pattern::compile("geo:([\\-0-9.]+),([\\-0-9.]+)(?:,([\\-0-9.]+))?(?:\\?(.*))?", Pattern::CASE_INSENSITIVE);
 pub struct GeoResultParser {
-    super: ResultParser;
+    //super: ResultParser;
 }
 
 impl ResultParser for GeoResultParser {}
@@ -1679,15 +1680,15 @@ impl GeoResultParser {
  * @author Sean Owen
  */
 pub struct GeoParsedResult {
-    super: ParsedResult;
+    //super: ParsedResult;
 
-     let latitude: f64;
+      latitude: f64,
 
-     let longitude: f64;
+      longitude: f64,
 
-     let altitude: f64;
+      altitude: f64,
 
-     let query: String;
+      query: String
 }
 
 impl ParsedResult for GeoParsedResult{}
@@ -1774,11 +1775,11 @@ impl GeoParsedResult {
  * @author dswitkin@google.com (Daniel Switkin)
  */
 pub struct ProductParsedResult {
-    super: ParsedResult;
+   // super: ParsedResult;
 
-     let product_i_d: String;
+      product_i_d: String,
 
-     let normalized_product_i_d: String;
+      normalized_product_i_d: String
 }
 
 impl ParsedResult for ProductParsedResult{}
@@ -1816,7 +1817,7 @@ impl ProductParsedResult {
  * @author dswitkin@google.com (Daniel Switkin)
  */
 pub struct ProductResultParser {
-    super: ResultParser;
+    //super: ResultParser;
 }
 
 impl ResultParser for ProductResultParser {}
@@ -1863,7 +1864,7 @@ impl ProductResultParser {
  * @author Sean Owen
  */
 pub struct SMSMMSResultParser {
-    super: ResultParser;
+    //super: ResultParser;
 }
 
 impl ResultParser for SMSMMSResultParser {}
@@ -1935,15 +1936,15 @@ impl SMSMMSResultParser {
  * @author Sean Owen
  */
 pub struct SMSParsedResult {
-    super: ParsedResult;
+    //super: ParsedResult;
 
-     let mut numbers: Vec<String>;
+      numbers: Vec<String>,
 
-     let mut vias: Vec<String>;
+      vias: Vec<String>,
 
-     let subject: String;
+      subject: String,
 
-     let body: String;
+      body: String
 }
 
 impl ParsedResult for SMSParsedResult {}
@@ -2048,7 +2049,7 @@ impl SMSParsedResult {
  * @author Sean Owen
  */
 pub struct SMSTOMMSTOResultParser {
-    super: ResultParser;
+    //super: ResultParser;
 }
 
 impl ResultParser for SMSTOMMSTOResultParser{}
@@ -2082,7 +2083,7 @@ impl SMSTOMMSTOResultParser {
  * @author Sean Owen
  */
 pub struct SMTPResultParser {
-    super: ResultParser;
+    //super: ResultParser;
 }
 
 impl ResultParser for SMTPResultParser {}
@@ -2120,13 +2121,13 @@ impl SMTPResultParser {
  * @author Sean Owen
  */
 pub struct TelParsedResult {
-    super: ParsedResult;
+    //super: ParsedResult;
 
-     let number: String;
+      number: String,
 
-     let tel_u_r_i: String;
+      tel_u_r_i: String,
 
-     let title: String;
+      title: String
 }
 
 impl ParsedResult for TelParsedResult {}
@@ -2168,7 +2169,7 @@ impl TelParsedResult {
  * @author Sean Owen
  */
 pub struct TelResultParser {
-    super: ResultParser;
+    //super: ResultParser;
 }
 
 impl ResultParser for TelResultParser{}
@@ -2198,11 +2199,11 @@ impl TelResultParser {
  * @author Sean Owen
  */
 pub struct TextParsedResult {
-    super: ParsedResult;
+    //super: ParsedResult;
 
-     let text: String;
+      text: String,
 
-     let language: String;
+      language: String
 }
 
 impl ParsedResult for TextParsedResult{}
@@ -2235,11 +2236,11 @@ impl TextParsedResult {
  * @author Sean Owen
  */
 pub struct URIParsedResult {
-    super: ParsedResult;
+    //super: ParsedResult;
 
-     let uri: String;
+      uri: String,
 
-     let title: String;
+      title: String
 }
 
 impl ParsedResult for URIParsedResult{}
@@ -2319,7 +2320,7 @@ const URL_WITH_PROTOCOL_PATTERN: Pattern = Pattern::compile("[a-zA-Z][a-zA-Z0-9+
 
 const URL_WITHOUT_PROTOCOL_PATTERN: Pattern = Pattern::compile(format!("([a-zA-Z0-9\\-]+\\.){1,6}[a-zA-Z]{2,}(:\\d{1,5})?(/|\\?|$)"));
 pub struct URIResultParser {
-   super: ResultParser;
+   //super: ResultParser;
 }
 
 impl ResultParser for URIResultParser{}
@@ -2376,7 +2377,7 @@ impl URIResultParser {
  * @author Sean Owen
  */
 pub struct URLTOResultParser {
-    super: ResultParser;
+    //super: ResultParser;
 }
 
 impl ResultParser for URLTOResultParser{}
@@ -2428,7 +2429,7 @@ const COMMA: Pattern = Pattern::compile(",");
 
 const SEMICOLON_OR_COMMA: Pattern = Pattern::compile("[;,]");
 pub struct VCardResultParser {
-   super: ResultParser;
+   //super: ResultParser;
 }
 
 impl ResultParser for VCardResultParser{}
@@ -2781,7 +2782,7 @@ impl VCardResultParser {
  * @author Sean Owen
  */
 pub struct VEventResultParser {
-    super: ResultParser;
+    //super: ResultParser;
 }
 
 impl ResultParser for VEventResultParser{}
@@ -2898,25 +2899,25 @@ impl VEventResultParser {
  * Represents a parsed result that encodes a Vehicle Identification Number (VIN).
  */
 pub struct VINParsedResult {
-    super: ParsedResult;
+    //super: ParsedResult;
 
-     let vin: String;
+      vin: String,
 
-     let world_manufacturer_i_d: String;
+      world_manufacturer_i_d: String,
 
-     let vehicle_descriptor_section: String;
+      vehicle_descriptor_section: String,
 
-     let vehicle_identifier_section: String;
+      vehicle_identifier_section: String,
 
-     let country_code: String;
+      country_code: String,
 
-     let vehicle_attributes: String;
+      vehicle_attributes: String,
 
-     let model_year: i32;
+      model_year: i32,
 
-     let plant_code: char;
+      plant_code: char,
 
-     let sequential_number: String;
+      sequential_number: String
 }
 
 impl ParsedResult for VINParsedResult {}
@@ -2999,7 +3000,7 @@ const IOQ: Pattern = Pattern::compile("[IOQ]");
 
 const AZ09: Pattern = Pattern::compile("[A-Z0-9]{17}");
 pub struct VINResultParser {
-   super: ResultParser;
+   //super: ResultParser;
 }
 
 impl ResultParser for VINResultParser {}
@@ -3226,23 +3227,23 @@ impl VINResultParser {
  * @author Vikram Aggarwal
  */
 pub struct WifiParsedResult {
-    super: ParsedResult;
+    //super: ParsedResult;
 
-     let ssid: String;
+      ssid: String,
 
-     let network_encryption: String;
+      network_encryption: String,
 
-     let password: String;
+      password: String,
 
-     let hidden: bool;
+      hidden: bool,
 
-     let identity: String;
+      identity: String,
 
-     let anonymous_identity: String;
+      anonymous_identity: String,
 
-     let eap_method: String;
+      eap_method: String,
 
-     let phase2_method: String;
+      phase2_method: String
 }
 
 impl ParsedResult for WifiParsedResult {}
@@ -3314,7 +3315,7 @@ impl WifiParsedResult {
 
 // WifiResultParser.java
 pub struct WifiResultParser {
-    super: ResultParser;
+    //super: ResultParser;
 }
 
 impl ResultParser for WifiResultParser{}
@@ -3365,9 +3366,9 @@ impl WifiResultParser {
  * @author jbreiden@google.com (Jeff Breidenbach)
  */
 pub struct ISBNParsedResult {
-    super: ParsedResult;
+    //super: ParsedResult;
 
-     let isbn: String;
+      isbn: String
 }
 
 impl ParsedResult for ISBNParsedResult{}
@@ -3396,7 +3397,7 @@ impl ISBNParsedResult {
  * @author jbreiden@google.com (Jeff Breidenbach)
  */
 pub struct ISBNResultParser {
-    super: ResultParser;
+    //super: ResultParser;
 }
 
 impl ResultParser for ISBNResultParser {}
