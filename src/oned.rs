@@ -4355,7 +4355,7 @@ pub struct MultiFormatOneDReader {
 
 impl MultiFormatOneDReader {
 
-    pub fn new( hints: &Map<DecodeHintType, ?>) -> MultiFormatOneDReader {
+    pub fn new( hints: &HashMap<DecodeHintType, _>) -> MultiFormatOneDReader {
          let possible_formats: Collection<BarcodeFormat> =  if hints == null { null } else { hints.get(DecodeHintType::POSSIBLE_FORMATS) as Collection<BarcodeFormat> };
          let use_code39_check_digit: bool = hints != null && hints.get(DecodeHintType::ASSUME_CODE_39_CHECK_DIGIT) != null;
          let mut readers: Collection<OneDReader> = ArrayList<>::new();
