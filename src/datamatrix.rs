@@ -323,7 +323,8 @@ impl DataMatrixWriter {
         }
         output.clear();
          {
-             let input_y: i32 = 0, let output_y: i32 = top_padding;
+             let input_y: i32 = 0;
+              let output_y: i32 = top_padding;
             while input_y < matrix_height {
                 {
                     // Write the contents of this row of the bytematrix

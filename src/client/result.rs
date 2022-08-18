@@ -1,8 +1,9 @@
 use crate::XRingResult;
+use regex::Regex;
  
 // ParsedResultType.java
 /**
- * Represents the type of data encoded by a barcode -- from plain text, to a
+ * Represents the type& of data encoded by a barco&de -- from plain text, to a
  * URI, to an e-mail address, etc.
  *
  * @author Sean Owen
@@ -75,11 +76,11 @@ trait ParsedResult {
 const PARSERS: vec![Vec<ResultParser>; 20] = vec![BookmarkDoCoMoResultParser::new(), AddressBookDoCoMoResultParser::new(), EmailDoCoMoResultParser::new(), AddressBookAUResultParser::new(), VCardResultParser::new(), BizcardResultParser::new(), VEventResultParser::new(), EmailAddressResultParser::new(), SMTPResultParser::new(), TelResultParser::new(), SMSMMSResultParser::new(), SMSTOMMSTOResultParser::new(), GeoResultParser::new(), WifiResultParser::new(), URLTOResultParser::new(), URIResultParser::new(), ISBNResultParser::new(), ProductResultParser::new(), ExpandedProductResultParser::new(), VINResultParser::new(), ]
 ;
 
- const DIGITS: Pattern = Pattern::compile("\\d+");
+ const DIGITS: Regex = Regex::new("\\d+");
 
- const AMPERSAND: Pattern = Pattern::compile("&");
+ const AMPERSAND: Regex = Regex::new("&");
 
- const EQUALS: Pattern = Pattern::compile("=");
+ const EQUALS: Regex = Regex::new("=");
 
  const BYTE_ORDER_MARK: &'static str = "﻿";
 
@@ -177,16 +178,16 @@ trait ResultParser {
         return -1;
     }
 
-    pub fn  is_string_of_digits( value: &CharSequence,  length: i32) -> bool  {
-        return value != null && length > 0 && length == value.length() && DIGITS::matcher(&value)::matches();
+    pub fn  is_string_of_digits( value: &String,  length: i32) -> bool  {
+        return value != null && length > 0 && length == value.length() && DIGITS.is_match(&value);
     }
 
-    pub fn  is_substring_of_digits( value: &CharSequence,  offset: i32,  length: i32) -> bool  {
+    pub fn  is_substring_of_digits( value: &String,  offset: i32,  length: i32) -> bool  {
         if value == null || length <= 0 {
             return false;
         }
          let max: i32 = offset + length;
-        return value.length() >= max && DIGITS::matcher(&value.sub_sequence(offset, max))::matches();
+        return value.length() >= max && DIGITS.is_match(&value.sub_sequence(offset, max));
     }
 
     fn  parse_name_value_pairs( uri: &String) -> Map<String, String>  {
@@ -369,11 +370,12 @@ impl AddressBookAUResultParser {
          let address: String = match_single_prefixed_field("ADD:", &raw_text, '\r', true);
          let addresses: Vec<String> =  if address == null { null } else {   vec![address, ]
          };
-        return AddressBookParsedResult::new(&maybe_wrap(&name), null, &pronunciation, &phone_numbers, null, &emails, null, null, &note, &addresses, null, null, null, null, null, null);
+        return AddressBookParsedResult::new(&maybe_wrap(&name), null, Some(&pronunciation), &phone_numbers, null, &emails, null, null, Some(&note), &addresses, null, null, null, null, null, null);
+
     }
 
     fn  match_multiple_value_prefix( prefix: &String,  raw_text: &String) -> Vec<String>  {
-         let mut values: List<String> = null;
+         let mut values: Vec<String> = null;
         // For now, always 3, and always trim
          {
              let mut i: i32 = 1;
@@ -385,7 +387,7 @@ impl AddressBookAUResultParser {
                     }
                     if values == null {
                         // lazy init
-                        values = Vec::new(3);
+                        values = Vec::new();
                     }
                     values.add(&value);
                 }
@@ -446,7 +448,7 @@ impl AddressBookDoCoMoResultParser {
         // Although ORG may not be strictly legal in MECARD, it does exist in VCARD and we might as well
         // honor it when found in the wild.
          let org: String = match_single_do_co_mo_prefixed_field("ORG:", &raw_text, true);
-        return AddressBookParsedResult::new(&maybe_wrap(&name), null, &pronunciation, &phone_numbers, null, &emails, null, null, &note, &addresses, null, &org, &birthday, null, &urls, null);
+        return AddressBookParsedResult::new(&maybe_wrap(&name), null, Some(&pronunciation), &phone_numbers, null, &emails, null, null, Some(&note), &addresses, null, Some(&org), Some(&birthday), null, Some(&urls), null);
     }
 
     fn  parse_name( name: &String) -> String  {
@@ -508,37 +510,34 @@ impl ParsedResult for AddressBookParsedResult{
 
 impl AddressBookParsedResult {
 
-    pub fn new( names: &Vec<String>,  phone_numbers: &Vec<String>,  phone_types: &Vec<String>,  emails: &Vec<String>,  email_types: &Vec<String>,  addresses: &Vec<String>,  address_types: &Vec<String>) -> AddressBookParsedResult {
-        this(&names, null, null, &phone_numbers, &phone_types, &emails, &email_types, null, null, &addresses, &address_types, null, null, null, null, null);
-    }
-
-    pub fn new( names: &Vec<String>,  nicknames: &Vec<String>,  pronunciation: &String,  phone_numbers: &Vec<String>,  phone_types: &Vec<String>,  emails: &Vec<String>,  email_types: &Vec<String>,  instant_messenger: &String,  note: &String,  addresses: &Vec<String>,  address_types: &Vec<String>,  org: &String,  birthday: &String,  title: &String,  urls: &Vec<String>,  geo: &Vec<String>) -> AddressBookParsedResult {
-        super(ParsedResultType::ADDRESSBOOK);
+    pub fn new( names: &Vec<String>,  nicknames: Option<&Vec<String>>,  pronunciation: Option<&String>,  phone_numbers: &Vec<String>,  phone_types: &Vec<String>,  emails: &Vec<String>,  email_types: &Vec<String>,  instant_messenger: Option<&String>,  note: Option<&String>,  addresses: &Vec<String>,  address_types: &Vec<String>,  org: Option<&String>,  birthday: Option<&String>,  title: Option<&String>,  urls: Option<&Vec<String>>,  geo: Option<&Vec<String>>) -> Result<Self,IllegalArgumentException> {
         if phone_numbers != null && phone_types != null && phone_numbers.len() != phone_types.len() {
-            throw IllegalArgumentException::new("Phone numbers and types lengths differ");
+            return Err( IllegalArgumentException::new("Phone numbers and types lengths differ"));
         }
         if emails != null && email_types != null && emails.len() != email_types.len() {
-            throw IllegalArgumentException::new("Emails and types lengths differ");
+            return Err( IllegalArgumentException::new("Emails and types lengths differ"));
         }
         if addresses != null && address_types != null && addresses.len() != address_types.len() {
-            throw IllegalArgumentException::new("Addresses and types lengths differ");
+            return Err( IllegalArgumentException::new("Addresses and types lengths differ"));
         }
-        let .names = names;
-        let .nicknames = nicknames;
-        let .pronunciation = pronunciation;
-        let .phoneNumbers = phone_numbers;
-        let .phoneTypes = phone_types;
-        let .emails = emails;
-        let .emailTypes = email_types;
-        let .instantMessenger = instant_messenger;
-        let .note = note;
-        let .addresses = addresses;
-        let .addressTypes = address_types;
-        let .org = org;
-        let .birthday = birthday;
-        let .title = title;
-        let .urls = urls;
-        let .geo = geo;
+        Ok(Self {
+            names: names,
+            nicknames: nicknames,
+            pronunciation: pronunciation,
+            phone_numbers: phone_numbers,
+            phone_types: phone_types,
+            emails: emails,
+            email_types: email_types,
+            instant_messenger: instant_messenger,
+            note: note,
+            addresses: addresses,
+            address_types: address_types,
+            org: org,
+            birthday: birthday,
+            title: title,
+            urls: urls,
+            geo: geo,
+        })
     }
 
     pub fn  get_names(&self) -> Vec<String>  {
@@ -630,7 +629,7 @@ impl AddressBookParsedResult {
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new(100);
+         let result: String = String::new();
         maybe_append(&self.names, &result);
         maybe_append(&self.nicknames, &result);
         maybe_append(&self.pronunciation, &result);
@@ -680,11 +679,11 @@ impl BizcardResultParser {
          let phone_number2: String = match_single_do_co_mo_prefixed_field("M:", &raw_text, true);
          let phone_number3: String = match_single_do_co_mo_prefixed_field("F:", &raw_text, true);
          let email: String = match_single_do_co_mo_prefixed_field("E:", &raw_text, true);
-        return AddressBookParsedResult::new(&maybe_wrap(&full_name), null, null, &::build_phone_numbers(&phone_number1, &phone_number2, &phone_number3), null, &maybe_wrap(&email), null, null, null, &addresses, null, &org, null, &title, null, null);
+        return AddressBookParsedResult::new(&maybe_wrap(&full_name), null, null, &::build_phone_numbers(&phone_number1, &phone_number2, &phone_number3), null, &maybe_wrap(&email), null, null, null, &addresses, null, Some(&org), null, Some(&title), null, null);
     }
 
     fn  build_phone_numbers( number1: &String,  number2: &String,  number3: &String) -> Vec<String>  {
-         let numbers: List<String> = ArrayList<>::new(3);
+         let numbers: List<String> = Vec::new();
         if number1 != null {
             numbers.add(&number1);
         }
@@ -698,7 +697,7 @@ impl BizcardResultParser {
         if size == 0 {
             return null;
         }
-        return numbers.to_array(: [Option<String>; size] = [None; size]);
+        return numbers.to_array( [None; size]);
     }
 
     fn  build_name( first_name: &String,  last_name: &String) -> String  {
@@ -715,7 +714,7 @@ impl BizcardResultParser {
  * @author Sean Owen
  */
 pub struct BookmarkDoCoMoResultParser {
-    super: AbstractDoCoMoResultParser;
+    //super: AbstractDoCoMoResultParser;
 }
 
 impl AbstractDoCoMoResultParser for BookmarkDoCoMoResultParser{}
@@ -786,48 +785,41 @@ impl ParsedResult for CalendarParsedResult{}
 
 impl CalendarParsedResult {
 
-   pub fn new( summary: &String,  start_string: &String,  end_string: &String,  duration_string: &String,  location: &String,  organizer: &String,  attendees: &Vec<String>,  description: &String,  latitude: f64,  longitude: f64) -> CalendarParsedResult {
-       super(ParsedResultType::CALENDAR);
-       let .summary = summary;
-       let tryResult1 = 0;
-       'try1: loop {
-       {
-           let .start = ::parse_date(&start_string);
-       }
-       break 'try1
-       }
-       match tryResult1 {
-            catch ( pe: &ParseException) {
-               throw IllegalArgumentException::new(&pe.to_string());
-           }  0 => break
-       }
+   pub fn new( summary: &String,  start_string: &String,  end_string: &String,  duration_string: &String,  location: &String,  organizer: &String,  attendees: &Vec<String>,  description: &String,  latitude: f64,  longitude: f64) -> Result<Self,IllegalArgumentException> {
+    let new_cpr : Self;
+
+    new_cpr .summary = summary;
+       
+
+        let strt = CalendarParsedResult::parse_date(&start_string);
+        if strt.is_err() {
+            return Err(IllegalArgumentException::new(&pe.to_string()))
+        }
+        new_cpr.start = strt.unwrap();
+        
 
        if end_string == null {
             let duration_m_s: i64 = ::parse_duration_m_s(&duration_string);
-           end =  if duration_m_s < 0 { -1 } else { start + duration_m_s };
+            new_cpr.end =  if duration_m_s < 0 { -1 } else { start + duration_m_s };
        } else {
-           let tryResult1 = 0;
-           'try1: loop {
-           {
-               let .end = ::parse_date(&end_string);
-           }
-           break 'try1
-           }
-           match tryResult1 {
-                catch ( pe: &ParseException) {
-                   throw IllegalArgumentException::new(&pe.to_string());
-               }  0 => break
-           }
+let en = Self::parse_date(&end_string);
+if en.is_err() {
+return Err(IllegalArgumentException::new(&pe.to_string()));
+}
+new_cpr.end = ::parse_date(&end_string);
+
 
        }
-       let .startAllDay = start_string.length() == 8;
-       let .endAllDay = end_string != null && end_string.length() == 8;
-       let .location = location;
-       let .organizer = organizer;
-       let .attendees = attendees;
-       let .description = description;
-       let .latitude = latitude;
-       let .longitude = longitude;
+       new_cpr .startAllDay = start_string.length() == 8;
+       new_cpr .endAllDay = end_string != null && end_string.length() == 8;
+       new_cpr .location = location;
+       new_cpr .organizer = organizer;
+       new_cpr .attendees = attendees;
+       new_cpr .description = description;
+       new_cpr .latitude = latitude;
+       new_cpr .longitude = longitude;
+
+       Ok(new_cpr)
    }
 
    pub fn  get_summary(&self) -> String  {
@@ -905,7 +897,7 @@ impl CalendarParsedResult {
    }
 
    pub fn  get_display_result(&self) -> String  {
-        let result: String = String::new(100);
+        let result: String = String::new();
        maybe_append(&self.summary, &result);
        maybe_append(&::format(self.start_all_day, self.start), &result);
        maybe_append(&::format(self.end_all_day, self.end), &result);
@@ -923,9 +915,9 @@ impl CalendarParsedResult {
   * @param when The string to parse
   * @throws ParseException if not able to parse as a date
   */
-   fn  parse_date( when: &String) -> /*  throws ParseException */Result<i64, Rc<Exception>>   {
-       if !DATE_TIME::matcher(&when)::matches() {
-           throw ParseException::new(&when, 0);
+   fn  parse_date( when: &String) -> Result<i64, ParseException>   {
+       if !DATE_TIME::is_match(&when) {
+           return Err( ParseException::new(&when, 0));
        }
        if when.length() == 8 {
            // Show only year/month/day
@@ -983,7 +975,7 @@ impl CalendarParsedResult {
        return duration_m_s;
    }
 
-   fn  parse_date_time_string( date_time_string: &String) -> /*  throws ParseException */Result<i64, Rc<Exception>>   {
+   fn  parse_date_time_string( date_time_string: &String) ->Result<i64, ParseException>   {
         let format: DateFormat = SimpleDateFormat::new("yyyyMMdd'T'HHmmss", Locale::ENGLISH);
        return Ok(format.parse(&date_time_string).get_time());
    }
@@ -1014,18 +1006,9 @@ impl ParsedResult for EmailAddressParsedResult{}
 
 impl EmailAddressParsedResult {
 
-    fn new( to: &String) -> EmailAddressParsedResult {
-        this( : vec![String; 1] = vec![to, ]
-        , null, null, null, null);
-    }
-
-    fn new( tos: &Vec<String>,  ccs: &Vec<String>,  bccs: &Vec<String>,  subject: &String,  body: &String) -> EmailAddressParsedResult {
-        super(ParsedResultType::EMAIL_ADDRESS);
-        let .tos = tos;
-        let .ccs = ccs;
-        let .bccs = bccs;
-        let .subject = subject;
-        let .body = body;
+    fn new( tos: &Vec<String>,  ccs: Option<&Vec<String>>,  bccs: Option<&Vec<String>>,  subject: Option<&String>,  body: Option<&String>) -> Self {
+        //super(ParsedResultType::EMAIL_ADDRESS);
+        Self { tos: tos, ccs: ccs, bccs: bccs, subject: subject, body: body }
     }
 
     /**
@@ -1060,12 +1043,12 @@ impl EmailAddressParsedResult {
    * @return "mailto:"
    * @deprecated without replacement
    */
-    pub fn  get_mailto_u_r_i(&self) -> String  {
+    pub fn  get_mailto_u_r_i(&self) -> &'static str  {
         return "mailto:";
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new(30);
+         let result: String = String::new();
         maybe_append(&self.tos, &result);
         maybe_append(&self.ccs, &result);
         maybe_append(&self.bccs, &result);
@@ -1083,7 +1066,7 @@ impl EmailAddressParsedResult {
  * @author Sean Owen
  */
 
-const COMMA: Pattern = Pattern::compile(",");
+const COMMA: Regex = Regex::new(",");
 pub struct EmailAddressResultParser {
     //super: ResultParser;
 }
@@ -1101,18 +1084,12 @@ impl EmailAddressResultParser {
             if query_start >= 0 {
                 host_email = host_email.substring(0, query_start);
             }
-            let tryResult1 = 0;
-            'try1: loop {
-            {
-                host_email = url_decode(&host_email);
+
+            let ud = url_decode(&host_email);
+            if ud.is_err() {
+                return None;
             }
-            break 'try1
-            }
-            match tryResult1 {
-                 catch ( iae: &IllegalArgumentException) {
-                    return null;
-                }  0 => break
-            }
+            host_email = ud;
 
              let mut tos: Vec<String> = null;
             if !host_email.is_empty() {
@@ -1141,12 +1118,12 @@ impl EmailAddressResultParser {
                 subject = name_values.get("subject");
                 body = name_values.get("body");
             }
-            return EmailAddressParsedResult::new(&tos, &ccs, &bccs, &subject, &body);
+            return EmailAddressParsedResult::new(&tos, Some(&ccs), Some(&bccs), Some(&subject), Some(&body));
         } else {
             if !EmailDoCoMoResultParser::is_basically_valid_email_address(&raw_text) {
                 return null;
             }
-            return EmailAddressParsedResult::new(&raw_text);
+            return EmailAddressParsedResult::new(&raw_text, None, None, None, None);
         }
     }
 }
@@ -1160,7 +1137,7 @@ impl EmailAddressResultParser {
  * @author Sean Owen
  */
 
-const ATEXT_ALPHANUMERIC: Pattern = Pattern::compile("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+");
+const ATEXT_ALPHANUMERIC: Regex = Regex::new("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+");
 pub struct EmailDoCoMoResultParser {
     //super: AbstractDoCoMoResultParser;
 }
@@ -1178,14 +1155,14 @@ impl EmailDoCoMoResultParser {
         if tos == null {
             return null;
         }
-        for  let to: String in tos {
+        for to  in tos {
             if !::is_basically_valid_email_address(&to) {
                 return null;
             }
         }
          let subject: String = match_single_do_co_mo_prefixed_field("SUB:", &raw_text, false);
          let body: String = match_single_do_co_mo_prefixed_field("BODY:", &raw_text, false);
-        return EmailAddressParsedResult::new(&tos, null, null, &subject, &body);
+        return EmailAddressParsedResult::new(&tos, null, null, Some(&subject), Some(&body));
     }
 
     /**
@@ -1195,7 +1172,7 @@ impl EmailDoCoMoResultParser {
    * in a barcode, not "judge" it.
    */
     fn  is_basically_valid_email_address( email: &String) -> bool  {
-        return email != null && ATEXT_ALPHANUMERIC::matcher(&email)::matches() && email.index_of('@') >= 0;
+        return email != null && ATEXT_ALPHANUMERIC::is_match(&email) && email.index_of('@') >= 0;
     }
 }
 
@@ -1211,6 +1188,7 @@ impl EmailDoCoMoResultParser {
 const KILOGRAM: &'static str = "KG";
 
 const POUND: &'static str = "LB";
+#[Derive(Eq,PartialEq, Hash)]
 pub struct ExpandedProductParsedResult {
    //super: ParsedResult;
 
@@ -1250,48 +1228,25 @@ impl ParsedResult for ExpandedProductParsedResult{}
 
 impl ExpandedProductParsedResult {
 
-   pub fn new( raw_text: &String,  product_i_d: &String,  sscc: &String,  lot_number: &String,  production_date: &String,  packaging_date: &String,  best_before_date: &String,  expiration_date: &String,  weight: &String,  weight_type: &String,  weight_increment: &String,  price: &String,  price_increment: &String,  price_currency: &String,  uncommon_a_is: &Map<String, String>) -> ExpandedProductParsedResult {
-       super(ParsedResultType::PRODUCT);
-       let .rawText = raw_text;
-       let .productID = product_i_d;
-       let .sscc = sscc;
-       let .lotNumber = lot_number;
-       let .productionDate = production_date;
-       let .packagingDate = packaging_date;
-       let .bestBeforeDate = best_before_date;
-       let .expirationDate = expiration_date;
-       let .weight = weight;
-       let .weightType = weight_type;
-       let .weightIncrement = weight_increment;
-       let .price = price;
-       let .priceIncrement = price_increment;
-       let .priceCurrency = price_currency;
-       let .uncommonAIs = uncommon_a_is;
-   }
+   pub fn new( raw_text: &String,  product_i_d: &String,  sscc: &String,  lot_number: &String,  production_date: &String,  packaging_date: &String,  best_before_date: &String,  expiration_date: &String,  weight: &String,  weight_type: &String,  weight_increment: &String,  price: &String,  price_increment: &String,  price_currency: &String,  uncommon_a_is: &Map<String, String>) -> Self {
+       let new_eppr : Self;
+       new_eppr .rawText = raw_text;
+       new_eppr .productID = product_i_d;
+       new_eppr .sscc = sscc;
+       new_eppr .lotNumber = lot_number;
+       new_eppr .productionDate = production_date;
+       new_eppr .packagingDate = packaging_date;
+       new_eppr .bestBeforeDate = best_before_date;
+       new_eppr .expirationDate = expiration_date;
+       new_eppr .weight = weight;
+       new_eppr .weightType = weight_type;
+       new_eppr .weightIncrement = weight_increment;
+       new_eppr .price = price;
+       new_eppr .priceIncrement = price_increment;
+       new_eppr .priceCurrency = price_currency;
+       new_eppr .uncommonAIs = uncommon_a_is;
 
-   pub fn  equals(&self,  o: &Object) -> bool  {
-       if !(o instanceof ExpandedProductParsedResult) {
-           return false;
-       }
-        let other: ExpandedProductParsedResult = o as ExpandedProductParsedResult;
-       return Objects::equals(&self.product_i_d, other.productID) && Objects::equals(&self.sscc, other.sscc) && Objects::equals(&self.lot_number, other.lotNumber) && Objects::equals(&self.production_date, other.productionDate) && Objects::equals(&self.best_before_date, other.bestBeforeDate) && Objects::equals(&self.expiration_date, other.expirationDate) && Objects::equals(&self.weight, other.weight) && Objects::equals(&self.weight_type, other.weightType) && Objects::equals(&self.weight_increment, other.weightIncrement) && Objects::equals(&self.price, other.price) && Objects::equals(&self.price_increment, other.priceIncrement) && Objects::equals(&self.price_currency, other.priceCurrency) && Objects::equals(&self.uncommon_a_is, other.uncommonAIs);
-   }
-
-   pub fn  hash_code(&self) -> i32  {
-        let mut hash: i32 = Objects::hash_code(&self.product_i_d);
-       hash ^= Objects::hash_code(&self.sscc);
-       hash ^= Objects::hash_code(&self.lot_number);
-       hash ^= Objects::hash_code(&self.production_date);
-       hash ^= Objects::hash_code(&self.best_before_date);
-       hash ^= Objects::hash_code(&self.expiration_date);
-       hash ^= Objects::hash_code(&self.weight);
-       hash ^= Objects::hash_code(&self.weight_type);
-       hash ^= Objects::hash_code(&self.weight_increment);
-       hash ^= Objects::hash_code(&self.price);
-       hash ^= Objects::hash_code(&self.price_increment);
-       hash ^= Objects::hash_code(&self.price_currency);
-       hash ^= Objects::hash_code(&self.uncommon_a_is);
-       return hash;
+       new_eppr
    }
 
    pub fn  get_raw_text(&self) -> String  {
@@ -1394,7 +1349,7 @@ impl ExpandedProductResultParser {
          let mut price: String = null;
          let price_increment: String = null;
          let price_currency: String = null;
-         let uncommon_a_is: Map<String, String> = HashMap<>::new();
+         let uncommon_a_is: Map<String, String> = HashMap::new();
          let mut i: i32 = 0;
         while i < raw_text.length() {
              let ai: String = ::find_a_ivalue(i, &raw_text);
@@ -1405,7 +1360,7 @@ impl ExpandedProductResultParser {
             i += ai.length() + 2;
              let value: String = ::find_value(i, &raw_text);
             i += value.length();
-            match ai {
+            match ai.as_str() {
                   "00" => 
                      {
                         sscc = value;
@@ -1619,7 +1574,7 @@ impl ExpandedProductResultParser {
  * @author Sean Owen
  */
 
-const GEO_URL_PATTERN: Pattern = Pattern::compile("geo:([\\-0-9.]+),([\\-0-9.]+)(?:,([\\-0-9.]+))?(?:\\?(.*))?", Pattern::CASE_INSENSITIVE);
+const GEO_URL_PATTERN: Regex = Regex::new("geo:([\\-0-9.]+),([\\-0-9.]+)(?:,([\\-0-9.]+))?(?:\\?(.*))?");
 pub struct GeoResultParser {
     //super: ResultParser;
 }
@@ -1639,8 +1594,7 @@ impl GeoResultParser {
          let mut longitude: f64;
          let mut altitude: f64;
         let tryResult1 = 0;
-        'try1: loop {
-        {
+        
             latitude = Double::parse_double(&matcher.group(1));
             if latitude > 90.0 || latitude < -90.0 {
                 return null;
@@ -1657,14 +1611,7 @@ impl GeoResultParser {
                     return null;
                 }
             }
-        }
-        break 'try1
-        }
-        match tryResult1 {
-             catch ( ignored: &NumberFormatException) {
-                return null;
-            }  0 => break
-        }
+        
 
         return GeoParsedResult::new(latitude, longitude, altitude, &query);
     }
@@ -1695,12 +1642,13 @@ impl ParsedResult for GeoParsedResult{}
 
 impl GeoParsedResult {
 
-    fn new( latitude: f64,  longitude: f64,  altitude: f64,  query: &String) -> GeoParsedResult {
-        super(ParsedResultType::GEO);
-        let .latitude = latitude;
-        let .longitude = longitude;
-        let .altitude = altitude;
-        let .query = query;
+    fn new( latitude: f64,  longitude: f64,  altitude: f64,  query: &String) -> Self {
+Self{
+    latitude,
+    longitude,
+    altitude,
+    query
+}
     }
 
     pub fn  get_geo_u_r_i(&self) -> String  {
@@ -1749,7 +1697,7 @@ impl GeoParsedResult {
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new(20);
+         let result: String = String::new();
         result.append(self.latitude);
         result.append(", ");
         result.append(self.longitude);
@@ -1786,14 +1734,11 @@ impl ParsedResult for ProductParsedResult{}
 
 impl ProductParsedResult {
 
-    fn new( product_i_d: &String) -> ProductParsedResult {
-        this(&product_i_d, &product_i_d);
-    }
-
-    fn new( product_i_d: &String,  normalized_product_i_d: &String) -> ProductParsedResult {
-        super(ParsedResultType::PRODUCT);
-        let .productID = product_i_d;
-        let .normalizedProductID = normalized_product_i_d;
+    fn new( product_i_d: &String,  normalized_product_i_d: Option<&String>) -> Self {
+        Self{
+            product_i_d: product_i_d,
+            normalized_product_i_d: normalized_product_i_d.unwrap_or(product_i_d),
+        }
     }
 
     pub fn  get_product_i_d(&self) -> String  {
@@ -1842,7 +1787,7 @@ impl ProductResultParser {
         } else {
             normalized_product_i_d = raw_text;
         }
-        return ProductParsedResult::new(&raw_text, &normalized_product_i_d);
+        return ProductParsedResult::new(&raw_text, Some(&normalized_product_i_d));
     }
 }
 
@@ -1897,8 +1842,8 @@ impl SMSMMSResultParser {
         }
          let last_comma: i32 = -1;
          let mut comma: i32;
-         let numbers: List<String> = ArrayList<>::new(1);
-         let vias: List<String> = ArrayList<>::new(1);
+         let numbers: List<String> = Vec::new();
+         let vias: List<String> = Vec::new();
         while (comma = sms_u_r_i_without_query.index_of(',', last_comma + 1)) > last_comma {
              let number_part: String = sms_u_r_i_without_query.substring(last_comma + 1, comma);
             ::add_number_via(&numbers, &vias, &number_part);
@@ -1951,22 +1896,13 @@ impl ParsedResult for SMSParsedResult {}
 
 impl SMSParsedResult {
 
-    pub fn new( number: &String,  via: &String,  subject: &String,  body: &String) -> SMSParsedResult {
-        super(ParsedResultType::SMS);
-        let .numbers =  : vec![String; 1] = vec![number, ]
-        ;
-        let .vias =  : vec![String; 1] = vec![via, ]
-        ;
-        let .subject = subject;
-        let .body = body;
-    }
-
-    pub fn new( numbers: &Vec<String>,  vias: &Vec<String>,  subject: &String,  body: &String) -> SMSParsedResult {
-        super(ParsedResultType::SMS);
-        let .numbers = numbers;
-        let .vias = vias;
-        let .subject = subject;
-        let .body = body;
+    pub fn new( numbers: &Vec<String>,  vias: &Vec<String>,  subject: &String,  body: &String) -> Self {
+        Self{
+            numbers: numbers,
+            vias: vias,
+            subject: subject,
+            body: body,
+        }
     }
 
     pub fn  get_s_m_s_u_r_i(&self) -> String  {
@@ -2028,7 +1964,7 @@ impl SMSParsedResult {
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new(100);
+         let result: String = String::new();
         maybe_append(&self.numbers, &result);
         maybe_append(&self.subject, &result);
         maybe_append(&self.body, &result);
@@ -2108,8 +2044,8 @@ impl SMTPResultParser {
                 subject = subject.substring(0, colon);
             }
         }
-        return EmailAddressParsedResult::new( : vec![String; 1] = vec![email_address, ]
-        , null, null, &subject, &body);
+        return EmailAddressParsedResult::new(  &vec![email_address, ]
+        , null, null, Some(&subject), Some(&body));
     }
 }
 
@@ -2134,11 +2070,12 @@ impl ParsedResult for TelParsedResult {}
 
 impl TelParsedResult {
 
-    pub fn new( number: &String,  tel_u_r_i: &String,  title: &String) -> TelParsedResult {
-        super(ParsedResultType::TEL);
-        let .number = number;
-        let .telURI = tel_u_r_i;
-        let .title = title;
+    pub fn new( number: &String,  tel_u_r_i: &String,  title: &String) -> Self {
+        Self {
+            number: number,
+            tel_u_r_i: tel_u_r_i,
+            title: title,
+        }
     }
 
     pub fn  get_number(&self) -> String  {
@@ -2154,7 +2091,7 @@ impl TelParsedResult {
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new(20);
+         let result: String = String::new();
         maybe_append(&self.number, &result);
         maybe_append(&self.title, &result);
         return result.to_string();
@@ -2210,10 +2147,11 @@ impl ParsedResult for TextParsedResult{}
 
 impl TextParsedResult {
 
-    pub fn new( text: &String,  language: &String) -> TextParsedResult {
-        super(ParsedResultType::TEXT);
-        let .text = text;
-        let .language = language;
+    pub fn new( text: &String,  language: &String) -> Self {
+        Self {
+            text: text,
+            language: language,
+        }
     }
 
     pub fn  get_text(&self) -> String  {
@@ -2247,10 +2185,11 @@ impl ParsedResult for URIParsedResult{}
 
 impl URIParsedResult {
 
-    pub fn new( uri: &String,  title: &String) -> URIParsedResult {
-        super(ParsedResultType::URI);
-        let .uri = ::massage_u_r_i(&uri);
-        let .title = title;
+    pub fn new( uri: &String,  title: &String) -> Self {
+        Self {
+            uri: ::massage_u_r_i(&uri),
+            title: title,
+        }
     }
 
     pub fn  get_u_r_i(&self) -> String  {
@@ -2271,7 +2210,7 @@ impl URIParsedResult {
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new(30);
+         let result: String = String::new();
         maybe_append(&self.title, &result);
         maybe_append(&self.uri, &result);
         return result.to_string();
@@ -2287,7 +2226,7 @@ impl URIParsedResult {
         if protocol_end < 0 || ::is_colon_followed_by_port_number(&uri, protocol_end) {
             // No protocol, or found a colon, but it looks like it is after the host, so the protocol is still missing,
             // so assume http
-            uri = format!("http://{}", uri);
+            uri = &format!("http://{}", uri);
         }
         return uri;
     }
@@ -2311,14 +2250,14 @@ impl URIParsedResult {
  * @author Sean Owen
  */
 
-const ALLOWED_URI_CHARS_PATTERN: Pattern = Pattern::compile("[-._~:/?#\\[\\]@!$&'()*+,;=%A-Za-z0-9]+");
+const ALLOWED_URI_CHARS_PATTERN: Regext = Regex::new("[-._~:/?#\\[\\]@!$&'()*+,;=%A-Za-z0-9]+");
 
-const USER_IN_HOST: Pattern = Pattern::compile(":/*([^/@]+)@[^/]+");
+const USER_IN_HOST: Regext = Regex::new(":/*([^/@]+)@[^/]+");
 
 // See http://www.ietf.org/rfc/rfc2396.txt
-const URL_WITH_PROTOCOL_PATTERN: Pattern = Pattern::compile("[a-zA-Z][a-zA-Z0-9+-.]+:");
+const URL_WITH_PROTOCOL_PATTERN: Regext = Regex::new("[a-zA-Z][a-zA-Z0-9+-.]+:");
 
-const URL_WITHOUT_PROTOCOL_PATTERN: Pattern = Pattern::compile(format!("([a-zA-Z0-9\\-]+\\.){1,6}[a-zA-Z]{2,}(:\\d{1,5})?(/|\\?|$)"));
+const URL_WITHOUT_PROTOCOL_PATTERN: Regext = Regex::new(&format!("([a-zA-Z0-9\\-]+\\.){1,6}[a-zA-Z]{2,}(:\\d{1,5})?(/|\\?|$)"));
 pub struct URIResultParser {
    //super: ResultParser;
 }
@@ -2333,7 +2272,7 @@ impl URIResultParser {
        if raw_text.starts_with("URL:") || raw_text.starts_with("URI:") {
            return URIParsedResult::new(&raw_text.substring(4).trim(), null);
        }
-       raw_text = raw_text.trim();
+       raw_text = raw_text.trim().to_owned();
        if !::is_basically_valid_u_r_i(&raw_text) || ::is_possibly_malicious_u_r_i(&raw_text) {
            return null;
        }
@@ -2349,7 +2288,7 @@ impl URIResultParser {
   *  to connect to yourbank.com at first glance.
   */
    fn  is_possibly_malicious_u_r_i( uri: &String) -> bool  {
-       return !ALLOWED_URI_CHARS_PATTERN::matcher(&uri)::matches() || USER_IN_HOST::matcher(&uri)::find();
+       return !ALLOWED_URI_CHARS_PATTERN.is_match(&uri) || USER_IN_HOST.find(&uri);
    }
 
    fn  is_basically_valid_u_r_i( uri: &String) -> bool  {
@@ -2409,25 +2348,25 @@ impl URLTOResultParser {
  * @author Sean Owen
  */
 
-const BEGIN_VCARD: Pattern = Pattern::compile("BEGIN:VCARD", Pattern::CASE_INSENSITIVE);
+const BEGIN_VCARD: Regex = Regex::new("BEGIN:VCARD");
 
-const VCARD_LIKE_DATE: Pattern = Pattern::compile("\\d{4}-?\\d{2}-?\\d{2}");
+const VCARD_LIKE_DATE: Regex = Regex::new("\\d{4}-?\\d{2}-?\\d{2}");
 
-const CR_LF_SPACE_TAB: Pattern = Pattern::compile("\r\n[ \t]");
+const CR_LF_SPACE_TAB: Regex = Regex::new("\r\n[ \t]");
 
-const NEWLINE_ESCAPE: Pattern = Pattern::compile("\\\\[nN]");
+const NEWLINE_ESCAPE: Regex = Regex::new("\\\\[nN]");
 
-const VCARD_ESCAPES: Pattern = Pattern::compile("\\\\([,;\\\\])");
+const VCARD_ESCAPES: Regex = Regex::new("\\\\([,;\\\\])");
 
-const EQUALS: Pattern = Pattern::compile("=");
+const EQUALS: Regex = Regex::new("=");
 
-const SEMICOLON: Pattern = Pattern::compile(";");
+const SEMICOLON: Regex = Regex::new(";");
 
-const UNESCAPED_SEMICOLONS: Pattern = Pattern::compile("(?<!\\\\);+");
+const UNESCAPED_SEMICOLONS: Regex = Regex::new("(?<!\\\\);+");
 
-const COMMA: Pattern = Pattern::compile(",");
+const COMMA: Regex = Regex::new(",");
 
-const SEMICOLON_OR_COMMA: Pattern = Pattern::compile("[;,]");
+const SEMICOLON_OR_COMMA: Regex = Regex::new("[;,]");
 pub struct VCardResultParser {
    //super: ResultParser;
 }
@@ -2470,7 +2409,7 @@ impl VCardResultParser {
        if geo != null && geo.len() != 2 {
            geo = null;
        }
-       return AddressBookParsedResult::new(&::to_primary_values(&names), &nicknames, null, &::to_primary_values(&phone_numbers), &::to_types(&phone_numbers), &::to_primary_values(&emails), &::to_types(&emails), &::to_primary_value(&instant_messenger), &::to_primary_value(&note), &::to_primary_values(&addresses), &::to_types(&addresses), &::to_primary_value(&org), &::to_primary_value(&birthday), &::to_primary_value(&title), &::to_primary_values(&urls), &geo);
+       return AddressBookParsedResult::new(&::to_primary_values(&names), Some(&nicknames), null, &::to_primary_values(&phone_numbers), &::to_types(&phone_numbers), &::to_primary_values(&emails), &::to_types(&emails), Some(&::to_primary_value(&instant_messenger)), Some(&::to_primary_value(&note)), &::to_primary_values(&addresses), &::to_types(&addresses), Some(&::to_primary_value(&org)), Some(&::to_primary_value(&birthday)), Some(&::to_primary_value(&title)), Some(&::to_primary_values(&urls)), Some(&geo));
    }
 
    fn  match_v_card_prefixed_field( prefix: &CharSequence,  raw_text: &String,  trim: bool,  parse_field_divider: bool) -> List<List<String>>  {
@@ -2480,11 +2419,13 @@ impl VCardResultParser {
        while i < max {
            // At start or after newline, match prefix, followed by optional metadata 
            // (led by ;) ultimately ending in colon
-            let matcher: Matcher = Pattern::compile(format!("(?:^|\n){}(?:;([^:]*))?:", prefix), Pattern::CASE_INSENSITIVE)::matcher(&raw_text);
+            let matcher: Regex = Regex::new(&format!("(?:^|\n){}(?:;([^:]*))?:", prefix));
            if i > 0 {
                // Find from i-1 not i since looking at the preceding character
                i -= 1;
            }
+           // ::matcher(&raw_text); FEELS WRONG
+           todo!("feels wrong");
            if !matcher.find(i) {
                break;
            }
@@ -2497,9 +2438,9 @@ impl VCardResultParser {
             let quoted_printable_charset: String = null;
             let value_type: String = null;
            if metadata_string != null {
-               for  let metadatum: String in SEMICOLON::split(&metadata_string) {
+               for   metadatum in SEMICOLON::split(&metadata_string) {
                    if metadata == null {
-                       metadata = ArrayList<>::new(1);
+                       metadata = Vec::new();
                    }
                    metadata.add(&metadatum);
                     let metadatum_tokens: Vec<String> = EQUALS::split(&metadatum, 2);
@@ -2541,7 +2482,7 @@ impl VCardResultParser {
                // found a match
                if matches == null {
                    // lazy init
-                   matches = ArrayList<>::new(1);
+                   matches = Vec::new();
                }
                if i >= 1 && raw_text.char_at(i - 1) == '\r' {
                    // Back up over \r, which really should be there
@@ -2549,41 +2490,33 @@ impl VCardResultParser {
                }
                 let mut element: String = raw_text.substring(match_start, i);
                if trim {
-                   element = element.trim();
+                   element = element.trim().to_owned();
                }
                if quoted_printable {
                    element = ::decode_quoted_printable(&element, &quoted_printable_charset);
                    if parse_field_divider {
-                       element = UNESCAPED_SEMICOLONS::matcher(&element)::replace_all("\n")::trim();
+                       element = UNESCAPED_SEMICOLONS.replace_all(&element,"\n").trim().to_owned();
                    }
                } else {
                    if parse_field_divider {
-                       element = UNESCAPED_SEMICOLONS::matcher(&element)::replace_all("\n")::trim();
+                       element = UNESCAPED_SEMICOLONS::matcher(&element,"\n").trim();
                    }
-                   element = CR_LF_SPACE_TAB::matcher(&element)::replace_all("");
-                   element = NEWLINE_ESCAPE::matcher(&element)::replace_all("\n");
-                   element = VCARD_ESCAPES::matcher(&element)::replace_all("$1");
+                   element = CR_LF_SPACE_TAB.replace_all(&element,"");
+                   element = NEWLINE_ESCAPE.replace_all(&element,"\n");
+                   element = VCARD_ESCAPES.replace_all(&element,"$1");
                }
                // Only handle VALUE=uri specially
                if "uri".equals(&value_type) {
                    // as value, to support tel: and mailto:
-                   let tryResult1 = 0;
-                   'try1: loop {
-                   {
-                       element = URI::create(&element)::get_scheme_specific_part();
-                   }
-                   break 'try1
-                   }
-                   match tryResult1 {
-                        catch ( iae: &IllegalArgumentException) {
-                       }  0 => break
-                   }
+                   panic!("i don't know what this does, and i don't know how to fix it");
+                   todo!("i don't know what this does, and i don't know how to fix it")
+                   //element = URI::create(&element)::get_scheme_specific_part();
 
                }
                if metadata == null {
-                    let match: List<String> = ArrayList<>::new(1);
-                   match.add(&element);
-                   matches.add(&match);
+                    let _match: List<String> = Vec::new();
+                    _match.add(&element);
+                   matches.add(&_match);
                } else {
                    metadata.add(0, &element);
                    matches.add(&metadata);
@@ -2598,7 +2531,7 @@ impl VCardResultParser {
 
    fn  decode_quoted_printable( value: &CharSequence,  charset: &String) -> String  {
         let length: i32 = value.length();
-        let result: String = String::new(length);
+        let result: String = String::new();
         let fragment_buffer: ByteArrayOutputStream = ByteArrayOutputStream::new();
         {
             let mut i: i32 = 0;
@@ -2650,20 +2583,9 @@ impl VCardResultParser {
             let fragment_bytes: Vec<i8> = fragment_buffer.to_byte_array();
             let mut fragment: String;
            if charset == null {
-               fragment = String::new(&fragment_bytes, StandardCharsets::UTF_8);
+               fragment = String::from(fragment_bytes);
            } else {
-               let tryResult1 = 0;
-               'try1: loop {
-               {
-                   fragment = String::new(&fragment_bytes, &charset);
-               }
-               break 'try1
-               }
-               match tryResult1 {
-                    catch ( e: &UnsupportedEncodingException) {
-                       fragment = String::new(&fragment_bytes, StandardCharsets::UTF_8);
-                   }  0 => break
-               }
+               fragment = String::from(fragment_bytes);
 
            }
            fragment_buffer.reset();
@@ -2684,8 +2606,8 @@ impl VCardResultParser {
        if lists == null || lists.is_empty() {
            return null;
        }
-        let result: List<String> = ArrayList<>::new(&lists.size());
-       for  let list: List<String> in lists {
+        let result: List<String> = Vec::new();
+       for   list in lists {
             let value: String = list.get(0);
            if value != null && !value.is_empty() {
                result.add(&value);
@@ -2698,11 +2620,11 @@ impl VCardResultParser {
        if lists == null || lists.is_empty() {
            return null;
        }
-        let result: List<String> = ArrayList<>::new(&lists.size());
-       for  let list: List<String> in lists {
+        let result: List<String> = Vec::new();
+       for   list in lists {
             let value: String = list.get(0);
            if value != null && !value.is_empty() {
-                let mut type: String = null;
+                let mut _type: String = null;
                 {
                     let mut i: i32 = 1;
                    while i < list.size() {
@@ -2711,11 +2633,11 @@ impl VCardResultParser {
                             let equals: i32 = metadatum.index_of('=');
                            if equals < 0 {
                                // take the whole thing as a usable label
-                               type = metadatum;
+                               _type = metadatum;
                                break;
                            }
                            if "TYPE".equals_ignore_case(&metadatum.substring(0, equals)) {
-                               type = metadatum.substring(equals + 1);
+                            _type = metadatum.substring(equals + 1);
                                break;
                            }
                        }
@@ -2723,14 +2645,14 @@ impl VCardResultParser {
                     }
                 }
 
-               result.add(&type);
+               result.add(&_type);
            }
        }
        return result.to_array(EMPTY_STR_ARRAY);
    }
 
    fn  is_like_v_card_date( value: &CharSequence) -> bool  {
-       return value == null || VCARD_LIKE_DATE::matcher(&value)::matches();
+       return value == null || VCARD_LIKE_DATE.is_match(&value);
    }
 
    /**
@@ -2741,7 +2663,7 @@ impl VCardResultParser {
   */
    fn  format_names( names: &Iterable<List<String>>)   {
        if names != null {
-           for  let list: List<String> in names {
+           for   list in names {
                 let name: String = list.get(0);
                 let mut components: [Option<String>; 5] = [None; 5];
                 let mut start: i32 = 0;
@@ -2753,7 +2675,7 @@ impl VCardResultParser {
                    start = end + 1;
                }
                components[component_index] = name.substring(start);
-                let new_name: String = String::new(100);
+                let new_name: String = String::new();
                ::maybe_append_component(&components, 3, &new_name);
                ::maybe_append_component(&components, 1, &new_name);
                ::maybe_append_component(&components, 2, &new_name);
@@ -2829,33 +2751,15 @@ impl VEventResultParser {
             if semicolon < 0 {
                 return null;
             }
-            let tryResult1 = 0;
-            'try1: loop {
-            {
-                latitude = Double::parse_double(&geo_string.substring(0, semicolon));
+
+            latitude = Double::parse_double(&geo_string.substring(0, semicolon));
                 longitude = Double::parse_double(&geo_string.substring(semicolon + 1));
-            }
-            break 'try1
-            }
-            match tryResult1 {
-                 catch ( ignored: &NumberFormatException) {
-                    return null;
-                }  0 => break
-            }
+
 
         }
-        let tryResult1 = 0;
-        'try1: loop {
-        {
+        
             return CalendarParsedResult::new(&summary, &start, &end, &duration, &location, &organizer, &attendees, &description, latitude, longitude);
-        }
-        break 'try1
-        }
-        match tryResult1 {
-             catch ( ignored: &IllegalArgumentException) {
-                return null;
-            }  0 => break
-        }
+        
 
     }
 
@@ -2924,17 +2828,18 @@ impl ParsedResult for VINParsedResult {}
 
 impl VINParsedResult {
 
-    pub fn new( vin: &String,  world_manufacturer_i_d: &String,  vehicle_descriptor_section: &String,  vehicle_identifier_section: &String,  country_code: &String,  vehicle_attributes: &String,  model_year: i32,  plant_code: char,  sequential_number: &String) -> VINParsedResult {
-        super(ParsedResultType::VIN);
-        let .vin = vin;
-        let .worldManufacturerID = world_manufacturer_i_d;
-        let .vehicleDescriptorSection = vehicle_descriptor_section;
-        let .vehicleIdentifierSection = vehicle_identifier_section;
-        let .countryCode = country_code;
-        let .vehicleAttributes = vehicle_attributes;
-        let .modelYear = model_year;
-        let .plantCode = plant_code;
-        let .sequentialNumber = sequential_number;
+    pub fn new( vin: &String,  world_manufacturer_i_d: &String,  vehicle_descriptor_section: &String,  vehicle_identifier_section: &String,  country_code: &String,  vehicle_attributes: &String,  model_year: i32,  plant_code: char,  sequential_number: &String) -> Self {
+    Self{
+        vin: vin,
+        world_manufacturer_i_d: world_manufacturer_i_d,
+        vehicle_descriptor_section: vehicle_descriptor_section,
+        vehicle_identifier_section: vehicle_identifier_section,
+        country_code:country_code,
+        vehicle_attributes: vehicle_attributes,
+        model_year,
+        plant_code,
+        sequential_number: sequential_number,
+    }
     }
 
     pub fn  get_v_i_n(&self) -> String  {
@@ -2974,7 +2879,7 @@ impl VINParsedResult {
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new(50);
+         let result: String = String::new();
         result.append(&self.world_manufacturer_i_d).append(' ');
         result.append(&self.vehicle_descriptor_section).append(' ');
         result.append(&self.vehicle_identifier_section).append('\n');
@@ -2996,9 +2901,9 @@ impl VINParsedResult {
  * @author Sean Owen
  */
 
-const IOQ: Pattern = Pattern::compile("[IOQ]");
+const IOQ: Regex = Regex::new("[IOQ]");
 
-const AZ09: Pattern = Pattern::compile("[A-Z0-9]{17}");
+const AZ09: Regex = Regex::new("[A-Z0-9]{17}");
 pub struct VINResultParser {
    //super: ResultParser;
 }
@@ -3012,26 +2917,16 @@ impl VINResultParser {
            return null;
        }
         let raw_text: String = result.get_text();
-       raw_text = IOQ::matcher(&raw_text)::replace_all("")::trim();
-       if !AZ09::matcher(&raw_text)::matches() {
+       raw_text = IOQ.replace_all(&raw_text,"").trim().to_owned();
+       if !AZ09::is_match(&raw_text) {
            return null;
        }
-       let tryResult1 = 0;
-       'try1: loop {
-       {
-           if !::check_checksum(&raw_text) {
-               return null;
-           }
-            let wmi: String = raw_text.substring(0, 3);
-           return VINParsedResult::new(&raw_text, &wmi, &raw_text.substring(3, 9), &raw_text.substring(9, 17), &::country_code(&wmi), &raw_text.substring(3, 8), &::model_year(&raw_text.char_at(9)), &raw_text.char_at(10), &raw_text.substring(11));
-       }
-       break 'try1
-       }
-       match tryResult1 {
-            catch ( iae: &IllegalArgumentException) {
-               return null;
-           }  0 => break
-       }
+
+       if !::check_checksum(&raw_text) {
+        return null;
+    }
+     let wmi: String = raw_text.substring(0, 3);
+    return VINParsedResult::new(&raw_text, &wmi, &raw_text.substring(3, 9), &raw_text.substring(9, 17), &::country_code(&wmi), &raw_text.substring(3, 8), &::model_year(&raw_text.char_at(9)), &raw_text.char_at(10), &raw_text.substring(11));
 
    }
 
@@ -3052,7 +2947,7 @@ impl VINResultParser {
        return check_char == expected_check_char;
    }
 
-   fn  vin_char_value( c: char) -> i32  {
+   fn  vin_char_value( c: char) -> Result<i32,IllegalArgumentException>  {
        if c >= 'A' && c <= 'I' {
            return (c - 'A') + 1;
        }
@@ -3065,36 +2960,36 @@ impl VINResultParser {
        if c >= '0' && c <= '9' {
            return c - '0';
        }
-       throw IllegalArgumentException::new();
+       Err( IllegalArgumentException::new())
    }
 
-   fn  vin_position_weight( position: i32) -> i32  {
+   fn  vin_position_weight( position: i32) -> Result<i32,IllegalArgumentException>  {
        if position >= 1 && position <= 7 {
-           return 9 - position;
+           return Ok(9 - position);
        }
        if position == 8 {
-           return 10;
+           return Ok(10);
        }
        if position == 9 {
-           return 0;
+           return Ok(0);
        }
        if position >= 10 && position <= 17 {
-           return 19 - position;
+           return Ok(19 - position);
        }
-       throw IllegalArgumentException::new();
+       Err( IllegalArgumentException::new())
    }
 
-   fn  check_char( remainder: i32) -> char  {
+   fn  check_char( remainder: i32) -> Result<char,IllegalArgumentException>  {
        if remainder < 10 {
-           return ('0' + remainder) as char;
+           return Ok(('0' + remainder) as char);
        }
        if remainder == 10 {
-           return 'X';
+           return Ok('X');
        }
-       throw IllegalArgumentException::new();
+       Err( IllegalArgumentException::new())
    }
 
-   fn  model_year( c: char) -> i32  {
+   fn  model_year( c: char) -> Result<i32,IllegalArgumentException>  {
        if c >= 'E' && c <= 'H' {
            return (c - 'E') + 1984;
        }
@@ -3102,7 +2997,7 @@ impl VINResultParser {
            return (c - 'J') + 1988;
        }
        if c == 'P' {
-           return 1993;
+           return Ok(1993);
        }
        if c >= 'R' && c <= 'T' {
            return (c - 'R') + 1994;
@@ -3116,10 +3011,10 @@ impl VINResultParser {
        if c >= 'A' && c <= 'D' {
            return (c - 'A') + 2010;
        }
-       throw IllegalArgumentException::new();
+       Err( IllegalArgumentException::new())
    }
 
-   fn  country_code( wmi: &CharSequence) -> String  {
+   fn  country_code( wmi: &CharSequence) -> &'static str  {
         let c1: char = wmi.char_at(0);
         let c2: char = wmi.char_at(1);
        match c1 {
@@ -3142,28 +3037,24 @@ impl VINResultParser {
                    if c2 >= 'A' && c2 <= 'W' {
                        return "MX";
                    }
-                   break;
                }
              '9' => 
                 {
                    if (c2 >= 'A' && c2 <= 'E') || (c2 >= '3' && c2 <= '9') {
                        return "BR";
                    }
-                   break;
                }
              'J' => 
                 {
                    if c2 >= 'A' && c2 <= 'T' {
                        return "JP";
                    }
-                   break;
                }
              'K' => 
                 {
                    if c2 >= 'L' && c2 <= 'R' {
                        return "KO";
                    }
-                   break;
                }
              'L' => 
                 {
@@ -3174,7 +3065,6 @@ impl VINResultParser {
                    if c2 >= 'A' && c2 <= 'E' {
                        return "IN";
                    }
-                   break;
                }
              'S' => 
                 {
@@ -3184,7 +3074,6 @@ impl VINResultParser {
                    if c2 >= 'N' && c2 <= 'T' {
                        return "DE";
                    }
-                   break;
                }
              'V' => 
                 {
@@ -3194,7 +3083,6 @@ impl VINResultParser {
                    if c2 >= 'S' && c2 <= 'W' {
                        return "ES";
                    }
-                   break;
                }
              'W' => 
                 {
@@ -3205,14 +3093,12 @@ impl VINResultParser {
                    if c2 == '0' || (c2 >= '3' && c2 <= '9') {
                        return "RU";
                    }
-                   break;
                }
              'Z' => 
                 {
                    if c2 >= 'A' && c2 <= 'R' {
                        return "IT";
                    }
-                   break;
                }
        }
        return null;
@@ -3250,24 +3136,17 @@ impl ParsedResult for WifiParsedResult {}
 
 impl WifiParsedResult {
 
-    pub fn new( network_encryption: &String,  ssid: &String,  password: &String) -> WifiParsedResult {
-        this(&network_encryption, &ssid, &password, false);
-    }
-
-    pub fn new( network_encryption: &String,  ssid: &String,  password: &String,  hidden: bool) -> WifiParsedResult {
-        this(&network_encryption, &ssid, &password, hidden, null, null, null, null);
-    }
-
-    pub fn new( network_encryption: &String,  ssid: &String,  password: &String,  hidden: bool,  identity: &String,  anonymous_identity: &String,  eap_method: &String,  phase2_method: &String) -> WifiParsedResult {
-        super(ParsedResultType::WIFI);
-        let .ssid = ssid;
-        let .networkEncryption = network_encryption;
-        let .password = password;
-        let .hidden = hidden;
-        let .identity = identity;
-        let .anonymousIdentity = anonymous_identity;
-        let .eapMethod = eap_method;
-        let .phase2Method = phase2_method;
+    pub fn new( network_encryption: &String,  ssid: &String,  password: &String,  hidden: bool,  identity: &String,  anonymous_identity: &String,  eap_method: &String,  phase2_method: &String) -> Self {
+        Self{
+            ssid: ssid,
+            network_encryption: network_encryption,
+            password: password,
+            hidden,
+            identity: identity,
+            anonymous_identity: anonymous_identity,
+            eap_method: eap_method,
+            phase2_method: phase2_method,
+        }
     }
 
     pub fn  get_ssid(&self) -> String  {
@@ -3303,7 +3182,7 @@ impl WifiParsedResult {
     }
 
     pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new(80);
+         let result: String = String::new();
         maybe_append(&self.ssid, &result);
         maybe_append(&self.network_encryption, &result);
         maybe_append(&self.password, &result);
@@ -3333,9 +3212,9 @@ impl WifiResultParser {
             return null;
         }
          let pass: String = match_single_prefixed_field("P:", &raw_text, ';', false);
-         let mut type: String = match_single_prefixed_field("T:", &raw_text, ';', false);
-        if type == null {
-            type = "nopass";
+         let mut _type: String = match_single_prefixed_field("T:", &raw_text, ';', false);
+        if _type == null {
+            _type = "nopass".to_owned();
         }
         // Unfortunately, in the past, H: was not just used for boolean 'hidden', but 'phase 2 method'.
         // To try to retain backwards compatibility, we set one or the other based on whether the string
@@ -3354,7 +3233,7 @@ impl WifiResultParser {
          let identity: String = match_single_prefixed_field("I:", &raw_text, ';', false);
          let anonymous_identity: String = match_single_prefixed_field("A:", &raw_text, ';', false);
          let eap_method: String = match_single_prefixed_field("E:", &raw_text, ';', false);
-        return WifiParsedResult::new(&type, &ssid, &pass, hidden, &identity, &anonymous_identity, &eap_method, &phase2_method);
+        return WifiParsedResult::new(&_type, &ssid, &pass, hidden, &identity, &anonymous_identity, &eap_method, &phase2_method);
     }
 }
 
@@ -3375,9 +3254,10 @@ impl ParsedResult for ISBNParsedResult{}
 
 impl ISBNParsedResult {
 
-    fn new( isbn: &String) -> ISBNParsedResult {
-        super(ParsedResultType::ISBN);
-        let .isbn = isbn;
+    fn new( isbn: &String) -> Self {
+        Self{
+            isbn
+        }
     }
 
     pub fn  get_i_s_b_n(&self) -> String  {
