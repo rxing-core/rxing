@@ -924,9 +924,12 @@ impl MultiFormatReader<T> {
                 // Calling all readers again with inverted image
                 image.get_black_matrix().flip();
                 for   reader in self.readers {
+                    todo!("thread interupted");
+                    /*
                     if Thread::current_thread()::is_interrupted() {
                         return Err( NotFoundException::get_not_found_instance());
                     }
+                     */
                     let tryResult1 = 0;
                     
                         return reader.decode(image, &self.hints);
@@ -1634,7 +1637,7 @@ impl RGBLuminanceSource {
     fn new( pixels: &Vec<i8>,  data_width: i32,  data_height: i32,  left: i32,  top: i32,  width: i32,  height: i32) -> RGBLuminanceSource {
         super(width, height);
         if left + width > data_width || top + height > data_height {
-            throw IllegalArgumentException::new("Crop rectangle does not fit within image data.");
+            return Err( IllegalArgumentException::new("Crop rectangle does not fit within image data."));
         }
         let .luminances = pixels;
         let .dataWidth = data_width;
