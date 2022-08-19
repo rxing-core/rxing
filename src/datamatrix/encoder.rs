@@ -1,6 +1,8 @@
 use crate::Dimension;
 use crate::common::MinimalECIInput;
 
+type CharSequence = Vec<u8>;
+
 // ASCIIEncoder.java
 
 struct ASCIIEncoder {
@@ -41,23 +43,20 @@ impl ASCIIEncoder {
                          {
                             context.write_codeword(HighLevelEncoder::LATCH_TO_ANSIX12);
                             context.signal_encoder_change(HighLevelEncoder::X12_ENCODATION);
-                            break;
                         }
                       HighLevelEncoder::TEXT_ENCODATION => 
                          {
                             context.write_codeword(HighLevelEncoder::LATCH_TO_TEXT);
                             context.signal_encoder_change(HighLevelEncoder::TEXT_ENCODATION);
-                            break;
                         }
                       HighLevelEncoder::EDIFACT_ENCODATION => 
                          {
                             context.write_codeword(HighLevelEncoder::LATCH_TO_EDIFACT);
                             context.signal_encoder_change(HighLevelEncoder::EDIFACT_ENCODATION);
-                            break;
                         }
                     _ => 
                          {
-                            throw IllegalStateException::new(format!("Illegal mode: {}", new_mode));
+                            return Err( IllegalStateException::new(format!("Illegal mode: {}", new_mode)));
                         }
                 }
             } else if HighLevelEncoder::is_extended_a_s_c_i_i(c) {
@@ -76,7 +75,7 @@ impl ASCIIEncoder {
              let num: i32 = (digit1 - 48) * 10 + (digit2 - 48);
             return (num + 130) as char;
         }
-        throw IllegalArgumentException::new(format!("not digits: {}{}", digit1, digit2));
+        return Err( IllegalArgumentException::new(format!("not digits: {}{}", digit1, digit2)));
     }
 }
 
@@ -120,11 +119,12 @@ impl Base256Encoder {
                 buffer.set_char_at(0, ((data_count / 250) + 249) as char);
                 buffer.insert(1, (data_count % 250) as char);
             } else {
-                throw IllegalStateException::new(format!("Message length not in valid ranges: {}", data_count));
+                return Err( IllegalStateException::new(format!("Message length not in valid ranges: {}", data_count)));
             }
         }
          {
-             let mut i: i32 = 0, let c: i32 = buffer.length();
+             let mut i: i32 = 0;
+              let c: i32 = buffer.length();
             while i < c {
                 {
                     context.write_codeword(&::randomize255_state(&buffer.char_at(i), context.get_codeword_count() + 1));
@@ -280,14 +280,14 @@ impl C40Encoder {
                 context.write_codeword(HighLevelEncoder::C40_UNLATCH);
             }
         } else {
-            throw IllegalStateException::new("Unexpected case. Please report!");
+            return Err( IllegalStateException::new("Unexpected case. Please report!"));
         }
         context.signal_encoder_change(HighLevelEncoder::ASCII_ENCODATION);
     }
 
     fn  encode_char(&self,  c: char,  sb: &StringBuilder) -> i32  {
         if c == ' ' {
-            sb.append('\3');
+            sb.append('\u{0003}');
             return 1;
         }
         if c >= '0' && c <= '9' {
@@ -306,30 +306,30 @@ impl C40Encoder {
         }
         if c <= '/' {
             //Shift 2 Set
-            sb.append('\1');
+            sb.append('\u{0001}');
             sb.append((c - 33) as char);
             return 2;
         }
         if c <= '@' {
             //Shift 2 Set
-            sb.append('\1');
+            sb.append('\u{0001}');
             sb.append((c - 58 + 15) as char);
             return 2;
         }
         if c <= '_' {
             //Shift 2 Set
-            sb.append('\1');
+            sb.append('\u{0001}');
             sb.append((c - 91 + 22) as char);
             return 2;
         }
         if c <= 127 {
             //Shift 3 Set
-            sb.append('\2');
+            sb.append('\u{0002}');
             sb.append((c - 96) as char);
             return 2;
         }
         //Shift 2, Upper Shift
-        sb.append("\1");
+        sb.append("\u{0001}\u{001e}");
          let mut len: i32 = 2;
         len += self.encode_char((c - 128) as char, &sb);
         return len;
@@ -339,23 +339,21 @@ impl C40Encoder {
          let v: i32 = (1600 * sb.char_at(0)) + (40 * sb.char_at(1)) + sb.char_at(2) + 1;
          let cw1: char = (v / 256) as char;
          let cw2: char = (v % 256) as char;
-        return String::new( : vec![char; 2] = vec![cw1, cw2, ]
-        );
+         
+         String::from(vec![cw1, cw2, ])
     }
 }
 
 
 // DataMatrixSymbolInfo144.java
 struct DataMatrixSymbolInfo144 {
-    super: SymbolInfo;
+    super_type: SymbolInfo
 }
-
-impl SymbolInfo for DataMatrixSymbolInfo144{}
 
 impl DataMatrixSymbolInfo144 {
 
-    fn new() -> DataMatrixSymbolInfo144 {
-        super(false, 1558, 620, 22, 22, 36, -1, 62);
+    fn new() -> Self {
+        Self { super_type: SymbolInfo::new(false, 1558, 620, 22, 22, 36, -1, 62)}
     }
 
     pub fn  get_interleaved_block_count(&self) -> i32  {
@@ -373,13 +371,13 @@ impl DataMatrixSymbolInfo144 {
  */
 pub struct DefaultPlacement {
 
-    let codewords: CharSequence;
+     codewords: CharSequence,
 
-    let numrows: i32;
+     numrows: i32,
 
-    let mut numcols: i32;
+      numcols: i32,
 
-    let mut bits: Vec<i8>;
+     bits: Vec<i8>
 }
 
 impl DefaultPlacement {
@@ -391,13 +389,14 @@ impl DefaultPlacement {
   * @param numcols   the number of columns
   * @param numrows   the number of rows
   */
-   pub fn new( codewords: &CharSequence,  numcols: i32,  numrows: i32) -> DefaultPlacement {
-       let .codewords = codewords;
-       let .numcols = numcols;
-       let .numrows = numrows;
-       let .bits = : [i8; numcols * numrows] = [0; numcols * numrows];
-       //Initialize with "not set" value
-       Arrays::fill(let .bits, -1 as i8);
+   pub fn new( codewords: &CharSequence,  numcols: i32,  numrows: i32) -> Self {
+    let new_dp : DefaultPlacement;
+    new_dp .codewords = codewords;
+    new_dp .numcols = numcols;
+    new_dp .numrows = numrows;
+    new_dp .bits =  [-1; numcols * numrows];
+
+    new_dp
    }
 
    fn  get_numrows(&self) -> i32  {
@@ -431,39 +430,39 @@ impl DefaultPlacement {
        loop { {
            // repeatedly first check for one of the special corner cases, then...
            if (row == self.numrows) && (col == 0) {
-               self.corner1(pos += 1 !!!check!!! post increment);
+               self.corner1(pos += 1 );
            }
            if (row == self.numrows - 2) && (col == 0) && ((self.numcols % 4) != 0) {
-               self.corner2(pos += 1 !!!check!!! post increment);
+               self.corner2(pos += 1 );
            }
            if (row == self.numrows - 2) && (col == 0) && (self.numcols % 8 == 4) {
-               self.corner3(pos += 1 !!!check!!! post increment);
+               self.corner3(pos += 1 );
            }
            if (row == self.numrows + 4) && (col == 2) && ((self.numcols % 8) == 0) {
-               self.corner4(pos += 1 !!!check!!! post increment);
+               self.corner4(pos += 1 );
            }
            // sweep upward diagonally, inserting successive characters...
            loop { {
                if (row < self.numrows) && (col >= 0) && self.no_bit(col, row) {
-                   self.utah(row, col, pos += 1 !!!check!!! post increment);
+                   self.utah(row, col, pos += 1 );
                }
                row -= 2;
                col += 2;
-           }if !(row >= 0 && (col < self.numcols)) break;}
+           }if !(row >= 0 && (col < self.numcols)) {break;}}
            row += 1;
            col += 3;
            // and then sweep downward diagonally, inserting successive characters, ...
            loop { {
                if (row >= 0) && (col < self.numcols) && self.no_bit(col, row) {
-                   self.utah(row, col, pos += 1 !!!check!!! post increment);
+                   self.utah(row, col, pos += 1 );
                }
                row += 2;
                col -= 2;
-           }if !((row < self.numrows) && (col >= 0)) break;}
+           }if !((row < self.numrows) && (col >= 0)) {break;}}
            row += 3;
            col += 1;
        // ...until the entire array is scanned
-       }if !((row < self.numrows) || (col < self.numcols)) break;}
+       }if !((row < self.numrows) || (col < self.numcols)) {break;}}
        // Lastly, if the lower right-hand corner is untouched, fill in fixed pattern
        if self.no_bit(self.numcols - 1, self.numrows - 1) {
            self.set_bit(self.numcols - 1, self.numrows - 1, true);
@@ -593,9 +592,7 @@ impl EdifactEncoder {
    * @param buffer  the buffer with the remaining encoded characters
    */
     fn  handle_e_o_d( context: &EncoderContext,  buffer: &CharSequence)   {
-        let tryResult1 = 0;
-        'try1: loop {
-        {
+        
              let count: i32 = buffer.length();
             if count == 0 {
                 //Already finished
@@ -603,7 +600,7 @@ impl EdifactEncoder {
             }
             if count == 1 {
                 //Only an unlatch at the end
-                context.update_symbol_info();
+                context.update_symbol_info_simple();
                  let mut available: i32 = context.get_symbol_info().get_data_capacity() - context.get_codeword_count();
                  let remaining: i32 = context.get_remaining_characters();
                 // The following two lines are a hack inspired by the 'fix' from https://sourceforge.net/p/barcode4j/svn/221/
@@ -617,7 +614,7 @@ impl EdifactEncoder {
                 }
             }
             if count > 4 {
-                throw IllegalStateException::new("Count must not exceed 4");
+                return Err( IllegalStateException::new("Count must not exceed 4"));
             }
              let rest_chars: i32 = count - 1;
              let encoded: String = ::encode_to_codewords(&buffer);
@@ -638,15 +635,8 @@ impl EdifactEncoder {
             } else {
                 context.write_codewords(&encoded);
             }
-        }
-        break 'try1
-        }
-        match tryResult1 {
-              0 => break
-        }
-         finally {
+        
             context.signal_encoder_change(HighLevelEncoder::ASCII_ENCODATION);
-        }
     }
 
     fn  encode_char( c: char,  sb: &StringBuilder)   {
@@ -662,7 +652,7 @@ impl EdifactEncoder {
     fn  encode_to_codewords( sb: &CharSequence) -> String  {
          let len: i32 = sb.length();
         if len == 0 {
-            throw IllegalStateException::new("StringBuilder must not be empty");
+            return Err( IllegalStateException::new("StringBuilder must not be empty"));
         }
          let c1: char = sb.char_at(0);
          let c2: char =  if len >= 2 { sb.char_at(1) } else { 0 };
@@ -695,38 +685,39 @@ trait Encoder {
 // EncoderContext.java
 struct EncoderContext {
 
-    let msg: String;
+     msg: String,
 
-    let mut shape: SymbolShapeHint;
+    shape: SymbolShapeHint,
 
-    let min_size: Dimension;
+     min_size: Dimension,
 
-    let max_size: Dimension;
+     max_size: Dimension,
 
-    let mut codewords: StringBuilder;
+     codewords: StringBuilder,
 
-    let pos: i32;
+     pos: i32,
 
-    let new_encoding: i32;
+     new_encoding: i32,
 
-    let symbol_info: SymbolInfo;
+     symbol_info: SymbolInfo,
 
-    let skip_at_end: i32;
+     skip_at_end: i32
 }
 
 impl EncoderContext {
 
-   fn new( msg: &String) -> EncoderContext {
+   fn new( msg: &String) -> Self {
        //From this point on Strings are not Unicode anymore!
         let msg_binary: Vec<i8> = msg.get_bytes(StandardCharsets::ISO_8859_1);
         let sb: StringBuilder = StringBuilder::new(msg_binary.len());
         {
-            let mut i: i32 = 0, let c: i32 = msg_binary.len();
+            let mut i: i32 = 0;
+             let c: i32 = msg_binary.len();
            while i < c {
                {
                     let ch: char = (msg_binary[i] & 0xff) as char;
                    if ch == '?' && msg.char_at(i) != '?' {
-                       throw IllegalArgumentException::new("Message contains characters outside ISO-8859-1 encoding.");
+                       return Err( IllegalArgumentException::new("Message contains characters outside ISO-8859-1 encoding."));
                    }
                    sb.append(ch);
                }
@@ -734,11 +725,14 @@ impl EncoderContext {
             }
         }
 
+        let new_ec : Self;
        //Not Unicode here!
-       let .msg = sb.to_string();
+       new_ec .msg = sb.to_string();
        shape = SymbolShapeHint::FORCE_NONE;
-       let .codewords = StringBuilder::new(&msg.length());
+       new_ec .codewords = StringBuilder::new(&msg.length());
        new_encoding = -1;
+
+       new_ec
    }
 
    pub fn  set_symbol_shape(&self,  shape: &SymbolShapeHint)   {
@@ -810,7 +804,7 @@ impl EncoderContext {
        return self.symbol_info;
    }
 
-   pub fn  update_symbol_info(&self)   {
+   pub fn  update_symbol_info_simple(&self)   {
        self.update_symbol_info(&self.get_codeword_count());
    }
 
@@ -862,37 +856,35 @@ impl EncoderContext {
   
    const MODULO_VALUE: i32 = 0x12D;
   
-   const LOG: Vec<i32>;
-  
-   const ALOG: Vec<i32>;
   pub struct ErrorCorrection {
+     LOG: Vec<i32>,
+  
+     ALOG: Vec<i32>
   }
   
   impl ErrorCorrection {
+
   
-      static {
-          //Create log and antilog table
-          LOG = : [i32; 256] = [0; 256];
-          ALOG = : [i32; 255] = [0; 255];
-           let mut p: i32 = 1;
-           {
-               let mut i: i32 = 0;
-              while i < 255 {
-                  {
-                      ALOG[i] = p;
-                      LOG[p] = i;
-                      p *= 2;
-                      if p >= 256 {
-                          p ^= MODULO_VALUE;
-                      }
-                  }
-                  i += 1;
-               }
-           }
-  
-      }
-  
-      fn new() -> ErrorCorrection {
+      fn new() -> Self {
+            //Create log and antilog table
+            let LOG =  [0; 256];
+            let ALOG =  [0; 255];
+             let mut p: i32 = 1;
+             {
+                 let mut i: i32 = 0;
+                while i < 255 {
+                    {
+                        ALOG[i] = p;
+                        LOG[p] = i;
+                        p *= 2;
+                        if p >= 256 {
+                            p ^= MODULO_VALUE;
+                        }
+                    }
+                    i += 1;
+                 }
+             }
+    Self { LOG: LOG, ALOG: ALOG }
       }
   
       /**
@@ -904,7 +896,7 @@ impl EncoderContext {
      */
       pub fn  encode_e_c_c200( codewords: &String,  symbol_info: &SymbolInfo) -> String  {
           if codewords.length() != symbol_info.get_data_capacity() {
-              throw IllegalArgumentException::new("The number of codewords does not match the selected symbol");
+              return Err( IllegalArgumentException::new("The number of codewords does not match the selected symbol"));
           }
            let sb: StringBuilder = StringBuilder::new(symbol_info.get_data_capacity() + symbol_info.get_error_codewords());
           sb.append(&codewords);
@@ -948,7 +940,7 @@ impl EncoderContext {
                                let mut e: i32 = block;
                               while e < error_sizes[block] * block_count {
                                   {
-                                      sb.set_char_at(symbol_info.get_data_capacity() + e, &ecc.char_at(pos += 1 !!!check!!! post increment));
+                                      sb.set_char_at(symbol_info.get_data_capacity() + e, &ecc.char_at(pos += 1 ));
                                   }
                                   e += block_count;
                                }
@@ -979,7 +971,7 @@ impl EncoderContext {
            }
   
           if table < 0 {
-              throw IllegalArgumentException::new(format!("Illegal number of error correction codewords specified: {}", num_e_c_words));
+              return Err( IllegalArgumentException::new(format!("Illegal number of error correction codewords specified: {}", num_e_c_words)));
           }
            let poly: Vec<i32> = FACTORS[table];
            let mut ecc: [Option<char>; num_e_c_words] = [None; num_e_c_words];
@@ -1013,7 +1005,7 @@ impl EncoderContext {
                        }
   
                       if m != 0 && poly[0] != 0 {
-                          ecc[0] = ALOG[(LOG[m] + LOG[poly[0]]) % 255] as char;
+                          ecc[0] = Some(ALOG[(LOG[m] + LOG[poly[0]]) % 255] as char);
                       } else {
                           ecc[0] = 0;
                       }
@@ -1162,7 +1154,7 @@ impl EncoderContext {
     * @param msg the message
     * @return the encoded message (the char values range from 0 to 255)
     */
-     pub fn  encode_high_level( msg: &String) -> String  {
+     pub fn  encode_high_level_msg_only( msg: &String) -> String  {
          return ::encode_high_level(&msg, SymbolShapeHint::FORCE_NONE, null, null, false);
      }
  
@@ -1177,7 +1169,7 @@ impl EncoderContext {
     * @param maxSize the maximum symbol size constraint or null for no constraint
     * @return the encoded message (the char values range from 0 to 255)
     */
-     pub fn  encode_high_level( msg: &String,  shape: &SymbolShapeHint,  min_size: &Dimension,  max_size: &Dimension) -> String  {
+     pub fn  encode_high_level_complex( msg: &String,  shape: &SymbolShapeHint,  min_size: &Dimension,  max_size: &Dimension) -> String  {
          return ::encode_high_level(&msg, shape, min_size, max_size, false);
      }
  
@@ -1193,7 +1185,7 @@ impl EncoderContext {
     * @param forceC40 enforce C40 encoding
     * @return the encoded message (the char values range from 0 to 255)
     */
-     pub fn  encode_high_level( msg: &String,  shape: &SymbolShapeHint,  min_size: &Dimension,  max_size: &Dimension,  force_c40: bool) -> String  {
+     pub fn  encode_high_level_comples_encforce( msg: &String,  shape: &SymbolShapeHint,  min_size: &Dimension,  max_size: &Dimension,  force_c40: bool) -> String  {
          //the codewords 0..255 are encoded as Unicode characters
           let c40_encoder: C40Encoder = C40Encoder::new();
           let encoders: vec![Vec<Encoder>; 6] = vec![ASCIIEncoder::new(), c40_encoder, TextEncoder::new(), X12Encoder::new(), EdifactEncoder::new(), Base256Encoder::new(), ]
@@ -1213,7 +1205,7 @@ impl EncoderContext {
          //Default mode
           let encoding_mode: i32 = ASCII_ENCODATION;
          if force_c40 {
-             c40_encoder.encode_maximal(context);
+             c40_encoder.encode_maximal(&context);
              encoding_mode = context.get_new_encoding();
              context.reset_encoder_signal();
          }
@@ -1225,7 +1217,7 @@ impl EncoderContext {
              }
          }
           let len: i32 = context.get_codeword_count();
-         context.update_symbol_info();
+         context.update_symbol_info_simple();
           let capacity: i32 = context.get_symbol_info().get_data_capacity();
          if len < capacity && encoding_mode != ASCII_ENCODATION && encoding_mode != BASE256_ENCODATION && encoding_mode != EDIFACT_ENCODATION {
              //Unlatch (254)
@@ -1242,7 +1234,7 @@ impl EncoderContext {
          return context.get_codewords().to_string();
      }
  
-     fn  look_ahead_test( msg: &CharSequence,  startpos: i32,  current_mode: i32) -> i32  {
+     fn  look_ahead_test( msg: &Vec<u8>,  startpos: i32,  current_mode: i32) -> i32  {
           let new_mode: i32 = ::look_ahead_test_intern(&msg, startpos, current_mode);
          if current_mode == X12_ENCODATION && new_mode == X12_ENCODATION {
               let endpos: i32 = Math::min(startpos + 3, &msg.length());
@@ -1283,10 +1275,10 @@ impl EncoderContext {
           let char_counts: Vec<f32>;
          //step J
          if current_mode == ASCII_ENCODATION {
-             char_counts =  : vec![f32; 6] = vec![0.0, 1.0, 1.0, 1.0, 1.0, 1.25f, ]
+             char_counts =   vec![0.0, 1.0, 1.0, 1.0, 1.0, 1.25f, ]
              ;
          } else {
-             char_counts =  : vec![f32; 6] = vec![1.0, 2.0, 2.0, 2.0, 2.0, 2.25f, ]
+             char_counts =   vec![1.0, 2.0, 2.0, 2.0, 2.0, 2.25f, ]
              ;
              char_counts[current_mode] = 0.0;
          }
@@ -1323,49 +1315,49 @@ impl EncoderContext {
              chars_processed += 1;
              //step L
              if ::is_digit(c) {
-                 char_counts[ASCII_ENCODATION] += 0.5f;
+                 char_counts[ASCII_ENCODATION] += 0.5f32;
              } else if ::is_extended_a_s_c_i_i(c) {
                  char_counts[ASCII_ENCODATION] = Math::ceil(char_counts[ASCII_ENCODATION]) as f32;
-                 char_counts[ASCII_ENCODATION] += 2.0f;
+                 char_counts[ASCII_ENCODATION] += 2.0f32;
              } else {
                  char_counts[ASCII_ENCODATION] = Math::ceil(char_counts[ASCII_ENCODATION]) as f32;
                  char_counts[ASCII_ENCODATION] += 1;
              }
              //step M
              if ::is_native_c40(c) {
-                 char_counts[C40_ENCODATION] += 2.0f / 3.0f;
+                 char_counts[C40_ENCODATION] += 2.0f32 / 3.0f32;
              } else if ::is_extended_a_s_c_i_i(c) {
-                 char_counts[C40_ENCODATION] += 8.0f / 3.0f;
+                 char_counts[C40_ENCODATION] += 8.0f32 / 3.0f32;
              } else {
-                 char_counts[C40_ENCODATION] += 4.0f / 3.0f;
+                 char_counts[C40_ENCODATION] += 4.0f32 / 3.0f32;
              }
              //step N
              if ::is_native_text(c) {
-                 char_counts[TEXT_ENCODATION] += 2.0f / 3.0f;
+                 char_counts[TEXT_ENCODATION] += 2.0f32 / 3.0f32;
              } else if ::is_extended_a_s_c_i_i(c) {
-                 char_counts[TEXT_ENCODATION] += 8.0f / 3.0f;
+                 char_counts[TEXT_ENCODATION] += 8.0f32 / 3.0f32;
              } else {
-                 char_counts[TEXT_ENCODATION] += 4.0f / 3.0f;
+                 char_counts[TEXT_ENCODATION] += 4.0f32 / 3.0f32;
              }
              //step O
              if ::is_native_x12(c) {
-                 char_counts[X12_ENCODATION] += 2.0f / 3.0f;
+                 char_counts[X12_ENCODATION] += 2.0f32 / 3.0f32;
              } else if ::is_extended_a_s_c_i_i(c) {
-                 char_counts[X12_ENCODATION] += 13.0f / 3.0f;
+                 char_counts[X12_ENCODATION] += 13.0f32 / 3.0f32;
              } else {
-                 char_counts[X12_ENCODATION] += 10.0f / 3.0f;
+                 char_counts[X12_ENCODATION] += 10.0f32 / 3.0f32;
              }
              //step P
              if ::is_native_e_d_i_f_a_c_t(c) {
-                 char_counts[EDIFACT_ENCODATION] += 3.0f / 4.0f;
+                 char_counts[EDIFACT_ENCODATION] += 3.0f32 / 4.0f32;
              } else if ::is_extended_a_s_c_i_i(c) {
-                 char_counts[EDIFACT_ENCODATION] += 17.0f / 4.0f;
+                 char_counts[EDIFACT_ENCODATION] += 17.0f32 / 4.0f32;
              } else {
-                 char_counts[EDIFACT_ENCODATION] += 13.0f / 4.0f;
+                 char_counts[EDIFACT_ENCODATION] += 13.0f32 / 4.0f32;
              }
              // step Q
              if ::is_special_b256(c) {
-                 char_counts[BASE256_ENCODATION] += 4.0f;
+                 char_counts[BASE256_ENCODATION] += 4.0f32;
              } else {
                  char_counts[BASE256_ENCODATION] += 1;
              }
@@ -1497,7 +1489,7 @@ impl EncoderContext {
     * @param startpos the start position within the message
     * @return the requested character count
     */
-     pub fn  determine_consecutive_digit_count( msg: &CharSequence,  startpos: i32) -> i32  {
+     pub fn  determine_consecutive_digit_count( msg: &Vec<u8>,  startpos: i32) -> i32  {
           let len: i32 = msg.length();
           let mut idx: i32 = startpos;
          while idx < len && ::is_digit(&msg.char_at(idx)) {
@@ -1509,7 +1501,7 @@ impl EncoderContext {
      fn  illegal_character( c: char)   {
           let mut hex: String = Integer::to_hex_string(c);
          hex = format!("{}{}", "0000".substring(0, 4 - hex.length()), hex);
-         throw IllegalArgumentException::new(format!("Illegal character: {} (0x{})", c, hex));
+         return Err( IllegalArgumentException::new(format!("Illegal character: {} (0x{})", c, hex)));
      }
  }
  
@@ -1553,15 +1545,17 @@ impl EncoderContext {
 
 const C40_SHIFT2_CHARS: vec![Vec<char>; 27] = vec!['!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', ]
 ;
+
+enum Mode {
+
+    ASCII(), C40(), TEXT(), X12(), EDF(), B256()
+}
 pub struct MinimalEncoder {
 }
 
 impl MinimalEncoder {
 
-    enum Mode {
-
-        ASCII(), C40(), TEXT(), X12(), EDF(), B256()
-    }
+    
 
     fn new() -> MinimalEncoder {
     }
@@ -1575,7 +1569,7 @@ impl MinimalEncoder {
     }
 
     fn  is_in_c40_shift2_set( ch: char,  fnc1: i32) -> bool  {
-        for  let c40_shift2_char: char in C40_SHIFT2_CHARS {
+        for   c40_shift2_char in C40_SHIFT2_CHARS {
             if c40_shift2_char == ch {
                 return true;
             }
@@ -1591,7 +1585,7 @@ impl MinimalEncoder {
         return ::is_in_c40_shift2_set(ch, fnc1);
     }
 
-    pub fn  encode_high_level( msg: &String) -> String  {
+    pub fn  encode_high_level_simple( msg: &String) -> String  {
         return ::encode_high_level(&msg, null, -1, SymbolShapeHint::FORCE_NONE);
     }
 
@@ -1604,10 +1598,17 @@ impl MinimalEncoder {
             macro_id = 6;
             msg = msg.substring(&HighLevelEncoder::MACRO_06_HEADER::length(), msg.length() - 2);
         }
-        return String::new(&::encode(&msg, &priority_charset, fnc1, shape, macro_id), StandardCharsets::ISO_8859_1);
+        {
+        use encoding::{Encoding,DecoderTrap};
+        use encoding::all::ISO_8859_1;
+        let st = ::encode(&msg, &priority_charset, fnc1, shape, macro_id);
+        ISO_8859_1.decode(st, DecoderTrap::Strict).unwrap_or("".to_owned())
+        
+        //return String::new(&::encode(&msg, &priority_charset, fnc1, shape, macro_id), StandardCharsets::ISO_8859_1);
+        }
     }
 
-    fn  encode( input: &String,  priority_charset: &Charset,  fnc1: i32,  shape: &SymbolShapeHint,  macro_id: i32) -> Vec<i8>  {
+    fn  encode( input: &String,  priority_charset: &Charset,  fnc1: i32,  shape: &SymbolShapeHint,  macro_id: i32) -> Vec<u8>  {
         return ::encode_minimally(Input::new(&input, &priority_charset, fnc1, shape, macro_id)).get_bytes();
     }
 
@@ -1668,7 +1669,7 @@ impl MinimalEncoder {
             }
              let modes: vec![Vec<Mode>; 2] = vec![Mode::C40, Mode::TEXT, ]
             ;
-            for  let mode: Mode in modes {
+            for   mode in modes {
                  let character_length: [i32; 1] = [0; 1];
                 if ::get_number_of_c40_words(input, from, mode == Mode::C40, &character_length) > 0 {
                     ::add_edge(edges, Edge::new(input, mode, from, character_length[0], previous));
@@ -1761,688 +1762,683 @@ impl MinimalEncoder {
          }
 
         if minimal_j < 0 {
-            throw RuntimeException::new(format!("Internal error: failed to encode \"{}\"", input));
+            return Err( RuntimeException::new(format!("Internal error: failed to encode \"{}\"", input)));
         }
         return Result::new(edges[input_length][minimal_j]);
     }
 
 
-     let all_codeword_capacities: vec![Vec<i32>; 28] = vec![3, 5, 8, 10, 12, 16, 18, 22, 30, 32, 36, 44, 49, 62, 86, 114, 144, 174, 204, 280, 368, 456, 576, 696, 816, 1050, 1304, 1558, ]
+     const all_codeword_capacities: vec![Vec<i32>; 28] = vec![3, 5, 8, 10, 12, 16, 18, 22, 30, 32, 36, 44, 49, 62, 86, 114, 144, 174, 204, 280, 368, 456, 576, 696, 816, 1050, 1304, 1558, ]
     ;
 
-     let square_codeword_capacities: vec![Vec<i32>; 24] = vec![3, 5, 8, 12, 18, 22, 30, 36, 44, 62, 86, 114, 144, 174, 204, 280, 368, 456, 576, 696, 816, 1050, 1304, 1558, ]
+     const square_codeword_capacities: vec![Vec<i32>; 24] = vec![3, 5, 8, 12, 18, 22, 30, 36, 44, 62, 86, 114, 144, 174, 204, 280, 368, 456, 576, 696, 816, 1050, 1304, 1558, ]
     ;
 
-     let rectangular_codeword_capacities: vec![Vec<i32>; 6] = vec![5, 10, 16, 33, 32, 49, ]
+     const rectangular_codeword_capacities: vec![Vec<i32>; 6] = vec![5, 10, 16, 33, 32, 49, ]
     ;
-    struct Edge {
 
-         let input: Input;
+}
 
-        //the mode at the start of this edge.
-         let mode: Mode;
+struct Edge {
 
-         let from_position: i32;
+    input: Input,
 
-         let character_length: i32;
+  //the mode at the start of this edge.
+    mode: Mode,
 
-         let previous: Edge;
+    from_position: i32,
 
-         let cached_total_size: i32;
-    }
-    
-    impl Edge {
+    character_length: i32,
 
-        fn new( input: &Input,  mode: &Mode,  from_position: i32,  character_length: i32,  previous: &Edge) -> Edge {
-            let .input = input;
-            let .mode = mode;
-            let .fromPosition = from_position;
-            let .characterLength = character_length;
-            let .previous = previous;
-            assert!( from_position + character_length <= input.length());
-             let mut size: i32 =  if previous != null { previous.cachedTotalSize } else { 0 };
-             let previous_mode: Mode = self.get_previous_mode();
-            /*
-      * Switching modes
-      * ASCII -> C40: latch 230
-      * ASCII -> TEXT: latch 239
-      * ASCII -> X12: latch 238
-      * ASCII -> EDF: latch 240
-      * ASCII -> B256: latch 231
-      * C40 -> ASCII: word(c1,c2,c3), 254
-      * TEXT -> ASCII: word(c1,c2,c3), 254
-      * X12 -> ASCII: word(c1,c2,c3), 254
-      * EDIFACT -> ASCII: Unlatch character,0,0,0 or c1,Unlatch character,0,0 or c1,c2,Unlatch character,0 or 
-      * c1,c2,c3,Unlatch character
-      * B256 -> ASCII: without latch after n bytes
-      */
-            match mode {
-                  ASCII => 
-                     {
-                        size += 1;
-                        if input.is_e_c_i(from_position) || ::is_extended_a_s_c_i_i(&input.char_at(from_position), &input.get_f_n_c1_character()) {
-                            size += 1;
-                        }
-                        if previous_mode == Mode::C40 || previous_mode == Mode::TEXT || previous_mode == Mode::X12 {
-                            // unlatch 254 to ASCII
-                            size += 1;
-                        }
-                        break;
-                    }
-                  B256 => 
-                     {
-                        size += 1;
-                        if previous_mode != Mode::B256 {
-                            //byte count
-                            size += 1;
-                        } else if self.get_b256_size() == 250 {
-                            //extra byte count
-                            size += 1;
-                        }
-                        if previous_mode == Mode::ASCII {
-                            //latch to B256
-                            size += 1;
-                        } else if previous_mode == Mode::C40 || previous_mode == Mode::TEXT || previous_mode == Mode::X12 {
-                            //unlatch to ASCII, latch to B256
-                            size += 2;
-                        }
-                        break;
-                    }
-                  C40 => 
-                     {
-                    }
-                  TEXT => 
-                     {
-                    }
-                  X12 => 
-                     {
-                        if mode == Mode::X12 {
-                            size += 2;
-                        } else {
-                             let char_len: [i32; 1] = [0; 1];
-                            size += ::get_number_of_c40_words(input, from_position, mode == Mode::C40, &char_len) * 2;
-                        }
-                        if previous_mode == Mode::ASCII || previous_mode == Mode::B256 {
-                            //additional byte for latch from ASCII to this mode
-                            size += 1;
-                        } else if previous_mode != mode && (previous_mode == Mode::C40 || previous_mode == Mode::TEXT || previous_mode == Mode::X12) {
-                            //unlatch 254 to ASCII followed by latch to this mode
-                            size += 2;
-                        }
-                        break;
-                    }
-                  EDF => 
-                     {
-                        size += 3;
-                        if previous_mode == Mode::ASCII || previous_mode == Mode::B256 {
-                            //additional byte for latch from ASCII to this mode
-                            size += 1;
-                        } else if previous_mode == Mode::C40 || previous_mode == Mode::TEXT || previous_mode == Mode::X12 {
-                            //unlatch 254 to ASCII followed by latch to this mode
-                            size += 2;
-                        }
-                        break;
-                    }
-            }
-            cached_total_size = size;
-        }
+    previous: Edge,
 
-        // does not count beyond 250
-        fn  get_b256_size(&self) -> i32  {
-             let mut cnt: i32 = 0;
-             let mut current: Edge = self;
-            while current != null && current.mode == Mode::B256 && cnt <= 250 {
-                cnt += 1;
-                current = current.previous;
-            }
-            return cnt;
-        }
+    cached_total_size: i32
+}
 
-        fn  get_previous_start_mode(&self) -> Mode  {
-            return  if self.previous == null { Mode::ASCII } else { self.previous.mode };
-        }
+impl Edge {
 
-        fn  get_previous_mode(&self) -> Mode  {
-            return  if self.previous == null { Mode::ASCII } else { self.previous.get_end_mode() };
-        }
+  fn new( input: &Input,  mode: &Mode,  from_position: i32,  character_length: i32,  previous: &Edge) -> Self {
+      let new_edge : Self;
+      new_edge .input = input;
+      new_edge .mode = mode;
+      new_edge .fromPosition = from_position;
+      new_edge .characterLength = character_length;
+      new_edge .previous = previous;
+      assert!( from_position + character_length <= input.length());
+       let mut size: i32 =  if previous != null { previous.cachedTotalSize } else { 0 };
+       let previous_mode: Mode = self.get_previous_mode();
+      /*
+* Switching modes
+* ASCII -> C40: latch 230
+* ASCII -> TEXT: latch 239
+* ASCII -> X12: latch 238
+* ASCII -> EDF: latch 240
+* ASCII -> B256: latch 231
+* C40 -> ASCII: word(c1,c2,c3), 254
+* TEXT -> ASCII: word(c1,c2,c3), 254
+* X12 -> ASCII: word(c1,c2,c3), 254
+* EDIFACT -> ASCII: Unlatch character,0,0,0 or c1,Unlatch character,0,0 or c1,c2,Unlatch character,0 or 
+* c1,c2,c3,Unlatch character
+* B256 -> ASCII: without latch after n bytes
+*/
+      match mode {
+            ASCII => 
+               {
+                  size += 1;
+                  if input.is_e_c_i(from_position) || ::is_extended_a_s_c_i_i(&input.char_at(from_position), &input.get_f_n_c1_character()) {
+                      size += 1;
+                  }
+                  if previous_mode == Mode::C40 || previous_mode == Mode::TEXT || previous_mode == Mode::X12 {
+                      // unlatch 254 to ASCII
+                      size += 1;
+                  }
+              }
+            B256 => 
+               {
+                  size += 1;
+                  if previous_mode != Mode::B256 {
+                      //byte count
+                      size += 1;
+                  } else if self.get_b256_size() == 250 {
+                      //extra byte count
+                      size += 1;
+                  }
+                  if previous_mode == Mode::ASCII {
+                      //latch to B256
+                      size += 1;
+                  } else if previous_mode == Mode::C40 || previous_mode == Mode::TEXT || previous_mode == Mode::X12 {
+                      //unlatch to ASCII, latch to B256
+                      size += 2;
+                  }
+              }
+            C40 => 
+               {
+              }
+            TEXT => 
+               {
+              }
+            X12 => 
+               {
+                  if mode == Mode::X12 {
+                      size += 2;
+                  } else {
+                       let char_len: [i32; 1] = [0; 1];
+                      size += ::get_number_of_c40_words(input, from_position, mode == Mode::C40, &char_len) * 2;
+                  }
+                  if previous_mode == Mode::ASCII || previous_mode == Mode::B256 {
+                      //additional byte for latch from ASCII to this mode
+                      size += 1;
+                  } else if previous_mode != mode && (previous_mode == Mode::C40 || previous_mode == Mode::TEXT || previous_mode == Mode::X12) {
+                      //unlatch 254 to ASCII followed by latch to this mode
+                      size += 2;
+                  }
+              }
+            EDF => 
+               {
+                  size += 3;
+                  if previous_mode == Mode::ASCII || previous_mode == Mode::B256 {
+                      //additional byte for latch from ASCII to this mode
+                      size += 1;
+                  } else if previous_mode == Mode::C40 || previous_mode == Mode::TEXT || previous_mode == Mode::X12 {
+                      //unlatch 254 to ASCII followed by latch to this mode
+                      size += 2;
+                  }
+              }
+      }
+      cached_total_size = size;
+  }
 
-        /** Returns Mode.ASCII in case that:
-     *  - Mode is EDIFACT and characterLength is less than 4 or the remaining characters can be encoded in at most 2
-     *    ASCII bytes.
-     *  - Mode is C40, TEXT or X12 and the remaining characters can be encoded in at most 1 ASCII byte.
-     *  Returns mode in all other cases.
-     * */
-        fn  get_end_mode(&self) -> Mode  {
-            if self.mode == Mode::EDF {
-                if self.character_length < 4 {
-                    return Mode::ASCII;
-                }
-                // see 5.2.8.2 EDIFACT encodation Rules
-                 let last_a_s_c_i_i: i32 = self.get_last_a_s_c_i_i();
-                if last_a_s_c_i_i > 0 && self.get_codewords_remaining(self.cached_total_size + last_a_s_c_i_i) <= 2 - last_a_s_c_i_i {
-                    return Mode::ASCII;
-                }
-            }
-            if self.mode == Mode::C40 || self.mode == Mode::TEXT || self.mode == Mode::X12 {
-                // see 5.2.5.2 C40 encodation rules and 5.2.7.2 ANSI X12 encodation rules
-                if self.from_position + self.character_length >= self.input.length() && self.get_codewords_remaining(self.cached_total_size) == 0 {
-                    return Mode::ASCII;
-                }
-                 let last_a_s_c_i_i: i32 = self.get_last_a_s_c_i_i();
-                if last_a_s_c_i_i == 1 && self.get_codewords_remaining(self.cached_total_size + 1) == 0 {
-                    return Mode::ASCII;
-                }
-            }
-            return self.mode;
-        }
+  // does not count beyond 250
+  fn  get_b256_size(&self) -> i32  {
+       let mut cnt: i32 = 0;
+       let mut current: Edge = self;
+      while current != null && current.mode == Mode::B256 && cnt <= 250 {
+          cnt += 1;
+          current = current.previous;
+      }
+      return cnt;
+  }
 
-        fn  get_mode(&self) -> Mode  {
-            return self.mode;
-        }
+  fn  get_previous_start_mode(&self) -> Mode  {
+      return  if self.previous == null { Mode::ASCII } else { self.previous.mode };
+  }
 
-        /** Peeks ahead and returns 1 if the postfix consists of exactly two digits, 2 if the postfix consists of exactly
-     *  two consecutive digits and a non extended character or of 4 digits. 
-     *  Returns 0 in any other case
-     **/
-        fn  get_last_a_s_c_i_i(&self) -> i32  {
-             let length: i32 = self.input.length();
-             let from: i32 = self.from_position + self.character_length;
-            if length - from > 4 || from >= length {
-                return 0;
-            }
-            if length - from == 1 {
-                if ::is_extended_a_s_c_i_i(&self.input.char_at(from), &self.input.get_f_n_c1_character()) {
-                    return 0;
-                }
-                return 1;
-            }
-            if length - from == 2 {
-                if ::is_extended_a_s_c_i_i(&self.input.char_at(from), &self.input.get_f_n_c1_character()) || ::is_extended_a_s_c_i_i(&self.input.char_at(from + 1), &self.input.get_f_n_c1_character()) {
-                    return 0;
-                }
-                if HighLevelEncoder::is_digit(&self.input.char_at(from)) && HighLevelEncoder::is_digit(&self.input.char_at(from + 1)) {
-                    return 1;
-                }
-                return 2;
-            }
-            if length - from == 3 {
-                if HighLevelEncoder::is_digit(&self.input.char_at(from)) && HighLevelEncoder::is_digit(&self.input.char_at(from + 1)) && !::is_extended_a_s_c_i_i(&self.input.char_at(from + 2), &self.input.get_f_n_c1_character()) {
-                    return 2;
-                }
-                if HighLevelEncoder::is_digit(&self.input.char_at(from + 1)) && HighLevelEncoder::is_digit(&self.input.char_at(from + 2)) && !::is_extended_a_s_c_i_i(&self.input.char_at(from), &self.input.get_f_n_c1_character()) {
-                    return 2;
-                }
-                return 0;
-            }
-            if HighLevelEncoder::is_digit(&self.input.char_at(from)) && HighLevelEncoder::is_digit(&self.input.char_at(from + 1)) && HighLevelEncoder::is_digit(&self.input.char_at(from + 2)) && HighLevelEncoder::is_digit(&self.input.char_at(from + 3)) {
-                return 2;
-            }
-            return 0;
-        }
+  fn  get_previous_mode(&self) -> Mode  {
+      return  if self.previous == null { Mode::ASCII } else { self.previous.get_end_mode() };
+  }
 
-        /** Returns the capacity in codewords of the smallest symbol that has enough capacity to fit the given minimal
-     * number of codewords.
-     **/
-        fn  get_min_symbol_size(&self,  minimum: i32) -> i32  {
-            match self.input.get_shape_hint() {
-                  FORCE_SQUARE => 
-                     {
-                        for  let capacity: i32 in square_codeword_capacities {
-                            if capacity >= minimum {
-                                return capacity;
-                            }
-                        }
-                        break;
-                    }
-                  FORCE_RECTANGLE => 
-                     {
-                        for  let capacity: i32 in rectangular_codeword_capacities {
-                            if capacity >= minimum {
-                                return capacity;
-                            }
-                        }
-                        break;
-                    }
-            }
-            for  let capacity: i32 in all_codeword_capacities {
-                if capacity >= minimum {
-                    return capacity;
-                }
-            }
-            return all_codeword_capacities[all_codeword_capacities.len() - 1];
-        }
+  /** Returns Mode.ASCII in case that:
+*  - Mode is EDIFACT and characterLength is less than 4 or the remaining characters can be encoded in at most 2
+*    ASCII bytes.
+*  - Mode is C40, TEXT or X12 and the remaining characters can be encoded in at most 1 ASCII byte.
+*  Returns mode in all other cases.
+* */
+  fn  get_end_mode(&self) -> Mode  {
+      if self.mode == Mode::EDF {
+          if self.character_length < 4 {
+              return Mode::ASCII;
+          }
+          // see 5.2.8.2 EDIFACT encodation Rules
+           let last_a_s_c_i_i: i32 = self.get_last_a_s_c_i_i();
+          if last_a_s_c_i_i > 0 && self.get_codewords_remaining(self.cached_total_size + last_a_s_c_i_i) <= 2 - last_a_s_c_i_i {
+              return Mode::ASCII;
+          }
+      }
+      if self.mode == Mode::C40 || self.mode == Mode::TEXT || self.mode == Mode::X12 {
+          // see 5.2.5.2 C40 encodation rules and 5.2.7.2 ANSI X12 encodation rules
+          if self.from_position + self.character_length >= self.input.length() && self.get_codewords_remaining(self.cached_total_size) == 0 {
+              return Mode::ASCII;
+          }
+           let last_a_s_c_i_i: i32 = self.get_last_a_s_c_i_i();
+          if last_a_s_c_i_i == 1 && self.get_codewords_remaining(self.cached_total_size + 1) == 0 {
+              return Mode::ASCII;
+          }
+      }
+      return self.mode;
+  }
 
-        /** Returns the remaining capacity in codewords of the smallest symbol that has enough capacity to fit the given
-     * minimal number of codewords.
-     **/
-        fn  get_codewords_remaining(&self,  minimum: i32) -> i32  {
-            return self.get_min_symbol_size(minimum) - minimum;
-        }
+  fn  get_mode(&self) -> Mode  {
+      return self.mode;
+  }
 
-        fn  get_bytes( c: i32) -> Vec<i8>  {
-             let mut result: [i8; 1] = [0; 1];
-            result[0] = c as i8;
-            return result;
-        }
+  /** Peeks ahead and returns 1 if the postfix consists of exactly two digits, 2 if the postfix consists of exactly
+*  two consecutive digits and a non extended character or of 4 digits. 
+*  Returns 0 in any other case
+**/
+  fn  get_last_a_s_c_i_i(&self) -> i32  {
+       let length: i32 = self.input.length();
+       let from: i32 = self.from_position + self.character_length;
+      if length - from > 4 || from >= length {
+          return 0;
+      }
+      if length - from == 1 {
+          if ::is_extended_a_s_c_i_i(&self.input.char_at(from), &self.input.get_f_n_c1_character()) {
+              return 0;
+          }
+          return 1;
+      }
+      if length - from == 2 {
+          if ::is_extended_a_s_c_i_i(&self.input.char_at(from), &self.input.get_f_n_c1_character()) || ::is_extended_a_s_c_i_i(&self.input.char_at(from + 1), &self.input.get_f_n_c1_character()) {
+              return 0;
+          }
+          if HighLevelEncoder::is_digit(&self.input.char_at(from)) && HighLevelEncoder::is_digit(&self.input.char_at(from + 1)) {
+              return 1;
+          }
+          return 2;
+      }
+      if length - from == 3 {
+          if HighLevelEncoder::is_digit(&self.input.char_at(from)) && HighLevelEncoder::is_digit(&self.input.char_at(from + 1)) && !::is_extended_a_s_c_i_i(&self.input.char_at(from + 2), &self.input.get_f_n_c1_character()) {
+              return 2;
+          }
+          if HighLevelEncoder::is_digit(&self.input.char_at(from + 1)) && HighLevelEncoder::is_digit(&self.input.char_at(from + 2)) && !::is_extended_a_s_c_i_i(&self.input.char_at(from), &self.input.get_f_n_c1_character()) {
+              return 2;
+          }
+          return 0;
+      }
+      if HighLevelEncoder::is_digit(&self.input.char_at(from)) && HighLevelEncoder::is_digit(&self.input.char_at(from + 1)) && HighLevelEncoder::is_digit(&self.input.char_at(from + 2)) && HighLevelEncoder::is_digit(&self.input.char_at(from + 3)) {
+          return 2;
+      }
+      return 0;
+  }
 
-        fn  get_bytes( c1: i32,  c2: i32) -> Vec<i8>  {
-             let mut result: [i8; 2] = [0; 2];
-            result[0] = c1 as i8;
-            result[1] = c2 as i8;
-            return result;
-        }
+  /** Returns the capacity in codewords of the smallest symbol that has enough capacity to fit the given minimal
+* number of codewords.
+**/
+  fn  get_min_symbol_size(&self,  minimum: i32) -> i32  {
+      match self.input.get_shape_hint() {
+            FORCE_SQUARE => 
+               {
+                  for   capacity in square_codeword_capacities {
+                      if capacity >= minimum {
+                          return capacity;
+                      }
+                  }
+              }
+            FORCE_RECTANGLE => 
+               {
+                  for   capacity in rectangular_codeword_capacities {
+                      if capacity >= minimum {
+                          return capacity;
+                      }
+                  }
+              }
+      }
+      for   capacity in all_codeword_capacities {
+          if capacity >= minimum {
+              return capacity;
+          }
+      }
+      return all_codeword_capacities[all_codeword_capacities.len() - 1];
+  }
 
-        fn  set_c40_word( bytes: &Vec<i8>,  offset: i32,  c1: i32,  c2: i32,  c3: i32)   {
-             let val16: i32 = (1600 * (c1 & 0xff)) + (40 * (c2 & 0xff)) + (c3 & 0xff) + 1;
-            bytes[offset] = (val16 / 256) as i8;
-            bytes[offset + 1] = (val16 % 256) as i8;
-        }
+  /** Returns the remaining capacity in codewords of the smallest symbol that has enough capacity to fit the given
+* minimal number of codewords.
+**/
+  fn  get_codewords_remaining(&self,  minimum: i32) -> i32  {
+      return self.get_min_symbol_size(minimum) - minimum;
+  }
 
-        fn  get_x12_value( c: char) -> i32  {
-            return  if c == 13 { 0 } else {  if c == 42 { 1 } else {  if c == 62 { 2 } else {  if c == 32 { 3 } else {  if c >= 48 && c <= 57 { c - 44 } else {  if c >= 65 && c <= 90 { c - 51 } else { c } } } } } };
-        }
+  fn  get_bytes( c: i32) -> Vec<i8>  {
+       let mut result: [i8; 1] = [0; 1];
+      result[0] = c as i8;
+      return result;
+  }
 
-        fn  get_x12_words(&self) -> Vec<i8>  {
-            assert!( self.character_length % 3 == 0);
-             let result: [i8; self.character_length / 3 * 2] = [0; self.character_length / 3 * 2];
-             {
-                 let mut i: i32 = 0;
-                while i < result.len() {
-                    {
-                        ::set_c40_word(&result, i, &::get_x12_value(&self.input.char_at(self.from_position + i / 2 * 3)), &::get_x12_value(&self.input.char_at(self.from_position + i / 2 * 3 + 1)), &::get_x12_value(&self.input.char_at(self.from_position + i / 2 * 3 + 2)));
-                    }
-                    i += 2;
-                 }
-             }
+  fn  get_bytes( c1: i32,  c2: i32) -> Vec<i8>  {
+       let mut result: [i8; 2] = [0; 2];
+      result[0] = c1 as i8;
+      result[1] = c2 as i8;
+      return result;
+  }
 
-            return result;
-        }
+  fn  set_c40_word( bytes: &Vec<i8>,  offset: i32,  c1: i32,  c2: i32,  c3: i32)   {
+       let val16: i32 = (1600 * (c1 & 0xff)) + (40 * (c2 & 0xff)) + (c3 & 0xff) + 1;
+      bytes[offset] = (val16 / 256) as i8;
+      bytes[offset + 1] = (val16 % 256) as i8;
+  }
 
-        fn  get_shift_value( c: char,  c40: bool,  fnc1: i32) -> i32  {
-            return  if (c40 && ::is_in_c40_shift1_set(c) || !c40 && ::is_in_text_shift1_set(c)) { 0 } else {  if (c40 && ::is_in_c40_shift2_set(c, fnc1) || !c40 && ::is_in_text_shift2_set(c, fnc1)) { 1 } else { 2 } };
-        }
+  fn  get_x12_value( c: char) -> i32  {
+      return  if c == 13 { 0 } else {  if c == 42 { 1 } else {  if c == 62 { 2 } else {  if c == 32 { 3 } else {  if c >= 48 && c <= 57 { c - 44 } else {  if c >= 65 && c <= 90 { c - 51 } else { c } } } } } };
+  }
 
-        fn  get_c40_value( c40: bool,  set_index: i32,  c: char,  fnc1: i32) -> i32  {
-            if c == fnc1 {
-                assert!( set_index == 2);
-                return 27;
-            }
-            if c40 {
-                return  if c <= 31 { c } else {  if c == 32 { 3 } else {  if c <= 47 { c - 33 } else {  if c <= 57 { c - 44 } else {  if c <= 64 { c - 43 } else {  if c <= 90 { c - 51 } else {  if c <= 95 { c - 69 } else {  if c <= 127 { c - 96 } else { c } } } } } } } };
-            } else {
-                return  if c == 0 { 0 } else {  if //is this a bug in the spec?
-                set_index == 0 && c <= 3 { //is this a bug in the spec?
-                c - 1 } else {  if set_index == 1 && c <= 31 { c } else {  if c == 32 { 3 } else {  if c >= 33 && c <= 47 { c - 33 } else {  if c >= 48 && c <= 57 { c - 44 } else {  if c >= 58 && c <= 64 { c - 43 } else {  if c >= 65 && c <= 90 { c - 64 } else {  if c >= 91 && c <= 95 { c - 69 } else {  if c == 96 { 0 } else {  if c >= 97 && c <= 122 { c - 83 } else {  if c >= 123 && c <= 127 { c - 96 } else { c } } } } } } } } } } } };
-            }
-        }
+  fn  get_x12_words(&self) -> Vec<i8>  {
+      assert!( self.character_length % 3 == 0);
+       let result: [i8; self.character_length / 3 * 2] = [0; self.character_length / 3 * 2];
+       {
+           let mut i: i32 = 0;
+          while i < result.len() {
+              {
+                  ::set_c40_word(&result, i, &::get_x12_value(&self.input.char_at(self.from_position + i / 2 * 3)), &::get_x12_value(&self.input.char_at(self.from_position + i / 2 * 3 + 1)), &::get_x12_value(&self.input.char_at(self.from_position + i / 2 * 3 + 2)));
+              }
+              i += 2;
+           }
+       }
 
-        fn  get_c40_words(&self,  c40: bool,  fnc1: i32) -> Vec<i8>  {
-             let c40_values: List<Byte> = ArrayList<>::new();
-             {
-                 let mut i: i32 = 0;
-                while i < self.character_length {
-                    {
-                         let ci: char = self.input.char_at(self.from_position + i);
-                        if c40 && HighLevelEncoder::is_native_c40(ci) || !c40 && HighLevelEncoder::is_native_text(ci) {
-                            c40_values.add(::get_c40_value(c40, 0, ci, fnc1) as i8);
-                        } else if !::is_extended_a_s_c_i_i(ci, fnc1) {
-                             let shift_value: i32 = ::get_shift_value(ci, c40, fnc1);
-                            //Shift[123]
-                            c40_values.add(shift_value as i8);
-                            c40_values.add(::get_c40_value(c40, shift_value, ci, fnc1) as i8);
-                        } else {
-                             let ascii_value: char = ((ci & 0xff) - 128) as char;
-                            if c40 && HighLevelEncoder::is_native_c40(ascii_value) || !c40 && HighLevelEncoder::is_native_text(ascii_value) {
-                                //Shift 2
-                                c40_values.add(1 as i8);
-                                //Upper Shift
-                                c40_values.add(30 as i8);
-                                c40_values.add(::get_c40_value(c40, 0, ascii_value, fnc1) as i8);
-                            } else {
-                                //Shift 2
-                                c40_values.add(1 as i8);
-                                //Upper Shift
-                                c40_values.add(30 as i8);
-                                 let shift_value: i32 = ::get_shift_value(ascii_value, c40, fnc1);
-                                // Shift[123]
-                                c40_values.add(shift_value as i8);
-                                c40_values.add(::get_c40_value(c40, shift_value, ascii_value, fnc1) as i8);
-                            }
-                        }
-                    }
-                    i += 1;
-                 }
-             }
+      return result;
+  }
 
-            if (c40_values.size() % 3) != 0 {
-                assert!( (c40_values.size() - 2) % 3 == 0 && self.from_position + self.character_length == self.input.length());
-                // pad with 0 (Shift 1)
-                c40_values.add(0 as i8);
-            }
-             let result: [i8; c40_values.size() / 3 * 2] = [0; c40_values.size() / 3 * 2];
-             let byte_index: i32 = 0;
-             {
-                 let mut i: i32 = 0;
-                while i < c40_values.size() {
-                    {
-                        ::set_c40_word(&result, byte_index, c40_values.get(i) & 0xff, c40_values.get(i + 1) & 0xff, c40_values.get(i + 2) & 0xff);
-                        byte_index += 2;
-                    }
-                    i += 3;
-                 }
-             }
+  fn  get_shift_value( c: char,  c40: bool,  fnc1: i32) -> i32  {
+      return  if (c40 && ::is_in_c40_shift1_set(c) || !c40 && ::is_in_text_shift1_set(c)) { 0 } else {  if (c40 && ::is_in_c40_shift2_set(c, fnc1) || !c40 && ::is_in_text_shift2_set(c, fnc1)) { 1 } else { 2 } };
+  }
 
-            return result;
-        }
+  fn  get_c40_value( c40: bool,  set_index: i32,  c: char,  fnc1: i32) -> i32  {
+      if c == fnc1 {
+          assert!( set_index == 2);
+          return 27;
+      }
+      if c40 {
+          return  if c <= 31 { c } else {  if c == 32 { 3 } else {  if c <= 47 { c - 33 } else {  if c <= 57 { c - 44 } else {  if c <= 64 { c - 43 } else {  if c <= 90 { c - 51 } else {  if c <= 95 { c - 69 } else {  if c <= 127 { c - 96 } else { c } } } } } } } };
+      } else {
+          return  if c == 0 { 0 } else {  if //is this a bug in the spec?
+          set_index == 0 && c <= 3 { //is this a bug in the spec?
+          c - 1 } else {  if set_index == 1 && c <= 31 { c } else {  if c == 32 { 3 } else {  if c >= 33 && c <= 47 { c - 33 } else {  if c >= 48 && c <= 57 { c - 44 } else {  if c >= 58 && c <= 64 { c - 43 } else {  if c >= 65 && c <= 90 { c - 64 } else {  if c >= 91 && c <= 95 { c - 69 } else {  if c == 96 { 0 } else {  if c >= 97 && c <= 122 { c - 83 } else {  if c >= 123 && c <= 127 { c - 96 } else { c } } } } } } } } } } } };
+      }
+  }
 
-        fn  get_e_d_f_bytes(&self) -> Vec<i8>  {
-             let number_of_thirds: i32 = Math::ceil(self.character_length / 4.0) as i32;
-             let mut result: [i8; number_of_thirds * 3] = [0; number_of_thirds * 3];
-             let mut pos: i32 = self.from_position;
-             let end_pos: i32 = Math::min(self.from_position + self.character_length - 1, self.input.length() - 1);
-             {
-                 let mut i: i32 = 0;
-                while i < number_of_thirds {
-                    {
-                         let edf_values: [i32; 4] = [0; 4];
-                         {
-                             let mut j: i32 = 0;
-                            while j < 4 {
-                                {
-                                    if pos <= end_pos {
-                                        edf_values[j] = self.input.char_at(pos += 1 !!!check!!! post increment) & 0x3f;
-                                    } else {
-                                        edf_values[j] =  if pos == end_pos + 1 { 0x1f } else { 0 };
-                                    }
-                                }
-                                j += 1;
-                             }
-                         }
+  fn  get_c40_words(&self,  c40: bool,  fnc1: i32) -> Vec<i8>  {
+       let c40_values: List<Byte> = Vec::new();
+       {
+           let mut i: i32 = 0;
+          while i < self.character_length {
+              {
+                   let ci: char = self.input.char_at(self.from_position + i);
+                  if c40 && HighLevelEncoder::is_native_c40(ci) || !c40 && HighLevelEncoder::is_native_text(ci) {
+                      c40_values.add(::get_c40_value(c40, 0, ci, fnc1) as i8);
+                  } else if !::is_extended_a_s_c_i_i(ci, fnc1) {
+                       let shift_value: i32 = ::get_shift_value(ci, c40, fnc1);
+                      //Shift[123]
+                      c40_values.add(shift_value as i8);
+                      c40_values.add(::get_c40_value(c40, shift_value, ci, fnc1) as i8);
+                  } else {
+                       let ascii_value: char = ((ci & 0xff) - 128) as char;
+                      if c40 && HighLevelEncoder::is_native_c40(ascii_value) || !c40 && HighLevelEncoder::is_native_text(ascii_value) {
+                          //Shift 2
+                          c40_values.add(1 as i8);
+                          //Upper Shift
+                          c40_values.add(30 as i8);
+                          c40_values.add(::get_c40_value(c40, 0, ascii_value, fnc1) as i8);
+                      } else {
+                          //Shift 2
+                          c40_values.add(1 as i8);
+                          //Upper Shift
+                          c40_values.add(30 as i8);
+                           let shift_value: i32 = ::get_shift_value(ascii_value, c40, fnc1);
+                          // Shift[123]
+                          c40_values.add(shift_value as i8);
+                          c40_values.add(::get_c40_value(c40, shift_value, ascii_value, fnc1) as i8);
+                      }
+                  }
+              }
+              i += 1;
+           }
+       }
 
-                         let mut val24: i32 = edf_values[0] << 18;
-                        val24 |= edf_values[1] << 12;
-                        val24 |= edf_values[2] << 6;
-                        val24 |= edf_values[3];
-                        result[i] = ((val24 >> 16) & 0xff) as i8;
-                        result[i + 1] = ((val24 >> 8) & 0xff) as i8;
-                        result[i + 2] = (val24 & 0xff) as i8;
-                    }
-                    i += 3;
-                 }
-             }
+      if (c40_values.size() % 3) != 0 {
+          assert!( (c40_values.size() - 2) % 3 == 0 && self.from_position + self.character_length == self.input.length());
+          // pad with 0 (Shift 1)
+          c40_values.add(0 as i8);
+      }
+       let result: [i8; c40_values.size() / 3 * 2] = [0; c40_values.size() / 3 * 2];
+       let byte_index: i32 = 0;
+       {
+           let mut i: i32 = 0;
+          while i < c40_values.size() {
+              {
+                  ::set_c40_word(&result, byte_index, c40_values.get(i) & 0xff, c40_values.get(i + 1) & 0xff, c40_values.get(i + 2) & 0xff);
+                  byte_index += 2;
+              }
+              i += 3;
+           }
+       }
 
-            return result;
-        }
+      return result;
+  }
 
-        fn  get_latch_bytes(&self) -> Vec<i8>  {
-            match self.get_previous_mode() {
-                  ASCII => 
-                     {
-                    }
-                  //after B256 ends (via length) we are back to ASCII
-                B256 => 
-                     {
-                        match self.mode {
-                              B256 => 
-                                 {
-                                    return ::get_bytes(231);
-                                }
-                              C40 => 
-                                 {
-                                    return ::get_bytes(230);
-                                }
-                              TEXT => 
-                                 {
-                                    return ::get_bytes(239);
-                                }
-                              X12 => 
-                                 {
-                                    return ::get_bytes(238);
-                                }
-                              EDF => 
-                                 {
-                                    return ::get_bytes(240);
-                                }
-                        }
-                        break;
-                    }
-                  C40 => 
-                     {
-                    }
-                  TEXT => 
-                     {
-                    }
-                  X12 => 
-                     {
-                        if self.mode != self.get_previous_mode() {
-                            match self.mode {
-                                  ASCII => 
-                                     {
-                                        return ::get_bytes(254);
-                                    }
-                                  B256 => 
-                                     {
-                                        return ::get_bytes(254, 231);
-                                    }
-                                  C40 => 
-                                     {
-                                        return ::get_bytes(254, 230);
-                                    }
-                                  TEXT => 
-                                     {
-                                        return ::get_bytes(254, 239);
-                                    }
-                                  X12 => 
-                                     {
-                                        return ::get_bytes(254, 238);
-                                    }
-                                  EDF => 
-                                     {
-                                        return ::get_bytes(254, 240);
-                                    }
-                            }
-                        }
-                        break;
-                    }
-                  EDF => 
-                     {
-                        //The rightmost EDIFACT edge always contains an unlatch character
-                        assert!( self.mode == Mode::EDF);
-                        break;
-                    }
-            }
-            return : [i8; 0] = [0; 0];
-        }
+  fn  get_e_d_f_bytes(&self) -> Vec<i8>  {
+       let number_of_thirds: i32 = Math::ceil(self.character_length / 4.0) as i32;
+       let mut result: [i8; number_of_thirds * 3] = [0; number_of_thirds * 3];
+       let mut pos: i32 = self.from_position;
+       let end_pos: i32 = Math::min(self.from_position + self.character_length - 1, self.input.length() - 1);
+       {
+           let mut i: i32 = 0;
+          while i < number_of_thirds {
+              {
+                   let edf_values: [i32; 4] = [0; 4];
+                   {
+                       let mut j: i32 = 0;
+                      while j < 4 {
+                          {
+                              if pos <= end_pos {
+                                  edf_values[j] = self.input.char_at(pos += 1 ) & 0x3f;
+                              } else {
+                                  edf_values[j] =  if pos == end_pos + 1 { 0x1f } else { 0 };
+                              }
+                          }
+                          j += 1;
+                       }
+                   }
 
-        // Important: The function does not return the length bytes (one or two) in case of B256 encoding
-        fn  get_data_bytes(&self) -> Vec<i8>  {
-            match self.mode {
-                  ASCII => 
-                     {
-                        if self.input.is_e_c_i(self.from_position) {
-                            return ::get_bytes(241, self.input.get_e_c_i_value(self.from_position) + 1);
-                        } else if ::is_extended_a_s_c_i_i(&self.input.char_at(self.from_position), &self.input.get_f_n_c1_character()) {
-                            return ::get_bytes(235, self.input.char_at(self.from_position) - 127);
-                        } else if self.character_length == 2 {
-                            return ::get_bytes((self.input.char_at(self.from_position) - '0') * 10 + self.input.char_at(self.from_position + 1) - '0' + 130);
-                        } else if self.input.is_f_n_c1(self.from_position) {
-                            return ::get_bytes(232);
-                        } else {
-                            return ::get_bytes(self.input.char_at(self.from_position) + 1);
-                        }
-                    }
-                  B256 => 
-                     {
-                        return ::get_bytes(&self.input.char_at(self.from_position));
-                    }
-                  C40 => 
-                     {
-                        return self.get_c40_words(true, &self.input.get_f_n_c1_character());
-                    }
-                  TEXT => 
-                     {
-                        return self.get_c40_words(false, &self.input.get_f_n_c1_character());
-                    }
-                  X12 => 
-                     {
-                        return self.get_x12_words();
-                    }
-                  EDF => 
-                     {
-                        return self.get_e_d_f_bytes();
-                    }
-            }
-            assert!( false);
-            return : [i8; 0] = [0; 0];
-        }
-    }
+                   let mut val24: i32 = edf_values[0] << 18;
+                  val24 |= edf_values[1] << 12;
+                  val24 |= edf_values[2] << 6;
+                  val24 |= edf_values[3];
+                  result[i] = ((val24 >> 16) & 0xff) as i8;
+                  result[i + 1] = ((val24 >> 8) & 0xff) as i8;
+                  result[i + 2] = (val24 & 0xff) as i8;
+              }
+              i += 3;
+           }
+       }
+
+      return result;
+  }
+
+  fn  get_latch_bytes(&self) -> Vec<i8>  {
+      match self.get_previous_mode() {
+            ASCII => 
+               {
+              }
+            //after B256 ends (via length) we are back to ASCII
+          B256 => 
+               {
+                  match self.mode {
+                        B256 => 
+                           {
+                              return ::get_bytes(231);
+                          }
+                        C40 => 
+                           {
+                              return ::get_bytes(230);
+                          }
+                        TEXT => 
+                           {
+                              return ::get_bytes(239);
+                          }
+                        X12 => 
+                           {
+                              return ::get_bytes(238);
+                          }
+                        EDF => 
+                           {
+                              return ::get_bytes(240);
+                          }
+                  }
+              }
+            C40 => 
+               {
+              }
+            TEXT => 
+               {
+              }
+            X12 => 
+               {
+                  if self.mode != self.get_previous_mode() {
+                      match self.mode {
+                            ASCII => 
+                               {
+                                  return ::get_bytes(254);
+                              }
+                            B256 => 
+                               {
+                                  return ::get_bytes(254, 231);
+                              }
+                            C40 => 
+                               {
+                                  return ::get_bytes(254, 230);
+                              }
+                            TEXT => 
+                               {
+                                  return ::get_bytes(254, 239);
+                              }
+                            X12 => 
+                               {
+                                  return ::get_bytes(254, 238);
+                              }
+                            EDF => 
+                               {
+                                  return ::get_bytes(254, 240);
+                              }
+                      }
+                  }
+              }
+            EDF => 
+               {
+                  //The rightmost EDIFACT edge always contains an unlatch character
+                  assert!( self.mode == Mode::EDF);
+              }
+      }
+      return  [0; 0];
+  }
+
+  // Important: The function does not return the length bytes (one or two) in case of B256 encoding
+  fn  get_data_bytes(&self) -> Vec<i8>  {
+      match self.mode {
+            ASCII => 
+               {
+                  if self.input.is_e_c_i(self.from_position) {
+                      return ::get_bytes(241, self.input.get_e_c_i_value(self.from_position) + 1);
+                  } else if ::is_extended_a_s_c_i_i(&self.input.char_at(self.from_position), &self.input.get_f_n_c1_character()) {
+                      return ::get_bytes(235, self.input.char_at(self.from_position) - 127);
+                  } else if self.character_length == 2 {
+                      return ::get_bytes((self.input.char_at(self.from_position) - '0') * 10 + self.input.char_at(self.from_position + 1) - '0' + 130);
+                  } else if self.input.is_f_n_c1(self.from_position) {
+                      return ::get_bytes(232);
+                  } else {
+                      return ::get_bytes(self.input.char_at(self.from_position) + 1);
+                  }
+              }
+            B256 => 
+               {
+                  return ::get_bytes(&self.input.char_at(self.from_position));
+              }
+            C40 => 
+               {
+                  return self.get_c40_words(true, &self.input.get_f_n_c1_character());
+              }
+            TEXT => 
+               {
+                  return self.get_c40_words(false, &self.input.get_f_n_c1_character());
+              }
+            X12 => 
+               {
+                  return self.get_x12_words();
+              }
+            EDF => 
+               {
+                  return self.get_e_d_f_bytes();
+              }
+      }
+      assert!( false);
+      return  [0; 0];
+  }
+}
 
 
-    struct Result {
+struct Result {
 
-         let mut bytes: Vec<i8>;
-    }
-    
-    impl Result {
+    bytes: Vec<u8>
+}
 
-        fn new( solution: &Edge) -> Result {
-             let input: Input = solution.input;
-             let mut size: i32 = 0;
-             let bytes_a_l: List<Byte> = ArrayList<>::new();
-             let randomize_postfix_length: List<Integer> = ArrayList<>::new();
-             let randomize_lengths: List<Integer> = ArrayList<>::new();
-            if (solution.mode == Mode::C40 || solution.mode == Mode::TEXT || solution.mode == Mode::X12) && solution.get_end_mode() != Mode::ASCII {
-                size += ::prepend(&MinimalEncoder::Edge::get_bytes(254), &bytes_a_l);
-            }
-             let mut current: Edge = solution;
-            while current != null {
-                size += ::prepend(&current.get_data_bytes(), &bytes_a_l);
-                if current.previous == null || current.get_previous_start_mode() != current.get_mode() {
-                    if current.get_mode() == Mode::B256 {
-                        if size <= 249 {
-                            bytes_a_l.add(0, size as i8);
-                            size += 1;
-                        } else {
-                            bytes_a_l.add(0, (size % 250) as i8);
-                            bytes_a_l.add(0, (size / 250 + 249) as i8);
-                            size += 2;
-                        }
-                        randomize_postfix_length.add(&bytes_a_l.size());
-                        randomize_lengths.add(size);
-                    }
-                    ::prepend(&current.get_latch_bytes(), &bytes_a_l);
-                    size = 0;
-                }
-                current = current.previous;
-            }
-            if input.get_macro_id() == 5 {
-                size += ::prepend(&MinimalEncoder::Edge::get_bytes(236), &bytes_a_l);
-            } else if input.get_macro_id() == 6 {
-                size += ::prepend(&MinimalEncoder::Edge::get_bytes(237), &bytes_a_l);
-            }
-            if input.get_f_n_c1_character() > 0 {
-                size += ::prepend(&MinimalEncoder::Edge::get_bytes(232), &bytes_a_l);
-            }
-             {
-                 let mut i: i32 = 0;
-                while i < randomize_postfix_length.size() {
-                    {
-                        ::apply_random_pattern(&bytes_a_l, bytes_a_l.size() - randomize_postfix_length.get(i), &randomize_lengths.get(i));
-                    }
-                    i += 1;
-                 }
-             }
+impl Result {
 
-            //add padding
-             let capacity: i32 = solution.get_min_symbol_size(&bytes_a_l.size());
-            if bytes_a_l.size() < capacity {
-                bytes_a_l.add(129 as i8);
-            }
-            while bytes_a_l.size() < capacity {
-                bytes_a_l.add(::randomize253_state(bytes_a_l.size() + 1) as i8);
-            }
-            bytes = : [i8; bytes_a_l.size()] = [0; bytes_a_l.size()];
-             {
-                 let mut i: i32 = 0;
-                while i < bytes.len() {
-                    {
-                        bytes[i] = bytes_a_l.get(i);
-                    }
-                    i += 1;
-                 }
-             }
+  fn new( solution: &Edge) -> Result {
+       let input: Input = solution.input;
+       let mut size: i32 = 0;
+       let bytes_a_l: List<Byte> = Vec::new();
+       let randomize_postfix_length: List<Integer> = Vec::new();
+       let randomize_lengths: List<Integer> = Vec::new();
+      if (solution.mode == Mode::C40 || solution.mode == Mode::TEXT || solution.mode == Mode::X12) && solution.get_end_mode() != Mode::ASCII {
+          size += ::prepend(&MinimalEncoder::Edge::get_bytes(254), &bytes_a_l);
+      }
+       let mut current: Edge = solution;
+      while current != null {
+          size += ::prepend(&current.get_data_bytes(), &bytes_a_l);
+          if current.previous == null || current.get_previous_start_mode() != current.get_mode() {
+              if current.get_mode() == Mode::B256 {
+                  if size <= 249 {
+                      bytes_a_l.add(0, size as i8);
+                      size += 1;
+                  } else {
+                      bytes_a_l.add(0, (size % 250) as i8);
+                      bytes_a_l.add(0, (size / 250 + 249) as i8);
+                      size += 2;
+                  }
+                  randomize_postfix_length.add(&bytes_a_l.size());
+                  randomize_lengths.add(size);
+              }
+              ::prepend(&current.get_latch_bytes(), &bytes_a_l);
+              size = 0;
+          }
+          current = current.previous;
+      }
+      if input.get_macro_id() == 5 {
+          size += ::prepend(&MinimalEncoder::Edge::get_bytes(236), &bytes_a_l);
+      } else if input.get_macro_id() == 6 {
+          size += ::prepend(&MinimalEncoder::Edge::get_bytes(237), &bytes_a_l);
+      }
+      if input.get_f_n_c1_character() > 0 {
+          size += ::prepend(&MinimalEncoder::Edge::get_bytes(232), &bytes_a_l);
+      }
+       {
+           let mut i: i32 = 0;
+          while i < randomize_postfix_length.size() {
+              {
+                  ::apply_random_pattern(&bytes_a_l, bytes_a_l.size() - randomize_postfix_length.get(i), &randomize_lengths.get(i));
+              }
+              i += 1;
+           }
+       }
 
-        }
+      //add padding
+       let capacity: i32 = solution.get_min_symbol_size(&bytes_a_l.size());
+      if bytes_a_l.size() < capacity {
+          bytes_a_l.add(129 as i8);
+      }
+      while bytes_a_l.size() < capacity {
+          bytes_a_l.add(::randomize253_state(bytes_a_l.size() + 1) as i8);
+      }
+      bytes =  [0; bytes_a_l.size()];
+       {
+           let mut i: i32 = 0;
+          while i < bytes.len() {
+              {
+                  bytes[i] = bytes_a_l.get(i);
+              }
+              i += 1;
+           }
+       }
 
-        fn  prepend( bytes: &Vec<i8>,  into: &List<Byte>) -> i32  {
-             {
-                 let mut i: i32 = bytes.len() - 1;
-                while i >= 0 {
-                    {
-                        into.add(0, bytes[i]);
-                    }
-                    i -= 1;
-                 }
-             }
+  }
 
-            return bytes.len();
-        }
+  fn  prepend( bytes: &Vec<i8>,  into: &List<Byte>) -> i32  {
+       {
+           let mut i: i32 = bytes.len() - 1;
+          while i >= 0 {
+              {
+                  into.add(0, bytes[i]);
+              }
+              i -= 1;
+           }
+       }
 
-        fn  randomize253_state( codeword_position: i32) -> i32  {
-             let pseudo_random: i32 = ((149 * codeword_position) % 253) + 1;
-             let temp_variable: i32 = 129 + pseudo_random;
-            return  if temp_variable <= 254 { temp_variable } else { temp_variable - 254 };
-        }
+      return bytes.len();
+  }
 
-        fn  apply_random_pattern( bytes_a_l: &List<Byte>,  start_position: i32,  length: i32)   {
-             {
-                 let mut i: i32 = 0;
-                while i < length {
-                    {
-                        //See "B.1 253-state algorithm
-                         const Pad_codeword_position: i32 = start_position + i;
-                         const Pad_codeword_value: i32 = bytes_a_l.get(Pad_codeword_position) & 0xff;
-                         let pseudo_random_number: i32 = ((149 * (Pad_codeword_position + 1)) % 255) + 1;
-                         let temp_variable: i32 = Pad_codeword_value + pseudo_random_number;
-                        bytes_a_l.set(Pad_codeword_position, ( if temp_variable <= 255 { temp_variable } else { temp_variable - 256 }) as i8);
-                    }
-                    i += 1;
-                 }
-             }
+  fn  randomize253_state( codeword_position: i32) -> i32  {
+       let pseudo_random: i32 = ((149 * codeword_position) % 253) + 1;
+       let temp_variable: i32 = 129 + pseudo_random;
+      return  if temp_variable <= 254 { temp_variable } else { temp_variable - 254 };
+  }
 
-        }
+  fn  apply_random_pattern( bytes_a_l: &List<Byte>,  start_position: i32,  length: i32)   {
+       {
+           let mut i: i32 = 0;
+          while i < length {
+              {
+                  //See "B.1 253-state algorithm
+                   const Pad_codeword_position: i32 = start_position + i;
+                   const Pad_codeword_value: i32 = bytes_a_l.get(Pad_codeword_position) & 0xff;
+                   let pseudo_random_number: i32 = ((149 * (Pad_codeword_position + 1)) % 255) + 1;
+                   let temp_variable: i32 = Pad_codeword_value + pseudo_random_number;
+                  bytes_a_l.set(Pad_codeword_position, ( if temp_variable <= 255 { temp_variable } else { temp_variable - 256 }) as i8);
+              }
+              i += 1;
+           }
+       }
 
-        pub fn  get_bytes(&self) -> Vec<i8>  {
-            return self.bytes;
-        }
-    }
+  }
+
+  pub fn  get_bytes(&self) -> Vec<i8>  {
+      return self.bytes;
+  }
+}
 
 
-    struct Input {
-        super: MinimalECIInput;
+struct Input {
+  _super: MinimalECIInput,
 
-         let shape: SymbolShapeHint;
+    shape: SymbolShapeHint,
 
-         let macro_id: i32;
-    }
-    
-    impl Input {
+    macro_id: i32
+}
 
-        fn new( string_to_encode: &String,  priority_charset: &Charset,  fnc1: i32,  shape: &SymbolShapeHint,  macro_id: i32) -> Input {
-            super(&string_to_encode, &priority_charset, fnc1);
-            let .shape = shape;
-            let .macroId = macro_id;
-        }
+impl Input {
 
-        fn  get_macro_id(&self) -> i32  {
-            return self.macro_id;
-        }
+  fn new( string_to_encode: &String,  priority_charset: &Charset,  fnc1: i32,  shape: &SymbolShapeHint,  macro_id: i32) -> Self {
+      Self{
+          _super : MinimalECIInput::new(&string_to_encode, &priority_charset, fnc1),
+          shape:shape,
+          macro_id:macro_id
+      }
+  }
 
-        fn  get_shape_hint(&self) -> SymbolShapeHint  {
-            return self.shape;
-        }
-    }
+  fn  get_macro_id(&self) -> i32  {
+      return self.macro_id;
+  }
 
+  fn  get_shape_hint(&self) -> SymbolShapeHint  {
+      return self.shape;
+  }
 }
 
 // SymbolInfo.java
@@ -2452,33 +2448,34 @@ impl MinimalEncoder {
  * @version $Id$
  */
 
-const PROD_SYMBOLS: vec![Vec<SymbolInfo>; 30] = vec![SymbolInfo::new(false, 3, 5, 8, 8, 1), SymbolInfo::new(false, 5, 7, 10, 10, 1), /*rect*/
-SymbolInfo::new(true, 5, 7, 16, 6, 1), SymbolInfo::new(false, 8, 10, 12, 12, 1), /*rect*/
-SymbolInfo::new(true, 10, 11, 14, 6, 2), SymbolInfo::new(false, 12, 12, 14, 14, 1), /*rect*/
-SymbolInfo::new(true, 16, 14, 24, 10, 1), SymbolInfo::new(false, 18, 14, 16, 16, 1), SymbolInfo::new(false, 22, 18, 18, 18, 1), /*rect*/
-SymbolInfo::new(true, 22, 18, 16, 10, 2), SymbolInfo::new(false, 30, 20, 20, 20, 1), /*rect*/
-SymbolInfo::new(true, 32, 24, 16, 14, 2), SymbolInfo::new(false, 36, 24, 22, 22, 1), SymbolInfo::new(false, 44, 28, 24, 24, 1), /*rect*/
-SymbolInfo::new(true, 49, 28, 22, 14, 2), SymbolInfo::new(false, 62, 36, 14, 14, 4), SymbolInfo::new(false, 86, 42, 16, 16, 4), SymbolInfo::new(false, 114, 48, 18, 18, 4), SymbolInfo::new(false, 144, 56, 20, 20, 4), SymbolInfo::new(false, 174, 68, 22, 22, 4), SymbolInfo::new(false, 204, 84, 24, 24, 4, 102, 42), SymbolInfo::new(false, 280, 112, 14, 14, 16, 140, 56), SymbolInfo::new(false, 368, 144, 16, 16, 16, 92, 36), SymbolInfo::new(false, 456, 192, 18, 18, 16, 114, 48), SymbolInfo::new(false, 576, 224, 20, 20, 16, 144, 56), SymbolInfo::new(false, 696, 272, 22, 22, 16, 174, 68), SymbolInfo::new(false, 816, 336, 24, 24, 16, 136, 56), SymbolInfo::new(false, 1050, 408, 18, 18, 36, 175, 68), SymbolInfo::new(false, 1304, 496, 20, 20, 36, 163, 62), DataMatrixSymbolInfo144::new(), ]
+const PROD_SYMBOLS: vec![Vec<SymbolInfo>; 30] = vec![SymbolInfo::new_simple(false, 3, 5, 8, 8, 1), SymbolInfo::new_simple(false, 5, 7, 10, 10, 1), /*rect*/
+SymbolInfo::new_simple(true, 5, 7, 16, 6, 1), SymbolInfo::new_simple(false, 8, 10, 12, 12, 1), /*rect*/
+SymbolInfo::new_simple(true, 10, 11, 14, 6, 2), SymbolInfo::new_simple(false, 12, 12, 14, 14, 1), /*rect*/
+SymbolInfo::new_simple(true, 16, 14, 24, 10, 1), SymbolInfo::new_simple(false, 18, 14, 16, 16, 1), SymbolInfo::new_simple(false, 22, 18, 18, 18, 1), /*rect*/
+SymbolInfo::new_simple(true, 22, 18, 16, 10, 2), SymbolInfo::new_simple(false, 30, 20, 20, 20, 1), /*rect*/
+SymbolInfo::new_simple(true, 32, 24, 16, 14, 2), SymbolInfo::new_simple(false, 36, 24, 22, 22, 1), SymbolInfo::new_simple(false, 44, 28, 24, 24, 1), /*rect*/
+SymbolInfo::new_simple(true, 49, 28, 22, 14, 2), SymbolInfo::new_simple(false, 62, 36, 14, 14, 4), SymbolInfo::new_simple(false, 86, 42, 16, 16, 4), SymbolInfo::new_simple(false, 114, 48, 18, 18, 4), SymbolInfo::new_simple(false, 144, 56, 20, 20, 4), SymbolInfo::new_simple(false, 174, 68, 22, 22, 4), SymbolInfo::new(false, 204, 84, 24, 24, 4, 102, 42), SymbolInfo::new(false, 280, 112, 14, 14, 16, 140, 56), SymbolInfo::new(false, 368, 144, 16, 16, 16, 92, 36), SymbolInfo::new(false, 456, 192, 18, 18, 16, 114, 48), SymbolInfo::new(false, 576, 224, 20, 20, 16, 144, 56), SymbolInfo::new(false, 696, 272, 22, 22, 16, 174, 68), SymbolInfo::new(false, 816, 336, 24, 24, 16, 136, 56), SymbolInfo::new(false, 1050, 408, 18, 18, 36, 175, 68), SymbolInfo::new(false, 1304, 496, 20, 20, 36, 163, 62), DataMatrixSymbolInfo144::new(), ]
 ;
 
- let mut symbols: Vec<SymbolInfo> = PROD_SYMBOLS;
 pub struct SymbolInfo {
 
-     let rectangular: bool;
+      rectangular: bool,
 
-     let data_capacity: i32;
+      data_capacity: i32,
 
-     let error_codewords: i32;
+      error_codewords: i32,
 
-     let matrix_width: i32;
+      matrix_width: i32,
 
-     let matrix_height: i32;
+      matrix_height: i32,
 
-     let data_regions: i32;
+      data_regions: i32,
 
-     let rs_block_data: i32;
+      rs_block_data: i32,
 
-     let rs_block_error: i32;
+      rs_block_error: i32,
+
+      sumbols: Vec<SymbolInfo>
 }
 
 impl SymbolInfo {
@@ -2488,44 +2485,48 @@ impl SymbolInfo {
    *
    * @param override the symbol info set to use
    */
-    pub fn  override_symbol_set( override: &Vec<SymbolInfo>)   {
-        symbols = override;
+    pub fn  override_symbol_set(&self, _override: &Vec<SymbolInfo>)   {
+        self.symbols = _override;
     }
 
-    pub fn new( rectangular: bool,  data_capacity: i32,  error_codewords: i32,  matrix_width: i32,  matrix_height: i32,  data_regions: i32) -> SymbolInfo {
-        this(rectangular, data_capacity, error_codewords, matrix_width, matrix_height, data_regions, data_capacity, error_codewords);
+    pub fn new_simple( rectangular: bool,  data_capacity: i32,  error_codewords: i32,  matrix_width: i32,  matrix_height: i32,  data_regions: i32) -> Self {
+        Self::new(rectangular, data_capacity, error_codewords, matrix_width, matrix_height, data_regions, data_capacity, error_codewords)
     }
 
-    fn new( rectangular: bool,  data_capacity: i32,  error_codewords: i32,  matrix_width: i32,  matrix_height: i32,  data_regions: i32,  rs_block_data: i32,  rs_block_error: i32) -> SymbolInfo {
-        let .rectangular = rectangular;
-        let .dataCapacity = data_capacity;
-        let .errorCodewords = error_codewords;
-        let .matrixWidth = matrix_width;
-        let .matrixHeight = matrix_height;
-        let .dataRegions = data_regions;
-        let .rsBlockData = rs_block_data;
-        let .rsBlockError = rs_block_error;
+    fn new( rectangular: bool,  data_capacity: i32,  error_codewords: i32,  matrix_width: i32,  matrix_height: i32,  data_regions: i32,  rs_block_data: i32,  rs_block_error: i32) -> Self {
+        let new_si : Self;
+        
+        new_si .rectangular = rectangular;
+        new_si .dataCapacity = data_capacity;
+        new_si .errorCodewords = error_codewords;
+        new_si .matrixWidth = matrix_width;
+        new_si .matrixHeight = matrix_height;
+        new_si .dataRegions = data_regions;
+        new_si .rsBlockData = rs_block_data;
+        new_si .rsBlockError = rs_block_error;
+
+        new_si
     }
 
-    pub fn  lookup( data_codewords: i32) -> SymbolInfo  {
+    pub fn  lookup_simple( data_codewords: i32) -> SymbolInfo  {
         return ::lookup(data_codewords, SymbolShapeHint::FORCE_NONE, true);
     }
 
-    pub fn  lookup( data_codewords: i32,  shape: &SymbolShapeHint) -> SymbolInfo  {
+    pub fn  lookup_shape( data_codewords: i32,  shape: &SymbolShapeHint) -> SymbolInfo  {
         return ::lookup(data_codewords, shape, true);
     }
 
-    pub fn  lookup( data_codewords: i32,  allow_rectangular: bool,  fail: bool) -> SymbolInfo  {
+    pub fn  lookup_allow_fail( data_codewords: i32,  allow_rectangular: bool,  fail: bool) -> SymbolInfo  {
          let shape: SymbolShapeHint =  if allow_rectangular { SymbolShapeHint::FORCE_NONE } else { SymbolShapeHint::FORCE_SQUARE };
         return ::lookup(data_codewords, shape, fail);
     }
 
-    fn  lookup( data_codewords: i32,  shape: &SymbolShapeHint,  fail: bool) -> SymbolInfo  {
+    fn  lookup_shape_fail( data_codewords: i32,  shape: &SymbolShapeHint,  fail: bool) -> SymbolInfo  {
         return ::lookup(data_codewords, shape, null, null, fail);
     }
 
-    pub fn  lookup( data_codewords: i32,  shape: &SymbolShapeHint,  min_size: &Dimension,  max_size: &Dimension,  fail: bool) -> SymbolInfo  {
-        for  let symbol: SymbolInfo in symbols {
+    pub fn  lookup_complex( data_codewords: i32,  shape: &SymbolShapeHint,  min_size: &Dimension,  max_size: &Dimension,  fail: bool) -> SymbolInfo  {
+        for   symbol in symbols {
             if shape == SymbolShapeHint::FORCE_SQUARE && symbol.rectangular {
                 continue;
             }
@@ -2543,35 +2544,35 @@ impl SymbolInfo {
             }
         }
         if fail {
-            throw IllegalArgumentException::new(format!("Can't find a symbol arrangement that matches the message. Data codewords: {}", data_codewords));
+            return Err( IllegalArgumentException::new(format!("Can't find a symbol arrangement that matches the message. Data codewords: {}", data_codewords)));
         }
         return null;
     }
 
-    fn  get_horizontal_data_regions(&self) -> i32  {
+    fn  get_horizontal_data_regions(&self) -> Result<i32,IllegalStateException>  {
         match self.data_regions {
               1 => 
                  {
-                    return 1;
+                    return Ok(1);
                 }
               2 => 
                  {
                 }
               4 => 
                  {
-                    return 2;
+                    return Ok(2);
                 }
               16 => 
                  {
-                    return 4;
+                    return Ok(4);
                 }
               36 => 
                  {
-                    return 6;
+                    return Ok(6);
                 }
             _ => 
                  {
-                    throw IllegalStateException::new("Cannot handle this number of data regions");
+                    return Err( IllegalStateException::new("Cannot handle this number of data regions"));
                 }
         }
     }
@@ -2599,7 +2600,7 @@ impl SymbolInfo {
                 }
             _ => 
                  {
-                    throw IllegalStateException::new("Cannot handle this number of data regions");
+                    return Err( IllegalStateException::new("Cannot handle this number of data regions"));
                 }
         }
     }
@@ -2662,10 +2663,14 @@ pub enum SymbolShapeHint {
 
 // TextEncoder.java
 struct TextEncoder {
-    super: C40Encoder;
+    _super: C40Encoder
 }
 
 impl TextEncoder {
+
+    pub fn new() -> Self {
+        Self { _super: C40Encoder::new() }
+    }
 
     pub fn  get_encoding_mode(&self) -> i32  {
         return HighLevelEncoder::TEXT_ENCODATION;
@@ -2673,7 +2678,7 @@ impl TextEncoder {
 
     fn  encode_char(&self,  c: char,  sb: &StringBuilder) -> i32  {
         if c == ' ' {
-            sb.append('\3');
+            sb.append('\u{0003}');
             return 1;
         }
         if c >= '0' && c <= '9' {
@@ -2692,43 +2697,43 @@ impl TextEncoder {
         }
         if c <= '/' {
             //Shift 2 Set
-            sb.append('\1');
+            sb.append('\u{0001}');
             sb.append((c - 33) as char);
             return 2;
         }
         if c <= '@' {
             //Shift 2 Set
-            sb.append('\1');
+            sb.append('\u{0001}');
             sb.append((c - 58 + 15) as char);
             return 2;
         }
         if c >= '[' && c <= '_' {
             //Shift 2 Set
-            sb.append('\1');
+            sb.append('\u{0001}');
             sb.append((c - 91 + 22) as char);
             return 2;
         }
         if c == '`' {
             //Shift 3 Set
-            sb.append('\2');
+            sb.append('\u{0002}');
             // '`' - 96 == 0
             sb.append(0 as char);
             return 2;
         }
         if c <= 'Z' {
             //Shift 3 Set
-            sb.append('\2');
+            sb.append('\u{0002}');
             sb.append((c - 65 + 1) as char);
             return 2;
         }
         if c <= 127 {
             //Shift 3 Set
-            sb.append('\2');
+            sb.append('\u{0002}');
             sb.append((c - 123 + 27) as char);
             return 2;
         }
         //Shift 2, Upper Shift
-        sb.append("\1");
+        sb.append("\u{0001}\u{001e}");
          let mut len: i32 = 2;
         len += self.encode_char((c - 128) as char, &sb);
         return len;
@@ -2737,10 +2742,13 @@ impl TextEncoder {
 
 // X12Encoder.java
 struct X12Encoder {
-    super: C40Encoder;
+    _super: C40Encoder
 }
 
 impl X12Encoder {
+    pub fn new() -> Self {
+        Self { _super: C40Encoder::new() }
+    }
 
     pub fn  get_encoding_mode(&self) -> i32  {
         return HighLevelEncoder::X12_ENCODATION;
@@ -2772,22 +2780,18 @@ impl X12Encoder {
               '\r' => 
                  {
                     sb.append('\0');
-                    break;
                 }
               '*' => 
                  {
-                    sb.append('\1');
-                    break;
+                    sb.append('\u{0001}');
                 }
               '>' => 
                  {
-                    sb.append('\2');
-                    break;
+                    sb.append('\u{0002}');
                 }
               ' ' => 
                  {
-                    sb.append('\3');
-                    break;
+                    sb.append('\u{0003}');
                 }
             _ => 
                  {
@@ -2798,14 +2802,13 @@ impl X12Encoder {
                     } else {
                         HighLevelEncoder::illegal_character(c);
                     }
-                    break;
                 }
         }
         return 1;
     }
 
     fn  handle_e_o_d(&self,  context: &EncoderContext,  buffer: &StringBuilder)   {
-        context.update_symbol_info();
+        context.update_symbol_info_simple();
          let available: i32 = context.get_symbol_info().get_data_capacity() - context.get_codeword_count();
          let count: i32 = buffer.length();
         context.pos -= count;

@@ -1,3 +1,7 @@
+pub mod decoder;
+pub mod detector;
+pub mod encoder;
+
 use crate::{BarcodeFormat,BinaryBitmap,DecodeHintType,ChecksumException,FormatException,NotFoundException,Reader,RXingResult,ResultMetadataType,ResultPoint,EncodeHintType,Writer,Dimension};
 use crate::common::{DecoderResult,BitMatrix,DetectorResult,};
 use crate::datamatrix::decoder::{Decoder};
@@ -14,10 +18,9 @@ use crate::qrcode::encoder::ByteMatrix;
  */
 
 const NO_POINTS: [Option<ResultPoint>; 0] = [None; 0];
-#[derive(Reader)]
 pub struct DataMatrixReader {
 
-     let decoder: Decoder = Decoder::new();
+      decoder: Decoder 
 }
 
 impl Reader for DataMatrixReader{
@@ -29,11 +32,7 @@ impl Reader for DataMatrixReader{
    * @throws FormatException if a Data Matrix code cannot be decoded
    * @throws ChecksumException if error correction fails
    */
-  pub fn  decode(&self,  image: &BinaryBitmap) -> /*  throws NotFoundException, ChecksumException, FormatException */Result<Result, Rc<Exception>>   {
-    return Ok(self.decode(image, null));
-}
-
-pub fn  decode(&self,  image: &BinaryBitmap,  hints: &Map<DecodeHintType, ?>) -> /*  throws NotFoundException, ChecksumException, FormatException */Result<Result, Rc<Exception>>   {
+ fn  decode(&self,  image: &BinaryBitmap,  hints: &Map<DecodeHintType, _>) -> Result<Result, NotFoundException, ChecksumException, FormatException>   {
      let decoder_result: DecoderResult;
      let mut points: Vec<ResultPoint>;
     if hints != null && hints.contains_key(DecodeHintType::PURE_BARCODE) {
@@ -58,14 +57,18 @@ pub fn  decode(&self,  image: &BinaryBitmap,  hints: &Map<DecodeHintType, ?>) ->
     return Ok(result);
 }
 
-pub fn  reset(&self)   {
+ fn  reset(&self)   {
 // do nothing
 }
 }
 
 impl DataMatrixReader {
 
-   
+   pub fn new() -> Self {
+    Self{
+        decoder: Decoder::new(),
+    }
+   }
 
     /**
    * This method detects a code in a "pure" image -- that is, pure monochrome image
@@ -73,11 +76,11 @@ impl DataMatrixReader {
    * around it. This is a specialized method that works exceptionally fast in this special
    * case.
    */
-    fn  extract_pure_bits( image: &BitMatrix) -> /*  throws NotFoundException */Result<BitMatrix, Rc<Exception>>   {
+    fn  extract_pure_bits( image: &BitMatrix) -> Result<BitMatrix, NotFoundException>   {
          let left_top_black: Vec<i32> = image.get_top_left_on_bit();
          let right_bottom_black: Vec<i32> = image.get_bottom_right_on_bit();
         if left_top_black == null || right_bottom_black == null {
-            throw NotFoundException::get_not_found_instance();
+            return Err( NotFoundException::get_not_found_instance());
         }
          let module_size: i32 = self.module_size(&left_top_black, image);
          let mut top: i32 = left_top_black[1];
@@ -87,7 +90,7 @@ impl DataMatrixReader {
          let matrix_width: i32 = (right - left + 1) / module_size;
          let matrix_height: i32 = (bottom - top + 1) / module_size;
         if matrix_width <= 0 || matrix_height <= 0 {
-            throw NotFoundException::get_not_found_instance();
+            return Err( NotFoundException::get_not_found_instance());
         }
         // Push in the "border" by half the module width so that we start
         // sampling in the middle of the module. Just in case the image is a
@@ -122,7 +125,7 @@ impl DataMatrixReader {
         return Ok(bits);
     }
 
-    fn  module_size( left_top_black: &Vec<i32>,  image: &BitMatrix) -> /*  throws NotFoundException */Result<i32, Rc<Exception>>   {
+    fn  module_size( left_top_black: &Vec<i32>,  image: &BitMatrix) -> Result<i32, NotFoundException>   {
          let width: i32 = image.get_width();
          let mut x: i32 = left_top_black[0];
          let y: i32 = left_top_black[1];
@@ -130,11 +133,11 @@ impl DataMatrixReader {
             x += 1;
         }
         if x == width {
-            throw NotFoundException::get_not_found_instance();
+            return Err( NotFoundException::get_not_found_instance());
         }
          let module_size: i32 = x - left_top_black[0];
         if module_size == 0 {
-            throw NotFoundException::get_not_found_instance();
+            return Err( NotFoundException::get_not_found_instance());
         }
         return Ok(module_size);
     }
@@ -150,24 +153,20 @@ impl DataMatrixReader {
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Guillaume Le Biller Added to zxing lib.
  */
-#[derive(Writer)]
 pub struct DataMatrixWriter {
 }
 
 impl Writer for DataMatrixWriter{
-    pub fn  encode(&self,  contents: &String,  format: &BarcodeFormat,  width: i32,  height: i32) -> BitMatrix  {
-        return self.encode(&contents, format, width, height, null);
-    }
 
-    pub fn  encode(&self,  contents: &String,  format: &BarcodeFormat,  width: i32,  height: i32,  hints: &Map<EncodeHintType, ?>) -> BitMatrix  {
+     fn  encode(&self,  contents: &String,  format: &BarcodeFormat,  width: i32,  height: i32,  hints: &Map<EncodeHintType, _>) -> BitMatrix  {
         if contents.is_empty() {
-            throw IllegalArgumentException::new("Found empty contents");
+            return Err( IllegalArgumentException::new("Found empty contents"));
         }
         if format != BarcodeFormat::DATA_MATRIX {
-            throw IllegalArgumentException::new(format!("Can only encode DATA_MATRIX, but got {}", format));
+            return Err( IllegalArgumentException::new(format!("Can only encode DATA_MATRIX, but got {}", format)));
         }
         if width < 0 || height < 0 {
-            throw IllegalArgumentException::new(format!("Requested dimensions can't be negative: {}x{}", width, height));
+            return Err( IllegalArgumentException::new(format!("Requested dimensions can't be negative: {}x{}", width, height)));
         }
         // Try to get force shape & min / max size
          let mut shape: SymbolShapeHint = SymbolShapeHint::FORCE_NONE;
@@ -197,14 +196,14 @@ impl Writer for DataMatrixWriter{
             if has_encoding_hint {
                 charset = Charset::for_name(&hints.get(EncodeHintType::CHARACTER_SET).to_string());
             }
-            encoded = MinimalEncoder::encode_high_level(&contents, &charset,  if has_g_s1_format_hint { 0x1D } else { -1 }, shape);
+            encoded = MinimalEncoder::encode_high_level(&contents, &charset,  if has_g_s1_format_hint { 0x1D } else { -1 }, &shape);
         } else {
              let has_force_c40_hint: bool = hints != null && hints.contains_key(EncodeHintType::FORCE_C40) && Boolean::parse_boolean(&hints.get(EncodeHintType::FORCE_C40).to_string());
             encoded = HighLevelEncoder::encode_high_level(&contents, shape, min_size, max_size, has_force_c40_hint);
         }
          let symbol_info: SymbolInfo = SymbolInfo::lookup(&encoded.length(), shape, min_size, max_size, true);
         //2. step: ECC generation
-         let codewords: String = ErrorCorrection::encode_e_c_c200(&encoded, symbol_info);
+         let codewords: String = ErrorCorrection::encode_e_c_c200(&encoded, &symbol_info);
         //3. step: Module placement in Matrix
          let placement: DefaultPlacement = DefaultPlacement::new(&codewords, &symbol_info.get_symbol_data_width(), &symbol_info.get_symbol_data_height());
         placement.place();
@@ -329,7 +328,8 @@ impl DataMatrixWriter {
                 {
                     // Write the contents of this row of the bytematrix
                      {
-                         let input_x: i32 = 0, let output_x: i32 = left_padding;
+                         let input_x: i32 = 0;
+                          let output_x: i32 = left_padding;
                         while input_x < matrix_width {
                             {
                                 if matrix.get(input_x, input_y) == 1 {

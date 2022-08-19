@@ -1939,7 +1939,7 @@ impl DecoderResult {
     pub fn new(
         raw_bytes: &Vec<i8>,
         text: &String,
-        byte_segments: &List<Vec<i8>>,
+        byte_segments: &Vec<Vec<i8>>,
         ec_level: &String,
         sa_sequence: Option<i32>,
         sa_parity: Option<i32>,

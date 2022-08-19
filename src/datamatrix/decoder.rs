@@ -9,11 +9,11 @@ use crate::common::reedsolomon::{GenericGF,ReedSolomonDecoder,ReedSolomonExcepti
  */
 struct BitMatrixParser {
 
-    let mapping_bit_matrix: BitMatrix;
+     mapping_bit_matrix: BitMatrix,
 
-    let read_mapping_matrix: BitMatrix;
+     read_mapping_matrix: BitMatrix,
 
-    let mut version: Version;
+      version: Version
 }
 
 impl BitMatrixParser {
@@ -22,15 +22,18 @@ impl BitMatrixParser {
   * @param bitMatrix {@link BitMatrix} to parse
   * @throws FormatException if dimension is < 8 or > 144 or not 0 mod 2
   */
-   fn new( bit_matrix: &BitMatrix) -> BitMatrixParser throws FormatException {
+   fn new( bit_matrix: &BitMatrix) -> Result<Self, FormatException> {
         let dimension: i32 = bit_matrix.get_height();
        if dimension < 8 || dimension > 144 || (dimension & 0x01) != 0 {
-           throw FormatException::get_format_instance();
+           return Err( FormatException::get_format_instance());
        }
-       version = ::read_version(bit_matrix);
-       let .mappingBitMatrix = self.extract_data_region(bit_matrix);
-       let .readMappingMatrix = BitMatrix::new(&let .mappingBitMatrix.get_width(), &let .mappingBitMatrix.get_height());
-   }
+       let new_bmp : Self;
+       new_bmp.version = ::read_version(bit_matrix);
+       new_bmp .mappingBitMatrix = self.extract_data_region(bit_matrix);
+       new_bmp .readMappingMatrix = BitMatrix::new(&new_bmp.mappingBitMatrix.get_width(), &new_bmp.mappingBitMatrix.get_height());
+
+   Ok(new_bmp)
+    }
 
    fn  get_version(&self) -> Version  {
        return self.version;
@@ -61,7 +64,7 @@ impl BitMatrixParser {
   * @return bytes encoded within the Data Matrix Code
   * @throws FormatException if the exact number of bytes expected is not read
   */
-   fn  read_codewords(&self) -> /*  throws FormatException */Result<Vec<i8>, Rc<Exception>>   {
+   fn  read_codewords(&self) -> Result<Vec<i8>, FormatException>   {
         let mut result: [i8; self.version.get_total_codewords()] = [0; self.version.get_total_codewords()];
         let result_offset: i32 = 0;
         let mut row: i32 = 4;
@@ -76,22 +79,22 @@ impl BitMatrixParser {
        loop { {
            // Check the four corner cases
            if (row == num_rows) && (column == 0) && !corner1_read {
-               result[result_offset += 1 !!!check!!! post increment] = self.read_corner1(num_rows, num_columns) as i8;
+               result[result_offset += 1 ] = self.read_corner1(num_rows, num_columns) as i8;
                row -= 2;
                column += 2;
                corner1_read = true;
            } else if (row == num_rows - 2) && (column == 0) && ((num_columns & 0x03) != 0) && !corner2_read {
-               result[result_offset += 1 !!!check!!! post increment] = self.read_corner2(num_rows, num_columns) as i8;
+               result[result_offset += 1 ] = self.read_corner2(num_rows, num_columns) as i8;
                row -= 2;
                column += 2;
                corner2_read = true;
            } else if (row == num_rows + 4) && (column == 2) && ((num_columns & 0x07) == 0) && !corner3_read {
-               result[result_offset += 1 !!!check!!! post increment] = self.read_corner3(num_rows, num_columns) as i8;
+               result[result_offset += 1 ] = self.read_corner3(num_rows, num_columns) as i8;
                row -= 2;
                column += 2;
                corner3_read = true;
            } else if (row == num_rows - 2) && (column == 0) && ((num_columns & 0x07) == 4) && !corner4_read {
-               result[result_offset += 1 !!!check!!! post increment] = self.read_corner4(num_rows, num_columns) as i8;
+               result[result_offset += 1 ] = self.read_corner4(num_rows, num_columns) as i8;
                row -= 2;
                column += 2;
                corner4_read = true;
@@ -99,27 +102,27 @@ impl BitMatrixParser {
                // Sweep upward diagonally to the right
                loop { {
                    if (row < num_rows) && (column >= 0) && !self.read_mapping_matrix.get(column, row) {
-                       result[result_offset += 1 !!!check!!! post increment] = self.read_utah(row, column, num_rows, num_columns) as i8;
+                       result[result_offset += 1 ] = self.read_utah(row, column, num_rows, num_columns) as i8;
                    }
                    row -= 2;
                    column += 2;
-               }if !((row >= 0) && (column < num_columns)) break;}
+               }if !((row >= 0) && (column < num_columns)) {break;}}
                row += 1;
                column += 3;
                // Sweep downward diagonally to the left
                loop { {
                    if (row >= 0) && (column < num_columns) && !self.read_mapping_matrix.get(column, row) {
-                       result[result_offset += 1 !!!check!!! post increment] = self.read_utah(row, column, num_rows, num_columns) as i8;
+                       result[result_offset += 1 ] = self.read_utah(row, column, num_rows, num_columns) as i8;
                    }
                    row += 2;
                    column -= 2;
-               }if !((row < num_rows) && (column >= 0)) break;}
+            }if !((row < num_rows) && (column >= 0)) {break;}}
                row += 3;
                column += 1;
            }
-       }if !((row < num_rows) || (column < num_columns)) break;}
+    }if !((row < num_rows) || (column < num_columns)) {break;}}
        if result_offset != self.version.get_total_codewords() {
-           throw FormatException::get_format_instance();
+           return Err( FormatException::get_format_instance());
        }
        return Ok(result);
    }
@@ -388,7 +391,7 @@ impl BitMatrixParser {
         let symbol_size_rows: i32 = self.version.get_symbol_size_rows();
         let symbol_size_columns: i32 = self.version.get_symbol_size_columns();
        if bit_matrix.get_height() != symbol_size_rows {
-           throw IllegalArgumentException::new("Dimension of bitMatrix must match the version size");
+           return Err( IllegalArgumentException::new("Dimension of bitMatrix must match the version size"));
        }
         let data_region_size_rows: i32 = self.version.get_data_region_size_rows();
         let data_region_size_columns: i32 = self.version.get_data_region_size_columns();
@@ -457,17 +460,18 @@ impl BitMatrixParser {
  */
 struct DataBlock {
 
-    let num_data_codewords: i32;
+     num_data_codewords: i32,
 
-    let mut codewords: Vec<i8>;
+     codewords: Vec<i8>
 }
 
 impl DataBlock {
 
-   fn new( num_data_codewords: i32,  codewords: &Vec<i8>) -> DataBlock {
-       let .numDataCodewords = num_data_codewords;
-       let .codewords = codewords;
-   }
+   fn new( num_data_codewords: i32,  codewords: &Vec<i8>) -> Self {
+Self {
+    num_data_codewords,
+    codewords: codewords,
+}}
 
    /**
   * <p>When Data Matrix Codes use multiple data blocks, they actually interleave the bytes of each of them.
@@ -481,24 +485,24 @@ impl DataBlock {
   */
    fn  get_data_blocks( raw_codewords: &Vec<i8>,  version: &Version) -> Vec<DataBlock>  {
        // Figure out the number and size of data blocks used by this version
-        let ec_blocks: Version.ECBlocks = version.get_e_c_blocks();
+        let ec_blocks: Version::ECBlocks = version.get_e_c_blocks();
        // First count the total number of data blocks
         let total_blocks: i32 = 0;
-        let ec_block_array: Vec<Version.ECB> = ec_blocks.get_e_c_blocks();
-       for  let ec_block: Version.ECB in ec_block_array {
+        let ec_block_array: Vec<Version::ECB> = ec_blocks.get_e_c_blocks();
+       for   ec_block in ec_block_array {
            total_blocks += ec_block.get_count();
        }
        // Now establish DataBlocks of the appropriate size and number of data codewords
         let mut result: [Option<DataBlock>; total_blocks] = [None; total_blocks];
         let num_result_blocks: i32 = 0;
-       for  let ec_block: Version.ECB in ec_block_array {
+       for   ec_block in ec_block_array {
             {
                 let mut i: i32 = 0;
                while i < ec_block.get_count() {
                    {
                         let num_data_codewords: i32 = ec_block.get_data_codewords();
                         let num_block_codewords: i32 = ec_blocks.get_e_c_codewords() + num_data_codewords;
-                       result[num_result_blocks += 1 !!!check!!! post increment] = DataBlock::new(num_data_codewords, : [i8; num_block_codewords] = [0; num_block_codewords]);
+                       result[num_result_blocks += 1 ] = DataBlock::new(num_data_codewords,  [0; num_block_codewords]);
                    }
                    i += 1;
                 }
@@ -523,7 +527,7 @@ impl DataBlock {
                         let mut j: i32 = 0;
                        while j < num_result_blocks {
                            {
-                               result[j].codewords[i] = raw_codewords[raw_codewords_offset += 1 !!!check!!! post increment];
+                               result[j].codewords[i] = raw_codewords[raw_codewords_offset += 1 ];
                            }
                            j += 1;
                         }
@@ -541,7 +545,7 @@ impl DataBlock {
             let mut j: i32 = 0;
            while j < num_longer_blocks {
                {
-                   result[j].codewords[longer_blocks_num_data_codewords - 1] = raw_codewords[raw_codewords_offset += 1 !!!check!!! post increment];
+                   result[j].codewords[longer_blocks_num_data_codewords - 1] = raw_codewords[raw_codewords_offset += 1 ];
                }
                j += 1;
             }
@@ -559,7 +563,7 @@ impl DataBlock {
                            {
                                 let j_offset: i32 =  if special_version { (j + 8) % num_result_blocks } else { j };
                                 let i_offset: i32 =  if special_version && j_offset > 7 { i - 1 } else { i };
-                               result[j_offset].codewords[i_offset] = raw_codewords[raw_codewords_offset += 1 !!!check!!! post increment];
+                               result[j_offset].codewords[i_offset] = raw_codewords[raw_codewords_offset += 1 ];
                            }
                            j += 1;
                         }
@@ -571,7 +575,7 @@ impl DataBlock {
         }
 
        if raw_codewords_offset != raw_codewords.len() {
-           throw IllegalArgumentException::new();
+           return Err( IllegalArgumentException::new());
        }
        return result;
    }
@@ -615,28 +619,31 @@ impl DataBlock {
   
    const TEXT_SHIFT3_SET_CHARS: vec![Vec<char>; 32] = vec!['`', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '{', '|', '}', '~', 127 as char, ]
   ;
+
+  enum Mode {
+  
+    // Not really a mode
+    PAD_ENCODE(), ASCII_ENCODE(), C40_ENCODE(), TEXT_ENCODE(), ANSIX12_ENCODE(), EDIFACT_ENCODE(), BASE256_ENCODE(), ECI_ENCODE()
+}
+
   struct DecodedBitStreamParser {
   }
   
   impl DecodedBitStreamParser {
   
-      enum Mode {
-  
-          // Not really a mode
-          PAD_ENCODE(), ASCII_ENCODE(), C40_ENCODE(), TEXT_ENCODE(), ANSIX12_ENCODE(), EDIFACT_ENCODE(), BASE256_ENCODE(), ECI_ENCODE()
-      }
+      
   
       fn new() -> DecodedBitStreamParser {
       }
   
       fn  decode( bytes: &Vec<i8>) -> /*  throws FormatException */Result<DecoderResult, Rc<Exception>>   {
            let bits: BitSource = BitSource::new(&bytes);
-           let result: ECIStringBuilder = ECIStringBuilder::new(100);
+           let result: ECIStringBuilder = ECIStringBuilder::new();
            let result_trailer: StringBuilder = StringBuilder::new(0);
-           let byte_segments: List<Vec<i8>> = ArrayList<>::new(1);
+           let byte_segments: List<Vec<i8>> = Vec::new();
            let mut mode: Mode = Mode::ASCII_ENCODE;
           // Could look directly at 'bytes', if we're sure of not having to account for multi byte values
-           let fnc1_positions: Set<Integer> = HashSet<>::new();
+           let fnc1_positions: Set<Integer> = HashSet::new();
            let symbology_modifier: i32;
            let is_e_c_iencoded: bool = false;
           loop { {
@@ -678,12 +685,12 @@ impl DataBlock {
                           }
                       _ => 
                            {
-                              throw FormatException::get_format_instance();
+                              return Err( FormatException::get_format_instance());
                           }
                   }
                   mode = Mode::ASCII_ENCODE;
               }
-          }if !(mode != Mode::PAD_ENCODE && bits.available() > 0) break;}
+          }if !(mode != Mode::PAD_ENCODE && bits.available() > 0) {break;}}
           if result_trailer.length() > 0 {
               result.append_characters(&result_trailer);
           }
@@ -704,8 +711,11 @@ impl DataBlock {
               } else {
                   symbology_modifier = 1;
               }
+              
+        
+        
           }
-          return Ok(DecoderResult::new(&bytes, &result.to_string(),  if byte_segments.is_empty() { null } else { byte_segments }, null, symbology_modifier));
+          return Ok(DecoderResult::new(&bytes, &result.to_string(), &byte_segments , null, Some(symbology_modifier), None, None));
       }
   
       /**
@@ -716,7 +726,7 @@ impl DataBlock {
           loop { {
                let one_byte: i32 = bits.read_bits(8);
               if one_byte == 0 {
-                  throw FormatException::get_format_instance();
+                  return Err( FormatException::get_format_instance());
               } else if one_byte <= 128 {
                   // ASCII data (ASCII value + 1)
                   if upper_shift {
@@ -775,15 +785,15 @@ impl DataBlock {
                         // 05 Macro
                       236 => 
                            {
-                              result.append("[)>\u001E05\u001D");
-                              result_trailer.insert(0, "\u001E\u0004");
+                              result.append("[)>\u{001E05}\u{001D}");
+                              result_trailer.insert(0, "\u{001E}\u{0004}");
                               break;
                           }
                         // 06 Macro
                       237 => 
                            {
-                            result.append("[)>\u001E06\u001D");
-                            resultTrailer.insert(0, "\u001E\u0004");
+                            result.append("[)>\u{001E06}\u{001D}");
+                            resultTrailer.insert(0, "\u{001E}\u{0004}");
                               break;
                           }
                         // Latch to ANSI X12 encodation
@@ -810,20 +820,20 @@ impl DataBlock {
                            {
                               // but work around encoders that end with 254, latch back to ASCII
                               if one_byte != 254 || bits.available() != 0 {
-                                  throw FormatException::get_format_instance();
+                                  return Err( FormatException::get_format_instance());
                               }
                               break;
                           }
                   }
               }
-          }if !(bits.available() > 0) break;}
+          }if !(bits.available() > 0) {break;}}
           return Ok(Mode::ASCII_ENCODE);
       }
   
       /**
      * See ISO 16022:2006, 5.2.5 and Annex C, Table C.1
      */
-      fn  decode_c40_segment( bits: &BitSource,  result: &ECIStringBuilder,  fnc1positions: &Set<Integer>)  -> /*  throws FormatException */Result<Void, Rc<Exception>>   {
+      fn  decode_c40_segment( bits: &BitSource,  result: &ECIStringBuilder,  fnc1positions: &Set<Integer>)  -> Result<(), FormatException>   {
           // Three C40 values are encoded in a 16-bit value as
           // (1600 * C1) + (40 * C2) + C3 + 1
           // TODO(bbrown): The Upper Shift with C40 doesn't work in the 4 value scenario all the time
@@ -860,7 +870,7 @@ impl DataBlock {
                                               result.append(c40char);
                                           }
                                       } else {
-                                          throw FormatException::get_format_instance();
+                                          return Err( FormatException::get_format_instance());
                                       }
                                       break;
                                   }
@@ -903,7 +913,7 @@ impl DataBlock {
                                                   }
                                               _ => 
                                                    {
-                                                      throw FormatException::get_format_instance();
+                                                      return Err( FormatException::get_format_instance());
                                                   }
                                           }
                                       }
@@ -923,7 +933,7 @@ impl DataBlock {
                                   }
                               _ => 
                                    {
-                                      throw FormatException::get_format_instance();
+                                      return Err( FormatException::get_format_instance());
                                   }
                           }
                       }
@@ -931,7 +941,8 @@ impl DataBlock {
                    }
                }
   
-          }if !(bits.available() > 0) break;}
+          }if !(bits.available() > 0) {break;}}
+          Ok(())
       }
   
       /**
@@ -974,7 +985,7 @@ impl DataBlock {
                                               result.append(text_char);
                                           }
                                       } else {
-                                          throw FormatException::get_format_instance();
+                                          return Err( FormatException::get_format_instance());
                                       }
                                       break;
                                   }
@@ -1018,7 +1029,7 @@ impl DataBlock {
                                                   }
                                               _ => 
                                                    {
-                                                      throw FormatException::get_format_instance();
+                                                      return Err( FormatException::get_format_instance());
                                                   }
                                           }
                                       }
@@ -1037,13 +1048,13 @@ impl DataBlock {
                                           }
                                           shift = 0;
                                       } else {
-                                          throw FormatException::get_format_instance();
+                                          return Err( FormatException::get_format_instance());
                                       }
                                       break;
                                   }
                               _ => 
                                    {
-                                      throw FormatException::get_format_instance();
+                                      return Err( FormatException::get_format_instance());
                                   }
                           }
                       }
@@ -1051,7 +1062,8 @@ impl DataBlock {
                    }
                }
   
-          }if !(bits.available() > 0) break;}
+          }if !(bits.available() > 0) {break;}}
+          Ok(())
       }
   
       /**
@@ -1111,7 +1123,7 @@ impl DataBlock {
                                           // A - Z
                                           result.append((c_value + 51) as char);
                                       } else {
-                                          throw FormatException::get_format_instance();
+                                          return Err( FormatException::get_format_instance());
                                       }
                                       break;
                                   }
@@ -1121,7 +1133,8 @@ impl DataBlock {
                    }
                }
   
-          }if !(bits.available() > 0) break;}
+          }if !(bits.available() > 0) {break;}}
+          Ok(())
       }
   
       fn  parse_two_bytes( first_byte: i32,  second_byte: i32,  result: &Vec<i32>)   {
@@ -1169,17 +1182,17 @@ impl DataBlock {
                    }
                }
   
-          }if !(bits.available() > 0) break;}
+          }if !(bits.available() > 0) {break;}}
       }
   
       /**
      * See ISO 16022:2006, 5.2.9 and Annex B, B.2
      */
-      fn  decode_base256_segment( bits: &BitSource,  result: &ECIStringBuilder,  byte_segments: &Collection<Vec<i8>>)  -> /*  throws FormatException */Result<Void, Rc<Exception>>   {
+      fn  decode_base256_segment( bits: &BitSource,  result: &ECIStringBuilder,  byte_segments: &Collection<Vec<i8>>)  -> Result<(), FormatException>   {
           // Figure out how long the Base 256 Segment is.
           // position is 1-indexed
            let codeword_position: i32 = 1 + bits.get_byte_offset();
-           let d1: i32 = ::unrandomize255_state(&bits.read_bits(8), codeword_position += 1 !!!check!!! post increment);
+           let d1: i32 = ::unrandomize255_state(&bits.read_bits(8), codeword_position += 1 );
            let mut count: i32;
           if d1 == 0 {
               // Read the remainder of the symbol
@@ -1187,11 +1200,11 @@ impl DataBlock {
           } else if d1 < 250 {
               count = d1;
           } else {
-              count = 250 * (d1 - 249) + ::unrandomize255_state(&bits.read_bits(8), codeword_position += 1 !!!check!!! post increment);
+              count = 250 * (d1 - 249) + ::unrandomize255_state(&bits.read_bits(8), codeword_position += 1 );
           }
           // We're seeing NegativeArraySizeException errors from users.
           if count < 0 {
-              throw FormatException::get_format_instance();
+              return Err( FormatException::get_format_instance());
           }
            let mut bytes: [i8; count] = [0; count];
            {
@@ -1200,29 +1213,37 @@ impl DataBlock {
                   {
                       // http://www.bcgen.com/demo/IDAutomationStreamingDataMatrix.aspx?MODE=3&D=Fred&PFMT=3&PT=F&X=0.3&O=0&LM=0.2
                       if bits.available() < 8 {
-                          throw FormatException::get_format_instance();
+                          return Err( FormatException::get_format_instance());
                       }
-                      bytes[i] = ::unrandomize255_state(&bits.read_bits(8), codeword_position += 1 !!!check!!! post increment) as i8;
+                      bytes[i] = ::unrandomize255_state(&bits.read_bits(8), codeword_position += 1 ) as i8;
                   }
                   i += 1;
                }
            }
   
           byte_segments.add(&bytes);
-          result.append(String::new(&bytes, StandardCharsets::ISO_8859_1));
+          {
+            use encoding::{Encoding,DecoderTrap};
+            use encoding::all::ISO_8859_1;
+
+            result.append(ISO_8859_1.decode(&bytes, DecoderTrap::Strict).unwrap_or("".to_owned()))
+            // result.append(String::new(&bytes, StandardCharsets::ISO_8859_1));
+          }
+          Ok(())
       }
   
       /**
      * See ISO 16022:2007, 5.4.1
      */
-      fn  decode_e_c_i_segment( bits: &BitSource,  result: &ECIStringBuilder)  -> /*  throws FormatException */Result<Void, Rc<Exception>>   {
+      fn  decode_e_c_i_segment( bits: &BitSource,  result: &ECIStringBuilder)  -> Result<(),FormatException>   {
           if bits.available() < 8 {
-              throw FormatException::get_format_instance();
+              return Err( FormatException::get_format_instance());
           }
            let c1: i32 = bits.read_bits(8);
           if c1 <= 127 {
               result.append_e_c_i(c1 - 1);
           }
+          Ok(())
       //currently we only support character set ECIs
       /*} else {
         if (bits.available() < 8) {
@@ -1259,7 +1280,7 @@ impl DataBlock {
  */
 pub struct Decoder {
 
-    let rs_decoder: ReedSolomonDecoder;
+     rs_decoder: ReedSolomonDecoder
 }
 
 impl Decoder {
@@ -1297,10 +1318,10 @@ impl Decoder {
        // Read codewords
         let codewords: Vec<i8> = parser.read_codewords();
        // Separate into data blocks
-        let data_blocks: Vec<DataBlock> = DataBlock::get_data_blocks(&codewords, version);
+        let data_blocks: Vec<DataBlock> = DataBlock::get_data_blocks(&codewords, &version);
        // Count total number of data bytes
         let total_bytes: i32 = 0;
-       for  let db: DataBlock in data_blocks {
+       for   db in data_blocks {
            total_bytes += db.get_num_data_codewords();
        }
         let result_bytes: [i8; total_bytes] = [0; total_bytes];
@@ -1342,7 +1363,7 @@ impl Decoder {
   * @param numDataCodewords number of codewords that are data bytes
   * @throws ChecksumException if error correction fails
   */
-   fn  correct_errors(&self,  codeword_bytes: &Vec<i8>,  num_data_codewords: i32)  -> /*  throws ChecksumException */Result<Void, Rc<Exception>>   {
+   fn  correct_errors(&self,  codeword_bytes: &Vec<i8>,  num_data_codewords: i32)  -> Result<(), ChecksumException>   {
         let num_codewords: i32 = codeword_bytes.len();
        // First read into an array of ints
         let codewords_ints: [i32; num_codewords] = [0; num_codewords];
@@ -1356,18 +1377,9 @@ impl Decoder {
             }
         }
 
-       let tryResult1 = 0;
-       'try1: loop {
-       {
+       
            self.rs_decoder.decode(&codewords_ints, codeword_bytes.len() - num_data_codewords);
-       }
-       break 'try1
-       }
-       match tryResult1 {
-            catch ( ignored: &ReedSolomonException) {
-               throw ChecksumException::get_checksum_instance();
-           }  0 => break
-       }
+       
 
        // We don't care about errors in the error-correction codewords
         {
@@ -1379,6 +1391,7 @@ impl Decoder {
                i += 1;
             }
         }
+        Ok(())
 
    }
 }
@@ -1395,38 +1408,41 @@ impl Decoder {
 const VERSIONS: Vec<Version> = ::build_versions();
 pub struct Version {
 
-     let version_number: i32;
+      version_number: i32,
 
-     let symbol_size_rows: i32;
+      symbol_size_rows: i32,
 
-     let symbol_size_columns: i32;
+      symbol_size_columns: i32,
 
-     let data_region_size_rows: i32;
+      data_region_size_rows: i32,
 
-     let data_region_size_columns: i32;
+      data_region_size_columns: i32,
 
-     let ec_blocks: ECBlocks;
+      ec_blocks: ECBlocks,
 
-     let total_codewords: i32;
+      total_codewords: i32
 }
 
 impl Version {
 
-    fn new( version_number: i32,  symbol_size_rows: i32,  symbol_size_columns: i32,  data_region_size_rows: i32,  data_region_size_columns: i32,  ec_blocks: &ECBlocks) -> Version {
-        let .versionNumber = version_number;
-        let .symbolSizeRows = symbol_size_rows;
-        let .symbolSizeColumns = symbol_size_columns;
-        let .dataRegionSizeRows = data_region_size_rows;
-        let .dataRegionSizeColumns = data_region_size_columns;
-        let .ecBlocks = ec_blocks;
+    fn new( version_number: i32,  symbol_size_rows: i32,  symbol_size_columns: i32,  data_region_size_rows: i32,  data_region_size_columns: i32,  ec_blocks: &ECBlocks) -> Self {
+        let new_v : Self;
+        new_v .versionNumber = version_number;
+        new_v .symbolSizeRows = symbol_size_rows;
+        new_v .symbolSizeColumns = symbol_size_columns;
+        new_v .dataRegionSizeRows = data_region_size_rows;
+        new_v .dataRegionSizeColumns = data_region_size_columns;
+        new_v .ecBlocks = ec_blocks;
         // Calculate the total number of codewords
          let mut total: i32 = 0;
          let ec_codewords: i32 = ec_blocks.get_e_c_codewords();
          let ecb_array: Vec<ECB> = ec_blocks.get_e_c_blocks();
-        for  let ec_block: ECB in ecb_array {
+        for   ec_block in ecb_array {
             total += ec_block.get_count() * (ec_block.get_data_codewords() + ec_codewords);
         }
-        let .totalCodewords = total;
+        new_v .totalCodewords = total;
+
+        new_v
     }
 
     pub fn  get_version_number(&self) -> i32  {
@@ -1467,79 +1483,14 @@ impl Version {
    */
     pub fn  get_version_for_dimensions( num_rows: i32,  num_columns: i32) -> /*  throws FormatException */Result<Version, Rc<Exception>>   {
         if (num_rows & 0x01) != 0 || (num_columns & 0x01) != 0 {
-            throw FormatException::get_format_instance();
+            return Err( FormatException::get_format_instance());
         }
-        for  let version: Version in VERSIONS {
+        for   version in VERSIONS {
             if version.symbolSizeRows == num_rows && version.symbolSizeColumns == num_columns {
                 return Ok(version);
             }
         }
-        throw FormatException::get_format_instance();
-    }
-
-    /**
-   * <p>Encapsulates a set of error-correction blocks in one symbol version. Most versions will
-   * use blocks of differing sizes within one version, so, this encapsulates the parameters for
-   * each set of blocks. It also holds the number of error-correction codewords per block since it
-   * will be the same across all blocks within one version.</p>
-   */
-    struct ECBlocks {
-
-         let ec_codewords: i32;
-
-         let ec_blocks: Vec<ECB>;
-    }
-    
-    impl ECBlocks {
-
-        fn new( ec_codewords: i32,  ec_blocks: &ECB) -> ECBlocks {
-            let .ecCodewords = ec_codewords;
-            let .ecBlocks =  : vec![ECB; 1] = vec![ec_blocks, ]
-            ;
-        }
-
-        fn new( ec_codewords: i32,  ec_blocks1: &ECB,  ec_blocks2: &ECB) -> ECBlocks {
-            let .ecCodewords = ec_codewords;
-            let .ecBlocks =  : vec![ECB; 2] = vec![ec_blocks1, ec_blocks2, ]
-            ;
-        }
-
-        fn  get_e_c_codewords(&self) -> i32  {
-            return self.ec_codewords;
-        }
-
-        fn  get_e_c_blocks(&self) -> Vec<ECB>  {
-            return self.ec_blocks;
-        }
-    }
-
-
-    /**
-   * <p>Encapsulates the parameters for one error-correction block in one symbol version.
-   * This includes the number of data codewords, and the number of times a block with these
-   * parameters is used consecutively in the Data Matrix code version's format.</p>
-   */
-    struct ECB {
-
-         let count: i32;
-
-         let data_codewords: i32;
-    }
-    
-    impl ECB {
-
-        fn new( count: i32,  data_codewords: i32) -> ECB {
-            let .count = count;
-            let .dataCodewords = data_codewords;
-        }
-
-        fn  get_count(&self) -> i32  {
-            return self.count;
-        }
-
-        fn  get_data_codewords(&self) -> i32  {
-            return self.data_codewords;
-        }
+        return Err( FormatException::get_format_instance());
     }
 
 
@@ -1551,9 +1502,79 @@ impl Version {
    * See ISO 16022:2006 5.5.1 Table 7
    */
     fn  build_versions() -> Vec<Version>  {
-        return  : vec![Version; 48] = vec![Version::new(1, 10, 10, 8, 8, ECBlocks::new(5, ECB::new(1, 3))), Version::new(2, 12, 12, 10, 10, ECBlocks::new(7, ECB::new(1, 5))), Version::new(3, 14, 14, 12, 12, ECBlocks::new(10, ECB::new(1, 8))), Version::new(4, 16, 16, 14, 14, ECBlocks::new(12, ECB::new(1, 12))), Version::new(5, 18, 18, 16, 16, ECBlocks::new(14, ECB::new(1, 18))), Version::new(6, 20, 20, 18, 18, ECBlocks::new(18, ECB::new(1, 22))), Version::new(7, 22, 22, 20, 20, ECBlocks::new(20, ECB::new(1, 30))), Version::new(8, 24, 24, 22, 22, ECBlocks::new(24, ECB::new(1, 36))), Version::new(9, 26, 26, 24, 24, ECBlocks::new(28, ECB::new(1, 44))), Version::new(10, 32, 32, 14, 14, ECBlocks::new(36, ECB::new(1, 62))), Version::new(11, 36, 36, 16, 16, ECBlocks::new(42, ECB::new(1, 86))), Version::new(12, 40, 40, 18, 18, ECBlocks::new(48, ECB::new(1, 114))), Version::new(13, 44, 44, 20, 20, ECBlocks::new(56, ECB::new(1, 144))), Version::new(14, 48, 48, 22, 22, ECBlocks::new(68, ECB::new(1, 174))), Version::new(15, 52, 52, 24, 24, ECBlocks::new(42, ECB::new(2, 102))), Version::new(16, 64, 64, 14, 14, ECBlocks::new(56, ECB::new(2, 140))), Version::new(17, 72, 72, 16, 16, ECBlocks::new(36, ECB::new(4, 92))), Version::new(18, 80, 80, 18, 18, ECBlocks::new(48, ECB::new(4, 114))), Version::new(19, 88, 88, 20, 20, ECBlocks::new(56, ECB::new(4, 144))), Version::new(20, 96, 96, 22, 22, ECBlocks::new(68, ECB::new(4, 174))), Version::new(21, 104, 104, 24, 24, ECBlocks::new(56, ECB::new(6, 136))), Version::new(22, 120, 120, 18, 18, ECBlocks::new(68, ECB::new(6, 175))), Version::new(23, 132, 132, 20, 20, ECBlocks::new(62, ECB::new(8, 163))), Version::new(24, 144, 144, 22, 22, ECBlocks::new(62, ECB::new(8, 156), ECB::new(2, 155))), Version::new(25, 8, 18, 6, 16, ECBlocks::new(7, ECB::new(1, 5))), Version::new(26, 8, 32, 6, 14, ECBlocks::new(11, ECB::new(1, 10))), Version::new(27, 12, 26, 10, 24, ECBlocks::new(14, ECB::new(1, 16))), Version::new(28, 12, 36, 10, 16, ECBlocks::new(18, ECB::new(1, 22))), Version::new(29, 16, 36, 14, 16, ECBlocks::new(24, ECB::new(1, 32))), Version::new(30, 16, 48, 14, 22, ECBlocks::new(28, ECB::new(1, 49))), // ISO 21471:2020 (DMRE) 5.5.1 Table 7
-        Version::new(31, 8, 48, 6, 22, ECBlocks::new(15, ECB::new(1, 18))), Version::new(32, 8, 64, 6, 14, ECBlocks::new(18, ECB::new(1, 24))), Version::new(33, 8, 80, 6, 18, ECBlocks::new(22, ECB::new(1, 32))), Version::new(34, 8, 96, 6, 22, ECBlocks::new(28, ECB::new(1, 38))), Version::new(35, 8, 120, 6, 18, ECBlocks::new(32, ECB::new(1, 49))), Version::new(36, 8, 144, 6, 22, ECBlocks::new(36, ECB::new(1, 63))), Version::new(37, 12, 64, 10, 14, ECBlocks::new(27, ECB::new(1, 43))), Version::new(38, 12, 88, 10, 20, ECBlocks::new(36, ECB::new(1, 64))), Version::new(39, 16, 64, 14, 14, ECBlocks::new(36, ECB::new(1, 62))), Version::new(40, 20, 36, 18, 16, ECBlocks::new(28, ECB::new(1, 44))), Version::new(41, 20, 44, 18, 20, ECBlocks::new(34, ECB::new(1, 56))), Version::new(42, 20, 64, 18, 14, ECBlocks::new(42, ECB::new(1, 84))), Version::new(43, 22, 48, 20, 22, ECBlocks::new(38, ECB::new(1, 72))), Version::new(44, 24, 48, 22, 22, ECBlocks::new(41, ECB::new(1, 80))), Version::new(45, 24, 64, 22, 14, ECBlocks::new(46, ECB::new(1, 108))), Version::new(46, 26, 40, 24, 18, ECBlocks::new(38, ECB::new(1, 70))), Version::new(47, 26, 48, 24, 22, ECBlocks::new(42, ECB::new(1, 90))), Version::new(48, 26, 64, 24, 14, ECBlocks::new(50, ECB::new(1, 118))), ]
+        return   vec![Version::new(1, 10, 10, 8, 8, &ECBlocks::new_simple(5, &ECB::new(1, 3))), Version::new(2, 12, 12, 10, 10, &ECBlocks::new_simple(7, &ECB::new(1, 5))), Version::new(3, 14, 14, 12, 12, &ECBlocks::new_simple(10, &ECB::new(1, 8))), Version::new(4, 16, 16, 14, 14, &ECBlocks::new_simple(12, &ECB::new(1, 12))), Version::new(5, 18, 18, 16, 16,& ECBlocks::new_simple(14, &ECB::new(1, 18))), Version::new(6, 20, 20, 18, 18, &ECBlocks::new_simple(18, &ECB::new(1, 22))), Version::new(7, 22, 22, 20, 20, &ECBlocks::new_simple(20, &ECB::new(1, 30))), Version::new(8, 24, 24, 22, 22,& ECBlocks::new_simple(24, &ECB::new(1, 36))), Version::new(9, 26, 26, 24, 24,& ECBlocks::new_simple(28, &ECB::new(1, 44))), Version::new(10, 32, 32, 14, 14,& ECBlocks::new_simple(36, &ECB::new(1, 62))), Version::new(11, 36, 36, 16, 16, &ECBlocks::new_simple(42,& ECB::new(1, 86))), Version::new(12, 40, 40, 18, 18, &ECBlocks::new_simple(48, &ECB::new(1, 114))), Version::new(13, 44, 44, 20, 20,& ECBlocks::new_simple(56,& ECB::new(1, 144))), Version::new(14, 48, 48, 22, 22,& ECBlocks::new_simple(68,& ECB::new(1, 174))), Version::new(15, 52, 52, 24, 24,& ECBlocks::new_simple(42, &ECB::new(2, 102))), Version::new(16, 64, 64, 14, 14,& ECBlocks::new_simple(56, &ECB::new(2, 140))), Version::new(17, 72, 72, 16, 16, &ECBlocks::new_simple(36, &ECB::new(4, 92))), Version::new(18, 80, 80, 18, 18,& ECBlocks::new_simple(48, &ECB::new(4, 114))), Version::new(19, 88, 88, 20, 20,& ECBlocks::new_simple(56, &ECB::new(4, 144))), Version::new(20, 96, 96, 22, 22, &ECBlocks::new_simple(68, &ECB::new(4, 174))), Version::new(21, 104, 104, 24, 24, &ECBlocks::new_simple(56, &ECB::new(6, 136))), Version::new(22, 120, 120, 18, 18, &ECBlocks::new_simple(68, &ECB::new(6, 175))), Version::new(23, 132, 132, 20, 20, &ECBlocks::new_simple(62, &ECB::new(8, 163))), Version::new(24, 144, 144, 22, 22, &ECBlocks::new(62, &ECB::new(8, 156), &ECB::new(2, 155))), Version::new(25, 8, 18, 6, 16, &ECBlocks::new_simple(7, &ECB::new(1, 5))), Version::new(26, 8, 32, 6, 14,& ECBlocks::new_simple(11, &ECB::new(1, 10))), Version::new(27, 12, 26, 10, 24,& ECBlocks::new_simple(14, &ECB::new(1, 16))), Version::new(28, 12, 36, 10, 16,& ECBlocks::new_simple(18, &ECB::new(1, 22))), Version::new(29, 16, 36, 14, 16, &ECBlocks::new_simple(24,& ECB::new(1, 32))), Version::new(30, 16, 48, 14, 22, &ECBlocks::new_simple(28, &ECB::new(1, 49))), // ISO 21471:2020 (DMRE) 5.5.1 Table 7
+        Version::new(31, 8, 48, 6, 22,& ECBlocks::new_simple(15, &ECB::new(1, 18))), Version::new(32, 8, 64, 6, 14,& ECBlocks::new_simple(18, &ECB::new(1, 24))), Version::new(33, 8, 80, 6, 18, &ECBlocks::new_simple(22, &ECB::new(1, 32))), Version::new(34, 8, 96, 6, 22, &ECBlocks::new_simple(28, &ECB::new(1, 38))), Version::new(35, 8, 120, 6, 18, &ECBlocks::new_simple(32, &ECB::new(1, 49))), Version::new(36, 8, 144, 6, 22, &ECBlocks::new_simple(36, &ECB::new(1, 63))), Version::new(37, 12, 64, 10, 14, &ECBlocks::new_simple(27, &ECB::new(1, 43))), Version::new(38, 12, 88, 10, 20, &ECBlocks::new_simple(36, &ECB::new(1, 64))), Version::new(39, 16, 64, 14, 14,& ECBlocks::new_simple(36, &ECB::new(1, 62))), Version::new(40, 20, 36, 18, 16,& ECBlocks::new_simple(28, &ECB::new(1, 44))), Version::new(41, 20, 44, 18, 20,& ECBlocks::new_simple(34, &ECB::new(1, 56))), Version::new(42, 20, 64, 18, 14,& ECBlocks::new_simple(42,& ECB::new(1, 84))), Version::new(43, 22, 48, 20, 22, &ECBlocks::new_simple(38,& ECB::new(1, 72))), Version::new(44, 24, 48, 22, 22, &ECBlocks::new_simple(41, &ECB::new(1, 80))), Version::new(45, 24, 64, 22, 14, &ECBlocks::new_simple(46, &ECB::new(1, 108))), Version::new(46, 26, 40, 24, 18, &ECBlocks::new_simple(38, &ECB::new(1, 70))), Version::new(47, 26, 48, 24, 22, &ECBlocks::new_simple(42, &ECB::new(1, 90))), Version::new(48, 26, 64, 24, 14, &ECBlocks::new_simple(50, &ECB::new(1, 118))), ]
         ;
     }
 }
 
+/**
+   * <p>Encapsulates a set of error-correction blocks in one symbol version. Most versions will
+   * use blocks of differing sizes within one version, so, this encapsulates the parameters for
+   * each set of blocks. It also holds the number of error-correction codewords per block since it
+   * will be the same across all blocks within one version.</p>
+   */
+  struct ECBlocks {
+
+    ec_codewords: i32,
+
+    ec_blocks: Vec<ECB>,
+}
+
+impl ECBlocks {
+
+  fn new_simple( ec_codewords: i32,  ec_blocks: &ECB) -> Self {
+Self{
+ec_codewords: ec_codewords,
+ec_blocks: vec![ec_blocks, ]
+}
+  }
+
+  fn new( ec_codewords: i32,  ec_blocks1: &ECB,  ec_blocks2: &ECB) -> ECBlocks {
+      Self{
+          ec_codewords: ec_codewords,
+          ec_blocks:  vec![ec_blocks1, ec_blocks2, ]
+      }
+      
+  }
+
+  fn  get_e_c_codewords(&self) -> i32  {
+      return self.ec_codewords;
+  }
+
+  fn  get_e_c_blocks(&self) -> Vec<ECB>  {
+      return self.ec_blocks;
+  }
+}
+
+
+/**
+* <p>Encapsulates the parameters for one error-correction block in one symbol version.
+* This includes the number of data codewords, and the number of times a block with these
+* parameters is used consecutively in the Data Matrix code version's format.</p>
+*/
+struct ECB {
+
+    count: i32,
+
+    data_codewords: i32
+}
+
+impl ECB {
+
+  fn new( count: i32,  data_codewords: i32) -> Self {
+      Self {
+
+          count,
+          data_codewords
+      }
+  }
+
+  fn  get_count(&self) -> i32  {
+      return self.count;
+  }
+
+  fn  get_data_codewords(&self) -> i32  {
+      return self.data_codewords;
+  }
+}
