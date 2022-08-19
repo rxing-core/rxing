@@ -1,6 +1,6 @@
 use crate::XRingResult;
 use regex::Regex;
- 
+
 // ParsedResultType.java
 /**
  * Represents the type& of data encoded by a barco&de -- from plain text, to a
@@ -9,8 +9,18 @@ use regex::Regex;
  * @author Sean Owen
  */
 pub enum ParsedResultType {
-
-    ADDRESSBOOK, EMAIL_ADDRESS, PRODUCT, URI, TEXT, GEO, TEL, SMS, CALENDAR, WIFI, ISBN, VIN
+    ADDRESSBOOK,
+    EMAIL_ADDRESS,
+    PRODUCT,
+    URI,
+    TEXT,
+    GEO,
+    TEL,
+    SMS,
+    CALENDAR,
+    WIFI,
+    ISBN,
+    VIN,
 }
 
 // ParsedResult.java
@@ -26,38 +36,37 @@ pub enum ParsedResultType {
  * @author Sean Owen
  */
 trait ParsedResult {
+    pub fn new(parsed_type: &ParsedResultType) -> Self; /*{
+                                                            let .type = type;
+                                                        }*/
 
-   pub fn new( parsed_type: &ParsedResultType) -> Self; /*{
-       let .type = type;
-   }*/
+    pub fn get_type(&self) -> ParsedResultType; /* {
+                                                    return self.type;
+                                                }*/
 
-   pub fn  get_type(&self) -> ParsedResultType ;/* {
-       return self.type;
-   }*/
+    pub fn get_display_result(&self) -> String;
 
-   pub fn  get_display_result(&self) -> String ;
+    pub fn to_string(&self) -> String {
+        return self.get_display_result();
+    }
 
-   pub fn  to_string(&self) -> String  {
-       return self.get_display_result();
-   }
+    pub fn maybe_append(value: &String, result: &String) {
+        if value != null && !value.is_empty() {
+            // Don't add a newline before the first value
+            if result.length() > 0 {
+                result.append('\n');
+            }
+            result.append(&value);
+        }
+    }
 
-   pub fn  maybe_append( value: &String,  result: &String)   {
-       if value != null && !value.is_empty() {
-           // Don't add a newline before the first value
-           if result.length() > 0 {
-               result.append('\n');
-           }
-           result.append(&value);
-       }
-   }
-
-   pub fn  maybe_append( values: &Vec<String>,  result: &String)   {
-       if values != null {
-           for  value in values {
-               ::maybe_append(&value, &result);
-           }
-       }
-   }
+    pub fn maybe_append(values: &Vec<String>, result: &String) {
+        if values != null {
+            for value in values {
+                ::maybe_append(&value, &result);
+            }
+        }
+    }
 }
 
 // ResultParser.java
@@ -73,42 +82,61 @@ trait ParsedResult {
  * @author Sean Owen
  */
 
-const PARSERS: vec![Vec<ResultParser>; 20] = vec![BookmarkDoCoMoResultParser::new(), AddressBookDoCoMoResultParser::new(), EmailDoCoMoResultParser::new(), AddressBookAUResultParser::new(), VCardResultParser::new(), BizcardResultParser::new(), VEventResultParser::new(), EmailAddressResultParser::new(), SMTPResultParser::new(), TelResultParser::new(), SMSMMSResultParser::new(), SMSTOMMSTOResultParser::new(), GeoResultParser::new(), WifiResultParser::new(), URLTOResultParser::new(), URIResultParser::new(), ISBNResultParser::new(), ProductResultParser::new(), ExpandedProductResultParser::new(), VINResultParser::new(), ]
-;
+const PARSERS: vec![Vec<ResultParser>; 20] = vec![
+    BookmarkDoCoMoResultParser::new(),
+    AddressBookDoCoMoResultParser::new(),
+    EmailDoCoMoResultParser::new(),
+    AddressBookAUResultParser::new(),
+    VCardResultParser::new(),
+    BizcardResultParser::new(),
+    VEventResultParser::new(),
+    EmailAddressResultParser::new(),
+    SMTPResultParser::new(),
+    TelResultParser::new(),
+    SMSMMSResultParser::new(),
+    SMSTOMMSTOResultParser::new(),
+    GeoResultParser::new(),
+    WifiResultParser::new(),
+    URLTOResultParser::new(),
+    URIResultParser::new(),
+    ISBNResultParser::new(),
+    ProductResultParser::new(),
+    ExpandedProductResultParser::new(),
+    VINResultParser::new(),
+];
 
- const DIGITS: Regex = Regex::new("\\d+");
+const DIGITS: Regex = Regex::new("\\d+");
 
- const AMPERSAND: Regex = Regex::new("&");
+const AMPERSAND: Regex = Regex::new("&");
 
- const EQUALS: Regex = Regex::new("=");
+const EQUALS: Regex = Regex::new("=");
 
- const BYTE_ORDER_MARK: &'static str = "﻿";
+const BYTE_ORDER_MARK: &'static str = "﻿";
 
- const EMPTY_STR_ARRAY: [Option<String>; 0] = [None; 0];
+const EMPTY_STR_ARRAY: [Option<String>; 0] = [None; 0];
 
 trait ResultParser {
-
     /**
-   * Attempts to parse the raw {@link Result}'s contents as a particular type
-   * of information (email, URL, etc.) and return a {@link ParsedResult} encapsulating
-   * the result of parsing.
-   *
-   * @param theResult the raw {@link Result} to parse
-   * @return {@link ParsedResult} encapsulating the parsing result
-   */
-    pub fn  parse(&self,  the_result: &Result) -> ParsedResult ;
+     * Attempts to parse the raw {@link Result}'s contents as a particular type
+     * of information (email, URL, etc.) and return a {@link ParsedResult} encapsulating
+     * the result of parsing.
+     *
+     * @param theResult the raw {@link Result} to parse
+     * @return {@link ParsedResult} encapsulating the parsing result
+     */
+    pub fn parse(&self, the_result: &Result) -> ParsedResult;
 
-    pub fn  get_massaged_text( result: &Result) -> String  {
-         let mut text: String = result.get_text();
+    pub fn get_massaged_text(result: &Result) -> String {
+        let mut text: String = result.get_text();
         if text.starts_with(&BYTE_ORDER_MARK) {
             text = text.substring(1);
         }
         return text;
     }
 
-    pub fn  parse_result( the_result: &Result) -> ParsedResult  {
-        for   parser in PARSERS {
-             let result: ParsedResult = parser.parse(the_result);
+    pub fn parse_result(the_result: &Result) -> ParsedResult {
+        for parser in PARSERS {
+            let result: ParsedResult = parser.parse(the_result);
             if result != null {
                 return result;
             }
@@ -116,41 +144,40 @@ trait ResultParser {
         return TextParsedResult::new(&the_result.get_text(), null);
     }
 
-    pub fn  maybe_append( value: &String,  result: &String)   {
+    pub fn maybe_append(value: &String, result: &String) {
         if value != null {
             result.append('\n');
             result.append(&value);
         }
     }
 
-    pub fn  maybe_append( value: &Vec<String>,  result: &String)   {
+    pub fn maybe_append(value: &Vec<String>, result: &String) {
         if value != null {
-            for   s in value {
+            for s in value {
                 result.append('\n');
                 result.append(&s);
             }
         }
     }
 
-    pub fn  maybe_wrap( value: &String) -> Vec<String>  {
-        return  if value == null { null } else {  vec![value, ]
-         };
+    pub fn maybe_wrap(value: &String) -> Vec<String> {
+        return if value == null { null } else { vec![value] };
     }
 
-    pub fn  unescape_backslash( escaped: &String) -> String  {
-         let backslash: i32 = escaped.index_of('\\');
+    pub fn unescape_backslash(escaped: &String) -> String {
+        let backslash: i32 = escaped.index_of('\\');
         if backslash < 0 {
             return escaped;
         }
-         let max: i32 = escaped.length();
-         let unescaped: String = String::new(max - 1);
+        let max: i32 = escaped.length();
+        let unescaped: String = String::new(max - 1);
         unescaped.append(&escaped.to_char_array(), 0, backslash);
-         let next_is_escaped: bool = false;
-         {
-             let mut i: i32 = backslash;
+        let next_is_escaped: bool = false;
+        {
+            let mut i: i32 = backslash;
             while i < max {
                 {
-                     let c: char = escaped.char_at(i);
+                    let c: char = escaped.char_at(i);
                     if next_is_escaped || c != '\\' {
                         unescaped.append(c);
                         next_is_escaped = false;
@@ -159,13 +186,13 @@ trait ResultParser {
                     }
                 }
                 i += 1;
-             }
-         }
+            }
+        }
 
         return unescaped.to_string();
     }
 
-    pub fn  parse_hex_digit( c: char) -> i32  {
+    pub fn parse_hex_digit(c: char) -> i32 {
         if c >= '0' && c <= '9' {
             return c - '0';
         }
@@ -178,40 +205,40 @@ trait ResultParser {
         return -1;
     }
 
-    pub fn  is_string_of_digits( value: &String,  length: i32) -> bool  {
+    pub fn is_string_of_digits(value: &String, length: i32) -> bool {
         return value != null && length > 0 && length == value.length() && DIGITS.is_match(&value);
     }
 
-    pub fn  is_substring_of_digits( value: &String,  offset: i32,  length: i32) -> bool  {
+    pub fn is_substring_of_digits(value: &String, offset: i32, length: i32) -> bool {
         if value == null || length <= 0 {
             return false;
         }
-         let max: i32 = offset + length;
+        let max: i32 = offset + length;
         return value.length() >= max && DIGITS.is_match(&value.sub_sequence(offset, max));
     }
 
-    fn  parse_name_value_pairs( uri: &String) -> Map<String, String>  {
-         let param_start: i32 = uri.index_of('?');
+    fn parse_name_value_pairs(uri: &String) -> Map<String, String> {
+        let param_start: i32 = uri.index_of('?');
         if param_start < 0 {
             return null;
         }
-         let result: Map<String, String> = HashMap::new(3);
-        for   key_value in AMPERSAND::split(&uri.substring(param_start + 1)) {
+        let result: Map<String, String> = HashMap::new(3);
+        for key_value in AMPERSAND::split(&uri.substring(param_start + 1)) {
             ::append_key_value(&key_value, &result);
         }
         return result;
     }
 
-    fn  append_key_value( key_value: &CharSequence,  result: &HasMap<String, String>)   {
-         let key_value_tokens: Vec<String> = EQUALS::split(&key_value, 2);
+    fn append_key_value(key_value: &CharSequence, result: &HasMap<String, String>) {
+        let key_value_tokens: Vec<String> = EQUALS::split(&key_value, 2);
         if key_value_tokens.len() == 2 {
-             let key: String = key_value_tokens[0];
-             let mut value: String = key_value_tokens[1];
-            
-             value = ::url_decode(&value);
-                result.put(&key, &value);
-            
-             /*let tryResult1 = 0;
+            let key: String = key_value_tokens[0];
+            let mut value: String = key_value_tokens[1];
+
+            value = ::url_decode(&value);
+            result.put(&key, &value);
+
+            /*let tryResult1 = 0;
             'try1: loop {
             {
                 value = ::url_decode(&value);
@@ -223,31 +250,35 @@ trait ResultParser {
                  catch ( iae: &IllegalArgumentException) {
                 }  0 => break
             }*/
-
         }
     }
 
-    fn  url_decode( encoded: &String) -> Result<String,IllegalStateException>  {
+    fn url_decode(encoded: &String) -> Result<String, IllegalStateException> {
         return URLDecoder::decode(&encoded, "UTF-8");
         /*let tryResult1 = 0;
-        'try1: loop {
-        {
-            return URLDecoder::decode(&encoded, "UTF-8");
-        }
-        break 'try1
-        }
-        match tryResult1 {
-             catch ( uee: &UnsupportedEncodingException) {
-                throw IllegalStateException::new(&uee);
-            }  0 => break
-        }
-*/
+                'try1: loop {
+                {
+                    return URLDecoder::decode(&encoded, "UTF-8");
+                }
+                break 'try1
+                }
+                match tryResult1 {
+                     catch ( uee: &UnsupportedEncodingException) {
+                        throw IllegalStateException::new(&uee);
+                    }  0 => break
+                }
+        */
     }
 
-    fn  match_prefixed_field( prefix: &String,  raw_text: &String,  end_char: char,  trim: bool) -> Vec<String>  {
-         let mut matches: List<String> = null;
-         let mut i: i32 = 0;
-         let max: i32 = raw_text.length();
+    fn match_prefixed_field(
+        prefix: &String,
+        raw_text: &String,
+        end_char: char,
+        trim: bool,
+    ) -> Vec<String> {
+        let mut matches: List<String> = null;
+        let mut i: i32 = 0;
+        let max: i32 = raw_text.length();
         while i < max {
             i = raw_text.index_of(&prefix, i);
             if i < 0 {
@@ -256,8 +287,8 @@ trait ResultParser {
             // Skip past this prefix we found to start
             i += prefix.length();
             // Found the start of a match here
-             let start: i32 = i;
-             let mut more: bool = true;
+            let start: i32 = i;
+            let mut more: bool = true;
             while more {
                 i = raw_text.index_of(end_char, i);
                 if i < 0 {
@@ -273,7 +304,7 @@ trait ResultParser {
                         // lazy init
                         matches = Vec::new(3);
                     }
-                     let mut element: String = ::unescape_backslash(&raw_text.substring(start, i));
+                    let mut element: String = ::unescape_backslash(&raw_text.substring(start, i));
                     if trim {
                         element = element.trim();
                     }
@@ -291,10 +322,10 @@ trait ResultParser {
         return matches.to_array(&EMPTY_STR_ARRAY);
     }
 
-    fn  count_preceding_backslashes( s: &CharSequence,  pos: i32) -> i32  {
-         let mut count: i32 = 0;
-         {
-             let mut i: i32 = pos - 1;
+    fn count_preceding_backslashes(s: &CharSequence, pos: i32) -> i32 {
+        let mut count: i32 = 0;
+        {
+            let mut i: i32 = pos - 1;
             while i >= 0 {
                 {
                     if s.char_at(i) == '\\' {
@@ -304,15 +335,20 @@ trait ResultParser {
                     }
                 }
                 i -= 1;
-             }
-         }
+            }
+        }
 
         return count;
     }
 
-    fn  match_single_prefixed_field( prefix: &String,  raw_text: &String,  end_char: char,  trim: bool) -> String  {
-         let matches: Vec<String> = ::match_prefixed_field(&prefix, &raw_text, end_char, trim);
-        return  if matches == null { null } else { matches[0] };
+    fn match_single_prefixed_field(
+        prefix: &String,
+        raw_text: &String,
+        end_char: char,
+        trim: bool,
+    ) -> String {
+        let matches: Vec<String> = ::match_prefixed_field(&prefix, &raw_text, end_char, trim);
+        return if matches == null { null } else { matches[0] };
     }
 }
 
@@ -328,13 +364,16 @@ trait ResultParser {
  * @author Sean Owen
  */
 
-trait AbstractDoCoMoResultParser : ResultParser {
-
-    fn  match_do_co_mo_prefixed_field( prefix: &String,  raw_text: &String) -> Vec<String>  {
+trait AbstractDoCoMoResultParser: ResultParser {
+    fn match_do_co_mo_prefixed_field(prefix: &String, raw_text: &String) -> Vec<String> {
         return match_prefixed_field(&prefix, &raw_text, ';', true);
     }
 
-    fn  match_single_do_co_mo_prefixed_field( prefix: &String,  raw_text: &String,  trim: bool) -> String  {
+    fn match_single_do_co_mo_prefixed_field(
+        prefix: &String,
+        raw_text: &String,
+        trim: bool,
+    ) -> String {
         return match_single_prefixed_field(&prefix, &raw_text, ';', trim);
     }
 }
@@ -350,38 +389,57 @@ trait AbstractDoCoMoResultParser : ResultParser {
  */
 pub struct AddressBookAUResultParser;
 
-impl ResultParser for AddressBookAUResultParser{}
+impl ResultParser for AddressBookAUResultParser {}
 
 impl AddressBookAUResultParser {
-
-    pub fn  parse(&self,  result: &Result) -> AddressBookParsedResult  {
-         let raw_text: String = get_massaged_text(result);
+    pub fn parse(&self, result: &Result) -> AddressBookParsedResult {
+        let raw_text: String = get_massaged_text(result);
         // MEMORY is mandatory; seems like a decent indicator, as does end-of-record separator CR/LF
         if !raw_text.contains("MEMORY") || !raw_text.contains("\r\n") {
             return null;
         }
         // NAME1 and NAME2 have specific uses, namely written name and pronunciation, respectively.
         // Therefore we treat them specially instead of as an array of names.
-         let name: String = match_single_prefixed_field("NAME1:", &raw_text, '\r', true);
-         let pronunciation: String = match_single_prefixed_field("NAME2:", &raw_text, '\r', true);
-         let phone_numbers: Vec<String> = ::match_multiple_value_prefix("TEL", &raw_text);
-         let emails: Vec<String> = ::match_multiple_value_prefix("MAIL", &raw_text);
-         let note: String = match_single_prefixed_field("MEMORY:", &raw_text, '\r', false);
-         let address: String = match_single_prefixed_field("ADD:", &raw_text, '\r', true);
-         let addresses: Vec<String> =  if address == null { null } else {   vec![address, ]
-         };
-        return AddressBookParsedResult::new(&maybe_wrap(&name), null, Some(&pronunciation), &phone_numbers, null, &emails, null, null, Some(&note), &addresses, null, null, null, null, null, null);
-
+        let name: String = match_single_prefixed_field("NAME1:", &raw_text, '\r', true);
+        let pronunciation: String = match_single_prefixed_field("NAME2:", &raw_text, '\r', true);
+        let phone_numbers: Vec<String> = ::match_multiple_value_prefix("TEL", &raw_text);
+        let emails: Vec<String> = ::match_multiple_value_prefix("MAIL", &raw_text);
+        let note: String = match_single_prefixed_field("MEMORY:", &raw_text, '\r', false);
+        let address: String = match_single_prefixed_field("ADD:", &raw_text, '\r', true);
+        let addresses: Vec<String> = if address == null { null } else { vec![address] };
+        return AddressBookParsedResult::new(
+            &maybe_wrap(&name),
+            null,
+            Some(&pronunciation),
+            &phone_numbers,
+            null,
+            &emails,
+            null,
+            null,
+            Some(&note),
+            &addresses,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+        );
     }
 
-    fn  match_multiple_value_prefix( prefix: &String,  raw_text: &String) -> Vec<String>  {
-         let mut values: Vec<String> = null;
+    fn match_multiple_value_prefix(prefix: &String, raw_text: &String) -> Vec<String> {
+        let mut values: Vec<String> = null;
         // For now, always 3, and always trim
-         {
-             let mut i: i32 = 1;
+        {
+            let mut i: i32 = 1;
             while i <= 3 {
                 {
-                     let value: String = match_single_prefixed_field(format!("{}{}:", prefix, i), &raw_text, '\r', true);
+                    let value: String = match_single_prefixed_field(
+                        format!("{}{}:", prefix, i),
+                        &raw_text,
+                        '\r',
+                        true,
+                    );
                     if value == null {
                         break;
                     }
@@ -392,8 +450,8 @@ impl AddressBookAUResultParser {
                     values.add(&value);
                 }
                 i += 1;
-             }
-         }
+            }
+        }
 
         if values == null {
             return null;
@@ -420,39 +478,55 @@ impl AddressBookAUResultParser {
  */
 pub struct AddressBookDoCoMoResultParser;
 
-impl AbstractDoCoMoResultParser for AddressBookDoCoMoResultParser{}
+impl AbstractDoCoMoResultParser for AddressBookDoCoMoResultParser {}
 
 impl AddressBookDoCoMoResultParser {
-
-    pub fn  parse(&self,  result: &Result) -> AddressBookParsedResult  {
-         let raw_text: String = get_massaged_text(result);
+    pub fn parse(&self, result: &Result) -> AddressBookParsedResult {
+        let raw_text: String = get_massaged_text(result);
         if !raw_text.starts_with("MECARD:") {
             return null;
         }
-         let raw_name: Vec<String> = match_do_co_mo_prefixed_field("N:", &raw_text);
+        let raw_name: Vec<String> = match_do_co_mo_prefixed_field("N:", &raw_text);
         if raw_name == null {
             return null;
         }
-         let name: String = ::parse_name(raw_name[0]);
-         let pronunciation: String = match_single_do_co_mo_prefixed_field("SOUND:", &raw_text, true);
-         let phone_numbers: Vec<String> = match_do_co_mo_prefixed_field("TEL:", &raw_text);
-         let emails: Vec<String> = match_do_co_mo_prefixed_field("EMAIL:", &raw_text);
-         let note: String = match_single_do_co_mo_prefixed_field("NOTE:", &raw_text, false);
-         let addresses: Vec<String> = match_do_co_mo_prefixed_field("ADR:", &raw_text);
-         let mut birthday: String = match_single_do_co_mo_prefixed_field("BDAY:", &raw_text, true);
+        let name: String = ::parse_name(raw_name[0]);
+        let pronunciation: String = match_single_do_co_mo_prefixed_field("SOUND:", &raw_text, true);
+        let phone_numbers: Vec<String> = match_do_co_mo_prefixed_field("TEL:", &raw_text);
+        let emails: Vec<String> = match_do_co_mo_prefixed_field("EMAIL:", &raw_text);
+        let note: String = match_single_do_co_mo_prefixed_field("NOTE:", &raw_text, false);
+        let addresses: Vec<String> = match_do_co_mo_prefixed_field("ADR:", &raw_text);
+        let mut birthday: String = match_single_do_co_mo_prefixed_field("BDAY:", &raw_text, true);
         if !is_string_of_digits(&birthday, 8) {
             // No reason to throw out the whole card because the birthday is formatted wrong.
             birthday = null;
         }
-         let urls: Vec<String> = match_do_co_mo_prefixed_field("URL:", &raw_text);
+        let urls: Vec<String> = match_do_co_mo_prefixed_field("URL:", &raw_text);
         // Although ORG may not be strictly legal in MECARD, it does exist in VCARD and we might as well
         // honor it when found in the wild.
-         let org: String = match_single_do_co_mo_prefixed_field("ORG:", &raw_text, true);
-        return AddressBookParsedResult::new(&maybe_wrap(&name), null, Some(&pronunciation), &phone_numbers, null, &emails, null, null, Some(&note), &addresses, null, Some(&org), Some(&birthday), null, Some(&urls), null);
+        let org: String = match_single_do_co_mo_prefixed_field("ORG:", &raw_text, true);
+        return AddressBookParsedResult::new(
+            &maybe_wrap(&name),
+            null,
+            Some(&pronunciation),
+            &phone_numbers,
+            null,
+            &emails,
+            null,
+            null,
+            Some(&note),
+            &addresses,
+            null,
+            Some(&org),
+            Some(&birthday),
+            null,
+            Some(&urls),
+            null,
+        );
     }
 
-    fn  parse_name( name: &String) -> String  {
-         let comma: i32 = name.index_of(',');
+    fn parse_name(name: &String) -> String {
+        let comma: i32 = name.index_of(',');
         if comma >= 0 {
             // Format may be last,first; switch it around
             return name.substring(comma + 1) + ' ' + name.substring(0, comma);
@@ -470,55 +544,75 @@ impl AddressBookDoCoMoResultParser {
  */
 pub struct AddressBookParsedResult {
     //super: ParsedResult;
+    names: Vec<String>,
 
-      names: Vec<String>,
+    nicknames: Vec<String>,
 
-      nicknames: Vec<String>,
+    pronunciation: String,
 
-      pronunciation: String,
+    phone_numbers: Vec<String>,
 
-      phone_numbers: Vec<String>,
+    phone_types: Vec<String>,
 
-      phone_types: Vec<String>,
+    emails: Vec<String>,
 
-      emails: Vec<String>,
+    email_types: Vec<String>,
 
-      email_types: Vec<String>,
+    instant_messenger: String,
 
-      instant_messenger: String,
+    note: String,
 
-      note: String,
+    addresses: Vec<String>,
 
-      addresses: Vec<String>,
+    address_types: Vec<String>,
 
-      address_types: Vec<String>,
+    org: String,
 
-      org: String,
+    birthday: String,
 
-      birthday: String,
+    title: String,
 
-      title: String,
+    urls: Vec<String>,
 
-      urls: Vec<String>,
-
-      geo: Vec<String>
+    geo: Vec<String>,
 }
 
-impl ParsedResult for AddressBookParsedResult{
-
-}
+impl ParsedResult for AddressBookParsedResult {}
 
 impl AddressBookParsedResult {
-
-    pub fn new( names: &Vec<String>,  nicknames: Option<&Vec<String>>,  pronunciation: Option<&String>,  phone_numbers: &Vec<String>,  phone_types: &Vec<String>,  emails: &Vec<String>,  email_types: &Vec<String>,  instant_messenger: Option<&String>,  note: Option<&String>,  addresses: &Vec<String>,  address_types: &Vec<String>,  org: Option<&String>,  birthday: Option<&String>,  title: Option<&String>,  urls: Option<&Vec<String>>,  geo: Option<&Vec<String>>) -> Result<Self,IllegalArgumentException> {
-        if phone_numbers != null && phone_types != null && phone_numbers.len() != phone_types.len() {
-            return Err( IllegalArgumentException::new("Phone numbers and types lengths differ"));
+    pub fn new(
+        names: &Vec<String>,
+        nicknames: Option<&Vec<String>>,
+        pronunciation: Option<&String>,
+        phone_numbers: &Vec<String>,
+        phone_types: &Vec<String>,
+        emails: &Vec<String>,
+        email_types: &Vec<String>,
+        instant_messenger: Option<&String>,
+        note: Option<&String>,
+        addresses: &Vec<String>,
+        address_types: &Vec<String>,
+        org: Option<&String>,
+        birthday: Option<&String>,
+        title: Option<&String>,
+        urls: Option<&Vec<String>>,
+        geo: Option<&Vec<String>>,
+    ) -> Result<Self, IllegalArgumentException> {
+        if phone_numbers != null && phone_types != null && phone_numbers.len() != phone_types.len()
+        {
+            return Err(IllegalArgumentException::new(
+                "Phone numbers and types lengths differ",
+            ));
         }
         if emails != null && email_types != null && emails.len() != email_types.len() {
-            return Err( IllegalArgumentException::new("Emails and types lengths differ"));
+            return Err(IllegalArgumentException::new(
+                "Emails and types lengths differ",
+            ));
         }
         if addresses != null && address_types != null && addresses.len() != address_types.len() {
-            return Err( IllegalArgumentException::new("Addresses and types lengths differ"));
+            return Err(IllegalArgumentException::new(
+                "Addresses and types lengths differ",
+            ));
         }
         Ok(Self {
             names: names,
@@ -540,96 +634,96 @@ impl AddressBookParsedResult {
         })
     }
 
-    pub fn  get_names(&self) -> Vec<String>  {
+    pub fn get_names(&self) -> Vec<String> {
         return self.names;
     }
 
-    pub fn  get_nicknames(&self) -> Vec<String>  {
+    pub fn get_nicknames(&self) -> Vec<String> {
         return self.nicknames;
     }
 
     /**
-   * In Japanese, the name is written in kanji, which can have multiple readings. Therefore a hint
-   * is often provided, called furigana, which spells the name phonetically.
-   *
-   * @return The pronunciation of the getNames() field, often in hiragana or katakana.
-   */
-    pub fn  get_pronunciation(&self) -> String  {
+     * In Japanese, the name is written in kanji, which can have multiple readings. Therefore a hint
+     * is often provided, called furigana, which spells the name phonetically.
+     *
+     * @return The pronunciation of the getNames() field, often in hiragana or katakana.
+     */
+    pub fn get_pronunciation(&self) -> String {
         return self.pronunciation;
     }
 
-    pub fn  get_phone_numbers(&self) -> Vec<String>  {
+    pub fn get_phone_numbers(&self) -> Vec<String> {
         return self.phone_numbers;
     }
 
     /**
-   * @return optional descriptions of the type of each phone number. It could be like "HOME", but,
-   *  there is no guaranteed or standard format.
-   */
-    pub fn  get_phone_types(&self) -> Vec<String>  {
+     * @return optional descriptions of the type of each phone number. It could be like "HOME", but,
+     *  there is no guaranteed or standard format.
+     */
+    pub fn get_phone_types(&self) -> Vec<String> {
         return self.phone_types;
     }
 
-    pub fn  get_emails(&self) -> Vec<String>  {
+    pub fn get_emails(&self) -> Vec<String> {
         return self.emails;
     }
 
     /**
-   * @return optional descriptions of the type of each e-mail. It could be like "WORK", but,
-   *  there is no guaranteed or standard format.
-   */
-    pub fn  get_email_types(&self) -> Vec<String>  {
+     * @return optional descriptions of the type of each e-mail. It could be like "WORK", but,
+     *  there is no guaranteed or standard format.
+     */
+    pub fn get_email_types(&self) -> Vec<String> {
         return self.email_types;
     }
 
-    pub fn  get_instant_messenger(&self) -> String  {
+    pub fn get_instant_messenger(&self) -> String {
         return self.instant_messenger;
     }
 
-    pub fn  get_note(&self) -> String  {
+    pub fn get_note(&self) -> String {
         return self.note;
     }
 
-    pub fn  get_addresses(&self) -> Vec<String>  {
+    pub fn get_addresses(&self) -> Vec<String> {
         return self.addresses;
     }
 
     /**
-   * @return optional descriptions of the type of each e-mail. It could be like "WORK", but,
-   *  there is no guaranteed or standard format.
-   */
-    pub fn  get_address_types(&self) -> Vec<String>  {
+     * @return optional descriptions of the type of each e-mail. It could be like "WORK", but,
+     *  there is no guaranteed or standard format.
+     */
+    pub fn get_address_types(&self) -> Vec<String> {
         return self.address_types;
     }
 
-    pub fn  get_title(&self) -> String  {
+    pub fn get_title(&self) -> String {
         return self.title;
     }
 
-    pub fn  get_org(&self) -> String  {
+    pub fn get_org(&self) -> String {
         return self.org;
     }
 
-    pub fn  get_u_r_ls(&self) -> Vec<String>  {
+    pub fn get_u_r_ls(&self) -> Vec<String> {
         return self.urls;
     }
 
     /**
-   * @return birthday formatted as yyyyMMdd (e.g. 19780917)
-   */
-    pub fn  get_birthday(&self) -> String  {
+     * @return birthday formatted as yyyyMMdd (e.g. 19780917)
+     */
+    pub fn get_birthday(&self) -> String {
         return self.birthday;
     }
 
     /**
-   * @return a location as a latitude/longitude pair
-   */
-    pub fn  get_geo(&self) -> Vec<String>  {
+     * @return a location as a latitude/longitude pair
+     */
+    pub fn get_geo(&self) -> Vec<String> {
         return self.geo;
     }
 
-    pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new();
+    pub fn get_display_result(&self) -> String {
+        let result: String = String::new();
         maybe_append(&self.names, &result);
         maybe_append(&self.nicknames, &result);
         maybe_append(&self.pronunciation, &result);
@@ -657,33 +751,49 @@ impl AddressBookParsedResult {
  */
 pub struct BizcardResultParser;
 
-impl AbstractDoCoMoResultParser for BizcardResultParser{}
+impl AbstractDoCoMoResultParser for BizcardResultParser {}
 
 impl BizcardResultParser {
-
     // Yes, we extend AbstractDoCoMoResultParser since the format is very much
     // like the DoCoMo MECARD format, but this is not technically one of
     // DoCoMo's proposed formats
-    pub fn  parse(&self,  result: &Result) -> AddressBookParsedResult  {
-         let raw_text: String = get_massaged_text(result);
+    pub fn parse(&self, result: &Result) -> AddressBookParsedResult {
+        let raw_text: String = get_massaged_text(result);
         if !raw_text.starts_with("BIZCARD:") {
             return null;
         }
-         let first_name: String = match_single_do_co_mo_prefixed_field("N:", &raw_text, true);
-         let last_name: String = match_single_do_co_mo_prefixed_field("X:", &raw_text, true);
-         let full_name: String = ::build_name(&first_name, &last_name);
-         let title: String = match_single_do_co_mo_prefixed_field("T:", &raw_text, true);
-         let org: String = match_single_do_co_mo_prefixed_field("C:", &raw_text, true);
-         let addresses: Vec<String> = match_do_co_mo_prefixed_field("A:", &raw_text);
-         let phone_number1: String = match_single_do_co_mo_prefixed_field("B:", &raw_text, true);
-         let phone_number2: String = match_single_do_co_mo_prefixed_field("M:", &raw_text, true);
-         let phone_number3: String = match_single_do_co_mo_prefixed_field("F:", &raw_text, true);
-         let email: String = match_single_do_co_mo_prefixed_field("E:", &raw_text, true);
-        return AddressBookParsedResult::new(&maybe_wrap(&full_name), null, null, &::build_phone_numbers(&phone_number1, &phone_number2, &phone_number3), null, &maybe_wrap(&email), null, null, null, &addresses, null, Some(&org), null, Some(&title), null, null);
+        let first_name: String = match_single_do_co_mo_prefixed_field("N:", &raw_text, true);
+        let last_name: String = match_single_do_co_mo_prefixed_field("X:", &raw_text, true);
+        let full_name: String = ::build_name(&first_name, &last_name);
+        let title: String = match_single_do_co_mo_prefixed_field("T:", &raw_text, true);
+        let org: String = match_single_do_co_mo_prefixed_field("C:", &raw_text, true);
+        let addresses: Vec<String> = match_do_co_mo_prefixed_field("A:", &raw_text);
+        let phone_number1: String = match_single_do_co_mo_prefixed_field("B:", &raw_text, true);
+        let phone_number2: String = match_single_do_co_mo_prefixed_field("M:", &raw_text, true);
+        let phone_number3: String = match_single_do_co_mo_prefixed_field("F:", &raw_text, true);
+        let email: String = match_single_do_co_mo_prefixed_field("E:", &raw_text, true);
+        return AddressBookParsedResult::new(
+            &maybe_wrap(&full_name),
+            null,
+            null,
+            &::build_phone_numbers(&phone_number1, &phone_number2, &phone_number3),
+            null,
+            &maybe_wrap(&email),
+            null,
+            null,
+            null,
+            &addresses,
+            null,
+            Some(&org),
+            null,
+            Some(&title),
+            null,
+            null,
+        );
     }
 
-    fn  build_phone_numbers( number1: &String,  number2: &String,  number3: &String) -> Vec<String>  {
-         let numbers: List<String> = Vec::new();
+    fn build_phone_numbers(number1: &String, number2: &String, number3: &String) -> Vec<String> {
+        let numbers: List<String> = Vec::new();
         if number1 != null {
             numbers.add(&number1);
         }
@@ -693,18 +803,22 @@ impl BizcardResultParser {
         if number3 != null {
             numbers.add(&number3);
         }
-         let size: i32 = numbers.size();
+        let size: i32 = numbers.size();
         if size == 0 {
             return null;
         }
-        return numbers.to_array( [None; size]);
+        return numbers.to_array([None; size]);
     }
 
-    fn  build_name( first_name: &String,  last_name: &String) -> String  {
+    fn build_name(first_name: &String, last_name: &String) -> String {
         if first_name == null {
             return last_name;
         } else {
-            return  if last_name == null { first_name } else { format!("{} {}", first_name, last_name) };
+            return if last_name == null {
+                first_name
+            } else {
+                format!("{} {}", first_name, last_name)
+            };
         }
     }
 }
@@ -717,22 +831,25 @@ pub struct BookmarkDoCoMoResultParser {
     //super: AbstractDoCoMoResultParser;
 }
 
-impl AbstractDoCoMoResultParser for BookmarkDoCoMoResultParser{}
+impl AbstractDoCoMoResultParser for BookmarkDoCoMoResultParser {}
 
 impl BookmarkDoCoMoResultParser {
-
-    pub fn  parse(&self,  result: &Result) -> URIParsedResult  {
-         let raw_text: String = result.get_text();
+    pub fn parse(&self, result: &Result) -> URIParsedResult {
+        let raw_text: String = result.get_text();
         if !raw_text.starts_with("MEBKM:") {
             return null;
         }
-         let title: String = match_single_do_co_mo_prefixed_field("TITLE:", &raw_text, true);
-         let raw_uri: Vec<String> = match_do_co_mo_prefixed_field("URL:", &raw_text);
+        let title: String = match_single_do_co_mo_prefixed_field("TITLE:", &raw_text, true);
+        let raw_uri: Vec<String> = match_do_co_mo_prefixed_field("URL:", &raw_text);
         if raw_uri == null {
             return null;
         }
-         let uri: String = raw_uri[0];
-        return  if URIResultParser::is_basically_valid_u_r_i(&uri) { URIParsedResult::new(&uri, &title) } else { null };
+        let uri: String = raw_uri[0];
+        return if URIResultParser::is_basically_valid_u_r_i(&uri) {
+            URIParsedResult::new(&uri, &title)
+        } else {
+            null
+        };
     }
 }
 
@@ -744,241 +861,261 @@ impl BookmarkDoCoMoResultParser {
  * @author Sean Owen
  */
 
-const RFC2445_DURATION: Pattern = Pattern::compile("P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?");
+const RFC2445_DURATION: Pattern =
+    Pattern::compile("P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?");
 
-const RFC2445_DURATION_FIELD_UNITS: vec![Vec<i64>; 5] = vec![// 1 week
-7 * 24 * 60 * 60 * 1000, // 1 day
-24 * 60 * 60 * 1000, // 1 hour
-60 * 60 * 1000, // 1 minute
-60 * 1000, // 1 second
-1000, ]
-;
+const RFC2445_DURATION_FIELD_UNITS: vec![Vec<i64>; 5] = vec![
+    // 1 week
+    7 * 24 * 60 * 60 * 1000, // 1 day
+    24 * 60 * 60 * 1000,     // 1 hour
+    60 * 60 * 1000,          // 1 minute
+    60 * 1000,               // 1 second
+    1000,
+];
 
 const DATE_TIME: Pattern = Pattern::compile("[0-9]{8}(T[0-9]{6}Z?)?");
 pub struct CalendarParsedResult {
-   //super: ParsedResult;
+    //super: ParsedResult;
+    summary: String,
 
-     summary: String,
+    start: i64,
 
-     start: i64,
+    start_all_day: bool,
 
-     start_all_day: bool,
+    end: i64,
 
-     end: i64,
+    end_all_day: bool,
 
-     end_all_day: bool,
+    location: String,
 
-     location: String,
+    organizer: String,
 
-     organizer: String,
+    attendees: Vec<String>,
 
-     attendees: Vec<String>,
+    description: String,
 
-     description: String,
+    latitude: f64,
 
-     latitude: f64,
-
-     longitude: f64
+    longitude: f64,
 }
 
-impl ParsedResult for CalendarParsedResult{}
+impl ParsedResult for CalendarParsedResult {}
 
 impl CalendarParsedResult {
+    pub fn new(
+        summary: &String,
+        start_string: &String,
+        end_string: &String,
+        duration_string: &String,
+        location: &String,
+        organizer: &String,
+        attendees: &Vec<String>,
+        description: &String,
+        latitude: f64,
+        longitude: f64,
+    ) -> Result<Self, IllegalArgumentException> {
+        let new_cpr: Self;
 
-   pub fn new( summary: &String,  start_string: &String,  end_string: &String,  duration_string: &String,  location: &String,  organizer: &String,  attendees: &Vec<String>,  description: &String,  latitude: f64,  longitude: f64) -> Result<Self,IllegalArgumentException> {
-    let new_cpr : Self;
-
-    new_cpr .summary = summary;
-       
+        new_cpr.summary = summary;
 
         let strt = CalendarParsedResult::parse_date(&start_string);
         if strt.is_err() {
-            return Err(IllegalArgumentException::new(&pe.to_string()))
+            return Err(IllegalArgumentException::new(&pe.to_string()));
         }
         new_cpr.start = strt.unwrap();
-        
 
-       if end_string == null {
+        if end_string == null {
             let duration_m_s: i64 = ::parse_duration_m_s(&duration_string);
-            new_cpr.end =  if duration_m_s < 0 { -1 } else { start + duration_m_s };
-       } else {
-let en = Self::parse_date(&end_string);
-if en.is_err() {
-return Err(IllegalArgumentException::new(&pe.to_string()));
-}
-new_cpr.end = ::parse_date(&end_string);
+            new_cpr.end = if duration_m_s < 0 {
+                -1
+            } else {
+                start + duration_m_s
+            };
+        } else {
+            let en = Self::parse_date(&end_string);
+            if en.is_err() {
+                return Err(IllegalArgumentException::new(&pe.to_string()));
+            }
+            new_cpr.end = ::parse_date(&end_string);
+        }
+        new_cpr.startAllDay = start_string.length() == 8;
+        new_cpr.endAllDay = end_string != null && end_string.length() == 8;
+        new_cpr.location = location;
+        new_cpr.organizer = organizer;
+        new_cpr.attendees = attendees;
+        new_cpr.description = description;
+        new_cpr.latitude = latitude;
+        new_cpr.longitude = longitude;
 
+        Ok(new_cpr)
+    }
 
-       }
-       new_cpr .startAllDay = start_string.length() == 8;
-       new_cpr .endAllDay = end_string != null && end_string.length() == 8;
-       new_cpr .location = location;
-       new_cpr .organizer = organizer;
-       new_cpr .attendees = attendees;
-       new_cpr .description = description;
-       new_cpr .latitude = latitude;
-       new_cpr .longitude = longitude;
+    pub fn get_summary(&self) -> String {
+        return self.summary;
+    }
 
-       Ok(new_cpr)
-   }
+    /**
+     * @return start time
+     * @deprecated use {@link #getStartTimestamp()}
+     */
+    pub fn get_start(&self) -> Date {
+        return Date::new(self.start);
+    }
 
-   pub fn  get_summary(&self) -> String  {
-       return self.summary;
-   }
+    /**
+     * @return start time
+     * @see #getEndTimestamp()
+     */
+    pub fn get_start_timestamp(&self) -> i64 {
+        return self.start;
+    }
 
-   /**
-  * @return start time
-  * @deprecated use {@link #getStartTimestamp()}
-  */
-   pub fn  get_start(&self) -> Date  {
-       return Date::new(self.start);
-   }
+    /**
+     * @return true if start time was specified as a whole day
+     */
+    pub fn is_start_all_day(&self) -> bool {
+        return self.start_all_day;
+    }
 
-   /**
-  * @return start time
-  * @see #getEndTimestamp()
-  */
-   pub fn  get_start_timestamp(&self) -> i64  {
-       return self.start;
-   }
+    /**
+     * @return event end {@link Date}, or {@code null} if event has no duration
+     * @deprecated use {@link #getEndTimestamp()}
+     */
+    pub fn get_end(&self) -> Date {
+        return if self.end < 0 {
+            null
+        } else {
+            Date::new(self.end)
+        };
+    }
 
-   /**
-  * @return true if start time was specified as a whole day
-  */
-   pub fn  is_start_all_day(&self) -> bool  {
-       return self.start_all_day;
-   }
+    /**
+     * @return event end {@link Date}, or -1 if event has no duration
+     * @see #getStartTimestamp()
+     */
+    pub fn get_end_timestamp(&self) -> i64 {
+        return self.end;
+    }
 
-   /**
-  * @return event end {@link Date}, or {@code null} if event has no duration
-  * @deprecated use {@link #getEndTimestamp()}
-  */
-   pub fn  get_end(&self) -> Date  {
-       return  if self.end < 0 { null } else { Date::new(self.end) };
-   }
+    /**
+     * @return true if end time was specified as a whole day
+     */
+    pub fn is_end_all_day(&self) -> bool {
+        return self.end_all_day;
+    }
 
-   /**
-  * @return event end {@link Date}, or -1 if event has no duration
-  * @see #getStartTimestamp()
-  */
-   pub fn  get_end_timestamp(&self) -> i64  {
-       return self.end;
-   }
+    pub fn get_location(&self) -> String {
+        return self.location;
+    }
 
-   /**
-  * @return true if end time was specified as a whole day
-  */
-   pub fn  is_end_all_day(&self) -> bool  {
-       return self.end_all_day;
-   }
+    pub fn get_organizer(&self) -> String {
+        return self.organizer;
+    }
 
-   pub fn  get_location(&self) -> String  {
-       return self.location;
-   }
+    pub fn get_attendees(&self) -> Vec<String> {
+        return self.attendees;
+    }
 
-   pub fn  get_organizer(&self) -> String  {
-       return self.organizer;
-   }
+    pub fn get_description(&self) -> String {
+        return self.description;
+    }
 
-   pub fn  get_attendees(&self) -> Vec<String>  {
-       return self.attendees;
-   }
+    pub fn get_latitude(&self) -> f64 {
+        return self.latitude;
+    }
 
-   pub fn  get_description(&self) -> String  {
-       return self.description;
-   }
+    pub fn get_longitude(&self) -> f64 {
+        return self.longitude;
+    }
 
-   pub fn  get_latitude(&self) -> f64  {
-       return self.latitude;
-   }
-
-   pub fn  get_longitude(&self) -> f64  {
-       return self.longitude;
-   }
-
-   pub fn  get_display_result(&self) -> String  {
+    pub fn get_display_result(&self) -> String {
         let result: String = String::new();
-       maybe_append(&self.summary, &result);
-       maybe_append(&::format(self.start_all_day, self.start), &result);
-       maybe_append(&::format(self.end_all_day, self.end), &result);
-       maybe_append(&self.location, &result);
-       maybe_append(&self.organizer, &result);
-       maybe_append(&self.attendees, &result);
-       maybe_append(&self.description, &result);
-       return result.to_string();
-   }
+        maybe_append(&self.summary, &result);
+        maybe_append(&::format(self.start_all_day, self.start), &result);
+        maybe_append(&::format(self.end_all_day, self.end), &result);
+        maybe_append(&self.location, &result);
+        maybe_append(&self.organizer, &result);
+        maybe_append(&self.attendees, &result);
+        maybe_append(&self.description, &result);
+        return result.to_string();
+    }
 
-   /**
-  * Parses a string as a date. RFC 2445 allows the start and end fields to be of type DATE (e.g. 20081021)
-  * or DATE-TIME (e.g. 20081021T123000 for local time, or 20081021T123000Z for UTC).
-  *
-  * @param when The string to parse
-  * @throws ParseException if not able to parse as a date
-  */
-   fn  parse_date( when: &String) -> Result<i64, ParseException>   {
-       if !DATE_TIME::is_match(&when) {
-           return Err( ParseException::new(&when, 0));
-       }
-       if when.length() == 8 {
-           // Show only year/month/day
+    /**
+     * Parses a string as a date. RFC 2445 allows the start and end fields to be of type DATE (e.g. 20081021)
+     * or DATE-TIME (e.g. 20081021T123000 for local time, or 20081021T123000Z for UTC).
+     *
+     * @param when The string to parse
+     * @throws ParseException if not able to parse as a date
+     */
+    fn parse_date(when: &String) -> Result<i64, ParseException> {
+        if !DATE_TIME::is_match(&when) {
+            return Err(ParseException::new(&when, 0));
+        }
+        if when.length() == 8 {
+            // Show only year/month/day
             let format: DateFormat = SimpleDateFormat::new("yyyyMMdd", Locale::ENGLISH);
-           // For dates without a time, for purposes of interacting with Android, the resulting timestamp
-           // needs to be midnight of that day in GMT. See:
-           // http://code.google.com/p/android/issues/detail?id=8330
-           format.set_time_zone(&TimeZone::get_time_zone("GMT"));
-           return Ok(format.parse(&when).get_time());
-       }
-       // The when string can be local time, or UTC if it ends with a Z
-       if when.length() == 16 && when.char_at(15) == 'Z' {
+            // For dates without a time, for purposes of interacting with Android, the resulting timestamp
+            // needs to be midnight of that day in GMT. See:
+            // http://code.google.com/p/android/issues/detail?id=8330
+            format.set_time_zone(&TimeZone::get_time_zone("GMT"));
+            return Ok(format.parse(&when).get_time());
+        }
+        // The when string can be local time, or UTC if it ends with a Z
+        if when.length() == 16 && when.char_at(15) == 'Z' {
             let mut milliseconds: i64 = ::parse_date_time_string(&when.substring(0, 15));
             let calendar: Calendar = GregorianCalendar::new();
-           // Account for time zone difference
-           milliseconds += calendar.get(Calendar::ZONE_OFFSET);
-           // Might need to correct for daylight savings time, but use target time since
-           // now might be in DST but not then, or vice versa
-           calendar.set_time(Date::new(milliseconds));
-           return Ok(milliseconds + calendar.get(Calendar::DST_OFFSET));
-       }
-       return Ok(::parse_date_time_string(&when));
-   }
+            // Account for time zone difference
+            milliseconds += calendar.get(Calendar::ZONE_OFFSET);
+            // Might need to correct for daylight savings time, but use target time since
+            // now might be in DST but not then, or vice versa
+            calendar.set_time(Date::new(milliseconds));
+            return Ok(milliseconds + calendar.get(Calendar::DST_OFFSET));
+        }
+        return Ok(::parse_date_time_string(&when));
+    }
 
-   fn  format( all_day: bool,  date: i64) -> String  {
-       if date < 0 {
-           return null;
-       }
-        let format: DateFormat =  if all_day { DateFormat::get_date_instance(DateFormat::MEDIUM) } else { DateFormat::get_date_time_instance(DateFormat::MEDIUM, DateFormat::MEDIUM) };
-       return format.format(date);
-   }
+    fn format(all_day: bool, date: i64) -> String {
+        if date < 0 {
+            return null;
+        }
+        let format: DateFormat = if all_day {
+            DateFormat::get_date_instance(DateFormat::MEDIUM)
+        } else {
+            DateFormat::get_date_time_instance(DateFormat::MEDIUM, DateFormat::MEDIUM)
+        };
+        return format.format(date);
+    }
 
-   fn  parse_duration_m_s( duration_string: &CharSequence) -> i64  {
-       if duration_string == null {
-           return -1;
-       }
+    fn parse_duration_m_s(duration_string: &CharSequence) -> i64 {
+        if duration_string == null {
+            return -1;
+        }
         let m: Matcher = RFC2445_DURATION::matcher(&duration_string);
-       if !m.matches() {
-           return -1;
-       }
+        if !m.matches() {
+            return -1;
+        }
         let duration_m_s: i64 = 0;
         {
             let mut i: i32 = 0;
-           while i < RFC2445_DURATION_FIELD_UNITS.len() {
-               {
+            while i < RFC2445_DURATION_FIELD_UNITS.len() {
+                {
                     let field_value: String = m.group(i + 1);
-                   if field_value != null {
-                       duration_m_s += RFC2445_DURATION_FIELD_UNITS[i] * Integer::parse_int(&field_value);
-                   }
-               }
-               i += 1;
+                    if field_value != null {
+                        duration_m_s +=
+                            RFC2445_DURATION_FIELD_UNITS[i] * Integer::parse_int(&field_value);
+                    }
+                }
+                i += 1;
             }
         }
 
-       return duration_m_s;
-   }
+        return duration_m_s;
+    }
 
-   fn  parse_date_time_string( date_time_string: &String) ->Result<i64, ParseException>   {
+    fn parse_date_time_string(date_time_string: &String) -> Result<i64, ParseException> {
         let format: DateFormat = SimpleDateFormat::new("yyyyMMdd'T'HHmmss", Locale::ENGLISH);
-       return Ok(format.parse(&date_time_string).get_time());
-   }
+        return Ok(format.parse(&date_time_string).get_time());
+    }
 }
 
 // EmailAddressParsedResult.java
@@ -990,65 +1127,79 @@ new_cpr.end = ::parse_date(&end_string);
  */
 pub struct EmailAddressParsedResult {
     //super: ParsedResult;
+    tos: Vec<String>,
 
-      tos: Vec<String>,
+    ccs: Vec<String>,
 
-      ccs: Vec<String>,
+    bccs: Vec<String>,
 
-      bccs: Vec<String>,
+    subject: String,
 
-      subject: String,
-
-      body: String
+    body: String,
 }
 
-impl ParsedResult for EmailAddressParsedResult{}
+impl ParsedResult for EmailAddressParsedResult {}
 
 impl EmailAddressParsedResult {
-
-    fn new( tos: &Vec<String>,  ccs: Option<&Vec<String>>,  bccs: Option<&Vec<String>>,  subject: Option<&String>,  body: Option<&String>) -> Self {
+    fn new(
+        tos: &Vec<String>,
+        ccs: Option<&Vec<String>>,
+        bccs: Option<&Vec<String>>,
+        subject: Option<&String>,
+        body: Option<&String>,
+    ) -> Self {
         //super(ParsedResultType::EMAIL_ADDRESS);
-        Self { tos: tos, ccs: ccs, bccs: bccs, subject: subject, body: body }
+        Self {
+            tos: tos,
+            ccs: ccs,
+            bccs: bccs,
+            subject: subject,
+            body: body,
+        }
     }
 
     /**
-   * @return first elements of {@link #getTos()} or {@code null} if none
-   * @deprecated use {@link #getTos()}
-   */
-    pub fn  get_email_address(&self) -> String  {
-        return  if self.tos == null || self.tos.len() == 0 { null } else { self.tos[0] };
+     * @return first elements of {@link #getTos()} or {@code null} if none
+     * @deprecated use {@link #getTos()}
+     */
+    pub fn get_email_address(&self) -> String {
+        return if self.tos == null || self.tos.len() == 0 {
+            null
+        } else {
+            self.tos[0]
+        };
     }
 
-    pub fn  get_tos(&self) -> Vec<String>  {
+    pub fn get_tos(&self) -> Vec<String> {
         return self.tos;
     }
 
-    pub fn  get_c_cs(&self) -> Vec<String>  {
+    pub fn get_c_cs(&self) -> Vec<String> {
         return self.ccs;
     }
 
-    pub fn  get_b_c_cs(&self) -> Vec<String>  {
+    pub fn get_b_c_cs(&self) -> Vec<String> {
         return self.bccs;
     }
 
-    pub fn  get_subject(&self) -> String  {
+    pub fn get_subject(&self) -> String {
         return self.subject;
     }
 
-    pub fn  get_body(&self) -> String  {
+    pub fn get_body(&self) -> String {
         return self.body;
     }
 
     /**
-   * @return "mailto:"
-   * @deprecated without replacement
-   */
-    pub fn  get_mailto_u_r_i(&self) -> &'static str  {
+     * @return "mailto:"
+     * @deprecated without replacement
+     */
+    pub fn get_mailto_u_r_i(&self) -> &'static str {
         return "mailto:";
     }
 
-    pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new();
+    pub fn get_display_result(&self) -> String {
+        let result: String = String::new();
         maybe_append(&self.tos, &result);
         maybe_append(&self.ccs, &result);
         maybe_append(&self.bccs, &result);
@@ -1071,16 +1222,15 @@ pub struct EmailAddressResultParser {
     //super: ResultParser;
 }
 
-impl ResultParser for EmailAddressResultParser{}
+impl ResultParser for EmailAddressResultParser {}
 
 impl EmailAddressResultParser {
-
-    pub fn  parse(&self,  result: &Result) -> EmailAddressParsedResult  {
-         let raw_text: String = get_massaged_text(result);
+    pub fn parse(&self, result: &Result) -> EmailAddressParsedResult {
+        let raw_text: String = get_massaged_text(result);
         if raw_text.starts_with("mailto:") || raw_text.starts_with("MAILTO:") {
             // If it starts with mailto:, assume it is definitely trying to be an email address
-             let host_email: String = raw_text.substring(7);
-             let query_start: i32 = host_email.index_of('?');
+            let host_email: String = raw_text.substring(7);
+            let query_start: i32 = host_email.index_of('?');
             if query_start >= 0 {
                 host_email = host_email.substring(0, query_start);
             }
@@ -1091,34 +1241,40 @@ impl EmailAddressResultParser {
             }
             host_email = ud;
 
-             let mut tos: Vec<String> = null;
+            let mut tos: Vec<String> = null;
             if !host_email.is_empty() {
                 tos = COMMA::split(&host_email);
             }
-             let name_values: Map<String, String> = parse_name_value_pairs(&raw_text);
-             let mut ccs: Vec<String> = null;
-             let mut bccs: Vec<String> = null;
-             let mut subject: String = null;
-             let mut body: String = null;
+            let name_values: Map<String, String> = parse_name_value_pairs(&raw_text);
+            let mut ccs: Vec<String> = null;
+            let mut bccs: Vec<String> = null;
+            let mut subject: String = null;
+            let mut body: String = null;
             if name_values != null {
                 if tos == null {
-                     let tos_string: String = name_values.get("to");
+                    let tos_string: String = name_values.get("to");
                     if tos_string != null {
                         tos = COMMA::split(&tos_string);
                     }
                 }
-                 let cc_string: String = name_values.get("cc");
+                let cc_string: String = name_values.get("cc");
                 if cc_string != null {
                     ccs = COMMA::split(&cc_string);
                 }
-                 let bcc_string: String = name_values.get("bcc");
+                let bcc_string: String = name_values.get("bcc");
                 if bcc_string != null {
                     bccs = COMMA::split(&bcc_string);
                 }
                 subject = name_values.get("subject");
                 body = name_values.get("body");
             }
-            return EmailAddressParsedResult::new(&tos, Some(&ccs), Some(&bccs), Some(&subject), Some(&body));
+            return EmailAddressParsedResult::new(
+                &tos,
+                Some(&ccs),
+                Some(&bccs),
+                Some(&subject),
+                Some(&body),
+            );
         } else {
             if !EmailDoCoMoResultParser::is_basically_valid_email_address(&raw_text) {
                 return null;
@@ -1142,36 +1298,35 @@ pub struct EmailDoCoMoResultParser {
     //super: AbstractDoCoMoResultParser;
 }
 
-impl AbstractDoCoMoResultParser for EmailDoCoMoResultParser{}
+impl AbstractDoCoMoResultParser for EmailDoCoMoResultParser {}
 
 impl EmailDoCoMoResultParser {
-
-    pub fn  parse(&self,  result: &Result) -> EmailAddressParsedResult  {
-         let raw_text: String = get_massaged_text(result);
+    pub fn parse(&self, result: &Result) -> EmailAddressParsedResult {
+        let raw_text: String = get_massaged_text(result);
         if !raw_text.starts_with("MATMSG:") {
             return null;
         }
-         let tos: Vec<String> = match_do_co_mo_prefixed_field("TO:", &raw_text);
+        let tos: Vec<String> = match_do_co_mo_prefixed_field("TO:", &raw_text);
         if tos == null {
             return null;
         }
-        for to  in tos {
+        for to in tos {
             if !::is_basically_valid_email_address(&to) {
                 return null;
             }
         }
-         let subject: String = match_single_do_co_mo_prefixed_field("SUB:", &raw_text, false);
-         let body: String = match_single_do_co_mo_prefixed_field("BODY:", &raw_text, false);
+        let subject: String = match_single_do_co_mo_prefixed_field("SUB:", &raw_text, false);
+        let body: String = match_single_do_co_mo_prefixed_field("BODY:", &raw_text, false);
         return EmailAddressParsedResult::new(&tos, null, null, Some(&subject), Some(&body));
     }
 
     /**
-   * This implements only the most basic checking for an email address's validity -- that it contains
-   * an '@' and contains no characters disallowed by RFC 2822. This is an overly lenient definition of
-   * validity. We want to generally be lenient here since this class is only intended to encapsulate what's
-   * in a barcode, not "judge" it.
-   */
-    fn  is_basically_valid_email_address( email: &String) -> bool  {
+     * This implements only the most basic checking for an email address's validity -- that it contains
+     * an '@' and contains no characters disallowed by RFC 2822. This is an overly lenient definition of
+     * validity. We want to generally be lenient here since this class is only intended to encapsulate what's
+     * in a barcode, not "judge" it.
+     */
+    fn is_basically_valid_email_address(email: &String) -> bool {
         return email != null && ATEXT_ALPHANUMERIC::is_match(&email) && email.index_of('@') >= 0;
     }
 }
@@ -1188,136 +1343,150 @@ impl EmailDoCoMoResultParser {
 const KILOGRAM: &'static str = "KG";
 
 const POUND: &'static str = "LB";
-#[Derive(Eq,PartialEq, Hash)]
+#[Derive(Eq, PartialEq, Hash)]
 pub struct ExpandedProductParsedResult {
-   //super: ParsedResult;
+    //super: ParsedResult;
+    raw_text: String,
 
-     raw_text: String,
+    product_i_d: String,
 
-     product_i_d: String,
+    sscc: String,
 
-     sscc: String,
+    lot_number: String,
 
-     lot_number: String,
+    production_date: String,
 
-     production_date: String,
+    packaging_date: String,
 
-     packaging_date: String,
+    best_before_date: String,
 
-     best_before_date: String,
+    expiration_date: String,
 
-     expiration_date: String,
+    weight: String,
 
-     weight: String,
+    weight_type: String,
 
-     weight_type: String,
+    weight_increment: String,
 
-     weight_increment: String,
+    price: String,
 
-     price: String,
+    price_increment: String,
 
-     price_increment: String,
+    price_currency: String,
 
-     price_currency: String,
-
-   // For AIS that not exist in this object
-     uncommon_a_is: Map<String, String>,
+    // For AIS that not exist in this object
+    uncommon_a_is: Map<String, String>,
 }
 
-impl ParsedResult for ExpandedProductParsedResult{}
+impl ParsedResult for ExpandedProductParsedResult {}
 
 impl ExpandedProductParsedResult {
+    pub fn new(
+        raw_text: &String,
+        product_i_d: &String,
+        sscc: &String,
+        lot_number: &String,
+        production_date: &String,
+        packaging_date: &String,
+        best_before_date: &String,
+        expiration_date: &String,
+        weight: &String,
+        weight_type: &String,
+        weight_increment: &String,
+        price: &String,
+        price_increment: &String,
+        price_currency: &String,
+        uncommon_a_is: &Map<String, String>,
+    ) -> Self {
+        let new_eppr: Self;
+        new_eppr.rawText = raw_text;
+        new_eppr.productID = product_i_d;
+        new_eppr.sscc = sscc;
+        new_eppr.lotNumber = lot_number;
+        new_eppr.productionDate = production_date;
+        new_eppr.packagingDate = packaging_date;
+        new_eppr.bestBeforeDate = best_before_date;
+        new_eppr.expirationDate = expiration_date;
+        new_eppr.weight = weight;
+        new_eppr.weightType = weight_type;
+        new_eppr.weightIncrement = weight_increment;
+        new_eppr.price = price;
+        new_eppr.priceIncrement = price_increment;
+        new_eppr.priceCurrency = price_currency;
+        new_eppr.uncommonAIs = uncommon_a_is;
 
-   pub fn new( raw_text: &String,  product_i_d: &String,  sscc: &String,  lot_number: &String,  production_date: &String,  packaging_date: &String,  best_before_date: &String,  expiration_date: &String,  weight: &String,  weight_type: &String,  weight_increment: &String,  price: &String,  price_increment: &String,  price_currency: &String,  uncommon_a_is: &Map<String, String>) -> Self {
-       let new_eppr : Self;
-       new_eppr .rawText = raw_text;
-       new_eppr .productID = product_i_d;
-       new_eppr .sscc = sscc;
-       new_eppr .lotNumber = lot_number;
-       new_eppr .productionDate = production_date;
-       new_eppr .packagingDate = packaging_date;
-       new_eppr .bestBeforeDate = best_before_date;
-       new_eppr .expirationDate = expiration_date;
-       new_eppr .weight = weight;
-       new_eppr .weightType = weight_type;
-       new_eppr .weightIncrement = weight_increment;
-       new_eppr .price = price;
-       new_eppr .priceIncrement = price_increment;
-       new_eppr .priceCurrency = price_currency;
-       new_eppr .uncommonAIs = uncommon_a_is;
+        new_eppr
+    }
 
-       new_eppr
-   }
+    pub fn get_raw_text(&self) -> String {
+        return self.raw_text;
+    }
 
-   pub fn  get_raw_text(&self) -> String  {
-       return self.raw_text;
-   }
+    pub fn get_product_i_d(&self) -> String {
+        return self.product_i_d;
+    }
 
-   pub fn  get_product_i_d(&self) -> String  {
-       return self.product_i_d;
-   }
+    pub fn get_sscc(&self) -> String {
+        return self.sscc;
+    }
 
-   pub fn  get_sscc(&self) -> String  {
-       return self.sscc;
-   }
+    pub fn get_lot_number(&self) -> String {
+        return self.lot_number;
+    }
 
-   pub fn  get_lot_number(&self) -> String  {
-       return self.lot_number;
-   }
+    pub fn get_production_date(&self) -> String {
+        return self.production_date;
+    }
 
-   pub fn  get_production_date(&self) -> String  {
-       return self.production_date;
-   }
+    pub fn get_packaging_date(&self) -> String {
+        return self.packaging_date;
+    }
 
-   pub fn  get_packaging_date(&self) -> String  {
-       return self.packaging_date;
-   }
+    pub fn get_best_before_date(&self) -> String {
+        return self.best_before_date;
+    }
 
-   pub fn  get_best_before_date(&self) -> String  {
-       return self.best_before_date;
-   }
+    pub fn get_expiration_date(&self) -> String {
+        return self.expiration_date;
+    }
 
-   pub fn  get_expiration_date(&self) -> String  {
-       return self.expiration_date;
-   }
+    pub fn get_weight(&self) -> String {
+        return self.weight;
+    }
 
-   pub fn  get_weight(&self) -> String  {
-       return self.weight;
-   }
+    pub fn get_weight_type(&self) -> String {
+        return self.weight_type;
+    }
 
-   pub fn  get_weight_type(&self) -> String  {
-       return self.weight_type;
-   }
+    pub fn get_weight_increment(&self) -> String {
+        return self.weight_increment;
+    }
 
-   pub fn  get_weight_increment(&self) -> String  {
-       return self.weight_increment;
-   }
+    pub fn get_price(&self) -> String {
+        return self.price;
+    }
 
-   pub fn  get_price(&self) -> String  {
-       return self.price;
-   }
+    pub fn get_price_increment(&self) -> String {
+        return self.price_increment;
+    }
 
-   pub fn  get_price_increment(&self) -> String  {
-       return self.price_increment;
-   }
+    pub fn get_price_currency(&self) -> String {
+        return self.price_currency;
+    }
 
-   pub fn  get_price_currency(&self) -> String  {
-       return self.price_currency;
-   }
+    pub fn get_uncommon_a_is(&self) -> Map<String, String> {
+        return self.uncommon_a_is;
+    }
 
-   pub fn  get_uncommon_a_is(&self) -> Map<String, String>  {
-       return self.uncommon_a_is;
-   }
-
-   pub fn  get_display_result(&self) -> String  {
-       return String::value_of(&self.raw_text);
-   }
+    pub fn get_display_result(&self) -> String {
+        return String::value_of(&self.raw_text);
+    }
 }
 
 // ExpandedProductResultParser.java
 /**
  * Parses strings of digits that represent a RSS Extended code.
- * 
+ *
  * @author Antonio Manuel Benjumea Conde, Servinform, S.A.
  * @author AgustÃ­n Delgado, Servinform, S.A.
  */
@@ -1325,204 +1494,159 @@ pub struct ExpandedProductResultParser {
     //super: ResultParser;
 }
 
-impl ResultParser for ExpandedProductResultParser{}
+impl ResultParser for ExpandedProductResultParser {}
 
 impl ExpandedProductResultParser {
-
-    pub fn  parse(&self,  result: &Result) -> ExpandedProductParsedResult  {
-         let format: BarcodeFormat = result.get_barcode_format();
+    pub fn parse(&self, result: &Result) -> ExpandedProductParsedResult {
+        let format: BarcodeFormat = result.get_barcode_format();
         if format != BarcodeFormat::RSS_EXPANDED {
             // ExtendedProductParsedResult NOT created. Not a RSS Expanded barcode
             return null;
         }
-         let raw_text: String = get_massaged_text(result);
-         let product_i_d: String = null;
-         let mut sscc: String = null;
-         let lot_number: String = null;
-         let production_date: String = null;
-         let packaging_date: String = null;
-         let best_before_date: String = null;
-         let expiration_date: String = null;
-         let mut weight: String = null;
-         let weight_type: String = null;
-         let weight_increment: String = null;
-         let mut price: String = null;
-         let price_increment: String = null;
-         let price_currency: String = null;
-         let uncommon_a_is: Map<String, String> = HashMap::new();
-         let mut i: i32 = 0;
+        let raw_text: String = get_massaged_text(result);
+        let product_i_d: String = null;
+        let mut sscc: String = null;
+        let lot_number: String = null;
+        let production_date: String = null;
+        let packaging_date: String = null;
+        let best_before_date: String = null;
+        let expiration_date: String = null;
+        let mut weight: String = null;
+        let weight_type: String = null;
+        let weight_increment: String = null;
+        let mut price: String = null;
+        let price_increment: String = null;
+        let price_currency: String = null;
+        let uncommon_a_is: Map<String, String> = HashMap::new();
+        let mut i: i32 = 0;
         while i < raw_text.length() {
-             let ai: String = ::find_a_ivalue(i, &raw_text);
+            let ai: String = ::find_a_ivalue(i, &raw_text);
             if ai == null {
                 // ExtendedProductParsedResult NOT created. Not match with RSS Expanded pattern
                 return null;
             }
             i += ai.length() + 2;
-             let value: String = ::find_value(i, &raw_text);
+            let value: String = ::find_value(i, &raw_text);
             i += value.length();
             match ai.as_str() {
-                  "00" => 
-                     {
-                        sscc = value;
-                        break;
+                "00" => {
+                    sscc = value;
+                    break;
+                }
+                "01" => {
+                    product_i_d = value;
+                    break;
+                }
+                "10" => {
+                    lot_number = value;
+                    break;
+                }
+                "11" => {
+                    production_date = value;
+                    break;
+                }
+                "13" => {
+                    packaging_date = value;
+                    break;
+                }
+                "15" => {
+                    best_before_date = value;
+                    break;
+                }
+                "17" => {
+                    expiration_date = value;
+                    break;
+                }
+                "3100" => {}
+                "3101" => {}
+                "3102" => {}
+                "3103" => {}
+                "3104" => {}
+                "3105" => {}
+                "3106" => {}
+                "3107" => {}
+                "3108" => {}
+                "3109" => {
+                    weight = value;
+                    weight_type = ExpandedProductParsedResult::KILOGRAM;
+                    weight_increment = ai.substring(3);
+                    break;
+                }
+                "3200" => {}
+                "3201" => {}
+                "3202" => {}
+                "3203" => {}
+                "3204" => {}
+                "3205" => {}
+                "3206" => {}
+                "3207" => {}
+                "3208" => {}
+                "3209" => {
+                    weight = value;
+                    weight_type = ExpandedProductParsedResult::POUND;
+                    weight_increment = ai.substring(3);
+                    break;
+                }
+                "3920" => {}
+                "3921" => {}
+                "3922" => {}
+                "3923" => {
+                    price = value;
+                    price_increment = ai.substring(3);
+                    break;
+                }
+                "3930" => {}
+                "3931" => {}
+                "3932" => {}
+                "3933" => {
+                    if value.length() < 4 {
+                        // ExtendedProductParsedResult NOT created. Not match with RSS Expanded pattern
+                        return null;
                     }
-                  "01" => 
-                     {
-                        product_i_d = value;
-                        break;
-                    }
-                  "10" => 
-                     {
-                        lot_number = value;
-                        break;
-                    }
-                  "11" => 
-                     {
-                        production_date = value;
-                        break;
-                    }
-                  "13" => 
-                     {
-                        packaging_date = value;
-                        break;
-                    }
-                  "15" => 
-                     {
-                        best_before_date = value;
-                        break;
-                    }
-                  "17" => 
-                     {
-                        expiration_date = value;
-                        break;
-                    }
-                  "3100" => 
-                     {
-                    }
-                  "3101" => 
-                     {
-                    }
-                  "3102" => 
-                     {
-                    }
-                  "3103" => 
-                     {
-                    }
-                  "3104" => 
-                     {
-                    }
-                  "3105" => 
-                     {
-                    }
-                  "3106" => 
-                     {
-                    }
-                  "3107" => 
-                     {
-                    }
-                  "3108" => 
-                     {
-                    }
-                  "3109" => 
-                     {
-                        weight = value;
-                        weight_type = ExpandedProductParsedResult::KILOGRAM;
-                        weight_increment = ai.substring(3);
-                        break;
-                    }
-                  "3200" => 
-                     {
-                    }
-                  "3201" => 
-                     {
-                    }
-                  "3202" => 
-                     {
-                    }
-                  "3203" => 
-                     {
-                    }
-                  "3204" => 
-                     {
-                    }
-                  "3205" => 
-                     {
-                    }
-                  "3206" => 
-                     {
-                    }
-                  "3207" => 
-                     {
-                    }
-                  "3208" => 
-                     {
-                    }
-                  "3209" => 
-                     {
-                        weight = value;
-                        weight_type = ExpandedProductParsedResult::POUND;
-                        weight_increment = ai.substring(3);
-                        break;
-                    }
-                  "3920" => 
-                     {
-                    }
-                  "3921" => 
-                     {
-                    }
-                  "3922" => 
-                     {
-                    }
-                  "3923" => 
-                     {
-                        price = value;
-                        price_increment = ai.substring(3);
-                        break;
-                    }
-                  "3930" => 
-                     {
-                    }
-                  "3931" => 
-                     {
-                    }
-                  "3932" => 
-                     {
-                    }
-                  "3933" => 
-                     {
-                        if value.length() < 4 {
-                            // ExtendedProductParsedResult NOT created. Not match with RSS Expanded pattern
-                            return null;
-                        }
-                        price = value.substring(3);
-                        price_currency = value.substring(0, 3);
-                        price_increment = ai.substring(3);
-                        break;
-                    }
-                _ => 
-                     {
-                        // No match with common AIs
-                        uncommon_a_is.put(&ai, &value);
-                        break;
-                    }
+                    price = value.substring(3);
+                    price_currency = value.substring(0, 3);
+                    price_increment = ai.substring(3);
+                    break;
+                }
+                _ => {
+                    // No match with common AIs
+                    uncommon_a_is.put(&ai, &value);
+                    break;
+                }
             }
         }
-        return ExpandedProductParsedResult::new(&raw_text, &product_i_d, &sscc, &lot_number, &production_date, &packaging_date, &best_before_date, &expiration_date, &weight, &weight_type, &weight_increment, &price, &price_increment, &price_currency, &uncommon_a_is);
+        return ExpandedProductParsedResult::new(
+            &raw_text,
+            &product_i_d,
+            &sscc,
+            &lot_number,
+            &production_date,
+            &packaging_date,
+            &best_before_date,
+            &expiration_date,
+            &weight,
+            &weight_type,
+            &weight_increment,
+            &price,
+            &price_increment,
+            &price_currency,
+            &uncommon_a_is,
+        );
     }
 
-    fn  find_a_ivalue( i: i32,  raw_text: &String) -> String  {
-         let c: char = raw_text.char_at(i);
+    fn find_a_ivalue(i: i32, raw_text: &String) -> String {
+        let c: char = raw_text.char_at(i);
         // First character must be a open parenthesis.If not, ERROR
         if c != '(' {
             return null;
         }
-         let raw_text_aux: CharSequence = raw_text.substring(i + 1);
-         let buf: String = String::new();
-         {
-             let mut index: i32 = 0;
+        let raw_text_aux: CharSequence = raw_text.substring(i + 1);
+        let buf: String = String::new();
+        {
+            let mut index: i32 = 0;
             while index < raw_text_aux.length() {
                 {
-                     let current_char: char = raw_text_aux.char_at(index);
+                    let current_char: char = raw_text_aux.char_at(index);
                     if current_char == ')' {
                         return buf.to_string();
                     }
@@ -1532,20 +1656,20 @@ impl ExpandedProductResultParser {
                     buf.append(current_char);
                 }
                 index += 1;
-             }
-         }
+            }
+        }
 
         return buf.to_string();
     }
 
-    fn  find_value( i: i32,  raw_text: &String) -> String  {
-         let buf: String = String::new();
-         let raw_text_aux: String = raw_text.substring(i);
-         {
-             let mut index: i32 = 0;
+    fn find_value(i: i32, raw_text: &String) -> String {
+        let buf: String = String::new();
+        let raw_text_aux: String = raw_text.substring(i);
+        {
+            let mut index: i32 = 0;
             while index < raw_text_aux.length() {
                 {
-                     let c: char = raw_text_aux.char_at(index);
+                    let c: char = raw_text_aux.char_at(index);
                     if c == '(' {
                         // with the iteration
                         if ::find_a_ivalue(index, &raw_text_aux) != null {
@@ -1557,8 +1681,8 @@ impl ExpandedProductResultParser {
                     }
                 }
                 index += 1;
-             }
-         }
+            }
+        }
 
         return buf.to_string();
     }
@@ -1574,7 +1698,8 @@ impl ExpandedProductResultParser {
  * @author Sean Owen
  */
 
-const GEO_URL_PATTERN: Regex = Regex::new("geo:([\\-0-9.]+),([\\-0-9.]+)(?:,([\\-0-9.]+))?(?:\\?(.*))?");
+const GEO_URL_PATTERN: Regex =
+    Regex::new("geo:([\\-0-9.]+),([\\-0-9.]+)(?:,([\\-0-9.]+))?(?:\\?(.*))?");
 pub struct GeoResultParser {
     //super: ResultParser;
 }
@@ -1582,42 +1707,38 @@ pub struct GeoResultParser {
 impl ResultParser for GeoResultParser {}
 
 impl GeoResultParser {
-
-    pub fn  parse(&self,  result: &Result) -> GeoParsedResult  {
-         let raw_text: CharSequence = get_massaged_text(result);
-         let matcher: Matcher = GEO_URL_PATTERN::matcher(&raw_text);
+    pub fn parse(&self, result: &Result) -> GeoParsedResult {
+        let raw_text: CharSequence = get_massaged_text(result);
+        let matcher: Matcher = GEO_URL_PATTERN::matcher(&raw_text);
         if !matcher.matches() {
             return null;
         }
-         let query: String = matcher.group(4);
-         let mut latitude: f64;
-         let mut longitude: f64;
-         let mut altitude: f64;
+        let query: String = matcher.group(4);
+        let mut latitude: f64;
+        let mut longitude: f64;
+        let mut altitude: f64;
         let tryResult1 = 0;
-        
-            latitude = Double::parse_double(&matcher.group(1));
-            if latitude > 90.0 || latitude < -90.0 {
+
+        latitude = Double::parse_double(&matcher.group(1));
+        if latitude > 90.0 || latitude < -90.0 {
+            return null;
+        }
+        longitude = Double::parse_double(&matcher.group(2));
+        if longitude > 180.0 || longitude < -180.0 {
+            return null;
+        }
+        if matcher.group(3) == null {
+            altitude = 0.0;
+        } else {
+            altitude = Double::parse_double(&matcher.group(3));
+            if altitude < 0.0 {
                 return null;
             }
-            longitude = Double::parse_double(&matcher.group(2));
-            if longitude > 180.0 || longitude < -180.0 {
-                return null;
-            }
-            if matcher.group(3) == null {
-                altitude = 0.0;
-            } else {
-                altitude = Double::parse_double(&matcher.group(3));
-                if altitude < 0.0 {
-                    return null;
-                }
-            }
-        
+        }
 
         return GeoParsedResult::new(latitude, longitude, altitude, &query);
     }
 }
-
-
 
 // GeoParsedResult.java
 /**
@@ -1628,31 +1749,29 @@ impl GeoResultParser {
  */
 pub struct GeoParsedResult {
     //super: ParsedResult;
+    latitude: f64,
 
-      latitude: f64,
+    longitude: f64,
 
-      longitude: f64,
+    altitude: f64,
 
-      altitude: f64,
-
-      query: String
+    query: String,
 }
 
-impl ParsedResult for GeoParsedResult{}
+impl ParsedResult for GeoParsedResult {}
 
 impl GeoParsedResult {
-
-    fn new( latitude: f64,  longitude: f64,  altitude: f64,  query: &String) -> Self {
-Self{
-    latitude,
-    longitude,
-    altitude,
-    query
-}
+    fn new(latitude: f64, longitude: f64, altitude: f64, query: &String) -> Self {
+        Self {
+            latitude,
+            longitude,
+            altitude,
+            query,
+        }
     }
 
-    pub fn  get_geo_u_r_i(&self) -> String  {
-         let result: String = String::new();
+    pub fn get_geo_u_r_i(&self) -> String {
+        let result: String = String::new();
         result.append("geo:");
         result.append(self.latitude);
         result.append(',');
@@ -1669,35 +1788,35 @@ Self{
     }
 
     /**
-   * @return latitude in degrees
-   */
-    pub fn  get_latitude(&self) -> f64  {
+     * @return latitude in degrees
+     */
+    pub fn get_latitude(&self) -> f64 {
         return self.latitude;
     }
 
     /**
-   * @return longitude in degrees
-   */
-    pub fn  get_longitude(&self) -> f64  {
+     * @return longitude in degrees
+     */
+    pub fn get_longitude(&self) -> f64 {
         return self.longitude;
     }
 
     /**
-   * @return altitude in meters. If not specified, in the geo URI, returns 0.0
-   */
-    pub fn  get_altitude(&self) -> f64  {
+     * @return altitude in meters. If not specified, in the geo URI, returns 0.0
+     */
+    pub fn get_altitude(&self) -> f64 {
         return self.altitude;
     }
 
     /**
-   * @return query string associated with geo URI or null if none exists
-   */
-    pub fn  get_query(&self) -> String  {
+     * @return query string associated with geo URI or null if none exists
+     */
+    pub fn get_query(&self) -> String {
         return self.query;
     }
 
-    pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new();
+    pub fn get_display_result(&self) -> String {
+        let result: String = String::new();
         result.append(self.latitude);
         result.append(", ");
         result.append(self.longitude);
@@ -1715,7 +1834,6 @@ Self{
     }
 }
 
-
 // ProductParsedResult.java
 /**
  * Represents a parsed result that encodes a product by an identifier of some kind.
@@ -1723,42 +1841,39 @@ Self{
  * @author dswitkin@google.com (Daniel Switkin)
  */
 pub struct ProductParsedResult {
-   // super: ParsedResult;
+    // super: ParsedResult;
+    product_i_d: String,
 
-      product_i_d: String,
-
-      normalized_product_i_d: String
+    normalized_product_i_d: String,
 }
 
-impl ParsedResult for ProductParsedResult{}
+impl ParsedResult for ProductParsedResult {}
 
 impl ProductParsedResult {
-
-    fn new( product_i_d: &String,  normalized_product_i_d: Option<&String>) -> Self {
-        Self{
+    fn new(product_i_d: &String, normalized_product_i_d: Option<&String>) -> Self {
+        Self {
             product_i_d: product_i_d,
             normalized_product_i_d: normalized_product_i_d.unwrap_or(product_i_d),
         }
     }
 
-    pub fn  get_product_i_d(&self) -> String  {
+    pub fn get_product_i_d(&self) -> String {
         return self.product_i_d;
     }
 
-    pub fn  get_normalized_product_i_d(&self) -> String  {
+    pub fn get_normalized_product_i_d(&self) -> String {
         return self.normalized_product_i_d;
     }
 
-    pub fn  get_display_result(&self) -> String  {
+    pub fn get_display_result(&self) -> String {
         return self.product_i_d;
     }
 }
 
-
 // ProductResultParser.java
 /**
  * Parses strings of digits that represent a UPC code.
- * 
+ *
  * @author dswitkin@google.com (Daniel Switkin)
  */
 pub struct ProductResultParser {
@@ -1768,19 +1883,22 @@ pub struct ProductResultParser {
 impl ResultParser for ProductResultParser {}
 
 impl ProductResultParser {
-
     // Treat all UPC and EAN variants as UPCs, in the sense that they are all product barcodes.
-    pub fn  parse(&self,  result: &Result) -> ProductParsedResult  {
-         let format: BarcodeFormat = result.get_barcode_format();
-        if !(format == BarcodeFormat::UPC_A || format == BarcodeFormat::UPC_E || format == BarcodeFormat::EAN_8 || format == BarcodeFormat::EAN_13) {
+    pub fn parse(&self, result: &Result) -> ProductParsedResult {
+        let format: BarcodeFormat = result.get_barcode_format();
+        if !(format == BarcodeFormat::UPC_A
+            || format == BarcodeFormat::UPC_E
+            || format == BarcodeFormat::EAN_8
+            || format == BarcodeFormat::EAN_13)
+        {
             return null;
         }
-         let raw_text: String = get_massaged_text(result);
+        let raw_text: String = get_massaged_text(result);
         if !is_string_of_digits(&raw_text, &raw_text.length()) {
             return null;
         }
-        // Not actually checking the checksum again here    
-         let normalized_product_i_d: String;
+        // Not actually checking the checksum again here
+        let normalized_product_i_d: String;
         // Expand UPC-E for purposes of searching
         if format == BarcodeFormat::UPC_E && raw_text.length() == 8 {
             normalized_product_i_d = UPCEReader::convert_u_p_c_eto_u_p_c_a(&raw_text);
@@ -1790,7 +1908,6 @@ impl ProductResultParser {
         return ProductParsedResult::new(&raw_text, Some(&normalized_product_i_d));
     }
 }
-
 
 // SMSMMSResultParser.java
 /**
@@ -1815,53 +1932,69 @@ pub struct SMSMMSResultParser {
 impl ResultParser for SMSMMSResultParser {}
 
 impl SMSMMSResultParser {
-
-    pub fn  parse(&self,  result: &Result) -> SMSParsedResult  {
-         let raw_text: String = get_massaged_text(result);
-        if !(raw_text.starts_with("sms:") || raw_text.starts_with("SMS:") || raw_text.starts_with("mms:") || raw_text.starts_with("MMS:")) {
+    pub fn parse(&self, result: &Result) -> SMSParsedResult {
+        let raw_text: String = get_massaged_text(result);
+        if !(raw_text.starts_with("sms:")
+            || raw_text.starts_with("SMS:")
+            || raw_text.starts_with("mms:")
+            || raw_text.starts_with("MMS:"))
+        {
             return null;
         }
         // Check up front if this is a URI syntax string with query arguments
-         let name_value_pairs: Map<String, String> = parse_name_value_pairs(&raw_text);
-         let mut subject: String = null;
-         let mut body: String = null;
-         let query_syntax: bool = false;
+        let name_value_pairs: Map<String, String> = parse_name_value_pairs(&raw_text);
+        let mut subject: String = null;
+        let mut body: String = null;
+        let query_syntax: bool = false;
         if name_value_pairs != null && !name_value_pairs.is_empty() {
             subject = name_value_pairs.get("subject");
             body = name_value_pairs.get("body");
             query_syntax = true;
         }
         // Drop sms, query portion
-         let query_start: i32 = raw_text.index_of('?', 4);
-         let sms_u_r_i_without_query: String;
+        let query_start: i32 = raw_text.index_of('?', 4);
+        let sms_u_r_i_without_query: String;
         // If it's not query syntax, the question mark is part of the subject or message
         if query_start < 0 || !query_syntax {
             sms_u_r_i_without_query = raw_text.substring(4);
         } else {
             sms_u_r_i_without_query = raw_text.substring(4, query_start);
         }
-         let last_comma: i32 = -1;
-         let mut comma: i32;
-         let numbers: List<String> = Vec::new();
-         let vias: List<String> = Vec::new();
+        let last_comma: i32 = -1;
+        let mut comma: i32;
+        let numbers: List<String> = Vec::new();
+        let vias: List<String> = Vec::new();
         while (comma = sms_u_r_i_without_query.index_of(',', last_comma + 1)) > last_comma {
-             let number_part: String = sms_u_r_i_without_query.substring(last_comma + 1, comma);
+            let number_part: String = sms_u_r_i_without_query.substring(last_comma + 1, comma);
             ::add_number_via(&numbers, &vias, &number_part);
             last_comma = comma;
         }
-        ::add_number_via(&numbers, &vias, &sms_u_r_i_without_query.substring(last_comma + 1));
-        return SMSParsedResult::new(&numbers.to_array(EMPTY_STR_ARRAY), &vias.to_array(EMPTY_STR_ARRAY), &subject, &body);
+        ::add_number_via(
+            &numbers,
+            &vias,
+            &sms_u_r_i_without_query.substring(last_comma + 1),
+        );
+        return SMSParsedResult::new(
+            &numbers.to_array(EMPTY_STR_ARRAY),
+            &vias.to_array(EMPTY_STR_ARRAY),
+            &subject,
+            &body,
+        );
     }
 
-    fn  add_number_via( numbers: &Collection<String>,  vias: &Collection<String>,  number_part: &String)   {
-         let number_end: i32 = number_part.index_of(';');
+    fn add_number_via(
+        numbers: &Collection<String>,
+        vias: &Collection<String>,
+        number_part: &String,
+    ) {
+        let number_end: i32 = number_part.index_of(';');
         if number_end < 0 {
             numbers.add(&number_part);
             vias.add(null);
         } else {
             numbers.add(&number_part.substring(0, number_end));
-             let maybe_via: String = number_part.substring(number_end + 1);
-             let mut via: String;
+            let maybe_via: String = number_part.substring(number_end + 1);
+            let mut via: String;
             if maybe_via.starts_with("via=") {
                 via = maybe_via.substring(4);
             } else {
@@ -1872,7 +2005,6 @@ impl SMSMMSResultParser {
     }
 }
 
-
 // SMSParsedResult.java
 /**
  * Represents a parsed result that encodes an SMS message, including recipients, subject
@@ -1882,22 +2014,20 @@ impl SMSMMSResultParser {
  */
 pub struct SMSParsedResult {
     //super: ParsedResult;
+    numbers: Vec<String>,
 
-      numbers: Vec<String>,
+    vias: Vec<String>,
 
-      vias: Vec<String>,
+    subject: String,
 
-      subject: String,
-
-      body: String
+    body: String,
 }
 
 impl ParsedResult for SMSParsedResult {}
 
 impl SMSParsedResult {
-
-    pub fn new( numbers: &Vec<String>,  vias: &Vec<String>,  subject: &String,  body: &String) -> Self {
-        Self{
+    pub fn new(numbers: &Vec<String>, vias: &Vec<String>, subject: &String, body: &String) -> Self {
+        Self {
             numbers: numbers,
             vias: vias,
             subject: subject,
@@ -1905,12 +2035,12 @@ impl SMSParsedResult {
         }
     }
 
-    pub fn  get_s_m_s_u_r_i(&self) -> String  {
-         let result: String = String::new();
+    pub fn get_s_m_s_u_r_i(&self) -> String {
+        let result: String = String::new();
         result.append("sms:");
-         let mut first: bool = true;
-         {
-             let mut i: i32 = 0;
+        let mut first: bool = true;
+        {
+            let mut i: i32 = 0;
             while i < self.numbers.len() {
                 {
                     if first {
@@ -1925,11 +2055,11 @@ impl SMSParsedResult {
                     }
                 }
                 i += 1;
-             }
-         }
+            }
+        }
 
-         let has_body: bool = self.body != null;
-         let has_subject: bool = self.subject != null;
+        let has_body: bool = self.body != null;
+        let has_subject: bool = self.subject != null;
         if has_body || has_subject {
             result.append('?');
             if has_body {
@@ -1947,31 +2077,30 @@ impl SMSParsedResult {
         return result.to_string();
     }
 
-    pub fn  get_numbers(&self) -> Vec<String>  {
+    pub fn get_numbers(&self) -> Vec<String> {
         return self.numbers;
     }
 
-    pub fn  get_vias(&self) -> Vec<String>  {
+    pub fn get_vias(&self) -> Vec<String> {
         return self.vias;
     }
 
-    pub fn  get_subject(&self) -> String  {
+    pub fn get_subject(&self) -> String {
         return self.subject;
     }
 
-    pub fn  get_body(&self) -> String  {
+    pub fn get_body(&self) -> String {
         return self.body;
     }
 
-    pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new();
+    pub fn get_display_result(&self) -> String {
+        let result: String = String::new();
         maybe_append(&self.numbers, &result);
         maybe_append(&self.subject, &result);
         maybe_append(&self.body, &result);
         return result.to_string();
     }
 }
-
 
 // SMSTOMMSTOResultParser.java
 /**
@@ -1988,20 +2117,23 @@ pub struct SMSTOMMSTOResultParser {
     //super: ResultParser;
 }
 
-impl ResultParser for SMSTOMMSTOResultParser{}
+impl ResultParser for SMSTOMMSTOResultParser {}
 
 impl SMSTOMMSTOResultParser {
-
-    pub fn  parse(&self,  result: &Result) -> SMSParsedResult  {
-         let raw_text: String = get_massaged_text(result);
-        if !(raw_text.starts_with("smsto:") || raw_text.starts_with("SMSTO:") || raw_text.starts_with("mmsto:") || raw_text.starts_with("MMSTO:")) {
+    pub fn parse(&self, result: &Result) -> SMSParsedResult {
+        let raw_text: String = get_massaged_text(result);
+        if !(raw_text.starts_with("smsto:")
+            || raw_text.starts_with("SMSTO:")
+            || raw_text.starts_with("mmsto:")
+            || raw_text.starts_with("MMSTO:"))
+        {
             return null;
         }
         // Thanks to dominik.wild for suggesting this enhancement to support
         // smsto:number:body URIs
-         let mut number: String = raw_text.substring(6);
-         let mut body: String = null;
-         let body_start: i32 = number.index_of(':');
+        let mut number: String = raw_text.substring(6);
+        let mut body: String = null;
+        let body_start: i32 = number.index_of(':');
         if body_start >= 0 {
             body = number.substring(body_start + 1);
             number = number.substring(0, body_start);
@@ -2009,7 +2141,6 @@ impl SMSTOMMSTOResultParser {
         return SMSParsedResult::new(&number, null, null, &body);
     }
 }
-
 
 // SMTPResultParser.java
 /**
@@ -2025,16 +2156,15 @@ pub struct SMTPResultParser {
 impl ResultParser for SMTPResultParser {}
 
 impl SMTPResultParser {
-
-    pub fn  parse(&self,  result: &Result) -> EmailAddressParsedResult  {
-         let raw_text: String = get_massaged_text(result);
+    pub fn parse(&self, result: &Result) -> EmailAddressParsedResult {
+        let raw_text: String = get_massaged_text(result);
         if !(raw_text.starts_with("smtp:") || raw_text.starts_with("SMTP:")) {
             return null;
         }
-         let email_address: String = raw_text.substring(5);
-         let mut subject: String = null;
-         let mut body: String = null;
-         let mut colon: i32 = email_address.index_of(':');
+        let email_address: String = raw_text.substring(5);
+        let mut subject: String = null;
+        let mut body: String = null;
+        let mut colon: i32 = email_address.index_of(':');
         if colon >= 0 {
             subject = email_address.substring(colon + 1);
             email_address = email_address.substring(0, colon);
@@ -2044,11 +2174,15 @@ impl SMTPResultParser {
                 subject = subject.substring(0, colon);
             }
         }
-        return EmailAddressParsedResult::new(  &vec![email_address, ]
-        , null, null, Some(&subject), Some(&body));
+        return EmailAddressParsedResult::new(
+            &vec![email_address],
+            null,
+            null,
+            Some(&subject),
+            Some(&body),
+        );
     }
 }
-
 
 // TelParsedResult.java
 /**
@@ -2058,19 +2192,17 @@ impl SMTPResultParser {
  */
 pub struct TelParsedResult {
     //super: ParsedResult;
+    number: String,
 
-      number: String,
+    tel_u_r_i: String,
 
-      tel_u_r_i: String,
-
-      title: String
+    title: String,
 }
 
 impl ParsedResult for TelParsedResult {}
 
 impl TelParsedResult {
-
-    pub fn new( number: &String,  tel_u_r_i: &String,  title: &String) -> Self {
+    pub fn new(number: &String, tel_u_r_i: &String, title: &String) -> Self {
         Self {
             number: number,
             tel_u_r_i: tel_u_r_i,
@@ -2078,26 +2210,25 @@ impl TelParsedResult {
         }
     }
 
-    pub fn  get_number(&self) -> String  {
+    pub fn get_number(&self) -> String {
         return self.number;
     }
 
-    pub fn  get_tel_u_r_i(&self) -> String  {
+    pub fn get_tel_u_r_i(&self) -> String {
         return self.tel_u_r_i;
     }
 
-    pub fn  get_title(&self) -> String  {
+    pub fn get_title(&self) -> String {
         return self.title;
     }
 
-    pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new();
+    pub fn get_display_result(&self) -> String {
+        let result: String = String::new();
         maybe_append(&self.number, &result);
         maybe_append(&self.title, &result);
         return result.to_string();
     }
 }
-
 
 // TelResultParser.java
 /**
@@ -2109,60 +2240,64 @@ pub struct TelResultParser {
     //super: ResultParser;
 }
 
-impl ResultParser for TelResultParser{}
+impl ResultParser for TelResultParser {}
 
 impl TelResultParser {
-
-    pub fn  parse(&self,  result: &Result) -> TelParsedResult  {
-         let raw_text: String = get_massaged_text(result);
+    pub fn parse(&self, result: &Result) -> TelParsedResult {
+        let raw_text: String = get_massaged_text(result);
         if !raw_text.starts_with("tel:") && !raw_text.starts_with("TEL:") {
             return null;
         }
         // Normalize "TEL:" to "tel:"
-         let tel_u_r_i: String =  if raw_text.starts_with("TEL:") { format!("tel:{}", raw_text.substring(4)) } else { raw_text };
+        let tel_u_r_i: String = if raw_text.starts_with("TEL:") {
+            format!("tel:{}", raw_text.substring(4))
+        } else {
+            raw_text
+        };
         // Drop tel, query portion
-         let query_start: i32 = raw_text.index_of('?', 4);
-         let number: String =  if query_start < 0 { raw_text.substring(4) } else { raw_text.substring(4, query_start) };
+        let query_start: i32 = raw_text.index_of('?', 4);
+        let number: String = if query_start < 0 {
+            raw_text.substring(4)
+        } else {
+            raw_text.substring(4, query_start)
+        };
         return TelParsedResult::new(&number, &tel_u_r_i, null);
     }
 }
-
 
 // TextParsedResult.java
 /**
  * A simple result type encapsulating a string that has no further
  * interpretation.
- * 
+ *
  * @author Sean Owen
  */
 pub struct TextParsedResult {
     //super: ParsedResult;
+    text: String,
 
-      text: String,
-
-      language: String
+    language: String,
 }
 
-impl ParsedResult for TextParsedResult{}
+impl ParsedResult for TextParsedResult {}
 
 impl TextParsedResult {
-
-    pub fn new( text: &String,  language: &String) -> Self {
+    pub fn new(text: &String, language: &String) -> Self {
         Self {
             text: text,
             language: language,
         }
     }
 
-    pub fn  get_text(&self) -> String  {
+    pub fn get_text(&self) -> String {
         return self.text;
     }
 
-    pub fn  get_language(&self) -> String  {
+    pub fn get_language(&self) -> String {
         return self.language;
     }
 
-    pub fn  get_display_result(&self) -> String  {
+    pub fn get_display_result(&self) -> String {
         return self.text;
     }
 }
@@ -2175,54 +2310,52 @@ impl TextParsedResult {
  */
 pub struct URIParsedResult {
     //super: ParsedResult;
+    uri: String,
 
-      uri: String,
-
-      title: String
+    title: String,
 }
 
-impl ParsedResult for URIParsedResult{}
+impl ParsedResult for URIParsedResult {}
 
 impl URIParsedResult {
-
-    pub fn new( uri: &String,  title: &String) -> Self {
+    pub fn new(uri: &String, title: &String) -> Self {
         Self {
             uri: ::massage_u_r_i(&uri),
             title: title,
         }
     }
 
-    pub fn  get_u_r_i(&self) -> String  {
+    pub fn get_u_r_i(&self) -> String {
         return self.uri;
     }
 
-    pub fn  get_title(&self) -> String  {
+    pub fn get_title(&self) -> String {
         return self.title;
     }
 
     /**
-   * @return true if the URI contains suspicious patterns that may suggest it intends to
-   *  mislead the user about its true nature
-   * @deprecated see {@link URIResultParser#isPossiblyMaliciousURI(String)}
-   */
-    pub fn  is_possibly_malicious_u_r_i(&self) -> bool  {
+     * @return true if the URI contains suspicious patterns that may suggest it intends to
+     *  mislead the user about its true nature
+     * @deprecated see {@link URIResultParser#isPossiblyMaliciousURI(String)}
+     */
+    pub fn is_possibly_malicious_u_r_i(&self) -> bool {
         return URIResultParser::is_possibly_malicious_u_r_i(&self.uri);
     }
 
-    pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new();
+    pub fn get_display_result(&self) -> String {
+        let result: String = String::new();
         maybe_append(&self.title, &result);
         maybe_append(&self.uri, &result);
         return result.to_string();
     }
 
     /**
-   * Transforms a string that represents a URI into something more proper, by adding or canonicalizing
-   * the protocol.
-   */
-    fn  massage_u_r_i( uri: &String) -> String  {
+     * Transforms a string that represents a URI into something more proper, by adding or canonicalizing
+     * the protocol.
+     */
+    fn massage_u_r_i(uri: &String) -> String {
         uri = uri.trim();
-         let protocol_end: i32 = uri.index_of(':');
+        let protocol_end: i32 = uri.index_of(':');
         if protocol_end < 0 || ::is_colon_followed_by_port_number(&uri, protocol_end) {
             // No protocol, or found a colon, but it looks like it is after the host, so the protocol is still missing,
             // so assume http
@@ -2231,9 +2364,9 @@ impl URIParsedResult {
         return uri;
     }
 
-    fn  is_colon_followed_by_port_number( uri: &String,  protocol_end: i32) -> bool  {
-         let start: i32 = protocol_end + 1;
-         let next_slash: i32 = uri.index_of('/', start);
+    fn is_colon_followed_by_port_number(uri: &String, protocol_end: i32) -> bool {
+        let start: i32 = protocol_end + 1;
+        let next_slash: i32 = uri.index_of('/', start);
         if next_slash < 0 {
             next_slash = uri.length();
         }
@@ -2241,12 +2374,10 @@ impl URIParsedResult {
     }
 }
 
-
-
 // URIResultParser.java
 /**
  * Tries to parse results that are a URI of some kind.
- * 
+ *
  * @author Sean Owen
  */
 
@@ -2257,55 +2388,55 @@ const USER_IN_HOST: Regext = Regex::new(":/*([^/@]+)@[^/]+");
 // See http://www.ietf.org/rfc/rfc2396.txt
 const URL_WITH_PROTOCOL_PATTERN: Regext = Regex::new("[a-zA-Z][a-zA-Z0-9+-.]+:");
 
-const URL_WITHOUT_PROTOCOL_PATTERN: Regext = Regex::new(&format!("([a-zA-Z0-9\\-]+\\.){1,6}[a-zA-Z]{2,}(:\\d{1,5})?(/|\\?|$)"));
+const URL_WITHOUT_PROTOCOL_PATTERN: Regext = Regex::new(&format!(
+    "([a-zA-Z0-9\\-]+\\.){1,6}[a-zA-Z]{2,}(:\\d{1,5})?(/|\\?|$)"
+));
 pub struct URIResultParser {
-   //super: ResultParser;
+    //super: ResultParser;
 }
 
-impl ResultParser for URIResultParser{}
+impl ResultParser for URIResultParser {}
 
 impl URIResultParser {
-
-   pub fn  parse(&self,  result: &Result) -> URIParsedResult  {
+    pub fn parse(&self, result: &Result) -> URIParsedResult {
         let raw_text: String = get_massaged_text(result);
-       // Assume anything starting this way really means to be a URI
-       if raw_text.starts_with("URL:") || raw_text.starts_with("URI:") {
-           return URIParsedResult::new(&raw_text.substring(4).trim(), null);
-       }
-       raw_text = raw_text.trim().to_owned();
-       if !::is_basically_valid_u_r_i(&raw_text) || ::is_possibly_malicious_u_r_i(&raw_text) {
-           return null;
-       }
-       return URIParsedResult::new(&raw_text, null);
-   }
+        // Assume anything starting this way really means to be a URI
+        if raw_text.starts_with("URL:") || raw_text.starts_with("URI:") {
+            return URIParsedResult::new(&raw_text.substring(4).trim(), null);
+        }
+        raw_text = raw_text.trim().to_owned();
+        if !::is_basically_valid_u_r_i(&raw_text) || ::is_possibly_malicious_u_r_i(&raw_text) {
+            return null;
+        }
+        return URIParsedResult::new(&raw_text, null);
+    }
 
-   /**
-  * @return true if the URI contains suspicious patterns that may suggest it intends to
-  *  mislead the user about its true nature. At the moment this looks for the presence
-  *  of user/password syntax in the host/authority portion of a URI which may be used
-  *  in attempts to make the URI's host appear to be other than it is. Example:
-  *  http://yourbank.com@phisher.com  This URI connects to phisher.com but may appear
-  *  to connect to yourbank.com at first glance.
-  */
-   fn  is_possibly_malicious_u_r_i( uri: &String) -> bool  {
-       return !ALLOWED_URI_CHARS_PATTERN.is_match(&uri) || USER_IN_HOST.find(&uri);
-   }
+    /**
+     * @return true if the URI contains suspicious patterns that may suggest it intends to
+     *  mislead the user about its true nature. At the moment this looks for the presence
+     *  of user/password syntax in the host/authority portion of a URI which may be used
+     *  in attempts to make the URI's host appear to be other than it is. Example:
+     *  http://yourbank.com@phisher.com  This URI connects to phisher.com but may appear
+     *  to connect to yourbank.com at first glance.
+     */
+    fn is_possibly_malicious_u_r_i(uri: &String) -> bool {
+        return !ALLOWED_URI_CHARS_PATTERN.is_match(&uri) || USER_IN_HOST.find(&uri);
+    }
 
-   fn  is_basically_valid_u_r_i( uri: &String) -> bool  {
-       if uri.contains(" ") {
-           // Quick hack check for a common case
-           return false;
-       }
+    fn is_basically_valid_u_r_i(uri: &String) -> bool {
+        if uri.contains(" ") {
+            // Quick hack check for a common case
+            return false;
+        }
         let mut m: Matcher = URL_WITH_PROTOCOL_PATTERN::matcher(&uri);
-       if m.find() && m.start() == 0 {
-           // match at start only
-           return true;
-       }
-       m = URL_WITHOUT_PROTOCOL_PATTERN::matcher(&uri);
-       return m.find() && m.start() == 0;
-   }
+        if m.find() && m.start() == 0 {
+            // match at start only
+            return true;
+        }
+        m = URL_WITHOUT_PROTOCOL_PATTERN::matcher(&uri);
+        return m.find() && m.start() == 0;
+    }
 }
-
 
 // URLTOResultParser.java
 /**
@@ -2319,26 +2450,27 @@ pub struct URLTOResultParser {
     //super: ResultParser;
 }
 
-impl ResultParser for URLTOResultParser{}
+impl ResultParser for URLTOResultParser {}
 
 impl URLTOResultParser {
-
-    pub fn  parse(&self,  result: &Result) -> URIParsedResult  {
-         let raw_text: String = get_massaged_text(result);
+    pub fn parse(&self, result: &Result) -> URIParsedResult {
+        let raw_text: String = get_massaged_text(result);
         if !raw_text.starts_with("urlto:") && !raw_text.starts_with("URLTO:") {
             return null;
         }
-         let title_end: i32 = raw_text.index_of(':', 6);
+        let title_end: i32 = raw_text.index_of(':', 6);
         if title_end < 0 {
             return null;
         }
-         let title: String =  if title_end <= 6 { null } else { raw_text.substring(6, title_end) };
-         let uri: String = raw_text.substring(title_end + 1);
+        let title: String = if title_end <= 6 {
+            null
+        } else {
+            raw_text.substring(6, title_end)
+        };
+        let uri: String = raw_text.substring(title_end + 1);
         return URIParsedResult::new(&uri, &title);
     }
 }
-
-
 
 // VCardResultParser.java
 /**
@@ -2368,332 +2500,400 @@ const COMMA: Regex = Regex::new(",");
 
 const SEMICOLON_OR_COMMA: Regex = Regex::new("[;,]");
 pub struct VCardResultParser {
-   //super: ResultParser;
+    //super: ResultParser;
 }
 
-impl ResultParser for VCardResultParser{}
+impl ResultParser for VCardResultParser {}
 
 impl VCardResultParser {
-
-   pub fn  parse(&self,  result: &Result) -> AddressBookParsedResult  {
-       // Although we should insist on the raw text ending with "END:VCARD", there's no reason
-       // to throw out everything else we parsed just because this was omitted. In fact, Eclair
-       // is doing just that, and we can't parse its contacts without this leniency.
+    pub fn parse(&self, result: &Result) -> AddressBookParsedResult {
+        // Although we should insist on the raw text ending with "END:VCARD", there's no reason
+        // to throw out everything else we parsed just because this was omitted. In fact, Eclair
+        // is doing just that, and we can't parse its contacts without this leniency.
         let raw_text: String = get_massaged_text(result);
         let m: Matcher = BEGIN_VCARD::matcher(&raw_text);
-       if !m.find() || m.start() != 0 {
-           return null;
-       }
-        let mut names: List<List<String>> = ::match_v_card_prefixed_field("FN", &raw_text, true, false);
-       if names == null {
-           // If no display names found, look for regular name fields and format them
-           names = ::match_v_card_prefixed_field("N", &raw_text, true, false);
-           ::format_names(&names);
-       }
-        let nickname_string: List<String> = ::match_single_v_card_prefixed_field("NICKNAME", &raw_text, true, false);
-        let nicknames: Vec<String> =  if nickname_string == null { null } else { COMMA::split(&nickname_string.get(0)) };
-        let phone_numbers: List<List<String>> = ::match_v_card_prefixed_field("TEL", &raw_text, true, false);
-        let emails: List<List<String>> = ::match_v_card_prefixed_field("EMAIL", &raw_text, true, false);
-        let note: List<String> = ::match_single_v_card_prefixed_field("NOTE", &raw_text, false, false);
-        let addresses: List<List<String>> = ::match_v_card_prefixed_field("ADR", &raw_text, true, true);
+        if !m.find() || m.start() != 0 {
+            return null;
+        }
+        let mut names: List<List<String>> =
+            ::match_v_card_prefixed_field("FN", &raw_text, true, false);
+        if names == null {
+            // If no display names found, look for regular name fields and format them
+            names = ::match_v_card_prefixed_field("N", &raw_text, true, false);
+            ::format_names(&names);
+        }
+        let nickname_string: List<String> =
+            ::match_single_v_card_prefixed_field("NICKNAME", &raw_text, true, false);
+        let nicknames: Vec<String> = if nickname_string == null {
+            null
+        } else {
+            COMMA::split(&nickname_string.get(0))
+        };
+        let phone_numbers: List<List<String>> =
+            ::match_v_card_prefixed_field("TEL", &raw_text, true, false);
+        let emails: List<List<String>> =
+            ::match_v_card_prefixed_field("EMAIL", &raw_text, true, false);
+        let note: List<String> =
+            ::match_single_v_card_prefixed_field("NOTE", &raw_text, false, false);
+        let addresses: List<List<String>> =
+            ::match_v_card_prefixed_field("ADR", &raw_text, true, true);
         let org: List<String> = ::match_single_v_card_prefixed_field("ORG", &raw_text, true, true);
-        let mut birthday: List<String> = ::match_single_v_card_prefixed_field("BDAY", &raw_text, true, false);
-       if birthday != null && !::is_like_v_card_date(&birthday.get(0)) {
-           birthday = null;
-       }
-        let title: List<String> = ::match_single_v_card_prefixed_field("TITLE", &raw_text, true, false);
+        let mut birthday: List<String> =
+            ::match_single_v_card_prefixed_field("BDAY", &raw_text, true, false);
+        if birthday != null && !::is_like_v_card_date(&birthday.get(0)) {
+            birthday = null;
+        }
+        let title: List<String> =
+            ::match_single_v_card_prefixed_field("TITLE", &raw_text, true, false);
         let urls: List<List<String>> = ::match_v_card_prefixed_field("URL", &raw_text, true, false);
-        let instant_messenger: List<String> = ::match_single_v_card_prefixed_field("IMPP", &raw_text, true, false);
-        let geo_string: List<String> = ::match_single_v_card_prefixed_field("GEO", &raw_text, true, false);
-        let mut geo: Vec<String> =  if geo_string == null { null } else { SEMICOLON_OR_COMMA::split(&geo_string.get(0)) };
-       if geo != null && geo.len() != 2 {
-           geo = null;
-       }
-       return AddressBookParsedResult::new(&::to_primary_values(&names), Some(&nicknames), null, &::to_primary_values(&phone_numbers), &::to_types(&phone_numbers), &::to_primary_values(&emails), &::to_types(&emails), Some(&::to_primary_value(&instant_messenger)), Some(&::to_primary_value(&note)), &::to_primary_values(&addresses), &::to_types(&addresses), Some(&::to_primary_value(&org)), Some(&::to_primary_value(&birthday)), Some(&::to_primary_value(&title)), Some(&::to_primary_values(&urls)), Some(&geo));
-   }
+        let instant_messenger: List<String> =
+            ::match_single_v_card_prefixed_field("IMPP", &raw_text, true, false);
+        let geo_string: List<String> =
+            ::match_single_v_card_prefixed_field("GEO", &raw_text, true, false);
+        let mut geo: Vec<String> = if geo_string == null {
+            null
+        } else {
+            SEMICOLON_OR_COMMA::split(&geo_string.get(0))
+        };
+        if geo != null && geo.len() != 2 {
+            geo = null;
+        }
+        return AddressBookParsedResult::new(
+            &::to_primary_values(&names),
+            Some(&nicknames),
+            null,
+            &::to_primary_values(&phone_numbers),
+            &::to_types(&phone_numbers),
+            &::to_primary_values(&emails),
+            &::to_types(&emails),
+            Some(&::to_primary_value(&instant_messenger)),
+            Some(&::to_primary_value(&note)),
+            &::to_primary_values(&addresses),
+            &::to_types(&addresses),
+            Some(&::to_primary_value(&org)),
+            Some(&::to_primary_value(&birthday)),
+            Some(&::to_primary_value(&title)),
+            Some(&::to_primary_values(&urls)),
+            Some(&geo),
+        );
+    }
 
-   fn  match_v_card_prefixed_field( prefix: &CharSequence,  raw_text: &String,  trim: bool,  parse_field_divider: bool) -> List<List<String>>  {
+    fn match_v_card_prefixed_field(
+        prefix: &CharSequence,
+        raw_text: &String,
+        trim: bool,
+        parse_field_divider: bool,
+    ) -> List<List<String>> {
         let mut matches: List<List<String>> = null;
         let mut i: i32 = 0;
         let max: i32 = raw_text.length();
-       while i < max {
-           // At start or after newline, match prefix, followed by optional metadata 
-           // (led by ;) ultimately ending in colon
+        while i < max {
+            // At start or after newline, match prefix, followed by optional metadata
+            // (led by ;) ultimately ending in colon
             let matcher: Regex = Regex::new(&format!("(?:^|\n){}(?:;([^:]*))?:", prefix));
-           if i > 0 {
-               // Find from i-1 not i since looking at the preceding character
-               i -= 1;
-           }
-           // ::matcher(&raw_text); FEELS WRONG
-           todo!("feels wrong");
-           if !matcher.find(i) {
-               break;
-           }
-           // group 0 = whole pattern; end(0) is past final colon
-           i = matcher.end(0);
-           // group 1 = metadata substring
+            if i > 0 {
+                // Find from i-1 not i since looking at the preceding character
+                i -= 1;
+            }
+            // ::matcher(&raw_text); FEELS WRONG
+            todo!("feels wrong");
+            if !matcher.find(i) {
+                break;
+            }
+            // group 0 = whole pattern; end(0) is past final colon
+            i = matcher.end(0);
+            // group 1 = metadata substring
             let metadata_string: String = matcher.group(1);
             let mut metadata: List<String> = null;
             let quoted_printable: bool = false;
             let quoted_printable_charset: String = null;
             let value_type: String = null;
-           if metadata_string != null {
-               for   metadatum in SEMICOLON::split(&metadata_string) {
-                   if metadata == null {
-                       metadata = Vec::new();
-                   }
-                   metadata.add(&metadatum);
+            if metadata_string != null {
+                for metadatum in SEMICOLON::split(&metadata_string) {
+                    if metadata == null {
+                        metadata = Vec::new();
+                    }
+                    metadata.add(&metadatum);
                     let metadatum_tokens: Vec<String> = EQUALS::split(&metadatum, 2);
-                   if metadatum_tokens.len() > 1 {
+                    if metadatum_tokens.len() > 1 {
                         let key: String = metadatum_tokens[0];
                         let value: String = metadatum_tokens[1];
-                       if "ENCODING".equals_ignore_case(&key) && "QUOTED-PRINTABLE".equals_ignore_case(&value) {
-                           quoted_printable = true;
-                       } else if "CHARSET".equals_ignore_case(&key) {
-                           quoted_printable_charset = value;
-                       } else if "VALUE".equals_ignore_case(&key) {
-                           value_type = value;
-                       }
-                   }
-               }
-           }
-           // Found the start of a match here
+                        if "ENCODING".equals_ignore_case(&key)
+                            && "QUOTED-PRINTABLE".equals_ignore_case(&value)
+                        {
+                            quoted_printable = true;
+                        } else if "CHARSET".equals_ignore_case(&key) {
+                            quoted_printable_charset = value;
+                        } else if "VALUE".equals_ignore_case(&key) {
+                            value_type = value;
+                        }
+                    }
+                }
+            }
+            // Found the start of a match here
             let match_start: i32 = i;
-           while (i = raw_text.index_of('\n', i)) >= 0 {
-               // Really, end in \r\n
-               if // But if followed by tab or space,
-               i < raw_text.length() - 1 && (// this is only a continuation
-               raw_text.char_at(i + 1) == ' ' || raw_text.char_at(i + 1) == '\t') {
-                   // Skip \n and continutation whitespace
-                   i += 2;
-               } else if // If preceded by = in quoted printable
-               quoted_printable && (// this is a continuation
-               (i >= 1 && raw_text.char_at(i - 1) == '=') || (i >= 2 && raw_text.char_at(i - 2) == '=')) {
-                   // Skip \n
-                   i += 1;
-               } else {
-                   break;
-               }
-           }
-           if i < 0 {
-               // No terminating end character? uh, done. Set i such that loop terminates and break
-               i = max;
-           } else if i > match_start {
-               // found a match
-               if matches == null {
-                   // lazy init
-                   matches = Vec::new();
-               }
-               if i >= 1 && raw_text.char_at(i - 1) == '\r' {
-                   // Back up over \r, which really should be there
-                   i -= 1;
-               }
+            while (i = raw_text.index_of('\n', i)) >= 0 {
+                // Really, end in \r\n
+                if
+                // But if followed by tab or space,
+                i < raw_text.length() - 1
+                    && (
+                        // this is only a continuation
+                        raw_text.char_at(i + 1) == ' ' || raw_text.char_at(i + 1) == '\t'
+                    )
+                {
+                    // Skip \n and continutation whitespace
+                    i += 2;
+                } else if
+                // If preceded by = in quoted printable
+                quoted_printable
+                    && (
+                        // this is a continuation
+                        (i >= 1 && raw_text.char_at(i - 1) == '=')
+                            || (i >= 2 && raw_text.char_at(i - 2) == '=')
+                    )
+                {
+                    // Skip \n
+                    i += 1;
+                } else {
+                    break;
+                }
+            }
+            if i < 0 {
+                // No terminating end character? uh, done. Set i such that loop terminates and break
+                i = max;
+            } else if i > match_start {
+                // found a match
+                if matches == null {
+                    // lazy init
+                    matches = Vec::new();
+                }
+                if i >= 1 && raw_text.char_at(i - 1) == '\r' {
+                    // Back up over \r, which really should be there
+                    i -= 1;
+                }
                 let mut element: String = raw_text.substring(match_start, i);
-               if trim {
-                   element = element.trim().to_owned();
-               }
-               if quoted_printable {
-                   element = ::decode_quoted_printable(&element, &quoted_printable_charset);
-                   if parse_field_divider {
-                       element = UNESCAPED_SEMICOLONS.replace_all(&element,"\n").trim().to_owned();
-                   }
-               } else {
-                   if parse_field_divider {
-                       element = UNESCAPED_SEMICOLONS::matcher(&element,"\n").trim();
-                   }
-                   element = CR_LF_SPACE_TAB.replace_all(&element,"");
-                   element = NEWLINE_ESCAPE.replace_all(&element,"\n");
-                   element = VCARD_ESCAPES.replace_all(&element,"$1");
-               }
-               // Only handle VALUE=uri specially
-               if "uri".equals(&value_type) {
-                   // as value, to support tel: and mailto:
-                   panic!("i don't know what this does, and i don't know how to fix it");
-                   todo!("i don't know what this does, and i don't know how to fix it")
-                   //element = URI::create(&element)::get_scheme_specific_part();
-
-               }
-               if metadata == null {
+                if trim {
+                    element = element.trim().to_owned();
+                }
+                if quoted_printable {
+                    element = ::decode_quoted_printable(&element, &quoted_printable_charset);
+                    if parse_field_divider {
+                        element = UNESCAPED_SEMICOLONS
+                            .replace_all(&element, "\n")
+                            .trim()
+                            .to_owned();
+                    }
+                } else {
+                    if parse_field_divider {
+                        element = UNESCAPED_SEMICOLONS::matcher(&element, "\n").trim();
+                    }
+                    element = CR_LF_SPACE_TAB.replace_all(&element, "");
+                    element = NEWLINE_ESCAPE.replace_all(&element, "\n");
+                    element = VCARD_ESCAPES.replace_all(&element, "$1");
+                }
+                // Only handle VALUE=uri specially
+                if "uri".equals(&value_type) {
+                    // as value, to support tel: and mailto:
+                    panic!("i don't know what this does, and i don't know how to fix it");
+                    todo!("i don't know what this does, and i don't know how to fix it")
+                    //element = URI::create(&element)::get_scheme_specific_part();
+                }
+                if metadata == null {
                     let _match: List<String> = Vec::new();
                     _match.add(&element);
-                   matches.add(&_match);
-               } else {
-                   metadata.add(0, &element);
-                   matches.add(&metadata);
-               }
-               i += 1;
-           } else {
-               i += 1;
-           }
-       }
-       return matches;
-   }
+                    matches.add(&_match);
+                } else {
+                    metadata.add(0, &element);
+                    matches.add(&metadata);
+                }
+                i += 1;
+            } else {
+                i += 1;
+            }
+        }
+        return matches;
+    }
 
-   fn  decode_quoted_printable( value: &CharSequence,  charset: &String) -> String  {
+    fn decode_quoted_printable(value: &CharSequence, charset: &String) -> String {
         let length: i32 = value.length();
         let result: String = String::new();
         let fragment_buffer: ByteArrayOutputStream = ByteArrayOutputStream::new();
         {
             let mut i: i32 = 0;
-           while i < length {
-               {
+            while i < length {
+                {
                     let c: char = value.char_at(i);
-                   match c {
-                         '\r' => 
-                            {
-                           }
-                         '\n' => 
-                            {
-                               break;
-                           }
-                         '=' => 
-                            {
-                               if i < length - 2 {
-                                    let next_char: char = value.char_at(i + 1);
-                                   if next_char != '\r' && next_char != '\n' {
-                                        let next_next_char: char = value.char_at(i + 2);
-                                        let first_digit: i32 = parse_hex_digit(next_char);
-                                        let second_digit: i32 = parse_hex_digit(next_next_char);
-                                       if first_digit >= 0 && second_digit >= 0 {
-                                           fragment_buffer.write((first_digit << 4) + second_digit);
-                                       }
-                                       // else ignore it, assume it was incorrectly encoded
-                                       i += 2;
-                                   }
-                               }
-                               break;
-                           }
-                       _ => 
-                            {
-                               ::maybe_append_fragment(&fragment_buffer, &charset, &result);
-                               result.append(c);
-                           }
-                   }
-               }
-               i += 1;
+                    match c {
+                        '\r' => {}
+                        '\n' => {
+                            break;
+                        }
+                        '=' => {
+                            if i < length - 2 {
+                                let next_char: char = value.char_at(i + 1);
+                                if next_char != '\r' && next_char != '\n' {
+                                    let next_next_char: char = value.char_at(i + 2);
+                                    let first_digit: i32 = parse_hex_digit(next_char);
+                                    let second_digit: i32 = parse_hex_digit(next_next_char);
+                                    if first_digit >= 0 && second_digit >= 0 {
+                                        fragment_buffer.write((first_digit << 4) + second_digit);
+                                    }
+                                    // else ignore it, assume it was incorrectly encoded
+                                    i += 2;
+                                }
+                            }
+                            break;
+                        }
+                        _ => {
+                            ::maybe_append_fragment(&fragment_buffer, &charset, &result);
+                            result.append(c);
+                        }
+                    }
+                }
+                i += 1;
             }
         }
 
-       ::maybe_append_fragment(&fragment_buffer, &charset, &result);
-       return result.to_string();
-   }
+        ::maybe_append_fragment(&fragment_buffer, &charset, &result);
+        return result.to_string();
+    }
 
-   fn  maybe_append_fragment( fragment_buffer: &ByteArrayOutputStream,  charset: &String,  result: &String)   {
-       if fragment_buffer.size() > 0 {
+    fn maybe_append_fragment(
+        fragment_buffer: &ByteArrayOutputStream,
+        charset: &String,
+        result: &String,
+    ) {
+        if fragment_buffer.size() > 0 {
             let fragment_bytes: Vec<i8> = fragment_buffer.to_byte_array();
             let mut fragment: String;
-           if charset == null {
-               fragment = String::from(fragment_bytes);
-           } else {
-               fragment = String::from(fragment_bytes);
+            if charset == null {
+                fragment = String::from(fragment_bytes);
+            } else {
+                fragment = String::from(fragment_bytes);
+            }
+            fragment_buffer.reset();
+            result.append(&fragment);
+        }
+    }
 
-           }
-           fragment_buffer.reset();
-           result.append(&fragment);
-       }
-   }
+    fn match_single_v_card_prefixed_field(
+        prefix: &CharSequence,
+        raw_text: &String,
+        trim: bool,
+        parse_field_divider: bool,
+    ) -> List<String> {
+        let values: List<List<String>> =
+            ::match_v_card_prefixed_field(&prefix, &raw_text, trim, parse_field_divider);
+        return if values == null || values.is_empty() {
+            null
+        } else {
+            values.get(0)
+        };
+    }
 
-   fn  match_single_v_card_prefixed_field( prefix: &CharSequence,  raw_text: &String,  trim: bool,  parse_field_divider: bool) -> List<String>  {
-        let values: List<List<String>> = ::match_v_card_prefixed_field(&prefix, &raw_text, trim, parse_field_divider);
-       return  if values == null || values.is_empty() { null } else { values.get(0) };
-   }
+    fn to_primary_value(list: &List<String>) -> String {
+        return if list == null || list.is_empty() {
+            null
+        } else {
+            list.get(0)
+        };
+    }
 
-   fn  to_primary_value( list: &List<String>) -> String  {
-       return  if list == null || list.is_empty() { null } else { list.get(0) };
-   }
-
-   fn  to_primary_values( lists: &Collection<List<String>>) -> Vec<String>  {
-       if lists == null || lists.is_empty() {
-           return null;
-       }
+    fn to_primary_values(lists: &Collection<List<String>>) -> Vec<String> {
+        if lists == null || lists.is_empty() {
+            return null;
+        }
         let result: List<String> = Vec::new();
-       for   list in lists {
+        for list in lists {
             let value: String = list.get(0);
-           if value != null && !value.is_empty() {
-               result.add(&value);
-           }
-       }
-       return result.to_array(EMPTY_STR_ARRAY);
-   }
+            if value != null && !value.is_empty() {
+                result.add(&value);
+            }
+        }
+        return result.to_array(EMPTY_STR_ARRAY);
+    }
 
-   fn  to_types( lists: &Collection<List<String>>) -> Vec<String>  {
-       if lists == null || lists.is_empty() {
-           return null;
-       }
+    fn to_types(lists: &Collection<List<String>>) -> Vec<String> {
+        if lists == null || lists.is_empty() {
+            return null;
+        }
         let result: List<String> = Vec::new();
-       for   list in lists {
+        for list in lists {
             let value: String = list.get(0);
-           if value != null && !value.is_empty() {
+            if value != null && !value.is_empty() {
                 let mut _type: String = null;
                 {
                     let mut i: i32 = 1;
-                   while i < list.size() {
-                       {
+                    while i < list.size() {
+                        {
                             let metadatum: String = list.get(i);
                             let equals: i32 = metadatum.index_of('=');
-                           if equals < 0 {
-                               // take the whole thing as a usable label
-                               _type = metadatum;
-                               break;
-                           }
-                           if "TYPE".equals_ignore_case(&metadatum.substring(0, equals)) {
-                            _type = metadatum.substring(equals + 1);
-                               break;
-                           }
-                       }
-                       i += 1;
+                            if equals < 0 {
+                                // take the whole thing as a usable label
+                                _type = metadatum;
+                                break;
+                            }
+                            if "TYPE".equals_ignore_case(&metadatum.substring(0, equals)) {
+                                _type = metadatum.substring(equals + 1);
+                                break;
+                            }
+                        }
+                        i += 1;
                     }
                 }
 
-               result.add(&_type);
-           }
-       }
-       return result.to_array(EMPTY_STR_ARRAY);
-   }
+                result.add(&_type);
+            }
+        }
+        return result.to_array(EMPTY_STR_ARRAY);
+    }
 
-   fn  is_like_v_card_date( value: &CharSequence) -> bool  {
-       return value == null || VCARD_LIKE_DATE.is_match(&value);
-   }
+    fn is_like_v_card_date(value: &CharSequence) -> bool {
+        return value == null || VCARD_LIKE_DATE.is_match(&value);
+    }
 
-   /**
-  * Formats name fields of the form "Public;John;Q.;Reverend;III" into a form like
-  * "Reverend John Q. Public III".
-  *
-  * @param names name values to format, in place
-  */
-   fn  format_names( names: &Iterable<List<String>>)   {
-       if names != null {
-           for   list in names {
+    /**
+     * Formats name fields of the form "Public;John;Q.;Reverend;III" into a form like
+     * "Reverend John Q. Public III".
+     *
+     * @param names name values to format, in place
+     */
+    fn format_names(names: &Iterable<List<String>>) {
+        if names != null {
+            for list in names {
                 let name: String = list.get(0);
                 let mut components: [Option<String>; 5] = [None; 5];
                 let mut start: i32 = 0;
                 let mut end: i32;
                 let component_index: i32 = 0;
-               while component_index < components.len() - 1 && (end = name.index_of(';', start)) >= 0 {
-                   components[component_index] = name.substring(start, end);
-                   component_index += 1;
-                   start = end + 1;
-               }
-               components[component_index] = name.substring(start);
+                while component_index < components.len() - 1
+                    && (end = name.index_of(';', start)) >= 0
+                {
+                    components[component_index] = name.substring(start, end);
+                    component_index += 1;
+                    start = end + 1;
+                }
+                components[component_index] = name.substring(start);
                 let new_name: String = String::new();
-               ::maybe_append_component(&components, 3, &new_name);
-               ::maybe_append_component(&components, 1, &new_name);
-               ::maybe_append_component(&components, 2, &new_name);
-               ::maybe_append_component(&components, 0, &new_name);
-               ::maybe_append_component(&components, 4, &new_name);
-               list.set(0, &new_name.to_string().trim());
-           }
-       }
-   }
+                ::maybe_append_component(&components, 3, &new_name);
+                ::maybe_append_component(&components, 1, &new_name);
+                ::maybe_append_component(&components, 2, &new_name);
+                ::maybe_append_component(&components, 0, &new_name);
+                ::maybe_append_component(&components, 4, &new_name);
+                list.set(0, &new_name.to_string().trim());
+            }
+        }
+    }
 
-   fn  maybe_append_component( components: &Vec<String>,  i: i32,  new_name: &String)   {
-       if components[i] != null && !components[i].is_empty() {
-           if new_name.length() > 0 {
-               new_name.append(' ');
-           }
-           new_name.append(components[i]);
-       }
-   }
+    fn maybe_append_component(components: &Vec<String>, i: i32, new_name: &String) {
+        if components[i] != null && !components[i].is_empty() {
+            if new_name.length() > 0 {
+                new_name.append(' ');
+            }
+            new_name.append(components[i]);
+        }
+    }
 }
 
 // VEventResultParser.java
@@ -2707,95 +2907,108 @@ pub struct VEventResultParser {
     //super: ResultParser;
 }
 
-impl ResultParser for VEventResultParser{}
+impl ResultParser for VEventResultParser {}
 
 impl VEventResultParser {
-
-    pub fn  parse(&self,  result: &Result) -> CalendarParsedResult  {
-         let raw_text: String = get_massaged_text(result);
-         let v_event_start: i32 = raw_text.index_of("BEGIN:VEVENT");
+    pub fn parse(&self, result: &Result) -> CalendarParsedResult {
+        let raw_text: String = get_massaged_text(result);
+        let v_event_start: i32 = raw_text.index_of("BEGIN:VEVENT");
         if v_event_start < 0 {
             return null;
         }
-         let summary: String = ::match_single_v_card_prefixed_field("SUMMARY", &raw_text);
-         let start: String = ::match_single_v_card_prefixed_field("DTSTART", &raw_text);
+        let summary: String = ::match_single_v_card_prefixed_field("SUMMARY", &raw_text);
+        let start: String = ::match_single_v_card_prefixed_field("DTSTART", &raw_text);
         if start == null {
             return null;
         }
-         let end: String = ::match_single_v_card_prefixed_field("DTEND", &raw_text);
-         let duration: String = ::match_single_v_card_prefixed_field("DURATION", &raw_text);
-         let location: String = ::match_single_v_card_prefixed_field("LOCATION", &raw_text);
-         let organizer: String = ::strip_mailto(&::match_single_v_card_prefixed_field("ORGANIZER", &raw_text));
-         let mut attendees: Vec<String> = ::match_v_card_prefixed_field("ATTENDEE", &raw_text);
+        let end: String = ::match_single_v_card_prefixed_field("DTEND", &raw_text);
+        let duration: String = ::match_single_v_card_prefixed_field("DURATION", &raw_text);
+        let location: String = ::match_single_v_card_prefixed_field("LOCATION", &raw_text);
+        let organizer: String = ::strip_mailto(&::match_single_v_card_prefixed_field(
+            "ORGANIZER",
+            &raw_text,
+        ));
+        let mut attendees: Vec<String> = ::match_v_card_prefixed_field("ATTENDEE", &raw_text);
         if attendees != null {
-             {
-                 let mut i: i32 = 0;
+            {
+                let mut i: i32 = 0;
                 while i < attendees.len() {
                     {
                         attendees[i] = ::strip_mailto(attendees[i]);
                     }
                     i += 1;
-                 }
-             }
-
+                }
+            }
         }
-         let description: String = ::match_single_v_card_prefixed_field("DESCRIPTION", &raw_text);
-         let geo_string: String = ::match_single_v_card_prefixed_field("GEO", &raw_text);
-         let mut latitude: f64;
-         let mut longitude: f64;
+        let description: String = ::match_single_v_card_prefixed_field("DESCRIPTION", &raw_text);
+        let geo_string: String = ::match_single_v_card_prefixed_field("GEO", &raw_text);
+        let mut latitude: f64;
+        let mut longitude: f64;
         if geo_string == null {
             latitude = Double::NaN;
             longitude = Double::NaN;
         } else {
-             let semicolon: i32 = geo_string.index_of(';');
+            let semicolon: i32 = geo_string.index_of(';');
             if semicolon < 0 {
                 return null;
             }
 
             latitude = Double::parse_double(&geo_string.substring(0, semicolon));
-                longitude = Double::parse_double(&geo_string.substring(semicolon + 1));
-
-
+            longitude = Double::parse_double(&geo_string.substring(semicolon + 1));
         }
-        
-            return CalendarParsedResult::new(&summary, &start, &end, &duration, &location, &organizer, &attendees, &description, latitude, longitude);
-        
 
+        return CalendarParsedResult::new(
+            &summary,
+            &start,
+            &end,
+            &duration,
+            &location,
+            &organizer,
+            &attendees,
+            &description,
+            latitude,
+            longitude,
+        );
     }
 
-    fn  match_single_v_card_prefixed_field( prefix: &CharSequence,  raw_text: &String) -> String  {
-         let values: List<String> = VCardResultParser::match_single_v_card_prefixed_field(&prefix, &raw_text, true, false);
-        return  if values == null || values.is_empty() { null } else { values.get(0) };
+    fn match_single_v_card_prefixed_field(prefix: &CharSequence, raw_text: &String) -> String {
+        let values: List<String> =
+            VCardResultParser::match_single_v_card_prefixed_field(&prefix, &raw_text, true, false);
+        return if values == null || values.is_empty() {
+            null
+        } else {
+            values.get(0)
+        };
     }
 
-    fn  match_v_card_prefixed_field( prefix: &CharSequence,  raw_text: &String) -> Vec<String>  {
-         let values: List<List<String>> = VCardResultParser::match_v_card_prefixed_field(&prefix, &raw_text, true, false);
+    fn match_v_card_prefixed_field(prefix: &CharSequence, raw_text: &String) -> Vec<String> {
+        let values: List<List<String>> =
+            VCardResultParser::match_v_card_prefixed_field(&prefix, &raw_text, true, false);
         if values == null || values.is_empty() {
             return null;
         }
-         let size: i32 = values.size();
-         let mut result: [Option<String>; size] = [None; size];
-         {
-             let mut i: i32 = 0;
+        let size: i32 = values.size();
+        let mut result: [Option<String>; size] = [None; size];
+        {
+            let mut i: i32 = 0;
             while i < size {
                 {
                     result[i] = values.get(i).get(0);
                 }
                 i += 1;
-             }
-         }
+            }
+        }
 
         return result;
     }
 
-    fn  strip_mailto( s: &String) -> String  {
+    fn strip_mailto(s: &String) -> String {
         if s != null && (s.starts_with("mailto:") || s.starts_with("MAILTO:")) {
             s = s.substring(7);
         }
         return s;
     }
 }
-
 
 // VINParsedResult.java
 
@@ -2804,82 +3017,90 @@ impl VEventResultParser {
  */
 pub struct VINParsedResult {
     //super: ParsedResult;
+    vin: String,
 
-      vin: String,
+    world_manufacturer_i_d: String,
 
-      world_manufacturer_i_d: String,
+    vehicle_descriptor_section: String,
 
-      vehicle_descriptor_section: String,
+    vehicle_identifier_section: String,
 
-      vehicle_identifier_section: String,
+    country_code: String,
 
-      country_code: String,
+    vehicle_attributes: String,
 
-      vehicle_attributes: String,
+    model_year: i32,
 
-      model_year: i32,
+    plant_code: char,
 
-      plant_code: char,
-
-      sequential_number: String
+    sequential_number: String,
 }
 
 impl ParsedResult for VINParsedResult {}
 
 impl VINParsedResult {
-
-    pub fn new( vin: &String,  world_manufacturer_i_d: &String,  vehicle_descriptor_section: &String,  vehicle_identifier_section: &String,  country_code: &String,  vehicle_attributes: &String,  model_year: i32,  plant_code: char,  sequential_number: &String) -> Self {
-    Self{
-        vin: vin,
-        world_manufacturer_i_d: world_manufacturer_i_d,
-        vehicle_descriptor_section: vehicle_descriptor_section,
-        vehicle_identifier_section: vehicle_identifier_section,
-        country_code:country_code,
-        vehicle_attributes: vehicle_attributes,
-        model_year,
-        plant_code,
-        sequential_number: sequential_number,
+    pub fn new(
+        vin: &String,
+        world_manufacturer_i_d: &String,
+        vehicle_descriptor_section: &String,
+        vehicle_identifier_section: &String,
+        country_code: &String,
+        vehicle_attributes: &String,
+        model_year: i32,
+        plant_code: char,
+        sequential_number: &String,
+    ) -> Self {
+        Self {
+            vin: vin,
+            world_manufacturer_i_d: world_manufacturer_i_d,
+            vehicle_descriptor_section: vehicle_descriptor_section,
+            vehicle_identifier_section: vehicle_identifier_section,
+            country_code: country_code,
+            vehicle_attributes: vehicle_attributes,
+            model_year,
+            plant_code,
+            sequential_number: sequential_number,
+        }
     }
-    }
 
-    pub fn  get_v_i_n(&self) -> String  {
+    pub fn get_v_i_n(&self) -> String {
         return self.vin;
     }
 
-    pub fn  get_world_manufacturer_i_d(&self) -> String  {
+    pub fn get_world_manufacturer_i_d(&self) -> String {
         return self.world_manufacturer_i_d;
     }
 
-    pub fn  get_vehicle_descriptor_section(&self) -> String  {
+    pub fn get_vehicle_descriptor_section(&self) -> String {
         return self.vehicle_descriptor_section;
     }
 
-    pub fn  get_vehicle_identifier_section(&self) -> String  {
+    pub fn get_vehicle_identifier_section(&self) -> String {
         return self.vehicle_identifier_section;
     }
 
-    pub fn  get_country_code(&self) -> String  {
+    pub fn get_country_code(&self) -> String {
         return self.country_code;
     }
 
-    pub fn  get_vehicle_attributes(&self) -> String  {
+    pub fn get_vehicle_attributes(&self) -> String {
         return self.vehicle_attributes;
     }
 
-    pub fn  get_model_year(&self) -> i32  {
+    pub fn get_model_year(&self) -> i32 {
         return self.model_year;
     }
 
-    pub fn  get_plant_code(&self) -> char  {
+    pub fn get_plant_code(&self) -> char {
         return self.plant_code;
     }
 
-    pub fn  get_sequential_number(&self) -> String  {
+    pub fn get_sequential_number(&self) -> String {
         return self.sequential_number;
     }
 
-    pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new();
+    pub fn get_display_result(&self) -> String {
+        let result: String = String::new();
         result.append(&self.world_manufacturer_i_d).append(' ');
         result.append(&self.vehicle_descriptor_section).append(' ');
         result.append(&self.vehicle_identifier_section).append('\n');
@@ -2893,7 +3114,6 @@ impl VINParsedResult {
     }
 }
 
-
 // VINResultParser.java
 /**
  * Detects a result that is likely a vehicle identification number.
@@ -2905,206 +3125,196 @@ const IOQ: Regex = Regex::new("[IOQ]");
 
 const AZ09: Regex = Regex::new("[A-Z0-9]{17}");
 pub struct VINResultParser {
-   //super: ResultParser;
+    //super: ResultParser;
 }
 
 impl ResultParser for VINResultParser {}
 
 impl VINResultParser {
-
-   pub fn  parse(&self,  result: &Result) -> VINParsedResult  {
-       if result.get_barcode_format() != BarcodeFormat::CODE_39 {
-           return null;
-       }
+    pub fn parse(&self, result: &Result) -> VINParsedResult {
+        if result.get_barcode_format() != BarcodeFormat::CODE_39 {
+            return null;
+        }
         let raw_text: String = result.get_text();
-       raw_text = IOQ.replace_all(&raw_text,"").trim().to_owned();
-       if !AZ09::is_match(&raw_text) {
-           return null;
-       }
+        raw_text = IOQ.replace_all(&raw_text, "").trim().to_owned();
+        if !AZ09::is_match(&raw_text) {
+            return null;
+        }
 
-       if !::check_checksum(&raw_text) {
-        return null;
+        if !::check_checksum(&raw_text) {
+            return null;
+        }
+        let wmi: String = raw_text.substring(0, 3);
+        return VINParsedResult::new(
+            &raw_text,
+            &wmi,
+            &raw_text.substring(3, 9),
+            &raw_text.substring(9, 17),
+            &::country_code(&wmi),
+            &raw_text.substring(3, 8),
+            &::model_year(&raw_text.char_at(9)),
+            &raw_text.char_at(10),
+            &raw_text.substring(11),
+        );
     }
-     let wmi: String = raw_text.substring(0, 3);
-    return VINParsedResult::new(&raw_text, &wmi, &raw_text.substring(3, 9), &raw_text.substring(9, 17), &::country_code(&wmi), &raw_text.substring(3, 8), &::model_year(&raw_text.char_at(9)), &raw_text.char_at(10), &raw_text.substring(11));
 
-   }
-
-   fn  check_checksum( vin: &CharSequence) -> bool  {
+    fn check_checksum(vin: &CharSequence) -> bool {
         let mut sum: i32 = 0;
         {
             let mut i: i32 = 0;
-           while i < vin.length() {
-               {
-                   sum += ::vin_position_weight(i + 1) * ::vin_char_value(&vin.char_at(i));
-               }
-               i += 1;
+            while i < vin.length() {
+                {
+                    sum += ::vin_position_weight(i + 1) * ::vin_char_value(&vin.char_at(i));
+                }
+                i += 1;
             }
         }
 
         let check_char: char = vin.char_at(8);
         let expected_check_char: char = self.check_char(sum % 11);
-       return check_char == expected_check_char;
-   }
+        return check_char == expected_check_char;
+    }
 
-   fn  vin_char_value( c: char) -> Result<i32,IllegalArgumentException>  {
-       if c >= 'A' && c <= 'I' {
-           return (c - 'A') + 1;
-       }
-       if c >= 'J' && c <= 'R' {
-           return (c - 'J') + 1;
-       }
-       if c >= 'S' && c <= 'Z' {
-           return (c - 'S') + 2;
-       }
-       if c >= '0' && c <= '9' {
-           return c - '0';
-       }
-       Err( IllegalArgumentException::new())
-   }
+    fn vin_char_value(c: char) -> Result<i32, IllegalArgumentException> {
+        if c >= 'A' && c <= 'I' {
+            return (c - 'A') + 1;
+        }
+        if c >= 'J' && c <= 'R' {
+            return (c - 'J') + 1;
+        }
+        if c >= 'S' && c <= 'Z' {
+            return (c - 'S') + 2;
+        }
+        if c >= '0' && c <= '9' {
+            return c - '0';
+        }
+        Err(IllegalArgumentException::new())
+    }
 
-   fn  vin_position_weight( position: i32) -> Result<i32,IllegalArgumentException>  {
-       if position >= 1 && position <= 7 {
-           return Ok(9 - position);
-       }
-       if position == 8 {
-           return Ok(10);
-       }
-       if position == 9 {
-           return Ok(0);
-       }
-       if position >= 10 && position <= 17 {
-           return Ok(19 - position);
-       }
-       Err( IllegalArgumentException::new())
-   }
+    fn vin_position_weight(position: i32) -> Result<i32, IllegalArgumentException> {
+        if position >= 1 && position <= 7 {
+            return Ok(9 - position);
+        }
+        if position == 8 {
+            return Ok(10);
+        }
+        if position == 9 {
+            return Ok(0);
+        }
+        if position >= 10 && position <= 17 {
+            return Ok(19 - position);
+        }
+        Err(IllegalArgumentException::new())
+    }
 
-   fn  check_char( remainder: i32) -> Result<char,IllegalArgumentException>  {
-       if remainder < 10 {
-           return Ok(('0' + remainder) as char);
-       }
-       if remainder == 10 {
-           return Ok('X');
-       }
-       Err( IllegalArgumentException::new())
-   }
+    fn check_char(remainder: i32) -> Result<char, IllegalArgumentException> {
+        if remainder < 10 {
+            return Ok(('0' + remainder) as char);
+        }
+        if remainder == 10 {
+            return Ok('X');
+        }
+        Err(IllegalArgumentException::new())
+    }
 
-   fn  model_year( c: char) -> Result<i32,IllegalArgumentException>  {
-       if c >= 'E' && c <= 'H' {
-           return (c - 'E') + 1984;
-       }
-       if c >= 'J' && c <= 'N' {
-           return (c - 'J') + 1988;
-       }
-       if c == 'P' {
-           return Ok(1993);
-       }
-       if c >= 'R' && c <= 'T' {
-           return (c - 'R') + 1994;
-       }
-       if c >= 'V' && c <= 'Y' {
-           return (c - 'V') + 1997;
-       }
-       if c >= '1' && c <= '9' {
-           return (c - '1') + 2001;
-       }
-       if c >= 'A' && c <= 'D' {
-           return (c - 'A') + 2010;
-       }
-       Err( IllegalArgumentException::new())
-   }
+    fn model_year(c: char) -> Result<i32, IllegalArgumentException> {
+        if c >= 'E' && c <= 'H' {
+            return (c - 'E') + 1984;
+        }
+        if c >= 'J' && c <= 'N' {
+            return (c - 'J') + 1988;
+        }
+        if c == 'P' {
+            return Ok(1993);
+        }
+        if c >= 'R' && c <= 'T' {
+            return (c - 'R') + 1994;
+        }
+        if c >= 'V' && c <= 'Y' {
+            return (c - 'V') + 1997;
+        }
+        if c >= '1' && c <= '9' {
+            return (c - '1') + 2001;
+        }
+        if c >= 'A' && c <= 'D' {
+            return (c - 'A') + 2010;
+        }
+        Err(IllegalArgumentException::new())
+    }
 
-   fn  country_code( wmi: &CharSequence) -> &'static str  {
+    fn country_code(wmi: &CharSequence) -> &'static str {
         let c1: char = wmi.char_at(0);
         let c2: char = wmi.char_at(1);
-       match c1 {
-             '1' => 
-                {
-               }
-             '4' => 
-                {
-               }
-             '5' => 
-                {
-                   return "US";
-               }
-             '2' => 
-                {
-                   return "CA";
-               }
-             '3' => 
-                {
-                   if c2 >= 'A' && c2 <= 'W' {
-                       return "MX";
-                   }
-               }
-             '9' => 
-                {
-                   if (c2 >= 'A' && c2 <= 'E') || (c2 >= '3' && c2 <= '9') {
-                       return "BR";
-                   }
-               }
-             'J' => 
-                {
-                   if c2 >= 'A' && c2 <= 'T' {
-                       return "JP";
-                   }
-               }
-             'K' => 
-                {
-                   if c2 >= 'L' && c2 <= 'R' {
-                       return "KO";
-                   }
-               }
-             'L' => 
-                {
-                   return "CN";
-               }
-             'M' => 
-                {
-                   if c2 >= 'A' && c2 <= 'E' {
-                       return "IN";
-                   }
-               }
-             'S' => 
-                {
-                   if c2 >= 'A' && c2 <= 'M' {
-                       return "UK";
-                   }
-                   if c2 >= 'N' && c2 <= 'T' {
-                       return "DE";
-                   }
-               }
-             'V' => 
-                {
-                   if c2 >= 'F' && c2 <= 'R' {
-                       return "FR";
-                   }
-                   if c2 >= 'S' && c2 <= 'W' {
-                       return "ES";
-                   }
-               }
-             'W' => 
-                {
-                   return "DE";
-               }
-             'X' => 
-                {
-                   if c2 == '0' || (c2 >= '3' && c2 <= '9') {
-                       return "RU";
-                   }
-               }
-             'Z' => 
-                {
-                   if c2 >= 'A' && c2 <= 'R' {
-                       return "IT";
-                   }
-               }
-       }
-       return null;
-   }
+        match c1 {
+            '1' => {}
+            '4' => {}
+            '5' => {
+                return "US";
+            }
+            '2' => {
+                return "CA";
+            }
+            '3' => {
+                if c2 >= 'A' && c2 <= 'W' {
+                    return "MX";
+                }
+            }
+            '9' => {
+                if (c2 >= 'A' && c2 <= 'E') || (c2 >= '3' && c2 <= '9') {
+                    return "BR";
+                }
+            }
+            'J' => {
+                if c2 >= 'A' && c2 <= 'T' {
+                    return "JP";
+                }
+            }
+            'K' => {
+                if c2 >= 'L' && c2 <= 'R' {
+                    return "KO";
+                }
+            }
+            'L' => {
+                return "CN";
+            }
+            'M' => {
+                if c2 >= 'A' && c2 <= 'E' {
+                    return "IN";
+                }
+            }
+            'S' => {
+                if c2 >= 'A' && c2 <= 'M' {
+                    return "UK";
+                }
+                if c2 >= 'N' && c2 <= 'T' {
+                    return "DE";
+                }
+            }
+            'V' => {
+                if c2 >= 'F' && c2 <= 'R' {
+                    return "FR";
+                }
+                if c2 >= 'S' && c2 <= 'W' {
+                    return "ES";
+                }
+            }
+            'W' => {
+                return "DE";
+            }
+            'X' => {
+                if c2 == '0' || (c2 >= '3' && c2 <= '9') {
+                    return "RU";
+                }
+            }
+            'Z' => {
+                if c2 >= 'A' && c2 <= 'R' {
+                    return "IT";
+                }
+            }
+        }
+        return null;
+    }
 }
-
 
 // WifiParsedResult.java
 /**
@@ -3114,30 +3324,37 @@ impl VINResultParser {
  */
 pub struct WifiParsedResult {
     //super: ParsedResult;
+    ssid: String,
 
-      ssid: String,
+    network_encryption: String,
 
-      network_encryption: String,
+    password: String,
 
-      password: String,
+    hidden: bool,
 
-      hidden: bool,
+    identity: String,
 
-      identity: String,
+    anonymous_identity: String,
 
-      anonymous_identity: String,
+    eap_method: String,
 
-      eap_method: String,
-
-      phase2_method: String
+    phase2_method: String,
 }
 
 impl ParsedResult for WifiParsedResult {}
 
 impl WifiParsedResult {
-
-    pub fn new( network_encryption: &String,  ssid: &String,  password: &String,  hidden: bool,  identity: &String,  anonymous_identity: &String,  eap_method: &String,  phase2_method: &String) -> Self {
-        Self{
+    pub fn new(
+        network_encryption: &String,
+        ssid: &String,
+        password: &String,
+        hidden: bool,
+        identity: &String,
+        anonymous_identity: &String,
+        eap_method: &String,
+        phase2_method: &String,
+    ) -> Self {
+        Self {
             ssid: ssid,
             network_encryption: network_encryption,
             password: password,
@@ -3149,40 +3366,40 @@ impl WifiParsedResult {
         }
     }
 
-    pub fn  get_ssid(&self) -> String  {
+    pub fn get_ssid(&self) -> String {
         return self.ssid;
     }
 
-    pub fn  get_network_encryption(&self) -> String  {
+    pub fn get_network_encryption(&self) -> String {
         return self.network_encryption;
     }
 
-    pub fn  get_password(&self) -> String  {
+    pub fn get_password(&self) -> String {
         return self.password;
     }
 
-    pub fn  is_hidden(&self) -> bool  {
+    pub fn is_hidden(&self) -> bool {
         return self.hidden;
     }
 
-    pub fn  get_identity(&self) -> String  {
+    pub fn get_identity(&self) -> String {
         return self.identity;
     }
 
-    pub fn  get_anonymous_identity(&self) -> String  {
+    pub fn get_anonymous_identity(&self) -> String {
         return self.anonymous_identity;
     }
 
-    pub fn  get_eap_method(&self) -> String  {
+    pub fn get_eap_method(&self) -> String {
         return self.eap_method;
     }
 
-    pub fn  get_phase2_method(&self) -> String  {
+    pub fn get_phase2_method(&self) -> String {
         return self.phase2_method;
     }
 
-    pub fn  get_display_result(&self) -> String  {
-         let result: String = String::new();
+    pub fn get_display_result(&self) -> String {
+        let result: String = String::new();
         maybe_append(&self.ssid, &result);
         maybe_append(&self.network_encryption, &result);
         maybe_append(&self.password, &result);
@@ -3191,52 +3408,61 @@ impl WifiParsedResult {
     }
 }
 
-
 // WifiResultParser.java
 pub struct WifiResultParser {
     //super: ResultParser;
 }
 
-impl ResultParser for WifiResultParser{}
+impl ResultParser for WifiResultParser {}
 
 impl WifiResultParser {
-
-    pub fn  parse(&self,  result: &Result) -> WifiParsedResult  {
-         let raw_text: String = get_massaged_text(result);
+    pub fn parse(&self, result: &Result) -> WifiParsedResult {
+        let raw_text: String = get_massaged_text(result);
         if !raw_text.starts_with("WIFI:") {
             return null;
         }
         raw_text = raw_text.substring(&"WIFI:".length());
-         let ssid: String = match_single_prefixed_field("S:", &raw_text, ';', false);
+        let ssid: String = match_single_prefixed_field("S:", &raw_text, ';', false);
         if ssid == null || ssid.is_empty() {
             return null;
         }
-         let pass: String = match_single_prefixed_field("P:", &raw_text, ';', false);
-         let mut _type: String = match_single_prefixed_field("T:", &raw_text, ';', false);
+        let pass: String = match_single_prefixed_field("P:", &raw_text, ';', false);
+        let mut _type: String = match_single_prefixed_field("T:", &raw_text, ';', false);
         if _type == null {
             _type = "nopass".to_owned();
         }
         // Unfortunately, in the past, H: was not just used for boolean 'hidden', but 'phase 2 method'.
         // To try to retain backwards compatibility, we set one or the other based on whether the string
         // is 'true' or 'false':
-         let mut hidden: bool = false;
-         let phase2_method: String = match_single_prefixed_field("PH2:", &raw_text, ';', false);
-         let h_value: String = match_single_prefixed_field("H:", &raw_text, ';', false);
+        let mut hidden: bool = false;
+        let phase2_method: String = match_single_prefixed_field("PH2:", &raw_text, ';', false);
+        let h_value: String = match_single_prefixed_field("H:", &raw_text, ';', false);
         if h_value != null {
             // If PH2 was specified separately, or if the value is clearly boolean, interpret it as 'hidden'
-            if phase2_method != null || "true".equals_ignore_case(&h_value) || "false".equals_ignore_case(&h_value) {
+            if phase2_method != null
+                || "true".equals_ignore_case(&h_value)
+                || "false".equals_ignore_case(&h_value)
+            {
                 hidden = Boolean::parse_boolean(&h_value);
             } else {
                 phase2_method = h_value;
             }
         }
-         let identity: String = match_single_prefixed_field("I:", &raw_text, ';', false);
-         let anonymous_identity: String = match_single_prefixed_field("A:", &raw_text, ';', false);
-         let eap_method: String = match_single_prefixed_field("E:", &raw_text, ';', false);
-        return WifiParsedResult::new(&_type, &ssid, &pass, hidden, &identity, &anonymous_identity, &eap_method, &phase2_method);
+        let identity: String = match_single_prefixed_field("I:", &raw_text, ';', false);
+        let anonymous_identity: String = match_single_prefixed_field("A:", &raw_text, ';', false);
+        let eap_method: String = match_single_prefixed_field("E:", &raw_text, ';', false);
+        return WifiParsedResult::new(
+            &_type,
+            &ssid,
+            &pass,
+            hidden,
+            &identity,
+            &anonymous_identity,
+            &eap_method,
+            &phase2_method,
+        );
     }
 }
-
 
 // ISBNParsedResult.java
 /**
@@ -3246,34 +3472,29 @@ impl WifiResultParser {
  */
 pub struct ISBNParsedResult {
     //super: ParsedResult;
-
-      isbn: String
+    isbn: String,
 }
 
-impl ParsedResult for ISBNParsedResult{}
+impl ParsedResult for ISBNParsedResult {}
 
 impl ISBNParsedResult {
-
-    fn new( isbn: &String) -> Self {
-        Self{
-            isbn
-        }
+    fn new(isbn: &String) -> Self {
+        Self { isbn }
     }
 
-    pub fn  get_i_s_b_n(&self) -> String  {
+    pub fn get_i_s_b_n(&self) -> String {
         return self.isbn;
     }
 
-    pub fn  get_display_result(&self) -> String  {
+    pub fn get_display_result(&self) -> String {
         return self.isbn;
     }
 }
-
 
 // ISBNResultParser.java
 /**
  * Parses strings of digits that represent a ISBN.
- * 
+ *
  * @author jbreiden@google.com (Jeff Breidenbach)
  */
 pub struct ISBNResultParser {
@@ -3283,17 +3504,16 @@ pub struct ISBNResultParser {
 impl ResultParser for ISBNResultParser {}
 
 impl ISBNResultParser {
-
     /**
-   * See <a href="http://www.bisg.org/isbn-13/for.dummies.html">ISBN-13 For Dummies</a>
-   */
-    pub fn  parse(&self,  result: &Result) -> ISBNParsedResult  {
-         let format: BarcodeFormat = result.get_barcode_format();
+     * See <a href="http://www.bisg.org/isbn-13/for.dummies.html">ISBN-13 For Dummies</a>
+     */
+    pub fn parse(&self, result: &Result) -> ISBNParsedResult {
+        let format: BarcodeFormat = result.get_barcode_format();
         if format != BarcodeFormat::EAN_13 {
             return null;
         }
-         let raw_text: String = get_massaged_text(result);
-         let length: i32 = raw_text.length();
+        let raw_text: String = get_massaged_text(result);
+        let length: i32 = raw_text.length();
         if length != 13 {
             return null;
         }
@@ -3303,4 +3523,3 @@ impl ISBNResultParser {
         return ISBNParsedResult::new(&raw_text);
     }
 }
-
