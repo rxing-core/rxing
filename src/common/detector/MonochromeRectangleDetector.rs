@@ -26,9 +26,9 @@ use crate::{NotFoundException, RXingResultPoint};
  * @author Sean Owen
  * @deprecated without replacement since 3.3.0
  */
+const MAX_MODULES : i32 = 32;
 #[deprecated]
 pub struct MonochromeRectangleDetector {
-    MAX_MODULES: i32,
 
     image: BitMatrix,
 }
@@ -36,7 +36,6 @@ pub struct MonochromeRectangleDetector {
 impl MonochromeRectangleDetector {
     pub fn new(image: &BitMatrix) -> Self {
         Self {
-            MAX_MODULES: 32,
             image: image,
         }
     }
@@ -51,19 +50,19 @@ impl MonochromeRectangleDetector {
      *  third, the rightmost
      * @throws NotFoundException if no Data Matrix Code can be found
      */
-    pub fn detect() -> Result<Vec<RXingResultPoint>, NotFoundException> {
-        let height = image.getHeight();
-        let width = image.getWidth();
+    pub fn detect(&self) -> Result<Vec<RXingResultPoint>, NotFoundException> {
+        let height = self.image.getHeight();
+        let width = self.image.getWidth();
         let halfHeight = height / 2;
         let halfWidth = width / 2;
-        let deltaY = Math.max(1, height / (MAX_MODULES * 8));
-        let deltaX = Math.max(1, width / (MAX_MODULES * 8));
+        let deltaY = 1.max( height / (MAX_MODULES * 8));
+        let deltaX = 1.max( width / (MAX_MODULES * 8));
 
         let top = 0;
         let bottom = height;
         let left = 0;
         let right = width;
-        let pointA = findCornerFromCenter(
+        let pointA = self.findCornerFromCenter(
             halfWidth,
             0,
             left,
@@ -73,9 +72,9 @@ impl MonochromeRectangleDetector {
             top,
             bottom,
             halfWidth / 2,
-        );
+        )?;
         top = pointA.getY() - 1;
-        let pointB = findCornerFromCenter(
+        let pointB = self.findCornerFromCenter(
             halfWidth,
             -deltaX,
             left,
@@ -85,9 +84,9 @@ impl MonochromeRectangleDetector {
             top,
             bottom,
             halfHeight / 2,
-        );
+        )?;
         left = pointB.getX() - 1;
-        let pointC = findCornerFromCenter(
+        let pointC = self.findCornerFromCenter(
             halfWidth,
             deltaX,
             left,
@@ -97,9 +96,9 @@ impl MonochromeRectangleDetector {
             top,
             bottom,
             halfHeight / 2,
-        );
+        )?;
         right = pointC.getX() + 1;
-        let pointD = findCornerFromCenter(
+        let pointD = self.findCornerFromCenter(
             halfWidth,
             0,
             left,
@@ -109,11 +108,11 @@ impl MonochromeRectangleDetector {
             top,
             bottom,
             halfWidth / 2,
-        );
+        )?;
         bottom = pointD.getY() + 1;
 
         // Go try to find point A again with better information -- might have been off at first.
-        pointA = findCornerFromCenter(
+        pointA = self.findCornerFromCenter(
             halfWidth,
             0,
             left,
@@ -123,9 +122,9 @@ impl MonochromeRectangleDetector {
             top,
             bottom,
             halfWidth / 4,
-        );
+        )?;
 
-        return Vec!([pointA, pointB, pointC, pointD]);
+        return vec!([pointA, pointB, pointC, pointD]);
     }
 
     /**
@@ -147,6 +146,7 @@ impl MonochromeRectangleDetector {
      * @throws NotFoundException if such a point cannot be found
      */
     fn findCornerFromCenter(
+        &self,
         centerX: i32,
         deltaX: i32,
         left: i32,
@@ -157,20 +157,20 @@ impl MonochromeRectangleDetector {
         bottom: i32,
         maxWhiteRun: i32,
     ) -> Result<RXingResultPoint, NotFoundException> {
-        lastRange = null;
+        let lastRange : Option<Vec<i32>> = None;
         let y: i32 = centerY;
         let x: i32 = centerX;
         while (y < bottom && y >= top && x < right && x >= left) {
-            let range: Vec::new();
+            let range: Option<Vec<i32>>;
             if (deltaX == 0) {
                 // horizontal slices, up and down
-                range = blackWhiteRange(y, maxWhiteRun, left, right, true);
+                range = self.blackWhiteRange(y, maxWhiteRun, left, right, true);
             } else {
                 // vertical slices, left and right
-                range = blackWhiteRange(x, maxWhiteRun, top, bottom, false);
+                range = self.blackWhiteRange(x, maxWhiteRun, top, bottom, false);
             }
-            if (range == null) {
-                if (lastRange == null) {
+            if (range .is_none()) {
+                if (lastRange .is_none()) {
                     return Err(NotFoundException.getNotFoundInstance());
                 }
                 // lastRange was found
@@ -225,6 +225,7 @@ impl MonochromeRectangleDetector {
      *  (e.g. only white was found)
      */
     fn blackWhiteRange(
+        &self,
         fixedDimension: i32,
         maxWhiteRun: i32,
         minDim: i32,
@@ -237,9 +238,9 @@ impl MonochromeRectangleDetector {
         let start = center;
         while (start >= minDim) {
             if (if horizontal {
-                image.get(start, fixedDimension)
+                self.image.get(start, fixedDimension)
             } else {
-                image.get(fixedDimension, start)
+                self.image.get(fixedDimension, start)
             }) {
                 start = start - 1;
             } else {
@@ -247,9 +248,9 @@ impl MonochromeRectangleDetector {
                 start = start - 1;
                 while start >= minDim
                     && !(if horizontal {
-                        image.get(start, fixedDimension);
+                        self.image.get(start, fixedDimension)
                     } else {
-                        image.get(fixedDimension, start);
+                        self.image.get(fixedDimension, start)
                     })
                 {
                     start = start - 1;
@@ -267,9 +268,9 @@ impl MonochromeRectangleDetector {
         let end = center;
         while (end < maxDim) {
             if (if horizontal {
-                image.get(end, fixedDimension)
+                self.image.get(end, fixedDimension)
             } else {
-                image.get(fixedDimension, end)
+                self.image.get(fixedDimension, end)
             }) {
                 end = end + 1;
             } else {
@@ -277,9 +278,9 @@ impl MonochromeRectangleDetector {
                 end = end + 1;
                 while end < maxDim
                     && !(if horizontal {
-                        image.get(end, fixedDimension)
+                        self.image.get(end, fixedDimension)
                     } else {
-                        image.get(fixedDimension, end)
+                        self.image.get(fixedDimension, end)
                     })
                 {
                     end = end + 1;
@@ -294,7 +295,7 @@ impl MonochromeRectangleDetector {
         end = end - 1;
 
         return if end > start {
-            Some(Vec! {start, end})
+            Some(vec! {start, end})
         } else {
             None
         };

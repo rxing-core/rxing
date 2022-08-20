@@ -19,6 +19,8 @@
 use crate::{NotFoundException,RXingResultPoint};
 use crate::common::BitMatrix;
 
+use super::MathUtils;
+
 /**
  * <p>
  * Detects a candidate barcode-like rectangular region within an image. It
@@ -45,7 +47,7 @@ pub struct WhiteRectangleDetector {
 impl WhiteRectangleDetector {
 
   pub fn new_from_image(image:&BitMatrix) -> Result<Self,NotFoundException> {
-    Self::new(image, INIT_SIZE, image.getWidth() / 2, image.getHeight() / 2);
+    Self::new(image, INIT_SIZE, image.getWidth() / 2, image.getHeight() / 2)
   }
 
   /**
@@ -65,7 +67,7 @@ impl WhiteRectangleDetector {
     new_wrd.rightInit = x + halfsize;
     new_wrd.upInit = y - halfsize;
     new_wrd.downInit = y + halfsize;
-    if (upInit < 0 || leftInit < 0 || downInit >= height || rightInit >= width) {
+    if (new_wrd.upInit < 0 || new_wrd.leftInit < 0 || new_wrd.downInit >= new_wrd.height || new_wrd.rightInit >= new_wrd.width) {
       return Err( NotFoundException.getNotFoundInstance());
     }
     
@@ -86,12 +88,12 @@ impl WhiteRectangleDetector {
    *         leftmost and the third, the rightmost
    * @throws NotFoundException if no Data Matrix Code can be found
    */
-  pub fn  detect() -> Result<Vec<RXingResultPoint>, NotFoundException> {
+  pub fn  detect(&self) -> Result<Vec<RXingResultPoint>, NotFoundException> {
 
-    let left :i32= leftInit;
-    let right:i32 = rightInit;
-    let up:i32 = upInit;
-    let down:i32 = downInit;
+    let left :i32= self.leftInit;
+    let right:i32 = self.rightInit;
+    let up:i32 = self.upInit;
+    let down:i32 = self.downInit;
     let sizeExceeded = false;
     let aBlackPointFoundOnBorder = true;
 
@@ -108,8 +110,8 @@ impl WhiteRectangleDetector {
       // .   |
       // .....
       let rightBorderNotWhite = true;
-      while ((rightBorderNotWhite || !atLeastOneBlackPointFoundOnRight) && right < width) {
-        rightBorderNotWhite = containsBlackPoint(up, down, right, false);
+      while ((rightBorderNotWhite || !atLeastOneBlackPointFoundOnRight) && right < self.width) {
+        rightBorderNotWhite = self.containsBlackPoint(up, down, right, false);
         if (rightBorderNotWhite) {
           right += 1;
           aBlackPointFoundOnBorder = true;
@@ -119,7 +121,7 @@ impl WhiteRectangleDetector {
         }
       }
 
-      if (right >= width) {
+      if (right >= self.width) {
         sizeExceeded = true;
         break;
       }
@@ -128,8 +130,8 @@ impl WhiteRectangleDetector {
       // .   .
       // .___.
       let bottomBorderNotWhite = true;
-      while ((bottomBorderNotWhite || !atLeastOneBlackPointFoundOnBottom) && down < height) {
-        bottomBorderNotWhite = containsBlackPoint(left, right, down, true);
+      while ((bottomBorderNotWhite || !atLeastOneBlackPointFoundOnBottom) && down < self.height) {
+        bottomBorderNotWhite = self.containsBlackPoint(left, right, down, true);
         if (bottomBorderNotWhite) {
           down+=1;
           aBlackPointFoundOnBorder = true;
@@ -139,7 +141,7 @@ impl WhiteRectangleDetector {
         }
       }
 
-      if (down >= height) {
+      if (down >= self.height) {
         sizeExceeded = true;
         break;
       }
@@ -149,7 +151,7 @@ impl WhiteRectangleDetector {
       // .....
       let leftBorderNotWhite = true;
       while ((leftBorderNotWhite || !atLeastOneBlackPointFoundOnLeft) && left >= 0) {
-        leftBorderNotWhite = containsBlackPoint(up, down, left, false);
+        leftBorderNotWhite = self.containsBlackPoint(up, down, left, false);
         if (leftBorderNotWhite) {
           left-=1;
           aBlackPointFoundOnBorder = true;
@@ -169,7 +171,7 @@ impl WhiteRectangleDetector {
       // .....
       let topBorderNotWhite = true;
       while ((topBorderNotWhite || !atLeastOneBlackPointFoundOnTop) && up >= 0) {
-        topBorderNotWhite = containsBlackPoint(left, right, up, true);
+        topBorderNotWhite = self.containsBlackPoint(left, right, up, true);
         if (topBorderNotWhite) {
           up-=1;
           aBlackPointFoundOnBorder = true;
@@ -194,7 +196,7 @@ impl WhiteRectangleDetector {
       let mut i = 1;
       while z.is_none() && i < maxSize {
       //for (int i = 1; z == null && i < maxSize; i++) {
-        z = getBlackPointOnSegment(left, down - i, left + i, down);
+        z = self.getBlackPointOnSegment(left, down - i, left + i, down);
         i+=1;
       }
 
@@ -207,7 +209,7 @@ impl WhiteRectangleDetector {
       let mut i = 1;
       while t.is_none() && i < maxSize {
       //for (int i = 1; t == null && i < maxSize; i++) {
-        t = getBlackPointOnSegment(left, up + i, left + i, up);
+        t = self.getBlackPointOnSegment(left, up + i, left + i, up);
         i+=1;
       }
 
@@ -220,7 +222,7 @@ impl WhiteRectangleDetector {
       let mut i = 1;
       while x.is_none() && i < maxSize {
       //for (int i = 1; x == null && i < maxSize; i++) {
-        x = getBlackPointOnSegment(right, up + i, right - i, up);
+        x = self.getBlackPointOnSegment(right, up + i, right - i, up);
         i += 1;
       }
 
@@ -233,7 +235,7 @@ impl WhiteRectangleDetector {
       let mut i = 1;
       while y.is_none() && i < maxSize {
       //for (int i = 1; y == null && i < maxSize; i++) {
-        y = getBlackPointOnSegment(right, down - i, right - i, down);
+        y = self.getBlackPointOnSegment(right, down - i, right - i, down);
         i+=1;
       }
 
@@ -241,22 +243,22 @@ impl WhiteRectangleDetector {
         return Err( NotFoundException.getNotFoundInstance());
       }
 
-      return centerEdges(y, z, x, t);
+      return self.centerEdges(y, z, x, t);
 
     } else {
       return Err( NotFoundException.getNotFoundInstance());
     }
   }
 
-  fn  getBlackPointOnSegment( aX:f32,  aY:f32,  bX:f32,  bY:f32) -> Option<RXingResultPoint> {
-    let dist = MathUtils.round(MathUtils.distance(aX, aY, bX, bY));
+  fn  getBlackPointOnSegment(&self, aX:f32,  aY:f32,  bX:f32,  bY:f32) -> Option<RXingResultPoint> {
+    let dist = MathUtils::round(MathUtils::distance_float(aX, aY, bX, bY));
     let xStep :f32= (bX - aX) / dist;
     let yStep:f32 = (bY - aY) / dist;
 
     for i in 0..dist {
-      let x = MathUtils.round(aX + i * xStep);
-      let y = MathUtils.round(aY + i * yStep);
-      if (image.get(x, y)) {
+      let x = MathUtils::round(aX + i * xStep);
+      let y = MathUtils::round(aY + i * yStep);
+      if (self.image.get(x, y)) {
         return  RXingResultPoint::new(x, y);
       }
     }
@@ -276,7 +278,7 @@ impl WhiteRectangleDetector {
    *         point and the last, the bottommost. The second point will be
    *         leftmost and the third, the rightmost
    */
-  fn  centerEdges( y:&RXingResultPoint,  z:&RXingResultPoint,
+  fn  centerEdges( &self,y:&RXingResultPoint,  z:&RXingResultPoint,
                                      x:&RXingResultPoint,  t:&RXingResultPoint) -> Vec<RXingResultPoint> {
 
     //
@@ -295,14 +297,14 @@ impl WhiteRectangleDetector {
     let ti = t.getX();
     let tj = t.getY();
 
-    if (yi < width / 2.0f) {
-      return Vec!
+    if (yi < self.width.into() / 2.0f32) {
+      return vec!
           [ RXingResultPoint::new(ti - CORR, tj + CORR),
            RXingResultPoint::new(zi + CORR, zj + CORR),
            RXingResultPoint::new(xi - CORR, xj - CORR),
            RXingResultPoint::new(yi + CORR, yj - CORR)];
     } else {
-      return Vec![
+      return vec![
            RXingResultPoint::new(ti + CORR, tj + CORR),
            RXingResultPoint::new(zi + CORR, zj - CORR),
            RXingResultPoint::new(xi - CORR, xj + CORR),
@@ -319,19 +321,19 @@ impl WhiteRectangleDetector {
    * @param horizontal set to true if scan must be horizontal, false if vertical
    * @return true if a black point has been found, else false.
    */
-  fn  containsBlackPoint( a:i32,  b:i32,  fixed:i32,  horizontal:bool) -> bool {
+  fn  containsBlackPoint(&self, a:i32,  b:i32,  fixed:i32,  horizontal:bool) -> bool {
 
     if (horizontal) {
       
       for x in a..=b {
-        if (image.get(x, fixed)) {
+        if (self.image.get(x, fixed)) {
           return true;
         }
       }
     } else {
       
       for y in a..=b {
-        if (image.get(fixed, y)) {
+        if (self.image.get(fixed, y)) {
           return true;
         }
       }
