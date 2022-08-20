@@ -23,14 +23,14 @@ import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.Reader;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.common.DecoderResult;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
+import com.google.zxing.common.DecoderRXingResult;
 import com.google.zxing.multi.MultipleBarcodeReader;
 import com.google.zxing.pdf417.decoder.PDF417ScanningDecoder;
 import com.google.zxing.pdf417.detector.Detector;
-import com.google.zxing.pdf417.detector.PDF417DetectorResult;
+import com.google.zxing.pdf417.detector.PDF417DetectorRXingResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +43,7 @@ import java.util.Map;
  */
 public final class PDF417Reader implements Reader, MultipleBarcodeReader {
 
-  private static final Result[] EMPTY_RESULT_ARRAY = new Result[0];
+  private static final RXingResult[] EMPTY_RESULT_ARRAY = new RXingResult[0];
 
   /**
    * Locates and decodes a PDF417 code in an image.
@@ -53,14 +53,14 @@ public final class PDF417Reader implements Reader, MultipleBarcodeReader {
    * @throws FormatException if a PDF417 cannot be decoded
    */
   @Override
-  public Result decode(BinaryBitmap image) throws NotFoundException, FormatException, ChecksumException {
+  public RXingResult decode(BinaryBitmap image) throws NotFoundException, FormatException, ChecksumException {
     return decode(image, null);
   }
 
   @Override
-  public Result decode(BinaryBitmap image, Map<DecodeHintType,?> hints) throws NotFoundException, FormatException,
+  public RXingResult decode(BinaryBitmap image, Map<DecodeHintType,?> hints) throws NotFoundException, FormatException,
       ChecksumException {
-    Result[] result = decode(image, hints, false);
+    RXingResult[] result = decode(image, hints, false);
     if (result.length == 0 || result[0] == null) {
       throw NotFoundException.getNotFoundInstance();
     }
@@ -68,12 +68,12 @@ public final class PDF417Reader implements Reader, MultipleBarcodeReader {
   }
 
   @Override
-  public Result[] decodeMultiple(BinaryBitmap image) throws NotFoundException {
+  public RXingResult[] decodeMultiple(BinaryBitmap image) throws NotFoundException {
     return decodeMultiple(image, null);
   }
 
   @Override
-  public Result[] decodeMultiple(BinaryBitmap image, Map<DecodeHintType,?> hints) throws NotFoundException {
+  public RXingResult[] decodeMultiple(BinaryBitmap image, Map<DecodeHintType,?> hints) throws NotFoundException {
     try {
       return decode(image, hints, true);
     } catch (FormatException | ChecksumException ignored) {
@@ -81,41 +81,41 @@ public final class PDF417Reader implements Reader, MultipleBarcodeReader {
     }
   }
 
-  private static Result[] decode(BinaryBitmap image, Map<DecodeHintType, ?> hints, boolean multiple)
+  private static RXingResult[] decode(BinaryBitmap image, Map<DecodeHintType, ?> hints, boolean multiple)
       throws NotFoundException, FormatException, ChecksumException {
-    List<Result> results = new ArrayList<>();
-    PDF417DetectorResult detectorResult = Detector.detect(image, hints, multiple);
-    for (ResultPoint[] points : detectorResult.getPoints()) {
-      DecoderResult decoderResult = PDF417ScanningDecoder.decode(detectorResult.getBits(), points[4], points[5],
+    List<RXingResult> results = new ArrayList<>();
+    PDF417DetectorRXingResult detectorRXingResult = Detector.detect(image, hints, multiple);
+    for (RXingResultPoint[] points : detectorRXingResult.getPoints()) {
+      DecoderRXingResult decoderRXingResult = PDF417ScanningDecoder.decode(detectorRXingResult.getBits(), points[4], points[5],
           points[6], points[7], getMinCodewordWidth(points), getMaxCodewordWidth(points));
-      Result result = new Result(decoderResult.getText(), decoderResult.getRawBytes(), points, BarcodeFormat.PDF_417);
-      result.putMetadata(ResultMetadataType.ERROR_CORRECTION_LEVEL, decoderResult.getECLevel());
-      PDF417ResultMetadata pdf417ResultMetadata = (PDF417ResultMetadata) decoderResult.getOther();
-      if (pdf417ResultMetadata != null) {
-        result.putMetadata(ResultMetadataType.PDF417_EXTRA_METADATA, pdf417ResultMetadata);
+      RXingResult result = new RXingResult(decoderRXingResult.getText(), decoderRXingResult.getRawBytes(), points, BarcodeFormat.PDF_417);
+      result.putMetadata(RXingResultMetadataType.ERROR_CORRECTION_LEVEL, decoderRXingResult.getECLevel());
+      PDF417RXingResultMetadata pdf417RXingResultMetadata = (PDF417RXingResultMetadata) decoderRXingResult.getOther();
+      if (pdf417RXingResultMetadata != null) {
+        result.putMetadata(RXingResultMetadataType.PDF417_EXTRA_METADATA, pdf417RXingResultMetadata);
       }
-      result.putMetadata(ResultMetadataType.ORIENTATION, detectorResult.getRotation());
-      result.putMetadata(ResultMetadataType.SYMBOLOGY_IDENTIFIER, "]L" + decoderResult.getSymbologyModifier());
+      result.putMetadata(RXingResultMetadataType.ORIENTATION, detectorRXingResult.getRotation());
+      result.putMetadata(RXingResultMetadataType.SYMBOLOGY_IDENTIFIER, "]L" + decoderRXingResult.getSymbologyModifier());
       results.add(result);
     }
     return results.toArray(EMPTY_RESULT_ARRAY);
   }
 
-  private static int getMaxWidth(ResultPoint p1, ResultPoint p2) {
+  private static int getMaxWidth(RXingResultPoint p1, RXingResultPoint p2) {
     if (p1 == null || p2 == null) {
       return 0;
     }
     return (int) Math.abs(p1.getX() - p2.getX());
   }
 
-  private static int getMinWidth(ResultPoint p1, ResultPoint p2) {
+  private static int getMinWidth(RXingResultPoint p1, RXingResultPoint p2) {
     if (p1 == null || p2 == null) {
       return Integer.MAX_VALUE;
     }
     return (int) Math.abs(p1.getX() - p2.getX());
   }
 
-  private static int getMaxCodewordWidth(ResultPoint[] p) {
+  private static int getMaxCodewordWidth(RXingResultPoint[] p) {
     return Math.max(
         Math.max(getMaxWidth(p[0], p[4]), getMaxWidth(p[6], p[2]) * PDF417Common.MODULES_IN_CODEWORD /
             PDF417Common.MODULES_IN_STOP_PATTERN),
@@ -123,7 +123,7 @@ public final class PDF417Reader implements Reader, MultipleBarcodeReader {
             PDF417Common.MODULES_IN_STOP_PATTERN));
   }
 
-  private static int getMinCodewordWidth(ResultPoint[] p) {
+  private static int getMinCodewordWidth(RXingResultPoint[] p) {
     return Math.min(
         Math.min(getMinWidth(p[0], p[4]), getMinWidth(p[6], p[2]) * PDF417Common.MODULES_IN_CODEWORD /
             PDF417Common.MODULES_IN_STOP_PATTERN),

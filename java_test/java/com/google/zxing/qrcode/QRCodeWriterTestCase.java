@@ -110,18 +110,18 @@ public final class QRCodeWriterTestCase extends Assert {
 
     BufferedImage image = loadImage(fileName);
     assertNotNull(image);
-    BitMatrix goldenResult = createMatrixFromImage(image);
-    assertNotNull(goldenResult);
+    BitMatrix goldenRXingResult = createMatrixFromImage(image);
+    assertNotNull(goldenRXingResult);
 
     Map<EncodeHintType,Object> hints = new EnumMap<>(EncodeHintType.class);
     hints.put(EncodeHintType.ERROR_CORRECTION, ecLevel);
     Writer writer = new QRCodeWriter();
-    BitMatrix generatedResult = writer.encode(contents, BarcodeFormat.QR_CODE, resolution,
+    BitMatrix generatedRXingResult = writer.encode(contents, BarcodeFormat.QR_CODE, resolution,
         resolution, hints);
 
-    assertEquals(resolution, generatedResult.getWidth());
-    assertEquals(resolution, generatedResult.getHeight());
-    assertEquals(goldenResult, generatedResult);
+    assertEquals(resolution, generatedRXingResult.getWidth());
+    assertEquals(resolution, generatedRXingResult.getHeight());
+    assertEquals(goldenRXingResult, generatedRXingResult);
   }
 
   // Golden images are generated with "qrcode_sample.cc". The images are checked with both eye balls

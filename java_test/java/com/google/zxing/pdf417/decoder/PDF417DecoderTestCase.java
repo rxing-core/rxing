@@ -18,8 +18,8 @@ package com.google.zxing.pdf417.decoder;
 
 import com.google.zxing.FormatException;
 import com.google.zxing.WriterException;
-import com.google.zxing.pdf417.PDF417ResultMetadata;
-import com.google.zxing.common.DecoderResult;
+import com.google.zxing.pdf417.PDF417RXingResultMetadata;
+import com.google.zxing.common.DecoderRXingResult;
 import com.google.zxing.pdf417.encoder.Compaction;
 import com.google.zxing.pdf417.encoder.PDF417HighLevelEncoderTestAdapter;
 
@@ -39,7 +39,7 @@ public class PDF417DecoderTestCase extends Assert {
    */
   @Test
   public void testStandardSample1() throws FormatException {
-    PDF417ResultMetadata resultMetadata = new PDF417ResultMetadata();
+    PDF417RXingResultMetadata resultMetadata = new PDF417RXingResultMetadata();
     int[] sampleCodes = {20, 928, 111, 100, 17, 53, 923, 1, 111, 104, 923, 3, 64, 416, 34, 923, 4, 258, 446, 67,
       // we should never reach these
       1000, 1000, 1000};
@@ -66,7 +66,7 @@ public class PDF417DecoderTestCase extends Assert {
    */
   @Test
   public void testStandardSample2() throws FormatException {
-    PDF417ResultMetadata resultMetadata = new PDF417ResultMetadata();
+    PDF417RXingResultMetadata resultMetadata = new PDF417RXingResultMetadata();
     int[] sampleCodes = {11, 928, 111, 103, 17, 53, 923, 1, 111, 104, 922,
       // we should never reach these
       1000, 1000, 1000};
@@ -93,7 +93,7 @@ public class PDF417DecoderTestCase extends Assert {
    */
   @Test
   public void testStandardSample3() throws FormatException {
-    PDF417ResultMetadata resultMetadata = new PDF417ResultMetadata();
+    PDF417RXingResultMetadata resultMetadata = new PDF417RXingResultMetadata();
     int[] sampleCodes = {7, 928, 111, 100, 100, 200, 300,
       0}; // Final dummy ECC codeword required to avoid ArrayIndexOutOfBounds
 
@@ -108,9 +108,9 @@ public class PDF417DecoderTestCase extends Assert {
     assertNull(resultMetadata.getOptionalData());
 
     // Check that symbol containing no data except Macro is accepted (see note in Annex H.2)
-    DecoderResult decoderResult = DecodedBitStreamParser.decode(sampleCodes, "0");
-    assertEquals("", decoderResult.getText());
-    assertNotNull(decoderResult.getOther());
+    DecoderRXingResult decoderRXingResult = DecodedBitStreamParser.decode(sampleCodes, "0");
+    assertEquals("", decoderRXingResult.getText());
+    assertNotNull(decoderRXingResult.getOther());
   }
 
   @Test
@@ -118,7 +118,7 @@ public class PDF417DecoderTestCase extends Assert {
     int[] sampleCodes = {23, 477, 928, 111, 100, 0, 252, 21, 86, 923, 0, 815, 251, 133, 12, 148, 537, 593,
         599, 923, 1, 111, 102, 98, 311, 355, 522, 920, 779, 40, 628, 33, 749, 267, 506, 213, 928, 465, 248,
         493, 72, 780, 699, 780, 493, 755, 84, 198, 628, 368, 156, 198, 809, 19, 113};
-    PDF417ResultMetadata resultMetadata = new PDF417ResultMetadata();
+    PDF417RXingResultMetadata resultMetadata = new PDF417RXingResultMetadata();
 
     DecodedBitStreamParser.decodeMacroBlock(sampleCodes, 3, resultMetadata);
 
@@ -135,7 +135,7 @@ public class PDF417DecoderTestCase extends Assert {
   public void testSampleWithNumericValues() throws FormatException {
     int[] sampleCodes = {25, 477, 928, 111, 100, 0, 252, 21, 86, 923, 2, 2, 0, 1, 0, 0, 0, 923, 5, 130, 923,
         6, 1, 500, 13, 0};
-    PDF417ResultMetadata resultMetadata = new PDF417ResultMetadata();
+    PDF417RXingResultMetadata resultMetadata = new PDF417RXingResultMetadata();
 
     DecodedBitStreamParser.decodeMacroBlock(sampleCodes, 3, resultMetadata);
 
@@ -151,7 +151,7 @@ public class PDF417DecoderTestCase extends Assert {
   @Test
   public void testSampleWithMacroTerminatorOnly() throws FormatException {
     int[] sampleCodes = {7, 477, 928, 222, 198, 0, 922};
-    PDF417ResultMetadata resultMetadata = new PDF417ResultMetadata();
+    PDF417RXingResultMetadata resultMetadata = new PDF417RXingResultMetadata();
 
     DecodedBitStreamParser.decodeMacroBlock(sampleCodes, 3, resultMetadata);
 
@@ -165,14 +165,14 @@ public class PDF417DecoderTestCase extends Assert {
   @Test(expected = FormatException.class)
   public void testSampleWithBadSequenceIndexMacro() throws FormatException {
     int[] sampleCodes = {3, 928, 222, 0};
-    PDF417ResultMetadata resultMetadata = new PDF417ResultMetadata();
+    PDF417RXingResultMetadata resultMetadata = new PDF417RXingResultMetadata();
     DecodedBitStreamParser.decodeMacroBlock(sampleCodes, 2, resultMetadata);
   }
 
   @Test(expected = FormatException.class)
   public void testSampleWithNoFileIdMacro() throws FormatException {
     int[] sampleCodes = {4, 928, 222, 198, 0};
-    PDF417ResultMetadata resultMetadata = new PDF417ResultMetadata();
+    PDF417RXingResultMetadata resultMetadata = new PDF417RXingResultMetadata();
     DecodedBitStreamParser.decodeMacroBlock(sampleCodes, 2, resultMetadata);
   }
 
@@ -405,9 +405,9 @@ public class PDF417DecoderTestCase extends Assert {
     }
   }
 
-  private static void performDecodeTest(int[] codewords, String expectedResult) throws FormatException {
-    DecoderResult result = DecodedBitStreamParser.decode(codewords, "0");
-    assertEquals(expectedResult, result.getText());
+  private static void performDecodeTest(int[] codewords, String expectedRXingResult) throws FormatException {
+    DecoderRXingResult result = DecodedBitStreamParser.decode(codewords, "0");
+    assertEquals(expectedRXingResult, result.getText());
   }
 
   private static void performECITest(char[] chars,

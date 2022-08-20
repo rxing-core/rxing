@@ -21,14 +21,14 @@ package com.google.zxing.client.result;
  *
  * @author Sean Owen
  */
-public final class TelParsedResult extends ParsedResult {
+public final class TelParsedRXingResult extends ParsedRXingResult {
 
   private final String number;
   private final String telURI;
   private final String title;
 
-  public TelParsedResult(String number, String telURI, String title) {
-    super(ParsedResultType.TEL);
+  public TelParsedRXingResult(String number, String telURI, String title) {
+    super(ParsedRXingResultType.TEL);
     this.number = number;
     this.telURI = telURI;
     this.title = title;
@@ -47,7 +47,7 @@ public final class TelParsedResult extends ParsedResult {
   }
 
   @Override
-  public String getDisplayResult() {
+  public String getDisplayRXingResult() {
     StringBuilder result = new StringBuilder(20);
     maybeAppend(number, result);
     maybeAppend(title, result);

@@ -16,13 +16,13 @@
 
 package com.google.zxing.qrcode.decoder;
 
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResultPoint;
 
 /**
  * Meta-data container for QR Code decoding. Instances of this class may be used to convey information back to the
  * decoding caller. Callers are expected to process this.
  *
- * @see com.google.zxing.common.DecoderResult#getOther()
+ * @see com.google.zxing.common.DecoderRXingResult#getOther()
  */
 public final class QRCodeDecoderMetaData {
 
@@ -44,11 +44,11 @@ public final class QRCodeDecoderMetaData {
    *
    * @param points Array of points to apply mirror correction to.
    */
-  public void applyMirroredCorrection(ResultPoint[] points) {
+  public void applyMirroredCorrection(RXingResultPoint[] points) {
     if (!mirrored || points == null || points.length < 3) {
       return;
     }
-    ResultPoint bottomLeft = points[0];
+    RXingResultPoint bottomLeft = points[0];
     points[0] = points[2];
     points[2] = bottomLeft;
     // No need to 'fix' top-left and alignment pattern.

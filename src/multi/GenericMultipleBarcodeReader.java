@@ -21,8 +21,8 @@ import com.google.zxing.DecodeHintType;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.Reader;
 import com.google.zxing.ReaderException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultPoint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * <p>Attempts to locate multiple barcodes in an image by repeatedly decoding portion of the image.
  * After one barcode is found, the areas left, above, right and below the barcode's
- * {@link ResultPoint}s are scanned, recursively.</p>
+ * {@link RXingResultPoint}s are scanned, recursively.</p>
  *
  * <p>A caller may want to also employ {@link ByQuadrantReader} when attempting to find multiple
  * 2D barcodes, like QR Codes, in an image, where the presence of multiple barcodes might prevent
@@ -47,7 +47,7 @@ public final class GenericMultipleBarcodeReader implements MultipleBarcodeReader
   private static final int MIN_DIMENSION_TO_RECUR = 100;
   private static final int MAX_DEPTH = 4;
 
-  static final Result[] EMPTY_RESULT_ARRAY = new Result[0];
+  static final RXingResult[] EMPTY_RESULT_ARRAY = new RXingResult[0];
 
   private final Reader delegate;
 
@@ -56,14 +56,14 @@ public final class GenericMultipleBarcodeReader implements MultipleBarcodeReader
   }
 
   @Override
-  public Result[] decodeMultiple(BinaryBitmap image) throws NotFoundException {
+  public RXingResult[] decodeMultiple(BinaryBitmap image) throws NotFoundException {
     return decodeMultiple(image, null);
   }
 
   @Override
-  public Result[] decodeMultiple(BinaryBitmap image, Map<DecodeHintType,?> hints)
+  public RXingResult[] decodeMultiple(BinaryBitmap image, Map<DecodeHintType,?> hints)
       throws NotFoundException {
-    List<Result> results = new ArrayList<>();
+    List<RXingResult> results = new ArrayList<>();
     doDecodeMultiple(image, hints, results, 0, 0, 0);
     if (results.isEmpty()) {
       throw NotFoundException.getNotFoundInstance();
@@ -73,7 +73,7 @@ public final class GenericMultipleBarcodeReader implements MultipleBarcodeReader
 
   private void doDecodeMultiple(BinaryBitmap image,
                                 Map<DecodeHintType,?> hints,
-                                List<Result> results,
+                                List<RXingResult> results,
                                 int xOffset,
                                 int yOffset,
                                 int currentDepth) {
@@ -81,23 +81,23 @@ public final class GenericMultipleBarcodeReader implements MultipleBarcodeReader
       return;
     }
 
-    Result result;
+    RXingResult result;
     try {
       result = delegate.decode(image, hints);
     } catch (ReaderException ignored) {
       return;
     }
     boolean alreadyFound = false;
-    for (Result existingResult : results) {
-      if (existingResult.getText().equals(result.getText())) {
+    for (RXingResult existingRXingResult : results) {
+      if (existingRXingResult.getText().equals(result.getText())) {
         alreadyFound = true;
         break;
       }
     }
     if (!alreadyFound) {
-      results.add(translateResultPoints(result, xOffset, yOffset));
+      results.add(translateRXingResultPoints(result, xOffset, yOffset));
     }
-    ResultPoint[] resultPoints = result.getResultPoints();
+    RXingResultPoint[] resultPoints = result.getRXingResultPoints();
     if (resultPoints == null || resultPoints.length == 0) {
       return;
     }
@@ -107,7 +107,7 @@ public final class GenericMultipleBarcodeReader implements MultipleBarcodeReader
     float minY = height;
     float maxX = 0.0f;
     float maxY = 0.0f;
-    for (ResultPoint point : resultPoints) {
+    for (RXingResultPoint point : resultPoints) {
       if (point == null) {
         continue;
       }
@@ -157,26 +157,26 @@ public final class GenericMultipleBarcodeReader implements MultipleBarcodeReader
     }
   }
 
-  private static Result translateResultPoints(Result result, int xOffset, int yOffset) {
-    ResultPoint[] oldResultPoints = result.getResultPoints();
-    if (oldResultPoints == null) {
+  private static RXingResult translateRXingResultPoints(RXingResult result, int xOffset, int yOffset) {
+    RXingResultPoint[] oldRXingResultPoints = result.getRXingResultPoints();
+    if (oldRXingResultPoints == null) {
       return result;
     }
-    ResultPoint[] newResultPoints = new ResultPoint[oldResultPoints.length];
-    for (int i = 0; i < oldResultPoints.length; i++) {
-      ResultPoint oldPoint = oldResultPoints[i];
+    RXingResultPoint[] newRXingResultPoints = new RXingResultPoint[oldRXingResultPoints.length];
+    for (int i = 0; i < oldRXingResultPoints.length; i++) {
+      RXingResultPoint oldPoint = oldRXingResultPoints[i];
       if (oldPoint != null) {
-        newResultPoints[i] = new ResultPoint(oldPoint.getX() + xOffset, oldPoint.getY() + yOffset);
+        newRXingResultPoints[i] = new RXingResultPoint(oldPoint.getX() + xOffset, oldPoint.getY() + yOffset);
       }
     }
-    Result newResult = new Result(result.getText(),
+    RXingResult newRXingResult = new RXingResult(result.getText(),
                                   result.getRawBytes(),
                                   result.getNumBits(),
-                                  newResultPoints,
+                                  newRXingResultPoints,
                                   result.getBarcodeFormat(),
                                   result.getTimestamp());
-    newResult.putAllMetadata(result.getResultMetadata());
-    return newResult;
+    newRXingResult.putAllMetadata(result.getRXingResultMetadata());
+    return newRXingResult;
   }
 
 }

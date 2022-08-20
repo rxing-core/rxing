@@ -22,7 +22,7 @@ package com.google.zxing.client.result;
  *
  * @author Sean Owen
  */
-public final class EmailAddressParsedResult extends ParsedResult {
+public final class EmailAddressParsedRXingResult extends ParsedRXingResult {
 
   private final String[] tos;
   private final String[] ccs;
@@ -30,16 +30,16 @@ public final class EmailAddressParsedResult extends ParsedResult {
   private final String subject;
   private final String body;
 
-  EmailAddressParsedResult(String to) {
+  EmailAddressParsedRXingResult(String to) {
     this(new String[] {to}, null, null, null, null);
   }
 
-  EmailAddressParsedResult(String[] tos,
+  EmailAddressParsedRXingResult(String[] tos,
                            String[] ccs,
                            String[] bccs,
                            String subject,
                            String body) {
-    super(ParsedResultType.EMAIL_ADDRESS);
+    super(ParsedRXingResultType.EMAIL_ADDRESS);
     this.tos = tos;
     this.ccs = ccs;
     this.bccs = bccs;
@@ -86,7 +86,7 @@ public final class EmailAddressParsedResult extends ParsedResult {
   }
 
   @Override
-  public String getDisplayResult() {
+  public String getDisplayRXingResult() {
     StringBuilder result = new StringBuilder(30);
     maybeAppend(tos, result);
     maybeAppend(ccs, result);

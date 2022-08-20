@@ -17,7 +17,7 @@
 package com.google.zxing.client.result;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import com.google.zxing.oned.UPCEReader;
 
 /**
@@ -25,11 +25,11 @@ import com.google.zxing.oned.UPCEReader;
  * 
  * @author dswitkin@google.com (Daniel Switkin)
  */
-public final class ProductResultParser extends ResultParser {
+public final class ProductRXingResultParser extends RXingResultParser {
 
   // Treat all UPC and EAN variants as UPCs, in the sense that they are all product barcodes.
   @Override
-  public ProductParsedResult parse(Result result) {
+  public ProductParsedRXingResult parse(RXingResult result) {
     BarcodeFormat format = result.getBarcodeFormat();
     if (!(format == BarcodeFormat.UPC_A || format == BarcodeFormat.UPC_E ||
           format == BarcodeFormat.EAN_8 || format == BarcodeFormat.EAN_13)) {
@@ -49,7 +49,7 @@ public final class ProductResultParser extends ResultParser {
       normalizedProductID = rawText;
     }
 
-    return new ProductParsedResult(rawText, normalizedProductID);
+    return new ProductParsedRXingResult(rawText, normalizedProductID);
   }
 
 }

@@ -22,8 +22,8 @@ import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.Reader;
-import com.google.zxing.Result;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultPoint;
 
 import java.util.Map;
 
@@ -45,13 +45,13 @@ public final class ByQuadrantReader implements Reader {
   }
 
   @Override
-  public Result decode(BinaryBitmap image)
+  public RXingResult decode(BinaryBitmap image)
       throws NotFoundException, ChecksumException, FormatException {
     return decode(image, null);
   }
 
   @Override
-  public Result decode(BinaryBitmap image, Map<DecodeHintType,?> hints)
+  public RXingResult decode(BinaryBitmap image, Map<DecodeHintType,?> hints)
       throws NotFoundException, ChecksumException, FormatException {
 
     int width = image.getWidth();
@@ -67,24 +67,24 @@ public final class ByQuadrantReader implements Reader {
     }
 
     try {
-      Result result = delegate.decode(image.crop(halfWidth, 0, halfWidth, halfHeight), hints);
-      makeAbsolute(result.getResultPoints(), halfWidth, 0);
+      RXingResult result = delegate.decode(image.crop(halfWidth, 0, halfWidth, halfHeight), hints);
+      makeAbsolute(result.getRXingResultPoints(), halfWidth, 0);
       return result;
     } catch (NotFoundException re) {
       // continue
     }
 
     try {
-      Result result = delegate.decode(image.crop(0, halfHeight, halfWidth, halfHeight), hints);
-      makeAbsolute(result.getResultPoints(), 0, halfHeight);
+      RXingResult result = delegate.decode(image.crop(0, halfHeight, halfWidth, halfHeight), hints);
+      makeAbsolute(result.getRXingResultPoints(), 0, halfHeight);
       return result;
     } catch (NotFoundException re) {
       // continue
     }
 
     try {
-      Result result = delegate.decode(image.crop(halfWidth, halfHeight, halfWidth, halfHeight), hints);
-      makeAbsolute(result.getResultPoints(), halfWidth, halfHeight);
+      RXingResult result = delegate.decode(image.crop(halfWidth, halfHeight, halfWidth, halfHeight), hints);
+      makeAbsolute(result.getRXingResultPoints(), halfWidth, halfHeight);
       return result;
     } catch (NotFoundException re) {
       // continue
@@ -93,8 +93,8 @@ public final class ByQuadrantReader implements Reader {
     int quarterWidth = halfWidth / 2;
     int quarterHeight = halfHeight / 2;
     BinaryBitmap center = image.crop(quarterWidth, quarterHeight, halfWidth, halfHeight);
-    Result result = delegate.decode(center, hints);
-    makeAbsolute(result.getResultPoints(), quarterWidth, quarterHeight);
+    RXingResult result = delegate.decode(center, hints);
+    makeAbsolute(result.getRXingResultPoints(), quarterWidth, quarterHeight);
     return result;
   }
 
@@ -103,12 +103,12 @@ public final class ByQuadrantReader implements Reader {
     delegate.reset();
   }
 
-  private static void makeAbsolute(ResultPoint[] points, int leftOffset, int topOffset) {
+  private static void makeAbsolute(RXingResultPoint[] points, int leftOffset, int topOffset) {
     if (points != null) {
       for (int i = 0; i < points.length; i++) {
-        ResultPoint relative = points[i];
+        RXingResultPoint relative = points[i];
         if (relative != null) {
-          points[i] = new ResultPoint(relative.getX() + leftOffset, relative.getY() + topOffset);
+          points[i] = new RXingResultPoint(relative.getX() + leftOffset, relative.getY() + topOffset);
         }    
       }
     }

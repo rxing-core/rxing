@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 import java.util.regex.Pattern;
 
@@ -27,12 +27,12 @@ import java.util.regex.Pattern;
  *
  * @author Sean Owen
  */
-public final class EmailDoCoMoResultParser extends AbstractDoCoMoResultParser {
+public final class EmailDoCoMoRXingResultParser extends AbstractDoCoMoRXingResultParser {
 
   private static final Pattern ATEXT_ALPHANUMERIC = Pattern.compile("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+");
 
   @Override
-  public EmailAddressParsedResult parse(Result result) {
+  public EmailAddressParsedRXingResult parse(RXingResult result) {
     String rawText = getMassagedText(result);
     if (!rawText.startsWith("MATMSG:")) {
       return null;
@@ -48,7 +48,7 @@ public final class EmailDoCoMoResultParser extends AbstractDoCoMoResultParser {
     }
     String subject = matchSingleDoCoMoPrefixedField("SUB:", rawText, false);
     String body = matchSingleDoCoMoPrefixedField("BODY:", rawText, false);
-    return new EmailAddressParsedResult(tos, null, null, subject, body);
+    return new EmailAddressParsedRXingResult(tos, null, null, subject, body);
   }
 
   /**

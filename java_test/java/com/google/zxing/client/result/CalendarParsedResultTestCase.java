@@ -17,7 +17,7 @@
 package com.google.zxing.client.result;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,11 +28,11 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 /**
- * Tests {@link CalendarParsedResult}.
+ * Tests {@link CalendarParsedRXingResult}.
  *
  * @author Sean Owen
  */
-public final class CalendarParsedResultTestCase extends Assert {
+public final class CalendarParsedRXingResultTestCase extends Assert {
 
   private static final double EPSILON = 1.0E-10;
 
@@ -142,11 +142,11 @@ public final class CalendarParsedResultTestCase extends Assert {
   @Test
   public void testBadGeo() {
     // Not parsed as VEVENT
-    Result fakeResult = new Result("BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\n" +
+    RXingResult fakeRXingResult = new RXingResult("BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\n" +
         "GEO:-12.345\r\n" +
         "END:VEVENT\r\nEND:VCALENDAR", null, null, BarcodeFormat.QR_CODE);
-    ParsedResult result = ResultParser.parseResult(fakeResult);
-    assertSame(ParsedResultType.TEXT, result.getType());
+    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
+    assertSame(ParsedRXingResultType.TEXT, result.getType());
   }
 
   @Test
@@ -223,20 +223,20 @@ public final class CalendarParsedResultTestCase extends Assert {
                              String[] attendees,
                              double latitude,
                              double longitude) {
-    Result fakeResult = new Result(contents, null, null, BarcodeFormat.QR_CODE);
-    ParsedResult result = ResultParser.parseResult(fakeResult);
-    assertSame(ParsedResultType.CALENDAR, result.getType());
-    CalendarParsedResult calResult = (CalendarParsedResult) result;
-    assertEquals(description, calResult.getDescription());
-    assertEquals(summary, calResult.getSummary());
-    assertEquals(location, calResult.getLocation());
+    RXingResult fakeRXingResult = new RXingResult(contents, null, null, BarcodeFormat.QR_CODE);
+    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
+    assertSame(ParsedRXingResultType.CALENDAR, result.getType());
+    CalendarParsedRXingResult calRXingResult = (CalendarParsedRXingResult) result;
+    assertEquals(description, calRXingResult.getDescription());
+    assertEquals(summary, calRXingResult.getSummary());
+    assertEquals(location, calRXingResult.getLocation());
     DateFormat dateFormat = makeGMTFormat();
-    assertEquals(startString, dateFormat.format(calResult.getStartTimestamp()));
-    assertEquals(endString, calResult.getEndTimestamp() < 0L ? null : dateFormat.format(calResult.getEndTimestamp()));
-    assertEquals(organizer, calResult.getOrganizer());
-    assertArrayEquals(attendees, calResult.getAttendees());
-    assertEqualOrNaN(latitude, calResult.getLatitude());
-    assertEqualOrNaN(longitude, calResult.getLongitude());
+    assertEquals(startString, dateFormat.format(calRXingResult.getStartTimestamp()));
+    assertEquals(endString, calRXingResult.getEndTimestamp() < 0L ? null : dateFormat.format(calRXingResult.getEndTimestamp()));
+    assertEquals(organizer, calRXingResult.getOrganizer());
+    assertArrayEquals(attendees, calRXingResult.getAttendees());
+    assertEqualOrNaN(latitude, calRXingResult.getLatitude());
+    assertEqualOrNaN(longitude, calRXingResult.getLongitude());
   }
 
   private static void assertEqualOrNaN(double expected, double actual) {

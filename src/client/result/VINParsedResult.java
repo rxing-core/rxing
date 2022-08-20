@@ -20,7 +20,7 @@ package com.google.zxing.client.result;
 /**
  * Represents a parsed result that encodes a Vehicle Identification Number (VIN).
  */
-public final class VINParsedResult extends ParsedResult {
+public final class VINParsedRXingResult extends ParsedRXingResult {
 
   private final String vin;
   private final String worldManufacturerID;
@@ -32,7 +32,7 @@ public final class VINParsedResult extends ParsedResult {
   private final char plantCode;
   private final String sequentialNumber;
 
-  public VINParsedResult(String vin,
+  public VINParsedRXingResult(String vin,
                          String worldManufacturerID,
                          String vehicleDescriptorSection,
                          String vehicleIdentifierSection,
@@ -41,7 +41,7 @@ public final class VINParsedResult extends ParsedResult {
                          int modelYear,
                          char plantCode,
                          String sequentialNumber) {
-    super(ParsedResultType.VIN);
+    super(ParsedRXingResultType.VIN);
     this.vin = vin;
     this.worldManufacturerID = worldManufacturerID;
     this.vehicleDescriptorSection = vehicleDescriptorSection;
@@ -90,7 +90,7 @@ public final class VINParsedResult extends ParsedResult {
   }
 
   @Override
-  public String getDisplayResult() {
+  public String getDisplayRXingResult() {
     StringBuilder result = new StringBuilder(50);
     result.append(worldManufacturerID).append(' ');
     result.append(vehicleDescriptorSection).append(' ');

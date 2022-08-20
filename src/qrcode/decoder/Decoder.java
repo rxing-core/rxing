@@ -20,7 +20,7 @@ import com.google.zxing.ChecksumException;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderResult;
+import com.google.zxing.common.DecoderRXingResult;
 import com.google.zxing.common.reedsolomon.GenericGF;
 import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
 import com.google.zxing.common.reedsolomon.ReedSolomonException;
@@ -41,7 +41,7 @@ public final class Decoder {
     rsDecoder = new ReedSolomonDecoder(GenericGF.QR_CODE_FIELD_256);
   }
 
-  public DecoderResult decode(boolean[][] image) throws ChecksumException, FormatException {
+  public DecoderRXingResult decode(boolean[][] image) throws ChecksumException, FormatException {
     return decode(image, null);
   }
 
@@ -55,12 +55,12 @@ public final class Decoder {
    * @throws FormatException if the QR Code cannot be decoded
    * @throws ChecksumException if error correction fails
    */
-  public DecoderResult decode(boolean[][] image, Map<DecodeHintType,?> hints)
+  public DecoderRXingResult decode(boolean[][] image, Map<DecodeHintType,?> hints)
       throws ChecksumException, FormatException {
     return decode(BitMatrix.parse(image), hints);
   }
 
-  public DecoderResult decode(BitMatrix bits) throws ChecksumException, FormatException {
+  public DecoderRXingResult decode(BitMatrix bits) throws ChecksumException, FormatException {
     return decode(bits, null);
   }
 
@@ -73,7 +73,7 @@ public final class Decoder {
    * @throws FormatException if the QR Code cannot be decoded
    * @throws ChecksumException if error correction fails
    */
-  public DecoderResult decode(BitMatrix bits, Map<DecodeHintType,?> hints)
+  public DecoderRXingResult decode(BitMatrix bits, Map<DecodeHintType,?> hints)
       throws FormatException, ChecksumException {
 
     // Construct a parser and read version, error-correction level
@@ -111,7 +111,7 @@ public final class Decoder {
       // Prepare for a mirrored reading.
       parser.mirror();
 
-      DecoderResult result = decode(parser, hints);
+      DecoderRXingResult result = decode(parser, hints);
 
       // Success! Notify the caller that the code was mirrored.
       result.setOther(new QRCodeDecoderMetaData(true));
@@ -127,7 +127,7 @@ public final class Decoder {
     }
   }
 
-  private DecoderResult decode(BitMatrixParser parser, Map<DecodeHintType,?> hints)
+  private DecoderRXingResult decode(BitMatrixParser parser, Map<DecodeHintType,?> hints)
       throws FormatException, ChecksumException {
     Version version = parser.readVersion();
     ErrorCorrectionLevel ecLevel = parser.readFormatInformation().getErrorCorrectionLevel();

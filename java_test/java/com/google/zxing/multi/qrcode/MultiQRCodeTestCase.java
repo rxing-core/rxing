@@ -28,9 +28,9 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.BufferedImageLuminanceSource;
 import com.google.zxing.LuminanceSource;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.AbstractBlackBoxTestCase;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.multi.MultipleBarcodeReader;
@@ -53,15 +53,15 @@ public final class MultiQRCodeTestCase extends Assert {
     BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
 
     MultipleBarcodeReader reader = new QRCodeMultiReader();
-    Result[] results = reader.decodeMultiple(bitmap);
+    RXingResult[] results = reader.decodeMultiple(bitmap);
     assertNotNull(results);
     assertEquals(4, results.length);
 
     Collection<String> barcodeContents = new HashSet<>();
-    for (Result result : results) {
+    for (RXingResult result : results) {
       barcodeContents.add(result.getText());
       assertEquals(BarcodeFormat.QR_CODE, result.getBarcodeFormat());
-      assertNotNull(result.getResultMetadata());
+      assertNotNull(result.getRXingResultMetadata());
     }
     Collection<String> expectedContents = new HashSet<>();
     expectedContents.add("You earned the class a 5 MINUTE DANCE PARTY!!  Awesome!  Way to go!  Let's boogie!");
@@ -74,27 +74,27 @@ public final class MultiQRCodeTestCase extends Assert {
 
   @Test
   public void testProcessStructuredAppend() {
-    Result sa1 = new Result("SA1", new byte[]{}, new ResultPoint[]{}, BarcodeFormat.QR_CODE);
-    Result sa2 = new Result("SA2", new byte[]{}, new ResultPoint[]{}, BarcodeFormat.QR_CODE);
-    Result sa3 = new Result("SA3", new byte[]{}, new ResultPoint[]{}, BarcodeFormat.QR_CODE);
-    sa1.putMetadata(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE, 2);
-    sa1.putMetadata(ResultMetadataType.ERROR_CORRECTION_LEVEL, "L");
-    sa2.putMetadata(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE, (1 << 4) + 2);
-    sa2.putMetadata(ResultMetadataType.ERROR_CORRECTION_LEVEL, "L");
-    sa3.putMetadata(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE, (2 << 4) + 2);
-    sa3.putMetadata(ResultMetadataType.ERROR_CORRECTION_LEVEL, "L");
+    RXingResult sa1 = new RXingResult("SA1", new byte[]{}, new RXingResultPoint[]{}, BarcodeFormat.QR_CODE);
+    RXingResult sa2 = new RXingResult("SA2", new byte[]{}, new RXingResultPoint[]{}, BarcodeFormat.QR_CODE);
+    RXingResult sa3 = new RXingResult("SA3", new byte[]{}, new RXingResultPoint[]{}, BarcodeFormat.QR_CODE);
+    sa1.putMetadata(RXingResultMetadataType.STRUCTURED_APPEND_SEQUENCE, 2);
+    sa1.putMetadata(RXingResultMetadataType.ERROR_CORRECTION_LEVEL, "L");
+    sa2.putMetadata(RXingResultMetadataType.STRUCTURED_APPEND_SEQUENCE, (1 << 4) + 2);
+    sa2.putMetadata(RXingResultMetadataType.ERROR_CORRECTION_LEVEL, "L");
+    sa3.putMetadata(RXingResultMetadataType.STRUCTURED_APPEND_SEQUENCE, (2 << 4) + 2);
+    sa3.putMetadata(RXingResultMetadataType.ERROR_CORRECTION_LEVEL, "L");
 
-    Result nsa = new Result("NotSA", new byte[]{}, new ResultPoint[]{}, BarcodeFormat.QR_CODE);
-    nsa.putMetadata(ResultMetadataType.ERROR_CORRECTION_LEVEL, "L");
+    RXingResult nsa = new RXingResult("NotSA", new byte[]{}, new RXingResultPoint[]{}, BarcodeFormat.QR_CODE);
+    nsa.putMetadata(RXingResultMetadataType.ERROR_CORRECTION_LEVEL, "L");
 
-    List<Result> inputs = Arrays.asList(sa3, sa1, nsa, sa2);
+    List<RXingResult> inputs = Arrays.asList(sa3, sa1, nsa, sa2);
 
-    List<Result> results = QRCodeMultiReader.processStructuredAppend(inputs);
+    List<RXingResult> results = QRCodeMultiReader.processStructuredAppend(inputs);
     assertNotNull(results);
     assertEquals(2, results.size());
 
     Collection<String> barcodeContents = new HashSet<>();
-    for (Result result : results) {
+    for (RXingResult result : results) {
       barcodeContents.add(result.getText());
     }
     Collection<String> expectedContents = new HashSet<>();

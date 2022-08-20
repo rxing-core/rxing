@@ -17,10 +17,10 @@
 package com.google.zxing.aztec.decoder;
 
 import com.google.zxing.FormatException;
-import com.google.zxing.aztec.AztecDetectorResult;
+import com.google.zxing.aztec.AztecDetectorRXingResult;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.CharacterSetECI;
-import com.google.zxing.common.DecoderResult;
+import com.google.zxing.common.DecoderRXingResult;
 import com.google.zxing.common.reedsolomon.GenericGF;
 import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
 import com.google.zxing.common.reedsolomon.ReedSolomonException;
@@ -75,19 +75,19 @@ public final class Decoder {
 
   private static final Charset DEFAULT_ENCODING = StandardCharsets.ISO_8859_1;
 
-  private AztecDetectorResult ddata;
+  private AztecDetectorRXingResult ddata;
 
-  public DecoderResult decode(AztecDetectorResult detectorResult) throws FormatException {
-    ddata = detectorResult;
-    BitMatrix matrix = detectorResult.getBits();
+  public DecoderRXingResult decode(AztecDetectorRXingResult detectorRXingResult) throws FormatException {
+    ddata = detectorRXingResult;
+    BitMatrix matrix = detectorRXingResult.getBits();
     boolean[] rawbits = extractBits(matrix);
-    CorrectedBitsResult correctedBits = correctBits(rawbits);
+    CorrectedBitsRXingResult correctedBits = correctBits(rawbits);
     byte[] rawBytes = convertBoolArrayToByteArray(correctedBits.correctBits);
     String result = getEncodedData(correctedBits.correctBits);
-    DecoderResult decoderResult =
-        new DecoderResult(rawBytes, result, null, String.format("%d%%", correctedBits.ecLevel));
-    decoderResult.setNumBits(correctedBits.correctBits.length);
-    return decoderResult;
+    DecoderRXingResult decoderRXingResult =
+        new DecoderRXingResult(rawBytes, result, null, String.format("%d%%", correctedBits.ecLevel));
+    decoderRXingResult.setNumBits(correctedBits.correctBits.length);
+    return decoderRXingResult;
   }
 
   // This method is used for testing the high-level encoder
@@ -262,11 +262,11 @@ public final class Decoder {
     }
   }
 
-  static final class CorrectedBitsResult {
+  static final class CorrectedBitsRXingResult {
     private final boolean[] correctBits;
     private final int ecLevel;
 
-    CorrectedBitsResult(boolean[] correctBits, int ecLevel) {
+    CorrectedBitsRXingResult(boolean[] correctBits, int ecLevel) {
       this.correctBits = correctBits;
       this.ecLevel = ecLevel;
     }
@@ -278,7 +278,7 @@ public final class Decoder {
    * @return the corrected array
    * @throws FormatException if the input contains too many errors
    */
-  private CorrectedBitsResult correctBits(boolean[] rawbits) throws FormatException {
+  private CorrectedBitsRXingResult correctBits(boolean[] rawbits) throws FormatException {
     GenericGF gf;
     int codewordSize;
 
@@ -343,7 +343,7 @@ public final class Decoder {
       }
     }
 
-    return new CorrectedBitsResult(correctedBits, 100 * (numCodewords - numDataCodewords) / numCodewords);
+    return new CorrectedBitsRXingResult(correctedBits, 100 * (numCodewords - numDataCodewords) / numCodewords);
   }
 
   /**

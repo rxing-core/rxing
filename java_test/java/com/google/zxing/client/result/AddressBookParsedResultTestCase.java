@@ -17,16 +17,16 @@
 package com.google.zxing.client.result;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests {@link AddressBookParsedResult}.
+ * Tests {@link AddressBookParsedRXingResult}.
  *
  * @author Sean Owen
  */
-public final class AddressBookParsedResultTestCase extends Assert {
+public final class AddressBookParsedRXingResultTestCase extends Assert {
 
   @Test
   public void testAddressBookDocomo() {
@@ -149,21 +149,21 @@ public final class AddressBookParsedResultTestCase extends Assert {
                              String[] urls,
                              String birthday,
                              String note) {
-    Result fakeResult = new Result(contents, null, null, BarcodeFormat.QR_CODE);
-    ParsedResult result = ResultParser.parseResult(fakeResult);
-    assertSame(ParsedResultType.ADDRESSBOOK, result.getType());
-    AddressBookParsedResult addressResult = (AddressBookParsedResult) result;
-    assertEquals(title, addressResult.getTitle());
-    assertArrayEquals(names, addressResult.getNames());
-    assertEquals(pronunciation, addressResult.getPronunciation());
-    assertArrayEquals(addresses, addressResult.getAddresses());
-    assertArrayEquals(emails, addressResult.getEmails());
-    assertArrayEquals(phoneNumbers, addressResult.getPhoneNumbers());
-    assertArrayEquals(phoneTypes, addressResult.getPhoneTypes());
-    assertEquals(org, addressResult.getOrg());
-    assertArrayEquals(urls, addressResult.getURLs());
-    assertEquals(birthday, addressResult.getBirthday());
-    assertEquals(note, addressResult.getNote());
+    RXingResult fakeRXingResult = new RXingResult(contents, null, null, BarcodeFormat.QR_CODE);
+    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
+    assertSame(ParsedRXingResultType.ADDRESSBOOK, result.getType());
+    AddressBookParsedRXingResult addressRXingResult = (AddressBookParsedRXingResult) result;
+    assertEquals(title, addressRXingResult.getTitle());
+    assertArrayEquals(names, addressRXingResult.getNames());
+    assertEquals(pronunciation, addressRXingResult.getPronunciation());
+    assertArrayEquals(addresses, addressRXingResult.getAddresses());
+    assertArrayEquals(emails, addressRXingResult.getEmails());
+    assertArrayEquals(phoneNumbers, addressRXingResult.getPhoneNumbers());
+    assertArrayEquals(phoneTypes, addressRXingResult.getPhoneTypes());
+    assertEquals(org, addressRXingResult.getOrg());
+    assertArrayEquals(urls, addressRXingResult.getURLs());
+    assertEquals(birthday, addressRXingResult.getBirthday());
+    assertEquals(note, addressRXingResult.getNote());
   }
 
 }

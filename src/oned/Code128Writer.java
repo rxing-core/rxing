@@ -52,7 +52,7 @@ public final class Code128Writer extends OneDimensionalCodeWriter {
   private static final int CODE_FNC_4_A = 101; // Code A
   private static final int CODE_FNC_4_B = 100; // Code B
 
-  // Results of minimal lookahead for code C
+  // RXingResults of minimal lookahead for code C
   private enum CType {
     UNCODABLE,
     ONE_DIGIT,
@@ -249,10 +249,10 @@ public final class Code128Writer extends OneDimensionalCodeWriter {
         checkWeight++;
       }
     }
-    return produceResult(patterns, checkSum);
+    return produceRXingResult(patterns, checkSum);
   }
 
-  static boolean[] produceResult(Collection<int[]> patterns, int checkSum) {
+  static boolean[] produceRXingResult(Collection<int[]> patterns, int checkSum) {
     // Compute and append checksum
     checkSum %= 103;
     patterns.add(Code128Reader.CODE_PATTERNS[checkSum]);
@@ -456,7 +456,7 @@ public final class Code128Writer extends OneDimensionalCodeWriter {
       }
       memoizedCost = null;
       minPath = null;
-      return produceResult(patterns, checkSum[0]);
+      return produceRXingResult(patterns, checkSum[0]);
     }
 
     private static void addPattern(Collection<int[]> patterns,

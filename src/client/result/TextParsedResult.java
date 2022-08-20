@@ -22,13 +22,13 @@ package com.google.zxing.client.result;
  * 
  * @author Sean Owen
  */
-public final class TextParsedResult extends ParsedResult {
+public final class TextParsedRXingResult extends ParsedRXingResult {
 
   private final String text;
   private final String language;
 
-  public TextParsedResult(String text, String language) {
-    super(ParsedResultType.TEXT);
+  public TextParsedRXingResult(String text, String language) {
+    super(ParsedRXingResultType.TEXT);
     this.text = text;
     this.language = language;
   }
@@ -42,7 +42,7 @@ public final class TextParsedResult extends ParsedResult {
   }
 
   @Override
-  public String getDisplayResult() {
+  public String getDisplayRXingResult() {
     return text;
   }
 

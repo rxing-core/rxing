@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,14 +28,14 @@ import java.util.List;
  *
  * @author Sean Owen
  */
-public final class BizcardResultParser extends AbstractDoCoMoResultParser {
+public final class BizcardRXingResultParser extends AbstractDoCoMoRXingResultParser {
 
-  // Yes, we extend AbstractDoCoMoResultParser since the format is very much
+  // Yes, we extend AbstractDoCoMoRXingResultParser since the format is very much
   // like the DoCoMo MECARD format, but this is not technically one of
   // DoCoMo's proposed formats
 
   @Override
-  public AddressBookParsedResult parse(Result result) {
+  public AddressBookParsedRXingResult parse(RXingResult result) {
     String rawText = getMassagedText(result);
     if (!rawText.startsWith("BIZCARD:")) {
       return null;
@@ -51,7 +51,7 @@ public final class BizcardResultParser extends AbstractDoCoMoResultParser {
     String phoneNumber3 = matchSingleDoCoMoPrefixedField("F:", rawText, true);
     String email = matchSingleDoCoMoPrefixedField("E:", rawText, true);
 
-    return new AddressBookParsedResult(maybeWrap(fullName),
+    return new AddressBookParsedRXingResult(maybeWrap(fullName),
                                        null,
                                        null,
                                        buildPhoneNumbers(phoneNumber1, phoneNumber2, phoneNumber3),

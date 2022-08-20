@@ -16,24 +16,24 @@
 
 package com.google.zxing.aztec;
 
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DetectorResult;
+import com.google.zxing.common.DetectorRXingResult;
 
 /**
- * <p>Extends {@link DetectorResult} with more information specific to the Aztec format,
+ * <p>Extends {@link DetectorRXingResult} with more information specific to the Aztec format,
  * like the number of layers and whether it's compact.</p>
  *
  * @author Sean Owen
  */
-public final class AztecDetectorResult extends DetectorResult {
+public final class AztecDetectorRXingResult extends DetectorRXingResult {
 
   private final boolean compact;
   private final int nbDatablocks;
   private final int nbLayers;
 
-  public AztecDetectorResult(BitMatrix bits,
-                             ResultPoint[] points,
+  public AztecDetectorRXingResult(BitMatrix bits,
+                             RXingResultPoint[] points,
                              boolean compact,
                              int nbDatablocks,
                              int nbLayers) {

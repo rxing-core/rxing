@@ -134,7 +134,7 @@ final class GeneralAppIdDecoder {
 
   private DecodedInformation parseBlocks() throws FormatException {
     boolean isFinished;
-    BlockParsedResult result;
+    BlockParsedRXingResult result;
     do {
       int initialPosition = current.getPosition();
 
@@ -158,7 +158,7 @@ final class GeneralAppIdDecoder {
     return result.getDecodedInformation();
   }
 
-  private BlockParsedResult parseNumericBlock() throws FormatException {
+  private BlockParsedRXingResult parseNumericBlock() throws FormatException {
     while (isStillNumeric(current.getPosition())) {
       DecodedNumeric numeric = decodeNumeric(current.getPosition());
       current.setPosition(numeric.getNewPosition());
@@ -170,13 +170,13 @@ final class GeneralAppIdDecoder {
         } else {
           information = new DecodedInformation(current.getPosition(), buffer.toString(), numeric.getSecondDigit());
         }
-        return new BlockParsedResult(information, true);
+        return new BlockParsedRXingResult(information, true);
       }
       buffer.append(numeric.getFirstDigit());
 
       if (numeric.isSecondDigitFNC1()) {
         DecodedInformation information = new DecodedInformation(current.getPosition(), buffer.toString());
-        return new BlockParsedResult(information, true);
+        return new BlockParsedRXingResult(information, true);
       }
       buffer.append(numeric.getSecondDigit());
     }
@@ -185,17 +185,17 @@ final class GeneralAppIdDecoder {
       current.setAlpha();
       current.incrementPosition(4);
     }
-    return new BlockParsedResult();
+    return new BlockParsedRXingResult();
   }
 
-  private BlockParsedResult parseIsoIec646Block() throws FormatException {
+  private BlockParsedRXingResult parseIsoIec646Block() throws FormatException {
     while (isStillIsoIec646(current.getPosition())) {
       DecodedChar iso = decodeIsoIec646(current.getPosition());
       current.setPosition(iso.getNewPosition());
 
       if (iso.isFNC1()) {
         DecodedInformation information = new DecodedInformation(current.getPosition(), buffer.toString());
-        return new BlockParsedResult(information, true);
+        return new BlockParsedRXingResult(information, true);
       }
       buffer.append(iso.getValue());
     }
@@ -212,17 +212,17 @@ final class GeneralAppIdDecoder {
 
       current.setAlpha();
     }
-    return new BlockParsedResult();
+    return new BlockParsedRXingResult();
   }
 
-  private BlockParsedResult parseAlphaBlock() {
+  private BlockParsedRXingResult parseAlphaBlock() {
     while (isStillAlpha(current.getPosition())) {
       DecodedChar alpha = decodeAlphanumeric(current.getPosition());
       current.setPosition(alpha.getNewPosition());
 
       if (alpha.isFNC1()) {
         DecodedInformation information = new DecodedInformation(current.getPosition(), buffer.toString());
-        return new BlockParsedResult(information, true); //end of the char block
+        return new BlockParsedRXingResult(information, true); //end of the char block
       }
 
       buffer.append(alpha.getValue());
@@ -240,7 +240,7 @@ final class GeneralAppIdDecoder {
 
       current.setIsoIec646();
     }
-    return new BlockParsedResult();
+    return new BlockParsedRXingResult();
   }
 
   private boolean isStillIsoIec646(int pos) {

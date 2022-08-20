@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import com.google.zxing.Writer;
 import com.google.zxing.common.BitArray;
 import com.google.zxing.common.BitMatrix;
@@ -118,12 +118,12 @@ public class Code128WriterTestCase extends Assert {
     String toEncode = "\u00f1" + "10958" + "\u00f1" + "17160526";
     String expected = "1095817160526";
 
-    BitMatrix encResult = encode(toEncode, false, expected);
+    BitMatrix encRXingResult = encode(toEncode, false, expected);
 
-    int width = encResult.getWidth();
-    encResult = encode(toEncode, true, expected);
+    int width = encRXingResult.getWidth();
+    encRXingResult = encode(toEncode, true, expected);
     //Compact encoding has one latch less and encodes as STARTA,FNC1,1,CODEC,09,58,FNC1,17,16,05,26
-    assertEquals(width, encResult.getWidth() + 11);
+    assertEquals(width, encRXingResult.getWidth() + 11);
   }
 
   @Test
@@ -337,23 +337,23 @@ public class Code128WriterTestCase extends Assert {
     if (compact) {
       hints.put(EncodeHintType.CODE128_COMPACT, Boolean.TRUE);
     }
-    BitMatrix encResult = writer.encode(toEncode, BarcodeFormat.CODE_128, 0, 0, hints);
+    BitMatrix encRXingResult = writer.encode(toEncode, BarcodeFormat.CODE_128, 0, 0, hints);
     if (expectedLoopback != null) {
-      BitArray row = encResult.getRow(0, null);
-      Result rtResult = reader.decodeRow(0, row, null);
-      String actual = rtResult.getText();
+      BitArray row = encRXingResult.getRow(0, null);
+      RXingResult rtRXingResult = reader.decodeRow(0, row, null);
+      String actual = rtRXingResult.getText();
       assertEquals(expectedLoopback, actual);
     }
     if (compact) {
       //check that what is encoded compactly yields the same on loopback as what was encoded fast.
-      BitArray row = encResult.getRow(0, null);
-      Result rtResult = reader.decodeRow(0, row, null);
-      String actual = rtResult.getText();
-      BitMatrix encResultFast = writer.encode(toEncode, BarcodeFormat.CODE_128, 0, 0);
-      row = encResultFast.getRow(0, null);
-      rtResult = reader.decodeRow(0, row, null);
-      assertEquals(rtResult.getText(), actual);
+      BitArray row = encRXingResult.getRow(0, null);
+      RXingResult rtRXingResult = reader.decodeRow(0, row, null);
+      String actual = rtRXingResult.getText();
+      BitMatrix encRXingResultFast = writer.encode(toEncode, BarcodeFormat.CODE_128, 0, 0);
+      row = encRXingResultFast.getRow(0, null);
+      rtRXingResult = reader.decodeRow(0, row, null);
+      assertEquals(rtRXingResult.getText(), actual);
     }
-    return encResult;
+    return encRXingResult;
   }
 }

@@ -19,10 +19,10 @@ package com.google.zxing.oned.rss;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.ResultPointCallback;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
+import com.google.zxing.RXingResultPointCallback;
 import com.google.zxing.common.BitArray;
 import com.google.zxing.common.detector.MathUtils;
 
@@ -65,7 +65,7 @@ public final class RSS14Reader extends AbstractRSSReader {
   }
 
   @Override
-  public Result decodeRow(int rowNumber,
+  public RXingResult decodeRow(int rowNumber,
                           BitArray row,
                           Map<DecodeHintType,?> hints) throws NotFoundException {
     Pair leftPair = decodePair(row, false, rowNumber, hints);
@@ -78,7 +78,7 @@ public final class RSS14Reader extends AbstractRSSReader {
       if (left.getCount() > 1) {
         for (Pair right : possibleRightPairs) {
           if (right.getCount() > 1 && checkChecksum(left, right)) {
-            return constructResult(left, right);
+            return constructRXingResult(left, right);
           }
         }
       }
@@ -109,7 +109,7 @@ public final class RSS14Reader extends AbstractRSSReader {
     possibleRightPairs.clear();
   }
 
-  private static Result constructResult(Pair leftPair, Pair rightPair) {
+  private static RXingResult constructRXingResult(Pair leftPair, Pair rightPair) {
     long symbolValue = 4537077L * leftPair.getValue() + rightPair.getValue();
     String text = String.valueOf(symbolValue);
 
@@ -130,14 +130,14 @@ public final class RSS14Reader extends AbstractRSSReader {
     }
     buffer.append(checkDigit);
 
-    ResultPoint[] leftPoints = leftPair.getFinderPattern().getResultPoints();
-    ResultPoint[] rightPoints = rightPair.getFinderPattern().getResultPoints();
-    Result result = new Result(
+    RXingResultPoint[] leftPoints = leftPair.getFinderPattern().getRXingResultPoints();
+    RXingResultPoint[] rightPoints = rightPair.getFinderPattern().getRXingResultPoints();
+    RXingResult result = new RXingResult(
         buffer.toString(),
         null,
-        new ResultPoint[] { leftPoints[0], leftPoints[1], rightPoints[0], rightPoints[1], },
+        new RXingResultPoint[] { leftPoints[0], leftPoints[1], rightPoints[0], rightPoints[1], },
         BarcodeFormat.RSS_14);
-    result.putMetadata(ResultMetadataType.SYMBOLOGY_IDENTIFIER, "]e0");
+    result.putMetadata(RXingResultMetadataType.SYMBOLOGY_IDENTIFIER, "]e0");
     return result;
   }
 
@@ -159,8 +159,8 @@ public final class RSS14Reader extends AbstractRSSReader {
       int[] startEnd = findFinderPattern(row, right);
       FinderPattern pattern = parseFoundFinderPattern(row, rowNumber, right, startEnd);
 
-      ResultPointCallback resultPointCallback = hints == null ? null :
-          (ResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
+      RXingResultPointCallback resultPointCallback = hints == null ? null :
+          (RXingResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
 
       if (resultPointCallback != null) {
         startEnd = pattern.getStartEnd();
@@ -169,7 +169,7 @@ public final class RSS14Reader extends AbstractRSSReader {
           // row is actually reversed
           center = row.getSize() - 1 - center;
         }
-        resultPointCallback.foundPossibleResultPoint(new ResultPoint(center, rowNumber));
+        resultPointCallback.foundPossibleRXingResultPoint(new RXingResultPoint(center, rowNumber));
       }
 
       DataCharacter outside = decodeDataCharacter(row, pattern, true);

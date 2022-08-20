@@ -18,8 +18,8 @@ package com.google.zxing.qrcode.detector;
 
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.ResultPointCallback;
+import com.google.zxing.RXingResultPoint;
+import com.google.zxing.RXingResultPointCallback;
 import com.google.zxing.common.BitMatrix;
 
 import java.io.Serializable;
@@ -48,7 +48,7 @@ public class FinderPatternFinder {
   private final List<FinderPattern> possibleCenters;
   private boolean hasSkipped;
   private final int[] crossCheckStateCount;
-  private final ResultPointCallback resultPointCallback;
+  private final RXingResultPointCallback resultPointCallback;
 
   /**
    * <p>Creates a finder that will search the image for three finder patterns.</p>
@@ -59,7 +59,7 @@ public class FinderPatternFinder {
     this(image, null);
   }
 
-  public FinderPatternFinder(BitMatrix image, ResultPointCallback resultPointCallback) {
+  public FinderPatternFinder(BitMatrix image, RXingResultPointCallback resultPointCallback) {
     this.image = image;
     this.possibleCenters = new ArrayList<>();
     this.crossCheckStateCount = new int[5];
@@ -162,7 +162,7 @@ public class FinderPatternFinder {
     }
 
     FinderPattern[] patternInfo = selectBestPatterns();
-    ResultPoint.orderBestPatterns(patternInfo);
+    RXingResultPoint.orderBestPatterns(patternInfo);
 
     return new FinderPatternInfo(patternInfo);
   }
@@ -529,7 +529,7 @@ public class FinderPatternFinder {
           FinderPattern point = new FinderPattern(centerJ, centerI, estimatedModuleSize);
           possibleCenters.add(point);
           if (resultPointCallback != null) {
-            resultPointCallback.foundPossibleResultPoint(point);
+            resultPointCallback.foundPossibleRXingResultPoint(point);
           }
         }
         return true;
@@ -549,7 +549,7 @@ public class FinderPatternFinder {
     if (max <= 1) {
       return 0;
     }
-    ResultPoint firstConfirmedCenter = null;
+    RXingResultPoint firstConfirmedCenter = null;
     for (FinderPattern center : possibleCenters) {
       if (center.getCount() >= CENTER_QUORUM) {
         if (firstConfirmedCenter == null) {

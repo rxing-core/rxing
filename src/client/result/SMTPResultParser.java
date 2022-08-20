@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 /**
  * <p>Parses an "smtp:" URI result, whose format is not standardized but appears to be like:
@@ -24,10 +24,10 @@ import com.google.zxing.Result;
  *
  * @author Sean Owen
  */
-public final class SMTPResultParser extends ResultParser {
+public final class SMTPRXingResultParser extends RXingResultParser {
 
   @Override
-  public EmailAddressParsedResult parse(Result result) {
+  public EmailAddressParsedRXingResult parse(RXingResult result) {
     String rawText = getMassagedText(result);
     if (!(rawText.startsWith("smtp:") || rawText.startsWith("SMTP:"))) {
       return null;
@@ -45,7 +45,7 @@ public final class SMTPResultParser extends ResultParser {
         subject = subject.substring(0, colon);
       }
     }
-    return new EmailAddressParsedResult(new String[] {emailAddress},
+    return new EmailAddressParsedRXingResult(new String[] {emailAddress},
                                         null,
                                         null,
                                         subject,

@@ -22,29 +22,29 @@ package com.google.zxing.client.result;
  *
  * @author Sean Owen
  */
-public final class SMSParsedResult extends ParsedResult {
+public final class SMSParsedRXingResult extends ParsedRXingResult {
 
   private final String[] numbers;
   private final String[] vias;
   private final String subject;
   private final String body;
 
-  public SMSParsedResult(String number,
+  public SMSParsedRXingResult(String number,
                          String via,
                          String subject,
                          String body) {
-    super(ParsedResultType.SMS);
+    super(ParsedRXingResultType.SMS);
     this.numbers = new String[] {number};
     this.vias = new String[] {via};
     this.subject = subject;
     this.body = body;
   }
 
-  public SMSParsedResult(String[] numbers,
+  public SMSParsedRXingResult(String[] numbers,
                          String[] vias,
                          String subject,
                          String body) {
-    super(ParsedResultType.SMS);
+    super(ParsedRXingResultType.SMS);
     this.numbers = numbers;
     this.vias = vias;
     this.subject = subject;
@@ -103,7 +103,7 @@ public final class SMSParsedResult extends ParsedResult {
   }
 
   @Override
-  public String getDisplayResult() {
+  public String getDisplayRXingResult() {
     StringBuilder result = new StringBuilder(100);
     maybeAppend(numbers, result);
     maybeAppend(subject, result);

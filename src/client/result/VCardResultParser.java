@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
  *
  * @author Sean Owen
  */
-public final class VCardResultParser extends ResultParser {
+public final class VCardRXingResultParser extends RXingResultParser {
 
   private static final Pattern BEGIN_VCARD = Pattern.compile("BEGIN:VCARD", Pattern.CASE_INSENSITIVE);
   private static final Pattern VCARD_LIKE_DATE = Pattern.compile("\\d{4}-?\\d{2}-?\\d{2}");
@@ -48,7 +48,7 @@ public final class VCardResultParser extends ResultParser {
   private static final Pattern SEMICOLON_OR_COMMA = Pattern.compile("[;,]");
 
   @Override
-  public AddressBookParsedResult parse(Result result) {
+  public AddressBookParsedRXingResult parse(RXingResult result) {
     // Although we should insist on the raw text ending with "END:VCARD", there's no reason
     // to throw out everything else we parsed just because this was omitted. In fact, Eclair
     // is doing just that, and we can't parse its contacts without this leniency.
@@ -82,7 +82,7 @@ public final class VCardResultParser extends ResultParser {
     if (geo != null && geo.length != 2) {
       geo = null;
     }
-    return new AddressBookParsedResult(toPrimaryValues(names),
+    return new AddressBookParsedRXingResult(toPrimaryValues(names),
                                        nicknames,
                                        null, 
                                        toPrimaryValues(phoneNumbers), 

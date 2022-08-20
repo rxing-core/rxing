@@ -16,7 +16,7 @@
 
 package com.google.zxing.pdf417.detector;
 
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitMatrix;
 
 import java.util.List;
@@ -24,19 +24,19 @@ import java.util.List;
 /**
  * @author Guenther Grau
  */
-public final class PDF417DetectorResult {
+public final class PDF417DetectorRXingResult {
 
   private final BitMatrix bits;
-  private final List<ResultPoint[]> points;
+  private final List<RXingResultPoint[]> points;
   private final int rotation;
 
-  public PDF417DetectorResult(BitMatrix bits, List<ResultPoint[]> points, int rotation) {
+  public PDF417DetectorRXingResult(BitMatrix bits, List<RXingResultPoint[]> points, int rotation) {
     this.bits = bits;
     this.points = points;
     this.rotation = rotation;
   }
 
-  public PDF417DetectorResult(BitMatrix bits, List<ResultPoint[]> points) {
+  public PDF417DetectorRXingResult(BitMatrix bits, List<RXingResultPoint[]> points) {
     this(bits, points, 0);
   }
 
@@ -44,7 +44,7 @@ public final class PDF417DetectorResult {
     return bits;
   }
 
-  public List<ResultPoint[]> getPoints() {
+  public List<RXingResultPoint[]> getPoints() {
     return points;
   }
 

@@ -90,7 +90,7 @@ public abstract class OneDimensionalCodeWriter implements Writer {
     }
 
     boolean[] code = encode(contents, hints);
-    return renderResult(code, width, height, sidesMargin);
+    return renderRXingResult(code, width, height, sidesMargin);
   }
 
   protected Collection<BarcodeFormat> getSupportedWriteFormats() {
@@ -100,7 +100,7 @@ public abstract class OneDimensionalCodeWriter implements Writer {
   /**
    * @return a byte array of horizontal pixels (0 = white, 1 = black)
    */
-  private static BitMatrix renderResult(boolean[] code, int width, int height, int sidesMargin) {
+  private static BitMatrix renderRXingResult(boolean[] code, int width, int height, int sidesMargin) {
     int inputWidth = code.length;
     // Add quiet zone on both sides.
     int fullWidth = inputWidth + sidesMargin;

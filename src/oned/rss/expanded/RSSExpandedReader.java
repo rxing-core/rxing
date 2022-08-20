@@ -30,9 +30,9 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitArray;
 import com.google.zxing.common.detector.MathUtils;
 import com.google.zxing.oned.rss.AbstractRSSReader;
@@ -123,7 +123,7 @@ public final class RSSExpandedReader extends AbstractRSSReader {
   private boolean startFromEven;
 
   @Override
-  public Result decodeRow(int rowNumber,
+  public RXingResult decodeRow(int rowNumber,
                           BitArray row,
                           Map<DecodeHintType,?> hints) throws NotFoundException, FormatException {
     // Rows can start with even pattern in case in prev rows there where odd number of patters.
@@ -131,14 +131,14 @@ public final class RSSExpandedReader extends AbstractRSSReader {
     this.pairs.clear();
     this.startFromEven = false;
     try {
-      return constructResult(decodeRow2pairs(rowNumber, row));
+      return constructRXingResult(decodeRow2pairs(rowNumber, row));
     } catch (NotFoundException e) {
       // OK
     }
 
     this.pairs.clear();
     this.startFromEven = true;
-    return constructResult(decodeRow2pairs(rowNumber, row));
+    return constructRXingResult(decodeRow2pairs(rowNumber, row));
   }
 
   @Override
@@ -348,22 +348,22 @@ public final class RSSExpandedReader extends AbstractRSSReader {
   }
 
   // Not private for unit testing
-  static Result constructResult(List<ExpandedPair> pairs) throws NotFoundException, FormatException {
+  static RXingResult constructRXingResult(List<ExpandedPair> pairs) throws NotFoundException, FormatException {
     BitArray binary = BitArrayBuilder.buildBitArray(pairs);
 
     AbstractExpandedDecoder decoder = AbstractExpandedDecoder.createDecoder(binary);
     String resultingString = decoder.parseInformation();
 
-    ResultPoint[] firstPoints = pairs.get(0).getFinderPattern().getResultPoints();
-    ResultPoint[] lastPoints  = pairs.get(pairs.size() - 1).getFinderPattern().getResultPoints();
+    RXingResultPoint[] firstPoints = pairs.get(0).getFinderPattern().getRXingResultPoints();
+    RXingResultPoint[] lastPoints  = pairs.get(pairs.size() - 1).getFinderPattern().getRXingResultPoints();
 
-    Result result = new Result(
+    RXingResult result = new RXingResult(
           resultingString,
           null,
-          new ResultPoint[]{firstPoints[0], firstPoints[1], lastPoints[0], lastPoints[1]},
+          new RXingResultPoint[]{firstPoints[0], firstPoints[1], lastPoints[0], lastPoints[1]},
           BarcodeFormat.RSS_EXPANDED
       );
-    result.putMetadata(ResultMetadataType.SYMBOLOGY_IDENTIFIER, "]e0");
+    result.putMetadata(RXingResultMetadataType.SYMBOLOGY_IDENTIFIER, "]e0");
     return result;
   }
 

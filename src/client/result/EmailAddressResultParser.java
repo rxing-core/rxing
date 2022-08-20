@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -27,12 +27,12 @@ import java.util.regex.Pattern;
  *
  * @author Sean Owen
  */
-public final class EmailAddressResultParser extends ResultParser {
+public final class EmailAddressRXingResultParser extends RXingResultParser {
 
   private static final Pattern COMMA = Pattern.compile(",");
 
   @Override
-  public EmailAddressParsedResult parse(Result result) {
+  public EmailAddressParsedRXingResult parse(RXingResult result) {
     String rawText = getMassagedText(result);
     if (rawText.startsWith("mailto:") || rawText.startsWith("MAILTO:")) {
       // If it starts with mailto:, assume it is definitely trying to be an email address
@@ -73,12 +73,12 @@ public final class EmailAddressResultParser extends ResultParser {
         subject = nameValues.get("subject");
         body = nameValues.get("body");
       }
-      return new EmailAddressParsedResult(tos, ccs, bccs, subject, body);
+      return new EmailAddressParsedRXingResult(tos, ccs, bccs, subject, body);
     } else {
-      if (!EmailDoCoMoResultParser.isBasicallyValidEmailAddress(rawText)) {
+      if (!EmailDoCoMoRXingResultParser.isBasicallyValidEmailAddress(rawText)) {
         return null;
       }
-      return new EmailAddressParsedResult(rawText);
+      return new EmailAddressParsedRXingResult(rawText);
     }
   }
 

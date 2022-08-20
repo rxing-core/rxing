@@ -19,7 +19,7 @@ package com.google.zxing.pdf417;
 /**
  * @author Guenther Grau
  */
-public final class PDF417ResultMetadata {
+public final class PDF417RXingResultMetadata {
 
   private int segmentIndex;
   private String fileId;

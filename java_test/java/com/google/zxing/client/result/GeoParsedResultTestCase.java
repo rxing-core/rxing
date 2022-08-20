@@ -19,16 +19,16 @@ package com.google.zxing.client.result;
 import java.util.Locale;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests {@link GeoParsedResult}.
+ * Tests {@link GeoParsedRXingResult}.
  *
  * @author Sean Owen
  */
-public final class GeoParsedResultTestCase extends Assert {
+public final class GeoParsedRXingResultTestCase extends Assert {
 
   private static final double EPSILON = 1.0E-10;
 
@@ -47,15 +47,15 @@ public final class GeoParsedResultTestCase extends Assert {
                              double altitude,
                              String query,
                              String uri) {
-    Result fakeResult = new Result(contents, null, null, BarcodeFormat.QR_CODE);
-    ParsedResult result = ResultParser.parseResult(fakeResult);
-    assertSame(ParsedResultType.GEO, result.getType());
-    GeoParsedResult geoResult = (GeoParsedResult) result;
-    assertEquals(latitude, geoResult.getLatitude(), EPSILON);
-    assertEquals(longitude, geoResult.getLongitude(), EPSILON);
-    assertEquals(altitude, geoResult.getAltitude(), EPSILON);
-    assertEquals(query, geoResult.getQuery());
-    assertEquals(uri == null ? contents.toLowerCase(Locale.ENGLISH) : uri, geoResult.getGeoURI());
+    RXingResult fakeRXingResult = new RXingResult(contents, null, null, BarcodeFormat.QR_CODE);
+    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
+    assertSame(ParsedRXingResultType.GEO, result.getType());
+    GeoParsedRXingResult geoRXingResult = (GeoParsedRXingResult) result;
+    assertEquals(latitude, geoRXingResult.getLatitude(), EPSILON);
+    assertEquals(longitude, geoRXingResult.getLongitude(), EPSILON);
+    assertEquals(altitude, geoRXingResult.getAltitude(), EPSILON);
+    assertEquals(query, geoRXingResult.getQuery());
+    assertEquals(uri == null ? contents.toLowerCase(Locale.ENGLISH) : uri, geoRXingResult.getGeoURI());
   }
 
 }

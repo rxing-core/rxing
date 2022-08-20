@@ -905,11 +905,11 @@ public final class EncoderTestCase extends Assert {
         ".a.a.)", null, false);
   }
 
-  static void verifyMinimalEncoding(String input, String expectedResult, Charset priorityCharset, boolean isGS1) 
+  static void verifyMinimalEncoding(String input, String expectedRXingResult, Charset priorityCharset, boolean isGS1) 
       throws Exception {
-    MinimalEncoder.ResultList result = MinimalEncoder.encode(input, null, priorityCharset, isGS1,
+    MinimalEncoder.RXingResultList result = MinimalEncoder.encode(input, null, priorityCharset, isGS1,
         ErrorCorrectionLevel.L);
-    assertEquals(result.toString(), expectedResult);
+    assertEquals(result.toString(), expectedRXingResult);
   }
 
   private static void verifyGS1EncodedData(QRCode qrCode) {

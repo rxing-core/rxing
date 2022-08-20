@@ -19,9 +19,9 @@ package com.google.zxing.oned;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitArray;
 
 import java.util.Arrays;
@@ -67,25 +67,25 @@ public final class CodaBarReader extends OneDReader {
   // for more information see : http://www.mecsw.com/specs/codabar.html
 
   // Keep some instance variables to avoid reallocations
-  private final StringBuilder decodeRowResult;
+  private final StringBuilder decodeRowRXingResult;
   private int[] counters;
   private int counterLength;
 
   public CodaBarReader() {
-    decodeRowResult = new StringBuilder(20);
+    decodeRowRXingResult = new StringBuilder(20);
     counters = new int[80];
     counterLength = 0;
   }
 
   @Override
-  public Result decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints) throws NotFoundException {
+  public RXingResult decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints) throws NotFoundException {
 
     Arrays.fill(counters, 0);
     setCounters(row);
     int startOffset = findStartPattern();
     int nextStart = startOffset;
 
-    decodeRowResult.setLength(0);
+    decodeRowRXingResult.setLength(0);
     do {
       int charOffset = toNarrowWidePattern(nextStart);
       if (charOffset == -1) {
@@ -94,10 +94,10 @@ public final class CodaBarReader extends OneDReader {
       // Hack: We store the position in the alphabet table into a
       // StringBuilder, so that we can access the decoded patterns in
       // validatePattern. We'll translate to the actual characters later.
-      decodeRowResult.append((char) charOffset);
+      decodeRowRXingResult.append((char) charOffset);
       nextStart += 8;
       // Stop as soon as we see the end character.
-      if (decodeRowResult.length() > 1 &&
+      if (decodeRowRXingResult.length() > 1 &&
           arrayContains(STARTEND_ENCODING, ALPHABET[charOffset])) {
         break;
       }
@@ -120,28 +120,28 @@ public final class CodaBarReader extends OneDReader {
     validatePattern(startOffset);
 
     // Translate character table offsets to actual characters.
-    for (int i = 0; i < decodeRowResult.length(); i++) {
-      decodeRowResult.setCharAt(i, ALPHABET[decodeRowResult.charAt(i)]);
+    for (int i = 0; i < decodeRowRXingResult.length(); i++) {
+      decodeRowRXingResult.setCharAt(i, ALPHABET[decodeRowRXingResult.charAt(i)]);
     }
     // Ensure a valid start and end character
-    char startchar = decodeRowResult.charAt(0);
+    char startchar = decodeRowRXingResult.charAt(0);
     if (!arrayContains(STARTEND_ENCODING, startchar)) {
       throw NotFoundException.getNotFoundInstance();
     }
-    char endchar = decodeRowResult.charAt(decodeRowResult.length() - 1);
+    char endchar = decodeRowRXingResult.charAt(decodeRowRXingResult.length() - 1);
     if (!arrayContains(STARTEND_ENCODING, endchar)) {
       throw NotFoundException.getNotFoundInstance();
     }
 
     // remove stop/start characters character and check if a long enough string is contained
-    if (decodeRowResult.length() <= MIN_CHARACTER_LENGTH) {
+    if (decodeRowRXingResult.length() <= MIN_CHARACTER_LENGTH) {
       // Almost surely a false positive ( start + stop + at least 1 character)
       throw NotFoundException.getNotFoundInstance();
     }
 
     if (hints == null || !hints.containsKey(DecodeHintType.RETURN_CODABAR_START_END)) {
-      decodeRowResult.deleteCharAt(decodeRowResult.length() - 1);
-      decodeRowResult.deleteCharAt(0);
+      decodeRowRXingResult.deleteCharAt(decodeRowRXingResult.length() - 1);
+      decodeRowRXingResult.deleteCharAt(0);
     }
 
     int runningCount = 0;
@@ -154,14 +154,14 @@ public final class CodaBarReader extends OneDReader {
     }
     float right = runningCount;
 
-    Result result = new Result(
-        decodeRowResult.toString(),
+    RXingResult result = new RXingResult(
+        decodeRowRXingResult.toString(),
         null,
-        new ResultPoint[]{
-            new ResultPoint(left, rowNumber),
-            new ResultPoint(right, rowNumber)},
+        new RXingResultPoint[]{
+            new RXingResultPoint(left, rowNumber),
+            new RXingResultPoint(right, rowNumber)},
         BarcodeFormat.CODABAR);
-    result.putMetadata(ResultMetadataType.SYMBOLOGY_IDENTIFIER, "]F0");
+    result.putMetadata(RXingResultMetadataType.SYMBOLOGY_IDENTIFIER, "]F0");
     return result;
   }
 
@@ -169,13 +169,13 @@ public final class CodaBarReader extends OneDReader {
     // First, sum up the total size of our four categories of stripe sizes;
     int[] sizes = {0, 0, 0, 0};
     int[] counts = {0, 0, 0, 0};
-    int end = decodeRowResult.length() - 1;
+    int end = decodeRowRXingResult.length() - 1;
 
     // We break out of this loop in the middle, in order to handle
     // inter-character spaces properly.
     int pos = start;
     for (int i = 0; i <= end; i++) {
-      int pattern = CHARACTER_ENCODINGS[decodeRowResult.charAt(i)];
+      int pattern = CHARACTER_ENCODINGS[decodeRowRXingResult.charAt(i)];
       for (int j = 6; j >= 0; j--) {
         // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
         // long stripes, while 0 and 1 are for short stripes.
@@ -204,7 +204,7 @@ public final class CodaBarReader extends OneDReader {
     // Now verify that all of the stripes are within the thresholds.
     pos = start;
     for (int i = 0; i <= end; i++) {
-      int pattern = CHARACTER_ENCODINGS[decodeRowResult.charAt(i)];
+      int pattern = CHARACTER_ENCODINGS[decodeRowRXingResult.charAt(i)];
       for (int j = 6; j >= 0; j--) {
         // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
         // long stripes, while 0 and 1 are for short stripes.

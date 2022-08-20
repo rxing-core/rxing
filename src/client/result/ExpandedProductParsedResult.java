@@ -36,7 +36,7 @@ import java.util.Objects;
  * @author Antonio Manuel Benjumea Conde, Servinform, S.A.
  * @author Agustín Delgado, Servinform, S.A.
  */
-public final class ExpandedProductParsedResult extends ParsedResult {
+public final class ExpandedProductParsedRXingResult extends ParsedRXingResult {
 
   public static final String KILOGRAM = "KG";
   public static final String POUND = "LB";
@@ -58,7 +58,7 @@ public final class ExpandedProductParsedResult extends ParsedResult {
   // For AIS that not exist in this object
   private final Map<String,String> uncommonAIs;
 
-  public ExpandedProductParsedResult(String rawText,
+  public ExpandedProductParsedRXingResult(String rawText,
                                      String productID,
                                      String sscc,
                                      String lotNumber,
@@ -73,7 +73,7 @@ public final class ExpandedProductParsedResult extends ParsedResult {
                                      String priceIncrement,
                                      String priceCurrency,
                                      Map<String,String> uncommonAIs) {
-    super(ParsedResultType.PRODUCT);
+    super(ParsedRXingResultType.PRODUCT);
     this.rawText = rawText;
     this.productID = productID;
     this.sscc = sscc;
@@ -93,11 +93,11 @@ public final class ExpandedProductParsedResult extends ParsedResult {
 
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof ExpandedProductParsedResult)) {
+    if (!(o instanceof ExpandedProductParsedRXingResult)) {
       return false;
     }
 
-    ExpandedProductParsedResult other = (ExpandedProductParsedResult) o;
+    ExpandedProductParsedRXingResult other = (ExpandedProductParsedRXingResult) o;
 
     return Objects.equals(productID, other.productID)
         && Objects.equals(sscc, other.sscc)
@@ -193,7 +193,7 @@ public final class ExpandedProductParsedResult extends ParsedResult {
   }
 
   @Override
-  public String getDisplayResult() {
+  public String getDisplayRXingResult() {
     return String.valueOf(rawText);
   }
 }

@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 import java.util.List;
 
@@ -26,10 +26,10 @@ import java.util.List;
  *
  * @author Sean Owen
  */
-public final class VEventResultParser extends ResultParser {
+public final class VEventRXingResultParser extends RXingResultParser {
 
   @Override
-  public CalendarParsedResult parse(Result result) {
+  public CalendarParsedRXingResult parse(RXingResult result) {
     String rawText = getMassagedText(result);
     int vEventStart = rawText.indexOf("BEGIN:VEVENT");
     if (vEventStart < 0) {
@@ -74,7 +74,7 @@ public final class VEventResultParser extends ResultParser {
     }
 
     try {
-      return new CalendarParsedResult(summary,
+      return new CalendarParsedRXingResult(summary,
                                       start,
                                       end,
                                       duration,
@@ -91,12 +91,12 @@ public final class VEventResultParser extends ResultParser {
 
   private static String matchSingleVCardPrefixedField(CharSequence prefix,
                                                       String rawText) {
-    List<String> values = VCardResultParser.matchSingleVCardPrefixedField(prefix, rawText, true, false);
+    List<String> values = VCardRXingResultParser.matchSingleVCardPrefixedField(prefix, rawText, true, false);
     return values == null || values.isEmpty() ? null : values.get(0);
   }
 
   private static String[] matchVCardPrefixedField(CharSequence prefix, String rawText) {
-    List<List<String>> values = VCardResultParser.matchVCardPrefixedField(prefix, rawText, true, false);
+    List<List<String>> values = VCardRXingResultParser.matchVCardPrefixedField(prefix, rawText, true, false);
     if (values == null || values.isEmpty()) {
       return null;
     }

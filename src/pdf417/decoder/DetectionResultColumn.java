@@ -21,14 +21,14 @@ import java.util.Formatter;
 /**
  * @author Guenther Grau
  */
-class DetectionResultColumn {
+class DetectionRXingResultColumn {
 
   private static final int MAX_NEARBY_DISTANCE = 5;
 
   private final BoundingBox boundingBox;
   private final Codeword[] codewords;
 
-  DetectionResultColumn(BoundingBox boundingBox) {
+  DetectionRXingResultColumn(BoundingBox boundingBox) {
     this.boundingBox = new BoundingBox(boundingBox);
     codewords = new Codeword[boundingBox.getMaxY() - boundingBox.getMinY() + 1];
   }

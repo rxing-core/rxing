@@ -20,7 +20,7 @@ import com.google.zxing.ChecksumException;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderResult;
+import com.google.zxing.common.DecoderRXingResult;
 import com.google.zxing.common.reedsolomon.GenericGF;
 import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
 import com.google.zxing.common.reedsolomon.ReedSolomonException;
@@ -45,11 +45,11 @@ public final class Decoder {
     rsDecoder = new ReedSolomonDecoder(GenericGF.MAXICODE_FIELD_64);
   }
 
-  public DecoderResult decode(BitMatrix bits) throws ChecksumException, FormatException {
+  public DecoderRXingResult decode(BitMatrix bits) throws ChecksumException, FormatException {
     return decode(bits, null);
   }
 
-  public DecoderResult decode(BitMatrix bits,
+  public DecoderRXingResult decode(BitMatrix bits,
                               Map<DecodeHintType,?> hints) throws FormatException, ChecksumException {
     BitMatrixParser parser = new BitMatrixParser(bits);
     byte[] codewords = parser.readCodewords();

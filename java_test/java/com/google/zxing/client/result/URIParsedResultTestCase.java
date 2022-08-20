@@ -17,16 +17,16 @@
 package com.google.zxing.client.result;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests {@link URIParsedResult}.
+ * Tests {@link URIParsedRXingResult}.
  *
  * @author Sean Owen
  */
-public final class URIParsedResultTestCase extends Assert {
+public final class URIParsedRXingResultTestCase extends Assert {
 
   @Test
   public void testBookmarkDocomo() {
@@ -116,25 +116,25 @@ public final class URIParsedResultTestCase extends Assert {
   }
 
   private static void doTest(String contents, String uri, String title) {
-    Result fakeResult = new Result(contents, null, null, BarcodeFormat.QR_CODE);
-    ParsedResult result = ResultParser.parseResult(fakeResult);
-    assertSame(ParsedResultType.URI, result.getType());
-    URIParsedResult uriResult = (URIParsedResult) result;
-    assertEquals(uri, uriResult.getURI());
-    assertEquals(title, uriResult.getTitle());
+    RXingResult fakeRXingResult = new RXingResult(contents, null, null, BarcodeFormat.QR_CODE);
+    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
+    assertSame(ParsedRXingResultType.URI, result.getType());
+    URIParsedRXingResult uriRXingResult = (URIParsedRXingResult) result;
+    assertEquals(uri, uriRXingResult.getURI());
+    assertEquals(title, uriRXingResult.getTitle());
   }
 
   private static void doTestNotUri(String text) {
-    Result fakeResult = new Result(text, null, null, BarcodeFormat.QR_CODE);
-    ParsedResult result = ResultParser.parseResult(fakeResult);
-    assertSame(ParsedResultType.TEXT, result.getType());
-    assertEquals(text, result.getDisplayResult());
+    RXingResult fakeRXingResult = new RXingResult(text, null, null, BarcodeFormat.QR_CODE);
+    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
+    assertSame(ParsedRXingResultType.TEXT, result.getType());
+    assertEquals(text, result.getDisplayRXingResult());
   }
 
   private static void doTestIsPossiblyMalicious(String uri, boolean malicious) {
-    Result fakeResult = new Result(uri, null, null, BarcodeFormat.QR_CODE);
-    ParsedResult result = ResultParser.parseResult(fakeResult);
-    assertSame(malicious ? ParsedResultType.TEXT : ParsedResultType.URI, result.getType());
+    RXingResult fakeRXingResult = new RXingResult(uri, null, null, BarcodeFormat.QR_CODE);
+    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
+    assertSame(malicious ? ParsedRXingResultType.TEXT : ParsedRXingResultType.URI, result.getType());
   }
 
 }

@@ -21,7 +21,7 @@ import com.google.zxing.DecodeHintType;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.Reader;
 import com.google.zxing.ReaderException;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import com.google.zxing.common.BitArray;
 import com.google.zxing.oned.rss.RSS14Reader;
 import com.google.zxing.oned.rss.expanded.RSSExpandedReader;
@@ -90,7 +90,7 @@ public final class MultiFormatOneDReader extends OneDReader {
   }
 
   @Override
-  public Result decodeRow(int rowNumber,
+  public RXingResult decodeRow(int rowNumber,
                           BitArray row,
                           Map<DecodeHintType,?> hints) throws NotFoundException {
     for (OneDReader reader : readers) {

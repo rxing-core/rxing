@@ -17,7 +17,7 @@
 package com.google.zxing.common.detector;
 
 import com.google.zxing.NotFoundException;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitMatrix;
 
 /**
@@ -75,14 +75,14 @@ public final class WhiteRectangleDetector {
    * region until it finds a white rectangular region.
    * </p>
    *
-   * @return {@link ResultPoint}[] describing the corners of the rectangular
+   * @return {@link RXingResultPoint}[] describing the corners of the rectangular
    *         region. The first and last points are opposed on the diagonal, as
    *         are the second and third. The first point will be the topmost
    *         point and the last, the bottommost. The second point will be
    *         leftmost and the third, the rightmost
    * @throws NotFoundException if no Data Matrix Code can be found
    */
-  public ResultPoint[] detect() throws NotFoundException {
+  public RXingResultPoint[] detect() throws NotFoundException {
 
     int left = leftInit;
     int right = rightInit;
@@ -186,7 +186,7 @@ public final class WhiteRectangleDetector {
 
       int maxSize = right - left;
 
-      ResultPoint z = null;
+      RXingResultPoint z = null;
       for (int i = 1; z == null && i < maxSize; i++) {
         z = getBlackPointOnSegment(left, down - i, left + i, down);
       }
@@ -195,7 +195,7 @@ public final class WhiteRectangleDetector {
         throw NotFoundException.getNotFoundInstance();
       }
 
-      ResultPoint t = null;
+      RXingResultPoint t = null;
       //go down right
       for (int i = 1; t == null && i < maxSize; i++) {
         t = getBlackPointOnSegment(left, up + i, left + i, up);
@@ -205,7 +205,7 @@ public final class WhiteRectangleDetector {
         throw NotFoundException.getNotFoundInstance();
       }
 
-      ResultPoint x = null;
+      RXingResultPoint x = null;
       //go down left
       for (int i = 1; x == null && i < maxSize; i++) {
         x = getBlackPointOnSegment(right, up + i, right - i, up);
@@ -215,7 +215,7 @@ public final class WhiteRectangleDetector {
         throw NotFoundException.getNotFoundInstance();
       }
 
-      ResultPoint y = null;
+      RXingResultPoint y = null;
       //go up left
       for (int i = 1; y == null && i < maxSize; i++) {
         y = getBlackPointOnSegment(right, down - i, right - i, down);
@@ -232,7 +232,7 @@ public final class WhiteRectangleDetector {
     }
   }
 
-  private ResultPoint getBlackPointOnSegment(float aX, float aY, float bX, float bY) {
+  private RXingResultPoint getBlackPointOnSegment(float aX, float aY, float bX, float bY) {
     int dist = MathUtils.round(MathUtils.distance(aX, aY, bX, bY));
     float xStep = (bX - aX) / dist;
     float yStep = (bY - aY) / dist;
@@ -241,7 +241,7 @@ public final class WhiteRectangleDetector {
       int x = MathUtils.round(aX + i * xStep);
       int y = MathUtils.round(aY + i * yStep);
       if (image.get(x, y)) {
-        return new ResultPoint(x, y);
+        return new RXingResultPoint(x, y);
       }
     }
     return null;
@@ -254,14 +254,14 @@ public final class WhiteRectangleDetector {
    * @param z left most point
    * @param x right most point
    * @param t top most point
-   * @return {@link ResultPoint}[] describing the corners of the rectangular
+   * @return {@link RXingResultPoint}[] describing the corners of the rectangular
    *         region. The first and last points are opposed on the diagonal, as
    *         are the second and third. The first point will be the topmost
    *         point and the last, the bottommost. The second point will be
    *         leftmost and the third, the rightmost
    */
-  private ResultPoint[] centerEdges(ResultPoint y, ResultPoint z,
-                                    ResultPoint x, ResultPoint t) {
+  private RXingResultPoint[] centerEdges(RXingResultPoint y, RXingResultPoint z,
+                                    RXingResultPoint x, RXingResultPoint t) {
 
     //
     //       t            t
@@ -280,17 +280,17 @@ public final class WhiteRectangleDetector {
     float tj = t.getY();
 
     if (yi < width / 2.0f) {
-      return new ResultPoint[]{
-          new ResultPoint(ti - CORR, tj + CORR),
-          new ResultPoint(zi + CORR, zj + CORR),
-          new ResultPoint(xi - CORR, xj - CORR),
-          new ResultPoint(yi + CORR, yj - CORR)};
+      return new RXingResultPoint[]{
+          new RXingResultPoint(ti - CORR, tj + CORR),
+          new RXingResultPoint(zi + CORR, zj + CORR),
+          new RXingResultPoint(xi - CORR, xj - CORR),
+          new RXingResultPoint(yi + CORR, yj - CORR)};
     } else {
-      return new ResultPoint[]{
-          new ResultPoint(ti + CORR, tj + CORR),
-          new ResultPoint(zi + CORR, zj - CORR),
-          new ResultPoint(xi - CORR, xj + CORR),
-          new ResultPoint(yi - CORR, yj - CORR)};
+      return new RXingResultPoint[]{
+          new RXingResultPoint(ti + CORR, tj + CORR),
+          new RXingResultPoint(zi + CORR, zj - CORR),
+          new RXingResultPoint(xi - CORR, xj + CORR),
+          new RXingResultPoint(yi - CORR, yj - CORR)};
     }
   }
 

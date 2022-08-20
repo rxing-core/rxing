@@ -23,8 +23,8 @@ import com.google.zxing.DecodeHintType;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.Reader;
 import com.google.zxing.ReaderException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -61,7 +61,7 @@ public abstract class AbstractBlackBoxTestCase extends Assert {
   private final Path testBase;
   private final Reader barcodeReader;
   private final BarcodeFormat expectedFormat;
-  private final List<TestResult> testResults;
+  private final List<TestRXingResult> testRXingResults;
   private final EnumMap<DecodeHintType,Object> hints = new EnumMap<>(DecodeHintType.class);
 
   public static Path buildTestBase(String testBasePathSuffix) {
@@ -80,7 +80,7 @@ public abstract class AbstractBlackBoxTestCase extends Assert {
     this.testBase = buildTestBase(testBasePathSuffix);
     this.barcodeReader = barcodeReader;
     this.expectedFormat = expectedFormat;
-    testResults = new ArrayList<>();
+    testRXingResults = new ArrayList<>();
 
     System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s%6$s%n");
   }
@@ -112,7 +112,7 @@ public abstract class AbstractBlackBoxTestCase extends Assert {
                                int maxMisreads,
                                int maxTryHarderMisreads,
                                float rotation) {
-    testResults.add(new TestResult(mustPassCount, tryHarderCount, maxMisreads, maxTryHarderMisreads, rotation));
+    testRXingResults.add(new TestRXingResult(mustPassCount, tryHarderCount, maxMisreads, maxTryHarderMisreads, rotation));
   }
 
   protected final List<Path> getImageFiles() throws IOException {
@@ -132,10 +132,10 @@ public abstract class AbstractBlackBoxTestCase extends Assert {
 
   @Test
   public void testBlackBox() throws IOException {
-    assertFalse(testResults.isEmpty());
+    assertFalse(testRXingResults.isEmpty());
 
     List<Path> imageFiles = getImageFiles();
-    int testCount = testResults.size();
+    int testCount = testRXingResults.size();
 
     int[] passedCounts = new int[testCount];
     int[] misreadCounts = new int[testCount];
@@ -168,7 +168,7 @@ public abstract class AbstractBlackBoxTestCase extends Assert {
       }
 
       for (int x = 0; x < testCount; x++) {
-        float rotation = testResults.get(x).getRotation();
+        float rotation = testRXingResults.get(x).getRotation();
         BufferedImage rotatedImage = rotateImage(image, rotation);
         LuminanceSource source = new BufferedImageLuminanceSource(rotatedImage);
         BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
@@ -199,23 +199,23 @@ public abstract class AbstractBlackBoxTestCase extends Assert {
     int totalMisread = 0;
     int totalMaxMisread = 0;
 
-    for (int x = 0; x < testResults.size(); x++) {
-      TestResult testResult = testResults.get(x);
-      log.info(String.format("Rotation %d degrees:", (int) testResult.getRotation()));
+    for (int x = 0; x < testRXingResults.size(); x++) {
+      TestRXingResult testRXingResult = testRXingResults.get(x);
+      log.info(String.format("Rotation %d degrees:", (int) testRXingResult.getRotation()));
       log.info(String.format(" %d of %d images passed (%d required)",
-                             passedCounts[x], imageFiles.size(), testResult.getMustPassCount()));
+                             passedCounts[x], imageFiles.size(), testRXingResult.getMustPassCount()));
       int failed = imageFiles.size() - passedCounts[x];
       log.info(String.format(" %d failed due to misreads, %d not detected",
                              misreadCounts[x], failed - misreadCounts[x]));
       log.info(String.format(" %d of %d images passed with try harder (%d required)",
-                             tryHarderCounts[x], imageFiles.size(), testResult.getTryHarderCount()));
+                             tryHarderCounts[x], imageFiles.size(), testRXingResult.getTryHarderCount()));
       failed = imageFiles.size() - tryHarderCounts[x];
       log.info(String.format(" %d failed due to misreads, %d not detected",
                              tryHarderMisreadCounts[x], failed - tryHarderMisreadCounts[x]));
       totalFound += passedCounts[x] + tryHarderCounts[x];
-      totalMustPass += testResult.getMustPassCount() + testResult.getTryHarderCount();
+      totalMustPass += testRXingResult.getMustPassCount() + testRXingResult.getTryHarderCount();
       totalMisread += misreadCounts[x] + tryHarderMisreadCounts[x];
-      totalMaxMisread += testResult.getMaxMisreads() + testResult.getMaxTryHarderMisreads();
+      totalMaxMisread += testRXingResult.getMaxMisreads() + testRXingResult.getMaxTryHarderMisreads();
     }
 
     int totalTests = imageFiles.size() * testCount * 2;
@@ -235,17 +235,17 @@ public abstract class AbstractBlackBoxTestCase extends Assert {
 
     // Then run through again and assert if any failed
     for (int x = 0; x < testCount; x++) {
-      TestResult testResult = testResults.get(x);
-      String label = "Rotation " + testResult.getRotation() + " degrees: Too many images failed";
+      TestRXingResult testRXingResult = testRXingResults.get(x);
+      String label = "Rotation " + testRXingResult.getRotation() + " degrees: Too many images failed";
       assertTrue(label,
-                 passedCounts[x] >= testResult.getMustPassCount());
+                 passedCounts[x] >= testRXingResult.getMustPassCount());
       assertTrue("Try harder, " + label,
-                 tryHarderCounts[x] >= testResult.getTryHarderCount());
-      label = "Rotation " + testResult.getRotation() + " degrees: Too many images misread";
+                 tryHarderCounts[x] >= testRXingResult.getTryHarderCount());
+      label = "Rotation " + testRXingResult.getRotation() + " degrees: Too many images misread";
       assertTrue(label,
-                 misreadCounts[x] <= testResult.getMaxMisreads());
+                 misreadCounts[x] <= testRXingResult.getMaxMisreads());
       assertTrue("Try harder, " + label,
-                 tryHarderMisreadCounts[x] <= testResult.getMaxTryHarderMisreads());
+                 tryHarderMisreadCounts[x] <= testRXingResult.getMaxTryHarderMisreads());
     }
   }
 
@@ -264,7 +264,7 @@ public abstract class AbstractBlackBoxTestCase extends Assert {
 
     // Try in 'pure' mode mostly to exercise PURE_BARCODE code paths for exceptions;
     // not expected to pass, generally
-    Result result = null;
+    RXingResult result = null;
     try {
       Map<DecodeHintType,Object> pureHints = new EnumMap<>(hints);
       pureHints.put(DecodeHintType.PURE_BARCODE, Boolean.TRUE);
@@ -290,9 +290,9 @@ public abstract class AbstractBlackBoxTestCase extends Assert {
       return false;
     }
 
-    Map<ResultMetadataType,?> resultMetadata = result.getResultMetadata();
+    Map<RXingResultMetadataType,?> resultMetadata = result.getRXingResultMetadata();
     for (Map.Entry<?,?> metadatum : expectedMetadata.entrySet()) {
-      ResultMetadataType key = ResultMetadataType.valueOf(metadatum.getKey().toString());
+      RXingResultMetadataType key = RXingResultMetadataType.valueOf(metadatum.getKey().toString());
       Object expectedValue = metadatum.getValue();
       Object actualValue = resultMetadata == null ? null : resultMetadata.get(key);
       if (!expectedValue.equals(actualValue)) {

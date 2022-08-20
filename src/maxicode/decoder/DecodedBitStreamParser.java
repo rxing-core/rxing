@@ -17,7 +17,7 @@
 package com.google.zxing.maxicode.decoder;
 
 import com.google.zxing.FormatException;
-import com.google.zxing.common.DecoderResult;
+import com.google.zxing.common.DecoderRXingResult;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
@@ -84,7 +84,7 @@ final class DecodedBitStreamParser {
   private DecodedBitStreamParser() {
   }
 
-  static DecoderResult decode(byte[] bytes, int mode) throws FormatException {
+  static DecoderRXingResult decode(byte[] bytes, int mode) throws FormatException {
     StringBuilder result = new StringBuilder(144);
     switch (mode) {
       case 2:
@@ -118,7 +118,7 @@ final class DecodedBitStreamParser {
         result.append(getMessage(bytes, 1, 77));
         break;
     }
-    return new DecoderResult(bytes, result.toString(), null, String.valueOf(mode));
+    return new DecoderRXingResult(bytes, result.toString(), null, String.valueOf(mode));
   }
 
   private static int getBit(int bit, byte[] bytes) {

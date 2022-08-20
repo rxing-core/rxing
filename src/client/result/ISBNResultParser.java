@@ -17,20 +17,20 @@
 package com.google.zxing.client.result;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 /**
  * Parses strings of digits that represent a ISBN.
  * 
  * @author jbreiden@google.com (Jeff Breidenbach)
  */
-public final class ISBNResultParser extends ResultParser {
+public final class ISBNRXingResultParser extends RXingResultParser {
 
   /**
    * See <a href="http://www.bisg.org/isbn-13/for.dummies.html">ISBN-13 For Dummies</a>
    */
   @Override
-  public ISBNParsedResult parse(Result result) {
+  public ISBNParsedRXingResult parse(RXingResult result) {
     BarcodeFormat format = result.getBarcodeFormat();
     if (format != BarcodeFormat.EAN_13) {
       return null;
@@ -44,7 +44,7 @@ public final class ISBNResultParser extends ResultParser {
       return null;
     }
    
-    return new ISBNParsedResult(rawText);
+    return new ISBNParsedRXingResult(rawText);
   }
 
 }

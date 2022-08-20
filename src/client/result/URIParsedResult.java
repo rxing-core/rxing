@@ -21,13 +21,13 @@ package com.google.zxing.client.result;
  *
  * @author Sean Owen
  */
-public final class URIParsedResult extends ParsedResult {
+public final class URIParsedRXingResult extends ParsedRXingResult {
 
   private final String uri;
   private final String title;
 
-  public URIParsedResult(String uri, String title) {
-    super(ParsedResultType.URI);
+  public URIParsedRXingResult(String uri, String title) {
+    super(ParsedRXingResultType.URI);
     this.uri = massageURI(uri);
     this.title = title;
   }
@@ -43,15 +43,15 @@ public final class URIParsedResult extends ParsedResult {
   /**
    * @return true if the URI contains suspicious patterns that may suggest it intends to
    *  mislead the user about its true nature
-   * @deprecated see {@link URIResultParser#isPossiblyMaliciousURI(String)}
+   * @deprecated see {@link URIRXingResultParser#isPossiblyMaliciousURI(String)}
    */
   @Deprecated
   public boolean isPossiblyMaliciousURI() {
-    return URIResultParser.isPossiblyMaliciousURI(uri);
+    return URIRXingResultParser.isPossiblyMaliciousURI(uri);
   }
 
   @Override
-  public String getDisplayResult() {
+  public String getDisplayRXingResult() {
     StringBuilder result = new StringBuilder(30);
     maybeAppend(title, result);
     maybeAppend(uri, result);
@@ -79,7 +79,7 @@ public final class URIParsedResult extends ParsedResult {
     if (nextSlash < 0) {
       nextSlash = uri.length();
     }
-    return ResultParser.isSubstringOfDigits(uri, start, nextSlash - start);
+    return RXingResultParser.isSubstringOfDigits(uri, start, nextSlash - start);
   }
 
 

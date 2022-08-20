@@ -18,8 +18,8 @@ package com.google.zxing.multi.qrcode.detector;
 
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.ResultPointCallback;
+import com.google.zxing.RXingResultPoint;
+import com.google.zxing.RXingResultPointCallback;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.detector.FinderPattern;
 import com.google.zxing.qrcode.detector.FinderPatternFinder;
@@ -86,7 +86,7 @@ public final class MultiFinderPatternFinder extends FinderPatternFinder {
     }
   }
 
-  public MultiFinderPatternFinder(BitMatrix image, ResultPointCallback resultPointCallback) {
+  public MultiFinderPatternFinder(BitMatrix image, RXingResultPointCallback resultPointCallback) {
     super(image, resultPointCallback);
   }
 
@@ -176,13 +176,13 @@ public final class MultiFinderPatternFinder extends FinderPatternFinder {
           }
 
           FinderPattern[] test = {p1, p2, p3};
-          ResultPoint.orderBestPatterns(test);
+          RXingResultPoint.orderBestPatterns(test);
 
           // Calculate the distances: a = topleft-bottomleft, b=topleft-topright, c = diagonal
           FinderPatternInfo info = new FinderPatternInfo(test);
-          float dA = ResultPoint.distance(info.getTopLeft(), info.getBottomLeft());
-          float dC = ResultPoint.distance(info.getTopRight(), info.getBottomLeft());
-          float dB = ResultPoint.distance(info.getTopLeft(), info.getTopRight());
+          float dA = RXingResultPoint.distance(info.getTopLeft(), info.getBottomLeft());
+          float dC = RXingResultPoint.distance(info.getTopRight(), info.getBottomLeft());
+          float dB = RXingResultPoint.distance(info.getTopLeft(), info.getTopRight());
 
           // Check the sizes
           float estimatedModuleCount = (dA + dB) / (p1.getEstimatedModuleSize() * 2.0f);
@@ -276,7 +276,7 @@ public final class MultiFinderPatternFinder extends FinderPatternFinder {
     FinderPattern[][] patternInfo = selectMultipleBestPatterns();
     List<FinderPatternInfo> result = new ArrayList<>();
     for (FinderPattern[] pattern : patternInfo) {
-      ResultPoint.orderBestPatterns(pattern);
+      RXingResultPoint.orderBestPatterns(pattern);
       result.add(new FinderPatternInfo(pattern));
     }
 

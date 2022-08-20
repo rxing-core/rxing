@@ -17,16 +17,16 @@
 package com.google.zxing.client.result;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests {@link SMSParsedResult}.
+ * Tests {@link SMSParsedRXingResult}.
  *
  * @author Sean Owen
  */
-public final class SMSMMSParsedResultTestCase extends Assert {
+public final class SMSMMSParsedRXingResultTestCase extends Assert {
 
   @Test
   public void testSMS() {
@@ -52,15 +52,15 @@ public final class SMSMMSParsedResultTestCase extends Assert {
                              String body,
                              String via,
                              String parsedURI) {
-    Result fakeResult = new Result(contents, null, null, BarcodeFormat.QR_CODE);
-    ParsedResult result = ResultParser.parseResult(fakeResult);
-    assertSame(ParsedResultType.SMS, result.getType());
-    SMSParsedResult smsResult = (SMSParsedResult) result;
-    assertArrayEquals(new String[] { number }, smsResult.getNumbers());
-    assertEquals(subject, smsResult.getSubject());
-    assertEquals(body, smsResult.getBody());
-    assertArrayEquals(new String[] { via }, smsResult.getVias());
-    assertEquals(parsedURI, smsResult.getSMSURI());
+    RXingResult fakeRXingResult = new RXingResult(contents, null, null, BarcodeFormat.QR_CODE);
+    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
+    assertSame(ParsedRXingResultType.SMS, result.getType());
+    SMSParsedRXingResult smsRXingResult = (SMSParsedRXingResult) result;
+    assertArrayEquals(new String[] { number }, smsRXingResult.getNumbers());
+    assertEquals(subject, smsRXingResult.getSubject());
+    assertEquals(body, smsRXingResult.getBody());
+    assertArrayEquals(new String[] { via }, smsRXingResult.getVias());
+    assertEquals(parsedURI, smsRXingResult.getSMSURI());
   }
 
 }

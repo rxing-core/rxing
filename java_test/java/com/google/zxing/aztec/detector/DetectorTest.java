@@ -17,13 +17,13 @@
 package com.google.zxing.aztec.detector;
 
 import com.google.zxing.NotFoundException;
-import com.google.zxing.aztec.AztecDetectorResult;
+import com.google.zxing.aztec.AztecDetectorRXingResult;
 import com.google.zxing.aztec.decoder.Decoder;
 import com.google.zxing.aztec.detector.Detector.Point;
 import com.google.zxing.aztec.encoder.AztecCode;
 import com.google.zxing.aztec.encoder.Encoder;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderResult;
+import com.google.zxing.common.DecoderRXingResult;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -78,11 +78,11 @@ public final class DetectorTest extends Assert {
               copy.flip(orientationPoints.get(error2).getX(), orientationPoints.get(error2).getY());
             }
             // The detector doesn't seem to work when matrix bits are only 1x1.  So magnify.
-            AztecDetectorResult r = new Detector(makeLarger(copy, 3)).detect(isMirror);
+            AztecDetectorRXingResult r = new Detector(makeLarger(copy, 3)).detect(isMirror);
             assertNotNull(r);
             assertEquals(r.getNbLayers(), layers);
             assertEquals(r.isCompact(), compact);
-            DecoderResult res = new Decoder().decode(r);
+            DecoderRXingResult res = new Decoder().decode(r);
             assertEquals(data, res.getText());
           }
         }

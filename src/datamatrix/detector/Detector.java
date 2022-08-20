@@ -17,9 +17,9 @@
 package com.google.zxing.datamatrix.detector;
 
 import com.google.zxing.NotFoundException;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DetectorResult;
+import com.google.zxing.common.DetectorRXingResult;
 import com.google.zxing.common.GridSampler;
 import com.google.zxing.common.detector.WhiteRectangleDetector;
 
@@ -42,14 +42,14 @@ public final class Detector {
   /**
    * <p>Detects a Data Matrix Code in an image.</p>
    *
-   * @return {@link DetectorResult} encapsulating results of detecting a Data Matrix Code
+   * @return {@link DetectorRXingResult} encapsulating results of detecting a Data Matrix Code
    * @throws NotFoundException if no Data Matrix Code can be found
    */
-  public DetectorResult detect() throws NotFoundException {
+  public DetectorRXingResult detect() throws NotFoundException {
 
-    ResultPoint[] cornerPoints = rectangleDetector.detect();
+    RXingResultPoint[] cornerPoints = rectangleDetector.detect();
 
-    ResultPoint[] points = detectSolid1(cornerPoints);
+    RXingResultPoint[] points = detectSolid1(cornerPoints);
     points = detectSolid2(points);
     points[3] = correctTopRight(points);
     if (points[3] == null) {
@@ -57,10 +57,10 @@ public final class Detector {
     }
     points = shiftToModuleCenter(points);
 
-    ResultPoint topLeft = points[0];
-    ResultPoint bottomLeft = points[1];
-    ResultPoint bottomRight = points[2];
-    ResultPoint topRight = points[3];
+    RXingResultPoint topLeft = points[0];
+    RXingResultPoint bottomLeft = points[1];
+    RXingResultPoint bottomRight = points[2];
+    RXingResultPoint topRight = points[3];
 
     int dimensionTop = transitionsBetween(topLeft, topRight) + 1;
     int dimensionRight = transitionsBetween(bottomRight, topRight) + 1;
@@ -84,16 +84,16 @@ public final class Detector {
                                 dimensionTop,
                                 dimensionRight);
 
-    return new DetectorResult(bits, new ResultPoint[]{topLeft, bottomLeft, bottomRight, topRight});
+    return new DetectorRXingResult(bits, new RXingResultPoint[]{topLeft, bottomLeft, bottomRight, topRight});
   }
 
-  private static ResultPoint shiftPoint(ResultPoint point, ResultPoint to, int div) {
+  private static RXingResultPoint shiftPoint(RXingResultPoint point, RXingResultPoint to, int div) {
     float x = (to.getX() - point.getX()) / (div + 1);
     float y = (to.getY() - point.getY()) / (div + 1);
-    return new ResultPoint(point.getX() + x, point.getY() + y);
+    return new RXingResultPoint(point.getX() + x, point.getY() + y);
   }
 
-  private static ResultPoint moveAway(ResultPoint point, float fromX, float fromY) {
+  private static RXingResultPoint moveAway(RXingResultPoint point, float fromX, float fromY) {
     float x = point.getX();
     float y = point.getY();
 
@@ -109,19 +109,19 @@ public final class Detector {
       y += 1;
     }
 
-    return new ResultPoint(x, y);
+    return new RXingResultPoint(x, y);
   }
 
   /**
    * Detect a solid side which has minimum transition.
    */
-  private ResultPoint[] detectSolid1(ResultPoint[] cornerPoints) {
+  private RXingResultPoint[] detectSolid1(RXingResultPoint[] cornerPoints) {
     // 0  2
     // 1  3
-    ResultPoint pointA = cornerPoints[0];
-    ResultPoint pointB = cornerPoints[1];
-    ResultPoint pointC = cornerPoints[3];
-    ResultPoint pointD = cornerPoints[2];
+    RXingResultPoint pointA = cornerPoints[0];
+    RXingResultPoint pointB = cornerPoints[1];
+    RXingResultPoint pointC = cornerPoints[3];
+    RXingResultPoint pointD = cornerPoints[2];
 
     int trAB = transitionsBetween(pointA, pointB);
     int trBC = transitionsBetween(pointB, pointC);
@@ -132,7 +132,7 @@ public final class Detector {
     // :  :
     // 1--2
     int min = trAB;
-    ResultPoint[] points = {pointD, pointA, pointB, pointC};
+    RXingResultPoint[] points = {pointD, pointA, pointB, pointC};
     if (min > trBC) {
       min = trBC;
       points[0] = pointA;
@@ -160,20 +160,20 @@ public final class Detector {
   /**
    * Detect a second solid side next to first solid side.
    */
-  private ResultPoint[] detectSolid2(ResultPoint[] points) {
+  private RXingResultPoint[] detectSolid2(RXingResultPoint[] points) {
     // A..D
     // :  :
     // B--C
-    ResultPoint pointA = points[0];
-    ResultPoint pointB = points[1];
-    ResultPoint pointC = points[2];
-    ResultPoint pointD = points[3];
+    RXingResultPoint pointA = points[0];
+    RXingResultPoint pointB = points[1];
+    RXingResultPoint pointC = points[2];
+    RXingResultPoint pointD = points[3];
 
     // Transition detection on the edge is not stable.
     // To safely detect, shift the points to the module center.
     int tr = transitionsBetween(pointA, pointD);
-    ResultPoint pointBs = shiftPoint(pointB, pointC, (tr + 1) * 4);
-    ResultPoint pointCs = shiftPoint(pointC, pointB, (tr + 1) * 4);
+    RXingResultPoint pointBs = shiftPoint(pointB, pointC, (tr + 1) * 4);
+    RXingResultPoint pointCs = shiftPoint(pointC, pointB, (tr + 1) * 4);
     int trBA = transitionsBetween(pointBs, pointA);
     int trCD = transitionsBetween(pointCs, pointD);
 
@@ -200,28 +200,28 @@ public final class Detector {
   /**
    * Calculates the corner position of the white top right module.
    */
-  private ResultPoint correctTopRight(ResultPoint[] points) {
+  private RXingResultPoint correctTopRight(RXingResultPoint[] points) {
     // A..D
     // |  :
     // B--C
-    ResultPoint pointA = points[0];
-    ResultPoint pointB = points[1];
-    ResultPoint pointC = points[2];
-    ResultPoint pointD = points[3];
+    RXingResultPoint pointA = points[0];
+    RXingResultPoint pointB = points[1];
+    RXingResultPoint pointC = points[2];
+    RXingResultPoint pointD = points[3];
 
     // shift points for safe transition detection.
     int trTop = transitionsBetween(pointA, pointD);
     int trRight = transitionsBetween(pointB, pointD);
-    ResultPoint pointAs = shiftPoint(pointA, pointB, (trRight + 1) * 4);
-    ResultPoint pointCs = shiftPoint(pointC, pointB, (trTop + 1) * 4);
+    RXingResultPoint pointAs = shiftPoint(pointA, pointB, (trRight + 1) * 4);
+    RXingResultPoint pointCs = shiftPoint(pointC, pointB, (trTop + 1) * 4);
 
     trTop = transitionsBetween(pointAs, pointD);
     trRight = transitionsBetween(pointCs, pointD);
 
-    ResultPoint candidate1 = new ResultPoint(
+    RXingResultPoint candidate1 = new RXingResultPoint(
         pointD.getX() + (pointC.getX() - pointB.getX()) / (trTop + 1),
         pointD.getY() + (pointC.getY() - pointB.getY()) / (trTop + 1));
-    ResultPoint candidate2 = new ResultPoint(
+    RXingResultPoint candidate2 = new RXingResultPoint(
         pointD.getX() + (pointA.getX() - pointB.getX()) / (trRight + 1),
         pointD.getY() + (pointA.getY() - pointB.getY()) / (trRight + 1));
 
@@ -248,22 +248,22 @@ public final class Detector {
   /**
    * Shift the edge points to the module center.
    */
-  private ResultPoint[] shiftToModuleCenter(ResultPoint[] points) {
+  private RXingResultPoint[] shiftToModuleCenter(RXingResultPoint[] points) {
     // A..D
     // |  :
     // B--C
-    ResultPoint pointA = points[0];
-    ResultPoint pointB = points[1];
-    ResultPoint pointC = points[2];
-    ResultPoint pointD = points[3];
+    RXingResultPoint pointA = points[0];
+    RXingResultPoint pointB = points[1];
+    RXingResultPoint pointC = points[2];
+    RXingResultPoint pointD = points[3];
 
     // calculate pseudo dimensions
     int dimH = transitionsBetween(pointA, pointD) + 1;
     int dimV = transitionsBetween(pointC, pointD) + 1;
 
     // shift points for safe dimension detection
-    ResultPoint pointAs = shiftPoint(pointA, pointB, dimV * 4);
-    ResultPoint pointCs = shiftPoint(pointC, pointB, dimH * 4);
+    RXingResultPoint pointAs = shiftPoint(pointA, pointB, dimV * 4);
+    RXingResultPoint pointCs = shiftPoint(pointC, pointB, dimH * 4);
 
     //  calculate more precise dimensions
     dimH = transitionsBetween(pointAs, pointD) + 1;
@@ -284,8 +284,8 @@ public final class Detector {
     pointC = moveAway(pointC, centerX, centerY);
     pointD = moveAway(pointD, centerX, centerY);
 
-    ResultPoint pointBs;
-    ResultPoint pointDs;
+    RXingResultPoint pointBs;
+    RXingResultPoint pointDs;
 
     // shift points to the center of each modules
     pointAs = shiftPoint(pointA, pointB, dimV * 4);
@@ -297,18 +297,18 @@ public final class Detector {
     pointDs = shiftPoint(pointD, pointC, dimV * 4);
     pointDs = shiftPoint(pointDs, pointA, dimH * 4);
 
-    return new ResultPoint[]{pointAs, pointBs, pointCs, pointDs};
+    return new RXingResultPoint[]{pointAs, pointBs, pointCs, pointDs};
   }
 
-  private boolean isValid(ResultPoint p) {
+  private boolean isValid(RXingResultPoint p) {
     return p.getX() >= 0 && p.getX() <= image.getWidth() - 1 && p.getY() > 0 && p.getY() <= image.getHeight() - 1;
   }
 
   private static BitMatrix sampleGrid(BitMatrix image,
-                                      ResultPoint topLeft,
-                                      ResultPoint bottomLeft,
-                                      ResultPoint bottomRight,
-                                      ResultPoint topRight,
+                                      RXingResultPoint topLeft,
+                                      RXingResultPoint bottomLeft,
+                                      RXingResultPoint bottomRight,
+                                      RXingResultPoint topRight,
                                       int dimensionX,
                                       int dimensionY) throws NotFoundException {
 
@@ -338,7 +338,7 @@ public final class Detector {
   /**
    * Counts the number of black/white transitions between two points, using something like Bresenham's algorithm.
    */
-  private int transitionsBetween(ResultPoint from, ResultPoint to) {
+  private int transitionsBetween(RXingResultPoint from, RXingResultPoint to) {
     // See QR Code Detector, sizeOfBlackWhiteBlackRun()
     int fromX = (int) from.getX();
     int fromY = (int) from.getY();

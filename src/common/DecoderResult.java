@@ -25,7 +25,7 @@ import java.util.List;
  *
  * @author Sean Owen
  */
-public final class DecoderResult {
+public final class DecoderRXingResult {
 
   private final byte[] rawBytes;
   private int numBits;
@@ -39,14 +39,14 @@ public final class DecoderResult {
   private final int structuredAppendSequenceNumber;
   private final int symbologyModifier;
 
-  public DecoderResult(byte[] rawBytes,
+  public DecoderRXingResult(byte[] rawBytes,
                        String text,
                        List<byte[]> byteSegments,
                        String ecLevel) {
     this(rawBytes, text, byteSegments, ecLevel, -1, -1, 0);
   }
 
-  public DecoderResult(byte[] rawBytes,
+  public DecoderRXingResult(byte[] rawBytes,
                        String text,
                        List<byte[]> byteSegments,
                        String ecLevel,
@@ -54,7 +54,7 @@ public final class DecoderResult {
     this(rawBytes, text, byteSegments, ecLevel, -1, -1, symbologyModifier);
   }
 
-  public DecoderResult(byte[] rawBytes,
+  public DecoderRXingResult(byte[] rawBytes,
                        String text,
                        List<byte[]> byteSegments,
                        String ecLevel,
@@ -63,7 +63,7 @@ public final class DecoderResult {
     this(rawBytes, text, byteSegments, ecLevel, saSequence, saParity, 0);
   }
 
-  public DecoderResult(byte[] rawBytes,
+  public DecoderRXingResult(byte[] rawBytes,
                        String text,
                        List<byte[]> byteSegments,
                        String ecLevel,

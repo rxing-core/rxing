@@ -22,8 +22,8 @@ package com.google.zxing;
  *
  * @see DecodeHintType#NEED_RESULT_POINT_CALLBACK
  */
-public interface ResultPointCallback {
+public interface RXingResultPointCallback {
 
-  void foundPossibleResultPoint(ResultPoint point);
+  void foundPossibleRXingResultPoint(RXingResultPoint point);
 
 }

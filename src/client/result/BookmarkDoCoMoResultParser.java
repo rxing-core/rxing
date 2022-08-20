@@ -16,15 +16,15 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 /**
  * @author Sean Owen
  */
-public final class BookmarkDoCoMoResultParser extends AbstractDoCoMoResultParser {
+public final class BookmarkDoCoMoRXingResultParser extends AbstractDoCoMoRXingResultParser {
 
   @Override
-  public URIParsedResult parse(Result result) {
+  public URIParsedRXingResult parse(RXingResult result) {
     String rawText = result.getText();
     if (!rawText.startsWith("MEBKM:")) {
       return null;
@@ -35,7 +35,7 @@ public final class BookmarkDoCoMoResultParser extends AbstractDoCoMoResultParser
       return null;
     }
     String uri = rawUri[0];
-    return URIResultParser.isBasicallyValidURI(uri) ? new URIParsedResult(uri, title) : null;
+    return URIRXingResultParser.isBasicallyValidURI(uri) ? new URIParsedRXingResult(uri, title) : null;
   }
 
 }

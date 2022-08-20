@@ -22,10 +22,10 @@ import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.ReaderException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.ResultPointCallback;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
+import com.google.zxing.RXingResultPointCallback;
 import com.google.zxing.common.BitArray;
 
 import java.util.Arrays;
@@ -126,7 +126,7 @@ public abstract class UPCEANReader extends OneDReader {
   }
 
   @Override
-  public Result decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints)
+  public RXingResult decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints)
       throws NotFoundException, ChecksumException, FormatException {
     return decodeRow(rowNumber, row, findStartGuardPattern(row), hints);
   }
@@ -140,23 +140,23 @@ public abstract class UPCEANReader extends OneDReader {
    * @param row encoding of the row of the barcode image
    * @param startGuardRange start/end column where the opening start pattern was found
    * @param hints optional hints that influence decoding
-   * @return {@link Result} encapsulating the result of decoding a barcode in the row
+   * @return {@link RXingResult} encapsulating the result of decoding a barcode in the row
    * @throws NotFoundException if no potential barcode is found
    * @throws ChecksumException if a potential barcode is found but does not pass its checksum
    * @throws FormatException if a potential barcode is found but format is invalid
    */
-  public Result decodeRow(int rowNumber,
+  public RXingResult decodeRow(int rowNumber,
                           BitArray row,
                           int[] startGuardRange,
                           Map<DecodeHintType,?> hints)
       throws NotFoundException, ChecksumException, FormatException {
 
-    ResultPointCallback resultPointCallback = hints == null ? null :
-        (ResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
+    RXingResultPointCallback resultPointCallback = hints == null ? null :
+        (RXingResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
     int symbologyIdentifier = 0;
 
     if (resultPointCallback != null) {
-      resultPointCallback.foundPossibleResultPoint(new ResultPoint(
+      resultPointCallback.foundPossibleRXingResultPoint(new RXingResultPoint(
           (startGuardRange[0] + startGuardRange[1]) / 2.0f, rowNumber
       ));
     }
@@ -166,7 +166,7 @@ public abstract class UPCEANReader extends OneDReader {
     int endStart = decodeMiddle(row, startGuardRange, result);
 
     if (resultPointCallback != null) {
-      resultPointCallback.foundPossibleResultPoint(new ResultPoint(
+      resultPointCallback.foundPossibleRXingResultPoint(new RXingResultPoint(
           endStart, rowNumber
       ));
     }
@@ -174,7 +174,7 @@ public abstract class UPCEANReader extends OneDReader {
     int[] endRange = decodeEnd(row, endStart);
 
     if (resultPointCallback != null) {
-      resultPointCallback.foundPossibleResultPoint(new ResultPoint(
+      resultPointCallback.foundPossibleRXingResultPoint(new RXingResultPoint(
           (endRange[0] + endRange[1]) / 2.0f, rowNumber
       ));
     }
@@ -200,21 +200,21 @@ public abstract class UPCEANReader extends OneDReader {
     float left = (startGuardRange[1] + startGuardRange[0]) / 2.0f;
     float right = (endRange[1] + endRange[0]) / 2.0f;
     BarcodeFormat format = getBarcodeFormat();
-    Result decodeResult = new Result(resultString,
+    RXingResult decodeRXingResult = new RXingResult(resultString,
         null, // no natural byte representation for these barcodes
-        new ResultPoint[]{
-            new ResultPoint(left, rowNumber),
-            new ResultPoint(right, rowNumber)},
+        new RXingResultPoint[]{
+            new RXingResultPoint(left, rowNumber),
+            new RXingResultPoint(right, rowNumber)},
         format);
 
     int extensionLength = 0;
 
     try {
-      Result extensionResult = extensionReader.decodeRow(rowNumber, row, endRange[1]);
-      decodeResult.putMetadata(ResultMetadataType.UPC_EAN_EXTENSION, extensionResult.getText());
-      decodeResult.putAllMetadata(extensionResult.getResultMetadata());
-      decodeResult.addResultPoints(extensionResult.getResultPoints());
-      extensionLength = extensionResult.getText().length();
+      RXingResult extensionRXingResult = extensionReader.decodeRow(rowNumber, row, endRange[1]);
+      decodeRXingResult.putMetadata(RXingResultMetadataType.UPC_EAN_EXTENSION, extensionRXingResult.getText());
+      decodeRXingResult.putAllMetadata(extensionRXingResult.getRXingResultMetadata());
+      decodeRXingResult.addRXingResultPoints(extensionRXingResult.getRXingResultPoints());
+      extensionLength = extensionRXingResult.getText().length();
     } catch (ReaderException re) {
       // continue
     }
@@ -237,16 +237,16 @@ public abstract class UPCEANReader extends OneDReader {
     if (format == BarcodeFormat.EAN_13 || format == BarcodeFormat.UPC_A) {
       String countryID = eanManSupport.lookupCountryIdentifier(resultString);
       if (countryID != null) {
-        decodeResult.putMetadata(ResultMetadataType.POSSIBLE_COUNTRY, countryID);
+        decodeRXingResult.putMetadata(RXingResultMetadataType.POSSIBLE_COUNTRY, countryID);
       }
     }
     if (format == BarcodeFormat.EAN_8) {
       symbologyIdentifier = 4;
     }
 
-    decodeResult.putMetadata(ResultMetadataType.SYMBOLOGY_IDENTIFIER, "]E" + symbologyIdentifier);
+    decodeRXingResult.putMetadata(RXingResultMetadataType.SYMBOLOGY_IDENTIFIER, "]E" + symbologyIdentifier);
 
-    return decodeResult;
+    return decodeRXingResult;
   }
 
   /**

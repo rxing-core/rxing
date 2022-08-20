@@ -83,10 +83,10 @@ public enum DecodeHintType {
   RETURN_CODABAR_START_END(Void.class),
 
   /**
-   * The caller needs to be notified via callback when a possible {@link ResultPoint}
-   * is found. Maps to a {@link ResultPointCallback}.
+   * The caller needs to be notified via callback when a possible {@link RXingResultPoint}
+   * is found. Maps to a {@link RXingResultPointCallback}.
    */
-  NEED_RESULT_POINT_CALLBACK(ResultPointCallback.class),
+  NEED_RESULT_POINT_CALLBACK(RXingResultPointCallback.class),
 
 
   /**

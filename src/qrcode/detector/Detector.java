@@ -19,10 +19,10 @@ package com.google.zxing.qrcode.detector;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.ResultPointCallback;
+import com.google.zxing.RXingResultPoint;
+import com.google.zxing.RXingResultPointCallback;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DetectorResult;
+import com.google.zxing.common.DetectorRXingResult;
 import com.google.zxing.common.GridSampler;
 import com.google.zxing.common.PerspectiveTransform;
 import com.google.zxing.common.detector.MathUtils;
@@ -39,7 +39,7 @@ import java.util.Map;
 public class Detector {
 
   private final BitMatrix image;
-  private ResultPointCallback resultPointCallback;
+  private RXingResultPointCallback resultPointCallback;
 
   public Detector(BitMatrix image) {
     this.image = image;
@@ -49,18 +49,18 @@ public class Detector {
     return image;
   }
 
-  protected final ResultPointCallback getResultPointCallback() {
+  protected final RXingResultPointCallback getRXingResultPointCallback() {
     return resultPointCallback;
   }
 
   /**
    * <p>Detects a QR Code in an image.</p>
    *
-   * @return {@link DetectorResult} encapsulating results of detecting a QR Code
+   * @return {@link DetectorRXingResult} encapsulating results of detecting a QR Code
    * @throws NotFoundException if QR Code cannot be found
    * @throws FormatException if a QR Code cannot be decoded
    */
-  public DetectorResult detect() throws NotFoundException, FormatException {
+  public DetectorRXingResult detect() throws NotFoundException, FormatException {
     return detect(null);
   }
 
@@ -68,14 +68,14 @@ public class Detector {
    * <p>Detects a QR Code in an image.</p>
    *
    * @param hints optional hints to detector
-   * @return {@link DetectorResult} encapsulating results of detecting a QR Code
+   * @return {@link DetectorRXingResult} encapsulating results of detecting a QR Code
    * @throws NotFoundException if QR Code cannot be found
    * @throws FormatException if a QR Code cannot be decoded
    */
-  public final DetectorResult detect(Map<DecodeHintType,?> hints) throws NotFoundException, FormatException {
+  public final DetectorRXingResult detect(Map<DecodeHintType,?> hints) throws NotFoundException, FormatException {
 
     resultPointCallback = hints == null ? null :
-        (ResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
+        (RXingResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
 
     FinderPatternFinder finder = new FinderPatternFinder(image, resultPointCallback);
     FinderPatternInfo info = finder.find(hints);
@@ -83,7 +83,7 @@ public class Detector {
     return processFinderPatternInfo(info);
   }
 
-  protected final DetectorResult processFinderPatternInfo(FinderPatternInfo info)
+  protected final DetectorRXingResult processFinderPatternInfo(FinderPatternInfo info)
       throws NotFoundException, FormatException {
 
     FinderPattern topLeft = info.getTopLeft();
@@ -132,19 +132,19 @@ public class Detector {
 
     BitMatrix bits = sampleGrid(image, transform, dimension);
 
-    ResultPoint[] points;
+    RXingResultPoint[] points;
     if (alignmentPattern == null) {
-      points = new ResultPoint[]{bottomLeft, topLeft, topRight};
+      points = new RXingResultPoint[]{bottomLeft, topLeft, topRight};
     } else {
-      points = new ResultPoint[]{bottomLeft, topLeft, topRight, alignmentPattern};
+      points = new RXingResultPoint[]{bottomLeft, topLeft, topRight, alignmentPattern};
     }
-    return new DetectorResult(bits, points);
+    return new DetectorRXingResult(bits, points);
   }
 
-  private static PerspectiveTransform createTransform(ResultPoint topLeft,
-                                                      ResultPoint topRight,
-                                                      ResultPoint bottomLeft,
-                                                      ResultPoint alignmentPattern,
+  private static PerspectiveTransform createTransform(RXingResultPoint topLeft,
+                                                      RXingResultPoint topRight,
+                                                      RXingResultPoint bottomLeft,
+                                                      RXingResultPoint alignmentPattern,
                                                       int dimension) {
     float dimMinusThree = dimension - 3.5f;
     float bottomRightX;
@@ -195,12 +195,12 @@ public class Detector {
    * <p>Computes the dimension (number of modules on a size) of the QR Code based on the position
    * of the finder patterns and estimated module size.</p>
    */
-  private static int computeDimension(ResultPoint topLeft,
-                                      ResultPoint topRight,
-                                      ResultPoint bottomLeft,
+  private static int computeDimension(RXingResultPoint topLeft,
+                                      RXingResultPoint topRight,
+                                      RXingResultPoint bottomLeft,
                                       float moduleSize) throws NotFoundException {
-    int tltrCentersDimension = MathUtils.round(ResultPoint.distance(topLeft, topRight) / moduleSize);
-    int tlblCentersDimension = MathUtils.round(ResultPoint.distance(topLeft, bottomLeft) / moduleSize);
+    int tltrCentersDimension = MathUtils.round(RXingResultPoint.distance(topLeft, topRight) / moduleSize);
+    int tlblCentersDimension = MathUtils.round(RXingResultPoint.distance(topLeft, bottomLeft) / moduleSize);
     int dimension = ((tltrCentersDimension + tlblCentersDimension) / 2) + 7;
     switch (dimension & 0x03) { // mod 4
       case 0:
@@ -225,9 +225,9 @@ public class Detector {
    * @param bottomLeft detected bottom-left finder pattern center
    * @return estimated module size
    */
-  protected final float calculateModuleSize(ResultPoint topLeft,
-                                            ResultPoint topRight,
-                                            ResultPoint bottomLeft) {
+  protected final float calculateModuleSize(RXingResultPoint topLeft,
+                                            RXingResultPoint topRight,
+                                            RXingResultPoint bottomLeft) {
     // Take the average
     return (calculateModuleSizeOneWay(topLeft, topRight) +
         calculateModuleSizeOneWay(topLeft, bottomLeft)) / 2.0f;
@@ -238,7 +238,7 @@ public class Detector {
    * {@link #sizeOfBlackWhiteBlackRunBothWays(int, int, int, int)} to figure the
    * width of each, measuring along the axis between their centers.</p>
    */
-  private float calculateModuleSizeOneWay(ResultPoint pattern, ResultPoint otherPattern) {
+  private float calculateModuleSizeOneWay(RXingResultPoint pattern, RXingResultPoint otherPattern) {
     float moduleSizeEst1 = sizeOfBlackWhiteBlackRunBothWays((int) pattern.getX(),
         (int) pattern.getY(),
         (int) otherPattern.getX(),

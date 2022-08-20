@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 /**
  * <p>Parses an "smsto:" URI result, whose format is not standardized but appears to be like:
@@ -28,10 +28,10 @@ import com.google.zxing.Result;
  *
  * @author Sean Owen
  */
-public final class SMSTOMMSTOResultParser extends ResultParser {
+public final class SMSTOMMSTORXingResultParser extends RXingResultParser {
 
   @Override
-  public SMSParsedResult parse(Result result) {
+  public SMSParsedRXingResult parse(RXingResult result) {
     String rawText = getMassagedText(result);
     if (!(rawText.startsWith("smsto:") || rawText.startsWith("SMSTO:") ||
           rawText.startsWith("mmsto:") || rawText.startsWith("MMSTO:"))) {
@@ -46,7 +46,7 @@ public final class SMSTOMMSTOResultParser extends ResultParser {
       body = number.substring(bodyStart + 1);
       number = number.substring(0, bodyStart);
     }
-    return new SMSParsedResult(number, null, null, body);
+    return new SMSParsedRXingResult(number, null, null, body);
   }
 
 }

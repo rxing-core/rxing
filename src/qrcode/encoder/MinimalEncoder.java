@@ -88,7 +88,7 @@ final class MinimalEncoder {
    *   supported charsets.
    * @param isGS1 {@code true} if a FNC1 is to be prepended; {@code false} otherwise
    * @param ecLevel The error correction level.
-   * @see ResultList#getVersion
+   * @see RXingResultList#getVersion
    */
   MinimalEncoder(String stringToEncode, Charset priorityCharset, boolean isGS1, ErrorCorrectionLevel ecLevel) {
     this.stringToEncode = stringToEncode;
@@ -102,46 +102,46 @@ final class MinimalEncoder {
    *
    * @param stringToEncode The string to encode
    * @param version The preferred {@link Version}. A minimal version is computed (see
-   *   {@link ResultList#getVersion method} when the value of the argument is null
+   *   {@link RXingResultList#getVersion method} when the value of the argument is null
    * @param priorityCharset The preferred {@link Charset}. When the value of the argument is null, the algorithm
    *   chooses charsets that leads to a minimal representation. Otherwise the algorithm will use the priority
    *   charset to encode any character in the input that can be encoded by it if the charset is among the
    *   supported charsets.
    * @param isGS1 {@code true} if a FNC1 is to be prepended; {@code false} otherwise
    * @param ecLevel The error correction level.
-   * @return An instance of {@code ResultList} representing the minimal solution.
-   * @see ResultList#getBits
-   * @see ResultList#getVersion
-   * @see ResultList#getSize
+   * @return An instance of {@code RXingResultList} representing the minimal solution.
+   * @see RXingResultList#getBits
+   * @see RXingResultList#getVersion
+   * @see RXingResultList#getSize
    */
-  static ResultList encode(String stringToEncode, Version version, Charset priorityCharset, boolean isGS1,
+  static RXingResultList encode(String stringToEncode, Version version, Charset priorityCharset, boolean isGS1,
       ErrorCorrectionLevel ecLevel) throws WriterException {
     return new MinimalEncoder(stringToEncode, priorityCharset, isGS1, ecLevel).encode(version);
   }
 
-  ResultList encode(Version version) throws WriterException {
+  RXingResultList encode(Version version) throws WriterException {
     if (version == null) { // compute minimal encoding trying the three version sizes.
       Version[] versions = { getVersion(VersionSize.SMALL),
                              getVersion(VersionSize.MEDIUM),
                              getVersion(VersionSize.LARGE) };
-      ResultList[] results = { encodeSpecificVersion(versions[0]),
+      RXingResultList[] results = { encodeSpecificVersion(versions[0]),
                                encodeSpecificVersion(versions[1]),
                                encodeSpecificVersion(versions[2]) };
       int smallestSize = Integer.MAX_VALUE;
-      int smallestResult = -1;
+      int smallestRXingResult = -1;
       for (int i = 0; i < 3; i++) {
         int size = results[i].getSize();
         if (Encoder.willFit(size, versions[i], ecLevel) && size < smallestSize) {
           smallestSize = size;
-          smallestResult = i;
+          smallestRXingResult = i;
         }
       }
-      if (smallestResult < 0) {
+      if (smallestRXingResult < 0) {
         throw new WriterException("Data too big for any version");
       }
-      return results[smallestResult];
+      return results[smallestRXingResult];
     } else { // compute minimal encoding for a given version
-      ResultList result = encodeSpecificVersion(version);
+      RXingResultList result = encodeSpecificVersion(version);
       if (!Encoder.willFit(result.getSize(), getVersion(getVersionSize(result.getVersion())), ecLevel)) {
         throw new WriterException("Data too big for version" + version);
       }
@@ -248,7 +248,7 @@ final class MinimalEncoder {
           !canEncode(Mode.NUMERIC, stringToEncode.charAt(from + 2)) ? 2 : 3, previous, version));
     }
   }
-  ResultList encodeSpecificVersion(Version version) throws WriterException {
+  RXingResultList encodeSpecificVersion(Version version) throws WriterException {
 
     @SuppressWarnings("checkstyle:lineLength")
     /* A vertex represents a tuple of a position in the input, a mode and a character encoding where position 0
@@ -399,7 +399,7 @@ final class MinimalEncoder {
     if (minimalJ < 0) {
       throw new WriterException("Internal error: failed to encode \"" + stringToEncode + "\"");
     }
-    return new ResultList(version, edges[inputLength][minimalJ][minimalK]);
+    return new RXingResultList(version, edges[inputLength][minimalJ][minimalK]);
   }
 
   private final class Edge {
@@ -450,12 +450,12 @@ final class MinimalEncoder {
     }
   }
 
-  final class ResultList {
+  final class RXingResultList {
 
-    private final List<ResultList.ResultNode> list = new ArrayList<>();
+    private final List<RXingResultList.RXingResultNode> list = new ArrayList<>();
     private final Version version;
 
-    ResultList(Version version, Edge solution) {
+    RXingResultList(Version version, Edge solution) {
       int length = 0;
       Edge current = solution;
       boolean containsECI = false;
@@ -473,12 +473,12 @@ final class MinimalEncoder {
         }
 
         if (previous == null || previous.mode != current.mode || needECI) {
-          list.add(0, new ResultNode(current.mode, current.fromPosition, current.charsetEncoderIndex, length));
+          list.add(0, new RXingResultNode(current.mode, current.fromPosition, current.charsetEncoderIndex, length));
           length = 0;
         }
 
         if (needECI) {
-          list.add(0, new ResultNode(Mode.ECI, current.fromPosition, current.charsetEncoderIndex, 0));
+          list.add(0, new RXingResultNode(Mode.ECI, current.fromPosition, current.charsetEncoderIndex, 0));
         }
         current = previous;
       }
@@ -486,14 +486,14 @@ final class MinimalEncoder {
       // prepend FNC1 if needed. If the bits contain an ECI then the FNC1 must be preceeded by an ECI.
       // If there is no ECI at the beginning then we put an ECI to the default charset (ISO-8859-1)
       if (isGS1) {
-        ResultNode first = list.get(0);
+        RXingResultNode first = list.get(0);
         if (first != null && first.mode != Mode.ECI && containsECI) {
           // prepend a default character set ECI
-          list.add(0, new ResultNode(Mode.ECI, 0, 0, 0));
+          list.add(0, new RXingResultNode(Mode.ECI, 0, 0, 0));
         }
         first = list.get(0);
         // prepend or insert a FNC1_FIRST_POSITION after the ECI (if any)
-        list.add(first.mode != Mode.ECI ? 0 : 1, new ResultNode(Mode.FNC1_FIRST_POSITION, 0, 0, 0));
+        list.add(first.mode != Mode.ECI ? 0 : 1, new RXingResultNode(Mode.FNC1_FIRST_POSITION, 0, 0, 0));
       }
 
       // set version to smallest version into which the bits fit.
@@ -538,7 +538,7 @@ final class MinimalEncoder {
 
     private int getSize(Version version) {
       int result = 0;
-      for (ResultNode resultNode : list) {
+      for (RXingResultNode resultNode : list) {
         result += resultNode.getSize(version);
       }
       return result;
@@ -548,7 +548,7 @@ final class MinimalEncoder {
      * appends the bits
      */
     void getBits(BitArray bits) throws WriterException {
-      for (ResultNode resultNode : list) {
+      for (RXingResultNode resultNode : list) {
         resultNode.getBits(bits);
       }
     }
@@ -559,8 +559,8 @@ final class MinimalEncoder {
 
     public String toString() {
       StringBuilder result = new StringBuilder();
-      ResultNode previous = null;
-      for (ResultNode current : list) {
+      RXingResultNode previous = null;
+      for (RXingResultNode current : list) {
         if (previous != null) {
           result.append(",");
         }
@@ -570,14 +570,14 @@ final class MinimalEncoder {
       return result.toString();
     }
 
-    final class ResultNode {
+    final class RXingResultNode {
 
       private final Mode mode;
       private final int fromPosition;
       private final int charsetEncoderIndex;
       private final int characterLength;
 
-      ResultNode(Mode mode, int fromPosition, int charsetEncoderIndex, int characterLength) {
+      RXingResultNode(Mode mode, int fromPosition, int charsetEncoderIndex, int characterLength) {
         this.mode = mode;
         this.fromPosition = fromPosition;
         this.charsetEncoderIndex = charsetEncoderIndex;

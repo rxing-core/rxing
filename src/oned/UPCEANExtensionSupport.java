@@ -18,7 +18,7 @@ package com.google.zxing.oned;
 
 import com.google.zxing.NotFoundException;
 import com.google.zxing.ReaderException;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import com.google.zxing.common.BitArray;
 
 final class UPCEANExtensionSupport {
@@ -28,7 +28,7 @@ final class UPCEANExtensionSupport {
   private final UPCEANExtension2Support twoSupport = new UPCEANExtension2Support();
   private final UPCEANExtension5Support fiveSupport = new UPCEANExtension5Support();
 
-  Result decodeRow(int rowNumber, BitArray row, int rowOffset) throws NotFoundException {
+  RXingResult decodeRow(int rowNumber, BitArray row, int rowOffset) throws NotFoundException {
     int[] extensionStartRange = UPCEANReader.findGuardPattern(row, rowOffset, false, EXTENSION_START_PATTERN);
     try {
       return fiveSupport.decodeRow(rowNumber, row, extensionStartRange);

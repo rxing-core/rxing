@@ -22,7 +22,7 @@ package com.google.zxing;
  *
  * @author Sean Owen
  */
-public enum ResultMetadataType {
+public enum RXingResultMetadataType {
 
   /**
    * Unspecified, application-specific metadata. Maps to an unspecified {@link Object}.
@@ -40,7 +40,7 @@ public enum ResultMetadataType {
 
   /**
    * <p>2D barcode formats typically encode text, but allow for a sort of 'byte mode'
-   * which is sometimes used to encode binary data. While {@link Result} makes available
+   * which is sometimes used to encode binary data. While {@link RXingResult} makes available
    * the complete raw bytes in the barcode for these formats, it does not offer the bytes
    * from the byte segments alone.</p>
    *

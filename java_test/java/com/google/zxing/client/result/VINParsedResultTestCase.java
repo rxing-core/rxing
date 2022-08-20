@@ -18,23 +18,23 @@
 package com.google.zxing.client.result;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests {@link VINParsedResult}.
+ * Tests {@link VINParsedRXingResult}.
  */
-public final class VINParsedResultTestCase extends Assert {
+public final class VINParsedRXingResultTestCase extends Assert {
 
   @Test
   public void testNotVIN() {
-    Result fakeResult = new Result("1M8GDM9A1KP042788", null, null, BarcodeFormat.CODE_39);
-    ParsedResult result = ResultParser.parseResult(fakeResult);
-    assertEquals(ParsedResultType.TEXT, result.getType());
-    fakeResult = new Result("1M8GDM9AXKP042788", null, null, BarcodeFormat.CODE_128);
-    result = ResultParser.parseResult(fakeResult);
-    assertEquals(ParsedResultType.TEXT, result.getType());
+    RXingResult fakeRXingResult = new RXingResult("1M8GDM9A1KP042788", null, null, BarcodeFormat.CODE_39);
+    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
+    assertEquals(ParsedRXingResultType.TEXT, result.getType());
+    fakeRXingResult = new RXingResult("1M8GDM9AXKP042788", null, null, BarcodeFormat.CODE_128);
+    result = RXingResultParser.parseRXingResult(fakeRXingResult);
+    assertEquals(ParsedRXingResultType.TEXT, result.getType());
   }
 
   @Test
@@ -53,18 +53,18 @@ public final class VINParsedResultTestCase extends Assert {
                              int year,
                              char plant,
                              String sequential) {
-    Result fakeResult = new Result(contents, null, null, BarcodeFormat.CODE_39);
-    ParsedResult result = ResultParser.parseResult(fakeResult);
-    assertSame(ParsedResultType.VIN, result.getType());
-    VINParsedResult vinResult = (VINParsedResult) result;
-    assertEquals(wmi, vinResult.getWorldManufacturerID());
-    assertEquals(vds, vinResult.getVehicleDescriptorSection());
-    assertEquals(vis, vinResult.getVehicleIdentifierSection());
-    assertEquals(country, vinResult.getCountryCode());
-    assertEquals(attributes, vinResult.getVehicleAttributes());
-    assertEquals(year, vinResult.getModelYear());
-    assertEquals(plant, vinResult.getPlantCode());
-    assertEquals(sequential, vinResult.getSequentialNumber());
+    RXingResult fakeRXingResult = new RXingResult(contents, null, null, BarcodeFormat.CODE_39);
+    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
+    assertSame(ParsedRXingResultType.VIN, result.getType());
+    VINParsedRXingResult vinRXingResult = (VINParsedRXingResult) result;
+    assertEquals(wmi, vinRXingResult.getWorldManufacturerID());
+    assertEquals(vds, vinRXingResult.getVehicleDescriptorSection());
+    assertEquals(vis, vinRXingResult.getVehicleIdentifierSection());
+    assertEquals(country, vinRXingResult.getCountryCode());
+    assertEquals(attributes, vinRXingResult.getVehicleAttributes());
+    assertEquals(year, vinRXingResult.getModelYear());
+    assertEquals(plant, vinRXingResult.getPlantCode());
+    assertEquals(sequential, vinRXingResult.getSequentialNumber());
   }
 
 }

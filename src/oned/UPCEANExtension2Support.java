@@ -18,9 +18,9 @@ package com.google.zxing.oned;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitArray;
 
 import java.util.EnumMap;
@@ -34,27 +34,27 @@ final class UPCEANExtension2Support {
   private final int[] decodeMiddleCounters = new int[4];
   private final StringBuilder decodeRowStringBuffer = new StringBuilder();
 
-  Result decodeRow(int rowNumber, BitArray row, int[] extensionStartRange) throws NotFoundException {
+  RXingResult decodeRow(int rowNumber, BitArray row, int[] extensionStartRange) throws NotFoundException {
 
     StringBuilder result = decodeRowStringBuffer;
     result.setLength(0);
     int end = decodeMiddle(row, extensionStartRange, result);
 
     String resultString = result.toString();
-    Map<ResultMetadataType,Object> extensionData = parseExtensionString(resultString);
+    Map<RXingResultMetadataType,Object> extensionData = parseExtensionString(resultString);
 
-    Result extensionResult =
-        new Result(resultString,
+    RXingResult extensionRXingResult =
+        new RXingResult(resultString,
                    null,
-                   new ResultPoint[] {
-                       new ResultPoint((extensionStartRange[0] + extensionStartRange[1]) / 2.0f, rowNumber),
-                       new ResultPoint(end, rowNumber),
+                   new RXingResultPoint[] {
+                       new RXingResultPoint((extensionStartRange[0] + extensionStartRange[1]) / 2.0f, rowNumber),
+                       new RXingResultPoint(end, rowNumber),
                    },
                    BarcodeFormat.UPC_EAN_EXTENSION);
     if (extensionData != null) {
-      extensionResult.putAllMetadata(extensionData);
+      extensionRXingResult.putAllMetadata(extensionData);
     }
-    return extensionResult;
+    return extensionRXingResult;
   }
 
   private int decodeMiddle(BitArray row, int[] startRange, StringBuilder resultString) throws NotFoundException {
@@ -98,14 +98,14 @@ final class UPCEANExtension2Support {
   /**
    * @param raw raw content of extension
    * @return formatted interpretation of raw content as a {@link Map} mapping
-   *  one {@link ResultMetadataType} to appropriate value, or {@code null} if not known
+   *  one {@link RXingResultMetadataType} to appropriate value, or {@code null} if not known
    */
-  private static Map<ResultMetadataType,Object> parseExtensionString(String raw) {
+  private static Map<RXingResultMetadataType,Object> parseExtensionString(String raw) {
     if (raw.length() != 2) {
       return null;
     }
-    Map<ResultMetadataType,Object> result = new EnumMap<>(ResultMetadataType.class);
-    result.put(ResultMetadataType.ISSUE_NUMBER, Integer.valueOf(raw));
+    Map<RXingResultMetadataType,Object> result = new EnumMap<>(RXingResultMetadataType.class);
+    result.put(RXingResultMetadataType.ISSUE_NUMBER, Integer.valueOf(raw));
     return result;
   }
 

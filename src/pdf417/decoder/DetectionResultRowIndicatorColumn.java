@@ -16,17 +16,17 @@
 
 package com.google.zxing.pdf417.decoder;
 
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.pdf417.PDF417Common;
 
 /**
  * @author Guenther Grau
  */
-final class DetectionResultRowIndicatorColumn extends DetectionResultColumn {
+final class DetectionRXingResultRowIndicatorColumn extends DetectionRXingResultColumn {
 
   private final boolean isLeft;
 
-  DetectionResultRowIndicatorColumn(BoundingBox boundingBox, boolean isLeft) {
+  DetectionRXingResultRowIndicatorColumn(BoundingBox boundingBox, boolean isLeft) {
     super(boundingBox);
     this.isLeft = isLeft;
   }
@@ -48,8 +48,8 @@ final class DetectionResultRowIndicatorColumn extends DetectionResultColumn {
     setRowNumbers();
     removeIncorrectCodewords(codewords, barcodeMetadata);
     BoundingBox boundingBox = getBoundingBox();
-    ResultPoint top = isLeft ? boundingBox.getTopLeft() : boundingBox.getTopRight();
-    ResultPoint bottom = isLeft ? boundingBox.getBottomLeft() : boundingBox.getBottomRight();
+    RXingResultPoint top = isLeft ? boundingBox.getTopLeft() : boundingBox.getTopRight();
+    RXingResultPoint bottom = isLeft ? boundingBox.getBottomLeft() : boundingBox.getBottomRight();
     int firstRow = imageRowToCodewordIndex((int) top.getY());
     int lastRow = imageRowToCodewordIndex((int) bottom.getY());
     // We need to be careful using the average row height. Barcode could be skewed so that we have smaller and
@@ -127,8 +127,8 @@ final class DetectionResultRowIndicatorColumn extends DetectionResultColumn {
   // use row height count to make detection of invalid row numbers more reliable
   private void adjustIncompleteIndicatorColumnRowNumbers(BarcodeMetadata barcodeMetadata) {
     BoundingBox boundingBox = getBoundingBox();
-    ResultPoint top = isLeft ? boundingBox.getTopLeft() : boundingBox.getTopRight();
-    ResultPoint bottom = isLeft ? boundingBox.getBottomLeft() : boundingBox.getBottomRight();
+    RXingResultPoint top = isLeft ? boundingBox.getTopLeft() : boundingBox.getTopRight();
+    RXingResultPoint bottom = isLeft ? boundingBox.getBottomLeft() : boundingBox.getBottomRight();
     int firstRow = imageRowToCodewordIndex((int) top.getY());
     int lastRow = imageRowToCodewordIndex((int) bottom.getY());
     //float averageRowHeight = (lastRow - firstRow) / (float) barcodeMetadata.getRowCount();

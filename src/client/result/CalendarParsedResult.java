@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  *
  * @author Sean Owen
  */
-public final class CalendarParsedResult extends ParsedResult {
+public final class CalendarParsedRXingResult extends ParsedRXingResult {
 
   private static final Pattern RFC2445_DURATION =
       Pattern.compile("P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?");
@@ -59,7 +59,7 @@ public final class CalendarParsedResult extends ParsedResult {
   private final double latitude;
   private final double longitude;
 
-  public CalendarParsedResult(String summary,
+  public CalendarParsedRXingResult(String summary,
                               String startString,
                               String endString,
                               String durationString,
@@ -69,7 +69,7 @@ public final class CalendarParsedResult extends ParsedResult {
                               String description,
                               double latitude,
                               double longitude) {
-    super(ParsedResultType.CALENDAR);
+    super(ParsedRXingResultType.CALENDAR);
     this.summary = summary;
 
     try {
@@ -177,7 +177,7 @@ public final class CalendarParsedResult extends ParsedResult {
   }
 
   @Override
-  public String getDisplayResult() {
+  public String getDisplayRXingResult() {
     StringBuilder result = new StringBuilder(100);
     maybeAppend(summary, result);
     maybeAppend(format(startAllDay, start), result);

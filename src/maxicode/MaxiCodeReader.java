@@ -23,11 +23,11 @@ import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.Reader;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderResult;
+import com.google.zxing.common.DecoderRXingResult;
 import com.google.zxing.maxicode.decoder.Decoder;
 
 import java.util.Map;
@@ -37,7 +37,7 @@ import java.util.Map;
  */
 public final class MaxiCodeReader implements Reader {
 
-  private static final ResultPoint[] NO_POINTS = new ResultPoint[0];
+  private static final RXingResultPoint[] NO_POINTS = new RXingResultPoint[0];
   private static final int MATRIX_WIDTH = 30;
   private static final int MATRIX_HEIGHT = 33;
 
@@ -52,22 +52,22 @@ public final class MaxiCodeReader implements Reader {
    * @throws ChecksumException if error correction fails
    */
   @Override
-  public Result decode(BinaryBitmap image) throws NotFoundException, ChecksumException, FormatException {
+  public RXingResult decode(BinaryBitmap image) throws NotFoundException, ChecksumException, FormatException {
     return decode(image, null);
   }
 
   @Override
-  public Result decode(BinaryBitmap image, Map<DecodeHintType,?> hints)
+  public RXingResult decode(BinaryBitmap image, Map<DecodeHintType,?> hints)
       throws NotFoundException, ChecksumException, FormatException {
     // Note that MaxiCode reader effectively always assumes PURE_BARCODE mode
     // and can't detect it in an image
     BitMatrix bits = extractPureBits(image.getBlackMatrix());
-    DecoderResult decoderResult = decoder.decode(bits, hints);
-    Result result = new Result(decoderResult.getText(), decoderResult.getRawBytes(), NO_POINTS, BarcodeFormat.MAXICODE);
+    DecoderRXingResult decoderRXingResult = decoder.decode(bits, hints);
+    RXingResult result = new RXingResult(decoderRXingResult.getText(), decoderRXingResult.getRawBytes(), NO_POINTS, BarcodeFormat.MAXICODE);
 
-    String ecLevel = decoderResult.getECLevel();
+    String ecLevel = decoderRXingResult.getECLevel();
     if (ecLevel != null) {
-      result.putMetadata(ResultMetadataType.ERROR_CORRECTION_LEVEL, ecLevel);
+      result.putMetadata(RXingResultMetadataType.ERROR_CORRECTION_LEVEL, ecLevel);
     }
     return result;
   }

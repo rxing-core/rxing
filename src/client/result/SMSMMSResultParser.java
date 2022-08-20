@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,10 +38,10 @@ import java.util.Map;
  *
  * @author Sean Owen
  */
-public final class SMSMMSResultParser extends ResultParser {
+public final class SMSMMSRXingResultParser extends RXingResultParser {
 
   @Override
-  public SMSParsedResult parse(Result result) {
+  public SMSParsedRXingResult parse(RXingResult result) {
     String rawText = getMassagedText(result);
     if (!(rawText.startsWith("sms:") || rawText.startsWith("SMS:") ||
           rawText.startsWith("mms:") || rawText.startsWith("MMS:"))) {
@@ -80,7 +80,7 @@ public final class SMSMMSResultParser extends ResultParser {
     }
     addNumberVia(numbers, vias, smsURIWithoutQuery.substring(lastComma + 1));    
 
-    return new SMSParsedResult(numbers.toArray(EMPTY_STR_ARRAY),
+    return new SMSParsedRXingResult(numbers.toArray(EMPTY_STR_ARRAY),
                                vias.toArray(EMPTY_STR_ARRAY),
                                subject,
                                body);

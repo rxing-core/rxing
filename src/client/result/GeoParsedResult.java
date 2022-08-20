@@ -22,15 +22,15 @@ package com.google.zxing.client.result;
  *
  * @author Sean Owen
  */
-public final class GeoParsedResult extends ParsedResult {
+public final class GeoParsedRXingResult extends ParsedRXingResult {
 
   private final double latitude;
   private final double longitude;
   private final double altitude;
   private final String query;
 
-  GeoParsedResult(double latitude, double longitude, double altitude, String query) {
-    super(ParsedResultType.GEO);
+  GeoParsedRXingResult(double latitude, double longitude, double altitude, String query) {
+    super(ParsedRXingResultType.GEO);
     this.latitude = latitude;
     this.longitude = longitude;
     this.altitude = altitude;
@@ -83,7 +83,7 @@ public final class GeoParsedResult extends ParsedResult {
   }
 
   @Override
-  public String getDisplayResult() {
+  public String getDisplayRXingResult() {
     StringBuilder result = new StringBuilder(20);
     result.append(latitude);
     result.append(", ");

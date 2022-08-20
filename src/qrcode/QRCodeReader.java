@@ -23,12 +23,12 @@ import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.Reader;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderResult;
-import com.google.zxing.common.DetectorResult;
+import com.google.zxing.common.DecoderRXingResult;
+import com.google.zxing.common.DetectorRXingResult;
 import com.google.zxing.qrcode.decoder.Decoder;
 import com.google.zxing.qrcode.decoder.QRCodeDecoderMetaData;
 import com.google.zxing.qrcode.detector.Detector;
@@ -43,7 +43,7 @@ import java.util.Map;
  */
 public class QRCodeReader implements Reader {
 
-  private static final ResultPoint[] NO_POINTS = new ResultPoint[0];
+  private static final RXingResultPoint[] NO_POINTS = new RXingResultPoint[0];
 
   private final Decoder decoder = new Decoder();
 
@@ -60,46 +60,46 @@ public class QRCodeReader implements Reader {
    * @throws ChecksumException if error correction fails
    */
   @Override
-  public Result decode(BinaryBitmap image) throws NotFoundException, ChecksumException, FormatException {
+  public RXingResult decode(BinaryBitmap image) throws NotFoundException, ChecksumException, FormatException {
     return decode(image, null);
   }
 
   @Override
-  public final Result decode(BinaryBitmap image, Map<DecodeHintType,?> hints)
+  public final RXingResult decode(BinaryBitmap image, Map<DecodeHintType,?> hints)
       throws NotFoundException, ChecksumException, FormatException {
-    DecoderResult decoderResult;
-    ResultPoint[] points;
+    DecoderRXingResult decoderRXingResult;
+    RXingResultPoint[] points;
     if (hints != null && hints.containsKey(DecodeHintType.PURE_BARCODE)) {
       BitMatrix bits = extractPureBits(image.getBlackMatrix());
-      decoderResult = decoder.decode(bits, hints);
+      decoderRXingResult = decoder.decode(bits, hints);
       points = NO_POINTS;
     } else {
-      DetectorResult detectorResult = new Detector(image.getBlackMatrix()).detect(hints);
-      decoderResult = decoder.decode(detectorResult.getBits(), hints);
-      points = detectorResult.getPoints();
+      DetectorRXingResult detectorRXingResult = new Detector(image.getBlackMatrix()).detect(hints);
+      decoderRXingResult = decoder.decode(detectorRXingResult.getBits(), hints);
+      points = detectorRXingResult.getPoints();
     }
 
     // If the code was mirrored: swap the bottom-left and the top-right points.
-    if (decoderResult.getOther() instanceof QRCodeDecoderMetaData) {
-      ((QRCodeDecoderMetaData) decoderResult.getOther()).applyMirroredCorrection(points);
+    if (decoderRXingResult.getOther() instanceof QRCodeDecoderMetaData) {
+      ((QRCodeDecoderMetaData) decoderRXingResult.getOther()).applyMirroredCorrection(points);
     }
 
-    Result result = new Result(decoderResult.getText(), decoderResult.getRawBytes(), points, BarcodeFormat.QR_CODE);
-    List<byte[]> byteSegments = decoderResult.getByteSegments();
+    RXingResult result = new RXingResult(decoderRXingResult.getText(), decoderRXingResult.getRawBytes(), points, BarcodeFormat.QR_CODE);
+    List<byte[]> byteSegments = decoderRXingResult.getByteSegments();
     if (byteSegments != null) {
-      result.putMetadata(ResultMetadataType.BYTE_SEGMENTS, byteSegments);
+      result.putMetadata(RXingResultMetadataType.BYTE_SEGMENTS, byteSegments);
     }
-    String ecLevel = decoderResult.getECLevel();
+    String ecLevel = decoderRXingResult.getECLevel();
     if (ecLevel != null) {
-      result.putMetadata(ResultMetadataType.ERROR_CORRECTION_LEVEL, ecLevel);
+      result.putMetadata(RXingResultMetadataType.ERROR_CORRECTION_LEVEL, ecLevel);
     }
-    if (decoderResult.hasStructuredAppend()) {
-      result.putMetadata(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE,
-                         decoderResult.getStructuredAppendSequenceNumber());
-      result.putMetadata(ResultMetadataType.STRUCTURED_APPEND_PARITY,
-                         decoderResult.getStructuredAppendParity());
+    if (decoderRXingResult.hasStructuredAppend()) {
+      result.putMetadata(RXingResultMetadataType.STRUCTURED_APPEND_SEQUENCE,
+                         decoderRXingResult.getStructuredAppendSequenceNumber());
+      result.putMetadata(RXingResultMetadataType.STRUCTURED_APPEND_PARITY,
+                         decoderRXingResult.getStructuredAppendParity());
     }
-    result.putMetadata(ResultMetadataType.SYMBOLOGY_IDENTIFIER, "]Q" + decoderResult.getSymbologyModifier());
+    result.putMetadata(RXingResultMetadataType.SYMBOLOGY_IDENTIFIER, "]Q" + decoderRXingResult.getSymbologyModifier());
     return result;
   }
 

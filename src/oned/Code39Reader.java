@@ -21,9 +21,9 @@ import com.google.zxing.ChecksumException;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitArray;
 
 import java.util.Arrays;
@@ -56,7 +56,7 @@ public final class Code39Reader extends OneDReader {
 
   private final boolean usingCheckDigit;
   private final boolean extendedMode;
-  private final StringBuilder decodeRowResult;
+  private final StringBuilder decodeRowRXingResult;
   private final int[] counters;
 
   /**
@@ -91,17 +91,17 @@ public final class Code39Reader extends OneDReader {
   public Code39Reader(boolean usingCheckDigit, boolean extendedMode) {
     this.usingCheckDigit = usingCheckDigit;
     this.extendedMode = extendedMode;
-    decodeRowResult = new StringBuilder(20);
+    decodeRowRXingResult = new StringBuilder(20);
     counters = new int[9];
   }
 
   @Override
-  public Result decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints)
+  public RXingResult decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints)
       throws NotFoundException, ChecksumException, FormatException {
 
     int[] theCounters = counters;
     Arrays.fill(theCounters, 0);
-    StringBuilder result = decodeRowResult;
+    StringBuilder result = decodeRowRXingResult;
     result.setLength(0);
 
     int[] start = findAsteriskPattern(row, theCounters);
@@ -144,7 +144,7 @@ public final class Code39Reader extends OneDReader {
       int max = result.length() - 1;
       int total = 0;
       for (int i = 0; i < max; i++) {
-        total += ALPHABET_STRING.indexOf(decodeRowResult.charAt(i));
+        total += ALPHABET_STRING.indexOf(decodeRowRXingResult.charAt(i));
       }
       if (result.charAt(max) != ALPHABET_STRING.charAt(total % 43)) {
         throw ChecksumException.getChecksumInstance();
@@ -167,14 +167,14 @@ public final class Code39Reader extends OneDReader {
     float left = (start[1] + start[0]) / 2.0f;
     float right = lastStart + lastPatternSize / 2.0f;
 
-    Result resultObject = new Result(
+    RXingResult resultObject = new RXingResult(
         resultString,
         null,
-        new ResultPoint[]{
-            new ResultPoint(left, rowNumber),
-            new ResultPoint(right, rowNumber)},
+        new RXingResultPoint[]{
+            new RXingResultPoint(left, rowNumber),
+            new RXingResultPoint(right, rowNumber)},
         BarcodeFormat.CODE_39);
-    resultObject.putMetadata(ResultMetadataType.SYMBOLOGY_IDENTIFIER, "]A0");
+    resultObject.putMetadata(RXingResultMetadataType.SYMBOLOGY_IDENTIFIER, "]A0");
     return resultObject;
   }
 

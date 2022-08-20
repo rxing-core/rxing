@@ -16,7 +16,7 @@
 
 package com.google.zxing.qrcode.detector;
 
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResultPoint;
 
 /**
  * <p>Encapsulates a finder pattern, which are the three square patterns found in
@@ -25,7 +25,7 @@ import com.google.zxing.ResultPoint;
  *
  * @author Sean Owen
  */
-public final class FinderPattern extends ResultPoint {
+public final class FinderPattern extends RXingResultPoint {
 
   private final float estimatedModuleSize;
   private final int count;

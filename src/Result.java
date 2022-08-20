@@ -24,36 +24,36 @@ import java.util.Map;
  *
  * @author Sean Owen
  */
-public final class Result {
+public final class RXingResult {
 
   private final String text;
   private final byte[] rawBytes;
   private final int numBits;
-  private ResultPoint[] resultPoints;
+  private RXingResultPoint[] resultPoints;
   private final BarcodeFormat format;
-  private Map<ResultMetadataType,Object> resultMetadata;
+  private Map<RXingResultMetadataType,Object> resultMetadata;
   private final long timestamp;
 
-  public Result(String text,
+  public RXingResult(String text,
                 byte[] rawBytes,
-                ResultPoint[] resultPoints,
+                RXingResultPoint[] resultPoints,
                 BarcodeFormat format) {
     this(text, rawBytes, resultPoints, format, System.currentTimeMillis());
   }
 
-  public Result(String text,
+  public RXingResult(String text,
                 byte[] rawBytes,
-                ResultPoint[] resultPoints,
+                RXingResultPoint[] resultPoints,
                 BarcodeFormat format,
                 long timestamp) {
     this(text, rawBytes, rawBytes == null ? 0 : 8 * rawBytes.length,
          resultPoints, format, timestamp);
   }
 
-  public Result(String text,
+  public RXingResult(String text,
                 byte[] rawBytes,
                 int numBits,
-                ResultPoint[] resultPoints,
+                RXingResultPoint[] resultPoints,
                 BarcodeFormat format,
                 long timestamp) {
     this.text = text;
@@ -92,7 +92,7 @@ public final class Result {
    *         identifying finder patterns or the corners of the barcode. The exact meaning is
    *         specific to the type of barcode that was decoded.
    */
-  public ResultPoint[] getResultPoints() {
+  public RXingResultPoint[] getRXingResultPoints() {
     return resultPoints;
   }
 
@@ -104,22 +104,22 @@ public final class Result {
   }
 
   /**
-   * @return {@link Map} mapping {@link ResultMetadataType} keys to values. May be
+   * @return {@link Map} mapping {@link RXingResultMetadataType} keys to values. May be
    *   {@code null}. This contains optional metadata about what was detected about the barcode,
    *   like orientation.
    */
-  public Map<ResultMetadataType,Object> getResultMetadata() {
+  public Map<RXingResultMetadataType,Object> getRXingResultMetadata() {
     return resultMetadata;
   }
 
-  public void putMetadata(ResultMetadataType type, Object value) {
+  public void putMetadata(RXingResultMetadataType type, Object value) {
     if (resultMetadata == null) {
-      resultMetadata = new EnumMap<>(ResultMetadataType.class);
+      resultMetadata = new EnumMap<>(RXingResultMetadataType.class);
     }
     resultMetadata.put(type, value);
   }
 
-  public void putAllMetadata(Map<ResultMetadataType,Object> metadata) {
+  public void putAllMetadata(Map<RXingResultMetadataType,Object> metadata) {
     if (metadata != null) {
       if (resultMetadata == null) {
         resultMetadata = metadata;
@@ -129,12 +129,12 @@ public final class Result {
     }
   }
 
-  public void addResultPoints(ResultPoint[] newPoints) {
-    ResultPoint[] oldPoints = resultPoints;
+  public void addRXingResultPoints(RXingResultPoint[] newPoints) {
+    RXingResultPoint[] oldPoints = resultPoints;
     if (oldPoints == null) {
       resultPoints = newPoints;
     } else if (newPoints != null && newPoints.length > 0) {
-      ResultPoint[] allPoints = new ResultPoint[oldPoints.length + newPoints.length];
+      RXingResultPoint[] allPoints = new RXingResultPoint[oldPoints.length + newPoints.length];
       System.arraycopy(oldPoints, 0, allPoints, 0, oldPoints.length);
       System.arraycopy(newPoints, 0, allPoints, oldPoints.length, newPoints.length);
       resultPoints = allPoints;

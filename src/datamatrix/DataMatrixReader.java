@@ -23,12 +23,12 @@ import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.Reader;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderResult;
-import com.google.zxing.common.DetectorResult;
+import com.google.zxing.common.DecoderRXingResult;
+import com.google.zxing.common.DetectorRXingResult;
 import com.google.zxing.datamatrix.decoder.Decoder;
 import com.google.zxing.datamatrix.detector.Detector;
 
@@ -42,7 +42,7 @@ import java.util.Map;
  */
 public final class DataMatrixReader implements Reader {
 
-  private static final ResultPoint[] NO_POINTS = new ResultPoint[0];
+  private static final RXingResultPoint[] NO_POINTS = new RXingResultPoint[0];
 
   private final Decoder decoder = new Decoder();
 
@@ -55,35 +55,35 @@ public final class DataMatrixReader implements Reader {
    * @throws ChecksumException if error correction fails
    */
   @Override
-  public Result decode(BinaryBitmap image) throws NotFoundException, ChecksumException, FormatException {
+  public RXingResult decode(BinaryBitmap image) throws NotFoundException, ChecksumException, FormatException {
     return decode(image, null);
   }
 
   @Override
-  public Result decode(BinaryBitmap image, Map<DecodeHintType,?> hints)
+  public RXingResult decode(BinaryBitmap image, Map<DecodeHintType,?> hints)
       throws NotFoundException, ChecksumException, FormatException {
-    DecoderResult decoderResult;
-    ResultPoint[] points;
+    DecoderRXingResult decoderRXingResult;
+    RXingResultPoint[] points;
     if (hints != null && hints.containsKey(DecodeHintType.PURE_BARCODE)) {
       BitMatrix bits = extractPureBits(image.getBlackMatrix());
-      decoderResult = decoder.decode(bits);
+      decoderRXingResult = decoder.decode(bits);
       points = NO_POINTS;
     } else {
-      DetectorResult detectorResult = new Detector(image.getBlackMatrix()).detect();
-      decoderResult = decoder.decode(detectorResult.getBits());
-      points = detectorResult.getPoints();
+      DetectorRXingResult detectorRXingResult = new Detector(image.getBlackMatrix()).detect();
+      decoderRXingResult = decoder.decode(detectorRXingResult.getBits());
+      points = detectorRXingResult.getPoints();
     }
-    Result result = new Result(decoderResult.getText(), decoderResult.getRawBytes(), points,
+    RXingResult result = new RXingResult(decoderRXingResult.getText(), decoderRXingResult.getRawBytes(), points,
         BarcodeFormat.DATA_MATRIX);
-    List<byte[]> byteSegments = decoderResult.getByteSegments();
+    List<byte[]> byteSegments = decoderRXingResult.getByteSegments();
     if (byteSegments != null) {
-      result.putMetadata(ResultMetadataType.BYTE_SEGMENTS, byteSegments);
+      result.putMetadata(RXingResultMetadataType.BYTE_SEGMENTS, byteSegments);
     }
-    String ecLevel = decoderResult.getECLevel();
+    String ecLevel = decoderRXingResult.getECLevel();
     if (ecLevel != null) {
-      result.putMetadata(ResultMetadataType.ERROR_CORRECTION_LEVEL, ecLevel);
+      result.putMetadata(RXingResultMetadataType.ERROR_CORRECTION_LEVEL, ecLevel);
     }
-    result.putMetadata(ResultMetadataType.SYMBOLOGY_IDENTIFIER, "]d" + decoderResult.getSymbologyModifier());
+    result.putMetadata(RXingResultMetadataType.SYMBOLOGY_IDENTIFIER, "]d" + decoderRXingResult.getSymbologyModifier());
     return result;
   }
 

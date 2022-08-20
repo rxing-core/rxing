@@ -24,7 +24,7 @@ import com.google.zxing.common.BitArray;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 /**
  * @author Daisuke Makiuchi
@@ -38,14 +38,14 @@ public final class Code93ReaderTestCase extends Assert {
            "0000001010111101101000101001100101001011001001100101100101001001100101100100101000010101010000101110101101101010001001001101001101001110010101101011101011011101011101101110100101110101101001110101110110101101010001110110101100010101110110101000110101110110101000101101110110101101001101110110101100101101110110101100110101110110101011011001110110101011001101110110101001101101110110101001110101001100101101010001010111101111");
   }
 
-  private static void doTest(String expectedResult, String encodedResult)
+  private static void doTest(String expectedRXingResult, String encodedRXingResult)
       throws FormatException, ChecksumException, NotFoundException {
     Code93Reader sut = new Code93Reader();
-    BitMatrix matrix = BitMatrix.parse(encodedResult, "1", "0");
+    BitMatrix matrix = BitMatrix.parse(encodedRXingResult, "1", "0");
     BitArray row = new BitArray(matrix.getWidth());
     matrix.getRow(0, row);
-    Result result = sut.decodeRow(0, row, null);
-    assertEquals(expectedResult, result.getText());
+    RXingResult result = sut.decodeRow(0, row, null);
+    assertEquals(expectedRXingResult, result.getText());
   }
 
 }

@@ -24,7 +24,7 @@ import com.google.zxing.common.BitArray;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 /**
  * @author Michael Jahn
@@ -44,14 +44,14 @@ public final class Code39ExtendedModeTestCase extends Assert {
            "000001001011011010101001001001011001101010101001010010010110101001011010010100100101011010010110100101001001011011010010101001010010010101011001011010010100100101101011001010100101001001010110110010101001010010010101010011011010010100100101101010011010100101001001010110100110101001010010010101011001101010010100100101101010100110100101001001010110101001101001010010010110110101001010010100100101010110100110100101001001011010110100101001010010010101101101001010010100100101010101100110100101001001011010101100101001010010010101101011001010010100100101010110110010100101001001011001010101101001010010010100110101011010010100100101100110101010100101001001010010110101101001010010010110010110101010010100100101001101101010101001001001010110110100101010010010010101010110011010100100100101101010110010101001001001010110101100101010010010010101011011001010010110110100000");
   }
 
-  private static void doTest(String expectedResult, String encodedResult)
+  private static void doTest(String expectedRXingResult, String encodedRXingResult)
       throws FormatException, ChecksumException, NotFoundException {
     Code39Reader sut = new Code39Reader(false, true);
-    BitMatrix matrix = BitMatrix.parse(encodedResult, "1", "0");
+    BitMatrix matrix = BitMatrix.parse(encodedRXingResult, "1", "0");
     BitArray row = new BitArray(matrix.getWidth());
     matrix.getRow(0, row);
-    Result result = sut.decodeRow(0, row, null);
-    assertEquals(expectedResult, result.getText());
+    RXingResult result = sut.decodeRow(0, row, null);
+    assertEquals(expectedRXingResult, result.getText());
   }
 
 }

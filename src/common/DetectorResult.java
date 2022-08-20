@@ -16,7 +16,7 @@
 
 package com.google.zxing.common;
 
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResultPoint;
 
 /**
  * <p>Encapsulates the result of detecting a barcode in an image. This includes the raw
@@ -25,12 +25,12 @@ import com.google.zxing.ResultPoint;
  *
  * @author Sean Owen
  */
-public class DetectorResult {
+public class DetectorRXingResult {
 
   private final BitMatrix bits;
-  private final ResultPoint[] points;
+  private final RXingResultPoint[] points;
 
-  public DetectorResult(BitMatrix bits, ResultPoint[] points) {
+  public DetectorRXingResult(BitMatrix bits, RXingResultPoint[] points) {
     this.bits = bits;
     this.points = points;
   }
@@ -39,7 +39,7 @@ public class DetectorResult {
     return bits;
   }
 
-  public final ResultPoint[] getPoints() {
+  public final RXingResultPoint[] getPoints() {
     return points;
   }
 

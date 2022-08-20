@@ -98,7 +98,7 @@ public final class Encoder {
       mode = Mode.BYTE;
 
       Charset priorityEncoding = encoding.equals(DEFAULT_BYTE_MODE_ENCODING) ? null : encoding;
-      MinimalEncoder.ResultList rn = MinimalEncoder.encode(content, null, priorityEncoding, hasGS1FormatHint, ecLevel);
+      MinimalEncoder.RXingResultList rn = MinimalEncoder.encode(content, null, priorityEncoding, hasGS1FormatHint, ecLevel);
 
       headerAndDataBits = new BitArray();
       rn.getBits(headerAndDataBits);

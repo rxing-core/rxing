@@ -17,16 +17,16 @@
 package com.google.zxing.client.result;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests {@link ISBNParsedResult}.
+ * Tests {@link ISBNParsedRXingResult}.
  *
  * @author Sean Owen
  */
-public final class ISBNParsedResultTestCase extends Assert {
+public final class ISBNParsedRXingResultTestCase extends Assert {
 
   @Test
   public void testISBN() {
@@ -34,11 +34,11 @@ public final class ISBNParsedResultTestCase extends Assert {
   }
 
   private static void doTest(String contents) {
-    Result fakeResult = new Result(contents, null, null, BarcodeFormat.EAN_13);
-    ParsedResult result = ResultParser.parseResult(fakeResult);
-    assertSame(ParsedResultType.ISBN, result.getType());
-    ISBNParsedResult isbnResult = (ISBNParsedResult) result;
-    assertEquals(contents, isbnResult.getISBN());
+    RXingResult fakeRXingResult = new RXingResult(contents, null, null, BarcodeFormat.EAN_13);
+    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
+    assertSame(ParsedRXingResultType.ISBN, result.getType());
+    ISBNParsedRXingResult isbnRXingResult = (ISBNParsedRXingResult) result;
+    assertEquals(contents, isbnRXingResult.getISBN());
   }
 
 }

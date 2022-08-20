@@ -21,9 +21,9 @@ import com.google.zxing.ChecksumException;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitArray;
 
 import java.util.Arrays;
@@ -55,16 +55,16 @@ public final class Code93Reader extends OneDReader {
   };
   static final int ASTERISK_ENCODING = CHARACTER_ENCODINGS[47];
 
-  private final StringBuilder decodeRowResult;
+  private final StringBuilder decodeRowRXingResult;
   private final int[] counters;
 
   public Code93Reader() {
-    decodeRowResult = new StringBuilder(20);
+    decodeRowRXingResult = new StringBuilder(20);
     counters = new int[6];
   }
 
   @Override
-  public Result decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints)
+  public RXingResult decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints)
       throws NotFoundException, ChecksumException, FormatException {
 
     int[] start = findAsteriskPattern(row);
@@ -74,7 +74,7 @@ public final class Code93Reader extends OneDReader {
 
     int[] theCounters = counters;
     Arrays.fill(theCounters, 0);
-    StringBuilder result = decodeRowResult;
+    StringBuilder result = decodeRowRXingResult;
     result.setLength(0);
 
     char decodedChar;
@@ -120,14 +120,14 @@ public final class Code93Reader extends OneDReader {
     float left = (start[1] + start[0]) / 2.0f;
     float right = lastStart + lastPatternSize / 2.0f;
 
-    Result resultObject = new Result(
+    RXingResult resultObject = new RXingResult(
         resultString,
         null,
-        new ResultPoint[]{
-            new ResultPoint(left, rowNumber),
-            new ResultPoint(right, rowNumber)},
+        new RXingResultPoint[]{
+            new RXingResultPoint(left, rowNumber),
+            new RXingResultPoint(right, rowNumber)},
         BarcodeFormat.CODE_93);
-    resultObject.putMetadata(ResultMetadataType.SYMBOLOGY_IDENTIFIER, "]G0");
+    resultObject.putMetadata(RXingResultMetadataType.SYMBOLOGY_IDENTIFIER, "]G0");
     return resultObject;
   }
 

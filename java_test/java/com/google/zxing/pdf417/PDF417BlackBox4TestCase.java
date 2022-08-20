@@ -22,11 +22,11 @@ import com.google.zxing.BufferedImageLuminanceSource;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.ReaderException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
 import com.google.zxing.common.AbstractBlackBoxTestCase;
 import com.google.zxing.common.HybridBinarizer;
-import com.google.zxing.common.TestResult;
+import com.google.zxing.common.TestRXingResult;
 
 import com.google.zxing.multi.MultipleBarcodeReader;
 import org.junit.Test;
@@ -59,20 +59,20 @@ public final class PDF417BlackBox4TestCase extends AbstractBlackBoxTestCase {
 
   private final MultipleBarcodeReader barcodeReader = new PDF417Reader();
 
-  private final List<TestResult> testResults = new ArrayList<>();
+  private final List<TestRXingResult> testRXingResults = new ArrayList<>();
 
   public PDF417BlackBox4TestCase() {
     super("src/test/resources/blackbox/pdf417-4", null, BarcodeFormat.PDF_417);
-    testResults.add(new TestResult(3, 3, 0, 0, 0.0f));
+    testRXingResults.add(new TestRXingResult(3, 3, 0, 0, 0.0f));
   }
 
   @Test
   @Override
   public void testBlackBox() throws IOException {
-    assertFalse(testResults.isEmpty());
+    assertFalse(testRXingResults.isEmpty());
 
     Map<String,List<Path>> imageFiles = getImageFileLists();
-    int testCount = testResults.size();
+    int testCount = testRXingResults.size();
 
     int[] passedCounts = new int[testCount];
     int[] tryHarderCounts = new int[testCount];
@@ -94,10 +94,10 @@ public final class PDF417BlackBox4TestCase extends AbstractBlackBoxTestCase {
       }
 
       for (int x = 0; x < testCount; x++) {
-        List<Result> results = new ArrayList<>();
+        List<RXingResult> results = new ArrayList<>();
         for (Path imageFile : testImageGroup.getValue()) {
           BufferedImage image = ImageIO.read(imageFile.toFile());
-          float rotation = testResults.get(x).getRotation();
+          float rotation = testRXingResults.get(x).getRotation();
           BufferedImage rotatedImage = rotateImage(image, rotation);
           LuminanceSource source = new BufferedImageLuminanceSource(rotatedImage);
           BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
@@ -108,11 +108,11 @@ public final class PDF417BlackBox4TestCase extends AbstractBlackBoxTestCase {
             // ignore
           }
         }
-        results.sort(Comparator.comparingInt((Result r) -> getMeta(r).getSegmentIndex()));
+        results.sort(Comparator.comparingInt((RXingResult r) -> getMeta(r).getSegmentIndex()));
         StringBuilder resultText = new StringBuilder();
         String fileId = null;
-        for (Result result : results) {
-          PDF417ResultMetadata resultMetadata = getMeta(result);
+        for (RXingResult result : results) {
+          PDF417RXingResultMetadata resultMetadata = getMeta(result);
           assertNotNull("resultMetadata", resultMetadata);
           if (fileId == null) {
             fileId = resultMetadata.getFileId();
@@ -131,15 +131,15 @@ public final class PDF417BlackBox4TestCase extends AbstractBlackBoxTestCase {
     int totalMustPass = 0;
 
     int numberOfTests = imageFiles.keySet().size();
-    for (int x = 0; x < testResults.size(); x++) {
-      TestResult testResult = testResults.get(x);
-      log.info(String.format("Rotation %d degrees:", (int) testResult.getRotation()));
+    for (int x = 0; x < testRXingResults.size(); x++) {
+      TestRXingResult testRXingResult = testRXingResults.get(x);
+      log.info(String.format("Rotation %d degrees:", (int) testRXingResult.getRotation()));
       log.info(String.format(" %d of %d images passed (%d required)", passedCounts[x], numberOfTests,
-          testResult.getMustPassCount()));
+          testRXingResult.getMustPassCount()));
       log.info(String.format(" %d of %d images passed with try harder (%d required)", tryHarderCounts[x],
-          numberOfTests, testResult.getTryHarderCount()));
+          numberOfTests, testRXingResult.getTryHarderCount()));
       totalFound += passedCounts[x] + tryHarderCounts[x];
-      totalMustPass += testResult.getMustPassCount() + testResult.getTryHarderCount();
+      totalMustPass += testRXingResult.getMustPassCount() + testRXingResult.getTryHarderCount();
     }
 
     int totalTests = numberOfTests * testCount * 2;
@@ -154,19 +154,19 @@ public final class PDF417BlackBox4TestCase extends AbstractBlackBoxTestCase {
 
     // Then run through again and assert if any failed
     for (int x = 0; x < testCount; x++) {
-      TestResult testResult = testResults.get(x);
-      String label = "Rotation " + testResult.getRotation() + " degrees: Too many images failed";
-      assertTrue(label, passedCounts[x] >= testResult.getMustPassCount());
-      assertTrue("Try harder, " + label, tryHarderCounts[x] >= testResult.getTryHarderCount());
+      TestRXingResult testRXingResult = testRXingResults.get(x);
+      String label = "Rotation " + testRXingResult.getRotation() + " degrees: Too many images failed";
+      assertTrue(label, passedCounts[x] >= testRXingResult.getMustPassCount());
+      assertTrue("Try harder, " + label, tryHarderCounts[x] >= testRXingResult.getTryHarderCount());
     }
   }
 
-  private static PDF417ResultMetadata getMeta(Result result) {
-    return result.getResultMetadata() == null ? null : (PDF417ResultMetadata) result.getResultMetadata().get(
-        ResultMetadataType.PDF417_EXTRA_METADATA);
+  private static PDF417RXingResultMetadata getMeta(RXingResult result) {
+    return result.getRXingResultMetadata() == null ? null : (PDF417RXingResultMetadata) result.getRXingResultMetadata().get(
+        RXingResultMetadataType.PDF417_EXTRA_METADATA);
   }
 
-  private Result[] decode(BinaryBitmap source, boolean tryHarder) throws ReaderException {
+  private RXingResult[] decode(BinaryBitmap source, boolean tryHarder) throws ReaderException {
     Map<DecodeHintType,Object> hints = new EnumMap<>(DecodeHintType.class);
     if (tryHarder) {
       hints.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);

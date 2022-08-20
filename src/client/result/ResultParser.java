@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 /**
  * <p>Abstract class representing the result of decoding a barcode, as more than
  * a String -- as some type of structured data. This might be a subclass which represents
- * a URL, or an e-mail address. {@link #parseResult(Result)} will turn a raw
+ * a URL, or an e-mail address. {@link #parseRXingResult(RXingResult)} will turn a raw
  * decoded string into the most appropriate type of structured representation.</p>
  *
  * <p>Thanks to Jeff Griffin for proposing rewrite of these classes that relies less
@@ -37,29 +37,29 @@ import java.util.regex.Pattern;
  *
  * @author Sean Owen
  */
-public abstract class ResultParser {
+public abstract class RXingResultParser {
 
-  private static final ResultParser[] PARSERS = {
-      new BookmarkDoCoMoResultParser(),
-      new AddressBookDoCoMoResultParser(),
-      new EmailDoCoMoResultParser(),
-      new AddressBookAUResultParser(),
-      new VCardResultParser(),
-      new BizcardResultParser(),
-      new VEventResultParser(),
-      new EmailAddressResultParser(),
-      new SMTPResultParser(),
-      new TelResultParser(),
-      new SMSMMSResultParser(),
-      new SMSTOMMSTOResultParser(),
-      new GeoResultParser(),
-      new WifiResultParser(),
-      new URLTOResultParser(),
-      new URIResultParser(),
-      new ISBNResultParser(),
-      new ProductResultParser(),
-      new ExpandedProductResultParser(),
-      new VINResultParser(),
+  private static final RXingResultParser[] PARSERS = {
+      new BookmarkDoCoMoRXingResultParser(),
+      new AddressBookDoCoMoRXingResultParser(),
+      new EmailDoCoMoRXingResultParser(),
+      new AddressBookAURXingResultParser(),
+      new VCardRXingResultParser(),
+      new BizcardRXingResultParser(),
+      new VEventRXingResultParser(),
+      new EmailAddressRXingResultParser(),
+      new SMTPRXingResultParser(),
+      new TelRXingResultParser(),
+      new SMSMMSRXingResultParser(),
+      new SMSTOMMSTORXingResultParser(),
+      new GeoRXingResultParser(),
+      new WifiRXingResultParser(),
+      new URLTORXingResultParser(),
+      new URIRXingResultParser(),
+      new ISBNRXingResultParser(),
+      new ProductRXingResultParser(),
+      new ExpandedProductRXingResultParser(),
+      new VINRXingResultParser(),
   };
 
   private static final Pattern DIGITS = Pattern.compile("\\d+");
@@ -70,16 +70,16 @@ public abstract class ResultParser {
   static final String[] EMPTY_STR_ARRAY = new String[0];
 
   /**
-   * Attempts to parse the raw {@link Result}'s contents as a particular type
-   * of information (email, URL, etc.) and return a {@link ParsedResult} encapsulating
+   * Attempts to parse the raw {@link RXingResult}'s contents as a particular type
+   * of information (email, URL, etc.) and return a {@link ParsedRXingResult} encapsulating
    * the result of parsing.
    *
-   * @param theResult the raw {@link Result} to parse
-   * @return {@link ParsedResult} encapsulating the parsing result
+   * @param theRXingResult the raw {@link RXingResult} to parse
+   * @return {@link ParsedRXingResult} encapsulating the parsing result
    */
-  public abstract ParsedResult parse(Result theResult);
+  public abstract ParsedRXingResult parse(RXingResult theRXingResult);
 
-  protected static String getMassagedText(Result result) {
+  protected static String getMassagedText(RXingResult result) {
     String text = result.getText();
     if (text.startsWith(BYTE_ORDER_MARK)) {
       text = text.substring(1);
@@ -87,14 +87,14 @@ public abstract class ResultParser {
     return text;
   }
 
-  public static ParsedResult parseResult(Result theResult) {
-    for (ResultParser parser : PARSERS) {
-      ParsedResult result = parser.parse(theResult);
+  public static ParsedRXingResult parseRXingResult(RXingResult theRXingResult) {
+    for (RXingResultParser parser : PARSERS) {
+      ParsedRXingResult result = parser.parse(theRXingResult);
       if (result != null) {
         return result;
       }
     }
-    return new TextParsedResult(theResult.getText(), null);
+    return new TextParsedRXingResult(theRXingResult.getText(), null);
   }
 
   protected static void maybeAppend(String value, StringBuilder result) {

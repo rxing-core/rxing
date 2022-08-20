@@ -251,7 +251,7 @@ public final class MinimalEncoder {
       addEdge(edges, new Edge(input, Mode.EDF, from, 4, previous));
     }
   }
-  static Result encodeMinimally(Input input) {
+  static RXingResult encodeMinimally(Input input) {
 
     @SuppressWarnings("checkstyle:lineLength")
     /* The minimal encoding is computed by Dijkstra. The acyclic graph is modeled as follows:
@@ -474,7 +474,7 @@ public final class MinimalEncoder {
     if (minimalJ < 0) {
       throw new RuntimeException("Internal error: failed to encode \"" + input + "\"");
     }
-    return new Result(edges[inputLength][minimalJ]);
+    return new RXingResult(edges[inputLength][minimalJ]);
   }
 
   private static final class Edge {
@@ -926,11 +926,11 @@ public final class MinimalEncoder {
     }
   }
 
-  private static final class Result {
+  private static final class RXingResult {
 
     private final byte[] bytes;
 
-    Result(Edge solution) {
+    RXingResult(Edge solution) {
       Input input = solution.input;
       int size = 0;
       List<Byte> bytesAL = new ArrayList<>();

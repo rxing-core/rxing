@@ -17,16 +17,16 @@
 package com.google.zxing.client.result;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests {@link WifiParsedResult}.
+ * Tests {@link WifiParsedRXingResult}.
  *
  * @author Vikram Aggarwal
  */
-public final class WifiParsedResultTestCase extends Assert {
+public final class WifiParsedRXingResultTestCase extends Assert {
 
   @Test
   public void testNoPassword() {
@@ -79,15 +79,15 @@ public final class WifiParsedResultTestCase extends Assert {
                              String ssid,
                              String password,
                              String type) {
-    Result fakeResult = new Result(contents, null, null, BarcodeFormat.QR_CODE);
-    ParsedResult result = ResultParser.parseResult(fakeResult);
+    RXingResult fakeRXingResult = new RXingResult(contents, null, null, BarcodeFormat.QR_CODE);
+    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
 
     // Ensure it is a wifi code
-    assertSame(ParsedResultType.WIFI, result.getType());
-    WifiParsedResult wifiResult = (WifiParsedResult) result;
+    assertSame(ParsedRXingResultType.WIFI, result.getType());
+    WifiParsedRXingResult wifiRXingResult = (WifiParsedRXingResult) result;
 
-    assertEquals(ssid, wifiResult.getSsid());
-    assertEquals(password, wifiResult.getPassword());
-    assertEquals(type, wifiResult.getNetworkEncryption());
+    assertEquals(ssid, wifiRXingResult.getSsid());
+    assertEquals(password, wifiRXingResult.getPassword());
+    assertEquals(type, wifiRXingResult.getNetworkEncryption());
   }
 }

@@ -17,16 +17,16 @@
 package com.google.zxing.client.result;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests {@link EmailAddressParsedResult}.
+ * Tests {@link EmailAddressParsedRXingResult}.
  *
  * @author Sean Owen
  */
-public final class EmailAddressParsedResultTestCase extends Assert {
+public final class EmailAddressParsedRXingResultTestCase extends Assert {
 
   @Test
   public void testEmailAddress() {
@@ -107,15 +107,15 @@ public final class EmailAddressParsedResultTestCase extends Assert {
                              String[] bccs,
                              String subject,
                              String body) {
-    Result fakeResult = new Result(contents, null, null, BarcodeFormat.QR_CODE);
-    ParsedResult result = ResultParser.parseResult(fakeResult);
-    assertSame(ParsedResultType.EMAIL_ADDRESS, result.getType());
-    EmailAddressParsedResult emailResult = (EmailAddressParsedResult) result;
-    assertArrayEquals(tos, emailResult.getTos());
-    assertArrayEquals(ccs, emailResult.getCCs());
-    assertArrayEquals(bccs, emailResult.getBCCs());
-    assertEquals(subject, emailResult.getSubject());
-    assertEquals(body, emailResult.getBody());
+    RXingResult fakeRXingResult = new RXingResult(contents, null, null, BarcodeFormat.QR_CODE);
+    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
+    assertSame(ParsedRXingResultType.EMAIL_ADDRESS, result.getType());
+    EmailAddressParsedRXingResult emailRXingResult = (EmailAddressParsedRXingResult) result;
+    assertArrayEquals(tos, emailRXingResult.getTos());
+    assertArrayEquals(ccs, emailRXingResult.getCCs());
+    assertArrayEquals(bccs, emailRXingResult.getBCCs());
+    assertEquals(subject, emailRXingResult.getSubject());
+    assertEquals(body, emailRXingResult.getBody());
   }
 
 }

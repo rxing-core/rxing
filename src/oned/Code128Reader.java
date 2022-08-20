@@ -21,9 +21,9 @@ import com.google.zxing.ChecksumException;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitArray;
 
 import java.util.ArrayList;
@@ -234,7 +234,7 @@ public final class Code128Reader extends OneDReader {
   }
 
   @Override
-  public Result decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints)
+  public RXingResult decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints)
       throws NotFoundException, FormatException, ChecksumException {
 
     boolean convertFNC1 = hints != null && hints.containsKey(DecodeHintType.ASSUME_GS1);
@@ -547,14 +547,14 @@ public final class Code128Reader extends OneDReader {
     for (int i = 0; i < rawCodesSize; i++) {
       rawBytes[i] = rawCodes.get(i);
     }
-    Result resultObject = new Result(
+    RXingResult resultObject = new RXingResult(
         result.toString(),
         rawBytes,
-        new ResultPoint[]{
-            new ResultPoint(left, rowNumber),
-            new ResultPoint(right, rowNumber)},
+        new RXingResultPoint[]{
+            new RXingResultPoint(left, rowNumber),
+            new RXingResultPoint(right, rowNumber)},
         BarcodeFormat.CODE_128);
-    resultObject.putMetadata(ResultMetadataType.SYMBOLOGY_IDENTIFIER, "]C" + symbologyModifier);
+    resultObject.putMetadata(RXingResultMetadataType.SYMBOLOGY_IDENTIFIER, "]C" + symbologyModifier);
     return resultObject;
 
   }

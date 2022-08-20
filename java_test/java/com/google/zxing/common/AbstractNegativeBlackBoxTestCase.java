@@ -22,7 +22,7 @@ import com.google.zxing.DecodeHintType;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.ReaderException;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import org.junit.Test;
 
 import javax.imageio.ImageIO;
@@ -45,13 +45,13 @@ public abstract class AbstractNegativeBlackBoxTestCase extends AbstractBlackBoxT
 
   private static final Logger log = Logger.getLogger(AbstractNegativeBlackBoxTestCase.class.getSimpleName());
 
-  private final List<TestResult> testResults;
+  private final List<TestRXingResult> testRXingResults;
 
-  private static final class TestResult {
+  private static final class TestRXingResult {
     private final int falsePositivesAllowed;
     private final float rotation;
 
-    TestResult(int falsePositivesAllowed, float rotation) {
+    TestRXingResult(int falsePositivesAllowed, float rotation) {
       this.falsePositivesAllowed = falsePositivesAllowed;
       this.rotation = rotation;
     }
@@ -68,29 +68,29 @@ public abstract class AbstractNegativeBlackBoxTestCase extends AbstractBlackBoxT
   // Use the multiformat reader to evaluate all decoders in the system.
   protected AbstractNegativeBlackBoxTestCase(String testBasePathSuffix) {
     super(testBasePathSuffix, new MultiFormatReader(), null);
-    testResults = new ArrayList<>();
+    testRXingResults = new ArrayList<>();
   }
 
   protected final void addTest(int falsePositivesAllowed, float rotation) {
-    testResults.add(new TestResult(falsePositivesAllowed, rotation));
+    testRXingResults.add(new TestRXingResult(falsePositivesAllowed, rotation));
   }
 
   @Override
   @Test
   public void testBlackBox() throws IOException {
-    assertFalse(testResults.isEmpty());
+    assertFalse(testRXingResults.isEmpty());
 
     List<Path> imageFiles = getImageFiles();
-    int[] falsePositives = new int[testResults.size()];
+    int[] falsePositives = new int[testRXingResults.size()];
     for (Path testImage : imageFiles) {
       log.info(String.format("Starting %s", testImage));
       BufferedImage image = ImageIO.read(testImage.toFile());
       if (image == null) {
         throw new IOException("Could not read image: " + testImage);
       }
-      for (int x = 0; x < testResults.size(); x++) {
-        TestResult testResult = testResults.get(x);
-        if (!checkForFalsePositives(image, testResult.getRotation())) {
+      for (int x = 0; x < testRXingResults.size(); x++) {
+        TestRXingResult testRXingResult = testRXingResults.get(x);
+        if (!checkForFalsePositives(image, testRXingResult.getRotation())) {
           falsePositives[x]++;
         }
       }
@@ -99,10 +99,10 @@ public abstract class AbstractNegativeBlackBoxTestCase extends AbstractBlackBoxT
     int totalFalsePositives = 0;
     int totalAllowed = 0;
 
-    for (int x = 0; x < testResults.size(); x++) {
-      TestResult testResult = testResults.get(x);
+    for (int x = 0; x < testRXingResults.size(); x++) {
+      TestRXingResult testRXingResult = testRXingResults.get(x);
       totalFalsePositives += falsePositives[x];
-      totalAllowed += testResult.getFalsePositivesAllowed();
+      totalAllowed += testRXingResult.getFalsePositivesAllowed();
     }
 
     if (totalFalsePositives < totalAllowed) {
@@ -111,13 +111,13 @@ public abstract class AbstractNegativeBlackBoxTestCase extends AbstractBlackBoxT
       log.warning(String.format("--- Test failed by %d images", totalFalsePositives - totalAllowed));
     }
 
-    for (int x = 0; x < testResults.size(); x++) {
-      TestResult testResult = testResults.get(x);
+    for (int x = 0; x < testRXingResults.size(); x++) {
+      TestRXingResult testRXingResult = testRXingResults.get(x);
       log.info(String.format("Rotation %d degrees: %d of %d images were false positives (%d allowed)",
-                             (int) testResult.getRotation(), falsePositives[x], imageFiles.size(),
-                             testResult.getFalsePositivesAllowed()));
-      assertTrue("Rotation " + testResult.getRotation() + " degrees: Too many false positives found",
-                 falsePositives[x] <= testResult.getFalsePositivesAllowed());
+                             (int) testRXingResult.getRotation(), falsePositives[x], imageFiles.size(),
+                             testRXingResult.getFalsePositivesAllowed()));
+      assertTrue("Rotation " + testRXingResult.getRotation() + " degrees: Too many false positives found",
+                 falsePositives[x] <= testRXingResult.getFalsePositivesAllowed());
     }
   }
 
@@ -132,7 +132,7 @@ public abstract class AbstractNegativeBlackBoxTestCase extends AbstractBlackBoxT
     BufferedImage rotatedImage = rotateImage(image, rotationInDegrees);
     LuminanceSource source = new BufferedImageLuminanceSource(rotatedImage);
     BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-    Result result;
+    RXingResult result;
     try {
       result = getReader().decode(bitmap);
       log.info(String.format("Found false positive: '%s' with format '%s' (rotation: %d)",

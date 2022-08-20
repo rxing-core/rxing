@@ -22,7 +22,7 @@ package com.google.zxing.client.result;
  *
  * @author Sean Owen
  */
-public final class AddressBookParsedResult extends ParsedResult {
+public final class AddressBookParsedRXingResult extends ParsedRXingResult {
 
   private final String[] names;
   private final String[] nicknames;
@@ -41,7 +41,7 @@ public final class AddressBookParsedResult extends ParsedResult {
   private final String[] urls;
   private final String[] geo;
 
-  public AddressBookParsedResult(String[] names,
+  public AddressBookParsedRXingResult(String[] names,
                                  String[] phoneNumbers,
                                  String[] phoneTypes,
                                  String[] emails,
@@ -66,7 +66,7 @@ public final class AddressBookParsedResult extends ParsedResult {
          null);
   }
 
-  public AddressBookParsedResult(String[] names,
+  public AddressBookParsedRXingResult(String[] names,
                                  String[] nicknames,
                                  String pronunciation,
                                  String[] phoneNumbers,
@@ -82,7 +82,7 @@ public final class AddressBookParsedResult extends ParsedResult {
                                  String title,
                                  String[] urls,
                                  String[] geo) {
-    super(ParsedResultType.ADDRESSBOOK);
+    super(ParsedRXingResultType.ADDRESSBOOK);
     if (phoneNumbers != null && phoneTypes != null && phoneNumbers.length != phoneTypes.length) {
       throw new IllegalArgumentException("Phone numbers and types lengths differ");
     }
@@ -199,7 +199,7 @@ public final class AddressBookParsedResult extends ParsedResult {
   }
 
   @Override
-  public String getDisplayResult() {
+  public String getDisplayRXingResult() {
     StringBuilder result = new StringBuilder(100);
     maybeAppend(names, result);
     maybeAppend(nicknames, result);

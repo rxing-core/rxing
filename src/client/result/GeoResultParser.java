@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,13 +29,13 @@ import java.util.regex.Pattern;
  *
  * @author Sean Owen
  */
-public final class GeoResultParser extends ResultParser {
+public final class GeoRXingResultParser extends RXingResultParser {
 
   private static final Pattern GEO_URL_PATTERN = 
       Pattern.compile("geo:([\\-0-9.]+),([\\-0-9.]+)(?:,([\\-0-9.]+))?(?:\\?(.*))?", Pattern.CASE_INSENSITIVE);
   
   @Override
-  public GeoParsedResult parse(Result result) {
+  public GeoParsedRXingResult parse(RXingResult result) {
     CharSequence rawText = getMassagedText(result);
     Matcher matcher = GEO_URL_PATTERN.matcher(rawText);
     if (!matcher.matches()) {
@@ -67,7 +67,7 @@ public final class GeoResultParser extends ResultParser {
     } catch (NumberFormatException ignored) {
       return null;
     }
-    return new GeoParsedResult(latitude, longitude, altitude, query);
+    return new GeoParsedRXingResult(latitude, longitude, altitude, query);
   }
 
 }

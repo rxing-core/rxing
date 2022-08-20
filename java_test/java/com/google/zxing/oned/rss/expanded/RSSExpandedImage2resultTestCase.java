@@ -43,10 +43,10 @@ import com.google.zxing.BinaryBitmap;
 import com.google.zxing.BufferedImageLuminanceSource;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.ReaderException;
-import com.google.zxing.Result;
-import com.google.zxing.client.result.ExpandedProductParsedResult;
-import com.google.zxing.client.result.ParsedResult;
-import com.google.zxing.client.result.ResultParser;
+import com.google.zxing.RXingResult;
+import com.google.zxing.client.result.ExpandedProductParsedRXingResult;
+import com.google.zxing.client.result.ParsedRXingResult;
+import com.google.zxing.client.result.RXingResultParser;
 import com.google.zxing.common.AbstractBlackBoxTestCase;
 import com.google.zxing.common.BitArray;
 import com.google.zxing.common.GlobalHistogramBinarizer;
@@ -63,18 +63,18 @@ public final class RSSExpandedImage2resultTestCase extends Assert {
   @Test
   public void testDecodeRow2result2() throws Exception {
     // (01)90012345678908(3103)001750
-    ExpandedProductParsedResult expected =
-        new ExpandedProductParsedResult("(01)90012345678908(3103)001750",
+    ExpandedProductParsedRXingResult expected =
+        new ExpandedProductParsedRXingResult("(01)90012345678908(3103)001750",
                                         "90012345678908",
                                         null, null, null, null, null, null,
                                         "001750",
-                                        ExpandedProductParsedResult.KILOGRAM,
+                                        ExpandedProductParsedRXingResult.KILOGRAM,
                                         "3", null, null, null, new HashMap<>());
 
     assertCorrectImage2result("2.png", expected);
   }
 
-  private static void assertCorrectImage2result(String fileName, ExpandedProductParsedResult expected)
+  private static void assertCorrectImage2result(String fileName, ExpandedProductParsedRXingResult expected)
       throws IOException, NotFoundException {
     Path path = AbstractBlackBoxTestCase.buildTestBase("src/test/resources/blackbox/rssexpanded-1/").resolve(fileName);
 
@@ -83,18 +83,18 @@ public final class RSSExpandedImage2resultTestCase extends Assert {
     int rowNumber = binaryMap.getHeight() / 2;
     BitArray row = binaryMap.getBlackRow(rowNumber, null);
 
-    Result theResult;
+    RXingResult theRXingResult;
     try {
       RSSExpandedReader rssExpandedReader = new RSSExpandedReader();
-      theResult = rssExpandedReader.decodeRow(rowNumber, row, null);
+      theRXingResult = rssExpandedReader.decodeRow(rowNumber, row, null);
     } catch (ReaderException re) {
       fail(re.toString());
       return;
     }
 
-    assertSame(BarcodeFormat.RSS_EXPANDED, theResult.getBarcodeFormat());
+    assertSame(BarcodeFormat.RSS_EXPANDED, theRXingResult.getBarcodeFormat());
 
-    ParsedResult result = ResultParser.parseResult(theResult);
+    ParsedRXingResult result = RXingResultParser.parseRXingResult(theRXingResult);
 
     assertEquals(expected, result);
   }

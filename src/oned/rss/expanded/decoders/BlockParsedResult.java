@@ -30,16 +30,16 @@ package com.google.zxing.oned.rss.expanded.decoders;
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
-final class BlockParsedResult {
+final class BlockParsedRXingResult {
 
   private final DecodedInformation decodedInformation;
   private final boolean finished;
 
-  BlockParsedResult() {
+  BlockParsedRXingResult() {
     this(null, false);
   }
 
-  BlockParsedResult(DecodedInformation information, boolean finished) {
+  BlockParsedRXingResult(DecodedInformation information, boolean finished) {
     this.finished = finished;
     this.decodedInformation = information;
   }

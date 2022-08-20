@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 @SuppressWarnings("checkstyle:lineLength")
 /**
@@ -36,10 +36,10 @@ import com.google.zxing.Result;
  * @author Sean Owen
  * @author Steffen Kieß
  */
-public final class WifiResultParser extends ResultParser {
+public final class WifiRXingResultParser extends RXingResultParser {
 
   @Override
-  public WifiParsedResult parse(Result result) {
+  public WifiParsedRXingResult parse(RXingResult result) {
     String rawText = getMassagedText(result);
     if (!rawText.startsWith("WIFI:")) {
       return null;
@@ -74,6 +74,6 @@ public final class WifiResultParser extends ResultParser {
     String anonymousIdentity = matchSinglePrefixedField("A:", rawText, ';', false);
     String eapMethod = matchSinglePrefixedField("E:", rawText, ';', false);
 
-    return new WifiParsedResult(type, ssid, pass, hidden, identity, anonymousIdentity, eapMethod, phase2Method);
+    return new WifiParsedRXingResult(type, ssid, pass, hidden, identity, anonymousIdentity, eapMethod, phase2Method);
   }
 }

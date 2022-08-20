@@ -20,7 +20,7 @@ import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.common.BitSource;
 import com.google.zxing.common.CharacterSetECI;
-import com.google.zxing.common.DecoderResult;
+import com.google.zxing.common.DecoderRXingResult;
 import com.google.zxing.common.StringUtils;
 
 import java.nio.charset.Charset;
@@ -49,7 +49,7 @@ final class DecodedBitStreamParser {
   private DecodedBitStreamParser() {
   }
 
-  static DecoderResult decode(byte[] bytes,
+  static DecoderRXingResult decode(byte[] bytes,
                               Version version,
                               ErrorCorrectionLevel ecLevel,
                               Map<DecodeHintType,?> hints) throws FormatException {
@@ -160,7 +160,7 @@ final class DecodedBitStreamParser {
       throw FormatException.getFormatInstance();
     }
 
-    return new DecoderResult(bytes,
+    return new DecoderRXingResult(bytes,
                              result.toString(),
                              byteSegments.isEmpty() ? null : byteSegments,
                              ecLevel == null ? null : ecLevel.toString(),

@@ -19,7 +19,7 @@ package com.google.zxing.pdf417.detector;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitMatrix;
 
 import java.util.ArrayList;
@@ -69,10 +69,10 @@ public final class Detector {
    * @param hints optional hints to detector
    * @param multiple if true, then the image is searched for multiple codes. If false, then at most one code will
    * be found and returned
-   * @return {@link PDF417DetectorResult} encapsulating results of detecting a PDF417 code
+   * @return {@link PDF417DetectorRXingResult} encapsulating results of detecting a PDF417 code
    * @throws NotFoundException if no PDF417 Code can be found
    */
-  public static PDF417DetectorResult detect(BinaryBitmap image, Map<DecodeHintType,?> hints, boolean multiple)
+  public static PDF417DetectorRXingResult detect(BinaryBitmap image, Map<DecodeHintType,?> hints, boolean multiple)
       throws NotFoundException {
     // TODO detection improvement, tryHarder could try several different luminance thresholds/blackpoints or even
     // different binarizers
@@ -81,12 +81,12 @@ public final class Detector {
     BitMatrix originalMatrix = image.getBlackMatrix();
     for (int rotation : ROTATIONS) {
       BitMatrix bitMatrix = applyRotation(originalMatrix, rotation);
-      List<ResultPoint[]> barcodeCoordinates = detect(multiple, bitMatrix);
+      List<RXingResultPoint[]> barcodeCoordinates = detect(multiple, bitMatrix);
       if (!barcodeCoordinates.isEmpty()) {
-        return new PDF417DetectorResult(bitMatrix, barcodeCoordinates, rotation);
+        return new PDF417DetectorRXingResult(bitMatrix, barcodeCoordinates, rotation);
       }
     }
-    return new PDF417DetectorResult(originalMatrix, new ArrayList<>(), 0);
+    return new PDF417DetectorRXingResult(originalMatrix, new ArrayList<>(), 0);
   }
 
   /**
@@ -110,15 +110,15 @@ public final class Detector {
    * @param multiple if true, then the image is searched for multiple codes. If false, then at most one code will
    * be found and returned
    * @param bitMatrix bit matrix to detect barcodes in
-   * @return List of ResultPoint arrays containing the coordinates of found barcodes
+   * @return List of RXingResultPoint arrays containing the coordinates of found barcodes
    */
-  private static List<ResultPoint[]> detect(boolean multiple, BitMatrix bitMatrix) {
-    List<ResultPoint[]> barcodeCoordinates = new ArrayList<>();
+  private static List<RXingResultPoint[]> detect(boolean multiple, BitMatrix bitMatrix) {
+    List<RXingResultPoint[]> barcodeCoordinates = new ArrayList<>();
     int row = 0;
     int column = 0;
     boolean foundBarcodeInRow = false;
     while (row < bitMatrix.getHeight()) {
-      ResultPoint[] vertices = findVertices(bitMatrix, row, column);
+      RXingResultPoint[] vertices = findVertices(bitMatrix, row, column);
 
       if (vertices[0] == null && vertices[3] == null) {
         if (!foundBarcodeInRow) {
@@ -129,7 +129,7 @@ public final class Detector {
         // below the lowest barcode we found so far.
         foundBarcodeInRow = false;
         column = 0;
-        for (ResultPoint[] barcodeCoordinate : barcodeCoordinates) {
+        for (RXingResultPoint[] barcodeCoordinate : barcodeCoordinates) {
           if (barcodeCoordinate[1] != null) {
             row = (int) Math.max(row, barcodeCoordinate[1].getY());
           }
@@ -173,36 +173,36 @@ public final class Detector {
    *           vertices[6] x, y top right codeword area
    *           vertices[7] x, y bottom right codeword area
    */
-  private static ResultPoint[] findVertices(BitMatrix matrix, int startRow, int startColumn) {
+  private static RXingResultPoint[] findVertices(BitMatrix matrix, int startRow, int startColumn) {
     int height = matrix.getHeight();
     int width = matrix.getWidth();
 
-    ResultPoint[] result = new ResultPoint[8];
-    copyToResult(result, findRowsWithPattern(matrix, height, width, startRow, startColumn, START_PATTERN),
+    RXingResultPoint[] result = new RXingResultPoint[8];
+    copyToRXingResult(result, findRowsWithPattern(matrix, height, width, startRow, startColumn, START_PATTERN),
         INDEXES_START_PATTERN);
 
     if (result[4] != null) {
       startColumn = (int) result[4].getX();
       startRow = (int) result[4].getY();
     }
-    copyToResult(result, findRowsWithPattern(matrix, height, width, startRow, startColumn, STOP_PATTERN),
+    copyToRXingResult(result, findRowsWithPattern(matrix, height, width, startRow, startColumn, STOP_PATTERN),
         INDEXES_STOP_PATTERN);
     return result;
   }
 
-  private static void copyToResult(ResultPoint[] result, ResultPoint[] tmpResult, int[] destinationIndexes) {
+  private static void copyToRXingResult(RXingResultPoint[] result, RXingResultPoint[] tmpRXingResult, int[] destinationIndexes) {
     for (int i = 0; i < destinationIndexes.length; i++) {
-      result[destinationIndexes[i]] = tmpResult[i];
+      result[destinationIndexes[i]] = tmpRXingResult[i];
     }
   }
 
-  private static ResultPoint[] findRowsWithPattern(BitMatrix matrix,
+  private static RXingResultPoint[] findRowsWithPattern(BitMatrix matrix,
                                                    int height,
                                                    int width,
                                                    int startRow,
                                                    int startColumn,
                                                    int[] pattern) {
-    ResultPoint[] result = new ResultPoint[4];
+    RXingResultPoint[] result = new RXingResultPoint[4];
     boolean found = false;
     int[] counters = new int[pattern.length];
     for (; startRow < height; startRow += ROW_STEP) {
@@ -217,8 +217,8 @@ public final class Detector {
             break;
           }
         }
-        result[0] = new ResultPoint(loc[0], startRow);
-        result[1] = new ResultPoint(loc[1], startRow);
+        result[0] = new RXingResultPoint(loc[0], startRow);
+        result[1] = new RXingResultPoint(loc[1], startRow);
         found = true;
         break;
       }
@@ -248,8 +248,8 @@ public final class Detector {
         }
       }
       stopRow -= skippedRowCount + 1;
-      result[2] = new ResultPoint(previousRowLoc[0], stopRow);
-      result[3] = new ResultPoint(previousRowLoc[1], stopRow);
+      result[2] = new RXingResultPoint(previousRowLoc[0], stopRow);
+      result[3] = new RXingResultPoint(previousRowLoc[1], stopRow);
     }
     if (stopRow - startRow < BARCODE_MIN_HEIGHT) {
       Arrays.fill(result, null);

@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 /**
  * Implements the "MECARD" address book entry format.
@@ -33,10 +33,10 @@ import com.google.zxing.Result;
  *
  * @author Sean Owen
  */
-public final class AddressBookDoCoMoResultParser extends AbstractDoCoMoResultParser {
+public final class AddressBookDoCoMoRXingResultParser extends AbstractDoCoMoRXingResultParser {
 
   @Override
-  public AddressBookParsedResult parse(Result result) {
+  public AddressBookParsedRXingResult parse(RXingResult result) {
     String rawText = getMassagedText(result);
     if (!rawText.startsWith("MECARD:")) {
       return null;
@@ -62,7 +62,7 @@ public final class AddressBookDoCoMoResultParser extends AbstractDoCoMoResultPar
     // honor it when found in the wild.
     String org = matchSingleDoCoMoPrefixedField("ORG:", rawText, true);
 
-    return new AddressBookParsedResult(maybeWrap(name),
+    return new AddressBookParsedRXingResult(maybeWrap(name),
                                        null,
                                        pronunciation,
                                        phoneNumbers,

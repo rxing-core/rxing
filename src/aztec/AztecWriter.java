@@ -62,10 +62,10 @@ public final class AztecWriter implements Writer {
       throw new IllegalArgumentException("Can only encode AZTEC, but got " + format);
     }
     AztecCode aztec = Encoder.encode(contents, eccPercent, layers, charset);
-    return renderResult(aztec, width, height);
+    return renderRXingResult(aztec, width, height);
   }
 
-  private static BitMatrix renderResult(AztecCode code, int width, int height) {
+  private static BitMatrix renderRXingResult(AztecCode code, int width, int height) {
     BitMatrix input = code.getMatrix();
     if (input == null) {
       throw new IllegalStateException();

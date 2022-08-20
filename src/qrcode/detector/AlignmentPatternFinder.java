@@ -17,7 +17,7 @@
 package com.google.zxing.qrcode.detector;
 
 import com.google.zxing.NotFoundException;
-import com.google.zxing.ResultPointCallback;
+import com.google.zxing.RXingResultPointCallback;
 import com.google.zxing.common.BitMatrix;
 
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ final class AlignmentPatternFinder {
   private final int height;
   private final float moduleSize;
   private final int[] crossCheckStateCount;
-  private final ResultPointCallback resultPointCallback;
+  private final RXingResultPointCallback resultPointCallback;
 
   /**
    * <p>Creates a finder that will look in a portion of the whole image.</p>
@@ -65,7 +65,7 @@ final class AlignmentPatternFinder {
                          int width,
                          int height,
                          float moduleSize,
-                         ResultPointCallback resultPointCallback) {
+                         RXingResultPointCallback resultPointCallback) {
     this.image = image;
     this.possibleCenters = new ArrayList<>(5);
     this.startX = startX;
@@ -268,7 +268,7 @@ final class AlignmentPatternFinder {
       AlignmentPattern point = new AlignmentPattern(centerJ, centerI, estimatedModuleSize);
       possibleCenters.add(point);
       if (resultPointCallback != null) {
-        resultPointCallback.foundPossibleResultPoint(point);
+        resultPointCallback.foundPossibleRXingResultPoint(point);
       }
     }
     return null;

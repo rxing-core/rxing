@@ -18,8 +18,8 @@ package com.google.zxing.pdf417.decoder;
 
 import com.google.zxing.FormatException;
 import com.google.zxing.common.ECIStringBuilder;
-import com.google.zxing.common.DecoderResult;
-import com.google.zxing.pdf417.PDF417ResultMetadata;
+import com.google.zxing.common.DecoderRXingResult;
+import com.google.zxing.pdf417.PDF417RXingResultMetadata;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -97,10 +97,10 @@ final class DecodedBitStreamParser {
   private DecodedBitStreamParser() {
   }
 
-  static DecoderResult decode(int[] codewords, String ecLevel) throws FormatException {
+  static DecoderRXingResult decode(int[] codewords, String ecLevel) throws FormatException {
     ECIStringBuilder result = new ECIStringBuilder(codewords.length * 2);
     int codeIndex = textCompaction(codewords, 1, result);
-    PDF417ResultMetadata resultMetadata = new PDF417ResultMetadata();
+    PDF417RXingResultMetadata resultMetadata = new PDF417RXingResultMetadata();
     while (codeIndex < codewords[0]) {
       int code = codewords[codeIndex++];
       switch (code) {
@@ -147,13 +147,13 @@ final class DecodedBitStreamParser {
     if (result.isEmpty() && resultMetadata.getFileId() == null) {
       throw FormatException.getFormatInstance();
     }
-    DecoderResult decoderResult = new DecoderResult(null, result.toString(), null, ecLevel);
-    decoderResult.setOther(resultMetadata);
-    return decoderResult;
+    DecoderRXingResult decoderRXingResult = new DecoderRXingResult(null, result.toString(), null, ecLevel);
+    decoderRXingResult.setOther(resultMetadata);
+    return decoderRXingResult;
   }
 
   @SuppressWarnings("deprecation")
-  static int decodeMacroBlock(int[] codewords, int codeIndex, PDF417ResultMetadata resultMetadata)
+  static int decodeMacroBlock(int[] codewords, int codeIndex, PDF417RXingResultMetadata resultMetadata)
       throws FormatException {
     if (codeIndex + NUMBER_OF_SEQUENCE_CODEWORDS > codewords[0]) {
       // we must have at least two bytes left for the segment index
@@ -681,7 +681,7 @@ final class DecodedBitStreamParser {
        1 x 900 power of 5 + 624 x 900 power of 4 + 434 x 900 power of 3 +
      632 x 900 power of 2 + 282 x 900 power of 1 + 200 x 900 power of 0 = 1000213298174000
 
-     Remove leading 1 =>  Result is 000213298174000
+     Remove leading 1 =>  RXingResult is 000213298174000
    */
   private static String decodeBase900toBase10(int[] codewords, int count) throws FormatException {
     BigInteger result = BigInteger.ZERO;

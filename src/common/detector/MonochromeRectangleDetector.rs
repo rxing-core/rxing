@@ -15,7 +15,7 @@
  */
 
 //package com.google.zxing.common.detector;
-use crate::{NotFoundException,ResultPoint};
+use crate::{NotFoundException,RXingResultPoint};
 use crate::common::BitMatrix;
 
 
@@ -42,13 +42,13 @@ public final class MonochromeRectangleDetector {
    * <p>Detects a rectangular region of black and white -- mostly black -- with a region of mostly
    * white, in an image.</p>
    *
-   * @return {@link ResultPoint}[] describing the corners of the rectangular region. The first and
+   * @return {@link RXingResultPoint}[] describing the corners of the rectangular region. The first and
    *  last points are opposed on the diagonal, as are the second and third. The first point will be
    *  the topmost point and the last, the bottommost. The second point will be leftmost and the
    *  third, the rightmost
    * @throws NotFoundException if no Data Matrix Code can be found
    */
-  public ResultPoint[] detect() throws NotFoundException {
+  public RXingResultPoint[] detect() throws NotFoundException {
     int height = image.getHeight();
     int width = image.getWidth();
     int halfHeight = height / 2;
@@ -60,16 +60,16 @@ public final class MonochromeRectangleDetector {
     int bottom = height;
     int left = 0;
     int right = width;
-    ResultPoint pointA = findCornerFromCenter(halfWidth, 0, left, right,
+    RXingResultPoint pointA = findCornerFromCenter(halfWidth, 0, left, right,
         halfHeight, -deltaY, top, bottom, halfWidth / 2);
     top = (int) pointA.getY() - 1;
-    ResultPoint pointB = findCornerFromCenter(halfWidth, -deltaX, left, right,
+    RXingResultPoint pointB = findCornerFromCenter(halfWidth, -deltaX, left, right,
         halfHeight, 0, top, bottom, halfHeight / 2);
     left = (int) pointB.getX() - 1;
-    ResultPoint pointC = findCornerFromCenter(halfWidth, deltaX, left, right,
+    RXingResultPoint pointC = findCornerFromCenter(halfWidth, deltaX, left, right,
         halfHeight, 0, top, bottom, halfHeight / 2);
     right = (int) pointC.getX() + 1;
-    ResultPoint pointD = findCornerFromCenter(halfWidth, 0, left, right,
+    RXingResultPoint pointD = findCornerFromCenter(halfWidth, 0, left, right,
         halfHeight, deltaY, top, bottom, halfWidth / 2);
     bottom = (int) pointD.getY() + 1;
 
@@ -77,7 +77,7 @@ public final class MonochromeRectangleDetector {
     pointA = findCornerFromCenter(halfWidth, 0, left, right,
         halfHeight, -deltaY, top, bottom, halfWidth / 4);
 
-    return new ResultPoint[] { pointA, pointB, pointC, pointD };
+    return new RXingResultPoint[] { pointA, pointB, pointC, pointD };
   }
 
   /**
@@ -95,10 +95,10 @@ public final class MonochromeRectangleDetector {
    * @param bottom maximum value of y
    * @param maxWhiteRun maximum run of white pixels that can still be considered to be within
    *  the barcode
-   * @return a {@link ResultPoint} encapsulating the corner that was found
+   * @return a {@link RXingResultPoint} encapsulating the corner that was found
    * @throws NotFoundException if such a point cannot be found
    */
-  private ResultPoint findCornerFromCenter(int centerX,
+  private RXingResultPoint findCornerFromCenter(int centerX,
                                            int deltaX,
                                            int left,
                                            int right,
@@ -129,21 +129,21 @@ public final class MonochromeRectangleDetector {
           if (lastRange[0] < centerX) {
             if (lastRange[1] > centerX) {
               // straddle, choose one or the other based on direction
-              return new ResultPoint(lastRange[deltaY > 0 ? 0 : 1], lastY);
+              return new RXingResultPoint(lastRange[deltaY > 0 ? 0 : 1], lastY);
             }
-            return new ResultPoint(lastRange[0], lastY);
+            return new RXingResultPoint(lastRange[0], lastY);
           } else {
-            return new ResultPoint(lastRange[1], lastY);
+            return new RXingResultPoint(lastRange[1], lastY);
           }
         } else {
           int lastX = x - deltaX;
           if (lastRange[0] < centerY) {
             if (lastRange[1] > centerY) {
-              return new ResultPoint(lastX, lastRange[deltaX < 0 ? 0 : 1]);
+              return new RXingResultPoint(lastX, lastRange[deltaX < 0 ? 0 : 1]);
             }
-            return new ResultPoint(lastX, lastRange[0]);
+            return new RXingResultPoint(lastX, lastRange[0]);
           } else {
-            return new ResultPoint(lastX, lastRange[1]);
+            return new RXingResultPoint(lastX, lastRange[1]);
           }
         }
       }

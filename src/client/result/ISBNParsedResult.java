@@ -21,12 +21,12 @@ package com.google.zxing.client.result;
  *
  * @author jbreiden@google.com (Jeff Breidenbach)
  */
-public final class ISBNParsedResult extends ParsedResult {
+public final class ISBNParsedRXingResult extends ParsedRXingResult {
 
   private final String isbn;
 
-  ISBNParsedResult(String isbn) {
-    super(ParsedResultType.ISBN);
+  ISBNParsedRXingResult(String isbn) {
+    super(ParsedRXingResultType.ISBN);
     this.isbn = isbn;
   }
 
@@ -35,7 +35,7 @@ public final class ISBNParsedResult extends ParsedResult {
   }
 
   @Override
-  public String getDisplayResult() {
+  public String getDisplayRXingResult() {
     return isbn;
   }
 

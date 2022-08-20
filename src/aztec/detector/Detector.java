@@ -17,8 +17,8 @@
 package com.google.zxing.aztec.detector;
 
 import com.google.zxing.NotFoundException;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.aztec.AztecDetectorResult;
+import com.google.zxing.RXingResultPoint;
+import com.google.zxing.aztec.AztecDetectorRXingResult;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.GridSampler;
 import com.google.zxing.common.detector.MathUtils;
@@ -55,7 +55,7 @@ public final class Detector {
     this.image = image;
   }
 
-  public AztecDetectorResult detect() throws NotFoundException {
+  public AztecDetectorRXingResult detect() throws NotFoundException {
     return detect(false);
   }
 
@@ -63,20 +63,20 @@ public final class Detector {
    * Detects an Aztec Code in an image.
    *
    * @param isMirror if true, image is a mirror-image of original
-   * @return {@link AztecDetectorResult} encapsulating results of detecting an Aztec Code
+   * @return {@link AztecDetectorRXingResult} encapsulating results of detecting an Aztec Code
    * @throws NotFoundException if no Aztec Code can be found
    */
-  public AztecDetectorResult detect(boolean isMirror) throws NotFoundException {
+  public AztecDetectorRXingResult detect(boolean isMirror) throws NotFoundException {
 
     // 1. Get the center of the aztec matrix
     Point pCenter = getMatrixCenter();
 
     // 2. Get the center points of the four diagonal points just outside the bull's eye
     //  [topRight, bottomRight, bottomLeft, topLeft]
-    ResultPoint[] bullsEyeCorners = getBullsEyeCorners(pCenter);
+    RXingResultPoint[] bullsEyeCorners = getBullsEyeCorners(pCenter);
 
     if (isMirror) {
-      ResultPoint temp = bullsEyeCorners[0];
+      RXingResultPoint temp = bullsEyeCorners[0];
       bullsEyeCorners[0] = bullsEyeCorners[2];
       bullsEyeCorners[2] = temp;
     }
@@ -92,9 +92,9 @@ public final class Detector {
                                 bullsEyeCorners[(shift + 3) % 4]);
 
     // 5. Get the corners of the matrix.
-    ResultPoint[] corners = getMatrixCornerPoints(bullsEyeCorners);
+    RXingResultPoint[] corners = getMatrixCornerPoints(bullsEyeCorners);
 
-    return new AztecDetectorResult(bits, corners, compact, nbDataBlocks, nbLayers);
+    return new AztecDetectorRXingResult(bits, corners, compact, nbDataBlocks, nbLayers);
   }
 
   /**
@@ -103,7 +103,7 @@ public final class Detector {
    * @param bullsEyeCorners the array of bull's eye corners
    * @throws NotFoundException in case of too many errors or invalid parameters
    */
-  private void extractParameters(ResultPoint[] bullsEyeCorners) throws NotFoundException {
+  private void extractParameters(RXingResultPoint[] bullsEyeCorners) throws NotFoundException {
     if (!isValid(bullsEyeCorners[0]) || !isValid(bullsEyeCorners[1]) ||
         !isValid(bullsEyeCorners[2]) || !isValid(bullsEyeCorners[3])) {
       throw NotFoundException.getNotFoundInstance();
@@ -232,7 +232,7 @@ public final class Detector {
    * @return The corners of the bull-eye
    * @throws NotFoundException If no valid bull-eye can be found
    */
-  private ResultPoint[] getBullsEyeCorners(Point pCenter) throws NotFoundException {
+  private RXingResultPoint[] getBullsEyeCorners(Point pCenter) throws NotFoundException {
 
     Point pina = pCenter;
     Point pinb = pCenter;
@@ -274,14 +274,14 @@ public final class Detector {
 
     // Expand the square by .5 pixel in each direction so that we're on the border
     // between the white square and the black square
-    ResultPoint pinax = new ResultPoint(pina.getX() + 0.5f, pina.getY() - 0.5f);
-    ResultPoint pinbx = new ResultPoint(pinb.getX() + 0.5f, pinb.getY() + 0.5f);
-    ResultPoint pincx = new ResultPoint(pinc.getX() - 0.5f, pinc.getY() + 0.5f);
-    ResultPoint pindx = new ResultPoint(pind.getX() - 0.5f, pind.getY() - 0.5f);
+    RXingResultPoint pinax = new RXingResultPoint(pina.getX() + 0.5f, pina.getY() - 0.5f);
+    RXingResultPoint pinbx = new RXingResultPoint(pinb.getX() + 0.5f, pinb.getY() + 0.5f);
+    RXingResultPoint pincx = new RXingResultPoint(pinc.getX() - 0.5f, pinc.getY() + 0.5f);
+    RXingResultPoint pindx = new RXingResultPoint(pind.getX() - 0.5f, pind.getY() - 0.5f);
 
     // Expand the square so that its corners are the centers of the points
     // just outside the bull's eye.
-    return expandSquare(new ResultPoint[]{pinax, pinbx, pincx, pindx},
+    return expandSquare(new RXingResultPoint[]{pinax, pinbx, pincx, pindx},
                         2 * nbCenterLayers - 3,
                         2 * nbCenterLayers);
   }
@@ -293,15 +293,15 @@ public final class Detector {
    */
   private Point getMatrixCenter() {
 
-    ResultPoint pointA;
-    ResultPoint pointB;
-    ResultPoint pointC;
-    ResultPoint pointD;
+    RXingResultPoint pointA;
+    RXingResultPoint pointB;
+    RXingResultPoint pointC;
+    RXingResultPoint pointD;
 
     //Get a white rectangle that can be the border of the matrix in center bull's eye or
     try {
 
-      ResultPoint[] cornerPoints = new WhiteRectangleDetector(image).detect();
+      RXingResultPoint[] cornerPoints = new WhiteRectangleDetector(image).detect();
       pointA = cornerPoints[0];
       pointB = cornerPoints[1];
       pointC = cornerPoints[2];
@@ -313,10 +313,10 @@ public final class Detector {
       // In that case, surely in the bull's eye, we try to expand the rectangle.
       int cx = image.getWidth() / 2;
       int cy = image.getHeight() / 2;
-      pointA = getFirstDifferent(new Point(cx + 7, cy - 7), false, 1, -1).toResultPoint();
-      pointB = getFirstDifferent(new Point(cx + 7, cy + 7), false, 1, 1).toResultPoint();
-      pointC = getFirstDifferent(new Point(cx - 7, cy + 7), false, -1, 1).toResultPoint();
-      pointD = getFirstDifferent(new Point(cx - 7, cy - 7), false, -1, -1).toResultPoint();
+      pointA = getFirstDifferent(new Point(cx + 7, cy - 7), false, 1, -1).toRXingResultPoint();
+      pointB = getFirstDifferent(new Point(cx + 7, cy + 7), false, 1, 1).toRXingResultPoint();
+      pointC = getFirstDifferent(new Point(cx - 7, cy + 7), false, -1, 1).toRXingResultPoint();
+      pointD = getFirstDifferent(new Point(cx - 7, cy - 7), false, -1, -1).toRXingResultPoint();
 
     }
 
@@ -328,7 +328,7 @@ public final class Detector {
     // This will ensure that we end up with a white rectangle in center bull's eye
     // in order to compute a more accurate center.
     try {
-      ResultPoint[] cornerPoints = new WhiteRectangleDetector(image, 15, cx, cy).detect();
+      RXingResultPoint[] cornerPoints = new WhiteRectangleDetector(image, 15, cx, cy).detect();
       pointA = cornerPoints[0];
       pointB = cornerPoints[1];
       pointC = cornerPoints[2];
@@ -336,10 +336,10 @@ public final class Detector {
     } catch (NotFoundException e) {
       // This exception can be in case the initial rectangle is white
       // In that case we try to expand the rectangle.
-      pointA = getFirstDifferent(new Point(cx + 7, cy - 7), false, 1, -1).toResultPoint();
-      pointB = getFirstDifferent(new Point(cx + 7, cy + 7), false, 1, 1).toResultPoint();
-      pointC = getFirstDifferent(new Point(cx - 7, cy + 7), false, -1, 1).toResultPoint();
-      pointD = getFirstDifferent(new Point(cx - 7, cy - 7), false, -1, -1).toResultPoint();
+      pointA = getFirstDifferent(new Point(cx + 7, cy - 7), false, 1, -1).toRXingResultPoint();
+      pointB = getFirstDifferent(new Point(cx + 7, cy + 7), false, 1, 1).toRXingResultPoint();
+      pointC = getFirstDifferent(new Point(cx - 7, cy + 7), false, -1, 1).toRXingResultPoint();
+      pointD = getFirstDifferent(new Point(cx - 7, cy - 7), false, -1, -1).toRXingResultPoint();
     }
 
     // Recompute the center of the rectangle
@@ -355,7 +355,7 @@ public final class Detector {
    * @param bullsEyeCorners the array of bull's eye corners
    * @return the array of aztec code corners
    */
-  private ResultPoint[] getMatrixCornerPoints(ResultPoint[] bullsEyeCorners) {
+  private RXingResultPoint[] getMatrixCornerPoints(RXingResultPoint[] bullsEyeCorners) {
     return expandSquare(bullsEyeCorners, 2 * nbCenterLayers, getDimension());
   }
 
@@ -365,10 +365,10 @@ public final class Detector {
    * diagonal just outside the bull's eye.
    */
   private BitMatrix sampleGrid(BitMatrix image,
-                               ResultPoint topLeft,
-                               ResultPoint topRight,
-                               ResultPoint bottomRight,
-                               ResultPoint bottomLeft) throws NotFoundException {
+                               RXingResultPoint topLeft,
+                               RXingResultPoint topRight,
+                               RXingResultPoint bottomRight,
+                               RXingResultPoint bottomLeft) throws NotFoundException {
 
     GridSampler sampler = GridSampler.getInstance();
     int dimension = getDimension();
@@ -397,7 +397,7 @@ public final class Detector {
    * @param size number of bits
    * @return the array of bits as an int (first bit is high-order bit of result)
    */
-  private int sampleLine(ResultPoint p1, ResultPoint p2, int size) {
+  private int sampleLine(RXingResultPoint p1, RXingResultPoint p2, int size) {
     int result = 0;
 
     float d = distance(p1, p2);
@@ -529,31 +529,31 @@ public final class Detector {
    * @param newSide the new length of the size of the square in the target bit matrix
    * @return the corners of the expanded square
    */
-  private static ResultPoint[] expandSquare(ResultPoint[] cornerPoints, int oldSide, int newSide) {
+  private static RXingResultPoint[] expandSquare(RXingResultPoint[] cornerPoints, int oldSide, int newSide) {
     float ratio = newSide / (2.0f * oldSide);
     float dx = cornerPoints[0].getX() - cornerPoints[2].getX();
     float dy = cornerPoints[0].getY() - cornerPoints[2].getY();
     float centerx = (cornerPoints[0].getX() + cornerPoints[2].getX()) / 2.0f;
     float centery = (cornerPoints[0].getY() + cornerPoints[2].getY()) / 2.0f;
 
-    ResultPoint result0 = new ResultPoint(centerx + ratio * dx, centery + ratio * dy);
-    ResultPoint result2 = new ResultPoint(centerx - ratio * dx, centery - ratio * dy);
+    RXingResultPoint result0 = new RXingResultPoint(centerx + ratio * dx, centery + ratio * dy);
+    RXingResultPoint result2 = new RXingResultPoint(centerx - ratio * dx, centery - ratio * dy);
 
     dx = cornerPoints[1].getX() - cornerPoints[3].getX();
     dy = cornerPoints[1].getY() - cornerPoints[3].getY();
     centerx = (cornerPoints[1].getX() + cornerPoints[3].getX()) / 2.0f;
     centery = (cornerPoints[1].getY() + cornerPoints[3].getY()) / 2.0f;
-    ResultPoint result1 = new ResultPoint(centerx + ratio * dx, centery + ratio * dy);
-    ResultPoint result3 = new ResultPoint(centerx - ratio * dx, centery - ratio * dy);
+    RXingResultPoint result1 = new RXingResultPoint(centerx + ratio * dx, centery + ratio * dy);
+    RXingResultPoint result3 = new RXingResultPoint(centerx - ratio * dx, centery - ratio * dy);
 
-    return new ResultPoint[]{result0, result1, result2, result3};
+    return new RXingResultPoint[]{result0, result1, result2, result3};
   }
 
   private boolean isValid(int x, int y) {
     return x >= 0 && x < image.getWidth() && y >= 0 && y < image.getHeight();
   }
 
-  private boolean isValid(ResultPoint point) {
+  private boolean isValid(RXingResultPoint point) {
     int x = MathUtils.round(point.getX());
     int y = MathUtils.round(point.getY());
     return isValid(x, y);
@@ -563,7 +563,7 @@ public final class Detector {
     return MathUtils.distance(a.getX(), a.getY(), b.getX(), b.getY());
   }
 
-  private static float distance(ResultPoint a, ResultPoint b) {
+  private static float distance(RXingResultPoint a, RXingResultPoint b) {
     return MathUtils.distance(a.getX(), a.getY(), b.getX(), b.getY());
   }
 
@@ -578,8 +578,8 @@ public final class Detector {
     private final int x;
     private final int y;
 
-    ResultPoint toResultPoint() {
-      return new ResultPoint(x, y);
+    RXingResultPoint toRXingResultPoint() {
+      return new RXingResultPoint(x, y);
     }
 
     Point(int x, int y) {

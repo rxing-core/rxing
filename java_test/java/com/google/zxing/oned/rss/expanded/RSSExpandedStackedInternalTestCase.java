@@ -34,7 +34,7 @@ import org.junit.Test;
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import com.google.zxing.common.BitArray;
 
 /**
@@ -71,7 +71,7 @@ public final class RSSExpandedStackedInternalTestCase extends Assert {
 
     List<ExpandedPair> totalPairs = rssExpandedReader.decodeRow2pairs(secondRowNumber, secondRow);
 
-    Result result = RSSExpandedReader.constructResult(totalPairs);
+    RXingResult result = RSSExpandedReader.constructRXingResult(totalPairs);
     assertEquals("(01)98898765432106(3202)012345(15)991231", result.getText());
   }
 
@@ -81,7 +81,7 @@ public final class RSSExpandedStackedInternalTestCase extends Assert {
 
     BinaryBitmap binaryMap = TestCaseUtil.getBinaryBitmap("src/test/resources/blackbox/rssexpandedstacked-2/1000.png");
 
-    Result result = rssExpandedReader.decode(binaryMap);
+    RXingResult result = rssExpandedReader.decode(binaryMap);
     assertEquals("(01)98898765432106(3202)012345(15)991231", result.getText());
   }
 

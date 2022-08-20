@@ -24,12 +24,12 @@ import com.google.zxing.common.detector.MathUtils;
  *
  * @author Sean Owen
  */
-public class ResultPoint {
+public class RXingResultPoint {
 
   private final float x;
   private final float y;
 
-  public ResultPoint(float x, float y) {
+  public RXingResultPoint(float x, float y) {
     this.x = x;
     this.y = y;
   }
@@ -44,8 +44,8 @@ public class ResultPoint {
 
   @Override
   public final boolean equals(Object other) {
-    if (other instanceof ResultPoint) {
-      ResultPoint otherPoint = (ResultPoint) other;
+    if (other instanceof RXingResultPoint) {
+      RXingResultPoint otherPoint = (RXingResultPoint) other;
       return x == otherPoint.x && y == otherPoint.y;
     }
     return false;
@@ -62,21 +62,21 @@ public class ResultPoint {
   }
 
   /**
-   * Orders an array of three ResultPoints in an order [A,B,C] such that AB is less than AC
+   * Orders an array of three RXingResultPoints in an order [A,B,C] such that AB is less than AC
    * and BC is less than AC, and the angle between BC and BA is less than 180 degrees.
    *
-   * @param patterns array of three {@code ResultPoint} to order
+   * @param patterns array of three {@code RXingResultPoint} to order
    */
-  public static void orderBestPatterns(ResultPoint[] patterns) {
+  public static void orderBestPatterns(RXingResultPoint[] patterns) {
 
     // Find distances between pattern centers
     float zeroOneDistance = distance(patterns[0], patterns[1]);
     float oneTwoDistance = distance(patterns[1], patterns[2]);
     float zeroTwoDistance = distance(patterns[0], patterns[2]);
 
-    ResultPoint pointA;
-    ResultPoint pointB;
-    ResultPoint pointC;
+    RXingResultPoint pointA;
+    RXingResultPoint pointB;
+    RXingResultPoint pointC;
     // Assume one closest to other two is B; A and C will just be guesses at first
     if (oneTwoDistance >= zeroOneDistance && oneTwoDistance >= zeroTwoDistance) {
       pointB = patterns[0];
@@ -97,7 +97,7 @@ public class ResultPoint {
     // we want for A, B, C. If it's negative, then we've got it flipped around and
     // should swap A and C.
     if (crossProductZ(pointA, pointB, pointC) < 0.0f) {
-      ResultPoint temp = pointA;
+      RXingResultPoint temp = pointA;
       pointA = pointC;
       pointC = temp;
     }
@@ -112,16 +112,16 @@ public class ResultPoint {
    * @param pattern2 second pattern
    * @return distance between two points
    */
-  public static float distance(ResultPoint pattern1, ResultPoint pattern2) {
+  public static float distance(RXingResultPoint pattern1, RXingResultPoint pattern2) {
     return MathUtils.distance(pattern1.x, pattern1.y, pattern2.x, pattern2.y);
   }
 
   /**
    * Returns the z component of the cross product between vectors BC and BA.
    */
-  private static float crossProductZ(ResultPoint pointA,
-                                     ResultPoint pointB,
-                                     ResultPoint pointC) {
+  private static float crossProductZ(RXingResultPoint pointA,
+                                     RXingResultPoint pointB,
+                                     RXingResultPoint pointC) {
     float bX = pointB.x;
     float bY = pointB.y;
     return ((pointC.x - bX) * (pointA.y - bY)) - ((pointC.y - bY) * (pointA.x - bX));

@@ -23,9 +23,9 @@ import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.Reader;
 import com.google.zxing.ReaderException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitArray;
 
 import java.util.Arrays;
@@ -42,13 +42,13 @@ import java.util.Map;
 public abstract class OneDReader implements Reader {
 
   @Override
-  public Result decode(BinaryBitmap image) throws NotFoundException, FormatException {
+  public RXingResult decode(BinaryBitmap image) throws NotFoundException, FormatException {
     return decode(image, null);
   }
 
   // Note that we don't try rotation without the try harder flag, even if rotation was supported.
   @Override
-  public Result decode(BinaryBitmap image,
+  public RXingResult decode(BinaryBitmap image,
                        Map<DecodeHintType,?> hints) throws NotFoundException, FormatException {
     try {
       return doDecode(image, hints);
@@ -56,22 +56,22 @@ public abstract class OneDReader implements Reader {
       boolean tryHarder = hints != null && hints.containsKey(DecodeHintType.TRY_HARDER);
       if (tryHarder && image.isRotateSupported()) {
         BinaryBitmap rotatedImage = image.rotateCounterClockwise();
-        Result result = doDecode(rotatedImage, hints);
+        RXingResult result = doDecode(rotatedImage, hints);
         // Record that we found it rotated 90 degrees CCW / 270 degrees CW
-        Map<ResultMetadataType,?> metadata = result.getResultMetadata();
+        Map<RXingResultMetadataType,?> metadata = result.getRXingResultMetadata();
         int orientation = 270;
-        if (metadata != null && metadata.containsKey(ResultMetadataType.ORIENTATION)) {
+        if (metadata != null && metadata.containsKey(RXingResultMetadataType.ORIENTATION)) {
           // But if we found it reversed in doDecode(), add in that result here:
           orientation = (orientation +
-              (Integer) metadata.get(ResultMetadataType.ORIENTATION)) % 360;
+              (Integer) metadata.get(RXingResultMetadataType.ORIENTATION)) % 360;
         }
-        result.putMetadata(ResultMetadataType.ORIENTATION, orientation);
+        result.putMetadata(RXingResultMetadataType.ORIENTATION, orientation);
         // Update result points
-        ResultPoint[] points = result.getResultPoints();
+        RXingResultPoint[] points = result.getRXingResultPoints();
         if (points != null) {
           int height = rotatedImage.getHeight();
           for (int i = 0; i < points.length; i++) {
-            points[i] = new ResultPoint(height - points[i].getY() - 1, points[i].getX());
+            points[i] = new RXingResultPoint(height - points[i].getY() - 1, points[i].getX());
           }
         }
         return result;
@@ -100,7 +100,7 @@ public abstract class OneDReader implements Reader {
    * @return The contents of the decoded barcode
    * @throws NotFoundException Any spontaneous errors which occur
    */
-  private Result doDecode(BinaryBitmap image,
+  private RXingResult doDecode(BinaryBitmap image,
                           Map<DecodeHintType,?> hints) throws NotFoundException {
     int width = image.getWidth();
     int height = image.getHeight();
@@ -152,16 +152,16 @@ public abstract class OneDReader implements Reader {
         }
         try {
           // Look for a barcode
-          Result result = decodeRow(rowNumber, row, hints);
+          RXingResult result = decodeRow(rowNumber, row, hints);
           // We found our barcode
           if (attempt == 1) {
             // But it was upside down, so note that
-            result.putMetadata(ResultMetadataType.ORIENTATION, 180);
+            result.putMetadata(RXingResultMetadataType.ORIENTATION, 180);
             // And remember to flip the result points horizontally.
-            ResultPoint[] points = result.getResultPoints();
+            RXingResultPoint[] points = result.getRXingResultPoints();
             if (points != null) {
-              points[0] = new ResultPoint(width - points[0].getX() - 1, points[0].getY());
-              points[1] = new ResultPoint(width - points[1].getX() - 1, points[1].getY());
+              points[0] = new RXingResultPoint(width - points[0].getX() - 1, points[0].getY());
+              points[1] = new RXingResultPoint(width - points[1].getX() - 1, points[1].getY());
             }
           }
           return result;
@@ -285,12 +285,12 @@ public abstract class OneDReader implements Reader {
    * @param rowNumber row number from top of the row
    * @param row the black/white pixel data of the row
    * @param hints decode hints
-   * @return {@link Result} containing encoded string and start/end of barcode
+   * @return {@link RXingResult} containing encoded string and start/end of barcode
    * @throws NotFoundException if no potential barcode is found
    * @throws ChecksumException if a potential barcode is found but does not pass its checksum
    * @throws FormatException if a potential barcode is found but format is invalid
    */
-  public abstract Result decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints)
+  public abstract RXingResult decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints)
       throws NotFoundException, ChecksumException, FormatException;
 
 }

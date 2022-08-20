@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
  * 
  * @author Sean Owen
  */
-public final class URIResultParser extends ResultParser {
+public final class URIRXingResultParser extends RXingResultParser {
 
   private static final Pattern ALLOWED_URI_CHARS_PATTERN =
       Pattern.compile("[-._~:/?#\\[\\]@!$&'()*+,;=%A-Za-z0-9]+");
@@ -39,18 +39,18 @@ public final class URIResultParser extends ResultParser {
       "(/|\\?|$)"); // query, path or nothing
 
   @Override
-  public URIParsedResult parse(Result result) {
+  public URIParsedRXingResult parse(RXingResult result) {
     String rawText = getMassagedText(result);
     // We specifically handle the odd "URL" scheme here for simplicity and add "URI" for fun
     // Assume anything starting this way really means to be a URI
     if (rawText.startsWith("URL:") || rawText.startsWith("URI:")) {
-      return new URIParsedResult(rawText.substring(4).trim(), null);
+      return new URIParsedRXingResult(rawText.substring(4).trim(), null);
     }
     rawText = rawText.trim();
     if (!isBasicallyValidURI(rawText) || isPossiblyMaliciousURI(rawText)) {
       return null;
     }
-    return new URIParsedResult(rawText, null);
+    return new URIParsedRXingResult(rawText, null);
   }
 
   /**

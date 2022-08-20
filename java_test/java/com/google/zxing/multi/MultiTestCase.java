@@ -25,7 +25,7 @@ import com.google.zxing.BinaryBitmap;
 import com.google.zxing.BufferedImageLuminanceSource;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.MultiFormatReader;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import com.google.zxing.common.AbstractBlackBoxTestCase;
 import com.google.zxing.common.HybridBinarizer;
 import org.junit.Assert;
@@ -47,7 +47,7 @@ public final class MultiTestCase extends Assert {
     BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
 
     MultipleBarcodeReader reader = new GenericMultipleBarcodeReader(new MultiFormatReader());
-    Result[] results = reader.decodeMultiple(bitmap);
+    RXingResult[] results = reader.decodeMultiple(bitmap);
     assertNotNull(results);
     assertEquals(2, results.length);
 

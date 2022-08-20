@@ -21,7 +21,7 @@ import com.google.zxing.DecodeHintType;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.Reader;
 import com.google.zxing.ReaderException;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import com.google.zxing.common.BitArray;
 
 import java.util.ArrayList;
@@ -69,14 +69,14 @@ public final class MultiFormatUPCEANReader extends OneDReader {
   }
 
   @Override
-  public Result decodeRow(int rowNumber,
+  public RXingResult decodeRow(int rowNumber,
                           BitArray row,
                           Map<DecodeHintType,?> hints) throws NotFoundException {
     // Compute this location once and reuse it on multiple implementations
     int[] startGuardPattern = UPCEANReader.findStartGuardPattern(row);
     for (UPCEANReader reader : readers) {
       try {
-        Result result = reader.decodeRow(rowNumber, row, startGuardPattern, hints);
+        RXingResult result = reader.decodeRow(rowNumber, row, startGuardPattern, hints);
         // Special case: a 12-digit code encoded in UPC-A is identical to a "0"
         // followed by those 12 digits encoded as EAN-13. Each will recognize such a code,
         // UPC-A as a 12-digit string and EAN-13 as a 13-digit string starting with "0".
@@ -99,11 +99,11 @@ public final class MultiFormatUPCEANReader extends OneDReader {
   
         if (ean13MayBeUPCA && canReturnUPCA) {
           // Transfer the metadata across
-          Result resultUPCA = new Result(result.getText().substring(1),
+          RXingResult resultUPCA = new RXingResult(result.getText().substring(1),
                                          result.getRawBytes(),
-                                         result.getResultPoints(),
+                                         result.getRXingResultPoints(),
                                          BarcodeFormat.UPC_A);
-          resultUPCA.putAllMetadata(result.getResultMetadata());
+          resultUPCA.putAllMetadata(result.getRXingResultMetadata());
           return resultUPCA;
         }
         return result;

@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,10 +29,10 @@ import java.util.List;
  *
  * @author Sean Owen
  */
-public final class AddressBookAUResultParser extends ResultParser {
+public final class AddressBookAURXingResultParser extends RXingResultParser {
 
   @Override
-  public AddressBookParsedResult parse(Result result) {
+  public AddressBookParsedRXingResult parse(RXingResult result) {
     String rawText = getMassagedText(result);
     // MEMORY is mandatory; seems like a decent indicator, as does end-of-record separator CR/LF
     if (!rawText.contains("MEMORY") || !rawText.contains("\r\n")) {
@@ -49,7 +49,7 @@ public final class AddressBookAUResultParser extends ResultParser {
     String note = matchSinglePrefixedField("MEMORY:", rawText, '\r', false);
     String address = matchSinglePrefixedField("ADD:", rawText, '\r', true);
     String[] addresses = address == null ? null : new String[] {address};
-    return new AddressBookParsedResult(maybeWrap(name),
+    return new AddressBookParsedRXingResult(maybeWrap(name),
                                        null,
                                        pronunciation,
                                        phoneNumbers,

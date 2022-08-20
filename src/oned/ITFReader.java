@@ -20,9 +20,9 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
 import com.google.zxing.common.BitArray;
 
 import java.util.Map;
@@ -99,7 +99,7 @@ public final class ITFReader extends OneDReader {
   };
 
   @Override
-  public Result decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints)
+  public RXingResult decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints)
       throws FormatException, NotFoundException {
 
     // Find out where the Middle section (payload) starts & ends
@@ -140,13 +140,13 @@ public final class ITFReader extends OneDReader {
       throw FormatException.getFormatInstance();
     }
 
-    Result resultObject = new Result(
+    RXingResult resultObject = new RXingResult(
         resultString,
         null, // no natural byte representation for these barcodes
-        new ResultPoint[] {new ResultPoint(startRange[1], rowNumber),
-                           new ResultPoint(endRange[0], rowNumber)},
+        new RXingResultPoint[] {new RXingResultPoint(startRange[1], rowNumber),
+                           new RXingResultPoint(endRange[0], rowNumber)},
         BarcodeFormat.ITF);
-    resultObject.putMetadata(ResultMetadataType.SYMBOLOGY_IDENTIFIER, "]I0");
+    resultObject.putMetadata(RXingResultMetadataType.SYMBOLOGY_IDENTIFIER, "]I0");
     return resultObject;
   }
 

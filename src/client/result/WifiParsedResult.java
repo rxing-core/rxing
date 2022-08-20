@@ -21,7 +21,7 @@ package com.google.zxing.client.result;
  *
  * @author Vikram Aggarwal
  */
-public final class WifiParsedResult extends ParsedResult {
+public final class WifiParsedRXingResult extends ParsedRXingResult {
 
   private final String ssid;
   private final String networkEncryption;
@@ -32,15 +32,15 @@ public final class WifiParsedResult extends ParsedResult {
   private final String eapMethod;
   private final String phase2Method;
 
-  public WifiParsedResult(String networkEncryption, String ssid, String password) {
+  public WifiParsedRXingResult(String networkEncryption, String ssid, String password) {
     this(networkEncryption, ssid, password, false);
   }
 
-  public WifiParsedResult(String networkEncryption, String ssid, String password, boolean hidden) {
+  public WifiParsedRXingResult(String networkEncryption, String ssid, String password, boolean hidden) {
     this(networkEncryption, ssid, password, hidden, null, null, null, null);
   }
 
-  public WifiParsedResult(String networkEncryption,
+  public WifiParsedRXingResult(String networkEncryption,
                           String ssid,
                           String password,
                           boolean hidden,
@@ -48,7 +48,7 @@ public final class WifiParsedResult extends ParsedResult {
                           String anonymousIdentity,
                           String eapMethod,
                           String phase2Method) {
-    super(ParsedResultType.WIFI);
+    super(ParsedRXingResultType.WIFI);
     this.ssid = ssid;
     this.networkEncryption = networkEncryption;
     this.password = password;
@@ -92,7 +92,7 @@ public final class WifiParsedResult extends ParsedResult {
   }
 
   @Override
-  public String getDisplayResult() {
+  public String getDisplayRXingResult() {
     StringBuilder result = new StringBuilder(80);
     maybeAppend(ssid, result);
     maybeAppend(networkEncryption, result);

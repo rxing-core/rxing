@@ -19,13 +19,13 @@ package com.google.zxing.aztec.encoder;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.FormatException;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.aztec.AztecDetectorResult;
+import com.google.zxing.RXingResultPoint;
+import com.google.zxing.aztec.AztecDetectorRXingResult;
 import com.google.zxing.aztec.AztecWriter;
 import com.google.zxing.aztec.decoder.Decoder;
 import com.google.zxing.common.BitArray;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderResult;
+import com.google.zxing.common.DecoderRXingResult;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -52,7 +52,7 @@ public final class EncoderTest extends Assert {
 
   private static final Pattern DOTX = Pattern.compile("[^.X]");
   private static final Pattern SPACES = Pattern.compile("\\s+");
-  private static final ResultPoint[] NO_POINTS = new ResultPoint[0];
+  private static final RXingResultPoint[] NO_POINTS = new RXingResultPoint[0];
 
   // real life tests
 
@@ -492,9 +492,9 @@ public final class EncoderTest extends Assert {
     assertEquals("Unexpected symbol format (compact)", compact, aztec.isCompact());
     assertEquals("Unexpected nr. of layers", layers, aztec.getLayers());
     BitMatrix matrix = aztec.getMatrix();
-    AztecDetectorResult r =
-        new AztecDetectorResult(matrix, NO_POINTS, aztec.isCompact(), aztec.getCodeWords(), aztec.getLayers());
-    DecoderResult res = new Decoder().decode(r);
+    AztecDetectorRXingResult r =
+        new AztecDetectorRXingResult(matrix, NO_POINTS, aztec.isCompact(), aztec.getCodeWords(), aztec.getLayers());
+    DecoderRXingResult res = new Decoder().decode(r);
     assertEquals(data, res.getText());
     // Check error correction by introducing a few minor errors
     Random random = getPseudoRandom();
@@ -502,7 +502,7 @@ public final class EncoderTest extends Assert {
     matrix.flip(random.nextInt(matrix.getWidth()), matrix.getHeight() - 2 + random.nextInt(2));
     matrix.flip(random.nextInt(2), random.nextInt(matrix.getHeight()));
     matrix.flip(matrix.getWidth() - 2 + random.nextInt(2), random.nextInt(matrix.getHeight()));
-    r = new AztecDetectorResult(matrix, NO_POINTS, aztec.isCompact(), aztec.getCodeWords(), aztec.getLayers());
+    r = new AztecDetectorRXingResult(matrix, NO_POINTS, aztec.isCompact(), aztec.getCodeWords(), aztec.getLayers());
     res = new Decoder().decode(r);
     assertEquals(data, res.getText());
   }
@@ -526,9 +526,9 @@ public final class EncoderTest extends Assert {
     assertEquals("Unexpected nr. of layers", layers, aztec.getLayers());
     BitMatrix matrix2 = aztec.getMatrix();
     assertEquals(matrix, matrix2);
-    AztecDetectorResult r =
-        new AztecDetectorResult(matrix, NO_POINTS, aztec.isCompact(), aztec.getCodeWords(), aztec.getLayers());
-    DecoderResult res = new Decoder().decode(r);
+    AztecDetectorRXingResult r =
+        new AztecDetectorRXingResult(matrix, NO_POINTS, aztec.isCompact(), aztec.getCodeWords(), aztec.getLayers());
+    DecoderRXingResult res = new Decoder().decode(r);
     assertEquals(data, res.getText());
     // Check error correction by introducing up to eccPercent/2 errors
     int ecWords = aztec.getCodeWords() * eccPercent / 100 / 2;
@@ -543,7 +543,7 @@ public final class EncoderTest extends Assert {
                 : matrix.getHeight() - 1 - random.nextInt(aztec.getLayers() * 2);
       matrix.flip(x, y);
     }
-    r = new AztecDetectorResult(matrix, NO_POINTS, aztec.isCompact(), aztec.getCodeWords(), aztec.getLayers());
+    r = new AztecDetectorRXingResult(matrix, NO_POINTS, aztec.isCompact(), aztec.getCodeWords(), aztec.getLayers());
     res = new Decoder().decode(r);
     assertEquals(data, res.getText());
   }

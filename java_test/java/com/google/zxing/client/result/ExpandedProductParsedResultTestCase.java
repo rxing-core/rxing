@@ -27,7 +27,7 @@
 package com.google.zxing.client.result;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,15 +38,15 @@ import java.util.Map;
  * @author Antonio Manuel Benjumea Conde, Servinform, S.A.
  * @author Agustín Delgado, Servinform, S.A.
  */
-public final class ExpandedProductParsedResultTestCase extends Assert {
+public final class ExpandedProductParsedRXingResultTestCase extends Assert {
 
   @Test
   public void testRSSExpanded() {
     Map<String,String> uncommonAIs = new HashMap<>();
     uncommonAIs.put("123", "544654");
-    Result result =
-        new Result("(01)66546(13)001205(3932)4455(3102)6544(123)544654", null, null, BarcodeFormat.RSS_EXPANDED);
-    ExpandedProductParsedResult o = new ExpandedProductResultParser().parse(result);
+    RXingResult result =
+        new RXingResult("(01)66546(13)001205(3932)4455(3102)6544(123)544654", null, null, BarcodeFormat.RSS_EXPANDED);
+    ExpandedProductParsedRXingResult o = new ExpandedProductRXingResultParser().parse(result);
     assertNotNull(o);
     assertEquals("66546", o.getProductID());
     assertNull(o.getSscc());

@@ -22,7 +22,7 @@ package com.google.zxing.client.result;
  *
  * @author Sean Owen
  */
-public enum ParsedResultType {
+public enum ParsedRXingResultType {
 
   ADDRESSBOOK,
   EMAIL_ADDRESS,

@@ -26,7 +26,7 @@ package com.google.zxing.client.result;
  *
  * @author Sean Owen
  */
-abstract class AbstractDoCoMoResultParser extends ResultParser {
+abstract class AbstractDoCoMoRXingResultParser extends RXingResultParser {
 
   static String[] matchDoCoMoPrefixedField(String prefix, String rawText) {
     return matchPrefixedField(prefix, rawText, ';', true);

@@ -21,17 +21,17 @@ package com.google.zxing.client.result;
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
-public final class ProductParsedResult extends ParsedResult {
+public final class ProductParsedRXingResult extends ParsedRXingResult {
 
   private final String productID;
   private final String normalizedProductID;
 
-  ProductParsedResult(String productID) {
+  ProductParsedRXingResult(String productID) {
     this(productID, productID);
   }
 
-  ProductParsedResult(String productID, String normalizedProductID) {
-    super(ParsedResultType.PRODUCT);
+  ProductParsedRXingResult(String productID, String normalizedProductID) {
+    super(ParsedRXingResultType.PRODUCT);
     this.productID = productID;
     this.normalizedProductID = normalizedProductID;
   }
@@ -45,7 +45,7 @@ public final class ProductParsedResult extends ParsedResult {
   }
 
   @Override
-  public String getDisplayResult() {
+  public String getDisplayRXingResult() {
     return productID;
   }
 

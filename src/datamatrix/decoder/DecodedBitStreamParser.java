@@ -18,7 +18,7 @@ package com.google.zxing.datamatrix.decoder;
 
 import com.google.zxing.FormatException;
 import com.google.zxing.common.BitSource;
-import com.google.zxing.common.DecoderResult;
+import com.google.zxing.common.DecoderRXingResult;
 import com.google.zxing.common.ECIStringBuilder;
 
 import java.nio.charset.StandardCharsets;
@@ -86,7 +86,7 @@ final class DecodedBitStreamParser {
   private DecodedBitStreamParser() {
   }
 
-  static DecoderResult decode(byte[] bytes) throws FormatException {
+  static DecoderRXingResult decode(byte[] bytes) throws FormatException {
     BitSource bits = new BitSource(bytes);
     ECIStringBuilder result = new ECIStringBuilder(100);
     StringBuilder resultTrailer = new StringBuilder(0);
@@ -149,7 +149,7 @@ final class DecodedBitStreamParser {
       }
     }
 
-    return new DecoderResult(bytes,
+    return new DecoderRXingResult(bytes,
                              result.toString(),
                              byteSegments.isEmpty() ? null : byteSegments,
                              null,

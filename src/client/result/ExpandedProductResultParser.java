@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 /**
  * Parses strings of digits that represent a RSS Extended code.
@@ -38,13 +38,13 @@ import com.google.zxing.Result;
  * @author Antonio Manuel Benjumea Conde, Servinform, S.A.
  * @author Agustín Delgado, Servinform, S.A.
  */
-public final class ExpandedProductResultParser extends ResultParser {
+public final class ExpandedProductRXingResultParser extends RXingResultParser {
 
   @Override
-  public ExpandedProductParsedResult parse(Result result) {
+  public ExpandedProductParsedRXingResult parse(RXingResult result) {
     BarcodeFormat format = result.getBarcodeFormat();
     if (format != BarcodeFormat.RSS_EXPANDED) {
-      // ExtendedProductParsedResult NOT created. Not a RSS Expanded barcode
+      // ExtendedProductParsedRXingResult NOT created. Not a RSS Expanded barcode
       return null;
     }
     String rawText = getMassagedText(result);
@@ -70,7 +70,7 @@ public final class ExpandedProductResultParser extends ResultParser {
       String ai = findAIvalue(i, rawText);
       if (ai == null) {
         // Error. Code doesn't match with RSS expanded pattern
-        // ExtendedProductParsedResult NOT created. Not match with RSS Expanded pattern
+        // ExtendedProductParsedRXingResult NOT created. Not match with RSS Expanded pattern
         return null;
       }
       i += ai.length() + 2;
@@ -110,7 +110,7 @@ public final class ExpandedProductResultParser extends ResultParser {
         case "3108":
         case "3109":
           weight = value;
-          weightType = ExpandedProductParsedResult.KILOGRAM;
+          weightType = ExpandedProductParsedRXingResult.KILOGRAM;
           weightIncrement = ai.substring(3);
           break;
         case "3200":
@@ -124,7 +124,7 @@ public final class ExpandedProductResultParser extends ResultParser {
         case "3208":
         case "3209":
           weight = value;
-          weightType = ExpandedProductParsedResult.POUND;
+          weightType = ExpandedProductParsedRXingResult.POUND;
           weightIncrement = ai.substring(3);
           break;
         case "3920":
@@ -141,7 +141,7 @@ public final class ExpandedProductResultParser extends ResultParser {
           if (value.length() < 4) {
             // The value must have more of 3 symbols (3 for currency and
             // 1 at least for the price)
-            // ExtendedProductParsedResult NOT created. Not match with RSS Expanded pattern
+            // ExtendedProductParsedRXingResult NOT created. Not match with RSS Expanded pattern
             return null;
           }
           price = value.substring(3);
@@ -155,7 +155,7 @@ public final class ExpandedProductResultParser extends ResultParser {
       }
     }
 
-    return new ExpandedProductParsedResult(rawText,
+    return new ExpandedProductParsedRXingResult(rawText,
                                            productID,
                                            sscc,
                                            lotNumber,

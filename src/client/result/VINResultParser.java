@@ -17,7 +17,7 @@
 package com.google.zxing.client.result;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 import java.util.regex.Pattern;
 
@@ -26,13 +26,13 @@ import java.util.regex.Pattern;
  *
  * @author Sean Owen
  */
-public final class VINResultParser extends ResultParser {
+public final class VINRXingResultParser extends RXingResultParser {
 
   private static final Pattern IOQ = Pattern.compile("[IOQ]");
   private static final Pattern AZ09 = Pattern.compile("[A-Z0-9]{17}");
 
   @Override
-  public VINParsedResult parse(Result result) {
+  public VINParsedRXingResult parse(RXingResult result) {
     if (result.getBarcodeFormat() != BarcodeFormat.CODE_39) {
       return null;
     }
@@ -46,7 +46,7 @@ public final class VINResultParser extends ResultParser {
         return null;
       }
       String wmi = rawText.substring(0, 3);
-      return new VINParsedResult(rawText,
+      return new VINParsedRXingResult(rawText,
           wmi,
           rawText.substring(3, 9),
           rawText.substring(9, 17),

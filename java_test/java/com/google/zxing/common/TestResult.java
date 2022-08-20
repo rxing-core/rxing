@@ -19,7 +19,7 @@ package com.google.zxing.common;
 /**
  * Encapsulates the result of one test over a batch of black-box images.
  */
-public final class TestResult {
+public final class TestRXingResult {
 
   private final int mustPassCount;
   private final int tryHarderCount;
@@ -27,7 +27,7 @@ public final class TestResult {
   private final int maxTryHarderMisreads;
   private final float rotation;
 
-  public TestResult(int mustPassCount, int tryHarderCount, int maxMisreads, int maxTryHarderMisreads, float rotation) {
+  public TestRXingResult(int mustPassCount, int tryHarderCount, int maxMisreads, int maxTryHarderMisreads, float rotation) {
     this.mustPassCount = mustPassCount;
     this.tryHarderCount = tryHarderCount;
     this.maxMisreads = maxMisreads;

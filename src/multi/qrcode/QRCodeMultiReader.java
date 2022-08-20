@@ -21,11 +21,11 @@ import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.ReaderException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.common.DecoderResult;
-import com.google.zxing.common.DetectorResult;
+import com.google.zxing.RXingResult;
+import com.google.zxing.RXingResultMetadataType;
+import com.google.zxing.RXingResultPoint;
+import com.google.zxing.common.DecoderRXingResult;
+import com.google.zxing.common.DetectorRXingResult;
 import com.google.zxing.multi.MultipleBarcodeReader;
 import com.google.zxing.multi.qrcode.detector.MultiDetector;
 import com.google.zxing.qrcode.QRCodeReader;
@@ -47,41 +47,41 @@ import java.util.Comparator;
  */
 public final class QRCodeMultiReader extends QRCodeReader implements MultipleBarcodeReader {
 
-  private static final Result[] EMPTY_RESULT_ARRAY = new Result[0];
-  private static final ResultPoint[] NO_POINTS = new ResultPoint[0];
+  private static final RXingResult[] EMPTY_RESULT_ARRAY = new RXingResult[0];
+  private static final RXingResultPoint[] NO_POINTS = new RXingResultPoint[0];
 
   @Override
-  public Result[] decodeMultiple(BinaryBitmap image) throws NotFoundException {
+  public RXingResult[] decodeMultiple(BinaryBitmap image) throws NotFoundException {
     return decodeMultiple(image, null);
   }
 
   @Override
-  public Result[] decodeMultiple(BinaryBitmap image, Map<DecodeHintType,?> hints) throws NotFoundException {
-    List<Result> results = new ArrayList<>();
-    DetectorResult[] detectorResults = new MultiDetector(image.getBlackMatrix()).detectMulti(hints);
-    for (DetectorResult detectorResult : detectorResults) {
+  public RXingResult[] decodeMultiple(BinaryBitmap image, Map<DecodeHintType,?> hints) throws NotFoundException {
+    List<RXingResult> results = new ArrayList<>();
+    DetectorRXingResult[] detectorRXingResults = new MultiDetector(image.getBlackMatrix()).detectMulti(hints);
+    for (DetectorRXingResult detectorRXingResult : detectorRXingResults) {
       try {
-        DecoderResult decoderResult = getDecoder().decode(detectorResult.getBits(), hints);
-        ResultPoint[] points = detectorResult.getPoints();
+        DecoderRXingResult decoderRXingResult = getDecoder().decode(detectorRXingResult.getBits(), hints);
+        RXingResultPoint[] points = detectorRXingResult.getPoints();
         // If the code was mirrored: swap the bottom-left and the top-right points.
-        if (decoderResult.getOther() instanceof QRCodeDecoderMetaData) {
-          ((QRCodeDecoderMetaData) decoderResult.getOther()).applyMirroredCorrection(points);
+        if (decoderRXingResult.getOther() instanceof QRCodeDecoderMetaData) {
+          ((QRCodeDecoderMetaData) decoderRXingResult.getOther()).applyMirroredCorrection(points);
         }
-        Result result = new Result(decoderResult.getText(), decoderResult.getRawBytes(), points,
+        RXingResult result = new RXingResult(decoderRXingResult.getText(), decoderRXingResult.getRawBytes(), points,
                                    BarcodeFormat.QR_CODE);
-        List<byte[]> byteSegments = decoderResult.getByteSegments();
+        List<byte[]> byteSegments = decoderRXingResult.getByteSegments();
         if (byteSegments != null) {
-          result.putMetadata(ResultMetadataType.BYTE_SEGMENTS, byteSegments);
+          result.putMetadata(RXingResultMetadataType.BYTE_SEGMENTS, byteSegments);
         }
-        String ecLevel = decoderResult.getECLevel();
+        String ecLevel = decoderRXingResult.getECLevel();
         if (ecLevel != null) {
-          result.putMetadata(ResultMetadataType.ERROR_CORRECTION_LEVEL, ecLevel);
+          result.putMetadata(RXingResultMetadataType.ERROR_CORRECTION_LEVEL, ecLevel);
         }
-        if (decoderResult.hasStructuredAppend()) {
-          result.putMetadata(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE,
-                             decoderResult.getStructuredAppendSequenceNumber());
-          result.putMetadata(ResultMetadataType.STRUCTURED_APPEND_PARITY,
-                             decoderResult.getStructuredAppendParity());
+        if (decoderRXingResult.hasStructuredAppend()) {
+          result.putMetadata(RXingResultMetadataType.STRUCTURED_APPEND_SEQUENCE,
+                             decoderRXingResult.getStructuredAppendSequenceNumber());
+          result.putMetadata(RXingResultMetadataType.STRUCTURED_APPEND_PARITY,
+                             decoderRXingResult.getStructuredAppendParity());
         }
         results.add(result);
       } catch (ReaderException re) {
@@ -96,32 +96,32 @@ public final class QRCodeMultiReader extends QRCodeReader implements MultipleBar
     }
   }
 
-  static List<Result> processStructuredAppend(List<Result> results) {
-    List<Result> newResults = new ArrayList<>();
-    List<Result> saResults = new ArrayList<>();
-    for (Result result : results) {
-      if (result.getResultMetadata().containsKey(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE)) {
-        saResults.add(result);
+  static List<RXingResult> processStructuredAppend(List<RXingResult> results) {
+    List<RXingResult> newRXingResults = new ArrayList<>();
+    List<RXingResult> saRXingResults = new ArrayList<>();
+    for (RXingResult result : results) {
+      if (result.getRXingResultMetadata().containsKey(RXingResultMetadataType.STRUCTURED_APPEND_SEQUENCE)) {
+        saRXingResults.add(result);
       } else {
-        newResults.add(result);
+        newRXingResults.add(result);
       }
     }
-    if (saResults.isEmpty()) {
+    if (saRXingResults.isEmpty()) {
       return results;
     }
 
     // sort and concatenate the SA list items
-    Collections.sort(saResults, new SAComparator());
+    Collections.sort(saRXingResults, new SAComparator());
     StringBuilder newText = new StringBuilder();
     ByteArrayOutputStream newRawBytes = new ByteArrayOutputStream();
     ByteArrayOutputStream newByteSegment = new ByteArrayOutputStream();
-    for (Result saResult : saResults) {
-      newText.append(saResult.getText());
-      byte[] saBytes = saResult.getRawBytes();
+    for (RXingResult saRXingResult : saRXingResults) {
+      newText.append(saRXingResult.getText());
+      byte[] saBytes = saRXingResult.getRawBytes();
       newRawBytes.write(saBytes, 0, saBytes.length);
       @SuppressWarnings("unchecked")
       Iterable<byte[]> byteSegments =
-          (Iterable<byte[]>) saResult.getResultMetadata().get(ResultMetadataType.BYTE_SEGMENTS);
+          (Iterable<byte[]>) saRXingResult.getRXingResultMetadata().get(RXingResultMetadataType.BYTE_SEGMENTS);
       if (byteSegments != null) {
         for (byte[] segment : byteSegments) {
           newByteSegment.write(segment, 0, segment.length);
@@ -129,19 +129,19 @@ public final class QRCodeMultiReader extends QRCodeReader implements MultipleBar
       }
     }
 
-    Result newResult = new Result(newText.toString(), newRawBytes.toByteArray(), NO_POINTS, BarcodeFormat.QR_CODE);
+    RXingResult newRXingResult = new RXingResult(newText.toString(), newRawBytes.toByteArray(), NO_POINTS, BarcodeFormat.QR_CODE);
     if (newByteSegment.size() > 0) {
-      newResult.putMetadata(ResultMetadataType.BYTE_SEGMENTS, Collections.singletonList(newByteSegment.toByteArray()));
+      newRXingResult.putMetadata(RXingResultMetadataType.BYTE_SEGMENTS, Collections.singletonList(newByteSegment.toByteArray()));
     }
-    newResults.add(newResult);
-    return newResults;
+    newRXingResults.add(newRXingResult);
+    return newRXingResults;
   }
 
-  private static final class SAComparator implements Comparator<Result>, Serializable {
+  private static final class SAComparator implements Comparator<RXingResult>, Serializable {
     @Override
-    public int compare(Result a, Result b) {
-      int aNumber = (int) a.getResultMetadata().get(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE);
-      int bNumber = (int) b.getResultMetadata().get(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE);
+    public int compare(RXingResult a, RXingResult b) {
+      int aNumber = (int) a.getRXingResultMetadata().get(RXingResultMetadataType.STRUCTURED_APPEND_SEQUENCE);
+      int bNumber = (int) b.getRXingResultMetadata().get(RXingResultMetadataType.STRUCTURED_APPEND_SEQUENCE);
       return Integer.compare(aNumber, bNumber);
     }
   }

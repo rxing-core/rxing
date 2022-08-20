@@ -19,7 +19,7 @@ package com.google.zxing.datamatrix.decoder;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderResult;
+import com.google.zxing.common.DecoderRXingResult;
 import com.google.zxing.common.reedsolomon.GenericGF;
 import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
 import com.google.zxing.common.reedsolomon.ReedSolomonException;
@@ -47,7 +47,7 @@ public final class Decoder {
    * @throws FormatException if the Data Matrix Code cannot be decoded
    * @throws ChecksumException if error correction fails
    */
-  public DecoderResult decode(boolean[][] image) throws FormatException, ChecksumException {
+  public DecoderRXingResult decode(boolean[][] image) throws FormatException, ChecksumException {
     return decode(BitMatrix.parse(image));
   }
 
@@ -60,7 +60,7 @@ public final class Decoder {
    * @throws FormatException if the Data Matrix Code cannot be decoded
    * @throws ChecksumException if error correction fails
    */
-  public DecoderResult decode(BitMatrix bits) throws FormatException, ChecksumException {
+  public DecoderRXingResult decode(BitMatrix bits) throws FormatException, ChecksumException {
 
     // Construct a parser and read version, error-correction level
     BitMatrixParser parser = new BitMatrixParser(bits);

@@ -17,16 +17,16 @@
 package com.google.zxing.client.result;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests {@link ProductParsedResult}.
+ * Tests {@link ProductParsedRXingResult}.
  *
  * @author Sean Owen
  */
-public final class ProductParsedResultTestCase extends Assert {
+public final class ProductParsedRXingResultTestCase extends Assert {
 
   @Test
   public void testProduct() {
@@ -37,12 +37,12 @@ public final class ProductParsedResultTestCase extends Assert {
   }
 
   private static void doTest(String contents, String normalized, BarcodeFormat format) {
-    Result fakeResult = new Result(contents, null, null, format);
-    ParsedResult result = ResultParser.parseResult(fakeResult);
-    assertSame(ParsedResultType.PRODUCT, result.getType());
-    ProductParsedResult productResult = (ProductParsedResult) result;
-    assertEquals(contents, productResult.getProductID());
-    assertEquals(normalized, productResult.getNormalizedProductID());
+    RXingResult fakeRXingResult = new RXingResult(contents, null, null, format);
+    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
+    assertSame(ParsedRXingResultType.PRODUCT, result.getType());
+    ProductParsedRXingResult productRXingResult = (ProductParsedRXingResult) result;
+    assertEquals(contents, productRXingResult.getProductID());
+    assertEquals(normalized, productRXingResult.getNormalizedProductID());
   }
 
 }

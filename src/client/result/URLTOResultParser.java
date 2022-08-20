@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.result;
 
-import com.google.zxing.Result;
+import com.google.zxing.RXingResult;
 
 /**
  * Parses the "URLTO" result format, which is of the form "URLTO:[title]:[url]".
@@ -25,10 +25,10 @@ import com.google.zxing.Result;
  *
  * @author Sean Owen
  */
-public final class URLTOResultParser extends ResultParser {
+public final class URLTORXingResultParser extends RXingResultParser {
 
   @Override
-  public URIParsedResult parse(Result result) {
+  public URIParsedRXingResult parse(RXingResult result) {
     String rawText = getMassagedText(result);
     if (!rawText.startsWith("urlto:") && !rawText.startsWith("URLTO:")) {
       return null;
@@ -39,7 +39,7 @@ public final class URLTOResultParser extends ResultParser {
     }
     String title = titleEnd <= 6 ? null : rawText.substring(6, titleEnd);
     String uri = rawText.substring(titleEnd + 1);
-    return new URIParsedResult(uri, title);
+    return new URIParsedRXingResult(uri, title);
   }
 
 }
