@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.google.zxing.common.detector;
+//package com.google.zxing.common.detector;
+use crate::{NotFoundException,ResultPoint};
+use crate::common::BitMatrix;
 
-import com.google.zxing.NotFoundException;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.common.BitMatrix;
 
 /**
  * <p>A somewhat generic detector that looks for a barcode-like rectangular region within an image.

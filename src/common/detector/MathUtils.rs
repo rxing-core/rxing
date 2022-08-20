@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package com.google.zxing.common.detector;
+//package com.google.zxing.common.detector;
 
 /**
  * General math-related and numeric utility functions.
  */
-public final class MathUtils {
 
-  private MathUtils() {
-  }
-
-  /**
+ /**
    * Ends up being a bit faster than {@link Math#round(float)}. This merely rounds its
    * argument to the nearest int, where x.5 rounds up to x+1. Semantics of this shortcut
    * differ slightly from {@link Math#round(float)} in that half rounds down for negative
@@ -33,8 +29,8 @@ public final class MathUtils {
    * @param d real value to round
    * @return nearest {@code int}
    */
-  public static int round(float d) {
-    return (int) (d + (d < 0.0f ? -0.5f : 0.5f));
+  pub fn round(d:f32) -> i32 {
+    return (d + (if d < 0.0f { -0.5f } else { 0.5f}));
   }
 
   /**
@@ -44,10 +40,10 @@ public final class MathUtils {
    * @param bY point B y coordinate
    * @return Euclidean distance between points A and B
    */
-  public static float distance(float aX, float aY, float bX, float bY) {
-    double xDiff = aX - bX;
-    double yDiff = aY - bY;
-    return (float) Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+  pub fn  distance( aX:f32,  aY:f32,  bX: f32,  bY:f32) -> f32 {
+    let  xDiff:f64 = aX - bX;
+    let yDiff:f64 = aY - bY;
+    return Math.sqrt(xDiff * xDiff + yDiff * yDiff);
   }
 
   /**
@@ -57,22 +53,20 @@ public final class MathUtils {
    * @param bY point B y coordinate
    * @return Euclidean distance between points A and B
    */
-  public static float distance(int aX, int aY, int bX, int bY) {
-    double xDiff = aX - bX;
-    double yDiff = aY - bY;
-    return (float) Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+  pub fn distance( aX : i32,  aY: i32,  bX: i32,  bY: i32) -> f32 {
+    let xDiff : f64 = aX - bX;
+    let yDiff :f64 = aY - bY;
+    return  Math.sqrt(xDiff * xDiff + yDiff * yDiff);
   }
 
   /**
    * @param array values to sum
    * @return sum of values in array
    */
-  public static int sum(int[] array) {
-    int count = 0;
-    for (int a : array) {
+  pub fn   sum( array : &[i32]) -> i32 {
+    let count = 0;
+    for  a in array {
       count += a;
     }
     return count;
   }
-
-}
