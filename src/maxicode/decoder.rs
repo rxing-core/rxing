@@ -46,7 +46,7 @@ const BITNR: vec![vec![Vec<Vec<i32>>; 30]; 33] = vec![vec![121, 120, 127, 126, 1
 ;
 struct BitMatrixParser {
 
-     let bit_matrix: BitMatrix;
+      bit_matrix: BitMatrix
 }
 
 impl BitMatrixParser {
@@ -54,8 +54,10 @@ impl BitMatrixParser {
     /**
    * @param bitMatrix {@link BitMatrix} to parse
    */
-    fn new( bit_matrix: &BitMatrix) -> BitMatrixParser {
-        let .bitMatrix = bit_matrix;
+    fn new( bit_matrix: &BitMatrix) -> Self {
+        Self {
+            bit_matrix
+        }
     }
 
     fn  read_codewords(&self) -> Vec<i8>  {
@@ -100,37 +102,37 @@ impl BitMatrixParser {
  * @author Manuel Kasten
  */
 
-const SHIFTA: char = '\uFFF0';
+const SHIFTA: char = '\u{FFF0}';
 
-const SHIFTB: char = '\uFFF1';
+const SHIFTB: char = '\u{FFF1}';
 
-const SHIFTC: char = '\uFFF2';
+const SHIFTC: char = '\u{FFF2}';
 
-const SHIFTD: char = '\uFFF3';
+const SHIFTD: char = '\u{FFF3}';
 
-const SHIFTE: char = '\uFFF4';
+const SHIFTE: char = '\u{FFF4}';
 
-const TWOSHIFTA: char ='\uFFF5';
+const TWOSHIFTA: char ='\u{FFF5}';
 
-const THREESHIFTA: char ='\uFFF6';
+const THREESHIFTA: char ='\u{FFF6}';
 
-const LATCHA: char =  '\uFFF7';
+const LATCHA: char =  '\u{FFF7}';
 
-const LATCHB: char = '\uFFF8';
+const LATCHB: char = '\u{FFF8}';
 
-const LOCK: char = '\uFFF9';
+const LOCK: char = '\u{FFF9}';
 
-const ECI: char ='\uFFFA';
+const ECI: char ='\u{FFFA}';
 
-const NS: char ='\uFFFB';
+const NS: char ='\u{FFFB}';
 
-const PAD: char =  '\uFFFC';
+const PAD: char =  '\u{FFFC}';
 
-const FS: char = '\u001C';
+const FS: char = '\u{001C}';
 
-const GS: char = '\u001D';
+const GS: char = '\u{001D}';
 
-const RS: char = '\u001E';
+const RS: char = '\u{001E}';
 
 const COUNTRY_BYTES: vec![Vec<i8>; 10] = vec![53, 54, 43, 44, 45, 46, 47, 48, 37, 38, ]
 ;
@@ -157,9 +159,9 @@ const POSTCODE_3_BYTES: vec![vec![Vec<Vec<i8>>; 6]; 6] = vec![vec![39, 40, 41, 4
 const SETS: vec![Vec<String>; 5] = vec![
     format!("\rABCDEFGHIJKLMNOPQRSTUVWXYZ{}{}{}{}{} {}\"#$%&'()*+,-./0123456789:{}{}{}{}{}" , ECI , FS , GS , RS , NS , PAD ,SHIFTB , SHIFTC , SHIFTD , SHIFTE , LATCHB),
     format!("`abcdefghijklmnopqrstuvwxyz{}{}{}{}{}\{{}\}{}{}{}{}{}{}{}{}{}", ECI, FS, GS , RS , NS , PAD ,PAD , TWOSHIFTA , THREESHIFTA , PAD ,SHIFTA , SHIFTC , SHIFTD, SHIFTE , LATCHA),
-    format!("\u00C0\u00C1\u00C2\u00C3\u00C4\u00C5\u00C6\u00C7\u00C8\u00C9\u00CA\u00CB\u00CC\u00CD\u00CE\u00CF\u00D0\u00D1\u00D2\u00D3\u00D4\u00D5\u00D6\u00D7\u00D8\u00D9\u00DA{}{}{}{}{}\u00DB\u00DC\u00DD\u00DE\u00DF\u00AA\u00AC\u00B1\u00B2\u00B3\u00B5\u00B9\u00BA\u00BC\u00BD\u00BE\u0080\u0081\u0082\u0083\u0084\u0085\u0086\u0087\u0088\u0089{} {}{}{}{}",ECI , FS , GS , RS , NS ,LATCHA ,  LOCK , SHIFTD , SHIFTE , LATCHB),
-    format!("\u00E0\u00E1\u00E2\u00E3\u00E4\u00E5\u00E6\u00E7\u00E8\u00E9\u00EA\u00EB\u00EC\u00ED\u00EE\u00EF\u00F0\u00F1\u00F2\u00F3\u00F4\u00F5\u00F6\u00F7\u00F8\u00F9\u00FA{}{}{}{}{}\u00FB\u00FC\u00FD\u00FE\u00FF\u00A1\u00A8\u00AB\u00AF\u00B0\u00B4\u00B7\u00B8\u00BB\u00BF\u008A\u008B\u008C\u008D\u008E\u008F\u0090\u0091\u0092\u0093\u0094{} {}{}{}{}" ,ECI , FS , GS, RS , NS ,LATCHA , SHIFTC , LOCK , SHIFTE , LATCHB),
-    format!("\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u0008\u0009\n\u000B\u000C\r\u000E\u000F\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001A{}{}{}\u001B{}{}{}{}\u001F\u009F\u00A0\u00A2\u00A3\u00A4\u00A5\u00A6\u00A7\u00A9\u00AD\u00AE\u00B6\u0095\u0096\u0097\u0098\u0099\u009A\u009B\u009C\u009D\u009E{} {}{}{}{}" ,ECI , PAD, PAD , NS , FS , GS , RS ,        LATCHA , SHIFTC , SHIFTD , LOCK , LATCHB)
+    format!("\u{00C0}\u{00C1}\u{00C2}\u{00C3}\u00C4\u00C5\u00C6\u00C7\u00C8\u00C9\u00CA\u00CB\u00CC\u00CD\u00CE\u00CF\u00D0\u00D1\u00D2\u00D3\u00D4\u00D5\u00D6\u00D7\u00D8\u00D9\u00DA{}{}{}{}{}\u00DB\u00DC\u00DD\u00DE\u00DF\u00AA\u00AC\u00B1\u00B2\u00B3\u00B5\u00B9\u00BA\u00BC\u00BD\u00BE\u0080\u0081\u0082\u0083\u0084\u0085\u0086\u0087\u0088\u0089{} {}{}{}{}",ECI , FS , GS , RS , NS ,LATCHA ,  LOCK , SHIFTD , SHIFTE , LATCHB),
+    format!("\u{00E0}\u{00E1}\u{00E2}\u{00E3}\u00E4\u00E5\u00E6\u00E7\u00E8\u00E9\u00EA\u00EB\u00EC\u00ED\u00EE\u00EF\u00F0\u00F1\u00F2\u00F3\u00F4\u00F5\u00F6\u00F7\u00F8\u00F9\u00FA{}{}{}{}{}\u00FB\u00FC\u00FD\u00FE\u00FF\u00A1\u00A8\u00AB\u00AF\u00B0\u00B4\u00B7\u00B8\u00BB\u00BF\u008A\u008B\u008C\u008D\u008E\u008F\u0090\u0091\u0092\u0093\u0094{} {}{}{}{}" ,ECI , FS , GS, RS , NS ,LATCHA , SHIFTC , LOCK , SHIFTE , LATCHB),
+    format!("\u{0000}\u{0001}\u{0002}\u{0003}\u0004\u0005\u0006\u0007\u0008\u0009\n\u000B\u000C\r\u000E\u000F\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001A{}{}{}\u001B{}{}{}{}\u001F\u009F\u00A0\u00A2\u00A3\u00A4\u00A5\u00A6\u00A7\u00A9\u00AD\u00AE\u00B6\u0095\u0096\u0097\u0098\u0099\u009A\u009B\u009C\u009D\u009E{} {}{}{}{}" ,ECI , PAD, PAD , NS , FS , GS , RS ,        LATCHA , SHIFTC , SHIFTD , LOCK , LATCHB)
 ];
 
 struct DecodedBitStreamParser {
@@ -183,7 +185,7 @@ impl DecodedBitStreamParser {
                          let pc: i32 = ::get_post_code2(&bytes);
                          let ps2_length: i32 = ::get_post_code2_length(&bytes);
                         if ps2_length > 10 {
-                            throw FormatException::get_format_instance();
+                            return Err( FormatException::get_format_instance());
                         }
                          let df: NumberFormat = DecimalFormat::new(&"0000000000".substring(0, ps2_length));
                         postcode = df.format(pc);
@@ -199,20 +201,17 @@ impl DecodedBitStreamParser {
                     } else {
                         result.insert(0, format!("{}{}{}{}{}{}", postcode, GS, country, GS, service, GS));
                     }
-                    break;
                 }
               4 => 
                  {
                     result.append(&::get_message(&bytes, 1, 93));
-                    break;
                 }
               5 => 
                  {
                     result.append(&::get_message(&bytes, 1, 77));
-                    break;
                 }
         }
-        return Ok(DecoderResult::new(&bytes, &result.to_string(), null, &String::value_of(mode)));
+        return Ok(DecoderResult::new(&bytes, &result.to_string(), null, &String::value_of(mode), None, None, None));
     }
 
     fn  get_bit( bit: i32,  bytes: &Vec<i8>) -> i32  {
@@ -253,8 +252,8 @@ impl DecodedBitStreamParser {
 
     fn  get_post_code3( bytes: &Vec<i8>) -> String  {
          let sb: StringBuilder = StringBuilder::new(POSTCODE_3_BYTES.len());
-        for  let p3bytes: Vec<i8> in POSTCODE_3_BYTES {
-            sb.append(&SETS[0]::char_at(&::get_int(&bytes, &p3bytes)));
+        for   p3bytes in POSTCODE_3_BYTES {
+            sb.append(&SETS[0].char_at(&::get_int(&bytes, &p3bytes)));
         }
         return sb.to_string();
     }
@@ -268,7 +267,7 @@ impl DecodedBitStreamParser {
              let mut i: i32 = start;
             while i < start + len {
                 {
-                     let c: char = SETS[set]::char_at(bytes[i]);
+                     let c: char = SETS[set].char_at(bytes[i]);
                     match c {
                           LATCHA => 
                              {
@@ -331,7 +330,7 @@ impl DecodedBitStreamParser {
                                 sb.append(c);
                             }
                     }
-                    if shift -= 1 !!!check!!! post decrement == 0 {
+                    if shift -= 1  == 0 {
                         set = lastset;
                     }
                 }
@@ -361,7 +360,7 @@ const EVEN: i32 = 1;
 const ODD: i32 = 2;
 pub struct Decoder {
 
-    let rs_decoder: ReedSolomonDecoder;
+     rs_decoder: ReedSolomonDecoder
 }
 
 impl Decoder {
@@ -370,11 +369,11 @@ impl Decoder {
        rs_decoder = ReedSolomonDecoder::new(GenericGF::MAXICODE_FIELD_64);
    }
 
-   pub fn  decode(&self,  bits: &BitMatrix) -> /*  throws ChecksumException, FormatException */Result<DecoderResult, Rc<Exception>>   {
+   pub fn  decode_simple(&self,  bits: &BitMatrix) -> Result<DecoderResult, ChecksumException+ FormatException>   {
        return Ok(self.decode(bits, null));
    }
 
-   pub fn  decode(&self,  bits: &BitMatrix,  hints: &Map<DecodeHintType, ?>) -> /*  throws FormatException, ChecksumException */Result<DecoderResult, Rc<Exception>>   {
+   pub fn  decode(&self,  bits: &BitMatrix,  hints: &Map<DecodeHintType, _>) -> Result<DecoderResult, ChecksumException+ FormatException>   {
         let parser: BitMatrixParser = BitMatrixParser::new(bits);
         let codewords: Vec<i8> = parser.read_codewords();
        self.correct_errors(&codewords, 0, 10, 10, ALL);
@@ -391,19 +390,17 @@ impl Decoder {
                 {
                    self.correct_errors(&codewords, 20, 84, 40, EVEN);
                    self.correct_errors(&codewords, 20, 84, 40, ODD);
-                   datawords = : [i8; 94] = [0; 94];
-                   break;
+                   datawords =  [0; 94];
                }
              5 => 
                 {
                    self.correct_errors(&codewords, 20, 68, 56, EVEN);
                    self.correct_errors(&codewords, 20, 68, 56, ODD);
-                   datawords = : [i8; 78] = [0; 78];
-                   break;
+                   datawords = [0; 78];
                }
            _ => 
                 {
-                   throw FormatException::get_format_instance();
+                   return Err( FormatException::get_format_instance());
                }
        }
        System::arraycopy(&codewords, 0, &datawords, 0, 10);
@@ -411,7 +408,7 @@ impl Decoder {
        return Ok(DecodedBitStreamParser::decode(&datawords, mode));
    }
 
-   fn  correct_errors(&self,  codeword_bytes: &Vec<i8>,  start: i32,  data_codewords: i32,  ec_codewords: i32,  mode: i32)  -> /*  throws ChecksumException */Result<Void, Rc<Exception>>   {
+   fn  correct_errors(&self,  codeword_bytes: &Vec<i8>,  start: i32,  data_codewords: i32,  ec_codewords: i32,  mode: i32)  -> Result<(), ChecksumException>   {
         let codewords: i32 = data_codewords + ec_codewords;
        // in EVEN or ODD mode only half the codewords
         let mut divisor: i32 =  if mode == ALL { 1 } else { 2 };
@@ -429,18 +426,9 @@ impl Decoder {
             }
         }
 
-       let tryResult1 = 0;
-       'try1: loop {
-       {
+       
            self.rs_decoder.decode(&codewords_ints, ec_codewords / divisor);
-       }
-       break 'try1
-       }
-       match tryResult1 {
-            catch ( ignored: &ReedSolomonException) {
-               throw ChecksumException::get_checksum_instance();
-           }  0 => break
-       }
+       
 
        // We don't care about errors in the error-correction codewords
         {
@@ -454,6 +442,8 @@ impl Decoder {
                i += 1;
             }
         }
+
+        Ok(())
 
    }
 }

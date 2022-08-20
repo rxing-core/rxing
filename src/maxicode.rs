@@ -1,4 +1,4 @@
-mod decoder;
+pub mod decoder;
 
 use crate::{BarcodeFormat,BinaryBitmap,ChecksumException,DecodeHintType,FormatException,NotFoundException,Reader,XRingResultResultMetadataType,ResultPoint};
 use crate::common::{BitMatrix,DecoderResult};
@@ -17,7 +17,7 @@ const MATRIX_WIDTH: i32 = 30;
 const MATRIX_HEIGHT: i32 = 33;
 pub struct MaxiCodeReader {
 
-    let decoder: Decoder = Decoder::new();
+     decoder: Decoder
 }
 
 impl Reader for MaxiCodeReader{
@@ -29,15 +29,12 @@ impl Reader for MaxiCodeReader{
   * @throws FormatException if a MaxiCode cannot be decoded
   * @throws ChecksumException if error correction fails
   */
-  pub fn  decode(&self,  image: &BinaryBitmap) -> /*  throws NotFoundException, ChecksumException, FormatException */Result<Result, Rc<Exception>>   {
-    return Ok(self.decode(image, null));
-}
 
-pub fn  decode(&self,  image: &BinaryBitmap,  hints: &Map<DecodeHintType, ?>) -> /*  throws NotFoundException, ChecksumException, FormatException */Result<Result, Rc<Exception>>   {
+ fn  decode(&self,  image: &BinaryBitmap,  hints: &Map<DecodeHintType, _>) -> /*  throws NotFoundException, ChecksumException, FormatException */Result<Result, Rc<Exception>>   {
     // Note that MaxiCode reader effectively always assumes PURE_BARCODE mode
     // and can't detect it in an image
      let bits: BitMatrix = ::extract_pure_bits(&image.get_black_matrix());
-     let decoder_result: DecoderResult = self.decoder.decode(bits, &hints);
+     let decoder_result: DecoderResult = self.decoder.decode(&bits, &hints);
      let result: Result = Result::new(&decoder_result.get_text(), &decoder_result.get_raw_bytes(), NO_POINTS, BarcodeFormat::MAXICODE);
      let ec_level: String = decoder_result.get_e_c_level();
     if ec_level != null {
@@ -46,14 +43,16 @@ pub fn  decode(&self,  image: &BinaryBitmap,  hints: &Map<DecodeHintType, ?>) ->
     return Ok(result);
 }
 
-pub fn  reset(&self)   {
+ fn  reset(&self)   {
 // do nothing
 }
 }
 
 impl MaxiCodeReader {
 
-   
+   pub fn new() -> Self {
+    Self { decoder: Decoder::new() }
+   }
 
    /**
   * This method detects a code in a "pure" image -- that is, pure monochrome image
@@ -61,10 +60,10 @@ impl MaxiCodeReader {
   * around it. This is a specialized method that works exceptionally fast in this special
   * case.
   */
-   fn  extract_pure_bits( image: &BitMatrix) -> /*  throws NotFoundException */Result<BitMatrix, Rc<Exception>>   {
+   fn  extract_pure_bits( image: &BitMatrix) -> Result<BitMatrix,NotFoundException>   {
         let enclosing_rectangle: Vec<i32> = image.get_enclosing_rectangle();
        if enclosing_rectangle == null {
-           throw NotFoundException::get_not_found_instance();
+           return Err( NotFoundException::get_not_found_instance());
        }
         let left: i32 = enclosing_rectangle[0];
         let top: i32 = enclosing_rectangle[1];
