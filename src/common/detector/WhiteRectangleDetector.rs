@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.google.zxing.common.detector;
+//package com.google.zxing.common.detector;
 
-import com.google.zxing.NotFoundException;
-import com.google.zxing.RXingResultPoint;
-import com.google.zxing.common.BitMatrix;
+use crate::{NotFoundException,RXingResultPoint};
+use crate::common::BitMatrix;
 
 /**
  * <p>
@@ -30,21 +29,23 @@ import com.google.zxing.common.BitMatrix;
  *
  * @author David Olivier
  */
-public final class WhiteRectangleDetector {
+const INIT_SIZE:i32 = 10;
+const CORR:i32 = 1;
+pub struct WhiteRectangleDetector {
 
-  private static final int INIT_SIZE = 10;
-  private static final int CORR = 1;
+  image: BitMatrix,
+   height: i32,
+  width: i32,
+  leftInit: i32,
+  rightInit: i32,
+  downInit: i32,
+  upInit: i32,
+}
 
-  private final BitMatrix image;
-  private final int height;
-  private final int width;
-  private final int leftInit;
-  private final int rightInit;
-  private final int downInit;
-  private final int upInit;
+impl WhiteRectangleDetector {
 
-  public WhiteRectangleDetector(BitMatrix image) throws NotFoundException {
-    this(image, INIT_SIZE, image.getWidth() / 2, image.getHeight() / 2);
+  pub fn new_from_image(image:&BitMatrix) -> Result<Self,NotFoundException> {
+    Self::new(image, INIT_SIZE, image.getWidth() / 2, image.getHeight() / 2);
   }
 
   /**
@@ -54,18 +55,21 @@ public final class WhiteRectangleDetector {
    * @param y y position of search center
    * @throws NotFoundException if image is too small to accommodate {@code initSize}
    */
-  public WhiteRectangleDetector(BitMatrix image, int initSize, int x, int y) throws NotFoundException {
-    this.image = image;
-    height = image.getHeight();
-    width = image.getWidth();
-    int halfsize = initSize / 2;
-    leftInit = x - halfsize;
-    rightInit = x + halfsize;
-    upInit = y - halfsize;
-    downInit = y + halfsize;
+  pub fn new( image:&BitMatrix,  initSize:i32,  x:i32,  y:i32) -> Result<Self, NotFoundException> {
+    let new_wrd : Self;
+    new_wrd.image = image;
+    new_wrd.height = image.getHeight();
+    new_wrd.width = image.getWidth();
+    let halfsize = initSize / 2;
+    new_wrd.leftInit = x - halfsize;
+    new_wrd.rightInit = x + halfsize;
+    new_wrd.upInit = y - halfsize;
+    new_wrd.downInit = y + halfsize;
     if (upInit < 0 || leftInit < 0 || downInit >= height || rightInit >= width) {
-      throw NotFoundException.getNotFoundInstance();
+      return Err( NotFoundException.getNotFoundInstance());
     }
+    
+    Ok(new_wrd)
   }
 
   /**
@@ -82,19 +86,19 @@ public final class WhiteRectangleDetector {
    *         leftmost and the third, the rightmost
    * @throws NotFoundException if no Data Matrix Code can be found
    */
-  public RXingResultPoint[] detect() throws NotFoundException {
+  pub fn  detect() -> Result<Vec<RXingResultPoint>, NotFoundException> {
 
-    int left = leftInit;
-    int right = rightInit;
-    int up = upInit;
-    int down = downInit;
-    boolean sizeExceeded = false;
-    boolean aBlackPointFoundOnBorder = true;
+    let left :i32= leftInit;
+    let right:i32 = rightInit;
+    let up:i32 = upInit;
+    let down:i32 = downInit;
+    let sizeExceeded = false;
+    let aBlackPointFoundOnBorder = true;
 
-    boolean atLeastOneBlackPointFoundOnRight = false;
-    boolean atLeastOneBlackPointFoundOnBottom = false;
-    boolean atLeastOneBlackPointFoundOnLeft = false;
-    boolean atLeastOneBlackPointFoundOnTop = false;
+    let atLeastOneBlackPointFoundOnRight = false;
+    let atLeastOneBlackPointFoundOnBottom = false;
+    let atLeastOneBlackPointFoundOnLeft = false;
+    let atLeastOneBlackPointFoundOnTop = false;
 
     while (aBlackPointFoundOnBorder) {
 
@@ -103,15 +107,15 @@ public final class WhiteRectangleDetector {
       // .....
       // .   |
       // .....
-      boolean rightBorderNotWhite = true;
+      let rightBorderNotWhite = true;
       while ((rightBorderNotWhite || !atLeastOneBlackPointFoundOnRight) && right < width) {
         rightBorderNotWhite = containsBlackPoint(up, down, right, false);
         if (rightBorderNotWhite) {
-          right++;
+          right += 1;
           aBlackPointFoundOnBorder = true;
           atLeastOneBlackPointFoundOnRight = true;
         } else if (!atLeastOneBlackPointFoundOnRight) {
-          right++;
+          right+=1;
         }
       }
 
@@ -123,15 +127,15 @@ public final class WhiteRectangleDetector {
       // .....
       // .   .
       // .___.
-      boolean bottomBorderNotWhite = true;
+      let bottomBorderNotWhite = true;
       while ((bottomBorderNotWhite || !atLeastOneBlackPointFoundOnBottom) && down < height) {
         bottomBorderNotWhite = containsBlackPoint(left, right, down, true);
         if (bottomBorderNotWhite) {
-          down++;
+          down+=1;
           aBlackPointFoundOnBorder = true;
           atLeastOneBlackPointFoundOnBottom = true;
         } else if (!atLeastOneBlackPointFoundOnBottom) {
-          down++;
+          down+=1;
         }
       }
 
@@ -143,15 +147,15 @@ public final class WhiteRectangleDetector {
       // .....
       // |   .
       // .....
-      boolean leftBorderNotWhite = true;
+      let leftBorderNotWhite = true;
       while ((leftBorderNotWhite || !atLeastOneBlackPointFoundOnLeft) && left >= 0) {
         leftBorderNotWhite = containsBlackPoint(up, down, left, false);
         if (leftBorderNotWhite) {
-          left--;
+          left-=1;
           aBlackPointFoundOnBorder = true;
           atLeastOneBlackPointFoundOnLeft = true;
         } else if (!atLeastOneBlackPointFoundOnLeft) {
-          left--;
+          left-=1;
         }
       }
 
@@ -163,15 +167,15 @@ public final class WhiteRectangleDetector {
       // .___.
       // .   .
       // .....
-      boolean topBorderNotWhite = true;
+      let topBorderNotWhite = true;
       while ((topBorderNotWhite || !atLeastOneBlackPointFoundOnTop) && up >= 0) {
         topBorderNotWhite = containsBlackPoint(left, right, up, true);
         if (topBorderNotWhite) {
-          up--;
+          up-=1;
           aBlackPointFoundOnBorder = true;
           atLeastOneBlackPointFoundOnTop = true;
         } else if (!atLeastOneBlackPointFoundOnTop) {
-          up--;
+          up-=1;
         }
       }
 
@@ -184,67 +188,79 @@ public final class WhiteRectangleDetector {
 
     if (!sizeExceeded) {
 
-      int maxSize = right - left;
+      let maxSize = right - left;
 
-      RXingResultPoint z = null;
-      for (int i = 1; z == null && i < maxSize; i++) {
+      let mut z: Option<RXingResultPoint> = None;
+      let mut i = 1;
+      while z.is_none() && i < maxSize {
+      //for (int i = 1; z == null && i < maxSize; i++) {
         z = getBlackPointOnSegment(left, down - i, left + i, down);
+        i+=1;
       }
 
-      if (z == null) {
-        throw NotFoundException.getNotFoundInstance();
+      if (z .is_none()) {
+        return Err( NotFoundException.getNotFoundInstance());
       }
 
-      RXingResultPoint t = null;
+      let mut  t : Option<RXingResultPoint> = None;
       //go down right
-      for (int i = 1; t == null && i < maxSize; i++) {
+      let mut i = 1;
+      while t.is_none() && i < maxSize {
+      //for (int i = 1; t == null && i < maxSize; i++) {
         t = getBlackPointOnSegment(left, up + i, left + i, up);
+        i+=1;
       }
 
-      if (t == null) {
-        throw NotFoundException.getNotFoundInstance();
+      if (t .is_none()) {
+        return Err( NotFoundException.getNotFoundInstance());
       }
 
-      RXingResultPoint x = null;
+      let mut  x : Option<RXingResultPoint> = None;
       //go down left
-      for (int i = 1; x == null && i < maxSize; i++) {
+      let mut i = 1;
+      while x.is_none() && i < maxSize {
+      //for (int i = 1; x == null && i < maxSize; i++) {
         x = getBlackPointOnSegment(right, up + i, right - i, up);
+        i += 1;
       }
 
-      if (x == null) {
-        throw NotFoundException.getNotFoundInstance();
+      if (x .is_none()) {
+        return Err( NotFoundException.getNotFoundInstance());
       }
 
-      RXingResultPoint y = null;
+      let mut  y : Option<RXingResultPoint> = None;
       //go up left
-      for (int i = 1; y == null && i < maxSize; i++) {
+      let mut i = 1;
+      while y.is_none() && i < maxSize {
+      //for (int i = 1; y == null && i < maxSize; i++) {
         y = getBlackPointOnSegment(right, down - i, right - i, down);
+        i+=1;
       }
 
-      if (y == null) {
-        throw NotFoundException.getNotFoundInstance();
+      if (y .is_none()) {
+        return Err( NotFoundException.getNotFoundInstance());
       }
 
       return centerEdges(y, z, x, t);
 
     } else {
-      throw NotFoundException.getNotFoundInstance();
+      return Err( NotFoundException.getNotFoundInstance());
     }
   }
 
-  private RXingResultPoint getBlackPointOnSegment(float aX, float aY, float bX, float bY) {
-    int dist = MathUtils.round(MathUtils.distance(aX, aY, bX, bY));
-    float xStep = (bX - aX) / dist;
-    float yStep = (bY - aY) / dist;
+  fn  getBlackPointOnSegment( aX:f32,  aY:f32,  bX:f32,  bY:f32) -> Option<RXingResultPoint> {
+    let dist = MathUtils.round(MathUtils.distance(aX, aY, bX, bY));
+    let xStep :f32= (bX - aX) / dist;
+    let yStep:f32 = (bY - aY) / dist;
 
-    for (int i = 0; i < dist; i++) {
-      int x = MathUtils.round(aX + i * xStep);
-      int y = MathUtils.round(aY + i * yStep);
+    for i in 0..dist {
+      let x = MathUtils.round(aX + i * xStep);
+      let y = MathUtils.round(aY + i * yStep);
       if (image.get(x, y)) {
-        return new RXingResultPoint(x, y);
+        return  RXingResultPoint::new(x, y);
       }
     }
-    return null;
+    return None;
   }
 
   /**
@@ -260,8 +276,8 @@ public final class WhiteRectangleDetector {
    *         point and the last, the bottommost. The second point will be
    *         leftmost and the third, the rightmost
    */
-  private RXingResultPoint[] centerEdges(RXingResultPoint y, RXingResultPoint z,
-                                    RXingResultPoint x, RXingResultPoint t) {
+  fn  centerEdges( y:&RXingResultPoint,  z:&RXingResultPoint,
+                                     x:&RXingResultPoint,  t:&RXingResultPoint) -> Vec<RXingResultPoint> {
 
     //
     //       t            t
@@ -270,27 +286,27 @@ public final class WhiteRectangleDetector {
     //   y                    y
     //
 
-    float yi = y.getX();
-    float yj = y.getY();
-    float zi = z.getX();
-    float zj = z.getY();
-    float xi = x.getX();
-    float xj = x.getY();
-    float ti = t.getX();
-    float tj = t.getY();
+    let yi = y.getX();
+    let yj = y.getY();
+    let zi = z.getX();
+    let zj = z.getY();
+    let xi = x.getX();
+    let xj = x.getY();
+    let ti = t.getX();
+    let tj = t.getY();
 
     if (yi < width / 2.0f) {
-      return new RXingResultPoint[]{
-          new RXingResultPoint(ti - CORR, tj + CORR),
-          new RXingResultPoint(zi + CORR, zj + CORR),
-          new RXingResultPoint(xi - CORR, xj - CORR),
-          new RXingResultPoint(yi + CORR, yj - CORR)};
+      return Vec!
+          [ RXingResultPoint::new(ti - CORR, tj + CORR),
+           RXingResultPoint::new(zi + CORR, zj + CORR),
+           RXingResultPoint::new(xi - CORR, xj - CORR),
+           RXingResultPoint::new(yi + CORR, yj - CORR)];
     } else {
-      return new RXingResultPoint[]{
-          new RXingResultPoint(ti + CORR, tj + CORR),
-          new RXingResultPoint(zi + CORR, zj - CORR),
-          new RXingResultPoint(xi - CORR, xj + CORR),
-          new RXingResultPoint(yi - CORR, yj - CORR)};
+      return Vec![
+           RXingResultPoint::new(ti + CORR, tj + CORR),
+           RXingResultPoint::new(zi + CORR, zj - CORR),
+           RXingResultPoint::new(xi - CORR, xj + CORR),
+           RXingResultPoint::new(yi - CORR, yj - CORR)];
     }
   }
 
@@ -303,16 +319,18 @@ public final class WhiteRectangleDetector {
    * @param horizontal set to true if scan must be horizontal, false if vertical
    * @return true if a black point has been found, else false.
    */
-  private boolean containsBlackPoint(int a, int b, int fixed, boolean horizontal) {
+  fn  containsBlackPoint( a:i32,  b:i32,  fixed:i32,  horizontal:bool) -> bool {
 
     if (horizontal) {
-      for (int x = a; x <= b; x++) {
+      
+      for x in a..=b {
         if (image.get(x, fixed)) {
           return true;
         }
       }
     } else {
-      for (int y = a; y <= b; y++) {
+      
+      for y in a..=b {
         if (image.get(fixed, y)) {
           return true;
         }
