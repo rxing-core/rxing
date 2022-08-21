@@ -1483,7 +1483,7 @@ pub trait LuminanceSource {
    *
    * @return A rotated version of this object.
    */
-  fn  rotateCounterClockwise45() -> Result<dyn LuminanceSource,UnsupportedOperationException> {
+  fn  rotateCounterClockwise45(&self) -> Result<dyn LuminanceSource,UnsupportedOperationException> {
     return Err( UnsupportedOperationException::new("This luminance source does not support rotation by 45 degrees."));
   }
 
@@ -1513,4 +1513,112 @@ pub trait LuminanceSource {
     return result.toString();
   }*/
 
+}
+
+
+/*
+ * Copyright 2013 ZXing authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//package com.google.zxing;
+
+/**
+ * A wrapper implementation of {@link LuminanceSource} which inverts the luminances it returns -- black becomes
+ * white and vice versa, and each value becomes (255-value).
+ *
+ * @author Sean Owen
+ */
+pub struct InvertedLuminanceSource {
+   width:usize,
+   height:usize,
+    delegate:dyn LuminanceSource,
+}
+
+impl InvertedLuminanceSource {
+  pub fn new_with_delegate( delegate:dyn LuminanceSource) -> Self {
+    Self {
+        width: delegate.getWidth(),
+        height: delegate.getHeight(),
+        delegate,
+    }
+  }
+}
+
+impl LuminanceSource for InvertedLuminanceSource{
+    fn new( width:usize,  height:usize) -> Self {
+      let new_ils : Self;
+        new_ils.width = width;
+        new_ils.height = height;
+        
+        new_ils
+    }
+
+    fn  getRow(&self,  y:usize,  row:&Vec<u8>) -> Vec<u8> {
+      let new_row = self.delegate.getRow(y, row);
+      let width = self.getWidth();
+      for i in 0..width{
+      //for (int i = 0; i < width; i++) {
+        new_row[i] = (255 - (new_row[i] & 0xFF));
+      }
+      return new_row;
+    }
+
+    fn  getMatrix(&self) -> Vec<u8> {
+      let matrix =self.delegate.getMatrix();
+      let length = self.getWidth() * self.getHeight();
+       let invertedMatrix = Vec::with_capacity(length);
+for i in 0..length {
+      //for (int i = 0; i < length; i++) {
+        invertedMatrix[i] =  (255 - (matrix[i] & 0xFF));
+      }
+      return invertedMatrix;
+    }
+
+    fn  getWidth(&self) -> usize {
+        self.width
+    }
+
+    fn  getHeight(&self) -> usize {
+        self.height
+    }
+
+    fn isCropSupported(&self) -> bool {
+      return self.delegate.isCropSupported();
+  }
+
+    fn  crop(&self,  left:usize,  top:usize,  width:usize,  height:usize) -> Result<dyn LuminanceSource,UnsupportedOperationException> {
+      return  InvertedLuminanceSource::new_with_delegate(self.delegate.crop(left, top, width, height));
+  }
+
+    fn isRotateSupported(&self) -> bool {
+      return self.delegate.isRotateSupported();
+  }
+
+  /**
+   * @return original delegate {@link LuminanceSource} since invert undoes itself
+   */
+    fn  invert(&self) -> InvertedLuminanceSource{
+      return self.delegate;
+  }
+
+    fn  rotateCounterClockwise(&self) -> Result<dyn LuminanceSource,UnsupportedOperationException> {
+      return  InvertedLuminanceSource::new_with_delegate(self.delegate.rotateCounterClockwise());
+  }
+
+    fn  rotateCounterClockwise45(&self) -> Result<dyn LuminanceSource,UnsupportedOperationException> {
+      return  InvertedLuminanceSource::new_with_delegate(self.delegate.rotateCounterClockwise45());
+  }
+    
 }
