@@ -1048,3 +1048,469 @@ impl fmt::Display for RXingResultPoint {
         write!(f,"({},{})", self.x, self.y)
     }
 }
+
+
+/*
+ * Copyright 2012 ZXing authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//package com.google.zxing;
+
+/**
+ * Simply encapsulates a width and height.
+ */
+#[derive(Eq,PartialEq,Hash)]
+pub struct Dimension {
+
+  width : usize,
+  height :usize,
+}
+
+impl Dimension {
+  pub fn new ( width:usize,  height:usize) -> Result<Self,IllegalArgumentException>{
+    if (width < 0 || height < 0) {
+      return Err( IllegalArgumentException::new());
+    }
+    Ok(Self{
+        width,
+        height,
+    })
+  }
+
+  pub fn getWidth(&self) -> usize {
+    return self.width;
+  }
+
+  pub fn getHeight(&self) -> usize {
+    return self.height;
+  }
+
+}
+
+impl fmt::Display for Dimension {
+
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f,"{}x{}", self.width, self.height)
+    }
+}
+
+
+/*
+ * Copyright 2009 ZXing authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//package com.google.zxing;
+use crate::common::{BitArray,BitMatrix};
+
+/**
+ * This class hierarchy provides a set of methods to convert luminance data to 1 bit data.
+ * It allows the algorithm to vary polymorphically, for example allowing a very expensive
+ * thresholding technique for servers and a fast one for mobile. It also permits the implementation
+ * to vary, e.g. a JNI version for Android and a Java fallback version for other platforms.
+ *
+ * @author dswitkin@google.com (Daniel Switkin)
+ */
+pub trait Binarizer {
+
+  //private final LuminanceSource source;
+  fn new(source:LuminanceSource) -> Self;
+
+  fn getLuminanceSource() -> LuminanceSource;
+
+  /**
+   * Converts one row of luminance data to 1 bit data. May actually do the conversion, or return
+   * cached data. Callers should assume this method is expensive and call it as seldom as possible.
+   * This method is intended for decoding 1D barcodes and may choose to apply sharpening.
+   * For callers which only examine one row of pixels at a time, the same BitArray should be reused
+   * and passed in with each call for performance. However it is legal to keep more than one row
+   * at a time if needed.
+   *
+   * @param y The row to fetch, which must be in [0, bitmap height)
+   * @param row An optional preallocated array. If null or too small, it will be ignored.
+   *            If used, the Binarizer will call BitArray.clear(). Always use the returned object.
+   * @return The array of bits for this row (true means black).
+   * @throws NotFoundException if row can't be binarized
+   */
+  fn getBlackRow( y:usize,  row:BitArray) -> Result<BitArray,NotFoundException>;
+
+  /**
+   * Converts a 2D array of luminance data to 1 bit data. As above, assume this method is expensive
+   * and do not call it repeatedly. This method is intended for decoding 2D barcodes and may or
+   * may not apply sharpening. Therefore, a row from this matrix may not be identical to one
+   * fetched using getBlackRow(), so don't mix and match between them.
+   *
+   * @return The 2D array of bits for the image (true means black).
+   * @throws NotFoundException if image can't be binarized to make a matrix
+   */
+  fn  getBlackMatrix() -> Result<BitMatrix, NotFoundException>;
+
+  /**
+   * Creates a new object with the same type as this Binarizer implementation, but with pristine
+   * state. This is needed because Binarizer implementations may be stateful, e.g. keeping a cache
+   * of 1 bit data. See Effective Java for why we can't use Java's clone() method.
+   *
+   * @param source The LuminanceSource this Binarizer will operate on.
+   * @return A new concrete Binarizer implementation object.
+   */
+  fn  createBinarizer( source:LuminanceSource) -> dyn Binarizer;
+
+  fn getWidth() -> usize;
+
+  fn getHeight()->usize;
+
+}
+
+
+/*
+ * Copyright 2009 ZXing authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//package com.google.zxing;
+
+/**
+ * This class is the core bitmap class used by ZXing to represent 1 bit data. Reader objects
+ * accept a BinaryBitmap and attempt to decode it.
+ *
+ * @author dswitkin@google.com (Daniel Switkin)
+ */
+pub struct BinaryBitmap {
+
+   binarizer :dyn Binarizer,
+   matrix:BitMatrix,
+
+}
+
+impl BinaryBitmap{
+  pub fn new( binarizer:dyn Binarizer) -> Self{
+    Self{
+        binarizer: binarizer,
+        matrix: binarizer.getBlackMatrix()
+    }
+  }
+
+  /**
+   * @return The width of the bitmap.
+   */
+  pub fn  getWidth(&self) -> usize {
+    return self.binarizer.getWidth();
+  }
+
+  /**
+   * @return The height of the bitmap.
+   */
+  pub fn  getHeight(&self) -> usize{
+    return self.binarizer.getHeight();
+  }
+
+  /**
+   * Converts one row of luminance data to 1 bit data. May actually do the conversion, or return
+   * cached data. Callers should assume this method is expensive and call it as seldom as possible.
+   * This method is intended for decoding 1D barcodes and may choose to apply sharpening.
+   *
+   * @param y The row to fetch, which must be in [0, bitmap height)
+   * @param row An optional preallocated array. If null or too small, it will be ignored.
+   *            If used, the Binarizer will call BitArray.clear(). Always use the returned object.
+   * @return The array of bits for this row (true means black).
+   * @throws NotFoundException if row can't be binarized
+   */
+   pub fn getBlackRow(&self, y:usize,  row:BitArray) -> Result<BitArray,NotFoundException> {
+    return self.binarizer.getBlackRow(y, row);
+  }
+
+  /**
+   * Converts a 2D array of luminance data to 1 bit. As above, assume this method is expensive
+   * and do not call it repeatedly. This method is intended for decoding 2D barcodes and may or
+   * may not apply sharpening. Therefore, a row from this matrix may not be identical to one
+   * fetched using getBlackRow(), so don't mix and match between them.
+   *
+   * @return The 2D array of bits for the image (true means black).
+   * @throws NotFoundException if image can't be binarized to make a matrix
+   */
+  pub fn  getBlackMatrix(&self) -> Result<BitMatrix, NotFoundException> {
+    // The matrix is created on demand the first time it is requested, then cached. There are two
+    // reasons for this:
+    // 1. This work will never be done if the caller only installs 1D Reader objects, or if a
+    //    1D Reader finds a barcode before the 2D Readers run.
+    // 2. This work will only be done once even if the caller installs multiple 2D Readers.
+    return self.matrix;
+  }
+
+  /**
+   * @return Whether this bitmap can be cropped.
+   */
+  pub fn  isCropSupported(&self) -> bool{
+    return self.binarizer.getLuminanceSource().isCropSupported();
+  }
+
+  /**
+   * Returns a new object with cropped image data. Implementations may keep a reference to the
+   * original data rather than a copy. Only callable if isCropSupported() is true.
+   *
+   * @param left The left coordinate, which must be in [0,getWidth())
+   * @param top The top coordinate, which must be in [0,getHeight())
+   * @param width The width of the rectangle to crop.
+   * @param height The height of the rectangle to crop.
+   * @return A cropped version of this object.
+   */
+  pub fn  crop(&self,  left:usize,  top:usize,  width:usize,  height:usize) ->BinaryBitmap{
+    let newSource = self.binarizer.getLuminanceSource().crop(left, top, width, height);
+    return  BinaryBitmap::new(self.binarizer.createBinarizer(newSource));
+  }
+
+  /**
+   * @return Whether this bitmap supports counter-clockwise rotation.
+   */
+  pub fn  isRotateSupported(&self) -> bool{
+    return self.binarizer.getLuminanceSource().isRotateSupported();
+  }
+
+  /**
+   * Returns a new object with rotated image data by 90 degrees counterclockwise.
+   * Only callable if {@link #isRotateSupported()} is true.
+   *
+   * @return A rotated version of this object.
+   */
+  pub fn  rotateCounterClockwise(&self) -> BinaryBitmap{
+    let newSource = self.binarizer.getLuminanceSource().rotateCounterClockwise();
+    return  BinaryBitmap::new(self.binarizer.createBinarizer(newSource));
+  }
+
+  /**
+   * Returns a new object with rotated image data by 45 degrees counterclockwise.
+   * Only callable if {@link #isRotateSupported()} is true.
+   *
+   * @return A rotated version of this object.
+   */
+  pub fn  rotateCounterClockwise45(&self) ->BinaryBitmap{
+    let newSource = self.binarizer.getLuminanceSource().rotateCounterClockwise45();
+    return  BinaryBitmap::new(self.binarizer.createBinarizer(newSource));
+  }
+
+}
+
+impl fmt::Display for BinaryBitmap {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f,"{}",self.getBlackMatrix())
+    }
+}
+
+
+/*
+ * Copyright 2009 ZXing authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//package com.google.zxing;
+
+/**
+ * Callback which is invoked when a possible result point (significant
+ * point in the barcode image such as a corner) is found.
+ *
+ * @see DecodeHintType#NEED_RESULT_POINT_CALLBACK
+ */
+pub trait RXingResultPointCallback {
+
+  fn foundPossibleRXingResultPoint( point: RXingResultPoint);
+
+}
+
+
+
+/*
+ * Copyright 2009 ZXing authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//package com.google.zxing;
+
+/**
+ * The purpose of this class hierarchy is to abstract different bitmap implementations across
+ * platforms into a standard interface for requesting greyscale luminance values. The interface
+ * only provides immutable methods; therefore crop and rotation create copies. This is to ensure
+ * that one Reader does not modify the original luminance source and leave it in an unknown state
+ * for other Readers in the chain.
+ *
+ * @author dswitkin@google.com (Daniel Switkin)
+ */
+pub trait LuminanceSource {
+
+  //private final int width;
+  //private final int height;
+
+  fn new( width:usize,  height:usize) -> Self;
+
+  /**
+   * Fetches one row of luminance data from the underlying platform's bitmap. Values range from
+   * 0 (black) to 255 (white). Because Java does not have an unsigned byte type, callers will have
+   * to bitwise and with 0xff for each value. It is preferable for implementations of this method
+   * to only fetch this row rather than the whole image, since no 2D Readers may be installed and
+   * getMatrix() may never be called.
+   *
+   * @param y The row to fetch, which must be in [0,getHeight())
+   * @param row An optional preallocated array. If null or too small, it will be ignored.
+   *            Always use the returned object, and ignore the .length of the array.
+   * @return An array containing the luminance data.
+   */
+  fn  getRow(&self,  y:usize,  row:&Vec<u8>) -> Vec<u8>;
+
+  /**
+   * Fetches luminance data for the underlying bitmap. Values should be fetched using:
+   * {@code int luminance = array[y * width + x] & 0xff}
+   *
+   * @return A row-major 2D array of luminance values. Do not use result.length as it may be
+   *         larger than width * height bytes on some platforms. Do not modify the contents
+   *         of the result.
+   */
+  fn  getMatrix(&self) -> Vec<u8>;
+
+  /**
+   * @return The width of the bitmap.
+   */
+  fn  getWidth(&self) -> usize;
+
+  /**
+   * @return The height of the bitmap.
+   */
+  fn  getHeight(&self) -> usize;
+
+  /**
+   * @return Whether this subclass supports cropping.
+   */
+  fn isCropSupported(&self) -> bool {
+    return false;
+  }
+
+  /**
+   * Returns a new object with cropped image data. Implementations may keep a reference to the
+   * original data rather than a copy. Only callable if isCropSupported() is true.
+   *
+   * @param left The left coordinate, which must be in [0,getWidth())
+   * @param top The top coordinate, which must be in [0,getHeight())
+   * @param width The width of the rectangle to crop.
+   * @param height The height of the rectangle to crop.
+   * @return A cropped version of this object.
+   */
+  fn  crop(&self,  left:usize,  top:usize,  width:usize,  height:usize) -> Result<dyn LuminanceSource,UnsupportedOperationException> {
+    return Err( UnsupportedOperationException::new("This luminance source does not support cropping."));
+  }
+
+  /**
+   * @return Whether this subclass supports counter-clockwise rotation.
+   */
+  fn isRotateSupported(&self) -> bool {
+    return false;
+  }
+
+  /**
+   * @return a wrapper of this {@code LuminanceSource} which inverts the luminances it returns -- black becomes
+   *  white and vice versa, and each value becomes (255-value).
+   */
+  fn  invert(&self) -> InvertedLuminanceSource{
+    return InvertedLuminanceSource::new(self);
+  }
+
+  /**
+   * Returns a new object with rotated image data by 90 degrees counterclockwise.
+   * Only callable if {@link #isRotateSupported()} is true.
+   *
+   * @return A rotated version of this object.
+   */
+  fn  rotateCounterClockwise(&self) -> Result<dyn LuminanceSource,UnsupportedOperationException> {
+    return Err(UnsupportedOperationException::new("This luminance source does not support rotation by 90 degrees."));
+  }
+
+  /**
+   * Returns a new object with rotated image data by 45 degrees counterclockwise.
+   * Only callable if {@link #isRotateSupported()} is true.
+   *
+   * @return A rotated version of this object.
+   */
+  fn  rotateCounterClockwise45() -> Result<dyn LuminanceSource,UnsupportedOperationException> {
+    return Err( UnsupportedOperationException::new("This luminance source does not support rotation by 45 degrees."));
+  }
+
+  /*
+  @Override
+  public final String toString() {
+    byte[] row = new byte[width];
+    StringBuilder result = new StringBuilder(height * (width + 1));
+    for (int y = 0; y < height; y++) {
+      row = getRow(y, row);
+      for (int x = 0; x < width; x++) {
+        int luminance = row[x] & 0xFF;
+        char c;
+        if (luminance < 0x40) {
+          c = '#';
+        } else if (luminance < 0x80) {
+          c = '+';
+        } else if (luminance < 0xC0) {
+          c = '.';
+        } else {
+          c = ' ';
+        }
+        result.append(c);
+      }
+      result.append('\n');
+    }
+    return result.toString();
+  }*/
+
+}
