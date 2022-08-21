@@ -1622,3 +1622,223 @@ for i in 0..length {
   }
     
 }
+
+/*
+ * Copyright 2009 ZXing authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//package com.google.zxing;
+
+const THUMBNAIL_SCALE_FACTOR: usize = 2;
+
+/**
+ * This object extends LuminanceSource around an array of YUV data returned from the camera driver,
+ * with the option to crop to a rectangle within the full data. This can be used to exclude
+ * superfluous pixels around the perimeter and speed up decoding.
+ *
+ * It works for any pixel format where the Y channel is planar and appears first, including
+ * YCbCr_420_SP and YCbCr_422_SP.
+ *
+ * @author dswitkin@google.com (Daniel Switkin)
+ */
+pub struct PlanarYUVLuminanceSource  {
+
+  yuvData:Vec<u8>,
+  dataWidth:usize,
+  dataHeight:usize,
+  left:usize,
+  top:usize,
+  width:usize,
+   height:usize,
+}
+
+impl PlanarYUVLuminanceSource {
+    pub fn new_with_all(
+      yuvData:Vec<u8>,
+       dataWidth:usize,
+       dataHeight:usize,
+       left:usize,
+       top:usize,
+       width:usize,
+       height:usize,
+       reverseHorizontal:bool) -> Result<Self,IllegalArgumentException> {
+        
+
+        if (left + width > dataWidth || top + height > dataHeight) {
+        return Err( IllegalArgumentException::new("Crop rectangle does not fit within image data."));
+        }
+
+        let new_s : Self = Self {
+            yuvData,
+            dataWidth,
+            dataHeight,
+            left,
+            top,
+            width,
+            height,
+        };
+
+        if reverseHorizontal {
+          new_s.reverseHorizontal(width, height);
+        }
+
+        Ok(new_s)
+    }
+
+    pub fn  renderThumbnail(&self) -> Vec<usize> {
+      let width = self.getWidth() / THUMBNAIL_SCALE_FACTOR;
+      let height = self.getHeight() / THUMBNAIL_SCALE_FACTOR;
+      let pixels = Vec::with_capacity(width*height);
+      let yuv:Vec<u8> = Vec::new();
+      let inputOffset = self.top *self. dataWidth + self.left;
+  
+      for y in 0..height{
+      //for (int y = 0; y < height; y++) {
+        let outputOffset = y * width;
+        for x in 0..width {
+        //for (int x = 0; x < width; x++) {
+          let grey = yuv[inputOffset + x * THUMBNAIL_SCALE_FACTOR] & 0xff;
+          pixels[outputOffset + x] = 0xFF000000 | (grey * 0x00010101);
+        }
+        inputOffset += self.dataWidth * THUMBNAIL_SCALE_FACTOR;
+      }
+      return pixels;
+    }
+
+    /**
+   * @return width of image from {@link #renderThumbnail()}
+   */
+  pub fn getThumbnailWidth(&self) -> usize{
+    return self.getWidth() / THUMBNAIL_SCALE_FACTOR;
+  }
+
+  /**
+   * @return height of image from {@link #renderThumbnail()}
+   */
+  pub fn getThumbnailHeight(&self) -> usize{
+    return self.getHeight() / THUMBNAIL_SCALE_FACTOR;
+  }
+
+  fn reverseHorizontal(&self, width:usize, height:usize) {
+    let yuvData = self.yuvData;
+    let mut rowStart = self.top * self.dataWidth + self.left;
+    for y in 0..height {
+      let middle = rowStart + width / 2;
+      let mut x2 = rowStart + width -1 ;
+      for x1 in rowStart..middle {
+      //for (int x1 = rowStart, x2 = rowStart + width - 1; x1 < middle; x1++, x2--) {
+        let temp = yuvData[x1];
+        yuvData[x1] = yuvData[x2];
+        yuvData[x2] = temp;
+        x2 -= 1;
+      }
+      rowStart += self.dataWidth;
+    }
+    self.yuvData = yuvData;
+    /*for (int y = 0, rowStart = top * dataWidth + left; y < height; y++, rowStart += dataWidth) {
+      let middle = rowStart + width / 2;
+      for (int x1 = rowStart, x2 = rowStart + width - 1; x1 < middle; x1++, x2--) {
+        let temp = yuvData[x1];
+        yuvData[x1] = yuvData[x2];
+        yuvData[x2] = temp;
+      }
+    }*/
+  }
+
+}
+
+impl LuminanceSource for PlanarYUVLuminanceSource{
+    fn new( width:usize,  height:usize) -> Self {
+      let new_ils : Self;
+      new_ils.width = width;
+      new_ils.height = height;
+      
+      new_ils
+    }
+
+    fn  getRow(&self,  y:usize,  row:&Vec<u8>) -> Vec<u8> {
+      if (y < 0 || y >= self.getHeight()) {
+        //throw new IllegalArgumentException("Requested row is outside the image: " + y);
+        panic!("Requested row is outside the image: {}",y);
+      }
+      let width = self.getWidth();
+      
+      let offset = (y + self.top) * self.dataWidth + self.left;
+      
+      row.clone_from_slice(&self.yuvData[offset..width]);
+      //System.arraycopy(yuvData, offset, row, 0, width);
+      return row;
+    }
+
+    fn  getMatrix(&self) -> Vec<u8> {
+      let width = self.getWidth();
+      let height = self.getHeight();
+  
+      // If the caller asks for the entire underlying image, save the copy and give them the
+      // original data. The docs specifically warn that result.length must be ignored.
+      if (width == self.dataWidth && height == self.dataHeight) {
+        return self.yuvData;
+      }
+  
+      let area = width * height;
+      let matrix = Vec::with_capacity(area);
+      let inputOffset = self.top *  self.dataWidth +  self.left;
+  
+      // If the width matches the full width of the underlying data, perform a single copy.
+      if (width ==  self.dataWidth) {
+        matrix[0..area].clone_from_slice(&self.yuvData[inputOffset..area]);
+        //System.arraycopy(yuvData, inputOffset, matrix, 0, area);
+        return matrix;
+      }
+  
+      // Otherwise copy one cropped row at a time.
+      for y in 0..height{
+      //for (int y = 0; y < height; y++) {
+        let outputOffset = y * width;
+        matrix[outputOffset..width].clone_from_slice(&self.yuvData[inputOffset..width]);
+        //System.arraycopy(yuvData, inputOffset, matrix, outputOffset, width);
+        inputOffset += self.dataWidth;
+      }
+      return matrix;
+    }
+
+    fn  getWidth(&self) -> usize {
+        self.width
+    }
+
+    fn  getHeight(&self) -> usize {
+        self.height
+    }
+
+    fn isCropSupported(&self) -> bool {
+      return true;
+  }
+
+    fn  crop(&self,  left:usize,  top:usize,  width:usize,  height:usize) -> Result<dyn LuminanceSource,UnsupportedOperationException> {
+      return  PlanarYUVLuminanceSource::new_with_all(self.yuvData,
+        self.dataWidth,
+        self.dataHeight,
+        self.left + left,
+        self.top + top,
+        width,
+        height,
+        false);
+  }
+
+    fn isRotateSupported(&self) -> bool {
+    return false;
+  }
+    
+}
