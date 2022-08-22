@@ -50,7 +50,16 @@ impl ReedSolomonException {
  * limitations under the License.
  */
 
-package com.google.zxing.common.reedsolomon;
+//package com.google.zxing.common.reedsolomon;
+
+const  AZTEC_DATA_12:GenericGF =  GenericGF::new(0x1069, 4096, 1); // x^12 + x^6 + x^5 + x^3 + 1
+const  AZTEC_DATA_10:GenericGF = GenericGF::new(0x409, 1024, 1); // x^10 + x^3 + 1
+const  AZTEC_DATA_6:GenericGF = GenericGF::new(0x43, 64, 1); // x^6 + x + 1
+const  AZTEC_PARAM:GenericGF = GenericGF::new(0x13, 16, 1); // x^4 + x + 1
+const  QR_CODE_FIELD_256:GenericGF = GenericGF::new(0x011D, 256, 0); // x^8 + x^4 + x^3 + x^2 + 1
+const  DATA_MATRIX_FIELD_256:GenericGF = GenericGF::new(0x012D, 256, 1); // x^8 + x^5 + x^3 + x^2 + 1
+const  AZTEC_DATA_8:GenericGF = DATA_MATRIX_FIELD_256;
+const  MAXICODE_FIELD_64:GenericGF = AZTEC_DATA_6;
 
 /**
  * <p>This class contains utility methods for performing mathematical operations over
@@ -63,24 +72,17 @@ package com.google.zxing.common.reedsolomon;
  * @author Sean Owen
  * @author David Olivier
  */
-public final class GenericGF {
+pub struct GenericGF {
 
-  public static final GenericGF AZTEC_DATA_12 = new GenericGF(0x1069, 4096, 1); // x^12 + x^6 + x^5 + x^3 + 1
-  public static final GenericGF AZTEC_DATA_10 = new GenericGF(0x409, 1024, 1); // x^10 + x^3 + 1
-  public static final GenericGF AZTEC_DATA_6 = new GenericGF(0x43, 64, 1); // x^6 + x + 1
-  public static final GenericGF AZTEC_PARAM = new GenericGF(0x13, 16, 1); // x^4 + x + 1
-  public static final GenericGF QR_CODE_FIELD_256 = new GenericGF(0x011D, 256, 0); // x^8 + x^4 + x^3 + x^2 + 1
-  public static final GenericGF DATA_MATRIX_FIELD_256 = new GenericGF(0x012D, 256, 1); // x^8 + x^5 + x^3 + x^2 + 1
-  public static final GenericGF AZTEC_DATA_8 = DATA_MATRIX_FIELD_256;
-  public static final GenericGF MAXICODE_FIELD_64 = AZTEC_DATA_6;
-
-  private final int[] expTable;
-  private final int[] logTable;
-  private final GenericGFPoly zero;
-  private final GenericGFPoly one;
-  private final int size;
-  private final int primitive;
-  private final int generatorBase;
+   expTable : Vec<usize>,
+    logTable: Vec<usize>,
+    zero:GenericGFPoly,
+    one:GenericGFPoly,
+    size:usize,
+    primitive:usize,
+    generatorBase:usize,
+}
+impl GenericGF{
 
   /**
    * Create a representation of GF(size) using the given primitive polynomial.
