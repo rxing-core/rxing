@@ -498,6 +498,7 @@ impl fmt::Display for GenericGFPoly {
               result.push_str(" - ");
             }
             //coefficient = -coefficient;
+            todo!("probably coefficient should be unsigned but what a mess");
           } else {
             if (result.len() > 0) {
               result.push_str(" + ");
