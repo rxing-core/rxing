@@ -1,8 +1,32 @@
+mod common;
+
 use std::fmt;
 use std::any::{Any,TypeId};
 use std::time::SystemTime;
+use crate::common::{BitArray,BitMatrix};
+use std::collections::HashMap;
+use std::hash::Hash;
 
-mod common;
+pub struct IllegalArgumentException{
+  message: String,
+}
+impl IllegalArgumentException {
+  pub fn new(message:&str) -> Self{
+Self{
+  message: message.to_owned()
+}
+  }
+}
+pub struct UnsupportedOperationException{
+  message: String,
+}
+impl UnsupportedOperationException {
+  pub fn new(message:&str) -> Self{
+Self{
+  message: message.to_owned()
+}
+  }
+}
 
 /*
  * Copyright 2007 ZXing authors
@@ -551,9 +575,6 @@ pub enum DecodeHintType {
 
 //package com.google.zxing;
 
-use crate::common::BitMatrix;
-use std::collections::HashMap;
-
 /**
  * The base class for all objects which encode/generate a barcode image.
  *
@@ -638,7 +659,7 @@ pub trait Reader {
    * @throws ChecksumException if a potential barcode is found but does not pass its checksum
    * @throws FormatException if a potential barcode is found but format is invalid
    */
-  fn decode( image:BinaryBitmap) -> Result<RXingResult, ReaderDecodeException>;
+  fn decode( image:BinaryBitmap) -> Result<RXingResult<'static>, ReaderDecodeException>;
 
   /**
    * Locates and decodes a barcode in some format within an image. This method also accepts
@@ -654,7 +675,7 @@ pub trait Reader {
    * @throws ChecksumException if a potential barcode is found but does not pass its checksum
    * @throws FormatException if a potential barcode is found but format is invalid
    */
-   fn decode_with_hints<T>( image:BinaryBitmap,  hints:HashMap<DecodeHintType,T>) -> Result<RXingResult,ReaderDecodeException>;
+   fn decode_with_hints<T>( image:BinaryBitmap,  hints:HashMap<DecodeHintType,T>) -> Result<RXingResult<'static>,ReaderDecodeException>;
 
   /**
    * Resets any internal state the implementation has after a decode, to prepare it
@@ -815,16 +836,16 @@ impl RXingResult<'_> {
   }
 
   pub fn new_timestamp( text : &str,
-                rawBytes : &Vec<u8>,
-                 resultPoints:&Vec<RXingResultPoint>,
-                 format:&BarcodeFormat,
+                rawBytes : Vec<u8>,
+                 resultPoints:Vec<RXingResultPoint>,
+                 format:BarcodeFormat,
                  timestamp : i64) -> Self{
     Self::new_complex(text, rawBytes, 8 * rawBytes.len(),
          resultPoints, format, timestamp)
   }
 
   pub fn  new_complex( text:&str,
-    rawBytes : &Vec<u8>,
+    rawBytes : Vec<u8>,
                  numBits :usize,
                  resultPoints:Vec<RXingResultPoint>,
                  format:BarcodeFormat,
@@ -884,7 +905,7 @@ impl RXingResult<'_> {
    *   like orientation.
    */
   pub fn  getRXingResultMetadata(&self)  -> HashMap<RXingResultMetadataType,&dyn Any> {
-    return self.resultMetadata;
+    return self.resultMetadata.unwrap();
   }
 
   pub fn putMetadata(&self, md_type :RXingResultMetadataType, value: &dyn Any) {
@@ -953,12 +974,22 @@ use crate::common::detector::MathUtils;
  *
  * @author Sean Owen
  */
-#[derive(Eq,Hash,PartialEq)]
 pub struct RXingResultPoint {
-
   x: f32,
   y: f32,
 }
+impl Hash for RXingResultPoint{
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.x.to_string().hash(state);
+        self.y.to_string().hash(state);
+    }
+}
+impl PartialEq for RXingResultPoint {
+  fn eq(&self, other: &Self) -> bool {
+    self.x.to_string() == other.x.to_string() && self.y.to_string() ==other.y.to_string()
+  }
+}
+impl Eq for RXingResultPoint {}
 impl RXingResultPoint {
   pub fn new(x:f32, y:f32) -> Self{
     Self{
@@ -1081,7 +1112,7 @@ pub struct Dimension {
 impl Dimension {
   pub fn new ( width:usize,  height:usize) -> Result<Self,IllegalArgumentException>{
     if (width < 0 || height < 0) {
-      return Err( IllegalArgumentException::new());
+      return Err( IllegalArgumentException::new( "" ));
     }
     Ok(Self{
         width,
@@ -1124,7 +1155,6 @@ impl fmt::Display for Dimension {
  */
 
 //package com.google.zxing;
-use crate::common::{BitArray,BitMatrix};
 
 /**
  * This class hierarchy provides a set of methods to convert luminance data to 1 bit data.
@@ -1137,9 +1167,9 @@ use crate::common::{BitArray,BitMatrix};
 pub trait Binarizer {
 
   //private final LuminanceSource source;
-  fn new(source:LuminanceSource) -> Self;
+  //fn new(source:dyn LuminanceSource) -> Self;
 
-  fn getLuminanceSource() -> LuminanceSource;
+  fn getLuminanceSource(&self) -> dyn LuminanceSource;
 
   /**
    * Converts one row of luminance data to 1 bit data. May actually do the conversion, or return
@@ -1155,7 +1185,7 @@ pub trait Binarizer {
    * @return The array of bits for this row (true means black).
    * @throws NotFoundException if row can't be binarized
    */
-  fn getBlackRow( y:usize,  row:BitArray) -> Result<BitArray,NotFoundException>;
+  fn getBlackRow( &self,y:usize,  row:BitArray) -> Result<BitArray,NotFoundException>;
 
   /**
    * Converts a 2D array of luminance data to 1 bit data. As above, assume this method is expensive
@@ -1166,7 +1196,7 @@ pub trait Binarizer {
    * @return The 2D array of bits for the image (true means black).
    * @throws NotFoundException if image can't be binarized to make a matrix
    */
-  fn  getBlackMatrix() -> Result<BitMatrix, NotFoundException>;
+  fn  getBlackMatrix(&self) -> Result<BitMatrix, NotFoundException>;
 
   /**
    * Creates a new object with the same type as this Binarizer implementation, but with pristine
@@ -1176,11 +1206,11 @@ pub trait Binarizer {
    * @param source The LuminanceSource this Binarizer will operate on.
    * @return A new concrete Binarizer implementation object.
    */
-  fn  createBinarizer( source:LuminanceSource) -> dyn Binarizer;
+  fn  createBinarizer(&self, source:dyn LuminanceSource) -> dyn Binarizer;
 
-  fn getWidth() -> usize;
+  fn getWidth(&self) -> usize;
 
-  fn getHeight()->usize;
+  fn getHeight(&self)->usize;
 
 }
 
@@ -1211,13 +1241,13 @@ pub trait Binarizer {
  */
 pub struct BinaryBitmap {
 
-   binarizer :dyn Binarizer,
+   binarizer :Box<dyn Binarizer>,
    matrix:BitMatrix,
 
 }
 
 impl BinaryBitmap{
-  pub fn new( binarizer:dyn Binarizer) -> Self{
+  pub fn new( binarizer:Box<dyn Binarizer>) -> Self{
     Self{
         binarizer: binarizer,
         matrix: binarizer.getBlackMatrix()
@@ -1395,7 +1425,7 @@ pub trait LuminanceSource {
   //private final int width;
   //private final int height;
 
-  fn new( width:usize,  height:usize) -> Self;
+  //fn new( width:usize,  height:usize) -> Self;
 
   /**
    * Fetches one row of luminance data from the underlying platform's bitmap. Values range from
@@ -1448,7 +1478,7 @@ pub trait LuminanceSource {
    * @param height The height of the rectangle to crop.
    * @return A cropped version of this object.
    */
-  fn  crop(&self,  left:usize,  top:usize,  width:usize,  height:usize) -> Result<dyn LuminanceSource,UnsupportedOperationException> {
+  fn  crop(&self,  left:usize,  top:usize,  width:usize,  height:usize) -> Result<Box<dyn LuminanceSource>,UnsupportedOperationException> {
     return Err( UnsupportedOperationException::new("This luminance source does not support cropping."));
   }
 
@@ -1464,7 +1494,7 @@ pub trait LuminanceSource {
    *  white and vice versa, and each value becomes (255-value).
    */
   fn  invert(&self) -> InvertedLuminanceSource{
-    return InvertedLuminanceSource::new(self);
+    return InvertedLuminanceSource::new_with_delegate(self);
   }
 
   /**
@@ -1473,7 +1503,7 @@ pub trait LuminanceSource {
    *
    * @return A rotated version of this object.
    */
-  fn  rotateCounterClockwise(&self) -> Result<dyn LuminanceSource,UnsupportedOperationException> {
+  fn  rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>,UnsupportedOperationException> {
     return Err(UnsupportedOperationException::new("This luminance source does not support rotation by 90 degrees."));
   }
 
@@ -1483,7 +1513,7 @@ pub trait LuminanceSource {
    *
    * @return A rotated version of this object.
    */
-  fn  rotateCounterClockwise45(&self) -> Result<dyn LuminanceSource,UnsupportedOperationException> {
+  fn  rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>,UnsupportedOperationException> {
     return Err( UnsupportedOperationException::new("This luminance source does not support rotation by 45 degrees."));
   }
 
@@ -1543,28 +1573,27 @@ pub trait LuminanceSource {
 pub struct InvertedLuminanceSource {
    width:usize,
    height:usize,
-    delegate:dyn LuminanceSource,
+    delegate:Box<dyn LuminanceSource>,
 }
 
 impl InvertedLuminanceSource {
-  pub fn new_with_delegate( delegate:dyn LuminanceSource) -> Self {
+  pub fn new_with_delegate( delegate:Box<dyn LuminanceSource>) -> Self {
     Self {
         width: delegate.getWidth(),
         height: delegate.getHeight(),
         delegate,
     }
   }
+  fn new( width:usize,  height:usize) -> Self {
+    let new_ils : Self;
+      new_ils.width = width;
+      new_ils.height = height;
+      
+      new_ils
+  }
 }
 
 impl LuminanceSource for InvertedLuminanceSource{
-    fn new( width:usize,  height:usize) -> Self {
-      let new_ils : Self;
-        new_ils.width = width;
-        new_ils.height = height;
-        
-        new_ils
-    }
-
     fn  getRow(&self,  y:usize,  row:&Vec<u8>) -> Vec<u8> {
       let new_row = self.delegate.getRow(y, row);
       let width = self.getWidth();
@@ -1598,7 +1627,7 @@ for i in 0..length {
       return self.delegate.isCropSupported();
   }
 
-    fn  crop(&self,  left:usize,  top:usize,  width:usize,  height:usize) -> Result<dyn LuminanceSource,UnsupportedOperationException> {
+    fn  crop(&self,  left:usize,  top:usize,  width:usize,  height:usize) -> Result<Box<dyn LuminanceSource>,UnsupportedOperationException> {
       return  InvertedLuminanceSource::new_with_delegate(self.delegate.crop(left, top, width, height));
   }
 
@@ -1613,11 +1642,11 @@ for i in 0..length {
       return self.delegate;
   }
 
-    fn  rotateCounterClockwise(&self) -> Result<dyn LuminanceSource,UnsupportedOperationException> {
+    fn  rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>,UnsupportedOperationException> {
       return  InvertedLuminanceSource::new_with_delegate(self.delegate.rotateCounterClockwise());
   }
 
-    fn  rotateCounterClockwise45(&self) -> Result<dyn LuminanceSource,UnsupportedOperationException> {
+    fn  rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>,UnsupportedOperationException> {
       return  InvertedLuminanceSource::new_with_delegate(self.delegate.rotateCounterClockwise45());
   }
     
@@ -1697,7 +1726,7 @@ impl PlanarYUVLuminanceSource {
         Ok(new_s)
     }
 
-    pub fn  renderThumbnail(&self) -> Vec<usize> {
+    pub fn  renderThumbnail(&self) -> Vec<u8> {
       let width = self.getWidth() / THUMBNAIL_SCALE_FACTOR;
       let height = self.getHeight() / THUMBNAIL_SCALE_FACTOR;
       let pixels = Vec::with_capacity(width*height);
@@ -1757,18 +1786,20 @@ impl PlanarYUVLuminanceSource {
     }*/
   }
 
+  fn new( width:usize,  height:usize) -> Self {
+    let new_ils : Self;
+    new_ils.width = width;
+    new_ils.height = height;
+    
+    new_ils
+  }
+
 }
 
 impl LuminanceSource for PlanarYUVLuminanceSource{
-    fn new( width:usize,  height:usize) -> Self {
-      let new_ils : Self;
-      new_ils.width = width;
-      new_ils.height = height;
-      
-      new_ils
-    }
 
     fn  getRow(&self,  y:usize,  row:&Vec<u8>) -> Vec<u8> {
+      let mut row = row.to_vec();
       if (y < 0 || y >= self.getHeight()) {
         //throw new IllegalArgumentException("Requested row is outside the image: " + y);
         panic!("Requested row is outside the image: {}",y);
@@ -1826,15 +1857,18 @@ impl LuminanceSource for PlanarYUVLuminanceSource{
       return true;
   }
 
-    fn  crop(&self,  left:usize,  top:usize,  width:usize,  height:usize) -> Result<dyn LuminanceSource,UnsupportedOperationException> {
-      return  PlanarYUVLuminanceSource::new_with_all(self.yuvData,
+    fn  crop(&self,  left:usize,  top:usize,  width:usize,  height:usize) -> Result<Box<dyn LuminanceSource>,UnsupportedOperationException> {
+      match PlanarYUVLuminanceSource::new_with_all(self.yuvData,
         self.dataWidth,
         self.dataHeight,
         self.left + left,
         self.top + top,
         width,
         height,
-        false);
+        false){
+          Ok(new) => Ok(Box::new(new)),
+          Err(err) => Err(UnsupportedOperationException::new("")),
+        }
   }
 
     fn isRotateSupported(&self) -> bool {
@@ -1880,15 +1914,9 @@ pub struct RGBLuminanceSource  {
 }
 
 impl LuminanceSource for RGBLuminanceSource {
-    fn new( width:usize,  height:usize) -> Self {
-      let new_ils : Self;
-      new_ils.width = width;
-      new_ils.height = height;
-      
-      new_ils
-    }
 
     fn  getRow(&self,  y:usize,  row:&Vec<u8>) -> Vec<u8> {
+      let row = row.to_vec();
       if y < 0 || y >= self.getHeight() {
         panic!("Requested row is outside the image: {}" , y);
       }
@@ -1944,7 +1972,7 @@ impl LuminanceSource for RGBLuminanceSource {
       return true;
   }
 
-    fn  crop(&self,  left:usize,  top:usize,  width:usize,  height:usize) -> Result<dyn LuminanceSource,UnsupportedOperationException> {
+    fn  crop(&self,  left:usize,  top:usize,  width:usize,  height:usize) -> Result<Box<dyn LuminanceSource>,UnsupportedOperationException> {
       
       match RGBLuminanceSource::new_complex(&self.luminances,
         self.dataWidth,
@@ -1953,8 +1981,8 @@ impl LuminanceSource for RGBLuminanceSource {
         self.top + top,
         width,
         height) {
-        Ok(crop) => Ok(crop),
-        Err(error) => Err(UnsupportedOperationException::new()),
+        Ok(crop) => Ok(Box::new(crop)),
+        Err(error) => Err(UnsupportedOperationException::new("")),
     }
 
   }
@@ -1962,7 +1990,15 @@ impl LuminanceSource for RGBLuminanceSource {
 }
 
 impl RGBLuminanceSource {
-  pub fn new_with_width_height_pixels( width:usize, height:usize,  pixels:&Vec<usize>) -> Self{
+  fn new( width:usize,  height:usize) -> Self {
+    let new_ils : Self;
+    new_ils.width = width;
+    new_ils.height = height;
+    
+    new_ils
+  }
+
+  pub fn new_with_width_height_pixels( width:usize, height:usize,  pixels:&Vec<u8>) -> Self{
     //super(width, height);
 
     let dataWidth = width;
@@ -1983,7 +2019,7 @@ impl RGBLuminanceSource {
       let g2 = (pixel >> 7) & 0x1fe; // 2 * green
       let b = pixel & 0xff; // blue
       // Calculate green-favouring average cheaply
-      luminances[offset] = ((r + g2 + b) / 4);
+      luminances[offset] = (r + g2 + b) / 4;
     }
     Self { luminances, dataWidth, dataHeight, left: left, top: top, width, height  }
   }
@@ -2010,3 +2046,4 @@ impl RGBLuminanceSource {
     })
   }   
 }
+
