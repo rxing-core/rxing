@@ -1,7 +1,11 @@
+use std::fmt;
+
+use crate::exceptions::*;
+
 /*
  * Copyright 2007 ZXing authors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "&License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -74,14 +78,15 @@ const  MAXICODE_FIELD_64:GenericGF = AZTEC_DATA_6;
  */
 pub struct GenericGF {
 
-   expTable : Vec<usize>,
-    logTable: Vec<usize>,
-    zero:GenericGFPoly,
-    one:GenericGFPoly,
-    size:usize,
-    primitive:usize,
-    generatorBase:usize,
+   expTable : Vec<i32>,
+    logTable: Vec<i32>,
+    zero: &'static GenericGFPoly,
+    one: &'static GenericGFPoly,
+    size:i32,
+    primitive:i32,
+    generatorBase:i32,
 }
+
 impl GenericGF{
 
   /**
@@ -95,51 +100,56 @@ impl GenericGF{
    *  (g(x) = (x+a^b)(x+a^(b+1))...(x+a^(b+2t-1))).
    *  In most cases it should be 1, but for QR code it is 0.
    */
-  public GenericGF(int primitive, int size, int b) {
-    this.primitive = primitive;
-    this.size = size;
-    this.generatorBase = b;
+  pub fn new( primitive:i32,  size:i32,  b:i32) -> Self{
+    let mut new_ggf :Self;
 
-    expTable = new int[size];
-    logTable = new int[size];
-    int x = 1;
-    for (int i = 0; i < size; i++) {
-      expTable[i] = x;
+
+    new_ggf. primitive = primitive;
+    new_ggf. size = size;
+    new_ggf. generatorBase = b;
+
+    new_ggf. expTable = Vec::with_capacity(size);
+    new_ggf. logTable = Vec::with_capacity(size);
+    let mut x = 1;
+    for i in 0..size {
+    //for (int i = 0; i < size; i++) {
+      new_ggf.expTable[i] = x;
       x *= 2; // we're assuming the generator alpha is 2
       if (x >= size) {
         x ^= primitive;
         x &= size - 1;
       }
     }
-    for (int i = 0; i < size - 1; i++) {
-      logTable[expTable[i]] = i;
+    for i in 0..size {
+    //for (int i = 0; i < size - 1; i++) {
+      new_ggf.logTable[new_ggf.expTable[i]] = i;
     }
+
     // logTable[0] == 0 but this should never be used
-    zero = new GenericGFPoly(this, new int[]{0});
-    one = new GenericGFPoly(this, new int[]{1});
+    new_ggf. zero =  GenericGFPoly::new(&new_ggf, &vec![0]);
+    new_ggf. one =  GenericGFPoly::new(&new_ggf, &vec![1]);
+
+    new_ggf
   }
 
-  GenericGFPoly getZero() {
-    return zero;
+   pub fn getZero(&self) ->GenericGFPoly{
+    return self.zero;
   }
 
-  GenericGFPoly getOne() {
-    return one;
+  pub fn getOne(&self) -> GenericGFPoly {
+    return self.one;
   }
 
   /**
    * @return the monomial representing coefficient * x^degree
    */
-  GenericGFPoly buildMonomial(int degree, int coefficient) {
-    if (degree < 0) {
-      throw new IllegalArgumentException();
-    }
+  pub fn buildMonomial(&self,  degree :u32,  coefficient:i32) -> GenericGFPoly{
     if (coefficient == 0) {
-      return zero;
+      return self.zero;
     }
-    int[] coefficients = new int[degree + 1];
+     let coefficients = Vec::with_capacity(degree + 1);
     coefficients[0] = coefficient;
-    return new GenericGFPoly(this, coefficients);
+    return  GenericGFPoly::new(self, self.coefficients);
   }
 
   /**
@@ -147,60 +157,61 @@ impl GenericGF{
    *
    * @return sum/difference of a and b
    */
-  static int addOrSubtract(int a, int b) {
+  pub fn addOrSubtract( a:i32,  b:i32) -> i32 {
     return a ^ b;
   }
 
   /**
    * @return 2 to the power of a in GF(size)
    */
-  int exp(int a) {
-    return expTable[a];
+  pub fn exp(&self,  a:i32) -> i32{
+    return self.expTable[a];
   }
 
   /**
    * @return base 2 log of a in GF(size)
    */
-  int log(int a) {
+  pub fn log(&self,  a:i32) -> Result<i32,IllegalArgumentException> {
     if (a == 0) {
-      throw new IllegalArgumentException();
+      return Err( IllegalArgumentException::new(""));
     }
-    return logTable[a];
+    return Ok(self.logTable[a]);
   }
 
   /**
    * @return multiplicative inverse of a
    */
-  int inverse(int a) {
+  pub fn inverse(&self,  a:i32) -> Result<i32,ArithmeticException>{
     if (a == 0) {
-      throw new ArithmeticException();
+      return Err( ArithmeticException::new(""));
     }
-    return expTable[size - logTable[a] - 1];
+    return Ok(self.expTable[self.size - self.logTable[a] - 1]);
   }
 
   /**
    * @return product of a and b in GF(size)
    */
-  int multiply(int a, int b) {
+  pub fn multiply(&self,  a:i32,  b:i32) -> i32 {
     if (a == 0 || b == 0) {
       return 0;
     }
-    return expTable[(logTable[a] + logTable[b]) % (size - 1)];
+    return self.expTable[(self.logTable[a] + self.logTable[b]) % (self.size - 1)];
   }
 
-  public int getSize() {
-    return size;
+  pub fn getSize(&self) -> i32{
+    return self.size;
   }
 
-  public int getGeneratorBase() {
-    return generatorBase;
+  pub fn getGeneratorBase(&self) -> i32 {
+    return self.generatorBase;
   }
 
-  @Override
-  public String toString() {
-    return "GF(0x" + Integer.toHexString(primitive) + ',' + size + ')';
-  }
+}
 
+impl fmt::Display for GenericGF {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+      write!(f,"GF({:#06x},{}" ,self.primitive , self.size )
+    }
 }
 
 
@@ -220,7 +231,7 @@ impl GenericGF{
  * limitations under the License.
  */
 
-package com.google.zxing.common.reedsolomon;
+//package com.google.zxing.common.reedsolomon;
 
 /**
  * <p>Represents a polynomial whose coefficients are elements of a GF.
@@ -231,11 +242,14 @@ package com.google.zxing.common.reedsolomon;
  *
  * @author Sean Owen
  */
-final class GenericGFPoly {
+pub struct GenericGFPoly {
 
-  private final GenericGF field;
-  private final int[] coefficients;
+    field: GenericGF,
+    coefficients: Vec<i32>,
 
+}
+
+impl GenericGFPoly {
   /**
    * @param field the {@link GenericGF} instance representing the field to use
    * to perform computations
@@ -245,238 +259,257 @@ final class GenericGFPoly {
    * or if leading coefficient is 0 and this is not a
    * constant polynomial (that is, it is not the monomial "0")
    */
-  GenericGFPoly(GenericGF field, int[] coefficients) {
-    if (coefficients.length == 0) {
-      throw new IllegalArgumentException();
+  pub fn new( field :&GenericGF,  coefficients: &Vec<i32>) -> Result<Self,IllegalArgumentException> {
+    if (coefficients.len() == 0) {
+      return Err (IllegalArgumentException::new(""));
     }
-    this.field = field;
-    int coefficientsLength = coefficients.length;
-    if (coefficientsLength > 1 && coefficients[0] == 0) {
-      // Leading term must be non-zero for anything except the constant polynomial "0"
-      int firstNonZero = 1;
-      while (firstNonZero < coefficientsLength && coefficients[firstNonZero] == 0) {
-        firstNonZero++;
-      }
-      if (firstNonZero == coefficientsLength) {
-        this.coefficients = new int[]{0};
-      } else {
-        this.coefficients = new int[coefficientsLength - firstNonZero];
-        System.arraycopy(coefficients,
-            firstNonZero,
-            this.coefficients,
-            0,
-            this.coefficients.length);
-      }
-    } else {
-      this.coefficients = coefficients;
-    }
+    Ok(Self{
+        field: field,
+        coefficients: {
+          let coefficientsLength = coefficients.len();
+          if (coefficientsLength > 1 && coefficients[0] == 0) {
+            // Leading term must be non-zero for anything except the constant polynomial "0"
+            let mut firstNonZero = 1;
+            while (firstNonZero < coefficientsLength && coefficients[firstNonZero] == 0) {
+              firstNonZero += 1;
+            }
+            if (firstNonZero == coefficientsLength) {
+              vec![0]
+            } else {
+              
+              let mut new_coefficients = Vec::with_capacity(coefficientsLength - firstNonZero);
+              new_coefficients[0..new_coefficients.len()].clone_from_slice(&coefficients[firstNonZero..new_coefficients.len()]);
+              // System.arraycopy(coefficients,
+              //     firstNonZero,
+              //     this.coefficients,
+              //     0,
+              //     this.coefficients.length);
+              new_coefficients
+            }
+          } else {
+            coefficients
+          }
+        },
+    })
   }
 
-  int[] getCoefficients() {
-    return coefficients;
+   pub fn getCoefficients(&self)->Vec<i32> {
+    return self.coefficients;
   }
 
   /**
    * @return degree of this polynomial
    */
-  int getDegree() {
-    return coefficients.length - 1;
+  pub fn getDegree(&self) -> i32 {
+    return self.coefficients.len() - 1;
   }
 
   /**
    * @return true iff this polynomial is the monomial "0"
    */
-  boolean isZero() {
-    return coefficients[0] == 0;
+  pub fn isZero(&self) -> bool{
+    return self.coefficients[0] == 0;
   }
 
   /**
    * @return coefficient of x^degree term in this polynomial
    */
-  int getCoefficient(int degree) {
-    return coefficients[coefficients.length - 1 - degree];
+  pub fn getCoefficient(&self, degree:i32) -> i32 {
+    return self.coefficients[self.coefficients.len() - 1 - degree];
   }
 
   /**
    * @return evaluation of this polynomial at a given point
    */
-  int evaluateAt(int a) {
+  pub fn evaluateAt(&self, a:i32) -> i32 {
     if (a == 0) {
       // Just return the x^0 coefficient
-      return getCoefficient(0);
+      return self.getCoefficient(0);
     }
     if (a == 1) {
       // Just the sum of the coefficients
-      int result = 0;
-      for (int coefficient : coefficients) {
-        result = GenericGF.addOrSubtract(result, coefficient);
+      let mut result = 0;
+      for  coefficient in self.coefficients {
+      //for (int coefficient : coefficients) {
+        result = GenericGF::addOrSubtract(result, coefficient);
       }
       return result;
     }
-    int result = coefficients[0];
-    int size = coefficients.length;
-    for (int i = 1; i < size; i++) {
-      result = GenericGF.addOrSubtract(field.multiply(a, result), coefficients[i]);
+    let mut result = self.coefficients[0];
+    let size = self.coefficients.len();
+    for i in 1..size {
+    //for (int i = 1; i < size; i++) {
+      result = GenericGF::addOrSubtract(self.field.multiply(a, result), self.coefficients[i]);
     }
     return result;
   }
 
-  GenericGFPoly addOrSubtract(GenericGFPoly other) {
-    if (!field.equals(other.field)) {
-      throw new IllegalArgumentException("GenericGFPolys do not have same GenericGF field");
+  pub fn addOrSubtract(&self, other:GenericGFPoly) -> Result<GenericGFPoly,IllegalArgumentException>{
+    if self.field != other.field {
+      return Err(IllegalArgumentException::new("GenericGFPolys do not have same GenericGF field"));
     }
-    if (isZero()) {
-      return other;
+    if (self.isZero()) {
+      return Ok(other);
     }
     if (other.isZero()) {
-      return this;
+      return self;
     }
 
-    int[] smallerCoefficients = this.coefficients;
-    int[] largerCoefficients = other.coefficients;
-    if (smallerCoefficients.length > largerCoefficients.length) {
-      int[] temp = smallerCoefficients;
+    let mut smallerCoefficients = self.coefficients;
+    let mut largerCoefficients = other.coefficients;
+    if (smallerCoefficients.len() > largerCoefficients.len()) {
+      let temp = smallerCoefficients;
       smallerCoefficients = largerCoefficients;
       largerCoefficients = temp;
     }
-    int[] sumDiff = new int[largerCoefficients.length];
-    int lengthDiff = largerCoefficients.length - smallerCoefficients.length;
+    
+    let mut sumDiff = Vec::with_capacity(largerCoefficients.len());
+    let lengthDiff = largerCoefficients.len() - smallerCoefficients.len();
     // Copy high-order terms only found in higher-degree polynomial's coefficients
-    System.arraycopy(largerCoefficients, 0, sumDiff, 0, lengthDiff);
+    sumDiff[0..lengthDiff].clone_from_slice(&largerCoefficients[0..lengthDiff]);
+    //System.arraycopy(largerCoefficients, 0, sumDiff, 0, lengthDiff);
 
-    for (int i = lengthDiff; i < largerCoefficients.length; i++) {
-      sumDiff[i] = GenericGF.addOrSubtract(smallerCoefficients[i - lengthDiff], largerCoefficients[i]);
+    for i in lengthDiff..largerCoefficients.len(){
+    //for (int i = lengthDiff; i < largerCoefficients.length; i++) {
+      sumDiff[i] = GenericGF::addOrSubtract(smallerCoefficients[i - lengthDiff], largerCoefficients[i]);
     }
 
-    return new GenericGFPoly(field, sumDiff);
+    return  GenericGFPoly::new(&self.field, &sumDiff);
   }
 
-  GenericGFPoly multiply(GenericGFPoly other) {
-    if (!field.equals(other.field)) {
-      throw new IllegalArgumentException("GenericGFPolys do not have same GenericGF field");
+  pub fn multiply(&self, other:&GenericGFPoly) -> Result<GenericGFPoly,IllegalArgumentException> {
+    if self.field != other.field{
+    //if (!field.equals(other.field)) {
+      return Err( IllegalArgumentException::new("GenericGFPolys do not have same GenericGF field"));
     }
-    if (isZero() || other.isZero()) {
-      return field.getZero();
+    if (self.isZero() || other.isZero()) {
+      return Ok(self.field.getZero());
     }
-    int[] aCoefficients = this.coefficients;
-    int aLength = aCoefficients.length;
-    int[] bCoefficients = other.coefficients;
-    int bLength = bCoefficients.length;
-    int[] product = new int[aLength + bLength - 1];
-    for (int i = 0; i < aLength; i++) {
-      int aCoeff = aCoefficients[i];
-      for (int j = 0; j < bLength; j++) {
-        product[i + j] = GenericGF.addOrSubtract(product[i + j],
-            field.multiply(aCoeff, bCoefficients[j]));
+    let aCoefficients = self.coefficients;
+    let aLength = aCoefficients.length;
+    let bCoefficients = other.coefficients;
+    let bLength = bCoefficients.length;
+    let product = Vec::with_capacity(aLength + bLength - 1);
+    for i in 0 ..aLength {
+    //for (int i = 0; i < aLength; i++) {
+      let aCoeff = aCoefficients[i];
+      for j in 0..bLength {
+      //for (int j = 0; j < bLength; j++) {
+        product[i + j] = GenericGF::addOrSubtract(product[i + j],
+            self.field.multiply(aCoeff, bCoefficients[j]));
       }
     }
-    return new GenericGFPoly(field, product);
+    return GenericGFPoly::new(&self.field, &product);
   }
 
-  GenericGFPoly multiply(int scalar) {
+  pub fn multiply_with_scalar(&self, scalar:i32) -> GenericGFPoly{
     if (scalar == 0) {
-      return field.getZero();
+      return self.field.getZero();
     }
     if (scalar == 1) {
-      return this;
+      return self.this;
     }
-    int size = coefficients.length;
-    int[] product = new int[size];
-    for (int i = 0; i < size; i++) {
-      product[i] = field.multiply(coefficients[i], scalar);
+    let size = self.coefficients.len();
+    
+    let product = Vec::with_capacity(size);
+    for i in 0..size {
+    //for (int i = 0; i < size; i++) {
+      product[i] = self.field.multiply(self.coefficients[i], scalar);
     }
-    return new GenericGFPoly(field, product);
+    return  GenericGFPoly::new(&self.field, &product);
   }
 
-  GenericGFPoly multiplyByMonomial(int degree, int coefficient) {
+  pub fn multiplyByMonomial(&self, degree:i32,  coefficient:i32) -> Result<GenericGFPoly,IllegalArgumentException> {
     if (degree < 0) {
-      throw new IllegalArgumentException();
+      return Err( IllegalArgumentException::new(""));
     }
     if (coefficient == 0) {
-      return field.getZero();
+      return Ok(self.field.getZero());
     }
-    int size = coefficients.length;
-    int[] product = new int[size + degree];
-    for (int i = 0; i < size; i++) {
-      product[i] = field.multiply(coefficients[i], coefficient);
+    let size = self.coefficients.len();
+    let product = Vec::with_capacity(size + degree);
+    for i in 0..size {
+    //for (int i = 0; i < size; i++) {
+      product[i] = self.field.multiply(self.coefficients[i], coefficient);
     }
-    return new GenericGFPoly(field, product);
+    return  GenericGFPoly::new(&self.field, &self.product);
   }
 
-  GenericGFPoly[] divide(GenericGFPoly other) {
-    if (!field.equals(other.field)) {
-      throw new IllegalArgumentException("GenericGFPolys do not have same GenericGF field");
+  pub fn divide(&self, other:&GenericGFPoly) -> Result<Vec<GenericGFPoly>,IllegalArgumentException>{
+    if self.field != other.field {
+    //if (!field.equals(other.field)) {
+      return Err( IllegalArgumentException::new("GenericGFPolys do not have same GenericGF field"));
     }
     if (other.isZero()) {
-      throw new IllegalArgumentException("Divide by 0");
+      return Err( IllegalArgumentException::new("Divide by 0"));
     }
 
-    GenericGFPoly quotient = field.getZero();
-    GenericGFPoly remainder = this;
+    let mut quotient = self.field.getZero();
+    let mut remainder = self;
 
-    int denominatorLeadingTerm = other.getCoefficient(other.getDegree());
-    int inverseDenominatorLeadingTerm = field.inverse(denominatorLeadingTerm);
+    let denominatorLeadingTerm = other.getCoefficient(other.getDegree());
+    let inverseDenominatorLeadingTerm = self.field.inverse(denominatorLeadingTerm);
 
     while (remainder.getDegree() >= other.getDegree() && !remainder.isZero()) {
-      int degreeDifference = remainder.getDegree() - other.getDegree();
-      int scale = field.multiply(remainder.getCoefficient(remainder.getDegree()), inverseDenominatorLeadingTerm);
-      GenericGFPoly term = other.multiplyByMonomial(degreeDifference, scale);
-      GenericGFPoly iterationQuotient = field.buildMonomial(degreeDifference, scale);
+      let degreeDifference = remainder.getDegree() - other.getDegree();
+      let scale = self.field.multiply(remainder.getCoefficient(remainder.getDegree()), inverseDenominatorLeadingTerm);
+      let term = other.multiplyByMonomial(degreeDifference, scale);
+      let iterationQuotient = self.field.buildMonomial(degreeDifference, scale);
       quotient = quotient.addOrSubtract(iterationQuotient);
       remainder = remainder.addOrSubtract(term);
     }
 
-    return new GenericGFPoly[] { quotient, remainder };
-  }
-
-  @Override
-  public String toString() {
-    if (isZero()) {
-      return "0";
-    }
-    StringBuilder result = new StringBuilder(8 * getDegree());
-    for (int degree = getDegree(); degree >= 0; degree--) {
-      int coefficient = getCoefficient(degree);
-      if (coefficient != 0) {
-        if (coefficient < 0) {
-          if (degree == getDegree()) {
-            result.append("-");
-          } else {
-            result.append(" - ");
-          }
-          coefficient = -coefficient;
-        } else {
-          if (result.length() > 0) {
-            result.append(" + ");
-          }
-        }
-        if (degree == 0 || coefficient != 1) {
-          int alphaPower = field.log(coefficient);
-          if (alphaPower == 0) {
-            result.append('1');
-          } else if (alphaPower == 1) {
-            result.append('a');
-          } else {
-            result.append("a^");
-            result.append(alphaPower);
-          }
-        }
-        if (degree != 0) {
-          if (degree == 1) {
-            result.append('x');
-          } else {
-            result.append("x^");
-            result.append(degree);
-          }
-        }
-      }
-    }
-    return result.toString();
+    return Ok(vec! [ quotient, remainder ]);
   }
 
 }
 
-
+impl fmt::Display for GenericGFPoly {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+      if (self.isZero()) {
+        return write!(f,"0");
+      }
+      let result = String::with_capacity(8 * self.getDegree());
+      for degree in (0..self.getDegree()).rev(){
+      //for (int degree = getDegree(); degree >= 0; degree--) {
+        let coefficient = self.getCoefficient(degree);
+        if (coefficient != 0) {
+          if (coefficient < 0) {
+            if (degree == self.getDegree()) {
+              result.append("-");
+            } else {
+              result.append(" - ");
+            }
+            coefficient = -coefficient;
+          } else {
+            if (result.length() > 0) {
+              result.append(" + ");
+            }
+          }
+          if (degree == 0 || coefficient != 1) {
+            let alphaPower = self.field.log(coefficient);
+            if (alphaPower.unwrap() == 0) {
+              result.append('1');
+            } else if (alphaPower.unwrap() == 1) {
+              result.append('a');
+            } else {
+              result.append("a^");
+              result.append(alphaPower);
+            }
+          }
+          if (degree != 0) {
+            if (degree == 1) {
+              result.append('x');
+            } else {
+              result.append("x^");
+              result.append(degree);
+            }
+          }
+        }
+      }
+      write!(f,"{}", result)
+    }
+}
 /*
  * Copyright 2007 ZXing authors
  *
@@ -493,7 +526,7 @@ final class GenericGFPoly {
  * limitations under the License.
  */
 
-package com.google.zxing.common.reedsolomon;
+//package com.google.zxing.common.reedsolomon;
 
 /**
  * <p>Implements Reed-Solomon decoding, as the name implies.</p>
@@ -517,12 +550,15 @@ package com.google.zxing.common.reedsolomon;
  * @author William Rucklidge
  * @author sanfordsquires
  */
-public final class ReedSolomonDecoder {
+pub struct ReedSolomonDecoder {
 
-  private final GenericGF field;
+   field:GenericGF,
 
-  public ReedSolomonDecoder(GenericGF field) {
-    this.field = field;
+}
+
+impl ReedSolomonDecoder{
+  pub fn new ( field: &GenericGF) -> Self {
+    Self { field: field }
   }
 
   /**
@@ -534,12 +570,13 @@ public final class ReedSolomonDecoder {
    * @param twoS number of error-correction codewords available
    * @throws ReedSolomonException if decoding fails for any reason
    */
-  public void decode(int[] received, int twoS) throws ReedSolomonException {
-    GenericGFPoly poly = new GenericGFPoly(field, received);
-    int[] syndromeCoefficients = new int[twoS];
-    boolean noError = true;
-    for (int i = 0; i < twoS; i++) {
-      int eval = poly.evaluateAt(field.exp(i + field.getGeneratorBase()));
+  pub fn decode( &self,received: &Vec<i32>,  twoS:i32) -> Result<(),ReedSolomonException> {
+    let poly =  GenericGFPoly::new(&self.field, received);
+    let syndromeCoefficients = Vec::with_capacity(twoS);
+    let mut noError = true;
+    for i in 0..twoS {
+    //for (int i = 0; i < twoS; i++) {
+      let eval = poly.evaluateAt(self.field.exp(i + self.field.getGeneratorBase()));
       syndromeCoefficients[syndromeCoefficients.length - 1 - i] = eval;
       if (eval != 0) {
         noError = false;
@@ -548,120 +585,126 @@ public final class ReedSolomonDecoder {
     if (noError) {
       return;
     }
-    GenericGFPoly syndrome = new GenericGFPoly(field, syndromeCoefficients);
-    GenericGFPoly[] sigmaOmega =
-        runEuclideanAlgorithm(field.buildMonomial(twoS, 1), syndrome, twoS);
-    GenericGFPoly sigma = sigmaOmega[0];
-    GenericGFPoly omega = sigmaOmega[1];
-    int[] errorLocations = findErrorLocations(sigma);
-    int[] errorMagnitudes = findErrorMagnitudes(omega, errorLocations);
-    for (int i = 0; i < errorLocations.length; i++) {
-      int position = received.length - 1 - field.log(errorLocations[i]);
+    let syndrome =  GenericGFPoly::new(&self.field, &syndromeCoefficients);
+    let sigmaOmega =
+        self.runEuclideanAlgorithm(&self.field.buildMonomial(twoS, 1), syndrome, twoS);
+    let sigma = sigmaOmega[0];
+    let omega = sigmaOmega[1];
+    let errorLocations = self.findErrorLocations(sigma);
+    let errorMagnitudes = self.findErrorMagnitudes(omega, errorLocations);
+    for i in 0..errorLocations.len() {
+    //for (int i = 0; i < errorLocations.length; i++) {
+      let position = received.length - 1 - self.field.log(errorLocations[i]);
       if (position < 0) {
-        throw new ReedSolomonException("Bad error location");
+       return Err(ReedSolomonException::new("Bad error location"));
       }
-      received[position] = GenericGF.addOrSubtract(received[position], errorMagnitudes[i]);
+      received[position] = GenericGF::addOrSubtract(received[position], errorMagnitudes[i]);
     }
+    Ok(())
   }
 
-  private GenericGFPoly[] runEuclideanAlgorithm(GenericGFPoly a, GenericGFPoly b, int R)
-      throws ReedSolomonException {
+  fn runEuclideanAlgorithm(&self, a: &GenericGFPoly,  b:&GenericGFPoly,  R:i32)
+      -> Result<Vec<GenericGFPoly>, ReedSolomonException> {
     // Assume a's degree is >= b's
     if (a.getDegree() < b.getDegree()) {
-      GenericGFPoly temp = a;
+      let temp = a;
       a = b;
       b = temp;
     }
 
-    GenericGFPoly rLast = a;
-    GenericGFPoly r = b;
-    GenericGFPoly tLast = field.getZero();
-    GenericGFPoly t = field.getOne();
+    let rLast = a;
+    let r = b;
+    let tLast = self.field.getZero();
+    let t = self.field.getOne();
 
     // Run Euclidean algorithm until r's degree is less than R/2
     while (2 * r.getDegree() >= R) {
-      GenericGFPoly rLastLast = rLast;
-      GenericGFPoly tLastLast = tLast;
+      let rLastLast = rLast;
+      let tLastLast = tLast;
       rLast = r;
       tLast = t;
 
       // Divide rLastLast by rLast, with quotient in q and remainder in r
       if (rLast.isZero()) {
         // Oops, Euclidean algorithm already terminated?
-        throw new ReedSolomonException("r_{i-1} was zero");
+        return Err( ReedSolomonException::new("r_{i-1} was zero"));
       }
       r = rLastLast;
-      GenericGFPoly q = field.getZero();
-      int denominatorLeadingTerm = rLast.getCoefficient(rLast.getDegree());
-      int dltInverse = field.inverse(denominatorLeadingTerm);
+      let q = self.field.getZero();
+      let denominatorLeadingTerm = rLast.getCoefficient(rLast.getDegree());
+      let dltInverse = self.field.inverse(denominatorLeadingTerm);
       while (r.getDegree() >= rLast.getDegree() && !r.isZero()) {
-        int degreeDiff = r.getDegree() - rLast.getDegree();
-        int scale = field.multiply(r.getCoefficient(r.getDegree()), dltInverse);
-        q = q.addOrSubtract(field.buildMonomial(degreeDiff, scale));
+        let degreeDiff = r.getDegree() - rLast.getDegree();
+        let scale = self.field.multiply(r.getCoefficient(r.getDegree()), dltInverse);
+        q = q.addOrSubtract(self.field.buildMonomial(degreeDiff, scale));
         r = r.addOrSubtract(rLast.multiplyByMonomial(degreeDiff, scale));
       }
 
-      t = q.multiply(tLast).addOrSubtract(tLastLast);
+      t = q.multiply(&tLast).addOrSubtract(tLastLast);
 
       if (r.getDegree() >= rLast.getDegree()) {
-        throw new IllegalStateException("Division algorithm failed to reduce polynomial? " +
-          "r: " + r + ", rLast: " + rLast);
+        return Err( IllegalStateException::new(&format!("Division algorithm failed to reduce polynomial? r: {}, rLast: {}" ,r, rLast)));
       }
     }
 
-    int sigmaTildeAtZero = t.getCoefficient(0);
+    let sigmaTildeAtZero = t.getCoefficient(0);
     if (sigmaTildeAtZero == 0) {
-      throw new ReedSolomonException("sigmaTilde(0) was zero");
+     return Err( ReedSolomonException::new("sigmaTilde(0) was zero"));
     }
 
-    int inverse = field.inverse(sigmaTildeAtZero);
-    GenericGFPoly sigma = t.multiply(inverse);
-    GenericGFPoly omega = r.multiply(inverse);
-    return new GenericGFPoly[]{sigma, omega};
+    let inverse = self.field.inverse(sigmaTildeAtZero);
+    let sigma = t.multiply(inverse);
+    let omega = r.multiply(inverse);
+    return vec![sigma, omega];
   }
 
-  private int[] findErrorLocations(GenericGFPoly errorLocator) throws ReedSolomonException {
+  fn  findErrorLocations(&self, errorLocator:&GenericGFPoly) -> Result<i32, ReedSolomonException> {
     // This is a direct application of Chien's search
-    int numErrors = errorLocator.getDegree();
+    let numErrors = errorLocator.getDegree();
     if (numErrors == 1) { // shortcut
-      return new int[] { errorLocator.getCoefficient(1) };
+      return vec![ errorLocator.getCoefficient(1) ];
     }
-    int[] result = new int[numErrors];
-    int e = 0;
-    for (int i = 1; i < field.getSize() && e < numErrors; i++) {
+    
+    let result = Vec::with_capacity(numErrors);
+    let mut e = 0;
+    for i in 1..self.field.getSize() {
+    //for (int i = 1; i < field.getSize() && e < numErrors; i++) {
+      if e < numErrors { break; }
       if (errorLocator.evaluateAt(i) == 0) {
-        result[e] = field.inverse(i);
-        e++;
+        result[e] = self.field.inverse(i);
+        e+=1;
       }
     }
     if (e != numErrors) {
-      throw new ReedSolomonException("Error locator degree does not match number of roots");
+      return Err( ReedSolomonException::new("Error locator degree does not match number of roots"));
     }
     return result;
   }
 
-  private int[] findErrorMagnitudes(GenericGFPoly errorEvaluator, int[] errorLocations) {
+  fn  findErrorMagnitudes( &self,errorEvaluator:&GenericGFPoly,  errorLocations:&Vec<i32>) -> Vec<i32> {
     // This is directly applying Forney's Formula
-    int s = errorLocations.length;
-    int[] result = new int[s];
-    for (int i = 0; i < s; i++) {
-      int xiInverse = field.inverse(errorLocations[i]);
-      int denominator = 1;
-      for (int j = 0; j < s; j++) {
+    let s = errorLocations.len();
+    let result = Vec::with_capacity(s);
+    for i in 0..s {
+    //for (int i = 0; i < s; i++) {
+      let xiInverse = self.field.inverse(errorLocations[i]);
+      let denominator = 1;
+      for j in 0..s{
+      //for (int j = 0; j < s; j++) {
         if (i != j) {
           //denominator = field.multiply(denominator,
           //    GenericGF.addOrSubtract(1, field.multiply(errorLocations[j], xiInverse)));
           // Above should work but fails on some Apple and Linux JDKs due to a Hotspot bug.
           // Below is a funny-looking workaround from Steven Parkes
-          int term = field.multiply(errorLocations[j], xiInverse);
-          int termPlus1 = (term & 0x1) == 0 ? term | 1 : term & ~1;
-          denominator = field.multiply(denominator, termPlus1);
+          let term =self. field.multiply(errorLocations[j], xiInverse);
+          let termPlus1 = if (term & 0x1) == 0 { term | 1} else { term & !1};
+          denominator = self.field.multiply(denominator, termPlus1);
         }
       }
-      result[i] = field.multiply(errorEvaluator.evaluateAt(xiInverse),
-          field.inverse(denominator));
-      if (field.getGeneratorBase() != 0) {
-        result[i] = field.multiply(result[i], xiInverse);
+      result[i] = self.field.multiply(errorEvaluator.evaluateAt(xiInverse),
+      self.field.inverse(denominator));
+      if (self.field.getGeneratorBase() != 0) {
+        result[i] = self.field.multiply(result[i], xiInverse);
       }
     }
     return result;
@@ -686,10 +729,10 @@ public final class ReedSolomonDecoder {
  * limitations under the License.
  */
 
-package com.google.zxing.common.reedsolomon;
+//package com.google.zxing.common.reedsolomon;
 
-import java.util.ArrayList;
-import java.util.List;
+//import java.util.ArrayList;
+//import java.util.List;
 
 /**
  * <p>Implements Reed-Solomon encoding, as the name implies.</p>
@@ -697,50 +740,59 @@ import java.util.List;
  * @author Sean Owen
  * @author William Rucklidge
  */
-public final class ReedSolomonEncoder {
+pub struct ReedSolomonEncoder {
 
-  private final GenericGF field;
-  private final List<GenericGFPoly> cachedGenerators;
+    field : GenericGF,
+    cachedGenerators: Vec<GenericGFPoly>,
 
-  public ReedSolomonEncoder(GenericGF field) {
-    this.field = field;
-    this.cachedGenerators = new ArrayList<>();
-    cachedGenerators.add(new GenericGFPoly(field, new int[]{1}));
+}
+
+impl ReedSolomonEncoder{
+  pub fn new( field: &GenericGF) -> Self{
+    Self {
+        field: field,
+        cachedGenerators: vec![GenericGFPoly::new(field, &vec![1])],
+    }
   }
 
-  private GenericGFPoly buildGenerator(int degree) {
-    if (degree >= cachedGenerators.size()) {
-      GenericGFPoly lastGenerator = cachedGenerators.get(cachedGenerators.size() - 1);
-      for (int d = cachedGenerators.size(); d <= degree; d++) {
-        GenericGFPoly nextGenerator = lastGenerator.multiply(
-            new GenericGFPoly(field, new int[] { 1, field.exp(d - 1 + field.getGeneratorBase()) }));
-        cachedGenerators.add(nextGenerator);
+  fn  buildGenerator( &self,degree:i32) -> GenericGFPoly{
+    if (degree >= self.cachedGenerators.size()) {
+      let lastGenerator = self.cachedGenerators.get(self.cachedGenerators.size() - 1);
+      for d in self.cachedGenerators.size()..=degree {
+      //for (int d = cachedGenerators.size(); d <= degree; d++) {
+        let nextGenerator = lastGenerator.multiply(
+             GenericGFPoly::new(&self.field, &vec![ 1, self.field.exp(d - 1 + self.field.getGeneratorBase()) ]));
+        self.cachedGenerators.add(nextGenerator);
         lastGenerator = nextGenerator;
       }
     }
-    return cachedGenerators.get(degree);
+    return self.cachedGenerators.get(degree);
   }
 
-  public void encode(int[] toEncode, int ecBytes) {
+  pub fn encode(&self,toEncode:Vec<i32>,  ecBytes:i32) -> Result<(),IllegalArgumentException>{
     if (ecBytes == 0) {
-      throw new IllegalArgumentException("No error correction bytes");
+      return Err(IllegalArgumentException::new("No error correction bytes"));
     }
-    int dataBytes = toEncode.length - ecBytes;
+    let dataBytes = toEncode.len() - ecBytes;
     if (dataBytes <= 0) {
-      throw new IllegalArgumentException("No data bytes provided");
+      return Err( IllegalArgumentException::new("No data bytes provided"));
     }
-    GenericGFPoly generator = buildGenerator(ecBytes);
-    int[] infoCoefficients = new int[dataBytes];
-    System.arraycopy(toEncode, 0, infoCoefficients, 0, dataBytes);
-    GenericGFPoly info = new GenericGFPoly(field, infoCoefficients);
+    let generator = self.buildGenerator(ecBytes);
+    let infoCoefficients = Vec::with_capacity(dataBytes);
+    infoCoefficients[0..dataBytes].clone_from_slice(&toEncode[0..dataBytes]);
+    //System.arraycopy(toEncode, 0, infoCoefficients, 0, dataBytes);
+    let info =  GenericGFPoly::new(&self.field, &infoCoefficients);
     info = info.multiplyByMonomial(ecBytes, 1);
-    GenericGFPoly remainder = info.divide(generator)[1];
-    int[] coefficients = remainder.getCoefficients();
-    int numZeroCoefficients = ecBytes - coefficients.length;
-    for (int i = 0; i < numZeroCoefficients; i++) {
+    let remainder = info.divide(generator)[1];
+    let coefficients = remainder.getCoefficients();
+    let numZeroCoefficients = ecBytes - coefficients.length;
+    for i in 0..numZeroCoefficients {
+    //for (int i = 0; i < numZeroCoefficients; i++) {
       toEncode[dataBytes + i] = 0;
     }
-    System.arraycopy(coefficients, 0, toEncode, dataBytes + numZeroCoefficients, coefficients.length);
+    toEncode[dataBytes + numZeroCoefficients..coefficients.len()].clone_from_slice(&coefficients[0..coefficients.len()]);
+    //System.arraycopy(coefficients, 0, toEncode, dataBytes + numZeroCoefficients, coefficients.length);
+    Ok(())
   }
 
 }

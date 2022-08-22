@@ -1,4 +1,6 @@
 pub mod MathUtils;
+use crate::common::BitMatrix;
+use crate::{NotFoundException, RXingResultPoint};
 
 /*
  * Copyright 2009 ZXing authors
@@ -17,8 +19,6 @@ pub mod MathUtils;
  */
 
 //package com.google.zxing.common.detector;
-use crate::common::BitMatrix;
-use crate::{NotFoundException, RXingResultPoint};
 
 /**
  * <p>A somewhat generic detector that looks for a barcode-like rectangular region within an image.
@@ -178,27 +178,27 @@ impl MonochromeRectangleDetector {
                     if (lastRange?[0] < centerX) {
                         if (lastRange?[1] > centerX) {
                             // straddle, choose one or the other based on direction
-                            return RXingResultPoint::new(
+                            return Ok(RXingResultPoint::new(
                                 lastRange?[if deltaY > 0 { 0 } else { 1 }],
                                 lastY,
-                            );
+                            ));
                         }
-                        return RXingResultPoint::new(lastRange?[0], lastY);
+                        return Ok(RXingResultPoint::new(lastRange?[0], lastY));
                     } else {
-                        return RXingResultPoint::new(lastRange?[1], lastY);
+                        return Ok(RXingResultPoint::new(lastRange?[1], lastY));
                     }
                 } else {
                     let lastX = x - deltaX;
                     if (lastRange?[0] < centerY) {
                         if (lastRange?[1] > centerY) {
-                            return RXingResultPoint::new(
+                            return Ok(RXingResultPoint::new(
                                 lastX,
                                 lastRange?[if deltaX < 0 { 0 } else { 1 }],
-                            );
+                            ));
                         }
-                        return RXingResultPoint::new(lastX, lastRange?[0]);
+                        return Ok(RXingResultPoint::new(lastX, lastRange?[0]));
                     } else {
-                        return RXingResultPoint::new(lastX, lastRange?[1]);
+                        return Ok(RXingResultPoint::new(lastX, lastRange?[1]));
                     }
                 }
             }
@@ -318,11 +318,6 @@ impl MonochromeRectangleDetector {
  */
 
 //package com.google.zxing.common.detector;
-
-use crate::common::BitMatrix;
-use crate::{NotFoundException, RXingResultPoint};
-
-use super::MathUtils;
 
 /**
  * <p>
@@ -557,7 +552,7 @@ impl WhiteRectangleDetector {
                 return Err(NotFoundException {});
             }
 
-            return Ok(self.centerEdges(y.unwrap(), z.unwrap(), x.unwrap(), t.unwrap()));
+            return Ok(self.centerEdges(&y.unwrap(), &z.unwrap(), &x.unwrap(), &t.unwrap()));
         } else {
             return Err(NotFoundException {});
         }
@@ -578,7 +573,7 @@ impl WhiteRectangleDetector {
             let x = MathUtils::round(aX + i.into() * xStep);
             let y = MathUtils::round(aY + i.into() * yStep);
             if (self.image.get(x, y)) {
-                return RXingResultPoint::new(x, y);
+                return Some(RXingResultPoint::new(x, y));
             }
         }
         return None;
