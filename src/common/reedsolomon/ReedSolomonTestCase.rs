@@ -1,5 +1,8 @@
+use rand::Rng;
+
+use super::{ReedSolomonEncoder, GenericGF, ReedSolomonDecoder};
 /*
- * Copyright 2013 ZXing authors
+ * Copyrigh&t 2013 ZXing authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,74 +37,74 @@
   #[test]
   fn testDataMatrix() {
     // real life test cases
-    testEncodeDecode(GenericGF.DATA_MATRIX_FIELD_256,
-        new int[] { 142, 164, 186 }, new int[] { 114, 25, 5, 88, 102 });
-    testEncodeDecode(GenericGF.DATA_MATRIX_FIELD_256,
-        new int[] {
+    testEncodeDecode(super::DATA_MATRIX_FIELD_256,
+        vec![ 142, 164, 186] , vec![ 114, 25, 5, 88, 102] );
+    testEncodeDecode(super::DATA_MATRIX_FIELD_256,
+        vec! [
           0x69, 0x75, 0x75, 0x71, 0x3B, 0x30, 0x30, 0x64,
           0x70, 0x65, 0x66, 0x2F, 0x68, 0x70, 0x70, 0x68,
           0x6D, 0x66, 0x2F, 0x64, 0x70, 0x6E, 0x30, 0x71,
           0x30, 0x7B, 0x79, 0x6A, 0x6F, 0x68, 0x30, 0x81,
           0xF0, 0x88, 0x1F, 0xB5
-        },
-        new int[] {
+        ],
+        vec![
           0x1C, 0x64, 0xEE, 0xEB, 0xD0, 0x1D, 0x00, 0x03,
           0xF0, 0x1C, 0xF1, 0xD0, 0x6D, 0x00, 0x98, 0xDA,
           0x80, 0x88, 0xBE, 0xFF, 0xB7, 0xFA, 0xA9, 0x95
-        });
+        ]);
     // synthetic test cases
-    testEncodeDecodeRandom(GenericGF.DATA_MATRIX_FIELD_256, 10, 240);
-    testEncodeDecodeRandom(GenericGF.DATA_MATRIX_FIELD_256, 128, 127);
-    testEncodeDecodeRandom(GenericGF.DATA_MATRIX_FIELD_256, 220, 35);
+    testEncodeDecodeRandom(super::DATA_MATRIX_FIELD_256, 10, 240);
+    testEncodeDecodeRandom(super::DATA_MATRIX_FIELD_256, 128, 127);
+    testEncodeDecodeRandom(super::DATA_MATRIX_FIELD_256, 220, 35);
   }
 
   #[test]
   fn testQRCode() {
     // Test case from example given in ISO 18004, Annex I
-    testEncodeDecode(GenericGF.QR_CODE_FIELD_256,
-        new int[] {
+    testEncodeDecode(super::QR_CODE_FIELD_256,
+        vec![
           0x10, 0x20, 0x0C, 0x56, 0x61, 0x80, 0xEC, 0x11,
           0xEC, 0x11, 0xEC, 0x11, 0xEC, 0x11, 0xEC, 0x11
-        },
-        new int[] {
+        ],
+        vec![
           0xA5, 0x24, 0xD4, 0xC1, 0xED, 0x36, 0xC7, 0x87,
           0x2C, 0x55
-        });
-    testEncodeDecode(GenericGF.QR_CODE_FIELD_256,
-        new int[] {
+        ]);
+    testEncodeDecode(super::QR_CODE_FIELD_256,
+        vec![
           0x72, 0x67, 0x2F, 0x77, 0x69, 0x6B, 0x69, 0x2F,
           0x4D, 0x61, 0x69, 0x6E, 0x5F, 0x50, 0x61, 0x67,
           0x65, 0x3B, 0x3B, 0x00, 0xEC, 0x11, 0xEC, 0x11,
           0xEC, 0x11, 0xEC, 0x11, 0xEC, 0x11, 0xEC, 0x11
-        },
-        new int[] {
+        ],
+        vec![
           0xD8, 0xB8, 0xEF, 0x14, 0xEC, 0xD0, 0xCC, 0x85,
           0x73, 0x40, 0x0B, 0xB5, 0x5A, 0xB8, 0x8B, 0x2E,
           0x08, 0x62
-        });
+        ]);
     // real life test cases
     // synthetic test cases
-    testEncodeDecodeRandom(GenericGF.QR_CODE_FIELD_256, 10, 240);
-    testEncodeDecodeRandom(GenericGF.QR_CODE_FIELD_256, 128, 127);
-    testEncodeDecodeRandom(GenericGF.QR_CODE_FIELD_256, 220, 35);
+    testEncodeDecodeRandom(super::QR_CODE_FIELD_256, 10, 240);
+    testEncodeDecodeRandom(super::QR_CODE_FIELD_256, 128, 127);
+    testEncodeDecodeRandom(super::QR_CODE_FIELD_256, 220, 35);
   }
 
   #[test]
   fn testAztec() {
     // real life test cases
-    testEncodeDecode(GenericGF.AZTEC_PARAM,
-        new int[] { 0x5, 0x6 }, new int[] { 0x3, 0x2, 0xB, 0xB, 0x7 });
-    testEncodeDecode(GenericGF.AZTEC_PARAM,
-        new int[] { 0x0, 0x0, 0x0, 0x9 }, new int[] { 0xA, 0xD, 0x8, 0x6, 0x5, 0x6 });
-    testEncodeDecode(GenericGF.AZTEC_PARAM,
-        new int[] { 0x2, 0x8, 0x8, 0x7 }, new int[] { 0xE, 0xC, 0xA, 0x9, 0x6, 0x8 });
-    testEncodeDecode(GenericGF.AZTEC_DATA_6, new int[] {
-        0x9, 0x32, 0x1, 0x29, 0x2F, 0x2, 0x27, 0x25, 0x1, 0x1B },
-        new int[] {
+    testEncodeDecode(super::AZTEC_PARAM,
+        vec![ 0x5, 0x6] , vec![ 0x3, 0x2, 0xB, 0xB, 0x7] );
+    testEncodeDecode(super::AZTEC_PARAM,
+        vec![ 0x0, 0x0, 0x0, 0x9] , vec![ 0xA, 0xD, 0x8, 0x6, 0x5, 0x6] );
+    testEncodeDecode(super::AZTEC_PARAM,
+        vec![ 0x2, 0x8, 0x8, 0x7] , vec![ 0xE, 0xC, 0xA, 0x9, 0x6, 0x8] );
+    testEncodeDecode(super::AZTEC_DATA_6, vec![
+        0x9, 0x32, 0x1, 0x29, 0x2F, 0x2, 0x27, 0x25, 0x1, 0x1B] ,
+        vec![
           0x2C, 0x2, 0xD, 0xD, 0xA, 0x16, 0x28, 0x9, 0x22, 0xA, 0x14
-        });
-    testEncodeDecode(GenericGF.AZTEC_DATA_8,
-        new int[] {
+        ]);
+    testEncodeDecode(super::AZTEC_DATA_8,
+        vec![
           0xE0, 0x86, 0x42, 0x98, 0xE8, 0x4A, 0x96, 0xC6,
           0xB9, 0xF0, 0x8C, 0xA7, 0x4A, 0xDA, 0xF8, 0xCE,
           0xB7, 0xDE, 0x88, 0x64, 0x29, 0x8E, 0x84, 0xA9,
@@ -111,8 +114,8 @@
           0x5F, 0x19, 0xD6, 0xFB, 0xD1, 0x0C, 0x85, 0x31,
           0xD0, 0x95, 0x2D, 0x8D, 0x73, 0xE1, 0x19, 0x4E,
           0x95, 0xB5, 0xF1, 0x9D, 0x6F
-        },
-        new int[] {
+        ],
+        vec![
           0x31, 0xD7, 0x04, 0x46, 0xB2, 0xC1, 0x06, 0x94,
           0x17, 0xE5, 0x0C, 0x2B, 0xA3, 0x99, 0x15, 0x7F,
           0x16, 0x3C, 0x66, 0xBA, 0x33, 0xD9, 0xE8, 0x87,
@@ -120,9 +123,9 @@
           0xED, 0xA1, 0xF8, 0x47, 0x2A, 0x50, 0xA6, 0xBC,
           0x53, 0x7D, 0x29, 0xFE, 0x06, 0x49, 0xF3, 0x73,
           0x9F, 0xC1, 0x75
-        });
-    testEncodeDecode(GenericGF.AZTEC_DATA_10,
-        new int[] {
+        ]);
+    testEncodeDecode(super::AZTEC_DATA_10,
+        vec![
           0x15C, 0x1E1, 0x2D5, 0x02E, 0x048, 0x1E2, 0x037, 0x0CD,
           0x02E, 0x056, 0x26A, 0x281, 0x1C2, 0x1A6, 0x296, 0x045,
           0x041, 0x0AA, 0x095, 0x2CE, 0x003, 0x38F, 0x2CD, 0x1A2,
@@ -165,8 +168,8 @@
           0x201, 0x0AA, 0x04E, 0x004, 0x1B0, 0x070, 0x275, 0x154,
           0x026, 0x2C1, 0x2B3, 0x154, 0x2AA, 0x256, 0x0C1, 0x044,
           0x004, 0x23F
-        },
-        new int[] {
+        ],
+        vec![
           0x379, 0x099, 0x348, 0x010, 0x090, 0x196, 0x09C, 0x1FF,
           0x1B0, 0x32D, 0x244, 0x0DE, 0x201, 0x386, 0x163, 0x11F,
           0x39B, 0x344, 0x3FE, 0x02F, 0x188, 0x113, 0x3D9, 0x102,
@@ -185,9 +188,9 @@
           0x306, 0x3A5, 0x352, 0x351, 0x275, 0x0ED, 0x045, 0x229,
           0x0BF, 0x05D, 0x253, 0x1BE, 0x02E, 0x35A, 0x0E4, 0x2E9,
           0x17A, 0x166, 0x03C, 0x007
-        });
-    testEncodeDecode(GenericGF.AZTEC_DATA_12,
-        new int[] {
+        ]);
+    testEncodeDecode(super::AZTEC_DATA_12,
+        vec![
           0x571, 0xE1B, 0x542, 0xE12, 0x1E2, 0x0DC, 0xCD0, 0xB85,
           0x69A, 0xA81, 0x709, 0xA6A, 0x584, 0x510, 0x4AA, 0x256,
           0xCE0, 0x0F8, 0xFB3, 0x5A2, 0x0D9, 0xAD1, 0x389, 0x09C,
@@ -342,8 +345,8 @@
           0x69C, 0xC41, 0x34C, 0x550, 0x10C, 0x835, 0x429, 0x33C,
           0xB33, 0x4D5, 0x509, 0xCCD, 0x550, 0x35B, 0x4E2, 0xAA0,
           0x5E6, 0x205, 0xB09, 0x99C, 0x09F
-        },
-        new int[] {
+        ],
+        vec![
           0xD54, 0x221, 0x154, 0x7CD, 0xBF3, 0x112, 0x89B, 0xC5E,
           0x9CD, 0x07E, 0xFB6, 0x78F, 0x7FA, 0x16F, 0x377, 0x4B4,
           0x62D, 0x475, 0xBC2, 0x861, 0xB72, 0x9D0, 0x76A, 0x5A1,
@@ -399,100 +402,128 @@
           0x36D, 0x08D, 0xC76, 0x1E1, 0x1EC, 0x8D7, 0x231, 0xB68,
           0x03C, 0x1DE, 0x7DF, 0x2B1, 0x09D, 0xC81, 0xDA4, 0x8F7,
           0x6B9, 0x947, 0x9B0
-        });
+        ]);
     // synthetic test cases
-    testEncodeDecodeRandom(GenericGF.AZTEC_PARAM, 2, 5); // compact mode message
-    testEncodeDecodeRandom(GenericGF.AZTEC_PARAM, 4, 6); // full mode message
-    testEncodeDecodeRandom(GenericGF.AZTEC_DATA_6, 10, 7);
-    testEncodeDecodeRandom(GenericGF.AZTEC_DATA_6, 20, 12);
-    testEncodeDecodeRandom(GenericGF.AZTEC_DATA_8, 20, 11);
-    testEncodeDecodeRandom(GenericGF.AZTEC_DATA_8, 128, 127);
-    testEncodeDecodeRandom(GenericGF.AZTEC_DATA_10, 128, 128);
-    testEncodeDecodeRandom(GenericGF.AZTEC_DATA_10, 768, 255);
-    testEncodeDecodeRandom(GenericGF.AZTEC_DATA_12, 3072, 1023);
+    testEncodeDecodeRandom(super::AZTEC_PARAM, 2, 5); // compact mode message
+    testEncodeDecodeRandom(super::AZTEC_PARAM, 4, 6); // full mode message
+    testEncodeDecodeRandom(super::AZTEC_DATA_6, 10, 7);
+    testEncodeDecodeRandom(super::AZTEC_DATA_6, 20, 12);
+    testEncodeDecodeRandom(super::AZTEC_DATA_8, 20, 11);
+    testEncodeDecodeRandom(super::AZTEC_DATA_8, 128, 127);
+    testEncodeDecodeRandom(super::AZTEC_DATA_10, 128, 128);
+    testEncodeDecodeRandom(super::AZTEC_DATA_10, 768, 255);
+    testEncodeDecodeRandom(super::AZTEC_DATA_12, 3072, 1023);
   }
 
-  fn corrupt(int[] received, int howMany, Random random, int max) {
-    BitSet corrupted = new BitSet(received.length);
-    for (int j = 0; j < howMany; j++) {
-      int location = random.nextInt(received.length);
-      int value = random.nextInt(max);
-      if (corrupted.get(location) || received[location] == value) {
-        j--;
+  fn corrupt(received : &mut Vec<i32>,  howMany:i32, random: &rand::rngs::ThreadRng,  max:i32) {
+    let corrupted = vec![false;received.len()];
+    //BitSet corrupted = new BitSet(received.length);
+    let mut skip = false;
+    for j in 0..howMany{
+    //for (int j = 0; j < howMany; j++) {
+      if skip {
+        skip = false;
+        continue;
+      }
+      let location :usize = random.gen_range(0..received.len());
+      let value = random.gen_range(0..max);
+      if (corrupted[location] || received[location] == value) {
+        skip = true;
       } else {
-        corrupted.set(location);
+        corrupted[location] = true;
         received[location] = value;
       }
     }
   }
 
-  fn testEncodeDecodeRandom(GenericGF field, int dataSize, int ecSize) {
-    assertTrue("Invalid data size for " + field, dataSize > 0 && dataSize <= field.getSize() - 3);
-    assertTrue("Invalid ECC size for " + field, ecSize > 0 && ecSize + dataSize <= field.getSize());
-    ReedSolomonEncoder encoder = new ReedSolomonEncoder(field);
-    int[] message = new int[dataSize + ecSize];
-    int[] dataWords = new int[dataSize];
-    int[] ecWords = new int[ecSize];
-    Random random = getPseudoRandom();
-    int iterations = field.getSize() > 256 ? 1 : DECODER_RANDOM_TEST_ITERATIONS;
-    for (int i = 0; i < iterations; i++) {
+  fn testEncodeDecodeRandom( field:GenericGF,  dataSize:usize,  ecSize:usize) {
+    assert!(dataSize > 0 && dataSize <= field.getSize() - 3, "Invalid data size for {}" , field);
+    assert!(ecSize > 0 && ecSize + dataSize <= field.getSize(),"Invalid ECC size for {}" , field);
+    let encoder =  ReedSolomonEncoder::new(Box::new(field));
+    let message =Vec::with_capacity(dataSize + ecSize);
+    let dataWords:Vec<i32> = Vec::with_capacity(dataSize);
+    let ecWords = Vec::with_capacity(ecSize);
+    let random = getPseudoRandom();
+    let iterations = if field.getSize() > 256 { 1} else {DECODER_RANDOM_TEST_ITERATIONS};
+    for i in 0..iterations{
+    //for (int i = 0; i < iterations; i++) {
       // generate random data
-      for (int k = 0; k < dataSize; k++) {
-        dataWords[k] = random.nextInt(field.getSize());
+      for k in 0..dataSize{
+      //for (int k = 0; k < dataSize; k++) {
+        dataWords[k] = random.gen_range(0..field.getSize().try_into().unwrap());
       }
       // generate ECC words
-      System.arraycopy(dataWords, 0, message, 0, dataWords.length);
-      encoder.encode(message, ecWords.length);
-      System.arraycopy(message, dataSize, ecWords, 0, ecSize);
+      message[0..dataWords.len()].clone_from_slice(&dataWords[..]);
+      //System.arraycopy(dataWords, 0, message, 0, dataWords.len());
+      encoder.encode(&mut message, ecWords.len());
+      ecWords[0..ecSize].clone_from_slice(&message[dataSize..ecSize]);
+      //System.arraycopy(message, dataSize, ecWords, 0, ecSize);
       // check to see if Decoder can fix up to ecWords/2 random errors
       testDecoder(field, dataWords, ecWords);
     }
   }
 
-  fn testEncodeDecode(GenericGF field, int[] dataWords, int[] ecWords) {
+  fn testEncodeDecode( field:GenericGF,  dataWords:Vec<i32>, ecWords:Vec<i32>) {
     testEncoder(field, dataWords, ecWords);
     testDecoder(field, dataWords, ecWords);
   }
 
-  fn testEncoder(GenericGF field, int[] dataWords, int[] ecWords) {
-    ReedSolomonEncoder encoder = new ReedSolomonEncoder(field);
-    int[] messageExpected = new int[dataWords.length + ecWords.length];
-    int[] message = new int[dataWords.length + ecWords.length];
-    System.arraycopy(dataWords, 0, messageExpected, 0, dataWords.length);
-    System.arraycopy(ecWords, 0, messageExpected, dataWords.length, ecWords.length);
-    System.arraycopy(dataWords, 0, message, 0, dataWords.length);
-    encoder.encode(message, ecWords.length);
-    assertDataEquals("Encode in " + field + " (" + dataWords.length + ',' + ecWords.length + ") failed",
+  fn testEncoder( field:GenericGF,  dataWords:Vec<i32>,  ecWords:Vec<i32>) {
+    let encoder =  ReedSolomonEncoder::new(Box::new(field));
+    let messageExpected = Vec::with_capacity(dataWords.len() + ecWords.len());
+    let message = Vec::with_capacity(dataWords.len() + ecWords.len());
+    System.arraycopy(dataWords, 0, messageExpected, 0, dataWords.len());
+    System.arraycopy(ecWords, 0, messageExpected, dataWords.len(), ecWords.len());
+    System.arraycopy(dataWords, 0, message, 0, dataWords.len());
+    encoder.encode(&mut message, ecWords.len());
+    assertDataEquals("Encode in " + field + " (" + dataWords.len() + ',' + ecWords.len() + ") failed",
                      messageExpected, message);
   }
 
-  fn testDecoder(GenericGF field, int[] dataWords, int[] ecWords) {
-    ReedSolomonDecoder decoder = new ReedSolomonDecoder(field);
-    int[] message = new int[dataWords.length + ecWords.length];
-    int maxErrors = ecWords.length / 2;
-    Random random = getPseudoRandom();
-    int iterations = field.getSize() > 256 ? 1 : DECODER_TEST_ITERATIONS;
-    for (int j = 0; j < iterations; j++) {
-      for (int i = 0; i < ecWords.length; i++) {
-        if (i > 10 && i < ecWords.length / 2 - 10) {
+  fn testDecoder( field:GenericGF,  dataWords:Vec<i32>, ecWords:Vec<i32>) {
+    let decoder =  ReedSolomonDecoder::new(field);
+    let message = Vec::with_capacity(dataWords.len() + ecWords.len());
+    let maxErrors = ecWords.len() / 2;
+    let random = getPseudoRandom();
+    let iterations = if field.getSize() > 256  {1} else {DECODER_TEST_ITERATIONS};
+    for j in 0..iterations {
+    //for (int j = 0; j < iterations; j++) {
+      for i in 0..ecWords.len() {
+      //for (int i = 0; i < ecWords.length; i++) {
+        if (i > 10 && i < ecWords.len() / 2 - 10) {
           // performance improvement - skip intermediate cases in long-running tests
-          i += ecWords.length / 10;
+          i += ecWords.len() / 10;
         }
-        System.arraycopy(dataWords, 0, message, 0, dataWords.length);
-        System.arraycopy(ecWords, 0, message, dataWords.length, ecWords.length);
-        corrupt(message, i, random, field.getSize());
-        try {
-          decoder.decode(message, ecWords.length);
-        } catch (ReedSolomonException e) {
+        message[0..dataWords.len()].clone_from_slice(&dataWords[0..dataWords.len()]);
+        //System.arraycopy(dataWords, 0, message, 0, dataWords.len());
+        message[dataWords.len()..ecWords.len()].clone_from_slice(&ecWords[0..dataWords.len()]);
+        //System.arraycopy(ecWords, 0, message, dataWords.len(), ecWords.len());
+        corrupt(&mut message, i.try_into().unwrap(), &random, field.getSize().try_into().unwrap());
+        
+        match
+          decoder.decode(message, ecWords.len())
+        { 
+          Err(e) => {
           // fail only if maxErrors exceeded
-          assertTrue("Decode in " + field + " (" + dataWords.length + ',' + ecWords.length + ") failed at " +
-                         i + " errors: " + e,
-                     i > maxErrors);
+          assert!(i > maxErrors, "Decode in " + field + " (" + dataWords.length + ',' + ecWords.length + ") failed at " +
+                         i + " errors: " + e);
           // else stop
           break;
-        }
+        },
+            Ok(_) => () };
+
+        // try {
+        //   decoder.decode(message, ecWords.length);
+        // } catch (ReedSolomonException e) {
+        //   // fail only if maxErrors exceeded
+        //   assertTrue("Decode in " + field + " (" + dataWords.length + ',' + ecWords.length + ") failed at " +
+        //                  i + " errors: " + e,
+        //              i > maxErrors);
+        //   // else stop
+        //   break;
+        // }
         if (i < maxErrors) {
-          assertDataEquals("Decode in " + field + " (" + dataWords.length + ',' + ecWords.length + ") failed at " +
+          assertDataEquals("Decode in " + field + " (" + dataWords.len() + ',' + ecWords.len() + ") failed at " +
                            i + " errors",
                            dataWords,
                            message);
@@ -501,25 +532,31 @@
     }
   }
 
-  fn assertDataEquals(String message, int[] expected, int[] received) {
-    for (int i = 0; i < expected.length; i++) {
+  fn assertDataEquals( message:String, expected:Vec<i32>,  received:Vec<i32>) {
+    for i in 0..expected.len() {
+    //for (int i = 0; i < expected.length; i++) {
       if (expected[i] != received[i]) {
-        fail(message + ". Mismatch at " + i + ". Expected " + arrayToString(expected) + ", got " +
-             arrayToString(Arrays.copyOf(received, expected.length)));
+        panic!("{}. Mismatch at {}. Expected {}, got {}",message,i,arrayToString(&expected),arrayToString(&received[0..expected.len()]));
+        //fail();
       }
     }
   }
 
-  fn String arrayToString(int[] data) {
-    StringBuilder sb = new StringBuilder("{");
-    for (int i = 0; i < data.length; i++) {
-      sb.append(String.format(i > 0 ? ",%X" : "%X", data[i]));
+  fn  arrayToString( data:&[i32]) -> String{
+    let sb = String::from("{");
+    for i in 0..data.len() {
+    //for (int i = 0; i < data.length; i++) {
+      //sb.append(String.format(i > 0 ? ",%X" : "%X", data[i]));
+      sb.push_str(&format!("{}", data[i]));
     }
-    return sb.append('}').toString();
+    sb.push_str("}");
+
+    sb
   }
 
-  fn Random getPseudoRandom() {
-    return new Random(0xDEADBEEF);
+  fn  getPseudoRandom() -> rand::rngs::ThreadRng{
+    rand::thread_rng()
+    //return new Random(0xDEADBEEF);
   }
 
 //}

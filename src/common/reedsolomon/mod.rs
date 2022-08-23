@@ -5,6 +5,8 @@ use std::hash::Hash;
 
 #[cfg(test)]
 mod GenericGFPolyTestCase;
+#[cfg(test)]
+mod ReedSolomonTestCase;
 
 /*
  * Copyrigh&t 2007 ZXing authors
@@ -316,7 +318,7 @@ impl GenericGFPoly {
         })
     }
 
-    pub fn getCoefficients(&self) -> Vec<usize> {
+    pub fn getCoefficients(&self) -> Vec<i32> {
         return self.coefficients;
     }
 
@@ -337,7 +339,7 @@ impl GenericGFPoly {
     /**
      * @return coefficient of x^degree term in this polynomial
      */
-    pub fn getCoefficient(&self, degree: usize) -> usize {
+    pub fn getCoefficient(&self, degree: usize) -> i32 {
         return self.coefficients[self.coefficients.len() - 1 - degree];
     }
 
