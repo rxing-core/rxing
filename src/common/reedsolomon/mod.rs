@@ -188,7 +188,7 @@ impl GenericGF {
      * @return base 2 log of a in GF(size)
      */
     pub fn log(&self, a: usize) -> Result<usize, IllegalArgumentException> {
-        if (a == 0) {
+        if a == 0 {
             return Err(IllegalArgumentException::new(""));
         }
         return Ok(self.logTable[a]);
@@ -209,7 +209,7 @@ impl GenericGF {
      * @return product of a and b in GF(size)
      */
     pub fn multiply(&self, a: usize, b: usize) -> usize {
-        if (a == 0 || b == 0) {
+        if a == 0 || b == 0 {
             return 0;
         }
         return self.expTable[(self.logTable[a] + self.logTable[b]) % (self.size - 1)];
@@ -284,7 +284,7 @@ impl GenericGFPoly {
         field: Box<GenericGF>,
         coefficients: &Vec<i32>,
     ) -> Result<Self, IllegalArgumentException> {
-        if (coefficients.len() == 0) {
+        if coefficients.len() == 0 {
             return Err(IllegalArgumentException::new(""));
         }
         Ok(Self {
@@ -346,12 +346,12 @@ impl GenericGFPoly {
     /**
      * @return evaluation of this polynomial at a given point
      */
-    pub fn evaluateAt(&self, a: usize) -> usize {
-        if (a == 0) {
+    pub fn evaluateAt(&self, a: usize) -> i32 {
+        if a == 0 {
             // Just return the x^0 coefficient
             return self.getCoefficient(0);
         }
-        if (a == 1) {
+        if a == 1 {
             // Just the sum of the coefficients
             let mut result = 0;
             for coefficient in self.coefficients {

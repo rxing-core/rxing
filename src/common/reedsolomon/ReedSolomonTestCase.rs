@@ -523,8 +523,7 @@ use super::{ReedSolomonEncoder, GenericGF, ReedSolomonDecoder};
         //   break;
         // }
         if (i < maxErrors) {
-          assertDataEquals("Decode in " + field + " (" + dataWords.len() + ',' + ecWords.len() + ") failed at " +
-                           i + " errors",
+          assertDataEquals(format!("Decode in {} ({},{}) failed at {} errors",field, dataWords.len(),ecWords.len(),i),
                            dataWords,
                            message);
         }
