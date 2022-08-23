@@ -588,7 +588,7 @@ impl ReedSolomonDecoder{
    * @param twoS number of error-correction codewords available
    * @throws ReedSolomonException if decoding fails for any reason
    */
-  pub fn decode( &self,received: &Vec<usize>,  twoS:usize) -> Result<(),ReedSolomonException> {
+  pub fn decode( &self,received: mut &Vec<usize>,  twoS:usize) -> Result<(),ReedSolomonException> {
     let poly =  GenericGFPoly::new(self.field, received);
     let syndromeCoefficients = Vec::with_capacity(twoS);
     let mut noError = true;
@@ -787,7 +787,7 @@ impl ReedSolomonEncoder{
     return *self.cachedGenerators.get(degree).unwrap();
   }
 
-  pub fn encode(&self,toEncode:Vec<usize>,  ecBytes:usize) -> Result<(),IllegalArgumentException>{
+  pub fn encode(&self,toEncode:mut Vec<usize>,  ecBytes:usize) -> Result<(),IllegalArgumentException>{
     if (ecBytes == 0) {
       return Err(IllegalArgumentException::new("No error correction bytes"));
     }
