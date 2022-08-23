@@ -72,7 +72,7 @@ impl MonochromeRectangleDetector {
             bottom,
             halfWidth / 2,
         )?;
-        top = pointA.getY() - 1;
+        top = (pointA.getY() - 1f32) as i32;
         let pointB = self.findCornerFromCenter(
             halfWidth,
             -deltaX,
@@ -84,7 +84,7 @@ impl MonochromeRectangleDetector {
             bottom,
             halfHeight / 2,
         )?;
-        left = pointB.getX() - 1;
+        left = (pointB.getX() - 1f32) as i32;
         let pointC = self.findCornerFromCenter(
             halfWidth,
             deltaX,
@@ -96,7 +96,7 @@ impl MonochromeRectangleDetector {
             bottom,
             halfHeight / 2,
         )?;
-        right = pointC.getX() + 1;
+        right = (pointC.getX() + 1f32) as i32;
         let pointD = self.findCornerFromCenter(
             halfWidth,
             0,
@@ -108,7 +108,7 @@ impl MonochromeRectangleDetector {
             bottom,
             halfWidth / 2,
         )?;
-        bottom = pointD.getY() + 1;
+        bottom = (pointD.getY() + 1f32) as i32;
 
         // Go try to find point A again with better information -- might have been off at first.
         pointA = self.findCornerFromCenter(
@@ -123,7 +123,7 @@ impl MonochromeRectangleDetector {
             halfWidth / 4,
         )?;
 
-        return Ok(vec![[pointA, pointB, pointC, pointD]]);
+        return Ok(vec![pointA, pointB, pointC, pointD]);
     }
 
     /**
@@ -156,49 +156,61 @@ impl MonochromeRectangleDetector {
         bottom: i32,
         maxWhiteRun: i32,
     ) -> Result<RXingResultPoint, NotFoundException> {
-        let lastRange: Option<Vec<i32>> = None;
+        let mut lastRange: Option<Vec<i32>> = None;
         let y: i32 = centerY;
         let x: i32 = centerX;
-        while (y < bottom && y >= top && x < right && x >= left) {
+        while y < bottom && y >= top && x < right && x >= left {
             let range: Option<Vec<i32>>;
-            if (deltaX == 0) {
+            if deltaX == 0 {
                 // horizontal slices, up and down
                 range = self.blackWhiteRange(y, maxWhiteRun, left, right, true);
             } else {
                 // vertical slices, left and right
                 range = self.blackWhiteRange(x, maxWhiteRun, top, bottom, false);
             }
-            if (range.is_none()) {
-                if (lastRange.is_none()) {
+            if range.is_none() {
+                if lastRange.is_none() {
                     return Err(NotFoundException {});
                 }
                 // lastRange was found
-                if (deltaX == 0) {
+                if deltaX == 0 {
                     let lastY = y - deltaY;
-                    if (lastRange?[0] < centerX) {
-                        if (lastRange?[1] > centerX) {
+                    if lastRange.unwrap()[0] < centerX {
+                        if lastRange.unwrap()[1] > centerX {
                             // straddle, choose one or the other based on direction
                             return Ok(RXingResultPoint::new(
-                                lastRange?[if deltaY > 0 { 0 } else { 1 }],
-                                lastY,
+                                lastRange.unwrap()[if deltaY > 0 { 0 } else { 1 }] as f32,
+                                lastY as f32,
                             ));
                         }
-                        return Ok(RXingResultPoint::new(lastRange?[0], lastY));
+                        return Ok(RXingResultPoint::new(
+                            lastRange.unwrap()[0] as f32,
+                            lastY as f32,
+                        ));
                     } else {
-                        return Ok(RXingResultPoint::new(lastRange?[1], lastY));
+                        return Ok(RXingResultPoint::new(
+                            lastRange.unwrap()[1] as f32,
+                            lastY as f32,
+                        ));
                     }
                 } else {
                     let lastX = x - deltaX;
-                    if (lastRange?[0] < centerY) {
-                        if (lastRange?[1] > centerY) {
+                    if lastRange.unwrap()[0] < centerY {
+                        if lastRange.unwrap()[1] > centerY {
                             return Ok(RXingResultPoint::new(
-                                lastX,
-                                lastRange?[if deltaX < 0 { 0 } else { 1 }],
+                                lastX as f32,
+                                lastRange.unwrap()[if deltaX < 0 { 0 } else { 1 }] as f32,
                             ));
                         }
-                        return Ok(RXingResultPoint::new(lastX, lastRange?[0]));
+                        return Ok(RXingResultPoint::new(
+                            lastX as f32,
+                            lastRange.unwrap()[0] as f32,
+                        ));
                     } else {
-                        return Ok(RXingResultPoint::new(lastX, lastRange?[1]));
+                        return Ok(RXingResultPoint::new(
+                            lastX as f32,
+                            lastRange.unwrap()[1] as f32,
+                        ));
                     }
                 }
             }
@@ -373,10 +385,10 @@ impl WhiteRectangleDetector {
         new_wrd.rightInit = x + halfsize;
         new_wrd.upInit = y - halfsize;
         new_wrd.downInit = y + halfsize;
-        if (new_wrd.upInit < 0
+        if new_wrd.upInit < 0
             || new_wrd.leftInit < 0
             || new_wrd.downInit >= new_wrd.height
-            || new_wrd.rightInit >= new_wrd.width)
+            || new_wrd.rightInit >= new_wrd.width
         {
             return Err(NotFoundException {});
         }
@@ -411,26 +423,25 @@ impl WhiteRectangleDetector {
         let atLeastOneBlackPointFoundOnLeft = false;
         let atLeastOneBlackPointFoundOnTop = false;
 
-        while (aBlackPointFoundOnBorder) {
+        while aBlackPointFoundOnBorder {
             aBlackPointFoundOnBorder = false;
 
             // .....
             // .   |
             // .....
             let rightBorderNotWhite = true;
-            while ((rightBorderNotWhite || !atLeastOneBlackPointFoundOnRight) && right < self.width)
-            {
+            while (rightBorderNotWhite || !atLeastOneBlackPointFoundOnRight) && right < self.width {
                 rightBorderNotWhite = self.containsBlackPoint(up, down, right, false);
-                if (rightBorderNotWhite) {
+                if rightBorderNotWhite {
                     right += 1;
                     aBlackPointFoundOnBorder = true;
                     atLeastOneBlackPointFoundOnRight = true;
-                } else if (!atLeastOneBlackPointFoundOnRight) {
+                } else if !atLeastOneBlackPointFoundOnRight {
                     right += 1;
                 }
             }
 
-            if (right >= self.width) {
+            if right >= self.width {
                 sizeExceeded = true;
                 break;
             }
@@ -439,20 +450,19 @@ impl WhiteRectangleDetector {
             // .   .
             // .___.
             let bottomBorderNotWhite = true;
-            while ((bottomBorderNotWhite || !atLeastOneBlackPointFoundOnBottom)
-                && down < self.height)
+            while (bottomBorderNotWhite || !atLeastOneBlackPointFoundOnBottom) && down < self.height
             {
                 bottomBorderNotWhite = self.containsBlackPoint(left, right, down, true);
-                if (bottomBorderNotWhite) {
+                if bottomBorderNotWhite {
                     down += 1;
                     aBlackPointFoundOnBorder = true;
                     atLeastOneBlackPointFoundOnBottom = true;
-                } else if (!atLeastOneBlackPointFoundOnBottom) {
+                } else if !atLeastOneBlackPointFoundOnBottom {
                     down += 1;
                 }
             }
 
-            if (down >= self.height) {
+            if down >= self.height {
                 sizeExceeded = true;
                 break;
             }
@@ -461,18 +471,18 @@ impl WhiteRectangleDetector {
             // |   .
             // .....
             let leftBorderNotWhite = true;
-            while ((leftBorderNotWhite || !atLeastOneBlackPointFoundOnLeft) && left >= 0) {
+            while (leftBorderNotWhite || !atLeastOneBlackPointFoundOnLeft) && left >= 0 {
                 leftBorderNotWhite = self.containsBlackPoint(up, down, left, false);
-                if (leftBorderNotWhite) {
+                if leftBorderNotWhite {
                     left -= 1;
                     aBlackPointFoundOnBorder = true;
                     atLeastOneBlackPointFoundOnLeft = true;
-                } else if (!atLeastOneBlackPointFoundOnLeft) {
+                } else if !atLeastOneBlackPointFoundOnLeft {
                     left -= 1;
                 }
             }
 
-            if (left < 0) {
+            if left < 0 {
                 sizeExceeded = true;
                 break;
             }
@@ -481,35 +491,40 @@ impl WhiteRectangleDetector {
             // .   .
             // .....
             let topBorderNotWhite = true;
-            while ((topBorderNotWhite || !atLeastOneBlackPointFoundOnTop) && up >= 0) {
+            while (topBorderNotWhite || !atLeastOneBlackPointFoundOnTop) && up >= 0 {
                 topBorderNotWhite = self.containsBlackPoint(left, right, up, true);
-                if (topBorderNotWhite) {
+                if topBorderNotWhite {
                     up -= 1;
                     aBlackPointFoundOnBorder = true;
                     atLeastOneBlackPointFoundOnTop = true;
-                } else if (!atLeastOneBlackPointFoundOnTop) {
+                } else if !atLeastOneBlackPointFoundOnTop {
                     up -= 1;
                 }
             }
 
-            if (up < 0) {
+            if up < 0 {
                 sizeExceeded = true;
                 break;
             }
         }
 
-        if (!sizeExceeded) {
+        if !sizeExceeded {
             let maxSize = right - left;
 
             let mut z: Option<RXingResultPoint> = None;
             let mut i = 1;
             while z.is_none() && i < maxSize {
                 //for (int i = 1; z == null && i < maxSize; i++) {
-                z = self.getBlackPointOnSegment(left, down - i, left + i, down);
+                z = self.getBlackPointOnSegment(
+                    left as f32,
+                    (down - i) as f32,
+                    (left + i) as f32,
+                    down as f32,
+                );
                 i += 1;
             }
 
-            if (z.is_none()) {
+            if z.is_none() {
                 return Err(NotFoundException {});
             }
 
@@ -518,11 +533,16 @@ impl WhiteRectangleDetector {
             let mut i = 1;
             while t.is_none() && i < maxSize {
                 //for (int i = 1; t == null && i < maxSize; i++) {
-                t = self.getBlackPointOnSegment(left, up + i, left + i, up);
+                t = self.getBlackPointOnSegment(
+                    left as f32,
+                    (up + i) as f32,
+                    (left + i) as f32,
+                    up as f32,
+                );
                 i += 1;
             }
 
-            if (t.is_none()) {
+            if t.is_none() {
                 return Err(NotFoundException {});
             }
 
@@ -531,11 +551,16 @@ impl WhiteRectangleDetector {
             let mut i = 1;
             while x.is_none() && i < maxSize {
                 //for (int i = 1; x == null && i < maxSize; i++) {
-                x = self.getBlackPointOnSegment(right, up + i, right - i, up);
+                x = self.getBlackPointOnSegment(
+                    right as f32,
+                    (up + i) as f32,
+                    (right - i) as f32,
+                    up as f32,
+                );
                 i += 1;
             }
 
-            if (x.is_none()) {
+            if x.is_none() {
                 return Err(NotFoundException {});
             }
 
@@ -544,11 +569,16 @@ impl WhiteRectangleDetector {
             let mut i = 1;
             while y.is_none() && i < maxSize {
                 //for (int i = 1; y == null && i < maxSize; i++) {
-                y = self.getBlackPointOnSegment(right, down - i, right - i, down);
+                y = self.getBlackPointOnSegment(
+                    right as f32,
+                    (down - i) as f32,
+                    (right - i) as f32,
+                    down as f32,
+                );
                 i += 1;
             }
 
-            if (y.is_none()) {
+            if y.is_none() {
                 return Err(NotFoundException {});
             }
 
@@ -572,8 +602,8 @@ impl WhiteRectangleDetector {
         for i in 0..dist {
             let x = MathUtils::round(aX + i.into() * xStep);
             let y = MathUtils::round(aY + i.into() * yStep);
-            if (self.image.get(x, y)) {
-                return Some(RXingResultPoint::new(x, y));
+            if self.image.get(x, y) {
+                return Some(RXingResultPoint::new(x as f32, y as f32));
             }
         }
         return None;
@@ -615,19 +645,19 @@ impl WhiteRectangleDetector {
         let ti = t.getX();
         let tj = t.getY();
 
-        if (yi < self.width.into() / 2.0f32) {
+        if yi < self.width as f32 / 2.0f32 {
             return vec![
-                RXingResultPoint::new(ti - CORR, tj + CORR),
-                RXingResultPoint::new(zi + CORR, zj + CORR),
-                RXingResultPoint::new(xi - CORR, xj - CORR),
-                RXingResultPoint::new(yi + CORR, yj - CORR),
+                RXingResultPoint::new(ti - CORR as f32, tj + CORR as f32),
+                RXingResultPoint::new(zi + CORR as f32, zj + CORR as f32),
+                RXingResultPoint::new(xi - CORR as f32, xj - CORR as f32),
+                RXingResultPoint::new(yi + CORR as f32, yj - CORR as f32),
             ];
         } else {
             return vec![
-                RXingResultPoint::new(ti + CORR, tj + CORR),
-                RXingResultPoint::new(zi + CORR, zj - CORR),
-                RXingResultPoint::new(xi - CORR, xj + CORR),
-                RXingResultPoint::new(yi - CORR, yj - CORR),
+                RXingResultPoint::new(ti + CORR as f32, tj + CORR as f32),
+                RXingResultPoint::new(zi + CORR as f32, zj - CORR as f32),
+                RXingResultPoint::new(xi - CORR as f32, xj + CORR as f32),
+                RXingResultPoint::new(yi - CORR as f32, yj - CORR as f32),
             ];
         }
     }
@@ -642,15 +672,15 @@ impl WhiteRectangleDetector {
      * @return true if a black point has been found, else false.
      */
     fn containsBlackPoint(&self, a: i32, b: i32, fixed: i32, horizontal: bool) -> bool {
-        if (horizontal) {
+        if horizontal {
             for x in a..=b {
-                if (self.image.get(x, fixed)) {
+                if self.image.get(x, fixed) {
                     return true;
                 }
             }
         } else {
             for y in a..=b {
-                if (self.image.get(fixed, y)) {
+                if self.image.get(fixed, y) {
                     return true;
                 }
             }

@@ -32,6 +32,7 @@ mod ReedSolomonTestCase;
  *
  * @author Sean Owen
  */
+#[derive(Debug)]
 pub struct ReedSolomonException {
     message: String,
 }
@@ -41,6 +42,12 @@ impl ReedSolomonException {
         Self {
             message: message.to_owned(),
         }
+    }
+}
+
+impl fmt::Display for ReedSolomonException {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.message)
     }
 }
 
@@ -303,13 +310,13 @@ impl GenericGFPoly {
             field: field,
             coefficients: {
                 let coefficientsLength = coefficients.len();
-                if (coefficientsLength > 1 && coefficients[0] == 0) {
+                if coefficientsLength > 1 && coefficients[0] == 0 {
                     // Leading term must be non-zero for anything except the constant polynomial "0"
                     let mut firstNonZero = 1;
-                    while (firstNonZero < coefficientsLength && coefficients[firstNonZero] == 0) {
+                    while firstNonZero < coefficientsLength && coefficients[firstNonZero] == 0 {
                         firstNonZero += 1;
                     }
-                    if (firstNonZero == coefficientsLength) {
+                    if firstNonZero == coefficientsLength {
                         vec![0]
                     } else {
                         let mut new_coefficients =
@@ -396,16 +403,16 @@ impl GenericGFPoly {
                 "GenericGFPolys do not have same GenericGF field",
             ));
         }
-        if (self.isZero()) {
+        if self.isZero() {
             return Ok(other);
         }
-        if (other.isZero()) {
+        if other.isZero() {
             return Ok(Box::new(*self));
         }
 
         let mut smallerCoefficients = self.coefficients;
         let mut largerCoefficients = other.coefficients;
-        if (smallerCoefficients.len() > largerCoefficients.len()) {
+        if smallerCoefficients.len() > largerCoefficients.len() {
             let temp = smallerCoefficients;
             smallerCoefficients = largerCoefficients;
             largerCoefficients = temp;
@@ -438,7 +445,7 @@ impl GenericGFPoly {
                 "GenericGFPolys do not have same GenericGF field",
             ));
         }
-        if (self.isZero() || other.isZero()) {
+        if self.isZero() || other.isZero() {
             return Ok(self.field.getZero());
         }
         let aCoefficients = self.coefficients;
@@ -467,10 +474,10 @@ impl GenericGFPoly {
     }
 
     pub fn multiply_with_scalar(&self, scalar: i32) -> Box<GenericGFPoly> {
-        if (scalar == 0) {
+        if scalar == 0 {
             return self.field.getZero();
         }
-        if (scalar == 1) {
+        if scalar == 1 {
             return Box::new(*self);
         }
         let size = self.coefficients.len();
@@ -490,10 +497,10 @@ impl GenericGFPoly {
         degree: usize,
         coefficient: i32,
     ) -> Result<Box<GenericGFPoly>, IllegalArgumentException> {
-        if (degree < 0) {
+        if degree < 0 {
             return Err(IllegalArgumentException::new(""));
         }
-        if (coefficient == 0) {
+        if coefficient == 0 {
             return Ok(self.field.getZero());
         }
         let size = self.coefficients.len();
@@ -515,7 +522,7 @@ impl GenericGFPoly {
                 "GenericGFPolys do not have same GenericGF field",
             ));
         }
-        if (other.isZero()) {
+        if other.isZero() {
             return Err(IllegalArgumentException::new("Divide by 0"));
         }
 
@@ -528,7 +535,7 @@ impl GenericGFPoly {
             Err(issue) => return Err(IllegalArgumentException::new("arithmetic issue")),
         };
 
-        while (remainder.getDegree() >= other.getDegree() && !remainder.isZero()) {
+        while remainder.getDegree() >= other.getDegree() && !remainder.isZero() {
             let degreeDifference = remainder.getDegree() - other.getDegree();
             let scale = self.field.multiply(
                 remainder.getCoefficient(remainder.getDegree()),
@@ -546,16 +553,16 @@ impl GenericGFPoly {
 
 impl fmt::Display for GenericGFPoly {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if (self.isZero()) {
+        if self.isZero() {
             return write!(f, "0");
         }
         let result = String::with_capacity(8 * self.getDegree());
         for degree in (0..self.getDegree()).rev() {
             //for (int degree = getDegree(); degree >= 0; degree--) {
             let coefficient = self.getCoefficient(degree);
-            if (coefficient != 0) {
-                if (coefficient < 0) {
-                    if (degree == self.getDegree()) {
+            if coefficient != 0 {
+                if coefficient < 0 {
+                    if degree == self.getDegree() {
                         result.push_str("-");
                     } else {
                         result.push_str(" - ");
@@ -563,23 +570,23 @@ impl fmt::Display for GenericGFPoly {
                     //coefficient = -coefficient;
                     todo!("probably coefficient should be unsigned but what a mess");
                 } else {
-                    if (result.len() > 0) {
+                    if result.len() > 0 {
                         result.push_str(" + ");
                     }
                 }
-                if (degree == 0 || coefficient != 1) {
+                if degree == 0 || coefficient != 1 {
                     let alphaPower = self.field.log(coefficient);
-                    if (alphaPower.unwrap() == 0) {
+                    if alphaPower.unwrap() == 0 {
                         result.push_str("1");
-                    } else if (alphaPower.unwrap() == 1) {
+                    } else if alphaPower.unwrap() == 1 {
                         result.push_str("a");
                     } else {
                         result.push_str("a^");
                         result.push_str(&format!("{}", alphaPower.unwrap()));
                     }
                 }
-                if (degree != 0) {
-                    if (degree == 1) {
+                if degree != 0 {
+                    if degree == 1 {
                         result.push_str("x");
                     } else {
                         result.push_str("x^");
@@ -664,11 +671,11 @@ impl ReedSolomonDecoder {
                     .unwrap(),
             );
             syndromeCoefficients[syndromeCoefficients.len() - 1 - i as usize] = eval;
-            if (eval != 0) {
+            if eval != 0 {
                 noError = false;
             }
         }
-        if (noError) {
+        if noError {
             return Ok(());
         }
         let syndrome = match GenericGFPoly::new(self.field, &syndromeCoefficients) {
@@ -692,7 +699,7 @@ impl ReedSolomonDecoder {
                     Ok(size) => size as usize,
                     Err(err) => return Err(ReedSolomonException::new("IllegalArgumentException")),
                 };
-            if (position < 0) {
+            if position < 0 {
                 return Err(ReedSolomonException::new("Bad error location"));
             }
             received[position] = GenericGF::addOrSubtract(received[position], errorMagnitudes[i]);
@@ -707,7 +714,7 @@ impl ReedSolomonDecoder {
         R: usize,
     ) -> Result<Vec<GenericGFPoly>, ReedSolomonException> {
         // Assume a's degree is >= b's
-        if (a.getDegree() < b.getDegree()) {
+        if a.getDegree() < b.getDegree() {
             let temp = a;
             a = b;
             b = temp;
@@ -719,14 +726,14 @@ impl ReedSolomonDecoder {
         let t = self.field.getOne();
 
         // Run Euclidean algorithm until r's degree is less than R/2
-        while (2 * r.getDegree() >= R) {
+        while 2 * r.getDegree() >= R {
             let rLastLast = rLast;
             let tLastLast = tLast;
             rLast = r;
             tLast = t;
 
             // Divide rLastLast by rLast, with quotient in q and remainder in r
-            if (rLast.isZero()) {
+            if rLast.isZero() {
                 // Oops, Euclidean algorithm already terminated?
                 return Err(ReedSolomonException::new("r_{i-1} was zero"));
             }
@@ -737,7 +744,7 @@ impl ReedSolomonDecoder {
                 Ok(inv) => inv,
                 Err(err) => return Err(ReedSolomonException::new("ArithmetricException")),
             };
-            while (r.getDegree() >= rLast.getDegree() && !r.isZero()) {
+            while r.getDegree() >= rLast.getDegree() && !r.isZero() {
                 let degreeDiff = r.getDegree() - rLast.getDegree();
                 let scale = self
                     .field
@@ -765,7 +772,7 @@ impl ReedSolomonDecoder {
                 Err(err) => return Err(ReedSolomonException::new("IllegalArgumentException")),
             };
 
-            if (r.getDegree() >= rLast.getDegree()) {
+            if r.getDegree() >= rLast.getDegree() {
                 return Err(ReedSolomonException::new(&format!(
                     "Division algorithm failed to reduce polynomial? r: {}, rLast: {}",
                     r, rLast
@@ -774,7 +781,7 @@ impl ReedSolomonDecoder {
         }
 
         let sigmaTildeAtZero = t.getCoefficient(0);
-        if (sigmaTildeAtZero == 0) {
+        if sigmaTildeAtZero == 0 {
             return Err(ReedSolomonException::new("sigmaTilde(0) was zero"));
         }
 
@@ -793,7 +800,7 @@ impl ReedSolomonDecoder {
     ) -> Result<Vec<usize>, ReedSolomonException> {
         // This is a direct application of Chien's search
         let numErrors = errorLocator.getDegree();
-        if (numErrors == 1) {
+        if numErrors == 1 {
             // shortcut
             return Ok(vec![errorLocator.getCoefficient(1).try_into().unwrap()]);
         }
@@ -805,7 +812,7 @@ impl ReedSolomonDecoder {
             if e < numErrors {
                 break;
             }
-            if (errorLocator.evaluateAt(i) == 0) {
+            if errorLocator.evaluateAt(i) == 0 {
                 result[e] = match self.field.inverse(i.try_into().unwrap()) {
                     Ok(res) => res.try_into().unwrap(),
                     Err(err) => return Err(ReedSolomonException::new("ArithmetricException")),
@@ -813,7 +820,7 @@ impl ReedSolomonDecoder {
                 e += 1;
             }
         }
-        if (e != numErrors) {
+        if e != numErrors {
             return Err(ReedSolomonException::new(
                 "Error locator degree does not match number of roots",
             ));
@@ -835,7 +842,7 @@ impl ReedSolomonDecoder {
             let denominator = 1;
             for j in 0..s {
                 //for (int j = 0; j < s; j++) {
-                if (i != j) {
+                if i != j {
                     //denominator = field.multiply(denominator,
                     //    GenericGF.addOrSubtract(1, field.multiply(errorLocations[j], xiInverse)));
                     // Above should work but fails on some Apple and Linux JDKs due to a Hotspot bug.
@@ -855,7 +862,7 @@ impl ReedSolomonDecoder {
                 errorEvaluator.evaluateAt(xiInverse.unwrap().try_into().unwrap()),
                 self.field.inverse(denominator).unwrap(),
             );
-            if (self.field.getGeneratorBase() != 0) {
+            if self.field.getGeneratorBase() != 0 {
                 result[i] = self.field.multiply(result[i], xiInverse.unwrap());
             }
         }
@@ -935,11 +942,11 @@ impl ReedSolomonEncoder {
         toEncode: &mut Vec<i32>,
         ecBytes: usize,
     ) -> Result<(), IllegalArgumentException> {
-        if (ecBytes == 0) {
+        if ecBytes == 0 {
             return Err(IllegalArgumentException::new("No error correction bytes"));
         }
         let dataBytes = toEncode.len() - ecBytes;
-        if (dataBytes <= 0) {
+        if dataBytes <= 0 {
             return Err(IllegalArgumentException::new("No data bytes provided"));
         }
         let generator = self.buildGenerator(ecBytes);

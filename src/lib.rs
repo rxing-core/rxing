@@ -287,6 +287,7 @@ pub enum EncodeHintType {
  * @author dswitkin@google.com (Daniel Switkin)
  * @see Reader#decode(BinaryBitmap,java.util.Map)
  */
+#[derive(Eq,PartialEq,Hash,Debug)]
 pub enum DecodeHintType {
     /**
      * Unspecified, application-specific hint. Maps to an unspecified {@link Object}.
