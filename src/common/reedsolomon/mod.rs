@@ -157,7 +157,7 @@ impl GenericGF {
     /**
      * @return the monomial representing coefficient * x^degree
      */
-    pub fn buildMonomial(&self, degree: usize, coefficient: usize) -> Box<GenericGFPoly> {
+    pub fn buildMonomial(&self, degree: usize, coefficient: i32) -> Box<GenericGFPoly> {
         if (coefficient == 0) {
             return self.zero;
         }
@@ -258,7 +258,7 @@ impl fmt::Display for GenericGF {
 #[derive(Debug)]
 pub struct GenericGFPoly {
     field: Box<GenericGF>,
-    coefficients: Vec<usize>,
+    coefficients: Vec<i32>,
 }
 
 impl PartialEq for GenericGFPoly {
@@ -280,7 +280,7 @@ impl GenericGFPoly {
      */
     pub fn new(
         field: Box<GenericGF>,
-        coefficients: &Vec<usize>,
+        coefficients: &Vec<i32>,
     ) -> Result<Self, IllegalArgumentException> {
         if (coefficients.len() == 0) {
             return Err(IllegalArgumentException::new(""));
@@ -472,7 +472,7 @@ impl GenericGFPoly {
     pub fn multiplyByMonomial(
         &self,
         degree: usize,
-        coefficient: usize,
+        coefficient: i32,
     ) -> Result<Box<GenericGFPoly>, IllegalArgumentException> {
         if (degree < 0) {
             return Err(IllegalArgumentException::new(""));
