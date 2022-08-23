@@ -588,7 +588,7 @@ impl ReedSolomonDecoder{
    * @param twoS number of error-correction codewords available
    * @throws ReedSolomonException if decoding fails for any reason
    */
-  pub fn decode( &self,received: mut &Vec<usize>,  twoS:usize) -> Result<(),ReedSolomonException> {
+  pub fn decode( &self,received: &mut Vec<usize>,  twoS:usize) -> Result<(),ReedSolomonException> {
     let poly =  GenericGFPoly::new(self.field, received);
     let syndromeCoefficients = Vec::with_capacity(twoS);
     let mut noError = true;
@@ -603,7 +603,10 @@ impl ReedSolomonDecoder{
     if (noError) {
       return Ok(());
     }
-    let syndrome =  GenericGFPoly::new(self.field, &syndromeCoefficients)?;
+    let syndrome = match GenericGFPoly::new(self.field, &syndromeCoefficients) {
+      Ok(res) => res,
+      Err(fail) => return Err(ReedSolomonException::new("IllegalArgumentException"))
+    };
     let sigmaOmega =
         self.runEuclideanAlgorithm(self.field.buildMonomial(twoS, 1), Box::new(syndrome), twoS);
     let sigma = sigmaOmega?[0];
@@ -612,7 +615,10 @@ impl ReedSolomonDecoder{
     let errorMagnitudes = self.findErrorMagnitudes(&omega, &errorLocations);
     for i in 0..errorLocations.len() {
     //for (int i = 0; i < errorLocations.length; i++) {
-      let position = received.len() - 1 - self.field.log(errorLocations[i])?;
+      let position = received.len() - 1 - match self.field.log(errorLocations[i]) {
+        Ok(size) => size,
+        Err(err) => return Err(ReedSolomonException::new("IllegalArgumentException"))
+      };
       if (position < 0) {
        return Err(ReedSolomonException::new("Bad error location"));
       }
@@ -650,15 +656,34 @@ impl ReedSolomonDecoder{
       r = rLastLast;
       let q = self.field.getZero();
       let denominatorLeadingTerm = rLast.getCoefficient(rLast.getDegree());
-      let dltInverse = self.field.inverse(denominatorLeadingTerm)?;
+      let dltInverse = match self.field.inverse(denominatorLeadingTerm){
+        Ok(inv) => inv,
+        Err(err) => return Err(ReedSolomonException::new("ArithmetricException")),
+      };
       while (r.getDegree() >= rLast.getDegree() && !r.isZero()) {
         let degreeDiff = r.getDegree() - rLast.getDegree();
         let scale = self.field.multiply(r.getCoefficient(r.getDegree()), dltInverse);
-        q = q.addOrSubtract(self.field.buildMonomial(degreeDiff, scale))?;
-        r = r.addOrSubtract(rLast.multiplyByMonomial(degreeDiff, scale)?)?;
+        q = match q.addOrSubtract(self.field.buildMonomial(degreeDiff, scale)) {
+          Ok(res) => res,
+          Err(err) => return Err(ReedSolomonException::new("IllegalArgumentException")),
+        };
+        r = match r.addOrSubtract(match rLast.multiplyByMonomial(degreeDiff, scale)
+      {
+Ok(res) => res,
+Err(err) => return Err(ReedSolomonException::new("IllegalArgumentException")),
+      }){
+        Ok(res)=> res,
+        Err(err) => return Err(ReedSolomonException::new("IllegalArgumentException"))
+      };
       }
 
-      t = q.multiply(&tLast)?.addOrSubtract(tLastLast)?;
+      t = match (match q.multiply(&tLast){
+Ok(res) => res,
+Err(err) => return Err(ReedSolomonException::new("IllegalArgumentException")),
+      }).addOrSubtract(tLastLast){
+        Ok(res) => res,
+        Err(err) => return Err(ReedSolomonException::new("IllegalArgumentException")),
+      };
 
       if (r.getDegree() >= rLast.getDegree()) {
         return Err( ReedSolomonException::new(&format!("Division algorithm failed to reduce polynomial? r: {}, rLast: {}" ,r, rLast)));
@@ -670,7 +695,10 @@ impl ReedSolomonDecoder{
      return Err( ReedSolomonException::new("sigmaTilde(0) was zero"));
     }
 
-    let inverse = self.field.inverse(sigmaTildeAtZero)?;
+    let inverse = match self.field.inverse(sigmaTildeAtZero) {
+Ok(res) => res,
+Err(err) => return Err(ReedSolomonException::new("ArithmetricException")),
+    };
     let sigma = t.multiply_with_scalar(inverse);
     let omega = r.multiply_with_scalar(inverse);
     return Ok(vec![*sigma, *omega]);
@@ -689,7 +717,10 @@ impl ReedSolomonDecoder{
     //for (int i = 1; i < field.getSize() && e < numErrors; i++) {
       if e < numErrors { break; }
       if (errorLocator.evaluateAt(i) == 0) {
-        result[e] = self.field.inverse(i)?;
+        result[e] = match self.field.inverse(i) {
+Ok(res)=>res,
+Err(err) => return Err(ReedSolomonException::new("ArithmetricException")),
+        };
         e+=1;
       }
     }
@@ -787,7 +818,7 @@ impl ReedSolomonEncoder{
     return *self.cachedGenerators.get(degree).unwrap();
   }
 
-  pub fn encode(&self,toEncode:mut Vec<usize>,  ecBytes:usize) -> Result<(),IllegalArgumentException>{
+  pub fn encode(&self,toEncode:&mut Vec<usize>,  ecBytes:usize) -> Result<(),IllegalArgumentException>{
     if (ecBytes == 0) {
       return Err(IllegalArgumentException::new("No error correction bytes"));
     }
