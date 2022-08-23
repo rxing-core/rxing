@@ -3,6 +3,9 @@ use std::fmt;
 use crate::exceptions::*;
 use std::hash::Hash;
 
+#[cfg(test)]
+mod GenericGFPolyTestCase;
+
 /*
  * Copyrigh&t 2007 ZXing authors
  *
@@ -77,7 +80,8 @@ pub const MAXICODE_FIELD_64: GenericGF = AZTEC_DATA_6;
  * @author Sean Owen
  * @author David Olivier
  */
-pub struct GenericGF {
+#[derive(Debug)]
+ pub struct GenericGF {
     expTable: Vec<usize>,
     logTable: Vec<usize>,
     zero: Box<GenericGFPoly>,
@@ -251,10 +255,18 @@ impl fmt::Display for GenericGF {
  *
  * @author Sean Owen
  */
+#[derive(Debug)]
 pub struct GenericGFPoly {
     field: Box<GenericGF>,
     coefficients: Vec<usize>,
 }
+
+impl PartialEq for GenericGFPoly {
+  fn eq(&self, other: &Self) -> bool {
+      self.to_string() == other.to_string()
+  }
+}
+impl Eq for GenericGFPoly {}
 
 impl GenericGFPoly {
     /**

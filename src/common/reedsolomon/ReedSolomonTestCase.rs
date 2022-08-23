@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package com.google.zxing.common.reedsolomon;
+//package com.google.zxing.common.reedsolomon;
 
-import org.junit.Assert;
-import org.junit.Test;
+// import org.junit.Assert;
+// import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Random;
+// import java.util.Arrays;
+// import java.util.BitSet;
+// import java.util.Random;
 
 /**
  * @author Rustam Abdullaev
  */
-public final class ReedSolomonTestCase extends Assert {
+//public final class ReedSolomonTestCase extends Assert {
 
-  private static final int DECODER_RANDOM_TEST_ITERATIONS = 3;
-  private static final int DECODER_TEST_ITERATIONS = 10;
+  const DECODER_RANDOM_TEST_ITERATIONS :i32 = 3;
+  const DECODER_TEST_ITERATIONS :i32= 10;
 
-  @Test
-  public void testDataMatrix() {
+  #[test]
+  fn testDataMatrix() {
     // real life test cases
     testEncodeDecode(GenericGF.DATA_MATRIX_FIELD_256,
         new int[] { 142, 164, 186 }, new int[] { 114, 25, 5, 88, 102 });
@@ -55,8 +55,8 @@ public final class ReedSolomonTestCase extends Assert {
     testEncodeDecodeRandom(GenericGF.DATA_MATRIX_FIELD_256, 220, 35);
   }
 
-  @Test
-  public void testQRCode() {
+  #[test]
+  fn testQRCode() {
     // Test case from example given in ISO 18004, Annex I
     testEncodeDecode(GenericGF.QR_CODE_FIELD_256,
         new int[] {
@@ -86,8 +86,8 @@ public final class ReedSolomonTestCase extends Assert {
     testEncodeDecodeRandom(GenericGF.QR_CODE_FIELD_256, 220, 35);
   }
 
-  @Test
-  public void testAztec() {
+  #[test]
+  fn testAztec() {
     // real life test cases
     testEncodeDecode(GenericGF.AZTEC_PARAM,
         new int[] { 0x5, 0x6 }, new int[] { 0x3, 0x2, 0xB, 0xB, 0x7 });
@@ -412,7 +412,7 @@ public final class ReedSolomonTestCase extends Assert {
     testEncodeDecodeRandom(GenericGF.AZTEC_DATA_12, 3072, 1023);
   }
 
-  public static void corrupt(int[] received, int howMany, Random random, int max) {
+  fn corrupt(int[] received, int howMany, Random random, int max) {
     BitSet corrupted = new BitSet(received.length);
     for (int j = 0; j < howMany; j++) {
       int location = random.nextInt(received.length);
@@ -426,7 +426,7 @@ public final class ReedSolomonTestCase extends Assert {
     }
   }
 
-  private static void testEncodeDecodeRandom(GenericGF field, int dataSize, int ecSize) {
+  fn testEncodeDecodeRandom(GenericGF field, int dataSize, int ecSize) {
     assertTrue("Invalid data size for " + field, dataSize > 0 && dataSize <= field.getSize() - 3);
     assertTrue("Invalid ECC size for " + field, ecSize > 0 && ecSize + dataSize <= field.getSize());
     ReedSolomonEncoder encoder = new ReedSolomonEncoder(field);
@@ -449,12 +449,12 @@ public final class ReedSolomonTestCase extends Assert {
     }
   }
 
-  private static void testEncodeDecode(GenericGF field, int[] dataWords, int[] ecWords) {
+  fn testEncodeDecode(GenericGF field, int[] dataWords, int[] ecWords) {
     testEncoder(field, dataWords, ecWords);
     testDecoder(field, dataWords, ecWords);
   }
 
-  private static void testEncoder(GenericGF field, int[] dataWords, int[] ecWords) {
+  fn testEncoder(GenericGF field, int[] dataWords, int[] ecWords) {
     ReedSolomonEncoder encoder = new ReedSolomonEncoder(field);
     int[] messageExpected = new int[dataWords.length + ecWords.length];
     int[] message = new int[dataWords.length + ecWords.length];
@@ -466,7 +466,7 @@ public final class ReedSolomonTestCase extends Assert {
                      messageExpected, message);
   }
 
-  private static void testDecoder(GenericGF field, int[] dataWords, int[] ecWords) {
+  fn testDecoder(GenericGF field, int[] dataWords, int[] ecWords) {
     ReedSolomonDecoder decoder = new ReedSolomonDecoder(field);
     int[] message = new int[dataWords.length + ecWords.length];
     int maxErrors = ecWords.length / 2;
@@ -501,7 +501,7 @@ public final class ReedSolomonTestCase extends Assert {
     }
   }
 
-  private static void assertDataEquals(String message, int[] expected, int[] received) {
+  fn assertDataEquals(String message, int[] expected, int[] received) {
     for (int i = 0; i < expected.length; i++) {
       if (expected[i] != received[i]) {
         fail(message + ". Mismatch at " + i + ". Expected " + arrayToString(expected) + ", got " +
@@ -510,7 +510,7 @@ public final class ReedSolomonTestCase extends Assert {
     }
   }
 
-  private static String arrayToString(int[] data) {
+  fn String arrayToString(int[] data) {
     StringBuilder sb = new StringBuilder("{");
     for (int i = 0; i < data.length; i++) {
       sb.append(String.format(i > 0 ? ",%X" : "%X", data[i]));
@@ -518,8 +518,8 @@ public final class ReedSolomonTestCase extends Assert {
     return sb.append('}').toString();
   }
 
-  private static Random getPseudoRandom() {
+  fn Random getPseudoRandom() {
     return new Random(0xDEADBEEF);
   }
 
-}
+//}
