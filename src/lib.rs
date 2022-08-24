@@ -1097,7 +1097,7 @@ impl BinaryBitmap {
     pub fn new(binarizer: Box<dyn Binarizer>) -> Self {
         Self {
             binarizer: binarizer,
-            matrix: binarizer.getBlackMatrix(),
+            matrix: binarizer.getBlackMatrix().unwrap(),
         }
     }
 
@@ -1217,7 +1217,7 @@ impl BinaryBitmap {
 
 impl fmt::Display for BinaryBitmap {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.getBlackMatrix())
+        write!(f, "{}", self.getBlackMatrix().unwrap())
     }
 }
 

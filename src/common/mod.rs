@@ -2,8 +2,8 @@ pub mod detector;
 pub mod reedsolomon;
 
 use std::cmp;
+use std::collections::HashMap;
 use std::fmt;
-use std::{any::Any, collections::HashMap};
 
 use crate::exceptions::IllegalArgumentException;
 use crate::DecodeHintType;
@@ -52,10 +52,12 @@ pub struct StringUtils {
     //   public static final String GB2312 = "GB2312";
 }
 
-const PLATFORM_DEFAULT_ENCODING: dyn Encoding = encoding::all::UTF_8;
-const SHIFT_JIS_CHARSET: dyn Encoding = encoding::label::encoding_from_whatwg_label("SJIS");
-const GB2312_CHARSET: dyn Encoding = encoding::label::encoding_from_whatwg_label("GB2312");
-const EUC_JP: dyn Encoding = encoding::label::encoding_from_whatwg_label("EUC_JP");
+const PLATFORM_DEFAULT_ENCODING: &dyn Encoding = encoding::all::UTF_8;
+const SHIFT_JIS_CHARSET: &dyn Encoding =
+    encoding::label::encoding_from_whatwg_label("SJIS").unwrap();
+const GB2312_CHARSET: &dyn Encoding =
+    encoding::label::encoding_from_whatwg_label("GB2312").unwrap();
+const EUC_JP: &dyn Encoding = encoding::label::encoding_from_whatwg_label("EUC_JP").unwrap();
 const ASSUME_SHIFT_JIS: bool = false;
 static SHIFT_JIS: &'static str = "SJIS";
 static GB2312: &'static str = "GB2312";
@@ -72,16 +74,16 @@ impl StringUtils {
      *  "SJIS", "UTF8", "ISO8859_1", or the platform default encoding if none
      *  of these can possibly be correct
      */
-    pub fn guessEncoding(bytes: &[u8], hints: HashMap<DecodeHintType, &dyn Any>) -> &str {
+    pub fn guessEncoding(bytes: &[u8], hints: HashMap<DecodeHintType, String>) -> String {
         let c = StringUtils::guessCharset(bytes, hints);
-        if c == SHIFT_JIS_CHARSET {
-            return "SJIS";
-        } else if c == encoding::all::UTF_8 {
-            return "UTF8";
-        } else if c == encoding::all::ISO_8859_1 {
-            return "ISO8859_1";
+        if c.name() == SHIFT_JIS_CHARSET.name() {
+            return "SJIS".to_owned();
+        } else if c.name() == encoding::all::UTF_8.name() {
+            return "UTF8".to_owned();
+        } else if c.name() == encoding::all::ISO_8859_1.name() {
+            return "ISO8859_1".to_owned();
         }
-        return c.name();
+        return c.name().to_owned();
     }
 
     /**
@@ -95,13 +97,11 @@ impl StringUtils {
      */
     pub fn guessCharset(
         bytes: &[u8],
-        hints: HashMap<DecodeHintType, &dyn Any>,
-    ) -> Box<&dyn Encoding> {
+        hints: HashMap<DecodeHintType, String>,
+    ) -> &'static dyn Encoding {
         match hints.get(&DecodeHintType::CHARACTER_SET) {
             Some(hint) => {
-                if hint.is::<String>() {
-                    return encoding::label::encoding_from_whatwg_label(hint).unwrap();
-                }
+                return encoding::label::encoding_from_whatwg_label(hint).unwrap();
             }
             _ => {}
         };
@@ -297,7 +297,7 @@ static LOAD_FACTOR: f32 = 0.75f32;
  *
  * @author Sean Owen
  */
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct BitArray {
     bits: Vec<u32>,
     size: usize,
@@ -306,7 +306,7 @@ pub struct BitArray {
 impl BitArray {
     pub fn new() -> Self {
         Self {
-            bits: EMPTY_BITS,
+            bits: EMPTY_BITS.to_vec(),
             size: 0,
         }
     }
@@ -336,7 +336,7 @@ impl BitArray {
 
     fn ensureCapacity(&self, newSize: usize) {
         if newSize > self.bits.len() * 32 {
-            let newBits = BitArray::makeArray((newSize as f32 / LOAD_FACTOR).ceil());
+            let newBits = BitArray::makeArray((newSize as f32 / LOAD_FACTOR).ceil() as usize);
             //System.arraycopy(bits, 0, newBits, 0, bits.length);
             newBits[0..self.bits.len()].clone_from_slice(&self.bits[0..self.bits.len()]);
             self.bits = newBits;
@@ -390,7 +390,7 @@ impl BitArray {
             }
             currentBits = self.bits[bitsOffset];
         }
-        let result = (bitsOffset * 32) + currentBits.trailing_zeros();
+        let result = (bitsOffset * 32) + currentBits.trailing_zeros() as usize;
         cmp::min(result, self.size)
     }
 
@@ -414,7 +414,7 @@ impl BitArray {
             }
             currentBits = !self.bits[bitsOffset];
         }
-        let result = (bitsOffset * 32) + currentBits.trailing_zeros();
+        let result = (bitsOffset * 32) + currentBits.trailing_zeros() as usize;
         return cmp::min(result, self.size);
     }
 
@@ -442,7 +442,7 @@ impl BitArray {
             ));
         }
         if end == start {
-            return;
+            return Ok(());
         }
         end -= 1; // will be easier to treat this as the last actually set bit -- inclusive
         let firstInt = start / 32;
@@ -462,7 +462,7 @@ impl BitArray {
      * Clears all bits (sets to false).
      */
     pub fn clear(&self) {
-        let max = self.bits.length;
+        let max = self.bits.len();
         for i in 0..max {
             //for (int i = 0; i < max; i++) {
             self.bits[i] = 0;
@@ -749,7 +749,7 @@ impl DetectorRXingResult {
  * @author Sean Owen
  * @author dswitkin@google.com (Daniel Switkin)
  */
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BitMatrix {
     width: u32,
     height: u32,
@@ -764,7 +764,7 @@ impl BitMatrix {
      * @param dimension height and width
      */
     pub fn with_single_dimension(dimension: u32) -> Self {
-        Self::new(dimension, dimension)
+        Self::new(dimension, dimension).unwrap()
     }
 
     /**
@@ -782,8 +782,8 @@ impl BitMatrix {
         Ok(Self {
             width,
             height,
-            rowSize: (width + 31) / 32,
-            bits: vec![0; ((width + 31) / 32) * height],
+            rowSize: ((width + 31) / 32) as usize,
+            bits: vec![0; (((width + 31) / 32) * height) as usize],
         })
         // this.width = width;
         // this.height = height;
@@ -806,24 +806,24 @@ impl BitMatrix {
      * @param image bits of the image, as a row-major 2D array. Elements are arrays representing rows
      * @return {@code BitMatrix} representation of image
      */
-    pub fn parse(image: &[[bool]]) -> Self {
-        let height = image.len();
-        let width = image[0].len();
+    pub fn parse_bools(image: &Vec<Vec<bool>>) -> Self {
+        let height: u32 = image.len().try_into().unwrap();
+        let width: u32 = image[0].len().try_into().unwrap();
         let bits = BitMatrix::new(width, height).unwrap();
-        for i in 0..height {
+        for i in 0..height as usize {
             //for (int i = 0; i < height; i++) {
             let imageI = image[i];
-            for j in 0..width {
+            for j in 0..width as usize {
                 //for (int j = 0; j < width; j++) {
                 if imageI[j] {
-                    bits.set(j, i);
+                    bits.set(j as u32, i as u32);
                 }
             }
         }
         return bits;
     }
 
-    pub fn parse(
+    pub fn parse_strings(
         stringRepresentation: &str,
         setString: &str,
         unsetString: &str,
@@ -833,13 +833,13 @@ impl BitMatrix {
         //   throw new IllegalArgumentException();
         // }
 
-        let bits = Vec::with_capacity(stringRepresentation.length());
+        let bits = Vec::with_capacity(stringRepresentation.len());
         let bitsPos = 0;
         let rowStartPos = 0;
         let rowLength = -1;
         let nRows = 0;
         let pos = 0;
-        while pos < stringRepresentation.length() {
+        while pos < stringRepresentation.len() {
             if stringRepresentation.charAt(pos) == '\n' || stringRepresentation.charAt(pos) == '\r'
             {
                 if bitsPos > rowStartPos {
@@ -853,11 +853,11 @@ impl BitMatrix {
                 }
                 pos += 1;
             } else if stringRepresentation.startsWith(setString, pos) {
-                pos += setString.length();
+                pos += setString.len();
                 bits[bitsPos] = true;
                 bitsPos += 1;
             } else if stringRepresentation.startsWith(unsetString, pos) {
-                pos += unsetString.length();
+                pos += unsetString.len();
                 bits[bitsPos] = false;
                 bitsPos += 1;
             } else {
@@ -922,7 +922,7 @@ impl BitMatrix {
      * @param x The horizontal component (i.e. which column)
      * @param y The vertical component (i.e. which row)
      */
-    pub fn flip(&self, x: u32, y: u32) {
+    pub fn flip_coords(&self, x: u32, y: u32) {
         let offset = y * self.rowSize + (x / 32);
         self.bits[offset] ^= 1 << (x & 0x1f);
     }
@@ -930,7 +930,7 @@ impl BitMatrix {
     /**
      * <p>Flips every bit in the matrix.</p>
      */
-    pub fn flip(&self) {
+    pub fn flip_self(&self) {
         let max = self.bits.len();
         for i in 0..max {
             //for (int i = 0; i < max; i++) {
@@ -1026,11 +1026,11 @@ impl BitMatrix {
      *         your own row
      */
     pub fn getRow(&self, y: u32, row: &BitArray) -> BitArray {
-        let rw: BitArray = if row.getSize() < self.width {
-            row = &BitArray::with_size(self.width)
+        let rw: BitArray = if row.getSize() < self.width as u32 {
+            BitArray::with_size(self.width as usize)
         } else {
             row.clear();
-            row
+            *row
         };
 
         let offset = y * self.rowSize;
@@ -1082,8 +1082,8 @@ impl BitMatrix {
      * Modifies this {@code BitMatrix} to represent the same but rotated 180 degrees
      */
     pub fn rotate180(&self) {
-        let mut topRow = BitArray::with_size(self.width);
-        let mut bottomRow = BitArray::with_size(self.width);
+        let mut topRow = BitArray::with_size(self.width as usize);
+        let mut bottomRow = BitArray::with_size(self.width as usize);
         let mut maxHeight = (self.height + 1) / 2;
         for i in 0..maxHeight {
             //for (int i = 0; i < maxHeight; i++) {
@@ -1104,7 +1104,7 @@ impl BitMatrix {
         let mut newWidth = self.height;
         let mut newHeight = self.width;
         let mut newRowSize = (newWidth + 31) / 32;
-        let mut newBits = Vec::with_capacity(newRowSize * newHeight);
+        let mut newBits = Vec::with_capacity((newRowSize * newHeight).try_into().unwrap());
 
         for y in 0..self.height {
             //for (int y = 0; y < height; y++) {
@@ -1182,10 +1182,10 @@ impl BitMatrix {
      */
     pub fn getTopLeftOnBit(&self) -> Option<Vec<u32>> {
         let bitsOffset = 0;
-        while bitsOffset < self.bits.length && self.bits[bitsOffset] == 0 {
+        while bitsOffset < self.bits.len() && self.bits[bitsOffset] == 0 {
             bitsOffset += 1;
         }
-        if bitsOffset == self.bits.length {
+        if bitsOffset == self.bits.len() {
             return None;
         }
         let y = bitsOffset / self.rowSize;
@@ -1201,7 +1201,7 @@ impl BitMatrix {
     }
 
     pub fn getBottomRightOnBit(&self) -> Option<Vec<u32>> {
-        let bitsOffset = self.bits.length - 1;
+        let bitsOffset = self.bits.len() - 1;
         while bitsOffset >= 0 && self.bits[bitsOffset] == 0 {
             bitsOffset -= 1;
         }
@@ -1285,7 +1285,7 @@ impl BitMatrix {
     // }
 
     fn buildToString(&self, setString: &str, unsetString: &str, lineSeparator: &str) -> String {
-        let result = String::with_capacity(self.height * (self.width + 1));
+        let result = String::with_capacity((self.height * (self.width + 1)).try_into().unwrap());
         for y in 0..self.height {
             //for (int y = 0; y < height; y++) {
             for x in 0..self.width {
@@ -1488,7 +1488,7 @@ impl BitSource {
      */
     pub fn readBits(&self, numBits: usize) -> Result<u32, IllegalArgumentException> {
         if numBits < 1 || numBits > 32 || numBits > self.available() {
-            return Err(IllegalArgumentException::new(numBits));
+            return Err(IllegalArgumentException::new(&numBits.to_string()));
         }
 
         let result = 0;
@@ -1526,13 +1526,13 @@ impl BitSource {
             }
         }
 
-        return Ok(result);
+        return Ok(result.into());
     }
 
     /**
      * @return number of bits that can be read successfully
      */
-    pub fn available(&self) -> u32 {
-        return 8 * (self.bytes.len() - self.byteOffset) - self.bitOffset;
+    pub fn available(&self) -> usize {
+        return (8 * (self.bytes.len() - self.byteOffset) - self.bitOffset);
     }
 }
