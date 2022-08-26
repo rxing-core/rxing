@@ -380,7 +380,7 @@ impl BitArray {
             return self.size;
         }
         let bitsOffset = from / 32;
-        let currentBits = self.bits[bitsOffset];
+        let mut currentBits = self.bits[bitsOffset] as i32;
         // mask off lesser bits first
         currentBits &= -(1 << (from & 0x1F));
         while currentBits == 0 {
@@ -388,7 +388,7 @@ impl BitArray {
             if bitsOffset == self.bits.len() {
                 return self.size;
             }
-            currentBits = self.bits[bitsOffset];
+            currentBits = self.bits[bitsOffset] as i32;
         }
         let result = (bitsOffset * 32) + currentBits.trailing_zeros() as usize;
         cmp::min(result, self.size)
@@ -404,15 +404,15 @@ impl BitArray {
             return self.size;
         }
         let bitsOffset = from / 32;
-        let currentBits = !self.bits[bitsOffset];
+        let currentBits = !self.bits[bitsOffset] as i32;
         // mask off lesser bits first
-        currentBits &= -(1 << (from & 0x1F));
+        currentBits &= -(1 << (from & 0x1F)) ;
         while currentBits == 0 {
             bitsOffset += 1;
             if bitsOffset == self.bits.len() {
                 return self.size;
             }
-            currentBits = !self.bits[bitsOffset];
+            currentBits = !self.bits[bitsOffset] as i32;
         }
         let result = (bitsOffset * 32) + currentBits.trailing_zeros() as usize;
         return cmp::min(result, self.size);
@@ -836,14 +836,17 @@ impl BitMatrix {
         let bits = Vec::with_capacity(stringRepresentation.len());
         let bitsPos = 0;
         let rowStartPos = 0;
-        let rowLength = -1;
+        let rowLength = 0;//-1;
+        let mut first_run = true;
         let nRows = 0;
         let pos = 0;
         while pos < stringRepresentation.len() {
-            if stringRepresentation.charAt(pos) == '\n' || stringRepresentation.charAt(pos) == '\r'
+            if stringRepresentation.chars().nth(pos).unwrap() == '\n' || stringRepresentation.chars().nth(pos).unwrap() == '\r'
             {
                 if bitsPos > rowStartPos {
-                    if rowLength == -1 {
+                    //if rowLength == -1 {
+                    if first_run {
+                        first_run = false;
                         rowLength = bitsPos - rowStartPos;
                     } else if bitsPos - rowStartPos != rowLength {
                         return Err(IllegalArgumentException::new("row lengths do not match"));
@@ -852,25 +855,27 @@ impl BitMatrix {
                     nRows += 1;
                 }
                 pos += 1;
-            } else if stringRepresentation.startsWith(setString, pos) {
+            } else if stringRepresentation[pos..].starts_with(setString) {
                 pos += setString.len();
                 bits[bitsPos] = true;
                 bitsPos += 1;
-            } else if stringRepresentation.startsWith(unsetString, pos) {
+            } else if stringRepresentation[pos..].starts_with(unsetString) {
                 pos += unsetString.len();
                 bits[bitsPos] = false;
                 bitsPos += 1;
             } else {
                 return Err(IllegalArgumentException::new(&format!(
                     "illegal character encountered: {}",
-                    stringRepresentation.substring(pos)
+                    stringRepresentation[pos..].to_owned()
                 )));
             }
         }
 
         // no EOL at end?
         if bitsPos > rowStartPos {
-            if rowLength == -1 {
+            //if rowLength == -1 {
+            if first_run {
+                first_run = false;
                 rowLength = bitsPos - rowStartPos;
             } else if bitsPos - rowStartPos != rowLength {
                 return Err(IllegalArgumentException::new("row lengths do not match"));
@@ -878,14 +883,14 @@ impl BitMatrix {
             nRows += 1;
         }
 
-        let matrix = BitMatrix::new(rowLength, nRows);
+        let matrix = BitMatrix::new(rowLength.try_into().unwrap(), nRows)?;
         for i in 0..bitsPos {
             //for (int i = 0; i < bitsPos; i++) {
             if bits[i] {
-                matrix.set(i % rowLength, i / rowLength);
+                matrix.set((i % rowLength).try_into().unwrap(), (i / rowLength).try_into().unwrap());
             }
         }
-        return matrix;
+        return Ok(matrix);
     }
 
     /**
@@ -896,7 +901,7 @@ impl BitMatrix {
      * @return value of given bit in matrix
      */
     pub fn get(&self, x: u32, y: u32) -> bool {
-        let offset = y * self.rowSize + (x / 32);
+        let offset = y as usize * self.rowSize + (x as usize / 32);
         return ((self.bits[offset] >> (x & 0x1f)) & 1) != 0;
     }
 
@@ -907,12 +912,12 @@ impl BitMatrix {
      * @param y The vertical component (i.e. which row)
      */
     pub fn set(&self, x: u32, y: u32) {
-        let offset = y * self.rowSize + (x / 32);
+        let offset = y as usize * self.rowSize + (x as usize / 32);
         self.bits[offset] |= 1 << (x & 0x1f);
     }
 
     pub fn unset(&self, x: u32, y: u32) {
-        let offset = y * self.rowSize + (x / 32);
+        let offset = y as usize * self.rowSize + (x as usize / 32);
         self.bits[offset] &= !(1 << (x & 0x1f));
     }
 
@@ -923,7 +928,7 @@ impl BitMatrix {
      * @param y The vertical component (i.e. which row)
      */
     pub fn flip_coords(&self, x: u32, y: u32) {
-        let offset = y * self.rowSize + (x / 32);
+        let offset = y as usize * self.rowSize + (x as usize / 32);
         self.bits[offset] ^= 1 << (x & 0x1f);
     }
 
@@ -950,11 +955,11 @@ impl BitMatrix {
                 "input matrix dimensions do not match",
             ));
         }
-        let rowArray = BitArray::with_size(self.width);
+        let rowArray = BitArray::with_size(self.width as usize);
         for y in 0..self.height {
             //for (int y = 0; y < height; y++) {
-            let offset = y * self.rowSize;
-            let row = mask.getRow(y, self.rowArray).getBitArray();
+            let offset = y as usize * self.rowSize;
+            let row = mask.getRow(y, &rowArray).getBitArray();
             for x in 0..self.rowSize {
                 //for (int x = 0; x < rowSize; x++) {
                 self.bits[offset + x] ^= row[x];
@@ -1008,10 +1013,10 @@ impl BitMatrix {
         }
         for y in top..bottom {
             //for (int y = top; y < bottom; y++) {
-            let offset = y * self.rowSize;
+            let offset = y as usize* self.rowSize;
             for x in left..right {
                 //for (int x = left; x < right; x++) {
-                self.bits[offset + (x / 32)] |= 1 << (x & 0x1f);
+                self.bits[offset + (x as usize / 32)] |= 1 << (x & 0x1f);
             }
         }
         Ok(())
@@ -1026,14 +1031,14 @@ impl BitMatrix {
      *         your own row
      */
     pub fn getRow(&self, y: u32, row: &BitArray) -> BitArray {
-        let rw: BitArray = if row.getSize() < self.width as u32 {
+        let rw: BitArray = if row.getSize() < self.width as usize {
             BitArray::with_size(self.width as usize)
         } else {
             row.clear();
             *row
         };
 
-        let offset = y * self.rowSize;
+        let offset = y as usize * self.rowSize;
         for x in 0..self.rowSize {
             //for (int x = 0; x < rowSize; x++) {
             rw.setBulk(x * 32, self.bits[offset + x]);
@@ -1046,7 +1051,7 @@ impl BitMatrix {
      * @param row {@link BitArray} to copy from
      */
     pub fn setRow(&self, y: u32, row: &BitArray) {
-        return self.bits[y * self.rowSize..self.rowSize]
+        return self.bits[y as usize* self.rowSize..self.rowSize]
             .clone_from_slice(&row.getBitArray()[0..self.rowSize]);
         //System.arraycopy(row.getBitArray(), 0, self.bits, y * self.rowSize, self.rowSize);
     }
@@ -1110,16 +1115,16 @@ impl BitMatrix {
             //for (int y = 0; y < height; y++) {
             for x in 0..self.width {
                 //for (int x = 0; x < width; x++) {
-                let offset = y * self.rowSize + (x / 32);
+                let offset = y as usize * self.rowSize + (x as usize / 32);
                 if ((self.bits[offset] >> (x & 0x1f)) & 1) != 0 {
-                    let newOffset = (newHeight - 1 - x) * newRowSize + (y / 32);
+                    let newOffset:usize = ((newHeight - 1 - x) * newRowSize + (y / 32)).try_into().unwrap();
                     newBits[newOffset] |= 1 << (y & 0x1f);
                 }
             }
         }
         self.width = newWidth;
         self.height = newHeight;
-        self.rowSize = newRowSize;
+        self.rowSize = newRowSize.try_into().unwrap();
         self.bits = newBits;
     }
 
@@ -1131,14 +1136,16 @@ impl BitMatrix {
     pub fn getEnclosingRectangle(&self) -> Option<Vec<u32>> {
         let left = self.width;
         let top = self.height;
-        let right = -1;
-        let bottom = -1;
+        // let right = -1;
+        // let bottom = -1;
+        let right:u32 = 0;
+        let bottom = 0;
 
         for y in 0..self.height {
             //for (int y = 0; y < height; y++) {
             for x32 in 0..self.rowSize {
                 //for (int x32 = 0; x32 < rowSize; x32++) {
-                let theBits = self.bits[y * self.rowSize + x32];
+                let theBits = self.bits[y as usize * self.rowSize + x32];
                 if theBits != 0 {
                     if y < top {
                         top = y;
@@ -1146,22 +1153,22 @@ impl BitMatrix {
                     if y > bottom {
                         bottom = y;
                     }
-                    if x32 * 32 < left {
+                    if x32 * 32 < left.try_into().unwrap() {
                         let bit = 0;
                         while (theBits << (31 - bit)) == 0 {
                             bit += 1;
                         }
-                        if (x32 * 32 + bit) < left {
-                            left = x32 * 32 + bit;
+                        if (x32 * 32 + bit) < left.try_into().unwrap() {
+                            left = (x32 * 32 + bit).try_into().unwrap();
                         }
                     }
-                    if x32 * 32 + 31 > right {
+                    if x32 * 32 + 31 > right.try_into().unwrap() {
                         let bit = 31;
                         while (theBits >> bit) == 0 {
                             bit -= 1;
                         }
-                        if (x32 * 32 + bit) > right {
-                            right = x32 * 32 + bit;
+                        if (x32 * 32 + bit) > right.try_into().unwrap() {
+                            right =( x32 * 32 + bit).try_into().unwrap();
                         }
                     }
                 }
@@ -1197,7 +1204,7 @@ impl BitMatrix {
             bit += 1;
         }
         x += bit;
-        return Some(vec![x, y]);
+        return Some(vec![x as u32, y as u32]);
     }
 
     pub fn getBottomRightOnBit(&self) -> Option<Vec<u32>> {
@@ -1219,7 +1226,7 @@ impl BitMatrix {
         }
         x += bit;
 
-        return Some(vec![x, y]);
+        return Some(vec![x as u32, y as u32]);
     }
 
     /**
@@ -1533,6 +1540,6 @@ impl BitSource {
      * @return number of bits that can be read successfully
      */
     pub fn available(&self) -> usize {
-        return (8 * (self.bytes.len() - self.byteOffset) - self.bitOffset);
+        return 8 * (self.bytes.len() - self.byteOffset) - self.bitOffset;
     }
 }

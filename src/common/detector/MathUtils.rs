@@ -65,7 +65,7 @@ pub fn distance_int(aX: i32, aY: i32, bX: i32, bY: i32) -> f32 {
  * @return sum of values in array
  */
 pub fn sum(array: &[i32]) -> i32 {
-    let count = 0;
+    let mut count = 0;
     for a in array {
         count += a;
     }
