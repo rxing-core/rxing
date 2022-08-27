@@ -25,28 +25,36 @@ use super::{GenericGF, GenericGFPoly};
  * Tests {@link GenericGFPoly}.
  */
 
-const FIELD: GenericGF = super::QR_CODE_FIELD_256;
+//const FIELD: GenericGF = super::QR_CODE_FIELD_256;
 
 #[test]
 fn testPolynomialString() {
-    assert_eq!("0", FIELD.getZero().to_string());
+    let FIELD = super::get_predefined_genericgf(super::PredefinedGenericGF::QrCodeField256);
+    let fz = super::GenericGFPoly::new(FIELD.clone(), &vec![0;0]).unwrap();
+
+    assert_eq!("0", fz.getZero().to_string());
     assert_eq!("-1", FIELD.buildMonomial(0, -1).to_string());
-    let p = GenericGFPoly::new(Box::new(FIELD), &vec![3, 0, -2, 1, 1]).unwrap();
+    let p = GenericGFPoly::new(FIELD.clone(), &vec![3, 0, -2, 1, 1]).unwrap();
     assert_eq!("a^25x^4 - ax^2 + x + 1", p.to_string());
-    let p = GenericGFPoly::new(Box::new(FIELD), &vec![3]).unwrap();
+    let p = GenericGFPoly::new(FIELD.clone(), &vec![3]).unwrap();
     assert_eq!("a^25", p.to_string());
 }
 
 #[test]
 fn testZero() {
-    assert_eq!(*FIELD.getZero(), *FIELD.buildMonomial(1, 0));
+    let FIELD = super::get_predefined_genericgf(super::PredefinedGenericGF::QrCodeField256);
+    let fz = super::GenericGFPoly::new(FIELD.clone(), &vec![0;0]).unwrap();
+
+    assert_eq!(fz.getZero(), FIELD.buildMonomial(1, 0));
     assert_eq!(
-        *FIELD.getZero(),
-        *FIELD.buildMonomial(1, 2).multiply_with_scalar(0)
+        fz.getZero(),
+        FIELD.buildMonomial(1, 2).multiply_with_scalar(0)
     );
 }
 
 #[test]
 fn testEvaluate() {
+    let FIELD = super::get_predefined_genericgf(super::PredefinedGenericGF::QrCodeField256);
+
     assert_eq!(3, FIELD.buildMonomial(0, 3).evaluateAt(0));
 }

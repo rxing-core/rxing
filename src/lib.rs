@@ -489,7 +489,7 @@ pub trait Reader {
      * @throws ChecksumException if a potential barcode is found but does not pass its checksum
      * @throws FormatException if a potential barcode is found but format is invalid
      */
-    fn decode(image: BinaryBitmap) -> Result<RXingResult<'static>, ReaderDecodeException>;
+    fn decode(image: BinaryBitmap) -> Result<RXingResult, ReaderDecodeException>;
 
     /**
      * Locates and decodes a barcode in some format within an image. This method also accepts
@@ -508,7 +508,7 @@ pub trait Reader {
     fn decode_with_hints<T>(
         image: BinaryBitmap,
         hints: HashMap<DecodeHintType, T>,
-    ) -> Result<RXingResult<'static>, ReaderDecodeException>;
+    ) -> Result<RXingResult, ReaderDecodeException>;
 
     /**
      * Resets any internal state the implementation has after a decode, to prepare it
@@ -647,16 +647,16 @@ pub enum RXingResultMetadataType {
  *
  * @author Sean Owen
  */
-pub struct RXingResult<'a> {
+pub struct RXingResult {
     text: String,
     rawBytes: Vec<u8>,
     numBits: usize,
     resultPoints: Vec<RXingResultPoint>,
     format: BarcodeFormat,
-    resultMetadata: Option<HashMap<RXingResultMetadataType, &'a dyn Any>>,
+    resultMetadata: HashMap<RXingResultMetadataType, String>,
     timestamp: u128,
 }
-impl RXingResult<'_> {
+impl RXingResult {
     pub fn new(
         text: &str,
         rawBytes: Vec<u8>,
@@ -682,10 +682,11 @@ impl RXingResult<'_> {
         format: BarcodeFormat,
         timestamp: u128,
     ) -> Self {
+        let l = rawBytes.len();
         Self::new_complex(
             text,
             rawBytes,
-            8 * rawBytes.len(),
+            8 * l,
             resultPoints,
             format,
             timestamp,
@@ -706,7 +707,7 @@ impl RXingResult<'_> {
             numBits,
             resultPoints,
             format,
-            resultMetadata: None,
+            resultMetadata: HashMap::new(),
             timestamp,
         }
     }
@@ -714,15 +715,15 @@ impl RXingResult<'_> {
     /**
      * @return raw text encoded by the barcode
      */
-    pub fn getText(&self) -> String {
-        return self.text;
+    pub fn getText(&self) -> &String {
+        return &self.text;
     }
 
     /**
      * @return raw bytes encoded by the barcode, if applicable, otherwise {@code null}
      */
-    pub fn getRawBytes(&self) -> Vec<u8> {
-        return self.rawBytes;
+    pub fn getRawBytes(&self) -> &Vec<u8> {
+        return &self.rawBytes;
     }
 
     /**
@@ -738,15 +739,15 @@ impl RXingResult<'_> {
      *         identifying finder patterns or the corners of the barcode. The exact meaning is
      *         specific to the type of barcode that was decoded.
      */
-    pub fn getRXingResultPoints(&self) -> Vec<RXingResultPoint> {
-        return self.resultPoints;
+    pub fn getRXingResultPoints(&self) -> &Vec<RXingResultPoint> {
+        return &self.resultPoints;
     }
 
     /**
      * @return {@link BarcodeFormat} representing the format of the barcode that was decoded
      */
-    pub fn getBarcodeFormat(&self) -> BarcodeFormat {
-        return self.format;
+    pub fn getBarcodeFormat(&self) -> &BarcodeFormat {
+        return &self.format;
     }
 
     /**
@@ -754,35 +755,32 @@ impl RXingResult<'_> {
      *   {@code null}. This contains optional metadata about what was detected about the barcode,
      *   like orientation.
      */
-    pub fn getRXingResultMetadata(&self) -> HashMap<RXingResultMetadataType, &dyn Any> {
-        return self.resultMetadata.unwrap();
+    pub fn getRXingResultMetadata(&self) -> &HashMap<RXingResultMetadataType, String> {
+        return &self.resultMetadata;
     }
 
-    pub fn putMetadata(&self, md_type: RXingResultMetadataType, value: &dyn Any) {
-        if (self.resultMetadata.is_none()) {
-            self.resultMetadata = Some(HashMap::new());
-        }
-        self.resultMetadata.unwrap().insert(md_type, value);
+    pub fn putMetadata(&mut self, md_type: RXingResultMetadataType, value:String) {
+        self.resultMetadata.insert(md_type, value);
     }
 
-    pub fn putAllMetadata(&self, metadata: HashMap<RXingResultMetadataType, &dyn Any>) {
-        if (self.resultMetadata.is_none()) {
-            self.resultMetadata = Some(metadata);
+    pub fn putAllMetadata(&mut self, metadata: HashMap<RXingResultMetadataType, String>) {
+        if self.resultMetadata.is_empty() {
+            self.resultMetadata = metadata;
         } else {
             for (key, value) in metadata.into_iter() {
-                self.resultMetadata.unwrap().insert(key, value);
+                self.resultMetadata.insert(key, value);
             }
         }
     }
 
-    pub fn addRXingResultPoints(&self, newPoints: Vec<RXingResultPoint>) {
+    pub fn addRXingResultPoints(&mut self, newPoints: &mut Vec<RXingResultPoint>) {
         //RXingResultPoint[] oldPoints = resultPoints;
         if !newPoints.is_empty() {
             // let allPoints:Vec<RXingResultPoint>= Vec::with_capacity(oldPoints.len() + newPoints.len());
             //System.arraycopy(oldPoints, 0, allPoints, 0, oldPoints.length);
             //System.arraycopy(newPoints, 0, allPoints, oldPoints.length, newPoints.length);
             //resultPoints = allPoints;
-            self.resultPoints.append(&mut newPoints);
+            self.resultPoints.append(newPoints);
         }
     }
 
@@ -791,7 +789,7 @@ impl RXingResult<'_> {
     }
 }
 
-impl fmt::Display for RXingResult<'_> {
+impl fmt::Display for RXingResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.text)
     }
@@ -822,6 +820,7 @@ use crate::common::detector::MathUtils;
  *
  * @author Sean Owen
  */
+#[derive(Debug,Clone)]
 pub struct RXingResultPoint {
     x: f32,
     y: f32,
@@ -857,7 +856,7 @@ impl RXingResultPoint {
      *
      * @param patterns array of three {@code RXingResultPoint} to order
      */
-    pub fn orderBestPatterns(patterns: &Vec<RXingResultPoint>) {
+    pub fn orderBestPatterns(patterns: &mut Vec<RXingResultPoint>) {
         // Find distances between pattern centers
         let zeroOneDistance = MathUtils::distance_float(
             patterns[0].getX(),
@@ -878,37 +877,41 @@ impl RXingResultPoint {
             patterns[2].getY(),
         );
 
-        let pointA: RXingResultPoint;
-        let pointB: RXingResultPoint;
-        let pointC: RXingResultPoint;
+        let mut pointA: &RXingResultPoint;
+        let mut pointB: &RXingResultPoint;
+        let mut pointC: &RXingResultPoint;
         // Assume one closest to other two is B; A and C will just be guesses at first
-        if (oneTwoDistance >= zeroOneDistance && oneTwoDistance >= zeroTwoDistance) {
-            pointB = patterns[0];
-            pointA = patterns[1];
-            pointC = patterns[2];
-        } else if (zeroTwoDistance >= oneTwoDistance && zeroTwoDistance >= zeroOneDistance) {
-            pointB = patterns[1];
-            pointA = patterns[0];
-            pointC = patterns[2];
+        if oneTwoDistance >= zeroOneDistance && oneTwoDistance >= zeroTwoDistance {
+            pointB = &patterns[0];
+            pointA = &patterns[1];
+            pointC = &patterns[2];
+        } else if zeroTwoDistance >= oneTwoDistance && zeroTwoDistance >= zeroOneDistance {
+            pointB = &patterns[1];
+            pointA = &patterns[0];
+            pointC = &patterns[2];
         } else {
-            pointB = patterns[2];
-            pointA = patterns[0];
-            pointC = patterns[1];
+            pointB = &patterns[2];
+            pointA = &patterns[0];
+            pointC = &patterns[1];
         }
 
         // Use cross product to figure out whether A and C are correct or flipped.
         // This asks whether BC x BA has a positive z component, which is the arrangement
         // we want for A, B, C. If it's negative, then we've got it flipped around and
         // should swap A and C.
-        if (RXingResultPoint::crossProductZ(&pointA, &pointB, &pointC) < 0.0f32) {
+        if RXingResultPoint::crossProductZ(&pointA, &pointB, &pointC) < 0.0f32 {
             let temp = pointA;
             pointA = pointC;
             pointC = temp;
         }
 
-        patterns[0] = pointA;
-        patterns[1] = pointB;
-        patterns[2] = pointC;
+        let pa = (*pointA).clone();
+        let pb = (*pointB).clone();
+        let pc = (*pointC).clone();
+
+        patterns[0] = pa;
+        patterns[1] = pb;
+        patterns[2] = pc;
     }
 
     /**
@@ -969,7 +972,7 @@ pub struct Dimension {
 
 impl Dimension {
     pub fn new(width: usize, height: usize) -> Result<Self, IllegalArgumentException> {
-        if (width < 0 || height < 0) {
+        if width < 0 || height < 0 {
             return Err(IllegalArgumentException::new(""));
         }
         Ok(Self { width, height })
@@ -1020,7 +1023,7 @@ pub trait Binarizer {
     //private final LuminanceSource source;
     //fn new(source:dyn LuminanceSource) -> Self;
 
-    fn getLuminanceSource(&self) -> dyn LuminanceSource;
+    fn getLuminanceSource(&self) -> &dyn LuminanceSource;
 
     /**
      * Converts one row of luminance data to 1 bit data. May actually do the conversion, or return
@@ -1096,8 +1099,8 @@ pub struct BinaryBitmap {
 impl BinaryBitmap {
     pub fn new(binarizer: Box<dyn Binarizer>) -> Self {
         Self {
-            binarizer: binarizer,
             matrix: binarizer.getBlackMatrix().unwrap(),
+            binarizer: binarizer,
         }
     }
 
@@ -1139,20 +1142,23 @@ impl BinaryBitmap {
      * @return The 2D array of bits for the image (true means black).
      * @throws NotFoundException if image can't be binarized to make a matrix
      */
-    pub fn getBlackMatrix(&self) -> Result<BitMatrix, NotFoundException> {
+    pub fn getBlackMatrix(&self) -> Result<&BitMatrix, NotFoundException> {
         // The matrix is created on demand the first time it is requested, then cached. There are two
         // reasons for this:
         // 1. This work will never be done if the caller only installs 1D Reader objects, or if a
         //    1D Reader finds a barcode before the 2D Readers run.
         // 2. This work will only be done once even if the caller installs multiple 2D Readers.
-        return Ok(self.matrix);
+        return Ok(&self.matrix);
     }
 
     /**
      * @return Whether this bitmap can be cropped.
      */
     pub fn isCropSupported(&self) -> bool {
-        return self.binarizer.getLuminanceSource().isCropSupported();
+        let b = &self.binarizer;
+        let r = &b.getLuminanceSource();
+        let isCropOk = r.isCropSupported();
+        return isCropOk;
     }
 
     /**
@@ -1453,19 +1459,11 @@ impl InvertedLuminanceSource {
             delegate,
         }
     }
-
-    fn new(width: usize, height: usize) -> Self {
-        let new_ils: Self;
-        new_ils.width = width;
-        new_ils.height = height;
-
-        new_ils
-    }
 }
 
 impl LuminanceSource for InvertedLuminanceSource {
     fn getRow(&self, y: usize, row: &Vec<u8>) -> Vec<u8> {
-        let new_row = self.delegate.getRow(y, row);
+        let mut new_row = self.delegate.getRow(y, row);
         let width = self.getWidth();
         for i in 0..width {
             //for (int i = 0; i < width; i++) {
@@ -1477,7 +1475,7 @@ impl LuminanceSource for InvertedLuminanceSource {
     fn getMatrix(&self) -> Vec<u8> {
         let matrix = self.delegate.getMatrix();
         let length = self.getWidth() * self.getHeight();
-        let invertedMatrix = Vec::with_capacity(length);
+        let mut invertedMatrix = Vec::with_capacity(length);
         for i in 0..length {
             //for (int i = 0; i < length; i++) {
             invertedMatrix[i] = (255 - (matrix[i] & 0xFF));
@@ -1515,7 +1513,7 @@ impl LuminanceSource for InvertedLuminanceSource {
     /**
      * @return original delegate {@link LuminanceSource} since invert undoes itself
      */
-    fn invert(&self) -> Box<(dyn LuminanceSource)> {
+    fn invert(&self) -> Box<dyn LuminanceSource> {
         return self.delegate;
     }
 
@@ -1564,6 +1562,7 @@ const THUMBNAIL_SCALE_FACTOR: usize = 2;
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[derive(Debug,Clone)]
 pub struct PlanarYUVLuminanceSource {
     yuvData: Vec<u8>,
     dataWidth: usize,
@@ -1585,13 +1584,13 @@ impl PlanarYUVLuminanceSource {
         height: usize,
         reverseHorizontal: bool,
     ) -> Result<Self, IllegalArgumentException> {
-        if (left + width > dataWidth || top + height > dataHeight) {
+        if left + width > dataWidth || top + height > dataHeight {
             return Err(IllegalArgumentException::new(
                 "Crop rectangle does not fit within image data.",
             ));
         }
 
-        let new_s: Self = Self {
+        let mut new_s: Self = Self {
             yuvData,
             dataWidth,
             dataHeight,
@@ -1611,9 +1610,9 @@ impl PlanarYUVLuminanceSource {
     pub fn renderThumbnail(&self) -> Vec<u8> {
         let width = self.getWidth() / THUMBNAIL_SCALE_FACTOR;
         let height = self.getHeight() / THUMBNAIL_SCALE_FACTOR;
-        let pixels = Vec::with_capacity(width * height);
+        let mut pixels = Vec::with_capacity(width * height);
         let yuv: Vec<u8> = Vec::new();
-        let inputOffset = self.top * self.dataWidth + self.left;
+        let mut inputOffset = self.top * self.dataWidth + self.left;
 
         for y in 0..height {
             //for (int y = 0; y < height; y++) {
@@ -1642,22 +1641,22 @@ impl PlanarYUVLuminanceSource {
         return self.getHeight() / THUMBNAIL_SCALE_FACTOR;
     }
 
-    fn reverseHorizontal(&self, width: usize, height: usize) {
-        let yuvData = self.yuvData;
+    fn reverseHorizontal(&mut self, width: usize, height: usize) {
+        //let mut yuvData = self.yuvData;
         let mut rowStart = self.top * self.dataWidth + self.left;
         for y in 0..height {
             let middle = rowStart + width / 2;
             let mut x2 = rowStart + width - 1;
             for x1 in rowStart..middle {
                 //for (int x1 = rowStart, x2 = rowStart + width - 1; x1 < middle; x1++, x2--) {
-                let temp = yuvData[x1];
-                yuvData[x1] = yuvData[x2];
-                yuvData[x2] = temp;
+                let temp = self.yuvData[x1];
+                self.yuvData[x1] = self.yuvData[x2];
+                self.yuvData[x2] = temp;
                 x2 -= 1;
             }
             rowStart += self.dataWidth;
         }
-        self.yuvData = yuvData;
+        //self.yuvData = yuvData;
         /*for (int y = 0, rowStart = top * dataWidth + left; y < height; y++, rowStart += dataWidth) {
           let middle = rowStart + width / 2;
           for (int x1 = rowStart, x2 = rowStart + width - 1; x1 < middle; x1++, x2--) {
@@ -1667,20 +1666,12 @@ impl PlanarYUVLuminanceSource {
           }
         }*/
     }
-
-    fn new(width: usize, height: usize) -> Self {
-        let new_ils: Self;
-        new_ils.width = width;
-        new_ils.height = height;
-
-        new_ils
-    }
 }
 
 impl LuminanceSource for PlanarYUVLuminanceSource {
     fn getRow(&self, y: usize, row: &Vec<u8>) -> Vec<u8> {
         let mut row = row.to_vec();
-        if (y < 0 || y >= self.getHeight()) {
+        if y < 0 || y >= self.getHeight() {
             //throw new IllegalArgumentException("Requested row is outside the image: " + y);
             panic!("Requested row is outside the image: {}", y);
         }
@@ -1699,16 +1690,16 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
 
         // If the caller asks for the entire underlying image, save the copy and give them the
         // original data. The docs specifically warn that result.length must be ignored.
-        if (width == self.dataWidth && height == self.dataHeight) {
-            return self.yuvData;
+        if width == self.dataWidth && height == self.dataHeight {
+            return self.yuvData.clone();
         }
 
         let area = width * height;
-        let matrix = Vec::with_capacity(area);
-        let inputOffset = self.top * self.dataWidth + self.left;
+        let mut matrix = Vec::with_capacity(area);
+        let mut inputOffset = self.top * self.dataWidth + self.left;
 
         // If the width matches the full width of the underlying data, perform a single copy.
-        if (width == self.dataWidth) {
+        if width == self.dataWidth {
             matrix[0..area].clone_from_slice(&self.yuvData[inputOffset..area]);
             //System.arraycopy(yuvData, inputOffset, matrix, 0, area);
             return matrix;
@@ -1745,7 +1736,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         height: usize,
     ) -> Result<Box<dyn LuminanceSource>, UnsupportedOperationException> {
         match PlanarYUVLuminanceSource::new_with_all(
-            self.yuvData,
+            self.yuvData.clone(),
             self.dataWidth,
             self.dataHeight,
             self.left + left,
@@ -1764,7 +1755,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
     }
 
     fn invert(&self) -> Box<dyn LuminanceSource> {
-        let new_i = InvertedLuminanceSource::new_with_delegate(Box::new(*self));
+        let new_i = InvertedLuminanceSource::new_with_delegate(Box::new(self.clone()));
 
         Box::new(new_i)
     }
@@ -1795,7 +1786,8 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Betaminos
  */
-pub struct RGBLuminanceSource {
+#[derive(Debug,Clone)]
+ pub struct RGBLuminanceSource {
     luminances: Vec<u8>,
     dataWidth: usize,
     dataHeight: usize,
@@ -1807,7 +1799,7 @@ pub struct RGBLuminanceSource {
 
 impl LuminanceSource for RGBLuminanceSource {
     fn getRow(&self, y: usize, row: &Vec<u8>) -> Vec<u8> {
-        let row = row.to_vec();
+        let mut row = row.to_vec();
         if y < 0 || y >= self.getHeight() {
             panic!("Requested row is outside the image: {}", y);
         }
@@ -1825,8 +1817,8 @@ impl LuminanceSource for RGBLuminanceSource {
 
         // If the caller asks for the entire underlying image, save the copy and give them the
         // original data. The docs specifically warn that result.length must be ignored.
-        if (width == self.dataWidth && height == self.dataHeight) {
-            return self.luminances;
+        if width == self.dataWidth && height == self.dataHeight {
+            return self.luminances.clone();
         }
 
         let area = width * height;
@@ -1834,7 +1826,7 @@ impl LuminanceSource for RGBLuminanceSource {
         let mut inputOffset = self.top * self.dataWidth + self.left;
 
         // If the width matches the full width of the underlying data, perform a single copy.
-        if (width == self.dataWidth) {
+        if width == self.dataWidth {
             matrix[0..area].clone_from_slice(&self.luminances[inputOffset..area]);
             //System.arraycopy(self.luminances, inputOffset, matrix, 0, area);
             return matrix;
@@ -1885,21 +1877,13 @@ impl LuminanceSource for RGBLuminanceSource {
     }
 
     fn invert(&self) -> Box<dyn LuminanceSource> {
-        let new_i = InvertedLuminanceSource::new_with_delegate(Box::new(*self));
+        let new_i = InvertedLuminanceSource::new_with_delegate(Box::new(self.clone()));
 
         Box::new(new_i)
     }
 }
 
 impl RGBLuminanceSource {
-    fn new(width: usize, height: usize) -> Self {
-        let new_ils: Self;
-        new_ils.width = width;
-        new_ils.height = height;
-
-        new_ils
-    }
-
     pub fn new_with_width_height_pixels(width: usize, height: usize, pixels: &Vec<u8>) -> Self {
         //super(width, height);
 
