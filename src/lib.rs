@@ -2,12 +2,12 @@ mod common;
 mod exceptions;
 
 use crate::common::{BitArray, BitMatrix};
+use exceptions::*;
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use std::fmt;
 use std::hash::Hash;
 use std::time::{SystemTime, UNIX_EPOCH};
-use exceptions::*;
 
 /*
  * Copyright 2007 ZXing authors
@@ -287,7 +287,7 @@ pub enum EncodeHintType {
  * @author dswitkin@google.com (Daniel Switkin)
  * @see Reader#decode(BinaryBitmap,java.util.Map)
  */
-#[derive(Eq,PartialEq,Hash,Debug)]
+#[derive(Eq, PartialEq, Hash, Debug)]
 pub enum DecodeHintType {
     /**
      * Unspecified, application-specific hint. Maps to an unspecified {@link Object}.
@@ -683,14 +683,7 @@ impl RXingResult {
         timestamp: u128,
     ) -> Self {
         let l = rawBytes.len();
-        Self::new_complex(
-            text,
-            rawBytes,
-            8 * l,
-            resultPoints,
-            format,
-            timestamp,
-        )
+        Self::new_complex(text, rawBytes, 8 * l, resultPoints, format, timestamp)
     }
 
     pub fn new_complex(
@@ -759,7 +752,7 @@ impl RXingResult {
         return &self.resultMetadata;
     }
 
-    pub fn putMetadata(&mut self, md_type: RXingResultMetadataType, value:String) {
+    pub fn putMetadata(&mut self, md_type: RXingResultMetadataType, value: String) {
         self.resultMetadata.insert(md_type, value);
     }
 
@@ -820,7 +813,7 @@ use crate::common::detector::MathUtils;
  *
  * @author Sean Owen
  */
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct RXingResultPoint {
     x: f32,
     y: f32,
@@ -1363,8 +1356,8 @@ pub trait LuminanceSource {
      *  white and vice versa, and each value becomes (255-value).
      */
     fn invert(&mut self); /* {
-                                                    return InvertedLuminanceSource::new_with_delegate(self);
-                                                  }*/
+                            return InvertedLuminanceSource::new_with_delegate(self);
+                          }*/
 
     /**
      * Returns a new object with rotated image data by 90 degrees counterclockwise.
@@ -1392,6 +1385,15 @@ pub trait LuminanceSource {
         return Err(UnsupportedOperationException::new(
             "This luminance source does not support rotation by 45 degrees.",
         ));
+    }
+
+    fn invert_block_of_bytes(&self, vec_to_invert: Vec<u8>) -> Vec<u8> {
+        let mut iv = vec_to_invert.clone();
+        for itm in iv.iter_mut() {
+            let z = *itm;
+            *itm = 255 - (z & 0xFF);
+        }
+        iv
     }
 
     /*
@@ -1436,7 +1438,6 @@ pub trait LuminanceSource {
 //  * See the License for the specific language governing permissions and
 //  * limitations under the License.
 //  */
-
 // //package com.google.zxing;
 
 // /**
@@ -1562,7 +1563,7 @@ const THUMBNAIL_SCALE_FACTOR: usize = 2;
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct PlanarYUVLuminanceSource {
     yuvData: Vec<u8>,
     dataWidth: usize,
@@ -1584,6 +1585,7 @@ impl PlanarYUVLuminanceSource {
         width: usize,
         height: usize,
         reverseHorizontal: bool,
+        inverted: bool,
     ) -> Result<Self, IllegalArgumentException> {
         if left + width > dataWidth || top + height > dataHeight {
             return Err(IllegalArgumentException::new(
@@ -1599,7 +1601,7 @@ impl PlanarYUVLuminanceSource {
             top,
             width,
             height,
-            invert: false,
+            invert: inverted,
         };
 
         if reverseHorizontal {
@@ -1622,7 +1624,7 @@ impl PlanarYUVLuminanceSource {
             for x in 0..width {
                 //for (int x = 0; x < width; x++) {
                 let grey = yuv[inputOffset + x * THUMBNAIL_SCALE_FACTOR] & 0xff;
-                pixels[outputOffset + x] = 0xFF000000 | (grey * 0x00010101);
+                pixels[outputOffset + x] = (0xFF000000 | (grey as u32 * 0x00010101)) as u8;
             }
             inputOffset += self.dataWidth * THUMBNAIL_SCALE_FACTOR;
         }
@@ -1683,6 +1685,9 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
 
         row.clone_from_slice(&self.yuvData[offset..width]);
         //System.arraycopy(yuvData, offset, row, 0, width);
+        if self.invert {
+            row = self.invert_block_of_bytes(row);
+        }
         return row;
     }
 
@@ -1693,7 +1698,11 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         // If the caller asks for the entire underlying image, save the copy and give them the
         // original data. The docs specifically warn that result.length must be ignored.
         if width == self.dataWidth && height == self.dataHeight {
-            return self.yuvData.clone();
+            let mut v = self.yuvData.clone();
+            if self.invert {
+                v = self.invert_block_of_bytes(v);
+            }
+            return v;
         }
 
         let area = width * height;
@@ -1704,6 +1713,9 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         if width == self.dataWidth {
             matrix[0..area].clone_from_slice(&self.yuvData[inputOffset..area]);
             //System.arraycopy(yuvData, inputOffset, matrix, 0, area);
+            if self.invert {
+                matrix = self.invert_block_of_bytes(matrix);
+            }
             return matrix;
         }
 
@@ -1715,6 +1727,11 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
             //System.arraycopy(yuvData, inputOffset, matrix, outputOffset, width);
             inputOffset += self.dataWidth;
         }
+
+        if self.invert {
+            matrix = self.invert_block_of_bytes(matrix);
+        }
+
         return matrix;
     }
 
@@ -1746,6 +1763,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
             width,
             height,
             false,
+            self.invert,
         ) {
             Ok(new) => Ok(Box::new(new)),
             Err(err) => Err(UnsupportedOperationException::new("")),
@@ -1756,10 +1774,8 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         return false;
     }
 
-    fn invert(&self) -> Box<dyn LuminanceSource> {
-        let new_i = InvertedLuminanceSource::new_with_delegate(Box::new(self.clone()));
-
-        Box::new(new_i)
+    fn invert(&mut self) {
+        self.invert = !self.invert;
     }
 }
 
@@ -1788,8 +1804,8 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Betaminos
  */
-#[derive(Debug,Clone)]
- pub struct RGBLuminanceSource {
+#[derive(Debug, Clone)]
+pub struct RGBLuminanceSource {
     luminances: Vec<u8>,
     dataWidth: usize,
     dataHeight: usize,
@@ -1811,6 +1827,9 @@ impl LuminanceSource for RGBLuminanceSource {
         let offset = (y + self.top) * self.dataWidth + self.left;
         row[0..width].clone_from_slice(&self.luminances[offset..width]);
         //System.arraycopy(self.luminances, offset, row, 0, width);
+        if self.invert {
+            row = self.invert_block_of_bytes(row);
+        }
         return row;
     }
 
@@ -1821,7 +1840,11 @@ impl LuminanceSource for RGBLuminanceSource {
         // If the caller asks for the entire underlying image, save the copy and give them the
         // original data. The docs specifically warn that result.length must be ignored.
         if width == self.dataWidth && height == self.dataHeight {
-            return self.luminances.clone();
+            let mut z = self.luminances.clone();
+            if self.invert {
+                z = self.invert_block_of_bytes(z);
+            }
+            return z;
         }
 
         let area = width * height;
@@ -1832,6 +1855,9 @@ impl LuminanceSource for RGBLuminanceSource {
         if width == self.dataWidth {
             matrix[0..area].clone_from_slice(&self.luminances[inputOffset..area]);
             //System.arraycopy(self.luminances, inputOffset, matrix, 0, area);
+            if self.invert {
+                matrix = self.invert_block_of_bytes(matrix);
+            }
             return matrix;
         }
 
@@ -1842,6 +1868,10 @@ impl LuminanceSource for RGBLuminanceSource {
             matrix[outputOffset..width].clone_from_slice(&self.luminances[inputOffset..width]);
             //System.arraycopy(luminances, inputOffset, matrix, outputOffset, width);
             inputOffset += self.dataWidth;
+        }
+
+        if self.invert {
+            matrix = self.invert_block_of_bytes(matrix);
         }
         return matrix;
     }
@@ -1879,10 +1909,8 @@ impl LuminanceSource for RGBLuminanceSource {
         }
     }
 
-    fn invert(&self) -> Box<dyn LuminanceSource> {
-        let new_i = InvertedLuminanceSource::new_with_delegate(Box::new(self.clone()));
-
-        Box::new(new_i)
+    fn invert(&mut self) {
+        self.invert = !self.invert;
     }
 }
 
@@ -1904,8 +1932,8 @@ impl RGBLuminanceSource {
         for offset in 0..size {
             //for (int offset = 0; offset < size; offset++) {
             let pixel = pixels[offset];
-            let r = (pixel >> 16) & 0xff; // red
-            let g2 = (pixel >> 7) & 0x1fe; // 2 * green
+            let r = ((pixel as u32 >> 16) & 0xff) as u8; // red
+            let g2 = ((pixel as u16 >> 7) & 0x1fe) as u8; // 2 * green
             let b = pixel & 0xff; // blue
                                   // Calculate green-favouring average cheaply
             luminances[offset] = (r + g2 + b) / 4;
@@ -1918,6 +1946,7 @@ impl RGBLuminanceSource {
             top: top,
             width,
             height,
+            invert: false,
         }
     }
 
@@ -1943,6 +1972,7 @@ impl RGBLuminanceSource {
             top,
             width,
             height,
+            invert: false,
         })
     }
 }
