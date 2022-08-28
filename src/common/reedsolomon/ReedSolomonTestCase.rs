@@ -466,7 +466,7 @@ fn testDecoder(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
                     // fail only if maxErrors exceeded
                     assert!(
                         i > maxErrors,
-                        "Decode in {} ({},{}) failed at {} errors: {}",
+                        "Decode in {} ({},{}) failed at {} errors: {:#?}",
                         field,
                         dataWords.len(),
                         ecWords.len(),

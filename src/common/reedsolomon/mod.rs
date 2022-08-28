@@ -1,55 +1,12 @@
 use std::fmt;
 
-use crate::exceptions::*;
+use crate::Exceptions;
 use std::hash::Hash;
 
 #[cfg(test)]
 mod GenericGFPolyTestCase;
 #[cfg(test)]
 mod ReedSolomonTestCase;
-
-/*
- * Copyrigh&t 2007 ZXing authors
- *
- * Licensed under the Apache License, Version 2.0 (the "&License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-//package com.google.zxing.common.reedsolomon;
-
-/**
- * <p>Thrown when an exception occurs during Reed-Solomon decoding, such as when
- * there are too many errors to correct.</p>
- *
- * @author Sean Owen
- */
-#[derive(Debug)]
-pub struct ReedSolomonException {
-    message: String,
-}
-
-impl ReedSolomonException {
-    pub fn new(message: &str) -> Self {
-        Self {
-            message: message.to_owned(),
-        }
-    }
-}
-
-impl fmt::Display for ReedSolomonException {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.message)
-    }
-}
 
 /*
  * Copyright 2007 ZXing authors
@@ -222,9 +179,9 @@ impl GenericGF {
     /**
      * @return base 2 log of a in GF(size)
      */
-    pub fn log(&self, a: i32) -> Result<i32, IllegalArgumentException> {
+    pub fn log(&self, a: i32) -> Result<i32, Exceptions> {
         if a == 0 {
-            return Err(IllegalArgumentException::new(""));
+            return Err(Exceptions::IllegalArgumentException("".to_owned()));
         }
         let pos: usize = a.try_into().unwrap();
         return Ok(self.logTable[pos]);
@@ -233,9 +190,9 @@ impl GenericGF {
     /**
      * @return multiplicative inverse of a
      */
-    pub fn inverse(&self, a: i32) -> Result<i32, ArithmeticException> {
+    pub fn inverse(&self, a: i32) -> Result<i32, Exceptions> {
         if a == 0 {
-            return Err(ArithmeticException::new(""));
+            return Err(Exceptions::ArithmeticException("".to_owned()));
         }
         let log_t_loc: usize = a.try_into().unwrap();
         let loc: usize = ((self.size as i32) - self.logTable[log_t_loc] - 1)
@@ -327,9 +284,9 @@ impl GenericGFPoly {
     pub fn new(
         field: GenericGF,
         coefficients: &Vec<i32>,
-    ) -> Result<Self, IllegalArgumentException> {
+    ) -> Result<Self, Exceptions> {
         if coefficients.len() == 0 {
-            return Err(IllegalArgumentException::new(""));
+            return Err(Exceptions::IllegalArgumentException("".to_owned()));
         }
         Ok(Self {
             field: field,
@@ -422,10 +379,10 @@ impl GenericGFPoly {
     pub fn addOrSubtract(
         &self,
         other: &GenericGFPoly,
-    ) -> Result<GenericGFPoly, IllegalArgumentException> {
+    ) -> Result<GenericGFPoly, Exceptions> {
         if self.field != other.field {
-            return Err(IllegalArgumentException::new(
-                "GenericGFPolys do not have same GenericGF field",
+            return Err(Exceptions::IllegalArgumentException(
+                "GenericGFPolys do not have same GenericGF field".to_owned(),
             ));
         }
         if self.isZero() {
@@ -463,11 +420,11 @@ impl GenericGFPoly {
     pub fn multiply(
         &self,
         other: &GenericGFPoly,
-    ) -> Result<GenericGFPoly, IllegalArgumentException> {
+    ) -> Result<GenericGFPoly, Exceptions> {
         if self.field != other.field {
             //if (!field.equals(other.field)) {
-            return Err(IllegalArgumentException::new(
-                "GenericGFPolys do not have same GenericGF field",
+            return Err(Exceptions::IllegalArgumentException(
+                "GenericGFPolys do not have same GenericGF field".to_owned(),
             ));
         }
         if self.isZero() || other.isZero() {
@@ -529,9 +486,9 @@ impl GenericGFPoly {
         &self,
         degree: usize,
         coefficient: i32,
-    ) -> Result<GenericGFPoly, IllegalArgumentException> {
+    ) -> Result<GenericGFPoly, Exceptions> {
         if degree < 0 {
-            return Err(IllegalArgumentException::new(""));
+            return Err(Exceptions::IllegalArgumentException("".to_owned()));
         }
         if coefficient == 0 {
             return Ok(self.getZero());
@@ -548,15 +505,15 @@ impl GenericGFPoly {
     pub fn divide(
         &self,
         other: &GenericGFPoly,
-    ) -> Result<Vec<GenericGFPoly>, IllegalArgumentException> {
+    ) -> Result<Vec<GenericGFPoly>, Exceptions> {
         if self.field != other.field {
             //if (!field.equals(other.field)) {
-            return Err(IllegalArgumentException::new(
-                "GenericGFPolys do not have same GenericGF field",
+            return Err(Exceptions::IllegalArgumentException(
+                "GenericGFPolys do not have same GenericGF field".to_owned(),
             ));
         }
         if other.isZero() {
-            return Err(IllegalArgumentException::new("Divide by 0"));
+            return Err(Exceptions::IllegalArgumentException("Divide by 0".to_owned()));
         }
 
         let mut quotient = self.getZero();
@@ -565,7 +522,7 @@ impl GenericGFPoly {
         let denominatorLeadingTerm = other.getCoefficient(other.getDegree());
         let inverseDenominatorLeadingTerm = match self.field.inverse(denominatorLeadingTerm) {
             Ok(val) => val,
-            Err(issue) => return Err(IllegalArgumentException::new("arithmetic issue")),
+            Err(issue) => return Err(Exceptions::IllegalArgumentException("arithmetic issue".to_owned())),
         };
 
         while remainder.getDegree() >= other.getDegree() && !remainder.isZero() {
@@ -690,7 +647,7 @@ impl ReedSolomonDecoder {
      * @param twoS number of error-correction codewords available
      * @throws ReedSolomonException if decoding fails for any reason
      */
-    pub fn decode(&self, received: &mut Vec<i32>, twoS: i32) -> Result<(), ReedSolomonException> {
+    pub fn decode(&self, received: &mut Vec<i32>, twoS: i32) -> Result<(), Exceptions> {
         let poly = GenericGFPoly::new(self.field.clone(), received).unwrap();
         let mut syndromeCoefficients = Vec::with_capacity(twoS.try_into().unwrap());
         let mut noError = true;
@@ -713,7 +670,7 @@ impl ReedSolomonDecoder {
         }
         let syndrome = match GenericGFPoly::new(self.field.clone(), &syndromeCoefficients) {
             Ok(res) => res,
-            Err(fail) => return Err(ReedSolomonException::new("IllegalArgumentException")),
+            Err(fail) => return Err(Exceptions::ReedSolomonException("IllegalArgumentException".to_owned())),
         };
         let sigmaOmega = self.runEuclideanAlgorithm(
             &self.field.buildMonomial(twoS.try_into().unwrap(), 1),
@@ -730,10 +687,10 @@ impl ReedSolomonDecoder {
                 - 1
                 - match self.field.log(errorLocations[i].try_into().unwrap()) {
                     Ok(size) => size as usize,
-                    Err(err) => return Err(ReedSolomonException::new("IllegalArgumentException")),
+                    Err(err) => return Err(Exceptions::ReedSolomonException("IllegalArgumentException".to_owned())),
                 };
             if position < 0 {
-                return Err(ReedSolomonException::new("Bad error location"));
+                return Err(Exceptions::ReedSolomonException("Bad error location".to_owned()));
             }
             received[position] = GenericGF::addOrSubtract(received[position], errorMagnitudes[i]);
         }
@@ -745,7 +702,7 @@ impl ReedSolomonDecoder {
         a: &GenericGFPoly,
         b: &GenericGFPoly,
         R: usize,
-    ) -> Result<Vec<GenericGFPoly>, ReedSolomonException> {
+    ) -> Result<Vec<GenericGFPoly>, Exceptions> {
         // Assume a's degree is >= b's
         let mut a = a.clone();
         let mut b = b.clone();
@@ -772,14 +729,14 @@ impl ReedSolomonDecoder {
             // Divide rLastLast by rLast, with quotient in q and remainder in r
             if rLast.isZero() {
                 // Oops, Euclidean algorithm already terminated?
-                return Err(ReedSolomonException::new("r_{i-1} was zero"));
+                return Err(Exceptions::ReedSolomonException("r_{i-1} was zero".to_owned()));
             }
             r = rLastLast;
             let mut q = r.getZero();
             let denominatorLeadingTerm = rLast.getCoefficient(rLast.getDegree());
             let dltInverse = match self.field.inverse(denominatorLeadingTerm) {
                 Ok(inv) => inv,
-                Err(err) => return Err(ReedSolomonException::new("ArithmetricException")),
+                Err(err) => return Err(Exceptions::ReedSolomonException("ArithmetricException".to_owned())),
             };
             while r.getDegree() >= rLast.getDegree() && !r.isZero() {
                 let degreeDiff = r.getDegree() - rLast.getDegree();
@@ -788,29 +745,29 @@ impl ReedSolomonDecoder {
                     .multiply(r.getCoefficient(r.getDegree()), dltInverse);
                 q = match q.addOrSubtract(&self.field.buildMonomial(degreeDiff, scale)) {
                     Ok(res) => res,
-                    Err(err) => return Err(ReedSolomonException::new("IllegalArgumentException")),
+                    Err(err) => return Err(Exceptions::ReedSolomonException("IllegalArgumentException".to_owned())),
                 };
                 r = match r.addOrSubtract(&match rLast.multiplyByMonomial(degreeDiff, scale) {
                     Ok(res) => res,
-                    Err(err) => return Err(ReedSolomonException::new("IllegalArgumentException")),
+                    Err(err) => return Err(Exceptions::ReedSolomonException("IllegalArgumentException".to_owned())),
                 }) {
                     Ok(res) => res,
-                    Err(err) => return Err(ReedSolomonException::new("IllegalArgumentException")),
+                    Err(err) => return Err(Exceptions::ReedSolomonException("IllegalArgumentException".to_owned())),
                 };
             }
 
             t = match (match q.multiply(&tLast) {
                 Ok(res) => res,
-                Err(err) => return Err(ReedSolomonException::new("IllegalArgumentException")),
+                Err(err) => return Err(Exceptions::ReedSolomonException("IllegalArgumentException".to_owned())),
             })
             .addOrSubtract(&tLastLast)
             {
                 Ok(res) => res,
-                Err(err) => return Err(ReedSolomonException::new("IllegalArgumentException")),
+                Err(err) => return Err(Exceptions::ReedSolomonException("IllegalArgumentException".to_owned())),
             };
 
             if r.getDegree() >= rLast.getDegree() {
-                return Err(ReedSolomonException::new(&format!(
+                return Err(Exceptions::ReedSolomonException(format!(
                     "Division algorithm failed to reduce polynomial? r: {}, rLast: {}",
                     r, rLast
                 )));
@@ -819,12 +776,12 @@ impl ReedSolomonDecoder {
 
         let sigmaTildeAtZero = t.getCoefficient(0);
         if sigmaTildeAtZero == 0 {
-            return Err(ReedSolomonException::new("sigmaTilde(0) was zero"));
+            return Err(Exceptions::ReedSolomonException("sigmaTilde(0) was zero".to_owned()));
         }
 
         let inverse = match self.field.inverse(sigmaTildeAtZero) {
             Ok(res) => res,
-            Err(err) => return Err(ReedSolomonException::new("ArithmetricException")),
+            Err(err) => return Err(Exceptions::ReedSolomonException("ArithmetricException".to_owned())),
         };
         let sigma = t.multiply_with_scalar(inverse);
         let omega = r.multiply_with_scalar(inverse);
@@ -834,7 +791,7 @@ impl ReedSolomonDecoder {
     fn findErrorLocations(
         &self,
         errorLocator: &GenericGFPoly,
-    ) -> Result<Vec<usize>, ReedSolomonException> {
+    ) -> Result<Vec<usize>, Exceptions> {
         // This is a direct application of Chien's search
         let numErrors = errorLocator.getDegree();
         if numErrors == 1 {
@@ -852,14 +809,14 @@ impl ReedSolomonDecoder {
             if errorLocator.evaluateAt(i) == 0 {
                 result[e] = match self.field.inverse(i.try_into().unwrap()) {
                     Ok(res) => res.try_into().unwrap(),
-                    Err(err) => return Err(ReedSolomonException::new("ArithmetricException")),
+                    Err(err) => return Err(Exceptions::ReedSolomonException("ArithmetricException".to_owned())),
                 };
                 e += 1;
             }
         }
         if e != numErrors {
-            return Err(ReedSolomonException::new(
-                "Error locator degree does not match number of roots",
+            return Err(Exceptions::ReedSolomonException(
+                "Error locator degree does not match number of roots".to_owned(),
             ));
         }
         return Ok(result);
@@ -985,13 +942,13 @@ impl ReedSolomonEncoder {
         &mut self,
         toEncode: &mut Vec<i32>,
         ecBytes: usize,
-    ) -> Result<(), IllegalArgumentException> {
+    ) -> Result<(), Exceptions> {
         if ecBytes == 0 {
-            return Err(IllegalArgumentException::new("No error correction bytes"));
+            return Err(Exceptions::IllegalArgumentException("No error correction bytes".to_owned()));
         }
         let dataBytes = toEncode.len() - ecBytes;
         if dataBytes <= 0 {
-            return Err(IllegalArgumentException::new("No data bytes provided"));
+            return Err(Exceptions::IllegalArgumentException("No data bytes provided".to_owned()));
         }
         let fld = self.field.clone();
         let generator = self.buildGenerator(ecBytes);

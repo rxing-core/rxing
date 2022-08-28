@@ -1,6 +1,6 @@
 pub mod MathUtils;
 use crate::common::BitMatrix;
-use crate::{NotFoundException, RXingResultPoint};
+use crate::{Exceptions, RXingResultPoint};
 
 /*
  * Copyright 2009 ZXing authors
@@ -49,7 +49,7 @@ impl MonochromeRectangleDetector {
      *  third, the rightmost
      * @throws NotFoundException if no Data Matrix Code can be found
      */
-    pub fn detect(&self) -> Result<Vec<RXingResultPoint>, NotFoundException> {
+    pub fn detect(&self) -> Result<Vec<RXingResultPoint>, Exceptions> {
         let height = self.image.getHeight() as i32;
         let width = self.image.getWidth() as i32;
         let halfHeight= height / 2;
@@ -155,7 +155,7 @@ impl MonochromeRectangleDetector {
         top: i32,
         bottom: i32,
         maxWhiteRun: i32,
-    ) -> Result<RXingResultPoint, NotFoundException> {
+    ) -> Result<RXingResultPoint, Exceptions> {
         let mut lastRange_z: Option<Vec<i32>> = None;
         let mut y: i32 = centerY;
         let mut x: i32 = centerX;
@@ -212,13 +212,13 @@ impl MonochromeRectangleDetector {
                     }
                 }
             }}else {
-                return Err(NotFoundException {});
+                return Err(Exceptions::NotFoundException("".to_owned()));
             }
             lastRange_z = range;
             y += deltaY;
             x += deltaX
         }
-        return Err(NotFoundException {});
+        return Err(Exceptions::NotFoundException("".to_owned()));
     }
 
     /**
@@ -354,7 +354,7 @@ pub struct WhiteRectangleDetector {
 }
 
 impl WhiteRectangleDetector {
-    pub fn new_from_image(image: &BitMatrix) -> Result<Self, NotFoundException> {
+    pub fn new_from_image(image: &BitMatrix) -> Result<Self, Exceptions> {
         Self::new(
             image,
             INIT_SIZE,
@@ -375,7 +375,7 @@ impl WhiteRectangleDetector {
         initSize: i32,
         x: i32,
         y: i32,
-    ) -> Result<Self, NotFoundException> {
+    ) -> Result<Self, Exceptions> {
         
         let halfsize = initSize / 2;
 
@@ -389,7 +389,7 @@ impl WhiteRectangleDetector {
             || downInit >= image.getHeight() as i32
             || rightInit >= image.getWidth() as i32
         {
-            return Err(NotFoundException {});
+            return Err(Exceptions::NotFoundException("".to_owned()));
         }
 
         Ok(Self{
@@ -417,7 +417,7 @@ impl WhiteRectangleDetector {
      *         leftmost and the third, the rightmost
      * @throws NotFoundException if no Data Matrix Code can be found
      */
-    pub fn detect(&self) -> Result<Vec<RXingResultPoint>, NotFoundException> {
+    pub fn detect(&self) -> Result<Vec<RXingResultPoint>, Exceptions> {
         let mut left: i32 = self.leftInit;
         let mut right: i32 = self.rightInit;
         let mut up: i32 = self.upInit;
@@ -532,7 +532,7 @@ impl WhiteRectangleDetector {
             }
 
             if z.is_none() {
-                return Err(NotFoundException {});
+                return Err(Exceptions::NotFoundException("".to_owned()));
             }
 
             let mut t: Option<RXingResultPoint> = None;
@@ -550,7 +550,7 @@ impl WhiteRectangleDetector {
             }
 
             if t.is_none() {
-                return Err(NotFoundException {});
+                return Err(Exceptions::NotFoundException("".to_owned()));
             }
 
             let mut x: Option<RXingResultPoint> = None;
@@ -568,7 +568,7 @@ impl WhiteRectangleDetector {
             }
 
             if x.is_none() {
-                return Err(NotFoundException {});
+                return Err(Exceptions::NotFoundException("".to_owned()));
             }
 
             let mut y: Option<RXingResultPoint> = None;
@@ -586,12 +586,12 @@ impl WhiteRectangleDetector {
             }
 
             if y.is_none() {
-                return Err(NotFoundException {});
+                return Err(Exceptions::NotFoundException("".to_owned()));
             }
 
             return Ok(self.centerEdges(&y.unwrap(), &z.unwrap(), &x.unwrap(), &t.unwrap()));
         } else {
-            return Err(NotFoundException {});
+            return Err(Exceptions::NotFoundException("".to_owned()));
         }
     }
 

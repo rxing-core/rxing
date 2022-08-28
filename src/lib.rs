@@ -423,7 +423,7 @@ pub trait Writer {
         format: &BarcodeFormat,
         width: i32,
         height: i32,
-    ) -> Result<BitMatrix, WriterException>;
+    ) -> Result<BitMatrix, Exceptions>;
 
     /**
      * @param contents The contents to encode in the barcode
@@ -440,7 +440,7 @@ pub trait Writer {
         width: i32,
         height: i32,
         hints: HashMap<EncodeHintType, T>,
-    ) -> Result<BitMatrix, WriterException>;
+    ) -> Result<BitMatrix, Exceptions>;
 }
 
 /*
@@ -461,11 +461,7 @@ pub trait Writer {
 
 //package com.google.zxing;
 
-pub enum ReaderDecodeException {
-    NotFoundException(NotFoundException),
-    ChecksumException(ChecksumException),
-    FormatException(FormatException),
-}
+
 
 /**
  * Implementations of this interface can decode an image of a barcode in some format into
@@ -489,7 +485,7 @@ pub trait Reader {
      * @throws ChecksumException if a potential barcode is found but does not pass its checksum
      * @throws FormatException if a potential barcode is found but format is invalid
      */
-    fn decode(image: BinaryBitmap) -> Result<RXingResult, ReaderDecodeException>;
+    fn decode(image: BinaryBitmap) -> Result<RXingResult, Exceptions>;
 
     /**
      * Locates and decodes a barcode in some format within an image. This method also accepts
@@ -508,7 +504,7 @@ pub trait Reader {
     fn decode_with_hints<T>(
         image: BinaryBitmap,
         hints: HashMap<DecodeHintType, T>,
-    ) -> Result<RXingResult, ReaderDecodeException>;
+    ) -> Result<RXingResult, Exceptions>;
 
     /**
      * Resets any internal state the implementation has after a decode, to prepare it
@@ -964,9 +960,9 @@ pub struct Dimension {
 }
 
 impl Dimension {
-    pub fn new(width: usize, height: usize) -> Result<Self, IllegalArgumentException> {
+    pub fn new(width: usize, height: usize) -> Result<Self, Exceptions> {
         if width < 0 || height < 0 {
-            return Err(IllegalArgumentException::new(""));
+            return Err(Exceptions::IllegalArgumentException("".to_owned()));
         }
         Ok(Self { width, height })
     }
@@ -1032,7 +1028,7 @@ pub trait Binarizer {
      * @return The array of bits for this row (true means black).
      * @throws NotFoundException if row can't be binarized
      */
-    fn getBlackRow(&self, y: usize, row: BitArray) -> Result<BitArray, NotFoundException>;
+    fn getBlackRow(&self, y: usize, row: BitArray) -> Result<BitArray, Exceptions>;
 
     /**
      * Converts a 2D array of luminance data to 1 bit data. As above, assume this method is expensive
@@ -1043,7 +1039,7 @@ pub trait Binarizer {
      * @return The 2D array of bits for the image (true means black).
      * @throws NotFoundException if image can't be binarized to make a matrix
      */
-    fn getBlackMatrix(&self) -> Result<BitMatrix, NotFoundException>;
+    fn getBlackMatrix(&self) -> Result<BitMatrix, Exceptions>;
 
     /**
      * Creates a new object with the same type as this Binarizer implementation, but with pristine
@@ -1122,7 +1118,7 @@ impl BinaryBitmap {
      * @return The array of bits for this row (true means black).
      * @throws NotFoundException if row can't be binarized
      */
-    pub fn getBlackRow(&self, y: usize, row: BitArray) -> Result<BitArray, NotFoundException> {
+    pub fn getBlackRow(&self, y: usize, row: BitArray) -> Result<BitArray, Exceptions> {
         return self.binarizer.getBlackRow(y, row);
     }
 
@@ -1135,7 +1131,7 @@ impl BinaryBitmap {
      * @return The 2D array of bits for the image (true means black).
      * @throws NotFoundException if image can't be binarized to make a matrix
      */
-    pub fn getBlackMatrix(&self) -> Result<&BitMatrix, NotFoundException> {
+    pub fn getBlackMatrix(&self) -> Result<&BitMatrix, Exceptions> {
         // The matrix is created on demand the first time it is requested, then cached. There are two
         // reasons for this:
         // 1. This work will never be done if the caller only installs 1D Reader objects, or if a
@@ -1338,9 +1334,9 @@ pub trait LuminanceSource {
         top: usize,
         width: usize,
         height: usize,
-    ) -> Result<Box<dyn LuminanceSource>, UnsupportedOperationException> {
-        return Err(UnsupportedOperationException::new(
-            "This luminance source does not support cropping.",
+    ) -> Result<Box<dyn LuminanceSource>, Exceptions> {
+        return Err(Exceptions::UnsupportedOperationException(
+            "This luminance source does not support cropping.".to_owned(),
         ));
     }
 
@@ -1367,9 +1363,9 @@ pub trait LuminanceSource {
      */
     fn rotateCounterClockwise(
         &self,
-    ) -> Result<Box<dyn LuminanceSource>, UnsupportedOperationException> {
-        return Err(UnsupportedOperationException::new(
-            "This luminance source does not support rotation by 90 degrees.",
+    ) -> Result<Box<dyn LuminanceSource>, Exceptions> {
+        return Err(Exceptions::UnsupportedOperationException(
+            "This luminance source does not support rotation by 90 degrees.".to_owned(),
         ));
     }
 
@@ -1381,9 +1377,9 @@ pub trait LuminanceSource {
      */
     fn rotateCounterClockwise45(
         &self,
-    ) -> Result<Box<dyn LuminanceSource>, UnsupportedOperationException> {
-        return Err(UnsupportedOperationException::new(
-            "This luminance source does not support rotation by 45 degrees.",
+    ) -> Result<Box<dyn LuminanceSource>, Exceptions> {
+        return Err(Exceptions::UnsupportedOperationException(
+            "This luminance source does not support rotation by 45 degrees.".to_owned(),
         ));
     }
 
@@ -1586,10 +1582,10 @@ impl PlanarYUVLuminanceSource {
         height: usize,
         reverseHorizontal: bool,
         inverted: bool,
-    ) -> Result<Self, IllegalArgumentException> {
+    ) -> Result<Self, Exceptions> {
         if left + width > dataWidth || top + height > dataHeight {
-            return Err(IllegalArgumentException::new(
-                "Crop rectangle does not fit within image data.",
+            return Err(Exceptions::IllegalArgumentException(
+                "Crop rectangle does not fit within image data.".to_owned(),
             ));
         }
 
@@ -1753,7 +1749,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         top: usize,
         width: usize,
         height: usize,
-    ) -> Result<Box<dyn LuminanceSource>, UnsupportedOperationException> {
+    ) -> Result<Box<dyn LuminanceSource>, Exceptions> {
         match PlanarYUVLuminanceSource::new_with_all(
             self.yuvData.clone(),
             self.dataWidth,
@@ -1766,7 +1762,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
             self.invert,
         ) {
             Ok(new) => Ok(Box::new(new)),
-            Err(err) => Err(UnsupportedOperationException::new("")),
+            Err(err) => Err(Exceptions::UnsupportedOperationException("".to_owned())),
         }
     }
 
@@ -1894,7 +1890,7 @@ impl LuminanceSource for RGBLuminanceSource {
         top: usize,
         width: usize,
         height: usize,
-    ) -> Result<Box<dyn LuminanceSource>, UnsupportedOperationException> {
+    ) -> Result<Box<dyn LuminanceSource>, Exceptions> {
         match RGBLuminanceSource::new_complex(
             &self.luminances,
             self.dataWidth,
@@ -1905,7 +1901,7 @@ impl LuminanceSource for RGBLuminanceSource {
             height,
         ) {
             Ok(crop) => Ok(Box::new(crop)),
-            Err(error) => Err(UnsupportedOperationException::new("")),
+            Err(error) => Err(Exceptions::UnsupportedOperationException("".to_owned())),
         }
     }
 
@@ -1958,10 +1954,10 @@ impl RGBLuminanceSource {
         top: usize,
         width: usize,
         height: usize,
-    ) -> Result<Self, IllegalArgumentException> {
-        if (left + width > dataWidth || top + height > dataHeight) {
-            return Err(IllegalArgumentException::new(
-                "Crop rectangle does not fit within image data.",
+    ) -> Result<Self, Exceptions> {
+        if left + width > dataWidth || top + height > dataHeight {
+            return Err(Exceptions::IllegalArgumentException(
+                "Crop rectangle does not fit within image data.".to_owned(),
             ));
         }
         Ok(Self {

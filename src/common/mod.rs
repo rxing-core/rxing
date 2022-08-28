@@ -6,7 +6,7 @@ use std::cmp;
 use std::collections::HashMap;
 use std::fmt;
 
-use crate::exceptions::IllegalArgumentException;
+use crate::Exceptions;
 use crate::DecodeHintType;
 use crate::RXingResultPoint;
 use encoding::Encoding;
@@ -440,11 +440,11 @@ impl BitArray {
      * @param start start of range, inclusive.
      * @param end end of range, exclusive
      */
-    pub fn setRange(&mut self, start: usize, end: usize) -> Result<(), IllegalArgumentException> {
+    pub fn setRange(&mut self, start: usize, end: usize) -> Result<(), Exceptions> {
         let mut end = end;
         if end < start || start < 0 || end > self.size {
-            return Err(IllegalArgumentException::new(
-                "end < start || start < 0 || end > self.size",
+            return Err(Exceptions::IllegalArgumentException(
+                "end < start || start < 0 || end > self.size".to_owned(),
             ));
         }
         if end == start {
@@ -489,11 +489,11 @@ impl BitArray {
         start: usize,
         end: usize,
         value: bool,
-    ) -> Result<bool, IllegalArgumentException> {
+    ) -> Result<bool, Exceptions> {
         let mut end = end;
         if end < start || start < 0 || end > self.size {
-            return Err(IllegalArgumentException::new(
-                "end < start || start < 0 || end > self.size",
+            return Err(Exceptions::IllegalArgumentException(
+                "end < start || start < 0 || end > self.size".to_owned(),
             ));
         }
         if end == start {
@@ -538,10 +538,10 @@ impl BitArray {
         &mut self,
         value: u32,
         numBits: usize,
-    ) -> Result<(), IllegalArgumentException> {
+    ) -> Result<(), Exceptions> {
         if numBits < 0 || numBits > 32 {
-            return Err(IllegalArgumentException::new(
-                "Num bits must be between 0 and 32",
+            return Err(Exceptions::IllegalArgumentException(
+                "Num bits must be between 0 and 32".to_owned(),
             ));
         }
         let mut nextSize = self.size;
@@ -566,9 +566,9 @@ impl BitArray {
         }
     }
 
-    pub fn xor(&mut self, other: &BitArray) -> Result<(), IllegalArgumentException> {
+    pub fn xor(&mut self, other: &BitArray) -> Result<(), Exceptions> {
         if self.size != other.size {
-            return Err(IllegalArgumentException::new("Sizes don't match"));
+            return Err(Exceptions::IllegalArgumentException("Sizes don't match".to_owned()));
         }
         for i in 0..self.bits.len() {
             //for (int i = 0; i < bits.length; i++) {
@@ -785,10 +785,10 @@ impl BitMatrix {
      * @param width bit matrix width
      * @param height bit matrix height
      */
-    pub fn new(width: u32, height: u32) -> Result<Self, IllegalArgumentException> {
+    pub fn new(width: u32, height: u32) -> Result<Self, Exceptions> {
         if width < 1 || height < 1 {
-            return Err(IllegalArgumentException::new(
-                "Both dimensions must be greater than 0",
+            return Err(Exceptions::IllegalArgumentException(
+                "Both dimensions must be greater than 0".to_owned(),
             ));
         }
         Ok(Self {
@@ -839,7 +839,7 @@ impl BitMatrix {
         stringRepresentation: &str,
         setString: &str,
         unsetString: &str,
-    ) -> Result<Self, IllegalArgumentException> {
+    ) -> Result<Self, Exceptions> {
         // cannot pass nulls in rust
         // if (stringRepresentation == null) {
         //   throw new IllegalArgumentException();
@@ -862,7 +862,7 @@ impl BitMatrix {
                         first_run = false;
                         rowLength = bitsPos - rowStartPos;
                     } else if bitsPos - rowStartPos != rowLength {
-                        return Err(IllegalArgumentException::new("row lengths do not match"));
+                        return Err(Exceptions::IllegalArgumentException("row lengths do not match".to_owned()));
                     }
                     rowStartPos = bitsPos;
                     nRows += 1;
@@ -877,7 +877,7 @@ impl BitMatrix {
                 bits[bitsPos] = false;
                 bitsPos += 1;
             } else {
-                return Err(IllegalArgumentException::new(&format!(
+                return Err(Exceptions::IllegalArgumentException(format!(
                     "illegal character encountered: {}",
                     stringRepresentation[pos..].to_owned()
                 )));
@@ -891,7 +891,7 @@ impl BitMatrix {
                 first_run = false;
                 rowLength = bitsPos - rowStartPos;
             } else if bitsPos - rowStartPos != rowLength {
-                return Err(IllegalArgumentException::new("row lengths do not match"));
+                return Err(Exceptions::IllegalArgumentException("row lengths do not match".to_owned()));
             }
             nRows += 1;
         }
@@ -965,10 +965,10 @@ impl BitMatrix {
      *
      * @param mask XOR mask
      */
-    pub fn xor(&mut self, mask: &BitMatrix) -> Result<(), IllegalArgumentException> {
+    pub fn xor(&mut self, mask: &BitMatrix) -> Result<(), Exceptions> {
         if self.width != mask.width || self.height != mask.height || self.rowSize != mask.rowSize {
-            return Err(IllegalArgumentException::new(
-                "input matrix dimensions do not match",
+            return Err(Exceptions::IllegalArgumentException(
+                "input matrix dimensions do not match".to_owned(),
             ));
         }
         let rowArray = BitArray::with_size(self.width as usize);
@@ -1010,22 +1010,22 @@ impl BitMatrix {
         top: u32,
         width: u32,
         height: u32,
-    ) -> Result<(), IllegalArgumentException> {
+    ) -> Result<(), Exceptions> {
         if top < 0 || left < 0 {
-            return Err(IllegalArgumentException::new(
-                "Left and top must be nonnegative",
+            return Err(Exceptions::IllegalArgumentException(
+                "Left and top must be nonnegative".to_owned(),
             ));
         }
         if height < 1 || width < 1 {
-            return Err(IllegalArgumentException::new(
-                "Height and width must be at least 1",
+            return Err(Exceptions::IllegalArgumentException(
+                "Height and width must be at least 1".to_owned(),
             ));
         }
         let right = left + width;
         let bottom = top + height;
         if bottom > self.height || right > self.width {
-            return Err(IllegalArgumentException::new(
-                "The region must fit inside the matrix",
+            return Err(Exceptions::IllegalArgumentException(
+                "The region must fit inside the matrix".to_owned(),
             ));
         }
         for y in top..bottom {
@@ -1081,7 +1081,7 @@ impl BitMatrix {
      *
      * @param degrees number of degrees to rotate through counter-clockwise (0, 90, 180, 270)
      */
-    pub fn rotate(&mut self, degrees: u32) -> Result<(), IllegalArgumentException> {
+    pub fn rotate(&mut self, degrees: u32) -> Result<(), Exceptions> {
         match degrees % 360 {
             0 => Ok(()),
             90 => {
@@ -1097,8 +1097,8 @@ impl BitMatrix {
                 self.rotate180();
                 Ok(())
             }
-            _ => Err(IllegalArgumentException::new(
-                "degrees must be a multiple of 0, 90, 180, or 270",
+            _ => Err(Exceptions::IllegalArgumentException(
+                "degrees must be a multiple of 0, 90, 180, or 270".to_owned(),
             )),
         }
     }
@@ -1516,9 +1516,9 @@ impl BitSource {
      *         bits of the int
      * @throws IllegalArgumentException if numBits isn't in [1,32] or more than is available
      */
-    pub fn readBits(&mut self, numBits: usize) -> Result<u32, IllegalArgumentException> {
+    pub fn readBits(&mut self, numBits: usize) -> Result<u32, Exceptions> {
         if numBits < 1 || numBits > 32 || numBits > self.available() {
-            return Err(IllegalArgumentException::new(&numBits.to_string()));
+            return Err(Exceptions::IllegalArgumentException(numBits.to_string()));
         }
 
         let mut result = 0;
