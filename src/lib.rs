@@ -1362,7 +1362,7 @@ pub trait LuminanceSource {
      * @return a wrapper of this {@code LuminanceSource} which inverts the luminances it returns -- black becomes
      *  white and vice versa, and each value becomes (255-value).
      */
-    fn invert(&self) -> Box<dyn LuminanceSource>; /* {
+    fn invert(&mut self); /* {
                                                     return InvertedLuminanceSource::new_with_delegate(self);
                                                   }*/
 
@@ -1421,116 +1421,116 @@ pub trait LuminanceSource {
     }*/
 }
 
-/*
- * Copyright 2013 ZXing authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// /*
+//  * Copyright 2013 ZXing authors
+//  *
+//  * Licensed under the Apache License, Version 2.0 (the "License");
+//  * you may not use this file except in compliance with the License.
+//  * You may obtain a copy of the License at
+//  *
+//  *      http://www.apache.org/licenses/LICENSE-2.0
+//  *
+//  * Unless required by applicable law or agreed to in writing, software
+//  * distributed under the License is distributed on an "AS IS" BASIS,
+//  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  * See the License for the specific language governing permissions and
+//  * limitations under the License.
+//  */
 
-//package com.google.zxing;
+// //package com.google.zxing;
 
-/**
- * A wrapper implementation of {@link LuminanceSource} which inverts the luminances it returns -- black becomes
- * white and vice versa, and each value becomes (255-value).
- *
- * @author Sean Owen
- */
-pub struct InvertedLuminanceSource {
-    width: usize,
-    height: usize,
-    delegate: Box<dyn LuminanceSource>,
-}
+// /**
+//  * A wrapper implementation of {@link LuminanceSource} which inverts the luminances it returns -- black becomes
+//  * white and vice versa, and each value becomes (255-value).
+//  *
+//  * @author Sean Owen
+//  */
+// pub struct InvertedLuminanceSource {
+//     width: usize,
+//     height: usize,
+//     delegate: Box<dyn LuminanceSource>,
+// }
 
-impl InvertedLuminanceSource {
-    pub fn new_with_delegate(delegate: Box<dyn LuminanceSource>) -> Self {
-        Self {
-            width: delegate.getWidth(),
-            height: delegate.getHeight(),
-            delegate,
-        }
-    }
-}
+// impl InvertedLuminanceSource {
+//     pub fn new_with_delegate(delegate: Box<dyn LuminanceSource>) -> Self {
+//         Self {
+//             width: delegate.getWidth(),
+//             height: delegate.getHeight(),
+//             delegate,
+//         }
+//     }
+// }
 
-impl LuminanceSource for InvertedLuminanceSource {
-    fn getRow(&self, y: usize, row: &Vec<u8>) -> Vec<u8> {
-        let mut new_row = self.delegate.getRow(y, row);
-        let width = self.getWidth();
-        for i in 0..width {
-            //for (int i = 0; i < width; i++) {
-            new_row[i] = (255 - (new_row[i] & 0xFF));
-        }
-        return new_row;
-    }
+// impl LuminanceSource for InvertedLuminanceSource {
+//     fn getRow(&self, y: usize, row: &Vec<u8>) -> Vec<u8> {
+//         let mut new_row = self.delegate.getRow(y, row);
+//         let width = self.getWidth();
+//         for i in 0..width {
+//             //for (int i = 0; i < width; i++) {
+//             new_row[i] = 255 - (new_row[i] & 0xFF);
+//         }
+//         return new_row;
+//     }
 
-    fn getMatrix(&self) -> Vec<u8> {
-        let matrix = self.delegate.getMatrix();
-        let length = self.getWidth() * self.getHeight();
-        let mut invertedMatrix = Vec::with_capacity(length);
-        for i in 0..length {
-            //for (int i = 0; i < length; i++) {
-            invertedMatrix[i] = (255 - (matrix[i] & 0xFF));
-        }
-        return invertedMatrix;
-    }
+//     fn getMatrix(&self) -> Vec<u8> {
+//         let matrix = self.delegate.getMatrix();
+//         let length = self.getWidth() * self.getHeight();
+//         let mut invertedMatrix = Vec::with_capacity(length);
+//         for i in 0..length {
+//             //for (int i = 0; i < length; i++) {
+//             invertedMatrix[i] = 255 - (matrix[i] & 0xFF);
+//         }
+//         return invertedMatrix;
+//     }
 
-    fn getWidth(&self) -> usize {
-        self.width
-    }
+//     fn getWidth(&self) -> usize {
+//         self.width
+//     }
 
-    fn getHeight(&self) -> usize {
-        self.height
-    }
+//     fn getHeight(&self) -> usize {
+//         self.height
+//     }
 
-    fn isCropSupported(&self) -> bool {
-        return self.delegate.isCropSupported();
-    }
+//     fn isCropSupported(&self) -> bool {
+//         return self.delegate.isCropSupported();
+//     }
 
-    fn crop(
-        &self,
-        left: usize,
-        top: usize,
-        width: usize,
-        height: usize,
-    ) -> Result<Box<dyn LuminanceSource>, UnsupportedOperationException> {
-        let crop = self.delegate.crop(left, top, width, height)?;
-        return Ok(Box::new(InvertedLuminanceSource::new_with_delegate(crop)));
-    }
+//     fn crop(
+//         &self,
+//         left: usize,
+//         top: usize,
+//         width: usize,
+//         height: usize,
+//     ) -> Result<Box<dyn LuminanceSource>, UnsupportedOperationException> {
+//         let crop = self.delegate.crop(left, top, width, height)?;
+//         return Ok(Box::new(InvertedLuminanceSource::new_with_delegate(crop)));
+//     }
 
-    fn isRotateSupported(&self) -> bool {
-        return self.delegate.isRotateSupported();
-    }
+//     fn isRotateSupported(&self) -> bool {
+//         return self.delegate.isRotateSupported();
+//     }
 
-    /**
-     * @return original delegate {@link LuminanceSource} since invert undoes itself
-     */
-    fn invert(&self) -> Box<dyn LuminanceSource> {
-        return self.delegate;
-    }
+//     /**
+//      * @return original delegate {@link LuminanceSource} since invert undoes itself
+//      */
+//     fn invert(&self) -> Box<dyn LuminanceSource> {
+//         return self.delegate;
+//     }
 
-    fn rotateCounterClockwise(
-        &self,
-    ) -> Result<Box<dyn LuminanceSource>, UnsupportedOperationException> {
-        let rot = self.delegate.rotateCounterClockwise()?;
-        return Ok(Box::new(InvertedLuminanceSource::new_with_delegate(rot)));
-    }
+//     fn rotateCounterClockwise(
+//         &self,
+//     ) -> Result<Box<dyn LuminanceSource>, UnsupportedOperationException> {
+//         let rot = self.delegate.rotateCounterClockwise()?;
+//         return Ok(Box::new(InvertedLuminanceSource::new_with_delegate(rot)));
+//     }
 
-    fn rotateCounterClockwise45(
-        &self,
-    ) -> Result<Box<dyn LuminanceSource>, UnsupportedOperationException> {
-        let rot_45 = self.delegate.rotateCounterClockwise45()?;
-        return Ok(Box::new(InvertedLuminanceSource::new_with_delegate(rot_45)));
-    }
-}
+//     fn rotateCounterClockwise45(
+//         &self,
+//     ) -> Result<Box<dyn LuminanceSource>, UnsupportedOperationException> {
+//         let rot_45 = self.delegate.rotateCounterClockwise45()?;
+//         return Ok(Box::new(InvertedLuminanceSource::new_with_delegate(rot_45)));
+//     }
+// }
 
 /*
  * Copyright 2009 ZXing authors
@@ -1571,6 +1571,7 @@ pub struct PlanarYUVLuminanceSource {
     top: usize,
     width: usize,
     height: usize,
+    invert: bool,
 }
 
 impl PlanarYUVLuminanceSource {
@@ -1598,6 +1599,7 @@ impl PlanarYUVLuminanceSource {
             top,
             width,
             height,
+            invert: false,
         };
 
         if reverseHorizontal {
@@ -1795,6 +1797,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
     top: usize,
     width: usize,
     height: usize,
+    invert: bool,
 }
 
 impl LuminanceSource for RGBLuminanceSource {
