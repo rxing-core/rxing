@@ -11,6 +11,9 @@ use crate::DecodeHintType;
 use crate::RXingResultPoint;
 use encoding::Encoding;
 
+#[cfg(test)]
+mod StringUtilsTestCase;
+
 /*
  * Copyright (C) 2010 ZXing authors
  *
