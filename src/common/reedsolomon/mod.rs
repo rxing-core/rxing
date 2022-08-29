@@ -105,16 +105,17 @@ impl GenericGF {
      *  In most cases it should be 1, but for QR code it is 0.
      */
     pub fn new(primitive: i32, size: usize, b: i32) -> Self {
-        let mut expTable = Vec::with_capacity(size);
-        let mut logTable = Vec::with_capacity(size);
+        let mut expTable = vec![0;size];//Vec::with_capacity(size);
+        let mut logTable = vec![0;size];//Vec::with_capacity(size);
         let mut x = 1;
-        for i in 0..size {
+        for i in 0..size-1 {
             //for (int i = 0; i < size; i++) {
+                //expTable.push(x);
             expTable[i] = x;
             x *= 2; // we're assuming the generator alpha is 2
             if x >= size.try_into().unwrap() {
                 x ^= primitive;
-                let sz_m_1: i32 = (size - 1) as i32;
+                let sz_m_1: i32 = size as i32 - 1 ;
                 x &= sz_m_1;
             }
         }
@@ -154,7 +155,7 @@ impl GenericGF {
         if coefficient == 0 {
             return GenericGFPoly::new(self.clone(), &vec![0]).unwrap();
         }
-        let mut coefficients = Vec::with_capacity(degree + 1);
+        let mut coefficients = vec![0;degree+1];//Vec::with_capacity(degree + 1);
         coefficients[0] = coefficient;
         return GenericGFPoly::new(self.clone(), &coefficients).unwrap();
     }
@@ -286,7 +287,7 @@ impl GenericGFPoly {
         coefficients: &Vec<i32>,
     ) -> Result<Self, Exceptions> {
         if coefficients.len() == 0 {
-            return Err(Exceptions::IllegalArgumentException("".to_owned()));
+            return Err(Exceptions::IllegalArgumentException("coefficients.len()".to_owned()));
         }
         Ok(Self {
             field: field,
@@ -434,7 +435,7 @@ impl GenericGFPoly {
         let aLength = aCoefficients.len();
         let bCoefficients = other.coefficients.clone();
         let bLength = bCoefficients.len();
-        let mut product = Vec::with_capacity(aLength + bLength - 1);
+        let mut product = vec![0;aLength + bLength - 1];//Vec::with_capacity(aLength + bLength - 1);
         for i in 0..aLength {
             //for (int i = 0; i < aLength; i++) {
             let aCoeff = aCoefficients[i];
@@ -494,7 +495,7 @@ impl GenericGFPoly {
             return Ok(self.getZero());
         }
         let size = self.coefficients.len();
-        let mut product = Vec::with_capacity(size + degree);
+        let mut product = vec![0;size+degree];//Vec::with_capacity(size + degree);
         for i in 0..size {
             //for (int i = 0; i < size; i++) {
             product[i] = self.field.multiply(self.coefficients[i], coefficient);
@@ -519,8 +520,8 @@ impl GenericGFPoly {
         let mut quotient = self.getZero();
         let mut remainder = self.clone();
 
-        let denominatorLeadingTerm = other.getCoefficient(other.getDegree());
-        let inverseDenominatorLeadingTerm = match self.field.inverse(denominatorLeadingTerm) {
+        let denominator_leading_term = other.getCoefficient(other.getDegree());
+        let inverse_denominator_leading_term = match self.field.inverse(denominator_leading_term) {
             Ok(val) => val,
             Err(issue) => return Err(Exceptions::IllegalArgumentException("arithmetic issue".to_owned())),
         };
@@ -529,7 +530,7 @@ impl GenericGFPoly {
             let degreeDifference = remainder.getDegree() - other.getDegree();
             let scale = self.field.multiply(
                 remainder.getCoefficient(remainder.getDegree()),
-                inverseDenominatorLeadingTerm,
+                inverse_denominator_leading_term,
             );
             let term = other.multiplyByMonomial(degreeDifference, scale)?;
             let iterationQuotient = self.field.buildMonomial(degreeDifference, scale);
@@ -547,7 +548,7 @@ impl fmt::Display for GenericGFPoly {
             return write!(f, "0");
         }
         let mut result = String::with_capacity(8 * self.getDegree());
-        for degree in (0..self.getDegree()).rev() {
+        for degree in (0..=self.getDegree()).rev() {
             //for (int degree = getDegree(); degree >= 0; degree--) {
             let mut coefficient = self.getCoefficient(degree);
             if coefficient != 0 {
@@ -565,14 +566,14 @@ impl fmt::Display for GenericGFPoly {
                     }
                 }
                 if degree == 0 || coefficient != 1 {
-                    if let Ok(alphaPower) = self.field.log(coefficient) {
-                        if alphaPower == 0 {
+                    if let Ok(alpha_power) = self.field.log(coefficient) {
+                        if alpha_power == 0 {
                             result.push_str("1");
-                        } else if alphaPower == 1 {
+                        } else if alpha_power == 1 {
                             result.push_str("a");
                         } else {
                             result.push_str("a^");
-                            result.push_str(&format!("{}", alphaPower));
+                            result.push_str(&format!("{}", alpha_power));
                         }
                     }
                 }
@@ -952,7 +953,7 @@ impl ReedSolomonEncoder {
         }
         let fld = self.field.clone();
         let generator = self.buildGenerator(ecBytes);
-        let mut infoCoefficients: Vec<i32> = Vec::with_capacity(dataBytes);
+        let mut infoCoefficients: Vec<i32> = vec![0;dataBytes];//Vec::with_capacity(dataBytes);
         infoCoefficients[0..dataBytes].clone_from_slice(&toEncode[0..dataBytes]);
         //System.arraycopy(toEncode, 0, infoCoefficients, 0, dataBytes);
         let mut info = GenericGFPoly::new(fld, &infoCoefficients)?;

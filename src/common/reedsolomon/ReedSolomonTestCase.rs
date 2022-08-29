@@ -411,11 +411,11 @@ fn testEncodeDecode(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>)
 
 fn testEncoder(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
     let mut encoder = ReedSolomonEncoder::new(field.clone());
-    let mut messageExpected = Vec::with_capacity(dataWords.len() + ecWords.len());
-    let mut message = Vec::with_capacity(dataWords.len() + ecWords.len());
+    let mut messageExpected = vec![0;dataWords.len() + ecWords.len()];//Vec::with_capacity(dataWords.len() + ecWords.len());
+    let mut message = vec![0;dataWords.len() + ecWords.len()];//Vec::with_capacity(dataWords.len() + ecWords.len());
     messageExpected[0..dataWords.len()].clone_from_slice(&dataWords[0..dataWords.len()]);
     //System.arraycopy(dataWords, 0, messageExpected, 0, dataWords.len());
-    messageExpected[dataWords.len()..ecWords.len()].clone_from_slice(&ecWords[..ecWords.len()]);
+    messageExpected[dataWords.len()..ecWords.len()+dataWords.len()].clone_from_slice(&ecWords[..ecWords.len()]);
     //System.arraycopy(ecWords, 0, messageExpected, dataWords.len(), ecWords.len());
     message[0..dataWords.len()].clone_from_slice(&dataWords[0..dataWords.len()]);
     //System.arraycopy(dataWords, 0, message, 0, dataWords.len());
