@@ -35,15 +35,11 @@ const DECODER_RANDOM_TEST_ITERATIONS: i32 = 3;
 const DECODER_TEST_ITERATIONS: i32 = 10;
 
 #[test]
-fn testDataMatrix() {
+fn test_data_matrix() {
     let dm256 = super::get_predefined_genericgf(super::PredefinedGenericGF::DataMatrixField256);
     // real life test cases
-    testEncodeDecode(
-        &dm256,
-        &vec![142, 164, 186],
-        &vec![114, 25, 5, 88, 102],
-    );
-    testEncodeDecode(
+    test_encode_decode(&dm256, &vec![142, 164, 186], &vec![114, 25, 5, 88, 102]);
+    test_encode_decode(
         &dm256,
         &vec![
             0x69, 0x75, 0x75, 0x71, 0x3B, 0x30, 0x30, 0x64, 0x70, 0x65, 0x66, 0x2F, 0x68, 0x70,
@@ -56,16 +52,16 @@ fn testDataMatrix() {
         ],
     );
     // synthetic test cases
-    testEncodeDecodeRandom(dm256.clone(), 10, 240);
-    testEncodeDecodeRandom(dm256.clone(), 128, 127);
-    testEncodeDecodeRandom(dm256.clone(), 220, 35);
+    test_encode_decode_random(dm256.clone(), 220, 35);
+    test_encode_decode_random(dm256.clone(), 10, 240);
+    test_encode_decode_random(dm256.clone(), 128, 127);
 }
 
 #[test]
-fn testQRCode() {
+fn test_qr_code() {
     let qrcf256 = super::get_predefined_genericgf(super::PredefinedGenericGF::QrCodeField256);
     // Test case from example given in ISO 18004, Annex I
-    testEncodeDecode(
+    test_encode_decode(
         &qrcf256,
         &vec![
             0x10, 0x20, 0x0C, 0x56, 0x61, 0x80, 0xEC, 0x11, 0xEC, 0x11, 0xEC, 0x11, 0xEC, 0x11,
@@ -73,7 +69,7 @@ fn testQRCode() {
         ],
         &vec![0xA5, 0x24, 0xD4, 0xC1, 0xED, 0x36, 0xC7, 0x87, 0x2C, 0x55],
     );
-    testEncodeDecode(
+    test_encode_decode(
         &qrcf256,
         &vec![
             0x72, 0x67, 0x2F, 0x77, 0x69, 0x6B, 0x69, 0x2F, 0x4D, 0x61, 0x69, 0x6E, 0x5F, 0x50,
@@ -87,36 +83,36 @@ fn testQRCode() {
     );
     // real life test cases
     // synthetic test cases
-    testEncodeDecodeRandom(qrcf256.clone(), 10, 240);
-    testEncodeDecodeRandom(qrcf256.clone(), 128, 127);
-    testEncodeDecodeRandom(qrcf256.clone(), 220, 35);
+    test_encode_decode_random(qrcf256.clone(), 10, 240);
+    test_encode_decode_random(qrcf256.clone(), 128, 127);
+    test_encode_decode_random(qrcf256.clone(), 220, 35);
 }
 
 #[test]
-fn testAztec() {
+fn test_aztec() {
     // real life test cases
-    testEncodeDecode(
+    test_encode_decode(
         &super::get_predefined_genericgf(super::PredefinedGenericGF::AztecParam),
         &vec![0x5, 0x6],
         &vec![0x3, 0x2, 0xB, 0xB, 0x7],
     );
-    testEncodeDecode(
+    test_encode_decode(
         &super::get_predefined_genericgf(super::PredefinedGenericGF::AztecParam),
         &vec![0x0, 0x0, 0x0, 0x9],
         &vec![0xA, 0xD, 0x8, 0x6, 0x5, 0x6],
     );
-    testEncodeDecode(
+    test_encode_decode(
         &super::get_predefined_genericgf(super::PredefinedGenericGF::AztecParam),
         &vec![0x2, 0x8, 0x8, 0x7],
         &vec![0xE, 0xC, 0xA, 0x9, 0x6, 0x8],
     );
-    testEncodeDecode(
+    test_encode_decode(
         &super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData6),
         &vec![0x9, 0x32, 0x1, 0x29, 0x2F, 0x2, 0x27, 0x25, 0x1, 0x1B],
         &vec![0x2C, 0x2, 0xD, 0xD, 0xA, 0x16, 0x28, 0x9, 0x22, 0xA, 0x14],
     );
 
-    testEncodeDecode(
+    test_encode_decode(
         &super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData8),
         &vec![
             0xE0, 0x86, 0x42, 0x98, 0xE8, 0x4A, 0x96, 0xC6, 0xB9, 0xF0, 0x8C, 0xA7, 0x4A, 0xDA,
@@ -132,7 +128,7 @@ fn testAztec() {
             0x29, 0xFE, 0x06, 0x49, 0xF3, 0x73, 0x9F, 0xC1, 0x75,
         ],
     );
-    testEncodeDecode(
+    test_encode_decode(
         &super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData10),
         &vec![
             0x15C, 0x1E1, 0x2D5, 0x02E, 0x048, 0x1E2, 0x037, 0x0CD, 0x02E, 0x056, 0x26A, 0x281,
@@ -179,7 +175,7 @@ fn testAztec() {
             0x02E, 0x35A, 0x0E4, 0x2E9, 0x17A, 0x166, 0x03C, 0x007,
         ],
     );
-    testEncodeDecode(
+    test_encode_decode(
         &super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData12),
         &vec![
             0x571, 0xE1B, 0x542, 0xE12, 0x1E2, 0x0DC, 0xCD0, 0xB85, 0x69A, 0xA81, 0x709, 0xA6A,
@@ -333,15 +329,15 @@ fn testAztec() {
     let azd10 = super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData10);
     let azd12 = super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData12);
 
-    testEncodeDecodeRandom(azp.clone(), 2, 5); // compact mode message
-    testEncodeDecodeRandom(azp.clone(), 4, 6); // full mode message
-    testEncodeDecodeRandom(azd6.clone(), 10, 7);
-    testEncodeDecodeRandom(azd6.clone(), 20, 12);
-    testEncodeDecodeRandom(azd8.clone(), 20, 11);
-    testEncodeDecodeRandom(azd8.clone(), 128, 127);
-    testEncodeDecodeRandom(azd10.clone(), 128, 128);
-    testEncodeDecodeRandom(azd10.clone(), 768, 255);
-    testEncodeDecodeRandom(azd12.clone(), 3072, 1023);
+    test_encode_decode_random(azp.clone(), 2, 5); // compact mode message
+    test_encode_decode_random(azp.clone(), 4, 6); // full mode message
+    test_encode_decode_random(azd6.clone(), 10, 7);
+    test_encode_decode_random(azd6.clone(), 20, 12);
+    test_encode_decode_random(azd8.clone(), 20, 11);
+    test_encode_decode_random(azd8.clone(), 128, 127);
+    test_encode_decode_random(azd10.clone(), 128, 128);
+    test_encode_decode_random(azd10.clone(), 768, 255);
+    test_encode_decode_random(azd12.clone(), 3072, 1023);
 }
 
 fn corrupt(received: &mut Vec<i32>, howMany: i32, random: &mut rand::rngs::ThreadRng, max: i32) {
@@ -365,7 +361,7 @@ fn corrupt(received: &mut Vec<i32>, howMany: i32, random: &mut rand::rngs::Threa
     }
 }
 
-fn testEncodeDecodeRandom(field: GenericGF, dataSize: usize, ecSize: usize) {
+fn test_encode_decode_random(field: GenericGF, dataSize: usize, ecSize: usize) {
     assert!(
         dataSize > 0 && dataSize <= field.getSize() - 3,
         "Invalid data size for {}",
@@ -377,10 +373,10 @@ fn testEncodeDecodeRandom(field: GenericGF, dataSize: usize, ecSize: usize) {
         field
     );
     let mut encoder = ReedSolomonEncoder::new(field.clone());
-    let mut message = Vec::with_capacity(dataSize + ecSize);
-    let mut dataWords: Vec<i32> = Vec::with_capacity(dataSize);
-    let mut ecWords = Vec::with_capacity(ecSize);
-    let mut random = getPseudoRandom();
+    let mut message = vec![0; dataSize + ecSize];
+    let mut dataWords: Vec<i32> = vec![0; dataSize];
+    let mut ecWords = vec![0; ecSize];
+    let mut random = get_pseudo_random();
     let iterations = if field.getSize() > 256 {
         1
     } else {
@@ -396,31 +392,34 @@ fn testEncodeDecodeRandom(field: GenericGF, dataSize: usize, ecSize: usize) {
         // generate ECC words
         message[0..dataWords.len()].clone_from_slice(&dataWords[..]);
         //System.arraycopy(dataWords, 0, message, 0, dataWords.len());
-        encoder.encode(&mut message, ecWords.len());
-        ecWords[0..ecSize].clone_from_slice(&message[dataSize..ecSize]);
+        if let Err(err) = encoder.encode(&mut message, ecWords.len()){
+            panic!("{:#?}", err);
+        }
+        ecWords[0..ecSize].clone_from_slice(&message[dataSize..dataSize + ecSize]);
         //System.arraycopy(message, dataSize, ecWords, 0, ecSize);
         // check to see if Decoder can fix up to ecWords/2 random errors
-        testDecoder(&field, &dataWords, &ecWords);
+        test_decoder(&field, &dataWords, &ecWords);
     }
 }
 
-fn testEncodeDecode(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
-    testEncoder(field, dataWords, ecWords);
-    testDecoder(field, dataWords, ecWords);
+fn test_encode_decode(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
+    test_encoder(field, dataWords, ecWords);
+    test_decoder(field, dataWords, ecWords);
 }
 
-fn testEncoder(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
+fn test_encoder(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
     let mut encoder = ReedSolomonEncoder::new(field.clone());
-    let mut messageExpected = vec![0;dataWords.len() + ecWords.len()];//Vec::with_capacity(dataWords.len() + ecWords.len());
-    let mut message = vec![0;dataWords.len() + ecWords.len()];//Vec::with_capacity(dataWords.len() + ecWords.len());
+    let mut messageExpected = vec![0; dataWords.len() + ecWords.len()];
+    let mut message = vec![0; dataWords.len() + ecWords.len()];
     messageExpected[0..dataWords.len()].clone_from_slice(&dataWords[0..dataWords.len()]);
     //System.arraycopy(dataWords, 0, messageExpected, 0, dataWords.len());
-    messageExpected[dataWords.len()..ecWords.len()+dataWords.len()].clone_from_slice(&ecWords[..ecWords.len()]);
+    messageExpected[dataWords.len()..ecWords.len() + dataWords.len()]
+        .clone_from_slice(&ecWords[..ecWords.len()]);
     //System.arraycopy(ecWords, 0, messageExpected, dataWords.len(), ecWords.len());
     message[0..dataWords.len()].clone_from_slice(&dataWords[0..dataWords.len()]);
     //System.arraycopy(dataWords, 0, message, 0, dataWords.len());
     encoder.encode(&mut message, ecWords.len());
-    assertDataEquals(
+    assert_data_equals(
         format!(
             "Encode in {} ({},{}) failed",
             field,
@@ -432,11 +431,11 @@ fn testEncoder(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
     );
 }
 
-fn testDecoder(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
+fn test_decoder(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
     let decoder = ReedSolomonDecoder::new(field.clone());
-    let mut message = Vec::with_capacity(dataWords.len() + ecWords.len());
+    let mut message = vec![0; dataWords.len() + ecWords.len()];
     let maxErrors = ecWords.len() / 2;
-    let mut random = getPseudoRandom();
+    let mut random = get_pseudo_random();
     let iterations = if field.getSize() > 256 {
         1
     } else {
@@ -444,15 +443,28 @@ fn testDecoder(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
     };
     for _j in 0..iterations {
         //for (int j = 0; j < iterations; j++) {
+            let mut skip_count = 0;
+            let mut skipping = false;
         for mut i in 0..ecWords.len() {
             //for (int i = 0; i < ecWords.length; i++) {
-            if i > 10 && i < ecWords.len() / 2 - 10 {
+            if i > 10 && ecWords.len() / 2 > 11 && i < ecWords.len() / 2 - 10 {
                 // performance improvement - skip intermediate cases in long-running tests
-                i += ecWords.len() / 10;
+                // i += ecWords.len() / 10;
+                skipping = true;
+                skip_count += 1;
+            }
+            if skipping {
+                if skip_count > ecWords.len() / 10 {
+                    skipping = false;
+                    skip_count = 0;
+                }else {
+                    continue;
+                }
             }
             message[0..dataWords.len()].clone_from_slice(&dataWords[0..dataWords.len()]);
             //System.arraycopy(dataWords, 0, message, 0, dataWords.len());
-            message[dataWords.len()..ecWords.len()].clone_from_slice(&ecWords[0..dataWords.len()]);
+            message[dataWords.len()..ecWords.len() + dataWords.len()]
+                .clone_from_slice(&ecWords[0..ecWords.len()]);
             //System.arraycopy(ecWords, 0, message, dataWords.len(), ecWords.len());
             corrupt(
                 &mut message,
@@ -490,7 +502,7 @@ fn testDecoder(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
             //   break;
             // }
             if i < maxErrors {
-                assertDataEquals(
+                assert_data_equals(
                     format!(
                         "Decode in {} ({},{}) failed at {} errors",
                         field,
@@ -506,7 +518,7 @@ fn testDecoder(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
     }
 }
 
-fn assertDataEquals(message: String, expected: &Vec<i32>, received: &Vec<i32>) {
+fn assert_data_equals(message: String, expected: &Vec<i32>, received: &Vec<i32>) {
     for i in 0..expected.len() {
         //for (int i = 0; i < expected.length; i++) {
         if expected[i] != received[i] {
@@ -514,15 +526,15 @@ fn assertDataEquals(message: String, expected: &Vec<i32>, received: &Vec<i32>) {
                 "{}. Mismatch at {}. Expected {}, got {}",
                 message,
                 i,
-                arrayToString(&expected),
-                arrayToString(&received[0..expected.len()])
+                array_to_string(&expected),
+                array_to_string(&received[0..expected.len()])
             );
             //fail();
         }
     }
 }
 
-fn arrayToString(data: &[i32]) -> String {
+fn array_to_string(data: &[i32]) -> String {
     let mut sb = String::from("{");
     for i in 0..data.len() {
         //for (int i = 0; i < data.length; i++) {
@@ -534,7 +546,7 @@ fn arrayToString(data: &[i32]) -> String {
     sb
 }
 
-fn getPseudoRandom() -> rand::rngs::ThreadRng {
+fn get_pseudo_random() -> rand::rngs::ThreadRng {
     rand::thread_rng()
     //return new Random(0xDEADBEEF);
 }
