@@ -14,6 +14,8 @@ use encoding::Encoding;
 #[cfg(test)]
 mod StringUtilsTestCase;
 
+#[cfg(test)]
+mod BitArrayTestCase;
 /*
  * Copyright (C) 2010 ZXing authors
  *
@@ -393,7 +395,7 @@ impl BitArray {
             return self.size;
         }
         let mut bitsOffset = from / 32;
-        let mut currentBits = self.bits[bitsOffset] as i32;
+        let mut currentBits = self.bits[bitsOffset] as i64;
         // mask off lesser bits first
         currentBits &= -(1 << (from & 0x1F));
         while currentBits == 0 {
@@ -401,7 +403,7 @@ impl BitArray {
             if bitsOffset == self.bits.len() {
                 return self.size;
             }
-            currentBits = self.bits[bitsOffset] as i32;
+            currentBits = self.bits[bitsOffset] as i64;
         }
         let result = (bitsOffset * 32) + currentBits.trailing_zeros() as usize;
         cmp::min(result, self.size)
@@ -466,8 +468,8 @@ impl BitArray {
             let firstBit = if i > firstInt { 0 } else { start & 0x1F };
             let lastBit = if i < lastInt { 31 } else { end & 0x1F };
             // Ones from firstBit to lastBit, inclusive
-            let mask = (2 << lastBit) - (1 << firstBit);
-            self.bits[i] |= mask;
+            let mask:u64 = (2 << lastBit) - (1 << firstBit);
+            self.bits[i] |= mask as u32;
         }
         Ok(())
     }
@@ -515,11 +517,11 @@ impl BitArray {
             let firstBit = if i > firstInt { 0 } else { start & 0x1F };
             let lastBit = if i < lastInt { 31 } else { end & 0x1F };
             // Ones from firstBit to lastBit, inclusive
-            let mask = (2 << lastBit) - (1 << firstBit);
+            let mask:u64 = (2 << lastBit) - (1 << firstBit);
 
             // Return false if we're looking for 1s and the masked bits[i] isn't all 1s (that is,
             // equals the mask, or we're looking for 0s and the masked portion is not all 0s
-            if (self.bits[i] & mask) != (if value { mask } else { 0 }) {
+            if (self.bits[i] & mask as u32) != (if value { mask as u32 } else { 0 }) {
                 return Ok(false);
             }
         }
