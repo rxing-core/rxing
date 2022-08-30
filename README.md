@@ -1,6 +1,6 @@
 # rxing - cRustacean Crossing
 
-This is a port of the ZXing (https://github.com/zxing/zxing) java barcode library to pure rust. Conversion was done partially with java-2-rust (https://github.com/cguz/java-to-rust), but mostly by hand. Original license resides with the authors of zxing.
+This is a port of the ZXing (https://github.com/zxing/zxing) java barcode library to pure rust. Conversion was done by hand. Original license resides with the authors of zxing.
 
 Porting of the testing library is incomplete.
 
