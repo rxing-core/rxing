@@ -11,6 +11,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 #[cfg(test)]
 mod PlanarYUVLuminanceSourceTestCase;
+
+#[cfg(test)]
+mod RGBLuminanceSourceTestCase;
 /*
  * Copyright 2007 ZXing authors
  *
@@ -1828,7 +1831,7 @@ impl LuminanceSource for RGBLuminanceSource {
         let width = self.getWidth();
 
         let offset = (y + self.top) * self.dataWidth + self.left;
-        row[0..width].clone_from_slice(&self.luminances[offset..width]);
+        row[0..width].clone_from_slice(&self.luminances[offset..offset+width]);
         //System.arraycopy(self.luminances, offset, row, 0, width);
         if self.invert {
             row = self.invert_block_of_bytes(row);
@@ -1918,7 +1921,7 @@ impl LuminanceSource for RGBLuminanceSource {
 }
 
 impl RGBLuminanceSource {
-    pub fn new_with_width_height_pixels(width: usize, height: usize, pixels: &Vec<u8>) -> Self {
+    pub fn new_with_width_height_pixels(width: usize, height: usize, pixels: &Vec<u32>) -> Self {
         //super(width, height);
 
         let dataWidth = width;
@@ -1935,11 +1938,11 @@ impl RGBLuminanceSource {
         for offset in 0..size {
             //for (int offset = 0; offset < size; offset++) {
             let pixel = pixels[offset];
-            let r = ((pixel as u32 >> 16) & 0xff) as u8; // red
-            let g2 = ((pixel as u16 >> 7) & 0x1fe) as u8; // 2 * green
+            let r = (pixel >> 16) & 0xff ; // red
+            let g2 = (pixel >> 7) & 0x1fe; // 2 * green
             let b = pixel & 0xff; // blue
                                   // Calculate green-favouring average cheaply
-            luminances[offset] = (r + g2 + b) / 4;
+            luminances[offset] = ((r + g2 + b) / 4).try_into().unwrap();
         }
         Self {
             luminances,
