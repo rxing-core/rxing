@@ -121,7 +121,12 @@ impl StringUtils {
         if bytes.len() > 2
             && ((bytes[0] == 0xFE && bytes[1] == 0xFF) || (bytes[0] == 0xFF && bytes[1] == 0xFE))
         {
-            return encoding::all::UTF_16BE;
+            if bytes[0] == 0xFE && bytes[1] == 0xFF {
+                return encoding::all::UTF_16BE;
+            }else {
+                return encoding::all::UTF_16LE;
+            }
+            
         }
 
         // For now, merely tries to distinguish ISO-8859-1, UTF-8 and Shift_JIS,
@@ -148,7 +153,7 @@ impl StringUtils {
             // for (int i = 0;
             //      i < length && (canBeISO88591 || canBeShiftJIS || canBeUTF8);
             //      i++) {
-            if canBeISO88591 || canBeShiftJIS || canBeUTF8 {
+            if !(canBeISO88591 || canBeShiftJIS || canBeUTF8) {
                 break;
             }
 
@@ -618,7 +623,7 @@ impl BitArray {
      * Reverses all bits in the array.
      */
     pub fn reverse(&mut self) {
-        let mut newBits = Vec::with_capacity(self.bits.len());
+        let mut newBits = vec![0;self.bits.len()];
         // reverse all int's first
         let len = (self.size - 1) / 32;
         let oldBitsLen = len + 1;
@@ -848,7 +853,7 @@ impl BitMatrix {
         //   throw new IllegalArgumentException();
         // }
 
-        let mut bits = Vec::with_capacity(stringRepresentation.len());
+        let mut bits = vec![false;stringRepresentation.len()];
         let mut bitsPos = 0;
         let mut rowStartPos = 0;
         let mut rowLength = 0; //-1;
@@ -1132,7 +1137,7 @@ impl BitMatrix {
         let mut newWidth = self.height;
         let mut newHeight = self.width;
         let mut newRowSize = (newWidth + 31) / 32;
-        let mut newBits = Vec::with_capacity((newRowSize * newHeight).try_into().unwrap());
+        let mut newBits = vec![0;(newRowSize * newHeight).try_into().unwrap()];
 
         for y in 0..self.height {
             //for (int y = 0; y < height; y++) {

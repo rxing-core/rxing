@@ -23,98 +23,115 @@
 // import java.nio.charset.StandardCharsets;
 // import java.util.Random;
 
-use rand::{Rng};
-use encoding::{Encoding};
-use std::{collections::HashMap, hash::Hash};
+use encoding::Encoding;
+use rand::Rng;
+use std::collections::HashMap;
 
 use crate::common::StringUtils;
 
-  #[test]
-  fn testRandom() {
+#[test]
+fn test_random() {
     let mut r = rand::thread_rng();
-    let bytes : Vec<u8> = vec![0;1000];
+    let mut bytes: Vec<u8> = vec![0; 1000];
     for i in 0..bytes.len() {
-      bytes[i] = r.gen();
+        bytes[i] = r.gen();
     }
-    assert_eq!(encoding::all::UTF_8.name(), StringUtils::guessCharset(&bytes, HashMap::new()).name());
-  }
+    assert_eq!(
+        encoding::all::UTF_8.name(),
+        StringUtils::guessCharset(&bytes, HashMap::new()).name()
+    );
+}
 
-  #[test]
-  fn testShortShiftJIS1() {
+#[test]
+fn test_short_shift_jis1() {
     // 金魚
-    doTest(&vec![ 0x8b,  0xe0,  0x8b,  0x9b, ], encoding::label::encoding_from_whatwg_label("SJIS").unwrap(), "SJIS");
-  }
+    do_test(
+        &vec![0x8b, 0xe0, 0x8b, 0x9b],
+        encoding::label::encoding_from_whatwg_label("SJIS").unwrap(),
+        "SJIS",
+    );
+}
 
-  #[test]
-  fn testShortISO885911() {
+#[test]
+fn test_short_iso885911() {
     // båd
-    doTest(new byte[] { (byte) 0x62, (byte) 0xe5, (byte) 0x64, }, StandardCharsets.ISO_8859_1, "ISO8859_1");
-  }
+    do_test(
+        &vec![0x62, 0xe5, 0x64],
+        encoding::all::ISO_8859_1,
+        "ISO8859_1",
+    );
+}
 
-  #[test]
-  fn  testShortUTF81() {
+#[test]
+fn test_short_utf8() {
     // Español
-    doTest(new byte[] { (byte) 0x45, (byte) 0x73, (byte) 0x70, (byte) 0x61, (byte) 0xc3,
-                        (byte) 0xb1, (byte) 0x6f, (byte) 0x6c },
-           StandardCharsets.UTF_8, "UTF8");
-  }
+    do_test(
+        &vec![0x45, 0x73, 0x70, 0x61, 0xc3, 0xb1, 0x6f, 0x6c],
+        encoding::all::UTF_8,
+        "UTF8",
+    );
+}
 
-  #[test]
-  fn testMixedShiftJIS1() {
+#[test]
+fn test_mixed_shift_jis1() {
     // Hello 金!
-    doTest(new byte[] { (byte) 0x48, (byte) 0x65, (byte) 0x6c, (byte) 0x6c, (byte) 0x6f,
-                        (byte) 0x20, (byte) 0x8b, (byte) 0xe0, (byte) 0x21, },
-           StringUtils.SHIFT_JIS_CHARSET, "SJIS");
-  }
+    do_test(
+        &vec![0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x8b, 0xe0, 0x21],
+        encoding::label::encoding_from_whatwg_label("SJIS").unwrap(),
+        "SJIS",
+    );
+}
 
-  #[test]
-  fn testUTF16BE() {
+#[test]
+fn test_utf16_be() {
     // 调压柜
-    doTest(new byte[] { (byte) 0xFE, (byte) 0xFF, (byte) 0x8c, (byte) 0x03, (byte) 0x53, (byte) 0x8b,
-                        (byte) 0x67, (byte) 0xdc, },
-           StandardCharsets.UTF_16,
-           StandardCharsets.UTF_16.name());
-  }
+    do_test(
+        &vec![0xFE, 0xFF, 0x8c, 0x03, 0x53, 0x8b, 0x67, 0xdc],
+        encoding::all::UTF_16BE,
+        encoding::all::UTF_16BE.name(),
+    );
+}
 
-  #[test]
-  fn testUTF16LE() {
+#[test]
+fn test_utf16_le() {
     // 调压柜
-    doTest(new byte[] { (byte) 0xFF, (byte) 0xFE, (byte) 0x03, (byte) 0x8c, (byte) 0x8b, (byte) 0x53,
-                        (byte) 0xdc, (byte) 0x67, },
-           StandardCharsets.UTF_16,
-           StandardCharsets.UTF_16.name());
-  }
+    do_test(
+        &vec![0xFF, 0xFE, 0x03, 0x8c, 0x8b, 0x53, 0xdc, 0x67],
+        encoding::all::UTF_16LE,
+        encoding::all::UTF_16LE.name(),
+    );
+}
 
-  fn doTest(bytes :&Vec<u8>,  charset : &dyn Encoding,  encoding: &str) {
+fn do_test(bytes: &Vec<u8>, charset: &dyn Encoding, encoding: &str) {
     let guessedCharset = StringUtils::guessCharset(bytes, HashMap::new());
     let guessedEncoding = StringUtils::guessEncoding(bytes, HashMap::new());
     assert_eq!(charset.name(), guessedCharset.name());
     assert_eq!(encoding, guessedEncoding);
-  }
+}
 
-  /**
-   * Utility for printing out a string in given encoding as a Java statement, since it's better
-   * to write that into the Java source file rather than risk character encoding issues in the
-   * source file itself.
-   *
-   * @param args command line arguments
-   */
-  fn main(String[] args) {
-    String text = args[0];
-    Charset charset = Charset.forName(args[1]);
-    StringBuilder declaration = new StringBuilder();
-    declaration.append("new byte[] { ");
-    for (byte b : text.getBytes(charset)) {
-      declaration.append("(byte) 0x");
-      int value = b & 0xFF;
-      if (value < 0x10) {
-        declaration.append('0');
-      }
-      declaration.append(Integer.toHexString(value));
-      declaration.append(", ");
-    }
-    declaration.append('}');
-    System.out.println(declaration);
-  }
+// /**
+//  * Utility for printing out a string in given encoding as a Java statement, since it's better
+//  * to write that into the Java source file rather than risk character encoding issues in the
+//  * source file itself.
+//  *
+//  * @param args command line arguments
+//  */
+// fn main(String[] args) {
+//   String text = args[0];
+//   Charset charset = Charset.forName(args[1]);
+//   StringBuilder declaration = new StringBuilder();
+//   declaration.append("new byte[] { ");
+//   for (byte b : text.getBytes(charset)) {
+//     declaration.append("(byte) 0x");
+//     int value = b & 0xFF;
+//     if (value < 0x10) {
+//       declaration.append('0');
+//     }
+//     declaration.append(Integer.toHexString(value));
+//     declaration.append(", ");
+//   }
+//   declaration.append('}');
+//   System.out.println(declaration);
+// }
 
 // }
