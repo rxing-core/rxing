@@ -19,6 +19,9 @@ mod BitArrayTestCase;
 
 #[cfg(test)]
 mod BitMatrixTestCase;
+
+#[cfg(test)]
+mod BitSourceTestCase;
 /*
  * Copyright (C) 2010 ZXing authors
  *
@@ -1492,8 +1495,8 @@ pub trait ECIInput {
  */
 pub struct BitSource {
     bytes: Vec<u8>,
-    byteOffset: usize,
-    bitOffset: usize,
+    byte_offset: usize,
+    bit_offset: usize,
 }
 
 impl BitSource {
@@ -1504,8 +1507,8 @@ impl BitSource {
     pub fn new(bytes: Vec<u8>) -> Self {
         Self {
             bytes,
-            byteOffset: 0,
-            bitOffset: 0,
+            byte_offset: 0,
+            bit_offset: 0,
         }
     }
 
@@ -1513,14 +1516,14 @@ impl BitSource {
      * @return index of next bit in current byte which would be read by the next call to {@link #readBits(int)}.
      */
     pub fn getBitOffset(&self) -> usize {
-        return self.bitOffset;
+        return self.bit_offset;
     }
 
     /**
      * @return index of next byte in input byte array which would be read by the next call to {@link #readBits(int)}.
      */
     pub fn getByteOffset(&self) -> usize {
-        return self.byteOffset;
+        return self.byte_offset;
     }
 
     /**
@@ -1536,38 +1539,38 @@ impl BitSource {
 
         let mut result = 0;
 
-        let mut numBits = numBits;
+        let mut num_bits = numBits;
 
         // First, read remainder from current byte
-        if self.bitOffset > 0 {
-            let bitsLeft = 8 - self.bitOffset;
-            let toRead = cmp::min(numBits, bitsLeft);
+        if self.bit_offset > 0 {
+            let bitsLeft = 8 - self.bit_offset;
+            let toRead = cmp::min(num_bits, bitsLeft);
             let bitsToNotRead = bitsLeft - toRead;
             let mask = (0xFF >> (8 - toRead)) << bitsToNotRead;
-            result = (self.bytes[self.byteOffset] & mask) >> bitsToNotRead;
-            numBits -= toRead;
-            self.bitOffset += toRead;
-            if self.bitOffset == 8 {
-                self.bitOffset = 0;
-                self.byteOffset += 1;
+            result = (self.bytes[self.byte_offset] & mask) >> bitsToNotRead;
+            num_bits -= toRead;
+            self.bit_offset += toRead;
+            if self.bit_offset == 8 {
+                self.bit_offset = 0;
+                self.byte_offset += 1;
             }
         }
 
         // Next read whole bytes
-        if numBits > 0 {
-            while numBits >= 8 {
-                result = (result << 8) | (self.bytes[self.byteOffset] & 0xFF);
-                self.byteOffset += 1;
-                numBits -= 8;
+        if num_bits > 0 {
+            while num_bits >= 8 {
+                result = ((result as u16) << 8) as u8 | (self.bytes[self.byte_offset] & 0xFF);
+                self.byte_offset += 1;
+                num_bits -= 8;
             }
 
             // Finally read a partial byte
-            if numBits > 0 {
-                let bitsToNotRead = 8 - numBits;
-                let mask = (0xFF >> bitsToNotRead) << bitsToNotRead;
+            if num_bits > 0 {
+                let bits_to_not_read = 8 - num_bits;
+                let mask = (0xFF >> bits_to_not_read) << bits_to_not_read;
                 result =
-                    (result << numBits) | ((self.bytes[self.byteOffset] & mask) >> bitsToNotRead);
-                self.bitOffset += numBits;
+                    (result << num_bits) | ((self.bytes[self.byte_offset] & mask) >> bits_to_not_read);
+                self.bit_offset += num_bits;
             }
         }
 
@@ -1578,6 +1581,6 @@ impl BitSource {
      * @return number of bits that can be read successfully
      */
     pub fn available(&self) -> usize {
-        return 8 * (self.bytes.len() - self.byteOffset) - self.bitOffset;
+        return 8 * (self.bytes.len() - self.byte_offset) - self.bit_offset;
     }
 }
