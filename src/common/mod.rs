@@ -16,6 +16,9 @@ mod StringUtilsTestCase;
 
 #[cfg(test)]
 mod BitArrayTestCase;
+
+#[cfg(test)]
+mod BitMatrixTestCase;
 /*
  * Copyright (C) 2010 ZXing authors
  *
@@ -1081,7 +1084,7 @@ impl BitMatrix {
      * @param row {@link BitArray} to copy from
      */
     pub fn setRow(&mut self, y: u32, row: &BitArray) {
-        return self.bits[y as usize * self.rowSize..self.rowSize]
+        return self.bits[y as usize * self.rowSize..y as usize * self.rowSize + self.rowSize]
             .clone_from_slice(&row.getBitArray()[0..self.rowSize]);
         //System.arraycopy(row.getBitArray(), 0, self.bits, y * self.rowSize, self.rowSize);
     }
@@ -1240,18 +1243,18 @@ impl BitMatrix {
     }
 
     pub fn getBottomRightOnBit(&self) -> Option<Vec<u32>> {
-        let mut bitsOffset = self.bits.len() - 1;
-        while bitsOffset >= 0 && self.bits[bitsOffset] == 0 {
+        let mut bitsOffset = self.bits.len() as i64 - 1;
+        while bitsOffset >= 0 && self.bits[bitsOffset as usize] == 0 {
             bitsOffset -= 1;
         }
         if bitsOffset < 0 {
             return None;
         }
 
-        let y = bitsOffset / self.rowSize;
-        let mut x = (bitsOffset % self.rowSize) * 32;
+        let y = bitsOffset as usize / self.rowSize;
+        let mut x = (bitsOffset as usize % self.rowSize) * 32;
 
-        let theBits = self.bits[bitsOffset];
+        let theBits = self.bits[bitsOffset as usize];
         let mut bit = 31;
         while (theBits >> bit) == 0 {
             bit -= 1;
