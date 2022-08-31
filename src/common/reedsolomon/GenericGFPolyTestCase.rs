@@ -19,6 +19,8 @@
 //import org.junit.Assert;
 //import org.junit.Test;
 
+use std::rc::Rc;
+
 use super::{GenericGF, GenericGFPoly};
 
 /**
@@ -29,11 +31,11 @@ use super::{GenericGF, GenericGFPoly};
 
 #[test]
 fn testPolynomialString() {
-    let FIELD = super::get_predefined_genericgf(super::PredefinedGenericGF::QrCodeField256);
+    let FIELD = Rc::new(super::get_predefined_genericgf(super::PredefinedGenericGF::QrCodeField256));
     let fz = super::GenericGFPoly::new(FIELD.clone(), &vec![0; 1]).unwrap();
 
     assert_eq!("0", fz.getZero().to_string());
-    let n1mono = FIELD.buildMonomial(0, -1);
+    let n1mono = GenericGF::buildMonomial(FIELD.clone(), 0, -1);
     assert_eq!("-1", n1mono.to_string());
     let p = GenericGFPoly::new(FIELD.clone(), &vec![3, 0, -2, 1, 1]).unwrap();
     assert_eq!("a^25x^4 - ax^2 + x + 1", p.to_string());
@@ -43,19 +45,19 @@ fn testPolynomialString() {
 
 #[test]
 fn testZero() {
-    let FIELD = super::get_predefined_genericgf(super::PredefinedGenericGF::QrCodeField256);
+    let FIELD = Rc::new(super::get_predefined_genericgf(super::PredefinedGenericGF::QrCodeField256));
     let fz = super::GenericGFPoly::new(FIELD.clone(), &vec![0; 1]).unwrap();
 
-    assert_eq!(fz.getZero(), FIELD.buildMonomial(1, 0));
+    assert_eq!(fz.getZero(), GenericGF::buildMonomial(FIELD.clone(), 1, 0));
     assert_eq!(
         fz.getZero(),
-        FIELD.buildMonomial(1, 2).multiply_with_scalar(0)
+        GenericGF::buildMonomial(FIELD.clone(), 1, 2).multiply_with_scalar(0)
     );
 }
 
 #[test]
 fn testEvaluate() {
-    let FIELD = super::get_predefined_genericgf(super::PredefinedGenericGF::QrCodeField256);
+    let FIELD = Rc::new(super::get_predefined_genericgf(super::PredefinedGenericGF::QrCodeField256));
 
-    assert_eq!(3, FIELD.buildMonomial(0, 3).evaluateAt(0));
+    assert_eq!(3, GenericGF::buildMonomial(FIELD.clone(), 0, 3).evaluateAt(0));
 }
