@@ -1,6 +1,12 @@
 mod common;
 mod exceptions;
 
+#[cfg(feature="image")]
+mod BufferedImageLuminanceSource;
+
+#[cfg(feature="image")]
+pub use BufferedImageLuminanceSource::*;
+
 use crate::common::{BitArray, BitMatrix};
 use exceptions::*;
 use std::any::{Any, TypeId};

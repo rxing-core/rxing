@@ -9,3 +9,9 @@ edition = "2021"
 regex = "1"
 encoding = "0.2"
 rand = "0.8.5"
+image = {version = "0.24.3", optional = true}
+imageproc = {version = "0.23.0", optional = true}
+
+[features]
+default = ["image"]
+image = ["dep:image", "dep:imageproc"]
