@@ -1824,14 +1824,20 @@ pub struct RGBLuminanceSource {
 
 impl LuminanceSource for RGBLuminanceSource {
     fn getRow(&self, y: usize, row: &Vec<u8>) -> Vec<u8> {
-        let mut row = row.to_vec();
         if y < 0 || y >= self.getHeight() {
             panic!("Requested row is outside the image: {}", y);
         }
         let width = self.getWidth();
 
         let offset = (y + self.top) * self.dataWidth + self.left;
-        row[0..width].clone_from_slice(&self.luminances[offset..offset+width]);
+
+        let mut row = if row.len() >= width {
+        row.to_vec()
+        }else{
+            vec![0;width]
+        };
+
+        row[..width].clone_from_slice(&self.luminances[offset..offset+width]);
         //System.arraycopy(self.luminances, offset, row, 0, width);
         if self.invert {
             row = self.invert_block_of_bytes(row);
@@ -1859,7 +1865,7 @@ impl LuminanceSource for RGBLuminanceSource {
 
         // If the width matches the full width of the underlying data, perform a single copy.
         if width == self.dataWidth {
-            matrix[0..area].clone_from_slice(&self.luminances[inputOffset..area]);
+            matrix[..area].clone_from_slice(&self.luminances[inputOffset..area+inputOffset]);
             //System.arraycopy(self.luminances, inputOffset, matrix, 0, area);
             if self.invert {
                 matrix = self.invert_block_of_bytes(matrix);
@@ -1871,7 +1877,7 @@ impl LuminanceSource for RGBLuminanceSource {
         for y in 0..height {
             //for (int y = 0; y < height; y++) {
             let outputOffset = y * width;
-            matrix[outputOffset..width].clone_from_slice(&self.luminances[inputOffset..width]);
+            matrix[outputOffset..width+outputOffset].clone_from_slice(&self.luminances[inputOffset..width+inputOffset]);
             //System.arraycopy(luminances, inputOffset, matrix, outputOffset, width);
             inputOffset += self.dataWidth;
         }
@@ -1958,22 +1964,22 @@ impl RGBLuminanceSource {
 
     fn new_complex(
         pixels: &Vec<u8>,
-        dataWidth: usize,
-        dataHeight: usize,
+        data_width: usize,
+        data_height: usize,
         left: usize,
         top: usize,
         width: usize,
         height: usize,
     ) -> Result<Self, Exceptions> {
-        if left + width > dataWidth || top + height > dataHeight {
+        if left + width > data_width || top + height > data_height {
             return Err(Exceptions::IllegalArgumentException(
                 "Crop rectangle does not fit within image data.".to_owned(),
             ));
         }
         Ok(Self {
-            luminances: todo!(),
-            dataWidth,
-            dataHeight,
+            luminances: pixels.clone(),
+            dataWidth: data_width,
+            dataHeight: data_height,
             left,
             top,
             width,
