@@ -2068,7 +2068,6 @@ impl BitSourceBuilder {
     }
 }
 
-
 /*
  * Copyright 2007 ZXing authors
  *
@@ -2104,147 +2103,273 @@ impl BitSourceBuilder {
  */
 
 pub trait GridSampler {
-//   /**
-//    * Sets the implementation of GridSampler used by the library. One global
-//    * instance is stored, which may sound problematic. But, the implementation provided
-//    * ought to be appropriate for the entire platform, and all uses of this library
-//    * in the whole lifetime of the JVM. For instance, an Android activity can swap in
-//    * an implementation that takes advantage of native platform libraries.
-//    *
-//    * @param newGridSampler The platform-specific object to install.
-//    */
-//   public static void setGridSampler(GridSampler newGridSampler) {
-//     gridSampler = newGridSampler;
-//   }
+    //   /**
+    //    * Sets the implementation of GridSampler used by the library. One global
+    //    * instance is stored, which may sound problematic. But, the implementation provided
+    //    * ought to be appropriate for the entire platform, and all uses of this library
+    //    * in the whole lifetime of the JVM. For instance, an Android activity can swap in
+    //    * an implementation that takes advantage of native platform libraries.
+    //    *
+    //    * @param newGridSampler The platform-specific object to install.
+    //    */
+    //   public static void setGridSampler(GridSampler newGridSampler) {
+    //     gridSampler = newGridSampler;
+    //   }
 
-//   /**
-//    * @return the current implementation of GridSampler
-//    */
-//   public static GridSampler getInstance() {
-//     return gridSampler;
-//   }
+    //   /**
+    //    * @return the current implementation of GridSampler
+    //    */
+    //   public static GridSampler getInstance() {
+    //     return gridSampler;
+    //   }
 
-  /**
-   * Samples an image for a rectangular matrix of bits of the given dimension. The sampling
-   * transformation is determined by the coordinates of 4 points, in the original and transformed
-   * image space.
-   *
-   * @param image image to sample
-   * @param dimensionX width of {@link BitMatrix} to sample from image
-   * @param dimensionY height of {@link BitMatrix} to sample from image
-   * @param p1ToX point 1 preimage X
-   * @param p1ToY point 1 preimage Y
-   * @param p2ToX point 2 preimage X
-   * @param p2ToY point 2 preimage Y
-   * @param p3ToX point 3 preimage X
-   * @param p3ToY point 3 preimage Y
-   * @param p4ToX point 4 preimage X
-   * @param p4ToY point 4 preimage Y
-   * @param p1FromX point 1 image X
-   * @param p1FromY point 1 image Y
-   * @param p2FromX point 2 image X
-   * @param p2FromY point 2 image Y
-   * @param p3FromX point 3 image X
-   * @param p3FromY point 3 image Y
-   * @param p4FromX point 4 image X
-   * @param p4FromY point 4 image Y
-   * @return {@link BitMatrix} representing a grid of points sampled from the image within a region
-   *   defined by the "from" parameters
-   * @throws NotFoundException if image can't be sampled, for example, if the transformation defined
-   *   by the given points is invalid or results in sampling outside the image boundaries
-   */
-  fn  sample_grid_detailed(&self,  image:&BitMatrix,
-                                        dimensionX:u32,
-                                        dimensionY:u32,
-                                        p1ToX:f32,  p1ToY:f32,
-                                        p2ToX:f32,  p2ToY:f32,
-                                        p3ToX:f32,  p3ToY:f32,
-                                        p4ToX:f32,  p4ToY:f32,
-                                        p1FromX:f32,  p1FromY:f32,
-                                        p2FromX:f32,  p2FromY:f32,
-                                        p3FromX:f32,  p3FromY:f32,
-                                        p4FromX:f32,  p4FromY:f32) -> Result<BitMatrix,Exceptions>;
+    /**
+     * Samples an image for a rectangular matrix of bits of the given dimension. The sampling
+     * transformation is determined by the coordinates of 4 points, in the original and transformed
+     * image space.
+     *
+     * @param image image to sample
+     * @param dimensionX width of {@link BitMatrix} to sample from image
+     * @param dimensionY height of {@link BitMatrix} to sample from image
+     * @param p1ToX point 1 preimage X
+     * @param p1ToY point 1 preimage Y
+     * @param p2ToX point 2 preimage X
+     * @param p2ToY point 2 preimage Y
+     * @param p3ToX point 3 preimage X
+     * @param p3ToY point 3 preimage Y
+     * @param p4ToX point 4 preimage X
+     * @param p4ToY point 4 preimage Y
+     * @param p1FromX point 1 image X
+     * @param p1FromY point 1 image Y
+     * @param p2FromX point 2 image X
+     * @param p2FromY point 2 image Y
+     * @param p3FromX point 3 image X
+     * @param p3FromY point 3 image Y
+     * @param p4FromX point 4 image X
+     * @param p4FromY point 4 image Y
+     * @return {@link BitMatrix} representing a grid of points sampled from the image within a region
+     *   defined by the "from" parameters
+     * @throws NotFoundException if image can't be sampled, for example, if the transformation defined
+     *   by the given points is invalid or results in sampling outside the image boundaries
+     */
+    fn sample_grid_detailed(
+        &self,
+        image: &BitMatrix,
+        dimensionX: u32,
+        dimensionY: u32,
+        p1ToX: f32,
+        p1ToY: f32,
+        p2ToX: f32,
+        p2ToY: f32,
+        p3ToX: f32,
+        p3ToY: f32,
+        p4ToX: f32,
+        p4ToY: f32,
+        p1FromX: f32,
+        p1FromY: f32,
+        p2FromX: f32,
+        p2FromY: f32,
+        p3FromX: f32,
+        p3FromY: f32,
+        p4FromX: f32,
+        p4FromY: f32,
+    ) -> Result<BitMatrix, Exceptions>;
 
-  fn  sample_grid(&self,  image:&BitMatrix,
-                                        dimensionX:u32,
-                                        dimensionY:u32,
-                                        transform:&PerspectiveTransform) -> Result<BitMatrix ,Exceptions>;
+    fn sample_grid(
+        &self,
+        image: &BitMatrix,
+        dimensionX: u32,
+        dimensionY: u32,
+        transform: &PerspectiveTransform,
+    ) -> Result<BitMatrix, Exceptions>;
 
-  /**
-   * <p>Checks a set of points that have been transformed to sample points on an image against
-   * the image's dimensions to see if the point are even within the image.</p>
-   *
-   * <p>This method will actually "nudge" the endpoints back onto the image if they are found to be
-   * barely (less than 1 pixel) off the image. This accounts for imperfect detection of finder
-   * patterns in an image where the QR Code runs all the way to the image border.</p>
-   *
-   * <p>For efficiency, the method will check points from either end of the line until one is found
-   * to be within the image. Because the set of points are assumed to be linear, this is valid.</p>
-   *
-   * @param image image into which the points should map
-   * @param points actual points in x1,y1,...,xn,yn form
-   * @throws NotFoundException if an endpoint is lies outside the image boundaries
-   */
-  fn checkAndNudgePoints(&self,  image:&BitMatrix,
-                                             points:&mut [f32]) -> Result<(),Exceptions> {
-    let width = image.getWidth();
-    let height = image.getHeight();
-    // Check and nudge points from start until we see some that are OK:
-    let mut nudged = true;
-    let max_offset = points.len() - 1; // points.length must be even
-    let mut offset = 0;
-    while offset < max_offset && nudged {
-    // for (int offset = 0; offset < maxOffset && nudged; offset += 2) {
-      let x =  points[offset] as i32;
-      let y =  points[offset + 1] as i32;
-      if x < -1 || x > width.try_into().unwrap() || y < -1 || y > height.try_into().unwrap() {
-        return Err(Exceptions::NotFoundException("getNotFoundInstance".to_owned()));
-      }
-      nudged = false;
-      if x == -1 {
-        points[offset] = 0.0f32;
+    /**
+     * <p>Checks a set of points that have been transformed to sample points on an image against
+     * the image's dimensions to see if the point are even within the image.</p>
+     *
+     * <p>This method will actually "nudge" the endpoints back onto the image if they are found to be
+     * barely (less than 1 pixel) off the image. This accounts for imperfect detection of finder
+     * patterns in an image where the QR Code runs all the way to the image border.</p>
+     *
+     * <p>For efficiency, the method will check points from either end of the line until one is found
+     * to be within the image. Because the set of points are assumed to be linear, this is valid.</p>
+     *
+     * @param image image into which the points should map
+     * @param points actual points in x1,y1,...,xn,yn form
+     * @throws NotFoundException if an endpoint is lies outside the image boundaries
+     */
+    fn checkAndNudgePoints(&self, image: &BitMatrix, points: &mut [f32]) -> Result<(), Exceptions> {
+        let width = image.getWidth();
+        let height = image.getHeight();
+        // Check and nudge points from start until we see some that are OK:
+        let mut nudged = true;
+        let max_offset = points.len() - 1; // points.length must be even
+        let mut offset = 0;
+        while offset < max_offset && nudged {
+            // for (int offset = 0; offset < maxOffset && nudged; offset += 2) {
+            let x = points[offset] as i32;
+            let y = points[offset + 1] as i32;
+            if x < -1 || x > width.try_into().unwrap() || y < -1 || y > height.try_into().unwrap() {
+                return Err(Exceptions::NotFoundException(
+                    "getNotFoundInstance".to_owned(),
+                ));
+            }
+            nudged = false;
+            if x == -1 {
+                points[offset] = 0.0f32;
+                nudged = true;
+            } else if x == width.try_into().unwrap() {
+                points[offset] = width as f32 - 1f32;
+                nudged = true;
+            }
+            if y == -1 {
+                points[offset + 1] = 0.0f32;
+                nudged = true;
+            } else if (y == height.try_into().unwrap()) {
+                points[offset + 1] = height as f32 - 1f32;
+                nudged = true;
+            }
+            offset += 2;
+        }
+        // Check and nudge points from end:
         nudged = true;
-      } else if x == width.try_into().unwrap() {
-        points[offset] = width as f32 - 1f32;
-        nudged = true;
-      }
-      if y == -1 {
-        points[offset + 1] = 0.0f32;
-        nudged = true;
-      } else if (y == height.try_into().unwrap()) {
-        points[offset + 1] = height as f32 - 1f32;
-        nudged = true;
-      }
-      offset+=2;
+        let mut offset = points.len() - 2;
+        while offset >= 0 && nudged {
+            // for (int offset = points.length - 2; offset >= 0 && nudged; offset -= 2) {
+            let x = points[offset] as i32;
+            let y = points[offset + 1] as i32;
+            if x < -1 || x > width.try_into().unwrap() || y < -1 || y > height.try_into().unwrap() {
+                return Err(Exceptions::NotFoundException(
+                    "getNotFoundInstance".to_owned(),
+                ));
+            }
+            nudged = false;
+            if x == -1 {
+                points[offset] = 0.0f32;
+                nudged = true;
+            } else if (x == width.try_into().unwrap()) {
+                points[offset] = width as f32 - 1f32;
+                nudged = true;
+            }
+            if y == -1 {
+                points[offset + 1] = 0.0f32;
+                nudged = true;
+            } else if (y == height.try_into().unwrap()) {
+                points[offset + 1] = height as f32 - 1f32;
+                nudged = true;
+            }
+            offset += 2;
+        }
+        Ok(())
     }
-    // Check and nudge points from end:
-    nudged = true;
-    let mut offset = points.len()-2;
-    while offset >= 0 && nudged {
-    // for (int offset = points.length - 2; offset >= 0 && nudged; offset -= 2) {
-      let x =  points[offset] as i32;
-      let y =  points[offset + 1] as i32;
-      if x < -1 || x > width.try_into().unwrap() || y < -1 || y > height.try_into().unwrap() {
-        return Err(Exceptions::NotFoundException("getNotFoundInstance".to_owned()));
-      }
-      nudged = false;
-      if x == -1 {
-        points[offset] = 0.0f32;
-        nudged = true;
-      } else if (x == width.try_into().unwrap()) {
-        points[offset] = width as f32 - 1f32;
-        nudged = true;
-      }
-      if y == -1 {
-        points[offset + 1] = 0.0f32;
-        nudged = true;
-      } else if (y == height.try_into().unwrap()) {
-        points[offset + 1] = height as f32 - 1f32;
-        nudged = true;
-      }
-      offset+=2;
-    }
-    Ok(())
-  }
+}
 
+/*
+ * Copyright 2007 ZXing authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// package com.google.zxing.common;
+
+// import com.google.zxing.NotFoundException;
+
+/**
+ * @author Sean Owen
+ */
+pub struct DefaultGridSampler {}
+
+impl GridSampler for DefaultGridSampler {
+    fn sample_grid_detailed(
+        &self,
+        image: &BitMatrix,
+        dimensionX: u32,
+        dimensionY: u32,
+        p1ToX: f32,
+        p1ToY: f32,
+        p2ToX: f32,
+        p2ToY: f32,
+        p3ToX: f32,
+        p3ToY: f32,
+        p4ToX: f32,
+        p4ToY: f32,
+        p1FromX: f32,
+        p1FromY: f32,
+        p2FromX: f32,
+        p2FromY: f32,
+        p3FromX: f32,
+        p3FromY: f32,
+        p4FromX: f32,
+        p4FromY: f32,
+    ) -> Result<BitMatrix, Exceptions> {
+        let transform = PerspectiveTransform::quadrilateralToQuadrilateral(
+            p1ToX, p1ToY, p2ToX, p2ToY, p3ToX, p3ToY, p4ToX, p4ToY, p1FromX, p1FromY, p2FromX,
+            p2FromY, p3FromX, p3FromY, p4FromX, p4FromY,
+        );
+
+        self.sample_grid(image, dimensionX, dimensionY, &transform)
+    }
+
+    fn sample_grid(
+        &self,
+        image: &BitMatrix,
+        dimensionX: u32,
+        dimensionY: u32,
+        transform: &PerspectiveTransform,
+    ) -> Result<BitMatrix, Exceptions> {
+        if dimensionX <= 0 || dimensionY <= 0 {
+            return Err(Exceptions::NotFoundException(
+                "getNotFoundInstance".to_owned(),
+            ));
+        }
+        let mut bits = BitMatrix::new(dimensionX, dimensionY)?;
+        let mut points = vec![0_f32; 2 * dimensionX as usize];
+        for y in 0..dimensionY {
+            //   for (int y = 0; y < dimensionY; y++) {
+            let max = points.len();
+            let iValue = y as f32 + 0.5f32;
+            let mut x = 0;
+            while x < max {
+                // for (int x = 0; x < max; x += 2) {
+                points[x] = (x as f32 / 2.0) + 0.5f32;
+                points[x + 1] = iValue;
+                x += 2;
+            }
+            transform.transform_points_single(&mut points);
+            // Quick check to see if points transformed to something inside the image;
+            // sufficient to check the endpoints
+            self.checkAndNudgePoints(image, &mut points);
+            // try {
+            let mut x = 0;
+            while x < max {
+                //   for (int x = 0; x < max; x += 2) {
+                if image.get(points[x] as u32, points[x + 1] as u32) {
+                    // Black(-ish) pixel
+                    bits.set(x as u32 / 2, y);
+                    x += 2;
+                }
+            }
+            // } catch (ArrayIndexOutOfBoundsException aioobe) {
+            //   // This feels wrong, but, sometimes if the finder patterns are misidentified, the resulting
+            //   // transform gets "twisted" such that it maps a straight line of points to a set of points
+            //   // whose endpoints are in bounds, but others are not. There is probably some mathematical
+            //   // way to detect this about the transformation that I don't know yet.
+            //   // This results in an ugly runtime exception despite our clever checks above -- can't have
+            //   // that. We could check each point's coordinates but that feels duplicative. We settle for
+            //   // catching and wrapping ArrayIndexOutOfBoundsException.
+            //   throw NotFoundException.getNotFoundInstance();
+            // }
+        }
+        return Ok(bits);
+    }
 }
