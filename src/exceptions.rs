@@ -12,5 +12,7 @@ pub enum Exceptions {
     ReaderException(String),
     WriterException(String),
     ReedSolomonException(String),
+    IndexOutOfBoundsException(String),
+    RuntimeException(String),
     ReaderDecodeException()
 }
