@@ -2374,7 +2374,6 @@ impl GridSampler for DefaultGridSampler {
     }
 }
 
-
 /*
  * Copyright 2008 ZXing authors
  *
@@ -2407,252 +2406,247 @@ impl GridSampler for DefaultGridSampler {
  * @author Sean Owen
  */
 pub enum CharacterSetECI {
-
-  // Enum name is a Java encoding valid for java.lang and java.io
-  Cp437,//(new int[]{0,2}),
-  ISO8859_1,//(new int[]{1,3}, "ISO-8859-1"),
-  ISO8859_2,//(4, "ISO-8859-2"),
-  ISO8859_3,//(5, "ISO-8859-3"),
-  ISO8859_4,//(6, "ISO-8859-4"),
-  ISO8859_5,//(7, "ISO-8859-5"),
-   ISO8859_6,//(8, "ISO-8859-6"),
-  ISO8859_7,//(9, "ISO-8859-7"),
-   ISO8859_8,//(10, "ISO-8859-8"),
-  ISO8859_9,//(11, "ISO-8859-9"),
-   ISO8859_10,//(12, "ISO-8859-10"),
-   ISO8859_11,//(13, "ISO-8859-11"),
-  ISO8859_13,//(15, "ISO-8859-13"),
-   ISO8859_14,//(16, "ISO-8859-14"),
-  ISO8859_15,//(17, "ISO-8859-15"),
-  ISO8859_16,//(18, "ISO-8859-16"),
-  SJIS,//(20, "Shift_JIS"),
-  Cp1250,//(21, "windows-1250"),
-  Cp1251,//(22, "windows-1251"),
-  Cp1252,//(23, "windows-1252"),
-  Cp1256,//(24, "windows-1256"),
-  UnicodeBigUnmarked,//(25, "UTF-16BE", "UnicodeBig"),
-  UTF8,//(26, "UTF-8"),
-  ASCII,//(new int[] {27, 170}, "US-ASCII"),
-  Big5,//(28),
-  GB18030,//(29, "GB2312", "EUC_CN", "GBK"),
-  EUC_KR,//(30, "EUC-KR");
+    // Enum name is a Java encoding valid for java.lang and java.io
+    Cp437,              //(new int[]{0,2}),
+    ISO8859_1,          //(new int[]{1,3}, "ISO-8859-1"),
+    ISO8859_2,          //(4, "ISO-8859-2"),
+    ISO8859_3,          //(5, "ISO-8859-3"),
+    ISO8859_4,          //(6, "ISO-8859-4"),
+    ISO8859_5,          //(7, "ISO-8859-5"),
+    ISO8859_6,          //(8, "ISO-8859-6"),
+    ISO8859_7,          //(9, "ISO-8859-7"),
+    ISO8859_8,          //(10, "ISO-8859-8"),
+    ISO8859_9,          //(11, "ISO-8859-9"),
+    ISO8859_10,         //(12, "ISO-8859-10"),
+    ISO8859_11,         //(13, "ISO-8859-11"),
+    ISO8859_13,         //(15, "ISO-8859-13"),
+    ISO8859_14,         //(16, "ISO-8859-14"),
+    ISO8859_15,         //(17, "ISO-8859-15"),
+    ISO8859_16,         //(18, "ISO-8859-16"),
+    SJIS,               //(20, "Shift_JIS"),
+    Cp1250,             //(21, "windows-1250"),
+    Cp1251,             //(22, "windows-1251"),
+    Cp1252,             //(23, "windows-1252"),
+    Cp1256,             //(24, "windows-1256"),
+    UnicodeBigUnmarked, //(25, "UTF-16BE", "UnicodeBig"),
+    UTF8,               //(26, "UTF-8"),
+    ASCII,              //(new int[] {27, 170}, "US-ASCII"),
+    Big5,               //(28),
+    GB18030,            //(29, "GB2312", "EUC_CN", "GBK"),
+    EUC_KR,             //(30, "EUC-KR");
 }
 impl CharacterSetECI {
+    //   private static final Map<Integer,CharacterSetECI> VALUE_TO_ECI = new HashMap<>();
+    //   private static final Map<String,CharacterSetECI> NAME_TO_ECI = new HashMap<>();
+    //   static {
+    //     for (CharacterSetECI eci : values()) {
+    //       for (int value : eci.values) {
+    //         VALUE_TO_ECI.put(value, eci);
+    //       }
+    //       NAME_TO_ECI.put(eci.name(), eci);
+    //       for (String name : eci.otherEncodingNames) {
+    //         NAME_TO_ECI.put(name, eci);
+    //       }
+    //     }
+    //   }
 
-//   private static final Map<Integer,CharacterSetECI> VALUE_TO_ECI = new HashMap<>();
-//   private static final Map<String,CharacterSetECI> NAME_TO_ECI = new HashMap<>();
-//   static {
-//     for (CharacterSetECI eci : values()) {
-//       for (int value : eci.values) {
-//         VALUE_TO_ECI.put(value, eci);
-//       }
-//       NAME_TO_ECI.put(eci.name(), eci);
-//       for (String name : eci.otherEncodingNames) {
-//         NAME_TO_ECI.put(name, eci);
-//       }
-//     }
-//   }
+    //   private final int[] values;
+    //   private final String[] otherEncodingNames;
 
-//   private final int[] values;
-//   private final String[] otherEncodingNames;
+    //   CharacterSetECI(int value) {
+    //     this(new int[] {value});
+    //   }
 
-//   CharacterSetECI(int value) {
-//     this(new int[] {value});
-//   }
+    //   CharacterSetECI(int value, String... otherEncodingNames) {
+    //     this.values = new int[] {value};
+    //     this.otherEncodingNames = otherEncodingNames;
+    //   }
 
-//   CharacterSetECI(int value, String... otherEncodingNames) {
-//     this.values = new int[] {value};
-//     this.otherEncodingNames = otherEncodingNames;
-//   }
+    //   CharacterSetECI(int[] values, String... otherEncodingNames) {
+    //     this.values = values;
+    //     this.otherEncodingNames = otherEncodingNames;
+    //   }
 
-//   CharacterSetECI(int[] values, String... otherEncodingNames) {
-//     this.values = values;
-//     this.otherEncodingNames = otherEncodingNames;
-//   }
-
-  pub fn getValue(cs_eci: &CharacterSetECI) -> u32{
-    match cs_eci  {
-        CharacterSetECI::Cp437 => 0,
-        CharacterSetECI::ISO8859_1 => 1,
-        CharacterSetECI::ISO8859_2 => 4,
-        CharacterSetECI::ISO8859_3 => 5,
-        CharacterSetECI::ISO8859_4 => 6,
-        CharacterSetECI::ISO8859_5 => 7,
-        CharacterSetECI::ISO8859_6 => 8,
-        CharacterSetECI::ISO8859_7 => 9,
-        CharacterSetECI::ISO8859_8 => 10,
-        CharacterSetECI::ISO8859_9 => 11,
-        CharacterSetECI::ISO8859_10 => 12,
-        CharacterSetECI::ISO8859_11 => 13,
-        CharacterSetECI::ISO8859_13 => 15,
-        CharacterSetECI::ISO8859_14 => 16,
-        CharacterSetECI::ISO8859_15 => 17,
-        CharacterSetECI::ISO8859_16 => 18,
-        CharacterSetECI::SJIS => 20,
-        CharacterSetECI::Cp1250 => 21,
-        CharacterSetECI::Cp1251 => 22,
-        CharacterSetECI::Cp1252 => 23,
-        CharacterSetECI::Cp1256 => 24,
-        CharacterSetECI::UnicodeBigUnmarked => 25,
-        CharacterSetECI::UTF8 => 26,
-        CharacterSetECI::ASCII => 27,
-        CharacterSetECI::Big5 => 28,
-        CharacterSetECI::GB18030 => 29,
-        CharacterSetECI::EUC_KR => 30,
+    pub fn getValue(cs_eci: &CharacterSetECI) -> u32 {
+        match cs_eci {
+            CharacterSetECI::Cp437 => 0,
+            CharacterSetECI::ISO8859_1 => 1,
+            CharacterSetECI::ISO8859_2 => 4,
+            CharacterSetECI::ISO8859_3 => 5,
+            CharacterSetECI::ISO8859_4 => 6,
+            CharacterSetECI::ISO8859_5 => 7,
+            CharacterSetECI::ISO8859_6 => 8,
+            CharacterSetECI::ISO8859_7 => 9,
+            CharacterSetECI::ISO8859_8 => 10,
+            CharacterSetECI::ISO8859_9 => 11,
+            CharacterSetECI::ISO8859_10 => 12,
+            CharacterSetECI::ISO8859_11 => 13,
+            CharacterSetECI::ISO8859_13 => 15,
+            CharacterSetECI::ISO8859_14 => 16,
+            CharacterSetECI::ISO8859_15 => 17,
+            CharacterSetECI::ISO8859_16 => 18,
+            CharacterSetECI::SJIS => 20,
+            CharacterSetECI::Cp1250 => 21,
+            CharacterSetECI::Cp1251 => 22,
+            CharacterSetECI::Cp1252 => 23,
+            CharacterSetECI::Cp1256 => 24,
+            CharacterSetECI::UnicodeBigUnmarked => 25,
+            CharacterSetECI::UTF8 => 26,
+            CharacterSetECI::ASCII => 27,
+            CharacterSetECI::Big5 => 28,
+            CharacterSetECI::GB18030 => 29,
+            CharacterSetECI::EUC_KR => 30,
+        }
     }
-  }
 
-
-  pub fn getCharset(cs_eci: &CharacterSetECI) -> &'static dyn Encoding  {
-    let name = match cs_eci {
-        CharacterSetECI::Cp437 => "CP437",
-        CharacterSetECI::ISO8859_1 => "ISO-8859-1",
-        CharacterSetECI::ISO8859_2 => "ISO-8859-2",
-        CharacterSetECI::ISO8859_3 => "ISO-8859-3",
-        CharacterSetECI::ISO8859_4 => "ISO-8859-4",
-        CharacterSetECI::ISO8859_5 => "ISO-8859-5",
-        CharacterSetECI::ISO8859_6 => "ISO-8859-6",
-        CharacterSetECI::ISO8859_7 => "ISO-8859-7",
-        CharacterSetECI::ISO8859_8 => "ISO-8859-8",
-        CharacterSetECI::ISO8859_9 => "ISO-8859-9",
-        CharacterSetECI::ISO8859_10 => "ISO-8859-10",
-        CharacterSetECI::ISO8859_11 => "ISO-8859-11",
-        CharacterSetECI::ISO8859_13 => "ISO-8859-13",
-        CharacterSetECI::ISO8859_14 => "ISO-8859-14",
-        CharacterSetECI::ISO8859_15 => "ISO-8859-15",
-        CharacterSetECI::ISO8859_16 => "ISO-8859-16",
-        CharacterSetECI::SJIS => "Shift_JIS",
-        CharacterSetECI::Cp1250 => "windows-1250",
-        CharacterSetECI::Cp1251 => "windows-1251",
-        CharacterSetECI::Cp1252 => "windows-1252",
-        CharacterSetECI::Cp1256 => "windows-1256",
-        CharacterSetECI::UnicodeBigUnmarked => "UTF-16BE",
-        CharacterSetECI::UTF8 => "UTF-8",
-        CharacterSetECI::ASCII => "US-ASCII",
-        CharacterSetECI::Big5 => "Big5",
-        CharacterSetECI::GB18030 => "GB2312",
-        CharacterSetECI::EUC_KR => "EUC-KR",
-    };
-    encoding::label::encoding_from_whatwg_label(name).unwrap()
-  }
-
-  /**
-   * @param charset Java character set object
-   * @return CharacterSetECI representing ECI for character encoding, or null if it is legal
-   *   but unsupported
-   */
-  pub fn getCharacterSetECI( charset:&'static dyn Encoding) -> Option<CharacterSetECI> {
-    match charset.whatwg_name().unwrap() {
-        "CP437" => Some(CharacterSetECI::Cp437),
-        "ISO-8859-1" => Some(CharacterSetECI::ISO8859_1),
-        "ISO-8859-2" => Some(CharacterSetECI::ISO8859_2),
-        "ISO-8859-3" => Some(CharacterSetECI::ISO8859_3),
-        "ISO-8859-4" => Some(CharacterSetECI::ISO8859_4),
-        "ISO-8859-5" => Some(CharacterSetECI::ISO8859_5),
-        "ISO-8859-6" => Some(CharacterSetECI::ISO8859_6),
-        "ISO-8859-7" => Some(CharacterSetECI::ISO8859_7),
-        "ISO-8859-8" => Some(CharacterSetECI::ISO8859_8),
-        "ISO-8859-9" => Some(CharacterSetECI::ISO8859_9),
-        "ISO-8859-10" => Some(CharacterSetECI::ISO8859_10),
-        "ISO-8859-11" => Some(CharacterSetECI::ISO8859_11),
-        "ISO-8859-13" => Some(CharacterSetECI::ISO8859_13),
-        "ISO-8859-14" => Some(CharacterSetECI::ISO8859_14),
-        "ISO-8859-15" => Some(CharacterSetECI::ISO8859_15),
-        "ISO-8859-16" => Some(CharacterSetECI::ISO8859_16),
-        "Shift_JIS" => Some(CharacterSetECI::SJIS),
-        "windows-1250" => Some(CharacterSetECI::Cp1250),
-        "windows-1251" => Some(CharacterSetECI::Cp1251),
-        "windows-1252" => Some(CharacterSetECI::Cp1252),
-        "windows-1256" => Some(CharacterSetECI::Cp1256),
-        "UTF-16BE" => Some(CharacterSetECI::UnicodeBigUnmarked),
-        "UTF-8" => Some(CharacterSetECI::UTF8),
-        "US-ASCII" => Some(CharacterSetECI::ASCII),
-        "Big5" => Some(CharacterSetECI::Big5),
-        "GB2312" => Some(CharacterSetECI::GB18030),
-        "EUC-KR" => Some(CharacterSetECI::EUC_KR),
-        _ => None,
+    pub fn getCharset(cs_eci: &CharacterSetECI) -> &'static dyn Encoding {
+        let name = match cs_eci {
+            CharacterSetECI::Cp437 => "CP437",
+            CharacterSetECI::ISO8859_1 => "ISO-8859-1",
+            CharacterSetECI::ISO8859_2 => "ISO-8859-2",
+            CharacterSetECI::ISO8859_3 => "ISO-8859-3",
+            CharacterSetECI::ISO8859_4 => "ISO-8859-4",
+            CharacterSetECI::ISO8859_5 => "ISO-8859-5",
+            CharacterSetECI::ISO8859_6 => "ISO-8859-6",
+            CharacterSetECI::ISO8859_7 => "ISO-8859-7",
+            CharacterSetECI::ISO8859_8 => "ISO-8859-8",
+            CharacterSetECI::ISO8859_9 => "ISO-8859-9",
+            CharacterSetECI::ISO8859_10 => "ISO-8859-10",
+            CharacterSetECI::ISO8859_11 => "ISO-8859-11",
+            CharacterSetECI::ISO8859_13 => "ISO-8859-13",
+            CharacterSetECI::ISO8859_14 => "ISO-8859-14",
+            CharacterSetECI::ISO8859_15 => "ISO-8859-15",
+            CharacterSetECI::ISO8859_16 => "ISO-8859-16",
+            CharacterSetECI::SJIS => "Shift_JIS",
+            CharacterSetECI::Cp1250 => "windows-1250",
+            CharacterSetECI::Cp1251 => "windows-1251",
+            CharacterSetECI::Cp1252 => "windows-1252",
+            CharacterSetECI::Cp1256 => "windows-1256",
+            CharacterSetECI::UnicodeBigUnmarked => "UTF-16BE",
+            CharacterSetECI::UTF8 => "UTF-8",
+            CharacterSetECI::ASCII => "US-ASCII",
+            CharacterSetECI::Big5 => "Big5",
+            CharacterSetECI::GB18030 => "GB2312",
+            CharacterSetECI::EUC_KR => "EUC-KR",
+        };
+        encoding::label::encoding_from_whatwg_label(name).unwrap()
     }
-  }
 
-  /**
-   * @param value character set ECI value
-   * @return {@code CharacterSetECI} representing ECI of given value, or null if it is legal but
-   *   unsupported
-   * @throws FormatException if ECI value is invalid
-   */
-  pub fn  getCharacterSetECIByValue( value:u32) -> Result<CharacterSetECI,Exceptions> {
-    match value {
-        0 | 2 => Ok(CharacterSetECI::Cp437),
-        1 | 3 => Ok(CharacterSetECI::ISO8859_1),
-        4 => Ok(CharacterSetECI::ISO8859_2),
-        5 => Ok(CharacterSetECI::ISO8859_3),
-        6 => Ok(CharacterSetECI::ISO8859_4),
-        7 => Ok(CharacterSetECI::ISO8859_5),
-        8 => Ok(CharacterSetECI::ISO8859_6),
-        9 => Ok(CharacterSetECI::ISO8859_7),
-        10 => Ok(CharacterSetECI::ISO8859_8),
-        11 => Ok(CharacterSetECI::ISO8859_9),
-        12 => Ok(CharacterSetECI::ISO8859_10),
-        13 => Ok(CharacterSetECI::ISO8859_11),
-        15 => Ok(CharacterSetECI::ISO8859_13),
-        16 => Ok(CharacterSetECI::ISO8859_14),
-        17 => Ok(CharacterSetECI::ISO8859_15),
-        18 => Ok(CharacterSetECI::ISO8859_16),
-        20 => Ok(CharacterSetECI::SJIS),
-        21 => Ok(CharacterSetECI::Cp1250),
-        22 => Ok(CharacterSetECI::Cp1251),
-        23 => Ok(CharacterSetECI::Cp1252),
-        24 => Ok(CharacterSetECI::Cp1256),
-        25 => Ok(CharacterSetECI::UnicodeBigUnmarked),
-        26 => Ok(CharacterSetECI::UTF8),
-        27 | 170 => Ok(CharacterSetECI::ASCII),
-        28 => Ok(CharacterSetECI::Big5),
-        29 => Ok(CharacterSetECI::GB18030),
-        30 => Ok(CharacterSetECI::EUC_KR),
-        _ => Err(Exceptions::NotFoundException("Bad ECI Value".to_owned()))
+    /**
+     * @param charset Java character set object
+     * @return CharacterSetECI representing ECI for character encoding, or null if it is legal
+     *   but unsupported
+     */
+    pub fn getCharacterSetECI(charset: &'static dyn Encoding) -> Option<CharacterSetECI> {
+        match charset.whatwg_name().unwrap() {
+            "CP437" => Some(CharacterSetECI::Cp437),
+            "ISO-8859-1" => Some(CharacterSetECI::ISO8859_1),
+            "ISO-8859-2" => Some(CharacterSetECI::ISO8859_2),
+            "ISO-8859-3" => Some(CharacterSetECI::ISO8859_3),
+            "ISO-8859-4" => Some(CharacterSetECI::ISO8859_4),
+            "ISO-8859-5" => Some(CharacterSetECI::ISO8859_5),
+            "ISO-8859-6" => Some(CharacterSetECI::ISO8859_6),
+            "ISO-8859-7" => Some(CharacterSetECI::ISO8859_7),
+            "ISO-8859-8" => Some(CharacterSetECI::ISO8859_8),
+            "ISO-8859-9" => Some(CharacterSetECI::ISO8859_9),
+            "ISO-8859-10" => Some(CharacterSetECI::ISO8859_10),
+            "ISO-8859-11" => Some(CharacterSetECI::ISO8859_11),
+            "ISO-8859-13" => Some(CharacterSetECI::ISO8859_13),
+            "ISO-8859-14" => Some(CharacterSetECI::ISO8859_14),
+            "ISO-8859-15" => Some(CharacterSetECI::ISO8859_15),
+            "ISO-8859-16" => Some(CharacterSetECI::ISO8859_16),
+            "Shift_JIS" => Some(CharacterSetECI::SJIS),
+            "windows-1250" => Some(CharacterSetECI::Cp1250),
+            "windows-1251" => Some(CharacterSetECI::Cp1251),
+            "windows-1252" => Some(CharacterSetECI::Cp1252),
+            "windows-1256" => Some(CharacterSetECI::Cp1256),
+            "UTF-16BE" => Some(CharacterSetECI::UnicodeBigUnmarked),
+            "UTF-8" => Some(CharacterSetECI::UTF8),
+            "US-ASCII" => Some(CharacterSetECI::ASCII),
+            "Big5" => Some(CharacterSetECI::Big5),
+            "GB2312" => Some(CharacterSetECI::GB18030),
+            "EUC-KR" => Some(CharacterSetECI::EUC_KR),
+            _ => None,
+        }
     }
-  }
 
-  /**
-   * @param name character set ECI encoding name
-   * @return CharacterSetECI representing ECI for character encoding, or null if it is legal
-   *   but unsupported
-   */
-  pub fn  getCharacterSetECIByName( name: &str) -> Option<CharacterSetECI> {
-    match name {
-        "CP437" => Some(CharacterSetECI::Cp437),
-        "ISO-8859-1" => Some(CharacterSetECI::ISO8859_1),
-        "ISO-8859-2" => Some(CharacterSetECI::ISO8859_2),
-        "ISO-8859-3" => Some(CharacterSetECI::ISO8859_3),
-        "ISO-8859-4" => Some(CharacterSetECI::ISO8859_4),
-        "ISO-8859-5" => Some(CharacterSetECI::ISO8859_5),
-        "ISO-8859-6" => Some(CharacterSetECI::ISO8859_6),
-        "ISO-8859-7" => Some(CharacterSetECI::ISO8859_7),
-        "ISO-8859-8" => Some(CharacterSetECI::ISO8859_8),
-        "ISO-8859-9" => Some(CharacterSetECI::ISO8859_9),
-        "ISO-8859-10" => Some(CharacterSetECI::ISO8859_10),
-        "ISO-8859-11" => Some(CharacterSetECI::ISO8859_11),
-        "ISO-8859-13" => Some(CharacterSetECI::ISO8859_13),
-        "ISO-8859-14" => Some(CharacterSetECI::ISO8859_14),
-        "ISO-8859-15" => Some(CharacterSetECI::ISO8859_15),
-        "ISO-8859-16" => Some(CharacterSetECI::ISO8859_16),
-        "Shift_JIS" => Some(CharacterSetECI::SJIS),
-        "windows-1250" => Some(CharacterSetECI::Cp1250),
-        "windows-1251" => Some(CharacterSetECI::Cp1251),
-        "windows-1252" => Some(CharacterSetECI::Cp1252),
-        "windows-1256" => Some(CharacterSetECI::Cp1256),
-        "UTF-16BE" => Some(CharacterSetECI::UnicodeBigUnmarked),
-        "UTF-8" => Some(CharacterSetECI::UTF8),
-        "US-ASCII" => Some(CharacterSetECI::ASCII),
-        "Big5" => Some(CharacterSetECI::Big5),
-        "GB2312" => Some(CharacterSetECI::GB18030),
-        "EUC-KR" => Some(CharacterSetECI::EUC_KR),
-        _ => None,
+    /**
+     * @param value character set ECI value
+     * @return {@code CharacterSetECI} representing ECI of given value, or null if it is legal but
+     *   unsupported
+     * @throws FormatException if ECI value is invalid
+     */
+    pub fn getCharacterSetECIByValue(value: u32) -> Result<CharacterSetECI, Exceptions> {
+        match value {
+            0 | 2 => Ok(CharacterSetECI::Cp437),
+            1 | 3 => Ok(CharacterSetECI::ISO8859_1),
+            4 => Ok(CharacterSetECI::ISO8859_2),
+            5 => Ok(CharacterSetECI::ISO8859_3),
+            6 => Ok(CharacterSetECI::ISO8859_4),
+            7 => Ok(CharacterSetECI::ISO8859_5),
+            8 => Ok(CharacterSetECI::ISO8859_6),
+            9 => Ok(CharacterSetECI::ISO8859_7),
+            10 => Ok(CharacterSetECI::ISO8859_8),
+            11 => Ok(CharacterSetECI::ISO8859_9),
+            12 => Ok(CharacterSetECI::ISO8859_10),
+            13 => Ok(CharacterSetECI::ISO8859_11),
+            15 => Ok(CharacterSetECI::ISO8859_13),
+            16 => Ok(CharacterSetECI::ISO8859_14),
+            17 => Ok(CharacterSetECI::ISO8859_15),
+            18 => Ok(CharacterSetECI::ISO8859_16),
+            20 => Ok(CharacterSetECI::SJIS),
+            21 => Ok(CharacterSetECI::Cp1250),
+            22 => Ok(CharacterSetECI::Cp1251),
+            23 => Ok(CharacterSetECI::Cp1252),
+            24 => Ok(CharacterSetECI::Cp1256),
+            25 => Ok(CharacterSetECI::UnicodeBigUnmarked),
+            26 => Ok(CharacterSetECI::UTF8),
+            27 | 170 => Ok(CharacterSetECI::ASCII),
+            28 => Ok(CharacterSetECI::Big5),
+            29 => Ok(CharacterSetECI::GB18030),
+            30 => Ok(CharacterSetECI::EUC_KR),
+            _ => Err(Exceptions::NotFoundException("Bad ECI Value".to_owned())),
+        }
     }
-  }
 
+    /**
+     * @param name character set ECI encoding name
+     * @return CharacterSetECI representing ECI for character encoding, or null if it is legal
+     *   but unsupported
+     */
+    pub fn getCharacterSetECIByName(name: &str) -> Option<CharacterSetECI> {
+        match name {
+            "CP437" => Some(CharacterSetECI::Cp437),
+            "ISO-8859-1" => Some(CharacterSetECI::ISO8859_1),
+            "ISO-8859-2" => Some(CharacterSetECI::ISO8859_2),
+            "ISO-8859-3" => Some(CharacterSetECI::ISO8859_3),
+            "ISO-8859-4" => Some(CharacterSetECI::ISO8859_4),
+            "ISO-8859-5" => Some(CharacterSetECI::ISO8859_5),
+            "ISO-8859-6" => Some(CharacterSetECI::ISO8859_6),
+            "ISO-8859-7" => Some(CharacterSetECI::ISO8859_7),
+            "ISO-8859-8" => Some(CharacterSetECI::ISO8859_8),
+            "ISO-8859-9" => Some(CharacterSetECI::ISO8859_9),
+            "ISO-8859-10" => Some(CharacterSetECI::ISO8859_10),
+            "ISO-8859-11" => Some(CharacterSetECI::ISO8859_11),
+            "ISO-8859-13" => Some(CharacterSetECI::ISO8859_13),
+            "ISO-8859-14" => Some(CharacterSetECI::ISO8859_14),
+            "ISO-8859-15" => Some(CharacterSetECI::ISO8859_15),
+            "ISO-8859-16" => Some(CharacterSetECI::ISO8859_16),
+            "Shift_JIS" => Some(CharacterSetECI::SJIS),
+            "windows-1250" => Some(CharacterSetECI::Cp1250),
+            "windows-1251" => Some(CharacterSetECI::Cp1251),
+            "windows-1252" => Some(CharacterSetECI::Cp1252),
+            "windows-1256" => Some(CharacterSetECI::Cp1256),
+            "UTF-16BE" => Some(CharacterSetECI::UnicodeBigUnmarked),
+            "UTF-8" => Some(CharacterSetECI::UTF8),
+            "US-ASCII" => Some(CharacterSetECI::ASCII),
+            "Big5" => Some(CharacterSetECI::Big5),
+            "GB2312" => Some(CharacterSetECI::GB18030),
+            "EUC-KR" => Some(CharacterSetECI::EUC_KR),
+            _ => None,
+        }
+    }
 }
-
 
 /*
  * Copyright 2022 ZXing authors
@@ -2683,128 +2677,372 @@ impl CharacterSetECI {
  * @author Alex Geller
  */
 pub struct ECIStringBuilder {
-   current_bytes: Vec<u8>,
-   result: String,
-   current_charset : &'static dyn Encoding, //= StandardCharsets.ISO_8859_1;
+    current_bytes: Vec<u8>,
+    result: String,
+    current_charset: &'static dyn Encoding, //= StandardCharsets.ISO_8859_1;
 }
 
 impl ECIStringBuilder {
-  pub fn new() -> Self{
-    Self { current_bytes: Vec::new(), result: String::new(), current_charset: encoding::all::UTF_8 }
-  }
-  pub fn with_capacity( initial_capacity : usize) ->Self{
-    Self { current_bytes: Vec::with_capacity(initial_capacity), result: String::new(), current_charset: encoding::all::ISO_8859_1 }
-
-  }
-
-  /**
-   * Appends {@code value} as a byte value
-   *
-   * @param value character whose lowest byte is to be appended
-   */
-  pub fn append_char(&mut self,  value:char) {
-    self.current_bytes.push( value as u8 );
-  }
-
-  /**
-   * Appends {@code value} as a byte value
-   *
-   * @param value byte to append
-   */
-  pub fn append_byte(&mut self,  value:u8) {
-    self.current_bytes.push( value  );
-  }
-
-  /**
-   * Appends the characters in {@code value} as bytes values
-   *
-   * @param value string to append
-   */
-  pub fn append_string(&mut self,  value :&str) {
-    value.as_bytes().iter().map(|b| self.current_bytes.push(*b));
-    // self.current_bytes.push(value.as_bytes());
-  }
-
-  /**
-   * Append the string repesentation of {@code value} (short for {@code append(String.valueOf(value))})
-   *
-   * @param value int to append as a string
-   */
-  pub fn append(&mut self,  value:i32) {
-    self.append_string(&format!("{}", value));
-  }
-
-  /**
-   * Appends ECI value to output.
-   *
-   * @param value ECI value to append, as an int
-   * @throws FormatException on invalid ECI value
-   */
-  pub fn appendECI(&mut self,  value:u32) -> Result<(),Exceptions> {
-    self.encodeCurrentBytesIfAny();
-    let character_set_eci = CharacterSetECI::getCharacterSetECIByValue(value)?;
-    // if (character_set_eci == null) {
-    //   throw FormatException.getFormatInstance();
-    // }
-    self.current_charset = CharacterSetECI::getCharset(&character_set_eci);
-    Ok(())
-  }
-
-  pub fn encodeCurrentBytesIfAny(&mut self) {
-    if self.current_charset.name() == encoding::all::UTF_8.name() {
-      if !self.current_bytes.is_empty() {
-        // if result == null {
-        //   result = currentBytes;
-        //   currentBytes = new StringBuilder();
-        // } else {
-          self.result.push_str(&String::from_utf8(self.current_bytes.clone()).unwrap());
-          self.current_bytes.clear();
-        // }
-      }
-    } else if !self.current_bytes.is_empty() {
-      let bytes = self.current_bytes.clone();
-      self.current_bytes.clear();
-    //   if (result == null) {
-    //     result = new StringBuilder(new String(bytes, currentCharset));
-    //   } else {
-        let encoded_value = self.current_charset.decode(&bytes, encoding::DecoderTrap::Replace).unwrap();
-        self.result.push_str(&encoded_value);
-    //   }
+    pub fn new() -> Self {
+        Self {
+            current_bytes: Vec::new(),
+            result: String::new(),
+            current_charset: encoding::all::UTF_8,
+        }
     }
-  }
+    pub fn with_capacity(initial_capacity: usize) -> Self {
+        Self {
+            current_bytes: Vec::with_capacity(initial_capacity),
+            result: String::new(),
+            current_charset: encoding::all::ISO_8859_1,
+        }
+    }
 
-  /**
-   * Appends the characters from {@code value} (unlike all other append methods of this class who append bytes)
-   *
-   * @param value characters to append
-   */
-  pub fn appendCharacters(&mut self,  value:&str) {
-    self.encodeCurrentBytesIfAny();
-    self.result.push_str(value);
-  }
+    /**
+     * Appends {@code value} as a byte value
+     *
+     * @param value character whose lowest byte is to be appended
+     */
+    pub fn append_char(&mut self, value: char) {
+        self.current_bytes.push(value as u8);
+    }
 
-  /**
-   * Short for {@code toString().length()} (if possible, use {@link #isEmpty()} instead)
-   *
-   * @return length of string representation in characters
-   */
-  pub fn len(&mut self) -> usize{
-    self.encodeCurrentBytesIfAny();//return toString().length();
-    self.result.len()
-  }
+    /**
+     * Appends {@code value} as a byte value
+     *
+     * @param value byte to append
+     */
+    pub fn append_byte(&mut self, value: u8) {
+        self.current_bytes.push(value);
+    }
 
-  /**
-   * @return true iff nothing has been appended
-   */
-  pub fn is_empty(&self) -> bool{
-    return self.current_bytes.is_empty() && self.result.is_empty();
-  }
+    /**
+     * Appends the characters in {@code value} as bytes values
+     *
+     * @param value string to append
+     */
+    pub fn append_string(&mut self, value: &str) {
+        value.as_bytes().iter().map(|b| self.current_bytes.push(*b));
+        // self.current_bytes.push(value.as_bytes());
+    }
 
+    /**
+     * Append the string repesentation of {@code value} (short for {@code append(String.valueOf(value))})
+     *
+     * @param value int to append as a string
+     */
+    pub fn append(&mut self, value: i32) {
+        self.append_string(&format!("{}", value));
+    }
+
+    /**
+     * Appends ECI value to output.
+     *
+     * @param value ECI value to append, as an int
+     * @throws FormatException on invalid ECI value
+     */
+    pub fn appendECI(&mut self, value: u32) -> Result<(), Exceptions> {
+        self.encodeCurrentBytesIfAny();
+        let character_set_eci = CharacterSetECI::getCharacterSetECIByValue(value)?;
+        // if (character_set_eci == null) {
+        //   throw FormatException.getFormatInstance();
+        // }
+        self.current_charset = CharacterSetECI::getCharset(&character_set_eci);
+        Ok(())
+    }
+
+    pub fn encodeCurrentBytesIfAny(&mut self) {
+        if self.current_charset.name() == encoding::all::UTF_8.name() {
+            if !self.current_bytes.is_empty() {
+                // if result == null {
+                //   result = currentBytes;
+                //   currentBytes = new StringBuilder();
+                // } else {
+                self.result
+                    .push_str(&String::from_utf8(self.current_bytes.clone()).unwrap());
+                self.current_bytes.clear();
+                // }
+            }
+        } else if !self.current_bytes.is_empty() {
+            let bytes = self.current_bytes.clone();
+            self.current_bytes.clear();
+            //   if (result == null) {
+            //     result = new StringBuilder(new String(bytes, currentCharset));
+            //   } else {
+            let encoded_value = self
+                .current_charset
+                .decode(&bytes, encoding::DecoderTrap::Replace)
+                .unwrap();
+            self.result.push_str(&encoded_value);
+            //   }
+        }
+    }
+
+    /**
+     * Appends the characters from {@code value} (unlike all other append methods of this class who append bytes)
+     *
+     * @param value characters to append
+     */
+    pub fn appendCharacters(&mut self, value: &str) {
+        self.encodeCurrentBytesIfAny();
+        self.result.push_str(value);
+    }
+
+    /**
+     * Short for {@code toString().length()} (if possible, use {@link #isEmpty()} instead)
+     *
+     * @return length of string representation in characters
+     */
+    pub fn len(&mut self) -> usize {
+        self.encodeCurrentBytesIfAny(); //return toString().length();
+        self.result.len()
+    }
+
+    /**
+     * @return true iff nothing has been appended
+     */
+    pub fn is_empty(&self) -> bool {
+        return self.current_bytes.is_empty() && self.result.is_empty();
+    }
 }
 
-impl fmt::Display for ECIStringBuilder{
+impl fmt::Display for ECIStringBuilder {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         //self.encodeCurrentBytesIfAny();
-    write!(f,"{}", self.result)
+        write!(f, "{}", self.result)
+    }
+}
+
+/*
+ * Copyright 2021 ZXing authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// package com.google.zxing.common;
+
+// import java.nio.charset.Charset;
+// import java.nio.charset.CharsetEncoder;
+// import java.nio.charset.StandardCharsets;
+// import java.nio.charset.UnsupportedCharsetException;
+// import java.util.ArrayList;
+// import java.util.List;
+
+/**
+ * Set of CharsetEncoders for a given input string
+ *
+ * Invariants:
+ * - The list contains only encoders from CharacterSetECI (list is shorter then the list of encoders available on
+ *   the platform for which ECI values are defined).
+ * - The list contains encoders at least one encoder for every character in the input.
+ * - The first encoder in the list is always the ISO-8859-1 encoder even of no character in the input can be encoded
+ *       by it.
+ * - If the input contains a character that is not in ISO-8859-1 then the last two entries in the list will be the
+ *   UTF-8 encoder and the UTF-16BE encoder.
+ *
+ * @author Alex Geller
+ */
+pub struct ECIEncoderSet {
+    encoders: Vec<&'static dyn encoding::Encoding>,
+    priorityEncoderIndex: usize,
+}
+
+impl ECIEncoderSet {
+    /**
+     * Constructs an encoder set
+     *
+     * @param stringToEncode the string that needs to be encoded
+     * @param priorityCharset The preferred {@link Charset} or null.
+     * @param fnc1 fnc1 denotes the character in the input that represents the FNC1 character or -1 for a non-GS1 bar
+     * code. When specified, it is considered an error to pass it as argument to the methods canEncode() or encode().
+     */
+    pub fn new(
+        stringToEncode: &str,
+        priorityCharset: &'static dyn encoding::Encoding,
+        fnc1: char,
+    ) -> Self {
+        // List of encoders that potentially encode characters not in ISO-8859-1 in one byte.
+        let mut ENCODERS = Vec::new();
+
+        let names = [
+            "IBM437",
+            "ISO-8859-2",
+            "ISO-8859-3",
+            "ISO-8859-4",
+            "ISO-8859-5",
+            "ISO-8859-6",
+            "ISO-8859-7",
+            "ISO-8859-8",
+            "ISO-8859-9",
+            "ISO-8859-10",
+            "ISO-8859-11",
+            "ISO-8859-13",
+            "ISO-8859-14",
+            "ISO-8859-15",
+            "ISO-8859-16",
+            "windows-1250",
+            "windows-1251",
+            "windows-1252",
+            "windows-1256",
+            "Shift_JIS",
+        ];
+        for name in names {
+            if let Some(enc) = CharacterSetECI::getCharacterSetECIByName(name) {
+                // try {
+                ENCODERS.push(CharacterSetECI::getCharset(&enc));
+                // } catch (UnsupportedCharsetException e) {
+                // continue
+                // }
+            }
+        }
+
+        let mut encoders: Vec<&'static dyn Encoding>;
+        let mut priorityEncoderIndexValue = 0;
+
+        let mut neededEncoders: Vec<&'static dyn encoding::Encoding> = Vec::new();
+
+        //we always need the ISO-8859-1 encoder. It is the default encoding
+        neededEncoders.push(encoding::all::ISO_8859_1);
+        neededEncoders.push(encoding::all::UTF_8);
+        let mut needUnicodeEncoder = priorityCharset.name().starts_with("UTF");
+
+        //Walk over the input string and see if all characters can be encoded with the list of encoders
+        for i in 0..stringToEncode.len() {
+            // for (int i = 0; i < stringToEncode.length(); i++) {
+            let mut canEncode = false;
+            for encoder in &neededEncoders {
+                //   for (CharsetEncoder encoder : neededEncoders) {
+                let c = stringToEncode.chars().nth(i).unwrap();
+                if c == fnc1
+                    || encoder
+                        .encode(&c.to_string(), encoding::EncoderTrap::Strict)
+                        .is_ok()
+                {
+                    canEncode = true;
+                    break;
+                }
+            }
+            if !canEncode {
+                //for the character at position i we don't yet have an encoder in the list
+                for encoder in &ENCODERS {
+                    // for (CharsetEncoder encoder : ENCODERS) {
+                    if encoder
+                        .encode(
+                            &stringToEncode.chars().nth(i).unwrap().to_string(),
+                            encoding::EncoderTrap::Strict,
+                        )
+                        .is_ok()
+                    {
+                        //Good, we found an encoder that can encode the character. We add him to the list and continue scanning
+                        //the input
+                        neededEncoders.push(*encoder);
+                        canEncode = true;
+                        break;
+                    }
+                }
+            }
+
+            if !canEncode {
+                //The character is not encodeable by any of the single byte encoders so we remember that we will need a
+                //Unicode encoder.
+                needUnicodeEncoder = true;
+            }
+        }
+
+        if neededEncoders.len() == 1 && !needUnicodeEncoder {
+            //the entire input can be encoded by the ISO-8859-1 encoder
+            encoders = vec![encoding::all::ISO_8859_1];
+        } else {
+            // we need more than one single byte encoder or we need a Unicode encoder.
+            // In this case we append a UTF-8 and UTF-16 encoder to the list
+            //   encoders = [] new CharsetEncoder[neededEncoders.size() + 2];
+            encoders = Vec::new();
+            let index = 0;
+
+            encoders.push(encoding::all::UTF_8);
+            encoders.push(encoding::all::UTF_16BE);
+
+            for encoder in neededEncoders {
+                //   for (CharsetEncoder encoder : neededEncoders) {
+                //encoders[index++] = encoder;
+                encoders.push(encoder);
+            }
+        }
+
+        //Compute priorityEncoderIndex by looking up priorityCharset in encoders
+        // if priorityCharset != null {
+        for i in 0..encoders.len() {
+            //   for (int i = 0; i < encoders.length; i++) {
+            if priorityCharset.name() == encoders[i].name() {
+                priorityEncoderIndexValue = i;
+                break;
+            }
+        }
+        // }
+        //invariants
+        assert_eq!(encoders[0].name(), encoding::all::ISO_8859_1.name());
+        Self {
+            encoders: encoders,
+            priorityEncoderIndex: priorityEncoderIndexValue,
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        return self.encoders.len();
+    }
+
+    pub fn getCharsetName(&self, index: usize) -> &'static str {
+        assert!(index < self.len());
+        return self.encoders[index].name();
+    }
+
+    pub fn getCharset(&self, index: usize) -> &'static dyn Encoding {
+        assert!(index < self.len());
+        return self.encoders[index];
+    }
+
+    pub fn getECIValue(&self, encoderIndex: usize) -> u32 {
+        CharacterSetECI::getValue(
+            &CharacterSetECI::getCharacterSetECI(self.encoders[encoderIndex]).unwrap(),
+        )
+    }
+
+    /*
+     *  returns -1 if no priority charset was defined
+     */
+    pub fn getPriorityEncoderIndex(&self) -> usize {
+        return self.priorityEncoderIndex;
+    }
+
+    pub fn canEncode(&self, c: char, encoderIndex: usize) -> bool {
+        assert!(encoderIndex < self.len());
+        let encoder = self.encoders[encoderIndex];
+        let enc_data = encoder.encode(&c.to_string(), encoding::EncoderTrap::Strict);
+
+        enc_data.is_ok()
+    }
+
+    pub fn encode_char(&self, c: char, encoderIndex: usize) -> Vec<u8> {
+        assert!(encoderIndex < self.len());
+        let encoder = self.encoders[encoderIndex];
+        let enc_data = encoder.encode(&c.to_string(), encoding::EncoderTrap::Strict);
+        assert!(enc_data.is_ok());
+        return enc_data.unwrap();
+    }
+
+    pub fn encode_string(&self, s: &str, encoderIndex: usize) -> Vec<u8> {
+        assert!(encoderIndex < self.len());
+        let encoder = self.encoders[encoderIndex];
+        encoder.encode(s, encoding::EncoderTrap::Replace).unwrap()
     }
 }
