@@ -1023,7 +1023,7 @@ pub trait Binarizer {
     //private final LuminanceSource source;
     //fn new(source:dyn LuminanceSource) -> Self;
 
-    fn getLuminanceSource(&self) -> &dyn LuminanceSource;
+    fn getLuminanceSource(&self) -> &Box<dyn LuminanceSource>;
 
     /**
      * Converts one row of luminance data to 1 bit data. May actually do the conversion, or return
@@ -1039,7 +1039,7 @@ pub trait Binarizer {
      * @return The array of bits for this row (true means black).
      * @throws NotFoundException if row can't be binarized
      */
-    fn getBlackRow(&self, y: usize, row: BitArray) -> Result<BitArray, Exceptions>;
+    fn getBlackRow(&self, y: usize, row: &mut BitArray) -> Result<BitArray, Exceptions>;
 
     /**
      * Converts a 2D array of luminance data to 1 bit data. As above, assume this method is expensive
@@ -1129,7 +1129,7 @@ impl BinaryBitmap {
      * @return The array of bits for this row (true means black).
      * @throws NotFoundException if row can't be binarized
      */
-    pub fn getBlackRow(&self, y: usize, row: BitArray) -> Result<BitArray, Exceptions> {
+    pub fn getBlackRow(&self, y: usize, row: &mut BitArray) -> Result<BitArray, Exceptions> {
         return self.binarizer.getBlackRow(y, row);
     }
 
