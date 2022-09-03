@@ -33,7 +33,7 @@ use urlencoding::decode;
 
 use crate::{exceptions::Exceptions, RXingResult};
 
-use super::{ParsedClientResult, ParsedRXingResult, TextParsedRXingResult, TelRXingResultParser};
+use super::{ParsedClientResult, ParsedRXingResult, TextParsedRXingResult, TelRXingResultParser, ISBNRXingResultParser, WifiRXingResultParser};
 
 /**
  * <p>Abstract class representing the result of decoding a barcode, as more than
@@ -98,7 +98,7 @@ pub fn getMassagedText(result: &RXingResult) -> String {
 }
 
 pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
-let PARSERS = [
+let PARSERS:[&dyn RXingResultParser;3] = [
     //     new BookmarkDoCoMoRXingResultParser(),
     //     new AddressBookDoCoMoRXingResultParser(),
     //     new EmailDoCoMoRXingResultParser(),
@@ -108,14 +108,14 @@ let PARSERS = [
     //     new VEventRXingResultParser(),
     //     new EmailAddressRXingResultParser(),
     //     new SMTPRXingResultParser(),
-          TelRXingResultParser{},
+          &TelRXingResultParser{},
     //     new SMSMMSRXingResultParser(),
     //     new SMSTOMMSTORXingResultParser(),
     //     new GeoRXingResultParser(),
-    //     new WifiRXingResultParser(),
+          &WifiRXingResultParser{},
     //     new URLTORXingResultParser(),
     //     new URIRXingResultParser(),
-    //     new ISBNRXingResultParser(),
+          &ISBNRXingResultParser{},
     //     new ProductRXingResultParser(),
     //     new ExpandedProductRXingResultParser(),
     //     new VINRXingResultParser(),
@@ -139,7 +139,7 @@ let PARSERS = [
     ))
 }
 
-pub fn maybe_ppend_string(value: &str, result: &mut String) {
+pub fn maybe_append_string(value: &str, result: &mut String) {
     if !value.is_empty() {
         result.push('\n');
         result.push_str(value);
@@ -292,13 +292,13 @@ pub fn matchPrefixedField(
         let start = i; // Found the start of a match here
         let mut more = true;
         while more {
-            let i = if let Some(loc) = rawText[i..].find(endChar) {
+             i = if let Some(loc) = rawText[i..].find(endChar) {
                 if countPrecedingBackslashes(rawText, i) % 2 != 0 {
                     // semicolon was escaped (odd count of preceding backslashes) so continue
                     i + 1
                 } else {
                     // found a match
-                    let mut element = unescapeBackslash(&rawText[start..i + start]);
+                    let mut element = unescapeBackslash(&rawText[start..loc+i]);
                     if trim {
                         element = element.to_string().trim().to_owned();
                     }

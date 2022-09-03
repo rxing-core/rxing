@@ -44,7 +44,8 @@ mod RGBLuminanceSourceTestCase;
  *
  * @author Sean Owen
  */
-pub enum BarcodeFormat {
+#[derive(Debug,PartialEq, Eq,Hash)]
+ pub enum BarcodeFormat {
     /** Aztec 2D barcode format. */
     AZTEC,
 

@@ -22,42 +22,33 @@
 // import org.junit.Test;
 
 /**
- * Tests {@link TelParsedRXingResult}.
+ * Tests {@link ISBNParsedRXingResult}.
  *
  * @author Sean Owen
  */
-// public final class TelParsedRXingResultTestCase extends Assert {
-use std::any::Any;
-
+// public final class ISBNParsedRXingResultTestCase extends Assert {
 use crate::{
-    client::result::{
-        ParsedClientResult, ParsedRXingResult, ParsedRXingResultType, RXingResultParser,
-        TelParsedRXingResult,
-    },
+    client::result::{ParsedClientResult, ParsedRXingResult, ParsedRXingResultType},
     BarcodeFormat, RXingResult,
 };
 
 use super::ResultParser;
 
 #[test]
-fn testTel() {
-    doTest("tel:+15551212", "+15551212", "");
-    doTest("tel:2125551212", "2125551212", "");
+fn testISBN() {
+    doTest("9784567890123");
 }
 
-fn doTest(contents: &str, number: &str, title: &str) {
-    let fakeRXingResult =
-        RXingResult::new(contents, Vec::new(), Vec::new(), BarcodeFormat::QR_CODE);
+fn doTest(contents: &str) {
+    let fakeRXingResult = RXingResult::new(contents, vec![0; 0], vec![], BarcodeFormat::EAN_13);
     let result = ResultParser::parseRXingResult(&fakeRXingResult);
-    assert_eq!(ParsedRXingResultType::TEL, result.getType());
-
-    if let ParsedClientResult::TelResult(telRXingResult) = result {
-        assert_eq!(number, telRXingResult.getNumber());
-        assert_eq!(title, telRXingResult.getTitle());
-        assert_eq!(format!("tel:{}", number), telRXingResult.getTelURI());
+    assert_eq!(ParsedRXingResultType::ISBN, result.getType());
+    if let ParsedClientResult::ISBNResult(res) = result {
+        assert_eq!(contents, res.getISBN());
     } else {
-        panic!("wrong return type, expected TelResult");
+        panic!("expected ISBNResult")
     }
+    // ISBNParsedRXingResult isbnRXingResult = (ISBNParsedRXingResult) result;
 }
 
 // }

@@ -14,28 +14,32 @@
  * limitations under the License.
  */
 
-package com.google.zxing.client.result;
+// package com.google.zxing.client.result;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.RXingResult;
-import org.junit.Assert;
-import org.junit.Test;
+// import com.google.zxing.BarcodeFormat;
+// import com.google.zxing.RXingResult;
+// import org.junit.Assert;
+// import org.junit.Test;
 
 /**
  * Tests {@link WifiParsedRXingResult}.
  *
  * @author Vikram Aggarwal
  */
-public final class WifiParsedRXingResultTestCase extends Assert {
+// public final class WifiParsedRXingResultTestCase extends Assert {
 
-  @Test
-  public void testNoPassword() {
-    doTest("WIFI:S:NoPassword;P:;T:;;", "NoPassword", null, "nopass");
-    doTest("WIFI:S:No Password;P:;T:;;", "No Password", null, "nopass");
+use crate::{RXingResult, BarcodeFormat, client::result::{ParsedRXingResultType, ParsedRXingResult, ParsedClientResult}};
+
+use super::ResultParser;
+
+  #[test]
+  fn testNoPassword() {
+    doTest("WIFI:S:NoPassword;P:;T:;;", "NoPassword", "", "nopass");
+    doTest("WIFI:S:No Password;P:;T:;;", "No Password", "", "nopass");
   }
 
-  @Test
-  public void testWep() {
+  #[test]
+  fn testWep() {
     doTest("WIFI:S:TenChars;P:0123456789;T:WEP;;", "TenChars", "0123456789", "WEP");
     doTest("WIFI:S:TenChars;P:abcde56789;T:WEP;;", "TenChars", "abcde56789", "WEP");
     // Non hex should not fail at this level
@@ -52,8 +56,8 @@ public final class WifiParsedRXingResultTestCase extends Assert {
   /**
    * Put in checks for the length of the password for wep.
    */
-  @Test
-  public void testWpa() {
+  #[test]
+  fn testWpa() {
     doTest("WIFI:S:TenChars;P:wow;T:WPA;;", "TenChars", "wow", "WPA");
     doTest("WIFI:S:TenChars;P:space is silent;T:WPA;;", "TenChars", "space is silent", "WPA");
     doTest("WIFI:S:TenChars;P:hellothere;T:WEP;;", "TenChars", "hellothere", "WEP");
@@ -64,30 +68,33 @@ public final class WifiParsedRXingResultTestCase extends Assert {
     doTest("WIFI:S:TenChars;P:hello\\:there;T:WEP;;", "TenChars", "hello:there", "WEP");
   }
 
-  @Test
-  public void testEscape() {
+  #[test]
+  fn testEscape() {
     doTest("WIFI:T:WPA;S:test;P:my_password\\\\;;", "test", "my_password\\", "WPA");
     doTest("WIFI:T:WPA;S:My_WiFi_SSID;P:abc123/;;", "My_WiFi_SSID", "abc123/", "WPA");
-    doTest("WIFI:T:WPA;S:\"foo\\;bar\\\\baz\";;", "\"foo;bar\\baz\"", null, "WPA");
+    doTest("WIFI:T:WPA;S:\"foo\\;bar\\\\baz\";;", "\"foo;bar\\baz\"", "", "WPA");
     doTest("WIFI:T:WPA;S:test;P:\\\"abcd\\\";;", "test", "\"abcd\"", "WPA");
   }
 
   /**
    * Given the string contents for the barcode, check that it matches our expectations
    */
-  private static void doTest(String contents,
-                             String ssid,
-                             String password,
-                             String type) {
-    RXingResult fakeRXingResult = new RXingResult(contents, null, null, BarcodeFormat.QR_CODE);
-    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
+  fn doTest( contents:&str,
+                              ssid:&str,
+                              password:&str,
+                              n_type:&str) {
+    let fakeRXingResult =  RXingResult::new(contents, Vec::new(), Vec::new(), BarcodeFormat::QR_CODE);
+    let result = ResultParser::parseRXingResult(&fakeRXingResult);
 
     // Ensure it is a wifi code
-    assertSame(ParsedRXingResultType.WIFI, result.getType());
-    WifiParsedRXingResult wifiRXingResult = (WifiParsedRXingResult) result;
-
-    assertEquals(ssid, wifiRXingResult.getSsid());
-    assertEquals(password, wifiRXingResult.getPassword());
-    assertEquals(type, wifiRXingResult.getNetworkEncryption());
+    assert_eq!(ParsedRXingResultType::WIFI, result.getType());
+    
+    if let ParsedClientResult::WiFiResult(wifiRXingResult) =  result{
+      assert_eq!(ssid, wifiRXingResult.getSsid());
+      assert_eq!(password, wifiRXingResult.getPassword());
+      assert_eq!(n_type, wifiRXingResult.getNetworkEncryption());
+    }else {
+      panic!("Expected WIFI");
+    }
   }
-}
+// }

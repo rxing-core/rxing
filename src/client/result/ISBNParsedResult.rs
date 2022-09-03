@@ -14,29 +14,37 @@
  * limitations under the License.
  */
 
-package com.google.zxing.client.result;
+// package com.google.zxing.client.result;
+
+use super::ParsedRXingResult;
 
 /**
  * Represents a parsed result that encodes a product ISBN number.
  *
  * @author jbreiden@google.com (Jeff Breidenbach)
  */
-public final class ISBNParsedRXingResult extends ParsedRXingResult {
+pub struct ISBNParsedRXingResult   {
 
-  private final String isbn;
+  isbn:String,
+}
+  impl ParsedRXingResult for ISBNParsedRXingResult {
+    fn getType(&self) -> super::ParsedRXingResultType {
+        super::ParsedRXingResultType::ISBN
+    }
 
-  ISBNParsedRXingResult(String isbn) {
-    super(ParsedRXingResultType.ISBN);
-    this.isbn = isbn;
+    fn getDisplayRXingResult(&self) -> String {
+        self.isbn.clone()
+    }
+}
+
+  impl ISBNParsedRXingResult {
+
+  pub fn new( isbn:String)->Self {
+    Self{ isbn }
   }
 
-  public String getISBN() {
-    return isbn;
-  }
-
-  @Override
-  public String getDisplayRXingResult() {
-    return isbn;
+  pub fn getISBN(&self) -> &str{
+    &self.isbn
   }
 
 }
