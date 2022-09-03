@@ -22,6 +22,7 @@
  *
  * @author Sean Owen
  */
+#[derive(Debug,PartialEq, Eq,Hash)]
 pub enum ParsedRXingResultType {
 
   ADDRESSBOOK,

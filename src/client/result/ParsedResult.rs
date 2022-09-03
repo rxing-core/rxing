@@ -16,6 +16,8 @@
 
 // package com.google.zxing.client.result;
 
+use std::any::Any;
+
 use super::ParsedRXingResultType;
 
 /**
@@ -30,34 +32,33 @@ use super::ParsedRXingResultType;
  * @author Sean Owen
  */
 pub trait ParsedRXingResult {
+    // private final ParsedRXingResultType type;
 
-  // private final ParsedRXingResultType type;
+    // protected ParsedRXingResult(ParsedRXingResultType type) {
+    //   this.type = type;
+    // }
 
-  // protected ParsedRXingResult(ParsedRXingResultType type) {
-  //   this.type = type;
-  // }
+    fn getType(&self) -> ParsedRXingResultType;
+    // fn as_any(&self) -> &dyn Any;
 
-  fn  getType(&self) -> ParsedRXingResultType;
+    fn getDisplayRXingResult(&self) -> String;
 
-  fn getDisplayRXingResult(&self) -> String;
-
-  fn maybe_append(&self, value :&str,  result:&mut String) {
-    if  !value.is_empty() {
-      // Don't add a newline before the first value
-      if result.len() > 0 {
-        result.push('\n');
-      }
-      result.push_str(value);
+    fn maybe_append(&self, value: &str, result: &mut String) {
+        if !value.is_empty() {
+            // Don't add a newline before the first value
+            if result.len() > 0 {
+                result.push('\n');
+            }
+            result.push_str(value);
+        }
     }
-  }
 
-  fn maybe_append_multiple(&self, values:&[&str],  result:&mut String) {
-    if !values.is_empty() {
-      for value in values {
-      // for (String value : values) {
-        self.maybe_append(value, result);
-      }
+    fn maybe_append_multiple(&self, values: &[&str], result: &mut String) {
+        if !values.is_empty() {
+            for value in values {
+                // for (String value : values) {
+                self.maybe_append(value, result);
+            }
+        }
     }
-  }
-
 }

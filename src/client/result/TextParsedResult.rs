@@ -14,36 +14,41 @@
  * limitations under the License.
  */
 
-package com.google.zxing.client.result;
+// package com.google.zxing.client.result;
+
+use super::{ParsedRXingResult, ParsedRXingResultType};
 
 /**
  * A simple result type encapsulating a string that has no further
  * interpretation.
- * 
+ *
  * @author Sean Owen
  */
-public final class TextParsedRXingResult extends ParsedRXingResult {
+pub struct TextParsedRXingResult {
+    text: String,
+    language: String,
+}
 
-  private final String text;
-  private final String language;
+impl ParsedRXingResult for TextParsedRXingResult {
+    fn getType(&self) -> ParsedRXingResultType {
+        ParsedRXingResultType::TEXT
+    }
 
-  public TextParsedRXingResult(String text, String language) {
-    super(ParsedRXingResultType.TEXT);
-    this.text = text;
-    this.language = language;
-  }
+    fn getDisplayRXingResult(&self) -> String {
+        self.text.clone()
+    }
+}
 
-  public String getText() {
-    return text;
-  }
+impl TextParsedRXingResult {
+    pub fn new(text: String, language: String) -> Self {
+        Self { text, language }
+    }
 
-  public String getLanguage() {
-    return language;
-  }
+    pub fn getText(&self) -> &str {
+        &self.text
+    }
 
-  @Override
-  public String getDisplayRXingResult() {
-    return text;
-  }
-
+    pub fn getLanguage(&self) -> &str {
+        &self.language
+    }
 }
