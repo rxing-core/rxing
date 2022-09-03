@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.zxing.client.result;
+// package com.google.zxing.client.result;
 
 /**
  * Represents the type of data encoded by a barcode -- from plain text, to a
@@ -22,7 +22,7 @@ package com.google.zxing.client.result;
  *
  * @author Sean Owen
  */
-public enum ParsedRXingResultType {
+pub enum ParsedRXingResultType {
 
   ADDRESSBOOK,
   EMAIL_ADDRESS,

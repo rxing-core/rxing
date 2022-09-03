@@ -1,5 +1,6 @@
 mod common;
 mod exceptions;
+mod client;
 
 #[cfg(feature="image")]
 mod BufferedImageLuminanceSource;

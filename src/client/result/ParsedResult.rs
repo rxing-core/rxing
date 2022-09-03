@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package com.google.zxing.client.result;
+// package com.google.zxing.client.result;
+
+use super::ParsedRXingResultType;
 
 /**
  * <p>Abstract class representing the result of decoding a barcode, as more than
@@ -27,39 +29,33 @@ package com.google.zxing.client.result;
  *
  * @author Sean Owen
  */
-public abstract class ParsedRXingResult {
+pub trait ParsedRXingResult {
 
-  private final ParsedRXingResultType type;
+  // private final ParsedRXingResultType type;
 
-  protected ParsedRXingResult(ParsedRXingResultType type) {
-    this.type = type;
-  }
+  // protected ParsedRXingResult(ParsedRXingResultType type) {
+  //   this.type = type;
+  // }
 
-  public final ParsedRXingResultType getType() {
-    return type;
-  }
+  fn  getType(&self) -> ParsedRXingResultType;
 
-  public abstract String getDisplayRXingResult();
+  fn getDisplayRXingResult(&self) -> String;
 
-  @Override
-  public final String toString() {
-    return getDisplayRXingResult();
-  }
-
-  public static void maybeAppend(String value, StringBuilder result) {
-    if (value != null && !value.isEmpty()) {
+  fn maybe_append(&self, value :&str,  result:&mut String) {
+    if  !value.is_empty() {
       // Don't add a newline before the first value
-      if (result.length() > 0) {
-        result.append('\n');
+      if result.len() > 0 {
+        result.push('\n');
       }
-      result.append(value);
+      result.push_str(value);
     }
   }
 
-  public static void maybeAppend(String[] values, StringBuilder result) {
-    if (values != null) {
-      for (String value : values) {
-        maybeAppend(value, result);
+  fn maybe_append_multiple(&self, values:&[&str],  result:&mut String) {
+    if !values.is_empty() {
+      for value in values {
+      // for (String value : values) {
+        self.maybe_append(value, result);
       }
     }
   }
