@@ -33,7 +33,10 @@ use urlencoding::decode;
 
 use crate::{exceptions::Exceptions, RXingResult};
 
-use super::{ParsedClientResult, ParsedRXingResult, TextParsedRXingResult, TelRXingResultParser, ISBNRXingResultParser, WifiRXingResultParser};
+use super::{
+    ISBNRXingResultParser, ParsedClientResult, ParsedRXingResult, TelRXingResultParser,
+    TextParsedRXingResult, WifiRXingResultParser,
+};
 
 /**
  * <p>Abstract class representing the result of decoding a barcode, as more than
@@ -47,7 +50,6 @@ use super::{ParsedClientResult, ParsedRXingResult, TextParsedRXingResult, TelRXi
  * @author Sean Owen
  */
 pub trait RXingResultParser {
-
     // const PARSERS: [&'static str; 20] = [
     //     "BookmarkDoCoMoRXingResultParser",
     //     "AddressBookDoCoMoRXingResultParser",
@@ -98,28 +100,28 @@ pub fn getMassagedText(result: &RXingResult) -> String {
 }
 
 pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
-let PARSERS:[&dyn RXingResultParser;3] = [
-    //     new BookmarkDoCoMoRXingResultParser(),
-    //     new AddressBookDoCoMoRXingResultParser(),
-    //     new EmailDoCoMoRXingResultParser(),
-    //     new AddressBookAURXingResultParser(),
-    //     new VCardRXingResultParser(),
-    //     new BizcardRXingResultParser(),
-    //     new VEventRXingResultParser(),
-    //     new EmailAddressRXingResultParser(),
-    //     new SMTPRXingResultParser(),
-          &TelRXingResultParser{},
-    //     new SMSMMSRXingResultParser(),
-    //     new SMSTOMMSTORXingResultParser(),
-    //     new GeoRXingResultParser(),
-          &WifiRXingResultParser{},
-    //     new URLTORXingResultParser(),
-    //     new URIRXingResultParser(),
-          &ISBNRXingResultParser{},
-    //     new ProductRXingResultParser(),
-    //     new ExpandedProductRXingResultParser(),
-    //     new VINRXingResultParser(),
-];
+    let PARSERS: [&dyn RXingResultParser; 3] = [
+        //     new BookmarkDoCoMoRXingResultParser(),
+        //     new AddressBookDoCoMoRXingResultParser(),
+        //     new EmailDoCoMoRXingResultParser(),
+        //     new AddressBookAURXingResultParser(),
+        //     new VCardRXingResultParser(),
+        //     new BizcardRXingResultParser(),
+        //     new VEventRXingResultParser(),
+        //     new EmailAddressRXingResultParser(),
+        //     new SMTPRXingResultParser(),
+        &TelRXingResultParser {},
+        //     new SMSMMSRXingResultParser(),
+        //     new SMSTOMMSTORXingResultParser(),
+        //     new GeoRXingResultParser(),
+        &WifiRXingResultParser {},
+        //     new URLTORXingResultParser(),
+        //     new URIRXingResultParser(),
+        &ISBNRXingResultParser {},
+        //     new ProductRXingResultParser(),
+        //     new ExpandedProductRXingResultParser(),
+        //     new VINRXingResultParser(),
+    ];
 
     for parser in PARSERS {
         let result = parser.parse(theRXingResult);
@@ -276,55 +278,81 @@ pub fn matchPrefixedField(
     endChar: char,
     trim: bool,
 ) -> Option<Vec<String>> {
-    let mut matches: Vec<String> = Vec::new();
+    let mut matches = Vec::new();
     let mut i = 0;
     let max = rawText.len();
     while i < max {
         i = if let Some(loc) = rawText[i..].find(prefix) {
-            loc //rawText.indexOf(prefix, i);
+            loc+i
         } else {
             break;
         };
-        // if i < 0 {
-        //   break;
-        // }
+        //   i = rawText.indexOf(prefix, i);
+        //   if (i < 0) {
+        //     break;
+        //   }
         i += prefix.len(); // Skip past this prefix we found to start
         let start = i; // Found the start of a match here
         let mut more = true;
         while more {
-             i = if let Some(loc) = rawText[i..].find(endChar) {
-                if countPrecedingBackslashes(rawText, i) % 2 != 0 {
-                    // semicolon was escaped (odd count of preceding backslashes) so continue
-                    i + 1
-                } else {
-                    // found a match
-                    let mut element = unescapeBackslash(&rawText[start..loc+i]);
-                    if trim {
-                        element = element.to_string().trim().to_owned();
-                    }
-                    if !element.is_empty() {
-                        matches.push(element);
-                    }
-                    more = false;
-                    i + 1
-                }
-            } else {
+            let next_index = rawText[i..].find(endChar);
+            if next_index.is_none() {
                 // No terminating end character? uh, done. Set i such that loop terminates and break
-                //i = rawText.len();
+                i = rawText.len();
                 more = false;
-                rawText.len()
-            };
+                continue;
+            } else {
+                i += next_index.unwrap();
+            }
+
+            if countPrecedingBackslashes(rawText, i) % 2 != 0 {
+                // semicolon was escaped (odd count of preceding backslashes) so continue
+                i += 1;
+            } else {
+                // found a match
+                let mut element = unescapeBackslash(&rawText[start..i]);
+                if trim {
+                    element = element.trim().to_owned();
+                }
+                if !element.is_empty() {
+                    matches.push(element);
+                }
+                i += 1;
+                more = false;
+            }
+
+            // i = rawText.indexOf(endChar, i);
+            // if i < 0 {
+            //   // No terminating end character? uh, done. Set i such that loop terminates and break
+            //   i = rawText.len();
+            //   more = false;
+            // } else if countPrecedingBackslashes(rawText, i) % 2 != 0 {
+            //   // semicolon was escaped (odd count of preceding backslashes) so continue
+            //   i+=1;
+            // } else {
+            //   // found a match
+            //   let element = unescapeBackslash(&rawText[start..start+i]);
+            //   if (trim) {
+            //     element = element.trim();
+            //   }
+            //   if (!element.isEmpty()) {
+            //     matches.add(element);
+            //   }
+            //   i+=1;
+            //   more = false;
+            // }
         }
     }
     if matches.is_empty() {
         return None;
     }
+
     Some(matches)
 }
 
 pub fn countPrecedingBackslashes(s: &str, pos: usize) -> u32 {
     let mut count = 0;
-    for i in (0..pos - 1).rev() {
+    for i in (0..pos).rev() {
         // for (int i = pos - 1; i >= 0; i--) {
         if s.chars().nth(i).unwrap() == '\\' {
             count += 1;
