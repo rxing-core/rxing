@@ -20,7 +20,7 @@
 
 use crate::client::result::{WifiParsedRXingResult, ParsedClientResult};
 
-use super::{RXingResultParser, ResultParser};
+use super::{ResultParser};
 
 // @SuppressWarnings("checkstyle:lineLength")
 /**
@@ -40,10 +40,10 @@ use super::{RXingResultParser, ResultParser};
  * @author Sean Owen
  * @author Steffen Kieß
  */
-pub struct WifiRXingResultParser  {}
+// pub struct WifiRXingResultParser  {}
 
-impl RXingResultParser for WifiRXingResultParser {
-    fn parse(&self, theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientResult> {
+// impl RXingResultParser for WifiRXingResultParser {
+    pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientResult> {
       const WIFI_TEST : &'static str = "WIFI:";
 
       let rawText_unstripped = ResultParser::getMassagedText(theRXingResult);
@@ -85,4 +85,4 @@ impl RXingResultParser for WifiRXingResultParser {
   
       Some(ParsedClientResult::WiFiResult(WifiParsedRXingResult::with_details(n_type, ssid, pass, hidden, identity, anonymousIdentity, eapMethod, phase2Method.unwrap_or(String::from("")))))
     }
-}
+// }

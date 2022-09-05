@@ -10,6 +10,8 @@ mod WifiParsedResult;
 mod WifiResultParser;
 mod GeoResultParser;
 mod GeoParsedResult;
+mod SMSParsedResult;
+mod SMSMMSResultParser;
 
 use std::fmt;
 
@@ -18,13 +20,14 @@ pub use ResultParser::*;
 pub use TelParsedResult::*;
 pub use TextParsedResult::*;
 pub use ParsedResult::*;
-pub use TelResultParser::*;
+// pub use TelResultParser::*;
 pub use ISBNParsedResult::*;
-pub use ISBNResultParser::*;
+// pub use ISBNResultParser::*;
 pub use WifiParsedResult::*;
-pub use WifiResultParser::*;
+// pub use WifiResultParser::*;
 pub use GeoParsedResult::*;
-pub use GeoResultParser::*;
+// pub use GeoResultParser::*;
+pub use SMSParsedResult::*;
 
 
 #[cfg(test)]
@@ -35,6 +38,8 @@ mod ISBNParsedResultTestCase;
 mod WifiParsedResultTestCase;
 #[cfg(test)]
 mod GeoParsedResultTestCase;
+#[cfg(test)]
+mod SMSMMSParsedResultTestCase;
 
 pub enum ParsedClientResult {
     TextResult(TextParsedRXingResult),
@@ -42,6 +47,7 @@ pub enum ParsedClientResult {
     ISBNResult(ISBNParsedRXingResult),
     WiFiResult(WifiParsedRXingResult),
     GeoResult(GeoParsedRXingResult),
+    SMSResult(SMSParsedRXingResult),
 }
 
 impl ParsedRXingResult for ParsedClientResult {
@@ -52,6 +58,7 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::ISBNResult(a) => a.getType(),
             ParsedClientResult::WiFiResult(a) => a.getType(),
             ParsedClientResult::GeoResult(a) => a.getType(),
+            ParsedClientResult::SMSResult(a) => a.getType(),
             
             
         }
@@ -64,6 +71,7 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::ISBNResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::WiFiResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::GeoResult(a) => a.getDisplayRXingResult(),
+            ParsedClientResult::SMSResult(a) => a.getDisplayRXingResult(),
 
             
             

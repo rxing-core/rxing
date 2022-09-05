@@ -34,8 +34,6 @@ use crate::{
     BarcodeFormat, RXingResult,
 };
 
-use super::RXingResultParser;
-
 const EPSILON: f64 = 1.0E-10;
 
 #[test]

@@ -23,20 +23,20 @@ use std::result;
 
 use crate::BarcodeFormat;
 
-use super::{RXingResultParser, ResultParser, ISBNParsedRXingResult, ParsedClientResult};
+use super::{ ResultParser, ISBNParsedRXingResult, ParsedClientResult};
 
 /**
  * Parses strings of digits that represent a ISBN.
  * 
  * @author jbreiden@google.com (Jeff Breidenbach)
  */
-pub struct ISBNRXingResultParser  {}
+// pub struct ISBNRXingResultParser  {}
 
-impl RXingResultParser for ISBNRXingResultParser {
+// impl RXingResultParser for ISBNRXingResultParser {
    /**
    * See <a href="http://www.bisg.org/isbn-13/for.dummies.html">ISBN-13 For Dummies</a>
    */
-  fn parse(&self, theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientResult> {
+  pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientResult> {
       let format = theRXingResult.getBarcodeFormat();
       if *format != BarcodeFormat::EAN_13 {
         return None;
@@ -52,4 +52,4 @@ impl RXingResultParser for ISBNRXingResultParser {
      
       Some(ParsedClientResult::ISBNResult(ISBNParsedRXingResult::new(rawText)))
     }
-}
+// }

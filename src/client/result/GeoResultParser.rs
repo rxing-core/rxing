@@ -21,7 +21,7 @@
 // import java.util.regex.Matcher;
 // import java.util.regex.Pattern;
 
-use super::{GeoParsedRXingResult, ParsedClientResult, RXingResultParser, ResultParser};
+use super::{GeoParsedRXingResult, ParsedClientResult,  ResultParser};
 
 const GEO_URL_PATTERN: &'static str = "geo:([\\-0-9.]+),([\\-0-9.]+)(?:,([\\-0-9.]+))?(?:\\?(.*))?";
 
@@ -33,10 +33,10 @@ const GEO_URL_PATTERN: &'static str = "geo:([\\-0-9.]+),([\\-0-9.]+)(?:,([\\-0-9
  *
  * @author Sean Owen
  */
-pub struct GeoRXingResultParser {}
+// pub struct GeoRXingResultParser {}
 
-impl RXingResultParser for GeoRXingResultParser {
-    fn parse(&self, theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientResult> {
+// impl RXingResultParser for GeoRXingResultParser {
+    pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientResult> {
         let rawText = ResultParser::getMassagedText(theRXingResult);
 
         let matcher = regex::Regex::new(GEO_URL_PATTERN).unwrap();
@@ -123,4 +123,4 @@ impl RXingResultParser for GeoRXingResultParser {
         //   return null;
         // }
     }
-}
+// }

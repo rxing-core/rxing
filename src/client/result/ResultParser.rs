@@ -34,8 +34,8 @@ use urlencoding::decode;
 use crate::{exceptions::Exceptions, RXingResult};
 
 use super::{
-    ISBNRXingResultParser, ParsedClientResult, ParsedRXingResult, TelRXingResultParser,
-    TextParsedRXingResult, WifiRXingResultParser, GeoRXingResultParser,
+    ISBNResultParser, ParsedClientResult, ParsedRXingResult, TelResultParser,
+    TextParsedRXingResult, WifiResultParser, GeoResultParser, SMSMMSResultParser
 };
 
 /**
@@ -49,40 +49,42 @@ use super::{
  *
  * @author Sean Owen
  */
-pub trait RXingResultParser {
-    // const PARSERS: [&'static str; 20] = [
-    //     "BookmarkDoCoMoRXingResultParser",
-    //     "AddressBookDoCoMoRXingResultParser",
-    //     "EmailDoCoMoRXingResultParser",
-    //     "AddressBookAURXingResultParser",
-    //     "VCardRXingResultParser",
-    //     "BizcardRXingResultParser",
-    //     "VEventRXingResultParser",
-    //     "EmailAddressRXingResultParser",
-    //     "SMTPRXingResultParser",
-    //     "TelRXingResultParser",
-    //     "SMSMMSRXingResultParser",
-    //     "SMSTOMMSTORXingResultParser",
-    //     "GeoRXingResultParser",
-    //     "WifiRXingResultParser",
-    //     "URLTORXingResultParser",
-    //     "URIRXingResultParser",
-    //     "ISBNRXingResultParser",
-    //     "ProductRXingResultParser",
-    //     "ExpandedProductRXingResultParser",
-    //     "VINRXingResultParser",
-    // ];
+// pub trait RXingResultParser {
+//     // const PARSERS: [&'static str; 20] = [
+//     //     "BookmarkDoCoMoRXingResultParser",
+//     //     "AddressBookDoCoMoRXingResultParser",
+//     //     "EmailDoCoMoRXingResultParser",
+//     //     "AddressBookAURXingResultParser",
+//     //     "VCardRXingResultParser",
+//     //     "BizcardRXingResultParser",
+//     //     "VEventRXingResultParser",
+//     //     "EmailAddressRXingResultParser",
+//     //     "SMTPRXingResultParser",
+//     //     "TelRXingResultParser",
+//     //     "SMSMMSRXingResultParser",
+//     //     "SMSTOMMSTORXingResultParser",
+//     //     "GeoRXingResultParser",
+//     //     "WifiRXingResultParser",
+//     //     "URLTORXingResultParser",
+//     //     "URIRXingResultParser",
+//     //     "ISBNRXingResultParser",
+//     //     "ProductRXingResultParser",
+//     //     "ExpandedProductRXingResultParser",
+//     //     "VINRXingResultParser",
+//     // ];
 
-    /**
-     * Attempts to parse the raw {@link RXingResult}'s contents as a particular type
-     * of information (email, URL, etc.) and return a {@link ParsedRXingResult} encapsulating
-     * the result of parsing.
-     *
-     * @param theRXingResult the raw {@link RXingResult} to parse
-     * @return {@link ParsedRXingResult} encapsulating the parsing result
-     */
-    fn parse(&self, theRXingResult: &RXingResult) -> Option<ParsedClientResult>;
-}
+//     /**
+//      * Attempts to parse the raw {@link RXingResult}'s contents as a particular type
+//      * of information (email, URL, etc.) and return a {@link ParsedRXingResult} encapsulating
+//      * the result of parsing.
+//      *
+//      * @param theRXingResult the raw {@link RXingResult} to parse
+//      * @return {@link ParsedRXingResult} encapsulating the parsing result
+//      */
+//     fn parse(&self, theRXingResult: &RXingResult) -> Option<ParsedClientResult>;
+// }
+
+type ParserFunction = dyn Fn(&RXingResult) -> Option<ParsedClientResult>;
 
 const DIGITS: &'static str = "\\d+"; //= Pattern.compile("\\d+");
 const AMPERSAND: &'static str = "&"; // private static final Pattern AMPERSAND = Pattern.compile("&");
@@ -100,7 +102,7 @@ pub fn getMassagedText(result: &RXingResult) -> String {
 }
 
 pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
-    let PARSERS: [&dyn RXingResultParser; 4] = [
+    let PARSERS: [&ParserFunction; 5] = [
         //     new BookmarkDoCoMoRXingResultParser(),
         //     new AddressBookDoCoMoRXingResultParser(),
         //     new EmailDoCoMoRXingResultParser(),
@@ -110,21 +112,21 @@ pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
         //     new VEventRXingResultParser(),
         //     new EmailAddressRXingResultParser(),
         //     new SMTPRXingResultParser(),
-        &TelRXingResultParser {},
-        //     new SMSMMSRXingResultParser(),
+        &TelResultParser::parse,
+        &SMSMMSResultParser::parse,
         //     new SMSTOMMSTORXingResultParser(),
-             &GeoRXingResultParser{},
-        &WifiRXingResultParser {},
+             &GeoResultParser::parse,
+        &WifiResultParser::parse,
         //     new URLTORXingResultParser(),
         //     new URIRXingResultParser(),
-        &ISBNRXingResultParser {},
+        &ISBNResultParser::parse,
         //     new ProductRXingResultParser(),
         //     new ExpandedProductRXingResultParser(),
         //     new VINRXingResultParser(),
     ];
 
     for parser in PARSERS {
-        let result = parser.parse(theRXingResult);
+        let result = parser(theRXingResult);
         if result.is_some() {
             return result.unwrap();
         }
@@ -148,7 +150,7 @@ pub fn maybe_append_string(value: &str, result: &mut String) {
     }
 }
 
-pub fn maybe_append_multiple(value: &[&str], result: &mut String) {
+pub fn maybe_append_multiple(value: &[String], result: &mut String) {
     if !value.is_empty() {
         for s in value {
             // for (String s : value) {

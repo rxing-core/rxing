@@ -18,18 +18,18 @@
 
 // import com.google.zxing.RXingResult;
 
-use super::{RXingResultParser, TelParsedRXingResult, ParsedRXingResult, ParsedClientResult, ResultParser};
+use super::{TelParsedRXingResult, ParsedRXingResult, ParsedClientResult, ResultParser};
 
 /**
  * Parses a "tel:" URI result, which specifies a phone number.
  *
  * @author Sean Owen
  */
-pub struct TelRXingResultParser  {}
+// pub struct TelRXingResultParser  {}
 
-impl RXingResultParser for TelRXingResultParser {
+// impl RXingResultParser for TelRXingResultParser {
 
-    fn parse(&self, theRXingResult: &crate::RXingResult) -> Option<ParsedClientResult> {
+    pub fn parse(theRXingResult: &crate::RXingResult) -> Option<ParsedClientResult> {
       let rawText = ResultParser::getMassagedText(theRXingResult);
       if !rawText.starts_with("tel:") && !rawText.starts_with("TEL:") {
         return None;
@@ -46,4 +46,4 @@ impl RXingResultParser for TelRXingResultParser {
       // let number = queryStart < 0 ?  : ;
       Some(ParsedClientResult::TelResult(TelParsedRXingResult::new(number.to_owned(), telURI.to_owned(), "".to_owned())))
     }
-}
+// }

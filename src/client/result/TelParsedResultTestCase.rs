@@ -31,7 +31,7 @@ use std::any::Any;
 
 use crate::{
     client::result::{
-        ParsedClientResult, ParsedRXingResult, ParsedRXingResultType, RXingResultParser,
+        ParsedClientResult, ParsedRXingResult, ParsedRXingResultType, 
         TelParsedRXingResult,
     },
     BarcodeFormat, RXingResult,
