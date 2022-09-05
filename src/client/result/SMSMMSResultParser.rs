@@ -45,11 +45,11 @@ use super::{ParsedClientResult, ResultParser, SMSParsedRXingResult};
 
 // @Override
 pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
-    let rawText = ResultParser::getMassagedText(result);
-    if !(rawText.starts_with("sms:")
-        || rawText.starts_with("SMS:")
-        || rawText.starts_with("mms:")
-        || rawText.starts_with("MMS:"))
+    let raw_text = ResultParser::getMassagedText(result);
+    if !(raw_text.starts_with("sms:")
+        || raw_text.starts_with("SMS:")
+        || raw_text.starts_with("mms:")
+        || raw_text.starts_with("MMS:"))
     {
         return None;
     }
@@ -59,7 +59,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let mut querySyntax = false;
 
     // Check up front if this is a URI syntax string with query arguments
-    if let Some(name_value_pairs) = ResultParser::parseNameValuePairs(&rawText) {
+    if let Some(name_value_pairs) = ResultParser::parseNameValuePairs(&raw_text) {
         if !name_value_pairs.is_empty() {
             subject = String::from(name_value_pairs.get("subject").unwrap_or(&"".to_owned()));
             body = String::from(name_value_pairs.get("body").unwrap_or(&"".to_owned()));
@@ -68,34 +68,34 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     }
 
     // Drop sms, query portion
-    let query_start = rawText[4..].find('?');
+    let query_start = raw_text[4..].find('?');
     let sms_uriwithout_query;
     // If it's not query syntax, the question mark is part of the subject or message
     if query_start.is_none() || !querySyntax {
-        sms_uriwithout_query = &rawText[4..];
+        sms_uriwithout_query = &raw_text[4..];
     } else {
-        sms_uriwithout_query = &rawText[4..4 + query_start.unwrap_or(0)];
+        sms_uriwithout_query = &raw_text[4..4 + query_start.unwrap_or(0)];
     }
 
-    let mut lastComma: i32 = -1;
-    let mut comma: i32 = sms_uriwithout_query[(lastComma + 1) as usize..]
+    let mut last_comma: i32 = -1;
+    let mut comma: i32 = sms_uriwithout_query[(last_comma + 1) as usize..]
         .find(',')
         .unwrap_or(0) as i32;
     let mut numbers = Vec::with_capacity(1);
     let mut vias = Vec::with_capacity(1);
-    while comma > lastComma {
-        comma = sms_uriwithout_query[(lastComma + 1) as usize..]
+    while comma > last_comma {
+        comma = sms_uriwithout_query[(last_comma + 1) as usize..]
             .find(',')
             .unwrap_or(0) as i32; //sms_uriwithout_query.indexOf(',', lastComma + 1);
-        let numberPart =
-            &sms_uriwithout_query[(lastComma + 1) as usize..(lastComma + 1 + comma) as usize];
-        addNumberVia(&mut numbers, &mut vias, numberPart);
-        lastComma = comma;
+        let number_part =
+            &sms_uriwithout_query[(last_comma + 1) as usize..(last_comma + 1 + comma) as usize];
+        add_number_via(&mut numbers, &mut vias, number_part);
+        last_comma = comma;
     }
-    addNumberVia(
+    add_number_via(
         &mut numbers,
         &mut vias,
-        &sms_uriwithout_query[(lastComma + 1) as usize..],
+        &sms_uriwithout_query[(last_comma) as usize..],
     );
 
     Some(ParsedClientResult::SMSResult(
@@ -108,20 +108,25 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     //                            body);
 }
 
-fn addNumberVia(numbers: &mut Vec<String>, vias: &mut Vec<String>, numberPart: &str) {
-    if let Some(numberEnd) = numberPart.find(';') {
+fn add_number_via(numbers: &mut Vec<String>, vias: &mut Vec<String>, number_part: &str) {
+    if number_part.is_empty() {
+        return
+    }
+    if let Some(number_end) = number_part.find(';') {
         // if numberEnd < 0 {
-        numbers.push(numberPart[..numberEnd].to_string());
-        let maybeVia = &numberPart[numberEnd + 1..];
-        let via = if maybeVia.starts_with("via=") {
-            &maybeVia[..4]
+        numbers.push(number_part[..number_end].to_string());
+        let maybe_via = &number_part[number_end + 1..];
+        let via = if maybe_via.starts_with("via=") {
+            &maybe_via[4..]
         } else {
             ""
         };
-        vias.push(via.to_owned());
+        if !via.is_empty() {
+            vias.push(via.to_owned());
+        }
     } else {
-        numbers.push(numberPart.to_owned());
-        vias.push("".to_owned());
+        numbers.push(number_part.to_owned());
+        //vias.push("".to_owned());
     }
 }
 

@@ -34,8 +34,8 @@ use urlencoding::decode;
 use crate::{exceptions::Exceptions, RXingResult};
 
 use super::{
-    ISBNResultParser, ParsedClientResult, ParsedRXingResult, TelResultParser,
-    TextParsedRXingResult, WifiResultParser, GeoResultParser, SMSMMSResultParser
+    GeoResultParser, ISBNResultParser, ParsedClientResult, ParsedRXingResult, SMSMMSResultParser,
+    TelResultParser, TextParsedRXingResult, WifiResultParser,
 };
 
 /**
@@ -115,7 +115,7 @@ pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
         &TelResultParser::parse,
         &SMSMMSResultParser::parse,
         //     new SMSTOMMSTORXingResultParser(),
-             &GeoResultParser::parse,
+        &GeoResultParser::parse,
         &WifiResultParser::parse,
         //     new URLTORXingResultParser(),
         //     new URIRXingResultParser(),
@@ -154,8 +154,10 @@ pub fn maybe_append_multiple(value: &[String], result: &mut String) {
     if !value.is_empty() {
         for s in value {
             // for (String s : value) {
-            result.push('\n');
-            result.push_str(s);
+            if !s.is_empty() {
+                result.push('\n');
+                result.push_str(s);
+            }
         }
     }
 }
@@ -285,7 +287,7 @@ pub fn matchPrefixedField(
     let max = rawText.len();
     while i < max {
         i = if let Some(loc) = rawText[i..].find(prefix) {
-            loc+i
+            loc + i
         } else {
             break;
         };

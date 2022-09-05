@@ -92,16 +92,16 @@ impl SMSParsedRXingResult {
         result.push_str(&self.vias[i]);
       }
     }
-    let hasBody = !self.body.is_empty();
-    let hasSubject = !self.subject.is_empty();
-    if hasBody || hasSubject {
+    let has_body = !self.body.is_empty();
+    let has_subject = !self.subject.is_empty();
+    if has_body || has_subject {
       result.push('?');
-      if hasBody {
+      if has_body {
         result.push_str("body=");
         result.push_str(&self.body);
       }
-      if hasSubject {
-        if hasBody {
+      if has_subject {
+        if has_body {
           result.push('&');
         }
         result.push_str("subject=");

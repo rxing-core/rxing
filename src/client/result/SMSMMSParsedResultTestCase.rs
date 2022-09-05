@@ -84,7 +84,12 @@ fn do_test(contents: &str, number: &str, subject: &str, body: &str, via: &str, p
         assert_eq!(&vec![number], smsRXingResult.getNumbers());
         assert_eq!(subject, smsRXingResult.getSubject());
         assert_eq!(body, smsRXingResult.getBody());
-        assert_eq!(&vec![via], smsRXingResult.getVias());
+        let vec_via = if via.is_empty() {
+            vec![]
+        }else {
+            vec![via]
+        };
+        assert_eq!(&vec_via, smsRXingResult.getVias());
         assert_eq!(parsedURI, smsRXingResult.getSMSURI());
     } else {
         panic!("Expected ParsedClientResult::SMSResult");
