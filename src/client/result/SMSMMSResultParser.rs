@@ -59,22 +59,22 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let mut querySyntax = false;
 
     // Check up front if this is a URI syntax string with query arguments
-    if let Some(nameValuePairs) = ResultParser::parseNameValuePairs(&rawText) {
-        if !nameValuePairs.is_empty() {
-            subject = String::from(nameValuePairs.get("subject").unwrap_or(&"".to_owned()));
-            body = String::from(nameValuePairs.get("body").unwrap_or(&"".to_owned()));
+    if let Some(name_value_pairs) = ResultParser::parseNameValuePairs(&rawText) {
+        if !name_value_pairs.is_empty() {
+            subject = String::from(name_value_pairs.get("subject").unwrap_or(&"".to_owned()));
+            body = String::from(name_value_pairs.get("body").unwrap_or(&"".to_owned()));
             querySyntax = true;
         }
     }
 
     // Drop sms, query portion
-    let queryStart = rawText[4..].find('?');
+    let query_start = rawText[4..].find('?');
     let sms_uriwithout_query;
     // If it's not query syntax, the question mark is part of the subject or message
-    if queryStart.is_none() || !querySyntax {
+    if query_start.is_none() || !querySyntax {
         sms_uriwithout_query = &rawText[4..];
     } else {
-        sms_uriwithout_query = &rawText[4..4 + queryStart.unwrap_or(0)];
+        sms_uriwithout_query = &rawText[4..4 + query_start.unwrap_or(0)];
     }
 
     let mut lastComma: i32 = -1;
