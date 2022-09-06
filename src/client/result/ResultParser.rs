@@ -35,7 +35,7 @@ use crate::{exceptions::Exceptions, RXingResult};
 
 use super::{
     GeoResultParser, ISBNResultParser, ParsedClientResult, ParsedRXingResult, SMSMMSResultParser,
-    TelResultParser, TextParsedRXingResult, WifiResultParser,
+    TelResultParser, TextParsedRXingResult, WifiResultParser, ProductResultParser,
 };
 
 /**
@@ -102,7 +102,7 @@ pub fn getMassagedText(result: &RXingResult) -> String {
 }
 
 pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
-    let PARSERS: [&ParserFunction; 5] = [
+    let PARSERS: [&ParserFunction; 6] = [
         //     new BookmarkDoCoMoRXingResultParser(),
         //     new AddressBookDoCoMoRXingResultParser(),
         //     new EmailDoCoMoRXingResultParser(),
@@ -120,7 +120,7 @@ pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
         //     new URLTORXingResultParser(),
         //     new URIRXingResultParser(),
         &ISBNResultParser::parse,
-        //     new ProductRXingResultParser(),
+        &ProductResultParser::parse,
         //     new ExpandedProductRXingResultParser(),
         //     new VINRXingResultParser(),
     ];

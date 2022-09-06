@@ -12,6 +12,8 @@ mod GeoResultParser;
 mod GeoParsedResult;
 mod SMSParsedResult;
 mod SMSMMSResultParser;
+mod ProductParsedResult;
+mod ProductResultParser;
 
 use std::fmt;
 
@@ -28,6 +30,7 @@ pub use WifiParsedResult::*;
 pub use GeoParsedResult::*;
 // pub use GeoResultParser::*;
 pub use SMSParsedResult::*;
+pub use ProductParsedResult::*;
 
 
 #[cfg(test)]
@@ -40,6 +43,8 @@ mod WifiParsedResultTestCase;
 mod GeoParsedResultTestCase;
 #[cfg(test)]
 mod SMSMMSParsedResultTestCase;
+#[cfg(test)]
+mod ProductParsedResultTestCase;
 
 pub enum ParsedClientResult {
     TextResult(TextParsedRXingResult),
@@ -48,6 +53,7 @@ pub enum ParsedClientResult {
     WiFiResult(WifiParsedRXingResult),
     GeoResult(GeoParsedRXingResult),
     SMSResult(SMSParsedRXingResult),
+    ProductResult(ProductParsedRXingResult),
 }
 
 impl ParsedRXingResult for ParsedClientResult {
@@ -59,6 +65,7 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::WiFiResult(a) => a.getType(),
             ParsedClientResult::GeoResult(a) => a.getType(),
             ParsedClientResult::SMSResult(a) => a.getType(),
+            ParsedClientResult::ProductResult(a) => a.getType(),
             
             
         }
@@ -72,6 +79,7 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::WiFiResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::GeoResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::SMSResult(a) => a.getDisplayRXingResult(),
+            ParsedClientResult::ProductResult(a) => a.getDisplayRXingResult(),
 
             
             
