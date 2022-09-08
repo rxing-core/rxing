@@ -222,7 +222,17 @@ pub fn isSubstringOfDigits(value: &str, offset: usize, length: usize) -> bool {
     let matcher = Regex::new(DIGITS).unwrap();
     let sub_seq = &value[offset as usize..max];
 
-    value.len() >= max && matcher.is_match(sub_seq)
+    let is_a_match = if let Some(mtch) = matcher.find(sub_seq){
+        if mtch.start() == 0 && mtch.end() == sub_seq.len() {
+            true
+        }else {
+            false
+        }
+    }else{
+        false
+    };
+
+    value.len() >= max && is_a_match
 }
 
 pub fn parseNameValuePairs(uri: &str) -> Option<HashMap<String, String>> {
