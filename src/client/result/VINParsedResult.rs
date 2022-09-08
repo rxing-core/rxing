@@ -15,12 +15,12 @@
  */
 
 
-package com.google.zxing.client.result;
+// package com.google.zxing.client.result;
 
 /**
  * Represents a parsed result that encodes a Vehicle Identification Number (VIN).
  */
-public final class VINParsedRXingResult extends ParsedRXingResult {
+pub struct VINParsedRXingResult   {
 
   private final String vin;
   private final String worldManufacturerID;
@@ -31,6 +31,9 @@ public final class VINParsedRXingResult extends ParsedRXingResult {
   private final int modelYear;
   private final char plantCode;
   private final String sequentialNumber;
+
+  impl ParsedRXingResult for VINParsedRXingResult {}
+  impl VINParsedRXingResult{
 
   public VINParsedRXingResult(String vin,
                          String worldManufacturerID,
