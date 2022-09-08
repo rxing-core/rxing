@@ -34,8 +34,9 @@ use urlencoding::decode;
 use crate::{exceptions::Exceptions, RXingResult};
 
 use super::{
-    GeoResultParser, ISBNResultParser, ParsedClientResult, ParsedRXingResult, SMSMMSResultParser,
-    TelResultParser, TextParsedRXingResult, WifiResultParser, ProductResultParser,
+    GeoResultParser, ISBNResultParser, ParsedClientResult, ParsedRXingResult, ProductResultParser,
+    SMSMMSResultParser, TelResultParser, TextParsedRXingResult, URIResultParser, URLTOResultParser,
+    WifiResultParser,
 };
 
 /**
@@ -102,7 +103,7 @@ pub fn getMassagedText(result: &RXingResult) -> String {
 }
 
 pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
-    let PARSERS: [&ParserFunction; 6] = [
+    let PARSERS: [&ParserFunction; 8] = [
         //     new BookmarkDoCoMoRXingResultParser(),
         //     new AddressBookDoCoMoRXingResultParser(),
         //     new EmailDoCoMoRXingResultParser(),
@@ -117,8 +118,8 @@ pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
         //     new SMSTOMMSTORXingResultParser(),
         &GeoResultParser::parse,
         &WifiResultParser::parse,
-        //     new URLTORXingResultParser(),
-        //     new URIRXingResultParser(),
+        &URLTOResultParser::parse,
+        &URIResultParser::parse,
         &ISBNResultParser::parse,
         &ProductResultParser::parse,
         //     new ExpandedProductRXingResultParser(),
@@ -212,14 +213,14 @@ pub fn isStringOfDigits(value: &str, length: usize) -> bool {
     !value.is_empty() && length > 0 && length == value.len() && matcher.is_match(value)
 }
 
-pub fn isSubstringOfDigits(value: &str, offset: i32, length: usize) -> bool {
+pub fn isSubstringOfDigits(value: &str, offset: usize, length: usize) -> bool {
     if value.is_empty() || length <= 0 {
         return false;
     }
     let max = offset as usize + length;
 
     let matcher = Regex::new(DIGITS).unwrap();
-    let sub_seq = &value[offset as usize..offset as usize + max];
+    let sub_seq = &value[offset as usize..max];
 
     value.len() >= max && matcher.is_match(sub_seq)
 }

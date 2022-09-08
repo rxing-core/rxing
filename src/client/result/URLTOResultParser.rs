@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package com.google.zxing.client.result;
+// package com.google.zxing.client.result;
 
-import com.google.zxing.RXingResult;
+// import com.google.zxing.RXingResult;
+
+use crate::RXingResult;
+
+use super::{ParsedClientResult, ResultParser, URIParsedRXingResult};
 
 /**
  * Parses the "URLTO" result format, which is of the form "URLTO:[title]:[url]".
@@ -25,21 +29,27 @@ import com.google.zxing.RXingResult;
  *
  * @author Sean Owen
  */
-public final class URLTORXingResultParser extends RXingResultParser {
-
-  @Override
-  public URIParsedRXingResult parse(RXingResult result) {
-    String rawText = getMassagedText(result);
-    if (!rawText.startsWith("urlto:") && !rawText.startsWith("URLTO:")) {
-      return null;
+pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
+    let rawText = ResultParser::getMassagedText(result);
+    if !rawText.starts_with("urlto:") && !rawText.starts_with("URLTO:") {
+        return None;
     }
-    int titleEnd = rawText.indexOf(':', 6);
-    if (titleEnd < 0) {
-      return null;
-    }
-    String title = titleEnd <= 6 ? null : rawText.substring(6, titleEnd);
-    String uri = rawText.substring(titleEnd + 1);
-    return new URIParsedRXingResult(uri, title);
-  }
+    let titleEnd = if let Some(pos) = rawText[6..].find(':') {
+        pos + 6
+    } else {
+        return None;
+    };
+    let title = if titleEnd <= 6 {
+        ""
+    } else {
+        &rawText[6..titleEnd]
+    };
+    let uri = &rawText[titleEnd + 1..];
 
+    Some(ParsedClientResult::URIResult(URIParsedRXingResult::new(
+        uri.to_owned(),
+        title.to_owned(),
+    )))
 }
+
+// }

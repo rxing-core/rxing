@@ -14,6 +14,9 @@ mod SMSParsedResult;
 mod SMSMMSResultParser;
 mod ProductParsedResult;
 mod ProductResultParser;
+mod URIParsedResult;
+mod URIResultParser;
+mod URLTOResultParser;
 
 use std::fmt;
 
@@ -31,7 +34,7 @@ pub use GeoParsedResult::*;
 // pub use GeoResultParser::*;
 pub use SMSParsedResult::*;
 pub use ProductParsedResult::*;
-
+pub use URIParsedResult::*;
 
 #[cfg(test)]
 mod TelParsedResultTestCase;
@@ -45,6 +48,8 @@ mod GeoParsedResultTestCase;
 mod SMSMMSParsedResultTestCase;
 #[cfg(test)]
 mod ProductParsedResultTestCase;
+#[cfg(test)]
+mod URIParsedResultTestCase;
 
 pub enum ParsedClientResult {
     TextResult(TextParsedRXingResult),
@@ -54,6 +59,7 @@ pub enum ParsedClientResult {
     GeoResult(GeoParsedRXingResult),
     SMSResult(SMSParsedRXingResult),
     ProductResult(ProductParsedRXingResult),
+    URIResult(URIParsedRXingResult),
 }
 
 impl ParsedRXingResult for ParsedClientResult {
@@ -66,6 +72,7 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::GeoResult(a) => a.getType(),
             ParsedClientResult::SMSResult(a) => a.getType(),
             ParsedClientResult::ProductResult(a) => a.getType(),
+            ParsedClientResult::URIResult(a) => a.getType(),
             
             
         }
@@ -80,6 +87,7 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::GeoResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::SMSResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::ProductResult(a) => a.getDisplayRXingResult(),
+            ParsedClientResult::URIResult(a) => a.getDisplayRXingResult(),
 
             
             
