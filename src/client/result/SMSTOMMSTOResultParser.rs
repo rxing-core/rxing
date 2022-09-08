@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package com.google.zxing.client.result;
+// package com.google.zxing.client.result;
 
-import com.google.zxing.RXingResult;
+// import com.google.zxing.RXingResult;
+
+use crate::RXingResult;
+
+use super::{ParsedClientResult, ResultParser, SMSParsedRXingResult};
 
 /**
  * <p>Parses an "smsto:" URI result, whose format is not standardized but appears to be like:
@@ -28,25 +32,25 @@ import com.google.zxing.RXingResult;
  *
  * @author Sean Owen
  */
-public final class SMSTOMMSTORXingResultParser extends RXingResultParser {
-
-  @Override
-  public SMSParsedRXingResult parse(RXingResult result) {
-    String rawText = getMassagedText(result);
-    if (!(rawText.startsWith("smsto:") || rawText.startsWith("SMSTO:") ||
-          rawText.startsWith("mmsto:") || rawText.startsWith("MMSTO:"))) {
-      return null;
+  pub fn parse(result:&RXingResult) -> Option<ParsedClientResult> {
+    let rawText = ResultParser::getMassagedText(result);
+    if !(rawText.starts_with("smsto:") || rawText.starts_with("SMSTO:") ||
+          rawText.starts_with("mmsto:") || rawText.starts_with("MMSTO:")) {
+      return None;
     }
     // Thanks to dominik.wild for suggesting this enhancement to support
     // smsto:number:body URIs
-    String number = rawText.substring(6);
-    String body = null;
-    int bodyStart = number.indexOf(':');
-    if (bodyStart >= 0) {
-      body = number.substring(bodyStart + 1);
-      number = number.substring(0, bodyStart);
+    let mut number = &rawText[6..];
+    let mut body = "";
+    if let Some(body_start) = number.find(':') {
+      body = &number[body_start + 1..];
+      number = &number[..body_start];
     }
-    return new SMSParsedRXingResult(number, null, null, body);
+    // let bodyStart = number.indexOf(':');
+    // if (bodyStart >= 0) {
+    //   body = number.substring(bodyStart + 1);
+    //   number = number.substring(0, bodyStart);
+    // }
+    Some(ParsedClientResult::SMSResult(SMSParsedRXingResult::with_singles(number.to_owned(), String::from(""), String::from(""), body.to_owned())))
+    // return new SMSParsedRXingResult(number, null, null, body);
   }
-
-}

@@ -34,9 +34,9 @@ use urlencoding::decode;
 use crate::{exceptions::Exceptions, RXingResult};
 
 use super::{
-    GeoResultParser, ISBNResultParser, ParsedClientResult, ParsedRXingResult, ProductResultParser,
-    SMSMMSResultParser, TelResultParser, TextParsedRXingResult, URIResultParser, URLTOResultParser,
-    WifiResultParser, BookmarkDoCoMoResultParser,
+    BookmarkDoCoMoResultParser, GeoResultParser, ISBNResultParser, ParsedClientResult,
+    ParsedRXingResult, ProductResultParser, SMSMMSResultParser, TelResultParser,
+    TextParsedRXingResult, URIResultParser, URLTOResultParser, WifiResultParser,
 };
 
 /**
@@ -103,7 +103,7 @@ pub fn getMassagedText(result: &RXingResult) -> String {
 }
 
 pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
-    let PARSERS: [&ParserFunction; 9] = [
+    let PARSERS: [&ParserFunction; 10] = [
         &BookmarkDoCoMoResultParser::parse,
         //     new AddressBookDoCoMoRXingResultParser(),
         //     new EmailDoCoMoRXingResultParser(),
@@ -115,7 +115,7 @@ pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
         //     new SMTPRXingResultParser(),
         &TelResultParser::parse,
         &SMSMMSResultParser::parse,
-        //     new SMSTOMMSTORXingResultParser(),
+        &SMSMMSResultParser::parse,
         &GeoResultParser::parse,
         &WifiResultParser::parse,
         &URLTOResultParser::parse,
@@ -222,13 +222,13 @@ pub fn isSubstringOfDigits(value: &str, offset: usize, length: usize) -> bool {
     let matcher = Regex::new(DIGITS).unwrap();
     let sub_seq = &value[offset as usize..max];
 
-    let is_a_match = if let Some(mtch) = matcher.find(sub_seq){
+    let is_a_match = if let Some(mtch) = matcher.find(sub_seq) {
         if mtch.start() == 0 && mtch.end() == sub_seq.len() {
             true
-        }else {
+        } else {
             false
         }
-    }else{
+    } else {
         false
     };
 
@@ -393,10 +393,14 @@ pub fn matchSinglePrefixedField(
     // return matches == null ? null : matches[0];
 }
 
-pub fn  match_do_co_mo_prefixed_field( prefix:&str,  raw_text:&str)  -> Option<Vec<String>> {
+pub fn match_do_co_mo_prefixed_field(prefix: &str, raw_text: &str) -> Option<Vec<String>> {
     matchPrefixedField(prefix, raw_text, ';', true)
-  }
+}
 
-  pub fn  match_single_do_co_mo_prefixed_field( prefix:&str,  raw_text:&str,  trim:bool) -> Option<String>{
-     matchSinglePrefixedField(prefix, raw_text, ';', trim)
-  }
+pub fn match_single_do_co_mo_prefixed_field(
+    prefix: &str,
+    raw_text: &str,
+    trim: bool,
+) -> Option<String> {
+    matchSinglePrefixedField(prefix, raw_text, ';', trim)
+}

@@ -19,6 +19,7 @@ mod URIResultParser;
 mod URLTOResultParser;
 mod AbstractDoCoMoResultParser;
 mod BookmarkDoCoMoResultParser;
+mod SMSTOMMSTOResultParser;
 
 use std::fmt;
 
