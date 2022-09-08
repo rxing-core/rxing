@@ -17,6 +17,8 @@ mod ProductResultParser;
 mod URIParsedResult;
 mod URIResultParser;
 mod URLTOResultParser;
+mod AbstractDoCoMoResultParser;
+mod BookmarkDoCoMoResultParser;
 
 use std::fmt;
 

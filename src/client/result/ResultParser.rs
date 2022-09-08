@@ -36,7 +36,7 @@ use crate::{exceptions::Exceptions, RXingResult};
 use super::{
     GeoResultParser, ISBNResultParser, ParsedClientResult, ParsedRXingResult, ProductResultParser,
     SMSMMSResultParser, TelResultParser, TextParsedRXingResult, URIResultParser, URLTOResultParser,
-    WifiResultParser,
+    WifiResultParser, BookmarkDoCoMoResultParser,
 };
 
 /**
@@ -103,8 +103,8 @@ pub fn getMassagedText(result: &RXingResult) -> String {
 }
 
 pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
-    let PARSERS: [&ParserFunction; 8] = [
-        //     new BookmarkDoCoMoRXingResultParser(),
+    let PARSERS: [&ParserFunction; 9] = [
+        &BookmarkDoCoMoResultParser::parse,
         //     new AddressBookDoCoMoRXingResultParser(),
         //     new EmailDoCoMoRXingResultParser(),
         //     new AddressBookAURXingResultParser(),
@@ -392,3 +392,11 @@ pub fn matchSinglePrefixedField(
     }
     // return matches == null ? null : matches[0];
 }
+
+pub fn  match_do_co_mo_prefixed_field( prefix:&str,  raw_text:&str)  -> Option<Vec<String>> {
+    matchPrefixedField(prefix, raw_text, ';', true)
+  }
+
+  pub fn  match_single_do_co_mo_prefixed_field( prefix:&str,  raw_text:&str,  trim:bool) -> Option<String>{
+     matchSinglePrefixedField(prefix, raw_text, ';', trim)
+  }
