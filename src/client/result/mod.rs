@@ -20,6 +20,10 @@ mod URLTOResultParser;
 mod AbstractDoCoMoResultParser;
 mod BookmarkDoCoMoResultParser;
 mod SMSTOMMSTOResultParser;
+mod EmailAddressParsedResult;
+mod EmailAddressResultParser;
+mod EmailDoCoMoResultParser;
+mod SMTPResultParser;
 
 use std::fmt;
 
@@ -38,6 +42,7 @@ pub use GeoParsedResult::*;
 pub use SMSParsedResult::*;
 pub use ProductParsedResult::*;
 pub use URIParsedResult::*;
+pub use EmailAddressParsedResult::*;
 
 #[cfg(test)]
 mod TelParsedResultTestCase;
@@ -53,6 +58,8 @@ mod SMSMMSParsedResultTestCase;
 mod ProductParsedResultTestCase;
 #[cfg(test)]
 mod URIParsedResultTestCase;
+#[cfg(test)]
+mod EmailAddressParsedResultTestCase;
 
 pub enum ParsedClientResult {
     TextResult(TextParsedRXingResult),
@@ -63,6 +70,7 @@ pub enum ParsedClientResult {
     SMSResult(SMSParsedRXingResult),
     ProductResult(ProductParsedRXingResult),
     URIResult(URIParsedRXingResult),
+    EmailResult(EmailAddressParsedRXingResult),
 }
 
 impl ParsedRXingResult for ParsedClientResult {
@@ -76,6 +84,7 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::SMSResult(a) => a.getType(),
             ParsedClientResult::ProductResult(a) => a.getType(),
             ParsedClientResult::URIResult(a) => a.getType(),
+            ParsedClientResult::EmailResult(a) => a.getType(),
             
             
         }
@@ -91,6 +100,7 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::SMSResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::ProductResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::URIResult(a) => a.getDisplayRXingResult(),
+            ParsedClientResult::EmailResult(a) => a.getDisplayRXingResult(),
 
             
             

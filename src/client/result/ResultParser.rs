@@ -34,9 +34,10 @@ use urlencoding::decode;
 use crate::{exceptions::Exceptions, RXingResult};
 
 use super::{
-    BookmarkDoCoMoResultParser, GeoResultParser, ISBNResultParser, ParsedClientResult,
-    ParsedRXingResult, ProductResultParser, SMSMMSResultParser, TelResultParser,
-    TextParsedRXingResult, URIResultParser, URLTOResultParser, WifiResultParser,
+    BookmarkDoCoMoResultParser, EmailAddressResultParser, EmailDoCoMoResultParser, GeoResultParser,
+    ISBNResultParser, ParsedClientResult, ParsedRXingResult, ProductResultParser,
+    SMSMMSResultParser, SMTPResultParser, TelResultParser, TextParsedRXingResult, URIResultParser,
+    URLTOResultParser, WifiResultParser,
 };
 
 /**
@@ -103,16 +104,16 @@ pub fn getMassagedText(result: &RXingResult) -> String {
 }
 
 pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
-    let PARSERS: [&ParserFunction; 10] = [
+    let PARSERS: [&ParserFunction; 13] = [
         &BookmarkDoCoMoResultParser::parse,
         //     new AddressBookDoCoMoRXingResultParser(),
-        //     new EmailDoCoMoRXingResultParser(),
+        &EmailDoCoMoResultParser::parse,
         //     new AddressBookAURXingResultParser(),
         //     new VCardRXingResultParser(),
         //     new BizcardRXingResultParser(),
         //     new VEventRXingResultParser(),
-        //     new EmailAddressRXingResultParser(),
-        //     new SMTPRXingResultParser(),
+        &EmailAddressResultParser::parse,
+        &SMTPResultParser::parse,
         &TelResultParser::parse,
         &SMSMMSResultParser::parse,
         &SMSMMSResultParser::parse,
