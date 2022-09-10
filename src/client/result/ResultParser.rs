@@ -164,7 +164,7 @@ pub fn maybe_append_multiple(value: &[String], result: &mut String) {
     }
 }
 
-pub fn maybeWrap(value: Option<&str>) -> Option<Vec<String>> {
+pub fn maybeWrap(value: Option<String>) -> Option<Vec<String>> {
     if value.is_none() {
         None
     } else {

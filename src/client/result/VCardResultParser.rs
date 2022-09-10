@@ -14,45 +14,46 @@
  * limitations under the License.
  */
 
-package com.google.zxing.client.result;
+// package com.google.zxing.client.result;
 
-import com.google.zxing.RXingResult;
+// import com.google.zxing.RXingResult;
 
-import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+// import java.io.ByteArrayOutputStream;
+// import java.io.UnsupportedEncodingException;
+// import java.net.URI;
+// import java.nio.charset.StandardCharsets;
+// import java.util.ArrayList;
+// import java.util.Collection;
+// import java.util.List;
+// import java.util.regex.Matcher;
+// import java.util.regex.Pattern;
 
-/**
+use crate::RXingResult;
+
+use super::ParsedClientResult;
+
+  const BEGIN_VCARD : &'static str = "BEGIN:VCARD";//, Pattern.CASE_INSENSITIVE);
+  const VCARD_LIKE_DATE  : &'static str = "\\d{4}-?\\d{2}-?\\d{2}";
+  const CR_LF_SPACE_TAB  : &'static str = "\r\n[ \t]";
+  const NEWLINE_ESCAPE  : &'static str = "\\\\[nN]";
+  const VCARD_ESCAPES : &'static str  = "\\\\([,;\\\\])";
+  const EQUALS  : &'static str = "=";
+  const SEMICOLON  : &'static str = ";";
+  const UNESCAPED_SEMICOLONS : &'static str  = "(?<!\\\\);+";
+  const COMMA : &'static str  = ",";
+  const SEMICOLON_OR_COMMA  : &'static str = "[;,]";
+
+  /**
  * Parses contact information formatted according to the VCard (2.1) format. This is not a complete
  * implementation but should parse information as commonly encoded in 2D barcodes.
  *
  * @author Sean Owen
  */
-public final class VCardRXingResultParser extends RXingResultParser {
-
-  private static final Pattern BEGIN_VCARD = Pattern.compile("BEGIN:VCARD", Pattern.CASE_INSENSITIVE);
-  private static final Pattern VCARD_LIKE_DATE = Pattern.compile("\\d{4}-?\\d{2}-?\\d{2}");
-  private static final Pattern CR_LF_SPACE_TAB = Pattern.compile("\r\n[ \t]");
-  private static final Pattern NEWLINE_ESCAPE = Pattern.compile("\\\\[nN]");
-  private static final Pattern VCARD_ESCAPES = Pattern.compile("\\\\([,;\\\\])");
-  private static final Pattern EQUALS = Pattern.compile("=");
-  private static final Pattern SEMICOLON = Pattern.compile(";");
-  private static final Pattern UNESCAPED_SEMICOLONS = Pattern.compile("(?<!\\\\);+");
-  private static final Pattern COMMA = Pattern.compile(",");
-  private static final Pattern SEMICOLON_OR_COMMA = Pattern.compile("[;,]");
-
-  @Override
-  public AddressBookParsedRXingResult parse(RXingResult result) {
+  pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     // Although we should insist on the raw text ending with "END:VCARD", there's no reason
     // to throw out everything else we parsed just because this was omitted. In fact, Eclair
     // is doing just that, and we can't parse its contacts without this leniency.
-    String rawText = getMassagedText(result);
+    let rawText = getMassagedText(result);
     Matcher m = BEGIN_VCARD.matcher(rawText);
     if (!m.find() || m.start() != 0) {
       return null;
@@ -100,10 +101,10 @@ public final class VCardRXingResultParser extends RXingResultParser {
                                        geo);
   }
 
-  static List<List<String>> matchVCardPrefixedField(CharSequence prefix,
-                                                    String rawText,
-                                                    boolean trim,
-                                                    boolean parseFieldDivider) {
+  fn matchVCardPrefixedField( prefix:&str,
+                                                     rawText:&str,
+                                                     trim:bool,
+                                                     parseFieldDivider:bool) -> Vec<String> {
     List<List<String>> matches = null;
     int i = 0;
     int max = rawText.length();
@@ -220,7 +221,7 @@ public final class VCardRXingResultParser extends RXingResultParser {
     return matches;
   }
 
-  private static String decodeQuotedPrintable(CharSequence value, String charset) {
+  fn decodeQuotedPrintable( value:&str,  charset:&str) -> String{
     int length = value.length();
     StringBuilder result = new StringBuilder(length);
     ByteArrayOutputStream fragmentBuffer = new ByteArrayOutputStream();
@@ -253,9 +254,9 @@ public final class VCardRXingResultParser extends RXingResultParser {
     return result.toString();
   }
 
-  private static void maybeAppendFragment(ByteArrayOutputStream fragmentBuffer,
-                                          String charset,
-                                          StringBuilder result) {
+  fn maybeAppendFragment( fragmentBuffer &Vec<u8>,
+                                           charset:&str,
+                                           result:&mut String) {
     if (fragmentBuffer.size() > 0) {
       byte[] fragmentBytes = fragmentBuffer.toByteArray();
       String fragment;
@@ -273,19 +274,19 @@ public final class VCardRXingResultParser extends RXingResultParser {
     }
   }
 
-  static List<String> matchSingleVCardPrefixedField(CharSequence prefix,
-                                                    String rawText,
-                                                    boolean trim,
-                                                    boolean parseFieldDivider) {
+  fn matchSingleVCardPrefixedField( prefix:&str,
+                                                     rawText:&str,
+                                                     trim :bool,
+                                                     parseFieldDivider:bool)->Vec<String> {
     List<List<String>> values = matchVCardPrefixedField(prefix, rawText, trim, parseFieldDivider);
     return values == null || values.isEmpty() ? null : values.get(0);
   }
   
-  private static String toPrimaryValue(List<String> list) {
+  fn toPrimaryValue(list:&Vec<String>) -> String{
     return list == null || list.isEmpty() ? null : list.get(0);
   }
   
-  private static String[] toPrimaryValues(Collection<List<String>> lists) {
+  fn toPrimaryValues( lists:&Vec<String>) -> Vec<String>{
     if (lists == null || lists.isEmpty()) {
       return null;
     }
@@ -299,7 +300,7 @@ public final class VCardRXingResultParser extends RXingResultParser {
     return result.toArray(EMPTY_STR_ARRAY);
   }
   
-  private static String[] toTypes(Collection<List<String>> lists) {
+  fn toTypes( lists: &Vec<String>) -> Vec<String>{
     if (lists == null || lists.isEmpty()) {
       return null;
     }
@@ -327,7 +328,7 @@ public final class VCardRXingResultParser extends RXingResultParser {
     return result.toArray(EMPTY_STR_ARRAY);
   }
 
-  private static boolean isLikeVCardDate(CharSequence value) {
+  fn isLikeVCardDate( value:&str) -> bool{
     return value == null || VCARD_LIKE_DATE.matcher(value).matches();
   }
 
@@ -337,21 +338,22 @@ public final class VCardRXingResultParser extends RXingResultParser {
    *
    * @param names name values to format, in place
    */
-  private static void formatNames(Iterable<List<String>> names) {
-    if (names != null) {
-      for (List<String> list : names) {
-        String name = list.get(0);
-        String[] components = new String[5];
-        int start = 0;
-        int end;
-        int componentIndex = 0;
-        while (componentIndex < components.length - 1 && (end = name.indexOf(';', start)) >= 0) {
+  fn formatNames( names : &mut Vec<String>) {
+    if !names.is_empty() {
+      for list in names {
+      // for (List<String> list : names) {
+        let name = list.get(0);
+        let components = vec!["";5];
+        let start = 0;
+        let end;
+        let componentIndex = 0;
+        while componentIndex < components.len() - 1 && (end = name.indexOf(';', start)) >= 0 {
           components[componentIndex] = name.substring(start, end);
-          componentIndex++;
+          componentIndex+=1;
           start = end + 1;
         }
         components[componentIndex] = name.substring(start);
-        StringBuilder newName = new StringBuilder(100);
+        let newName =  String::with_capacity(100);
         maybeAppendComponent(components, 3, newName);
         maybeAppendComponent(components, 1, newName);
         maybeAppendComponent(components, 2, newName);
@@ -362,13 +364,11 @@ public final class VCardRXingResultParser extends RXingResultParser {
     }
   }
 
-  private static void maybeAppendComponent(String[] components, int i, StringBuilder newName) {
-    if (components[i] != null && !components[i].isEmpty()) {
-      if (newName.length() > 0) {
-        newName.append(' ');
+  fn maybeAppendComponent( components : &Vec<String>,  i:usize,  newName:&mut String) {
+    if !components[i].is_empty()  {
+      if newName.len() > 0 {
+        newName.push(' ');
       }
-      newName.append(components[i]);
+      newName.push_str(&components[i]);
     }
   }
-
-}
