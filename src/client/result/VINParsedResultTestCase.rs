@@ -53,8 +53,8 @@ fn testNotVIN() {
 }
 
 #[test]
-fn testVIN() {
-    doTest(
+fn test_vin() {
+    do_test(
         "1M8GDM9AXKP042788",
         "1M8",
         "GDM9AX",
@@ -65,7 +65,7 @@ fn testVIN() {
         'P',
         "042788",
     );
-    doTest(
+    do_test(
         "I1M8GDM9AXKP042788",
         "1M8",
         "GDM9AX",
@@ -76,7 +76,7 @@ fn testVIN() {
         'P',
         "042788",
     );
-    doTest(
+    do_test(
         "LJCPCBLCX11000237",
         "LJC",
         "PCBLCX",
@@ -89,7 +89,7 @@ fn testVIN() {
     );
 }
 
-fn doTest(
+fn do_test(
     contents: &str,
     wmi: &str,
     vds: &str,
@@ -100,9 +100,9 @@ fn doTest(
     plant: char,
     sequential: &str,
 ) {
-    let fakeRXingResult =
+    let fake_rxing_result =
         RXingResult::new(contents, Vec::new(), Vec::new(), BarcodeFormat::CODE_39);
-    let result = ResultParser::parseRXingResult(&fakeRXingResult);
+    let result = ResultParser::parseRXingResult(&fake_rxing_result);
     assert_eq!(ParsedRXingResultType::VIN, result.getType());
     if let ParsedClientResult::VINResult(vinRXingResult) = result {
         // let vinRXingResult = (VINParsedRXingResult) result;

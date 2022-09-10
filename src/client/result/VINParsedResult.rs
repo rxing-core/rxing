@@ -30,7 +30,7 @@ pub struct VINParsedRXingResult {
     vehicle_attributes: String,
     model_year: u32,
     plant_code: char,
-    sequentialNumber: String,
+    sequential_number: String,
 }
 
 impl ParsedRXingResult for VINParsedRXingResult {
@@ -54,7 +54,7 @@ impl ParsedRXingResult for VINParsedRXingResult {
         result.push(' ');
         result.push(self.plant_code);
         result.push(' ');
-        result.push_str(&self.sequentialNumber);
+        result.push_str(&self.sequential_number);
         result.push('\n');
 
         result
@@ -63,25 +63,25 @@ impl ParsedRXingResult for VINParsedRXingResult {
 impl VINParsedRXingResult {
     pub fn new(
         vin: String,
-        worldManufacturerID: String,
-        vehicleDescriptorSection: String,
-        vehicleIdentifierSection: String,
-        countryCode: String,
-        vehicleAttributes: String,
-        modelYear: u32,
-        plantCode: char,
-        sequentialNumber: String,
+        world_manufacturer_id: String,
+        vehicle_descriptor_section: String,
+        vehicle_identifier_section: String,
+        country_code: String,
+        vehicle_attributes: String,
+        model_year: u32,
+        plant_code: char,
+        sequential_number: String,
     ) -> Self {
         Self {
             vin,
-            world_manufacturer_id: worldManufacturerID,
-            vehicle_descriptor_section: vehicleDescriptorSection,
-            vehicle_identifier_section: vehicleIdentifierSection,
-            country_code: countryCode,
-            vehicle_attributes: vehicleAttributes,
-            model_year: modelYear,
-            plant_code: plantCode,
-            sequentialNumber,
+            world_manufacturer_id,
+            vehicle_descriptor_section,
+            vehicle_identifier_section,
+            country_code,
+            vehicle_attributes,
+            model_year,
+            plant_code,
+            sequential_number,
         }
     }
 
@@ -118,6 +118,6 @@ impl VINParsedRXingResult {
     }
 
     pub fn getSequentialNumber(&self) -> &str {
-        &self.sequentialNumber
+        &self.sequential_number
     }
 }
