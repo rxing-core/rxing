@@ -37,7 +37,7 @@ use super::{
     BookmarkDoCoMoResultParser, EmailAddressResultParser, EmailDoCoMoResultParser, GeoResultParser,
     ISBNResultParser, ParsedClientResult, ParsedRXingResult, ProductResultParser,
     SMSMMSResultParser, SMTPResultParser, TelResultParser, TextParsedRXingResult, URIResultParser,
-    URLTOResultParser, WifiResultParser,
+    URLTOResultParser, VINResultParser, WifiResultParser,
 };
 
 /**
@@ -104,7 +104,7 @@ pub fn getMassagedText(result: &RXingResult) -> String {
 }
 
 pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
-    let PARSERS: [&ParserFunction; 13] = [
+    let PARSERS: [&ParserFunction; 14] = [
         &BookmarkDoCoMoResultParser::parse,
         //     new AddressBookDoCoMoRXingResultParser(),
         &EmailDoCoMoResultParser::parse,
@@ -124,7 +124,7 @@ pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
         &ISBNResultParser::parse,
         &ProductResultParser::parse,
         //     new ExpandedProductRXingResultParser(),
-        //     new VINRXingResultParser(),
+        &VINResultParser::parse,
     ];
 
     for parser in PARSERS {

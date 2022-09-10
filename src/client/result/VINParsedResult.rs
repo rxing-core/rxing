@@ -14,96 +14,110 @@
  * limitations under the License.
  */
 
-
 // package com.google.zxing.client.result;
+
+use super::{ParsedRXingResult, ParsedRXingResultType};
 
 /**
  * Represents a parsed result that encodes a Vehicle Identification Number (VIN).
  */
-pub struct VINParsedRXingResult   {
+pub struct VINParsedRXingResult {
+    vin: String,
+    world_manufacturer_id: String,
+    vehicle_descriptor_section: String,
+    vehicle_identifier_section: String,
+    country_code: String,
+    vehicle_attributes: String,
+    model_year: u32,
+    plant_code: char,
+    sequentialNumber: String,
+}
 
-  private final String vin;
-  private final String worldManufacturerID;
-  private final String vehicleDescriptorSection;
-  private final String vehicleIdentifierSection;
-  private final String countryCode;
-  private final String vehicleAttributes;
-  private final int modelYear;
-  private final char plantCode;
-  private final String sequentialNumber;
-
-  impl ParsedRXingResult for VINParsedRXingResult {}
-  impl VINParsedRXingResult{
-
-  public VINParsedRXingResult(String vin,
-                         String worldManufacturerID,
-                         String vehicleDescriptorSection,
-                         String vehicleIdentifierSection,
-                         String countryCode,
-                         String vehicleAttributes,
-                         int modelYear,
-                         char plantCode,
-                         String sequentialNumber) {
-    super(ParsedRXingResultType.VIN);
-    this.vin = vin;
-    this.worldManufacturerID = worldManufacturerID;
-    this.vehicleDescriptorSection = vehicleDescriptorSection;
-    this.vehicleIdentifierSection = vehicleIdentifierSection;
-    this.countryCode = countryCode;
-    this.vehicleAttributes = vehicleAttributes;
-    this.modelYear = modelYear;
-    this.plantCode = plantCode;
-    this.sequentialNumber = sequentialNumber;
-  }
-  
-  public String getVIN() {
-    return vin;
-  }
-
-  public String getWorldManufacturerID() {
-    return worldManufacturerID;
-  }
-
-  public String getVehicleDescriptorSection() {
-    return vehicleDescriptorSection;
-  }
-
-  public String getVehicleIdentifierSection() {
-    return vehicleIdentifierSection;
-  }
-
-  public String getCountryCode() {
-    return countryCode;
-  }
-
-  public String getVehicleAttributes() {
-    return vehicleAttributes;
-  }
-
-  public int getModelYear() {
-    return modelYear;
-  }
-
-  public char getPlantCode() {
-    return plantCode;
-  }
-
-  public String getSequentialNumber() {
-    return sequentialNumber;
-  }
-
-  @Override
-  public String getDisplayRXingResult() {
-    StringBuilder result = new StringBuilder(50);
-    result.append(worldManufacturerID).append(' ');
-    result.append(vehicleDescriptorSection).append(' ');
-    result.append(vehicleIdentifierSection).append('\n');
-    if (countryCode != null) {
-      result.append(countryCode).append(' ');
+impl ParsedRXingResult for VINParsedRXingResult {
+    fn getType(&self) -> super::ParsedRXingResultType {
+        ParsedRXingResultType::VIN
     }
-    result.append(modelYear).append(' ');
-    result.append(plantCode).append(' ');
-    result.append(sequentialNumber).append('\n');
-    return result.toString();
-  }
+
+    fn getDisplayRXingResult(&self) -> String {
+        let mut result = String::with_capacity(50);
+        result.push_str(&self.world_manufacturer_id);
+        result.push(' ');
+        result.push_str(&self.vehicle_descriptor_section);
+        result.push(' ');
+        result.push_str(&self.vehicle_identifier_section);
+        result.push('\n');
+        if !self.country_code.is_empty() {
+            result.push_str(&self.country_code);
+            result.push(' ');
+        }
+        result.push_str(&self.model_year.to_string());
+        result.push(' ');
+        result.push(self.plant_code);
+        result.push(' ');
+        result.push_str(&self.sequentialNumber);
+        result.push('\n');
+
+        result
+    }
+}
+impl VINParsedRXingResult {
+    pub fn new(
+        vin: String,
+        worldManufacturerID: String,
+        vehicleDescriptorSection: String,
+        vehicleIdentifierSection: String,
+        countryCode: String,
+        vehicleAttributes: String,
+        modelYear: u32,
+        plantCode: char,
+        sequentialNumber: String,
+    ) -> Self {
+        Self {
+            vin,
+            world_manufacturer_id: worldManufacturerID,
+            vehicle_descriptor_section: vehicleDescriptorSection,
+            vehicle_identifier_section: vehicleIdentifierSection,
+            country_code: countryCode,
+            vehicle_attributes: vehicleAttributes,
+            model_year: modelYear,
+            plant_code: plantCode,
+            sequentialNumber,
+        }
+    }
+
+    pub fn getVIN(&self) -> &str {
+        &self.vin
+    }
+
+    pub fn getWorldManufacturerID(&self) -> &str {
+        &self.world_manufacturer_id
+    }
+
+    pub fn getVehicleDescriptorSection(&self) -> &str {
+        &self.vehicle_descriptor_section
+    }
+
+    pub fn getVehicleIdentifierSection(&self) -> &str {
+        &self.vehicle_identifier_section
+    }
+
+    pub fn getCountryCode(&self) -> &str {
+        &self.country_code
+    }
+
+    pub fn getVehicleAttributes(&self) -> &str {
+        &self.vehicle_attributes
+    }
+
+    pub fn getModelYear(&self) -> u32 {
+        self.model_year
+    }
+
+    pub fn getPlantCode(&self) -> char {
+        self.plant_code
+    }
+
+    pub fn getSequentialNumber(&self) -> &str {
+        &self.sequentialNumber
+    }
 }

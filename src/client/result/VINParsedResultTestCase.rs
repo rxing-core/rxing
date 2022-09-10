@@ -14,57 +14,107 @@
  * limitations under the License.
  */
 
+// package com.google.zxing.client.result;
 
-package com.google.zxing.client.result;
-
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.RXingResult;
-import org.junit.Assert;
-import org.junit.Test;
+// import com.google.zxing.BarcodeFormat;
+// import com.google.zxing.RXingResult;
+// import org.junit.Assert;
+// import org.junit.Test;
 
 /**
  * Tests {@link VINParsedRXingResult}.
  */
-public final class VINParsedRXingResultTestCase extends Assert {
+// public final class VINParsedRXingResultTestCase extends Assert {
+use crate::{
+    client::result::{ParsedClientResult, ParsedRXingResult, ParsedRXingResultType},
+    BarcodeFormat, RXingResult,
+};
 
-  @Test
-  public void testNotVIN() {
-    RXingResult fakeRXingResult = new RXingResult("1M8GDM9A1KP042788", null, null, BarcodeFormat.CODE_39);
-    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
-    assertEquals(ParsedRXingResultType.TEXT, result.getType());
-    fakeRXingResult = new RXingResult("1M8GDM9AXKP042788", null, null, BarcodeFormat.CODE_128);
-    result = RXingResultParser.parseRXingResult(fakeRXingResult);
-    assertEquals(ParsedRXingResultType.TEXT, result.getType());
-  }
+use super::ResultParser;
 
-  @Test
-  public void testVIN() {
-    doTest("1M8GDM9AXKP042788", "1M8", "GDM9AX", "KP042788", "US", "GDM9A", 1989, 'P', "042788");
-    doTest("I1M8GDM9AXKP042788", "1M8", "GDM9AX", "KP042788", "US", "GDM9A", 1989, 'P', "042788");
-    doTest("LJCPCBLCX11000237", "LJC", "PCBLCX", "11000237", "CN", "PCBLC", 2001, '1', "000237");
-  }
+#[test]
+fn testNotVIN() {
+    let fakeRXingResult = RXingResult::new(
+        "1M8GDM9A1KP042788",
+        Vec::new(),
+        Vec::new(),
+        BarcodeFormat::CODE_39,
+    );
+    let result = ResultParser::parseRXingResult(&fakeRXingResult);
+    assert_eq!(ParsedRXingResultType::TEXT, result.getType());
+    let fakeRXingResult = RXingResult::new(
+        "1M8GDM9AXKP042788",
+        Vec::new(),
+        Vec::new(),
+        BarcodeFormat::CODE_128,
+    );
+    let result = ResultParser::parseRXingResult(&fakeRXingResult);
+    assert_eq!(ParsedRXingResultType::TEXT, result.getType());
+}
 
-  private static void doTest(String contents,
-                             String wmi,
-                             String vds,
-                             String vis,
-                             String country,
-                             String attributes,
-                             int year,
-                             char plant,
-                             String sequential) {
-    RXingResult fakeRXingResult = new RXingResult(contents, null, null, BarcodeFormat.CODE_39);
-    ParsedRXingResult result = RXingResultParser.parseRXingResult(fakeRXingResult);
-    assertSame(ParsedRXingResultType.VIN, result.getType());
-    VINParsedRXingResult vinRXingResult = (VINParsedRXingResult) result;
-    assertEquals(wmi, vinRXingResult.getWorldManufacturerID());
-    assertEquals(vds, vinRXingResult.getVehicleDescriptorSection());
-    assertEquals(vis, vinRXingResult.getVehicleIdentifierSection());
-    assertEquals(country, vinRXingResult.getCountryCode());
-    assertEquals(attributes, vinRXingResult.getVehicleAttributes());
-    assertEquals(year, vinRXingResult.getModelYear());
-    assertEquals(plant, vinRXingResult.getPlantCode());
-    assertEquals(sequential, vinRXingResult.getSequentialNumber());
-  }
+#[test]
+fn testVIN() {
+    doTest(
+        "1M8GDM9AXKP042788",
+        "1M8",
+        "GDM9AX",
+        "KP042788",
+        "US",
+        "GDM9A",
+        1989,
+        'P',
+        "042788",
+    );
+    doTest(
+        "I1M8GDM9AXKP042788",
+        "1M8",
+        "GDM9AX",
+        "KP042788",
+        "US",
+        "GDM9A",
+        1989,
+        'P',
+        "042788",
+    );
+    doTest(
+        "LJCPCBLCX11000237",
+        "LJC",
+        "PCBLCX",
+        "11000237",
+        "CN",
+        "PCBLC",
+        2001,
+        '1',
+        "000237",
+    );
+}
 
+fn doTest(
+    contents: &str,
+    wmi: &str,
+    vds: &str,
+    vis: &str,
+    country: &str,
+    attributes: &str,
+    year: u32,
+    plant: char,
+    sequential: &str,
+) {
+    let fakeRXingResult =
+        RXingResult::new(contents, Vec::new(), Vec::new(), BarcodeFormat::CODE_39);
+    let result = ResultParser::parseRXingResult(&fakeRXingResult);
+    assert_eq!(ParsedRXingResultType::VIN, result.getType());
+    if let ParsedClientResult::VINResult(vinRXingResult) = result {
+        // let vinRXingResult = (VINParsedRXingResult) result;
+        assert_eq!(wmi, vinRXingResult.getWorldManufacturerID());
+        assert_eq!(vds, vinRXingResult.getVehicleDescriptorSection());
+        assert_eq!(vis, vinRXingResult.getVehicleIdentifierSection());
+        assert_eq!(country, vinRXingResult.getCountryCode());
+        assert_eq!(attributes, vinRXingResult.getVehicleAttributes());
+        assert_eq!(year, vinRXingResult.getModelYear());
+        assert_eq!(plant, vinRXingResult.getPlantCode());
+        assert_eq!(sequential, vinRXingResult.getSequentialNumber());
+    } else {
+        panic!("Expected VINResult");
+    }
 }
