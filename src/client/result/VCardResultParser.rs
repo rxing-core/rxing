@@ -39,7 +39,7 @@ use uriparse::URI;
 
 use super::{AddressBookParsedRXingResult, ParsedClientResult, ResultParser};
 
-const BEGIN_VCARD: &'static str = "BEGIN:VCARD"; //, Pattern.CASE_INSENSITIVE);
+const BEGIN_VCARD: &'static str = "(?i:BEGIN:VCARD)"; //, Pattern.CASE_INSENSITIVE);
 const VCARD_LIKE_DATE: &'static str = "\\d{4}-?\\d{2}-?\\d{2}";
 const CR_LF_SPACE_TAB: &'static str = "\r\n[ \t]";
 const NEWLINE_ESCAPE: &'static str = "\\\\[nN]";
@@ -70,12 +70,13 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     if mtch.start() != 0 {
         return None;
     }
+
     let names: Vec<Vec<String>> =
         if let Some(m) = matchVCardPrefixedField("FN", &rawText, true, false) {
             m
         } else {
             // If no display names found, look for regular name fields and format them
-            let mut n = matchVCardPrefixedField("N", &rawText, true, false)?;
+            let mut n = matchVCardPrefixedField("N", &rawText, true, false).unwrap_or_default();
             formatNames(&mut n);
             n
         };
@@ -129,21 +130,21 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     //   geo = null;
     // }
     if let Ok(adb) = AddressBookParsedRXingResult::with_details(
-        toPrimaryValues(Some(names))?,
+        toPrimaryValues(Some(names)),
         nicknames,
         "".to_owned(),
-        toPrimaryValues(phoneNumbers.clone())?,
-        toTypes(phoneNumbers)?,
-        toPrimaryValues(emails.clone())?,
-        toTypes(emails)?,
+        toPrimaryValues(phoneNumbers.clone()),
+        toTypes(phoneNumbers),
+        toPrimaryValues(emails.clone()),
+        toTypes(emails),
         toPrimaryValue(instantMessenger),
         toPrimaryValue(note),
-        toPrimaryValues(addresses.clone())?,
-        toTypes(addresses)?,
+        toPrimaryValues(addresses.clone()),
+        toTypes(addresses),
         toPrimaryValue(org),
         toPrimaryValue(Some(birthday)),
         toPrimaryValue(title),
-        toPrimaryValues(urls)?,
+        toPrimaryValues(urls),
         geo,
     ) {
         Some(ParsedClientResult::AddressBookResult(adb))
@@ -163,15 +164,17 @@ fn matchVCardPrefixedField(
     let max = rawText.len();
 
     let equals_regex = Regex::new(EQUALS).unwrap();
-    let unescaped_semis = Regex::new(UNESCAPED_SEMICOLONS).unwrap();
+    let unescaped_semis = fancy_regex::Regex::new(UNESCAPED_SEMICOLONS).unwrap();
     let cr_lf_space_tab = Regex::new(CR_LF_SPACE_TAB).unwrap();
     let newline_esc = Regex::new(NEWLINE_ESCAPE).unwrap();
     let vcard_esc = Regex::new(VCARD_ESCAPES).unwrap();
 
     // At start or after newline, match prefix, followed by optional metadata
     // (led by ;) ultimately ending in colon
-    let matcher_primary = Regex::new(&format!("(?:^|\n){}(?:;([^:]*))?:", prefix)).unwrap();
-    let lower_case_raw_text = rawText.to_lowercase();
+    let matcher_primary = Regex::new(&format!("(?:^|\\n)(?i:{})(?:;([^:]*))?:", prefix)).unwrap();
+    // let matcher_primary = Regex::new(&format!("(?:^|\n){}(.*)", prefix)).unwrap();
+
+    //let lower_case_raw_text = rawText.to_lowercase();
 
     while i < max {
         //let rawText = rawText.to_lowercase();
@@ -179,13 +182,14 @@ fn matchVCardPrefixedField(
         if i > 0 {
             i -= 1; // Find from i-1 not i since looking at the preceding character
         }
-        let cap_maybe = matcher_primary.captures(&lower_case_raw_text[i..]);
+        let cap_text = &rawText[i..];
+        let cap_maybe = matcher_primary.captures(cap_text);
         //let matcher_maybe = matcher_primary.find_at(&lower_case_raw_text, i);
         if cap_maybe.is_none() {
             break;
         }
         let matcher = cap_maybe?;
-        i = matcher.get(0)?.end(); // group 0 = whole pattern; end(0) is past final colon
+        i += matcher.get(0)?.end(); // group 0 = whole pattern; end(0) is past final colon
 
         let metadataString = matcher.get(1); // group 1 = metadata substring
         let mut metadata: Vec<String> = Vec::new();
@@ -221,8 +225,8 @@ fn matchVCardPrefixedField(
         let matchStart = i; // Found the start of a match here
         while let Some(pos) = rawText[i..].find('\n') {
             // Really, end in \r\n
-            i = pos;
-            // while (i = rawText.indexOf('\n', i)) >= 0 { // Really, end in \r\n
+            i += pos; // + i;
+                      // while (i = rawText.indexOf('\n', i)) >= 0 { // Really, end in \r\n
             if i < rawText.len() - 1 &&           // But if followed by tab or space,
             (rawText.chars().nth(i + 1)? == ' ' ||        // this is only a continuation
              rawText.chars().nth(i + 1)? == '\t')
@@ -288,7 +292,7 @@ fn matchVCardPrefixedField(
                 // Don't actually support dereferencing URIs, but use scheme-specific part not URI
                 // as value, to support tel: and mailto:
                 if let Ok(uri) = URI::try_from(element.as_str()) {
-                    element = uri.scheme().to_string();
+                    element = uri.path().to_string();
                 }
                 // try {
                 //   element = URI.create(element).getSchemeSpecificPart();
@@ -309,8 +313,11 @@ fn matchVCardPrefixedField(
             i += 1;
         }
     }
-
-    Some(matches)
+    if matches.is_empty() {
+        None
+    } else {
+        Some(matches)
+    }
 }
 
 fn decodeQuotedPrintable(value: &str, charset: &str) -> String {
@@ -322,26 +329,46 @@ fn decodeQuotedPrintable(value: &str, charset: &str) -> String {
     while i < length {
         // for (int i = 0; i < length; i++) {
         let c = value.chars().nth(i).unwrap_or_default();
-        match c {
-            '\r' | '\n' => break,
-            '=' if i < length - 2 => {
-                let nextChar = value.chars().nth(i + 1).unwrap();
-                if nextChar != '\r' && nextChar != '\n' {
-                    let nextNextChar = value.chars().nth(i + 2).unwrap();
-                    let firstDigit = ResultParser::parseHexDigit(nextChar);
-                    let secondDigit = ResultParser::parseHexDigit(nextNextChar);
-                    if firstDigit >= 0 && secondDigit >= 0 {
-                        fragmentBuffer.push(((firstDigit << 4) + secondDigit) as u8);
-                    } // else ignore it, assume it was incorrectly encoded
-                    i += 2;
-                }
-                break;
-            }
-            _ => {
-                maybeAppendFragment(&mut fragmentBuffer, charset, &mut result);
-                result.push(c);
-            }
+        if c == '\r' || c == '\n' {
+            i += 1;
+            continue;
         }
+        if c == '=' && i < length - 2 {
+            let nextChar = value.chars().nth(i + 1).unwrap();
+            if nextChar != '\r' && nextChar != '\n' {
+                let nextNextChar = value.chars().nth(i + 2).unwrap();
+                let firstDigit = ResultParser::parseHexDigit(nextChar);
+                let secondDigit = ResultParser::parseHexDigit(nextNextChar);
+                if firstDigit >= 0 && secondDigit >= 0 {
+                    fragmentBuffer.push(((firstDigit << 4) + secondDigit) as u8);
+                } // else ignore it, assume it was incorrectly encoded
+                i += 2;
+            }
+            i += 1;
+            continue;
+        }
+        maybeAppendFragment(&mut fragmentBuffer, charset, &mut result);
+        result.push(c);
+        i += 1;
+        // match c {
+        //     '\r' | '\n' => break,
+        //     '=' if i < length - 2 => {
+        //         let nextChar = value.chars().nth(i + 1).unwrap();
+        //         if nextChar != '\r' && nextChar != '\n' {
+        //             let nextNextChar = value.chars().nth(i + 2).unwrap();
+        //             let firstDigit = ResultParser::parseHexDigit(nextChar);
+        //             let secondDigit = ResultParser::parseHexDigit(nextNextChar);
+        //             if firstDigit >= 0 && secondDigit >= 0 {
+        //                 fragmentBuffer.push(((firstDigit << 4) + secondDigit) as u8);
+        //             } // else ignore it, assume it was incorrectly encoded
+        //             i += 2;
+        //         }
+        //     }
+        //     _ => {
+        //         maybeAppendFragment(&mut fragmentBuffer, charset, &mut result);
+        //         result.push(c);
+        //     }
+        // }
         // switch (c) {
         //   case '\r':
         //   case '\n':
@@ -432,56 +459,60 @@ fn toPrimaryValue(list: Option<Vec<String>>) -> String {
     // return list == null || list.isEmpty() ? null : list.get(0);
 }
 
-fn toPrimaryValues(lists: Option<Vec<Vec<String>>>) -> Option<Vec<String>> {
-    let local_lists = lists?;
+fn toPrimaryValues(lists: Option<Vec<Vec<String>>>) -> Vec<String> {
+    let local_lists = lists.unwrap_or_default();
     if local_lists.is_empty() {
-        return None;
+        return Vec::new();
     }
-    let mut result = vec!["".to_owned(); local_lists.len()]; // new ArrayList<>(lists.size());
+    let mut result = Vec::with_capacity(local_lists.len()); // new ArrayList<>(lists.size());
     for list in local_lists {
         // for (List<String> list : lists) {
-        if let Some(value) = list.get(0) {
+        let position = if list.len() > 1 { list.len() - 1 } else { 0 };
+        if let Some(value) = list.get(position) {
             if !value.is_empty() {
                 result.push(value.clone());
             }
         }
     }
 
-    Some(result)
+    result
 }
 
-fn toTypes(lists: Option<Vec<Vec<String>>>) -> Option<Vec<String>> {
-    let local_lists = lists?;
+fn toTypes(lists: Option<Vec<Vec<String>>>) -> Vec<String> {
+    let local_lists = lists.unwrap_or_default();
     if local_lists.is_empty() {
-        return None;
+        return Vec::new();
     }
-    let mut result = vec!["".to_owned(); local_lists.len()]; //new ArrayList<>(lists.size());
+    let mut result = Vec::with_capacity(local_lists.len()); //new ArrayList<>(lists.size());
     for list in local_lists {
         // for (List<String> list : lists) {
         if let Some(value) = list.get(0) {
             if !value.is_empty() {
                 let mut v_type = String::new();
-                for i in 0..list.len() {
-                    // for (int i = 1; i < list.size(); i++) {
-                    let metadatum = list.get(i)?;
-                    if let Some(equals) = metadatum.find('=') {
-                        if "TYPE" == (metadatum[0..equals]).to_uppercase() {
-                            v_type = metadatum[equals + 1..].to_owned();
+                let final_value = list.get(list.len() - 1).unwrap_or(&"".to_owned()).clone();
+                if !final_value.is_empty() {
+                    for i in 0..list.len() - 1 {
+                        // for (int i = 1; i < list.size(); i++) {
+                        let metadatum = list.get(i).unwrap_or(&"".to_owned()).clone();
+                        if let Some(equals) = metadatum.find('=') {
+                            if "TYPE" == (metadatum[0..equals]).to_uppercase() {
+                                v_type = metadatum[equals + 1..].to_owned();
+                                break;
+                            }
+                        } else {
+                            // if (equals < 0) {
+                            // take the whole thing as a usable label
+                            v_type = metadatum.to_owned();
                             break;
                         }
-                    } else {
-                        // if (equals < 0) {
-                        // take the whole thing as a usable label
-                        v_type = metadatum.to_owned();
-                        break;
                     }
+                    result.push(v_type);
                 }
-                result.push(v_type);
             }
         }
     }
 
-    Some(result)
+    result
 }
 
 fn isLikeVCardDate(value: &str) -> bool {
@@ -505,16 +536,21 @@ fn formatNames(names: &mut Vec<Vec<String>>) {
     if !names.is_empty() {
         for list in names {
             // for (List<String> list : names) {
-            let name = list.get(0).unwrap_or(&"".to_owned()).clone();
+            let mut pos = 0;
+            while let Some(_fnd) = list.get(pos).unwrap_or(&"".to_owned()).find("=") {
+                pos += 1;
+            }
+            let name = list.get(pos).unwrap_or(&"".to_owned()).clone();
+
             let mut components = vec!["".to_owned(); 5];
             let mut start = 0;
             let mut end = 0;
             let mut componentIndex = 0;
-            while componentIndex < components.len() - 1 && end >= 0 {
+            while componentIndex < components.len() - 1 && end < name.len() {
                 end = if let Some(pos) = name[start..].find(';') {
                     pos + start
                 } else {
-                    0
+                    break;
                 };
                 components[componentIndex] = name[start..end].to_owned();
                 componentIndex += 1;
@@ -527,7 +563,7 @@ fn formatNames(names: &mut Vec<Vec<String>>) {
             maybeAppendComponent(&components, 2, &mut newName);
             maybeAppendComponent(&components, 0, &mut newName);
             maybeAppendComponent(&components, 4, &mut newName);
-            list[0] = newName.trim().to_owned();
+            list[pos] = newName.trim().to_owned();
         }
     }
 }
