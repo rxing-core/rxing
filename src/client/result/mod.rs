@@ -30,7 +30,7 @@ mod AddressBookParsedResult;
 mod AddressBookDoCoMoResultParser;
 mod AddressBookAUResultParser;
 mod VCardResultParser;
-mod AddressBookParsedResultTestCase;
+mod BizcardResultParser;
 
 use std::fmt;
 
@@ -71,6 +71,8 @@ mod URIParsedResultTestCase;
 mod EmailAddressParsedResultTestCase;
 #[cfg(test)]
 mod VINParsedResultTestCase;
+#[cfg(test)]
+mod AddressBookParsedResultTestCase;
 
 pub enum ParsedClientResult {
     TextResult(TextParsedRXingResult),
