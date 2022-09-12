@@ -102,8 +102,6 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::EmailResult(a) => a.getType(),
             ParsedClientResult::VINResult(a) => a.getType(),
             ParsedClientResult::AddressBookResult(a) => a.getType(),
-            
-            
         }
     }
 
@@ -120,9 +118,6 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::EmailResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::VINResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::AddressBookResult(a) => a.getDisplayRXingResult(),
-
-            
-            
         }
     }
 }
