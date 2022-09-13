@@ -31,6 +31,8 @@ mod AddressBookDoCoMoResultParser;
 mod AddressBookAUResultParser;
 mod VCardResultParser;
 mod BizcardResultParser;
+mod CalendarParsedResult;
+mod VEventResultParser;
 
 use std::fmt;
 
@@ -52,6 +54,8 @@ pub use URIParsedResult::*;
 pub use EmailAddressParsedResult::*;
 pub use VINParsedResult::*;
 pub use AddressBookParsedResult::*;
+pub use CalendarParsedResult::*;
+pub use CalendarParsedResult::*;
 
 #[cfg(test)]
 mod TelParsedResultTestCase;
@@ -73,6 +77,8 @@ mod EmailAddressParsedResultTestCase;
 mod VINParsedResultTestCase;
 #[cfg(test)]
 mod AddressBookParsedResultTestCase;
+#[cfg(test)]
+mod CalendarParsedResultTestCase;
 
 pub enum ParsedClientResult {
     TextResult(TextParsedRXingResult),
@@ -86,6 +92,7 @@ pub enum ParsedClientResult {
     EmailResult(EmailAddressParsedRXingResult),
     VINResult(VINParsedRXingResult),
     AddressBookResult(AddressBookParsedRXingResult),
+    CalendarEventResult(CalendarParsedRXingResult),
 }
 
 impl ParsedRXingResult for ParsedClientResult {
@@ -102,6 +109,7 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::EmailResult(a) => a.getType(),
             ParsedClientResult::VINResult(a) => a.getType(),
             ParsedClientResult::AddressBookResult(a) => a.getType(),
+            ParsedClientResult::CalendarEventResult(a) => a.getType(),
         }
     }
 
@@ -118,6 +126,7 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::EmailResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::VINResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::AddressBookResult(a) => a.getDisplayRXingResult(),
+            ParsedClientResult::CalendarEventResult(a) => a.getDisplayRXingResult(),
         }
     }
 }

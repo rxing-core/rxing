@@ -153,7 +153,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     }
 }
 
-fn matchVCardPrefixedField(
+pub fn matchVCardPrefixedField(
     prefix: &str,
     rawText: &str,
     trim: bool,
@@ -427,7 +427,7 @@ fn maybeAppendFragment(fragmentBuffer: &mut Vec<u8>, charset: &str, result: &mut
     }
 }
 
-fn matchSingleVCardPrefixedField(
+pub fn matchSingleVCardPrefixedField(
     prefix: &str,
     rawText: &str,
     trim: bool,
