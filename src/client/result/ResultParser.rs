@@ -37,7 +37,7 @@ use super::{
     BookmarkDoCoMoResultParser, EmailAddressResultParser, EmailDoCoMoResultParser, GeoResultParser,
     ISBNResultParser, ParsedClientResult, ParsedRXingResult, ProductResultParser,
     SMSMMSResultParser, SMTPResultParser, TelResultParser, TextParsedRXingResult, URIResultParser,
-    URLTOResultParser, VINResultParser, WifiResultParser, AddressBookDoCoMoResultParser, AddressBookAUResultParser, VCardResultParser, BizcardResultParser,
+    URLTOResultParser, VINResultParser, WifiResultParser, AddressBookDoCoMoResultParser, AddressBookAUResultParser, VCardResultParser, BizcardResultParser, VEventResultParser,
 };
 
 /**
@@ -86,7 +86,7 @@ use super::{
 //     fn parse(&self, theRXingResult: &RXingResult) -> Option<ParsedClientResult>;
 // }
 
-type ParserFunction = dyn Fn(&RXingResult) -> Option<ParsedClientResult>;
+pub type ParserFunction = dyn Fn(&RXingResult) -> Option<ParsedClientResult>;
 
 const DIGITS: &'static str = "\\d+"; //= Pattern.compile("\\d+");
 const AMPERSAND: &'static str = "&"; // private static final Pattern AMPERSAND = Pattern.compile("&");
@@ -103,15 +103,25 @@ pub fn getMassagedText(result: &RXingResult) -> String {
     return text;
 }
 
+pub fn parse_result_with_parsers(theRXingResult: &RXingResult, parsers: &[&ParserFunction]) -> ParsedClientResult {
+    for parser in parsers {
+        let result = parser(theRXingResult);
+        if result.is_some() {
+            return result.unwrap();
+        }
+    }
+    parseRXingResult(theRXingResult)
+}
+
 pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
-    let PARSERS: [&ParserFunction; 18] = [
+    let PARSERS: [&ParserFunction; 19] = [
         &BookmarkDoCoMoResultParser::parse,
               &AddressBookDoCoMoResultParser::parse,
         &EmailDoCoMoResultParser::parse,
         &AddressBookAUResultParser::parse,
         &VCardResultParser::parse,
         &BizcardResultParser::parse,
-        //     new VEventRXingResultParser(),
+        &VEventResultParser::parse,
         &EmailAddressResultParser::parse,
         &SMTPResultParser::parse,
         &TelResultParser::parse,
