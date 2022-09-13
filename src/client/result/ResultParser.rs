@@ -34,10 +34,11 @@ use urlencoding::decode;
 use crate::{exceptions::Exceptions, RXingResult};
 
 use super::{
+    AddressBookAUResultParser, AddressBookDoCoMoResultParser, BizcardResultParser,
     BookmarkDoCoMoResultParser, EmailAddressResultParser, EmailDoCoMoResultParser, GeoResultParser,
     ISBNResultParser, ParsedClientResult, ParsedRXingResult, ProductResultParser,
     SMSMMSResultParser, SMTPResultParser, TelResultParser, TextParsedRXingResult, URIResultParser,
-    URLTOResultParser, VINResultParser, WifiResultParser, AddressBookDoCoMoResultParser, AddressBookAUResultParser, VCardResultParser, BizcardResultParser, VEventResultParser,
+    URLTOResultParser, VCardResultParser, VEventResultParser, VINResultParser, WifiResultParser,
 };
 
 /**
@@ -103,20 +104,23 @@ pub fn getMassagedText(result: &RXingResult) -> String {
     return text;
 }
 
-pub fn parse_result_with_parsers(theRXingResult: &RXingResult, parsers: &[&ParserFunction]) -> ParsedClientResult {
+pub fn parse_result_with_parsers(
+    the_rxing_result: &RXingResult,
+    parsers: &[&ParserFunction],
+) -> ParsedClientResult {
     for parser in parsers {
-        let result = parser(theRXingResult);
+        let result = parser(the_rxing_result);
         if result.is_some() {
             return result.unwrap();
         }
     }
-    parseRXingResult(theRXingResult)
+    parseRXingResult(the_rxing_result)
 }
 
-pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
+pub fn parseRXingResult(the_rxing_result: &RXingResult) -> ParsedClientResult {
     let PARSERS: [&ParserFunction; 19] = [
         &BookmarkDoCoMoResultParser::parse,
-              &AddressBookDoCoMoResultParser::parse,
+        &AddressBookDoCoMoResultParser::parse,
         &EmailDoCoMoResultParser::parse,
         &AddressBookAUResultParser::parse,
         &VCardResultParser::parse,
@@ -138,7 +142,7 @@ pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
     ];
 
     for parser in PARSERS {
-        let result = parser(theRXingResult);
+        let result = parser(the_rxing_result);
         if result.is_some() {
             return result.unwrap();
         }
@@ -150,7 +154,7 @@ pub fn parseRXingResult(theRXingResult: &RXingResult) -> ParsedClientResult {
     // }
 
     ParsedClientResult::TextResult(TextParsedRXingResult::new(
-        theRXingResult.getText().to_owned(),
+        the_rxing_result.getText().to_owned(),
         "".to_owned(),
     ))
 }
