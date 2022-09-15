@@ -217,7 +217,7 @@ fn doTest(
         assert_eq!(description, calRXingResult.getDescription());
         assert_eq!(summary, calRXingResult.getSummary());
         assert_eq!(location, calRXingResult.getLocation());
-        let dateFormat = "%c"; //makeGMTFormat();
+        let dateFormat = "%Y%m%dT%H%M%SZ"; //makeGMTFormat();
         assert_eq!(
             startString,
             format_date_string(calRXingResult.getStartTimestamp(), dateFormat) // dateFormat.format(calRXingResult.getStartTimestamp())

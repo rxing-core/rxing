@@ -27,7 +27,8 @@
 // import java.util.regex.Matcher;
 // import java.util.regex.Pattern;
 
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{Date, DateTime, NaiveDateTime, TimeZone, Utc};
+use chrono_tz::Tz;
 use regex::Regex;
 
 use crate::exceptions::Exceptions;
@@ -110,7 +111,7 @@ impl CalendarParsedRXingResult {
             if durationMS < 0i64 {
                 -1i64
             } else {
-                start + durationMS
+                start + (durationMS / 1000)
             }
         } else {
             Self::parseDate(endString.clone())?
@@ -167,29 +168,66 @@ impl CalendarParsedRXingResult {
         }
         if when.len() == 8 {
             // Show only year/month/day
-            let date_format_string = "%Y%m%d";
+            let date_format_string = "%Y%m%dT%H%M%SZ";
             // DateFormat format = new SimpleDateFormat("yyyyMMdd", Locale.ENGLISH);
             // For dates without a time, for purposes of interacting with Android, the resulting timestamp
             // needs to be midnight of that day in GMT. See:
             // http://code.google.com/p/android/issues/detail?id=8330
-            let dtm = DateTime::parse_from_str(&when, date_format_string).unwrap();
-            let dtm = dtm.with_timezone(&Utc);
+            return match Utc.datetime_from_str(&format!("{}T000000Z", &when,), date_format_string) {
+                Ok(dtm) => Ok(dtm.timestamp()),
+                Err(e) => panic!("{}", e),
+                // Err(e) => Err(Exceptions::ParseException(format!(
+                //     "couldn't parse string: {}",
+                //     e
+                // ))),
+            };
+            // let dtm = DateTime::parse_from_str(&when, date_format_string).unwrap();
+            // let dtm = dtm.with_timezone(&Utc);
 
-            // format.setTimeZone(TimeZone.getTimeZone("GMT"));
-            // return format.parse(when).getTime();
-            return Ok(dtm.timestamp());
+            // // format.setTimeZone(TimeZone.getTimeZone("GMT"));
+            // // return format.parse(when).getTime();
+            // return Ok(dtm.timestamp());
         }
         // The when string can be local time, or UTC if it ends with a Z
         if when.len() == 16 && when.chars().nth(15).unwrap() == 'Z' {
-            let milliseconds = Self::parseDateTimeString(&when[0..15]);
-            // Calendar calendar = new GregorianCalendar();
-            // // Account for time zone difference
-            // milliseconds += calendar.get(Calendar.ZONE_OFFSET);
-            // // Might need to correct for daylight savings time, but use target time since
-            // // now might be in DST but not then, or vice versa
-            // calendar.setTime(new Date(milliseconds));
-            // return milliseconds + calendar.get(Calendar.DST_OFFSET);
-            return milliseconds;
+            return match Utc.datetime_from_str(&when, "%Y%m%dT%H%M%SZ") {
+                Ok(dtm) => Ok(dtm.with_timezone(&Utc).timestamp()),
+                Err(e) => Err(Exceptions::ParseException(format!(
+                    "couldn't parse string: {}",
+                    e
+                ))),
+            };
+            // let dtm = DateTime::parse_from_str(&when, "%Y%m%dT%H%M%S").unwrap().with_timezone(&Utc);
+            // //let milliseconds = Self::parseDateTimeString(&when[0..15]);
+            // // Calendar calendar = new GregorianCalendar();
+            // // // Account for time zone difference
+            // // milliseconds += calendar.get(Calendar.ZONE_OFFSET);
+            // // // Might need to correct for daylight savings time, but use target time since
+            // // // now might be in DST but not then, or vice versa
+            // // calendar.setTime(new Date(milliseconds));
+            // // return milliseconds + calendar.get(Calendar.DST_OFFSET);
+            // return Ok(dtm.timestamp());
+        }
+        // Try once more, with weird tz formatting
+        if when.len() > 16 {
+            let time_part = &when[..15];
+            let tz_part = &when[15..];
+            let tz_parsed: Tz = match tz_part.parse() {
+                Ok(time_zone) => time_zone,
+                Err(e) => {
+                    return Err(Exceptions::ParseException(format!(
+                        "couldn't parse timezone '{}': {}",
+                        tz_part, e
+                    )))
+                }
+            };
+            return match Utc.datetime_from_str(time_part, "%Y%m%dT%H%M%S") {
+                Ok(dtm) => Ok(dtm.with_timezone(&tz_parsed).timestamp()),
+                Err(e) => Err(Exceptions::ParseException(format!(
+                    "couldn't parse string: {}",
+                    e
+                ))),
+            };
         }
         Self::parseDateTimeString(&when)
     }

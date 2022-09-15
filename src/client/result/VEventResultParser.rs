@@ -130,7 +130,21 @@ fn matchSingleVCardPrefixedField(prefix: &str, rawText: &str) -> String {
         if values.is_empty() {
             "".to_owned()
         } else {
-            values.get(0).unwrap().clone()
+            let tz_mod = if values.len() > 1 {
+                if let Some(v) = values.get(values.len()-2) {
+                    if let Some(tz_loc) = v.find("TZID=") {
+                        v[tz_loc+5..].to_owned()
+                    }else {
+                        "".to_owned()
+                    }
+                }else {
+                    "".to_owned()
+                }
+            }else {
+                "".to_owned()
+            };
+            let root_time = values.last().unwrap().clone();
+            format!("{}{}",root_time,tz_mod)
         }
     } else {
         "".to_owned()
