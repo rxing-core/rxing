@@ -33,6 +33,8 @@ mod VCardResultParser;
 mod BizcardResultParser;
 mod CalendarParsedResult;
 mod VEventResultParser;
+mod ExpandedProductParsedResult;
+mod ExpandedProductResultParser;
 
 use std::fmt;
 
@@ -56,6 +58,7 @@ pub use VINParsedResult::*;
 pub use AddressBookParsedResult::*;
 pub use CalendarParsedResult::*;
 pub use CalendarParsedResult::*;
+pub use ExpandedProductParsedResult::*;
 
 #[cfg(test)]
 mod TelParsedResultTestCase;
@@ -79,6 +82,8 @@ mod VINParsedResultTestCase;
 mod AddressBookParsedResultTestCase;
 #[cfg(test)]
 mod CalendarParsedResultTestCase;
+#[cfg(test)]
+mod ExpandedProductParsedResultTestCase;
 
 pub enum ParsedClientResult {
     TextResult(TextParsedRXingResult),
@@ -93,6 +98,7 @@ pub enum ParsedClientResult {
     VINResult(VINParsedRXingResult),
     AddressBookResult(AddressBookParsedRXingResult),
     CalendarEventResult(CalendarParsedRXingResult),
+    ExpandedProductResult(ExpandedProductParsedRXingResult),
 }
 
 impl ParsedRXingResult for ParsedClientResult {
@@ -110,6 +116,7 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::VINResult(a) => a.getType(),
             ParsedClientResult::AddressBookResult(a) => a.getType(),
             ParsedClientResult::CalendarEventResult(a) => a.getType(),
+            ParsedClientResult::ExpandedProductResult(a) => a.getType(),
         }
     }
 
@@ -127,6 +134,7 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::VINResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::AddressBookResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::CalendarEventResult(a) => a.getDisplayRXingResult(),
+            ParsedClientResult::ExpandedProductResult(a) => a.getDisplayRXingResult(),
         }
     }
 }
