@@ -84,6 +84,8 @@ mod AddressBookParsedResultTestCase;
 mod CalendarParsedResultTestCase;
 #[cfg(test)]
 mod ExpandedProductParsedResultTestCase;
+#[cfg(test)]
+mod ParsedReaderResultTestCase;
 
 pub enum ParsedClientResult {
     TextResult(TextParsedRXingResult),
