@@ -38,7 +38,7 @@ use super::{
     BookmarkDoCoMoResultParser, EmailAddressResultParser, EmailDoCoMoResultParser, GeoResultParser,
     ISBNResultParser, ParsedClientResult, ParsedRXingResult, ProductResultParser,
     SMSMMSResultParser, SMTPResultParser, TelResultParser, TextParsedRXingResult, URIResultParser,
-    URLTOResultParser, VCardResultParser, VEventResultParser, VINResultParser, WifiResultParser,
+    URLTOResultParser, VCardResultParser, VEventResultParser, VINResultParser, WifiResultParser, ExpandedProductResultParser,
 };
 
 /**
@@ -118,7 +118,7 @@ pub fn parse_result_with_parsers(
 }
 
 pub fn parseRXingResult(the_rxing_result: &RXingResult) -> ParsedClientResult {
-    let PARSERS: [&ParserFunction; 19] = [
+    let PARSERS: [&ParserFunction; 20] = [
         &BookmarkDoCoMoResultParser::parse,
         &AddressBookDoCoMoResultParser::parse,
         &EmailDoCoMoResultParser::parse,
@@ -137,7 +137,7 @@ pub fn parseRXingResult(the_rxing_result: &RXingResult) -> ParsedClientResult {
         &URIResultParser::parse,
         &ISBNResultParser::parse,
         &ProductResultParser::parse,
-        //     new ExpandedProductRXingResultParser(),
+            & ExpandedProductResultParser::parse,
         &VINResultParser::parse,
     ];
 
