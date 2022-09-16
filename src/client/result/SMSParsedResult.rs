@@ -24,106 +24,100 @@ use super::{ParsedRXingResult, ParsedRXingResultType, ResultParser};
  *
  * @author Sean Owen
  */
-pub struct SMSParsedRXingResult   {
-
-   numbers: Vec<String>,
-   vias: Vec<String>,
-    subject:String,
-    body:String,
+pub struct SMSParsedRXingResult {
+    numbers: Vec<String>,
+    vias: Vec<String>,
+    subject: String,
+    body: String,
 }
 
 impl ParsedRXingResult for SMSParsedRXingResult {
     fn getType(&self) -> super::ParsedRXingResultType {
-      ParsedRXingResultType::SMS
+        ParsedRXingResultType::SMS
     }
 
     fn getDisplayRXingResult(&self) -> String {
-            let mut result = String::with_capacity(100);
-    ResultParser::maybe_append_multiple(&self.numbers, &mut result);
-    ResultParser::maybe_append_string(&self.subject, &mut result);
-    ResultParser::maybe_append_string(&self.body, &mut result);
-    result
+        let mut result = String::with_capacity(100);
+        ResultParser::maybe_append_multiple(&self.numbers, &mut result);
+        ResultParser::maybe_append_string(&self.subject, &mut result);
+        ResultParser::maybe_append_string(&self.body, &mut result);
+        result
     }
-  
 }
 
 impl SMSParsedRXingResult {
-
-  pub fn with_singles( number:String,
-                          via:String,
-                          subject:String,
-                          body:String) -> Self {
-    Self{
-        numbers: vec![number],
-        vias: vec![via],
-        subject,
-        body,
-    }
-  }
-
-  
-
-  pub fn with_arrays( numbers :Vec<String>,
-                          vias:Vec<String>,
-                         subject:String,
-                          body:String) -> Self{
-    Self {
-        numbers,
-        vias,
-        subject,
-        body,
-    }
-  }
-
-  pub fn getSMSURI(&self) -> String {
-    let mut result = String::new();
-    result.push_str("sms:");
-    let mut first = true;
-    for i in 0..self.numbers.len() {
-    // for (int i = 0; i < numbers.length; i++) {
-      if first {
-        first = false;
-      } else {
-        result.push(',');
-      }
-      result.push_str(&self.numbers[i]);
-      if !self.vias.is_empty() {
-        result.push_str(";via=");
-        result.push_str(&self.vias[i]);
-      }
-    }
-    let has_body = !self.body.is_empty();
-    let has_subject = !self.subject.is_empty();
-    if has_body || has_subject {
-      result.push('?');
-      if has_body {
-        result.push_str("body=");
-        result.push_str(&self.body);
-      }
-      if has_subject {
-        if has_body {
-          result.push('&');
+    pub fn with_singles(number: String, via: String, subject: String, body: String) -> Self {
+        Self {
+            numbers: vec![number],
+            vias: vec![via],
+            subject,
+            body,
         }
-        result.push_str("subject=");
-        result.push_str(&self.subject);
-      }
     }
-    result
-  }
 
-  pub fn getNumbers(&self) -> &Vec<String> {
-    &self.numbers
-  }
+    pub fn with_arrays(
+        numbers: Vec<String>,
+        vias: Vec<String>,
+        subject: String,
+        body: String,
+    ) -> Self {
+        Self {
+            numbers,
+            vias,
+            subject,
+            body,
+        }
+    }
 
-  pub fn getVias(&self) -> &Vec<String> {
-    &self. vias
-  }
+    pub fn getSMSURI(&self) -> String {
+        let mut result = String::new();
+        result.push_str("sms:");
+        let mut first = true;
+        for i in 0..self.numbers.len() {
+            // for (int i = 0; i < numbers.length; i++) {
+            if first {
+                first = false;
+            } else {
+                result.push(',');
+            }
+            result.push_str(&self.numbers[i]);
+            if !self.vias.is_empty() {
+                result.push_str(";via=");
+                result.push_str(&self.vias[i]);
+            }
+        }
+        let has_body = !self.body.is_empty();
+        let has_subject = !self.subject.is_empty();
+        if has_body || has_subject {
+            result.push('?');
+            if has_body {
+                result.push_str("body=");
+                result.push_str(&self.body);
+            }
+            if has_subject {
+                if has_body {
+                    result.push('&');
+                }
+                result.push_str("subject=");
+                result.push_str(&self.subject);
+            }
+        }
+        result
+    }
 
-  pub fn getSubject(&self) -> &str {
-    &self. subject
-  }
+    pub fn getNumbers(&self) -> &Vec<String> {
+        &self.numbers
+    }
 
-  pub fn getBody(&self) -> &str {
-    &self. body
-  }
+    pub fn getVias(&self) -> &Vec<String> {
+        &self.vias
+    }
+
+    pub fn getSubject(&self) -> &str {
+        &self.subject
+    }
+
+    pub fn getBody(&self) -> &str {
+        &self.body
+    }
 }

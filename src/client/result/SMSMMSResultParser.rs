@@ -95,7 +95,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     add_number_via(
         &mut numbers,
         &mut vias,
-        &sms_uriwithout_query[(last_comma) as usize..],
+        &sms_uriwithout_query[(if last_comma > 0 { last_comma + 1} else {last_comma}) as usize..],
     );
 
     Some(ParsedClientResult::SMSResult(

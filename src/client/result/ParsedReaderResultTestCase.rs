@@ -27,7 +27,7 @@
 // import java.util.Locale;
 // import java.util.TimeZone;
 
-use chrono::{TimeZone, Utc};
+use chrono::{Local, TimeZone, Utc};
 
 use crate::{client::result::ParsedRXingResult, BarcodeFormat, RXingResult};
 
@@ -390,9 +390,9 @@ fn test_uri() {
 
 #[test]
 fn test_geo() {
-    do_test_rxing_result("geo:1,2", "1.0, 2.0", ParsedRXingResultType::GEO);
-    do_test_rxing_result("GEO:1,2", "1.0, 2.0", ParsedRXingResultType::GEO);
-    do_test_rxing_result("geo:1,2,3", "1.0, 2.0, 3.0m", ParsedRXingResultType::GEO);
+    do_test_rxing_result("geo:1,2", "1, 2", ParsedRXingResultType::GEO);
+    do_test_rxing_result("GEO:1,2", "1, 2", ParsedRXingResultType::GEO);
+    do_test_rxing_result("geo:1,2,3", "1, 2, 3m", ParsedRXingResultType::GEO);
     do_test_rxing_result(
         "geo:80.33,-32.3344,3.35",
         "80.33, -32.3344, 3.35m",
@@ -501,7 +501,7 @@ fn test_vevent() {
 
 fn format_date(year: i32, month: u32, day: u32) -> String {
     let dtm = Utc.ymd(year, month, day);
-    dtm.format("%Y%m%D").to_string()
+    dtm.format("%F").to_string()
     // Calendar cal = Calendar.getInstance();
     // cal.clear();
     // cal.set(year, month - 1, day);
@@ -510,7 +510,7 @@ fn format_date(year: i32, month: u32, day: u32) -> String {
 
 fn format_time(year: i32, month: u32, day: u32, hour: u32, min: u32, sec: u32) -> String {
     let dtm = Utc.ymd(year, month, day).and_hms(hour, min, sec);
-    dtm.format("%C").to_string()
+    dtm.format("%c").to_string()
     // Calendar cal = Calendar.getInstance();
     // cal.clear();
     // cal.set(year, month - 1, day, hour, min, sec);
@@ -624,7 +624,12 @@ fn test_mmsto() {
 }
 
 fn do_test_rxing_result(contents: &str, golden_rxing_result: &str, r_type: ParsedRXingResultType) {
-    do_test_rxing_result_long(contents, golden_rxing_result, r_type, BarcodeFormat::QR_CODE);
+    do_test_rxing_result_long(
+        contents,
+        golden_rxing_result,
+        r_type,
+        BarcodeFormat::QR_CODE,
+    );
     // QR code is arbitrary
 }
 

@@ -27,7 +27,7 @@
 // import java.util.regex.Matcher;
 // import java.util.regex.Pattern;
 
-use chrono::{Date, DateTime, NaiveDateTime, TimeZone, Utc};
+use chrono::{Date, DateTime, Local, NaiveDateTime, TimeZone, Utc};
 use chrono_tz::Tz;
 use regex::Regex;
 
@@ -225,6 +225,17 @@ impl CalendarParsedRXingResult {
                 Ok(dtm) => Ok(dtm.with_timezone(&tz_parsed).timestamp()),
                 Err(e) => Err(Exceptions::ParseException(format!(
                     "couldn't parse string: {}",
+                    e
+                ))),
+            };
+        }
+
+        // Try a final time with an exact length
+        if when.len() == 15 {
+            return match Utc.datetime_from_str(&when, "%Y%m%dT%H%M%S") {
+                Ok(dtm) => Ok(dtm.timestamp()),
+                Err(e) => Err(Exceptions::ParseException(format!(
+                    "couldn't parse local time: {}",
                     e
                 ))),
             };

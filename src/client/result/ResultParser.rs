@@ -35,10 +35,11 @@ use crate::{exceptions::Exceptions, RXingResult};
 
 use super::{
     AddressBookAUResultParser, AddressBookDoCoMoResultParser, BizcardResultParser,
-    BookmarkDoCoMoResultParser, EmailAddressResultParser, EmailDoCoMoResultParser, GeoResultParser,
-    ISBNResultParser, ParsedClientResult, ParsedRXingResult, ProductResultParser,
-    SMSMMSResultParser, SMTPResultParser, TelResultParser, TextParsedRXingResult, URIResultParser,
-    URLTOResultParser, VCardResultParser, VEventResultParser, VINResultParser, WifiResultParser, ExpandedProductResultParser,
+    BookmarkDoCoMoResultParser, EmailAddressResultParser, EmailDoCoMoResultParser,
+    ExpandedProductResultParser, GeoResultParser, ISBNResultParser, ParsedClientResult,
+    ParsedRXingResult, ProductResultParser, SMSMMSResultParser, SMTPResultParser, TelResultParser,
+    TextParsedRXingResult, URIResultParser, URLTOResultParser, VCardResultParser,
+    VEventResultParser, VINResultParser, WifiResultParser, SMSTOMMSTOResultParser,
 };
 
 /**
@@ -130,14 +131,14 @@ pub fn parseRXingResult(the_rxing_result: &RXingResult) -> ParsedClientResult {
         &SMTPResultParser::parse,
         &TelResultParser::parse,
         &SMSMMSResultParser::parse,
-        &SMSMMSResultParser::parse,
+        &SMSTOMMSTOResultParser::parse,
         &GeoResultParser::parse,
         &WifiResultParser::parse,
         &URLTOResultParser::parse,
         &URIResultParser::parse,
         &ISBNResultParser::parse,
         &ProductResultParser::parse,
-            & ExpandedProductResultParser::parse,
+        &ExpandedProductResultParser::parse,
         &VINResultParser::parse,
     ];
 
@@ -161,7 +162,9 @@ pub fn parseRXingResult(the_rxing_result: &RXingResult) -> ParsedClientResult {
 
 pub fn maybe_append_string(value: &str, result: &mut String) {
     if !value.is_empty() {
-        result.push('\n');
+        if !result.is_empty() {
+            result.push('\n');
+        }
         result.push_str(value);
     }
 }
@@ -171,7 +174,9 @@ pub fn maybe_append_multiple(value: &[String], result: &mut String) {
         for s in value {
             // for (String s : value) {
             if !s.is_empty() {
-                result.push('\n');
+                if !result.is_empty() {
+                    result.push('\n');
+                }
                 result.push_str(s);
             }
         }
