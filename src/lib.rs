@@ -823,7 +823,7 @@ use crate::common::detector::MathUtils;
  *
  * @author Sean Owen
  */
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct RXingResultPoint {
     x: f32,
     y: f32,

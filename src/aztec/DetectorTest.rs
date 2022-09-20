@@ -14,53 +14,54 @@
  * limitations under the License.
  */
 
-package com.google.zxing.aztec.detector;
+// package com.google.zxing.aztec.detector;
 
-import com.google.zxing.NotFoundException;
-import com.google.zxing.aztec.AztecDetectorRXingResult;
-import com.google.zxing.aztec.decoder.Decoder;
-import com.google.zxing.aztec.detector.Detector.Point;
-import com.google.zxing.aztec.encoder.AztecCode;
-import com.google.zxing.aztec.encoder.Encoder;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderRXingResult;
-import org.junit.Assert;
-import org.junit.Test;
+// import com.google.zxing.NotFoundException;
+// import com.google.zxing.aztec.AztecDetectorRXingResult;
+// import com.google.zxing.aztec.decoder.Decoder;
+// import com.google.zxing.aztec.detector.Detector.Point;
+// import com.google.zxing.aztec.encoder.AztecCode;
+// import com.google.zxing.aztec.encoder.Encoder;
+// import com.google.zxing.common.BitMatrix;
+// import com.google.zxing.common.DecoderRXingResult;
+// import org.junit.Assert;
+// import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Random;
-import java.util.TreeSet;
+// import java.util.ArrayList;
+// import java.util.Arrays;
+// import java.util.Collection;
+// import java.util.List;
+// import java.util.Random;
+// import java.util.TreeSet;
+
+use crate::common::BitMatrix;
 
 /**
  * Tests for the Detector
  *
  * @author Frank Yellin
  */
-public final class DetectorTest extends Assert {
 
-  @Test
-  public void testErrorInParameterLocatorZeroZero() throws Exception {
+  #[test]
+  fn testErrorInParameterLocatorZeroZero()  {
     // Layers=1, CodeWords=1.  So the parameter info and its Reed-Solomon info
     // will be completely zero!
     testErrorInParameterLocator("X");
   }
 
-  @Test
-  public void testErrorInParameterLocatorCompact() throws Exception {
+  #[test]
+  fn testErrorInParameterLocatorCompact() {
     testErrorInParameterLocator("This is an example Aztec symbol for Wikipedia.");
   }
 
-  @Test
-  public void testErrorInParameterLocatorNotCompact() throws Exception {
+  #[test]
+  fn testErrorInParameterLocatorNotCompact()  {
     String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxyz";
     testErrorInParameterLocator(alphabet + alphabet + alphabet);
   }
 
   // Test that we can tolerate errors in the parameter locator bits
-  private static void testErrorInParameterLocator(String data) throws Exception {
+  fn testErrorInParameterLocator( data:&str)  {
     AztecCode aztec = Encoder.encode(data, 25, Encoder.DEFAULT_AZTEC_LAYERS);
     Random random = new Random(aztec.getMatrix().hashCode());   // pseudo-random, but deterministic
     int layers = aztec.getLayers();
@@ -109,9 +110,9 @@ public final class DetectorTest extends Assert {
   }
 
   // Zooms a bit matrix so that each bit is factor x factor
-  private static BitMatrix makeLarger(BitMatrix input, int factor) {
-    int width = input.getWidth();
-    BitMatrix output = new BitMatrix(width * factor);
+  fn  makeLarger( input:&BitMatrix,  factor:u32) -> BitMatrix{
+    let width = input.getWidth();
+    let output =  BitMatrix::new(width * factor);
     for (int inputY = 0; inputY < width; inputY++) {
       for (int inputX = 0; inputX < width; inputX++) {
         if (input.get(inputX, inputY)) {
@@ -123,7 +124,7 @@ public final class DetectorTest extends Assert {
   }
 
   // Returns a list of the four rotations of the BitMatrix.
-  private static Iterable<BitMatrix> getRotations(BitMatrix matrix0) {
+  fn  getRotations( matrix0:&BitMatrix)-> Vec<BitMatrix> {
     BitMatrix matrix90 = rotateRight(matrix0);
     BitMatrix matrix180 = rotateRight(matrix90);
     BitMatrix matrix270 = rotateRight(matrix180);
@@ -131,7 +132,7 @@ public final class DetectorTest extends Assert {
   }
 
   // Rotates a square BitMatrix to the right by 90 degrees
-  private static BitMatrix rotateRight(BitMatrix input) {
+  fn  rotateRight( input:&BitMatrix) -> BitMatrix{
     int width = input.getWidth();
     BitMatrix result = new BitMatrix(width);
     for (int x = 0; x < width; x++) {
@@ -146,8 +147,8 @@ public final class DetectorTest extends Assert {
 
   // Returns the transpose of a bit matrix, which is equivalent to rotating the
   // matrix to the right, and then flipping it left-to-right
-  private static BitMatrix transpose(BitMatrix input) {
-    int width = input.getWidth();
+   fn transpose( input:&BitMatrix) -> BitMatrix {
+    let width = input.getWidth();
     BitMatrix result = new BitMatrix(width);
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < width; y++) {
@@ -159,7 +160,7 @@ public final class DetectorTest extends Assert {
     return result;
   }
 
-  private static BitMatrix clone(BitMatrix input)  {
+  fn clone( input:&BitMatrix) -> BitMatrix  {
     int width = input.getWidth();
     BitMatrix result = new BitMatrix(width);
     for (int x = 0; x < width; x++) {
@@ -172,7 +173,7 @@ public final class DetectorTest extends Assert {
     return result;
   }
 
-  private static List<Point> getOrientationPoints(AztecCode code) {
+  fn  getOrientationPoints( code::&AztecCode) -> Vec<Point> {
     int center = code.getMatrix().getWidth() / 2;
     int offset = code.isCompact() ? 5 : 7;
     List<Point> result = new ArrayList<>();
@@ -185,5 +186,3 @@ public final class DetectorTest extends Assert {
     }
     return result;
   }
-
-}
