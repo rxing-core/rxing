@@ -14,27 +14,29 @@
  * limitations under the License.
  */
 
-package com.google.zxing.aztec.encoder;
+// package com.google.zxing.aztec.encoder;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.EncodeHintType;
-import com.google.zxing.FormatException;
-import com.google.zxing.RXingResultPoint;
-import com.google.zxing.aztec.AztecDetectorRXingResult;
-import com.google.zxing.aztec.AztecWriter;
-import com.google.zxing.aztec.decoder.Decoder;
-import com.google.zxing.common.BitArray;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderRXingResult;
-import org.junit.Assert;
-import org.junit.Test;
+// import com.google.zxing.BarcodeFormat;
+// import com.google.zxing.EncodeHintType;
+// import com.google.zxing.FormatException;
+// import com.google.zxing.RXingResultPoint;
+// import com.google.zxing.aztec.AztecDetectorRXingResult;
+// import com.google.zxing.aztec.AztecWriter;
+// import com.google.zxing.aztec.decoder.Decoder;
+// import com.google.zxing.common.BitArray;
+// import com.google.zxing.common.BitMatrix;
+// import com.google.zxing.common.DecoderRXingResult;
+// import org.junit.Assert;
+// import org.junit.Test;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.regex.Pattern;
+// import java.nio.charset.Charset;
+// import java.nio.charset.StandardCharsets;
+// import java.util.EnumMap;
+// import java.util.Map;
+// import java.util.Random;
+// import java.util.regex.Pattern;
+
+use crate::common::BitArray;
 
 /**
  * Aztec 2D generator unit tests.
@@ -42,22 +44,21 @@ import java.util.regex.Pattern;
  * @author Rustam Abdullaev
  * @author Frank Yellin
  */
-public final class EncoderTest extends Assert {
 
-  private static final Charset ISO_8859_1 = StandardCharsets.ISO_8859_1;
-  private static final Charset UTF_8 = StandardCharsets.UTF_8;
-  private static final Charset SHIFT_JIS = Charset.forName("Shift_JIS");
-  private static final Charset ISO_8859_15 = Charset.forName("ISO-8859-15");
-  private static final Charset WINDOWS_1252 = Charset.forName("Windows-1252");
+  const ISO_8859_1:&'static encoding::Encoding = StandardCharsets.ISO_8859_1;
+  const UTF_8 :&'static encoding::Encoding= StandardCharsets.UTF_8;
+  const SHIFT_JIS:&'static encoding::Encoding = Charset.forName("Shift_JIS");
+  const ISO_8859_15:&'static encoding::Encoding = Charset.forName("ISO-8859-15");
+  const WINDOWS_1252 :&'static encoding::Encoding= Charset.forName("Windows-1252");
 
-  private static final Pattern DOTX = Pattern.compile("[^.X]");
-  private static final Pattern SPACES = Pattern.compile("\\s+");
-  private static final RXingResultPoint[] NO_POINTS = new RXingResultPoint[0];
+  const DOTX : &str = "[^.X]";
+  const SPACES :&str= "\\s+";
+  const  NO_POINTS:Vec<RXingResultPoint> = Vec::new();
 
   // real life tests
 
-  @Test
-  public void testEncode1() {
+  #[test]
+  fn testEncode1() {
     testEncode("This is an example Aztec symbol for Wikipedia.", true, 3,
         "X     X X       X     X X     X     X         \n" +
         "X         X     X X     X   X X   X X       X \n" +
@@ -84,8 +85,8 @@ public final class EncoderTest extends Assert {
         "  X   X   X X       X   X         X X X     X \n");
   }
 
-  @Test
-  public void testEncode2() {
+  #[test]
+  fn testEncode2() {
     testEncode("Aztec Code is a public domain 2D matrix barcode symbology" +
                 " of nominally square symbols built on a square grid with a " +
                 "distinctive square bullseye pattern at their center.", false, 6,
@@ -132,57 +133,57 @@ public final class EncoderTest extends Assert {
           "X       X           X   X   X     X X   X               X     X     X X X         \n");
   }
 
-  @Test
-  public void testAztecWriter() throws Exception {
-    testWriter("Espa\u00F1ol", null, 25, true, 1);                   // Without ECI (implicit ISO-8859-1)
-    testWriter("Espa\u00F1ol", ISO_8859_1, 25, true, 1);             // Explicit ISO-8859-1
-    testWriter("\u20AC 1 sample data.", WINDOWS_1252, 25, true, 2);  // ISO-8859-1 can't encode Euro; Windows-1252 can
-    testWriter("\u20AC 1 sample data.", ISO_8859_15, 25, true, 2);
-    testWriter("\u20AC 1 sample data.", UTF_8, 25, true, 2);
-    testWriter("\u20AC 1 sample data.", UTF_8, 100, true, 3);
-    testWriter("\u20AC 1 sample data.", UTF_8, 300, true, 4);
-    testWriter("\u20AC 1 sample data.", UTF_8, 500, false, 5);
-    testWriter("The capital of Japan is named \u6771\u4EAC.", SHIFT_JIS, 25, true, 3);
+  
+  fn testAztecWriter()  {
+    testWriter("Espa\u{00F1}ol", null, 25, true, 1);                   // Without ECI (implicit ISO-8859-1)
+    testWriter("Espa\u{00F1}ol", ISO_8859_1, 25, true, 1);             // Explicit ISO-8859-1
+    testWriter("\u{20AC} 1 sample data.", WINDOWS_1252, 25, true, 2);  // ISO-8859-1 can't encode Euro; Windows-1252 can
+    testWriter("\u{20AC} 1 sample data.", ISO_8859_15, 25, true, 2);
+    testWriter("\u{20AC} 1 sample data.", UTF_8, 25, true, 2);
+    testWriter("\u{20AC} 1 sample data.", UTF_8, 100, true, 3);
+    testWriter("\u{20AC} 1 sample data.", UTF_8, 300, true, 4);
+    testWriter("\u{20AC} 1 sample data.", UTF_8, 500, false, 5);
+    testWriter("The capital of Japan is named \u{6771}\u{4EAC}.", SHIFT_JIS, 25, true, 3);
     // Test AztecWriter defaults
-    String data = "In ut magna vel mauris malesuada";
-    AztecWriter writer = new AztecWriter();
-    BitMatrix matrix = writer.encode(data, BarcodeFormat.AZTEC, 0, 0);
-    AztecCode aztec = Encoder.encode(data,
+    let data = "In ut magna vel mauris malesuada";
+    let writer =  AztecWriter::new();
+    let matrix = writer.encode(data, BarcodeFormat.AZTEC, 0, 0);
+    let aztec = Encoder.encode(data,
         Encoder.DEFAULT_EC_PERCENT, Encoder.DEFAULT_AZTEC_LAYERS);
-    BitMatrix expectedMatrix = aztec.getMatrix();
+    let expectedMatrix = aztec.getMatrix();
     assertEquals(matrix, expectedMatrix);
   }
 
   // synthetic tests (encode-decode round-trip)
 
-  @Test
-  public void testEncodeDecode1() throws Exception {
+  #[test]
+  fn testEncodeDecode1()  {
     testEncodeDecode("Abc123!", true, 1);
   }
 
-  @Test
-  public void testEncodeDecode2() throws Exception {
+  #[test]
+  fn testEncodeDecode2() {
     testEncodeDecode("Lorem ipsum. http://test/", true, 2);
   }
 
-  @Test
-  public void testEncodeDecode3() throws Exception {
+  #[test]
+  fn testEncodeDecode3() {
     testEncodeDecode("AAAANAAAANAAAANAAAANAAAANAAAANAAAANAAAANAAAANAAAAN", true, 3);
   }
 
-  @Test
-  public void testEncodeDecode4() throws Exception {
+  #[test]
+  fn  testEncodeDecode4()  {
     testEncodeDecode("http://test/~!@#*^%&)__ ;:'\"[]{}\\|-+-=`1029384", true, 4);
   }
 
-  @Test
-  public void testEncodeDecode5() throws Exception {
+  #[test]
+  fn  testEncodeDecode5()  {
     testEncodeDecode("http://test/~!@#*^%&)__ ;:'\"[]{}\\|-+-=`1029384756<>/?abc"
         + "Four score and seven our forefathers brought forth", false, 5);
   }
 
-  @Test
-  public void testEncodeDecode10() throws Exception {
+  #[test]
+  fn testEncodeDecode10()  {
     testEncodeDecode("In ut magna vel mauris malesuada dictum. Nulla ullamcorper metus quis diam" +
         " cursus facilisis. Sed mollis quam id justo rutrum sagittis. Donec laoreet rutrum" +
         " est, nec convallis mauris condimentum sit amet. Phasellus gravida, justo et congue" +
@@ -191,8 +192,8 @@ public final class EncoderTest extends Assert {
         " elementum sapien dolor et diam.", false, 10);
   }
 
-  @Test
-  public void testEncodeDecode23() throws Exception {
+  #[test]
+  fn  testEncodeDecode23()  {
     testEncodeDecode("In ut magna vel mauris malesuada dictum. Nulla ullamcorper metus quis diam" +
         " cursus facilisis. Sed mollis quam id justo rutrum sagittis. Donec laoreet rutrum" +
         " est, nec convallis mauris condimentum sit amet. Phasellus gravida, justo et congue" +
@@ -217,8 +218,8 @@ public final class EncoderTest extends Assert {
         " erat pulvinar nisi, id elementum sapien dolor et diam.", false, 23);
   }
 
-  @Test
-  public void testEncodeDecode31() throws Exception {
+  #[test]
+  fn testEncodeDecode31()  {
     testEncodeDecode("In ut magna vel mauris malesuada dictum. Nulla ullamcorper metus quis diam" +
         " cursus facilisis. Sed mollis quam id justo rutrum sagittis. Donec laoreet rutrum" +
         " est, nec convallis mauris condimentum sit amet. Phasellus gravida, justo et congue" +
@@ -258,16 +259,16 @@ public final class EncoderTest extends Assert {
         " hendrerit felis turpis nec lorem.", false, 31);
   }
 
-  @Test
-  public void testGenerateModeMessage() {
+  #[test]
+  fn  testGenerateModeMessage() {
     testModeMessage(true, 2, 29, ".X .XXX.. ...X XX.. ..X .XX. .XX.X");
     testModeMessage(true, 4, 64, "XX XXXXXX .X.. ...X ..XX .X.. XX..");
     testModeMessage(false, 21, 660,  "X.X.. .X.X..X..XX .XXX ..X.. .XXX. .X... ..XXX");
     testModeMessage(false, 32, 4096, "XXXXX XXXXXXXXXXX X.X. ..... XXX.X ..X.. X.XXX");
   }
 
-  @Test
-  public void testStuffBits() {
+  #[test]
+  fn  testStuffBits() {
     testStuffBits(5, ".X.X. X.X.X .X.X.",
         ".X.X. X.X.X .X.X.");
     testStuffBits(5, ".X.X. ..... .X.X",
@@ -285,8 +286,8 @@ public final class EncoderTest extends Assert {
         ".....X ...XXX XX..XX ..X... ..X.X. X..... X.X... ....X. X..... X....X X..X.. .....X X.X..X XXX.XX .XXXXX");
   }
 
-  @Test
-  public void testHighLevelEncode() throws FormatException {
+  #[test]
+  fn  testHighLevelEncode()  {
     testHighLevelEncodeString("A. b.",
         // 'A'  P/S   '. ' L/L    b    D/L    '.'
         "...X. ..... ...XX XXX.. ...XX XXXX. XX.X");
@@ -315,8 +316,8 @@ public final class EncoderTest extends Assert {
         823);
   }
 
-  @Test
-  public void testHighLevelEncodeBinary() throws FormatException {
+  #[test]
+  fn  testHighLevelEncodeBinary() {
     // binary short form single byte
     testHighLevelEncodeString("N\0N",
         // 'N'  B/S    =1   '\0'      N
@@ -327,12 +328,12 @@ public final class EncoderTest extends Assert {
         ".XXXX XXXXX ...X. ........ .XX.XXX.");   // Encode "n" in BINARY
 
     // binary short form consecutive bytes
-    testHighLevelEncodeString("N\0\u0080 A",
+    testHighLevelEncodeString("N\0\u{0080} A",
         // 'N'  B/S    =2    '\0'    \u0080   ' '  'A'
         ".XXXX XXXXX ...X. ........ X....... ....X ...X.");
 
     // binary skipping over single character
-    testHighLevelEncodeString("\0a\u00FF\u0080 A",
+    testHighLevelEncodeString("\0a\u{00FF}\u{0080} A",
         // B/S  =4    '\0'      'a'     '\3ff'   '\200'   ' '   'A'
         "XXXXX ..X.. ........ .XX....X XXXXXXXX X....... ....X ...X.");
 
@@ -343,7 +344,7 @@ public final class EncoderTest extends Assert {
     );
 
     // Create a string in which every character requires binary
-    StringBuilder sb = new StringBuilder();
+    let sb = String::new();
     for (int i = 0; i <= 3000; i++) {
       sb.append((char) (128 + (i % 30)));
     }
@@ -402,8 +403,8 @@ public final class EncoderTest extends Assert {
     testHighLevelEncodeString(sb.toString(), 21 + 64 * 8);
   }
 
-  @Test
-  public void testHighLevelEncodePairs() throws FormatException {
+  #[test]
+  fn testHighLevelEncodePairs()  {
     // Typical usage
     testHighLevelEncodeString("ABC. DEF\r\n",
         //  A     B    C    P/S   .<sp>   D    E     F    P/S   \r\n
@@ -424,17 +425,19 @@ public final class EncoderTest extends Assert {
         "...X. XXXXX ..X.. X....... ..X.XXX. ..X..... X.......");
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testUserSpecifiedLayers() {
+  #[test]
+  #[should_panic]
+  fn  testUserSpecifiedLayers() {
     doTestUserSpecifiedLayers(33);
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testUserSpecifiedLayers2() {
+  #[test]
+  #[should_panic]
+  fn  testUserSpecifiedLayers2() {
     doTestUserSpecifiedLayers(-1);
   }
 
-  private void doTestUserSpecifiedLayers(int userSpecifiedLayers) {
+  fn doTestUserSpecifiedLayers( userSpecifiedLayers:usize) {
     String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     AztecCode aztec = Encoder.encode(alphabet, 25, -2);
     assertEquals(2, aztec.getLayers());
@@ -447,8 +450,9 @@ public final class EncoderTest extends Assert {
     Encoder.encode(alphabet, 25, userSpecifiedLayers);
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testBorderCompact4CaseFailed() {
+  #[test]
+  #[should_panic]
+  fn  testBorderCompact4CaseFailed() {
     // Compact(4) con hold 608 bits of information, but at most 504 can be data.  Rest must
     // be error correction
     String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -457,8 +461,8 @@ public final class EncoderTest extends Assert {
     Encoder.encode(alphabet4, 0, -4);
   }
 
-  @Test
-  public void testBorderCompact4Case() {
+  #[test]
+  fn  testBorderCompact4Case() {
     // Compact(4) con hold 608 bits of information, but at most 504 can be data.  Rest must
     // be error correction
     String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -479,7 +483,7 @@ public final class EncoderTest extends Assert {
 
   // Helper routines
 
-  private static void testEncode(String data, boolean compact, int layers, String expected) {
+  fn testEncode( data:&str,  compact:bool,  layers:usize,  expected:&str) {
     AztecCode aztec = Encoder.encode(data, 33, Encoder.DEFAULT_AZTEC_LAYERS);
     assertEquals("Unexpected symbol format (compact)", compact, aztec.isCompact());
     assertEquals("Unexpected nr. of layers", layers, aztec.getLayers());
@@ -487,7 +491,7 @@ public final class EncoderTest extends Assert {
     assertEquals("encode() failed", expected, matrix.toString());
   }
 
-  private static void testEncodeDecode(String data, boolean compact, int layers) throws Exception {
+  fn testEncodeDecode( data:&str,  compact:bool,  layers:usize) {
     AztecCode aztec = Encoder.encode(data, 25, Encoder.DEFAULT_AZTEC_LAYERS);
     assertEquals("Unexpected symbol format (compact)", compact, aztec.isCompact());
     assertEquals("Unexpected nr. of layers", layers, aztec.getLayers());
@@ -507,11 +511,11 @@ public final class EncoderTest extends Assert {
     assertEquals(data, res.getText());
   }
 
-  private static void testWriter(String data,
-                                 Charset charset,
-                                 int eccPercent,
-                                 boolean compact,
-                                 int layers) throws FormatException {
+  fn testWriter( data:&str,
+                                  charset:&'static dyn encoding::Encoding,
+                                  eccPercent:u32,
+                                  compact:bool,
+                                  layers:usize) throws FormatException {
     // Perform an encode-decode round-trip because it can be lossy.
     Map<EncodeHintType,Object> hints = new EnumMap<>(EncodeHintType.class);
     if (null != charset) {
@@ -548,56 +552,35 @@ public final class EncoderTest extends Assert {
     assertEquals(data, res.getText());
   }
 
-  private static Random getPseudoRandom() {
+  fn getPseudoRandom() -> rand::Rng{
     return new Random(0xDEADBEEF);
   }
 
-  private static void testModeMessage(boolean compact, int layers, int words, String expected) {
+  fn testModeMessage( compact:bool,  layers:usize,  words:usize,  expected:&str) {
     BitArray in = Encoder.generateModeMessage(compact, layers, words);
     assertEquals("generateModeMessage() failed", stripSpace(expected), stripSpace(in.toString()));
   }
 
-  private static void testStuffBits(int wordSize, String bits, String expected) {
+  fn testStuffBits( wordSize:usize,  bits:&str,  expected:&str) {
     BitArray in = toBitArray(bits);
     BitArray stuffed = Encoder.stuffBits(in, wordSize);
     assertEquals("stuffBits() failed for input string: " + bits,
                  stripSpace(expected), stripSpace(stuffed.toString()));
   }
 
-  public static BitArray toBitArray(CharSequence bits) {
-    BitArray in = new BitArray();
-    char[] str = DOTX.matcher(bits).replaceAll("").toCharArray();
-    for (char aStr : str) {
-      in.appendBit(aStr == 'X');
-    }
-    return in;
-  }
+  
 
-  public static boolean[] toBooleanArray(BitArray bitArray) {
-    boolean[] result = new boolean[bitArray.getSize()];
-    for (int i = 0; i < result.length; i++) {
-      result[i] = bitArray.get(i);
-    }
-    return result;
-  }
-
-  private static void testHighLevelEncodeString(String s, String expectedBits) throws FormatException {
+  fn testHighLevelEncodeString( s:&str,  expectedBits:&str)  {
     BitArray bits = new HighLevelEncoder(s.getBytes(StandardCharsets.ISO_8859_1)).encode();
     String receivedBits = stripSpace(bits.toString());
     assertEquals("highLevelEncode() failed for input string: " + s, stripSpace(expectedBits), receivedBits);
     assertEquals(s, Decoder.highLevelDecode(toBooleanArray(bits)));
   }
 
-  private static void testHighLevelEncodeString(String s, int expectedReceivedBits) throws FormatException {
+  fn testHighLevelEncodeString( s:&str,  expectedReceivedBits:u32) {
     BitArray bits = new HighLevelEncoder(s.getBytes(StandardCharsets.ISO_8859_1)).encode();
     int receivedBitCount = stripSpace(bits.toString()).length();
     assertEquals("highLevelEncode() failed for input string: " + s,
                  expectedReceivedBits, receivedBitCount);
     assertEquals(s, Decoder.highLevelDecode(toBooleanArray(bits)));
   }
-
-  public static String stripSpace(String s) {
-    return SPACES.matcher(s).replaceAll("");
-  }
-
-}

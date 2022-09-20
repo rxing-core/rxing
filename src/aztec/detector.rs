@@ -14,18 +14,27 @@
  * limitations under the License.
  */
 
-package com.google.zxing.aztec.detector;
+// package com.google.zxing.aztec.detector;
 
-import com.google.zxing.NotFoundException;
-import com.google.zxing.RXingResultPoint;
-import com.google.zxing.aztec.AztecDetectorRXingResult;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.GridSampler;
-import com.google.zxing.common.detector.MathUtils;
-import com.google.zxing.common.detector.WhiteRectangleDetector;
-import com.google.zxing.common.reedsolomon.GenericGF;
-import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
-import com.google.zxing.common.reedsolomon.ReedSolomonException;
+// import com.google.zxing.NotFoundException;
+// import com.google.zxing.RXingResultPoint;
+// import com.google.zxing.aztec.AztecDetectorRXingResult;
+// import com.google.zxing.common.BitMatrix;
+// import com.google.zxing.common.GridSampler;
+// import com.google.zxing.common.detector.MathUtils;
+// import com.google.zxing.common.detector.WhiteRectangleDetector;
+// import com.google.zxing.common.reedsolomon.GenericGF;
+// import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
+// import com.google.zxing.common.reedsolomon.ReedSolomonException;
+
+use crate::common::BitMatrix;
+
+const EXPECTED_CORNER_BITS : [u16;4]= [
+    0xee0,  // 07340  XXX .XX X.. ...
+    0x1dc,  // 00734  ... XXX .XX X..
+    0x83b,  // 04073  X.. ... XXX .XX
+    0x707,  // 03407 .XX X.. ... XXX
+];
 
 /**
  * Encapsulates logic that can detect an Aztec Code in an image, even if the Aztec Code
@@ -34,25 +43,27 @@ import com.google.zxing.common.reedsolomon.ReedSolomonException;
  * @author David Olivier
  * @author Frank Yellin
  */
-public final class Detector {
+pub struct Detector {
+  image:BitMatrix,
 
-  private static final int[] EXPECTED_CORNER_BITS = {
-      0xee0,  // 07340  XXX .XX X.. ...
-      0x1dc,  // 00734  ... XXX .XX X..
-      0x83b,  // 04073  X.. ... XXX .XX
-      0x707,  // 03407 .XX X.. ... XXX
-  };
+  compact:bool,
+  nbLayers:u32,
+  nbDataBlocks:u32,
+  nbCenterLayers:u32,
+  shift:u32,
+}
 
-  private final BitMatrix image;
+impl Detector {
 
-  private boolean compact;
-  private int nbLayers;
-  private int nbDataBlocks;
-  private int nbCenterLayers;
-  private int shift;
-
-  public Detector(BitMatrix image) {
-    this.image = image;
+  pub fn new( image:BitMatrix) -> Self{
+    Self{
+        image,
+        compact: false,
+        nbLayers: 0,
+        nbDataBlocks: 0,
+        nbCenterLayers: 0,
+        shift: 0,
+    }
   }
 
   public AztecDetectorRXingResult detect() throws NotFoundException {

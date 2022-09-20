@@ -719,27 +719,17 @@ impl fmt::Display for BitArray {
  *
  * @author Sean Owen
  */
-pub struct DetectorRXingResult {
-    bits: BitMatrix,
-    points: Vec<RXingResultPoint>,
+pub trait DetectorRXingResult {
+
+     fn getBits(&self) -> &BitMatrix;
+
+     fn getPoints(&self) -> &Vec<RXingResultPoint>;
 }
 
-impl DetectorRXingResult {
-    pub fn new(bits: BitMatrix, points: Vec<RXingResultPoint>) -> Self {
-        Self {
-            bits: bits,
-            points: points,
-        }
-    }
-
-    pub fn getBits(&self) -> &BitMatrix {
-        return &self.bits;
-    }
-
-    pub fn getPoints(&self) -> &Vec<RXingResultPoint> {
-        return &self.points;
-    }
-}
+// pub struct DetectorRXingResult {
+//     bits: BitMatrix,
+//     points: Vec<RXingResultPoint>,
+// }
 
 /*
  * Copyright 2007 ZXing authors

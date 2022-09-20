@@ -1,6 +1,7 @@
 mod common;
 mod exceptions;
 mod client;
+mod aztec;
 
 #[cfg(feature="image")]
 mod BufferedImageLuminanceSource;
@@ -840,7 +841,7 @@ impl PartialEq for RXingResultPoint {
 }
 impl Eq for RXingResultPoint {}
 impl RXingResultPoint {
-    pub fn new(x: f32, y: f32) -> Self {
+    pub const fn new(x: f32, y: f32) -> Self {
         Self { x, y }
     }
 
