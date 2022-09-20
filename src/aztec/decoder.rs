@@ -123,33 +123,34 @@ pub fn highLevelDecode(correctedBits: &[bool]) -> Result<String, Exceptions> {
  *
  * @return the decoded string
  */
-fn getEncodedData(correctedBits: &[bool]) -> Result<String, Exceptions> {
-    let endIndex = correctedBits.len();
-    let mut latchTable = Table::UPPER; // table most recently latched to
-    let mut shiftTable = Table::UPPER; // table to use for the next read
+fn getEncodedData(corrected_bits: &[bool]) -> Result<String, Exceptions> {
+    let endIndex = corrected_bits.len();
+    let mut latch_table = Table::UPPER; // table most recently latched to
+    let mut shift_table = Table::UPPER; // table to use for the next read
 
     // Final decoded string result
     // (correctedBits-5) / 4 is an upper bound on the size (all-digit result)
-    let mut result = String::with_capacity((correctedBits.len() - 5) / 4);
+    let mut result = String::with_capacity((corrected_bits.len() - 5) / 4);
 
     // Intermediary buffer of decoded bytes, which is decoded into a string and flushed
     // when character encoding changes (ECI) or input ends.
-    let mut decodedBytes: Vec<u8> = Vec::new();
-    let mut encdr: &'static dyn encoding::Encoding = encoding::all::UTF_8;
+    let mut decoded_bytes: Vec<u8> = Vec::new();
+    // let mut encdr: &'static dyn encoding::Encoding = encoding::all::UTF_8;
+     let mut encdr: &'static dyn encoding::Encoding = encoding::all::ISO_8859_1;
 
     let mut index = 0;
     while index < endIndex {
-        if shiftTable == Table::BINARY {
+        if shift_table == Table::BINARY {
             if endIndex - index < 5 {
                 break;
             }
-            let mut length = readCode(correctedBits, index, 5);
+            let mut length = readCode(corrected_bits, index, 5);
             index += 5;
             if length == 0 {
                 if endIndex - index < 11 {
                     break;
                 }
-                length = readCode(correctedBits, index, 11) + 31;
+                length = readCode(corrected_bits, index, 11) + 31;
                 index += 11;
             }
             for _charCount in 0..length {
@@ -158,34 +159,36 @@ fn getEncodedData(correctedBits: &[bool]) -> Result<String, Exceptions> {
                     index = endIndex; // Force outer loop to exit
                     break;
                 }
-                let code = readCode(correctedBits, index, 8);
-                decodedBytes.push(code as u8);
+                let code = readCode(corrected_bits, index, 8);
+                decoded_bytes.push(code as u8);
                 index += 8;
             }
             // Go back to whatever mode we had been in
-            shiftTable = latchTable;
+            shift_table = latch_table;
         } else {
-            let size = if shiftTable == Table::DIGIT { 4 } else { 5 };
+            let size = if shift_table == Table::DIGIT { 4 } else { 5 };
             if endIndex - index < size {
                 break;
             }
-            let code = readCode(correctedBits, index, size);
+            let code = readCode(corrected_bits, index, size);
             index += size;
-            let str = getCharacter(shiftTable, code)?;
+            let str = getCharacter(shift_table, code)?;
             if "FLG(n)" == str {
                 if endIndex - index < 3 {
                     break;
                 }
-                let mut n = readCode(correctedBits, index, 3);
+                let mut n = readCode(corrected_bits, index, 3);
                 index += 3;
                 //  flush bytes, FLG changes state
                 //   try {
-                result.push_str(&String::from_utf8(decodedBytes.clone()).unwrap());
+                result.push_str(&encdr.decode(&decoded_bytes, encoding::DecoderTrap::Strict).unwrap());
+
+                // result.push_str(&String::from_utf8(decoded_bytes.clone()).unwrap());
                 // result.append(decodedBytes.toString(encoding.name()));
                 //   } catch (UnsupportedEncodingException uee) {
                 // throw new IllegalStateException(uee);
                 //   }
-                decodedBytes.clear();
+                decoded_bytes.clear();
                 match n {
                     0 => result.push(29 as char), // translate FNC1 as ASCII 29
                     7 => {
@@ -201,7 +204,7 @@ fn getEncodedData(correctedBits: &[bool]) -> Result<String, Exceptions> {
                         }
                         while n > 0 {
                             //while (n-- > 0) {
-                            let nextDigit = readCode(correctedBits, index, 4);
+                            let nextDigit = readCode(corrected_bits, index, 4);
                             index += 4;
                             if nextDigit < 2 || nextDigit > 11 {
                                 return Err(Exceptions::FormatException(
@@ -248,16 +251,16 @@ fn getEncodedData(correctedBits: &[bool]) -> Result<String, Exceptions> {
                 //       encoding = charsetECI.getCharset();
                 //   }
                 // Go back to whatever mode we had been in
-                shiftTable = latchTable;
+                shift_table = latch_table;
             } else if str.starts_with("CTRL_") {
                 // Table changes
                 // ISO/IEC 24778:2008 prescribes ending a shift sequence in the mode from which it was invoked.
                 // That's including when that mode is a shift.
                 // Our test case dlusbs.png for issue #642 exercises that.
-                latchTable = shiftTable; // Latch the current mode, so as to return to Upper after U/S B/S
-                shiftTable = getTable(str.chars().nth(5).unwrap());
+                latch_table = shift_table; // Latch the current mode, so as to return to Upper after U/S B/S
+                shift_table = getTable(str.chars().nth(5).unwrap());
                 if str.chars().nth(6).unwrap() == 'L' {
-                    latchTable = shiftTable;
+                    latch_table = shift_table;
                 }
             } else {
                 // Though stored as a table of strings for convenience, codes actually represent 1 or 2 *bytes*.
@@ -265,15 +268,15 @@ fn getEncodedData(correctedBits: &[bool]) -> Result<String, Exceptions> {
                 //let b = str.getBytes(StandardCharsets.US_ASCII);
                 //decodedBytes.write(b, 0, b.length);
                 for bt in b {
-                    decodedBytes.push(*bt);
+                    decoded_bytes.push(*bt);
                 }
                 // Go back to whatever mode we had been in
-                shiftTable = latchTable;
+                shift_table = latch_table;
             }
         }
     }
     //try {
-    if let Ok(str) = encdr.decode(&decodedBytes, encoding::DecoderTrap::Strict) {
+    if let Ok(str) = encdr.decode(&decoded_bytes, encoding::DecoderTrap::Strict) {
         result.push_str(&str);
     } else {
         return Err(Exceptions::IllegalStateException("bad encoding".to_owned()));
@@ -404,11 +407,11 @@ fn correctBits(
     }
 
     //try {
-    let rsDecoder = ReedSolomonDecoder::new(gf);
-    rsDecoder.decode(
+    let rs_decoder = ReedSolomonDecoder::new(gf);
+    rs_decoder.decode(
         &mut dataWords,
         (numCodewords - numDataCodewords as usize) as i32,
-    );
+    )?;
     //} catch (ReedSolomonException ex) {
     //throw FormatException.getFormatInstance(ex);
     //}
@@ -531,9 +534,9 @@ fn extractBits(ddata: &AztecDetectorRXingResult, matrix: &BitMatrix) -> Vec<bool
 /**
  * Reads a code of given length and at given index in an array of bits
  */
-fn readCode(rawbits: &[bool], startIndex: usize, length: usize) -> u32 {
+fn readCode(rawbits: &[bool], start_index: usize, length: usize) -> u32 {
     let mut res = 0;
-    for i in startIndex..length {
+    for i in start_index..start_index+length {
         // for (int i = startIndex; i < startIndex + length; i++) {
         res <<= 1;
         if rawbits[i] {
@@ -546,24 +549,24 @@ fn readCode(rawbits: &[bool], startIndex: usize, length: usize) -> u32 {
 /**
  * Reads a code of length 8 in an array of bits, padding with zeros
  */
-fn readByte(rawbits: &[bool], startIndex: usize) -> u8 {
-    let n = rawbits.len() - startIndex;
+fn readByte(rawbits: &[bool], start_index: usize) -> u8 {
+    let n = rawbits.len() - start_index;
     if n >= 8 {
-        return readCode(rawbits, startIndex, 8) as u8;
+        return readCode(rawbits, start_index, 8) as u8;
     }
-    return (readCode(rawbits, startIndex, n) << (8 - n)) as u8;
+    return (readCode(rawbits, start_index, n) << (8 - n)) as u8;
 }
 
 /**
  * Packs a bit array into bytes, most significant bit first
  */
-pub fn convertBoolArrayToByteArray(boolArr: &[bool]) -> Vec<u8> {
-    let mut byteArr = vec![0u8; (boolArr.len() + 7) / 8];
-    for i in 0..byteArr.len() {
+pub fn convertBoolArrayToByteArray(bool_arr: &[bool]) -> Vec<u8> {
+    let mut byte_arr = vec![0u8; (bool_arr.len() + 7) / 8];
+    for i in 0..byte_arr.len() {
         // for (int i = 0; i < byteArr.length; i++) {
-        byteArr[i] = readByte(boolArr, 8 * i);
+        byte_arr[i] = readByte(bool_arr, 8 * i);
     }
-    return byteArr;
+    return byte_arr;
 }
 
 fn totalBitsInLayer(layers: usize, compact: bool) -> usize {

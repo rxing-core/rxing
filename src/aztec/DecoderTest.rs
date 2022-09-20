@@ -41,16 +41,16 @@ use super::{decoder, AztecDetectorResult::AztecDetectorRXingResult};
 const NO_POINTS: &[RXingResultPoint] = &[RXingResultPoint { x: 0.0, y: 0.0 }; 0];
 
 #[test]
-fn testHighLevelDecode() {
+fn test_high_level_decode() {
     // no ECI codes
-    testHighLevelDecodeString(
+    test_high_level_decode_string(
         "A. b.",
         // 'A'  P/S   '. ' L/L    b    D/L    '.'
         "...X. ..... ...XX XXX.. ...XX XXXX. XX.X",
     );
 
     // initial ECI code 26 (switch to UTF-8)
-    testHighLevelDecodeString(
+    test_high_level_decode_string(
         "Ça",
         // P/S FLG(n) 2  '2'  '6'  B/S   2     0xc3     0x87     L/L   'a'
         "..... ..... .X. .X.. X... XXXXX ...X. XX....XX X....XXX XXX.. ...X.",
@@ -58,21 +58,21 @@ fn testHighLevelDecode() {
 
     // initial character without ECI (must be interpreted as ISO_8859_1)
     // followed by ECI code 26 (= UTF-8) and UTF-8 text
-    testHighLevelDecodeString(
+    test_high_level_decode_string(
         "±Ça",
         // B/S 1     0xb1     P/S   FLG(n) 2  '2'  '6'  B/S   2     0xc3     0x87     L/L   'a'
         "XXXXX ....X X.XX...X ..... ..... .X. .X.. X... XXXXX ...X. XX....XX X....XXX XXX.. ...X.",
     );
 
     // GS1 data
-    testHighLevelDecodeString(
+    test_high_level_decode_string(
         "101233742",
         // P/S FLG(n) 0  D/L   1    0    1    2    3    P/S  FLG(n) 0  3    7    4    2
         "..... ..... ... XXXX. ..XX ..X. ..XX .X.. .X.X .... ..... ... .X.X X..X .XX. .X..",
     );
 }
 
-fn testHighLevelDecodeString(expectedString: &str, b: &str) {
+fn test_high_level_decode_string(expectedString: &str, b: &str) {
     let bits = toBitArray(&stripSpace(b));
     assert_eq!(
         expectedString,
@@ -83,7 +83,7 @@ fn testHighLevelDecodeString(expectedString: &str, b: &str) {
 }
 
 #[test]
-fn testAztecRXingResult() {
+fn test_aztec_rxing_result() {
     let matrix = BitMatrix::parse_strings(
         r"X X X X X     X X X       X X X     X X X     
 X X X     X X X     X X X X     X X X     X X 
@@ -148,7 +148,7 @@ X X     X X X     X X X X     X X X     X X
 }
 
 #[test]
-fn testAztecRXingResultECI() {
+fn test_aztec_rxing_result_eci() {
     let matrix = BitMatrix::parse_strings(
         r"      X     X X X   X           X     
     X X   X X   X X X X X X X   X     
@@ -180,86 +180,86 @@ X     X       X X   X X X       X     ",
 
 #[test]
 #[should_panic]
-fn testDecodeTooManyErrors() {
+fn test_decode_too_many_errors() {
     let matrix = BitMatrix::parse_strings(
         r"
-        X X . X . . . X X . . . X . . X X X . X . X X X X X . 
-        X X . . X X . . . . . X X . . . X X . . . X . X . . X 
-        X . . . X X . . X X X . X X . X X X X . X X . . X . . 
-        . . . . X . X X . . X X . X X . X . X X X X . X . . X 
-        X X X . . X X X X X . . . . . X X . . . X . X . X . X 
-        X X . . . . . . . . X . . . X . X X X . X . . X . . . 
-        X X . . X . . . . . X X . . . . . X . . . . X . . X X \
-        . . . X . X . X . . . . . X X X X X X . . . . . . X X 
-        X . . . X . X X X X X X . . X X X . X . X X X X X X . 
-        X . . X X X . X X X X X X X X X X X X X . . . X . X X 
-        . . . . X X . . . X . . . . . . . X X . . . X X . X . 
-        . . . X X X . . X X . X X X X X . X . . X . . . . . . 
-        X . . . . X . X . X . X . . . X . X . X X . X X . X X 
-        X . X . . X . X . X . X . X . X . X . . . . . X . X X 
-        X . X X X . . X . X . X . . . X . X . X X X . . . X X 
-        X X X X X X X X . X . X X X X X . X . X . X . X X X . 
-        . . . . . . . X . X . . . . . . . X X X X . . . X X X 
-        X X . . X . . X . X X X X X X X X X X X X X . . X . X 
-        X X X . X X X X . . X X X X . . X . . . . X . . X X X 
-        . . . . X . X X X . . . . X X X X . . X X X X . . . . 
-        . . X . . X . X . . . X . X X . X X . X . . . X . X . 
-        X X . . X . . X X X X X X X . . X . X X X X X X X . . 
-        X . X X . . X X . . . . . X . . . . . . X X . X X X . 
-        X . . X X . . X X . X . X . . . . X . X . . X . . X . 
-        X . X . X . . X . X X X X X X X X . X X X X . . X X . 
-        X X X X . . . X . . X X X . X X . . X . . . . X X X . 
-        X X . X . X . . . X . X . . . . X X . X . . X X . . . ",
+X X . X . . . X X . . . X . . X X X . X . X X X X X . 
+X X . . X X . . . . . X X . . . X X . . . X . X . . X 
+X . . . X X . . X X X . X X . X X X X . X X . . X . . 
+. . . . X . X X . . X X . X X . X . X X X X . X . . X 
+X X X . . X X X X X . . . . . X X . . . X . X . X . X 
+X X . . . . . . . . X . . . X . X X X . X . . X . . . 
+X X . . X . . . . . X X . . . . . X . . . . X . . X X 
+. . . X . X . X . . . . . X X X X X X . . . . . . X X 
+X . . . X . X X X X X X . . X X X . X . X X X X X X . 
+X . . X X X . X X X X X X X X X X X X X . . . X . X X 
+. . . . X X . . . X . . . . . . . X X . . . X X . X . 
+. . . X X X . . X X . X X X X X . X . . X . . . . . . 
+X . . . . X . X . X . X . . . X . X . X X . X X . X X 
+X . X . . X . X . X . X . X . X . X . . . . . X . X X 
+X . X X X . . X . X . X . . . X . X . X X X . . . X X 
+X X X X X X X X . X . X X X X X . X . X . X . X X X . 
+. . . . . . . X . X . . . . . . . X X X X . . . X X X 
+X X . . X . . X . X X X X X X X X X X X X X . . X . X 
+X X X . X X X X . . X X X X . . X . . . . X . . X X X 
+. . . . X . X X X . . . . X X X X . . X X X X . . . . 
+. . X . . X . X . . . X . X X . X X . X . . . X . X . 
+X X . . X . . X X X X X X X . . X . X X X X X X X . . 
+X . X X . . X X . . . . . X . . . . . . X X . X X X . 
+X . . X X . . X X . X . X . . . . X . X . . X . . X . 
+X . X . X . . X . X X X X X X X X . X X X X . . X X . 
+X X X X . . . X . . X X X . X X . . X . . . . X X X . 
+X X . X . X . . . X . X . . . . X X . X . . X X . . . ",
         "X ",
         ". ",
     )
-    .expect("parse string success");
+    .expect("parse string failed");
     let r = AztecDetectorRXingResult::new(matrix, NO_POINTS.to_vec(), true, 16, 4);
-    decoder::decode(&r);
+    assert!(decoder::decode(&r).is_ok());
 }
 
 #[test]
 #[should_panic]
-fn testDecodeTooManyErrors2() {
+fn test_decode_too_many_errors2() {
     let matrix = BitMatrix::parse_strings(
         r"
-        . X X . . X . X X . . . X . . X X X . . . X X . X X . 
-        X X . X X . . X . . . X X . . . X X . X X X . X . X X 
-        . . . . X . . . X X X . X X . X X X X . X X . . X . . 
-        X . X X . . X . . . X X . X X . X . X X . . . . . X . 
-        X X . X . . X . X X . . . . . X X . . . . . X . . . X 
-        X . . X . . . . . . X . . . X . X X X X X X X . . . X 
-        X . . X X . . X . . X X . . . . . X . . . . . X X X . 
-        . . X X X X . X . . . . . X X X X X X . . . . . . X X 
-        X . . . X . X X X X X X . . X X X . X . X X X X X X . 
-        X . . X X X . X X X X X X X X X X X X X . . . X . X X 
-        . . . . X X . . . X . . . . . . . X X . . . X X . X . 
-        . . . X X X . . X X . X X X X X . X . . X . . . . . . 
-        X . . . . X . X . X . X . . . X . X . X X . X X . X X 
-        X . X . . X . X . X . X . X . X . X . . . . . X . X X 
-        X . X X X . . X . X . X . . . X . X . X X X . . . X X 
-        X X X X X X X X . X . X X X X X . X . X . X . X X X . 
-        . . . . . . . X . X . . . . . . . X X X X . . . X X X 
-        X X . . X . . X . X X X X X X X X X X X X X . . X . X 
-        X X X . X X X X . . X X X X . . X . . . . X . . X X X 
-        . . X X X X X . X . . . . X X X X . . X X X . X . X . 
-        . . X X . X . X . . . X . X X . X X . . . . X X . . . 
-        X . . . X . X . X X X X X X . . X . X X X X X . X . . 
-        . X . . . X X X . . . . . X . . . . . X X X X X . X . 
-        X . . X . X X X X . X . X . . . . X . X X . X . . X . 
-        X . . . X X . X . X X X X X X X X . X X X X . . X X . 
-        . X X X X . . X . . X X X . X X . . X . . . . X X X . 
-        X X . . . X X . . X . X . . . . X X . X . . X . X . X ",
+. X X . . X . X X . . . X . . X X X . . . X X . X X . 
+X X . X X . . X . . . X X . . . X X . X X X . X . X X 
+. . . . X . . . X X X . X X . X X X X . X X . . X . . 
+X . X X . . X . . . X X . X X . X . X X . . . . . X . 
+X X . X . . X . X X . . . . . X X . . . . . X . . . X 
+X . . X . . . . . . X . . . X . X X X X X X X . . . X 
+X . . X X . . X . . X X . . . . . X . . . . . X X X . 
+. . X X X X . X . . . . . X X X X X X . . . . . . X X 
+X . . . X . X X X X X X . . X X X . X . X X X X X X . 
+X . . X X X . X X X X X X X X X X X X X . . . X . X X 
+. . . . X X . . . X . . . . . . . X X . . . X X . X . 
+. . . X X X . . X X . X X X X X . X . . X . . . . . . 
+X . . . . X . X . X . X . . . X . X . X X . X X . X X 
+X . X . . X . X . X . X . X . X . X . . . . . X . X X 
+X . X X X . . X . X . X . . . X . X . X X X . . . X X 
+X X X X X X X X . X . X X X X X . X . X . X . X X X . 
+. . . . . . . X . X . . . . . . . X X X X . . . X X X 
+X X . . X . . X . X X X X X X X X X X X X X . . X . X 
+X X X . X X X X . . X X X X . . X . . . . X . . X X X 
+. . X X X X X . X . . . . X X X X . . X X X . X . X . 
+. . X X . X . X . . . X . X X . X X . . . . X X . . . 
+X . . . X . X . X X X X X X . . X . X X X X X . X . . 
+. X . . . X X X . . . . . X . . . . . X X X X X . X . 
+X . . X . X X X X . X . X . . . . X . X X . X . . X . 
+X . . . X X . X . X X X X X X X X . X X X X . . X X . 
+. X X X X . . X . . X X X . X X . . X . . . . X X X . 
+X X . . . X X . . X . X . . . . X X . X . . X . X . X ",
         "X ",
         ". ",
     )
-    .expect("String Parse OK");
+    .expect("String Parse failed");
     let r = AztecDetectorRXingResult::new(matrix, NO_POINTS.to_vec(), true, 16, 4);
-    decoder::decode(&r);
+    assert!(decoder::decode(&r).is_ok());
 }
 
 #[test]
-fn testRawBytes() {
+fn test_raw_bytes() {
     let bool0 = vec![false; 0];
     let bool1 = vec![true];
     let bool7 = vec![true, false, true, false, true, false, true];
