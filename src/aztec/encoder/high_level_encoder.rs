@@ -14,20 +14,9 @@
  * limitations under the License.
  */
 
-package com.google.zxing.aztec.encoder;
+use crate::common::BitArray;
 
-import com.google.zxing.common.BitArray;
-import com.google.zxing.common.CharacterSetECI;
 
-import java.nio.charset.Charset;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.LinkedList;
 
 /**
  * This produces nearly optimal encodings of text into the first-level of
@@ -41,133 +30,191 @@ import java.util.LinkedList;
  * @author Frank Yellin
  * @author Rustam Abdullaev
  */
-public final class HighLevelEncoder {
+pub struct HighLevelEncoder {
 
-  static final String[] MODE_NAMES = {"UPPER", "LOWER", "DIGIT", "MIXED", "PUNCT"};
+  text:Vec<u8>,
+   charset: &'static dyn encoding::Encoding,
 
-  static final int MODE_UPPER = 0; // 5 bits
-  static final int MODE_LOWER = 1; // 5 bits
-  static final int MODE_DIGIT = 2; // 4 bits
-  static final int MODE_MIXED = 3; // 5 bits
-  static final int MODE_PUNCT = 4; // 5 bits
+}
+
+impl HighLevelEncoder {
+  pub const MODE_NAMES : [&str] = ["UPPER", "LOWER", "DIGIT", "MIXED", "PUNCT"];
+
+  const MODE_UPPER :u32= 0; // 5 bits
+  const MODE_LOWER :u32 = 1; // 5 bits
+  const MODE_DIGIT :u32 = 2; // 4 bits
+  const MODE_MIXED :u32 = 3; // 5 bits
+  const MODE_PUNCT :u32 = 4; // 5 bits
 
   // The Latch Table shows, for each pair of Modes, the optimal method for
   // getting from one mode to another.  In the worst possible case, this can
   // be up to 14 bits.  In the best possible case, we are already there!
   // The high half-word of each entry gives the number of bits.
   // The low half-word of each entry are the actual bits necessary to change
-  static final int[][] LATCH_TABLE = {
-    {
+  const LATCH_TABLE : [[u32]]= [
+    [
       0,
       (5 << 16) + 28,              // UPPER -> LOWER
       (5 << 16) + 30,              // UPPER -> DIGIT
       (5 << 16) + 29,              // UPPER -> MIXED
       (10 << 16) + (29 << 5) + 30, // UPPER -> MIXED -> PUNCT
-    },
-    {
+    ],
+    [
       (9 << 16) + (30 << 4) + 14,  // LOWER -> DIGIT -> UPPER
       0,
       (5 << 16) + 30,              // LOWER -> DIGIT
       (5 << 16) + 29,              // LOWER -> MIXED
       (10 << 16) + (29 << 5) + 30, // LOWER -> MIXED -> PUNCT
-    },
-    {
+    ],
+    [
       (4 << 16) + 14,              // DIGIT -> UPPER
       (9 << 16) + (14 << 5) + 28,  // DIGIT -> UPPER -> LOWER
       0,
       (9 << 16) + (14 << 5) + 29,  // DIGIT -> UPPER -> MIXED
       (14 << 16) + (14 << 10) + (29 << 5) + 30,
-                                   // DIGIT -> UPPER -> MIXED -> PUNCT
-    },
-    {
+     ]                              // DIGIT -> UPPER -> MIXED -> PUNCT
+    ,
+    [
       (5 << 16) + 29,              // MIXED -> UPPER
       (5 << 16) + 28,              // MIXED -> LOWER
       (10 << 16) + (29 << 5) + 30, // MIXED -> UPPER -> DIGIT
       0,
       (5 << 16) + 30,              // MIXED -> PUNCT
-    },
-    {
+    ],
+    [
       (5 << 16) + 31,              // PUNCT -> UPPER
       (10 << 16) + (31 << 5) + 28, // PUNCT -> UPPER -> LOWER
       (10 << 16) + (31 << 5) + 30, // PUNCT -> UPPER -> DIGIT
       (10 << 16) + (31 << 5) + 29, // PUNCT -> UPPER -> MIXED
       0,
-    },
-  };
+    ],
+  ];
 
   // A reverse mapping from [mode][char] to the encoding for that character
   // in that mode.  An entry of 0 indicates no mapping exists.
-  private static final int[][] CHAR_MAP = new int[5][256];
-  static {
-    CHAR_MAP[MODE_UPPER][' '] = 1;
+  const CHAR_MAP : [[u32]] = {
+    let char_map = vec![vec![0u32;256];5];
+    char_map[Self::MODE_UPPER][' '] = 1;
     for (int c = 'A'; c <= 'Z'; c++) {
-      CHAR_MAP[MODE_UPPER][c] = c - 'A' + 2;
+      char_map[Self::MODE_UPPER][c] = c - 'A' + 2;
     }
-    CHAR_MAP[MODE_LOWER][' '] = 1;
+    char_map[Self::MODE_LOWER][' '] = 1;
     for (int c = 'a'; c <= 'z'; c++) {
-      CHAR_MAP[MODE_LOWER][c] = c - 'a' + 2;
+      char_map[Self::MODE_LOWER][c] = c - 'a' + 2;
     }
-    CHAR_MAP[MODE_DIGIT][' '] = 1;
+    char_map[Self::MODE_DIGIT][' '] = 1;
     for (int c = '0'; c <= '9'; c++) {
-      CHAR_MAP[MODE_DIGIT][c] = c - '0' + 2;
+      char_map[Self::MODE_DIGIT][c] = c - '0' + 2;
     }
-    CHAR_MAP[MODE_DIGIT][','] = 12;
-    CHAR_MAP[MODE_DIGIT]['.'] = 13;
-    int[] mixedTable = {
+    char_map[Self::MODE_DIGIT][','] = 12;
+    char_map[Self::MODE_DIGIT]['.'] = 13;
+    let mixedTable = [
         '\0', ' ', '\1', '\2', '\3', '\4', '\5', '\6', '\7', '\b', '\t', '\n',
         '\13', '\f', '\r', '\33', '\34', '\35', '\36', '\37', '@', '\\', '^',
         '_', '`', '|', '~', '\177'
-    };
+    ];
     for (int i = 0; i < mixedTable.length; i++) {
       CHAR_MAP[MODE_MIXED][mixedTable[i]] = i;
     }
-    int[] punctTable = {
+    let punctTable = [
         '\0', '\r', '\0', '\0', '\0', '\0', '!', '\'', '#', '$', '%', '&', '\'',
         '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?',
         '[', ']', '{', '}'
-    };
+    ];
     for (int i = 0; i < punctTable.length; i++) {
       if (punctTable[i] > 0) {
         CHAR_MAP[MODE_PUNCT][punctTable[i]] = i;
       }
     }
-  }
+  };
+  // private static final int[][] CHAR_MAP = new int[5][256];
+  // static {
+  //   CHAR_MAP[MODE_UPPER][' '] = 1;
+  //   for (int c = 'A'; c <= 'Z'; c++) {
+  //     CHAR_MAP[MODE_UPPER][c] = c - 'A' + 2;
+  //   }
+  //   CHAR_MAP[MODE_LOWER][' '] = 1;
+  //   for (int c = 'a'; c <= 'z'; c++) {
+  //     CHAR_MAP[MODE_LOWER][c] = c - 'a' + 2;
+  //   }
+  //   CHAR_MAP[MODE_DIGIT][' '] = 1;
+  //   for (int c = '0'; c <= '9'; c++) {
+  //     CHAR_MAP[MODE_DIGIT][c] = c - '0' + 2;
+  //   }
+  //   CHAR_MAP[MODE_DIGIT][','] = 12;
+  //   CHAR_MAP[MODE_DIGIT]['.'] = 13;
+  //   int[] mixedTable = {
+  //       '\0', ' ', '\1', '\2', '\3', '\4', '\5', '\6', '\7', '\b', '\t', '\n',
+  //       '\13', '\f', '\r', '\33', '\34', '\35', '\36', '\37', '@', '\\', '^',
+  //       '_', '`', '|', '~', '\177'
+  //   };
+  //   for (int i = 0; i < mixedTable.length; i++) {
+  //     CHAR_MAP[MODE_MIXED][mixedTable[i]] = i;
+  //   }
+  //   int[] punctTable = {
+  //       '\0', '\r', '\0', '\0', '\0', '\0', '!', '\'', '#', '$', '%', '&', '\'',
+  //       '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?',
+  //       '[', ']', '{', '}'
+  //   };
+  //   for (int i = 0; i < punctTable.length; i++) {
+  //     if (punctTable[i] > 0) {
+  //       CHAR_MAP[MODE_PUNCT][punctTable[i]] = i;
+  //     }
+  //   }
+  // }
 
   // A map showing the available shift codes.  (The shifts to BINARY are not
   // shown
-  static final int[][] SHIFT_TABLE = new int[6][6]; // mode shift codes, per table
-  static {
-    for (int[] table : SHIFT_TABLE) {
-      Arrays.fill(table, -1);
+  const SHIFT_TABLE : [[i32]]= { // mode shift codes, per table
+    let mut shift_table = [[-1i32;6];6];
+    
+    shift_table[Self::MODE_UPPER][Self::MODE_PUNCT] = 0;
+
+    shift_table[Self::MODE_LOWER][Self::MODE_PUNCT] = 0;
+    shift_table[Self::MODE_LOWER][Self::MODE_UPPER] = 28;
+
+    shift_table[Self::MODE_MIXED][Self::MODE_PUNCT] = 0;
+
+    shift_table[Self::MODE_DIGIT][Self::MODE_PUNCT] = 0;
+    shift_table[Self::MODE_DIGIT][Self::MODE_UPPER] = 15;
+
+    shift_table
+  };
+  // const SHIFT_TABLE : [[u32]]= new int[6][6]; // mode shift codes, per table
+  // static {
+  //   for (int[] table : SHIFT_TABLE) {
+  //     Arrays.fill(table, -1);
+  //   }
+  //   SHIFT_TABLE[MODE_UPPER][MODE_PUNCT] = 0;
+
+  //   SHIFT_TABLE[MODE_LOWER][MODE_PUNCT] = 0;
+  //   SHIFT_TABLE[MODE_LOWER][MODE_UPPER] = 28;
+
+  //   SHIFT_TABLE[MODE_MIXED][MODE_PUNCT] = 0;
+
+  //   SHIFT_TABLE[MODE_DIGIT][MODE_PUNCT] = 0;
+  //   SHIFT_TABLE[MODE_DIGIT][MODE_UPPER] = 15;
+  // }
+
+
+  pub fn new(text:Vec<u8>) -> Self{
+    Self{
+        text,
+        charset: encoding::all::UTF_8,
     }
-    SHIFT_TABLE[MODE_UPPER][MODE_PUNCT] = 0;
-
-    SHIFT_TABLE[MODE_LOWER][MODE_PUNCT] = 0;
-    SHIFT_TABLE[MODE_LOWER][MODE_UPPER] = 28;
-
-    SHIFT_TABLE[MODE_MIXED][MODE_PUNCT] = 0;
-
-    SHIFT_TABLE[MODE_DIGIT][MODE_PUNCT] = 0;
-    SHIFT_TABLE[MODE_DIGIT][MODE_UPPER] = 15;
   }
 
-  private final byte[] text;
-  private final Charset charset;
-
-  public HighLevelEncoder(byte[] text) {
-    this.text = text;
-    this.charset = null;
-  }
-
-  public HighLevelEncoder(byte[] text, Charset charset) {
-    this.text = text;
-    this.charset = charset;
+  pub fn with_charset(text:Vec<u8>,  charset:&'static dyn encoding::Encoding) -> Self{
+    Self{
+        text,
+        charset,
+    }
   }
 
   /**
    * @return text represented by this encoder encoded as a {@link BitArray}
    */
-  public BitArray encode() {
+  pub fn encode(&self)-> BitArray {
     State initialState = State.INITIAL_STATE;
     if (charset != null) {
       CharacterSetECI eci = CharacterSetECI.getCharacterSetECI(charset);

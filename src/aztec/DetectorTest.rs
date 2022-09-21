@@ -56,17 +56,17 @@ use crate::common::BitMatrix;
 
   #[test]
   fn testErrorInParameterLocatorNotCompact()  {
-    String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxyz";
-    testErrorInParameterLocator(alphabet + alphabet + alphabet);
+    let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxyz";
+    testErrorInParameterLocator(&format!("{}{}{}",alphabet , alphabet , alphabet));
   }
 
   // Test that we can tolerate errors in the parameter locator bits
   fn testErrorInParameterLocator( data:&str)  {
-    AztecCode aztec = Encoder.encode(data, 25, Encoder.DEFAULT_AZTEC_LAYERS);
-    Random random = new Random(aztec.getMatrix().hashCode());   // pseudo-random, but deterministic
-    int layers = aztec.getLayers();
-    boolean compact = aztec.isCompact();
-    List<Point> orientationPoints = getOrientationPoints(aztec);
+    let aztec = Encoder.encode(data, 25, Encoder.DEFAULT_AZTEC_LAYERS);
+    let random = new Random(aztec.getMatrix().hashCode());   // pseudo-random, but deterministic
+    let layers = aztec.getLayers();
+    let compact = aztec.isCompact();
+    let orientationPoints = getOrientationPoints(aztec);
     for (boolean isMirror : new boolean[] { false, true }) {
       for (BitMatrix matrix : getRotations(aztec.getMatrix())) {
         // Systematically try every possible 1- and 2-bit error.
@@ -125,16 +125,16 @@ use crate::common::BitMatrix;
 
   // Returns a list of the four rotations of the BitMatrix.
   fn  getRotations( matrix0:&BitMatrix)-> Vec<BitMatrix> {
-    BitMatrix matrix90 = rotateRight(matrix0);
-    BitMatrix matrix180 = rotateRight(matrix90);
-    BitMatrix matrix270 = rotateRight(matrix180);
+    let matrix90 = rotateRight(matrix0);
+    let matrix180 = rotateRight(matrix90);
+    let matrix270 = rotateRight(matrix180);
     return Arrays.asList(matrix0, matrix90, matrix180, matrix270);
   }
 
   // Rotates a square BitMatrix to the right by 90 degrees
   fn  rotateRight( input:&BitMatrix) -> BitMatrix{
-    int width = input.getWidth();
-    BitMatrix result = new BitMatrix(width);
+    let width = input.getWidth();
+    let result = new BitMatrix(width);
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < width; y++) {
         if (input.get(x,y)) {
@@ -149,7 +149,7 @@ use crate::common::BitMatrix;
   // matrix to the right, and then flipping it left-to-right
    fn transpose( input:&BitMatrix) -> BitMatrix {
     let width = input.getWidth();
-    BitMatrix result = new BitMatrix(width);
+    let result = new BitMatrix(width);
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < width; y++) {
         if (input.get(x, y)) {
@@ -161,8 +161,8 @@ use crate::common::BitMatrix;
   }
 
   fn clone( input:&BitMatrix) -> BitMatrix  {
-    int width = input.getWidth();
-    BitMatrix result = new BitMatrix(width);
+    let width = input.getWidth();
+    let result = new BitMatrix(width);
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < width; y++) {
         if (input.get(x,y)) {
@@ -173,10 +173,10 @@ use crate::common::BitMatrix;
     return result;
   }
 
-  fn  getOrientationPoints( code::&AztecCode) -> Vec<Point> {
-    int center = code.getMatrix().getWidth() / 2;
-    int offset = code.isCompact() ? 5 : 7;
-    List<Point> result = new ArrayList<>();
+  fn  getOrientationPoints( code:&AztecCode) -> Vec<Point> {
+    let center = code.getMatrix().getWidth() / 2;
+    let offset = code.isCompact() ? 5 : 7;
+    let result = new ArrayList<>();
     for (int xSign = -1; xSign <= 1; xSign += 2) {
       for (int ySign = -1; ySign <= 1; ySign += 2) {
         result.add(new Point(center + xSign * offset, center + ySign * offset));
