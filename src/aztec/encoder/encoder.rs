@@ -1,0 +1,523 @@
+/*
+ * Copyright 2013 ZXing authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+use encoding::Encoding;
+
+use crate::{
+    common::{
+        reedsolomon::{
+            get_predefined_genericgf, GenericGF, PredefinedGenericGF, ReedSolomonEncoder,
+        },
+        BitArray, BitMatrix,
+    },
+    exceptions::Exceptions,
+};
+
+use super::{AztecCode, HighLevelEncoder};
+
+/**
+ * Generates Aztec 2D barcodes.
+ *
+ * @author Rustam Abdullaev
+ */
+
+pub const DEFAULT_EC_PERCENT: u32 = 33; // default minimal percentage of error check words
+pub const DEFAULT_AZTEC_LAYERS: u32 = 0;
+pub const MAX_NB_BITS: u32 = 32;
+pub const MAX_NB_BITS_COMPACT: u32 = 4;
+
+pub const WORD_SIZE: [u32; 33] = [
+    4, 6, 6, 8, 8, 8, 8, 8, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12,
+];
+
+/**
+ * Encodes the given string content as an Aztec symbol (without ECI code)
+ *
+ * @param data input data string; must be encodable as ISO/IEC 8859-1 (Latin-1)
+ * @return Aztec symbol matrix with metadata
+ */
+pub fn encode_simple(data: &str) -> Result<AztecCode, Exceptions> {
+    let bytes = encoding::all::ISO_8859_1
+        .encode(data, encoding::EncoderTrap::Replace)
+        .unwrap();
+    encode_bytes_simple(&bytes)
+}
+
+/**
+ * Encodes the given string content as an Aztec symbol (without ECI code)
+ *
+ * @param data input data string; must be encodable as ISO/IEC 8859-1 (Latin-1)
+ * @param minECCPercent minimal percentage of error check words (According to ISO/IEC 24778:2008,
+ *                      a minimum of 23% + 3 words is recommended)
+ * @param userSpecifiedLayers if non-zero, a user-specified value for the number of layers
+ * @return Aztec symbol matrix with metadata
+ */
+pub fn encode(
+    data: &str,
+    minECCPercent: u32,
+    userSpecifiedLayers: u32,
+) -> Result<AztecCode, Exceptions> {
+    let bytes = encoding::all::ISO_8859_1
+        .encode(data, encoding::EncoderTrap::Replace)
+        .unwrap();
+    encode_bytes(&bytes, minECCPercent, userSpecifiedLayers)
+}
+
+/**
+ * Encodes the given string content as an Aztec symbol
+ *
+ * @param data input data string
+ * @param minECCPercent minimal percentage of error check words (According to ISO/IEC 24778:2008,
+ *                      a minimum of 23% + 3 words is recommended)
+ * @param userSpecifiedLayers if non-zero, a user-specified value for the number of layers
+ * @param charset character set in which to encode string using ECI; if null, no ECI code
+ *                will be inserted, and the string must be encodable as ISO/IEC 8859-1
+ *                (Latin-1), the default encoding of the symbol.
+ * @return Aztec symbol matrix with metadata
+ */
+pub fn encode_with_charset(
+    data: &str,
+    minECCPercent: u32,
+    userSpecifiedLayers: u32,
+    charset: &'static dyn encoding::Encoding,
+) -> Result<AztecCode, Exceptions> {
+    let bytes = charset
+        .encode(data, encoding::EncoderTrap::Replace)
+        .unwrap(); //data.getBytes(null != charset ? charset : StandardCharsets.ISO_8859_1);
+    encode_bytes_with_charset(&bytes, minECCPercent, userSpecifiedLayers, charset)
+}
+
+/**
+ * Encodes the given binary content as an Aztec symbol (without ECI code)
+ *
+ * @param data input data string
+ * @return Aztec symbol matrix with metadata
+ */
+pub fn encode_bytes_simple(data: &[u8]) -> Result<AztecCode, Exceptions> {
+    encode_bytes(data, DEFAULT_EC_PERCENT, DEFAULT_AZTEC_LAYERS)
+}
+
+/**
+ * Encodes the given binary content as an Aztec symbol (without ECI code)
+ *
+ * @param data input data string
+ * @param minECCPercent minimal percentage of error check words (According to ISO/IEC 24778:2008,
+ *                      a minimum of 23% + 3 words is recommended)
+ * @param userSpecifiedLayers if non-zero, a user-specified value for the number of layers
+ * @return Aztec symbol matrix with metadata
+ */
+pub fn encode_bytes(
+    data: &[u8],
+    minECCPercent: u32,
+    userSpecifiedLayers: u32,
+) -> Result<AztecCode, Exceptions> {
+    encode_bytes_with_charset(
+        data,
+        minECCPercent,
+        userSpecifiedLayers,
+        encoding::all::ISO_8859_1,
+    )
+}
+
+/**
+ * Encodes the given binary content as an Aztec symbol
+ *
+ * @param data input data string
+ * @param minECCPercent minimal percentage of error check words (According to ISO/IEC 24778:2008,
+ *                      a minimum of 23% + 3 words is recommended)
+ * @param userSpecifiedLayers if non-zero, a user-specified value for the number of layers
+ * @param charset character set to mark using ECI; if null, no ECI code will be inserted, and the
+ *                default encoding of ISO/IEC 8859-1 will be assuming by readers.
+ * @return Aztec symbol matrix with metadata
+ */
+pub fn encode_bytes_with_charset(
+    data: &[u8],
+    minECCPercent: u32,
+    userSpecifiedLayers: u32,
+    charset: &'static dyn encoding::Encoding,
+) -> Result<AztecCode, Exceptions> {
+    // High-level encode
+    let bits = HighLevelEncoder::with_charset(data.into(), charset).encode()?;
+
+    // stuff bits and choose symbol size
+    let eccBits = bits.getSize() as u32 * minECCPercent / 100 + 11;
+    let totalSizeBits = bits.getSize() as u32 + eccBits;
+    let mut compact;
+    let mut layers;
+    let mut totalBitsInLayerVar;
+    let mut wordSize;
+    let mut stuffedBits;
+    if userSpecifiedLayers != DEFAULT_AZTEC_LAYERS {
+        compact = userSpecifiedLayers < 0;
+        layers = userSpecifiedLayers;
+        if layers
+            > (if compact {
+                MAX_NB_BITS_COMPACT
+            } else {
+                MAX_NB_BITS
+            })
+        {
+            return Err(Exceptions::IllegalArgumentException(format!(
+                "Illegal value {} for layers",
+                userSpecifiedLayers
+            )));
+        }
+        totalBitsInLayerVar = totalBitsInLayer(layers, compact);
+        wordSize = WORD_SIZE[layers as usize];
+        let usableBitsInLayers = totalBitsInLayerVar - (totalBitsInLayerVar % wordSize);
+        stuffedBits = stuffBits(&bits, wordSize as usize);
+        if stuffedBits.getSize() as u32+ eccBits  > usableBitsInLayers {
+            return Err(Exceptions::IllegalArgumentException(
+                "Data to large for user specified layer".to_owned(),
+            ));
+        }
+        if compact && stuffedBits.getSize() as u32 > wordSize * 64 {
+            // Compact format only allows 64 data words, though C4 can hold more words than that
+            return Err(Exceptions::IllegalArgumentException(
+                "Data to large for user specified layer".to_owned(),
+            ));
+        }
+    } else {
+        wordSize = 0;
+        stuffedBits = BitArray::new();
+        // We look at the possible table sizes in the order Compact1, Compact2, Compact3,
+        // Compact4, Normal4,...  Normal(i) for i < 4 isn't typically used since Compact(i+1)
+        // is the same size, but has more data.
+        let mut i = 0;
+        loop {
+            // for (int i = 0; ; i++) {
+            if i > MAX_NB_BITS {
+                return Err(Exceptions::IllegalArgumentException(
+                    "Data too large for an Aztec code".to_owned(),
+                ));
+            }
+            compact = i <= 3;
+            layers = if compact { i + 1 } else { i };
+            totalBitsInLayerVar = totalBitsInLayer(layers, compact);
+            if totalSizeBits > totalBitsInLayerVar as u32 {
+                continue;
+            }
+            // [Re]stuff the bits if this is the first opportunity, or if the
+            // wordSize has changed
+            if stuffedBits.getSize() == 0 || wordSize != WORD_SIZE[layers as usize] {
+                wordSize = WORD_SIZE[layers as usize];
+                stuffedBits = stuffBits(&bits, wordSize as usize);
+            }
+            let usableBitsInLayers = totalBitsInLayerVar - (totalBitsInLayerVar % wordSize);
+            if compact && stuffedBits.getSize() as u32 > wordSize * 64 {
+                // Compact format only allows 64 data words, though C4 can hold more words than that
+                continue;
+            }
+            if stuffedBits.getSize()as u32 + eccBits<= usableBitsInLayers {
+                break;
+            }
+            i += 1;
+        }
+    }
+    let messageBits = generateCheckWords(
+        &stuffedBits,
+        totalBitsInLayerVar as usize,
+        wordSize as usize,
+    );
+
+    // generate mode message
+    let messageSizeInWords = stuffedBits.getSize() as u32 / wordSize;
+    let modeMessage = generateModeMessage(compact, layers as u32, messageSizeInWords);
+
+    // allocate symbol
+    let baseMatrixSize = (if compact { 11 } else { 14 }) + layers * 4; // not including alignment lines
+    let mut alignmentMap = vec![0u32; baseMatrixSize as usize];
+    let matrixSize;
+    if compact {
+        // no alignment marks in compact mode, alignmentMap is a no-op
+        matrixSize = baseMatrixSize;
+        for i in 0..alignmentMap.len() {
+            // for (int i = 0; i < alignmentMap.length; i++) {
+            alignmentMap[i] = i as u32;
+        }
+    } else {
+        matrixSize = baseMatrixSize + 1 + 2 * ((baseMatrixSize / 2 - 1) / 15);
+        let origCenter = (baseMatrixSize / 2) as usize;
+        let center = matrixSize / 2;
+        for i in 0..origCenter {
+            // for (int i = 0; i < origCenter; i++) {
+            let newOffset = (i + i / 15) as u32;
+            alignmentMap[origCenter - i - 1] = center as u32 - newOffset - 1;
+            alignmentMap[origCenter + i] = center as u32 + newOffset + 1;
+        }
+    }
+    let mut matrix = BitMatrix::with_single_dimension(matrixSize as u32);
+
+    // draw data bits
+    let mut rowOffset = 0;
+    for i in 0..layers as usize {
+        // for (int i = 0, rowOffset = 0; i < layers; i++) {
+        let rowSize = (layers as usize - i) * 4 + (if compact { 9 } else { 12 });
+        for j in 0..rowSize {
+            // for (int j = 0; j < rowSize; j++) {
+            let columnOffset = j * 2;
+            for k in 0..2 {
+                // for (int k = 0; k < 2; k++) {
+                if messageBits.get(rowOffset + columnOffset + k) {
+                    matrix.set(alignmentMap[i * 2 + k], alignmentMap[i * 2 + j]);
+                }
+                if messageBits.get(rowOffset + rowSize * 2 + columnOffset + k) {
+                    matrix.set(
+                        alignmentMap[i * 2 + j],
+                        alignmentMap[baseMatrixSize as usize - 1 - i * 2 - k],
+                    );
+                }
+                if messageBits.get(rowOffset + rowSize * 4 + columnOffset + k) {
+                    matrix.set(
+                        alignmentMap[baseMatrixSize as usize - 1 - i * 2 - k],
+                        alignmentMap[baseMatrixSize as usize - 1 - i * 2 - j],
+                    );
+                }
+                if messageBits.get(rowOffset + rowSize * 6 + columnOffset + k) {
+                    matrix.set(
+                        alignmentMap[baseMatrixSize as usize - 1 - i * 2 - j],
+                        alignmentMap[i * 2 + k],
+                    );
+                }
+            }
+        }
+        rowOffset += rowSize * 8;
+    }
+
+    // draw mode message
+    drawModeMessage(&mut matrix, compact, matrixSize as u32, modeMessage);
+
+    // draw alignment marks
+    if compact {
+        drawBullsEye(&mut matrix, matrixSize as u32 / 2, 5);
+    } else {
+        drawBullsEye(&mut matrix, matrixSize as u32 / 2, 7);
+        let mut i = 0;
+        let mut j = 0;
+        while i < baseMatrixSize / 2 - 1 {
+            let mut k = (matrixSize / 2) & 1;
+            while k < matrixSize {
+                // for (int k = (matrixSize / 2) & 1; k < matrixSize; k += 2) {
+                matrix.set(matrixSize as u32 / 2 - j, k as u32);
+                matrix.set(matrixSize as u32 / 2 + j, k as u32);
+                matrix.set(k as u32, matrixSize as u32 / 2 - j);
+                matrix.set(k as u32, matrixSize as u32 / 2 + j);
+
+                k += 2;
+            }
+
+            i += 15;
+            j += 16;
+        }
+        // for (int i = 0, j = 0; i < baseMatrixSize / 2 - 1; i += 15, j += 16) {
+        //   for (int k = (matrixSize / 2) & 1; k < matrixSize; k += 2) {
+        //     matrix.set(matrixSize / 2 - j, k);
+        //     matrix.set(matrixSize / 2 + j, k);
+        //     matrix.set(k, matrixSize / 2 - j);
+        //     matrix.set(k, matrixSize / 2 + j);
+        //   }
+        // }
+    }
+
+    let aztec = AztecCode::new(
+        compact,
+        matrixSize as u32,
+        layers,
+        messageSizeInWords as u32,
+        matrix,
+    );
+    // aztec.setCompact(compact);
+    // aztec.setSize(matrixSize);
+    // aztec.setLayers(layers);
+    // aztec.setCodeWords(messageSizeInWords);
+    // aztec.setMatrix(matrix);
+    Ok(aztec)
+}
+
+fn drawBullsEye(matrix: &mut BitMatrix, center: u32, size: u32) {
+    let mut i = 0;
+    while i < size {
+        // for (int i = 0; i < size; i += 2) {
+        for j in (center - 1)..=(center + 1) {
+            // for (int j = center - i; j <= center + i; j++) {
+            matrix.set(j, center - i);
+            matrix.set(j, center + i);
+            matrix.set(center - i, j);
+            matrix.set(center + i, j);
+        }
+        i += 2;
+    }
+    matrix.set(center - size, center - size);
+    matrix.set(center - size + 1, center - size);
+    matrix.set(center - size, center - size + 1);
+    matrix.set(center + size, center - size);
+    matrix.set(center + size, center - size + 1);
+    matrix.set(center + size, center + size - 1);
+}
+
+pub fn generateModeMessage(compact: bool, layers: u32, messageSizeInWords: u32) -> BitArray {
+    let mut modeMessage = BitArray::new();
+    if compact {
+        modeMessage.appendBits(layers - 1, 2);
+        modeMessage.appendBits(messageSizeInWords - 1, 6);
+        modeMessage = generateCheckWords(&modeMessage, 28, 4);
+    } else {
+        modeMessage.appendBits(layers - 1, 5);
+        modeMessage.appendBits(messageSizeInWords - 1, 11);
+        modeMessage = generateCheckWords(&modeMessage, 40, 4);
+    }
+    return modeMessage;
+}
+
+fn drawModeMessage(matrix: &mut BitMatrix, compact: bool, matrixSize: u32, modeMessage: BitArray) {
+    let center = matrixSize / 2;
+    if compact {
+        for i in 0..7usize {
+            // for (int i = 0; i < 7; i++) {
+            let offset = (center as usize - 3 + i) as u32;
+            if modeMessage.get(i) {
+                matrix.set(offset, center - 5);
+            }
+            if modeMessage.get(i + 7) {
+                matrix.set(center + 5, offset);
+            }
+            if modeMessage.get(20 - i) {
+                matrix.set(offset, center + 5);
+            }
+            if modeMessage.get(27 - i) {
+                matrix.set(center - 5, offset);
+            }
+        }
+    } else {
+        for i in 0..10usize {
+            // for (int i = 0; i < 10; i++) {
+            let offset = (center as usize - 5 + i + i / 5) as u32;
+            if modeMessage.get(i) {
+                matrix.set(offset, center - 7);
+            }
+            if modeMessage.get(i + 10) {
+                matrix.set(center + 7, offset);
+            }
+            if modeMessage.get(29 - i) {
+                matrix.set(offset, center + 7);
+            }
+            if modeMessage.get(39 - i) {
+                matrix.set(center - 7, offset);
+            }
+        }
+    }
+}
+
+fn generateCheckWords(bitArray: &BitArray, totalBits: usize, wordSize: usize) -> BitArray {
+    // bitArray is guaranteed to be a multiple of the wordSize, so no padding needed
+    let messageSizeInWords = bitArray.getSize() / wordSize;
+    let mut rs = ReedSolomonEncoder::new(getGF(wordSize).expect("Should never have bad value"));
+    let totalWords = totalBits / wordSize;
+    let mut messageWords = bitsToWords(bitArray, wordSize, totalWords);
+    rs.encode(&mut messageWords, totalWords - messageSizeInWords);
+    let startPad = totalBits % wordSize;
+    let mut messageBits = BitArray::new();
+    messageBits.appendBits(0, startPad);
+    for messageWord in messageWords {
+        // for (int messageWord : messageWords) {
+        messageBits.appendBits(messageWord as u32, wordSize);
+    }
+    return messageBits;
+}
+
+fn bitsToWords(stuffedBits: &BitArray, wordSize: usize, totalWords: usize) -> Vec<i32> {
+    let mut message = vec![0i32; totalWords];
+    // let i=0;
+    // let n;
+    for i in 0..(stuffedBits.getSize() / wordSize) {
+        // for (i = 0, n = stuffedBits.getSize() / wordSize; i < n; i++) {
+        let mut value = 0;
+        for j in 0..wordSize {
+            // for (int j = 0; j < wordSize; j++) {
+            value |= if stuffedBits.get(i * wordSize + j) {
+                1 << wordSize - j - 1
+            } else {
+                0
+            };
+        }
+        message[i] = value;
+    }
+    return message;
+}
+
+fn getGF(wordSize: usize) -> Result<GenericGF, Exceptions> {
+    match wordSize {
+        4 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecParam)),
+        6 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecData6)),
+        8 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecData8)),
+        10 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecData10)),
+        12 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecData12)),
+        _ => Err(Exceptions::IllegalArgumentException(format!(
+            "Unsupported word size {}",
+            wordSize
+        ))),
+    }
+    // switch (wordSize) {
+    //   case 4:
+    //     return GenericGF.AZTEC_PARAM;
+    //   case 6:
+    //     return GenericGF.AZTEC_DATA_6;
+    //   case 8:
+    //     return GenericGF.AZTEC_DATA_8;
+    //   case 10:
+    //     return GenericGF.AZTEC_DATA_10;
+    //   case 12:
+    //     return GenericGF.AZTEC_DATA_12;
+    //   default:
+    //     throw new IllegalArgumentException("Unsupported word size " + wordSize);
+    // }
+}
+
+pub fn stuffBits(bits: &BitArray, wordSize: usize) -> BitArray {
+    let mut out = BitArray::new();
+
+    let n = bits.getSize();
+    let mask = (1 << wordSize) - 2;
+    let mut i = 0;
+    while i < n {
+        // for (int i = 0; i < n; i += wordSize) {
+        let mut word = 0;
+        for j in 0..wordSize {
+            // for (int j = 0; j < wordSize; j++) {
+            if i + j >= n || bits.get(i + j) {
+                word |= 1 << (wordSize - 1 - j);
+            }
+        }
+        if (word & mask) == mask {
+            out.appendBits(word & mask, wordSize);
+            i -= 1;
+        } else if (word & mask) == 0 {
+            out.appendBits(word | 1, wordSize);
+            i -= 1;
+        } else {
+            out.appendBits(word, wordSize);
+        }
+
+        i += wordSize;
+    }
+    return out;
+}
+
+fn totalBitsInLayer(layers: u32, compact: bool) -> u32 {
+    ((if compact { 88 } else { 112 }) + 16 * layers) * layers
+    // return ((compact ? 88 : 112) + 16 * layers) * layers;
+}

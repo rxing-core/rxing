@@ -770,7 +770,7 @@ pub trait DetectorRXingResult {
 pub struct BitMatrix {
     width: u32,
     height: u32,
-    rowSize: usize,
+    row_size: usize,
     bits: Vec<u32>,
 }
 
@@ -799,7 +799,7 @@ impl BitMatrix {
         Ok(Self {
             width,
             height,
-            rowSize: ((width + 31) / 32) as usize,
+            row_size: ((width + 31) / 32) as usize,
             bits: vec![0; (((width + 31) / 32) * height) as usize],
         })
         // this.width = width;
@@ -812,7 +812,7 @@ impl BitMatrix {
         Self {
             width,
             height,
-            rowSize,
+            row_size: rowSize,
             bits,
         }
     }
@@ -926,7 +926,7 @@ impl BitMatrix {
      * @return value of given bit in matrix
      */
     pub fn get(&self, x: u32, y: u32) -> bool {
-        let offset = y as usize * self.rowSize + (x as usize / 32);
+        let offset = y as usize * self.row_size + (x as usize / 32);
         return ((self.bits[offset] >> (x & 0x1f)) & 1) != 0;
     }
 
@@ -937,12 +937,12 @@ impl BitMatrix {
      * @param y The vertical component (i.e. which row)
      */
     pub fn set(&mut self, x: u32, y: u32) {
-        let offset = y as usize * self.rowSize + (x as usize / 32);
+        let offset = y as usize * self.row_size + (x as usize / 32);
         self.bits[offset] |= 1 << (x & 0x1f);
     }
 
     pub fn unset(&mut self, x: u32, y: u32) {
-        let offset = y as usize * self.rowSize + (x as usize / 32);
+        let offset = y as usize * self.row_size + (x as usize / 32);
         self.bits[offset] &= !(1 << (x & 0x1f));
     }
 
@@ -953,7 +953,7 @@ impl BitMatrix {
      * @param y The vertical component (i.e. which row)
      */
     pub fn flip_coords(&mut self, x: u32, y: u32) {
-        let offset = y as usize * self.rowSize + (x as usize / 32);
+        let offset = y as usize * self.row_size + (x as usize / 32);
         self.bits[offset] ^= 1 << (x & 0x1f);
     }
 
@@ -975,7 +975,7 @@ impl BitMatrix {
      * @param mask XOR mask
      */
     pub fn xor(&mut self, mask: &BitMatrix) -> Result<(), Exceptions> {
-        if self.width != mask.width || self.height != mask.height || self.rowSize != mask.rowSize {
+        if self.width != mask.width || self.height != mask.height || self.row_size != mask.row_size {
             return Err(Exceptions::IllegalArgumentException(
                 "input matrix dimensions do not match".to_owned(),
             ));
@@ -983,10 +983,10 @@ impl BitMatrix {
         let rowArray = BitArray::with_size(self.width as usize);
         for y in 0..self.height {
             //for (int y = 0; y < height; y++) {
-            let offset = y as usize * self.rowSize;
+            let offset = y as usize * self.row_size;
             let tmp = mask.getRow(y, &rowArray);
             let row = tmp.getBitArray();
-            for x in 0..self.rowSize {
+            for x in 0..self.row_size {
                 //for (int x = 0; x < rowSize; x++) {
                 self.bits[offset + x] ^= row[x];
             }
@@ -1039,7 +1039,7 @@ impl BitMatrix {
         }
         for y in top..bottom {
             //for (int y = top; y < bottom; y++) {
-            let offset = y as usize * self.rowSize;
+            let offset = y as usize * self.row_size;
             for x in left..right {
                 //for (int x = left; x < right; x++) {
                 self.bits[offset + (x as usize / 32)] |= 1 << (x & 0x1f);
@@ -1067,8 +1067,8 @@ impl BitMatrix {
             // row.clone()
         };
 
-        let offset = y as usize * self.rowSize;
-        for x in 0..self.rowSize {
+        let offset = y as usize * self.row_size;
+        for x in 0..self.row_size {
             //for (int x = 0; x < rowSize; x++) {
             rw.setBulk(x * 32, self.bits[offset + x]);
         }
@@ -1080,8 +1080,8 @@ impl BitMatrix {
      * @param row {@link BitArray} to copy from
      */
     pub fn setRow(&mut self, y: u32, row: &BitArray) {
-        return self.bits[y as usize * self.rowSize..y as usize * self.rowSize + self.rowSize]
-            .clone_from_slice(&row.getBitArray()[0..self.rowSize]);
+        return self.bits[y as usize * self.row_size..y as usize * self.row_size + self.row_size]
+            .clone_from_slice(&row.getBitArray()[0..self.row_size]);
         //System.arraycopy(row.getBitArray(), 0, self.bits, y * self.rowSize, self.rowSize);
     }
 
@@ -1144,7 +1144,7 @@ impl BitMatrix {
             //for (int y = 0; y < height; y++) {
             for x in 0..self.width {
                 //for (int x = 0; x < width; x++) {
-                let offset = y as usize * self.rowSize + (x as usize / 32);
+                let offset = y as usize * self.row_size + (x as usize / 32);
                 if ((self.bits[offset] >> (x & 0x1f)) & 1) != 0 {
                     let newOffset: usize = ((newHeight - 1 - x) * newRowSize + (y / 32))
                         .try_into()
@@ -1155,7 +1155,7 @@ impl BitMatrix {
         }
         self.width = newWidth;
         self.height = newHeight;
-        self.rowSize = newRowSize.try_into().unwrap();
+        self.row_size = newRowSize.try_into().unwrap();
         self.bits = newBits;
     }
 
@@ -1174,9 +1174,9 @@ impl BitMatrix {
 
         for y in 0..self.height {
             //for (int y = 0; y < height; y++) {
-            for x32 in 0..self.rowSize {
+            for x32 in 0..self.row_size {
                 //for (int x32 = 0; x32 < rowSize; x32++) {
-                let theBits = self.bits[y as usize * self.rowSize + x32];
+                let theBits = self.bits[y as usize * self.row_size + x32];
                 if theBits != 0 {
                     if y < top {
                         top = y;
@@ -1226,8 +1226,8 @@ impl BitMatrix {
         if bitsOffset == self.bits.len() {
             return None;
         }
-        let y = bitsOffset / self.rowSize;
-        let mut x = (bitsOffset % self.rowSize) * 32;
+        let y = bitsOffset / self.row_size;
+        let mut x = (bitsOffset % self.row_size) * 32;
 
         let theBits = self.bits[bitsOffset];
         let mut bit = 0;
@@ -1247,8 +1247,8 @@ impl BitMatrix {
             return None;
         }
 
-        let y = bitsOffset as usize / self.rowSize;
-        let mut x = (bitsOffset as usize % self.rowSize) * 32;
+        let y = bitsOffset as usize / self.row_size;
+        let mut x = (bitsOffset as usize % self.row_size) * 32;
 
         let theBits = self.bits[bitsOffset as usize];
         let mut bit = 31;
@@ -1278,7 +1278,7 @@ impl BitMatrix {
      * @return The row size of the matrix
      */
     pub fn getRowSize(&self) -> usize {
-        return self.rowSize;
+        return self.row_size;
     }
 
     // @Override

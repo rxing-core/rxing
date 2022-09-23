@@ -30,6 +30,16 @@ pub struct AztecCode {
 }
 
 impl AztecCode {
+    pub fn new(compact: bool, size: u32, layers: u32, code_words: u32, matrix: BitMatrix) -> Self {
+        Self {
+            compact,
+            size,
+            layers,
+            code_words,
+            matrix,
+        }
+    }
+
     /**
      * @return {@code true} if compact instead of full mode
      */

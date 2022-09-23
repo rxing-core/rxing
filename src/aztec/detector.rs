@@ -735,7 +735,7 @@ impl Detector {
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
-struct Point {
+pub struct Point {
     x: i32,
     y: i32,
 }

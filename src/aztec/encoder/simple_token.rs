@@ -18,7 +18,7 @@ use std::fmt;
 
 use crate::common::BitArray;
 
-#[derive(Debug,PartialEq, Eq,Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct SimpleToken {
     // For normal words, indicates value and bitCount
     value: u16,
@@ -34,7 +34,9 @@ impl SimpleToken {
     }
 
     pub fn appendTo(&self, bitArray: &mut BitArray, text: &[u8]) {
-        bitArray.appendBits(self.value as u32, self.bitCount as usize).expect("append should never fail");
+        bitArray
+            .appendBits(self.value as u32, self.bitCount as usize)
+            .expect("append should never fail");
     }
 
     // @Override

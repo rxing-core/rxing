@@ -18,7 +18,7 @@ use std::fmt;
 
 use crate::common::BitArray;
 
-#[derive(Debug,PartialEq, Eq,Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct BinaryShiftToken {
     binaryShiftStart: u32,
     binaryShiftByteCount: u32,
@@ -44,7 +44,7 @@ impl BinaryShiftToken {
                     bitArray.appendBits(bsbc as u32 - 31, 16);
                 } else if (i == 0) {
                     // 1 <= binaryShiftByteCode <= 62
-                    bitArray.appendBits(bsbc.min( 31) as u32, 5);
+                    bitArray.appendBits(bsbc.min(31) as u32, 5);
                 } else {
                     // 32 <= binaryShiftCount <= 62 and i == 31
                     bitArray.appendBits(bsbc as u32 - 31, 5);

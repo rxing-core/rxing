@@ -1,12 +1,12 @@
+mod aztec;
+mod client;
 mod common;
 mod exceptions;
-mod client;
-mod aztec;
 
-#[cfg(feature="image")]
+#[cfg(feature = "image")]
 mod BufferedImageLuminanceSource;
 
-#[cfg(feature="image")]
+#[cfg(feature = "image")]
 pub use BufferedImageLuminanceSource::*;
 
 use crate::common::{BitArray, BitMatrix};
@@ -45,8 +45,8 @@ mod RGBLuminanceSourceTestCase;
  *
  * @author Sean Owen
  */
-#[derive(Debug,PartialEq, Eq,Hash)]
- pub enum BarcodeFormat {
+#[derive(Debug, PartialEq, Eq, Hash,Clone, Copy)]
+pub enum BarcodeFormat {
     /** Aztec 2D barcode format. */
     AZTEC,
 
@@ -122,6 +122,7 @@ mod RGBLuminanceSourceTestCase;
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum EncodeHintType {
     /**
      * Specifies what degree of error correction to use, for example in QR Codes.
@@ -274,6 +275,158 @@ pub enum EncodeHintType {
     CODE128_COMPACT,
 }
 
+pub enum EncodeHintValue {
+    /**
+     * Specifies what degree of error correction to use, for example in QR Codes.
+     * Type depends on the encoder. For example for QR codes it's type
+     * {@link com.google.zxing.qrcode.decoder.ErrorCorrectionLevel ErrorCorrectionLevel}.
+     * For Aztec it is of type {@link Integer}, representing the minimal percentage of error correction words.
+     * For PDF417 it is of type {@link Integer}, valid values being 0 to 8.
+     * In all cases, it can also be a {@link String} representation of the desired value as well.
+     * Note: an Aztec symbol should have a minimum of 25% EC words.
+     */
+    ErrorCorrection(String),
+
+    /**
+     * Specifies what character encoding to use where applicable (type {@link String})
+     */
+    CharacterSet(String),
+
+    /**
+     * Specifies the matrix shape for Data Matrix (type {@link com.google.zxing.datamatrix.encoder.SymbolShapeHint})
+     */
+    DataMatrixShape,
+
+    /**
+     * Specifies whether to use compact mode for Data Matrix (type {@link Boolean}, or "true" or "false"
+     * {@link String } value).
+     * The compact encoding mode also supports the encoding of characters that are not in the ISO-8859-1
+     * character set via ECIs.
+     * Please note that in that case, the most compact character encoding is chosen for characters in
+     * the input that are not in the ISO-8859-1 character set. Based on experience, some scanners do not
+     * support encodings like cp-1256 (Arabic). In such cases the encoding can be forced to UTF-8 by
+     * means of the {@link #CHARACTER_SET} encoding hint.
+     * Compact encoding also provides GS1-FNC1 support when {@link #GS1_FORMAT} is selected. In this case
+     * group-separator character (ASCII 29 decimal) can be used to encode the positions of FNC1 codewords
+     * for the purpose of delimiting AIs.
+     * This option and {@link #FORCE_C40} are mutually exclusive.
+     */
+    DataMatrixCompact(String),
+
+    /**
+     * Specifies a minimum barcode size (type {@link Dimension}). Only applicable to Data Matrix now.
+     *
+     * @deprecated use width/height params in
+     * {@link com.google.zxing.datamatrix.DataMatrixWriter#encode(String, BarcodeFormat, int, int)}
+     */
+    #[deprecated]
+    MinSize,
+
+    /**
+     * Specifies a maximum barcode size (type {@link Dimension}). Only applicable to Data Matrix now.
+     *
+     * @deprecated without replacement
+     */
+    #[deprecated]
+    MaxSize(Dimension),
+
+    /**
+     * Specifies margin, in pixels, to use when generating the barcode. The meaning can vary
+     * by format; for example it controls margin before and after the barcode horizontally for
+     * most 1D formats. (Type {@link Integer}, or {@link String} representation of the integer value).
+     */
+    Margin(String),
+
+    /**
+     * Specifies whether to use compact mode for PDF417 (type {@link Boolean}, or "true" or "false"
+     * {@link String} value).
+     */
+    Pdf417Compact(String),
+
+    /**
+     * Specifies what compaction mode to use for PDF417 (type
+     * {@link com.google.zxing.pdf417.encoder.Compaction Compaction} or {@link String} value of one of its
+     * enum values).
+     */
+    Pdf417Compaction(String),
+
+    /**
+     * Specifies the minimum and maximum number of rows and columns for PDF417 (type
+     * {@link com.google.zxing.pdf417.encoder.Dimensions Dimensions}).
+     */
+    Pdf417Dimensions,
+
+    /**
+     * Specifies whether to automatically insert ECIs when encoding PDF417 (type {@link Boolean}, or "true" or "false"
+     * {@link String} value).
+     * Please note that in that case, the most compact character encoding is chosen for characters in
+     * the input that are not in the ISO-8859-1 character set. Based on experience, some scanners do not
+     * support encodings like cp-1256 (Arabic). In such cases the encoding can be forced to UTF-8 by
+     * means of the {@link #CHARACTER_SET} encoding hint.
+     */
+    Pdf417AutoEci(String),
+
+    /**
+     * Specifies the required number of layers for an Aztec code.
+     * A negative number (-1, -2, -3, -4) specifies a compact Aztec code.
+     * 0 indicates to use the minimum number of layers (the default).
+     * A positive number (1, 2, .. 32) specifies a normal (non-compact) Aztec code.
+     * (Type {@link Integer}, or {@link String} representation of the integer value).
+     */
+    AztecLayers(u32),
+
+    /**
+     * Specifies the exact version of QR code to be encoded.
+     * (Type {@link Integer}, or {@link String} representation of the integer value).
+     */
+    QrVersion(String),
+
+    /**
+     * Specifies the QR code mask pattern to be used. Allowed values are
+     * 0..QRCode.NUM_MASK_PATTERNS-1. By default the code will automatically select
+     * the optimal mask pattern.
+     * * (Type {@link Integer}, or {@link String} representation of the integer value).
+     */
+    QrMaskPattern(String),
+
+    /**
+     * Specifies whether to use compact mode for QR code (type {@link Boolean}, or "true" or "false"
+     * {@link String } value).
+     * Please note that when compaction is performed, the most compact character encoding is chosen
+     * for characters in the input that are not in the ISO-8859-1 character set. Based on experience,
+     * some scanners do not support encodings like cp-1256 (Arabic). In such cases the encoding can
+     * be forced to UTF-8 by means of the {@link #CHARACTER_SET} encoding hint.
+     */
+    QrCompact(String),
+
+    /**
+     * Specifies whether the data should be encoded to the GS1 standard (type {@link Boolean}, or "true" or "false"
+     * {@link String } value).
+     */
+    Gs1Format(String),
+
+    /**
+     * Forces which encoding will be used. Currently only used for Code-128 code sets (Type {@link String}).
+     * Valid values are "A", "B", "C".
+     * This option and {@link #CODE128_COMPACT} are mutually exclusive.
+     */
+    ForceCodeSet(String),
+
+    /**
+     * Forces C40 encoding for data-matrix (type {@link Boolean}, or "true" or "false") {@link String } value). This
+     * option and {@link #DATA_MATRIX_COMPACT} are mutually exclusive.
+     */
+    ForceC40(String),
+
+    /**
+     * Specifies whether to use compact mode for Code-128 code (type {@link Boolean}, or "true" or "false"
+     * {@link String } value).
+     * This can yield slightly smaller bar codes. This option and {@link #FORCE_CODE_SET} are mutually
+     * exclusive.
+     */
+    Code128Compact(String),
+}
+
 /*
  * Copyright 2007 ZXing authors
  *
@@ -398,6 +551,91 @@ pub enum DecodeHintType {
     }*/
 }
 
+/**
+ * Callback which is invoked when a possible result point (significant
+ * point in the barcode image such as a corner) is found.
+ *
+ * @see DecodeHintType#NEED_RESULT_POINT_CALLBACK
+ */
+pub type RXingResultPointCallback = fn(&RXingResultPoint);
+
+pub enum DecodeHintValue {
+    /**
+     * Unspecified, application-specific hint. Maps to an unspecified {@link Object}.
+     */
+    Other(String),
+
+    /**
+     * Image is a pure monochrome image of a barcode. Doesn't matter what it maps to;
+     * use {@link Boolean#TRUE}.
+     */
+    PureBarcode(bool),
+
+    /**
+     * Image is known to be of one of a few possible formats.
+     * Maps to a {@link List} of {@link BarcodeFormat}s.
+     */
+    PossibleFormats(BarcodeFormat),
+
+    /**
+     * Spend more time to try to find a barcode; optimize for accuracy, not speed.
+     * Doesn't matter what it maps to; use {@link Boolean#TRUE}.
+     */
+    TryHarder(bool),
+
+    /**
+     * Specifies what character encoding to use when decoding, where applicable (type String)
+     */
+    CharacterSet(String),
+
+    /**
+     * Allowed lengths of encoded data -- reject anything else. Maps to an {@code int[]}.
+     */
+    AllowedLengths(Vec<u32>),
+
+    /**
+     * Assume Code 39 codes employ a check digit. Doesn't matter what it maps to;
+     * use {@link Boolean#TRUE}.
+     */
+    AssumeCode39CheckDigit(bool),
+
+    /**
+     * Assume the barcode is being processed as a GS1 barcode, and modify behavior as needed.
+     * For example this affects FNC1 handling for Code 128 (aka GS1-128). Doesn't matter what it maps to;
+     * use {@link Boolean#TRUE}.
+     */
+    AssumeGs1(bool),
+
+    /**
+     * If true, return the start and end digits in a Codabar barcode instead of stripping them. They
+     * are alpha, whereas the rest are numeric. By default, they are stripped, but this causes them
+     * to not be. Doesn't matter what it maps to; use {@link Boolean#TRUE}.
+     */
+    ReturnCodabarStartEnd(bool),
+
+    /**
+     * The caller needs to be notified via callback when a possible {@link RXingResultPoint}
+     * is found. Maps to a {@link RXingResultPointCallback}.
+     */
+    NeedResultPointCallback(RXingResultPointCallback),
+
+    /**
+     * Allowed extension lengths for EAN or UPC barcodes. Other formats will ignore this.
+     * Maps to an {@code int[]} of the allowed extension lengths, for example [2], [5], or [2, 5].
+     * If it is optional to have an extension, do not set this hint. If this is set,
+     * and a UPC or EAN barcode is found but an extension is not, then no result will be returned
+     * at all.
+     */
+    AllowedEanExtensions(Vec<u32>),
+
+    /**
+     * If true, also tries to decode as inverted image. All configured decoders are simply called a
+     * second time with an inverted image. Doesn't matter what it maps to; use {@link Boolean#TRUE}.
+     */
+    AlsoInverted(bool),
+    // End of enumeration values.
+}
+
 /*
  * Copyright 2008 ZXing authors
  *
@@ -448,12 +686,12 @@ pub trait Writer {
      * @return {@link BitMatrix} representing encoded barcode image
      * @throws WriterException if contents cannot be encoded legally in a format
      */
-    fn encode_with_hints<T>(
+    fn encode_with_hints(
         contents: &str,
         format: &BarcodeFormat,
         width: i32,
         height: i32,
-        hints: HashMap<EncodeHintType, T>,
+        hints: &HashMap<EncodeHintType, EncodeHintValue>,
     ) -> Result<BitMatrix, Exceptions>;
 }
 
@@ -474,8 +712,6 @@ pub trait Writer {
  */
 
 //package com.google.zxing;
-
-
 
 /**
  * Implementations of this interface can decode an image of a barcode in some format into
@@ -499,7 +735,7 @@ pub trait Reader {
      * @throws ChecksumException if a potential barcode is found but does not pass its checksum
      * @throws FormatException if a potential barcode is found but format is invalid
      */
-    fn decode(image: BinaryBitmap) -> Result<RXingResult, Exceptions>;
+    fn decode(image: &BinaryBitmap) -> Result<RXingResult, Exceptions>;
 
     /**
      * Locates and decodes a barcode in some format within an image. This method also accepts
@@ -515,9 +751,9 @@ pub trait Reader {
      * @throws ChecksumException if a potential barcode is found but does not pass its checksum
      * @throws FormatException if a potential barcode is found but format is invalid
      */
-    fn decode_with_hints<T>(
-        image: BinaryBitmap,
-        hints: HashMap<DecodeHintType, T>,
+    fn decode_with_hints(
+        image: &BinaryBitmap,
+        hints: &HashMap<DecodeHintType, DecodeHintValue>,
     ) -> Result<RXingResult, Exceptions>;
 
     /**
@@ -631,6 +867,85 @@ pub enum RXingResultMetadataType {
     SYMBOLOGY_IDENTIFIER,
 }
 
+pub enum RXingResultMetadataValue {
+    /**
+     * Unspecified, application-specific metadata. Maps to an unspecified {@link Object}.
+     */
+    OTHER,
+
+    /**
+     * Denotes the likely approximate orientation of the barcode in the image. This value
+     * is given as degrees rotated clockwise from the normal, upright orientation.
+     * For example a 1D barcode which was found by reading top-to-bottom would be
+     * said to have orientation "90". This key maps to an {@link Integer} whose
+     * value is in the range [0,360).
+     */
+    Orientation(i32),
+
+    /**
+     * <p>2D barcode formats typically encode text, but allow for a sort of 'byte mode'
+     * which is sometimes used to encode binary data. While {@link RXingResult} makes available
+     * the complete raw bytes in the barcode for these formats, it does not offer the bytes
+     * from the byte segments alone.</p>
+     *
+     * <p>This maps to a {@link java.util.List} of byte arrays corresponding to the
+     * raw bytes in the byte segments in the barcode, in order.</p>
+     */
+    ByteSegments(Vec<u8>),
+
+    /**
+     * Error correction level used, if applicable. The value type depends on the
+     * format, but is typically a String.
+     */
+    ErrorCorrectionLevel(String),
+
+    /**
+     * For some periodicals, indicates the issue number as an {@link Integer}.
+     */
+    IssueNumber(i32),
+
+    /**
+     * For some products, indicates the suggested retail price in the barcode as a
+     * formatted {@link String}.
+     */
+    SuggestedPrice(String),
+
+    /**
+     * For some products, the possible country of manufacture as a {@link String} denoting the
+     * ISO country code. Some map to multiple possible countries, like "US/CA".
+     */
+    PossibleCountry(String),
+
+    /**
+     * For some products, the extension text
+     */
+    UpcEanExtension(String),
+
+    /**
+     * PDF417-specific metadata
+     */
+    Pdf417ExtraMetadata(String),
+
+    /**
+     * If the code format supports structured append and the current scanned code is part of one then the
+     * sequence number is given with it.
+     */
+    StructuredAppendSequence(u32),
+
+    /**
+     * If the code format supports structured append and the current scanned code is part of one then the
+     * parity is given with it.
+     */
+    StructuredAppendParity(u32),
+
+    /**
+     * Barcode Symbology Identifier.
+     * Note: According to the GS1 specification the identifier may have to replace a leading FNC1/GS character
+     * when prepending to the barcode content.
+     */
+    SymbologyIdentifier(String),
+}
+
 /*
  * Copyright 2007 ZXing authors
  *
@@ -663,7 +978,7 @@ pub struct RXingResult {
     numBits: usize,
     resultPoints: Vec<RXingResultPoint>,
     format: BarcodeFormat,
-    resultMetadata: HashMap<RXingResultMetadataType, String>,
+    resultMetadata: HashMap<RXingResultMetadataType, RXingResultMetadataValue>,
     timestamp: u128,
 }
 impl RXingResult {
@@ -758,15 +1073,24 @@ impl RXingResult {
      *   {@code null}. This contains optional metadata about what was detected about the barcode,
      *   like orientation.
      */
-    pub fn getRXingResultMetadata(&self) -> &HashMap<RXingResultMetadataType, String> {
+    pub fn getRXingResultMetadata(
+        &self,
+    ) -> &HashMap<RXingResultMetadataType, RXingResultMetadataValue> {
         return &self.resultMetadata;
     }
 
-    pub fn putMetadata(&mut self, md_type: RXingResultMetadataType, value: String) {
+    pub fn putMetadata(
+        &mut self,
+        md_type: RXingResultMetadataType,
+        value: RXingResultMetadataValue,
+    ) {
         self.resultMetadata.insert(md_type, value);
     }
 
-    pub fn putAllMetadata(&mut self, metadata: HashMap<RXingResultMetadataType, String>) {
+    pub fn putAllMetadata(
+        &mut self,
+        metadata: HashMap<RXingResultMetadataType, RXingResultMetadataValue>,
+    ) {
         if self.resultMetadata.is_empty() {
             self.resultMetadata = metadata;
         } else {
@@ -1249,34 +1573,6 @@ impl fmt::Display for BinaryBitmap {
 //package com.google.zxing;
 
 /**
- * Callback which is invoked when a possible result point (significant
- * point in the barcode image such as a corner) is found.
- *
- * @see DecodeHintType#NEED_RESULT_POINT_CALLBACK
- */
-pub trait RXingResultPointCallback {
-    fn foundPossibleRXingResultPoint(point: RXingResultPoint);
-}
-
-/*
- * Copyright 2009 ZXing authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-//package com.google.zxing;
-
-/**
  * The purpose of this class hierarchy is to abstract different bitmap implementations across
  * platforms into a standard interface for requesting greyscale luminance values. The interface
  * only provides immutable methods; therefore crop and rotation create copies. This is to ensure
@@ -1375,9 +1671,7 @@ pub trait LuminanceSource {
      *
      * @return A rotated version of this object.
      */
-    fn rotateCounterClockwise(
-        &self,
-    ) -> Result<Box<dyn LuminanceSource>, Exceptions> {
+    fn rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>, Exceptions> {
         return Err(Exceptions::UnsupportedOperationException(
             "This luminance source does not support rotation by 90 degrees.".to_owned(),
         ));
@@ -1389,9 +1683,7 @@ pub trait LuminanceSource {
      *
      * @return A rotated version of this object.
      */
-    fn rotateCounterClockwise45(
-        &self,
-    ) -> Result<Box<dyn LuminanceSource>, Exceptions> {
+    fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>, Exceptions> {
         return Err(Exceptions::UnsupportedOperationException(
             "This luminance source does not support rotation by 45 degrees.".to_owned(),
         ));
@@ -1624,7 +1916,7 @@ impl PlanarYUVLuminanceSource {
     pub fn renderThumbnail(&self) -> Vec<u8> {
         let width = self.getWidth() / THUMBNAIL_SCALE_FACTOR;
         let height = self.getHeight() / THUMBNAIL_SCALE_FACTOR;
-        let mut pixels = vec![0;width * height];
+        let mut pixels = vec![0; width * height];
         let yuv = &self.yuv_data;
         let mut input_offset = self.top * self.data_width + self.left;
 
@@ -1692,13 +1984,13 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
 
         let offset = (y + self.top) * self.data_width + self.left;
 
-        let mut row = if row.len() >= width{
-                row.to_vec()}
-            else{
-                vec![0;width]
-            };
+        let mut row = if row.len() >= width {
+            row.to_vec()
+        } else {
+            vec![0; width]
+        };
 
-        row[..width].clone_from_slice(&self.yuv_data[offset..width+offset]);
+        row[..width].clone_from_slice(&self.yuv_data[offset..width + offset]);
         //System.arraycopy(yuvData, offset, row, 0, width);
         if self.invert {
             row = self.invert_block_of_bytes(row);
@@ -1721,7 +2013,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         }
 
         let area = width * height;
-        let mut matrix = vec![0;area];
+        let mut matrix = vec![0; area];
         let mut inputOffset = self.top * self.data_width + self.left;
 
         // If the width matches the full width of the underlying data, perform a single copy.
@@ -1738,7 +2030,8 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         for y in 0..height {
             //for (int y = 0; y < height; y++) {
             let outputOffset = y * width;
-            matrix[outputOffset..outputOffset+width].clone_from_slice(&self.yuv_data[inputOffset..inputOffset+width]);
+            matrix[outputOffset..outputOffset + width]
+                .clone_from_slice(&self.yuv_data[inputOffset..inputOffset + width]);
             //System.arraycopy(yuvData, inputOffset, matrix, outputOffset, width);
             inputOffset += self.data_width;
         }
@@ -1841,12 +2134,12 @@ impl LuminanceSource for RGBLuminanceSource {
         let offset = (y + self.top) * self.dataWidth + self.left;
 
         let mut row = if row.len() >= width {
-        row.to_vec()
-        }else{
-            vec![0;width]
+            row.to_vec()
+        } else {
+            vec![0; width]
         };
 
-        row[..width].clone_from_slice(&self.luminances[offset..offset+width]);
+        row[..width].clone_from_slice(&self.luminances[offset..offset + width]);
         //System.arraycopy(self.luminances, offset, row, 0, width);
         if self.invert {
             row = self.invert_block_of_bytes(row);
@@ -1869,12 +2162,12 @@ impl LuminanceSource for RGBLuminanceSource {
         }
 
         let area = width * height;
-        let mut matrix = vec![0;area];
+        let mut matrix = vec![0; area];
         let mut inputOffset = self.top * self.dataWidth + self.left;
 
         // If the width matches the full width of the underlying data, perform a single copy.
         if width == self.dataWidth {
-            matrix[..area].clone_from_slice(&self.luminances[inputOffset..area+inputOffset]);
+            matrix[..area].clone_from_slice(&self.luminances[inputOffset..area + inputOffset]);
             //System.arraycopy(self.luminances, inputOffset, matrix, 0, area);
             if self.invert {
                 matrix = self.invert_block_of_bytes(matrix);
@@ -1886,7 +2179,8 @@ impl LuminanceSource for RGBLuminanceSource {
         for y in 0..height {
             //for (int y = 0; y < height; y++) {
             let outputOffset = y * width;
-            matrix[outputOffset..width+outputOffset].clone_from_slice(&self.luminances[inputOffset..width+inputOffset]);
+            matrix[outputOffset..width + outputOffset]
+                .clone_from_slice(&self.luminances[inputOffset..width + inputOffset]);
             //System.arraycopy(luminances, inputOffset, matrix, outputOffset, width);
             inputOffset += self.dataWidth;
         }
@@ -1949,11 +2243,11 @@ impl RGBLuminanceSource {
         //
         // Total number of pixels suffices, can ignore shape
         let size = width * height;
-        let mut luminances: Vec<u8> = vec![0;size];
+        let mut luminances: Vec<u8> = vec![0; size];
         for offset in 0..size {
             //for (int offset = 0; offset < size; offset++) {
             let pixel = pixels[offset];
-            let r = (pixel >> 16) & 0xff ; // red
+            let r = (pixel >> 16) & 0xff; // red
             let g2 = (pixel >> 7) & 0x1fe; // 2 * green
             let b = pixel & 0xff; // blue
                                   // Calculate green-favouring average cheaply
