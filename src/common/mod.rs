@@ -552,14 +552,19 @@ impl BitArray {
      * @param numBits bits from value to append
      */
     pub fn appendBits(&mut self, value: u32, numBits: usize) -> Result<(), Exceptions> {
-        if numBits < 0 || numBits > 32 {
+        if numBits > 32 {
             return Err(Exceptions::IllegalArgumentException(
                 "Num bits must be between 0 and 32".to_owned(),
             ));
         }
+
+        if numBits == 0 {
+            return Ok(());
+        }
+
         let mut nextSize = self.size;
         self.ensureCapacity(nextSize + numBits);
-        for numBitsLeft in (0..(numBits - 1)).rev() {
+        for numBitsLeft in (0..(numBits)).rev() {
             //for (int numBitsLeft = numBits - 1; numBitsLeft >= 0; numBitsLeft--) {
             if (value & (1 << numBitsLeft)) != 0 {
                 self.bits[nextSize / 32] |= 1 << (nextSize & 0x1F);
@@ -720,10 +725,9 @@ impl fmt::Display for BitArray {
  * @author Sean Owen
  */
 pub trait DetectorRXingResult {
+    fn getBits(&self) -> &BitMatrix;
 
-     fn getBits(&self) -> &BitMatrix;
-
-     fn getPoints(&self) -> &Vec<RXingResultPoint>;
+    fn getPoints(&self) -> &Vec<RXingResultPoint>;
 }
 
 // pub struct DetectorRXingResult {
@@ -841,25 +845,25 @@ impl BitMatrix {
     }
 
     pub fn parse_strings(
-        stringRepresentation: &str,
-        setString: &str,
-        unsetString: &str,
+        string_representation: &str,
+        set_string: &str,
+        unset_string: &str,
     ) -> Result<Self, Exceptions> {
         // cannot pass nulls in rust
         // if (stringRepresentation == null) {
         //   throw new IllegalArgumentException();
         // }
 
-        let mut bits = vec![false; stringRepresentation.len()];
+        let mut bits = vec![false; string_representation.len()];
         let mut bitsPos = 0;
         let mut rowStartPos = 0;
         let mut rowLength = 0; //-1;
         let mut first_run = true;
         let mut nRows = 0;
         let mut pos = 0;
-        while pos < stringRepresentation.len() {
-            if stringRepresentation.chars().nth(pos).unwrap() == '\n'
-                || stringRepresentation.chars().nth(pos).unwrap() == '\r'
+        while pos < string_representation.len() {
+            if string_representation.chars().nth(pos).unwrap() == '\n'
+                || string_representation.chars().nth(pos).unwrap() == '\r'
             {
                 if bitsPos > rowStartPos {
                     //if rowLength == -1 {
@@ -875,18 +879,18 @@ impl BitMatrix {
                     nRows += 1;
                 }
                 pos += 1;
-            } else if stringRepresentation[pos..].starts_with(setString) {
-                pos += setString.len();
+            } else if string_representation[pos..].starts_with(set_string) {
+                pos += set_string.len();
                 bits[bitsPos] = true;
                 bitsPos += 1;
-            } else if stringRepresentation[pos..].starts_with(unsetString) {
-                pos += unsetString.len();
+            } else if string_representation[pos..].starts_with(unset_string) {
+                pos += unset_string.len();
                 bits[bitsPos] = false;
                 bitsPos += 1;
             } else {
                 return Err(Exceptions::IllegalArgumentException(format!(
                     "illegal character encountered: {}",
-                    stringRepresentation[pos..].to_owned()
+                    string_representation[pos..].to_owned()
                 )));
             }
         }
@@ -975,7 +979,8 @@ impl BitMatrix {
      * @param mask XOR mask
      */
     pub fn xor(&mut self, mask: &BitMatrix) -> Result<(), Exceptions> {
-        if self.width != mask.width || self.height != mask.height || self.row_size != mask.row_size {
+        if self.width != mask.width || self.height != mask.height || self.row_size != mask.row_size
+        {
             return Err(Exceptions::IllegalArgumentException(
                 "input matrix dimensions do not match".to_owned(),
             ));
@@ -2398,6 +2403,7 @@ impl GridSampler for DefaultGridSampler {
  *
  * @author Sean Owen
  */
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum CharacterSetECI {
     // Enum name is a Java encoding valid for java.lang and java.io
     Cp437,              //(new int[]{0,2}),
@@ -2531,34 +2537,34 @@ impl CharacterSetECI {
      *   but unsupported
      */
     pub fn getCharacterSetECI(charset: &'static dyn Encoding) -> Option<CharacterSetECI> {
-        match charset.whatwg_name().unwrap() {
+        match charset.name() {
             "CP437" => Some(CharacterSetECI::Cp437),
-            "ISO-8859-1" => Some(CharacterSetECI::ISO8859_1),
-            "ISO-8859-2" => Some(CharacterSetECI::ISO8859_2),
-            "ISO-8859-3" => Some(CharacterSetECI::ISO8859_3),
-            "ISO-8859-4" => Some(CharacterSetECI::ISO8859_4),
-            "ISO-8859-5" => Some(CharacterSetECI::ISO8859_5),
-            "ISO-8859-6" => Some(CharacterSetECI::ISO8859_6),
-            "ISO-8859-7" => Some(CharacterSetECI::ISO8859_7),
-            "ISO-8859-8" => Some(CharacterSetECI::ISO8859_8),
-            "ISO-8859-9" => Some(CharacterSetECI::ISO8859_9),
-            "ISO-8859-10" => Some(CharacterSetECI::ISO8859_10),
-            "ISO-8859-11" => Some(CharacterSetECI::ISO8859_11),
-            "ISO-8859-13" => Some(CharacterSetECI::ISO8859_13),
-            "ISO-8859-14" => Some(CharacterSetECI::ISO8859_14),
-            "ISO-8859-15" => Some(CharacterSetECI::ISO8859_15),
-            "ISO-8859-16" => Some(CharacterSetECI::ISO8859_16),
-            "Shift_JIS" => Some(CharacterSetECI::SJIS),
+            "iso-8859-1" => Some(CharacterSetECI::ISO8859_1),
+            "iso-8859-2" => Some(CharacterSetECI::ISO8859_2),
+            "iso-8859-3" => Some(CharacterSetECI::ISO8859_3),
+            "iso-8859-4" => Some(CharacterSetECI::ISO8859_4),
+            "iso-8859-5" => Some(CharacterSetECI::ISO8859_5),
+            "iso-8859-6" => Some(CharacterSetECI::ISO8859_6),
+            "iso-8859-7" => Some(CharacterSetECI::ISO8859_7),
+            "iso-8859-8" => Some(CharacterSetECI::ISO8859_8),
+            "iso-8859-9" => Some(CharacterSetECI::ISO8859_9),
+            "iso-8859-10" => Some(CharacterSetECI::ISO8859_10),
+            "iso-8859-11" => Some(CharacterSetECI::ISO8859_11),
+            "iso-8859-13" => Some(CharacterSetECI::ISO8859_13),
+            "iso-8859-14" => Some(CharacterSetECI::ISO8859_14),
+            "iso-8859-15" => Some(CharacterSetECI::ISO8859_15),
+            "iso-8859-16" => Some(CharacterSetECI::ISO8859_16),
+            "shift_jis" => Some(CharacterSetECI::SJIS),
             "windows-1250" => Some(CharacterSetECI::Cp1250),
             "windows-1251" => Some(CharacterSetECI::Cp1251),
             "windows-1252" => Some(CharacterSetECI::Cp1252),
             "windows-1256" => Some(CharacterSetECI::Cp1256),
-            "UTF-16BE" => Some(CharacterSetECI::UnicodeBigUnmarked),
-            "UTF-8" => Some(CharacterSetECI::UTF8),
-            "US-ASCII" => Some(CharacterSetECI::ASCII),
-            "Big5" => Some(CharacterSetECI::Big5),
-            "GB2312" => Some(CharacterSetECI::GB18030),
-            "EUC-KR" => Some(CharacterSetECI::EUC_KR),
+            "utf-16be" => Some(CharacterSetECI::UnicodeBigUnmarked),
+            "utf-8" => Some(CharacterSetECI::UTF8),
+            "us-ascii" => Some(CharacterSetECI::ASCII),
+            "big5" => Some(CharacterSetECI::Big5),
+            "gb2312" => Some(CharacterSetECI::GB18030),
+            "euc-kr" => Some(CharacterSetECI::EUC_KR),
             _ => None,
         }
     }
@@ -4052,6 +4058,9 @@ impl HybridBinarizer {
                 blackPoints[y as usize][x as usize] = average;
             }
         }
-        return blackPoints.into_iter().map(|x| x.iter().map(|y| *y as u32).collect()).collect();
+        return blackPoints
+            .into_iter()
+            .map(|x| x.iter().map(|y| *y as u32).collect())
+            .collect();
     }
 }

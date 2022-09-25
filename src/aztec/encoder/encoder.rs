@@ -72,8 +72,8 @@ pub fn encode(
     userSpecifiedLayers: u32,
 ) -> Result<AztecCode, Exceptions> {
     let bytes = encoding::all::ISO_8859_1
-        .encode(data, encoding::EncoderTrap::Replace)
-        .unwrap();
+        .encode(data, encoding::EncoderTrap::Strict)
+        .expect("must encode cleanly in ISO_8859_1");
     encode_bytes(&bytes, minECCPercent, userSpecifiedLayers)
 }
 
@@ -209,6 +209,7 @@ pub fn encode_bytes_with_charset(
             layers = if compact { i + 1 } else { i };
             totalBitsInLayerVar = totalBitsInLayer(layers, compact);
             if totalSizeBits > totalBitsInLayerVar as u32 {
+                i += 1;
                 continue;
             }
             // [Re]stuff the bits if this is the first opportunity, or if the
@@ -220,6 +221,7 @@ pub fn encode_bytes_with_charset(
             let usableBitsInLayers = totalBitsInLayerVar - (totalBitsInLayerVar % wordSize);
             if compact && stuffedBits.getSize() as u32 > wordSize * 64 {
                 // Compact format only allows 64 data words, though C4 can hold more words than that
+                i += 1;
                 continue;
             }
             if stuffedBits.getSize()as u32 + eccBits<= usableBitsInLayers {
@@ -487,32 +489,32 @@ fn getGF(wordSize: usize) -> Result<GenericGF, Exceptions> {
     // }
 }
 
-pub fn stuffBits(bits: &BitArray, wordSize: usize) -> BitArray {
+pub fn stuffBits(bits: &BitArray, word_size: usize) -> BitArray {
     let mut out = BitArray::new();
 
-    let n = bits.getSize();
-    let mask = (1 << wordSize) - 2;
-    let mut i = 0;
+    let n = bits.getSize() as isize;
+    let mask = (1 << word_size) - 2;
+    let mut i:isize = 0;
     while i < n {
         // for (int i = 0; i < n; i += wordSize) {
         let mut word = 0;
-        for j in 0..wordSize {
+        for j in 0..word_size as isize {
             // for (int j = 0; j < wordSize; j++) {
-            if i + j >= n || bits.get(i + j) {
-                word |= 1 << (wordSize - 1 - j);
+            if i + j >= n || bits.get((i + j) as usize) {
+                word |= 1 << (word_size as isize - 1 - j);
             }
         }
         if (word & mask) == mask {
-            out.appendBits(word & mask, wordSize);
+            out.appendBits(word & mask, word_size).unwrap();
             i -= 1;
         } else if (word & mask) == 0 {
-            out.appendBits(word | 1, wordSize);
+            out.appendBits(word | 1, word_size).unwrap();
             i -= 1;
         } else {
-            out.appendBits(word, wordSize);
+            out.appendBits(word, word_size).unwrap();
         }
 
-        i += wordSize;
+        i += word_size as isize;
     }
     return out;
 }

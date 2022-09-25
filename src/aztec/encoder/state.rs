@@ -38,19 +38,19 @@ pub struct State {
     token: Token,
     // If non-zero, the number of most recent bytes that should be output
     // in Binary Shift mode.
-    binaryShiftByteCount: u32,
+    binary_shift_byte_count: u32,
     // The total number of bits generated (including Binary Shift).
-    bitCount: u32,
-    binaryShiftCost: u32,
+    bit_count: u32,
+    binary_shift_cost: u32,
 }
 impl State {
-    pub fn new(token: Token, mode: u32, binaryBytes: u32, bitCount: u32) -> Self {
+    pub fn new(token: Token, mode: u32, binary_bytes: u32, bit_count: u32) -> Self {
         Self {
             mode,
             token,
-            binaryShiftByteCount: binaryBytes,
-            bitCount,
-            binaryShiftCost: Self::calculateBinaryShiftCost(binaryBytes),
+            binary_shift_byte_count: binary_bytes,
+            bit_count,
+            binary_shift_cost: Self::calculate_binary_shift_cost(binary_bytes),
         }
     }
 
@@ -63,19 +63,19 @@ impl State {
     }
 
     pub fn getBinaryShiftByteCount(&self) -> u32 {
-        self.binaryShiftByteCount
+        self.binary_shift_byte_count
     }
 
     pub fn getBitCount(&self) -> u32 {
-        self.bitCount
+        self.bit_count
     }
 
     pub fn appendFLGn(self, eci: u32) -> Result<Self, Exceptions> {
-        let bit_count = self.bitCount;
+        let bit_count = self.bit_count;
         let mode = self.mode;
         let result = self.shiftAndAppend(HighLevelEncoder::MODE_PUNCT as u32, 0); // 0: FLG(n)
         let mut token = result.token;
-        let mut bitsAdded = 3;
+        let mut bits_added = 3;
         if eci < 0 {
             token.add(0, 3); // 0: FNC1
         } else if eci > 999999 {
@@ -84,25 +84,25 @@ impl State {
             ));
             // throw new IllegalArgumentException("ECI code must be between 0 and 999999");
         } else {
-            let eciDigits = encoding::all::ISO_8859_1
+            let eci_digits = encoding::all::ISO_8859_1
                 .encode(&format!("{}", eci), encoding::EncoderTrap::Replace)
                 .unwrap();
             // let eciDigits = Integer.toString(eci).getBytes(StandardCharsets.ISO_8859_1);
-            token.add(eciDigits.len() as i32, 3); // 1-6: number of ECI digits
-            for eciDigit in &eciDigits {
+            token.add(eci_digits.len() as i32, 3); // 1-6: number of ECI digits
+            for eci_digit in &eci_digits {
                 // for (byte eciDigit : eciDigits) {
-                token.add((eciDigit - b'0' + 2) as i32, 4);
+                token.add((eci_digit - b'0' + 2) as i32, 4);
             }
-            bitsAdded += eciDigits.len() * 4;
+            bits_added += eci_digits.len() * 4;
         }
-        Ok(State::new(token, mode, 0, bit_count + bitsAdded as u32))
+        Ok(State::new(token, mode, 0, bit_count + bits_added as u32))
         // return new State(token, mode, 0, bitCount + bitsAdded);
     }
 
     // Create a new state representing this state with a latch to a (not
     // necessary different) mode, and then a code.
     pub fn latchAndAppend(self, mode: u32, value: u32) -> State {
-        let mut bitCount = self.bitCount;
+        let mut bitCount = self.bit_count;
         let mut token = self.token;
         if mode != self.mode {
             let latch = HighLevelEncoder::LATCH_TABLE[self.mode as usize][mode as usize];
@@ -134,7 +134,7 @@ impl State {
             thisModeBitCount,
         );
         token.add(value as i32, 5);
-        State::new(token, self.mode, 0, self.bitCount + thisModeBitCount + 5)
+        State::new(token, self.mode, 0, self.bit_count + thisModeBitCount + 5)
     }
 
     // Create a new state representing this state, but an additional character
@@ -142,7 +142,7 @@ impl State {
     pub fn addBinaryShiftChar(self, index: u32) -> State {
         let mut token = self.token;
         let mut mode = self.mode;
-        let mut bitCount = self.bitCount;
+        let mut bitCount = self.bit_count;
         if self.mode == HighLevelEncoder::MODE_PUNCT as u32
             || self.mode == HighLevelEncoder::MODE_DIGIT as u32
         {
@@ -151,10 +151,10 @@ impl State {
             bitCount += latch >> 16;
             mode = HighLevelEncoder::MODE_UPPER as u32;
         }
-        let deltaBitCount = if self.binaryShiftByteCount == 0 || self.binaryShiftByteCount == 31 {
+        let deltaBitCount = if self.binary_shift_byte_count == 0 || self.binary_shift_byte_count == 31 {
             18
         } else {
-            if self.binaryShiftByteCount == 62 {
+            if self.binary_shift_byte_count == 62 {
                 9
             } else {
                 8
@@ -163,10 +163,10 @@ impl State {
         let mut result = State::new(
             token,
             mode,
-            self.binaryShiftByteCount + 1,
+            self.binary_shift_byte_count + 1,
             bitCount + deltaBitCount,
         );
-        if result.binaryShiftByteCount == 2047 + 31 {
+        if result.binary_shift_byte_count == 2047 + 31 {
             // The string is as long as it's allowed to be.  We should end it.
             result = result.endBinaryShift(index + 1);
         }
@@ -176,30 +176,30 @@ impl State {
     // Create the state identical to this one, but we are no longer in
     // Binary Shift mode.
     pub fn endBinaryShift(self, index: u32) -> State {
-        if self.binaryShiftByteCount == 0 {
+        if self.binary_shift_byte_count == 0 {
             return self;
         }
         let mut token = self.token;
-        token.addBinaryShift(index - self.binaryShiftByteCount, self.binaryShiftByteCount);
+        token.addBinaryShift(index - self.binary_shift_byte_count, self.binary_shift_byte_count);
 
-        State::new(token, self.mode, 0, self.bitCount)
+        State::new(token, self.mode, 0, self.bit_count)
     }
 
     // Returns true if "this" state is better (or equal) to be in than "that"
     // state under all possible circumstances.
     pub fn isBetterThanOrEqualTo(&self, other: &State) -> bool {
-        let mut newModeBitCount = self.bitCount
+        let mut new_mode_bit_count = self.bit_count
             + (HighLevelEncoder::LATCH_TABLE[self.mode as usize][other.mode as usize] >> 16);
-        if self.binaryShiftByteCount < other.binaryShiftByteCount {
+        if self.binary_shift_byte_count < other.binary_shift_byte_count {
             // add additional B/S encoding cost of other, if any
-            newModeBitCount += other.binaryShiftCost - self.binaryShiftCost;
-        } else if self.binaryShiftByteCount > other.binaryShiftByteCount
-            && other.binaryShiftByteCount > 0
+            new_mode_bit_count += other.binary_shift_cost - self.binary_shift_cost;
+        } else if self.binary_shift_byte_count > other.binary_shift_byte_count
+            && other.binary_shift_byte_count > 0
         {
             // maximum possible additional cost (we end up exceeding the 31 byte boundary and other state can stay beneath it)
-            newModeBitCount += 10;
+            new_mode_bit_count += 10;
         }
-        newModeBitCount <= other.bitCount
+        new_mode_bit_count <= other.bit_count
     }
 
     pub fn toBitArray(self, text: &[u8]) -> BitArray {
@@ -215,28 +215,24 @@ impl State {
         //     symbols.push(tkn);
         //     tkn = tok.getPrevious();
         // }
-        let mut bitArray = BitArray::new();
+        let mut bit_array = BitArray::new();
         // Add each token to the result in forward order
-        for i in (0..symbols.len() - 1).rev() {
+        for symbol in symbols.into_iter().rev() {
+        // for i in (0..symbols.len()).rev() {
             // for (int i = symbols.size() - 1; i >= 0; i--) {
-            symbols.get(i).unwrap().appendTo(&mut bitArray, text);
+            symbol.appendTo(&mut bit_array, text);
         }
-        bitArray
+        bit_array
     }
 
-    // @Override
-    // public String toString() {
-    //   return String.format("%s bits=%d bytes=%d", HighLevelEncoder.MODE_NAMES[mode], bitCount, binaryShiftByteCount);
-    // }
-
-    fn calculateBinaryShiftCost(binaryShiftByteCount: u32) -> u32 {
-        if binaryShiftByteCount > 62 {
+    fn calculate_binary_shift_cost(binary_shift_byte_count: u32) -> u32 {
+        if binary_shift_byte_count > 62 {
             return 21; // B/S with extended length
         }
-        if binaryShiftByteCount > 31 {
+        if binary_shift_byte_count > 31 {
             return 20; // two B/S
         }
-        if binaryShiftByteCount > 0 {
+        if binary_shift_byte_count > 0 {
             return 10; // one B/S
         }
         return 0;
@@ -249,8 +245,8 @@ impl fmt::Display for State {
             f,
             "{} bits={} bytes={}",
             HighLevelEncoder::MODE_NAMES[self.mode as usize],
-            self.bitCount,
-            self.binaryShiftByteCount
+            self.bit_count,
+            self.binary_shift_byte_count
         )
     }
 }

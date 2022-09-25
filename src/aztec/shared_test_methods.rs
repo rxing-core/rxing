@@ -9,9 +9,9 @@ pub fn toBitArray( bits:&str) -> BitArray{
     let mut ba_in =  BitArray::new();
     let replacer_regex = Regex::new(DOTX).unwrap();
     let str = replacer_regex.replace_all(bits, "");
-    for aStr in str.chars() {
+    for a_str in str.chars() {
     // for (char aStr : str) {
-        ba_in.appendBit(aStr == 'X');
+        ba_in.appendBit(a_str == 'X');
     }
     
     ba_in

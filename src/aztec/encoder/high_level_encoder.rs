@@ -125,27 +125,28 @@ impl HighLevelEncoder {
         // }
         char_map[Self::MODE_DIGIT][b',' as usize] = 12;
         char_map[Self::MODE_DIGIT][b'.' as usize] = 13;
-        let mixedTable = [
+        let mixed_table = [
             '\0', ' ', '\u{1}', '\u{2}', '\u{3}', '\u{4}', '\u{5}', '\u{6}', '\u{7}', '\u{8}',
             '\t', '\n', '\u{13}', '\u{f}', '\r', '\u{33}', '\u{34}', '\u{35}', '\u{36}', '\u{37}',
             '@', '\\', '^', '_', '`', '|', '~', '\u{177}',
         ];
         let mut i = 0;
-        while i < mixedTable.len() {
-            char_map[Self::MODE_MIXED][mixedTable[i] as u8 as usize] = i as u8;
+        while i < mixed_table.len() {
+            char_map[Self::MODE_MIXED][mixed_table[i] as u8 as usize] = i as u8;
             i += 1;
         }
         // for (int i = 0; i < mixedTable.length; i++) {
         //   CHAR_MAP[MODE_MIXED][mixedTable[i]] = i;
         // }
         let punctTable = [
-            '\0', '\r', '\0', '\0', '\0', '\0', '!', '\'', '#', '$', '%', '&', '\'', '(', ')', '*',
-            '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '[', ']', '{', '}',
+            b'\0', b'\r', b'\0', b'\0', b'\0', b'\0', b'!', b'\'', b'#', b'$', b'%', b'&', b'\'',
+            b'(', b')', b'*', b'+', b',', b'-', b'.', b'/', b':', b';', b'<', b'=', b'>', b'?',
+            b'[', b']', b'{', b'}',
         ];
         let mut i = 0;
         while i < punctTable.len() {
-            if punctTable[i] as u8 > 0u8 {
-                char_map[Self::MODE_PUNCT][punctTable[i] as u8 as usize] = i as u8;
+            if punctTable[i] > 0u8 {
+                char_map[Self::MODE_PUNCT][punctTable[i] as usize] = i as u8;
             }
             i += 1;
         }
@@ -230,7 +231,7 @@ impl HighLevelEncoder {
     pub fn new(text: Vec<u8>) -> Self {
         Self {
             text,
-            charset: encoding::all::UTF_8,
+            charset: encoding::all::ISO_8859_1,
         }
     }
 
@@ -242,9 +243,11 @@ impl HighLevelEncoder {
      * @return text represented by this encoder encoded as a {@link BitArray}
      */
     pub fn encode(&self) -> Result<BitArray, Exceptions> {
-        let mut initialState = State::new(Token::new(), Self::MODE_UPPER as u32, 0, 0);
+        let mut initial_state = State::new(Token::new(), Self::MODE_UPPER as u32, 0, 0);
         if let Some(eci) = CharacterSetECI::getCharacterSetECI(self.charset) {
-            initialState = initialState.appendFLGn(CharacterSetECI::getValue(&eci))?;
+            if eci != CharacterSetECI::ISO8859_1 {
+                initial_state = initial_state.appendFLGn(CharacterSetECI::getValue(&eci))?;
+            }
         } else {
             return Err(Exceptions::IllegalArgumentException(
                 "No ECI code for character set".to_owned(),
@@ -257,22 +260,22 @@ impl HighLevelEncoder {
         //   }
         //   initialState = initialState.appendFLGn(eci.getValue());
         // }
-        let mut states = vec![initialState];
+        let mut states = vec![initial_state];
         let mut index = 0;
         while index < self.text.len() {
             // for index in 0..self.text.len() {
             // for (int index = 0; index < text.length; index++) {
-            let pairCode;
-            let nextChar = if index + 1 < self.text.len() {
+            let pair_code;
+            let next_char = if index + 1 < self.text.len() {
                 self.text[index + 1]
             } else {
                 0
             };
-            pairCode = match self.text[index] {
-                b'\r' if nextChar == b'\n' => 2,
-                b'.' if nextChar == b' ' => 3,
-                b',' if nextChar == b' ' => 4,
-                b':' if nextChar == b' ' => 5,
+            pair_code = match self.text[index] {
+                b'\r' if next_char == b'\n' => 2,
+                b'.' if next_char == b' ' => 3,
+                b',' if next_char == b' ' => 4,
+                b':' if next_char == b' ' => 5,
                 _ => 0,
             };
             // switch (text[index]) {
@@ -291,19 +294,24 @@ impl HighLevelEncoder {
             //   default:
             //     pairCode = 0;
             // }
-            if pairCode > 0 {
+            if pair_code > 0 {
                 // We have one of the four special PUNCT pairs.  Treat them specially.
                 // Get a new set of states for the two new characters.
-                states = Self::updateStateListForPair(states, index as u32, pairCode);
+                states = Self::update_state_list_for_pair(states, index as u32, pair_code);
                 index += 1;
             } else {
                 // Get a new set of states for the new character.
-                states = self.updateStateListForChar(states, index as u32);
+                states = self.update_state_list_for_char(states, index as u32);
             }
             index += 1;
         }
+
+        // for state in &states {
+        //     dbg!(state.clone().toBitArray(&self.text).to_string());
+        // }
+
         // We are left with a set of states.  Find the shortest one.
-        let minState = states
+        let min_state = states
             .into_iter()
             .min_by(|a, b| {
                 let diff: i64 = a.getBitCount() as i64 - b.getBitCount() as i64;
@@ -324,58 +332,61 @@ impl HighLevelEncoder {
         //   }
         // });
         // Convert it to a bit array, and return.
-        Ok(minState.toBitArray(&self.text))
+        Ok(min_state.toBitArray(&self.text))
     }
 
     // We update a set of states for a new character by updating each state
     // for the new character, merging the results, and then removing the
     // non-optimal states.
-    fn updateStateListForChar(&self, states: Vec<State>, index: u32) -> Vec<State> {
+    fn update_state_list_for_char(&self, states: Vec<State>, index: u32) -> Vec<State> {
         let mut result = Vec::new();
         for state in states {
             // for (State state : states) {
-            self.updateStateForChar(state, index, &mut result);
+            self.update_state_for_char(state, index, &mut result);
         }
-        Self::simplifyStates(result)
+        Self::simplify_states(result)
     }
 
     // Return a set of states that represent the possible ways of updating this
     // state for the next character.  The resulting set of states are added to
     // the "result" list.
-    fn updateStateForChar(&self, state: State, index: u32, result: &mut Vec<State>) {
+    fn update_state_for_char(&self, state: State, index: u32, result: &mut Vec<State>) {
         let ch = self.text[index as usize];
-        let charInCurrentTable = Self::CHAR_MAP[state.getMode() as usize][ch as usize] > 0;
-        let mut stateNoBinary = None;
-        for mode in 0..Self::MODE_PUNCT {
+        let char_in_current_table = Self::CHAR_MAP[state.getMode() as usize][ch as usize] > 0;
+        let mut state_no_binary = None;
+        for mode in 0..=Self::MODE_PUNCT {
             // for (int mode = 0; mode <= MODE_PUNCT; mode++) {
-            let charInMode = Self::CHAR_MAP[mode as usize][ch as usize];
-            if charInMode > 0 {
-                if stateNoBinary.is_none() {
+            let char_in_mode = Self::CHAR_MAP[mode as usize][ch as usize];
+            if char_in_mode > 0 {
+                if state_no_binary.is_none() {
                     // Only create stateNoBinary the first time it's required.
-                    stateNoBinary = Some(state.clone().endBinaryShift(index));
+                    state_no_binary = Some(state.clone().endBinaryShift(index));
                 }
                 // Try generating the character by latching to its mode
-                if !charInCurrentTable || mode as u32 == state.getMode() || mode == Self::MODE_DIGIT
+                if !char_in_current_table
+                    || mode as u32 == state.getMode()
+                    || mode == Self::MODE_DIGIT
                 {
                     // If the character is in the current table, we don't want to latch to
                     // any other mode except possibly digit (which uses only 4 bits).  Any
                     // other latch would be equally successful *after* this character, and
                     // so wouldn't save any bits.
-                    let latchState = stateNoBinary
+                    let latch_state = state_no_binary
                         .clone()
                         .unwrap()
-                        .latchAndAppend(mode as u32, charInMode as u32);
-                    result.push(latchState);
+                        .latchAndAppend(mode as u32, char_in_mode as u32);
+                    result.push(latch_state);
                 }
                 // Try generating the character by switching to its mode.
-                if !charInCurrentTable && Self::SHIFT_TABLE[state.getMode() as usize][mode] >= 0 {
+                if !char_in_current_table && Self::SHIFT_TABLE[state.getMode() as usize][mode] >= 0
+                {
                     // It never makes sense to temporarily shift to another mode if the
                     // character exists in the current mode.  That can never save bits.
-                    let shiftState = stateNoBinary
+                    let shift_state = state_no_binary
                         .clone()
                         .unwrap()
-                        .shiftAndAppend(mode as u32, charInMode as u32);
-                    result.push(shiftState);
+                        .shiftAndAppend(mode as u32, char_in_mode as u32);
+                    result.push(shift_state);
                 }
             }
         }
@@ -385,56 +396,56 @@ impl HighLevelEncoder {
             // It's never worthwhile to go into binary shift mode if you're not already
             // in binary shift mode, and the character exists in your current mode.
             // That can never save bits over just outputting the char in the current mode.
-            let binaryState = state.addBinaryShiftChar(index);
-            result.push(binaryState);
+            let binary_state = state.addBinaryShiftChar(index);
+            result.push(binary_state);
         }
     }
 
-    fn updateStateListForPair(states: Vec<State>, index: u32, pairCode: u32) -> Vec<State> {
+    fn update_state_list_for_pair(states: Vec<State>, index: u32, pairCode: u32) -> Vec<State> {
         let mut result = Vec::new();
         for state in states {
             // for (State state : states) {
-            Self::updateStateForPair(state, index, pairCode, &mut result);
+            Self::update_state_for_pair(state, index, pairCode, &mut result);
         }
 
-        Self::simplifyStates(result)
+        Self::simplify_states(result)
     }
 
-    fn updateStateForPair(state: State, index: u32, pairCode: u32, result: &mut Vec<State>) {
-        let stateNoBinary = state.clone().endBinaryShift(index);
+    fn update_state_for_pair(state: State, index: u32, pair_code: u32, result: &mut Vec<State>) {
+        let state_no_binary = state.clone().endBinaryShift(index);
         // Possibility 1.  Latch to MODE_PUNCT, and then append this code
         result.push(
-            stateNoBinary
+            state_no_binary
                 .clone()
-                .latchAndAppend(Self::MODE_PUNCT as u32, pairCode),
+                .latchAndAppend(Self::MODE_PUNCT as u32, pair_code),
         );
         if state.getMode() != Self::MODE_PUNCT as u32 {
             // Possibility 2.  Shift to MODE_PUNCT, and then append this code.
             // Every state except MODE_PUNCT (handled above) can shift
             result.push(
-                stateNoBinary
+                state_no_binary
                     .clone()
-                    .shiftAndAppend(Self::MODE_PUNCT as u32, pairCode),
+                    .shiftAndAppend(Self::MODE_PUNCT as u32, pair_code),
             );
         }
-        if pairCode == 3 || pairCode == 4 {
+        if pair_code == 3 || pair_code == 4 {
             // both characters are in DIGITS.  Sometimes better to just add two digits
-            let digitState = stateNoBinary
-                .latchAndAppend(Self::MODE_DIGIT as u32, 16 - pairCode) // period or comma in DIGIT
+            let digit_state = state_no_binary
+                .latchAndAppend(Self::MODE_DIGIT as u32, 16 - pair_code) // period or comma in DIGIT
                 .latchAndAppend(Self::MODE_DIGIT as u32, 1); // space in DIGIT
-            result.push(digitState);
+            result.push(digit_state);
         }
         if state.getBinaryShiftByteCount() > 0 {
             // It only makes sense to do the characters as binary if we're already
             // in binary mode.
-            let binaryState = state
+            let binary_state = state
                 .addBinaryShiftChar(index)
                 .addBinaryShiftChar(index + 1);
-            result.push(binaryState);
+            result.push(binary_state);
         }
     }
 
-    fn simplifyStates(states: Vec<State>) -> Vec<State> {
+    fn simplify_states(states: Vec<State>) -> Vec<State> {
         let mut result: Vec<State> = Vec::new();
         for newState in states {
             // for (State newState : states) {
@@ -442,13 +453,14 @@ impl HighLevelEncoder {
             for i in 0..result.len() {
                 // for st in result {
                 // for (Iterator<State> iterator = result.iterator(); iterator.hasNext();) {
-                let oldState = result.get(i).unwrap();
-                if oldState.isBetterThanOrEqualTo(&newState) {
-                    add = false;
-                    break;
-                }
-                if newState.isBetterThanOrEqualTo(&oldState) {
-                    result.remove(i);
+                if let Some(oldState) = result.get(i) {
+                    if oldState.isBetterThanOrEqualTo(&newState) {
+                        add = false;
+                        break;
+                    }
+                    if newState.isBetterThanOrEqualTo(&oldState) {
+                        result.remove(i);
+                    }
                 }
             }
             if add {

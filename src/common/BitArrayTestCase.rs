@@ -149,6 +149,21 @@ use rand::Rng;
   }
 
   #[test]
+  fn test_append_bit(){
+    let mut array = BitArray::new();
+    array.appendBits(0x000001E, 6);
+    let mut array_2 = BitArray::new();
+    array_2.appendBit(false);
+    array_2.appendBit(true);
+    array_2.appendBit(true);
+    array_2.appendBit(true);
+    array_2.appendBit(true);
+    array_2.appendBit(false);
+
+    assert_eq!(array, array_2)
+  }
+
+  #[test]
   fn test_set_range() {
     let mut array =  BitArray::with_size(64);
     array.setRange(28, 36).unwrap();
