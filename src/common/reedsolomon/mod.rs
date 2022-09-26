@@ -537,7 +537,7 @@ impl GenericGFPoly {
         let denominator_leading_term = other.getCoefficient(other.getDegree());
         let inverse_denominator_leading_term = match self.field.inverse(denominator_leading_term) {
             Ok(val) => val,
-            Err(issue) => {
+            Err(_issue) => {
                 return Err(Exceptions::IllegalArgumentException(
                     "arithmetic issue".to_owned(),
                 ))

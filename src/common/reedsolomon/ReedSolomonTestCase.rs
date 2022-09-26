@@ -392,7 +392,7 @@ fn test_encode_decode_random(field: GenericGF, dataSize: usize, ecSize: usize) {
         // generate ECC words
         message[0..dataWords.len()].clone_from_slice(&dataWords[..]);
         //System.arraycopy(dataWords, 0, message, 0, dataWords.len());
-        if let Err(err) = encoder.encode(&mut message, ecWords.len()){
+        if let Err(err) = encoder.encode(&mut message, ecWords.len()) {
             panic!("{:#?}", err);
         }
         ecWords[0..ecSize].clone_from_slice(&message[dataSize..dataSize + ecSize]);
@@ -443,24 +443,17 @@ fn test_decoder(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
     };
     for _j in 0..iterations {
         //for (int j = 0; j < iterations; j++) {
-            let mut skip_count = 0;
-            let mut skipping = false;
-        for mut i in 0..ecWords.len() {
+        let mut i = 0;
+        while i < ecWords.len() {
+            // for mut i in 0..ecWords.len() {
             //for (int i = 0; i < ecWords.length; i++) {
             if i > 10 && ecWords.len() / 2 > 11 && i < ecWords.len() / 2 - 10 {
                 // performance improvement - skip intermediate cases in long-running tests
-                // i += ecWords.len() / 10;
-                skipping = true;
-                skip_count += 1;
+                i += ecWords.len() / 10;
+                // skipping = true;
+                // skip_count += 1;
             }
-            if skipping {
-                if skip_count > ecWords.len() / 10 {
-                    skipping = false;
-                    skip_count = 0;
-                }else {
-                    continue;
-                }
-            }
+
             message[0..dataWords.len()].clone_from_slice(&dataWords[0..dataWords.len()]);
             //System.arraycopy(dataWords, 0, message, 0, dataWords.len());
             message[dataWords.len()..ecWords.len() + dataWords.len()]
@@ -514,6 +507,7 @@ fn test_decoder(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
                     &message,
                 );
             }
+            i+=1;
         }
     }
 }
