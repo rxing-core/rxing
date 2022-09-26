@@ -35,7 +35,7 @@ use super::{AztecCode, HighLevelEncoder};
  */
 
 pub const DEFAULT_EC_PERCENT: u32 = 33; // default minimal percentage of error check words
-pub const DEFAULT_AZTEC_LAYERS: u32 = 0;
+pub const DEFAULT_AZTEC_LAYERS: i32 = 0;
 pub const MAX_NB_BITS: u32 = 32;
 pub const MAX_NB_BITS_COMPACT: u32 = 4;
 
@@ -69,7 +69,7 @@ pub fn encode_simple(data: &str) -> Result<AztecCode, Exceptions> {
 pub fn encode(
     data: &str,
     minECCPercent: u32,
-    userSpecifiedLayers: u32,
+    userSpecifiedLayers: i32,
 ) -> Result<AztecCode, Exceptions> {
     let bytes = encoding::all::ISO_8859_1
         .encode(data, encoding::EncoderTrap::Strict)
@@ -92,12 +92,12 @@ pub fn encode(
 pub fn encode_with_charset(
     data: &str,
     minECCPercent: u32,
-    userSpecifiedLayers: u32,
+    userSpecifiedLayers: i32,
     charset: &'static dyn encoding::Encoding,
 ) -> Result<AztecCode, Exceptions> {
     let bytes = charset
-        .encode(data, encoding::EncoderTrap::Replace)
-        .unwrap(); //data.getBytes(null != charset ? charset : StandardCharsets.ISO_8859_1);
+        .encode(data, encoding::EncoderTrap::Strict)
+        .expect("must be encodeable"); //data.getBytes(null != charset ? charset : StandardCharsets.ISO_8859_1);
     encode_bytes_with_charset(&bytes, minECCPercent, userSpecifiedLayers, charset)
 }
 
@@ -123,7 +123,7 @@ pub fn encode_bytes_simple(data: &[u8]) -> Result<AztecCode, Exceptions> {
 pub fn encode_bytes(
     data: &[u8],
     minECCPercent: u32,
-    userSpecifiedLayers: u32,
+    userSpecifiedLayers: i32,
 ) -> Result<AztecCode, Exceptions> {
     encode_bytes_with_charset(
         data,
@@ -146,24 +146,24 @@ pub fn encode_bytes(
  */
 pub fn encode_bytes_with_charset(
     data: &[u8],
-    minECCPercent: u32,
-    userSpecifiedLayers: u32,
+    min_eccpercent: u32,
+    user_specified_layers: i32,
     charset: &'static dyn encoding::Encoding,
 ) -> Result<AztecCode, Exceptions> {
     // High-level encode
     let bits = HighLevelEncoder::with_charset(data.into(), charset).encode()?;
 
     // stuff bits and choose symbol size
-    let eccBits = bits.getSize() as u32 * minECCPercent / 100 + 11;
-    let totalSizeBits = bits.getSize() as u32 + eccBits;
+    let ecc_bits = bits.getSize() as u32 * min_eccpercent / 100 + 11;
+    let total_size_bits = bits.getSize() as u32 + ecc_bits;
     let mut compact;
-    let mut layers;
-    let mut totalBitsInLayerVar;
-    let mut wordSize;
-    let mut stuffedBits;
-    if userSpecifiedLayers != DEFAULT_AZTEC_LAYERS {
-        compact = userSpecifiedLayers < 0;
-        layers = userSpecifiedLayers;
+    let mut layers:u32;
+    let mut total_bits_in_layer_var;
+    let mut word_size;
+    let mut stuffed_bits;
+    if user_specified_layers != DEFAULT_AZTEC_LAYERS {
+        compact = user_specified_layers < 0;
+        layers = i32::abs(user_specified_layers) as u32;
         if layers
             > (if compact {
                 MAX_NB_BITS_COMPACT
@@ -173,27 +173,27 @@ pub fn encode_bytes_with_charset(
         {
             return Err(Exceptions::IllegalArgumentException(format!(
                 "Illegal value {} for layers",
-                userSpecifiedLayers
+                user_specified_layers
             )));
         }
-        totalBitsInLayerVar = totalBitsInLayer(layers, compact);
-        wordSize = WORD_SIZE[layers as usize];
-        let usableBitsInLayers = totalBitsInLayerVar - (totalBitsInLayerVar % wordSize);
-        stuffedBits = stuffBits(&bits, wordSize as usize);
-        if stuffedBits.getSize() as u32 + eccBits > usableBitsInLayers {
+        total_bits_in_layer_var = total_bits_in_layer(layers, compact);
+        word_size = WORD_SIZE[layers as usize];
+        let usable_bits_in_layers = total_bits_in_layer_var - (total_bits_in_layer_var % word_size);
+        stuffed_bits = stuffBits(&bits, word_size as usize);
+        if stuffed_bits.getSize() as u32 + ecc_bits > usable_bits_in_layers {
             return Err(Exceptions::IllegalArgumentException(
                 "Data to large for user specified layer".to_owned(),
             ));
         }
-        if compact && stuffedBits.getSize() as u32 > wordSize * 64 {
+        if compact && stuffed_bits.getSize() as u32 > word_size * 64 {
             // Compact format only allows 64 data words, though C4 can hold more words than that
             return Err(Exceptions::IllegalArgumentException(
                 "Data to large for user specified layer".to_owned(),
             ));
         }
     } else {
-        wordSize = 0;
-        stuffedBits = BitArray::new();
+        word_size = 0;
+        stuffed_bits = BitArray::new();
         // We look at the possible table sizes in the order Compact1, Compact2, Compact3,
         // Compact4, Normal4,...  Normal(i) for i < 4 isn't typically used since Compact(i+1)
         // is the same size, but has more data.
@@ -207,37 +207,38 @@ pub fn encode_bytes_with_charset(
             }
             compact = i <= 3;
             layers = if compact { i + 1 } else { i };
-            totalBitsInLayerVar = totalBitsInLayer(layers, compact);
-            if totalSizeBits > totalBitsInLayerVar as u32 {
+            total_bits_in_layer_var = total_bits_in_layer(layers, compact);
+            if total_size_bits > total_bits_in_layer_var as u32 {
                 i += 1;
                 continue;
             }
             // [Re]stuff the bits if this is the first opportunity, or if the
             // wordSize has changed
-            if stuffedBits.getSize() == 0 || wordSize != WORD_SIZE[layers as usize] {
-                wordSize = WORD_SIZE[layers as usize];
-                stuffedBits = stuffBits(&bits, wordSize as usize);
+            if stuffed_bits.getSize() == 0 || word_size != WORD_SIZE[layers as usize] {
+                word_size = WORD_SIZE[layers as usize];
+                stuffed_bits = stuffBits(&bits, word_size as usize);
             }
-            let usableBitsInLayers = totalBitsInLayerVar - (totalBitsInLayerVar % wordSize);
-            if compact && stuffedBits.getSize() as u32 > wordSize * 64 {
+            let usable_bits_in_layers =
+                total_bits_in_layer_var - (total_bits_in_layer_var % word_size);
+            if compact && stuffed_bits.getSize() as u32 > word_size * 64 {
                 // Compact format only allows 64 data words, though C4 can hold more words than that
                 i += 1;
                 continue;
             }
-            if stuffedBits.getSize() as u32 + eccBits <= usableBitsInLayers {
+            if stuffed_bits.getSize() as u32 + ecc_bits <= usable_bits_in_layers {
                 break;
             }
             i += 1;
         }
     }
     let message_bits = generateCheckWords(
-        &stuffedBits,
-        totalBitsInLayerVar as usize,
-        wordSize as usize,
+        &stuffed_bits,
+        total_bits_in_layer_var as usize,
+        word_size as usize,
     );
 
     // generate mode message
-    let messageSizeInWords = stuffedBits.getSize() as u32 / wordSize;
+    let messageSizeInWords = stuffed_bits.getSize() as u32 / word_size;
     let modeMessage = generateModeMessage(compact, layers as u32, messageSizeInWords);
 
     // allocate symbol
@@ -541,7 +542,7 @@ pub fn stuffBits(bits: &BitArray, word_size: usize) -> BitArray {
     return out;
 }
 
-fn totalBitsInLayer(layers: u32, compact: bool) -> u32 {
+fn total_bits_in_layer(layers: u32, compact: bool) -> u32 {
     ((if compact { 88 } else { 112 }) + 16 * layers) * layers
     // return ((compact ? 88 : 112) + 16 * layers) * layers;
 }

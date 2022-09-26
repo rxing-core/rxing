@@ -127,8 +127,8 @@ impl HighLevelEncoder {
         char_map[Self::MODE_DIGIT][b'.' as usize] = 13;
         let mixed_table = [
             '\0', ' ', '\u{1}', '\u{2}', '\u{3}', '\u{4}', '\u{5}', '\u{6}', '\u{7}', '\u{8}',
-            '\t', '\n', '\u{13}', '\u{f}', '\r', '\u{33}', '\u{34}', '\u{35}', '\u{36}', '\u{37}',
-            '@', '\\', '^', '_', '`', '|', '~', '\u{177}',
+            '\t', '\n', '\u{000b}', '\u{000c}', '\r', '\u{001b}', '\u{001c}', '\u{001d}', '\u{001e}', '\u{001f}',
+            '@', '\\', '^', '_', '`', '|', '~', '\u{007f}',
         ];
         let mut i = 0;
         while i < mixed_table.len() {
@@ -138,15 +138,15 @@ impl HighLevelEncoder {
         // for (int i = 0; i < mixedTable.length; i++) {
         //   CHAR_MAP[MODE_MIXED][mixedTable[i]] = i;
         // }
-        let punctTable = [
+        let punct_table = [
             b'\0', b'\r', b'\0', b'\0', b'\0', b'\0', b'!', b'\'', b'#', b'$', b'%', b'&', b'\'',
             b'(', b')', b'*', b'+', b',', b'-', b'.', b'/', b':', b';', b'<', b'=', b'>', b'?',
             b'[', b']', b'{', b'}',
         ];
         let mut i = 0;
-        while i < punctTable.len() {
-            if punctTable[i] > 0u8 {
-                char_map[Self::MODE_PUNCT][punctTable[i] as usize] = i as u8;
+        while i < punct_table.len() {
+            if punct_table[i] > 0u8 {
+                char_map[Self::MODE_PUNCT][punct_table[i] as usize] = i as u8;
             }
             i += 1;
         }
@@ -245,7 +245,7 @@ impl HighLevelEncoder {
     pub fn encode(&self) -> Result<BitArray, Exceptions> {
         let mut initial_state = State::new(Token::new(), Self::MODE_UPPER as u32, 0, 0);
         if let Some(eci) = CharacterSetECI::getCharacterSetECI(self.charset) {
-            if eci != CharacterSetECI::ISO8859_1 {
+            if eci != CharacterSetECI::ISO8859_1 {//} && eci != CharacterSetECI::Cp1252 {
                 initial_state = initial_state.appendFLGn(CharacterSetECI::getValue(&eci))?;
             }
         } else {
@@ -332,6 +332,8 @@ impl HighLevelEncoder {
         //   }
         // });
         // Convert it to a bit array, and return.
+        // dbg!(min_state.clone().toBitArray(&self.text).to_string());
+
         Ok(min_state.toBitArray(&self.text))
     }
 

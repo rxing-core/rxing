@@ -85,8 +85,9 @@ impl State {
             // throw new IllegalArgumentException("ECI code must be between 0 and 999999");
         } else {
             let eci_digits = encoding::all::ISO_8859_1
-                .encode(&format!("{}", eci), encoding::EncoderTrap::Replace)
+                .encode(&format!("{}", eci), encoding::EncoderTrap::Strict)
                 .unwrap();
+                dbg!(format!("{}", eci));
             // let eciDigits = Integer.toString(eci).getBytes(StandardCharsets.ISO_8859_1);
             token.add(eci_digits.len() as i32, 3); // 1-6: number of ECI digits
             for eci_digit in &eci_digits {

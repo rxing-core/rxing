@@ -106,58 +106,57 @@ X       X     X   X   X   X   X   X X   X
         X               X                 X   
         X X     X   X X   X   X   X       X X 
   X   X   X X       X   X         X X X     X 
-"    );
+",
+    );
 }
 
 #[test]
 fn testEncode2() {
     testEncode(
-        r"Aztec Code is a public domain 2D matrix barcode symbology
- of nominally square symbols built on a square grid with a 
-distinctive square bullseye pattern at their center.",
+        "Aztec Code is a public domain 2D matrix barcode symbology of nominally square symbols built on a square grid with a distinctive square bullseye pattern at their center.",
         false,
         6,
         r"        X X     X X     X     X     X   X X X         X   X         X   X X       
-   X       X X     X   X X   X X       X             X     X   X X   X           X 
-   X   X X X     X   X   X X     X X X   X   X X               X X       X X     X 
- X X X             X   X         X         X     X     X   X     X X       X   X   
- X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X 
-     X X   X   X   X X X               X       X       X X     X X   X X       X   
- X X     X       X       X X X X   X   X X       X   X X   X       X X   X X   X   
-   X       X   X     X X   X   X X   X X   X X X X X X   X X           X   X   X X 
- X X   X X   X   X X X X   X X X X X X X X   X   X       X X   X X X X   X X X     
-   X       X   X     X       X X     X X   X   X   X     X X   X X X   X     X X X 
-   X   X X X   X X       X X X         X X           X   X   X   X X X   X X     X 
-     X     X   X X     X X X X     X   X     X X X X   X X   X X   X X X     X   X 
- X X X   X             X         X X X X X   X   X X   X   X   X X   X   X   X   X 
-           X       X X X   X X     X   X           X   X X X X   X X               
-   X     X X   X   X       X X X X X X X X X X X X X X X   X   X X   X   X X X     
-     X X                 X   X                       X X   X       X         X X X 
-         X   X X   X X X X X X   X X X X X X X X X   X     X X           X X X X   
-           X X X   X     X   X   X               X   X X     X X X   X X           
- X X     X     X   X   X   X X   X   X X X X X   X   X X X X X X X       X   X X X 
- X X X X       X       X   X X   X   X       X   X   X     X X X     X X       X X 
- X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X 
-     X     X       X         X   X   X       X   X   X     X   X X                 
-         X X     X X X X X   X   X   X X X X X   X   X X X     X X X X   X         
- X     X   X   X         X   X   X               X   X X   X X   X X X     X   X   
-   X   X X X   X   X X   X X X   X X X X X X X X X   X X         X X     X X X X   
-     X X   X   X   X X X     X                       X X X   X X   X   X     X     
-     X X X X   X         X   X X X X X X X X X X X X X X   X       X X   X X   X X 
-             X   X   X X       X X X X X     X X X       X       X X X         X   
- X       X         X   X X X X   X     X X     X X     X X           X   X       X 
- X     X       X X X X X     X   X X X X   X X X     X       X X X X   X   X X   X 
-   X X X X X               X     X X X   X       X X   X X   X X X X     X X       
- X             X         X   X X   X X     X     X     X   X   X X X X             
-     X   X X       X     X       X   X X X X X X   X X   X X X X X X X X X   X   X 
-     X         X X   X       X     X   X   X       X     X X X     X       X X X X 
- X     X X     X X X X X X             X X X   X               X   X     X     X X 
- X   X X     X               X X X X X     X X     X X X X X X X X     X   X   X X 
- X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X 
- X           X     X X X X     X     X         X         X   X       X X   X X X   
- X   X   X X   X X X   X         X X     X X X X     X X   X   X     X   X       X 
-       X     X     X     X X     X   X X   X X   X         X X       X       X   X 
- X       X           X   X   X     X X   X               X     X     X X X         
+  X       X X     X   X X   X X       X             X     X   X X   X           X 
+  X   X X X     X   X   X X     X X X   X   X X               X X       X X     X 
+X X X             X   X         X         X     X     X   X     X X       X   X   
+X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X 
+    X X   X   X   X X X               X       X       X X     X X   X X       X   
+X X     X       X       X X X X   X   X X       X   X X   X       X X   X X   X   
+  X       X   X     X X   X   X X   X X   X X X X X X   X X           X   X   X X 
+X X   X X   X   X X X X   X X X X X X X X   X   X       X X   X X X X   X X X     
+  X       X   X     X       X X     X X   X   X   X     X X   X X X   X     X X X 
+  X   X X X   X X       X X X         X X           X   X   X   X X X   X X     X 
+    X     X   X X     X X X X     X   X     X X X X   X X   X X   X X X     X   X 
+X X X   X             X         X X X X X   X   X X   X   X   X X   X   X   X   X 
+          X       X X X   X X     X   X           X   X X X X   X X               
+  X     X X   X   X       X X X X X X X X X X X X X X X   X   X X   X   X X X     
+    X X                 X   X                       X X   X       X         X X X 
+        X   X X   X X X X X X   X X X X X X X X X   X     X X           X X X X   
+          X X X   X     X   X   X               X   X X     X X X   X X           
+X X     X     X   X   X   X X   X   X X X X X   X   X X X X X X X       X   X X X 
+X X X X       X       X   X X   X   X       X   X   X     X X X     X X       X X 
+X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X 
+    X     X       X         X   X   X       X   X   X     X   X X                 
+        X X     X X X X X   X   X   X X X X X   X   X X X     X X X X   X         
+X     X   X   X         X   X   X               X   X X   X X   X X X     X   X   
+  X   X X X   X   X X   X X X   X X X X X X X X X   X X         X X     X X X X   
+    X X   X   X   X X X     X                       X X X   X X   X   X     X     
+    X X X X   X         X   X X X X X X X X X X X X X X   X       X X   X X   X X 
+            X   X   X X       X X X X X     X X X       X       X X X         X   
+X       X         X   X X X X   X     X X     X X     X X           X   X       X 
+X     X       X X X X X     X   X X X X   X X X     X       X X X X   X   X X   X 
+  X X X X X               X     X X X   X       X X   X X   X X X X     X X       
+X             X         X   X X   X X     X     X     X   X   X X X X             
+    X   X X       X     X       X   X X X X X X   X X   X X X X X X X X X   X   X 
+    X         X X   X       X     X   X   X       X     X X X     X       X X X X 
+X     X X     X X X X X X             X X X   X               X   X     X     X X 
+X   X X     X               X X X X X     X X     X X X X X X X X     X   X   X X 
+X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X   X 
+X           X     X X X X     X     X         X         X   X       X X   X X X   
+X   X   X X   X X X   X         X X     X X X X     X X   X   X     X   X       X 
+      X     X     X     X X     X   X X   X X   X         X X       X       X   X 
+X       X           X   X   X     X X   X               X     X     X X X         
 ",
     );
 }
@@ -170,6 +169,7 @@ fn testAztecWriter() {
     testWriter("Espa\u{00F1}ol", Some(ISO_8859_1), 25, true, 1); // Explicit ISO-8859-1
     testWriter("\u{20AC} 1 sample data.", Some(WINDOWS_1252), 25, true, 2); // ISO-8859-1 can't encode Euro; Windows-1252 can
     testWriter("\u{20AC} 1 sample data.", Some(ISO_8859_15), 25, true, 2);
+    testWriter("\u{20AC} 1 sample data.", Some(ISO_8859_15), 0, true, 2);
     testWriter("\u{20AC} 1 sample data.", Some(UTF_8), 25, true, 2);
     testWriter("\u{20AC} 1 sample data.", Some(UTF_8), 100, true, 3);
     testWriter("\u{20AC} 1 sample data.", Some(UTF_8), 300, true, 4);
@@ -191,8 +191,8 @@ fn testAztecWriter() {
         encoder::DEFAULT_AZTEC_LAYERS,
     )
     .expect("encode should succeed");
-    let expectedMatrix = aztec.getMatrix();
-    assert_eq!(&matrix, expectedMatrix);
+    let expected_matrix = aztec.getMatrix();
+    assert_eq!(&matrix, expected_matrix);
 }
 
 // synthetic tests (encode-decode round-trip)
@@ -234,12 +234,7 @@ Four score and seven our forefathers brought forth"#,
 #[test]
 fn testEncodeDecode10() {
     testEncodeDecode(
-        r"In ut magna vel mauris malesuada dictum. Nulla ullamcorper metus quis diam
- cursus facilisis. Sed mollis quam id justo rutrum sagittis. Donec laoreet rutrum
- est, nec convallis mauris condimentum sit amet. Phasellus gravida, justo et congue
- auctor, nisi ipsum viverra erat, eget hendrerit felis turpis nec lorem. Nulla
- ultrices, elit pellentesque aliquet laoreet, justo erat pulvinar nisi, id
- elementum sapien dolor et diam.",
+        "In ut magna vel mauris malesuada dictum. Nulla ullamcorper metus quis diam cursus facilisis. Sed mollis quam id justo rutrum sagittis. Donec laoreet rutrum est, nec convallis mauris condimentum sit amet. Phasellus gravida, justo et congue auctor, nisi ipsum viverra erat, eget hendrerit felis turpis nec lorem. Nulla ultrices, elit pellentesque aliquet laoreet, justo erat pulvinar nisi, id elementum sapien dolor et diam.",
         false,
         10,
     );
@@ -248,27 +243,27 @@ fn testEncodeDecode10() {
 #[test]
 fn testEncodeDecode23() {
     testEncodeDecode(
-        "In ut magna vel mauris malesuada dictum. Nulla ullamcorper metus quis diam
- cursus facilisis. Sed mollis quam id justo rutrum sagittis. Donec laoreet rutrum
- est, nec convallis mauris condimentum sit amet. Phasellus gravida, justo et congue
- auctor, nisi ipsum viverra erat, eget hendrerit felis turpis nec lorem. Nulla
- ultrices, elit pellentesque aliquet laoreet, justo erat pulvinar nisi, id
- elementum sapien dolor et diam. Donec ac nunc sodales elit placerat eleifend.
- Sed ornare luctus ornare. Vestibulum vehicula, massa at pharetra fringilla, risus
- justo faucibus erat, nec porttitor nibh tellus sed est. Ut justo diam, lobortis eu
- tristique ac, p.In ut magna vel mauris malesuada dictum. Nulla ullamcorper metus
- quis diam cursus facilisis. Sed mollis quam id justo rutrum sagittis. Donec
- laoreet rutrum est, nec convallis mauris condimentum sit amet. Phasellus gravida
- justo et congue auctor, nisi ipsum viverra erat, eget hendrerit felis turpis nec
- lorem. Nulla ultrices, elit pellentesque aliquet laoreet, justo erat pulvinar
- nisi, id elementum sapien dolor et diam. Donec ac nunc sodales elit placerat
- eleifend. Sed ornare luctus ornare. Vestibulum vehicula, massa at pharetra
- fringilla, risus justo faucibus erat, nec porttitor nibh tellus sed est. Ut justo
- diam, lobortis eu tristique ac, p. In ut magna vel mauris malesuada dictum. Nulla
- ullamcorper metus quis diam cursus facilisis. Sed mollis quam id justo rutrum
- sagittis. Donec laoreet rutrum est, nec convallis mauris condimentum sit amet.
- Phasellus gravida, justo et congue auctor, nisi ipsum viverra erat, eget hendrerit
- felis turpis nec lorem. Nulla ultrices, elit pellentesque aliquet laoreet, justo
+        "In ut magna vel mauris malesuada dictum. Nulla ullamcorper metus quis diam\
+ cursus facilisis. Sed mollis quam id justo rutrum sagittis. Donec laoreet rutrum\
+ est, nec convallis mauris condimentum sit amet. Phasellus gravida, justo et congue\
+ auctor, nisi ipsum viverra erat, eget hendrerit felis turpis nec lorem. Nulla\
+ ultrices, elit pellentesque aliquet laoreet, justo erat pulvinar nisi, id\
+ elementum sapien dolor et diam. Donec ac nunc sodales elit placerat eleifend.\
+ Sed ornare luctus ornare. Vestibulum vehicula, massa at pharetra fringilla, risus\
+ justo faucibus erat, nec porttitor nibh tellus sed est. Ut justo diam, lobortis eu\
+ tristique ac, p.In ut magna vel mauris malesuada dictum. Nulla ullamcorper metus\
+ quis diam cursus facilisis. Sed mollis quam id justo rutrum sagittis. Donec\
+ laoreet rutrum est, nec convallis mauris condimentum sit amet. Phasellus gravida\
+ justo et congue auctor, nisi ipsum viverra erat, eget hendrerit felis turpis nec\
+ lorem. Nulla ultrices, elit pellentesque aliquet laoreet, justo erat pulvinar\
+ nisi, id elementum sapien dolor et diam. Donec ac nunc sodales elit placerat\
+ eleifend. Sed ornare luctus ornare. Vestibulum vehicula, massa at pharetra\
+ fringilla, risus justo faucibus erat, nec porttitor nibh tellus sed est. Ut justo\
+ diam, lobortis eu tristique ac, p. In ut magna vel mauris malesuada dictum. Nulla\
+ ullamcorper metus quis diam cursus facilisis. Sed mollis quam id justo rutrum\
+ sagittis. Donec laoreet rutrum est, nec convallis mauris condimentum sit amet.\
+ Phasellus gravida, justo et congue auctor, nisi ipsum viverra erat, eget hendrerit\
+ felis turpis nec lorem. Nulla ultrices, elit pellentesque aliquet laoreet, justo\
  erat pulvinar nisi, id elementum sapien dolor et diam.",
         false,
         23,
@@ -278,42 +273,42 @@ fn testEncodeDecode23() {
 #[test]
 fn testEncodeDecode31() {
     testEncodeDecode(
-        "In ut magna vel mauris malesuada dictum. Nulla ullamcorper metus quis diam
- cursus facilisis. Sed mollis quam id justo rutrum sagittis. Donec laoreet rutrum
- est, nec convallis mauris condimentum sit amet. Phasellus gravida, justo et congue
- auctor, nisi ipsum viverra erat, eget hendrerit felis turpis nec lorem. Nulla
- ultrices, elit pellentesque aliquet laoreet, justo erat pulvinar nisi, id
- elementum sapien dolor et diam. Donec ac nunc sodales elit placerat eleifend.
- Sed ornare luctus ornare. Vestibulum vehicula, massa at pharetra fringilla, risus
- justo faucibus erat, nec porttitor nibh tellus sed est. Ut justo diam, lobortis eu
- tristique ac, p.In ut magna vel mauris malesuada dictum. Nulla ullamcorper metus
- quis diam cursus facilisis. Sed mollis quam id justo rutrum sagittis. Donec
- laoreet rutrum est, nec convallis mauris condimentum sit amet. Phasellus gravida,
- justo et congue auctor, nisi ipsum viverra erat, eget hendrerit felis turpis nec
- lorem. Nulla ultrices, elit pellentesque aliquet laoreet, justo erat pulvinar
- nisi, id elementum sapien dolor et diam. Donec ac nunc sodales elit placerat
- eleifend. Sed ornare luctus ornare. Vestibulum vehicula, massa at pharetra
- fringilla, risus justo faucibus erat, nec porttitor nibh tellus sed est. Ut justo
- diam, lobortis eu tristique ac, p. In ut magna vel mauris malesuada dictum. Nulla
- ullamcorper metus quis diam cursus facilisis. Sed mollis quam id justo rutrum
- sagittis. Donec laoreet rutrum est, nec convallis mauris condimentum sit amet.
- Phasellus gravida, justo et congue auctor, nisi ipsum viverra erat, eget hendrerit
- felis turpis nec lorem. Nulla ultrices, elit pellentesque aliquet laoreet, justo
- erat pulvinar nisi, id elementum sapien dolor et diam. Donec ac nunc sodales elit
- placerat eleifend. Sed ornare luctus ornare. Vestibulum vehicula, massa at
- pharetra fringilla, risus justo faucibus erat, nec porttitor nibh tellus sed est.
- Ut justo diam, lobortis eu tristique ac, p.In ut magna vel mauris malesuada
- dictum. Nulla ullamcorper metus quis diam cursus facilisis. Sed mollis quam id
- justo rutrum sagittis. Donec laoreet rutrum est, nec convallis mauris condimentum
- sit amet. Phasellus gravida, justo et congue auctor, nisi ipsum viverra erat,
- eget hendrerit felis turpis nec lorem. Nulla ultrices, elit pellentesque aliquet
- laoreet, justo erat pulvinar nisi, id elementum sapien dolor et diam. Donec ac
- nunc sodales elit placerat eleifend. Sed ornare luctus ornare. Vestibulum vehicula,
- massa at pharetra fringilla, risus justo faucibus erat, nec porttitor nibh tellus
- sed est. Ut justo diam, lobortis eu tris. In ut magna vel mauris malesuada dictum.
- Nulla ullamcorper metus quis diam cursus facilisis. Sed mollis quam id justo rutrum
- sagittis. Donec laoreet rutrum est, nec convallis mauris condimentum sit amet.
- Phasellus gravida, justo et congue auctor, nisi ipsum viverra erat, eget
+        "In ut magna vel mauris malesuada dictum. Nulla ullamcorper metus quis diam\
+ cursus facilisis. Sed mollis quam id justo rutrum sagittis. Donec laoreet rutrum\
+ est, nec convallis mauris condimentum sit amet. Phasellus gravida, justo et congue\
+ auctor, nisi ipsum viverra erat, eget hendrerit felis turpis nec lorem. Nulla\
+ ultrices, elit pellentesque aliquet laoreet, justo erat pulvinar nisi, id\
+ elementum sapien dolor et diam. Donec ac nunc sodales elit placerat eleifend.\
+ Sed ornare luctus ornare. Vestibulum vehicula, massa at pharetra fringilla, risus\
+ justo faucibus erat, nec porttitor nibh tellus sed est. Ut justo diam, lobortis eu\
+ tristique ac, p.In ut magna vel mauris malesuada dictum. Nulla ullamcorper metus\
+ quis diam cursus facilisis. Sed mollis quam id justo rutrum sagittis. Donec\
+ laoreet rutrum est, nec convallis mauris condimentum sit amet. Phasellus gravida,\
+ justo et congue auctor, nisi ipsum viverra erat, eget hendrerit felis turpis nec\
+ lorem. Nulla ultrices, elit pellentesque aliquet laoreet, justo erat pulvinar\
+ nisi, id elementum sapien dolor et diam. Donec ac nunc sodales elit placerat\
+ eleifend. Sed ornare luctus ornare. Vestibulum vehicula, massa at pharetra\
+ fringilla, risus justo faucibus erat, nec porttitor nibh tellus sed est. Ut justo\
+ diam, lobortis eu tristique ac, p. In ut magna vel mauris malesuada dictum. Nulla\
+ ullamcorper metus quis diam cursus facilisis. Sed mollis quam id justo rutrum\
+ sagittis. Donec laoreet rutrum est, nec convallis mauris condimentum sit amet.\
+ Phasellus gravida, justo et congue auctor, nisi ipsum viverra erat, eget hendrerit\
+ felis turpis nec lorem. Nulla ultrices, elit pellentesque aliquet laoreet, justo\
+ erat pulvinar nisi, id elementum sapien dolor et diam. Donec ac nunc sodales elit\
+ placerat eleifend. Sed ornare luctus ornare. Vestibulum vehicula, massa at\
+ pharetra fringilla, risus justo faucibus erat, nec porttitor nibh tellus sed est.\
+ Ut justo diam, lobortis eu tristique ac, p.In ut magna vel mauris malesuada\
+ dictum. Nulla ullamcorper metus quis diam cursus facilisis. Sed mollis quam id\
+ justo rutrum sagittis. Donec laoreet rutrum est, nec convallis mauris condimentum\
+ sit amet. Phasellus gravida, justo et congue auctor, nisi ipsum viverra erat,\
+ eget hendrerit felis turpis nec lorem. Nulla ultrices, elit pellentesque aliquet\
+ laoreet, justo erat pulvinar nisi, id elementum sapien dolor et diam. Donec ac\
+ nunc sodales elit placerat eleifend. Sed ornare luctus ornare. Vestibulum vehicula,\
+ massa at pharetra fringilla, risus justo faucibus erat, nec porttitor nibh tellus\
+ sed est. Ut justo diam, lobortis eu tris. In ut magna vel mauris malesuada dictum.\
+ Nulla ullamcorper metus quis diam cursus facilisis. Sed mollis quam id justo rutrum\
+ sagittis. Donec laoreet rutrum est, nec convallis mauris condimentum sit amet.\
+ Phasellus gravida, justo et congue auctor, nisi ipsum viverra erat, eget\
  hendrerit felis turpis nec lorem.",
         false,
         31,
@@ -363,7 +358,7 @@ fn testStuffBitsTest() {
         ".....X ...XXX XX..XX ..X... ..X.X. X..... X.X... ....X. X..... X....X X..X.. .....X X.X..X XXX.XX .XXXXX");
 }
 
-#[test] // Adding a binary shift character that shouldn't be there.
+#[test]
 fn testHighLevelEncode() {
     testHighLevelEncodeString(
         "A. b.",
@@ -436,6 +431,9 @@ fn testHighLevelEncodeBinary() {
         "XXXX. ..XX .X.. .X.X .XX. XXX. XXXXX ....X ........",
     );
 
+    testHighLevelEncodeStringUtf8("\u{20AC} 1 sample data.", 
+    "...........X..X..X...XXXXX...XXXXX...X.X.....X.X.X.XX..XXXX....X..XX...XXXX.XXX..X.X.....X..XXX.X...X.XX.X..XX.....X..X.X...X.X.X.X...X.XXXX.XX.X");
+
     // Create a string in which every character requires binary
     let mut sb = String::new();
     for i in 0..3000 {
@@ -466,69 +464,101 @@ fn testHighLevelEncodeBinary() {
             };
         // ( (i <= 31) ? 10 : (i <= 62) ? 20 : (i <= 2078) ? 21 : 31);
         // Verify that we are correct about the length.
-        let substring_for_test : String = sb.chars().take(i).collect();
+        let substring_for_test: String = sb.chars().take(i).collect();
         testHighLevelEncodeStringCount(&substring_for_test, expected_length as u32);
         if i != 1 && i != 32 && i != 2079 {
             // The addition of an 'a' at the beginning or end gets merged into the binary code
             // in those cases where adding another binary character only adds 8 or 9 bits to the result.
             // So we exclude the border cases i=1,32,2079
             // A lower case letter at the beginning will be merged into binary mode
-            let substring_for_sub_test : String = sb.chars().take(i-1).collect();
-            testHighLevelEncodeStringCount(&format!("a{}", &substring_for_sub_test), expected_length as u32);
+            let substring_for_sub_test: String = sb.chars().take(i - 1).collect();
+            testHighLevelEncodeStringCount(
+                &format!("a{}", &substring_for_sub_test),
+                expected_length as u32,
+            );
             // A lower case letter at the end will also be merged into binary mode
-            testHighLevelEncodeStringCount(&format!("{}a", &substring_for_sub_test), expected_length as u32);
+            testHighLevelEncodeStringCount(
+                &format!("{}a", &substring_for_sub_test),
+                expected_length as u32,
+            );
         }
         // A lower case letter at both ends will enough to latch us into LOWER.
-        testHighLevelEncodeStringCount(&format!("a{}b", &substring_for_test), expected_length as u32 + 15);
+        testHighLevelEncodeStringCount(
+            &format!("a{}b", &substring_for_test),
+            expected_length as u32 + 15,
+        );
     }
 
     sb.clear();
 
-    sb.push('A');
-    for _i in 0..31 {
+    // sb.push('A');
+    for _i in 0..32 {
         // for (int i = 0; i < 32; i++) {
         sb.push('§'); // § forces binary encoding
     }
-    // sb.replace_range(sb.char_indices().nth(1).map(|(pos, ch)| pos..pos+ch.len_utf8()).unwrap(), "A");
+    sb.replace_range(
+        sb.char_indices()
+            .nth(1)
+            .map(|(pos, ch)| pos..pos + ch.len_utf8())
+            .unwrap(),
+        "A",
+    );
     // sb.setCharAt(1, 'A');
     // expect B/S(1) A B/S(30)
     testHighLevelEncodeStringCount(&sb, 5 + 20 + 31 * 8);
 
     sb.clear();
 
-    sb.push('A');
-    for _i in 0..30 {
+    // sb.push('A');
+    for _i in 0..31 {
         // for (int i = 0; i < 31; i++) {
         sb.push('§');
     }
     // sb.replace_range(1..2, "A");
+    sb.replace_range(
+        sb.char_indices()
+            .nth(1)
+            .map(|(pos, ch)| pos..pos + ch.len_utf8())
+            .unwrap(),
+        "A",
+    );
     // sb.setCharAt(1, 'A');
     // expect B/S(31)
     testHighLevelEncodeStringCount(&sb, 10 + 31 * 8);
 
     sb.clear();
 
-    sb.push('A');
-    for _i in 0..33 {
+    // sb.push('A');
+    for _i in 0..34 {
         // for (int i = 0; i < 34; i++) {
         sb.push('§');
     }
     //sb.replace_range(1..2, "A");
+    sb.replace_range(
+        sb.char_indices()
+            .nth(1)
+            .map(|(pos, ch)| pos..pos + ch.len_utf8())
+            .unwrap(),
+        "A",
+    );
     // sb.setCharAt(1, 'A');
     // expect B/S(31) B/S(3)
     testHighLevelEncodeStringCount(&sb, 20 + 34 * 8);
 
     sb.clear();
-    for _i in 0..30 {
-        // for (int i = 0; i < 64; i++) {
-        sb.push('§');
-    }
-    sb.push('A');
-    for _i in 31..64 {
+
+    for _i in 0..64 {
         // for (int i = 0; i < 64; i++) {
         sb.push('§');
     }
     //sb.replace_range(30..31, "A");
+    sb.replace_range(
+        sb.char_indices()
+            .nth(30)
+            .map(|(pos, ch)| pos..pos + ch.len_utf8())
+            .unwrap(),
+        "A",
+    );
     // sb.setCharAt(30, 'A');
     // expect B/S(64)
     testHighLevelEncodeStringCount(&sb, 21 + 64 * 8);
@@ -573,12 +603,12 @@ fn testUserSpecifiedLayers() {
 #[test]
 #[should_panic]
 fn testUserSpecifiedLayers2() {
-    doTestUserSpecifiedLayers(1);
+    doTestUserSpecifiedLayers(-1);
 }
 
-fn doTestUserSpecifiedLayers(userSpecifiedLayers: usize) {
+fn doTestUserSpecifiedLayers(userSpecifiedLayers: i32) {
     let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let mut aztec = encoder::encode(alphabet, 25, 2).expect("should encode");
+    let mut aztec = encoder::encode(alphabet, 25, -2).expect("should encode");
     assert_eq!(2, aztec.getLayers());
     assert!(aztec.isCompact());
 
@@ -586,7 +616,7 @@ fn doTestUserSpecifiedLayers(userSpecifiedLayers: usize) {
     assert_eq!(32, aztec.getLayers());
     assert!(!aztec.isCompact());
 
-    encoder::encode(alphabet, 25, userSpecifiedLayers as u32).expect("encode");
+    encoder::encode(alphabet, 25, userSpecifiedLayers).expect("encode");
 }
 
 #[test]
@@ -597,7 +627,7 @@ fn testBorderCompact4CaseFailed() {
     let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     // encodes as 26 * 5 * 4 = 520 bits of data
     let alphabet4 = format!("{}{}{}{}", alphabet, alphabet, alphabet, alphabet);
-    encoder::encode(&alphabet4, 0, 4).expect("encode");
+    encoder::encode(&alphabet4, 0, -4).expect("encode");
 }
 
 #[test]
@@ -633,9 +663,10 @@ fn testEncode(data: &str, compact: bool, layers: u32, expected: &str) {
     );
     assert_eq!(layers, aztec.getLayers(), "Unexpected nr. of layers");
     let matrix = aztec.getMatrix();
+
     // let mut xored = BitMatrix::parse_strings(&stripSpace(expected), "X ", "  ").expect("should parse");
     // xored.xor(matrix).expect("should xor");
-    assert_eq!(expected, matrix.to_string(), "encode({}) failed", data );
+    assert_eq!(expected, matrix.to_string(), "encode({}) failed", data);
 }
 
 fn testEncodeDecode(data: &str, compact: bool, layers: u32) {
@@ -688,7 +719,7 @@ fn testEncodeDecode(data: &str, compact: bool, layers: u32) {
 fn testWriter(
     data: &str,
     charset: Option<EncodingRef>,
-    eccPercent: u32,
+    ecc_percent: u32,
     compact: bool,
     layers: u32,
 ) {
@@ -705,22 +736,18 @@ fn testWriter(
     // }
     hints.insert(
         EncodeHintType::ERROR_CORRECTION,
-        EncodeHintValue::ErrorCorrection(eccPercent.to_string()),
+        EncodeHintValue::ErrorCorrection(ecc_percent.to_string()),
     );
-    let writer = AztecWriter {};
     let mut matrix = AztecWriter::encode_with_hints(data, &BarcodeFormat::AZTEC, 0, 0, &hints)
         .expect("encoder created");
-        let cset = match charset {
-            Some(cs) => cs,
-            None => encoding::all::ISO_8859_1,
-        };
-    let aztec = encoder::encode_with_charset(
-        data,
-        eccPercent,
-        encoder::DEFAULT_AZTEC_LAYERS,
-        cset,
-    )
-    .expect("encode should encode");
+
+    let cset = match charset {
+        Some(cs) => cs,
+        None => encoding::all::ISO_8859_1,
+    };
+    let aztec =
+        encoder::encode_with_charset(data, ecc_percent, encoder::DEFAULT_AZTEC_LAYERS, cset)
+            .expect("encode should encode");
     assert_eq!(
         compact,
         aztec.isCompact(),
@@ -729,6 +756,7 @@ fn testWriter(
     assert_eq!(layers, aztec.getLayers(), "Unexpected nr. of layers");
     let matrix2 = aztec.getMatrix();
     assert_eq!(&matrix, matrix2);
+    
     let mut r = AztecDetectorRXingResult::new(
         matrix.clone(),
         NO_POINTS,
@@ -736,12 +764,14 @@ fn testWriter(
         aztec.getCodeWords(),
         aztec.getLayers(),
     );
+
     let mut res = decoder::decode(&r).expect("should decode");
     assert_eq!(data, res.getText());
+    
     // Check error correction by introducing up to eccPercent/2 errors
-    let ecWords = aztec.getCodeWords() * eccPercent / 100 / 2;
+    let ec_words = aztec.getCodeWords() * ecc_percent / 100 / 2;
     let mut random = getPseudoRandom();
-    for _i in 0..ecWords {
+    for _i in 0..ec_words {
         // for (int i = 0; i < ecWords; i++) {
         // don't touch the core
         let x = if random.gen_bool(0.50) {
@@ -791,6 +821,30 @@ fn testStuffBits(wordSize: usize, bits: &str, expected: &str) {
     );
 }
 
+fn testHighLevelEncodeStringUtf8(s: &str, expectedBits: &str) {
+    let bits = HighLevelEncoder::with_charset(
+        encoding::all::UTF_8
+            .encode(s, encoding::EncoderTrap::Strict)
+            .expect("should encode to bytes"),
+        encoding::all::UTF_8,
+    )
+    .encode()
+    .expect("high level ok");
+    // let bits =  HighLevelEncoder::new(s.getBytes(StandardCharsets.ISO_8859_1)).encode();
+    let receivedBits = stripSpace(&bits.to_string());
+    assert_eq!(
+        s,
+        decoder::highLevelDecode(&toBooleanArray(&bits)).expect("must decode")
+    );
+    // dbg!(s, decoder::highLevelDecode(&toBooleanArray(&bits)).expect("must decode"));
+    assert_eq!(
+        stripSpace(expectedBits),
+        receivedBits,
+        "highLevelEncode() failed for input string: {}",
+        s
+    );
+}
+
 fn testHighLevelEncodeString(s: &str, expectedBits: &str) {
     let bits = HighLevelEncoder::new(
         encoding::all::ISO_8859_1
@@ -823,19 +877,20 @@ fn testHighLevelEncodeStringCount(s: &str, expectedReceivedBits: u32) {
     .expect("high level ok");
     //let bits =  HighLevelEncoder::new(s.getBytes(StandardCharsets.ISO_8859_1)).encode().unwrap();
     let receivedBitCount = stripSpace(&bits.to_string()).len();
+    // dbg!(s, decoder::highLevelDecode(&toBooleanArray(&bits)).expect("should decode"));
     assert_eq!(
         s,
         decoder::highLevelDecode(&toBooleanArray(&bits)).expect("should decode")
     );
-    assert!(
-        expectedReceivedBits as usize >= receivedBitCount,
-        "encode size too high ({} >= {}) failed for input string: {}",
-        expectedReceivedBits, receivedBitCount,
-        s
-    );
-    // assert_eq!(
-    //     expectedReceivedBits as usize, receivedBitCount,
-    //     "highLevelEncode() failed for input string: {}",
+    // assert!(
+    //     expectedReceivedBits as usize >= receivedBitCount,
+    //     "encode size too high ({} >= {}) failed for input string: {}",
+    //     expectedReceivedBits, receivedBitCount,
     //     s
     // );
+    assert_eq!(
+        expectedReceivedBits as usize, receivedBitCount,
+        "highLevelEncode() failed for input string: {} with byte count ({}!={})",
+        s, expectedReceivedBits, receivedBitCount
+    );
 }

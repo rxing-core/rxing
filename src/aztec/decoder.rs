@@ -14,28 +14,11 @@
  * limitations under the License.
  */
 
-// package com.google.zxing.aztec.decoder;
-
-// import com.google.zxing.FormatException;
-// import com.google.zxing.aztec.AztecDetectorRXingResult;
-// import com.google.zxing.common.BitMatrix;
-// import com.google.zxing.common.CharacterSetECI;
-// import com.google.zxing.common.DecoderRXingResult;
-// import com.google.zxing.common.reedsolomon.GenericGF;
-// import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
-// import com.google.zxing.common.reedsolomon.ReedSolomonException;
-
-// import java.io.ByteArrayOutputStream;
-// import java.io.UnsupportedEncodingException;
-// import java.nio.charset.Charset;
-// import java.nio.charset.StandardCharsets;
-// import java.util.Arrays;
 
 use encoding::Encoding;
 
 use crate::{
     common::{
-        self,
         reedsolomon::{
             get_predefined_genericgf, GenericGF, PredefinedGenericGF, ReedSolomonDecoder,
         },
@@ -53,7 +36,7 @@ use super::AztecDetectorResult::AztecDetectorRXingResult;
  * @author David Olivier
  */
 
-#[derive(PartialEq, Eq,Copy,Clone)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 enum Table {
     UPPER,
     LOWER,
@@ -75,8 +58,8 @@ const LOWER_TABLE: [&str; 32] = [
 
 const MIXED_TABLE: [&str; 32] = [
     "CTRL_PS", " ", "\u{1}", "\u{2}", "\u{3}", "\u{4}", "\u{5}", "\u{6}", "\u{7}", "\u{8}", "\t",
-    "\n", "\u{13}", "\u{0c}", "\r", "\u{33}", "\u{34}", "\u{35}", "\u{36}", "\u{37}", "@", "\\",
-    "^", "_", "`", "|", "~", "\u{177}", "CTRL_LL", "CTRL_UL", "CTRL_PL", "CTRL_BS",
+    "\n", "\u{000b}", "\u{000c}", "\r", "\u{001b}", "\u{001c}", "\u{001d}", "\u{001e}", "\u{001f}",
+    "@", "\\", "^", "_", "`", "|", "~", "\u{007f}", "CTRL_LL", "CTRL_UL", "CTRL_PL", "CTRL_BS",
 ];
 
 const PUNCT_TABLE: [&str; 32] = [
@@ -98,24 +81,24 @@ pub fn decode(
 ) -> Result<DecoderRXingResult, Exceptions> {
     //let mut detectorRXingResult = detectorRXingResult.clone();
     let matrix = detectorRXingResult.getBits();
-    let rawbits = extractBits(&detectorRXingResult, matrix);
-    let correctedBits = correctBits(&detectorRXingResult, &rawbits)?;
-    let rawBytes = convertBoolArrayToByteArray(&correctedBits.correctBits);
-    let result = getEncodedData(&correctedBits.correctBits);
-    let mut decoderRXingResult = DecoderRXingResult::new(
-        rawBytes,
+    let rawbits = extract_bits(&detectorRXingResult, matrix);
+    let corrected_bits = correct_bits(&detectorRXingResult, &rawbits)?;
+    let raw_bytes = convertBoolArrayToByteArray(&corrected_bits.correct_bits);
+    let result = get_encoded_data(&corrected_bits.correct_bits);
+    let mut decoder_rxing_result = DecoderRXingResult::new(
+        raw_bytes,
         result?,
         Vec::new(),
-        format!("{}%", correctedBits.ecLevel),
+        format!("{}%", corrected_bits.ec_level),
     );
-    decoderRXingResult.setNumBits(correctedBits.correctBits.len());
+    decoder_rxing_result.setNumBits(corrected_bits.correct_bits.len());
 
-    Ok(decoderRXingResult)
+    Ok(decoder_rxing_result)
 }
 
 /// This method is used for testing the high-level encoder
 pub fn highLevelDecode(correctedBits: &[bool]) -> Result<String, Exceptions> {
-    getEncodedData(correctedBits)
+    get_encoded_data(correctedBits)
 }
 
 /**
@@ -123,8 +106,8 @@ pub fn highLevelDecode(correctedBits: &[bool]) -> Result<String, Exceptions> {
  *
  * @return the decoded string
  */
-fn getEncodedData(corrected_bits: &[bool]) -> Result<String, Exceptions> {
-    let endIndex = corrected_bits.len();
+fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
+    let end_index = corrected_bits.len();
     let mut latch_table = Table::UPPER; // table most recently latched to
     let mut shift_table = Table::UPPER; // table to use for the next read
 
@@ -136,30 +119,30 @@ fn getEncodedData(corrected_bits: &[bool]) -> Result<String, Exceptions> {
     // when character encoding changes (ECI) or input ends.
     let mut decoded_bytes: Vec<u8> = Vec::new();
     // let mut encdr: &'static dyn encoding::Encoding = encoding::all::UTF_8;
-     let mut encdr: &'static dyn encoding::Encoding = encoding::all::ISO_8859_1;
+    let mut encdr: &'static dyn encoding::Encoding = encoding::all::ISO_8859_1;
 
     let mut index = 0;
-    while index < endIndex {
+    while index < end_index {
         if shift_table == Table::BINARY {
-            if endIndex - index < 5 {
+            if end_index - index < 5 {
                 break;
             }
-            let mut length = readCode(corrected_bits, index, 5);
+            let mut length = read_code(corrected_bits, index, 5);
             index += 5;
             if length == 0 {
-                if endIndex - index < 11 {
+                if end_index - index < 11 {
                     break;
                 }
-                length = readCode(corrected_bits, index, 11) + 31;
+                length = read_code(corrected_bits, index, 11) + 31;
                 index += 11;
             }
-            for _charCount in 0..length {
+            for _char_count in 0..length {
                 // for (int charCount = 0; charCount < length; charCount++) {
-                if endIndex - index < 8 {
-                    index = endIndex; // Force outer loop to exit
+                if end_index - index < 8 {
+                    index = end_index; // Force outer loop to exit
                     break;
                 }
-                let code = readCode(corrected_bits, index, 8);
+                let code = read_code(corrected_bits, index, 8);
                 decoded_bytes.push(code as u8);
                 index += 8;
             }
@@ -167,21 +150,25 @@ fn getEncodedData(corrected_bits: &[bool]) -> Result<String, Exceptions> {
             shift_table = latch_table;
         } else {
             let size = if shift_table == Table::DIGIT { 4 } else { 5 };
-            if endIndex - index < size {
+            if end_index - index < size {
                 break;
             }
-            let code = readCode(corrected_bits, index, size);
+            let code = read_code(corrected_bits, index, size);
             index += size;
-            let str = getCharacter(shift_table, code)?;
+            let str = get_character(shift_table, code)?;
             if "FLG(n)" == str {
-                if endIndex - index < 3 {
+                if end_index - index < 3 {
                     break;
                 }
-                let mut n = readCode(corrected_bits, index, 3);
+                let mut n = read_code(corrected_bits, index, 3);
                 index += 3;
                 //  flush bytes, FLG changes state
                 //   try {
-                result.push_str(&encdr.decode(&decoded_bytes, encoding::DecoderTrap::Strict).unwrap());
+                result.push_str(
+                    &encdr
+                        .decode(&decoded_bytes, encoding::DecoderTrap::Strict)
+                        .unwrap(),
+                );
 
                 // result.push_str(&String::from_utf8(decoded_bytes.clone()).unwrap());
                 // result.append(decodedBytes.toString(encoding.name()));
@@ -199,28 +186,28 @@ fn getEncodedData(corrected_bits: &[bool]) -> Result<String, Exceptions> {
                     _ => {
                         // ECI is decimal integer encoded as 1-6 codes in DIGIT mode
                         let mut eci = 0;
-                        if endIndex - index < 4 * (n as usize) {
+                        if end_index - index < 4 * (n as usize) {
                             break;
                         }
                         while n > 0 {
                             //while (n-- > 0) {
-                            let nextDigit = readCode(corrected_bits, index, 4);
+                            let next_digit = read_code(corrected_bits, index, 4);
                             index += 4;
-                            if nextDigit < 2 || nextDigit > 11 {
+                            if next_digit < 2 || next_digit > 11 {
                                 return Err(Exceptions::FormatException(
                                     "Not a decimal digit".to_owned(),
                                 )); // Not a decimal digit
                             }
-                            eci = eci * 10 + (nextDigit - 2);
+                            eci = eci * 10 + (next_digit - 2);
                             n -= 1;
                         }
-                        let charsetECI = CharacterSetECI::getCharacterSetECIByValue(eci);
-                        if charsetECI.is_err() {
+                        let charset_eci = CharacterSetECI::getCharacterSetECIByValue(eci);
+                        if charset_eci.is_err() {
                             return Err(Exceptions::FormatException(
                                 "Charset must exist".to_owned(),
                             ));
                         }
-                        encdr = CharacterSetECI::getCharset(&charsetECI?);
+                        encdr = CharacterSetECI::getCharset(&charset_eci?);
                         //   encdr = charsetECI?::getCharset();
                     }
                 }
@@ -324,7 +311,7 @@ fn getTable(t: char) -> Table {
  * @param table the table used
  * @param code the code of the character
  */
-fn getCharacter(table: Table, code: u32) -> Result<&'static str, Exceptions> {
+fn get_character(table: Table, code: u32) -> Result<&'static str, Exceptions> {
     match table {
         Table::UPPER => Ok(UPPER_TABLE[code as usize]),
         Table::LOWER => Ok(LOWER_TABLE[code as usize]),
@@ -350,14 +337,14 @@ fn getCharacter(table: Table, code: u32) -> Result<&'static str, Exceptions> {
 }
 
 struct CorrectedBitsRXingResult {
-    correctBits: Vec<bool>,
-    ecLevel: u32,
+    correct_bits: Vec<bool>,
+    ec_level: u32,
 }
 impl CorrectedBitsRXingResult {
-    pub fn new(correctBits: Vec<bool>, ecLevel: u32) -> Self {
+    pub fn new(correct_bits: Vec<bool>, ec_level: u32) -> Self {
         Self {
-            correctBits,
-            ecLevel,
+            correct_bits,
+            ec_level,
         }
     }
 }
@@ -368,49 +355,49 @@ impl CorrectedBitsRXingResult {
  * @return the corrected array
  * @throws FormatException if the input contains too many errors
  */
-fn correctBits(
-    ddata: &&AztecDetectorRXingResult,
+fn correct_bits(
+    ddata: &AztecDetectorRXingResult,
     rawbits: &[bool],
 ) -> Result<CorrectedBitsRXingResult, Exceptions> {
     let gf: GenericGF;
-    let codewordSize;
+    let codeword_size;
 
     if ddata.getNbLayers() <= 2 {
-        codewordSize = 6;
+        codeword_size = 6;
         gf = get_predefined_genericgf(PredefinedGenericGF::AztecData6); //GenericGF.AZTEC_DATA_6;
     } else if ddata.getNbLayers() <= 8 {
-        codewordSize = 8;
+        codeword_size = 8;
         gf = get_predefined_genericgf(PredefinedGenericGF::AztecData8); //GenericGF.AZTEC_DATA_8;
     } else if ddata.getNbLayers() <= 22 {
-        codewordSize = 10;
+        codeword_size = 10;
         gf = get_predefined_genericgf(PredefinedGenericGF::AztecData10); //GenericGF.AZTEC_DATA_10;
     } else {
-        codewordSize = 12;
+        codeword_size = 12;
         gf = get_predefined_genericgf(PredefinedGenericGF::AztecData12); //GenericGF.AZTEC_DATA_12;
     }
 
-    let numDataCodewords = ddata.getNbDatablocks();
-    let numCodewords = rawbits.len() / codewordSize;
-    if numCodewords < numDataCodewords as usize {
+    let num_data_codewords = ddata.getNbDatablocks();
+    let num_codewords = rawbits.len() / codeword_size;
+    if num_codewords < num_data_codewords as usize {
         return Err(Exceptions::FormatException(format!(
             "numCodewords {}< numDataCodewords{}",
-            numCodewords, numDataCodewords
+            num_codewords, num_data_codewords
         )));
     }
-    let mut offset = rawbits.len() % codewordSize;
+    let mut offset = rawbits.len() % codeword_size;
 
-    let mut dataWords = vec![0i32; numCodewords];
-    for i in 0..numCodewords {
+    let mut data_words = vec![0i32; num_codewords];
+    for i in 0..num_codewords {
         // for (int i = 0; i < numCodewords; i++, offset += codewordSize) {
-        dataWords[i] = readCode(rawbits, offset, codewordSize) as i32;
-        offset += codewordSize;
+        data_words[i] = read_code(rawbits, offset, codeword_size) as i32;
+        offset += codeword_size;
     }
 
     //try {
     let rs_decoder = ReedSolomonDecoder::new(gf);
     rs_decoder.decode(
-        &mut dataWords,
-        (numCodewords - numDataCodewords as usize) as i32,
+        &mut data_words,
+        (num_codewords - num_data_codewords as usize) as i32,
     )?;
     //} catch (ReedSolomonException ex) {
     //throw FormatException.getFormatInstance(ex);
@@ -418,47 +405,47 @@ fn correctBits(
 
     // Now perform the unstuffing operation.
     // First, count how many bits are going to be thrown out as stuffing
-    let mask = (1 << codewordSize) - 1;
-    let mut stuffedBits = 0;
-    for i in 0..numDataCodewords as usize {
+    let mask = (1 << codeword_size) - 1;
+    let mut stuffed_bits = 0;
+    for i in 0..num_data_codewords as usize {
         // for (int i = 0; i < numDataCodewords; i++) {
-        let dataWord = dataWords[i];
-        if dataWord == 0 || dataWord == mask {
+        let data_word = data_words[i];
+        if data_word == 0 || data_word == mask {
             return Err(Exceptions::FormatException(
                 "dataWord == 0 || dataWord == mask".to_owned(),
             ));
             //throw FormatException.getFormatInstance();
-        } else if dataWord == 1 || dataWord == mask - 1 {
-            stuffedBits += 1;
+        } else if data_word == 1 || data_word == mask - 1 {
+            stuffed_bits += 1;
         }
     }
     // Now, actually unpack the bits and remove the stuffing
-    let mut correctedBits =
-        vec![false; (numDataCodewords * codewordSize as u32 - stuffedBits) as usize];
+    let mut corrected_bits =
+        vec![false; (num_data_codewords * codeword_size as u32 - stuffed_bits) as usize];
     let mut index = 0;
-    for i in 0..numDataCodewords as usize {
+    for i in 0..num_data_codewords as usize {
         // for (int i = 0; i < numDataCodewords; i++) {
-        let dataWord = dataWords[i];
-        if dataWord == 1 || dataWord == mask - 1 {
+        let data_word = data_words[i];
+        if data_word == 1 || data_word == mask - 1 {
             // next codewordSize-1 bits are all zeros or all ones
-            correctedBits.splice(
-                index..index + codewordSize - 1,
-                vec![dataWord > 1; codewordSize],
+            corrected_bits.splice(
+                index..index + codeword_size - 1,
+                vec![data_word > 1; codeword_size],
             );
             // Arrays.fill(correctedBits, index, index + codewordSize - 1, dataWord > 1);
-            index += codewordSize - 1;
+            index += codeword_size - 1;
         } else {
-            for bit in (0..codewordSize).rev() {
+            for bit in (0..codeword_size).rev() {
                 // for (int bit = codewordSize - 1; bit >= 0; --bit) {
-                correctedBits[index] = (dataWord & (1 << bit)) != 0;
+                corrected_bits[index] = (data_word & (1 << bit)) != 0;
                 index += 1;
             }
         }
     }
 
     Ok(CorrectedBitsRXingResult::new(
-        correctedBits,
-        (100 * (numCodewords - numDataCodewords as usize) / numCodewords) as u32,
+        corrected_bits,
+        (100 * (num_codewords - num_data_codewords as usize) / num_codewords) as u32,
     ))
 }
 
@@ -467,66 +454,66 @@ fn correctBits(
  *
  * @return the array of bits
  */
-fn extractBits(ddata: &AztecDetectorRXingResult, matrix: &BitMatrix) -> Vec<bool> {
+fn extract_bits(ddata: &AztecDetectorRXingResult, matrix: &BitMatrix) -> Vec<bool> {
     let compact = ddata.isCompact();
     let layers = ddata.getNbLayers();
-    let baseMatrixSize = ((if compact { 11 } else { 14 }) + layers * 4) as usize; // not including alignment lines
-    let mut alignmentMap = vec![0u32; baseMatrixSize];
-    let mut rawbits = vec![false; totalBitsInLayer(layers as usize, compact)];
+    let base_matrix_size = ((if compact { 11 } else { 14 }) + layers * 4) as usize; // not including alignment lines
+    let mut alignment_map = vec![0u32; base_matrix_size];
+    let mut rawbits = vec![false; total_bits_in_layer(layers as usize, compact)];
 
     if compact {
-        for i in 0..alignmentMap.len() {
+        for i in 0..alignment_map.len() {
             //   for (int i = 0; i < alignmentMap.length; i++) {
-            alignmentMap[i] = i as u32;
+            alignment_map[i] = i as u32;
         }
     } else {
-        let matrixSize = baseMatrixSize + 1 + 2 * ((baseMatrixSize / 2 - 1) / 15);
-        let origCenter = baseMatrixSize / 2;
-        let center = matrixSize / 2;
-        for i in 0..origCenter {
+        let matrix_size = base_matrix_size + 1 + 2 * ((base_matrix_size / 2 - 1) / 15);
+        let orig_center = base_matrix_size / 2;
+        let center = matrix_size / 2;
+        for i in 0..orig_center {
             //   for (int i = 0; i < origCenter; i++) {
-            let newOffset = i + i / 15;
-            alignmentMap[origCenter - i - 1] = (center - newOffset - 1) as u32;
-            alignmentMap[origCenter + i] = (center + newOffset + 1) as u32;
+            let new_offset = i + i / 15;
+            alignment_map[orig_center - i - 1] = (center - new_offset - 1) as u32;
+            alignment_map[orig_center + i] = (center + new_offset + 1) as u32;
         }
     }
-    let mut rowOffset = 0;
+    let mut row_offset = 0;
     for i in 0..layers {
         // for (int i = 0, rowOffset = 0; i < layers; i++) {
-        let rowSize = (layers - i) * 4 + (if compact { 9 } else { 12 });
+        let row_size = (layers - i) * 4 + (if compact { 9 } else { 12 });
         // The top-left most point of this layer is <low, low> (not including alignment lines)
         let low = i * 2;
         // The bottom-right most point of this layer is <high, high> (not including alignment lines)
-        let high = baseMatrixSize as u32 - 1 - low;
+        let high = base_matrix_size as u32 - 1 - low;
         // We pull bits from the two 2 x rowSize columns and two rowSize x 2 rows
-        for j in 0..rowSize {
+        for j in 0..row_size {
             //   for (int j = 0; j < rowSize; j++) {
-            let columnOffset = j * 2;
+            let column_offset = j * 2;
             for k in 0..2 {
                 // for (int k = 0; k < 2; k++) {
                 // left column
-                rawbits[(rowOffset + columnOffset + k) as usize] = matrix.get(
-                    alignmentMap[(low + k) as usize],
-                    alignmentMap[(low + j) as usize],
+                rawbits[(row_offset + column_offset + k) as usize] = matrix.get(
+                    alignment_map[(low + k) as usize],
+                    alignment_map[(low + j) as usize],
                 );
                 // bottom row
-                rawbits[(rowOffset + 2 * rowSize + columnOffset + k) as usize] = matrix.get(
-                    alignmentMap[(low + j) as usize],
-                    alignmentMap[(high - k) as usize],
+                rawbits[(row_offset + 2 * row_size + column_offset + k) as usize] = matrix.get(
+                    alignment_map[(low + j) as usize],
+                    alignment_map[(high - k) as usize],
                 );
                 // right column
-                rawbits[(rowOffset + 4 * rowSize + columnOffset + k) as usize] = matrix.get(
-                    alignmentMap[(high - k) as usize],
-                    alignmentMap[(high - j) as usize],
+                rawbits[(row_offset + 4 * row_size + column_offset + k) as usize] = matrix.get(
+                    alignment_map[(high - k) as usize],
+                    alignment_map[(high - j) as usize],
                 );
                 // top row
-                rawbits[(rowOffset + 6 * rowSize + columnOffset + k) as usize] = matrix.get(
-                    alignmentMap[(high - j) as usize],
-                    alignmentMap[(low + k) as usize],
+                rawbits[(row_offset + 6 * row_size + column_offset + k) as usize] = matrix.get(
+                    alignment_map[(high - j) as usize],
+                    alignment_map[(low + k) as usize],
                 );
             }
         }
-        rowOffset += rowSize * 8;
+        row_offset += row_size * 8;
     }
     return rawbits;
 }
@@ -534,9 +521,9 @@ fn extractBits(ddata: &AztecDetectorRXingResult, matrix: &BitMatrix) -> Vec<bool
 /**
  * Reads a code of given length and at given index in an array of bits
  */
-fn readCode(rawbits: &[bool], start_index: usize, length: usize) -> u32 {
+fn read_code(rawbits: &[bool], start_index: usize, length: usize) -> u32 {
     let mut res = 0;
-    for i in start_index..start_index+length {
+    for i in start_index..start_index + length {
         // for (int i = startIndex; i < startIndex + length; i++) {
         res <<= 1;
         if rawbits[i] {
@@ -549,12 +536,12 @@ fn readCode(rawbits: &[bool], start_index: usize, length: usize) -> u32 {
 /**
  * Reads a code of length 8 in an array of bits, padding with zeros
  */
-fn readByte(rawbits: &[bool], start_index: usize) -> u8 {
+fn read_byte(rawbits: &[bool], start_index: usize) -> u8 {
     let n = rawbits.len() - start_index;
     if n >= 8 {
-        return readCode(rawbits, start_index, 8) as u8;
+        return read_code(rawbits, start_index, 8) as u8;
     }
-    return (readCode(rawbits, start_index, n) << (8 - n)) as u8;
+    return (read_code(rawbits, start_index, n) << (8 - n)) as u8;
 }
 
 /**
@@ -564,12 +551,12 @@ pub fn convertBoolArrayToByteArray(bool_arr: &[bool]) -> Vec<u8> {
     let mut byte_arr = vec![0u8; (bool_arr.len() + 7) / 8];
     for i in 0..byte_arr.len() {
         // for (int i = 0; i < byteArr.length; i++) {
-        byte_arr[i] = readByte(bool_arr, 8 * i);
+        byte_arr[i] = read_byte(bool_arr, 8 * i);
     }
     return byte_arr;
 }
 
-fn totalBitsInLayer(layers: usize, compact: bool) -> usize {
+fn total_bits_in_layer(layers: usize, compact: bool) -> usize {
     (if compact { 88 } else { 112 } + 16 * layers) * layers
     // return ((compact ? 88 : 112) + 16 * layers) * layers;
 }

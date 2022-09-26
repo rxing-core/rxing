@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
+use std::{any::Any, collections::HashMap};
 
 use encoding::EncodingRef;
 
@@ -48,14 +48,18 @@ impl Writer for AztecWriter {
         hints: &std::collections::HashMap<crate::EncodeHintType, crate::EncodeHintValue>,
     ) -> Result<crate::common::BitMatrix, crate::exceptions::Exceptions> {
         let mut charset = None; // Do not add any ECI code by default
-        let mut eccPercent = encoder::DEFAULT_EC_PERCENT;
+        let mut ecc_percent = encoder::DEFAULT_EC_PERCENT;
         let mut layers = encoder::DEFAULT_AZTEC_LAYERS;
         if hints.contains_key(&EncodeHintType::CHARACTER_SET) {
             if let EncodeHintValue::CharacterSet(cset_name) = hints
                 .get(&EncodeHintType::CHARACTER_SET)
                 .expect("already knonw presence")
             {
-                charset = Some(encoding::label::encoding_from_whatwg_label(cset_name).unwrap());
+                if cset_name != "iso-8859-1" {
+                    charset = Some(encoding::label::encoding_from_whatwg_label(cset_name).unwrap());
+                }
+                //          dbg!(cset_name);
+                //  dbg!(encoding::label::encoding_from_whatwg_label(cset_name).unwrap().name(), encoding::label::encoding_from_whatwg_label(cset_name).unwrap().whatwg_name());
             }
             // charset = Charset.forName(hints.get(EncodeHintType.CHARACTER_SET).toString());
         }
@@ -64,7 +68,7 @@ impl Writer for AztecWriter {
                 .get(&EncodeHintType::ERROR_CORRECTION)
                 .expect("key exists")
             {
-                eccPercent = ecc_level.parse().expect("should convert to int");
+                ecc_percent = ecc_level.parse().expect("should convert to int");
             }
             // eccPercent = Integer.parseInt(hints.get(EncodeHintType::ERROR_CORRECTION).toString());
         }
@@ -83,7 +87,7 @@ impl Writer for AztecWriter {
             width as u32,
             height as u32,
             charset,
-            eccPercent,
+            ecc_percent,
             layers,
         )
     }
@@ -95,8 +99,8 @@ fn encode(
     width: u32,
     height: u32,
     charset: Option<EncodingRef>,
-    eccPercent: u32,
-    layers: u32,
+    ecc_percent: u32,
+    layers: i32,
 ) -> Result<BitMatrix, Exceptions> {
     if format != BarcodeFormat::AZTEC {
         return Err(Exceptions::IllegalArgumentException(format!(
@@ -105,9 +109,10 @@ fn encode(
         )));
     }
     let aztec = if let Some(cset) = charset {
-        encoder::encode_with_charset(contents, eccPercent, layers, cset)?
+        // dbg!(cset.name(), cset.whatwg_name());
+        encoder::encode_with_charset(contents, ecc_percent, layers, cset)?
     } else {
-        encoder::encode(contents, eccPercent, layers)?
+        encoder::encode(contents, ecc_percent, layers)?
     };
     renderRXingResult(&aztec, width, height)
 }
@@ -117,33 +122,33 @@ fn renderRXingResult(code: &AztecCode, width: u32, height: u32) -> Result<BitMat
     // if input == null {
     //   throw new IllegalStateException();
     // }
-    let inputWidth = input.getWidth();
-    let inputHeight = input.getHeight();
-    let outputWidth = width.max(inputWidth);
-    let outputHeight = height.max(inputHeight);
+    let input_width = input.getWidth();
+    let input_height = input.getHeight();
+    let output_width = width.max(input_width);
+    let output_height = height.max(input_height);
 
-    let multiple = (outputWidth / inputWidth).min(outputHeight / inputHeight);
-    let leftPadding = (outputWidth - (inputWidth * multiple)) / 2;
-    let topPadding = (outputHeight - (inputHeight * multiple)) / 2;
+    let multiple = (output_width / input_width).min(output_height / input_height);
+    let left_padding = (output_width - (input_width * multiple)) / 2;
+    let top_padding = (output_height - (input_height * multiple)) / 2;
 
-    let mut output = BitMatrix::new(outputWidth, outputHeight)?;
+    let mut output = BitMatrix::new(output_width, output_height)?;
 
-    let mut inputY = 0;
-    let mut outputY = topPadding;
-    while inputY < inputHeight {
-        let mut inputX = 0;
-        let mut outputX = leftPadding;
-        while inputX < inputWidth {
-            if input.get(inputX, inputY) {
-                output.setRegion(outputX, outputY, multiple, multiple);
+    let mut input_y = 0;
+    let mut output_y = top_padding;
+    while input_y < input_height {
+        let mut input_x = 0;
+        let mut output_x = left_padding;
+        while input_x < input_width {
+            if input.get(input_x, input_y) {
+                output.setRegion(output_x, output_y, multiple, multiple)?;
             }
 
-            inputX += 1;
-            outputX += multiple;
+            input_x += 1;
+            output_x += multiple;
         }
 
-        inputY += 1;
-        outputY += multiple
+        input_y += 1;
+        output_y += multiple
     }
     // for (int inputY = 0, outputY = topPadding; inputY < inputHeight; inputY++, outputY += multiple) {
     //   // Write the contents of this row of the barcode

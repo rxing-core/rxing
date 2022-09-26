@@ -2537,7 +2537,12 @@ impl CharacterSetECI {
      *   but unsupported
      */
     pub fn getCharacterSetECI(charset: &'static dyn Encoding) -> Option<CharacterSetECI> {
-        match charset.name() {
+        let name = if let Some(nm) = charset.whatwg_name() {
+            nm
+        }else {
+            charset.name()
+        };
+        match name {
             "CP437" => Some(CharacterSetECI::Cp437),
             "iso-8859-1" => Some(CharacterSetECI::ISO8859_1),
             "iso-8859-2" => Some(CharacterSetECI::ISO8859_2),

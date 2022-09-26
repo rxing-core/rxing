@@ -373,7 +373,7 @@ pub enum EncodeHintValue {
      * A positive number (1, 2, .. 32) specifies a normal (non-compact) Aztec code.
      * (Type {@link Integer}, or {@link String} representation of the integer value).
      */
-    AztecLayers(u32),
+    AztecLayers(i32),
 
     /**
      * Specifies the exact version of QR code to be encoded.
