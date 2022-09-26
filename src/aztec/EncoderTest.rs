@@ -633,7 +633,9 @@ fn testEncode(data: &str, compact: bool, layers: u32, expected: &str) {
     );
     assert_eq!(layers, aztec.getLayers(), "Unexpected nr. of layers");
     let matrix = aztec.getMatrix();
-    assert_eq!(expected, matrix.to_string(), "encode({}) failed", data);
+    // let mut xored = BitMatrix::parse_strings(&stripSpace(expected), "X ", "  ").expect("should parse");
+    // xored.xor(matrix).expect("should xor");
+    assert_eq!(expected, matrix.to_string(), "encode({}) failed", data );
 }
 
 fn testEncodeDecode(data: &str, compact: bool, layers: u32) {

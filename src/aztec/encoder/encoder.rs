@@ -230,7 +230,7 @@ pub fn encode_bytes_with_charset(
             i += 1;
         }
     }
-    let messageBits = generateCheckWords(
+    let message_bits = generateCheckWords(
         &stuffedBits,
         totalBitsInLayerVar as usize,
         wordSize as usize,
@@ -264,6 +264,8 @@ pub fn encode_bytes_with_charset(
     }
     let mut matrix = BitMatrix::with_single_dimension(matrixSize as u32);
 
+    // dbg!(matrix.to_string());
+
     // draw data bits
     let mut rowOffset = 0;
     for i in 0..layers as usize {
@@ -274,22 +276,22 @@ pub fn encode_bytes_with_charset(
             let columnOffset = j * 2;
             for k in 0..2 {
                 // for (int k = 0; k < 2; k++) {
-                if messageBits.get(rowOffset + columnOffset + k) {
+                if message_bits.get(rowOffset + columnOffset + k) {
                     matrix.set(alignmentMap[i * 2 + k], alignmentMap[i * 2 + j]);
                 }
-                if messageBits.get(rowOffset + rowSize * 2 + columnOffset + k) {
+                if message_bits.get(rowOffset + rowSize * 2 + columnOffset + k) {
                     matrix.set(
                         alignmentMap[i * 2 + j],
                         alignmentMap[baseMatrixSize as usize - 1 - i * 2 - k],
                     );
                 }
-                if messageBits.get(rowOffset + rowSize * 4 + columnOffset + k) {
+                if message_bits.get(rowOffset + rowSize * 4 + columnOffset + k) {
                     matrix.set(
                         alignmentMap[baseMatrixSize as usize - 1 - i * 2 - k],
                         alignmentMap[baseMatrixSize as usize - 1 - i * 2 - j],
                     );
                 }
-                if messageBits.get(rowOffset + rowSize * 6 + columnOffset + k) {
+                if message_bits.get(rowOffset + rowSize * 6 + columnOffset + k) {
                     matrix.set(
                         alignmentMap[baseMatrixSize as usize - 1 - i * 2 - j],
                         alignmentMap[i * 2 + k],
@@ -300,8 +302,12 @@ pub fn encode_bytes_with_charset(
         rowOffset += rowSize * 8;
     }
 
+    // dbg!(matrix.to_string());
+
     // draw mode message
     drawModeMessage(&mut matrix, compact, matrixSize as u32, modeMessage);
+
+    // dbg!(matrix.to_string());
 
     // draw alignment marks
     if compact {
@@ -335,6 +341,8 @@ pub fn encode_bytes_with_charset(
         // }
     }
 
+    // dbg!(matrix.to_string());
+
     let aztec = AztecCode::new(
         compact,
         matrixSize as u32,
@@ -354,7 +362,7 @@ fn drawBullsEye(matrix: &mut BitMatrix, center: u32, size: u32) {
     let mut i = 0;
     while i < size {
         // for (int i = 0; i < size; i += 2) {
-        for j in (center - 1)..=(center + 1) {
+        for j in (center - i)..=(center + i) {
             // for (int j = center - i; j <= center + i; j++) {
             matrix.set(j, center - i);
             matrix.set(j, center + i);
@@ -372,17 +380,17 @@ fn drawBullsEye(matrix: &mut BitMatrix, center: u32, size: u32) {
 }
 
 pub fn generateModeMessage(compact: bool, layers: u32, messageSizeInWords: u32) -> BitArray {
-    let mut modeMessage = BitArray::new();
+    let mut mode_message = BitArray::new();
     if compact {
-        modeMessage.appendBits(layers - 1, 2);
-        modeMessage.appendBits(messageSizeInWords - 1, 6);
-        modeMessage = generateCheckWords(&modeMessage, 28, 4);
+        mode_message.appendBits(layers - 1, 2).expect("should append");
+        mode_message.appendBits(messageSizeInWords - 1, 6).expect("should append");
+        mode_message = generateCheckWords(&mode_message, 28, 4);
     } else {
-        modeMessage.appendBits(layers - 1, 5);
-        modeMessage.appendBits(messageSizeInWords - 1, 11);
-        modeMessage = generateCheckWords(&modeMessage, 40, 4);
+        mode_message.appendBits(layers - 1, 5).expect("should append");
+        mode_message.appendBits(messageSizeInWords - 1, 11).expect("should append");
+        mode_message = generateCheckWords(&mode_message, 40, 4);
     }
-    return modeMessage;
+    return mode_message;
 }
 
 fn drawModeMessage(matrix: &mut BitMatrix, compact: bool, matrixSize: u32, modeMessage: BitArray) {
@@ -426,25 +434,25 @@ fn drawModeMessage(matrix: &mut BitMatrix, compact: bool, matrixSize: u32, modeM
 
 fn generateCheckWords(bitArray: &BitArray, totalBits: usize, wordSize: usize) -> BitArray {
     // bitArray is guaranteed to be a multiple of the wordSize, so no padding needed
-    let messageSizeInWords = bitArray.getSize() / wordSize;
+    let message_size_in_words = bitArray.getSize() / wordSize;
     let mut rs = ReedSolomonEncoder::new(getGF(wordSize).expect("Should never have bad value"));
-    let totalWords = totalBits / wordSize;
-    let mut messageWords = bitsToWords(bitArray, wordSize, totalWords);
-    rs.encode(&mut messageWords, totalWords - messageSizeInWords);
-    let startPad = totalBits % wordSize;
-    let mut messageBits = BitArray::new();
-    messageBits.appendBits(0, startPad);
-    for messageWord in messageWords {
+    let total_words = totalBits / wordSize;
+    let mut message_words = bitsToWords(bitArray, wordSize, total_words);
+    rs.encode(&mut message_words, total_words - message_size_in_words).expect("must encode ok");
+    let start_pad = totalBits % wordSize;
+    let mut message_bits = BitArray::new();
+    message_bits.appendBits(0, start_pad).expect("must append");
+    for message_word in message_words {
         // for (int messageWord : messageWords) {
-        messageBits.appendBits(messageWord as u32, wordSize);
+        message_bits.appendBits(message_word as u32, wordSize).expect("must append");
     }
-    return messageBits;
+dbg!(message_bits.to_string());
+    return message_bits;
 }
 
 fn bitsToWords(stuffedBits: &BitArray, wordSize: usize, totalWords: usize) -> Vec<i32> {
     let mut message = vec![0i32; totalWords];
-    // let i=0;
-    // let n;
+
     for i in 0..(stuffedBits.getSize() / wordSize) {
         // for (i = 0, n = stuffedBits.getSize() / wordSize; i < n; i++) {
         let mut value = 0;
