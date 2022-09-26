@@ -180,7 +180,7 @@ pub fn encode_bytes_with_charset(
         wordSize = WORD_SIZE[layers as usize];
         let usableBitsInLayers = totalBitsInLayerVar - (totalBitsInLayerVar % wordSize);
         stuffedBits = stuffBits(&bits, wordSize as usize);
-        if stuffedBits.getSize() as u32+ eccBits  > usableBitsInLayers {
+        if stuffedBits.getSize() as u32 + eccBits > usableBitsInLayers {
             return Err(Exceptions::IllegalArgumentException(
                 "Data to large for user specified layer".to_owned(),
             ));
@@ -224,7 +224,7 @@ pub fn encode_bytes_with_charset(
                 i += 1;
                 continue;
             }
-            if stuffedBits.getSize()as u32 + eccBits<= usableBitsInLayers {
+            if stuffedBits.getSize() as u32 + eccBits <= usableBitsInLayers {
                 break;
             }
             i += 1;
@@ -382,12 +382,20 @@ fn drawBullsEye(matrix: &mut BitMatrix, center: u32, size: u32) {
 pub fn generateModeMessage(compact: bool, layers: u32, messageSizeInWords: u32) -> BitArray {
     let mut mode_message = BitArray::new();
     if compact {
-        mode_message.appendBits(layers - 1, 2).expect("should append");
-        mode_message.appendBits(messageSizeInWords - 1, 6).expect("should append");
+        mode_message
+            .appendBits(layers - 1, 2)
+            .expect("should append");
+        mode_message
+            .appendBits(messageSizeInWords - 1, 6)
+            .expect("should append");
         mode_message = generateCheckWords(&mode_message, 28, 4);
     } else {
-        mode_message.appendBits(layers - 1, 5).expect("should append");
-        mode_message.appendBits(messageSizeInWords - 1, 11).expect("should append");
+        mode_message
+            .appendBits(layers - 1, 5)
+            .expect("should append");
+        mode_message
+            .appendBits(messageSizeInWords - 1, 11)
+            .expect("should append");
         mode_message = generateCheckWords(&mode_message, 40, 4);
     }
     return mode_message;
@@ -438,26 +446,30 @@ fn generateCheckWords(bitArray: &BitArray, totalBits: usize, wordSize: usize) ->
     let mut rs = ReedSolomonEncoder::new(getGF(wordSize).expect("Should never have bad value"));
     let total_words = totalBits / wordSize;
     let mut message_words = bitsToWords(bitArray, wordSize, total_words);
-    rs.encode(&mut message_words, total_words - message_size_in_words).expect("must encode ok");
+    rs.encode(&mut message_words, total_words - message_size_in_words)
+        .expect("must encode ok");
     let start_pad = totalBits % wordSize;
     let mut message_bits = BitArray::new();
     message_bits.appendBits(0, start_pad).expect("must append");
     for message_word in message_words {
         // for (int messageWord : messageWords) {
-        message_bits.appendBits(message_word as u32, wordSize).expect("must append");
+        message_bits
+            .appendBits(message_word as u32, wordSize)
+            .expect("must append");
     }
-dbg!(message_bits.to_string());
+    // dbg!(message_bits.to_string());
     return message_bits;
 }
 
 fn bitsToWords(stuffedBits: &BitArray, wordSize: usize, totalWords: usize) -> Vec<i32> {
     let mut message = vec![0i32; totalWords];
-
-    for i in 0..(stuffedBits.getSize() / wordSize) {
+    let mut i = 0;
+    let n = stuffedBits.getSize() / wordSize;
+    while i < n {
         // for (i = 0, n = stuffedBits.getSize() / wordSize; i < n; i++) {
         let mut value = 0;
         for j in 0..wordSize {
-            // for (int j = 0; j < wordSize; j++) {
+            //   for (int j = 0; j < wordSize; j++) {
             value |= if stuffedBits.get(i * wordSize + j) {
                 1 << wordSize - j - 1
             } else {
@@ -465,6 +477,8 @@ fn bitsToWords(stuffedBits: &BitArray, wordSize: usize, totalWords: usize) -> Ve
             };
         }
         message[i] = value;
+
+        i += 1;
     }
     return message;
 }
@@ -502,7 +516,7 @@ pub fn stuffBits(bits: &BitArray, word_size: usize) -> BitArray {
 
     let n = bits.getSize() as isize;
     let mask = (1 << word_size) - 2;
-    let mut i:isize = 0;
+    let mut i: isize = 0;
     while i < n {
         // for (int i = 0; i < n; i += wordSize) {
         let mut word = 0;

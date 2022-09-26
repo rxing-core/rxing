@@ -105,7 +105,7 @@ X       X     X   X   X   X   X   X X   X
     X   X   X X X   X   X   X X X X     X     
         X               X                 X   
         X X     X   X X   X   X   X       X X 
-  X   X   X X       X   X         X X X      
+  X   X   X X       X   X         X X X     X 
 "    );
 }
 
@@ -710,11 +710,15 @@ fn testWriter(
     let writer = AztecWriter {};
     let mut matrix = AztecWriter::encode_with_hints(data, &BarcodeFormat::AZTEC, 0, 0, &hints)
         .expect("encoder created");
+        let cset = match charset {
+            Some(cs) => cs,
+            None => encoding::all::ISO_8859_1,
+        };
     let aztec = encoder::encode_with_charset(
         data,
         eccPercent,
         encoder::DEFAULT_AZTEC_LAYERS,
-        charset.unwrap(),
+        cset,
     )
     .expect("encode should encode");
     assert_eq!(
@@ -740,12 +744,12 @@ fn testWriter(
     for _i in 0..ecWords {
         // for (int i = 0; i < ecWords; i++) {
         // don't touch the core
-        let x = if random.gen_bool(50.0) {
+        let x = if random.gen_bool(0.50) {
             random.gen_range(0..=aztec.getLayers() * 2)
         } else {
             matrix.getWidth() - 1 - random.gen_range(0..=aztec.getLayers() * 2)
         };
-        let y = if random.gen_bool(50.0) {
+        let y = if random.gen_bool(0.50) {
             random.gen_range(0..=aztec.getLayers() * 2)
         } else {
             matrix.getHeight() - 1 - random.gen_range(0..=aztec.getLayers() * 2)
