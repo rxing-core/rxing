@@ -14,28 +14,6 @@
  * limitations under the License.
  */
 
-// package com.google.zxing.aztec.encoder;
-
-// import com.google.zxing.BarcodeFormat;
-// import com.google.zxing.EncodeHintType;
-// import com.google.zxing.FormatException;
-// import com.google.zxing.RXingResultPoint;
-// import com.google.zxing.aztec.AztecDetectorRXingResult;
-// import com.google.zxing.aztec.AztecWriter;
-// import com.google.zxing.aztec.decoder.Decoder;
-// import com.google.zxing.common.BitArray;
-// import com.google.zxing.common.BitMatrix;
-// import com.google.zxing.common.DecoderRXingResult;
-// import org.junit.Assert;
-// import org.junit.Test;
-
-// import java.nio.charset.Charset;
-// import java.nio.charset.StandardCharsets;
-// import java.util.EnumMap;
-// import java.util.Map;
-// import java.util.Random;
-// import java.util.regex.Pattern;
-
 use std::collections::HashMap;
 
 use encoding::EncodingRef;
@@ -168,8 +146,24 @@ fn testAztecWriter() {
     testWriter("Espa\u{00F1}ol", None, 25, true, 1); // Without ECI (implicit ISO-8859-1)
     testWriter("Espa\u{00F1}ol", Some(ISO_8859_1), 25, true, 1); // Explicit ISO-8859-1
     testWriter("\u{20AC} 1 sample data.", Some(WINDOWS_1252), 25, true, 2); // ISO-8859-1 can't encode Euro; Windows-1252 can
+    testWriter("\u{20AC} 1 sample data.", Some(WINDOWS_1252), 5, true, 2); // ISO-8859-1 can't encode Euro; Windows-1252 can
     testWriter("\u{20AC} 1 sample data.", Some(ISO_8859_15), 25, true, 2);
     testWriter("\u{20AC} 1 sample data.", Some(ISO_8859_15), 0, true, 2);
+    testWriter(
+        "\u{20AC} 1 sample data.",
+        Some(encoding::all::UTF_16BE),
+        0,
+        true,
+        3,
+    );
+    testWriter("Espa\u{00F1}ol", Some(UTF_8), 25, true, 2);
+    testWriter("\u{20AC} 1 sample data", Some(UTF_8), 0, true, 2);
+    testWriter("\u{20AC} 1 sample data. ", Some(UTF_8), 0, true, 2);
+    testWriter("\u{20AC} 1 sample data .", Some(UTF_8), 0, true, 2);
+    testWriter("\u{20AC} 1 sample data-.", Some(UTF_8), 0, true, 2);
+    testWriter("\u{20AC} 1 sample datA.", Some(UTF_8), 0, true, 2);
+    testWriter("\u{20AC} 1 sample dat1.", Some(UTF_8), 0, true, 2);
+    testWriter("\u{20AC} 1 sample data.", Some(UTF_8), 0, true, 2);
     testWriter("\u{20AC} 1 sample data.", Some(UTF_8), 25, true, 2);
     testWriter("\u{20AC} 1 sample data.", Some(UTF_8), 100, true, 3);
     testWriter("\u{20AC} 1 sample data.", Some(UTF_8), 300, true, 4);
@@ -756,7 +750,7 @@ fn testWriter(
     assert_eq!(layers, aztec.getLayers(), "Unexpected nr. of layers");
     let matrix2 = aztec.getMatrix();
     assert_eq!(&matrix, matrix2);
-    
+
     let mut r = AztecDetectorRXingResult::new(
         matrix.clone(),
         NO_POINTS,
@@ -767,7 +761,7 @@ fn testWriter(
 
     let mut res = decoder::decode(&r).expect("should decode");
     assert_eq!(data, res.getText());
-    
+
     // Check error correction by introducing up to eccPercent/2 errors
     let ec_words = aztec.getCodeWords() * ecc_percent / 100 / 2;
     let mut random = getPseudoRandom();

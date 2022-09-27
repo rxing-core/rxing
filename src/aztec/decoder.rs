@@ -122,7 +122,8 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
     let mut encdr: &'static dyn encoding::Encoding = encoding::all::ISO_8859_1;
 
     let mut index = 0;
-    while index < end_index {
+    
+    'main: while index < end_index {
         if shift_table == Table::BINARY {
             if end_index - index < 5 {
                 break;
@@ -139,8 +140,8 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
             for _char_count in 0..length {
                 // for (int charCount = 0; charCount < length; charCount++) {
                 if end_index - index < 8 {
-                    index = end_index; // Force outer loop to exit
-                    break;
+                    //index = end_index; // Force outer loop to exit
+                    break 'main;
                 }
                 let code = read_code(corrected_bits, index, 8);
                 decoded_bytes.push(code as u8);
@@ -163,18 +164,12 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
                 let mut n = read_code(corrected_bits, index, 3);
                 index += 3;
                 //  flush bytes, FLG changes state
-                //   try {
                 result.push_str(
                     &encdr
                         .decode(&decoded_bytes, encoding::DecoderTrap::Strict)
                         .unwrap(),
                 );
-
-                // result.push_str(&String::from_utf8(decoded_bytes.clone()).unwrap());
-                // result.append(decodedBytes.toString(encoding.name()));
-                //   } catch (UnsupportedEncodingException uee) {
-                // throw new IllegalStateException(uee);
-                //   }
+                
                 decoded_bytes.clear();
                 match n {
                     0 => result.push(29 as char), // translate FNC1 as ASCII 29
@@ -208,35 +203,8 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
                             ));
                         }
                         encdr = CharacterSetECI::getCharset(&charset_eci?);
-                        //   encdr = charsetECI?::getCharset();
                     }
                 }
-                //   switch (n) {
-                //     case 0:
-                //       result.append(29 as char);  // translate FNC1 as ASCII 29
-                //       break;
-                //     case 7:
-                //       throw FormatException.getFormatInstance(); // FLG(7) is reserved and illegal
-                //     default:
-                //       // ECI is decimal integer encoded as 1-6 codes in DIGIT mode
-                //       int eci = 0;
-                //       if (endIndex - index < 4 * n) {
-                //         break;
-                //       }
-                //       while (n-- > 0) {
-                //         int nextDigit = readCode(correctedBits, index, 4);
-                //         index += 4;
-                //         if (nextDigit < 2 || nextDigit > 11) {
-                //           throw FormatException.getFormatInstance(); // Not a decimal digit
-                //         }
-                //         eci = eci * 10 + (nextDigit - 2);
-                //       }
-                //       CharacterSetECI charsetECI = CharacterSetECI.getCharacterSetECIByValue(eci);
-                //       if (charsetECI == null) {
-                //         throw FormatException.getFormatInstance();
-                //       }
-                //       encoding = charsetECI.getCharset();
-                //   }
                 // Go back to whatever mode we had been in
                 shift_table = latch_table;
             } else if str.starts_with("CTRL_") {
@@ -251,6 +219,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
                 }
             } else {
                 // Though stored as a table of strings for convenience, codes actually represent 1 or 2 *bytes*.
+                // let b = encoding::all::ASCII.encode(str, encoding::EncoderTrap::Strict).unwrap();
                 let b = str.as_bytes();
                 //let b = str.getBytes(StandardCharsets.US_ASCII);
                 //decodedBytes.write(b, 0, b.length);
@@ -430,7 +399,7 @@ fn correct_bits(
             // next codewordSize-1 bits are all zeros or all ones
             corrected_bits.splice(
                 index..index + codeword_size - 1,
-                vec![data_word > 1; codeword_size],
+                vec![data_word > 1; codeword_size-1],
             );
             // Arrays.fill(correctedBits, index, index + codewordSize - 1, dataWord > 1);
             index += codeword_size - 1;

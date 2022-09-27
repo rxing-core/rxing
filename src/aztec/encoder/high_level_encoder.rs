@@ -278,22 +278,7 @@ impl HighLevelEncoder {
                 b':' if next_char == b' ' => 5,
                 _ => 0,
             };
-            // switch (text[index]) {
-            //   case '\r':
-            //     pairCode = nextChar == '\n' ? 2 : 0;
-            //     break;
-            //   case '.' :
-            //     pairCode = nextChar == ' ' ? 3 : 0;
-            //     break;
-            //   case ',' :
-            //     pairCode = nextChar == ' ' ? 4 : 0;
-            //     break;
-            //   case ':' :
-            //     pairCode = nextChar == ' ' ? 5 : 0;
-            //     break;
-            //   default:
-            //     pairCode = 0;
-            // }
+            
             if pair_code > 0 {
                 // We have one of the four special PUNCT pairs.  Treat them specially.
                 // Get a new set of states for the two new characters.
