@@ -50,39 +50,39 @@ use super::{
  */
 
 #[test]
-fn testErrorInParameterLocatorZeroZero() {
+fn test_error_in_parameter_locator_zero_zero() {
     // Layers=1, CodeWords=1.  So the parameter info and its Reed-Solomon info
     // will be completely zero!
-    testErrorInParameterLocator("X");
+    test_error_in_parameter_locator("X");
 }
 
 #[test]
-fn testErrorInParameterLocatorCompact() {
-    testErrorInParameterLocator("This is an example Aztec symbol for Wikipedia.");
+fn test_error_in_parameter_locator_compact() {
+    test_error_in_parameter_locator("This is an example Aztec symbol for Wikipedia.");
 }
 
 #[test]
-fn testErrorInParameterLocatorNotCompact() {
+fn test_error_in_parameter_locator_not_compact() {
     let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxyz";
-    testErrorInParameterLocator(&format!("{}{}{}", alphabet, alphabet, alphabet));
+    test_error_in_parameter_locator(&format!("{}{}{}", alphabet, alphabet, alphabet));
 }
 
 // Test that we can tolerate errors in the parameter locator bits
-fn testErrorInParameterLocator(data: &str) {
+fn test_error_in_parameter_locator(data: &str) {
     let aztec = encoder::encoder::encode(data, 25, encoder::encoder::DEFAULT_AZTEC_LAYERS)
         .expect("encode should create");
     let mut random = rand::thread_rng(); //Random(aztec.getMatrix().hashCode());   // pseudo-random, but deterministic
     let layers = aztec.getLayers();
     let compact = aztec.isCompact();
-    let orientationPoints = getOrientationPoints(&aztec);
+    let orientation_points = getOrientationPoints(&aztec);
     for isMirror in [false, true] {
         // for (boolean isMirror : new boolean[] { false, true }) {
-        for matrix in getRotations(aztec.getMatrix()) {
+        for matrix in get_rotations(aztec.getMatrix()) {
             // for (BitMatrix matrix : getRotations(aztec.getMatrix())) {
             // Systematically try every possible 1- and 2-bit error.
-            for error1 in 0..orientationPoints.len() {
+            for error1 in 0..orientation_points.len() {
                 // for (int error1 = 0; error1 < orientationPoints.size(); error1++) {
-                for error2 in error1..orientationPoints.len() {
+                for error2 in error1..orientation_points.len() {
                     // for (int error2 = error1; error2 < orientationPoints.size(); error2++) {
                     let mut copy = if isMirror {
                         transpose(&matrix)
@@ -90,18 +90,18 @@ fn testErrorInParameterLocator(data: &str) {
                         clone(&matrix)
                     };
                     copy.flip_coords(
-                        orientationPoints.get(error1).unwrap().getX() as u32,
-                        orientationPoints.get(error1).unwrap().getY() as u32,
+                        orientation_points.get(error1).unwrap().get_x() as u32,
+                        orientation_points.get(error1).unwrap().get_y() as u32,
                     );
                     if error2 > error1 {
                         // if error2 == error1, we only test a single error
                         copy.flip_coords(
-                            orientationPoints.get(error2).unwrap().getX() as u32,
-                            orientationPoints.get(error2).unwrap().getY() as u32,
+                            orientation_points.get(error2).unwrap().get_x() as u32,
+                            orientation_points.get(error2).unwrap().get_y() as u32,
                         );
                     }
                     // The detector doesn't seem to work when matrix bits are only 1x1.  So magnify.
-                    let r = Detector::new(makeLarger(&copy, 3)).detect(isMirror);
+                    let r = Detector::new(make_larger(&copy, 3)).detect(isMirror);
                     assert!(r.is_ok());
                     let r = r.expect("result already tested as ok");
                     assert_eq!(r.getNbLayers(), layers);
@@ -111,24 +111,24 @@ fn testErrorInParameterLocator(data: &str) {
                 }
             }
             // Try a few random three-bit errors;
-            for i in 0..5 {
+            for _i in 0..5 {
                 // for (int i = 0; i < 5; i++) {
                 let mut copy = clone(&matrix);
                 let mut errors = Vec::new();
                 while errors.len() < 3 {
                     // Quick and dirty way of getting three distinct integers between 1 and n.
-                    errors.push(random.gen_range(0..=orientationPoints.len()));
+                    errors.push(random.gen_range(0..=orientation_points.len()));
                 }
                 for error in errors {
                     // for (int error : errors) {
                     copy.flip_coords(
-                        orientationPoints.get(error).unwrap().getX() as u32,
-                        orientationPoints.get(error).unwrap().getY() as u32,
+                        orientation_points.get(error).unwrap().get_x() as u32,
+                        orientation_points.get(error).unwrap().get_y() as u32,
                     );
                 }
                 // try {
-                if let Err(res) = detector::Detector::new(makeLarger(&copy, 3)).detect(false) {
-                    if let Exceptions::NotFoundException(msg) = res {
+                if let Err(res) = detector::Detector::new(make_larger(&copy, 3)).detect(false) {
+                    if let Exceptions::NotFoundException(_msg) = res {
                         // all ok
                     } else {
                         panic!("Should not reach here");
@@ -147,7 +147,7 @@ fn testErrorInParameterLocator(data: &str) {
 }
 
 // Zooms a bit matrix so that each bit is factor x factor
-fn makeLarger(input: &BitMatrix, factor: u32) -> BitMatrix {
+fn make_larger(input: &BitMatrix, factor: u32) -> BitMatrix {
     let width = input.getWidth();
     let mut output = BitMatrix::with_single_dimension(width * factor);
     for inputY in 0..width {
@@ -155,7 +155,7 @@ fn makeLarger(input: &BitMatrix, factor: u32) -> BitMatrix {
         for inputX in 0..width {
             // for (int inputX = 0; inputX < width; inputX++) {
             if input.get(inputX, inputY) {
-                output.setRegion(inputX * factor, inputY * factor, factor, factor);
+                output.setRegion(inputX * factor, inputY * factor, factor, factor).expect("region set should be ok");
             }
         }
     }
@@ -163,15 +163,15 @@ fn makeLarger(input: &BitMatrix, factor: u32) -> BitMatrix {
 }
 
 // Returns a list of the four rotations of the BitMatrix.
-fn getRotations(matrix0: &BitMatrix) -> Vec<BitMatrix> {
-    let matrix90 = rotateRight(matrix0);
-    let matrix180 = rotateRight(&matrix90);
-    let matrix270 = rotateRight(&matrix180);
+fn get_rotations(matrix0: &BitMatrix) -> Vec<BitMatrix> {
+    let matrix90 = rotate_right(matrix0);
+    let matrix180 = rotate_right(&matrix90);
+    let matrix270 = rotate_right(&matrix180);
     vec![matrix0.clone(), matrix90, matrix180, matrix270]
 }
 
 // Rotates a square BitMatrix to the right by 90 degrees
-fn rotateRight(input: &BitMatrix) -> BitMatrix {
+fn rotate_right(input: &BitMatrix) -> BitMatrix {
     let width = input.getWidth();
     let mut result = BitMatrix::with_single_dimension(width);
     for x in 0..width {

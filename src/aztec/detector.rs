@@ -14,18 +14,6 @@
  * limitations under the License.
  */
 
-// package com.google.zxing.aztec.detector;
-
-// import com.google.zxing.NotFoundException;
-// import com.google.zxing.RXingResultPoint;
-// import com.google.zxing.aztec.AztecDetectorRXingResult;
-// import com.google.zxing.common.BitMatrix;
-// import com.google.zxing.common.GridSampler;
-// import com.google.zxing.common.detector.MathUtils;
-// import com.google.zxing.common.detector.WhiteRectangleDetector;
-// import com.google.zxing.common.reedsolomon.GenericGF;
-// import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
-// import com.google.zxing.common.reedsolomon.ReedSolomonException;
 
 use std::fmt;
 
@@ -59,9 +47,9 @@ pub struct Detector {
     image: BitMatrix,
 
     compact: bool,
-    nbLayers: u32,
-    nbDataBlocks: u32,
-    nbCenterLayers: u32,
+    nb_layers: u32,
+    nb_data_blocks: u32,
+    nb_center_layers: u32,
     shift: u32,
 }
 
@@ -70,9 +58,9 @@ impl Detector {
         Self {
             image,
             compact: false,
-            nbLayers: 0,
-            nbDataBlocks: 0,
-            nbCenterLayers: 0,
+            nb_layers: 0,
+            nb_data_blocks: 0,
+            nb_center_layers: 0,
             shift: 0,
         }
     }
@@ -90,39 +78,39 @@ impl Detector {
      */
     pub fn detect(&mut self, is_mirror: bool) -> Result<AztecDetectorRXingResult, Exceptions> {
         // 1. Get the center of the aztec matrix
-        let pCenter = self.getMatrixCenter();
+        let p_center = self.get_matrix_center();
 
         // 2. Get the center points of the four diagonal points just outside the bull's eye
         //  [topRight, bottomRight, bottomLeft, topLeft]
-        let mut bullsEyeCorners = self.getBullsEyeCorners(pCenter)?;
+        let mut bulls_eye_corners = self.get_bulls_eye_corners(p_center)?;
 
         if is_mirror {
-            let temp = bullsEyeCorners[0];
-            bullsEyeCorners[0] = bullsEyeCorners[2];
-            bullsEyeCorners[2] = temp;
+            let temp = bulls_eye_corners[0];
+            bulls_eye_corners[0] = bulls_eye_corners[2];
+            bulls_eye_corners[2] = temp;
         }
 
         // 3. Get the size of the matrix and other parameters from the bull's eye
-        self.extractParameters(&bullsEyeCorners);
+        self.extractParameters(&bulls_eye_corners).expect("paramater extraction must succeed");
 
         // 4. Sample the grid
-        let bits = self.sampleGrid(
+        let bits = self.sample_grid(
             &self.image,
-            &bullsEyeCorners[self.shift as usize % 4],
-            &bullsEyeCorners[(self.shift as usize + 1) % 4],
-            &bullsEyeCorners[(self.shift as usize + 2) % 4],
-            &bullsEyeCorners[(self.shift as usize + 3) % 4],
+            &bulls_eye_corners[self.shift as usize % 4],
+            &bulls_eye_corners[(self.shift as usize + 1) % 4],
+            &bulls_eye_corners[(self.shift as usize + 2) % 4],
+            &bulls_eye_corners[(self.shift as usize + 3) % 4],
         )?;
 
         // 5. Get the corners of the matrix.
-        let corners = self.getMatrixCornerPoints(&bullsEyeCorners);
+        let corners = self.get_matrix_corner_points(&bulls_eye_corners);
 
         Ok(AztecDetectorRXingResult::new(
             bits,
             corners,
             self.compact,
-            self.nbDataBlocks,
-            self.nbLayers,
+            self.nb_data_blocks,
+            self.nb_layers,
         ))
     }
 
@@ -134,64 +122,64 @@ impl Detector {
      */
     fn extractParameters(
         &mut self,
-        bullsEyeCorners: &[RXingResultPoint],
+        bulls_eye_corners: &[RXingResultPoint],
     ) -> Result<(), Exceptions> {
-        if !self.isValid(&bullsEyeCorners[0])
-            || !self.isValid(&bullsEyeCorners[1])
-            || !self.isValid(&bullsEyeCorners[2])
-            || !self.isValid(&bullsEyeCorners[3])
+        if !self.is_valid(&bulls_eye_corners[0])
+            || !self.is_valid(&bulls_eye_corners[1])
+            || !self.is_valid(&bulls_eye_corners[2])
+            || !self.is_valid(&bulls_eye_corners[3])
         {
             return Err(Exceptions::NotFoundException("no valid points".to_owned()));
         }
-        let length = 2 * self.nbCenterLayers;
+        let length = 2 * self.nb_center_layers;
         // Get the bits around the bull's eye
         let sides = [
-            self.sampleLine(&bullsEyeCorners[0], &bullsEyeCorners[1], length), // Right side
-            self.sampleLine(&bullsEyeCorners[1], &bullsEyeCorners[2], length), // Bottom
-            self.sampleLine(&bullsEyeCorners[2], &bullsEyeCorners[3], length), // Left side
-            self.sampleLine(&bullsEyeCorners[3], &bullsEyeCorners[0], length), // Top
+            self.sample_line(&bulls_eye_corners[0], &bulls_eye_corners[1], length), // Right side
+            self.sample_line(&bulls_eye_corners[1], &bulls_eye_corners[2], length), // Bottom
+            self.sample_line(&bulls_eye_corners[2], &bulls_eye_corners[3], length), // Left side
+            self.sample_line(&bulls_eye_corners[3], &bulls_eye_corners[0], length), // Top
         ];
 
         // bullsEyeCorners[shift] is the corner of the bulls'eye that has three
         // orientation marks.
         // sides[shift] is the row/column that goes from the corner with three
         // orientation marks to the corner with two.
-        self.shift = Self::getRotation(&sides, length)?;
+        self.shift = Self::get_rotation(&sides, length)?;
 
         // Flatten the parameter bits into a single 28- or 40-bit long
-        let mut parameterData = 0u64;
+        let mut parameter_data = 0u64;
         for i in 0..4 {
             // for (int i = 0; i < 4; i++) {
             let side = sides[(self.shift + i) as usize % 4];
             if self.compact {
                 // Each side of the form ..XXXXXXX. where Xs are parameter data
-                parameterData <<= 7;
-                parameterData += (side as u64 >> 1) & 0x7F;
+                parameter_data <<= 7;
+                parameter_data += (side as u64 >> 1) & 0x7F;
             } else {
                 // Each side of the form ..XXXXX.XXXXX. where Xs are parameter data
-                parameterData <<= 10;
-                parameterData += ((side as u64 >> 2) & (0x1f << 5)) + ((side as u64 >> 1) & 0x1F);
+                parameter_data <<= 10;
+                parameter_data += ((side as u64 >> 2) & (0x1f << 5)) + ((side as u64 >> 1) & 0x1F);
             }
         }
 
         // Corrects parameter data using RS.  Returns just the data portion
         // without the error correction.
-        let correctedData = Self::getCorrectedParameterData(parameterData, self.compact)?;
+        let corrected_data = Self::get_corrected_parameter_data(parameter_data, self.compact)?;
 
         if self.compact {
             // 8 bits:  2 bits layers and 6 bits data blocks
-            self.nbLayers = (correctedData >> 6) + 1;
-            self.nbDataBlocks = (correctedData & 0x3F) + 1;
+            self.nb_layers = (corrected_data >> 6) + 1;
+            self.nb_data_blocks = (corrected_data & 0x3F) + 1;
         } else {
             // 16 bits:  5 bits layers and 11 bits data blocks
-            self.nbLayers = (correctedData >> 11) + 1;
-            self.nbDataBlocks = (correctedData & 0x7FF) + 1;
+            self.nb_layers = (corrected_data >> 11) + 1;
+            self.nb_data_blocks = (corrected_data & 0x7FF) + 1;
         }
 
         Ok(())
     }
 
-    fn getRotation(sides: &[u32], length: u32) -> Result<u32, Exceptions> {
+    fn get_rotation(sides: &[u32], length: u32) -> Result<u32, Exceptions> {
         // In a normal pattern, we expect to See
         //   **    .*             D       A
         //   *      *
@@ -201,23 +189,23 @@ impl Detector {
         //
         // Grab the 3 bits from each of the sides the form the locator pattern and concatenate
         // into a 12-bit integer.  Start with the bit at A
-        let mut cornerBits = 0;
+        let mut corner_bits = 0;
         for side in sides {
             // for (int side : sides) {
             // XX......X where X's are orientation marks
             let t = ((side >> (length - 2)) << 1) + (side & 1);
-            cornerBits = (cornerBits << 3) + t;
+            corner_bits = (corner_bits << 3) + t;
         }
         // Mov the bottom bit to the top, so that the three bits of the locator pattern at A are
         // together.  cornerBits is now:
         //  3 orientation bits at A || 3 orientation bits at B || ... || 3 orientation bits at D
-        cornerBits = ((cornerBits & 1) << 11) + (cornerBits >> 1);
+        corner_bits = ((corner_bits & 1) << 11) + (corner_bits >> 1);
         // The result shift indicates which element of BullsEyeCorners[] goes into the top-left
         // corner. Since the four rotation values have a Hamming distance of 8, we
         // can easily tolerate two errors.
         for shift in 0..4 {
             // for (int shift = 0; shift < 4; shift++) {
-            if (cornerBits ^ EXPECTED_CORNER_BITS[shift as usize]).count_ones() <= 2 {
+            if (corner_bits ^ EXPECTED_CORNER_BITS[shift as usize]).count_ones() <= 2 {
                 // if (Integer.bitCount(cornerBits ^ EXPECTED_CORNER_BITS[shift]) <= 2) {
                 return Ok(shift);
             }
@@ -232,23 +220,23 @@ impl Detector {
      * @param compact true if this is a compact Aztec code
      * @throws NotFoundException if the array contains too many errors
      */
-    fn getCorrectedParameterData(parameterData: u64, compact: bool) -> Result<u32, Exceptions> {
+    fn get_corrected_parameter_data(parameterData: u64, compact: bool) -> Result<u32, Exceptions> {
         let mut parameterData = parameterData;
 
-        let numCodewords: i32;
-        let numDataCodewords: i32;
+        let num_codewords: i32;
+        let num_data_codewords: i32;
 
         if compact {
-            numCodewords = 7;
-            numDataCodewords = 2;
+            num_codewords = 7;
+            num_data_codewords = 2;
         } else {
-            numCodewords = 10;
-            numDataCodewords = 4;
+            num_codewords = 10;
+            num_data_codewords = 4;
         }
 
-        let numECCodewords = numCodewords - numDataCodewords;
-        let mut parameterWords = vec![0i32; numCodewords as usize];
-        for i in (0..numCodewords - 1).rev() {
+        let num_eccodewords = num_codewords - num_data_codewords;
+        let mut parameterWords = vec![0i32; num_codewords as usize];
+        for i in (0..num_codewords - 1).rev() {
             // for (int i = numCodewords - 1; i >= 0; --i) {
             parameterWords[i as usize] = (parameterData & 0xF) as i32;
             parameterData >>= 4;
@@ -256,14 +244,14 @@ impl Detector {
         //try {
         let field =
             reedsolomon::get_predefined_genericgf(reedsolomon::PredefinedGenericGF::AztecParam);
-        let rsDecoder = ReedSolomonDecoder::new(field);
-        rsDecoder.decode(&mut parameterWords, numECCodewords)?;
+        let rs_decoder = ReedSolomonDecoder::new(field);
+        rs_decoder.decode(&mut parameterWords, num_eccodewords)?;
         //} catch (ReedSolomonException ignored) {
         //throw NotFoundException.getNotFoundInstance();
         //}
         // Toss the error correction.  Just return the data as an integer
         let mut result = 0u32;
-        for i in 0..numDataCodewords {
+        for i in 0..num_data_codewords {
             // for (int i = 0; i < numDataCodewords; i++) {
             result = (result << 4) + parameterWords[i as usize] as u32;
         }
@@ -279,7 +267,7 @@ impl Detector {
      * @return The corners of the bull-eye
      * @throws NotFoundException If no valid bull-eye can be found
      */
-    fn getBullsEyeCorners(&mut self, pCenter: Point) -> Result<Vec<RXingResultPoint>, Exceptions> {
+    fn get_bulls_eye_corners(&mut self, pCenter: Point) -> Result<Vec<RXingResultPoint>, Exceptions> {
         let mut pina = pCenter;
         let mut pinb = pCenter;
         let mut pinc = pCenter;
@@ -289,10 +277,10 @@ impl Detector {
 
         for nbCenterLayers in 1..9 {
             // for (nbCenterLayers = 1; nbCenterLayers < 9; nbCenterLayers++) {
-            let pouta = self.getFirstDifferent(&pina, color, 1, -1);
-            let poutb = self.getFirstDifferent(&pinb, color, 1, 1);
-            let poutc = self.getFirstDifferent(&pinc, color, -1, 1);
-            let poutd = self.getFirstDifferent(&pind, color, -1, -1);
+            let pouta = self.get_first_different(&pina, color, 1, -1);
+            let poutb = self.get_first_different(&pinb, color, 1, 1);
+            let poutc = self.get_first_different(&pinc, color, -1, 1);
+            let poutd = self.get_first_different(&pind, color, -1, -1);
 
             //d      a
             //
@@ -300,13 +288,13 @@ impl Detector {
 
             if nbCenterLayers > 2 {
                 let q: f32 =
-                    Self::distance(&poutd.toRXingResultPoint(), &pouta.toRXingResultPoint())
+                    Self::distance(&poutd.to_rxing_result_point(), &pouta.to_rxing_result_point())
                         * nbCenterLayers as f32
-                        / (Self::distance(&pind.toRXingResultPoint(), &pina.toRXingResultPoint())
+                        / (Self::distance(&pind.to_rxing_result_point(), &pina.to_rxing_result_point())
                             * (nbCenterLayers + 2) as f32);
                 if q < 0.75
                     || q > 1.25
-                    || !self.isWhiteOrBlackRectangle(&pouta, &poutb, &poutc, &poutd)
+                    || !self.is_white_or_black_rectangle(&pouta, &poutb, &poutc, &poutd)
                 {
                     break;
                 }
@@ -320,25 +308,25 @@ impl Detector {
             color = !color;
         }
 
-        if self.nbCenterLayers != 5 && self.nbCenterLayers != 7 {
+        if self.nb_center_layers != 5 && self.nb_center_layers != 7 {
             return Err(Exceptions::NotFoundException("".to_owned()));
         }
 
-        self.compact = self.nbCenterLayers == 5;
+        self.compact = self.nb_center_layers == 5;
 
         // Expand the square by .5 pixel in each direction so that we're on the border
         // between the white square and the black square
-        let pinax = RXingResultPoint::new(pina.getX() as f32 + 0.5f32, pina.getY() as f32 - 0.5f32);
-        let pinbx = RXingResultPoint::new(pinb.getX() as f32 + 0.5f32, pinb.getY() as f32 + 0.5f32);
-        let pincx = RXingResultPoint::new(pinc.getX() as f32 - 0.5f32, pinc.getY() as f32 + 0.5f32);
-        let pindx = RXingResultPoint::new(pind.getX() as f32 - 0.5f32, pind.getY() as f32 - 0.5f32);
+        let pinax = RXingResultPoint::new(pina.get_x() as f32 + 0.5f32, pina.get_y() as f32 - 0.5f32);
+        let pinbx = RXingResultPoint::new(pinb.get_x() as f32 + 0.5f32, pinb.get_y() as f32 + 0.5f32);
+        let pincx = RXingResultPoint::new(pinc.get_x() as f32 - 0.5f32, pinc.get_y() as f32 + 0.5f32);
+        let pindx = RXingResultPoint::new(pind.get_x() as f32 - 0.5f32, pind.get_y() as f32 - 0.5f32);
 
         // Expand the square so that its corners are the centers of the points
         // just outside the bull's eye.
-        Ok(Self::expandSquare(
+        Ok(Self::expand_square(
             &[pinax, pinbx, pincx, pindx],
-            2 * self.nbCenterLayers - 3,
-            2 * self.nbCenterLayers,
+            2 * self.nb_center_layers - 3,
+            2 * self.nb_center_layers,
         ))
     }
 
@@ -347,21 +335,21 @@ impl Detector {
      *
      * @return the center point
      */
-    fn getMatrixCenter(&self) -> Point {
-        let mut pointA = RXingResultPoint { x: 0.0, y: 0.0 };
-        let mut pointB = RXingResultPoint { x: 0.0, y: 0.0 };
-        let mut pointC = RXingResultPoint { x: 0.0, y: 0.0 };
-        let mut pointD = RXingResultPoint { x: 0.0, y: 0.0 };
+    fn get_matrix_center(&self) -> Point {
+        let mut point_a = RXingResultPoint { x: 0.0, y: 0.0 };
+        let mut point_b = RXingResultPoint { x: 0.0, y: 0.0 };
+        let mut point_c = RXingResultPoint { x: 0.0, y: 0.0 };
+        let mut point_d = RXingResultPoint { x: 0.0, y: 0.0 };
 
         let mut fnd = false;
 
         //Get a white rectangle that can be the border of the matrix in center bull's eye or
         if let Ok(wrd) = WhiteRectangleDetector::new_from_image(&self.image) {
             if let Ok(cornerPoints) = wrd.detect() {
-                pointA = cornerPoints[0];
-                pointB = cornerPoints[1];
-                pointC = cornerPoints[2];
-                pointD = cornerPoints[3];
+                point_a = cornerPoints[0];
+                point_b = cornerPoints[1];
+                point_c = cornerPoints[2];
+                point_d = cornerPoints[3];
                 fnd = true;
             }
         }
@@ -371,18 +359,18 @@ impl Detector {
         if !fnd {
             let cx: i32 = (self.image.getWidth() / 2).try_into().unwrap();
             let cy: i32 = (self.image.getHeight() / 2).try_into().unwrap();
-            pointA = self
-                .getFirstDifferent(&Point::new(cx + 7, cy - 7), false, 1, -1)
-                .toRXingResultPoint();
-            pointB = self
-                .getFirstDifferent(&Point::new(cx + 7, cy + 7), false, 1, 1)
-                .toRXingResultPoint();
-            pointC = self
-                .getFirstDifferent(&Point::new(cx - 7, cy + 7), false, -1, 1)
-                .toRXingResultPoint();
-            pointD = self
-                .getFirstDifferent(&Point::new(cx - 7, cy - 7), false, -1, -1)
-                .toRXingResultPoint();
+            point_a = self
+                .get_first_different(&Point::new(cx + 7, cy - 7), false, 1, -1)
+                .to_rxing_result_point();
+            point_b = self
+                .get_first_different(&Point::new(cx + 7, cy + 7), false, 1, 1)
+                .to_rxing_result_point();
+            point_c = self
+                .get_first_different(&Point::new(cx - 7, cy + 7), false, -1, 1)
+                .to_rxing_result_point();
+            point_d = self
+                .get_first_different(&Point::new(cx - 7, cy - 7), false, -1, -1)
+                .to_rxing_result_point();
         }
         // try {
 
@@ -407,10 +395,10 @@ impl Detector {
 
         //Compute the center of the rectangle
         let mut cx = MathUtils::round(
-            (pointA.getX() + pointD.getX() + pointB.getX() + pointC.getX()) / 4.0f32,
+            (point_a.getX() + point_d.getX() + point_b.getX() + point_c.getX()) / 4.0f32,
         );
         let mut cy = MathUtils::round(
-            (pointA.getY() + pointD.getY() + pointB.getY() + pointC.getY()) / 4.0f32,
+            (point_a.getY() + point_d.getY() + point_b.getY() + point_c.getY()) / 4.0f32,
         );
 
         // Redetermine the white rectangle starting from previously computed center.
@@ -419,28 +407,28 @@ impl Detector {
         let mut fnd = false;
         if let Ok(wrd) = WhiteRectangleDetector::new(&self.image, 15, cx, cy) {
             if let Ok(cornerPoints) = wrd.detect() {
-                pointA = cornerPoints[0];
-                pointB = cornerPoints[1];
-                pointC = cornerPoints[2];
-                pointD = cornerPoints[3];
+                point_a = cornerPoints[0];
+                point_b = cornerPoints[1];
+                point_c = cornerPoints[2];
+                point_d = cornerPoints[3];
                 fnd = true;
             }
         }
         // This exception can be in case the initial rectangle is white
         // In that case we try to expand the rectangle.
         if !fnd {
-            pointA = self
-                .getFirstDifferent(&Point::new(cx + 7, cy - 7), false, 1, -1)
-                .toRXingResultPoint();
-            pointB = self
-                .getFirstDifferent(&Point::new(cx + 7, cy + 7), false, 1, 1)
-                .toRXingResultPoint();
-            pointC = self
-                .getFirstDifferent(&Point::new(cx - 7, cy + 7), false, -1, 1)
-                .toRXingResultPoint();
-            pointD = self
-                .getFirstDifferent(&Point::new(cx - 7, cy - 7), false, -1, -1)
-                .toRXingResultPoint();
+            point_a = self
+                .get_first_different(&Point::new(cx + 7, cy - 7), false, 1, -1)
+                .to_rxing_result_point();
+            point_b = self
+                .get_first_different(&Point::new(cx + 7, cy + 7), false, 1, 1)
+                .to_rxing_result_point();
+            point_c = self
+                .get_first_different(&Point::new(cx - 7, cy + 7), false, -1, 1)
+                .to_rxing_result_point();
+            point_d = self
+                .get_first_different(&Point::new(cx - 7, cy - 7), false, -1, -1)
+                .to_rxing_result_point();
         }
         // try {
         //   RXingResultPoint[] cornerPoints = new WhiteRectangleDetector(image, 15, cx, cy).detect();
@@ -459,10 +447,10 @@ impl Detector {
 
         // Recompute the center of the rectangle
         cx = MathUtils::round(
-            (pointA.getX() + pointD.getX() + pointB.getX() + pointC.getX()) / 4.0f32,
+            (point_a.getX() + point_d.getX() + point_b.getX() + point_c.getX()) / 4.0f32,
         );
         cy = MathUtils::round(
-            (pointA.getY() + pointD.getY() + pointB.getY() + pointC.getY()) / 4.0f32,
+            (point_a.getY() + point_d.getY() + point_b.getY() + point_c.getY()) / 4.0f32,
         );
 
         Point::new(cx, cy)
@@ -474,11 +462,11 @@ impl Detector {
      * @param bullsEyeCorners the array of bull's eye corners
      * @return the array of aztec code corners
      */
-    fn getMatrixCornerPoints(&self, bullsEyeCorners: &[RXingResultPoint]) -> Vec<RXingResultPoint> {
-        Self::expandSquare(
-            bullsEyeCorners,
-            2 * self.nbCenterLayers,
-            self.getDimension(),
+    fn get_matrix_corner_points(&self, bulls_eye_corners: &[RXingResultPoint]) -> Vec<RXingResultPoint> {
+        Self::expand_square(
+            bulls_eye_corners,
+            2 * self.nb_center_layers,
+            self.get_dimension(),
         )
     }
 
@@ -487,19 +475,19 @@ impl Detector {
      * topLeft, topRight, bottomRight, and bottomLeft are the centers of the squares on the
      * diagonal just outside the bull's eye.
      */
-    fn sampleGrid(
+    fn sample_grid(
         &self,
         image: &BitMatrix,
-        topLeft: &RXingResultPoint,
-        topRight: &RXingResultPoint,
-        bottomRight: &RXingResultPoint,
-        bottomLeft: &RXingResultPoint,
+        top_left: &RXingResultPoint,
+        top_right: &RXingResultPoint,
+        bottom_right: &RXingResultPoint,
+        bottom_left: &RXingResultPoint,
     ) -> Result<BitMatrix, Exceptions> {
         let sampler = DefaultGridSampler {};
-        let dimension = self.getDimension();
+        let dimension = self.get_dimension();
 
-        let low = dimension as f32 / 2.0f32 - self.nbCenterLayers as f32;
-        let high = dimension as f32 / 2.0f32 + self.nbCenterLayers as f32;
+        let low = dimension as f32 / 2.0f32 - self.nb_center_layers as f32;
+        let high = dimension as f32 / 2.0f32 + self.nb_center_layers as f32;
 
         sampler.sample_grid_detailed(
             image,
@@ -513,14 +501,14 @@ impl Detector {
             high, // bottomright
             low,
             high, // bottomleft
-            topLeft.getX(),
-            topLeft.getY(),
-            topRight.getX(),
-            topRight.getY(),
-            bottomRight.getX(),
-            bottomRight.getY(),
-            bottomLeft.getX(),
-            bottomLeft.getY(),
+            top_left.getX(),
+            top_left.getY(),
+            top_right.getX(),
+            top_right.getY(),
+            bottom_right.getX(),
+            bottom_right.getY(),
+            bottom_left.getX(),
+            bottom_left.getY(),
         )
     }
 
@@ -532,15 +520,15 @@ impl Detector {
      * @param size number of bits
      * @return the array of bits as an int (first bit is high-order bit of result)
      */
-    fn sampleLine(&self, p1: &RXingResultPoint, p2: &RXingResultPoint, size: u32) -> u32 {
+    fn sample_line(&self, p1: &RXingResultPoint, p2: &RXingResultPoint, size: u32) -> u32 {
         let mut result = 0;
 
         let d = Self::distance(p1, p2);
-        let moduleSize = d / size as f32;
+        let module_size = d / size as f32;
         let px = p1.getX();
         let py = p1.getY();
-        let dx = moduleSize * (p2.getX() - p1.getX()) / d;
-        let dy = moduleSize * (p2.getY() - p1.getY()) / d;
+        let dx = module_size * (p2.getX() - p1.getX()) / d;
+        let dy = module_size * (p2.getY() - p1.getY()) / d;
         for i in 0..size {
             // for (int i = 0; i < size; i++) {
             if self.image.get(
@@ -557,48 +545,48 @@ impl Detector {
      * @return true if the border of the rectangle passed in parameter is compound of white points only
      *         or black points only
      */
-    fn isWhiteOrBlackRectangle(&self, p1: &Point, p2: &Point, p3: &Point, p4: &Point) -> bool {
+    fn is_white_or_black_rectangle(&self, p1: &Point, p2: &Point, p3: &Point, p4: &Point) -> bool {
         let corr = 3;
 
         let p1 = Point::new(
-            0.max(p1.getX() - corr),
-            (self.image.getHeight() as i32 - 1).min(p1.getY() + corr),
+            0.max(p1.get_x() - corr),
+            (self.image.getHeight() as i32 - 1).min(p1.get_y() + corr),
         );
         // let p1 =  Point::new(Math.max(0, p1.getX() - corr), Math.min(image.getHeight() - 1, p1.getY() + corr));
-        let p2 = Point::new(0.max(p2.getX() - corr), 0.max(p2.getY() - corr));
+        let p2 = Point::new(0.max(p2.get_x() - corr), 0.max(p2.get_y() - corr));
         // let p2 =  Point::new(Math.max(0, p2.getX() - corr), Math.max(0, p2.getY() - corr));
         let p3 = Point::new(
-            (self.image.getWidth() as i32 - 1).min(p3.getX() + corr),
-            0.max((self.image.getHeight() as i32 - 1).min(p3.getY() - corr)),
+            (self.image.getWidth() as i32 - 1).min(p3.get_x() + corr),
+            0.max((self.image.getHeight() as i32 - 1).min(p3.get_y() - corr)),
         );
         //  let p3 =  Point::new(Math.min(image.getWidth() - 1, p3.getX() + corr),
         //  Math.max(0, Math.min(image.getHeight() - 1, p3.getY() - corr)));
         let p4 = Point::new(
-            self.image.getWidth() as i32 - 1.min(p4.getX() + corr),
-            (self.image.getHeight() as i32 - 1).min(p4.getY() + corr),
+            self.image.getWidth() as i32 - 1.min(p4.get_x() + corr),
+            (self.image.getHeight() as i32 - 1).min(p4.get_y() + corr),
         );
         //  let p4 =  Point::new(Math.min(image.getWidth() - 1, p4.getX() + corr),
         //  Math.min(image.getHeight() - 1, p4.getY() + corr));
 
-        let cInit = self.getColor(&p4, &p1);
+        let cInit = self.get_color(&p4, &p1);
 
         if cInit == 0 {
             return false;
         }
 
-        let c = self.getColor(&p1, &p2);
+        let c = self.get_color(&p1, &p2);
 
         if c != cInit {
             return false;
         }
 
-        let c = self.getColor(&p2, &p3);
+        let c = self.get_color(&p2, &p3);
 
         if c != cInit {
             return false;
         }
 
-        let c = self.getColor(&p3, &p4);
+        let c = self.get_color(&p3, &p4);
 
         return c == cInit;
     }
@@ -608,37 +596,37 @@ impl Detector {
      *
      * @return 1 if segment more than 90% black, -1 if segment is more than 90% white, 0 else
      */
-    fn getColor(&self, p1: &Point, p2: &Point) -> i32 {
+    fn get_color(&self, p1: &Point, p2: &Point) -> i32 {
         let d = Self::distance_points(p1, p2);
         if d == 0.0f32 {
             return 0;
         }
-        let dx = (p2.getX() - p1.getX()) as f32 / d;
-        let dy = (p2.getY() - p1.getY()) as f32 / d;
+        let dx = (p2.get_x() - p1.get_x()) as f32 / d;
+        let dy = (p2.get_y() - p1.get_y()) as f32 / d;
         let mut error = 0;
 
-        let mut px = p1.getX();
-        let mut py = p1.getY();
+        let mut px = p1.get_x();
+        let mut py = p1.get_y();
 
-        let colorModel = self.image.get(p1.getX() as u32, p1.getY() as u32);
+        let color_model = self.image.get(p1.get_x() as u32, p1.get_y() as u32);
 
-        let iMax = d.floor() as u32; //(int) Math.floor(d);
-        for _i in 0..iMax {
+        let i_max = d.floor() as u32; //(int) Math.floor(d);
+        for _i in 0..i_max {
             // for (int i = 0; i < iMax; i++) {
-            if self.image.get(px as u32, py as u32) != colorModel {
+            if self.image.get(px as u32, py as u32) != color_model {
                 error += 1;
             }
             px += dx.floor() as i32;
             py += dy.floor() as i32;
         }
 
-        let errRatio = error as f32 / d;
+        let err_ratio = error as f32 / d;
 
-        if errRatio > 0.1f32 && errRatio < 0.9f32 {
+        if err_ratio > 0.1f32 && err_ratio < 0.9f32 {
             return 0;
         }
 
-        if (errRatio <= 0.1f32) == colorModel {
+        if (err_ratio <= 0.1f32) == color_model {
             1
         } else {
             -1
@@ -648,11 +636,11 @@ impl Detector {
     /**
      * Gets the coordinate of the first point with a different color in the given direction
      */
-    fn getFirstDifferent(&self, init: &Point, color: bool, dx: i32, dy: i32) -> Point {
-        let mut x = init.getX() + dx;
-        let mut y = init.getY() + dy;
+    fn get_first_different(&self, init: &Point, color: bool, dx: i32, dy: i32) -> Point {
+        let mut x = init.get_x() + dx;
+        let mut y = init.get_y() + dy;
 
-        while self.isValidPoints(x, y) && self.image.get(x as u32, y as u32) == color {
+        while self.is_valid_points(x, y) && self.image.get(x as u32, y as u32) == color {
             x += dx;
             y += dy;
         }
@@ -660,12 +648,12 @@ impl Detector {
         x -= dx;
         y -= dy;
 
-        while self.isValidPoints(x, y) && self.image.get(x as u32, y as u32) == color {
+        while self.is_valid_points(x, y) && self.image.get(x as u32, y as u32) == color {
             x += dx;
         }
         x -= dx;
 
-        while self.isValidPoints(x, y) && self.image.get(x as u32, y as u32) == color {
+        while self.is_valid_points(x, y) && self.image.get(x as u32, y as u32) == color {
             y += dy;
         }
         y -= dy;
@@ -681,56 +669,56 @@ impl Detector {
      * @param newSide the new length of the size of the square in the target bit matrix
      * @return the corners of the expanded square
      */
-    fn expandSquare(
-        cornerPoints: &[RXingResultPoint],
-        oldSide: u32,
-        newSide: u32,
+    fn expand_square(
+        corner_points: &[RXingResultPoint],
+        old_side: u32,
+        new_side: u32,
     ) -> Vec<RXingResultPoint> {
-        let ratio = newSide as f32 / (2.0f32 * oldSide as f32);
-        let mut dx = cornerPoints[0].getX() - cornerPoints[2].getX();
-        let mut dy = cornerPoints[0].getY() - cornerPoints[2].getY();
-        let mut centerx = (cornerPoints[0].getX() + cornerPoints[2].getX()) / 2.0f32;
-        let mut centery = (cornerPoints[0].getY() + cornerPoints[2].getY()) / 2.0f32;
+        let ratio = new_side as f32 / (2.0f32 * old_side as f32);
+        let mut dx = corner_points[0].getX() - corner_points[2].getX();
+        let mut dy = corner_points[0].getY() - corner_points[2].getY();
+        let mut centerx = (corner_points[0].getX() + corner_points[2].getX()) / 2.0f32;
+        let mut centery = (corner_points[0].getY() + corner_points[2].getY()) / 2.0f32;
 
         let result0 = RXingResultPoint::new(centerx + ratio * dx, centery + ratio * dy);
         let result2 = RXingResultPoint::new(centerx - ratio * dx, centery - ratio * dy);
 
-        dx = cornerPoints[1].getX() - cornerPoints[3].getX();
-        dy = cornerPoints[1].getY() - cornerPoints[3].getY();
-        centerx = (cornerPoints[1].getX() + cornerPoints[3].getX()) / 2.0f32;
-        centery = (cornerPoints[1].getY() + cornerPoints[3].getY()) / 2.0f32;
+        dx = corner_points[1].getX() - corner_points[3].getX();
+        dy = corner_points[1].getY() - corner_points[3].getY();
+        centerx = (corner_points[1].getX() + corner_points[3].getX()) / 2.0f32;
+        centery = (corner_points[1].getY() + corner_points[3].getY()) / 2.0f32;
         let result1 = RXingResultPoint::new(centerx + ratio * dx, centery + ratio * dy);
         let result3 = RXingResultPoint::new(centerx - ratio * dx, centery - ratio * dy);
 
         vec![result0, result1, result2, result3]
     }
 
-    fn isValidPoints(&self, x: i32, y: i32) -> bool {
+    fn is_valid_points(&self, x: i32, y: i32) -> bool {
         x >= 0
             && x < self.image.getWidth().try_into().unwrap()
             && y >= 0
             && y < self.image.getHeight().try_into().unwrap()
     }
 
-    fn isValid(&self, point: &RXingResultPoint) -> bool {
+    fn is_valid(&self, point: &RXingResultPoint) -> bool {
         let x = MathUtils::round(point.getX());
         let y = MathUtils::round(point.getY());
-        self.isValidPoints(x, y)
+        self.is_valid_points(x, y)
     }
 
     fn distance_points(a: &Point, b: &Point) -> f32 {
-        MathUtils::distance_int(a.getX(), a.getY(), b.getX(), b.getY())
+        MathUtils::distance_int(a.get_x(), a.get_y(), b.get_x(), b.get_y())
     }
 
     fn distance(a: &RXingResultPoint, b: &RXingResultPoint) -> f32 {
         MathUtils::distance_float(a.getX(), a.getY(), b.getX(), b.getY())
     }
 
-    fn getDimension(&self) -> u32 {
+    fn get_dimension(&self) -> u32 {
         if self.compact {
-            return 4 * self.nbLayers + 11;
+            return 4 * self.nb_layers + 11;
         }
-        4 * self.nbLayers + 2 * ((2 * self.nbLayers + 6) / 15) + 15
+        4 * self.nb_layers + 2 * ((2 * self.nb_layers + 6) / 15) + 15
     }
 }
 
@@ -741,7 +729,7 @@ pub struct Point {
 }
 
 impl Point {
-    pub fn toRXingResultPoint(&self) -> RXingResultPoint {
+    pub fn to_rxing_result_point(&self) -> RXingResultPoint {
         RXingResultPoint::new(self.x as f32, self.y as f32)
     }
 
@@ -749,11 +737,11 @@ impl Point {
         Self { x, y }
     }
 
-    pub fn getX(&self) -> i32 {
+    pub fn get_x(&self) -> i32 {
         self.x
     }
 
-    pub fn getY(&self) -> i32 {
+    pub fn get_y(&self) -> i32 {
         self.y
     }
 }
