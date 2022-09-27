@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 use encoding::Encoding;
 
 use crate::{
@@ -122,7 +121,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
     let mut encdr: &'static dyn encoding::Encoding = encoding::all::ISO_8859_1;
 
     let mut index = 0;
-    
+
     'main: while index < end_index {
         if shift_table == Table::BINARY {
             if end_index - index < 5 {
@@ -169,7 +168,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
                         .decode(&decoded_bytes, encoding::DecoderTrap::Strict)
                         .unwrap(),
                 );
-                
+
                 decoded_bytes.clear();
                 match n {
                     0 => result.push(29 as char), // translate FNC1 as ASCII 29
@@ -399,7 +398,7 @@ fn correct_bits(
             // next codewordSize-1 bits are all zeros or all ones
             corrected_bits.splice(
                 index..index + codeword_size - 1,
-                vec![data_word > 1; codeword_size-1],
+                vec![data_word > 1; codeword_size - 1],
             );
             // Arrays.fill(correctedBits, index, index + codewordSize - 1, dataWord > 1);
             index += codeword_size - 1;
