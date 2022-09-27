@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<head>
+    <style>
+        textarea {
+            font-family: monospace;
+        }
+        table {
+            font-family:monospace;
+        }
+        .bg_color {
+            background-color: lightblue;
+        }
+    </style>
+    <script>
+        function token_text(raw_text, true_value, false_value) {
+            const find_true = true_value;
+            const find_false = false_value;
+
+            if (find_true.length != find_false.length) {
+                alert("Find must have same length");
+                return;
+            }
+
+            const token_length = find_true.length;
+
+            // if (((raw_text.length % find_true.length) != 0) || ((raw_text.length % find_false.length) != 0)) {
+            //     alert("bad matrix length");
+            //     return;
+            // }
+
+            let output_array = [];
+
+            const split_text = raw_text.split("\n");
+            for (const line in split_text) {
+                //  console.log("Line: '" + split_text[line] +"'");
+                for (let index = 0; index < split_text[line].length; index += token_length) {
+                    const found_token = split_text[line].substring(index, index + token_length);
+                    // console.log(index + " -> " + found_token);
+                    if (output_array[line] == undefined) {
+                        output_array[line] = [];
+                    }
+                    output_array[line].push(found_token == find_true);
+                }
+            }
+            // console.log(output_array);
+            return output_array;
+        }
+
+        function set_current_coord(row, column){
+            document.getElementById("output_row").innerText = row;
+            document.getElementById("output_column").innerText = column;
+        }
+
+        const style_column_addin = "col_";
+            const style_row_addin = "row_";
+
+        function on_over(row,column){
+            const elements = [...document.getElementsByClassName(style_column_addin+column),...document.getElementsByClassName(style_row_addin+row)]; 
+
+            for( const el_id in elements ){
+                const el = elements[el_id];
+                el.classList.add("bg_color");
+            }
+        }
+
+        function on_out(row,column){
+            const elements = [...document.getElementsByClassName(style_column_addin+column),...document.getElementsByClassName(style_row_addin+row)]; 
+
+            for( const el_id in elements ){
+                const el = elements[el_id];
+                el.classList.remove("bg_color");
+            }
+        }
+
+        function build_table(input_array){
+            // console.log(input_array);
+            const root = document.getElementById("container");
+
+            const new_table = document.createElement("table");
+
+            const new_th = document.createElement("tr");
+            new_table.appendChild(new_th);
+
+            let column_count = 0;
+            const row_count = input_array.length;
+
+            for (let row_id = 0; row_id < input_array.length; row_id++){
+                const row = input_array[row_id];
+                const new_tr = document.createElement("tr");
+
+                const new_row_head = document.createElement("th");
+                new_row_head.innerText = row_id;
+                
+                new_tr.appendChild(new_row_head);
+
+                for (let column_id = 0; column_id < row.length; column_id++){
+                    const new_td = document.createElement("td");
+                    new_td.innerText = row[column_id] ? 'X' : ' ';
+
+                    new_td.onclick=()=>{set_current_coord(row_id, column_id)};
+                    new_td.onmouseover=()=>{on_over(row_id, column_id)};
+                    new_td.onmouseout=()=>{on_out(row_id, column_id)};
+
+                    new_td.classList.add(style_column_addin+column_id);
+                    new_td.classList.add(style_row_addin+row_id);
+
+                    new_td.setAttribute("title", `(${row_id},${column_id})`);
+
+                    new_tr.appendChild(new_td);
+                    // console.log(column_id + " ->" + row[column_id] + "::" + new_td);
+                    column_count++;
+                }
+                new_table.appendChild(new_tr);
+            }
+
+            column_count = column_count / row_count;
+
+            new_th.appendChild(document.createElement("th"));
+
+            for ( let id = 0; id < column_count; id++){
+                const new_child_node = document.createElement("th");
+                new_child_node.innerText = id;
+                new_th.appendChild(new_child_node);
+            }
+
+            root.replaceChildren(new_table);
+        }
+
+        function parse_text() {
+            const input = document.getElementById("raw_text").value;
+            const true_value = document.getElementById("true_value").value;
+            const false_value = document.getElementById("false_value").value;
+
+            const parsed_text = token_text(input, true_value, false_value);
+
+            build_table(parsed_text);
+
+            // alert(input + " " + separator + " " +  true_value + " " + false_value);
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Matrix Visualization</h1>
+    <div id="output_stuff">
+        <div id="output_row"></div>
+        <div id="output_column"></div>
+    </div>
+    <div id="container"></div>
+    <label>
+        Matrix
+        <textarea cols="80" rows="20" id="raw_text"></textarea>
+    </label>
+    <br />
+    <label>
+        True
+        <input type="text" id="true_value" value="X " />
+    </label>
+    <label>
+        False
+        <input type="text" id="false_value" value="  " />
+    </label>
+    <button onClick="parse_text()">Parse</button>
+</body>
+
+</html>
