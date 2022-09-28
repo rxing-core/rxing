@@ -71,10 +71,11 @@ fn test_error_in_parameter_locator_not_compact() {
 fn test_error_in_parameter_locator(data: &str) {
     let aztec = encoder::encoder::encode(data, 25, encoder::encoder::DEFAULT_AZTEC_LAYERS)
         .expect("encode should create");
+    // dbg!(aztec.getMatrix().to_string());
     let mut random = rand::thread_rng(); //Random(aztec.getMatrix().hashCode());   // pseudo-random, but deterministic
     let layers = aztec.getLayers();
     let compact = aztec.isCompact();
-    let orientation_points = getOrientationPoints(&aztec);
+    let orientation_points = get_orientation_points(&aztec);
     for isMirror in [false, true] {
         // for (boolean isMirror : new boolean[] { false, true }) {
         for matrix in get_rotations(aztec.getMatrix()) {
@@ -90,16 +91,18 @@ fn test_error_in_parameter_locator(data: &str) {
                         clone(&matrix)
                     };
                     copy.flip_coords(
-                        orientation_points.get(error1).unwrap().get_x() as u32,
-                        orientation_points.get(error1).unwrap().get_y() as u32,
+                        orientation_points.get(error1).unwrap().get_x().abs() as u32,
+                        orientation_points.get(error1).unwrap().get_y().abs() as u32,
                     );
                     if error2 > error1 {
                         // if error2 == error1, we only test a single error
                         copy.flip_coords(
-                            orientation_points.get(error2).unwrap().get_x() as u32,
-                            orientation_points.get(error2).unwrap().get_y() as u32,
+                            orientation_points.get(error2).unwrap().get_x().abs() as u32,
+                            orientation_points.get(error2).unwrap().get_y().abs() as u32,
                         );
                     }
+                    // dbg!(copy.to_string());
+                    // dbg!(make_larger(&copy, 3).to_string());
                     // The detector doesn't seem to work when matrix bits are only 1x1.  So magnify.
                     let r = Detector::new(make_larger(&copy, 3)).detect(isMirror);
                     assert!(r.is_ok());
@@ -117,7 +120,7 @@ fn test_error_in_parameter_locator(data: &str) {
                 let mut errors = Vec::new();
                 while errors.len() < 3 {
                     // Quick and dirty way of getting three distinct integers between 1 and n.
-                    errors.push(random.gen_range(0..=orientation_points.len()));
+                    errors.push(random.gen_range(0..orientation_points.len()));
                 }
                 for error in errors {
                     // for (int error : errors) {
@@ -125,22 +128,28 @@ fn test_error_in_parameter_locator(data: &str) {
                         orientation_points.get(error).unwrap().get_x() as u32,
                         orientation_points.get(error).unwrap().get_y() as u32,
                     );
+                    // copy.flip_coords(
+                    //     orientation_points.get(error).unwrap().get_x().abs() as u32,
+                    //     orientation_points.get(error).unwrap().get_y().abs() as u32,
+                    // );
                 }
                 // try {
                 if let Err(res) = detector::Detector::new(make_larger(&copy, 3)).detect(false) {
                     if let Exceptions::NotFoundException(_msg) = res {
                         // all ok
                     } else {
-                        panic!("Should not reach here");
+                        panic!("Only Exceptions::NotFoundException allowed, got {}", res);
                     }
                 } else {
-                    panic!("Should not reach here");
+                    let r = Detector::new(make_larger(&copy, 3)).detect(false);
+                    assert!(r.is_ok());
+                    let r = r.expect("result already tested as ok");
+                    assert_eq!(r.getNbLayers(), layers);
+                    assert_eq!(r.isCompact(), compact);
+                    let res = decoder::decode(&r).expect("decode should be ok");
+                    assert_eq!(data, res.getText());
+                    //panic!("Should be unable to detect given value.");
                 }
-                //   // new Detector(makeLarger(copy, 3)).detect(false);
-                //   fail("Should not reach here");
-                // } catch (NotFoundException expected) {
-                //   // continue
-                // }
             }
         }
     }
@@ -155,7 +164,9 @@ fn make_larger(input: &BitMatrix, factor: u32) -> BitMatrix {
         for inputX in 0..width {
             // for (int inputX = 0; inputX < width; inputX++) {
             if input.get(inputX, inputY) {
-                output.setRegion(inputX * factor, inputY * factor, factor, factor).expect("region set should be ok");
+                output
+                    .setRegion(inputX * factor, inputY * factor, factor, factor)
+                    .expect("region set should be ok");
             }
         }
     }
@@ -168,6 +179,11 @@ fn get_rotations(matrix0: &BitMatrix) -> Vec<BitMatrix> {
     let matrix180 = rotate_right(&matrix90);
     let matrix270 = rotate_right(&matrix180);
     vec![matrix0.clone(), matrix90, matrix180, matrix270]
+    // vec![matrix0.clone()]
+    // vec![matrix90]
+    // vec![matrix180]
+    // vec![matrix270]
+    // vec![matrix0.clone(), matrix90, matrix270, matrix180 ]
 }
 
 // Rotates a square BitMatrix to the right by 90 degrees
@@ -178,7 +194,7 @@ fn rotate_right(input: &BitMatrix) -> BitMatrix {
         // for (int x = 0; x < width; x++) {
         for y in 0..width {
             // for (int y = 0; y < width; y++) {
-            if (input.get(x, y)) {
+            if input.get(x, y) {
                 result.set(y, width - x - 1);
             }
         }
@@ -195,7 +211,7 @@ fn transpose(input: &BitMatrix) -> BitMatrix {
         // for (int x = 0; x < width; x++) {
         for y in 0..width {
             // for (int y = 0; y < width; y++) {
-            if (input.get(x, y)) {
+            if input.get(x, y) {
                 result.set(y, x);
             }
         }
@@ -218,7 +234,7 @@ fn clone(input: &BitMatrix) -> BitMatrix {
     result
 }
 
-fn getOrientationPoints(code: &AztecCode) -> Vec<Point> {
+fn get_orientation_points(code: &AztecCode) -> Vec<Point> {
     let center = code.getMatrix().getWidth() as i32 / 2;
     let offset = if code.isCompact() { 5 } else { 7 };
     let mut result = Vec::new();

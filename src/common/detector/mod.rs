@@ -422,107 +422,107 @@ impl WhiteRectangleDetector {
         let mut right: i32 = self.rightInit;
         let mut up: i32 = self.upInit;
         let mut down: i32 = self.downInit;
-        let mut sizeExceeded = false;
-        let mut aBlackPointFoundOnBorder = true;
+        let mut size_exceeded = false;
+        let mut a_black_point_found_on_border = true;
 
-        let mut atLeastOneBlackPointFoundOnRight = false;
-        let mut atLeastOneBlackPointFoundOnBottom = false;
-        let mut atLeastOneBlackPointFoundOnLeft = false;
-        let mut atLeastOneBlackPointFoundOnTop = false;
+        let mut at_least_one_black_point_found_on_right = false;
+        let mut at_least_one_black_point_found_on_bottom = false;
+        let mut at_least_one_black_point_found_on_left = false;
+        let mut at_least_one_black_point_found_on_top = false;
 
-        while aBlackPointFoundOnBorder {
-            aBlackPointFoundOnBorder = false;
+        while a_black_point_found_on_border {
+            a_black_point_found_on_border = false;
 
             // .....
             // .   |
             // .....
-            let mut rightBorderNotWhite = true;
-            while (rightBorderNotWhite || !atLeastOneBlackPointFoundOnRight) && right < self.width {
-                rightBorderNotWhite = self.containsBlackPoint(up, down, right, false);
-                if rightBorderNotWhite {
+            let mut right_border_not_white = true;
+            while (right_border_not_white || !at_least_one_black_point_found_on_right) && right < self.width {
+                right_border_not_white = self.contains_black_point(up, down, right, false);
+                if right_border_not_white {
                     right += 1;
-                    aBlackPointFoundOnBorder = true;
-                    atLeastOneBlackPointFoundOnRight = true;
-                } else if !atLeastOneBlackPointFoundOnRight {
+                    a_black_point_found_on_border = true;
+                    at_least_one_black_point_found_on_right = true;
+                } else if !at_least_one_black_point_found_on_right {
                     right += 1;
                 }
             }
 
             if right >= self.width {
-                sizeExceeded = true;
+                size_exceeded = true;
                 break;
             }
 
             // .....
             // .   .
             // .___.
-            let mut bottomBorderNotWhite = true;
-            while (bottomBorderNotWhite || !atLeastOneBlackPointFoundOnBottom) && down < self.height
+            let mut bottom_border_not_white = true;
+            while (bottom_border_not_white || !at_least_one_black_point_found_on_bottom) && down < self.height
             {
-                bottomBorderNotWhite = self.containsBlackPoint(left, right, down, true);
-                if bottomBorderNotWhite {
+                bottom_border_not_white = self.contains_black_point(left, right, down, true);
+                if bottom_border_not_white {
                     down += 1;
-                    aBlackPointFoundOnBorder = true;
-                    atLeastOneBlackPointFoundOnBottom = true;
-                } else if !atLeastOneBlackPointFoundOnBottom {
+                    a_black_point_found_on_border = true;
+                    at_least_one_black_point_found_on_bottom = true;
+                } else if !at_least_one_black_point_found_on_bottom {
                     down += 1;
                 }
             }
 
             if down >= self.height {
-                sizeExceeded = true;
+                size_exceeded = true;
                 break;
             }
 
             // .....
             // |   .
             // .....
-            let mut leftBorderNotWhite = true;
-            while (leftBorderNotWhite || !atLeastOneBlackPointFoundOnLeft) && left >= 0 {
-                leftBorderNotWhite = self.containsBlackPoint(up, down, left, false);
-                if leftBorderNotWhite {
+            let mut left_border_not_white = true;
+            while (left_border_not_white || !at_least_one_black_point_found_on_left) && left >= 0 {
+                left_border_not_white = self.contains_black_point(up, down, left, false);
+                if left_border_not_white {
                     left -= 1;
-                    aBlackPointFoundOnBorder = true;
-                    atLeastOneBlackPointFoundOnLeft = true;
-                } else if !atLeastOneBlackPointFoundOnLeft {
+                    a_black_point_found_on_border = true;
+                    at_least_one_black_point_found_on_left = true;
+                } else if !at_least_one_black_point_found_on_left {
                     left -= 1;
                 }
             }
 
             if left < 0 {
-                sizeExceeded = true;
+                size_exceeded = true;
                 break;
             }
 
             // .___.
             // .   .
             // .....
-            let mut topBorderNotWhite = true;
-            while (topBorderNotWhite || !atLeastOneBlackPointFoundOnTop) && up >= 0 {
-                topBorderNotWhite = self.containsBlackPoint(left, right, up, true);
-                if topBorderNotWhite {
+            let mut top_border_not_white = true;
+            while (top_border_not_white || !at_least_one_black_point_found_on_top) && up >= 0 {
+                top_border_not_white = self.contains_black_point(left, right, up, true);
+                if top_border_not_white {
                     up -= 1;
-                    aBlackPointFoundOnBorder = true;
-                    atLeastOneBlackPointFoundOnTop = true;
-                } else if !atLeastOneBlackPointFoundOnTop {
+                    a_black_point_found_on_border = true;
+                    at_least_one_black_point_found_on_top = true;
+                } else if !at_least_one_black_point_found_on_top {
                     up -= 1;
                 }
             }
 
             if up < 0 {
-                sizeExceeded = true;
+                size_exceeded = true;
                 break;
             }
         }
 
-        if !sizeExceeded {
-            let maxSize = right - left;
+        if !size_exceeded {
+            let max_size = right - left;
 
             let mut z: Option<RXingResultPoint> = None;
             let mut i = 1;
-            while z.is_none() && i < maxSize {
+            while z.is_none() && i < max_size {
                 //for (int i = 1; z == null && i < maxSize; i++) {
-                z = self.getBlackPointOnSegment(
+                z = self.get_black_point_on_segment(
                     left as f32,
                     (down - i) as f32,
                     (left + i) as f32,
@@ -538,9 +538,9 @@ impl WhiteRectangleDetector {
             let mut t: Option<RXingResultPoint> = None;
             //go down right
             let mut i = 1;
-            while t.is_none() && i < maxSize {
+            while t.is_none() && i < max_size {
                 //for (int i = 1; t == null && i < maxSize; i++) {
-                t = self.getBlackPointOnSegment(
+                t = self.get_black_point_on_segment(
                     left as f32,
                     (up + i) as f32,
                     (left + i) as f32,
@@ -556,9 +556,9 @@ impl WhiteRectangleDetector {
             let mut x: Option<RXingResultPoint> = None;
             //go down left
             let mut i = 1;
-            while x.is_none() && i < maxSize {
+            while x.is_none() && i < max_size {
                 //for (int i = 1; x == null && i < maxSize; i++) {
-                x = self.getBlackPointOnSegment(
+                x = self.get_black_point_on_segment(
                     right as f32,
                     (up + i) as f32,
                     (right - i) as f32,
@@ -574,9 +574,9 @@ impl WhiteRectangleDetector {
             let mut y: Option<RXingResultPoint> = None;
             //go up left
             let mut i = 1;
-            while y.is_none() && i < maxSize {
+            while y.is_none() && i < max_size {
                 //for (int i = 1; y == null && i < maxSize; i++) {
-                y = self.getBlackPointOnSegment(
+                y = self.get_black_point_on_segment(
                     right as f32,
                     (down - i) as f32,
                     (right - i) as f32,
@@ -589,26 +589,26 @@ impl WhiteRectangleDetector {
                 return Err(Exceptions::NotFoundException("".to_owned()));
             }
 
-            return Ok(self.centerEdges(&y.unwrap(), &z.unwrap(), &x.unwrap(), &t.unwrap()));
+            return Ok(self.center_edges(&y.unwrap(), &z.unwrap(), &x.unwrap(), &t.unwrap()));
         } else {
             return Err(Exceptions::NotFoundException("".to_owned()));
         }
     }
 
-    fn getBlackPointOnSegment(
+    fn get_black_point_on_segment(
         &self,
-        aX: f32,
-        aY: f32,
-        bX: f32,
-        bY: f32,
+        a_x: f32,
+        a_y: f32,
+        b_x: f32,
+        b_y: f32,
     ) -> Option<RXingResultPoint> {
-        let dist = MathUtils::round(MathUtils::distance_float(aX, aY, bX, bY));
-        let xStep: f32 = (bX - aX) / dist as f32;
-        let yStep: f32 = (bY - aY) / dist as f32;
+        let dist = MathUtils::round(MathUtils::distance_float(a_x, a_y, b_x, b_y));
+        let x_step: f32 = (b_x - a_x) / dist as f32;
+        let y_step: f32 = (b_y - a_y) / dist as f32;
 
         for i in 0..dist {
-            let x = MathUtils::round(aX + i as f32 * xStep);
-            let y = MathUtils::round(aY + i as f32 * yStep);
+            let x = MathUtils::round(a_x + i as f32 * x_step);
+            let y = MathUtils::round(a_y + i as f32 * y_step);
             if self.image.get(x as u32, y as u32) {
                 return Some(RXingResultPoint::new(x as f32, y as f32));
             }
@@ -629,7 +629,7 @@ impl WhiteRectangleDetector {
      *         point and the last, the bottommost. The second point will be
      *         leftmost and the third, the rightmost
      */
-    fn centerEdges(
+    fn center_edges(
         &self,
         y: &RXingResultPoint,
         z: &RXingResultPoint,
@@ -678,7 +678,7 @@ impl WhiteRectangleDetector {
      * @param horizontal set to true if scan must be horizontal, false if vertical
      * @return true if a black point has been found, else false.
      */
-    fn containsBlackPoint(&self, a: i32, b: i32, fixed: i32, horizontal: bool) -> bool {
+    fn contains_black_point(&self, a: i32, b: i32, fixed: i32, horizontal: bool) -> bool {
         if horizontal {
             for x in a..=b {
                 if self.image.get(x as u32, fixed as u32) {
