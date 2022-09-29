@@ -11,6 +11,9 @@
         .bg_color {
             background-color: lightblue;
         }
+        .super_small {
+            font-size: xx-small;
+        }
     </style>
     <script>
         function token_text(raw_text, true_value, false_value) {
@@ -122,6 +125,10 @@
                 const new_child_node = document.createElement("th");
                 new_child_node.innerText = id;
                 new_th.appendChild(new_child_node);
+            }
+
+            if (column_count > 80) {
+                new_table.classList.add("super_small");
             }
 
             root.replaceChildren(new_table);

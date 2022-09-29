@@ -1,13 +1,15 @@
-mod aztec;
-mod client;
-mod common;
+pub mod aztec;
+pub mod client;
+pub mod common;
 mod exceptions;
 
-#[cfg(feature = "image")]
-mod BufferedImageLuminanceSource;
+pub use exceptions::Exceptions;
 
 #[cfg(feature = "image")]
-pub use BufferedImageLuminanceSource::*;
+mod buffered_image_luminance_source;
+
+#[cfg(feature = "image")]
+pub use buffered_image_luminance_source::*;
 
 use crate::common::{BitArray, BitMatrix};
 use exceptions::*;
@@ -454,7 +456,7 @@ pub enum EncodeHintValue {
  * @author dswitkin@google.com (Daniel Switkin)
  * @see Reader#decode(BinaryBitmap,java.util.Map)
  */
-#[derive(Eq, PartialEq, Hash, Debug)]
+#[derive(Eq, PartialEq, Hash, Debug, Clone, Copy)]
 pub enum DecodeHintType {
     /**
      * Unspecified, application-specific hint. Maps to an unspecified {@link Object}.
@@ -558,7 +560,7 @@ pub enum DecodeHintType {
  * @see DecodeHintType#NEED_RESULT_POINT_CALLBACK
  */
 pub type RXingResultPointCallback = fn(&RXingResultPoint);
-
+#[derive(Clone)]
 pub enum DecodeHintValue {
     /**
      * Unspecified, application-specific hint. Maps to an unspecified {@link Object}.
@@ -671,6 +673,7 @@ pub trait Writer {
      * @throws WriterException if contents cannot be encoded legally in a format
      */
     fn encode(
+        &self,
         contents: &str,
         format: &BarcodeFormat,
         width: i32,
@@ -687,6 +690,7 @@ pub trait Writer {
      * @throws WriterException if contents cannot be encoded legally in a format
      */
     fn encode_with_hints(
+        &self,
         contents: &str,
         format: &BarcodeFormat,
         width: i32,
@@ -735,7 +739,7 @@ pub trait Reader {
      * @throws ChecksumException if a potential barcode is found but does not pass its checksum
      * @throws FormatException if a potential barcode is found but format is invalid
      */
-    fn decode(image: &BinaryBitmap) -> Result<RXingResult, Exceptions>;
+    fn decode(&self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions>;
 
     /**
      * Locates and decodes a barcode in some format within an image. This method also accepts
@@ -752,6 +756,7 @@ pub trait Reader {
      * @throws FormatException if a potential barcode is found but format is invalid
      */
     fn decode_with_hints(
+        &self,
         image: &BinaryBitmap,
         hints: &HashMap<DecodeHintType, DecodeHintValue>,
     ) -> Result<RXingResult, Exceptions>;
@@ -760,7 +765,7 @@ pub trait Reader {
      * Resets any internal state the implementation has after a decode, to prepare it
      * for reuse.
      */
-    fn reset();
+    fn reset(&self);
 }
 
 /*
@@ -787,7 +792,7 @@ pub trait Reader {
  *
  * @author Sean Owen
  */
-#[derive(Eq, PartialEq, Hash)]
+#[derive(Eq, PartialEq, Hash, Debug)]
 pub enum RXingResultMetadataType {
     /**
      * Unspecified, application-specific metadata. Maps to an unspecified {@link Object}.
@@ -867,11 +872,32 @@ pub enum RXingResultMetadataType {
     SYMBOLOGY_IDENTIFIER,
 }
 
+impl From<String> for RXingResultMetadataType {
+    fn from(in_str: String) -> Self {
+        match in_str.as_str() {
+            "OTHER" => RXingResultMetadataType::OTHER,
+            "ORIENTATION" => RXingResultMetadataType::ORIENTATION,
+            "BYTE_SEGMENTS" => RXingResultMetadataType::BYTE_SEGMENTS,
+            "ERROR_CORRECTION_LEVEL"=> RXingResultMetadataType::ERROR_CORRECTION_LEVEL,
+            "ISSUE_NUMBER"=> RXingResultMetadataType::ISSUE_NUMBER,
+            "SUGGESTED_PRICE"=> RXingResultMetadataType::SUGGESTED_PRICE,
+            "POSSIBLE_COUNTRY"=> RXingResultMetadataType::POSSIBLE_COUNTRY,
+            "UPC_EAN_EXTENSION"=>RXingResultMetadataType::UPC_EAN_EXTENSION,
+            "PDF417_EXTRA_METADATA"=> RXingResultMetadataType::PDF417_EXTRA_METADATA,
+            "STRUCTURED_APPEND_SEQUENCE"=> RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE,
+            "STRUCTURED_APPEND_PARITY"=>RXingResultMetadataType::STRUCTURED_APPEND_PARITY,
+            "SYMBOLOGY_IDENTIFIER"=>RXingResultMetadataType::SYMBOLOGY_IDENTIFIER,
+            _ => RXingResultMetadataType::OTHER,
+        }
+    }
+}
+
+#[derive(Debug,PartialEq, Eq)]
 pub enum RXingResultMetadataValue {
     /**
      * Unspecified, application-specific metadata. Maps to an unspecified {@link Object}.
      */
-    OTHER,
+    OTHER(String),
 
     /**
      * Denotes the likely approximate orientation of the barcode in the image. This value

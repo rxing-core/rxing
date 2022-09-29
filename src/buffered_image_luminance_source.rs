@@ -21,12 +21,12 @@
 // import java.awt.image.BufferedImage;
 // import java.awt.image.WritableRaster;
 
-use image::{DynamicImage, Luma};
+use image::{DynamicImage, Luma, GenericImage, EncodableLayout};
 use imageproc::geometric_transformations::rotate_about_center;
 
 use crate::LuminanceSource;
 
-static MINUS_45_IN_RADIANS: f32 = -0.7853981633974483; // Math.toRadians(-45.0)
+const MINUS_45_IN_RADIANS: f32 = -0.7853981633974483; // Math.toRadians(-45.0)
 
 /**
  * This LuminanceSource implementation is meant for J2SE clients and our blackbox unit tests.
@@ -97,9 +97,10 @@ impl BufferedImageLuminanceSource {
         //   }
 
         // }
+        
 
         Self {
-            image: image,
+            image: DynamicImage::from(image.to_luma8()),
             width: width,
             height: height,
             left: left,
@@ -189,8 +190,8 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         let img = rotate_about_center(
             &self.image.to_luma8(),
             MINUS_45_IN_RADIANS,
-            imageproc::geometric_transformations::Interpolation::Bicubic,
-            Luma([0; 1]),
+            imageproc::geometric_transformations::Interpolation::Nearest,
+            Luma([255; 1]),
         );
 
         let new_img = DynamicImage::from(img);

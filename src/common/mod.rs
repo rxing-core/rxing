@@ -3829,37 +3829,38 @@ impl Binarizer for HybridBinarizer {
             && height >= HybridBinarizer::MINIMUM_DIMENSION
         {
             let luminances = source.getMatrix();
-            let mut subWidth = width >> HybridBinarizer::BLOCK_SIZE_POWER;
+            let mut sub_width = width >> HybridBinarizer::BLOCK_SIZE_POWER;
             if (width & HybridBinarizer::BLOCK_SIZE_MASK) != 0 {
-                subWidth += 1;
+                sub_width += 1;
             }
-            let mut subHeight = height >> HybridBinarizer::BLOCK_SIZE_POWER;
+            let mut sub_height = height >> HybridBinarizer::BLOCK_SIZE_POWER;
             if (height & HybridBinarizer::BLOCK_SIZE_MASK) != 0 {
-                subHeight += 1;
+                sub_height += 1;
             }
-            let blackPoints = Self::calculateBlackPoints(
+            let black_points = Self::calculateBlackPoints(
                 &luminances,
-                subWidth as u32,
-                subHeight as u32,
+                sub_width as u32,
+                sub_height as u32,
                 width as u32,
                 height as u32,
             );
 
-            let mut newMatrix = BitMatrix::new(width as u32, height as u32)?;
+            let mut new_matrix = BitMatrix::new(width as u32, height as u32)?;
             Self::calculateThresholdForBlock(
                 &luminances,
-                subWidth as u32,
-                subHeight as u32,
+                sub_width as u32,
+                sub_height as u32,
                 width as u32,
                 height as u32,
-                &blackPoints,
-                &mut newMatrix,
+                &black_points,
+                &mut new_matrix,
             );
-            matrix = newMatrix;
+            matrix = new_matrix;
         } else {
             // If the image is too small, fall back to the global histogram approach.
             matrix = self.ghb.getBlackMatrix()?;
         }
+        //  dbg!(matrix.to_string());
         Ok(matrix)
     }
 
@@ -3997,16 +3998,16 @@ impl HybridBinarizer {
                 if xoffset > maxXOffset as u32 {
                     xoffset = maxXOffset as u32;
                 }
-                let mut sum = 0;
-                let mut min = 0xFF;
-                let mut max = 0;
+                let mut sum = 0u32;
+                let mut min = 0;
+                let mut max = 0xFF;
                 let mut offset = yoffset * width + xoffset;
                 for yy in 0..HybridBinarizer::BLOCK_SIZE {
                     // for (int yy = 0, offset = yoffset * width + xoffset; yy < HybridBinarizer::BLOCK_SIZE; yy++, offset += width) {
                     for xx in 0..HybridBinarizer::BLOCK_SIZE {
                         //   for (int xx = 0; xx < HybridBinarizer::BLOCK_SIZE; xx++) {
                         let pixel = luminances[offset as usize + xx];
-                        sum += pixel;
+                        sum += pixel as u32;
                         // still looking for good contrast
                         if pixel < min {
                             min = pixel;
@@ -4023,7 +4024,7 @@ impl HybridBinarizer {
                             // for (yy++, offset += width; yy < HybridBinarizer::BLOCK_SIZE; yy++, offset += width) {
                             for xx in 0..HybridBinarizer::BLOCK_SIZE {
                                 //   for (int xx = 0; xx < BLOCK_SIZE; xx++) {
-                                sum += luminances[offset as usize + xx];
+                                sum += luminances[offset as usize + xx] as u32;
                             }
                             offset += width;
                         }
@@ -4041,7 +4042,7 @@ impl HybridBinarizer {
                     //
                     // The default assumption is that the block is light/background. Since no estimate for
                     // the level of dark pixels exists locally, use half the min for the block.
-                    average = min / 2;
+                    average = min as u32 / 2;
 
                     if y > 0 && x > 0 {
                         // Correct the "white background" assumption for blocks that have neighbors by comparing
@@ -4051,16 +4052,16 @@ impl HybridBinarizer {
                         // the boundaries is used for the interior.
 
                         // The (min < bp) is arbitrary but works better than other heuristics that were tried.
-                        let averageNeighborBlackPoint = (blackPoints[y as usize - 1][x as usize]
+                        let average_neighbor_black_point = (blackPoints[y as usize - 1][x as usize]
                             + (2 * blackPoints[y as usize][x as usize - 1])
                             + blackPoints[y as usize - 1][x as usize - 1])
                             / 4;
-                        if (min < averageNeighborBlackPoint) {
-                            average = averageNeighborBlackPoint;
+                        if (min < average_neighbor_black_point) {
+                            average = average_neighbor_black_point as u32;
                         }
                     }
                 }
-                blackPoints[y as usize][x as usize] = average;
+                blackPoints[y as usize][x as usize] = average as u8;
             }
         }
         return blackPoints

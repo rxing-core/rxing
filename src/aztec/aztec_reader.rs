@@ -20,7 +20,7 @@ use crate::{
     common::{DecoderRXingResult, DetectorRXingResult},
     exceptions::Exceptions,
     BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, RXingResult,
-    RXingResultMetadataType, Reader, RXingResultMetadataValue,
+    RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{decoder, detector::Detector};
@@ -40,7 +40,7 @@ impl Reader for AztecReader {
      * @throws NotFoundException if a Data Matrix code cannot be found
      * @throws FormatException if a Data Matrix code cannot be decoded
      */
-    fn decode(&self,image: &BinaryBitmap) -> Result<RXingResult, Exceptions> {
+    fn decode(&self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
@@ -52,11 +52,19 @@ impl Reader for AztecReader {
         // let notFoundException = None;
         // let formatException = None;
         let mut detector = Detector::new(image.getBlackMatrix()?.clone());
-        let mut points;
-        let mut decoderRXingResult: DecoderRXingResult;
+        let  points;
+        let  decoderRXingResult: DecoderRXingResult;
         //  try {
 
-        let detectorRXingResult = detector.detect(false)?;
+        let detectorRXingResult = if let Ok(det) = detector.detect(false) {
+            det
+        } else if let Ok(det) = detector.detect(true) {
+            det
+        } else {
+            return Err(Exceptions::NotFoundException(
+                "barcode not found".to_owned(),
+            ));
+        };
 
         points = detectorRXingResult.getPoints();
         decoderRXingResult = decoder::decode(&detectorRXingResult)?;
@@ -67,9 +75,9 @@ impl Reader for AztecReader {
         // }
         // if (decoderRXingResult == null) {
         // try {
-        let detectorRXingResult = detector.detect(true)?;
-        points = detectorRXingResult.getPoints();
-        decoderRXingResult = decoder::decode(&detectorRXingResult)?;
+        // let detectorRXingResult = detector.detect(true)?;
+        // points = detectorRXingResult.getPoints();
+        // decoderRXingResult = decoder::decode(&detectorRXingResult)?;
         // } catch (NotFoundException | FormatException e) {
         //   if (notFoundException != null) {
         //     throw notFoundException;
@@ -101,19 +109,26 @@ impl Reader for AztecReader {
                 .as_millis(),
         );
 
-        
-
         let byteSegments = decoderRXingResult.getByteSegments();
         if !byteSegments.is_empty() {
-            result.putMetadata(RXingResultMetadataType::BYTE_SEGMENTS, RXingResultMetadataValue::ByteSegments(byteSegments.clone()));
+            result.putMetadata(
+                RXingResultMetadataType::BYTE_SEGMENTS,
+                RXingResultMetadataValue::ByteSegments(byteSegments.clone()),
+            );
         }
         let ecLevel = decoderRXingResult.getECLevel();
         if !ecLevel.is_empty() {
-            result.putMetadata(RXingResultMetadataType::ERROR_CORRECTION_LEVEL, RXingResultMetadataValue::ErrorCorrectionLevel(ecLevel.to_owned()));
+            result.putMetadata(
+                RXingResultMetadataType::ERROR_CORRECTION_LEVEL,
+                RXingResultMetadataValue::ErrorCorrectionLevel(ecLevel.to_owned()),
+            );
         }
         result.putMetadata(
             RXingResultMetadataType::SYMBOLOGY_IDENTIFIER,
-            RXingResultMetadataValue::SymbologyIdentifier(format!("]z{}", decoderRXingResult.getSymbologyModifier())),
+            RXingResultMetadataValue::SymbologyIdentifier(format!(
+                "]z{}",
+                decoderRXingResult.getSymbologyModifier()
+            )),
         );
 
         Ok(result)

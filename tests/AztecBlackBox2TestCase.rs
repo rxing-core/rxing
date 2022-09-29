@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-package com.google.zxing.aztec;
+use rxing::{aztec::AztecReader, BarcodeFormat};
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.common.AbstractBlackBoxTestCase;
+ mod common;
 
 /**
  * A test of Aztec barcodes under real world lighting conditions, taken with a mobile phone.
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
-public final class AztecBlackBox2TestCase extends AbstractBlackBoxTestCase {
+#[test]
+  fn AztecBlackBox2TestCase() {
+    let mut tester = common::AbstractBlackBoxTestCase::new(
+      "test_resources/blackbox/aztec-2",
+      Box::new(AztecReader{}),
+      BarcodeFormat::AZTEC);
+    // super(, new AztecReader(), BarcodeFormat.AZTEC);
+    tester.addTest(5, 5, 0.0);
+    tester.addTest(4, 4, 90.0);
+    tester.addTest(6, 6, 180.0);
+    tester.addTest(3, 3, 270.0);
 
-  public AztecBlackBox2TestCase() {
-    super("src/test/resources/blackbox/aztec-2", new AztecReader(), BarcodeFormat.AZTEC);
-    addTest(5, 5, 0.0f);
-    addTest(4, 4, 90.0f);
-    addTest(6, 6, 180.0f);
-    addTest(3, 3, 270.0f);
+    tester.testBlackBox();
   }
-
-}

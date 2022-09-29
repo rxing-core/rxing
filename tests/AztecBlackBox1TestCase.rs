@@ -14,22 +14,30 @@
  * limitations under the License.
  */
 
-package com.google.zxing.aztec;
+use rxing::{aztec::AztecReader, BarcodeFormat};
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.common.AbstractBlackBoxTestCase;
+mod common;
 
 /**
  * @author David Olivier
  */
-public final class AztecBlackBox1TestCase extends AbstractBlackBoxTestCase {
+// public final class AztecBlackBox1TestCase extends AbstractBlackBoxTestCase {
 
-  public AztecBlackBox1TestCase() {
-    super("src/test/resources/blackbox/aztec-1", new AztecReader(), BarcodeFormat.AZTEC);
-    addTest(14, 14, 0.0f);
-    addTest(14, 14, 90.0f);
-    addTest(14, 14, 180.0f);
-    addTest(14, 14, 270.0f);
-  }
+#[test]
+fn aztec_black_box1_test_case() {
+    let mut tester = common::AbstractBlackBoxTestCase::new(
+        "test_resources/blackbox/aztec-1",
+        Box::new(AztecReader {}),
+        BarcodeFormat::AZTEC,
+    );
 
+    // super("src/test/resources/blackbox/aztec-1", AztecReader::new(), BarcodeFormat::AZTEC);
+    tester.addTest(14, 14, 0.0);
+    tester.addTest(14, 14, 90.0);
+    tester.addTest(14, 14, 180.0);
+    tester.addTest(14, 14, 270.0);
+
+    tester.testBlackBox();
 }
+
+// }
