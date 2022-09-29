@@ -32,15 +32,17 @@ pub struct AztecWriter;
 
 impl Writer for AztecWriter {
     fn encode(
+        &self,
         contents: &str,
         format: &crate::BarcodeFormat,
         width: i32,
         height: i32,
     ) -> Result<crate::common::BitMatrix, crate::exceptions::Exceptions> {
-        Self::encode_with_hints(contents, format, width, height, &HashMap::new())
+        self.encode_with_hints(contents, format, width, height, &HashMap::new())
     }
 
     fn encode_with_hints(
+        &self,
         contents: &str,
         format: &crate::BarcodeFormat,
         width: i32,
