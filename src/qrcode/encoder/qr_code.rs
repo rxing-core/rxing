@@ -14,27 +14,26 @@
  * limitations under the License.
  */
 
-package com.google.zxing.qrcode.encoder;
-
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
-import com.google.zxing.qrcode.decoder.Mode;
-import com.google.zxing.qrcode.decoder.Version;
+ const NUM_MASK_PATTERNS : u32 = 8;
 
 /**
  * @author satorux@google.com (Satoru Takabayashi) - creator
  * @author dswitkin@google.com (Daniel Switkin) - ported from C++
  */
-public final class QRCode {
+pub struct QRCode {
 
-  public static final int NUM_MASK_PATTERNS = 8;
+  // public static final int NUM_MASK_PATTERNS = 8;
 
-  private Mode mode;
-  private ErrorCorrectionLevel ecLevel;
-  private Version version;
-  private int maskPattern;
-  private ByteMatrix matrix;
+    mode:Mode,
+    ecLevel:ErrorCorrectionLevel,
+    version:Version,
+   maskPattern:i32,
+    matrix:ByteMatrix,
 
-  public QRCode() {
+}
+
+impl QRCode {
+  pub fn new()->Self {
     maskPattern = -1;
   }
 

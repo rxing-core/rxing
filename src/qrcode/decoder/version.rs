@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package com.google.zxing.qrcode.decoder;
-
-import com.google.zxing.FormatException;
-import com.google.zxing.common.BitMatrix;
-
 /**
  * See ISO 18004:2006 Annex D
  *
  * @author Sean Owen
  */
-public final class Version {
+pub struct Version {
 
   /**
    * See ISO 18004:2006 Annex D.
@@ -47,6 +42,8 @@ public final class Version {
   private final ECBlocks[] ecBlocks;
   private final int totalCodewords;
 
+}
+impl Version {
   private Version(int versionNumber,
                   int[] alignmentPatternCenters,
                   ECBlocks... ecBlocks) {

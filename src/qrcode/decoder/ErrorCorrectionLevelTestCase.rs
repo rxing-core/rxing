@@ -14,27 +14,34 @@
  * limitations under the License.
  */
 
-package com.google.zxing.qrcode.decoder;
-
-import org.junit.Assert;
-import org.junit.Test;
+use crate::qrcode::decoder::ErrorCorrectionLevel;
 
 /**
  * @author Sean Owen
  */
-public final class ErrorCorrectionLevelTestCase extends Assert {
 
-  @Test
-  public void testForBits() {
-    assertSame(ErrorCorrectionLevel.M, ErrorCorrectionLevel.forBits(0));
-    assertSame(ErrorCorrectionLevel.L, ErrorCorrectionLevel.forBits(1));
-    assertSame(ErrorCorrectionLevel.H, ErrorCorrectionLevel.forBits(2));
-    assertSame(ErrorCorrectionLevel.Q, ErrorCorrectionLevel.forBits(3));
-  }
+#[test]
+fn testForBits() {
+    assert_eq!(
+        ErrorCorrectionLevel::M,
+        ErrorCorrectionLevel::forBits(0).unwrap()
+    );
+    assert_eq!(
+        ErrorCorrectionLevel::L,
+        ErrorCorrectionLevel::forBits(1).unwrap()
+    );
+    assert_eq!(
+        ErrorCorrectionLevel::H,
+        ErrorCorrectionLevel::forBits(2).unwrap()
+    );
+    assert_eq!(
+        ErrorCorrectionLevel::Q,
+        ErrorCorrectionLevel::forBits(3).unwrap()
+    );
+}
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testBadECLevel() {
-    ErrorCorrectionLevel.forBits(4);
-  }
-
+#[test]
+#[should_panic]
+fn testBadECLevel() {
+    assert!(ErrorCorrectionLevel::forBits(4).is_ok());
 }
