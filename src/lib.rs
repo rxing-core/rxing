@@ -1,4 +1,5 @@
 pub mod aztec;
+pub mod qrcode;
 pub mod client;
 pub mod common;
 mod exceptions;
