@@ -14,6 +14,27 @@
  * limitations under the License.
  */
 
+use std::fmt;
+
+use crate::{Exceptions, common::BitMatrix};
+
+use super::ErrorCorrectionLevel;
+
+ /**
+   * See ISO 18004:2006 Annex D.
+   * Element i represents the raw version bits that specify version i + 7
+   */
+  const VERSION_DECODE_INFO  : [u32;34]  = [
+    0x07C94, 0x085BC, 0x09A99, 0x0A4D3, 0x0BBF6,
+    0x0C762, 0x0D847, 0x0E60D, 0x0F928, 0x10B78,
+    0x1145D, 0x12A17, 0x13532, 0x149A6, 0x15683,
+    0x168C9, 0x177EC, 0x18EC4, 0x191E1, 0x1AFAB,
+    0x1B08E, 0x1CC1A, 0x1D33F, 0x1ED75, 0x1F250,
+    0x209D5, 0x216F0, 0x228BA, 0x2379F, 0x24B0B,
+    0x2542E, 0x26A64, 0x27541, 0x28C69
+  ];
+
+  const VERSIONS :Vec<Version> = Version::buildVersions();
 /**
  * See ISO 18004:2006 Annex D
  *
@@ -21,62 +42,56 @@
  */
 pub struct Version {
 
-  /**
-   * See ISO 18004:2006 Annex D.
-   * Element i represents the raw version bits that specify version i + 7
-   */
-  private static final int[] VERSION_DECODE_INFO = {
-      0x07C94, 0x085BC, 0x09A99, 0x0A4D3, 0x0BBF6,
-      0x0C762, 0x0D847, 0x0E60D, 0x0F928, 0x10B78,
-      0x1145D, 0x12A17, 0x13532, 0x149A6, 0x15683,
-      0x168C9, 0x177EC, 0x18EC4, 0x191E1, 0x1AFAB,
-      0x1B08E, 0x1CC1A, 0x1D33F, 0x1ED75, 0x1F250,
-      0x209D5, 0x216F0, 0x228BA, 0x2379F, 0x24B0B,
-      0x2542E, 0x26A64, 0x27541, 0x28C69
-  };
+//   private static final Version[] VERSIONS = buildVersions();
 
-  private static final Version[] VERSIONS = buildVersions();
-
-  private final int versionNumber;
-  private final int[] alignmentPatternCenters;
-  private final ECBlocks[] ecBlocks;
-  private final int totalCodewords;
+   versionNumber: u32,
+   alignmentPatternCenters: Vec<u32>,
+   ecBlocks:Vec<ECBlocks>,
+  totalCodewords:u32,
 
 }
 impl Version {
-  private Version(int versionNumber,
-                  int[] alignmentPatternCenters,
-                  ECBlocks... ecBlocks) {
-    this.versionNumber = versionNumber;
-    this.alignmentPatternCenters = alignmentPatternCenters;
-    this.ecBlocks = ecBlocks;
-    int total = 0;
-    int ecCodewords = ecBlocks[0].getECCodewordsPerBlock();
-    ECB[] ecbArray = ecBlocks[0].getECBlocks();
-    for (ECB ecBlock : ecbArray) {
-      total += ecBlock.getCount() * (ecBlock.getDataCodewords() + ecCodewords);
+  const fn new( versionNumber:u32,
+                   alignmentPatternCenters:Vec<u32>,
+                   ecBlocks:Vec<ECBlocks>) -> Self {
+    
+    let total = 0;
+    let ecCodewords = ecBlocks[0].getECCodewordsPerBlock();
+   let ecbArray = ecBlocks[0].getECBlocks();
+   let mut i = 0;
+   while i < ecbArray.len() {
+//    for ecBlock in ecbArray {
+    // for (ECB ecBlock : ecbArray) {
+      total += ecbArray[i].getCount() * (ecbArray[i].getDataCodewords() + ecCodewords);
+      i+=1;
     }
-    this.totalCodewords = total;
+    
+    Self {
+        versionNumber,
+        alignmentPatternCenters,
+        ecBlocks,
+        totalCodewords: total,
+    }
   }
 
-  public int getVersionNumber() {
-    return versionNumber;
+  pub fn getVersionNumber(&self) -> u32 {
+    self. versionNumber
   }
 
-  public int[] getAlignmentPatternCenters() {
-    return alignmentPatternCenters;
+  pub fn getAlignmentPatternCenters(&self) -> &[u32]{
+    &self. alignmentPatternCenters
   }
 
-  public int getTotalCodewords() {
-    return totalCodewords;
+  pub fn getTotalCodewords(&self) -> u32{
+    self.totalCodewords
   }
 
-  public int getDimensionForVersion() {
-    return 17 + 4 * versionNumber;
+  pub fn getDimensionForVersion(&self)->u32 {
+     17 + 4 * self.versionNumber
   }
 
-  public ECBlocks getECBlocksForLevel(ErrorCorrectionLevel ecLevel) {
-    return ecBlocks[ecLevel.ordinal()];
+  pub fn getECBlocksForLevel(&self,  ecLevel:ErrorCorrectionLevel) -> &ECBlocks{
+    &self.ecBlocks[ecLevel.get_value() as usize]
   }
 
   /**
@@ -86,56 +101,58 @@ impl Version {
    * @return Version for a QR Code of that dimension
    * @throws FormatException if dimension is not 1 mod 4
    */
-  public static Version getProvisionalVersionForDimension(int dimension) throws FormatException {
-    if (dimension % 4 != 1) {
-      throw FormatException.getFormatInstance();
+  pub fn getProvisionalVersionForDimension( dimension:u32) -> Result<Version,Exceptions> {
+    if dimension % 4 != 1 {
+      return Err(Exceptions::FormatException("dimension incorrect".to_owned()));
     }
-    try {
-      return getVersionForNumber((dimension - 17) / 4);
-    } catch (IllegalArgumentException ignored) {
-      throw FormatException.getFormatInstance();
-    }
+    Self::getVersionForNumber((dimension - 17) / 4)
+    // try {
+    //   return getVersionForNumber((dimension - 17) / 4);
+    // } catch (IllegalArgumentException ignored) {
+    //   throw FormatException.getFormatInstance();
+    // }
   }
 
-  public static Version getVersionForNumber(int versionNumber) {
-    if (versionNumber < 1 || versionNumber > 40) {
-      throw new IllegalArgumentException();
+  pub fn getVersionForNumber( versionNumber:u32) -> Result<Version,Exceptions>{
+    if versionNumber < 1 || versionNumber > 40 {
+        return Err(Exceptions::IllegalArgumentException("version out of spec".to_owned()))
     }
-    return VERSIONS[versionNumber - 1];
+    Ok(VERSIONS[versionNumber as usize - 1])
   }
 
-  static Version decodeVersionInformation(int versionBits) {
-    int bestDifference = Integer.MAX_VALUE;
-    int bestVersion = 0;
-    for (int i = 0; i < VERSION_DECODE_INFO.length; i++) {
-      int targetVersion = VERSION_DECODE_INFO[i];
+  pub fn decodeVersionInformation( versionBits:u32) -> Result<Version,Exceptions> {
+    let bestDifference = u32::MAX;
+    let bestVersion = 0;
+    for i in 0..VERSION_DECODE_INFO.len() as u32 {
+    // for (int i = 0; i < VERSION_DECODE_INFO.length; i++) {
+      let targetVersion = VERSION_DECODE_INFO[i];
       // Do the version info bits match exactly? done.
       if (targetVersion == versionBits) {
-        return getVersionForNumber(i + 7);
+        return Self::getVersionForNumber(i + 7);
       }
       // Otherwise see if this is the closest to a real version info bit string
       // we have seen so far
-      int bitsDifference = FormatInformation.numBitsDiffering(versionBits, targetVersion);
-      if (bitsDifference < bestDifference) {
+      let bitsDifference = FormatInformation.numBitsDiffering(versionBits, targetVersion);
+      if bitsDifference < bestDifference {
         bestVersion = i + 7;
         bestDifference = bitsDifference;
       }
     }
     // We can tolerate up to 3 bits of error since no two version info codewords will
     // differ in less than 8 bits.
-    if (bestDifference <= 3) {
-      return getVersionForNumber(bestVersion);
+    if bestDifference <= 3 {
+      return Self::getVersionForNumber(bestVersion);
     }
     // If we didn't find a close enough match, fail
-    return null;
+    Err(Exceptions::NotFoundException("could not find".to_owned()))
   }
 
   /**
    * See ISO 18004:2006 Annex E
    */
-  BitMatrix buildFunctionPattern() {
-    int dimension = getDimensionForVersion();
-    BitMatrix bitMatrix = new BitMatrix(dimension);
+  pub fn buildFunctionPattern(&self) -> BitMatrix{
+    let dimension = self.getDimensionForVersion();
+    let bitMatrix =  BitMatrix::with_single_dimension(dimension);
 
     // Top left finder pattern + separator + format
     bitMatrix.setRegion(0, 0, 9, 9);
@@ -145,12 +162,14 @@ impl Version {
     bitMatrix.setRegion(0, dimension - 8, 9, 8);
 
     // Alignment patterns
-    int max = alignmentPatternCenters.length;
-    for (int x = 0; x < max; x++) {
-      int i = alignmentPatternCenters[x] - 2;
-      for (int y = 0; y < max; y++) {
-        if ((x != 0 || (y != 0 && y != max - 1)) && (x != max - 1 || y != 0)) {
-          bitMatrix.setRegion(alignmentPatternCenters[y] - 2, i, 5, 5);
+    let max = self.alignmentPatternCenters.len();
+    for x in 0..max {
+    // for (int x = 0; x < max; x++) {
+      let i = self.alignmentPatternCenters[x] - 2;
+      for y in 0..max {
+    //   for (int y = 0; y < max; y++) {
+        if (x != 0 || (y != 0 && y != max - 1)) && (x != max - 1 || y != 0) {
+          bitMatrix.setRegion(self.alignmentPatternCenters[y] - 2, i, 5, 5);
         }
         // else no o alignment patterns near the three finder patterns
       }
@@ -161,100 +180,36 @@ impl Version {
     // Horizontal timing pattern
     bitMatrix.setRegion(9, 6, dimension - 17, 1);
 
-    if (versionNumber > 6) {
+    if self.versionNumber > 6 {
       // Version info, top right
       bitMatrix.setRegion(dimension - 11, 0, 3, 6);
       // Version info, bottom left
       bitMatrix.setRegion(0, dimension - 11, 6, 3);
     }
 
-    return bitMatrix;
-  }
-
-  /**
-   * <p>Encapsulates a set of error-correction blocks in one symbol version. Most versions will
-   * use blocks of differing sizes within one version, so, this encapsulates the parameters for
-   * each set of blocks. It also holds the number of error-correction codewords per block since it
-   * will be the same across all blocks within one version.</p>
-   */
-  public static final class ECBlocks {
-    private final int ecCodewordsPerBlock;
-    private final ECB[] ecBlocks;
-
-    ECBlocks(int ecCodewordsPerBlock, ECB... ecBlocks) {
-      this.ecCodewordsPerBlock = ecCodewordsPerBlock;
-      this.ecBlocks = ecBlocks;
-    }
-
-    public int getECCodewordsPerBlock() {
-      return ecCodewordsPerBlock;
-    }
-
-    public int getNumBlocks() {
-      int total = 0;
-      for (ECB ecBlock : ecBlocks) {
-        total += ecBlock.getCount();
-      }
-      return total;
-    }
-
-    public int getTotalECCodewords() {
-      return ecCodewordsPerBlock * getNumBlocks();
-    }
-
-    public ECB[] getECBlocks() {
-      return ecBlocks;
-    }
-  }
-
-  /**
-   * <p>Encapsulates the parameters for one error-correction block in one symbol version.
-   * This includes the number of data codewords, and the number of times a block with these
-   * parameters is used consecutively in the QR code version's format.</p>
-   */
-  public static final class ECB {
-    private final int count;
-    private final int dataCodewords;
-
-    ECB(int count, int dataCodewords) {
-      this.count = count;
-      this.dataCodewords = dataCodewords;
-    }
-
-    public int getCount() {
-      return count;
-    }
-
-    public int getDataCodewords() {
-      return dataCodewords;
-    }
-  }
-
-  @Override
-  public String toString() {
-    return String.valueOf(versionNumber);
+     bitMatrix
   }
 
   /**
    * See ISO 18004:2006 6.5.1 Table 9
    */
-  private static Version[] buildVersions() {
-    return new Version[]{
-        new Version(1, new int[]{},
-            new ECBlocks(7, new ECB(1, 19)),
-            new ECBlocks(10, new ECB(1, 16)),
-            new ECBlocks(13, new ECB(1, 13)),
-            new ECBlocks(17, new ECB(1, 9))),
-        new Version(2, new int[]{6, 18},
-            new ECBlocks(10, new ECB(1, 34)),
-            new ECBlocks(16, new ECB(1, 28)),
-            new ECBlocks(22, new ECB(1, 22)),
-            new ECBlocks(28, new ECB(1, 16))),
-        new Version(3, new int[]{6, 22},
-            new ECBlocks(15, new ECB(1, 55)),
-            new ECBlocks(26, new ECB(1, 44)),
-            new ECBlocks(18, new ECB(2, 17)),
-            new ECBlocks(22, new ECB(2, 13))),
+  pub const fn buildVersions() -> Vec<Version> {
+    [
+         Version::new(1, [],Vec::from([
+             ECBlocks::new(7,  ECB::new(1, 19)),
+             ECBlocks::new(10,  ECB::new(1, 16)),
+             ECBlocks::new(13,  ECB::new(1, 13)),
+             ECBlocks::new(17,  ECB::new(1, 9))])),
+         Version::new(2, [6, 18], Vec::from([
+             ECBlocks::new(10,  ECB::new(1, 34)),
+             ECBlocks::new(16,  ECB::new(1, 28)),
+             ECBlocks::new(22,  ECB::new(1, 22)),
+             ECBlocks::new(28,  ECB::new(1, 16))])),
+         Version::new(3, [6, 22], Vec::from([
+             ECBlocks::new(15,  ECB::new(1, 55)),
+             ECBlocks::new(26,  ECB::new(1, 44)),
+             ECBlocks::new(18,  ECB::new(2, 17)),
+             ECBlocks::new(22,  ECB::new(2, 13))])),
         new Version(4, new int[]{6, 26},
             new ECBlocks(20, new ECB(1, 80)),
             new ECBlocks(18, new ECB(2, 32)),
@@ -568,7 +523,81 @@ impl Version {
                 new ECB(34, 25)),
             new ECBlocks(30, new ECB(20, 15),
                 new ECB(61, 16)))
-    };
+    ]
+  }
+}
+
+impl fmt::Display for Version {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+      write!(f, "{}", self.versionNumber)
+    }
+}
+
+  /**
+   * <p>Encapsulates a set of error-correction blocks in one symbol version. Most versions will
+   * use blocks of differing sizes within one version, so, this encapsulates the parameters for
+   * each set of blocks. It also holds the number of error-correction codewords per block since it
+   * will be the same across all blocks within one version.</p>
+   */
+  pub struct ECBlocks {
+     ecCodewordsPerBlock:u32,
+    ecBlocks:Vec<ECB>,
   }
 
-}
+  impl ECBlocks {
+
+    pub const fn new(ecCodewordsPerBlock:u32, ecBlocks:Vec<ECB>)-> Self {
+        Self{
+            ecCodewordsPerBlock,
+            ecBlocks
+        }
+    }
+
+    pub fn getECCodewordsPerBlock(&self) -> u32 {
+      self. ecCodewordsPerBlock
+    }
+
+    pub fn getNumBlocks(&self) -> u32 {
+      let total = 0;
+      for ecBlock in self.ecBlocks {
+    //   for (ECB ecBlock : ecBlocks) {
+        total += ecBlock.getCount();
+      }
+       total
+    }
+
+    pub fn getTotalECCodewords(&self) -> u32{
+      self.ecCodewordsPerBlock * self.getNumBlocks()
+    }
+
+    pub fn getECBlocks(&self) -> &[ECB] {
+      &self.ecBlocks
+    }
+  }
+
+  /**
+   * <p>Encapsulates the parameters for one error-correction block in one symbol version.
+   * This includes the number of data codewords, and the number of times a block with these
+   * parameters is used consecutively in the QR code version's format.</p>
+   */
+  pub struct ECB {
+    count:u32,
+     dataCodewords:u32,
+  }
+
+  impl ECB {
+    pub const fn new(count:u32, dataCodewords:u32) -> Self {
+        Self{
+            count,
+            dataCodewords
+        }
+    }
+
+    pub fn getCount(&self) -> u32 {
+      self.count
+    }
+
+    pub fn getDataCodewords(&self) -> u32 {
+      self.dataCodewords
+    }
+  }

@@ -39,7 +39,7 @@ impl ErrorCorrectionLevel {
      * @param bits int containing the two bits encoding a QR Code's error correction level
      * @return ErrorCorrectionLevel representing the encoded error correction level
      */
-    pub fn forBits(bits: u32) -> Result<Self, Exceptions> {
+    pub fn forBits(bits: u8) -> Result<Self, Exceptions> {
         match bits {
             0 => Ok(Self::M),
             1 => Ok(Self::L),
@@ -59,6 +59,20 @@ impl ErrorCorrectionLevel {
             ErrorCorrectionLevel::Q => 0x03,
             ErrorCorrectionLevel::H => 0x02,
         }
+    }
+}
+
+impl TryFrom<u8> for ErrorCorrectionLevel {
+    type Error = Exceptions;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        ErrorCorrectionLevel::forBits(value)
+    }
+}
+
+impl From<ErrorCorrectionLevel> for u8 {
+    fn from(value: ErrorCorrectionLevel) -> Self {
+        value.get_value()
     }
 }
 
