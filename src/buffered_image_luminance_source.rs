@@ -97,7 +97,6 @@ impl BufferedImageLuminanceSource {
         //   }
 
         // }
-        
 
         Self {
             image: DynamicImage::from(image.to_luma8()),
@@ -191,7 +190,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
             &self.image.to_luma8(),
             MINUS_45_IN_RADIANS,
             imageproc::geometric_transformations::Interpolation::Nearest,
-            Luma([255; 1]),
+            Luma([u8::MAX/2; 1]),
         );
 
         let new_img = DynamicImage::from(img);

@@ -76,6 +76,7 @@ impl Detector {
      * @throws NotFoundException if no Aztec Code can be found
      */
     pub fn detect(&mut self, is_mirror: bool) -> Result<AztecDetectorRXingResult, Exceptions> {
+        // dbg!(self.image.to_string());
         // 1. Get the center of the aztec matrix
         let p_center = self.get_matrix_center();
 

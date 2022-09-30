@@ -3899,33 +3899,33 @@ impl HybridBinarizer {
      */
     fn calculateThresholdForBlock(
         luminances: &[u8],
-        subWidth: u32,
-        subHeight: u32,
+        sub_width: u32,
+        sub_height: u32,
         width: u32,
         height: u32,
-        blackPoints: &Vec<Vec<u32>>,
+        black_points: &Vec<Vec<u32>>,
         matrix: &mut BitMatrix,
     ) {
         let maxYOffset = height - HybridBinarizer::BLOCK_SIZE as u32;
         let maxXOffset = width - HybridBinarizer::BLOCK_SIZE as u32;
-        for y in 0..subHeight {
+        for y in 0..sub_height {
             // for (int y = 0; y < subHeight; y++) {
             let mut yoffset = y << HybridBinarizer::BLOCK_SIZE_POWER;
             if yoffset > maxYOffset {
                 yoffset = maxYOffset;
             }
-            let top = Self::cap(y, subHeight - 3);
-            for x in 0..subWidth {
+            let top = Self::cap(y, sub_height - 3);
+            for x in 0..sub_width {
                 //   for (int x = 0; x < subWidth; x++) {
                 let mut xoffset = x << HybridBinarizer::BLOCK_SIZE_POWER;
                 if xoffset > maxXOffset {
                     xoffset = maxXOffset;
                 }
-                let left = Self::cap(x, subWidth - 3);
+                let left = Self::cap(x, sub_width - 3);
                 let mut sum = 0;
                 for z in -2i32..=2 {
                     // for (int z = -2; z <= 2; z++) {
-                    let blackRow = &blackPoints[(top as i32 + z) as usize];
+                    let blackRow = &black_points[(top as i32 + z) as usize];
                     sum += blackRow[(left - 2) as usize]
                         + blackRow[(left - 1) as usize]
                         + blackRow[left as usize]
@@ -3999,10 +3999,12 @@ impl HybridBinarizer {
                     xoffset = maxXOffset as u32;
                 }
                 let mut sum = 0u32;
-                let mut min = 0;
-                let mut max = 0xFF;
+                let mut min = 0xff;
+                let mut max = 0;
+
                 let mut offset = yoffset * width + xoffset;
-                for yy in 0..HybridBinarizer::BLOCK_SIZE {
+                let mut yy = 0;
+                while yy < HybridBinarizer::BLOCK_SIZE {
                     // for (int yy = 0, offset = yoffset * width + xoffset; yy < HybridBinarizer::BLOCK_SIZE; yy++, offset += width) {
                     for xx in 0..HybridBinarizer::BLOCK_SIZE {
                         //   for (int xx = 0; xx < HybridBinarizer::BLOCK_SIZE; xx++) {
@@ -4020,16 +4022,19 @@ impl HybridBinarizer {
                     if (max - min) as usize > HybridBinarizer::MIN_DYNAMIC_RANGE {
                         // finish the rest of the rows quickly
                         offset += width;
-                        for _yy_s in yy + 1..HybridBinarizer::BLOCK_SIZE {
+                        yy+=1;
+                            while yy < HybridBinarizer::BLOCK_SIZE {
                             // for (yy++, offset += width; yy < HybridBinarizer::BLOCK_SIZE; yy++, offset += width) {
                             for xx in 0..HybridBinarizer::BLOCK_SIZE {
                                 //   for (int xx = 0; xx < BLOCK_SIZE; xx++) {
                                 sum += luminances[offset as usize + xx] as u32;
                             }
+                            yy+=1;
                             offset += width;
                         }
                         break;
                     }
+                    yy+=1;
                     offset += width;
                 }
 
@@ -4052,21 +4057,18 @@ impl HybridBinarizer {
                         // the boundaries is used for the interior.
 
                         // The (min < bp) is arbitrary but works better than other heuristics that were tried.
-                        let average_neighbor_black_point = (blackPoints[y as usize - 1][x as usize]
+                        let average_neighbor_black_point:u32 = (blackPoints[y as usize - 1][x as usize]
                             + (2 * blackPoints[y as usize][x as usize - 1])
                             + blackPoints[y as usize - 1][x as usize - 1])
                             / 4;
-                        if (min < average_neighbor_black_point) {
-                            average = average_neighbor_black_point as u32;
+                        if (min as u32) < average_neighbor_black_point {
+                            average = average_neighbor_black_point;
                         }
                     }
                 }
-                blackPoints[y as usize][x as usize] = average as u8;
+                blackPoints[y as usize][x as usize] = average;
             }
         }
-        return blackPoints
-            .into_iter()
-            .map(|x| x.iter().map(|y| *y as u32).collect())
-            .collect();
+        blackPoints
     }
 }

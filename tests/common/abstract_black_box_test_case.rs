@@ -16,8 +16,8 @@
 
 use std::{
     collections::HashMap,
-    fs::{read_dir, read_to_string},
-    path::{Path, PathBuf},
+    fs::{read_dir, read_to_string, File},
+    path::{Path, PathBuf}, io::Write,
 };
 
 use rxing::{
@@ -231,6 +231,15 @@ impl AbstractBlackBoxTestCase {
                 let rotated_image = Self::rotate_image(&image, rotation);
                 let source = BufferedImageLuminanceSource::new(rotated_image);
                 let bitmap = BinaryBitmap::new(Box::new(HybridBinarizer::new(Box::new(source))));
+                
+                // if file_base_name == "09" {
+                //     let mut f = File::create("test_file_output.txt").unwrap();
+                //     dbg!("dumb");
+                //     write!(f,"{}", bitmap.getBlackMatrix().unwrap());
+                //     drop(f);
+                //     Self::rotate_image(&image, rotation).save("test_image.png").unwrap();
+                // }
+                
                 if let Ok(decoded) =
                     self.decode(&bitmap, rotation, &expected_text, &expected_metadata, false)
                 {
@@ -499,7 +508,7 @@ impl AbstractBlackBoxTestCase {
                 &original.to_luma8(),
                 radians,
                 Interpolation::Nearest,
-                Luma([255; 1]),
+                Luma([u8::MAX/2; 1]),
             );
 
             DynamicImage::from(i)
