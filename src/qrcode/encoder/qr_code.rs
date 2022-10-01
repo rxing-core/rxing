@@ -106,18 +106,36 @@ impl fmt::Display for QRCode {
       let mut result =  String::with_capacity(200);
       result.push_str("<<\n");
       result.push_str(" mode: ");
-      result.push_str(&format!("{:?}", self.mode));
+      if self.mode.is_some() {
+        result.push_str(&format!("{:?}",self.mode.as_ref().unwrap()));
+      }else {
+        result.push_str("null");
+      }
+      // result.push_str(&format!("{:?}", self.mode));
       result.push_str("\n ecLevel: ");
-      result.push_str(&format!("{:?}", self.ecLevel));
+      if self.ecLevel.is_some() {
+        result.push_str(&format!("{:?}",self.ecLevel.as_ref().unwrap()));
+      }else {
+        result.push_str("null");
+      }
+      // result.push_str(&format!("{:?}", self.ecLevel));
       result.push_str("\n version: ");
-      result.push_str(&format!("{}",self.version.as_ref().unwrap()));
+      if self.version.is_some() {
+        result.push_str(&format!("{}",self.version.as_ref().unwrap()));
+      }else {
+        result.push_str("null");
+      }
       result.push_str("\n maskPattern: ");
       result.push_str(&format!("{}",self.maskPattern));
       if self.matrix.is_none() {
         result.push_str("\n matrix: null\n");
       } else {
         result.push_str("\n matrix:\n");
-        result.push_str(&format!("{}",self.matrix.as_ref().unwrap()));
+        if self.matrix.is_some() {
+          result.push_str(&format!("{}",self.matrix.as_ref().unwrap()));
+        }else {
+          result.push_str("null");
+        }
       }
       result.push_str(">>\n");
       
