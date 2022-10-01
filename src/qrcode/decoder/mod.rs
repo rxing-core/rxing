@@ -5,6 +5,10 @@ mod format_information;
 
 #[cfg(test)]
 mod ErrorCorrectionLevelTestCase;
+#[cfg(test)]
+mod ModeTestCase;
+#[cfg(test)]
+mod VersionTestCase;
 
 pub use version::*;
 pub use mode::*;

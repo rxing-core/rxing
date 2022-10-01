@@ -24,6 +24,7 @@ use super::Version;
  *
  * @author Sean Owen
  */
+#[derive(Debug, PartialEq, Eq)]
 pub enum Mode {
     TERMINATOR,           //(new int[]{0, 0, 0}, 0x00), // Not really a mode...
     NUMERIC,              //(new int[]{10, 12, 14}, 0x01),

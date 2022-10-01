@@ -11,6 +11,7 @@ exclude = [
 [dependencies]
 regex = "1.6"
 fancy-regex = "0.10"
+lazy_static = "1.4.0"
 encoding = "0.2"
 rand = "0.8.5"
 urlencoding = "2.1.2"

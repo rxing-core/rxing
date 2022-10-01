@@ -118,8 +118,8 @@ impl FormatInformation {
         masked_format_info2: u32,
     ) -> Option<FormatInformation> {
         // Find the int in FORMAT_INFO_DECODE_LOOKUP with fewest bits differing
-        let best_difference = u32::MAX;
-        let best_format_info = 0;
+        let mut best_difference = u32::MAX;
+        let mut best_format_info = 0;
         for decodeInfo in FORMAT_INFO_DECODE_LOOKUP {
             // for (int[] decodeInfo : FORMAT_INFO_DECODE_LOOKUP) {
             let targetInfo = decodeInfo[0];
@@ -127,7 +127,7 @@ impl FormatInformation {
                 // Found an exact match
                 return Some(FormatInformation::new(decodeInfo[1] as u8));
             }
-            let bits_difference = Self::numBitsDiffering(masked_format_info1, targetInfo);
+            let mut bits_difference = Self::numBitsDiffering(masked_format_info1, targetInfo);
             if bits_difference < best_difference {
                 best_format_info = decodeInfo[1] as u8;
                 best_difference = bits_difference;

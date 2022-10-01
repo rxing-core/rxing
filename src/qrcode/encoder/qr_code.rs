@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
+use std::fmt;
+
 use crate::qrcode::decoder::{Mode, ErrorCorrectionLevel, Version};
 
- const NUM_MASK_PATTERNS : u32 = 8;
+use super::ByteMatrix;
+
+ const NUM_MASK_PATTERNS : i32 = 8;
 
 /**
  * @author satorux@google.com (Satoru Takabayashi) - creator
@@ -26,87 +30,97 @@ pub struct QRCode {
 
   // public static final int NUM_MASK_PATTERNS = 8;
 
-    mode:Mode,
-    ecLevel:ErrorCorrectionLevel,
-    version:Version,
+    mode:Option<Mode>,
+    ecLevel:Option<ErrorCorrectionLevel>,
+    version:Option<&'static Version>,
    maskPattern:i32,
-    matrix:ByteMatrix,
+    matrix:Option<ByteMatrix>,
 
 }
 
 impl QRCode {
   pub fn new()->Self {
-    maskPattern = -1;
+    Self {
+        mode: None,
+        ecLevel: None,
+        version: None,
+        maskPattern: -1,
+        matrix: None,
+    }
   }
 
   /**
    * @return the mode. Not relevant if {@link com.google.zxing.EncodeHintType#QR_COMPACT} is selected.
    */
-  public Mode getMode() {
-    return mode;
+  pub fn getMode(&self) -> &Option<Mode>{
+    &self.mode
   }
 
-  public ErrorCorrectionLevel getECLevel() {
-    return ecLevel;
+   pub fn getECLevel(&self) -> &Option<ErrorCorrectionLevel>{
+    &self.ecLevel
   }
 
-  public Version getVersion() {
-    return version;
+  pub fn getVersion(&self) -> &Option<&'static Version>{
+    &self.version
   }
 
-  public int getMaskPattern() {
-    return maskPattern;
+  pub fn getMaskPattern(&self) -> i32{
+    self.maskPattern
   }
 
-  public ByteMatrix getMatrix() {
-    return matrix;
+  pub fn getMatrix(&self) ->&Option<ByteMatrix>{
+    &self.matrix
   }
 
-  @Override
-  public String toString() {
-    StringBuilder result = new StringBuilder(200);
-    result.append("<<\n");
-    result.append(" mode: ");
-    result.append(mode);
-    result.append("\n ecLevel: ");
-    result.append(ecLevel);
-    result.append("\n version: ");
-    result.append(version);
-    result.append("\n maskPattern: ");
-    result.append(maskPattern);
-    if (matrix == null) {
-      result.append("\n matrix: null\n");
-    } else {
-      result.append("\n matrix:\n");
-      result.append(matrix);
-    }
-    result.append(">>\n");
-    return result.toString();
+  
+
+  pub fn setMode(&mut self, value:Mode) {
+    self.mode = Some(value);
   }
 
-  public void setMode(Mode value) {
-    mode = value;
+  pub fn setECLevel(&mut self,  value:ErrorCorrectionLevel) {
+    self.ecLevel = Some(value);
   }
 
-  public void setECLevel(ErrorCorrectionLevel value) {
-    ecLevel = value;
+  pub fn setVersion(&mut self,  version:&'static Version) {
+    self.version = Some(version);
   }
 
-  public void setVersion(Version version) {
-    this.version = version;
+  pub fn setMaskPattern(&mut self,  value:i32) {
+    self.maskPattern = value;
   }
 
-  public void setMaskPattern(int value) {
-    maskPattern = value;
-  }
-
-  public void setMatrix(ByteMatrix value) {
-    matrix = value;
+  pub fn setMatrix(&mut self, value:ByteMatrix) {
+    self.matrix = Some(value);
   }
 
   // Check if "mask_pattern" is valid.
-  public static boolean isValidMaskPattern(int maskPattern) {
-    return maskPattern >= 0 && maskPattern < NUM_MASK_PATTERNS;
+  pub fn isValidMaskPattern(  maskPattern:i32)  -> bool{
+     maskPattern >= 0 && maskPattern < NUM_MASK_PATTERNS
   }
 
+}
+
+impl fmt::Display for QRCode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+      let mut result =  String::with_capacity(200);
+      result.push_str("<<\n");
+      result.push_str(" mode: ");
+      result.push_str(&format!("{:?}", self.mode));
+      result.push_str("\n ecLevel: ");
+      result.push_str(&format!("{:?}", self.ecLevel));
+      result.push_str("\n version: ");
+      result.push_str(&format!("{}",self.version.as_ref().unwrap()));
+      result.push_str("\n maskPattern: ");
+      result.push_str(&format!("{}",self.maskPattern));
+      if self.matrix.is_none() {
+        result.push_str("\n matrix: null\n");
+      } else {
+        result.push_str("\n matrix:\n");
+        result.push_str(&format!("{}",self.matrix.as_ref().unwrap()));
+      }
+      result.push_str(">>\n");
+      
+      write!(f, "{}", result)
+    }
 }

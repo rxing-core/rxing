@@ -20,6 +20,12 @@ use crate::{common::BitMatrix, Exceptions};
 
 use super::{ErrorCorrectionLevel, FormatInformation};
 
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref VERSIONS: Vec<Version> = Version::buildVersions();
+}
+
 /**
  * See ISO 18004:2006 Annex D.
  * Element i represents the raw version bits that specify version i + 7
@@ -31,7 +37,7 @@ const VERSION_DECODE_INFO: [u32; 34] = [
     0x2542E, 0x26A64, 0x27541, 0x28C69,
 ];
 
-const VERSIONS: Vec<Version> = Version::buildVersions();
+// const VERSIONS: &'static[Version] = &Version::buildVersions();
 /**
  * See ISO 18004:2006 Annex D
  *
@@ -45,12 +51,8 @@ pub struct Version {
     totalCodewords: u32,
 }
 impl Version {
-    const fn new(
-        versionNumber: u32,
-        alignmentPatternCenters: Vec<u32>,
-        ecBlocks: Vec<ECBlocks>,
-    ) -> Self {
-        let total = 0;
+    fn new(versionNumber: u32, alignmentPatternCenters: Vec<u32>, ecBlocks: Vec<ECBlocks>) -> Self {
+        let mut total = 0;
         let ecCodewords = ecBlocks[0].getECCodewordsPerBlock();
         let ecbArray = ecBlocks[0].getECBlocks();
         let mut i = 0;
@@ -96,7 +98,9 @@ impl Version {
      * @return Version for a QR Code of that dimension
      * @throws FormatException if dimension is not 1 mod 4
      */
-    pub fn getProvisionalVersionForDimension(dimension: u32) -> Result<Version, Exceptions> {
+    pub fn getProvisionalVersionForDimension(
+        dimension: u32,
+    ) -> Result<&'static Version, Exceptions> {
         if dimension % 4 != 1 {
             return Err(Exceptions::FormatException(
                 "dimension incorrect".to_owned(),
@@ -110,18 +114,18 @@ impl Version {
         // }
     }
 
-    pub fn getVersionForNumber(versionNumber: u32) -> Result<Version, Exceptions> {
+    pub fn getVersionForNumber(versionNumber: u32) -> Result<&'static Version, Exceptions> {
         if versionNumber < 1 || versionNumber > 40 {
             return Err(Exceptions::IllegalArgumentException(
                 "version out of spec".to_owned(),
             ));
         }
-        Ok(VERSIONS[versionNumber as usize - 1])
+        Ok(&VERSIONS[versionNumber as usize - 1])
     }
 
-    pub fn decodeVersionInformation(versionBits: u32) -> Result<Version, Exceptions> {
-        let bestDifference = u32::MAX;
-        let bestVersion = 0;
+    pub fn decodeVersionInformation(versionBits: u32) -> Result<&'static Version, Exceptions> {
+        let mut bestDifference = u32::MAX;
+        let mut bestVersion = 0;
         for i in 0..VERSION_DECODE_INFO.len() as u32 {
             // for (int i = 0; i < VERSION_DECODE_INFO.length; i++) {
             let targetVersion = VERSION_DECODE_INFO[i as usize];
@@ -151,7 +155,7 @@ impl Version {
      */
     pub fn buildFunctionPattern(&self) -> BitMatrix {
         let dimension = self.getDimensionForVersion();
-        let bitMatrix = BitMatrix::with_single_dimension(dimension);
+        let mut bitMatrix = BitMatrix::with_single_dimension(dimension);
 
         // Top left finder pattern + separator + format
         bitMatrix.setRegion(0, 0, 9, 9);
@@ -192,7 +196,7 @@ impl Version {
     /**
      * See ISO 18004:2006 6.5.1 Table 9
      */
-    pub const fn buildVersions() -> Vec<Version> {
+    pub fn buildVersions() -> Vec<Version> {
         Vec::from([
             Version::new(
                 1,
@@ -942,8 +946,8 @@ impl ECBlocks {
     }
 
     pub fn getNumBlocks(&self) -> u32 {
-        let total = 0;
-        for ecBlock in self.ecBlocks {
+        let mut total = 0;
+        for ecBlock in &self.ecBlocks {
             //   for (ECB ecBlock : ecBlocks) {
             total += ecBlock.getCount();
         }
