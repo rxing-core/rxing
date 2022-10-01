@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package com.google.zxing.qrcode.encoder;
+pub struct BlockPair {
+    data_bytes: Vec<u8>,
+    error_correction_bytes: Vec<u8>,
+}
 
-final class BlockPair {
+impl BlockPair {
+    pub fn new(data: Vec<u8>, error_correction: Vec<u8>) -> Self {
+        Self {
+            data_bytes: data,
+            error_correction_bytes: error_correction,
+        }
+    }
 
-  private final byte[] dataBytes;
-  private final byte[] errorCorrectionBytes;
+    pub fn getDataBytes(&self) -> &[u8] {
+        &self.data_bytes
+    }
 
-  BlockPair(byte[] data, byte[] errorCorrection) {
-    dataBytes = data;
-    errorCorrectionBytes = errorCorrection;
-  }
-
-  public byte[] getDataBytes() {
-    return dataBytes;
-  }
-
-  public byte[] getErrorCorrectionBytes() {
-    return errorCorrectionBytes;
-  }
-
+    pub fn getErrorCorrectionBytes(&self) -> &[u8] {
+        &self.error_correction_bytes
+    }
 }
