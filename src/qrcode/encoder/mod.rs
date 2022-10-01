@@ -6,3 +6,5 @@ pub use byte_matrix::*;
 
 #[cfg(test)]
 mod QRCodeTestCase;
+#[cfg(test)]
+mod BitVectorTestCase;
