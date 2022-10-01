@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use crate::qrcode::decoder::{Mode, ErrorCorrectionLevel, Version};
+
  const NUM_MASK_PATTERNS : u32 = 8;
 
 /**

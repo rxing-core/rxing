@@ -22,7 +22,7 @@ use crate::Exceptions;
  *
  * @author Sean Owen
  */
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum ErrorCorrectionLevel {
     /** L = ~7% correction */
     L, //0x01
