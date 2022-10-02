@@ -1,4 +1,4 @@
-use std::{fmt, rc::Rc};
+use std::{fmt};
 
 use crate::Exceptions;
 use std::hash::Hash;
@@ -26,6 +26,19 @@ mod ReedSolomonTestCase;
 
 //package com.google.zxing.common.reedsolomon;
 
+pub type GenericGFRef = &'static GenericGF;
+
+use lazy_static::lazy_static;
+
+lazy_static! {
+     static ref AZTEC_DATA_12: GenericGF = GenericGF::new(0x1069, 4096, 1); // x^12 + x^6 + x^5 + x^3 + 1
+     static ref  AZTEC_DATA_10: GenericGF = GenericGF::new(0x409, 1024, 1); // x^10 + x^3 + 1
+     static ref  AZTEC_DATA_6: GenericGF = GenericGF::new(0x43, 64, 1); // x^6 + x + 1
+     static ref  AZTEC_PARAM: GenericGF = GenericGF::new(0x13, 16, 1); // x^4 + x + 1
+     static ref  QR_CODE_FIELD_256: GenericGF = GenericGF::new(0x011D, 256, 0); // x^8 + x^4 + x^3 + x^2 + 1
+     static ref  DATA_MATRIX_FIELD_256: GenericGF = GenericGF::new(0x012D, 256, 1); // x^8 + x^5 + x^3 + x^2 + 1
+}
+
 // pub const AZTEC_DATA_12: GenericGF = GenericGF::new(0x1069, 4096, 1); // x^12 + x^6 + x^5 + x^3 + 1
 // pub const AZTEC_DATA_10: GenericGF = GenericGF::new(0x409, 1024, 1); // x^10 + x^3 + 1
 // pub const AZTEC_DATA_6: GenericGF = GenericGF::new(0x43, 64, 1); // x^6 + x + 1
@@ -47,17 +60,17 @@ pub enum PredefinedGenericGF {
 }
 
 /// Replacement for old const options, has the downside of generating new versions whenever one is requested.
-pub fn get_predefined_genericgf(request: PredefinedGenericGF) -> GenericGF {
+pub  fn get_predefined_genericgf(request: PredefinedGenericGF) -> GenericGFRef {
     match request {
-        PredefinedGenericGF::AztecData12 => GenericGF::new(0x1069, 4096, 1), // x^12 + x^6 + x^5 + x^3 + 1,
-        PredefinedGenericGF::AztecData10 => GenericGF::new(0x409, 1024, 1),  // x^10 + x^3 + 1
+        PredefinedGenericGF::AztecData12 => &AZTEC_DATA_12, // x^12 + x^6 + x^5 + x^3 + 1,
+        PredefinedGenericGF::AztecData10 => &AZTEC_DATA_10,  // x^10 + x^3 + 1
         PredefinedGenericGF::AztecData6 | PredefinedGenericGF::MaxicodeField64 => {
-            GenericGF::new(0x43, 64, 1)
+            &AZTEC_DATA_6
         } // x^6 + x + 1
-        PredefinedGenericGF::AztecParam => GenericGF::new(0x13, 16, 1),      // x^4 + x + 1
-        PredefinedGenericGF::QrCodeField256 => GenericGF::new(0x011D, 256, 0), // x^8 + x^4 + x^3 + x^2 + 1
+        PredefinedGenericGF::AztecParam => &AZTEC_PARAM,      // x^4 + x + 1
+        PredefinedGenericGF::QrCodeField256 => &QR_CODE_FIELD_256, // x^8 + x^4 + x^3 + x^2 + 1
         PredefinedGenericGF::DataMatrixField256 | PredefinedGenericGF::AztecData8 => {
-            GenericGF::new(0x012D, 256, 1)
+            &DATA_MATRIX_FIELD_256
         } // x^8 + x^5 + x^3 + x^2 + 1
     }
 }
@@ -172,13 +185,13 @@ impl GenericGF {
     /**
      * @return the monomial representing coefficient * x^degree
      */
-    pub fn buildMonomial(source: Rc<Self>, degree: usize, coefficient: i32) -> GenericGFPoly {
+    pub fn buildMonomial(source: GenericGFRef, degree: usize, coefficient: i32) -> GenericGFPoly {
         if coefficient == 0 {
-            return GenericGFPoly::new(source.clone(), &vec![0]).unwrap();
+            return GenericGFPoly::new(source, &vec![0]).unwrap();
         }
         let mut coefficients = vec![0; degree + 1];
         coefficients[0] = coefficient;
-        return GenericGFPoly::new(source.clone(), &coefficients).unwrap();
+        return GenericGFPoly::new(source, &coefficients).unwrap();
     }
 
     /**
@@ -282,7 +295,7 @@ impl fmt::Display for GenericGF {
  */
 #[derive(Debug, Clone)]
 pub struct GenericGFPoly {
-    field: Rc<GenericGF>,
+    field: GenericGFRef,
     coefficients: Vec<i32>,
 }
 
@@ -303,7 +316,7 @@ impl GenericGFPoly {
      * or if leading coefficient is 0 and this is not a
      * constant polynomial (that is, it is not the monomial "0")
      */
-    pub fn new(field: Rc<GenericGF>, coefficients: &Vec<i32>) -> Result<Self, Exceptions> {
+    pub fn new(field: GenericGFRef, coefficients: &Vec<i32>) -> Result<Self, Exceptions> {
         if coefficients.len() == 0 {
             return Err(Exceptions::IllegalArgumentException(
                 "coefficients.len()".to_owned(),
@@ -431,7 +444,7 @@ impl GenericGFPoly {
             );
         }
 
-        return Ok(GenericGFPoly::new(self.field.clone(), &sumDiff)?);
+        return Ok(GenericGFPoly::new(self.field, &sumDiff)?);
     }
 
     pub fn multiply(&self, other: &GenericGFPoly) -> Result<GenericGFPoly, Exceptions> {
@@ -466,7 +479,7 @@ impl GenericGFPoly {
                 );
             }
         }
-        return Ok(GenericGFPoly::new(self.field.clone(), &product)?);
+        return Ok(GenericGFPoly::new(self.field, &product)?);
     }
 
     pub fn multiply_with_scalar(&self, scalar: i32) -> GenericGFPoly {
@@ -485,15 +498,15 @@ impl GenericGFPoly {
                 .field
                 .multiply(self.coefficients[i], scalar.try_into().unwrap());
         }
-        return GenericGFPoly::new(self.field.clone(), &product).unwrap();
+        return GenericGFPoly::new(self.field, &product).unwrap();
     }
 
     pub fn getZero(&self) -> Self {
-        GenericGFPoly::new(self.field.clone(), &vec![0]).unwrap()
+        GenericGFPoly::new(self.field, &vec![0]).unwrap()
     }
 
     pub fn getOne(&self) -> Self {
-        GenericGFPoly::new(self.field.clone(), &vec![1]).unwrap()
+        GenericGFPoly::new(self.field, &vec![1]).unwrap()
     }
 
     pub fn multiply_by_monomial(
@@ -513,7 +526,7 @@ impl GenericGFPoly {
             //for (int i = 0; i < size; i++) {
             product[i] = self.field.multiply(self.coefficients[i], coefficient);
         }
-        return Ok(GenericGFPoly::new(self.field.clone(), &product)?);
+        return Ok(GenericGFPoly::new(self.field, &product)?);
     }
 
     pub fn divide(
@@ -551,7 +564,7 @@ impl GenericGFPoly {
                 inverse_denominator_leading_term,
             );
             let term = other.multiply_by_monomial(degree_difference, scale)?;
-            let iteration_quotient = GenericGF::buildMonomial(self.field.clone(), degree_difference, scale);
+            let iteration_quotient = GenericGF::buildMonomial(self.field, degree_difference, scale);
             quotient = quotient.addOrSubtract(&iteration_quotient)?;
             remainder = remainder.addOrSubtract(&term)?;
         }
@@ -648,12 +661,12 @@ impl fmt::Display for GenericGFPoly {
  * @author sanfordsquires
  */
 pub struct ReedSolomonDecoder {
-    field: Rc<GenericGF>,
+    field: GenericGFRef,
 }
 
 impl ReedSolomonDecoder {
-    pub fn new(field: GenericGF) -> Self {
-        Self { field: Rc::new(field) }
+    pub fn new(field: GenericGFRef) -> Self {
+        Self { field: field }
     }
 
     /**
@@ -666,7 +679,7 @@ impl ReedSolomonDecoder {
      * @throws ReedSolomonException if decoding fails for any reason
      */
     pub fn decode(&self, received: &mut Vec<i32>, twoS: i32) -> Result<(), Exceptions> {
-        let poly = GenericGFPoly::new(self.field.clone(), received).unwrap();
+        let poly = GenericGFPoly::new(self.field, received).unwrap();
         let mut syndromeCoefficients = vec![0; twoS.try_into().unwrap()];
         let mut noError = true;
         for i in 0..twoS {
@@ -686,7 +699,7 @@ impl ReedSolomonDecoder {
         if noError {
             return Ok(());
         }
-        let syndrome = match GenericGFPoly::new(self.field.clone(), &syndromeCoefficients) {
+        let syndrome = match GenericGFPoly::new(self.field, &syndromeCoefficients) {
             Ok(res) => res,
             Err(fail) => {
                 return Err(Exceptions::ReedSolomonException(
@@ -695,7 +708,7 @@ impl ReedSolomonDecoder {
             }
         };
         let sigmaOmega = self.runEuclideanAlgorithm(
-            &GenericGF::buildMonomial(self.field.clone(), twoS.try_into().unwrap(), 1),
+            &GenericGF::buildMonomial(self.field, twoS.try_into().unwrap(), 1),
             &syndrome,
             twoS.try_into().unwrap(),
         )?;
@@ -772,7 +785,7 @@ impl ReedSolomonDecoder {
                 let scale = self
                     .field
                     .multiply(r.getCoefficient(r.getDegree()), dltInverse);
-                q = match q.addOrSubtract(&GenericGF::buildMonomial(self.field.clone(), degreeDiff, scale)) {
+                q = match q.addOrSubtract(&GenericGF::buildMonomial(self.field, degreeDiff, scale)) {
                     Ok(res) => res,
                     Err(err) => {
                         return Err(Exceptions::ReedSolomonException(
@@ -951,15 +964,15 @@ impl ReedSolomonDecoder {
  * @author William Rucklidge
  */
 pub struct ReedSolomonEncoder {
-    field: Rc<GenericGF>,
+    field: GenericGFRef,
     cachedGenerators: Vec<GenericGFPoly>,
 }
 
 impl ReedSolomonEncoder {
-    pub fn new(field: GenericGF) -> Self {
-        let n = Rc::new(field);
+    pub fn new(field: GenericGFRef) -> Self {
+        let n = field;
         Self {
-            cachedGenerators: vec![GenericGFPoly::new(n.clone(), &vec![1]).unwrap()],
+            cachedGenerators: vec![GenericGFPoly::new(n, &vec![1]).unwrap()],
             field: n,
         }
     }
@@ -977,7 +990,7 @@ impl ReedSolomonEncoder {
                 nextGenerator = lastGenerator
                     .multiply(
                         &GenericGFPoly::new(
-                            self.field.clone(),
+                            self.field,
                             &vec![
                                 1,
                                 self.field.exp(d as i32 - 1 + self.field.getGeneratorBase()),
@@ -1007,7 +1020,7 @@ impl ReedSolomonEncoder {
                 "No data bytes provided".to_owned(),
             ));
         }
-        let fld = self.field.clone();
+        let fld = self.field;
         let generator = self.buildGenerator(ec_bytes);
         let mut info_coefficients: Vec<i32> = vec![0; data_bytes];
         info_coefficients[0..data_bytes].clone_from_slice(&to_encode[0..data_bytes]);

@@ -19,7 +19,7 @@ use encoding::Encoding;
 use crate::{
     common::{
         reedsolomon::{
-            get_predefined_genericgf, GenericGF, PredefinedGenericGF, ReedSolomonEncoder,
+            get_predefined_genericgf, GenericGF, PredefinedGenericGF, ReedSolomonEncoder, GenericGFRef,
         },
         BitArray, BitMatrix,
     },
@@ -484,7 +484,7 @@ fn bitsToWords(stuffedBits: &BitArray, wordSize: usize, totalWords: usize) -> Ve
     return message;
 }
 
-fn getGF(wordSize: usize) -> Result<GenericGF, Exceptions> {
+fn getGF(wordSize: usize) -> Result<GenericGFRef, Exceptions> {
     match wordSize {
         4 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecParam)),
         6 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecData6)),

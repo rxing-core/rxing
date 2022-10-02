@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use super::{GenericGF, ReedSolomonDecoder, ReedSolomonEncoder};
+use super::{GenericGF, ReedSolomonDecoder, ReedSolomonEncoder, GenericGFRef};
 /*
  * Copyrigh&t 2013 ZXing authors
  *
@@ -52,9 +52,9 @@ fn test_data_matrix() {
         ],
     );
     // synthetic test cases
-    test_encode_decode_random(dm256.clone(), 220, 35);
-    test_encode_decode_random(dm256.clone(), 10, 240);
-    test_encode_decode_random(dm256.clone(), 128, 127);
+    test_encode_decode_random(dm256, 220, 35);
+    test_encode_decode_random(dm256, 10, 240);
+    test_encode_decode_random(dm256, 128, 127);
 }
 
 #[test]
@@ -83,9 +83,9 @@ fn test_qr_code() {
     );
     // real life test cases
     // synthetic test cases
-    test_encode_decode_random(qrcf256.clone(), 10, 240);
-    test_encode_decode_random(qrcf256.clone(), 128, 127);
-    test_encode_decode_random(qrcf256.clone(), 220, 35);
+    test_encode_decode_random(qrcf256, 10, 240);
+    test_encode_decode_random(qrcf256, 128, 127);
+    test_encode_decode_random(qrcf256, 220, 35);
 }
 
 #[test]
@@ -329,15 +329,15 @@ fn test_aztec() {
     let azd10 = super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData10);
     let azd12 = super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData12);
 
-    test_encode_decode_random(azp.clone(), 2, 5); // compact mode message
-    test_encode_decode_random(azp.clone(), 4, 6); // full mode message
-    test_encode_decode_random(azd6.clone(), 10, 7);
-    test_encode_decode_random(azd6.clone(), 20, 12);
-    test_encode_decode_random(azd8.clone(), 20, 11);
-    test_encode_decode_random(azd8.clone(), 128, 127);
-    test_encode_decode_random(azd10.clone(), 128, 128);
-    test_encode_decode_random(azd10.clone(), 768, 255);
-    test_encode_decode_random(azd12.clone(), 3072, 1023);
+    test_encode_decode_random(azp, 2, 5); // compact mode message
+    test_encode_decode_random(azp, 4, 6); // full mode message
+    test_encode_decode_random(azd6, 10, 7);
+    test_encode_decode_random(azd6, 20, 12);
+    test_encode_decode_random(azd8, 20, 11);
+    test_encode_decode_random(azd8, 128, 127);
+    test_encode_decode_random(azd10, 128, 128);
+    test_encode_decode_random(azd10, 768, 255);
+    test_encode_decode_random(azd12, 3072, 1023);
 }
 
 fn corrupt(received: &mut Vec<i32>, howMany: i32, random: &mut rand::rngs::ThreadRng, max: i32) {
@@ -361,7 +361,7 @@ fn corrupt(received: &mut Vec<i32>, howMany: i32, random: &mut rand::rngs::Threa
     }
 }
 
-fn test_encode_decode_random(field: GenericGF, dataSize: usize, ecSize: usize) {
+fn test_encode_decode_random(field: GenericGFRef, dataSize: usize, ecSize: usize) {
     assert!(
         dataSize > 0 && dataSize <= field.getSize() - 3,
         "Invalid data size for {}",
@@ -372,7 +372,7 @@ fn test_encode_decode_random(field: GenericGF, dataSize: usize, ecSize: usize) {
         "Invalid ECC size for {}",
         field
     );
-    let mut encoder = ReedSolomonEncoder::new(field.clone());
+    let mut encoder = ReedSolomonEncoder::new(field);
     let mut message = vec![0; dataSize + ecSize];
     let mut dataWords: Vec<i32> = vec![0; dataSize];
     let mut ecWords = vec![0; ecSize];
@@ -402,13 +402,13 @@ fn test_encode_decode_random(field: GenericGF, dataSize: usize, ecSize: usize) {
     }
 }
 
-fn test_encode_decode(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
+fn test_encode_decode(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
     test_encoder(field, dataWords, ecWords);
     test_decoder(field, dataWords, ecWords);
 }
 
-fn test_encoder(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
-    let mut encoder = ReedSolomonEncoder::new(field.clone());
+fn test_encoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
+    let mut encoder = ReedSolomonEncoder::new(field);
     let mut messageExpected = vec![0; dataWords.len() + ecWords.len()];
     let mut message = vec![0; dataWords.len() + ecWords.len()];
     messageExpected[0..dataWords.len()].clone_from_slice(&dataWords[0..dataWords.len()]);
@@ -431,8 +431,8 @@ fn test_encoder(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
     );
 }
 
-fn test_decoder(field: &GenericGF, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
-    let decoder = ReedSolomonDecoder::new(field.clone());
+fn test_decoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
+    let decoder = ReedSolomonDecoder::new(field);
     let mut message = vec![0; dataWords.len() + ecWords.len()];
     let maxErrors = ecWords.len() / 2;
     let mut random = get_pseudo_random();

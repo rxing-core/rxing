@@ -19,7 +19,7 @@ use encoding::Encoding;
 use crate::{
     common::{
         reedsolomon::{
-            get_predefined_genericgf, GenericGF, PredefinedGenericGF, ReedSolomonDecoder,
+            get_predefined_genericgf, GenericGF, PredefinedGenericGF, ReedSolomonDecoder, GenericGFRef,
         },
         BitMatrix, CharacterSetECI, DecoderRXingResult, DetectorRXingResult,
     },
@@ -327,7 +327,7 @@ fn correct_bits(
     ddata: &AztecDetectorRXingResult,
     rawbits: &[bool],
 ) -> Result<CorrectedBitsRXingResult, Exceptions> {
-    let gf: GenericGF;
+    let gf: GenericGFRef;
     let codeword_size;
 
     if ddata.getNbLayers() <= 2 {
