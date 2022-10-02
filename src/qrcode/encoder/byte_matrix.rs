@@ -91,7 +91,7 @@ impl fmt::Display for ByteMatrix {
                 match bytesY[x] {
                     0 => result.push_str(" 0"),
                     1 => result.push_str(" 1"),
-                    _ => result.push_str(" "),
+                    _ => result.push_str("  "),
                 };
                 // switch (bytesY[x]) {
                 //   case 0:
