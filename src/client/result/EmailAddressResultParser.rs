@@ -24,6 +24,12 @@
 use regex::Regex;
 
 use crate::RXingResult;
+use lazy_static::lazy_static;
+
+lazy_static! {
+  static ref COMMA :Regex = Regex::new(",").unwrap();
+  static ref  ATEXT_ALPHANUMERIC:Regex = Regex::new("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+").unwrap();
+}
 
 use super::{ParsedClientResult, ResultParser, EmailDoCoMoResultParser, EmailAddressParsedRXingResult};
 
@@ -34,7 +40,7 @@ use super::{ParsedClientResult, ResultParser, EmailDoCoMoResultParser, EmailAddr
  * @author Sean Owen
  */
   pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
-    let comma_regex = Regex::new(",").unwrap();
+    // let comma_regex = Regex::new(",").unwrap();
     // private static final Pattern COMMA = Pattern.compile(",");
     let rawText = ResultParser::getMassagedText(result);
     if rawText.starts_with("mailto:") || rawText.starts_with("MAILTO:") {
@@ -60,7 +66,7 @@ use super::{ParsedClientResult, ResultParser, EmailDoCoMoResultParser, EmailAddr
       let mut tos = if hostEmail.is_empty() {
         Vec::new()
       }else {
-        comma_regex.split(hostEmail).into_iter().map(|s| s.to_owned()).collect()
+        COMMA.split(hostEmail).into_iter().map(|s| s.to_owned()).collect()
       };
       // if (!hostEmail.isEmpty()) {
       //   tos = COMMA.split(hostEmail);
@@ -74,20 +80,20 @@ use super::{ParsedClientResult, ResultParser, EmailDoCoMoResultParser, EmailAddr
       // if (nameValues != null) {
         if tos.is_empty() {
           if let Some(tosString) = nv.get("to"){
-            tos = comma_regex.split(tosString).into_iter().map(|s| s.to_owned()).collect();
+            tos = COMMA.split(tosString).into_iter().map(|s| s.to_owned()).collect();
           }
           // if tosString != null {
           //   tos = COMMA.split(tosString);
           // }
         }
         if let Some(ccString) = nv.get("cc"){
-          ccs = comma_regex.split(ccString).into_iter().map(|s| s.to_owned()).collect();
+          ccs = COMMA.split(ccString).into_iter().map(|s| s.to_owned()).collect();
         }
         // if ccString != null {
         //   ccs = COMMA.split(ccString);
         // }
         if let Some(bccString) = nv.get("bcc"){
-          bccs = comma_regex.split(bccString).into_iter().map(|s| s.to_owned()).collect();
+          bccs = COMMA.split(bccString).into_iter().map(|s| s.to_owned()).collect();
         }
         // if bccString != null {
         //   bccs = COMMA.split(bccString);
@@ -97,8 +103,8 @@ use super::{ParsedClientResult, ResultParser, EmailDoCoMoResultParser, EmailAddr
       }
       return Some(ParsedClientResult::EmailResult(EmailAddressParsedRXingResult::with_details(tos, ccs, bccs, subject.to_owned(), body.to_owned())));
     } else {
-      let atext_alphanumeric = Regex::new("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+").unwrap();
-      if !EmailDoCoMoResultParser::isBasicallyValidEmailAddress(&rawText,&atext_alphanumeric) {
+      // let atext_alphanumeric = Regex::new("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+").unwrap();
+      if !EmailDoCoMoResultParser::isBasicallyValidEmailAddress(&rawText,&ATEXT_ALPHANUMERIC) {
         return None;
       }
       return Some(ParsedClientResult::EmailResult(EmailAddressParsedRXingResult::new(rawText)));

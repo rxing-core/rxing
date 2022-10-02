@@ -30,6 +30,7 @@
 use chrono::{Date, DateTime, Local, NaiveDateTime, TimeZone, Utc};
 use chrono_tz::Tz;
 use regex::Regex;
+use lazy_static::lazy_static;
 
 use crate::exceptions::Exceptions;
 
@@ -38,8 +39,8 @@ use super::{
     ResultParser,
 };
 
-const RFC2445_DURATION: &'static str =
-    "P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?";
+// const RFC2445_DURATION: &'static str =
+//     "P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?";
 const RFC2445_DURATION_FIELD_UNITS: [i64; 5] = [
     7 * 24 * 60 * 60 * 1000i64, // 1 week
     24 * 60 * 60 * 1000i64,     // 1 day
@@ -48,7 +49,11 @@ const RFC2445_DURATION_FIELD_UNITS: [i64; 5] = [
     1000i64,                    // 1 second
 ];
 
-const DATE_TIME: &'static str = "[0-9]{8}(T[0-9]{6}Z?)?";
+lazy_static! {
+    static ref DATE_TIME : Regex = Regex::new("[0-9]{8}(T[0-9]{6}Z?)?").unwrap();
+    static ref RFC2445_DURATION: Regex = Regex::new("P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?").unwrap();
+}
+// const DATE_TIME: &'static str = "[0-9]{8}(T[0-9]{6}Z?)?";
 
 /**
  * Represents a parsed result that encodes a calendar event at a certain time, optionally
@@ -162,8 +167,8 @@ impl CalendarParsedRXingResult {
      * @throws ParseException if not able to parse as a date
      */
     fn parseDate(when: String) -> Result<i64, Exceptions> {
-        let date_time_regex = Regex::new(DATE_TIME).unwrap();
-        if !date_time_regex.is_match(&when) {
+        // let date_time_regex = Regex::new(DATE_TIME).unwrap();
+        if !DATE_TIME.is_match(&when) {
             return Err(Exceptions::ParseException(when));
         }
         if when.len() == 8 {
@@ -261,8 +266,8 @@ impl CalendarParsedRXingResult {
         if durationString.is_empty() {
             return -1;
         }
-        let regex = Regex::new(RFC2445_DURATION).unwrap();
-        if let Some(m) = regex.captures(durationString) {
+        // let regex = Regex::new(RFC2445_DURATION).unwrap();
+        if let Some(m) = RFC2445_DURATION.captures(durationString) {
             let mut durationMS = 0i64;
             for i in 0..RFC2445_DURATION_FIELD_UNITS.len() {
                 // for (int i = 0; i < RFC2445_DURATION_FIELD_UNITS.length; i++) {

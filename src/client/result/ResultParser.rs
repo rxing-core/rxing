@@ -31,6 +31,8 @@ use std::collections::HashMap;
 use regex::Regex;
 use urlencoding::decode;
 
+use lazy_static::lazy_static;
+
 use crate::{exceptions::Exceptions, RXingResult};
 
 use super::{
@@ -90,7 +92,11 @@ use super::{
 
 pub type ParserFunction = dyn Fn(&RXingResult) -> Option<ParsedClientResult>;
 
-const DIGITS: &'static str = "\\d+"; //= Pattern.compile("\\d+");
+lazy_static! {
+    static ref DIGITS :Regex = Regex::new("\\d+").unwrap();
+}
+
+// const DIGITS: &'static str = "\\d+"; //= Pattern.compile("\\d+");
 const AMPERSAND: &'static str = "&"; // private static final Pattern AMPERSAND = Pattern.compile("&");
 const EQUALS: &'static str = "="; //private static final Pattern EQUALS = Pattern.compile("=");
 const BYTE_ORDER_MARK: &'static str = "\u{feff}"; //private static final String BYTE_ORDER_MARK = "\ufeff";
@@ -229,8 +235,7 @@ pub fn parseHexDigit(c: char) -> i32 {
 }
 
 pub fn isStringOfDigits(value: &str, length: usize) -> bool {
-    let matcher = Regex::new(DIGITS).unwrap();
-    !value.is_empty() && length > 0 && length == value.len() && matcher.is_match(value)
+    !value.is_empty() && length > 0 && length == value.len() && DIGITS.is_match(value)
 }
 
 pub fn isSubstringOfDigits(value: &str, offset: usize, length: usize) -> bool {
@@ -239,10 +244,9 @@ pub fn isSubstringOfDigits(value: &str, offset: usize, length: usize) -> bool {
     }
     let max = offset as usize + length;
 
-    let matcher = Regex::new(DIGITS).unwrap();
     let sub_seq = &value[offset as usize..max];
 
-    let is_a_match = if let Some(mtch) = matcher.find(sub_seq) {
+    let is_a_match = if let Some(mtch) = DIGITS.find(sub_seq) {
         if mtch.start() == 0 && mtch.end() == sub_seq.len() {
             true
         } else {

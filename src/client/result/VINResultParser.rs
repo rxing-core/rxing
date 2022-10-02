@@ -29,6 +29,13 @@ use crate::{
 
 use super::ParsedClientResult;
 
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref IOQ_MATCHER : Regex = Regex::new(IOQ).unwrap();
+    static ref AZ09_MATCHER: Regex = Regex::new(AZ09).unwrap();
+}
+
 /**
  * Detects a result that is likely a vehicle identification number.
  *
@@ -38,12 +45,11 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     if result.getBarcodeFormat() != &BarcodeFormat::CODE_39 {
         return None;
     }
-    let ioq_matcher = Regex::new(IOQ).unwrap();
-    let az09_matcher = Regex::new(AZ09).unwrap();
+    
     let raw_text_res = result.getText().trim();
-    let raw_text = ioq_matcher.replace_all(raw_text_res, "").to_string();
+    let raw_text = IOQ_MATCHER.replace_all(raw_text_res, "").to_string();
     // rawText = IOQ.matcher(rawText).replaceAll("").trim();
-    if let None = az09_matcher.find(&raw_text) {
+    if let None = AZ09_MATCHER.find(&raw_text) {
         return None;
     }
     // if !AZ09.matcher(rawText).matches() {

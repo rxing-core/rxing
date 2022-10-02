@@ -26,6 +26,13 @@ use crate::RXingResult;
 
 use super::{ParsedClientResult, ResultParser, EmailAddressParsedRXingResult};
 
+use lazy_static::lazy_static;
+
+lazy_static! {
+  static ref ATEXT_ALPHANUMERIC :Regex = Regex::new("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+").unwrap();
+
+}
+
 /**
  * Implements the "MATMSG" email message entry format.
  *
@@ -34,7 +41,6 @@ use super::{ParsedClientResult, ResultParser, EmailAddressParsedRXingResult};
  * @author Sean Owen
  */
   pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
-  let atext_alphanumeric = Regex::new("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+").unwrap();
 
     let rawText = ResultParser::getMassagedText(result);
     if !rawText.starts_with("MATMSG:") {
@@ -43,7 +49,7 @@ use super::{ParsedClientResult, ResultParser, EmailAddressParsedRXingResult};
     let tos = ResultParser::match_do_co_mo_prefixed_field("TO:", &rawText)?;
 
     for to in &tos {
-      if !isBasicallyValidEmailAddress(&to, &atext_alphanumeric) {
+      if !isBasicallyValidEmailAddress(&to, &ATEXT_ALPHANUMERIC) {
         return None;
       }
     }

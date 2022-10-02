@@ -33,22 +33,35 @@ use std::convert::TryFrom;
 use encoding::all::encodings;
 use regex::Regex;
 
+use lazy_static::lazy_static;
+
 use crate::RXingResult;
 
 use uriparse::URI;
 
 use super::{AddressBookParsedRXingResult, ParsedClientResult, ResultParser};
 
-const BEGIN_VCARD: &'static str = "(?i:BEGIN:VCARD)"; //, Pattern.CASE_INSENSITIVE);
-const VCARD_LIKE_DATE: &'static str = "\\d{4}-?\\d{2}-?\\d{2}";
-const CR_LF_SPACE_TAB: &'static str = "\r\n[ \t]";
-const NEWLINE_ESCAPE: &'static str = "\\\\[nN]";
-const VCARD_ESCAPES: &'static str = "\\\\([,;\\\\])";
-const EQUALS: &'static str = "=";
+lazy_static! {
+    static ref BEGIN_VCARD :Regex=  Regex::new("(?i:BEGIN:VCARD)").unwrap();
+    static ref VCARD_LIKE_DATE : Regex = Regex::new("\\d{4}-?\\d{2}-?\\d{2}").unwrap();
+    static ref CR_LF_SPACE_TAB : Regex = Regex::new("\r\n[ \t]").unwrap();
+    static ref NEWLINE_ESCAPE : Regex = Regex::new("\\\\[nN]").unwrap();
+    static ref VCARD_ESCAPE : Regex = Regex::new("\\\\([,;\\\\])").unwrap();
+    static ref EQUALS : Regex = Regex::new("=").unwrap();
+    static ref UNESCAPED_SEMICOLONS : fancy_regex::Regex = fancy_regex::Regex::new("(?<!\\\\);+").unwrap();
+    static ref SEMICOLON_OR_COMMA : Regex = Regex::new("[;,]").unwrap();
+}
+
+// const BEGIN_VCARD: &'static str = "(?i:BEGIN:VCARD)"; //, Pattern.CASE_INSENSITIVE);
+// const VCARD_LIKE_DATE: &'static str = "\\d{4}-?\\d{2}-?\\d{2}";
+// const CR_LF_SPACE_TAB: &'static str = "\r\n[ \t]";
+// const NEWLINE_ESCAPE: &'static str = "\\\\[nN]";
+// const VCARD_ESCAPES: &'static str = "\\\\([,;\\\\])";
+// const EQUALS: &'static str = "=";
 const SEMICOLON: &'static str = ";";
-const UNESCAPED_SEMICOLONS: &'static str = "(?<!\\\\);+";
+// const UNESCAPED_SEMICOLONS: &'static str = "(?<!\\\\);+";
 const COMMA: &'static str = ",";
-const SEMICOLON_OR_COMMA: &'static str = "[;,]";
+// const SEMICOLON_OR_COMMA: &'static str = "[;,]";
 
 /**
  * Parses contact information formatted according to the VCard (2.1) format. This is not a complete
@@ -62,10 +75,10 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     // is doing just that, and we can't parse its contacts without this leniency.
     let rawText = ResultParser::getMassagedText(result);
 
-    let semicolon_comma_regex = Regex::new(SEMICOLON_OR_COMMA).unwrap();
+    // let semicolon_comma_regex = Regex::new(SEMICOLON_OR_COMMA).unwrap();
 
-    let rg = Regex::new(BEGIN_VCARD).unwrap();
-    let mtch = rg.find(&rawText)?;
+    // let rg = Regex::new(BEGIN_VCARD).unwrap();
+    let mtch = BEGIN_VCARD.find(&rawText)?;
     // Matcher m = BEGIN_VCARD.matcher(rawText);
     if mtch.start() != 0 {
         return None;
@@ -120,7 +133,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let geo = if geoString.is_none() {
         Vec::new()
     } else {
-        semicolon_comma_regex
+        SEMICOLON_OR_COMMA
             .split(&geoString.unwrap()[0])
             .map(|x| x.to_owned())
             .collect()
@@ -163,11 +176,11 @@ pub fn matchVCardPrefixedField(
     let mut i = 0;
     let max = rawText.len();
 
-    let equals_regex = Regex::new(EQUALS).unwrap();
-    let unescaped_semis = fancy_regex::Regex::new(UNESCAPED_SEMICOLONS).unwrap();
-    let cr_lf_space_tab = Regex::new(CR_LF_SPACE_TAB).unwrap();
-    let newline_esc = Regex::new(NEWLINE_ESCAPE).unwrap();
-    let vcard_esc = Regex::new(VCARD_ESCAPES).unwrap();
+    // let equals_regex = Regex::new(EQUALS).unwrap();
+    // let unescaped_semis = fancy_regex::Regex::new(UNESCAPED_SEMICOLONS).unwrap();
+    // let cr_lf_space_tab = Regex::new(CR_LF_SPACE_TAB).unwrap();
+    // let newline_esc = Regex::new(NEWLINE_ESCAPE).unwrap();
+    // let vcard_esc = Regex::new(VCARD_ESCAPES).unwrap();
 
     // At start or after newline, match prefix, followed by optional metadata
     // (led by ;) ultimately ending in colon
@@ -205,7 +218,7 @@ pub fn matchVCardPrefixedField(
                 // }
                 metadata.push(metadatum.to_owned());
 
-                let metadatumTokens = equals_regex.splitn(metadatum, 2).collect::<Vec<&str>>();
+                let metadatumTokens = EQUALS.splitn(metadatum, 2).collect::<Vec<&str>>();
                 if metadatumTokens.len() > 1 {
                     let key = metadatumTokens[0];
                     let value = metadatumTokens[1];
@@ -261,7 +274,7 @@ pub fn matchVCardPrefixedField(
             if quotedPrintable {
                 element = decodeQuotedPrintable(&element, quotedPrintableCharset);
                 if parseFieldDivider {
-                    element = unescaped_semis
+                    element = UNESCAPED_SEMICOLONS
                         .replace_all(&element, "\n")
                         .to_mut()
                         .trim()
@@ -270,19 +283,19 @@ pub fn matchVCardPrefixedField(
                 }
             } else {
                 if parseFieldDivider {
-                    element = unescaped_semis
+                    element = UNESCAPED_SEMICOLONS
                         .replace_all(&element, "\n")
                         .to_mut()
                         .trim()
                         .to_owned();
                     // element = UNESCAPED_SEMICOLONS.matcher(element).replaceAll("\n").trim();
                 }
-                element = cr_lf_space_tab
+                element = CR_LF_SPACE_TAB
                     .replace_all(&element, "")
                     .to_mut()
                     .to_owned();
-                element = newline_esc.replace_all(&element, "\n").to_mut().to_owned();
-                element = vcard_esc.replace_all(&element, "$1").to_mut().to_owned();
+                element = NEWLINE_ESCAPE.replace_all(&element, "\n").to_mut().to_owned();
+                element = VCARD_ESCAPE.replace_all(&element, "$1").to_mut().to_owned();
                 // element = CR_LF_SPACE_TAB.matcher(element).replaceAll("");
                 // element = NEWLINE_ESCAPE.matcher(element).replaceAll("\n");
                 // element = VCARD_ESCAPES.matcher(element).replaceAll("$1");
@@ -516,8 +529,8 @@ fn toTypes(lists: Option<Vec<Vec<String>>>) -> Vec<String> {
 }
 
 fn isLikeVCardDate(value: &str) -> bool {
-    let rg = Regex::new(VCARD_LIKE_DATE).unwrap();
-    let matches = if let Some(mtch) = rg.find(value) {
+    // let rg = Regex::new(VCARD_LIKE_DATE).unwrap();
+    let matches = if let Some(mtch) = VCARD_LIKE_DATE.find(value) {
         mtch.start() == 0 && mtch.end() == value.len()
     } else {
         false

@@ -23,6 +23,12 @@
 
 use super::{GeoParsedRXingResult, ParsedClientResult,  ResultParser};
 
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref GEO_URL :regex::Regex = regex::Regex::new(GEO_URL_PATTERN).unwrap();
+}
+
 const GEO_URL_PATTERN: &'static str = "geo:([\\-0-9.]+),([\\-0-9.]+)(?:,([\\-0-9.]+))?(?:\\?(.*))?";
 
 /**
@@ -39,9 +45,7 @@ const GEO_URL_PATTERN: &'static str = "geo:([\\-0-9.]+),([\\-0-9.]+)(?:,([\\-0-9
     pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientResult> {
         let rawText = ResultParser::getMassagedText(theRXingResult);
 
-        let matcher = regex::Regex::new(GEO_URL_PATTERN).unwrap();
-
-        if let Some(captures) = matcher.captures(&rawText.to_lowercase()) {
+        if let Some(captures) = GEO_URL.captures(&rawText.to_lowercase()) {
             let query = if let Some(q) = captures.get(4) {
                 q.as_str()
             } else {
