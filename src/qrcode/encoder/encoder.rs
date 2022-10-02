@@ -14,53 +14,58 @@
  * limitations under the License.
  */
 
-package com.google.zxing.qrcode.encoder;
+// package com.google.zxing.qrcode.encoder;
 
-import com.google.zxing.EncodeHintType;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitArray;
-import com.google.zxing.common.StringUtils;
-import com.google.zxing.common.CharacterSetECI;
-import com.google.zxing.common.reedsolomon.GenericGF;
-import com.google.zxing.common.reedsolomon.ReedSolomonEncoder;
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
-import com.google.zxing.qrcode.decoder.Mode;
-import com.google.zxing.qrcode.decoder.Version;
+// import com.google.zxing.EncodeHintType;
+// import com.google.zxing.WriterException;
+// import com.google.zxing.common.BitArray;
+// import com.google.zxing.common.StringUtils;
+// import com.google.zxing.common.CharacterSetECI;
+// import com.google.zxing.common.reedsolomon.GenericGF;
+// import com.google.zxing.common.reedsolomon.ReedSolomonEncoder;
+// import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+// import com.google.zxing.qrcode.decoder.Mode;
+// import com.google.zxing.qrcode.decoder.Version;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
+// import java.nio.charset.Charset;
+// import java.nio.charset.StandardCharsets;
+// import java.util.ArrayList;
+// import java.util.Collection;
+// import java.util.Map;
+
+use std::collections::HashMap;
+
+use encoding::EncodingRef;
+
+use crate::{EncodingHintDictionary, common::{BitArray, CharacterSetECI, reedsolomon::{ReedSolomonEncoder, get_predefined_genericgf, PredefinedGenericGF}, StringUtils}, Exceptions, qrcode::decoder::{ErrorCorrectionLevel, Mode, VersionRef, Version}};
+
+use super::{mask_util, ByteMatrix, QRCode, matrix_util};
 
 /**
  * @author satorux@google.com (Satoru Takabayashi) - creator
  * @author dswitkin@google.com (Daniel Switkin) - ported from C++
  */
-public final class Encoder {
 
   // The original table is defined in the table 5 of JISX0510:2004 (p.19).
-  private static final int[] ALPHANUMERIC_TABLE = {
+  const ALPHANUMERIC_TABLE : [i8;96]= [
       -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  // 0x00-0x0f
       -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  // 0x10-0x1f
       36, -1, -1, -1, 37, 38, -1, -1, -1, -1, 39, 40, -1, 41, 42, 43,  // 0x20-0x2f
       0,   1,  2,  3,  4,  5,  6,  7,  8,  9, 44, -1, -1, -1, -1, -1,  // 0x30-0x3f
       -1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,  // 0x40-0x4f
       25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, -1, -1, -1, -1, -1,  // 0x50-0x5f
-  };
+  ];
 
-  static final Charset DEFAULT_BYTE_MODE_ENCODING = StandardCharsets.ISO_8859_1;
+  const DEFAULT_BYTE_MODE_ENCODING : EncodingRef = encoding::all::ISO_8859_1;
 
-  private Encoder() {
-  }
 
   // The mask penalty calculation is complicated.  See Table 21 of JISX0510:2004 (p.45) for details.
   // Basically it applies four rules and summate all penalties.
-  private static int calculateMaskPenalty(ByteMatrix matrix) {
-    return MaskUtil.applyMaskPenaltyRule1(matrix)
-        + MaskUtil.applyMaskPenaltyRule2(matrix)
-        + MaskUtil.applyMaskPenaltyRule3(matrix)
-        + MaskUtil.applyMaskPenaltyRule4(matrix);
+  pub fn calculateMaskPenalty( matrix:&ByteMatrix) -> u32{
+    return mask_util::applyMaskPenaltyRule1(matrix)
+        + mask_util::applyMaskPenaltyRule2(matrix)
+        + mask_util::applyMaskPenaltyRule3(matrix)
+        + mask_util::applyMaskPenaltyRule4(matrix);
   }
 
   /**
@@ -70,26 +75,26 @@ public final class Encoder {
    * @throws WriterException if encoding can't succeed, because of for example invalid content
    *   or configuration
    */
-  public static QRCode encode(String content, ErrorCorrectionLevel ecLevel) throws WriterException {
-    return encode(content, ecLevel, null);
+  pub fn encode( content:&str,  ecLevel:&ErrorCorrectionLevel) -> Result<QRCode, Exceptions> {
+    return encode_with_hints(content, ecLevel, HashMap::new());
   }
 
-  public static QRCode encode(String content,
-                              ErrorCorrectionLevel ecLevel,
-                              Map<EncodeHintType,?> hints) throws WriterException {
+  pub fn encode_with_hints( content:&str,
+                               ecLevel:&ErrorCorrectionLevel,
+                               hints:EncodingHintDictionary) -> Result<QRCode, Exceptions> {
 
-    Version version;
-    BitArray headerAndDataBits;
-    Mode mode;
+    let version;
+    let headerAndDataBits;
+    let mode;
 
-    boolean hasGS1FormatHint = hints != null && hints.containsKey(EncodeHintType.GS1_FORMAT) &&
-        Boolean.parseBoolean(hints.get(EncodeHintType.GS1_FORMAT).toString());
-    boolean hasCompactionHint = hints != null && hints.containsKey(EncodeHintType.QR_COMPACT) &&
-        Boolean.parseBoolean(hints.get(EncodeHintType.QR_COMPACT).toString());
+    let hasGS1FormatHint = hints != null && hints.containsKey(EncodeHintType::GS1_FORMAT) &&
+        Boolean.parseBoolean(hints.get(EncodeHintType::GS1_FORMAT).toString());
+    let hasCompactionHint = hints != null && hints.containsKey(EncodeHintType::QR_COMPACT) &&
+        Boolean.parseBoolean(hints.get(EncodeHintType::QR_COMPACT).toString());
 
     // Determine what character encoding has been specified by the caller, if any
-    Charset encoding = DEFAULT_BYTE_MODE_ENCODING;
-    boolean hasEncodingHint = hints != null && hints.containsKey(EncodeHintType.CHARACTER_SET);
+    let encoding = DEFAULT_BYTE_MODE_ENCODING;
+    let hasEncodingHint = hints != null && hints.containsKey(EncodeHintType::CHARACTER_SET);
     if (hasEncodingHint) {
       encoding = Charset.forName(hints.get(EncodeHintType.CHARACTER_SET).toString());
     }
@@ -191,7 +196,7 @@ public final class Encoder {
     qrCode.setMaskPattern(maskPattern);
 
     // Build the matrix and set it to "qrCode".
-    MatrixUtil.buildMatrix(finalBits, ecLevel, version, maskPattern, matrix);
+    matrix_util::buildMatrix(finalBits, ecLevel, version, maskPattern, matrix);
     qrCode.setMatrix(matrix);
 
     return qrCode;
@@ -202,25 +207,25 @@ public final class Encoder {
    *
    * @throws WriterException if the data cannot fit in any version
    */
-  private static Version recommendVersion(ErrorCorrectionLevel ecLevel,
-                                          Mode mode,
-                                          BitArray headerBits,
-                                          BitArray dataBits) throws WriterException {
+  fn recommendVersion( ecLevel:&ErrorCorrectionLevel,
+                                           mode:Mode,
+                                           headerBits:&BitArray,
+                                           dataBits:&BitArray) -> Result<VersionRef,Exceptions> {
     // Hard part: need to know version to know how many bits length takes. But need to know how many
     // bits it takes to know version. First we take a guess at version by assuming version will be
     // the minimum, 1:
-    int provisionalBitsNeeded = calculateBitsNeeded(mode, headerBits, dataBits, Version.getVersionForNumber(1));
-    Version provisionalVersion = chooseVersion(provisionalBitsNeeded, ecLevel);
+    let provisionalBitsNeeded = calculateBitsNeeded(mode, headerBits, dataBits, Version::getVersionForNumber(1));
+    let provisionalVersion = chooseVersion(provisionalBitsNeeded, ecLevel);
 
     // Use that guess to calculate the right version. I am still not sure this works in 100% of cases.
-    int bitsNeeded = calculateBitsNeeded(mode, headerBits, dataBits, provisionalVersion);
+    let bitsNeeded = calculateBitsNeeded(mode, headerBits, dataBits, provisionalVersion);
     return chooseVersion(bitsNeeded, ecLevel);
   }
 
-  private static int calculateBitsNeeded(Mode mode,
-                                         BitArray headerBits,
-                                         BitArray dataBits,
-                                         Version version) {
+  fn  calculateBitsNeeded( mode:Mode,
+                                          headerBits:&BitArray,
+                                          dataBits:&BitArray,
+                                          version:VersionRef) -> u32 {
     return headerBits.getSize() + mode.getCharacterCountBits(version) + dataBits.getSize();
   }
 
@@ -228,22 +233,22 @@ public final class Encoder {
    * @return the code point of the table used in alphanumeric mode or
    *  -1 if there is no corresponding code in the table.
    */
-  static int getAlphanumericCode(int code) {
-    if (code < ALPHANUMERIC_TABLE.length) {
+  pub fn getAlphanumericCode( code:u32) -> u32{
+    if code < ALPHANUMERIC_TABLE.len() {
       return ALPHANUMERIC_TABLE[code];
     }
     return -1;
   }
 
-  public static Mode chooseMode(String content) {
-    return chooseMode(content, null);
+  pub fn chooseMode( content:&str) -> Mode{
+    return chooseModeWithEncoding(content, None);
   }
 
   /**
    * Choose the best mode by examining the content. Note that 'encoding' is used as a hint;
    * if it is Shift_JIS, and the input is only double-byte Kanji, then we return {@link Mode#KANJI}.
    */
-  private static Mode chooseMode(String content, Charset encoding) {
+  fn chooseModeWithEncoding( content:&str,  encoding:Option<EncodingRef>) -> Mode{
     if (StringUtils.SHIFT_JIS_CHARSET.equals(encoding) && isOnlyDoubleByteKanji(content)) {
       // Choose Kanji mode if all input are double-byte characters
       return Mode.KANJI;
@@ -269,32 +274,36 @@ public final class Encoder {
     return Mode.BYTE;
   }
 
-  static boolean isOnlyDoubleByteKanji(String content) {
-    byte[] bytes = content.getBytes(StringUtils.SHIFT_JIS_CHARSET);
-    int length = bytes.length;
-    if (length % 2 != 0) {
+  pub fn isOnlyDoubleByteKanji( content:&str) -> bool{
+    let bytes = content.getBytes(StringUtils::SHIFT_JIS_CHARSET);
+    let length = bytes.len();
+    if length % 2 != 0 {
       return false;
     }
-    for (int i = 0; i < length; i += 2) {
-      int byte1 = bytes[i] & 0xFF;
-      if ((byte1 < 0x81 || byte1 > 0x9F) && (byte1 < 0xE0 || byte1 > 0xEB)) {
+    let mut i = 0;
+    while i < length {
+    // for (int i = 0; i < length; i += 2) {
+      let byte1 = bytes[i] & 0xFF;
+      if (byte1 < 0x81 || byte1 > 0x9F) && (byte1 < 0xE0 || byte1 > 0xEB) {
         return false;
       }
+      i+=2;
     }
     return true;
   }
 
-  private static int chooseMaskPattern(BitArray bits,
-                                       ErrorCorrectionLevel ecLevel,
-                                       Version version,
-                                       ByteMatrix matrix) throws WriterException {
+  fn chooseMaskPattern( bits:&BitArray,
+                                        ecLevel:&ErrorCorrectionLevel,
+                                        version:VersionRef,
+                                        matrix:&ByteMatrix) -> Result<u32, Exceptions> {
 
-    int minPenalty = Integer.MAX_VALUE;  // Lower penalty is better.
-    int bestMaskPattern = -1;
+    let minPenalty = u32::MAX;  // Lower penalty is better.
+    let bestMaskPattern = -1;
     // We try all mask patterns to choose the best one.
-    for (int maskPattern = 0; maskPattern < QRCode.NUM_MASK_PATTERNS; maskPattern++) {
-      MatrixUtil.buildMatrix(bits, ecLevel, version, maskPattern, matrix);
-      int penalty = calculateMaskPenalty(matrix);
+    for maskPattern in 0..QRCode::NUM_MASK_PATTERNS {
+    // for (int maskPattern = 0; maskPattern < QRCode.NUM_MASK_PATTERNS; maskPattern++) {
+      matrix_util::buildMatrix(bits, ecLevel, version, maskPattern, matrix);
+      let penalty = calculateMaskPenalty(matrix);
       if (penalty < minPenalty) {
         minPenalty = penalty;
         bestMaskPattern = maskPattern;
@@ -303,38 +312,39 @@ public final class Encoder {
     return bestMaskPattern;
   }
 
-  private static Version chooseVersion(int numInputBits, ErrorCorrectionLevel ecLevel) throws WriterException {
-    for (int versionNum = 1; versionNum <= 40; versionNum++) {
-      Version version = Version.getVersionForNumber(versionNum);
-      if (willFit(numInputBits, version, ecLevel)) {
+  fn chooseVersion( numInputBits:u32,  ecLevel:&ErrorCorrectionLevel) -> Result<VersionRef,Exceptions> {
+    for versionNum in 1..=40 {
+    // for (int versionNum = 1; versionNum <= 40; versionNum++) {
+      let version = Version::getVersionForNumber(versionNum);
+      if willFit(numInputBits, version, ecLevel) {
         return version;
       }
     }
-    throw new WriterException("Data too big");
+    Err(Exceptions::WriterException("Data too big".to_owned()));
   }
 
   /**
    * @return true if the number of input bits will fit in a code with the specified version and
    * error correction level.
    */
-  static boolean willFit(int numInputBits, Version version, ErrorCorrectionLevel ecLevel) {
+  pub fn willFit( numInputBits:u32,  version:VersionRef,  ecLevel:&ErrorCorrectionLevel) -> bool {
     // In the following comments, we use numbers of Version 7-H.
     // numBytes = 196
-    int numBytes = version.getTotalCodewords();
+    let numBytes = version.getTotalCodewords();
     // getNumECBytes = 130
-    Version.ECBlocks ecBlocks = version.getECBlocksForLevel(ecLevel);
-    int numEcBytes = ecBlocks.getTotalECCodewords();
+    let ecBlocks = version.getECBlocksForLevel(ecLevel);
+    let numEcBytes = ecBlocks.getTotalECCodewords();
     // getNumDataBytes = 196 - 130 = 66
-    int numDataBytes = numBytes - numEcBytes;
-    int totalInputBytes = (numInputBits + 7) / 8;
+    let numDataBytes = numBytes - numEcBytes;
+    let totalInputBytes = (numInputBits + 7) / 8;
     return numDataBytes >= totalInputBytes;
   }
 
   /**
    * Terminate bits as described in 8.4.8 and 8.4.9 of JISX0510:2004 (p.24).
    */
-  static void terminateBits(int numDataBytes, BitArray bits) throws WriterException {
-    int capacity = numDataBytes * 8;
+  pub fn terminateBits( numDataBytes:u32,  bits:&BitArray) -> Result<(),Exceptions> {
+    let capacity = numDataBytes * 8;
     if (bits.getSize() > capacity) {
       throw new WriterException("data bits cannot fit in the QR Code" + bits.getSize() + " > " +
           capacity);
@@ -366,13 +376,13 @@ public final class Encoder {
    * the result in "numDataBytesInBlock", and "numECBytesInBlock". See table 12 in 8.5.1 of
    * JISX0510:2004 (p.30)
    */
-  static void getNumDataBytesAndNumECBytesForBlockID(int numTotalBytes,
-                                                     int numDataBytes,
-                                                     int numRSBlocks,
-                                                     int blockID,
-                                                     int[] numDataBytesInBlock,
-                                                     int[] numECBytesInBlock) throws WriterException {
-    if (blockID >= numRSBlocks) {
+  pub fn getNumDataBytesAndNumECBytesForBlockID( numTotalBytes:u32,
+                                                      numDataBytes:u32,
+                                                      numRSBlocks:u32,
+                                                      blockID:u32,
+                                                      numDataBytesInBlock:&[u32],
+                                                      numECBytesInBlock:&[u32]) -> Result<(),Exceptions> {
+    if blockID >= numRSBlocks {
       throw new WriterException("Block ID too large");
     }
     // numRsBlocksInGroup2 = 196 % 5 = 1
@@ -422,36 +432,37 @@ public final class Encoder {
    * Interleave "bits" with corresponding error correction bytes. On success, store the result in
    * "result". The interleave rule is complicated. See 8.6 of JISX0510:2004 (p.37) for details.
    */
-  static BitArray interleaveWithECBytes(BitArray bits,
-                                        int numTotalBytes,
-                                        int numDataBytes,
-                                        int numRSBlocks) throws WriterException {
+  pub fn interleaveWithECBytes( bits:&BitArray,
+                                         numTotalBytes:u32,
+                                         numDataBytes:u32,
+                                         numRSBlocks:u32) -> Result<BitArray,Exceptions> {
 
     // "bits" must have "getNumDataBytes" bytes of data.
-    if (bits.getSizeInBytes() != numDataBytes) {
-      throw new WriterException("Number of bits and data bytes does not match");
+    if bits.getSizeInBytes() != numDataBytes {
+      return Err(Exceptions::WriterException("Number of bits and data bytes does not match".to_owned()))
     }
 
     // Step 1.  Divide data bytes into blocks and generate error correction bytes for them. We'll
     // store the divided data bytes blocks and error correction bytes blocks into "blocks".
-    int dataBytesOffset = 0;
-    int maxNumDataBytes = 0;
-    int maxNumEcBytes = 0;
+    let dataBytesOffset = 0;
+    let maxNumDataBytes = 0;
+    let maxNumEcBytes = 0;
 
     // Since, we know the number of reedsolmon blocks, we can initialize the vector with the number.
-    Collection<BlockPair> blocks = new ArrayList<>(numRSBlocks);
+    let blocks = Vec::new();
 
-    for (int i = 0; i < numRSBlocks; ++i) {
-      int[] numDataBytesInBlock = new int[1];
-      int[] numEcBytesInBlock = new int[1];
+    for i in 0..numRSBlocks {
+    // for (int i = 0; i < numRSBlocks; ++i) {
+      let numDataBytesInBlock = new int[1];
+      let numEcBytesInBlock = new int[1];
       getNumDataBytesAndNumECBytesForBlockID(
           numTotalBytes, numDataBytes, numRSBlocks, i,
           numDataBytesInBlock, numEcBytesInBlock);
 
-      int size = numDataBytesInBlock[0];
-      byte[] dataBytes = new byte[size];
+      let size = numDataBytesInBlock[0];
+      let dataBytes = new byte[size];
       bits.toBytes(8 * dataBytesOffset, dataBytes, 0, size);
-      byte[] ecBytes = generateECBytes(dataBytes, numEcBytesInBlock[0]);
+      let ecBytes = generateECBytes(dataBytes, numEcBytesInBlock[0]);
       blocks.add(new BlockPair(dataBytes, ecBytes));
 
       maxNumDataBytes = Math.max(maxNumDataBytes, size);
@@ -459,10 +470,10 @@ public final class Encoder {
       dataBytesOffset += numDataBytesInBlock[0];
     }
     if (numDataBytes != dataBytesOffset) {
-      throw new WriterException("Data bytes does not match offset");
+      return Err(Exceptions::WriterException("Data bytes does not match offset".to_owned()))
     }
 
-    BitArray result = new BitArray();
+    let result =  BitArray::new();
 
     // First, place data blocks.
     for (int i = 0; i < maxNumDataBytes; ++i) {
@@ -490,17 +501,20 @@ public final class Encoder {
     return result;
   }
 
-  static byte[] generateECBytes(byte[] dataBytes, int numEcBytesInBlock) {
-    int numDataBytes = dataBytes.length;
-    int[] toEncode = new int[numDataBytes + numEcBytesInBlock];
-    for (int i = 0; i < numDataBytes; i++) {
+  pub fn generateECBytes( dataBytes:&[u8],  numEcBytesInBlock:u32) -> Vec<u8> {
+    let numDataBytes = dataBytes.length;
+    let toEncode = vec![0;numDataBytes + numEcBytesInBlock];
+    for i in 0..numDataBytes {
+    // for (int i = 0; i < numDataBytes; i++) {
       toEncode[i] = dataBytes[i] & 0xFF;
     }
-    new ReedSolomonEncoder(GenericGF.QR_CODE_FIELD_256).encode(toEncode, numEcBytesInBlock);
+  
+     ReedSolomonEncoder::new(get_predefined_genericgf(PredefinedGenericGF::QrCodeField256)).encode(&mut toEncode, numEcBytesInBlock);
 
-    byte[] ecBytes = new byte[numEcBytesInBlock];
-    for (int i = 0; i < numEcBytesInBlock; i++) {
-      ecBytes[i] = (byte) toEncode[numDataBytes + i];
+    let ecBytes = vec![0u8;numEcBytesInBlock];
+    for i in 0..numEcBytesInBlock {
+    // for (int i = 0; i < numEcBytesInBlock; i++) {
+      ecBytes[i] = toEncode[numDataBytes + i];
     }
     return ecBytes;
   }
@@ -508,7 +522,7 @@ public final class Encoder {
   /**
    * Append mode info. On success, store the result in "bits".
    */
-  static void appendModeInfo(Mode mode, BitArray bits) {
+  pub fn appendModeInfo( mode:Mode,  bits:&BitArray) {
     bits.appendBits(mode.getBits(), 4);
   }
 
@@ -516,75 +530,84 @@ public final class Encoder {
   /**
    * Append length info. On success, store the result in "bits".
    */
-  static void appendLengthInfo(int numLetters, Version version, Mode mode, BitArray bits) throws WriterException {
-    int numBits = mode.getCharacterCountBits(version);
-    if (numLetters >= (1 << numBits)) {
-      throw new WriterException(numLetters + " is bigger than " + ((1 << numBits) - 1));
+  pub fn appendLengthInfo( numLetters:u32,  version:VersionRef,  mode:Mode,  bits:&BitArray) -> Result<(),Exceptions> {
+    let numBits = mode.getCharacterCountBits(version);
+    if numLetters >= (1 << numBits) {
+      return Err(Exceptions::WriterExceptin(format!("{} is bigger than {}" ,numLetters , ((1 << numBits) - 1))))
     }
     bits.appendBits(numLetters, numBits);
+    Ok(())
   }
 
   /**
    * Append "bytes" in "mode" mode (encoding) into "bits". On success, store the result in "bits".
    */
-  static void appendBytes(String content,
-                          Mode mode,
-                          BitArray bits,
-                          Charset encoding) throws WriterException {
-    switch (mode) {
-      case NUMERIC:
-        appendNumericBytes(content, bits);
-        break;
-      case ALPHANUMERIC:
-        appendAlphanumericBytes(content, bits);
-        break;
-      case BYTE:
-        append8BitBytes(content, bits, encoding);
-        break;
-      case KANJI:
-        appendKanjiBytes(content, bits);
-        break;
-      default:
-        throw new WriterException("Invalid mode: " + mode);
-    }
+  pub fn appendBytes( content:&str,
+                           mode:Mode,
+                           bits:&BitArray,
+                           encoding:EncodingRef) -> Result<(),Exceptions>{
+                            match mode {
+                                Mode::NUMERIC => Ok(appendNumericBytes(content, bits)),
+                                Mode::ALPHANUMERIC => Ok(appendAlphanumericBytes(content, bits)),
+                                Mode::BYTE => Ok(append8BitBytes(content, bits, encoding)),
+                                Mode::KANJI => Ok(appendKanjiBytes(content, bits)),
+                                _=> Err(Exceptions::WriterException(format!("Invalid mode: {}" , mode)))
+                            }
+    // switch (mode) {
+    //   case NUMERIC:
+    //     appendNumericBytes(content, bits);
+    //     break;
+    //   case ALPHANUMERIC:
+    //     appendAlphanumericBytes(content, bits);
+    //     break;
+    //   case BYTE:
+    //     append8BitBytes(content, bits, encoding);
+    //     break;
+    //   case KANJI:
+    //     appendKanjiBytes(content, bits);
+    //     break;
+    //   default:
+    //     throw new WriterException("Invalid mode: " + mode);
+    // }
   }
 
-  static void appendNumericBytes(CharSequence content, BitArray bits) {
-    int length = content.length();
-    int i = 0;
-    while (i < length) {
-      int num1 = content.charAt(i) - '0';
-      if (i + 2 < length) {
+  pub fn appendNumericBytes( content:&str,  bits:&BitArray) {
+    let length = content.length();
+    let i = 0;
+    while i < length {
+      let num1 = content.charAt(i) - '0';
+      if i + 2 < length {
         // Encode three numeric letters in ten bits.
-        int num2 = content.charAt(i + 1) - '0';
-        int num3 = content.charAt(i + 2) - '0';
+        let num2 = content.charAt(i + 1) - '0';
+        let num3 = content.charAt(i + 2) - '0';
         bits.appendBits(num1 * 100 + num2 * 10 + num3, 10);
         i += 3;
-      } else if (i + 1 < length) {
+      } else if i + 1 < length {
         // Encode two numeric letters in seven bits.
-        int num2 = content.charAt(i + 1) - '0';
+        let num2 = content.charAt(i + 1) - '0';
         bits.appendBits(num1 * 10 + num2, 7);
         i += 2;
       } else {
         // Encode one numeric letter in four bits.
         bits.appendBits(num1, 4);
-        i++;
+        i+=1;
       }
     }
   }
 
-  static void appendAlphanumericBytes(CharSequence content, BitArray bits) throws WriterException {
-    int length = content.length();
-    int i = 0;
-    while (i < length) {
-      int code1 = getAlphanumericCode(content.charAt(i));
-      if (code1 == -1) {
-        throw new WriterException();
+  pub fn appendAlphanumericBytes( content:&str,  bits:&BitArray) -> Result<(),Exceptions> {
+    let length = content.len();
+    let i = 0;
+    while i < length {
+      let code1 = getAlphanumericCode(content.charAt(i));
+      if code1 == -1 {
+        return Err(Exceptions::WriterException("".to_owned()));
       }
-      if (i + 1 < length) {
-        int code2 = getAlphanumericCode(content.charAt(i + 1));
+      if i + 1 < length {
+        let code2 = getAlphanumericCode(content.charAt(i + 1));
         if (code2 == -1) {
-          throw new WriterException();
+          return Err(Exceptions::WriterException("".to_owned()));
+
         }
         // Encode two alphanumeric letters in 11 bits.
         bits.appendBits(code1 * 45 + code2, 11);
@@ -592,46 +615,52 @@ public final class Encoder {
       } else {
         // Encode one alphanumeric letter in six bits.
         bits.appendBits(code1, 6);
-        i++;
+        i+=1;
       }
     }
+    Ok(())
   }
 
-  static void append8BitBytes(String content, BitArray bits, Charset encoding) {
-    byte[] bytes = content.getBytes(encoding);
-    for (byte b : bytes) {
+  fn append8BitBytes( content:&str,  bits:&BitArray,  encoding:EncodingRef) {
+    let bytes = content.getBytes(encoding);
+    for b in bytes {
+    // for (byte b : bytes) {
       bits.appendBits(b, 8);
     }
   }
 
-  static void appendKanjiBytes(String content, BitArray bits) throws WriterException {
-    byte[] bytes = content.getBytes(StringUtils.SHIFT_JIS_CHARSET);
-    if (bytes.length % 2 != 0) {
-      throw new WriterException("Kanji byte size not even");
+  fn appendKanjiBytes( content:&str,  bits:&BitArray) -> Result<(),Exceptions> {
+    let bytes = content.getBytes(StringUtils::SHIFT_JIS_CHARSET);
+    if bytes.length % 2 != 0 {
+      return Err(Exceptions::WriterException("Kanji byte size not even".to_owned()))
     }
-    int maxI = bytes.length - 1; // bytes.length must be even
-    for (int i = 0; i < maxI; i += 2) {
-      int byte1 = bytes[i] & 0xFF;
-      int byte2 = bytes[i + 1] & 0xFF;
-      int code = (byte1 << 8) | byte2;
-      int subtracted = -1;
-      if (code >= 0x8140 && code <= 0x9ffc) {
+    let maxI = bytes.length - 1; // bytes.length must be even
+    let mut i = 0;
+    while i < maxI {
+    // for (int i = 0; i < maxI; i += 2) {
+      let byte1 = bytes[i] & 0xFF;
+      let byte2 = bytes[i + 1] & 0xFF;
+      let code = (byte1 << 8) | byte2;
+      let subtracted = -1;
+      if code >= 0x8140 && code <= 0x9ffc {
         subtracted = code - 0x8140;
       } else if (code >= 0xe040 && code <= 0xebbf) {
         subtracted = code - 0xc140;
       }
-      if (subtracted == -1) {
-        throw new WriterException("Invalid byte sequence");
+      if subtracted == -1 {
+        return Err(Exceptions::WriterException("Invalid byte sequence".to_owned()))
       }
-      int encoded = ((subtracted >> 8) * 0xc0) + (subtracted & 0xff);
+      let encoded = ((subtracted >> 8) * 0xc0) + (subtracted & 0xff);
       bits.appendBits(encoded, 13);
+
+      i+=2;
     }
+    Ok(())
   }
 
-  private static void appendECI(CharacterSetECI eci, BitArray bits) {
-    bits.appendBits(Mode.ECI.getBits(), 4);
+  fn appendECI( eci:&CharacterSetECI,  bits:&BitArray) {
+    bits.appendBits(Mode::ECI.getBits(), 4);
     // This is correct for values up to 127, which is all we need now.
     bits.appendBits(eci.getValue(), 8);
   }
 
-}

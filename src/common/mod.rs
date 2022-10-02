@@ -2873,7 +2873,7 @@ impl ECIEncoderSet {
     pub fn new(
         stringToEncode: &str,
         priorityCharset: &'static dyn encoding::Encoding,
-        fnc1: u16,
+        fnc1: i16,
     ) -> Self {
         // List of encoders that potentially encode characters not in ISO-8859-1 in one byte.
         let mut ENCODERS = Vec::new();
@@ -3028,7 +3028,7 @@ impl ECIEncoderSet {
         return self.priorityEncoderIndex;
     }
 
-    pub fn canEncode(&self, c: u16, encoderIndex: usize) -> bool {
+    pub fn canEncode(&self, c: i16, encoderIndex: usize) -> bool {
         assert!(encoderIndex < self.len());
         let encoder = self.encoders[encoderIndex];
         let enc_data = encoder.encode(&c.to_string(), encoding::EncoderTrap::Strict);
@@ -3085,7 +3085,7 @@ static COST_PER_ECI: usize = 3;
  */
 pub struct MinimalECIInput {
     bytes: Vec<u16>,
-    fnc1: u16,
+    fnc1: i16,
 }
 
 impl ECIInput for MinimalECIInput {
@@ -3244,7 +3244,7 @@ impl MinimalECIInput {
      * @param fnc1 denotes the character in the input that represents the FNC1 character or -1 if this is not GS1
      *   input.
      */
-    pub fn new(stringToEncode: &str, priorityCharset: &'static dyn Encoding, fnc1: u16) -> Self {
+    pub fn new(stringToEncode: &str, priorityCharset: &'static dyn Encoding, fnc1: i16) -> Self {
         let encoderSet = ECIEncoderSet::new(stringToEncode, priorityCharset, fnc1);
         let bytes = if encoderSet.len() == 1 {
             //optimization for the case when all can be encoded without ECI in ISO-8859-1
@@ -3252,7 +3252,7 @@ impl MinimalECIInput {
             for i in 0..stringToEncode.len() {
                 //   for (int i = 0; i < bytes.length; i++) {
                 let c = stringToEncode.chars().nth(i).unwrap();
-                bytes_hld[i] = if c as u16 == fnc1 { 1000 } else { c as u16 };
+                bytes_hld[i] = if c as i16 == fnc1 { 1000 } else { c as u16 };
             }
             bytes_hld
         } else {
@@ -3265,7 +3265,7 @@ impl MinimalECIInput {
         }
     }
 
-    pub fn getFNC1Character(&self) -> u16 {
+    pub fn getFNC1Character(&self) -> i16 {
         self.fnc1
     }
 
@@ -3305,14 +3305,14 @@ impl MinimalECIInput {
         edges: &mut Vec<Vec<Option<Rc<InputEdge>>>>,
         from: usize,
         previous: Option<Rc<InputEdge>>,
-        fnc1: u16,
+        fnc1: i16,
     ) {
-        let ch = stringToEncode.chars().nth(from).unwrap() as u16;
+        let ch = stringToEncode.chars().nth(from).unwrap() as i16;
 
         let mut start = 0;
         let mut end = encoderSet.len();
         if encoderSet.getPriorityEncoderIndex() >= 0
-            && (ch as u16 == fnc1 || encoderSet.canEncode(ch, encoderSet.getPriorityEncoderIndex()))
+            && (ch as i16 == fnc1 || encoderSet.canEncode(ch, encoderSet.getPriorityEncoderIndex()))
         {
             start = encoderSet.getPriorityEncoderIndex();
             end = start + 1;
@@ -3320,7 +3320,7 @@ impl MinimalECIInput {
 
         for i in start..end {
             // for (int i = start; i < end; i++) {
-            if ch as u16 == fnc1 || encoderSet.canEncode(ch, i) {
+            if ch as i16 == fnc1 || encoderSet.canEncode(ch, i) {
                 Self::addEdge(
                     edges,
                     from + 1,
@@ -3333,7 +3333,7 @@ impl MinimalECIInput {
     pub fn encodeMinimally(
         stringToEncode: &str,
         encoderSet: &ECIEncoderSet,
-        fnc1: u16,
+        fnc1: i16,
     ) -> Vec<u16> {
         let inputLength = stringToEncode.len();
 
@@ -3413,18 +3413,18 @@ impl MinimalECIInput {
 }
 
 struct InputEdge {
-    c: u16,
+    c: i16,
     encoderIndex: usize, //the encoding of this edge
     previous: Option<Rc<InputEdge>>,
     cachedTotalSize: usize,
 }
 impl InputEdge {
     pub fn new(
-        c: u16,
+        c: i16,
         encoderSet: &ECIEncoderSet,
         encoderIndex: usize,
         previous: Option<Rc<InputEdge>>,
-        fnc1: u16,
+        fnc1: i16,
     ) -> Self {
         let mut size = if c == 1000 {
             1
@@ -3440,7 +3440,7 @@ impl InputEdge {
             size += prev.cachedTotalSize;
 
             Self {
-                c: if c as u16 == fnc1 { 1000 } else { c as u16 },
+                c: if c as i16 == fnc1 { 1000 } else { c as i16 },
                 encoderIndex,
                 previous: Some(prev.clone()),
                 cachedTotalSize: size,
@@ -3452,7 +3452,7 @@ impl InputEdge {
             }
 
             Self {
-                c: if c as u16 == fnc1 { 1000 } else { c as u16 },
+                c: if c as i16 == fnc1 { 1000 } else { c as i16 },
                 encoderIndex,
                 previous: None,
                 cachedTotalSize: size,

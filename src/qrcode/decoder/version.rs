@@ -22,6 +22,8 @@ use super::{ErrorCorrectionLevel, FormatInformation};
 
 use lazy_static::lazy_static;
 
+pub type VersionRef = &'static Version;
+
 lazy_static! {
     static ref VERSIONS: Vec<Version> = Version::buildVersions();
 }

@@ -25,6 +25,12 @@ mod PlanarYUVLuminanceSourceTestCase;
 
 #[cfg(test)]
 mod RGBLuminanceSourceTestCase;
+
+
+pub type EncodingHintDictionary = HashMap<EncodeHintType,EncodeHintValue>;
+pub type DecodingHintDictionary= HashMap<DecodeHintType,DecodeHintValue>;
+pub type MetadataDictionary = HashMap<RXingResultMetadataType,RXingResultMetadataValue>;
+
 /*
  * Copyright 2007 ZXing authors
  *
