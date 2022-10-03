@@ -2867,6 +2867,7 @@ impl fmt::Display for ECIStringBuilder {
  *
  * @author Alex Geller
  */
+#[derive(Clone)]
 pub struct ECIEncoderSet {
     encoders: Vec<EncodingRef>,
     priorityEncoderIndex: usize,

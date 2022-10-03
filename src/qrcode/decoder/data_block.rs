@@ -64,7 +64,7 @@ impl DataBlock {
     let ecBlocks = version.getECBlocksForLevel(ecLevel);
 
     // First count the total number of data blocks
-    let totalBlocks = 0;
+    let mut totalBlocks = 0;
     let ecBlockArray = ecBlocks.getECBlocks();
     for ecBlock in ecBlockArray {
     // for (Version.ECB ecBlock : ecBlockArray) {
@@ -72,11 +72,11 @@ impl DataBlock {
     }
 
     // Now establish DataBlocks of the appropriate size and number of data codewords
-     let result = Vec::new();
-    let numRXingResultBlocks = 0;
+     let mut result = Vec::new();
+    let mut numRXingResultBlocks = 0;
     for ecBlock in ecBlockArray {
     // for (Version.ECB ecBlock : ecBlockArray) {
-      for i in 0..ecBlock.getCount() {
+      for _i in 0..ecBlock.getCount() {
       // for (int i = 0; i < ecBlock.getCount(); i++) {
         let numDataCodewords = ecBlock.getDataCodewords();
         let numBlockCodewords = ecBlocks.getECCodewordsPerBlock() + numDataCodewords;
@@ -88,7 +88,7 @@ impl DataBlock {
     // All blocks have the same amount of data, except that the last n
     // (where n may be 0) have 1 more byte. Figure out where these start.
     let shorterBlocksTotalCodewords = result[0].codewords.len();
-    let longerBlocksStartAt = result.len() - 1;
+    let mut longerBlocksStartAt = result.len() - 1;
     while (longerBlocksStartAt >= 0) {
       let numCodewords = result[longerBlocksStartAt].codewords.len();
       if (numCodewords == shorterBlocksTotalCodewords) {
@@ -101,7 +101,7 @@ impl DataBlock {
     let shorterBlocksNumDataCodewords = shorterBlocksTotalCodewords - ecBlocks.getECCodewordsPerBlock() as usize;
     // The last elements of result may be 1 element longer;
     // first fill out as many elements as all of them have
-    let rawCodewordsOffset = 0;
+    let mut rawCodewordsOffset = 0;
     for i in 0..shorterBlocksNumDataCodewords {
     // for (int i = 0; i < shorterBlocksNumDataCodewords; i++) {
       for j in 0..numRXingResultBlocks {
