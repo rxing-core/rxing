@@ -19,3 +19,5 @@ mod BitVectorTestCase;
 mod MaskUtilTestCase;
 #[cfg(test)]
 mod MatrixUtilTestCase;
+#[cfg(test)]
+mod EncoderTestCase;
