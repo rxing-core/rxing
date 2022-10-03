@@ -702,7 +702,7 @@ pub trait Writer {
         format: &BarcodeFormat,
         width: i32,
         height: i32,
-        hints: &HashMap<EncodeHintType, EncodeHintValue>,
+        hints: &EncodingHintDictionary,
     ) -> Result<BitMatrix, Exceptions>;
 }
 
@@ -765,7 +765,7 @@ pub trait Reader {
     fn decode_with_hints(
         &self,
         image: &BinaryBitmap,
-        hints: &HashMap<DecodeHintType, DecodeHintValue>,
+        hints: &DecodingHintDictionary,
     ) -> Result<RXingResult, Exceptions>;
 
     /**

@@ -20,7 +20,6 @@ use crate::qrcode::decoder::{Mode, ErrorCorrectionLevel, Version};
 
 use super::ByteMatrix;
 
- const NUM_MASK_PATTERNS : i32 = 8;
 
 /**
  * @author satorux@google.com (Satoru Takabayashi) - creator
@@ -39,6 +38,8 @@ pub struct QRCode {
 }
 
 impl QRCode {
+  pub const NUM_MASK_PATTERNS : i32 = 8;
+
   pub fn new()->Self {
     Self {
         mode: None,
@@ -96,7 +97,7 @@ impl QRCode {
 
   // Check if "mask_pattern" is valid.
   pub fn isValidMaskPattern(  maskPattern:i32)  -> bool{
-     maskPattern >= 0 && maskPattern < NUM_MASK_PATTERNS
+     maskPattern >= 0 && maskPattern < Self::NUM_MASK_PATTERNS
   }
 
 }

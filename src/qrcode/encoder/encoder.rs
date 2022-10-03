@@ -37,14 +37,20 @@ use std::collections::HashMap;
 
 use encoding::EncodingRef;
 
-use crate::{EncodingHintDictionary, common::{BitArray, CharacterSetECI, reedsolomon::{ReedSolomonEncoder, get_predefined_genericgf, PredefinedGenericGF}, StringUtils}, Exceptions, qrcode::decoder::{ErrorCorrectionLevel, Mode, VersionRef, Version}};
+use lazy_static::lazy_static;
 
-use super::{mask_util, ByteMatrix, QRCode, matrix_util};
+use crate::{EncodingHintDictionary, common::{BitArray, CharacterSetECI, reedsolomon::{ReedSolomonEncoder, get_predefined_genericgf, PredefinedGenericGF}, StringUtils}, Exceptions, qrcode::decoder::{ErrorCorrectionLevel, Mode, VersionRef, Version}, EncodeHintType, EncodeHintValue};
+
+use super::{mask_util, ByteMatrix, QRCode, matrix_util, MinimalEncoder, BlockPair};
 
 /**
  * @author satorux@google.com (Satoru Takabayashi) - creator
  * @author dswitkin@google.com (Daniel Switkin) - ported from C++
  */
+
+ lazy_static !{
+static ref SHIFT_JIS_CHARSET : EncodingRef = encoding::label::encoding_from_whatwg_label("SJIS").unwrap();
+ }
 
   // The original table is defined in the table 5 of JISX0510:2004 (p.19).
   const ALPHANUMERIC_TABLE : [i8;96]= [
@@ -75,131 +81,168 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
    * @throws WriterException if encoding can't succeed, because of for example invalid content
    *   or configuration
    */
-  pub fn encode( content:&str,  ecLevel:&ErrorCorrectionLevel) -> Result<QRCode, Exceptions> {
+  pub fn encode( content:&str,  ecLevel:ErrorCorrectionLevel) -> Result<QRCode, Exceptions> {
     return encode_with_hints(content, ecLevel, HashMap::new());
   }
 
   pub fn encode_with_hints( content:&str,
-                               ecLevel:&ErrorCorrectionLevel,
+                               ecLevel:ErrorCorrectionLevel,
                                hints:EncodingHintDictionary) -> Result<QRCode, Exceptions> {
 
     let version;
     let headerAndDataBits;
     let mode;
 
-    let hasGS1FormatHint = hints != null && hints.containsKey(EncodeHintType::GS1_FORMAT) &&
-        Boolean.parseBoolean(hints.get(EncodeHintType::GS1_FORMAT).toString());
-    let hasCompactionHint = hints != null && hints.containsKey(EncodeHintType::QR_COMPACT) &&
-        Boolean.parseBoolean(hints.get(EncodeHintType::QR_COMPACT).toString());
+    let hasGS1FormatHint =  hints.contains_key(&EncodeHintType::GS1_FORMAT) &&
+    if let EncodeHintValue::Gs1Format(v) = hints.get(&EncodeHintType::GS1_FORMAT).unwrap() {
+      if let Ok(vb) = v.parse::<bool>() {
+        vb
+      }else {
+        false
+      }
+    }else {
+      false
+    };
+    let hasCompactionHint =  hints.contains_key(&EncodeHintType::QR_COMPACT) &&
+    if let EncodeHintValue::QrCompact(v) = hints.get(&EncodeHintType::QR_COMPACT).unwrap() {
+      if let Ok(vb) = v.parse::<bool>() {
+        vb
+      }else {
+        false
+      }
+    }else {
+      false
+    };
 
     // Determine what character encoding has been specified by the caller, if any
     let encoding = DEFAULT_BYTE_MODE_ENCODING;
-    let hasEncodingHint = hints != null && hints.containsKey(EncodeHintType::CHARACTER_SET);
-    if (hasEncodingHint) {
-      encoding = Charset.forName(hints.get(EncodeHintType.CHARACTER_SET).toString());
+    let hasEncodingHint = hints.contains_key(&EncodeHintType::CHARACTER_SET);
+    if hasEncodingHint {
+       if let EncodeHintValue::CharacterSet(v) = hints.get(&EncodeHintType::CHARACTER_SET).unwrap() {
+        encoding = encoding::label::encoding_from_whatwg_label(v).unwrap()
+      }
+      // encoding = encoding::label::encoding_from_whatwg_label(hints.get(&EncodeHintType::CHARACTER_SET).unwrap());
     }
 
-    if (hasCompactionHint) {
-      mode = Mode.BYTE;
+    if hasCompactionHint {
+      mode = Mode::BYTE;
 
-      Charset priorityEncoding = encoding.equals(DEFAULT_BYTE_MODE_ENCODING) ? null : encoding;
-      MinimalEncoder.RXingResultList rn = MinimalEncoder.encode(content, null, priorityEncoding, hasGS1FormatHint, ecLevel);
+      let priorityEncoding = encoding; //if encoding.name() == DEFAULT_BYTE_MODE_ENCODING.name()  {None} else {Some(encoding)};
+      let rn = MinimalEncoder::encode_with_details(content, None, priorityEncoding, hasGS1FormatHint, ecLevel)?;
 
-      headerAndDataBits = new BitArray();
-      rn.getBits(headerAndDataBits);
+      headerAndDataBits =  BitArray::new();
+      rn.getBits(&headerAndDataBits);
       version = rn.getVersion();
 
     } else {
     
       // Pick an encoding mode appropriate for the content. Note that this will not attempt to use
       // multiple modes / segments even if that were more efficient.
-      mode = chooseMode(content, encoding);
+      mode = chooseModeWithEncoding(content, encoding);
   
       // This will store the header information, like mode and
       // length, as well as "header" segments like an ECI segment.
-      BitArray headerBits = new BitArray();
+      let headerBits =  BitArray::new();
   
       // Append ECI segment if applicable
-      if (mode == Mode.BYTE && hasEncodingHint) {
-        CharacterSetECI eci = CharacterSetECI.getCharacterSetECI(encoding);
-        if (eci != null) {
-          appendECI(eci, headerBits);
+      if mode == Mode::BYTE && hasEncodingHint {
+        let eci = CharacterSetECI::getCharacterSetECI(encoding);
+        if eci.is_some() {
+          appendECI(&eci.unwrap(), &headerBits);
         }
       }
   
       // Append the FNC1 mode header for GS1 formatted data if applicable
-      if (hasGS1FormatHint) {
+      if hasGS1FormatHint {
         // GS1 formatted codes are prefixed with a FNC1 in first position mode header
-        appendModeInfo(Mode.FNC1_FIRST_POSITION, headerBits);
+        appendModeInfo(Mode::FNC1_FIRST_POSITION, &headerBits);
       }
     
       // (With ECI in place,) Write the mode marker
-      appendModeInfo(mode, headerBits);
+      appendModeInfo(mode, &headerBits);
   
       // Collect data within the main segment, separately, to count its size if needed. Don't add it to
       // main payload yet.
-      BitArray dataBits = new BitArray();
-      appendBytes(content, mode, dataBits, encoding);
+      let dataBits =  BitArray::new();
+      appendBytes(content, mode, &dataBits, encoding);
   
-      if (hints != null && hints.containsKey(EncodeHintType.QR_VERSION)) {
-        int versionNumber = Integer.parseInt(hints.get(EncodeHintType.QR_VERSION).toString());
-        version = Version.getVersionForNumber(versionNumber);
-        int bitsNeeded = calculateBitsNeeded(mode, headerBits, dataBits, version);
-        if (!willFit(bitsNeeded, version, ecLevel)) {
-          throw new WriterException("Data too big for requested version");
+      if  hints.contains_key(&EncodeHintType::QR_VERSION) {
+        let versionNumber = if let EncodeHintValue::QrVersion(v) = hints.get(&EncodeHintType::QR_VERSION).unwrap() {
+          if let Ok(vb) = v.parse::<u32>() {
+            vb
+          }else {
+            0
+          }
+        }else {
+          0
+        };
+        // let versionNumber = Integer.parseInt(hints.get(&EncodeHintType::QR_VERSION).unwrap()());
+        version = Version::getVersionForNumber(versionNumber)?;
+        let bitsNeeded = calculateBitsNeeded(mode, &headerBits, &dataBits, version);
+        if !willFit(bitsNeeded, version, &ecLevel) {
+          return Err(Exceptions::WriterException("Data too big for requested version".to_owned()))
         }
       } else {
-        version = recommendVersion(ecLevel, mode, headerBits, dataBits);
+        version = recommendVersion(&ecLevel, mode, &headerBits, &dataBits)?;
       }
     
-      headerAndDataBits = new BitArray();
+      headerAndDataBits =  BitArray::new();
       headerAndDataBits.appendBitArray(headerBits);
       // Find "length" of main segment and write it
-      int numLetters = mode == Mode.BYTE ? dataBits.getSizeInBytes() : content.length();
-      appendLengthInfo(numLetters, version, mode, headerAndDataBits);
+      let numLetters = if mode == Mode::BYTE  {dataBits.getSizeInBytes() }else {content.len()};
+      appendLengthInfo(numLetters as u32, version, mode, &headerAndDataBits);
       // Put data together into the overall payload
       headerAndDataBits.appendBitArray(dataBits);
     }
 
-    Version.ECBlocks ecBlocks = version.getECBlocksForLevel(ecLevel);
-    int numDataBytes = version.getTotalCodewords() - ecBlocks.getTotalECCodewords();
+    let ecBlocks = version.getECBlocksForLevel(ecLevel);
+    let numDataBytes = version.getTotalCodewords() - ecBlocks.getTotalECCodewords();
 
     // Terminate the bits properly.
-    terminateBits(numDataBytes, headerAndDataBits);
+    terminateBits(numDataBytes, &headerAndDataBits);
 
     // Interleave data bits with error correction code.
-    BitArray finalBits = interleaveWithECBytes(headerAndDataBits,
+    let finalBits = interleaveWithECBytes(&headerAndDataBits,
                                                version.getTotalCodewords(),
                                                numDataBytes,
-                                               ecBlocks.getNumBlocks());
+                                               ecBlocks.getNumBlocks())?;
 
-    QRCode qrCode = new QRCode();
+                                               let qrCode =  QRCode::new();
 
     qrCode.setECLevel(ecLevel);
     qrCode.setMode(mode);
     qrCode.setVersion(version);
 
     //  Choose the mask pattern and set to "qrCode".
-    int dimension = version.getDimensionForVersion();
-    ByteMatrix matrix = new ByteMatrix(dimension, dimension);
+    let dimension = version.getDimensionForVersion();
+    let matrix =  ByteMatrix::new(dimension, dimension);
 
     // Enable manual selection of the pattern to be used via hint
-    int maskPattern = -1;
-    if (hints != null && hints.containsKey(EncodeHintType.QR_MASK_PATTERN)) {
-      int hintMaskPattern = Integer.parseInt(hints.get(EncodeHintType.QR_MASK_PATTERN).toString());
-      maskPattern = QRCode.isValidMaskPattern(hintMaskPattern) ? hintMaskPattern : -1;
+    let maskPattern = -1;
+    if hints.contains_key(&EncodeHintType::QR_MASK_PATTERN) {
+      let hintMaskPattern =if let EncodeHintValue::QrMaskPattern(v) = hints.get(&EncodeHintType::QR_MASK_PATTERN).unwrap() {
+        if let Ok(vb) = v.parse::<i32>() {
+          vb
+        }else {
+          -1
+        }
+      }else {
+        -1
+      };
+      // let hintMaskPattern = Integer.parseInt(hints.get(&EncodeHintType::QR_MASK_PATTERN).unwrap());
+      maskPattern = if QRCode::isValidMaskPattern(hintMaskPattern)  {hintMaskPattern} else {-1};
     }
 
-    if (maskPattern == -1) {
-      maskPattern = chooseMaskPattern(finalBits, ecLevel, version, matrix);
+    if maskPattern == -1 {
+      maskPattern = chooseMaskPattern(&finalBits, &ecLevel, version, &matrix)? as i32;
     }
     qrCode.setMaskPattern(maskPattern);
 
     // Build the matrix and set it to "qrCode".
-    matrix_util::buildMatrix(finalBits, ecLevel, version, maskPattern, matrix);
+    matrix_util::buildMatrix(&finalBits, &ecLevel, version, maskPattern, &mut matrix);
     qrCode.setMatrix(matrix);
 
-    return qrCode;
+    Ok( qrCode)
   }
 
   /**
@@ -214,8 +257,8 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
     // Hard part: need to know version to know how many bits length takes. But need to know how many
     // bits it takes to know version. First we take a guess at version by assuming version will be
     // the minimum, 1:
-    let provisionalBitsNeeded = calculateBitsNeeded(mode, headerBits, dataBits, Version::getVersionForNumber(1));
-    let provisionalVersion = chooseVersion(provisionalBitsNeeded, ecLevel);
+    let provisionalBitsNeeded = calculateBitsNeeded(mode, headerBits, dataBits, Version::getVersionForNumber(1)?);
+    let provisionalVersion = chooseVersion(provisionalBitsNeeded, ecLevel)?;
 
     // Use that guess to calculate the right version. I am still not sure this works in 100% of cases.
     let bitsNeeded = calculateBitsNeeded(mode, headerBits, dataBits, provisionalVersion);
@@ -226,56 +269,60 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
                                           headerBits:&BitArray,
                                           dataBits:&BitArray,
                                           version:VersionRef) -> u32 {
-    return headerBits.getSize() + mode.getCharacterCountBits(version) + dataBits.getSize();
+    (headerBits.getSize() + mode.getCharacterCountBits(version) as usize + dataBits.getSize()) as u32
   }
 
   /**
    * @return the code point of the table used in alphanumeric mode or
    *  -1 if there is no corresponding code in the table.
    */
-  pub fn getAlphanumericCode( code:u32) -> u32{
+  pub fn getAlphanumericCode( code:u32) -> i8{
+    let code = code as usize;
     if code < ALPHANUMERIC_TABLE.len() {
-      return ALPHANUMERIC_TABLE[code];
+       ALPHANUMERIC_TABLE[code]
+    }else{
+      -1
     }
-    return -1;
   }
 
   pub fn chooseMode( content:&str) -> Mode{
-    return chooseModeWithEncoding(content, None);
+    return chooseModeWithEncoding(content, encoding::all::ISO_8859_1);
   }
 
   /**
    * Choose the best mode by examining the content. Note that 'encoding' is used as a hint;
    * if it is Shift_JIS, and the input is only double-byte Kanji, then we return {@link Mode#KANJI}.
    */
-  fn chooseModeWithEncoding( content:&str,  encoding:Option<EncodingRef>) -> Mode{
-    if (StringUtils.SHIFT_JIS_CHARSET.equals(encoding) && isOnlyDoubleByteKanji(content)) {
+  fn chooseModeWithEncoding( content:&str,  encoding:EncodingRef) -> Mode{
+    if SHIFT_JIS_CHARSET.name() == encoding.name() && isOnlyDoubleByteKanji(content) {
+    // if (StringUtils.SHIFT_JIS_CHARSET.equals(encoding) && isOnlyDoubleByteKanji(content)) {
       // Choose Kanji mode if all input are double-byte characters
-      return Mode.KANJI;
+      return Mode::KANJI;
     }
-    boolean hasNumeric = false;
-    boolean hasAlphanumeric = false;
-    for (int i = 0; i < content.length(); ++i) {
-      char c = content.charAt(i);
-      if (c >= '0' && c <= '9') {
+    let hasNumeric = false;
+    let hasAlphanumeric = false;
+    for i in 0..content.len() {
+    // for (int i = 0; i < content.length(); ++i) {
+      let c = content.chars().nth(i).unwrap();
+      if c >= '0' && c <= '9' {
         hasNumeric = true;
-      } else if (getAlphanumericCode(c) != -1) {
+      } else if (getAlphanumericCode(c as u32) != -1) {
         hasAlphanumeric = true;
       } else {
-        return Mode.BYTE;
+        return Mode::BYTE;
       }
     }
     if (hasAlphanumeric) {
-      return Mode.ALPHANUMERIC;
+      return Mode::ALPHANUMERIC;
     }
     if (hasNumeric) {
-      return Mode.NUMERIC;
+      return Mode::NUMERIC;
     }
-    return Mode.BYTE;
+    return Mode::BYTE;
   }
 
   pub fn isOnlyDoubleByteKanji( content:&str) -> bool{
-    let bytes = content.getBytes(StringUtils::SHIFT_JIS_CHARSET);
+    let bytes = SHIFT_JIS_CHARSET.encode(content,encoding::EncoderTrap::Strict).expect("encode");
     let length = bytes.len();
     if length % 2 != 0 {
       return false;
@@ -302,25 +349,25 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
     // We try all mask patterns to choose the best one.
     for maskPattern in 0..QRCode::NUM_MASK_PATTERNS {
     // for (int maskPattern = 0; maskPattern < QRCode.NUM_MASK_PATTERNS; maskPattern++) {
-      matrix_util::buildMatrix(bits, ecLevel, version, maskPattern, matrix);
+      matrix_util::buildMatrix(bits, ecLevel, version, maskPattern, &mut matrix);
       let penalty = calculateMaskPenalty(matrix);
-      if (penalty < minPenalty) {
+      if penalty < minPenalty {
         minPenalty = penalty;
         bestMaskPattern = maskPattern;
       }
     }
-    return bestMaskPattern;
+    Ok( bestMaskPattern as u32 )
   }
 
   fn chooseVersion( numInputBits:u32,  ecLevel:&ErrorCorrectionLevel) -> Result<VersionRef,Exceptions> {
     for versionNum in 1..=40 {
     // for (int versionNum = 1; versionNum <= 40; versionNum++) {
-      let version = Version::getVersionForNumber(versionNum);
+      let version = Version::getVersionForNumber(versionNum)?;
       if willFit(numInputBits, version, ecLevel) {
-        return version;
+        return Ok(version);
       }
     }
-    Err(Exceptions::WriterException("Data too big".to_owned()));
+    Err(Exceptions::WriterException("Data too big".to_owned()))
   }
 
   /**
@@ -332,7 +379,7 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
     // numBytes = 196
     let numBytes = version.getTotalCodewords();
     // getNumECBytes = 130
-    let ecBlocks = version.getECBlocksForLevel(ecLevel);
+    let ecBlocks = version.getECBlocksForLevel(*ecLevel);
     let numEcBytes = ecBlocks.getTotalECCodewords();
     // getNumDataBytes = 196 - 130 = 66
     let numDataBytes = numBytes - numEcBytes;
@@ -345,30 +392,39 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
    */
   pub fn terminateBits( numDataBytes:u32,  bits:&BitArray) -> Result<(),Exceptions> {
     let capacity = numDataBytes * 8;
-    if (bits.getSize() > capacity) {
-      throw new WriterException("data bits cannot fit in the QR Code" + bits.getSize() + " > " +
-          capacity);
+    if bits.getSize() > capacity as usize {
+      return Err(Exceptions::WriterException(format!("data bits cannot fit in the QR Code{} > " ,
+      capacity)))
+      // throw new WriterException("data bits cannot fit in the QR Code" + bits.getSize() + " > " +
+      //     capacity);
     }
     // Append Mode.TERMINATE if there is enough space (value is 0000)
-    for (int i = 0; i < 4 && bits.getSize() < capacity; ++i) {
+    for i in 0..4 {
+      if bits.getSize() > 0 { break }
+    // }
+    // for (int i = 0; i < 4 && bits.getSize() < capacity; ++i) {
       bits.appendBit(false);
     }
     // Append termination bits. See 8.4.8 of JISX0510:2004 (p.24) for details.
     // If the last byte isn't 8-bit aligned, we'll add padding bits.
-    int numBitsInLastByte = bits.getSize() & 0x07;
-    if (numBitsInLastByte > 0) {
-      for (int i = numBitsInLastByte; i < 8; i++) {
+    let numBitsInLastByte = bits.getSize() & 0x07;
+    if numBitsInLastByte > 0 {
+      for i in numBitsInLastByte..8 {
+      // for (int i = numBitsInLastByte; i < 8; i++) {
         bits.appendBit(false);
       }
     }
     // If we have more space, we'll fill the space with padding patterns defined in 8.4.9 (p.24).
-    int numPaddingBytes = numDataBytes - bits.getSizeInBytes();
-    for (int i = 0; i < numPaddingBytes; ++i) {
-      bits.appendBits((i & 0x01) == 0 ? 0xEC : 0x11, 8);
+    let numPaddingBytes = numDataBytes as usize - bits.getSizeInBytes();
+    for i in 0..numPaddingBytes {
+    // for (int i = 0; i < numPaddingBytes; ++i) {
+      bits.appendBits(if (i & 0x01) == 0  {0xEC} else {0x11}, 8);
     }
-    if (bits.getSize() != capacity) {
-      throw new WriterException("Bits size does not equal capacity");
+    if bits.getSize() != capacity as usize {
+      return Err(Exceptions::WriterException("Bits size does not equal capacity".to_owned()))
+      // throw new WriterException("Bits size does not equal capacity");
     }
+    Ok(())
   }
 
   /**
@@ -383,32 +439,36 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
                                                       numDataBytesInBlock:&[u32],
                                                       numECBytesInBlock:&[u32]) -> Result<(),Exceptions> {
     if blockID >= numRSBlocks {
-      throw new WriterException("Block ID too large");
+      return Err(Exceptions::WriterException("Block ID too large".to_owned()))
+      // throw new WriterException("Block ID too large");
     }
     // numRsBlocksInGroup2 = 196 % 5 = 1
-    int numRsBlocksInGroup2 = numTotalBytes % numRSBlocks;
+    let numRsBlocksInGroup2 = numTotalBytes % numRSBlocks;
     // numRsBlocksInGroup1 = 5 - 1 = 4
-    int numRsBlocksInGroup1 = numRSBlocks - numRsBlocksInGroup2;
+    let numRsBlocksInGroup1 = numRSBlocks - numRsBlocksInGroup2;
     // numTotalBytesInGroup1 = 196 / 5 = 39
-    int numTotalBytesInGroup1 = numTotalBytes / numRSBlocks;
+    let numTotalBytesInGroup1 = numTotalBytes / numRSBlocks;
     // numTotalBytesInGroup2 = 39 + 1 = 40
-    int numTotalBytesInGroup2 = numTotalBytesInGroup1 + 1;
+    let numTotalBytesInGroup2 = numTotalBytesInGroup1 + 1;
     // numDataBytesInGroup1 = 66 / 5 = 13
-    int numDataBytesInGroup1 = numDataBytes / numRSBlocks;
+    let numDataBytesInGroup1 = numDataBytes / numRSBlocks;
     // numDataBytesInGroup2 = 13 + 1 = 14
-    int numDataBytesInGroup2 = numDataBytesInGroup1 + 1;
+    let numDataBytesInGroup2 = numDataBytesInGroup1 + 1;
     // numEcBytesInGroup1 = 39 - 13 = 26
-    int numEcBytesInGroup1 = numTotalBytesInGroup1 - numDataBytesInGroup1;
+    let numEcBytesInGroup1 = numTotalBytesInGroup1 - numDataBytesInGroup1;
     // numEcBytesInGroup2 = 40 - 14 = 26
-    int numEcBytesInGroup2 = numTotalBytesInGroup2 - numDataBytesInGroup2;
+    let numEcBytesInGroup2 = numTotalBytesInGroup2 - numDataBytesInGroup2;
     // Sanity checks.
     // 26 = 26
     if (numEcBytesInGroup1 != numEcBytesInGroup2) {
-      throw new WriterException("EC bytes mismatch");
+      return Err(Exceptions::WriterException("EC bytes mismatch".to_owned()))
+      // throw new WriterException("EC bytes mismatch");
     }
     // 5 = 4 + 1.
     if (numRSBlocks != numRsBlocksInGroup1 + numRsBlocksInGroup2) {
-      throw new WriterException("RS blocks mismatch");
+      return Err(Exceptions::WriterException("RS blocks mismatch".to_owned()))
+
+      // throw new WriterException("RS blocks mismatch");
     }
     // 196 = (13 + 26) * 4 + (14 + 26) * 1
     if (numTotalBytes !=
@@ -416,7 +476,9 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
             numRsBlocksInGroup1) +
             ((numDataBytesInGroup2 + numEcBytesInGroup2) *
                 numRsBlocksInGroup2)) {
-      throw new WriterException("Total bytes mismatch");
+      return Err(Exceptions::WriterException("Total bytes mismatch".to_owned()))
+                  
+      // throw new WriterException("Total bytes mismatch");
     }
 
     if (blockID < numRsBlocksInGroup1) {
@@ -426,6 +488,7 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
       numDataBytesInBlock[0] = numDataBytesInGroup2;
       numECBytesInBlock[0] = numEcBytesInGroup2;
     }
+    Ok(())
   }
 
   /**
@@ -438,7 +501,7 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
                                          numRSBlocks:u32) -> Result<BitArray,Exceptions> {
 
     // "bits" must have "getNumDataBytes" bytes of data.
-    if bits.getSizeInBytes() != numDataBytes {
+    if bits.getSizeInBytes() as u32 != numDataBytes {
       return Err(Exceptions::WriterException("Number of bits and data bytes does not match".to_owned()))
     }
 
@@ -453,60 +516,72 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
 
     for i in 0..numRSBlocks {
     // for (int i = 0; i < numRSBlocks; ++i) {
-      let numDataBytesInBlock = new int[1];
-      let numEcBytesInBlock = new int[1];
+      let numDataBytesInBlock = vec![0;1];//new int[1];
+      let numEcBytesInBlock = vec![0;1];//new int[1];
       getNumDataBytesAndNumECBytesForBlockID(
           numTotalBytes, numDataBytes, numRSBlocks, i,
-          numDataBytesInBlock, numEcBytesInBlock);
+          &numDataBytesInBlock, &numEcBytesInBlock);
 
       let size = numDataBytesInBlock[0];
-      let dataBytes = new byte[size];
-      bits.toBytes(8 * dataBytesOffset, dataBytes, 0, size);
-      let ecBytes = generateECBytes(dataBytes, numEcBytesInBlock[0]);
-      blocks.add(new BlockPair(dataBytes, ecBytes));
+      let dataBytes = vec![0u8;size as usize];
+      bits.toBytes(8 * dataBytesOffset, &mut dataBytes, 0, size as usize);
+      let ecBytes = generateECBytes(&dataBytes, numEcBytesInBlock[0] as usize);
+      blocks.push( BlockPair::new(dataBytes, ecBytes));
 
-      maxNumDataBytes = Math.max(maxNumDataBytes, size);
-      maxNumEcBytes = Math.max(maxNumEcBytes, ecBytes.length);
-      dataBytesOffset += numDataBytesInBlock[0];
+      maxNumDataBytes = maxNumDataBytes.max( size);
+      maxNumEcBytes = maxNumEcBytes.max( ecBytes.len());
+      dataBytesOffset += numDataBytesInBlock[0] as usize;
     }
-    if (numDataBytes != dataBytesOffset) {
+    if numDataBytes != dataBytesOffset as u32 {
       return Err(Exceptions::WriterException("Data bytes does not match offset".to_owned()))
     }
 
     let result =  BitArray::new();
 
     // First, place data blocks.
-    for (int i = 0; i < maxNumDataBytes; ++i) {
-      for (BlockPair block : blocks) {
-        byte[] dataBytes = block.getDataBytes();
-        if (i < dataBytes.length) {
-          result.appendBits(dataBytes[i], 8);
+    for i in 0..maxNumDataBytes as usize{
+    // for (int i = 0; i < maxNumDataBytes; ++i) {
+      for block in blocks {
+      // for (BlockPair block : blocks) {
+        let dataBytes = block.getDataBytes();
+        if i < dataBytes.len() {
+          result.appendBits(dataBytes[i] as u32, 8);
         }
       }
     }
     // Then, place error correction blocks.
-    for (int i = 0; i < maxNumEcBytes; ++i) {
-      for (BlockPair block : blocks) {
-        byte[] ecBytes = block.getErrorCorrectionBytes();
-        if (i < ecBytes.length) {
-          result.appendBits(ecBytes[i], 8);
+    for i in 0..maxNumEcBytes {
+    // for (int i = 0; i < maxNumEcBytes; ++i) {
+      for block in blocks {
+      // for (BlockPair block : blocks) {
+        let ecBytes = block.getErrorCorrectionBytes();
+        if (i < ecBytes.len()) {
+          result.appendBits(ecBytes[i] as u32, 8);
         }
       }
     }
-    if (numTotalBytes != result.getSizeInBytes()) {  // Should be same.
-      throw new WriterException("Interleaving error: " + numTotalBytes + " and " +
-          result.getSizeInBytes() + " differ.");
+    if (numTotalBytes != result.getSizeInBytes() as u32) {  // Should be same.
+      return Err(
+        Exceptions::WriterException(
+          format!(
+            "Interleaving error: {} and {} differ.",
+            numTotalBytes,result.getSizeInBytes()
+          )
+        )
+      )
+      // throw new WriterException("Interleaving error: " + numTotalBytes + " and " +
+      //     result.getSizeInBytes() + " differ.");
     }
 
-    return result;
+    Ok(result)
   }
 
-  pub fn generateECBytes( dataBytes:&[u8],  numEcBytesInBlock:u32) -> Vec<u8> {
-    let numDataBytes = dataBytes.length;
+  pub fn generateECBytes( dataBytes:&[u8],  numEcBytesInBlock:usize) -> Vec<u8> {
+    let numDataBytes = dataBytes.len();
     let toEncode = vec![0;numDataBytes + numEcBytesInBlock];
     for i in 0..numDataBytes {
     // for (int i = 0; i < numDataBytes; i++) {
-      toEncode[i] = dataBytes[i] & 0xFF;
+      toEncode[i] = dataBytes[i] as i32;
     }
   
      ReedSolomonEncoder::new(get_predefined_genericgf(PredefinedGenericGF::QrCodeField256)).encode(&mut toEncode, numEcBytesInBlock);
@@ -514,7 +589,7 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
     let ecBytes = vec![0u8;numEcBytesInBlock];
     for i in 0..numEcBytesInBlock {
     // for (int i = 0; i < numEcBytesInBlock; i++) {
-      ecBytes[i] = toEncode[numDataBytes + i];
+      ecBytes[i] = toEncode[numDataBytes + i] as u8;
     }
     return ecBytes;
   }
@@ -523,7 +598,7 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
    * Append mode info. On success, store the result in "bits".
    */
   pub fn appendModeInfo( mode:Mode,  bits:&BitArray) {
-    bits.appendBits(mode.getBits(), 4);
+    bits.appendBits(mode.getBits() as u32, 4);
   }
 
 
@@ -533,9 +608,9 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
   pub fn appendLengthInfo( numLetters:u32,  version:VersionRef,  mode:Mode,  bits:&BitArray) -> Result<(),Exceptions> {
     let numBits = mode.getCharacterCountBits(version);
     if numLetters >= (1 << numBits) {
-      return Err(Exceptions::WriterExceptin(format!("{} is bigger than {}" ,numLetters , ((1 << numBits) - 1))))
+      return Err(Exceptions::WriterException(format!("{} is bigger than {}" ,numLetters , ((1 << numBits) - 1))))
     }
-    bits.appendBits(numLetters, numBits);
+    bits.appendBits(numLetters, numBits as usize);
     Ok(())
   }
 
@@ -547,12 +622,13 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
                            bits:&BitArray,
                            encoding:EncodingRef) -> Result<(),Exceptions>{
                             match mode {
-                                Mode::NUMERIC => Ok(appendNumericBytes(content, bits)),
-                                Mode::ALPHANUMERIC => Ok(appendAlphanumericBytes(content, bits)),
-                                Mode::BYTE => Ok(append8BitBytes(content, bits, encoding)),
-                                Mode::KANJI => Ok(appendKanjiBytes(content, bits)),
-                                _=> Err(Exceptions::WriterException(format!("Invalid mode: {}" , mode)))
-                            }
+                                Mode::NUMERIC => appendNumericBytes(content, bits),
+                                Mode::ALPHANUMERIC => appendAlphanumericBytes(content, bits)?,
+                                Mode::BYTE => append8BitBytes(content, bits, encoding),
+                                Mode::KANJI => appendKanjiBytes(content, bits)?,
+                                _=> return Err(Exceptions::WriterException(format!("Invalid mode: {:?}" , mode)))
+                            };
+Ok(())
     // switch (mode) {
     //   case NUMERIC:
     //     appendNumericBytes(content, bits);
@@ -572,24 +648,24 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
   }
 
   pub fn appendNumericBytes( content:&str,  bits:&BitArray) {
-    let length = content.length();
+    let length = content.len();
     let i = 0;
     while i < length {
-      let num1 = content.charAt(i) - '0';
+      let num1 = content.chars().nth(i).unwrap() as u8 - b'0';
       if i + 2 < length {
         // Encode three numeric letters in ten bits.
-        let num2 = content.charAt(i + 1) - '0';
-        let num3 = content.charAt(i + 2) - '0';
-        bits.appendBits(num1 * 100 + num2 * 10 + num3, 10);
+        let num2 = content.chars().nth(i + 1).unwrap() as u8 - b'0';
+        let num3 = content.chars().nth(i + 2).unwrap() as u8 - b'0';
+        bits.appendBits((num1 * 100 + num2 * 10 + num3) as u32, 10);
         i += 3;
       } else if i + 1 < length {
         // Encode two numeric letters in seven bits.
-        let num2 = content.charAt(i + 1) - '0';
-        bits.appendBits(num1 * 10 + num2, 7);
+        let num2 = content.chars().nth(i + 1).unwrap() as u8 - b'0';
+        bits.appendBits((num1 * 10 + num2) as u32, 7);
         i += 2;
       } else {
         // Encode one numeric letter in four bits.
-        bits.appendBits(num1, 4);
+        bits.appendBits(num1 as u32, 4);
         i+=1;
       }
     }
@@ -599,22 +675,22 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
     let length = content.len();
     let i = 0;
     while i < length {
-      let code1 = getAlphanumericCode(content.charAt(i));
+      let code1 = getAlphanumericCode(content.chars().nth(i).unwrap() as u32);
       if code1 == -1 {
         return Err(Exceptions::WriterException("".to_owned()));
       }
       if i + 1 < length {
-        let code2 = getAlphanumericCode(content.charAt(i + 1));
+        let code2 = getAlphanumericCode(content.chars().nth(i + 1).unwrap() as u32);
         if (code2 == -1) {
           return Err(Exceptions::WriterException("".to_owned()));
 
         }
         // Encode two alphanumeric letters in 11 bits.
-        bits.appendBits(code1 * 45 + code2, 11);
+        bits.appendBits((code1 * 45 + code2) as u32, 11);
         i += 2;
       } else {
         // Encode one alphanumeric letter in six bits.
-        bits.appendBits(code1, 6);
+        bits.appendBits(code1 as u32, 6);
         i+=1;
       }
     }
@@ -622,36 +698,40 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
   }
 
   fn append8BitBytes( content:&str,  bits:&BitArray,  encoding:EncodingRef) {
-    let bytes = content.getBytes(encoding);
+    let bytes = encoding.encode(content, encoding::EncoderTrap::Strict).expect("should encode");
+    // let bytes = content.getBytes(encoding);
     for b in bytes {
     // for (byte b : bytes) {
-      bits.appendBits(b, 8);
+      bits.appendBits(b as u32, 8);
     }
   }
 
   fn appendKanjiBytes( content:&str,  bits:&BitArray) -> Result<(),Exceptions> {
-    let bytes = content.getBytes(StringUtils::SHIFT_JIS_CHARSET);
-    if bytes.length % 2 != 0 {
+    let sjis = SHIFT_JIS_CHARSET; //encoding::label::encoding_from_whatwg_label("SJIS").unwrap();
+    
+    let bytes = sjis.encode(content, encoding::EncoderTrap::Strict).expect("should encode fine");
+    // let bytes = content.getBytes(StringUtils::SHIFT_JIS_CHARSET);
+    if bytes.len() % 2 != 0 {
       return Err(Exceptions::WriterException("Kanji byte size not even".to_owned()))
     }
-    let maxI = bytes.length - 1; // bytes.length must be even
+    let maxI = bytes.len() - 1; // bytes.length must be even
     let mut i = 0;
     while i < maxI {
     // for (int i = 0; i < maxI; i += 2) {
       let byte1 = bytes[i] & 0xFF;
       let byte2 = bytes[i + 1] & 0xFF;
       let code = (byte1 << 8) | byte2;
-      let subtracted = -1;
+      let subtracted:i32 = -1;
       if code >= 0x8140 && code <= 0x9ffc {
-        subtracted = code - 0x8140;
-      } else if (code >= 0xe040 && code <= 0xebbf) {
-        subtracted = code - 0xc140;
+        subtracted = code as i32 - 0x8140;
+      } else if code >= 0xe040 && code <= 0xebbf {
+        subtracted = code as i32 - 0xc140;
       }
       if subtracted == -1 {
         return Err(Exceptions::WriterException("Invalid byte sequence".to_owned()))
       }
       let encoded = ((subtracted >> 8) * 0xc0) + (subtracted & 0xff);
-      bits.appendBits(encoded, 13);
+      bits.appendBits(encoded as u32, 13);
 
       i+=2;
     }
@@ -659,8 +739,8 @@ use super::{mask_util, ByteMatrix, QRCode, matrix_util};
   }
 
   fn appendECI( eci:&CharacterSetECI,  bits:&BitArray) {
-    bits.appendBits(Mode::ECI.getBits(), 4);
+    bits.appendBits(Mode::ECI.getBits() as u32, 4);
     // This is correct for values up to 127, which is all we need now.
-    bits.appendBits(eci.getValue(), 8);
+    bits.appendBits(eci.getValueSelf(), 8);
   }
 

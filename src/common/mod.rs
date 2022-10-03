@@ -14,6 +14,9 @@ use crate::Exceptions;
 use crate::LuminanceSource;
 use crate::RXingResultPoint;
 use encoding::Encoding;
+use encoding::EncodingRef;
+
+use lazy_static::lazy_static;
 
 #[cfg(test)]
 mod StringUtilsTestCase;
@@ -80,6 +83,10 @@ pub struct StringUtils {
 const ASSUME_SHIFT_JIS: bool = false;
 static SHIFT_JIS: &'static str = "SJIS";
 static GB2312: &'static str = "GB2312";
+lazy_static! {
+    pub static ref SHIFT_JIS_CHARSET: EncodingRef = encoding::label::encoding_from_whatwg_label("SJIS").unwrap();
+}
+
 
 //    private static final boolean ASSUME_SHIFT_JIS =
 //        SHIFT_JIS_CHARSET.equals(PLATFORM_DEFAULT_ENCODING) ||
@@ -2466,6 +2473,10 @@ impl CharacterSetECI {
     //     this.otherEncodingNames = otherEncodingNames;
     //   }
 
+    pub fn getValueSelf(&self) -> u32{
+        Self::getValue(self)
+    }
+
     pub fn getValue(cs_eci: &CharacterSetECI) -> u32 {
         match cs_eci {
             CharacterSetECI::Cp437 => 0,
@@ -2498,7 +2509,7 @@ impl CharacterSetECI {
         }
     }
 
-    pub fn getCharset(cs_eci: &CharacterSetECI) -> &'static dyn Encoding {
+    pub fn getCharset(cs_eci: &CharacterSetECI) -> EncodingRef {
         let name = match cs_eci {
             CharacterSetECI::Cp437 => "CP437",
             CharacterSetECI::ISO8859_1 => "ISO-8859-1",
@@ -2857,7 +2868,7 @@ impl fmt::Display for ECIStringBuilder {
  * @author Alex Geller
  */
 pub struct ECIEncoderSet {
-    encoders: Vec<&'static dyn encoding::Encoding>,
+    encoders: Vec<EncodingRef>,
     priorityEncoderIndex: usize,
 }
 
@@ -2872,11 +2883,11 @@ impl ECIEncoderSet {
      */
     pub fn new(
         stringToEncode: &str,
-        priorityCharset: &'static dyn encoding::Encoding,
+        priorityCharset: EncodingRef,
         fnc1: i16,
     ) -> Self {
         // List of encoders that potentially encode characters not in ISO-8859-1 in one byte.
-        let mut ENCODERS = Vec::new();
+        let mut ENCODERS :Vec<EncodingRef> = Vec::new();
 
         let names = [
             "IBM437",
@@ -2910,10 +2921,10 @@ impl ECIEncoderSet {
             }
         }
 
-        let mut encoders: Vec<&'static dyn Encoding>;
+        let mut encoders: Vec<EncodingRef>;
         let mut priorityEncoderIndexValue = 0;
 
-        let mut neededEncoders: Vec<&'static dyn encoding::Encoding> = Vec::new();
+        let mut neededEncoders: Vec<EncodingRef> = Vec::new();
 
         //we always need the ISO-8859-1 encoder. It is the default encoding
         neededEncoders.push(encoding::all::ISO_8859_1);
@@ -3010,7 +3021,7 @@ impl ECIEncoderSet {
         return self.encoders[index].name();
     }
 
-    pub fn getCharset(&self, index: usize) -> &'static dyn Encoding {
+    pub fn getCharset(&self, index: usize) -> EncodingRef {
         assert!(index < self.len());
         return self.encoders[index];
     }
@@ -3244,7 +3255,7 @@ impl MinimalECIInput {
      * @param fnc1 denotes the character in the input that represents the FNC1 character or -1 if this is not GS1
      *   input.
      */
-    pub fn new(stringToEncode: &str, priorityCharset: &'static dyn Encoding, fnc1: i16) -> Self {
+    pub fn new(stringToEncode: &str, priorityCharset: EncodingRef, fnc1: i16) -> Self {
         let encoderSet = ECIEncoderSet::new(stringToEncode, priorityCharset, fnc1);
         let bytes = if encoderSet.len() == 1 {
             //optimization for the case when all can be encoded without ECI in ISO-8859-1

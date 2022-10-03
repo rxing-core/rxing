@@ -77,15 +77,15 @@ impl fmt::Display for VersionSize {
  *
  * @author Alex Geller
  */
-pub struct MinimalEncoder {
+pub struct MinimalEncoder<'a> {
 
-  stringToEncode: String,
+  stringToEncode: &'a str,
    isGS1: bool,
    encoders: ECIEncoderSet,
    ecLevel:ErrorCorrectionLevel,
 }
 
-impl MinimalEncoder {
+impl MinimalEncoder<'_> {
 
   /**
    * Creates a MinimalEncoder
@@ -99,7 +99,7 @@ impl MinimalEncoder {
    * @param ecLevel The error correction level.
    * @see RXingResultList#getVersion
    */
-  pub fn new( stringToEncode:String,  priorityCharset: EncodingRef,  isGS1:bool,  ecLevel:ErrorCorrectionLevel) -> Self {
+  pub fn new( stringToEncode:&str,  priorityCharset: EncodingRef,  isGS1:bool,  ecLevel:ErrorCorrectionLevel) -> Self {
     Self {
         stringToEncode,
         isGS1,
@@ -128,9 +128,9 @@ impl MinimalEncoder {
    * @see RXingResultList#getVersion
    * @see RXingResultList#getSize
    */
-  pub fn encode_with_details<'a>( stringToEncode:String,  version:VersionRef, priorityCharset:EncodingRef,  isGS1:bool,
+  pub fn encode_with_details<'a>( stringToEncode:&str,  version:Option<VersionRef>, priorityCharset:EncodingRef,  isGS1:bool,
        ecLevel:ErrorCorrectionLevel) -> Result<RXingResultList<'a>,Exceptions> {
-     MinimalEncoder::new(stringToEncode, priorityCharset, isGS1, ecLevel).encode(Some(version))
+     MinimalEncoder::new(stringToEncode, priorityCharset, isGS1, ecLevel).encode(version)
   }
 
   pub fn encode(&self,  version:Option<VersionRef>) -> Result<RXingResultList,Exceptions> {
@@ -138,29 +138,30 @@ impl MinimalEncoder {
       let versions = [ Self::getVersion(VersionSize::SMALL),
       Self::getVersion(VersionSize::MEDIUM),
       Self::getVersion(VersionSize::LARGE) ];
-      let results = [ self.encodeSpecificVersion(&versions[0]),
-                               self.encodeSpecificVersion(&versions[1]),
-                               self.encodeSpecificVersion(&versions[2]) ];
+      let results = [ self.encodeSpecificVersion(&versions[0])?,
+                               self.encodeSpecificVersion(&versions[1])?,
+                               self.encodeSpecificVersion(&versions[2])? ];
       let smallestSize = u32::MAX;
-      let smallestRXingResult = -1;
+      let smallestRXingResult:i32 = -1;
       for i in 0..3 {
       // for (int i = 0; i < 3; i++) {
         let size = results[i].getSize();
-        if encoder::willFit(size, versions[i], self.ecLevel) && size < smallestSize {
+        if encoder::willFit(size, versions[i], &self.ecLevel) && size < smallestSize {
           smallestSize = size;
-          smallestRXingResult = i;
+          smallestRXingResult = i as i32;
         }
       }
       if smallestRXingResult < 0 {
         return Err(Exceptions::WriterException("Data too big for any version".to_owned()));
       }
-      return results[smallestRXingResult];
+      Ok(results[smallestRXingResult as usize])
     } else { // compute minimal encoding for a given version
-      let result = self.encodeSpecificVersion(version);
-      if !encoder::willFit(result.getSize(), Self::getVersion(Self::getVersionSize(result.getVersion())), self.ecLevel) {
+      let version = version.unwrap();
+      let result = self.encodeSpecificVersion(version)?;
+      if !encoder::willFit(result.getSize(), Self::getVersion(Self::getVersionSize(result.getVersion())), &self.ecLevel) {
         return Err(Exceptions::WriterException(format!("Data too big for version {}" , version)));
       }
-      return result;
+      Ok(result)
     }
   }
 
@@ -191,11 +192,11 @@ impl MinimalEncoder {
   }
 
   pub fn isDoubleByteKanji( c:char) -> bool{
-    return encoder::isOnlyDoubleByteKanji(String.valueOf(c));
+    return encoder::isOnlyDoubleByteKanji(&String::from(c));
   }
 
   pub fn isAlphanumeric( c: char) -> bool{
-    return encoder::getAlphanumericCode(c) != -1;
+    return encoder::getAlphanumericCode(c as u8 as u32) != -1;
   }
 
   pub fn canEncode(&self,  mode:&Mode,  c:char) -> bool {
@@ -235,45 +236,45 @@ impl MinimalEncoder {
     // }
   }
 
-  pub fn addEdge(&self,  edges:&Vec<Vec<Vec<&'_ Edge>>>,  position:u32,  edge:Option<&Edge>) {
-    let vertexIndex = position + edge.as_ref().unwrap().characterLength;
+  pub fn addEdge(&self,  edges:&Vec<Vec<Vec<Option<&'_ Edge>>>>,  position:usize,  edge:Option<&Edge>) {
+    let vertexIndex = position + edge.as_ref().unwrap().characterLength as usize;
     let modeEdges = edges[vertexIndex as usize][edge.as_ref().unwrap().charsetEncoderIndex as usize];
     let modeOrdinal = Self::getCompactedOrdinal(Some(edge.as_ref().unwrap().mode)).expect("value") as usize;
-    if /*modeEdges[modeOrdinal] == null ||*/ modeEdges[modeOrdinal].cachedTotalSize > (&edge).unwrap().cachedTotalSize {
-      modeEdges[modeOrdinal] = edge.unwrap();
+    if modeEdges[modeOrdinal].is_none() || modeEdges[modeOrdinal].as_ref().unwrap().cachedTotalSize > (&edge).unwrap().cachedTotalSize {
+      modeEdges[modeOrdinal] = edge;
     }
   }
 
-  pub fn addEdges( &self, version:&Edge, edges:&Vec<Vec<Vec<Edge>>>,  from:u32,  previous:&Edge) {
+  pub fn addEdges( &self, version:VersionRef, edges:&Vec<Vec<Vec<Option<&Edge>>>>,  from:usize,  previous:Option<&Edge>) {
     let start = 0;
     let end = self.encoders.len();
     let priorityEncoderIndex = self.encoders.getPriorityEncoderIndex();
-    if priorityEncoderIndex >= 0 && self.encoders.canEncode(self.stringToEncode.chars().nth(from).unwrap(),priorityEncoderIndex) {
+    if priorityEncoderIndex >= 0 && self.encoders.canEncode(self.stringToEncode.chars().nth(from as usize).unwrap() as i16,priorityEncoderIndex) {
       start = priorityEncoderIndex;
       end = priorityEncoderIndex + 1;
     }
 
     for i in start..end {
     // for (int i = start; i < end; i++) {
-      if self.encoders.canEncode(self.stringToEncode.chars().nth(from).unwrap(), i) {
-        self.addEdge(edges, from,  Edge::new(Mode::BYTE, from, i, 1, previous, version));
+      if self.encoders.canEncode(self.stringToEncode.chars().nth(from).unwrap() as i16, i) {
+        self.addEdge(edges, from,  Some(&Edge::new(Mode::BYTE, from, i, 1, previous, version,&self.encoders,&self.stringToEncode)));
       }
     }
 
-    if self.canEncode(Mode::KANJI, self.stringToEncode.chars().nth(from).unwrap()) {
-      self.addEdge(edges, from,  Edge::(Mode::KANJI, from, 0, 1, previous, version));
+    if self.canEncode(&Mode::KANJI, self.stringToEncode.chars().nth(from).unwrap()) {
+      self.addEdge(edges, from,  Some(&Edge::new(Mode::KANJI, from, 0, 1, previous, version,&self.encoders,&self.stringToEncode)));
     }
 
     let inputLength = self.stringToEncode.len();
-    if self.canEncode(Mode::ALPHANUMERIC, self.stringToEncode.charAt(from)) {
-      self.addEdge(edges, from,  Edge::new(Mode::ALPHANUMERIC, from, 0, from + 1 >= inputLength ||
-          !self.canEncode(Mode::ALPHANUMERIC, self.stringToEncode.charAt(from + 1)) ? 1 : 2, previous, version));
+    if self.canEncode(&Mode::ALPHANUMERIC, self.stringToEncode.chars().nth(from).unwrap()) {
+      self.addEdge(edges, from,  Some(&Edge::new(Mode::ALPHANUMERIC, from, 0, if from + 1 >= inputLength ||
+          !self.canEncode(&Mode::ALPHANUMERIC, self.stringToEncode.chars().nth(from + 1).unwrap())  {1} else {2}, previous, version,&self.encoders,&self.stringToEncode)));
     }
 
-    if self.canEncode(Mode::NUMERIC, self.stringToEncode.chars().nth(from).unwrap()) {
-      self.addEdge(edges, from,  Edge::new(Mode::NUMERIC, from, 0, from + 1 >= inputLength ||
-          !self.canEncode(Mode::NUMERIC, self.stringToEncode.charAt(from + 1)) ? 1 : from + 2 >= inputLength ||
-          !self.canEncode(Mode::NUMERIC, self.stringToEncode.charAt(from + 2)) ? 2 : 3, previous, version));
+    if self.canEncode(&Mode::NUMERIC, self.stringToEncode.chars().nth(from).unwrap()) {
+      self.addEdge(edges, from,  Some(&Edge::new(Mode::NUMERIC, from, 0, if from + 1 >= inputLength ||
+          !self.canEncode(&Mode::NUMERIC, self.stringToEncode.chars().nth(from + 1).unwrap())  {1} else {if from + 2 >= inputLength ||
+          !self.canEncode(&Mode::NUMERIC, self.stringToEncode.chars().nth(from + 2).unwrap())  {2} else {3}}, previous, version,&self.encoders,&self.stringToEncode)));
     }
   }
   pub fn encodeSpecificVersion(&self,  version:VersionRef) ->Result< RXingResultList, Exceptions >{
@@ -396,7 +397,7 @@ impl MinimalEncoder {
 
     // The last dimension in the array below encodes the 4 modes KANJI, ALPHANUMERIC, NUMERIC and BYTE via the
     // function getCompactedOrdinal(Mode)
-    let edges = vec![vec![vec![]]];//new Edge[inputLength + 1][encoders.length()][4];
+    let edges = vec![vec![vec![None;4];self.encoders.len()];inputLength+1];//new Edge[inputLength + 1][encoders.length()][4];
    self. addEdges(version, &edges, 0, None);
 
    for i in 1..=inputLength {
@@ -405,42 +406,42 @@ impl MinimalEncoder {
       // for (int j = 0; j < encoders.length(); j++) {
         for k in 0..4 {
         // for (int k = 0; k < 4; k++) {
-          if edges[i][j][k] != null && i < inputLength {
-            self.addEdges(version, edges, i, edges[i][j][k]);
+          if edges[i][j][k].is_some() && i < inputLength {
+            self.addEdges(version, &edges, i, edges[i][j][k]);
           }
         }
       }
 
     }
-    let minimalJ = -1;
-    let minimalK = -1;
+    let minimalJ = None;
+    let minimalK = None;
     let minimalSize = u32::MAX;
     for j in 0..self.encoders.len() {
     // for (int j = 0; j < encoders.length(); j++) {
       for k in 0..4 {
       // for (int k = 0; k < 4; k++) {
-        if edges[inputLength][j][k] != null {
-          let edge = edges[inputLength][j][k];
+        if edges[inputLength][j][k].is_some() {
+          let edge = edges[inputLength][j][k].as_ref().unwrap();
           if edge.cachedTotalSize < minimalSize {
             minimalSize = edge.cachedTotalSize;
-            minimalJ = j;
-            minimalK = k;
+            minimalJ = Some(j);
+            minimalK = Some(k);
           }
         }
       }
     }
-    if minimalJ < 0 {
+    if minimalJ.is_none() {
       return Err(Exceptions::WriterException(format!(r#"Internal error: failed to encode "{}"#,self.stringToEncode)));
     }
-      Ok(RXingResultList::new(version, edges[inputLength][minimalJ][minimalK]))
+      Ok(RXingResultList::new(version, edges[inputLength][minimalJ.unwrap()][minimalK.unwrap()].unwrap(),self.isGS1,&self.ecLevel, &self.encoders, &self.stringToEncode))
   }
 }
 
 
 struct Edge<'a> {
-  mode:Mode,
-  fromPosition:u32,
-  charsetEncoderIndex:u32,
+  pub mode:Mode,
+  fromPosition:usize,
+  charsetEncoderIndex:usize,
   characterLength:u32,
   previous:Option<&'a Edge<'a>>,
   cachedTotalSize:u32,
@@ -449,7 +450,7 @@ struct Edge<'a> {
 }
 impl Edge<'_> {
 
-  pub fn new( mode:Mode,  fromPosition:u32,  charsetEncoderIndex:u32,  characterLength:u32,  previous:Option<&'_ Edge>,
+  pub fn new( mode:Mode,  fromPosition:usize,  charsetEncoderIndex:usize,  characterLength:u32,  previous:Option<&'_ Edge>,
                 version:&Version, encoders: &'_ ECIEncoderSet, stringToEncode: &'_ str) -> Self {
                   let nci = if mode == Mode::BYTE || previous.is_none()  {charsetEncoderIndex} else
                     {previous.as_ref().unwrap().charsetEncoderIndex};
@@ -474,7 +475,7 @@ impl Edge<'_> {
                         Mode::NUMERIC =>  size += if characterLength == 1  {4} else {if characterLength == 2  {7} else {10}},
                         Mode::ALPHANUMERIC => size += if characterLength == 1  {6} else {11},
                         Mode::BYTE =>{
-                          size += 8 * encoders.encode_string(&stringToEncode[fromPosition as usize..(fromPosition + characterLength)as usize],
+                          size += 8 * encoders.encode_string(&stringToEncode[fromPosition as usize..(fromPosition + characterLength as usize)],
                               charsetEncoderIndex as usize).len() as u32;
                           if needECI {
                             size += 4 + 8; // the ECI assignment numbers for ISO-8859-x, UTF-8 and UTF-16 are all 8 bit long
@@ -549,7 +550,7 @@ struct RXingResultList<'a> {
 }
 impl RXingResultList<'_> {
 
-  pub fn new( version:VersionRef,  solution:&'_ Edge, isGS1:bool, ecLevel: &ErrorCorrectionLevel) -> Self {
+  pub fn new( version:VersionRef,  solution:&'_ Edge, isGS1:bool, ecLevel: &ErrorCorrectionLevel, encoders:&'_ ECIEncoderSet, stringToEncode: &'_ str) -> Self {
     let length = 0;
     let current = Some(solution);
     let containsECI = false;
@@ -568,12 +569,12 @@ impl RXingResultList<'_> {
       }
 
       if previous.is_none() || previous.as_ref().unwrap().mode != current.as_ref().unwrap().mode || needECI {
-        list.push(  RXingResultNode::new(current.mode, current.fromPosition, current.charsetEncoderIndex, length));
+        list.push(  RXingResultNode::new(current.as_ref().unwrap().mode, current.as_ref().unwrap().fromPosition, current.as_ref().unwrap().charsetEncoderIndex, length,encoders,stringToEncode, version));
         length = 0;
       }
 
       if needECI {
-        list.push(  RXingResultNode::new(Mode::ECI, current.fromPosition, current.charsetEncoderIndex, 0));
+        list.push(  RXingResultNode::new(Mode::ECI, current.as_ref().unwrap().fromPosition, current.as_ref().unwrap().charsetEncoderIndex, 0,encoders,stringToEncode, version));
       }
       current = previous;
     }
@@ -585,12 +586,12 @@ impl RXingResultList<'_> {
       // if first != null && first.mode != Mode.ECI && containsECI {
       if first.mode != Mode::ECI && containsECI {
         // prepend a default character set ECI
-        list.push(0,  RXingResultNode::new(Mode::ECI, 0, 0, 0));
+        list.push(  RXingResultNode::new(Mode::ECI, 0, 0, 0,encoders,stringToEncode,version));
       }}
       let first = list.get(0).unwrap();
       // prepend or insert a FNC1_FIRST_POSITION after the ECI (if any)
       // if first != null && first.mode != Mode.ECI && containsECI {
-      list.push(   RXingResultNode::new(Mode::FNC1_FIRST_POSITION, 0, 0, 0));
+      list.push(   RXingResultNode::new(Mode::FNC1_FIRST_POSITION, 0, 0, 0,encoders,stringToEncode,version));
     }
 
     // set version to smallest version into which the bits fit.
@@ -621,12 +622,12 @@ impl RXingResultList<'_> {
     // }
     let size = Self::internal_static_get_size(version,&list);
     // increase version if needed
-    while versionNumber < upperLimit && !encoder::willFit(size, Version::getVersionForNumber(versionNumber),
+    while versionNumber < upperLimit && !encoder::willFit(size, Version::getVersionForNumber(versionNumber).unwrap(),
       ecLevel) {
       versionNumber+=1;
     }
     // shrink version if possible
-    while versionNumber > lowerLimit && encoder::willFit(size, Version::getVersionForNumber(versionNumber - 1),
+    while versionNumber > lowerLimit && encoder::willFit(size, Version::getVersionForNumber(versionNumber - 1).unwrap(),
       ecLevel) {
       versionNumber-=1;
     }
@@ -652,7 +653,7 @@ impl RXingResultList<'_> {
     return result;
   }
 
-  fn internal_static_get_size(version:VersionRef, list: &Vec<RXingResultNode>) {
+  fn internal_static_get_size(version:VersionRef, list: &Vec<RXingResultNode>) -> u32 {
     let result = 0;
     for  resultNode in list {
       result += resultNode.getSize(version);
@@ -694,8 +695,8 @@ impl fmt::Display for RXingResultList<'_> {
 struct RXingResultNode<'a> {
 
     mode:Mode,
-    fromPosition:u32,
-    charsetEncoderIndex:u32,
+    fromPosition:usize,
+    charsetEncoderIndex:usize,
     characterLength:u32,
     encoders:&'a ECIEncoderSet,
     version: VersionRef,
@@ -704,7 +705,7 @@ struct RXingResultNode<'a> {
 
 impl RXingResultNode<'_> {
 
-    pub fn new( mode:Mode,  fromPosition:u32,  charsetEncoderIndex:u32,  characterLength:u32, encoders:&'_ ECIEncoderSet, stringToEncode: &'_ str, version: &'_ Version) -> Self {
+    pub fn new( mode:Mode,  fromPosition:usize,  charsetEncoderIndex:usize,  characterLength:u32, encoders:&'_ ECIEncoderSet, stringToEncode: &'_ str, version: &'_ Version) -> Self {
       Self {
         mode,
         fromPosition,
@@ -764,7 +765,7 @@ impl RXingResultNode<'_> {
      */
     fn getCharacterCountIndicator(&self) -> u32{
       if self.mode == Mode::BYTE 
-          {self.encoders.encode_string(&self.stringToEncode[self.fromPosition as usize..(self.fromPosition + self.characterLength) as usize],
+          {self.encoders.encode_string(&self.stringToEncode[self.fromPosition as usize..(self.fromPosition + self.characterLength as usize)],
           self.charsetEncoderIndex as usize).len() as u32} else {self.characterLength}
     }
 
@@ -775,13 +776,13 @@ impl RXingResultNode<'_> {
       bits.appendBits(self.mode.getBits() as u32, 4);
       if self.characterLength > 0 {
         let length = self.getCharacterCountIndicator();
-        bits.appendBits(length, self.mode.getCharacterCountBits(self.version.as_ref()) as usize);
+        bits.appendBits(length, self.mode.getCharacterCountBits(self.version) as usize);
       }
       if self.mode == Mode::ECI {
         bits.appendBits(self.encoders.getECIValue(self.charsetEncoderIndex as usize), 8);
       } else if self.characterLength > 0 {
         // append data
-        encoder::appendBytes(self.stringToEncode[self.fromPosition as usize..(self.fromPosition + self.characterLength) as usize], self.mode, bits,
+        encoder::appendBytes(&self.stringToEncode[self.fromPosition as usize..(self.fromPosition + self.characterLength as usize)], self.mode, bits,
             self.encoders.getCharset(self.charsetEncoderIndex as usize));
       }
       Ok(())
@@ -809,7 +810,7 @@ impl RXingResultNode<'_> {
       if self.mode == Mode::ECI {
         result.push_str(self.encoders.getCharset(self.charsetEncoderIndex as usize).name());
       } else {
-        result.push_str(&Self::makePrintable(&self.stringToEncode[self.fromPosition as usize..(self.fromPosition + self.characterLength) as usize]));
+        result.push_str(&Self::makePrintable(&self.stringToEncode[self.fromPosition as usize..(self.fromPosition + self.characterLength as usize)]));
       }
       result.push(')');
       
