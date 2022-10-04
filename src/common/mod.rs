@@ -18,6 +18,8 @@ use encoding::EncodingRef;
 
 use lazy_static::lazy_static;
 
+use unicode_segmentation::UnicodeSegmentation;
+
 #[cfg(test)]
 mod StringUtilsTestCase;
 
@@ -2920,7 +2922,7 @@ impl ECIEncoderSet {
      * @param fnc1 fnc1 denotes the character in the input that represents the FNC1 character or -1 for a non-GS1 bar
      * code. When specified, it is considered an error to pass it as argument to the methods canEncode() or encode().
      */
-    pub fn new(stringToEncode: &str, priorityCharset: EncodingRef, fnc1: i16) -> Self {
+    pub fn new(stringToEncodeMain: &str, priorityCharset: EncodingRef, fnc1: Option<&str>) -> Self {
         // List of encoders that potentially encode characters not in ISO-8859-1 in one byte.
 
         let mut encoders: Vec<EncodingRef>;
@@ -2928,20 +2930,22 @@ impl ECIEncoderSet {
 
         let mut neededEncoders: Vec<EncodingRef> = Vec::new();
 
+        let stringToEncode = stringToEncodeMain.graphemes(true).collect::<Vec<&str>>();
+
         //we always need the ISO-8859-1 encoder. It is the default encoding
         neededEncoders.push(encoding::all::ISO_8859_1);
         let mut needUnicodeEncoder = priorityCharset.name().starts_with("UTF");
 
         //Walk over the input string and see if all characters can be encoded with the list of encoders
-        for i in 0..stringToEncode.chars().count() {
+        for i in 0..stringToEncode.len() {
             // for (int i = 0; i < stringToEncode.length(); i++) {
             let mut canEncode = false;
             for encoder in &neededEncoders {
                 //   for (CharsetEncoder encoder : neededEncoders) {
-                let c = stringToEncode.chars().nth(i).unwrap();
-                if c == fnc1 as u8 as char
+                let c = stringToEncode.get(i).unwrap();
+                if (fnc1.is_some() && c == fnc1.as_ref().unwrap()) 
                     || encoder
-                        .encode(&c.to_string(), encoding::EncoderTrap::Strict)
+                        .encode(c, encoding::EncoderTrap::Strict)
                         .is_ok()
                 {
                     canEncode = true;
@@ -2950,13 +2954,13 @@ impl ECIEncoderSet {
             }
             if !canEncode {
                 //for the character at position i we don't yet have an encoder in the list
-                for i in 0..ENCODERS.len() {
+                for i_encoder in 0..ENCODERS.len() {
                     // for encoder in ENCODERS {
-                    let encoder = ENCODERS.get(i).unwrap();
+                    let encoder = ENCODERS.get(i_encoder).unwrap();
                     // for (CharsetEncoder encoder : ENCODERS) {
                     if encoder
                         .encode(
-                            &stringToEncode.chars().nth(i).unwrap().to_string(),
+                            &stringToEncode.get(i).unwrap(),
                             encoding::EncoderTrap::Strict,
                         )
                         .is_ok()
@@ -3044,15 +3048,15 @@ impl ECIEncoderSet {
         return self.priorityEncoderIndex;
     }
 
-    pub fn canEncode(&self, c: i16, encoderIndex: usize) -> bool {
+    pub fn canEncode(&self, c: &str, encoderIndex: usize) -> bool {
         assert!(encoderIndex < self.len());
         let encoder = self.encoders[encoderIndex];
-        let enc_data = encoder.encode(&c.to_string(), encoding::EncoderTrap::Strict);
+        let enc_data = encoder.encode(c, encoding::EncoderTrap::Strict);
 
         enc_data.is_ok()
     }
 
-    pub fn encode_char(&self, c: char, encoderIndex: usize) -> Vec<u8> {
+    pub fn encode_char(&self, c: &str, encoderIndex: usize) -> Vec<u8> {
         assert!(encoderIndex < self.len());
         let encoder = self.encoders[encoderIndex];
         let enc_data = encoder.encode(&c.to_string(), encoding::EncoderTrap::Strict);
@@ -3101,7 +3105,7 @@ static COST_PER_ECI: usize = 3;
  */
 pub struct MinimalECIInput {
     bytes: Vec<u16>,
-    fnc1: i16,
+    fnc1: u16,
 }
 
 impl ECIInput for MinimalECIInput {
@@ -3260,28 +3264,29 @@ impl MinimalECIInput {
      * @param fnc1 denotes the character in the input that represents the FNC1 character or -1 if this is not GS1
      *   input.
      */
-    pub fn new(stringToEncode: &str, priorityCharset: EncodingRef, fnc1: i16) -> Self {
-        let encoderSet = ECIEncoderSet::new(stringToEncode, priorityCharset, fnc1);
+    pub fn new(stringToEncodeInput: &str, priorityCharset: EncodingRef, fnc1: Option<&str>) -> Self {
+        let stringToEncode = stringToEncodeInput.graphemes(true).collect::<Vec<&str>>();
+        let encoderSet = ECIEncoderSet::new(stringToEncodeInput, priorityCharset, fnc1);
         let bytes = if encoderSet.len() == 1 {
             //optimization for the case when all can be encoded without ECI in ISO-8859-1
             let mut bytes_hld = vec![0; stringToEncode.len()];
             for i in 0..stringToEncode.len() {
                 //   for (int i = 0; i < bytes.length; i++) {
-                let c = stringToEncode.chars().nth(i).unwrap();
-                bytes_hld[i] = if c as i16 == fnc1 { 1000 } else { c as u16 };
+                let c = stringToEncode.get(i).unwrap();
+                bytes_hld[i] = if fnc1.is_some() && c == fnc1.as_ref().unwrap() { 1000 } else { c.chars().nth(0).unwrap() as u16 };
             }
             bytes_hld
         } else {
-            Self::encodeMinimally(stringToEncode, &encoderSet, fnc1)
+            Self::encodeMinimally(stringToEncodeInput, &encoderSet, fnc1.as_ref().unwrap().chars().nth(0).unwrap() as u16)
         };
 
         Self {
             bytes: bytes,
-            fnc1: fnc1,
+            fnc1: fnc1.as_ref().unwrap().chars().nth(0).unwrap() as u16,
         }
     }
 
-    pub fn getFNC1Character(&self) -> i16 {
+    pub fn getFNC1Character(&self) -> u16 {
         self.fnc1
     }
 
@@ -3321,14 +3326,15 @@ impl MinimalECIInput {
         edges: &mut Vec<Vec<Option<Rc<InputEdge>>>>,
         from: usize,
         previous: Option<Rc<InputEdge>>,
-        fnc1: i16,
+        fnc1: u16,
     ) {
-        let ch = stringToEncode.chars().nth(from).unwrap() as i16;
+        // let ch = stringToEncode.chars().nth(from).unwrap() as i16;
+        let ch = stringToEncode.graphemes(true).nth(from).unwrap();
 
         let mut start = 0;
         let mut end = encoderSet.len();
         if encoderSet.getPriorityEncoderIndex() >= 0
-            && (ch as i16 == fnc1 || encoderSet.canEncode(ch, encoderSet.getPriorityEncoderIndex()))
+            && (ch.chars().nth(0).unwrap() as u16 == fnc1 || encoderSet.canEncode(ch, encoderSet.getPriorityEncoderIndex()))
         {
             start = encoderSet.getPriorityEncoderIndex();
             end = start + 1;
@@ -3336,7 +3342,7 @@ impl MinimalECIInput {
 
         for i in start..end {
             // for (int i = start; i < end; i++) {
-            if ch as i16 == fnc1 || encoderSet.canEncode(ch, i) {
+            if ch.chars().nth(0).unwrap() as u16 == fnc1 || encoderSet.canEncode(ch, i) {
                 Self::addEdge(
                     edges,
                     from + 1,
@@ -3349,7 +3355,7 @@ impl MinimalECIInput {
     pub fn encodeMinimally(
         stringToEncode: &str,
         encoderSet: &ECIEncoderSet,
-        fnc1: i16,
+        fnc1: u16,
     ) -> Vec<u16> {
         let inputLength = stringToEncode.len();
 
@@ -3395,7 +3401,7 @@ impl MinimalECIInput {
                 intsAL.splice(0..0, [1000]);
             } else {
                 let bytes: Vec<u16> = encoderSet
-                    .encode_char(c.c as u8 as char, c.encoderIndex)
+                    .encode_char(&c.c , c.encoderIndex)
                     .iter()
                     .map(|x| *x as u16)
                     .collect();
@@ -3429,24 +3435,26 @@ impl MinimalECIInput {
 }
 
 struct InputEdge {
-    c: i16,
+    c: String,
     encoderIndex: usize, //the encoding of this edge
     previous: Option<Rc<InputEdge>>,
     cachedTotalSize: usize,
 }
 impl InputEdge {
     pub fn new(
-        c: i16,
+        c: &str,
         encoderSet: &ECIEncoderSet,
         encoderIndex: usize,
         previous: Option<Rc<InputEdge>>,
-        fnc1: i16,
+        fnc1: u16,
     ) -> Self {
-        let mut size = if c == 1000 {
+        let mut size = if c == "\u{1000}" {
             1
         } else {
-            encoderSet.encode_char(c as u8 as char, encoderIndex).len()
+            encoderSet.encode_char(c, encoderIndex).len()
         };
+
+        let fnc1Str = String::from_utf16(&[fnc1]).unwrap();
 
         if let Some(prev) = previous {
             let previousEncoderIndex = prev.encoderIndex;
@@ -3456,7 +3464,7 @@ impl InputEdge {
             size += prev.cachedTotalSize;
 
             Self {
-                c: if c as i16 == fnc1 { 1000 } else { c as i16 },
+                c: if c == fnc1Str { String::from("\u{1000}") } else { String::from(c) },
                 encoderIndex,
                 previous: Some(prev.clone()),
                 cachedTotalSize: size,
@@ -3468,7 +3476,7 @@ impl InputEdge {
             }
 
             Self {
-                c: if c as i16 == fnc1 { 1000 } else { c as i16 },
+                c: if c == fnc1Str { String::from("\u{1000}") } else { String::from(c) },
                 encoderIndex,
                 previous: None,
                 cachedTotalSize: size,
@@ -3502,7 +3510,7 @@ impl InputEdge {
     }
 
     pub fn isFNC1(&self) -> bool {
-        self.c == 1000
+        self.c == "\u{1000}"
     }
 }
 

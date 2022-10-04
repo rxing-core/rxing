@@ -24,6 +24,8 @@ use crate::{
     Exceptions,
 };
 
+use unicode_segmentation::{Graphemes, UnicodeSegmentation};
+
 use super::encoder;
 
 pub enum VersionSize {
@@ -84,7 +86,7 @@ impl fmt::Display for VersionSize {
  * @author Alex Geller
  */
 pub struct MinimalEncoder {
-    stringToEncode: String,
+    stringToEncode: Vec<String>,
     isGS1: bool,
     encoders: ECIEncoderSet,
     ecLevel: ErrorCorrectionLevel,
@@ -110,9 +112,12 @@ impl MinimalEncoder {
         ecLevel: ErrorCorrectionLevel,
     ) -> Self {
         Self {
-            stringToEncode: String::from(stringToEncode),
+            stringToEncode: stringToEncode
+                .graphemes(true)
+                .map(|p| p.to_owned())
+                .collect::<Vec<String>>(),
             isGS1,
-            encoders: ECIEncoderSet::new(&stringToEncode, priorityCharset, -1),
+            encoders: ECIEncoderSet::new(&stringToEncode, priorityCharset, None),
             ecLevel,
         }
 
@@ -222,23 +227,34 @@ impl MinimalEncoder {
         // }
     }
 
-    pub fn isNumeric(c: char) -> bool {
-        return c >= '0' && c <= '9';
+    pub fn isNumeric(c: &str) -> bool {
+        if c.len() == 1 {
+            let ch = c.chars().nth(0).unwrap();
+            ch >= '0' && ch <= '9'
+        } else {
+            false
+        }
+        // return c >= '0' && c <= '9';
     }
 
-    pub fn isDoubleByteKanji(c: char) -> bool {
-        return encoder::isOnlyDoubleByteKanji(&String::from(c));
+    pub fn isDoubleByteKanji(c: &str) -> bool {
+        return encoder::isOnlyDoubleByteKanji(&c);
     }
 
-    pub fn isAlphanumeric(c: char) -> bool {
-        return encoder::getAlphanumericCode(c as u8 as u32) != -1;
+    pub fn isAlphanumeric(c: &str) -> bool {
+        if c.len() == 1 {
+            let ch = c.chars().nth(0).unwrap();
+            encoder::getAlphanumericCode(ch as u32) != -1
+        } else {
+            false
+        }
+        // return encoder::getAlphanumericCode(c as u8 as u32) != -1;
     }
 
-    pub fn canEncode(&self, mode: &Mode, c: char) -> bool {
+    pub fn canEncode(&self, mode: &Mode, c: &str) -> bool {
         match mode {
             Mode::NUMERIC => Self::isNumeric(c),
             Mode::ALPHANUMERIC => Self::isAlphanumeric(c),
-            Mode::STRUCTURED_APPEND => todo!(),
             Mode::BYTE => true,
             Mode::KANJI => Self::isDoubleByteKanji(c),
             _ => false, // any character can be encoded as byte(s). Up to the caller to manage splitting into
@@ -305,7 +321,8 @@ impl MinimalEncoder {
         let priorityEncoderIndex = self.encoders.getPriorityEncoderIndex();
         if priorityEncoderIndex >= 0
             && self.encoders.canEncode(
-                self.stringToEncode.chars().nth(from as usize).unwrap() as i16,
+                // self.stringToEncode.chars().nth(from as usize).unwrap() as i16,
+                &self.stringToEncode[from as usize],
                 priorityEncoderIndex,
             )
         {
@@ -317,7 +334,7 @@ impl MinimalEncoder {
             // for (int i = start; i < end; i++) {
             if self
                 .encoders
-                .canEncode(self.stringToEncode.chars().nth(from).unwrap() as i16, i)
+                .canEncode(&self.stringToEncode.get(from).unwrap(), i)
             {
                 self.addEdge(
                     edges,
@@ -330,13 +347,13 @@ impl MinimalEncoder {
                         previous.clone(),
                         version,
                         self.encoders.clone(),
-                        &self.stringToEncode,
+                        self.stringToEncode.clone(),
                     ))),
                 );
             }
         }
 
-        if self.canEncode(&Mode::KANJI, self.stringToEncode.chars().nth(from).unwrap()) {
+        if self.canEncode(&Mode::KANJI, &self.stringToEncode.get(from).unwrap()) {
             self.addEdge(
                 edges,
                 from,
@@ -348,16 +365,13 @@ impl MinimalEncoder {
                     previous.clone(),
                     version,
                     self.encoders.clone(),
-                    &self.stringToEncode,
+                    self.stringToEncode.clone(),
                 ))),
             );
         }
 
         let inputLength = self.stringToEncode.len();
-        if self.canEncode(
-            &Mode::ALPHANUMERIC,
-            self.stringToEncode.chars().nth(from).unwrap(),
-        ) {
+        if self.canEncode(&Mode::ALPHANUMERIC, self.stringToEncode.get(from).unwrap()) {
             self.addEdge(
                 edges,
                 from,
@@ -368,7 +382,7 @@ impl MinimalEncoder {
                     if from + 1 >= inputLength
                         || !self.canEncode(
                             &Mode::ALPHANUMERIC,
-                            self.stringToEncode.chars().nth(from + 1).unwrap(),
+                            self.stringToEncode.get(from + 1).unwrap(),
                         )
                     {
                         1
@@ -378,15 +392,12 @@ impl MinimalEncoder {
                     previous.clone(),
                     version,
                     self.encoders.clone(),
-                    &self.stringToEncode,
+                    self.stringToEncode.clone(),
                 ))),
             );
         }
 
-        if self.canEncode(
-            &Mode::NUMERIC,
-            self.stringToEncode.chars().nth(from).unwrap(),
-        ) {
+        if self.canEncode(&Mode::NUMERIC, self.stringToEncode.get(from).unwrap()) {
             self.addEdge(
                 edges,
                 from,
@@ -395,17 +406,15 @@ impl MinimalEncoder {
                     from,
                     0,
                     if from + 1 >= inputLength
-                        || !self.canEncode(
-                            &Mode::NUMERIC,
-                            self.stringToEncode.chars().nth(from + 1).unwrap(),
-                        )
+                        || !self
+                            .canEncode(&Mode::NUMERIC, self.stringToEncode.get(from + 1).unwrap())
                     {
                         1
                     } else {
                         if from + 2 >= inputLength
                             || !self.canEncode(
                                 &Mode::NUMERIC,
-                                self.stringToEncode.chars().nth(from + 2).unwrap(),
+                                self.stringToEncode.get(from + 2).unwrap(),
                             )
                         {
                             2
@@ -416,7 +425,7 @@ impl MinimalEncoder {
                     previous.clone(),
                     version,
                     self.encoders.clone(),
-                    &self.stringToEncode,
+                    self.stringToEncode.clone(),
                 ))),
             );
         }
@@ -535,6 +544,7 @@ impl MinimalEncoder {
          * The encodation ECI(UTF-8),BYTE(XXYY) is longer with a size of 88.
          */
 
+        // let inputLength = self.stringToEncode.chars().count();
         let inputLength = self.stringToEncode.len();
 
         // Array that represents vertices. There is a vertex for every character, encoding and mode. The vertex contains
@@ -580,6 +590,9 @@ impl MinimalEncoder {
             return Err(Exceptions::WriterException(format!(
                 r#"Internal error: failed to encode "{}"#,
                 self.stringToEncode
+                    .iter()
+                    .map(|x| String::from(x))
+                    .collect::<String>() //fold("", |acc,x| [acc,&x].concat())
             )));
         }
         Ok(RXingResultList::new(
@@ -591,7 +604,7 @@ impl MinimalEncoder {
             self.isGS1,
             &self.ecLevel,
             self.encoders.clone(),
-            &self.stringToEncode,
+            self.stringToEncode.clone(),
         ))
     }
 }
@@ -604,7 +617,7 @@ pub struct Edge {
     previous: Option<Rc<Edge>>,
     cachedTotalSize: u32,
     encoders: ECIEncoderSet,
-    stringToEncode: String,
+    stringToEncode: Vec<String>,
 }
 impl Edge {
     pub fn new(
@@ -615,7 +628,7 @@ impl Edge {
         previous: Option<Rc<Edge>>,
         version: VersionRef,
         encoders: ECIEncoderSet,
-        stringToEncode: &'_ str,
+        stringToEncode: Vec<String>,
     ) -> Self {
         let nci = if mode == Mode::BYTE || previous.is_none() {
             charsetEncoderIndex
@@ -628,7 +641,7 @@ impl Edge {
             charsetEncoderIndex: nci,
             characterLength,
             previous: previous.clone(),
-            stringToEncode: String::from(stringToEncode),
+            stringToEncode: stringToEncode.clone(),
             cachedTotalSize: {
                 let mut size = if previous.is_some() {
                     previous.as_ref().unwrap().cachedTotalSize
@@ -657,13 +670,22 @@ impl Edge {
                     }
                     Mode::ALPHANUMERIC => size += if characterLength == 1 { 6 } else { 11 },
                     Mode::BYTE => {
+                        let n: String = stringToEncode
+                            .iter()
+                            .skip(fromPosition as usize)
+                            .take(characterLength as usize)
+                            .map(|x| String::from(x))
+                            .collect();
                         size += 8 * encoders
-                            .encode_string(
-                                &stringToEncode[fromPosition as usize
-                                    ..(fromPosition + characterLength as usize)],
-                                charsetEncoderIndex as usize,
-                            )
+                            .encode_string(&n, charsetEncoderIndex as usize)
                             .len() as u32;
+                        // size += 8 * encoders
+                        //     .encode_string(
+                        //         &stringToEncode[fromPosition as usize
+                        //             ..(fromPosition + characterLength as usize)],
+                        //         charsetEncoderIndex as usize,
+                        //     )
+                        //     .len() as u32;
                         if needECI {
                             size += 4 + 8; // the ECI assignment numbers for ISO-8859-x, UTF-8 and UTF-16 are all 8 bit long
                         }
@@ -743,7 +765,7 @@ impl RXingResultList {
         isGS1: bool,
         ecLevel: &ErrorCorrectionLevel,
         encoders: ECIEncoderSet,
-        stringToEncode: &str,
+        stringToEncode: Vec<String>,
     ) -> Self {
         let mut length = 0;
         let mut current = Some(solution);
@@ -772,7 +794,7 @@ impl RXingResultList {
                     current.as_ref().unwrap().charsetEncoderIndex,
                     length,
                     encoders.clone(),
-                    stringToEncode,
+                    stringToEncode.clone(),
                     version,
                 ));
                 length = 0;
@@ -785,7 +807,7 @@ impl RXingResultList {
                     current.as_ref().unwrap().charsetEncoderIndex,
                     0,
                     encoders.clone(),
-                    stringToEncode,
+                    stringToEncode.clone(),
                     version,
                 ));
             }
@@ -805,23 +827,41 @@ impl RXingResultList {
                         0,
                         0,
                         encoders.clone(),
-                        stringToEncode,
+                        stringToEncode.clone(),
                         version,
                     ));
                 }
             }
             let first = list.get(0);
             // prepend or insert a FNC1_FIRST_POSITION after the ECI (if any)
-            if first.is_some() && first.as_ref().unwrap().mode != Mode::ECI && containsECI {
-                list.push(RXingResultNode::new(
-                    Mode::FNC1_FIRST_POSITION,
-                    0,
-                    0,
-                    0,
-                    encoders.clone(),
-                    stringToEncode,
-                    version,
-                ));
+            if first.is_some() && first.as_ref().unwrap().mode != Mode::ECI {//&& containsECI {
+                list.insert(
+                    if first.as_ref().unwrap().mode != Mode::ECI {
+                        //first
+                        list.len()
+                    } else {
+                        //second
+                        list.len()-1
+                    },
+                    RXingResultNode::new(
+                        Mode::FNC1_FIRST_POSITION,
+                        0,
+                        0,
+                        0,
+                        encoders.clone(),
+                        stringToEncode.clone(),
+                        version,
+                    ),
+                );
+                // list.push(RXingResultNode::new(
+                //     Mode::FNC1_FIRST_POSITION,
+                //     0,
+                //     0,
+                //     0,
+                //     encoders.clone(),
+                //     stringToEncode.clone(),
+                //     version,
+                // ));
             }
         }
 
@@ -937,7 +977,7 @@ struct RXingResultNode {
     characterLength: u32,
     encoders: ECIEncoderSet,
     version: VersionRef,
-    stringToEncode: String,
+    stringToEncode: Vec<String>,
 }
 
 impl RXingResultNode {
@@ -947,7 +987,7 @@ impl RXingResultNode {
         charsetEncoderIndex: usize,
         characterLength: u32,
         encoders: ECIEncoderSet,
-        stringToEncode: &str,
+        stringToEncode: Vec<String>,
         version: VersionRef,
     ) -> Self {
         Self {
@@ -956,7 +996,7 @@ impl RXingResultNode {
             charsetEncoderIndex,
             characterLength,
             encoders,
-            stringToEncode: String::from(stringToEncode),
+            stringToEncode,
             version,
         }
     }
@@ -1023,8 +1063,9 @@ impl RXingResultNode {
         if self.mode == Mode::BYTE {
             self.encoders
                 .encode_string(
-                    &self.stringToEncode[self.fromPosition as usize
-                        ..(self.fromPosition + self.characterLength as usize)],
+                    // &self.stringToEncode[self.fromPosition as usize
+                    //     ..(self.fromPosition + self.characterLength as usize)],
+                    &self.stringToEncode.get(self.fromPosition as usize).unwrap(),
                     self.charsetEncoderIndex as usize,
                 )
                 .len() as u32
@@ -1053,8 +1094,9 @@ impl RXingResultNode {
         } else if self.characterLength > 0 {
             // append data
             encoder::appendBytes(
-                &self.stringToEncode[self.fromPosition as usize
-                    ..(self.fromPosition + self.characterLength as usize)],
+                // &self.stringToEncode[self.fromPosition as usize
+                //     ..(self.fromPosition + self.characterLength as usize)],
+                &self.stringToEncode.get(self.fromPosition).unwrap(),
                 self.mode,
                 bits,
                 self.encoders.getCharset(self.charsetEncoderIndex as usize),
@@ -1067,7 +1109,7 @@ impl RXingResultNode {
         let mut result = String::new();
         for i in 0..s.chars().count() {
             // for (int i = 0; i < s.length(); i++) {
-            if (s.chars().nth(i).unwrap() as u8) < 32 || (s.chars().nth(i).unwrap() as u8) > 126 {
+            if (s.chars().nth(i).unwrap() as u32) < 32 || (s.chars().nth(i).unwrap() as u32) > 126 {
                 result.push('.');
             } else {
                 result.push(s.chars().nth(i).unwrap());
@@ -1089,10 +1131,18 @@ impl fmt::Display for RXingResultNode {
                     .name(),
             );
         } else {
-            result.push_str(&Self::makePrintable(
-                &self.stringToEncode[self.fromPosition as usize
-                    ..(self.fromPosition + self.characterLength as usize)],
-            ));
+            let sub_string: String = self
+                .stringToEncode
+                .iter()
+                .skip(self.fromPosition as usize)
+                .take(self.characterLength as usize)
+                .map(|x| String::from(x))
+                .collect();
+            // result.push_str(&Self::makePrintable(
+            //     &self.stringToEncode[self.fromPosition as usize
+            //         ..(self.fromPosition + self.characterLength as usize)],
+            // ));
+            result.push_str(&Self::makePrintable(&sub_string));
         }
         result.push(')');
 

@@ -357,9 +357,12 @@ fn chooseModeWithEncoding(content: &str, encoding: EncodingRef) -> Mode {
 }
 
 pub fn isOnlyDoubleByteKanji(content: &str) -> bool {
-    let bytes = SHIFT_JIS_CHARSET
-        .encode(content, encoding::EncoderTrap::Strict)
-        .expect("encode");
+    let bytes = if let Ok(byt) = SHIFT_JIS_CHARSET
+        .encode(content, encoding::EncoderTrap::Strict) {
+            byt
+        }else {
+            return false
+        };
     let length = bytes.len();
     if length % 2 != 0 {
         return false;
@@ -367,7 +370,7 @@ pub fn isOnlyDoubleByteKanji(content: &str) -> bool {
     let mut i = 0;
     while i < length {
         // for (int i = 0; i < length; i += 2) {
-        let byte1 = bytes[i] & 0xFF;
+        let byte1 = bytes[i];
         if (byte1 < 0x81 || byte1 > 0x9F) && (byte1 < 0xE0 || byte1 > 0xEB) {
             return false;
         }
