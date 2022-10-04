@@ -2987,14 +2987,16 @@ impl ECIEncoderSet {
             encoders = Vec::new();
             let index = 0;
 
-            encoders.push(encoding::all::UTF_8);
-            encoders.push(encoding::all::UTF_16BE);
-
             for encoder in neededEncoders {
                 //   for (CharsetEncoder encoder : neededEncoders) {
                 //encoders[index++] = encoder;
                 encoders.push(encoder);
             }
+
+            encoders.push(encoding::all::UTF_8);
+            encoders.push(encoding::all::UTF_16BE);
+
+            
         }
 
         //Compute priorityEncoderIndex by looking up priorityCharset in encoders
