@@ -2933,7 +2933,7 @@ impl ECIEncoderSet {
         let mut needUnicodeEncoder = priorityCharset.name().starts_with("UTF");
 
         //Walk over the input string and see if all characters can be encoded with the list of encoders
-        for i in 0..stringToEncode.len() {
+        for i in 0..stringToEncode.chars().count() {
             // for (int i = 0; i < stringToEncode.length(); i++) {
             let mut canEncode = false;
             for encoder in &neededEncoders {
