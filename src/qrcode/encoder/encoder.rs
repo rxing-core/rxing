@@ -70,7 +70,7 @@ const ALPHANUMERIC_TABLE: [i8; 96] = [
     25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, -1, -1, -1, -1, -1, // 0x50-0x5f
 ];
 
-const DEFAULT_BYTE_MODE_ENCODING: EncodingRef = encoding::all::ISO_8859_1;
+pub const DEFAULT_BYTE_MODE_ENCODING: EncodingRef = encoding::all::ISO_8859_1;
 
 // The mask penalty calculation is complicated.  See Table 21 of JISX0510:2004 (p.45) for details.
 // Basically it applies four rules and summate all penalties.
@@ -89,13 +89,13 @@ pub fn calculateMaskPenalty(matrix: &ByteMatrix) -> u32 {
  *   or configuration
  */
 pub fn encode(content: &str, ecLevel: ErrorCorrectionLevel) -> Result<QRCode, Exceptions> {
-    return encode_with_hints(content, ecLevel, HashMap::new());
+    return encode_with_hints(content, ecLevel, &HashMap::new());
 }
 
 pub fn encode_with_hints(
     content: &str,
     ecLevel: ErrorCorrectionLevel,
-    hints: EncodingHintDictionary,
+    hints: &EncodingHintDictionary,
 ) -> Result<QRCode, Exceptions> {
     let version;
     let mut headerAndDataBits;
@@ -431,8 +431,8 @@ pub fn willFit(numInputBits: u32, version: VersionRef, ecLevel: &ErrorCorrection
 /**
  * Terminate bits as described in 8.4.8 and 8.4.9 of JISX0510:2004 (p.24).
  */
-pub fn terminateBits(numDataBytes: u32, bits: &mut BitArray) -> Result<(), Exceptions> {
-    let capacity = numDataBytes * 8;
+pub fn terminateBits(num_data_bytes: u32, bits: &mut BitArray) -> Result<(), Exceptions> {
+    let capacity = num_data_bytes * 8;
     if bits.getSize() > capacity as usize {
         return Err(Exceptions::WriterException(format!(
             "data bits cannot fit in the QR Code{} > ",
@@ -442,8 +442,8 @@ pub fn terminateBits(numDataBytes: u32, bits: &mut BitArray) -> Result<(), Excep
         //     capacity);
     }
     // Append Mode.TERMINATE if there is enough space (value is 0000)
-    for i in 0..4 {
-        if bits.getSize() > 0 {
+    for _i in 0..4 {
+        if bits.getSize() >= capacity as usize {
             break;
         }
         // }
@@ -452,18 +452,19 @@ pub fn terminateBits(numDataBytes: u32, bits: &mut BitArray) -> Result<(), Excep
     }
     // Append termination bits. See 8.4.8 of JISX0510:2004 (p.24) for details.
     // If the last byte isn't 8-bit aligned, we'll add padding bits.
-    let numBitsInLastByte = bits.getSize() & 0x07;
-    if numBitsInLastByte > 0 {
-        for i in numBitsInLastByte..8 {
+    let num_bits_in_last_byte = bits.getSize() & 0x07;
+    if num_bits_in_last_byte > 0 {
+        for _i in num_bits_in_last_byte..8 {
             // for (int i = numBitsInLastByte; i < 8; i++) {
             bits.appendBit(false);
         }
     }
     // If we have more space, we'll fill the space with padding patterns defined in 8.4.9 (p.24).
-    let numPaddingBytes = numDataBytes as usize - bits.getSizeInBytes();
-    for i in 0..numPaddingBytes {
+    let num_padding_bytes = num_data_bytes as isize - bits.getSizeInBytes() as isize;
+    for i in 0..num_padding_bytes {
+        if i >= num_padding_bytes{ break } 
         // for (int i = 0; i < numPaddingBytes; ++i) {
-        bits.appendBits(if (i & 0x01) == 0 { 0xEC } else { 0x11 }, 8);
+        bits.appendBits(if (i & 0x01) == 0 { 0xEC } else { 0x11 }, 8)?;
     }
     if bits.getSize() != capacity as usize {
         return Err(Exceptions::WriterException(
@@ -757,22 +758,22 @@ pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<(),
         }
         if i + 1 < length {
             let code2 = getAlphanumericCode(content.chars().nth(i + 1).unwrap() as u32);
-            if (code2 == -1) {
+            if code2 == -1 {
                 return Err(Exceptions::WriterException("".to_owned()));
             }
             // Encode two alphanumeric letters in 11 bits.
-            bits.appendBits((code1 * 45 + code2) as u32, 11);
+            bits.appendBits((code1 as i16 * 45 + code2 as i16) as u32, 11)?;
             i += 2;
         } else {
             // Encode one alphanumeric letter in six bits.
-            bits.appendBits(code1 as u32, 6);
+            bits.appendBits(code1 as u32, 6)?;
             i += 1;
         }
     }
     Ok(())
 }
 
-fn append8BitBytes(content: &str, bits: &mut BitArray, encoding: EncodingRef) {
+pub fn append8BitBytes(content: &str, bits: &mut BitArray, encoding: EncodingRef) {
     let bytes = encoding
         .encode(content, encoding::EncoderTrap::Strict)
         .expect("should encode");
@@ -783,7 +784,7 @@ fn append8BitBytes(content: &str, bits: &mut BitArray, encoding: EncodingRef) {
     }
 }
 
-fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<(), Exceptions> {
+pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<(), Exceptions> {
     let sjis = &SHIFT_JIS_CHARSET; //encoding::label::encoding_from_whatwg_label("SJIS").unwrap();
 
     let bytes = sjis

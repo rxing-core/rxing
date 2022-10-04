@@ -16,7 +16,7 @@
 
 use std::collections::HashMap;
 
-use crate::{qrcode::{encoder::encoder, decoder::{Mode, ErrorCorrectionLevel}}, EncodeHintType, EncodeHintValue, common::BitArray};
+use crate::{qrcode::{encoder::{encoder, MinimalEncoder}, decoder::{Mode, ErrorCorrectionLevel, Version}}, EncodeHintType, EncodeHintValue, common::BitArray};
 use encoding::EncodingRef;
 use lazy_static::lazy_static;
 
@@ -82,13 +82,13 @@ lazy_static! {
 
     // AIUE in Hiragana in Shift_JIS
     assert_eq!(Mode::BYTE,
-               encoder::chooseMode(&shiftJISString(bytes(0x8, 0xa, 0x8, 0xa, 0x8, 0xa, 0x8, 0xa6))));
+               encoder::chooseMode(&shiftJISString(&[0x8, 0xa, 0x8, 0xa, 0x8, 0xa, 0x8, 0xa6])));
 
     // Nihon in Kanji in Shift_JIS.
-    assert_eq!(Mode::BYTE, encoder::chooseMode(&shiftJISString(bytes(0x9, 0xf, 0x9, 0x7b))));
+    assert_eq!(Mode::BYTE, encoder::chooseMode(&shiftJISString(&[0x9, 0xf, 0x9, 0x7b])));
 
     // Sou-Utsu-Byou in Kanji in Shift_JIS.
-    assert_eq!(Mode::BYTE, encoder::chooseMode(&shiftJISString(bytes(0xe, 0x4, 0x9, 0x5, 0x9, 0x61))));
+    assert_eq!(Mode::BYTE, encoder::chooseMode(&shiftJISString(&[0xe, 0x4, 0x9, 0x5, 0x9, 0x61])));
   }
 
   #[test]
@@ -129,7 +129,7 @@ r"<<
 
   #[test]
   fn  testEncodeWithVersion()   {
-    let hints = HashMap::new();
+    let mut hints = HashMap::new();
     hints.insert(EncodeHintType::QR_VERSION, EncodeHintValue::QrVersion("7".to_owned()));
     let qrCode = encoder::encode_with_hints("ABCDEF", ErrorCorrectionLevel::H, &hints).expect("encode");
     assert!(qrCode.to_string().contains(" version: 7\n"));
@@ -138,16 +138,16 @@ r"<<
   #[test]
   #[should_panic]
   fn  testEncodeWithVersionTooSmall()   {
-    let hints = HashMap::new();
-    hints.put(EncodeHintType::QR_VERSION, 3);
-    encoder::encode_with_hints("THISMESSAGEISTOOLONGFORAQRCODEVERSION3", ErrorCorrectionLevel::H, &hints);
+    let mut  hints = HashMap::new();
+    hints.insert(EncodeHintType::QR_VERSION, EncodeHintValue::QrVersion("3".to_owned()));
+    encoder::encode_with_hints("THISMESSAGEISTOOLONGFORAQRCODEVERSION3", ErrorCorrectionLevel::H, &hints).expect("encode");
   }
 
   #[test]
   fn  testSimpleUTF8ECI()   {
-    let hints = HashMap::new();
-    hints.put(EncodeHintType::CHARACTER_SET, "UTF8");
-    let qrCode = encoder::encode_with_hints("hello", ErrorCorrectionLevel::H, &hints);
+    let mut  hints = HashMap::new();
+    hints.insert(EncodeHintType::CHARACTER_SET, EncodeHintValue::CharacterSet("UTF8".to_owned()));
+    let qrCode = encoder::encode_with_hints("hello", ErrorCorrectionLevel::H, &hints).expect("encode");
     let expected = 
 r"<<
  mode: BYTE
@@ -183,11 +183,11 @@ r"<<
 
   #[test]
   fn testEncodeKanjiMode()   {
-    let hints = HashMap::new();
+    let mut  hints = HashMap::new();
 
-    hints.put(EncodeHintType::CHARACTER_SET, "Shift_JIS");
+    hints.insert(EncodeHintType::CHARACTER_SET, EncodeHintValue::CharacterSet("Shift_JIS".to_owned()));
     // Nihon in Kanji
-    let qrCode = encoder::encode_with_hints("\u{65e5}\u{672c}", ErrorCorrectionLevel::M, hints);
+    let qrCode = encoder::encode_with_hints("\u{65e5}\u{672c}", ErrorCorrectionLevel::M, &hints).expect("encode");
     let expected = 
 r"<<
  mode: KANJI
@@ -223,10 +223,11 @@ r"<<
 
   #[test]
   fn  testEncodeShiftjisNumeric()   {
-    let hints = HashMap::new();
+    let mut  hints = HashMap::new();
 
-    hints.put(EncodeHintType::CHARACTER_SET, "Shift_JIS");
-    let qrCode = encoder::encode_with_hints("0123", ErrorCorrectionLevel::M, hints);
+    hints.insert(EncodeHintType::CHARACTER_SET, EncodeHintValue::CharacterSet("Shift_JIS".to_owned()));
+    
+    let qrCode = encoder::encode_with_hints("0123", ErrorCorrectionLevel::M, &hints).expect("encode");
     let expected = 
 r"<<
  mode: NUMERIC
@@ -262,47 +263,48 @@ r"<<
 
   #[test]
   fn testEncodeGS1WithStringTypeHint()   {
-    let hints = HashMap::new();
+    let  mut hints = HashMap::new();
 
-    hints.put(EncodeHintType::GS1_FORMAT, "true");
-    let qrCode = encoder::encode_with_hints("100001%11171218", ErrorCorrectionLevel::H, hints);
-    verifyGS1EncodedData(qrCode);
+    hints.insert(EncodeHintType::GS1_FORMAT, EncodeHintValue::Gs1Format("true".to_owned()));
+    let qrCode = encoder::encode_with_hints("100001%11171218", ErrorCorrectionLevel::H, &hints).expect("encode");
+    verifyGS1EncodedData(&qrCode);
   }
 
   #[test]
   fn  testEncodeGS1WithBooleanTypeHint()   {
-    let hints = HashMap::new();
+    let  mut hints = HashMap::new();
 
-    hints.put(EncodeHintType::GS1_FORMAT, true);
-    let qrCode = encoder::encode_with_hints("100001%11171218", ErrorCorrectionLevel::H, hints);
-    verifyGS1EncodedData(qrCode);
+    hints.insert(EncodeHintType::GS1_FORMAT, EncodeHintValue::Gs1Format("true".to_owned()));
+    let qrCode = encoder::encode_with_hints("100001%11171218", ErrorCorrectionLevel::H, &hints).expect("encode");
+    verifyGS1EncodedData(&qrCode);
   }
 
   #[test]
   fn  testDoesNotEncodeGS1WhenBooleanTypeHintExplicitlyFalse()   {
-    let hints = HashMap::new();
+    let  mut hints = HashMap::new();
 
-    hints.put(EncodeHintType::GS1_FORMAT, false);
-    let qrCode = encoder::encode_with_hints("ABCDEF", ErrorCorrectionLevel::H, hints);
-    verifyNotGS1EncodedData(qrCode);
+    hints.insert(EncodeHintType::GS1_FORMAT, EncodeHintValue::Gs1Format("false".to_owned()));
+
+    let qrCode = encoder::encode_with_hints("ABCDEF", ErrorCorrectionLevel::H, &hints).expect("encode");
+    verifyNotGS1EncodedData(&qrCode);
   }
 
   #[test]
   fn  testDoesNotEncodeGS1WhenStringTypeHintExplicitlyFalse()   {
-    let hints = HashMap::new();
+    let  mut hints = HashMap::new();
 
-    hints.put(EncodeHintType::GS1_FORMAT, "false");
-    let qrCode = encoder::encode_with_hints("ABCDEF", ErrorCorrectionLevel::H, hints);
-    verifyNotGS1EncodedData(qrCode);
+    hints.insert(EncodeHintType::GS1_FORMAT, EncodeHintValue::Gs1Format("false".to_owned()));
+    let qrCode = encoder::encode_with_hints("ABCDEF", ErrorCorrectionLevel::H, &hints).expect("encode");
+    verifyNotGS1EncodedData(&qrCode);
   }
 
   #[test]
   fn  testGS1ModeHeaderWithECI()   {
-    let hints = HashMap::new();
+    let  mut hints = HashMap::new();
 
-    hints.put(EncodeHintType::CHARACTER_SET, "UTF8");
-    hints.put(EncodeHintType::GS1_FORMAT, true);
-    let qrCode = encoder::encode_with_hints("hello", ErrorCorrectionLevel::H, hints);
+    hints.insert(EncodeHintType::CHARACTER_SET, EncodeHintValue::CharacterSet("UTF8".to_owned()));
+    hints.insert(EncodeHintType::GS1_FORMAT, EncodeHintValue::Gs1Format("true".to_owned()));
+    let qrCode = encoder::encode_with_hints("hello", ErrorCorrectionLevel::H, &hints).expect("encode");
     let expected = 
 r"<<
  mode: BYTE
@@ -338,36 +340,36 @@ r"<<
 
   #[test]
   fn  testAppendModeInfo() {
-    let bits =  BitArray::new();
-    encoder::appendModeInfo(Mode::NUMERIC, bits);
+    let mut bits =  BitArray::new();
+    encoder::appendModeInfo(Mode::NUMERIC, &mut bits);
     assert_eq!(" ...X", bits.to_string());
   }
 
   #[test]
   fn  testAppendLengthInfo()   {
-    let bits =  BitArray::new();
+    let mut bits =  BitArray::new();
     encoder::appendLengthInfo(1,  // 1 letter (1/1).
-                             Version::getVersionForNumber(1),
+                             Version::getVersionForNumber(1).unwrap(),
                              Mode::NUMERIC,
-                             bits);
+                             &mut bits);
     assert_eq!(" ........ .X", bits.to_string());  // 10 bits.
-    let bits =  BitArray::new();
+    let  mut bits =  BitArray::new();
     encoder::appendLengthInfo(2,  // 2 letters (2/1).
-                             Version::getVersionForNumber(10),
+                             Version::getVersionForNumber(10).unwrap(),
                              Mode::ALPHANUMERIC,
-                             bits);
+                             &mut bits);
     assert_eq!(" ........ .X.", bits.to_string());  // 11 bits.
-    let bits =  BitArray::new();
+    let  mut bits =  BitArray::new();
     encoder::appendLengthInfo(255,  // 255 letter (255/1).
-                             Version::getVersionForNumber(27),
+                             Version::getVersionForNumber(27).unwrap(),
                              Mode::BYTE,
-                             bits);
+                             &mut bits);
     assert_eq!(" ........ XXXXXXXX", bits.to_string());  // 16 bits.
-    let bits =  BitArray::new();
+    let  mut bits =  BitArray::new();
     encoder::appendLengthInfo(512,  // 512 letters (1024/2).
-                             Version::getVersionForNumber(40),
+                             Version::getVersionForNumber(40).unwrap(),
                              Mode::KANJI,
-                             bits);
+                             &mut bits);
     assert_eq!(" ..X..... ....", bits.to_string());  // 12 bits.
   }
 
@@ -375,139 +377,144 @@ r"<<
   fn  testAppendBytes()   {
     // Should use appendNumericBytes.
     // 1 = 01 = 0001 in 4 bits.
-    let bits =  BitArray::new();
-    encoder::appendBytes("1", Mode::NUMERIC, bits, encoder::DEFAULT_BYTE_MODE_ENCODING);
+    let mut bits =  BitArray::new();
+    encoder::appendBytes("1", Mode::NUMERIC, &mut bits, encoder::DEFAULT_BYTE_MODE_ENCODING);
     assert_eq!(" ...X" , bits.to_string());
     // Should use appendAlphanumericBytes.
     // A = 10 = 0xa = 001010 in 6 bits
-    let bits =  BitArray::new();
-    encoder::appendBytes("A", Mode::ALPHANUMERIC, bits, encoder::DEFAULT_BYTE_MODE_ENCODING);
+    let mut  bits =  BitArray::new();
+    encoder::appendBytes("A", Mode::ALPHANUMERIC, &mut bits, encoder::DEFAULT_BYTE_MODE_ENCODING);
     assert_eq!(" ..X.X." , bits.to_string());
     // Lower letters such as 'a' cannot be encoded in MODE_ALPHANUMERIC.
-    try {
-      encoder::appendBytes("a", Mode::ALPHANUMERIC, bits, encoder::DEFAULT_BYTE_MODE_ENCODING);
-    } catch (WriterException we) {
+    //try {
+      if encoder::appendBytes("a", Mode::ALPHANUMERIC, &mut bits, encoder::DEFAULT_BYTE_MODE_ENCODING).is_ok(){
+        panic!("should never be ok");
+      }
+    //} catch (WriterException we) {
       // good
-    }
+    //}
     // Should use append8BitBytes.
     // 0x61, 0x62, 0x63
-    let bits =  BitArray::new();
-    encoder::appendBytes("abc", Mode::BYTE, bits, encoder::DEFAULT_BYTE_MODE_ENCODING);
+    let mut  bits =  BitArray::new();
+    encoder::appendBytes("abc", Mode::BYTE, &mut bits, encoder::DEFAULT_BYTE_MODE_ENCODING);
     assert_eq!(" .XX....X .XX...X. .XX...XX", bits.to_string());
     // Anything can be encoded in QRCode.MODE_8BIT_BYTE.
-    encoder::appendBytes("\0", Mode::BYTE, bits, encoder::DEFAULT_BYTE_MODE_ENCODING);
+    encoder::appendBytes("\0", Mode::BYTE, &mut bits, encoder::DEFAULT_BYTE_MODE_ENCODING);
     // Should use appendKanjiBytes.
     // 0x93, 0x5f
-    let bits =  BitArray::new();
-    encoder::appendBytes(&shiftJISString(bytes(0x93, 0x5f)), Mode::KANJI, bits,
+    let mut  bits =  BitArray::new();
+    encoder::appendBytes(&shiftJISString(&[0x93, 0x5f]), Mode::KANJI, &mut bits,
         encoder::DEFAULT_BYTE_MODE_ENCODING);
     assert_eq!(" .XX.XX.. XXXXX", bits.to_string());
   }
 
   #[test]
   fn  testTerminateBits()   {
-    let v =  BitArray::new();
-    encoder::terminateBits(0, v);
+    let mut v =  BitArray::new();
+    encoder::terminateBits(0, &mut v).expect("terminate");
     assert_eq!("", v.to_string());
-    let v =  BitArray::new();
-    encoder::terminateBits(1, v);
+    let mut  v =  BitArray::new();
+    encoder::terminateBits(1, &mut v).expect("terminate");
     assert_eq!(" ........", v.to_string());
-    let v =  BitArray::new();
-    v.appendBits(0, 3);  // Append 000
-    encoder::terminateBits(1, v);
+    let mut  v =  BitArray::new();
+    v.appendBits(0, 3).expect("terminate");  // Append 000
+    encoder::terminateBits(1, &mut v).expect("terminate");
     assert_eq!(" ........", v.to_string());
-    let v =  BitArray::new();
-    v.appendBits(0, 5);  // Append 00000
-    encoder::terminateBits(1, v);
+    let  mut v =  BitArray::new();
+    v.appendBits(0, 5).expect("terminate");  // Append 00000
+    encoder::terminateBits(1, &mut v).expect("terminate");
     assert_eq!(" ........", v.to_string());
-    let v =  BitArray::new();
-    v.appendBits(0, 8);  // Append 00000000
-    encoder::terminateBits(1, v);
+    let  mut v =  BitArray::new();
+    v.appendBits(0, 8).expect("terminate");  // Append 00000000
+    encoder::terminateBits(1, &mut v).expect("terminate");
     assert_eq!(" ........", v.to_string());
-    let v =  BitArray::new();
-    encoder::terminateBits(2, v);
+    let  mut v =  BitArray::new();
+    encoder::terminateBits(2, &mut v).expect("terminate");
     assert_eq!(" ........ XXX.XX..", v.to_string());
-    let v =  BitArray::new();
-    v.appendBits(0, 1);  // Append 0
-    encoder::terminateBits(3, v);
+    let  mut v =  BitArray::new();
+    v.appendBits(0, 1).expect("terminate");  // Append 0
+    encoder::terminateBits(3, &mut v).expect("terminate");
     assert_eq!(" ........ XXX.XX.. ...X...X", v.to_string());
   }
 
   #[test]
   fn  testGetNumDataBytesAndNumECBytesForBlockID()   {
-    int[] numDataBytes = new int[1];
-    int[] numEcBytes = new int[1];
+    let mut numDataBytes = vec![0;1];
+    let mut numEcBytes = vec![0;1];
     // Version 1-H.
-    encoder::getNumDataBytesAndNumECBytesForBlockID(26, 9, 1, 0, numDataBytes, numEcBytes);
+    encoder::getNumDataBytesAndNumECBytesForBlockID(26, 9, 1, 0, &mut numDataBytes, &mut numEcBytes);
     assert_eq!(9, numDataBytes[0]);
     assert_eq!(17, numEcBytes[0]);
 
     // Version 3-H.  2 blocks.
-    encoder::getNumDataBytesAndNumECBytesForBlockID(70, 26, 2, 0, numDataBytes, numEcBytes);
+    encoder::getNumDataBytesAndNumECBytesForBlockID(70, 26, 2, 0, &mut numDataBytes, &mut numEcBytes);
     assert_eq!(13, numDataBytes[0]);
     assert_eq!(22, numEcBytes[0]);
-    encoder::getNumDataBytesAndNumECBytesForBlockID(70, 26, 2, 1, numDataBytes, numEcBytes);
+    encoder::getNumDataBytesAndNumECBytesForBlockID(70, 26, 2, 1, &mut numDataBytes, &mut numEcBytes);
     assert_eq!(13, numDataBytes[0]);
     assert_eq!(22, numEcBytes[0]);
 
     // Version 7-H. (4 + 1) blocks.
-    encoder::getNumDataBytesAndNumECBytesForBlockID(196, 66, 5, 0, numDataBytes, numEcBytes);
+    encoder::getNumDataBytesAndNumECBytesForBlockID(196, 66, 5, 0, &mut numDataBytes, &mut numEcBytes);
     assert_eq!(13, numDataBytes[0]);
     assert_eq!(26, numEcBytes[0]);
-    encoder::getNumDataBytesAndNumECBytesForBlockID(196, 66, 5, 4, numDataBytes, numEcBytes);
+    encoder::getNumDataBytesAndNumECBytesForBlockID(196, 66, 5, 4, &mut numDataBytes, &mut numEcBytes);
     assert_eq!(14, numDataBytes[0]);
     assert_eq!(26, numEcBytes[0]);
 
     // Version 40-H. (20 + 61) blocks.
-    encoder::getNumDataBytesAndNumECBytesForBlockID(3706, 1276, 81, 0, numDataBytes, numEcBytes);
+    encoder::getNumDataBytesAndNumECBytesForBlockID(3706, 1276, 81, 0, &mut numDataBytes, &mut numEcBytes);
     assert_eq!(15, numDataBytes[0]);
     assert_eq!(30, numEcBytes[0]);
-    encoder::getNumDataBytesAndNumECBytesForBlockID(3706, 1276, 81, 20, numDataBytes, numEcBytes);
+    encoder::getNumDataBytesAndNumECBytesForBlockID(3706, 1276, 81, 20, &mut numDataBytes, &mut numEcBytes);
     assert_eq!(16, numDataBytes[0]);
     assert_eq!(30, numEcBytes[0]);
-    encoder::getNumDataBytesAndNumECBytesForBlockID(3706, 1276, 81, 80, numDataBytes, numEcBytes);
+    encoder::getNumDataBytesAndNumECBytesForBlockID(3706, 1276, 81, 80, &mut numDataBytes, &mut numEcBytes);
     assert_eq!(16, numDataBytes[0]);
     assert_eq!(30, numEcBytes[0]);
   }
 
   #[test]
   fn  testInterleaveWithECBytes()   {
-    byte[] dataBytes = bytes(32, 65, 205, 69, 41, 220, 46, 128, 236);
-    BitArray in = new BitArray();
-    for (byte dataByte: dataBytes) {
-      in.appendBits(dataByte, 8);
+    let dataBytes = &[32u32, 65, 205, 69, 41, 220, 46, 128, 236];
+    let mut in_ = BitArray::new();
+    for dataByte in dataBytes {
+    // for (byte dataByte: dataBytes) {
+      in_.appendBits(*dataByte, 8);
     }
-    BitArray out = encoder::interleaveWithECBytes(in, 26, 9, 1);
-    byte[] expected = bytes(
+    let out = encoder::interleaveWithECBytes(&in_, 26, 9, 1).expect("encode");
+    let expected = &[
         // Data bytes.
         32, 65, 205, 69, 41, 220, 46, 128, 236,
         // Error correction bytes.
         42, 159, 74, 221, 244, 169, 239, 150, 138, 70,
         237, 85, 224, 96, 74, 219, 61
-    );
-    assert_eq!(expected.length, out.getSizeInBytes());
-    byte[] outArray = new byte[expected.length];
-    out.toBytes(0, outArray, 0, expected.length);
+    ];
+    assert_eq!(expected.len(), out.getSizeInBytes());
+    let mut outArray = vec![0u8;expected.len()];
+    out.toBytes(0, &mut outArray, 0, expected.len());
     // Can't use Arrays.equals(), because outArray may be longer than out.sizeInBytes()
-    for (int x = 0; x < expected.length; x++) {
+    for x in 0..expected.len() {
+    // for (int x = 0; x < expected.length; x++) {
       assert_eq!(expected[x], outArray[x]);
     }
     // Numbers are from http://www.swetake.com/qr/qr8.html
-    dataBytes = bytes(
-        67, 70, 22, 38, 54, 70, 86, 102, 118, 134, 150, 166, 182,
+    let dataBytes = &[
+        67u32, 70, 22, 38, 54, 70, 86, 102, 118, 134, 150, 166, 182,
         198, 214, 230, 247, 7, 23, 39, 55, 71, 87, 103, 119, 135,
         151, 166, 22, 38, 54, 70, 86, 102, 118, 134, 150, 166,
         182, 198, 214, 230, 247, 7, 23, 39, 55, 71, 87, 103, 119,
         135, 151, 160, 236, 17, 236, 17, 236, 17, 236,
         17
-    );
-    in = new BitArray();
-    for (byte dataByte: dataBytes) {
-      in.appendBits(dataByte, 8);
+    ];
+    in_ =  BitArray::new();
+    for dataByte in dataBytes{
+    // for (byte dataByte: dataBytes) {
+      in_.appendBits(*dataByte, 8);
     }
 
-    out = encoder::interleaveWithECBytes(in, 134, 62, 4);
-    expected = bytes(
+    let out = encoder::interleaveWithECBytes(&in_, 134, 62, 4).expect("interleave ok");
+    let expected = &[
         // Data bytes.
         67, 230, 54, 55, 70, 247, 70, 71, 22, 7, 86, 87, 38, 23, 102, 103, 54, 39,
         118, 119, 70, 55, 134, 135, 86, 71, 150, 151, 102, 87, 166,
@@ -523,11 +530,12 @@ r"<<
         211, 164, 117, 30, 158, 225, 31, 190, 242, 38,
         140, 61, 179, 154, 214, 138, 147, 87, 27, 96, 77, 47,
         187, 49, 156, 214
-    );
-    assert_eq!(expected.length, out.getSizeInBytes());
-    outArray = new byte[expected.length];
-    out.toBytes(0, outArray, 0, expected.length);
-    for (int x = 0; x < expected.length; x++) {
+    ];
+    assert_eq!(expected.len(), out.getSizeInBytes());
+    outArray = vec![0u8;expected.len()];
+    out.toBytes(0, &mut outArray, 0, expected.len());
+    for x in 0..expected.len(){
+    // for (int x = 0; x < expected.length; x++) {
       assert_eq!(expected[x], outArray[x]);
     }
   }
@@ -544,23 +552,23 @@ r"<<
   fn  testAppendNumericBytes() {
     // 1 = 01 = 0001 in 4 bits.
     let mut bits =  BitArray::new();
-    encoder::appendNumericBytes("1", bits);
+    encoder::appendNumericBytes("1", &mut bits);
     assert_eq!(" ...X" , bits.to_string());
     // 12 = 0xc = 0001100 in 7 bits.
     let mut bits =  BitArray::new();
-    encoder::appendNumericBytes("12", bits);
+    encoder::appendNumericBytes("12", &mut bits);
     assert_eq!(" ...XX.." , bits.to_string());
     // 123 = 0x7b = 0001111011 in 10 bits.
     let mut bits =  BitArray::new();
-    encoder::appendNumericBytes("123", bits);
+    encoder::appendNumericBytes("123", &mut bits);
     assert_eq!(" ...XXXX. XX" , bits.to_string());
     // 1234 = "123" + "4" = 0001111011 + 0100
     let mut bits =  BitArray::new();
-    encoder::appendNumericBytes("1234", bits);
+    encoder::appendNumericBytes("1234", &mut bits);
     assert_eq!(" ...XXXX. XX.X.." , bits.to_string());
     // Empty.
     let mut bits =  BitArray::new();
-    encoder::appendNumericBytes("", bits);
+    encoder::appendNumericBytes("", &mut bits);
     assert_eq!("" , bits.to_string());
   }
 
@@ -568,37 +576,39 @@ r"<<
   fn  testAppendAlphanumericBytes()   {
     // A = 10 = 0xa = 001010 in 6 bits
     let mut bits =  BitArray::new();
-    encoder::appendAlphanumericBytes("A", bits);
+    encoder::appendAlphanumericBytes("A", &mut bits);
     assert_eq!(" ..X.X." , bits.to_string());
     // AB = 10 * 45 + 11 = 461 = 0x1cd = 00111001101 in 11 bits
     let mut bits =  BitArray::new();
-    encoder::appendAlphanumericBytes("AB", bits);
+    encoder::appendAlphanumericBytes("AB", &mut bits);
     assert_eq!(" ..XXX..X X.X", bits.to_string());
     // ABC = "AB" + "C" = 00111001101 + 001100
     let mut bits =  BitArray::new();
-    encoder::appendAlphanumericBytes("ABC", bits);
+    encoder::appendAlphanumericBytes("ABC", &mut bits);
     assert_eq!(" ..XXX..X X.X..XX. ." , bits.to_string());
     // Empty.
     let mut bits =  BitArray::new();
-    encoder::appendAlphanumericBytes("", bits);
+    encoder::appendAlphanumericBytes("", &mut bits);
     assert_eq!("" , bits.to_string());
     // Invalid data.
-    try {
-      encoder::appendAlphanumericBytes("abc",  BitArray::new());
-    } catch (WriterException we) {
+    // try {
+      if encoder::appendAlphanumericBytes("abc",  &mut BitArray::new()).is_ok() {
+        panic!("should not be ok");
+      }
+    // } catch (WriterException we) {
       // good
-    }
+    // }
   }
 
   #[test]
   fn  testAppend8BitBytes() {
     // 0x61, 0x62, 0x63
     let mut bits =  BitArray::new();
-    encoder::append8BitBytes("abc", bits, encoder::DEFAULT_BYTE_MODE_ENCODING);
+    encoder::append8BitBytes("abc", &mut bits, encoder::DEFAULT_BYTE_MODE_ENCODING);
     assert_eq!(" .XX....X .XX...X. .XX...XX", bits.to_string());
     // Empty.
     let mut bits =  BitArray::new();
-    encoder::append8BitBytes("", bits, encoder::DEFAULT_BYTE_MODE_ENCODING);
+    encoder::append8BitBytes("", &mut bits, encoder::DEFAULT_BYTE_MODE_ENCODING);
     assert_eq!("", bits.to_string());
   }
 
@@ -606,9 +616,9 @@ r"<<
   #[test]
   fn  testAppendKanjiBytes()   {
     let mut bits =  BitArray::new();
-    encoder::appendKanjiBytes(shiftJISString(bytes(0x93, 0x5f)), bits);
+    encoder::appendKanjiBytes(&shiftJISString(&[0x93, 0x5f]), &mut bits);
     assert_eq!(" .XX.XX.. XXXXX", bits.to_string());
-    encoder::appendKanjiBytes(shiftJISString(bytes(0xe4, 0xaa)), bits);
+    encoder::appendKanjiBytes(&shiftJISString(&[0xe4, 0xaa]), &mut bits);
     assert_eq!(" .XX.XX.. XXXXXXX. X.X.X.X. X.", bits.to_string());
   }
 
@@ -616,32 +626,35 @@ r"<<
   // http://www.swetake.com/qr/qr9.html
   #[test]
   fn  testGenerateECBytes() {
-    let dataBytes = bytes(32, 65, 205, 69, 41, 220, 46, 128, 236);
+    let dataBytes = &[32, 65, 205, 69, 41, 220, 46, 128, 236];
     let ecBytes = encoder::generateECBytes(dataBytes, 17);
     let expected = [
         42, 159, 74, 221, 244, 169, 239, 150, 138, 70, 237, 85, 224, 96, 74, 219, 61
     ];
-    assert_eq!(expected.length, ecBytes.length);
-    for (int x = 0; x < expected.length; x++) {
+    assert_eq!(expected.len(), ecBytes.len());
+    for x in 0..expected.len() {
+    // for (int x = 0; x < expected.length; x++) {
       assert_eq!(expected[x], ecBytes[x] & 0xFF);
     }
-    dataBytes = bytes(67, 70, 22, 38, 54, 70, 86, 102, 118, 134, 150, 166,  182, 198, 214);
-    ecBytes = encoder::generateECBytes(dataBytes, 18);
-    expected = new int[] {
+    let dataBytes = &[67, 70, 22, 38, 54, 70, 86, 102, 118, 134, 150, 166,  182, 198, 214];
+    let ecBytes = encoder::generateECBytes(dataBytes, 18);
+    let expected = &[
         175, 80, 155, 64, 178, 45, 214, 233, 65, 209, 12, 155, 117, 31, 140, 214, 27, 187
-    };
-    assert_eq!(expected.length, ecBytes.length);
-    for (int x = 0; x < expected.length; x++) {
+    ];
+    assert_eq!(expected.len(), ecBytes.len());
+    for x in 0..expected.len() {
+    // for (int x = 0; x < expected.length; x++) {
       assert_eq!(expected[x], ecBytes[x] & 0xFF);
     }
     // High-order zero coefficient case.
-    dataBytes = bytes(32, 49, 205, 69, 42, 20, 0, 236, 17);
-    ecBytes = encoder::generateECBytes(dataBytes, 17);
-    expected = new int[] {
+    let dataBytes = &[32, 49, 205, 69, 42, 20, 0, 236, 17];
+    let ecBytes = encoder::generateECBytes(dataBytes, 17);
+    let expected = &[
         0, 3, 130, 179, 194, 0, 55, 211, 110, 79, 98, 72, 170, 96, 211, 137, 213
-    };
-    assert_eq!(expected.length, ecBytes.length);
-    for (int x = 0; x < expected.length; x++) {
+    ];
+    assert_eq!(expected.len(), ecBytes.len());
+    for x in 0..expected.len() {
+    // for (int x = 0; x < expected.length; x++) {
       assert_eq!(expected[x], ecBytes[x] & 0xFF);
     }
   }
@@ -676,12 +689,12 @@ r"<<
     //   - To be precise, it needs 11727 + 4 (getMode info) + 14 (length info) =
     //     11745 bits = 1468.125 bytes are needed (i.e. cannot fit in 1468
     //     bytes).
-    let builder =  String::with_capacity(3518);
+    let mut builder =  String::with_capacity(3518);
     for x in 0..3518 {
     // for (int x = 0; x < 3518; x++) {
       builder.push('0');
     }
-    encoder::encode(builder.to_string(), ErrorCorrectionLevel::L);
+    encoder::encode(&builder, ErrorCorrectionLevel::L);
   }
 
   #[test]
@@ -841,14 +854,14 @@ r"<<
 
   #[test]
   fn  testMinimalEncoder32()   {
-    verifyMinimalEncoding("http://foo.com", "BYTE(http://foo.com)" +
-        "", None, false);
+    verifyMinimalEncoding("http://foo.com", "BYTE(http://foo.com)\
+        ", None, false);
   }
 
   #[test]
   fn  testMinimalEncoder33()   {
-    verifyMinimalEncoding("HTTP://FOO.COM", "ALPHANUMERIC(HTTP://FOO.COM" +
-        ")", None, false);
+    verifyMinimalEncoding("HTTP://FOO.COM", "ALPHANUMERIC(HTTP://FOO.COM\
+        )", None, false);
   }
 
   #[test]
@@ -874,27 +887,27 @@ r"<<
 
   #[test]
   fn  testMinimalEncoder38()   {
-    verifyMinimalEncoding("\u{0150}\u{0150}\u{015C}\u{015C}", "ECI(ISO-8859-2),BYTE(." +
-        ".),ECI(ISO-8859-3),BYTE(..)", None, false);
+    verifyMinimalEncoding("\u{0150}\u{0150}\u{015C}\u{015C}", "ECI(ISO-8859-2),BYTE(.\
+        .),ECI(ISO-8859-3),BYTE(..)", None, false);
   }
 
   #[test]
   fn  testMinimalEncoder39()   {
-    verifyMinimalEncoding("abcdef\u{0150}ghij", "ECI(ISO-8859-2),BYTE(abcde" +
-        "f.ghij)", None, false);
+    verifyMinimalEncoding("abcdef\u{0150}ghij", "ECI(ISO-8859-2),BYTE(abcde\
+        f.ghij)", None, false);
   }
 
   #[test]
   fn  testMinimalEncoder40()   {
     verifyMinimalEncoding("2938928329832983\u{0150}2938928329832983\u{015C}2938928329832983", 
-        "NUMERIC(2938928329832983),ECI(ISO-8859-2),BYTE(.),NUMERIC(2938928329832983),ECI(ISO-8" +
-        "859-3),BYTE(.),NUMERIC(2938928329832983)", None, false);
+        "NUMERIC(2938928329832983),ECI(ISO-8859-2),BYTE(.),NUMERIC(2938928329832983),ECI(ISO-8\
+        859-3),BYTE(.),NUMERIC(2938928329832983)", None, false);
   }
 
   #[test]
   fn  testMinimalEncoder41()   {
-    verifyMinimalEncoding("1001114670010%01201220%107211220%140045003267781", "FNC1_FIRST_POSITION(),NUMERIC(100111" +
-        "4670010),ALPHANUMERIC(%01201220%107211220%),NUMERIC(140045003267781)", None, 
+    verifyMinimalEncoding("1001114670010%01201220%107211220%140045003267781", "FNC1_FIRST_POSITION(),NUMERIC(100111\
+        4670010),ALPHANUMERIC(%01201220%107211220%),NUMERIC(140045003267781)", None, 
         true);
   }
 
@@ -917,14 +930,14 @@ r"<<
     // The character \u30A2 encodes as double byte in Shift_JIS but KANJI is not more compact in this case because
     // KANJI is only more compact when it encodes pairs of characters. In the case of mixed text it can however be
     // that Shift_JIS encoding is more compact as in this example
-    verifyMinimalEncoding("Katakana:\u{30A2}a\u{30A2}a\u{30A2}a\u{30A2}a\u{30A2}a\u{30A2}", "ECI(Shift_JIS),BYTE(Katakana:.a.a.a" +
-        ".a.a.)", None, false);
+    verifyMinimalEncoding("Katakana:\u{30A2}a\u{30A2}a\u{30A2}a\u{30A2}a\u{30A2}a\u{30A2}", "ECI(Shift_JIS),BYTE(Katakana:.a.a.a\
+        .a.a.)", None, false);
   }
 
   fn verifyMinimalEncoding( input:&str,  expectedRXingResult:&str,  priorityCharset:Option<EncodingRef>,  isGS1:bool) 
         {
-    let result = Minimalencoder::encode(input, None, priorityCharset, isGS1,
-        ErrorCorrectionLevel::L);
+    let result = MinimalEncoder::encode_with_details(input, None, priorityCharset.unwrap_or(encoding::all::ISO_8859_1), isGS1,
+        ErrorCorrectionLevel::L).expect("encode");
     assert_eq!(result.to_string(), expectedRXingResult);
   }
 

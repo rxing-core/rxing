@@ -84,9 +84,9 @@ const ASSUME_SHIFT_JIS: bool = false;
 static SHIFT_JIS: &'static str = "SJIS";
 static GB2312: &'static str = "GB2312";
 lazy_static! {
-    pub static ref SHIFT_JIS_CHARSET: EncodingRef = encoding::label::encoding_from_whatwg_label("SJIS").unwrap();
+    pub static ref SHIFT_JIS_CHARSET: EncodingRef =
+        encoding::label::encoding_from_whatwg_label("SJIS").unwrap();
 }
-
 
 //    private static final boolean ASSUME_SHIFT_JIS =
 //        SHIFT_JIS_CHARSET.equals(PLATFORM_DEFAULT_ENCODING) ||
@@ -558,27 +558,27 @@ impl BitArray {
      * @param value {@code int} containing bits to append
      * @param numBits bits from value to append
      */
-    pub fn appendBits(&mut self, value: u32, numBits: usize) -> Result<(), Exceptions> {
-        if numBits > 32 {
+    pub fn appendBits(&mut self, value: u32, num_bits: usize) -> Result<(), Exceptions> {
+        if num_bits > 32 {
             return Err(Exceptions::IllegalArgumentException(
                 "Num bits must be between 0 and 32".to_owned(),
             ));
         }
 
-        if numBits == 0 {
+        if num_bits == 0 {
             return Ok(());
         }
 
-        let mut nextSize = self.size;
-        self.ensure_capacity(nextSize + numBits);
-        for numBitsLeft in (0..(numBits)).rev() {
+        let mut next_size = self.size;
+        self.ensure_capacity(next_size + num_bits);
+        for numBitsLeft in (0..num_bits).rev() {
             //for (int numBitsLeft = numBits - 1; numBitsLeft >= 0; numBitsLeft--) {
             if (value & (1 << numBitsLeft)) != 0 {
-                self.bits[nextSize / 32] |= 1 << (nextSize & 0x1F);
+                self.bits[next_size / 32] |= 1 << (next_size & 0x1F);
             }
-            nextSize += 1;
+            next_size += 1;
         }
-        self.size = nextSize;
+        self.size = next_size;
         Ok(())
     }
 
@@ -1670,7 +1670,7 @@ impl PerspectiveTransform {
         x3p: f32,
         y3p: f32,
     ) -> Self {
-        let  q_to_s = PerspectiveTransform::quadrilateralToSquare(x0, y0, x1, y1, x2, y2, x3, y3);
+        let q_to_s = PerspectiveTransform::quadrilateralToSquare(x0, y0, x1, y1, x2, y2, x3, y3);
         let s_to_q =
             PerspectiveTransform::squareToQuadrilateral(x0p, y0p, x1p, y1p, x2p, y2p, x3p, y3p);
         return s_to_q.times(&q_to_s);
@@ -2473,7 +2473,7 @@ impl CharacterSetECI {
     //     this.otherEncodingNames = otherEncodingNames;
     //   }
 
-    pub fn getValueSelf(&self) -> u32{
+    pub fn getValueSelf(&self) -> u32 {
         Self::getValue(self)
     }
 
@@ -2550,7 +2550,7 @@ impl CharacterSetECI {
     pub fn getCharacterSetECI(charset: &'static dyn Encoding) -> Option<CharacterSetECI> {
         let name = if let Some(nm) = charset.whatwg_name() {
             nm
-        }else {
+        } else {
             charset.name()
         };
         match name {
@@ -2853,6 +2853,44 @@ impl fmt::Display for ECIStringBuilder {
 // import java.util.ArrayList;
 // import java.util.List;
 
+lazy_static! {
+    static ref ENCODERS : Vec<EncodingRef> = {
+        let mut enc_vec = Vec::new();
+        for name in NAMES {
+            if let Some(enc) = CharacterSetECI::getCharacterSetECIByName(name) {
+                // try {
+                    enc_vec.push(CharacterSetECI::getCharset(&enc));
+                // } catch (UnsupportedCharsetException e) {
+                // continue
+                // }
+            }
+        }
+        enc_vec
+    };
+}
+const NAMES: [&str; 20] = [
+    "IBM437",
+    "ISO-8859-2",
+    "ISO-8859-3",
+    "ISO-8859-4",
+    "ISO-8859-5",
+    "ISO-8859-6",
+    "ISO-8859-7",
+    "ISO-8859-8",
+    "ISO-8859-9",
+    "ISO-8859-10",
+    "ISO-8859-11",
+    "ISO-8859-13",
+    "ISO-8859-14",
+    "ISO-8859-15",
+    "ISO-8859-16",
+    "windows-1250",
+    "windows-1251",
+    "windows-1252",
+    "windows-1256",
+    "Shift_JIS",
+];
+
 /**
  * Set of CharsetEncoders for a given input string
  *
@@ -2882,45 +2920,8 @@ impl ECIEncoderSet {
      * @param fnc1 fnc1 denotes the character in the input that represents the FNC1 character or -1 for a non-GS1 bar
      * code. When specified, it is considered an error to pass it as argument to the methods canEncode() or encode().
      */
-    pub fn new(
-        stringToEncode: &str,
-        priorityCharset: EncodingRef,
-        fnc1: i16,
-    ) -> Self {
+    pub fn new(stringToEncode: &str, priorityCharset: EncodingRef, fnc1: i16) -> Self {
         // List of encoders that potentially encode characters not in ISO-8859-1 in one byte.
-        let mut ENCODERS :Vec<EncodingRef> = Vec::new();
-
-        let names = [
-            "IBM437",
-            "ISO-8859-2",
-            "ISO-8859-3",
-            "ISO-8859-4",
-            "ISO-8859-5",
-            "ISO-8859-6",
-            "ISO-8859-7",
-            "ISO-8859-8",
-            "ISO-8859-9",
-            "ISO-8859-10",
-            "ISO-8859-11",
-            "ISO-8859-13",
-            "ISO-8859-14",
-            "ISO-8859-15",
-            "ISO-8859-16",
-            "windows-1250",
-            "windows-1251",
-            "windows-1252",
-            "windows-1256",
-            "Shift_JIS",
-        ];
-        for name in names {
-            if let Some(enc) = CharacterSetECI::getCharacterSetECIByName(name) {
-                // try {
-                ENCODERS.push(CharacterSetECI::getCharset(&enc));
-                // } catch (UnsupportedCharsetException e) {
-                // continue
-                // }
-            }
-        }
 
         let mut encoders: Vec<EncodingRef>;
         let mut priorityEncoderIndexValue = 0;
@@ -2929,7 +2930,6 @@ impl ECIEncoderSet {
 
         //we always need the ISO-8859-1 encoder. It is the default encoding
         neededEncoders.push(encoding::all::ISO_8859_1);
-        neededEncoders.push(encoding::all::UTF_8);
         let mut needUnicodeEncoder = priorityCharset.name().starts_with("UTF");
 
         //Walk over the input string and see if all characters can be encoded with the list of encoders
@@ -2950,7 +2950,9 @@ impl ECIEncoderSet {
             }
             if !canEncode {
                 //for the character at position i we don't yet have an encoder in the list
-                for encoder in &ENCODERS {
+                for i in 0..ENCODERS.len() {
+                    // for encoder in ENCODERS {
+                    let encoder = ENCODERS.get(i).unwrap();
                     // for (CharsetEncoder encoder : ENCODERS) {
                     if encoder
                         .encode(
@@ -4034,19 +4036,19 @@ impl HybridBinarizer {
                     if (max - min) as usize > HybridBinarizer::MIN_DYNAMIC_RANGE {
                         // finish the rest of the rows quickly
                         offset += width;
-                        yy+=1;
-                            while yy < HybridBinarizer::BLOCK_SIZE {
+                        yy += 1;
+                        while yy < HybridBinarizer::BLOCK_SIZE {
                             // for (yy++, offset += width; yy < HybridBinarizer::BLOCK_SIZE; yy++, offset += width) {
                             for xx in 0..HybridBinarizer::BLOCK_SIZE {
                                 //   for (int xx = 0; xx < BLOCK_SIZE; xx++) {
                                 sum += luminances[offset as usize + xx] as u32;
                             }
-                            yy+=1;
+                            yy += 1;
                             offset += width;
                         }
                         break;
                     }
-                    yy+=1;
+                    yy += 1;
                     offset += width;
                 }
 
@@ -4069,7 +4071,8 @@ impl HybridBinarizer {
                         // the boundaries is used for the interior.
 
                         // The (min < bp) is arbitrary but works better than other heuristics that were tried.
-                        let average_neighbor_black_point:u32 = (blackPoints[y as usize - 1][x as usize]
+                        let average_neighbor_black_point: u32 = (blackPoints[y as usize - 1]
+                            [x as usize]
                             + (2 * blackPoints[y as usize][x as usize - 1])
                             + blackPoints[y as usize - 1][x as usize - 1])
                             / 4;

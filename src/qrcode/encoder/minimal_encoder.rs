@@ -108,7 +108,7 @@ impl MinimalEncoder {
         priorityCharset: EncodingRef,
         isGS1: bool,
         ecLevel: ErrorCorrectionLevel,
-    ) ->  Self {
+    ) -> Self {
         Self {
             stringToEncode: String::from(stringToEncode),
             isGS1,
@@ -553,7 +553,7 @@ impl MinimalEncoder {
                 for k in 0..4 {
                     // for (int k = 0; k < 4; k++) {
                     if edges[i][j][k].is_some() && i < inputLength {
-                      let e = edges[i][j][k].clone();
+                        let e = edges[i][j][k].clone();
                         self.addEdges(version, &mut edges, i, e);
                     }
                 }
@@ -584,7 +584,10 @@ impl MinimalEncoder {
         }
         Ok(RXingResultList::new(
             version,
-            edges[inputLength][minimalJ.unwrap()][minimalK.unwrap()].as_ref().unwrap().clone(),
+            edges[inputLength][minimalJ.unwrap()][minimalK.unwrap()]
+                .as_ref()
+                .unwrap()
+                .clone(),
             self.isGS1,
             &self.ecLevel,
             self.encoders.clone(),
@@ -807,18 +810,19 @@ impl RXingResultList {
                     ));
                 }
             }
-            let first = list.get(0).unwrap();
+            let first = list.get(0);
             // prepend or insert a FNC1_FIRST_POSITION after the ECI (if any)
-            // if first != null && first.mode != Mode.ECI && containsECI {
-            list.push(RXingResultNode::new(
-                Mode::FNC1_FIRST_POSITION,
-                0,
-                0,
-                0,
-                encoders.clone(),
-                stringToEncode,
-                version,
-            ));
+            if first.is_some() && first.as_ref().unwrap().mode != Mode::ECI && containsECI {
+                list.push(RXingResultNode::new(
+                    Mode::FNC1_FIRST_POSITION,
+                    0,
+                    0,
+                    0,
+                    encoders.clone(),
+                    stringToEncode,
+                    version,
+                ));
+            }
         }
 
         // set version to smallest version into which the bits fit.
@@ -867,6 +871,7 @@ impl RXingResultList {
             versionNumber -= 1;
         }
         let version = Version::getVersionForNumber(versionNumber).unwrap();
+        list.reverse();
         Self { list, version }
     }
 
