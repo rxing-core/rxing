@@ -415,7 +415,7 @@ fn testAppendLengthInfo() {
         Version::getVersionForNumber(1).unwrap(),
         Mode::NUMERIC,
         &mut bits,
-    );
+    ).expect("ok");
     assert_eq!(" ........ .X", bits.to_string()); // 10 bits.
     let mut bits = BitArray::new();
     encoder::appendLengthInfo(
@@ -423,7 +423,7 @@ fn testAppendLengthInfo() {
         Version::getVersionForNumber(10).unwrap(),
         Mode::ALPHANUMERIC,
         &mut bits,
-    );
+    ).expect("ok");
     assert_eq!(" ........ .X.", bits.to_string()); // 11 bits.
     let mut bits = BitArray::new();
     encoder::appendLengthInfo(
@@ -431,7 +431,7 @@ fn testAppendLengthInfo() {
         Version::getVersionForNumber(27).unwrap(),
         Mode::BYTE,
         &mut bits,
-    );
+    ).expect("ok");
     assert_eq!(" ........ XXXXXXXX", bits.to_string()); // 16 bits.
     let mut bits = BitArray::new();
     encoder::appendLengthInfo(
@@ -439,7 +439,7 @@ fn testAppendLengthInfo() {
         Version::getVersionForNumber(40).unwrap(),
         Mode::KANJI,
         &mut bits,
-    );
+    ).expect("ok");
     assert_eq!(" ..X..... ....", bits.to_string()); // 12 bits.
 }
 
@@ -453,7 +453,7 @@ fn testAppendBytes() {
         Mode::NUMERIC,
         &mut bits,
         encoder::DEFAULT_BYTE_MODE_ENCODING,
-    );
+    ).expect("ok");
     assert_eq!(" ...X", bits.to_string());
     // Should use appendAlphanumericBytes.
     // A = 10 = 0xa = 001010 in 6 bits
@@ -463,7 +463,7 @@ fn testAppendBytes() {
         Mode::ALPHANUMERIC,
         &mut bits,
         encoder::DEFAULT_BYTE_MODE_ENCODING,
-    );
+    ).expect("ok");
     assert_eq!(" ..X.X.", bits.to_string());
     // Lower letters such as 'a' cannot be encoded in MODE_ALPHANUMERIC.
     //try {
@@ -488,7 +488,7 @@ fn testAppendBytes() {
         Mode::BYTE,
         &mut bits,
         encoder::DEFAULT_BYTE_MODE_ENCODING,
-    );
+    ).expect("ok");
     assert_eq!(" .XX....X .XX...X. .XX...XX", bits.to_string());
     // Anything can be encoded in QRCode.MODE_8BIT_BYTE.
     encoder::appendBytes(
@@ -496,7 +496,7 @@ fn testAppendBytes() {
         Mode::BYTE,
         &mut bits,
         encoder::DEFAULT_BYTE_MODE_ENCODING,
-    );
+    ).expect("ok");
     // Should use appendKanjiBytes.
     // 0x93, 0x5f
     let mut bits = BitArray::new();
@@ -505,7 +505,7 @@ fn testAppendBytes() {
         Mode::KANJI,
         &mut bits,
         encoder::DEFAULT_BYTE_MODE_ENCODING,
-    );
+    ).expect("ok");
     assert_eq!(" .XX.XX.. XXXXX", bits.to_string());
 }
 
@@ -540,95 +540,82 @@ fn testTerminateBits() {
 
 #[test]
 fn testGetNumDataBytesAndNumECBytesForBlockID() {
-    let mut numDataBytes = vec![0; 1];
-    let mut numEcBytes = vec![0; 1];
+
     // Version 1-H.
-    encoder::getNumDataBytesAndNumECBytesForBlockID(
+    let (numDataBytes,numEcBytes) = encoder::getNumDataBytesAndNumECBytesForBlockID(
         26,
         9,
         1,
         0,
-        &mut numDataBytes,
-        &mut numEcBytes,
-    );
-    assert_eq!(9, numDataBytes[0]);
-    assert_eq!(17, numEcBytes[0]);
+    ).expect("ok");
+    assert_eq!(9, numDataBytes);
+    assert_eq!(17, numEcBytes);
 
     // Version 3-H.  2 blocks.
-    encoder::getNumDataBytesAndNumECBytesForBlockID(
+    let (numDataBytes,numEcBytes) =encoder::getNumDataBytesAndNumECBytesForBlockID(
         70,
         26,
         2,
         0,
-        &mut numDataBytes,
-        &mut numEcBytes,
-    );
-    assert_eq!(13, numDataBytes[0]);
-    assert_eq!(22, numEcBytes[0]);
-    encoder::getNumDataBytesAndNumECBytesForBlockID(
+    ).expect("ok");
+    assert_eq!(13, numDataBytes);
+    assert_eq!(22, numEcBytes);
+    let (numDataBytes,numEcBytes) =encoder::getNumDataBytesAndNumECBytesForBlockID(
         70,
         26,
         2,
         1,
-        &mut numDataBytes,
-        &mut numEcBytes,
-    );
-    assert_eq!(13, numDataBytes[0]);
-    assert_eq!(22, numEcBytes[0]);
+    ).expect("ok");
+    assert_eq!(13, numDataBytes);
+    assert_eq!(22, numEcBytes);
 
     // Version 7-H. (4 + 1) blocks.
-    encoder::getNumDataBytesAndNumECBytesForBlockID(
+    let (numDataBytes,numEcBytes) =encoder::getNumDataBytesAndNumECBytesForBlockID(
         196,
         66,
         5,
         0,
-        &mut numDataBytes,
-        &mut numEcBytes,
-    );
-    assert_eq!(13, numDataBytes[0]);
-    assert_eq!(26, numEcBytes[0]);
-    encoder::getNumDataBytesAndNumECBytesForBlockID(
+
+    ).expect("ok");
+    assert_eq!(13, numDataBytes);
+    assert_eq!(26, numEcBytes);
+    let (numDataBytes,numEcBytes) =encoder::getNumDataBytesAndNumECBytesForBlockID(
         196,
         66,
         5,
         4,
-        &mut numDataBytes,
-        &mut numEcBytes,
-    );
-    assert_eq!(14, numDataBytes[0]);
-    assert_eq!(26, numEcBytes[0]);
+
+    ).expect("ok");
+    assert_eq!(14, numDataBytes);
+    assert_eq!(26, numEcBytes);
 
     // Version 40-H. (20 + 61) blocks.
-    encoder::getNumDataBytesAndNumECBytesForBlockID(
+    let (numDataBytes,numEcBytes) =encoder::getNumDataBytesAndNumECBytesForBlockID(
         3706,
         1276,
         81,
         0,
-        &mut numDataBytes,
-        &mut numEcBytes,
-    );
-    assert_eq!(15, numDataBytes[0]);
-    assert_eq!(30, numEcBytes[0]);
-    encoder::getNumDataBytesAndNumECBytesForBlockID(
+    ).expect("ok");
+    assert_eq!(15, numDataBytes);
+    assert_eq!(30, numEcBytes);
+    
+    let (numDataBytes,numEcBytes) =encoder::getNumDataBytesAndNumECBytesForBlockID(
         3706,
         1276,
         81,
         20,
-        &mut numDataBytes,
-        &mut numEcBytes,
-    );
-    assert_eq!(16, numDataBytes[0]);
-    assert_eq!(30, numEcBytes[0]);
-    encoder::getNumDataBytesAndNumECBytesForBlockID(
+    ).expect("ok");
+    assert_eq!(16, numDataBytes);
+    assert_eq!(30, numEcBytes);
+    
+    let (numDataBytes,numEcBytes) =encoder::getNumDataBytesAndNumECBytesForBlockID(
         3706,
         1276,
         81,
         80,
-        &mut numDataBytes,
-        &mut numEcBytes,
-    );
-    assert_eq!(16, numDataBytes[0]);
-    assert_eq!(30, numEcBytes[0]);
+    ).expect("ok");
+    assert_eq!(16, numDataBytes);
+    assert_eq!(30, numEcBytes);
 }
 
 #[test]
@@ -637,7 +624,7 @@ fn testInterleaveWithECBytes() {
     let mut in_ = BitArray::new();
     for dataByte in dataBytes {
         // for (byte dataByte: dataBytes) {
-        in_.appendBits(*dataByte, 8);
+        in_.appendBits(*dataByte, 8).expect("ok");
     }
     let out = encoder::interleaveWithECBytes(&in_, 26, 9, 1).expect("encode");
     let expected = &[
@@ -663,7 +650,7 @@ fn testInterleaveWithECBytes() {
     in_ = BitArray::new();
     for dataByte in dataBytes {
         // for (byte dataByte: dataBytes) {
-        in_.appendBits(*dataByte, 8);
+        in_.appendBits(*dataByte, 8).expect("ok");
     }
 
     let out = encoder::interleaveWithECBytes(&in_, 134, 62, 4).expect("interleave ok");
@@ -843,7 +830,7 @@ fn testBugInBitVectorNumBytes() {
         // for (int x = 0; x < 3518; x++) {
         builder.push('0');
     }
-    encoder::encode(&builder, ErrorCorrectionLevel::L);
+    assert!(encoder::encode(&builder, ErrorCorrectionLevel::L).is_ok());
 }
 
 #[test]

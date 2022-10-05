@@ -493,9 +493,9 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
     numDataBytes: u32,
     numRSBlocks: u32,
     blockID: u32,
-    numDataBytesInBlock: &mut [u32],
-    numECBytesInBlock: &mut [u32],
-) -> Result<(), Exceptions> {
+    // numDataBytesInBlock: &mut [u32],
+    // numECBytesInBlock: &mut [u32],
+) -> Result<(u32,u32), Exceptions> {
     if blockID >= numRSBlocks {
         return Err(Exceptions::WriterException("Block ID too large".to_owned()));
         // throw new WriterException("Block ID too large");
@@ -540,14 +540,11 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
         // throw new WriterException("Total bytes mismatch");
     }
 
-    if blockID < numRsBlocksInGroup1 {
-        numDataBytesInBlock[0] = numDataBytesInGroup1;
-        numECBytesInBlock[0] = numEcBytesInGroup1;
+    Ok(if blockID < numRsBlocksInGroup1 {
+        (numDataBytesInGroup1,numEcBytesInGroup1)
     } else {
-        numDataBytesInBlock[0] = numDataBytesInGroup2;
-        numECBytesInBlock[0] = numEcBytesInGroup2;
-    }
-    Ok(())
+        (numDataBytesInGroup2,numEcBytesInGroup2)
+    })
 }
 
 /**
@@ -578,26 +575,26 @@ pub fn interleaveWithECBytes(
 
     for i in 0..numRSBlocks {
         // for (int i = 0; i < numRSBlocks; ++i) {
-        let mut numDataBytesInBlock = vec![0; 1]; //new int[1];
-        let mut numEcBytesInBlock = vec![0; 1]; //new int[1];
-        getNumDataBytesAndNumECBytesForBlockID(
+        // let mut numDataBytesInBlock = vec![0; 1]; //new int[1];
+        // let mut numEcBytesInBlock = vec![0; 1]; //new int[1];
+        let (numDataBytesInBlock, numEcBytesInBlock) = getNumDataBytesAndNumECBytesForBlockID(
             numTotalBytes,
             numDataBytes,
             numRSBlocks,
             i,
-            &mut numDataBytesInBlock,
-            &mut numEcBytesInBlock,
+            // &mut numDataBytesInBlock,
+            // &mut numEcBytesInBlock,
         )?;
 
-        let size = numDataBytesInBlock[0];
+        let size = numDataBytesInBlock;
         let mut dataBytes = vec![0u8; size as usize];
         bits.toBytes(8 * dataBytesOffset, &mut dataBytes, 0, size as usize);
-        let ecBytes = generateECBytes(&dataBytes, numEcBytesInBlock[0] as usize);
+        let ecBytes = generateECBytes(&dataBytes, numEcBytesInBlock as usize);
         blocks.push(BlockPair::new(dataBytes, ecBytes.clone()));
 
         maxNumDataBytes = maxNumDataBytes.max(size);
         maxNumEcBytes = maxNumEcBytes.max(ecBytes.len());
-        dataBytesOffset += numDataBytesInBlock[0] as usize;
+        dataBytesOffset += numDataBytesInBlock as usize;
     }
     if numDataBytes != dataBytesOffset as u32 {
         return Err(Exceptions::WriterException(
@@ -624,12 +621,12 @@ pub fn interleaveWithECBytes(
         for block in &blocks {
             // for (BlockPair block : blocks) {
             let ecBytes = block.getErrorCorrectionBytes();
-            if (i < ecBytes.len()) {
+            if i < ecBytes.len() {
                 result.appendBits(ecBytes[i] as u32, 8)?;
             }
         }
     }
-    if (numTotalBytes != result.getSizeInBytes() as u32) {
+    if numTotalBytes != result.getSizeInBytes() as u32 {
         // Should be same.
         return Err(Exceptions::WriterException(format!(
             "Interleaving error: {} and {} differ.",
@@ -654,7 +651,7 @@ pub fn generateECBytes(dataBytes: &[u8], numEcBytesInBlock: usize) -> Vec<u8> {
     ReedSolomonEncoder::new(get_predefined_genericgf(
         PredefinedGenericGF::QrCodeField256,
     ))
-    .encode(&mut toEncode, numEcBytesInBlock);
+    .encode(&mut toEncode, numEcBytesInBlock).expect("rs encode must complete");
 
     let mut ecBytes = vec![0u8; numEcBytesInBlock];
     for i in 0..numEcBytesInBlock {
