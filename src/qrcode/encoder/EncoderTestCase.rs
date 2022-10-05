@@ -403,7 +403,7 @@ fn testGS1ModeHeaderWithECI() {
 #[test]
 fn testAppendModeInfo() {
     let mut bits = BitArray::new();
-    encoder::appendModeInfo(Mode::NUMERIC, &mut bits);
+    assert!(encoder::appendModeInfo(Mode::NUMERIC, &mut bits).is_ok());
     assert_eq!(" ...X", bits.to_string());
 }
 

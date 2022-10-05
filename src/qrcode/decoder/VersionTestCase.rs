@@ -41,7 +41,7 @@ use crate::{qrcode::decoder::{Version, ErrorCorrectionLevel}, Exceptions};
     let version = version.unwrap();
     assert_eq!(number, version.getVersionNumber());
     // assertNotNull(version.getAlignmentPatternCenters());
-    if (number > 1) {
+    if number > 1 {
       assert!(version.getAlignmentPatternCenters().len() > 0);
     }
     assert_eq!(dimension, version.getDimensionForVersion());
@@ -49,7 +49,7 @@ use crate::{qrcode::decoder::{Version, ErrorCorrectionLevel}, Exceptions};
     let _tmp = version.getECBlocksForLevel(ErrorCorrectionLevel::L);
     let _tmp = version.getECBlocksForLevel(ErrorCorrectionLevel::M);
     let _tmp = version.getECBlocksForLevel(ErrorCorrectionLevel::Q);
-    let _tmp = version.buildFunctionPattern();
+    assert!(version.buildFunctionPattern().is_ok());
 
     // assertNotNull(version.getECBlocksForLevel(ErrorCorrectionLevel::H));
     // assertNotNull(version.getECBlocksForLevel(ErrorCorrectionLevel::L));
