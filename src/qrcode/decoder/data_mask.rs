@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.zxing.qrcode.decoder;
-
-import com.google.zxing.common.BitMatrix;
+use crate::common::BitMatrix;
 
 /**
  * <p>Encapsulates data masks for the data bits in a QR code, per ISO 18004:2006 6.8. Implementations
@@ -29,9 +27,89 @@ import com.google.zxing.common.BitMatrix;
  *
  * @author Sean Owen
  */
-enum DataMask {
+#[derive(Copy,Clone,Eq, PartialEq)]
+pub enum DataMask {
+    // See ISO 18004:2006 6.8.1
+    /**
+     * 000: mask bits for which (x + y) mod 2 == 0
+     */
+    DATA_MASK_000,
 
-  // See ISO 18004:2006 6.8.1
+    /**
+     * 001: mask bits for which x mod 2 == 0
+     */
+    DATA_MASK_001,
+
+    /**
+     * 010: mask bits for which y mod 3 == 0
+     */
+    DATA_MASK_010,
+
+    /**
+     * 011: mask bits for which (x + y) mod 3 == 0
+     */
+    DATA_MASK_011,
+
+    /**
+     * 100: mask bits for which (x/2 + y/3) mod 2 == 0
+     */
+    DATA_MASK_100,
+
+    /**
+     * 101: mask bits for which xy mod 2 + xy mod 3 == 0
+     * equivalently, such that xy mod 6 == 0
+     */
+    DATA_MASK_101,
+
+    /**
+     * 110: mask bits for which (xy mod 2 + xy mod 3) mod 2 == 0
+     * equivalently, such that xy mod 6 < 3
+     */
+    DATA_MASK_110,
+
+    /**
+     * 111: mask bits for which ((x+y)mod 2 + xy mod 3) mod 2 == 0
+     * equivalently, such that (x + y + xy mod 3) mod 2 == 0
+     */
+    DATA_MASK_111,
+    // End of enum constants.
+}
+
+impl DataMask {
+    /**
+     * <p>Implementations of this method reverse the data masking process applied to a QR Code and
+     * make its bits ready to read.</p>
+     *
+     * @param bits representation of QR Code bits
+     * @param dimension dimension of QR Code, represented by bits, being unmasked
+     */
+    pub fn unmaskBitMatrix(&self, bits: &mut BitMatrix, dimension: u32) {
+        for i in 0..dimension {
+            // for (int i = 0; i < dimension; i++) {
+            for j in 0..dimension {
+                // for (int j = 0; j < dimension; j++) {
+                if self.isMasked(i, j) {
+                    bits.flip_coords(j, i);
+                }
+            }
+        }
+    }
+
+    pub fn isMasked(&self, i: u32, j: u32) -> bool {
+        match self {
+            DataMask::DATA_MASK_000 => ((i + j) & 0x01) == 0,
+            DataMask::DATA_MASK_001 => (i & 0x01) == 0,
+            DataMask::DATA_MASK_010 => j % 3 == 0,
+            DataMask::DATA_MASK_011 => (i + j) % 3 == 0,
+            DataMask::DATA_MASK_100 => (((i / 2) + (j / 3)) & 0x01) == 0,
+            DataMask::DATA_MASK_101 => (i * j) % 6 == 0,
+            DataMask::DATA_MASK_110 => ((i * j) % 6) < 3,
+            DataMask::DATA_MASK_111 => ((i + j + ((i * j) % 3)) & 0x01) == 0,
+        }
+    }
+}
+
+/*
 
   /**
    * 000: mask bits for which (x + y) mod 2 == 0
@@ -137,5 +215,4 @@ enum DataMask {
   }
 
   abstract boolean isMasked(int i, int j);
-
-}
+*/
