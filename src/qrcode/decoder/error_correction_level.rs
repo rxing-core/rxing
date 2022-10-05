@@ -60,6 +60,15 @@ impl ErrorCorrectionLevel {
             ErrorCorrectionLevel::H => 0x02,
         }
     }
+
+    pub fn get_ordinal(&self) -> u8 {
+        match self {
+            ErrorCorrectionLevel::L => 0,
+            ErrorCorrectionLevel::M => 1,
+            ErrorCorrectionLevel::Q => 2,
+            ErrorCorrectionLevel::H => 3,
+        }
+    }
 }
 
 impl TryFrom<u8> for ErrorCorrectionLevel {

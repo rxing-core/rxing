@@ -38,6 +38,7 @@ use std::collections::HashMap;
 use encoding::EncodingRef;
 
 use lazy_static::lazy_static;
+use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{
     common::{
@@ -123,7 +124,7 @@ pub fn encode_with_hints(
         };
 
     // Determine what character encoding has been specified by the caller, if any
-    let mut encoding = None;//DEFAULT_BYTE_MODE_ENCODING;
+    let mut encoding = None; //DEFAULT_BYTE_MODE_ENCODING;
     let hasEncodingHint = hints.contains_key(&EncodeHintType::CHARACTER_SET);
     if hasEncodingHint {
         if let EncodeHintValue::CharacterSet(v) = hints.get(&EncodeHintType::CHARACTER_SET).unwrap()
@@ -151,7 +152,11 @@ pub fn encode_with_hints(
         version = rn.getVersion();
     } else {
         //Switch to default encoding
-        let encoding = if encoding.is_some() { encoding.unwrap() } else { DEFAULT_BYTE_MODE_ENCODING };
+        let encoding = if encoding.is_some() {
+            encoding.unwrap()
+        } else {
+            DEFAULT_BYTE_MODE_ENCODING
+        };
 
         // Pick an encoding mode appropriate for the content. Note that this will not attempt to use
         // multiple modes / segments even if that were more efficient.
@@ -213,7 +218,7 @@ pub fn encode_with_hints(
         let numLetters = if mode == Mode::BYTE {
             dataBits.getSizeInBytes()
         } else {
-            content.len()
+            content.graphemes(true).count()
         };
         appendLengthInfo(numLetters as u32, version, mode, &mut headerAndDataBits)?;
         // Put data together into the overall payload
@@ -298,7 +303,7 @@ fn recommendVersion(
 
     // Use that guess to calculate the right version. I am still not sure this works in 100% of cases.
     let bitsNeeded = calculateBitsNeeded(mode, headerBits, dataBits, provisionalVersion);
-     
+
     chooseVersion(bitsNeeded, ecLevel)
 }
 
@@ -362,12 +367,11 @@ fn chooseModeWithEncoding(content: &str, encoding: EncodingRef) -> Mode {
 }
 
 pub fn isOnlyDoubleByteKanji(content: &str) -> bool {
-    let bytes = if let Ok(byt) = SHIFT_JIS_CHARSET
-        .encode(content, encoding::EncoderTrap::Strict) {
-            byt
-        }else {
-            return false
-        };
+    let bytes = if let Ok(byt) = SHIFT_JIS_CHARSET.encode(content, encoding::EncoderTrap::Strict) {
+        byt
+    } else {
+        return false;
+    };
     let length = bytes.len();
     if length % 2 != 0 {
         return false;
@@ -395,8 +399,9 @@ fn chooseMaskPattern(
     // We try all mask patterns to choose the best one.
     for maskPattern in 0..QRCode::NUM_MASK_PATTERNS {
         // for (int maskPattern = 0; maskPattern < QRCode.NUM_MASK_PATTERNS; maskPattern++) {
-        matrix_util::buildMatrix(bits, ecLevel, version, maskPattern, matrix)?;
-        let penalty = calculateMaskPenalty(matrix);
+        let mut matrix = matrix.clone();
+        matrix_util::buildMatrix(bits, ecLevel, version, maskPattern, &mut matrix)?;
+        let penalty = calculateMaskPenalty(&matrix);
         if penalty < minPenalty {
             minPenalty = penalty;
             bestMaskPattern = maskPattern;
@@ -470,7 +475,9 @@ pub fn terminateBits(num_data_bytes: u32, bits: &mut BitArray) -> Result<(), Exc
     // If we have more space, we'll fill the space with padding patterns defined in 8.4.9 (p.24).
     let num_padding_bytes = num_data_bytes as isize - bits.getSizeInBytes() as isize;
     for i in 0..num_padding_bytes {
-        if i >= num_padding_bytes{ break } 
+        if i >= num_padding_bytes {
+            break;
+        }
         // for (int i = 0; i < numPaddingBytes; ++i) {
         bits.appendBits(if (i & 0x01) == 0 { 0xEC } else { 0x11 }, 8)?;
     }
@@ -495,7 +502,7 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
     blockID: u32,
     // numDataBytesInBlock: &mut [u32],
     // numECBytesInBlock: &mut [u32],
-) -> Result<(u32,u32), Exceptions> {
+) -> Result<(u32, u32), Exceptions> {
     if blockID >= numRSBlocks {
         return Err(Exceptions::WriterException("Block ID too large".to_owned()));
         // throw new WriterException("Block ID too large");
@@ -541,9 +548,9 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
     }
 
     Ok(if blockID < numRsBlocksInGroup1 {
-        (numDataBytesInGroup1,numEcBytesInGroup1)
+        (numDataBytesInGroup1, numEcBytesInGroup1)
     } else {
-        (numDataBytesInGroup2,numEcBytesInGroup2)
+        (numDataBytesInGroup2, numEcBytesInGroup2)
     })
 }
 
@@ -651,7 +658,8 @@ pub fn generateECBytes(dataBytes: &[u8], numEcBytesInBlock: usize) -> Vec<u8> {
     ReedSolomonEncoder::new(get_predefined_genericgf(
         PredefinedGenericGF::QrCodeField256,
     ))
-    .encode(&mut toEncode, numEcBytesInBlock).expect("rs encode must complete");
+    .encode(&mut toEncode, numEcBytesInBlock)
+    .expect("rs encode must complete");
 
     let mut ecBytes = vec![0u8; numEcBytesInBlock];
     for i in 0..numEcBytesInBlock {
@@ -664,7 +672,7 @@ pub fn generateECBytes(dataBytes: &[u8], numEcBytesInBlock: usize) -> Vec<u8> {
 /**
  * Append mode info. On success, store the result in "bits".
  */
-pub fn appendModeInfo(mode: Mode, bits: &mut BitArray) -> Result<(),Exceptions> {
+pub fn appendModeInfo(mode: Mode, bits: &mut BitArray) -> Result<(), Exceptions> {
     bits.appendBits(mode.getBits() as u32, 4)?;
     Ok(())
 }
@@ -704,12 +712,10 @@ pub fn appendBytes(
         Mode::ALPHANUMERIC => appendAlphanumericBytes(content, bits),
         Mode::BYTE => append8BitBytes(content, bits, encoding),
         Mode::KANJI => appendKanjiBytes(content, bits),
-        _ => {
-            Err(Exceptions::WriterException(format!(
-                "Invalid mode: {:?}",
-                mode
-            )))
-        }
+        _ => Err(Exceptions::WriterException(format!(
+            "Invalid mode: {:?}",
+            mode
+        ))),
     }
     // switch (mode) {
     //   case NUMERIC:
@@ -729,7 +735,7 @@ pub fn appendBytes(
     // }
 }
 
-pub fn appendNumericBytes(content: &str, bits: &mut BitArray) -> Result<(),Exceptions> {
+pub fn appendNumericBytes(content: &str, bits: &mut BitArray) -> Result<(), Exceptions> {
     let length = content.len();
     let mut i = 0;
     while i < length {
@@ -779,7 +785,11 @@ pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<(),
     Ok(())
 }
 
-pub fn append8BitBytes(content: &str, bits: &mut BitArray, encoding: EncodingRef) -> Result<(),Exceptions> {
+pub fn append8BitBytes(
+    content: &str,
+    bits: &mut BitArray,
+    encoding: EncodingRef,
+) -> Result<(), Exceptions> {
     let bytes = encoding
         .encode(content, encoding::EncoderTrap::Strict)
         .expect("should encode");
@@ -807,9 +817,9 @@ pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<(), Except
     let mut i = 0;
     while i < max_i {
         // for (int i = 0; i < maxI; i += 2) {
-        let byte1 = bytes[i];// & 0xFF;
-        let byte2 = bytes[i + 1];// & 0xFF;
-        let code:u16 = ((byte1 as u16) << 8u16) | byte2 as u16;
+        let byte1 = bytes[i]; // & 0xFF;
+        let byte2 = bytes[i + 1]; // & 0xFF;
+        let code: u16 = ((byte1 as u16) << 8u16) | byte2 as u16;
         let mut subtracted: i32 = -1;
         if code >= 0x8140 && code <= 0x9ffc {
             subtracted = code as i32 - 0x8140;
@@ -829,7 +839,7 @@ pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<(), Except
     Ok(())
 }
 
-fn appendECI(eci: &CharacterSetECI, bits: &mut BitArray) -> Result<(),Exceptions>{
+fn appendECI(eci: &CharacterSetECI, bits: &mut BitArray) -> Result<(), Exceptions> {
     bits.appendBits(Mode::ECI.getBits() as u32, 4)?;
     // This is correct for values up to 127, which is all we need now.
     bits.appendBits(eci.getValueSelf(), 8)?;

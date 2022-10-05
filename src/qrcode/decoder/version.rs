@@ -90,7 +90,7 @@ impl Version {
     }
 
     pub fn getECBlocksForLevel(&self, ecLevel: ErrorCorrectionLevel) -> &ECBlocks {
-        &self.ecBlocks[ecLevel.get_value() as usize]
+        &self.ecBlocks[ecLevel.get_ordinal() as usize]
     }
 
     /**
