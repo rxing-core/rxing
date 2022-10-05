@@ -27,31 +27,42 @@ type MaskCondition = fn(u32, u32) -> bool;
 #[test]
 fn testMask0() {
     testMaskAcrossDimensions(DataMask::DATA_MASK_000, |i, j| ((i + j) % 2 == 0));
+    testMaskAcrossDimensionsU8(0, |i, j| ((i + j) % 2 == 0));
+
 }
 
 #[test]
 fn testMask1() {
     testMaskAcrossDimensions(DataMask::DATA_MASK_001, |i, j| i % 2 == 0);
+    testMaskAcrossDimensionsU8(1, |i, j| i % 2 == 0);
+
 }
 
 #[test]
 fn testMask2() {
     testMaskAcrossDimensions(DataMask::DATA_MASK_010, |i, j| j % 3 == 0);
+    testMaskAcrossDimensionsU8(2, |i, j| j % 3 == 0);
+
 }
 
 #[test]
 fn testMask3() {
     testMaskAcrossDimensions(DataMask::DATA_MASK_011, |i, j| (i + j) % 3 == 0);
+    testMaskAcrossDimensionsU8(3, |i, j| (i + j) % 3 == 0);
 }
 
 #[test]
 fn testMask4() {
     testMaskAcrossDimensions(DataMask::DATA_MASK_100, |i, j| (i / 2 + j / 3) % 2 == 0);
+    testMaskAcrossDimensionsU8(4, |i, j| (i / 2 + j / 3) % 2 == 0);
 }
 
 #[test]
 fn testMask5() {
     testMaskAcrossDimensions(DataMask::DATA_MASK_101, |i, j| {
+        (i * j) % 2 + (i * j) % 3 == 0
+    });
+    testMaskAcrossDimensionsU8(5, |i, j| {
         (i * j) % 2 + (i * j) % 3 == 0
     });
 }
@@ -61,6 +72,9 @@ fn testMask6() {
     testMaskAcrossDimensions(DataMask::DATA_MASK_110, |i, j| {
         ((i * j) % 2 + (i * j) % 3) % 2 == 0
     });
+    testMaskAcrossDimensionsU8(6, |i, j| {
+        ((i * j) % 2 + (i * j) % 3) % 2 == 0
+    });
 }
 
 #[test]
@@ -68,6 +82,13 @@ fn testMask7() {
     testMaskAcrossDimensions(DataMask::DATA_MASK_111, |i, j| {
         ((i + j) % 2 + (i * j) % 3) % 2 == 0
     });
+    testMaskAcrossDimensionsU8(7, |i, j| {
+        ((i + j) % 2 + (i * j) % 3) % 2 == 0
+    });
+}
+
+fn testMaskAcrossDimensionsU8(mask: u8, condition: MaskCondition) {
+    testMaskAcrossDimensions(mask.try_into().unwrap(), condition)
 }
 
 fn testMaskAcrossDimensions(mask: DataMask, condition: MaskCondition) {
