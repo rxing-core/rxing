@@ -64,7 +64,7 @@ const FORMAT_INFO_DECODE_LOOKUP: [[u32; 2]; 32] = [
  * @see DataMask
  * @see ErrorCorrectionLevel
  */
-#[derive(Hash, Eq, PartialEq)]
+#[derive(Hash, Eq, PartialEq, Debug)]
 pub struct FormatInformation {
     error_correction_level: ErrorCorrectionLevel,
     data_mask: u8,
@@ -95,22 +95,21 @@ impl FormatInformation {
      * @return information about the format it specifies, or {@code null}
      *  if doesn't seem to match any known pattern
      */
-    fn decodeFormatInformation(
-        maskedFormatInfo1: u32,
-        maskedFormatInfo2: u32,
-    ) -> FormatInformation {
-        let formatInfo = Self::doDecodeFormatInformation(maskedFormatInfo1, maskedFormatInfo2);
+    pub fn decodeFormatInformation(
+        masked_format_info1: u32,
+        masked_format_info2: u32,
+    ) -> Option<FormatInformation> {
+        let formatInfo = Self::doDecodeFormatInformation(masked_format_info1, masked_format_info2);
         if formatInfo.is_some() {
-            return formatInfo.unwrap();
+            return formatInfo
         }
         // Should return null, but, some QR codes apparently
         // do not mask this info. Try again by actually masking the pattern
         // first
-        return Self::doDecodeFormatInformation(
-            maskedFormatInfo1 ^ FORMAT_INFO_MASK_QR,
-            maskedFormatInfo2 ^ FORMAT_INFO_MASK_QR,
+         Self::doDecodeFormatInformation(
+            masked_format_info1 ^ FORMAT_INFO_MASK_QR,
+            masked_format_info2 ^ FORMAT_INFO_MASK_QR,
         )
-        .unwrap();
     }
 
     fn doDecodeFormatInformation(
@@ -149,8 +148,8 @@ impl FormatInformation {
         None
     }
 
-    pub fn getErrorCorrectionLevel(&self) -> &ErrorCorrectionLevel {
-        &self.error_correction_level
+    pub fn getErrorCorrectionLevel(&self) -> ErrorCorrectionLevel {
+        self.error_correction_level
     }
 
     pub fn getDataMask(&self) -> u8 {

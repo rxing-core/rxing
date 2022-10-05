@@ -11,6 +11,8 @@ mod ErrorCorrectionLevelTestCase;
 mod ModeTestCase;
 #[cfg(test)]
 mod VersionTestCase;
+#[cfg(test)]
+mod FormatInformationTestCase;
 
 pub use version::*;
 pub use mode::*;
