@@ -147,7 +147,7 @@ pub fn encode_with_hints(
         )?;
 
         headerAndDataBits = BitArray::new();
-        rn.getBits(&mut headerAndDataBits);
+        rn.getBits(&mut headerAndDataBits)?;
         version = rn.getVersion();
     } else {
         // Pick an encoding mode appropriate for the content. Note that this will not attempt to use
@@ -178,7 +178,7 @@ pub fn encode_with_hints(
         // Collect data within the main segment, separately, to count its size if needed. Don't add it to
         // main payload yet.
         let mut dataBits = BitArray::new();
-        appendBytes(content, mode, &mut dataBits, encoding);
+        appendBytes(content, mode, &mut dataBits, encoding)?;
 
         if hints.contains_key(&EncodeHintType::QR_VERSION) {
             let versionNumber = if let EncodeHintValue::QrVersion(v) =
@@ -212,7 +212,7 @@ pub fn encode_with_hints(
         } else {
             content.len()
         };
-        appendLengthInfo(numLetters as u32, version, mode, &mut headerAndDataBits);
+        appendLengthInfo(numLetters as u32, version, mode, &mut headerAndDataBits)?;
         // Put data together into the overall payload
         headerAndDataBits.appendBitArray(dataBits);
     }
@@ -221,7 +221,7 @@ pub fn encode_with_hints(
     let numDataBytes = version.getTotalCodewords() - ecBlocks.getTotalECCodewords();
 
     // Terminate the bits properly.
-    terminateBits(numDataBytes, &mut headerAndDataBits);
+    terminateBits(numDataBytes, &mut headerAndDataBits)?;
 
     // Interleave data bits with error correction code.
     let finalBits = interleaveWithECBytes(
@@ -269,7 +269,7 @@ pub fn encode_with_hints(
     qrCode.setMaskPattern(maskPattern);
 
     // Build the matrix and set it to "qrCode".
-    matrix_util::buildMatrix(&finalBits, &ecLevel, version, maskPattern, &mut matrix);
+    matrix_util::buildMatrix(&finalBits, &ecLevel, version, maskPattern, &mut matrix)?;
     qrCode.setMatrix(matrix);
 
     Ok(qrCode)
