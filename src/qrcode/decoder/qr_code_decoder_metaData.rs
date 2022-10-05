@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.zxing.qrcode.decoder;
-
-import com.google.zxing.RXingResultPoint;
+use crate::RXingResultPoint;
 
 /**
  * Meta-data container for QR Code decoding. Instances of this class may be used to convey information back to the
@@ -24,19 +22,18 @@ import com.google.zxing.RXingResultPoint;
  *
  * @see com.google.zxing.common.DecoderRXingResult#getOther()
  */
-public final class QRCodeDecoderMetaData {
+pub struct QRCodeDecoderMetaData(bool);
 
-  private final boolean mirrored;
-
-  QRCodeDecoderMetaData(boolean mirrored) {
-    this.mirrored = mirrored;
+impl  QRCodeDecoderMetaData {
+  pub fn new( mirrored:bool) -> Self {
+    Self(mirrored)
   }
 
   /**
    * @return true if the QR Code was mirrored.
    */
-  public boolean isMirrored() {
-    return mirrored;
+  pub fn isMirrored(&self) -> bool{
+    self.0
   }
 
   /**
@@ -44,13 +41,13 @@ public final class QRCodeDecoderMetaData {
    *
    * @param points Array of points to apply mirror correction to.
    */
-  public void applyMirroredCorrection(RXingResultPoint[] points) {
-    if (!mirrored || points == null || points.length < 3) {
-      return;
+  pub fn applyMirroredCorrection(&self, points : &mut [RXingResultPoint]) {
+    if !self.0 || points.is_empty() || points.len() < 3 {
+      return
     }
-    RXingResultPoint bottomLeft = points[0];
+    let bottom_left = points[0];
     points[0] = points[2];
-    points[2] = bottomLeft;
+    points[2] = bottom_left;
     // No need to 'fix' top-left and alignment pattern.
   }
 

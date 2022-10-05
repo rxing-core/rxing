@@ -95,14 +95,14 @@ pub fn encode(content: &str, ecLevel: ErrorCorrectionLevel) -> Result<QRCode, Ex
 
 pub fn encode_with_hints(
     content: &str,
-    ecLevel: ErrorCorrectionLevel,
+    ec_level: ErrorCorrectionLevel,
     hints: &EncodingHintDictionary,
 ) -> Result<QRCode, Exceptions> {
     let version;
-    let mut headerAndDataBits;
+    let mut header_and_data_bits;
     let mode;
 
-    let hasGS1FormatHint = hints.contains_key(&EncodeHintType::GS1_FORMAT)
+    let has_gs1_format_hint = hints.contains_key(&EncodeHintType::GS1_FORMAT)
         && if let EncodeHintValue::Gs1Format(v) = hints.get(&EncodeHintType::GS1_FORMAT).unwrap() {
             if let Ok(vb) = v.parse::<bool>() {
                 vb
@@ -112,7 +112,7 @@ pub fn encode_with_hints(
         } else {
             false
         };
-    let hasCompactionHint = hints.contains_key(&EncodeHintType::QR_COMPACT)
+    let has_compaction_hint = hints.contains_key(&EncodeHintType::QR_COMPACT)
         && if let EncodeHintValue::QrCompact(v) = hints.get(&EncodeHintType::QR_COMPACT).unwrap() {
             if let Ok(vb) = v.parse::<bool>() {
                 vb
@@ -125,8 +125,8 @@ pub fn encode_with_hints(
 
     // Determine what character encoding has been specified by the caller, if any
     let mut encoding = None; //DEFAULT_BYTE_MODE_ENCODING;
-    let hasEncodingHint = hints.contains_key(&EncodeHintType::CHARACTER_SET);
-    if hasEncodingHint {
+    let has_encoding_hint = hints.contains_key(&EncodeHintType::CHARACTER_SET);
+    if has_encoding_hint {
         if let EncodeHintValue::CharacterSet(v) = hints.get(&EncodeHintType::CHARACTER_SET).unwrap()
         {
             encoding = Some(encoding::label::encoding_from_whatwg_label(v).unwrap())
@@ -134,21 +134,21 @@ pub fn encode_with_hints(
         // encoding = encoding::label::encoding_from_whatwg_label(hints.get(&EncodeHintType::CHARACTER_SET).unwrap());
     }
 
-    if hasCompactionHint {
+    if has_compaction_hint {
         mode = Mode::BYTE;
 
         // dbg!("consider this a huge risk, not sure if it should be defaulting to default");
-        let priorityEncoding = encoding; //if encoding.name() == DEFAULT_BYTE_MODE_ENCODING.name()  {None} else {Some(encoding)};
+        let priority_encoding = encoding; //if encoding.name() == DEFAULT_BYTE_MODE_ENCODING.name()  {None} else {Some(encoding)};
         let rn = MinimalEncoder::encode_with_details(
             content,
             None,
-            priorityEncoding,
-            hasGS1FormatHint,
-            ecLevel,
+            priority_encoding,
+            has_gs1_format_hint,
+            ec_level,
         )?;
 
-        headerAndDataBits = BitArray::new();
-        rn.getBits(&mut headerAndDataBits)?;
+        header_and_data_bits = BitArray::new();
+        rn.getBits(&mut header_and_data_bits)?;
         version = rn.getVersion();
     } else {
         //Switch to default encoding
@@ -164,29 +164,29 @@ pub fn encode_with_hints(
 
         // This will store the header information, like mode and
         // length, as well as "header" segments like an ECI segment.
-        let mut headerBits = BitArray::new();
+        let mut header_bits = BitArray::new();
 
         // Append ECI segment if applicable
-        if mode == Mode::BYTE && hasEncodingHint {
+        if mode == Mode::BYTE && has_encoding_hint {
             let eci = CharacterSetECI::getCharacterSetECI(encoding);
             if eci.is_some() {
-                appendECI(&eci.unwrap(), &mut headerBits)?;
+                appendECI(&eci.unwrap(), &mut header_bits)?;
             }
         }
 
         // Append the FNC1 mode header for GS1 formatted data if applicable
-        if hasGS1FormatHint {
+        if has_gs1_format_hint {
             // GS1 formatted codes are prefixed with a FNC1 in first position mode header
-            appendModeInfo(Mode::FNC1_FIRST_POSITION, &mut headerBits)?;
+            appendModeInfo(Mode::FNC1_FIRST_POSITION, &mut header_bits)?;
         }
 
         // (With ECI in place,) Write the mode marker
-        appendModeInfo(mode, &mut headerBits)?;
+        appendModeInfo(mode, &mut header_bits)?;
 
         // Collect data within the main segment, separately, to count its size if needed. Don't add it to
         // main payload yet.
-        let mut dataBits = BitArray::new();
-        appendBytes(content, mode, &mut dataBits, encoding)?;
+        let mut data_bits = BitArray::new();
+        appendBytes(content, mode, &mut data_bits, encoding)?;
 
         if hints.contains_key(&EncodeHintType::QR_VERSION) {
             let versionNumber = if let EncodeHintValue::QrVersion(v) =
@@ -202,46 +202,46 @@ pub fn encode_with_hints(
             };
             // let versionNumber = Integer.parseInt(hints.get(&EncodeHintType::QR_VERSION).unwrap()());
             version = Version::getVersionForNumber(versionNumber)?;
-            let bitsNeeded = calculateBitsNeeded(mode, &headerBits, &dataBits, version);
-            if !willFit(bitsNeeded, version, &ecLevel) {
+            let bitsNeeded = calculateBitsNeeded(mode, &header_bits, &data_bits, version);
+            if !willFit(bitsNeeded, version, &ec_level) {
                 return Err(Exceptions::WriterException(
                     "Data too big for requested version".to_owned(),
                 ));
             }
         } else {
-            version = recommendVersion(&ecLevel, mode, &headerBits, &dataBits)?;
+            version = recommendVersion(&ec_level, mode, &header_bits, &data_bits)?;
         }
 
-        headerAndDataBits = BitArray::new();
-        headerAndDataBits.appendBitArray(headerBits);
+        header_and_data_bits = BitArray::new();
+        header_and_data_bits.appendBitArray(header_bits);
         // Find "length" of main segment and write it
-        let numLetters = if mode == Mode::BYTE {
-            dataBits.getSizeInBytes()
+        let num_letters = if mode == Mode::BYTE {
+            data_bits.getSizeInBytes()
         } else {
             content.graphemes(true).count()
         };
-        appendLengthInfo(numLetters as u32, version, mode, &mut headerAndDataBits)?;
+        appendLengthInfo(num_letters as u32, version, mode, &mut header_and_data_bits)?;
         // Put data together into the overall payload
-        headerAndDataBits.appendBitArray(dataBits);
+        header_and_data_bits.appendBitArray(data_bits);
     }
 
-    let ecBlocks = version.getECBlocksForLevel(ecLevel);
-    let numDataBytes = version.getTotalCodewords() - ecBlocks.getTotalECCodewords();
+    let ec_blocks = version.getECBlocksForLevel(ec_level);
+    let num_data_bytes = version.getTotalCodewords() - ec_blocks.getTotalECCodewords();
 
     // Terminate the bits properly.
-    terminateBits(numDataBytes, &mut headerAndDataBits)?;
+    terminateBits(num_data_bytes, &mut header_and_data_bits)?;
 
     // Interleave data bits with error correction code.
-    let finalBits = interleaveWithECBytes(
-        &headerAndDataBits,
+    let final_bits = interleaveWithECBytes(
+        &header_and_data_bits,
         version.getTotalCodewords(),
-        numDataBytes,
-        ecBlocks.getNumBlocks(),
+        num_data_bytes,
+        ec_blocks.getNumBlocks(),
     )?;
 
     let mut qrCode = QRCode::new();
 
-    qrCode.setECLevel(ecLevel);
+    qrCode.setECLevel(ec_level);
     qrCode.setMode(mode);
     qrCode.setVersion(version);
 
@@ -250,9 +250,9 @@ pub fn encode_with_hints(
     let mut matrix = ByteMatrix::new(dimension, dimension);
 
     // Enable manual selection of the pattern to be used via hint
-    let mut maskPattern = -1;
+    let mut mask_pattern = -1;
     if hints.contains_key(&EncodeHintType::QR_MASK_PATTERN) {
-        let hintMaskPattern = if let EncodeHintValue::QrMaskPattern(v) =
+        let hint_mask_pattern = if let EncodeHintValue::QrMaskPattern(v) =
             hints.get(&EncodeHintType::QR_MASK_PATTERN).unwrap()
         {
             if let Ok(vb) = v.parse::<i32>() {
@@ -264,20 +264,20 @@ pub fn encode_with_hints(
             -1
         };
         // let hintMaskPattern = Integer.parseInt(hints.get(&EncodeHintType::QR_MASK_PATTERN).unwrap());
-        maskPattern = if QRCode::isValidMaskPattern(hintMaskPattern) {
-            hintMaskPattern
+        mask_pattern = if QRCode::isValidMaskPattern(hint_mask_pattern) {
+            hint_mask_pattern
         } else {
             -1
         };
     }
 
-    if maskPattern == -1 {
-        maskPattern = chooseMaskPattern(&finalBits, &ecLevel, version, &mut matrix)? as i32;
+    if mask_pattern == -1 {
+        mask_pattern = chooseMaskPattern(&final_bits, &ec_level, version, &mut matrix)? as i32;
     }
-    qrCode.setMaskPattern(maskPattern);
+    qrCode.setMaskPattern(mask_pattern);
 
     // Build the matrix and set it to "qrCode".
-    matrix_util::buildMatrix(&finalBits, &ecLevel, version, maskPattern, &mut matrix)?;
+    matrix_util::buildMatrix(&final_bits, &ec_level, version, mask_pattern, &mut matrix)?;
     qrCode.setMatrix(matrix);
 
     Ok(qrCode)
@@ -289,31 +289,31 @@ pub fn encode_with_hints(
  * @throws WriterException if the data cannot fit in any version
  */
 fn recommendVersion(
-    ecLevel: &ErrorCorrectionLevel,
+    ec_level: &ErrorCorrectionLevel,
     mode: Mode,
-    headerBits: &BitArray,
-    dataBits: &BitArray,
+    header_bits: &BitArray,
+    data_bits: &BitArray,
 ) -> Result<VersionRef, Exceptions> {
     // Hard part: need to know version to know how many bits length takes. But need to know how many
     // bits it takes to know version. First we take a guess at version by assuming version will be
     // the minimum, 1:
-    let provisionalBitsNeeded =
-        calculateBitsNeeded(mode, headerBits, dataBits, Version::getVersionForNumber(1)?);
-    let provisionalVersion = chooseVersion(provisionalBitsNeeded, ecLevel)?;
+    let provisional_bits_needed =
+        calculateBitsNeeded(mode, header_bits, data_bits, Version::getVersionForNumber(1)?);
+    let provisional_version = chooseVersion(provisional_bits_needed, ec_level)?;
 
     // Use that guess to calculate the right version. I am still not sure this works in 100% of cases.
-    let bitsNeeded = calculateBitsNeeded(mode, headerBits, dataBits, provisionalVersion);
+    let bits_needed = calculateBitsNeeded(mode, header_bits, data_bits, provisional_version);
 
-    chooseVersion(bitsNeeded, ecLevel)
+    chooseVersion(bits_needed, ec_level)
 }
 
 fn calculateBitsNeeded(
     mode: Mode,
-    headerBits: &BitArray,
-    dataBits: &BitArray,
+    header_bits: &BitArray,
+    data_bits: &BitArray,
     version: VersionRef,
 ) -> u32 {
-    (headerBits.getSize() + mode.getCharacterCountBits(version) as usize + dataBits.getSize())
+    (header_bits.getSize() + mode.getCharacterCountBits(version) as usize + data_bits.getSize())
         as u32
 }
 
@@ -344,23 +344,23 @@ fn chooseModeWithEncoding(content: &str, encoding: EncodingRef) -> Mode {
         // Choose Kanji mode if all input are double-byte characters
         return Mode::KANJI;
     }
-    let mut hasNumeric = false;
-    let mut hasAlphanumeric = false;
+    let mut has_numeric = false;
+    let mut has_alphanumeric = false;
     for i in 0..content.len() {
         // for (int i = 0; i < content.length(); ++i) {
         let c = content.chars().nth(i).unwrap();
         if c >= '0' && c <= '9' {
-            hasNumeric = true;
+            has_numeric = true;
         } else if getAlphanumericCode(c as u32) != -1 {
-            hasAlphanumeric = true;
+            has_alphanumeric = true;
         } else {
             return Mode::BYTE;
         }
     }
-    if hasAlphanumeric {
+    if has_alphanumeric {
         return Mode::ALPHANUMERIC;
     }
-    if hasNumeric {
+    if has_numeric {
         return Mode::NUMERIC;
     }
     return Mode::BYTE;
@@ -390,24 +390,24 @@ pub fn isOnlyDoubleByteKanji(content: &str) -> bool {
 
 fn chooseMaskPattern(
     bits: &BitArray,
-    ecLevel: &ErrorCorrectionLevel,
+    ec_level: &ErrorCorrectionLevel,
     version: VersionRef,
     matrix: &mut ByteMatrix,
 ) -> Result<u32, Exceptions> {
-    let mut minPenalty = u32::MAX; // Lower penalty is better.
-    let mut bestMaskPattern = -1;
+    let mut min_penalty = u32::MAX; // Lower penalty is better.
+    let mut best_mask_pattern = -1;
     // We try all mask patterns to choose the best one.
     for maskPattern in 0..QRCode::NUM_MASK_PATTERNS {
         // for (int maskPattern = 0; maskPattern < QRCode.NUM_MASK_PATTERNS; maskPattern++) {
         let mut matrix = matrix.clone();
-        matrix_util::buildMatrix(bits, ecLevel, version, maskPattern, &mut matrix)?;
+        matrix_util::buildMatrix(bits, ec_level, version, maskPattern, &mut matrix)?;
         let penalty = calculateMaskPenalty(&matrix);
-        if penalty < minPenalty {
-            minPenalty = penalty;
-            bestMaskPattern = maskPattern;
+        if penalty < min_penalty {
+            min_penalty = penalty;
+            best_mask_pattern = maskPattern;
         }
     }
-    Ok(bestMaskPattern as u32)
+    Ok(best_mask_pattern as u32)
 }
 
 fn chooseVersion(
@@ -431,14 +431,14 @@ fn chooseVersion(
 pub fn willFit(numInputBits: u32, version: VersionRef, ecLevel: &ErrorCorrectionLevel) -> bool {
     // In the following comments, we use numbers of Version 7-H.
     // numBytes = 196
-    let numBytes = version.getTotalCodewords();
+    let num_bytes = version.getTotalCodewords();
     // getNumECBytes = 130
-    let ecBlocks = version.getECBlocksForLevel(*ecLevel);
-    let numEcBytes = ecBlocks.getTotalECCodewords();
+    let ec_blocks = version.getECBlocksForLevel(*ecLevel);
+    let num_ec_bytes = ec_blocks.getTotalECCodewords();
     // getNumDataBytes = 196 - 130 = 66
-    let numDataBytes = numBytes - numEcBytes;
-    let totalInputBytes = (numInputBits + 7) / 8;
-    return numDataBytes >= totalInputBytes;
+    let num_data_bytes = num_bytes - num_ec_bytes;
+    let total_input_bytes = (numInputBits + 7) / 8;
+    return num_data_bytes >= total_input_bytes;
 }
 
 /**
@@ -496,49 +496,49 @@ pub fn terminateBits(num_data_bytes: u32, bits: &mut BitArray) -> Result<(), Exc
  * JISX0510:2004 (p.30)
  */
 pub fn getNumDataBytesAndNumECBytesForBlockID(
-    numTotalBytes: u32,
-    numDataBytes: u32,
-    numRSBlocks: u32,
-    blockID: u32,
+    num_total_bytes: u32,
+    num_data_bytes: u32,
+    num_rsblocks: u32,
+    block_id: u32,
     // numDataBytesInBlock: &mut [u32],
     // numECBytesInBlock: &mut [u32],
 ) -> Result<(u32, u32), Exceptions> {
-    if blockID >= numRSBlocks {
+    if block_id >= num_rsblocks {
         return Err(Exceptions::WriterException("Block ID too large".to_owned()));
         // throw new WriterException("Block ID too large");
     }
     // numRsBlocksInGroup2 = 196 % 5 = 1
-    let numRsBlocksInGroup2 = numTotalBytes % numRSBlocks;
+    let num_rs_blocks_in_group2 = num_total_bytes % num_rsblocks;
     // numRsBlocksInGroup1 = 5 - 1 = 4
-    let numRsBlocksInGroup1 = numRSBlocks - numRsBlocksInGroup2;
+    let num_rs_blocks_in_group1 = num_rsblocks - num_rs_blocks_in_group2;
     // numTotalBytesInGroup1 = 196 / 5 = 39
-    let numTotalBytesInGroup1 = numTotalBytes / numRSBlocks;
+    let num_total_bytes_in_group1 = num_total_bytes / num_rsblocks;
     // numTotalBytesInGroup2 = 39 + 1 = 40
-    let numTotalBytesInGroup2 = numTotalBytesInGroup1 + 1;
+    let num_total_bytes_in_group2 = num_total_bytes_in_group1 + 1;
     // numDataBytesInGroup1 = 66 / 5 = 13
-    let numDataBytesInGroup1 = numDataBytes / numRSBlocks;
+    let num_data_bytes_in_group1 = num_data_bytes / num_rsblocks;
     // numDataBytesInGroup2 = 13 + 1 = 14
-    let numDataBytesInGroup2 = numDataBytesInGroup1 + 1;
+    let num_data_bytes_in_group2 = num_data_bytes_in_group1 + 1;
     // numEcBytesInGroup1 = 39 - 13 = 26
-    let numEcBytesInGroup1 = numTotalBytesInGroup1 - numDataBytesInGroup1;
+    let num_ec_bytes_in_group1 = num_total_bytes_in_group1 - num_data_bytes_in_group1;
     // numEcBytesInGroup2 = 40 - 14 = 26
-    let numEcBytesInGroup2 = numTotalBytesInGroup2 - numDataBytesInGroup2;
+    let numEcBytesInGroup2 = num_total_bytes_in_group2 - num_data_bytes_in_group2;
     // Sanity checks.
     // 26 = 26
-    if numEcBytesInGroup1 != numEcBytesInGroup2 {
+    if num_ec_bytes_in_group1 != numEcBytesInGroup2 {
         return Err(Exceptions::WriterException("EC bytes mismatch".to_owned()));
         // throw new WriterException("EC bytes mismatch");
     }
     // 5 = 4 + 1.
-    if numRSBlocks != numRsBlocksInGroup1 + numRsBlocksInGroup2 {
+    if num_rsblocks != num_rs_blocks_in_group1 + num_rs_blocks_in_group2 {
         return Err(Exceptions::WriterException("RS blocks mismatch".to_owned()));
 
         // throw new WriterException("RS blocks mismatch");
     }
     // 196 = (13 + 26) * 4 + (14 + 26) * 1
-    if numTotalBytes
-        != ((numDataBytesInGroup1 + numEcBytesInGroup1) * numRsBlocksInGroup1)
-            + ((numDataBytesInGroup2 + numEcBytesInGroup2) * numRsBlocksInGroup2)
+    if num_total_bytes
+        != ((num_data_bytes_in_group1 + num_ec_bytes_in_group1) * num_rs_blocks_in_group1)
+            + ((num_data_bytes_in_group2 + numEcBytesInGroup2) * num_rs_blocks_in_group2)
     {
         return Err(Exceptions::WriterException(
             "Total bytes mismatch".to_owned(),
@@ -547,10 +547,10 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
         // throw new WriterException("Total bytes mismatch");
     }
 
-    Ok(if blockID < numRsBlocksInGroup1 {
-        (numDataBytesInGroup1, numEcBytesInGroup1)
+    Ok(if block_id < num_rs_blocks_in_group1 {
+        (num_data_bytes_in_group1, num_ec_bytes_in_group1)
     } else {
-        (numDataBytesInGroup2, numEcBytesInGroup2)
+        (num_data_bytes_in_group2, numEcBytesInGroup2)
     })
 }
 
@@ -560,12 +560,12 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
  */
 pub fn interleaveWithECBytes(
     bits: &BitArray,
-    numTotalBytes: u32,
-    numDataBytes: u32,
-    numRSBlocks: u32,
+    num_total_bytes: u32,
+    num_data_bytes: u32,
+    num_rsblocks: u32,
 ) -> Result<BitArray, Exceptions> {
     // "bits" must have "getNumDataBytes" bytes of data.
-    if bits.getSizeInBytes() as u32 != numDataBytes {
+    if bits.getSizeInBytes() as u32 != num_data_bytes {
         return Err(Exceptions::WriterException(
             "Number of bits and data bytes does not match".to_owned(),
         ));
@@ -573,21 +573,21 @@ pub fn interleaveWithECBytes(
 
     // Step 1.  Divide data bytes into blocks and generate error correction bytes for them. We'll
     // store the divided data bytes blocks and error correction bytes blocks into "blocks".
-    let mut dataBytesOffset = 0;
-    let mut maxNumDataBytes = 0;
-    let mut maxNumEcBytes = 0;
+    let mut data_bytes_offset = 0;
+    let mut max_num_data_bytes = 0;
+    let mut max_num_ec_bytes = 0;
 
     // Since, we know the number of reedsolmon blocks, we can initialize the vector with the number.
     let mut blocks = Vec::new();
 
-    for i in 0..numRSBlocks {
+    for i in 0..num_rsblocks {
         // for (int i = 0; i < numRSBlocks; ++i) {
         // let mut numDataBytesInBlock = vec![0; 1]; //new int[1];
         // let mut numEcBytesInBlock = vec![0; 1]; //new int[1];
         let (numDataBytesInBlock, numEcBytesInBlock) = getNumDataBytesAndNumECBytesForBlockID(
-            numTotalBytes,
-            numDataBytes,
-            numRSBlocks,
+            num_total_bytes,
+            num_data_bytes,
+            num_rsblocks,
             i,
             // &mut numDataBytesInBlock,
             // &mut numEcBytesInBlock,
@@ -595,15 +595,15 @@ pub fn interleaveWithECBytes(
 
         let size = numDataBytesInBlock;
         let mut dataBytes = vec![0u8; size as usize];
-        bits.toBytes(8 * dataBytesOffset, &mut dataBytes, 0, size as usize);
-        let ecBytes = generateECBytes(&dataBytes, numEcBytesInBlock as usize);
-        blocks.push(BlockPair::new(dataBytes, ecBytes.clone()));
+        bits.toBytes(8 * data_bytes_offset, &mut dataBytes, 0, size as usize);
+        let ec_bytes = generateECBytes(&dataBytes, numEcBytesInBlock as usize);
+        blocks.push(BlockPair::new(dataBytes, ec_bytes.clone()));
 
-        maxNumDataBytes = maxNumDataBytes.max(size);
-        maxNumEcBytes = maxNumEcBytes.max(ecBytes.len());
-        dataBytesOffset += numDataBytesInBlock as usize;
+        max_num_data_bytes = max_num_data_bytes.max(size);
+        max_num_ec_bytes = max_num_ec_bytes.max(ec_bytes.len());
+        data_bytes_offset += numDataBytesInBlock as usize;
     }
-    if numDataBytes != dataBytesOffset as u32 {
+    if num_data_bytes != data_bytes_offset as u32 {
         return Err(Exceptions::WriterException(
             "Data bytes does not match offset".to_owned(),
         ));
@@ -612,32 +612,32 @@ pub fn interleaveWithECBytes(
     let mut result = BitArray::new();
 
     // First, place data blocks.
-    for i in 0..maxNumDataBytes as usize {
+    for i in 0..max_num_data_bytes as usize {
         // for (int i = 0; i < maxNumDataBytes; ++i) {
         for block in &blocks {
             // for (BlockPair block : blocks) {
-            let dataBytes = block.getDataBytes();
-            if i < dataBytes.len() {
-                result.appendBits(dataBytes[i] as u32, 8)?;
+            let data_bytes = block.getDataBytes();
+            if i < data_bytes.len() {
+                result.appendBits(data_bytes[i] as u32, 8)?;
             }
         }
     }
     // Then, place error correction blocks.
-    for i in 0..maxNumEcBytes {
+    for i in 0..max_num_ec_bytes {
         // for (int i = 0; i < maxNumEcBytes; ++i) {
         for block in &blocks {
             // for (BlockPair block : blocks) {
-            let ecBytes = block.getErrorCorrectionBytes();
-            if i < ecBytes.len() {
-                result.appendBits(ecBytes[i] as u32, 8)?;
+            let ec_bytes = block.getErrorCorrectionBytes();
+            if i < ec_bytes.len() {
+                result.appendBits(ec_bytes[i] as u32, 8)?;
             }
         }
     }
-    if numTotalBytes != result.getSizeInBytes() as u32 {
+    if num_total_bytes != result.getSizeInBytes() as u32 {
         // Should be same.
         return Err(Exceptions::WriterException(format!(
             "Interleaving error: {} and {} differ.",
-            numTotalBytes,
+            num_total_bytes,
             result.getSizeInBytes()
         )));
         // throw new WriterException("Interleaving error: " + numTotalBytes + " and " +
@@ -647,24 +647,24 @@ pub fn interleaveWithECBytes(
     Ok(result)
 }
 
-pub fn generateECBytes(dataBytes: &[u8], numEcBytesInBlock: usize) -> Vec<u8> {
-    let numDataBytes = dataBytes.len();
-    let mut toEncode = vec![0; numDataBytes + numEcBytesInBlock];
-    for i in 0..numDataBytes {
+pub fn generateECBytes(dataBytes: &[u8], num_ec_bytes_in_block: usize) -> Vec<u8> {
+    let num_data_bytes = dataBytes.len();
+    let mut to_encode = vec![0; num_data_bytes + num_ec_bytes_in_block];
+    for i in 0..num_data_bytes {
         // for (int i = 0; i < numDataBytes; i++) {
-        toEncode[i] = dataBytes[i] as i32;
+        to_encode[i] = dataBytes[i] as i32;
     }
 
     ReedSolomonEncoder::new(get_predefined_genericgf(
         PredefinedGenericGF::QrCodeField256,
     ))
-    .encode(&mut toEncode, numEcBytesInBlock)
+    .encode(&mut to_encode, num_ec_bytes_in_block)
     .expect("rs encode must complete");
 
-    let mut ecBytes = vec![0u8; numEcBytesInBlock];
-    for i in 0..numEcBytesInBlock {
+    let mut ecBytes = vec![0u8; num_ec_bytes_in_block];
+    for i in 0..num_ec_bytes_in_block {
         // for (int i = 0; i < numEcBytesInBlock; i++) {
-        ecBytes[i] = toEncode[numDataBytes + i] as u8;
+        ecBytes[i] = to_encode[num_data_bytes + i] as u8;
     }
     return ecBytes;
 }
@@ -681,20 +681,20 @@ pub fn appendModeInfo(mode: Mode, bits: &mut BitArray) -> Result<(), Exceptions>
  * Append length info. On success, store the result in "bits".
  */
 pub fn appendLengthInfo(
-    numLetters: u32,
+    num_letters: u32,
     version: VersionRef,
     mode: Mode,
     bits: &mut BitArray,
 ) -> Result<(), Exceptions> {
     let numBits = mode.getCharacterCountBits(version);
-    if numLetters >= (1 << numBits) {
+    if num_letters >= (1 << numBits) {
         return Err(Exceptions::WriterException(format!(
             "{} is bigger than {}",
-            numLetters,
+            num_letters,
             ((1 << numBits) - 1)
         )));
     }
-    bits.appendBits(numLetters, numBits as usize)?;
+    bits.appendBits(num_letters, numBits as usize)?;
     Ok(())
 }
 
