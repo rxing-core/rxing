@@ -107,7 +107,7 @@ impl MinimalEncoder {
      */
     pub fn new(
         stringToEncode: &str,
-        priorityCharset: EncodingRef,
+        priorityCharset: Option<EncodingRef>,
         isGS1: bool,
         ecLevel: ErrorCorrectionLevel,
     ) -> Self {
@@ -144,7 +144,7 @@ impl MinimalEncoder {
     pub fn encode_with_details(
         stringToEncode: &str,
         version: Option<VersionRef>,
-        priorityCharset: EncodingRef,
+        priorityCharset: Option<EncodingRef>,
         isGS1: bool,
         ecLevel: ErrorCorrectionLevel,
     ) -> Result<RXingResultList, Exceptions> {
@@ -319,15 +319,15 @@ impl MinimalEncoder {
         let mut start = 0;
         let mut end = self.encoders.len();
         let priorityEncoderIndex = self.encoders.getPriorityEncoderIndex();
-        if priorityEncoderIndex >= 0
+        if priorityEncoderIndex.is_some()
             && self.encoders.canEncode(
                 // self.stringToEncode.chars().nth(from as usize).unwrap() as i16,
                 &self.stringToEncode[from as usize],
-                priorityEncoderIndex,
+                priorityEncoderIndex.unwrap(),
             )
         {
-            start = priorityEncoderIndex;
-            end = priorityEncoderIndex + 1;
+            start = priorityEncoderIndex.unwrap();
+            end = priorityEncoderIndex.unwrap() + 1;
         }
 
         for i in start..end {

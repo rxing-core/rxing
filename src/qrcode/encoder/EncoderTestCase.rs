@@ -1100,9 +1100,10 @@ fn testMinimalEncoder41() {
 #[test]
 fn testMinimalEncoder42() {
     // test halfwidth Katakana character (they are single byte encoded in Shift_JIS)
+    // NOTE: Changed to windows-31j because that is what is supported in encoding crate
     verifyMinimalEncoding(
         "Katakana:\u{FF66}\u{FF66}\u{FF66}\u{FF66}\u{FF66}\u{FF66}",
-        "ECI(Shift_JIS),BYTE(Katakana:......)",
+        "ECI(windows-31j),BYTE(Katakana:......)",
         None,
         false,
     );
@@ -1124,9 +1125,10 @@ fn testMinimalEncoder44() {
     // The character \u30A2 encodes as double byte in Shift_JIS but KANJI is not more compact in this case because
     // KANJI is only more compact when it encodes pairs of characters. In the case of mixed text it can however be
     // that Shift_JIS encoding is more compact as in this example
+    // NOTE: Changed to windows-31j because that is what is supported in encoding crate
     verifyMinimalEncoding(
         "Katakana:\u{30A2}a\u{30A2}a\u{30A2}a\u{30A2}a\u{30A2}a\u{30A2}",
-        "ECI(Shift_JIS),BYTE(Katakana:.a.a.a.a.a.)",
+        "ECI(windows-31j),BYTE(Katakana:.a.a.a.a.a.)",
         None,
         false,
     );
@@ -1141,7 +1143,7 @@ fn verifyMinimalEncoding(
     let result = MinimalEncoder::encode_with_details(
         input,
         None,
-        priorityCharset.unwrap_or(encoding::all::ISO_8859_1),
+        priorityCharset,
         isGS1,
         ErrorCorrectionLevel::L,
     )

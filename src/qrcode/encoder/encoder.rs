@@ -136,11 +136,12 @@ pub fn encode_with_hints(
     if hasCompactionHint {
         mode = Mode::BYTE;
 
+        dbg!("consider this a huge risk, not sure if it should be defaulting to default");
         let priorityEncoding = encoding; //if encoding.name() == DEFAULT_BYTE_MODE_ENCODING.name()  {None} else {Some(encoding)};
         let rn = MinimalEncoder::encode_with_details(
             content,
             None,
-            priorityEncoding,
+            Some(priorityEncoding),
             hasGS1FormatHint,
             ecLevel,
         )?;

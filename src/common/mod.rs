@@ -2910,7 +2910,7 @@ const NAMES: [&str; 20] = [
 #[derive(Clone)]
 pub struct ECIEncoderSet {
     encoders: Vec<EncodingRef>,
-    priorityEncoderIndex: usize,
+    priorityEncoderIndex: Option<usize>,
 }
 
 impl ECIEncoderSet {
@@ -2922,11 +2922,11 @@ impl ECIEncoderSet {
      * @param fnc1 fnc1 denotes the character in the input that represents the FNC1 character or -1 for a non-GS1 bar
      * code. When specified, it is considered an error to pass it as argument to the methods canEncode() or encode().
      */
-    pub fn new(stringToEncodeMain: &str, priorityCharset: EncodingRef, fnc1: Option<&str>) -> Self {
+    pub fn new(stringToEncodeMain: &str, priorityCharset: Option<EncodingRef>, fnc1: Option<&str>) -> Self {
         // List of encoders that potentially encode characters not in ISO-8859-1 in one byte.
 
         let mut encoders: Vec<EncodingRef>;
-        let mut priorityEncoderIndexValue = 0;
+        let mut priorityEncoderIndexValue = None;
 
         let mut neededEncoders: Vec<EncodingRef> = Vec::new();
 
@@ -2934,7 +2934,11 @@ impl ECIEncoderSet {
 
         //we always need the ISO-8859-1 encoder. It is the default encoding
         neededEncoders.push(encoding::all::ISO_8859_1);
-        let mut needUnicodeEncoder = priorityCharset.name().starts_with("UTF");
+        let mut needUnicodeEncoder = if let Some(pc) = priorityCharset {
+            pc.name().starts_with("UTF")
+        }else{
+            false
+        };
 
         //Walk over the input string and see if all characters can be encoded with the list of encoders
         for i in 0..stringToEncode.len() {
@@ -3005,13 +3009,14 @@ impl ECIEncoderSet {
 
         //Compute priorityEncoderIndex by looking up priorityCharset in encoders
         // if priorityCharset != null {
+            if priorityCharset.is_some() {
         for i in 0..encoders.len() {
             //   for (int i = 0; i < encoders.length; i++) {
-            if priorityCharset.name() == encoders[i].name() {
-                priorityEncoderIndexValue = i;
+            if priorityCharset.as_ref().unwrap().name() == encoders[i].name() {
+                priorityEncoderIndexValue = Some(i);
                 break;
             }
-        }
+        }}
         // }
         //invariants
         assert_eq!(encoders[0].name(), encoding::all::ISO_8859_1.name());
@@ -3044,8 +3049,8 @@ impl ECIEncoderSet {
     /*
      *  returns -1 if no priority charset was defined
      */
-    pub fn getPriorityEncoderIndex(&self) -> usize {
-        return self.priorityEncoderIndex;
+    pub fn getPriorityEncoderIndex(&self) -> Option<usize> {
+        self.priorityEncoderIndex
     }
 
     pub fn canEncode(&self, c: &str, encoderIndex: usize) -> bool {
@@ -3264,7 +3269,7 @@ impl MinimalECIInput {
      * @param fnc1 denotes the character in the input that represents the FNC1 character or -1 if this is not GS1
      *   input.
      */
-    pub fn new(stringToEncodeInput: &str, priorityCharset: EncodingRef, fnc1: Option<&str>) -> Self {
+    pub fn new(stringToEncodeInput: &str, priorityCharset: Option<EncodingRef>, fnc1: Option<&str>) -> Self {
         let stringToEncode = stringToEncodeInput.graphemes(true).collect::<Vec<&str>>();
         let encoderSet = ECIEncoderSet::new(stringToEncodeInput, priorityCharset, fnc1);
         let bytes = if encoderSet.len() == 1 {
@@ -3333,10 +3338,10 @@ impl MinimalECIInput {
 
         let mut start = 0;
         let mut end = encoderSet.len();
-        if encoderSet.getPriorityEncoderIndex() >= 0
-            && (ch.chars().nth(0).unwrap() as u16 == fnc1 || encoderSet.canEncode(ch, encoderSet.getPriorityEncoderIndex()))
+        if encoderSet.getPriorityEncoderIndex().is_some()
+            && (ch.chars().nth(0).unwrap() as u16 == fnc1 || encoderSet.canEncode(ch, encoderSet.getPriorityEncoderIndex().unwrap()))
         {
-            start = encoderSet.getPriorityEncoderIndex();
+            start = encoderSet.getPriorityEncoderIndex().unwrap();
             end = start + 1;
         }
 
