@@ -76,7 +76,7 @@ pub fn decode(
                 fc1InEffect = true;
             }
             Mode::STRUCTURED_APPEND => {
-                if (bits.available() < 16) {
+                if bits.available() < 16 {
                     return Err(Exceptions::FormatException(format!(
                         "Mode::Structured append expected bits.available() < 16, found bits of {}",
                         bits.available()
@@ -131,7 +131,7 @@ pub fn decode(
             }
         }
 
-        if mode != Mode::TERMINATOR {
+        if mode == Mode::TERMINATOR {
             break;
         }
     }
@@ -207,7 +207,7 @@ fn decodeHanziSegment(
         count -= 1;
     }
 
-    let gb_encoder = encoding::label::encoding_from_whatwg_label("GB2312").unwrap();
+    let gb_encoder = encoding::label::encoding_from_whatwg_label("GBK").unwrap();
     let encode_string = gb_encoder
         .decode(&buffer, encoding::DecoderTrap::Strict)
         .unwrap();
@@ -221,7 +221,7 @@ fn decodeKanjiSegment(
     count: usize,
 ) -> Result<(), Exceptions> {
     // Don't crash trying to read more bits than we have available.
-    if (count * 13 > bits.available()) {
+    if count * 13 > bits.available() {
         return Err(Exceptions::FormatException("".to_owned()));
     }
 
@@ -285,9 +285,23 @@ fn decodeByteSegment(
     } else {
         encoding = CharacterSetECI::getCharset(currentCharacterSetECI.as_ref().unwrap());
     }
-    let encode_string = encoding
-        .decode(&readBytes, encoding::DecoderTrap::Strict)
-        .unwrap();
+
+    let encode_string = if currentCharacterSetECI.is_some() && currentCharacterSetECI.as_ref().unwrap() == &CharacterSetECI::Cp437 {
+      {
+        use codepage_437::BorrowFromCp437;
+        use codepage_437::CP437_CONTROL;
+
+        String::borrow_from_cp437(&readBytes, &CP437_CONTROL)
+      }
+    }else {
+      encoding
+      .decode(&readBytes, encoding::DecoderTrap::Strict)
+      .unwrap()
+    };
+
+    // let encode_string = encoding
+    //     .decode(&readBytes, encoding::DecoderTrap::Strict)
+    //     .unwrap();
     result.push_str(&encode_string);
     byteSegments.push(readBytes);
 

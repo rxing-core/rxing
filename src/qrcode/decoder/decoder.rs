@@ -1,0 +1,216 @@
+/*
+ * Copyright 2007 ZXing authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+use std::collections::HashMap;
+
+/**
+ * <p>The main class which implements QR Code decoding -- as opposed to locating and extracting
+ * the QR Code from an image.</p>
+ *
+ * @author Sean Owen
+ */
+use lazy_static::lazy_static;
+
+use crate::{
+    common::{
+        reedsolomon::get_predefined_genericgf, reedsolomon::PredefinedGenericGF,
+        reedsolomon::ReedSolomonDecoder, BitMatrix, DecoderRXingResult,
+    },
+    DecodingHintDictionary, Exceptions,
+};
+
+use super::{decoded_bit_stream_parser, BitMatrixParser, DataBlock, QRCodeDecoderMetaData};
+
+lazy_static! {
+ //rsDecoder = new ReedSolomonDecoder(GenericGF.QR_CODE_FIELD_256);
+ static ref rsDecoder : ReedSolomonDecoder = ReedSolomonDecoder::new(get_predefined_genericgf(PredefinedGenericGF::QrCodeField256));
+}
+
+pub fn decode_bool_array(image: &Vec<Vec<bool>>) -> Result<DecoderRXingResult, Exceptions> {
+    decode_bool_array_with_hints(image, &HashMap::new())
+}
+
+/**
+ * <p>Convenience method that can decode a QR Code represented as a 2D array of booleans.
+ * "true" is taken to mean a black module.</p>
+ *
+ * @param image booleans representing white/black QR Code modules
+ * @param hints decoding hints that should be used to influence decoding
+ * @return text and bytes encoded within the QR Code
+ * @throws FormatException if the QR Code cannot be decoded
+ * @throws ChecksumException if error correction fails
+ */
+pub fn decode_bool_array_with_hints(
+    image: &Vec<Vec<bool>>,
+    hints: &DecodingHintDictionary,
+) -> Result<DecoderRXingResult, Exceptions> {
+    decode_bitmatrix_with_hints(&BitMatrix::parse_bools(image), hints)
+}
+
+pub fn decode_bitmatrix(bits: &BitMatrix) -> Result<DecoderRXingResult, Exceptions> {
+    decode_bitmatrix_with_hints(bits, &HashMap::new())
+}
+
+/**
+ * <p>Decodes a QR Code represented as a {@link BitMatrix}. A 1 or "true" is taken to mean a black module.</p>
+ *
+ * @param bits booleans representing white/black QR Code modules
+ * @param hints decoding hints that should be used to influence decoding
+ * @return text and bytes encoded within the QR Code
+ * @throws FormatException if the QR Code cannot be decoded
+ * @throws ChecksumException if error correction fails
+ */
+pub fn decode_bitmatrix_with_hints(
+    bits: &BitMatrix,
+    hints: &DecodingHintDictionary,
+) -> Result<DecoderRXingResult, Exceptions> {
+    // Construct a parser and read version, error-correction level
+    let mut parser = BitMatrixParser::new(bits.clone())?;
+    let mut fe = None;
+    let mut ce = None;
+    match decode_bitmatrix_parser_with_hints(&mut parser, hints) {
+        Ok(ok) => return Ok(ok),
+        Err(er) => match er {
+            Exceptions::FormatException(_) => fe = Some(er),
+            Exceptions::ChecksumException(_) => ce = Some(er),
+            _ => return Err(er),
+        },
+    }
+
+    let mut trying = || -> Result<DecoderRXingResult, Exceptions> {
+        // Revert the bit matrix
+        parser.remask();
+
+        // Will be attempting a mirrored reading of the version and format info.
+        parser.setMirror(true);
+
+        // Preemptively read the version.
+        parser.readVersion()?;
+
+        // Preemptively read the format information.
+        parser.readFormatInformation()?;
+
+        /*
+         * Since we're here, this means we have successfully detected some kind
+         * of version and format information when mirrored. This is a good sign,
+         * that the QR code may be mirrored, and we should try once more with a
+         * mirrored content.
+         */
+        // Prepare for a mirrored reading.
+        parser.mirror();
+
+        let mut result = decode_bitmatrix_parser_with_hints(&mut parser, hints)?;
+
+        // Success! Notify the caller that the code was mirrored.
+        result.setOther(Box::new(QRCodeDecoderMetaData::new(true)));
+
+        Ok(result)
+    };
+
+    match trying() {
+        Ok(res) => Ok(res),
+        Err(er) => match er {
+            Exceptions::FormatException(_) | Exceptions::ChecksumException(_) => {
+                if fe.is_some() {
+                    Err(fe.unwrap())
+                } else {
+                    Err(ce.unwrap())
+                }
+            }
+            _ => Err(er),
+        },
+    }
+
+    //  catch (FormatException | ChecksumException e) {
+    //   // Throw the exception from the original reading
+    //   if (fe != null) {
+    //     throw fe;
+    //   }
+    //   throw ce; // If fe is null, this can't be
+    // }
+}
+
+fn decode_bitmatrix_parser_with_hints(
+    parser: &mut BitMatrixParser,
+    hints: &DecodingHintDictionary,
+) -> Result<DecoderRXingResult, Exceptions> {
+    let version = parser.readVersion()?;
+    let ecLevel = parser.readFormatInformation()?.getErrorCorrectionLevel();
+
+    // Read codewords
+    let codewords = parser.readCodewords()?;
+    // Separate into data blocks
+    let dataBlocks = DataBlock::getDataBlocks(&codewords, version, ecLevel)?;
+
+    // Count total number of data bytes
+    let mut totalBytes = 0usize;
+    for dataBlock in &dataBlocks {
+        // for (DataBlock dataBlock : dataBlocks) {
+        totalBytes += dataBlock.getNumDataCodewords() as usize;
+    }
+    let mut resultBytes = vec![0u8; totalBytes];
+    let mut resultOffset = 0;
+
+    // Error-correct and copy data blocks together into a stream of bytes
+    for dataBlock in &dataBlocks {
+        // for (DataBlock dataBlock : dataBlocks) {
+        let mut codewordBytes = dataBlock.getCodewords().to_vec();
+        let numDataCodewords = dataBlock.getNumDataCodewords() as usize;
+        correctErrors(&mut codewordBytes, numDataCodewords);
+        for i in 0..numDataCodewords {
+            // for (int i = 0; i < numDataCodewords; i++) {
+            resultBytes[resultOffset] = codewordBytes[i];
+            resultOffset += 1;
+        }
+    }
+
+    // Decode the contents of that stream of bytes
+    decoded_bit_stream_parser::decode(&resultBytes, version, ecLevel, hints)
+}
+
+/**
+ * <p>Given data and error-correction codewords received, possibly corrupted by errors, attempts to
+ * correct the errors in-place using Reed-Solomon error correction.</p>
+ *
+ * @param codewordBytes data and error correction codewords
+ * @param numDataCodewords number of codewords that are data bytes
+ * @throws ChecksumException if error correction fails
+ */
+fn correctErrors(codewordBytes: &mut [u8], numDataCodewords: usize) -> Result<(), Exceptions> {
+    let numCodewords = codewordBytes.len();
+    // First read into an array of ints
+    let mut codewordsInts = vec![0u8; numCodewords];
+    for i in 0..numCodewords {
+        // for (int i = 0; i < numCodewords; i++) {
+        codewordsInts[i] = codewordBytes[i]; // & 0xFF;
+    }
+    if let Err(e) = rsDecoder.decode(
+        &mut codewordsInts.iter().map(|x| *x as i32).collect(),
+        (codewordBytes.len() - numDataCodewords) as i32,
+    ) {
+        if let Exceptions::ReedSolomonException(error_str) = e {
+            return Err(Exceptions::ChecksumException(error_str));
+        }
+    }
+
+    // Copy back into array of bytes -- only need to worry about the bytes that were data
+    // We don't care about errors in the error-correction codewords
+    for i in 0..numDataCodewords {
+        // for (int i = 0; i < numDataCodewords; i++) {
+        codewordBytes[i] = codewordsInts[i];
+    }
+    Ok(())
+}

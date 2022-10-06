@@ -1545,7 +1545,7 @@ impl BitSource {
             return Err(Exceptions::IllegalArgumentException(numBits.to_string()));
         }
 
-        let mut result = 0;
+        let mut result:u32 = 0;
 
         let mut num_bits = numBits;
 
@@ -1555,7 +1555,8 @@ impl BitSource {
             let toRead = cmp::min(num_bits, bitsLeft);
             let bitsToNotRead = bitsLeft - toRead;
             let mask = (0xFF >> (8 - toRead)) << bitsToNotRead;
-            result = (self.bytes[self.byte_offset] & mask) >> bitsToNotRead;
+
+            result = (self.bytes[self.byte_offset] & mask) as u32 >> bitsToNotRead;
             num_bits -= toRead;
             self.bit_offset += toRead;
             if self.bit_offset == 8 {
@@ -1567,7 +1568,8 @@ impl BitSource {
         // Next read whole bytes
         if num_bits > 0 {
             while num_bits >= 8 {
-                result = ((result as u16) << 8) as u8 | (self.bytes[self.byte_offset] & 0xFF);
+                result = (result << 8) | (self.bytes[self.byte_offset] & 0xFF) as u32;
+                // result = ((result as u16) << 8) as u8 | (self.bytes[self.byte_offset]);
                 self.byte_offset += 1;
                 num_bits -= 8;
             }
@@ -1577,12 +1579,12 @@ impl BitSource {
                 let bits_to_not_read = 8 - num_bits;
                 let mask = (0xFF >> bits_to_not_read) << bits_to_not_read;
                 result = (result << num_bits)
-                    | ((self.bytes[self.byte_offset] & mask) >> bits_to_not_read);
+                    | ((self.bytes[self.byte_offset] & mask) as u32 >> bits_to_not_read);
                 self.bit_offset += num_bits;
             }
         }
 
-        return Ok(result.into());
+        return Ok(result);
     }
 
     /**
@@ -2514,7 +2516,8 @@ impl CharacterSetECI {
 
     pub fn getCharset(cs_eci: &CharacterSetECI) -> EncodingRef {
         let name = match cs_eci {
-            CharacterSetECI::Cp437 => "CP437",
+            // CharacterSetECI::Cp437 => "CP437",
+            CharacterSetECI::Cp437 => "UTF-8",
             CharacterSetECI::ISO8859_1 => "ISO-8859-1",
             CharacterSetECI::ISO8859_2 => "ISO-8859-2",
             CharacterSetECI::ISO8859_3 => "ISO-8859-3",

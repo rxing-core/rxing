@@ -1,6 +1,6 @@
 use std::{error::Error, fmt};
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq, Eq)]
 pub enum Exceptions {
     IllegalArgumentException(String),
     UnsupportedOperationException(String),
