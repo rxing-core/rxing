@@ -30,10 +30,11 @@ pub struct FinderPatternInfo {
 
 impl FinderPatternInfo {
     pub fn new(patternCenters: [FinderPattern; 3]) -> Self {
+        let [a, b, c] = patternCenters;
         Self {
-            bottomLeft: patternCenters[0],
-            topLeft: patternCenters[1],
-            topRight: patternCenters[2],
+            bottomLeft: a,
+            topLeft: b,
+            topRight: c,
         }
     }
 
