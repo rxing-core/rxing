@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-package com.google.zxing.qrcode.detector;
+use crate::{common::BitMatrix, RXingResultPointCallback, DecodingHintDictionary};
 
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.RXingResultPoint;
-import com.google.zxing.RXingResultPointCallback;
-import com.google.zxing.common.BitMatrix;
+use super::{FinderPattern, FinderPatternInfo};
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
 
 /**
  * <p>This class attempts to find finder patterns in a QR Code. Finder patterns are the square
@@ -37,44 +27,48 @@ import java.util.Map;
  *
  * @author Sean Owen
  */
-public class FinderPatternFinder {
+pub struct FinderPatternFinder {
 
-  private static final int CENTER_QUORUM = 2;
-  private static final EstimatedModuleComparator moduleComparator = new EstimatedModuleComparator();
-  protected static final int MIN_SKIP = 3; // 1 pixel/module times 3 modules/center
-  protected static final int MAX_MODULES = 97; // support up to version 20 for mobile clients
-
-  private final BitMatrix image;
-  private final List<FinderPattern> possibleCenters;
-  private boolean hasSkipped;
-  private final int[] crossCheckStateCount;
-  private final RXingResultPointCallback resultPointCallback;
+   image:BitMatrix,
+   possibleCenters:Vec<FinderPattern>,
+  hasSkipped:bool,
+   crossCheckStateCount:Vec<u32>,
+   resultPointCallback:Option<RXingResultPointCallback>,
+}
+impl FinderPatternFinder{
+  const CENTER_QUORUM :u32= 2;
+  // private static final EstimatedModuleComparator moduleComparator = new EstimatedModuleComparator();
+  const  MIN_SKIP :u32 = 3; // 1 pixel/module times 3 modules/center
+  const  MAX_MODULES:u32 = 97; // support up to version 20 for mobile clients
 
   /**
    * <p>Creates a finder that will search the image for three finder patterns.</p>
    *
    * @param image image to search
    */
-  public FinderPatternFinder(BitMatrix image) {
-    this(image, null);
+  pub fn new( image:BitMatrix) -> Self{
+    Self::with_callback(image, None)
   }
 
-  public FinderPatternFinder(BitMatrix image, RXingResultPointCallback resultPointCallback) {
-    this.image = image;
-    this.possibleCenters = new ArrayList<>();
-    this.crossCheckStateCount = new int[5];
-    this.resultPointCallback = resultPointCallback;
+  pub fn with_callback( image:BitMatrix,  resultPointCallback:Option<RXingResultPointCallback>) -> Self{
+    Self {
+        image,
+        possibleCenters: Vec::new(),
+        hasSkipped: false,
+        crossCheckStateCount: [0u32;5],
+        resultPointCallback,
+    }
   }
 
-  protected final BitMatrix getImage() {
-    return image;
+  pub fn  getImage(&self) -> &BitMatrix{
+    &self.image
   }
 
-  protected final List<FinderPattern> getPossibleCenters() {
-    return possibleCenters;
+  pub fn getPossibleCenters(&self) -> &Vec<FinderPattern>{
+    &self.possibleCenters
   }
 
-  final FinderPatternInfo find(Map<DecodeHintType,?> hints) throws NotFoundException {
+  pub fn find(&self, hints:&DecodingHintDictionary) -> Result<FinderPatternInfo,Exceptions> {
     boolean tryHarder = hints != null && hints.containsKey(DecodeHintType.TRY_HARDER);
     int maxI = image.getHeight();
     int maxJ = image.getWidth();
@@ -171,7 +165,7 @@ public class FinderPatternFinder {
    * Given a count of black/white/black/white/black pixels just seen and an end position,
    * figures the location of the center of this run.
    */
-  private static float centerFromEnd(int[] stateCount, int end) {
+  fn centerFromEnd(stateCount:&[u32],  end:u32) -> f32 {
     return (end - stateCount[4] - stateCount[3]) - stateCount[2] / 2.0f;
   }
 
@@ -180,7 +174,7 @@ public class FinderPatternFinder {
    * @return true iff the proportions of the counts is close enough to the 1/1/3/1/1 ratios
    *         used by finder patterns to be considered a match
    */
-  protected static boolean foundPatternCross(int[] stateCount) {
+  pub fn foundPatternCross( stateCount:&[u32]) -> bool{
     int totalModuleSize = 0;
     for (int i = 0; i < 5; i++) {
       int count = stateCount[i];
@@ -208,7 +202,7 @@ public class FinderPatternFinder {
    * @return true iff the proportions of the counts is close enough to the 1/1/3/1/1 ratios
    *         used by finder patterns to be considered a match
    */
-  protected static boolean foundPatternDiagonal(int[] stateCount) {
+  pub fn foundPatternDiagonal( stateCount: &[u32]) -> bool{
     int totalModuleSize = 0;
     for (int i = 0; i < 5; i++) {
       int count = stateCount[i];
@@ -231,26 +225,26 @@ public class FinderPatternFinder {
                     Math.abs(moduleSize - stateCount[4]) < maxVariance;
   }
 
-  private int[] getCrossCheckStateCount() {
+  fn getCrossCheckStateCount(&self) -> &[u32] {
     doClearCounts(crossCheckStateCount);
     return crossCheckStateCount;
   }
 
-  @Deprecated
-  protected final void clearCounts(int[] counts) {
+  #[deprecated]
+  pub fn clearCounts(&self,  counts:&[u32]) {
     doClearCounts(counts);
   }
 
-  @Deprecated
-  protected final void shiftCounts2(int[] stateCount) {
+  #[deprecated]
+  pub fn shiftCounts2(&self,  stateCount:&[u32]) {
     doShiftCounts2(stateCount);
   }
 
-  protected static void doClearCounts(int[] counts) {
+  pub fn doClearCounts(icounts:&[u32]) {
     Arrays.fill(counts, 0);
   }
 
-  protected static void doShiftCounts2(int[] stateCount) {
+  pub fn doShiftCounts2( stateCount:&[u32]) {
     stateCount[0] = stateCount[2];
     stateCount[1] = stateCount[3];
     stateCount[2] = stateCount[4];
@@ -267,7 +261,7 @@ public class FinderPatternFinder {
    * @param centerJ center of the section that appears to cross a finder pattern
    * @return true if proportions are withing expected limits
    */
-  private boolean crossCheckDiagonal(int centerI, int centerJ) {
+  fn crossCheckDiagonal(&self,  centerI:u32,  centerJ:u32) -> bool{
     int[] stateCount = getCrossCheckStateCount();
 
     // Start counting up, left from center finding black center mass
@@ -338,8 +332,8 @@ public class FinderPatternFinder {
    * observed in any reading state, based on the results of the horizontal scan
    * @return vertical center of finder pattern, or {@link Float#NaN} if not found
    */
-  private float crossCheckVertical(int startI, int centerJ, int maxCount,
-      int originalStateCountTotal) {
+  fn crossCheckVertical( &self, startI:u32,  centerJ:u32,  maxCount:u32,
+       originalStateCountTotal:u32) -> f32{
     BitMatrix image = this.image;
 
     int maxI = image.getHeight();
@@ -410,8 +404,8 @@ public class FinderPatternFinder {
    * except it reads horizontally instead of vertically. This is used to cross-cross
    * check a vertical cross check and locate the real center of the alignment pattern.</p>
    */
-  private float crossCheckHorizontal(int startJ, int centerI, int maxCount,
-      int originalStateCountTotal) {
+  fn crossCheckHorizontal(&self,  startJ:u32,  centerI:u32,  maxCount:u32,
+       originalStateCountTotal:u32) -> f32{
     BitMatrix image = this.image;
 
     int maxJ = image.getWidth();
@@ -483,8 +477,8 @@ public class FinderPatternFinder {
    * @deprecated only exists for backwards compatibility
    * @see #handlePossibleCenter(int[], int, int)
    */
-  @Deprecated
-  protected final boolean handlePossibleCenter(int[] stateCount, int i, int j, boolean pureBarcode) {
+  #[deprecated]
+  pub fn handlePossibleCenter(&self, stateCount:&[u32],  i:u32,  j:u32,  pureBarcode:bool) -> bool{
     return handlePossibleCenter(stateCount, i, j);
   }
 
@@ -505,7 +499,7 @@ public class FinderPatternFinder {
    * @param j end of possible finder pattern in row
    * @return true if a finder pattern candidate was found this time
    */
-  protected final boolean handlePossibleCenter(int[] stateCount, int i, int j) {
+  pub fn handlePossibleCenter(&self,  stateCount:&[u32],  i:u32,  j:u32) -> bool{
     int stateCountTotal = stateCount[0] + stateCount[1] + stateCount[2] + stateCount[3] +
         stateCount[4];
     float centerJ = centerFromEnd(stateCount, j);
@@ -544,7 +538,7 @@ public class FinderPatternFinder {
    *         allow us to infer that the third pattern must lie below a certain point farther
    *         down in the image.
    */
-  private int findRowSkip() {
+  fn findRowSkip(&self) -> u32{
     int max = possibleCenters.size();
     if (max <= 1) {
       return 0;
@@ -574,7 +568,7 @@ public class FinderPatternFinder {
    *         at least {@link #CENTER_QUORUM} times each, and, the estimated module size of the
    *         candidates is "pretty similar"
    */
-  private boolean haveMultiplyConfirmedCenters() {
+  fn haveMultiplyConfirmedCenters(&self) -> bool {
     int confirmedCount = 0;
     float totalModuleSize = 0.0f;
     int max = possibleCenters.size();
@@ -602,7 +596,7 @@ public class FinderPatternFinder {
   /**
    * Get square of distance between a and b.
    */
-  private static double squaredDistance(FinderPattern a, FinderPattern b) {
+  fn squaredDistance( a:&FinderPattern,  b:&FinderPattern) -> f64{
     double x = a.getX() - b.getX();
     double y = a.getY() - b.getY();
     return x * x + y * y;
@@ -613,7 +607,7 @@ public class FinderPatternFinder {
    *         those have similar module size and form a shape closer to a isosceles right triangle.
    * @throws NotFoundException if 3 such finder patterns do not exist
    */
-  private FinderPattern[] selectBestPatterns() throws NotFoundException {
+  fn  selectBestPatterns(&self) -> Result<Vec<FinderPattern>,Exceptions> {
 
     int startSize = possibleCenters.size();
     if (startSize < 3) {
@@ -702,14 +696,14 @@ public class FinderPatternFinder {
     return bestPatterns;
   }
 
-  /**
-   * <p>Orders by {@link FinderPattern#getEstimatedModuleSize()}</p>
-   */
-  private static final class EstimatedModuleComparator implements Comparator<FinderPattern>, Serializable {
-    @Override
-    public int compare(FinderPattern center1, FinderPattern center2) {
-      return Float.compare(center1.getEstimatedModuleSize(), center2.getEstimatedModuleSize());
-    }
-  }
-
 }
+
+// /**
+//    * <p>Orders by {@link FinderPattern#getEstimatedModuleSize()}</p>
+//    */
+//   private static final class EstimatedModuleComparator implements Comparator<FinderPattern>, Serializable {
+//     @Override
+//     public int compare(FinderPattern center1, FinderPattern center2) {
+//       return Float.compare(center1.getEstimatedModuleSize(), center2.getEstimatedModuleSize());
+//     }
+//   }
