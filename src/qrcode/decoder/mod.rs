@@ -6,6 +6,7 @@ mod data_block;
 mod qr_code_decoder_meta_data;
 mod data_mask;
 mod bit_matrix_parser;
+pub mod decoded_bit_stream_parser;
 
 #[cfg(test)]
 mod ErrorCorrectionLevelTestCase;
