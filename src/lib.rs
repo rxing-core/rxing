@@ -924,7 +924,7 @@ pub enum RXingResultMetadataValue {
      * <p>This maps to a {@link java.util.List} of byte arrays corresponding to the
      * raw bytes in the byte segments in the barcode, in order.</p>
      */
-    ByteSegments(Vec<u8>),
+    ByteSegments(Vec<Vec<u8>>),
 
     /**
      * Error correction level used, if applicable. The value type depends on the

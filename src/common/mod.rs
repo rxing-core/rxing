@@ -10,6 +10,8 @@ use std::rc::Rc;
 
 use crate::Binarizer;
 use crate::DecodeHintType;
+use crate::DecodeHintValue;
+use crate::DecodingHintDictionary;
 use crate::Exceptions;
 use crate::LuminanceSource;
 use crate::RXingResultPoint;
@@ -102,7 +104,7 @@ impl StringUtils {
      *  "SJIS", "UTF8", "ISO8859_1", or the platform default encoding if none
      *  of these can possibly be correct
      */
-    pub fn guessEncoding(bytes: &[u8], hints: HashMap<DecodeHintType, String>) -> String {
+    pub fn guessEncoding(bytes: &[u8], hints: &DecodingHintDictionary) -> String {
         let c = StringUtils::guessCharset(bytes, hints);
         if c.name()
             == encoding::label::encoding_from_whatwg_label("SJIS")
@@ -127,13 +129,12 @@ impl StringUtils {
      *  or the platform default encoding if
      *  none of these can possibly be correct
      */
-    pub fn guessCharset(
-        bytes: &[u8],
-        hints: HashMap<DecodeHintType, String>,
-    ) -> &'static dyn Encoding {
+    pub fn guessCharset(bytes: &[u8], hints: &DecodingHintDictionary) -> &'static dyn Encoding {
         match hints.get(&DecodeHintType::CHARACTER_SET) {
             Some(hint) => {
-                return encoding::label::encoding_from_whatwg_label(hint).unwrap();
+                if let DecodeHintValue::CharacterSet(cs_name) = hint {
+                    return encoding::label::encoding_from_whatwg_label(cs_name).unwrap();
+                }
             }
             _ => {}
         };
@@ -1836,7 +1837,7 @@ pub struct DecoderRXingResult {
     rawBytes: Vec<u8>,
     numBits: usize,
     text: String,
-    byteSegments: Vec<u8>,
+    byteSegments: Vec<Vec<u8>>,
     ecLevel: String,
     errorsCorrected: u64,
     erasures: u64,
@@ -1847,14 +1848,14 @@ pub struct DecoderRXingResult {
 }
 
 impl DecoderRXingResult {
-    pub fn new(rawBytes: Vec<u8>, text: String, byteSegments: Vec<u8>, ecLevel: String) -> Self {
+    pub fn new(rawBytes: Vec<u8>, text: String, byteSegments: Vec<Vec<u8>>, ecLevel: String) -> Self {
         Self::with_all(rawBytes, text, byteSegments, ecLevel, -2, -2, 0)
     }
 
     pub fn with_symbology(
         rawBytes: Vec<u8>,
         text: String,
-        byteSegments: Vec<u8>,
+        byteSegments: Vec<Vec<u8>>,
         ecLevel: String,
         symbologyModifier: u32,
     ) -> Self {
@@ -1872,7 +1873,7 @@ impl DecoderRXingResult {
     pub fn with_sa(
         rawBytes: Vec<u8>,
         text: String,
-        byteSegments: Vec<u8>,
+        byteSegments: Vec<Vec<u8>>,
         ecLevel: String,
         saSequence: i32,
         saParity: i32,
@@ -1891,7 +1892,7 @@ impl DecoderRXingResult {
     pub fn with_all(
         rawBytes: Vec<u8>,
         text: String,
-        byteSegments: Vec<u8>,
+        byteSegments:Vec<Vec<u8>>,
         ecLevel: String,
         saSequence: i32,
         saParity: i32,
@@ -1946,7 +1947,7 @@ impl DecoderRXingResult {
     /**
      * @return list of byte segments in the result, or {@code null} if not applicable
      */
-    pub fn getByteSegments(&self) -> &Vec<u8> {
+    pub fn getByteSegments(&self) -> &Vec<Vec<u8>> {
         &self.byteSegments
     }
 
@@ -2922,7 +2923,11 @@ impl ECIEncoderSet {
      * @param fnc1 fnc1 denotes the character in the input that represents the FNC1 character or -1 for a non-GS1 bar
      * code. When specified, it is considered an error to pass it as argument to the methods canEncode() or encode().
      */
-    pub fn new(stringToEncodeMain: &str, priorityCharset: Option<EncodingRef>, fnc1: Option<&str>) -> Self {
+    pub fn new(
+        stringToEncodeMain: &str,
+        priorityCharset: Option<EncodingRef>,
+        fnc1: Option<&str>,
+    ) -> Self {
         // List of encoders that potentially encode characters not in ISO-8859-1 in one byte.
 
         let mut encoders: Vec<EncodingRef>;
@@ -2936,7 +2941,7 @@ impl ECIEncoderSet {
         neededEncoders.push(encoding::all::ISO_8859_1);
         let mut needUnicodeEncoder = if let Some(pc) = priorityCharset {
             pc.name().starts_with("UTF")
-        }else{
+        } else {
             false
         };
 
@@ -2947,10 +2952,8 @@ impl ECIEncoderSet {
             for encoder in &neededEncoders {
                 //   for (CharsetEncoder encoder : neededEncoders) {
                 let c = stringToEncode.get(i).unwrap();
-                if (fnc1.is_some() && c == fnc1.as_ref().unwrap()) 
-                    || encoder
-                        .encode(c, encoding::EncoderTrap::Strict)
-                        .is_ok()
+                if (fnc1.is_some() && c == fnc1.as_ref().unwrap())
+                    || encoder.encode(c, encoding::EncoderTrap::Strict).is_ok()
                 {
                     canEncode = true;
                     break;
@@ -3003,20 +3006,19 @@ impl ECIEncoderSet {
 
             encoders.push(encoding::all::UTF_8);
             encoders.push(encoding::all::UTF_16BE);
-
-            
         }
 
         //Compute priorityEncoderIndex by looking up priorityCharset in encoders
         // if priorityCharset != null {
-            if priorityCharset.is_some() {
-        for i in 0..encoders.len() {
-            //   for (int i = 0; i < encoders.length; i++) {
-            if priorityCharset.as_ref().unwrap().name() == encoders[i].name() {
-                priorityEncoderIndexValue = Some(i);
-                break;
+        if priorityCharset.is_some() {
+            for i in 0..encoders.len() {
+                //   for (int i = 0; i < encoders.length; i++) {
+                if priorityCharset.as_ref().unwrap().name() == encoders[i].name() {
+                    priorityEncoderIndexValue = Some(i);
+                    break;
+                }
             }
-        }}
+        }
         // }
         //invariants
         assert_eq!(encoders[0].name(), encoding::all::ISO_8859_1.name());
@@ -3269,7 +3271,11 @@ impl MinimalECIInput {
      * @param fnc1 denotes the character in the input that represents the FNC1 character or -1 if this is not GS1
      *   input.
      */
-    pub fn new(stringToEncodeInput: &str, priorityCharset: Option<EncodingRef>, fnc1: Option<&str>) -> Self {
+    pub fn new(
+        stringToEncodeInput: &str,
+        priorityCharset: Option<EncodingRef>,
+        fnc1: Option<&str>,
+    ) -> Self {
         let stringToEncode = stringToEncodeInput.graphemes(true).collect::<Vec<&str>>();
         let encoderSet = ECIEncoderSet::new(stringToEncodeInput, priorityCharset, fnc1);
         let bytes = if encoderSet.len() == 1 {
@@ -3278,11 +3284,19 @@ impl MinimalECIInput {
             for i in 0..stringToEncode.len() {
                 //   for (int i = 0; i < bytes.length; i++) {
                 let c = stringToEncode.get(i).unwrap();
-                bytes_hld[i] = if fnc1.is_some() && c == fnc1.as_ref().unwrap() { 1000 } else { c.chars().nth(0).unwrap() as u16 };
+                bytes_hld[i] = if fnc1.is_some() && c == fnc1.as_ref().unwrap() {
+                    1000
+                } else {
+                    c.chars().nth(0).unwrap() as u16
+                };
             }
             bytes_hld
         } else {
-            Self::encodeMinimally(stringToEncodeInput, &encoderSet, fnc1.as_ref().unwrap().chars().nth(0).unwrap() as u16)
+            Self::encodeMinimally(
+                stringToEncodeInput,
+                &encoderSet,
+                fnc1.as_ref().unwrap().chars().nth(0).unwrap() as u16,
+            )
         };
 
         Self {
@@ -3339,7 +3353,8 @@ impl MinimalECIInput {
         let mut start = 0;
         let mut end = encoderSet.len();
         if encoderSet.getPriorityEncoderIndex().is_some()
-            && (ch.chars().nth(0).unwrap() as u16 == fnc1 || encoderSet.canEncode(ch, encoderSet.getPriorityEncoderIndex().unwrap()))
+            && (ch.chars().nth(0).unwrap() as u16 == fnc1
+                || encoderSet.canEncode(ch, encoderSet.getPriorityEncoderIndex().unwrap()))
         {
             start = encoderSet.getPriorityEncoderIndex().unwrap();
             end = start + 1;
@@ -3406,7 +3421,7 @@ impl MinimalECIInput {
                 intsAL.splice(0..0, [1000]);
             } else {
                 let bytes: Vec<u16> = encoderSet
-                    .encode_char(&c.c , c.encoderIndex)
+                    .encode_char(&c.c, c.encoderIndex)
                     .iter()
                     .map(|x| *x as u16)
                     .collect();
@@ -3469,7 +3484,11 @@ impl InputEdge {
             size += prev.cachedTotalSize;
 
             Self {
-                c: if c == fnc1Str { String::from("\u{1000}") } else { String::from(c) },
+                c: if c == fnc1Str {
+                    String::from("\u{1000}")
+                } else {
+                    String::from(c)
+                },
                 encoderIndex,
                 previous: Some(prev.clone()),
                 cachedTotalSize: size,
@@ -3481,7 +3500,11 @@ impl InputEdge {
             }
 
             Self {
-                c: if c == fnc1Str { String::from("\u{1000}") } else { String::from(c) },
+                c: if c == fnc1Str {
+                    String::from("\u{1000}")
+                } else {
+                    String::from(c)
+                },
                 encoderIndex,
                 previous: None,
                 cachedTotalSize: size,

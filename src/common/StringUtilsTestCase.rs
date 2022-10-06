@@ -38,7 +38,7 @@ fn test_random() {
     }
     assert_eq!(
         encoding::all::UTF_8.name(),
-        StringUtils::guessCharset(&bytes, HashMap::new()).name()
+        StringUtils::guessCharset(&bytes, &HashMap::new()).name()
     );
 }
 
@@ -103,8 +103,8 @@ fn test_utf16_le() {
 }
 
 fn do_test(bytes: &Vec<u8>, charset: &dyn Encoding, encoding: &str) {
-    let guessedCharset = StringUtils::guessCharset(bytes, HashMap::new());
-    let guessedEncoding = StringUtils::guessEncoding(bytes, HashMap::new());
+    let guessedCharset = StringUtils::guessCharset(bytes, &HashMap::new());
+    let guessedEncoding = StringUtils::guessEncoding(bytes, &HashMap::new());
     assert_eq!(charset.name(), guessedCharset.name());
     assert_eq!(encoding, guessedEncoding);
 }
