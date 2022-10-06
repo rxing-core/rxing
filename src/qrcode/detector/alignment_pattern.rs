@@ -24,6 +24,7 @@ use crate::RXingResultPoint;
  *
  * @author Sean Owen
  */
+#[derive(Clone)]
 pub struct AlignmentPattern {
     estimatedModuleSize: f32,
     internal_result_point: RXingResultPoint,
@@ -60,5 +61,9 @@ impl AlignmentPattern {
         let combinedY = (self.internal_result_point.getY() + i) / 2.0;
         let combinedModuleSize = (self.estimatedModuleSize + newModuleSize) / 2.0;
         AlignmentPattern::new(combinedX, combinedY, combinedModuleSize)
+    }
+
+    pub fn as_RXingResultPoint(&self) -> &RXingResultPoint {
+&self.internal_result_point
     }
 }
