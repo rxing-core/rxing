@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.zxing.qrcode.detector;
+use super::FinderPattern;
 
 /**
  * <p>Encapsulates information about finder patterns in an image, including the location of
@@ -22,28 +22,30 @@ package com.google.zxing.qrcode.detector;
  *
  * @author Sean Owen
  */
-public final class FinderPatternInfo {
+pub struct FinderPatternInfo {
+    bottomLeft: FinderPattern,
+    topLeft: FinderPattern,
+    topRight: FinderPattern,
+}
 
-  private final FinderPattern bottomLeft;
-  private final FinderPattern topLeft;
-  private final FinderPattern topRight;
+impl FinderPatternInfo {
+    pub fn new(patternCenters: [FinderPattern; 3]) -> Self {
+        Self {
+            bottomLeft: patternCenters[0],
+            topLeft: patternCenters[1],
+            topRight: patternCenters[2],
+        }
+    }
 
-  public FinderPatternInfo(FinderPattern[] patternCenters) {
-    this.bottomLeft = patternCenters[0];
-    this.topLeft = patternCenters[1];
-    this.topRight = patternCenters[2];
-  }
+    pub fn getBottomLeft(&self) -> &FinderPattern {
+        &self.bottomLeft
+    }
 
-  public FinderPattern getBottomLeft() {
-    return bottomLeft;
-  }
+    pub fn getTopLeft(&self) -> &FinderPattern {
+        &self.topLeft
+    }
 
-  public FinderPattern getTopLeft() {
-    return topLeft;
-  }
-
-  public FinderPattern getTopRight() {
-    return topRight;
-  }
-
+    pub fn getTopRight(&self) -> &FinderPattern {
+        &self.topRight
+    }
 }
