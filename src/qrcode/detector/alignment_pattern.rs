@@ -16,7 +16,7 @@
 
 //RXingResultPoint
 
-use crate::RXingResultPoint;
+use crate::{RXingResultPoint, ResultPoint};
 
 /**
  * <p>Encapsulates an alignment pattern, which are the smaller square patterns found in
@@ -24,17 +24,27 @@ use crate::RXingResultPoint;
  *
  * @author Sean Owen
  */
-#[derive(Clone)]
+#[derive(Debug,Clone, Copy,PartialEq)]
 pub struct AlignmentPattern {
     estimatedModuleSize: f32,
-    internal_result_point: RXingResultPoint,
+    point: (f32, f32),
+}
+
+impl ResultPoint for AlignmentPattern {
+    fn getX(&self) -> f32 {
+        self.point.0
+    }
+
+    fn getY(&self) -> f32 {
+        self.point.1
+    }
 }
 
 impl AlignmentPattern {
     pub fn new(posX: f32, posY: f32, estimatedModuleSize: f32) -> Self {
         Self {
             estimatedModuleSize,
-            internal_result_point: RXingResultPoint { x: posX, y: posY },
+            point: (posX, posY),
         }
     }
 
@@ -43,9 +53,7 @@ impl AlignmentPattern {
      * position and size -- meaning, it is at nearly the same center with nearly the same size.</p>
      */
     pub fn aboutEquals(&self, moduleSize: f32, i: f32, j: f32) -> bool {
-        if (i - self.internal_result_point.getY()).abs() <= moduleSize
-            && (j - self.internal_result_point.getX()).abs() <= moduleSize
-        {
+        if (i - self.getY()).abs() <= moduleSize && (j - self.getX()).abs() <= moduleSize {
             let moduleSizeDiff = (moduleSize - self.estimatedModuleSize).abs();
             return moduleSizeDiff <= 1.0 || moduleSizeDiff <= self.estimatedModuleSize;
         }
@@ -57,13 +65,9 @@ impl AlignmentPattern {
      * with a new estimate. It returns a new {@code FinderPattern} containing an average of the two.
      */
     pub fn combineEstimate(&self, i: f32, j: f32, newModuleSize: f32) -> AlignmentPattern {
-        let combinedX = (self.internal_result_point.getX() + j) / 2.0;
-        let combinedY = (self.internal_result_point.getY() + i) / 2.0;
+        let combinedX = (self.getX() + j) / 2.0;
+        let combinedY = (self.getY() + i) / 2.0;
         let combinedModuleSize = (self.estimatedModuleSize + newModuleSize) / 2.0;
         AlignmentPattern::new(combinedX, combinedY, combinedModuleSize)
-    }
-
-    pub fn as_RXingResultPoint(&self) -> &RXingResultPoint {
-&self.internal_result_point
     }
 }

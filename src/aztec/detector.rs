@@ -23,7 +23,7 @@ use crate::{
         BitMatrix, DefaultGridSampler, GridSampler,
     },
     exceptions::Exceptions,
-    RXingResultPoint,
+    RXingResultPoint, ResultPoint,
 };
 
 use super::AztecDetectorResult::AztecDetectorRXingResult;

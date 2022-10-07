@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::RXingResultPoint;
+use crate::{RXingResultPoint, ResultPoint};
 
 /**
  * <p>Encapsulates a finder pattern, which are the three square patterns found in
@@ -23,10 +23,21 @@ use crate::RXingResultPoint;
  *
  * @author Sean Owen
  */
-pub struct FinderPattern {
+#[derive(Debug,Clone, Copy,PartialEq)]
+ pub struct FinderPattern {
     estimatedModuleSize: f32,
     count: usize,
-    internal_result_point: RXingResultPoint,
+    point: (f32, f32),
+}
+
+impl ResultPoint for FinderPattern {
+    fn getX(&self) -> f32 {
+        self.point.0
+    }
+
+    fn getY(&self) -> f32 {
+        self.point.1
+    }
 }
 
 impl FinderPattern {
@@ -38,7 +49,7 @@ impl FinderPattern {
         Self {
             estimatedModuleSize,
             count,
-            internal_result_point: RXingResultPoint::new(posX, posY),
+            point: (posX, posY),
         }
     }
 
@@ -55,9 +66,7 @@ impl FinderPattern {
      * position and size -- meaning, it is at nearly the same center with nearly the same size.</p>
      */
     pub fn aboutEquals(&self, moduleSize: f32, i: f32, j: f32) -> bool {
-        if (i - self.internal_result_point.getY()).abs() <= moduleSize
-            && (j - self.internal_result_point.getX()).abs() <= moduleSize
-        {
+        if (i - self.getY()).abs() <= moduleSize && (j - self.getX()).abs() <= moduleSize {
             let moduleSizeDiff = (moduleSize - self.estimatedModuleSize).abs();
             return moduleSizeDiff <= 1.0 || moduleSizeDiff <= self.estimatedModuleSize;
         }
@@ -71,8 +80,8 @@ impl FinderPattern {
      */
     pub fn combineEstimate(&self, i: f32, j: f32, newModuleSize: f32) -> FinderPattern {
         let combinedCount = self.count as f32 + 1.0;
-        let combinedX = (self.count as f32 * self.internal_result_point.getX() + j) / combinedCount;
-        let combinedY = (self.count as f32 * self.internal_result_point.getY() + i) / combinedCount;
+        let combinedX = (self.count as f32 * self.getX() + j) / combinedCount;
+        let combinedY = (self.count as f32 * self.getY() + i) / combinedCount;
         let combinedModuleSize =
             (self.count as f32 * self.estimatedModuleSize + newModuleSize) / combinedCount;
         FinderPattern::private_new(

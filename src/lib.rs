@@ -1,8 +1,8 @@
 pub mod aztec;
-pub mod qrcode;
 pub mod client;
 pub mod common;
 mod exceptions;
+pub mod qrcode;
 
 pub use exceptions::Exceptions;
 
@@ -26,10 +26,9 @@ mod PlanarYUVLuminanceSourceTestCase;
 #[cfg(test)]
 mod RGBLuminanceSourceTestCase;
 
-
-pub type EncodingHintDictionary = HashMap<EncodeHintType,EncodeHintValue>;
-pub type DecodingHintDictionary= HashMap<DecodeHintType,DecodeHintValue>;
-pub type MetadataDictionary = HashMap<RXingResultMetadataType,RXingResultMetadataValue>;
+pub type EncodingHintDictionary = HashMap<EncodeHintType, EncodeHintValue>;
+pub type DecodingHintDictionary = HashMap<DecodeHintType, DecodeHintValue>;
+pub type MetadataDictionary = HashMap<RXingResultMetadataType, RXingResultMetadataValue>;
 
 /*
  * Copyright 2007 ZXing authors
@@ -54,7 +53,7 @@ pub type MetadataDictionary = HashMap<RXingResultMetadataType,RXingResultMetadat
  *
  * @author Sean Owen
  */
-#[derive(Debug, PartialEq, Eq, Hash,Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum BarcodeFormat {
     /** Aztec 2D barcode format. */
     AZTEC,
@@ -566,7 +565,7 @@ pub enum DecodeHintType {
  *
  * @see DecodeHintType#NEED_RESULT_POINT_CALLBACK
  */
-pub type RXingResultPointCallback = fn(&RXingResultPoint);
+pub type RXingResultPointCallback = fn(&dyn ResultPoint);
 #[derive(Clone)]
 pub enum DecodeHintValue {
     /**
@@ -885,21 +884,21 @@ impl From<String> for RXingResultMetadataType {
             "OTHER" => RXingResultMetadataType::OTHER,
             "ORIENTATION" => RXingResultMetadataType::ORIENTATION,
             "BYTE_SEGMENTS" => RXingResultMetadataType::BYTE_SEGMENTS,
-            "ERROR_CORRECTION_LEVEL"=> RXingResultMetadataType::ERROR_CORRECTION_LEVEL,
-            "ISSUE_NUMBER"=> RXingResultMetadataType::ISSUE_NUMBER,
-            "SUGGESTED_PRICE"=> RXingResultMetadataType::SUGGESTED_PRICE,
-            "POSSIBLE_COUNTRY"=> RXingResultMetadataType::POSSIBLE_COUNTRY,
-            "UPC_EAN_EXTENSION"=>RXingResultMetadataType::UPC_EAN_EXTENSION,
-            "PDF417_EXTRA_METADATA"=> RXingResultMetadataType::PDF417_EXTRA_METADATA,
-            "STRUCTURED_APPEND_SEQUENCE"=> RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE,
-            "STRUCTURED_APPEND_PARITY"=>RXingResultMetadataType::STRUCTURED_APPEND_PARITY,
-            "SYMBOLOGY_IDENTIFIER"=>RXingResultMetadataType::SYMBOLOGY_IDENTIFIER,
+            "ERROR_CORRECTION_LEVEL" => RXingResultMetadataType::ERROR_CORRECTION_LEVEL,
+            "ISSUE_NUMBER" => RXingResultMetadataType::ISSUE_NUMBER,
+            "SUGGESTED_PRICE" => RXingResultMetadataType::SUGGESTED_PRICE,
+            "POSSIBLE_COUNTRY" => RXingResultMetadataType::POSSIBLE_COUNTRY,
+            "UPC_EAN_EXTENSION" => RXingResultMetadataType::UPC_EAN_EXTENSION,
+            "PDF417_EXTRA_METADATA" => RXingResultMetadataType::PDF417_EXTRA_METADATA,
+            "STRUCTURED_APPEND_SEQUENCE" => RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE,
+            "STRUCTURED_APPEND_PARITY" => RXingResultMetadataType::STRUCTURED_APPEND_PARITY,
+            "SYMBOLOGY_IDENTIFIER" => RXingResultMetadataType::SYMBOLOGY_IDENTIFIER,
             _ => RXingResultMetadataType::OTHER,
         }
     }
 }
 
-#[derive(Debug,PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum RXingResultMetadataValue {
     /**
      * Unspecified, application-specific metadata. Maps to an unspecified {@link Object}.
@@ -1174,6 +1173,107 @@ impl fmt::Display for RXingResult {
 //package com.google.zxing;
 use crate::common::detector::MathUtils;
 
+pub trait ResultPoint {
+    fn getX(&self) -> f32;
+    fn getY(&self) -> f32;
+}
+
+pub mod result_point_utils {
+    use crate::{common::detector::MathUtils, ResultPoint};
+
+    /**
+     * Orders an array of three RXingResultPoints in an order [A,B,C] such that AB is less than AC
+     * and BC is less than AC, and the angle between BC and BA is less than 180 degrees.
+     *
+     * @param patterns array of three {@code RXingResultPoint} to order
+     */
+    pub fn orderBestPatterns<T: ResultPoint+Copy+Clone>(patterns: &mut [T; 3]) {
+        // Find distances between pattern centers
+        let zeroOneDistance = MathUtils::distance_float(
+            patterns[0].getX(),
+            patterns[0].getY(),
+            patterns[1].getX(),
+            patterns[1].getY(),
+        );
+        let oneTwoDistance = MathUtils::distance_float(
+            patterns[1].getX(),
+            patterns[1].getY(),
+            patterns[2].getX(),
+            patterns[2].getY(),
+        );
+        let zeroTwoDistance = MathUtils::distance_float(
+            patterns[0].getX(),
+            patterns[0].getY(),
+            patterns[2].getX(),
+            patterns[2].getY(),
+        );
+
+        let mut pointA; //: &RXingResultPoint;
+        let mut pointB; //: &RXingResultPoint;
+        let mut pointC; //: &RXingResultPoint;
+                        // Assume one closest to other two is B; A and C will just be guesses at first
+        if oneTwoDistance >= zeroOneDistance && oneTwoDistance >= zeroTwoDistance {
+            pointB = patterns[0];
+            pointA = patterns[1];
+            pointC = patterns[2];
+        } else if zeroTwoDistance >= oneTwoDistance && zeroTwoDistance >= zeroOneDistance {
+            pointB = patterns[1];
+            pointA = patterns[0];
+            pointC = patterns[2];
+        } else {
+            pointB = patterns[2];
+            pointA = patterns[0];
+            pointC = patterns[1];
+        }
+
+        // Use cross product to figure out whether A and C are correct or flipped.
+        // This asks whether BC x BA has a positive z component, which is the arrangement
+        // we want for A, B, C. If it's negative, then we've got it flipped around and
+        // should swap A and C.
+        if crossProductZ(pointA, pointB, pointC) < 0.0f32 {
+            let temp = pointA;
+            pointA = pointC;
+            pointC = temp;
+        }
+
+        let pa = pointA;
+        let pb = pointB;
+        let pc = pointC;
+
+        patterns[0] = pa;
+        patterns[1] = pb;
+        patterns[2] = pc;
+    }
+
+    /**
+     * @param pattern1 first pattern
+     * @param pattern2 second pattern
+     * @return distance between two points
+     */
+    pub fn distance<T:ResultPoint>(pattern1: T, pattern2: T) -> f32 {
+        return MathUtils::distance_float(
+            pattern1.getX(),
+            pattern1.getY(),
+            pattern2.getX(),
+            pattern2.getY(),
+        );
+    }
+
+    /**
+     * Returns the z component of the cross product between vectors BC and BA.
+     */
+    pub fn crossProductZ<T: ResultPoint>(
+        pointA: T,
+        pointB: T,
+        pointC: T,
+    ) -> f32 {
+        let bX = pointB.getX();
+        let bY = pointB.getY();
+        return ((pointC.getX() - bX) * (pointA.getY() - bY))
+            - ((pointC.getY() - bY) * (pointA.getX() - bX));
+    }
+}
+
 /**
  * <p>Encapsulates a point of interest in an image containing a barcode. Typically, this
  * would be the location of a finder pattern or the corner of the barcode, for example.</p>
@@ -1201,99 +1301,15 @@ impl RXingResultPoint {
     pub const fn new(x: f32, y: f32) -> Self {
         Self { x, y }
     }
+}
 
-    pub fn getX(&self) -> f32 {
+impl ResultPoint for RXingResultPoint {
+    fn getX(&self) -> f32 {
         return self.x;
     }
 
-    pub fn getY(&self) -> f32 {
+    fn getY(&self) -> f32 {
         return self.y;
-    }
-
-    /**
-     * Orders an array of three RXingResultPoints in an order [A,B,C] such that AB is less than AC
-     * and BC is less than AC, and the angle between BC and BA is less than 180 degrees.
-     *
-     * @param patterns array of three {@code RXingResultPoint} to order
-     */
-    pub fn orderBestPatterns(patterns: &mut Vec<RXingResultPoint>) {
-        // Find distances between pattern centers
-        let zeroOneDistance = MathUtils::distance_float(
-            patterns[0].getX(),
-            patterns[0].getY(),
-            patterns[1].getX(),
-            patterns[1].getY(),
-        );
-        let oneTwoDistance = MathUtils::distance_float(
-            patterns[1].getX(),
-            patterns[1].getY(),
-            patterns[2].getX(),
-            patterns[2].getY(),
-        );
-        let zeroTwoDistance = MathUtils::distance_float(
-            patterns[0].getX(),
-            patterns[0].getY(),
-            patterns[2].getX(),
-            patterns[2].getY(),
-        );
-
-        let mut pointA: &RXingResultPoint;
-        let mut pointB: &RXingResultPoint;
-        let mut pointC: &RXingResultPoint;
-        // Assume one closest to other two is B; A and C will just be guesses at first
-        if oneTwoDistance >= zeroOneDistance && oneTwoDistance >= zeroTwoDistance {
-            pointB = &patterns[0];
-            pointA = &patterns[1];
-            pointC = &patterns[2];
-        } else if zeroTwoDistance >= oneTwoDistance && zeroTwoDistance >= zeroOneDistance {
-            pointB = &patterns[1];
-            pointA = &patterns[0];
-            pointC = &patterns[2];
-        } else {
-            pointB = &patterns[2];
-            pointA = &patterns[0];
-            pointC = &patterns[1];
-        }
-
-        // Use cross product to figure out whether A and C are correct or flipped.
-        // This asks whether BC x BA has a positive z component, which is the arrangement
-        // we want for A, B, C. If it's negative, then we've got it flipped around and
-        // should swap A and C.
-        if RXingResultPoint::crossProductZ(&pointA, &pointB, &pointC) < 0.0f32 {
-            let temp = pointA;
-            pointA = pointC;
-            pointC = temp;
-        }
-
-        let pa = (*pointA).clone();
-        let pb = (*pointB).clone();
-        let pc = (*pointC).clone();
-
-        patterns[0] = pa;
-        patterns[1] = pb;
-        patterns[2] = pc;
-    }
-
-    /**
-     * @param pattern1 first pattern
-     * @param pattern2 second pattern
-     * @return distance between two points
-     */
-    pub fn distance(pattern1: &RXingResultPoint, pattern2: &RXingResultPoint) -> f32 {
-        return MathUtils::distance_float(pattern1.x, pattern1.y, pattern2.x, pattern2.y);
-    }
-
-    /**
-     * Returns the z component of the cross product between vectors BC and BA.
-     */
-    pub fn crossProductZ(
-        pointA: &RXingResultPoint,
-        pointB: &RXingResultPoint,
-        pointC: &RXingResultPoint,
-    ) -> f32 {
-        let bX = pointB.x;
-        let bY = pointB.y;
-        return ((pointC.x - bX) * (pointA.y - bY)) - ((pointC.y - bY) * (pointA.x - bX));
     }
 }
 

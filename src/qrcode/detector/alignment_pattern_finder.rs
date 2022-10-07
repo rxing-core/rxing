@@ -306,7 +306,7 @@ impl AlignmentPatternFinder {
             // Hadn't found this before; save it
             let point = AlignmentPattern::new(centerJ, centerI, estimatedModuleSize);
             if self.resultPointCallback.is_some() {
-                self.resultPointCallback.as_ref().unwrap()(point.as_RXingResultPoint());
+                self.resultPointCallback.as_ref().unwrap()(&point);
             }
             self.possibleCenters.push(point);
             // if self.resultPointCallback.is_some() {

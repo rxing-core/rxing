@@ -1,6 +1,6 @@
 pub mod MathUtils;
 use crate::common::BitMatrix;
-use crate::{Exceptions, RXingResultPoint};
+use crate::{Exceptions, RXingResultPoint, ResultPoint};
 
 /*
  * Copyright 2009 ZXing authors
