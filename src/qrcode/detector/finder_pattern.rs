@@ -23,8 +23,8 @@ use crate::{RXingResultPoint, ResultPoint};
  *
  * @author Sean Owen
  */
-#[derive(Debug,Clone, Copy,PartialEq)]
- pub struct FinderPattern {
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct FinderPattern {
     estimatedModuleSize: f32,
     count: usize,
     point: (f32, f32),
@@ -37,6 +37,10 @@ impl ResultPoint for FinderPattern {
 
     fn getY(&self) -> f32 {
         self.point.1
+    }
+
+    fn into_rxing_result_point(self) -> RXingResultPoint {
+        RXingResultPoint { x: self.point.0, y: self.point.1 }
     }
 }
 

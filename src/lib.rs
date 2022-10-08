@@ -1176,6 +1176,7 @@ use crate::common::detector::MathUtils;
 pub trait ResultPoint {
     fn getX(&self) -> f32;
     fn getY(&self) -> f32;
+    fn into_rxing_result_point(self) -> RXingResultPoint;
 }
 
 pub mod result_point_utils {
@@ -1187,7 +1188,7 @@ pub mod result_point_utils {
      *
      * @param patterns array of three {@code RXingResultPoint} to order
      */
-    pub fn orderBestPatterns<T: ResultPoint+Copy+Clone>(patterns: &mut [T; 3]) {
+    pub fn orderBestPatterns<T: ResultPoint + Copy + Clone>(patterns: &mut [T; 3]) {
         // Find distances between pattern centers
         let zeroOneDistance = MathUtils::distance_float(
             patterns[0].getX(),
@@ -1250,7 +1251,7 @@ pub mod result_point_utils {
      * @param pattern2 second pattern
      * @return distance between two points
      */
-    pub fn distance<T:ResultPoint>(pattern1: T, pattern2: T) -> f32 {
+    pub fn distance<T: ResultPoint>(pattern1: &T, pattern2: &T) -> f32 {
         return MathUtils::distance_float(
             pattern1.getX(),
             pattern1.getY(),
@@ -1262,11 +1263,7 @@ pub mod result_point_utils {
     /**
      * Returns the z component of the cross product between vectors BC and BA.
      */
-    pub fn crossProductZ<T: ResultPoint>(
-        pointA: T,
-        pointB: T,
-        pointC: T,
-    ) -> f32 {
+    pub fn crossProductZ<T: ResultPoint>(pointA: T, pointB: T, pointC: T) -> f32 {
         let bX = pointB.getX();
         let bY = pointB.getY();
         return ((pointC.getX() - bX) * (pointA.getY() - bY))
@@ -1310,6 +1307,10 @@ impl ResultPoint for RXingResultPoint {
 
     fn getY(&self) -> f32 {
         return self.y;
+    }
+
+    fn into_rxing_result_point(self) -> RXingResultPoint {
+        self
     }
 }
 

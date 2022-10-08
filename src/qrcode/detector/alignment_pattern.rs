@@ -38,6 +38,10 @@ impl ResultPoint for AlignmentPattern {
     fn getY(&self) -> f32 {
         self.point.1
     }
+
+    fn into_rxing_result_point(self) -> RXingResultPoint {
+        RXingResultPoint { x: self.point.0, y: self.point.1 }
+    }
 }
 
 impl AlignmentPattern {
