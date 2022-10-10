@@ -172,7 +172,7 @@ impl AlignmentPatternFinder {
      * figures the location of the center of this black/white/black run.
      */
     fn centerFromEnd(stateCount: &[u32], end: u32) -> f32 {
-        (end - stateCount[2]) as f32 - stateCount[1] as f32 / 2.0
+        (end  as f32 - stateCount[2] as f32) - stateCount[1] as f32 / 2.0
     }
 
     /**
@@ -219,8 +219,8 @@ impl AlignmentPatternFinder {
         self.crossCheckStateCount[2] = 0;
 
         // Start counting up from center
-        let mut i = startI;
-        while i >= 0 && image.get(centerJ, i) && self.crossCheckStateCount[1] <= maxCount {
+        let mut i = startI as i32;
+        while i >= 0 && image.get(centerJ, i as u32) && self.crossCheckStateCount[1] <= maxCount {
             self.crossCheckStateCount[1] += 1;
             i -= 1;
         }
@@ -228,7 +228,7 @@ impl AlignmentPatternFinder {
         if i < 0 || self.crossCheckStateCount[1] > maxCount {
             return f32::NAN;
         }
-        while i >= 0 && !image.get(centerJ, i) && self.crossCheckStateCount[0] <= maxCount {
+        while i >= 0 && !image.get(centerJ, i as u32) && self.crossCheckStateCount[0] <= maxCount {
             self.crossCheckStateCount[0] += 1;
             i -= 1;
         }
@@ -237,15 +237,15 @@ impl AlignmentPatternFinder {
         }
 
         // Now also count down from center
-        i = startI + 1;
-        while i < maxI && image.get(centerJ, i) && self.crossCheckStateCount[1] <= maxCount {
+        i = startI as i32+ 1;
+        while i < maxI as i32 && image.get(centerJ, i as u32) && self.crossCheckStateCount[1] <= maxCount {
             self.crossCheckStateCount[1] += 1;
             i += 1;
         }
-        if i == maxI || self.crossCheckStateCount[1] > maxCount {
+        if i == maxI as i32 || self.crossCheckStateCount[1] > maxCount {
             return f32::NAN;
         }
-        while i < maxI && !image.get(centerJ, i) && self.crossCheckStateCount[2] <= maxCount {
+        while i < maxI as i32 && !image.get(centerJ, i as u32) && self.crossCheckStateCount[2] <= maxCount {
             self.crossCheckStateCount[2] += 1;
             i += 1;
         }
@@ -263,7 +263,7 @@ impl AlignmentPatternFinder {
         }
 
         if self.foundPatternCross(&self.crossCheckStateCount) {
-            Self::centerFromEnd(&self.crossCheckStateCount, i)
+            Self::centerFromEnd(&self.crossCheckStateCount, i as u32)
         } else {
             f32::NAN
         }
