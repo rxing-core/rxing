@@ -82,7 +82,7 @@ impl BitMatrixParser {
         let dimension = self.bitMatrix.getHeight();
         let mut formatInfoBits2 = 0;
         let jMin = dimension - 7;
-        for j in (jMin..=dimension).rev() {
+        for j in (jMin..=dimension-1).rev() {
             // for (int j = dimension - 1; j >= jMin; j--) {
             formatInfoBits2 = self.copyBit(8, j, formatInfoBits2);
         }
@@ -194,7 +194,7 @@ impl BitMatrixParser {
         let mut currentByte = 0;
         let mut bitsRead = 0;
         // Read columns in pairs, from right to left
-        let mut j = dimension - 1;
+        let mut j = dimension as i32 - 1;
         while j > 0 {
             // for (int j = dimension - 1; j > 0; j -= 2) {
             if j == 6 {
@@ -213,11 +213,11 @@ impl BitMatrixParser {
                 for col in 0..2 {
                     // for (int col = 0; col < 2; col++) {
                     // Ignore bits covered by the function pattern
-                    if !functionPattern.get(j - col, i) {
+                    if !functionPattern.get(j as u32 - col, i) {
                         // Read a bit
                         bitsRead += 1;
                         currentByte <<= 1;
-                        if self.bitMatrix.get(j - col, i) {
+                        if self.bitMatrix.get(j as u32 - col, i) {
                             currentByte |= 1;
                         }
                         // If we've made a whole byte, save it off

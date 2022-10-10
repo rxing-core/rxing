@@ -16,7 +16,7 @@
 
 use std::fmt;
 
-use crate::qrcode::decoder::{Mode, ErrorCorrectionLevel, Version};
+use crate::qrcode::decoder::{Mode, ErrorCorrectionLevel, Version, VersionRef};
 
 use super::ByteMatrix;
 
@@ -25,13 +25,14 @@ use super::ByteMatrix;
  * @author satorux@google.com (Satoru Takabayashi) - creator
  * @author dswitkin@google.com (Daniel Switkin) - ported from C++
  */
+#[derive(Debug, Clone)]
 pub struct QRCode {
 
   // public static final int NUM_MASK_PATTERNS = 8;
 
     mode:Option<Mode>,
     ecLevel:Option<ErrorCorrectionLevel>,
-    version:Option<&'static Version>,
+    version:Option<VersionRef>,
    maskPattern:i32,
     matrix:Option<ByteMatrix>,
 

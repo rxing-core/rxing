@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package com.google.zxing.qrcode;
+use rxing::{BarcodeFormat, qrcode::QRCodeReader};
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.common.AbstractBlackBoxTestCase;
+mod common;
 
 /**
  * Some very difficult exposure conditions including self-shadowing, which happens a lot when
@@ -27,14 +25,15 @@ import com.google.zxing.common.AbstractBlackBoxTestCase;
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
-public final class QRCodeBlackBox5TestCase extends AbstractBlackBoxTestCase {
 
-  public QRCodeBlackBox5TestCase() {
-    super("src/test/resources/blackbox/qrcode-5", new MultiFormatReader(), BarcodeFormat.QR_CODE);
-    addTest(19, 19, 0.0f);
-    addTest(19, 19, 90.0f);
-    addTest(19, 19, 180.0f);
-    addTest(19, 19, 270.0f);
+#[test]
+fn  QRCodeBlackBox5TestCase() {
+  let mut tester = common::AbstractBlackBoxTestCase::new("test_resources/blackbox/qrcode-5", Box::new(QRCodeReader{}), BarcodeFormat::QR_CODE);
+  tester.addTest(19, 19, 0.0);
+  tester.addTest(19, 19, 90.0);
+  tester.addTest(19, 19, 180.0);
+  tester.addTest(19, 19, 270.0);
+
+  tester.testBlackBox();
   }
 
-}

@@ -962,13 +962,13 @@ pub enum RXingResultMetadataValue {
      * If the code format supports structured append and the current scanned code is part of one then the
      * sequence number is given with it.
      */
-    StructuredAppendSequence(u32),
+    StructuredAppendSequence(i32),
 
     /**
      * If the code format supports structured append and the current scanned code is part of one then the
      * parity is given with it.
      */
-    StructuredAppendParity(u32),
+    StructuredAppendParity(i32),
 
     /**
      * Barcode Symbology Identifier.

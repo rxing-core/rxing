@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-package com.google.zxing.qrcode;
+use rxing::{qrcode::QRCodeReader, BarcodeFormat};
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.common.AbstractBlackBoxTestCase;
+mod common;
 
 /**
- * @author Sean Owen
+ * Tests of various QR Codes from t-shirts, which are notoriously not flat.
+ *
+ * @author dswitkin@google.com (Daniel Switkin)
  */
-public final class QRCodeBlackBox1TestCase extends AbstractBlackBoxTestCase {
 
-  public QRCodeBlackBox1TestCase() {
-    super("src/test/resources/blackbox/qrcode-1", new MultiFormatReader(), BarcodeFormat.QR_CODE);
-    addTest(17, 17, 0.0f);
-    addTest(14, 14, 90.0f);
-    addTest(17, 17, 180.0f);
-    addTest(14, 14, 270.0f);
+#[test]
+fn  QRCodeBlackBox4TestCase() {
+  let mut tester = common::AbstractBlackBoxTestCase::new("test_resources/blackbox/qrcode-4", Box::new(QRCodeReader{}), BarcodeFormat::QR_CODE);
+  tester.addTest(36, 36, 0.0);
+  tester.addTest(35, 35, 90.0);
+  tester.addTest(35, 35, 180.0);
+  tester.addTest(35, 35, 270.0);
+
+  tester.testBlackBox();
   }
 
-}

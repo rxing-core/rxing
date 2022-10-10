@@ -95,12 +95,12 @@ impl AlignmentPatternFinder {
         for iGen in 0..height {
             // for (int iGen = 0; iGen < height; iGen++) {
             // Search from middle outwards
-            let i = middleI
+            let i = (middleI as i32
                 + (if (iGen & 0x01) == 0 {
-                    (iGen + 1) / 2
+                    (iGen as i32 + 1)  / 2
                 } else {
-                    -((iGen as i32 + 1) / 2) as u32
-                });
+                    -((iGen as i32 + 1) / 2)
+                })) as u32;
             stateCount[0] = 0;
             stateCount[1] = 0;
             stateCount[2] = 0;

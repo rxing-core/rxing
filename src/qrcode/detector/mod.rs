@@ -13,3 +13,6 @@ pub use alignment_pattern_finder::*;
 pub use finder_pattern_finder::*;
 pub use detector::*;
 pub use qrcode_detector_result::*;
+
+#[cfg(test)]
+mod DetectorTest;

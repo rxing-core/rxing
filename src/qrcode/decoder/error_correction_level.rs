@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use std::str::FromStr;
+
 use crate::Exceptions;
 
 /**
@@ -82,6 +84,33 @@ impl TryFrom<u8> for ErrorCorrectionLevel {
 impl From<ErrorCorrectionLevel> for u8 {
     fn from(value: ErrorCorrectionLevel) -> Self {
         value.get_value()
+    }
+}
+
+impl FromStr for ErrorCorrectionLevel {
+    type Err=Exceptions;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // First try to see if the string is just the name of the value
+        let as_str = match s.to_uppercase().as_str() {
+            "L" => Some(ErrorCorrectionLevel::L),
+            "M" => Some(ErrorCorrectionLevel::M),
+            "Q" =>Some(ErrorCorrectionLevel::Q),
+            "H" =>Some(ErrorCorrectionLevel::H),
+            _ => None,
+        };
+
+        // If we find something, cool, return it, otherwise keep trying as numbers
+        if as_str.is_some() {
+            return Ok(as_str.unwrap());
+        }
+
+        let number_possible = s.parse::<u8>();
+        if number_possible.is_ok() {
+            return number_possible.unwrap().try_into();
+        }
+
+        return Err(Exceptions::IllegalArgumentException(format!("could not parse {} into an ec level", s)))
     }
 }
 

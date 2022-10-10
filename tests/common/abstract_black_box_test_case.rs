@@ -189,7 +189,7 @@ impl AbstractBlackBoxTestCase {
                         RXingResultMetadataValue::Orientation(v.parse().unwrap_or_default())
                     }
                     RXingResultMetadataType::BYTE_SEGMENTS => {
-                        RXingResultMetadataValue::ByteSegments(v.into_bytes())
+                        RXingResultMetadataValue::ByteSegments(vec![v.into_bytes()])
                     }
                     RXingResultMetadataType::ERROR_CORRECTION_LEVEL => {
                         RXingResultMetadataValue::ErrorCorrectionLevel(v)

@@ -45,6 +45,7 @@ const VERSION_DECODE_INFO: [u32; 34] = [
  *
  * @author Sean Owen
  */
+#[derive(Debug)]
 pub struct Version {
     //   private static final Version[] VERSIONS = buildVersions();
     versionNumber: u32,
@@ -930,7 +931,8 @@ impl fmt::Display for Version {
  * each set of blocks. It also holds the number of error-correction codewords per block since it
  * will be the same across all blocks within one version.</p>
  */
-pub struct ECBlocks {
+#[derive(Debug)]
+ pub struct ECBlocks {
     ecCodewordsPerBlock: u32,
     ecBlocks: Vec<ECB>,
 }
@@ -970,6 +972,7 @@ impl ECBlocks {
  * This includes the number of data codewords, and the number of times a block with these
  * parameters is used consecutively in the QR code version's format.</p>
  */
+#[derive(Debug)]
 pub struct ECB {
     count: u32,
     dataCodewords: u32,

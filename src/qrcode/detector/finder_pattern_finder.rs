@@ -161,6 +161,7 @@ impl FinderPatternFinder {
                         stateCount[currentState] += 1;
                     }
                 }
+                j+=1;
             }
             if FinderPatternFinder::foundPatternCross(&stateCount) {
                 let confirmed = self.handlePossibleCenter(&stateCount, i, maxJ);
@@ -187,7 +188,7 @@ impl FinderPatternFinder {
      * figures the location of the center of this run.
      */
     fn centerFromEnd(stateCount: &[u32], end: u32) -> f32 {
-        ((end - stateCount[4] - stateCount[3]) - stateCount[2]) as f32 / 2.0
+        (end - stateCount[4] - stateCount[3]) as f32 - ((stateCount[2] as f32) / 2.0)
     }
 
     /**
@@ -363,19 +364,19 @@ impl FinderPatternFinder {
     ) -> f32 {
         // let image = &self.image;
 
-        let maxI = self.image.getHeight();
+        let maxI = self.image.getHeight() as i32;
         let _stateCount = self.getCrossCheckStateCount();
 
         // Start counting up from center
-        let mut i = startI;
-        while i >= 0 && self.image.get(centerJ, i) {
+        let mut i = startI as i32;
+        while i >= 0 && self.image.get(centerJ, i as u32) {
             self.crossCheckStateCount[2] += 1;
             i -= 1;
         }
         if i < 0 {
             return f32::NAN;
         }
-        while i >= 0 && !self.image.get(centerJ, i) && self.crossCheckStateCount[1] <= maxCount {
+        while i >= 0 && !self.image.get(centerJ, i as u32) && self.crossCheckStateCount[1] <= maxCount {
             self.crossCheckStateCount[1] += 1;
             i -= 1;
         }
@@ -383,7 +384,7 @@ impl FinderPatternFinder {
         if i < 0 || self.crossCheckStateCount[1] > maxCount {
             return f32::NAN;
         }
-        while i >= 0 && self.image.get(centerJ, i) && self.crossCheckStateCount[0] <= maxCount {
+        while i >= 0 && self.image.get(centerJ, i as u32) && self.crossCheckStateCount[0] <= maxCount {
             self.crossCheckStateCount[0] += 1;
             i -= 1;
         }
@@ -392,22 +393,22 @@ impl FinderPatternFinder {
         }
 
         // Now also count down from center
-        i = startI + 1;
-        while i < maxI && self.image.get(centerJ, i) {
+        i = startI as i32 + 1;
+        while i < maxI && self.image.get(centerJ, i as u32) {
             self.crossCheckStateCount[2] += 1;
             i += 1;
         }
         if i == maxI {
             return f32::NAN;
         }
-        while i < maxI && !self.image.get(centerJ, i) && self.crossCheckStateCount[3] < maxCount {
+        while i < maxI && !self.image.get(centerJ, i as u32) && self.crossCheckStateCount[3] < maxCount {
             self.crossCheckStateCount[3] += 1;
             i += 1;
         }
         if i == maxI || self.crossCheckStateCount[3] >= maxCount {
             return f32::NAN;
         }
-        while i < maxI && self.image.get(centerJ, i) && self.crossCheckStateCount[4] < maxCount {
+        while i < maxI && self.image.get(centerJ, i as u32) && self.crossCheckStateCount[4] < maxCount {
             self.crossCheckStateCount[4] += 1;
             i += 1;
         }
@@ -422,12 +423,12 @@ impl FinderPatternFinder {
             + self.crossCheckStateCount[2]
             + self.crossCheckStateCount[3]
             + self.crossCheckStateCount[4];
-        if 5 * (stateCountTotal - originalStateCountTotal) >= 2 * originalStateCountTotal {
+        if 5 * (stateCountTotal as i64 - originalStateCountTotal as i64) >= 2 * originalStateCountTotal as i64 {
             return f32::NAN;
         }
 
         if Self::foundPatternCross(&self.crossCheckStateCount) {
-            Self::centerFromEnd(&self.crossCheckStateCount, i)
+            Self::centerFromEnd(&self.crossCheckStateCount, i as u32)
         } else {
             f32::NAN
         }
@@ -450,22 +451,22 @@ impl FinderPatternFinder {
         let maxJ = self.image.getWidth();
         let _stateCount = self.getCrossCheckStateCount();
 
-        let mut j = startJ;
-        while j >= 0 && self.image.get(j, centerI) {
+        let mut j = startJ as i32;
+        while j >= 0 && self.image.get(j as u32, centerI) {
             self.crossCheckStateCount[2] += 1;
             j -= 1;
         }
         if j < 0 {
             return f32::NAN;
         }
-        while j >= 0 && !self.image.get(j, centerI) && self.crossCheckStateCount[1] <= maxCount {
+        while j >= 0 && !self.image.get(j as u32, centerI) && self.crossCheckStateCount[1] <= maxCount {
             self.crossCheckStateCount[1] += 1;
             j -= 1;
         }
         if j < 0 || self.crossCheckStateCount[1] > maxCount {
             return f32::NAN;
         }
-        while j >= 0 && self.image.get(j, centerI) && self.crossCheckStateCount[0] <= maxCount {
+        while j >= 0 && self.image.get(j as u32 as u32, centerI) && self.crossCheckStateCount[0] <= maxCount {
             self.crossCheckStateCount[0] += 1;
             j -= 1;
         }
@@ -473,22 +474,22 @@ impl FinderPatternFinder {
             return f32::NAN;
         }
 
-        j = startJ + 1;
-        while j < maxJ && self.image.get(j, centerI) {
+        j = startJ as i32 + 1;
+        while j < (maxJ as i32) && self.image.get(j as u32, centerI) {
             self.crossCheckStateCount[2] += 1;
             j += 1;
         }
-        if j == maxJ {
+        if j == maxJ as i32 {
             return f32::NAN;
         }
-        while j < maxJ && !self.image.get(j, centerI) && self.crossCheckStateCount[3] < maxCount {
+        while j < maxJ as i32 && !self.image.get(j as u32, centerI) && self.crossCheckStateCount[3] < maxCount {
             self.crossCheckStateCount[3] += 1;
             j += 1;
         }
-        if j == maxJ || self.crossCheckStateCount[3] >= maxCount {
+        if j == (maxJ as i32) || self.crossCheckStateCount[3] >= maxCount {
             return f32::NAN;
         }
-        while j < maxJ && self.image.get(j, centerI) && self.crossCheckStateCount[4] < maxCount {
+        while j < (maxJ as i32) && self.image.get(j as u32, centerI) && self.crossCheckStateCount[4] < maxCount {
             self.crossCheckStateCount[4] += 1;
             j += 1;
         }
@@ -503,12 +504,12 @@ impl FinderPatternFinder {
             + self.crossCheckStateCount[2]
             + self.crossCheckStateCount[3]
             + self.crossCheckStateCount[4];
-        if 5 * (stateCountTotal - originalStateCountTotal) >= originalStateCountTotal {
+        if 5 * (stateCountTotal as i64 - originalStateCountTotal as i64) >= originalStateCountTotal as i64 {
             return f32::NAN;
         }
 
         if Self::foundPatternCross(&self.crossCheckStateCount) {
-            Self::centerFromEnd(&self.crossCheckStateCount, j)
+            Self::centerFromEnd(&self.crossCheckStateCount, j as u32)
         } else {
             f32::NAN
         }

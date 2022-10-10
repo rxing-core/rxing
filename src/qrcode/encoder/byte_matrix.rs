@@ -16,6 +16,8 @@
 
 use std::fmt;
 
+use crate::common::BitMatrix;
+
 /**
  * JAVAPORT: The original code was a 2D array of ints, but since it only ever gets assigned
  * -1, 0, and 1, I'm going to use less memory and go with bytes.
@@ -108,5 +110,19 @@ impl fmt::Display for ByteMatrix {
             result.push('\n');
         }
         write!(f, "{}", result)
+    }
+}
+
+impl From<ByteMatrix> for BitMatrix {
+    fn from(bm: ByteMatrix) -> Self {
+        let mut bit_matrix = BitMatrix::new(bm.getWidth(), bm.getHeight()).unwrap();
+        for y in 0..bm.getHeight() {
+            for x in 0..bm.getWidth() {
+                if bm.get(x, y) > 0 {
+                    bit_matrix.set(x as u32, y as u32);
+                }
+            }
+        }
+        bit_matrix
     }
 }

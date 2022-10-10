@@ -80,7 +80,8 @@ impl DataBlock {
       // for (int i = 0; i < ecBlock.getCount(); i++) {
         let numDataCodewords = ecBlock.getDataCodewords();
         let numBlockCodewords = ecBlocks.getECCodewordsPerBlock() + numDataCodewords;
-        result[numRXingResultBlocks] =  DataBlock::new(numDataCodewords, vec![0u8;numBlockCodewords as usize]);
+        // result[numRXingResultBlocks] =  DataBlock::new(numDataCodewords, vec![0u8;numBlockCodewords as usize]);
+        result.push(  DataBlock::new(numDataCodewords, vec![0u8;numBlockCodewords as usize]));
         numRXingResultBlocks += 1;
       }
     }

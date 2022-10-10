@@ -336,27 +336,27 @@ impl Detector {
 
         // Now count other way -- don't run off image though of course
         let mut scale = 1.0;
-        let mut otherToX = fromX - (toX - fromX);
+        let mut otherToX = fromX as i32 - (toX as i32 - fromX as i32);
         if (otherToX < 0) {
-            scale = fromX as f32 / (fromX - otherToX) as f32;
+            scale = fromX as f32 / (fromX as i32- otherToX) as f32;
             otherToX = 0;
-        } else if (otherToX >= self.image.getWidth()) {
-            scale = (self.image.getWidth() - 1 - fromX) as f32 / (otherToX - fromX) as f32;
-            otherToX = self.image.getWidth() - 1;
+        } else if (otherToX as u32 >= self.image.getWidth() ) {
+            scale = (self.image.getWidth() as i32 - 1 - fromX as i32) as f32 / (otherToX - fromX as i32) as f32;
+            otherToX = self.image.getWidth() as i32 - 1;
         }
-        let mut otherToY = (fromY - (toY - fromY) * scale as u32) as u32;
+        let mut otherToY = (fromY as i32 - (toY as i32 - fromY as i32) * scale as i32);
 
         scale = 1.0;
         if (otherToY < 0) {
-            scale = fromY as f32 / (fromY - otherToY) as f32;
+            scale = fromY as f32 / (fromY as i32 - otherToY) as f32;
             otherToY = 0;
-        } else if (otherToY >= self.image.getHeight()) {
-            scale = (self.image.getHeight() - 1 - fromY) as f32 / (otherToY - fromY) as f32;
-            otherToY = self.image.getHeight() - 1;
+        } else if (otherToY as u32 >= self.image.getHeight()) {
+            scale = (self.image.getHeight() as i32 - 1 - fromY as i32) as f32 / (otherToY - fromY as i32) as f32;
+            otherToY = self.image.getHeight() as i32 - 1;
         }
-        otherToX = (fromX + (otherToX - fromX) * scale as u32) as u32;
+        otherToX = (fromX as i32+ (otherToX - fromX as i32) * scale as i32);
 
-        result += self.sizeOfBlackWhiteBlackRun(fromX, fromY, otherToX, otherToY);
+        result += self.sizeOfBlackWhiteBlackRun(fromX as u32, fromY as u32, otherToX as u32, otherToY as u32);
 
         // Middle pixel is double-counted this way; subtract 1
         return result - 1.0;
@@ -377,7 +377,7 @@ impl Detector {
         let mut toY = toY;
         // Mild variant of Bresenham's algorithm;
         // see http://en.wikipedia.org/wiki/Bresenham's_line_algorithm
-        let steep = (toY - fromY) > (toX - fromX);
+        let steep = (toY as i64 - fromY as i64).abs() > (toX as i64 - fromX as i64).abs();
         if (steep) {
             let mut temp = fromX;
             fromX = fromY;
@@ -387,8 +387,8 @@ impl Detector {
             toY = temp;
         }
 
-        let dx: i32 = (toX - fromX) as i32;
-        let dy: i32 = (toY - fromY) as i32;
+        let dx: i32 = (toX as i64 - fromX as i64).abs() as i32;
+        let dy: i32 = (toY as i64 - fromY as i64).abs() as i32;
         let mut error = -dx / 2;
         let xstep: i32 = if fromX < toX { 1 } else { -1 };
         let ystep: i32 = if fromY < toY { 1 } else { -1 };

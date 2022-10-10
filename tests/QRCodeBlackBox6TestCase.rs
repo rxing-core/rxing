@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package com.google.zxing.qrcode;
+use rxing::{qrcode::QRCodeReader, BarcodeFormat};
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.common.AbstractBlackBoxTestCase;
+mod common;
 
 /**
  * These tests are supplied by Tim Gernat and test finder pattern detection at small size and under
  * rotation, which was a weak spot.
  */
-public final class QRCodeBlackBox6TestCase extends AbstractBlackBoxTestCase {
 
-  public QRCodeBlackBox6TestCase() {
-    super("src/test/resources/blackbox/qrcode-6", new MultiFormatReader(), BarcodeFormat.QR_CODE);
-    addTest(15, 15, 0.0f);
-    addTest(14, 14, 90.0f);
-    addTest(13, 13, 180.0f);
-    addTest(14, 14, 270.0f);
+#[test]
+fn  QRCodeBlackBox6TestCase() {
+  let mut tester = common::AbstractBlackBoxTestCase::new("test_resources/blackbox/qrcode-6", Box::new(QRCodeReader{}), BarcodeFormat::QR_CODE);
+  tester.addTest(15, 15, 0.0);
+  tester.addTest(14, 14, 90.0);
+  tester.addTest(13, 13, 180.0);
+  tester.addTest(14, 14, 270.0);
+
+  tester.testBlackBox();
   }
-
-}
