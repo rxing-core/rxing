@@ -17,7 +17,8 @@
 use std::{
     collections::HashMap,
     fs::{read_dir, read_to_string, File},
-    path::{Path, PathBuf}, io::Write,
+    io::Write,
+    path::{Path, PathBuf},
 };
 
 use rxing::{
@@ -114,7 +115,7 @@ impl AbstractBlackBoxTestCase {
         let path_search = read_dir(&self.test_base);
         const possible_extensions: &str = "jpg,jpeg,gif,png,JPG,JPEG,GIF,PNG";
 
-        let paths = path_search
+        let mut paths = path_search
             .unwrap()
             .into_iter()
             .filter(|r| r.is_ok()) // Get rid of Err variants for Result<DirEntry>
@@ -122,7 +123,9 @@ impl AbstractBlackBoxTestCase {
             .filter(|r| r.is_file()) // Filter out non-folders
             .filter(|r| possible_extensions.contains(r.extension().unwrap().to_str().unwrap()))
             // .map(|r| r.into_boxed_path())
-            .collect();
+            .collect::<Vec<PathBuf>>();
+
+            paths.sort();
 
         paths
     }
@@ -231,15 +234,16 @@ impl AbstractBlackBoxTestCase {
                 let rotated_image = Self::rotate_image(&image, rotation);
                 let source = BufferedImageLuminanceSource::new(rotated_image);
                 let bitmap = BinaryBitmap::new(Box::new(HybridBinarizer::new(Box::new(source))));
-                
-                // if file_base_name == "09" {
-                //     let mut f = File::create("test_file_output.txt").unwrap();
-                //     dbg!("dumb");
-                //     write!(f,"{}", bitmap.getBlackMatrix().unwrap());
-                //     drop(f);
-                //     Self::rotate_image(&image, rotation).save("test_image.png").unwrap();
-                // }
-                
+
+                #[cfg(test)]
+                if file_base_name == "13" {
+                    let mut f = File::create("test_file_output.txt").unwrap();
+                    dbg!("dumb");
+                    write!(f,"{}", bitmap.getBlackMatrix().unwrap());
+                    drop(f);
+                    Self::rotate_image(&image, rotation).save("test_image.png").unwrap();
+                }
+
                 if let Ok(decoded) =
                     self.decode(&bitmap, rotation, &expected_text, &expected_metadata, false)
                 {
@@ -497,22 +501,47 @@ impl AbstractBlackBoxTestCase {
         //     break;
         // }
 
-        let radians = degrees.to_radians();
+        if degrees == 90.0 {
+            original.rotate90()
+        } else if degrees == 180.0 {
+            original.rotate180()
+        } else if degrees == 270.0 {
+            original.rotate270()
+        } else {
+            let radians = degrees.to_radians();
 
-        {
-            use image::DynamicImage;
-            use image::Luma;
-            use imageproc::geometric_transformations::*;
+            {
+                use image::DynamicImage;
+                use image::Luma;
+                use imageproc::geometric_transformations::*;
 
-            let i = rotate_about_center(
-                &original.to_luma8(),
-                radians,
-                Interpolation::Nearest,
-                Luma([u8::MAX/2; 1]),
-            );
+                let i = rotate_about_center(
+                    &original.to_luma8(),
+                    radians,
+                    Interpolation::Nearest,
+                    Luma([u8::MAX / 2; 1]),
+                );
 
-            DynamicImage::from(i)
+                DynamicImage::from(i)
+            }
         }
+
+        // let radians = degrees.to_radians();
+
+        // {
+        //     use image::DynamicImage;
+        //     use image::Luma;
+        //     use imageproc::geometric_transformations::*;
+
+        //     let i = rotate_about_center(
+        //         &original.to_luma8(),
+        //         radians,
+        //         Interpolation::Nearest,
+        //         Luma([u8::MAX / 2; 1]),
+        //     );
+
+        //     DynamicImage::from(i)
+        // }
 
         // // Transform simply to find out the new bounding box (don't actually run the image through it)
         // AffineTransform at = new AffineTransform();

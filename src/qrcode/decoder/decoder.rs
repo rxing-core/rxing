@@ -169,7 +169,7 @@ fn decode_bitmatrix_parser_with_hints(
         // for (DataBlock dataBlock : dataBlocks) {
         let mut codewordBytes = dataBlock.getCodewords().to_vec();
         let numDataCodewords = dataBlock.getNumDataCodewords() as usize;
-        correctErrors(&mut codewordBytes, numDataCodewords);
+        correctErrors(&mut codewordBytes, numDataCodewords)?;
         for i in 0..numDataCodewords {
             // for (int i = 0; i < numDataCodewords; i++) {
             resultBytes[resultOffset] = codewordBytes[i];
