@@ -92,7 +92,7 @@ impl FinderPattern {
             combinedX,
             combinedY,
             combinedModuleSize,
-            combinedCount.round() as usize,
+            combinedCount.floor() as usize,
         )
     }
 }

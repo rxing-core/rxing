@@ -290,7 +290,7 @@ impl AlignmentPatternFinder {
         let centerJ = Self::centerFromEnd(stateCount, j);
         let centerI = self.crossCheckVertical(
             i,
-            centerJ.round() as u32,
+            centerJ.floor() as u32,
             2 * stateCount[1],
             stateCountTotal,
         );

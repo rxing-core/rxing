@@ -620,7 +620,7 @@ impl FinderPatternFinder {
                     return (((fnp.getX() - center.getX().abs())
                         - (fnp.getY() - center.getY()).abs())
                         / 2.0)
-                        .round() as u32;
+                        .floor() as u32;
                 }
             }
         }
