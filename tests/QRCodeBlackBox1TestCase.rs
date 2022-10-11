@@ -40,3 +40,88 @@ fn QRCodeBlackBox1TestCase() {
 
 
 // TEST CASE 15 FAILING AT allignment patter finder! (line 88) FROM detector 486
+
+/*
+ JAVA RESULTS::::
+
+Atul  Starting src/test/resources/blackbox/qrcode-1/2.png
+  Starting src/test/resources/blackbox/qrcode-1/9.png
+  Starting src/test/resources/blackbox/qrcode-1/16.png
+  could not read at rotation 90.000000
+  could not read at rotation 90.000000 w/TH
+  could not read at rotation 270.000000
+  could not read at rotation 270.000000 w/TH
+  Starting src/test/resources/blackbox/qrcode-1/11.png
+  Starting src/test/resources/blackbox/qrcode-1/5.png
+  Starting src/test/resources/blackbox/qrcode-1/3.png
+  Starting src/test/resources/blackbox/qrcode-1/6.png
+  Starting src/test/resources/blackbox/qrcode-1/14.png
+  could not read at rotation 0.000000
+  could not read at rotation 0.000000 w/TH
+  could not read at rotation 90.000000
+  could not read at rotation 90.000000 w/TH
+  could not read at rotation 180.000000
+  could not read at rotation 180.000000 w/TH
+  could not read at rotation 270.000000
+  could not read at rotation 270.000000 w/TH
+  Starting src/test/resources/blackbox/qrcode-1/8.png
+  Starting src/test/resources/blackbox/qrcode-1/13.png
+  could not read at rotation 0.000000
+  could not read at rotation 0.000000 w/TH
+  could not read at rotation 90.000000
+  could not read at rotation 90.000000 w/TH
+  could not read at rotation 180.000000
+  could not read at rotation 180.000000 w/TH
+  could not read at rotation 270.000000
+  could not read at rotation 270.000000 w/TH
+  Starting src/test/resources/blackbox/qrcode-1/17.png
+  could not read at rotation 90.000000
+  could not read at rotation 90.000000 w/TH
+  Starting src/test/resources/blackbox/qrcode-1/12.png
+  Starting src/test/resources/blackbox/qrcode-1/7.png
+  Starting src/test/resources/blackbox/qrcode-1/4.png
+  Starting src/test/resources/blackbox/qrcode-1/19.png
+  Starting src/test/resources/blackbox/qrcode-1/18.png
+  could not read at rotation 0.000000
+  could not read at rotation 0.000000 w/TH
+  could not read at rotation 90.000000
+  could not read at rotation 90.000000 w/TH
+  could not read at rotation 180.000000
+  could not read at rotation 180.000000 w/TH
+  could not read at rotation 270.000000
+  could not read at rotation 270.000000 w/TH
+  Starting src/test/resources/blackbox/qrcode-1/1.png
+  Starting src/test/resources/blackbox/qrcode-1/15.png
+  could not read at rotation 90.000000
+  could not read at rotation 90.000000 w/TH
+  could not read at rotation 270.000000
+  could not read at rotation 270.000000 w/TH
+  Starting src/test/resources/blackbox/qrcode-1/10.png
+  Starting src/test/resources/blackbox/qrcode-1/20.png
+  could not read at rotation 270.000000
+  could not read at rotation 270.000000 w/TH
+  Rotation 0 degrees:
+   17 of 20 images passed (17 required)
+   0 failed due to misreads, 3 not detected
+   17 of 20 images passed with try harder (17 required)
+   0 failed due to misreads, 3 not detected
+  Rotation 90 degrees:
+   14 of 20 images passed (14 required)
+   0 failed due to misreads, 6 not detected
+   14 of 20 images passed with try harder (14 required)
+   0 failed due to misreads, 6 not detected
+  Rotation 180 degrees:
+   17 of 20 images passed (17 required)
+   0 failed due to misreads, 3 not detected
+   17 of 20 images passed with try harder (17 required)
+   0 failed due to misreads, 3 not detected
+  Rotation 270 degrees:
+   14 of 20 images passed (14 required)
+   0 failed due to misreads, 6 not detected
+   14 of 20 images passed with try harder (14 required)
+   0 failed due to misreads, 6 not detected
+  Decoded 124 images out of 160 (77%, 124 required)
+
+
+
+*/
