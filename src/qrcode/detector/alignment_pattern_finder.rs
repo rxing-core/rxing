@@ -290,10 +290,11 @@ impl AlignmentPatternFinder {
         let centerJ = Self::centerFromEnd(stateCount, j);
         let centerI = self.crossCheckVertical(
             i,
-            centerJ.floor() as u32,
+            centerJ.round() as u32,
             2 * stateCount[1],
             stateCountTotal,
         );
+
         if !centerI.is_nan() {
             let estimatedModuleSize = (stateCount[0] + stateCount[1] + stateCount[2]) as f32 / 3.0;
             for center in &self.possibleCenters {
