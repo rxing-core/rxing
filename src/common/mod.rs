@@ -2363,7 +2363,7 @@ impl GridSampler for DefaultGridSampler {
             let mut x = 0;
             while x < max {
                 //   for (int x = 0; x < max; x += 2) {
-                if image.get(points[x].floor() as u32, points[x + 1].floor() as u32) {
+                if image.get(points[x].round() as u32, points[x + 1].round() as u32) {
                     // Black(-ish) pixel
                     bits.set(x as u32 / 2, y);
                 }
