@@ -235,14 +235,14 @@ impl AbstractBlackBoxTestCase {
                 let source = BufferedImageLuminanceSource::new(rotated_image);
                 let bitmap = BinaryBitmap::new(Box::new(HybridBinarizer::new(Box::new(source))));
 
-                #[cfg(test)]
-                if file_base_name == "14" {
-                    let mut f = File::create("test_file_output.txt").unwrap();
-                    dbg!("dumb");
-                    write!(f,"{}", bitmap.getBlackMatrix().unwrap());
-                    drop(f);
-                    Self::rotate_image(&image, rotation).save("test_image.png").unwrap();
-                }
+                // #[cfg(test)]
+                // if file_base_name == "14" {
+                //     let mut f = File::create("test_file_output.txt").unwrap();
+                //     dbg!("dumb");
+                //     write!(f,"{}", bitmap.getBlackMatrix().unwrap());
+                //     drop(f);
+                //     Self::rotate_image(&image, rotation).save("test_image.png").unwrap();
+                // }
 
                 if let Ok(decoded) =
                     self.decode(&bitmap, rotation, &expected_text, &expected_metadata, false)
