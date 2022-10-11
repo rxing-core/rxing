@@ -198,7 +198,7 @@ impl Detector {
         let bottomRightY: f32;
         let sourceBottomRightX: f32;
         let sourceBottomRightY: f32;
-        if (alignmentPattern.is_some()) {
+        if alignmentPattern.is_some() {
             let alignmentPattern = alignmentPattern.as_ref().unwrap();
             bottomRightX = alignmentPattern.getX();
             bottomRightY = alignmentPattern.getY();
@@ -337,24 +337,24 @@ impl Detector {
         // Now count other way -- don't run off image though of course
         let mut scale = 1.0;
         let mut otherToX = fromX as i32 - (toX as i32 - fromX as i32);
-        if (otherToX < 0) {
+        if otherToX < 0 {
             scale = fromX as f32 / (fromX as i32- otherToX) as f32;
             otherToX = 0;
-        } else if (otherToX as u32 >= self.image.getWidth() ) {
+        } else if otherToX as u32 >= self.image.getWidth() {
             scale = (self.image.getWidth() as i32 - 1 - fromX as i32) as f32 / (otherToX - fromX as i32) as f32;
             otherToX = self.image.getWidth() as i32 - 1;
         }
-        let mut otherToY = (fromY as i32 - (toY as i32 - fromY as i32) * scale as i32);
+        let mut otherToY = fromY as i32 - (toY as i32 - fromY as i32) * scale as i32;
 
         scale = 1.0;
-        if (otherToY < 0) {
+        if otherToY < 0 {
             scale = fromY as f32 / (fromY as i32 - otherToY) as f32;
             otherToY = 0;
-        } else if (otherToY as u32 >= self.image.getHeight()) {
+        } else if otherToY as u32 >= self.image.getHeight() {
             scale = (self.image.getHeight() as i32 - 1 - fromY as i32) as f32 / (otherToY - fromY as i32) as f32;
             otherToY = self.image.getHeight() as i32 - 1;
         }
-        otherToX = (fromX as i32+ (otherToX - fromX as i32) * scale as i32);
+        otherToX = fromX as i32+ (otherToX - fromX as i32) * scale as i32;
 
         result += self.sizeOfBlackWhiteBlackRun(fromX as u32, fromY as u32, otherToX as u32, otherToY as u32);
 
@@ -378,7 +378,7 @@ impl Detector {
         // Mild variant of Bresenham's algorithm;
         // see http://en.wikipedia.org/wiki/Bresenham's_line_algorithm
         let steep = (toY as i64 - fromY as i64).abs() > (toX as i64 - fromX as i64).abs();
-        if (steep) {
+        if steep {
             let mut temp = fromX;
             fromX = fromY;
             fromY = temp;
@@ -408,16 +408,16 @@ impl Detector {
             // Does current pixel mean we have moved white to black or vice versa?
             // Scanning black in state 0,2 and white in state 1, so if we find the wrong
             // color, advance to next state or end if we are in state 2 already
-            if ((state == 1) == self.image.get(realX as u32, realY as u32)) {
-                if (state == 2) {
+            if (state == 1) == self.image.get(realX as u32, realY as u32) {
+                if state == 2 {
                     return MathUtils::distance_int(x, y, fromX as i32, fromY as i32);
                 }
                 state += 1;
             }
 
             error += dy;
-            if (error > 0) {
-                if (y == toY as i32) {
+            if error > 0 {
+                if y == toY as i32 {
                     break;
                 }
                 y += ystep;
@@ -429,7 +429,7 @@ impl Detector {
         // Found black-white-black; give the benefit of the doubt that the next pixel outside the image
         // is "white" so this last point at (toX+xStep,toY) is the right ending. This is really a
         // small approximation; (toX+xStep,toY+yStep) might be really correct. Ignore this.
-        if (state == 2) {
+        if state == 2 {
             return MathUtils::distance_int(
                 toX as i32 + xstep as i32,
                 toY as i32,

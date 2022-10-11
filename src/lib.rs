@@ -1,3 +1,6 @@
+#![allow(non_snake_case)]
+#![allow(non_camel_case_types)]
+
 pub mod aztec;
 pub mod client;
 pub mod common;
@@ -1171,7 +1174,6 @@ impl fmt::Display for RXingResult {
  */
 
 //package com.google.zxing;
-use crate::common::detector::MathUtils;
 
 pub trait ResultPoint {
     fn getX(&self) -> f32;
@@ -2000,7 +2002,7 @@ impl PlanarYUVLuminanceSource {
     fn reverseHorizontal(&mut self, width: usize, height: usize) {
         //let mut yuvData = self.yuvData;
         let mut rowStart = self.top * self.data_width + self.left;
-        for y in 0..height {
+        for _y in 0..height {
             let middle = rowStart + width / 2;
             let mut x2 = rowStart + width - 1;
             for x1 in rowStart..middle {
@@ -2124,7 +2126,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
             self.invert,
         ) {
             Ok(new) => Ok(Box::new(new)),
-            Err(err) => Err(Exceptions::UnsupportedOperationException("".to_owned())),
+            Err(_err) => Err(Exceptions::UnsupportedOperationException("".to_owned())),
         }
     }
 
@@ -2270,7 +2272,7 @@ impl LuminanceSource for RGBLuminanceSource {
             height,
         ) {
             Ok(crop) => Ok(Box::new(crop)),
-            Err(error) => Err(Exceptions::UnsupportedOperationException("".to_owned())),
+            Err(_error) => Err(Exceptions::UnsupportedOperationException("".to_owned())),
         }
     }
 

@@ -234,7 +234,7 @@ impl FinderPatternFinder {
             }
             totalModuleSize += count;
         }
-        if (totalModuleSize < 7) {
+        if totalModuleSize < 7 {
             return false;
         }
         let moduleSize = totalModuleSize as f32 / 7.0;

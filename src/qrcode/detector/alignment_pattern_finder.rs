@@ -140,7 +140,7 @@ impl AlignmentPatternFinder {
                     }
                 } else {
                     // White pixel
-                    if (currentState == 1) {
+                    if currentState == 1 {
                         // Counting black pixels
                         currentState += 1;
                     }
@@ -148,9 +148,9 @@ impl AlignmentPatternFinder {
                 }
                 j += 1;
             }
-            if (self.foundPatternCross(&stateCount)) {
+            if self.foundPatternCross(&stateCount) {
                 let confirmed = self.handlePossibleCenter(&stateCount, i, maxJ);
-                if (confirmed.is_some()) {
+                if confirmed.is_some() {
                     return Ok(confirmed.unwrap());
                 }
             }
@@ -158,7 +158,7 @@ impl AlignmentPatternFinder {
 
         // Hmm, nothing we saw was observed and confirmed twice. If we had
         // any guess at all, return it.
-        if (!self.possibleCenters.is_empty()) {
+        if !self.possibleCenters.is_empty() {
             return Ok(self.possibleCenters.get(0).unwrap().clone());
         }
 
