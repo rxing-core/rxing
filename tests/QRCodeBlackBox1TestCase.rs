@@ -38,6 +38,9 @@ fn QRCodeBlackBox1TestCase() {
     tester.testBlackBox();
 }
 
+// 15 - 180 should pass
+// 19 - 180 should pass
+// 20 - 90  should pass
 
 // TEST CASE 15 FAILING AT allignment patter finder! (line 88) FROM detector 486
 
@@ -123,5 +126,96 @@ Atul  Starting src/test/resources/blackbox/qrcode-1/2.png
   Decoded 124 images out of 160 (77%, 124 required)
 
 
+
+*/
+
+/*
+
+rxing TEST RESULTS:::: 
+
+INFO :: Starting test_resources/blackbox/qrcode-1/1.png
+INFO :: Starting test_resources/blackbox/qrcode-1/10.png
+INFO :: Starting test_resources/blackbox/qrcode-1/11.png
+INFO :: Starting test_resources/blackbox/qrcode-1/12.png
+INFO :: Starting test_resources/blackbox/qrcode-1/13.png
+FINE :: could not read at rotation 0
+FINE :: could not read at rotation 0 w/TH
+FINE :: could not read at rotation 90
+FINE :: could not read at rotation 90 w/TH
+FINE :: could not read at rotation 180
+FINE :: could not read at rotation 180 w/TH
+FINE :: could not read at rotation 270
+FINE :: could not read at rotation 270 w/TH
+INFO :: Starting test_resources/blackbox/qrcode-1/14.png
+FINE :: could not read at rotation 0
+FINE :: could not read at rotation 0 w/TH
+FINE :: could not read at rotation 90
+FINE :: could not read at rotation 90 w/TH
+FINE :: could not read at rotation 180
+FINE :: could not read at rotation 180 w/TH
+FINE :: could not read at rotation 270
+FINE :: could not read at rotation 270 w/TH
+INFO :: Starting test_resources/blackbox/qrcode-1/15.png
+FINE :: could not read at rotation 90
+FINE :: could not read at rotation 90 w/TH
+FINE :: could not read at rotation 180
+FINE :: could not read at rotation 180 w/TH
+FINE :: could not read at rotation 270
+FINE :: could not read at rotation 270 w/TH
+INFO :: Starting test_resources/blackbox/qrcode-1/16.png
+FINE :: could not read at rotation 90
+FINE :: could not read at rotation 90 w/TH
+FINE :: could not read at rotation 270
+FINE :: could not read at rotation 270 w/TH
+INFO :: Starting test_resources/blackbox/qrcode-1/17.png
+FINE :: could not read at rotation 90
+FINE :: could not read at rotation 90 w/TH
+INFO :: Starting test_resources/blackbox/qrcode-1/18.png
+FINE :: could not read at rotation 0
+FINE :: could not read at rotation 0 w/TH
+FINE :: could not read at rotation 90
+FINE :: could not read at rotation 90 w/TH
+FINE :: could not read at rotation 180
+FINE :: could not read at rotation 180 w/TH
+FINE :: could not read at rotation 270
+FINE :: could not read at rotation 270 w/TH
+INFO :: Starting test_resources/blackbox/qrcode-1/19.png
+FINE :: could not read at rotation 180
+FINE :: could not read at rotation 180 w/TH
+INFO :: Starting test_resources/blackbox/qrcode-1/2.png
+INFO :: Starting test_resources/blackbox/qrcode-1/20.png
+FINE :: could not read at rotation 90
+FINE :: could not read at rotation 90 w/TH
+FINE :: could not read at rotation 270
+FINE :: could not read at rotation 270 w/TH
+INFO :: Starting test_resources/blackbox/qrcode-1/3.png
+INFO :: Starting test_resources/blackbox/qrcode-1/4.png
+INFO :: Starting test_resources/blackbox/qrcode-1/5.png
+INFO :: Starting test_resources/blackbox/qrcode-1/6.png
+INFO :: Starting test_resources/blackbox/qrcode-1/7.png
+INFO :: Starting test_resources/blackbox/qrcode-1/8.png
+INFO :: Starting test_resources/blackbox/qrcode-1/9.png
+INFO :: Rotation 0 degrees:
+INFO ::  17 of 20 images passed (17 required)
+INFO ::  0 failed due to misreads, 3 not detected
+INFO ::  17 of 20 images passed with try harder (17 required)
+INFO ::  0 failed due to misreads, 3 not detected
+INFO :: Rotation 90 degrees:
+INFO ::  13 of 20 images passed (14 required)
+INFO ::  0 failed due to misreads, 7 not detected
+INFO ::  13 of 20 images passed with try harder (14 required)
+INFO ::  0 failed due to misreads, 7 not detected
+INFO :: Rotation 180 degrees:
+INFO ::  15 of 20 images passed (17 required)
+INFO ::  0 failed due to misreads, 5 not detected
+INFO ::  15 of 20 images passed with try harder (17 required)
+INFO ::  0 failed due to misreads, 5 not detected
+INFO :: Rotation 270 degrees:
+INFO ::  14 of 20 images passed (14 required)
+INFO ::  0 failed due to misreads, 6 not detected
+INFO ::  14 of 20 images passed with try harder (14 required)
+INFO ::  0 failed due to misreads, 6 not detected
+INFO :: Decoded 118 images out of 160 (73, 124 required)
+WARN :: --- Test failed by 6 images
 
 */

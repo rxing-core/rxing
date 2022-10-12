@@ -288,7 +288,7 @@ impl AlignmentPatternFinder {
     ) -> Option<AlignmentPattern> {
         let stateCountTotal = stateCount[0] + stateCount[1] + stateCount[2];
         let centerJ = Self::centerFromEnd(stateCount, j);
-        let centerI = self.crossCheckVertical(
+        let centerI = self.crossCheckVertical( 
             i,
             centerJ.floor() as u32,
             2 * stateCount[1],

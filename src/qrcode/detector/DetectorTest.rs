@@ -16,7 +16,7 @@ fn test_uri() {
 
 #[test]
 fn test_unicode() {
-    test_encode_decode("💸🎲🪜");
+    test_encode_decode("\u{11D4}\u{1185}\u{11c2}");
 }
 
 fn test_encode_decode(value: &str) {

@@ -21,7 +21,7 @@
 // import java.awt.image.BufferedImage;
 // import java.awt.image.WritableRaster;
 
-use image::{DynamicImage, Luma, GenericImage, EncodableLayout};
+use image::{DynamicImage, EncodableLayout, GenericImage, GrayImage, ImageBuffer, Luma};
 use imageproc::geometric_transformations::rotate_about_center;
 
 use crate::LuminanceSource;
@@ -98,13 +98,73 @@ impl BufferedImageLuminanceSource {
 
         // }
 
+        let img = image.to_rgba8();
+
+        let mut raster: ImageBuffer<_, Vec<_>> = ImageBuffer::new(image.width(), image.height());
+
+        for x in 0..image.width() {
+            for y in 0..image.height() {
+                let pixel = img.get_pixel(x, y);
+                let [red, green, blue, alpha] = pixel.0;
+                if (alpha & 0xFF) == 0 {
+                    // white, so we know its luminance is 255
+                    raster.put_pixel(x, y, Luma([0xFF]))
+                    // buffer[x] = 0xFF;
+                } else {
+                    // .299R + 0.587G + 0.114B (YUV/YIQ for PAL and NTSC),
+                    // (306*R) >> 10 is approximately equal to R*0.299, and so on.
+                    // 0x200 >> 10 is 0.5, it implements rounding.
+                    raster.put_pixel(
+                        x,
+                        y,
+                        Luma([((306 * (red as u32)
+                            + 601 * (green as u32)
+                            + 117 * (blue as u32)
+                            + 0x200)
+                            >> 10) as u8]),
+                    );
+                }
+            }
+        }
+
+        // for pixel in img.pixels() {
+        //     // The color of fully-transparent pixels is irrelevant. They are often, technically, fully-transparent
+        //       // black (0 alpha, and then 0 RGB). They are often used, of course as the "white" area in a
+        //       // barcode image. Force any such pixel to be white:
+        //       let [red,green,blue,alpha] = pixel.0;
+        //       if (alpha & 0xFF) == 0 {
+        //         // white, so we know its luminance is 255
+        //         raster.push(0xFF);
+        //         // buffer[x] = 0xFF;
+        //       } else {
+        //         // .299R + 0.587G + 0.114B (YUV/YIQ for PAL and NTSC),
+        //         // (306*R) >> 10 is approximately equal to R*0.299, and so on.
+        //         // 0x200 >> 10 is 0.5, it implements rounding.
+        //         raster.push((
+        //           (306 * ((red as u32 >> 16) & 0xFF) +
+        //             601 * ((green as u32 >> 8) & 0xFF) +
+        //             117 * (blue as u32 & 0xFF) +
+        //             0x200) >> 10) as u8);
+        //       }
+        //     }
+
+        // let ib:ImageBuffer<Luma<u8>, Vec<u8>> = ImageBuffer::from_raw(image.width()   , image.height(), raster).unwrap();
+
         Self {
-            image: DynamicImage::from(image.to_luma8()),
+            image: DynamicImage::from(raster),
             width: width,
             height: height,
             left: left,
             top: top,
         }
+
+        // Self {
+        //     image: DynamicImage::from(image.to_luma8()),
+        //     width: width,
+        //     height: height,
+        //     left: left,
+        //     top: top,
+        // }
     }
 }
 
@@ -190,7 +250,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
             &self.image.to_luma8(),
             MINUS_45_IN_RADIANS,
             imageproc::geometric_transformations::Interpolation::Nearest,
-            Luma([u8::MAX/2; 1]),
+            Luma([u8::MAX / 2; 1]),
         );
 
         let new_img = DynamicImage::from(img);
