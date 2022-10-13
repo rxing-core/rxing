@@ -197,8 +197,11 @@ fn correctErrors(codewordBytes: &mut [u8], numDataCodewords: usize) -> Result<()
         // for (int i = 0; i < numCodewords; i++) {
         codewordsInts[i] = codewordBytes[i]; // & 0xFF;
     }
+
+    let mut sending_code_words : Vec<i32> = codewordsInts.iter().map(|x| *x as i32).collect();
+
     if let Err(e) = rsDecoder.decode(
-        &mut codewordsInts.iter().map(|x| *x as i32).collect(),
+        &mut sending_code_words,
         (codewordBytes.len() - numDataCodewords) as i32,
     ) {
         if let Exceptions::ReedSolomonException(error_str) = e {
@@ -210,7 +213,7 @@ fn correctErrors(codewordBytes: &mut [u8], numDataCodewords: usize) -> Result<()
     // We don't care about errors in the error-correction codewords
     for i in 0..numDataCodewords {
         // for (int i = 0; i < numDataCodewords; i++) {
-        codewordBytes[i] = codewordsInts[i];
+        codewordBytes[i] = sending_code_words[i] as u8;
     }
     Ok(())
 }

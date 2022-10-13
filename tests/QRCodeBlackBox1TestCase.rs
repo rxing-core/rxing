@@ -38,9 +38,8 @@ fn QRCodeBlackBox1TestCase() {
     tester.testBlackBox();
 }
 
-// 15 - 180 should pass
-// 19 - 180 should pass
-// 20 - 90  should pass
+// 16 - 0
+// 19 - 0
 
 // TEST CASE 15 FAILING AT allignment patter finder! (line 88) FROM detector 486
 

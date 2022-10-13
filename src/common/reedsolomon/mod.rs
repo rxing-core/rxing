@@ -701,7 +701,7 @@ impl ReedSolomonDecoder {
         }
         let syndrome = match GenericGFPoly::new(self.field, &syndromeCoefficients) {
             Ok(res) => res,
-            Err(fail) => {
+            Err(_fail) => {
                 return Err(Exceptions::ReedSolomonException(
                     "IllegalArgumentException".to_owned(),
                 ))
@@ -722,13 +722,13 @@ impl ReedSolomonDecoder {
             if log_value > received.len() as i32 - 1 {
                 return Ok(());
             }
-            let position: usize = received.len() - 1 - log_value as usize;
+            let position: isize = received.len() as isize - 1 - log_value as isize;
             if position < 0 {
                 return Err(Exceptions::ReedSolomonException(
                     "Bad error location".to_owned(),
                 ));
             }
-            received[position] = GenericGF::addOrSubtract(received[position], errorMagnitudes[i]);
+            received[position as usize] = GenericGF::addOrSubtract(received[position as usize], errorMagnitudes[i]);
         }
         Ok(())
     }
@@ -774,7 +774,7 @@ impl ReedSolomonDecoder {
             let denominatorLeadingTerm = rLast.getCoefficient(rLast.getDegree());
             let dltInverse = match self.field.inverse(denominatorLeadingTerm) {
                 Ok(inv) => inv,
-                Err(err) => {
+                Err(_err) => {
                     return Err(Exceptions::ReedSolomonException(
                         "ArithmetricException".to_owned(),
                     ))
@@ -787,7 +787,7 @@ impl ReedSolomonDecoder {
                     .multiply(r.getCoefficient(r.getDegree()), dltInverse);
                 q = match q.addOrSubtract(&GenericGF::buildMonomial(self.field, degreeDiff, scale)) {
                     Ok(res) => res,
-                    Err(err) => {
+                    Err(_err) => {
                         return Err(Exceptions::ReedSolomonException(
                             "IllegalArgumentException".to_owned(),
                         ))
@@ -795,14 +795,14 @@ impl ReedSolomonDecoder {
                 };
                 r = match r.addOrSubtract(&match rLast.multiply_by_monomial(degreeDiff, scale) {
                     Ok(res) => res,
-                    Err(err) => {
+                    Err(_err) => {
                         return Err(Exceptions::ReedSolomonException(
                             "IllegalArgumentException".to_owned(),
                         ))
                     }
                 }) {
                     Ok(res) => res,
-                    Err(err) => {
+                    Err(_err) => {
                         return Err(Exceptions::ReedSolomonException(
                             "IllegalArgumentException".to_owned(),
                         ))
@@ -812,7 +812,7 @@ impl ReedSolomonDecoder {
 
             t = match (match q.multiply(&tLast) {
                 Ok(res) => res,
-                Err(err) => {
+                Err(_err) => {
                     return Err(Exceptions::ReedSolomonException(
                         "IllegalArgumentException".to_owned(),
                     ))
@@ -821,7 +821,7 @@ impl ReedSolomonDecoder {
             .addOrSubtract(&tLastLast)
             {
                 Ok(res) => res,
-                Err(err) => {
+                Err(_err) => {
                     return Err(Exceptions::ReedSolomonException(
                         "IllegalArgumentException".to_owned(),
                     ))
@@ -845,7 +845,7 @@ impl ReedSolomonDecoder {
 
         let inverse = match self.field.inverse(sigmaTildeAtZero) {
             Ok(res) => res,
-            Err(err) => {
+            Err(_err) => {
                 return Err(Exceptions::ReedSolomonException(
                     "ArithmetricException".to_owned(),
                 ))
@@ -874,7 +874,7 @@ impl ReedSolomonDecoder {
             if errorLocator.evaluateAt(i) == 0 {
                 result[e] = match self.field.inverse(i.try_into().unwrap()) {
                     Ok(res) => res.try_into().unwrap(),
-                    Err(err) => {
+                    Err(_err) => {
                         return Err(Exceptions::ReedSolomonException(
                             "ArithmetricException".to_owned(),
                         ))

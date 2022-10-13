@@ -135,7 +135,7 @@ impl FinderPatternFinder {
                                             // Skip by rowSkip, but back off by stateCount[2] (size of last center
                                             // of pattern we saw) to be conservative, and also back off by iSkip which
                                             // is about to be re-added
-                                            i += rowSkip - stateCount[2] - iSkip;
+                                            i += (rowSkip as i32 - stateCount[2] as i32 - iSkip as i32).max(0) as u32;
                                             j = maxJ - 1;
                                         }
                                     }
@@ -620,7 +620,7 @@ impl FinderPatternFinder {
                     return (((fnp.getX() - center.getX().abs())
                         - (fnp.getY() - center.getY()).abs())
                         / 2.0)
-                        .floor() as u32;
+                        .round() as u32;
                 }
             }
         }

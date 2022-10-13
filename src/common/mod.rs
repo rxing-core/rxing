@@ -181,7 +181,7 @@ impl StringUtils {
                 break;
             }
 
-            let value = bytes[i] & 0xFF;
+            let value = bytes[i];
 
             // UTF-8 stuff
             if can_be_utf8 {
@@ -1545,7 +1545,7 @@ impl BitSource {
             return Err(Exceptions::IllegalArgumentException(numBits.to_string()));
         }
 
-        let mut result:u32 = 0;
+        let mut result: u32 = 0;
 
         let mut num_bits = numBits;
 
@@ -1850,7 +1850,12 @@ pub struct DecoderRXingResult {
 }
 
 impl DecoderRXingResult {
-    pub fn new(rawBytes: Vec<u8>, text: String, byteSegments: Vec<Vec<u8>>, ecLevel: String) -> Self {
+    pub fn new(
+        rawBytes: Vec<u8>,
+        text: String,
+        byteSegments: Vec<Vec<u8>>,
+        ecLevel: String,
+    ) -> Self {
         Self::with_all(rawBytes, text, byteSegments, ecLevel, -2, -2, 0)
     }
 
@@ -1894,7 +1899,7 @@ impl DecoderRXingResult {
     pub fn with_all(
         rawBytes: Vec<u8>,
         text: String,
-        byteSegments:Vec<Vec<u8>>,
+        byteSegments: Vec<Vec<u8>>,
         ecLevel: String,
         saSequence: i32,
         saParity: i32,
@@ -2243,11 +2248,11 @@ pub trait GridSampler {
         }
         // Check and nudge points from end:
         nudged = true;
-        let mut offset = points.len() - 2;
+        let mut offset = points.len() as isize - 2;
         while offset >= 0 && nudged {
             // for (int offset = points.length - 2; offset >= 0 && nudged; offset -= 2) {
-            let x = points[offset] as i32;
-            let y = points[offset + 1] as i32;
+            let x = points[offset as usize] as i32;
+            let y = points[offset as usize + 1] as i32;
             if x < -1 || x > width.try_into().unwrap() || y < -1 || y > height.try_into().unwrap() {
                 return Err(Exceptions::NotFoundException(
                     "getNotFoundInstance".to_owned(),
@@ -2255,20 +2260,20 @@ pub trait GridSampler {
             }
             nudged = false;
             if x == -1 {
-                points[offset] = 0.0f32;
+                points[offset as usize] = 0.0f32;
                 nudged = true;
-            } else if (x == width.try_into().unwrap()) {
-                points[offset] = width as f32 - 1f32;
+            } else if x == width.try_into().unwrap() {
+                points[offset as usize] = width as f32 - 1f32;
                 nudged = true;
             }
             if y == -1 {
-                points[offset + 1] = 0.0f32;
+                points[offset as usize + 1] = 0.0f32;
                 nudged = true;
-            } else if (y == height.try_into().unwrap()) {
-                points[offset + 1] = height as f32 - 1f32;
+            } else if y == height.try_into().unwrap() {
+                points[offset as usize + 1] = height as f32 - 1f32;
                 nudged = true;
             }
-            offset += 2;
+            offset += -2;
         }
         Ok(())
     }
@@ -2363,6 +2368,13 @@ impl GridSampler for DefaultGridSampler {
             let mut x = 0;
             while x < max {
                 //   for (int x = 0; x < max; x += 2) {
+                if points[x].floor() as u32 >= image.getWidth()
+                    || points[x + 1].floor() as u32 >= image.getHeight()
+                {
+                    return Err(Exceptions::NotFoundException(
+                        "index out of bounds, see documentation in file for explanation".to_owned(),
+                    ));
+                }
                 if image.get(points[x].floor() as u32, points[x + 1].floor() as u32) {
                     // Black(-ish) pixel
                     bits.set(x as u32 / 2, y);

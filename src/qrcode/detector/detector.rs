@@ -462,13 +462,13 @@ impl Detector {
         // Look for an alignment pattern (3 modules in size) around where it
         // should be
         let allowance = (allowanceFactor * overallEstModuleSize) as u32;
-        let alignmentAreaLeftX = 0.max(estAlignmentX - allowance);
+        let alignmentAreaLeftX = 0.max(estAlignmentX as i32- allowance as i32) as u32;
         let alignmentAreaRightX = (self.image.getWidth() - 1).min(estAlignmentX + allowance);
         if ((alignmentAreaRightX - alignmentAreaLeftX) as f32) < overallEstModuleSize * 3.0 {
             return Err(Exceptions::NotFoundException("not found".to_owned()));
         }
 
-        let alignmentAreaTopY = 0.max(estAlignmentY - allowance);
+        let alignmentAreaTopY = 0.max(estAlignmentY as i32 - allowance as i32) as u32;
         let alignmentAreaBottomY = (self.image.getHeight() - 1).min(estAlignmentY + allowance);
         if alignmentAreaBottomY - alignmentAreaTopY < overallEstModuleSize as u32 * 3 {
             return Err(Exceptions::NotFoundException("not found".to_owned()));
