@@ -210,14 +210,14 @@ impl FinderPatternFinder {
         if totalModuleSize < 7 {
             return false;
         }
-        let moduleSize = totalModuleSize as f32 / 7.0;
-        let maxVariance = moduleSize as f32 / 2.0;
+        let moduleSize = totalModuleSize as f64 / 7.0;
+        let maxVariance = moduleSize as f64 / 2.0;
         // Allow less than 50% variance from 1-1-3-1-1 proportions
-        return ((moduleSize - stateCount[0] as f32).abs()) < maxVariance
-            && ((moduleSize - stateCount[1] as f32).abs()) < maxVariance
-            && ((3.0 * moduleSize - stateCount[2] as f32).abs()) < 3.0 * maxVariance
-            && (moduleSize - stateCount[3] as f32).abs() < maxVariance
-            && (moduleSize - stateCount[4] as f32).abs() < maxVariance;
+        return ((moduleSize - stateCount[0] as f64).abs()) < maxVariance
+            && ((moduleSize - stateCount[1] as f64).abs()) < maxVariance
+            && ((3.0 * moduleSize - stateCount[2] as f64).abs()) < 3.0 * maxVariance
+            && (moduleSize - stateCount[3] as f64).abs() < maxVariance
+            && (moduleSize - stateCount[4] as f64).abs() < maxVariance;
     }
 
     /**
@@ -238,14 +238,14 @@ impl FinderPatternFinder {
         if totalModuleSize < 7 {
             return false;
         }
-        let moduleSize = totalModuleSize as f32 / 7.0;
+        let moduleSize = totalModuleSize as f64 / 7.0;
         let maxVariance = moduleSize / 1.333;
         // Allow less than 75% variance from 1-1-3-1-1 proportions
-        return (moduleSize - stateCount[0] as f32).abs() < maxVariance
-            && (moduleSize - stateCount[1] as f32).abs() < maxVariance
-            && (3.0 * moduleSize - stateCount[2] as f32).abs() < 3.0 * maxVariance
-            && (moduleSize - stateCount[3] as f32).abs() < maxVariance
-            && (moduleSize - stateCount[4] as f32).abs() < maxVariance;
+        return (moduleSize - stateCount[0] as f64).abs() < maxVariance
+            && (moduleSize - stateCount[1] as f64).abs() < maxVariance
+            && (3.0 * moduleSize - stateCount[2] as f64).abs() < 3.0 * maxVariance
+            && (moduleSize - stateCount[3] as f64).abs() < maxVariance
+            && (moduleSize - stateCount[4] as f64).abs() < maxVariance;
     }
 
     fn getCrossCheckStateCount(&mut self) -> &[u32; 5] {
