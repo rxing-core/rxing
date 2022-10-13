@@ -304,16 +304,16 @@ impl Detector {
      */
     fn calculateModuleSizeOneWay<T: ResultPoint>(&self, pattern: &T, otherPattern: &T) -> f32 {
         let moduleSizeEst1 = self.sizeOfBlackWhiteBlackRunBothWays(
-            pattern.getX() as u32,
-            pattern.getY() as u32,
-            otherPattern.getX() as u32,
-            otherPattern.getY() as u32,
+            pattern.getX().floor() as u32,
+            pattern.getY().floor() as u32,
+            otherPattern.getX().floor() as u32,
+            otherPattern.getY().floor() as u32,
         );
         let moduleSizeEst2 = self.sizeOfBlackWhiteBlackRunBothWays(
-            otherPattern.getX() as u32,
-            otherPattern.getY() as u32,
-            pattern.getX() as u32,
-            pattern.getY() as u32,
+            otherPattern.getX().floor() as u32,
+            otherPattern.getY().floor() as u32,
+            pattern.getX().floor() as u32,
+            pattern.getY().floor() as u32,
         );
         if moduleSizeEst1.is_nan() {
             return moduleSizeEst2 / 7.0;
@@ -344,7 +344,7 @@ impl Detector {
             scale = (self.image.getWidth() as i32 - 1 - fromX as i32) as f32 / (otherToX - fromX as i32) as f32;
             otherToX = self.image.getWidth() as i32 - 1;
         }
-        let mut otherToY = fromY as i32 - (toY as i32 - fromY as i32) * scale as i32;
+        let mut otherToY = fromY as i32 - (toY as i32 - fromY as i32) * scale.floor() as i32;
 
         scale = 1.0;
         if otherToY < 0 {
@@ -354,7 +354,7 @@ impl Detector {
             scale = (self.image.getHeight() as i32 - 1 - fromY as i32) as f32 / (otherToY - fromY as i32) as f32;
             otherToY = self.image.getHeight() as i32 - 1;
         }
-        otherToX = fromX as i32+ (otherToX - fromX as i32) * scale as i32;
+        otherToX = fromX as i32+ (otherToX - fromX as i32) * scale.floor() as i32;
 
         result += self.sizeOfBlackWhiteBlackRun(fromX as u32, fromY as u32, otherToX as u32, otherToY as u32);
 

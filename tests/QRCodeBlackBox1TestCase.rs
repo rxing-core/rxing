@@ -39,7 +39,6 @@ fn QRCodeBlackBox1TestCase() {
 }
 
 // 16 - 0
-// 19 - 0
 
 // TEST CASE 15 FAILING AT allignment patter finder! (line 88) FROM detector 486
 

@@ -136,6 +136,7 @@ impl FinderPatternFinder {
                                             // of pattern we saw) to be conservative, and also back off by iSkip which
                                             // is about to be re-added
                                             i += (rowSkip as i32 - stateCount[2] as i32 - iSkip as i32).max(0) as u32;
+                                            // i += rowSkip  - stateCount[2]  - iSkip ;
                                             j = maxJ - 1;
                                         }
                                     }
@@ -556,16 +557,16 @@ impl FinderPatternFinder {
         let stateCountTotal =
             stateCount[0] + stateCount[1] + stateCount[2] + stateCount[3] + stateCount[4];
         let mut centerJ = Self::centerFromEnd(stateCount, j);
-        let centerI = self.crossCheckVertical(i, centerJ as u32, stateCount[2], stateCountTotal);
+        let centerI = self.crossCheckVertical(i, centerJ.floor() as u32, stateCount[2], stateCountTotal);
         if !centerI.is_nan() {
             // Re-cross check
             centerJ = self.crossCheckHorizontal(
-                centerJ as u32,
-                centerI as u32,
+                centerJ.floor() as u32,
+                centerI.floor() as u32,
                 stateCount[2],
                 stateCountTotal,
             );
-            if !centerJ.is_nan() && self.crossCheckDiagonal(centerI as u32, centerJ as u32) {
+            if !centerJ.is_nan() && self.crossCheckDiagonal(centerI.floor() as u32, centerJ.floor() as u32) {
                 let estimatedModuleSize = stateCountTotal as f32 / 7.0;
                 let mut found = false;
                 for index in 0..self.possibleCenters.len() {
@@ -620,7 +621,7 @@ impl FinderPatternFinder {
                     return (((fnp.getX() - center.getX().abs())
                         - (fnp.getY() - center.getY()).abs())
                         / 2.0)
-                        .round() as u32;
+                        .floor() as u32;
                 }
             }
         }

@@ -109,7 +109,6 @@ impl BufferedImageLuminanceSource {
                 if (alpha & 0xFF) == 0 {
                     // white, so we know its luminance is 255
                     raster.put_pixel(x, y, Luma([0xFF]))
-                    // buffer[x] = 0xFF;
                 } else {
                     // .299R + 0.587G + 0.114B (YUV/YIQ for PAL and NTSC),
                     // (306*R) >> 10 is approximately equal to R*0.299, and so on.
@@ -117,9 +116,9 @@ impl BufferedImageLuminanceSource {
                     raster.put_pixel(
                         x,
                         y,
-                        Luma([((306 * (red as u32)
-                            + 601 * (green as u32)
-                            + 117 * (blue as u32)
+                        Luma([((306 * (red as u64)
+                            + 601 * (green as u64)
+                            + 117 * (blue as u64)
                             + 0x200)
                             >> 10) as u8]),
                     );
