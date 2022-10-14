@@ -344,7 +344,7 @@ impl Detector {
             scale = (self.image.getWidth() as i32 - 1 - fromX as i32) as f32 / (otherToX - fromX as i32) as f32;
             otherToX = self.image.getWidth() as i32 - 1;
         }
-        let mut otherToY = fromY as i32 - (toY as i32 - fromY as i32) * scale.floor() as i32;
+        let mut otherToY = (fromY as f32 - (toY as f32 - fromY as f32) * scale).floor() as i32;
 
         scale = 1.0;
         if otherToY < 0 {
@@ -354,7 +354,7 @@ impl Detector {
             scale = (self.image.getHeight() as i32 - 1 - fromY as i32) as f32 / (otherToY - fromY as i32) as f32;
             otherToY = self.image.getHeight() as i32 - 1;
         }
-        otherToX = fromX as i32+ (otherToX - fromX as i32) * scale.floor() as i32;
+        otherToX = (fromX as f32+ (otherToX as f32 - fromX as f32) * scale).floor() as i32;
 
         result += self.sizeOfBlackWhiteBlackRun(fromX as u32, fromY as u32, otherToX as u32, otherToY as u32);
 

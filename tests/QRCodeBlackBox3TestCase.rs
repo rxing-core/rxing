@@ -33,3 +33,5 @@ fn QRCodeBlackBox3TestCase() {
   tester.testBlackBox();
   }
 
+// 11 - 90
+// 13 - 90

@@ -622,7 +622,7 @@ impl FinderPatternFinder {
                     // This is the case where you find top left last.
                     self.hasSkipped = true;
                     let fnp = firstConfirmedCenter.unwrap();
-                    return (((fnp.getX() - center.getX().abs())
+                    return (((fnp.getX() - center.getX()).abs()
                         - (fnp.getY() - center.getY()).abs())
                         / 2.0)
                         .floor() as u32;
