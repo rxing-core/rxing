@@ -175,7 +175,7 @@ impl QRCodeReader {
         }
         let matrixWidth = ((right as f32 - left as f32 + 1.0) / moduleSize).round() as u32;
         let matrixHeight = ((bottom as f32 - top as f32 + 1.0) / moduleSize).round() as u32;
-        if matrixWidth <= 0 || matrixHeight <= 0 {
+        if matrixWidth == 0 || matrixHeight == 0 {
             return Err(Exceptions::NotFoundException("".to_owned()));
         }
         if matrixHeight != matrixWidth {

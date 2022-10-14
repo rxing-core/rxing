@@ -1351,9 +1351,6 @@ pub struct Dimension {
 
 impl Dimension {
     pub fn new(width: usize, height: usize) -> Result<Self, Exceptions> {
-        if width < 0 || height < 0 {
-            return Err(Exceptions::IllegalArgumentException("".to_owned()));
-        }
         Ok(Self { width, height })
     }
 
@@ -2028,7 +2025,7 @@ impl PlanarYUVLuminanceSource {
 
 impl LuminanceSource for PlanarYUVLuminanceSource {
     fn getRow(&self, y: usize, row: &Vec<u8>) -> Vec<u8> {
-        if y < 0 || y >= self.getHeight() {
+        if y >= self.getHeight() {
             //throw new IllegalArgumentException("Requested row is outside the image: " + y);
             panic!("Requested row is outside the image: {}", y);
         }
@@ -2178,7 +2175,7 @@ pub struct RGBLuminanceSource {
 
 impl LuminanceSource for RGBLuminanceSource {
     fn getRow(&self, y: usize, row: &Vec<u8>) -> Vec<u8> {
-        if y < 0 || y >= self.getHeight() {
+        if y >= self.getHeight() {
             panic!("Requested row is outside the image: {}", y);
         }
         let width = self.getWidth();

@@ -3158,10 +3158,10 @@ impl ECIInput for MinimalECIInput {
      *          if the value at the {@code index} argument is an ECI (@see #isECI)
      */
     fn charAt(&self, index: usize) -> Result<char, Exceptions> {
-        if (index < 0 || index >= self.length()) {
+        if index >= self.length() {
             return Err(Exceptions::IndexOutOfBoundsException(index.to_string()));
         }
-        if (self.isECI(index as u32)?) {
+        if self.isECI(index as u32)? {
             return Err(Exceptions::IllegalArgumentException(format!(
                 "value at {} is not a character but an ECI",
                 index
@@ -3195,7 +3195,7 @@ impl ECIInput for MinimalECIInput {
      *          if a value in the range {@code start}-{@code end} is an ECI (@see #isECI)
      */
     fn subSequence(&self, start: usize, end: usize) -> Result<Vec<char>, Exceptions> {
-        if start < 0 || start > end || end > self.length() {
+        if start > end || end > self.length() {
             return Err(Exceptions::IndexOutOfBoundsException(start.to_string()));
         }
         let mut result = String::new();
@@ -3224,7 +3224,7 @@ impl ECIInput for MinimalECIInput {
      *          {@code length()}
      */
     fn isECI(&self, index: u32) -> Result<bool, Exceptions> {
-        if index < 0 || index >= self.length() as u32 {
+        if index >= self.length() as u32 {
             return Err(Exceptions::IndexOutOfBoundsException(index.to_string()));
         }
         Ok(self.bytes[index as usize] > 255 && self.bytes[index as usize] <= u16::MAX)
@@ -3249,7 +3249,7 @@ impl ECIInput for MinimalECIInput {
      *          if the value at the {@code index} argument is not an ECI (@see #isECI)
      */
     fn getECIValue(&self, index: usize) -> Result<u32, Exceptions> {
-        if index < 0 || index >= self.length() {
+        if index >= self.length() {
             return Err(Exceptions::IndexOutOfBoundsException(index.to_string()));
         }
         if !self.isECI(index as u32)? {
@@ -3336,7 +3336,7 @@ impl MinimalECIInput {
      *          {@code length()}
      */
     pub fn isFNC1(&self, index: usize) -> Result<bool, Exceptions> {
-        if index < 0 || index >= self.length() {
+        if index >= self.length() {
             return Err(Exceptions::IndexOutOfBoundsException(index.to_string()));
         }
         Ok(self.bytes[index] == 1000)

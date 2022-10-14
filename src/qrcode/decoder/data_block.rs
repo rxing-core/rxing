@@ -90,9 +90,10 @@ impl DataBlock {
     // (where n may be 0) have 1 more byte. Figure out where these start.
     let shorterBlocksTotalCodewords = result[0].codewords.len();
     let mut longerBlocksStartAt = result.len() - 1;
-    while (longerBlocksStartAt >= 0) {
+    loop {
+    //while longerBlocksStartAt >= 0 {
       let numCodewords = result[longerBlocksStartAt].codewords.len();
-      if (numCodewords == shorterBlocksTotalCodewords) {
+      if numCodewords == shorterBlocksTotalCodewords {
         break;
       }
       longerBlocksStartAt-=1;
