@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use std::{fs::File, io::Write};
+
 use crate::{
     common::BitMatrix, result_point_utils, DecodeHintType, DecodingHintDictionary, Exceptions,
     RXingResultPoint, RXingResultPointCallback, ResultPoint,
@@ -76,6 +78,7 @@ impl FinderPatternFinder {
         &mut self,
         hints: &DecodingHintDictionary,
     ) -> Result<FinderPatternInfo, Exceptions> {
+
         let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
         let maxI = self.image.getHeight();
         let maxJ = self.image.getWidth();
@@ -93,8 +96,8 @@ impl FinderPatternFinder {
 
         let mut done = false;
         let mut stateCount = [0u32; 5];
-        let mut i = iSkip - 1;
-        while i < maxI && !done {
+        let mut i = iSkip as i32 - 1;
+        while i < maxI as i32 && !done {
             // for (int i = iSkip - 1; i < maxI && !done; i += iSkip) {
             // Get a row of black/white values
             FinderPatternFinder::doClearCounts(&mut stateCount);
@@ -102,7 +105,7 @@ impl FinderPatternFinder {
             let mut j = 0;
             while j < maxJ {
                 // for (int j = 0; j < maxJ; j++) {
-                if self.image.get(j, i) {
+                if self.image.get(j, i as u32) {
                     // Black pixel
                     if (currentState & 1) == 1 {
                         // Counting white pixels
@@ -117,7 +120,7 @@ impl FinderPatternFinder {
                             // A winner?
                             if FinderPatternFinder::foundPatternCross(&stateCount) {
                                 // Yes
-                                let confirmed = self.handlePossibleCenter(&stateCount, i, j);
+                                let confirmed = self.handlePossibleCenter(&stateCount, i as u32, j);
                                 if confirmed {
                                     // Start examining every other line. Checking each line turned out to be too
                                     // expensive and didn't improve performance.
@@ -135,7 +138,7 @@ impl FinderPatternFinder {
                                             // Skip by rowSkip, but back off by stateCount[2] (size of last center
                                             // of pattern we saw) to be conservative, and also back off by iSkip which
                                             // is about to be re-added
-                                            i += (rowSkip as i32 - stateCount[2] as i32 - iSkip as i32).max(0) as u32;
+                                            i += rowSkip as i32 - stateCount[2] as i32 - iSkip as i32;
                                             // i += rowSkip  - stateCount[2]  - iSkip ;
                                             j = maxJ - 1;
                                         }
@@ -143,6 +146,7 @@ impl FinderPatternFinder {
                                 } else {
                                     FinderPatternFinder::doShiftCounts2(&mut stateCount);
                                     currentState = 3;
+                                    j+=1;
                                     continue;
                                 }
                                 // Clear state to start looking again
@@ -165,7 +169,7 @@ impl FinderPatternFinder {
                 j+=1;
             }
             if FinderPatternFinder::foundPatternCross(&stateCount) {
-                let confirmed = self.handlePossibleCenter(&stateCount, i, maxJ);
+                let confirmed = self.handlePossibleCenter(&stateCount, i as u32, maxJ);
                 if confirmed {
                     iSkip = stateCount[0];
                     if self.hasSkipped {
@@ -175,7 +179,7 @@ impl FinderPatternFinder {
                 }
             }
 
-            i += iSkip;
+            i += iSkip as i32;
         }
 
         let mut patternInfo = self.selectBestPatterns()?;
