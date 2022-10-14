@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use super::{GenericGF, ReedSolomonDecoder, ReedSolomonEncoder, GenericGFRef};
+use super::{GenericGF, GenericGFRef, ReedSolomonDecoder, ReedSolomonEncoder};
 /*
  * Copyrigh&t 2013 ZXing authors
  *
@@ -343,23 +343,52 @@ fn test_aztec() {
 fn corrupt(received: &mut Vec<i32>, howMany: i32, random: &mut rand::rngs::ThreadRng, max: i32) {
     let mut corrupted = vec![false; received.len()];
     //BitSet corrupted = new BitSet(received.length);
-    let mut skip = false;
-    for _j in 0..howMany {
-        //for (int j = 0; j < howMany; j++) {
-        if skip {
-            skip = false;
-            continue;
-        }
+    let mut j = 0isize;
+    while j < howMany as isize {
+        // for (int j = 0; j < howMany; j++) {
         let location: usize = random.gen_range(0..received.len());
         let value = random.gen_range(0..max);
         if corrupted[location] || received[location] == value {
-            skip = true;
+            j -= 1;
         } else {
             corrupted[location] = true;
             received[location] = value;
         }
+        j += 1;
     }
+    // for _j in 0..howMany {
+    //     //for (int j = 0; j < howMany; j++) {
+    //     if skip {
+    //         skip = false;
+    //         continue;
+    //     }
+    //     let location: usize = random.gen_range(0..received.len());
+    //     let value = random.gen_range(0..max);
+    //     if corrupted[location] || received[location] == value {
+    //         skip = true;
+    //     } else {
+    //         corrupted[location] = true;
+    //         received[location] = value;
+    //     }
+    // }
 }
+
+/*
+
+public static void corrupt(int[] received, int howMany, Random random, int max) {
+  BitSet corrupted = new BitSet(received.length);
+  for (int j = 0; j < howMany; j++) {
+    int location = random.nextInt(received.length);
+    int value = random.nextInt(max);
+    if (corrupted.get(location) || received[location] == value) {
+      j--;
+    } else {
+      corrupted.set(location);
+      received[location] = value;
+    }
+  }
+}
+*/
 
 fn test_encode_decode_random(field: GenericGFRef, dataSize: usize, ecSize: usize) {
     assert!(
@@ -418,7 +447,9 @@ fn test_encoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
     //System.arraycopy(ecWords, 0, messageExpected, dataWords.len(), ecWords.len());
     message[0..dataWords.len()].clone_from_slice(&dataWords[0..dataWords.len()]);
     //System.arraycopy(dataWords, 0, message, 0, dataWords.len());
-    encoder.encode(&mut message, ecWords.len());
+    encoder
+        .encode(&mut message, ecWords.len())
+        .expect("should encode");
     assert_data_equals(
         format!(
             "Encode in {} ({},{}) failed",
@@ -443,15 +474,12 @@ fn test_decoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
     };
     for _j in 0..iterations {
         //for (int j = 0; j < iterations; j++) {
-        let mut i = 0;
-        while i < ecWords.len() {
-            // for mut i in 0..ecWords.len() {
+        let mut i = 0isize;
+        while i < ecWords.len() as isize {
             //for (int i = 0; i < ecWords.length; i++) {
-            if i > 10 && ecWords.len() / 2 > 11 && i < ecWords.len() / 2 - 10 {
+            if i > 10 && i < ecWords.len() as isize / 2 - 10 {
                 // performance improvement - skip intermediate cases in long-running tests
-                i += ecWords.len() / 10;
-                // skipping = true;
-                // skip_count += 1;
+                i += ecWords.len() as isize / 10;
             }
 
             message[0..dataWords.len()].clone_from_slice(&dataWords[0..dataWords.len()]);
@@ -470,7 +498,7 @@ fn test_decoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
                 Err(e) => {
                     // fail only if maxErrors exceeded
                     assert!(
-                        i > maxErrors,
+                        i > maxErrors as isize,
                         "Decode in {} ({},{}) failed at {} errors: {:#?}",
                         field,
                         dataWords.len(),
@@ -494,7 +522,7 @@ fn test_decoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
             //   // else stop
             //   break;
             // }
-            if i < maxErrors {
+            if i < maxErrors as isize {
                 assert_data_equals(
                     format!(
                         "Decode in {} ({},{}) failed at {} errors",
@@ -507,7 +535,7 @@ fn test_decoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
                     &message,
                 );
             }
-            i+=1;
+            i += 1;
         }
     }
 }
