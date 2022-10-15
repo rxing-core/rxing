@@ -1,4 +1,4 @@
-use std::{fmt};
+use std::fmt;
 
 use crate::Exceptions;
 use std::hash::Hash;
@@ -60,14 +60,12 @@ pub enum PredefinedGenericGF {
 }
 
 /// Replacement for old const options, has the downside of generating new versions whenever one is requested.
-pub  fn get_predefined_genericgf(request: PredefinedGenericGF) -> GenericGFRef {
+pub fn get_predefined_genericgf(request: PredefinedGenericGF) -> GenericGFRef {
     match request {
         PredefinedGenericGF::AztecData12 => &AZTEC_DATA_12, // x^12 + x^6 + x^5 + x^3 + 1,
-        PredefinedGenericGF::AztecData10 => &AZTEC_DATA_10,  // x^10 + x^3 + 1
-        PredefinedGenericGF::AztecData6 | PredefinedGenericGF::MaxicodeField64 => {
-            &AZTEC_DATA_6
-        } // x^6 + x + 1
-        PredefinedGenericGF::AztecParam => &AZTEC_PARAM,      // x^4 + x + 1
+        PredefinedGenericGF::AztecData10 => &AZTEC_DATA_10, // x^10 + x^3 + 1
+        PredefinedGenericGF::AztecData6 | PredefinedGenericGF::MaxicodeField64 => &AZTEC_DATA_6, // x^6 + x + 1
+        PredefinedGenericGF::AztecParam => &AZTEC_PARAM, // x^4 + x + 1
         PredefinedGenericGF::QrCodeField256 => &QR_CODE_FIELD_256, // x^8 + x^4 + x^3 + x^2 + 1
         PredefinedGenericGF::DataMatrixField256 | PredefinedGenericGF::AztecData8 => {
             &DATA_MATRIX_FIELD_256
@@ -86,7 +84,7 @@ pub  fn get_predefined_genericgf(request: PredefinedGenericGF) -> GenericGFRef {
  * @author Sean Owen
  * @author David Olivier
  */
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GenericGF {
     expTable: Vec<i32>,
     logTable: Vec<i32>,
@@ -96,18 +94,6 @@ pub struct GenericGF {
     primitive: i32,
     generatorBase: i32,
 }
-
-impl Hash for GenericGF {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.to_string().hash(state);
-    }
-}
-impl PartialEq for GenericGF {
-    fn eq(&self, other: &Self) -> bool {
-        self.to_string() == other.to_string()
-    }
-}
-impl Eq for GenericGF {}
 
 impl GenericGF {
     /**
@@ -130,7 +116,7 @@ impl GenericGF {
             //expTable.push(x);
             expTable[i] = x;
             x *= 2; // we're assuming the generator alpha is 2
-            if x >= size.try_into().unwrap() {
+            if x >= size as i32 {
                 x ^= primitive;
                 let sz_m_1: i32 = size as i32 - 1;
                 x &= sz_m_1;
@@ -138,8 +124,8 @@ impl GenericGF {
         }
         for i in 0..size - 1 {
             //for (int i = 0; i < size - 1; i++) {
-            let loc: usize = expTable[i].try_into().unwrap();
-            logTable[loc] = i.try_into().unwrap();
+            let loc: usize = expTable[i] as usize;
+            logTable[loc] = i as i32;
         }
         logTable[0] = 0;
 
@@ -157,8 +143,6 @@ impl GenericGF {
         // // for (i = 0; i < 255; i++)
         // logTable[expTable[i].try_into().unwrap()] = i;
         // /*Note that we rely on the fact that _gf->log[0]=0 below.*/
-        logTable[0] = 0;
-
         Self {
             expTable,
             logTable,
@@ -207,8 +191,8 @@ impl GenericGF {
      * @return 2 to the power of a in GF(size)
      */
     pub fn exp(&self, a: i32) -> i32 {
-        let pos: usize = a.try_into().unwrap();
-        return self.expTable[pos];
+        // let pos: usize = a.try_into().unwrap();
+        return self.expTable[a as usize];
     }
 
     /**
@@ -218,8 +202,8 @@ impl GenericGF {
         if a == 0 {
             return Err(Exceptions::IllegalArgumentException("".to_owned()));
         }
-        let pos: usize = a.try_into().unwrap();
-        return Ok(self.logTable[pos]);
+        // let pos: usize = a.try_into().unwrap();
+        return Ok(self.logTable[a as usize]);
     }
 
     /**
@@ -229,10 +213,8 @@ impl GenericGF {
         if a == 0 {
             return Err(Exceptions::ArithmeticException("".to_owned()));
         }
-        let log_t_loc: usize = a.try_into().unwrap();
-        let loc: usize = ((self.size as i32) - self.logTable[log_t_loc] - 1)
-            .try_into()
-            .unwrap();
+        let log_t_loc: usize = a as usize;
+        let loc: usize = ((self.size as i32) - self.logTable[log_t_loc] - 1) as usize;
         return Ok(self.expTable[loc]);
     }
 
@@ -243,11 +225,9 @@ impl GenericGF {
         if a == 0 || b == 0 {
             return 0;
         }
-        let a_loc: usize = a.try_into().unwrap();
-        let b_loc: usize = b.try_into().unwrap();
-        let comb_loc: usize = (self.logTable[a_loc] + self.logTable[b_loc])
-            .try_into()
-            .unwrap();
+        let a_loc: usize = a as usize; //.try_into().unwrap();
+        let b_loc: usize = b as usize; //.try_into().unwrap();
+        let comb_loc: usize = (self.logTable[a_loc] + self.logTable[b_loc]) as usize;
         return self.expTable[comb_loc % (self.size - 1)];
     }
 
@@ -293,18 +273,11 @@ impl fmt::Display for GenericGF {
  *
  * @author Sean Owen
  */
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GenericGFPoly {
     field: GenericGFRef,
     coefficients: Vec<i32>,
 }
-
-impl PartialEq for GenericGFPoly {
-    fn eq(&self, other: &Self) -> bool {
-        self.to_string() == other.to_string()
-    }
-}
-impl Eq for GenericGFPoly {}
 
 impl GenericGFPoly {
     /**
@@ -329,7 +302,8 @@ impl GenericGFPoly {
                 if coefficients_length > 1 && coefficients[0] == 0 {
                     // Leading term must be non-zero for anything except the constant polynomial "0"
                     let mut first_non_zero = 1;
-                    while first_non_zero < coefficients_length && coefficients[first_non_zero] == 0 {
+                    while first_non_zero < coefficients_length && coefficients[first_non_zero] == 0
+                    {
                         first_non_zero += 1;
                     }
                     if first_non_zero == coefficients_length {
@@ -399,10 +373,7 @@ impl GenericGFPoly {
         for i in 1..size {
             //for (int i = 1; i < size; i++) {
             result = GenericGF::addOrSubtract(
-                self.field
-                    .multiply(a.try_into().unwrap(), result.try_into().unwrap())
-                    .try_into()
-                    .unwrap(),
+                self.field.multiply(a as i32, result as i32),
                 self.coefficients[i],
             );
         }
@@ -469,13 +440,7 @@ impl GenericGFPoly {
                 //for (int j = 0; j < bLength; j++) {
                 product[i + j] = GenericGF::addOrSubtract(
                     product[i + j],
-                    self.field
-                        .multiply(
-                            aCoeff.try_into().unwrap(),
-                            bCoefficients[j].try_into().unwrap(),
-                        )
-                        .try_into()
-                        .unwrap(),
+                    self.field.multiply(aCoeff, bCoefficients[j]),
                 );
             }
         }
@@ -494,9 +459,7 @@ impl GenericGFPoly {
         let mut product = vec![0; size];
         for i in 0..size {
             //for (int i = 0; i < size; i++) {
-            product[i] = self
-                .field
-                .multiply(self.coefficients[i], scalar.try_into().unwrap());
+            product[i] = self.field.multiply(self.coefficients[i], scalar);
         }
         return GenericGFPoly::new(self.field, &product).unwrap();
     }
@@ -514,9 +477,6 @@ impl GenericGFPoly {
         degree: usize,
         coefficient: i32,
     ) -> Result<GenericGFPoly, Exceptions> {
-        if degree < 0 {
-            return Err(Exceptions::IllegalArgumentException("".to_owned()));
-        }
         if coefficient == 0 {
             return Ok(self.getZero());
         }
@@ -680,16 +640,11 @@ impl ReedSolomonDecoder {
      */
     pub fn decode(&self, received: &mut Vec<i32>, twoS: i32) -> Result<(), Exceptions> {
         let poly = GenericGFPoly::new(self.field, received).unwrap();
-        let mut syndromeCoefficients = vec![0; twoS.try_into().unwrap()];
+        let mut syndromeCoefficients = vec![0; twoS as usize];
         let mut noError = true;
         for i in 0..twoS {
             //for (int i = 0; i < twoS; i++) {
-            let eval = poly.evaluateAt(
-                self.field
-                    .exp(i + self.field.getGeneratorBase())
-                    .try_into()
-                    .unwrap(),
-            );
+            let eval = poly.evaluateAt(self.field.exp(i + self.field.getGeneratorBase()) as usize);
             let len = syndromeCoefficients.len();
             syndromeCoefficients[len - 1 - i as usize] = eval;
             if eval != 0 {
@@ -708,9 +663,9 @@ impl ReedSolomonDecoder {
             }
         };
         let sigmaOmega = self.runEuclideanAlgorithm(
-            &GenericGF::buildMonomial(self.field, twoS.try_into().unwrap(), 1),
+            &GenericGF::buildMonomial(self.field, twoS as usize, 1),
             &syndrome,
-            twoS.try_into().unwrap(),
+            twoS as usize,
         )?;
         let sigma = &sigmaOmega[0];
         let omega = &sigmaOmega[1];
@@ -718,7 +673,7 @@ impl ReedSolomonDecoder {
         let errorMagnitudes = self.findErrorMagnitudes(&omega, &errorLocations);
         for i in 0..errorLocations.len() {
             //for (int i = 0; i < errorLocations.length; i++) {
-            let log_value = self.field.log(errorLocations[i].try_into().unwrap())?;
+            let log_value = self.field.log(errorLocations[i] as i32)?;
             if log_value > received.len() as i32 - 1 {
                 return Ok(());
             }
@@ -728,7 +683,8 @@ impl ReedSolomonDecoder {
                     "Bad error location".to_owned(),
                 ));
             }
-            received[position as usize] = GenericGF::addOrSubtract(received[position as usize], errorMagnitudes[i]);
+            received[position as usize] =
+                GenericGF::addOrSubtract(received[position as usize], errorMagnitudes[i]);
         }
         Ok(())
     }
@@ -785,7 +741,8 @@ impl ReedSolomonDecoder {
                 let scale = self
                     .field
                     .multiply(r.getCoefficient(r.getDegree()), dltInverse);
-                q = match q.addOrSubtract(&GenericGF::buildMonomial(self.field, degreeDiff, scale)) {
+                q = match q.addOrSubtract(&GenericGF::buildMonomial(self.field, degreeDiff, scale))
+                {
                     Ok(res) => res,
                     Err(_err) => {
                         return Err(Exceptions::ReedSolomonException(
@@ -861,7 +818,7 @@ impl ReedSolomonDecoder {
         let numErrors = errorLocator.getDegree();
         if numErrors == 1 {
             // shortcut
-            return Ok(vec![errorLocator.getCoefficient(1).try_into().unwrap()]);
+            return Ok(vec![errorLocator.getCoefficient(1) as usize]);
         }
 
         let mut result: Vec<usize> = vec![0; numErrors];
@@ -872,8 +829,8 @@ impl ReedSolomonDecoder {
                 break;
             }
             if errorLocator.evaluateAt(i) == 0 {
-                result[e] = match self.field.inverse(i.try_into().unwrap()) {
-                    Ok(res) => res.try_into().unwrap(),
+                result[e] = match self.field.inverse(i as i32) {
+                    Ok(res) => res as usize,
                     Err(_err) => {
                         return Err(Exceptions::ReedSolomonException(
                             "ArithmetricException".to_owned(),
@@ -901,10 +858,7 @@ impl ReedSolomonDecoder {
         let mut result = vec![0; s];
         for i in 0..s {
             //for (int i = 0; i < s; i++) {
-            let xiInverse = self
-                .field
-                .inverse(errorLocations[i].try_into().unwrap())
-                .unwrap();
+            let xiInverse = self.field.inverse(errorLocations[i] as i32).unwrap();
             let mut denominator = 1;
             for j in 0..s {
                 //for (int j = 0; j < s; j++) {
@@ -913,9 +867,7 @@ impl ReedSolomonDecoder {
                     //    GenericGF.addOrSubtract(1, field.multiply(errorLocations[j], xiInverse)));
                     // Above should work but fails on some Apple and Linux JDKs due to a Hotspot bug.
                     // Below is a funny-looking workaround from Steven Parkes
-                    let term = self
-                        .field
-                        .multiply(errorLocations[j].try_into().unwrap(), xiInverse);
+                    let term = self.field.multiply(errorLocations[j] as i32, xiInverse);
                     let termPlus1 = if (term & 0x1) == 0 {
                         term | 1
                     } else {
@@ -925,7 +877,7 @@ impl ReedSolomonDecoder {
                 }
             }
             result[i] = self.field.multiply(
-                errorEvaluator.evaluateAt(xiInverse.try_into().unwrap()),
+                errorEvaluator.evaluateAt(xiInverse as usize),
                 self.field.inverse(denominator).unwrap(),
             );
             if self.field.getGeneratorBase() != 0 {
@@ -1026,7 +978,7 @@ impl ReedSolomonEncoder {
         info_coefficients[0..data_bytes].clone_from_slice(&to_encode[0..data_bytes]);
         //System.arraycopy(toEncode, 0, infoCoefficients, 0, dataBytes);
         let mut info = GenericGFPoly::new(fld, &info_coefficients)?;
-        info = info.multiply_by_monomial(ec_bytes.try_into().unwrap(), 1)?;
+        info = info.multiply_by_monomial(ec_bytes, 1)?;
         let remainder = &info.divide(&generator)?.1;
         let coefficients = remainder.getCoefficients();
         let num_zero_coefficients = ec_bytes - coefficients.len();
