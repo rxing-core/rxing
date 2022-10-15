@@ -155,7 +155,7 @@ impl QRCodeReader {
         let moduleSize = Self::moduleSize(&leftTopBlack, image)?;
 
         let mut top = leftTopBlack[1] as i32;
-        let mut bottom = rightBottomBlack[1] as i32;
+        let  bottom = rightBottomBlack[1] as i32;
         let mut left = leftTopBlack[0] as i32;
         let mut right = rightBottomBlack[0] as i32;
 

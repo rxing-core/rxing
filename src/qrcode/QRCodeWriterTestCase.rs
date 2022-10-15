@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-use std::{collections::HashMap, hash::Hash, path::{Path, PathBuf}};
+use std::{
+    collections::HashMap,
+    hash::Hash,
+    path::{Path, PathBuf},
+};
 
 use image::{DynamicImage, EncodableLayout};
 
@@ -44,7 +48,12 @@ fn loadImage(fileName: &str) -> DynamicImage {
         file.exists(),
         "Please download and install test images, and run from the 'core' directory"
     );
-    DynamicImage::from(image::io::Reader::open(file).expect("image should load").decode().expect("decode"))
+    DynamicImage::from(
+        image::io::Reader::open(file)
+            .expect("image should load")
+            .decode()
+            .expect("decode"),
+    )
 }
 
 // In case the golden images are not monochromatic, convert the RGB values to greyscale.
@@ -53,19 +62,18 @@ fn createMatrixFromImage(image: DynamicImage) -> BitMatrix {
     let height = image.height() as usize;
     // let pixels = vec![0u32; width * height]; //new int[width * height];
     // image.getRGB(0, 0, width, height, pixels, 0, width);
-    let img_src = DynamicImage::from(image).into_rgb8();;//image.as_rgb8().unwrap().as_bytes();
-    let pixels = img_src.as_bytes();
+    let img_src = DynamicImage::from(image).into_rgb8(); //image.as_rgb8().unwrap().as_bytes();
+                                                         // let pixels = img_src.as_bytes();
 
     let mut matrix = BitMatrix::new(width as u32, height as u32).expect("create new bitmatrix");
-    for y in 0..height {
+    for y in 0..height as u32 {
         // for (int y = 0; y < height; y++) {
-        for x in 0..width {
+        for x in 0..width as u32 {
             // for (int x = 0; x < width; x++) {
-            let pixel = pixels[y * width + x] as u32;
-            let luminance =
-                (306 * ((pixel >> 16) & 0xFF) + 601 * ((pixel >> 8) & 0xFF) + 117 * (pixel & 0xFF))
-                    >> 10;
-            if (luminance <= 0x7F) {
+            //let pixel = pixels[y * width + x] as u32;
+            let [red, green, blue] = img_src.get_pixel(x, y).0;
+            let luminance = (306 * red as u32 + 601 * green as u32 + 117 * blue as u32) >> 10;
+            if luminance <= 0x7F {
                 matrix.set(x as u32, y as u32);
             }
         }
@@ -78,7 +86,7 @@ fn testQRCodeWriter() {
     // The QR should be multiplied up to fit, with extra padding if necessary
     let bigEnough = 256;
     let writer = QRCodeWriter {};
-    let mut matrix = writer.encode_with_hints(
+    let  matrix = writer.encode_with_hints(
         "http://www.google.com/",
         &BarcodeFormat::QR_CODE,
         bigEnough,
@@ -92,13 +100,15 @@ fn testQRCodeWriter() {
 
     // The QR will not fit in this size, so the matrix should come back bigger
     let tooSmall = 20;
-    matrix = writer.encode_with_hints(
-        "http://www.google.com/",
-        &BarcodeFormat::QR_CODE,
-        tooSmall,
-        tooSmall,
-        &HashMap::new(),
-    ).expect("should encode");
+    matrix = writer
+        .encode_with_hints(
+            "http://www.google.com/",
+            &BarcodeFormat::QR_CODE,
+            tooSmall,
+            tooSmall,
+            &HashMap::new(),
+        )
+        .expect("should encode");
     // assertNotNull(matrix);
     assert!((tooSmall as u32) < matrix.getWidth());
     assert!((tooSmall as u32) < matrix.getHeight());
@@ -106,13 +116,15 @@ fn testQRCodeWriter() {
     // We should also be able to handle non-square requests by padding them
     let strangeWidth = 500;
     let strangeHeight = 100;
-    matrix = writer.encode_with_hints(
-        "http://www.google.com/",
-        &BarcodeFormat::QR_CODE,
-        strangeWidth,
-        strangeHeight,
-        &HashMap::new(),
-    ).expect("should encode");
+    matrix = writer
+        .encode_with_hints(
+            "http://www.google.com/",
+            &BarcodeFormat::QR_CODE,
+            strangeWidth,
+            strangeHeight,
+            &HashMap::new(),
+        )
+        .expect("should encode");
     // assertNotNull(matrix);
     assert_eq!(strangeWidth as u32, matrix.getWidth());
     assert_eq!(strangeHeight as u32, matrix.getHeight());
@@ -135,13 +147,15 @@ fn compareToGoldenFile(
         EncodeHintValue::ErrorCorrection(ecLevel.get_value().to_string()),
     );
     let writer = QRCodeWriter {};
-    let generatedRXingResult = writer.encode_with_hints(
-        contents,
-        &BarcodeFormat::QR_CODE,
-        resolution as i32,
-        resolution as i32,
-        &hints,
-    ).expect("should encode");
+    let generatedRXingResult = writer
+        .encode_with_hints(
+            contents,
+            &BarcodeFormat::QR_CODE,
+            resolution as i32,
+            resolution as i32,
+            &hints,
+        )
+        .expect("should encode");
 
     assert_eq!(resolution, generatedRXingResult.getWidth());
     assert_eq!(resolution, generatedRXingResult.getHeight());
