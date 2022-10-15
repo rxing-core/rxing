@@ -125,7 +125,7 @@ pub fn encode_with_hints(
 
     // Determine what character encoding has been specified by the caller, if any
     let mut encoding = None; //DEFAULT_BYTE_MODE_ENCODING;
-    let has_encoding_hint = hints.contains_key(&EncodeHintType::CHARACTER_SET);
+    let mut has_encoding_hint = hints.contains_key(&EncodeHintType::CHARACTER_SET);
     if has_encoding_hint {
         if let EncodeHintValue::CharacterSet(v) = hints.get(&EncodeHintType::CHARACTER_SET).unwrap()
         {
@@ -155,7 +155,12 @@ pub fn encode_with_hints(
         let encoding = if encoding.is_some() {
             encoding.unwrap()
         } else {
-            DEFAULT_BYTE_MODE_ENCODING
+            if let Ok(encs) = DEFAULT_BYTE_MODE_ENCODING.encode(content, encoding::EncoderTrap::Strict){
+                DEFAULT_BYTE_MODE_ENCODING
+            }else {
+                has_encoding_hint = true;
+                encoding::all::UTF_8
+            }
         };
 
         // Pick an encoding mode appropriate for the content. Note that this will not attempt to use
