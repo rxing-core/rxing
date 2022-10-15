@@ -6,6 +6,7 @@ pub mod client;
 pub mod common;
 mod exceptions;
 pub mod qrcode;
+pub mod maxicode;
 
 pub use exceptions::Exceptions;
 
