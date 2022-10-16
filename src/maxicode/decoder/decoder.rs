@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package com.google.zxing.maxicode.decoder;
+use std::collections::HashMap;
 
-import com.google.zxing.ChecksumException;
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.FormatException;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderRXingResult;
-import com.google.zxing.common.reedsolomon.GenericGF;
-import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
-import com.google.zxing.common.reedsolomon.ReedSolomonException;
+use lazy_static::lazy_static;
 
-import java.util.Map;
+use crate::{
+    common::{
+        reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder},
+        BitMatrix, DecoderRXingResult,
+    },
+    DecodingHintDictionary, Exceptions,
+};
+
+use super::{decoded_bit_stream_parser, BitMatrixParser};
 
 /**
  * <p>The main class which implements MaxiCode decoding -- as opposed to locating and extracting
@@ -33,82 +34,86 @@ import java.util.Map;
  *
  * @author Manuel Kasten
  */
-public final class Decoder {
 
-  private static final int ALL = 0;
-  private static final int EVEN = 1;
-  private static final int ODD = 2;
+const ALL: u32 = 0;
+const EVEN: u32 = 1;
+const ODD: u32 = 2;
 
-  private final ReedSolomonDecoder rsDecoder;
+lazy_static! {
+    static ref rsDecoder: ReedSolomonDecoder = ReedSolomonDecoder::new(get_predefined_genericgf(
+        PredefinedGenericGF::MaxicodeField64
+    ));
+}
 
-  public Decoder() {
-    rsDecoder = new ReedSolomonDecoder(GenericGF.MAXICODE_FIELD_64);
-  }
+pub fn decode(bits: BitMatrix) -> Result<DecoderRXingResult, Exceptions> {
+    decode_with_hints(bits, &HashMap::new())
+}
 
-  public DecoderRXingResult decode(BitMatrix bits) throws ChecksumException, FormatException {
-    return decode(bits, null);
-  }
+pub fn decode_with_hints(
+    bits: BitMatrix,
+    _hints: &DecodingHintDictionary,
+) -> Result<DecoderRXingResult, Exceptions> {
+    let parser = BitMatrixParser::new(bits);
+    let mut codewords = parser.readCodewords();
 
-  public DecoderRXingResult decode(BitMatrix bits,
-                              Map<DecodeHintType,?> hints) throws FormatException, ChecksumException {
-    BitMatrixParser parser = new BitMatrixParser(bits);
-    byte[] codewords = parser.readCodewords();
-
-    correctErrors(codewords, 0, 10, 10, ALL);
-    int mode = codewords[0] & 0x0F;
-    byte[] datawords;
-    switch (mode) {
-      case 2:
-      case 3:
-      case 4:
-        correctErrors(codewords, 20, 84, 40, EVEN);
-        correctErrors(codewords, 20, 84, 40, ODD);
-        datawords = new byte[94];
-        break;
-      case 5:
-        correctErrors(codewords, 20, 68, 56, EVEN);
-        correctErrors(codewords, 20, 68, 56, ODD);
-        datawords = new byte[78];
-        break;
-      default:
-        throw FormatException.getFormatInstance();
+    correctErrors(&mut codewords, 0, 10, 10, ALL)?;
+    let mode = codewords[0] & 0x0F;
+    let mut datawords;
+    match mode {
+        2 | 3 | 4 => {
+            correctErrors(&mut codewords, 20, 84, 40, EVEN)?;
+            correctErrors(&mut codewords, 20, 84, 40, ODD)?;
+            datawords = vec![0u8; 94];
+        }
+        5 => {
+            correctErrors(&mut codewords, 20, 68, 56, EVEN)?;
+            correctErrors(&mut codewords, 20, 68, 56, ODD)?;
+            datawords = vec![0u8; 78];
+        }
+        _ => return Err(Exceptions::NotFoundException("".to_owned())),
     }
 
-    System.arraycopy(codewords, 0, datawords, 0, 10);
-    System.arraycopy(codewords, 20, datawords, 10, datawords.length - 10);
+    datawords[0..10].clone_from_slice(&codewords[0..10]);
+    // System.arraycopy(codewords, 0, datawords, 0, 10);
+    let datawords_len = datawords.len();
+    datawords[10..datawords_len].clone_from_slice(&codewords[20..datawords_len + 10]);
+    // System.arraycopy(codewords, 20, datawords, 10, datawords.length - 10);
 
-    return DecodedBitStreamParser.decode(datawords, mode);
-  }
+    return decoded_bit_stream_parser::decode(&datawords, mode);
+}
 
-  private void correctErrors(byte[] codewordBytes,
-                             int start,
-                             int dataCodewords,
-                             int ecCodewords,
-                             int mode) throws ChecksumException {
-    int codewords = dataCodewords + ecCodewords;
+fn correctErrors(
+    codewordBytes: &mut [u8],
+    start: u32,
+    dataCodewords: u32,
+    ecCodewords: u32,
+    mode: u32,
+) -> Result<(), Exceptions> {
+    let codewords = dataCodewords + ecCodewords;
 
     // in EVEN or ODD mode only half the codewords
-    int divisor = mode == ALL ? 1 : 2;
+    let divisor = if mode == ALL { 1 } else { 2 };
 
     // First read into an array of ints
-    int[] codewordsInts = new int[codewords / divisor];
-    for (int i = 0; i < codewords; i++) {
-      if ((mode == ALL) || (i % 2 == (mode - 1))) {
-        codewordsInts[i / divisor] = codewordBytes[i + start] & 0xFF;
-      }
+    let mut codewordsInts = vec![0i32; (codewords / divisor) as usize];
+    for i in 0..codewords {
+        // for (int i = 0; i < codewords; i++) {
+        if (mode == ALL) || (i % 2 == (mode - 1)) {
+            codewordsInts[(i / divisor) as usize] = codewordBytes[(i + start) as usize] as i32;
+        }
     }
-    try {
-      rsDecoder.decode(codewordsInts, ecCodewords / divisor);
-    } catch (ReedSolomonException ignored) {
-      throw ChecksumException.getChecksumInstance();
-    }
+    // try {
+    rsDecoder.decode(&mut codewordsInts, (ecCodewords / divisor) as i32)?;
+    // } catch (ReedSolomonException ignored) {
+    //   throw ChecksumException.getChecksumInstance();
+    // }
     // Copy back into array of bytes -- only need to worry about the bytes that were data
     // We don't care about errors in the error-correction codewords
-    for (int i = 0; i < dataCodewords; i++) {
-      if ((mode == ALL) || (i % 2 == (mode - 1))) {
-        codewordBytes[i + start] = (byte) codewordsInts[i / divisor];
-      }
+    for i in 0..dataCodewords {
+        // for (int i = 0; i < dataCodewords; i++) {
+        if (mode == ALL) || (i % 2 == (mode - 1)) {
+            codewordBytes[(i + start) as usize] = codewordsInts[(i / divisor) as usize] as u8;
+        }
     }
-  }
-
+    Ok(())
 }

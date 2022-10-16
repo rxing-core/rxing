@@ -1,0 +1,59 @@
+/*
+ * Copyright 2016 ZXing authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+use rxing::{maxicode::MaxiCodeReader, BarcodeFormat, DecodeHintType};
+
+mod common;
+
+/**
+ * Tests {@link MaxiCodeReader} against a fixed set of test images.
+ */
+#[test]
+fn maxicode1_test_case() {
+    let mut tester = common::AbstractBlackBoxTestCase::new(
+        "test_resources/blackbox/maxicode-1",
+        Box::new(MaxiCodeReader {}),
+        BarcodeFormat::MAXICODE,
+    );
+    // super("src/test/resources/blackbox/maxicode-1", new MultiFormatReader(), BarcodeFormat.MAXICODE);
+    tester.addTest(6, 6, 0.0);
+
+    tester.testBlackBox();
+}
+
+/**
+ * Tests all characters in Set A.
+ *
+ * @author Daniel Gredler
+ * @see <a href="https://github.com/zxing/zxing/issues/1543">Defect 1543</a>
+ */
+#[test]
+fn maxi_code_black_box1_test_case() {
+    let mut tester = common::AbstractBlackBoxTestCase::new(
+        "test_resources/blackbox/maxicode-1",
+        Box::new(MaxiCodeReader {}),
+        BarcodeFormat::MAXICODE,
+    );
+    // super("src/test/resources/blackbox/maxicode-1", new MultiFormatReader(), BarcodeFormat.MAXICODE);
+    tester.addHint(
+        DecodeHintType::PURE_BARCODE,
+        rxing::DecodeHintValue::PureBarcode(true),
+    );
+
+    tester.addTest(1, 1, 0.0);
+
+    tester.testBlackBox();
+}

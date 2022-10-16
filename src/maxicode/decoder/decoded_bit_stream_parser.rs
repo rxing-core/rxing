@@ -81,7 +81,7 @@ static ref SETS : [String;5]= [
    ];
 }
 
-pub fn decode(bytes: &[u8], mode: u32) -> Result<DecoderRXingResult, Exceptions> {
+pub fn decode(bytes: &[u8], mode: u8) -> Result<DecoderRXingResult, Exceptions> {
     let mut result = String::with_capacity(144);
     match mode {
         2 | 3 => {
@@ -216,15 +216,15 @@ fn getMessage(bytes: &[u8], start: u32, len: u32) -> String {
             NS => {
                 // let nsval = (bytes[++i] << 24) + (bytes[++i] << 18) + (bytes[++i] << 12) + (bytes[++i] << 6) + bytes[++i];
                 i += 1;
-                let mut nsval = bytes[i as usize] << 24;
+                let mut nsval = (bytes[i as usize] as u32) << 24;
                 i += 1;
-                nsval += bytes[i as usize] << 18;
+                nsval += (bytes[i as usize] as u32) << 18;
                 i += 1;
-                nsval += bytes[i as usize] << 12;
+                nsval += (bytes[i as usize] as u32) << 12;
                 i += 1;
-                nsval += bytes[i as usize] << 6;
+                nsval += (bytes[i as usize] as u32) << 6;
                 i += 1;
-                nsval += bytes[i as usize];
+                nsval += bytes[i as usize] as u32;
                 // sb.append(new DecimalFormat("000000000").format(nsval));},
                 sb.push_str(&format!("{:0>9}", nsval));
             }
@@ -254,8 +254,8 @@ fn subtract_two_single_char_strings(str1: &str, str2: &str) -> usize {
     let str1_bytes = str1.as_bytes();
     let str2_bytes = str2.as_bytes();
 
-    let str1_u16 = ((str1_bytes[0] as u16) << 2) + str1_bytes[1] as u16;
-    let str2_u16 = ((str2_bytes[0] as u16) << 2) + str2_bytes[1] as u16;
+    let str1_u16 = ((str1_bytes[0] as usize) << 4) + ((str1_bytes[1] as usize) << 2) + str1_bytes[2] as usize;
+    let str2_u16 = ((str2_bytes[0] as usize) << 4) + ((str2_bytes[1] as usize) << 2) + str2_bytes[2] as usize;
 
     (str1_u16 - str2_u16) as usize
 }
