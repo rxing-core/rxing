@@ -2342,7 +2342,7 @@ impl GridSampler for DefaultGridSampler {
         dimensionY: u32,
         transform: &PerspectiveTransform,
     ) -> Result<BitMatrix, Exceptions> {
-        if dimensionX <= 0 || dimensionY <= 0 {
+        if dimensionX == 0 || dimensionY == 0 {
             return Err(Exceptions::NotFoundException(
                 "getNotFoundInstance".to_owned(),
             ));
@@ -3227,7 +3227,7 @@ impl ECIInput for MinimalECIInput {
         if index >= self.length() as u32 {
             return Err(Exceptions::IndexOutOfBoundsException(index.to_string()));
         }
-        Ok(self.bytes[index as usize] > 255 && self.bytes[index as usize] <= u16::MAX)
+        Ok(self.bytes[index as usize] > 255)// && self.bytes[index as usize] <= u16::MAX)
     }
 
     /**

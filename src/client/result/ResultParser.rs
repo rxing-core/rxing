@@ -239,7 +239,7 @@ pub fn isStringOfDigits(value: &str, length: usize) -> bool {
 }
 
 pub fn isSubstringOfDigits(value: &str, offset: usize, length: usize) -> bool {
-    if value.is_empty() || length <= 0 {
+    if value.is_empty() || length == 0 {
         return false;
     }
     let max = offset as usize + length;

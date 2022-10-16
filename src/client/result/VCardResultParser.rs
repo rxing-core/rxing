@@ -173,8 +173,8 @@ pub fn matchVCardPrefixedField(
     parseFieldDivider: bool,
 ) -> Option<Vec<Vec<String>>> {
     let mut matches: Vec<Vec<String>> = Vec::new();
-    let mut i = 0;
-    let max = rawText.len();
+    let mut i = 0_isize;
+    let max = rawText.len() as isize;
 
     // let equals_regex = Regex::new(EQUALS).unwrap();
     // let unescaped_semis = fancy_regex::Regex::new(UNESCAPED_SEMICOLONS).unwrap();
@@ -195,14 +195,14 @@ pub fn matchVCardPrefixedField(
         if i > 0 {
             i -= 1; // Find from i-1 not i since looking at the preceding character
         }
-        let cap_text = &rawText[i..];
+        let cap_text = &rawText[i as usize..];
         let cap_maybe = matcher_primary.captures(cap_text);
         //let matcher_maybe = matcher_primary.find_at(&lower_case_raw_text, i);
         if cap_maybe.is_none() {
             break;
         }
         let matcher = cap_maybe?;
-        i += matcher.get(0)?.end(); // group 0 = whole pattern; end(0) is past final colon
+        i += matcher.get(0)?.end() as isize; // group 0 = whole pattern; end(0) is past final colon
 
         let metadataString = matcher.get(1); // group 1 = metadata substring
         let mut metadata: Vec<String> = Vec::new();
@@ -236,18 +236,18 @@ pub fn matchVCardPrefixedField(
         }
 
         let matchStart = i; // Found the start of a match here
-        while let Some(pos) = rawText[i..].find('\n') {
+        while let Some(pos) = rawText[i as usize..].find('\n') {
             // Really, end in \r\n
-            i += pos; // + i;
+            i += pos as isize; // + i;
                       // while (i = rawText.indexOf('\n', i)) >= 0 { // Really, end in \r\n
-            if i < rawText.len() - 1 &&           // But if followed by tab or space,
-            (rawText.chars().nth(i + 1)? == ' ' ||        // this is only a continuation
-             rawText.chars().nth(i + 1)? == '\t')
+            if i < rawText.len() as isize- 1 &&           // But if followed by tab or space,
+            (rawText.chars().nth(i as usize+ 1)? == ' ' ||        // this is only a continuation
+             rawText.chars().nth(i as usize+ 1)? == '\t')
             {
                 i += 2; // Skip \n and continutation whitespace
             } else if quotedPrintable &&             // If preceded by = in quoted printable
-                   ((i >= 1 && rawText.chars().nth(i - 1)? == '=') || // this is a continuation
-                    (i >= 2 && rawText.chars().nth(i - 2)? == '='))
+                   ((i >= 1 && rawText.chars().nth(i as usize- 1)? == '=') || // this is a continuation
+                    (i >= 2 && rawText.chars().nth(i as usize - 2)? == '='))
             {
                 i += 1; // Skip \n
             } else {
@@ -263,10 +263,10 @@ pub fn matchVCardPrefixedField(
             // if matches == null {
             //   matches = new ArrayList<>(1); // lazy init
             // }
-            if i >= 1 && rawText.chars().nth(i - 1)? == '\r' {
+            if i >= 1 && rawText.chars().nth(i as usize- 1)? == '\r' {
                 i -= 1; // Back up over \r, which really should be there
             }
-            let mut element = rawText[matchStart..i].to_owned();
+            let mut element = rawText[matchStart as usize..i as usize].to_owned();
             if trim {
                 element = element.trim().to_owned();
             }

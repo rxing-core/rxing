@@ -76,9 +76,9 @@ impl State {
         let result = self.shiftAndAppend(HighLevelEncoder::MODE_PUNCT as u32, 0); // 0: FLG(n)
         let mut token = result.token;
         let mut bits_added = 3;
-        if eci < 0 {
+        /*if eci < 0 {
             token.add(0, 3); // 0: FNC1
-        } else if eci > 999999 {
+        } else */if eci > 999999 {
             return Err(Exceptions::IllegalArgumentException(
                 "ECI code must be between 0 and 999999".to_owned(),
             ));

@@ -967,7 +967,7 @@ impl ReedSolomonEncoder {
             ));
         }
         let data_bytes = to_encode.len() - ec_bytes;
-        if data_bytes <= 0 {
+        if data_bytes == 0 {
             return Err(Exceptions::IllegalArgumentException(
                 "No data bytes provided".to_owned(),
             ));
