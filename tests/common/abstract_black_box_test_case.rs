@@ -16,8 +16,7 @@
 
 use std::{
     collections::HashMap,
-    fs::{read_dir, read_to_string, File},
-    io::Write,
+    fs::{read_dir, read_to_string},
     path::{Path, PathBuf},
 };
 
@@ -28,7 +27,7 @@ use rxing::{
 
 use super::TestRXingResult;
 
-use image;
+
 
 /**
  * @author Sean Owen
@@ -154,7 +153,7 @@ impl AbstractBlackBoxTestCase {
             //let testImageFileName = testImage.getFileName().toString();
             let file_base_name = testImage.file_stem().unwrap();
             //let expectedTextFile = self.testBase.resolve(fileBaseName + ".txt");
-            let mut expected_text_file = PathBuf::from(testImage.clone());
+            let mut expected_text_file = testImage.clone();
             expected_text_file.set_extension("txt");
             let expected_text = if expected_text_file.exists() {
                 Self::read_file_as_string(expected_text_file)
@@ -186,7 +185,7 @@ impl AbstractBlackBoxTestCase {
             let expected_metadata = HashMap::new();
             for (k, v) in expectedMetadata_unfinished {
                 let new_k = RXingResultMetadataType::from(k);
-                let new_v = match new_k {
+                let _new_v = match new_k {
                     RXingResultMetadataType::OTHER => RXingResultMetadataValue::OTHER(v),
                     RXingResultMetadataType::ORIENTATION => {
                         RXingResultMetadataValue::Orientation(v.parse().unwrap_or_default())
@@ -448,7 +447,7 @@ impl AbstractBlackBoxTestCase {
         }
 
         let result_text = result.getText();
-        if !(expected_text == result_text) {
+        if expected_text != result_text {
             log::info(format!(
                 "Content mismatch: expected '{}' but got '{}'{}",
                 expected_text, result_text, suffix
@@ -470,12 +469,12 @@ impl AbstractBlackBoxTestCase {
             }
         }
 
-        return Ok(true);
+        Ok(true)
     }
 
     fn read_file_as_string(file: PathBuf) -> Result<String, std::io::Error> {
         let string_contents = read_to_string(&file)?; //new String(Files.readAllBytes(file), charset);
-        if string_contents.ends_with("\n") {
+        if string_contents.ends_with('\n') {
             log::info(format!("String contents of file {} end with a newline. This may not be intended and cause a test failure",file.to_string_lossy()));
         }
         Ok(string_contents)
