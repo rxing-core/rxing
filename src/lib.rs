@@ -1213,7 +1213,7 @@ pub mod result_point_utils {
         );
 
         let mut pointA; //: &RXingResultPoint;
-        let mut pointB; //: &RXingResultPoint;
+        let  pointB; //: &RXingResultPoint;
         let mut pointC; //: &RXingResultPoint;
                         // Assume one closest to other two is B; A and C will just be guesses at first
         if oneTwoDistance >= zeroOneDistance && oneTwoDistance >= zeroTwoDistance {

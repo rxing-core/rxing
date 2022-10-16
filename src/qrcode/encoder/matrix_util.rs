@@ -169,7 +169,7 @@ pub fn embedTypeInfo(
     matrix: &mut ByteMatrix,
 ) -> Result<(), Exceptions> {
     let mut typeInfoBits = BitArray::new();
-    makeTypeInfoBits(ecLevel, maskPattern as u32, &mut typeInfoBits);
+    makeTypeInfoBits(ecLevel, maskPattern as u32, &mut typeInfoBits)?;
 
     for i in 0..typeInfoBits.getSize() {
         // for (int i = 0; i < typeInfoBits.getSize(); ++i) {
@@ -363,7 +363,7 @@ pub fn makeTypeInfoBits(
 
     let mut maskBits = BitArray::new();
     maskBits.appendBits(TYPE_INFO_MASK_PATTERN, 15)?;
-    bits.xor(&maskBits);
+    bits.xor(&maskBits)?;
 
     if bits.getSize() != 15 {
         // Just in case.

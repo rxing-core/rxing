@@ -64,11 +64,11 @@ impl DataBlock {
     let ecBlocks = version.getECBlocksForLevel(ecLevel);
 
     // First count the total number of data blocks
-    let mut totalBlocks = 0;
+    let mut _totalBlocks = 0;
     let ecBlockArray = ecBlocks.getECBlocks();
     for ecBlock in ecBlockArray {
     // for (Version.ECB ecBlock : ecBlockArray) {
-      totalBlocks += ecBlock.getCount();
+      _totalBlocks += ecBlock.getCount();
     }
 
     // Now establish DataBlocks of the appropriate size and number of data codewords

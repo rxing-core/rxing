@@ -155,7 +155,7 @@ pub fn encode_with_hints(
         let encoding = if encoding.is_some() {
             encoding.unwrap()
         } else {
-            if let Ok(encs) = DEFAULT_BYTE_MODE_ENCODING.encode(content, encoding::EncoderTrap::Strict){
+            if let Ok(_encs) = DEFAULT_BYTE_MODE_ENCODING.encode(content, encoding::EncoderTrap::Strict){
                 DEFAULT_BYTE_MODE_ENCODING
             }else {
                 has_encoding_hint = true;

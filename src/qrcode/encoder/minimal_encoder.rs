@@ -943,7 +943,7 @@ impl RXingResultList {
      */
     pub fn getBits(&self, bits: &mut BitArray) -> Result<(), Exceptions> {
         for resultNode in &self.list {
-            resultNode.getBits(bits);
+            resultNode.getBits(bits)?;
         }
         Ok(())
     }
@@ -1078,19 +1078,19 @@ impl RXingResultNode {
      * appends the bits
      */
     fn getBits(&self, bits: &mut BitArray) -> Result<(), Exceptions> {
-        bits.appendBits(self.mode.getBits() as u32, 4);
+        bits.appendBits(self.mode.getBits() as u32, 4)?;
         if self.characterLength > 0 {
             let length = self.getCharacterCountIndicator();
             bits.appendBits(
                 length,
                 self.mode.getCharacterCountBits(self.version) as usize,
-            );
+            )?;
         }
         if self.mode == Mode::ECI {
             bits.appendBits(
                 self.encoders.getECIValue(self.charsetEncoderIndex as usize),
                 8,
-            );
+            )?;
         } else if self.characterLength > 0 {
             // append data
             encoder::appendBytes(
@@ -1100,7 +1100,7 @@ impl RXingResultNode {
                 self.mode,
                 bits,
                 self.encoders.getCharset(self.charsetEncoderIndex as usize),
-            );
+            )?;
         }
         Ok(())
     }

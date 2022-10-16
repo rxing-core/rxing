@@ -56,7 +56,7 @@ impl Writer for QRCodeWriter {
         height: i32,
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
-        if (contents.is_empty()) {
+        if contents.is_empty() {
             return Err(Exceptions::IllegalArgumentException(
                 "Found empty contents".to_owned(),
             ));
@@ -71,7 +71,7 @@ impl Writer for QRCodeWriter {
             // throw new IllegalArgumentException("Can only encode QR_CODE, but got " + format);
         }
 
-        if (width < 0 || height < 0) {
+        if width < 0 || height < 0 {
             return Err(Exceptions::IllegalArgumentException(format!(
                 "Requested dimensions are too small: {}x{}",
                 width, height
@@ -158,7 +158,7 @@ impl QRCodeWriter {
                         outputY as u32,
                         multiple as u32,
                         multiple as u32,
-                    );
+                    )?;
                 }
 
                 inputX += 1;

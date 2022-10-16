@@ -134,7 +134,7 @@ impl FormatInformation {
             if masked_format_info1 != masked_format_info2 {
                 // also try the other option
                 bits_difference = Self::numBitsDiffering(masked_format_info2, targetInfo);
-                if (bits_difference < best_difference) {
+                if bits_difference < best_difference {
                     best_format_info = decodeInfo[1] as u8;
                     best_difference = bits_difference;
                 }

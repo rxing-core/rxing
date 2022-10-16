@@ -33,7 +33,7 @@ impl SimpleToken {
         }
     }
 
-    pub fn appendTo(&self, bit_array: &mut BitArray, text: &[u8]) {
+    pub fn appendTo(&self, bit_array: &mut BitArray, _text: &[u8]) {
         bit_array
             .appendBits(self.value as u32, self.bit_count as usize)
             .expect("append should never fail");

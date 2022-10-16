@@ -36,7 +36,7 @@ use super::{decoded_bit_stream_parser, BitMatrixParser, DataBlock, QRCodeDecoder
 
 lazy_static! {
  //rsDecoder = new ReedSolomonDecoder(GenericGF.QR_CODE_FIELD_256);
- static ref rsDecoder : ReedSolomonDecoder = ReedSolomonDecoder::new(get_predefined_genericgf(PredefinedGenericGF::QrCodeField256));
+ static ref RS_DECODER : ReedSolomonDecoder = ReedSolomonDecoder::new(get_predefined_genericgf(PredefinedGenericGF::QrCodeField256));
 }
 
 pub fn decode_bool_array(image: &Vec<Vec<bool>>) -> Result<DecoderRXingResult, Exceptions> {
@@ -200,7 +200,7 @@ fn correctErrors(codewordBytes: &mut [u8], numDataCodewords: usize) -> Result<()
 
     let mut sending_code_words : Vec<i32> = codewordsInts.iter().map(|x| *x as i32).collect();
 
-    if let Err(e) = rsDecoder.decode(
+    if let Err(e) = RS_DECODER.decode(
         &mut sending_code_words,
         (codewordBytes.len() - numDataCodewords) as i32,
     ) {

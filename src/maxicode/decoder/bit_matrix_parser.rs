@@ -78,7 +78,7 @@ impl BitMatrixParser {
       // for (int x = 0; x < width; x++) {
         let bit = bitnrRow[x];
         if bit >= 0 && self.0.get(x as u32, y as u32) {
-          result[bit as usize / 6] |= (1 << (5 - (bit % 6)));
+          result[bit as usize / 6] |= 1 << (5 - (bit % 6));
         }
       }
     }
