@@ -118,7 +118,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
     // when character encoding changes (ECI) or input ends.
     let mut decoded_bytes: Vec<u8> = Vec::new();
     // let mut encdr: &'static dyn encoding::Encoding = encoding::all::UTF_8;
-    let mut encdr: &'static dyn encoding::Encoding = encoding::all::ISO_8859_1;
+    let mut encdr: encoding::EncodingRef = encoding::all::ISO_8859_1;
 
     let mut index = 0;
 

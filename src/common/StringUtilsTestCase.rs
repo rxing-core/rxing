@@ -23,7 +23,7 @@
 // import java.nio.charset.StandardCharsets;
 // import java.util.Random;
 
-use encoding::Encoding;
+use encoding::{Encoding, EncodingRef};
 use rand::Rng;
 use std::collections::HashMap;
 
@@ -102,7 +102,7 @@ fn test_utf16_le() {
     );
 }
 
-fn do_test(bytes: &Vec<u8>, charset: &dyn Encoding, encoding: &str) {
+fn do_test(bytes: &Vec<u8>, charset: EncodingRef, encoding: &str) {
     let guessedCharset = StringUtils::guessCharset(bytes, &HashMap::new());
     let guessedEncoding = StringUtils::guessEncoding(bytes, &HashMap::new());
     assert_eq!(charset.name(), guessedCharset.name());

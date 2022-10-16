@@ -93,7 +93,7 @@ pub fn encode_with_charset(
     data: &str,
     minECCPercent: u32,
     userSpecifiedLayers: i32,
-    charset: &'static dyn encoding::Encoding,
+    charset: encoding::EncodingRef,
 ) -> Result<AztecCode, Exceptions> {
     let bytes = charset
         .encode(data, encoding::EncoderTrap::Strict)
@@ -148,7 +148,7 @@ pub fn encode_bytes_with_charset(
     data: &[u8],
     min_eccpercent: u32,
     user_specified_layers: i32,
-    charset: &'static dyn encoding::Encoding,
+    charset: encoding::EncodingRef,
 ) -> Result<AztecCode, Exceptions> {
     // High-level encode
     let bits = HighLevelEncoder::with_charset(data.into(), charset).encode()?;

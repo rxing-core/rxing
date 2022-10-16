@@ -129,7 +129,7 @@ impl StringUtils {
      *  or the platform default encoding if
      *  none of these can possibly be correct
      */
-    pub fn guessCharset(bytes: &[u8], hints: &DecodingHintDictionary) -> &'static dyn Encoding {
+    pub fn guessCharset(bytes: &[u8], hints: &DecodingHintDictionary) -> EncodingRef {
         match hints.get(&DecodeHintType::CHARACTER_SET) {
             Some(hint) => {
                 if let DecodeHintValue::CharacterSet(cs_name) = hint {
@@ -2565,7 +2565,7 @@ impl CharacterSetECI {
      * @return CharacterSetECI representing ECI for character encoding, or null if it is legal
      *   but unsupported
      */
-    pub fn getCharacterSetECI(charset: &'static dyn Encoding) -> Option<CharacterSetECI> {
+    pub fn getCharacterSetECI(charset: EncodingRef) -> Option<CharacterSetECI> {
         let name = if let Some(nm) = charset.whatwg_name() {
             nm
         } else {
@@ -2712,7 +2712,7 @@ impl CharacterSetECI {
 pub struct ECIStringBuilder {
     current_bytes: Vec<u8>,
     result: String,
-    current_charset: &'static dyn Encoding, //= StandardCharsets.ISO_8859_1;
+    current_charset: EncodingRef, //= StandardCharsets.ISO_8859_1;
 }
 
 impl ECIStringBuilder {

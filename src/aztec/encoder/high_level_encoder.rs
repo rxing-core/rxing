@@ -37,7 +37,7 @@ use super::{State, Token};
  */
 pub struct HighLevelEncoder {
     text: Vec<u8>,
-    charset: &'static dyn encoding::Encoding,
+    charset: encoding::EncodingRef,
 }
 
 impl HighLevelEncoder {
@@ -235,7 +235,7 @@ impl HighLevelEncoder {
         }
     }
 
-    pub fn with_charset(text: Vec<u8>, charset: &'static dyn encoding::Encoding) -> Self {
+    pub fn with_charset(text: Vec<u8>, charset: encoding::EncodingRef) -> Self {
         Self { text, charset }
     }
 
