@@ -25,7 +25,7 @@ mod common;
 fn maxicode1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/maxicode-1",
-        Box::new(MaxiCodeReader {}),
+        MaxiCodeReader {},
         BarcodeFormat::MAXICODE,
     );
     // super("src/test/resources/blackbox/maxicode-1", new MultiFormatReader(), BarcodeFormat.MAXICODE);
@@ -44,7 +44,7 @@ fn maxicode1_test_case() {
 fn maxi_code_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/maxicode-1",
-        Box::new(MaxiCodeReader {}),
+        MaxiCodeReader {},
         BarcodeFormat::MAXICODE,
     );
     // super("src/test/resources/blackbox/maxicode-1", new MultiFormatReader(), BarcodeFormat.MAXICODE);

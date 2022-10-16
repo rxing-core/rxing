@@ -33,15 +33,16 @@ use super::TestRXingResult;
  * @author Sean Owen
  * @author dswitkin@google.com (Daniel Switkin)
  */
-pub struct AbstractBlackBoxTestCase {
+pub struct AbstractBlackBoxTestCase<T:Reader> {
     test_base: Box<Path>,
-    barcode_reader: Box<dyn Reader>,
+    barcode_reader: T,
     expected_format: BarcodeFormat,
     test_rxing_results: Vec<TestRXingResult>,
     hints: HashMap<DecodeHintType, DecodeHintValue>,
 }
 
-impl AbstractBlackBoxTestCase {
+impl<T:Reader> AbstractBlackBoxTestCase<T>  {
+
     pub fn buildTestBase(testBasePathSuffix: &str) -> Box<Path> {
         // A little workaround to prevent aggravation in my IDE
         let test_base = Path::new(testBasePathSuffix);
@@ -54,7 +55,7 @@ impl AbstractBlackBoxTestCase {
 
     pub fn new(
         test_base_path_suffix: &str,
-        barcode_reader: Box<dyn Reader>,
+        barcode_reader: T,
         expected_format: BarcodeFormat,
     ) -> Self {
         Self {
@@ -129,7 +130,7 @@ impl AbstractBlackBoxTestCase {
         paths
     }
 
-    pub fn getReader(&self) -> &Box<dyn Reader> {
+    pub fn getReader(&self) -> &T {
         &self.barcode_reader
     }
 

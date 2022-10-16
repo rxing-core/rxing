@@ -25,7 +25,7 @@ mod common;
 fn aztec_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/aztec-1",
-        Box::new(AztecReader {}),
+        AztecReader {},
         BarcodeFormat::AZTEC,
     );
 
@@ -47,7 +47,7 @@ fn aztec_black_box1_test_case() {
 fn aztec_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/aztec-2",
-        Box::new(AztecReader {}),
+        AztecReader {},
         BarcodeFormat::AZTEC,
     );
     // super(, new AztecReader(), BarcodeFormat.AZTEC);
