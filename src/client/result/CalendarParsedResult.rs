@@ -27,7 +27,7 @@
 // import java.util.regex.Matcher;
 // import java.util.regex.Pattern;
 
-use chrono::{Date, DateTime, Local, NaiveDateTime, TimeZone, Utc};
+use chrono::{ DateTime, NaiveDateTime, TimeZone, Utc};
 use chrono_tz::Tz;
 use regex::Regex;
 use lazy_static::lazy_static;
@@ -35,8 +35,7 @@ use lazy_static::lazy_static;
 use crate::exceptions::Exceptions;
 
 use super::{
-    maybe_append_multiple, maybe_append_string, ParsedRXingResult, ParsedRXingResultType,
-    ResultParser,
+    maybe_append_multiple, maybe_append_string, ParsedRXingResult, ParsedRXingResultType
 };
 
 // const RFC2445_DURATION: &'static str =

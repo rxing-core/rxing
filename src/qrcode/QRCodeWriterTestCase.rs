@@ -16,11 +16,10 @@
 
 use std::{
     collections::HashMap,
-    hash::Hash,
-    path::{Path, PathBuf},
+    path::{ PathBuf},
 };
 
-use image::{DynamicImage, EncodableLayout};
+use image::{DynamicImage};
 
 use crate::{
     common::BitMatrix, qrcode::QRCodeWriter, BarcodeFormat, EncodeHintType, EncodeHintValue, Writer,

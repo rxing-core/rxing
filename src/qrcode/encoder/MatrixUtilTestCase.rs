@@ -209,7 +209,7 @@ fn testEmbedDataBits() {
     )
     .expect("op ok");
     let bits = BitArray::new();
-    matrix_util::embedDataBits(&bits, -1, &mut matrix);
+    matrix_util::embedDataBits(&bits, -1, &mut matrix).expect("append");
     let expected = r" 1 1 1 1 1 1 1 0 0 0 0 0 0 0 1 1 1 1 1 1 1
  1 0 0 0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 0 1
  1 0 1 1 1 0 1 0 0 0 0 0 0 0 1 0 1 1 1 0 1
@@ -254,7 +254,7 @@ fn testBuildMatrix() {
         Version::getVersionForNumber(1).expect("version"), // Version 1
         3,                                                 // Mask pattern 3
         &mut matrix,
-    );
+    ).expect("append");
     let expected = r" 1 1 1 1 1 1 1 0 0 1 1 0 0 0 1 1 1 1 1 1 1
  1 0 0 0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 0 1
  1 0 1 1 1 0 1 0 0 0 0 1 0 0 1 0 1 1 1 0 1
@@ -344,6 +344,6 @@ fn testMakeVersionInfoBits() {
 fn testMakeTypeInfoInfoBits() {
     // From Appendix C in JISX0510:2004 (p 65)
     let mut bits = BitArray::new();
-    matrix_util::makeTypeInfoBits(&ErrorCorrectionLevel::M, 5, &mut bits);
+    matrix_util::makeTypeInfoBits(&ErrorCorrectionLevel::M, 5, &mut bits).expect("append");
     assert_eq!(" X......X X..XXX.", bits.to_string());
 }

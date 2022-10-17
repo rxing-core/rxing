@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-use std::{fs::File, io::Write};
-
 use crate::{
     common::BitMatrix, result_point_utils, DecodeHintType, DecodingHintDictionary, Exceptions,
-    RXingResultPoint, RXingResultPointCallback, ResultPoint,
+     RXingResultPointCallback, ResultPoint,
 };
 
 use super::{FinderPattern, FinderPatternInfo};

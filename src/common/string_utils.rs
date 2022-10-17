@@ -53,8 +53,8 @@ pub struct StringUtils {
 //     encoding::label::encoding_from_whatwg_label("GB2312").unwrap();
 // const EUC_JP: &dyn Encoding = encoding::label::encoding_from_whatwg_label("EUC_JP").unwrap();
 const ASSUME_SHIFT_JIS: bool = false;
-static SHIFT_JIS: &'static str = "SJIS";
-static GB2312: &'static str = "GB2312";
+// static SHIFT_JIS: &'static str = "SJIS";
+// static GB2312: &'static str = "GB2312";
 lazy_static! {
     pub static ref SHIFT_JIS_CHARSET: EncodingRef =
         encoding::label::encoding_from_whatwg_label("SJIS").unwrap();

@@ -62,10 +62,10 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
             Vec::new()
         },
         Vec::new(),
-        "".to_owned(),
+        pronunciation.unwrap_or_default(),//"".to_owned(),
         phoneNumbers,
         Vec::new(),
-        Vec::new(),
+        emails, //Vec::new(),
         Vec::new(),
         "".to_owned(),
         note,

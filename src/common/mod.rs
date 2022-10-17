@@ -1,26 +1,7 @@
 pub mod detector;
 pub mod reedsolomon;
 
-use core::num;
-use std::any::Any;
-use std::cmp;
-use std::collections::HashMap;
-use std::fmt;
-use std::rc::Rc;
-
-use crate::Binarizer;
-use crate::DecodeHintType;
-use crate::DecodeHintValue;
-use crate::DecodingHintDictionary;
-use crate::Exceptions;
-use crate::LuminanceSource;
 use crate::RXingResultPoint;
-use encoding::Encoding;
-use encoding::EncodingRef;
-
-use lazy_static::lazy_static;
-
-use unicode_segmentation::UnicodeSegmentation;
 
 #[cfg(test)]
 mod StringUtilsTestCase;
@@ -117,9 +98,6 @@ pub use eci_encoder_set::*;
 
 mod minimal_eci_input;
 pub use minimal_eci_input::*;
-
-mod input_edge;
-pub use input_edge::*;
 
 
 mod global_histogram_binarizer;

@@ -171,7 +171,7 @@ impl ECIEncoderSet {
             // In this case we append a UTF-8 and UTF-16 encoder to the list
             //   encoders = [] new CharsetEncoder[neededEncoders.size() + 2];
             encoders = Vec::new();
-            let index = 0;
+            // let index = 0;
 
             for encoder in neededEncoders {
                 //   for (CharsetEncoder encoder : neededEncoders) {

@@ -26,13 +26,13 @@
 
 use crate::{RGBLuminanceSource, LuminanceSource};
 
-  static src_data : [u32;9] = [0x000000, 0x7F7F7F, 0xFFFFFF,
+  const SRC_DATA : [u32;9] = [0x000000, 0x7F7F7F, 0xFFFFFF,
   0xFF0000, 0x00FF00, 0x0000FF,
   0x0000FF, 0x00FF00, 0xFF0000];
 
   #[test]
   fn testCrop() {
-    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3,3,&src_data.to_vec());
+    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3,3,&SRC_DATA.to_vec());
 
     assert!(SOURCE.isCropSupported());
     let cropped = SOURCE.crop(1, 1, 1, 1).unwrap();
@@ -43,7 +43,7 @@ use crate::{RGBLuminanceSource, LuminanceSource};
 
   #[test]
   fn testMatrix() {
-    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3,3,&src_data.to_vec());
+    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3,3,&SRC_DATA.to_vec());
 
     assert_eq!(vec![ 0x00, 0x7F,  0xFF, 0x3F, 0x7F, 0x3F, 0x3F, 0x7F, 0x3F ],
                       SOURCE.getMatrix());
@@ -57,7 +57,7 @@ use crate::{RGBLuminanceSource, LuminanceSource};
 
   #[test]
   fn testGetRow() {
-    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3,3,&src_data.to_vec());
+    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3,3,&SRC_DATA.to_vec());
 
     assert_eq!(vec![ 0x3F, 0x7F, 0x3F ], SOURCE.getRow(2, &vec![0;3]));
   }

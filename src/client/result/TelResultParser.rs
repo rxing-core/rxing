@@ -18,7 +18,7 @@
 
 // import com.google.zxing.RXingResult;
 
-use super::{TelParsedRXingResult, ParsedRXingResult, ParsedClientResult, ResultParser};
+use super::{TelParsedRXingResult, ParsedClientResult, ResultParser};
 
 /**
  * Parses a "tel:" URI result, which specifies a phone number.

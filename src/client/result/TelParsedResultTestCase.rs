@@ -27,12 +27,11 @@
  * @author Sean Owen
  */
 // public final class TelParsedRXingResultTestCase extends Assert {
-use std::any::Any;
 
 use crate::{
     client::result::{
         ParsedClientResult, ParsedRXingResult, ParsedRXingResultType, 
-        TelParsedRXingResult,
+        
     },
     BarcodeFormat, RXingResult,
 };

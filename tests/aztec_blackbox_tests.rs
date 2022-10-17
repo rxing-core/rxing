@@ -30,12 +30,12 @@ fn aztec_black_box1_test_case() {
     );
 
     // super("src/test/resources/blackbox/aztec-1", AztecReader::new(), BarcodeFormat::AZTEC);
-    tester.addTest(14, 14, 0.0);
-    tester.addTest(14, 14, 90.0);
-    tester.addTest(14, 14, 180.0);
-    tester.addTest(14, 14, 270.0);
+    tester.add_test(14, 14, 0.0);
+    tester.add_test(14, 14, 90.0);
+    tester.add_test(14, 14, 180.0);
+    tester.add_test(14, 14, 270.0);
 
-    tester.testBlackBox();
+    tester.test_black_box();
 }
 
 /**
@@ -51,10 +51,10 @@ fn aztec_black_box2_test_case() {
         BarcodeFormat::AZTEC,
     );
     // super(, new AztecReader(), BarcodeFormat.AZTEC);
-    tester.addTest(5, 5, 0.0);
-    tester.addTest(4, 4, 90.0);
-    tester.addTest(6, 6, 180.0);
-    tester.addTest(3, 3, 270.0);
+    tester.add_test(5, 5, 0.0);
+    tester.add_test(4, 4, 90.0);
+    tester.add_test(6, 6, 180.0);
+    tester.add_test(3, 3, 270.0);
 
-    tester.testBlackBox();
+    tester.test_black_box();
 }

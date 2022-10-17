@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use super::{GenericGF, GenericGFRef, ReedSolomonDecoder, ReedSolomonEncoder};
+use super::{GenericGFRef, ReedSolomonDecoder, ReedSolomonEncoder};
 /*
  * Copyrigh&t 2013 ZXing authors
  *

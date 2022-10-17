@@ -19,8 +19,6 @@
 //import org.junit.Assert;
 //import org.junit.Test;
 
-use std::rc::Rc;
-
 use super::{GenericGF, GenericGFPoly};
 
 /**

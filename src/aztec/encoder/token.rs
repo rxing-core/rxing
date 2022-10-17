@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-use std::rc::Rc;
-
 use crate::common::BitArray;
 
 use super::{BinaryShiftToken, SimpleToken};

@@ -16,7 +16,7 @@
 
 // package com.google.zxing.client.result;
 
-use super::{maybe_append_string, ParsedRXingResult, ParsedRXingResultType, ResultParser};
+use super::{ ParsedRXingResult, ParsedRXingResultType, ResultParser};
 
 /**
  * Represents a parsed result that encodes an email message including recipients, subject

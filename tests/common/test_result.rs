@@ -42,23 +42,23 @@ impl TestRXingResult {
         }
     }
 
-    pub fn getMustPassCount(&self) -> u32 {
+    pub fn get_must_pass_count(&self) -> u32 {
         self.must_pass_count
     }
 
-    pub fn getTryHarderCount(&self) -> u32 {
+    pub fn get_try_harder_count(&self) -> u32 {
         self.try_harder_count
     }
 
-    pub fn getMaxMisreads(&self) -> u32 {
+    pub fn get_max_misreads(&self) -> u32 {
         self.max_misreads
     }
 
-    pub fn getMaxTryHarderMisreads(&self) -> u32 {
+    pub fn get_max_try_harder_misreads(&self) -> u32 {
         self.max_try_harder_misreads
     }
 
-    pub fn getRotation(&self) -> f32 {
+    pub fn get_rotation(&self) -> f32 {
         self.rotation
     }
 }

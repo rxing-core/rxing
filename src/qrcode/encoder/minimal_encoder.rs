@@ -24,7 +24,7 @@ use crate::{
     Exceptions,
 };
 
-use unicode_segmentation::{Graphemes, UnicodeSegmentation};
+use unicode_segmentation::{ UnicodeSegmentation};
 
 use super::encoder;
 

@@ -21,7 +21,7 @@
 // import java.awt.image.BufferedImage;
 // import java.awt.image.WritableRaster;
 
-use image::{DynamicImage, EncodableLayout, GenericImage, GrayImage, ImageBuffer, Luma};
+use image::{DynamicImage, ImageBuffer, Luma};
 use imageproc::geometric_transformations::rotate_about_center;
 
 use crate::LuminanceSource;

@@ -686,23 +686,23 @@ fn testInterleaveWithECBytes() {
 fn testAppendNumericBytes() {
     // 1 = 01 = 0001 in 4 bits.
     let mut bits = BitArray::new();
-    encoder::appendNumericBytes("1", &mut bits);
+    encoder::appendNumericBytes("1", &mut bits).expect("append");
     assert_eq!(" ...X", bits.to_string());
     // 12 = 0xc = 0001100 in 7 bits.
     let mut bits = BitArray::new();
-    encoder::appendNumericBytes("12", &mut bits);
+    encoder::appendNumericBytes("12", &mut bits).expect("append");
     assert_eq!(" ...XX..", bits.to_string());
     // 123 = 0x7b = 0001111011 in 10 bits.
     let mut bits = BitArray::new();
-    encoder::appendNumericBytes("123", &mut bits);
+    encoder::appendNumericBytes("123", &mut bits).expect("append");
     assert_eq!(" ...XXXX. XX", bits.to_string());
     // 1234 = "123" + "4" = 0001111011 + 0100
     let mut bits = BitArray::new();
-    encoder::appendNumericBytes("1234", &mut bits);
+    encoder::appendNumericBytes("1234", &mut bits).expect("append");
     assert_eq!(" ...XXXX. XX.X..", bits.to_string());
     // Empty.
     let mut bits = BitArray::new();
-    encoder::appendNumericBytes("", &mut bits);
+    encoder::appendNumericBytes("", &mut bits).expect("append");
     assert_eq!("", bits.to_string());
 }
 
@@ -710,19 +710,19 @@ fn testAppendNumericBytes() {
 fn testAppendAlphanumericBytes() {
     // A = 10 = 0xa = 001010 in 6 bits
     let mut bits = BitArray::new();
-    encoder::appendAlphanumericBytes("A", &mut bits);
+    encoder::appendAlphanumericBytes("A", &mut bits).expect("append");
     assert_eq!(" ..X.X.", bits.to_string());
     // AB = 10 * 45 + 11 = 461 = 0x1cd = 00111001101 in 11 bits
     let mut bits = BitArray::new();
-    encoder::appendAlphanumericBytes("AB", &mut bits);
+    encoder::appendAlphanumericBytes("AB", &mut bits).expect("append");
     assert_eq!(" ..XXX..X X.X", bits.to_string());
     // ABC = "AB" + "C" = 00111001101 + 001100
     let mut bits = BitArray::new();
-    encoder::appendAlphanumericBytes("ABC", &mut bits);
+    encoder::appendAlphanumericBytes("ABC", &mut bits).expect("append");
     assert_eq!(" ..XXX..X X.X..XX. .", bits.to_string());
     // Empty.
     let mut bits = BitArray::new();
-    encoder::appendAlphanumericBytes("", &mut bits);
+    encoder::appendAlphanumericBytes("", &mut bits).expect("append");
     assert_eq!("", bits.to_string());
     // Invalid data.
     // try {
@@ -738,11 +738,11 @@ fn testAppendAlphanumericBytes() {
 fn testAppend8BitBytes() {
     // 0x61, 0x62, 0x63
     let mut bits = BitArray::new();
-    encoder::append8BitBytes("abc", &mut bits, encoder::DEFAULT_BYTE_MODE_ENCODING);
+    encoder::append8BitBytes("abc", &mut bits, encoder::DEFAULT_BYTE_MODE_ENCODING).expect("append");
     assert_eq!(" .XX....X .XX...X. .XX...XX", bits.to_string());
     // Empty.
     let mut bits = BitArray::new();
-    encoder::append8BitBytes("", &mut bits, encoder::DEFAULT_BYTE_MODE_ENCODING);
+    encoder::append8BitBytes("", &mut bits, encoder::DEFAULT_BYTE_MODE_ENCODING).expect("append");
     assert_eq!("", bits.to_string());
 }
 
@@ -750,9 +750,9 @@ fn testAppend8BitBytes() {
 #[test]
 fn testAppendKanjiBytes() {
     let mut bits = BitArray::new();
-    encoder::appendKanjiBytes(&shiftJISString(&[0x93, 0x5f]), &mut bits);
+    encoder::appendKanjiBytes(&shiftJISString(&[0x93, 0x5f]), &mut bits).expect("append");
     assert_eq!(" .XX.XX.. XXXXX", bits.to_string());
-    encoder::appendKanjiBytes(&shiftJISString(&[0xe4, 0xaa]), &mut bits);
+    encoder::appendKanjiBytes(&shiftJISString(&[0xe4, 0xaa]), &mut bits).expect("append");
     assert_eq!(" .XX.XX.. XXXXXXX. X.X.X.X. X.", bits.to_string());
 }
 
@@ -826,7 +826,7 @@ fn testBugInBitVectorNumBytes() {
     //     11745 bits = 1468.125 bytes are needed (i.e. cannot fit in 1468
     //     bytes).
     let mut builder = String::with_capacity(3518);
-    for x in 0..3518 {
+    for _x in 0..3518 {
         // for (int x = 0; x < 3518; x++) {
         builder.push('0');
     }

@@ -85,7 +85,6 @@ pub fn parse(result: &crate::RXingResult) -> Option<super::ParsedClientResult> {
             "00" => sscc = value,
             "01" => productID = value,
             "10" => lotNumber = value,
-            "10" => lotNumber = value,
             "11" => productionDate = value,
             "13" => packagingDate = value,
             "15" => bestBeforeDate = value,

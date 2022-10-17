@@ -40,7 +40,7 @@ const EVEN: u32 = 1;
 const ODD: u32 = 2;
 
 lazy_static! {
-    static ref rsDecoder: ReedSolomonDecoder = ReedSolomonDecoder::new(get_predefined_genericgf(
+    static ref RS_DECODER: ReedSolomonDecoder = ReedSolomonDecoder::new(get_predefined_genericgf(
         PredefinedGenericGF::MaxicodeField64
     ));
 }
@@ -103,7 +103,7 @@ fn correctErrors(
         }
     }
     // try {
-    rsDecoder.decode(&mut codewordsInts, (ecCodewords / divisor) as i32)?;
+    RS_DECODER.decode(&mut codewordsInts, (ecCodewords / divisor) as i32)?;
     // } catch (ReedSolomonException ignored) {
     //   throw ChecksumException.getChecksumInstance();
     // }

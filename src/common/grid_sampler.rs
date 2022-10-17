@@ -160,7 +160,7 @@ pub trait GridSampler {
             if y == -1 {
                 points[offset + 1] = 0.0f32;
                 nudged = true;
-            } else if (y == height.try_into().unwrap()) {
+            } else if y == height.try_into().unwrap() {
                 points[offset + 1] = height as f32 - 1f32;
                 nudged = true;
             }

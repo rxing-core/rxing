@@ -19,8 +19,6 @@
 // import com.google.zxing.BarcodeFormat;
 // import com.google.zxing.RXingResult;
 
-use std::result;
-
 use crate::BarcodeFormat;
 
 use super::{ ResultParser, ISBNParsedRXingResult, ParsedClientResult};

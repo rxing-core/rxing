@@ -34,7 +34,7 @@
 //  */
 // public final class CalendarParsedRXingResultTestCase extends Assert {
 
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{NaiveDateTime};
 
 use crate::{
     client::result::{ParsedClientResult, ParsedRXingResultType},
@@ -44,7 +44,7 @@ use crate::{
 use super::{ParsedRXingResult, ResultParser};
 
 const EPSILON: f64 = 1.0E-10;
-const DATE_FORMAT_STRING: &'static str = "yyyyMMdd'T'HHmmss'Z'";
+// const DATE_FORMAT_STRING: &'static str = "yyyyMMdd'T'HHmmss'Z'";
 
 // private static DateFormat makeGMTFormat() {
 //   DateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmmss'Z'", Locale.ENGLISH);

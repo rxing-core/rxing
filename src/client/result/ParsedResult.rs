@@ -16,8 +16,6 @@
 
 // package com.google.zxing.client.result;
 
-use std::any::Any;
-
 use super::ParsedRXingResultType;
 
 /**

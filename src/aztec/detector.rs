@@ -19,7 +19,7 @@ use std::fmt;
 use crate::{
     common::{
         detector::{MathUtils, WhiteRectangleDetector},
-        reedsolomon::{self, GenericGF, ReedSolomonDecoder},
+        reedsolomon::{self, ReedSolomonDecoder},
         BitMatrix, DefaultGridSampler, GridSampler,
     },
     exceptions::Exceptions,

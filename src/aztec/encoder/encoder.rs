@@ -19,7 +19,7 @@ use encoding::Encoding;
 use crate::{
     common::{
         reedsolomon::{
-            get_predefined_genericgf, GenericGF, PredefinedGenericGF, ReedSolomonEncoder, GenericGFRef,
+            get_predefined_genericgf, PredefinedGenericGF, ReedSolomonEncoder, GenericGFRef,
         },
         BitArray, BitMatrix,
     },

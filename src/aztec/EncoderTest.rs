@@ -25,7 +25,6 @@ use crate::{
         shared_test_methods::{stripSpace, toBitArray, toBooleanArray},
         AztecDetectorResult::AztecDetectorRXingResult,
     },
-    common::{BitArray, BitMatrix},
     BarcodeFormat, EncodeHintType, EncodeHintValue, RXingResultPoint,
 };
 
@@ -49,8 +48,8 @@ const UTF_8: EncodingRef = encoding::all::UTF_8; //StandardCharsets.UTF_8;
 const ISO_8859_15: EncodingRef = encoding::all::ISO_8859_15; //Charset.forName("ISO-8859-15");
 const WINDOWS_1252: EncodingRef = encoding::all::WINDOWS_1252; //Charset.forName("Windows-1252");
 
-const DOTX: &str = "[^.X]";
-const SPACES: &str = "\\s+";
+// const DOTX: &str = "[^.X]";
+// const SPACES: &str = "\\s+";
 const NO_POINTS: Vec<RXingResultPoint> = Vec::new();
 
 // real life tests

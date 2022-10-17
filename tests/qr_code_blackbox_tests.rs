@@ -30,12 +30,12 @@ fn qrcode_black_box1_test_case() {
         rxing::BarcodeFormat::QR_CODE,
     );
     // super("src/test/resources/blackbox/qrcode-1", new MultiFormatReader(), BarcodeFormat.QR_CODE);
-    tester.addTest(17, 17, 0.0);
-    tester.addTest(14, 14, 90.0);
-    tester.addTest(17, 17, 180.0);
-    tester.addTest(14, 14, 270.0);
+    tester.add_test(17, 17, 0.0);
+    tester.add_test(14, 14, 90.0);
+    tester.add_test(17, 17, 180.0);
+    tester.add_test(14, 14, 270.0);
 
-    tester.testBlackBox();
+    tester.test_black_box();
 }
 
 /**
@@ -49,12 +49,12 @@ fn qrcode_black_box2_test_case() {
         QRCodeReader {},
         BarcodeFormat::QR_CODE,
     );
-    tester.addTest(31, 31, 0.0);
-    tester.addTest(30, 30, 90.0);
-    tester.addTest(30, 30, 180.0);
-    tester.addTest(30, 30, 270.0);
+    tester.add_test(31, 31, 0.0);
+    tester.add_test(30, 30, 90.0);
+    tester.add_test(30, 30, 180.0);
+    tester.add_test(30, 30, 270.0);
 
-    tester.testBlackBox();
+    tester.test_black_box();
 }
 
 /**
@@ -68,12 +68,12 @@ fn qrcode_black_box3_test_case() {
         QRCodeReader {},
         BarcodeFormat::QR_CODE,
     );
-    tester.addTest(38, 38, 0.0);
-    tester.addTest(39, 39, 90.0);
-    tester.addTest(36, 36, 180.0);
-    tester.addTest(39, 39, 270.0);
+    tester.add_test(38, 38, 0.0);
+    tester.add_test(39, 39, 90.0);
+    tester.add_test(36, 36, 180.0);
+    tester.add_test(39, 39, 270.0);
 
-    tester.testBlackBox();
+    tester.test_black_box();
 }
 
 /**
@@ -89,12 +89,12 @@ fn qrcode_black_box4_test_case() {
         QRCodeReader {},
         BarcodeFormat::QR_CODE,
     );
-    tester.addTest(36, 36, 0.0);
-    tester.addTest(35, 35, 90.0);
-    tester.addTest(35, 35, 180.0);
-    tester.addTest(35, 35, 270.0);
+    tester.add_test(36, 36, 0.0);
+    tester.add_test(35, 35, 90.0);
+    tester.add_test(35, 35, 180.0);
+    tester.add_test(35, 35, 270.0);
 
-    tester.testBlackBox();
+    tester.test_black_box();
 }
 
 /**
@@ -112,12 +112,12 @@ fn qrcode_black_box5_test_case() {
         QRCodeReader {},
         BarcodeFormat::QR_CODE,
     );
-    tester.addTest(19, 19, 0.0);
-    tester.addTest(19, 19, 90.0);
-    tester.addTest(19, 19, 180.0);
-    tester.addTest(19, 19, 270.0);
+    tester.add_test(19, 19, 0.0);
+    tester.add_test(19, 19, 90.0);
+    tester.add_test(19, 19, 180.0);
+    tester.add_test(19, 19, 270.0);
 
-    tester.testBlackBox();
+    tester.test_black_box();
 }
 
 /**
@@ -132,10 +132,10 @@ fn qrcode_black_box6_test_case() {
         QRCodeReader {},
         BarcodeFormat::QR_CODE,
     );
-    tester.addTest(15, 15, 0.0);
-    tester.addTest(14, 14, 90.0);
-    tester.addTest(13, 13, 180.0);
-    tester.addTest(14, 14, 270.0);
+    tester.add_test(15, 15, 0.0);
+    tester.add_test(14, 14, 90.0);
+    tester.add_test(13, 13, 180.0);
+    tester.add_test(14, 14, 270.0);
 
-    tester.testBlackBox();
+    tester.test_black_box();
 }

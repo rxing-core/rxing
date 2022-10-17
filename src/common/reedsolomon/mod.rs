@@ -1,8 +1,3 @@
-use std::fmt;
-
-use crate::Exceptions;
-use std::hash::Hash;
-
 #[cfg(test)]
 mod GenericGFPolyTestCase;
 #[cfg(test)]

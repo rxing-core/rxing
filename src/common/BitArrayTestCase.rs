@@ -111,16 +111,16 @@ use rand::Rng;
   #[test]
   fn test_get_next_set5() {
     let mut r = rand::thread_rng();
-    for i in 0 .. 10 {
+    for _i in 0 .. 10 {
     // for (int i = 0; i < 10; i++) {
       let  mut array =  BitArray::with_size(1 + r.gen_range(0..100));
       let numSet = r.gen_range(0..20);
-      for j in 0..numSet {
+      for _j in 0..numSet {
       // for (int j = 0; j < numSet; j++) {
         array.set(r.gen_range(0..array.getSize()));
       }
       let numQueries = r.gen_range(0..20);
-      for j in 0..numQueries {
+      for _j in 0..numQueries {
       // for (int j = 0; j < numQueries; j++) {
         let query = r.gen_range(0..array.getSize());
         let mut expected = query;
@@ -151,7 +151,7 @@ use rand::Rng;
   #[test]
   fn test_append_bit(){
     let mut array = BitArray::new();
-    array.appendBits(0x000001E, 6);
+    array.appendBits(0x000001E, 6).expect("must append)");
     let mut array_2 = BitArray::new();
     array_2.appendBit(false);
     array_2.appendBit(true);

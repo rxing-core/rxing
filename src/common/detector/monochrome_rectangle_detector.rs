@@ -245,7 +245,7 @@ impl MonochromeRectangleDetector {
 
         // Scan left/up first
         let mut start = center;
-        while (start >= minDim) {
+        while start >= minDim {
             if if horizontal {
                 self.image.get(start as u32, fixedDimension as u32)
             } else {
@@ -275,7 +275,7 @@ impl MonochromeRectangleDetector {
 
         // Then try right/down
         let mut end = center;
-        while (end < maxDim) {
+        while end < maxDim {
             if if horizontal {
                 self.image.get(end as u32, fixedDimension as u32)
             } else {

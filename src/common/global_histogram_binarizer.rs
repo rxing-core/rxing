@@ -158,7 +158,7 @@ impl GlobalHistogramBinarizer {
     const LUMINANCE_BITS: usize = 5;
     const LUMINANCE_SHIFT: usize = 8 - GlobalHistogramBinarizer::LUMINANCE_BITS;
     const LUMINANCE_BUCKETS: usize = 1 << GlobalHistogramBinarizer::LUMINANCE_BITS;
-    const EMPTY: [u8; 0] = [0; 0];
+    // const EMPTY: [u8; 0] = [0; 0];
 
     pub fn new(source: Box<dyn LuminanceSource>) -> Self {
         Self {

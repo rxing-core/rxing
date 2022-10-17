@@ -29,7 +29,7 @@
 // import java.util.Map;
 // import java.util.Objects;
 
-use std::{collections::HashMap, hash::Hash};
+use std::{collections::HashMap};
 
 use super::{ParsedRXingResult, ParsedRXingResultType};
 

@@ -43,9 +43,9 @@ pub struct AbstractBlackBoxTestCase<T:Reader> {
 
 impl<T:Reader> AbstractBlackBoxTestCase<T>  {
 
-    pub fn buildTestBase(testBasePathSuffix: &str) -> Box<Path> {
+    pub fn build_test_base(test_base_path_suffix: &str) -> Box<Path> {
         // A little workaround to prevent aggravation in my IDE
-        let test_base = Path::new(testBasePathSuffix);
+        let test_base = Path::new(test_base_path_suffix);
         // if !testBase.exists() {
         //   // try starting with 'core' since the test base is often given as the project root
         //   testBase = Paths.get("core").resolve(testBasePathSuffix);
@@ -59,7 +59,7 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
         expected_format: BarcodeFormat,
     ) -> Self {
         Self {
-            test_base: Self::buildTestBase(test_base_path_suffix),
+            test_base: Self::build_test_base(test_base_path_suffix),
             barcode_reader,
             expected_format,
             test_rxing_results: Vec::new(),
@@ -67,15 +67,15 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
         }
     }
 
-    pub fn getTestBase(&self) -> &Box<Path> {
+    pub fn get_test_base(&self) -> &Box<Path> {
         &self.test_base
     }
 
-    pub fn addTest(&mut self, must_pass_count: u32, try_harder_count: u32, rotation: f32) {
-        self.addTestComplex(must_pass_count, try_harder_count, 0, 0, rotation);
+    pub fn add_test(&mut self, must_pass_count: u32, try_harder_count: u32, rotation: f32) {
+        self.add_test_complex(must_pass_count, try_harder_count, 0, 0, rotation);
     }
 
-    pub fn addHint(&mut self, hint: DecodeHintType, value: DecodeHintValue) {
+    pub fn add_hint(&mut self, hint: DecodeHintType, value: DecodeHintValue) {
         self.hints.insert(hint, value);
     }
 
@@ -89,7 +89,7 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
      *                             reading the wrong contents using the try harder flag
      * @param rotation The rotation in degrees clockwise to use for this test.
      */
-    pub fn addTestComplex(
+    pub fn add_test_complex(
         &mut self,
         must_pass_count: u32,
         try_harder_count: u32,
@@ -106,14 +106,14 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
         ));
     }
 
-    pub fn getImageFiles(&self) -> Vec<PathBuf> {
+    pub fn get_image_files(&self) -> Vec<PathBuf> {
         assert!(
             self.test_base.exists(),
             "Please download and install test images, and run from the 'core' directory"
         );
         // let paths = Vec::new();
         let path_search = read_dir(&self.test_base);
-        const possible_extensions: &str = "jpg,jpeg,gif,png,JPG,JPEG,GIF,PNG";
+        const POSSIBLE_EXTENSIONS: &str = "jpg,jpeg,gif,png,JPG,JPEG,GIF,PNG";
 
         let mut paths = path_search
             .unwrap()
@@ -121,7 +121,7 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
             .filter(|r| r.is_ok()) // Get rid of Err variants for Result<DirEntry>
             .map(|r| r.unwrap().path()) // This is safe, since we only have the Ok variants
             .filter(|r| r.is_file()) // Filter out non-folders
-            .filter(|r| possible_extensions.contains(r.extension().unwrap().to_str().unwrap()))
+            .filter(|r| POSSIBLE_EXTENSIONS.contains(r.extension().unwrap().to_str().unwrap()))
             // .map(|r| r.into_boxed_path())
             .collect::<Vec<PathBuf>>();
 
@@ -130,14 +130,14 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
         paths
     }
 
-    pub fn getReader(&self) -> &T {
+    pub fn get_reader(&self) -> &T {
         &self.barcode_reader
     }
 
-    pub fn testBlackBox(&self) {
+    pub fn test_black_box(&self) {
         assert!(!self.test_rxing_results.is_empty());
 
-        let image_files = self.getImageFiles();
+        let image_files = self.get_image_files();
         let test_count = self.test_rxing_results.len();
 
         let mut passed_counts = vec![0usize; test_count];
@@ -145,16 +145,16 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
         let mut try_harder_counts = vec![0usize; test_count];
         let mut try_harder_misread_counts = vec![0usize; test_count];
 
-        for testImage in &image_files {
+        for test_image in &image_files {
             // for (Path testImage : imageFiles) {
-            log::info(format!("Starting {}", testImage.to_string_lossy()));
+            log::info(format!("Starting {}", test_image.to_string_lossy()));
 
-            let image = image::open(testImage).unwrap(); //ImageIO.read(testImage.toFile());
+            let image = image::open(test_image).unwrap(); //ImageIO.read(testImage.toFile());
 
             //let testImageFileName = testImage.getFileName().toString();
-            let file_base_name = testImage.file_stem().unwrap();
+            let file_base_name = test_image.file_stem().unwrap();
             //let expectedTextFile = self.testBase.resolve(fileBaseName + ".txt");
-            let mut expected_text_file = testImage.clone();
+            let mut expected_text_file = test_image.clone();
             expected_text_file.set_extension("txt");
             let expected_text = if expected_text_file.exists() {
                 Self::read_file_as_string(expected_text_file)
@@ -171,7 +171,7 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
             let mut expected_metadata_file: PathBuf = self.test_base.clone().to_path_buf();
             expected_metadata_file.push(format!("{}.metadata", file_base_name.to_str().unwrap()));
             expected_metadata_file.set_extension("txt");
-            let expectedMetadata_unfinished = if expected_metadata_file.exists() {
+            let expected_metadata_unfinished = if expected_metadata_file.exists() {
                 java_properties::read(
                     std::fs::File::open(expected_metadata_file)
                         .expect("file exists, we already know that"),
@@ -184,7 +184,7 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
                 HashMap::new()
             };
             let expected_metadata = HashMap::new();
-            for (k, v) in expectedMetadata_unfinished {
+            for (k, v) in expected_metadata_unfinished {
                 let new_k = RXingResultMetadataType::from(k);
                 let _new_v = match new_k {
                     RXingResultMetadataType::OTHER => RXingResultMetadataValue::OTHER(v),
@@ -230,7 +230,7 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
 
             for x in 0..test_count {
                 // for (int x = 0; x < testCount; x++) {
-                let rotation = self.test_rxing_results.get(x).unwrap().getRotation();
+                let rotation = self.test_rxing_results.get(x).unwrap().get_rotation();
                 let rotated_image = Self::rotate_image(&image, rotation);
                 let source = BufferedImageLuminanceSource::new(rotated_image);
                 let bitmap = BinaryBitmap::new(Box::new(HybridBinarizer::new(Box::new(source))));
@@ -296,13 +296,13 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
             let test_rxing_result = self.test_rxing_results.get(x).unwrap();
             log::info(format!(
                 "Rotation {} degrees:",
-                test_rxing_result.getRotation()
+                test_rxing_result.get_rotation()
             ));
             log::info(format!(
                 " {} of {} images passed ({} required)",
                 passed_counts[x],
                 image_files.len(),
-                test_rxing_result.getMustPassCount()
+                test_rxing_result.get_must_pass_count()
             ));
             let mut failed = image_files.len() - passed_counts[x];
             log::info(format!(
@@ -314,7 +314,7 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
                 " {} of {} images passed with try harder ({} required)",
                 try_harder_counts[x],
                 image_files.len(),
-                test_rxing_result.getTryHarderCount()
+                test_rxing_result.get_try_harder_count()
             ));
             failed = image_files.len() - try_harder_counts[x];
             log::info(format!(
@@ -324,18 +324,18 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
             ));
             total_found += passed_counts[x] + try_harder_counts[x];
             total_must_pass +=
-                test_rxing_result.getMustPassCount() + test_rxing_result.getTryHarderCount();
+                test_rxing_result.get_must_pass_count() + test_rxing_result.get_try_harder_count();
             total_misread += misread_counts[x] + try_harder_misread_counts[x];
             total_max_misread +=
-                test_rxing_result.getMaxMisreads() + test_rxing_result.getMaxTryHarderMisreads();
+                test_rxing_result.get_max_misreads() + test_rxing_result.get_max_try_harder_misreads();
         }
 
-        let totalTests = image_files.len() * test_count * 2;
+        let total_tests = image_files.len() * test_count * 2;
         log::info(format!(
             "Decoded {} images out of {} ({}, {} required)",
             total_found,
-            totalTests,
-            total_found * 100 / totalTests,
+            total_tests,
+            total_found * 100 / total_tests,
             total_must_pass
         ));
         if total_found > total_must_pass as usize {
@@ -365,32 +365,32 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
         // Then run through again and assert if any failed
         for x in 0..test_count {
             // for (int x = 0; x < testCount; x++) {
-            let testRXingResult = self.test_rxing_results.get(x).unwrap();
+            let test_rxing_result = self.test_rxing_results.get(x).unwrap();
             let label = format!(
                 "Rotation {} degrees: Too many images failed",
-                testRXingResult.getRotation()
+                test_rxing_result.get_rotation()
             );
             assert!(
-                passed_counts[x] >= testRXingResult.getMustPassCount() as usize,
+                passed_counts[x] >= test_rxing_result.get_must_pass_count() as usize,
                 "{}",
                 label
             );
             assert!(
-                try_harder_counts[x] >= testRXingResult.getTryHarderCount() as usize,
+                try_harder_counts[x] >= test_rxing_result.get_try_harder_count() as usize,
                 "Try harder, {}",
                 label,
             );
             let label = format!(
                 "Rotation {} degrees: Too many images misread",
-                testRXingResult.getRotation()
+                test_rxing_result.get_rotation()
             );
             assert!(
-                misread_counts[x] <= testRXingResult.getMaxMisreads() as usize,
+                misread_counts[x] <= test_rxing_result.get_max_misreads() as usize,
                 "{}",
                 label
             );
             assert!(
-                try_harder_misread_counts[x] <= testRXingResult.getMaxTryHarderMisreads() as usize,
+                try_harder_misread_counts[x] <= test_rxing_result.get_max_try_harder_misreads() as usize,
                 "Try harder, {}",
                 label
             );
@@ -419,13 +419,13 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
 
         // Try in 'pure' mode mostly to exercise PURE_BARCODE code paths for exceptions;
         // not expected to pass, generally
-        let mut result = None;
+        // let mut result = None;
         let mut pure_hints = HashMap::new();
         pure_hints.insert(
             DecodeHintType::PURE_BARCODE,
             DecodeHintValue::PureBarcode(true),
         );
-        result = if let Ok(res) = self.barcode_reader.decode_with_hints(source, &pure_hints) {
+        let mut result = if let Ok(res) = self.barcode_reader.decode_with_hints(source, &pure_hints) {
             Some(res)
         } else {
             None

@@ -43,7 +43,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    client::result::{ParsedClientResult, ProductParsedResult},
+    client::result::{ParsedClientResult},
     RXingResult, BarcodeFormat,
 };
 

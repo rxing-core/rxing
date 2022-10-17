@@ -30,7 +30,6 @@
 
 use std::convert::TryFrom;
 
-use encoding::all::encodings;
 use regex::Regex;
 
 use lazy_static::lazy_static;

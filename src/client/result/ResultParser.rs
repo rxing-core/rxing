@@ -38,8 +38,7 @@ use crate::{exceptions::Exceptions, RXingResult};
 use super::{
     AddressBookAUResultParser, AddressBookDoCoMoResultParser, BizcardResultParser,
     BookmarkDoCoMoResultParser, EmailAddressResultParser, EmailDoCoMoResultParser,
-    ExpandedProductResultParser, GeoResultParser, ISBNResultParser, ParsedClientResult,
-    ParsedRXingResult, ProductResultParser, SMSMMSResultParser, SMTPResultParser, TelResultParser,
+    ExpandedProductResultParser, GeoResultParser, ISBNResultParser, ParsedClientResult, ProductResultParser, SMSMMSResultParser, SMTPResultParser, TelResultParser,
     TextParsedRXingResult, URIResultParser, URLTOResultParser, VCardResultParser,
     VEventResultParser, VINResultParser, WifiResultParser, SMSTOMMSTOResultParser,
 };
@@ -101,7 +100,7 @@ const AMPERSAND: &'static str = "&"; // private static final Pattern AMPERSAND =
 const EQUALS: &'static str = "="; //private static final Pattern EQUALS = Pattern.compile("=");
 const BYTE_ORDER_MARK: &'static str = "\u{feff}"; //private static final String BYTE_ORDER_MARK = "\ufeff";
 
-const EMPTY_STR_ARRAY: &'static str = "";
+// const EMPTY_STR_ARRAY: &'static str = "";
 
 pub fn getMassagedText(result: &RXingResult) -> String {
     let mut text = result.getText().clone();

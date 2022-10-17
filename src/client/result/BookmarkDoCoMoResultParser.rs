@@ -21,7 +21,7 @@
 use crate::RXingResult;
 
 use super::{
-    ParsedClientResult, ResultParser, URIParsedRXingResult, URIParsedResult, URIResultParser,
+    ParsedClientResult, ResultParser, URIParsedRXingResult, URIResultParser,
 };
 
 /**

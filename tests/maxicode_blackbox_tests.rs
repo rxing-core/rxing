@@ -29,9 +29,9 @@ fn maxicode1_test_case() {
         BarcodeFormat::MAXICODE,
     );
     // super("src/test/resources/blackbox/maxicode-1", new MultiFormatReader(), BarcodeFormat.MAXICODE);
-    tester.addTest(6, 6, 0.0);
+    tester.add_test(6, 6, 0.0);
 
-    tester.testBlackBox();
+    tester.test_black_box();
 }
 
 /**
@@ -48,12 +48,12 @@ fn maxi_code_black_box1_test_case() {
         BarcodeFormat::MAXICODE,
     );
     // super("src/test/resources/blackbox/maxicode-1", new MultiFormatReader(), BarcodeFormat.MAXICODE);
-    tester.addHint(
+    tester.add_hint(
         DecodeHintType::PURE_BARCODE,
         rxing::DecodeHintValue::PureBarcode(true),
     );
 
-    tester.addTest(1, 1, 0.0);
+    tester.add_test(1, 1, 0.0);
 
-    tester.testBlackBox();
+    tester.test_black_box();
 }

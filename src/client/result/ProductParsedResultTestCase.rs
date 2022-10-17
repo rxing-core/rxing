@@ -28,7 +28,7 @@
  */
 // public final class ProductParsedRXingResultTestCase extends Assert {
 
-use crate::{BarcodeFormat, RXingResult, client::result::{ParsedRXingResult, ParsedRXingResultType, ProductParsedResult, ParsedClientResult}};
+use crate::{BarcodeFormat, RXingResult, client::result::{ParsedRXingResult, ParsedRXingResultType, ParsedClientResult}};
 
 use super::ResultParser;
 

@@ -18,12 +18,12 @@ use std::collections::HashMap;
 
 use crate::{
     common::{
-        detector::MathUtils, BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler,
+        detector::MathUtils, BitMatrix, DefaultGridSampler, GridSampler,
         PerspectiveTransform,
     },
     qrcode::decoder::Version,
     result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
-    RXingResultPoint, RXingResultPointCallback, ResultPoint,
+    RXingResultPointCallback, ResultPoint,
 };
 
 use super::{

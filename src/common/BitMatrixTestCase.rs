@@ -58,7 +58,7 @@ use super::BitMatrix;
   #[test]
   fn test_set_region() {
     let  mut matrix =  BitMatrix::with_single_dimension(5);
-    matrix.setRegion(1, 1, 3, 3);
+    matrix.setRegion(1, 1, 3, 3).expect("must set");
     for y in 0..5 {
     // for (int y = 0; y < 5; y++) {
       for x in 0..5{
@@ -72,11 +72,11 @@ use super::BitMatrix;
   fn test_enclosing() {
     let  mut matrix =  BitMatrix::with_single_dimension(5);
     assert!(matrix.getEnclosingRectangle().is_none());
-    matrix.setRegion(1, 1, 1, 1);
+    matrix.setRegion(1, 1, 1, 1).expect("must set");
     assert_eq!(vec![ 1, 1, 1, 1 ], matrix.getEnclosingRectangle().unwrap());
-    matrix.setRegion(1, 1, 3, 2);
+    matrix.setRegion(1, 1, 3, 2).expect("must set");
     assert_eq!(vec![ 1, 1, 3, 2 ], matrix.getEnclosingRectangle().unwrap());
-    matrix.setRegion(0, 0, 5, 5);
+    matrix.setRegion(0, 0, 5, 5).expect("must set");
     assert_eq!(vec![ 0, 0, 5, 5 ], matrix.getEnclosingRectangle().unwrap());
   }
 
@@ -85,13 +85,13 @@ use super::BitMatrix;
     let mut  matrix =  BitMatrix::with_single_dimension(5);
     assert!(matrix.getTopLeftOnBit().is_none());
     assert!(matrix.getBottomRightOnBit().is_none());
-    matrix.setRegion(1, 1, 1, 1);
+    matrix.setRegion(1, 1, 1, 1).expect("must set");
     assert_eq!(vec![ 1, 1 ], matrix.getTopLeftOnBit().unwrap());
     assert_eq!(vec![ 1, 1 ], matrix.getBottomRightOnBit().unwrap());
-    matrix.setRegion(1, 1, 3, 2);
+    matrix.setRegion(1, 1, 3, 2).expect("must set");
     assert_eq!(vec![ 1, 1 ], matrix.getTopLeftOnBit().unwrap());
     assert_eq!(vec![ 3, 2 ], matrix.getBottomRightOnBit().unwrap());
-    matrix.setRegion(0, 0, 5, 5);
+    matrix.setRegion(0, 0, 5, 5).expect("must set");
     assert_eq!(vec![ 0, 0 ], matrix.getTopLeftOnBit().unwrap());
     assert_eq!(vec![ 4, 4 ], matrix.getBottomRightOnBit().unwrap());
   }
@@ -128,7 +128,7 @@ use super::BitMatrix;
     let mut  matrix =  BitMatrix::new(320, 240).unwrap();
     assert_eq!(320, matrix.getWidth());
     assert_eq!(240, matrix.getHeight());
-    matrix.setRegion(105, 22, 80, 12);
+    matrix.setRegion(105, 22, 80, 12).expect("must set");
 
     // Only bits in the region should be on
     for y in 0..240 {
@@ -217,9 +217,9 @@ use super::BitMatrix;
   fn test_parse() {
     let emptyMatrix =  BitMatrix::new(3, 3).unwrap();
     let mut  fullMatrix =  BitMatrix::new(3, 3).unwrap();
-    fullMatrix.setRegion(0, 0, 3, 3);
+    fullMatrix.setRegion(0, 0, 3, 3).expect("must set");
     let mut  centerMatrix =  BitMatrix::new(3, 3).unwrap();
-    centerMatrix.setRegion(1, 1, 1, 1);
+    centerMatrix.setRegion(1, 1, 1, 1).expect("must set");
     let emptyMatrix24 =  BitMatrix::new(2, 4).unwrap();
 
     assert_eq!(emptyMatrix, BitMatrix::parse_strings("   \n   \n   \n", "x", " ").unwrap());
@@ -243,9 +243,9 @@ use super::BitMatrix;
   fn test_parse_boolean() {
     let emptyMatrix =  BitMatrix::new(3, 3).unwrap();
     let  mut fullMatrix =  BitMatrix::new(3, 3).unwrap();
-    fullMatrix.setRegion(0, 0, 3, 3);
+    fullMatrix.setRegion(0, 0, 3, 3).expect("must set");
     let  mut centerMatrix =  BitMatrix::new(3, 3).unwrap();
-    centerMatrix.setRegion(1, 1, 1, 1);
+    centerMatrix.setRegion(1, 1, 1, 1).expect("must set");
     let emptyMatrix24 =  BitMatrix::new(2, 4).unwrap();
 
     let  mut matrix = vec![vec![false;3];3];
@@ -276,9 +276,9 @@ use super::BitMatrix;
   fn test_xor_case() {
     let emptyMatrix =  BitMatrix::new(3, 3).unwrap();
     let mut  fullMatrix =  BitMatrix::new(3, 3).unwrap();
-    fullMatrix.setRegion(0, 0, 3, 3);
+    fullMatrix.setRegion(0, 0, 3, 3).expect("must set");
     let mut  centerMatrix =  BitMatrix::new(3, 3).unwrap();
-    centerMatrix.setRegion(1, 1, 1, 1);
+    centerMatrix.setRegion(1, 1, 1, 1).expect("must set");
     let mut  invertedCenterMatrix = fullMatrix.clone();
     invertedCenterMatrix.unset(1, 1);
     let badMatrix =  BitMatrix::new(4, 4).unwrap();
@@ -328,7 +328,7 @@ use super::BitMatrix;
 
   fn test_XOR( dataMatrix: &BitMatrix,  flipMatrix: &BitMatrix,  expectedMatrix: &BitMatrix) {
     let mut matrix = dataMatrix.clone();
-    matrix.xor(flipMatrix);
+    matrix.xor(flipMatrix).expect("must set");
     assert_eq!(*expectedMatrix, matrix);
   }
 

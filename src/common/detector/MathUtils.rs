@@ -76,7 +76,7 @@ pub fn sum(array: &[i32]) -> i32 {
 mod tests {
     use crate::common::detector::MathUtils;
 
-    static EPSILON: f32 = 1.0E-8f32;
+    // static EPSILON: f32 = 1.0E-8f32;
 
     #[test]
     fn testRound() {

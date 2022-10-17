@@ -27,7 +27,7 @@
 // import java.util.Locale;
 // import java.util.TimeZone;
 
-use chrono::{Local, TimeZone, Utc};
+use chrono::{TimeZone, Utc};
 
 use crate::{client::result::ParsedRXingResult, BarcodeFormat, RXingResult};
 
