@@ -24,7 +24,7 @@ use crate::{RXingResultPoint, ResultPoint};
  *
  * @author Sean Owen
  */
-#[derive(Debug,Clone, Copy,PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct AlignmentPattern {
     estimatedModuleSize: f32,
     point: (f32, f32),
@@ -40,7 +40,10 @@ impl ResultPoint for AlignmentPattern {
     }
 
     fn into_rxing_result_point(self) -> RXingResultPoint {
-        RXingResultPoint { x: self.point.0, y: self.point.1 }
+        RXingResultPoint {
+            x: self.point.0,
+            y: self.point.1,
+        }
     }
 }
 

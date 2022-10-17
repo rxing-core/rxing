@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-use crate::qrcode::{decoder::{Mode, ErrorCorrectionLevel, Version}, encoder::ByteMatrix};
+use crate::qrcode::{
+    decoder::{ErrorCorrectionLevel, Mode, Version},
+    encoder::ByteMatrix,
+};
 
 use super::QRCode;
-
 
 /**
  * @author satorux@google.com (Satoru Takabayashi) - creator
  * @author mysen@google.com (Chris Mysen) - ported from C++
  */
 
-
 #[test]
-  fn test() {
-    let mut qrCode =  QRCode::new();
+fn test() {
+    let mut qrCode = QRCode::new();
 
     // First, test simple setters and getters.
     // We use numbers of version 7-H.
@@ -42,43 +43,43 @@ use super::QRCode;
     assert_eq!(3, qrCode.getMaskPattern());
 
     // Prepare the matrix.
-    let mut matrix =  ByteMatrix::new(45, 45);
+    let mut matrix = ByteMatrix::new(45, 45);
     // Just set bogus zero/one values.
     for y in 0..45 {
-    // for (int y = 0; y < 45; ++y) {
-      for x in 0..45 {
-      // for (int x = 0; x < 45; ++x) {
-        matrix.set(x, y, ((y + x) % 2) as u8);
-      }
+        // for (int y = 0; y < 45; ++y) {
+        for x in 0..45 {
+            // for (int x = 0; x < 45; ++x) {
+            matrix.set(x, y, ((y + x) % 2) as u8);
+        }
     }
 
     // Set the matrix.
     qrCode.setMatrix(matrix.clone());
     assert_eq!(&matrix, qrCode.getMatrix().as_ref().unwrap());
-  }
+}
 
-  #[test]
-  fn testToString1() {
-    let qrCode =  QRCode::new();
+#[test]
+fn testToString1() {
+    let qrCode = QRCode::new();
     let expected =
         "<<\n mode: null\n ecLevel: null\n version: null\n maskPattern: -1\n matrix: null\n>>\n";
-        assert_eq!(expected, qrCode.to_string());
-  }
+    assert_eq!(expected, qrCode.to_string());
+}
 
-  #[test]
-  fn testToString2() {
-    let mut qrCode =  QRCode::new();
+#[test]
+fn testToString2() {
+    let mut qrCode = QRCode::new();
     qrCode.setMode(Mode::BYTE);
     qrCode.setECLevel(ErrorCorrectionLevel::H);
     qrCode.setVersion(Version::getVersionForNumber(1).expect("predefined value must exist"));
     qrCode.setMaskPattern(3);
-    let mut matrix =  ByteMatrix::new(21, 21);
+    let mut matrix = ByteMatrix::new(21, 21);
     for y in 0..21 {
-    // for (int y = 0; y < 21; ++y) {
-      for x in 0..21 {
-      // for (int x = 0; x < 21; ++x) {
-        matrix.set(x, y, ((y + x) % 2) as u8);
-      }
+        // for (int y = 0; y < 21; ++y) {
+        for x in 0..21 {
+            // for (int x = 0; x < 21; ++x) {
+            matrix.set(x, y, ((y + x) % 2) as u8);
+        }
     }
     qrCode.setMatrix(matrix);
     let expected = "<<\n \
@@ -110,13 +111,12 @@ use super::QRCode;
  0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0\n\
 >>\n";
     assert_eq!(expected, qrCode.to_string());
-  }
+}
 
-  #[test]
-  fn testIsValidMaskPattern() {
+#[test]
+fn testIsValidMaskPattern() {
     assert!(!QRCode::isValidMaskPattern(-1));
     assert!(QRCode::isValidMaskPattern(0));
     assert!(QRCode::isValidMaskPattern(7));
     assert!(!QRCode::isValidMaskPattern(8));
-  }
-
+}

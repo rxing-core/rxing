@@ -46,8 +46,10 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let lastName = ResultParser::match_single_do_co_mo_prefixed_field("X:", &rawText, true)
         .unwrap_or_default();
     let fullName = buildName(&firstName, &lastName);
-    let title = ResultParser::match_single_do_co_mo_prefixed_field("T:", &rawText, true).unwrap_or_default();
-    let org = ResultParser::match_single_do_co_mo_prefixed_field("C:", &rawText, true).unwrap_or_default();
+    let title = ResultParser::match_single_do_co_mo_prefixed_field("T:", &rawText, true)
+        .unwrap_or_default();
+    let org = ResultParser::match_single_do_co_mo_prefixed_field("C:", &rawText, true)
+        .unwrap_or_default();
     let addresses = ResultParser::match_do_co_mo_prefixed_field("A:", &rawText);
     let phoneNumber1 = ResultParser::match_single_do_co_mo_prefixed_field("B:", &rawText, true)
         .unwrap_or_default();

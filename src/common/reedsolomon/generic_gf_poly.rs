@@ -20,7 +20,7 @@ use std::fmt;
 
 use crate::Exceptions;
 
-use super::{GenericGFRef, GenericGF};
+use super::{GenericGF, GenericGFRef};
 
 /**
  * <p>Represents a polynomial whose coefficients are elements of a GF.

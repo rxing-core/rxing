@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2009 ZXing authors
  *
@@ -17,7 +16,10 @@
 
 //package com.google.zxing;
 
-use crate::{common::{BitArray, BitMatrix}, Exceptions, LuminanceSource};
+use crate::{
+    common::{BitArray, BitMatrix},
+    Exceptions, LuminanceSource,
+};
 
 /**
  * This class hierarchy provides a set of methods to convert luminance data to 1 bit data.

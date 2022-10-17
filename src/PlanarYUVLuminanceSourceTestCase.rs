@@ -75,7 +75,7 @@ fn test_crop() {
     .unwrap();
     assert!(source.isCropSupported());
     let cropMatrix = source.getMatrix();
-    for r in 0..ROWS-2 {
+    for r in 0..ROWS - 2 {
         // for (int r = 0; r < ROWS - 2; r++) {
         assert_equals(
             &Y,
@@ -85,7 +85,7 @@ fn test_crop() {
             COLS - 2,
         );
     }
-    for r in 0..ROWS-2 {
+    for r in 0..ROWS - 2 {
         // for (int r = 0; r < ROWS - 2; r++) {
         assert_equals(
             &Y,

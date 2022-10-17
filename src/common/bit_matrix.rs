@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2007 ZXing authors
  *
@@ -393,7 +392,7 @@ impl BitMatrix {
     pub fn rotate180(&mut self) {
         let mut topRow = BitArray::with_size(self.width as usize);
         let mut bottomRow = BitArray::with_size(self.width as usize);
-        let  maxHeight = (self.height + 1) / 2;
+        let maxHeight = (self.height + 1) / 2;
         for i in 0..maxHeight {
             //for (int i = 0; i < maxHeight; i++) {
             topRow = self.getRow(i, &topRow);
@@ -410,9 +409,9 @@ impl BitMatrix {
      * Modifies this {@code BitMatrix} to represent the same but rotated 90 degrees counterclockwise
      */
     pub fn rotate90(&mut self) {
-        let  newWidth = self.height;
-        let  newHeight = self.width;
-        let  newRowSize = (newWidth + 31) / 32;
+        let newWidth = self.height;
+        let newHeight = self.width;
+        let newRowSize = (newWidth + 31) / 32;
         let mut newBits = vec![0; (newRowSize * newHeight).try_into().unwrap()];
 
         for y in 0..self.height {

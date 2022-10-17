@@ -36,7 +36,7 @@ impl TokenType {
     }
 }
 
-#[derive(Debug,Clone,PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Token {
     tokens: Vec<TokenType>,
     //current_pointer: usize,
@@ -53,13 +53,13 @@ impl Token {
     //     self.current_pointer -= 1;
     //     &self.tokens[self.current_pointer]
     // }
-    pub fn add(&mut self, value: i32, bit_count: u32)  {
+    pub fn add(&mut self, value: i32, bit_count: u32) {
         //self.current_pointer += 1;
         self.tokens
             .push(TokenType::Simple(SimpleToken::new(value, bit_count)));
         // &self.tokens[self.current_pointer]
     }
-    pub fn addBinaryShift(&mut self, start: u32, byte_count: u32)  {
+    pub fn addBinaryShift(&mut self, start: u32, byte_count: u32) {
         //self.current_pointer += 1;
         self.tokens
             .push(TokenType::BinaryShift(BinaryShiftToken::new(
@@ -78,7 +78,7 @@ impl Iterator for TokenIter {
     type Item = TokenType;
 
     fn next(&mut self) -> Option<Self::Item> {
-      self.src.pop()
+        self.src.pop()
     }
 }
 

@@ -41,7 +41,6 @@ pub fn testGeo1() {
     //doTest("geo:1,2", 1.0, 2.0, 0.0, "", "geo:1.0,2.0");
     // I think 1.0 and 1 and 2.0 and 2 are similar enough here, correct me if i'm wrong.
     doTest("geo:1,2", 1.0, 2.0, 0.0, "", "geo:1,2");
-
 }
 #[test]
 pub fn testGeo2() {

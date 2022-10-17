@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2008 ZXing authors
  *
@@ -17,7 +16,7 @@
 
 //package com.google.zxing;
 
-use crate::{BarcodeFormat, common::BitMatrix, Exceptions, EncodingHintDictionary};
+use crate::{common::BitMatrix, BarcodeFormat, EncodingHintDictionary, Exceptions};
 
 /**
  * The base class for all objects which encode/generate a barcode image.

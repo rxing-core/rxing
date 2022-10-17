@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2007 ZXing authors
  *
@@ -20,9 +19,13 @@
 //import java.util.EnumMap;
 //import java.util.Map;
 
-use std::{fmt, collections::HashMap, time::{SystemTime, UNIX_EPOCH}};
+use std::{
+    collections::HashMap,
+    fmt,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
-use crate::{RXingResultMetadataValue, RXingResultMetadataType, BarcodeFormat, RXingResultPoint};
+use crate::{BarcodeFormat, RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint};
 
 /**
  * <p>Encapsulates the result of decoding a barcode within an image.</p>

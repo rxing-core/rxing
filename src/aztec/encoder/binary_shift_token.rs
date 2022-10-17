@@ -50,7 +50,9 @@ impl BinaryShiftToken {
                     bit_array.appendBits(bsbc as u32 - 31, 5).unwrap();
                 }
             }
-            bit_array.appendBits(text[self.binary_shift_start as usize + i].into(), 8).expect("should never fail to append");
+            bit_array
+                .appendBits(text[self.binary_shift_start as usize + i].into(), 8)
+                .expect("should never fail to append");
         }
     }
 

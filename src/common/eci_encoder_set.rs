@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2021 ZXing authors
  *
@@ -24,7 +23,7 @@
 // import java.util.ArrayList;
 // import java.util.List;
 
-use encoding::{EncodingRef, Encoding};
+use encoding::{Encoding, EncodingRef};
 use unicode_segmentation::UnicodeSegmentation;
 
 use super::CharacterSetECI;

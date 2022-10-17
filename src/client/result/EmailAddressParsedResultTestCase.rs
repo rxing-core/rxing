@@ -22,7 +22,7 @@
 // import org.junit.Test;
 
 use crate::{
-    client::result::{ParsedClientResult, ParsedRXingResultType, ResultParser, ParsedRXingResult},
+    client::result::{ParsedClientResult, ParsedRXingResult, ParsedRXingResultType, ResultParser},
     BarcodeFormat, RXingResult,
 };
 

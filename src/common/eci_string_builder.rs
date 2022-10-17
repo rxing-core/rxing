@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2022 ZXing authors
  *
@@ -24,7 +23,7 @@
 
 use std::fmt;
 
-use encoding::{EncodingRef, Encoding};
+use encoding::{Encoding, EncodingRef};
 
 use crate::Exceptions;
 
@@ -81,7 +80,11 @@ impl ECIStringBuilder {
      * @param value string to append
      */
     pub fn append_string(&mut self, value: &str) {
-        value.as_bytes().iter().map(|b| self.current_bytes.push(*b)).count();
+        value
+            .as_bytes()
+            .iter()
+            .map(|b| self.current_bytes.push(*b))
+            .count();
         // self.current_bytes.push(value.as_bytes());
     }
 

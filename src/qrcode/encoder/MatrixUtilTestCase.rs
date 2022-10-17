@@ -254,7 +254,8 @@ fn testBuildMatrix() {
         Version::getVersionForNumber(1).expect("version"), // Version 1
         3,                                                 // Mask pattern 3
         &mut matrix,
-    ).expect("append");
+    )
+    .expect("append");
     let expected = r" 1 1 1 1 1 1 1 0 0 1 1 0 0 0 1 1 1 1 1 1 1
  1 0 0 0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 0 1
  1 0 1 1 1 0 1 0 0 0 0 1 0 0 1 0 1 1 1 0 1

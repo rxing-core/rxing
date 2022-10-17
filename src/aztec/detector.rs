@@ -278,10 +278,10 @@ impl Detector {
 
         let mut color = true;
 
-         self.nb_center_layers = 1;
+        self.nb_center_layers = 1;
 
         while self.nb_center_layers < 9 {
-        // for nbCenterLayers in 1..9 {
+            // for nbCenterLayers in 1..9 {
             // for (nbCenterLayers = 1; nbCenterLayers < 9; nbCenterLayers++) {
             let pouta = self.get_first_different(&pina, color, 1, -1);
             let poutb = self.get_first_different(&pinb, color, 1, 1);
@@ -319,7 +319,7 @@ impl Detector {
 
             color = !color;
 
-            self.nb_center_layers+=1;
+            self.nb_center_layers += 1;
         }
 
         if self.nb_center_layers != 5 && self.nb_center_layers != 7 {
@@ -634,8 +634,12 @@ impl Detector {
         let i_max = d.floor() as u32; //(int) Math.floor(d);
         for _i in 0..i_max {
             // for (int i = 0; i < iMax; i++) {
-                
-            if self.image.get(MathUtils::round(px) as u32, MathUtils::round(py) as u32) != color_model {
+
+            if self
+                .image
+                .get(MathUtils::round(px) as u32, MathUtils::round(py) as u32)
+                != color_model
+            {
                 error += 1;
             }
             px += dx;

@@ -20,9 +20,9 @@
 // import com.google.zxing.LuminanceSource;
 // import com.google.zxing.NotFoundException;
 
-use crate::{LuminanceSource, Binarizer, Exceptions};
+use crate::{Binarizer, Exceptions, LuminanceSource};
 
-use super::{GlobalHistogramBinarizer, BitMatrix, BitArray};
+use super::{BitArray, BitMatrix, GlobalHistogramBinarizer};
 
 /**
  * This class implements a local thresholding algorithm, which while slower than the

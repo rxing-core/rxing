@@ -27,12 +27,8 @@
  * @author Sean Owen
  */
 // public final class TelParsedRXingResultTestCase extends Assert {
-
 use crate::{
-    client::result::{
-        ParsedClientResult, ParsedRXingResult, ParsedRXingResultType, 
-        
-    },
+    client::result::{ParsedClientResult, ParsedRXingResult, ParsedRXingResultType},
     BarcodeFormat, RXingResult,
 };
 

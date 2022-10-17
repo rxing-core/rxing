@@ -2,7 +2,7 @@ use std::fmt;
 
 use crate::Exceptions;
 
-use super::{GenericGFRef, GenericGFPoly};
+use super::{GenericGFPoly, GenericGFRef};
 
 /**
  * <p>This class contains utility methods for performing mathematical operations over

@@ -101,12 +101,12 @@ impl FormatInformation {
     ) -> Option<FormatInformation> {
         let formatInfo = Self::doDecodeFormatInformation(masked_format_info1, masked_format_info2);
         if formatInfo.is_some() {
-            return formatInfo
+            return formatInfo;
         }
         // Should return null, but, some QR codes apparently
         // do not mask this info. Try again by actually masking the pattern
         // first
-         Self::doDecodeFormatInformation(
+        Self::doDecodeFormatInformation(
             masked_format_info1 ^ FORMAT_INFO_MASK_QR,
             masked_format_info2 ^ FORMAT_INFO_MASK_QR,
         )

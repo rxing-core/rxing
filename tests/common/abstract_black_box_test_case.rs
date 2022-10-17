@@ -27,13 +27,11 @@ use rxing::{
 
 use super::TestRXingResult;
 
-
-
 /**
  * @author Sean Owen
  * @author dswitkin@google.com (Daniel Switkin)
  */
-pub struct AbstractBlackBoxTestCase<T:Reader> {
+pub struct AbstractBlackBoxTestCase<T: Reader> {
     test_base: Box<Path>,
     barcode_reader: T,
     expected_format: BarcodeFormat,
@@ -41,8 +39,7 @@ pub struct AbstractBlackBoxTestCase<T:Reader> {
     hints: HashMap<DecodeHintType, DecodeHintValue>,
 }
 
-impl<T:Reader> AbstractBlackBoxTestCase<T>  {
-
+impl<T: Reader> AbstractBlackBoxTestCase<T> {
     pub fn build_test_base(test_base_path_suffix: &str) -> Box<Path> {
         // A little workaround to prevent aggravation in my IDE
         let test_base = Path::new(test_base_path_suffix);
@@ -125,7 +122,7 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
             // .map(|r| r.into_boxed_path())
             .collect::<Vec<PathBuf>>();
 
-            paths.sort();
+        paths.sort();
 
         paths
     }
@@ -236,10 +233,10 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
                 let bitmap = BinaryBitmap::new(Box::new(HybridBinarizer::new(Box::new(source))));
 
                 // if file_base_name == "15" {
-                    // let mut f = File::create("test_file_output.txt").unwrap();
-                    // write!(f,"{}", bitmap.getBlackMatrix().unwrap());
-                    // drop(f);
-                    // Self::rotate_image(&image, rotation).save("test_image.png").unwrap();
+                // let mut f = File::create("test_file_output.txt").unwrap();
+                // write!(f,"{}", bitmap.getBlackMatrix().unwrap());
+                // drop(f);
+                // Self::rotate_image(&image, rotation).save("test_image.png").unwrap();
                 // }
 
                 if let Ok(decoded) =
@@ -326,8 +323,8 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
             total_must_pass +=
                 test_rxing_result.get_must_pass_count() + test_rxing_result.get_try_harder_count();
             total_misread += misread_counts[x] + try_harder_misread_counts[x];
-            total_max_misread +=
-                test_rxing_result.get_max_misreads() + test_rxing_result.get_max_try_harder_misreads();
+            total_max_misread += test_rxing_result.get_max_misreads()
+                + test_rxing_result.get_max_try_harder_misreads();
         }
 
         let total_tests = image_files.len() * test_count * 2;
@@ -390,7 +387,8 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
                 label
             );
             assert!(
-                try_harder_misread_counts[x] <= test_rxing_result.get_max_try_harder_misreads() as usize,
+                try_harder_misread_counts[x]
+                    <= test_rxing_result.get_max_try_harder_misreads() as usize,
                 "Try harder, {}",
                 label
             );
@@ -425,7 +423,8 @@ impl<T:Reader> AbstractBlackBoxTestCase<T>  {
             DecodeHintType::PURE_BARCODE,
             DecodeHintValue::PureBarcode(true),
         );
-        let mut result = if let Ok(res) = self.barcode_reader.decode_with_hints(source, &pure_hints) {
+        let mut result = if let Ok(res) = self.barcode_reader.decode_with_hints(source, &pure_hints)
+        {
             Some(res)
         } else {
             None

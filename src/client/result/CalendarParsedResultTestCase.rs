@@ -34,7 +34,7 @@
 //  */
 // public final class CalendarParsedRXingResultTestCase extends Assert {
 
-use chrono::{NaiveDateTime};
+use chrono::NaiveDateTime;
 
 use crate::{
     client::result::{ParsedClientResult, ParsedRXingResultType},

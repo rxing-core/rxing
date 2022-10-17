@@ -24,31 +24,30 @@ use crate::RXingResultPoint;
  */
 pub struct QRCodeDecoderMetaData(bool);
 
-impl  QRCodeDecoderMetaData {
-  pub fn new( mirrored:bool) -> Self {
-    Self(mirrored)
-  }
-
-  /**
-   * @return true if the QR Code was mirrored.
-   */
-  pub fn isMirrored(&self) -> bool{
-    self.0
-  }
-
-  /**
-   * Apply the result points' order correction due to mirroring.
-   *
-   * @param points Array of points to apply mirror correction to.
-   */
-  pub fn applyMirroredCorrection(&self, points : &mut [RXingResultPoint]) {
-    if !self.0 || points.is_empty() || points.len() < 3 {
-      return
+impl QRCodeDecoderMetaData {
+    pub fn new(mirrored: bool) -> Self {
+        Self(mirrored)
     }
-    let bottom_left = points[0];
-    points[0] = points[2];
-    points[2] = bottom_left;
-    // No need to 'fix' top-left and alignment pattern.
-  }
 
+    /**
+     * @return true if the QR Code was mirrored.
+     */
+    pub fn isMirrored(&self) -> bool {
+        self.0
+    }
+
+    /**
+     * Apply the result points' order correction due to mirroring.
+     *
+     * @param points Array of points to apply mirror correction to.
+     */
+    pub fn applyMirroredCorrection(&self, points: &mut [RXingResultPoint]) {
+        if !self.0 || points.is_empty() || points.len() < 3 {
+            return;
+        }
+        let bottom_left = points[0];
+        points[0] = points[2];
+        points[2] = bottom_left;
+        // No need to 'fix' top-left and alignment pattern.
+    }
 }

@@ -41,14 +41,15 @@ use uriparse::URI;
 use super::{AddressBookParsedRXingResult, ParsedClientResult, ResultParser};
 
 lazy_static! {
-    static ref BEGIN_VCARD :Regex=  Regex::new("(?i:BEGIN:VCARD)").unwrap();
-    static ref VCARD_LIKE_DATE : Regex = Regex::new("\\d{4}-?\\d{2}-?\\d{2}").unwrap();
-    static ref CR_LF_SPACE_TAB : Regex = Regex::new("\r\n[ \t]").unwrap();
-    static ref NEWLINE_ESCAPE : Regex = Regex::new("\\\\[nN]").unwrap();
-    static ref VCARD_ESCAPE : Regex = Regex::new("\\\\([,;\\\\])").unwrap();
-    static ref EQUALS : Regex = Regex::new("=").unwrap();
-    static ref UNESCAPED_SEMICOLONS : fancy_regex::Regex = fancy_regex::Regex::new("(?<!\\\\);+").unwrap();
-    static ref SEMICOLON_OR_COMMA : Regex = Regex::new("[;,]").unwrap();
+    static ref BEGIN_VCARD: Regex = Regex::new("(?i:BEGIN:VCARD)").unwrap();
+    static ref VCARD_LIKE_DATE: Regex = Regex::new("\\d{4}-?\\d{2}-?\\d{2}").unwrap();
+    static ref CR_LF_SPACE_TAB: Regex = Regex::new("\r\n[ \t]").unwrap();
+    static ref NEWLINE_ESCAPE: Regex = Regex::new("\\\\[nN]").unwrap();
+    static ref VCARD_ESCAPE: Regex = Regex::new("\\\\([,;\\\\])").unwrap();
+    static ref EQUALS: Regex = Regex::new("=").unwrap();
+    static ref UNESCAPED_SEMICOLONS: fancy_regex::Regex =
+        fancy_regex::Regex::new("(?<!\\\\);+").unwrap();
+    static ref SEMICOLON_OR_COMMA: Regex = Regex::new("[;,]").unwrap();
 }
 
 // const BEGIN_VCARD: &'static str = "(?i:BEGIN:VCARD)"; //, Pattern.CASE_INSENSITIVE);
@@ -238,7 +239,7 @@ pub fn matchVCardPrefixedField(
         while let Some(pos) = rawText[i as usize..].find('\n') {
             // Really, end in \r\n
             i += pos as isize; // + i;
-                      // while (i = rawText.indexOf('\n', i)) >= 0 { // Really, end in \r\n
+                               // while (i = rawText.indexOf('\n', i)) >= 0 { // Really, end in \r\n
             if i < rawText.len() as isize- 1 &&           // But if followed by tab or space,
             (rawText.chars().nth(i as usize+ 1)? == ' ' ||        // this is only a continuation
              rawText.chars().nth(i as usize+ 1)? == '\t')
@@ -262,7 +263,7 @@ pub fn matchVCardPrefixedField(
             // if matches == null {
             //   matches = new ArrayList<>(1); // lazy init
             // }
-            if i >= 1 && rawText.chars().nth(i as usize- 1)? == '\r' {
+            if i >= 1 && rawText.chars().nth(i as usize - 1)? == '\r' {
                 i -= 1; // Back up over \r, which really should be there
             }
             let mut element = rawText[matchStart as usize..i as usize].to_owned();
@@ -293,7 +294,10 @@ pub fn matchVCardPrefixedField(
                     .replace_all(&element, "")
                     .to_mut()
                     .to_owned();
-                element = NEWLINE_ESCAPE.replace_all(&element, "\n").to_mut().to_owned();
+                element = NEWLINE_ESCAPE
+                    .replace_all(&element, "\n")
+                    .to_mut()
+                    .to_owned();
                 element = VCARD_ESCAPE.replace_all(&element, "$1").to_mut().to_owned();
                 // element = CR_LF_SPACE_TAB.matcher(element).replaceAll("");
                 // element = NEWLINE_ESCAPE.matcher(element).replaceAll("\n");

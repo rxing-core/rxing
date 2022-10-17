@@ -16,7 +16,7 @@
 
 use crate::{
     common::BitMatrix, result_point_utils, DecodeHintType, DecodingHintDictionary, Exceptions,
-     RXingResultPointCallback, ResultPoint,
+    RXingResultPointCallback, ResultPoint,
 };
 
 use super::{FinderPattern, FinderPatternInfo};
@@ -76,7 +76,6 @@ impl FinderPatternFinder {
         &mut self,
         hints: &DecodingHintDictionary,
     ) -> Result<FinderPatternInfo, Exceptions> {
-
         let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
         let maxI = self.image.getHeight();
         let maxJ = self.image.getWidth();
@@ -136,7 +135,9 @@ impl FinderPatternFinder {
                                             // Skip by rowSkip, but back off by stateCount[2] (size of last center
                                             // of pattern we saw) to be conservative, and also back off by iSkip which
                                             // is about to be re-added
-                                            i += rowSkip as i32 - stateCount[2] as i32 - iSkip as i32;
+                                            i += rowSkip as i32
+                                                - stateCount[2] as i32
+                                                - iSkip as i32;
                                             // i += rowSkip  - stateCount[2]  - iSkip ;
                                             j = maxJ - 1;
                                         }
@@ -144,7 +145,7 @@ impl FinderPatternFinder {
                                 } else {
                                     FinderPatternFinder::doShiftCounts2(&mut stateCount);
                                     currentState = 3;
-                                    j+=1;
+                                    j += 1;
                                     continue;
                                 }
                                 // Clear state to start looking again
@@ -164,7 +165,7 @@ impl FinderPatternFinder {
                         stateCount[currentState] += 1;
                     }
                 }
-                j+=1;
+                j += 1;
             }
             if FinderPatternFinder::foundPatternCross(&stateCount) {
                 let confirmed = self.handlePossibleCenter(&stateCount, i as u32, maxJ);
@@ -379,7 +380,10 @@ impl FinderPatternFinder {
         if i < 0 {
             return f32::NAN;
         }
-        while i >= 0 && !self.image.get(centerJ, i as u32) && self.crossCheckStateCount[1] <= maxCount {
+        while i >= 0
+            && !self.image.get(centerJ, i as u32)
+            && self.crossCheckStateCount[1] <= maxCount
+        {
             self.crossCheckStateCount[1] += 1;
             i -= 1;
         }
@@ -387,7 +391,10 @@ impl FinderPatternFinder {
         if i < 0 || self.crossCheckStateCount[1] > maxCount {
             return f32::NAN;
         }
-        while i >= 0 && self.image.get(centerJ, i as u32) && self.crossCheckStateCount[0] <= maxCount {
+        while i >= 0
+            && self.image.get(centerJ, i as u32)
+            && self.crossCheckStateCount[0] <= maxCount
+        {
             self.crossCheckStateCount[0] += 1;
             i -= 1;
         }
@@ -404,14 +411,20 @@ impl FinderPatternFinder {
         if i == maxI {
             return f32::NAN;
         }
-        while i < maxI && !self.image.get(centerJ, i as u32) && self.crossCheckStateCount[3] < maxCount {
+        while i < maxI
+            && !self.image.get(centerJ, i as u32)
+            && self.crossCheckStateCount[3] < maxCount
+        {
             self.crossCheckStateCount[3] += 1;
             i += 1;
         }
         if i == maxI || self.crossCheckStateCount[3] >= maxCount {
             return f32::NAN;
         }
-        while i < maxI && self.image.get(centerJ, i as u32) && self.crossCheckStateCount[4] < maxCount {
+        while i < maxI
+            && self.image.get(centerJ, i as u32)
+            && self.crossCheckStateCount[4] < maxCount
+        {
             self.crossCheckStateCount[4] += 1;
             i += 1;
         }
@@ -426,7 +439,9 @@ impl FinderPatternFinder {
             + self.crossCheckStateCount[2]
             + self.crossCheckStateCount[3]
             + self.crossCheckStateCount[4];
-        if 5 * (stateCountTotal as i64 - originalStateCountTotal as i64) >= 2 * originalStateCountTotal as i64 {
+        if 5 * (stateCountTotal as i64 - originalStateCountTotal as i64)
+            >= 2 * originalStateCountTotal as i64
+        {
             return f32::NAN;
         }
 
@@ -462,14 +477,20 @@ impl FinderPatternFinder {
         if j < 0 {
             return f32::NAN;
         }
-        while j >= 0 && !self.image.get(j as u32, centerI) && self.crossCheckStateCount[1] <= maxCount {
+        while j >= 0
+            && !self.image.get(j as u32, centerI)
+            && self.crossCheckStateCount[1] <= maxCount
+        {
             self.crossCheckStateCount[1] += 1;
             j -= 1;
         }
         if j < 0 || self.crossCheckStateCount[1] > maxCount {
             return f32::NAN;
         }
-        while j >= 0 && self.image.get(j as u32 as u32, centerI) && self.crossCheckStateCount[0] <= maxCount {
+        while j >= 0
+            && self.image.get(j as u32 as u32, centerI)
+            && self.crossCheckStateCount[0] <= maxCount
+        {
             self.crossCheckStateCount[0] += 1;
             j -= 1;
         }
@@ -485,14 +506,20 @@ impl FinderPatternFinder {
         if j == maxJ as i32 {
             return f32::NAN;
         }
-        while j < maxJ as i32 && !self.image.get(j as u32, centerI) && self.crossCheckStateCount[3] < maxCount {
+        while j < maxJ as i32
+            && !self.image.get(j as u32, centerI)
+            && self.crossCheckStateCount[3] < maxCount
+        {
             self.crossCheckStateCount[3] += 1;
             j += 1;
         }
         if j == (maxJ as i32) || self.crossCheckStateCount[3] >= maxCount {
             return f32::NAN;
         }
-        while j < (maxJ as i32) && self.image.get(j as u32, centerI) && self.crossCheckStateCount[4] < maxCount {
+        while j < (maxJ as i32)
+            && self.image.get(j as u32, centerI)
+            && self.crossCheckStateCount[4] < maxCount
+        {
             self.crossCheckStateCount[4] += 1;
             j += 1;
         }
@@ -507,7 +534,9 @@ impl FinderPatternFinder {
             + self.crossCheckStateCount[2]
             + self.crossCheckStateCount[3]
             + self.crossCheckStateCount[4];
-        if 5 * (stateCountTotal as i64 - originalStateCountTotal as i64) >= originalStateCountTotal as i64 {
+        if 5 * (stateCountTotal as i64 - originalStateCountTotal as i64)
+            >= originalStateCountTotal as i64
+        {
             return f32::NAN;
         }
 
@@ -559,7 +588,8 @@ impl FinderPatternFinder {
         let stateCountTotal =
             stateCount[0] + stateCount[1] + stateCount[2] + stateCount[3] + stateCount[4];
         let mut centerJ = Self::centerFromEnd(stateCount, j);
-        let centerI = self.crossCheckVertical(i, centerJ.floor() as u32, stateCount[2], stateCountTotal);
+        let centerI =
+            self.crossCheckVertical(i, centerJ.floor() as u32, stateCount[2], stateCountTotal);
         if !centerI.is_nan() {
             // Re-cross check
             centerJ = self.crossCheckHorizontal(
@@ -568,7 +598,9 @@ impl FinderPatternFinder {
                 stateCount[2],
                 stateCountTotal,
             );
-            if !centerJ.is_nan() && self.crossCheckDiagonal(centerI.floor() as u32, centerJ.floor() as u32) {
+            if !centerJ.is_nan()
+                && self.crossCheckDiagonal(centerI.floor() as u32, centerJ.floor() as u32)
+            {
                 let estimatedModuleSize = stateCountTotal as f32 / 7.0;
                 let mut found = false;
                 for index in 0..self.possibleCenters.len() {

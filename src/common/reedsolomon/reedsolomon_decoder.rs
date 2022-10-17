@@ -18,7 +18,7 @@
 
 use crate::Exceptions;
 
-use super::{GenericGFRef, GenericGFPoly, GenericGF};
+use super::{GenericGF, GenericGFPoly, GenericGFRef};
 
 /**
  * <p>Implements Reed-Solomon decoding, as the name implies.</p>

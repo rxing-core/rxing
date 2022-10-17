@@ -21,33 +21,35 @@
 
 use crate::BarcodeFormat;
 
-use super::{ ResultParser, ISBNParsedRXingResult, ParsedClientResult};
+use super::{ISBNParsedRXingResult, ParsedClientResult, ResultParser};
 
 /**
  * Parses strings of digits that represent a ISBN.
- * 
+ *
  * @author jbreiden@google.com (Jeff Breidenbach)
  */
 // pub struct ISBNRXingResultParser  {}
 
 // impl RXingResultParser for ISBNRXingResultParser {
-   /**
-   * See <a href="http://www.bisg.org/isbn-13/for.dummies.html">ISBN-13 For Dummies</a>
-   */
-  pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientResult> {
-      let format = theRXingResult.getBarcodeFormat();
-      if *format != BarcodeFormat::EAN_13 {
+/**
+ * See <a href="http://www.bisg.org/isbn-13/for.dummies.html">ISBN-13 For Dummies</a>
+ */
+pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientResult> {
+    let format = theRXingResult.getBarcodeFormat();
+    if *format != BarcodeFormat::EAN_13 {
         return None;
-      }
-      let rawText = ResultParser::getMassagedText(theRXingResult);
-      let length = rawText.len();
-      if length != 13 {
-        return None;
-      }
-      if !rawText.starts_with("978") && !rawText.starts_with("979") {
-        return None;
-      }
-     
-      Some(ParsedClientResult::ISBNResult(ISBNParsedRXingResult::new(rawText)))
     }
+    let rawText = ResultParser::getMassagedText(theRXingResult);
+    let length = rawText.len();
+    if length != 13 {
+        return None;
+    }
+    if !rawText.starts_with("978") && !rawText.starts_with("979") {
+        return None;
+    }
+
+    Some(ParsedClientResult::ISBNResult(ISBNParsedRXingResult::new(
+        rawText,
+    )))
+}
 // }

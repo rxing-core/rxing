@@ -156,7 +156,7 @@ impl Version {
     /**
      * See ISO 18004:2006 Annex E
      */
-    pub fn buildFunctionPattern(&self) -> Result<BitMatrix,Exceptions> {
+    pub fn buildFunctionPattern(&self) -> Result<BitMatrix, Exceptions> {
         let dimension = self.getDimensionForVersion();
         let mut bitMatrix = BitMatrix::with_single_dimension(dimension);
 
@@ -932,7 +932,7 @@ impl fmt::Display for Version {
  * will be the same across all blocks within one version.</p>
  */
 #[derive(Debug)]
- pub struct ECBlocks {
+pub struct ECBlocks {
     ecCodewordsPerBlock: u32,
     ecBlocks: Vec<ECB>,
 }

@@ -27,7 +27,7 @@ use crate::{common::BitMatrix, Exceptions};
  *
  * @author Sean Owen
  */
-#[derive(Copy,Clone,Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub enum DataMask {
     // See ISO 18004:2006 6.8.1
     /**
@@ -222,15 +222,18 @@ impl TryFrom<u8> for DataMask {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-          0=>Ok(DataMask::DATA_MASK_000),
-          1=>Ok(DataMask::DATA_MASK_001),
-          2=>Ok(DataMask::DATA_MASK_010),
-          3=>Ok(DataMask::DATA_MASK_011),
-          4=>Ok(DataMask::DATA_MASK_100),
-          5=>Ok(DataMask::DATA_MASK_101),
-          6=>Ok(DataMask::DATA_MASK_110),
-          7=>Ok(DataMask::DATA_MASK_111),
-          _=>Err(Exceptions::IllegalArgumentException(format!("{} is not between 0 and 7",value))),
+            0 => Ok(DataMask::DATA_MASK_000),
+            1 => Ok(DataMask::DATA_MASK_001),
+            2 => Ok(DataMask::DATA_MASK_010),
+            3 => Ok(DataMask::DATA_MASK_011),
+            4 => Ok(DataMask::DATA_MASK_100),
+            5 => Ok(DataMask::DATA_MASK_101),
+            6 => Ok(DataMask::DATA_MASK_110),
+            7 => Ok(DataMask::DATA_MASK_111),
+            _ => Err(Exceptions::IllegalArgumentException(format!(
+                "{} is not between 0 and 7",
+                value
+            ))),
         }
     }
 }

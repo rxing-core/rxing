@@ -198,7 +198,7 @@ fn correctErrors(codewordBytes: &mut [u8], numDataCodewords: usize) -> Result<()
         codewordsInts[i] = codewordBytes[i]; // & 0xFF;
     }
 
-    let mut sending_code_words : Vec<i32> = codewordsInts.iter().map(|x| *x as i32).collect();
+    let mut sending_code_words: Vec<i32> = codewordsInts.iter().map(|x| *x as i32).collect();
 
     if let Err(e) = RS_DECODER.decode(
         &mut sending_code_words,

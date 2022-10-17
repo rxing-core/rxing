@@ -1,48 +1,48 @@
-mod ParsedResult;
-mod ResultParser;
-mod TelParsedResult;
-mod TextParsedResult;
-mod ParsedResultType;
-mod TelResultParser;
-mod ISBNParsedResult;
-mod ISBNResultParser;
-mod WifiParsedResult;
-mod WifiResultParser;
-mod GeoResultParser;
-mod GeoParsedResult;
-mod SMSParsedResult;
-mod SMSMMSResultParser;
-mod ProductParsedResult;
-mod ProductResultParser;
-mod URIParsedResult;
-mod URIResultParser;
-mod URLTOResultParser;
 mod AbstractDoCoMoResultParser;
+mod AddressBookAUResultParser;
+mod AddressBookDoCoMoResultParser;
+mod AddressBookParsedResult;
+mod BizcardResultParser;
 mod BookmarkDoCoMoResultParser;
-mod SMSTOMMSTOResultParser;
+mod CalendarParsedResult;
 mod EmailAddressParsedResult;
 mod EmailAddressResultParser;
 mod EmailDoCoMoResultParser;
-mod SMTPResultParser;
-mod VINParsedResult;
-mod VINResultParser;
-mod AddressBookParsedResult;
-mod AddressBookDoCoMoResultParser;
-mod AddressBookAUResultParser;
-mod VCardResultParser;
-mod BizcardResultParser;
-mod CalendarParsedResult;
-mod VEventResultParser;
 mod ExpandedProductParsedResult;
 mod ExpandedProductResultParser;
+mod GeoParsedResult;
+mod GeoResultParser;
+mod ISBNParsedResult;
+mod ISBNResultParser;
+mod ParsedResult;
+mod ParsedResultType;
+mod ProductParsedResult;
+mod ProductResultParser;
+mod ResultParser;
+mod SMSMMSResultParser;
+mod SMSParsedResult;
+mod SMSTOMMSTOResultParser;
+mod SMTPResultParser;
+mod TelParsedResult;
+mod TelResultParser;
+mod TextParsedResult;
+mod URIParsedResult;
+mod URIResultParser;
+mod URLTOResultParser;
+mod VCardResultParser;
+mod VEventResultParser;
+mod VINParsedResult;
+mod VINResultParser;
+mod WifiParsedResult;
+mod WifiResultParser;
 
 use std::fmt;
 
+pub use ParsedResult::*;
 pub use ParsedResultType::*;
 pub use ResultParser::*;
 pub use TelParsedResult::*;
 pub use TextParsedResult::*;
-pub use ParsedResult::*;
 // pub use TelResultParser::*;
 pub use ISBNParsedResult::*;
 // pub use ISBNResultParser::*;
@@ -50,42 +50,42 @@ pub use WifiParsedResult::*;
 // pub use WifiResultParser::*;
 pub use GeoParsedResult::*;
 // pub use GeoResultParser::*;
-pub use SMSParsedResult::*;
-pub use ProductParsedResult::*;
-pub use URIParsedResult::*;
-pub use EmailAddressParsedResult::*;
-pub use VINParsedResult::*;
 pub use AddressBookParsedResult::*;
 pub use CalendarParsedResult::*;
 pub use CalendarParsedResult::*;
+pub use EmailAddressParsedResult::*;
 pub use ExpandedProductParsedResult::*;
+pub use ProductParsedResult::*;
+pub use SMSParsedResult::*;
+pub use URIParsedResult::*;
+pub use VINParsedResult::*;
 
-#[cfg(test)]
-mod TelParsedResultTestCase;
-#[cfg(test)]
-mod ISBNParsedResultTestCase;
-#[cfg(test)]
-mod WifiParsedResultTestCase;
-#[cfg(test)]
-mod GeoParsedResultTestCase;
-#[cfg(test)]
-mod SMSMMSParsedResultTestCase;
-#[cfg(test)]
-mod ProductParsedResultTestCase;
-#[cfg(test)]
-mod URIParsedResultTestCase;
-#[cfg(test)]
-mod EmailAddressParsedResultTestCase;
-#[cfg(test)]
-mod VINParsedResultTestCase;
 #[cfg(test)]
 mod AddressBookParsedResultTestCase;
 #[cfg(test)]
 mod CalendarParsedResultTestCase;
 #[cfg(test)]
+mod EmailAddressParsedResultTestCase;
+#[cfg(test)]
 mod ExpandedProductParsedResultTestCase;
 #[cfg(test)]
+mod GeoParsedResultTestCase;
+#[cfg(test)]
+mod ISBNParsedResultTestCase;
+#[cfg(test)]
 mod ParsedReaderResultTestCase;
+#[cfg(test)]
+mod ProductParsedResultTestCase;
+#[cfg(test)]
+mod SMSMMSParsedResultTestCase;
+#[cfg(test)]
+mod TelParsedResultTestCase;
+#[cfg(test)]
+mod URIParsedResultTestCase;
+#[cfg(test)]
+mod VINParsedResultTestCase;
+#[cfg(test)]
+mod WifiParsedResultTestCase;
 
 pub enum ParsedClientResult {
     TextResult(TextParsedRXingResult),
@@ -143,6 +143,6 @@ impl ParsedRXingResult for ParsedClientResult {
 
 impl fmt::Display for ParsedClientResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,"{}", self.getDisplayRXingResult())
+        write!(f, "{}", self.getDisplayRXingResult())
     }
 }

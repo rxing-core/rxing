@@ -1,5 +1,5 @@
-pub mod detector;
 pub mod decoder;
+pub mod detector;
 pub mod encoder;
 
 mod qr_code_reader;

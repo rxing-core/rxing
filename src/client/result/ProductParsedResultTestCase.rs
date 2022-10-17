@@ -27,31 +27,32 @@
  * @author Sean Owen
  */
 // public final class ProductParsedRXingResultTestCase extends Assert {
-
-use crate::{BarcodeFormat, RXingResult, client::result::{ParsedRXingResult, ParsedRXingResultType, ParsedClientResult}};
+use crate::{
+    client::result::{ParsedClientResult, ParsedRXingResult, ParsedRXingResultType},
+    BarcodeFormat, RXingResult,
+};
 
 use super::ResultParser;
 
-  #[test]
-  fn test_product() {
+#[test]
+fn test_product() {
     do_test("123456789012", "123456789012", BarcodeFormat::UPC_A);
     do_test("00393157", "00393157", BarcodeFormat::EAN_8);
     do_test("5051140178499", "5051140178499", BarcodeFormat::EAN_13);
     do_test("01234565", "012345000065", BarcodeFormat::UPC_E);
-  }
+}
 
-   fn do_test( contents:&str,  normalized:&str,  format:BarcodeFormat) {
-    let fake_rxing_result =  RXingResult::new(contents, Vec::new(), Vec::new(), format);
+fn do_test(contents: &str, normalized: &str, format: BarcodeFormat) {
+    let fake_rxing_result = RXingResult::new(contents, Vec::new(), Vec::new(), format);
     let result = ResultParser::parseRXingResult(&fake_rxing_result);
     assert_eq!(ParsedRXingResultType::PRODUCT, result.getType());
 
     if let ParsedClientResult::ProductResult(product_rxing_result) = result {
-      assert_eq!(contents, product_rxing_result.getProductID());
-      assert_eq!(normalized, product_rxing_result.getNormalizedProductID());
-    }else{
-      panic!("Expected ParsedClientResult::ProductResult")
+        assert_eq!(contents, product_rxing_result.getProductID());
+        assert_eq!(normalized, product_rxing_result.getNormalizedProductID());
+    } else {
+        panic!("Expected ParsedClientResult::ProductResult")
     }
-
-  }
+}
 
 // }

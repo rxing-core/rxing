@@ -24,7 +24,7 @@ use crate::{
     Exceptions,
 };
 
-use unicode_segmentation::{ UnicodeSegmentation};
+use unicode_segmentation::UnicodeSegmentation;
 
 use super::encoder;
 
@@ -834,14 +834,15 @@ impl RXingResultList {
             }
             let first = list.get(0);
             // prepend or insert a FNC1_FIRST_POSITION after the ECI (if any)
-            if first.is_some() && first.as_ref().unwrap().mode != Mode::ECI {//&& containsECI {
+            if first.is_some() && first.as_ref().unwrap().mode != Mode::ECI {
+                //&& containsECI {
                 list.insert(
                     if first.as_ref().unwrap().mode != Mode::ECI {
                         //first
                         list.len()
                     } else {
                         //second
-                        list.len()-1
+                        list.len() - 1
                     },
                     RXingResultNode::new(
                         Mode::FNC1_FIRST_POSITION,

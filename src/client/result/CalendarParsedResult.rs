@@ -27,16 +27,14 @@
 // import java.util.regex.Matcher;
 // import java.util.regex.Pattern;
 
-use chrono::{ DateTime, NaiveDateTime, TimeZone, Utc};
+use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
 use chrono_tz::Tz;
-use regex::Regex;
 use lazy_static::lazy_static;
+use regex::Regex;
 
 use crate::exceptions::Exceptions;
 
-use super::{
-    maybe_append_multiple, maybe_append_string, ParsedRXingResult, ParsedRXingResultType
-};
+use super::{maybe_append_multiple, maybe_append_string, ParsedRXingResult, ParsedRXingResultType};
 
 // const RFC2445_DURATION: &'static str =
 //     "P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?";
@@ -49,8 +47,9 @@ const RFC2445_DURATION_FIELD_UNITS: [i64; 5] = [
 ];
 
 lazy_static! {
-    static ref DATE_TIME : Regex = Regex::new("[0-9]{8}(T[0-9]{6}Z?)?").unwrap();
-    static ref RFC2445_DURATION: Regex = Regex::new("P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?").unwrap();
+    static ref DATE_TIME: Regex = Regex::new("[0-9]{8}(T[0-9]{6}Z?)?").unwrap();
+    static ref RFC2445_DURATION: Regex =
+        Regex::new("P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?").unwrap();
 }
 // const DATE_TIME: &'static str = "[0-9]{8}(T[0-9]{6}Z?)?";
 

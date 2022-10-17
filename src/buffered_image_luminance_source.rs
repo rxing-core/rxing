@@ -27,7 +27,7 @@ use imageproc::geometric_transformations::rotate_about_center;
 use crate::LuminanceSource;
 
 // const MINUS_45_IN_RADIANS: f32 = -0.7853981633974483; // Math.toRadians(-45.0)
-const MINUS_45_IN_RADIANS : f32 = std::f32::consts::FRAC_PI_4;
+const MINUS_45_IN_RADIANS: f32 = std::f32::consts::FRAC_PI_4;
 
 /**
  * This LuminanceSource implementation is meant for J2SE clients and our blackbox unit tests.

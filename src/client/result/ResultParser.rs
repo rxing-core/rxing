@@ -38,9 +38,10 @@ use crate::{exceptions::Exceptions, RXingResult};
 use super::{
     AddressBookAUResultParser, AddressBookDoCoMoResultParser, BizcardResultParser,
     BookmarkDoCoMoResultParser, EmailAddressResultParser, EmailDoCoMoResultParser,
-    ExpandedProductResultParser, GeoResultParser, ISBNResultParser, ParsedClientResult, ProductResultParser, SMSMMSResultParser, SMTPResultParser, TelResultParser,
-    TextParsedRXingResult, URIResultParser, URLTOResultParser, VCardResultParser,
-    VEventResultParser, VINResultParser, WifiResultParser, SMSTOMMSTOResultParser,
+    ExpandedProductResultParser, GeoResultParser, ISBNResultParser, ParsedClientResult,
+    ProductResultParser, SMSMMSResultParser, SMSTOMMSTOResultParser, SMTPResultParser,
+    TelResultParser, TextParsedRXingResult, URIResultParser, URLTOResultParser, VCardResultParser,
+    VEventResultParser, VINResultParser, WifiResultParser,
 };
 
 /**
@@ -92,7 +93,7 @@ use super::{
 pub type ParserFunction = dyn Fn(&RXingResult) -> Option<ParsedClientResult>;
 
 lazy_static! {
-    static ref DIGITS :Regex = Regex::new("\\d+").unwrap();
+    static ref DIGITS: Regex = Regex::new("\\d+").unwrap();
 }
 
 // const DIGITS: &'static str = "\\d+"; //= Pattern.compile("\\d+");

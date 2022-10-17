@@ -23,15 +23,13 @@ use super::{ParsedRXingResult, ParsedRXingResultType};
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
-pub struct ProductParsedRXingResult   {
-
-  product_id:String,
-  normalized_product_id:String,
-
+pub struct ProductParsedRXingResult {
+    product_id: String,
+    normalized_product_id: String,
 }
 impl ParsedRXingResult for ProductParsedRXingResult {
     fn getType(&self) -> super::ParsedRXingResultType {
-      ParsedRXingResultType::PRODUCT
+        ParsedRXingResultType::PRODUCT
     }
 
     fn getDisplayRXingResult(&self) -> String {
@@ -39,23 +37,22 @@ impl ParsedRXingResult for ProductParsedRXingResult {
     }
 }
 impl ProductParsedRXingResult {
-  pub fn new(product_id:String) -> Self {
-    Self::with_normalized_id(product_id.clone(), product_id)
-  }
-  
-  pub fn with_normalized_id( product_id: String,  normalized_product_id:String) -> Self {
-    Self{
-        product_id,
-        normalized_product_id,
+    pub fn new(product_id: String) -> Self {
+        Self::with_normalized_id(product_id.clone(), product_id)
     }
-  }
 
-  pub fn getProductID(&self) -> &str{
-    &self.product_id
-  }
+    pub fn with_normalized_id(product_id: String, normalized_product_id: String) -> Self {
+        Self {
+            product_id,
+            normalized_product_id,
+        }
+    }
 
-   pub fn getNormalizedProductID(&self) -> &str {
-    &self.normalized_product_id
-  }
+    pub fn getProductID(&self) -> &str {
+        &self.product_id
+    }
 
+    pub fn getNormalizedProductID(&self) -> &str {
+        &self.normalized_product_id
+    }
 }

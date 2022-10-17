@@ -11,8 +11,8 @@ pub use aztec_writer::*;
 #[cfg(test)]
 mod DecoderTest;
 #[cfg(test)]
-mod EncoderTest;
-#[cfg(test)]
 mod DetectorTest;
+#[cfg(test)]
+mod EncoderTest;
 
 mod shared_test_methods;

@@ -21,6 +21,7 @@
 // import java.util.regex.Matcher;
 // import java.util.regex.Pattern;
 
+use lazy_static::lazy_static;
 /**
  * Tries to parse results that are a URI of some kind.
  *
@@ -28,17 +29,19 @@
  */
 // public final class URIRXingResultParser extends RXingResultParser {
 use regex::Regex;
-use lazy_static::lazy_static;
 
 use crate::RXingResult;
 
 use super::{ParsedClientResult, ResultParser, URIParsedRXingResult};
 
 lazy_static! {
-    static ref ALLOWED_URI_CHARS :Regex = Regex::new( ALLOWED_URI_CHARS_PATTERN).expect("Regex patterns should always copile");
-    static ref USER_IN_HOST :Regex = Regex::new(":/*([^/@]+)@[^/]+").expect("Regex patterns should always copile");
-    static ref URL_WITH_PROTOCOL_PATTERN : Regex = Regex::new("[a-zA-Z][a-zA-Z0-9+-.]+:").unwrap();
-    static ref URL_WITHOUT_PROTOCOL_PATTERN :Regex = Regex::new("([a-zA-Z0-9\\-]+\\.){1,6}[a-zA-Z]{2,}(:\\d{1,5})?(/|\\?|$)").unwrap();
+    static ref ALLOWED_URI_CHARS: Regex =
+        Regex::new(ALLOWED_URI_CHARS_PATTERN).expect("Regex patterns should always copile");
+    static ref USER_IN_HOST: Regex =
+        Regex::new(":/*([^/@]+)@[^/]+").expect("Regex patterns should always copile");
+    static ref URL_WITH_PROTOCOL_PATTERN: Regex = Regex::new("[a-zA-Z][a-zA-Z0-9+-.]+:").unwrap();
+    static ref URL_WITHOUT_PROTOCOL_PATTERN: Regex =
+        Regex::new("([a-zA-Z0-9\\-]+\\.){1,6}[a-zA-Z]{2,}(:\\d{1,5})?(/|\\?|$)").unwrap();
 }
 
 const ALLOWED_URI_CHARS_PATTERN: &'static str = "[-._~:/?#\\[\\]@!$&'()*+,;=%A-Za-z0-9]+";
@@ -79,15 +82,14 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
  *  to connect to yourbank.com at first glance.
  */
 pub fn is_possibly_malicious_uri(uri: &str) -> bool {
-
-    let allowed = if let Some(fnd) = ALLOWED_URI_CHARS.find(uri){
-      if fnd.start() == 0 && fnd.end() == uri.len() {
-        true
-      }else {
+    let allowed = if let Some(fnd) = ALLOWED_URI_CHARS.find(uri) {
+        if fnd.start() == 0 && fnd.end() == uri.len() {
+            true
+        } else {
+            false
+        }
+    } else {
         false
-      }
-    }else{
-      false
     };
     let user = USER_IN_HOST.is_match(uri);
 

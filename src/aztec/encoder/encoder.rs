@@ -19,7 +19,7 @@ use encoding::Encoding;
 use crate::{
     common::{
         reedsolomon::{
-            get_predefined_genericgf, PredefinedGenericGF, ReedSolomonEncoder, GenericGFRef,
+            get_predefined_genericgf, GenericGFRef, PredefinedGenericGF, ReedSolomonEncoder,
         },
         BitArray, BitMatrix,
     },
@@ -157,7 +157,7 @@ pub fn encode_bytes_with_charset(
     let ecc_bits = bits.getSize() as u32 * min_eccpercent / 100 + 11;
     let total_size_bits = bits.getSize() as u32 + ecc_bits;
     let mut compact;
-    let mut layers:u32;
+    let mut layers: u32;
     let mut total_bits_in_layer_var;
     let mut word_size;
     let mut stuffed_bits;

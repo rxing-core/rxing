@@ -78,7 +78,8 @@ impl State {
         let mut bits_added = 3;
         /*if eci < 0 {
             token.add(0, 3); // 0: FNC1
-        } else */if eci > 999999 {
+        } else */
+        if eci > 999999 {
             return Err(Exceptions::IllegalArgumentException(
                 "ECI code must be between 0 and 999999".to_owned(),
             ));
@@ -151,15 +152,16 @@ impl State {
             bitCount += latch >> 16;
             mode = HighLevelEncoder::MODE_UPPER as u32;
         }
-        let deltaBitCount = if self.binary_shift_byte_count == 0 || self.binary_shift_byte_count == 31 {
-            18
-        } else {
-            if self.binary_shift_byte_count == 62 {
-                9
+        let deltaBitCount =
+            if self.binary_shift_byte_count == 0 || self.binary_shift_byte_count == 31 {
+                18
             } else {
-                8
-            }
-        };
+                if self.binary_shift_byte_count == 62 {
+                    9
+                } else {
+                    8
+                }
+            };
         let mut result = State::new(
             token,
             mode,
@@ -180,7 +182,10 @@ impl State {
             return self;
         }
         let mut token = self.token;
-        token.addBinaryShift(index - self.binary_shift_byte_count, self.binary_shift_byte_count);
+        token.addBinaryShift(
+            index - self.binary_shift_byte_count,
+            self.binary_shift_byte_count,
+        );
 
         State::new(token, self.mode, 0, self.bit_count)
     }
@@ -218,7 +223,7 @@ impl State {
         let mut bit_array = BitArray::new();
         // Add each token to the result in forward order
         for symbol in symbols.into_iter().rev() {
-        // for i in (0..symbols.len()).rev() {
+            // for i in (0..symbols.len()).rev() {
             // for (int i = symbols.size() - 1; i >= 0; i--) {
             symbol.appendTo(&mut bit_array, text);
         }

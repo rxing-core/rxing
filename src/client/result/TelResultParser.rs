@@ -18,7 +18,7 @@
 
 // import com.google.zxing.RXingResult;
 
-use super::{TelParsedRXingResult, ParsedClientResult, ResultParser};
+use super::{ParsedClientResult, ResultParser, TelParsedRXingResult};
 
 /**
  * Parses a "tel:" URI result, which specifies a phone number.
@@ -29,21 +29,29 @@ use super::{TelParsedRXingResult, ParsedClientResult, ResultParser};
 
 // impl RXingResultParser for TelRXingResultParser {
 
-    pub fn parse(theRXingResult: &crate::RXingResult) -> Option<ParsedClientResult> {
-      let rawText = ResultParser::getMassagedText(theRXingResult);
-      if !rawText.starts_with("tel:") && !rawText.starts_with("TEL:") {
+pub fn parse(theRXingResult: &crate::RXingResult) -> Option<ParsedClientResult> {
+    let rawText = ResultParser::getMassagedText(theRXingResult);
+    if !rawText.starts_with("tel:") && !rawText.starts_with("TEL:") {
         return None;
-      }
-      // Normalize "TEL:" to "tel:"
-      let telURI = if rawText.starts_with("TEL:")  {format!("tel:{}", &rawText[4..])} else {rawText.clone()};
-      // Drop tel, query portion
-      let queryStart = rawText[4..].find('?');
-      let number = if let Some(v) = queryStart {
-        &rawText[4..v+4]
-      }else {
-        &rawText[4..]
-      };
-      // let number = queryStart < 0 ?  : ;
-      Some(ParsedClientResult::TelResult(TelParsedRXingResult::new(number.to_owned(), telURI.to_owned(), "".to_owned())))
     }
+    // Normalize "TEL:" to "tel:"
+    let telURI = if rawText.starts_with("TEL:") {
+        format!("tel:{}", &rawText[4..])
+    } else {
+        rawText.clone()
+    };
+    // Drop tel, query portion
+    let queryStart = rawText[4..].find('?');
+    let number = if let Some(v) = queryStart {
+        &rawText[4..v + 4]
+    } else {
+        &rawText[4..]
+    };
+    // let number = queryStart < 0 ?  : ;
+    Some(ParsedClientResult::TelResult(TelParsedRXingResult::new(
+        number.to_owned(),
+        telURI.to_owned(),
+        "".to_owned(),
+    )))
+}
 // }

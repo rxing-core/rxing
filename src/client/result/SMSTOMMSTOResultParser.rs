@@ -32,25 +32,35 @@ use super::{ParsedClientResult, ResultParser, SMSParsedRXingResult};
  *
  * @author Sean Owen
  */
-  pub fn parse(result:&RXingResult) -> Option<ParsedClientResult> {
+pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let rawText = ResultParser::getMassagedText(result);
-    if !(rawText.starts_with("smsto:") || rawText.starts_with("SMSTO:") ||
-          rawText.starts_with("mmsto:") || rawText.starts_with("MMSTO:")) {
-      return None;
+    if !(rawText.starts_with("smsto:")
+        || rawText.starts_with("SMSTO:")
+        || rawText.starts_with("mmsto:")
+        || rawText.starts_with("MMSTO:"))
+    {
+        return None;
     }
     // Thanks to dominik.wild for suggesting this enhancement to support
     // smsto:number:body URIs
     let mut number = &rawText[6..];
     let mut body = "";
     if let Some(body_start) = number.find(':') {
-      body = &number[body_start + 1..];
-      number = &number[..body_start];
+        body = &number[body_start + 1..];
+        number = &number[..body_start];
     }
     // let bodyStart = number.indexOf(':');
     // if (bodyStart >= 0) {
     //   body = number.substring(bodyStart + 1);
     //   number = number.substring(0, bodyStart);
     // }
-    Some(ParsedClientResult::SMSResult(SMSParsedRXingResult::with_singles(number.to_owned(), String::from(""), String::from(""), body.to_owned())))
+    Some(ParsedClientResult::SMSResult(
+        SMSParsedRXingResult::with_singles(
+            number.to_owned(),
+            String::from(""),
+            String::from(""),
+            body.to_owned(),
+        ),
+    ))
     // return new SMSParsedRXingResult(number, null, null, body);
-  }
+}

@@ -16,7 +16,7 @@
 
 //package com.google.zxing.common.detector;
 
-use crate::{Exceptions, RXingResultPoint, common::BitMatrix, ResultPoint};
+use crate::{common::BitMatrix, Exceptions, RXingResultPoint, ResultPoint};
 
 /**
  * <p>A somewhat generic detector that looks for a barcode-like rectangular region within an image.
@@ -34,7 +34,9 @@ pub struct MonochromeRectangleDetector {
 
 impl MonochromeRectangleDetector {
     pub fn new(image: &BitMatrix) -> Self {
-        Self { image: image.clone() }
+        Self {
+            image: image.clone(),
+        }
     }
 
     /**
@@ -50,7 +52,7 @@ impl MonochromeRectangleDetector {
     pub fn detect(&self) -> Result<Vec<RXingResultPoint>, Exceptions> {
         let height = self.image.getHeight() as i32;
         let width = self.image.getWidth() as i32;
-        let halfHeight= height / 2;
+        let halfHeight = height / 2;
         let halfWidth = width / 2;
         let deltaY = 1.max(height as i32 / (MAX_MODULES * 8));
         let deltaX = 1.max(width as i32 / (MAX_MODULES * 8));
@@ -168,48 +170,37 @@ impl MonochromeRectangleDetector {
             }
             if range.is_none() {
                 if let Some(lastRange) = lastRange_z {
-                // lastRange was found
-                if deltaX == 0 {
-                    let lastY = y - deltaY;
-                    if lastRange[0] < centerX {
-                        if lastRange[1] > centerX {
-                            // straddle, choose one or the other based on direction
-                            return Ok(RXingResultPoint::new(
-                                lastRange[if deltaY > 0 { 0 } else { 1 }] as f32,
-                                lastY as f32,
-                            ));
+                    // lastRange was found
+                    if deltaX == 0 {
+                        let lastY = y - deltaY;
+                        if lastRange[0] < centerX {
+                            if lastRange[1] > centerX {
+                                // straddle, choose one or the other based on direction
+                                return Ok(RXingResultPoint::new(
+                                    lastRange[if deltaY > 0 { 0 } else { 1 }] as f32,
+                                    lastY as f32,
+                                ));
+                            }
+                            return Ok(RXingResultPoint::new(lastRange[0] as f32, lastY as f32));
+                        } else {
+                            return Ok(RXingResultPoint::new(lastRange[1] as f32, lastY as f32));
                         }
-                        return Ok(RXingResultPoint::new(
-                            lastRange[0] as f32,
-                            lastY as f32,
-                        ));
                     } else {
-                        return Ok(RXingResultPoint::new(
-                            lastRange[1] as f32,
-                            lastY as f32,
-                        ));
-                    }
-                } else {
-                    let lastX = x - deltaX;
-                    if lastRange[0] < centerY {
-                        if lastRange[1] > centerY {
-                            return Ok(RXingResultPoint::new(
-                                lastX as f32,
-                                lastRange[if deltaX < 0 { 0 } else { 1 }] as f32,
-                            ));
+                        let lastX = x - deltaX;
+                        if lastRange[0] < centerY {
+                            if lastRange[1] > centerY {
+                                return Ok(RXingResultPoint::new(
+                                    lastX as f32,
+                                    lastRange[if deltaX < 0 { 0 } else { 1 }] as f32,
+                                ));
+                            }
+                            return Ok(RXingResultPoint::new(lastX as f32, lastRange[0] as f32));
+                        } else {
+                            return Ok(RXingResultPoint::new(lastX as f32, lastRange[1] as f32));
                         }
-                        return Ok(RXingResultPoint::new(
-                            lastX as f32,
-                            lastRange[0] as f32,
-                        ));
-                    } else {
-                        return Ok(RXingResultPoint::new(
-                            lastX as f32,
-                            lastRange[1] as f32,
-                        ));
                     }
                 }
-            }}else {
+            } else {
                 return Err(Exceptions::NotFoundException("".to_owned()));
             }
             lastRange_z = range;

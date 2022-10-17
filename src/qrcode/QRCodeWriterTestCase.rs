@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-use std::{
-    collections::HashMap,
-    path::{ PathBuf},
-};
+use std::{collections::HashMap, path::PathBuf};
 
-use image::{DynamicImage};
+use image::DynamicImage;
 
 use crate::{
     common::BitMatrix, qrcode::QRCodeWriter, BarcodeFormat, EncodeHintType, EncodeHintValue, Writer,
@@ -85,7 +82,7 @@ fn testQRCodeWriter() {
     // The QR should be multiplied up to fit, with extra padding if necessary
     let bigEnough = 256;
     let writer = QRCodeWriter {};
-    let  matrix = writer.encode_with_hints(
+    let matrix = writer.encode_with_hints(
         "http://www.google.com/",
         &BarcodeFormat::QR_CODE,
         bigEnough,

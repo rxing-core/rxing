@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2007 ZXing authors
  *
@@ -21,7 +20,7 @@
 
 use crate::Exceptions;
 
-use super::{BitMatrix, PerspectiveTransform, GridSampler};
+use super::{BitMatrix, GridSampler, PerspectiveTransform};
 
 /**
  * @author Sean Owen

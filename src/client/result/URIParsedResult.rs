@@ -41,9 +41,9 @@ impl ParsedRXingResult for URIParsedRXingResult {
 }
 impl URIParsedRXingResult {
     pub fn new(uri: String, title: String) -> Self {
-        Self { 
-          uri: Self::massage_uri(&uri),
-          title 
+        Self {
+            uri: Self::massage_uri(&uri),
+            title,
         }
     }
 
@@ -79,8 +79,8 @@ impl URIParsedRXingResult {
                 uri = format!("http://{}", &uri);
                 // uri = updated_uri.as_str()
             }
-        }else {
-          uri = format!("http://{}", &uri);
+        } else {
+            uri = format!("http://{}", &uri);
         }
 
         uri

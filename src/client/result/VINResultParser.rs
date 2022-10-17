@@ -32,7 +32,7 @@ use super::ParsedClientResult;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref IOQ_MATCHER : Regex = Regex::new(IOQ).unwrap();
+    static ref IOQ_MATCHER: Regex = Regex::new(IOQ).unwrap();
     static ref AZ09_MATCHER: Regex = Regex::new(AZ09).unwrap();
 }
 
@@ -45,7 +45,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     if result.getBarcodeFormat() != &BarcodeFormat::CODE_39 {
         return None;
     }
-    
+
     let raw_text_res = result.getText().trim();
     let raw_text = IOQ_MATCHER.replace_all(raw_text_res, "").to_string();
     // rawText = IOQ.matcher(rawText).replaceAll("").trim();

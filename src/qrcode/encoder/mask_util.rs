@@ -48,10 +48,10 @@ pub fn applyMaskPenaltyRule2(matrix: &ByteMatrix) -> u32 {
     let array = matrix.getArray();
     let width = matrix.getWidth();
     let height = matrix.getHeight();
-    for y in 0..(height -1) as usize {
+    for y in 0..(height - 1) as usize {
         // for (int y = 0; y < height - 1; y++) {
         let arrayY = &array[y];
-        for x in 0..(width -1) as usize {
+        for x in 0..(width - 1) as usize {
             // for (int x = 0; x < width - 1; x++) {
             let value = arrayY[x];
             if value == arrayY[x + 1] && value == array[y + 1][x] && value == array[y + 1][x + 1] {
@@ -154,7 +154,8 @@ pub fn applyMaskPenaltyRule4(matrix: &ByteMatrix) -> u32 {
         }
     }
     let numTotalCells = matrix.getHeight() * matrix.getWidth();
-    let fivePercentVariances = (numDarkCells as i64 * 2 - numTotalCells as i64).abs() as u32 * 10 / numTotalCells;
+    let fivePercentVariances =
+        (numDarkCells as i64 * 2 - numTotalCells as i64).abs() as u32 * 10 / numTotalCells;
     return fivePercentVariances * N4;
 }
 

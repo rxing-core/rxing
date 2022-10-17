@@ -18,7 +18,6 @@ mod buffered_image_luminance_source;
 #[cfg(feature = "image")]
 pub use buffered_image_luminance_source::*;
 
-
 #[cfg(test)]
 mod PlanarYUVLuminanceSourceTestCase;
 

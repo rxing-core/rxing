@@ -127,8 +127,8 @@ impl HighLevelEncoder {
         char_map[Self::MODE_DIGIT][b'.' as usize] = 13;
         let mixed_table = [
             '\0', ' ', '\u{1}', '\u{2}', '\u{3}', '\u{4}', '\u{5}', '\u{6}', '\u{7}', '\u{8}',
-            '\t', '\n', '\u{000b}', '\u{000c}', '\r', '\u{001b}', '\u{001c}', '\u{001d}', '\u{001e}', '\u{001f}',
-            '@', '\\', '^', '_', '`', '|', '~', '\u{007f}',
+            '\t', '\n', '\u{000b}', '\u{000c}', '\r', '\u{001b}', '\u{001c}', '\u{001d}',
+            '\u{001e}', '\u{001f}', '@', '\\', '^', '_', '`', '|', '~', '\u{007f}',
         ];
         let mut i = 0;
         while i < mixed_table.len() {
@@ -245,7 +245,8 @@ impl HighLevelEncoder {
     pub fn encode(&self) -> Result<BitArray, Exceptions> {
         let mut initial_state = State::new(Token::new(), Self::MODE_UPPER as u32, 0, 0);
         if let Some(eci) = CharacterSetECI::getCharacterSetECI(self.charset) {
-            if eci != CharacterSetECI::ISO8859_1 {//} && eci != CharacterSetECI::Cp1252 {
+            if eci != CharacterSetECI::ISO8859_1 {
+                //} && eci != CharacterSetECI::Cp1252 {
                 initial_state = initial_state.appendFLGn(CharacterSetECI::getValue(&eci))?;
             }
         } else {
@@ -278,7 +279,7 @@ impl HighLevelEncoder {
                 b':' if next_char == b' ' => 5,
                 _ => 0,
             };
-            
+
             if pair_code > 0 {
                 // We have one of the four special PUNCT pairs.  Treat them specially.
                 // Get a new set of states for the two new characters.

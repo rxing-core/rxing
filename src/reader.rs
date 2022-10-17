@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2007 ZXing authors
  *
@@ -17,7 +16,7 @@
 
 //package com.google.zxing;
 
-use crate::{BinaryBitmap, RXingResult, Exceptions, DecodingHintDictionary};
+use crate::{BinaryBitmap, DecodingHintDictionary, Exceptions, RXingResult};
 
 /**
  * Implementations of this interface can decode an image of a barcode in some format into

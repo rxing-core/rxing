@@ -286,17 +286,19 @@ fn decodeByteSegment(
         encoding = CharacterSetECI::getCharset(currentCharacterSetECI.as_ref().unwrap());
     }
 
-    let encode_string = if currentCharacterSetECI.is_some() && currentCharacterSetECI.as_ref().unwrap() == &CharacterSetECI::Cp437 {
-      {
-        use codepage_437::BorrowFromCp437;
-        use codepage_437::CP437_CONTROL;
+    let encode_string = if currentCharacterSetECI.is_some()
+        && currentCharacterSetECI.as_ref().unwrap() == &CharacterSetECI::Cp437
+    {
+        {
+            use codepage_437::BorrowFromCp437;
+            use codepage_437::CP437_CONTROL;
 
-        String::borrow_from_cp437(&readBytes, &CP437_CONTROL)
-      }
-    }else {
-      encoding
-      .decode(&readBytes, encoding::DecoderTrap::Strict)
-      .unwrap()
+            String::borrow_from_cp437(&readBytes, &CP437_CONTROL)
+        }
+    } else {
+        encoding
+            .decode(&readBytes, encoding::DecoderTrap::Strict)
+            .unwrap()
     };
 
     // let encode_string = encoding

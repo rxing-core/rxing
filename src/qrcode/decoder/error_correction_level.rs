@@ -88,15 +88,15 @@ impl From<ErrorCorrectionLevel> for u8 {
 }
 
 impl FromStr for ErrorCorrectionLevel {
-    type Err=Exceptions;
+    type Err = Exceptions;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // First try to see if the string is just the name of the value
         let as_str = match s.to_uppercase().as_str() {
             "L" => Some(ErrorCorrectionLevel::L),
             "M" => Some(ErrorCorrectionLevel::M),
-            "Q" =>Some(ErrorCorrectionLevel::Q),
-            "H" =>Some(ErrorCorrectionLevel::H),
+            "Q" => Some(ErrorCorrectionLevel::Q),
+            "H" => Some(ErrorCorrectionLevel::H),
             _ => None,
         };
 
@@ -110,7 +110,10 @@ impl FromStr for ErrorCorrectionLevel {
             return number_possible.unwrap().try_into();
         }
 
-        return Err(Exceptions::IllegalArgumentException(format!("could not parse {} into an ec level", s)))
+        return Err(Exceptions::IllegalArgumentException(format!(
+            "could not parse {} into an ec level",
+            s
+        )));
     }
 }
 

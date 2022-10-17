@@ -14,35 +14,36 @@
  * limitations under the License.
  */
 
-use crate::{qrcode::decoder::{Version, ErrorCorrectionLevel}, Exceptions};
-
+use crate::{
+    qrcode::decoder::{ErrorCorrectionLevel, Version},
+    Exceptions,
+};
 
 /**
  * @author Sean Owen
  */
 
-
-  #[test]
-  #[should_panic]
-  fn testBadVersion() {
+#[test]
+#[should_panic]
+fn testBadVersion() {
     assert!(Version::getVersionForNumber(0).is_ok());
-  }
+}
 
-  #[test]
-  fn testVersionForNumber() {
+#[test]
+fn testVersionForNumber() {
     for i in 1..=40 {
-    // for (int i = 1; i <= 40; i++) {
-      checkVersion(Version::getVersionForNumber(i), i, 4 * i + 17);
+        // for (int i = 1; i <= 40; i++) {
+        checkVersion(Version::getVersionForNumber(i), i, 4 * i + 17);
     }
-  }
+}
 
-  fn checkVersion( version:Result<&Version,Exceptions>,  number:u32,  dimension:u32) {
+fn checkVersion(version: Result<&Version, Exceptions>, number: u32, dimension: u32) {
     assert!(version.is_ok());
     let version = version.unwrap();
     assert_eq!(number, version.getVersionNumber());
     // assertNotNull(version.getAlignmentPatternCenters());
     if number > 1 {
-      assert!(version.getAlignmentPatternCenters().len() > 0);
+        assert!(version.getAlignmentPatternCenters().len() > 0);
     }
     assert_eq!(dimension, version.getDimensionForVersion());
     let _tmp = version.getECBlocksForLevel(ErrorCorrectionLevel::H);
@@ -56,18 +57,23 @@ use crate::{qrcode::decoder::{Version, ErrorCorrectionLevel}, Exceptions};
     // assertNotNull(version.getECBlocksForLevel(ErrorCorrectionLevel::M));
     // assertNotNull(version.getECBlocksForLevel(ErrorCorrectionLevel::Q));
     // assertNotNull(version.buildFunctionPattern());
-  }
+}
 
-  #[test]
-  fn testGetProvisionalVersionForDimension()  {
+#[test]
+fn testGetProvisionalVersionForDimension() {
     for i in 1..=40 {
-    // for (int i = 1; i <= 40; i++) {
-      assert_eq!(i, Version::getProvisionalVersionForDimension(4 * i + 17).expect("must exist for supplied values").getVersionNumber());
+        // for (int i = 1; i <= 40; i++) {
+        assert_eq!(
+            i,
+            Version::getProvisionalVersionForDimension(4 * i + 17)
+                .expect("must exist for supplied values")
+                .getVersionNumber()
+        );
     }
-  }
+}
 
-  #[test]
-  fn testDecodeVersionInformation() {
+#[test]
+fn testDecodeVersionInformation() {
     // Spot check
     doTestVersion(7, 0x07C94);
     doTestVersion(12, 0x0C762);
@@ -75,11 +81,10 @@ use crate::{qrcode::decoder::{Version, ErrorCorrectionLevel}, Exceptions};
     doTestVersion(22, 0x168C9);
     doTestVersion(27, 0x1B08E);
     doTestVersion(32, 0x209D5);
-  }
-  
-  fn doTestVersion( expectedVersion:u32,  mask:u32) {
+}
+
+fn doTestVersion(expectedVersion: u32, mask: u32) {
     let version = Version::decodeVersionInformation(mask);
     assert!(version.is_ok());
     assert_eq!(expectedVersion, version.unwrap().getVersionNumber());
-  }
-
+}

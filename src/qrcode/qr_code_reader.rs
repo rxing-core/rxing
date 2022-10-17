@@ -19,7 +19,7 @@ use std::collections::HashMap;
 use crate::{
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult},
     BarcodeFormat, DecodeHintType, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, RXingResultPoint, Reader, 
+    RXingResultMetadataValue, RXingResultPoint, Reader,
 };
 
 use super::{
@@ -155,7 +155,7 @@ impl QRCodeReader {
         let moduleSize = Self::moduleSize(&leftTopBlack, image)?;
 
         let mut top = leftTopBlack[1] as i32;
-        let  bottom = rightBottomBlack[1] as i32;
+        let bottom = rightBottomBlack[1] as i32;
         let mut left = leftTopBlack[0] as i32;
         let mut right = rightBottomBlack[0] as i32;
 
@@ -193,7 +193,9 @@ impl QRCodeReader {
         // But careful that this does not sample off the edge
         // "right" is the farthest-right valid pixel location -- right+1 is not necessarily
         // This is positive by how much the inner x loop below would be too large
-        let nudgedTooFarRight = left as i32 + ((matrixWidth as i32 - 1) as f32 * moduleSize as f32) as i32 - right as i32;
+        let nudgedTooFarRight = left as i32
+            + ((matrixWidth as i32 - 1) as f32 * moduleSize as f32) as i32
+            - right as i32;
         if nudgedTooFarRight > 0 {
             if nudgedTooFarRight > nudge as i32 {
                 // Neither way fits; abort

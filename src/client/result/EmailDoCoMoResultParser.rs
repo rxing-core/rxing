@@ -24,13 +24,13 @@ use regex::Regex;
 
 use crate::RXingResult;
 
-use super::{ParsedClientResult, ResultParser, EmailAddressParsedRXingResult};
+use super::{EmailAddressParsedRXingResult, ParsedClientResult, ResultParser};
 
 use lazy_static::lazy_static;
 
 lazy_static! {
-  static ref ATEXT_ALPHANUMERIC :Regex = Regex::new("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+").unwrap();
-
+    static ref ATEXT_ALPHANUMERIC: Regex =
+        Regex::new("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+").unwrap();
 }
 
 /**
@@ -40,38 +40,41 @@ lazy_static! {
  *
  * @author Sean Owen
  */
-  pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
-
+pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let rawText = ResultParser::getMassagedText(result);
     if !rawText.starts_with("MATMSG:") {
-      return None;
+        return None;
     }
     let tos = ResultParser::match_do_co_mo_prefixed_field("TO:", &rawText)?;
 
     for to in &tos {
-      if !isBasicallyValidEmailAddress(&to, &ATEXT_ALPHANUMERIC) {
-        return None;
-      }
+        if !isBasicallyValidEmailAddress(&to, &ATEXT_ALPHANUMERIC) {
+            return None;
+        }
     }
-    let subject = ResultParser::match_single_do_co_mo_prefixed_field("SUB:", &rawText, false).unwrap_or_default();
-    let body = ResultParser::match_single_do_co_mo_prefixed_field("BODY:", &rawText, false).unwrap_or_default();
-Some(ParsedClientResult::EmailResult(EmailAddressParsedRXingResult::with_details(tos, Vec::new(), Vec::new(), subject, body)))
-  }
+    let subject = ResultParser::match_single_do_co_mo_prefixed_field("SUB:", &rawText, false)
+        .unwrap_or_default();
+    let body = ResultParser::match_single_do_co_mo_prefixed_field("BODY:", &rawText, false)
+        .unwrap_or_default();
+    Some(ParsedClientResult::EmailResult(
+        EmailAddressParsedRXingResult::with_details(tos, Vec::new(), Vec::new(), subject, body),
+    ))
+}
 
-  /**
-   * This implements only the most basic checking for an email address's validity -- that it contains
-   * an '@' and contains no characters disallowed by RFC 2822. This is an overly lenient definition of
-   * validity. We want to generally be lenient here since this class is only intended to encapsulate what's
-   * in a barcode, not "judge" it.
-   */
-  pub fn isBasicallyValidEmailAddress( email:&str, regex:&Regex)-> bool {
+/**
+ * This implements only the most basic checking for an email address's validity -- that it contains
+ * an '@' and contains no characters disallowed by RFC 2822. This is an overly lenient definition of
+ * validity. We want to generally be lenient here since this class is only intended to encapsulate what's
+ * in a barcode, not "judge" it.
+ */
+pub fn isBasicallyValidEmailAddress(email: &str, regex: &Regex) -> bool {
     let email_exists = !email.is_empty();
-    let email_has_at = matches!(email.find('@'),Some(_));
+    let email_has_at = matches!(email.find('@'), Some(_));
     let email_alphamatcher = if let Some(mtch) = regex.find(email) {
-      mtch.start() ==0 && mtch.end() == email.len()
-    }else{
-      false
+        mtch.start() == 0 && mtch.end() == email.len()
+    } else {
+        false
     };
     email_exists && email_alphamatcher && email_has_at
     // return email != null && ATEXT_ALPHANUMERIC.matcher(email).matches() && email.indexOf('@') >= 0;
-  }
+}

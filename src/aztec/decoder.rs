@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-
 use crate::{
     common::{
         reedsolomon::{
-            get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder, GenericGFRef,
+            get_predefined_genericgf, GenericGFRef, PredefinedGenericGF, ReedSolomonDecoder,
         },
         BitMatrix, CharacterSetECI, DecoderRXingResult, DetectorRXingResult,
     },

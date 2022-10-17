@@ -3,7 +3,6 @@ use std::fmt;
 use crate::ResultPoint;
 use std::hash::Hash;
 
-
 /**
  * <p>Encapsulates a point of interest in an image containing a barcode. Typically, this
  * would be the location of a finder pattern or the corner of the barcode, for example.</p>
@@ -13,7 +12,7 @@ use std::hash::Hash;
 #[derive(Debug, Clone, Copy)]
 pub struct RXingResultPoint {
     pub(crate) x: f32,
-    pub(crate)y: f32,
+    pub(crate) y: f32,
 }
 impl Hash for RXingResultPoint {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {

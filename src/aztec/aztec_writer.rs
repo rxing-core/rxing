@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::{ collections::HashMap};
+use std::collections::HashMap;
 
 use encoding::EncodingRef;
 

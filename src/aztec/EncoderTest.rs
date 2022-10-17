@@ -176,8 +176,10 @@ fn testAztecWriter() {
     );
     // Test AztecWriter defaults
     let data = "In ut magna vel mauris malesuada";
-     let writer =  AztecWriter{};
-    let matrix = writer.encode(data, &BarcodeFormat::AZTEC, 0, 0).expect("matrix must exist");
+    let writer = AztecWriter {};
+    let matrix = writer
+        .encode(data, &BarcodeFormat::AZTEC, 0, 0)
+        .expect("matrix must exist");
     let aztec = encoder::encode(
         data,
         encoder::DEFAULT_EC_PERCENT,
@@ -731,7 +733,8 @@ fn testWriter(
         EncodeHintType::ERROR_CORRECTION,
         EncodeHintValue::ErrorCorrection(ecc_percent.to_string()),
     );
-    let mut matrix = AztecWriter{}.encode_with_hints(data, &BarcodeFormat::AZTEC, 0, 0, &hints)
+    let mut matrix = AztecWriter {}
+        .encode_with_hints(data, &BarcodeFormat::AZTEC, 0, 0, &hints)
         .expect("encoder created");
 
     let cset = match charset {

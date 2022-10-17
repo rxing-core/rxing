@@ -16,7 +16,7 @@
 
 //package com.google.zxing.common.detector;
 
-use crate::{RXingResultPoint, Exceptions, common::BitMatrix, ResultPoint};
+use crate::{common::BitMatrix, Exceptions, RXingResultPoint, ResultPoint};
 
 use super::MathUtils;
 
@@ -59,13 +59,7 @@ impl WhiteRectangleDetector {
      * @param y y position of search center
      * @throws NotFoundException if image is too small to accommodate {@code initSize}
      */
-    pub fn new(
-        image: &BitMatrix,
-        initSize: i32,
-        x: i32,
-        y: i32,
-    ) -> Result<Self, Exceptions> {
-        
+    pub fn new(image: &BitMatrix, initSize: i32, x: i32, y: i32) -> Result<Self, Exceptions> {
         let halfsize = initSize / 2;
 
         let leftInit = x - halfsize;
@@ -81,7 +75,7 @@ impl WhiteRectangleDetector {
             return Err(Exceptions::NotFoundException("".to_owned()));
         }
 
-        Ok(Self{
+        Ok(Self {
             image: image.clone(),
             height: image.getHeight() as i32,
             width: image.getWidth() as i32,
@@ -126,7 +120,9 @@ impl WhiteRectangleDetector {
             // .   |
             // .....
             let mut right_border_not_white = true;
-            while (right_border_not_white || !at_least_one_black_point_found_on_right) && right < self.width {
+            while (right_border_not_white || !at_least_one_black_point_found_on_right)
+                && right < self.width
+            {
                 right_border_not_white = self.contains_black_point(up, down, right, false);
                 if right_border_not_white {
                     right += 1;
@@ -146,7 +142,8 @@ impl WhiteRectangleDetector {
             // .   .
             // .___.
             let mut bottom_border_not_white = true;
-            while (bottom_border_not_white || !at_least_one_black_point_found_on_bottom) && down < self.height
+            while (bottom_border_not_white || !at_least_one_black_point_found_on_bottom)
+                && down < self.height
             {
                 bottom_border_not_white = self.contains_black_point(left, right, down, true);
                 if bottom_border_not_white {

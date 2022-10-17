@@ -20,38 +20,42 @@
 // import com.google.zxing.RXingResult;
 // import com.google.zxing.oned.UPCEReader;
 
-use crate::{RXingResult, BarcodeFormat};
+use crate::{BarcodeFormat, RXingResult};
 
 use super::{ParsedClientResult, ProductParsedRXingResult, ResultParser};
 
 /**
  * Parses strings of digits that represent a UPC code.
- * 
+ *
  * @author dswitkin@google.com (Daniel Switkin)
  */
 pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
-// Treat all UPC and EAN variants as UPCs, in the sense that they are all product barcodes.
+    // Treat all UPC and EAN variants as UPCs, in the sense that they are all product barcodes.
 
-  let format = result.getBarcodeFormat();
-    if !(format == &BarcodeFormat::UPC_A || format == &BarcodeFormat::UPC_E ||
-          format == &BarcodeFormat::EAN_8 || format == &BarcodeFormat::EAN_13) {
-      return None;
+    let format = result.getBarcodeFormat();
+    if !(format == &BarcodeFormat::UPC_A
+        || format == &BarcodeFormat::UPC_E
+        || format == &BarcodeFormat::EAN_8
+        || format == &BarcodeFormat::EAN_13)
+    {
+        return None;
     }
     let rawText = ResultParser::getMassagedText(result);
     if !ResultParser::isStringOfDigits(&rawText, rawText.len()) {
-      return None;
+        return None;
     }
-    // Not actually checking the checksum again here    
+    // Not actually checking the checksum again here
 
     let normalizedProductID;
     // Expand UPC-E for purposes of searching
     if format == &BarcodeFormat::UPC_E && rawText.len() == 8 {
-      unimplemented!("UPCEReader is required to parse this");
-      //normalizedProductID = UPCEReader.convertUPCEtoUPCA(rawText);
+        unimplemented!("UPCEReader is required to parse this");
+        //normalizedProductID = UPCEReader.convertUPCEtoUPCA(rawText);
     } else {
-      normalizedProductID = rawText.clone();
+        normalizedProductID = rawText.clone();
     }
 
-    Some(ParsedClientResult::ProductResult(ProductParsedRXingResult::with_normalized_id(rawText, normalizedProductID)))
-
+    Some(ParsedClientResult::ProductResult(
+        ProductParsedRXingResult::with_normalized_id(rawText, normalizedProductID),
+    ))
 }

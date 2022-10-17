@@ -20,7 +20,7 @@
 
 use crate::RXingResult;
 
-use super::{ResultParser, ParsedClientResult, EmailAddressParsedRXingResult};
+use super::{EmailAddressParsedRXingResult, ParsedClientResult, ResultParser};
 
 /**
  * <p>Parses an "smtp:" URI result, whose format is not standardized but appears to be like:
@@ -31,18 +31,18 @@ use super::{ResultParser, ParsedClientResult, EmailAddressParsedRXingResult};
 pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let rawText = ResultParser::getMassagedText(result);
     if !(rawText.starts_with("smtp:") || rawText.starts_with("SMTP:")) {
-      return None;
+        return None;
     }
     let mut emailAddress = &rawText[5..];
     let mut subject = "";
     let mut body = "";
     if let Some(colon) = emailAddress.find(':') {
-      subject = &emailAddress[colon+1..];
-      emailAddress = &emailAddress[..colon];
-      if let Some(new_colon) = subject.find(':') {
-        body = &subject[new_colon+1..];
-        subject = &subject[..new_colon];
-      }
+        subject = &emailAddress[colon + 1..];
+        emailAddress = &emailAddress[..colon];
+        if let Some(new_colon) = subject.find(':') {
+            body = &subject[new_colon + 1..];
+            subject = &subject[..new_colon];
+        }
     }
     // let colon = emailAddress.indexOf(':');
     // if (colon >= 0) {
@@ -54,10 +54,18 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     //     subject = subject.substring(0, colon);
     //   }
     // }
-    Some(ParsedClientResult::EmailResult(EmailAddressParsedRXingResult::with_details(vec![emailAddress.to_owned()],Vec::new(), Vec::new(), subject.to_owned(), body.to_owned())))
+    Some(ParsedClientResult::EmailResult(
+        EmailAddressParsedRXingResult::with_details(
+            vec![emailAddress.to_owned()],
+            Vec::new(),
+            Vec::new(),
+            subject.to_owned(),
+            body.to_owned(),
+        ),
+    ))
     // return new EmailAddressParsedRXingResult(new String[] {emailAddress},
     //                                     null,
     //                                     null,
     //                                     subject,
     //                                     body);
-  }
+}

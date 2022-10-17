@@ -22,20 +22,18 @@
  *
  * @author Sean Owen
  */
-#[derive(Debug,PartialEq, Eq,Hash)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum ParsedRXingResultType {
-
-  ADDRESSBOOK,
-  EMAIL_ADDRESS,
-  PRODUCT,
-  URI,
-  TEXT,
-  GEO,
-  TEL,
-  SMS,
-  CALENDAR,
-  WIFI,
-  ISBN,
-  VIN,
-
+    ADDRESSBOOK,
+    EMAIL_ADDRESS,
+    PRODUCT,
+    URI,
+    TEXT,
+    GEO,
+    TEL,
+    SMS,
+    CALENDAR,
+    WIFI,
+    ISBN,
+    VIN,
 }

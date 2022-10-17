@@ -95,7 +95,11 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     add_number_via(
         &mut numbers,
         &mut vias,
-        &sms_uriwithout_query[(if last_comma > 0 { last_comma + 1} else {last_comma}) as usize..],
+        &sms_uriwithout_query[(if last_comma > 0 {
+            last_comma + 1
+        } else {
+            last_comma
+        }) as usize..],
     );
 
     Some(ParsedClientResult::SMSResult(
@@ -110,7 +114,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
 
 fn add_number_via(numbers: &mut Vec<String>, vias: &mut Vec<String>, number_part: &str) {
     if number_part.is_empty() {
-        return
+        return;
     }
     if let Some(number_end) = number_part.find(';') {
         // if numberEnd < 0 {

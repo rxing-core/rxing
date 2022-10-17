@@ -254,8 +254,10 @@ fn subtract_two_single_char_strings(str1: &str, str2: &str) -> usize {
     let str1_bytes = str1.as_bytes();
     let str2_bytes = str2.as_bytes();
 
-    let str1_u16 = ((str1_bytes[0] as usize) << 4) + ((str1_bytes[1] as usize) << 2) + str1_bytes[2] as usize;
-    let str2_u16 = ((str2_bytes[0] as usize) << 4) + ((str2_bytes[1] as usize) << 2) + str2_bytes[2] as usize;
+    let str1_u16 =
+        ((str1_bytes[0] as usize) << 4) + ((str1_bytes[1] as usize) << 2) + str1_bytes[2] as usize;
+    let str2_u16 =
+        ((str2_bytes[0] as usize) << 4) + ((str2_bytes[1] as usize) << 2) + str2_bytes[2] as usize;
 
     (str1_u16 - str2_u16) as usize
 }

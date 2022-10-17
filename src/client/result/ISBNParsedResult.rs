@@ -23,11 +23,10 @@ use super::ParsedRXingResult;
  *
  * @author jbreiden@google.com (Jeff Breidenbach)
  */
-pub struct ISBNParsedRXingResult   {
-
-  isbn:String,
+pub struct ISBNParsedRXingResult {
+    isbn: String,
 }
-  impl ParsedRXingResult for ISBNParsedRXingResult {
+impl ParsedRXingResult for ISBNParsedRXingResult {
     fn getType(&self) -> super::ParsedRXingResultType {
         super::ParsedRXingResultType::ISBN
     }
@@ -37,14 +36,12 @@ pub struct ISBNParsedRXingResult   {
     }
 }
 
-  impl ISBNParsedRXingResult {
+impl ISBNParsedRXingResult {
+    pub fn new(isbn: String) -> Self {
+        Self { isbn }
+    }
 
-  pub fn new( isbn:String)->Self {
-    Self{ isbn }
-  }
-
-  pub fn getISBN(&self) -> &str{
-    &self.isbn
-  }
-
+    pub fn getISBN(&self) -> &str {
+        &self.isbn
+    }
 }

@@ -97,7 +97,7 @@ impl AlignmentPatternFinder {
             // Search from middle outwards
             let i = (middleI as i32
                 + (if (iGen & 0x01) == 0 {
-                    (iGen as i32 + 1)  / 2
+                    (iGen as i32 + 1) / 2
                 } else {
                     -((iGen as i32 + 1) / 2)
                 })) as u32;
@@ -172,7 +172,7 @@ impl AlignmentPatternFinder {
      * figures the location of the center of this black/white/black run.
      */
     fn centerFromEnd(stateCount: &[u32], end: u32) -> f32 {
-        (end  as f32 - stateCount[2] as f32) - stateCount[1] as f32 / 2.0
+        (end as f32 - stateCount[2] as f32) - stateCount[1] as f32 / 2.0
     }
 
     /**
@@ -237,15 +237,21 @@ impl AlignmentPatternFinder {
         }
 
         // Now also count down from center
-        i = startI as i32+ 1;
-        while i < maxI as i32 && image.get(centerJ, i as u32) && self.crossCheckStateCount[1] <= maxCount {
+        i = startI as i32 + 1;
+        while i < maxI as i32
+            && image.get(centerJ, i as u32)
+            && self.crossCheckStateCount[1] <= maxCount
+        {
             self.crossCheckStateCount[1] += 1;
             i += 1;
         }
         if i == maxI as i32 || self.crossCheckStateCount[1] > maxCount {
             return f32::NAN;
         }
-        while i < maxI as i32 && !image.get(centerJ, i as u32) && self.crossCheckStateCount[2] <= maxCount {
+        while i < maxI as i32
+            && !image.get(centerJ, i as u32)
+            && self.crossCheckStateCount[2] <= maxCount
+        {
             self.crossCheckStateCount[2] += 1;
             i += 1;
         }
@@ -288,7 +294,7 @@ impl AlignmentPatternFinder {
     ) -> Option<AlignmentPattern> {
         let stateCountTotal = stateCount[0] + stateCount[1] + stateCount[2];
         let centerJ = Self::centerFromEnd(stateCount, j);
-        let centerI = self.crossCheckVertical( 
+        let centerI = self.crossCheckVertical(
             i,
             centerJ.floor() as u32,
             2 * stateCount[1],

@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2007 ZXing authors
  *
@@ -19,7 +18,7 @@
 
 // import java.util.Arrays;
 
-use std::{fmt, cmp};
+use std::{cmp, fmt};
 
 use crate::Exceptions;
 

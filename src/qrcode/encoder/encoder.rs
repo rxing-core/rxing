@@ -43,7 +43,7 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::{
     common::{
         reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonEncoder},
-        BitArray, CharacterSetECI, 
+        BitArray, CharacterSetECI,
     },
     qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
     EncodeHintType, EncodeHintValue, EncodingHintDictionary, Exceptions,
@@ -155,9 +155,11 @@ pub fn encode_with_hints(
         let encoding = if encoding.is_some() {
             encoding.unwrap()
         } else {
-            if let Ok(_encs) = DEFAULT_BYTE_MODE_ENCODING.encode(content, encoding::EncoderTrap::Strict){
+            if let Ok(_encs) =
+                DEFAULT_BYTE_MODE_ENCODING.encode(content, encoding::EncoderTrap::Strict)
+            {
                 DEFAULT_BYTE_MODE_ENCODING
-            }else {
+            } else {
                 has_encoding_hint = true;
                 encoding::all::UTF_8
             }
@@ -302,8 +304,12 @@ fn recommendVersion(
     // Hard part: need to know version to know how many bits length takes. But need to know how many
     // bits it takes to know version. First we take a guess at version by assuming version will be
     // the minimum, 1:
-    let provisional_bits_needed =
-        calculateBitsNeeded(mode, header_bits, data_bits, Version::getVersionForNumber(1)?);
+    let provisional_bits_needed = calculateBitsNeeded(
+        mode,
+        header_bits,
+        data_bits,
+        Version::getVersionForNumber(1)?,
+    );
     let provisional_version = chooseVersion(provisional_bits_needed, ec_level)?;
 
     // Use that guess to calculate the right version. I am still not sure this works in 100% of cases.

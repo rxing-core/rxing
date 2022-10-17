@@ -20,7 +20,7 @@
 // import java.util.ArrayList;
 // import java.util.List;
 
-use std::{rc::Rc, fmt};
+use std::{fmt, rc::Rc};
 
 use encoding::EncodingRef;
 use unicode_segmentation::UnicodeSegmentation;
@@ -141,7 +141,7 @@ impl ECIInput for MinimalECIInput {
         if index >= self.length() as u32 {
             return Err(Exceptions::IndexOutOfBoundsException(index.to_string()));
         }
-        Ok(self.bytes[index as usize] > 255)// && self.bytes[index as usize] <= u16::MAX)
+        Ok(self.bytes[index as usize] > 255) // && self.bytes[index as usize] <= u16::MAX)
     }
 
     /**
@@ -383,11 +383,11 @@ impl MinimalECIInput {
     }
 }
 
- struct InputEdge {
-     c: String,
-     encoderIndex: usize, //the encoding of this edge
-     previous: Option<Rc<InputEdge>>,
-     cachedTotalSize: usize,
+struct InputEdge {
+    c: String,
+    encoderIndex: usize, //the encoding of this edge
+    previous: Option<Rc<InputEdge>>,
+    cachedTotalSize: usize,
 }
 impl InputEdge {
     pub fn new(

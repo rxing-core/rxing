@@ -18,7 +18,6 @@ mod BitSourceTestCase;
 #[cfg(test)]
 mod PerspectiveTransformTestCase;
 
-
 mod string_utils;
 pub use string_utils::*;
 
@@ -98,7 +97,6 @@ pub use eci_encoder_set::*;
 
 mod minimal_eci_input;
 pub use minimal_eci_input::*;
-
 
 mod global_histogram_binarizer;
 pub use global_histogram_binarizer::*;

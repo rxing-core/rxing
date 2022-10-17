@@ -20,9 +20,7 @@
 
 use crate::RXingResult;
 
-use super::{
-    ParsedClientResult, ResultParser, URIParsedRXingResult, URIResultParser,
-};
+use super::{ParsedClientResult, ResultParser, URIParsedRXingResult, URIResultParser};
 
 /**
  * @author Sean Owen
@@ -40,7 +38,8 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let uri = rawUri?[0].clone();
     if URIResultParser::is_basically_valid_uri(&uri) {
         Some(ParsedClientResult::URIResult(URIParsedRXingResult::new(
-            uri, title.unwrap_or("".to_owned()),
+            uri,
+            title.unwrap_or("".to_owned()),
         )))
     } else {
         None

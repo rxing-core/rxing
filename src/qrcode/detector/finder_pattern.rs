@@ -40,7 +40,10 @@ impl ResultPoint for FinderPattern {
     }
 
     fn into_rxing_result_point(self) -> RXingResultPoint {
-        RXingResultPoint { x: self.point.0, y: self.point.1 }
+        RXingResultPoint {
+            x: self.point.0,
+            y: self.point.1,
+        }
     }
 }
 

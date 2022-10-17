@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2009 ZXing authors
  *
@@ -21,9 +20,9 @@
 // import com.google.zxing.LuminanceSource;
 // import com.google.zxing.NotFoundException;
 
-use crate::{Exceptions, LuminanceSource, Binarizer};
+use crate::{Binarizer, Exceptions, LuminanceSource};
 
-use super::{BitMatrix, BitArray};
+use super::{BitArray, BitMatrix};
 
 /**
  * This Binarizer implementation uses the old ZXing global histogram approach. It is suitable

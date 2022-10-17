@@ -20,9 +20,9 @@
 // import java.nio.charset.StandardCharsets;
 // import java.util.Map;
 
-use encoding::{EncodingRef, Encoding};
+use encoding::{Encoding, EncodingRef};
 
-use crate::{DecodingHintDictionary, DecodeHintType, DecodeHintValue};
+use crate::{DecodeHintType, DecodeHintValue, DecodingHintDictionary};
 
 use lazy_static::lazy_static;
 

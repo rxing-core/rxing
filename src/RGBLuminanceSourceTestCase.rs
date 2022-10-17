@@ -24,49 +24,52 @@
 //  */
 // public final class RGBLuminanceSourceTestCase extends Assert {
 
-use crate::{RGBLuminanceSource, LuminanceSource};
+use crate::{LuminanceSource, RGBLuminanceSource};
 
-  const SRC_DATA : [u32;9] = [0x000000, 0x7F7F7F, 0xFFFFFF,
-  0xFF0000, 0x00FF00, 0x0000FF,
-  0x0000FF, 0x00FF00, 0xFF0000];
+const SRC_DATA: [u32; 9] = [
+    0x000000, 0x7F7F7F, 0xFFFFFF, 0xFF0000, 0x00FF00, 0x0000FF, 0x0000FF, 0x00FF00, 0xFF0000,
+];
 
-  #[test]
-  fn testCrop() {
-    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3,3,&SRC_DATA.to_vec());
+#[test]
+fn testCrop() {
+    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3, 3, &SRC_DATA.to_vec());
 
     assert!(SOURCE.isCropSupported());
     let cropped = SOURCE.crop(1, 1, 1, 1).unwrap();
     assert_eq!(1, cropped.getHeight());
     assert_eq!(1, cropped.getWidth());
-    assert_eq!(vec![ 0x7F ], cropped.getRow(0, &vec![0;0]));
-  }
+    assert_eq!(vec![0x7F], cropped.getRow(0, &vec![0; 0]));
+}
 
-  #[test]
-  fn testMatrix() {
-    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3,3,&SRC_DATA.to_vec());
+#[test]
+fn testMatrix() {
+    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3, 3, &SRC_DATA.to_vec());
 
-    assert_eq!(vec![ 0x00, 0x7F,  0xFF, 0x3F, 0x7F, 0x3F, 0x3F, 0x7F, 0x3F ],
-                      SOURCE.getMatrix());
+    assert_eq!(
+        vec![0x00, 0x7F, 0xFF, 0x3F, 0x7F, 0x3F, 0x3F, 0x7F, 0x3F],
+        SOURCE.getMatrix()
+    );
     let croppedFullWidth = SOURCE.crop(0, 1, 3, 2).unwrap();
-    assert_eq!(vec![ 0x3F, 0x7F, 0x3F, 0x3F, 0x7F, 0x3F ],
-                      croppedFullWidth.getMatrix());
+    assert_eq!(
+        vec![0x3F, 0x7F, 0x3F, 0x3F, 0x7F, 0x3F],
+        croppedFullWidth.getMatrix()
+    );
     let croppedCorner = SOURCE.crop(1, 1, 2, 2).unwrap();
-    assert_eq!(vec![ 0x7F, 0x3F, 0x7F, 0x3F ],
-                      croppedCorner.getMatrix());
-  }
+    assert_eq!(vec![0x7F, 0x3F, 0x7F, 0x3F], croppedCorner.getMatrix());
+}
 
-  #[test]
-  fn testGetRow() {
-    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3,3,&SRC_DATA.to_vec());
+#[test]
+fn testGetRow() {
+    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3, 3, &SRC_DATA.to_vec());
 
-    assert_eq!(vec![ 0x3F, 0x7F, 0x3F ], SOURCE.getRow(2, &vec![0;3]));
-  }
+    assert_eq!(vec![0x3F, 0x7F, 0x3F], SOURCE.getRow(2, &vec![0; 3]));
+}
 
-  // #[test]
-  // fn testToString() {
-  //   let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3,3,&src_data.to_vec());
+// #[test]
+// fn testToString() {
+//   let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3,3,&src_data.to_vec());
 
-  //   assert_eq!("#+ \n#+#\n#+#\n", SOURCE.toString());
-  // }
+//   assert_eq!("#+ \n#+#\n#+#\n", SOURCE.toString());
+// }
 
 // }

@@ -82,7 +82,7 @@ impl BitMatrixParser {
         let dimension = self.bitMatrix.getHeight();
         let mut formatInfoBits2 = 0;
         let jMin = dimension - 7;
-        for j in (jMin..=dimension-1).rev() {
+        for j in (jMin..=dimension - 1).rev() {
             // for (int j = dimension - 1; j >= jMin; j--) {
             formatInfoBits2 = self.copyBit(8, j, formatInfoBits2);
         }

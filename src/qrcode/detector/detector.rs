@@ -18,8 +18,7 @@ use std::collections::HashMap;
 
 use crate::{
     common::{
-        detector::MathUtils, BitMatrix, DefaultGridSampler, GridSampler,
-        PerspectiveTransform,
+        detector::MathUtils, BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform,
     },
     qrcode::decoder::Version,
     result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
@@ -338,10 +337,11 @@ impl Detector {
         let mut scale = 1.0;
         let mut otherToX = fromX as i32 - (toX as i32 - fromX as i32);
         if otherToX < 0 {
-            scale = fromX as f32 / (fromX as i32- otherToX) as f32;
+            scale = fromX as f32 / (fromX as i32 - otherToX) as f32;
             otherToX = 0;
         } else if otherToX as u32 >= self.image.getWidth() {
-            scale = (self.image.getWidth() as i32 - 1 - fromX as i32) as f32 / (otherToX - fromX as i32) as f32;
+            scale = (self.image.getWidth() as i32 - 1 - fromX as i32) as f32
+                / (otherToX - fromX as i32) as f32;
             otherToX = self.image.getWidth() as i32 - 1;
         }
         let mut otherToY = (fromY as f32 - (toY as f32 - fromY as f32) * scale).floor() as i32;
@@ -351,12 +351,18 @@ impl Detector {
             scale = fromY as f32 / (fromY as i32 - otherToY) as f32;
             otherToY = 0;
         } else if otherToY as u32 >= self.image.getHeight() {
-            scale = (self.image.getHeight() as i32 - 1 - fromY as i32) as f32 / (otherToY - fromY as i32) as f32;
+            scale = (self.image.getHeight() as i32 - 1 - fromY as i32) as f32
+                / (otherToY - fromY as i32) as f32;
             otherToY = self.image.getHeight() as i32 - 1;
         }
-        otherToX = (fromX as f32+ (otherToX as f32 - fromX as f32) * scale).floor() as i32;
+        otherToX = (fromX as f32 + (otherToX as f32 - fromX as f32) * scale).floor() as i32;
 
-        result += self.sizeOfBlackWhiteBlackRun(fromX as u32, fromY as u32, otherToX as u32, otherToY as u32);
+        result += self.sizeOfBlackWhiteBlackRun(
+            fromX as u32,
+            fromY as u32,
+            otherToX as u32,
+            otherToY as u32,
+        );
 
         // Middle pixel is double-counted this way; subtract 1
         return result - 1.0;
@@ -462,7 +468,7 @@ impl Detector {
         // Look for an alignment pattern (3 modules in size) around where it
         // should be
         let allowance = (allowanceFactor * overallEstModuleSize) as u32;
-        let alignmentAreaLeftX = 0.max(estAlignmentX as i32- allowance as i32) as u32;
+        let alignmentAreaLeftX = 0.max(estAlignmentX as i32 - allowance as i32) as u32;
         let alignmentAreaRightX = (self.image.getWidth() - 1).min(estAlignmentX + allowance);
         if ((alignmentAreaRightX - alignmentAreaLeftX) as f32) < overallEstModuleSize * 3.0 {
             return Err(Exceptions::NotFoundException("not found".to_owned()));
