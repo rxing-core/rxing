@@ -23,7 +23,7 @@ use crate::Exceptions;
 /**
  * Simply encapsulates a width and height.
  */
-#[derive(Eq, PartialEq, Hash)]
+#[derive(Eq, PartialEq, Hash, Copy, Clone)]
 pub struct Dimension(usize, usize);
 
 impl Dimension {

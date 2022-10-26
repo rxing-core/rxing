@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 Jeremias Maerki
+ * Copyright 2006-2007 Jeremias Maerki.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package com.google.zxing.datamatrix.encoder;
+use super::EncoderContext;
 
-final class DataMatrixSymbolInfo144 extends SymbolInfo {
+pub trait Encoder {
 
-  DataMatrixSymbolInfo144() {
-    super(false, 1558, 620, 22, 22, 36, -1, 62);
-  }
+  fn getEncodingMode(&self) -> i32;
 
-  @Override
-  public int getInterleavedBlockCount() {
-    return 10;
-  }
-
-  @Override
-  public int getDataLengthForInterleavedBlock(int index) {
-    return (index <= 8) ? 156 : 155;
-  }
+  fn encode(&self, context:&mut EncoderContext);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 Jeremias Maerki.
+ * Copyright 2007 Jeremias Maerki.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.google.zxing.datamatrix.encoder;
-
-interface Encoder {
-
-  int getEncodingMode();
-
-  void encode(EncoderContext context);
-
+/**
+ * Enumeration for DataMatrix symbol shape hint. It can be used to force square or rectangular
+ * symbols.
+ */
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum SymbolShapeHint {
+    FORCE_NONE,
+    FORCE_SQUARE,
+    FORCE_RECTANGLE,
 }
