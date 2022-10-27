@@ -26,7 +26,7 @@ pub struct C40Encoder;
 
 impl Encoder for C40Encoder {
     fn encode(&self, context: &mut super::EncoderContext) -> Result<(), Exceptions> {
-        self.encode_with_encode_char_fn(context, &Self::encodeChar_c40)
+        self.encode_with_encode_char_fn(context, &Self::encodeChar_c40, &Self::handleEOD_c40)
     }
 
     fn getEncodingMode(&self) -> usize {
@@ -39,10 +39,11 @@ impl C40Encoder {
         Self
     }
 
-    pub fn encode_with_encode_char_fn(
+    pub(super) fn encode_with_encode_char_fn(
         &self,
         context: &mut super::EncoderContext,
         encodeChar: &dyn Fn(char, &mut String) -> u32,
+        handleEOD : &dyn Fn(  &EncoderContext,  &mut String) -> Result<(), Exceptions>,
     ) -> Result<(), Exceptions> {
         //step C
         let mut buffer = String::new();
@@ -97,14 +98,15 @@ impl C40Encoder {
                 }
             }
         }
-        self.handleEOD(context, &mut buffer);
+        handleEOD(context, &mut buffer);
         Ok(())
     }
 
-    fn encodeMaximal(
+    pub fn encodeMaximal(
         &self,
         context: &EncoderContext,
         encodeChar: &dyn Fn(char, &mut String) -> u32,
+        handleEOD : &dyn Fn(  &EncoderContext,  &mut String) -> Result<(), Exceptions>,
     ) {
         let buffer = String::new();
         let lastCharSize = 0;
@@ -138,7 +140,7 @@ impl C40Encoder {
             context.writeCodeword(LATCH_TO_C40);
         }
 
-        self.handleEOD(context, &mut buffer);
+        handleEOD(context, &mut buffer);
     }
 
     fn backtrackOneCharacter(
@@ -159,7 +161,7 @@ impl C40Encoder {
         return lastCharSize;
     }
 
-    fn writeNextTriplet(context: &EncoderContext, buffer: &mut String) {
+   pub(super) fn writeNextTriplet(context: &EncoderContext, buffer: &mut String) {
         context.writeCodewords(&Self::encodeToCodewords(buffer));
         buffer.replace_range(0..3, "");
         // buffer.delete(0, 3);
@@ -171,7 +173,7 @@ impl C40Encoder {
      * @param context the encoder context
      * @param buffer  the buffer with the remaining encoded characters
      */
-    fn handleEOD(&self, context: &EncoderContext, buffer: &mut String) -> Result<(), Exceptions> {
+    pub fn handleEOD_c40( context: &EncoderContext, buffer: &mut String) -> Result<(), Exceptions> {
         let unwritten = (buffer.len() / 3) * 2;
         let rest = buffer.len() % 3;
 

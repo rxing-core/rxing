@@ -20,7 +20,7 @@ use encoding::{self, EncodingRef};
 
 use crate::{Dimension, Exceptions};
 
-use super::{EncoderContext, SymbolShapeHint, C40Encoder, ASCIIEncoder, Encoder, TextEncoder};
+use super::{EncoderContext, SymbolShapeHint, C40Encoder, ASCIIEncoder, Encoder, TextEncoder, X12Encoder};
 const DEFAULT_ENCODING: EncodingRef = encoding::all::ISO_8859_1;
 
 use unicode_segmentation::UnicodeSegmentation;
@@ -179,7 +179,7 @@ pub fn encodeHighLevelWithDimensionForceC40(
         Rc::new(ASCIIEncoder::new()),
         c40Encoder.clone(),
         Rc::new(TextEncoder::new()),
-        X12Encoder::new(),
+        Rc::new(X12Encoder::new()),
         EdifactEncoder::new(),
         Base256Encoder::new(),
     ];
@@ -566,7 +566,7 @@ pub fn determineConsecutiveDigitCount(msg: &str, startpos: u32) -> u32 {
     idx - startpos
 }
 
-fn illegalCharacter(c: &str) -> Result<(), Exceptions> {
+pub fn illegalCharacter(c: char) -> Result<(), Exceptions> {
     // let hex = Integer.toHexString(c);
     // hex = "0000".substring(0, 4 - hex.length()) + hex;
     Err(Exceptions::IllegalArgumentException(format!(

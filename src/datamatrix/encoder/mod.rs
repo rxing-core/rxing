@@ -17,3 +17,6 @@ pub use ascii_encoder::*;
 
 mod text_encoder;
 pub use text_encoder::*;
+
+mod x12_encoder;
+pub use x12_encoder::*;
