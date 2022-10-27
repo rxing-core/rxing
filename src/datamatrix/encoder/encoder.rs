@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
+use crate::Exceptions;
+
 use super::EncoderContext;
 
 pub trait Encoder {
+    fn getEncodingMode(&self) -> usize;
 
-  fn getEncodingMode(&self) -> i32;
-
-  fn encode(&self, context:&mut EncoderContext);
-
+    fn encode(&self, context: &mut EncoderContext) -> Result<(), Exceptions>;
 }

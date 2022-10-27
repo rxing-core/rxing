@@ -31,8 +31,8 @@ pub struct EncoderContext<'a> {
     minSize: Option<Dimension>,
     maxSize: Option<Dimension>,
     codewords: String,
-    pos: u32,
-    newEncoding: i32,
+    pub(super) pos: u32,
+    newEncoding:Option< usize>,
     symbolInfo: Option<&'a SymbolInfo>,
     skipAtEnd: u32,
 }
@@ -65,7 +65,7 @@ impl EncoderContext<'_> {
             msg: sb,
             shape: SymbolShapeHint::FORCE_NONE,
             codewords: String::with_capacity(msg.len()),
-            newEncoding: -1,
+            newEncoding: None,
             minSize: None,
             maxSize: None,
             pos: 0,
@@ -91,12 +91,14 @@ impl EncoderContext<'_> {
         self.skipAtEnd = count;
     }
 
-    pub fn getCurrentChar(&self) -> &str {
-        self.msg.graphemes(true).nth(self.pos as usize).unwrap()
+    pub fn getCurrentChar(&self) -> char {
+        // self.msg.graphemes(true).nth(self.pos as usize).unwrap()
+        self.msg.chars().nth(self.pos as usize).unwrap()
     }
 
-    pub fn getCurrent(&self) -> &str {
-        self.msg.graphemes(true).nth(self.pos as usize).unwrap()
+    pub fn getCurrent(&self) -> char {
+        // self.msg.graphemes(true).nth(self.pos as usize).unwrap()
+        self.msg.chars().nth(self.pos as usize).unwrap()
     }
 
     pub fn getCodewords(&self) -> &str {
@@ -107,24 +109,24 @@ impl EncoderContext<'_> {
         self.codewords.push_str(codewords);
     }
 
-    pub fn writeCodeword(&mut self, codeword: &str) {
-        self.codewords.push_str(codeword);
+    pub fn writeCodeword(&mut self, codeword: u8) {
+        self.codewords.push(codeword as char);
     }
 
     pub fn getCodewordCount(&self) -> usize {
         self.codewords.len()
     }
 
-    pub fn getNewEncoding(&self) -> i32 {
+    pub fn getNewEncoding(&self) -> Option<usize> {
         self.newEncoding
     }
 
-    pub fn signalEncoderChange(&mut self, encoding: i32) {
-        self.newEncoding = encoding;
+    pub fn signalEncoderChange(&mut self, encoding: usize) {
+        self.newEncoding = Some(encoding);
     }
 
     pub fn resetEncoderSignal(&mut self) {
-        self.newEncoding = -1;
+        self.newEncoding = None;
     }
 
     pub fn hasMoreCharacters(&self) -> bool {
