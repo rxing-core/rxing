@@ -20,3 +20,9 @@ pub use text_encoder::*;
 
 mod x12_encoder;
 pub use x12_encoder::*;
+
+mod edifact_encoder;
+pub use edifact_encoder::*;
+
+mod base256_encoder;
+pub use base256_encoder::*;

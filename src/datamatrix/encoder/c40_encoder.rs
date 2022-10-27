@@ -102,7 +102,11 @@ impl C40Encoder {
         Ok(())
     }
 
-    pub fn encodeMaximal(
+    pub fn encodeMaximalC40(&self, context: &EncoderContext,) {
+        self.encodeMaximal(context, &Self::encodeChar_c40, &Self::handleEOD_c40)
+    }
+
+     fn encodeMaximal(
         &self,
         context: &EncoderContext,
         encodeChar: &dyn Fn(char, &mut String) -> u32,

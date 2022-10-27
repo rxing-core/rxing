@@ -78,9 +78,9 @@ impl EncoderContext<'_> {
         self.shape = shape;
     }
 
-    pub fn setSizeConstraints(&mut self, minSize: Dimension, maxSize: Dimension) {
-        self.minSize = Some(minSize);
-        self.maxSize = Some(maxSize);
+    pub fn setSizeConstraints(&mut self, minSize: Option<Dimension>, maxSize: Option<Dimension>) {
+        self.minSize = minSize;
+        self.maxSize = maxSize;
     }
 
     pub fn getMessage(&self) -> &str {

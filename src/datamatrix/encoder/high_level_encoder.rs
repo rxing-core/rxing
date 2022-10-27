@@ -20,7 +20,10 @@ use encoding::{self, EncodingRef};
 
 use crate::{Dimension, Exceptions};
 
-use super::{EncoderContext, SymbolShapeHint, C40Encoder, ASCIIEncoder, Encoder, TextEncoder, X12Encoder};
+use super::{
+    ASCIIEncoder, Base256Encoder, C40Encoder, EdifactEncoder, Encoder, EncoderContext,
+    SymbolShapeHint, TextEncoder, X12Encoder,
+};
 const DEFAULT_ENCODING: EncodingRef = encoding::all::ISO_8859_1;
 
 use unicode_segmentation::UnicodeSegmentation;
@@ -175,83 +178,86 @@ pub fn encodeHighLevelWithDimensionForceC40(
 ) -> Result<String, Exceptions> {
     //the codewords 0..255 are encoded as Unicode characters
     let c40Encoder = Rc::new(C40Encoder::new());
-    let encoders:[Rc<dyn Encoder>;6] = [
+    let encoders: [Rc<dyn Encoder>; 6] = [
         Rc::new(ASCIIEncoder::new()),
         c40Encoder.clone(),
         Rc::new(TextEncoder::new()),
         Rc::new(X12Encoder::new()),
-        EdifactEncoder::new(),
-        Base256Encoder::new(),
+        Rc::new(EdifactEncoder::new()),
+        Rc::new(Base256Encoder::new()),
     ];
 
-    let context = EncoderContext::new(msg)?;
+    let mut context = EncoderContext::new(msg)?;
     context.setSymbolShape(shape);
     context.setSizeConstraints(minSize, maxSize);
 
     if msg.starts_with(MACRO_05_HEADER) && msg.ends_with(MACRO_TRAILER) {
         context.writeCodeword(MACRO_05);
         context.setSkipAtEnd(2);
-        context.pos += MACRO_05_HEADER.len();
-    } else if (msg.starts_with(MACRO_06_HEADER) && msg.ends_with(MACRO_TRAILER)) {
+        context.pos += MACRO_05_HEADER.len() as u32;
+    } else if msg.starts_with(MACRO_06_HEADER) && msg.ends_with(MACRO_TRAILER) {
         context.writeCodeword(MACRO_06);
         context.setSkipAtEnd(2);
-        context.pos += MACRO_06_HEADER.len();
+        context.pos += MACRO_06_HEADER.len() as u32;
     }
 
     let encodingMode = ASCII_ENCODATION; //Default mode
 
     if forceC40 {
-        c40Encoder.encodeMaximal(context);
-        encodingMode = context.getNewEncoding();
+        c40Encoder.encodeMaximalC40(&mut context);
+        encodingMode = context.getNewEncoding().unwrap();
         context.resetEncoderSignal();
     }
 
     while context.hasMoreCharacters() {
-        encoders[encodingMode].encode(context);
-        if context.getNewEncoding() >= 0 {
-            encodingMode = context.getNewEncoding();
+        encoders[encodingMode].encode(&mut context);
+        if context.getNewEncoding().is_some() {
+            encodingMode = context.getNewEncoding().unwrap();
             context.resetEncoderSignal();
         }
     }
     let len = context.getCodewordCount();
     context.updateSymbolInfo();
-    let capacity = context.getSymbolInfo().getDataCapacity();
-    if len < capacity
+    let capacity = context.getSymbolInfo().unwrap().getDataCapacity();
+    if len < capacity as usize
         && encodingMode != ASCII_ENCODATION
         && encodingMode != BASE256_ENCODATION
         && encodingMode != EDIFACT_ENCODATION
     {
-        context.writeCodeword("\u{00fe}"); //Unlatch (254)
+        context.writeCodeword(0xfe); //Unlatch (254)
+        // context.writeCodeword("\u{00fe}"); //Unlatch (254)
     }
     //Padding
     let codewords = context.getCodewords();
-    if codewords.len() < capacity {
-        codewords.append(PAD);
+    if codewords.len() < capacity as usize{
+        // codewords.push(PAD as char);
+        context.writeCodeword(PAD)
     }
-    while codewords.len() < capacity {
-        codewords.append(randomize253State(codewords.length() + 1));
+    while codewords.len() < capacity as usize {
+        // codewords.append(randomize253State(codewords.len() + 1));
+        context.writeCodewords(&randomize253State(codewords.len() as u32 + 1))
     }
 
-    return context.getCodewords().toString();
+     Ok(context.getCodewords().to_owned())
 }
 
 pub fn lookAheadTest(msg: &str, startpos: u32, currentMode: u32) -> usize {
     let newMode = lookAheadTestIntern(msg, startpos, currentMode);
     if currentMode as usize == X12_ENCODATION && newMode as usize == X12_ENCODATION {
-        let msg_graphemes = msg.graphemes(true);
-        let endpos = (startpos + 3).min(msg_graphemes.count() as u32);
+        // let msg_graphemes = msg.graphemes(true);
+        let endpos = (startpos + 3).min(msg.chars().count() as u32);
         for i in startpos..endpos {
             // for (int i = startpos; i < endpos; i++) {
-            if !isNativeX12(msg_graphemes.nth(i as usize).unwrap()) {
+            if !isNativeX12(msg.chars().nth(i as usize).unwrap()) {
                 return ASCII_ENCODATION;
             }
         }
     } else if currentMode as usize == EDIFACT_ENCODATION && newMode == EDIFACT_ENCODATION {
-        let msg_graphemes = msg.graphemes(true);
-        let endpos = (startpos + 4).min(msg_graphemes.count() as u32);
+        // let msg_graphemes = msg.graphemes(true);
+        let endpos = (startpos + 4).min(msg.chars().count() as u32);
         for i in startpos..endpos {
             // for (int i = startpos; i < endpos; i++) {
-            if !isNativeEDIFACT(msg_graphemes.nth(i as usize).unwrap()) {
+            if !isNativeEDIFACT(msg.chars().nth(i as usize).unwrap()) {
                 return ASCII_ENCODATION;
             }
         }
@@ -305,11 +311,12 @@ fn lookAheadTestIntern(msg: &str, startpos: u32, currentMode: u32) -> usize {
             return C40_ENCODATION;
         }
 
-        let c = msg
-            .graphemes(true)
-            .nth((startpos + charsProcessed) as usize)
-            .unwrap();
+        // let c = msg
+        //     .graphemes(true)
+        //     .nth((startpos + charsProcessed) as usize)
+        //     .unwrap();
         // let c = msg.charAt(startpos + charsProcessed);
+        let c = msg.chars().nth((startpos + charsProcessed) as usize).unwrap();
         charsProcessed += 1;
 
         //step L
@@ -442,7 +449,7 @@ fn lookAheadTestIntern(msg: &str, startpos: u32, currentMode: u32) -> usize {
                 }
                 if intCharCounts[C40_ENCODATION] == intCharCounts[X12_ENCODATION] {
                     let p = startpos + charsProcessed + 1;
-                    for tc in msg.graphemes(true) {
+                    for tc in msg.chars() {
                         // while (p as usize) < msg.len() {
                         // let tc = msg.charAt(p);
                         if isX12TermSep(tc) {
@@ -503,48 +510,32 @@ pub fn isExtendedASCII(ch: char) -> bool {
     (ch as u8) >= 128 && (ch as u8) <= 255
 }
 
-fn isNativeC40(ch: &str) -> bool {
-    if ch.len() > 1 {
-        return false;
-    }
-    let cha = ch.chars().nth(0).unwrap();
-    (cha == ' ') || (cha >= '0' && cha <= '9') || (cha >= 'A' && cha <= 'Z')
+fn isNativeC40(ch: char) -> bool {
+    (ch == ' ') || (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z')
 }
 
-fn isNativeText(ch: &str) -> bool {
-    if ch.len() > 1 {
-        return false;
-    }
-    let cha = ch.chars().nth(0).unwrap();
-    (cha == ' ') || (cha >= '0' && cha <= '9') || (cha >= 'a' && cha <= 'z')
+fn isNativeText(ch: char) -> bool {
+    (ch == ' ') || (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'z')
 }
 
-fn isNativeX12(ch: &str) -> bool {
-    if ch.len() > 1 {
-        return false;
-    }
-    let cha = ch.chars().nth(0).unwrap();
+fn isNativeX12(ch: char) -> bool {
     return isX12TermSep(ch)
-        || (cha == ' ')
-        || (cha >= '0' && cha <= '9')
-        || (cha >= 'A' && cha <= 'Z');
+        || (ch == ' ')
+        || (ch >= '0' && ch <= '9')
+        || (ch >= 'A' && ch <= 'Z');
 }
 
-fn isX12TermSep(ch: &str) -> bool {
-    (ch == "\r") //CR
-        || (ch == "*")
-        || (ch == ">")
+fn isX12TermSep(ch: char) -> bool {
+    (ch == '\r') //CR
+        || (ch == '*')
+        || (ch == '>')
 }
 
-fn isNativeEDIFACT(ch: &str) -> bool {
-    if ch.len() > 1 {
-        return false;
-    }
-    let cha = ch.chars().nth(0).unwrap();
-    cha >= ' ' && cha <= '^'
+fn isNativeEDIFACT(ch: char) -> bool {
+    ch >= ' ' && ch <= '^'
 }
 
-fn isSpecialB256(ch: &str) -> bool {
+fn isSpecialB256(ch: char) -> bool {
     unimplemented!();
     return false; //TODO NOT IMPLEMENTED YET!!!
 }
@@ -557,10 +548,10 @@ fn isSpecialB256(ch: &str) -> bool {
  * @return the requested character count
  */
 pub fn determineConsecutiveDigitCount(msg: &str, startpos: u32) -> u32 {
-    // let len = msg.len();
+    let len = msg.chars().count();//len();
     let idx = startpos;
-    let graphemes = msg.graphemes(true);
-    while (idx as usize) < graphemes.count() && isDigit(graphemes.nth(idx as usize).unwrap()) {
+    // let graphemes = msg.graphemes(true);
+    while (idx as usize) < len && isDigit(msg.chars().nth(idx as usize).unwrap()) {
         idx += 1;
     }
     idx - startpos
