@@ -43,7 +43,7 @@ impl C40Encoder {
         &self,
         context: &mut super::EncoderContext,
         encodeChar: &dyn Fn(char, &mut String) -> u32,
-        handleEOD : &dyn Fn(  &EncoderContext,  &mut String) -> Result<(), Exceptions>,
+        handleEOD : &dyn Fn(  &mut EncoderContext,  &mut String) -> Result<(), Exceptions>,
     ) -> Result<(), Exceptions> {
         //step C
         let mut buffer = String::new();
@@ -51,7 +51,7 @@ impl C40Encoder {
             let c = context.getCurrentChar();
             context.pos += 1;
 
-            let lastCharSize = encodeChar(c, &mut buffer);
+            let mut lastCharSize = encodeChar(c, &mut buffer);
 
             let unwritten = (buffer.len() / 3) * 2;
 
@@ -76,7 +76,7 @@ impl C40Encoder {
                     lastCharSize = self.backtrackOneCharacter(
                         context,
                         &mut buffer,
-                        &removed,
+                        &mut removed,
                         lastCharSize,
                         encodeChar,
                     );
@@ -102,20 +102,20 @@ impl C40Encoder {
         Ok(())
     }
 
-    pub fn encodeMaximalC40(&self, context: &EncoderContext,) {
+    pub fn encodeMaximalC40(&self, context: &mut EncoderContext,) {
         self.encodeMaximal(context, &Self::encodeChar_c40, &Self::handleEOD_c40)
     }
 
      fn encodeMaximal(
         &self,
-        context: &EncoderContext,
+        context: &mut EncoderContext,
         encodeChar: &dyn Fn(char, &mut String) -> u32,
-        handleEOD : &dyn Fn(  &EncoderContext,  &mut String) -> Result<(), Exceptions>,
+        handleEOD : &dyn Fn(  &mut EncoderContext,  &mut String) -> Result<(), Exceptions>,
     ) {
-        let buffer = String::new();
-        let lastCharSize = 0;
-        let backtrackStartPosition = context.pos;
-        let backtrackBufferLength = 0;
+        let mut buffer = String::new();
+        let mut lastCharSize = 0;
+        let mut backtrackStartPosition = context.pos;
+        let mut backtrackBufferLength = 0;
         while context.hasMoreCharacters() {
             let c = context.getCurrentChar();
             context.pos += 1;
@@ -144,14 +144,14 @@ impl C40Encoder {
             context.writeCodeword(LATCH_TO_C40);
         }
 
-        handleEOD(context, &mut buffer);
+        handleEOD( context, &mut buffer);
     }
 
     fn backtrackOneCharacter(
         &self,
-        context: &EncoderContext,
+        context: &mut EncoderContext,
         buffer: &mut String,
-        removed: &String,
+        removed: &mut String,
         lastCharSize: u32,
         encodeChar: &dyn Fn(char, &mut String) -> u32,
     ) -> u32 {
@@ -160,12 +160,12 @@ impl C40Encoder {
         buffer.replace_range((count - lastCharSize as usize)..count, "");
         context.pos -= 1;
         let c = context.getCurrentChar();
-        lastCharSize = encodeChar(c, &mut removed);
+        let lastCharSize = encodeChar(c,   removed);
         context.resetSymbolInfo(); //Deal with possible reduction in symbol size
         return lastCharSize;
     }
 
-   pub(super) fn writeNextTriplet(context: &EncoderContext, buffer: &mut String) {
+   pub(super) fn writeNextTriplet(context: &mut EncoderContext, buffer: &mut String) {
         context.writeCodewords(&Self::encodeToCodewords(buffer));
         buffer.replace_range(0..3, "");
         // buffer.delete(0, 3);
@@ -177,7 +177,7 @@ impl C40Encoder {
      * @param context the encoder context
      * @param buffer  the buffer with the remaining encoded characters
      */
-    pub fn handleEOD_c40( context: &EncoderContext, buffer: &mut String) -> Result<(), Exceptions> {
+    pub fn handleEOD_c40( context: &mut EncoderContext, buffer: &mut String) -> Result<(), Exceptions> {
         let unwritten = (buffer.len() / 3) * 2;
         let rest = buffer.len() % 3;
 
@@ -259,7 +259,7 @@ impl C40Encoder {
             return 2;
         }
         sb.push_str("\u{1}\u{001e}"); //Shift 2, Upper Shift
-        let len = 2;
+        let mut len = 2;
         len += Self::encodeChar_c40((c as u8 - 128) as char, sb);
 
         len

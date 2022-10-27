@@ -28,7 +28,7 @@ impl Encoder for Base256Encoder {
     }
 
     fn encode(&self, context: &mut super::EncoderContext) -> Result<(), crate::Exceptions> {
-        let buffer = String::new();
+        let mut buffer = String::new();
         buffer.push('\0'); //Initialize length field
         while context.hasMoreCharacters() {
             let c = context.getCurrentChar();
@@ -55,7 +55,7 @@ impl Encoder for Base256Encoder {
         if context.hasMoreCharacters() || mustPad {
             if dataCount <= 249 {
                 buffer.replace_range(0..1, &char::from_u32(dataCount as u32).unwrap().to_string());
-            } else if dataCount as u8 <= 1555 {
+            } else if dataCount <= 1555 {
                 buffer.replace_range(
                     0..1,
                     &char::from_u32(((dataCount as u32 / 250) + 249))

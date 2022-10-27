@@ -80,7 +80,7 @@ impl TextEncoder {
             return 2;
         }
         sb.push_str("\u{1}\u{001e}"); //Shift 2, Upper Shift
-        let len = 2;
+        let mut len = 2;
         len += Self::encodeChar((c as u8 - 128) as char, sb);
         return len;
     }

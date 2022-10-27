@@ -201,7 +201,7 @@ pub fn encodeHighLevelWithDimensionForceC40(
         context.pos += MACRO_06_HEADER.len() as u32;
     }
 
-    let encodingMode = ASCII_ENCODATION; //Default mode
+    let mut encodingMode = ASCII_ENCODATION; //Default mode
 
     if forceC40 {
         c40Encoder.encodeMaximalC40(&mut context);
@@ -228,14 +228,14 @@ pub fn encodeHighLevelWithDimensionForceC40(
         // context.writeCodeword("\u{00fe}"); //Unlatch (254)
     }
     //Padding
-    let codewords = context.getCodewords();
-    if codewords.len() < capacity as usize{
+    // let codewords = context.getCodewords();
+    if context.getCodewords().len() < capacity as usize{
         // codewords.push(PAD as char);
         context.writeCodeword(PAD)
     }
-    while codewords.len() < capacity as usize {
+    while context.getCodewords().len() < capacity as usize {
         // codewords.append(randomize253State(codewords.len() + 1));
-        context.writeCodewords(&randomize253State(codewords.len() as u32 + 1))
+        context.writeCodewords(&randomize253State(context.getCodewords().len() as u32 + 1))
     }
 
      Ok(context.getCodewords().to_owned())
@@ -269,7 +269,7 @@ fn lookAheadTestIntern(msg: &str, startpos: u32, currentMode: u32) -> usize {
     if startpos as usize >= msg.len() {
         return currentMode as usize;
     }
-    let charCounts: [f32; 6];
+    let mut charCounts: [f32; 6];
     //step J
     if currentMode == ASCII_ENCODATION as u32 {
         charCounts = [0.0, 1.0, 1.0, 1.0, 1.0, 1.25];
@@ -278,9 +278,9 @@ fn lookAheadTestIntern(msg: &str, startpos: u32, currentMode: u32) -> usize {
         charCounts[currentMode as usize] = 0.0;
     }
 
-    let charsProcessed = 0;
-    let mins = [0u8; 6];
-    let intCharCounts = [0u32; 6];
+    let mut charsProcessed = 0;
+    let mut mins = [0u8; 6];
+    let mut intCharCounts = [0u32; 6];
     loop {
         //step K
         if (startpos + charsProcessed) == msg.len() as u32 {
@@ -288,7 +288,7 @@ fn lookAheadTestIntern(msg: &str, startpos: u32, currentMode: u32) -> usize {
             intCharCounts.fill(0);
             // Arrays.fill(mins, (byte) 0);
             // Arrays.fill(intCharCounts, 0);
-            let min = findMinimums(&charCounts, &intCharCounts, u32::MAX, &mins);
+            let min = findMinimums(&charCounts, &mut intCharCounts, u32::MAX, &mut mins);
             let minCount = getMinimumCount(&mins);
 
             if intCharCounts[ASCII_ENCODATION] == min {
@@ -379,7 +379,7 @@ fn lookAheadTestIntern(msg: &str, startpos: u32, currentMode: u32) -> usize {
             intCharCounts.fill(0);
             // Arrays.fill(mins, (byte) 0);
             // Arrays.fill(intCharCounts, 0);
-            findMinimums(&charCounts, &intCharCounts, u32::MAX, &mins);
+            findMinimums(&charCounts, &mut intCharCounts, u32::MAX, &mut mins);
 
             if intCharCounts[ASCII_ENCODATION]
                 < min5(
@@ -448,7 +448,7 @@ fn lookAheadTestIntern(msg: &str, startpos: u32, currentMode: u32) -> usize {
                     return C40_ENCODATION;
                 }
                 if intCharCounts[C40_ENCODATION] == intCharCounts[X12_ENCODATION] {
-                    let p = startpos + charsProcessed + 1;
+                    let mut _p = startpos + charsProcessed + 1;
                     for tc in msg.chars() {
                         // while (p as usize) < msg.len() {
                         // let tc = msg.charAt(p);
@@ -458,7 +458,7 @@ fn lookAheadTestIntern(msg: &str, startpos: u32, currentMode: u32) -> usize {
                         if !isNativeX12(tc) {
                             break;
                         }
-                        p += 1;
+                        _p += 1;
                     }
                     return C40_ENCODATION;
                 }
@@ -476,7 +476,8 @@ fn min4(f1: u32, f2: u32, f3: u32, f4: u32) -> u32 {
     //  Math.min(f1, Math.min(f2, Math.min(f3, f4)))
 }
 
-fn findMinimums(charCounts: &[f32; 6], intCharCounts: &[u32; 6], min: u32, mins: &[u8]) -> u32 {
+fn findMinimums(charCounts: &[f32; 6], intCharCounts: &mut [u32; 6], min: u32, mins: &mut [u8]) -> u32 {
+    let mut min = min;
     for i in 0..6 {
         // for (int i = 0; i < 6; i++) {
         intCharCounts[i] = charCounts[i].ceil() as u32;
@@ -494,7 +495,7 @@ fn findMinimums(charCounts: &[f32; 6], intCharCounts: &[u32; 6], min: u32, mins:
 }
 
 fn getMinimumCount(mins: &[u8]) -> u32 {
-    let minCount = 0;
+    let mut minCount = 0;
     for i in 0..6 {
         // for (int i = 0; i < 6; i++) {
         minCount += mins[i] as u32;
@@ -549,7 +550,7 @@ fn isSpecialB256(ch: char) -> bool {
  */
 pub fn determineConsecutiveDigitCount(msg: &str, startpos: u32) -> u32 {
     let len = msg.chars().count();//len();
-    let idx = startpos;
+    let mut idx = startpos;
     // let graphemes = msg.graphemes(true);
     while (idx as usize) < len && isDigit(msg.chars().nth(idx as usize).unwrap()) {
         idx += 1;

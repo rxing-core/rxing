@@ -26,7 +26,7 @@ impl Encoder for EdifactEncoder {
 
     fn encode(&self, context: &mut super::EncoderContext) -> Result<(), crate::Exceptions> {
         //step F
-        let buffer = String::new();
+        let mut buffer = String::new();
         while context.hasMoreCharacters() {
             let c = context.getCurrentChar();
             Self::encodeChar(c, &mut buffer);
@@ -65,8 +65,8 @@ impl EdifactEncoder {
      * @param context the encoder context
      * @param buffer  the buffer with the remaining encoded characters
      */
-    fn handleEOD(context: &EncoderContext, buffer: &mut String) -> Result<(), Exceptions> {
-        let runner = || -> Result<(), Exceptions> {
+    fn handleEOD(context: &mut EncoderContext, buffer: &mut String) -> Result<(), Exceptions> {
+        let mut runner = || -> Result<(), Exceptions> {
             let count = buffer.len();
             if count == 0 {
                 return Ok(()); //Already finished
@@ -74,7 +74,7 @@ impl EdifactEncoder {
             if count == 1 {
                 //Only an unlatch at the end
                 context.updateSymbolInfo();
-                let available = context.getSymbolInfo().unwrap().getDataCapacity()
+                let mut available = context.getSymbolInfo().unwrap().getDataCapacity()
                     - context.getCodewordCount() as u32;
                 let remaining = context.getRemainingCharacters();
                 // The following two lines are a hack inspired by the 'fix' from https://sourceforge.net/p/barcode4j/svn/221/
@@ -96,7 +96,7 @@ impl EdifactEncoder {
             let restChars = count - 1;
             let encoded = Self::encodeToCodewords(buffer)?;
             let endOfSymbolReached = !context.hasMoreCharacters();
-            let restInAscii = endOfSymbolReached && restChars <= 2;
+            let mut restInAscii = endOfSymbolReached && restChars <= 2;
 
             if restChars <= 2 {
                 context.updateSymbolInfoWithLength(context.getCodewordCount() + restChars);
@@ -162,7 +162,7 @@ impl EdifactEncoder {
         let cw1 = (v as u32 >> 16) & 255;
         let cw2 = (v as u32 >> 8) & 255;
         let cw3 = v as u32 & 255;
-        let res = String::with_capacity(3);
+        let mut res = String::with_capacity(3);
         res.push(char::from_u32(cw1).unwrap());
         if len >= 2 {
             res.push(char::from_u32(cw2).unwrap());

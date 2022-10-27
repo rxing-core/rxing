@@ -26,7 +26,7 @@ impl Encoder for X12Encoder {
 
     fn encode(&self, context: &mut super::EncoderContext) -> Result<(), crate::Exceptions> {
         //step C
-        let buffer = String::new();
+        let mut buffer = String::new();
         while context.hasMoreCharacters() {
             let c = context.getCurrentChar();
             context.pos += 1;
@@ -77,7 +77,7 @@ impl X12Encoder {
         return 1;
     }
 
-    fn handleEOD(context: &EncoderContext, buffer: &mut String) -> Result<(), Exceptions> {
+    fn handleEOD(context: &mut EncoderContext, buffer: &mut String) -> Result<(), Exceptions> {
         context.updateSymbolInfo();
         let available =
             context.getSymbolInfo().unwrap().getDataCapacity() - context.getCodewordCount() as u32;
