@@ -22,7 +22,7 @@ use super::SymbolShapeHint;
 use lazy_static::lazy_static;
 
 lazy_static! {
-static ref PROD_SYMBOLS: Vec<SymbolInfo> = vec![
+pub(super) static ref PROD_SYMBOLS: Vec<SymbolInfo> = vec![
   SymbolInfo::new(false, 3, 5, 8, 8, 1),
   SymbolInfo::new(false, 5, 7, 10, 10, 1),
   /*rect*/ SymbolInfo::new(true, 5, 7, 16, 6, 1),

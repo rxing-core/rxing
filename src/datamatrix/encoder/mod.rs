@@ -3,6 +3,7 @@ mod encoder_context;
 mod symbol_shape_hint;
 mod symbol_info;
 pub mod high_level_encoder;
+pub mod minimal_encoder;
 
 pub use encoder::*;
 pub use encoder_context::*;
@@ -26,3 +27,6 @@ pub use edifact_encoder::*;
 
 mod base256_encoder;
 pub use base256_encoder::*;
+
+// #[cfg(test)]
+// mod high_level_encode_test_case;

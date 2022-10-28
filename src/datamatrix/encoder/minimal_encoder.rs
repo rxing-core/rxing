@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package com.google.zxing.datamatrix.encoder;
+use std::{rc::Rc, fmt};
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+use encoding::{self,EncodingRef};
 
-import com.google.zxing.common.MinimalECIInput;
+use crate::{common::{MinimalECIInput, ECIInput}, Exceptions};
+
+use super::{SymbolShapeHint, high_level_encoder};
+
+const ISO_8859_1_ENCODER : EncodingRef = encoding::all::ISO_8859_1;
 
 /**
  * Encoder that encodes minimally
@@ -30,7 +31,7 @@ import com.google.zxing.common.MinimalECIInput;
  *
  * Uses Dijkstra to produce mathematically minimal encodings that are in some cases smaller than the results produced
  * by the algorithm described in annex S in the specification ISO/IEC 16022:200(E). The biggest improvment of this
- * algorithm over that one is the case when the algorithm enters the most inefficient mode, the B256 mode. The 
+ * algorithm over that one is the case when the algorithm enters the most inefficient mode, the B256 Mode:: The 
  * algorithm from the specification algorithm will exit this mode only if it encounters digits so that arbitrarily
  * inefficient results can be produced if the postfix contains no digits.
  *
@@ -58,8 +59,8 @@ import com.google.zxing.common.MinimalECIInput;
  *
  * @author Alex Geller
  */
-public final class MinimalEncoder {
 
+ #[derive(Debug,Copy,Clone,PartialEq, Eq)]
   enum Mode {
     ASCII,
     C40,
@@ -68,36 +69,59 @@ public final class MinimalEncoder {
     EDF,
     B256
   }
-  static final char[] C40_SHIFT2_CHARS = {'!', '"', '#', '$', '%', '&', '\'', '(', ')', '*',  '+', ',', '-', '.', '/',
-                                          ':', ';', '<', '=', '>', '?',  '@', '[', '\\', ']', '^', '_' };
 
-
-  private MinimalEncoder() {
+  impl Mode {
+    pub fn ordinal(&self) -> usize {
+      match self {
+        Mode::ASCII => 0,
+        Mode::C40 => 1,
+        Mode::TEXT => 2,
+        Mode::X12 => 3,
+        Mode::EDF => 4,
+        Mode::B256 => 5,
+    }
+    }
   }
 
-  static boolean isExtendedASCII(char ch, int fnc1) {
-    return ch != fnc1 && ch >= 128 && ch <= 255;
+  const C40_SHIFT2_CHARS :[char;27] = ['!', '"', '#', '$', '%', '&', '\'', '(', ')', '*',  '+', ',', '-', '.', '/',
+                                          ':', ';', '<', '=', '>', '?',  '@', '[', '\\', ']', '^', '_' ];
+
+
+  pub fn isExtendedASCII( ch:char,  fnc1:Option<char>) -> bool{
+    let is_fnc1 = if let Some(fnc1) = fnc1 {
+      ch != fnc1
+    }else {
+      true
+    };
+    is_fnc1 && ch as u8 >= 128 && ch as u8 <= 255
+    // return ch != fnc1 && ch as u8 >= 128 && ch as u8 <= 255;
   }
 
-  private static boolean isInC40Shift1Set(char ch) {
-    return ch <= 31;
+  fn isInC40Shift1Set( ch:char) -> bool{
+     ch as u8 <= 31
   }
 
-  private static boolean isInC40Shift2Set(char ch, int fnc1) {
-    for (char c40Shift2Char : C40_SHIFT2_CHARS) {
-      if (c40Shift2Char == ch) {
+  fn isInC40Shift2Set( ch:char,  fnc1:Option<char>) -> bool{
+    for c40Shift2Char in C40_SHIFT2_CHARS {
+    // for (char c40Shift2Char : C40_SHIFT2_CHARS) {
+      if c40Shift2Char == ch {
         return true;
       }
     }
-    return ch == fnc1;
+    if let Some(fnc1) = fnc1 {
+      ch == fnc1
+    }else {
+      false
+    }
+    // return ch as u8 as i32 == fnc1;
   }
 
-  private static boolean isInTextShift1Set(char ch) {
-    return isInC40Shift1Set(ch);
+  fn isInTextShift1Set( ch:char) -> bool{
+     isInC40Shift1Set(ch)
   }
 
-  private static boolean isInTextShift2Set(char ch, int fnc1) {
-    return isInC40Shift2Set(ch, fnc1);
+  fn isInTextShift2Set( ch:char,  fnc1:Option<char>) -> bool{
+     isInC40Shift2Set(ch, fnc1)
   }
 
   /**
@@ -106,8 +130,8 @@ public final class MinimalEncoder {
    * @param msg the message
    * @return the encoded message (the char values range from 0 to 255)
    */
-  public static String encodeHighLevel(String msg) {
-    return encodeHighLevel(msg, null, -1, SymbolShapeHint.FORCE_NONE);
+  pub fn encodeHighLevel( msg:&str) -> Result<String,Exceptions>{
+     encodeHighLevelWithDetails(msg, None, None, SymbolShapeHint::FORCE_NONE)
   }
 
   /**
@@ -123,16 +147,20 @@ public final class MinimalEncoder {
    * @param shape requested shape.
    * @return the encoded message (the char values range from 0 to 255)
    */
-  public static String encodeHighLevel(String msg, Charset priorityCharset, int fnc1, SymbolShapeHint shape) {
-    int macroId = 0;
-    if (msg.startsWith(HighLevelEncoder.MACRO_05_HEADER) && msg.endsWith(HighLevelEncoder.MACRO_TRAILER)) {
+  pub fn encodeHighLevelWithDetails( msg:&str,  priorityCharset:Option<EncodingRef>,  fnc1:Option<char>,  shape:SymbolShapeHint)->Result<String,Exceptions> {
+    let mut msg = msg;
+    let macroId = 0;
+    if msg.starts_with(high_level_encoder::MACRO_05_HEADER) && msg.ends_with(high_level_encoder::MACRO_TRAILER) {
       macroId = 5;
-      msg = msg.substring(HighLevelEncoder.MACRO_05_HEADER.length(), msg.length() - 2);
-    } else if (msg.startsWith(HighLevelEncoder.MACRO_06_HEADER) && msg.endsWith(HighLevelEncoder.MACRO_TRAILER)) {
+      // msg = msg.substring(high_level_encoder::MACRO_05_HEADER.len(), msg.len() - 2);
+      msg = &msg[high_level_encoder::MACRO_05_HEADER.len()..(msg.len() - 2)];
+    } else if msg.starts_with(high_level_encoder::MACRO_06_HEADER) && msg.ends_with(high_level_encoder::MACRO_TRAILER) {
       macroId = 6;
-      msg = msg.substring(HighLevelEncoder.MACRO_06_HEADER.length(), msg.length() - 2);
+      // msg = msg.substring(high_level_encoder::MACRO_06_HEADER.len(), msg.len() - 2);
+      msg = &msg[high_level_encoder::MACRO_06_HEADER.len()..(msg.len() - 2)];
     }
-    return new String(encode(msg, priorityCharset, fnc1, shape, macroId), StandardCharsets.ISO_8859_1);
+    Ok(ISO_8859_1_ENCODER.decode(&encode(msg, priorityCharset, fnc1, shape, macroId)?, encoding::DecoderTrap::Strict).expect("should decode").to_owned())
+    // return new String(encode(msg, priorityCharset, fnc1, shape, macroId), StandardCharsets.ISO_8859_1);
   }
 
   /**
@@ -149,111 +177,119 @@ public final class MinimalEncoder {
    * @param macroId Prepends the specified macro function in case that a value of 5 or 6 is specified.
    * @return An array of bytes representing the codewords of a minimal encoding.
    */
-  static byte[] encode(String input, Charset priorityCharset, int fnc1, SymbolShapeHint shape, int macroId) {
-    return encodeMinimally(new Input(input, priorityCharset, fnc1, shape, macroId)).getBytes();
+  fn encode( input:&str,  priorityCharset:Option<EncodingRef>,  fnc1:Option<char>,  shape:SymbolShapeHint,  macroId:i32) -> Result<Vec<u8>,Exceptions> {
+     Ok(encodeMinimally( &Input::new(input, priorityCharset, fnc1, shape, macroId))?.getBytes().to_vec())
   }
 
-  static void addEdge(Edge[][] edges, Edge edge) {
-    int vertexIndex = edge.fromPosition + edge.characterLength;
-    if (edges[vertexIndex][edge.getEndMode().ordinal()] == null ||
-        edges[vertexIndex][edge.getEndMode().ordinal()].cachedTotalSize > edge.cachedTotalSize) {
-      edges[vertexIndex][edge.getEndMode().ordinal()] = edge;
+  fn addEdge( edges:&Vec<Vec<Option<Rc<Edge>>>>,  edge:Rc<Edge>) {
+    let vertexIndex = (edge.fromPosition + edge.characterLength) as usize;
+    if edges[vertexIndex][edge.getEndMode().ordinal()].is_none() ||
+        edges[vertexIndex][edge.getEndMode().ordinal()].as_ref().unwrap().cachedTotalSize > edge.cachedTotalSize {
+      edges[vertexIndex][edge.getEndMode().ordinal()] = Some(edge.clone());
     }
   }
 
-  /** @return the number of words in which the string starting at from can be encoded in c40 or text mode.
+  /** @return the number of words in which the string starting at from can be encoded in c40 or text Mode::
    *  The number of characters encoded is returned in characterLength.
    *  The number of characters encoded is also minimal in the sense that the algorithm stops as soon
    *  as a character encoding fills a C40 word competely (three C40 values). An exception is at the
    *  end of the string where two C40 values are allowed (according to the spec the third c40 value 
    *  is filled  with 0 (Shift 1) in this case).
    */
-  static int getNumberOfC40Words(Input input, int from, boolean c40,int[] characterLength) {
-    int thirdsCount = 0;
-    for (int i = from; i < input.length(); i++) {
-      if (input.isECI(i)) {
+  fn getNumberOfC40Words( input:&Input,  from:u32,  c40:bool, characterLength:&[u32]) -> Result<u32,Exceptions>{
+    let thirdsCount = 0;
+    for i in (from as usize)..input.length() {
+    // for (int i = from; i < input.length(); i++) {
+      if input.isECI(i as u32)? {
         characterLength[0] = 0;
-        return 0;
+        return Ok(0);
       }
-      char ci = input.charAt(i);
-      if (c40 && HighLevelEncoder.isNativeC40(ci) || !c40 && HighLevelEncoder.isNativeText(ci)) {
-        thirdsCount++; //native
-      } else if (!isExtendedASCII(ci, input.getFNC1Character())) {
+      let ci = input.charAt(i)?;
+      if c40 && high_level_encoder::isNativeC40(ci) || !c40 && high_level_encoder::isNativeText(ci) {
+        thirdsCount+=1; //native
+      } else if !isExtendedASCII(ci, Some(input.getFNC1Character())) {
         thirdsCount += 2; //shift
       } else {
-        int asciiValue = ci & 0xff;
-        if (asciiValue >= 128 && (c40 && HighLevelEncoder.isNativeC40((char) (asciiValue - 128)) ||
-                                  !c40 && HighLevelEncoder.isNativeText((char) (asciiValue - 128)))) {
+        let asciiValue = ci as u8 & 0xff;
+        if asciiValue >= 128 && (c40 && high_level_encoder::isNativeC40( (asciiValue - 128) as char) ||
+                                  !c40 && high_level_encoder::isNativeText( (asciiValue - 128) as char)) {
           thirdsCount += 3; // shift, Upper shift
         } else {
           thirdsCount += 4; // shift, Upper shift, shift
         }
       }
 
-      if (thirdsCount % 3 == 0 || ((thirdsCount - 2) % 3 == 0 && i + 1 == input.length())) {
-        characterLength[0] = i - from + 1;
-        return (int) Math.ceil(((double) thirdsCount) / 3.0);
+      if thirdsCount % 3 == 0 || ((thirdsCount - 2) % 3 == 0 && i + 1 == input.length()) {
+        characterLength[0] = i as u32 - from + 1;
+        // return (int) Math.ceil(((double) thirdsCount) / 3.0);
+        return Ok((( thirdsCount as f64) / 3.0).ceil() as u32);
       }
     }
     characterLength[0] = 0;
-    return 0;
+    
+    Ok(0)
   }
 
-  static void addEdges(Input input, Edge[][] edges, int from, Edge previous) {
+  fn addEdges( input:&Input,  edges:&Vec<Vec<Option<Rc<Edge>>>>,  from:u32,  previous:Option<Rc<Edge>>) -> Result<(),Exceptions> {
 
-    if (input.isECI(from)) {
-      addEdge(edges, new Edge(input, Mode.ASCII, from, 1, previous));
-      return;
+    if input.isECI(from)? {
+      addEdge(edges,  Rc::new(Edge::new(input, Mode::ASCII, from, 1, previous.clone())));
+      return Ok(());
     }
 
-    char ch = input.charAt(from);
-    if (previous == null || previous.getEndMode() != Mode.EDF) { //not possible to unlatch a full EDF edge to something
+    let ch = input.charAt(from as usize)?;
+    if previous.is_none() || previous.as_ref().unwrap().getEndMode() != Mode::EDF { //not possible to unlatch a full EDF edge to something
                                                                  //else
-      if (HighLevelEncoder.isDigit(ch) && input.haveNCharacters(from, 2) &&
-          HighLevelEncoder.isDigit(input.charAt(from + 1))) {
+      if high_level_encoder::isDigit(ch) && input.haveNCharacters(from as usize, 2) &&
+          high_level_encoder::isDigit(input.charAt(from as usize + 1)?) {
         // two digits ASCII encoded
-        addEdge(edges, new Edge(input, Mode.ASCII, from, 2, previous));
+        addEdge(edges,  Rc::new(Edge::new(input, Mode::ASCII, from, 2, previous.clone())));
       } else {
         // one ASCII encoded character or an extended character via Upper Shift
-        addEdge(edges, new Edge(input, Mode.ASCII, from, 1, previous));
+        addEdge(edges,  Rc::new(Edge::new(input, Mode::ASCII, from, 1, previous.clone())));
       }
   
-      Mode[] modes = {Mode.C40, Mode.TEXT};
-      for (Mode mode : modes) {
-        int[] characterLength = new int[1];
-        if (getNumberOfC40Words(input, from, mode == Mode.C40, characterLength) > 0) {
-          addEdge(edges, new Edge(input, mode, from, characterLength[0], previous));
+      let modes = [Mode::C40, Mode::TEXT];
+      for mode in modes {
+      // for (Mode mode : modes) {
+        let characterLength = [0u32;1];
+        if getNumberOfC40Words(input, from, mode == Mode::C40, &characterLength)? > 0 {
+          addEdge(edges,  Rc::new(Edge::new(input, mode, from, characterLength[0], previous.clone())));
         }
       }
   
-      if (input.haveNCharacters(from,3) &&
-          HighLevelEncoder.isNativeX12(input.charAt(from)) &&
-          HighLevelEncoder.isNativeX12(input.charAt(from + 1)) &&
-          HighLevelEncoder.isNativeX12(input.charAt(from + 2))) {
-        addEdge(edges, new Edge(input, Mode.X12, from, 3, previous));
+      if input.haveNCharacters(from as usize,3) &&
+          high_level_encoder::isNativeX12(input.charAt(from as usize)?) &&
+          high_level_encoder::isNativeX12(input.charAt(from  as usize+ 1)?) &&
+          high_level_encoder::isNativeX12(input.charAt(from as usize + 2)?) {
+        addEdge(edges,  Rc::new(Edge::new(input, Mode::X12, from, 3, previous.clone())));
       }
 
-      addEdge(edges, new Edge(input, Mode.B256, from, 1, previous));
+      addEdge(edges, Rc::new(Edge::new(input, Mode::B256, from, 1, previous.clone())));
     }
 
     //We create 4 EDF edges,  with 1, 2 3 or 4 characters length. The fourth normally doesn't have a latch to ASCII
     //unless it is 2 characters away from the end of the input.
-    int i;
-    for (i = 0; i < 3; i++) {
-      int pos = from + i;
-      if (input.haveNCharacters(pos,1) && HighLevelEncoder.isNativeEDIFACT(input.charAt(pos))) {
-        addEdge(edges, new Edge(input, Mode.EDF, from, i + 1, previous));
+    let i = 0u32;
+    while i < 3 {
+    // for (i = 0; i < 3; i++) {
+      let pos = from + i;
+      if input.haveNCharacters(pos as usize,1) && high_level_encoder::isNativeEDIFACT(input.charAt(pos as usize)?) {
+        addEdge(edges,  Rc::new(Edge::new(input, Mode::EDF, from, i + 1, previous.clone())));
       } else {
         break;
       }
+      i+=1;
     }
-    if (i == 3 && input.haveNCharacters(from, 4) && HighLevelEncoder.isNativeEDIFACT(input.charAt(from + 3))) {
-      addEdge(edges, new Edge(input, Mode.EDF, from, 4, previous));
+    if i == 3 && input.haveNCharacters(from as usize, 4) && high_level_encoder::isNativeEDIFACT(input.charAt(from as usize + 3)?) {
+      addEdge(edges, Rc::new( Edge::new(input, Mode::EDF, from, 4, previous.clone())));
     }
+    Ok(())
   }
-  static RXingResult encodeMinimally(Input input) {
 
-    @SuppressWarnings("checkstyle:lineLength")
+  fn encodeMinimally( input:&Input) -> Result<RXingResult,Exceptions>{
+
+    // @SuppressWarnings("checkstyle:lineLength")
     /* The minimal encoding is computed by Dijkstra. The acyclic graph is modeled as follows:
      * A vertex represents a combination of a position in the input and an encoding mode where position 0
      * denotes the position left of the first character, 1 the position left of the second character and so on.
@@ -267,7 +303,7 @@ public final class MinimalEncoder {
      * An edge leading to such a vertex encodes one or more of the characters left of the position that the vertex
      * represents. It encodes the characters in the encoding mode of the vertex that it ends on. In other words,
      * all edges leading to a particular vertex encode the same characters (the length of the suffix can vary) using the same 
-     * encoding mode.
+     * encoding Mode::
      * As an example consider the input string "ABC123" and the vertex (4,EDF). Possible edges leading to this vertex
      * are: 
      *   (0,ASCII)  --EDF(ABC1)--> (4,EDF)
@@ -438,59 +474,68 @@ public final class MinimalEncoder {
      * Hence a minimal encoding of "ABCDEFG" is either ASCII(A),C40(BCDEFG) or ASCII(A), X12(BCDEFG) with a size of 5 bytes.
      */
 
-    int inputLength = input.length();
+    let inputLength = input.length();
 
-    // Array that represents vertices. There is a vertex for every character and mode.
+    // Array that represents vertices. There is a vertex for every character and Mode::
     // The last dimension in the array below encodes the 6 modes ASCII, C40, TEXT, X12, EDF and B256
-    Edge[][] edges = new Edge[inputLength + 1][6];
-    addEdges(input, edges, 0, null);
+    // let edges = new Edge[inputLength + 1][6];
+    let edges = vec![vec![None;6];inputLength + 1];
+    addEdges(input, &edges, 0, None);
 
-    for (int i = 1; i <= inputLength; i++) {
-      for (int j = 0; j < 6; j++) {
-        if (edges[i][j] != null && i < inputLength) {
-          addEdges(input, edges, i, edges[i][j]);
+    for i in 1..=inputLength {
+    // for (int i = 1; i <= inputLength; i++) {
+      for j in 0..6 {
+      // for (int j = 0; j < 6; j++) {
+        if edges[i][j].is_some() && i < inputLength {
+          addEdges(input, &edges, i as u32, edges[i][j]);
         }
       }
       //optimize memory by removing edges that have been passed.
-      for (int j = 0; j < 6; j++) {
-        edges[i - 1][j] = null;
+      for j in 0..6 {
+      // for (int j = 0; j < 6; j++) {
+        edges[i - 1][j] = None;
       }
     }
 
-    int minimalJ = -1;
-    int minimalSize = Integer.MAX_VALUE;
-    for (int j = 0; j < 6; j++) {
-      if (edges[inputLength][j] != null) {
-        Edge edge = edges[inputLength][j];
-        int size = j >= 1 && j <= 3 ? edge.cachedTotalSize + 1 : edge.cachedTotalSize; //C40, TEXT and X12 need an
+    let minimalJ:i32 = -1;
+    let minimalSize = i32::MAX;
+    for j in 0..6 {
+    // for (int j = 0; j < 6; j++) {
+      if edges[inputLength][j].is_some() {
+        let edge = edges[inputLength][j].as_ref().unwrap();
+        let size = if j >= 1 && j <= 3  {edge.cachedTotalSize + 1} else {edge.cachedTotalSize}; //C40, TEXT and X12 need an
                                                                                        // extra unlatch at the end
-        if (size < minimalSize) {
-          minimalSize = size;
-          minimalJ = j;
+        if (size as i32) < minimalSize {
+          minimalSize = size as i32;
+          minimalJ = j as i32;
         }
       }
     }
 
-    if (minimalJ < 0) {
-      throw new RuntimeException("Internal error: failed to encode \"" + input + "\"");
+    if minimalJ < 0 {
+      return Err(Exceptions::RuntimeException(format!("Internal error: failed to encode \"{}\"",input)));
     }
-    return new RXingResult(edges[inputLength][minimalJ]);
+    Ok(RXingResult::new(edges[inputLength][minimalJ as usize].clone().unwrap()))
   }
 
-  private static final class Edge {
-    private static final int[] allCodewordCapacities = {3, 5, 8, 10, 12, 16, 18, 22, 30, 32, 36, 44, 49, 62, 86, 114,
-                                                        144, 174, 204, 280, 368, 456, 576, 696, 816, 1050, 1304, 1558};
-    private static final int[] squareCodewordCapacities = {3, 5, 8, 12, 18, 22, 30, 36, 44, 62, 86, 114, 144, 174, 204,
-                                                           280, 368, 456, 576, 696, 816, 1050, 1304, 1558};
-    private static final int[] rectangularCodewordCapacities = {5, 10, 16, 33, 32, 49};
-    private final Input input;
-    private final Mode mode; //the mode at the start of this edge.
-    private final int fromPosition;
-    private final int characterLength;
-    private final Edge previous;
-    private final int cachedTotalSize;
+  const allCodewordCapacities : [u32;28] = [3, 5, 8, 10, 12, 16, 18, 22, 30, 32, 36, 44, 49, 62, 86, 114,
+    144, 174, 204, 280, 368, 456, 576, 696, 816, 1050, 1304, 1558];
+const squareCodewordCapacities : [u32;24]= [3, 5, 8, 12, 18, 22, 30, 36, 44, 62, 86, 114, 144, 174, 204,
+       280, 368, 456, 576, 696, 816, 1050, 1304, 1558];
+const rectangularCodewordCapacities :[u32;6]= [5, 10, 16, 33, 32, 49];
 
-    private Edge(Input input, Mode mode, int fromPosition, int characterLength, Edge previous) {
+  struct Edge {
+    input:Input,
+    mode:Mode, //the mode at the start of this edge.
+    fromPosition:u32,
+    characterLength:u32,
+    previous:Rc<Edge>,
+    cachedTotalSize:u32,
+  }
+  impl Edge{
+
+    
+    fn new( input:&Input,  mode:Mode,  fromPosition:u32,  characterLength:u32,  previous:Option<Rc<Edge>>) -> Self{
       this.input = input;
       this.mode = mode;
       this.fromPosition = fromPosition;
@@ -522,52 +567,52 @@ public final class MinimalEncoder {
           if (input.isECI(fromPosition) || isExtendedASCII(input.charAt(fromPosition), input.getFNC1Character())) {
             size++;
           }
-          if (previousMode == Mode.C40 ||
-              previousMode == Mode.TEXT ||
-              previousMode == Mode.X12) {
+          if (previousMode == Mode::C40 ||
+              previousMode == Mode::TEXT ||
+              previousMode == Mode::X12) {
             size++; // unlatch 254 to ASCII
           }
           break;
         case B256:
           size++;
-          if (previousMode != Mode.B256) {
+          if (previousMode != Mode::B256) {
             size++; //byte count
           } else if (getB256Size() == 250) {
             size++; //extra byte count
           }
-          if (previousMode == Mode.ASCII) {
+          if (previousMode == Mode::ASCII) {
             size++; //latch to B256
-          } else if (previousMode == Mode.C40 ||
-                     previousMode == Mode.TEXT ||
-                     previousMode == Mode.X12) {
+          } else if (previousMode == Mode::C40 ||
+                     previousMode == Mode::TEXT ||
+                     previousMode == Mode::X12) {
             size += 2; //unlatch to ASCII, latch to B256
           }
           break;
         case C40:
         case TEXT:
         case X12:
-          if (mode == Mode.X12) {
+          if (mode == Mode::X12) {
             size += 2;
           } else {
             int[] charLen = new int[1];
-            size += getNumberOfC40Words(input, fromPosition, mode == Mode.C40, charLen) * 2;
+            size += getNumberOfC40Words(input, fromPosition, mode == Mode::C40, charLen) * 2;
           }
 
-          if (previousMode == Mode.ASCII || previousMode == Mode.B256) {
+          if (previousMode == Mode::ASCII || previousMode == Mode::B256) {
             size++; //additional byte for latch from ASCII to this mode
-          } else if (previousMode != mode && (previousMode == Mode.C40 ||
-                                             previousMode == Mode.TEXT ||
-                                             previousMode == Mode.X12)) {
+          } else if (previousMode != mode && (previousMode == Mode::C40 ||
+                                             previousMode == Mode::TEXT ||
+                                             previousMode == Mode::X12)) {
             size += 2; //unlatch 254 to ASCII followed by latch to this mode
           }
           break;
         case EDF:
           size += 3;
-          if (previousMode == Mode.ASCII || previousMode == Mode.B256) {
+          if (previousMode == Mode::ASCII || previousMode == Mode::B256) {
             size++; //additional byte for latch from ASCII to this mode
-          } else if (previousMode == Mode.C40 ||
-                    previousMode == Mode.TEXT ||
-                    previousMode == Mode.X12) {
+          } else if (previousMode == Mode::C40 ||
+                    previousMode == Mode::TEXT ||
+                    previousMode == Mode::X12) {
             size += 2; //unlatch 254 to ASCII followed by latch to this mode
           }
           break;
@@ -576,57 +621,57 @@ public final class MinimalEncoder {
     }
 
     // does not count beyond 250
-    int getB256Size() {
+    pub fn getB256Size(&self) -> u32{
       int cnt = 0;
       Edge current = this;
-      while (current != null && current.mode == Mode.B256 && cnt <= 250) {
+      while (current != null && current.mode == Mode::B256 && cnt <= 250) {
         cnt++;
         current = current.previous;
       }
       return cnt;
     }
 
-    Mode getPreviousStartMode() {
-      return  previous == null ? Mode.ASCII : previous.mode;
+    pub fn getPreviousStartMode(&self) -> Mode{
+      return  previous == null ? Mode::ASCII : previous.mode;
     }
 
-    Mode getPreviousMode() {
-      return  previous == null ? Mode.ASCII : previous.getEndMode();
+    pub fn  getPreviousMode(&self) -> Mode{
+      return  previous == null ? Mode::ASCII : previous.getEndMode();
     }
 
-    /** Returns Mode.ASCII in case that:
+    /** Returns Mode::ASCII in case that:
      *  - Mode is EDIFACT and characterLength is less than 4 or the remaining characters can be encoded in at most 2
      *    ASCII bytes.
      *  - Mode is C40, TEXT or X12 and the remaining characters can be encoded in at most 1 ASCII byte.
      *  Returns mode in all other cases.
      * */
-    Mode getEndMode() {
-      if (mode == Mode.EDF) {
+    pub fn getEndMode(&self)->Mode {
+      if (mode == Mode::EDF) {
         if (characterLength < 4) {
-          return Mode.ASCII;
+          return Mode::ASCII;
         }
         int lastASCII = getLastASCII(); // see 5.2.8.2 EDIFACT encodation Rules
         if (lastASCII > 0 && getCodewordsRemaining(cachedTotalSize + lastASCII) <= 2 - lastASCII) {
-          return Mode.ASCII;
+          return Mode::ASCII;
         }
       }
-      if (mode == Mode.C40 ||
-          mode == Mode.TEXT ||
-          mode == Mode.X12) {
+      if (mode == Mode::C40 ||
+          mode == Mode::TEXT ||
+          mode == Mode::X12) {
 
         // see 5.2.5.2 C40 encodation rules and 5.2.7.2 ANSI X12 encodation rules
         if (fromPosition + characterLength >= input.length() && getCodewordsRemaining(cachedTotalSize) == 0) {
-          return Mode.ASCII; 
+          return Mode::ASCII; 
         }
         int lastASCII = getLastASCII();
         if (lastASCII == 1 && getCodewordsRemaining(cachedTotalSize + 1) == 0) {
-          return Mode.ASCII;
+          return Mode::ASCII;
         }
       }
       return mode;
     }
 
-    Mode getMode() {
+    pub fn getMode(&self) -> Mode{
       return mode;
     }
 
@@ -634,7 +679,7 @@ public final class MinimalEncoder {
      *  two consecutive digits and a non extended character or of 4 digits. 
      *  Returns 0 in any other case
      **/
-    int getLastASCII() {
+    pub fn getLastASCII(&self) -> u32{
       int length = input.length();
       int from = fromPosition + characterLength;
       if (length - from > 4 || from >= length) {
@@ -651,24 +696,24 @@ public final class MinimalEncoder {
             input.getFNC1Character())) {
           return 0;
         }
-        if (HighLevelEncoder.isDigit(input.charAt(from)) && HighLevelEncoder.isDigit(input.charAt(from + 1))) {
+        if (high_level_encoder::isDigit(input.charAt(from)) && high_level_encoder::isDigit(input.charAt(from + 1))) {
           return 1;
         }
         return 2;
       }
       if (length - from == 3) {
-        if (HighLevelEncoder.isDigit(input.charAt(from)) && HighLevelEncoder.isDigit(input.charAt(from + 1))
+        if (high_level_encoder::isDigit(input.charAt(from)) && high_level_encoder::isDigit(input.charAt(from + 1))
             && !isExtendedASCII(input.charAt(from + 2), input.getFNC1Character())) {
           return 2;
         }
-        if (HighLevelEncoder.isDigit(input.charAt(from + 1)) && HighLevelEncoder.isDigit(input.charAt(from + 2))
+        if (high_level_encoder::isDigit(input.charAt(from + 1)) && high_level_encoder::isDigit(input.charAt(from + 2))
             && !isExtendedASCII(input.charAt(from), input.getFNC1Character())) {
           return 2;
         }
         return 0;
       }
-      if (HighLevelEncoder.isDigit(input.charAt(from)) && HighLevelEncoder.isDigit(input.charAt(from + 1))
-          && HighLevelEncoder.isDigit(input.charAt(from + 2)) && HighLevelEncoder.isDigit(input.charAt(from + 3))) {
+      if (high_level_encoder::isDigit(input.charAt(from)) && high_level_encoder::isDigit(input.charAt(from + 1))
+          && high_level_encoder::isDigit(input.charAt(from + 2)) && high_level_encoder::isDigit(input.charAt(from + 3))) {
         return 2;
       }
       return 0;
@@ -677,7 +722,7 @@ public final class MinimalEncoder {
     /** Returns the capacity in codewords of the smallest symbol that has enough capacity to fit the given minimal
      * number of codewords.
      **/
-    int getMinSymbolSize(int minimum) {
+    pub fn getMinSymbolSize(&self,  minimum:u32) -> u32{
       switch (input.getShapeHint()) {
         case FORCE_SQUARE:
           for (int capacity : squareCodewordCapacities) {
@@ -705,30 +750,30 @@ public final class MinimalEncoder {
     /** Returns the remaining capacity in codewords of the smallest symbol that has enough capacity to fit the given
      * minimal number of codewords.
      **/
-    int getCodewordsRemaining(int minimum) {
+    pub fn getCodewordsRemaining( minimum:u32) -> u32{
       return getMinSymbolSize(minimum) - minimum;
     }
 
-    static byte[] getBytes(int c) {
+    pub fn getBytes1( c:u32) -> Vec<u8>{
       byte[] result = new byte[1];
       result[0] = (byte) c;
       return result;
     }
 
-    static byte[] getBytes(int c1,int c2) {
+     pub fn getBytes2( c1:u32, c2:u32) -> Vec<u8>{
       byte[] result = new byte[2];
       result[0] = (byte) c1;
       result[1] = (byte) c2;
       return result;
     }
 
-    static void setC40Word(byte[] bytes, int offset, int c1, int c2, int c3) {
+    pub fn setC40Word( bytes:&[u8],  offset:u32,  c1:u32,  c2:u32,  c3:u32) {
       int val16 = (1600 * (c1 & 0xff)) + (40 * (c2 & 0xff)) + (c3 & 0xff) + 1;
       bytes[offset] = (byte) (val16 / 256);
       bytes[offset + 1] = (byte) (val16 % 256);
     }
 
-    private static int getX12Value(char c) {
+    fn getX12Value( c:char) -> u32{
       return c == 13 ? 0 :
              c == 42 ? 1 :
              c == 62 ? 2 :
@@ -737,7 +782,7 @@ public final class MinimalEncoder {
              c >= 65 && c <= 90 ? c - 51 : c;
     }
 
-    byte[] getX12Words() {
+    pub fn getX12Words(&self) -> Vec<u8> {
       assert characterLength % 3 == 0;
       byte[] result = new byte[characterLength / 3 * 2];
       for (int i = 0; i < result.length; i += 2) {
@@ -748,14 +793,14 @@ public final class MinimalEncoder {
       return result;
     }
 
-    static int getShiftValue(char c, boolean c40, int fnc1) {
+    pub fn getShiftValue( c:char,  c40:bool,  fnc1:Option<char>) -> u32{
       return (c40 && isInC40Shift1Set(c) ||
              !c40 && isInTextShift1Set(c)) ? 0 :
              (c40 && isInC40Shift2Set(c, fnc1) ||
              !c40 && isInTextShift2Set(c, fnc1)) ? 1 : 2;
     }
 
-    private static int getC40Value(boolean c40, int setIndex, char c, int fnc1) {
+    fn getC40Value( c40:bool,  setIndex:u32,  c:char, fnc1:Option<char>) -> u32{
       if (c == fnc1) {
         assert setIndex ==  2;
         return  27;
@@ -785,11 +830,11 @@ public final class MinimalEncoder {
       }
     }
 
-    byte[] getC40Words(boolean c40, int fnc1) {
+    pub fn getC40Words(&self,  c40:bool,  fnc1:Option<char>) -> Vec<u8>{
       List<Byte> c40Values = new ArrayList<>();
       for (int i = 0; i < characterLength; i++) {
         char ci = input.charAt(fromPosition + i);
-        if (c40 && HighLevelEncoder.isNativeC40(ci) || !c40 && HighLevelEncoder.isNativeText(ci)) {
+        if (c40 && high_level_encoder::isNativeC40(ci) || !c40 && high_level_encoder::isNativeText(ci)) {
           c40Values.add((byte) getC40Value(c40, 0, ci, fnc1));
         } else if (!isExtendedASCII(ci, fnc1)) {
           int shiftValue = getShiftValue(ci, c40, fnc1);
@@ -797,8 +842,8 @@ public final class MinimalEncoder {
           c40Values.add((byte) getC40Value(c40, shiftValue, ci, fnc1));
         } else {
           char asciiValue = (char) ((ci & 0xff) - 128);
-          if (c40 && HighLevelEncoder.isNativeC40(asciiValue) ||
-              !c40 && HighLevelEncoder.isNativeText(asciiValue)) {
+          if (c40 && high_level_encoder::isNativeC40(asciiValue) ||
+              !c40 && high_level_encoder::isNativeText(asciiValue)) {
             c40Values.add((byte) 1); //Shift 2
             c40Values.add((byte) 30); //Upper Shift
             c40Values.add((byte) getC40Value(c40, 0, asciiValue, fnc1));
@@ -826,7 +871,7 @@ public final class MinimalEncoder {
       return result;
     }
 
-    byte[] getEDFBytes() {
+    pub fn getEDFBytes(&self) -> Vec<u8> {
       int numberOfThirds = (int) Math.ceil(characterLength / 4.0);
       byte[] result = new byte[numberOfThirds * 3];
       int pos = fromPosition;
@@ -851,7 +896,7 @@ public final class MinimalEncoder {
       return result;
     }
 
-    byte[] getLatchBytes() {
+    pub fn getLatchBytes(&self) -> Vec<u8> {
       switch (getPreviousMode()) {
         case ASCII:
         case B256: //after B256 ends (via length) we are back to ASCII
@@ -889,14 +934,14 @@ public final class MinimalEncoder {
           }
           break;
         case EDF:
-          assert mode == Mode.EDF; //The rightmost EDIFACT edge always contains an unlatch character
+          assert mode == Mode::EDF; //The rightmost EDIFACT edge always contains an unlatch character
           break;
       }
       return new byte[0];
     }
 
     // Important: The function does not return the length bytes (one or two) in case of B256 encoding
-    byte[] getDataBytes() {
+    pub fn getDataBytes(&self) -> Vec<u8> {
       switch (mode) {
         case ASCII:
           if (input.isECI(fromPosition)) {
@@ -926,28 +971,30 @@ public final class MinimalEncoder {
     }
   }
 
-  private static final class RXingResult {
+  struct RXingResult {
 
-    private final byte[] bytes;
+    bytes:Vec<u8>,
+  }
+  impl RXingResult{
 
-    RXingResult(Edge solution) {
-      Input input = solution.input;
-      int size = 0;
-      List<Byte> bytesAL = new ArrayList<>();
-      List<Integer> randomizePostfixLength = new ArrayList<>();
-      List<Integer> randomizeLengths = new ArrayList<>();
-      if ((solution.mode == Mode.C40 ||
-           solution.mode == Mode.TEXT ||
-           solution.mode == Mode.X12) &&
-           solution.getEndMode() != Mode.ASCII) {
-        size += prepend(MinimalEncoder.Edge.getBytes(254),bytesAL);
+    pub fn new( solution:Rc<Edge>) -> Self {
+      let input = solution.input;
+      let size = 0;
+      let bytesAL = new ArrayList<>();
+      let randomizePostfixLength = new ArrayList<>();
+      let randomizeLengths = new ArrayList<>();
+      if ((solution.mode == Mode::C40 ||
+           solution.mode == Mode::TEXT ||
+           solution.mode == Mode::X12) &&
+           solution.getEndMode() != Mode::ASCII) {
+        size += prepend(Edge::getBytes(254),bytesAL);
       }
-      Edge current = solution;
+      let current = solution;
       while (current != null) {
         size += prepend(current.getDataBytes(),bytesAL);
 
         if (current.previous == null || current.getPreviousStartMode() != current.getMode()) {
-          if (current.getMode() == Mode.B256) {
+          if (current.getMode() == Mode::B256) {
             if (size <= 249) {
               bytesAL.add(0, (byte) size);
               size++;
@@ -992,53 +1039,83 @@ public final class MinimalEncoder {
       }
     }
 
-    static int prepend(byte[] bytes, List<Byte> into) {
+    pub fn prepend(bytes:&[u8],  into:&[u8]) -> u32{
       for (int i = bytes.length - 1; i >= 0; i--) {
         into.add(0, bytes[i]);
       }
       return bytes.length;
     }
 
-    private static int randomize253State(int codewordPosition) {
-      int pseudoRandom = ((149 * codewordPosition) % 253) + 1;
-      int tempVariable = 129 + pseudoRandom;
+    fn randomize253State( codewordPosition:u32) -> u32{
+      let pseudoRandom = ((149 * codewordPosition) % 253) + 1;
+      let tempVariable = 129 + pseudoRandom;
       return tempVariable <= 254 ? tempVariable : tempVariable - 254;
     }
 
-    static void applyRandomPattern(List<Byte> bytesAL,int startPosition, int length) {
-      for (int i = 0; i < length; i++) {
+    pub fn applyRandomPattern(bytesAL:&[u8], startPosition:u32,  length:u32) {
+      for i in 0..length {
+      // for (int i = 0; i < length; i++) {
         //See "B.1 253-state algorithm
-        int Pad_codeword_position = startPosition + i;
-        int Pad_codeword_value = bytesAL.get(Pad_codeword_position) & 0xff;
-        int pseudo_random_number = ((149 * (Pad_codeword_position + 1)) % 255) + 1;
-        int temp_variable = Pad_codeword_value + pseudo_random_number;
+        let Pad_codeword_position = startPosition + i;
+        let Pad_codeword_value = bytesAL.get(Pad_codeword_position) & 0xff;
+        let pseudo_random_number = ((149 * (Pad_codeword_position + 1)) % 255) + 1;
+        let temp_variable = Pad_codeword_value + pseudo_random_number;
         bytesAL.set(Pad_codeword_position, (byte) (temp_variable <= 255 ? temp_variable : temp_variable - 256));
       }
     }
 
-    public byte[] getBytes() {
-      return bytes;
+    pub fn getBytes(&self) -> &[u8] {
+      &self.bytes
     }
 
   }
 
-  private static final class Input extends MinimalECIInput {
-
-    private final SymbolShapeHint shape;
-    private final int macroId;
-
-    private Input(String stringToEncode, Charset priorityCharset, int fnc1, SymbolShapeHint shape, int macroId) {
-      super(stringToEncode, priorityCharset, fnc1);
-      this.shape = shape;
-      this.macroId = macroId;
-    }
-
-    private int getMacroId() {
-      return macroId;
-    }
-
-    private SymbolShapeHint getShapeHint() {
-      return shape;
-    }
+  struct Input  {
+    shape: SymbolShapeHint,
+     macroId:i32,
+    internal: MinimalECIInput
   }
+
+  impl Input{
+
+    pub fn new( stringToEncode:&str,  priorityCharset:Option<EncodingRef>,  fnc1:Option<char>,  shape:SymbolShapeHint,  macroId:i32) -> Self{
+      Self {
+        shape,
+        macroId,
+        internal: MinimalECIInput::new(stringToEncode, priorityCharset, if fnc1 >= 0 {Some(&(fnc1 as u8 as char).to_string())} else {None})
+    }
+      // super(stringToEncode, priorityCharset, fnc1);
+      // this.shape = shape;
+      // this.macroId = macroId;
+    }
+
+    pub fn getMacroId(&self) -> i32{
+      self.macroId
+    }
+
+    pub fn getShapeHint(&self) -> SymbolShapeHint{
+      self.shape
+    }
+
+    pub fn length(&self) -> usize {
+       self.internal.length()
+  }
+  pub fn isECI(&self, index: u32) -> Result<bool, Exceptions> {
+    self.internal.isECI(index)
+}
+pub fn charAt(&self, index: usize) -> Result<char, Exceptions> {
+  self.internal.charAt(index)
+}
+pub fn getFNC1Character(&self) -> char {
+  self.internal.getFNC1Character() as u8 as char
+  }
+  fn haveNCharacters(&self, index: usize, n: usize) -> bool {
+    self.internal.haveNCharacters(index, n)
+  }
+}
+
+impl fmt::Display for Input {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.internal.fmt(f)
+    }
 }

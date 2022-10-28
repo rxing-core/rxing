@@ -511,15 +511,15 @@ pub fn isExtendedASCII(ch: char) -> bool {
     (ch as u8) >= 128 && (ch as u8) <= 255
 }
 
-fn isNativeC40(ch: char) -> bool {
+pub fn isNativeC40(ch: char) -> bool {
     (ch == ' ') || (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z')
 }
 
-fn isNativeText(ch: char) -> bool {
+pub fn isNativeText(ch: char) -> bool {
     (ch == ' ') || (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'z')
 }
 
-fn isNativeX12(ch: char) -> bool {
+pub fn isNativeX12(ch: char) -> bool {
     return isX12TermSep(ch)
         || (ch == ' ')
         || (ch >= '0' && ch <= '9')
@@ -532,7 +532,7 @@ fn isX12TermSep(ch: char) -> bool {
         || (ch == '>')
 }
 
-fn isNativeEDIFACT(ch: char) -> bool {
+pub fn isNativeEDIFACT(ch: char) -> bool {
     ch >= ' ' && ch <= '^'
 }
 

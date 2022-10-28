@@ -14,39 +14,41 @@
  * limitations under the License.
  */
 
-package com.google.zxing.datamatrix.encoder;
+ use lazy_static::lazy_static;
 
-import junit.framework.ComparisonFailure;
-import org.junit.Assert;
-import org.junit.Test;
-import java.nio.charset.StandardCharsets;
+use crate::datamatrix::encoder::SymbolInfo;
 
-/**
+use super::{SymbolInfoLookup, symbol_info, high_level_encoder};
+
+
+lazy_static!{
+  /**
  * Tests for {@link HighLevelEncoder} and {@link MinimalEncoder}
  */
-public final class HighLevelEncodeTestCase extends Assert {
-
-  private static final SymbolInfo[] TEST_SYMBOLS = {
-    new SymbolInfo(false, 3, 5, 8, 8, 1),
-    new SymbolInfo(false, 5, 7, 10, 10, 1),
-      /*rect*/new SymbolInfo(true, 5, 7, 16, 6, 1),
-    new SymbolInfo(false, 8, 10, 12, 12, 1),
-      /*rect*/new SymbolInfo(true, 10, 11, 14, 6, 2),
-    new SymbolInfo(false, 13, 0, 0, 0, 1),
-    new SymbolInfo(false, 77, 0, 0, 0, 1)
+  static ref  TEST_SYMBOLS :Vec<SymbolInfo>= vec![
+     SymbolInfo::new(false, 3, 5, 8, 8, 1),
+     SymbolInfo::new(false, 5, 7, 10, 10, 1),
+      /*rect*/ SymbolInfo::new(true, 5, 7, 16, 6, 1),
+     SymbolInfo::new(false, 8, 10, 12, 12, 1),
+      /*rect*/ SymbolInfo::new(true, 10, 11, 14, 6, 2),
+     SymbolInfo::new(false, 13, 0, 0, 0, 1),
+     SymbolInfo::new(false, 77, 0, 0, 0, 1)
     //The last entries are fake entries to test special conditions with C40 encoding
-  };
+  ];
+}
 
-  private static void useTestSymbols() {
-    SymbolInfo.overrideSymbolSet(TEST_SYMBOLS);
+  fn useTestSymbols(lookup:SymbolInfoLookup) -> SymbolInfoLookup {
+    lookup.overrideSymbolSet(&TEST_SYMBOLS);
+    lookup
   }
 
-  private static void resetSymbols() {
-    SymbolInfo.overrideSymbolSet(SymbolInfo.PROD_SYMBOLS);
+  fn resetSymbols(lookup:SymbolInfoLookup) -> SymbolInfoLookup {
+    lookup.overrideSymbolSet(&symbol_info::PROD_SYMBOLS);
+    lookup
   }
 
-  @Test
-  public void testASCIIEncodation() {
+  #[test]
+  fn testASCIIEncodation() {
 
     String visualized = encodeHighLevel("123456");
     assertEquals("142 164 186", visualized);
@@ -58,16 +60,16 @@ public final class HighLevelEncodeTestCase extends Assert {
     assertEquals("160 82 162 173 173 173 137 224 61 80 82 82", visualized);
   }
 
-  @Test
-  public void testC40EncodationBasic1() {
+  #[test]
+  fn  testC40EncodationBasic1() {
 
     String visualized = encodeHighLevel("AIMAIMAIM");
     assertEquals("230 91 11 91 11 91 11 254", visualized);
     //230 shifts to C40 encodation, 254 unlatches, "else" case
   }
 
-  @Test
-  public void testC40EncodationBasic2() {
+  #[test]
+  fn  testC40EncodationBasic2() {
 
     String visualized = encodeHighLevel("AIMAIAB");
     assertEquals("230 91 11 90 255 254 67 129", visualized);
@@ -98,15 +100,15 @@ public final class HighLevelEncodeTestCase extends Assert {
     //"else" case
   }
 
-  @Test
-  public void testC40EncodationSpecExample() {
+  #[test]
+  fn  testC40EncodationSpecExample() {
     //Example in Figure 1 in the spec
     String visualized = encodeHighLevel("A1B2C3D4E5F6G7H8I9J0K1L2");
     assertEquals("230 88 88 40 8 107 147 59 67 126 206 78 126 144 121 35 47 254", visualized);
   }
 
-  @Test
-  public void testC40EncodationSpecialCases1() {
+  #[test]
+  fn  testC40EncodationSpecialCases1() {
 
     //Special tests avoiding ultra-long test strings because these tests are only used
     //with the 16x48 symbol (47 data codewords)
@@ -134,16 +136,16 @@ public final class HighLevelEncodeTestCase extends Assert {
     //case "d": Skip Unlatch and write last character in ASCII
   }
 
-  @Test
-  public void testC40EncodationSpecialCases2() {
+  #[test]
+  fn  testC40EncodationSpecialCases2() {
 
     String visualized = encodeHighLevel("AIMAIMAIMAIMAIMAIMAI");
     assertEquals("230 91 11 91 11 91 11 91 11 91 11 91 11 254 66 74", visualized);
     //available > 2, rest = 2 --> unlatch and encode as ASCII
   }
 
-  @Test
-  public void testTextEncodation() {
+  #[test]
+  fn  testTextEncodation() {
 
     String visualized = encodeHighLevel("aimaimaim");
     assertEquals("239 91 11 91 11 91 11 254", visualized);
@@ -164,8 +166,8 @@ public final class HighLevelEncodeTestCase extends Assert {
     assertEquals("239 91 11 91 11 91 11 254 124 117 121 117 126 5 129 237", visualized);
   }
 
-  @Test
-  public void testX12Encodation() {
+  #[test]
+  fn  testX12Encodation() {
 
     //238 shifts to X12 encodation, 254 unlatches
 
@@ -186,8 +188,8 @@ public final class HighLevelEncodeTestCase extends Assert {
 
   }
 
-  @Test
-  public void testEDIFACTEncodation() {
+  #[test]
+  fn  testEDIFACTEncodation() {
 
     //240 shifts to EDIFACT encodation
 
@@ -221,8 +223,8 @@ public final class HighLevelEncodeTestCase extends Assert {
                  visualized);
   }
 
-  @Test
-  public void testBase256Encodation() {
+  #[test]
+  fn  testBase256Encodation() {
 
     //231 shifts to Base256 encodation
 
@@ -259,7 +261,7 @@ public final class HighLevelEncodeTestCase extends Assert {
     assertEndsWith("146 40 190 87", visualized);
   }
 
-  private static String createBinaryMessage(int len) {
+  fn createBinaryMessage( len:usize) ->String{
     StringBuilder sb = new StringBuilder();
     sb.append("\u00ABäöüéàá-");
     for (int i = 0; i < len - 9; i++) {
@@ -269,41 +271,41 @@ public final class HighLevelEncodeTestCase extends Assert {
     return sb.toString();
   }
 
-  private static void assertStartsWith(String expected, String actual) {
+  fn assertStartsWith( expected:&str,  actual:&str) {
     if (!actual.startsWith(expected)) {
       throw new ComparisonFailure(null, expected, actual.substring(0, expected.length()));
     }
   }
 
-  private static void assertEndsWith(String expected, String actual) {
+  fn assertEndsWith( expected:&str,  actual:&str) {
     if (!actual.endsWith(expected)) {
       throw new ComparisonFailure(null, expected, actual.substring(actual.length() - expected.length()));
     }
   }
 
-  @Test
-  public void testUnlatchingFromC40() {
+  #[test]
+  fn testUnlatchingFromC40() {
 
     String visualized = encodeHighLevel("AIMAIMAIMAIMaimaimaim");
     assertEquals("230 91 11 91 11 91 11 254 66 74 78 239 91 11 91 11 91 11", visualized);
   }
 
-  @Test
-  public void testUnlatchingFromText() {
+  #[test]
+  fn  testUnlatchingFromText() {
 
     String visualized = encodeHighLevel("aimaimaimaim12345678");
     assertEquals("239 91 11 91 11 91 11 91 11 254 142 164 186 208 129 237", visualized);
   }
 
-  @Test
-  public void testHelloWorld() {
+  #[test]
+  fn testHelloWorld() {
 
     String visualized = encodeHighLevel("Hello World!");
     assertEquals("73 239 116 130 175 123 148 64 158 233 254 34", visualized);
   }
 
-  @Test
-  public void testBug1664266() {
+  #[test]
+  fn testBug1664266() {
     //There was an exception and the encoder did not handle the unlatching from
     //EDIFACT encoding correctly
 
@@ -317,20 +319,20 @@ public final class HighLevelEncodeTestCase extends Assert {
     assertEquals("68 83 70 89 46 85 66 79 59 105 105 105", visualized);
   }
 
-  @Test
-  public void testX12Unlatch() {
+  #[test]
+  fn testX12Unlatch() {
     String visualized = encodeHighLevel("*DTCP01");
     assertEquals("43 69 85 68 81 131 129 56", visualized);
   }
 
-  @Test
-  public void testX12Unlatch2() {
+  #[test]
+  fn  testX12Unlatch2() {
     String visualized = encodeHighLevel("*DTCP0");
     assertEquals("238 9 10 104 141", visualized);
   }
 
-  @Test
-  public void testBug3048549() {
+  #[test]
+  fn  testBug3048549() {
     //There was an IllegalArgumentException for an illegal character here because
     //of an encoding problem of the character 0x0060 in Java source code.
 
@@ -339,23 +341,23 @@ public final class HighLevelEncodeTestCase extends Assert {
 
   }
 
-  @Test
-  public void testMacroCharacters() {
+  #[test]
+  fn  testMacroCharacters() {
 
     String visualized = encodeHighLevel("[)>\u001E05\u001D5555\u001C6666\u001E\u0004");
     //assertEquals("92 42 63 31 135 30 185 185 29 196 196 31 5 129 87 237", visualized);
     assertEquals("236 185 185 29 196 196 129 56", visualized);
   }
 
-  @Test
-  public void testEncodingWithStartAsX12AndLatchToEDIFACTInTheMiddle() {
+  #[test]
+  fn  testEncodingWithStartAsX12AndLatchToEDIFACTInTheMiddle() {
 
     String visualized = encodeHighLevel("*MEMANT-1F-MESTECH");
     assertEquals("240 168 209 77 4 229 45 196 107 77 21 53 5 12 135 192", visualized);
   }
 
-  @Test
-  public void testX12AndEDIFACTSpecErrors() {
+  #[test]
+  fn  testX12AndEDIFACTSpecErrors() {
     //X12 encoding error with spec conform float point comparisons in lookAheadTest()
     String visualized = encodeHighLevel("AAAAAAAAAAA**\u00FCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     assertEquals("230 89 191 89 191 89 191 89 178 56 114 10 243 177 63 89 191 89 191 89 191 89 191 89 191 89 191 89 " +
@@ -380,8 +382,8 @@ public final class HighLevelEncodeTestCase extends Assert {
         "191 89 191 89 191 254 66 66", visualized);
 
   }
-  @Test
-  public void testSizes() {
+  #[test]
+  fn testSizes() {
     int[] sizes = new int[2];
     encodeHighLevel("A", sizes);
     assertEquals(3, sizes[0]);
@@ -493,8 +495,8 @@ public final class HighLevelEncodeTestCase extends Assert {
     assertEquals(62, sizes[1]);
   }
 
-  @Test
-  public void testECIs() {
+  #[test]
+  fn testECIs() {
 
     String visualized = visualize(MinimalEncoder.encodeHighLevel("that particularly stands out to me is \u0625\u0650" +
         "\u062C\u064E\u0651\u0627\u0635 (\u02BE\u0101\u1E63) \"pear\", suggested to have originated from Hebrew " +
@@ -516,8 +518,8 @@ public final class HighLevelEncodeTestCase extends Assert {
          visualized);
   }
 
-  @Test
-  public void testPadding() {
+  #[test]
+  fn testPadding() {
     int[] sizes = new int[2];
     encodeHighLevel("IS010000000000000000000000S1118058599124123S21.2.250.1.213.1.4.8 S3FIRST NAMETEST S5MS618-06" +
         "-1985S713201S4LASTNAMETEST", sizes);
@@ -526,20 +528,20 @@ public final class HighLevelEncodeTestCase extends Assert {
   }
 
 
-  private static void encodeHighLevel(String msg, int[] sizes) {
-    sizes[0] = HighLevelEncoder.encodeHighLevel(msg).length();
+  fn encodeHighLevelWithSizes( msg:&str,  sizes:&[u32]) {
+    sizes[0] = high_level_encoder::encodeHighLevel(msg).expect("encodes").len();
     sizes[1] = MinimalEncoder.encodeHighLevel(msg).length();
   }
 
-  private static String encodeHighLevel(String msg) {
-    return encodeHighLevel(msg, true);
+   fn encodeHighLevel( msg:&str) ->String{
+     encodeHighLevelCompare(msg, true)
   }
 
-  private static String encodeHighLevel(String msg, boolean compareSizeToMinimalEncoder) {
-    CharSequence encoded = HighLevelEncoder.encodeHighLevel(msg);
-    CharSequence encoded2 = MinimalEncoder.encodeHighLevel(msg);
-    assertTrue(!compareSizeToMinimalEncoder || encoded2.length() <= encoded.length());
-    return visualize(encoded);
+  fn encodeHighLevelCompare( msg:&str,  compareSizeToMinimalEncoder:bool) -> String{
+    let encoded = high_level_encoder::encodeHighLevel(msg).expect("encodes");
+    let encoded2 = high_level_encoder::encodeHighLevel(msg).expect("encodes");
+    assert!(!compareSizeToMinimalEncoder || encoded2.len() <= encoded.len());
+     visualize(&encoded)
   }
 
   /**
@@ -549,15 +551,16 @@ public final class HighLevelEncodeTestCase extends Assert {
    * @param codewords the codewords
    * @return the visualized codewords
    */
-  static String visualize(CharSequence codewords) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < codewords.length(); i++) {
+  fn visualize( codewords:&str) -> String{
+    let mut sb =  String::new();
+    for i in 0..codewords.len() {
+    // for (int i = 0; i < codewords.length(); i++) {
       if (i > 0) {
-        sb.append(' ');
+        sb.push(' ');
       }
-      sb.append((int) codewords.charAt(i));
+      sb.push_str(&format!("{}", codewords.chars().nth(i).unwrap() as u32);
     }
-    return sb.toString();
+
+    sb
   }
 
-}
