@@ -28,5 +28,5 @@ pub use edifact_encoder::*;
 mod base256_encoder;
 pub use base256_encoder::*;
 
-// #[cfg(test)]
-// mod high_level_encode_test_case;
+#[cfg(test)]
+mod high_level_encode_test_case;
