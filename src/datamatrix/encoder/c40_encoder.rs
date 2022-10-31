@@ -98,8 +98,7 @@ impl C40Encoder {
                 }
             }
         }
-        handleEOD(context, &mut buffer);
-        Ok(())
+        handleEOD(context, &mut buffer)
     }
 
     pub fn encodeMaximalC40(&self, context: &mut EncoderContext) {
