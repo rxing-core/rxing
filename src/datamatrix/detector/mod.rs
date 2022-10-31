@@ -1,4 +1,4 @@
-mod detector;
 mod datamatrix_result;
-pub use detector::*;
+mod detector;
 pub use datamatrix_result::*;
+pub use detector::*;

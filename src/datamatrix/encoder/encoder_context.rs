@@ -18,21 +18,21 @@ use std::rc::Rc;
 
 use crate::{Dimension, Exceptions};
 
-use super::{SymbolInfo, SymbolShapeHint, SymbolInfoLookup};
+use super::{SymbolInfo, SymbolInfoLookup, SymbolShapeHint};
 use encoding::{self, EncodingRef};
 use unicode_segmentation::UnicodeSegmentation;
 
 const ISO_8859_1_ENCODER: EncodingRef = encoding::all::ISO_8859_1;
 
 pub struct EncoderContext<'a> {
-  symbol_lookup:Rc<SymbolInfoLookup<'a>>,
+    symbol_lookup: Rc<SymbolInfoLookup<'a>>,
     msg: String,
     shape: SymbolShapeHint,
     minSize: Option<Dimension>,
     maxSize: Option<Dimension>,
     codewords: String,
     pub(super) pos: u32,
-    newEncoding:Option< usize>,
+    newEncoding: Option<usize>,
     symbolInfo: Option<&'a SymbolInfo>,
     skipAtEnd: u32,
 }
@@ -61,10 +61,10 @@ impl EncoderContext<'_> {
             ));
         };
         Ok(Self {
-          symbol_lookup:Rc::new(SymbolInfoLookup::new()),
+            symbol_lookup: Rc::new(SymbolInfoLookup::new()),
             msg: sb,
             shape: SymbolShapeHint::FORCE_NONE,
-            codewords: String::with_capacity(msg.len()),
+            codewords: String::with_capacity(msg.chars().count()),
             newEncoding: None,
             minSize: None,
             maxSize: None,
@@ -114,7 +114,7 @@ impl EncoderContext<'_> {
     }
 
     pub fn getCodewordCount(&self) -> usize {
-        self.codewords.len()
+        self.codewords.chars().count()
     }
 
     pub fn getNewEncoding(&self) -> Option<usize> {
@@ -134,7 +134,7 @@ impl EncoderContext<'_> {
     }
 
     fn getTotalMessageCharCount(&self) -> u32 {
-        self.msg.len() as u32 - self.skipAtEnd
+        self.msg.chars().count() as u32 - self.skipAtEnd
     }
 
     pub fn getRemainingCharacters(&self) -> u32 {
@@ -154,15 +154,16 @@ impl EncoderContext<'_> {
             || len > self.symbolInfo.as_ref().unwrap().getDataCapacity() as usize
         {
             self.symbolInfo = Some(
-                self.symbol_lookup.lookup_with_codewords_shape_size_fail(
-                    len as u32,
-                    self.shape,
-                    &self.minSize,
-                    &self.maxSize,
-                    true,
-                )
-                .unwrap()
-                .unwrap(),
+                self.symbol_lookup
+                    .lookup_with_codewords_shape_size_fail(
+                        len as u32,
+                        self.shape,
+                        &self.minSize,
+                        &self.maxSize,
+                        true,
+                    )
+                    .unwrap()
+                    .unwrap(),
             );
         }
     }

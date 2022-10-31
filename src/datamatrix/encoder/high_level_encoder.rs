@@ -26,8 +26,6 @@ use super::{
 };
 const DEFAULT_ENCODING: EncodingRef = encoding::all::ISO_8859_1;
 
-use unicode_segmentation::UnicodeSegmentation;
-
 /**
  * DataMatrix ECC 200 data encoder following the algorithm described in ISO/IEC 16022:200(E) in
  * annex S.
@@ -194,11 +192,11 @@ pub fn encodeHighLevelWithDimensionForceC40(
     if msg.starts_with(MACRO_05_HEADER) && msg.ends_with(MACRO_TRAILER) {
         context.writeCodeword(MACRO_05);
         context.setSkipAtEnd(2);
-        context.pos += MACRO_05_HEADER.len() as u32;
+        context.pos += MACRO_05_HEADER.chars().count() as u32;
     } else if msg.starts_with(MACRO_06_HEADER) && msg.ends_with(MACRO_TRAILER) {
         context.writeCodeword(MACRO_06);
         context.setSkipAtEnd(2);
-        context.pos += MACRO_06_HEADER.len() as u32;
+        context.pos += MACRO_06_HEADER.chars().count() as u32;
     }
 
     let mut encodingMode = ASCII_ENCODATION; //Default mode
@@ -210,7 +208,7 @@ pub fn encodeHighLevelWithDimensionForceC40(
     }
 
     while context.hasMoreCharacters() {
-        encoders[encodingMode].encode(&mut context);
+        encoders[encodingMode].encode(&mut context)?;
         if context.getNewEncoding().is_some() {
             encodingMode = context.getNewEncoding().unwrap();
             context.resetEncoderSignal();
@@ -225,20 +223,22 @@ pub fn encodeHighLevelWithDimensionForceC40(
         && encodingMode != EDIFACT_ENCODATION
     {
         context.writeCodeword(0xfe); //Unlatch (254)
-        // context.writeCodeword("\u{00fe}"); //Unlatch (254)
+                                     // context.writeCodeword("\u{00fe}"); //Unlatch (254)
     }
     //Padding
     // let codewords = context.getCodewords();
-    if context.getCodewords().len() < capacity as usize{
+    if context.getCodewords().chars().count() < capacity as usize {
         // codewords.push(PAD as char);
         context.writeCodeword(PAD)
     }
-    while context.getCodewords().len() < capacity as usize {
+    while context.getCodewords().chars().count() < capacity as usize {
         // codewords.append(randomize253State(codewords.len() + 1));
-        context.writeCodewords(&randomize253State(context.getCodewords().len() as u32 + 1))
+        context.writeCodewords(&randomize253State(
+            context.getCodewords().chars().count() as u32 + 1,
+        ))
     }
 
-     Ok(context.getCodewords().to_owned())
+    Ok(context.getCodewords().to_owned())
 }
 
 pub fn lookAheadTest(msg: &str, startpos: u32, currentMode: u32) -> usize {
@@ -266,7 +266,7 @@ pub fn lookAheadTest(msg: &str, startpos: u32, currentMode: u32) -> usize {
 }
 
 fn lookAheadTestIntern(msg: &str, startpos: u32, currentMode: u32) -> usize {
-    if startpos as usize >= msg.len() {
+    if startpos as usize >= msg.chars().count() {
         return currentMode as usize;
     }
     let mut charCounts: [f32; 6];
@@ -283,7 +283,7 @@ fn lookAheadTestIntern(msg: &str, startpos: u32, currentMode: u32) -> usize {
     let mut intCharCounts = [0u32; 6];
     loop {
         //step K
-        if (startpos + charsProcessed) == msg.len() as u32 {
+        if (startpos + charsProcessed) == msg.chars().count() as u32 {
             mins.fill(0);
             intCharCounts.fill(0);
             // Arrays.fill(mins, (byte) 0);
@@ -316,7 +316,10 @@ fn lookAheadTestIntern(msg: &str, startpos: u32, currentMode: u32) -> usize {
         //     .nth((startpos + charsProcessed) as usize)
         //     .unwrap();
         // let c = msg.charAt(startpos + charsProcessed);
-        let c = msg.chars().nth((startpos + charsProcessed) as usize).unwrap();
+        let c = msg
+            .chars()
+            .nth((startpos + charsProcessed) as usize)
+            .unwrap();
         charsProcessed += 1;
 
         //step L
@@ -476,7 +479,12 @@ fn min4(f1: u32, f2: u32, f3: u32, f4: u32) -> u32 {
     //  Math.min(f1, Math.min(f2, Math.min(f3, f4)))
 }
 
-fn findMinimums(charCounts: &[f32; 6], intCharCounts: &mut [u32; 6], min: u32, mins: &mut [u8]) -> u32 {
+fn findMinimums(
+    charCounts: &[f32; 6],
+    intCharCounts: &mut [u32; 6],
+    min: u32,
+    mins: &mut [u8],
+) -> u32 {
     let mut min = min;
     for i in 0..6 {
         // for (int i = 0; i < 6; i++) {
@@ -508,7 +516,7 @@ pub fn isDigit(ch: char) -> bool {
 }
 
 pub fn isExtendedASCII(ch: char) -> bool {
-    (ch as u8) >= 128 && (ch as u8) <= 255
+    (ch as u8) >= 128 //&& (ch as u8) <= 255
 }
 
 pub fn isNativeC40(ch: char) -> bool {
@@ -520,10 +528,7 @@ pub fn isNativeText(ch: char) -> bool {
 }
 
 pub fn isNativeX12(ch: char) -> bool {
-    return isX12TermSep(ch)
-        || (ch == ' ')
-        || (ch >= '0' && ch <= '9')
-        || (ch >= 'A' && ch <= 'Z');
+    return isX12TermSep(ch) || (ch == ' ') || (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z');
 }
 
 fn isX12TermSep(ch: char) -> bool {
@@ -536,9 +541,9 @@ pub fn isNativeEDIFACT(ch: char) -> bool {
     ch >= ' ' && ch <= '^'
 }
 
-fn isSpecialB256(ch: char) -> bool {
-    unimplemented!();
-    return false; //TODO NOT IMPLEMENTED YET!!!
+fn isSpecialB256(_ch: char) -> bool {
+    // unimplemented!();
+    false //TODO NOT IMPLEMENTED YET!!!
 }
 
 /**
@@ -549,7 +554,7 @@ fn isSpecialB256(ch: char) -> bool {
  * @return the requested character count
  */
 pub fn determineConsecutiveDigitCount(msg: &str, startpos: u32) -> u32 {
-    let len = msg.chars().count();//len();
+    let len = msg.chars().count(); //len();
     let mut idx = startpos;
     // let graphemes = msg.graphemes(true);
     while (idx as usize) < len && isDigit(msg.chars().nth(idx as usize).unwrap()) {

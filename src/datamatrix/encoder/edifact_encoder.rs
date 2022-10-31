@@ -32,7 +32,7 @@ impl Encoder for EdifactEncoder {
             Self::encodeChar(c, &mut buffer);
             context.pos += 1;
 
-            let count = buffer.len();
+            let count = buffer.chars().count();
             if count >= 4 {
                 context.writeCodewords(&Self::encodeToCodewords(&buffer)?);
                 // buffer.delete(0, 4);
@@ -67,7 +67,7 @@ impl EdifactEncoder {
      */
     fn handleEOD(context: &mut EncoderContext, buffer: &mut String) -> Result<(), Exceptions> {
         let mut runner = || -> Result<(), Exceptions> {
-            let count = buffer.len();
+            let count = buffer.chars().count();
             if count == 0 {
                 return Ok(()); //Already finished
             }
@@ -104,7 +104,9 @@ impl EdifactEncoder {
                     - context.getCodewordCount() as u32;
                 if available >= 3 {
                     restInAscii = false;
-                    context.updateSymbolInfoWithLength(context.getCodewordCount() + encoded.len());
+                    context.updateSymbolInfoWithLength(
+                        context.getCodewordCount() + encoded.chars().count(),
+                    );
                     //available = context.symbolInfo.dataCapacity - context.getCodewordCount();
                 }
             }
@@ -135,7 +137,7 @@ impl EdifactEncoder {
     }
 
     fn encodeToCodewords(sb: &str) -> Result<String, Exceptions> {
-        let len = sb.len();
+        let len = sb.chars().count();
         if len == 0 {
             return Err(Exceptions::IllegalStateException(
                 "StringBuilder must not be empty".to_owned(),

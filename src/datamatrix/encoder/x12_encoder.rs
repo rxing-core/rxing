@@ -33,7 +33,7 @@ impl Encoder for X12Encoder {
 
             Self::encodeChar(c, &mut buffer);
 
-            let count = buffer.len();
+            let count = buffer.chars().count();
             if (count % 3) == 0 {
                 C40Encoder::writeNextTriplet(context, &mut buffer);
 
@@ -81,7 +81,7 @@ impl X12Encoder {
         context.updateSymbolInfo();
         let available =
             context.getSymbolInfo().unwrap().getDataCapacity() - context.getCodewordCount() as u32;
-        let count = buffer.len();
+        let count = buffer.chars().count();
         context.pos -= count as u32;
         if context.getRemainingCharacters() > 1
             || available > 1

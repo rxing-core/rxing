@@ -47,7 +47,7 @@ impl Encoder for Base256Encoder {
                 break;
             }
         }
-        let dataCount = buffer.len() - 1;
+        let dataCount = buffer.chars().count() - 1;
         let lengthFieldSize = 1;
         let currentSize = context.getCodewordCount() + dataCount + lengthFieldSize;
         context.updateSymbolInfoWithLength(currentSize);
@@ -58,11 +58,12 @@ impl Encoder for Base256Encoder {
             } else if dataCount <= 1555 {
                 buffer.replace_range(
                     0..1,
-                    &char::from_u32(((dataCount as u32 / 250) + 249))
+                    &char::from_u32((dataCount as u32 / 250) + 249)
                         .unwrap()
                         .to_string(),
                 );
-                buffer.insert(1, char::from_u32((dataCount as u32 % 250)).unwrap());
+                let (ci_pos, _) = buffer.char_indices().nth(1).unwrap();
+                buffer.insert(ci_pos, char::from_u32(dataCount as u32 % 250).unwrap());
             } else {
                 return Err(Exceptions::IllegalStateException(format!(
                     "Message length not in valid ranges: {}",
@@ -70,7 +71,7 @@ impl Encoder for Base256Encoder {
                 )));
             }
         }
-        let c = buffer.len();
+        let c = buffer.chars().count();
         for i in 0..c {
             // for (int i = 0, c = buffer.length(); i < c; i++) {
             context.writeCodeword(Self::randomize255State(
@@ -88,10 +89,10 @@ impl Base256Encoder {
     fn randomize255State(ch: char, codewordPosition: u32) -> char {
         let pseudoRandom = ((149 * codewordPosition) % 255) + 1;
         let tempVariable = ch as u32 + pseudoRandom;
-        if tempVariable as u8 <= 255 {
+        if tempVariable <= 255 {
             char::from_u32(tempVariable).unwrap()
         } else {
-            char::from_u32((tempVariable - 256)).unwrap()
+            char::from_u32(tempVariable - 256).unwrap()
         }
     }
 }
