@@ -230,11 +230,12 @@ impl MinimalECIInput {
 
         Self {
             bytes: bytes,
-            fnc1: if let Some(fnc1_exists) = fnc1 {//}.as_ref().unwrap().chars().nth(0).unwrap() as u16,
-            fnc1_exists.chars().nth(0).unwrap() as u16
-        }else{
-            1000
-        }
+            fnc1: if let Some(fnc1_exists) = fnc1 {
+                //}.as_ref().unwrap().chars().nth(0).unwrap() as u16,
+                fnc1_exists.chars().nth(0).unwrap() as u16
+            } else {
+                1000
+            },
         }
     }
 

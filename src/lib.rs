@@ -84,6 +84,6 @@ mod rgb_luminance_source;
 pub use rgb_luminance_source::*;
 
 pub mod datamatrix;
-pub  mod multi;
+pub mod multi;
 pub mod oned;
 pub mod pdf417;
