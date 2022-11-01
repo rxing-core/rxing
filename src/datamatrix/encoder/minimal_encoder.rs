@@ -164,13 +164,13 @@ pub fn encodeHighLevelWithDetails(
     {
         macroId = 5;
         // msg = msg.substring(high_level_encoder::MACRO_05_HEADER.len(), msg.len() - 2);
-        msg = &msg[high_level_encoder::MACRO_05_HEADER.len()..(msg.len() - 2)];
+        msg = &msg[high_level_encoder::MACRO_05_HEADER.chars().count()..(msg.chars().count() - 2)];
     } else if msg.starts_with(high_level_encoder::MACRO_06_HEADER)
         && msg.ends_with(high_level_encoder::MACRO_TRAILER)
     {
         macroId = 6;
         // msg = msg.substring(high_level_encoder::MACRO_06_HEADER.len(), msg.len() - 2);
-        msg = &msg[high_level_encoder::MACRO_06_HEADER.len()..(msg.len() - 2)];
+        msg = &msg[high_level_encoder::MACRO_06_HEADER.chars().count()..(msg.chars().count() - 2)];
     }
     Ok(ISO_8859_1_ENCODER
         .decode(
@@ -253,7 +253,7 @@ fn getNumberOfC40Words(
             || !c40 && high_level_encoder::isNativeText(ci)
         {
             thirdsCount += 1; //native
-        } else if !isExtendedASCII(ci, Some(input.getFNC1Character())) {
+        } else if !isExtendedASCII(ci, input.getFNC1Character()) {
             thirdsCount += 2; //shift
         } else {
             let asciiValue = ci as u8 & 0xff;
@@ -711,7 +711,7 @@ impl Edge {
                         input
                             .charAt(fromPosition as usize)
                             .expect("char must exist)"),
-                        Some(input.getFNC1Character()),
+                        input.getFNC1Character(),
                     )
                 {
                     size += 1;
@@ -878,7 +878,7 @@ impl Edge {
         if length - from == 1 {
             if isExtendedASCII(
                 self.input.charAt(from as usize)?,
-                Some(self.input.getFNC1Character()),
+                self.input.getFNC1Character(),
             ) {
                 return Ok(0);
             }
@@ -887,10 +887,10 @@ impl Edge {
         if length - from == 2 {
             if isExtendedASCII(
                 self.input.charAt(from as usize)?,
-                Some(self.input.getFNC1Character()),
+                self.input.getFNC1Character(),
             ) || isExtendedASCII(
                 self.input.charAt(from as usize + 1)?,
-                Some(self.input.getFNC1Character()),
+                self.input.getFNC1Character(),
             ) {
                 return Ok(0);
             }
@@ -906,7 +906,7 @@ impl Edge {
                 && high_level_encoder::isDigit(self.input.charAt(from as usize + 1)?)
                 && !isExtendedASCII(
                     self.input.charAt(from as usize + 2)?,
-                    Some(self.input.getFNC1Character()),
+                    self.input.getFNC1Character(),
                 )
             {
                 return Ok(2);
@@ -915,7 +915,7 @@ impl Edge {
                 && high_level_encoder::isDigit(self.input.charAt(from as usize + 2)?)
                 && !isExtendedASCII(
                     self.input.charAt(from as usize)?,
-                    Some(self.input.getFNC1Character()),
+                    self.input.getFNC1Character(),
                 )
             {
                 return Ok(2);
@@ -1246,7 +1246,7 @@ impl Edge {
                     ));
                 } else if isExtendedASCII(
                     self.input.charAt(self.fromPosition as usize)?,
-                    Some(self.input.getFNC1Character()),
+                    self.input.getFNC1Character(),
                 ) {
                     return Ok(Self::getBytes2(
                         235,
@@ -1272,8 +1272,8 @@ impl Edge {
                     self.input.charAt(self.fromPosition as usize)? as u32,
                 ))
             }
-            Mode::C40 => return self.getC40Words(true, Some(self.input.getFNC1Character())),
-            Mode::TEXT => return self.getC40Words(false, Some(self.input.getFNC1Character())),
+            Mode::C40 => return self.getC40Words(true, self.input.getFNC1Character()),
+            Mode::TEXT => return self.getC40Words(false, self.input.getFNC1Character()),
             Mode::X12 => return self.getX12Words(),
             Mode::EDF => return self.getEDFBytes(),
         }
@@ -1321,7 +1321,8 @@ impl RXingResult {
                     randomizePostfixLength.push(bytesAL.len());
                     randomizeLengths.push(size);
                 }
-                Self::prepend(&current.getLatchBytes()?, &mut bytesAL);
+                if Edge::getPreviousStartMode(current.previous.clone()) != current.getMode() {
+                Self::prepend(&current.getLatchBytes()?, &mut bytesAL);}
                 size = 0;
             }
 
@@ -1333,7 +1334,7 @@ impl RXingResult {
             size += Self::prepend(&Edge::getBytes1(237), &mut bytesAL);
         }
 
-        if input.getFNC1Character() as u8 > 0 {
+        if input.getFNC1Character().is_some() {
             size += Self::prepend(&Edge::getBytes1(232), &mut bytesAL);
         }
         for i in 0..randomizePostfixLength.len() {
@@ -1427,9 +1428,6 @@ impl Input {
             macroId,
             internal: MinimalECIInput::new(stringToEncode, priorityCharset, v),
         }
-        // super(stringToEncode, priorityCharset, fnc1);
-        // this.shape = shape;
-        // this.macroId = macroId;
     }
 
     pub fn getMacroId(&self) -> i32 {
@@ -1449,8 +1447,12 @@ impl Input {
     pub fn charAt(&self, index: usize) -> Result<char, Exceptions> {
         self.internal.charAt(index)
     }
-    pub fn getFNC1Character(&self) -> char {
-        self.internal.getFNC1Character() as u8 as char
+    pub fn getFNC1Character(&self) -> Option<char> {
+        if self.internal.getFNC1Character() == 1000 {
+            None
+        }else {
+            Some(self.internal.getFNC1Character() as u8 as char)
+        }
     }
     fn haveNCharacters(&self, index: usize, n: usize) -> bool {
         self.internal.haveNCharacters(index, n)

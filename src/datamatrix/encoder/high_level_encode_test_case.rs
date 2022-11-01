@@ -556,8 +556,8 @@ fn encodeHighLevel(msg: &str) -> String {
 
 fn encodeHighLevelCompare(msg: &str, compareSizeToMinimalEncoder: bool) -> String {
     let encoded = high_level_encoder::encodeHighLevel(msg).expect("encodes");
-    // let encoded2 = minimal_encoder::encodeHighLevel(msg).expect("encodes");
-    // assert!(!compareSizeToMinimalEncoder || encoded2.len() <= encoded.len(), "{} <= {}", encoded2.len() , encoded.len());
+    let encoded2 = minimal_encoder::encodeHighLevel(msg).expect("encodes");
+    assert!(!compareSizeToMinimalEncoder || encoded2.len() <= encoded.len(), "{} <= {}", encoded2.len() , encoded.len());
     visualize(&encoded)
 }
 

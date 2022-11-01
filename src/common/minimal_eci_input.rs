@@ -224,7 +224,7 @@ impl MinimalECIInput {
             Self::encodeMinimally(
                 stringToEncodeInput,
                 &encoderSet,
-                fnc1.as_ref().unwrap().chars().nth(0).unwrap() as u16,
+                fnc1
             )
         };
 
@@ -279,24 +279,25 @@ impl MinimalECIInput {
         edges: &mut Vec<Vec<Option<Rc<InputEdge>>>>,
         from: usize,
         previous: Option<Rc<InputEdge>>,
-        fnc1: u16,
+        fnc1: Option<&str>,
     ) {
         // let ch = stringToEncode.chars().nth(from).unwrap() as i16;
         let ch = stringToEncode.graphemes(true).nth(from).unwrap();
 
         let mut start = 0;
         let mut end = encoderSet.len();
+        if let Some(fnc1) = fnc1 {
         if encoderSet.getPriorityEncoderIndex().is_some()
-            && (ch.chars().nth(0).unwrap() as u16 == fnc1
+            && (ch.chars().nth(0).unwrap() == fnc1.chars().nth(1).unwrap()
                 || encoderSet.canEncode(ch, encoderSet.getPriorityEncoderIndex().unwrap()))
         {
             start = encoderSet.getPriorityEncoderIndex().unwrap();
             end = start + 1;
-        }
+        }}
 
         for i in start..end {
             // for (int i = start; i < end; i++) {
-            if ch.chars().nth(0).unwrap() as u16 == fnc1 || encoderSet.canEncode(ch, i) {
+            if (fnc1.is_some() && ch.chars().nth(0).unwrap() == fnc1.as_ref().unwrap().chars().nth(0).unwrap()) || encoderSet.canEncode(ch, i) {
                 Self::addEdge(
                     edges,
                     from + 1,
@@ -309,15 +310,15 @@ impl MinimalECIInput {
     pub fn encodeMinimally(
         stringToEncode: &str,
         encoderSet: &ECIEncoderSet,
-        fnc1: u16,
+        fnc1: Option<&str>,
     ) -> Vec<u16> {
-        let inputLength = stringToEncode.len();
+        let inputLength = stringToEncode.chars().count();
 
         // Array that represents vertices. There is a vertex for every character and encoding.
         let mut edges = vec![vec![None; encoderSet.len()]; inputLength + 1]; //InputEdge[inputLength + 1][encoderSet.length()];
         Self::addEdges(stringToEncode, encoderSet, &mut edges, 0, None, fnc1);
 
-        for i in 0..=inputLength {
+        for i in 1..=inputLength {
             // for (int i = 1; i <= inputLength; i++) {
             for j in 0..encoderSet.len() {
                 //   for (int j = 0; j < encoderSet.length(); j++) {
@@ -400,7 +401,7 @@ impl InputEdge {
         encoderSet: &ECIEncoderSet,
         encoderIndex: usize,
         previous: Option<Rc<InputEdge>>,
-        fnc1: u16,
+        fnc1: Option<&str>,
     ) -> Self {
         let mut size = if c == "\u{1000}" {
             1
@@ -408,7 +409,7 @@ impl InputEdge {
             encoderSet.encode_char(c, encoderIndex).len()
         };
 
-        let fnc1Str = String::from_utf16(&[fnc1]).unwrap();
+        //let fnc1Str = String::from_utf16(&[fnc1]).unwrap();
 
         if let Some(prev) = previous {
             let previousEncoderIndex = prev.encoderIndex;
@@ -418,7 +419,7 @@ impl InputEdge {
             size += prev.cachedTotalSize;
 
             Self {
-                c: if c == fnc1Str {
+                c: if fnc1.is_some() &&  &c == fnc1.as_ref().unwrap() {
                     String::from("\u{1000}")
                 } else {
                     String::from(c)
@@ -434,7 +435,7 @@ impl InputEdge {
             }
 
             Self {
-                c: if c == fnc1Str {
+                c: if fnc1.is_some() &&  &c == fnc1.as_ref().unwrap() {
                     String::from("\u{1000}")
                 } else {
                     String::from(c)
