@@ -26,7 +26,7 @@ pub struct C40Encoder;
 
 impl Encoder for C40Encoder {
     fn encode(&self, context: &mut super::EncoderContext) -> Result<(), Exceptions> {
-        self.encode_with_encode_char_fn(context, &Self::encodeChar_c40, &Self::handleEOD_c40)
+        self.encode_with_encode_char_fn(context, &Self::encodeChar_c40, &Self::handleEOD_c40, &||{self.getEncodingMode()})
     }
 
     fn getEncodingMode(&self) -> usize {
@@ -44,6 +44,7 @@ impl C40Encoder {
         context: &mut super::EncoderContext,
         encodeChar: &dyn Fn(char, &mut String) -> u32,
         handleEOD: &dyn Fn(&mut EncoderContext, &mut String) -> Result<(), Exceptions>,
+        getEncodingMode: &dyn Fn() -> usize,
     ) -> Result<(), Exceptions> {
         //step C
         let mut buffer = String::new();
@@ -89,9 +90,9 @@ impl C40Encoder {
                 let newMode = high_level_encoder::lookAheadTest(
                     context.getMessage(),
                     context.pos,
-                    self.getEncodingMode() as u32,
+                    getEncodingMode() as u32,
                 );
-                if newMode != self.getEncodingMode() {
+                if newMode != getEncodingMode() {
                     // Return to ASCII encodation, which will actually handle latch to new mode
                     context.signalEncoderChange(ASCII_ENCODATION);
                     break;
