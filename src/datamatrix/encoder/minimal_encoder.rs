@@ -1017,7 +1017,7 @@ impl Edge {
         assert!(self.characterLength % 3 == 0);
         let mut result = vec![0u8; self.characterLength as usize / 3 * 2];
         let mut i = 0;
-        while i <= result.len() {
+        while i < result.len() {
             // for (int i = 0; i < result.length; i += 2) {
             Self::setC40Word(
                 &mut result,
@@ -1322,7 +1322,8 @@ impl RXingResult {
                     randomizeLengths.push(size);
                 }
                 if Edge::getPreviousStartMode(current.previous.clone()) != current.getMode() {
-                Self::prepend(&current.getLatchBytes()?, &mut bytesAL);}
+                    Self::prepend(&current.getLatchBytes()?, &mut bytesAL);
+                }
                 size = 0;
             }
 
@@ -1450,7 +1451,7 @@ impl Input {
     pub fn getFNC1Character(&self) -> Option<char> {
         if self.internal.getFNC1Character() == 1000 {
             None
-        }else {
+        } else {
             Some(self.internal.getFNC1Character() as u8 as char)
         }
     }

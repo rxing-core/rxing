@@ -312,7 +312,8 @@ impl MinimalECIInput {
         encoderSet: &ECIEncoderSet,
         fnc1: Option<&str>,
     ) -> Vec<u16> {
-        let inputLength = stringToEncode.chars().count();
+        // let inputLength = stringToEncode.chars().count();
+        let inputLength = stringToEncode.graphemes(true).count();
 
         // Array that represents vertices. There is a vertex for every character and encoding.
         let mut edges = vec![vec![None; encoderSet.len()]; inputLength + 1]; //InputEdge[inputLength + 1][encoderSet.length()];
