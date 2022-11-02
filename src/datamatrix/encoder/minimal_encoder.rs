@@ -97,7 +97,7 @@ pub fn isExtendedASCII(ch: char, fnc1: Option<char>) -> bool {
     } else {
         true
     };
-    is_fnc1 && ch as u8 >= 128 && ch as u8 <= 255
+    is_fnc1 && ch as u8 >= 128 //&& ch as u8 <= 255
     // return ch != fnc1 && ch as u8 >= 128 && ch as u8 <= 255;
 }
 
@@ -775,7 +775,6 @@ impl Edge {
                     size += 2; //unlatch 254 to ASCII followed by latch to this mode
                 }
             }
-            _ => {}
         }
         Ok(Self {
             input,
@@ -1330,13 +1329,13 @@ impl RXingResult {
             hold_current = current.previous.clone();
         }
         if input.getMacroId() == 5 {
-            size += Self::prepend(&Edge::getBytes1(236), &mut bytesAL);
+            _ = Self::prepend(&Edge::getBytes1(236), &mut bytesAL);
         } else if input.getMacroId() == 6 {
-            size += Self::prepend(&Edge::getBytes1(237), &mut bytesAL);
+            _ = Self::prepend(&Edge::getBytes1(237), &mut bytesAL);
         }
 
         if input.getFNC1Character().is_some() {
-            size += Self::prepend(&Edge::getBytes1(232), &mut bytesAL);
+            _ = Self::prepend(&Edge::getBytes1(232), &mut bytesAL);
         }
         for i in 0..randomizePostfixLength.len() {
             // for (int i = 0; i < randomizePostfixLength.size(); i++) {
