@@ -98,7 +98,7 @@ pub fn isExtendedASCII(ch: char, fnc1: Option<char>) -> bool {
         true
     };
     is_fnc1 && ch as u8 >= 128 //&& ch as u8 <= 255
-    // return ch != fnc1 && ch as u8 >= 128 && ch as u8 <= 255;
+                               // return ch != fnc1 && ch as u8 >= 128 && ch as u8 <= 255;
 }
 
 fn isInC40Shift1Set(ch: char) -> bool {
@@ -1231,7 +1231,7 @@ impl Edge {
             Mode::EDF => assert!(self.mode == Mode::EDF), //The rightmost EDIFACT edge always contains an unlatch character
         }
 
-        Ok(vec![0])
+        Ok(Vec::new())
     }
 
     // Important: The function does not return the length bytes (one or two) in case of B256 encoding
@@ -1320,9 +1320,9 @@ impl RXingResult {
                     randomizePostfixLength.push(bytesAL.len());
                     randomizeLengths.push(size);
                 }
-                if Edge::getPreviousStartMode(current.previous.clone()) != current.getMode() {
-                    Self::prepend(&current.getLatchBytes()?, &mut bytesAL);
-                }
+                //if Edge::getPreviousStartMode(current.previous.clone()) != current.getMode() {
+                Self::prepend(&current.getLatchBytes()?, &mut bytesAL);
+                //}
                 size = 0;
             }
 
