@@ -544,10 +544,10 @@ fn testPadding() {
 fn encodeHighLevelWithSizes(msg: &str, sizes: &mut [usize]) {
     sizes[0] = high_level_encoder::encodeHighLevel(msg)
         .expect("encodes")
-        .len();
+        .chars().count();
     sizes[1] = minimal_encoder::encodeHighLevel(msg)
         .expect("encodes")
-        .len();
+        .chars().count();
 }
 
 fn encodeHighLevel(msg: &str) -> String {
