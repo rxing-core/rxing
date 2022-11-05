@@ -221,11 +221,7 @@ impl MinimalECIInput {
             }
             bytes_hld
         } else {
-            Self::encodeMinimally(
-                stringToEncodeInput,
-                &encoderSet,
-                fnc1
-            )
+            Self::encodeMinimally(stringToEncodeInput, &encoderSet, fnc1)
         };
 
         Self {
@@ -286,18 +282,22 @@ impl MinimalECIInput {
 
         let mut start = 0;
         let mut end = encoderSet.len();
-        if let Some(fnc1) = fnc1 {
-        if encoderSet.getPriorityEncoderIndex().is_some()
-            && (ch.chars().nth(0).unwrap() == fnc1.chars().nth(1).unwrap()
-                || encoderSet.canEncode(ch, encoderSet.getPriorityEncoderIndex().unwrap()))
-        {
-            start = encoderSet.getPriorityEncoderIndex().unwrap();
-            end = start + 1;
-        }}
+        //if let Some(fnc1) = fnc1 {
+            if encoderSet.getPriorityEncoderIndex().is_some()
+                && (( fnc1.is_some() && ch.chars().nth(0).unwrap() == fnc1.as_ref().unwrap().chars().nth(0).unwrap())
+                    || encoderSet.canEncode(ch, encoderSet.getPriorityEncoderIndex().unwrap()))
+            {
+                start = encoderSet.getPriorityEncoderIndex().unwrap();
+                end = start + 1;
+            }
+        //}
 
         for i in start..end {
             // for (int i = start; i < end; i++) {
-            if (fnc1.is_some() && ch.chars().nth(0).unwrap() == fnc1.as_ref().unwrap().chars().nth(0).unwrap()) || encoderSet.canEncode(ch, i) {
+            if (fnc1.is_some()
+                && ch.chars().nth(0).unwrap() == fnc1.as_ref().unwrap().chars().nth(0).unwrap())
+                || encoderSet.canEncode(ch, i)
+            {
                 Self::addEdge(
                     edges,
                     from + 1,
@@ -379,7 +379,10 @@ impl MinimalECIInput {
                 //     0..0,
                 //     [256 as u16 + encoderSet.getECIValue(c.encoderIndex) as u16],
                 // );
-                intsAL.insert(0, 256 as u16 + encoderSet.getECIValue(c.encoderIndex) as u16);
+                intsAL.insert(
+                    0,
+                    256 as u16 + encoderSet.getECIValue(c.encoderIndex) as u16,
+                );
             }
             current = c.previous.clone();
         }
@@ -422,7 +425,7 @@ impl InputEdge {
             size += prev.cachedTotalSize;
 
             Self {
-                c: if fnc1.is_some() &&  &c == fnc1.as_ref().unwrap() {
+                c: if fnc1.is_some() && &c == fnc1.as_ref().unwrap() {
                     String::from("\u{1000}")
                 } else {
                     String::from(c)
@@ -438,7 +441,7 @@ impl InputEdge {
             }
 
             Self {
-                c: if fnc1.is_some() &&  &c == fnc1.as_ref().unwrap() {
+                c: if fnc1.is_some() && &c == fnc1.as_ref().unwrap() {
                     String::from("\u{1000}")
                 } else {
                     String::from(c)
