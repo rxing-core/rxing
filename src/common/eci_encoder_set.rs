@@ -114,7 +114,7 @@ impl ECIEncoderSet {
         //we always need the ISO-8859-1 encoder. It is the default encoding
         neededEncoders.push(encoding::all::ISO_8859_1);
         let mut needUnicodeEncoder = if let Some(pc) = priorityCharset {
-            pc.name().starts_with("UTF")
+            pc.name().starts_with("UTF") || pc.name().starts_with("utf")
         } else {
             false
         };

@@ -351,8 +351,8 @@ impl MinimalECIInput {
         }
         let mut intsAL: Vec<u16> = Vec::new();
         let mut current = edges[inputLength][minimalJ as usize].clone();
-        while current.is_some() {
-            let c = current.unwrap().clone();
+        while let Some(c) = current {
+            //let c = current.unwrap().clone();
             if c.isFNC1() {
                 intsAL.splice(0..0, [1000]);
             } else {
@@ -361,11 +361,12 @@ impl MinimalECIInput {
                     .iter()
                     .map(|x| *x as u16)
                     .collect();
-                let mut i = bytes.len() as i32 - 1;
+                let mut i = bytes.len() as isize - 1;
                 while i >= 0 {
                     // for (int i = bytes.length - 1; i >= 0; i--) {
-                    intsAL.splice(0..0, [bytes[i as usize]]);
-                    i = -1;
+                    // intsAL.splice(0..0, [bytes[i as usize]]);
+                    intsAL.insert(0, bytes[i as usize]);
+                    i -= 1;
                 }
             }
             let previousEncoderIndex = if c.previous.is_none() {
@@ -374,10 +375,11 @@ impl MinimalECIInput {
                 c.previous.clone().unwrap().encoderIndex
             };
             if previousEncoderIndex != c.encoderIndex {
-                intsAL.splice(
-                    0..0,
-                    [256 as u16 + encoderSet.getECIValue(c.encoderIndex) as u16],
-                );
+                // intsAL.splice(
+                //     0..0,
+                //     [256 as u16 + encoderSet.getECIValue(c.encoderIndex) as u16],
+                // );
+                intsAL.insert(0, 256 as u16 + encoderSet.getECIValue(c.encoderIndex) as u16);
             }
             current = c.previous.clone();
         }
