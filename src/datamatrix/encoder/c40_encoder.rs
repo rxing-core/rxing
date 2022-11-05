@@ -26,7 +26,12 @@ pub struct C40Encoder;
 
 impl Encoder for C40Encoder {
     fn encode(&self, context: &mut super::EncoderContext) -> Result<(), Exceptions> {
-        self.encode_with_encode_char_fn(context, &Self::encodeChar_c40, &Self::handleEOD_c40, &||{self.getEncodingMode()})
+        self.encode_with_encode_char_fn(
+            context,
+            &Self::encodeChar_c40,
+            &Self::handleEOD_c40,
+            &|| self.getEncodingMode(),
+        )
     }
 
     fn getEncodingMode(&self) -> usize {

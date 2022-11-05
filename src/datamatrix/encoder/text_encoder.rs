@@ -23,8 +23,12 @@ impl Encoder for TextEncoder {
     }
 
     fn encode(&self, context: &mut super::EncoderContext) -> Result<(), crate::Exceptions> {
-        self.0
-            .encode_with_encode_char_fn(context, &Self::encodeChar, &C40Encoder::handleEOD_c40, &||{self.getEncodingMode()})
+        self.0.encode_with_encode_char_fn(
+            context,
+            &Self::encodeChar,
+            &C40Encoder::handleEOD_c40,
+            &|| self.getEncodingMode(),
+        )
     }
 }
 impl TextEncoder {

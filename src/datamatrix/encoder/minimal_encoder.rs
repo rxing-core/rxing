@@ -1302,7 +1302,8 @@ impl RXingResult {
             size += Self::prepend(&Edge::getBytes1(254), &mut bytesAL);
         }
         let mut hold_current = Some(solution.clone());
-        while let Some(current) = hold_current { // Fails on i = 77 should be 151 is 144
+        while let Some(current) = hold_current {
+            // Fails on i = 77 should be 151 is 144
             size += Self::prepend(&current.getDataBytes()?, &mut bytesAL);
 
             if current.previous.is_none()

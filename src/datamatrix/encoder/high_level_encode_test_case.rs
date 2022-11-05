@@ -544,10 +544,12 @@ fn testPadding() {
 fn encodeHighLevelWithSizes(msg: &str, sizes: &mut [usize]) {
     sizes[0] = high_level_encoder::encodeHighLevel(msg)
         .expect("encodes")
-        .chars().count();
+        .chars()
+        .count();
     sizes[1] = minimal_encoder::encodeHighLevel(msg)
         .expect("encodes")
-        .chars().count();
+        .chars()
+        .count();
 }
 
 fn encodeHighLevel(msg: &str) -> String {
@@ -557,7 +559,12 @@ fn encodeHighLevel(msg: &str) -> String {
 fn encodeHighLevelCompare(msg: &str, compareSizeToMinimalEncoder: bool) -> String {
     let encoded = high_level_encoder::encodeHighLevel(msg).expect("encodes");
     let encoded2 = minimal_encoder::encodeHighLevel(msg).expect("encodes");
-    assert!(!compareSizeToMinimalEncoder || encoded2.chars().count() <= encoded.chars().count(), "{} <= {}", encoded2.chars().count() , encoded.chars().count());
+    assert!(
+        !compareSizeToMinimalEncoder || encoded2.chars().count() <= encoded.chars().count(),
+        "{} <= {}",
+        encoded2.chars().count(),
+        encoded.chars().count()
+    );
     visualize(&encoded)
 }
 

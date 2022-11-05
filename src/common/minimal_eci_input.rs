@@ -283,13 +283,14 @@ impl MinimalECIInput {
         let mut start = 0;
         let mut end = encoderSet.len();
         //if let Some(fnc1) = fnc1 {
-            if encoderSet.getPriorityEncoderIndex().is_some()
-                && (( fnc1.is_some() && ch.chars().nth(0).unwrap() == fnc1.as_ref().unwrap().chars().nth(0).unwrap())
-                    || encoderSet.canEncode(ch, encoderSet.getPriorityEncoderIndex().unwrap()))
-            {
-                start = encoderSet.getPriorityEncoderIndex().unwrap();
-                end = start + 1;
-            }
+        if encoderSet.getPriorityEncoderIndex().is_some()
+            && ((fnc1.is_some()
+                && ch.chars().nth(0).unwrap() == fnc1.as_ref().unwrap().chars().nth(0).unwrap())
+                || encoderSet.canEncode(ch, encoderSet.getPriorityEncoderIndex().unwrap()))
+        {
+            start = encoderSet.getPriorityEncoderIndex().unwrap();
+            end = start + 1;
+        }
         //}
 
         for i in start..end {
