@@ -4,6 +4,7 @@ pub mod high_level_encoder;
 pub mod minimal_encoder;
 mod symbol_info;
 mod symbol_shape_hint;
+pub mod error_correction;
 
 pub use encoder::*;
 pub use encoder_context::*;

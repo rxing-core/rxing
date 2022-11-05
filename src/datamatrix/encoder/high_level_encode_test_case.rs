@@ -568,7 +568,7 @@ fn encodeHighLevelCompare(msg: &str, compareSizeToMinimalEncoder: bool) -> Strin
  * @param codewords the codewords
  * @return the visualized codewords
  */
-fn visualize(codewords: &str) -> String {
+pub fn visualize(codewords: &str) -> String {
     let mut sb = String::new();
     for i in 0..codewords.chars().count() {
         // for (int i = 0; i < codewords.length(); i++) {
