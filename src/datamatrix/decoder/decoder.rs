@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package com.google.zxing.datamatrix.decoder;
+use crate::{common::{reedsolomon::{ReedSolomonDecoder, get_predefined_genericgf, PredefinedGenericGF}, DecoderRXingResult, BitMatrix}, Exceptions};
 
-import com.google.zxing.ChecksumException;
-import com.google.zxing.FormatException;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderRXingResult;
-import com.google.zxing.common.reedsolomon.GenericGF;
-import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
-import com.google.zxing.common.reedsolomon.ReedSolomonException;
+use super::{DataBlock, BitMatrixParser, decoded_bit_stream_parser};
+
 
 /**
  * <p>The main class which implements Data Matrix Code decoding -- as opposed to locating and extracting
@@ -30,12 +25,14 @@ import com.google.zxing.common.reedsolomon.ReedSolomonException;
  *
  * @author bbrown@google.com (Brian Brown)
  */
-public final class Decoder {
+pub struct Decoder(ReedSolomonDecoder);
 
-  private final ReedSolomonDecoder rsDecoder;
+impl Decoder {
 
-  public Decoder() {
-    rsDecoder = new ReedSolomonDecoder(GenericGF.DATA_MATRIX_FIELD_256);
+  pub fn new() -> Self {
+    
+    Self(ReedSolomonDecoder::new(get_predefined_genericgf(PredefinedGenericGF::DataMatrixField256)))
+    // rsDecoder = new ReedSolomonDecoder(GenericGF.DATA_MATRIX_FIELD_256);
   }
 
   /**
@@ -47,8 +44,8 @@ public final class Decoder {
    * @throws FormatException if the Data Matrix Code cannot be decoded
    * @throws ChecksumException if error correction fails
    */
-  public DecoderRXingResult decode(boolean[][] image) throws FormatException, ChecksumException {
-    return decode(BitMatrix.parse(image));
+  pub fn decode_bools(&self,  image:&Vec<Vec<bool>>) -> Result<DecoderRXingResult,Exceptions> {
+     self.decode(&BitMatrix::parse_bools(&image))
   }
 
   /**
@@ -60,39 +57,42 @@ public final class Decoder {
    * @throws FormatException if the Data Matrix Code cannot be decoded
    * @throws ChecksumException if error correction fails
    */
-  public DecoderRXingResult decode(BitMatrix bits) throws FormatException, ChecksumException {
+  pub fn decode(&self,  bits:&BitMatrix) -> Result<DecoderRXingResult,Exceptions> {
 
     // Construct a parser and read version, error-correction level
-    BitMatrixParser parser = new BitMatrixParser(bits);
-    Version version = parser.getVersion();
+    let parser =  BitMatrixParser::new(bits)?;
+    let version = parser.getVersion();
+
 
     // Read codewords
-    byte[] codewords = parser.readCodewords();
+    let codewords = parser.readCodewords()?;
     // Separate into data blocks
-    DataBlock[] dataBlocks = DataBlock.getDataBlocks(codewords, version);
+    let dataBlocks = DataBlock::getDataBlocks(&codewords, version)?;
 
     // Count total number of data bytes
-    int totalBytes = 0;
-    for (DataBlock db : dataBlocks) {
+    let totalBytes = 0;
+    for  db in dataBlocks {
       totalBytes += db.getNumDataCodewords();
     }
-    byte[] resultBytes = new byte[totalBytes];
+    let resultBytes = vec![0u8;totalBytes as usize];
 
-    int dataBlocksCount = dataBlocks.length;
+    let dataBlocksCount = dataBlocks.len();
     // Error-correct and copy data blocks together into a stream of bytes
-    for (int j = 0; j < dataBlocksCount; j++) {
-      DataBlock dataBlock = dataBlocks[j];
-      byte[] codewordBytes = dataBlock.getCodewords();
-      int numDataCodewords = dataBlock.getNumDataCodewords();
-      correctErrors(codewordBytes, numDataCodewords);
-      for (int i = 0; i < numDataCodewords; i++) {
+    for j in 0..dataBlocksCount {
+    // for (int j = 0; j < dataBlocksCount; j++) {
+      let dataBlock = dataBlocks[j];
+      let codewordBytes = dataBlock.getCodewords();
+      let numDataCodewords = dataBlock.getNumDataCodewords() as usize;
+      self.correctErrors(codewordBytes, numDataCodewords as u32);
+      for i in 0..numDataCodewords {
+      // for (int i = 0; i < numDataCodewords; i++) {
         // De-interlace data blocks.
         resultBytes[i * dataBlocksCount + j] = codewordBytes[i];
       }
     }
 
     // Decode the contents of that stream of bytes
-    return DecodedBitStreamParser.decode(resultBytes);
+    decoded_bit_stream_parser::decode(&resultBytes)
   }
 
   /**
@@ -103,23 +103,29 @@ public final class Decoder {
    * @param numDataCodewords number of codewords that are data bytes
    * @throws ChecksumException if error correction fails
    */
-  private void correctErrors(byte[] codewordBytes, int numDataCodewords) throws ChecksumException {
-    int numCodewords = codewordBytes.length;
+  fn correctErrors(&self,  codewordBytes:&[u8],  numDataCodewords:u32) -> Result<(),Exceptions> {
+    let numCodewords = codewordBytes.len();
     // First read into an array of ints
-    int[] codewordsInts = new int[numCodewords];
-    for (int i = 0; i < numCodewords; i++) {
-      codewordsInts[i] = codewordBytes[i] & 0xFF;
-    }
-    try {
-      rsDecoder.decode(codewordsInts, codewordBytes.length - numDataCodewords);
-    } catch (ReedSolomonException ignored) {
-      throw ChecksumException.getChecksumInstance();
-    }
+    // let codewordsInts = vec![0i32;numCodewords];
+    // for i in 0..numCodewords {
+    // // for (int i = 0; i < numCodewords; i++) {
+    //   codewordsInts[i] = codewordBytes[i];
+    // }
+    let codewordsInts : Vec<i32> = codewordBytes.iter().map(|x| *x as i32).collect();
+
+    //try {
+       self.0.decode(&mut codewordsInts, codewordBytes.len() as i32- numDataCodewords as i32)?;
+    //} catch (ReedSolomonException ignored) {
+      //throw ChecksumException.getChecksumInstance();
+    //}
     // Copy back into array of bytes -- only need to worry about the bytes that were data
     // We don't care about errors in the error-correction codewords
-    for (int i = 0; i < numDataCodewords; i++) {
-      codewordBytes[i] = (byte) codewordsInts[i];
+    for i in 0..numDataCodewords as usize {
+    // for (int i = 0; i < numDataCodewords; i++) {
+      codewordBytes[i] =  codewordsInts[i] as u8;
     }
+    // codewordsInts.into_iter().take(numDataCodewords as usize).map(|x| x as u8).collect::<Vec<u8>>()
+    Ok(())
   }
 
 }

@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package com.google.zxing.datamatrix.decoder;
+use encoding::Encoding;
 
-import com.google.zxing.FormatException;
-import com.google.zxing.common.BitSource;
-import com.google.zxing.common.DecoderRXingResult;
-import com.google.zxing.common.ECIStringBuilder;
+use crate::{Exceptions, common::{BitSource, ECIStringBuilder, DecoderRXingResult}};
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * <p>Data Matrix Codes can encode text as bits in one of several modes, and can use multiple modes
@@ -37,9 +28,9 @@ import java.util.Set;
  * @author bbrown@google.com (Brian Brown)
  * @author Sean Owen
  */
-final class DecodedBitStreamParser {
 
-  private enum Mode {
+ #[derive(Debug,PartialEq, Eq,Clone, Copy)]
+   enum Mode {
     PAD_ENCODE, // Not really a mode
     ASCII_ENCODE,
     C40_ENCODE,
@@ -54,78 +45,71 @@ final class DecodedBitStreamParser {
    * See ISO 16022:2006, Annex C Table C.1
    * The C40 Basic Character Set (*'s used for placeholders for the shift values)
    */
-  private static final char[] C40_BASIC_SET_CHARS = {
+  const C40_BASIC_SET_CHARS : [char;40]= [
     '*', '*', '*', ' ', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
     'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
-  };
+  ];
 
-  private static final char[] C40_SHIFT2_SET_CHARS = {
+   const C40_SHIFT2_SET_CHARS :[char;27] = [
     '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*',  '+', ',', '-', '.',
     '/', ':', ';', '<', '=', '>', '?',  '@', '[', '\\', ']', '^', '_'
-  };
+   ];
 
   /**
    * See ISO 16022:2006, Annex C Table C.2
    * The Text Basic Character Set (*'s used for placeholders for the shift values)
    */
-  private static final char[] TEXT_BASIC_SET_CHARS = {
-    '*', '*', '*', ' ', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+  const TEXT_BASIC_SET_CHARS : [char;40]= 
+    ['*', '*', '*', ' ', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
     'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
-  };
+  ];
 
   // Shift 2 for Text is the same encoding as C40
-  private static final char[] TEXT_SHIFT2_SET_CHARS = C40_SHIFT2_SET_CHARS;
+  const TEXT_SHIFT2_SET_CHARS : [char;27]= C40_SHIFT2_SET_CHARS;
 
-  private static final char[] TEXT_SHIFT3_SET_CHARS = {
+  const TEXT_SHIFT3_SET_CHARS : [char;32]= [
     '`', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
-    'O',  'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '{', '|', '}', '~', (char) 127
-  };
+    'O',  'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '{', '|', '}', '~',  127 as char
+  ];
 
-  private DecodedBitStreamParser() {
-  }
-
-  static DecoderRXingResult decode(byte[] bytes) throws FormatException {
-    BitSource bits = new BitSource(bytes);
-    ECIStringBuilder result = new ECIStringBuilder(100);
-    StringBuilder resultTrailer = new StringBuilder(0);
-    List<byte[]> byteSegments = new ArrayList<>(1);
-    Mode mode = Mode.ASCII_ENCODE;
+  pub fn decode( bytes: &[u8]) -> Result<DecoderRXingResult,Exceptions> {
+    let bits =  BitSource::new(bytes);
+    let result =  ECIStringBuilder::with_capacity(100);
+    let resultTrailer = String::new();
+    let byteSegments = Vec::new();//new ArrayList<>(1);
+    let mode = Mode::ASCII_ENCODE;
     // Could look directly at 'bytes', if we're sure of not having to account for multi byte values
-    Set<Integer> fnc1Positions = new HashSet<>();
-    int symbologyModifier;
-    boolean isECIencoded = false;
-    do {
-      if (mode == Mode.ASCII_ENCODE) {
+    let fnc1Positions = Vec::new();
+    let symbologyModifier;
+    let isECIencoded = false;
+    loop {
+      if mode == Mode::ASCII_ENCODE {
         mode = decodeAsciiSegment(bits, result, resultTrailer, fnc1Positions);
       } else {
-        switch (mode) {
-          case C40_ENCODE:
-            decodeC40Segment(bits, result, fnc1Positions);
-            break;
-          case TEXT_ENCODE:
-            decodeTextSegment(bits, result, fnc1Positions);
-            break;
-          case ANSIX12_ENCODE:
-            decodeAnsiX12Segment(bits, result);
-            break;
-          case EDIFACT_ENCODE:
-            decodeEdifactSegment(bits, result);
-            break;
-          case BASE256_ENCODE:
-            decodeBase256Segment(bits, result, byteSegments);
-            break;
-          case ECI_ENCODE:
+        match mode {
+          Mode::C40_ENCODE=>
+            decodeC40Segment(bits, result, fnc1Positions),
+            Mode::TEXT_ENCODE=>
+            decodeTextSegment(bits, result, fnc1Positions),
+            Mode::ANSIX12_ENCODE=>
+            decodeAnsiX12Segment(bits, result),
+            Mode::EDIFACT_ENCODE=>
+            decodeEdifactSegment(bits, result),
+            Mode::BASE256_ENCODE=>
+            decodeBase256Segment(bits, result, byteSegments),
+            Mode::ECI_ENCODE=>{
             decodeECISegment(bits, result);
             isECIencoded = true; // ECI detection only, atm continue decoding as ASCII
-            break;
-          default:
-            throw FormatException.getFormatInstance();
+            },
+          _=>
+            return Err(Exceptions::FormatException("".to_owned())),
         }
-        mode = Mode.ASCII_ENCODE;
+        mode = Mode::ASCII_ENCODE;
       }
-    } while (mode != Mode.PAD_ENCODE && bits.available() > 0);
+      if ! (mode != Mode::PAD_ENCODE && bits.available() > 0) { break }
+    } //while (mode != Mode.PAD_ENCODE && bits.available() > 0);
     if (resultTrailer.length() > 0) {
       result.appendCharacters(resultTrailer);
     }
@@ -159,10 +143,10 @@ final class DecodedBitStreamParser {
   /**
    * See ISO 16022:2006, 5.2.3 and Annex C, Table C.2
    */
-  private static Mode decodeAsciiSegment(BitSource bits,
-                                         ECIStringBuilder result,
-                                         StringBuilder resultTrailer,
-                                         Set<Integer> fnc1positions) throws FormatException {
+  fn decodeAsciiSegment( bits:&BitSource,
+                                          result:&ECIStringBuilder,
+                                          resultTrailer:&String,
+                                          fnc1positions:&[usize]) -> Result<Mode,Exceptions> {
     boolean upperShift = false;
     do {
       int oneByte = bits.readBits(8);
@@ -233,8 +217,8 @@ final class DecodedBitStreamParser {
   /**
    * See ISO 16022:2006, 5.2.5 and Annex C, Table C.1
    */
-  private static void decodeC40Segment(BitSource bits, ECIStringBuilder result, Set<Integer> fnc1positions)
-      throws FormatException {
+  fn decodeC40Segment( bits:&BitSource,  result:&ECIStringBuilder, fnc1positions:&[usize])
+      -> Result<(),Exceptions> {
     // Three C40 values are encoded in a 16-bit value as
     // (1600 * C1) + (40 * C2) + C3 + 1
     // TODO(bbrown): The Upper Shift with C40 doesn't work in the 4 value scenario all the time
@@ -325,153 +309,158 @@ final class DecodedBitStreamParser {
   /**
    * See ISO 16022:2006, 5.2.6 and Annex C, Table C.2
    */
-  private static void decodeTextSegment(BitSource bits, ECIStringBuilder result, Set<Integer> fnc1positions)
-      throws FormatException {
+  fn decodeTextSegment( bits:&BitSource,  result:&ECIStringBuilder,  fnc1positions:&[usize])
+      -> Result<(),Exceptions> {
     // Three Text values are encoded in a 16-bit value as
     // (1600 * C1) + (40 * C2) + C3 + 1
     // TODO(bbrown): The Upper Shift with Text doesn't work in the 4 value scenario all the time
-    boolean upperShift = false;
+    let upperShift = false;
 
-    int[] cValues = new int[3];
-    int shift = 0;
-    do {
+    let cValues = [0;3];//new int[3];
+    let shift = 0;
+    loop {
       // If there is only one byte left then it will be encoded as ASCII
-      if (bits.available() == 8) {
-        return;
+      if bits.available() == 8 {
+        return Ok(())
       }
-      int firstByte = bits.readBits(8);
-      if (firstByte == 254) {  // Unlatch codeword
-        return;
+      let firstByte = bits.readBits(8)?;
+      if firstByte == 254 {  // Unlatch codeword
+        return Ok(())
       }
 
-      parseTwoBytes(firstByte, bits.readBits(8), cValues);
+      parseTwoBytes(firstByte, bits.readBits(8)?, &cValues);
 
-      for (int i = 0; i < 3; i++) {
-        int cValue = cValues[i];
-        switch (shift) {
-          case 0:
-            if (cValue < 3) {
+      for cValue in cValues {
+      // for (int i = 0; i < 3; i++) {
+        // int cValue = cValues[i];
+        match shift {
+           0=>
+            if cValue < 3 {
               shift = cValue + 1;
-            } else if (cValue < TEXT_BASIC_SET_CHARS.length) {
-              char textChar = TEXT_BASIC_SET_CHARS[cValue];
-              if (upperShift) {
-                result.append((char) (textChar + 128));
+            } else if cValue < TEXT_BASIC_SET_CHARS.len() {
+              let textChar = TEXT_BASIC_SET_CHARS[cValue];
+              if upperShift {
+                result.append_char( (textChar + 128));
                 upperShift = false;
               } else {
                 result.append(textChar);
               }
             } else {
-              throw FormatException.getFormatInstance();
-            }
-            break;
-          case 1:
-            if (upperShift) {
-              result.append((char) (cValue + 128));
+              return Err(Exceptions::FormatException("".to_owned()));
+            },
+           1=>
+            {if upperShift {
+              result.append_char( (cValue + 128));
               upperShift = false;
             } else {
-              result.append((char) cValue);
+              result.append_char( cValue);
             }
-            shift = 0;
-            break;
-          case 2:
-            // Shift 2 for Text is the same encoding as C40
-            if (cValue < TEXT_SHIFT2_SET_CHARS.length) {
-              char textChar = TEXT_SHIFT2_SET_CHARS[cValue];
-              if (upperShift) {
-                result.append((char) (textChar + 128));
+            shift = 0;},
+            
+           2=>
+            {// Shift 2 for Text is the same encoding as C40
+            if cValue < TEXT_SHIFT2_SET_CHARS.len() {
+              let textChar = TEXT_SHIFT2_SET_CHARS[cValue];
+              if upperShift {
+                result.append_char( (textChar + 128));
                 upperShift = false;
               } else {
-                result.append(textChar);
+                result.append_char(textChar);
               }
             } else {
-              switch (cValue) {
-                case 27: // FNC1
-                  fnc1positions.add(result.length());
-                  result.append((char) 29); // translate as ASCII 29
-                  break;
-                case 30: // Upper Shift
-                  upperShift = true;
-                  break;
-                default:
-                  throw FormatException.getFormatInstance();
+              match cValue {
+                27=>{ // FNC1
+                  fnc1positions.push(result.length());
+                  result.append_char( 29); // translate as ASCII 29
+                  },
+                 30=> // Upper Shift
+                  upperShift = true,
+                  
+                _=>
+                return Err(Exceptions::FormatException("".to_owned())),
               }
             }
-            shift = 0;
-            break;
-          case 3:
-            if (cValue < TEXT_SHIFT3_SET_CHARS.length) {
-              char textChar = TEXT_SHIFT3_SET_CHARS[cValue];
-              if (upperShift) {
-                result.append((char) (textChar + 128));
+            shift = 0;},
+           3=>
+            if cValue < TEXT_SHIFT3_SET_CHARS.len() {
+              let textChar = TEXT_SHIFT3_SET_CHARS[cValue];
+              if upperShift {
+                result.append_char( (textChar + 128));
                 upperShift = false;
               } else {
-                result.append(textChar);
+                result.append_char(textChar);
               }
               shift = 0;
             } else {
-              throw FormatException.getFormatInstance();
-            }
-            break;
-          default:
-            throw FormatException.getFormatInstance();
+              return Err(Exceptions::FormatException("".to_owned()));
+            },
+            
+          _=>
+            return Err(Exceptions::FormatException("".to_owned())),
         }
       }
-    } while (bits.available() > 0);
+      if !(bits.available() > 0){break}
+    } //while (bits.available() > 0);
+
+    Ok(())
   }
 
   /**
    * See ISO 16022:2006, 5.2.7
    */
-  private static void decodeAnsiX12Segment(BitSource bits,
-                                           ECIStringBuilder result) throws FormatException {
+  fn decodeAnsiX12Segment( bits:&BitSource,
+                                            result:&ECIStringBuilder) -> Result<(),Exceptions> {
     // Three ANSI X12 values are encoded in a 16-bit value as
     // (1600 * C1) + (40 * C2) + C3 + 1
 
-    int[] cValues = new int[3];
-    do {
+    let cValues = [0;3];//new int[3];
+    loop {
       // If there is only one byte left then it will be encoded as ASCII
-      if (bits.available() == 8) {
-        return;
+      if bits.available() == 8 {
+        return Ok(())
       }
-      int firstByte = bits.readBits(8);
-      if (firstByte == 254) {  // Unlatch codeword
-        return;
+      let firstByte = bits.readBits(8)?;
+      if firstByte == 254 {  // Unlatch codeword
+        return Ok(())
       }
 
-      parseTwoBytes(firstByte, bits.readBits(8), cValues);
+      parseTwoBytes(firstByte, bits.readBits(8)?, &cValues);
 
-      for (int i = 0; i < 3; i++) {
-        int cValue = cValues[i];
-        switch (cValue) {
-          case 0: // X12 segment terminator <CR>
-            result.append('\r');
-            break;
-          case 1: // X12 segment separator *
-            result.append('*');
-            break;
-          case 2: // X12 sub-element separator >
-            result.append('>');
-            break;
-          case 3: // space
-            result.append(' ');
-            break;
-          default:
-            if (cValue < 14) {  // 0 - 9
-              result.append((char) (cValue + 44));
-            } else if (cValue < 40) {  // A - Z
-              result.append((char) (cValue + 51));
+      for cValue in cValues {
+      // for (int i = 0; i < 3; i++) {
+      //   int cValue = cValues[i];
+        match cValue {
+           0=> // X12 segment terminator <CR>
+            result.append_char('\r'),
+            
+           1=> // X12 segment separator *
+            result.append_char('*'),
+            
+           2=> // X12 sub-element separator >
+            result.append_char('>'),
+            
+           3=> // space
+            result.append_char(' '),
+            
+          _=>
+            if cValue < 14 {  // 0 - 9
+              result.append_char( char::from_u32(cValue + 44).unwrap());
+            } else if cValue < 40 {  // A - Z
+              result.append_char( char::from_u32(cValue + 51).unwrap());
             } else {
-              throw FormatException.getFormatInstance();
-            }
-            break;
+              return Err(Exceptions::FormatException("".to_owned()))
+            },
         }
       }
-    } while (bits.available() > 0);
+      if ! (bits.available() > 0) { break }
+    } //while (bits.available() > 0);
+
+    Ok(())
   }
 
-  private static void parseTwoBytes(int firstByte, int secondByte, int[] result) {
-    int fullBitValue = (firstByte << 8) + secondByte - 1;
-    int temp = fullBitValue / 1600;
+  fn parseTwoBytes( firstByte:u32,  secondByte:u32, result:&[u32]) {
+    let fullBitValue = (firstByte << 8) + secondByte - 1;
+    let temp = fullBitValue / 1600;
     result[0] = temp;
     fullBitValue -= temp * 1600;
     temp = fullBitValue / 40;
@@ -482,84 +471,97 @@ final class DecodedBitStreamParser {
   /**
    * See ISO 16022:2006, 5.2.8 and Annex C Table C.3
    */
-  private static void decodeEdifactSegment(BitSource bits, ECIStringBuilder result) {
-    do {
+  fn decodeEdifactSegment( bits:&BitSource,  result:&ECIStringBuilder) -> Result<(),Exceptions>{
+    loop {
       // If there is only two or less bytes left then it will be encoded as ASCII
-      if (bits.available() <= 16) {
-        return;
+      if bits.available() <= 16 {
+        return Ok(());
       }
 
-      for (int i = 0; i < 4; i++) {
-        int edifactValue = bits.readBits(6);
+      for i in 0..4 {
+      // for (int i = 0; i < 4; i++) {
+        let edifactValue = bits.readBits(6)?;
 
         // Check for the unlatch character
-        if (edifactValue == 0x1F) {  // 011111
+        if edifactValue == 0x1F {  // 011111
           // Read rest of byte, which should be 0, and stop
-          int bitsLeft = 8 - bits.getBitOffset();
-          if (bitsLeft != 8) {
+          let bitsLeft = 8 - bits.getBitOffset();
+          if bitsLeft != 8 {
             bits.readBits(bitsLeft);
           }
-          return;
+          return Ok(());
         }
 
-        if ((edifactValue & 0x20) == 0) {  // no 1 in the leading (6th) bit
+        if (edifactValue & 0x20) == 0 {  // no 1 in the leading (6th) bit
           edifactValue |= 0x40;  // Add a leading 01 to the 6 bit binary value
         }
-        result.append((char) edifactValue);
+        result.append_char( char::from_u32(edifactValue).unwrap());
       }
-    } while (bits.available() > 0);
+
+      if ! (bits.available() > 0) { break }
+    } 
+
+    Ok(())
   }
 
   /**
    * See ISO 16022:2006, 5.2.9 and Annex B, B.2
    */
-  private static void decodeBase256Segment(BitSource bits,
-                                           ECIStringBuilder result,
-                                           Collection<byte[]> byteSegments)
-      throws FormatException {
+  fn decodeBase256Segment( bits:&BitSource,
+                                            result:&ECIStringBuilder,
+                                            byteSegments:&Vec<Vec<u8>>)
+      -> Result<(),Exceptions> {
     // Figure out how long the Base 256 Segment is.
-    int codewordPosition = 1 + bits.getByteOffset(); // position is 1-indexed
-    int d1 = unrandomize255State(bits.readBits(8), codewordPosition++);
-    int count;
-    if (d1 == 0) {  // Read the remainder of the symbol
-      count = bits.available() / 8;
-    } else if (d1 < 250) {
+    let codewordPosition = 1 + bits.getByteOffset(); // position is 1-indexed
+    let d1 = unrandomize255State(bits.readBits(8)?, codewordPosition);
+    codewordPosition +=1;
+    let count;
+    if d1 == 0 {  // Read the remainder of the symbol
+      count = bits.available() as u32 / 8;
+    } else if d1 < 250 {
       count = d1;
     } else {
-      count = 250 * (d1 - 249) + unrandomize255State(bits.readBits(8), codewordPosition++);
+      count = 250 * (d1 - 249) + unrandomize255State(bits.readBits(8)?, codewordPosition);
+      codewordPosition +=1;
     }
 
     // We're seeing NegativeArraySizeException errors from users.
     if (count < 0) {
-      throw FormatException.getFormatInstance();
+      return Err(Exceptions::FormatException("".to_owned()))
     }
 
-    byte[] bytes = new byte[count];
-    for (int i = 0; i < count; i++) {
+    let bytes = vec![0u8;count as usize];
+    for i in 0..count as usize {
+    // for (int i = 0; i < count; i++) {
       // Have seen this particular error in the wild, such as at
       // http://www.bcgen.com/demo/IDAutomationStreamingDataMatrix.aspx?MODE=3&D=Fred&PFMT=3&PT=F&X=0.3&O=0&LM=0.2
-      if (bits.available() < 8) {
-        throw FormatException.getFormatInstance();
+      if bits.available() < 8 {
+        return Err(Exceptions::FormatException("".to_owned()))
       }
-      bytes[i] = (byte) unrandomize255State(bits.readBits(8), codewordPosition++);
+      bytes[i] =  unrandomize255State(bits.readBits(8)?, codewordPosition) as u8;
+      codewordPosition+=1;
     }
-    byteSegments.add(bytes);
-    result.append(new String(bytes, StandardCharsets.ISO_8859_1));
+    byteSegments.push(bytes);
+    result.append_string(&encoding::all::ISO_8859_1.decode(&bytes, encoding::DecoderTrap::Strict).expect("decode"));
+  
+    Ok(())
   }
 
   /**
    * See ISO 16022:2007, 5.4.1
    */
-  private static void decodeECISegment(BitSource bits,
-                                           ECIStringBuilder result)
-      throws FormatException {
-    if (bits.available() < 8) {
-      throw FormatException.getFormatInstance();
+  fn decodeECISegment( bits:&BitSource,
+                                            result:&ECIStringBuilder)
+      -> Result<(),Exceptions> {
+    if bits.available() < 8 {
+      return Err(Exceptions::FormatException("".to_owned()))
     }
-    int c1 = bits.readBits(8);
-    if (c1 <= 127) {
-      result.appendECI(c1 - 1);
+    let c1 = bits.readBits(8)?;
+    if c1 <= 127 {
+      result.appendECI(c1 - 1)?;
     }
+
+    Ok(())
     //currently we only support character set ECIs
     /*} else {
       if (bits.available() < 8) {
@@ -580,11 +582,11 @@ final class DecodedBitStreamParser {
   /**
    * See ISO 16022:2006, Annex B, B.2
    */
-  private static int unrandomize255State(int randomizedBase256Codeword,
-                                          int base256CodewordPosition) {
-    int pseudoRandomNumber = ((149 * base256CodewordPosition) % 255) + 1;
-    int tempVariable = randomizedBase256Codeword - pseudoRandomNumber;
-    return tempVariable >= 0 ? tempVariable : tempVariable + 256;
+  fn unrandomize255State( randomizedBase256Codeword:u32,
+                                           base256CodewordPosition:usize) -> u32{
+    let pseudoRandomNumber = ((149 * base256CodewordPosition as u32) % 255) + 1;
+    let tempVariable = randomizedBase256Codeword - pseudoRandomNumber;
+     
+    if tempVariable >= 0  {tempVariable} else  {tempVariable + 256}
   }
 
-}

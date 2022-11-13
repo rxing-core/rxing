@@ -23,6 +23,8 @@ lazy_static! {
     static ref VERSIONS: Vec<Version> = Version::buildVersions();
 }
 
+pub type VersionRef = &'static Version;
+
 /**
  * The Version object encapsulates attributes about a particular
  * size Data Matrix Code.
