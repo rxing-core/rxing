@@ -166,6 +166,12 @@ impl ECIStringBuilder {
     pub fn is_empty(&self) -> bool {
         return self.current_bytes.is_empty() && self.result.is_empty();
     }
+
+    pub fn build_result(mut self) -> Self {
+        self.encodeCurrentBytesIfAny();
+
+        self
+    }
 }
 
 impl fmt::Display for ECIStringBuilder {

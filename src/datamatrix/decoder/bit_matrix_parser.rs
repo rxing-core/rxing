@@ -78,20 +78,20 @@ impl BitMatrixParser {
      * @return bytes encoded within the Data Matrix Code
      * @throws FormatException if the exact number of bytes expected is not read
      */
-    pub fn readCodewords(&self) -> Result<Vec<u8>, Exceptions> {
-        let result = vec![0u8; self.version.getTotalCodewords() as usize];
-        let resultOffset = 0;
+    pub fn readCodewords(&mut self) -> Result<Vec<u8>, Exceptions> {
+        let mut result = vec![0u8; self.version.getTotalCodewords() as usize];
+        let mut resultOffset = 0;
 
-        let row = 4;
-        let column = 0_usize;
+        let mut row = 4;
+        let mut column = 0_usize;
 
         let numRows = self.mappingBitMatrix.getHeight() as usize;
         let numColumns = self.mappingBitMatrix.getWidth() as usize;
 
-        let corner1Read = false;
-        let corner2Read = false;
-        let corner3Read = false;
-        let corner4Read = false;
+        let mut corner1Read = false;
+        let mut corner2Read = false;
+        let mut corner3Read = false;
+        let mut corner4Read = false;
 
         // Read all of the codewords
         loop {
@@ -193,7 +193,9 @@ impl BitMatrixParser {
      * @param numColumns Number of columns in the mapping matrix
      * @return value of the given bit in the mapping matrix
      */
-    fn readModule(&self, row: usize, column: usize, numRows: usize, numColumns: usize) -> bool {
+    fn readModule(&mut self, row: usize, column: usize, numRows: usize, numColumns: usize) -> bool {
+        let mut row = row;
+        let mut column = column;
         // Adjust the row and column indices based on boundary wrapping
         if row < 0 {
             row += numRows;
@@ -222,7 +224,7 @@ impl BitMatrixParser {
      * @param numColumns Number of columns in the mapping matrix
      * @return byte from the utah shape
      */
-    fn readUtah(&self, row: usize, column: usize, numRows: usize, numColumns: usize) -> u32 {
+    fn readUtah(&mut self, row: usize, column: usize, numRows: usize, numColumns: usize) -> u32 {
         let mut currentByte = 0;
         if self.readModule(row - 2, column - 2, numRows, numColumns) {
             currentByte |= 1;
@@ -267,7 +269,7 @@ impl BitMatrixParser {
      * @param numColumns Number of columns in the mapping matrix
      * @return byte from the Corner condition 1
      */
-    fn readCorner1(&self, numRows: usize, numColumns: usize) -> u32 {
+    fn readCorner1(&mut self, numRows: usize, numColumns: usize) -> u32 {
         let mut currentByte = 0;
         if self.readModule(numRows - 1, 0, numRows, numColumns) {
             currentByte |= 1;
@@ -312,7 +314,7 @@ impl BitMatrixParser {
      * @param numColumns Number of columns in the mapping matrix
      * @return byte from the Corner condition 2
      */
-    fn readCorner2(&self, numRows: usize, numColumns: usize) -> u32 {
+    fn readCorner2(&mut self, numRows: usize, numColumns: usize) -> u32 {
         let mut currentByte = 0;
         if self.readModule(numRows - 3, 0, numRows, numColumns) {
             currentByte |= 1;
@@ -357,7 +359,7 @@ impl BitMatrixParser {
      * @param numColumns Number of columns in the mapping matrix
      * @return byte from the Corner condition 3
      */
-    fn readCorner3(&self, numRows: usize, numColumns: usize) -> u32 {
+    fn readCorner3(&mut self, numRows: usize, numColumns: usize) -> u32 {
         let mut currentByte = 0;
         if self.readModule(numRows - 1, 0, numRows, numColumns) {
             currentByte |= 1;
@@ -402,7 +404,7 @@ impl BitMatrixParser {
      * @param numColumns Number of columns in the mapping matrix
      * @return byte from the Corner condition 4
      */
-    fn readCorner4(&self, numRows: usize, numColumns: usize) -> u32 {
+    fn readCorner4(&mut self, numRows: usize, numColumns: usize) -> u32 {
         let mut currentByte = 0;
         if self.readModule(numRows - 3, 0, numRows, numColumns) {
             currentByte |= 1;
@@ -467,7 +469,8 @@ impl BitMatrixParser {
         let sizeDataRegionRow = numDataRegionsRow * dataRegionSizeRows;
         let sizeDataRegionColumn = numDataRegionsColumn * dataRegionSizeColumns;
 
-        let bitMatrixWithoutAlignment = BitMatrix::new(sizeDataRegionColumn, sizeDataRegionRow)?;
+        let mut bitMatrixWithoutAlignment =
+            BitMatrix::new(sizeDataRegionColumn, sizeDataRegionRow)?;
         for dataRegionRow in 0..numDataRegionsRow {
             // for (int dataRegionRow = 0; dataRegionRow < numDataRegionsRow; ++dataRegionRow) {
             let dataRegionRowOffset = dataRegionRow * dataRegionSizeRows;

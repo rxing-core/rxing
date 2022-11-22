@@ -132,7 +132,7 @@ impl EdifactEncoder {
         } else if c >= '@' && c <= '^' {
             sb.push((c as u8 - 64) as char);
         } else {
-            high_level_encoder::illegalCharacter(c);
+            high_level_encoder::illegalCharacter(c).expect("");
         }
     }
 

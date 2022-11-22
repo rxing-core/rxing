@@ -1,12 +1,11 @@
-
-mod version;
+mod bit_matrix_parser;
 mod data_block;
 mod decoder;
-mod bit_matrix_parser;
+mod version;
 
-pub use version::*;
+pub use bit_matrix_parser::*;
 pub use data_block::*;
 pub use decoder::*;
-pub use bit_matrix_parser::*;
+pub use version::*;
 
 pub mod decoded_bit_stream_parser;
