@@ -16,6 +16,8 @@
 
 //package com.google.zxing;
 
+use std::rc::Rc;
+
 use crate::{
     common::{BitArray, BitMatrix},
     Exceptions, LuminanceSource,
@@ -70,7 +72,7 @@ pub trait Binarizer {
      * @param source The LuminanceSource this Binarizer will operate on.
      * @return A new concrete Binarizer implementation object.
      */
-    fn createBinarizer(&self, source: Box<dyn LuminanceSource>) -> Box<dyn Binarizer>;
+    fn createBinarizer(&self, source: Box<dyn LuminanceSource>) -> Rc<dyn Binarizer>;
 
     fn getWidth(&self) -> usize;
 

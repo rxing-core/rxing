@@ -234,7 +234,6 @@ fn decodeAsciiSegment(
             {},
            235=> // Upper Shift (shift to Extended ASCII)
             upperShift = true,
-            
            236=> {// 05 Macro
             result.append_string("[)>\u{001E}05\u{001D}");
             resultTrailer.replace_range(0..0, "\u{001E}\u{0004}");

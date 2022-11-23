@@ -87,3 +87,9 @@ pub mod datamatrix;
 pub mod multi;
 pub mod oned;
 pub mod pdf417;
+
+mod multi_format_writer;
+pub use multi_format_writer::*;
+
+mod multi_format_reader;
+pub use multi_format_reader::*;

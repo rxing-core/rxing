@@ -40,7 +40,7 @@ pub trait Reader {
      * @throws ChecksumException if a potential barcode is found but does not pass its checksum
      * @throws FormatException if a potential barcode is found but format is invalid
      */
-    fn decode(&self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions>;
+    fn decode(&mut self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions>;
 
     /**
      * Locates and decodes a barcode in some format within an image. This method also accepts
@@ -57,7 +57,7 @@ pub trait Reader {
      * @throws FormatException if a potential barcode is found but format is invalid
      */
     fn decode_with_hints(
-        &self,
+        &mut self,
         image: &BinaryBitmap,
         hints: &DecodingHintDictionary,
     ) -> Result<RXingResult, Exceptions>;
@@ -66,5 +66,5 @@ pub trait Reader {
      * Resets any internal state the implementation has after a decode, to prepare it
      * for reuse.
      */
-    fn reset(&self);
+    fn reset(&mut self);
 }

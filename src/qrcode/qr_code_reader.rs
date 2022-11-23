@@ -47,24 +47,27 @@ impl Reader for QRCodeReader {
      * @throws FormatException if a QR code cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-    fn decode(&self, image: &crate::BinaryBitmap) -> Result<crate::RXingResult, crate::Exceptions> {
+    fn decode(
+        &mut self,
+        image: &crate::BinaryBitmap,
+    ) -> Result<crate::RXingResult, crate::Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     fn decode_with_hints(
-        &self,
+        &mut self,
         image: &crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         let decoderRXingResult: DecoderRXingResult;
         let mut points: Vec<RXingResultPoint>;
         if hints.contains_key(&DecodeHintType::PURE_BARCODE) {
-            let bits = Self::extractPureBits(image.getBlackMatrix()?)?;
+            let bits = Self::extractPureBits(image.getBlackMatrix())?;
             decoderRXingResult = decoder::decode_bitmatrix_with_hints(&bits, &hints)?;
             points = Vec::new();
         } else {
             let detectorRXingResult =
-                Detector::new(image.getBlackMatrix()?.clone()).detect_with_hints(&hints)?;
+                Detector::new(image.getBlackMatrix().clone()).detect_with_hints(&hints)?;
             decoderRXingResult =
                 decoder::decode_bitmatrix_with_hints(detectorRXingResult.getBits(), &hints)?;
             points = detectorRXingResult.getPoints().clone();
@@ -126,7 +129,7 @@ impl Reader for QRCodeReader {
         Ok(result)
     }
 
-    fn reset(&self) {
+    fn reset(&mut self) {
         // nothing
     }
 }

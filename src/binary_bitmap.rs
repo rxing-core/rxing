@@ -16,7 +16,7 @@
 
 //package com.google.zxing;
 
-use std::fmt;
+use std::{fmt, rc::Rc};
 
 use crate::{
     common::{BitArray, BitMatrix},
@@ -29,13 +29,14 @@ use crate::{
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[derive(Clone)]
 pub struct BinaryBitmap {
-    binarizer: Box<dyn Binarizer>,
+    binarizer: Rc<dyn Binarizer>,
     matrix: BitMatrix,
 }
 
 impl BinaryBitmap {
-    pub fn new(binarizer: Box<dyn Binarizer>) -> Self {
+    pub fn new(binarizer: Rc<dyn Binarizer>) -> Self {
         Self {
             matrix: binarizer.getBlackMatrix().unwrap(),
             binarizer: binarizer,
@@ -80,13 +81,31 @@ impl BinaryBitmap {
      * @return The 2D array of bits for the image (true means black).
      * @throws NotFoundException if image can't be binarized to make a matrix
      */
-    pub fn getBlackMatrix(&self) -> Result<&BitMatrix, Exceptions> {
+    pub fn getBlackMatrixMut(&mut self) -> &mut BitMatrix {
         // The matrix is created on demand the first time it is requested, then cached. There are two
         // reasons for this:
         // 1. This work will never be done if the caller only installs 1D Reader objects, or if a
         //    1D Reader finds a barcode before the 2D Readers run.
         // 2. This work will only be done once even if the caller installs multiple 2D Readers.
-        return Ok(&self.matrix);
+        &mut self.matrix
+    }
+
+    /**
+     * Converts a 2D array of luminance data to 1 bit. As above, assume this method is expensive
+     * and do not call it repeatedly. This method is intended for decoding 2D barcodes and may or
+     * may not apply sharpening. Therefore, a row from this matrix may not be identical to one
+     * fetched using getBlackRow(), so don't mix and match between them.
+     *
+     * @return The 2D array of bits for the image (true means black).
+     * @throws NotFoundException if image can't be binarized to make a matrix
+     */
+    pub fn getBlackMatrix(&self) -> &BitMatrix {
+        // The matrix is created on demand the first time it is requested, then cached. There are two
+        // reasons for this:
+        // 1. This work will never be done if the caller only installs 1D Reader objects, or if a
+        //    1D Reader finds a barcode before the 2D Readers run.
+        // 2. This work will only be done once even if the caller installs multiple 2D Readers.
+        &self.matrix
     }
 
     /**
@@ -161,6 +180,6 @@ impl BinaryBitmap {
 
 impl fmt::Display for BinaryBitmap {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.getBlackMatrix().unwrap())
+        write!(f, "{}", self.getBlackMatrix())
     }
 }

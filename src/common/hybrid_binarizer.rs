@@ -20,6 +20,8 @@
 // import com.google.zxing.LuminanceSource;
 // import com.google.zxing.NotFoundException;
 
+use std::rc::Rc;
+
 use crate::{Binarizer, Exceptions, LuminanceSource};
 
 use super::{BitArray, BitMatrix, GlobalHistogramBinarizer};
@@ -109,8 +111,8 @@ impl Binarizer for HybridBinarizer {
         Ok(matrix)
     }
 
-    fn createBinarizer(&self, source: Box<dyn LuminanceSource>) -> Box<dyn Binarizer> {
-        Box::new(HybridBinarizer::new(source))
+    fn createBinarizer(&self, source: Box<dyn LuminanceSource>) -> Rc<dyn Binarizer> {
+        Rc::new(HybridBinarizer::new(source))
     }
 
     fn getWidth(&self) -> usize {

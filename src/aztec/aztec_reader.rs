@@ -40,18 +40,18 @@ impl Reader for AztecReader {
      * @throws NotFoundException if a Data Matrix code cannot be found
      * @throws FormatException if a Data Matrix code cannot be decoded
      */
-    fn decode(&self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions> {
+    fn decode(&mut self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     fn decode_with_hints(
-        &self,
+        &mut self,
         image: &BinaryBitmap,
         hints: &HashMap<DecodeHintType, DecodeHintValue>,
     ) -> Result<RXingResult, Exceptions> {
         // let notFoundException = None;
         // let formatException = None;
-        let mut detector = Detector::new(image.getBlackMatrix()?.clone());
+        let mut detector = Detector::new(image.getBlackMatrix().clone());
         let points;
         let decoderRXingResult: DecoderRXingResult;
         //  try {
@@ -134,7 +134,7 @@ impl Reader for AztecReader {
         Ok(result)
     }
 
-    fn reset(&self) {
+    fn reset(&mut self) {
         // do nothing
     }
 }

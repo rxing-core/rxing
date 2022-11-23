@@ -38,7 +38,10 @@ impl Reader for MaxiCodeReader {
      * @throws FormatException if a MaxiCode cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-    fn decode(&self, image: &crate::BinaryBitmap) -> Result<crate::RXingResult, crate::Exceptions> {
+    fn decode(
+        &mut self,
+        image: &crate::BinaryBitmap,
+    ) -> Result<crate::RXingResult, crate::Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
@@ -51,13 +54,13 @@ impl Reader for MaxiCodeReader {
      * @throws ChecksumException if error correction fails
      */
     fn decode_with_hints(
-        &self,
+        &mut self,
         image: &crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         // Note that MaxiCode reader effectively always assumes PURE_BARCODE mode
         // and can't detect it in an image
-        let bits = Self::extractPureBits(image.getBlackMatrix()?)?;
+        let bits = Self::extractPureBits(image.getBlackMatrix())?;
         let decoderRXingResult = decoder::decode_with_hints(bits, &hints)?;
         let mut result = RXingResult::new(
             decoderRXingResult.getText(),
@@ -76,7 +79,7 @@ impl Reader for MaxiCodeReader {
         Ok(result)
     }
 
-    fn reset(&self) {
+    fn reset(&mut self) {
         // do nothing
     }
 }
