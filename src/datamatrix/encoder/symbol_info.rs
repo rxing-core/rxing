@@ -219,7 +219,7 @@ impl SymbolInfo {
         }
     }
 
-    pub fn getErrorLengthForInterleavedBlock(&self, index: u32) -> u32 {
+    pub fn getErrorLengthForInterleavedBlock(&self, _index: u32) -> u32 {
         self.rsBlockError
     }
 

@@ -17,7 +17,7 @@
 use std::{
     collections::HashMap,
     fs::{read_dir, read_to_string},
-    path::{Path, PathBuf},
+    path::{Path, PathBuf}, rc::Rc,
 };
 
 use rxing::{
@@ -131,7 +131,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
         &self.barcode_reader
     }
 
-    pub fn test_black_box(&self) {
+    pub fn test_black_box(&mut self) {
         assert!(!self.test_rxing_results.is_empty());
 
         let image_files = self.get_image_files();
@@ -230,7 +230,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                 let rotation = self.test_rxing_results.get(x).unwrap().get_rotation();
                 let rotated_image = Self::rotate_image(&image, rotation);
                 let source = BufferedImageLuminanceSource::new(rotated_image);
-                let bitmap = BinaryBitmap::new(Box::new(HybridBinarizer::new(Box::new(source))));
+                let bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
 
                 // if file_base_name == "15" {
                 // let mut f = File::create("test_file_output.txt").unwrap();
@@ -396,7 +396,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
     }
 
     fn decode(
-        &self,
+        &mut self,
         source: &BinaryBitmap,
         rotation: f32,
         expected_text: &str,

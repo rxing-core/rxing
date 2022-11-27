@@ -156,7 +156,7 @@ impl Writer for DataMatrixWriter {
         }
 
         let symbol_lookup = SymbolInfoLookup::new();
-        let Some(symbolInfo) = symbol_lookup.lookup_with_codewords_shape_size_fail(encoded.len() as u32, *shape, &minSize, &maxSize, true)? else {
+        let Some(symbolInfo) = symbol_lookup.lookup_with_codewords_shape_size_fail(encoded.chars().count() as u32, *shape, &minSize, &maxSize, true)? else {
       return Err(Exceptions::NotFoundException("symbol info is bad".to_owned()))
     };
 
@@ -308,47 +308,76 @@ impl DataMatrixWriter {
 }
 
 #[cfg(test)]
-mod tests{
+mod tests {
     use std::collections::HashMap;
 
-    use crate::{EncodeHintType, BarcodeFormat, datamatrix::{encoder::SymbolShapeHint, DataMatrixWriter}, Writer, EncodeHintValue};
+    use crate::{
+        datamatrix::{encoder::SymbolShapeHint, DataMatrixWriter},
+        BarcodeFormat, EncodeHintType, EncodeHintValue, Writer,
+    };
 
+    #[test]
+    fn testDataMatrixImageWriter() {
+        let mut hints = HashMap::new();
+        hints.insert(
+            EncodeHintType::DATA_MATRIX_SHAPE,
+            EncodeHintValue::DataMatrixShape(SymbolShapeHint::FORCE_SQUARE),
+        );
 
-  #[test]
-  fn testDataMatrixImageWriter() {
+        let bigEnough = 64;
+        let writer = DataMatrixWriter {};
+        let matrix = writer
+            .encode_with_hints(
+                "Hello Google",
+                &BarcodeFormat::DATA_MATRIX,
+                bigEnough,
+                bigEnough,
+                &hints,
+            )
+            .expect("must encode");
+        assert!(bigEnough >= matrix.getWidth() as i32);
+        assert!(bigEnough >= matrix.getHeight() as i32);
+    }
 
-    let mut hints = HashMap::new();
-    hints.insert(EncodeHintType::DATA_MATRIX_SHAPE, EncodeHintValue::DataMatrixShape(SymbolShapeHint::FORCE_SQUARE));
+    #[test]
+    fn testDataMatrixWriter() {
+        let mut hints = HashMap::new();
+        hints.insert(
+            EncodeHintType::DATA_MATRIX_SHAPE,
+            EncodeHintValue::DataMatrixShape(SymbolShapeHint::FORCE_SQUARE),
+        );
 
-    let bigEnough = 64;
-    let writer =  DataMatrixWriter{};
-    let matrix = writer.encode_with_hints("Hello Google", &BarcodeFormat::DATA_MATRIX, bigEnough, bigEnough, &hints).expect("must encode");
-    assert!(bigEnough >= matrix.getWidth() as i32);
-    assert!(bigEnough >= matrix.getHeight() as i32);
-  }
+        let bigEnough = 14;
+        let writer = DataMatrixWriter {};
+        let matrix = writer
+            .encode_with_hints(
+                "Hello Me",
+                &BarcodeFormat::DATA_MATRIX,
+                bigEnough,
+                bigEnough,
+                &hints,
+            )
+            .expect("must encode");
+        assert_eq!(bigEnough, matrix.getWidth() as i32);
+        assert_eq!(bigEnough, matrix.getHeight() as i32);
+    }
 
-  #[test]
-  fn testDataMatrixWriter() {
+    #[test]
+    fn testDataMatrixTooSmall() {
+        // The DataMatrix will not fit in this size, so the matrix should come back bigger
+        let tooSmall = 8;
+        let writer = DataMatrixWriter {};
+        let matrix = writer
+            .encode_with_hints(
+                "http://www.google.com/",
+                &BarcodeFormat::DATA_MATRIX,
+                tooSmall,
+                tooSmall,
+                &HashMap::new(),
+            )
+            .expect("must encode");
 
-    let mut hints = HashMap::new();
-    hints.insert(EncodeHintType::DATA_MATRIX_SHAPE, EncodeHintValue::DataMatrixShape(SymbolShapeHint::FORCE_SQUARE));
-
-    let bigEnough = 14;
-    let writer =  DataMatrixWriter{};
-    let matrix = writer.encode_with_hints("Hello Me", &BarcodeFormat::DATA_MATRIX, bigEnough, bigEnough, &hints).expect("must encode");
-    assert_eq!(bigEnough, matrix.getWidth() as i32);
-    assert_eq!(bigEnough, matrix.getHeight() as i32);
-  }
-
-  #[test]
-  fn testDataMatrixTooSmall() {
-    // The DataMatrix will not fit in this size, so the matrix should come back bigger
-    let tooSmall = 8;
-    let writer =  DataMatrixWriter{};
-    let matrix = writer.encode_with_hints("http://www.google.com/", &BarcodeFormat::DATA_MATRIX, tooSmall, tooSmall, &HashMap::new()).expect("must encode");
-
-    assert!(tooSmall < matrix.getWidth() as i32);
-    assert!(tooSmall < matrix.getHeight() as i32);
-  }
-
+        assert!(tooSmall < matrix.getWidth() as i32);
+        assert!(tooSmall < matrix.getHeight() as i32);
+    }
 }
