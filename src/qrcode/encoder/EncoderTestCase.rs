@@ -305,10 +305,7 @@ fn testEncodeShiftjisNumeric() {
 fn testEncodeGS1WithStringTypeHint() {
     let mut hints = HashMap::new();
 
-    hints.insert(
-        EncodeHintType::GS1_FORMAT,
-        EncodeHintValue::Gs1Format("true".to_owned()),
-    );
+    hints.insert(EncodeHintType::GS1_FORMAT, EncodeHintValue::Gs1Format(true));
     let qrCode = encoder::encode_with_hints("100001%11171218", ErrorCorrectionLevel::H, &hints)
         .expect("encode");
     verifyGS1EncodedData(&qrCode);
@@ -318,10 +315,7 @@ fn testEncodeGS1WithStringTypeHint() {
 fn testEncodeGS1WithBooleanTypeHint() {
     let mut hints = HashMap::new();
 
-    hints.insert(
-        EncodeHintType::GS1_FORMAT,
-        EncodeHintValue::Gs1Format("true".to_owned()),
-    );
+    hints.insert(EncodeHintType::GS1_FORMAT, EncodeHintValue::Gs1Format(true));
     let qrCode = encoder::encode_with_hints("100001%11171218", ErrorCorrectionLevel::H, &hints)
         .expect("encode");
     verifyGS1EncodedData(&qrCode);
@@ -333,7 +327,7 @@ fn testDoesNotEncodeGS1WhenBooleanTypeHintExplicitlyFalse() {
 
     hints.insert(
         EncodeHintType::GS1_FORMAT,
-        EncodeHintValue::Gs1Format("false".to_owned()),
+        EncodeHintValue::Gs1Format(false),
     );
 
     let qrCode =
@@ -347,7 +341,7 @@ fn testDoesNotEncodeGS1WhenStringTypeHintExplicitlyFalse() {
 
     hints.insert(
         EncodeHintType::GS1_FORMAT,
-        EncodeHintValue::Gs1Format("false".to_owned()),
+        EncodeHintValue::Gs1Format(false),
     );
     let qrCode =
         encoder::encode_with_hints("ABCDEF", ErrorCorrectionLevel::H, &hints).expect("encode");
@@ -362,10 +356,7 @@ fn testGS1ModeHeaderWithECI() {
         EncodeHintType::CHARACTER_SET,
         EncodeHintValue::CharacterSet("utf8".to_owned()),
     );
-    hints.insert(
-        EncodeHintType::GS1_FORMAT,
-        EncodeHintValue::Gs1Format("true".to_owned()),
-    );
+    hints.insert(EncodeHintType::GS1_FORMAT, EncodeHintValue::Gs1Format(true));
     let qrCode =
         encoder::encode_with_hints("hello", ErrorCorrectionLevel::H, &hints).expect("encode");
     let expected = r"<<

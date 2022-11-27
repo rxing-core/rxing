@@ -89,12 +89,14 @@ impl Reader for AztecReader {
         // }
         // }
 
-        if let Some(rpcb) = hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK) {
-            if let DecodeHintValue::NeedResultPointCallback(cb) = rpcb {
-                for point in points {
-                    cb(point);
-                }
+        if let Some(DecodeHintValue::NeedResultPointCallback(cb)) =
+            hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK)
+        {
+            // if let DecodeHintValue::NeedResultPointCallback(cb) = rpcb {
+            for point in points {
+                cb(point);
             }
+            // }
         }
 
         let mut result = RXingResult::new_complex(

@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package com.google.zxing.datamatrix;
+use std::collections::HashMap;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.EncodeHintType;
-import com.google.zxing.Writer;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.datamatrix.encoder.DefaultPlacement;
-import com.google.zxing.Dimension;
-import com.google.zxing.datamatrix.encoder.ErrorCorrection;
-import com.google.zxing.datamatrix.encoder.HighLevelEncoder;
-import com.google.zxing.datamatrix.encoder.MinimalEncoder;
-import com.google.zxing.datamatrix.encoder.SymbolInfo;
-import com.google.zxing.datamatrix.encoder.SymbolShapeHint;
-import com.google.zxing.qrcode.encoder.ByteMatrix;
+use encoding::EncodingRef;
 
-import java.util.Map;
-import java.nio.charset.Charset;
+use crate::{
+    common::BitMatrix, qrcode::encoder::ByteMatrix, BarcodeFormat, EncodeHintType, EncodeHintValue,
+    Exceptions, Writer,
+};
+
+use super::encoder::{
+    high_level_encoder, minimal_encoder, DefaultPlacement, SymbolInfo, SymbolInfoLookup,
+    SymbolShapeHint,
+};
+
+use super::encoder::error_correction;
 
 /**
  * This object renders a Data Matrix code as a BitMatrix 2D array of greyscale values.
@@ -38,183 +36,319 @@ import java.nio.charset.Charset;
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Guillaume Le Biller Added to zxing lib.
  */
-public final class DataMatrixWriter implements Writer {
+pub struct DataMatrixWriter;
 
-  @Override
-  public BitMatrix encode(String contents, BarcodeFormat format, int width, int height) {
-    return encode(contents, format, width, height, null);
+impl Writer for DataMatrixWriter {
+    fn encode(
+        &self,
+        contents: &str,
+        format: &crate::BarcodeFormat,
+        width: i32,
+        height: i32,
+    ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+        self.encode_with_hints(contents, format, width, height, &HashMap::new())
+    }
+
+    fn encode_with_hints(
+        &self,
+        contents: &str,
+        format: &crate::BarcodeFormat,
+        width: i32,
+        height: i32,
+        hints: &crate::EncodingHintDictionary,
+    ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+        if contents.is_empty() {
+            return Err(Exceptions::IllegalArgumentException(
+                "Found empty contents".to_owned(),
+            ));
+        }
+
+        if format != &BarcodeFormat::DATA_MATRIX {
+            return Err(Exceptions::IllegalArgumentException(format!(
+                "Can only encode DATA_MATRIX, but got {:?}",
+                format
+            )));
+        }
+
+        if width < 0 || height < 0 {
+            return Err(Exceptions::IllegalArgumentException(format!(
+                "Requested dimensions can't be negative: {}x{}",
+                width, height
+            )));
+        }
+
+        // Try to get force shape & min / max size
+        let mut shape = &SymbolShapeHint::FORCE_NONE;
+        let mut minSize = None;
+        let mut maxSize = None;
+        if !hints.is_empty() {
+            if let Some(EncodeHintValue::DataMatrixShape(rq)) =
+                hints.get(&EncodeHintType::DATA_MATRIX_SHAPE)
+            {
+                shape = rq;
+            }
+            // @SuppressWarnings("deprecation")
+            let requestedMinSize = hints.get(&EncodeHintType::MIN_SIZE);
+            if let Some(EncodeHintValue::MinSize(rq)) = requestedMinSize {
+                minSize = Some(*rq);
+            }
+            // @SuppressWarnings("deprecation")
+            let requestedMaxSize = hints.get(&EncodeHintType::MAX_SIZE);
+            if let Some(EncodeHintValue::MinSize(rq)) = requestedMaxSize {
+                maxSize = Some(*rq);
+            }
+        }
+
+        //1. step: Data encodation
+        let encoded;
+
+        let hasCompactionHint = if let Some(EncodeHintValue::DataMatrixCompact(res)) =
+            hints.get(&EncodeHintType::DATA_MATRIX_COMPACT)
+        {
+            *res
+        } else {
+            false
+        };
+        if hasCompactionHint {
+            let hasGS1FormatHint = if let Some(EncodeHintValue::Gs1Format(res)) =
+                hints.get(&EncodeHintType::GS1_FORMAT)
+            {
+                *res
+            } else {
+                false
+            };
+
+            let mut charset: Option<EncodingRef> = None;
+            let hasEncodingHint = hints.contains_key(&EncodeHintType::CHARACTER_SET);
+            if hasEncodingHint {
+                let Some(EncodeHintValue::CharacterSet(char_set_name)) =
+                    hints.get(&EncodeHintType::CHARACTER_SET) else {
+                      return Err(Exceptions::IllegalArgumentException("charset does not exist".to_owned()))
+                    };
+                charset = encoding::label::encoding_from_whatwg_label(char_set_name);
+                // charset = Charset.forName(hints.get(EncodeHintType.CHARACTER_SET).toString());
+            }
+            encoded = minimal_encoder::encodeHighLevelWithDetails(
+                contents,
+                charset,
+                if hasGS1FormatHint {
+                    Some(0x1D as char)
+                } else {
+                    None
+                },
+                *shape,
+            )?;
+        } else {
+            let hasForceC40Hint = if let Some(EncodeHintValue::ForceC40(hint)) =
+                hints.get(&EncodeHintType::FORCE_C40)
+            {
+                *hint
+            } else {
+                false
+            };
+            encoded = high_level_encoder::encodeHighLevelWithDimensionForceC40(
+                contents,
+                *shape,
+                minSize,
+                maxSize,
+                hasForceC40Hint,
+            )?;
+        }
+
+        let symbol_lookup = SymbolInfoLookup::new();
+        let Some(symbolInfo) = symbol_lookup.lookup_with_codewords_shape_size_fail(encoded.len() as u32, *shape, &minSize, &maxSize, true)? else {
+      return Err(Exceptions::NotFoundException("symbol info is bad".to_owned()))
+    };
+
+        //2. step: ECC generation
+        let codewords = error_correction::encodeECC200(&encoded, symbolInfo)?;
+
+        //3. step: Module placement in Matrix
+        let mut placement = DefaultPlacement::new(
+            codewords,
+            symbolInfo.getSymbolDataWidth()? as usize,
+            symbolInfo.getSymbolDataHeight()? as usize,
+        );
+        placement.place();
+
+        //4. step: low-level encoding
+        Self::encodeLowLevel(
+            &placement,
+            symbolInfo,
+            width.try_into().unwrap(),
+            height.try_into().unwrap(),
+        )
+    }
+}
+
+impl DataMatrixWriter {
+    /**
+     * Encode the given symbol info to a bit matrix.
+     *
+     * @param placement  The DataMatrix placement.
+     * @param symbolInfo The symbol info to encode.
+     * @return The bit matrix generated.
+     */
+    fn encodeLowLevel(
+        placement: &DefaultPlacement,
+        symbolInfo: &SymbolInfo,
+        width: u32,
+        height: u32,
+    ) -> Result<BitMatrix, Exceptions> {
+        let symbolWidth = symbolInfo.getSymbolDataWidth()?;
+        let symbolHeight = symbolInfo.getSymbolDataHeight()?;
+
+        let mut matrix =
+            ByteMatrix::new(symbolInfo.getSymbolWidth()?, symbolInfo.getSymbolHeight()?);
+
+        let mut matrixY = 0;
+
+        for y in 0..symbolHeight {
+            // for (int y = 0; y < symbolHeight; y++) {
+            // Fill the top edge with alternate 0 / 1
+            let mut matrixX;
+            if (y % symbolInfo.matrixHeight) == 0 {
+                matrixX = 0;
+                for x in 0..symbolInfo.getSymbolWidth()? {
+                    // for (int x = 0; x < symbolInfo.getSymbolWidth(); x++) {
+                    matrix.set_bool(matrixX, matrixY, (x % 2) == 0);
+                    matrixX += 1;
+                }
+                matrixY += 1;
+            }
+            matrixX = 0;
+            for x in 0..symbolWidth {
+                // for (int x = 0; x < symbolWidth; x++) {
+                // Fill the right edge with full 1
+                if (x % symbolInfo.matrixWidth) == 0 {
+                    matrix.set_bool(matrixX, matrixY, true);
+                    matrixX += 1;
+                }
+                matrix.set_bool(matrixX, matrixY, placement.getBit(x as usize, y as usize));
+                matrixX += 1;
+                // Fill the right edge with alternate 0 / 1
+                if (x % symbolInfo.matrixWidth) == symbolInfo.matrixWidth - 1 {
+                    matrix.set_bool(matrixX, matrixY, (y % 2) == 0);
+                    matrixX += 1;
+                }
+            }
+            matrixY += 1;
+            // Fill the bottom edge with full 1
+            if (y % symbolInfo.matrixHeight) == symbolInfo.matrixHeight - 1 {
+                matrixX = 0;
+                for _x in 0..symbolInfo.getSymbolWidth()? {
+                    // for (int x = 0; x < symbolInfo.getSymbolWidth(); x++) {
+                    matrix.set_bool(matrixX, matrixY, true);
+                    matrixX += 1;
+                }
+                matrixY += 1;
+            }
+        }
+
+        Self::convertByteMatrixToBitMatrix(&matrix, width, height)
+    }
+
+    /**
+     * Convert the ByteMatrix to BitMatrix.
+     *
+     * @param reqHeight The requested height of the image (in pixels) with the Datamatrix code
+     * @param reqWidth The requested width of the image (in pixels) with the Datamatrix code
+     * @param matrix The input matrix.
+     * @return The output matrix.
+     */
+    fn convertByteMatrixToBitMatrix(
+        matrix: &ByteMatrix,
+        reqWidth: u32,
+        reqHeight: u32,
+    ) -> Result<BitMatrix, Exceptions> {
+        let matrixWidth = matrix.getWidth();
+        let matrixHeight = matrix.getHeight();
+        let outputWidth = reqWidth.max(matrixWidth);
+        let outputHeight = reqHeight.max(matrixHeight);
+
+        let multiple = (outputWidth / matrixWidth).min(outputHeight / matrixHeight);
+
+        let mut leftPadding = (outputWidth - (matrixWidth * multiple)) / 2;
+        let mut topPadding = (outputHeight - (matrixHeight * multiple)) / 2;
+
+        let mut output;
+
+        // remove padding if requested width and height are too small
+        if reqHeight < matrixHeight || reqWidth < matrixWidth {
+            leftPadding = 0;
+            topPadding = 0;
+            output = BitMatrix::new(matrixWidth, matrixHeight)?;
+        } else {
+            output = BitMatrix::new(reqWidth, reqHeight)?;
+        }
+
+        output.clear();
+        let mut inputY = 0;
+        let mut outputY = topPadding;
+        while inputY < matrixHeight {
+            // for (int inputY = 0, outputY = topPadding; inputY < matrixHeight; inputY++, outputY += multiple) {
+            // Write the contents of this row of the bytematrix
+            let mut inputX = 0;
+            let mut outputX = leftPadding;
+            while inputX < matrixWidth {
+                // for (int inputX = 0, outputX = leftPadding; inputX < matrixWidth; inputX++, outputX += multiple) {
+                if matrix.get(inputX, inputY) == 1 {
+                    output.setRegion(outputX, outputY, multiple, multiple)?;
+                }
+
+                inputX += 1;
+                outputX += multiple
+            }
+            inputY += 1;
+            outputY += multiple
+        }
+
+        Ok(output)
+    }
+}
+
+#[cfg(test)]
+mod tests{
+    use std::collections::HashMap;
+
+    use crate::{EncodeHintType, BarcodeFormat, datamatrix::{encoder::SymbolShapeHint, DataMatrixWriter}, Writer, EncodeHintValue};
+
+
+  #[test]
+  fn testDataMatrixImageWriter() {
+
+    let mut hints = HashMap::new();
+    hints.insert(EncodeHintType::DATA_MATRIX_SHAPE, EncodeHintValue::DataMatrixShape(SymbolShapeHint::FORCE_SQUARE));
+
+    let bigEnough = 64;
+    let writer =  DataMatrixWriter{};
+    let matrix = writer.encode_with_hints("Hello Google", &BarcodeFormat::DATA_MATRIX, bigEnough, bigEnough, &hints).expect("must encode");
+    assert!(bigEnough >= matrix.getWidth() as i32);
+    assert!(bigEnough >= matrix.getHeight() as i32);
   }
 
-  @Override
-  public BitMatrix encode(String contents, BarcodeFormat format, int width, int height, Map<EncodeHintType,?> hints) {
+  #[test]
+  fn testDataMatrixWriter() {
 
-    if (contents.isEmpty()) {
-      throw new IllegalArgumentException("Found empty contents");
-    }
+    let mut hints = HashMap::new();
+    hints.insert(EncodeHintType::DATA_MATRIX_SHAPE, EncodeHintValue::DataMatrixShape(SymbolShapeHint::FORCE_SQUARE));
 
-    if (format != BarcodeFormat.DATA_MATRIX) {
-      throw new IllegalArgumentException("Can only encode DATA_MATRIX, but got " + format);
-    }
-
-    if (width < 0 || height < 0) {
-      throw new IllegalArgumentException("Requested dimensions can't be negative: " + width + 'x' + height);
-    }
-
-    // Try to get force shape & min / max size
-    SymbolShapeHint shape = SymbolShapeHint.FORCE_NONE;
-    Dimension minSize = null;
-    Dimension maxSize = null;
-    if (hints != null) {
-      SymbolShapeHint requestedShape = (SymbolShapeHint) hints.get(EncodeHintType.DATA_MATRIX_SHAPE);
-      if (requestedShape != null) {
-        shape = requestedShape;
-      }
-      @SuppressWarnings("deprecation")
-      Dimension requestedMinSize = (Dimension) hints.get(EncodeHintType.MIN_SIZE);
-      if (requestedMinSize != null) {
-        minSize = requestedMinSize;
-      }
-      @SuppressWarnings("deprecation")
-      Dimension requestedMaxSize = (Dimension) hints.get(EncodeHintType.MAX_SIZE);
-      if (requestedMaxSize != null) {
-        maxSize = requestedMaxSize;
-      }
-    }
-
-
-    //1. step: Data encodation
-    String encoded;
-
-    boolean hasCompactionHint = hints != null && hints.containsKey(EncodeHintType.DATA_MATRIX_COMPACT) &&
-        Boolean.parseBoolean(hints.get(EncodeHintType.DATA_MATRIX_COMPACT).toString());
-    if (hasCompactionHint) {
-
-      boolean hasGS1FormatHint = hints.containsKey(EncodeHintType.GS1_FORMAT) &&
-          Boolean.parseBoolean(hints.get(EncodeHintType.GS1_FORMAT).toString());
-
-      Charset charset = null;
-      boolean hasEncodingHint = hints.containsKey(EncodeHintType.CHARACTER_SET);
-      if (hasEncodingHint) {
-        charset = Charset.forName(hints.get(EncodeHintType.CHARACTER_SET).toString());
-      }
-      encoded = MinimalEncoder.encodeHighLevel(contents, charset, hasGS1FormatHint ? 0x1D : -1, shape);
-    } else {
-      boolean hasForceC40Hint = hints != null && hints.containsKey(EncodeHintType.FORCE_C40) &&
-          Boolean.parseBoolean(hints.get(EncodeHintType.FORCE_C40).toString());
-      encoded = HighLevelEncoder.encodeHighLevel(contents, shape, minSize, maxSize, hasForceC40Hint);
-    }
-
-    SymbolInfo symbolInfo = SymbolInfo.lookup(encoded.length(), shape, minSize, maxSize, true);
-
-    //2. step: ECC generation
-    String codewords = ErrorCorrection.encodeECC200(encoded, symbolInfo);
-
-    //3. step: Module placement in Matrix
-    DefaultPlacement placement =
-        new DefaultPlacement(codewords, symbolInfo.getSymbolDataWidth(), symbolInfo.getSymbolDataHeight());
-    placement.place();
-
-    //4. step: low-level encoding
-    return encodeLowLevel(placement, symbolInfo, width, height);
+    let bigEnough = 14;
+    let writer =  DataMatrixWriter{};
+    let matrix = writer.encode_with_hints("Hello Me", &BarcodeFormat::DATA_MATRIX, bigEnough, bigEnough, &hints).expect("must encode");
+    assert_eq!(bigEnough, matrix.getWidth() as i32);
+    assert_eq!(bigEnough, matrix.getHeight() as i32);
   }
 
-  /**
-   * Encode the given symbol info to a bit matrix.
-   *
-   * @param placement  The DataMatrix placement.
-   * @param symbolInfo The symbol info to encode.
-   * @return The bit matrix generated.
-   */
-  private static BitMatrix encodeLowLevel(DefaultPlacement placement, SymbolInfo symbolInfo, int width, int height) {
-    int symbolWidth = symbolInfo.getSymbolDataWidth();
-    int symbolHeight = symbolInfo.getSymbolDataHeight();
+  #[test]
+  fn testDataMatrixTooSmall() {
+    // The DataMatrix will not fit in this size, so the matrix should come back bigger
+    let tooSmall = 8;
+    let writer =  DataMatrixWriter{};
+    let matrix = writer.encode_with_hints("http://www.google.com/", &BarcodeFormat::DATA_MATRIX, tooSmall, tooSmall, &HashMap::new()).expect("must encode");
 
-    ByteMatrix matrix = new ByteMatrix(symbolInfo.getSymbolWidth(), symbolInfo.getSymbolHeight());
-
-    int matrixY = 0;
-
-    for (int y = 0; y < symbolHeight; y++) {
-      // Fill the top edge with alternate 0 / 1
-      int matrixX;
-      if ((y % symbolInfo.matrixHeight) == 0) {
-        matrixX = 0;
-        for (int x = 0; x < symbolInfo.getSymbolWidth(); x++) {
-          matrix.set(matrixX, matrixY, (x % 2) == 0);
-          matrixX++;
-        }
-        matrixY++;
-      }
-      matrixX = 0;
-      for (int x = 0; x < symbolWidth; x++) {
-        // Fill the right edge with full 1
-        if ((x % symbolInfo.matrixWidth) == 0) {
-          matrix.set(matrixX, matrixY, true);
-          matrixX++;
-        }
-        matrix.set(matrixX, matrixY, placement.getBit(x, y));
-        matrixX++;
-        // Fill the right edge with alternate 0 / 1
-        if ((x % symbolInfo.matrixWidth) == symbolInfo.matrixWidth - 1) {
-          matrix.set(matrixX, matrixY, (y % 2) == 0);
-          matrixX++;
-        }
-      }
-      matrixY++;
-      // Fill the bottom edge with full 1
-      if ((y % symbolInfo.matrixHeight) == symbolInfo.matrixHeight - 1) {
-        matrixX = 0;
-        for (int x = 0; x < symbolInfo.getSymbolWidth(); x++) {
-          matrix.set(matrixX, matrixY, true);
-          matrixX++;
-        }
-        matrixY++;
-      }
-    }
-
-    return convertByteMatrixToBitMatrix(matrix, width, height);
-  }
-
-  /**
-   * Convert the ByteMatrix to BitMatrix.
-   *
-   * @param reqHeight The requested height of the image (in pixels) with the Datamatrix code
-   * @param reqWidth The requested width of the image (in pixels) with the Datamatrix code
-   * @param matrix The input matrix.
-   * @return The output matrix.
-   */
-  private static BitMatrix convertByteMatrixToBitMatrix(ByteMatrix matrix, int reqWidth, int reqHeight) {
-    int matrixWidth = matrix.getWidth();
-    int matrixHeight = matrix.getHeight();
-    int outputWidth = Math.max(reqWidth, matrixWidth);
-    int outputHeight = Math.max(reqHeight, matrixHeight);
-
-    int multiple = Math.min(outputWidth / matrixWidth, outputHeight / matrixHeight);
-
-    int leftPadding = (outputWidth - (matrixWidth * multiple)) / 2 ;
-    int topPadding = (outputHeight - (matrixHeight * multiple)) / 2 ;
-
-    BitMatrix output;
-
-    // remove padding if requested width and height are too small
-    if (reqHeight < matrixHeight || reqWidth < matrixWidth) {
-      leftPadding = 0;
-      topPadding = 0;
-      output = new BitMatrix(matrixWidth, matrixHeight);
-    } else {
-      output = new BitMatrix(reqWidth, reqHeight);
-    }
-
-    output.clear();
-    for (int inputY = 0, outputY = topPadding; inputY < matrixHeight; inputY++, outputY += multiple) {
-      // Write the contents of this row of the bytematrix
-      for (int inputX = 0, outputX = leftPadding; inputX < matrixWidth; inputX++, outputX += multiple) {
-        if (matrix.get(inputX, inputY) == 1) {
-          output.setRegion(outputX, outputY, multiple, multiple);
-        }
-      }
-    }
-
-    return output;
+    assert!(tooSmall < matrix.getWidth() as i32);
+    assert!(tooSmall < matrix.getHeight() as i32);
   }
 
 }

@@ -104,11 +104,7 @@ pub fn encode_with_hints(
 
     let has_gs1_format_hint = hints.contains_key(&EncodeHintType::GS1_FORMAT)
         && if let EncodeHintValue::Gs1Format(v) = hints.get(&EncodeHintType::GS1_FORMAT).unwrap() {
-            if let Ok(vb) = v.parse::<bool>() {
-                vb
-            } else {
-                false
-            }
+            *v
         } else {
             false
         };

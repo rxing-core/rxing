@@ -196,7 +196,7 @@ pub enum EncodeHintValue {
     /**
      * Specifies the matrix shape for Data Matrix (type {@link com.google.zxing.datamatrix.encoder.SymbolShapeHint})
      */
-    DataMatrixShape,
+    DataMatrixShape(crate::datamatrix::encoder::SymbolShapeHint),
 
     /**
      * Specifies whether to use compact mode for Data Matrix (type {@link Boolean}, or "true" or "false"
@@ -212,7 +212,7 @@ pub enum EncodeHintValue {
      * for the purpose of delimiting AIs.
      * This option and {@link #FORCE_C40} are mutually exclusive.
      */
-    DataMatrixCompact(String),
+    DataMatrixCompact(bool),
 
     /**
      * Specifies a minimum barcode size (type {@link Dimension}). Only applicable to Data Matrix now.
@@ -221,7 +221,7 @@ pub enum EncodeHintValue {
      * {@link com.google.zxing.datamatrix.DataMatrixWriter#encode(String, BarcodeFormat, int, int)}
      */
     #[deprecated]
-    MinSize,
+    MinSize(Dimension),
 
     /**
      * Specifies a maximum barcode size (type {@link Dimension}). Only applicable to Data Matrix now.
@@ -304,7 +304,7 @@ pub enum EncodeHintValue {
      * Specifies whether the data should be encoded to the GS1 standard (type {@link Boolean}, or "true" or "false"
      * {@link String } value).
      */
-    Gs1Format(String),
+    Gs1Format(bool),
 
     /**
      * Forces which encoding will be used. Currently only used for Code-128 code sets (Type {@link String}).
@@ -317,7 +317,7 @@ pub enum EncodeHintValue {
      * Forces C40 encoding for data-matrix (type {@link Boolean}, or "true" or "false") {@link String } value). This
      * option and {@link #DATA_MATRIX_COMPACT} are mutually exclusive.
      */
-    ForceC40(String),
+    ForceC40(bool),
 
     /**
      * Specifies whether to use compact mode for Code-128 code (type {@link Boolean}, or "true" or "false"
