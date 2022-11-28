@@ -17,7 +17,8 @@
 use std::{
     collections::HashMap,
     fs::{read_dir, read_to_string},
-    path::{Path, PathBuf}, rc::Rc,
+    path::{Path, PathBuf},
+    rc::Rc,
 };
 
 use rxing::{

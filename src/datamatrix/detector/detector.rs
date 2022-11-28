@@ -170,7 +170,7 @@ impl Detector {
     /**
      * Detect a second solid side next to first solid side.
      */
-    fn detectSolid2(&self, points: [RXingResultPoint;4]) -> [RXingResultPoint; 4] {
+    fn detectSolid2(&self, points: [RXingResultPoint; 4]) -> [RXingResultPoint; 4] {
         // A..D
         // :  :
         // B--C
@@ -262,7 +262,7 @@ impl Detector {
     /**
      * Shift the edge points to the module center.
      */
-    fn shiftToModuleCenter(&self, points: [RXingResultPoint;4]) -> [RXingResultPoint; 4] {
+    fn shiftToModuleCenter(&self, points: [RXingResultPoint; 4]) -> [RXingResultPoint; 4] {
         // A..D
         // |  :
         // B--C

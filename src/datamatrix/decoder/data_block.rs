@@ -75,7 +75,7 @@ impl DataBlock {
                     numDataCodewords as u32,
                     vec![0; numBlockCodewords],
                 ));
-                numRXingResultBlocks +=1;
+                numRXingResultBlocks += 1;
             }
         }
 

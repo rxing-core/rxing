@@ -169,7 +169,7 @@ impl MultiFormatReader {
                 //TODO: ADD MultiformatOneDReader here
             }
         }
-        self.readers = readers;//Vec::new(); //readers.toArray(EMPTY_READER_ARRAY);
+        self.readers = readers; //Vec::new(); //readers.toArray(EMPTY_READER_ARRAY);
     }
 
     pub fn decodeInternal(&mut self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions> {
