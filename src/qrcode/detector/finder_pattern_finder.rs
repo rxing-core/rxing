@@ -37,10 +37,10 @@ pub struct FinderPatternFinder {
     resultPointCallback: Option<RXingResultPointCallback>,
 }
 impl FinderPatternFinder {
-    const CENTER_QUORUM: usize = 2;
+    pub const CENTER_QUORUM: usize = 2;
     // private static final EstimatedModuleComparator moduleComparator = new EstimatedModuleComparator();
-    const MIN_SKIP: u32 = 3; // 1 pixel/module times 3 modules/center
-    const MAX_MODULES: u32 = 97; // support up to version 20 for mobile clients
+    pub const MIN_SKIP: u32 = 3; // 1 pixel/module times 3 modules/center
+    pub const MAX_MODULES: u32 = 97; // support up to version 20 for mobile clients
 
     /**
      * <p>Creates a finder that will search the image for three finder patterns.</p>

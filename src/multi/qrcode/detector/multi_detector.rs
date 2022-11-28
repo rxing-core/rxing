@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-use crate::{qrcode::detector::{Detector, QRCodeDetectorResult}, common::{BitMatrix, DetectorRXingResult}, DecodingHintDictionary, Exceptions, DecodeHintType};
+use crate::{
+    common::{BitMatrix, DetectorRXingResult},
+    qrcode::detector::{Detector, QRCodeDetectorResult},
+    DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
+};
 
 use super::MultiFinderPatternFinder;
 
@@ -27,36 +31,43 @@ use super::MultiFinderPatternFinder;
  */
 pub struct MultiDetector(Detector);
 impl MultiDetector {
-  pub fn new(image: BitMatrix) -> Self {
-    Self(Detector::new(image))
-  }
-
-  // private static final DetectorRXingResult[] EMPTY_DETECTOR_RESULTS = new DetectorRXingResult[0];
-
-  pub fn detectMulti(&self,  hints:&DecodingHintDictionary) -> Result<Vec<QRCodeDetectorResult>,Exceptions> {
-    let image = self.0.getImage();
-    let resultPointCallback =
-         hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK);
-    let finder =  MultiFinderPatternFinder::new(image, resultPointCallback);
-    let infos = finder.findMulti(hints)?;
-
-    if infos.len() == 0 {
-      return Err(Exceptions::NotFoundException("".to_owned()))
+    pub fn new(image: BitMatrix) -> Self {
+        Self(Detector::new(image))
     }
 
-    let result = Vec::new();
-    for  info in infos {
-      if let Ok(potential) = self.0.processFinderPatternInfo(info){
-        result.push(potential);
-      }
-      // try {
-      //   result.add(processFinderPatternInfo(info));
-      // } catch (ReaderException e) {
-      //   // ignore
-      // }
-    }
-    
-    Ok(result)
-  }
+    // private static final DetectorRXingResult[] EMPTY_DETECTOR_RESULTS = new DetectorRXingResult[0];
 
+    pub fn detectMulti(
+        &self,
+        hints: &DecodingHintDictionary,
+    ) -> Result<Vec<QRCodeDetectorResult>, Exceptions> {
+        let image = self.0.getImage();
+        let resultPointCallback = if let Some(DecodeHintValue::NeedResultPointCallback(cb)) =
+            hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK)
+        {
+            Some(*cb)
+        } else {
+            None
+        };
+        let mut finder = MultiFinderPatternFinder::new(image, resultPointCallback);
+        let infos = finder.findMulti(hints)?;
+
+        if infos.len() == 0 {
+            return Err(Exceptions::NotFoundException("".to_owned()));
+        }
+
+        let mut result = Vec::new();
+        for info in infos {
+            if let Ok(potential) = self.0.processFinderPatternInfo(info) {
+                result.push(potential);
+            }
+            // try {
+            //   result.add(processFinderPatternInfo(info));
+            // } catch (ReaderException e) {
+            //   // ignore
+            // }
+        }
+
+        Ok(result)
+    }
 }
