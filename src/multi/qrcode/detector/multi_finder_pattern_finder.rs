@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-package com.google.zxing.multi.qrcode.detector;
+use crate::{qrcode::detector::{FinderPatternFinder, FinderPattern, FinderPatternInfo}, common::BitMatrix, RXingResultPointCallback, Exceptions, DecodingHintDictionary};
 
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.RXingResultPoint;
-import com.google.zxing.RXingResultPointCallback;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.detector.FinderPattern;
-import com.google.zxing.qrcode.detector.FinderPatternFinder;
-import com.google.zxing.qrcode.detector.FinderPatternInfo;
+// max. legal count of modules per QR code edge (177)
+const MAX_MODULE_COUNT_PER_EDGE : f32 = 180_f32;
+// min. legal count per modules per QR code edge (11)
+const MIN_MODULE_COUNT_PER_EDGE : f32= 9_f32;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+
+  /**
+   * More or less arbitrary cutoff point for determining if two finder patterns might belong
+   * to the same code if they differ less than DIFF_MODSIZE_CUTOFF_PERCENT percent in their
+   * estimated modules sizes.
+   */
+  const DIFF_MODSIZE_CUTOFF_PERCENT : f32= 0.05_f32;
+
+  /**
+   * More or less arbitrary cutoff point for determining if two finder patterns might belong
+   * to the same code if they differ less than DIFF_MODSIZE_CUTOFF pixels/module in their
+   * estimated modules sizes.
+   */
+  const DIFF_MODSIZE_CUTOFF :f32= 0.5_f32;
 
 /**
  * <p>This class attempts to find finder patterns in a QR Code. Finder patterns are the square
@@ -46,48 +50,32 @@ import java.util.Map;
  * @author Sean Owen
  * @author Hannes Erven
  */
-public final class MultiFinderPatternFinder extends FinderPatternFinder {
+pub struct MultiFinderPatternFinder(FinderPatternFinder);
 
-  private static final FinderPatternInfo[] EMPTY_RESULT_ARRAY = new FinderPatternInfo[0];
-  private static final FinderPattern[] EMPTY_FP_ARRAY = new FinderPattern[0];
-  private static final FinderPattern[][] EMPTY_FP_2D_ARRAY = new FinderPattern[0][];
+impl MultiFinderPatternFinder {
+
+  // private static final FinderPatternInfo[] EMPTY_RESULT_ARRAY = new FinderPatternInfo[0];
+  // private static final FinderPattern[] EMPTY_FP_ARRAY = new FinderPattern[0];
+  // private static final FinderPattern[][] EMPTY_FP_2D_ARRAY = new FinderPattern[0][];
 
   // TODO MIN_MODULE_COUNT and MAX_MODULE_COUNT would be great hints to ask the user for
   // since it limits the number of regions to decode
 
-  // max. legal count of modules per QR code edge (177)
-  private static final float MAX_MODULE_COUNT_PER_EDGE = 180;
-  // min. legal count per modules per QR code edge (11)
-  private static final float MIN_MODULE_COUNT_PER_EDGE = 9;
-
-  /**
-   * More or less arbitrary cutoff point for determining if two finder patterns might belong
-   * to the same code if they differ less than DIFF_MODSIZE_CUTOFF_PERCENT percent in their
-   * estimated modules sizes.
-   */
-  private static final float DIFF_MODSIZE_CUTOFF_PERCENT = 0.05f;
-
-  /**
-   * More or less arbitrary cutoff point for determining if two finder patterns might belong
-   * to the same code if they differ less than DIFF_MODSIZE_CUTOFF pixels/module in their
-   * estimated modules sizes.
-   */
-  private static final float DIFF_MODSIZE_CUTOFF = 0.5f;
 
 
-  /**
-   * A comparator that orders FinderPatterns by their estimated module size.
-   */
-  private static final class ModuleSizeComparator implements Comparator<FinderPattern>, Serializable {
-    @Override
-    public int compare(FinderPattern center1, FinderPattern center2) {
-      float value = center2.getEstimatedModuleSize() - center1.getEstimatedModuleSize();
-      return value < 0.0 ? -1 : value > 0.0 ? 1 : 0;
-    }
-  }
+  // /**
+  //  * A comparator that orders FinderPatterns by their estimated module size.
+  //  */
+  // private static final class ModuleSizeComparator implements Comparator<FinderPattern>, Serializable {
+  //   @Override
+  //   public int compare(FinderPattern center1, FinderPattern center2) {
+  //     float value = center2.getEstimatedModuleSize() - center1.getEstimatedModuleSize();
+  //     return value < 0.0 ? -1 : value > 0.0 ? 1 : 0;
+  //   }
+  // }
 
-  public MultiFinderPatternFinder(BitMatrix image, RXingResultPointCallback resultPointCallback) {
-    super(image, resultPointCallback);
+  pub fn new( image:&BitMatrix,  resultPointCallback:&RXingResultPointCallback) -> Self {
+    Self(FinderPatternFinder::with_callback(image, resultPointCallback))
   }
 
   /**
@@ -96,7 +84,7 @@ public final class MultiFinderPatternFinder extends FinderPatternFinder {
    *         size differs from the average among those patterns the least
    * @throws NotFoundException if 3 such finder patterns do not exist
    */
-  private FinderPattern[][] selectMultipleBestPatterns() throws NotFoundException {
+  fn selectMultipleBestPatterns(&self) -> Result<Vec<Vec<FinderPattern>>,Exceptions> {
     List<FinderPattern> possibleCenters = new ArrayList<>();
     for (FinderPattern fp : getPossibleCenters()) {
       if (fp.getCount() >= 2) {
@@ -220,7 +208,7 @@ public final class MultiFinderPatternFinder extends FinderPatternFinder {
     throw NotFoundException.getNotFoundInstance();
   }
 
-  public FinderPatternInfo[] findMulti(Map<DecodeHintType,?> hints) throws NotFoundException {
+  pub fn findMulti(&self,  hints:&DecodingHintDictionary) -> Result<Vec<FinderPatternInfo>,Exceptions> {
     boolean tryHarder = hints != null && hints.containsKey(DecodeHintType.TRY_HARDER);
     BitMatrix image = getImage();
     int maxI = image.getHeight();
