@@ -16,7 +16,7 @@
 
 use std::collections::HashMap;
 
-use crate::{aztec::AztecWriter, qrcode::QRCodeWriter, BarcodeFormat, Exceptions, Writer};
+use crate::{aztec::AztecWriter, qrcode::QRCodeWriter, BarcodeFormat, Exceptions, Writer, datamatrix::DataMatrixWriter};
 
 /**
  * This is a factory class which finds the appropriate Writer subclass for the BarcodeFormat
@@ -67,8 +67,8 @@ impl Writer for MultiFormatWriter {
             // writer =  PDF417Writer(),
             BarcodeFormat::CODABAR => unimplemented!(""),
             // writer =  CodaBarWriter(),
-            BarcodeFormat::DATA_MATRIX => unimplemented!(""),
-            // DataMatrixWriter{},
+            BarcodeFormat::DATA_MATRIX =>
+            Box::new(DataMatrixWriter{}),
             BarcodeFormat::AZTEC => Box::new(AztecWriter {}),
             _ => {
                 return Err(Exceptions::IllegalArgumentException(format!(

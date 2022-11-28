@@ -203,7 +203,7 @@ impl GlobalHistogramBinarizer {
         let mut secondPeakScore = 0;
         for x in 0..numBuckets {
             // for (int x = 0; x < numBuckets; x++) {
-            let distanceToBiggest = x - firstPeak;
+            let distanceToBiggest = (x as i32 - firstPeak as i32).abs() as u32;
             // Encourage more distant second peaks by multiplying by square of distance.
             let score = buckets[x] * distanceToBiggest as u32 * distanceToBiggest as u32;
             if score > secondPeakScore {

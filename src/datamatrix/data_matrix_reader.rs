@@ -139,12 +139,15 @@ impl DataMatrixReader {
         let mut left = leftTopBlack[0];
         let right = rightBottomBlack[0];
 
-        let matrixWidth = (right - left + 1) / moduleSize;
-        let matrixHeight = (bottom - top + 1) / moduleSize;
+        let matrixWidth = (right as i32 - left as i32 + 1) / moduleSize as i32;
+        let matrixHeight = (bottom as i32 - top as i32 + 1) / moduleSize as i32;
         if matrixWidth <= 0 || matrixHeight <= 0 {
             return Err(Exceptions::NotFoundException("".to_owned()));
             // throw NotFoundException.getNotFoundInstance();
         }
+
+        let matrixWidth = matrixWidth as u32;
+        let matrixHeight = matrixHeight as u32;
 
         // Push in the "border" by half the module width so that we start
         // sampling in the middle of the module. Just in case the image is a

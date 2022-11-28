@@ -83,10 +83,10 @@ impl BitMatrixParser {
         let mut resultOffset = 0;
 
         let mut row = 4;
-        let mut column = 0_usize;
+        let mut column = 0;
 
-        let numRows = self.mappingBitMatrix.getHeight() as usize;
-        let numColumns = self.mappingBitMatrix.getWidth() as usize;
+        let numRows = self.mappingBitMatrix.getHeight().try_into().unwrap();
+        let numColumns = self.mappingBitMatrix.getWidth().try_into().unwrap();
 
         let mut corner1Read = false;
         let mut corner2Read = false;
@@ -193,7 +193,7 @@ impl BitMatrixParser {
      * @param numColumns Number of columns in the mapping matrix
      * @return value of the given bit in the mapping matrix
      */
-    fn readModule(&mut self, row: usize, column: usize, numRows: usize, numColumns: usize) -> bool {
+    fn readModule(&mut self, row: isize, column: isize, numRows: isize, numColumns: isize) -> bool {
         let mut row = row;
         let mut column = column;
         // Adjust the row and column indices based on boundary wrapping
@@ -224,7 +224,7 @@ impl BitMatrixParser {
      * @param numColumns Number of columns in the mapping matrix
      * @return byte from the utah shape
      */
-    fn readUtah(&mut self, row: usize, column: usize, numRows: usize, numColumns: usize) -> u32 {
+    fn readUtah(&mut self, row: isize, column: isize, numRows: isize, numColumns: isize) -> u32 {
         let mut currentByte = 0;
         if self.readModule(row - 2, column - 2, numRows, numColumns) {
             currentByte |= 1;
@@ -269,7 +269,7 @@ impl BitMatrixParser {
      * @param numColumns Number of columns in the mapping matrix
      * @return byte from the Corner condition 1
      */
-    fn readCorner1(&mut self, numRows: usize, numColumns: usize) -> u32 {
+    fn readCorner1(&mut self, numRows: isize, numColumns: isize) -> u32 {
         let mut currentByte = 0;
         if self.readModule(numRows - 1, 0, numRows, numColumns) {
             currentByte |= 1;
@@ -314,7 +314,7 @@ impl BitMatrixParser {
      * @param numColumns Number of columns in the mapping matrix
      * @return byte from the Corner condition 2
      */
-    fn readCorner2(&mut self, numRows: usize, numColumns: usize) -> u32 {
+    fn readCorner2(&mut self, numRows: isize, numColumns: isize) -> u32 {
         let mut currentByte = 0;
         if self.readModule(numRows - 3, 0, numRows, numColumns) {
             currentByte |= 1;
@@ -359,7 +359,7 @@ impl BitMatrixParser {
      * @param numColumns Number of columns in the mapping matrix
      * @return byte from the Corner condition 3
      */
-    fn readCorner3(&mut self, numRows: usize, numColumns: usize) -> u32 {
+    fn readCorner3(&mut self, numRows: isize, numColumns: isize) -> u32 {
         let mut currentByte = 0;
         if self.readModule(numRows - 1, 0, numRows, numColumns) {
             currentByte |= 1;
@@ -404,7 +404,7 @@ impl BitMatrixParser {
      * @param numColumns Number of columns in the mapping matrix
      * @return byte from the Corner condition 4
      */
-    fn readCorner4(&mut self, numRows: usize, numColumns: usize) -> u32 {
+    fn readCorner4(&mut self, numRows: isize, numColumns: isize) -> u32 {
         let mut currentByte = 0;
         if self.readModule(numRows - 3, 0, numRows, numColumns) {
             currentByte |= 1;

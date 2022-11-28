@@ -64,7 +64,7 @@ impl DataBlock {
 
         // Now establish DataBlocks of the appropriate size and number of data codewords
         let mut result = Vec::with_capacity(totalBlocks);
-        let numRXingResultBlocks = 0;
+        let mut numRXingResultBlocks = 0;
         for ecBlock in ecBlockArray {
             for _i in 0..ecBlock.getCount() {
                 // for (int i = 0; i < ecBlock.getCount(); i++) {
@@ -75,6 +75,7 @@ impl DataBlock {
                     numDataCodewords as u32,
                     vec![0; numBlockCodewords],
                 ));
+                numRXingResultBlocks +=1;
             }
         }
 

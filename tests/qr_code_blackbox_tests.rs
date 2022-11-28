@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use rxing::{qrcode::QRCodeReader, BarcodeFormat};
+use rxing::{qrcode::QRCodeReader, BarcodeFormat, MultiFormatReader};
 
 mod common;
 
@@ -26,7 +26,7 @@ mod common;
 fn qrcode_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/qrcode-1",
-        QRCodeReader {},
+        MultiFormatReader::default(),
         rxing::BarcodeFormat::QR_CODE,
     );
     // super("src/test/resources/blackbox/qrcode-1", new MultiFormatReader(), BarcodeFormat.QR_CODE);
@@ -46,6 +46,7 @@ fn qrcode_black_box1_test_case() {
 fn qrcode_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/qrcode-2",
+        // MultiFormatReader::default(),
         QRCodeReader {},
         BarcodeFormat::QR_CODE,
     );
@@ -65,7 +66,7 @@ fn qrcode_black_box2_test_case() {
 fn qrcode_black_box3_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/qrcode-3",
-        QRCodeReader {},
+        MultiFormatReader::default(),
         BarcodeFormat::QR_CODE,
     );
     tester.add_test(38, 38, 0.0);
@@ -86,7 +87,7 @@ fn qrcode_black_box3_test_case() {
 fn qrcode_black_box4_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/qrcode-4",
-        QRCodeReader {},
+        MultiFormatReader::default(),
         BarcodeFormat::QR_CODE,
     );
     tester.add_test(36, 36, 0.0);
@@ -109,7 +110,7 @@ fn qrcode_black_box4_test_case() {
 fn qrcode_black_box5_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/qrcode-5",
-        QRCodeReader {},
+        MultiFormatReader::default(),
         BarcodeFormat::QR_CODE,
     );
     tester.add_test(19, 19, 0.0);
@@ -129,7 +130,7 @@ fn qrcode_black_box5_test_case() {
 fn qrcode_black_box6_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/qrcode-6",
-        QRCodeReader {},
+        MultiFormatReader::default(),
         BarcodeFormat::QR_CODE,
     );
     tester.add_test(15, 15, 0.0);

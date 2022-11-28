@@ -48,8 +48,8 @@ impl Detector {
     pub fn detect(&self) -> Result<DatamatrixDetectorResult, Exceptions> {
         let cornerPoints = self.rectangleDetector.detect()?;
 
-        let mut points = self.detectSolid1(&cornerPoints);
-        points = self.detectSolid2(&points);
+        let mut points = self.detectSolid1(cornerPoints);
+        points = self.detectSolid2(points);
         if let Some(point) = self.correctTopRight(&points) {
             points[3] = point;
         } else {
@@ -59,7 +59,7 @@ impl Detector {
         // if points[3] == null {
         //   throw NotFoundException.getNotFoundInstance();
         // }
-        points = self.shiftToModuleCenter(&points);
+        points = self.shiftToModuleCenter(points);
 
         let topLeft = points[0];
         let bottomLeft = points[1];
@@ -125,7 +125,7 @@ impl Detector {
     /**
      * Detect a solid side which has minimum transition.
      */
-    fn detectSolid1(&self, cornerPoints: &[RXingResultPoint]) -> [RXingResultPoint; 4] {
+    fn detectSolid1(&self, cornerPoints: Vec<RXingResultPoint>) -> [RXingResultPoint; 4] {
         // 0  2
         // 1  3
         let pointA = cornerPoints[0];
@@ -170,7 +170,7 @@ impl Detector {
     /**
      * Detect a second solid side next to first solid side.
      */
-    fn detectSolid2(&self, points: &[RXingResultPoint]) -> [RXingResultPoint; 4] {
+    fn detectSolid2(&self, points: [RXingResultPoint;4]) -> [RXingResultPoint; 4] {
         // A..D
         // :  :
         // B--C
@@ -262,7 +262,7 @@ impl Detector {
     /**
      * Shift the edge points to the module center.
      */
-    fn shiftToModuleCenter(&self, points: &[RXingResultPoint]) -> [RXingResultPoint; 4] {
+    fn shiftToModuleCenter(&self, points: [RXingResultPoint;4]) -> [RXingResultPoint; 4] {
         // A..D
         // |  :
         // B--C

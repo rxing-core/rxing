@@ -693,12 +693,12 @@ fn decodeECISegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Resu
  */
 fn unrandomize255State(randomizedBase256Codeword: u32, base256CodewordPosition: usize) -> u32 {
     let pseudoRandomNumber = ((149 * base256CodewordPosition as u32) % 255) + 1;
-    let tempVariable = randomizedBase256Codeword - pseudoRandomNumber;
+    let tempVariable = randomizedBase256Codeword as i32 - pseudoRandomNumber as i32;
 
     if tempVariable >= 0 {
-        tempVariable
+        tempVariable as u32
     } else {
-        tempVariable + 256
+        (tempVariable + 256) as u32
     }
 }
 

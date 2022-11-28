@@ -17,9 +17,9 @@
 use std::collections::HashMap;
 
 use crate::{
-    aztec::AztecReader, maxicode::MaxiCodeReader, qrcode::QRCodeReader, BarcodeFormat,
-    BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, RXingResult,
-    Reader,
+    aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
+    qrcode::QRCodeReader, BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue,
+    DecodingHintDictionary, Exceptions, RXingResult, Reader,
 };
 
 /**
@@ -133,8 +133,7 @@ impl MultiFormatReader {
                 readers.push(Box::new(QRCodeReader {}));
             }
             if formats.contains(&BarcodeFormat::DATA_MATRIX) {
-                unimplemented!("");
-                // readers.push(DataMatrixReader{});
+                readers.push(Box::new(DataMatrixReader {}));
             }
             if formats.contains(&BarcodeFormat::AZTEC) {
                 readers.push(Box::new(AztecReader {}));
@@ -155,11 +154,11 @@ impl MultiFormatReader {
         if readers.is_empty() {
             if !tryHarder {
                 // readers.push( MultiFormatOneDReader::new(hints));
-                unimplemented!("");
+                //TODO: ADD MultiformatOneDReader here
             }
 
             readers.push(Box::new(QRCodeReader {}));
-            // readers.push( Box::new(DataMatrixReader{}));
+            readers.push(Box::new(DataMatrixReader {}));
             readers.push(Box::new(AztecReader {}));
             // readers.push( PDF417Reader());
             readers.push(Box::new(MaxiCodeReader {}));
@@ -167,10 +166,10 @@ impl MultiFormatReader {
 
             if tryHarder {
                 // readers.push( Box::new(MultiFormatOneDReader::new(hints)));
-                unimplemented!("");
+                //TODO: ADD MultiformatOneDReader here
             }
         }
-        self.readers = Vec::new(); //readers.toArray(EMPTY_READER_ARRAY);
+        self.readers = readers;//Vec::new(); //readers.toArray(EMPTY_READER_ARRAY);
     }
 
     pub fn decodeInternal(&mut self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions> {
@@ -210,5 +209,14 @@ impl MultiFormatReader {
             }
         }
         return Err(Exceptions::NotFoundException("".to_owned()));
+    }
+}
+
+impl Default for MultiFormatReader {
+    fn default() -> Self {
+        Self {
+            hints: HashMap::new(),
+            readers: Vec::new(),
+        }
     }
 }
