@@ -76,7 +76,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         xOffset: u32,
         yOffset: u32,
         currentDepth: u32,
-    ) -> Result<(),Exceptions>{
+    ) -> Result<(), Exceptions> {
         if currentDepth > Self::MAX_DEPTH {
             return Ok(());
         }
@@ -89,8 +89,8 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         //}
         if let Err(Exceptions::ReaderException(_)) = result {
             return Ok(());
-        }else if result.is_err(){
-            return Err(result.err().unwrap())
+        } else if result.is_err() {
+            return Err(result.err().unwrap());
         }
 
         let result = result.expect("must exist");

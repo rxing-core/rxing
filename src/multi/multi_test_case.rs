@@ -16,7 +16,10 @@
 
 use std::{path::PathBuf, rc::Rc};
 
-use crate::{BufferedImageLuminanceSource, BinaryBitmap, common::HybridBinarizer, MultiFormatReader, BarcodeFormat};
+use crate::{
+    common::HybridBinarizer, BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
+    MultiFormatReader,
+};
 
 use super::{GenericMultipleBarcodeReader, MultipleBarcodeReader};
 
@@ -24,20 +27,20 @@ use super::{GenericMultipleBarcodeReader, MultipleBarcodeReader};
  * Tests {@link MultipleBarcodeReader}.
  */
 
-  #[test]
-  fn testMulti()  {
+#[test]
+fn testMulti() {
     // Very basic test for now
     let mut testBase = PathBuf::from("test_resources/blackbox/multi-1");
 
     testBase.push("1.png");
     let image = image::io::Reader::open(testBase)
-            .expect("image must open")
-            .decode()
-            .expect("must decode");
-    let source =  BufferedImageLuminanceSource::new(image);
-    let bitmap =  BinaryBitmap::new( Rc::new(HybridBinarizer::new(Box::new(source))));
+        .expect("image must open")
+        .decode()
+        .expect("must decode");
+    let source = BufferedImageLuminanceSource::new(image);
+    let bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
 
-    let mut reader =  GenericMultipleBarcodeReader::new( MultiFormatReader::default());
+    let mut reader = GenericMultipleBarcodeReader::new(MultiFormatReader::default());
     let results = reader.decodeMultiple(&bitmap).expect("must decode multi");
     // assertNotNull(results);
     assert_eq!(2, results.len());
@@ -47,4 +50,4 @@ use super::{GenericMultipleBarcodeReader, MultipleBarcodeReader};
 
     assert_eq!("www.airtable.com/jobs", results[1].getText());
     assert_eq!(&BarcodeFormat::QR_CODE, results[1].getBarcodeFormat());
-  }
+}

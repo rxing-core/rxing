@@ -80,7 +80,6 @@ impl Reader for MultiFormatReader {
 }
 
 impl MultiFormatReader {
-
     /**
      * Decode an image using the state set up by calling setHints() previously. Continuous scan
      * clients will get a <b>large</b> speed increase by using this instead of decode().
