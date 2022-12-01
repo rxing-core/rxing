@@ -91,6 +91,18 @@ impl RXingResult {
         }
     }
 
+    pub fn new_from_existing_result(prev: Self, points: Vec<RXingResultPoint>) -> Self {
+        Self {
+            text: prev.text,
+            rawBytes: prev.rawBytes,
+            numBits: prev.numBits,
+            resultPoints: points,
+            format: prev.format,
+            resultMetadata: prev.resultMetadata,
+            timestamp: prev.timestamp,
+        }
+    }
+
     /**
      * @return raw text encoded by the barcode
      */
