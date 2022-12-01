@@ -125,6 +125,10 @@ impl MultipleBarcodeReader for QRCodeMultiReader {
 }
 
 impl QRCodeMultiReader {
+    pub fn new() -> Self {
+        Self(QRCodeReader::new())
+    }
+
     fn processStructuredAppend(results: Vec<RXingResult>) -> Result<Vec<RXingResult>, Exceptions> {
         let mut newRXingResults = Vec::new();
         let mut saRXingResults = Vec::new();
@@ -197,4 +201,133 @@ fn compareRXingResult(a: &RXingResult, b: &RXingResult) -> Ordering {
     };
 
     aNumber.cmp(bNumber)
+}
+
+#[cfg(test)]
+mod multi_qr_code_test_case {
+    /*
+     * Copyright 2016 ZXing authors
+     *
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     *      http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     */
+
+    use std::{collections::HashSet, path::PathBuf, rc::Rc};
+
+    use image;
+
+    use crate::{
+        common::HybridBinarizer, multi::MultipleBarcodeReader, BarcodeFormat, BinaryBitmap,
+        BufferedImageLuminanceSource, RXingResult, RXingResultMetadataType,
+        RXingResultMetadataValue,
+    };
+
+    use super::QRCodeMultiReader;
+
+    /**
+     * Tests {@link QRCodeMultiReader}.
+     */
+
+    #[test]
+    fn testMultiQRCodes() {
+        // Very basic test for now
+        let mut testBase = PathBuf::from("test_resources/blackbox/multi-qrcode-1");
+
+        testBase.push("1.png");
+
+        let image = image::io::Reader::open(testBase)
+            .expect("image must open")
+            .decode()
+            .expect("must decode");
+        let source = BufferedImageLuminanceSource::new(image);
+        let bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
+
+        let reader = QRCodeMultiReader::new();
+        let results = reader.decodeMultiple(&bitmap).expect("must decode");
+        // assertNotNull(results);
+        assert_eq!(4, results.len());
+
+        let mut barcodeContents = HashSet::new();
+        for result in results {
+            barcodeContents.insert(result.getText().to_owned());
+            assert_eq!(&BarcodeFormat::QR_CODE, result.getBarcodeFormat());
+            assert!(!result.getRXingResultMetadata().is_empty());
+        }
+        let mut expectedContents = HashSet::new();
+        expectedContents.insert(
+            "You earned the class a 5 MINUTE DANCE PARTY!!  Awesome!  Way to go!  Let's boogie!"
+                .to_owned(),
+        );
+        expectedContents.insert(
+            "You earned the class 5 EXTRA MINUTES OF RECESS!!  Fabulous!!  Way to go!!".to_owned(),
+        );
+        expectedContents.insert(
+        "You get to SIT AT MRS. SIGMON'S DESK FOR A DAY!!  Awesome!!  Way to go!! Guess I better clean up! :)".to_owned());
+        expectedContents.insert(
+            "You get to CREATE OUR JOURNAL PROMPT FOR THE DAY!  Yay!  Way to go!  ".to_owned(),
+        );
+        assert_eq!(expectedContents, barcodeContents);
+    }
+
+    #[test]
+    fn testProcessStructuredAppend() {
+        let mut sa1 = RXingResult::new("SA1", Vec::new(), Vec::new(), BarcodeFormat::QR_CODE);
+        let mut sa2 = RXingResult::new("SA2", Vec::new(), Vec::new(), BarcodeFormat::QR_CODE);
+        let mut sa3 = RXingResult::new("SA3", Vec::new(), Vec::new(), BarcodeFormat::QR_CODE);
+        sa1.putMetadata(
+            RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE,
+            RXingResultMetadataValue::StructuredAppendSequence(2),
+        );
+        sa1.putMetadata(
+            RXingResultMetadataType::ERROR_CORRECTION_LEVEL,
+            RXingResultMetadataValue::ErrorCorrectionLevel("L".to_owned()),
+        );
+        sa2.putMetadata(
+            RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE,
+            RXingResultMetadataValue::StructuredAppendSequence((1 << 4) + 2),
+        );
+        sa2.putMetadata(
+            RXingResultMetadataType::ERROR_CORRECTION_LEVEL,
+            RXingResultMetadataValue::ErrorCorrectionLevel("L".to_owned()),
+        );
+        sa3.putMetadata(
+            RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE,
+            RXingResultMetadataValue::StructuredAppendSequence((2 << 4) + 2),
+        );
+        sa3.putMetadata(
+            RXingResultMetadataType::ERROR_CORRECTION_LEVEL,
+            RXingResultMetadataValue::ErrorCorrectionLevel("L".to_owned()),
+        );
+
+        let mut nsa = RXingResult::new("NotSA", Vec::new(), Vec::new(), BarcodeFormat::QR_CODE);
+        nsa.putMetadata(
+            RXingResultMetadataType::ERROR_CORRECTION_LEVEL,
+            RXingResultMetadataValue::ErrorCorrectionLevel("L".to_owned()),
+        );
+
+        let inputs = vec![sa3, sa1, nsa, sa2];
+
+        let results =
+            QRCodeMultiReader::processStructuredAppend(inputs).expect("result must return");
+        // assertNotNull(results);
+        assert_eq!(2, results.len());
+
+        let mut barcodeContents = HashSet::new();
+        for result in results {
+            barcodeContents.insert(result.getText().to_owned());
+        }
+        let mut expectedContents = HashSet::new();
+        expectedContents.insert("SA1SA2SA3".to_owned());
+        expectedContents.insert("NotSA".to_owned());
+        assert_eq!(expectedContents, barcodeContents);
+    }
 }
