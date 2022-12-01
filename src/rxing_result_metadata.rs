@@ -22,7 +22,7 @@
  *
  * @author Sean Owen
  */
-#[derive(Eq, PartialEq, Hash, Debug)]
+#[derive(Eq, PartialEq, Hash, Debug, Clone)]
 pub enum RXingResultMetadataType {
     /**
      * Unspecified, application-specific metadata. Maps to an unspecified {@link Object}.
@@ -122,7 +122,7 @@ impl From<String> for RXingResultMetadataType {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum RXingResultMetadataValue {
     /**
      * Unspecified, application-specific metadata. Maps to an unspecified {@link Object}.

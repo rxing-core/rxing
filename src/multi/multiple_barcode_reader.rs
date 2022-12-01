@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.zxing.multi;
-
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.RXingResult;
-
-import java.util.Map;
+use crate::{BinaryBitmap, DecodingHintDictionary, Exceptions, RXingResult};
 
 /**
  * Implementation of this interface attempt to read several barcodes from one image.
@@ -29,11 +22,12 @@ import java.util.Map;
  * @see com.google.zxing.Reader
  * @author Sean Owen
  */
-public interface MultipleBarcodeReader {
+pub trait MultipleBarcodeReader {
+    fn decodeMultiple(&self, image: &BinaryBitmap) -> Result<Vec<RXingResult>, Exceptions>;
 
-  RXingResult[] decodeMultiple(BinaryBitmap image) throws NotFoundException;
-
-  RXingResult[] decodeMultiple(BinaryBitmap image,
-                          Map<DecodeHintType,?> hints) throws NotFoundException;
-
+    fn decodeMultipleWithHints(
+        &self,
+        image: &BinaryBitmap,
+        hints: &DecodingHintDictionary,
+    ) -> Result<Vec<RXingResult>, Exceptions>;
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
 /**
  * <p>The main class which implements QR Code decoding -- as opposed to locating and extracting
@@ -115,7 +115,7 @@ pub fn decode_bitmatrix_with_hints(
         let mut result = decode_bitmatrix_parser_with_hints(&mut parser, hints)?;
 
         // Success! Notify the caller that the code was mirrored.
-        result.setOther(Box::new(QRCodeDecoderMetaData::new(true)));
+        result.setOther(Rc::new(QRCodeDecoderMetaData::new(true)));
 
         Ok(result)
     };

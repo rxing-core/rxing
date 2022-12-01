@@ -32,6 +32,7 @@ use crate::{BarcodeFormat, RXingResultMetadataType, RXingResultMetadataValue, RX
  *
  * @author Sean Owen
  */
+#[derive(Clone)]
 pub struct RXingResult {
     text: String,
     rawBytes: Vec<u8>,
