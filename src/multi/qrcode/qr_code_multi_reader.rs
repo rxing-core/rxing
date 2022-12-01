@@ -37,14 +37,14 @@ use super::detector::MultiDetector;
 pub struct QRCodeMultiReader(QRCodeReader);
 impl MultipleBarcodeReader for QRCodeMultiReader {
     fn decodeMultiple(
-        &self,
+        &mut self,
         image: &crate::BinaryBitmap,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
         self.decodeMultipleWithHints(image, &HashMap::new())
     }
 
     fn decodeMultipleWithHints(
-        &self,
+        &mut self,
         image: &crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
@@ -251,7 +251,7 @@ mod multi_qr_code_test_case {
         let source = BufferedImageLuminanceSource::new(image);
         let bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
 
-        let reader = QRCodeMultiReader::new();
+        let mut reader = QRCodeMultiReader::new();
         let results = reader.decodeMultiple(&bitmap).expect("must decode");
         // assertNotNull(results);
         assert_eq!(4, results.len());
