@@ -80,7 +80,6 @@ impl Reader for MultiFormatReader {
 }
 
 impl MultiFormatReader {
-    const EMPTY_READER_ARRAY: Vec<Box<dyn Reader>> = Vec::new();
 
     /**
      * Decode an image using the state set up by calling setHints() previously. Continuous scan
