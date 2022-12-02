@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-use std::{path::PathBuf, rc::Rc};
+use std::{collections::HashSet, path::PathBuf, rc::Rc};
 
 use crate::{
-    common::HybridBinarizer, BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
-    MultiFormatReader,
+    common::HybridBinarizer, qrcode::QRCodeReader, BarcodeFormat, BinaryBitmap,
+    BufferedImageLuminanceSource, MultiFormatReader,
 };
 
 use super::{GenericMultipleBarcodeReader, MultipleBarcodeReader};
@@ -50,4 +50,42 @@ fn testMulti() {
 
     assert_eq!("www.airtable.com/jobs", results[1].getText());
     assert_eq!(&BarcodeFormat::QR_CODE, results[1].getBarcodeFormat());
+}
+
+#[test]
+fn testMultiQR() {
+    // Very basic test for now
+    let mut testBase = PathBuf::from("test_resources/blackbox/multi-qrcode-1");
+
+    testBase.push("1.png");
+    let image = image::io::Reader::open(testBase)
+        .expect("image must open")
+        .decode()
+        .expect("must decode");
+    let source = BufferedImageLuminanceSource::new(image);
+    let bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
+
+    let mut reader = GenericMultipleBarcodeReader::new(MultiFormatReader::default());
+    let results = reader.decodeMultiple(&bitmap).expect("must decode multi");
+    assert_eq!(4, results.len());
+
+    let mut barcodeContents = HashSet::new();
+    for result in results {
+        barcodeContents.insert(result.getText().to_owned());
+        assert_eq!(&BarcodeFormat::QR_CODE, result.getBarcodeFormat());
+        assert!(!result.getRXingResultMetadata().is_empty());
+    }
+    let mut expectedContents = HashSet::new();
+    expectedContents.insert(
+        "You earned the class a 5 MINUTE DANCE PARTY!!  Awesome!  Way to go!  Let's boogie!"
+            .to_owned(),
+    );
+    expectedContents.insert(
+        "You earned the class 5 EXTRA MINUTES OF RECESS!!  Fabulous!!  Way to go!!".to_owned(),
+    );
+    expectedContents.insert(
+        "You get to SIT AT MRS. SIGMON'S DESK FOR A DAY!!  Awesome!!  Way to go!! Guess I better clean up! :)".to_owned());
+    expectedContents
+        .insert("You get to CREATE OUR JOURNAL PROMPT FOR THE DAY!  Yay!  Way to go!  ".to_owned());
+    assert_eq!(expectedContents, barcodeContents);
 }

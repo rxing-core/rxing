@@ -53,7 +53,7 @@ impl<T: Reader> MultipleBarcodeReader for GenericMultipleBarcodeReader<T> {
         hints: &crate::DecodingHintDictionary,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
         let mut results = Vec::new();
-        self.doDecodeMultiple(image, hints, &mut results, 0, 0, 0)?;
+        self.doDecodeMultiple(image, hints, &mut results, 0, 0, 0);
         if results.is_empty() {
             return Err(Exceptions::NotFoundException("".to_owned()));
         }
@@ -76,28 +76,19 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         xOffset: u32,
         yOffset: u32,
         currentDepth: u32,
-    ) -> Result<(), Exceptions> {
+    ) {
         if currentDepth > Self::MAX_DEPTH {
-            return Ok(());
+            return;
         }
 
-        let result;
-        //try {
-        result = self.0.decode_with_hints(image, hints);
-        //} catch (ReaderException ignored) {
-        //  return;
-        //}
-        if let Err(Exceptions::ReaderException(_)) = result {
-            return Ok(());
-        } else if result.is_err() {
-            return Err(result.err().unwrap());
-        }
-
-        let result = result.expect("must exist");
+        // let result;
+        let Ok(result) = self.0.decode_with_hints(image, hints) else {
+            return;
+        };
 
         let mut alreadyFound = false;
         for existingRXingResult in results.iter() {
-            if existingRXingResult.getText() == (result.getText()) {
+            if existingRXingResult.getText() == result.getText() {
                 alreadyFound = true;
                 break;
             }
@@ -110,8 +101,9 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         }
 
         if resultPoints.is_empty() {
-            return Ok(());
+            return;
         }
+
         let width = image.getWidth();
         let height = image.getHeight();
         let mut minX: f32 = width as f32;
@@ -147,7 +139,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
                 xOffset,
                 yOffset,
                 currentDepth + 1,
-            )?;
+            );
         }
         // Decode above barcode
         if minY > Self::MIN_DIMENSION_TO_RECUR {
@@ -158,7 +150,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
                 xOffset,
                 yOffset,
                 currentDepth + 1,
-            )?;
+            );
         }
         // Decode right of barcode
         if maxX < (width as f32) - Self::MIN_DIMENSION_TO_RECUR {
@@ -169,7 +161,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
                 xOffset + maxX as u32,
                 yOffset,
                 currentDepth + 1,
-            )?;
+            );
         }
         // Decode below barcode
         if maxY < (height as f32) - Self::MIN_DIMENSION_TO_RECUR {
@@ -180,9 +172,8 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
                 xOffset,
                 yOffset + maxY as u32,
                 currentDepth + 1,
-            )?;
+            );
         }
-        Ok(())
     }
 
     fn translateRXingResultPoints(result: RXingResult, xOffset: u32, yOffset: u32) -> RXingResult {
