@@ -134,6 +134,10 @@ impl RXingResult {
         return &self.resultPoints;
     }
 
+    pub fn getRXingResultPointsMut(&mut self) -> &mut Vec<RXingResultPoint> {
+        &mut self.resultPoints
+    }
+
     /**
      * @return {@link BarcodeFormat} representing the format of the barcode that was decoded
      */

@@ -85,9 +85,9 @@ impl Binarizer for GlobalHistogramBinarizer {
             let mut center = localLuminances[1]; // & 0xff;
             for x in 1..width - 1 {
                 //   for (int x = 1; x < width - 1; x++) {
-                let right = localLuminances[x + 1] & 0xff;
+                let right = localLuminances[x + 1];
                 // A simple -1 4 -1 box filter with a weight of 2.
-                if ((center * 4) - left - right) as u32 / 2 < blackPoint {
+                if ((center as i64 * 4) - left as i64 - right as i64) / 2 < blackPoint as i64 {
                     row.set(x);
                 }
                 left = center;
