@@ -137,7 +137,7 @@ impl OneDReader for CodaBarReader {
             // self.decodeRowRXingResult.deleteCharAt(self.decodeRowRXingResult.chars().count() - 1);
             // self.decodeRowRXingResult.deleteCharAt(0);
             self.decodeRowRXingResult =
-                self.decodeRowRXingResult[1..self.decodeRowRXingResult.len()-1].to_owned();
+                self.decodeRowRXingResult[1..self.decodeRowRXingResult.len() - 1].to_owned();
         }
 
         let mut runningCount = 0;

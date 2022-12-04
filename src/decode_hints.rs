@@ -16,6 +16,8 @@
 
 //package com.google.zxing;
 
+use std::collections::HashSet;
+
 use crate::{BarcodeFormat, RXingResultPointCallback};
 
 /**
@@ -141,7 +143,7 @@ pub enum DecodeHintValue {
      * Image is known to be of one of a few possible formats.
      * Maps to a {@link List} of {@link BarcodeFormat}s.
      */
-    PossibleFormats(Vec<BarcodeFormat>),
+    PossibleFormats(HashSet<BarcodeFormat>),
 
     /**
      * Spend more time to try to find a barcode; optimize for accuracy, not speed.

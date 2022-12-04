@@ -66,5 +66,6 @@ pub trait Reader {
      * Resets any internal state the implementation has after a decode, to prepare it
      * for reuse.
      */
-    fn reset(&mut self);
+    fn reset(&mut self) { /* do nothing */
+    }
 }

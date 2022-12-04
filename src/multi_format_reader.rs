@@ -18,8 +18,8 @@ use std::collections::HashMap;
 
 use crate::{
     aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
-    qrcode::QRCodeReader, BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue,
-    DecodingHintDictionary, Exceptions, RXingResult, Reader,
+    oned::MultiFormatOneDReader, qrcode::QRCodeReader, BarcodeFormat, BinaryBitmap, DecodeHintType,
+    DecodeHintValue, DecodingHintDictionary, Exceptions, RXingResult, Reader,
 };
 
 /**
@@ -124,8 +124,7 @@ impl MultiFormatReader {
                 || formats.contains(&BarcodeFormat::RSS_EXPANDED);
             // Put 1D readers upfront in "normal" mode
             if addOneDReader && !tryHarder {
-                unimplemented!("");
-                // readers.push(new MultiFormatOneDReader(hints));
+                readers.push(Box::new(MultiFormatOneDReader::new(hints)));
             }
             if formats.contains(&BarcodeFormat::QR_CODE) {
                 readers.push(Box::new(QRCodeReader {}));
@@ -145,13 +144,12 @@ impl MultiFormatReader {
             }
             // At end in "try harder" mode
             if addOneDReader && tryHarder {
-                unimplemented!("");
-                // readers.push( MultiFormatOneDReader::new(hints));
+                readers.push(Box::new(MultiFormatOneDReader::new(hints)));
             }
         }
         if readers.is_empty() {
             if !tryHarder {
-                // readers.push( MultiFormatOneDReader::new(hints));
+                readers.push(Box::new(MultiFormatOneDReader::new(hints)));
                 //TODO: ADD MultiformatOneDReader here
             }
 
@@ -163,7 +161,7 @@ impl MultiFormatReader {
             // unimplemented!("");
 
             if tryHarder {
-                // readers.push( Box::new(MultiFormatOneDReader::new(hints)));
+                readers.push(Box::new(MultiFormatOneDReader::new(hints)));
                 //TODO: ADD MultiformatOneDReader here
             }
         }

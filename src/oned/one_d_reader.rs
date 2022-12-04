@@ -159,7 +159,10 @@ pub trait OneDReader: Reader {
      * @throws NotFoundException if counters cannot be filled entirely from row before running out
      *  of pixels
      */
-    fn recordPattern(row: &BitArray, start: usize, counters: &mut [u32]) -> Result<(), Exceptions> {
+    fn recordPattern(row: &BitArray, start: usize, counters: &mut [u32]) -> Result<(), Exceptions>
+    where
+        Self: Sized,
+    {
         let numCounters = counters.len();
         // Arrays.fill(counters, 0, numCounters, 0);
         counters.fill(0);
@@ -196,7 +199,10 @@ pub trait OneDReader: Reader {
         row: &BitArray,
         start: usize,
         counters: &mut [u32],
-    ) -> Result<(), Exceptions> {
+    ) -> Result<(), Exceptions>
+    where
+        Self: Sized,
+    {
         let mut start = start;
         // This could be more efficient I guess
         let mut numTransitionsLeft = counters.len() as isize;
@@ -226,7 +232,10 @@ pub trait OneDReader: Reader {
      * @param maxIndividualVariance The most any counter can differ before we give up
      * @return ratio of total variance between counters and pattern compared to total pattern size
      */
-    fn patternMatchVariance(counters: &[u32], pattern: &[u32], maxIndividualVariance: f32) -> f32 {
+    fn patternMatchVariance(counters: &[u32], pattern: &[u32], maxIndividualVariance: f32) -> f32
+    where
+        Self: Sized,
+    {
         let mut maxIndividualVariance = maxIndividualVariance;
         let numCounters = counters.len();
         let mut total = 0.0;

@@ -74,10 +74,6 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
                 }
               }
             }
-        
-            fn reset(&mut self) {
-                // do nothing
-            }
         }
     };
     gen.into()
