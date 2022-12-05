@@ -412,7 +412,7 @@ mod code_39_extended_mode_test_case {
         let matrix =
             BitMatrix::parse_strings(encodedRXingResult, "1", "0").expect("bitmatrix parse");
         let row = BitArray::with_size(matrix.getWidth() as usize);
-        let row = matrix.getRow(0, &row);
+        let row = matrix.getRow(0, row);
         let result = sut.decodeRow(0, &row, &HashMap::new()).expect("decode row");
         assert_eq!(expectedRXingResult, result.getText());
     }

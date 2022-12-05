@@ -151,17 +151,17 @@ fn test_get_row() {
     }
 
     // Should allocate
-    let array = matrix.getRow(2, &BitArray::new());
+    let array = matrix.getRow(2, BitArray::new());
     assert_eq!(102, array.getSize());
 
     // Should reallocate
     let mut array2 = BitArray::with_size(60);
-    array2 = matrix.getRow(2, &array2);
+    array2 = matrix.getRow(2, array2);
     assert_eq!(102, array2.getSize());
 
     // Should use provided object, with original BitArray size
     let mut array3 = BitArray::with_size(200);
-    array3 = matrix.getRow(2, &array3);
+    array3 = matrix.getRow(2, array3);
     assert_eq!(200, array3.getSize());
 
     for x in 0..102 {

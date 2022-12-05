@@ -254,12 +254,12 @@ impl BitMatrix {
                 "input matrix dimensions do not match".to_owned(),
             ));
         }
-        let rowArray = BitArray::with_size(self.width as usize);
+        let mut rowArray = BitArray::with_size(self.width as usize);
         for y in 0..self.height {
             //for (int y = 0; y < height; y++) {
             let offset = y as usize * self.row_size;
-            let tmp = mask.getRow(y, &rowArray);
-            let row = tmp.getBitArray();
+             rowArray = mask.getRow(y, rowArray);
+            let row = rowArray.getBitArray();
             for x in 0..self.row_size {
                 //for (int x = 0; x < rowSize; x++) {
                 self.bits[offset + x] ^= row[x];
@@ -330,11 +330,11 @@ impl BitMatrix {
      * @return The resulting BitArray - this reference should always be used even when passing
      *         your own row
      */
-    pub fn getRow(&self, y: u32, row: &BitArray) -> BitArray {
+    pub fn getRow(&self, y: u32, row: BitArray) -> BitArray {
         let mut rw: BitArray = if row.getSize() < self.width as usize {
             BitArray::with_size(self.width as usize)
         } else {
-            let mut z = row.clone();
+            let mut z = row; //row.clone();
             z.clear();
             z
             // row.clear();
@@ -395,9 +395,9 @@ impl BitMatrix {
         let maxHeight = (self.height + 1) / 2;
         for i in 0..maxHeight {
             //for (int i = 0; i < maxHeight; i++) {
-            topRow = self.getRow(i, &topRow);
+            topRow = self.getRow(i, topRow);
             let bottomRowIndex = self.height - 1 - i;
-            bottomRow = self.getRow(bottomRowIndex, &bottomRow);
+            bottomRow = self.getRow(bottomRowIndex, bottomRow);
             topRow.reverse();
             bottomRow.reverse();
             self.setRow(i, &bottomRow);
