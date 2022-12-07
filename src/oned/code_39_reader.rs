@@ -228,8 +228,8 @@ impl Code39Reader {
                         // return new int[]{patternStart, i};
                     }
                     patternStart += (counters[0] + counters[1]) as usize;
-                    let slc = counters[0..(counterPosition - 1)].to_vec();
-                    counters[2..(counterPosition - 1 + 2)].clone_from_slice(&slc[..]);
+                    let slc = counters[2..(counterPosition - 1 + 2)].to_vec();
+                    counters[0..(counterPosition - 1)].clone_from_slice(&slc[..]);
                     // System.arraycopy(counters, 2, counters, 0, counterPosition - 1);
                     counters[counterPosition - 1] = 0;
                     counters[counterPosition] = 0;

@@ -23,6 +23,8 @@ fn code39_black_box1_test_case() {
         BarcodeFormat::CODE_39,
     );
 
+    // 2 failes on row 169
+
     // super("src/test/resources/blackbox/code39-1", new MultiFormatReader(), BarcodeFormat.CODE_39);
     tester.add_test(4, 4, 0.0);
     tester.add_test(4, 4, 180.0);
