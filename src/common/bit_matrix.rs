@@ -258,7 +258,7 @@ impl BitMatrix {
         for y in 0..self.height {
             //for (int y = 0; y < height; y++) {
             let offset = y as usize * self.row_size;
-             rowArray = mask.getRow(y, rowArray);
+            rowArray = mask.getRow(y, rowArray);
             let row = rowArray.getBitArray();
             for x in 0..self.row_size {
                 //for (int x = 0; x < rowSize; x++) {
