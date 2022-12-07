@@ -340,3 +340,35 @@ impl Code93Reader {
         }
     }
 }
+
+/**
+ * @author Daisuke Makiuchi
+ */
+#[cfg(test)]
+mod Code93ReaderTestCase {
+    use std::collections::HashMap;
+
+    use crate::{
+        common::{BitArray, BitMatrix},
+        oned::OneDReader,
+    };
+
+    use super::Code93Reader;
+
+    #[test]
+    fn testDecode() {
+        doTest("Code93!\n$%/+ :\u{001b};[{\u{007f}\u{0000}@`\u{007f}\u{007f}\u{007f}",
+             "0000001010111101101000101001100101001011001001100101100101001001100101100100101000010101010000101110101101101010001001001101001101001110010101101011101011011101011101101110100101110101101001110101110110101101010001110110101100010101110110101000110101110110101000101101110110101101001101110110101100101101110110101100110101110110101011011001110110101011001101110110101001101101110110101001110101001100101101010001010111101111");
+    }
+
+    fn doTest(expectedRXingResult: &str, encodedRXingResult: &str) {
+        let mut sut = Code93Reader::new();
+        let matrix = BitMatrix::parse_strings(encodedRXingResult, "1", "0").expect("must parse");
+        let mut row = BitArray::with_size(matrix.getWidth() as usize);
+        row = matrix.getRow(0, row);
+        let result = sut
+            .decodeRow(0, &row, &HashMap::new())
+            .expect("must decode");
+        assert_eq!(expectedRXingResult, result.getText());
+    }
+}
