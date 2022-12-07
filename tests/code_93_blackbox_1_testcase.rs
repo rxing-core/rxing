@@ -14,21 +14,27 @@
  * limitations under the License.
  */
 
-package com.google.zxing.oned;
+use rxing::{
+  oned::{CodaBarReader, Code39Reader, OneDReader},
+  BarcodeFormat, MultiFormatReader,
+};
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.common.AbstractBlackBoxTestCase;
+mod common;
 
 /**
  * @author Sean Owen
  */
-public final class Code93BlackBox1TestCase extends AbstractBlackBoxTestCase {
+#[test]
+  fn code93_black_box1_test_case() {
+    let mut tester = common::AbstractBlackBoxTestCase::new(
+      "test_resources/blackbox/code93-1",
+      MultiFormatReader::default(),
+      BarcodeFormat::CODE_93,
+  );
+    // super("src/test/resources/blackbox/code93-1", new MultiFormatReader(), BarcodeFormat.CODE_93);
+    tester.add_test(3, 3, 0.0);
+    tester.add_test(3, 3, 180.0);
 
-  public Code93BlackBox1TestCase() {
-    super("src/test/resources/blackbox/code93-1", new MultiFormatReader(), BarcodeFormat.CODE_93);
-    addTest(3, 3, 0.0f);
-    addTest(3, 3, 180.0f);
+    tester.test_black_box()
   }
 
-}

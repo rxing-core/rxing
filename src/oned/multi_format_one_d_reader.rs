@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-use one_d_reader_derive::OneDReader;
-
 use super::CodaBarReader;
 use super::Code39Reader;
+use super::Code93Reader;
 use super::OneDReader;
 use crate::BarcodeFormat;
 use crate::DecodeHintValue;
@@ -74,9 +73,9 @@ impl MultiFormatOneDReader {
                     useCode39CheckDigit,
                 )));
             }
-            // if (possibleFormats.contains(&BarcodeFormat::CODE_93)) {
-            //   readers.add(new Code93Reader());
-            // }
+            if possibleFormats.contains(&BarcodeFormat::CODE_93) {
+              readers.push(Box::new( Code93Reader::new()));
+            }
             // if (possibleFormats.contains(&BarcodeFormat::CODE_128)) {
             //   readers.add(new Code128Reader());
             // }
@@ -97,7 +96,7 @@ impl MultiFormatOneDReader {
             // readers.push(new MultiFormatUPCEANReader(hints));
             readers.push(Box::new(Code39Reader::new()));
             readers.push(Box::new(CodaBarReader::new()));
-            // readers.push(new Code93Reader());
+            readers.push(Box::new( Code93Reader::new()));
             // readers.push(new Code128Reader());
             // readers.push(new ITFReader());
             // readers.push(new RSS14Reader());
