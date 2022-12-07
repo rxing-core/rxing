@@ -73,11 +73,13 @@ impl OneDReader for Code93Reader {
         self.decodeRowRXingResult
             .truncate(self.decodeRowRXingResult.chars().count() - 1); // remove asterisk
 
-        let mut lastPatternSize = 0;
-        for counter in theCounters {
-            // for (int counter : theCounters) {
-            lastPatternSize += counter;
-        }
+        // let mut lastPatternSize = 0;
+        // for counter in theCounters {
+        //     // for (int counter : theCounters) {
+        //     lastPatternSize += counter;
+        // }
+
+        let lastPatternSize : u32 = theCounters.iter().sum();
 
         // Should be at least one more black module
         if nextStart == end || !row.get(nextStart) {
