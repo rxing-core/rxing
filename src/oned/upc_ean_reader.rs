@@ -14,22 +14,9 @@
  * limitations under the License.
  */
 
-package com.google.zxing.oned;
+use crate::{Exceptions, common::BitArray, RXingResult};
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.ChecksumException;
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.FormatException;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.ReaderException;
-import com.google.zxing.RXingResult;
-import com.google.zxing.RXingResultMetadataType;
-import com.google.zxing.RXingResultPoint;
-import com.google.zxing.RXingResultPointCallback;
-import com.google.zxing.common.BitArray;
-
-import java.util.Arrays;
-import java.util.Map;
+use super::OneDReader;
 
 /**
  * <p>Encapsulates functionality and implementation that is common to UPC and EAN families
@@ -39,72 +26,82 @@ import java.util.Map;
  * @author Sean Owen
  * @author alasdair@google.com (Alasdair Mackintosh)
  */
-public abstract class UPCEANReader extends OneDReader {
+pub trait UPCEANReader: OneDReader {
+
 
   // These two values are critical for determining how permissive the decoding will be.
   // We've arrived at these values through a lot of trial and error. Setting them any higher
   // lets false positives creep in quickly.
-  private static final float MAX_AVG_VARIANCE = 0.48f;
-  private static final float MAX_INDIVIDUAL_VARIANCE = 0.7f;
+  const MAX_AVG_VARIANCE : f32= 0.48;
+  const MAX_INDIVIDUAL_VARIANCE : f32= 0.7;
 
   /**
    * Start/end guard pattern.
    */
-  static final int[] START_END_PATTERN = {1, 1, 1,};
+  const START_END_PATTERN : [u32;3]= [1, 1, 1,];
 
   /**
    * Pattern marking the middle of a UPC/EAN pattern, separating the two halves.
    */
-  static final int[] MIDDLE_PATTERN = {1, 1, 1, 1, 1};
+  const MIDDLE_PATTERN : [u32;5]= [1, 1, 1, 1, 1];
   /**
    * end guard pattern.
    */
-  static final int[] END_PATTERN = {1, 1, 1, 1, 1, 1};
+  const END_PATTERN : [u32;6]= [1, 1, 1, 1, 1, 1];
   /**
    * "Odd", or "L" patterns used to encode UPC/EAN digits.
    */
-  static final int[][] L_PATTERNS = {
-      {3, 2, 1, 1}, // 0
-      {2, 2, 2, 1}, // 1
-      {2, 1, 2, 2}, // 2
-      {1, 4, 1, 1}, // 3
-      {1, 1, 3, 2}, // 4
-      {1, 2, 3, 1}, // 5
-      {1, 1, 1, 4}, // 6
-      {1, 3, 1, 2}, // 7
-      {1, 2, 1, 3}, // 8
-      {3, 1, 1, 2}  // 9
-  };
+  const L_PATTERNS : [[u32;4];10]= [
+      [3, 2, 1, 1], // 0
+      [2, 2, 2, 1], // 1
+      [2, 1, 2, 2], // 2
+      [1, 4, 1, 1], // 3
+      [1, 1, 3, 2], // 4
+      [1, 2, 3, 1], // 5
+      [1, 1, 1, 4], // 6
+      [1, 3, 1, 2], // 7
+      [1, 2, 1, 3], // 8
+      [3, 1, 1, 2]  // 9
+  ];
 
   /**
    * As above but also including the "even", or "G" patterns used to encode UPC/EAN digits.
    */
-  static final int[][] L_AND_G_PATTERNS;
-
-  static {
-    L_AND_G_PATTERNS = new int[20][];
-    System.arraycopy(L_PATTERNS, 0, L_AND_G_PATTERNS, 0, 10);
-    for (int i = 10; i < 20; i++) {
-      int[] widths = L_PATTERNS[i - 10];
-      int[] reversedWidths = new int[widths.length];
-      for (int j = 0; j < widths.length; j++) {
-        reversedWidths[j] = widths[widths.length - j - 1];
+  const L_AND_G_PATTERNS : [[u32;4];20] = {
+    let new_array = [[0_u32;4];20];//new int[20][];
+    new_array[0..10].copy_from_slice(&Self::L_PATTERNS[0..10]);
+    // System.arraycopy(L_PATTERNS, 0, L_AND_G_PATTERNS, 0, 10);
+    let mut i = 10;
+    while i < 20 {
+    // for (int i = 10; i < 20; i++) {
+      let widths = &Self::L_PATTERNS[i - 10];
+      let reversedWidths = [0_u32;4];//new int[widths.length];
+      let mut j = 0;
+      while j < 4 {
+      // for (int j = 0; j < widths.length; j++) {
+        reversedWidths[j] = widths[4 - j - 1];
+        
+        j+=1;
       }
-      L_AND_G_PATTERNS[i] = reversedWidths;
+      new_array[i] = reversedWidths;
+
+      i+=1;
     }
-  }
 
-  private final StringBuilder decodeRowStringBuffer;
-  private final UPCEANExtensionSupport extensionReader;
-  private final EANManufacturerOrgSupport eanManSupport;
+    new_array
+  };
 
-  protected UPCEANReader() {
-    decodeRowStringBuffer = new StringBuilder(20);
-    extensionReader = new UPCEANExtensionSupport();
-    eanManSupport = new EANManufacturerOrgSupport();
-  }
+  // private final StringBuilder decodeRowStringBuffer;
+  // private final UPCEANExtensionSupport extensionReader;
+  // private final EANManufacturerOrgSupport eanManSupport;
 
-  static int[] findStartGuardPattern(BitArray row) throws NotFoundException {
+  // protected UPCEANReader() {
+  //   decodeRowStringBuffer = new StringBuilder(20);
+  //   extensionReader = new UPCEANExtensionSupport();
+  //   eanManSupport = new EANManufacturerOrgSupport();
+  // }
+
+   fn findStartGuardPattern( row:&BitArray) -> Result<Vec<u32>,Exceptions> {
     boolean foundStart = false;
     int[] startRange = null;
     int nextStart = 0;
@@ -125,11 +122,11 @@ public abstract class UPCEANReader extends OneDReader {
     return startRange;
   }
 
-  @Override
-  public RXingResult decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints)
-      throws NotFoundException, ChecksumException, FormatException {
-    return decodeRow(rowNumber, row, findStartGuardPattern(row), hints);
-  }
+  // @Override
+  // public RXingResult decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints)
+  //     throws NotFoundException, ChecksumException, FormatException {
+  //   return decodeRow(rowNumber, row, findStartGuardPattern(row), hints);
+  // }
 
   /**
    * <p>Like {@link #decodeRow(int, BitArray, Map)}, but
@@ -145,11 +142,11 @@ public abstract class UPCEANReader extends OneDReader {
    * @throws ChecksumException if a potential barcode is found but does not pass its checksum
    * @throws FormatException if a potential barcode is found but format is invalid
    */
-  public RXingResult decodeRow(int rowNumber,
-                          BitArray row,
-                          int[] startGuardRange,
-                          Map<DecodeHintType,?> hints)
-      throws NotFoundException, ChecksumException, FormatException {
+  fn  decodeRowWithGuardRange(rowNumber:u32,
+                           row:&BitArray,
+                           startGuardRange:&[u32;2],
+                          hints:&crate::DecodingHintDictionary)
+      -> Result<RXingResult,Exceptions> {
 
     RXingResultPointCallback resultPointCallback = hints == null ? null :
         (RXingResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
@@ -254,8 +251,8 @@ public abstract class UPCEANReader extends OneDReader {
    * @return {@link #checkStandardUPCEANChecksum(CharSequence)}
    * @throws FormatException if the string does not contain only digits
    */
-  boolean checkChecksum(String s) throws FormatException {
-    return checkStandardUPCEANChecksum(s);
+  fn checkChecksum(&self,  s:&str) -> Result<String,Exceptions> {
+     Self::checkStandardUPCEANChecksum(s)
   }
 
   /**
@@ -266,7 +263,7 @@ public abstract class UPCEANReader extends OneDReader {
    * @return true iff string of digits passes the UPC/EAN checksum algorithm
    * @throws FormatException if the string does not contain only digits
    */
-  static boolean checkStandardUPCEANChecksum(CharSequence s) throws FormatException {
+  fn checkStandardUPCEANChecksum( s:&str) -> Result<bool,Exceptions> {
     int length = s.length();
     if (length == 0) {
       return false;
@@ -275,7 +272,7 @@ public abstract class UPCEANReader extends OneDReader {
     return getStandardUPCEANChecksum(s.subSequence(0, length - 1)) == check;
   }
 
-  static int getStandardUPCEANChecksum(CharSequence s) throws FormatException {
+  fn getStandardUPCEANChecksum( s:&str) -> Result<u32,Exceptions> {
     int length = s.length();
     int sum = 0;
     for (int i = length - 1; i >= 0; i -= 2) {
@@ -296,15 +293,15 @@ public abstract class UPCEANReader extends OneDReader {
     return (1000 - sum) % 10;
   }
 
-  int[] decodeEnd(BitArray row, int endStart) throws NotFoundException {
-    return findGuardPattern(row, endStart, false, START_END_PATTERN);
+  fn decodeEnd(&self,  row:&BitArray,  endStart:usize) -> Result<[usize;2],Exceptions> {
+     Self::findGuardPattern(row, endStart, false, Self::START_END_PATTERN)
   }
 
-  static int[] findGuardPattern(BitArray row,
-                                int rowOffset,
-                                boolean whiteFirst,
-                                int[] pattern) throws NotFoundException {
-    return findGuardPattern(row, rowOffset, whiteFirst, pattern, new int[pattern.length]);
+  fn findGuardPattern( row:&BitArray,
+                                 rowOffset:usize,
+                                 whiteFirst:bool,
+                                 pattern:[u32;3]) -> Result<[usize;2],Exceptions> {
+     Self::findGuardPatternWithCounters(row, rowOffset, whiteFirst, pattern, vec![0u32;pattern.len()])
   }
 
   /**
@@ -318,11 +315,11 @@ public abstract class UPCEANReader extends OneDReader {
    * @return start/end horizontal offset of guard pattern, as an array of two ints
    * @throws NotFoundException if pattern is not found
    */
-  private static int[] findGuardPattern(BitArray row,
-                                        int rowOffset,
-                                        boolean whiteFirst,
-                                        int[] pattern,
-                                        int[] counters) throws NotFoundException {
+  fn findGuardPatternWithCounters( row:&BitArray,
+                                         rowOffset:usize,
+                                         whiteFirst:bool,
+                                         pattern:&[u32;3],
+                                         counters:&Vec<u32>) -> Result<[usize;2],Exceptions> {
     int width = row.getSize();
     rowOffset = whiteFirst ? row.getNextUnset(rowOffset) : row.getNextSet(rowOffset);
     int counterPosition = 0;
@@ -364,8 +361,8 @@ public abstract class UPCEANReader extends OneDReader {
    * @return horizontal offset of first pixel beyond the decoded digit
    * @throws NotFoundException if digit cannot be decoded
    */
-  static int decodeDigit(BitArray row, int[] counters, int rowOffset, int[][] patterns)
-      throws NotFoundException {
+   decodeDigit( row:&BitArray,  counters:&Vec<u32>,  rowOffset:usize,  patterns:&Vec<Vec<u32>>)
+      -> Result<u32,Exceptions> {
     recordPattern(row, rowOffset, counters);
     float bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
     int bestMatch = -1;
@@ -390,7 +387,7 @@ public abstract class UPCEANReader extends OneDReader {
    *
    * @return The 1D format.
    */
-  abstract BarcodeFormat getBarcodeFormat();
+   fn  getBarcodeFormat() -> BarcodeFormat;
 
   /**
    * Subclasses override this to decode the portion of a barcode between the start
@@ -402,8 +399,8 @@ public abstract class UPCEANReader extends OneDReader {
    * @return horizontal offset of first pixel after the "middle" that was decoded
    * @throws NotFoundException if decoding could not complete successfully
    */
-  protected abstract int decodeMiddle(BitArray row,
-                                      int[] startRange,
-                                      StringBuilder resultString) throws NotFoundException;
+  fn decodeMiddle( row:&BitArray,
+                                       startRange:&[u32;2],
+                                       resultString:&mut String) -> Result<u32,Exceptions>;
 
 }

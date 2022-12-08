@@ -23,3 +23,6 @@ pub use code_128_reader::*;
 
 mod itf_reader;
 pub use itf_reader::*;
+
+mod upc_ean_reader;
+pub use upc_ean_reader::*;

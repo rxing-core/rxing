@@ -78,3 +78,30 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
     };
     gen.into()
 }
+
+#[proc_macro_derive(EANReader)]
+pub fn ean_reader_derive(input: TokenStream) -> TokenStream {
+  // Construct a representation of Rust code as a syntax tree
+  // that we can manipulate
+  let ast = syn::parse(input).unwrap();
+
+  // Build the trait implementation
+  impl_ean_reader_macro(&ast)
+}
+
+fn impl_ean_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
+  let name = &ast.ident;
+  let gen = quote! {
+    impl OneDReader for #name {
+      fn decodeRow(
+        &mut self,
+        rowNumber: u32,
+        row: &crate::common::BitArray,
+        hints: &crate::DecodingHintDictionary,
+    ) -> Result<crate::RXingResult, crate::Exceptions> {
+      self.decodeRowWithGuardRange(rowNumber, row, Self::findStartGuardPattern(row), hints)
+    }
+  }
+  };
+  gen.into()
+}
