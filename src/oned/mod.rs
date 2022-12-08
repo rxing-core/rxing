@@ -17,3 +17,6 @@ pub use multi_format_one_d_reader::*;
 
 mod code_93_reader;
 pub use code_93_reader::*;
+
+mod code_128_reader;
+pub use code_128_reader::*;

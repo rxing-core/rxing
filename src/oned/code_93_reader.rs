@@ -79,7 +79,7 @@ impl OneDReader for Code93Reader {
         //     lastPatternSize += counter;
         // }
 
-        let lastPatternSize : u32 = theCounters.iter().sum();
+        let lastPatternSize: u32 = theCounters.iter().sum();
 
         // Should be at least one more black module
         if nextStart == end || !row.get(nextStart) {
