@@ -20,3 +20,6 @@ pub use code_93_reader::*;
 
 mod code_128_reader;
 pub use code_128_reader::*;
+
+mod itf_reader;
+pub use itf_reader::*;

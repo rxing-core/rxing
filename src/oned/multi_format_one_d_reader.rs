@@ -18,6 +18,7 @@ use super::CodaBarReader;
 use super::Code128Reader;
 use super::Code39Reader;
 use super::Code93Reader;
+use super::ITFReader;
 use super::OneDReader;
 use crate::BarcodeFormat;
 use crate::DecodeHintValue;
@@ -80,9 +81,9 @@ impl MultiFormatOneDReader {
             if possibleFormats.contains(&BarcodeFormat::CODE_128) {
                 readers.push(Box::new(Code128Reader {}));
             }
-            // if (possibleFormats.contains(&BarcodeFormat::ITF)) {
-            //   readers.add(new ITFReader());
-            // }
+            if (possibleFormats.contains(&BarcodeFormat::ITF)) {
+                readers.push(Box::new(ITFReader::default()));
+            }
             if possibleFormats.contains(&BarcodeFormat::CODABAR) {
                 readers.push(Box::new(CodaBarReader::new()));
             }
@@ -99,7 +100,7 @@ impl MultiFormatOneDReader {
             readers.push(Box::new(CodaBarReader::new()));
             readers.push(Box::new(Code93Reader::new()));
             readers.push(Box::new(Code128Reader {}));
-            // readers.push(new ITFReader());
+            readers.push(Box::new(ITFReader::default()));
             // readers.push(new RSS14Reader());
             // readers.push(new RSSExpandedReader());
         }
