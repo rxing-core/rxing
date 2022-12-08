@@ -264,7 +264,7 @@ impl ITFReader {
         // if there are not so many pixel at all let's try as many as possible
         quietCount = quietCount.min(startPattern as i32);
 
-        let mut i = startPattern as isize- 1 ;
+        let mut i = startPattern as isize - 1;
         while quietCount > 0 && i >= 0 {
             // for (int i = startPattern - 1; quietCount > 0 && i >= 0; i--) {
             if row.get(i as usize) {
