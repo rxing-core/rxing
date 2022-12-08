@@ -181,3 +181,35 @@ impl EANManufacturerOrgSupport {
         self.add(vec![958], "MO".to_owned());
     }
 }
+
+/**
+ * Tests {@link EANManufacturerOrgSupport}.
+ *
+ * @author Sean Owen
+ */
+#[cfg(test)]
+mod EANManufacturerOrgSupportTest {
+    use crate::oned::EANManufacturerOrgSupport;
+
+    #[test]
+    fn testLookup() {
+        let mut support = EANManufacturerOrgSupport::default();
+        assert!(support.lookupCountryIdentifier("472000").is_none());
+        assert_eq!(
+            "US/CA",
+            support.lookupCountryIdentifier("000000").expect("msg")
+        );
+        assert_eq!(
+            "MO",
+            support.lookupCountryIdentifier("958000").expect("msg")
+        );
+        assert_eq!(
+            "GB",
+            support.lookupCountryIdentifier("500000").expect("msg")
+        );
+        assert_eq!(
+            "GB",
+            support.lookupCountryIdentifier("509000").expect("msg")
+        );
+    }
+}
