@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-use crate::{Exceptions, common::BitArray, RXingResult};
+use crate::{Exceptions, common::BitArray, RXingResult, BarcodeFormat};
 
 use super::OneDReader;
 
-/**
- * <p>Encapsulates functionality and implementation that is common to UPC and EAN families
- * of one-dimensional barcodes.</p>
- *
- * @author dswitkin@google.com (Daniel Switkin)
- * @author Sean Owen
- * @author alasdair@google.com (Alasdair Mackintosh)
- */
-pub trait UPCEANReader: OneDReader {
 
 
   // These two values are critical for determining how permissive the decoding will be.
@@ -69,12 +60,12 @@ pub trait UPCEANReader: OneDReader {
    */
   const L_AND_G_PATTERNS : [[u32;4];20] = {
     let new_array = [[0_u32;4];20];//new int[20][];
-    new_array[0..10].copy_from_slice(&Self::L_PATTERNS[0..10]);
+    new_array[0..10].copy_from_slice(&L_PATTERNS[0..10]);
     // System.arraycopy(L_PATTERNS, 0, L_AND_G_PATTERNS, 0, 10);
     let mut i = 10;
     while i < 20 {
     // for (int i = 10; i < 20; i++) {
-      let widths = &Self::L_PATTERNS[i - 10];
+      let widths = &L_PATTERNS[i - 10];
       let reversedWidths = [0_u32;4];//new int[widths.length];
       let mut j = 0;
       while j < 4 {
@@ -91,6 +82,16 @@ pub trait UPCEANReader: OneDReader {
     new_array
   };
 
+/**
+ * <p>Encapsulates functionality and implementation that is common to UPC and EAN families
+ * of one-dimensional barcodes.</p>
+ *
+ * @author dswitkin@google.com (Daniel Switkin)
+ * @author Sean Owen
+ * @author alasdair@google.com (Alasdair Mackintosh)
+ */
+pub trait UPCEANReader: OneDReader {
+
   // private final StringBuilder decodeRowStringBuffer;
   // private final UPCEANExtensionSupport extensionReader;
   // private final EANManufacturerOrgSupport eanManSupport;
@@ -102,19 +103,19 @@ pub trait UPCEANReader: OneDReader {
   // }
 
    fn findStartGuardPattern( row:&BitArray) -> Result<Vec<u32>,Exceptions> {
-    boolean foundStart = false;
-    int[] startRange = null;
-    int nextStart = 0;
-    int[] counters = new int[START_END_PATTERN.length];
+    let foundStart = false;
+    let startRange ;//= null;
+    let nextStart = 0;
+    let counters = vec![0_u32;START_END_PATTERN.len()];
     while (!foundStart) {
-      Arrays.fill(counters, 0, START_END_PATTERN.length, 0);
-      startRange = findGuardPattern(row, nextStart, false, START_END_PATTERN, counters);
-      int start = startRange[0];
+      Arrays.fill(counters, 0, START_END_PATTERN.len(), 0);
+      startRange = Self::findGuardPattern(row, nextStart, false, START_END_PATTERN, counters);
+      let start = startRange[0];
       nextStart = startRange[1];
       // Make sure there is a quiet zone at least as big as the start pattern before the barcode.
       // If this check would run off the left edge of the image, do not accept this barcode,
       // as it is very likely to be a false positive.
-      int quietStart = start - (nextStart - start);
+      let quietStart = start - (nextStart - start);
       if (quietStart >= 0) {
         foundStart = row.isRange(quietStart, start, false);
       }
@@ -251,7 +252,7 @@ pub trait UPCEANReader: OneDReader {
    * @return {@link #checkStandardUPCEANChecksum(CharSequence)}
    * @throws FormatException if the string does not contain only digits
    */
-  fn checkChecksum(&self,  s:&str) -> Result<String,Exceptions> {
+  fn checkChecksum(&self,  s:&str) -> Result<bool,Exceptions> {
      Self::checkStandardUPCEANChecksum(s)
   }
 
@@ -264,37 +265,45 @@ pub trait UPCEANReader: OneDReader {
    * @throws FormatException if the string does not contain only digits
    */
   fn checkStandardUPCEANChecksum( s:&str) -> Result<bool,Exceptions> {
-    int length = s.length();
-    if (length == 0) {
-      return false;
+    let length = s.len();
+    if length == 0 {
+      return Ok(false);
     }
-    int check = Character.digit(s.charAt(length - 1), 10);
+    let check = Character.digit(s.charAt(length - 1), 10);
     return getStandardUPCEANChecksum(s.subSequence(0, length - 1)) == check;
   }
 
   fn getStandardUPCEANChecksum( s:&str) -> Result<u32,Exceptions> {
-    int length = s.length();
-    int sum = 0;
-    for (int i = length - 1; i >= 0; i -= 2) {
-      int digit = s.charAt(i) - '0';
+    let length = s.chars().count();
+    let sum = 0;
+    let mut i = length - 1;
+    while i >= 0 {
+    // for (int i = length - 1; i >= 0; i -= 2) {
+      let digit = s.charAt(i) - '0';
       if (digit < 0 || digit > 9) {
         throw FormatException.getFormatInstance();
       }
       sum += digit;
+
+      i -= 2;
     }
     sum *= 3;
-    for (int i = length - 2; i >= 0; i -= 2) {
-      int digit = s.charAt(i) - '0';
+    let mut i = length - 2;
+    while i >= 0 {
+    // for (int i = length - 2; i >= 0; i -= 2) {
+      let digit = s.charAt(i) - '0';
       if (digit < 0 || digit > 9) {
         throw FormatException.getFormatInstance();
       }
       sum += digit;
+
+      i -= 2;
     }
     return (1000 - sum) % 10;
   }
 
   fn decodeEnd(&self,  row:&BitArray,  endStart:usize) -> Result<[usize;2],Exceptions> {
-     Self::findGuardPattern(row, endStart, false, Self::START_END_PATTERN)
+     Self::findGuardPattern(row, endStart, false, START_END_PATTERN)
   }
 
   fn findGuardPattern( row:&BitArray,
@@ -320,27 +329,28 @@ pub trait UPCEANReader: OneDReader {
                                          whiteFirst:bool,
                                          pattern:&[u32;3],
                                          counters:&Vec<u32>) -> Result<[usize;2],Exceptions> {
-    int width = row.getSize();
-    rowOffset = whiteFirst ? row.getNextUnset(rowOffset) : row.getNextSet(rowOffset);
-    int counterPosition = 0;
-    int patternStart = rowOffset;
-    int patternLength = pattern.length;
-    boolean isWhite = whiteFirst;
-    for (int x = rowOffset; x < width; x++) {
+    let width = row.getSize();
+    rowOffset = if whiteFirst  {row.getNextUnset(rowOffset)} else {row.getNextSet(rowOffset)};
+    let counterPosition = 0;
+    let patternStart = rowOffset;
+    let patternLength = pattern.len();
+    let isWhite = whiteFirst;
+    for x in rowOffset ..width {
+    // for (int x = rowOffset; x < width; x++) {
       if (row.get(x) != isWhite) {
-        counters[counterPosition]++;
+        counters[counterPosition]+=1;
       } else {
         if (counterPosition == patternLength - 1) {
-          if (patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE) < MAX_AVG_VARIANCE) {
-            return new int[]{patternStart, x};
+          if (Self::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE) < MAX_AVG_VARIANCE) {
+            return [patternStart, x];
           }
           patternStart += counters[0] + counters[1];
           System.arraycopy(counters, 2, counters, 0, counterPosition - 1);
           counters[counterPosition - 1] = 0;
           counters[counterPosition] = 0;
-          counterPosition--;
+          counterPosition-=1;
         } else {
-          counterPosition++;
+          counterPosition+=1;
         }
         counters[counterPosition] = 1;
         isWhite = !isWhite;
@@ -361,15 +371,16 @@ pub trait UPCEANReader: OneDReader {
    * @return horizontal offset of first pixel beyond the decoded digit
    * @throws NotFoundException if digit cannot be decoded
    */
-   decodeDigit( row:&BitArray,  counters:&Vec<u32>,  rowOffset:usize,  patterns:&Vec<Vec<u32>>)
+   fn decodeDigit( row:&BitArray,  counters:&Vec<u32>,  rowOffset:usize,  patterns:&Vec<Vec<u32>>)
       -> Result<u32,Exceptions> {
-    recordPattern(row, rowOffset, counters);
-    float bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
-    int bestMatch = -1;
-    int max = patterns.length;
-    for (int i = 0; i < max; i++) {
-      int[] pattern = patterns[i];
-      float variance = patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
+    Self::recordPattern(row, rowOffset, counters);
+    let bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
+    let bestMatch = -1_isize;
+    let max = patterns.len();
+    for i in 0..max {
+    // for (int i = 0; i < max; i++) {
+      let pattern = patterns[i];
+      let variance:f32 = Self::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
       if (variance < bestVariance) {
         bestVariance = variance;
         bestMatch = i;
