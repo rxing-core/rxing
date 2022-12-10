@@ -86,6 +86,6 @@ impl UPCEANReader for EAN8Reader {
 
 impl Default for EAN8Reader {
     fn default() -> Self {
-        Self {  }
+        Self {}
     }
 }

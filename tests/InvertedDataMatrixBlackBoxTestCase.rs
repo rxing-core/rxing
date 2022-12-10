@@ -14,26 +14,29 @@
  * limitations under the License.
  */
 
-use rxing::{MultiFormatReader, DecodeHintType, DecodeHintValue};
+use rxing::{DecodeHintType, DecodeHintValue, MultiFormatReader};
 
- mod common;
+mod common;
 
 /**
  * Inverted barcodes
  */
 #[test]
-  fn inverted_data_matrix_black_box_test_case() {
+fn inverted_data_matrix_black_box_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
-      "test_resources/blackbox/inverted",
-      MultiFormatReader::default(),
-      rxing::BarcodeFormat::DATA_MATRIX,
-  );
+        "test_resources/blackbox/inverted",
+        MultiFormatReader::default(),
+        rxing::BarcodeFormat::DATA_MATRIX,
+    );
     // super("src/test/resources/blackbox/inverted", new MultiFormatReader(), BarcodeFormat.DATA_MATRIX);
-    tester.add_hint(DecodeHintType::ALSO_INVERTED, DecodeHintValue::AlsoInverted(true));
+    tester.add_hint(
+        DecodeHintType::ALSO_INVERTED,
+        DecodeHintValue::AlsoInverted(true),
+    );
     tester.add_test(1, 1, 0.0);
     tester.add_test(1, 1, 90.0);
     tester.add_test(1, 1, 180.0);
     tester.add_test(1, 1, 270.0);
 
     tester.test_black_box();
-  }
+}

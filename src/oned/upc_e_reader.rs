@@ -75,8 +75,11 @@ impl UPCEANReader for UPCEReader {
         self.checkStandardUPCEANChecksum(&convertUPCEtoUPCA(s))
     }
 
-    fn decodeEnd(&self, row: &crate::common::BitArray, endStart: usize) -> Result<[usize; 2], Exceptions>
-    {
+    fn decodeEnd(
+        &self,
+        row: &crate::common::BitArray,
+        endStart: usize,
+    ) -> Result<[usize; 2], Exceptions> {
         self.findGuardPattern(row, endStart, true, &Self::MIDDLE_END_PATTERN)
     }
 }

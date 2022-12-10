@@ -405,7 +405,7 @@ impl ITFReader {
      * @return The decoded digit
      * @throws NotFoundException if digit cannot be decoded
      */
-    fn decodeDigit(&self,counters: &[u32]) -> Result<u32, Exceptions> {
+    fn decodeDigit(&self, counters: &[u32]) -> Result<u32, Exceptions> {
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
         let max = PATTERNS.len();

@@ -116,8 +116,7 @@ pub trait UPCEANReader: OneDReader {
     //   eanManSupport = new EANManufacturerOrgSupport();
     // }
 
-    fn findStartGuardPattern(&self, row: &BitArray) -> Result<[usize; 2], Exceptions>
-    {
+    fn findStartGuardPattern(&self, row: &BitArray) -> Result<[usize; 2], Exceptions> {
         let mut foundStart = false;
         let mut startRange = [0; 2]; //= null;
         let mut nextStart = 0;
@@ -172,8 +171,7 @@ pub trait UPCEANReader: OneDReader {
         row: &BitArray,
         startGuardRange: &[usize; 2],
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<RXingResult, Exceptions>
-    {
+    ) -> Result<RXingResult, Exceptions> {
         let resultPointCallback = hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK);
         let mut symbologyIdentifier = 0;
 
@@ -380,19 +378,17 @@ pub trait UPCEANReader: OneDReader {
         Ok(((1000 - sum) % 10) as u32)
     }
 
-    fn decodeEnd(&self, row: &BitArray, endStart: usize) -> Result<[usize; 2], Exceptions>
-    {
+    fn decodeEnd(&self, row: &BitArray, endStart: usize) -> Result<[usize; 2], Exceptions> {
         self.findGuardPattern(row, endStart, false, &START_END_PATTERN)
     }
 
     fn findGuardPattern(
-        &self, 
+        &self,
         row: &BitArray,
         rowOffset: usize,
         whiteFirst: bool,
         pattern: &[u32],
-    ) -> Result<[usize; 2], Exceptions>
-    {
+    ) -> Result<[usize; 2], Exceptions> {
         self.findGuardPatternWithCounters(
             row,
             rowOffset,
@@ -414,14 +410,13 @@ pub trait UPCEANReader: OneDReader {
      * @throws NotFoundException if pattern is not found
      */
     fn findGuardPatternWithCounters(
-        &self, 
+        &self,
         row: &BitArray,
         rowOffset: usize,
         whiteFirst: bool,
         pattern: &[u32],
         counters: &mut [u32],
-    ) -> Result<[usize; 2], Exceptions>
-    {
+    ) -> Result<[usize; 2], Exceptions> {
         let width = row.getSize();
         let rowOffset = if whiteFirst {
             row.getNextUnset(rowOffset)
@@ -474,13 +469,12 @@ pub trait UPCEANReader: OneDReader {
      * @throws NotFoundException if digit cannot be decoded
      */
     fn decodeDigit(
-        &self, 
+        &self,
         row: &BitArray,
         counters: &mut [u32; 4],
         rowOffset: usize,
         patterns: &[[u32; 4]],
-    ) -> Result<usize, Exceptions>
-    {
+    ) -> Result<usize, Exceptions> {
         self.recordPattern(row, rowOffset, counters)?;
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
@@ -567,4 +561,4 @@ impl Reader for StandInStruct {
     }
 }
 
-pub(crate) const StandIn : StandInStruct = StandInStruct{};
+pub(crate) const StandIn: StandInStruct = StandInStruct {};
