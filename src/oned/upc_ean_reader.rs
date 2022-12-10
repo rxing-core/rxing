@@ -347,7 +347,12 @@ pub trait UPCEANReader: OneDReader {
         let check_against = &s[..length - 1]; //s.subSequence(0, length - 1);
         let calculated_checksum = Self::getStandardUPCEANChecksum(check_against)?;
 
-        Ok( calculated_checksum == if check { char_in_question.to_digit(10).unwrap() } else { u32::MAX })
+        Ok(calculated_checksum
+            == if check {
+                char_in_question.to_digit(10).unwrap()
+            } else {
+                u32::MAX
+            })
     }
 
     fn getStandardUPCEANChecksum(s: &str) -> Result<u32, Exceptions> {
@@ -395,7 +400,13 @@ pub trait UPCEANReader: OneDReader {
     where
         Self: Sized,
     {
-        Self::findGuardPatternWithCounters(row, rowOffset, whiteFirst, pattern, &mut vec![0u32; pattern.len()])
+        Self::findGuardPatternWithCounters(
+            row,
+            rowOffset,
+            whiteFirst,
+            pattern,
+            &mut vec![0u32; pattern.len()],
+        )
     }
 
     /**
@@ -525,7 +536,7 @@ pub trait UPCEANReader: OneDReader {
     ) -> Result<usize, Exceptions>;
 }
 
-pub struct StandIn;
+pub(crate) struct StandIn;
 impl UPCEANReader for StandIn {
     fn getBarcodeFormat(&self) -> BarcodeFormat {
         todo!()

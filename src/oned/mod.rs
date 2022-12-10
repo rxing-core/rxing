@@ -37,3 +37,6 @@ pub use upc_ean_extension_support::*;
 
 mod ean_8_reader;
 pub use ean_8_reader::*;
+
+mod ean_13_reader;
+pub use ean_13_reader::*;

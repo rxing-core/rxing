@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-use rxing::{
-  BarcodeFormat, MultiFormatReader, oned::EAN8Reader,
-};
+use rxing::{oned::EAN8Reader, BarcodeFormat, MultiFormatReader};
 
 mod common;
 
@@ -24,18 +22,17 @@ mod common;
  * @author Sean Owen
  */
 #[test]
-  fn ean8_black_box1_test_case() {
+fn ean8_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
-      "test_resources/blackbox/ean8-1",
-      // MultiFormatReader::default(),
-      EAN8Reader{},
-      BarcodeFormat::EAN_8,
-  );
+        "test_resources/blackbox/ean8-1",
+        // MultiFormatReader::default(),
+        EAN8Reader {},
+        BarcodeFormat::EAN_8,
+    );
 
     // super("src/test/resources/blackbox/ean8-1", new MultiFormatReader(), BarcodeFormat.EAN_8);
     tester.add_test(8, 8, 0.0);
     tester.add_test(8, 8, 180.0);
 
     tester.test_black_box()
-  }
-
+}
