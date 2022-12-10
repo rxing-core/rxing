@@ -14,21 +14,28 @@
  * limitations under the License.
  */
 
-package com.google.zxing.oned;
+use rxing::{
+  BarcodeFormat, MultiFormatReader, oned::EAN8Reader,
+};
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.common.AbstractBlackBoxTestCase;
+mod common;
 
 /**
  * @author Sean Owen
  */
-public final class EAN8BlackBox1TestCase extends AbstractBlackBoxTestCase {
+#[test]
+  fn ean8_black_box1_test_case() {
+    let mut tester = common::AbstractBlackBoxTestCase::new(
+      "test_resources/blackbox/ean8-1",
+      // MultiFormatReader::default(),
+      EAN8Reader{},
+      BarcodeFormat::EAN_8,
+  );
 
-  public EAN8BlackBox1TestCase() {
-    super("src/test/resources/blackbox/ean8-1", new MultiFormatReader(), BarcodeFormat.EAN_8);
-    addTest(8, 8, 0.0f);
-    addTest(8, 8, 180.0f);
+    // super("src/test/resources/blackbox/ean8-1", new MultiFormatReader(), BarcodeFormat.EAN_8);
+    tester.add_test(8, 8, 0.0);
+    tester.add_test(8, 8, 180.0);
+
+    tester.test_black_box()
   }
 
-}

@@ -30,16 +30,17 @@ pub struct EANManufacturerOrgSupport {
 
 impl Default for EANManufacturerOrgSupport {
     fn default() -> Self {
-        Self {
+        let mut slf = Self {
             ranges: Default::default(),
             countryIdentifiers: Default::default(),
-        }
+        };
+        slf.initIfNeeded();
+        slf
     }
 }
 
 impl EANManufacturerOrgSupport {
-    pub fn lookupCountryIdentifier(&mut self, productCode: &str) -> Option<String> {
-        self.initIfNeeded();
+    pub fn lookupCountryIdentifier(&self, productCode: &str) -> Option<String> {
         let prefix = productCode[0..3].parse::<u32>().expect("must parse prefix");
         // let prefix = Integer.parseInt(productCode.substring(0, 3));
         let max = self.ranges.len();
@@ -193,7 +194,7 @@ mod EANManufacturerOrgSupportTest {
 
     #[test]
     fn testLookup() {
-        let mut support = EANManufacturerOrgSupport::default();
+        let support = EANManufacturerOrgSupport::default();
         assert!(support.lookupCountryIdentifier("472000").is_none());
         assert_eq!(
             "US/CA",

@@ -137,7 +137,7 @@ impl BitArray {
             return self.size;
         }
         let mut bitsOffset = from / 32;
-        let mut currentBits = !self.bits[bitsOffset] as i32;
+        let mut currentBits = !self.bits[bitsOffset] as i64;
         // mask off lesser bits first
         currentBits &= -(1 << (from & 0x1F));
         while currentBits == 0 {
@@ -145,7 +145,7 @@ impl BitArray {
             if bitsOffset == self.bits.len() {
                 return self.size;
             }
-            currentBits = !self.bits[bitsOffset] as i32;
+            currentBits = !self.bits[bitsOffset] as i64;
         }
         let result = (bitsOffset * 32) + currentBits.trailing_zeros() as usize;
         return cmp::min(result, self.size);

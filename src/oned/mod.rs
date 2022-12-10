@@ -26,3 +26,14 @@ pub use itf_reader::*;
 
 mod upc_ean_reader;
 pub use upc_ean_reader::*;
+
+mod upc_ean_extension_2_support;
+mod upc_ean_extension_5_support;
+mod upc_ean_extension_support;
+
+pub use upc_ean_extension_2_support::*;
+pub use upc_ean_extension_5_support::*;
+pub use upc_ean_extension_support::*;
+
+mod ean_8_reader;
+pub use ean_8_reader::*;
