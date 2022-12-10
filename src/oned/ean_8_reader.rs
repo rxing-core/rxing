@@ -52,7 +52,7 @@ impl UPCEANReader for EAN8Reader {
         while x < 4 && rowOffset < end {
             // for (int x = 0; x < 4 && rowOffset < end; x++) {
             let bestMatch =
-                Self::decodeDigit(row, &mut counters, rowOffset, &upc_ean_reader::L_PATTERNS)?;
+                self.decodeDigit(row, &mut counters, rowOffset, &upc_ean_reader::L_PATTERNS)?;
             resultString.push(char::from_u32('0' as u32 + bestMatch as u32).unwrap());
             // for (int counter : counters) {
             //   rowOffset += counter;
@@ -64,14 +64,14 @@ impl UPCEANReader for EAN8Reader {
         }
 
         let middleRange =
-            Self::findGuardPattern(row, rowOffset, true, &upc_ean_reader::MIDDLE_PATTERN)?;
+            self.findGuardPattern(row, rowOffset, true, &upc_ean_reader::MIDDLE_PATTERN)?;
         rowOffset = middleRange[1];
 
         let mut x = 0;
         while x < 4 && rowOffset < end {
             // for (int x = 0; x < 4 && rowOffset < end; x++) {
             let bestMatch =
-                Self::decodeDigit(row, &mut counters, rowOffset, &upc_ean_reader::L_PATTERNS)?;
+                self.decodeDigit(row, &mut counters, rowOffset, &upc_ean_reader::L_PATTERNS)?;
             resultString.push(char::from_u32('0' as u32 + bestMatch as u32).unwrap());
             // for (int counter : counters) {
             //   rowOffset += counter;
@@ -81,5 +81,11 @@ impl UPCEANReader for EAN8Reader {
         }
 
         Ok(rowOffset)
+    }
+}
+
+impl Default for EAN8Reader {
+    fn default() -> Self {
+        Self {  }
     }
 }

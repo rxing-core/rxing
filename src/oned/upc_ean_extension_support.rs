@@ -41,7 +41,7 @@ impl UPCEANExtensionSupport {
         rowOffset: usize,
     ) -> Result<RXingResult, Exceptions> {
         let extensionStartRange =
-            StandIn::findGuardPattern(row, rowOffset, false, &Self::EXTENSION_START_PATTERN)?;
+            StandIn.findGuardPattern(row, rowOffset, false, &Self::EXTENSION_START_PATTERN)?;
         if let Ok(res_1) = self
             .fiveSupport
             .decodeRow(rowNumber, row, &extensionStartRange)

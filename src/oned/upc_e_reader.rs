@@ -52,7 +52,7 @@ impl UPCEANReader for UPCEReader {
         let mut x = 0;
         while x < 6 && rowOffset < end {
             // for (int x = 0; x < 6 && rowOffset < end; x++) {
-            let bestMatch = Self::decodeDigit(row, &mut counters, rowOffset, &L_AND_G_PATTERNS)?;
+            let bestMatch = self.decodeDigit(row, &mut counters, rowOffset, &L_AND_G_PATTERNS)?;
             resultString.push(char::from_u32('0' as u32 + bestMatch as u32 % 10).unwrap());
             // for (int counter : counters) {
             //   rowOffset += counter;
@@ -72,14 +72,12 @@ impl UPCEANReader for UPCEReader {
     }
 
     fn checkChecksum(&self, s: &str) -> Result<bool, Exceptions> {
-        Self::checkStandardUPCEANChecksum(&convertUPCEtoUPCA(s))
+        self.checkStandardUPCEANChecksum(&convertUPCEtoUPCA(s))
     }
 
-    fn decodeEnd(row: &crate::common::BitArray, endStart: usize) -> Result<[usize; 2], Exceptions>
-    where
-        Self: Sized,
+    fn decodeEnd(&self, row: &crate::common::BitArray, endStart: usize) -> Result<[usize; 2], Exceptions>
     {
-        Self::findGuardPattern(row, endStart, true, &Self::MIDDLE_END_PATTERN)
+        self.findGuardPattern(row, endStart, true, &Self::MIDDLE_END_PATTERN)
     }
 }
 

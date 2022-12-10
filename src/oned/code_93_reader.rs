@@ -51,7 +51,7 @@ impl OneDReader for Code93Reader {
         let mut decodedChar;
         let mut lastStart;
         loop {
-            Self::recordPattern(row, nextStart, &mut theCounters)?;
+            self.recordPattern(row, nextStart, &mut theCounters)?;
             let pattern = Self::toPattern(&theCounters);
             if pattern < 0 {
                 return Err(Exceptions::NotFoundException("".to_owned()));

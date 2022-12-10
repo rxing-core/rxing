@@ -28,8 +28,8 @@ mod common;
 fn upceblack_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/upce-1",
-        // MultiFormatReader::default(),
-        UPCEReader::default(),
+        MultiFormatReader::default(),
+        // UPCEReader::default(),
         BarcodeFormat::UPC_E,
     );
 
@@ -47,8 +47,8 @@ fn upceblack_box1_test_case() {
 fn upceblack_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/upce-2",
-        // MultiFormatReader::default(),
-        UPCEReader::default(),
+        MultiFormatReader::default(),
+        // UPCEReader::default(),
         BarcodeFormat::UPC_E,
     );
 
@@ -66,8 +66,8 @@ fn upceblack_box2_test_case() {
 fn upceblack_box3_reflective_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/upce-3",
-        // MultiFormatReader::default(),
-        UPCEReader::default(),
+        MultiFormatReader::default(),
+        // UPCEReader::default(),
         BarcodeFormat::UPC_E,
     );
 

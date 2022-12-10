@@ -99,7 +99,7 @@ fn impl_ean_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
         row: &crate::common::BitArray,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
-      self.decodeRowWithGuardRange(rowNumber, row, &Self::findStartGuardPattern(row)?, hints)
+      self.decodeRowWithGuardRange(rowNumber, row, &self.findStartGuardPattern(row)?, hints)
     }
   }
   };

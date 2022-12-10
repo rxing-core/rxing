@@ -39,7 +39,7 @@ impl OneDReader for Code128Reader {
 
         let mut symbologyModifier = 0;
 
-        let startPatternInfo = Self::findStartPattern(row)?;
+        let startPatternInfo = self.findStartPattern(row)?;
         let startCode = startPatternInfo[2] as u8;
 
         let mut rawCodes: Vec<u8> = Vec::with_capacity(20); //new ArrayList<>(20);
@@ -78,7 +78,7 @@ impl OneDReader for Code128Reader {
             lastCode = code;
 
             // Decode another code from image
-            code = Self::decodeCode(row, &mut counters, nextStart)?;
+            code = self.decodeCode(row, &mut counters, nextStart)?;
 
             rawCodes.push(code);
 
@@ -363,7 +363,7 @@ impl OneDReader for Code128Reader {
     }
 }
 impl Code128Reader {
-    fn findStartPattern(row: &BitArray) -> Result<[usize; 3], Exceptions> {
+    fn findStartPattern(&self, row: &BitArray) -> Result<[usize; 3], Exceptions> {
         let width = row.getSize();
         let rowOffset = row.getNextSet(0);
 
@@ -383,7 +383,7 @@ impl Code128Reader {
                     let mut bestMatch = -1_isize;
                     for startCode in CODE_START_A..=CODE_START_C {
                         // for (int startCode = CODE_START_A; startCode <= CODE_START_C; startCode++) {
-                        let variance = Self::patternMatchVariance(
+                        let variance = self.patternMatchVariance(
                             &counters,
                             &CODE_PATTERNS[startCode as usize],
                             MAX_INDIVIDUAL_VARIANCE,
@@ -423,17 +423,18 @@ impl Code128Reader {
     }
 
     fn decodeCode(
+        &self,
         row: &BitArray,
         counters: &mut [u32; 6],
         rowOffset: usize,
     ) -> Result<u8, Exceptions> {
-        Self::recordPattern(row, rowOffset, counters)?;
+        self.recordPattern(row, rowOffset, counters)?;
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
         for d in 0..CODE_PATTERNS.len() {
             // for (int d = 0; d < CODE_PATTERNS.len(); d++) {
             let pattern = &CODE_PATTERNS[d];
-            let variance = Self::patternMatchVariance(counters, &pattern, MAX_INDIVIDUAL_VARIANCE);
+            let variance = self.patternMatchVariance(counters, &pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
                 bestVariance = variance;
                 bestMatch = d as isize;

@@ -32,7 +32,7 @@ pub struct Code39Reader {
     usingCheckDigit: bool,
     extendedMode: bool,
     decodeRowRXingResult: String,
-    counters: Vec<u32>,
+    // counters: Vec<u32>,
 }
 impl OneDReader for Code39Reader {
     fn decodeRow(
@@ -42,12 +42,13 @@ impl OneDReader for Code39Reader {
         _hints: &DecodingHintDictionary,
     ) -> Result<crate::RXingResult, Exceptions> {
         // let theCounters = self.counters;
-        self.counters.fill(0);
+        let mut counters = [0_u32;9];
+        // self.counters.fill(0);
         // let result = self.decodeRowRXingResult;
         // result.setLength(0);
         self.decodeRowRXingResult.clear();
 
-        let start = Self::findAsteriskPattern(row, &mut self.counters)?;
+        let start = Self::findAsteriskPattern(row, &mut counters)?;
         // Read off white space
         let mut nextStart = row.getNextSet(start[1] as usize);
         let end = row.getSize();
@@ -55,15 +56,15 @@ impl OneDReader for Code39Reader {
         let mut decodedChar;
         let mut lastStart;
         loop {
-            Self::recordPattern(row, nextStart, &mut self.counters)?;
-            let pattern = Self::toNarrowWidePattern(&self.counters);
+            self.recordPattern(row, nextStart, &mut counters)?;
+            let pattern = Self::toNarrowWidePattern(&counters);
             if pattern < 0 {
                 return Err(Exceptions::NotFoundException("".to_owned()));
             }
             decodedChar = Self::patternToChar(pattern as u32)?;
             self.decodeRowRXingResult.push(decodedChar);
             lastStart = nextStart;
-            for counter in &self.counters {
+            for counter in &counters {
                 // for (int counter : theCounters) {
                 nextStart += *counter as usize;
             }
@@ -79,7 +80,7 @@ impl OneDReader for Code39Reader {
 
         // Look for whitespace after pattern:
         let mut lastPatternSize = 0;
-        for counter in &self.counters {
+        for counter in &counters {
             // for (int counter : self.counters) {
             lastPatternSize += *counter;
         }
@@ -195,7 +196,7 @@ impl Code39Reader {
             usingCheckDigit,
             extendedMode,
             decodeRowRXingResult: String::with_capacity(20),
-            counters: vec![0; 9],
+            // counters: vec![0; 9],
         }
     }
 

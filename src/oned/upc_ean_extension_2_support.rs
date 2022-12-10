@@ -88,7 +88,7 @@ impl UPCEANExtension2Support {
         let mut x = 0;
         while x < 2 && rowOffset < end {
             // for (int x = 0; x < 2 && rowOffset < end; x++) {
-            let bestMatch = StandIn::decodeDigit(
+            let bestMatch = StandIn.decodeDigit(
                 row,
                 &mut counters,
                 rowOffset,

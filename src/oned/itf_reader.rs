@@ -113,7 +113,7 @@ impl OneDReader for ITFReader {
         let endRange = self.decodeEnd(&mut row)?;
 
         let mut result = String::with_capacity(20); //new StringBuilder(20);
-        Self::decodeMiddle(&row, startRange[1], endRange[0], &mut result)?;
+        self.decodeMiddle(&row, startRange[1], endRange[0], &mut result)?;
         let resultString = result; //.toString();
 
         let allowedLengths = if let Some(DecodeHintValue::AllowedLengths(al)) =
@@ -180,6 +180,7 @@ impl ITFReader {
      * @throws NotFoundException if decoding could not complete successfully
      */
     fn decodeMiddle(
+        &self,
         row: &BitArray,
         payloadStart: usize,
         payloadEnd: usize,
@@ -197,7 +198,7 @@ impl ITFReader {
 
         while payloadStart < payloadEnd {
             // Get 10 runs of black/white.
-            Self::recordPattern(row, payloadStart, &mut counterDigitPair)?;
+            self.recordPattern(row, payloadStart, &mut counterDigitPair)?;
             // Split them into each array
             for k in 0..5 {
                 // for (int k = 0; k < 5; k++) {
@@ -206,9 +207,9 @@ impl ITFReader {
                 counterWhite[k] = counterDigitPair[twoK + 1];
             }
 
-            let mut bestMatch = Self::decodeDigit(&counterBlack)?;
+            let mut bestMatch = self.decodeDigit(&counterBlack)?;
             resultString.push(char::from_u32('0' as u32 + bestMatch).unwrap());
-            bestMatch = Self::decodeDigit(&counterWhite)?;
+            bestMatch = self.decodeDigit(&counterWhite)?;
             resultString.push(char::from_u32('0' as u32 + bestMatch).unwrap());
 
             payloadStart += counterDigitPair.iter().sum::<u32>() as usize;
@@ -231,7 +232,7 @@ impl ITFReader {
      */
     fn decodeStart(&mut self, row: &BitArray) -> Result<[usize; 2], Exceptions> {
         let endStart = Self::skipWhiteSpace(row)?;
-        let startPattern = Self::findGuardPattern(row, endStart, &START_PATTERN)?;
+        let startPattern = self.findGuardPattern(row, endStart, &START_PATTERN)?;
 
         // Determine the width of a narrow line in pixels. We can do this by
         // getting the width of the start pattern and dividing by 4 because its
@@ -314,10 +315,10 @@ impl ITFReader {
             let endStart = Self::skipWhiteSpace(row)?;
             let mut endPattern;
             endPattern =
-                if let Ok(ptrn) = Self::findGuardPattern(row, endStart, &END_PATTERN_REVERSED[0]) {
+                if let Ok(ptrn) = self.findGuardPattern(row, endStart, &END_PATTERN_REVERSED[0]) {
                     ptrn
                 } else {
-                    Self::findGuardPattern(row, endStart, &END_PATTERN_REVERSED[1])?
+                    self.findGuardPattern(row, endStart, &END_PATTERN_REVERSED[1])?
                 };
             // try {
             //   endPattern = findGuardPattern(row, endStart, END_PATTERN_REVERSED[0]);
@@ -356,6 +357,7 @@ impl ITFReader {
      * @throws NotFoundException if pattern is not found
      */
     fn findGuardPattern(
+        &self,
         row: &BitArray,
         rowOffset: usize,
         pattern: &[u32],
@@ -373,7 +375,7 @@ impl ITFReader {
                 counters[counterPosition] += 1;
             } else {
                 if counterPosition == patternLength - 1 {
-                    if Self::patternMatchVariance(&counters, pattern, MAX_INDIVIDUAL_VARIANCE)
+                    if self.patternMatchVariance(&counters, pattern, MAX_INDIVIDUAL_VARIANCE)
                         < MAX_AVG_VARIANCE
                     {
                         return Ok([patternStart, x]);
@@ -403,14 +405,14 @@ impl ITFReader {
      * @return The decoded digit
      * @throws NotFoundException if digit cannot be decoded
      */
-    fn decodeDigit(counters: &[u32]) -> Result<u32, Exceptions> {
+    fn decodeDigit(&self,counters: &[u32]) -> Result<u32, Exceptions> {
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
         let max = PATTERNS.len();
         for i in 0..max {
             // for (int i = 0; i < max; i++) {
             let pattern = &PATTERNS[i];
-            let variance = Self::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
+            let variance = self.patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
                 bestVariance = variance;
                 bestMatch = i as isize;

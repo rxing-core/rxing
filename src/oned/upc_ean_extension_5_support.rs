@@ -90,7 +90,7 @@ impl UPCEANExtension5Support {
         let mut x = 0;
         while x < 5 && rowOffset < end {
             // for (int x = 0; x < 5 && rowOffset < end; x++) {
-            let bestMatch = StandIn::decodeDigit(
+            let bestMatch = StandIn.decodeDigit(
                 row,
                 &mut counters,
                 rowOffset,

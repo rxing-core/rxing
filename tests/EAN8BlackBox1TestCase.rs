@@ -25,8 +25,8 @@ mod common;
 fn ean8_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/ean8-1",
-        // MultiFormatReader::default(),
-        EAN8Reader {},
+        MultiFormatReader::default(),
+        // EAN8Reader {},
         BarcodeFormat::EAN_8,
     );
 

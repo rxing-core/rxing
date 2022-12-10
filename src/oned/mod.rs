@@ -52,3 +52,6 @@ pub use one_d_code_writer::*;
 
 mod coda_bar_writer;
 pub use coda_bar_writer::*;
+
+mod multi_format_upc_ean_reader;
+pub use multi_format_upc_ean_reader::*;

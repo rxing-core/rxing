@@ -1,0 +1,214 @@
+/*
+ * Copyright 2008 ZXing authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+use crate::BarcodeFormat;
+use crate::DecodeHintValue;
+use crate::Exceptions;
+use crate::RXingResult;
+use crate::Reader;
+
+use super::EAN13Reader;
+use super::EAN8Reader;
+use super::StandIn;
+use super::UPCAReader;
+use super::UPCEReader;
+use super::{OneDReader, UPCEANReader};
+
+/**
+ * <p>A reader that can read all available UPC/EAN formats. If a caller wants to try to
+ * read all such formats, it is most efficient to use this implementation rather than invoke
+ * individual readers.</p>
+ *
+ * @author Sean Owen
+ */
+pub struct MultiFormatUPCEANReader(Vec<Box<dyn UPCEANReader>>);
+
+impl MultiFormatUPCEANReader {
+    pub fn new(hints: &DecodingHintDictionary) -> Self {
+        let mut readers: Vec<Box<dyn UPCEANReader>> = Vec::new();
+        if let Some(DecodeHintValue::PossibleFormats(possibleFormats)) =
+            hints.get(&DecodeHintType::POSSIBLE_FORMATS)
+        {
+            // Collection<BarcodeFormat> possibleFormats = hints == null ? null :
+            //   (Collection<BarcodeFormat>) hints.get(DecodeHintType.POSSIBLE_FORMATS);
+            // Collection<UPCEANReader> readers = new ArrayList<>();
+            if possibleFormats.contains(&BarcodeFormat::EAN_13) {
+                readers.push(Box::new(EAN13Reader::default()));
+            } else if possibleFormats.contains(&BarcodeFormat::UPC_A) {
+                readers.push(Box::new(UPCAReader::default()));
+            }
+            if possibleFormats.contains(&BarcodeFormat::EAN_8) {
+                readers.push(Box::new(EAN8Reader::default()));
+            }
+            if possibleFormats.contains(&BarcodeFormat::UPC_E) {
+                readers.push(Box::new(UPCEReader::default()));
+            }
+        }
+        if readers.is_empty() {
+            readers.push(Box::new(EAN13Reader::default()));
+            // UPC-A is covered by EAN-13
+            readers.push(Box::new(EAN8Reader::default()));
+            readers.push(Box::new(UPCEReader::default()));
+        }
+
+        Self(readers)
+    }
+
+    fn try_decode_function(
+        &self,
+        reader: &Box<dyn UPCEANReader>,
+        rowNumber: u32,
+        row: &crate::common::BitArray,
+        hints: &crate::DecodingHintDictionary,
+        startGuardPattern: &[usize; 2],
+    ) -> Result<crate::RXingResult, crate::Exceptions> {
+        let result = reader.decodeRowWithGuardRange(rowNumber, row, startGuardPattern, hints)?;
+        // Special case: a 12-digit code encoded in UPC-A is identical to a "0"
+        // followed by those 12 digits encoded as EAN-13. Each will recognize such a code,
+        // UPC-A as a 12-digit string and EAN-13 as a 13-digit string starting with "0".
+        // Individually these are correct and their readers will both read such a code
+        // and correctly call it EAN-13, or UPC-A, respectively.
+        //
+        // In this case, if we've been looking for both types, we'd like to call it
+        // a UPC-A code. But for efficiency we only run the EAN-13 decoder to also read
+        // UPC-A. So we special case it here, and convert an EAN-13 result to a UPC-A
+        // result if appropriate.
+        //
+        // But, don't return UPC-A if UPC-A was not a requested format!
+        let ean13MayBeUPCA = result.getBarcodeFormat() == &BarcodeFormat::EAN_13
+            && result.getText().chars().nth(0).unwrap() == '0';
+
+        let canReturnUPCA = if let Some(DecodeHintValue::PossibleFormats(possibleFormats)) =
+            hints.get(&DecodeHintType::POSSIBLE_FORMATS)
+        {
+            possibleFormats.contains(&BarcodeFormat::UPC_A)
+        } else {
+            true
+        };
+
+        if ean13MayBeUPCA && canReturnUPCA {
+            // Transfer the metadata across
+            let mut resultUPCA = RXingResult::new(
+                &result.getText()[1..],
+                result.getRawBytes().clone(),
+                result.getRXingResultPoints().clone(),
+                BarcodeFormat::UPC_A,
+            );
+            resultUPCA.putAllMetadata(result.getRXingResultMetadata().clone());
+
+            return Ok(resultUPCA);
+        }
+
+        Ok(result)
+    }
+}
+
+impl OneDReader for MultiFormatUPCEANReader {
+    fn decodeRow(
+        &mut self,
+        rowNumber: u32,
+        row: &crate::common::BitArray,
+        hints: &crate::DecodingHintDictionary,
+    ) -> Result<crate::RXingResult, crate::Exceptions> {
+        // Compute this location once and reuse it on multiple implementations
+        let startGuardPattern = StandIn.findStartGuardPattern(row)?;
+        for reader in &self.0 {
+            // for (UPCEANReader reader : readers) {
+            let try_result =
+                self.try_decode_function(reader, rowNumber, row, hints, &startGuardPattern);
+            if try_result.is_ok() {
+                return try_result;
+            }
+        }
+
+        return Err(Exceptions::NotFoundException("".to_owned()));
+    }
+}
+
+use crate::result_point::ResultPoint;
+use crate::DecodeHintType;
+use crate::DecodingHintDictionary;
+use crate::RXingResultMetadataType;
+use crate::RXingResultMetadataValue;
+use crate::RXingResultPoint;
+use std::collections::HashMap;
+
+impl Reader for MultiFormatUPCEANReader {
+    fn decode(&mut self, image: &crate::BinaryBitmap) -> Result<crate::RXingResult, Exceptions> {
+        self.decode_with_hints(image, &HashMap::new())
+    }
+
+    // Note that we don't try rotation without the try harder flag, even if rotation was supported.
+    fn decode_with_hints(
+        &mut self,
+        image: &crate::BinaryBitmap,
+        hints: &DecodingHintDictionary,
+    ) -> Result<crate::RXingResult, Exceptions> {
+        if let Ok(res) = self.doDecode(image, hints) {
+            Ok(res)
+        } else {
+            let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
+            if tryHarder && image.isRotateSupported() {
+                let rotatedImage = image.rotateCounterClockwise();
+                let mut result = self.doDecode(&rotatedImage, hints)?;
+                // Record that we found it rotated 90 degrees CCW / 270 degrees CW
+                let metadata = result.getRXingResultMetadata();
+                let mut orientation = 270;
+                if metadata.contains_key(&RXingResultMetadataType::ORIENTATION) {
+                    // But if we found it reversed in doDecode(), add in that result here:
+                    orientation = (orientation
+                        + if let Some(crate::RXingResultMetadataValue::Orientation(or)) =
+                            metadata.get(&RXingResultMetadataType::ORIENTATION)
+                        {
+                            *or
+                        } else {
+                            0
+                        })
+                        % 360;
+                }
+                result.putMetadata(
+                    RXingResultMetadataType::ORIENTATION,
+                    RXingResultMetadataValue::Orientation(orientation),
+                );
+                // Update result points
+                // let points = result.getRXingResultPoints();
+                // if points != null {
+                let height = rotatedImage.getHeight();
+                // for point in result.getRXingResultPointsMut().iter_mut() {
+                let total_points = result.getRXingResultPoints().len();
+                let points = result.getRXingResultPointsMut();
+                for i in 0..total_points {
+                    // for (int i = 0; i < points.length; i++) {
+                    points[i] = RXingResultPoint::new(
+                        height as f32 - points[i].getY() - 1.0,
+                        points[i].getX(),
+                    );
+                }
+                // }
+
+                Ok(result)
+            } else {
+                return Err(Exceptions::NotFoundException("".to_owned()));
+            }
+        }
+    }
+    fn reset(&mut self) {
+        for reader in self.0.iter_mut() {
+            // for (Reader reader : readers) {
+            reader.reset();
+        }
+    }
+}

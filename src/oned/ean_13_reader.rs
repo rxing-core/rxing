@@ -58,7 +58,7 @@ impl UPCEANReader for EAN13Reader {
 
         while x < 6 && rowOffset < end {
             // for (int x = 0; x < 6 && rowOffset < end; x++) {
-            let bestMatch = Self::decodeDigit(
+            let bestMatch = self.decodeDigit(
                 row,
                 &mut counters,
                 rowOffset,
@@ -79,7 +79,7 @@ impl UPCEANReader for EAN13Reader {
         Self::determineFirstDigit(resultString, lgPatternFound)?;
 
         let middleRange =
-            Self::findGuardPattern(row, rowOffset, true, &upc_ean_reader::MIDDLE_PATTERN)?;
+            self.findGuardPattern(row, rowOffset, true, &upc_ean_reader::MIDDLE_PATTERN)?;
         rowOffset = middleRange[1];
 
         let mut x = 0;
@@ -87,7 +87,7 @@ impl UPCEANReader for EAN13Reader {
         while x < 6 && rowOffset < end {
             // for (int x = 0; x < 6 && rowOffset < end; x++) {
             let bestMatch =
-                Self::decodeDigit(row, &mut counters, rowOffset, &upc_ean_reader::L_PATTERNS)?;
+                self.decodeDigit(row, &mut counters, rowOffset, &upc_ean_reader::L_PATTERNS)?;
             resultString.push(char::from_u32('0' as u32 + bestMatch as u32).unwrap());
             // for (int counter : counters) {
             //   rowOffset += counter;

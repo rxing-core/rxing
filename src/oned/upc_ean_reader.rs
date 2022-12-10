@@ -116,9 +116,7 @@ pub trait UPCEANReader: OneDReader {
     //   eanManSupport = new EANManufacturerOrgSupport();
     // }
 
-    fn findStartGuardPattern(row: &BitArray) -> Result<[usize; 2], Exceptions>
-    where
-        Self: Sized,
+    fn findStartGuardPattern(&self, row: &BitArray) -> Result<[usize; 2], Exceptions>
     {
         let mut foundStart = false;
         let mut startRange = [0; 2]; //= null;
@@ -127,7 +125,7 @@ pub trait UPCEANReader: OneDReader {
         while !foundStart {
             counters.fill(0);
             // Arrays.fill(counters, 0, START_END_PATTERN.len(), 0);
-            startRange = Self::findGuardPatternWithCounters(
+            startRange = self.findGuardPatternWithCounters(
                 row,
                 nextStart,
                 false,
@@ -175,8 +173,6 @@ pub trait UPCEANReader: OneDReader {
         startGuardRange: &[usize; 2],
         hints: &crate::DecodingHintDictionary,
     ) -> Result<RXingResult, Exceptions>
-    where
-        Self: Sized,
     {
         let resultPointCallback = hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK);
         let mut symbologyIdentifier = 0;
@@ -195,7 +191,7 @@ pub trait UPCEANReader: OneDReader {
             cb(&RXingResultPoint::new(endStart as f32, rowNumber as f32));
         }
 
-        let endRange = Self::decodeEnd(row, endStart)?;
+        let endRange = self.decodeEnd(row, endStart)?;
 
         if let Some(DecodeHintValue::NeedResultPointCallback(cb)) = resultPointCallback {
             cb(&RXingResultPoint::new(
@@ -324,7 +320,7 @@ pub trait UPCEANReader: OneDReader {
      * @throws FormatException if the string does not contain only digits
      */
     fn checkChecksum(&self, s: &str) -> Result<bool, Exceptions> {
-        Self::checkStandardUPCEANChecksum(s)
+        self.checkStandardUPCEANChecksum(s)
     }
 
     /**
@@ -335,7 +331,7 @@ pub trait UPCEANReader: OneDReader {
      * @return true iff string of digits passes the UPC/EAN checksum algorithm
      * @throws FormatException if the string does not contain only digits
      */
-    fn checkStandardUPCEANChecksum(s: &str) -> Result<bool, Exceptions> {
+    fn checkStandardUPCEANChecksum(&self, s: &str) -> Result<bool, Exceptions> {
         let length = s.len();
         if length == 0 {
             return Ok(false);
@@ -345,7 +341,7 @@ pub trait UPCEANReader: OneDReader {
         // let check = Character.digit(s.charAt(length - 1), 10);
 
         let check_against = &s[..length - 1]; //s.subSequence(0, length - 1);
-        let calculated_checksum = Self::getStandardUPCEANChecksum(check_against)?;
+        let calculated_checksum = self.getStandardUPCEANChecksum(check_against)?;
 
         Ok(calculated_checksum
             == if check {
@@ -355,7 +351,7 @@ pub trait UPCEANReader: OneDReader {
             })
     }
 
-    fn getStandardUPCEANChecksum(s: &str) -> Result<u32, Exceptions> {
+    fn getStandardUPCEANChecksum(&self, s: &str) -> Result<u32, Exceptions> {
         let length = s.chars().count();
         let mut sum = 0;
         let mut i = length as isize - 1;
@@ -384,23 +380,20 @@ pub trait UPCEANReader: OneDReader {
         Ok(((1000 - sum) % 10) as u32)
     }
 
-    fn decodeEnd(row: &BitArray, endStart: usize) -> Result<[usize; 2], Exceptions>
-    where
-        Self: Sized,
+    fn decodeEnd(&self, row: &BitArray, endStart: usize) -> Result<[usize; 2], Exceptions>
     {
-        Self::findGuardPattern(row, endStart, false, &START_END_PATTERN)
+        self.findGuardPattern(row, endStart, false, &START_END_PATTERN)
     }
 
     fn findGuardPattern(
+        &self, 
         row: &BitArray,
         rowOffset: usize,
         whiteFirst: bool,
         pattern: &[u32],
     ) -> Result<[usize; 2], Exceptions>
-    where
-        Self: Sized,
     {
-        Self::findGuardPatternWithCounters(
+        self.findGuardPatternWithCounters(
             row,
             rowOffset,
             whiteFirst,
@@ -421,14 +414,13 @@ pub trait UPCEANReader: OneDReader {
      * @throws NotFoundException if pattern is not found
      */
     fn findGuardPatternWithCounters(
+        &self, 
         row: &BitArray,
         rowOffset: usize,
         whiteFirst: bool,
         pattern: &[u32],
         counters: &mut [u32],
     ) -> Result<[usize; 2], Exceptions>
-    where
-        Self: Sized,
     {
         let width = row.getSize();
         let rowOffset = if whiteFirst {
@@ -446,7 +438,7 @@ pub trait UPCEANReader: OneDReader {
                 counters[counterPosition] += 1;
             } else {
                 if counterPosition == patternLength - 1 {
-                    if Self::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE)
+                    if self.patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE)
                         < MAX_AVG_VARIANCE
                     {
                         return Ok([patternStart, x]);
@@ -482,15 +474,14 @@ pub trait UPCEANReader: OneDReader {
      * @throws NotFoundException if digit cannot be decoded
      */
     fn decodeDigit(
+        &self, 
         row: &BitArray,
         counters: &mut [u32; 4],
         rowOffset: usize,
         patterns: &[[u32; 4]],
     ) -> Result<usize, Exceptions>
-    where
-        Self: Sized,
     {
-        Self::recordPattern(row, rowOffset, counters)?;
+        self.recordPattern(row, rowOffset, counters)?;
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
         let max = patterns.len();
@@ -498,7 +489,7 @@ pub trait UPCEANReader: OneDReader {
             // for (int i = 0; i < max; i++) {
             let pattern = &patterns[i];
             let variance: f32 =
-                Self::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
+                self.patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
                 bestVariance = variance;
                 bestMatch = i as isize;
@@ -536,8 +527,8 @@ pub trait UPCEANReader: OneDReader {
     ) -> Result<usize, Exceptions>;
 }
 
-pub(crate) struct StandIn;
-impl UPCEANReader for StandIn {
+pub(crate) struct StandInStruct;
+impl UPCEANReader for StandInStruct {
     fn getBarcodeFormat(&self) -> BarcodeFormat {
         todo!()
     }
@@ -551,7 +542,7 @@ impl UPCEANReader for StandIn {
         todo!()
     }
 }
-impl OneDReader for StandIn {
+impl OneDReader for StandInStruct {
     fn decodeRow(
         &mut self,
         _rowNumber: u32,
@@ -562,7 +553,7 @@ impl OneDReader for StandIn {
     }
 }
 
-impl Reader for StandIn {
+impl Reader for StandInStruct {
     fn decode(&mut self, _image: &crate::BinaryBitmap) -> Result<RXingResult, Exceptions> {
         todo!()
     }
@@ -575,3 +566,5 @@ impl Reader for StandIn {
         todo!()
     }
 }
+
+pub(crate) const StandIn : StandInStruct = StandInStruct{};

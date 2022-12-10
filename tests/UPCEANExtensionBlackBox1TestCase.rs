@@ -25,8 +25,8 @@ mod common;
 fn upceanextension_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/upcean-extension-1",
-        // MultiFormatReader::default(),
-        EAN13Reader {},
+        MultiFormatReader::default(),
+        // EAN13Reader {},
         BarcodeFormat::EAN_13,
     );
     // super("src/test/resources/blackbox/upcean-extension-1", new MultiFormatReader(), BarcodeFormat.EAN_13);

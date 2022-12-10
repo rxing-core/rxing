@@ -28,8 +28,8 @@ mod common;
 fn upcablack_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/upca-1",
-        // MultiFormatReader::default(),
-        UPCAReader::default(),
+        MultiFormatReader::default(),
+        // UPCAReader::default(),
         BarcodeFormat::UPC_A,
     );
 
@@ -47,8 +47,8 @@ fn upcablack_box1_test_case() {
 fn upcablack_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/upca-2",
-        // MultiFormatReader::default(),
-        UPCAReader::default(),
+        MultiFormatReader::default(),
+        // UPCAReader::default(),
         BarcodeFormat::UPC_A,
     );
 
@@ -66,8 +66,8 @@ fn upcablack_box2_test_case() {
 fn upcablack_box3_reflective_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/upca-3",
-        // MultiFormatReader::default(),
-        UPCAReader::default(),
+        MultiFormatReader::default(),
+        // UPCAReader::default(),
         BarcodeFormat::UPC_A,
     );
 
@@ -85,8 +85,8 @@ fn upcablack_box3_reflective_test_case() {
 fn upcablack_box4_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/upca-4",
-        // MultiFormatReader::default(),
-        UPCAReader::default(),
+        MultiFormatReader::default(),
+        // UPCAReader::default(),
         BarcodeFormat::UPC_A,
     );
 
@@ -104,8 +104,8 @@ fn upcablack_box4_test_case() {
 fn upcablack_box5_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/upca-5",
-        // MultiFormatReader::default(),
-        UPCAReader::default(),
+        MultiFormatReader::default(),
+        // UPCAReader::default(),
         BarcodeFormat::UPC_A,
     );
 
@@ -124,8 +124,8 @@ fn upcablack_box5_test_case() {
 fn upcablack_box6_blurry_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/upca-6",
-        // MultiFormatReader::default(),
-        UPCAReader::default(),
+        MultiFormatReader::default(),
+        // UPCAReader::default(),
         BarcodeFormat::UPC_A,
     );
 

@@ -25,8 +25,8 @@ mod common;
 fn ean13_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/ean13-1",
-        // MultiFormatReader::default(),
-        EAN13Reader {},
+        MultiFormatReader::default(),
+        // EAN13Reader {},
         BarcodeFormat::EAN_13,
     );
 
@@ -46,8 +46,8 @@ fn ean13_black_box1_test_case() {
 fn ean13_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/ean13-2",
-        // MultiFormatReader::default(),
-        EAN13Reader {},
+        MultiFormatReader::default(),
+        // EAN13Reader {},
         BarcodeFormat::EAN_13,
     );
 
@@ -65,8 +65,8 @@ fn ean13_black_box2_test_case() {
 fn ean13_black_box3_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/ean13-3",
-        // MultiFormatReader::default(),
-        EAN13Reader {},
+        MultiFormatReader::default(),
+        // EAN13Reader {},
         BarcodeFormat::EAN_13,
     );
 
@@ -85,8 +85,8 @@ fn ean13_black_box3_test_case() {
 fn ean13_black_box4_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/ean13-4",
-        // MultiFormatReader::default(),
-        EAN13Reader {},
+        MultiFormatReader::default(),
+        // EAN13Reader {},
         BarcodeFormat::EAN_13,
     );
     //   super("src/test/resources/blackbox/ean13-4", new MultiFormatReader(), BarcodeFormat.EAN_13);
@@ -104,8 +104,8 @@ fn ean13_black_box4_test_case() {
 fn ean13_black_box5_blurry_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/ean13-5",
-        // MultiFormatReader::default(),
-        EAN13Reader {},
+        MultiFormatReader::default(),
+        // EAN13Reader {},
         BarcodeFormat::EAN_13,
     );
     //   super("src/test/resources/blackbox/ean13-5", new MultiFormatReader(), BarcodeFormat.EAN_13);

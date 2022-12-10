@@ -19,6 +19,7 @@ use super::Code128Reader;
 use super::Code39Reader;
 use super::Code93Reader;
 use super::ITFReader;
+use super::MultiFormatUPCEANReader;
 use super::OneDReader;
 use crate::BarcodeFormat;
 use crate::DecodeHintValue;
@@ -61,15 +62,13 @@ impl MultiFormatOneDReader {
         if let Some(DecodeHintValue::PossibleFormats(possibleFormats)) =
             hints.get(&DecodeHintType::POSSIBLE_FORMATS)
         {
-            // if let let possibleFormats = hints == null ? null :
-            // (Collection<BarcodeFormat>) hints.get(&DecodeHintType::POSSIBLE_FORMATS);
-            // if (possibleFormats != null) {
-            // if (possibleFormats.contains(&BarcodeFormat::EAN_13) ||
-            //     possibleFormats.contains(&BarcodeFormat::UPC_A) ||
-            //     possibleFormats.contains(&BarcodeFormat::EAN_8) ||
-            //     possibleFormats.contains(&BarcodeFormat::UPC_E)) {
-            //   readers.add(new MultiFormatUPCEANReader(hints));
-            // }
+            if possibleFormats.contains(&BarcodeFormat::EAN_13)
+                || possibleFormats.contains(&BarcodeFormat::UPC_A)
+                || possibleFormats.contains(&BarcodeFormat::EAN_8)
+                || possibleFormats.contains(&BarcodeFormat::UPC_E)
+            {
+                readers.push(Box::new(MultiFormatUPCEANReader::new(hints)));
+            }
             if possibleFormats.contains(&BarcodeFormat::CODE_39) {
                 readers.push(Box::new(Code39Reader::with_use_check_digit(
                     useCode39CheckDigit,
@@ -81,7 +80,7 @@ impl MultiFormatOneDReader {
             if possibleFormats.contains(&BarcodeFormat::CODE_128) {
                 readers.push(Box::new(Code128Reader {}));
             }
-            if (possibleFormats.contains(&BarcodeFormat::ITF)) {
+            if possibleFormats.contains(&BarcodeFormat::ITF) {
                 readers.push(Box::new(ITFReader::default()));
             }
             if possibleFormats.contains(&BarcodeFormat::CODABAR) {
@@ -95,7 +94,7 @@ impl MultiFormatOneDReader {
             // }
         }
         if readers.is_empty() {
-            // readers.push(new MultiFormatUPCEANReader(hints));
+            readers.push(Box::new(MultiFormatUPCEANReader::new(hints)));
             readers.push(Box::new(Code39Reader::new()));
             readers.push(Box::new(CodaBarReader::new()));
             readers.push(Box::new(Code93Reader::new()));
