@@ -49,8 +49,8 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let normalizedProductID;
     // Expand UPC-E for purposes of searching
     if format == &BarcodeFormat::UPC_E && rawText.len() == 8 {
-        unimplemented!("UPCEReader is required to parse this");
-        //normalizedProductID = UPCEReader.convertUPCEtoUPCA(rawText);
+        // unimplemented!("UPCEReader is required to parse this");
+        normalizedProductID = crate::oned::convertUPCEtoUPCA(&rawText);
     } else {
         normalizedProductID = rawText.clone();
     }
