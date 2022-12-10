@@ -157,3 +157,9 @@ impl EAN13Reader {
         return Err(Exceptions::NotFoundException("".to_owned()));
     }
 }
+
+impl Default for EAN13Reader {
+    fn default() -> Self {
+        Self {}
+    }
+}

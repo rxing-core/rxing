@@ -40,3 +40,6 @@ pub use ean_8_reader::*;
 
 mod ean_13_reader;
 pub use ean_13_reader::*;
+
+mod upc_a_reader;
+pub use upc_a_reader::*;
