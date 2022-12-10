@@ -174,11 +174,11 @@ impl CodaBarReader {
     // These values are critical for determining how permissive the decoding
     // will be. All stripe sizes must be within the window these define, as
     // compared to the average stripe size.
-    const MAX_ACCEPTABLE: f32 = 2.0;
-    const PADDING: f32 = 1.5;
+    pub const MAX_ACCEPTABLE: f32 = 2.0;
+    pub const PADDING: f32 = 1.5;
 
     // const ALPHABET_STRING : &str= "0123456789-$:/.+ABCD";
-    const ALPHABET: [char; 20] = [
+    pub const ALPHABET: [char; 20] = [
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '$', ':', '/', '.', '+', 'A', 'B',
         'C', 'D',
     ];
@@ -187,7 +187,7 @@ impl CodaBarReader {
      * These represent the encodings of characters, as patterns of wide and narrow bars. The 7 least-significant bits of
      * each int correspond to the pattern of wide and narrow, with 1s representing "wide" and 0s representing narrow.
      */
-    const CHARACTER_ENCODINGS: [u32; 20] = [
+    pub const CHARACTER_ENCODINGS: [u32; 20] = [
         0x003, 0x006, 0x009, 0x060, 0x012, 0x042, 0x021, 0x024, 0x030, 0x048, // 0-9
         0x00c, 0x018, 0x045, 0x051, 0x054, 0x015, 0x01A, 0x029, 0x00B, 0x00E, // -$:/.+ABCD
     ];
@@ -195,10 +195,10 @@ impl CodaBarReader {
     // minimal number of characters that should be present (including start and stop characters)
     // under normal circumstances this should be set to 3, but can be set higher
     // as a last-ditch attempt to reduce false positives.
-    const MIN_CHARACTER_LENGTH: u32 = 3;
+    pub const MIN_CHARACTER_LENGTH: u32 = 3;
 
     // official start and end patterns
-    const STARTEND_ENCODING: [char; 4] = ['A', 'B', 'C', 'D'];
+    pub const STARTEND_ENCODING: [char; 4] = ['A', 'B', 'C', 'D'];
     // some Codabar generator allow the Codabar string to be closed by every
     // character. This will cause lots of false positives!
 

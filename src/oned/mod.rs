@@ -46,3 +46,9 @@ pub use upc_a_reader::*;
 
 mod upc_e_reader;
 pub use upc_e_reader::*;
+
+mod one_d_code_writer;
+pub use one_d_code_writer::*;
+
+mod coda_bar_writer;
+pub use coda_bar_writer::*;

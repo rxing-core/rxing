@@ -105,3 +105,77 @@ fn impl_ean_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
   };
   gen.into()
 }
+
+#[proc_macro_derive(OneDWriter)]
+pub fn one_d_writer_derive(input: TokenStream) -> TokenStream {
+  // Construct a representation of Rust code as a syntax tree
+  // that we can manipulate
+  let ast = syn::parse(input).unwrap();
+
+  // Build the trait implementation
+  impl_one_d_writer_macro(&ast)
+}
+
+fn impl_one_d_writer_macro(ast: &syn::DeriveInput) -> TokenStream {
+  let name = &ast.ident;
+  let gen = quote! {
+    use crate::{
+      EncodeHintType, EncodeHintValue, Exceptions, Writer,
+   };
+   use std::collections::HashMap;
+    impl Writer for #name {
+      fn encode(
+          &self,
+          contents: &str,
+          format: &crate::BarcodeFormat,
+          width: i32,
+          height: i32,
+      ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+          self.encode_with_hints(contents, format, width, height, &HashMap::new())
+      }
+  
+      fn encode_with_hints(
+          &self,
+          contents: &str,
+          format: &crate::BarcodeFormat,
+          width: i32,
+          height: i32,
+          hints: &crate::EncodingHintDictionary,
+      ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+          if contents.is_empty() {
+              return Err(Exceptions::IllegalArgumentException(
+                  "Found empty contents".to_owned(),
+              ));
+          }
+  
+          if width < 0 || height < 0 {
+              return Err(Exceptions::IllegalArgumentException(format!(
+                  "Negative size is not allowed. Input: {}x{}",
+                  width, height
+              )));
+          }
+          if let Some(supportedFormats) = self.getSupportedWriteFormats() {
+              if !supportedFormats.contains(format) {
+                  return Err(Exceptions::IllegalArgumentException(format!(
+                      "Can only encode {:?}, but got {:?}",
+                      supportedFormats, format
+                  )));
+              }
+          }
+  
+          let mut sidesMargin = self.getDefaultMargin();
+          if let Some(EncodeHintValue::Margin(margin)) = hints.get(&EncodeHintType::MARGIN) {
+              sidesMargin = margin.parse::<u32>().unwrap();
+          }
+          // if  hints.contains_key(&EncodeHintType::MARGIN) {
+          //   sidesMargin = Integer.parseInt(hints.get(EncodeHintType.MARGIN).toString());
+          // }
+  
+          let code = self.encode_oned_with_hints(contents, hints)?;
+  
+          Self::renderRXingResult(&code, width, height, sidesMargin)
+      }
+  }
+  };
+  gen.into()
+}
