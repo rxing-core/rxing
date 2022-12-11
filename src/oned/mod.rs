@@ -58,3 +58,6 @@ pub use multi_format_upc_ean_reader::*;
 
 mod code_39_writer;
 pub use code_39_writer::*;
+
+mod code_93_writer;
+pub use code_93_writer::*;
