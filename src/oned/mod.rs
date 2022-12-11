@@ -61,3 +61,6 @@ pub use code_39_writer::*;
 
 mod code_93_writer;
 pub use code_93_writer::*;
+
+mod itf_writer;
+pub use itf_writer::*;
