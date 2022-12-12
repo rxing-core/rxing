@@ -453,7 +453,7 @@ use lazy_static::lazy_static;
 
 lazy_static! {
 
-static ref CODE_PATTERNS: [Vec<u32>; 107] = [
+pub static ref CODE_PATTERNS: [Vec<u32>; 107] = [
     vec![2, 1, 2, 2, 2, 2], // 0
     vec![2, 2, 2, 1, 2, 2],
     vec![2, 2, 2, 2, 2, 1],

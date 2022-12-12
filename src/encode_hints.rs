@@ -325,5 +325,5 @@ pub enum EncodeHintValue {
      * This can yield slightly smaller bar codes. This option and {@link #FORCE_CODE_SET} are mutually
      * exclusive.
      */
-    Code128Compact(String),
+    Code128Compact(bool),
 }
