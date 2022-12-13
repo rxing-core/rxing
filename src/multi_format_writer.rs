@@ -17,8 +17,14 @@
 use std::collections::HashMap;
 
 use crate::{
-    aztec::AztecWriter, datamatrix::DataMatrixWriter, qrcode::QRCodeWriter, BarcodeFormat,
-    Exceptions, Writer,
+    aztec::AztecWriter,
+    datamatrix::DataMatrixWriter,
+    oned::{
+        Code128Writer, Code39Writer, Code93Writer, EAN13Writer, EAN8Writer, ITFWriter, UPCAWriter,
+        UPCEWriter,
+    },
+    qrcode::QRCodeWriter,
+    BarcodeFormat, Exceptions, Writer,
 };
 
 /**
@@ -49,27 +55,18 @@ impl Writer for MultiFormatWriter {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         let writer: Box<dyn Writer> = match format {
-            BarcodeFormat::EAN_8 => unimplemented!(""),
-            // writer =  EAN8Writer(),
-            BarcodeFormat::UPC_E => unimplemented!(""),
-            // writer =  UPCEWriter(),
-            BarcodeFormat::EAN_13 => unimplemented!(""),
-            // writer =  EAN13Writer(),
-            BarcodeFormat::UPC_A => unimplemented!(""),
-            // writer =  UPCAWriter(),
+            BarcodeFormat::EAN_8 => Box::new(EAN8Writer::default()),
+            BarcodeFormat::UPC_E => Box::new(UPCEWriter::default()),
+            BarcodeFormat::EAN_13 => Box::new(EAN13Writer::default()),
+            BarcodeFormat::UPC_A => Box::new(UPCAWriter::default()),
             BarcodeFormat::QR_CODE => Box::new(QRCodeWriter {}),
-            BarcodeFormat::CODE_39 => unimplemented!(""),
-            // writer =  Code39Writer(),
-            BarcodeFormat::CODE_93 => unimplemented!(""),
-            // writer =  Code93Writer(),
-            BarcodeFormat::CODE_128 => unimplemented!(""),
-            // writer =  Code128Writer(),
-            BarcodeFormat::ITF => unimplemented!(""),
-            // writer =  ITFWriter(),
+            BarcodeFormat::CODE_39 => Box::new(Code39Writer::default()),
+            BarcodeFormat::CODE_93 => Box::new(Code93Writer::default()),
+            BarcodeFormat::CODE_128 => Box::new(Code128Writer::default()),
+            BarcodeFormat::ITF => Box::new(ITFWriter::default()),
             BarcodeFormat::PDF_417 => unimplemented!(""),
-            // writer =  PDF417Writer(),
-            BarcodeFormat::CODABAR => unimplemented!(""),
-            // writer =  CodaBarWriter(),
+            // Box::new(PDF417Writer::default()),
+            BarcodeFormat::CODABAR => Box::new(Code128Writer::default()),
             BarcodeFormat::DATA_MATRIX => Box::new(DataMatrixWriter {}),
             BarcodeFormat::AZTEC => Box::new(AztecWriter {}),
             _ => {
