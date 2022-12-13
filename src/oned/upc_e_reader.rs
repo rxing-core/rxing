@@ -95,7 +95,7 @@ impl UPCEReader {
      * The pattern that marks the middle, and end, of a UPC-E pattern.
      * There is no "second half" to a UPC-E barcode.
      */
-    const MIDDLE_END_PATTERN: [u32; 6] = [1, 1, 1, 1, 1, 1];
+    pub const MIDDLE_END_PATTERN: [u32; 6] = [1, 1, 1, 1, 1, 1];
 
     // For an UPC-E barcode, the final digit is represented by the parities used
     // to encode the middle six digits, according to the table below.
@@ -126,7 +126,7 @@ impl UPCEReader {
      * even-odd parity encodings of digits that imply both the number system (0 or 1)
      * used, and the check digit.
      */
-    const NUMSYS_AND_CHECK_DIGIT_PATTERNS: [[usize; 10]; 2] = [
+    pub const NUMSYS_AND_CHECK_DIGIT_PATTERNS: [[usize; 10]; 2] = [
         [0x38, 0x34, 0x32, 0x31, 0x2C, 0x26, 0x23, 0x2A, 0x29, 0x25],
         [0x07, 0x0B, 0x0D, 0x0E, 0x13, 0x19, 0x1C, 0x15, 0x16, 0x1A],
     ];
@@ -157,7 +157,7 @@ impl UPCEReader {
  * @return equivalent UPC-A code as string of digits
  */
 pub fn convertUPCEtoUPCA(upce: &str) -> String {
-    let upceChars = &upce[1..8]; //['0';6];//new char[6];
+    let upceChars = &upce[1..7]; //['0';6];//new char[6];
                                  //upce.getChars(1, 7, upceChars, 0);
     let mut result = String::with_capacity(12); //new StringBuilder(12);
     result.push(upce.chars().nth(0).unwrap());

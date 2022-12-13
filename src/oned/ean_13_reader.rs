@@ -130,7 +130,7 @@ impl EAN13Reader {
     // in binary:
     //                0    1    1   0   0    1   == 0x19
     //
-    const FIRST_DIGIT_ENCODINGS: [usize; 10] =
+    pub const FIRST_DIGIT_ENCODINGS: [usize; 10] =
         [0x00, 0x0B, 0x0D, 0xE, 0x13, 0x19, 0x1C, 0x15, 0x16, 0x1A];
 
     /**

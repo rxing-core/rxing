@@ -118,18 +118,23 @@ pub trait OneDimensionalCodeWriter: Writer {
      * @param startColor starting color - false for white, true for black
      * @return the number of elements added to target.
      */
-    fn appendPattern(target: &mut [bool], pos: usize, pattern: &[usize], startColor: bool) -> u32 {
+    fn appendPattern<T: TryInto<usize> + Copy>(
+        target: &mut [bool],
+        pos: usize,
+        pattern: &[T],
+        startColor: bool,
+    ) -> u32 {
         let mut color = startColor;
         let mut numAdded = 0;
         let mut pos = pos;
         for len in pattern {
             // for (int len : pattern) {
-            for _j in 0..*len {
+            for _j in 0..TryInto::<usize>::try_into(*len).unwrap_or_default() {
                 // for (int j = 0; j < len; j++) {
                 target[pos] = color;
                 pos += 1;
             }
-            numAdded += len;
+            numAdded += TryInto::<usize>::try_into(*len).unwrap_or_default();
             color = !color; // flip color after each segment
         }
         numAdded as u32

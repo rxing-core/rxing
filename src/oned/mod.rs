@@ -70,3 +70,18 @@ pub use code_128_writer::*;
 
 #[cfg(test)]
 mod code_128_writer_test_tase;
+
+mod upc_a_writer;
+pub use upc_a_writer::*;
+
+mod ean_13_writer;
+pub use ean_13_writer::*;
+
+mod upc_ean_writer;
+pub use upc_ean_writer::*;
+
+mod ean_8_writer;
+pub use ean_8_writer::*;
+
+mod upc_e_writer;
+pub use upc_e_writer::*;
