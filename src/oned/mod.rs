@@ -67,3 +67,6 @@ pub use itf_writer::*;
 
 mod code_128_writer;
 pub use code_128_writer::*;
+
+#[cfg(test)]
+mod code_128_writer_test_tase;

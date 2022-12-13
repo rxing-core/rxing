@@ -246,8 +246,14 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>, Exception
                                     "Bad number of characters for digit only encoding.".to_owned(),
                                 ));
                             }
-                            patternIndex =
-                                contents[position..position + 1].parse::<isize>().unwrap();
+                            let s: String = contents
+                                .char_indices()
+                                .skip(position)
+                                .take(2)
+                                .map(|(_u, c)| c)
+                                .collect();
+                            patternIndex = s.parse::<isize>().unwrap();
+                            // contents[position..position + 2].parse::<isize>().unwrap();
                             // patternIndex = Integer.parseInt(contents.substring(position, position + 2));
                             position += 1;
                         } // Also incremented below
@@ -469,8 +475,8 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
 
     pub fn encode(contents: &str) -> Result<Vec<bool>, Exceptions> {
         let length = contents.chars().count();
-        let mut memoizedCost = vec![vec![0_u32; 4]; length]; //new int[4][contents.length()];
-        let mut minPath = vec![vec![Latch::NONE; 4]; length]; //new Latch[4][contents.length()];
+        let mut memoizedCost = vec![vec![0_u32; length]; 4]; //new int[4][contents.length()];
+        let mut minPath = vec![vec![Latch::NONE; length]; 4]; //new Latch[4][contents.length()];
 
         encode_with_start_position(contents, Charset::NONE, 0, &mut memoizedCost, &mut minPath)?;
 
@@ -533,9 +539,15 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                         i,
                     );
                 } else {
+                    let s: String = contents
+                        .char_indices()
+                        .skip(i)
+                        .take(2)
+                        .map(|(_u, c)| c)
+                        .collect();
                     addPattern(
                         &mut patterns,
-                        (contents[i..i + 2]).parse::<usize>().unwrap(),
+                        s.parse::<usize>().unwrap(),
                         &mut checkSum,
                         &mut checkWeight,
                         i,
@@ -548,20 +560,20 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
             } else {
                 // charset A or B
                 let mut patternIndex = match contents.chars().nth(i).unwrap() {
-                    ESCAPE_FNC_1 => CODE_FNC_1,
-                    ESCAPE_FNC_2 => CODE_FNC_2,
-                    ESCAPE_FNC_3 => CODE_FNC_3,
+                    ESCAPE_FNC_1 => CODE_FNC_1 as isize,
+                    ESCAPE_FNC_2 => CODE_FNC_2 as isize,
+                    ESCAPE_FNC_3 => CODE_FNC_3 as isize,
                     ESCAPE_FNC_4 => {
                         if (charset == Charset::A && latch != Latch::SHIFT)
                             || (charset == Charset::B && latch == Latch::SHIFT)
                         {
-                            CODE_FNC_4_A
+                            CODE_FNC_4_A as isize
                         } else {
-                            CODE_FNC_4_B
+                            CODE_FNC_4_B as isize
                         }
                     }
-                    _ => contents.chars().nth(i).unwrap() as usize - ' ' as usize,
-                } as isize;
+                    _ => contents.chars().nth(i).unwrap() as isize - ' ' as isize,
+                };
                 if (charset == Charset::A && latch != Latch::SHIFT)
                     || (charset == Charset::B && latch == Latch::SHIFT)
                 {

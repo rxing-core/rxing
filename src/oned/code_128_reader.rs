@@ -449,6 +449,12 @@ impl Code128Reader {
     }
 }
 
+impl Default for Code128Reader {
+    fn default() -> Self {
+        Self {}
+    }
+}
+
 use lazy_static::lazy_static;
 
 lazy_static! {
