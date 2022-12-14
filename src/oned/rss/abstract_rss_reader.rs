@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{oned::OneDReader, Exceptions};
+use crate::{oned::{OneDReader, one_d_reader}, Exceptions};
 
 /**
  * Superclass of {@link OneDReader} implementations that read barcodes in the RSS family
@@ -43,26 +43,13 @@ pub trait AbstractRSSReaderTrait: OneDReader {
     //   evenCounts = new int[dataCharacterCounters.length / 2];
     // }
 
-    fn getDecodeFinderCounters(&mut self) -> &mut [u32];
-
-    fn getDataCharacterCounters(&mut self) -> &mut [u32];
-
-    fn getOddRoundingErrors(&mut self) -> &mut [f32];
-
-    fn getEvenRoundingErrors(&mut self) -> &mut [f32];
-
-    fn getOddCounts(&mut self) -> &mut [u32];
-
-    fn getEvenCounts(&mut self) -> &mut [u32];
-
     fn parseFinderValue(
-        &self,
         counters: &[u32],
         finderPatterns: &[[u32; 4]; 9],
     ) -> Result<u32, Exceptions> {
         for value in 0..finderPatterns.len() {
             // for (int value = 0; value < finderPatterns.length; value++) {
-            if self.patternMatchVariance(
+            if one_d_reader::patternMatchVariance(
                 counters,
                 &finderPatterns[value],
                 Self::MAX_INDIVIDUAL_VARIANCE,
@@ -110,7 +97,7 @@ pub trait AbstractRSSReaderTrait: OneDReader {
         array[index] -= 1;
     }
 
-    fn isFinderPattern(&self, counters: &[u32]) -> bool {
+    fn isFinderPattern( counters: &[u32]) -> bool {
         let firstTwoSum = counters[0] + counters[1];
         let sum = firstTwoSum + counters[2] + counters[3];
         let ratio: f32 = (firstTwoSum as f32) / (sum as f32);

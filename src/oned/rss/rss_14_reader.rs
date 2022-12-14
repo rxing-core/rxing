@@ -18,7 +18,7 @@ use std::collections::HashMap;
 
 use crate::{
     common::{detector::MathUtils, BitArray},
-    oned::OneDReader,
+    oned::{OneDReader, one_d_reader},
     BarcodeFormat, DecodeHintType, DecodingHintDictionary, Exceptions, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader, ResultPoint,
 };
@@ -41,31 +41,8 @@ pub struct RSS14Reader {
     evenCounts: [u32; 4],
 }
 
-impl AbstractRSSReaderTrait for RSS14Reader {
-    fn getDecodeFinderCounters(&mut self) -> &mut [u32] {
-        &mut self.decodeFinderCounters
-    }
+impl AbstractRSSReaderTrait for RSS14Reader {}
 
-    fn getDataCharacterCounters(&mut self) -> &mut [u32] {
-        &mut self.dataCharacterCounters
-    }
-
-    fn getOddRoundingErrors(&mut self) -> &mut [f32] {
-        &mut self.oddRoundingErrors
-    }
-
-    fn getEvenRoundingErrors(&mut self) -> &mut [f32] {
-        &mut self.evenRoundingErrors
-    }
-
-    fn getOddCounts(&mut self) -> &mut [u32] {
-        &mut self.oddCounts
-    }
-
-    fn getEvenCounts(&mut self) -> &mut [u32] {
-        &mut self.evenCounts
-    }
-}
 impl OneDReader for RSS14Reader {
     fn decodeRow(
         &mut self,
@@ -316,17 +293,19 @@ impl RSS14Reader {
         pattern: &FinderPattern,
         outsideChar: bool,
     ) -> Result<DataCharacter, Exceptions> {
-        let mut counters = [0_u32; 8]; //self.getDataCharacterCounters();
+        let  counters = &mut self.dataCharacterCounters; //[0_u32; 8]; //self.getDataCharacterCounters();
                                        //Arrays.fill(counters, 0);
                                        // counters.fill(0);
+                                       counters.fill(0);
+
 
         if outsideChar {
-            self.recordPatternInReverse(row, pattern.getStartEnd()[0], &mut counters)?;
+            one_d_reader::recordPatternInReverse(row, pattern.getStartEnd()[0], &mut counters[..])?;
         } else {
-            self.recordPattern(row, pattern.getStartEnd()[1], &mut counters)?;
+            one_d_reader::recordPattern(row, pattern.getStartEnd()[1], &mut counters[..])?;
             // reverse it
             let mut i = 0;
-            let mut j = counters.len();
+            let mut j = counters.len() -1;
             while i < j {
                 // for (int i = 0, j = counters.length - 1; i < j; i++, j--) {
                 let temp = counters[i];
@@ -342,10 +321,10 @@ impl RSS14Reader {
 
         let elementWidth: f32 = counters.iter().sum::<u32>() as f32 / numModules as f32;
 
-        let mut oddCounts = [0u32; 4]; //self.getOddCounts();
-        let mut evenCounts = [0u32; 4]; // self.getEvenCounts();
-        let mut oddRoundingErrors = [0f32; 4]; // self.getOddRoundingErrors();
-        let mut evenRoundingErrors = [0f32; 4]; // self.getEvenRoundingErrors();
+        // let  oddCounts = &mut self.oddCounts;//[0u32; 4]; //self.getOddCounts();
+        // let  evenCounts = //&mut self.evenCounts;//[0u32; 4]; // self.getEvenCounts();
+        // let  oddRoundingErrors = //&mut self.oddRoundingErrors;//[0f32; 4]; // self.getOddRoundingErrors();
+        // let  evenRoundingErrors = &mut self.evenRoundingErrors;//[0f32; 4]; // self.getEvenRoundingErrors();
 
         for i in 0..counters.len() {
             // for (int i = 0; i < counters.length; i++) {
@@ -358,11 +337,11 @@ impl RSS14Reader {
             }
             let offset = i / 2;
             if (i & 0x01) == 0 {
-                oddCounts[offset] = count;
-                oddRoundingErrors[offset] = value - count as f32;
+                self.oddCounts[offset] = count;
+                self.oddRoundingErrors[offset] = value - count as f32;
             } else {
-                evenCounts[offset] = count;
-                evenRoundingErrors[offset] = value - count as f32;
+                self.evenCounts[offset] = count;
+                self.evenRoundingErrors[offset] = value - count as f32;
             }
         }
 
@@ -370,26 +349,21 @@ impl RSS14Reader {
 
         let mut oddSum = 0;
         let mut oddChecksumPortion = 0;
-        for i in (0..oddCounts.len()).rev() {
+        for i in (0..self.oddCounts.len()).rev() {
             // for (int i = oddCounts.length - 1; i >= 0; i--) {
             oddChecksumPortion *= 9;
-            oddChecksumPortion += oddCounts[i];
-            oddSum += oddCounts[i];
+            oddChecksumPortion += &self.oddCounts[i];
+            oddSum += &self.oddCounts[i];
         }
         let mut evenChecksumPortion = 0;
         let mut evenSum = 0;
-        for i in (0..evenCounts.len()).rev() {
+        for i in (0..self.evenCounts.len()).rev() {
             // for (int i = evenCounts.length - 1; i >= 0; i--) {
             evenChecksumPortion *= 9;
-            evenChecksumPortion += evenCounts[i];
-            evenSum += evenCounts[i];
+            evenChecksumPortion += self.evenCounts[i];
+            evenSum += self.evenCounts[i];
         }
         let checksumPortion = oddChecksumPortion + 3 * evenChecksumPortion;
-
-        self.oddCounts = oddCounts;
-        self.evenCounts = evenCounts;
-        self.oddRoundingErrors = oddRoundingErrors;
-        self.evenRoundingErrors = evenRoundingErrors;
 
         if outsideChar {
             if (oddSum & 0x01) != 0 || oddSum > 12 || oddSum < 4 {
@@ -398,8 +372,8 @@ impl RSS14Reader {
             let group = ((12 - oddSum) / 2) as usize;
             let oddWidest = Self::OUTSIDE_ODD_WIDEST[group];
             let evenWidest = 9 - oddWidest;
-            let vOdd = rss_utils::getRSSvalue(&oddCounts, oddWidest, false);
-            let vEven = rss_utils::getRSSvalue(&evenCounts, evenWidest, true);
+            let vOdd = rss_utils::getRSSvalue(&self.oddCounts, oddWidest, false);
+            let vEven = rss_utils::getRSSvalue(&self.evenCounts, evenWidest, true);
             let tEven = Self::OUTSIDE_EVEN_TOTAL_SUBSET[group];
             let gSum = Self::OUTSIDE_GSUM[group];
             return Ok(DataCharacter::new(
@@ -413,8 +387,8 @@ impl RSS14Reader {
             let group = ((10 - evenSum) / 2) as usize;
             let oddWidest = Self::INSIDE_ODD_WIDEST[group];
             let evenWidest = 9 - oddWidest;
-            let vOdd = rss_utils::getRSSvalue(&oddCounts, oddWidest, true);
-            let vEven = rss_utils::getRSSvalue(&evenCounts, evenWidest, false);
+            let vOdd = rss_utils::getRSSvalue(&self.oddCounts, oddWidest, true);
+            let vEven = rss_utils::getRSSvalue(&self.evenCounts, evenWidest, false);
             let tOdd = Self::INSIDE_ODD_TOTAL_SUBSET[group];
             let gSum = Self::INSIDE_GSUM[group];
             return Ok(DataCharacter::new(
@@ -434,7 +408,8 @@ impl RSS14Reader {
         // counters[1] = 0;
         // counters[2] = 0;
         // counters[3] = 0;
-        let mut counters = [0u32; 4];
+        let counters = &mut self.decodeFinderCounters;
+        counters.fill(0);
 
         let width = row.getSize();
         let mut isWhite = false;
@@ -456,7 +431,7 @@ impl RSS14Reader {
                 counters[counterPosition] += 1;
             } else {
                 if counterPosition == 3 {
-                    if self.isFinderPattern(&counters) {
+                    if Self::isFinderPattern(counters) {
                         return Ok([patternStart, x]);
                     }
                     patternStart += (counters[0] + counters[1]) as usize;
@@ -491,13 +466,17 @@ impl RSS14Reader {
         }
         firstElementStart += 1;
         let firstCounter = startEnd[0] - firstElementStart as usize;
+        let mut counters = &mut self.decodeFinderCounters;
+        let counter_len = counters.len();
+        let slc = counters[0..counter_len-1].to_vec();
+        counters[1..counter_len].copy_from_slice(&slc);
         // Make 'counters' hold 1-4
         // let counters = self.getDecodeFinderCounters();
         // System.arraycopy(counters, 0, counters, 1, counters.length - 1);
         // counters.fill(0);
-        let mut counters = [0u32; 4];
+        
         counters[0] = firstCounter as u32;
-        let value = self.parseFinderValue(&counters, &Self::FINDER_PATTERNS)?;
+        let value = Self::parseFinderValue(counters, &Self::FINDER_PATTERNS)?;
         let mut start = firstElementStart as usize;
         let mut end = startEnd[1];
         if right {
@@ -520,8 +499,8 @@ impl RSS14Reader {
         outsideChar: bool,
         numModules: u32,
     ) -> Result<(), Exceptions> {
-        let oddSum = self.getOddCounts().iter().sum::<u32>(); //MathUtils.sum(getOddCounts());
-        let evenSum = self.getEvenCounts().iter().sum::<u32>(); //MathUtils.sum(getEvenCounts());
+        let oddSum = self.oddCounts.iter().sum::<u32>(); //MathUtils.sum(getOddCounts());
+        let evenSum = self.evenCounts.iter().sum::<u32>(); //MathUtils.sum(getEvenCounts());
 
         let mut incrementOdd = false;
         let mut decrementOdd = false;

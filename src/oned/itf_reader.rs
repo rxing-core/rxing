@@ -18,7 +18,7 @@ use one_d_reader_derive::OneDReader;
 
 use crate::{common::BitArray, BarcodeFormat, DecodeHintValue, Exceptions, RXingResult};
 
-use super::OneDReader;
+use super::{OneDReader, one_d_reader};
 
 const MAX_AVG_VARIANCE: f32 = 0.38;
 const MAX_INDIVIDUAL_VARIANCE: f32 = 0.5;
@@ -198,7 +198,7 @@ impl ITFReader {
 
         while payloadStart < payloadEnd {
             // Get 10 runs of black/white.
-            self.recordPattern(row, payloadStart, &mut counterDigitPair)?;
+            one_d_reader::recordPattern(row, payloadStart, &mut counterDigitPair)?;
             // Split them into each array
             for k in 0..5 {
                 // for (int k = 0; k < 5; k++) {
@@ -375,7 +375,7 @@ impl ITFReader {
                 counters[counterPosition] += 1;
             } else {
                 if counterPosition == patternLength - 1 {
-                    if self.patternMatchVariance(&counters, pattern, MAX_INDIVIDUAL_VARIANCE)
+                    if one_d_reader::patternMatchVariance(&counters, pattern, MAX_INDIVIDUAL_VARIANCE)
                         < MAX_AVG_VARIANCE
                     {
                         return Ok([patternStart, x]);
@@ -412,7 +412,7 @@ impl ITFReader {
         for i in 0..max {
             // for (int i = 0; i < max; i++) {
             let pattern = &PATTERNS[i];
-            let variance = self.patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
+            let variance = one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
                 bestVariance = variance;
                 bestMatch = i as isize;

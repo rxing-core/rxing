@@ -147,6 +147,78 @@ pub trait OneDReader: Reader {
     }
 
     /**
+     * <p>Attempts to decode a one-dimensional barcode format given a single row of
+     * an image.</p>
+     *
+     * @param rowNumber row number from top of the row
+     * @param row the black/white pixel data of the row
+     * @param hints decode hints
+     * @return {@link RXingResult} containing encoded string and start/end of barcode
+     * @throws NotFoundException if no potential barcode is found
+     * @throws ChecksumException if a potential barcode is found but does not pass its checksum
+     * @throws FormatException if a potential barcode is found but format is invalid
+     */
+    fn decodeRow(
+        &mut self,
+        rowNumber: u32,
+        row: &BitArray,
+        hints: &DecodingHintDictionary,
+    ) -> Result<RXingResult, Exceptions>;
+}
+
+
+/**
+ * Determines how closely a set of observed counts of runs of black/white values matches a given
+ * target pattern. This is reported as the ratio of the total variance from the expected pattern
+ * proportions across all pattern elements, to the length of the pattern.
+ *
+ * @param counters observed counters
+ * @param pattern expected pattern
+ * @param maxIndividualVariance The most any counter can differ before we give up
+ * @return ratio of total variance between counters and pattern compared to total pattern size
+ */
+pub fn patternMatchVariance(
+    counters: &[u32],
+    pattern: &[u32],
+    maxIndividualVariance: f32,
+) -> f32 {
+    let mut maxIndividualVariance = maxIndividualVariance;
+    let numCounters = counters.len();
+    let mut total = 0.0;
+    let mut patternLength = 0;
+    for i in 0..numCounters {
+        // for (int i = 0; i < numCounters; i++) {
+        total += counters[i] as f32;
+        patternLength += pattern[i];
+    }
+    if total < patternLength as f32 {
+        // If we don't even have one pixel per unit of bar width, assume this is too small
+        // to reliably match, so fail:
+        return f32::INFINITY;
+    }
+
+    let unitBarWidth = total / patternLength as f32;
+    maxIndividualVariance *= unitBarWidth as f32;
+
+    let mut totalVariance = 0.0;
+    for x in 0..numCounters {
+        // for (int x = 0; x < numCounters; x++) {
+        let counter = counters[x];
+        let scaledPattern = (pattern[x] as f32) * unitBarWidth;
+        let variance = if (counter as f32) > scaledPattern {
+            counter as f32 - scaledPattern
+        } else {
+            scaledPattern - counter as f32
+        };
+        if variance > maxIndividualVariance {
+            return f32::INFINITY;
+        }
+        totalVariance += variance;
+    }
+    return totalVariance / total;
+}
+
+    /**
      * Records the size of successive runs of white and black pixels in a row, starting at a given point.
      * The values are recorded in the given array, and the number of runs recorded is equal to the size
      * of the array. If the row starts on a white pixel at the given start point, then the first count
@@ -159,8 +231,7 @@ pub trait OneDReader: Reader {
      * @throws NotFoundException if counters cannot be filled entirely from row before running out
      *  of pixels
      */
-    fn recordPattern(
-        &self,
+    pub fn recordPattern(
         row: &BitArray,
         start: usize,
         counters: &mut [u32],
@@ -197,8 +268,7 @@ pub trait OneDReader: Reader {
         Ok(())
     }
 
-    fn recordPatternInReverse(
-        &self,
+    pub fn recordPatternInReverse(
         row: &BitArray,
         start: usize,
         counters: &mut [u32],
@@ -217,79 +287,7 @@ pub trait OneDReader: Reader {
         if numTransitionsLeft >= 0 {
             return Err(Exceptions::NotFoundException("".to_owned()));
         }
-        self.recordPattern(row, start + 1, counters)?;
+        recordPattern(row, start + 1, counters)?;
 
         Ok(())
     }
-
-    /**
-     * Determines how closely a set of observed counts of runs of black/white values matches a given
-     * target pattern. This is reported as the ratio of the total variance from the expected pattern
-     * proportions across all pattern elements, to the length of the pattern.
-     *
-     * @param counters observed counters
-     * @param pattern expected pattern
-     * @param maxIndividualVariance The most any counter can differ before we give up
-     * @return ratio of total variance between counters and pattern compared to total pattern size
-     */
-    fn patternMatchVariance(
-        &self,
-        counters: &[u32],
-        pattern: &[u32],
-        maxIndividualVariance: f32,
-    ) -> f32 {
-        let mut maxIndividualVariance = maxIndividualVariance;
-        let numCounters = counters.len();
-        let mut total = 0.0;
-        let mut patternLength = 0;
-        for i in 0..numCounters {
-            // for (int i = 0; i < numCounters; i++) {
-            total += counters[i] as f32;
-            patternLength += pattern[i];
-        }
-        if total < patternLength as f32 {
-            // If we don't even have one pixel per unit of bar width, assume this is too small
-            // to reliably match, so fail:
-            return f32::INFINITY;
-        }
-
-        let unitBarWidth = total / patternLength as f32;
-        maxIndividualVariance *= unitBarWidth as f32;
-
-        let mut totalVariance = 0.0;
-        for x in 0..numCounters {
-            // for (int x = 0; x < numCounters; x++) {
-            let counter = counters[x];
-            let scaledPattern = (pattern[x] as f32) * unitBarWidth;
-            let variance = if (counter as f32) > scaledPattern {
-                counter as f32 - scaledPattern
-            } else {
-                scaledPattern - counter as f32
-            };
-            if variance > maxIndividualVariance {
-                return f32::INFINITY;
-            }
-            totalVariance += variance;
-        }
-        return totalVariance / total;
-    }
-
-    /**
-     * <p>Attempts to decode a one-dimensional barcode format given a single row of
-     * an image.</p>
-     *
-     * @param rowNumber row number from top of the row
-     * @param row the black/white pixel data of the row
-     * @param hints decode hints
-     * @return {@link RXingResult} containing encoded string and start/end of barcode
-     * @throws NotFoundException if no potential barcode is found
-     * @throws ChecksumException if a potential barcode is found but does not pass its checksum
-     * @throws FormatException if a potential barcode is found but format is invalid
-     */
-    fn decodeRow(
-        &mut self,
-        rowNumber: u32,
-        row: &BitArray,
-        hints: &DecodingHintDictionary,
-    ) -> Result<RXingResult, Exceptions>;
-}

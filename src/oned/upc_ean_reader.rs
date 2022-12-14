@@ -19,7 +19,7 @@ use crate::{
     RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader,
 };
 
-use super::{EANManufacturerOrgSupport, OneDReader, UPCEANExtensionSupport};
+use super::{EANManufacturerOrgSupport, OneDReader, UPCEANExtensionSupport, one_d_reader};
 
 use lazy_static::lazy_static;
 
@@ -433,7 +433,7 @@ pub trait UPCEANReader: OneDReader {
                 counters[counterPosition] += 1;
             } else {
                 if counterPosition == patternLength - 1 {
-                    if self.patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE)
+                    if one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE)
                         < MAX_AVG_VARIANCE
                     {
                         return Ok([patternStart, x]);
@@ -475,7 +475,7 @@ pub trait UPCEANReader: OneDReader {
         rowOffset: usize,
         patterns: &[[u32; 4]],
     ) -> Result<usize, Exceptions> {
-        self.recordPattern(row, rowOffset, counters)?;
+        one_d_reader::recordPattern(row, rowOffset, counters)?;
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
         let max = patterns.len();
@@ -483,7 +483,7 @@ pub trait UPCEANReader: OneDReader {
             // for (int i = 0; i < max; i++) {
             let pattern = &patterns[i];
             let variance: f32 =
-                self.patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
+            one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
                 bestVariance = variance;
                 bestMatch = i as isize;

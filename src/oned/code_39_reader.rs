@@ -19,7 +19,7 @@ use one_d_reader_derive::OneDReader;
 use crate::common::BitArray;
 use crate::{BarcodeFormat, Exceptions, RXingResult};
 
-use super::OneDReader;
+use super::{OneDReader, one_d_reader};
 
 /**
  * <p>Decodes Code 39 barcodes. Supports "Full ASCII Code 39" if USE_CODE_39_EXTENDED_MODE is set.</p>
@@ -56,7 +56,7 @@ impl OneDReader for Code39Reader {
         let mut decodedChar;
         let mut lastStart;
         loop {
-            self.recordPattern(row, nextStart, &mut counters)?;
+            one_d_reader::recordPattern(row, nextStart, &mut counters)?;
             let pattern = Self::toNarrowWidePattern(&counters);
             if pattern < 0 {
                 return Err(Exceptions::NotFoundException("".to_owned()));

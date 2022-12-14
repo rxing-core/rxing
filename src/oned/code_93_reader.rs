@@ -18,7 +18,7 @@ use one_d_reader_derive::OneDReader;
 
 use crate::{common::BitArray, BarcodeFormat, Exceptions, RXingResult};
 
-use super::OneDReader;
+use super::{OneDReader, one_d_reader};
 
 /**
  * <p>Decodes Code 93 barcodes.</p>
@@ -51,7 +51,7 @@ impl OneDReader for Code93Reader {
         let mut decodedChar;
         let mut lastStart;
         loop {
-            self.recordPattern(row, nextStart, &mut theCounters)?;
+            one_d_reader::recordPattern(row, nextStart, &mut theCounters)?;
             let pattern = Self::toPattern(&theCounters);
             if pattern < 0 {
                 return Err(Exceptions::NotFoundException("".to_owned()));
