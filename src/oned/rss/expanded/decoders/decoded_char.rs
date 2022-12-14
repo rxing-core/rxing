@@ -24,60 +24,33 @@
  *   http://www.piramidepse.com/
  */
 
-package com.google.zxing.oned.rss.expanded.decoders;
+use super::DecodedObject;
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
+ * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
-final class CurrentParsingState {
+pub struct DecodedChar {
+    value: char,
+    newPosition: usize,
+}
+impl DecodedObject for DecodedChar {
+    fn getNewPosition(&self) -> usize {
+        self.newPosition
+    }
+}
+impl DecodedChar {
+    pub const FNC1: char = '$'; // It's not in Alphanumeric neither in ISO/IEC 646 charset
 
-  private int position;
-  private State encoding;
+    pub fn new(newPosition: usize, value: char) -> Self {
+        Self { value, newPosition }
+    }
 
-  private enum State {
-    NUMERIC,
-    ALPHA,
-    ISO_IEC_646
-  }
+    pub fn getValue(&self) -> char {
+        self.value
+    }
 
-  CurrentParsingState() {
-    this.position = 0;
-    this.encoding = State.NUMERIC;
-  }
-
-  int getPosition() {
-    return position;
-  }
-
-  void setPosition(int position) {
-    this.position = position;
-  }
-
-  void incrementPosition(int delta) {
-    position += delta;
-  }
-
-  boolean isAlpha() {
-    return this.encoding == State.ALPHA;
-  }
-
-  boolean isNumeric() {
-    return this.encoding == State.NUMERIC;
-  }
-
-  boolean isIsoIec646() {
-    return this.encoding == State.ISO_IEC_646;
-  }
-
-  void setNumeric() {
-    this.encoding = State.NUMERIC;
-  }
-
-  void setAlpha() {
-    this.encoding = State.ALPHA;
-  }
-
-  void setIsoIec646() {
-    this.encoding = State.ISO_IEC_646;
-  }
+    pub fn isFNC1(&self) -> bool {
+        self.value == Self::FNC1
+    }
 }

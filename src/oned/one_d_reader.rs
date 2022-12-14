@@ -166,7 +166,6 @@ pub trait OneDReader: Reader {
     ) -> Result<RXingResult, Exceptions>;
 }
 
-
 /**
  * Determines how closely a set of observed counts of runs of black/white values matches a given
  * target pattern. This is reported as the ratio of the total variance from the expected pattern
@@ -177,11 +176,7 @@ pub trait OneDReader: Reader {
  * @param maxIndividualVariance The most any counter can differ before we give up
  * @return ratio of total variance between counters and pattern compared to total pattern size
  */
-pub fn patternMatchVariance(
-    counters: &[u32],
-    pattern: &[u32],
-    maxIndividualVariance: f32,
-) -> f32 {
+pub fn patternMatchVariance(counters: &[u32], pattern: &[u32], maxIndividualVariance: f32) -> f32 {
     let mut maxIndividualVariance = maxIndividualVariance;
     let numCounters = counters.len();
     let mut total = 0.0;
@@ -218,76 +213,72 @@ pub fn patternMatchVariance(
     return totalVariance / total;
 }
 
-    /**
-     * Records the size of successive runs of white and black pixels in a row, starting at a given point.
-     * The values are recorded in the given array, and the number of runs recorded is equal to the size
-     * of the array. If the row starts on a white pixel at the given start point, then the first count
-     * recorded is the run of white pixels starting from that point; likewise it is the count of a run
-     * of black pixels if the row begin on a black pixels at that point.
-     *
-     * @param row row to count from
-     * @param start offset into row to start at
-     * @param counters array into which to record counts
-     * @throws NotFoundException if counters cannot be filled entirely from row before running out
-     *  of pixels
-     */
-    pub fn recordPattern(
-        row: &BitArray,
-        start: usize,
-        counters: &mut [u32],
-    ) -> Result<(), Exceptions> {
-        let numCounters = counters.len();
-        // Arrays.fill(counters, 0, numCounters, 0);
-        counters.fill(0);
-        let end = row.getSize();
-        if start >= end {
-            return Err(Exceptions::NotFoundException("".to_owned()));
-        }
-        let mut isWhite = !row.get(start);
-        let mut counterPosition = 0;
-        let mut i = start;
-        while i < end {
-            if row.get(i) != isWhite {
-                counters[counterPosition] += 1;
+/**
+ * Records the size of successive runs of white and black pixels in a row, starting at a given point.
+ * The values are recorded in the given array, and the number of runs recorded is equal to the size
+ * of the array. If the row starts on a white pixel at the given start point, then the first count
+ * recorded is the run of white pixels starting from that point; likewise it is the count of a run
+ * of black pixels if the row begin on a black pixels at that point.
+ *
+ * @param row row to count from
+ * @param start offset into row to start at
+ * @param counters array into which to record counts
+ * @throws NotFoundException if counters cannot be filled entirely from row before running out
+ *  of pixels
+ */
+pub fn recordPattern(row: &BitArray, start: usize, counters: &mut [u32]) -> Result<(), Exceptions> {
+    let numCounters = counters.len();
+    // Arrays.fill(counters, 0, numCounters, 0);
+    counters.fill(0);
+    let end = row.getSize();
+    if start >= end {
+        return Err(Exceptions::NotFoundException("".to_owned()));
+    }
+    let mut isWhite = !row.get(start);
+    let mut counterPosition = 0;
+    let mut i = start;
+    while i < end {
+        if row.get(i) != isWhite {
+            counters[counterPosition] += 1;
+        } else {
+            counterPosition += 1;
+            if counterPosition == numCounters {
+                break;
             } else {
-                counterPosition += 1;
-                if counterPosition == numCounters {
-                    break;
-                } else {
-                    counters[counterPosition] = 1;
-                    isWhite = !isWhite;
-                }
-            }
-            i += 1;
-        }
-        // If we read fully the last section of pixels and filled up our counters -- or filled
-        // the last counter but ran off the side of the image, OK. Otherwise, a problem.
-        if !(counterPosition == numCounters || (counterPosition == numCounters - 1 && i == end)) {
-            return Err(Exceptions::NotFoundException("".to_owned()));
-        }
-        Ok(())
-    }
-
-    pub fn recordPatternInReverse(
-        row: &BitArray,
-        start: usize,
-        counters: &mut [u32],
-    ) -> Result<(), Exceptions> {
-        let mut start = start;
-        // This could be more efficient I guess
-        let mut numTransitionsLeft = counters.len() as isize;
-        let mut last = row.get(start);
-        while start > 0 && numTransitionsLeft >= 0 {
-            start -= 1;
-            if row.get(start) != last {
-                numTransitionsLeft -= 1;
-                last = !last;
+                counters[counterPosition] = 1;
+                isWhite = !isWhite;
             }
         }
-        if numTransitionsLeft >= 0 {
-            return Err(Exceptions::NotFoundException("".to_owned()));
-        }
-        recordPattern(row, start + 1, counters)?;
-
-        Ok(())
+        i += 1;
     }
+    // If we read fully the last section of pixels and filled up our counters -- or filled
+    // the last counter but ran off the side of the image, OK. Otherwise, a problem.
+    if !(counterPosition == numCounters || (counterPosition == numCounters - 1 && i == end)) {
+        return Err(Exceptions::NotFoundException("".to_owned()));
+    }
+    Ok(())
+}
+
+pub fn recordPatternInReverse(
+    row: &BitArray,
+    start: usize,
+    counters: &mut [u32],
+) -> Result<(), Exceptions> {
+    let mut start = start;
+    // This could be more efficient I guess
+    let mut numTransitionsLeft = counters.len() as isize;
+    let mut last = row.get(start);
+    while start > 0 && numTransitionsLeft >= 0 {
+        start -= 1;
+        if row.get(start) != last {
+            numTransitionsLeft -= 1;
+            last = !last;
+        }
+    }
+    if numTransitionsLeft >= 0 {
+        return Err(Exceptions::NotFoundException("".to_owned()));
+    }
+    recordPattern(row, start + 1, counters)?;
+
+    Ok(())
+}

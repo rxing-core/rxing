@@ -18,7 +18,7 @@ use one_d_reader_derive::OneDReader;
 
 use crate::{common::BitArray, BarcodeFormat, DecodeHintValue, Exceptions, RXingResult};
 
-use super::{OneDReader, one_d_reader};
+use super::{one_d_reader, OneDReader};
 
 const MAX_AVG_VARIANCE: f32 = 0.38;
 const MAX_INDIVIDUAL_VARIANCE: f32 = 0.5;
@@ -375,8 +375,11 @@ impl ITFReader {
                 counters[counterPosition] += 1;
             } else {
                 if counterPosition == patternLength - 1 {
-                    if one_d_reader::patternMatchVariance(&counters, pattern, MAX_INDIVIDUAL_VARIANCE)
-                        < MAX_AVG_VARIANCE
+                    if one_d_reader::patternMatchVariance(
+                        &counters,
+                        pattern,
+                        MAX_INDIVIDUAL_VARIANCE,
+                    ) < MAX_AVG_VARIANCE
                     {
                         return Ok([patternStart, x]);
                     }
@@ -412,7 +415,8 @@ impl ITFReader {
         for i in 0..max {
             // for (int i = 0; i < max; i++) {
             let pattern = &PATTERNS[i];
-            let variance = one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
+            let variance =
+                one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
                 bestVariance = variance;
                 bestMatch = i as isize;

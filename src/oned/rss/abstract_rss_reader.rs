@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-use crate::{oned::{OneDReader, one_d_reader}, Exceptions};
+use crate::{
+    oned::{one_d_reader, OneDReader},
+    Exceptions,
+};
 
 /**
  * Superclass of {@link OneDReader} implementations that read barcodes in the RSS family
@@ -97,7 +100,7 @@ pub trait AbstractRSSReaderTrait: OneDReader {
         array[index] -= 1;
     }
 
-    fn isFinderPattern( counters: &[u32]) -> bool {
+    fn isFinderPattern(counters: &[u32]) -> bool {
         let firstTwoSum = counters[0] + counters[1];
         let sum = firstTwoSum + counters[2] + counters[3];
         let ratio: f32 = (firstTwoSum as f32) / (sum as f32);

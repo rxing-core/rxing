@@ -25,7 +25,7 @@ pub(crate) trait DataCharacterTrait: Display + Eq + PartialEq + Hash {
 /**
  * Encapsulates a since character value in an RSS barcode, including its checksum information.
  */
-#[derive(Hash, PartialEq, Eq)]
+#[derive(Hash, PartialEq, Eq, Debug)]
 pub struct DataCharacter {
     value: u32,
     checksumPortion: u32,

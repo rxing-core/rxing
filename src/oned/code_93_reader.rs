@@ -18,7 +18,7 @@ use one_d_reader_derive::OneDReader;
 
 use crate::{common::BitArray, BarcodeFormat, Exceptions, RXingResult};
 
-use super::{OneDReader, one_d_reader};
+use super::{one_d_reader, OneDReader};
 
 /**
  * <p>Decodes Code 93 barcodes.</p>

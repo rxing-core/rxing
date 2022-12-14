@@ -18,7 +18,7 @@ use one_d_reader_derive::OneDReader;
 
 use crate::{common::BitArray, BarcodeFormat, Exceptions, RXingResult};
 
-use super::{OneDReader, one_d_reader};
+use super::{one_d_reader, OneDReader};
 
 /**
  * <p>Decodes Code 128 barcodes.</p>
@@ -434,7 +434,8 @@ impl Code128Reader {
         for d in 0..CODE_PATTERNS.len() {
             // for (int d = 0; d < CODE_PATTERNS.len(); d++) {
             let pattern = &CODE_PATTERNS[d];
-            let variance = one_d_reader::patternMatchVariance(counters, &pattern, MAX_INDIVIDUAL_VARIANCE);
+            let variance =
+                one_d_reader::patternMatchVariance(counters, &pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
                 bestVariance = variance;
                 bestMatch = d as isize;

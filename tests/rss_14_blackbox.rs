@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2008 ZXing authors
  *
@@ -15,15 +14,15 @@
  * limitations under the License.
  */
 
- use rxing::{maxicode::MaxiCodeReader, BarcodeFormat, DecodeHintType, MultiFormatReader};
+use rxing::{maxicode::MaxiCodeReader, BarcodeFormat, DecodeHintType, MultiFormatReader};
 
- mod common;
- 
- /**
-  * @author Sean Owen
-  */
- #[test]
- fn rss14_black_box1_test_case() {
+mod common;
+
+/**
+ * @author Sean Owen
+ */
+#[test]
+fn rss14_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/rss14-1",
         MultiFormatReader::default(),
@@ -31,15 +30,13 @@
     );
 
     //  super("src/test/resources/blackbox/rss14-1", new MultiFormatReader(), BarcodeFormat.RSS_14);
-     tester.add_test(6, 6, 0.0);
-     tester.add_test(6, 6, 180.0);
+    tester.add_test(6, 6, 0.0);
+    tester.add_test(6, 6, 180.0);
 
-     tester.test_black_box()
-   }
- 
- 
+    tester.test_black_box()
+}
 
- /**
+/**
  * @author Sean Owen
  */
 #[test]
@@ -55,6 +52,4 @@ fn rss14_black_box2_test_case() {
     tester.add_test_complex(3, 8, 0, 1, 180.0);
 
     tester.test_black_box()
-    }
-  
-  
+}

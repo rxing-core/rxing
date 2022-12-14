@@ -18,7 +18,7 @@ use std::collections::HashMap;
 
 use crate::{
     common::{detector::MathUtils, BitArray},
-    oned::{OneDReader, one_d_reader},
+    oned::{one_d_reader, OneDReader},
     BarcodeFormat, DecodeHintType, DecodingHintDictionary, Exceptions, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader, ResultPoint,
 };
@@ -293,11 +293,10 @@ impl RSS14Reader {
         pattern: &FinderPattern,
         outsideChar: bool,
     ) -> Result<DataCharacter, Exceptions> {
-        let  counters = &mut self.dataCharacterCounters; //[0_u32; 8]; //self.getDataCharacterCounters();
-                                       //Arrays.fill(counters, 0);
-                                       // counters.fill(0);
-                                       counters.fill(0);
-
+        let counters = &mut self.dataCharacterCounters; //[0_u32; 8]; //self.getDataCharacterCounters();
+                                                        //Arrays.fill(counters, 0);
+                                                        // counters.fill(0);
+        counters.fill(0);
 
         if outsideChar {
             one_d_reader::recordPatternInReverse(row, pattern.getStartEnd()[0], &mut counters[..])?;
@@ -305,7 +304,7 @@ impl RSS14Reader {
             one_d_reader::recordPattern(row, pattern.getStartEnd()[1], &mut counters[..])?;
             // reverse it
             let mut i = 0;
-            let mut j = counters.len() -1;
+            let mut j = counters.len() - 1;
             while i < j {
                 // for (int i = 0, j = counters.length - 1; i < j; i++, j--) {
                 let temp = counters[i];
@@ -468,13 +467,13 @@ impl RSS14Reader {
         let firstCounter = startEnd[0] - firstElementStart as usize;
         let mut counters = &mut self.decodeFinderCounters;
         let counter_len = counters.len();
-        let slc = counters[0..counter_len-1].to_vec();
+        let slc = counters[0..counter_len - 1].to_vec();
         counters[1..counter_len].copy_from_slice(&slc);
         // Make 'counters' hold 1-4
         // let counters = self.getDecodeFinderCounters();
         // System.arraycopy(counters, 0, counters, 1, counters.length - 1);
         // counters.fill(0);
-        
+
         counters[0] = firstCounter as u32;
         let value = Self::parseFinderValue(counters, &Self::FINDER_PATTERNS)?;
         let mut start = firstElementStart as usize;

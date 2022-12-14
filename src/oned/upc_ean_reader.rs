@@ -19,7 +19,7 @@ use crate::{
     RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader,
 };
 
-use super::{EANManufacturerOrgSupport, OneDReader, UPCEANExtensionSupport, one_d_reader};
+use super::{one_d_reader, EANManufacturerOrgSupport, OneDReader, UPCEANExtensionSupport};
 
 use lazy_static::lazy_static;
 
@@ -433,8 +433,11 @@ pub trait UPCEANReader: OneDReader {
                 counters[counterPosition] += 1;
             } else {
                 if counterPosition == patternLength - 1 {
-                    if one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE)
-                        < MAX_AVG_VARIANCE
+                    if one_d_reader::patternMatchVariance(
+                        counters,
+                        pattern,
+                        MAX_INDIVIDUAL_VARIANCE,
+                    ) < MAX_AVG_VARIANCE
                     {
                         return Ok([patternStart, x]);
                     }
@@ -483,7 +486,7 @@ pub trait UPCEANReader: OneDReader {
             // for (int i = 0; i < max; i++) {
             let pattern = &patterns[i];
             let variance: f32 =
-            one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
+                one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
                 bestVariance = variance;
                 bestMatch = i as isize;

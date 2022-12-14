@@ -24,29 +24,57 @@
  *   http://www.piramidepse.com/
  */
 
-package com.google.zxing.oned.rss.expanded.decoders;
+use super::DecodedObject;
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
-final class DecodedChar extends DecodedObject {
+#[derive(Clone)]
+pub struct DecodedInformation {
+    newPosition: usize,
+    newString: String,
+    remainingValue: u32,
+    remaining: bool,
+}
 
-  private final char value;
+impl DecodedObject for DecodedInformation {
+    fn getNewPosition(&self) -> usize {
+        self.newPosition
+    }
+}
+impl DecodedInformation {
+    pub fn new(newPosition: usize, newString: String) -> Self {
+        Self {
+            newPosition,
+            newString,
+            remainingValue: 0,
+            remaining: false,
+        }
+    }
 
-  static final char FNC1 = '$'; // It's not in Alphanumeric neither in ISO/IEC 646 charset
+    pub fn with_remaining_value(
+        newPosition: usize,
+        newString: String,
+        remainingValue: u32,
+    ) -> Self {
+        Self {
+            newPosition,
+            newString,
+            remainingValue,
+            remaining: true,
+        }
+    }
 
-  DecodedChar(int newPosition, char value) {
-    super(newPosition);
-    this.value = value;
-  }
+    pub fn getNewString(&self) -> &str {
+        &self.newString
+    }
 
-  char getValue() {
-    return this.value;
-  }
+    pub fn isRemaining(&self) -> bool {
+        self.remaining
+    }
 
-  boolean isFNC1() {
-    return this.value == FNC1;
-  }
-
+    pub fn getRemainingValue(&self) -> u32 {
+        self.remainingValue
+    }
 }

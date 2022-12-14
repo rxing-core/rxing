@@ -24,50 +24,33 @@
  *   http://www.piramidepse.com/
  */
 
-package com.google.zxing.oned.rss.expanded.decoders;
-
-import com.google.zxing.FormatException;
+use super::DecodedInformation;
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
-final class DecodedNumeric extends DecodedObject {
-
-  private final int firstDigit;
-  private final int secondDigit;
-
-  static final int FNC1 = 10;
-
-  DecodedNumeric(int newPosition, int firstDigit, int secondDigit) throws FormatException {
-    super(newPosition);
-
-    if (firstDigit < 0 || firstDigit > 10 || secondDigit < 0 || secondDigit > 10) {
-      throw FormatException.getFormatInstance();
+pub struct BlockParsedRXingResult {
+    decodedInformation: Option<DecodedInformation>,
+    finished: bool,
+}
+impl BlockParsedRXingResult {
+    pub fn new() -> Self {
+        Self::with_information(None, false)
     }
 
-    this.firstDigit  = firstDigit;
-    this.secondDigit = secondDigit;
-  }
+    pub fn with_information(information: Option<DecodedInformation>, finished: bool) -> Self {
+        Self {
+            decodedInformation: information,
+            finished,
+        }
+    }
 
-  int getFirstDigit() {
-    return this.firstDigit;
-  }
+    pub fn getDecodedInformation(&self) -> &Option<DecodedInformation> {
+        &self.decodedInformation
+    }
 
-  int getSecondDigit() {
-    return this.secondDigit;
-  }
-
-  int getValue() {
-    return this.firstDigit * 10 + this.secondDigit;
-  }
-
-  boolean isFirstDigitFNC1() {
-    return this.firstDigit == FNC1;
-  }
-
-  boolean isSecondDigitFNC1() {
-    return this.secondDigit == FNC1;
-  }
-
+    pub fn isFinished(&self) -> bool {
+        self.finished
+    }
 }

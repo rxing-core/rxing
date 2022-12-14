@@ -19,7 +19,7 @@ use one_d_reader_derive::OneDReader;
 use crate::common::BitArray;
 use crate::{BarcodeFormat, Exceptions, RXingResult};
 
-use super::{OneDReader, one_d_reader};
+use super::{one_d_reader, OneDReader};
 
 /**
  * <p>Decodes Code 39 barcodes. Supports "Full ASCII Code 39" if USE_CODE_39_EXTENDED_MODE is set.</p>
