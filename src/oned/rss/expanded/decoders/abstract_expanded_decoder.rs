@@ -24,38 +24,35 @@
  *   http://www.piramidepse.com/
  */
 
-use crate::{Exceptions, common::BitArray};
+use crate::{common::BitArray, Exceptions};
 
 use super::GeneralAppIdDecoder;
-
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
 
-
 pub trait AbstractExpandedDecoder {
+    // private final BitArray information;
+    // private final GeneralAppIdDecoder generalDecoder;
 
-  // private final BitArray information;
-  // private final GeneralAppIdDecoder generalDecoder;
+    // AbstractExpandedDecoder(BitArray information) {
+    //   this.information = information;
+    //   this.generalDecoder = new GeneralAppIdDecoder(information);
+    // }
 
-  // AbstractExpandedDecoder(BitArray information) {
-  //   this.information = information;
-  //   this.generalDecoder = new GeneralAppIdDecoder(information);
-  // }
+    // protected final BitArray getInformation() {
+    //   return information;
+    // }
 
-  // protected final BitArray getInformation() {
-  //   return information;
-  // }
+    // protected final GeneralAppIdDecoder getGeneralDecoder() {
+    //   return generalDecoder;
+    // }
 
-  // protected final GeneralAppIdDecoder getGeneralDecoder() {
-  //   return generalDecoder;
-  // }
-
-  fn parseInformation(&mut self) -> Result<String,Exceptions>;
-  fn getGeneralDecoder(&self) -> &GeneralAppIdDecoder;
-  // fn new(information:&BitArray) -> Self where Self:Sized;
+    fn parseInformation(&mut self) -> Result<String, Exceptions>;
+    fn getGeneralDecoder(&self) -> &GeneralAppIdDecoder;
+    // fn new(information:&BitArray) -> Self where Self:Sized;
 }
 
 // pub fn createDecoder( information:&BitArray) -> Box<dyn AbstractExpandedDecoder>{

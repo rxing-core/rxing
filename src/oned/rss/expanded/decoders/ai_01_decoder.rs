@@ -26,55 +26,57 @@
 
 use super::AbstractExpandedDecoder;
 
-
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
-pub trait AI01decoder : AbstractExpandedDecoder {
+pub trait AI01decoder: AbstractExpandedDecoder {
+    const GTIN_SIZE: u32 = 40;
 
-  const GTIN_SIZE : u32 = 40;
+    fn encodeCompressedGtin(&self, buf: &mut String, currentPos: usize) {
+        buf.push_str("(01)");
+        let initialPosition = buf.chars().count();
+        buf.push('9');
 
-  fn encodeCompressedGtin(&self, buf:&mut String, currentPos:usize) {
-    buf.push_str("(01)");
-    let initialPosition = buf.chars().count();
-    buf.push('9');
-
-    self.encodeCompressedGtinWithoutAI(buf, currentPos, initialPosition);
-  }
-
-  fn encodeCompressedGtinWithoutAI(&self,  buf:&mut String, currentPos:usize, initialBufferPosition:usize) {
-    for i in 0..4 {
-    // for (int i = 0; i < 4; ++i) {
-      let currentBlock = self.getGeneralDecoder().extractNumericValueFromBitArray(currentPos + 10 * i, 10);
-      if currentBlock / 100 == 0 {
-        buf.push('0');
-      }
-      if currentBlock / 10 == 0 {
-        buf.push('0');
-      }
-      buf.push_str(&currentBlock.to_string());
+        self.encodeCompressedGtinWithoutAI(buf, currentPos, initialPosition);
     }
 
-    appendCheckDigit(buf, initialBufferPosition);
-  }
+    fn encodeCompressedGtinWithoutAI(
+        &self,
+        buf: &mut String,
+        currentPos: usize,
+        initialBufferPosition: usize,
+    ) {
+        for i in 0..4 {
+            // for (int i = 0; i < 4; ++i) {
+            let currentBlock = self
+                .getGeneralDecoder()
+                .extractNumericValueFromBitArray(currentPos + 10 * i, 10);
+            if currentBlock / 100 == 0 {
+                buf.push('0');
+            }
+            if currentBlock / 10 == 0 {
+                buf.push('0');
+            }
+            buf.push_str(&currentBlock.to_string());
+        }
 
-  
-
+        appendCheckDigit(buf, initialBufferPosition);
+    }
 }
 
-pub(super) fn appendCheckDigit( buf:&mut String,  currentPos:usize) {
-  let mut checkDigit = 0;
-  for i in 0..13 {
-  // for (int i = 0; i < 13; i++) {
-    let digit = buf.chars().nth(i + currentPos).unwrap() as u32 - '0' as u32;
-    checkDigit += if (i & 0x01) == 0  {3 * digit} else {digit};
-  }
+pub(super) fn appendCheckDigit(buf: &mut String, currentPos: usize) {
+    let mut checkDigit = 0;
+    for i in 0..13 {
+        // for (int i = 0; i < 13; i++) {
+        let digit = buf.chars().nth(i + currentPos).unwrap() as u32 - '0' as u32;
+        checkDigit += if (i & 0x01) == 0 { 3 * digit } else { digit };
+    }
 
-  checkDigit = 10 - (checkDigit % 10);
-  if checkDigit == 10 {
-    checkDigit = 0;
-  }
+    checkDigit = 10 - (checkDigit % 10);
+    if checkDigit == 10 {
+        checkDigit = 0;
+    }
 
-  buf.push_str(&checkDigit.to_string());
+    buf.push_str(&checkDigit.to_string());
 }

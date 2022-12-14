@@ -32,20 +32,22 @@ use super::{AI01decoder, AbstractExpandedDecoder, GeneralAppIdDecoder};
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
-pub struct AI01AndOtherAIs<'a>(&'a BitArray,GeneralAppIdDecoder<'a>);
-impl<'a>  AI01decoder for  AI01AndOtherAIs<'_> {}
+pub struct AI01AndOtherAIs<'a>(&'a BitArray, GeneralAppIdDecoder<'a>);
+impl<'a> AI01decoder for AI01AndOtherAIs<'_> {}
 impl AbstractExpandedDecoder for AI01AndOtherAIs<'_> {
-    fn parseInformation(&mut self) -> Result<String,crate::Exceptions> {
-      let mut buff = String::new();//new StringBuilder();
+    fn parseInformation(&mut self) -> Result<String, crate::Exceptions> {
+        let mut buff = String::new(); //new StringBuilder();
 
-      buff.push_str("(01)");
-      let initialGtinPosition = buff.chars().count();
-      let firstGtinDigit = self.getGeneralDecoder().extractNumericValueFromBitArray(Self::HEADER_SIZE, 4);
-      buff.push_str(&firstGtinDigit.to_string());
-  
-      self.encodeCompressedGtinWithoutAI(&mut buff, Self::HEADER_SIZE + 4, initialGtinPosition);
-  
-      self.1.decodeAllCodes(buff, Self::HEADER_SIZE + 44)
+        buff.push_str("(01)");
+        let initialGtinPosition = buff.chars().count();
+        let firstGtinDigit = self
+            .getGeneralDecoder()
+            .extractNumericValueFromBitArray(Self::HEADER_SIZE, 4);
+        buff.push_str(&firstGtinDigit.to_string());
+
+        self.encodeCompressedGtinWithoutAI(&mut buff, Self::HEADER_SIZE + 4, initialGtinPosition);
+
+        self.1.decodeAllCodes(buff, Self::HEADER_SIZE + 44)
     }
 
     fn getGeneralDecoder(&self) -> &super::GeneralAppIdDecoder {
@@ -53,13 +55,13 @@ impl AbstractExpandedDecoder for AI01AndOtherAIs<'_> {
     }
 }
 impl<'a> AI01AndOtherAIs<'_> {
-  fn new(information:&'a BitArray) -> AI01AndOtherAIs<'a> {
-    AI01AndOtherAIs( information,GeneralAppIdDecoder::new(information))
-}
+    fn new(information: &'a BitArray) -> AI01AndOtherAIs<'a> {
+        AI01AndOtherAIs(information, GeneralAppIdDecoder::new(information))
+    }
 
-  const HEADER_SIZE : usize = 1 + 1 + 2; //first bit encodes the linkage flag,
-                          //the second one is the encodation method, and the other two are for the variable length
-  // AI01AndOtherAIs(BitArray information) {
-  //   super(information);
-  // }
+    const HEADER_SIZE: usize = 1 + 1 + 2; //first bit encodes the linkage flag,
+                                          //the second one is the encodation method, and the other two are for the variable length
+                                          // AI01AndOtherAIs(BitArray information) {
+                                          //   super(information);
+                                          // }
 }

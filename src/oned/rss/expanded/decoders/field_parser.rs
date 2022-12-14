@@ -281,28 +281,26 @@ impl DataLength {
     }
 }
 
-
-
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
 #[cfg(test)]
- mod FieldParserTest {
+mod FieldParserTest {
 
-  fn checkFields( expected:&str) {
-    let field  = expected.replace("(", "").replace(")","");
-    let actual = super::parseFieldsInGeneralPurpose(&field).expect("parse");
-    assert_eq!(expected, actual);
-  }
+    fn checkFields(expected: &str) {
+        let field = expected.replace("(", "").replace(")", "");
+        let actual = super::parseFieldsInGeneralPurpose(&field).expect("parse");
+        assert_eq!(expected, actual);
+    }
 
-  #[test]
-  fn testParseField()  {
-    checkFields("(15)991231(3103)001750(10)12A");
-  }
+    #[test]
+    fn testParseField() {
+        checkFields("(15)991231(3103)001750(10)12A");
+    }
 
-  #[test]
-  fn testParseField2()  {
-    checkFields("(15)991231(15)991231(3103)001750(10)12A");
-  }
+    #[test]
+    fn testParseField2() {
+        checkFields("(15)991231(15)991231(3103)001750(10)12A");
+    }
 }

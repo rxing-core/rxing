@@ -24,13 +24,9 @@
  *   http://www.piramidepse.com/
  */
 
-
-
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  */
 pub trait DecodedObject {
-
-  fn getNewPosition(&self) -> usize;
-
+    fn getNewPosition(&self) -> usize;
 }
