@@ -54,7 +54,11 @@ impl AbstractExpandedDecoder for AI01320xDecoder<'_> {
 impl AI01decoder for AI01320xDecoder<'_> {}
 impl<'a> AI01320xDecoder<'_> {
     pub fn new(information: &'a BitArray) -> AI01320xDecoder<'a> {
-        AI01320xDecoder(AI013x0xDecoder::new(information, addWeightCode, checkWeight))
+        AI01320xDecoder(AI013x0xDecoder::new(
+            information,
+            addWeightCode,
+            checkWeight,
+        ))
     }
 }
 
@@ -66,7 +70,7 @@ fn addWeightCode(buf: &mut String, weight: u32) {
     }
 }
 
-fn checkWeight( weight: u32) -> u32 {
+fn checkWeight(weight: u32) -> u32 {
     if weight < 10000 {
         weight
     } else {

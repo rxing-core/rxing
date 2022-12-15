@@ -24,19 +24,19 @@
  *   http://www.piramidepse.com/
  */
 
-use crate::oned::rss::expanded::{binary_util, decoders::{ abstract_expanded_decoder}};
-
+use crate::oned::rss::expanded::{binary_util, decoders::abstract_expanded_decoder};
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
-  #[test]
-  fn testNoAi()  {
-    let information = binary_util::buildBitArrayFromString(" .......X ..XX..X. X.X....X .......X ....").expect("build");
+#[test]
+fn testNoAi() {
+    let information =
+        binary_util::buildBitArrayFromString(" .......X ..XX..X. X.X....X .......X ....")
+            .expect("build");
 
     let mut decoder = abstract_expanded_decoder::createDecoder(&information).expect("create");
     let decoded = decoder.parseInformation().expect("parsed");
     assert_eq!("(10)12A", decoded);
-  }
-
+}

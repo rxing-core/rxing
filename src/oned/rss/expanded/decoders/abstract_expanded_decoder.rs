@@ -26,7 +26,10 @@
 
 use crate::{common::BitArray, Exceptions};
 
-use super::{GeneralAppIdDecoder, AnyAIDecoder, AI01AndOtherAIs, AI013103decoder, AI01320xDecoder, AI01392xDecoder, AI01393xDecoder, AI013x0x1xDecoder};
+use super::{
+    AI013103decoder, AI01320xDecoder, AI01392xDecoder, AI01393xDecoder, AI013x0x1xDecoder,
+    AI01AndOtherAIs, AnyAIDecoder, GeneralAppIdDecoder,
+};
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
@@ -55,43 +58,99 @@ pub trait AbstractExpandedDecoder {
     // fn new(information:&BitArray) -> Self where Self:Sized;
 }
 
-pub fn createDecoder<'a>( information:&'a BitArray) -> Result<Box<dyn AbstractExpandedDecoder + 'a>,Exceptions>{
-  if information.get(1) {
-     return Ok(Box::new(AI01AndOtherAIs::new(information)))
-  }
-  if !information.get(2) {
-    return Ok(Box::new( AnyAIDecoder::new(information)));
-  }
+pub fn createDecoder<'a>(
+    information: &'a BitArray,
+) -> Result<Box<dyn AbstractExpandedDecoder + 'a>, Exceptions> {
+    if information.get(1) {
+        return Ok(Box::new(AI01AndOtherAIs::new(information)));
+    }
+    if !information.get(2) {
+        return Ok(Box::new(AnyAIDecoder::new(information)));
+    }
 
-//   let gen_decode = GeneralAppIdDecoder::new(information);
+    //   let gen_decode = GeneralAppIdDecoder::new(information);
 
-  let fourBitEncodationMethod = GeneralAppIdDecoder::extractNumericValueFromBitArrayWithInformation(information, 1, 4);
+    let fourBitEncodationMethod =
+        GeneralAppIdDecoder::extractNumericValueFromBitArrayWithInformation(information, 1, 4);
 
-  match fourBitEncodationMethod {
-     4=> return Ok(Box::new( AI013103decoder::new(information))),
-     5=> return Ok(Box::new( AI01320xDecoder::new(information))),
-  _=>{},
-  }
+    match fourBitEncodationMethod {
+        4 => return Ok(Box::new(AI013103decoder::new(information))),
+        5 => return Ok(Box::new(AI01320xDecoder::new(information))),
+        _ => {}
+    }
 
-  let fiveBitEncodationMethod = GeneralAppIdDecoder::extractNumericValueFromBitArrayWithInformation(information, 1, 5);
-  match fiveBitEncodationMethod {
-     12=> return Ok(Box::new( AI01392xDecoder::new(information))),
-     13=> return Ok(Box::new( AI01393xDecoder::new(information))),
-     _=>{},
-  }
+    let fiveBitEncodationMethod =
+        GeneralAppIdDecoder::extractNumericValueFromBitArrayWithInformation(information, 1, 5);
+    match fiveBitEncodationMethod {
+        12 => return Ok(Box::new(AI01392xDecoder::new(information))),
+        13 => return Ok(Box::new(AI01393xDecoder::new(information))),
+        _ => {}
+    }
 
-  let sevenBitEncodationMethod = GeneralAppIdDecoder::extractNumericValueFromBitArrayWithInformation(information, 1, 7);
-  match sevenBitEncodationMethod {
-     56=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "310".to_owned(), "11".to_owned()))),
-     57=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "320".to_owned(), "11".to_owned()))),
-     58=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "310".to_owned(), "13".to_owned()))),
-     59=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "320".to_owned(), "13".to_owned()))),
-     60=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "310".to_owned(), "15".to_owned()))),
-     61=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "320".to_owned(), "15".to_owned()))),
-     62=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "310".to_owned(), "17".to_owned()))),
-     63=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "320".to_owned(), "17".to_owned()))),
-     _=>{},
-  }
+    let sevenBitEncodationMethod =
+        GeneralAppIdDecoder::extractNumericValueFromBitArrayWithInformation(information, 1, 7);
+    match sevenBitEncodationMethod {
+        56 => {
+            return Ok(Box::new(AI013x0x1xDecoder::new(
+                information,
+                "310".to_owned(),
+                "11".to_owned(),
+            )))
+        }
+        57 => {
+            return Ok(Box::new(AI013x0x1xDecoder::new(
+                information,
+                "320".to_owned(),
+                "11".to_owned(),
+            )))
+        }
+        58 => {
+            return Ok(Box::new(AI013x0x1xDecoder::new(
+                information,
+                "310".to_owned(),
+                "13".to_owned(),
+            )))
+        }
+        59 => {
+            return Ok(Box::new(AI013x0x1xDecoder::new(
+                information,
+                "320".to_owned(),
+                "13".to_owned(),
+            )))
+        }
+        60 => {
+            return Ok(Box::new(AI013x0x1xDecoder::new(
+                information,
+                "310".to_owned(),
+                "15".to_owned(),
+            )))
+        }
+        61 => {
+            return Ok(Box::new(AI013x0x1xDecoder::new(
+                information,
+                "320".to_owned(),
+                "15".to_owned(),
+            )))
+        }
+        62 => {
+            return Ok(Box::new(AI013x0x1xDecoder::new(
+                information,
+                "310".to_owned(),
+                "17".to_owned(),
+            )))
+        }
+        63 => {
+            return Ok(Box::new(AI013x0x1xDecoder::new(
+                information,
+                "320".to_owned(),
+                "17".to_owned(),
+            )))
+        }
+        _ => {}
+    }
 
-  Err(Exceptions::IllegalStateException(format!("unknown decoder: {}" , information)))
+    Err(Exceptions::IllegalStateException(format!(
+        "unknown decoder: {}",
+        information
+    )))
 }

@@ -24,7 +24,10 @@
  *   http://www.piramidepse.com/
  */
 
-use crate::oned::rss::expanded::{binary_util, decoders::{AbstractExpandedDecoder, abstract_expanded_decoder::createDecoder}};
+use crate::oned::rss::expanded::{
+    binary_util,
+    decoders::{abstract_expanded_decoder::createDecoder, AbstractExpandedDecoder},
+};
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
@@ -33,7 +36,7 @@ use crate::oned::rss::expanded::{binary_util, decoders::{AbstractExpandedDecoder
 pub const numeric10: &str = "..X..XX";
 pub const numeric12: &str = "..X.X.X";
 pub const numeric1FNC1: &str = "..XXX.X";
- // static final String numericFNC11                  = "XXX.XXX";
+// static final String numericFNC11                  = "XXX.XXX";
 
 pub const numeric2alpha: &str = "....";
 
@@ -61,7 +64,7 @@ pub const compressedDateEnd: &str = "X..X.XX.........";
 
 pub fn assertCorrectBinaryString(binaryString: &str, expectedNumber: &str) {
     let binary = binary_util::buildBitArrayFromStringWithoutSpaces(binaryString).expect("built");
-    
+
     let mut decoder = createDecoder(&binary).expect("get decoder");
     let result = decoder.parseInformation().expect("information exists");
     assert_eq!(expectedNumber, result);

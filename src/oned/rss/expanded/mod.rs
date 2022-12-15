@@ -8,3 +8,6 @@ pub use expanded_pair::*;
 
 #[cfg(test)]
 mod expanded_information_decoder_test;
+
+mod expanded_row;
+pub use expanded_row::*;

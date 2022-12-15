@@ -197,8 +197,11 @@ impl<'a> GeneralAppIdDecoder<'_> {
             }
         } //while (!isFinished);
 
-        if result.getDecodedInformation().is_some(){ Ok(result.getDecodedInformation().as_ref().unwrap().clone())}
-        else {Err(Exceptions::NotFoundException("".to_owned()))}
+        if result.getDecodedInformation().is_some() {
+            Ok(result.getDecodedInformation().as_ref().unwrap().clone())
+        } else {
+            Err(Exceptions::NotFoundException("".to_owned()))
+        }
     }
 
     fn parseNumericBlock(&mut self) -> Result<BlockParsedRXingResult, Exceptions> {

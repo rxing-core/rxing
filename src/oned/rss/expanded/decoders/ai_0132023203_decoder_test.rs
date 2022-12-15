@@ -26,29 +26,30 @@
 
 use super::abstract_decoder_test_utils::*;
 
-
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  */
 
+const header: &str = "..X.X";
 
-  const header :&str = "..X.X";
-
-  #[test]
-  fn test0132021()  {
-    let data = format!("{}{}{}",header, compressedGtin900123456798908 , compressed15bitWeight1750);
+#[test]
+fn test0132021() {
+    let data = format!(
+        "{}{}{}",
+        header, compressedGtin900123456798908, compressed15bitWeight1750
+    );
     let expected = "(01)90012345678908(3202)001750";
 
     assertCorrectBinaryString(&data, expected);
-  }
+}
 
-  #[test]
-  fn test0132031()  {
-    let data = format!("{}{}{}",header , compressedGtin900123456798908 , compressed15bitWeight11750);
+#[test]
+fn test0132031() {
+    let data = format!(
+        "{}{}{}",
+        header, compressedGtin900123456798908, compressed15bitWeight11750
+    );
     let expected = "(01)90012345678908(3203)001750";
 
     assertCorrectBinaryString(&data, expected);
-  }
-
-
-  
+}

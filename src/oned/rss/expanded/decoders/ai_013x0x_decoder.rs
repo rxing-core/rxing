@@ -78,8 +78,11 @@ impl<'a> AI013x0xDecoder<'_> {
     const HEADER_SIZE: usize = 4 + 1;
     const WEIGHT_SIZE: usize = 15;
 
-    pub fn new(information: &'a BitArray, addWeightCodeFunction: fn(&mut String, u32),
-    checkWeightFunction: fn(u32) -> u32,) -> AI013x0xDecoder<'a> {
+    pub fn new(
+        information: &'a BitArray,
+        addWeightCodeFunction: fn(&mut String, u32),
+        checkWeightFunction: fn(u32) -> u32,
+    ) -> AI013x0xDecoder<'a> {
         AI013x0xDecoder {
             information,
             decoder: GeneralAppIdDecoder::new(information),
