@@ -24,26 +24,32 @@
  *   http://www.piramidepse.com/
  */
 
-package com.google.zxing.oned.rss.expanded.decoders;
-
-import com.google.zxing.common.BitArray;
+use super::AI01decoder;
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  */
-final class AI013103decoder extends AI013x0xDecoder {
+pub trait AI01weightDecoder: AI01decoder {
+    fn encodeCompressedWeight(&self, buf: &mut String, currentPos: usize, weightSize: u32) {
+        let originalWeightNumeric = self
+            .getGeneralDecoder()
+            .extractNumericValueFromBitArray(currentPos, weightSize);
+        self.addWeightCode(buf, originalWeightNumeric);
 
-  AI013103decoder(BitArray information) {
-    super(information);
-  }
+        let weightNumeric = self.checkWeight(originalWeightNumeric);
 
-  @Override
-  protected void addWeightCode(StringBuilder buf, int weight) {
-    buf.append("(3103)");
-  }
+        let mut currentDivisor = 100000;
+        for _i in 0..5 {
+            // for (int i = 0; i < 5; ++i) {
+            if weightNumeric / currentDivisor == 0 {
+                buf.push('0');
+            }
+            currentDivisor /= 10;
+        }
+        buf.push_str(&weightNumeric.to_string());
+    }
 
-  @Override
-  protected int checkWeight(int weight) {
-    return weight;
-  }
+    fn addWeightCode(&self, buf: &mut String, weight: u32);
+
+    fn checkWeight(&self, weight: u32) -> u32;
 }

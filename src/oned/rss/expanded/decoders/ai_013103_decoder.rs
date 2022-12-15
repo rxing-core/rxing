@@ -24,34 +24,37 @@
  *   http://www.piramidepse.com/
  */
 
-package com.google.zxing.oned.rss.expanded.decoders;
+use crate::common::BitArray;
 
-import com.google.zxing.NotFoundException;
-import com.google.zxing.common.BitArray;
+use super::{AI013x0xDecoder, AI01decoder, AI01weightDecoder, AbstractExpandedDecoder};
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  */
-abstract class AI013x0xDecoder extends AI01weightDecoder {
+pub struct AI013103decoder<'a>(AI013x0xDecoder<'a>);
 
-  private static final int HEADER_SIZE = 4 + 1;
-  private static final int WEIGHT_SIZE = 15;
-
-  AI013x0xDecoder(BitArray information) {
-    super(information);
-  }
-
-  @Override
-  public String parseInformation() throws NotFoundException {
-    if (this.getInformation().getSize() != HEADER_SIZE + GTIN_SIZE + WEIGHT_SIZE) {
-      throw NotFoundException.getNotFoundInstance();
+impl AI01weightDecoder for AI013103decoder<'_> {
+    fn addWeightCode(&self, buf: &mut String, _weight: u32) {
+        buf.push_str("(3103)");
     }
 
-    StringBuilder buf = new StringBuilder();
+    fn checkWeight(&self, weight: u32) -> u32 {
+        weight
+    }
+}
+impl AbstractExpandedDecoder for AI013103decoder<'_> {
+    fn parseInformation(&mut self) -> Result<String, crate::Exceptions> {
+        self.0.parseInformation()
+    }
 
-    encodeCompressedGtin(buf, HEADER_SIZE);
-    encodeCompressedWeight(buf, HEADER_SIZE + GTIN_SIZE, WEIGHT_SIZE);
+    fn getGeneralDecoder(&self) -> &super::GeneralAppIdDecoder {
+        self.0.getGeneralDecoder()
+    }
+}
+impl AI01decoder for AI013103decoder<'_> {}
 
-    return buf.toString();
-  }
+impl<'a> AI013103decoder<'_> {
+    pub fn new(information: &'a BitArray) -> AI013103decoder<'a> {
+        AI013103decoder(AI013x0xDecoder::new(information))
+    }
 }

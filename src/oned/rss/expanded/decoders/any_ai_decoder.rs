@@ -24,27 +24,36 @@
  *   http://www.piramidepse.com/
  */
 
-package com.google.zxing.oned.rss.expanded.decoders;
+use crate::common::BitArray;
 
-import com.google.zxing.FormatException;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.common.BitArray;
+use super::{AbstractExpandedDecoder, GeneralAppIdDecoder};
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
-final class AnyAIDecoder extends AbstractExpandedDecoder {
+pub struct AnyAIDecoder<'a> {
+    // information: &'a BitArray,
+    general_decoder: GeneralAppIdDecoder<'a>,
+}
+impl AbstractExpandedDecoder for AnyAIDecoder<'_> {
+    fn parseInformation(&mut self) -> Result<String, crate::Exceptions> {
+        let buf = String::new();
+        self.general_decoder.decodeAllCodes(buf, Self::HEADER_SIZE)
+    }
 
-  private static final int HEADER_SIZE = 2 + 1 + 2;
+    fn getGeneralDecoder(&self) -> &super::GeneralAppIdDecoder {
+        &self.general_decoder
+    }
+}
 
-  AnyAIDecoder(BitArray information) {
-    super(information);
-  }
+impl<'a> AnyAIDecoder<'_> {
+    const HEADER_SIZE: usize = 2 + 1 + 2;
 
-  @Override
-  public String parseInformation() throws NotFoundException, FormatException {
-    StringBuilder buf = new StringBuilder();
-    return this.getGeneralDecoder().decodeAllCodes(buf, HEADER_SIZE);
-  }
+    pub fn new(information: &'a BitArray) -> AnyAIDecoder<'a> {
+        AnyAIDecoder {
+            // information,
+            general_decoder: GeneralAppIdDecoder::new(information),
+        }
+    }
 }

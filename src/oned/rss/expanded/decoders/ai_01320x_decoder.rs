@@ -24,34 +24,44 @@
  *   http://www.piramidepse.com/
  */
 
-package com.google.zxing.oned.rss.expanded.decoders;
+use crate::common::BitArray;
 
-import com.google.zxing.common.BitArray;
+use super::{AI013x0xDecoder, AI01decoder, AI01weightDecoder, AbstractExpandedDecoder};
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  */
-final class AI01320xDecoder extends AI013x0xDecoder {
+pub struct AI01320xDecoder<'a>(AI013x0xDecoder<'a>);
 
-  AI01320xDecoder(BitArray information) {
-    super(information);
-  }
-
-  @Override
-  protected void addWeightCode(StringBuilder buf, int weight) {
-    if (weight < 10000) {
-      buf.append("(3202)");
-    } else {
-      buf.append("(3203)");
+impl AI01weightDecoder for AI01320xDecoder<'_> {
+    fn addWeightCode(&self, buf: &mut String, weight: u32) {
+        if weight < 10000 {
+            buf.push_str("(3202)");
+        } else {
+            buf.push_str("(3203)");
+        }
     }
-  }
 
-  @Override
-  protected int checkWeight(int weight) {
-    if (weight < 10000) {
-      return weight;
+    fn checkWeight(&self, weight: u32) -> u32 {
+        if weight < 10000 {
+            weight
+        } else {
+            weight - 10000
+        }
     }
-    return weight - 10000;
-  }
+}
+impl AbstractExpandedDecoder for AI01320xDecoder<'_> {
+    fn parseInformation(&mut self) -> Result<String, crate::Exceptions> {
+        self.0.parseInformation()
+    }
 
+    fn getGeneralDecoder(&self) -> &super::GeneralAppIdDecoder {
+        self.0.getGeneralDecoder()
+    }
+}
+impl AI01decoder for AI01320xDecoder<'_> {}
+impl<'a> AI01320xDecoder<'_> {
+    pub fn new(information: &'a BitArray) -> AI01320xDecoder<'a> {
+        AI01320xDecoder(AI013x0xDecoder::new(information))
+    }
 }
