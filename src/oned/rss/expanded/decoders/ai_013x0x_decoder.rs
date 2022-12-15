@@ -34,14 +34,18 @@ use super::{AI01decoder, AI01weightDecoder, AbstractExpandedDecoder, GeneralAppI
 pub struct AI013x0xDecoder<'a> {
     information: &'a BitArray,
     decoder: GeneralAppIdDecoder<'a>,
+    addWeightCodeFunction: fn(&mut String, u32),
+    checkWeightFunction: fn(u32) -> u32,
 }
 impl AI01weightDecoder for AI013x0xDecoder<'_> {
-    fn addWeightCode(&self, _buf: &mut String, _weight: u32) {
-        unimplemented!("no java implementation exists")
+    fn addWeightCode(&self, buf: &mut String, weight: u32) {
+        //unimplemented!("no java implementation exists")
+        (self.addWeightCodeFunction)(buf, weight)
     }
 
-    fn checkWeight(&self, _weight: u32) -> u32 {
-        unimplemented!("no java implementation exists")
+    fn checkWeight(&self, weight: u32) -> u32 {
+        (self.checkWeightFunction)(weight)
+        // unimplemented!("no java implementation exists")
     }
 }
 impl AbstractExpandedDecoder for AI013x0xDecoder<'_> {
@@ -74,10 +78,13 @@ impl<'a> AI013x0xDecoder<'_> {
     const HEADER_SIZE: usize = 4 + 1;
     const WEIGHT_SIZE: usize = 15;
 
-    pub fn new(information: &'a BitArray) -> AI013x0xDecoder<'a> {
+    pub fn new(information: &'a BitArray, addWeightCodeFunction: fn(&mut String, u32),
+    checkWeightFunction: fn(u32) -> u32,) -> AI013x0xDecoder<'a> {
         AI013x0xDecoder {
             information,
             decoder: GeneralAppIdDecoder::new(information),
+            addWeightCodeFunction,
+            checkWeightFunction,
         }
     }
 }

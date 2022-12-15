@@ -26,7 +26,7 @@
 
 use crate::{common::BitArray, Exceptions};
 
-use super::GeneralAppIdDecoder;
+use super::{GeneralAppIdDecoder, AnyAIDecoder, AI01AndOtherAIs, AI013103decoder, AI01320xDecoder, AI01392xDecoder, AI01393xDecoder, AI013x0x1xDecoder};
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
@@ -55,38 +55,43 @@ pub trait AbstractExpandedDecoder {
     // fn new(information:&BitArray) -> Self where Self:Sized;
 }
 
-// pub fn createDecoder( information:&BitArray) -> Box<dyn AbstractExpandedDecoder>{
-//   if information.get(1) {
-//     return new AI01AndOtherAIs(information);
-//   }
-//   if !information.get(2) {
-//     return new AnyAIDecoder(information);
-//   }
+pub fn createDecoder<'a>( information:&'a BitArray) -> Result<Box<dyn AbstractExpandedDecoder + 'a>,Exceptions>{
+  if information.get(1) {
+     return Ok(Box::new(AI01AndOtherAIs::new(information)))
+  }
+  if !information.get(2) {
+    return Ok(Box::new( AnyAIDecoder::new(information)));
+  }
 
-//   let fourBitEncodationMethod = GeneralAppIdDecoder.extractNumericValueFromBitArray(information, 1, 4);
+//   let gen_decode = GeneralAppIdDecoder::new(information);
 
-//   switch (fourBitEncodationMethod) {
-//     case 4: return new AI013103decoder(information);
-//     case 5: return new AI01320xDecoder(information);
-//   }
+  let fourBitEncodationMethod = GeneralAppIdDecoder::extractNumericValueFromBitArrayWithInformation(information, 1, 4);
 
-//   int fiveBitEncodationMethod = GeneralAppIdDecoder.extractNumericValueFromBitArray(information, 1, 5);
-//   switch (fiveBitEncodationMethod) {
-//     case 12: return new AI01392xDecoder(information);
-//     case 13: return new AI01393xDecoder(information);
-//   }
+  match fourBitEncodationMethod {
+     4=> return Ok(Box::new( AI013103decoder::new(information))),
+     5=> return Ok(Box::new( AI01320xDecoder::new(information))),
+  _=>{},
+  }
 
-//   int sevenBitEncodationMethod = GeneralAppIdDecoder.extractNumericValueFromBitArray(information, 1, 7);
-//   switch (sevenBitEncodationMethod) {
-//     case 56: return new AI013x0x1xDecoder(information, "310", "11");
-//     case 57: return new AI013x0x1xDecoder(information, "320", "11");
-//     case 58: return new AI013x0x1xDecoder(information, "310", "13");
-//     case 59: return new AI013x0x1xDecoder(information, "320", "13");
-//     case 60: return new AI013x0x1xDecoder(information, "310", "15");
-//     case 61: return new AI013x0x1xDecoder(information, "320", "15");
-//     case 62: return new AI013x0x1xDecoder(information, "310", "17");
-//     case 63: return new AI013x0x1xDecoder(information, "320", "17");
-//   }
+  let fiveBitEncodationMethod = GeneralAppIdDecoder::extractNumericValueFromBitArrayWithInformation(information, 1, 5);
+  match fiveBitEncodationMethod {
+     12=> return Ok(Box::new( AI01392xDecoder::new(information))),
+     13=> return Ok(Box::new( AI01393xDecoder::new(information))),
+     _=>{},
+  }
 
-//   throw new IllegalStateException("unknown decoder: " + information);
-// }
+  let sevenBitEncodationMethod = GeneralAppIdDecoder::extractNumericValueFromBitArrayWithInformation(information, 1, 7);
+  match sevenBitEncodationMethod {
+     56=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "310".to_owned(), "11".to_owned()))),
+     57=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "320".to_owned(), "11".to_owned()))),
+     58=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "310".to_owned(), "13".to_owned()))),
+     59=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "320".to_owned(), "13".to_owned()))),
+     60=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "310".to_owned(), "15".to_owned()))),
+     61=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "320".to_owned(), "15".to_owned()))),
+     62=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "310".to_owned(), "17".to_owned()))),
+     63=> return Ok(Box::new( AI013x0x1xDecoder::new(information, "320".to_owned(), "17".to_owned()))),
+     _=>{},
+  }
+
+  Err(Exceptions::IllegalStateException(format!("unknown decoder: {}" , information)))
+}

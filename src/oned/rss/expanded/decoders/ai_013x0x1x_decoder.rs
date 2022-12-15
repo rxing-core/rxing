@@ -131,3 +131,104 @@ impl<'a> AI013x0x1xDecoder<'_> {
         buf.push_str(&day.to_string());
     }
 }
+
+
+/**
+ * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
+ */
+#[cfg(test)]
+mod AI013X0X1XDecoderTest  {
+    use crate::oned::rss::expanded::decoders::abstract_decoder_test_utils::*;
+
+
+    const header310x11 : &str = "..XXX...";
+    const header320x11 : &str = "..XXX..X";
+    const header310x13 : &str = "..XXX.X.";
+    const header320x13 : &str = "..XXX.XX";
+    const header310x15 : &str = "..XXXX..";
+    const header320x15 : &str = "..XXXX.X";
+    const header310x17 : &str = "..XXXXX.";
+    const header320x17 : &str = "..XXXXXX";
+  
+    #[test]
+    fn test01310X1XendDate()  {
+        let data = format!("{}{}{}{}", header310x11 , compressedGtin900123456798908 , compressed20bitWeight1750 , compressedDateEnd);
+      let expected = "(01)90012345678908(3100)001750";
+  
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+    #[test]
+    fn  test01310X111()  {
+        let data = format!("{}{}{}{}", header310x11 , compressedGtin900123456798908 , compressed20bitWeight1750 ,
+          compressedDateMarch12th2010);
+      let expected = "(01)90012345678908(3100)001750(11)100312";
+  
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+    #[test]
+    fn  test01320X111()  {
+      let data = format!("{}{}{}{}",header320x11 , compressedGtin900123456798908 , compressed20bitWeight1750 ,
+          compressedDateMarch12th2010);
+      let expected = "(01)90012345678908(3200)001750(11)100312";
+  
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+    #[test]
+    fn  test01310X131()  {
+        let data = format!("{}{}{}{}", header310x13 , compressedGtin900123456798908 , compressed20bitWeight1750 ,
+          compressedDateMarch12th2010);
+      let expected = "(01)90012345678908(3100)001750(13)100312";
+  
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+    #[test]
+    fn  test01320X131()  {
+        let data = format!("{}{}{}{}", header320x13 , compressedGtin900123456798908 , compressed20bitWeight1750 ,
+          compressedDateMarch12th2010);
+      let expected = "(01)90012345678908(3200)001750(13)100312";
+  
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+    #[test]
+    fn  test01310X151()  {
+        let data = format!("{}{}{}{}",  header310x15 , compressedGtin900123456798908 , compressed20bitWeight1750 ,
+          compressedDateMarch12th2010);
+      let expected = "(01)90012345678908(3100)001750(15)100312";
+  
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+    #[test]
+    fn  test01320X151()  {
+        let data = format!("{}{}{}{}", header320x15 , compressedGtin900123456798908 , compressed20bitWeight1750 ,
+          compressedDateMarch12th2010);
+      let expected = "(01)90012345678908(3200)001750(15)100312";
+  
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+    #[test]
+    fn  test01310X171()  {
+        let data = format!("{}{}{}{}", header310x17 , compressedGtin900123456798908 , compressed20bitWeight1750 ,
+          compressedDateMarch12th2010);
+      let expected = "(01)90012345678908(3100)001750(17)100312";
+  
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+    #[test]
+    fn  test01320X171()  {
+        let data = format!("{}{}{}{}", header320x17 , compressedGtin900123456798908 , compressed20bitWeight1750 ,
+          compressedDateMarch12th2010);
+      let expected = "(01)90012345678908(3200)001750(17)100312";
+  
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+  }
+  

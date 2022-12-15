@@ -35,19 +35,11 @@ pub struct AI01320xDecoder<'a>(AI013x0xDecoder<'a>);
 
 impl AI01weightDecoder for AI01320xDecoder<'_> {
     fn addWeightCode(&self, buf: &mut String, weight: u32) {
-        if weight < 10000 {
-            buf.push_str("(3202)");
-        } else {
-            buf.push_str("(3203)");
-        }
+        self.0.addWeightCode(buf, weight)
     }
 
     fn checkWeight(&self, weight: u32) -> u32 {
-        if weight < 10000 {
-            weight
-        } else {
-            weight - 10000
-        }
+        self.0.checkWeight(weight)
     }
 }
 impl AbstractExpandedDecoder for AI01320xDecoder<'_> {
@@ -62,6 +54,22 @@ impl AbstractExpandedDecoder for AI01320xDecoder<'_> {
 impl AI01decoder for AI01320xDecoder<'_> {}
 impl<'a> AI01320xDecoder<'_> {
     pub fn new(information: &'a BitArray) -> AI01320xDecoder<'a> {
-        AI01320xDecoder(AI013x0xDecoder::new(information))
+        AI01320xDecoder(AI013x0xDecoder::new(information, addWeightCode, checkWeight))
+    }
+}
+
+fn addWeightCode(buf: &mut String, weight: u32) {
+    if weight < 10000 {
+        buf.push_str("(3202)");
+    } else {
+        buf.push_str("(3203)");
+    }
+}
+
+fn checkWeight( weight: u32) -> u32 {
+    if weight < 10000 {
+        weight
+    } else {
+        weight - 10000
     }
 }

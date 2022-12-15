@@ -55,7 +55,7 @@ impl AbstractExpandedDecoder for AI01AndOtherAIs<'_> {
     }
 }
 impl<'a> AI01AndOtherAIs<'_> {
-    fn new(information: &'a BitArray) -> AI01AndOtherAIs<'a> {
+    pub fn new(information: &'a BitArray) -> AI01AndOtherAIs<'a> {
         AI01AndOtherAIs(information, GeneralAppIdDecoder::new(information))
     }
 

@@ -57,3 +57,65 @@ impl<'a> AnyAIDecoder<'_> {
         }
     }
 }
+
+
+/**
+ * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
+ */
+#[cfg(test)]
+mod AnyAIDecoderTest {
+    use crate::oned::rss::expanded::decoders::abstract_decoder_test_utils::*;
+
+
+    const HEADER : &str = ".....";
+  
+    #[test]
+    fn testAnyAIDecoder1()  {
+      let data =format!("{}{}{}{}{}{}{}", HEADER , numeric10 , numeric12 , numeric2alpha , alphaA , alpha2numeric , numeric12);
+      let expected = "(10)12A12";
+  
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+    #[test]
+    fn  testAnyAIDecoder2()  {
+      let data =format!("{}{}{}{}{}{}{}", HEADER , numeric10 , numeric12 , numeric2alpha , alphaA , alpha2isoiec646 , i646B);
+      let  expected = "(10)12AB";
+  
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+    #[test]
+    fn  testAnyAIDecoder3()  {
+        let  data = format!("{}{}{}{}{}{}{}{}{}{}",HEADER , numeric10 , numeric2alpha , alpha2isoiec646 , i646B , i646C , isoiec6462alpha ,
+          alphaA , alpha2numeric , numeric10);
+          let  expected = "(10)BCA10";
+  
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+    #[test]
+    fn  testAnyAIDecodernumericFNC1secondDigit()  {
+        let  data = format!("{}{}{}",HEADER , numeric10 , numeric1FNC1);
+        let  expected = "(10)1";
+  
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+    #[test]
+    fn  testAnyAIDecoderalphaFNC1()  {
+        let  data = format!("{}{}{}{}{}", HEADER, numeric10 , numeric2alpha , alphaA , alphaFNC1);
+        let  expected = "(10)A";
+  
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+    #[test]
+    fn  testAnyAIDecoder646FNC1()  {
+        let  data = format!("{}{}{}{}{}{}{}",HEADER , numeric10 , numeric2alpha , alphaA , isoiec6462alpha , i646B , i646FNC1);
+      let  expected = "(10)AB";
+  
+      assertCorrectBinaryString(&data, expected);
+    }
+  }
+  

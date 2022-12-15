@@ -24,45 +24,45 @@
  *   http://www.piramidepse.com/
  */
 
-use crate::oned::rss::expanded::{binary_util, decoders::AbstractExpandedDecoder};
+use crate::oned::rss::expanded::{binary_util, decoders::{AbstractExpandedDecoder, abstract_expanded_decoder::createDecoder}};
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  */
 
-const numeric10: &str = "..X..XX";
-const numeric12: &str = "..X.X.X";
-const numeric1FNC1: &str = "..XXX.X";
-// static final String numericFNC11                  = "XXX.XXX";
+pub const numeric10: &str = "..X..XX";
+pub const numeric12: &str = "..X.X.X";
+pub const numeric1FNC1: &str = "..XXX.X";
+ // static final String numericFNC11                  = "XXX.XXX";
 
-const numeric2alpha: &str = "....";
+pub const numeric2alpha: &str = "....";
 
-const alphaA: &str = "X.....";
-const alphaFNC1: &str = ".XXXX";
-const alpha2numeric: &str = "...";
-const alpha2isoiec646: &str = "..X..";
+pub const alphaA: &str = "X.....";
+pub const alphaFNC1: &str = ".XXXX";
+pub const alpha2numeric: &str = "...";
+pub const alpha2isoiec646: &str = "..X..";
 
-const i646B: &str = "X.....X";
-const i646C: &str = "X....X.";
-const i646FNC1: &str = ".XXXX";
-const isoiec6462alpha: &str = "..X..";
+pub const i646B: &str = "X.....X";
+pub const i646C: &str = "X....X.";
+pub const i646FNC1: &str = ".XXXX";
+pub const isoiec6462alpha: &str = "..X..";
 
-const compressedGtin900123456798908: &str = ".........X..XXX.X.X.X...XX.XXXXX.XXXX.X.";
-const compressedGtin900000000000008: &str = "........................................";
+pub const compressedGtin900123456798908: &str = ".........X..XXX.X.X.X...XX.XXXXX.XXXX.X.";
+pub const compressedGtin900000000000008: &str = "........................................";
 
-const compressed15bitWeight1750: &str = "....XX.XX.X.XX.";
-const compressed15bitWeight11750: &str = ".X.XX.XXXX..XX.";
-const compressed15bitWeight0: &str = "...............";
+pub const compressed15bitWeight1750: &str = "....XX.XX.X.XX.";
+pub const compressed15bitWeight11750: &str = ".X.XX.XXXX..XX.";
+pub const compressed15bitWeight0: &str = "...............";
 
-const compressed20bitWeight1750: &str = ".........XX.XX.X.XX.";
+pub const compressed20bitWeight1750: &str = ".........XX.XX.X.XX.";
 
-const compressedDateMarch12th2010: &str = "....XXXX.X..XX..";
-const compressedDateEnd: &str = "X..X.XX.........";
+pub const compressedDateMarch12th2010: &str = "....XXXX.X..XX..";
+pub const compressedDateEnd: &str = "X..X.XX.........";
 
 pub fn assertCorrectBinaryString(binaryString: &str, expectedNumber: &str) {
     let binary = binary_util::buildBitArrayFromStringWithoutSpaces(binaryString).expect("built");
-    panic!("finish implementation for test");
-    // let decoder = AbstractExpandedDecoder.createDecoder(binary);
-    // let result = decoder.parseInformation();
-    // assert_eq!(expectedNumber, result);
+    
+    let mut decoder = createDecoder(&binary).expect("get decoder");
+    let result = decoder.parseInformation().expect("information exists");
+    assert_eq!(expectedNumber, result);
 }

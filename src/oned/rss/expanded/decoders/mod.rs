@@ -1,4 +1,5 @@
 pub mod abstract_expanded_decoder;
+
 pub use abstract_expanded_decoder::AbstractExpandedDecoder;
 mod ai_01_and_other_ais;
 pub use ai_01_and_other_ais::*;
@@ -49,3 +50,6 @@ pub use ai_01393x_decoder::*;
 
 mod ai_013103_decoder;
 pub use ai_013103_decoder::*;
+
+#[cfg(test)]
+mod ai_0132023203_decoder_test;

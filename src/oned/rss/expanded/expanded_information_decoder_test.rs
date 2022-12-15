@@ -24,27 +24,19 @@
  *   http://www.piramidepse.com/
  */
 
-package com.google.zxing.oned.rss.expanded;
+use crate::oned::rss::expanded::{binary_util, decoders::{ abstract_expanded_decoder}};
 
-import com.google.zxing.common.BitArray;
-import com.google.zxing.oned.rss.expanded.decoders.AbstractExpandedDecoder;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
-public final class ExpandedInformationDecoderTest extends Assert {
+  #[test]
+  fn testNoAi()  {
+    let information = binary_util::buildBitArrayFromString(" .......X ..XX..X. X.X....X .......X ....").expect("build");
 
-  @Test
-  public void testNoAi() throws Exception {
-    BitArray information = BinaryUtil.buildBitArrayFromString(" .......X ..XX..X. X.X....X .......X ....");
-
-    AbstractExpandedDecoder decoder = AbstractExpandedDecoder.createDecoder(information);
-    String decoded = decoder.parseInformation();
-    assertEquals("(10)12A", decoded);
+    let mut decoder = abstract_expanded_decoder::createDecoder(&information).expect("create");
+    let decoded = decoder.parseInformation().expect("parsed");
+    assert_eq!("(10)12A", decoded);
   }
 
-}

@@ -34,12 +34,12 @@ use super::{AI013x0xDecoder, AI01decoder, AI01weightDecoder, AbstractExpandedDec
 pub struct AI013103decoder<'a>(AI013x0xDecoder<'a>);
 
 impl AI01weightDecoder for AI013103decoder<'_> {
-    fn addWeightCode(&self, buf: &mut String, _weight: u32) {
-        buf.push_str("(3103)");
+    fn addWeightCode(&self, buf: &mut String, weight: u32) {
+        self.0.addWeightCode(buf, weight)
     }
 
     fn checkWeight(&self, weight: u32) -> u32 {
-        weight
+        self.0.checkWeight(weight)
     }
 }
 impl AbstractExpandedDecoder for AI013103decoder<'_> {
@@ -55,6 +55,48 @@ impl AI01decoder for AI013103decoder<'_> {}
 
 impl<'a> AI013103decoder<'_> {
     pub fn new(information: &'a BitArray) -> AI013103decoder<'a> {
-        AI013103decoder(AI013x0xDecoder::new(information))
+        AI013103decoder(AI013x0xDecoder::new(information, addWeightCode, checkWeight))
     }
 }
+
+fn addWeightCode( buf: &mut String, _weight: u32) {
+    buf.push_str("(3103)");
+}
+
+fn checkWeight( weight: u32) -> u32 {
+    weight
+}
+
+
+/**
+ * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
+ */
+#[cfg(test)]
+mod AI013103DecoderTest  {
+    use crate::oned::rss::expanded::decoders::abstract_decoder_test_utils::*;
+
+
+    const header :&str = "..X..";
+  
+    #[test]
+    fn test0131031()  {
+      let data = format!("{}{}{}", header , compressedGtin900123456798908 , compressed15bitWeight1750);
+      let expected = "(01)90012345678908(3103)001750";
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+    #[test]
+    fn  test0131032()  {
+      let data = format!("{}{}{}",header , compressedGtin900000000000008 , compressed15bitWeight0);
+      let expected = "(01)90000000000003(3103)000000";
+      assertCorrectBinaryString(&data, expected);
+    }
+  
+    #[test]
+    #[should_panic]
+    fn  test013103invalid()  {
+      let data = format!("{}{}{}..",header , compressedGtin900123456798908 , compressed15bitWeight1750 );
+      assertCorrectBinaryString(&data, "");
+    }
+  }
+  
