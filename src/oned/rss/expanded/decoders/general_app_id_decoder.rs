@@ -500,7 +500,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         }
 
         let mut i = 0;
-        while i < 4 && pos < self.information.getSize() {
+        while i < 4 && i + pos < self.information.getSize() {
             // for (int i = 0; i < 4 && i + pos < this.information.getSize(); ++i) {
             if self.information.get(pos + i) {
                 return false;

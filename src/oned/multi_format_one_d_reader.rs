@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use super::rss::expanded::RSSExpandedReader;
 use super::rss::RSS14Reader;
 use super::CodaBarReader;
 use super::Code128Reader;
@@ -90,9 +91,9 @@ impl MultiFormatOneDReader {
             if possibleFormats.contains(&BarcodeFormat::RSS_14) {
                 readers.push(Box::new(RSS14Reader::new()));
             }
-            // if (possibleFormats.contains(&BarcodeFormat::RSS_EXPANDED)) {
-            //   readers.add(new RSSExpandedReader());
-            // }
+            if possibleFormats.contains(&BarcodeFormat::RSS_EXPANDED) {
+                readers.push(Box::new(RSSExpandedReader::new()));
+            }
         }
         if readers.is_empty() {
             readers.push(Box::new(MultiFormatUPCEANReader::new(hints)));
@@ -102,7 +103,7 @@ impl MultiFormatOneDReader {
             readers.push(Box::new(Code128Reader {}));
             readers.push(Box::new(ITFReader::default()));
             readers.push(Box::new(RSS14Reader::new()));
-            // readers.push(new RSSExpandedReader());
+            readers.push(Box::new(RSSExpandedReader::new()));
         }
 
         Self(readers)
