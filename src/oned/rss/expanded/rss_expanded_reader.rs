@@ -1028,6 +1028,19 @@ impl RSSExpandedReader {
 
 impl Default for RSSExpandedReader {
     fn default() -> Self {
-        Self { _possibleLeftPairs: Default::default(), _possibleRightPairs: Default::default(), decodeFinderCounters: Default::default(), dataCharacterCounters: Default::default(), oddRoundingErrors: Default::default(), evenRoundingErrors: Default::default(), oddCounts: Default::default(), evenCounts: Default::default(), pairs: Default::default(), rows: Default::default(), startEnd: Default::default(), startFromEven: Default::default() }
+        Self {
+            _possibleLeftPairs: Default::default(),
+            _possibleRightPairs: Default::default(),
+            decodeFinderCounters: Default::default(),
+            dataCharacterCounters: Default::default(),
+            oddRoundingErrors: Default::default(),
+            evenRoundingErrors: Default::default(),
+            oddCounts: Default::default(),
+            evenCounts: Default::default(),
+            pairs: Default::default(),
+            rows: Default::default(),
+            startEnd: Default::default(),
+            startFromEven: Default::default(),
+        }
     }
 }
