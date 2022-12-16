@@ -24,33 +24,25 @@
  *   http://www.piramidepse.com/
  */
 
-package com.google.zxing.oned.rss.expanded;
+use std::rc::Rc;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.nio.file.Path;
+use image::DynamicImage;
 
-import javax.imageio.ImageIO;
+use crate::{BinaryBitmap, common::GlobalHistogramBinarizer, BufferedImageLuminanceSource};
 
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.BufferedImageLuminanceSource;
-import com.google.zxing.common.AbstractBlackBoxTestCase;
-import com.google.zxing.common.GlobalHistogramBinarizer;
 
-final class TestCaseUtil {
+  fn getBufferedImage( fileName:&str) -> DynamicImage {
+    let path = format!("test_resources/blackbox/rssexpandedstacked-2/{}",fileName);
 
-  private TestCaseUtil() {
+    let image = image::open(path).expect("load image");
+
+    image
   }
 
-  private static BufferedImage getBufferedImage(String path) throws IOException {
-    Path file = AbstractBlackBoxTestCase.buildTestBase(path);
-    return ImageIO.read(file.toFile());
+  pub(crate) fn getBinaryBitmap( fileName:&str) -> BinaryBitmap {
+    let bufferedImage = getBufferedImage(fileName);
+    let binaryMap =
+         BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(BufferedImageLuminanceSource::new(bufferedImage)))));
+         
+         binaryMap
   }
-
-  static BinaryBitmap getBinaryBitmap(String path) throws IOException {
-    BufferedImage bufferedImage = getBufferedImage(path);
-    BufferedImageLuminanceSource luminanceSource = new BufferedImageLuminanceSource(bufferedImage);
-    return new BinaryBitmap(new GlobalHistogramBinarizer(luminanceSource));
-  }
-
-}

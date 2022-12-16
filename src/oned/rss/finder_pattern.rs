@@ -48,6 +48,11 @@ impl FinderPattern {
         &self.startEnd
     }
 
+    #[cfg(test)]
+    pub(crate)fn getStartEndMut(&mut self) -> &mut [usize]{
+        &mut self.startEnd
+    }
+
     pub fn getRXingResultPoints(&self) -> &[RXingResultPoint] {
         &self.resultPoints
     }

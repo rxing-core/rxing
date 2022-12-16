@@ -26,3 +26,9 @@ mod rss_expanded_image_2_result_test_case;
 
 #[cfg(test)]
 mod rss_expanded_image_2_string_test_case;
+
+#[cfg(test)]
+mod rss_expanded_stacked_internal_test_case;
+
+#[cfg(test)]
+mod test_case_util;

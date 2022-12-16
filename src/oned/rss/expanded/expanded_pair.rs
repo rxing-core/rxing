@@ -63,6 +63,11 @@ impl ExpandedPair {
         &self.finderPattern
     }
 
+    #[cfg(test)]
+    pub(crate) fn getFinderPatternMut(&mut self) -> &mut Option<FinderPattern> {
+        &mut self.finderPattern
+    }
+
     pub fn mustBeLast(&self) -> bool {
         self.rightChar.is_none()
     }

@@ -35,6 +35,11 @@ impl ExpandedRow {
         &self.pairs
     }
 
+    #[cfg(test)]
+    pub(crate) fn getPairsMut(&mut self) -> &mut [ExpandedPair]{
+        &mut self.pairs
+    }
+
     pub fn getRowNumber(&self) -> u32 {
         self.rowNumber
     }

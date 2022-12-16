@@ -142,8 +142,8 @@ pub struct RSSExpandedReader {
     oddCounts: [u32; 4],
     evenCounts: [u32; 4],
 
-    pairs: Vec<ExpandedPair>, //new ArrayList<>(MAX_PAIRS);
-    rows: Vec<ExpandedRow>,   // new ArrayList<>();
+     pub(super) pairs: Vec<ExpandedPair>, //new ArrayList<>(MAX_PAIRS);
+     pub(super) rows: Vec<ExpandedRow>,   // new ArrayList<>();
     startEnd: [u32; 2],       // new int[2];
     startFromEven: bool,
 }
@@ -529,12 +529,17 @@ impl RSSExpandedReader {
     }
 
     // Only used for unit testing
-    fn getRows(&self) -> &[ExpandedRow] {
-        &self.rows
+    #[cfg(test)]
+    pub(crate) fn getRowsMut(&mut self) -> &mut [ExpandedRow] {
+        &mut self.rows
+    }
+    #[cfg(test)]
+    pub(crate) fn getRows(& self) -> & [ExpandedRow] {
+        & self.rows
     }
 
     // Not private for unit testing
-    fn constructRXingResult(pairs: &[ExpandedPair]) -> Result<RXingResult, Exceptions> {
+    pub(crate) fn constructRXingResult(pairs: &[ExpandedPair]) -> Result<RXingResult, Exceptions> {
         let binary = bit_array_builder::buildBitArray(&pairs.to_vec());
 
         let mut decoder = abstract_expanded_decoder::createDecoder(&binary)?;
