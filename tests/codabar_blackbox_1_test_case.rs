@@ -15,8 +15,8 @@
  */
 
 use rxing::{
-    oned::{CodaBarReader, OneDReader},
-    BarcodeFormat, MultiFormatReader,
+    oned::{CodaBarReader},
+    BarcodeFormat,
 };
 
 mod common;

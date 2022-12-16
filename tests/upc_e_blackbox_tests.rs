@@ -15,7 +15,6 @@
  */
 
 use rxing::{
-    oned::{EAN13Reader, UPCEReader},
     BarcodeFormat, MultiFormatReader,
 };
 

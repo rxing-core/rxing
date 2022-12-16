@@ -6,7 +6,7 @@
 * limitations under the License.
 */
 use rxing::{
-    oned::{CodaBarReader, Code39Reader, OneDReader},
+    oned::{Code39Reader},
     BarcodeFormat, MultiFormatReader,
 };
 

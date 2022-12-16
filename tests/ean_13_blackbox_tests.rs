@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use rxing::{oned::EAN13Reader, BarcodeFormat, MultiFormatReader};
+use rxing::{BarcodeFormat, MultiFormatReader};
 
 mod common;
 

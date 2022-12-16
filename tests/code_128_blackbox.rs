@@ -1,5 +1,4 @@
 use rxing::{
-    oned::{CodaBarReader, Code39Reader, OneDReader},
     BarcodeFormat, MultiFormatReader,
 };
 

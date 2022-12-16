@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use rxing::{maxicode::MaxiCodeReader, BarcodeFormat, DecodeHintType, MultiFormatReader};
+use rxing::{BarcodeFormat, MultiFormatReader};
 
 mod common;
 
