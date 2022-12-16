@@ -36,7 +36,7 @@ impl ExpandedRow {
     }
 
     #[cfg(test)]
-    pub(crate) fn getPairsMut(&mut self) -> &mut [ExpandedPair]{
+    pub(crate) fn getPairsMut(&mut self) -> &mut [ExpandedPair] {
         &mut self.pairs
     }
 

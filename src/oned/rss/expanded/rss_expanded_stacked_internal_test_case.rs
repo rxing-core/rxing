@@ -24,60 +24,75 @@
  *   http://www.piramidepse.com/
  */
 
-use crate::{Exceptions, common::BitArray, oned::rss::expanded::ExpandedPair, Reader};
+use crate::{common::BitArray, oned::rss::expanded::ExpandedPair, Exceptions, Reader};
 
-use super::{RSSExpandedReader, test_case_util};
-
+use super::{test_case_util, RSSExpandedReader};
 
 /**
  * Tests {@link RSSExpandedReader} handling of stacked RSS barcodes.
  */
 
-
-  #[test]
-  fn testDecodingRowByRow()  {
-    let mut rssExpandedReader =  RSSExpandedReader::new();
+#[test]
+fn testDecodingRowByRow() {
+    let mut rssExpandedReader = RSSExpandedReader::new();
 
     let binaryMap = test_case_util::getBinaryBitmap("1000.png");
 
     let firstRowNumber = binaryMap.getHeight() / 3;
-    let firstRow = binaryMap.getBlackRow(firstRowNumber, &mut BitArray::new()).expect("get row");
-    
+    let firstRow = binaryMap
+        .getBlackRow(firstRowNumber, &mut BitArray::new())
+        .expect("get row");
+
     // let tester = ;
 
-    assert!(|| -> Result<Vec<ExpandedPair>,Exceptions> {
-      rssExpandedReader.decodeRow2pairs(firstRowNumber as u32, &firstRow)
-      // fail(NotFoundException.class.getName() + " expected");
-    }().is_err());
-    
+    assert!(|| -> Result<Vec<ExpandedPair>, Exceptions> {
+        rssExpandedReader.decodeRow2pairs(firstRowNumber as u32, &firstRow)
+        // fail(NotFoundException.class.getName() + " expected");
+    }()
+    .is_err());
 
     assert_eq!(1, rssExpandedReader.getRows().len());
     let firstExpandedRow = &mut rssExpandedReader.rows[0]; //&mut rssExpandedReader.getRowsMut()[0];//.expect("not None");
-    
+
     assert_eq!(firstRowNumber as u32, firstExpandedRow.getRowNumber());
 
     assert_eq!(2, firstExpandedRow.getPairs().len());
 
-    firstExpandedRow.getPairsMut()[1].getFinderPatternMut().as_mut().unwrap().getStartEndMut()[1] = 0;
-    rssExpandedReader.pairs.last_mut().as_mut().unwrap().getFinderPatternMut().as_mut().unwrap().getStartEndMut()[1] = 0;
+    firstExpandedRow.getPairsMut()[1]
+        .getFinderPatternMut()
+        .as_mut()
+        .unwrap()
+        .getStartEndMut()[1] = 0;
+    rssExpandedReader
+        .pairs
+        .last_mut()
+        .as_mut()
+        .unwrap()
+        .getFinderPatternMut()
+        .as_mut()
+        .unwrap()
+        .getStartEndMut()[1] = 0;
 
     let secondRowNumber = 2 * binaryMap.getHeight() / 3;
-    let mut secondRow = binaryMap.getBlackRow(secondRowNumber, &mut BitArray::new()).expect("get row");
+    let mut secondRow = binaryMap
+        .getBlackRow(secondRowNumber, &mut BitArray::new())
+        .expect("get row");
     secondRow.reverse();
 
-    let totalPairs = rssExpandedReader.decodeRow2pairs(secondRowNumber as u32, &secondRow).expect("decode pairs");
+    let totalPairs = rssExpandedReader
+        .decodeRow2pairs(secondRowNumber as u32, &secondRow)
+        .expect("decode pairs");
 
     let result = RSSExpandedReader::constructRXingResult(&totalPairs).expect("construct");
     assert_eq!("(01)98898765432106(3202)012345(15)991231", result.getText());
-  }
+}
 
-  #[test]
-  fn testCompleteDecode() {
-    let mut rssExpandedReader =  RSSExpandedReader::new();
+#[test]
+fn testCompleteDecode() {
+    let mut rssExpandedReader = RSSExpandedReader::new();
 
     let binaryMap = test_case_util::getBinaryBitmap("1000.png");
 
     let result = rssExpandedReader.decode(&binaryMap).expect("decode");
     assert_eq!("(01)98898765432106(3202)012345(15)991231", result.getText());
-  }
-
+}

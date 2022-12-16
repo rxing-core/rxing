@@ -142,9 +142,9 @@ pub struct RSSExpandedReader {
     oddCounts: [u32; 4],
     evenCounts: [u32; 4],
 
-     pub(super) pairs: Vec<ExpandedPair>, //new ArrayList<>(MAX_PAIRS);
-     pub(super) rows: Vec<ExpandedRow>,   // new ArrayList<>();
-    startEnd: [u32; 2],       // new int[2];
+    pub(super) pairs: Vec<ExpandedPair>, //new ArrayList<>(MAX_PAIRS);
+    pub(super) rows: Vec<ExpandedRow>,   // new ArrayList<>();
+    startEnd: [u32; 2],                  // new int[2];
     startFromEven: bool,
 }
 impl AbstractRSSReaderTrait for RSSExpandedReader {}
@@ -534,8 +534,8 @@ impl RSSExpandedReader {
         &mut self.rows
     }
     #[cfg(test)]
-    pub(crate) fn getRows(& self) -> & [ExpandedRow] {
-        & self.rows
+    pub(crate) fn getRows(&self) -> &[ExpandedRow] {
+        &self.rows
     }
 
     // Not private for unit testing

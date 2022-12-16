@@ -49,7 +49,7 @@ impl FinderPattern {
     }
 
     #[cfg(test)]
-    pub(crate)fn getStartEndMut(&mut self) -> &mut [usize]{
+    pub(crate) fn getStartEndMut(&mut self) -> &mut [usize] {
         &mut self.startEnd
     }
 

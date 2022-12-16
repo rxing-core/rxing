@@ -28,21 +28,21 @@ use std::rc::Rc;
 
 use image::DynamicImage;
 
-use crate::{BinaryBitmap, common::GlobalHistogramBinarizer, BufferedImageLuminanceSource};
+use crate::{common::GlobalHistogramBinarizer, BinaryBitmap, BufferedImageLuminanceSource};
 
-
-  fn getBufferedImage( fileName:&str) -> DynamicImage {
-    let path = format!("test_resources/blackbox/rssexpandedstacked-2/{}",fileName);
+fn getBufferedImage(fileName: &str) -> DynamicImage {
+    let path = format!("test_resources/blackbox/rssexpandedstacked-2/{}", fileName);
 
     let image = image::open(path).expect("load image");
 
     image
-  }
+}
 
-  pub(crate) fn getBinaryBitmap( fileName:&str) -> BinaryBitmap {
+pub(crate) fn getBinaryBitmap(fileName: &str) -> BinaryBitmap {
     let bufferedImage = getBufferedImage(fileName);
-    let binaryMap =
-         BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(BufferedImageLuminanceSource::new(bufferedImage)))));
-         
-         binaryMap
-  }
+    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
+        BufferedImageLuminanceSource::new(bufferedImage),
+    ))));
+
+    binaryMap
+}
