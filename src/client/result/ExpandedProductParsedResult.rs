@@ -40,7 +40,7 @@ use super::{ParsedRXingResult, ParsedRXingResultType};
  * @author Antonio Manuel Benjumea Conde, Servinform, S.A.
  * @author Agustín Delgado, Servinform, S.A.
  */
-#[derive(PartialEq, Eq,Debug)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct ExpandedProductParsedRXingResult {
     rawText: String,
     productID: String,
@@ -71,7 +71,7 @@ impl ParsedRXingResult for ExpandedProductParsedRXingResult {
 
 impl ExpandedProductParsedRXingResult {
     pub const KILOGRAM: &'static str = "KG";
-pub const POUND: &'static str = "LB";
+    pub const POUND: &'static str = "LB";
 
     pub fn new(
         rawText: String,

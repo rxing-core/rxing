@@ -23,7 +23,7 @@ use super::ParsedRXingResult;
  *
  * @author jbreiden@google.com (Jeff Breidenbach)
  */
-#[derive(PartialEq, Eq,Hash,Debug)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 pub struct ISBNParsedRXingResult {
     isbn: String,
 }

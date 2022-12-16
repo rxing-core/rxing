@@ -5,10 +5,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-use rxing::{
-    oned::{Code39Reader},
-    BarcodeFormat, MultiFormatReader,
-};
+use rxing::{oned::Code39Reader, BarcodeFormat, MultiFormatReader};
 
 mod common;
 

@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-use rxing::{
-    BarcodeFormat, MultiFormatReader,
-};
+use rxing::{BarcodeFormat, MultiFormatReader};
 
 mod common;
 

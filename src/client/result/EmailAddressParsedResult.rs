@@ -24,7 +24,7 @@ use super::{ParsedRXingResult, ParsedRXingResultType, ResultParser};
  *
  * @author Sean Owen
  */
-#[derive(PartialEq, Eq,Hash,Debug)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 pub struct EmailAddressParsedRXingResult {
     tos: Vec<String>,
     ccs: Vec<String>,

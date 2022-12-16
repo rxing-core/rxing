@@ -21,7 +21,7 @@ use super::{ParsedRXingResult, ParsedRXingResultType};
 /**
  * Represents a parsed result that encodes a Vehicle Identification Number (VIN).
  */
-#[derive(PartialEq, Eq,Hash,Debug)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 pub struct VINParsedRXingResult {
     vin: String,
     world_manufacturer_id: String,

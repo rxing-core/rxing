@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-use rxing::{
-    oned::{CodaBarReader},
-    BarcodeFormat,
-};
+use rxing::{oned::CodaBarReader, BarcodeFormat};
 
 mod common;
 

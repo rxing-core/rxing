@@ -29,52 +29,69 @@
  *
  */
 
-use std::{rc::Rc, collections::HashMap};
+use std::{collections::HashMap, rc::Rc};
 
-use crate::{client::result::{ExpandedProductParsedRXingResult, ParsedClientResult}, common::{BitArray, GlobalHistogramBinarizer}, BinaryBitmap, BufferedImageLuminanceSource, BarcodeFormat, oned::{rss::expanded::RSSExpandedReader, OneDReader}};
+use crate::{
+    client::result::{ExpandedProductParsedRXingResult, ParsedClientResult},
+    common::{BitArray, GlobalHistogramBinarizer},
+    oned::{rss::expanded::RSSExpandedReader, OneDReader},
+    BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
+};
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
 
-
-  #[test]
-  fn testDecodeRow2result2()  {
+#[test]
+fn testDecodeRow2result2() {
     // (01)90012345678908(3103)001750
-    let expected =
-         ExpandedProductParsedRXingResult::new("(01)90012345678908(3103)001750".to_owned(),
-                                        "90012345678908".to_owned(),
-                                        "".to_owned(), "".to_owned(), "".to_owned(), "".to_owned(), "".to_owned(), "".to_owned(),
-                                        "001750".to_owned(),
-                                        ExpandedProductParsedRXingResult::KILOGRAM.to_owned(),
-                                        "3".to_owned(), "".to_owned(), "".to_owned(), "".to_owned(),  HashMap::new());
+    let expected = ExpandedProductParsedRXingResult::new(
+        "(01)90012345678908(3103)001750".to_owned(),
+        "90012345678908".to_owned(),
+        "".to_owned(),
+        "".to_owned(),
+        "".to_owned(),
+        "".to_owned(),
+        "".to_owned(),
+        "".to_owned(),
+        "001750".to_owned(),
+        ExpandedProductParsedRXingResult::KILOGRAM.to_owned(),
+        "3".to_owned(),
+        "".to_owned(),
+        "".to_owned(),
+        "".to_owned(),
+        HashMap::new(),
+    );
 
     assertCorrectImage2result("2.png", expected);
-  }
+}
 
-  fn assertCorrectImage2result( fileName:&str,  expected:ExpandedProductParsedRXingResult)
-       {
-    let path = format!("test_resources/blackbox/rssexpanded-1/{}",fileName);
+fn assertCorrectImage2result(fileName: &str, expected: ExpandedProductParsedRXingResult) {
+    let path = format!("test_resources/blackbox/rssexpanded-1/{}", fileName);
 
     let image = image::open(path).expect("image must exist");
-    let binaryMap =  BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(BufferedImageLuminanceSource::new(image)))));
+    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
+        BufferedImageLuminanceSource::new(image),
+    ))));
     let rowNumber = binaryMap.getHeight() as usize / 2;
-    let row = binaryMap.getBlackRow(rowNumber, &mut BitArray::new()).expect("get row");
+    let row = binaryMap
+        .getBlackRow(rowNumber, &mut BitArray::new())
+        .expect("get row");
 
-    let mut rssExpandedReader =  RSSExpandedReader::new();
-    let theRXingResult= rssExpandedReader.decodeRow(rowNumber as u32, &row, &HashMap::new()).expect("must decode");
-    
-      
-      
+    let mut rssExpandedReader = RSSExpandedReader::new();
+    let theRXingResult = rssExpandedReader
+        .decodeRow(rowNumber as u32, &row, &HashMap::new())
+        .expect("must decode");
 
-    assert_eq!(&BarcodeFormat::RSS_EXPANDED, theRXingResult.getBarcodeFormat());
+    assert_eq!(
+        &BarcodeFormat::RSS_EXPANDED,
+        theRXingResult.getBarcodeFormat()
+    );
 
     let ParsedClientResult::ExpandedProductResult(result) = crate::client::result::parseRXingResult(&theRXingResult) else {
       panic!("incorrect result type found");
     };
 
     assert_eq!(expected, result);
-  }
-
-
+}

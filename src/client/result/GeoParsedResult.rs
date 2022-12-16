@@ -120,7 +120,10 @@ impl GeoParsedRXingResult {
 
 impl PartialEq for GeoParsedRXingResult {
     fn eq(&self, other: &Self) -> bool {
-        self.latitude == other.latitude && self.longitude == other.longitude && self.altitude == other.altitude && self.query == other.query
+        self.latitude == other.latitude
+            && self.longitude == other.longitude
+            && self.altitude == other.altitude
+            && self.query == other.query
     }
 }
-impl Eq for GeoParsedRXingResult{}
+impl Eq for GeoParsedRXingResult {}
