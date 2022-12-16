@@ -21,7 +21,7 @@ use super::ExpandedPair;
 /**
  * One row of an RSS Expanded Stacked symbol, consisting of 1+ expanded pairs.
  */
-#[derive(Hash)]
+#[derive(Hash, Clone)]
 pub struct ExpandedRow {
     pairs: Vec<ExpandedPair>,
     rowNumber: u32,

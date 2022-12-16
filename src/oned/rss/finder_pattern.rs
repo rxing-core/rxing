@@ -21,6 +21,7 @@ use crate::RXingResultPoint;
 /**
  * Encapsulates an RSS barcode finder pattern, including its start/end position and row.
  */
+#[derive(Clone)]
 pub struct FinderPattern {
     value: u32,
     startEnd: [usize; 2],

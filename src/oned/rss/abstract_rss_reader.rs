@@ -46,10 +46,7 @@ pub trait AbstractRSSReaderTrait: OneDReader {
     //   evenCounts = new int[dataCharacterCounters.length / 2];
     // }
 
-    fn parseFinderValue(
-        counters: &[u32],
-        finderPatterns: &[[u32; 4]; 9],
-    ) -> Result<u32, Exceptions> {
+    fn parseFinderValue(counters: &[u32], finderPatterns: &[[u32; 4]]) -> Result<u32, Exceptions> {
         for value in 0..finderPatterns.len() {
             // for (int value = 0; value < finderPatterns.length; value++) {
             if one_d_reader::patternMatchVariance(

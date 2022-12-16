@@ -31,7 +31,7 @@ use crate::oned::rss::{DataCharacter, FinderPattern};
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  */
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub struct ExpandedPair {
     leftChar: Option<DataCharacter>,
     rightChar: Option<DataCharacter>,
