@@ -23,6 +23,7 @@ use super::{ParsedRXingResult, ParsedRXingResultType, ResultParser, URIResultPar
  *
  * @author Sean Owen
  */
+#[derive(PartialEq, Eq,Hash,Debug)]
 pub struct URIParsedRXingResult {
     uri: String,
     title: String,

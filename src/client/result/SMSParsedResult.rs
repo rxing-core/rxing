@@ -24,6 +24,7 @@ use super::{ParsedRXingResult, ParsedRXingResultType, ResultParser};
  *
  * @author Sean Owen
  */
+#[derive(PartialEq, Eq,Hash,Debug)]
 pub struct SMSParsedRXingResult {
     numbers: Vec<String>,
     vias: Vec<String>,

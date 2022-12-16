@@ -24,6 +24,7 @@ use super::{ParsedRXingResult, ParsedRXingResultType};
  *
  * @author Sean Owen
  */
+#[derive(Debug)]
 pub struct GeoParsedRXingResult {
     latitude: f64,
     longitude: f64,
@@ -116,3 +117,10 @@ impl GeoParsedRXingResult {
         &self.query
     }
 }
+
+impl PartialEq for GeoParsedRXingResult {
+    fn eq(&self, other: &Self) -> bool {
+        self.latitude == other.latitude && self.longitude == other.longitude && self.altitude == other.altitude && self.query == other.query
+    }
+}
+impl Eq for GeoParsedRXingResult{}

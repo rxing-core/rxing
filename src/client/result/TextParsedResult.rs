@@ -24,6 +24,7 @@ use super::{ParsedRXingResult, ParsedRXingResultType};
  *
  * @author Sean Owen
  */
+#[derive(PartialEq, Eq,Hash, Debug)]
 pub struct TextParsedRXingResult {
     text: String,
     language: String,

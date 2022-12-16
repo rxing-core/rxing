@@ -92,13 +92,13 @@ pub fn parse(result: &crate::RXingResult) -> Option<super::ParsedClientResult> {
             "3100" | "3101" | "3102" | "3103" | "3104" | "3105" | "3106" | "3107" | "3108"
             | "3109" => {
                 weight = value;
-                weightType = ExpandedProductParsedResult::KILOGRAM.into();
+                weightType = ExpandedProductParsedRXingResult::KILOGRAM.into();
                 weightIncrement = ai[3..].to_owned()
             }
             "3200" | "3201" | "3202" | "3203" | "3204" | "3205" | "3206" | "3207" | "3208"
             | "3209" => {
                 weight = value;
-                weightType = ExpandedProductParsedResult::POUND.into();
+                weightType = ExpandedProductParsedRXingResult::POUND.into();
                 weightIncrement = ai[3..].to_owned();
             }
             "3920" | "3921" | "3922" | "3923" => {

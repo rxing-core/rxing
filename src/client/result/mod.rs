@@ -87,6 +87,7 @@ mod VINParsedResultTestCase;
 #[cfg(test)]
 mod WifiParsedResultTestCase;
 
+#[derive(PartialEq, Eq, Debug)]
 pub enum ParsedClientResult {
     TextResult(TextParsedRXingResult),
     TelResult(TelParsedRXingResult),

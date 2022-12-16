@@ -23,6 +23,7 @@ use super::{ParsedRXingResult, ParsedRXingResultType, ResultParser};
  *
  * @author Vikram Aggarwal
  */
+#[derive(PartialEq, Eq,Hash,Debug)]
 pub struct WifiParsedRXingResult {
     ssid: String,
     networkEncryption: String,

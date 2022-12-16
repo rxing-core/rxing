@@ -20,3 +20,6 @@ mod rss_expanded_internal_test_case;
 
 #[cfg(test)]
 mod rss_expanded_image_2_binary_test_tase;
+
+#[cfg(test)]
+mod rss_expanded_image_2_result_test_case;

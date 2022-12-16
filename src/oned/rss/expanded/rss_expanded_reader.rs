@@ -582,7 +582,7 @@ impl RSSExpandedReader {
 
         // for i in 1..self.pairs.len() {
         // for (int i = 1; i < this.pairs.size(); ++i) {
-        for currentPair in &self.pairs {
+        for currentPair in self.pairs.iter().skip(1) {
             // let currentPair = self.pairs.get(i).unwrap();
             checksum += currentPair.getLeftChar().unwrap().getChecksumPortion();
             s += 1;

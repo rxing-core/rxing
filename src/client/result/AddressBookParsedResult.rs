@@ -26,6 +26,7 @@ use super::{ParsedRXingResult, ParsedRXingResultType, ResultParser};
  *
  * @author Sean Owen
  */
+#[derive(PartialEq, Eq,Hash,Debug)]
 pub struct AddressBookParsedRXingResult {
     names: Vec<String>,
     nicknames: Vec<String>,

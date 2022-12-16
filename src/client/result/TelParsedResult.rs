@@ -23,6 +23,7 @@ use super::{ParsedRXingResult, ParsedRXingResultType};
  *
  * @author Sean Owen
  */
+#[derive(PartialEq, Eq,Hash,Debug)]
 pub struct TelParsedRXingResult {
     number: String,
     telURI: String,

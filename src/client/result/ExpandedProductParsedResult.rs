@@ -33,9 +33,6 @@ use std::collections::HashMap;
 
 use super::{ParsedRXingResult, ParsedRXingResultType};
 
-pub const KILOGRAM: &'static str = "KG";
-pub const POUND: &'static str = "LB";
-
 /**
  * Represents a parsed result that encodes extended product information as encoded
  * by the RSS format, like weight, price, dates, etc.
@@ -43,7 +40,7 @@ pub const POUND: &'static str = "LB";
  * @author Antonio Manuel Benjumea Conde, Servinform, S.A.
  * @author Agustín Delgado, Servinform, S.A.
  */
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq,Debug)]
 pub struct ExpandedProductParsedRXingResult {
     rawText: String,
     productID: String,
@@ -73,6 +70,9 @@ impl ParsedRXingResult for ExpandedProductParsedRXingResult {
 }
 
 impl ExpandedProductParsedRXingResult {
+    pub const KILOGRAM: &'static str = "KG";
+pub const POUND: &'static str = "LB";
+
     pub fn new(
         rawText: String,
         productID: String,

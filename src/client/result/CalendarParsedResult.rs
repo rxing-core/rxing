@@ -59,6 +59,7 @@ lazy_static! {
  *
  * @author Sean Owen
  */
+#[derive(Debug)]
 pub struct CalendarParsedRXingResult {
     summary: String,
     start: i64,
@@ -363,3 +364,11 @@ impl CalendarParsedRXingResult {
         self.longitude
     }
 }
+
+impl PartialEq for CalendarParsedRXingResult {
+    fn eq(&self, other: &Self) -> bool {
+        self.summary == other.summary && self.start == other.start && self.startAllDay == other.startAllDay && self.end == other.end && self.endAllDay == other.endAllDay && self.location == other.location && self.organizer == other.organizer && self.attendees == other.attendees && self.description == other.description && self.latitude == other.latitude && self.longitude == other.longitude
+    }
+}
+
+impl Eq for CalendarParsedRXingResult {}
