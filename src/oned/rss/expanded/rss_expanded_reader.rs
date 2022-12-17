@@ -160,11 +160,11 @@ impl OneDReader for RSSExpandedReader {
         self.pairs.clear();
         self.startFromEven = false;
         // try {
-            if let Ok(decoded_two_pairs) = self.decodeRow2pairs(rowNumber, row) {
-                if let Ok(possible_result) = Self::constructRXingResult(&decoded_two_pairs) {
-                    return Ok(possible_result)
-                }
+        if let Ok(decoded_two_pairs) = self.decodeRow2pairs(rowNumber, row) {
+            if let Ok(possible_result) = Self::constructRXingResult(&decoded_two_pairs) {
+                return Ok(possible_result);
             }
+        }
         // let possible = Self::constructRXingResult(&self.decodeRow2pairs(rowNumber, row)?);
         // if possible.is_ok() {
         //     return possible;
