@@ -162,7 +162,7 @@ impl ECIInput for MinimalECIInput {
      * @throws  IllegalArgumentException
      *          if the value at the {@code index} argument is not an ECI (@see #isECI)
      */
-    fn getECIValue(&self, index: usize) -> Result<u32, Exceptions> {
+    fn getECIValue(&self, index: usize) -> Result<i32, Exceptions> {
         if index >= self.length() {
             return Err(Exceptions::IndexOutOfBoundsException(index.to_string()));
         }
@@ -172,7 +172,7 @@ impl ECIInput for MinimalECIInput {
                 index
             )));
         }
-        Ok((self.bytes[index] as u32 - 256) as u32)
+        Ok((self.bytes[index] as u32 - 256) as i32)
     }
 
     fn haveNCharacters(&self, index: usize, n: usize) -> bool {

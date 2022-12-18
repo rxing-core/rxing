@@ -18,36 +18,35 @@
  * This file has been modified from its original form in Barcode4J.
  */
 
-package com.google.zxing.pdf417.encoder;
-
-import com.google.zxing.WriterException;
-
 /**
  * PDF417 error correction code following the algorithm described in ISO/IEC 15438:2001(E) in
  * chapter 4.10.
  */
-final class PDF417ErrorCorrection {
+use lazy_static::lazy_static;
 
+use crate::Exceptions;
+
+lazy_static! {
   /**
    * Tables of coefficients for calculating error correction words
    * (see annex F, ISO/IEC 15438:2001(E))
    */
-  private static final int[][] EC_COEFFICIENTS = {
-      {27, 917},
-      {522, 568, 723, 809},
-      {237, 308, 436, 284, 646, 653, 428, 379},
-      {274, 562, 232, 755, 599, 524, 801, 132, 295, 116, 442, 428, 295,
-          42, 176, 65},
-      {361, 575, 922, 525, 176, 586, 640, 321, 536, 742, 677, 742, 687,
+  static ref EC_COEFFICIENTS : [Vec<u32>;9] = [
+      vec![27, 917],
+      vec![522, 568, 723, 809],
+      vec![237, 308, 436, 284, 646, 653, 428, 379],
+      vec![274, 562, 232, 755, 599, 524, 801, 132, 295, 116, 442, 428, 295,
+          42, 176, 65],
+          vec![361, 575, 922, 525, 176, 586, 640, 321, 536, 742, 677, 742, 687,
           284, 193, 517, 273, 494, 263, 147, 593, 800, 571, 320, 803,
-          133, 231, 390, 685, 330, 63, 410},
-      {539, 422, 6, 93, 862, 771, 453, 106, 610, 287, 107, 505, 733,
+          133, 231, 390, 685, 330, 63, 410],
+          vec![539, 422, 6, 93, 862, 771, 453, 106, 610, 287, 107, 505, 733,
           877, 381, 612, 723, 476, 462, 172, 430, 609, 858, 822, 543,
           376, 511, 400, 672, 762, 283, 184, 440, 35, 519, 31, 460,
           594, 225, 535, 517, 352, 605, 158, 651, 201, 488, 502, 648,
           733, 717, 83, 404, 97, 280, 771, 840, 629, 4, 381, 843,
-          623, 264, 543},
-      {521, 310, 864, 547, 858, 580, 296, 379, 53, 779, 897, 444, 400,
+          623, 264, 543],
+          vec![521, 310, 864, 547, 858, 580, 296, 379, 53, 779, 897, 444, 400,
           925, 749, 415, 822, 93, 217, 208, 928, 244, 583, 620, 246,
           148, 447, 631, 292, 908, 490, 704, 516, 258, 457, 907, 594,
           723, 674, 292, 272, 96, 684, 432, 686, 606, 860, 569, 193,
@@ -57,8 +56,8 @@ final class PDF417ErrorCorrection {
           262, 380, 602, 754, 336, 89, 614, 87, 432, 670, 616, 157,
           374, 242, 726, 600, 269, 375, 898, 845, 454, 354, 130, 814,
           587, 804, 34, 211, 330, 539, 297, 827, 865, 37, 517, 834,
-          315, 550, 86, 801, 4, 108, 539},
-      {524, 894, 75, 766, 882, 857, 74, 204, 82, 586, 708, 250, 905,
+          315, 550, 86, 801, 4, 108, 539],
+          vec![524, 894, 75, 766, 882, 857, 74, 204, 82, 586, 708, 250, 905,
           786, 138, 720, 858, 194, 311, 913, 275, 190, 375, 850, 438,
           733, 194, 280, 201, 280, 828, 757, 710, 814, 919, 89, 68,
           569, 11, 204, 796, 605, 540, 913, 801, 700, 799, 137, 439,
@@ -79,8 +78,8 @@ final class PDF417ErrorCorrection {
           54, 834, 299, 922, 191, 910, 532, 609, 829, 189, 20, 167,
           29, 872, 449, 83, 402, 41, 656, 505, 579, 481, 173, 404,
           251, 688, 95, 497, 555, 642, 543, 307, 159, 924, 558, 648,
-          55, 497, 10},
-      {352, 77, 373, 504, 35, 599, 428, 207, 409, 574, 118, 498, 285,
+          55, 497, 10],
+          vec![352, 77, 373, 504, 35, 599, 428, 207, 409, 574, 118, 498, 285,
           380, 350, 492, 197, 265, 920, 155, 914, 299, 229, 643, 294,
           871, 306, 88, 87, 193, 352, 781, 846, 75, 327, 520, 435,
           543, 203, 666, 249, 346, 781, 621, 640, 268, 794, 534, 539,
@@ -122,83 +121,94 @@ final class PDF417ErrorCorrection {
           284, 736, 138, 646, 411, 877, 669, 141, 919, 45, 780, 407,
           164, 332, 899, 165, 726, 600, 325, 498, 655, 357, 752, 768,
           223, 849, 647, 63, 310, 863, 251, 366, 304, 282, 738, 675,
-          410, 389, 244, 31, 121, 303, 263}};
+          410, 389, 244, 31, 121, 303, 263]];
+}
 
-  private PDF417ErrorCorrection() {
-  }
+/**
+ * Determines the number of error correction codewords for a specified error correction
+ * level.
+ *
+ * @param errorCorrectionLevel the error correction level (0-8)
+ * @return the number of codewords generated for error correction
+ */
+pub fn getErrorCorrectionCodewordCount(errorCorrectionLevel: u32) -> Result<u32, Exceptions> {
+    if errorCorrectionLevel > 8 {
+        return Err(Exceptions::IllegalArgumentException(
+            "Error correction level must be between 0 and 8!".to_owned(),
+        ));
+        // throw new IllegalArgumentException("Error correction level must be between 0 and 8!");
+    }
+    Ok(1 << errorCorrectionLevel + 1)
+}
 
-  /**
-   * Determines the number of error correction codewords for a specified error correction
-   * level.
-   *
-   * @param errorCorrectionLevel the error correction level (0-8)
-   * @return the number of codewords generated for error correction
-   */
-  static int getErrorCorrectionCodewordCount(int errorCorrectionLevel) {
-    if (errorCorrectionLevel < 0 || errorCorrectionLevel > 8) {
-      throw new IllegalArgumentException("Error correction level must be between 0 and 8!");
+/**
+ * Returns the recommended minimum error correction level as described in annex E of
+ * ISO/IEC 15438:2001(E).
+ *
+ * @param n the number of data codewords
+ * @return the recommended minimum error correction level
+ */
+pub fn getRecommendedMinimumErrorCorrectionLevel(n: u32) -> Result<u32, Exceptions> {
+    if n <= 0 {
+        Err(Exceptions::IllegalArgumentException(
+            "n must be > 0".to_owned(),
+        ))
+    } else if n <= 40 {
+        Ok(2)
+    } else if n <= 160 {
+        Ok(3)
+    } else if n <= 320 {
+        Ok(4)
+    } else if n <= 863 {
+        Ok(5)
+    } else {
+        Err(Exceptions::WriterException(
+            "No recommendation possible".to_owned(),
+        ))
     }
-    return 1 << (errorCorrectionLevel + 1);
-  }
+}
 
-  /**
-   * Returns the recommended minimum error correction level as described in annex E of
-   * ISO/IEC 15438:2001(E).
-   *
-   * @param n the number of data codewords
-   * @return the recommended minimum error correction level
-   */
-  static int getRecommendedMinimumErrorCorrectionLevel(int n) throws WriterException {
-    if (n <= 0) {
-      throw new IllegalArgumentException("n must be > 0");
-    }
-    if (n <= 40) {
-      return 2;
-    }
-    if (n <= 160) {
-      return 3;
-    }
-    if (n <= 320) {
-      return 4;
-    }
-    if (n <= 863) {
-      return 5;
-    }
-    throw new WriterException("No recommendation possible");
-  }
-
-  /**
-   * Generates the error correction codewords according to 4.10 in ISO/IEC 15438:2001(E).
-   *
-   * @param dataCodewords        the data codewords
-   * @param errorCorrectionLevel the error correction level (0-8)
-   * @return the String representing the error correction codewords
-   */
-  static String generateErrorCorrection(CharSequence dataCodewords, int errorCorrectionLevel) {
-    int k = getErrorCorrectionCodewordCount(errorCorrectionLevel);
-    char[] e = new char[k];
-    int sld = dataCodewords.length();
-    for (int i = 0; i < sld; i++) {
-      int t1 = (dataCodewords.charAt(i) + e[e.length - 1]) % 929;
-      int t2;
-      int t3;
-      for (int j = k - 1; j >= 1; j--) {
-        t2 = (t1 * EC_COEFFICIENTS[errorCorrectionLevel][j]) % 929;
+/**
+ * Generates the error correction codewords according to 4.10 in ISO/IEC 15438:2001(E).
+ *
+ * @param dataCodewords        the data codewords
+ * @param errorCorrectionLevel the error correction level (0-8)
+ * @return the String representing the error correction codewords
+ */
+pub fn generateErrorCorrection(
+    dataCodewords: &str,
+    errorCorrectionLevel: u32,
+) -> Result<String, Exceptions> {
+    let k = getErrorCorrectionCodewordCount(errorCorrectionLevel)?;
+    let mut e = vec![0 as char; k as usize]; //new char[k];
+    let sld = dataCodewords.len();
+    for i in 0..sld {
+        // for (int i = 0; i < sld; i++) {
+        let t1 = (dataCodewords.chars().nth(i).unwrap() as u32 + e[e.len() - 1] as u32) % 929;
+        let mut t2;
+        let mut t3;
+        let mut j = k as usize - 1;
+        while j >= 1 {
+            // for (int j = k - 1; j >= 1; j--) {
+            t2 = (t1 * EC_COEFFICIENTS[errorCorrectionLevel as usize][j]) % 929;
+            t3 = 929 - t2;
+            e[j] = char::from_u32((e[j - 1] as u32 + t3) % 929).unwrap();
+            j -= 1;
+        }
+        t2 = (t1 * EC_COEFFICIENTS[errorCorrectionLevel as usize][0]) % 929;
         t3 = 929 - t2;
-        e[j] = (char) ((e[j - 1] + t3) % 929);
-      }
-      t2 = (t1 * EC_COEFFICIENTS[errorCorrectionLevel][0]) % 929;
-      t3 = 929 - t2;
-      e[0] = (char) (t3 % 929);
+        e[0] = char::from_u32(t3 % 929).unwrap();
     }
-    StringBuilder sb = new StringBuilder(k);
-    for (int j = k - 1; j >= 0; j--) {
-      if (e[j] != 0) {
-        e[j] = (char) (929 - e[j]);
-      }
-      sb.append(e[j]);
-    }
-    return sb.toString();
-  }
+    let mut sb = String::with_capacity(k as usize); // StringBuilder(k);
+    let mut j = k as isize - 1;
+    while j >= 0 {
+        // for (int j = k - 1; j >= 0; j--) {
+        if e[j as usize] as u32 != 0 {
+            e[j as usize] = char::from_u32(929 - e[j as usize] as u32).unwrap();
+        }
+        sb.push(e[j as usize]);
 
+        j -= 1;
+    }
+    Ok(sb)
 }

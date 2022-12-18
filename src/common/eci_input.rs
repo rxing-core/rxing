@@ -16,6 +16,8 @@
 
 //package com.google.zxing.common;
 
+use std::fmt::Display;
+
 use crate::Exceptions;
 
 /**
@@ -23,7 +25,7 @@ use crate::Exceptions;
  *
  * @author Alex Geller
  */
-pub trait ECIInput {
+pub trait ECIInput:Display {
     /**
      * Returns the length of this input.  The length is the number
      * of {@code byte}s in or ECIs in the sequence.
@@ -103,6 +105,6 @@ pub trait ECIInput {
      * @throws  IllegalArgumentException
      *          if the value at the {@code index} argument is not an ECI (@see #isECI)
      */
-    fn getECIValue(&self, index: usize) -> Result<u32, Exceptions>;
+    fn getECIValue(&self, index: usize) -> Result<i32, Exceptions>;
     fn haveNCharacters(&self, index: usize, n: usize) -> bool;
 }

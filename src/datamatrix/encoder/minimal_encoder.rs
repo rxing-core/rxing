@@ -1241,7 +1241,7 @@ impl Edge {
                 if self.input.isECI(self.fromPosition)? {
                     return Ok(Self::getBytes2(
                         241,
-                        self.input.getECIValue(self.fromPosition as usize)? + 1,
+                        self.input.getECIValue(self.fromPosition as usize)? as u32+ 1,
                     ));
                 } else if isExtendedASCII(
                     self.input.charAt(self.fromPosition as usize)?,
@@ -1459,7 +1459,7 @@ impl Input {
     fn isFNC1(&self, index: usize) -> Result<bool, Exceptions> {
         self.internal.isFNC1(index)
     }
-    fn getECIValue(&self, index: usize) -> Result<u32, Exceptions> {
+    fn getECIValue(&self, index: usize) -> Result<i32, Exceptions> {
         self.internal.getECIValue(index)
     }
 }

@@ -14,41 +14,40 @@
  * limitations under the License.
  */
 
-package com.google.zxing.pdf417.encoder;
-
 /**
  * Data object to specify the minimum and maximum number of rows and columns for a PDF417 barcode.
  *
  * @author qwandor@google.com (Andrew Walbran)
  */
-public final class Dimensions {
+pub struct Dimensions {
+    minCols: usize,
+    maxCols: usize,
+    minRows: usize,
+    maxRows: usize,
+}
+impl Dimensions {
+    pub fn new(minCols: usize, maxCols: usize, minRows: usize, maxRows: usize) -> Self {
+        Self {
+            minCols,
+            maxCols,
+            minRows,
+            maxRows,
+        }
+    }
 
-  private final int minCols;
-  private final int maxCols;
-  private final int minRows;
-  private final int maxRows;
+    pub fn getMinCols(&self) -> usize {
+        self.minCols
+    }
 
-  public Dimensions(int minCols, int maxCols, int minRows, int maxRows) {
-    this.minCols = minCols;
-    this.maxCols = maxCols;
-    this.minRows = minRows;
-    this.maxRows = maxRows;
-  }
+    pub fn getMaxCols(&self) -> usize {
+        self.maxCols
+    }
 
-  public int getMinCols() {
-    return minCols;
-  }
+    pub fn getMinRows(&self) -> usize {
+        self.minRows
+    }
 
-  public int getMaxCols() {
-    return maxCols;
-  }
-
-  public int getMinRows() {
-    return minRows;
-  }
-
-  public int getMaxRows() {
-    return maxRows;
-  }
-
+    pub fn getMaxRows(&self) -> usize {
+        self.maxRows
+    }
 }

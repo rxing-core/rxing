@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.google.zxing.pdf417.encoder;
 
 /**
  * Represents possible PDF417 barcode compaction types.
  */
-public enum Compaction {
+pub enum Compaction {
 
-  AUTO,
-  TEXT,
-  BYTE,
-  NUMERIC
+  AUTO=0,
+  TEXT=1,
+  BYTE=2,
+  NUMERIC=3
 
 }
