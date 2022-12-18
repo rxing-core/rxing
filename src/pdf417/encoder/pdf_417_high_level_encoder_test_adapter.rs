@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-package com.google.zxing.pdf417.encoder;
+use encoding::EncodingRef;
 
-import com.google.zxing.WriterException;
+use crate::Exceptions;
 
-import java.nio.charset.Charset;
+use super::{pdf_417_high_level_encoder, Compaction};
 
 /**
  * Test adapter for PDF417HighLevelEncoder to be called solely from unit tests.
  */
 
-public final class PDF417HighLevelEncoderTestAdapter {
-
-  private PDF417HighLevelEncoderTestAdapter() {
-  }
-
-  public static String encodeHighLevel(String msg, 
-                                       Compaction compaction,
-                                       Charset encoding,
-                                       boolean autoECI) throws WriterException {
-    return PDF417HighLevelEncoder.encodeHighLevel(msg, compaction, encoding, autoECI);
-  }
+pub fn encodeHighLevel(
+    msg: &str,
+    compaction: Compaction,
+    encoding: Option<EncodingRef>,
+    autoECI: bool,
+) -> Result<String, Exceptions> {
+    pdf_417_high_level_encoder::encodeHighLevel(msg, compaction, encoding, autoECI)
 }

@@ -63,6 +63,10 @@ impl BarcodeMatrix {
         &self.matrix[self.currentRow as usize]
     }
 
+    pub fn getCurrentRowMut(&mut self) -> &mut BarcodeRow {
+        &mut self.matrix[self.currentRow as usize]
+    }
+
     pub fn getMatrix(&self) -> Vec<Vec<u8>> {
         self.getScaledMatrix(1, 1)
     }
