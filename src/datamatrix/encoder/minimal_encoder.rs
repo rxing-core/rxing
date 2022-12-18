@@ -1241,7 +1241,7 @@ impl Edge {
                 if self.input.isECI(self.fromPosition)? {
                     return Ok(Self::getBytes2(
                         241,
-                        self.input.getECIValue(self.fromPosition as usize)? as u32+ 1,
+                        self.input.getECIValue(self.fromPosition as usize)? as u32 + 1,
                     ));
                 } else if isExtendedASCII(
                     self.input.charAt(self.fromPosition as usize)?,

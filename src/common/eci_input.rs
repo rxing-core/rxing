@@ -25,7 +25,7 @@ use crate::Exceptions;
  *
  * @author Alex Geller
  */
-pub trait ECIInput:Display {
+pub trait ECIInput: Display {
     /**
      * Returns the length of this input.  The length is the number
      * of {@code byte}s in or ECIs in the sequence.

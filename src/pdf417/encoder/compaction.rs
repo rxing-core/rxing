@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-
 /**
  * Represents possible PDF417 barcode compaction types.
  */
 pub enum Compaction {
-
-  AUTO=0,
-  TEXT=1,
-  BYTE=2,
-  NUMERIC=3
-
+    AUTO = 0,
+    TEXT = 1,
+    BYTE = 2,
+    NUMERIC = 3,
 }
