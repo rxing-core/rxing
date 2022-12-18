@@ -640,7 +640,7 @@ fn encodeNumeric<T: ECIInput + ?Sized>(input: &Box<T>, startpos: u32, count: u32
             tmp.push(char::from_u32((bigint % num900) as u32).unwrap());
             bigint = bigint / num900;
 
-            if !(!bigint == num0) {
+            if bigint == num0 {
                 break;
             }
         } //while (!bigint.equals(num0));
@@ -858,5 +858,77 @@ impl NoECIInput {
 impl Display for NoECIInput {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+/**
+ * Tests {@link PDF417HighLevelEncoder}.
+ */
+#[cfg(test)]
+mod PDF417EncoderTestCase {
+    use crate::pdf417::encoder::{pdf_417_high_level_encoder::encodeHighLevel, Compaction};
+
+    #[test]
+    fn testEncodeAuto() {
+        let encoded = encodeHighLevel("ABCD", Compaction::AUTO, Some(encoding::all::UTF_8), false)
+            .expect("encode");
+        assert_eq!("\u{039f}\u{001A}\u{0385}ABCD", encoded);
+    }
+
+    #[test]
+    fn testEncodeAutoWithSpecialChars() {
+        // Just check if this does not throw an exception
+        encodeHighLevel(
+            "1%§s ?aG$",
+            Compaction::AUTO,
+            Some(encoding::all::UTF_8),
+            false,
+        )
+        .expect("encode");
+    }
+
+    #[test]
+    fn testEncodeIso88591WithSpecialChars() {
+        // Just check if this does not throw an exception
+        encodeHighLevel(
+            "asdfg§asd",
+            Compaction::AUTO,
+            Some(encoding::all::ISO_8859_1),
+            false,
+        )
+        .expect("encode");
+    }
+
+    #[test]
+    fn testEncodeText() {
+        let encoded = encodeHighLevel("ABCD", Compaction::TEXT, Some(encoding::all::UTF_8), false)
+            .expect("encode");
+        assert_eq!("Ο\u{001A}\u{0001}?", encoded);
+    }
+
+    #[test]
+    fn testEncodeNumeric() {
+        let encoded = encodeHighLevel(
+            "1234",
+            Compaction::NUMERIC,
+            Some(encoding::all::UTF_8),
+            false,
+        )
+        .expect("encode");
+        assert_eq!("\u{039f}\u{001A}\u{0386}\u{C}\u{01b2}", encoded);
+        // converted \f to \u{0046}
+    }
+
+    #[test]
+    fn testEncodeByte() {
+        let encoded = encodeHighLevel("abcd", Compaction::BYTE, Some(encoding::all::UTF_8), false)
+            .expect("encode");
+        assert_eq!("\u{039f}\u{001A}\u{0385}abcd", encoded);
+    }
+
+    #[test]
+    #[should_panic]
+    fn testEncodeEmptyString() {
+        encodeHighLevel("", Compaction::AUTO, None, false).expect("encode");
     }
 }
