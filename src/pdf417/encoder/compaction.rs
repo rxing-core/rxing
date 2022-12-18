@@ -17,7 +17,7 @@
 /**
  * Represents possible PDF417 barcode compaction types.
  */
-#[derive(Clone, Copy,PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Compaction {
     AUTO = 0,
     TEXT = 1,
