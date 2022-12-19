@@ -340,7 +340,12 @@ fn test_aztec() {
     test_encode_decode_random(azd12, 3072, 1023);
 }
 
-fn corrupt(received: &mut Vec<i32>, howMany: i32, random: &mut rand::rngs::ThreadRng, max: i32) {
+pub(crate) fn corrupt(
+    received: &mut Vec<i32>,
+    howMany: i32,
+    random: &mut rand::rngs::ThreadRng,
+    max: i32,
+) {
     let mut corrupted = vec![false; received.len()];
     //BitSet corrupted = new BitSet(received.length);
     let mut j = 0isize;

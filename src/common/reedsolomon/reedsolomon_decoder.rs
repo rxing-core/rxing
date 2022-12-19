@@ -60,7 +60,7 @@ impl ReedSolomonDecoder {
      * @param twoS number of error-correction codewords available
      * @throws ReedSolomonException if decoding fails for any reason
      */
-    pub fn decode(&self, received: &mut Vec<i32>, twoS: i32) -> Result<(), Exceptions> {
+    pub fn decode(&self, received: &mut Vec<i32>, twoS: i32) -> Result<usize, Exceptions> {
         let poly = GenericGFPoly::new(self.field, received).unwrap();
         let mut syndromeCoefficients = vec![0; twoS as usize];
         let mut noError = true;
@@ -74,7 +74,7 @@ impl ReedSolomonDecoder {
             }
         }
         if noError {
-            return Ok(());
+            return Ok(0);
         }
         let syndrome = match GenericGFPoly::new(self.field, &syndromeCoefficients) {
             Ok(res) => res,
@@ -97,7 +97,7 @@ impl ReedSolomonDecoder {
             //for (int i = 0; i < errorLocations.length; i++) {
             let log_value = self.field.log(errorLocations[i] as i32)?;
             if log_value > received.len() as i32 - 1 {
-                return Ok(());
+                return Ok(0);
             }
             let position: isize = received.len() as isize - 1 - log_value as isize;
             if position < 0 {
@@ -108,7 +108,7 @@ impl ReedSolomonDecoder {
             received[position as usize] =
                 GenericGF::addOrSubtract(received[position as usize], errorMagnitudes[i]);
         }
-        Ok(())
+        Ok(errorLocations.len())
     }
 
     fn runEuclideanAlgorithm(
