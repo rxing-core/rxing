@@ -16,77 +16,74 @@
 
 use std::fmt::Display;
 
- const BARCODE_ROW_UNKNOWN : i32 = -1;
+const BARCODE_ROW_UNKNOWN: i32 = -1;
 
 /**
  * @author Guenther Grau
  */
 #[derive(Clone, Copy)]
 pub struct Codeword {
-
-   startX:u32,
-   endX:u32,
-   bucket:u32,
-   value:u32,
-  rowNumber : i32,
+    startX: u32,
+    endX: u32,
+    bucket: u32,
+    value: u32,
+    rowNumber: i32,
 }
 
 impl Codeword {
-
-  pub fn new( startX:u32,  endX:u32,  bucket:u32,  value:u32)->Self {
-    Self {
-        startX,
-        endX,
-        bucket,
-        value,
-        rowNumber: BARCODE_ROW_UNKNOWN,
+    pub fn new(startX: u32, endX: u32, bucket: u32, value: u32) -> Self {
+        Self {
+            startX,
+            endX,
+            bucket,
+            value,
+            rowNumber: BARCODE_ROW_UNKNOWN,
+        }
     }
-  }
 
-  pub fn hasValidRowNumber(&self) -> bool{
-    self.isValidRowNumber(self.rowNumber)
-  }
+    pub fn hasValidRowNumber(&self) -> bool {
+        self.isValidRowNumber(self.rowNumber)
+    }
 
-  pub fn isValidRowNumber(&self,  rowNumber:i32) -> bool{
-     rowNumber != BARCODE_ROW_UNKNOWN && self.bucket == (rowNumber as u32 % 3) * 3
-  }
+    pub fn isValidRowNumber(&self, rowNumber: i32) -> bool {
+        rowNumber != BARCODE_ROW_UNKNOWN && self.bucket == (rowNumber as u32 % 3) * 3
+    }
 
-  pub fn setRowNumberAsRowIndicatorColumn(&mut self) {
-    self.rowNumber =( (self.value / 30) * 3 + self.bucket / 3) as i32;
-  }
+    pub fn setRowNumberAsRowIndicatorColumn(&mut self) {
+        self.rowNumber = ((self.value / 30) * 3 + self.bucket / 3) as i32;
+    }
 
-  pub fn getWidth(&self)  -> u32{
-    self.endX - self.startX
-  }
+    pub fn getWidth(&self) -> u32 {
+        self.endX - self.startX
+    }
 
-  pub fn getStartX(&self) -> u32 {
-    self. startX
-  }
+    pub fn getStartX(&self) -> u32 {
+        self.startX
+    }
 
-  pub fn getEndX(&self)  -> u32{
-    self. endX
-  }
+    pub fn getEndX(&self) -> u32 {
+        self.endX
+    }
 
-  pub fn getBucket(&self) -> u32 {
-    self. bucket
-  }
+    pub fn getBucket(&self) -> u32 {
+        self.bucket
+    }
 
-  pub fn getValue(&self) -> u32 {
-    self.value
-  }
+    pub fn getValue(&self) -> u32 {
+        self.value
+    }
 
-  pub fn getRowNumber(&self)  -> i32{
-    self. rowNumber
-  }
+    pub fn getRowNumber(&self) -> i32 {
+        self.rowNumber
+    }
 
-  pub fn setRowNumber(&mut self, rowNumber:i32) {
-    self.rowNumber = rowNumber;
-  }
-
+    pub fn setRowNumber(&mut self, rowNumber: i32) {
+        self.rowNumber = rowNumber;
+    }
 }
 
 impl Display for Codeword {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}|{}", self.rowNumber, self.value)
+        write!(f, "{}|{}", self.rowNumber, self.value)
     }
 }

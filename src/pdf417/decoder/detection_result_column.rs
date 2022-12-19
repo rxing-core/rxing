@@ -18,75 +18,71 @@ use std::fmt::Display;
 
 use super::{BoundingBox, Codeword};
 
- const MAX_NEARBY_DISTANCE :u32 = 5;
+const MAX_NEARBY_DISTANCE: u32 = 5;
 
 /**
  * @author Guenther Grau
  */
 pub struct DetectionRXingResultColumn<'a> {
-   boundingBox: BoundingBox<'a>,
-    codewords:Vec<Option<Codeword>>,
+    boundingBox: BoundingBox<'a>,
+    codewords: Vec<Option<Codeword>>,
 }
 
 impl<'a> DetectionRXingResultColumn<'_> {
-
-  pub fn new( boundingBox:&'a BoundingBox) -> DetectionRXingResultColumn<'a> {
-    DetectionRXingResultColumn {
-        boundingBox: BoundingBox::from_other(boundingBox),
-        codewords: vec![None;(boundingBox.getMaxY() - boundingBox.getMinY() + 1) as usize],
-    }
-    // this.boundingBox = new BoundingBox(boundingBox);
-    // codewords = new Codeword[boundingBox.getMaxY() - boundingBox.getMinY() + 1];
-  }
-
-  pub fn getCodewordNearby(&self, imageRow:u32) -> &Option<Codeword> {
-    let mut codeword = self.getCodeword(imageRow);
-    if codeword.is_some() {
-      return codeword;
-    }
-    for i in 1..MAX_NEARBY_DISTANCE as usize{
-    // for (int i = 1; i < MAX_NEARBY_DISTANCE; i++) {
-      let mut nearImageRow = self.imageRowToCodewordIndex(imageRow) - i;
-      if nearImageRow >= 0 {
-        codeword = &self.codewords[nearImageRow];
-        if codeword.is_some() {
-          return codeword;
+    pub fn new(boundingBox: &'a BoundingBox) -> DetectionRXingResultColumn<'a> {
+        DetectionRXingResultColumn {
+            boundingBox: BoundingBox::from_other(boundingBox),
+            codewords: vec![None; (boundingBox.getMaxY() - boundingBox.getMinY() + 1) as usize],
         }
-      }
-      nearImageRow = self.imageRowToCodewordIndex(imageRow) + i ;
-      if nearImageRow < self.codewords.len() {
-        codeword = &self.codewords[nearImageRow];
-        if codeword.is_some() {
-          return codeword;
-        }
-      }
+        // this.boundingBox = new BoundingBox(boundingBox);
+        // codewords = new Codeword[boundingBox.getMaxY() - boundingBox.getMinY() + 1];
     }
-    &None
-  }
 
-  pub fn imageRowToCodewordIndex(&self,  imageRow:u32) -> usize{
-     (imageRow - self.boundingBox.getMinY()) as usize
-  }
+    pub fn getCodewordNearby(&self, imageRow: u32) -> &Option<Codeword> {
+        let mut codeword = self.getCodeword(imageRow);
+        if codeword.is_some() {
+            return codeword;
+        }
+        for i in 1..MAX_NEARBY_DISTANCE as usize {
+            // for (int i = 1; i < MAX_NEARBY_DISTANCE; i++) {
+            let mut nearImageRow = self.imageRowToCodewordIndex(imageRow) - i;
+            if nearImageRow >= 0 {
+                codeword = &self.codewords[nearImageRow];
+                if codeword.is_some() {
+                    return codeword;
+                }
+            }
+            nearImageRow = self.imageRowToCodewordIndex(imageRow) + i;
+            if nearImageRow < self.codewords.len() {
+                codeword = &self.codewords[nearImageRow];
+                if codeword.is_some() {
+                    return codeword;
+                }
+            }
+        }
+        &None
+    }
 
-  pub fn setCodeword(&mut self,  imageRow:u32,  codeword:Codeword) {
-    let pos = self.imageRowToCodewordIndex(imageRow);
-    self.codewords[pos] = Some(codeword);
-  }
+    pub fn imageRowToCodewordIndex(&self, imageRow: u32) -> usize {
+        (imageRow - self.boundingBox.getMinY()) as usize
+    }
 
-  pub fn getCodeword(&self,  imageRow:u32) -> &Option<Codeword>{
-    &self. codewords[self.imageRowToCodewordIndex(imageRow)]
-  }
+    pub fn setCodeword(&mut self, imageRow: u32, codeword: Codeword) {
+        let pos = self.imageRowToCodewordIndex(imageRow);
+        self.codewords[pos] = Some(codeword);
+    }
 
-  pub fn getBoundingBox(&self) -> &BoundingBox {
-    &self. boundingBox
-  }
+    pub fn getCodeword(&self, imageRow: u32) -> &Option<Codeword> {
+        &self.codewords[self.imageRowToCodewordIndex(imageRow)]
+    }
 
-  pub fn getCodewords(&self) -> &[Option<Codeword>] {
-    &self.codewords
-  }
+    pub fn getBoundingBox(&self) -> &BoundingBox {
+        &self.boundingBox
+    }
 
-
-
+    pub fn getCodewords(&self) -> &[Option<Codeword>] {
+        &self.codewords
+    }
 }
 
 impl Display for DetectionRXingResultColumn<'_> {

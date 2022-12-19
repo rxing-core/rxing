@@ -18,43 +18,45 @@
  * @author Guenther Grau
  */
 pub struct BarcodeMetadata {
-
-   columnCount: u32,
-   errorCorrectionLevel: u32,
-   rowCountUpperPart: u32,
-   rowCountLowerPart: u32,
-   rowCount: u32,
+    columnCount: u32,
+    errorCorrectionLevel: u32,
+    rowCountUpperPart: u32,
+    rowCountLowerPart: u32,
+    rowCount: u32,
 }
 impl BarcodeMetadata {
-
-  pub fn new( columnCount:u32,  rowCountUpperPart:u32,  rowCountLowerPart:u32,  errorCorrectionLevel:u32) -> Self{
-    Self {
-        columnCount,
-        errorCorrectionLevel,
-        rowCountUpperPart,
-        rowCountLowerPart,
-        rowCount: rowCountUpperPart + rowCountLowerPart,
+    pub fn new(
+        columnCount: u32,
+        rowCountUpperPart: u32,
+        rowCountLowerPart: u32,
+        errorCorrectionLevel: u32,
+    ) -> Self {
+        Self {
+            columnCount,
+            errorCorrectionLevel,
+            rowCountUpperPart,
+            rowCountLowerPart,
+            rowCount: rowCountUpperPart + rowCountLowerPart,
+        }
     }
-  }
 
-  pub fn getColumnCount(&self) -> u32{
-     self. columnCount
-  }
+    pub fn getColumnCount(&self) -> u32 {
+        self.columnCount
+    }
 
-  pub fn getErrorCorrectionLevel(&self)  -> u32{
-    self. errorCorrectionLevel
-  }
+    pub fn getErrorCorrectionLevel(&self) -> u32 {
+        self.errorCorrectionLevel
+    }
 
-  pub fn getRowCount(&self) -> u32 {
-    self. rowCount
-  }
+    pub fn getRowCount(&self) -> u32 {
+        self.rowCount
+    }
 
-  pub fn getRowCountUpperPart(&self)  -> u32{
-    self. rowCountUpperPart
-  }
+    pub fn getRowCountUpperPart(&self) -> u32 {
+        self.rowCountUpperPart
+    }
 
-  pub fn getRowCountLowerPart(&self) -> u32 {
-    self. rowCountLowerPart
-  }
-
+    pub fn getRowCountLowerPart(&self) -> u32 {
+        self.rowCountLowerPart
+    }
 }
