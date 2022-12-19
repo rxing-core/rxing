@@ -14,3 +14,5 @@ pub use bounding_box::*;
 
 mod detection_result_column;
 pub use detection_result_column::*;
+
+pub mod pdf_417_codeword_decoder;
