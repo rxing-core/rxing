@@ -27,6 +27,7 @@ const MAX_NEARBY_DISTANCE: u32 = 5;
 pub struct DetectionRXingResultColumn<'a> {
     boundingBox: BoundingBox<'a>,
     codewords: Vec<Option<Codeword>>,
+    pub(super) isLeft: Option<bool>,
 }
 
 impl<'a> DetectionRXingResultColumn<'_> {
@@ -34,9 +35,21 @@ impl<'a> DetectionRXingResultColumn<'_> {
         DetectionRXingResultColumn {
             boundingBox: BoundingBox::from_other(boundingBox),
             codewords: vec![None; (boundingBox.getMaxY() - boundingBox.getMinY() + 1) as usize],
+            isLeft: None,
         }
         // this.boundingBox = new BoundingBox(boundingBox);
         // codewords = new Codeword[boundingBox.getMaxY() - boundingBox.getMinY() + 1];
+    }
+
+    pub fn new_with_is_left(
+        boundingBox: &'a BoundingBox,
+        isLeft: bool,
+    ) -> DetectionRXingResultColumn<'a> {
+        DetectionRXingResultColumn {
+            boundingBox: BoundingBox::from_other(boundingBox),
+            codewords: vec![None; (boundingBox.getMaxY() - boundingBox.getMinY() + 1) as usize],
+            isLeft: Some(isLeft),
+        }
     }
 
     pub fn getCodewordNearby(&self, imageRow: u32) -> &Option<Codeword> {
@@ -87,13 +100,16 @@ impl<'a> DetectionRXingResultColumn<'_> {
     pub(super) fn getCodewordsMut(&mut self) -> &mut [Option<Codeword>] {
         &mut self.codewords
     }
-    pub fn as_row_indicator(&self) -> DetectionRXingResultRowIndicatorColumn {
-        DetectionRXingResultRowIndicatorColumn::new(&self.boundingBox, false)
-    }
+    // pub fn as_row_indicator(&self) -> DetectionRXingResultRowIndicatorColumn {
+    //     DetectionRXingResultRowIndicatorColumn::new(&self.boundingBox, false)
+    // }
 }
 
 impl Display for DetectionRXingResultColumn<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.isLeft.is_some() {
+            write!(f, "IsLeft: {} \n", self.isLeft.as_ref().unwrap());
+        }
         todo!()
     }
 

@@ -18,7 +18,10 @@ use std::fmt::Display;
 
 use crate::pdf417::pdf_417_common;
 
-use super::{BarcodeMetadata, BoundingBox, Codeword, DetectionRXingResultColumn};
+use super::{
+    BarcodeMetadata, BoundingBox, Codeword, DetectionRXingResultColumn,
+    DetectionRXingResultRowIndicatorColumn,
+};
 
 const ADJUST_ROW_NUMBER_SKIP: u32 = 2;
 
@@ -50,10 +53,9 @@ impl<'a> DetectionRXingResult<'_> {
     }
 
     pub fn getDetectionRXingResultColumns(&mut self) -> &Vec<Option<DetectionRXingResultColumn>> {
-        self.adjustIndicatorColumnRowNumbers(&self.detectionRXingResultColumns[0]);
-        self.adjustIndicatorColumnRowNumbers(
-            &self.detectionRXingResultColumns[self.barcodeColumnCount + 1],
-        );
+        self.adjustIndicatorColumnRowNumbers(0);
+        let pos = self.barcodeColumnCount + 1;
+        self.adjustIndicatorColumnRowNumbers(pos);
         let mut unadjustedCodewordCount = pdf_417_common::MAX_CODEWORDS_IN_BARCODE;
         let mut previousUnadjustedCount;
         loop {
@@ -67,15 +69,18 @@ impl<'a> DetectionRXingResult<'_> {
     }
 
     fn adjustIndicatorColumnRowNumbers(
-        &self,
-        detectionRXingResultColumn: &Option<DetectionRXingResultColumn>,
+        &mut self,
+        pos: usize,
+        // detectionRXingResultColumn: &mut Option<DetectionRXingResultColumn>,
     ) {
-        if let Some(col) = detectionRXingResultColumn {
+        if self.detectionRXingResultColumns[pos].is_some() {
             // if (detectionRXingResultColumn != null) {
             //   ((DetectionRXingResultRowIndicatorColumn) detectionRXingResultColumn)
             //       .adjustCompleteIndicatorColumnRowNumbers(barcodeMetadata);
             // }
-            col.as_row_indicator()
+            self.detectionRXingResultColumns[pos]
+                .as_mut()
+                .unwrap()
                 .adjustCompleteIndicatorColumnRowNumbers(&self.barcodeMetadata);
         }
     }
