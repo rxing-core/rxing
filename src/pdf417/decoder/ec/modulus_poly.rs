@@ -139,9 +139,7 @@ impl ModulusPoly {
         let mut smallerCoefficients = &self.coefficients;
         let mut largerCoefficients = &other.coefficients;
         if smallerCoefficients.len() > largerCoefficients.len() {
-            let temp = smallerCoefficients;
-            smallerCoefficients = largerCoefficients;
-            largerCoefficients = temp;
+            std::mem::swap(&mut smallerCoefficients, &mut largerCoefficients);
         }
         let mut sumDiff = vec![0032; largerCoefficients.len()];
         let lengthDiff = largerCoefficients.len() - smallerCoefficients.len();

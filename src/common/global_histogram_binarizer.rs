@@ -214,9 +214,8 @@ impl GlobalHistogramBinarizer {
 
         // Make sure firstPeak corresponds to the black peak.
         if firstPeak > secondPeak {
-            let temp = firstPeak;
-            firstPeak = secondPeak;
-            secondPeak = temp;
+
+            std::mem::swap(&mut firstPeak, &mut secondPeak);
         }
 
         // If there is too little contrast in the image to pick a meaningful black point, throw rather

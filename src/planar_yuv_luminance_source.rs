@@ -230,9 +230,7 @@ impl PlanarYUVLuminanceSource {
             let mut x2 = rowStart + width - 1;
             for x1 in rowStart..middle {
                 //for (int x1 = rowStart, x2 = rowStart + width - 1; x1 < middle; x1++, x2--) {
-                let temp = self.yuv_data[x1];
-                self.yuv_data[x1] = self.yuv_data[x2];
-                self.yuv_data[x2] = temp;
+                self.yuv_data.swap(x1, x2);
                 x2 -= 1;
             }
             rowStart += self.data_width;

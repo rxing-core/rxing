@@ -50,9 +50,7 @@ pub fn orderBestPatterns<T: ResultPoint + Copy + Clone>(patterns: &mut [T; 3]) {
     // we want for A, B, C. If it's negative, then we've got it flipped around and
     // should swap A and C.
     if crossProductZ(pointA, pointB, pointC) < 0.0f32 {
-        let temp = pointA;
-        pointA = pointC;
-        pointC = temp;
+        std::mem::swap(&mut pointA, &mut pointC);
     }
 
     let pa = pointA;

@@ -767,9 +767,7 @@ impl FinderPatternFinder {
                     if a < b {
                         if b > c {
                             if a < c {
-                                let temp = b;
-                                b = c;
-                                c = temp;
+                                std::mem::swap(&mut b, &mut c)
                             } else {
                                 let temp = a;
                                 a = c;
@@ -780,9 +778,7 @@ impl FinderPatternFinder {
                     } else {
                         if b < c {
                             if a < c {
-                                let temp = a;
-                                a = b;
-                                b = temp;
+                                std::mem::swap(&mut a, &mut b)
                             } else {
                                 let temp = a;
                                 a = b;
@@ -790,9 +786,7 @@ impl FinderPatternFinder {
                                 c = temp;
                             }
                         } else {
-                            let temp = a;
-                            a = c;
-                            c = temp;
+                            std::mem::swap(&mut a, &mut c);
                         }
                     }
 

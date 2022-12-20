@@ -121,9 +121,7 @@ impl ReedSolomonDecoder {
         let mut a = a.clone();
         let mut b = b.clone();
         if a.getDegree() < b.getDegree() {
-            let temp = a;
-            a = b;
-            b = temp;
+            std::mem::swap(&mut a, &mut b);
         }
 
         let mut rLast = a;

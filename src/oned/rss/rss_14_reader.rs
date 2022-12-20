@@ -307,9 +307,8 @@ impl RSS14Reader {
             let mut j = counters.len() - 1;
             while i < j {
                 // for (int i = 0, j = counters.length - 1; i < j; i++, j--) {
-                let temp = counters[i];
-                counters[i] = counters[j];
-                counters[j] = temp;
+                
+                counters.swap(i,j);
 
                 i += 1;
                 j -= 1;
