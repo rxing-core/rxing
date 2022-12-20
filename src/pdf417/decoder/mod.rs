@@ -16,3 +16,11 @@ mod detection_result_column;
 pub use detection_result_column::*;
 
 pub mod pdf_417_codeword_decoder;
+
+mod detection_result_row_indicator_column;
+pub use detection_result_row_indicator_column::*;
+
+mod detection_result;
+pub use detection_result::*;
+
+// pub mod pdf_417_scanning_decoder;

@@ -124,7 +124,7 @@ fn runEuclideanAlgorithm(
     let mut a = a;
     let mut b = b;
     if a.getDegree() < b.getDegree() {
-        std::mem::swap(&mut a,&mut b);
+        std::mem::swap(&mut a, &mut b);
     }
 
     let mut rLast = a;

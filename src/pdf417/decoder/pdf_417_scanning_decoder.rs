@@ -14,49 +14,32 @@
  * limitations under the License.
  */
 
-package com.google.zxing.pdf417.decoder;
+use crate::Exceptions;
 
-import com.google.zxing.ChecksumException;
-import com.google.zxing.FormatException;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.RXingResultPoint;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderRXingResult;
-import com.google.zxing.common.detector.MathUtils;
-import com.google.zxing.pdf417.PDF417Common;
-import com.google.zxing.pdf417.decoder.ec.ErrorCorrection;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Formatter;
-import java.util.List;
 
 /**
  * @author Guenther Grau
  */
-public final class PDF417ScanningDecoder {
 
-  private static final int CODEWORD_SKEW_SIZE = 2;
+  const  CODEWORD_SKEW_SIZE :u32= 2;
 
-  private static final int MAX_ERRORS = 3;
-  private static final int MAX_EC_CODEWORDS = 512;
-  private static final ErrorCorrection errorCorrection = new ErrorCorrection();
+  const  MAX_ERRORS :u32= 3;
+  const  MAX_EC_CODEWORDS:u32 = 512;
+  // const  errorCorrection:ErrorCorrection =  ErrorCorrection::new();
 
-  private PDF417ScanningDecoder() {
-  }
 
   // TODO don't pass in minCodewordWidth and maxCodewordWidth, pass in barcode columns for start and stop pattern
   // columns. That way width can be deducted from the pattern column.
   // This approach also allows to detect more details about the barcode, e.g. if a bar type (white or black) is wider
   // than it should be. This can happen if the scanner used a bad blackpoint.
-  public static DecoderRXingResult decode(BitMatrix image,
-                                     RXingResultPoint imageTopLeft,
-                                     RXingResultPoint imageBottomLeft,
-                                     RXingResultPoint imageTopRight,
-                                     RXingResultPoint imageBottomRight,
-                                     int minCodewordWidth,
-                                     int maxCodewordWidth)
-      throws NotFoundException, FormatException, ChecksumException {
+  pub fn  decode( image:&BitMatrix,
+                                      imageTopLeft:RXingResultPoint,
+                                      imageBottomLeft:RXingResultPoint,
+                                      imageTopRight:RXingResultPoint,
+                                      imageBottomRight:RXingResultPoint,
+                                      minCodewordWidth:u32,
+                                      maxCodewordWidth:u32)
+      -> Result<DecoderRXingResult,Exceptions> {
     BoundingBox boundingBox = new BoundingBox(image, imageTopLeft, imageBottomLeft, imageTopRight, imageBottomRight);
     DetectionRXingResultRowIndicatorColumn leftRowIndicatorColumn = null;
     DetectionRXingResultRowIndicatorColumn rightRowIndicatorColumn = null;
@@ -125,9 +108,9 @@ public final class PDF417ScanningDecoder {
     return createDecoderRXingResult(detectionRXingResult);
   }
 
-  private static DetectionRXingResult merge(DetectionRXingResultRowIndicatorColumn leftRowIndicatorColumn,
-                                       DetectionRXingResultRowIndicatorColumn rightRowIndicatorColumn)
-      throws NotFoundException {
+  fn merge( leftRowIndicatorColumn:&DetectionRXingResultRowIndicatorColumn,
+                                        rightRowIndicatorColumn:&DetectionRXingResultRowIndicatorColumn)
+      -> Result<DetectionRXingResult,Exceptions> {
     if (leftRowIndicatorColumn == null && rightRowIndicatorColumn == null) {
       return null;
     }
@@ -140,8 +123,8 @@ public final class PDF417ScanningDecoder {
     return new DetectionRXingResult(barcodeMetadata, boundingBox);
   }
 
-  private static BoundingBox adjustBoundingBox(DetectionRXingResultRowIndicatorColumn rowIndicatorColumn)
-      throws NotFoundException {
+  fn adjustBoundingBox( rowIndicatorColumn:&DetectionRXingResultRowIndicatorColumn)
+      -> Result<BoundingBox,Exceptions> {
     if (rowIndicatorColumn == null) {
       return null;
     }
@@ -175,7 +158,7 @@ public final class PDF417ScanningDecoder {
         rowIndicatorColumn.isLeft());
   }
 
-  private static int getMax(int[] values) {
+  fn getMax( values:&[u32]) -> u32{
     int maxValue = -1;
     for (int value : values) {
       maxValue = Math.max(maxValue, value);
@@ -183,8 +166,8 @@ public final class PDF417ScanningDecoder {
     return maxValue;
   }
 
-  private static BarcodeMetadata getBarcodeMetadata(DetectionRXingResultRowIndicatorColumn leftRowIndicatorColumn,
-                                                    DetectionRXingResultRowIndicatorColumn rightRowIndicatorColumn) {
+  fn  getBarcodeMetadata( leftRowIndicatorColumn:&DetectionRXingResultRowIndicatorColumn,
+                                                     rightRowIndicatorColumn:&DetectionRXingResultRowIndicatorColumn) -> BarcodeMetadata{
     BarcodeMetadata leftBarcodeMetadata;
     if (leftRowIndicatorColumn == null ||
         (leftBarcodeMetadata = leftRowIndicatorColumn.getBarcodeMetadata()) == null) {
@@ -204,12 +187,12 @@ public final class PDF417ScanningDecoder {
     return leftBarcodeMetadata;
   }
 
-  private static DetectionRXingResultRowIndicatorColumn getRowIndicatorColumn(BitMatrix image,
-                                                                         BoundingBox boundingBox,
-                                                                         RXingResultPoint startPoint,
-                                                                         boolean leftToRight,
-                                                                         int minCodewordWidth,
-                                                                         int maxCodewordWidth) {
+  fn  getRowIndicatorColumn( image:&BitMatrix,
+                                                                          boundingBox:&BoundingBox,
+                                                                          startPoint:&RXingResultPoint,
+                                                                          leftToRight:u32,
+                                                                          minCodewordWidth:u32,
+                                                                          maxCodewordWidth:u32)-> DetectionRXingResultRowIndicatorColumn {
     DetectionRXingResultRowIndicatorColumn rowIndicatorColumn = new DetectionRXingResultRowIndicatorColumn(boundingBox,
         leftToRight);
     for (int i = 0; i < 2; i++) {
@@ -232,7 +215,7 @@ public final class PDF417ScanningDecoder {
     return rowIndicatorColumn;
   }
 
-  private static void adjustCodewordCount(DetectionRXingResult detectionRXingResult, BarcodeValue[][] barcodeMatrix)
+  fn adjustCodewordCount( detectionRXingResult:&DetectionRXingResult,  barcodeMatrix:&Vec<Vec<BarcodeValue>>)
       throws NotFoundException {
     BarcodeValue barcodeMatrix01 = barcodeMatrix[0][1];
     int[] numberOfCodewords = barcodeMatrix01.getValue();
@@ -252,8 +235,7 @@ public final class PDF417ScanningDecoder {
     }
   }
 
-  private static DecoderRXingResult createDecoderRXingResult(DetectionRXingResult detectionRXingResult) throws FormatException,
-      ChecksumException, NotFoundException {
+  fn createDecoderRXingResult( detectionRXingResult:&DetectionRXingResult) -> Result<DecoderRXingResult,Exceptions> {
     BarcodeValue[][] barcodeMatrix = createBarcodeMatrix(detectionRXingResult);
     adjustCodewordCount(detectionRXingResult, barcodeMatrix);
     Collection<Integer> erasures = new ArrayList<>();
@@ -295,12 +277,12 @@ public final class PDF417ScanningDecoder {
    * @param ambiguousIndexValues two dimensional array that contains the ambiguous values. The first dimension must
    * be the same length as the ambiguousIndexes array
    */
-  private static DecoderRXingResult createDecoderRXingResultFromAmbiguousValues(int ecLevel,
-                                                                      int[] codewords,
-                                                                      int[] erasureArray,
-                                                                      int[] ambiguousIndexes,
-                                                                      int[][] ambiguousIndexValues)
-      throws FormatException, ChecksumException {
+  fn createDecoderRXingResultFromAmbiguousValues( ecLevel:u21,
+                                                                       codewords:&[u32],
+                                                                       erasureArray&[u32],
+                                                                       ambiguousIndexes&[u32],
+                                                                       ambiguousIndexValues:&Vec<Vec<u32>>)
+      -> Result<DecoderRXingResult,Exceptions> {
     int[] ambiguousIndexCount = new int[ambiguousIndexes.length];
 
     int tries = 100;
@@ -331,7 +313,7 @@ public final class PDF417ScanningDecoder {
     throw ChecksumException.getChecksumInstance();
   }
 
-  private static BarcodeValue[][] createBarcodeMatrix(DetectionRXingResult detectionRXingResult) {
+  fn createBarcodeMatrix( detectionRXingResult:&DetectionRXingResult) -> Vec<Vec<BarcodeValue>>{
     BarcodeValue[][] barcodeMatrix =
         new BarcodeValue[detectionRXingResult.getBarcodeRowCount()][detectionRXingResult.getBarcodeColumnCount() + 2];
     for (int row = 0; row < barcodeMatrix.length; row++) {
@@ -361,14 +343,14 @@ public final class PDF417ScanningDecoder {
     return barcodeMatrix;
   }
 
-  private static boolean isValidBarcodeColumn(DetectionRXingResult detectionRXingResult, int barcodeColumn) {
+  fn isValidBarcodeColumn( detectionRXingResult:&DetectionRXingResult, barcodeColumn:u32) -> bool{
     return barcodeColumn >= 0 && barcodeColumn <= detectionRXingResult.getBarcodeColumnCount() + 1;
   }
 
-  private static int getStartColumn(DetectionRXingResult detectionRXingResult,
-                                    int barcodeColumn,
-                                    int imageRow,
-                                    boolean leftToRight) {
+  fn getStartColumn( detectionRXingResult:&DetectionRXingResult,
+                                    barcodeColumn:u32,
+                                    imageRow:u32,
+                                     leftToRight:bool) -> u32{
     int offset = leftToRight ? 1 : -1;
     Codeword codeword = null;
     if (isValidBarcodeColumn(detectionRXingResult, barcodeColumn - offset)) {
@@ -404,14 +386,14 @@ public final class PDF417ScanningDecoder {
     return leftToRight ? detectionRXingResult.getBoundingBox().getMinX() : detectionRXingResult.getBoundingBox().getMaxX();
   }
 
-  private static Codeword detectCodeword(BitMatrix image,
-                                         int minColumn,
-                                         int maxColumn,
-                                         boolean leftToRight,
-                                         int startColumn,
-                                         int imageRow,
-                                         int minCodewordWidth,
-                                         int maxCodewordWidth) {
+  fn detectCodeword( image:&BitMatrix,
+                                          minColumn:u32,
+                                          maxColumn:u32,
+                                          leftToRight:bool,
+                                          startColumn:u32,
+                                          imageRow:u32,
+                                          minCodewordWidth:u32,
+                                          maxCodewordWidth:u32) -> Codeword{
     startColumn = adjustCodewordStartColumn(image, minColumn, maxColumn, leftToRight, startColumn, imageRow);
     // we usually know fairly exact now how long a codeword is. We should provide minimum and maximum expected length
     // and try to adjust the read pixels, e.g. remove single pixel errors or try to cut off exceeding pixels.
@@ -462,12 +444,12 @@ public final class PDF417ScanningDecoder {
     return new Codeword(startColumn, endColumn, getCodewordBucketNumber(decodedValue), codeword);
   }
 
-  private static int[] getModuleBitCount(BitMatrix image,
-                                         int minColumn,
-                                         int maxColumn,
-                                         boolean leftToRight,
-                                         int startColumn,
-                                         int imageRow) {
+  fn getModuleBitCount( image:&BitMatrix,
+                                          minColumn:u32,
+                                          maxColumn:u32,
+                                          leftToRight:bool,
+                                          startColumn:u32,
+                                          imageRow:u32) -> Option<[u32;8]>{
     int imageColumn = startColumn;
     int[] moduleBitCount = new int[8];
     int moduleNumber = 0;
@@ -491,16 +473,16 @@ public final class PDF417ScanningDecoder {
     return null;
   }
 
-  private static int getNumberOfECCodeWords(int barcodeECLevel) {
+  fn getNumberOfECCodeWords(int barcodeECLevel) -> u32{
     return 2 << barcodeECLevel;
   }
 
-  private static int adjustCodewordStartColumn(BitMatrix image,
-                                               int minColumn,
-                                               int maxColumn,
-                                               boolean leftToRight,
-                                               int codewordStartColumn,
-                                               int imageRow) {
+  fn adjustCodewordStartColumn( image:&BitMatrix,
+                                                minColumn:u32,
+                                               maxColumn:u32,
+                                               leftToRight:bool,
+                                               codewordStartColumn:u32,
+                                               imageRow:u32) -> u32{
     int correctedStartColumn = codewordStartColumn;
     int increment = leftToRight ? -1 : 1;
     // there should be no black pixels before the start column. If there are, then we need to start earlier.
@@ -518,13 +500,12 @@ public final class PDF417ScanningDecoder {
     return correctedStartColumn;
   }
 
-  private static boolean checkCodewordSkew(int codewordSize, int minCodewordWidth, int maxCodewordWidth) {
+  fn checkCodewordSkew( codewordSize:u32,  minCodewordWidth:u32,  maxCodewordWidth:u32) -> bool{
     return minCodewordWidth - CODEWORD_SKEW_SIZE <= codewordSize &&
         codewordSize <= maxCodewordWidth + CODEWORD_SKEW_SIZE;
   }
 
-  private static DecoderRXingResult decodeCodewords(int[] codewords, int ecLevel, int[] erasures) throws FormatException,
-      ChecksumException {
+  fn decodeCodewords( codewords:&[u32],  ecLevel:u32,  erasures:&[u32]) -> Result<DecoderRXingResult,Exceptions>{
     if (codewords.length == 0) {
       throw FormatException.getFormatInstance();
     }
@@ -549,7 +530,7 @@ public final class PDF417ScanningDecoder {
    * @param numECCodewords number of error correction codewords that are available in codewords
    * @throws ChecksumException if error correction fails
    */
-  private static int correctErrors(int[] codewords, int[] erasures, int numECCodewords) throws ChecksumException {
+  fn correctErrors( codewords:&[u32],  erasures:&[u32],  numECCodewords:u32) -> Result<u32,Exceptions> {
     if (erasures != null &&
         erasures.length > numECCodewords / 2 + MAX_ERRORS ||
         numECCodewords < 0 ||
@@ -563,7 +544,7 @@ public final class PDF417ScanningDecoder {
   /**
    * Verify that all is OK with the codeword array.
    */
-  private static void verifyCodewordCount(int[] codewords, int numECCodewords) throws FormatException {
+  fn verifyCodewordCount( codewords:&[u32],  numECCodewords:u32) -> Result<(),Exceptions> {
     if (codewords.length < 4) {
       // Codeword array size should be at least 4 allowing for
       // Count CW, At least one Data CW, Error Correction CW, Error Correction CW
@@ -586,7 +567,7 @@ public final class PDF417ScanningDecoder {
     }
   }
 
-  private static int[] getBitCountForCodeword(int codeword) {
+  fn getBitCountForCodeword( codeword:u32) -> [u32;8]{
     int[] result = new int[8];
     int previousValue = 0;
     int i = result.length - 1;
@@ -604,15 +585,15 @@ public final class PDF417ScanningDecoder {
     return result;
   }
 
-  private static int getCodewordBucketNumber(int codeword) {
+  fn getCodewordBucketNumber( codeword:u32) -> u32{
     return getCodewordBucketNumber(getBitCountForCodeword(codeword));
   }
 
-  private static int getCodewordBucketNumber(int[] moduleBitCount) {
+  fn getCodewordBucketNumber( moduleBitCount:&[u32]) -> u32{
     return (moduleBitCount[0] - moduleBitCount[2] + moduleBitCount[4] - moduleBitCount[6] + 9) % 9;
   }
 
-  public static String toString(BarcodeValue[][] barcodeMatrix) {
+  fn toString( barcodeMatrix:Vec<Vec<BarcodeValue>>) -> String{
     try (Formatter formatter = new Formatter()) {
       for (int row = 0; row < barcodeMatrix.length; row++) {
         formatter.format("Row %2d: ", row);
@@ -631,4 +612,3 @@ public final class PDF417ScanningDecoder {
     }
   }
 
-}

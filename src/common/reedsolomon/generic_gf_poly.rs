@@ -154,7 +154,7 @@ impl GenericGFPoly {
         let mut smallerCoefficients = self.coefficients.clone();
         let mut largerCoefficients = other.coefficients.clone();
         if smallerCoefficients.len() > largerCoefficients.len() {
-            std::mem::swap(&mut smallerCoefficients,&mut largerCoefficients)
+            std::mem::swap(&mut smallerCoefficients, &mut largerCoefficients)
         }
 
         let mut sumDiff = vec![0; largerCoefficients.len()];

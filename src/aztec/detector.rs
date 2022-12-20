@@ -85,7 +85,7 @@ impl Detector {
         let mut bulls_eye_corners = self.get_bulls_eye_corners(p_center)?;
 
         if is_mirror {
-            bulls_eye_corners.swap(0,2);
+            bulls_eye_corners.swap(0, 2);
         }
 
         // 3. Get the size of the matrix and other parameters from the bull's eye

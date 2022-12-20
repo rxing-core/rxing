@@ -16,13 +16,14 @@
 
 use std::fmt::Display;
 
-use super::{BoundingBox, Codeword};
+use super::{BoundingBox, Codeword, DetectionRXingResultRowIndicatorColumn};
 
 const MAX_NEARBY_DISTANCE: u32 = 5;
 
 /**
  * @author Guenther Grau
  */
+#[derive(Clone)]
 pub struct DetectionRXingResultColumn<'a> {
     boundingBox: BoundingBox<'a>,
     codewords: Vec<Option<Codeword>>,
@@ -82,6 +83,12 @@ impl<'a> DetectionRXingResultColumn<'_> {
 
     pub fn getCodewords(&self) -> &[Option<Codeword>] {
         &self.codewords
+    }
+    pub(super) fn getCodewordsMut(&mut self) -> &mut [Option<Codeword>] {
+        &mut self.codewords
+    }
+    pub fn as_row_indicator(&self) -> DetectionRXingResultRowIndicatorColumn {
+        DetectionRXingResultRowIndicatorColumn::new(&self.boundingBox, false)
     }
 }
 

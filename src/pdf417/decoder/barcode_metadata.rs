@@ -17,6 +17,7 @@
 /**
  * @author Guenther Grau
  */
+#[derive(Clone, Copy)]
 pub struct BarcodeMetadata {
     columnCount: u32,
     errorCorrectionLevel: u32,

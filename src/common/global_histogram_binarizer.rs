@@ -214,7 +214,6 @@ impl GlobalHistogramBinarizer {
 
         // Make sure firstPeak corresponds to the black peak.
         if firstPeak > secondPeak {
-
             std::mem::swap(&mut firstPeak, &mut secondPeak);
         }
 
