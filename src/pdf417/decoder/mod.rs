@@ -23,4 +23,5 @@ pub use detection_result_row_indicator_column::*;
 mod detection_result;
 pub use detection_result::*;
 
-// pub mod pdf_417_scanning_decoder;
+pub mod decoded_bit_stream_parser;
+pub mod pdf_417_scanning_decoder;

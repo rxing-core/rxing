@@ -14,26 +14,43 @@
  * limitations under the License.
  */
 
-use std::fmt::Display;
+use std::{fmt::Display, rc::Rc};
 
 use super::{BoundingBox, Codeword, DetectionRXingResultRowIndicatorColumn};
 
 const MAX_NEARBY_DISTANCE: u32 = 5;
 
+pub trait DetectionRXingResultColumnTrait {
+    fn new(boundingBox: Rc<BoundingBox>) -> DetectionRXingResultColumn
+    where
+        Self: Sized;
+    fn new_with_is_left(boundingBox: Rc<BoundingBox>, isLeft: bool) -> DetectionRXingResultColumn
+    where
+        Self: Sized;
+    fn getCodewordNearby(&self, imageRow: u32) -> &Option<Codeword>;
+    fn imageRowToCodewordIndex(&self, imageRow: u32) -> usize;
+    fn setCodeword(&mut self, imageRow: u32, codeword: Codeword);
+    fn getCodeword(&self, imageRow: u32) -> &Option<Codeword>;
+    fn getBoundingBox(&self) -> &BoundingBox;
+    fn getCodewords(&self) -> &[Option<Codeword>];
+    fn getCodewordsMut(&mut self) -> &mut [Option<Codeword>];
+    fn as_indicator_row(&mut self) -> &mut dyn DetectionRXingResultRowIndicatorColumn;
+}
+
 /**
  * @author Guenther Grau
  */
 #[derive(Clone)]
-pub struct DetectionRXingResultColumn<'a> {
-    boundingBox: BoundingBox<'a>,
+pub struct DetectionRXingResultColumn {
+    boundingBox: BoundingBox,
     codewords: Vec<Option<Codeword>>,
     pub(super) isLeft: Option<bool>,
 }
 
-impl<'a> DetectionRXingResultColumn<'_> {
-    pub fn new(boundingBox: &'a BoundingBox) -> DetectionRXingResultColumn<'a> {
+impl DetectionRXingResultColumnTrait for DetectionRXingResultColumn {
+    fn new(boundingBox: Rc<BoundingBox>) -> DetectionRXingResultColumn {
         DetectionRXingResultColumn {
-            boundingBox: BoundingBox::from_other(boundingBox),
+            boundingBox: BoundingBox::from_other(boundingBox.clone()),
             codewords: vec![None; (boundingBox.getMaxY() - boundingBox.getMinY() + 1) as usize],
             isLeft: None,
         }
@@ -41,18 +58,15 @@ impl<'a> DetectionRXingResultColumn<'_> {
         // codewords = new Codeword[boundingBox.getMaxY() - boundingBox.getMinY() + 1];
     }
 
-    pub fn new_with_is_left(
-        boundingBox: &'a BoundingBox,
-        isLeft: bool,
-    ) -> DetectionRXingResultColumn<'a> {
+    fn new_with_is_left(boundingBox: Rc<BoundingBox>, isLeft: bool) -> DetectionRXingResultColumn {
         DetectionRXingResultColumn {
-            boundingBox: BoundingBox::from_other(boundingBox),
+            boundingBox: BoundingBox::from_other(boundingBox.clone()),
             codewords: vec![None; (boundingBox.getMaxY() - boundingBox.getMinY() + 1) as usize],
             isLeft: Some(isLeft),
         }
     }
 
-    pub fn getCodewordNearby(&self, imageRow: u32) -> &Option<Codeword> {
+    fn getCodewordNearby(&self, imageRow: u32) -> &Option<Codeword> {
         let mut codeword = self.getCodeword(imageRow);
         if codeword.is_some() {
             return codeword;
@@ -77,35 +91,40 @@ impl<'a> DetectionRXingResultColumn<'_> {
         &None
     }
 
-    pub fn imageRowToCodewordIndex(&self, imageRow: u32) -> usize {
+    fn imageRowToCodewordIndex(&self, imageRow: u32) -> usize {
         (imageRow - self.boundingBox.getMinY()) as usize
     }
 
-    pub fn setCodeword(&mut self, imageRow: u32, codeword: Codeword) {
+    fn setCodeword(&mut self, imageRow: u32, codeword: Codeword) {
         let pos = self.imageRowToCodewordIndex(imageRow);
         self.codewords[pos] = Some(codeword);
     }
 
-    pub fn getCodeword(&self, imageRow: u32) -> &Option<Codeword> {
+    fn getCodeword(&self, imageRow: u32) -> &Option<Codeword> {
         &self.codewords[self.imageRowToCodewordIndex(imageRow)]
     }
 
-    pub fn getBoundingBox(&self) -> &BoundingBox {
+    fn getBoundingBox(&self) -> &BoundingBox {
         &self.boundingBox
     }
 
-    pub fn getCodewords(&self) -> &[Option<Codeword>] {
+    fn getCodewords(&self) -> &[Option<Codeword>] {
         &self.codewords
     }
-    pub(super) fn getCodewordsMut(&mut self) -> &mut [Option<Codeword>] {
+
+    fn getCodewordsMut(&mut self) -> &mut [Option<Codeword>] {
         &mut self.codewords
+    }
+
+    fn as_indicator_row(&mut self) -> &mut dyn DetectionRXingResultRowIndicatorColumn {
+        self as &mut dyn DetectionRXingResultRowIndicatorColumn
     }
     // pub fn as_row_indicator(&self) -> DetectionRXingResultRowIndicatorColumn {
     //     DetectionRXingResultRowIndicatorColumn::new(&self.boundingBox, false)
     // }
 }
 
-impl Display for DetectionRXingResultColumn<'_> {
+impl Display for DetectionRXingResultColumn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.isLeft.is_some() {
             write!(f, "IsLeft: {} \n", self.isLeft.as_ref().unwrap());

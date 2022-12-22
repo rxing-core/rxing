@@ -19,6 +19,7 @@ use std::collections::HashMap;
 /**
  * @author Guenther Grau
  */
+#[derive(Clone)]
 pub struct BarcodeValue(HashMap<u32, u32>);
 // private final Map<Integer,Integer> values = new HashMap<>();
 

@@ -43,18 +43,18 @@ pub fn getBitCountSum(moduleBitCount: &[u32]) -> u32 {
     moduleBitCount.iter().sum::<u32>()
 }
 
-pub fn toIntArray(list: Vec<u32>) -> Vec<u32> {
-    // if (list == null || list.isEmpty()) {
-    //   return EMPTY_INT_ARRAY;
-    // }
-    // int[] result = new int[list.size()];
-    // int i = 0;
-    // for (Integer integer : list) {
-    //   result[i++] = integer;
-    // }
-    // return result;
-    list
-}
+// pub fn toIntArray(list: Vec<u32>) -> Vec<u32> {
+//     // if (list == null || list.isEmpty()) {
+//     //   return EMPTY_INT_ARRAY;
+//     // }
+//     // int[] result = new int[list.size()];
+//     // int i = 0;
+//     // for (Integer integer : list) {
+//     //   result[i++] = integer;
+//     // }
+//     // return result;
+//     list
+// }
 
 /**
  * @param symbol encoded symbol to translate to a codeword

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-use std::fmt::Display;
+use std::{fmt::Display, rc::Rc};
 
 use crate::pdf417::pdf_417_common;
 
 use super::{
     BarcodeMetadata, BoundingBox, Codeword, DetectionRXingResultColumn,
-    DetectionRXingResultRowIndicatorColumn,
+    DetectionRXingResultColumnTrait, DetectionRXingResultRowIndicatorColumn,
 };
 
 const ADJUST_ROW_NUMBER_SKIP: u32 = 2;
@@ -28,21 +28,25 @@ const ADJUST_ROW_NUMBER_SKIP: u32 = 2;
 /**
  * @author Guenther Grau
  */
-pub struct DetectionRXingResult<'a> {
+pub struct DetectionRXingResult {
     barcodeMetadata: BarcodeMetadata,
-    detectionRXingResultColumns: Vec<Option<DetectionRXingResultColumn<'a>>>,
-    boundingBox: BoundingBox<'a>,
+    detectionRXingResultColumns: Vec<Option<Box<dyn DetectionRXingResultColumnTrait>>>,
+    boundingBox: Rc<BoundingBox>,
     barcodeColumnCount: usize,
 }
 
-impl<'a> DetectionRXingResult<'_> {
+impl DetectionRXingResult {
     pub fn new(
         barcodeMetadata: BarcodeMetadata,
-        boundingBox: BoundingBox<'a>,
-    ) -> DetectionRXingResult<'a> {
+        boundingBox: Rc<BoundingBox>,
+    ) -> DetectionRXingResult {
+        let mut columns = Vec::new();
+        for i in 0..(barcodeMetadata.getColumnCount() as usize + 2) {
+            columns.push(None);
+        }
         DetectionRXingResult {
             barcodeColumnCount: barcodeMetadata.getColumnCount() as usize,
-            detectionRXingResultColumns: vec![None; barcodeMetadata.getColumnCount() as usize + 2],
+            detectionRXingResultColumns: columns, //vec![None; barcodeMetadata.getColumnCount() as usize + 2],
             barcodeMetadata,
             boundingBox,
         }
@@ -52,7 +56,9 @@ impl<'a> DetectionRXingResult<'_> {
         // detectionRXingResultColumns = new DetectionRXingResultColumn[barcodeColumnCount + 2];
     }
 
-    pub fn getDetectionRXingResultColumns(&mut self) -> &Vec<Option<DetectionRXingResultColumn>> {
+    pub fn getDetectionRXingResultColumns(
+        &mut self,
+    ) -> &Vec<Option<Box<dyn DetectionRXingResultColumnTrait>>> {
         self.adjustIndicatorColumnRowNumbers(0);
         let pos = self.barcodeColumnCount + 1;
         self.adjustIndicatorColumnRowNumbers(pos);
@@ -81,6 +87,7 @@ impl<'a> DetectionRXingResult<'_> {
             self.detectionRXingResultColumns[pos]
                 .as_mut()
                 .unwrap()
+                .as_indicator_row()
                 .adjustCompleteIndicatorColumnRowNumbers(&self.barcodeMetadata);
         }
     }
@@ -515,27 +522,35 @@ impl<'a> DetectionRXingResult<'_> {
         self.barcodeMetadata.getErrorCorrectionLevel()
     }
 
-    // pub fn setBoundingBox(&'a mut self,  boundingBox:BoundingBox<'a>) {
-    //   self.boundingBox = boundingBox;
-    // }
-
-    pub fn getBoundingBox(&self) -> &BoundingBox {
-        &self.boundingBox
+    pub fn setBoundingBox(&mut self, boundingBox: Rc<BoundingBox>) {
+        self.boundingBox = boundingBox;
     }
 
-    // pub fn setDetectionRXingResultColumn(&mut self,  barcodeColumn:usize,  detectionRXingResultColumn:Option<DetectionRXingResultColumn<'a>>) {
-    //   self.detectionRXingResultColumns[barcodeColumn] = detectionRXingResultColumn;
-    // }
+    pub fn getBoundingBox(&self) -> Rc<BoundingBox> {
+        self.boundingBox.clone()
+    }
+
+    pub fn setDetectionRXingResultColumn(
+        &mut self,
+        barcodeColumn: usize,
+        detectionRXingResultColumn: Option<impl DetectionRXingResultRowIndicatorColumn + 'static>,
+    ) {
+        self.detectionRXingResultColumns[barcodeColumn] = if detectionRXingResultColumn.is_none() {
+            None
+        } else {
+            Some(Box::new(detectionRXingResultColumn.unwrap()))
+        };
+    }
 
     pub fn getDetectionRXingResultColumn(
         &self,
         barcodeColumn: usize,
-    ) -> &Option<DetectionRXingResultColumn> {
+    ) -> &Option<Box<dyn DetectionRXingResultColumnTrait>> {
         &self.detectionRXingResultColumns[barcodeColumn]
     }
 }
 
-impl Display for DetectionRXingResult<'_> {
+impl Display for DetectionRXingResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         todo!()
     }

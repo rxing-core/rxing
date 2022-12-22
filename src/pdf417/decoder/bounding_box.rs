@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
+use std::rc::Rc;
+
 use crate::{common::BitMatrix, Exceptions, RXingResultPoint, ResultPoint};
 
 /**
  * @author Guenther Grau
  */
 #[derive(Clone)]
-pub struct BoundingBox<'a> {
-    image: &'a BitMatrix,
+pub struct BoundingBox {
+    image: Rc<BitMatrix>,
     topLeft: RXingResultPoint,
     bottomLeft: RXingResultPoint,
     topRight: RXingResultPoint,
@@ -31,14 +33,14 @@ pub struct BoundingBox<'a> {
     minY: u32,
     maxY: u32,
 }
-impl<'a> BoundingBox<'_> {
+impl BoundingBox {
     pub fn new(
-        image: &'a BitMatrix,
+        image: Rc<BitMatrix>,
         topLeft: Option<RXingResultPoint>,
         bottomLeft: Option<RXingResultPoint>,
         topRight: Option<RXingResultPoint>,
         bottomRight: Option<RXingResultPoint>,
-    ) -> Result<BoundingBox<'a>, Exceptions> {
+    ) -> Result<BoundingBox, Exceptions> {
         let leftUnspecified = topLeft.is_none() || bottomLeft.is_none();
         let rightUnspecified = topRight.is_none() || bottomRight.is_none();
         if leftUnspecified && rightUnspecified {
@@ -81,9 +83,9 @@ impl<'a> BoundingBox<'_> {
         })
     }
 
-    pub fn from_other(boundingBox: &'a BoundingBox) -> BoundingBox<'a> {
+    pub fn from_other(boundingBox: Rc<BoundingBox>) -> BoundingBox {
         BoundingBox {
-            image: boundingBox.image,
+            image: boundingBox.image.clone(),
             topLeft: boundingBox.topLeft,
             bottomLeft: boundingBox.bottomLeft,
             topRight: boundingBox.topRight,
@@ -96,14 +98,14 @@ impl<'a> BoundingBox<'_> {
     }
 
     pub fn merge(
-        leftBox: Option<&'a BoundingBox>,
-        rightBox: Option<&'a BoundingBox>,
-    ) -> Result<BoundingBox<'a>, Exceptions> {
+        leftBox: Option<BoundingBox>,
+        rightBox: Option<BoundingBox>,
+    ) -> Result<BoundingBox, Exceptions> {
         if leftBox.is_none() {
-            return Ok(rightBox.unwrap().clone());
+            return Ok(rightBox.as_ref().unwrap().clone());
         }
         if rightBox.is_none() {
-            return Ok(leftBox.unwrap().clone());
+            return Ok(leftBox.as_ref().unwrap().clone());
         }
         let leftBox = leftBox.unwrap();
         let rightBox = rightBox.unwrap();
@@ -161,7 +163,7 @@ impl<'a> BoundingBox<'_> {
         }
 
         BoundingBox::new(
-            self.image,
+            self.image.clone(),
             Some(newTopLeft),
             Some(newBottomLeft),
             Some(newTopRight),

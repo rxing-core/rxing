@@ -18,12 +18,15 @@ use std::fmt::Display;
 
 use crate::{pdf417::pdf_417_common, ResultPoint};
 
-use super::{BarcodeMetadata, BarcodeValue, BoundingBox, Codeword, DetectionRXingResultColumn};
+use super::{
+    BarcodeMetadata, BarcodeValue, BoundingBox, Codeword, DetectionRXingResultColumn,
+    DetectionRXingResultColumnTrait,
+};
 
 /**
  * @author Guenther Grau
  */
-pub trait DetectionRXingResultRowIndicatorColumn {
+pub trait DetectionRXingResultRowIndicatorColumn: DetectionRXingResultColumnTrait {
     // TODO implement properly
     // TODO maybe we should add missing codewords to store the correct row number to make
     // finding row numbers for other columns easier
@@ -34,7 +37,7 @@ pub trait DetectionRXingResultRowIndicatorColumn {
     fn isLeft(&self) -> bool;
 }
 
-impl<'a> DetectionRXingResultRowIndicatorColumn for DetectionRXingResultColumn<'_> {
+impl DetectionRXingResultRowIndicatorColumn for DetectionRXingResultColumn {
     // private final boolean isLeft;
 
     // TODO implement properly

@@ -23,6 +23,7 @@ imageproc = {version = "0.23.0", optional = true}
 unicode-segmentation = "1.10.0"
 codepage-437 = "0.1.0"
 one-d-reader-derive = { path = "one-d-reader-derive" }
+num = "0.4.0"
 
 [dev-dependencies]
 java-properties = "1.4.1"

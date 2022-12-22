@@ -33,8 +33,8 @@ pub struct DecoderRXingResult {
     text: String,
     byteSegments: Vec<Vec<u8>>,
     ecLevel: String,
-    errorsCorrected: u64,
-    erasures: u64,
+    errorsCorrected: usize,
+    erasures: usize,
     other: Rc<dyn Any>,
     structuredAppendParity: i32,
     structuredAppendSequenceNumber: i32,
@@ -160,22 +160,22 @@ impl DecoderRXingResult {
     /**
      * @return number of errors corrected, or {@code null} if not applicable
      */
-    pub fn getErrorsCorrected(&self) -> u64 {
+    pub fn getErrorsCorrected(&self) -> usize {
         self.errorsCorrected
     }
 
-    pub fn setErrorsCorrected(&mut self, errorsCorrected: u64) {
+    pub fn setErrorsCorrected(&mut self, errorsCorrected: usize) {
         self.errorsCorrected = errorsCorrected;
     }
 
     /**
      * @return number of erasures corrected, or {@code null} if not applicable
      */
-    pub fn getErasures(&self) -> u64 {
+    pub fn getErasures(&self) -> usize {
         self.erasures
     }
 
-    pub fn setErasures(&mut self, erasures: u64) {
+    pub fn setErasures(&mut self, erasures: usize) {
         self.erasures = erasures
     }
 
