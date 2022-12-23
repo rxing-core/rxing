@@ -59,13 +59,13 @@ impl MultipleBarcodeReader for QRCodeMultiReader {
                 )?;
                 let mut points = detectorRXingResult.getPoints().clone();
                 // If the code was mirrored: swap the bottom-left and the top-right points.
-                let other = decoderRXingResult.getOther();
+                if let Some( other) = decoderRXingResult.getOther(){
                 if other.is::<QRCodeDecoderMetaData>() {
                     (other
                         .downcast::<QRCodeDecoderMetaData>()
                         .expect("must downcast to QRCodeDecoderMetaData"))
                     .applyMirroredCorrection(&mut points);
-                }
+                }}
                 // if (decoderRXingResult.getOther() instanceof QRCodeDecoderMetaData) {
                 //   ((QRCodeDecoderMetaData) decoderRXingResult.getOther()).applyMirroredCorrection(points);
                 // }

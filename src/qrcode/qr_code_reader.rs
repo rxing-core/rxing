@@ -74,15 +74,15 @@ impl Reader for QRCodeReader {
         }
 
         // If the code was mirrored: swap the bottom-left and the top-right points.
-        if decoderRXingResult.getOther().is::<QRCodeDecoderMetaData>() {
+        if let Some(other) = decoderRXingResult.getOther() {
+        if other.is::<QRCodeDecoderMetaData>() {
             // if (decoderRXingResult.getOther() instanceof QRCodeDecoderMetaData) {
-            decoderRXingResult
-                .getOther()
+                other
                 .downcast_ref::<QRCodeDecoderMetaData>()
                 .unwrap()
                 .applyMirroredCorrection(&mut points);
             // ((QRCodeDecoderMetaData) decoderRXingResult.getOther()).applyMirroredCorrection(points);
-        }
+        }}
 
         let mut result = RXingResult::new(
             decoderRXingResult.getText(),

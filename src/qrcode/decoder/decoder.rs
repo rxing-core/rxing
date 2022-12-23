@@ -115,7 +115,7 @@ pub fn decode_bitmatrix_with_hints(
         let mut result = decode_bitmatrix_parser_with_hints(&mut parser, hints)?;
 
         // Success! Notify the caller that the code was mirrored.
-        result.setOther(Rc::new(QRCodeDecoderMetaData::new(true)));
+        result.setOther(Some(Rc::new(QRCodeDecoderMetaData::new(true))));
 
         Ok(result)
     };

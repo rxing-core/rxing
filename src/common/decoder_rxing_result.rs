@@ -35,7 +35,7 @@ pub struct DecoderRXingResult {
     ecLevel: String,
     errorsCorrected: usize,
     erasures: usize,
-    other: Rc<dyn Any>,
+    other: Option<Rc<dyn Any>>,
     structuredAppendParity: i32,
     structuredAppendSequenceNumber: i32,
     symbologyModifier: u32,
@@ -106,7 +106,7 @@ impl DecoderRXingResult {
             ecLevel,
             errorsCorrected: 0,
             erasures: 0,
-            other: Rc::new(false),
+            other: None,
             structuredAppendParity: saParity,
             structuredAppendSequenceNumber: saSequence,
             symbologyModifier,
@@ -182,11 +182,11 @@ impl DecoderRXingResult {
     /**
      * @return arbitrary additional metadata
      */
-    pub fn getOther(&self) -> Rc<dyn Any> {
+    pub fn getOther(&self) -> Option<Rc<dyn Any>> {
         self.other.clone()
     }
 
-    pub fn setOther(&mut self, other: Rc<dyn Any>) {
+    pub fn setOther(&mut self, other: Option<Rc<dyn Any>>) {
         self.other = other
     }
 

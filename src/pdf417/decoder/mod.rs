@@ -25,3 +25,6 @@ pub use detection_result::*;
 
 pub mod decoded_bit_stream_parser;
 pub mod pdf_417_scanning_decoder;
+
+#[cfg(test)]
+mod pdf_417_decoder_test_case;

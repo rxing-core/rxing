@@ -189,7 +189,7 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult, Ex
         Vec::new(),
         ecLevel.to_owned(),
     );
-    decoderRXingResult.setOther(Rc::new(resultMetadata));
+    decoderRXingResult.setOther(Some(Rc::new(resultMetadata)));
 
     Ok(decoderRXingResult)
 }
