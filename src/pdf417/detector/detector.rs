@@ -114,7 +114,7 @@ fn applyRotation(matrix: &BitMatrix, rotation: u32) -> BitMatrix {
  * @param bitMatrix bit matrix to detect barcodes in
  * @return List of RXingResultPoint arrays containing the coordinates of found barcodes
  */
-fn detect(multiple: bool, bitMatrix: &BitMatrix) -> Vec<[Option<RXingResultPoint>; 8]> {
+pub fn detect(multiple: bool, bitMatrix: &BitMatrix) -> Vec<[Option<RXingResultPoint>; 8]> {
     let mut barcodeCoordinates: Vec<[Option<RXingResultPoint>; 8]> = Vec::new();
     let mut row = 0;
     let mut column = 0;

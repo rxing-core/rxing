@@ -17,6 +17,7 @@
 /**
  * @author Guenther Grau
  */
+#[derive(Debug, PartialEq, Eq)]
 pub struct PDF417RXingResultMetadata {
     segmentIndex: usize,
     fileId: String,

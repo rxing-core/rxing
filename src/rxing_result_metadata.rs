@@ -16,6 +16,10 @@
 
 //package com.google.zxing;
 
+use std::{any::Any, rc::Rc};
+
+use crate::pdf417::PDF417RXingResultMetadata;
+
 /**
  * Represents some type of metadata about the result of the decoding that the decoder
  * wishes to communicate back to the caller.
@@ -180,7 +184,7 @@ pub enum RXingResultMetadataValue {
     /**
      * PDF417-specific metadata
      */
-    Pdf417ExtraMetadata(String),
+    Pdf417ExtraMetadata(Rc<PDF417RXingResultMetadata>),
 
     /**
      * If the code format supports structured append and the current scanned code is part of one then the
