@@ -180,9 +180,13 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult, Ex
             }
         }
     }
+
+    result = result.build_result();
+
     if result.is_empty() && resultMetadata.getFileId().is_empty() {
         return Err(Exceptions::FormatException("".to_owned()));
     }
+
     let mut decoderRXingResult = DecoderRXingResult::new(
         Vec::new(),
         result.to_string(),
@@ -254,36 +258,43 @@ pub fn decodeMacroBlock(
                     MACRO_PDF417_OPTIONAL_FIELD_FILE_NAME => {
                         let mut fileName = ECIStringBuilder::new();
                         codeIndex = textCompaction(codewords, codeIndex + 1, &mut fileName)?;
+                        fileName = fileName.build_result();
                         resultMetadata.setFileName(fileName.to_string());
                     }
                     MACRO_PDF417_OPTIONAL_FIELD_SENDER => {
                         let mut sender = ECIStringBuilder::new();
                         codeIndex = textCompaction(codewords, codeIndex + 1, &mut sender)?;
+                        sender = sender.build_result();
                         resultMetadata.setSender(sender.to_string());
                     }
                     MACRO_PDF417_OPTIONAL_FIELD_ADDRESSEE => {
                         let mut addressee = ECIStringBuilder::new();
                         codeIndex = textCompaction(codewords, codeIndex + 1, &mut addressee)?;
+                        addressee = addressee.build_result();
                         resultMetadata.setAddressee(addressee.to_string());
                     }
                     MACRO_PDF417_OPTIONAL_FIELD_SEGMENT_COUNT => {
                         let mut segmentCount = ECIStringBuilder::new();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut segmentCount)?;
+                        segmentCount = segmentCount.build_result();
                         resultMetadata.setSegmentCount(segmentCount.to_string().parse().unwrap());
                     }
                     MACRO_PDF417_OPTIONAL_FIELD_TIME_STAMP => {
                         let mut timestamp = ECIStringBuilder::new();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut timestamp)?;
+                        timestamp = timestamp.build_result();
                         resultMetadata.setTimestamp(timestamp.to_string().parse().unwrap());
                     }
                     MACRO_PDF417_OPTIONAL_FIELD_CHECKSUM => {
                         let mut checksum = ECIStringBuilder::new();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut checksum)?;
+                        checksum = checksum.build_result();
                         resultMetadata.setChecksum(checksum.to_string().parse().unwrap());
                     }
                     MACRO_PDF417_OPTIONAL_FIELD_FILE_SIZE => {
                         let mut fileSize = ECIStringBuilder::new();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut fileSize)?;
+                        fileSize = fileSize.build_result();
                         resultMetadata.setFileSize(fileSize.to_string().parse().unwrap());
                     }
                     _ => return Err(Exceptions::FormatException("".to_owned())),

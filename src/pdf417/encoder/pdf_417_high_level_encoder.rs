@@ -316,10 +316,11 @@ pub fn encodeHighLevel(
                             }
                         }; //.getBytes(encoding))};
                            // if let Some(byts) = bytes {
-                        let bytes_ok = if let Some(_) = bytes { true } else { false };
-                        if ((bytes_ok && b == 1)
-                            || (!bytes_ok && bytes.as_ref().unwrap().len() == 1))
-                            && encodingMode == TEXT_COMPACTION
+                        let bytes_ok = bytes.is_some(); //if let Some(_) = bytes { true } else { false };
+                        if (bytes_ok && b == 1)
+                        /*((bytes_ok && b == 1)
+                            || (!bytes_ok && bytes.as_ref().unwrap().len() == 1))*/
+                            && (encodingMode == TEXT_COMPACTION)
                         {
                             //Switch for one byte (instead of latch)
                             if autoECI {
@@ -406,7 +407,7 @@ fn encodeText<T: ECIInput + ?Sized>(
                         } else {
                             tmp.push(29 as char); //ps
                             tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).unwrap());
-                            break;
+                            //break;
                         }
                     }
                 }
@@ -423,7 +424,7 @@ fn encodeText<T: ECIInput + ?Sized>(
                             tmp.push(27 as char); //as
                             tmp.push(char::from_u32(ch as u32 - 65).unwrap());
                             //space cannot happen here, it is also in "Lower"
-                            break;
+                            //break;
                         } else if isMixed(ch) {
                             submode = SUBMODE_MIXED;
                             tmp.push(28 as char); //ml
@@ -431,7 +432,7 @@ fn encodeText<T: ECIInput + ?Sized>(
                         } else {
                             tmp.push(29 as char); //ps
                             tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).unwrap());
-                            break;
+                            //break;
                         }
                     }
                 }
