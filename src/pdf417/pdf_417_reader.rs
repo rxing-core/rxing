@@ -83,7 +83,17 @@ impl MultipleBarcodeReader for PDF417Reader {
     }
 }
 
+impl Default for PDF417Reader {
+    fn default() -> Self {
+        Self {}
+    }
+}
+
 impl PDF417Reader {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     fn decode(
         image: &BinaryBitmap,
         hints: &DecodingHintDictionary,
