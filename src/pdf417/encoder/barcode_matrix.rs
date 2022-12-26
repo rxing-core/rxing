@@ -72,7 +72,7 @@ impl BarcodeMatrix {
     }
 
     pub fn getScaledMatrix(&self, xScale: usize, yScale: usize) -> Vec<Vec<u8>> {
-        let mut matrixOut = vec![vec![0; self.height * yScale]; self.width * xScale];
+        let mut matrixOut = vec![vec![0; self.width * xScale]; self.height * yScale];
         // byte[][] matrixOut = new byte[height * yScale][width * xScale];
         let yMax = self.height * yScale;
         for i in 0..yMax {

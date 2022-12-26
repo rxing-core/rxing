@@ -4,8 +4,8 @@ pub use compaction::*;
 mod barcode_row;
 pub use barcode_row::*;
 
-mod barcode_batrix;
-pub use barcode_batrix::*;
+mod barcode_matrix;
+pub use barcode_matrix::*;
 
 mod dimensions;
 pub use dimensions::*;

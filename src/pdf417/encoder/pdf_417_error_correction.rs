@@ -181,7 +181,7 @@ pub fn generateErrorCorrection(
 ) -> Result<String, Exceptions> {
     let k = getErrorCorrectionCodewordCount(errorCorrectionLevel)?;
     let mut e = vec![0 as char; k as usize]; //new char[k];
-    let sld = dataCodewords.len();
+    let sld = dataCodewords.chars().count();
     for i in 0..sld {
         // for (int i = 0; i < sld; i++) {
         let t1 = (dataCodewords.chars().nth(i).unwrap() as u32 + e[e.len() - 1] as u32) % 929;
