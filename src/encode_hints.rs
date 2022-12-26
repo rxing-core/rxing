@@ -16,7 +16,7 @@
 
 //package com.google.zxing;
 
-use crate::Dimension;
+use crate::{pdf417::encoder::Dimensions, Dimension};
 
 /**
  * These are a set of hints that you may pass to Writers to specify their behavior.
@@ -255,7 +255,7 @@ pub enum EncodeHintValue {
      * Specifies the minimum and maximum number of rows and columns for PDF417 (type
      * {@link com.google.zxing.pdf417.encoder.Dimensions Dimensions}).
      */
-    Pdf417Dimensions,
+    Pdf417Dimensions(Dimensions),
 
     /**
      * Specifies whether to automatically insert ECIs when encoding PDF417 (type {@link Boolean}, or "true" or "false"

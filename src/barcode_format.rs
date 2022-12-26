@@ -16,6 +16,8 @@
 
 //package com.google.zxing;
 
+use std::fmt::Display;
+
 /**
  * Enumerates barcode formats known to this package. Please keep alphabetized.
  *
@@ -73,4 +75,32 @@ pub enum BarcodeFormat {
 
     /** UPC/EAN extension format. Not a stand-alone format. */
     UPC_EAN_EXTENSION,
+}
+
+impl Display for BarcodeFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                BarcodeFormat::AZTEC => "aztec",
+                BarcodeFormat::CODABAR => "codabar",
+                BarcodeFormat::CODE_39 => "code 39",
+                BarcodeFormat::CODE_93 => "code 93",
+                BarcodeFormat::CODE_128 => "code 128",
+                BarcodeFormat::DATA_MATRIX => "datamatrix",
+                BarcodeFormat::EAN_8 => "ean 8",
+                BarcodeFormat::EAN_13 => "ean 13",
+                BarcodeFormat::ITF => "itf",
+                BarcodeFormat::MAXICODE => "maxicode",
+                BarcodeFormat::PDF_417 => "pdf 417",
+                BarcodeFormat::QR_CODE => "qrcode",
+                BarcodeFormat::RSS_14 => "rss 14",
+                BarcodeFormat::RSS_EXPANDED => "rss expanded",
+                BarcodeFormat::UPC_A => "upc a",
+                BarcodeFormat::UPC_E => "upc e",
+                BarcodeFormat::UPC_EAN_EXTENSION => "upc/ean extension",
+            }
+        )
+    }
 }
