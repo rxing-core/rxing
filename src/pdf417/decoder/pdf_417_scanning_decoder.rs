@@ -803,7 +803,7 @@ fn adjustCodewordStartColumn(
             {
                 return codewordStartColumn;
             }
-            correctedStartColumn += increment as u32;
+            correctedStartColumn = (correctedStartColumn as i32 + increment) as u32;
         }
         increment = -increment;
         leftToRight = !leftToRight;
@@ -893,7 +893,7 @@ fn getBitCountForCodeword(codeword: u32) -> [u32; 8] {
     let mut codeword = codeword;
     let mut result = [0; 8]; //new int[8];
     let mut previousValue = 0;
-    let mut i = result.len() - 1;
+    let mut i = result.len() as isize - 1;
     loop {
         if (codeword & 0x1) != previousValue {
             previousValue = codeword & 0x1;
@@ -902,7 +902,7 @@ fn getBitCountForCodeword(codeword: u32) -> [u32; 8] {
                 break;
             }
         }
-        result[i] += 1;
+        result[i as usize ] += 1;
         codeword >>= 1;
     }
 

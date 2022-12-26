@@ -23,7 +23,7 @@ use std::{
 
 use rxing::{
     common::HybridBinarizer, BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
-    DecodeHintType, DecodeHintValue, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    DecodeHintType, DecodeHintValue, RXingResultMetadataType, RXingResultMetadataValue, Reader, pdf417::PDF417RXingResultMetadata,
 };
 
 use super::TestRXingResult;
@@ -208,7 +208,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                         RXingResultMetadataValue::UpcEanExtension(v)
                     }
                     RXingResultMetadataType::PDF417_EXTRA_METADATA => {
-                        RXingResultMetadataValue::Pdf417ExtraMetadata(v)
+                        RXingResultMetadataValue::Pdf417ExtraMetadata(Rc::new(PDF417RXingResultMetadata::default()))
                     }
                     RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE => {
                         RXingResultMetadataValue::StructuredAppendSequence(
@@ -222,7 +222,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                     }
                     RXingResultMetadataType::SYMBOLOGY_IDENTIFIER => {
                         RXingResultMetadataValue::SymbologyIdentifier(v)
-                    }
+                    },
                 };
             }
 

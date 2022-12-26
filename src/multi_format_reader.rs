@@ -18,8 +18,9 @@ use std::collections::HashMap;
 
 use crate::{
     aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
-    oned::MultiFormatOneDReader, qrcode::QRCodeReader, BarcodeFormat, BinaryBitmap, DecodeHintType,
-    DecodeHintValue, DecodingHintDictionary, Exceptions, RXingResult, Reader,
+    oned::MultiFormatOneDReader, pdf417::PDF417Reader, qrcode::QRCodeReader, BarcodeFormat,
+    BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, RXingResult,
+    Reader,
 };
 
 /**
@@ -136,8 +137,7 @@ impl MultiFormatReader {
                 readers.push(Box::new(AztecReader {}));
             }
             if formats.contains(&BarcodeFormat::PDF_417) {
-                unimplemented!("");
-                // readers.push(new PDF417Reader());
+                readers.push(Box::new(PDF417Reader {}));
             }
             if formats.contains(&BarcodeFormat::MAXICODE) {
                 readers.push(Box::new(MaxiCodeReader {}));
@@ -150,19 +150,17 @@ impl MultiFormatReader {
         if readers.is_empty() {
             if !tryHarder {
                 readers.push(Box::new(MultiFormatOneDReader::new(hints)));
-                //TODO: ADD MultiformatOneDReader here
             }
 
             readers.push(Box::new(QRCodeReader {}));
             readers.push(Box::new(DataMatrixReader {}));
             readers.push(Box::new(AztecReader {}));
-            // readers.push( PDF417Reader());
+            readers.push(Box::new(PDF417Reader {}));
             readers.push(Box::new(MaxiCodeReader {}));
             // unimplemented!("");
 
             if tryHarder {
                 readers.push(Box::new(MultiFormatOneDReader::new(hints)));
-                //TODO: ADD MultiformatOneDReader here
             }
         }
         self.readers = readers; //Vec::new(); //readers.toArray(EMPTY_READER_ARRAY);
