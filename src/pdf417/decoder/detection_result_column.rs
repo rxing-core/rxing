@@ -73,16 +73,16 @@ impl DetectionRXingResultColumnTrait for DetectionRXingResultColumn {
         }
         for i in 1..MAX_NEARBY_DISTANCE as usize {
             // for (int i = 1; i < MAX_NEARBY_DISTANCE; i++) {
-            let mut nearImageRow = self.imageRowToCodewordIndex(imageRow) - i;
+            let mut nearImageRow = self.imageRowToCodewordIndex(imageRow) as isize - i as isize;
             if nearImageRow >= 0 {
-                codeword = &self.codewords[nearImageRow];
+                codeword = &self.codewords[nearImageRow as usize];
                 if codeword.is_some() {
                     return codeword;
                 }
             }
-            nearImageRow = self.imageRowToCodewordIndex(imageRow) + i;
-            if nearImageRow < self.codewords.len() {
-                codeword = &self.codewords[nearImageRow];
+            nearImageRow = self.imageRowToCodewordIndex(imageRow) as isize + i as isize;
+            if nearImageRow < self.codewords.len() as isize {
+                codeword = &self.codewords[nearImageRow as usize];
                 if codeword.is_some() {
                     return codeword;
                 }

@@ -126,15 +126,16 @@ pub fn decode(
             // This will be the case for the opposite row indicator column, which doesn't need to be decoded again.
             continue;
         }
-        let mut detectionRXingResultColumn = if barcodeColumn == 0
-            || barcodeColumn == maxBarcodeColumn
+        let detectionRXingResultColumn = if barcodeColumn == 0 || barcodeColumn == maxBarcodeColumn
         {
             DetectionRXingResultColumn::new_with_is_left(boundingBox.clone(), barcodeColumn == 0)
         } else {
             DetectionRXingResultColumn::new(boundingBox.clone())
         };
+
         detectionRXingResult
-            .setDetectionRXingResultColumn(barcodeColumn, Some(detectionRXingResultColumn.clone()));
+            .setDetectionRXingResultColumn(barcodeColumn, Some(detectionRXingResultColumn));
+
         let mut startColumn: i32 = -1;
         let mut previousStartColumn = startColumn;
         // TODO start at a row for which we know the start position, then detect upwards and downwards from there.
@@ -160,10 +161,15 @@ pub fn decode(
             );
             if codeword.is_some() {
                 let codeword = codeword.unwrap();
-                detectionRXingResultColumn.setCodeword(imageRow, codeword);
+                //detectionRXingResultColumn.setCodeword(imageRow, codeword);
+                detectionRXingResult
+                    .getDetectionRXingResultColumnMut(barcodeColumn)
+                    .as_mut()
+                    .unwrap()
+                    .setCodeword(imageRow, codeword);
                 previousStartColumn = startColumn;
                 minCodewordWidth = minCodewordWidth.min(codeword.getWidth());
-                maxCodewordWidth = maxCodewordWidth.min(codeword.getWidth());
+                maxCodewordWidth = maxCodewordWidth.max(codeword.getWidth());
             }
         }
     }
@@ -416,7 +422,7 @@ fn createDecoderRXingResult(
     detectionRXingResult: &mut DetectionRXingResult,
 ) -> Result<DecoderRXingResult, Exceptions> {
     let mut barcodeMatrix = createBarcodeMatrix(detectionRXingResult);
-    adjustCodewordCount(detectionRXingResult, &mut barcodeMatrix);
+    adjustCodewordCount(detectionRXingResult, &mut barcodeMatrix)?;
     let mut erasures = Vec::new(); //new ArrayList<>();
     let mut codewords = vec![
         0;
@@ -521,8 +527,8 @@ fn createDecoderRXingResultFromAmbiguousValues(
 fn createBarcodeMatrix(detectionRXingResult: &mut DetectionRXingResult) -> Vec<Vec<BarcodeValue>> {
     let mut barcodeMatrix =
         vec![
-            vec![BarcodeValue::new(); detectionRXingResult.getBarcodeRowCount() as usize];
-            detectionRXingResult.getBarcodeColumnCount() + 2
+            vec![BarcodeValue::new(); detectionRXingResult.getBarcodeColumnCount() + 2];
+            detectionRXingResult.getBarcodeRowCount() as usize
         ];
     // BarcodeValue[][] barcodeMatrix =
     //     new BarcodeValue[detectionRXingResult.getBarcodeRowCount()][detectionRXingResult.getBarcodeColumnCount() + 2];
@@ -559,7 +565,8 @@ fn createBarcodeMatrix(detectionRXingResult: &mut DetectionRXingResult) -> Vec<V
 }
 
 fn isValidBarcodeColumn(detectionRXingResult: &DetectionRXingResult, barcodeColumn: usize) -> bool {
-    barcodeColumn >= 0 && barcodeColumn <= detectionRXingResult.getBarcodeColumnCount() + 1
+    /*barcodeColumn >= 0 &&*/
+    barcodeColumn <= detectionRXingResult.getBarcodeColumnCount() + 1
 }
 
 fn getStartColumn(
@@ -585,11 +592,17 @@ fn getStartColumn(
             codeword.getStartX()
         };
     }
-    codeword = detectionRXingResult
+
+    if detectionRXingResult
         .getDetectionRXingResultColumn(barcodeColumn as usize)
-        .as_ref()
-        .unwrap()
-        .getCodewordNearby(imageRow);
+        .is_some()
+    {
+        codeword = detectionRXingResult
+            .getDetectionRXingResultColumn(barcodeColumn as usize)
+            .as_ref()
+            .unwrap()
+            .getCodewordNearby(imageRow);
+    }
 
     if let Some(codeword) = codeword {
         return if leftToRight {
@@ -827,7 +840,7 @@ fn decodeCodewords(
 
     let numECCodewords = 1 << (ecLevel + 1);
     let correctedErrorsCount = correctErrors(codewords, erasures, numECCodewords)?;
-    verifyCodewordCount(codewords, numECCodewords);
+    verifyCodewordCount(codewords, numECCodewords)?;
 
     // Decode the codewords
     let mut decoderRXingResult =
@@ -853,7 +866,7 @@ fn correctErrors(
     numECCodewords: u32,
 ) -> Result<usize, Exceptions> {
     if !erasures.is_empty() && erasures.len() as u32 > numECCodewords / 2 + MAX_ERRORS
-        || numECCodewords < 0
+        /*|| numECCodewords < 0*/
         || numECCodewords > MAX_EC_CODEWORDS
     {
         // Too many errors or EC Codewords is corrupted
@@ -902,7 +915,7 @@ fn getBitCountForCodeword(codeword: u32) -> [u32; 8] {
                 break;
             }
         }
-        result[i as usize ] += 1;
+        result[i as usize] += 1;
         codeword >>= 1;
     }
 
@@ -914,7 +927,10 @@ fn getCodewordBucketNumber(codeword: u32) -> u32 {
 }
 
 fn getCodewordBucketNumberArray(moduleBitCount: &[u32]) -> u32 {
-    (moduleBitCount[0] - moduleBitCount[2] + moduleBitCount[4] - moduleBitCount[6] + 9) % 9
+    (moduleBitCount[0] as i32 - moduleBitCount[2] as i32 + moduleBitCount[4] as i32
+        - moduleBitCount[6] as i32
+        + 9) as u32
+        % 9
 }
 
 // fn toString( barcodeMatrix:Vec<Vec<BarcodeValue>>) -> String{

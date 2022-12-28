@@ -299,6 +299,12 @@ fn findRowsWithPattern(
                         skippedRowCount += 1;
                     }
                 }
+            } else {
+                if skippedRowCount > SKIPPED_ROW_COUNT_MAX {
+                    break;
+                } else {
+                    skippedRowCount += 1;
+                }
             }
 
             stopRow += 1;
@@ -415,7 +421,7 @@ fn patternMatchVariance(counters: &[u32], pattern: &[u32]) -> f32 {
     // We're going to fake floating-point math in integers. We just need to use more bits.
     // Scale up patternLength so that intermediate values below like scaledCounter will have
     // more "significant digits".
-    let unitBarWidth: f32 = (total / patternLength) as f32;
+    let unitBarWidth: f32 = total as f32 / patternLength as f32;
     let maxIndividualVariance = MAX_INDIVIDUAL_VARIANCE * unitBarWidth;
 
     let mut totalVariance = 0.0;

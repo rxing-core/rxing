@@ -147,146 +147,171 @@ impl DetectionRXingResult {
     }
 
     fn adjustRowNumbersFromBothRI(&mut self) {
-        if self.detectionRXingResultColumns[0].is_some()
-            && self.detectionRXingResultColumns[self.barcodeColumnCount as usize + 1].is_some()
+        if self.detectionRXingResultColumns[0].is_none()
+            && self.detectionRXingResultColumns[self.barcodeColumnCount as usize + 1].is_none()
         {
-            // let LRIcodewords = self.detectionRXingResultColumns[0].as_ref().unwrap().getCodewords();
-            // let RRIcodewords = self.detectionRXingResultColumns[self.barcodeColumnCount as usize + 1].as_ref().unwrap().getCodewords();
-            for codewordsRow in 0..self.detectionRXingResultColumns[0]
+            return;
+        }
+
+        // let LRIcodewords = self.detectionRXingResultColumns[0].as_ref().unwrap().getCodewords();
+        // let RRIcodewords = self.detectionRXingResultColumns[self.barcodeColumnCount as usize + 1].as_ref().unwrap().getCodewords();
+        for codewordsRow in 0..self.detectionRXingResultColumns[0]
+            .as_ref()
+            .unwrap()
+            .getCodewords()
+            .len()
+        {
+            // for (int codewordsRow = 0; codewordsRow < LRIcodewords.length; codewordsRow++) {
+            if
+            //let (Some(lricw), Some(rricw)) =
+            self.detectionRXingResultColumns[0]
                 .as_ref()
                 .unwrap()
-                .getCodewords()
-                .len()
-            {
-                // for (int codewordsRow = 0; codewordsRow < LRIcodewords.length; codewordsRow++) {
-                if
-                //let (Some(lricw), Some(rricw)) =
-                self.detectionRXingResultColumns[0]
+                .getCodewords()[codewordsRow]
+                .is_some()
+                && self.detectionRXingResultColumns[self.barcodeColumnCount as usize + 1]
                     .as_ref()
                     .unwrap()
                     .getCodewords()[codewordsRow]
                     .is_some()
-                    && self.detectionRXingResultColumns[self.barcodeColumnCount as usize + 1]
-                        .as_ref()
-                        .unwrap()
-                        .getCodewords()[codewordsRow]
-                        .is_some()
-                {
-                    if self.detectionRXingResultColumns[0]
+            {
+                if self.detectionRXingResultColumns[0]
+                    .as_ref()
+                    .unwrap()
+                    .getCodewords()[codewordsRow]
+                    .as_ref()
+                    .unwrap()
+                    .getRowNumber()
+                    == self.detectionRXingResultColumns[self.barcodeColumnCount as usize + 1]
                         .as_ref()
                         .unwrap()
                         .getCodewords()[codewordsRow]
                         .as_ref()
                         .unwrap()
                         .getRowNumber()
-                        == self.detectionRXingResultColumns[self.barcodeColumnCount as usize + 1]
-                            .as_ref()
-                            .unwrap()
-                            .getCodewords()[codewordsRow]
-                            .as_ref()
-                            .unwrap()
-                            .getRowNumber()
-                    {
-                        // if (LRIcodewords[codewordsRow] != null &&
-                        //     RRIcodewords[codewordsRow] != null &&
-                        //     LRIcodewords[codewordsRow].getRowNumber() == RRIcodewords[codewordsRow].getRowNumber()) {
-                        for barcodeColumn in 1..=self.barcodeColumnCount {
-                            // for (int barcodeColumn = 1; barcodeColumn <= barcodeColumnCount; barcodeColumn++) {
-                            if self.detectionRXingResultColumns[barcodeColumn].is_some()
-                            //let Some(dc_col) =
-                            //&mut self.detectionRXingResultColumns[barcodeColumn]
+                {
+                    // if (LRIcodewords[codewordsRow] != null &&
+                    //     RRIcodewords[codewordsRow] != null &&
+                    //     LRIcodewords[codewordsRow].getRowNumber() == RRIcodewords[codewordsRow].getRowNumber()) {
+                    for barcodeColumn in 1..=self.barcodeColumnCount {
+                        // for (int barcodeColumn = 1; barcodeColumn <= barcodeColumnCount; barcodeColumn++) {
+                        if self.detectionRXingResultColumns[barcodeColumn].is_some()
+                        //let Some(dc_col) =
+                        //&mut self.detectionRXingResultColumns[barcodeColumn]
+                        {
+                            if self.detectionRXingResultColumns[barcodeColumn]
+                                .as_mut()
+                                .unwrap()
+                                .getCodewordsMut()[codewordsRow]
+                                .is_some()
                             {
-                                if self.detectionRXingResultColumns[barcodeColumn]
+                                //let Some(codeword) = &mut self.detectionRXingResultColumns[barcodeColumn].as_mut().unwrap().getCodewordsMut()[codewordsRow] {
+                                let new_row_number = self.detectionRXingResultColumns[0]
+                                    .as_ref()
+                                    .unwrap()
+                                    .getCodewords()[codewordsRow]
+                                    .as_ref()
+                                    .unwrap()
+                                    .getRowNumber();
+                                self.detectionRXingResultColumns[barcodeColumn]
                                     .as_mut()
                                     .unwrap()
                                     .getCodewordsMut()[codewordsRow]
-                                    .is_some()
+                                    .as_mut()
+                                    .unwrap()
+                                    .setRowNumber(new_row_number);
+                                if !self.detectionRXingResultColumns[barcodeColumn]
+                                    .as_mut()
+                                    .unwrap()
+                                    .getCodewordsMut()[codewordsRow]
+                                    .as_ref()
+                                    .unwrap()
+                                    .hasValidRowNumber()
                                 {
-                                    //let Some(codeword) = &mut self.detectionRXingResultColumns[barcodeColumn].as_mut().unwrap().getCodewordsMut()[codewordsRow] {
-                                    let new_row_number = self.detectionRXingResultColumns[0]
-                                        .as_ref()
-                                        .unwrap()
-                                        .getCodewords()[codewordsRow]
-                                        .as_ref()
-                                        .unwrap()
-                                        .getRowNumber();
+                                    // self.detectionRXingResultColumns[barcodeColumn].getCodewords()[codewordsRow] = None;
                                     self.detectionRXingResultColumns[barcodeColumn]
                                         .as_mut()
                                         .unwrap()
-                                        .getCodewordsMut()[codewordsRow]
-                                        .as_mut()
-                                        .unwrap()
-                                        .setRowNumber(new_row_number);
-                                    if !self.detectionRXingResultColumns[barcodeColumn]
-                                        .as_mut()
-                                        .unwrap()
-                                        .getCodewordsMut()[codewordsRow]
-                                        .as_ref()
-                                        .unwrap()
-                                        .hasValidRowNumber()
-                                    {
-                                        // self.detectionRXingResultColumns[barcodeColumn].getCodewords()[codewordsRow] = None;
-                                        self.detectionRXingResultColumns[barcodeColumn]
-                                            .as_mut()
-                                            .unwrap()
-                                            .getCodewordsMut()[codewordsRow] = None;
-                                    }
-                                } else {
-                                    continue;
+                                        .getCodewordsMut()[codewordsRow] = None;
                                 }
                             } else {
                                 continue;
                             }
-                            // let codeword = self.detectionRXingResultColumns[barcodeColumn].getCodewords()[codewordsRow];
-                            // if (codeword == null) {
-                            //   continue;
-                            // }
+                        } else {
+                            continue;
                         }
+                        // let codeword = self.detectionRXingResultColumns[barcodeColumn].getCodewords()[codewordsRow];
+                        // if (codeword == null) {
+                        //   continue;
+                        // }
                     }
                 }
             }
         }
+
         // if (detectionRXingResultColumns[0] == null || detectionRXingResultColumns[barcodeColumnCount + 1] == null) {
         //   return;
         // }
     }
 
-    fn adjustRowNumbersFromRRI(&self) -> u32 {
-        if let Some(col) = &self.detectionRXingResultColumns[self.barcodeColumnCount as usize + 1] {
-            let mut unadjustedCount = 0;
-            let codewords = col.getCodewords();
-            for codewordsRow in 0..codewords.len() {
-                // for (int codewordsRow = 0; codewordsRow < codewords.length; codewordsRow++) {
-                if let Some(codeword_col) = codewords[codewordsRow] {
-                    let rowIndicatorRowNumber = codeword_col.getRowNumber();
-                    let mut invalidRowCounts = 0;
-                    let mut barcodeColumn = self.barcodeColumnCount as usize + 1;
-                    while barcodeColumn > 0 && invalidRowCounts < ADJUST_ROW_NUMBER_SKIP {
-                        // for (int barcodeColumn = barcodeColumnCount + 1;
-                        //      barcodeColumn > 0 && invalidRowCounts < ADJUST_ROW_NUMBER_SKIP;
-                        //      barcodeColumn--) {
-                        if let Some(bc_col) = &self.detectionRXingResultColumns[barcodeColumn] {
-                            if let Some(codeword) = bc_col.getCodewords()[codewordsRow] {
-                                invalidRowCounts = Self::adjustRowNumberIfValid(
-                                    rowIndicatorRowNumber,
-                                    invalidRowCounts,
-                                    &mut Some(codeword),
-                                );
-                                if !codeword.hasValidRowNumber() {
-                                    unadjustedCount += 1;
-                                }
-                            }
-                        }
-                        barcodeColumn -= 1;
-                    }
-                } else {
-                    continue;
-                }
-            }
-            unadjustedCount
-        } else {
-            0
+    fn adjustRowNumbersFromRRI(&mut self) -> u32 {
+        if self.detectionRXingResultColumns[self.barcodeColumnCount as usize + 1].is_none() {
+            return 0;
         }
+        // if let Some(col) = &self.detectionRXingResultColumns[self.barcodeColumnCount as usize + 1] {
+        let mut unadjustedCount = 0;
+        let codewords_len = self.detectionRXingResultColumns[self.barcodeColumnCount as usize + 1]
+            .as_ref()
+            .unwrap()
+            .getCodewords()
+            .len();
+        for codewordsRow in 0..codewords_len {
+            // for (int codewordsRow = 0; codewordsRow < codewords.length; codewordsRow++) {
+            // if let Some(codeword_col) = codewords[codewordsRow] {
+            if self.detectionRXingResultColumns[self.barcodeColumnCount as usize + 1]
+                .as_ref()
+                .unwrap()
+                .getCodewords()[codewordsRow]
+                .is_none()
+            {
+                continue;
+            }
+            let rowIndicatorRowNumber = self.detectionRXingResultColumns
+                [self.barcodeColumnCount as usize + 1]
+                .as_ref()
+                .unwrap()
+                .getCodewords()[codewordsRow]
+                .as_ref()
+                .unwrap()
+                .getRowNumber();
+            let mut invalidRowCounts = 0;
+            let mut barcodeColumn = self.barcodeColumnCount as usize + 1;
+            while barcodeColumn > 0 && invalidRowCounts < ADJUST_ROW_NUMBER_SKIP {
+                // for (int barcodeColumn = barcodeColumnCount + 1;
+                //      barcodeColumn > 0 && invalidRowCounts < ADJUST_ROW_NUMBER_SKIP;
+                //      barcodeColumn--) {
+                if let Some(bc_col) = &mut self.detectionRXingResultColumns[barcodeColumn] {
+                    if let Some(codeword) = &mut bc_col.getCodewordsMut()[codewordsRow] {
+                        invalidRowCounts = Self::adjustRowNumberIfValid(
+                            rowIndicatorRowNumber,
+                            invalidRowCounts,
+                            codeword,
+                        );
+                        if !codeword.hasValidRowNumber() {
+                            unadjustedCount += 1;
+                        }
+                    }
+                }
+                barcodeColumn -= 1;
+            }
+            // } else {
+            //     continue;
+            // }
+        }
+        unadjustedCount
+        // } else {
+        //     0
+        // }
         // if (detectionRXingResultColumns[barcodeColumnCount + 1] == null) {
         //   return 0;
         // }
@@ -313,67 +338,89 @@ impl DetectionRXingResult {
         // return unadjustedCount;
     }
 
-    fn adjustRowNumbersFromLRI(&self) -> u32 {
-        if let Some(col) = &self.detectionRXingResultColumns[0] {
-            let mut unadjustedCount = 0;
-            let codewords = col.getCodewords();
-            for codewordsRow in 0..codewords.len() {
-                // for (int codewordsRow = 0; codewordsRow < codewords.length; codewordsRow++) {
-                if let Some(codeword_in_row) = codewords[codewordsRow] {
-                    let rowIndicatorRowNumber = codeword_in_row.getRowNumber();
-                    let mut invalidRowCounts = 0;
-                    let mut barcodeColumn = 1_usize;
-                    while barcodeColumn < self.barcodeColumnCount as usize + 1
-                        && invalidRowCounts < ADJUST_ROW_NUMBER_SKIP
-                    {
-                        // for (int barcodeColumn = 1;
-                        //      barcodeColumn < barcodeColumnCount + 1 && invalidRowCounts < ADJUST_ROW_NUMBER_SKIP;
-                        //      barcodeColumn++) {
-                        if let Some(bc_column) = &self.detectionRXingResultColumns[barcodeColumn] {
-                            if let Some(codeword) = bc_column.getCodewords()[codewordsRow] {
-                                invalidRowCounts = Self::adjustRowNumberIfValid(
-                                    rowIndicatorRowNumber,
-                                    invalidRowCounts,
-                                    &mut Some(codeword),
-                                );
-                                if !codeword.hasValidRowNumber() {
-                                    unadjustedCount += 1;
-                                }
-                            }
-                        }
-                        // let codeword = self.detectionRXingResultColumns[barcodeColumn].getCodewords()[codewordsRow];
-                        // if (codeword != null) {
-                        //   invalidRowCounts = adjustRowNumberIfValid(rowIndicatorRowNumber, invalidRowCounts, codeword);
-                        //   if (!codeword.hasValidRowNumber()) {
-                        //     unadjustedCount+=1;
-                        //   }
-                        // }
-                        barcodeColumn += 1;
-                    }
-                } else {
-                    continue;
-                }
-                // if (codewords[codewordsRow] == null) {
-                //   continue;
-                // }
-                // let rowIndicatorRowNumber = codewords[codewordsRow].getRowNumber();
-                // let invalidRowCounts = 0;
+    fn adjustRowNumbersFromLRI(&mut self) -> u32 {
+        if self.detectionRXingResultColumns[0].is_none() {
+            return 0;
+        }
+
+        // if let Some(col) = &self.detectionRXingResultColumns[0] {
+        let mut unadjustedCount = 0;
+        let codewords_len = self.detectionRXingResultColumns[0]
+            .as_ref()
+            .unwrap()
+            .getCodewords()
+            .len();
+        for codewordsRow in 0..codewords_len {
+            // for (int codewordsRow = 0; codewordsRow < codewords.length; codewordsRow++) {
+            // if let Some(codeword_in_row) = codewords[codewordsRow] {
+            if self.detectionRXingResultColumns[0]
+                .as_ref()
+                .unwrap()
+                .getCodewords()[codewordsRow]
+                .is_none()
+            {
+                continue;
+            }
+            let rowIndicatorRowNumber = self.detectionRXingResultColumns[0]
+                .as_ref()
+                .unwrap()
+                .getCodewords()[codewordsRow]
+                .as_ref()
+                .unwrap()
+                .getRowNumber();
+            let mut invalidRowCounts = 0;
+            let mut barcodeColumn = 1_usize;
+            while barcodeColumn < self.barcodeColumnCount as usize + 1
+                && invalidRowCounts < ADJUST_ROW_NUMBER_SKIP
+            {
                 // for (int barcodeColumn = 1;
                 //      barcodeColumn < barcodeColumnCount + 1 && invalidRowCounts < ADJUST_ROW_NUMBER_SKIP;
                 //      barcodeColumn++) {
-                //   Codeword codeword = detectionRXingResultColumns[barcodeColumn].getCodewords()[codewordsRow];
-                //   if (codeword != null) {
-                //     invalidRowCounts = adjustRowNumberIfValid(rowIndicatorRowNumber, invalidRowCounts, codeword);
-                //     if (!codeword.hasValidRowNumber()) {
-                //       unadjustedCount++;
-                //     }
+                if let Some(bc_column) = &mut self.detectionRXingResultColumns[barcodeColumn] {
+                    if let Some(codeword) = &mut bc_column.getCodewordsMut()[codewordsRow] {
+                        invalidRowCounts = Self::adjustRowNumberIfValid(
+                            rowIndicatorRowNumber,
+                            invalidRowCounts,
+                            codeword,
+                        );
+                        if !codeword.hasValidRowNumber() {
+                            unadjustedCount += 1;
+                        }
+                    }
+                }
+                // let codeword = self.detectionRXingResultColumns[barcodeColumn].getCodewords()[codewordsRow];
+                // if (codeword != null) {
+                //   invalidRowCounts = adjustRowNumberIfValid(rowIndicatorRowNumber, invalidRowCounts, codeword);
+                //   if (!codeword.hasValidRowNumber()) {
+                //     unadjustedCount+=1;
                 //   }
                 // }
+                barcodeColumn += 1;
             }
-            unadjustedCount
-        } else {
-            0
+            // } else {
+            //     continue;
+            // }
+            // if (codewords[codewordsRow] == null) {
+            //   continue;
+            // }
+            // let rowIndicatorRowNumber = codewords[codewordsRow].getRowNumber();
+            // let invalidRowCounts = 0;
+            // for (int barcodeColumn = 1;
+            //      barcodeColumn < barcodeColumnCount + 1 && invalidRowCounts < ADJUST_ROW_NUMBER_SKIP;
+            //      barcodeColumn++) {
+            //   Codeword codeword = detectionRXingResultColumns[barcodeColumn].getCodewords()[codewordsRow];
+            //   if (codeword != null) {
+            //     invalidRowCounts = adjustRowNumberIfValid(rowIndicatorRowNumber, invalidRowCounts, codeword);
+            //     if (!codeword.hasValidRowNumber()) {
+            //       unadjustedCount++;
+            //     }
+            //   }
+            // }
         }
+        unadjustedCount
+        // } else {
+        //     0
+        // }
 
         // if (detectionRXingResultColumns[0] == null) {
         //   return 0;
@@ -404,21 +451,21 @@ impl DetectionRXingResult {
     fn adjustRowNumberIfValid(
         rowIndicatorRowNumber: i32,
         mut invalidRowCounts: u32,
-        codeword: &mut Option<Codeword>,
+        codeword: &mut Codeword,
     ) -> u32 {
-        if let Some(codeword) = codeword {
-            if !codeword.hasValidRowNumber() {
-                if codeword.isValidRowNumber(rowIndicatorRowNumber) {
-                    codeword.setRowNumber(rowIndicatorRowNumber);
-                    invalidRowCounts = 0;
-                } else {
-                    invalidRowCounts += 1;
-                }
+        // if let Some(codeword) = codeword {
+        if !codeword.hasValidRowNumber() {
+            if codeword.isValidRowNumber(rowIndicatorRowNumber) {
+                codeword.setRowNumber(rowIndicatorRowNumber);
+                invalidRowCounts = 0;
+            } else {
+                invalidRowCounts += 1;
             }
-            invalidRowCounts
-        } else {
-            invalidRowCounts
         }
+        invalidRowCounts
+        // } else {
+        //     invalidRowCounts
+        // }
         // if (codeword == null) {
         //   return invalidRowCounts;
         // }
@@ -547,6 +594,13 @@ impl DetectionRXingResult {
         barcodeColumn: usize,
     ) -> &Option<Box<dyn DetectionRXingResultColumnTrait>> {
         &self.detectionRXingResultColumns[barcodeColumn]
+    }
+
+    pub fn getDetectionRXingResultColumnMut(
+        &mut self,
+        barcodeColumn: usize,
+    ) -> &mut Option<Box<dyn DetectionRXingResultColumnTrait>> {
+        &mut self.detectionRXingResultColumns[barcodeColumn]
     }
 }
 

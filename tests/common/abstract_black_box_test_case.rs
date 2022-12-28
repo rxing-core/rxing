@@ -16,14 +16,17 @@
 
 use std::{
     collections::HashMap,
-    fs::{read_dir, read_to_string},
+    fs::{read_dir, read_to_string, File},
+    io::Read,
     path::{Path, PathBuf},
     rc::Rc,
 };
 
+use encoding::Encoding;
 use rxing::{
-    common::HybridBinarizer, BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
-    DecodeHintType, DecodeHintValue, RXingResultMetadataType, RXingResultMetadataValue, Reader, pdf417::PDF417RXingResultMetadata,
+    common::HybridBinarizer, pdf417::PDF417RXingResultMetadata, BarcodeFormat, BinaryBitmap,
+    BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue, RXingResultMetadataType,
+    RXingResultMetadataValue, Reader,
 };
 
 use super::TestRXingResult;
@@ -208,7 +211,9 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                         RXingResultMetadataValue::UpcEanExtension(v)
                     }
                     RXingResultMetadataType::PDF417_EXTRA_METADATA => {
-                        RXingResultMetadataValue::Pdf417ExtraMetadata(Rc::new(PDF417RXingResultMetadata::default()))
+                        RXingResultMetadataValue::Pdf417ExtraMetadata(Rc::new(
+                            PDF417RXingResultMetadata::default(),
+                        ))
                     }
                     RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE => {
                         RXingResultMetadataValue::StructuredAppendSequence(
@@ -222,7 +227,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                     }
                     RXingResultMetadataType::SYMBOLOGY_IDENTIFIER => {
                         RXingResultMetadataValue::SymbologyIdentifier(v)
-                    },
+                    }
                 };
             }
 
@@ -474,7 +479,20 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
     }
 
     fn read_file_as_string(file: PathBuf) -> Result<String, std::io::Error> {
-        let string_contents = read_to_string(&file)?; //new String(Files.readAllBytes(file), charset);
+        let string_contents = if let Some(ext) = file.extension() {
+            if ext == "bin" {
+                let mut buffer: Vec<u8> = Vec::new();
+                File::open(&file)?.read_to_end(&mut buffer)?;
+                encoding::all::ISO_8859_1
+                    .decode(&buffer, encoding::DecoderTrap::Replace)
+                    .expect("decode")
+            } else {
+                read_to_string(&file).expect("ok")
+            }
+        } else {
+            "".to_owned()
+        };
+        // let string_contents = read_to_string(&file)?; //new String(Files.readAllBytes(file), charset);
         if string_contents.ends_with('\n') {
             log::info(format!("String contents of file {} end with a newline. This may not be intended and cause a test failure",file.to_string_lossy()));
         }

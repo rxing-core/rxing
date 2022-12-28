@@ -24,7 +24,7 @@ use crate::pdf417::pdf_417_common;
 // const RATIOS_TABLE :[[f32]] =
 //   [[0.0;pdf_417_common::SYMBOL_TABLE.len()];pdf_417_common::BARS_IN_MODULE];
 
-const RATIOS_TABLE: [[f64; pdf_417_common::BARS_IN_MODULE as usize]; 2787] = {
+const RATIOS_TABLE: [[f32; pdf_417_common::BARS_IN_MODULE as usize]; 2787] = {
     let mut table =
         [[0.0; pdf_417_common::BARS_IN_MODULE as usize]; pdf_417_common::SYMBOL_TABLE.len()];
     // Pre-computes the symbol ratio table.
@@ -43,7 +43,7 @@ const RATIOS_TABLE: [[f64; pdf_417_common::BARS_IN_MODULE as usize]; 2787] = {
             }
             currentBit = currentSymbol & 0x1;
             table[i][pdf_417_common::BARS_IN_MODULE as usize - j - 1] =
-                size / pdf_417_common::MODULES_IN_CODEWORD as f64;
+                size / pdf_417_common::MODULES_IN_CODEWORD as f32;
 
             j += 1;
         }
@@ -70,8 +70,8 @@ fn sampleBitCounts(moduleBitCount: &[u32]) -> [u32; 8] {
     for i in 0..pdf_417_common::MODULES_IN_CODEWORD {
         // for (int i = 0; i < PDF417Common.MODULES_IN_CODEWORD; i++) {
         let sampleIndex: f32 = bitCountSum as f32
-            / (2 * pdf_417_common::MODULES_IN_CODEWORD) as f32
-            + (i * bitCountSum) as f32 / pdf_417_common::MODULES_IN_CODEWORD as f32;
+            / (2.0 * pdf_417_common::MODULES_IN_CODEWORD as f32)
+            + (i as f32 * bitCountSum as f32) / pdf_417_common::MODULES_IN_CODEWORD as f32;
         if sumPreviousBits as f32 + moduleBitCount[bitCountIndex] as f32 <= sampleIndex {
             sumPreviousBits += moduleBitCount[bitCountIndex];
             bitCountIndex += 1;
@@ -108,15 +108,15 @@ fn getClosestDecodedValue(moduleBitCount: &[u32]) -> i32 {
     if bitCountSum > 1 {
         for i in 0..bitCountRatios.len() {
             // for (int i = 0; i < bitCountRatios.length; i++) {
-            bitCountRatios[i] = moduleBitCount[i] as f64 / bitCountSum as f64;
+            bitCountRatios[i] = moduleBitCount[i] as f32 / bitCountSum as f32;
         }
     }
-    let mut bestMatchError = f64::MAX;
+    let mut bestMatchError = f32::MAX;
     let mut bestMatch = -1_i32;
     for j in 0..RATIOS_TABLE.len() {
         // for (int j = 0; j < RATIOS_TABLE.length; j++) {
         let mut error = 0.0;
-        let ratioTableRow = RATIOS_TABLE[j];
+        let ratioTableRow = &RATIOS_TABLE[j];
         for k in 0..pdf_417_common::BARS_IN_MODULE as usize {
             // for (int k = 0; k < PDF417Common.BARS_IN_MODULE; k++) {
             let diff = ratioTableRow[k] - bitCountRatios[k];
@@ -131,4 +131,58 @@ fn getClosestDecodedValue(moduleBitCount: &[u32]) -> i32 {
         }
     }
     bestMatch
+}
+
+#[cfg(test)]
+mod test {
+    use crate::pdf417::decoder::pdf_417_codeword_decoder::getDecodedValue;
+
+    #[test]
+    fn test_cw_227() {
+        let sample_data = [2, 2, 3, 1, 6, 4, 3, 4];
+        assert_ne!(getDecodedValue(&sample_data), 110360);
+        assert_eq!(getDecodedValue(&sample_data), 93980);
+    }
+
+    #[test]
+    fn test_2() {
+        let sample = [2, 1, 4, 2, 5, 3, 7, 2];
+        assert_ne!(95134, getDecodedValue(&sample));
+    }
+
+    #[test]
+    fn test_128268() {
+        let sample = [7, 2, 1, 2, 2, 5, 3, 3];
+        assert_eq!(128268, getDecodedValue(&sample));
+    }
+
+    #[test]
+    fn test_125304() {
+        let sample = [6, 1, 2, 2, 2, 2, 6, 4];
+        assert_eq!(125304, getDecodedValue(&sample));
+    }
+
+    #[test]
+    fn test_125216() {
+        let sample = [6, 1, 2, 2, 2, 3, 2, 7];
+        assert_eq!(125216, getDecodedValue(&sample));
+    }
+
+    #[test]
+    fn test_83768() {
+        let sample = [1, 2, 1, 4, 5, 3, 5, 4];
+        assert_eq!(83768, getDecodedValue(&sample));
+    }
+
+    #[test]
+    fn test_96060() {
+        let sample = [2, 1, 4, 2, 5, 3, 7, 2];
+        assert_eq!(96060, getDecodedValue(&sample));
+    }
+
+    #[test]
+    fn test_97372() {
+        let sample = [3, 1, 7, 4, 2, 2, 4, 2];
+        assert_eq!(97372, getDecodedValue(&sample));
+    }
 }
