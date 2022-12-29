@@ -367,12 +367,8 @@ impl Detector {
 
         let steep = (toY - fromY).abs() > (toX - fromX).abs();
         if steep {
-            let mut temp = fromX;
-            fromX = fromY;
-            fromY = temp;
-            temp = toX;
-            toX = toY;
-            toY = temp;
+            std::mem::swap(&mut fromX, &mut fromY);
+            std::mem::swap(&mut toX, &mut toY);
         }
 
         let dx = (toX - fromX).abs();

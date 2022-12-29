@@ -385,12 +385,8 @@ impl Detector {
         // see http://en.wikipedia.org/wiki/Bresenham's_line_algorithm
         let steep = (toY as i64 - fromY as i64).abs() > (toX as i64 - fromX as i64).abs();
         if steep {
-            let mut temp = fromX;
-            fromX = fromY;
-            fromY = temp;
-            temp = toX;
-            toX = toY;
-            toY = temp;
+            std::mem::swap(&mut fromX, &mut fromY);
+            std::mem::swap(&mut toX, &mut toY);
         }
 
         let dx: i32 = (toX as i64 - fromX as i64).abs() as i32;
