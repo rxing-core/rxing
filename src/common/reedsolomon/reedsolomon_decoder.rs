@@ -97,7 +97,9 @@ impl ReedSolomonDecoder {
             //for (int i = 0; i < errorLocations.length; i++) {
             let log_value = self.field.log(errorLocations[i] as i32)?;
             if log_value > received.len() as i32 - 1 {
-                return Ok(0);
+                return Err(Exceptions::ReedSolomonException(
+                    "Bad error location".to_owned(),
+                ));
             }
             let position: isize = received.len() as isize - 1 - log_value as isize;
             if position < 0 {

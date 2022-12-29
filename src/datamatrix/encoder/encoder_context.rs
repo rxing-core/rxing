@@ -37,7 +37,16 @@ pub struct EncoderContext<'a> {
     skipAtEnd: u32,
 }
 
-impl EncoderContext<'_> {
+impl<'a> EncoderContext<'_> {
+    pub fn with_symbol_info_lookup(
+        msg: &str,
+        symbol_lookup: Rc<SymbolInfoLookup<'a>>,
+    ) -> Result<EncoderContext<'a>, Exceptions> {
+        let mut new_self = EncoderContext::new(msg)?;
+        new_self.symbol_lookup = symbol_lookup.clone();
+        Ok(new_self)
+    }
+
     pub fn new(msg: &str) -> Result<Self, Exceptions> {
         //From this point on Strings are not Unicode anymore!
         // let msgBinary = ISO_8859_1_ENCODER.encode(msg, encoding::EncoderTrap::Strict).expect("encode to bytes");//msg.getBytes(StandardCharsets.ISO_8859_1);

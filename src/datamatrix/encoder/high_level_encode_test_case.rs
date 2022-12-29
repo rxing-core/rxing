@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use std::rc::Rc;
+
 use lazy_static::lazy_static;
 
 use crate::datamatrix::encoder::{SymbolInfo, SymbolShapeHint};
@@ -38,15 +40,17 @@ lazy_static! {
 
 // const SIL: SymbolInfoLookup = SymbolInfoLookup::new();
 
-// fn useTestSymbols(lookup: SymbolInfoLookup) -> SymbolInfoLookup {
-//     lookup.overrideSymbolSet(&TEST_SYMBOLS);
-//     lookup
-// }
+fn useTestSymbols(lookup: SymbolInfoLookup) -> SymbolInfoLookup {
+    let mut lookup = lookup;
+    lookup.overrideSymbolSet(&TEST_SYMBOLS);
+    lookup
+}
 
-// fn resetSymbols(lookup: SymbolInfoLookup) -> SymbolInfoLookup {
-//     lookup.overrideSymbolSet(&symbol_info::PROD_SYMBOLS);
-//     lookup
-// }
+fn resetSymbols(lookup: SymbolInfoLookup) -> SymbolInfoLookup {
+    let mut lookup = lookup;
+    lookup.overrideSymbolSet(&symbol_info::PROD_SYMBOLS);
+    lookup
+}
 
 #[test]
 fn testASCIIEncodation() {
@@ -110,34 +114,37 @@ fn testC40EncodationSpecExample() {
 
 #[test]
 fn testC40EncodationSpecialCases1() {
-    unimplemented!();
-    // //Special tests avoiding ultra-long test strings because these tests are only used
-    // //with the 16x48 symbol (47 data codewords)
-    // useTestSymbols();
+    //Special tests avoiding ultra-long test strings because these tests are only used
+    //with the 16x48 symbol (47 data codewords)
+    let substitute_symbols = SymbolInfoLookup::new();
+    let substitute_symbols = useTestSymbols(substitute_symbols);
 
-    // let visualized = encodeHighLevelCompare("AIMAIMAIMAIMAIMAIM", false);
-    // assert_eq!("230 91 11 91 11 91 11 91 11 91 11 91 11", visualized);
-    // //case "a": Unlatch is not required
+    let sil = Rc::new(substitute_symbols.clone());
 
-    // visualized = encodeHighLevelCompare("AIMAIMAIMAIMAIMAI", false);
-    // assert_eq!("230 91 11 91 11 91 11 91 11 91 11 90 241", visualized);
-    // //case "b": Add trailing shift 0 and Unlatch is not required
+    let visualized = encodeHighLevelCompareSIL("AIMAIMAIMAIMAIMAIM", false, Some(sil.clone()));
+    assert_eq!("230 91 11 91 11 91 11 91 11 91 11 91 11", visualized);
+    //case "a": Unlatch is not required
 
-    // visualized = encodeHighLevel("AIMAIMAIMAIMAIMA");
-    // assert_eq!("230 91 11 91 11 91 11 91 11 91 11 254 66", visualized);
-    // //case "c": Unlatch and write last character in ASCII
+    let visualized = encodeHighLevelCompareSIL("AIMAIMAIMAIMAIMAI", false, Some(sil.clone()));
+    assert_eq!("230 91 11 91 11 91 11 91 11 91 11 90 241", visualized);
+    //case "b": Add trailing shift 0 and Unlatch is not required
 
-    // resetSymbols();
+    let visualized = encodeHighLevelSIL("AIMAIMAIMAIMAIMA", sil.clone());
+    assert_eq!("230 91 11 91 11 91 11 91 11 91 11 254 66", visualized);
+    //case "c": Unlatch and write last character in ASCII
 
-    // visualized = encodeHighLevel("AIMAIMAIMAIMAIMAI");
-    // assert_eq!(
-    //     "230 91 11 91 11 91 11 91 11 91 11 254 66 74 129 237",
-    //     visualized
-    // );
+    let substitute_symbols = resetSymbols(substitute_symbols);
+    let sil = Rc::new(substitute_symbols);
 
-    // visualized = encodeHighLevel("AIMAIMAIMA");
-    // assert_eq!("230 91 11 91 11 91 11 66", visualized);
-    // //case "d": Skip Unlatch and write last character in ASCII
+    let visualized = encodeHighLevelSIL("AIMAIMAIMAIMAIMAI", sil.clone());
+    assert_eq!(
+        "230 91 11 91 11 91 11 91 11 91 11 254 66 74 129 237",
+        visualized
+    );
+
+    let visualized = encodeHighLevelSIL("AIMAIMAIMA", sil);
+    assert_eq!("230 91 11 91 11 91 11 66", visualized);
+    //case "d": Skip Unlatch and write last character in ASCII
 }
 
 #[test]
@@ -556,8 +563,16 @@ fn encodeHighLevel(msg: &str) -> String {
     encodeHighLevelCompare(msg, true)
 }
 
-fn encodeHighLevelCompare(msg: &str, compareSizeToMinimalEncoder: bool) -> String {
-    let encoded = high_level_encoder::encodeHighLevel(msg).expect("encodes");
+fn encodeHighLevelSIL(msg: &str, sil: Rc<SymbolInfoLookup>) -> String {
+    encodeHighLevelCompareSIL(msg, true, Some(sil))
+}
+
+fn encodeHighLevelCompareSIL(
+    msg: &str,
+    compareSizeToMinimalEncoder: bool,
+    sil: Option<Rc<SymbolInfoLookup>>,
+) -> String {
+    let encoded = high_level_encoder::encodeHighLevelSIL(msg, sil).expect("encodes");
     let encoded2 = minimal_encoder::encodeHighLevel(msg).expect("encodes");
     assert!(
         !compareSizeToMinimalEncoder || encoded2.chars().count() <= encoded.chars().count(),
@@ -566,6 +581,10 @@ fn encodeHighLevelCompare(msg: &str, compareSizeToMinimalEncoder: bool) -> Strin
         encoded.chars().count()
     );
     visualize(&encoded)
+}
+
+fn encodeHighLevelCompare(msg: &str, compareSizeToMinimalEncoder: bool) -> String {
+    encodeHighLevelCompareSIL(msg, compareSizeToMinimalEncoder, None)
 }
 
 /**

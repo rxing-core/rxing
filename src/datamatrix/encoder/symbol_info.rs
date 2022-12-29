@@ -255,6 +255,7 @@ impl fmt::Display for SymbolInfo {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct SymbolInfoLookup<'a>(Option<&'a Vec<SymbolInfo>>);
 impl<'a> SymbolInfoLookup<'a> {
     pub const fn new() -> Self {

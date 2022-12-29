@@ -22,7 +22,7 @@ use crate::{Dimension, Exceptions};
 
 use super::{
     ASCIIEncoder, Base256Encoder, C40Encoder, EdifactEncoder, Encoder, EncoderContext,
-    SymbolShapeHint, TextEncoder, X12Encoder,
+    SymbolInfoLookup, SymbolShapeHint, TextEncoder, X12Encoder,
 };
 const DEFAULT_ENCODING: EncodingRef = encoding::all::ISO_8859_1;
 
@@ -140,6 +140,27 @@ pub fn encodeHighLevel(msg: &str) -> Result<String, Exceptions> {
  * Performs message encoding of a DataMatrix message using the algorithm described in annex P
  * of ISO/IEC 16022:2000(E).
  *
+ * @param msg the message
+ * @return the encoded message (the char values range from 0 to 255)
+ */
+pub fn encodeHighLevelSIL(
+    msg: &str,
+    symbol_lookup: Option<Rc<SymbolInfoLookup>>,
+) -> Result<String, Exceptions> {
+    encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
+        msg,
+        SymbolShapeHint::FORCE_NONE,
+        None,
+        None,
+        false,
+        symbol_lookup,
+    )
+}
+
+/**
+ * Performs message encoding of a DataMatrix message using the algorithm described in annex P
+ * of ISO/IEC 16022:2000(E).
+ *
  * @param msg     the message
  * @param shape   requested shape. May be {@code SymbolShapeHint.FORCE_NONE},
  *                {@code SymbolShapeHint.FORCE_SQUARE} or {@code SymbolShapeHint.FORCE_RECTANGLE}.
@@ -155,24 +176,14 @@ pub fn encodeHighLevelWithDimension(
 ) -> Result<String, Exceptions> {
     encodeHighLevelWithDimensionForceC40(msg, shape, minSize, maxSize, false)
 }
-/**
- * Performs message encoding of a DataMatrix message using the algorithm described in annex P
- * of ISO/IEC 16022:2000(E).
- *
- * @param msg     the message
- * @param shape   requested shape. May be {@code SymbolShapeHint.FORCE_NONE},
- *                {@code SymbolShapeHint.FORCE_SQUARE} or {@code SymbolShapeHint.FORCE_RECTANGLE}.
- * @param minSize the minimum symbol size constraint or null for no constraint
- * @param maxSize the maximum symbol size constraint or null for no constraint
- * @param forceC40 enforce C40 encoding
- * @return the encoded message (the char values range from 0 to 255)
- */
-pub fn encodeHighLevelWithDimensionForceC40(
+
+pub fn encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
     msg: &str,
     shape: SymbolShapeHint,
     minSize: Option<Dimension>,
     maxSize: Option<Dimension>,
     forceC40: bool,
+    symbol_lookup: Option<Rc<SymbolInfoLookup>>,
 ) -> Result<String, Exceptions> {
     //the codewords 0..255 are encoded as Unicode characters
     let c40Encoder = Rc::new(C40Encoder::new());
@@ -185,7 +196,12 @@ pub fn encodeHighLevelWithDimensionForceC40(
         Rc::new(Base256Encoder::new()),
     ];
 
-    let mut context = EncoderContext::new(msg)?;
+    let mut context = if let Some(symbol_table) = symbol_lookup {
+        EncoderContext::with_symbol_info_lookup(msg, symbol_table)?
+    } else {
+        EncoderContext::new(msg)?
+    };
+    // let mut context = EncoderContext::new(msg)?;
     context.setSymbolShape(shape);
     context.setSizeConstraints(minSize, maxSize);
 
@@ -239,6 +255,30 @@ pub fn encodeHighLevelWithDimensionForceC40(
     }
 
     Ok(context.getCodewords().to_owned())
+}
+
+/**
+ * Performs message encoding of a DataMatrix message using the algorithm described in annex P
+ * of ISO/IEC 16022:2000(E).
+ *
+ * @param msg     the message
+ * @param shape   requested shape. May be {@code SymbolShapeHint.FORCE_NONE},
+ *                {@code SymbolShapeHint.FORCE_SQUARE} or {@code SymbolShapeHint.FORCE_RECTANGLE}.
+ * @param minSize the minimum symbol size constraint or null for no constraint
+ * @param maxSize the maximum symbol size constraint or null for no constraint
+ * @param forceC40 enforce C40 encoding
+ * @return the encoded message (the char values range from 0 to 255)
+ */
+pub fn encodeHighLevelWithDimensionForceC40(
+    msg: &str,
+    shape: SymbolShapeHint,
+    minSize: Option<Dimension>,
+    maxSize: Option<Dimension>,
+    forceC40: bool,
+) -> Result<String, Exceptions> {
+    encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
+        msg, shape, minSize, maxSize, forceC40, None,
+    )
 }
 
 pub fn lookAheadTest(msg: &str, startpos: u32, currentMode: u32) -> usize {
