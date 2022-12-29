@@ -203,6 +203,12 @@ impl BitMatrix {
         return ((self.bits[offset] >> (x & 0x1f)) & 1) != 0;
     }
 
+    pub fn try_get(&self, x: u32, y: u32) -> Result<bool,Exceptions> {
+        let offset = y as usize * self.row_size + (x as usize / 32);
+        if offset > self.bits.len() { return Err(Exceptions::IndexOutOfBoundsException("".to_owned()))}
+        return Ok(((self.bits[offset] >> (x & 0x1f)) & 1) != 0);
+    }
+
     /**
      * <p>Sets the given bit to true.</p>
      *

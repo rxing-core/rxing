@@ -88,6 +88,7 @@ fn qrcode_black_box4_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/qrcode-4",
         MultiFormatReader::default(),
+        // QRCodeReader::new(),
         BarcodeFormat::QR_CODE,
     );
     tester.add_test(36, 36, 0.0);
