@@ -817,7 +817,9 @@ fn adjustCodewordStartColumn(
                 return codewordStartColumn;
             }
             correctedStartColumn = (correctedStartColumn as i32 + increment) as u32;
-            if let Err(_) = image.try_get(correctedStartColumn, imageRow){return 0}
+            if let Err(_) = image.try_get(correctedStartColumn, imageRow) {
+                return 0;
+            }
         }
         increment = -increment;
         leftToRight = !leftToRight;
