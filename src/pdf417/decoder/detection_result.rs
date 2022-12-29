@@ -492,27 +492,31 @@ impl DetectionRXingResult {
         codewordsColumn: usize,
         // codewords: &mut [Option<Codeword>],
     ) {
-        let codewords = self.detectionRXingResultColumns[codewordsColumn]
+        // let codewords = self.detectionRXingResultColumns[codewordsColumn]
+        //     .as_mut()
+        //     .unwrap()
+        //     .getCodewordsMut();
+
+        let codewords_len = self.detectionRXingResultColumns[codewordsColumn]
             .as_mut()
             .unwrap()
-            .getCodewordsMut();
+            .getCodewordsMut()
+            .len();
 
-        let codewords_len = codewords.len();
-
-        let codeword = &mut codewords[codewordsRow];
+        // let codeword = &mut codewords[codewordsRow];
 
         let previousColumnCodewords = self.detectionRXingResultColumns[barcodeColumn - 1]
             .as_ref()
             .unwrap()
-            .getCodewords();
+            .getCodewords().to_vec();
 
-        let mut nextColumnCodewords = previousColumnCodewords;
+        let mut nextColumnCodewords = previousColumnCodewords.clone();
 
         if self.detectionRXingResultColumns[barcodeColumn + 1].is_some() {
             nextColumnCodewords = self.detectionRXingResultColumns[barcodeColumn + 1]
                 .as_ref()
                 .unwrap()
-                .getCodewords(); //col.getCodewords();
+                .getCodewords().to_vec(); //col.getCodewords();
         }
         // if (self.detectionRXingResultColumns[barcodeColumn + 1] != null) {
         //   nextColumnCodewords = self.detectionRXingResultColumns[barcodeColumn + 1].getCodewords();
@@ -524,27 +528,47 @@ impl DetectionRXingResult {
         otherCodewords[3] = nextColumnCodewords[codewordsRow];
 
         if codewordsRow > 0 {
-            otherCodewords[0] = codewords[codewordsRow - 1];
+            otherCodewords[0] = self.detectionRXingResultColumns[codewordsColumn]
+                .as_mut()
+                .unwrap()
+                .getCodewordsMut()[codewordsRow - 1];
             otherCodewords[4] = previousColumnCodewords[codewordsRow - 1];
             otherCodewords[5] = nextColumnCodewords[codewordsRow - 1];
         }
         if codewordsRow > 1 {
-            otherCodewords[8] = codewords[codewordsRow - 2];
+            otherCodewords[8] = self.detectionRXingResultColumns[codewordsColumn]
+                .as_mut()
+                .unwrap()
+                .getCodewordsMut()[codewordsRow - 2];
             otherCodewords[10] = previousColumnCodewords[codewordsRow - 2];
             otherCodewords[11] = nextColumnCodewords[codewordsRow - 2];
         }
         if codewordsRow < codewords_len - 1 {
-            otherCodewords[1] = codewords[codewordsRow + 1];
+            otherCodewords[1] = self.detectionRXingResultColumns[codewordsColumn]
+                .as_mut()
+                .unwrap()
+                .getCodewordsMut()[codewordsRow + 1];
             otherCodewords[6] = previousColumnCodewords[codewordsRow + 1];
             otherCodewords[7] = nextColumnCodewords[codewordsRow + 1];
         }
         if codewordsRow < codewords_len - 2 {
-            otherCodewords[9] = codewords[codewordsRow + 2];
+            otherCodewords[9] = self.detectionRXingResultColumns[codewordsColumn]
+                .as_mut()
+                .unwrap()
+                .getCodewordsMut()[codewordsRow + 2];
             otherCodewords[12] = previousColumnCodewords[codewordsRow + 2];
             otherCodewords[13] = nextColumnCodewords[codewordsRow + 2];
         }
         for otherCodeword in otherCodewords {
-            if Self::adjustRowNumber(codeword.as_mut().unwrap(), &otherCodeword) {
+            if Self::adjustRowNumber(
+                self.detectionRXingResultColumns[codewordsColumn]
+                    .as_mut()
+                    .unwrap()
+                    .getCodewordsMut()[codewordsRow]
+                    .as_mut()
+                    .unwrap(),
+                &otherCodeword,
+            ) {
                 return;
             }
         }
