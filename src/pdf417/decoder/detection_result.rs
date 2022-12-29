@@ -107,18 +107,23 @@ impl DetectionRXingResult {
         for barcodeColumn in 1..(self.barcodeColumnCount + 1) {
             // for (int barcodeColumn = 1; barcodeColumn < barcodeColumnCount + 1; barcodeColumn++) {
             if self.detectionRXingResultColumns[barcodeColumn].is_some() {
-                let codewords = self.detectionRXingResultColumns[barcodeColumn]
+                let codewords_len = self.detectionRXingResultColumns[barcodeColumn]
                     .as_ref()
                     .unwrap()
-                    .getCodewords();
-                for codewordsRow in 0..codewords.len() {
+                    .getCodewords()
+                    .len();
+                for codewordsRow in 0..codewords_len {
                     // for (int codewordsRow = 0; codewordsRow < codewords.length; codewordsRow++) {
-                    if let Some(cw_row) = codewords[codewordsRow] {
+                    if let Some(cw_row) = self.detectionRXingResultColumns[barcodeColumn]
+                        .as_ref()
+                        .unwrap()
+                        .getCodewords()[codewordsRow]
+                    {
                         if !cw_row.hasValidRowNumber() {
                             self.adjustRowNumbersWithCodewords(
                                 barcodeColumn,
                                 codewordsRow,
-                                codewords,
+                                barcodeColumn,
                             );
                         }
                     } else {
@@ -481,17 +486,28 @@ impl DetectionRXingResult {
     }
 
     fn adjustRowNumbersWithCodewords(
-        &self,
+        &mut self,
         barcodeColumn: usize,
         codewordsRow: usize,
-        codewords: &[Option<Codeword>],
+        codewordsColumn: usize,
+        // codewords: &mut [Option<Codeword>],
     ) {
-        let mut codeword = codewords[codewordsRow];
+        let codewords = self.detectionRXingResultColumns[codewordsColumn]
+            .as_mut()
+            .unwrap()
+            .getCodewordsMut();
+
+        let codewords_len = codewords.len();
+
+        let codeword = &mut codewords[codewordsRow];
+
         let previousColumnCodewords = self.detectionRXingResultColumns[barcodeColumn - 1]
             .as_ref()
             .unwrap()
             .getCodewords();
+
         let mut nextColumnCodewords = previousColumnCodewords;
+
         if self.detectionRXingResultColumns[barcodeColumn + 1].is_some() {
             nextColumnCodewords = self.detectionRXingResultColumns[barcodeColumn + 1]
                 .as_ref()
@@ -517,12 +533,12 @@ impl DetectionRXingResult {
             otherCodewords[10] = previousColumnCodewords[codewordsRow - 2];
             otherCodewords[11] = nextColumnCodewords[codewordsRow - 2];
         }
-        if codewordsRow < codewords.len() - 1 {
+        if codewordsRow < codewords_len - 1 {
             otherCodewords[1] = codewords[codewordsRow + 1];
             otherCodewords[6] = previousColumnCodewords[codewordsRow + 1];
             otherCodewords[7] = nextColumnCodewords[codewordsRow + 1];
         }
-        if codewordsRow < codewords.len() - 2 {
+        if codewordsRow < codewords_len - 2 {
             otherCodewords[9] = codewords[codewordsRow + 2];
             otherCodewords[12] = previousColumnCodewords[codewordsRow + 2];
             otherCodewords[13] = nextColumnCodewords[codewordsRow + 2];

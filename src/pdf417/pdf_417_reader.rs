@@ -160,9 +160,9 @@ impl PDF417Reader {
         Ok(results)
     }
 
-    fn getMaxWidth(p1: &Option<RXingResultPoint>, p2: &Option<RXingResultPoint>) -> u32 {
+    fn getMaxWidth(p1: &Option<RXingResultPoint>, p2: &Option<RXingResultPoint>) -> u64 {
         if let (Some(p1), Some(p2)) = (p1, p2) {
-            (p1.getX() - p2.getX()).abs() as u32
+            (p1.getX() - p2.getX()).abs() as u64
         } else {
             0
         }
@@ -172,11 +172,11 @@ impl PDF417Reader {
         // return (int) Math.abs(p1.getX() - p2.getX());
     }
 
-    fn getMinWidth(p1: &Option<RXingResultPoint>, p2: &Option<RXingResultPoint>) -> u32 {
+    fn getMinWidth(p1: &Option<RXingResultPoint>, p2: &Option<RXingResultPoint>) -> u64 {
         if let (Some(p1), Some(p2)) = (p1, p2) {
-            (p1.getX() - p2.getX()).abs() as u32
+            (p1.getX() - p2.getX()).abs() as u64
         } else {
-            u32::MAX
+            u32::MAX as u64
         }
         // if (p1 == null || p2 == null) {
         //   return Integer.MAX_VALUE;
@@ -187,24 +187,24 @@ impl PDF417Reader {
     fn getMaxCodewordWidth(p: &[Option<RXingResultPoint>]) -> u32 {
         Self::getMaxWidth(&p[0], &p[4])
             .max(
-                Self::getMaxWidth(&p[6], &p[2]) * pdf_417_common::MODULES_IN_CODEWORD
-                    / pdf_417_common::MODULES_IN_STOP_PATTERN,
+                Self::getMaxWidth(&p[6], &p[2]) * pdf_417_common::MODULES_IN_CODEWORD as u64
+                    / pdf_417_common::MODULES_IN_STOP_PATTERN as u64,
             )
             .max(Self::getMaxWidth(&p[1], &p[5]).max(
-                Self::getMaxWidth(&p[7], &p[3]) * pdf_417_common::MODULES_IN_CODEWORD
-                    / pdf_417_common::MODULES_IN_STOP_PATTERN,
-            ))
+                Self::getMaxWidth(&p[7], &p[3]) * pdf_417_common::MODULES_IN_CODEWORD as u64
+                    / pdf_417_common::MODULES_IN_STOP_PATTERN as u64,
+            )) as u32
     }
 
     fn getMinCodewordWidth(p: &[Option<RXingResultPoint>]) -> u32 {
         Self::getMinWidth(&p[0], &p[4])
             .min(
-                Self::getMinWidth(&p[6], &p[2]) * pdf_417_common::MODULES_IN_CODEWORD
-                    / pdf_417_common::MODULES_IN_STOP_PATTERN,
+                Self::getMinWidth(&p[6], &p[2]) * pdf_417_common::MODULES_IN_CODEWORD as u64
+                    / pdf_417_common::MODULES_IN_STOP_PATTERN as u64,
             )
             .min(Self::getMinWidth(&p[1], &p[5]).min(
-                Self::getMinWidth(&p[7], &p[3]) * pdf_417_common::MODULES_IN_CODEWORD
-                    / pdf_417_common::MODULES_IN_STOP_PATTERN,
-            ))
+                Self::getMinWidth(&p[7], &p[3]) * pdf_417_common::MODULES_IN_CODEWORD as u64
+                    / pdf_417_common::MODULES_IN_STOP_PATTERN as u64,
+            )) as u32
     }
 }
