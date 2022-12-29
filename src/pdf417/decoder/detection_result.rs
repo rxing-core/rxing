@@ -508,7 +508,8 @@ impl DetectionRXingResult {
         let previousColumnCodewords = self.detectionRXingResultColumns[barcodeColumn - 1]
             .as_ref()
             .unwrap()
-            .getCodewords().to_vec();
+            .getCodewords()
+            .to_vec();
 
         let mut nextColumnCodewords = previousColumnCodewords.clone();
 
@@ -516,7 +517,8 @@ impl DetectionRXingResult {
             nextColumnCodewords = self.detectionRXingResultColumns[barcodeColumn + 1]
                 .as_ref()
                 .unwrap()
-                .getCodewords().to_vec(); //col.getCodewords();
+                .getCodewords()
+                .to_vec(); //col.getCodewords();
         }
         // if (self.detectionRXingResultColumns[barcodeColumn + 1] != null) {
         //   nextColumnCodewords = self.detectionRXingResultColumns[barcodeColumn + 1].getCodewords();
