@@ -250,8 +250,10 @@ fn assertEqualOrNaN(expected: f64, actual: f64) {
 }
 
 fn format_date_string(timestamp: i64, format_string: &str) -> String {
-    NaiveDateTime::from_timestamp(timestamp, 0)
-        .format(format_string)
-        .to_string()
+    if let Some(dtm) = NaiveDateTime::from_timestamp_opt(timestamp, 0) {
+        dtm.format(format_string).to_string()
+    } else {
+        String::from("")
+    }
     // DateTime::from(timestamp,0).with_timezone(Utc).format(format_string).to_string()
 }

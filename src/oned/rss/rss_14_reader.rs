@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{detector::MathUtils, BitArray},
+    common::BitArray,
     oned::{one_d_reader, OneDReader},
     BarcodeFormat, DecodeHintType, DecodingHintDictionary, Exceptions, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader, ResultPoint,
@@ -250,7 +250,7 @@ impl RSS14Reader {
         row: &BitArray,
         right: bool,
         rowNumber: u32,
-        hints: &DecodingHintDictionary,
+        _hints: &DecodingHintDictionary,
     ) -> Option<Pair> {
         let pos_pair = || -> Result<Pair, Exceptions> {
             let startEnd = self.findFinderPattern(row, right)?;
@@ -464,9 +464,9 @@ impl RSS14Reader {
         }
         firstElementStart += 1;
         let firstCounter = startEnd[0] - firstElementStart as usize;
-        let  counters = &mut self.decodeFinderCounters;
+        let counters = &mut self.decodeFinderCounters;
         let counter_len = counters.len();
-        
+
         counters.copy_within(..counter_len - 1, 1);
         // Make 'counters' hold 1-4
         // let counters = self.getDecodeFinderCounters();

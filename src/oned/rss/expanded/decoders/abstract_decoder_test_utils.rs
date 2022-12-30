@@ -24,44 +24,62 @@
  *   http://www.piramidepse.com/
  */
 
-use crate::oned::rss::expanded::{
-    binary_util,
-    decoders::{abstract_expanded_decoder::createDecoder, AbstractExpandedDecoder},
-};
+use crate::oned::rss::expanded::{binary_util, decoders::abstract_expanded_decoder::createDecoder};
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  */
 
-pub const numeric10: &str = "..X..XX";
-pub const numeric12: &str = "..X.X.X";
-pub const numeric1FNC1: &str = "..XXX.X";
+#[allow(dead_code)]
+pub const NUMERIC10: &str = "..X..XX";
+#[allow(dead_code)]
+pub const NUMERIC12: &str = "..X.X.X";
+#[allow(dead_code)]
+pub const NUMERIC1_FNC1: &str = "..XXX.X";
 // static final String numericFNC11                  = "XXX.XXX";
 
-pub const numeric2alpha: &str = "....";
+#[allow(dead_code)]
+pub const NUMERIC2ALPHA: &str = "....";
 
-pub const alphaA: &str = "X.....";
-pub const alphaFNC1: &str = ".XXXX";
-pub const alpha2numeric: &str = "...";
-pub const alpha2isoiec646: &str = "..X..";
+#[allow(dead_code)]
+pub const ALPHA_A: &str = "X.....";
+#[allow(dead_code)]
+pub const ALPHA_FNC1: &str = ".XXXX";
+#[allow(dead_code)]
+pub const ALPHA2NUMERIC: &str = "...";
+#[allow(dead_code)]
+pub const ALPHA2ISOIEC646: &str = "..X..";
 
-pub const i646B: &str = "X.....X";
-pub const i646C: &str = "X....X.";
-pub const i646FNC1: &str = ".XXXX";
-pub const isoiec6462alpha: &str = "..X..";
+#[allow(dead_code)]
+pub const I646_B: &str = "X.....X";
+#[allow(dead_code)]
+pub const I646_C: &str = "X....X.";
+#[allow(dead_code)]
+pub const I646_FNC1: &str = ".XXXX";
+#[allow(dead_code)]
+pub const ISOIEC6462ALPHA: &str = "..X..";
 
-pub const compressedGtin900123456798908: &str = ".........X..XXX.X.X.X...XX.XXXXX.XXXX.X.";
-pub const compressedGtin900000000000008: &str = "........................................";
+#[allow(dead_code)]
+pub const COMPRESSED_GTIN900123456798908: &str = ".........X..XXX.X.X.X...XX.XXXXX.XXXX.X.";
+#[allow(dead_code)]
+pub const COMPRESSED_GTIN900000000000008: &str = "........................................";
 
-pub const compressed15bitWeight1750: &str = "....XX.XX.X.XX.";
-pub const compressed15bitWeight11750: &str = ".X.XX.XXXX..XX.";
-pub const compressed15bitWeight0: &str = "...............";
+#[allow(dead_code)]
+pub const COMPRESSED15BIT_WEIGHT1750: &str = "....XX.XX.X.XX.";
+#[allow(dead_code)]
+pub const COMPRESSED15BIT_WEIGHT11750: &str = ".X.XX.XXXX..XX.";
+#[allow(dead_code)]
+pub const COMPRESSED15BIT_WEIGHT0: &str = "...............";
 
-pub const compressed20bitWeight1750: &str = ".........XX.XX.X.XX.";
+#[allow(dead_code)]
+pub const COMPRESSED20BIT_WEIGHT1750: &str = ".........XX.XX.X.XX.";
 
-pub const compressedDateMarch12th2010: &str = "....XXXX.X..XX..";
-pub const compressedDateEnd: &str = "X..X.XX.........";
+#[allow(dead_code)]
+pub const COMPRESSED_DATE_MARCH12TH2010: &str = "....XXXX.X..XX..";
+#[allow(dead_code)]
+pub const COMPRESSED_DATE_END: &str = "X..X.XX.........";
 
+#[allow(dead_code)]
 pub fn assertCorrectBinaryString(binaryString: &str, expectedNumber: &str) {
     let binary = binary_util::buildBitArrayFromStringWithoutSpaces(binaryString).expect("built");
 

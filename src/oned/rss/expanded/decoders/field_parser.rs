@@ -23,17 +23,15 @@
  *
  *   http://www.piramidepse.com/
  */
-
+/**
+ * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
+ * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
+ */
 use std::collections::HashMap;
 
 use crate::Exceptions;
 
 use lazy_static::lazy_static;
-
-/**
- * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
- * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
- */
 
 lazy_static! {
 

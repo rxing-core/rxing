@@ -17,8 +17,8 @@
 use std::{collections::HashSet, path::PathBuf, rc::Rc};
 
 use crate::{
-    common::HybridBinarizer, BarcodeFormat, BinaryBitmap,
-    BufferedImageLuminanceSource, MultiFormatReader,
+    common::HybridBinarizer, BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
+    MultiFormatReader,
 };
 
 use super::{GenericMultipleBarcodeReader, MultipleBarcodeReader};

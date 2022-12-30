@@ -171,7 +171,7 @@ impl Code93Reader {
                         return Ok([patternStart, i]);
                     }
                     patternStart += (theCounters[0] + theCounters[1]) as usize;
-                    
+
                     theCounters.copy_within(2..(counterPosition - 1 + 2), 0);
                     // System.arraycopy(theCounters, 2, theCounters, 0, counterPosition - 1);
                     theCounters[counterPosition - 1] = 0;

@@ -27,7 +27,7 @@
 // import java.util.Locale;
 // import java.util.TimeZone;
 
-use chrono::{TimeZone, Utc};
+use chrono::{LocalResult, TimeZone, Utc};
 
 use crate::{client::result::ParsedRXingResult, BarcodeFormat, RXingResult};
 
@@ -500,8 +500,11 @@ fn test_vevent() {
 }
 
 fn format_date(year: i32, month: u32, day: u32) -> String {
-    let dtm = Utc.ymd(year, month, day);
-    dtm.format("%F").to_string()
+    if let LocalResult::Single(dtm) = Utc.with_ymd_and_hms(year, month, day, 0, 0, 0) {
+        dtm.format("%F").to_string()
+    } else {
+        String::from("")
+    }
     // Calendar cal = Calendar.getInstance();
     // cal.clear();
     // cal.set(year, month - 1, day);
@@ -509,8 +512,13 @@ fn format_date(year: i32, month: u32, day: u32) -> String {
 }
 
 fn format_time(year: i32, month: u32, day: u32, hour: u32, min: u32, sec: u32) -> String {
-    let dtm = Utc.ymd(year, month, day).and_hms(hour, min, sec);
-    dtm.format("%c").to_string()
+    if let LocalResult::Single(dtm) = Utc.with_ymd_and_hms(year, month, day, hour, min, sec) {
+        //Utc.ymd(year, month, day).and_hms(hour, min, sec);
+
+        dtm.format("%c").to_string()
+    } else {
+        String::from("")
+    }
     // Calendar cal = Calendar.getInstance();
     // cal.clear();
     // cal.set(year, month - 1, day, hour, min, sec);

@@ -48,7 +48,9 @@ impl DecodedNumeric {
     pub fn new(newPosition: usize, firstDigit: u32, secondDigit: u32) -> Result<Self, Exceptions> {
         // super(newPosition);
 
-        if /*firstDigit < 0 ||*/ firstDigit > 10 || /*secondDigit < 0 ||*/ secondDigit > 10 {
+        if
+        /*firstDigit < 0 ||*/
+        firstDigit > 10 || /*secondDigit < 0 ||*/ secondDigit > 10 {
             return Err(Exceptions::FormatException(
                 ".getFormatInstance();".to_owned(),
             ));

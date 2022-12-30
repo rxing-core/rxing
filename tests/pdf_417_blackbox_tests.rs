@@ -1,4 +1,4 @@
-use rxing::{MultiFormatReader};
+use rxing::MultiFormatReader;
 
 mod common;
 

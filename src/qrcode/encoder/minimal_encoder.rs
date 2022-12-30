@@ -713,7 +713,7 @@ impl Edge {
                 // }
                 size
             },
-            _encoders : encoders,
+            _encoders: encoders,
         }
         // this.mode = mode;
         // this.fromPosition = fromPosition;

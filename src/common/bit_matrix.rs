@@ -81,6 +81,7 @@ impl BitMatrix {
         // bits = new int[rowSize * height];
     }
 
+    #[allow(dead_code)]
     fn with_all_data(&self, width: u32, height: u32, rowSize: usize, bits: Vec<u32>) -> Self {
         Self {
             width,
@@ -168,7 +169,7 @@ impl BitMatrix {
         if bitsPos > rowStartPos {
             //if rowLength == -1 {
             if first_run {
-                first_run = false;
+                // first_run = false;
                 rowLength = bitsPos - rowStartPos;
             } else if bitsPos - rowStartPos != rowLength {
                 return Err(Exceptions::IllegalArgumentException(

@@ -354,13 +354,12 @@ impl<'a> SymbolInfoLookup<'a> {
 }
 
 mod tests {
-    use crate::{
-        datamatrix::encoder::{SymbolInfo, SymbolShapeHint},
-        Dimension,
-    };
+
+    use crate::{datamatrix::encoder::SymbolShapeHint, Dimension};
 
     use super::SymbolInfoLookup;
 
+    #[allow(dead_code)]
     const LOOKUP: SymbolInfoLookup = SymbolInfoLookup::new();
 
     /**

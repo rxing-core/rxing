@@ -36,9 +36,7 @@ use std::collections::HashMap;
 
 use crate::BarcodeFormat;
 
-use super::{
-    ExpandedProductParsedRXingResult, ParsedClientResult, ResultParser,
-};
+use super::{ExpandedProductParsedRXingResult, ParsedClientResult, ResultParser};
 
 /**
  * Parses strings of digits that represent a RSS Extended code.

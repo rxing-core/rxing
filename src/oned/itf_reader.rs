@@ -384,7 +384,7 @@ impl ITFReader {
                         return Ok([patternStart, x]);
                     }
                     patternStart += (counters[0] + counters[1]) as usize;
-                    
+
                     counters.copy_within(2..(counterPosition - 1 + 2), 0);
                     // System.arraycopy(counters, 2, counters, 0, counterPosition - 1);
                     counters[counterPosition - 1] = 0;

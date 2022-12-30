@@ -21,7 +21,7 @@ use crate::{
     RXingResultMetadataValue, RXingResultPoint,
 };
 
-use super::{upc_ean_reader, STAND_IN, UPCEANReader};
+use super::{upc_ean_reader, UPCEANReader, STAND_IN};
 
 /**
  * @see UPCEANExtension5Support

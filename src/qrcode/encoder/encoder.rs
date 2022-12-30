@@ -17,7 +17,6 @@
  * @author satorux@google.com (Satoru Takabayashi) - creator
  * @author dswitkin@google.com (Daniel Switkin) - ported from C++
  */
-
 use std::collections::HashMap;
 
 use encoding::EncodingRef;

@@ -27,7 +27,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{detector::MathUtils, BitArray},
+    common::BitArray,
     oned::{
         recordPattern, recordPatternInReverse,
         rss::{
@@ -287,6 +287,7 @@ impl RSSExpandedReader {
         [45, 135, 194, 160, 58, 174, 100, 89],
     ];
 
+    #[allow(dead_code)]
     const MAX_PAIRS: usize = 11;
 
     // Not private for testing
@@ -536,6 +537,7 @@ impl RSSExpandedReader {
 
     // Only used for unit testing
     #[cfg(test)]
+    #[allow(dead_code)]
     pub(crate) fn getRowsMut(&mut self) -> &mut [ExpandedRow] {
         &mut self.rows
     }

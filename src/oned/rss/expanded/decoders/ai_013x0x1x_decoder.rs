@@ -153,9 +153,9 @@ mod AI013X0X1XDecoderTest {
         let data = format!(
             "{}{}{}{}",
             HEADER310X11,
-            compressedGtin900123456798908,
-            compressed20bitWeight1750,
-            compressedDateEnd
+            COMPRESSED_GTIN900123456798908,
+            COMPRESSED20BIT_WEIGHT1750,
+            COMPRESSED_DATE_END
         );
         let expected = "(01)90012345678908(3100)001750";
 
@@ -167,9 +167,9 @@ mod AI013X0X1XDecoderTest {
         let data = format!(
             "{}{}{}{}",
             HEADER310X11,
-            compressedGtin900123456798908,
-            compressed20bitWeight1750,
-            compressedDateMarch12th2010
+            COMPRESSED_GTIN900123456798908,
+            COMPRESSED20BIT_WEIGHT1750,
+            COMPRESSED_DATE_MARCH12TH2010
         );
         let expected = "(01)90012345678908(3100)001750(11)100312";
 
@@ -181,9 +181,9 @@ mod AI013X0X1XDecoderTest {
         let data = format!(
             "{}{}{}{}",
             HEADER320X11,
-            compressedGtin900123456798908,
-            compressed20bitWeight1750,
-            compressedDateMarch12th2010
+            COMPRESSED_GTIN900123456798908,
+            COMPRESSED20BIT_WEIGHT1750,
+            COMPRESSED_DATE_MARCH12TH2010
         );
         let expected = "(01)90012345678908(3200)001750(11)100312";
 
@@ -195,9 +195,9 @@ mod AI013X0X1XDecoderTest {
         let data = format!(
             "{}{}{}{}",
             HEADER310X13,
-            compressedGtin900123456798908,
-            compressed20bitWeight1750,
-            compressedDateMarch12th2010
+            COMPRESSED_GTIN900123456798908,
+            COMPRESSED20BIT_WEIGHT1750,
+            COMPRESSED_DATE_MARCH12TH2010
         );
         let expected = "(01)90012345678908(3100)001750(13)100312";
 
@@ -209,9 +209,9 @@ mod AI013X0X1XDecoderTest {
         let data = format!(
             "{}{}{}{}",
             HEADER320X13,
-            compressedGtin900123456798908,
-            compressed20bitWeight1750,
-            compressedDateMarch12th2010
+            COMPRESSED_GTIN900123456798908,
+            COMPRESSED20BIT_WEIGHT1750,
+            COMPRESSED_DATE_MARCH12TH2010
         );
         let expected = "(01)90012345678908(3200)001750(13)100312";
 
@@ -223,9 +223,9 @@ mod AI013X0X1XDecoderTest {
         let data = format!(
             "{}{}{}{}",
             HEADER310X15,
-            compressedGtin900123456798908,
-            compressed20bitWeight1750,
-            compressedDateMarch12th2010
+            COMPRESSED_GTIN900123456798908,
+            COMPRESSED20BIT_WEIGHT1750,
+            COMPRESSED_DATE_MARCH12TH2010
         );
         let expected = "(01)90012345678908(3100)001750(15)100312";
 
@@ -237,9 +237,9 @@ mod AI013X0X1XDecoderTest {
         let data = format!(
             "{}{}{}{}",
             HEADER320X15,
-            compressedGtin900123456798908,
-            compressed20bitWeight1750,
-            compressedDateMarch12th2010
+            COMPRESSED_GTIN900123456798908,
+            COMPRESSED20BIT_WEIGHT1750,
+            COMPRESSED_DATE_MARCH12TH2010
         );
         let expected = "(01)90012345678908(3200)001750(15)100312";
 
@@ -251,9 +251,9 @@ mod AI013X0X1XDecoderTest {
         let data = format!(
             "{}{}{}{}",
             HEADER310X17,
-            compressedGtin900123456798908,
-            compressed20bitWeight1750,
-            compressedDateMarch12th2010
+            COMPRESSED_GTIN900123456798908,
+            COMPRESSED20BIT_WEIGHT1750,
+            COMPRESSED_DATE_MARCH12TH2010
         );
         let expected = "(01)90012345678908(3100)001750(17)100312";
 
@@ -265,9 +265,9 @@ mod AI013X0X1XDecoderTest {
         let data = format!(
             "{}{}{}{}",
             HEADER320X17,
-            compressedGtin900123456798908,
-            compressed20bitWeight1750,
-            compressedDateMarch12th2010
+            COMPRESSED_GTIN900123456798908,
+            COMPRESSED20BIT_WEIGHT1750,
+            COMPRESSED_DATE_MARCH12TH2010
         );
         let expected = "(01)90012345678908(3200)001750(17)100312";
 

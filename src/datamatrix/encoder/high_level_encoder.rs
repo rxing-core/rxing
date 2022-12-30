@@ -24,6 +24,7 @@ use super::{
     ASCIIEncoder, Base256Encoder, C40Encoder, EdifactEncoder, Encoder, EncoderContext,
     SymbolInfoLookup, SymbolShapeHint, TextEncoder, X12Encoder,
 };
+#[allow(dead_code)]
 const DEFAULT_ENCODING: EncodingRef = encoding::all::ISO_8859_1;
 
 /**

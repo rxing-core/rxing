@@ -19,8 +19,8 @@ use std::{fmt::Display, rc::Rc};
 use crate::pdf417::pdf_417_common;
 
 use super::{
-    BarcodeMetadata, BoundingBox, Codeword,
-    DetectionRXingResultColumnTrait, DetectionRXingResultRowIndicatorColumn,
+    BarcodeMetadata, BoundingBox, Codeword, DetectionRXingResultColumnTrait,
+    DetectionRXingResultRowIndicatorColumn,
 };
 
 const ADJUST_ROW_NUMBER_SKIP: u32 = 2;

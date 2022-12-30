@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    common::{BitMatrix},
+    common::BitMatrix,
     qrcode::detector::{Detector, QRCodeDetectorResult},
     DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
 };

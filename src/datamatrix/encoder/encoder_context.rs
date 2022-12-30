@@ -20,7 +20,6 @@ use crate::{Dimension, Exceptions};
 
 use super::{SymbolInfo, SymbolInfoLookup, SymbolShapeHint};
 use encoding::{self, EncodingRef};
-use unicode_segmentation::UnicodeSegmentation;
 
 const ISO_8859_1_ENCODER: EncodingRef = encoding::all::ISO_8859_1;
 

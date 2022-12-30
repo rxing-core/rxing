@@ -16,7 +16,7 @@
 
 use crate::{common::BitArray, Exceptions, RXingResult};
 
-use super::{STAND_IN, UPCEANExtension2Support, UPCEANExtension5Support, UPCEANReader};
+use super::{UPCEANExtension2Support, UPCEANExtension5Support, UPCEANReader, STAND_IN};
 
 pub struct UPCEANExtensionSupport {
     twoSupport: UPCEANExtension2Support,

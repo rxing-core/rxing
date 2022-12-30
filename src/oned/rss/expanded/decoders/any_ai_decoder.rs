@@ -71,7 +71,7 @@ mod AnyAIDecoderTest {
     fn testAnyAIDecoder1() {
         let data = format!(
             "{}{}{}{}{}{}{}",
-            HEADER, numeric10, numeric12, numeric2alpha, alphaA, alpha2numeric, numeric12
+            HEADER, NUMERIC10, NUMERIC12, NUMERIC2ALPHA, ALPHA_A, ALPHA2NUMERIC, NUMERIC12
         );
         let expected = "(10)12A12";
 
@@ -82,7 +82,7 @@ mod AnyAIDecoderTest {
     fn testAnyAIDecoder2() {
         let data = format!(
             "{}{}{}{}{}{}{}",
-            HEADER, numeric10, numeric12, numeric2alpha, alphaA, alpha2isoiec646, i646B
+            HEADER, NUMERIC10, NUMERIC12, NUMERIC2ALPHA, ALPHA_A, ALPHA2ISOIEC646, I646_B
         );
         let expected = "(10)12AB";
 
@@ -94,15 +94,15 @@ mod AnyAIDecoderTest {
         let data = format!(
             "{}{}{}{}{}{}{}{}{}{}",
             HEADER,
-            numeric10,
-            numeric2alpha,
-            alpha2isoiec646,
-            i646B,
-            i646C,
-            isoiec6462alpha,
-            alphaA,
-            alpha2numeric,
-            numeric10
+            NUMERIC10,
+            NUMERIC2ALPHA,
+            ALPHA2ISOIEC646,
+            I646_B,
+            I646_C,
+            ISOIEC6462ALPHA,
+            ALPHA_A,
+            ALPHA2NUMERIC,
+            NUMERIC10
         );
         let expected = "(10)BCA10";
 
@@ -111,7 +111,7 @@ mod AnyAIDecoderTest {
 
     #[test]
     fn testAnyAIDecodernumericFNC1secondDigit() {
-        let data = format!("{}{}{}", HEADER, numeric10, numeric1FNC1);
+        let data = format!("{}{}{}", HEADER, NUMERIC10, NUMERIC1_FNC1);
         let expected = "(10)1";
 
         assertCorrectBinaryString(&data, expected);
@@ -121,7 +121,7 @@ mod AnyAIDecoderTest {
     fn testAnyAIDecoderalphaFNC1() {
         let data = format!(
             "{}{}{}{}{}",
-            HEADER, numeric10, numeric2alpha, alphaA, alphaFNC1
+            HEADER, NUMERIC10, NUMERIC2ALPHA, ALPHA_A, ALPHA_FNC1
         );
         let expected = "(10)A";
 
@@ -132,7 +132,7 @@ mod AnyAIDecoderTest {
     fn testAnyAIDecoder646FNC1() {
         let data = format!(
             "{}{}{}{}{}{}{}",
-            HEADER, numeric10, numeric2alpha, alphaA, isoiec6462alpha, i646B, i646FNC1
+            HEADER, NUMERIC10, NUMERIC2ALPHA, ALPHA_A, ISOIEC6462ALPHA, I646_B, I646_FNC1
         );
         let expected = "(10)AB";
 

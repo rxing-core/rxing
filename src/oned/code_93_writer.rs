@@ -218,11 +218,7 @@ impl Code93Writer {
  */
 #[cfg(test)]
 mod Code93WriterTestCase {
-    use crate::{
-        common::BitMatrixTestCase,
-        oned::{Code93Writer},
-        BarcodeFormat, Writer,
-    };
+    use crate::{common::BitMatrixTestCase, oned::Code93Writer, BarcodeFormat, Writer};
 
     #[test]
     fn testEncode() {

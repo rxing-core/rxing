@@ -256,9 +256,11 @@ impl CalendarParsedRXingResult {
         //     ? DateFormat.getDateInstance(DateFormat.MEDIUM)
         //     : DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM);
         // return format.format(date);
-        NaiveDateTime::from_timestamp(date, 0)
-            .format(format_string)
-            .to_string()
+        if let Some(dtm) = NaiveDateTime::from_timestamp_opt(date, 0) {
+            dtm.format(format_string).to_string()
+        } else {
+            String::from("")
+        }
     }
 
     fn parseDurationMS(durationString: &str) -> i64 {

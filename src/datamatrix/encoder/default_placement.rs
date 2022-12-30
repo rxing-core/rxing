@@ -224,6 +224,7 @@ impl DefaultPlacement {
         self.module(1, self.numcols as isize - 1, pos, 8);
     }
 
+    #[allow(dead_code)]
     fn toBitFieldStringArray(&self) -> Vec<String> {
         let bits = self.getBits();
         let numrows = self.getNumrows();

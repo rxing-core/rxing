@@ -10,8 +10,6 @@ mod qr_code_decoder_meta_data;
 mod version;
 
 #[cfg(test)]
-mod data_mask_testcase;
-#[cfg(test)]
 mod DecodedBitStreamParserTestCase;
 #[cfg(test)]
 mod ErrorCorrectionLevelTestCase;
@@ -21,6 +19,8 @@ mod FormatInformationTestCase;
 mod ModeTestCase;
 #[cfg(test)]
 mod VersionTestCase;
+#[cfg(test)]
+mod data_mask_testcase;
 
 pub use bit_matrix_parser::*;
 pub use data_block::*;
