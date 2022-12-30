@@ -22,7 +22,7 @@ use crate::Reader;
 
 use super::EAN13Reader;
 use super::EAN8Reader;
-use super::StandIn;
+use super::STAND_IN;
 use super::UPCAReader;
 use super::UPCEReader;
 use super::{OneDReader, UPCEANReader};
@@ -124,7 +124,7 @@ impl OneDReader for MultiFormatUPCEANReader {
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         // Compute this location once and reuse it on multiple implementations
-        let startGuardPattern = StandIn.findStartGuardPattern(row)?;
+        let startGuardPattern = STAND_IN.findStartGuardPattern(row)?;
         for reader in &self.0 {
             // for (UPCEANReader reader : readers) {
             let try_result =

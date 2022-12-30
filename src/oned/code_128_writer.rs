@@ -18,7 +18,7 @@ use one_d_proc_derive::OneDWriter;
 
 use crate::BarcodeFormat;
 
-use super::{code_128_reader, Code128Reader, OneDimensionalCodeWriter, CODE_PATTERNS};
+use super::{code_128_reader, OneDimensionalCodeWriter};
 
 const CODE_START_A: usize = 103;
 const CODE_START_B: usize = 104;

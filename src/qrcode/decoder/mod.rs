@@ -10,7 +10,7 @@ mod qr_code_decoder_meta_data;
 mod version;
 
 #[cfg(test)]
-mod DataMaskTestCase;
+mod data_mask_testcase;
 #[cfg(test)]
 mod DecodedBitStreamParserTestCase;
 #[cfg(test)]

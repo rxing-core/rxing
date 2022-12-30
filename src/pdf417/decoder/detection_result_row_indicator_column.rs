@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-use std::fmt::Display;
-
 use crate::{pdf417::pdf_417_common, ResultPoint};
 
 use super::{
-    BarcodeMetadata, BarcodeValue, BoundingBox, Codeword, DetectionRXingResultColumn,
+    BarcodeMetadata, BarcodeValue, Codeword, DetectionRXingResultColumn,
     DetectionRXingResultColumnTrait,
 };
 

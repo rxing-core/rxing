@@ -27,7 +27,7 @@ use lazy_static::lazy_static;
 
 lazy_static! {
   // static ref PDF417_GF : Rc<&ModulusGF> =  Rc::new(&ModulusGF::new(NUMBER_OF_CODEWORDS, 3));
-  static ref fld_interior : ModulusGF = ModulusGF::new(NUMBER_OF_CODEWORDS, 3);
+  static ref FLD_INTERIOR : ModulusGF = ModulusGF::new(NUMBER_OF_CODEWORDS, 3);
 }
 
 /**
@@ -52,7 +52,7 @@ pub fn decode<'a>(
     numECCodewords: u32,
     erasures: &mut [u32],
 ) -> Result<usize, Exceptions> {
-    let field: Rc<&'static ModulusGF> = Rc::new(&fld_interior);
+    let field: Rc<&'static ModulusGF> = Rc::new(&FLD_INTERIOR);
     let poly = ModulusPoly::new(field.clone(), received.to_vec())?;
     let mut S = vec![0u32; numECCodewords as usize];
     let mut error = false;

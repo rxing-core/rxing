@@ -245,7 +245,7 @@ pub trait UPCEANReader: OneDReader {
             Ok(())
         };
 
-        let try_result = attempt();
+        let _try_result = attempt();
         // if let Err(Exceptions::ReaderException(_)) = try_result {
         // } else if try_result.is_err() {
         //     return Err(try_result.err().unwrap());
@@ -564,4 +564,4 @@ impl Reader for StandInStruct {
     }
 }
 
-pub(crate) const StandIn: StandInStruct = StandInStruct {};
+pub(crate) const STAND_IN: StandInStruct = StandInStruct {};

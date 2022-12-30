@@ -19,7 +19,7 @@ use std::{fmt::Display, rc::Rc};
 use crate::pdf417::pdf_417_common;
 
 use super::{
-    BarcodeMetadata, BoundingBox, Codeword, DetectionRXingResultColumn,
+    BarcodeMetadata, BoundingBox, Codeword,
     DetectionRXingResultColumnTrait, DetectionRXingResultRowIndicatorColumn,
 };
 
@@ -41,7 +41,7 @@ impl DetectionRXingResult {
         boundingBox: Rc<BoundingBox>,
     ) -> DetectionRXingResult {
         let mut columns = Vec::new();
-        for i in 0..(barcodeMetadata.getColumnCount() as usize + 2) {
+        for _i in 0..(barcodeMetadata.getColumnCount() as usize + 2) {
             columns.push(None);
         }
         DetectionRXingResult {

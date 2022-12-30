@@ -86,10 +86,10 @@ pub trait LuminanceSource {
      */
     fn crop(
         &self,
-        left: usize,
-        top: usize,
-        width: usize,
-        height: usize,
+        _left: usize,
+        _top: usize,
+        _width: usize,
+        _height: usize,
     ) -> Result<Box<dyn LuminanceSource>, Exceptions> {
         return Err(Exceptions::UnsupportedOperationException(
             "This luminance source does not support cropping.".to_owned(),

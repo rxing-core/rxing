@@ -139,20 +139,20 @@ impl<'a> AI013x0x1xDecoder<'_> {
 mod AI013X0X1XDecoderTest {
     use crate::oned::rss::expanded::decoders::abstract_decoder_test_utils::*;
 
-    const header310x11: &str = "..XXX...";
-    const header320x11: &str = "..XXX..X";
-    const header310x13: &str = "..XXX.X.";
-    const header320x13: &str = "..XXX.XX";
-    const header310x15: &str = "..XXXX..";
-    const header320x15: &str = "..XXXX.X";
-    const header310x17: &str = "..XXXXX.";
-    const header320x17: &str = "..XXXXXX";
+    const HEADER310X11: &str = "..XXX...";
+    const HEADER320X11: &str = "..XXX..X";
+    const HEADER310X13: &str = "..XXX.X.";
+    const HEADER320X13: &str = "..XXX.XX";
+    const HEADER310X15: &str = "..XXXX..";
+    const HEADER320X15: &str = "..XXXX.X";
+    const HEADER310X17: &str = "..XXXXX.";
+    const HEADER320X17: &str = "..XXXXXX";
 
     #[test]
     fn test01310X1XendDate() {
         let data = format!(
             "{}{}{}{}",
-            header310x11,
+            HEADER310X11,
             compressedGtin900123456798908,
             compressed20bitWeight1750,
             compressedDateEnd
@@ -166,7 +166,7 @@ mod AI013X0X1XDecoderTest {
     fn test01310X111() {
         let data = format!(
             "{}{}{}{}",
-            header310x11,
+            HEADER310X11,
             compressedGtin900123456798908,
             compressed20bitWeight1750,
             compressedDateMarch12th2010
@@ -180,7 +180,7 @@ mod AI013X0X1XDecoderTest {
     fn test01320X111() {
         let data = format!(
             "{}{}{}{}",
-            header320x11,
+            HEADER320X11,
             compressedGtin900123456798908,
             compressed20bitWeight1750,
             compressedDateMarch12th2010
@@ -194,7 +194,7 @@ mod AI013X0X1XDecoderTest {
     fn test01310X131() {
         let data = format!(
             "{}{}{}{}",
-            header310x13,
+            HEADER310X13,
             compressedGtin900123456798908,
             compressed20bitWeight1750,
             compressedDateMarch12th2010
@@ -208,7 +208,7 @@ mod AI013X0X1XDecoderTest {
     fn test01320X131() {
         let data = format!(
             "{}{}{}{}",
-            header320x13,
+            HEADER320X13,
             compressedGtin900123456798908,
             compressed20bitWeight1750,
             compressedDateMarch12th2010
@@ -222,7 +222,7 @@ mod AI013X0X1XDecoderTest {
     fn test01310X151() {
         let data = format!(
             "{}{}{}{}",
-            header310x15,
+            HEADER310X15,
             compressedGtin900123456798908,
             compressed20bitWeight1750,
             compressedDateMarch12th2010
@@ -236,7 +236,7 @@ mod AI013X0X1XDecoderTest {
     fn test01320X151() {
         let data = format!(
             "{}{}{}{}",
-            header320x15,
+            HEADER320X15,
             compressedGtin900123456798908,
             compressed20bitWeight1750,
             compressedDateMarch12th2010
@@ -250,7 +250,7 @@ mod AI013X0X1XDecoderTest {
     fn test01310X171() {
         let data = format!(
             "{}{}{}{}",
-            header310x17,
+            HEADER310X17,
             compressedGtin900123456798908,
             compressed20bitWeight1750,
             compressedDateMarch12th2010
@@ -264,7 +264,7 @@ mod AI013X0X1XDecoderTest {
     fn test01320X171() {
         let data = format!(
             "{}{}{}{}",
-            header320x17,
+            HEADER320X17,
             compressedGtin900123456798908,
             compressed20bitWeight1750,
             compressedDateMarch12th2010

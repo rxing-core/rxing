@@ -40,6 +40,7 @@ fn test_encode_decode(value: &str) {
 }
 
 // Zooms a bit matrix so that each bit is factor x factor
+#[allow(dead_code)]
 fn make_larger(input: &BitMatrix, factor: u32) -> BitMatrix {
     let width = input.getWidth();
     let mut output = BitMatrix::with_single_dimension(width * factor);

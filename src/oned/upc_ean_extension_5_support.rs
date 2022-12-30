@@ -21,7 +21,7 @@ use crate::{
     RXingResultMetadataValue, RXingResultPoint,
 };
 
-use super::{upc_ean_reader, StandIn, UPCEANReader};
+use super::{upc_ean_reader, STAND_IN, UPCEANReader};
 
 /**
  * @see UPCEANExtension2Support
@@ -90,7 +90,7 @@ impl UPCEANExtension5Support {
         let mut x = 0;
         while x < 5 && rowOffset < end {
             // for (int x = 0; x < 5 && rowOffset < end; x++) {
-            let bestMatch = StandIn.decodeDigit(
+            let bestMatch = STAND_IN.decodeDigit(
                 row,
                 &mut counters,
                 rowOffset,

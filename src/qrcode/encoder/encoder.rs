@@ -13,25 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// package com.google.zxing.qrcode.encoder;
-
-// import com.google.zxing.EncodeHintType;
-// import com.google.zxing.WriterException;
-// import com.google.zxing.common.BitArray;
-// import com.google.zxing.common.StringUtils;
-// import com.google.zxing.common.CharacterSetECI;
-// import com.google.zxing.common.reedsolomon.GenericGF;
-// import com.google.zxing.common.reedsolomon.ReedSolomonEncoder;
-// import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
-// import com.google.zxing.qrcode.decoder.Mode;
-// import com.google.zxing.qrcode.decoder.Version;
-
-// import java.nio.charset.Charset;
-// import java.nio.charset.StandardCharsets;
-// import java.util.ArrayList;
-// import java.util.Collection;
-// import java.util.Map;
+/**
+ * @author satorux@google.com (Satoru Takabayashi) - creator
+ * @author dswitkin@google.com (Daniel Switkin) - ported from C++
+ */
 
 use std::collections::HashMap;
 
@@ -50,11 +35,6 @@ use crate::{
 };
 
 use super::{mask_util, matrix_util, BlockPair, ByteMatrix, MinimalEncoder, QRCode};
-
-/**
- * @author satorux@google.com (Satoru Takabayashi) - creator
- * @author dswitkin@google.com (Daniel Switkin) - ported from C++
- */
 
 lazy_static! {
     static ref SHIFT_JIS_CHARSET: EncodingRef =

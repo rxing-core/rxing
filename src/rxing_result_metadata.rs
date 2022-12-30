@@ -16,7 +16,7 @@
 
 //package com.google.zxing;
 
-use std::{any::Any, rc::Rc};
+use std::{ rc::Rc};
 
 use crate::pdf417::PDF417RXingResultMetadata;
 

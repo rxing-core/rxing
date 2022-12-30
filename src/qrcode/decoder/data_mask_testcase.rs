@@ -32,14 +32,14 @@ fn testMask0() {
 
 #[test]
 fn testMask1() {
-    testMaskAcrossDimensions(DataMask::DATA_MASK_001, |i, j| i % 2 == 0);
-    testMaskAcrossDimensionsU8(1, |i, j| i % 2 == 0);
+    testMaskAcrossDimensions(DataMask::DATA_MASK_001, |i, _j| i % 2 == 0);
+    testMaskAcrossDimensionsU8(1, |i, _j| i % 2 == 0);
 }
 
 #[test]
 fn testMask2() {
-    testMaskAcrossDimensions(DataMask::DATA_MASK_010, |i, j| j % 3 == 0);
-    testMaskAcrossDimensionsU8(2, |i, j| j % 3 == 0);
+    testMaskAcrossDimensions(DataMask::DATA_MASK_010, |_i, j| j % 3 == 0);
+    testMaskAcrossDimensionsU8(2, |_i, j| j % 3 == 0);
 }
 
 #[test]

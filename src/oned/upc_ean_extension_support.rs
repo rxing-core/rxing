@@ -16,7 +16,7 @@
 
 use crate::{common::BitArray, Exceptions, RXingResult};
 
-use super::{StandIn, UPCEANExtension2Support, UPCEANExtension5Support, UPCEANReader};
+use super::{STAND_IN, UPCEANExtension2Support, UPCEANExtension5Support, UPCEANReader};
 
 pub struct UPCEANExtensionSupport {
     twoSupport: UPCEANExtension2Support,
@@ -41,7 +41,7 @@ impl UPCEANExtensionSupport {
         rowOffset: usize,
     ) -> Result<RXingResult, Exceptions> {
         let extensionStartRange =
-            StandIn.findGuardPattern(row, rowOffset, false, &Self::EXTENSION_START_PATTERN)?;
+            STAND_IN.findGuardPattern(row, rowOffset, false, &Self::EXTENSION_START_PATTERN)?;
         if let Ok(res_1) = self
             .fiveSupport
             .decodeRow(rowNumber, row, &extensionStartRange)

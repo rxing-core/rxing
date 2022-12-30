@@ -67,7 +67,7 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             }
         }
 
-        EAN13Writer::checkNumeric(&contents);
+        EAN13Writer::checkNumeric(&contents)?;
 
         let firstDigit = contents.chars().nth(0).unwrap().to_digit(10).unwrap() as usize; //, 10);
         let parities = EAN13Reader::FIRST_DIGIT_ENCODINGS[firstDigit];

@@ -128,7 +128,7 @@ fn testXOR() {
     v1.appendBits(0x5555aaaa, 32).expect("append");
     let mut v2 = BitArray::new();
     v2.appendBits(0xaaaa5555, 32).expect("append");
-    v1.xor(&v2);
+    v1.xor(&v2).expect("xor");
     assert_eq!(0xffffffff, getUnsignedInt(&v1));
 }
 
@@ -137,8 +137,8 @@ fn testXOR2() {
     let mut v1 = BitArray::new();
     v1.appendBits(0x2a, 7).expect("append"); // 010 1010
     let mut v2 = BitArray::new();
-    v2.appendBits(0x55, 7); // 101 0101
-    v1.xor(&v2);
+    v2.appendBits(0x55, 7).expect("append"); // 101 0101
+    v1.xor(&v2).expect("xor");
     assert_eq!(0xfe000000, getUnsignedInt(&v1)); // 1111 1110
 }
 

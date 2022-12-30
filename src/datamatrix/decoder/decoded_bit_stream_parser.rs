@@ -589,7 +589,7 @@ fn decodeEdifactSegment(
                 // Read rest of byte, which should be 0, and stop
                 let bitsLeft = 8 - bits.getBitOffset();
                 if bitsLeft != 8 {
-                    bits.readBits(bitsLeft);
+                    bits.readBits(bitsLeft)?;
                 }
                 return Ok(());
             }
@@ -633,9 +633,10 @@ fn decodeBase256Segment(
     }
 
     // We're seeing NegativeArraySizeException errors from users.
-    if count < 0 {
-        return Err(Exceptions::FormatException("".to_owned()));
-    }
+    // but we shouldn't in rust because it's unsigned
+    // if count < 0 {
+    //     return Err(Exceptions::FormatException("".to_owned()));
+    // }
 
     let mut bytes = vec![0u8; count as usize];
     for i in 0..count as usize {

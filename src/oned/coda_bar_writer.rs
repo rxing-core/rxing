@@ -169,7 +169,6 @@ impl Default for CodaBarWriter {
 mod CodaBarWriterTestCase {
     use crate::{
         common::{BitMatrix, BitMatrixTestCase},
-        oned::OneDimensionalCodeWriter,
         BarcodeFormat, Writer,
     };
 

@@ -78,13 +78,13 @@ fn checkWeight(weight: u32) -> u32 {
 mod AI013103DecoderTest {
     use crate::oned::rss::expanded::decoders::abstract_decoder_test_utils::*;
 
-    const header: &str = "..X..";
+    const HEADER: &str = "..X..";
 
     #[test]
     fn test0131031() {
         let data = format!(
             "{}{}{}",
-            header, compressedGtin900123456798908, compressed15bitWeight1750
+            HEADER, compressedGtin900123456798908, compressed15bitWeight1750
         );
         let expected = "(01)90012345678908(3103)001750";
         assertCorrectBinaryString(&data, expected);
@@ -94,7 +94,7 @@ mod AI013103DecoderTest {
     fn test0131032() {
         let data = format!(
             "{}{}{}",
-            header, compressedGtin900000000000008, compressed15bitWeight0
+            HEADER, compressedGtin900000000000008, compressed15bitWeight0
         );
         let expected = "(01)90000000000003(3103)000000";
         assertCorrectBinaryString(&data, expected);
@@ -105,7 +105,7 @@ mod AI013103DecoderTest {
     fn test013103invalid() {
         let data = format!(
             "{}{}{}..",
-            header, compressedGtin900123456798908, compressed15bitWeight1750
+            HEADER, compressedGtin900123456798908, compressed15bitWeight1750
         );
         assertCorrectBinaryString(&data, "");
     }

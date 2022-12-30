@@ -461,7 +461,7 @@ fn encodeDecodeWithAll(
 
 fn getEndIndex(length: u32, chars: &[char]) -> u32 {
     let decimalLength: f64 = (chars.len() as f64).log10(); //Math.log10(chars.length);
-    10_f64.powf((decimalLength * length as f64)).ceil() as u32
+    10_f64.powf(decimalLength * length as f64).ceil() as u32
     // (decimalLength*length as f64).powi(10).ceil() as u32
     // (decimalLength*length as f64).powi(10).ceil() as u32
     //  Math.ceil(Math.pow(10, decimalLength * length))

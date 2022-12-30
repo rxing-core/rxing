@@ -616,8 +616,8 @@ pub struct Edge {
     characterLength: u32,
     previous: Option<Rc<Edge>>,
     cachedTotalSize: u32,
-    encoders: ECIEncoderSet,
-    stringToEncode: Vec<String>,
+    _encoders: ECIEncoderSet,
+    _stringToEncode: Vec<String>,
 }
 impl Edge {
     pub fn new(
@@ -641,7 +641,7 @@ impl Edge {
             charsetEncoderIndex: nci,
             characterLength,
             previous: previous.clone(),
-            stringToEncode: stringToEncode.clone(),
+            _stringToEncode: stringToEncode.clone(),
             cachedTotalSize: {
                 let mut size = if previous.is_some() {
                     previous.as_ref().unwrap().cachedTotalSize
@@ -713,7 +713,7 @@ impl Edge {
                 // }
                 size
             },
-            encoders,
+            _encoders : encoders,
         }
         // this.mode = mode;
         // this.fromPosition = fromPosition;

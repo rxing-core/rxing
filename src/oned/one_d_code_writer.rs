@@ -202,7 +202,7 @@ impl Writer for L {
     }
 }
 impl OneDimensionalCodeWriter for L {
-    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>, Exceptions> {
+    fn encode_oned(&self, _contents: &str) -> Result<Vec<bool>, Exceptions> {
         todo!()
     }
 }

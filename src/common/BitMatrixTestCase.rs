@@ -269,7 +269,7 @@ fn test_parse_boolean() {
     fullMatrix.setRegion(0, 0, 3, 3).expect("must set");
     let mut centerMatrix = BitMatrix::new(3, 3).unwrap();
     centerMatrix.setRegion(1, 1, 1, 1).expect("must set");
-    let emptyMatrix24 = BitMatrix::new(2, 4).unwrap();
+    let _emptyMatrix24 = BitMatrix::new(2, 4).unwrap();
 
     let mut matrix = vec![vec![false; 3]; 3];
     // boolean[][] matrix = new boolean[3][3];

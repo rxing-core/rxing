@@ -9,6 +9,7 @@ lazy_static! {
     static ref DOTX: Regex = Regex::new("[^.X]").unwrap();
 }
 
+#[allow(dead_code)]
 pub fn toBitArray(bits: &str) -> BitArray {
     let mut ba_in = BitArray::new();
     let str = DOTX.replace_all(bits, "");
@@ -20,6 +21,7 @@ pub fn toBitArray(bits: &str) -> BitArray {
     ba_in
 }
 
+#[allow(dead_code)]
 pub fn toBooleanArray(bitArray: &BitArray) -> Vec<bool> {
     let mut result = vec![false; bitArray.getSize()];
     for i in 0..result.len() {
@@ -29,6 +31,7 @@ pub fn toBooleanArray(bitArray: &BitArray) -> Vec<bool> {
     result
 }
 
+#[allow(dead_code)]
 pub fn stripSpace(s: &str) -> String {
     SPACES.replace_all(s, "").to_string()
 }

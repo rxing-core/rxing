@@ -49,7 +49,7 @@ impl Encoder for X12Encoder {
                 }
             }
         }
-        Self::handleEOD(context, &mut buffer);
+        Self::handleEOD(context, &mut buffer)?;
         Ok(())
     }
 }
@@ -70,7 +70,7 @@ impl X12Encoder {
                 } else if c >= 'A' && c <= 'Z' {
                     sb.push((c as u8 - 65 + 14) as char);
                 } else {
-                    high_level_encoder::illegalCharacter(c);
+                    high_level_encoder::illegalCharacter(c).expect("detect_illegal_character");
                 }
             }
         }

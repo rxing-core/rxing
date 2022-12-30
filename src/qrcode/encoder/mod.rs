@@ -12,12 +12,12 @@ pub use minimal_encoder::*;
 pub use qr_code::*;
 
 #[cfg(test)]
-mod BitVectorTestCase;
+mod bit_vector_testcase;
 #[cfg(test)]
 mod EncoderTestCase;
 #[cfg(test)]
 mod MaskUtilTestCase;
 #[cfg(test)]
-mod MatrixUtilTestCase;
+mod matrix_util_testcase;
 #[cfg(test)]
 mod QRCodeTestCase;

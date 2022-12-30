@@ -1,4 +1,4 @@
-use rxing::{qrcode::QRCodeReader, BarcodeFormat, MultiFormatReader};
+use rxing::{MultiFormatReader};
 
 mod common;
 

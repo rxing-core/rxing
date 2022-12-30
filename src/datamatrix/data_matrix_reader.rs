@@ -19,7 +19,7 @@ use std::collections::HashMap;
 use crate::{
     common::{BitMatrix, DetectorRXingResult},
     BarcodeFormat, DecodeHintType, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, RXingResultPoint, Reader,
+    RXingResultMetadataValue, Reader,
 };
 
 use super::{decoder::Decoder, detector::Detector};
@@ -27,7 +27,7 @@ use super::{decoder::Decoder, detector::Detector};
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref decoder: Decoder = Decoder::new();
+    static ref DECODER: Decoder = Decoder::new();
 }
 
 /**
@@ -74,11 +74,11 @@ impl Reader for DataMatrixReader {
         let mut points = Vec::new();
         if hints.contains_key(&DecodeHintType::PURE_BARCODE) {
             let bits = self.extractPureBits(image.getBlackMatrix())?;
-            decoderRXingResult = decoder.decode(&bits)?;
+            decoderRXingResult = DECODER.decode(&bits)?;
             points.clear();
         } else {
             let detectorRXingResult = Detector::new(image.getBlackMatrix().clone())?.detect()?;
-            decoderRXingResult = decoder.decode(detectorRXingResult.getBits())?;
+            decoderRXingResult = DECODER.decode(detectorRXingResult.getBits())?;
             points = detectorRXingResult.getPoints().clone();
         }
         let mut result = RXingResult::new(

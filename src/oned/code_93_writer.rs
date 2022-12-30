@@ -95,12 +95,13 @@ impl Code93Writer {
      * @return 9
      * @deprecated without replacement; intended as an internal-only method
      */
+    #[allow(dead_code)]
     #[deprecated]
     fn appendPatternWithPatternStart(
         target: &mut [bool],
         pos: usize,
         pattern: &[usize],
-        startColor: bool,
+        _startColor: bool,
     ) -> u32 {
         let mut pos = pos;
         for bit in pattern {
@@ -219,7 +220,7 @@ impl Code93Writer {
 mod Code93WriterTestCase {
     use crate::{
         common::BitMatrixTestCase,
-        oned::{Code93Writer, OneDimensionalCodeWriter},
+        oned::{Code93Writer},
         BarcodeFormat, Writer,
     };
 

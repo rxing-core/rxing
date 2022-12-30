@@ -37,7 +37,7 @@ use std::collections::HashMap;
 use crate::BarcodeFormat;
 
 use super::{
-    ExpandedProductParsedRXingResult, ExpandedProductParsedResult, ParsedClientResult, ResultParser,
+    ExpandedProductParsedRXingResult, ParsedClientResult, ResultParser,
 };
 
 /**

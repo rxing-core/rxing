@@ -245,7 +245,7 @@ fn testBuildMatrix() {
     let mut bits = BitArray::new();
     for c in bytes {
         // for (char c: bytes) {
-        bits.appendBits(c, 8);
+        bits.appendBits(c, 8).expect("append");
     }
     let mut matrix = ByteMatrix::new(21, 21);
     matrix_util::buildMatrix(

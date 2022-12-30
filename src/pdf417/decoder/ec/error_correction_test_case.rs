@@ -16,7 +16,7 @@
 
 use rand::Rng;
 
-use crate::{datamatrix::encoder::error_correction, Exceptions};
+use crate::{ Exceptions};
 
 use super::{
     abstract_error_correction_test_case::{corrupt, getRandom},
@@ -56,7 +56,7 @@ fn testNoError() {
 
 #[test]
 fn testExplicitError() {
-    let mut random = getRandom();
+    
     for i in 0..PDF417_TEST_WITH_EC.len() {
         // for (int i = 0; i < PDF417_TEST_WITH_EC.length; i++) {
         let mut received = PDF417_TEST_WITH_EC.clone();
