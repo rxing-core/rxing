@@ -803,8 +803,8 @@ impl RSSExpandedReader {
 
         // Make 'counters' hold 1-4
         let mut counters = self.decodeFinderCounters;
-        let slc = counters[..counters.len() - 1].to_vec();
-        counters[1..].copy_from_slice(&slc);
+        let counters_len = counters.len();
+        counters.copy_within(..counters_len - 1, 1);
         // System.arraycopy(counters, 0, counters, 1, counters.length - 1);
 
         counters[0] = firstCounter as u32;

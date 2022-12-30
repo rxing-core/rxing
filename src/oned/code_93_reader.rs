@@ -171,8 +171,8 @@ impl Code93Reader {
                         return Ok([patternStart, i]);
                     }
                     patternStart += (theCounters[0] + theCounters[1]) as usize;
-                    let slc = &theCounters[2..(counterPosition - 1 + 2)].to_vec();
-                    theCounters[0..(counterPosition - 1)].copy_from_slice(slc);
+                    
+                    theCounters.copy_within(2..(counterPosition - 1 + 2), 0);
                     // System.arraycopy(theCounters, 2, theCounters, 0, counterPosition - 1);
                     theCounters[counterPosition - 1] = 0;
                     theCounters[counterPosition] = 0;

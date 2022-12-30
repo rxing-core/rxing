@@ -464,10 +464,10 @@ impl RSS14Reader {
         }
         firstElementStart += 1;
         let firstCounter = startEnd[0] - firstElementStart as usize;
-        let mut counters = &mut self.decodeFinderCounters;
+        let  counters = &mut self.decodeFinderCounters;
         let counter_len = counters.len();
-        let slc = counters[0..counter_len - 1].to_vec();
-        counters[1..counter_len].copy_from_slice(&slc);
+        
+        counters.copy_within(..counter_len - 1, 1);
         // Make 'counters' hold 1-4
         // let counters = self.getDecodeFinderCounters();
         // System.arraycopy(counters, 0, counters, 1, counters.length - 1);

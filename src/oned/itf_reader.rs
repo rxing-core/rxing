@@ -384,8 +384,8 @@ impl ITFReader {
                         return Ok([patternStart, x]);
                     }
                     patternStart += (counters[0] + counters[1]) as usize;
-                    let slc = &counters[2..(counterPosition - 1 + 2)].to_vec();
-                    counters[..(counterPosition - 1)].copy_from_slice(slc);
+                    
+                    counters.copy_within(2..(counterPosition - 1 + 2), 0);
                     // System.arraycopy(counters, 2, counters, 0, counterPosition - 1);
                     counters[counterPosition - 1] = 0;
                     counters[counterPosition] = 0;
