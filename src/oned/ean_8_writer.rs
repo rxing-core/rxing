@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use one_d_reader_derive::OneDWriter;
+use one_d_proc_derive::OneDWriter;
 
 use crate::{
     oned::{EAN8Reader, UPCEANReader},
