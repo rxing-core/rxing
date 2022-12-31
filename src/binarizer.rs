@@ -31,11 +31,11 @@ use crate::{
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
-pub trait Binarizer {
+pub trait Binarizer<L:LuminanceSource> {
     //private final LuminanceSource source;
     //fn new(source:dyn LuminanceSource) -> Self;
 
-    fn getLuminanceSource(&self) -> &Box<dyn LuminanceSource>;
+    fn getLuminanceSource(&self) -> &L;
 
     /**
      * Converts one row of luminance data to 1 bit data. May actually do the conversion, or return
@@ -72,7 +72,7 @@ pub trait Binarizer {
      * @param source The LuminanceSource this Binarizer will operate on.
      * @return A new concrete Binarizer implementation object.
      */
-    fn createBinarizer(&self, source: Box<dyn LuminanceSource>) -> Rc<dyn Binarizer>;
+    fn createBinarizer<B:Binarizer<L>>(&self, source: L) -> Rc<B>;
 
     fn getWidth(&self) -> usize;
 

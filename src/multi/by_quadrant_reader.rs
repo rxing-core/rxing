@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
+use std::{collections::HashMap, marker::PhantomData};
 
-use crate::{Exceptions, RXingResult, RXingResultPoint, Reader, ResultPoint};
+use crate::{Exceptions, RXingResult, RXingResultPoint, Reader, ResultPoint, LuminanceSource, Binarizer};
 
 /**
  * This class attempts to decode a barcode from an image, not by scanning the whole image,
@@ -27,18 +27,18 @@ use crate::{Exceptions, RXingResult, RXingResultPoint, Reader, ResultPoint};
  *
  * @see GenericMultipleBarcodeReader
  */
-pub struct ByQuadrantReader<T: Reader>(T);
-impl<T: Reader> Reader for ByQuadrantReader<T> {
+pub struct ByQuadrantReader<L:LuminanceSource,B:Binarizer<L>, T: Reader<L,B>>(T,PhantomData<L>, PhantomData<B>);
+impl<L:LuminanceSource,B:Binarizer<L>, T: Reader<L,B>> Reader<L,B> for ByQuadrantReader<L,B,T> {
     fn decode(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         let width = image.getWidth();
@@ -140,9 +140,9 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
     }
 }
 
-impl<T: Reader> ByQuadrantReader<T> {
+impl<L:LuminanceSource,B:Binarizer<L>, T: Reader<L,B>>ByQuadrantReader<L,B,T> {
     pub fn new(delegate: T) -> Self {
-        Self(delegate)
+        Self(delegate,PhantomData,PhantomData)
     }
 
     fn makeAbsolute(

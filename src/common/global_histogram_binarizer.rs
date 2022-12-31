@@ -20,7 +20,7 @@
 // import com.google.zxing.LuminanceSource;
 // import com.google.zxing.NotFoundException;
 
-use std::rc::Rc;
+use std::{rc::Rc, marker::PhantomData};
 
 use crate::{Binarizer, Exceptions, LuminanceSource};
 
@@ -37,16 +37,17 @@ use super::{BitArray, BitMatrix};
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Sean Owen
  */
-pub struct GlobalHistogramBinarizer {
+pub struct GlobalHistogramBinarizer<L:LuminanceSource,B:Binarizer<L>> {
     luminances: Vec<u8>,
     buckets: Vec<u32>,
     width: usize,
     height: usize,
-    source: Box<dyn LuminanceSource>,
+    source: L,
+    pd: PhantomData<B>
 }
 
-impl Binarizer for GlobalHistogramBinarizer {
-    fn getLuminanceSource(&self) -> &Box<dyn LuminanceSource> {
+impl<L:LuminanceSource,B:Binarizer<L>> Binarizer<L> for GlobalHistogramBinarizer<L,B> {
+    fn getLuminanceSource(&self) -> &L {
         &self.source
     }
 
@@ -142,7 +143,7 @@ impl Binarizer for GlobalHistogramBinarizer {
         Ok(matrix)
     }
 
-    fn createBinarizer(&self, source: Box<dyn crate::LuminanceSource>) -> Rc<dyn Binarizer> {
+    fn createBinarizer(&self, source: L) -> B {
         return Rc::new(GlobalHistogramBinarizer::new(source));
     }
 
@@ -155,19 +156,20 @@ impl Binarizer for GlobalHistogramBinarizer {
     }
 }
 
-impl GlobalHistogramBinarizer {
+impl<L:LuminanceSource,B:Binarizer<L>> GlobalHistogramBinarizer<L,B> {
     const LUMINANCE_BITS: usize = 5;
     const LUMINANCE_SHIFT: usize = 8 - GlobalHistogramBinarizer::LUMINANCE_BITS;
     const LUMINANCE_BUCKETS: usize = 1 << GlobalHistogramBinarizer::LUMINANCE_BITS;
     // const EMPTY: [u8; 0] = [0; 0];
 
-    pub fn new(source: Box<dyn LuminanceSource>) -> Self {
+    pub fn new(source: L) -> Self {
         Self {
             luminances: vec![0; source.getWidth()],
             buckets: vec![0; GlobalHistogramBinarizer::LUMINANCE_BUCKETS],
             width: source.getWidth(),
             height: source.getHeight(),
             source: source,
+            pd: PhantomData
         }
     }
 

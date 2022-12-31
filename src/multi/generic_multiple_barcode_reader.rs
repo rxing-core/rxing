@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
+use std::{collections::HashMap, marker::PhantomData};
 
 use crate::{
     BinaryBitmap, DecodingHintDictionary, Exceptions, RXingResult, RXingResultPoint, Reader,
-    ResultPoint,
+    ResultPoint, LuminanceSource, Binarizer,
 };
 
 use super::MultipleBarcodeReader;
@@ -37,19 +37,19 @@ use super::MultipleBarcodeReader;
  *
  * @author Sean Owen
  */
-pub struct GenericMultipleBarcodeReader<T: Reader>(T);
+pub struct GenericMultipleBarcodeReader<L:LuminanceSource,B:Binarizer<L>, T: Reader<L,B>>(T,PhantomData<L>,PhantomData<B>);
 
-impl<T: Reader> MultipleBarcodeReader for GenericMultipleBarcodeReader<T> {
+impl<L:LuminanceSource,B:Binarizer<L>, T: Reader<L,B>> MultipleBarcodeReader<L,B> for GenericMultipleBarcodeReader<L,B,T> {
     fn decode_multiple(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
         self.decode_multiple_with_hints(image, &HashMap::new())
     }
 
     fn decode_multiple_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
         let mut results = Vec::new();
@@ -60,17 +60,17 @@ impl<T: Reader> MultipleBarcodeReader for GenericMultipleBarcodeReader<T> {
         Ok(results)
     }
 }
-impl<T: Reader> GenericMultipleBarcodeReader<T> {
+impl<L:LuminanceSource,B:Binarizer<L>, T: Reader<L,B>> GenericMultipleBarcodeReader<L,B,T> {
     const MIN_DIMENSION_TO_RECUR: f32 = 100.0;
     const MAX_DEPTH: u32 = 4;
 
     pub fn new(delegate: T) -> Self {
-        Self(delegate)
+        Self(delegate,PhantomData,PhantomData)
     }
 
     fn doDecodeMultiple(
         &mut self,
-        image: &BinaryBitmap,
+        image: &BinaryBitmap<L,B>,
         hints: &DecodingHintDictionary,
         results: &mut Vec<RXingResult>,
         xOffset: u32,

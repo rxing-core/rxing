@@ -16,14 +16,14 @@
 
 use crate::{
     oned::{one_d_reader, OneDReader},
-    Exceptions,
+    Exceptions, LuminanceSource, Binarizer,
 };
 
 /**
  * Superclass of {@link OneDReader} implementations that read barcodes in the RSS family
  * of formats.
  */
-pub trait AbstractRSSReaderTrait: OneDReader {
+pub trait AbstractRSSReaderTrait<L:LuminanceSource,B:Binarizer<L>>: OneDReader<L,B> {
     const MAX_AVG_VARIANCE: f32 = 0.2;
     const MAX_INDIVIDUAL_VARIANCE: f32 = 0.45;
 

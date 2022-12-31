@@ -30,14 +30,14 @@ use super::OneDReader;
  * @author David Walker
  */
 #[derive(OneDReader)]
-pub struct CodaBarReader {
+pub struct CodaBarReader<L:LuminanceSource,B:Binarizer<L>> {
     // Keep some instance variables to avoid reallocations
     decodeRowRXingResult: String,
     counters: Vec<u32>,
     counterLength: usize,
 }
 
-impl Default for CodaBarReader {
+impl<L:LuminanceSource,B:Binarizer<L>> Default for CodaBarReader<L,B> {
     fn default() -> Self {
         Self {
             decodeRowRXingResult: Default::default(),
@@ -47,7 +47,7 @@ impl Default for CodaBarReader {
     }
 }
 
-impl OneDReader for CodaBarReader {
+impl<L:LuminanceSource,B:Binarizer<L>> OneDReader<L,B> for CodaBarReader<L,B> {
     fn decodeRow(
         &mut self,
         rowNumber: u32,
@@ -170,7 +170,7 @@ impl OneDReader for CodaBarReader {
         Ok(result)
     }
 }
-impl CodaBarReader {
+impl <L:LuminanceSource,B:Binarizer<L>>CodaBarReader<L,B> {
     // These values are critical for determining how permissive the decoding
     // will be. All stripe sizes must be within the window these define, as
     // compared to the average stripe size.

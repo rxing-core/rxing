@@ -43,15 +43,15 @@ use super::{BitArray, BitMatrix, GlobalHistogramBinarizer};
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
-pub struct HybridBinarizer {
+pub struct HybridBinarizer<L:LuminanceSource,B:Binarizer<L>> {
     //width: usize,
     //height: usize,
     //source: Box<dyn LuminanceSource>,
-    ghb: GlobalHistogramBinarizer,
+    ghb: GlobalHistogramBinarizer<L,B>,
     // matrix :Option<BitMatrix>,
 }
-impl Binarizer for HybridBinarizer {
-    fn getLuminanceSource(&self) -> &Box<dyn LuminanceSource> {
+impl<L:LuminanceSource,B:Binarizer<L>> Binarizer<L> for HybridBinarizer<L,B> {
+    fn getLuminanceSource(&self) -> &L {
         self.ghb.getLuminanceSource()
     }
 
@@ -111,7 +111,7 @@ impl Binarizer for HybridBinarizer {
         Ok(matrix)
     }
 
-    fn createBinarizer(&self, source: Box<dyn LuminanceSource>) -> Rc<dyn Binarizer> {
+    fn createBinarizer(&self, source: L) -> Rc<B> {
         Rc::new(HybridBinarizer::new(source))
     }
 
@@ -123,7 +123,7 @@ impl Binarizer for HybridBinarizer {
         self.ghb.getHeight()
     }
 }
-impl HybridBinarizer {
+impl<L:LuminanceSource,B:Binarizer<L>> HybridBinarizer<L,B> {
     // This class uses 5x5 blocks to compute local luminance, where each block is 8x8 pixels.
     // So this is the smallest dimension in each axis we can accept.
     const BLOCK_SIZE_POWER: usize = 3;

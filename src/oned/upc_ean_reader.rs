@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+use std::marker::PhantomData;
+
 use crate::{
     common::BitArray, BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader,
+    RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader, LuminanceSource, Binarizer,
 };
 
 use super::{one_d_reader, EANManufacturerOrgSupport, OneDReader, UPCEANExtensionSupport};
@@ -105,7 +107,7 @@ pub const L_AND_G_PATTERNS: [[u32; 4]; 20] = {
  * @author Sean Owen
  * @author alasdair@google.com (Alasdair Mackintosh)
  */
-pub trait UPCEANReader: OneDReader {
+pub trait UPCEANReader<L:LuminanceSource,B:Binarizer<L>>: OneDReader<L,B> {
     // private final StringBuilder decodeRowStringBuffer;
     // private final UPCEANExtensionSupport extensionReader;
     // private final EANManufacturerOrgSupport eanManSupport;
@@ -524,8 +526,8 @@ pub trait UPCEANReader: OneDReader {
     ) -> Result<usize, Exceptions>;
 }
 
-pub(crate) struct StandInStruct;
-impl UPCEANReader for StandInStruct {
+pub(crate) struct StandInStruct<L:LuminanceSource,B:Binarizer<L>>(PhantomData<L>,PhantomData<B>);
+impl<L:LuminanceSource,B:Binarizer<L>> UPCEANReader<L,B> for StandInStruct<L,B> {
     fn getBarcodeFormat(&self) -> BarcodeFormat {
         todo!()
     }
@@ -539,7 +541,7 @@ impl UPCEANReader for StandInStruct {
         todo!()
     }
 }
-impl OneDReader for StandInStruct {
+impl<L:LuminanceSource,B:Binarizer<L>> OneDReader<L,B> for StandInStruct<L,B> {
     fn decodeRow(
         &mut self,
         _rowNumber: u32,
@@ -550,18 +552,18 @@ impl OneDReader for StandInStruct {
     }
 }
 
-impl Reader for StandInStruct {
-    fn decode(&mut self, _image: &crate::BinaryBitmap) -> Result<RXingResult, Exceptions> {
+impl<L:LuminanceSource,B:Binarizer<L>> Reader<L,B> for StandInStruct<L,B> {
+    fn decode(&mut self, _image: &crate::BinaryBitmap<L,B>) -> Result<RXingResult, Exceptions> {
         todo!()
     }
 
     fn decode_with_hints(
         &mut self,
-        _image: &crate::BinaryBitmap,
+        _image: &crate::BinaryBitmap<L,B>,
         _hints: &crate::DecodingHintDictionary,
     ) -> Result<RXingResult, Exceptions> {
         todo!()
     }
 }
 
-pub(crate) const STAND_IN: StandInStruct = StandInStruct {};
+// pub(crate) const STAND_IN: StandInStruct = StandInStruct {};

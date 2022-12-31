@@ -27,12 +27,12 @@ use super::{one_d_reader, OneDReader};
  * @see Code39Reader
  */
 #[derive(OneDReader)]
-pub struct Code93Reader {
+pub struct Code93Reader<L:LuminanceSource,B:Binarizer<L>> {
     decodeRowRXingResult: String,
     counters: [u32; 6],
 }
 
-impl OneDReader for Code93Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> OneDReader<L,B> for Code93Reader<L,B> {
     fn decodeRow(
         &mut self,
         rowNumber: u32,
@@ -120,7 +120,7 @@ impl OneDReader for Code93Reader {
     }
 }
 
-impl Code93Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> Code93Reader<L,B> {
     // Note that 'abcd' are dummy characters in place of control characters.
     pub const ALPHABET_STRING: &str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%abcd*";
     pub const ALPHABET: [char; 48] = [

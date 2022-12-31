@@ -28,13 +28,13 @@ use super::{one_d_reader, OneDReader};
  * @see Code93Reader
  */
 #[derive(OneDReader)]
-pub struct Code39Reader {
+pub struct Code39Reader<L:LuminanceSource,B:Binarizer<L>> {
     usingCheckDigit: bool,
     extendedMode: bool,
     decodeRowRXingResult: String,
     // counters: Vec<u32>,
 }
-impl OneDReader for Code39Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> OneDReader<L,B> for Code39Reader<L,B> {
     fn decodeRow(
         &mut self,
         rowNumber: u32,
@@ -144,7 +144,7 @@ impl OneDReader for Code39Reader {
         Ok(resultObject)
     }
 }
-impl Code39Reader {
+impl<L:LuminanceSource,B:Binarizer<L>>Code39Reader<L,B> {
     pub const ALPHABET_STRING: &str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%";
 
     /**

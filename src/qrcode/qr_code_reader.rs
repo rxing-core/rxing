@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
+use std::{collections::HashMap, marker::PhantomData};
 
 use crate::{
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult},
     BarcodeFormat, DecodeHintType, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, RXingResultPoint, Reader,
+    RXingResultMetadataValue, RXingResultPoint, Reader, LuminanceSource, Binarizer,
 };
 
 use super::{
@@ -32,13 +32,13 @@ use super::{
  *
  * @author Sean Owen
  */
-pub struct QRCodeReader;
+pub struct QRCodeReader<L:LuminanceSource,B:Binarizer<L>>(PhantomData<L>,PhantomData<B>);
 // pub struct QRCodeReader;  {
 
 //   // private static final RXingResultPoint[] NO_POINTS = new RXingResultPoint[0];
 // }
 
-impl Reader for QRCodeReader {
+impl<L:LuminanceSource,B:Binarizer<L>> Reader<L,B> for QRCodeReader<L,B> {
     /**
      * Locates and decodes a QR code in an image.
      *
@@ -49,14 +49,14 @@ impl Reader for QRCodeReader {
      */
     fn decode(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         let decoderRXingResult: DecoderRXingResult;
@@ -135,9 +135,9 @@ impl Reader for QRCodeReader {
     }
 }
 
-impl QRCodeReader {
+impl<L:LuminanceSource,B:Binarizer<L>> QRCodeReader<L,B> {
     pub fn new() -> Self {
-        Self {}
+        Self (PhantomData,PhantomData)
     }
 
     /**

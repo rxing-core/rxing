@@ -16,11 +16,11 @@
 
 //package com.google.zxing;
 
-use std::{fmt, rc::Rc};
+use std::{fmt, rc::Rc, marker::PhantomData};
 
 use crate::{
     common::{BitArray, BitMatrix},
-    Binarizer, Exceptions,
+    Binarizer, Exceptions, LuminanceSource,
 };
 
 /**
@@ -30,16 +30,18 @@ use crate::{
  * @author dswitkin@google.com (Daniel Switkin)
  */
 #[derive(Clone)]
-pub struct BinaryBitmap {
-    binarizer: Rc<dyn Binarizer>,
+pub struct BinaryBitmap<L:LuminanceSource,B:Binarizer<L>> {
+    binarizer: Rc<B>,
     matrix: BitMatrix,
+    pd_l: PhantomData<L>
 }
 
-impl BinaryBitmap {
-    pub fn new(binarizer: Rc<dyn Binarizer>) -> Self {
+impl<L:LuminanceSource,B:Binarizer<L>> BinaryBitmap<L,B> {
+    pub fn new(binarizer: B) -> Self {
         Self {
             matrix: binarizer.getBlackMatrix().unwrap(),
-            binarizer: binarizer,
+            binarizer: Rc::new(binarizer),
+            pd_l: PhantomData
         }
     }
 
@@ -128,7 +130,7 @@ impl BinaryBitmap {
      * @param height The height of the rectangle to crop.
      * @return A cropped version of this object.
      */
-    pub fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> BinaryBitmap {
+    pub fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> BinaryBitmap<L,B> {
         let newSource = self
             .binarizer
             .getLuminanceSource()
@@ -152,7 +154,7 @@ impl BinaryBitmap {
      *
      * @return A rotated version of this object.
      */
-    pub fn rotateCounterClockwise(&self) -> BinaryBitmap {
+    pub fn rotateCounterClockwise(&self) -> BinaryBitmap<L,B> {
         let newSource = self.binarizer.getLuminanceSource().rotateCounterClockwise();
         return BinaryBitmap::new(
             self.binarizer
@@ -166,7 +168,7 @@ impl BinaryBitmap {
      *
      * @return A rotated version of this object.
      */
-    pub fn rotateCounterClockwise45(&self) -> BinaryBitmap {
+    pub fn rotateCounterClockwise45(&self) -> BinaryBitmap<L,B> {
         let newSource = self
             .binarizer
             .getLuminanceSource()
@@ -178,7 +180,7 @@ impl BinaryBitmap {
     }
 }
 
-impl fmt::Display for BinaryBitmap {
+impl<L:LuminanceSource,B:Binarizer<L>> fmt::Display for BinaryBitmap<L,B> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.getBlackMatrix())
     }

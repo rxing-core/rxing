@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use std::marker::PhantomData;
+
 use one_d_proc_derive::OneDReader;
 
 use crate::{common::BitArray, BarcodeFormat, DecodeHintValue, Exceptions, RXingResult};
@@ -87,20 +89,22 @@ const PATTERNS: [[u32; 5]; 20] = [
  * @author kevin.osullivan@sita.aero, SITA Lab.
  */
 #[derive(OneDReader)]
-pub struct ITFReader {
+pub struct ITFReader<L:LuminanceSource,B:Binarizer<L>> {
     // Stores the actual narrow line width of the image being decoded.
     narrowLineWidth: i32,
+    pd: (PhantomData<L>,PhantomData<B>)
 }
 
-impl Default for ITFReader {
+impl<L:LuminanceSource,B:Binarizer<L>> Default for ITFReader<L,B> {
     fn default() -> Self {
         Self {
             narrowLineWidth: -1,
+            pd: (PhantomData,PhantomData)
         }
     }
 }
 
-impl OneDReader for ITFReader {
+impl<L:LuminanceSource,B:Binarizer<L>> OneDReader<L,B> for ITFReader<L,B> {
     fn decodeRow(
         &mut self,
         rowNumber: u32,
@@ -172,7 +176,7 @@ impl OneDReader for ITFReader {
         Ok(resultObject)
     }
 }
-impl ITFReader {
+impl<L:LuminanceSource,B:Binarizer<L>> ITFReader<L,B> {
     /**
      * @param row          row of black/white values to search
      * @param payloadStart offset of start pattern

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-use crate::{BarcodeFormat, Exceptions, RXingResult, Reader};
+use std::marker::PhantomData;
+
+use crate::{BarcodeFormat, Exceptions, RXingResult, Reader, LuminanceSource, Binarizer};
 
 use super::{EAN13Reader, OneDReader, UPCEANReader};
 
@@ -24,23 +26,23 @@ use super::{EAN13Reader, OneDReader, UPCEANReader};
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Sean Owen
  */
-pub struct UPCAReader(EAN13Reader);
+pub struct UPCAReader<L:LuminanceSource,B:Binarizer<L>>(EAN13Reader<L,B>,PhantomData<L>,PhantomData<B>);
 
-impl Reader for UPCAReader {
-    fn decode(&mut self, image: &crate::BinaryBitmap) -> Result<crate::RXingResult, Exceptions> {
+impl<L:LuminanceSource,B:Binarizer<L>> Reader<L,B> for UPCAReader<L,B> {
+    fn decode(&mut self, image: &crate::BinaryBitmap<L,B>) -> Result<crate::RXingResult, Exceptions> {
         Self::maybeReturnRXingResult(self.0.decode(image)?)
     }
 
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, Exceptions> {
         Self::maybeReturnRXingResult(self.0.decode_with_hints(image, hints)?)
     }
 }
 
-impl OneDReader for UPCAReader {
+impl<L:LuminanceSource,B:Binarizer<L>> OneDReader<L,B> for UPCAReader<L,B> {
     fn decodeRow(
         &mut self,
         rowNumber: u32,
@@ -51,7 +53,7 @@ impl OneDReader for UPCAReader {
     }
 }
 
-impl UPCEANReader for UPCAReader {
+impl<L:LuminanceSource,B:Binarizer<L>> UPCEANReader<L,B> for UPCAReader<L,B> {
     fn getBarcodeFormat(&self) -> crate::BarcodeFormat {
         BarcodeFormat::UPC_A
     }
@@ -84,13 +86,13 @@ impl UPCEANReader for UPCAReader {
     }
 }
 
-impl Default for UPCAReader {
+impl<L:LuminanceSource,B:Binarizer<L>> Default for UPCAReader<L,B> {
     fn default() -> Self {
-        Self(Default::default())
+        Self(Default::default(),PhantomData,PhantomData)
     }
 }
 
-impl UPCAReader {
+impl<L:LuminanceSource,B:Binarizer<L>> UPCAReader<L,B> {
     // private final UPCEANReader ean13Reader = new EAN13Reader();
 
     fn maybeReturnRXingResult(result: RXingResult) -> Result<RXingResult, Exceptions> {

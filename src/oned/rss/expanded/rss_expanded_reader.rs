@@ -37,7 +37,7 @@ use crate::{
         OneDReader,
     },
     BarcodeFormat, DecodeHintType, DecodingHintDictionary, Exceptions, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader, ResultPoint,
+    RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader, ResultPoint, LuminanceSource, Binarizer,
 };
 
 use super::{bit_array_builder, decoders::abstract_expanded_decoder, ExpandedPair, ExpandedRow};
@@ -132,7 +132,7 @@ lazy_static! {
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
-pub struct RSSExpandedReader {
+pub struct RSSExpandedReader<L:LuminanceSource,B:Binarizer<L>> {
     _possibleLeftPairs: Vec<Pair>,
     _possibleRightPairs: Vec<Pair>,
     decodeFinderCounters: [u32; 4],
@@ -147,8 +147,8 @@ pub struct RSSExpandedReader {
     startEnd: [u32; 2],                  // new int[2];
     startFromEven: bool,
 }
-impl AbstractRSSReaderTrait for RSSExpandedReader {}
-impl OneDReader for RSSExpandedReader {
+impl<L:LuminanceSource,B:Binarizer<L>> AbstractRSSReaderTrait<L,B> for RSSExpandedReader<L,B> {}
+impl<L:LuminanceSource,B:Binarizer<L>> OneDReader<L,B> for RSSExpandedReader<L,B> {
     fn decodeRow(
         &mut self,
         rowNumber: u32,
@@ -178,15 +178,15 @@ impl OneDReader for RSSExpandedReader {
         Self::constructRXingResult(&self.decodeRow2pairs(rowNumber, row)?)
     }
 }
-impl Reader for RSSExpandedReader {
-    fn decode(&mut self, image: &crate::BinaryBitmap) -> Result<crate::RXingResult, Exceptions> {
+impl<L:LuminanceSource,B:Binarizer<L>> Reader<L,B> for RSSExpandedReader<L,B> {
+    fn decode(&mut self, image: &crate::BinaryBitmap<L,B>) -> Result<crate::RXingResult, Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     // Note that we don't try rotation without the try harder flag, even if rotation was supported.
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
         hints: &DecodingHintDictionary,
     ) -> Result<crate::RXingResult, Exceptions> {
         if let Ok(res) = self.doDecode(image, hints) {
@@ -244,7 +244,7 @@ impl Reader for RSSExpandedReader {
     }
 }
 
-impl RSSExpandedReader {
+impl<L:LuminanceSource,B:Binarizer<L>> RSSExpandedReader<L,B> {
     pub fn new() -> Self {
         Self::default()
     }
@@ -1038,7 +1038,7 @@ impl RSSExpandedReader {
     }
 }
 
-impl Default for RSSExpandedReader {
+impl<L:LuminanceSource,B:Binarizer<L>> Default for RSSExpandedReader<L,B> {
     fn default() -> Self {
         Self {
             _possibleLeftPairs: Default::default(),

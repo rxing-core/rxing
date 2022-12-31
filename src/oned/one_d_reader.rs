@@ -17,7 +17,7 @@
 use crate::{
     common::BitArray, BinaryBitmap, DecodeHintType, DecodingHintDictionary, Exceptions,
     RXingResult, RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader,
-    ResultPoint,
+    ResultPoint, LuminanceSource, Binarizer,
 };
 
 /**
@@ -27,7 +27,7 @@ use crate::{
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Sean Owen
  */
-pub trait OneDReader: Reader {
+pub trait OneDReader<L:LuminanceSource,B:Binarizer<L>>: Reader<L,B> {
     /**
      * We're going to examine rows from the middle outward, searching alternately above and below the
      * middle, and farther out each time. rowStep is the number of rows between each successive
@@ -44,7 +44,7 @@ pub trait OneDReader: Reader {
      */
     fn doDecode(
         &mut self,
-        image: &BinaryBitmap,
+        image: &BinaryBitmap<L,B>,
         hints: &DecodingHintDictionary,
     ) -> Result<RXingResult, Exceptions> {
         let mut hints = hints.clone();

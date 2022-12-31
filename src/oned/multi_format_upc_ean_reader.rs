@@ -15,8 +15,10 @@
  */
 
 use crate::BarcodeFormat;
+use crate::Binarizer;
 use crate::DecodeHintValue;
 use crate::Exceptions;
+use crate::LuminanceSource;
 use crate::RXingResult;
 use crate::Reader;
 
@@ -24,7 +26,7 @@ use super::EAN13Reader;
 use super::EAN8Reader;
 use super::UPCAReader;
 use super::UPCEReader;
-use super::STAND_IN;
+
 use super::{OneDReader, UPCEANReader};
 
 /**
@@ -34,9 +36,9 @@ use super::{OneDReader, UPCEANReader};
  *
  * @author Sean Owen
  */
-pub struct MultiFormatUPCEANReader(Vec<Box<dyn UPCEANReader>>);
+pub struct MultiFormatUPCEANReader<L:LuminanceSource,B:Binarizer<L>>(Vec<Box<dyn UPCEANReader<L,B>>>);
 
-impl MultiFormatUPCEANReader {
+impl<L:LuminanceSource,B:Binarizer<L>> MultiFormatUPCEANReader<L,B> {
     pub fn new(hints: &DecodingHintDictionary) -> Self {
         let mut readers: Vec<Box<dyn UPCEANReader>> = Vec::new();
         if let Some(DecodeHintValue::PossibleFormats(possibleFormats)) =
@@ -69,7 +71,7 @@ impl MultiFormatUPCEANReader {
 
     fn try_decode_function(
         &self,
-        reader: &Box<dyn UPCEANReader>,
+        reader: &Box<dyn UPCEANReader<L,B>>,
         rowNumber: u32,
         row: &crate::common::BitArray,
         hints: &crate::DecodingHintDictionary,
@@ -116,7 +118,7 @@ impl MultiFormatUPCEANReader {
     }
 }
 
-impl OneDReader for MultiFormatUPCEANReader {
+impl<L:LuminanceSource,B:Binarizer<L>> OneDReader<L,B> for MultiFormatUPCEANReader<L,B> {
     fn decodeRow(
         &mut self,
         rowNumber: u32,
@@ -124,7 +126,7 @@ impl OneDReader for MultiFormatUPCEANReader {
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         // Compute this location once and reuse it on multiple implementations
-        let startGuardPattern = STAND_IN.findStartGuardPattern(row)?;
+        let startGuardPattern = Self::findStartGuardPattern(row)?;
         for reader in &self.0 {
             // for (UPCEANReader reader : readers) {
             let try_result =
@@ -146,15 +148,15 @@ use crate::RXingResultMetadataValue;
 use crate::RXingResultPoint;
 use std::collections::HashMap;
 
-impl Reader for MultiFormatUPCEANReader {
-    fn decode(&mut self, image: &crate::BinaryBitmap) -> Result<crate::RXingResult, Exceptions> {
+impl<L:LuminanceSource,B:Binarizer<L>> Reader<L,B> for MultiFormatUPCEANReader<L,B> {
+    fn decode(&mut self, image: &crate::BinaryBitmap<L,B>) -> Result<crate::RXingResult, Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     // Note that we don't try rotation without the try harder flag, even if rotation was supported.
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
         hints: &DecodingHintDictionary,
     ) -> Result<crate::RXingResult, Exceptions> {
         if let Ok(res) = self.doDecode(image, hints) {

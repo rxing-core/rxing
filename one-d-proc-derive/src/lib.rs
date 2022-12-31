@@ -23,16 +23,18 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
         use crate::RXingResultMetadataValue;
         use crate::RXingResultPoint;
         use crate::Reader;
+        use crate::LuminanceSource;
+        use crate::Binarizer;
 
-        impl Reader for #name {
-            fn decode(&mut self, image: &crate::BinaryBitmap) -> Result<crate::RXingResult, Exceptions> {
+        impl<L:LuminanceSource,B:Binarizer<L>> Reader<L,B> for #name<L,B> {
+            fn decode(&mut self, image: &crate::BinaryBitmap<L,B>) -> Result<crate::RXingResult, Exceptions> {
               self.decode_with_hints(image, &HashMap::new())
             }
         
             // Note that we don't try rotation without the try harder flag, even if rotation was supported.
             fn decode_with_hints(
                 &mut self,
-                image: &crate::BinaryBitmap,
+                image: &crate::BinaryBitmap<L,B>,
                 hints: &DecodingHintDictionary,
             ) -> Result<crate::RXingResult, Exceptions> {
               if let Ok(res) = self.doDecode(image, hints) {
@@ -92,7 +94,7 @@ pub fn ean_reader_derive(input: TokenStream) -> TokenStream {
 fn impl_ean_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
   let name = &ast.ident;
   let gen = quote! {
-    impl super::OneDReader for #name {
+    impl<L:LuminanceSource,B:Binarizer<L>> super::OneDReader<L,B> for #name<L,B> {
       fn decodeRow(
         &mut self,
         rowNumber: u32,

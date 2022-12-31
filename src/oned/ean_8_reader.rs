@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use std::marker::PhantomData;
+
 use super::OneDReader;
 use crate::{BarcodeFormat, Exceptions};
 use one_d_proc_derive::{EANReader, OneDReader};
@@ -27,9 +29,9 @@ use super::UPCEANReader;
  * @author Sean Owen
  */
 #[derive(OneDReader, EANReader)]
-pub struct EAN8Reader;
+pub struct EAN8Reader<L:LuminanceSource,B:Binarizer<L>>(PhantomData<L>,PhantomData<B>);
 
-impl UPCEANReader for EAN8Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> UPCEANReader<L,B> for EAN8Reader<L,B> {
     fn getBarcodeFormat(&self) -> crate::BarcodeFormat {
         BarcodeFormat::EAN_8
     }
@@ -84,8 +86,8 @@ impl UPCEANReader for EAN8Reader {
     }
 }
 
-impl Default for EAN8Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> Default for EAN8Reader<L,B> {
     fn default() -> Self {
-        Self {}
+        Self (PhantomData,PhantomData)
     }
 }

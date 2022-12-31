@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-use std::{collections::HashMap, time::UNIX_EPOCH};
+use std::{collections::HashMap, time::UNIX_EPOCH, marker::PhantomData};
 
 use crate::{
     common::{DecoderRXingResult, DetectorRXingResult},
     exceptions::Exceptions,
     BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    RXingResultMetadataType, RXingResultMetadataValue, Reader, Binarizer, LuminanceSource,
 };
 
 use super::{decoder, detector::Detector};
@@ -30,9 +30,9 @@ use super::{decoder, detector::Detector};
  *
  * @author David Olivier
  */
-pub struct AztecReader;
+pub struct AztecReader<L:LuminanceSource,B:Binarizer<L>>{pd_l: PhantomData<L>, pd_b: PhantomData<B>}
 
-impl Reader for AztecReader {
+impl<L:LuminanceSource,B:Binarizer<L>> Reader<L,B> for AztecReader<L,B> {
     /**
      * Locates and decodes a Data Matrix code in an image.
      *
@@ -40,13 +40,13 @@ impl Reader for AztecReader {
      * @throws NotFoundException if a Data Matrix code cannot be found
      * @throws FormatException if a Data Matrix code cannot be decoded
      */
-    fn decode(&mut self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions> {
+    fn decode(&mut self, image: &BinaryBitmap<L,B>) -> Result<RXingResult, Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     fn decode_with_hints(
         &mut self,
-        image: &BinaryBitmap,
+        image: &BinaryBitmap<L,B>,
         hints: &HashMap<DecodeHintType, DecodeHintValue>,
     ) -> Result<RXingResult, Exceptions> {
         // let notFoundException = None;

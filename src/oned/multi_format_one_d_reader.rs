@@ -24,6 +24,7 @@ use super::ITFReader;
 use super::MultiFormatUPCEANReader;
 use super::OneDReader;
 use crate::BarcodeFormat;
+use crate::Binarizer;
 use crate::DecodeHintValue;
 use crate::Exceptions;
 
@@ -31,8 +32,8 @@ use crate::Exceptions;
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Sean Owen
  */
-pub struct MultiFormatOneDReader(Vec<Box<dyn OneDReader>>);
-impl OneDReader for MultiFormatOneDReader {
+pub struct MultiFormatOneDReader<L:LuminanceSource,B:Binarizer<L>>(Vec<Box<dyn OneDReader<L,B>>>);
+impl<L:LuminanceSource,B:Binarizer<L>> OneDReader<L,B> for MultiFormatOneDReader<L,B> {
     fn decodeRow(
         &mut self,
         rowNumber: u32,
@@ -53,7 +54,7 @@ impl OneDReader for MultiFormatOneDReader {
         return Err(Exceptions::NotFoundException("".to_owned()));
     }
 }
-impl MultiFormatOneDReader {
+impl<L:LuminanceSource,B:Binarizer<L>> MultiFormatOneDReader<L,B> {
     // private static final OneDReader[] EMPTY_ONED_ARRAY = new OneDReader[0];
 
     // private final OneDReader[] readers;
@@ -110,6 +111,7 @@ impl MultiFormatOneDReader {
     }
 }
 
+use crate::LuminanceSource;
 use crate::result_point::ResultPoint;
 use crate::DecodeHintType;
 use crate::DecodingHintDictionary;
@@ -119,15 +121,15 @@ use crate::RXingResultPoint;
 use crate::Reader;
 use std::collections::HashMap;
 
-impl Reader for MultiFormatOneDReader {
-    fn decode(&mut self, image: &crate::BinaryBitmap) -> Result<crate::RXingResult, Exceptions> {
+impl<L:LuminanceSource,B:Binarizer<L>> Reader<L,B> for MultiFormatOneDReader<L,B> {
+    fn decode(&mut self, image: &crate::BinaryBitmap<L,B>) -> Result<crate::RXingResult, Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     // Note that we don't try rotation without the try harder flag, even if rotation was supported.
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
         hints: &DecodingHintDictionary,
     ) -> Result<crate::RXingResult, Exceptions> {
         if let Ok(res) = self.doDecode(image, hints) {

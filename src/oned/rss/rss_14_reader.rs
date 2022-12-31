@@ -20,7 +20,7 @@ use crate::{
     common::BitArray,
     oned::{one_d_reader, OneDReader},
     BarcodeFormat, DecodeHintType, DecodingHintDictionary, Exceptions, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader, ResultPoint,
+    RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader, ResultPoint, LuminanceSource, Binarizer,
 };
 
 use super::{
@@ -30,7 +30,7 @@ use super::{
 /**
  * Decodes RSS-14, including truncated and stacked variants. See ISO/IEC 24724:2006.
  */
-pub struct RSS14Reader {
+pub struct RSS14Reader<L:LuminanceSource,B:Binarizer<L>> {
     possibleLeftPairs: Vec<Pair>,
     possibleRightPairs: Vec<Pair>,
     decodeFinderCounters: [u32; 4],
@@ -41,9 +41,9 @@ pub struct RSS14Reader {
     evenCounts: [u32; 4],
 }
 
-impl AbstractRSSReaderTrait for RSS14Reader {}
+impl<L:LuminanceSource,B:Binarizer<L>> AbstractRSSReaderTrait<L,B> for RSS14Reader<L,B> {}
 
-impl OneDReader for RSS14Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> OneDReader<L,B> for RSS14Reader<L,B> {
     fn decodeRow(
         &mut self,
         rowNumber: u32,
@@ -71,15 +71,15 @@ impl OneDReader for RSS14Reader {
         return Err(Exceptions::NotFoundException("".to_owned()));
     }
 }
-impl Reader for RSS14Reader {
-    fn decode(&mut self, image: &crate::BinaryBitmap) -> Result<crate::RXingResult, Exceptions> {
+impl<L:LuminanceSource,B:Binarizer<L>> Reader<L,B> for RSS14Reader<L,B> {
+    fn decode(&mut self, image: &crate::BinaryBitmap<L,B>) -> Result<crate::RXingResult, Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     // Note that we don't try rotation without the try harder flag, even if rotation was supported.
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
         hints: &DecodingHintDictionary,
     ) -> Result<crate::RXingResult, Exceptions> {
         if let Ok(res) = self.doDecode(image, hints) {
@@ -137,7 +137,7 @@ impl Reader for RSS14Reader {
     }
 }
 
-impl RSS14Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> RSS14Reader<L,B> {
     const OUTSIDE_EVEN_TOTAL_SUBSET: [u32; 5] = [1, 10, 34, 70, 126];
     const INSIDE_ODD_TOTAL_SUBSET: [u32; 4] = [4, 20, 48, 81];
     const OUTSIDE_GSUM: [u32; 5] = [0, 161, 961, 2015, 2715];

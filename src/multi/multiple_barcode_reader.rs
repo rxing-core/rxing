@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{BinaryBitmap, DecodingHintDictionary, Exceptions, RXingResult};
+use crate::{BinaryBitmap, DecodingHintDictionary, Exceptions, RXingResult, LuminanceSource, Binarizer};
 
 /**
  * Implementation of this interface attempt to read several barcodes from one image.
@@ -22,12 +22,12 @@ use crate::{BinaryBitmap, DecodingHintDictionary, Exceptions, RXingResult};
  * @see com.google.zxing.Reader
  * @author Sean Owen
  */
-pub trait MultipleBarcodeReader {
-    fn decode_multiple(&mut self, image: &BinaryBitmap) -> Result<Vec<RXingResult>, Exceptions>;
+pub trait MultipleBarcodeReader<L:LuminanceSource,B:Binarizer<L>> {
+    fn decode_multiple(&mut self, image: &BinaryBitmap<L,B>) -> Result<Vec<RXingResult>, Exceptions>;
 
     fn decode_multiple_with_hints(
         &mut self,
-        image: &BinaryBitmap,
+        image: &BinaryBitmap<L,B>,
         hints: &DecodingHintDictionary,
     ) -> Result<Vec<RXingResult>, Exceptions>;
 }

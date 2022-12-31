@@ -26,9 +26,9 @@ use super::{one_d_reader, OneDReader};
  * @author Sean Owen
  */
 #[derive(OneDReader)]
-pub struct Code128Reader;
+pub struct Code128Reader<L:LuminanceSource,B:Binarizer<L>>;
 
-impl OneDReader for Code128Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> OneDReader<L,B> for Code128Reader<L,B> {
     fn decodeRow(
         &mut self,
         rowNumber: u32,
@@ -362,7 +362,7 @@ impl OneDReader for Code128Reader {
         Ok(resultObject)
     }
 }
-impl Code128Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> Code128Reader<L,B> {
     fn findStartPattern(&self, row: &BitArray) -> Result<[usize; 3], Exceptions> {
         let width = row.getSize();
         let rowOffset = row.getNextSet(0);
@@ -450,7 +450,7 @@ impl Code128Reader {
     }
 }
 
-impl Default for Code128Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> Default for Code128Reader<L,B> {
     fn default() -> Self {
         Self {}
     }

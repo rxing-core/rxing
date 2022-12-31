@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::{cmp::Ordering, collections::HashMap};
+use std::{cmp::Ordering, collections::HashMap, marker::PhantomData};
 
 use crate::{
     common::DetectorRXingResult,
@@ -23,7 +23,7 @@ use crate::{
         decoder::{self, QRCodeDecoderMetaData},
         QRCodeReader,
     },
-    BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue,
+    BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, LuminanceSource, Binarizer,
 };
 
 use super::detector::MultiDetector;
@@ -34,18 +34,18 @@ use super::detector::MultiDetector;
  * @author Sean Owen
  * @author Hannes Erven
  */
-pub struct QRCodeMultiReader(QRCodeReader);
-impl MultipleBarcodeReader for QRCodeMultiReader {
+pub struct QRCodeMultiReader<L:LuminanceSource,B:Binarizer<L>>(QRCodeReader<L,B>,PhantomData<L>,PhantomData<B>);
+impl<L:LuminanceSource,B:Binarizer<L>> MultipleBarcodeReader<L,B> for QRCodeMultiReader<L,B> {
     fn decode_multiple(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
         self.decode_multiple_with_hints(image, &HashMap::new())
     }
 
     fn decode_multiple_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
         let mut results = Vec::new();
@@ -125,9 +125,9 @@ impl MultipleBarcodeReader for QRCodeMultiReader {
     }
 }
 
-impl QRCodeMultiReader {
+impl<L:LuminanceSource,B:Binarizer<L>> QRCodeMultiReader<L,B> {
     pub fn new() -> Self {
-        Self(QRCodeReader::new())
+        Self(QRCodeReader::new(),PhantomData,PhantomData)
     }
 
     fn processStructuredAppend(results: Vec<RXingResult>) -> Result<Vec<RXingResult>, Exceptions> {

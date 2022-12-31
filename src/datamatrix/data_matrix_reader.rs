@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
+use std::{collections::HashMap, marker::PhantomData};
 
 use crate::{
     common::{BitMatrix, DetectorRXingResult},
     BarcodeFormat, DecodeHintType, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, Reader,
+    RXingResultMetadataValue, Reader, LuminanceSource, Binarizer,
 };
 
 use super::{decoder::Decoder, detector::Detector};
@@ -35,13 +35,13 @@ lazy_static! {
  *
  * @author bbrown@google.com (Brian Brown)
  */
-pub struct DataMatrixReader;
+pub struct DataMatrixReader<L:LuminanceSource,B:Binarizer<L>>{pd_l: PhantomData<L>, pd_b: PhantomData<B>}
 
 // private static final RXingResultPoint[] NO_POINTS = new RXingResultPoint[0];
 
 // private final Decoder decoder = new Decoder();
 
-impl Reader for DataMatrixReader {
+impl<L:LuminanceSource,B:Binarizer<L>> Reader<L,B> for DataMatrixReader<L,B> {
     /**
      * Locates and decodes a Data Matrix code in an image.
      *
@@ -52,7 +52,7 @@ impl Reader for DataMatrixReader {
      */
     fn decode(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
@@ -67,7 +67,7 @@ impl Reader for DataMatrixReader {
      */
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         let decoderRXingResult;
@@ -117,7 +117,7 @@ impl Reader for DataMatrixReader {
     }
 }
 
-impl DataMatrixReader {
+impl<L:LuminanceSource,B:Binarizer<L>> DataMatrixReader<L,B> {
     /**
      * This method detects a code in a "pure" image -- that is, pure monochrome image
      * which contains only an unrotated, unskewed, image of a code, with some white border

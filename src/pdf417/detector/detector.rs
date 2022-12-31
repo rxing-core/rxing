@@ -16,7 +16,7 @@
 
 use crate::{
     common::BitMatrix, BinaryBitmap, DecodingHintDictionary, Exceptions, RXingResultPoint,
-    ResultPoint,
+    ResultPoint, LuminanceSource, Binarizer,
 };
 
 use super::PDF417DetectorRXingResult;
@@ -62,8 +62,8 @@ const ROTATIONS: [u32; 4] = [0, 180, 270, 90];
  * @return {@link PDF417DetectorRXingResult} encapsulating results of detecting a PDF417 code
  * @throws NotFoundException if no PDF417 Code can be found
  */
-pub fn detect_with_hints(
-    image: &BinaryBitmap,
+pub fn detect_with_hints<L:LuminanceSource,B:Binarizer<L>>(
+    image: &BinaryBitmap<L,B>,
     _hints: &DecodingHintDictionary,
     multiple: bool,
 ) -> Result<PDF417DetectorRXingResult, Exceptions> {

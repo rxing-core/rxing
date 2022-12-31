@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
+use std::{collections::HashMap, marker::PhantomData};
 
 use crate::{
     multi::MultipleBarcodeReader, BarcodeFormat, BinaryBitmap, DecodingHintDictionary, Exceptions,
     RXingResult, RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader,
-    ResultPoint,
+    ResultPoint, LuminanceSource, Binarizer,
 };
 
 use super::{
@@ -32,9 +32,9 @@ use super::{
  *
  * @author Guenther Grau
  */
-pub struct PDF417Reader;
+pub struct PDF417Reader<L:LuminanceSource,B:Binarizer<L>>(PhantomData<L>,PhantomData<B>);
 
-impl Reader for PDF417Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> Reader<L,B> for PDF417Reader<L,B> {
     /**
      * Locates and decodes a PDF417 code in an image.
      *
@@ -44,14 +44,14 @@ impl Reader for PDF417Reader {
      */
     fn decode(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         let result = Self::decode(image, hints, false)?;
@@ -62,17 +62,17 @@ impl Reader for PDF417Reader {
         Ok(result[0].clone())
     }
 }
-impl MultipleBarcodeReader for PDF417Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> MultipleBarcodeReader<L,B> for PDF417Reader<L,B> {
     fn decode_multiple(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
         self.decode_multiple_with_hints(image, &HashMap::new())
     }
 
     fn decode_multiple_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
         //try {
@@ -83,19 +83,19 @@ impl MultipleBarcodeReader for PDF417Reader {
     }
 }
 
-impl Default for PDF417Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> Default for PDF417Reader<L,B> {
     fn default() -> Self {
-        Self {}
+        Self(PhantomData,PhantomData)
     }
 }
 
-impl PDF417Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> PDF417Reader<L,B> {
     pub fn new() -> Self {
         Self::default()
     }
 
     fn decode(
-        image: &BinaryBitmap,
+        image: &BinaryBitmap<L,B>,
         hints: &DecodingHintDictionary,
         multiple: bool,
     ) -> Result<Vec<RXingResult>, Exceptions> {

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use std::marker::PhantomData;
+
 use one_d_proc_derive::{EANReader, OneDReader};
 
 use super::UPCEANReader;
@@ -32,8 +34,8 @@ use crate::Exceptions;
  * @author alasdair@google.com (Alasdair Mackintosh)
  */
 #[derive(OneDReader, EANReader)]
-pub struct EAN13Reader;
-impl UPCEANReader for EAN13Reader {
+pub struct EAN13Reader<L:LuminanceSource,B:Binarizer<L>>(PhantomData<L>,PhantomData<B>);
+impl<L:LuminanceSource,B:Binarizer<L>> UPCEANReader<L,B> for EAN13Reader<L,B> {
     fn getBarcodeFormat(&self) -> crate::BarcodeFormat {
         BarcodeFormat::EAN_13
     }
@@ -100,7 +102,7 @@ impl UPCEANReader for EAN13Reader {
         Ok(rowOffset)
     }
 }
-impl EAN13Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> EAN13Reader<L,B> {
     // For an EAN-13 barcode, the first digit is represented by the parities used
     // to encode the next six digits, according to the table below. For example,
     // if the barcode is 5 123456 789012 then the value of the first digit is
@@ -158,8 +160,8 @@ impl EAN13Reader {
     }
 }
 
-impl Default for EAN13Reader {
+impl<L:LuminanceSource,B:Binarizer<L>> Default for EAN13Reader<L,B> {
     fn default() -> Self {
-        Self {}
+        Self (PhantomData,PhantomData)
     }
 }

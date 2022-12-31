@@ -20,7 +20,7 @@ use crate::{
     aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
     oned::MultiFormatOneDReader, pdf417::PDF417Reader, qrcode::QRCodeReader, BarcodeFormat,
     BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, RXingResult,
-    Reader,
+    Reader, LuminanceSource, Binarizer,
 };
 
 /**
@@ -31,12 +31,12 @@ use crate::{
  * @author Sean Owen
  * @author dswitkin@google.com (Daniel Switkin)
  */
-pub struct MultiFormatReader {
+pub struct MultiFormatReader<L:LuminanceSource,B:Binarizer<L>> {
     hints: DecodingHintDictionary,
-    readers: Vec<Box<dyn Reader>>,
+    readers: Vec<Box<dyn Reader<L,B>>>,
 }
 
-impl Reader for MultiFormatReader {
+impl<L:LuminanceSource,B:Binarizer<L>> Reader<L,B> for MultiFormatReader<L,B> {
     /**
      * This version of decode honors the intent of Reader.decode(BinaryBitmap) in that it
      * passes null as a hint to the decoders. However, that makes it inefficient to call repeatedly.
@@ -48,7 +48,7 @@ impl Reader for MultiFormatReader {
      */
     fn decode(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         self.set_ints(&HashMap::new());
         self.decode_internal(image)
@@ -64,7 +64,7 @@ impl Reader for MultiFormatReader {
      */
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         self.set_ints(hints);
@@ -80,7 +80,7 @@ impl Reader for MultiFormatReader {
     }
 }
 
-impl MultiFormatReader {
+impl<L:LuminanceSource,B:Binarizer<L>> MultiFormatReader<L,B> {
     /**
      * Decode an image using the state set up by calling setHints() previously. Continuous scan
      * clients will get a <b>large</b> speed increase by using this instead of decode().
@@ -89,7 +89,7 @@ impl MultiFormatReader {
      * @return The contents of the image
      * @throws NotFoundException Any errors which occurred
      */
-    pub fn decode_with_state(&mut self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions> {
+    pub fn decode_with_state(&mut self, image: &BinaryBitmap<L,B>) -> Result<RXingResult, Exceptions> {
         // Make sure to set up the default state so we don't crash
         if self.readers.is_empty() {
             self.set_ints(&HashMap::new());
@@ -166,7 +166,7 @@ impl MultiFormatReader {
         self.readers = readers; //Vec::new(); //readers.toArray(EMPTY_READER_ARRAY);
     }
 
-    pub fn decode_internal(&mut self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions> {
+    pub fn decode_internal(&mut self, image: &BinaryBitmap<L,B>) -> Result<RXingResult, Exceptions> {
         if !self.readers.is_empty() {
             for reader in self.readers.iter_mut() {
                 // I'm not sure how to model this in rust
@@ -206,7 +206,7 @@ impl MultiFormatReader {
     }
 }
 
-impl Default for MultiFormatReader {
+impl<L:LuminanceSource,B:Binarizer<L>> Default for MultiFormatReader<L,B> {
     fn default() -> Self {
         Self {
             hints: HashMap::new(),

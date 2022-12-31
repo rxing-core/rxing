@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use std::marker::PhantomData;
+
 use super::{OneDReader, UPCEANReader, L_AND_G_PATTERNS};
 use crate::{BarcodeFormat, Exceptions};
 use one_d_proc_derive::{EANReader, OneDReader};
@@ -26,9 +28,9 @@ use one_d_proc_derive::{EANReader, OneDReader};
  * @author Sean Owen
  */
 #[derive(OneDReader, EANReader)]
-pub struct UPCEReader;
+pub struct UPCEReader<L:LuminanceSource,B:Binarizer<L>>(PhantomData<L>,PhantomData<B>);
 
-impl UPCEANReader for UPCEReader {
+impl<L:LuminanceSource,B:Binarizer<L>> UPCEANReader<L,B> for UPCEReader<L,B> {
     fn getBarcodeFormat(&self) -> crate::BarcodeFormat {
         BarcodeFormat::UPC_E
     }
@@ -84,13 +86,13 @@ impl UPCEANReader for UPCEReader {
     }
 }
 
-impl Default for UPCEReader {
+impl<L:LuminanceSource,B:Binarizer<L>> Default for UPCEReader<L,B> {
     fn default() -> Self {
-        Self {}
+        Self (PhantomData,PhantomData)
     }
 }
 
-impl UPCEReader {
+impl<L:LuminanceSource,B:Binarizer<L>> UPCEReader<L,B> {
     /**
      * The pattern that marks the middle, and end, of a UPC-E pattern.
      * There is no "second half" to a UPC-E barcode.

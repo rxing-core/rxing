@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
+use std::{collections::HashMap, marker::PhantomData};
 
 use crate::{
-    common::BitMatrix, BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType, Reader,
+    common::BitMatrix, BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType, Reader, LuminanceSource, Binarizer,
 };
 
 use super::decoder::decoder;
@@ -25,11 +25,13 @@ use super::decoder::decoder;
 /**
  * This implementation can detect and decode a MaxiCode in an image.
  */
-pub struct MaxiCodeReader {
+pub struct MaxiCodeReader<L:LuminanceSource,B:Binarizer<L>> {
     // private final Decoder decoder = new Decoder();
+    pd_l: PhantomData<L>,
+    pd_b: PhantomData<B>
 }
 
-impl Reader for MaxiCodeReader {
+impl<L:LuminanceSource,B:Binarizer<L>> Reader<L,B> for MaxiCodeReader<L,B> {
     /**
      * Locates and decodes a MaxiCode in an image.
      *
@@ -40,7 +42,7 @@ impl Reader for MaxiCodeReader {
      */
     fn decode(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
@@ -55,7 +57,7 @@ impl Reader for MaxiCodeReader {
      */
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &crate::BinaryBitmap<L,B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         // Note that MaxiCode reader effectively always assumes PURE_BARCODE mode
@@ -83,7 +85,7 @@ impl Reader for MaxiCodeReader {
         // do nothing
     }
 }
-impl MaxiCodeReader {
+impl<L:LuminanceSource,B:Binarizer<L>> MaxiCodeReader<L,B> {
     const MATRIX_WIDTH: u32 = 30;
     const MATRIX_HEIGHT: u32 = 33;
 
