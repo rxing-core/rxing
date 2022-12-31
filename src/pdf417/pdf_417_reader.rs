@@ -114,7 +114,7 @@ impl PDF417Reader {
                 Self::getMaxCodewordWidth(points),
             )?;
             let mut result = RXingResult::new(
-                decoderRXingResult.getText().clone(),
+                decoderRXingResult.getText(),
                 decoderRXingResult.getRawBytes().clone(),
                 points_filtered,
                 BarcodeFormat::PDF_417,
