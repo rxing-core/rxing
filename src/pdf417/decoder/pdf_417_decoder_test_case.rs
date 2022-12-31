@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 /*
  * Copyright 2009 ZXing authors
  *
