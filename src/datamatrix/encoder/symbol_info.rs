@@ -353,6 +353,7 @@ impl<'a> SymbolInfoLookup<'a> {
     }
 }
 
+#[cfg(test)]
 mod tests {
 
     use crate::{datamatrix::encoder::SymbolShapeHint, Dimension};

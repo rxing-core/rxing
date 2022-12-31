@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 /*
  * Copyright 2008 ZXing authors
  *

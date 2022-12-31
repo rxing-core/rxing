@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 /*
  * Copyright 2008 ZXing authors
  *
@@ -138,29 +139,29 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
     pub fn test_black_box(&mut self) {
         assert!(!self.test_rxing_results.is_empty());
 
-        let imageFiles = self.getImageFileLists().expect("images");
-        let testCount = self.test_rxing_results.len();
+        let image_files = self.get_image_file_lists().expect("images");
+        let test_count = self.test_rxing_results.len();
 
-        let mut passedCounts = vec![0; testCount];
-        let mut tryHarderCounts = vec![0; testCount];
+        let mut passed_counts = vec![0; test_count];
+        let mut try_harder_counts = vec![0; test_count];
 
-        let testBase = self.get_test_base().clone();
+        let test_base = self.get_test_base().clone();
 
-        for (name, files) in &imageFiles {
+        for (name, files) in &image_files {
             // for (Entry<String,List<Path>> testImageGroup : imageFiles.entrySet()) {
             log::fine(format!("Starting Image Group {}", name));
 
-            let fileBaseName = name; //testImageGroup.getKey();
+            let file_base_name = name; //testImageGroup.getKey();
                                      //   let expectedText : String;
-            let mut expectedTextFile = testBase.clone().to_path_buf();
-            expectedTextFile.push(fileBaseName);
-            expectedTextFile.set_extension("txt");
+            let mut expected_text_file = test_base.clone().to_path_buf();
+            expected_text_file.push(file_base_name);
+            expected_text_file.set_extension("txt");
             //   let expectedTextFile = testBase.resolve(fileBaseName + ".txt");
-            let expectedText = if expectedTextFile.exists() {
-                Self::read_file_as_string(expectedTextFile)
+            let expected_text = if expected_text_file.exists() {
+                Self::read_file_as_string(expected_text_file)
             } else {
                 let mut new_path = self.test_base.clone().to_path_buf();
-                new_path.push(fileBaseName);
+                new_path.push(file_base_name);
                 new_path.set_extension("bin");
                 //expectedTextFile = testBase.resolve(fileBaseName + ".bin");
                 assert!(new_path.exists());
@@ -168,15 +169,15 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
             }
             .unwrap();
 
-            for x in 0..testCount {
+            for x in 0..test_count {
                 //   for (int x = 0; x < testCount; x++) {
                 let mut results = Vec::new();
-                for imageFile in files {
+                for image_file in files {
                     // for (Path imageFile : testImageGroup.getValue()) {
-                    let image = image::open(imageFile).unwrap();
+                    let image = image::open(image_file).unwrap();
                     let rotation: f32 = self.test_rxing_results.get(x).expect("ok").get_rotation();
-                    let rotatedImage = Self::rotate_image(&image, rotation);
-                    let source = BufferedImageLuminanceSource::new(rotatedImage);
+                    let rotated_image = Self::rotate_image(&image, rotation);
+                    let source = BufferedImageLuminanceSource::new(rotated_image);
                     let bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
 
                     if let Ok(res) = Self::decode_pdf417(&bitmap, false, &mut self.barcode_reader) {
@@ -192,91 +193,91 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
                 }
                 // results.sort(Comparator.comparingInt((RXingResult r) -> getMeta(r).getSegmentIndex()));
                 // results.sort();
-                let mut resultText = String::new(); //new StringBuilder();
-                let mut fileId: Option<String> = None;
+                let mut result_text = String::new(); //new StringBuilder();
+                let mut file_id: Option<String> = None;
                 for result in results {
                     // for (RXingResult result : results) {
-                    let resultMetadata = Self::getMeta(&result);
-                    assert!(resultMetadata.is_some(), "resultMetadata");
-                    if fileId.is_none() {
-                        fileId = Some(resultMetadata.as_ref().unwrap().getFileId().to_owned());
+                    let result_metadata = Self::get_meta(&result);
+                    assert!(result_metadata.is_some(), "resultMetadata");
+                    if file_id.is_none() {
+                        file_id = Some(result_metadata.as_ref().unwrap().getFileId().to_owned());
                     }
                     assert_eq!(
-                        fileId,
-                        Some(resultMetadata.as_ref().unwrap().getFileId().to_owned()),
+                        file_id,
+                        Some(result_metadata.as_ref().unwrap().getFileId().to_owned()),
                         "FileId"
                     );
-                    resultText.push_str(result.getText());
+                    result_text.push_str(result.getText());
                 }
-                assert_eq!(expectedText, resultText, "ExpectedText");
-                passedCounts[x] += 1;
-                tryHarderCounts[x] += 1;
+                assert_eq!(expected_text, result_text, "ExpectedText");
+                passed_counts[x] += 1;
+                try_harder_counts[x] += 1;
             }
         }
 
         // Print the results of all tests first
-        let mut totalFound = 0;
-        let mut totalMustPass = 0;
+        let mut total_found = 0;
+        let mut total_must_pass = 0;
 
-        let numberOfTests = imageFiles.len(); //imageFiles.keySet().size();
+        let number_of_tests = image_files.len(); //imageFiles.keySet().size();
         for x in 0..self.test_rxing_results.len() {
             // for (int x = 0; x < testRXingResults.size(); x++) {
-            let testRXingResult = self.test_rxing_results.get(x).expect("ok");
+            let test_rxing_result = self.test_rxing_results.get(x).expect("ok");
             log::info(format!(
                 "Rotation {} degrees:",
-                testRXingResult.get_rotation()
+                test_rxing_result.get_rotation()
             ));
             log::info(format!(
                 " {} of {} images passed ({} required)",
-                passedCounts[x],
-                numberOfTests,
-                testRXingResult.get_must_pass_count()
+                passed_counts[x],
+                number_of_tests,
+                test_rxing_result.get_must_pass_count()
             ));
             log::info(format!(
                 " {} of {} images passed with try harder ({} required)",
-                tryHarderCounts[x],
-                numberOfTests,
-                testRXingResult.get_try_harder_count()
+                try_harder_counts[x],
+                number_of_tests,
+                test_rxing_result.get_try_harder_count()
             ));
-            totalFound += passedCounts[x] + tryHarderCounts[x];
-            totalMustPass +=
-                testRXingResult.get_must_pass_count() + testRXingResult.get_try_harder_count();
+            total_found += passed_counts[x] + try_harder_counts[x];
+            total_must_pass +=
+                test_rxing_result.get_must_pass_count() + test_rxing_result.get_try_harder_count();
         }
 
-        let totalTests = numberOfTests * testCount * 2;
+        let total_tests = number_of_tests * test_count * 2;
         log::info(format!(
             "Decoded {} images out of {} ({}%, {} required)",
-            totalFound,
-            totalTests,
-            totalFound * 100 / totalTests,
-            totalMustPass
+            total_found,
+            total_tests,
+            total_found * 100 / total_tests,
+            total_must_pass
         ));
-        if totalFound > totalMustPass as usize {
+        if total_found > total_must_pass as usize {
             log::warning(format!(
                 "+++ Test too lax by {} images",
-                totalFound - totalMustPass as usize
+                total_found - total_must_pass as usize
             ));
-        } else if totalFound < totalMustPass as usize {
+        } else if total_found < total_must_pass as usize {
             log::warning(format!(
                 "--- Test failed by {} images",
-                totalMustPass as usize - totalFound
+                total_must_pass as usize - total_found
             ));
         }
 
         // Then run through again and assert if any failed
-        for x in 0..testCount {
+        for x in 0..test_count {
             // for (int x = 0; x < testCount; x++) {
-            let testRXingResult = self.test_rxing_results.get(x).expect("ok");
+            let test_rxing_result = self.test_rxing_results.get(x).expect("ok");
             //   let label = "Rotation " + testRXingResult.getRotation() + " degrees: Too many images failed";
             assert!(
-                passedCounts[x] >= testRXingResult.get_must_pass_count() as usize,
+                passed_counts[x] >= test_rxing_result.get_must_pass_count() as usize,
                 "Rotation {} degrees: Too many images failed",
-                testRXingResult.get_rotation()
+                test_rxing_result.get_rotation()
             );
             assert!(
-                tryHarderCounts[x] >= testRXingResult.get_try_harder_count() as usize,
+                try_harder_counts[x] >= test_rxing_result.get_try_harder_count() as usize,
                 "Try harder, Rotation {} degrees: Too many images failed",
-                testRXingResult.get_rotation()
+                test_rxing_result.get_rotation()
             );
         }
     }
@@ -725,7 +726,7 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
         // return op.filter(original, new BufferedImage(width, height, original.getType()));
     }
 
-    fn getMeta(result: &RXingResult) -> Option<Rc<PDF417RXingResultMetadata>> {
+    fn get_meta(result: &RXingResult) -> Option<Rc<PDF417RXingResultMetadata>> {
         if let Some(RXingResultMetadataValue::Pdf417ExtraMetadata(mtd)) = result
             .getRXingResultMetadata()
             .get(&RXingResultMetadataType::PDF417_EXTRA_METADATA)
@@ -739,34 +740,34 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
 
     fn decode_pdf417(
         source: &BinaryBitmap,
-        tryHarder: bool,
-        barcodeReader: &mut T,
+        try_harder: bool,
+        barcode_reader: &mut T,
     ) -> Result<Vec<RXingResult>, Exceptions> {
         let mut hints = HashMap::new(); //new EnumMap<>(DecodeHintType.class);
-        if tryHarder {
+        if try_harder {
             hints.insert(DecodeHintType::TRY_HARDER, DecodeHintValue::TryHarder(true));
         }
 
-        barcodeReader.decodeMultipleWithHints(source, &hints)
+        barcode_reader.decodeMultipleWithHints(source, &hints)
     }
 
-    fn getImageFileLists(&self) -> Result<HashMap<String, Vec<PathBuf>>, std::io::Error> {
+    fn get_image_file_lists(&self) -> Result<HashMap<String, Vec<PathBuf>>, std::io::Error> {
         let mut result: HashMap<String, Vec<PathBuf>> = HashMap::new();
         for file in self.get_image_files() {
-            let testImageFileName = file
+            let test_image_file_name = file
                 .file_name()
                 .expect("file name exists")
                 .to_str()
                 .unwrap();
-            let fileBaseName = if let Some(pos) = testImageFileName.find('-') {
-                &testImageFileName[..pos]
+            let file_base_name = if let Some(pos) = test_image_file_name.find('-') {
+                &test_image_file_name[..pos]
             } else {
-                testImageFileName
+                test_image_file_name
             };
-            if !result.contains_key(fileBaseName) {
-                result.insert(fileBaseName.to_owned(), Vec::new());
+            if !result.contains_key(file_base_name) {
+                result.insert(file_base_name.to_owned(), Vec::new());
             }
-            result.get_mut(fileBaseName).as_mut().unwrap().push(file);
+            result.get_mut(file_base_name).as_mut().unwrap().push(file);
 
             //   String fileBaseName = testImageFileName.substring(0, testImageFileName.indexOf('-'));
             //let files = result.computeIfAbsent(fileBaseName, k -> new ArrayList<>());
