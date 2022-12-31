@@ -16,7 +16,7 @@
 
 use super::{OneDReader, UPCEANReader, L_AND_G_PATTERNS};
 use crate::{BarcodeFormat, Exceptions};
-use one_d_proc_derive::{EANReader, OneDReader};
+use rxing_one_d_proc_derive::{EANReader, OneDReader};
 
 /**
  * <p>Implements decoding of the UPC-E format.</p>

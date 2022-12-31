@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use one_d_proc_derive::{EANReader, OneDReader};
+use rxing_one_d_proc_derive::{EANReader, OneDReader};
 
 use super::UPCEANReader;
 
