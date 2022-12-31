@@ -152,7 +152,7 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
             log::fine(format!("Starting Image Group {}", name));
 
             let file_base_name = name; //testImageGroup.getKey();
-                                     //   let expectedText : String;
+                                       //   let expectedText : String;
             let mut expected_text_file = test_base.clone().to_path_buf();
             expected_text_file.push(file_base_name);
             expected_text_file.set_extension("txt");

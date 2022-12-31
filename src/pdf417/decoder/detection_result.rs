@@ -648,7 +648,45 @@ impl DetectionRXingResult {
 
 impl Display for DetectionRXingResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        let mut rowIndicatorColumn = &self.detectionRXingResultColumns[0];
+        if rowIndicatorColumn.is_none() {
+            rowIndicatorColumn = &self.detectionRXingResultColumns[self.barcodeColumnCount + 1];
+        }
+        // try (Formatter formatter = new Formatter()) {
+        for codewordsRow in 0..rowIndicatorColumn.as_ref().unwrap().getCodewords().len() {
+            //   for (int codewordsRow = 0; codewordsRow < rowIndicatorColumn.getCodewords().length; codewordsRow++) {
+            write!(f, "CW {0:3}", codewordsRow)?;
+            // formatter.format("CW %3d:", codewordsRow);
+            for barcodeColumn in 0..self.barcodeColumnCount + 2 {
+                // for (int barcodeColumn = 0; barcodeColumn < barcodeColumnCount + 2; barcodeColumn++) {
+                if self.detectionRXingResultColumns[barcodeColumn].is_none() {
+                    write!(f, "{}", "    |   ")?;
+                    // formatter.format("    |   ");
+                    continue;
+                }
+                let codeword = self.detectionRXingResultColumns[barcodeColumn]
+                    .as_ref()
+                    .unwrap()
+                    .getCodewords()[codewordsRow];
+                if codeword.is_none() {
+                    write!(f, "{}", "    |   ")?;
+                    // formatter.format("    |   ");
+                    continue;
+                }
+                write!(
+                    f,
+                    " {}|{}",
+                    codeword.as_ref().unwrap().getRowNumber(),
+                    codeword.as_ref().unwrap().getValue()
+                )?;
+                //   formatter.format(" %3d|%3d", codeword.getRowNumber(), codeword.getValue());
+            }
+            // formatter.format("%n");
+            write!(f, "{}", "\n")?;
+        }
+        //   return formatter.toString();
+        write!(f, "")
+        // }
     }
 }
 
