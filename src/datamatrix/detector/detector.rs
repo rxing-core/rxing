@@ -27,14 +27,14 @@ use super::DatamatrixDetectorResult;
  *
  * @author Sean Owen
  */
-pub struct Detector {
-    image: BitMatrix,
+pub struct Detector<'a> {
+    image: &'a BitMatrix,
     rectangleDetector: WhiteRectangleDetector,
 }
-impl Detector {
-    pub fn new(image: BitMatrix) -> Result<Self, Exceptions> {
-        Ok(Self {
-            rectangleDetector: WhiteRectangleDetector::new_from_image(&image)?,
+impl<'a> Detector<'_> {
+    pub fn new(image: &'a BitMatrix) -> Result<Detector<'a>, Exceptions> {
+        Ok(Detector {
+            rectangleDetector: WhiteRectangleDetector::new_from_image(image)?,
             image,
         })
     }

@@ -51,7 +51,7 @@ impl Reader for AztecReader {
     ) -> Result<RXingResult, Exceptions> {
         // let notFoundException = None;
         // let formatException = None;
-        let mut detector = Detector::new(image.getBlackMatrix().clone());
+        let mut detector = Detector::new(image.getBlackMatrix());
         let points;
         let decoderRXingResult: DecoderRXingResult;
         //  try {

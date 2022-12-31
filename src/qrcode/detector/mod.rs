@@ -15,4 +15,4 @@ pub use finder_pattern_info::*;
 pub use qrcode_detector_result::*;
 
 #[cfg(test)]
-mod cetector_test;
+mod detector_test;

@@ -36,14 +36,14 @@ use super::{
  *
  * @author Sean Owen
  */
-pub struct Detector {
-    image: BitMatrix,
+pub struct Detector<'a> {
+    image: &'a BitMatrix,
     resultPointCallback: Option<RXingResultPointCallback>,
 }
 
-impl Detector {
-    pub fn new(image: BitMatrix) -> Self {
-        Self {
+impl<'a> Detector<'_> {
+    pub fn new(image: &'a BitMatrix) -> Detector<'a> {
+        Detector {
             image,
             resultPointCallback: None,
         }

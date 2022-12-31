@@ -67,7 +67,7 @@ impl Reader for QRCodeReader {
             points = Vec::new();
         } else {
             let detectorRXingResult =
-                Detector::new(image.getBlackMatrix().clone()).detect_with_hints(&hints)?;
+                Detector::new(image.getBlackMatrix()).detect_with_hints(&hints)?;
             decoderRXingResult =
                 decoder::decode_bitmatrix_with_hints(detectorRXingResult.getBits(), &hints)?;
             points = detectorRXingResult.getPoints().clone();

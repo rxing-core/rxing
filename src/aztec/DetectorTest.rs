@@ -70,7 +70,7 @@ fn test_error_in_parameter_locator_not_compact() {
 #[test]
 fn test_aztec_rxing_result_sample() {
     let matrix = BitMatrix::parse_strings(TEST_BARCODE, "X ", "  ").expect("string parse success");
-    let r = Detector::new(matrix).detect(false);
+    let r = Detector::new(&matrix).detect(false);
     assert!(r.is_ok());
     let r = r.expect("result already tested as ok");
     let res = decoder::decode(&r).expect("decode success");
@@ -114,7 +114,7 @@ fn test_error_in_parameter_locator(data: &str) {
                     // dbg!(copy.to_string());
                     // dbg!(make_larger(&copy, 3).to_string());
                     // The detector doesn't seem to work when matrix bits are only 1x1.  So magnify.
-                    let r = Detector::new(make_larger(&copy, 3)).detect(isMirror);
+                    let r = Detector::new(&make_larger(&copy, 3)).detect(isMirror);
                     assert!(r.is_ok());
                     let r = r.expect("result already tested as ok");
                     assert_eq!(r.getNbLayers(), layers);
@@ -144,14 +144,14 @@ fn test_error_in_parameter_locator(data: &str) {
                     // );
                 }
                 // try {
-                if let Err(res) = detector::Detector::new(make_larger(&copy, 3)).detect(false) {
+                if let Err(res) = detector::Detector::new(&make_larger(&copy, 3)).detect(false) {
                     if let Exceptions::NotFoundException(_msg) = res {
                         // all ok
                     } else {
                         panic!("Only Exceptions::NotFoundException allowed, got {}", res);
                     }
                 } else {
-                    let r = Detector::new(make_larger(&copy, 3)).detect(false);
+                    let r = Detector::new(&make_larger(&copy, 3)).detect(false);
                     assert!(r.is_ok());
                     let r = r.expect("result already tested as ok");
                     assert_eq!(r.getNbLayers(), layers);

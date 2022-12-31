@@ -77,7 +77,7 @@ impl Reader for DataMatrixReader {
             decoderRXingResult = DECODER.decode(&bits)?;
             points.clear();
         } else {
-            let detectorRXingResult = Detector::new(image.getBlackMatrix().clone())?.detect()?;
+            let detectorRXingResult = Detector::new(image.getBlackMatrix())?.detect()?;
             decoderRXingResult = DECODER.decode(detectorRXingResult.getBits())?;
             points = detectorRXingResult.getPoints().clone();
         }

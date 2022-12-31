@@ -42,8 +42,8 @@ const EXPECTED_CORNER_BITS: [u32; 4] = [
  * @author David Olivier
  * @author Frank Yellin
  */
-pub struct Detector {
-    image: BitMatrix,
+pub struct Detector<'a> {
+    image: &'a BitMatrix,
 
     compact: bool,
     nb_layers: u32,
@@ -52,9 +52,9 @@ pub struct Detector {
     shift: u32,
 }
 
-impl Detector {
-    pub fn new(image: BitMatrix) -> Self {
-        Self {
+impl<'a> Detector<'_> {
+    pub fn new(image: &'a BitMatrix) -> Detector<'a> {
+        Detector {
             image,
             compact: false,
             nb_layers: 0,

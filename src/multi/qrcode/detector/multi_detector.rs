@@ -29,10 +29,10 @@ use super::MultiFinderPatternFinder;
  * @author Sean Owen
  * @author Hannes Erven
  */
-pub struct MultiDetector(Detector);
-impl MultiDetector {
-    pub fn new(image: BitMatrix) -> Self {
-        Self(Detector::new(image))
+pub struct MultiDetector<'a>(Detector<'a>);
+impl<'a> MultiDetector<'_> {
+    pub fn new(image: &'a BitMatrix) -> MultiDetector<'a> {
+        MultiDetector(Detector::new(image))
     }
 
     // private static final DetectorRXingResult[] EMPTY_DETECTOR_RESULTS = new DetectorRXingResult[0];
