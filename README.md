@@ -22,7 +22,7 @@ fn main() {
 
     let multi_format_reader = rxing::MultiFormatReader::default();
     let mut scanner = rxing::multi::GenericMultipleBarcodeReader::new(multi_format_reader);
-    let results = scanner.decodeMultipleWithHints(
+    let results = scanner.decode_multiple_with_hints(
         &rxing::BinaryBitmap::new(Rc::new(rxing::common::HybridBinarizer::new(Box::new(
             rxing::BufferedImageLuminanceSource::new(img),
         )))),
