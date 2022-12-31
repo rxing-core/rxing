@@ -6,8 +6,25 @@ Porting of the testing library is incomplete.
 
 Porting was done with the rust language in mind, though some parts may resemble java more directly than a proper clean-sheet rust implementation.
 
-## Statis
+## Status
 All barcode formats are tested and functioning in their current state against current tests.
+
+| Symbology | Status |
+| --- | --- |
+| aztec | complete |
+| datamatrix | complete |
+| maxicode | complete |
+| pdf417 | complete |
+| qrcode | complete |
+| coda | complete |
+| code 39 | complete |
+| code 93 | complete |
+| code 128 | complete |
+| itf | complete |
+| ean 8 | complete |
+| ean 13 | complete |
+| upc a | complete |
+| upc e | complete |
 
 ## Incomplete
 The library has only been thurougly tested with the `BufferedImageLuminanceSource` source format. Using any other
