@@ -6,6 +6,16 @@ Porting of the testing library is incomplete.
 
 Porting was done with the rust language in mind, though some parts may resemble java more directly than a proper clean-sheet rust implementation.
 
+## Statis
+All barcode formats are tested and functioning in their current state against current tests.
+
+## Incomplete
+The library has only been thurougly tested with the `BufferedImageLuminanceSource` source format. Using any other
+source is currently experimental and may result in unexpected or undefined outputs. This means that the feature flag
+used to enable the use of the `image` crate is currently on by default. Turning it off may result in unexpected results.
+
+## Example
+
 ```
 use std::{collections::HashMap, rc::Rc};
 
