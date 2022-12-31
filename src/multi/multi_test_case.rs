@@ -41,7 +41,7 @@ fn testMulti() {
     let bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
 
     let mut reader = GenericMultipleBarcodeReader::new(MultiFormatReader::default());
-    let results = reader.decodeMultiple(&bitmap).expect("must decode multi");
+    let results = reader.decode_multiple(&bitmap).expect("must decode multi");
     // assertNotNull(results);
     assert_eq!(2, results.len());
 
@@ -66,7 +66,7 @@ fn testMultiQR() {
     let bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
 
     let mut reader = GenericMultipleBarcodeReader::new(MultiFormatReader::default());
-    let results = reader.decodeMultiple(&bitmap).expect("must decode multi");
+    let results = reader.decode_multiple(&bitmap).expect("must decode multi");
     assert_eq!(4, results.len());
 
     let mut barcodeContents = HashSet::new();

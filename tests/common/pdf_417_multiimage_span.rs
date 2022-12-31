@@ -748,7 +748,7 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
             hints.insert(DecodeHintType::TRY_HARDER, DecodeHintValue::TryHarder(true));
         }
 
-        barcode_reader.decodeMultipleWithHints(source, &hints)
+        barcode_reader.decode_multiple_with_hints(source, &hints)
     }
 
     fn get_image_file_lists(&self) -> Result<HashMap<String, Vec<PathBuf>>, std::io::Error> {

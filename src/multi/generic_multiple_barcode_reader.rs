@@ -40,14 +40,14 @@ use super::MultipleBarcodeReader;
 pub struct GenericMultipleBarcodeReader<T: Reader>(T);
 
 impl<T: Reader> MultipleBarcodeReader for GenericMultipleBarcodeReader<T> {
-    fn decodeMultiple(
+    fn decode_multiple(
         &mut self,
         image: &crate::BinaryBitmap,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
-        self.decodeMultipleWithHints(image, &HashMap::new())
+        self.decode_multiple_with_hints(image, &HashMap::new())
     }
 
-    fn decodeMultipleWithHints(
+    fn decode_multiple_with_hints(
         &mut self,
         image: &crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,

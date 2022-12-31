@@ -50,8 +50,8 @@ impl Reader for MultiFormatReader {
         &mut self,
         image: &crate::BinaryBitmap,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
-        self.setHints(&HashMap::new());
-        self.decodeInternal(image)
+        self.set_ints(&HashMap::new());
+        self.decode_internal(image)
     }
 
     /**
@@ -67,8 +67,8 @@ impl Reader for MultiFormatReader {
         image: &crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
-        self.setHints(hints);
-        self.decodeInternal(image)
+        self.set_ints(hints);
+        self.decode_internal(image)
     }
 
     fn reset(&mut self) {
@@ -89,12 +89,12 @@ impl MultiFormatReader {
      * @return The contents of the image
      * @throws NotFoundException Any errors which occurred
      */
-    pub fn decodeWithState(&mut self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions> {
+    pub fn decode_with_state(&mut self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions> {
         // Make sure to set up the default state so we don't crash
         if self.readers.is_empty() {
-            self.setHints(&HashMap::new());
+            self.set_ints(&HashMap::new());
         }
-        self.decodeInternal(image)
+        self.decode_internal(image)
     }
 
     /**
@@ -104,7 +104,7 @@ impl MultiFormatReader {
      *
      * @param hints The set of hints to use for subsequent calls to decode(image)
      */
-    pub fn setHints(&mut self, hints: &DecodingHintDictionary) {
+    pub fn set_ints(&mut self, hints: &DecodingHintDictionary) {
         self.hints = hints.clone(); // {hint} else {HashMap::new()};
 
         let tryHarder = self.hints.contains_key(&DecodeHintType::TRY_HARDER);
@@ -166,7 +166,7 @@ impl MultiFormatReader {
         self.readers = readers; //Vec::new(); //readers.toArray(EMPTY_READER_ARRAY);
     }
 
-    pub fn decodeInternal(&mut self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions> {
+    pub fn decode_internal(&mut self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions> {
         if !self.readers.is_empty() {
             for reader in self.readers.iter_mut() {
                 // I'm not sure how to model this in rust
