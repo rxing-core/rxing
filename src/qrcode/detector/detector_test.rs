@@ -32,7 +32,7 @@ fn test_encode_decode(value: &str) {
         let byt_matrix = qr_code.getMatrix().as_ref().unwrap().clone();
         // dbg!(BitMatrix::from(byt_matrix.clone()).to_string());
         // let mut detector = Detector::new(make_larger(&byt_matrix.into(),5));
-        let new_matrix : &BitMatrix = &byt_matrix.into();
+        let new_matrix: &BitMatrix = &byt_matrix.into();
         let mut detector = Detector::new(new_matrix);
         let detected_points = detector.detect().expect("must detect");
         let decoded = decoder::decode_bitmatrix(detected_points.getBits()).expect("must decode");

@@ -61,3 +61,6 @@ fn main() {
     }
 }
 ```
+
+## Latest Release Notes
+v0.1.4 -> Dramatically improve performance for MultiFormatReader and for multiple barcode detection.

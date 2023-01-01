@@ -817,7 +817,7 @@ fn adjustCodewordStartColumn(
                 return codewordStartColumn;
             }
             correctedStartColumn = (correctedStartColumn as i32 + increment) as u32;
-            if let Err(_) = image.try_get(correctedStartColumn, imageRow) {
+            if image.check_in_bounds(correctedStartColumn, imageRow) {
                 return 0;
             }
         }

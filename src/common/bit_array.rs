@@ -196,11 +196,12 @@ impl BitArray {
      * Clears all bits (sets to false).
      */
     pub fn clear(&mut self) {
-        let max = self.bits.len();
-        for i in 0..max {
-            //for (int i = 0; i < max; i++) {
-            self.bits[i] = 0;
-        }
+        // let max = self.bits.len();
+        // for i in 0..max {
+        //     //for (int i = 0; i < max; i++) {
+        //     self.bits[i] = 0;
+        // }
+        self.bits.fill(0);
     }
 
     /**

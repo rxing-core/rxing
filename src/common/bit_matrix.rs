@@ -212,6 +212,10 @@ impl BitMatrix {
         return Ok(((self.bits[offset] >> (x & 0x1f)) & 1) != 0);
     }
 
+    pub fn check_in_bounds(&self, x: u32, y: u32) -> bool {
+        (y as usize * self.row_size + (x as usize / 32)) > self.bits.len()
+    }
+
     /**
      * <p>Sets the given bit to true.</p>
      *
@@ -281,11 +285,12 @@ impl BitMatrix {
      * Clears all bits (sets to false).
      */
     pub fn clear(&mut self) {
-        let max = self.bits.len();
-        for i in 0..max {
-            //for (int i = 0; i < max; i++) {
-            self.bits[i] = 0;
-        }
+        // let max = self.bits.len();
+        // for i in 0..max {
+        //     //for (int i = 0; i < max; i++) {
+        //     self.bits[i] = 0;
+        // }
+        self.bits.fill(0);
     }
 
     /**

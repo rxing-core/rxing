@@ -221,14 +221,23 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         width: usize,
         height: usize,
     ) -> Result<Box<dyn LuminanceSource>, crate::exceptions::Exceptions> {
-        return Ok(Box::new(BufferedImageLuminanceSource::with_details(
-            self.image
+        //  Ok(Box::new(BufferedImageLuminanceSource::with_details(
+        //     self.image
+        //         .crop_imm(left as u32, top as u32, width as u32, height as u32),
+        //     self.left + left as u32,
+        //     self.top + top as u32,
+        //     width,
+        //     height,
+        // )))
+        Ok(Box::new(Self {
+            image: self
+                .image
                 .crop_imm(left as u32, top as u32, width as u32, height as u32),
-            self.left + left as u32,
-            self.top + top as u32,
             width,
             height,
-        )));
+            left: self.left + left as u32,
+            top: self.top + top as u32,
+        }))
     }
 
     fn isRotateSupported(&self) -> bool {
@@ -238,9 +247,17 @@ impl LuminanceSource for BufferedImageLuminanceSource {
     fn rotateCounterClockwise(
         &self,
     ) -> Result<Box<dyn LuminanceSource>, crate::exceptions::Exceptions> {
-        Ok(Box::new(BufferedImageLuminanceSource::new(
-            self.image.rotate270(),
-        )))
+        // Ok(Box::new(BufferedImageLuminanceSource::new(
+        //     self.image.rotate270(),
+        // )))
+        let img = self.image.rotate270();
+        Ok(Box::new(Self {
+            width: img.width() as usize,
+            height: img.height() as usize,
+            image: img,
+            left: 0,
+            top: 0,
+        }))
     }
 
     fn rotateCounterClockwise45(
@@ -255,6 +272,13 @@ impl LuminanceSource for BufferedImageLuminanceSource {
 
         let new_img = DynamicImage::from(img);
 
-        Ok(Box::new(BufferedImageLuminanceSource::new(new_img)))
+        // Ok(Box::new(BufferedImageLuminanceSource::new(new_img)))
+        Ok(Box::new(Self {
+            width: new_img.width() as usize,
+            height: new_img.height() as usize,
+            image: new_img,
+            left: 0,
+            top: 0,
+        }))
     }
 }
