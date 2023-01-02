@@ -48,7 +48,7 @@ impl Reader for MultiFormatReader {
      */
     fn decode(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         self.set_ints(&HashMap::new());
         self.decode_internal(image)
@@ -64,7 +64,7 @@ impl Reader for MultiFormatReader {
      */
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         self.set_ints(hints);
@@ -89,7 +89,10 @@ impl MultiFormatReader {
      * @return The contents of the image
      * @throws NotFoundException Any errors which occurred
      */
-    pub fn decode_with_state(&mut self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions> {
+    pub fn decode_with_state(
+        &mut self,
+        image: &mut BinaryBitmap,
+    ) -> Result<RXingResult, Exceptions> {
         // Make sure to set up the default state so we don't crash
         if self.readers.is_empty() {
             self.set_ints(&HashMap::new());
@@ -166,7 +169,7 @@ impl MultiFormatReader {
         self.readers = readers; //Vec::new(); //readers.toArray(EMPTY_READER_ARRAY);
     }
 
-    pub fn decode_internal(&mut self, image: &BinaryBitmap) -> Result<RXingResult, Exceptions> {
+    pub fn decode_internal(&mut self, image: &mut BinaryBitmap) -> Result<RXingResult, Exceptions> {
         if !self.readers.is_empty() {
             for reader in self.readers.iter_mut() {
                 // I'm not sure how to model this in rust
@@ -184,13 +187,13 @@ impl MultiFormatReader {
             }
             if self.hints.contains_key(&DecodeHintType::ALSO_INVERTED) {
                 // Calling all readers again with inverted image
-                let mut image = image.clone();
+                // let mut image = image.clone();
                 image.getBlackMatrixMut().flip_self();
                 for reader in self.readers.iter_mut() {
                     // if (Thread.currentThread().isInterrupted()) {
                     //   throw NotFoundException.getNotFoundInstance();
                     // }
-                    let res = reader.decode_with_hints(&image, &self.hints);
+                    let res = reader.decode_with_hints(image, &self.hints);
                     if res.is_ok() {
                         return res;
                     }

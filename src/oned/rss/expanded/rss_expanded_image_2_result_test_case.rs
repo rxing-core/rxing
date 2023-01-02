@@ -29,11 +29,11 @@
  *
  */
 
-use std::{collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
     client::result::{ExpandedProductParsedRXingResult, ParsedClientResult},
-    common::{BitArray, GlobalHistogramBinarizer},
+    common::GlobalHistogramBinarizer,
     oned::{rss::expanded::RSSExpandedReader, OneDReader},
     BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
 };
@@ -71,13 +71,11 @@ fn assertCorrectImage2result(fileName: &str, expected: ExpandedProductParsedRXin
     let path = format!("test_resources/blackbox/rssexpanded-1/{}", fileName);
 
     let image = image::open(path).expect("image must exist");
-    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
-        BufferedImageLuminanceSource::new(image),
+    let mut binaryMap = BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
+        Box::new(BufferedImageLuminanceSource::new(image)),
     ))));
     let rowNumber = binaryMap.getHeight() as usize / 2;
-    let row = binaryMap
-        .getBlackRow(rowNumber, &mut BitArray::new())
-        .expect("get row");
+    let row = binaryMap.getBlackRow(rowNumber).expect("get row");
 
     let mut rssExpandedReader = RSSExpandedReader::new();
     let theRXingResult = rssExpandedReader

@@ -81,7 +81,7 @@ impl BitArray {
      * @return true iff bit i is set
      */
     pub fn get(&self, i: usize) -> bool {
-        return (self.bits[i / 32] & (1 << (i & 0x1F))) != 0;
+        (self.bits[i / 32] & (1 << (i & 0x1F))) != 0
     }
 
     /**

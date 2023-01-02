@@ -24,7 +24,7 @@
  *   http://www.piramidepse.com/
  */
 
-use crate::{common::BitArray, oned::rss::expanded::ExpandedPair, Exceptions, Reader};
+use crate::{oned::rss::expanded::ExpandedPair, Exceptions, Reader};
 
 use super::{test_case_util, RSSExpandedReader};
 
@@ -36,12 +36,10 @@ use super::{test_case_util, RSSExpandedReader};
 fn testDecodingRowByRow() {
     let mut rssExpandedReader = RSSExpandedReader::new();
 
-    let binaryMap = test_case_util::getBinaryBitmap("1000.png");
+    let mut binaryMap = test_case_util::getBinaryBitmap("1000.png");
 
     let firstRowNumber = binaryMap.getHeight() / 3;
-    let firstRow = binaryMap
-        .getBlackRow(firstRowNumber, &mut BitArray::new())
-        .expect("get row");
+    let firstRow = binaryMap.getBlackRow(firstRowNumber).expect("get row");
 
     // let tester = ;
 
@@ -74,9 +72,7 @@ fn testDecodingRowByRow() {
         .getStartEndMut()[1] = 0;
 
     let secondRowNumber = 2 * binaryMap.getHeight() / 3;
-    let mut secondRow = binaryMap
-        .getBlackRow(secondRowNumber, &mut BitArray::new())
-        .expect("get row");
+    let mut secondRow = binaryMap.getBlackRow(secondRowNumber).expect("get row");
     secondRow.reverse();
 
     let totalPairs = rssExpandedReader
@@ -91,8 +87,8 @@ fn testDecodingRowByRow() {
 fn testCompleteDecode() {
     let mut rssExpandedReader = RSSExpandedReader::new();
 
-    let binaryMap = test_case_util::getBinaryBitmap("1000.png");
+    let mut binaryMap = test_case_util::getBinaryBitmap("1000.png");
 
-    let result = rssExpandedReader.decode(&binaryMap).expect("decode");
+    let result = rssExpandedReader.decode(&mut binaryMap).expect("decode");
     assert_eq!("(01)98898765432106(3202)012345(15)991231", result.getText());
 }

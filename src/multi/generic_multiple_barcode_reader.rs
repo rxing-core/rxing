@@ -42,14 +42,14 @@ pub struct GenericMultipleBarcodeReader<T: Reader>(T);
 impl<T: Reader> MultipleBarcodeReader for GenericMultipleBarcodeReader<T> {
     fn decode_multiple(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
         self.decode_multiple_with_hints(image, &HashMap::new())
     }
 
     fn decode_multiple_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
         let mut results = Vec::new();
@@ -70,7 +70,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
 
     fn doDecodeMultiple(
         &mut self,
-        image: &BinaryBitmap,
+        image: &mut BinaryBitmap,
         hints: &DecodingHintDictionary,
         results: &mut Vec<RXingResult>,
         xOffset: u32,
@@ -110,7 +110,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         let mut minY: f32 = height as f32;
         let mut maxX: f32 = 0.0;
         let mut maxY: f32 = 0.0;
-        for point in resultPoints {
+        for point in &resultPoints {
             // if (point == null) {
             //   continue;
             // }
@@ -133,7 +133,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         // Decode left of barcode
         if minX > Self::MIN_DIMENSION_TO_RECUR {
             self.doDecodeMultiple(
-                &image.crop(0, 0, minX as usize, height),
+                &mut image.crop(0, 0, minX as usize, height),
                 hints,
                 results,
                 xOffset,
@@ -144,7 +144,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         // Decode above barcode
         if minY > Self::MIN_DIMENSION_TO_RECUR {
             self.doDecodeMultiple(
-                &image.crop(0, 0, width, minY as usize),
+                &mut image.crop(0, 0, width, minY as usize),
                 hints,
                 results,
                 xOffset,
@@ -155,7 +155,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         // Decode right of barcode
         if maxX < (width as f32) - Self::MIN_DIMENSION_TO_RECUR {
             self.doDecodeMultiple(
-                &image.crop(maxX as usize, 0, width - maxX as usize, height),
+                &mut image.crop(maxX as usize, 0, width - maxX as usize, height),
                 hints,
                 results,
                 xOffset + maxX as u32,
@@ -166,7 +166,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         // Decode below barcode
         if maxY < (height as f32) - Self::MIN_DIMENSION_TO_RECUR {
             self.doDecodeMultiple(
-                &image.crop(0, maxY as usize, width, height - maxY as usize),
+                &mut image.crop(0, maxY as usize, width, height - maxY as usize),
                 hints,
                 results,
                 xOffset,

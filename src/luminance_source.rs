@@ -45,7 +45,7 @@ pub trait LuminanceSource {
      *            Always use the returned object, and ignore the .length of the array.
      * @return An array containing the luminance data.
      */
-    fn getRow(&self, y: usize, row: &Vec<u8>) -> Vec<u8>;
+    fn getRow(&self, y: usize) -> Vec<u8>;
 
     /**
      * Fetches luminance data for the underlying bitmap. Values should be fetched using:

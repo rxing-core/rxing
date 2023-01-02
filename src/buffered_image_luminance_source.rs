@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-// package com.google.zxing;
-
-// import java.awt.Graphics2D;
-// import java.awt.geom.AffineTransform;
-// import java.awt.image.BufferedImage;
-// import java.awt.image.WritableRaster;
+use std::rc::Rc;
 
 use image::{DynamicImage, ImageBuffer, Luma};
 use imageproc::geometric_transformations::rotate_about_center;
@@ -38,7 +33,7 @@ const MINUS_45_IN_RADIANS: f32 = std::f32::consts::FRAC_PI_4;
  */
 pub struct BufferedImageLuminanceSource {
     // extends LuminanceSource {
-    image: DynamicImage,
+    image: Rc<DynamicImage>,
     width: usize,
     height: usize,
     left: u32,
@@ -151,7 +146,7 @@ impl BufferedImageLuminanceSource {
         // let ib:ImageBuffer<Luma<u8>, Vec<u8>> = ImageBuffer::from_raw(image.width()   , image.height(), raster).unwrap();
 
         Self {
-            image: DynamicImage::from(raster),
+            image: Rc::new(DynamicImage::from(raster)),
             width: width,
             height: height,
             left: left,
@@ -169,33 +164,59 @@ impl BufferedImageLuminanceSource {
 }
 
 impl LuminanceSource for BufferedImageLuminanceSource {
-    fn getRow(&self, y: usize, row: &Vec<u8>) -> Vec<u8> {
-        let width = self.getWidth();
-
-        let mut row = if row.len() >= width {
-            row.to_vec()
-        } else {
-            vec![0; width]
-        };
+    fn getRow(&self, y: usize) -> Vec<u8> {
+        let width = self.getWidth(); // - self.left as usize;
 
         let pixels: Vec<u8> = self
             .image
-            .clone()
-            .into_luma8()
-            .rows()
-            .nth(y)
+            .as_luma8()
             .unwrap()
+            .rows()
+            .nth(y + self.top as usize)
+            .unwrap()
+            .skip(self.left as usize)
+            .take(width)
             .map(|&p| p.0[0])
             .collect();
 
         // The underlying raster of image consists of bytes with the luminance values
-        row[..width].clone_from_slice(&pixels[..]);
+        // row[..width].clone_from_slice(&pixels[..]);
 
-        return row;
+        pixels
     }
 
     fn getMatrix(&self) -> Vec<u8> {
-        return self.image.as_bytes().to_vec();
+        if self.height == self.image.height() as usize && self.width == self.image.width() as usize
+        {
+            return self.image.as_bytes().to_vec();
+        }
+        let skip = self.top * self.image.width();
+        let row_skip = self.left;
+        let total_row_take = self.width;
+        let total_rows_to_take = self.image.width() * self.height as u32;
+
+        let unmanaged = self
+            .image
+            .as_bytes()
+            .iter()
+            .skip(skip as usize) // get to the row we want
+            .take(total_rows_to_take as usize)
+            .collect::<Vec<&u8>>(); // get all the rows we want to look at
+
+        let data = unmanaged
+            .chunks(self.image.width() as usize)
+            .into_iter() // Get rows
+            .map(|f| {
+                f.into_iter()
+                    .skip(row_skip as usize)
+                    .take(total_row_take as usize)
+                    .copied()
+            }) // Take data from each row
+            .flatten() // flatten this all out
+            .copied() // copy it over so that it's u8
+            .collect(); // collect into a vec
+
+        data
     }
 
     fn getWidth(&self) -> usize {
@@ -207,7 +228,10 @@ impl LuminanceSource for BufferedImageLuminanceSource {
     }
 
     fn invert(&mut self) {
-        self.image.invert();
+        // self.image.borrow_mut().invert();
+        let mut img = (*self.image).clone();
+        img.invert();
+        self.image = Rc::new(img);
     }
 
     fn isCropSupported(&self) -> bool {
@@ -230,9 +254,10 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         //     height,
         // )))
         Ok(Box::new(Self {
-            image: self
-                .image
-                .crop_imm(left as u32, top as u32, width as u32, height as u32),
+            // image: self
+            //     .image
+            //     .crop_imm(left as u32, top as u32, width as u32, height as u32),
+            image: self.image.clone(),
             width,
             height,
             left: self.left + left as u32,
@@ -254,7 +279,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         Ok(Box::new(Self {
             width: img.width() as usize,
             height: img.height() as usize,
-            image: img,
+            image: Rc::new(img),
             left: 0,
             top: 0,
         }))
@@ -276,7 +301,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         Ok(Box::new(Self {
             width: new_img.width() as usize,
             height: new_img.height() as usize,
-            image: new_img,
+            image: Rc::new(new_img),
             left: 0,
             top: 0,
         }))

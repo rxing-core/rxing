@@ -34,7 +34,7 @@ used to enable the use of the `image` crate is currently on by default. Turning 
 ## Example
 
 ```
-use std::{collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use rxing::multi::MultipleBarcodeReader;
 
@@ -46,21 +46,38 @@ fn main() {
     let file_name = "test_image.jpeg";
 
     let img = image::open(file_name).unwrap();
+    // let img = img.resize(768, 1024, image::imageops::FilterType::Gaussian);
+
+    let mut hints: rxing::DecodingHintDictionary = HashMap::new();
+    hints.insert(
+        rxing::DecodeHintType::TRY_HARDER,
+        rxing::DecodeHintValue::TryHarder(true),
+    );
 
     let multi_format_reader = rxing::MultiFormatReader::default();
     let mut scanner = rxing::multi::GenericMultipleBarcodeReader::new(multi_format_reader);
-    let results = scanner.decode_multiple_with_hints(
-        &rxing::BinaryBitmap::new(Rc::new(rxing::common::HybridBinarizer::new(Box::new(
-            rxing::BufferedImageLuminanceSource::new(img),
-        )))),
-        &HashMap::new(),
-    ).expect("decodes");
+    let results = scanner
+        .decode_multiple_with_hints(
+            &mut rxing::BinaryBitmap::new(Rc::new(RefCell::new(
+                rxing::common::HybridBinarizer::new(Box::new(
+                    rxing::BufferedImageLuminanceSource::new(img),
+                )),
+            ))),
+            &hints,
+        )
+        .expect("decodes");
 
     for result in results {
-        println!("{} -> {}",result.getBarcodeFormat(), result.getText())
+        println!("{} -> {}", result.getBarcodeFormat(), result.getText())
     }
 }
+
 ```
 
 ## Latest Release Notes
+v0.2.0 -> Dramatically improve performance when cropping a BufferedImageLuminanceSource.
+
 v0.1.4 -> Dramatically improve performance for MultiFormatReader and for multiple barcode detection.
+
+## Known Issues
+Performance is low for GenericMultipleBarcodeReader.

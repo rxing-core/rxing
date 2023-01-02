@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::{collections::HashSet, path::PathBuf, rc::Rc};
+use std::{cell::RefCell, collections::HashSet, path::PathBuf, rc::Rc};
 
 use crate::{
     common::HybridBinarizer, BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
@@ -38,10 +38,14 @@ fn testMulti() {
         .decode()
         .expect("must decode");
     let source = BufferedImageLuminanceSource::new(image);
-    let bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
+    let mut bitmap = BinaryBitmap::new(Rc::new(RefCell::new(HybridBinarizer::new(Box::new(
+        source,
+    )))));
 
     let mut reader = GenericMultipleBarcodeReader::new(MultiFormatReader::default());
-    let results = reader.decode_multiple(&bitmap).expect("must decode multi");
+    let results = reader
+        .decode_multiple(&mut bitmap)
+        .expect("must decode multi");
     // assertNotNull(results);
     assert_eq!(2, results.len());
 
@@ -63,10 +67,14 @@ fn testMultiQR() {
         .decode()
         .expect("must decode");
     let source = BufferedImageLuminanceSource::new(image);
-    let bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
+    let mut bitmap = BinaryBitmap::new(Rc::new(RefCell::new(HybridBinarizer::new(Box::new(
+        source,
+    )))));
 
     let mut reader = GenericMultipleBarcodeReader::new(MultiFormatReader::default());
-    let results = reader.decode_multiple(&bitmap).expect("must decode multi");
+    let results = reader
+        .decode_multiple(&mut bitmap)
+        .expect("must decode multi");
     assert_eq!(4, results.len());
 
     let mut barcodeContents = HashSet::new();

@@ -24,10 +24,10 @@
  *   http://www.piramidepse.com/
  */
 
-use std::{collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
-    common::{BitArray, GlobalHistogramBinarizer},
+    common::GlobalHistogramBinarizer,
     oned::{rss::expanded::RSSExpandedReader, OneDReader},
     BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
 };
@@ -184,13 +184,11 @@ fn assertCorrectImage2string(fileName: &str, expected: &str) {
     let path = format!("test_resources/blackbox/rssexpanded-1/{}", fileName);
 
     let image = image::open(path).expect("load image");
-    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
-        BufferedImageLuminanceSource::new(image),
+    let mut binaryMap = BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
+        Box::new(BufferedImageLuminanceSource::new(image)),
     ))));
     let rowNumber = binaryMap.getHeight() / 2;
-    let row = binaryMap
-        .getBlackRow(rowNumber, &mut BitArray::new())
-        .expect("get row");
+    let row = binaryMap.getBlackRow(rowNumber).expect("get row");
 
     let mut rssExpandedReader = RSSExpandedReader::new();
     let result = rssExpandedReader

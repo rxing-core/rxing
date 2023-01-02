@@ -38,14 +38,14 @@ pub struct QRCodeMultiReader(QRCodeReader);
 impl MultipleBarcodeReader for QRCodeMultiReader {
     fn decode_multiple(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
         self.decode_multiple_with_hints(image, &HashMap::new())
     }
 
     fn decode_multiple_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
         let mut results = Vec::new();
@@ -221,7 +221,7 @@ mod multi_qr_code_test_case {
      * limitations under the License.
      */
 
-    use std::{collections::HashSet, path::PathBuf, rc::Rc};
+    use std::{cell::RefCell, collections::HashSet, path::PathBuf, rc::Rc};
 
     use image;
 
@@ -249,10 +249,12 @@ mod multi_qr_code_test_case {
             .decode()
             .expect("must decode");
         let source = BufferedImageLuminanceSource::new(image);
-        let bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
+        let mut bitmap = BinaryBitmap::new(Rc::new(RefCell::new(HybridBinarizer::new(Box::new(
+            source,
+        )))));
 
         let mut reader = QRCodeMultiReader::new();
-        let results = reader.decode_multiple(&bitmap).expect("must decode");
+        let results = reader.decode_multiple(&mut bitmap).expect("must decode");
         // assertNotNull(results);
         assert_eq!(4, results.len());
 

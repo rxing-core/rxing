@@ -44,13 +44,13 @@ pub trait OneDReader: Reader {
      */
     fn doDecode(
         &mut self,
-        image: &BinaryBitmap,
+        image: &mut BinaryBitmap,
         hints: &DecodingHintDictionary,
     ) -> Result<RXingResult, Exceptions> {
         let mut hints = hints.clone();
         let width = image.getWidth();
         let height = image.getHeight();
-        let mut row = BitArray::with_size(width);
+        // let mut row = BitArray::with_size(width);
 
         let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
         let rowStep = 1.max(height >> (if tryHarder { 8 } else { 5 }));
@@ -81,7 +81,7 @@ pub trait OneDReader: Reader {
             }
 
             // Estimate black point for this row and load it:
-            let mut row = if let Ok(res) = image.getBlackRow(rowNumber as usize, &mut row) {
+            let mut row = if let Ok(res) = image.getBlackRow(rowNumber as usize) {
                 res
             } else {
                 continue;

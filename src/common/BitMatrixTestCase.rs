@@ -27,8 +27,6 @@
 //  */
 // public final class BitMatrixTestCase extends Assert {
 
-use crate::common::BitArray;
-
 use super::BitMatrix;
 
 static BIT_MATRIX_POINTS: [u32; 6] = [1, 2, 2, 0, 3, 1];
@@ -151,17 +149,17 @@ fn test_get_row() {
     }
 
     // Should allocate
-    let array = matrix.getRow(2, BitArray::new());
+    let array = matrix.getRow(2);
     assert_eq!(102, array.getSize());
 
     // Should reallocate
-    let mut array2 = BitArray::with_size(60);
-    array2 = matrix.getRow(2, array2);
+    // let mut array2 = BitArray::with_size(60);
+    let array2 = matrix.getRow(2);
     assert_eq!(102, array2.getSize());
 
     // Should use provided object, with original BitArray size
-    let mut array3 = BitArray::with_size(200);
-    array3 = matrix.getRow(2, array3);
+    // let mut array3 = BitArray::with_size(200);
+    let array3 = matrix.getRow(2);
     assert_eq!(200, array3.getSize());
 
     for x in 0..102 {

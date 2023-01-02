@@ -20,7 +20,7 @@
 // import com.google.zxing.LuminanceSource;
 // import com.google.zxing.NotFoundException;
 
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 use crate::{Binarizer, Exceptions, LuminanceSource};
 
@@ -48,15 +48,15 @@ pub struct HybridBinarizer {
     //height: usize,
     //source: Box<dyn LuminanceSource>,
     ghb: GlobalHistogramBinarizer,
-    // matrix :Option<BitMatrix>,
+    black_matrix: Option<BitMatrix>,
 }
 impl Binarizer for HybridBinarizer {
     fn getLuminanceSource(&self) -> &Box<dyn LuminanceSource> {
         self.ghb.getLuminanceSource()
     }
 
-    fn getBlackRow(&self, y: usize, row: &mut BitArray) -> Result<BitArray, Exceptions> {
-        self.ghb.getBlackRow(y, row)
+    fn getBlackRow(&mut self, y: usize) -> Result<BitArray, Exceptions> {
+        self.ghb.getBlackRow(y)
     }
 
     /**
@@ -64,12 +64,48 @@ impl Binarizer for HybridBinarizer {
      * constructor instead, but there are some advantages to doing it lazily, such as making
      * profiling easier, and not doing heavy lifting when callers don't expect it.
      */
-    fn getBlackMatrix(&self) -> Result<BitMatrix, Exceptions> {
-        // if self.matrix.is_some() {
-        //     return Ok(self.matrix.clone().unwrap())
-        //   }
+    fn getBlackMatrix(&mut self) -> Result<&BitMatrix, Exceptions> {
+        if self.black_matrix.is_none() {
+            self.black_matrix = Some(
+                Self::calculateBlackMatrix(&mut self.ghb)
+                    .expect("generate black matrix must complete"),
+            )
+        }
+        Ok(self.black_matrix.as_ref().unwrap())
+    }
+
+    fn createBinarizer(&self, source: Box<dyn LuminanceSource>) -> Rc<RefCell<dyn Binarizer>> {
+        Rc::new(RefCell::new(HybridBinarizer::new(source)))
+    }
+
+    fn getWidth(&self) -> usize {
+        self.ghb.getWidth()
+    }
+
+    fn getHeight(&self) -> usize {
+        self.ghb.getHeight()
+    }
+}
+impl HybridBinarizer {
+    // This class uses 5x5 blocks to compute local luminance, where each block is 8x8 pixels.
+    // So this is the smallest dimension in each axis we can accept.
+    const BLOCK_SIZE_POWER: usize = 3;
+    const BLOCK_SIZE: usize = 1 << HybridBinarizer::BLOCK_SIZE_POWER; // ...0100...00
+    const BLOCK_SIZE_MASK: usize = HybridBinarizer::BLOCK_SIZE - 1; // ...0011...11
+    const MINIMUM_DIMENSION: usize = HybridBinarizer::BLOCK_SIZE * 5;
+    const MIN_DYNAMIC_RANGE: usize = 24;
+
+    pub fn new(source: Box<dyn LuminanceSource>) -> Self {
+        let ghb = GlobalHistogramBinarizer::new(source);
+        Self {
+            black_matrix: None,
+            ghb: ghb,
+        }
+    }
+
+    fn calculateBlackMatrix(ghb: &mut GlobalHistogramBinarizer) -> Result<BitMatrix, Exceptions> {
         let matrix;
-        let source = self.getLuminanceSource();
+        let source = ghb.getLuminanceSource();
         let width = source.getWidth();
         let height = source.getHeight();
         if width >= HybridBinarizer::MINIMUM_DIMENSION
@@ -102,41 +138,14 @@ impl Binarizer for HybridBinarizer {
                 &black_points,
                 &mut new_matrix,
             );
-            matrix = new_matrix;
+            matrix = Ok(new_matrix);
         } else {
             // If the image is too small, fall back to the global histogram approach.
-            matrix = self.ghb.getBlackMatrix()?;
+            let m = ghb.getBlackMatrix()?;
+            matrix = Ok(m.clone());
         }
         //  dbg!(matrix.to_string());
-        Ok(matrix)
-    }
-
-    fn createBinarizer(&self, source: Box<dyn LuminanceSource>) -> Rc<dyn Binarizer> {
-        Rc::new(HybridBinarizer::new(source))
-    }
-
-    fn getWidth(&self) -> usize {
-        self.ghb.getWidth()
-    }
-
-    fn getHeight(&self) -> usize {
-        self.ghb.getHeight()
-    }
-}
-impl HybridBinarizer {
-    // This class uses 5x5 blocks to compute local luminance, where each block is 8x8 pixels.
-    // So this is the smallest dimension in each axis we can accept.
-    const BLOCK_SIZE_POWER: usize = 3;
-    const BLOCK_SIZE: usize = 1 << HybridBinarizer::BLOCK_SIZE_POWER; // ...0100...00
-    const BLOCK_SIZE_MASK: usize = HybridBinarizer::BLOCK_SIZE - 1; // ...0011...11
-    const MINIMUM_DIMENSION: usize = HybridBinarizer::BLOCK_SIZE * 5;
-    const MIN_DYNAMIC_RANGE: usize = 24;
-
-    pub fn new(source: Box<dyn LuminanceSource>) -> Self {
-        Self {
-            ghb: GlobalHistogramBinarizer::new(source),
-            // matrix: None,
-        }
+        matrix
     }
 
     /**

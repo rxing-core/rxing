@@ -31,14 +31,14 @@ pub struct ByQuadrantReader<T: Reader>(T);
 impl<T: Reader> Reader for ByQuadrantReader<T> {
     fn decode(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         let width = image.getWidth();
@@ -49,7 +49,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
         // try {
         let attempt = self
             .0
-            .decode_with_hints(&image.crop(0, 0, halfWidth, halfHeight), hints);
+            .decode_with_hints(&mut image.crop(0, 0, halfWidth, halfHeight), hints);
         // No need to call makeAbsolute as results will be relative to original top left here
         match attempt {
             // Ok() => return attempt,
@@ -63,7 +63,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
         // try {
         let result = self
             .0
-            .decode_with_hints(&image.crop(halfWidth, 0, halfWidth, halfHeight), hints);
+            .decode_with_hints(&mut image.crop(halfWidth, 0, halfWidth, halfHeight), hints);
         match result {
             Ok(res) => {
                 let points = Self::makeAbsolute(res.getRXingResultPoints(), halfWidth as f32, 0.0);
@@ -80,7 +80,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
 
         let result = self
             .0
-            .decode_with_hints(&image.crop(0, halfHeight, halfWidth, halfHeight), hints);
+            .decode_with_hints(&mut image.crop(0, halfHeight, halfWidth, halfHeight), hints);
         match result {
             Ok(res) => {
                 let points = Self::makeAbsolute(res.getRXingResultPoints(), 0.0, halfHeight as f32);
@@ -98,7 +98,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
         // }
 
         let result = self.0.decode_with_hints(
-            &image.crop(halfWidth, halfHeight, halfWidth, halfHeight),
+            &mut image.crop(halfWidth, halfHeight, halfWidth, halfHeight),
             hints,
         );
         match result {
@@ -124,8 +124,8 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
 
         let quarterWidth = halfWidth / 2;
         let quarterHeight = halfHeight / 2;
-        let center = image.crop(quarterWidth, quarterHeight, halfWidth, halfHeight);
-        let result = self.0.decode_with_hints(&center, hints)?;
+        let mut center = image.crop(quarterWidth, quarterHeight, halfWidth, halfHeight);
+        let result = self.0.decode_with_hints(&mut center, hints)?;
 
         let points = Self::makeAbsolute(
             result.getRXingResultPoints(),

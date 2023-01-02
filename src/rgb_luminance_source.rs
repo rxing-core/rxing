@@ -38,7 +38,7 @@ pub struct RGBLuminanceSource {
 }
 
 impl LuminanceSource for RGBLuminanceSource {
-    fn getRow(&self, y: usize, row: &Vec<u8>) -> Vec<u8> {
+    fn getRow(&self, y: usize) -> Vec<u8> {
         if y >= self.getHeight() {
             panic!("Requested row is outside the image: {}", y);
         }
@@ -46,11 +46,7 @@ impl LuminanceSource for RGBLuminanceSource {
 
         let offset = (y + self.top) * self.dataWidth + self.left;
 
-        let mut row = if row.len() >= width {
-            row.to_vec()
-        } else {
-            vec![0; width]
-        };
+        let mut row = vec![0; width];
 
         row[..width].clone_from_slice(&self.luminances[offset..offset + width]);
         //System.arraycopy(self.luminances, offset, row, 0, width);

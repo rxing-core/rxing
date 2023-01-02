@@ -16,6 +16,7 @@
  */
 
 use std::{
+    cell::RefCell,
     collections::HashMap,
     fs::{read_dir, read_to_string, File},
     io::Read,
@@ -237,7 +238,9 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                 let rotation = self.test_rxing_results.get(x).unwrap().get_rotation();
                 let rotated_image = Self::rotate_image(&image, rotation);
                 let source = BufferedImageLuminanceSource::new(rotated_image);
-                let bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
+                let mut bitmap = BinaryBitmap::new(Rc::new(RefCell::new(HybridBinarizer::new(
+                    Box::new(source),
+                ))));
 
                 // if file_base_name == "15" {
                 // let mut f = File::create("test_file_output.txt").unwrap();
@@ -246,9 +249,13 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                 // Self::rotate_image(&image, rotation).save("test_image.png").unwrap();
                 // }
 
-                if let Ok(decoded) =
-                    self.decode(&bitmap, rotation, &expected_text, &expected_metadata, false)
-                {
+                if let Ok(decoded) = self.decode(
+                    &mut bitmap,
+                    rotation,
+                    &expected_text,
+                    &expected_metadata,
+                    false,
+                ) {
                     if decoded {
                         passed_counts[x] += 1;
                     } else {
@@ -266,9 +273,13 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                 // } catch (ReaderException ignored) {
                 //   log::fine(format!("could not read at rotation {}", rotation));
                 // }
-                if let Ok(decoded) =
-                    self.decode(&bitmap, rotation, &expected_text, &expected_metadata, true)
-                {
+                if let Ok(decoded) = self.decode(
+                    &mut bitmap,
+                    rotation,
+                    &expected_text,
+                    &expected_metadata,
+                    true,
+                ) {
                     if decoded {
                         try_harder_counts[x] += 1;
                     } else {
@@ -404,7 +415,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
 
     fn decode(
         &mut self,
-        source: &BinaryBitmap,
+        source: &mut BinaryBitmap,
         rotation: f32,
         expected_text: &str,
         expected_metadata: &HashMap<RXingResultMetadataType, RXingResultMetadataValue>,

@@ -38,7 +38,7 @@ fn testCrop() {
     let cropped = SOURCE.crop(1, 1, 1, 1).unwrap();
     assert_eq!(1, cropped.getHeight());
     assert_eq!(1, cropped.getWidth());
-    assert_eq!(vec![0x7F], cropped.getRow(0, &vec![0; 0]));
+    assert_eq!(vec![0x7F], cropped.getRow(0));
 }
 
 #[test]
@@ -62,7 +62,7 @@ fn testMatrix() {
 fn testGetRow() {
     let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3, 3, &SRC_DATA.to_vec());
 
-    assert_eq!(vec![0x3F, 0x7F, 0x3F], SOURCE.getRow(2, &vec![0; 3]));
+    assert_eq!(vec![0x3F, 0x7F, 0x3F], SOURCE.getRow(2));
 }
 
 // #[test]

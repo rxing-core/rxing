@@ -49,14 +49,14 @@ impl Reader for QRCodeReader {
      */
     fn decode(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         let decoderRXingResult: DecoderRXingResult;

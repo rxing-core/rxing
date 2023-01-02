@@ -23,11 +23,12 @@ use crate::{BinaryBitmap, DecodingHintDictionary, Exceptions, RXingResult};
  * @author Sean Owen
  */
 pub trait MultipleBarcodeReader {
-    fn decode_multiple(&mut self, image: &BinaryBitmap) -> Result<Vec<RXingResult>, Exceptions>;
+    fn decode_multiple(&mut self, image: &mut BinaryBitmap)
+        -> Result<Vec<RXingResult>, Exceptions>;
 
     fn decode_multiple_with_hints(
         &mut self,
-        image: &BinaryBitmap,
+        image: &mut BinaryBitmap,
         hints: &DecodingHintDictionary,
     ) -> Result<Vec<RXingResult>, Exceptions>;
 }

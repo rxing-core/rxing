@@ -27,13 +27,16 @@ use super::{EAN13Reader, OneDReader, UPCEANReader};
 pub struct UPCAReader(EAN13Reader);
 
 impl Reader for UPCAReader {
-    fn decode(&mut self, image: &crate::BinaryBitmap) -> Result<crate::RXingResult, Exceptions> {
+    fn decode(
+        &mut self,
+        image: &mut crate::BinaryBitmap,
+    ) -> Result<crate::RXingResult, Exceptions> {
         Self::maybeReturnRXingResult(self.0.decode(image)?)
     }
 
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, Exceptions> {
         Self::maybeReturnRXingResult(self.0.decode_with_hints(image, hints)?)

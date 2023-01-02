@@ -24,10 +24,10 @@
  *   http://www.piramidepse.com/
  */
 
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    common::{BitArray, GlobalHistogramBinarizer},
+    common::GlobalHistogramBinarizer,
     oned::rss::{DataCharacterTrait, FinderPattern},
     BinaryBitmap, BufferedImageLuminanceSource,
 };
@@ -42,13 +42,11 @@ use super::RSSExpandedReader;
 #[test]
 fn testFindFinderPatterns() {
     let image = readImage("2.png");
-    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
-        BufferedImageLuminanceSource::new(image),
+    let mut binaryMap = BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
+        Box::new(BufferedImageLuminanceSource::new(image)),
     ))));
     let rowNumber = binaryMap.getHeight() as u32 / 2;
-    let row = binaryMap
-        .getBlackRow(rowNumber as usize, &mut BitArray::new())
-        .expect("ok");
+    let row = binaryMap.getBlackRow(rowNumber as usize).expect("ok");
     let mut previousPairs = Vec::new(); //new ArrayList<>();
 
     let mut rssExpandedReader = RSSExpandedReader::new();
@@ -90,13 +88,11 @@ fn testFindFinderPatterns() {
 #[test]
 fn testRetrieveNextPairPatterns() {
     let image = readImage("3.png");
-    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
-        BufferedImageLuminanceSource::new(image),
+    let mut binaryMap = BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
+        Box::new(BufferedImageLuminanceSource::new(image)),
     ))));
     let rowNumber = binaryMap.getHeight() as u32 / 2;
-    let row = binaryMap
-        .getBlackRow(rowNumber as usize, &mut BitArray::new())
-        .expect("create");
+    let row = binaryMap.getBlackRow(rowNumber as usize).expect("create");
     let mut previousPairs = Vec::new(); //new ArrayList<>();
 
     let mut rssExpandedReader = RSSExpandedReader::new();
@@ -120,11 +116,11 @@ fn testRetrieveNextPairPatterns() {
 #[test]
 fn testDecodeCheckCharacter() {
     let image = readImage("3.png");
-    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
-        BufferedImageLuminanceSource::new(image.clone()),
+    let mut binaryMap = BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
+        Box::new(BufferedImageLuminanceSource::new(image.clone())),
     ))));
     let row = binaryMap
-        .getBlackRow(binaryMap.getHeight() / 2, &mut BitArray::new())
+        .getBlackRow(binaryMap.getHeight() / 2)
         .expect("create");
 
     let startEnd = [145, 243]; //image pixels where the A1 pattern starts (at 124) and ends (at 214)
@@ -148,11 +144,11 @@ fn testDecodeCheckCharacter() {
 #[test]
 fn testDecodeDataCharacter() {
     let image = readImage("3.png");
-    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
-        BufferedImageLuminanceSource::new(image.clone()),
+    let mut binaryMap = BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
+        Box::new(BufferedImageLuminanceSource::new(image.clone())),
     ))));
     let row = binaryMap
-        .getBlackRow(binaryMap.getHeight() / 2, &mut BitArray::new())
+        .getBlackRow(binaryMap.getHeight() / 2)
         .expect("create");
 
     let startEnd = [145, 243]; //image pixels where the A1 pattern starts (at 124) and ends (at 214)

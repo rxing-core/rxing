@@ -24,16 +24,15 @@
  *   http://www.piramidepse.com/
  */
 
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
 use crate::{
-    common::{BitArray, GlobalHistogramBinarizer},
-    oned::rss::expanded::RSSExpandedReader,
-    BinaryBitmap, BufferedImageLuminanceSource,
+    common::GlobalHistogramBinarizer, oned::rss::expanded::RSSExpandedReader, BinaryBitmap,
+    BufferedImageLuminanceSource,
 };
 
 use super::bit_array_builder;
@@ -175,13 +174,11 @@ fn assertCorrectImage2binary(fileName: &str, expected: &str) {
     let path = format!("test_resources/blackbox/rssexpanded-1/{}", fileName);
 
     let image = image::open(path).expect("file exists");
-    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
-        BufferedImageLuminanceSource::new(image),
+    let mut binaryMap = BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
+        Box::new(BufferedImageLuminanceSource::new(image)),
     ))));
     let rowNumber = binaryMap.getHeight() / 2;
-    let row = binaryMap
-        .getBlackRow(rowNumber, &mut BitArray::new())
-        .expect("row");
+    let row = binaryMap.getBlackRow(rowNumber).expect("row");
 
     // let pairs = Vec::new();
     // try {

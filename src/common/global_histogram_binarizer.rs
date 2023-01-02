@@ -20,7 +20,7 @@
 // import com.google.zxing.LuminanceSource;
 // import com.google.zxing.NotFoundException;
 
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 use crate::{Binarizer, Exceptions, LuminanceSource};
 
@@ -38,11 +38,12 @@ use super::{BitArray, BitMatrix};
  * @author Sean Owen
  */
 pub struct GlobalHistogramBinarizer {
-    luminances: Vec<u8>,
-    buckets: Vec<u32>,
+    _luminances: Vec<u8>,
     width: usize,
     height: usize,
     source: Box<dyn LuminanceSource>,
+    black_matrix: Option<BitMatrix>,
+    black_row_cache: Vec<Option<BitArray>>,
 }
 
 impl Binarizer for GlobalHistogramBinarizer {
@@ -51,26 +52,23 @@ impl Binarizer for GlobalHistogramBinarizer {
     }
 
     // Applies simple sharpening to the row data to improve performance of the 1D Readers.
-    fn getBlackRow(&self, y: usize, row: &mut BitArray) -> Result<BitArray, Exceptions> {
+    fn getBlackRow(&mut self, y: usize) -> Result<BitArray, Exceptions> {
+        if let Some(black_row) = &self.black_row_cache[y] {
+            return Ok(black_row.clone());
+        }
         let source = self.getLuminanceSource();
         let width = source.getWidth();
-        let mut row = if row.getSize() < width {
-            BitArray::with_size(width)
-        } else {
-            let mut z = row.clone();
-            z.clear();
-            z
-        };
+        let mut row = BitArray::with_size(width);
 
         // self.initArrays(width);
-        let localLuminances = source.getRow(y, &self.luminances);
-        let mut localBuckets = self.buckets.clone();
+        let localLuminances = source.getRow(y);
+        let mut localBuckets = [0; GlobalHistogramBinarizer::LUMINANCE_BUCKETS]; //self.buckets.clone();
         for x in 0..width {
             // for (int x = 0; x < width; x++) {
             localBuckets
                 [((localLuminances[x]) >> GlobalHistogramBinarizer::LUMINANCE_SHIFT) as usize] += 1;
         }
-        let blackPoint = self.estimateBlackPoint(&localBuckets)?;
+        let blackPoint = Self::estimateBlackPoint(&localBuckets)?;
 
         if width < 3 {
             // Special case for very small images
@@ -94,12 +92,54 @@ impl Binarizer for GlobalHistogramBinarizer {
                 center = right;
             }
         }
+        self.black_row_cache[y] = Some(row.clone());
         Ok(row)
     }
 
     // Does not sharpen the data, as this call is intended to only be used by 2D Readers.
-    fn getBlackMatrix(&self) -> Result<BitMatrix, Exceptions> {
-        let source = self.getLuminanceSource();
+    fn getBlackMatrix(&mut self) -> Result<&BitMatrix, Exceptions> {
+        if self.black_matrix.is_none() {
+            self.black_matrix =
+                Some(Self::build_black_matrix(&self.source).expect("matrix must generate"))
+        }
+        Ok(self.black_matrix.as_ref().unwrap())
+    }
+
+    fn createBinarizer(
+        &self,
+        source: Box<dyn crate::LuminanceSource>,
+    ) -> Rc<RefCell<dyn Binarizer>> {
+        return Rc::new(RefCell::new(GlobalHistogramBinarizer::new(source)));
+    }
+
+    fn getWidth(&self) -> usize {
+        self.width
+    }
+
+    fn getHeight(&self) -> usize {
+        self.height
+    }
+}
+
+impl GlobalHistogramBinarizer {
+    const LUMINANCE_BITS: usize = 5;
+    const LUMINANCE_SHIFT: usize = 8 - GlobalHistogramBinarizer::LUMINANCE_BITS;
+    const LUMINANCE_BUCKETS: usize = 1 << GlobalHistogramBinarizer::LUMINANCE_BITS;
+    // const EMPTY: [u8; 0] = [0; 0];
+
+    pub fn new(source: Box<dyn LuminanceSource>) -> Self {
+        Self {
+            _luminances: vec![0; source.getWidth()],
+            width: source.getWidth(),
+            height: source.getHeight(),
+            black_matrix: None,
+            black_row_cache: vec![None; source.getHeight()],
+            source: source,
+        }
+    }
+
+    fn build_black_matrix(source: &Box<dyn LuminanceSource>) -> Result<BitMatrix, Exceptions> {
+        // let source = source.getLuminanceSource();
         let width = source.getWidth();
         let height = source.getHeight();
         let mut matrix = BitMatrix::new(width as u32, height as u32)?;
@@ -107,11 +147,11 @@ impl Binarizer for GlobalHistogramBinarizer {
         // Quickly calculates the histogram by sampling four rows from the image. This proved to be
         // more robust on the blackbox tests than sampling a diagonal as we used to do.
         // self.initArrays(width);
-        let mut localBuckets = self.buckets.clone();
+        let mut localBuckets = [0; GlobalHistogramBinarizer::LUMINANCE_BUCKETS]; //self.buckets.clone();
         for y in 1..5 {
             // for (int y = 1; y < 5; y++) {
             let row = height * y / 5;
-            let localLuminances = source.getRow(row, &self.luminances);
+            let localLuminances = source.getRow(row);
             let right = (width * 4) / 5;
             let mut x = width / 5;
             while x < right {
@@ -121,7 +161,7 @@ impl Binarizer for GlobalHistogramBinarizer {
                 x += 1;
             }
         }
-        let blackPoint = self.estimateBlackPoint(&localBuckets)?;
+        let blackPoint = Self::estimateBlackPoint(&localBuckets)?;
 
         // We delay reading the entire image luminance until the black point estimation succeeds.
         // Although we end up reading four rows twice, it is consistent with our motto of
@@ -142,35 +182,6 @@ impl Binarizer for GlobalHistogramBinarizer {
         Ok(matrix)
     }
 
-    fn createBinarizer(&self, source: Box<dyn crate::LuminanceSource>) -> Rc<dyn Binarizer> {
-        return Rc::new(GlobalHistogramBinarizer::new(source));
-    }
-
-    fn getWidth(&self) -> usize {
-        self.width
-    }
-
-    fn getHeight(&self) -> usize {
-        self.height
-    }
-}
-
-impl GlobalHistogramBinarizer {
-    const LUMINANCE_BITS: usize = 5;
-    const LUMINANCE_SHIFT: usize = 8 - GlobalHistogramBinarizer::LUMINANCE_BITS;
-    const LUMINANCE_BUCKETS: usize = 1 << GlobalHistogramBinarizer::LUMINANCE_BITS;
-    // const EMPTY: [u8; 0] = [0; 0];
-
-    pub fn new(source: Box<dyn LuminanceSource>) -> Self {
-        Self {
-            luminances: vec![0; source.getWidth()],
-            buckets: vec![0; GlobalHistogramBinarizer::LUMINANCE_BUCKETS],
-            width: source.getWidth(),
-            height: source.getHeight(),
-            source: source,
-        }
-    }
-
     // fn initArrays(&mut self, luminanceSize: usize) {
     //     // if self.luminances.len() < luminanceSize {
     //     //     self.luminances = ;
@@ -181,7 +192,7 @@ impl GlobalHistogramBinarizer {
     //     // }
     // }
 
-    fn estimateBlackPoint(&self, buckets: &[u32]) -> Result<u32, Exceptions> {
+    fn estimateBlackPoint(buckets: &[u32]) -> Result<u32, Exceptions> {
         // Find the tallest peak in the histogram.
         let numBuckets = buckets.len();
         let mut maxBucketCount = 0;

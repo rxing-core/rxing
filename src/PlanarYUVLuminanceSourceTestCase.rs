@@ -55,7 +55,7 @@ fn test_no_crop() {
     assert_equals(&Y, 0, &source.getMatrix(), 0, Y.len());
     for r in 0..ROWS {
         // for (int r = 0; r < ROWS; r++) {
-        assert_equals(&Y, r * COLS, &source.getRow(r, &vec![0; 0]), 0, COLS);
+        assert_equals(&Y, r * COLS, &source.getRow(r), 0, COLS);
     }
 }
 
@@ -87,13 +87,7 @@ fn test_crop() {
     }
     for r in 0..ROWS - 2 {
         // for (int r = 0; r < ROWS - 2; r++) {
-        assert_equals(
-            &Y,
-            (r + 1) * COLS + 1,
-            &source.getRow(r, &vec![0; 0]),
-            0,
-            COLS - 2,
-        );
+        assert_equals(&Y, (r + 1) * COLS + 1, &source.getRow(r), 0, COLS - 2);
     }
 }
 

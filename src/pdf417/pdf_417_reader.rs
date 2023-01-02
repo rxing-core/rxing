@@ -44,14 +44,14 @@ impl Reader for PDF417Reader {
      */
     fn decode(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         let result = Self::decode(image, hints, false)?;
@@ -65,14 +65,14 @@ impl Reader for PDF417Reader {
 impl MultipleBarcodeReader for PDF417Reader {
     fn decode_multiple(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
         self.decode_multiple_with_hints(image, &HashMap::new())
     }
 
     fn decode_multiple_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
         //try {
@@ -95,7 +95,7 @@ impl PDF417Reader {
     }
 
     fn decode(
-        image: &BinaryBitmap,
+        image: &mut BinaryBitmap,
         hints: &DecodingHintDictionary,
         multiple: bool,
     ) -> Result<Vec<RXingResult>, Exceptions> {

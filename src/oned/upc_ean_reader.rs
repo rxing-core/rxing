@@ -551,13 +551,13 @@ impl OneDReader for StandInStruct {
 }
 
 impl Reader for StandInStruct {
-    fn decode(&mut self, _image: &crate::BinaryBitmap) -> Result<RXingResult, Exceptions> {
+    fn decode(&mut self, _image: &mut crate::BinaryBitmap) -> Result<RXingResult, Exceptions> {
         todo!()
     }
 
     fn decode_with_hints(
         &mut self,
-        _image: &crate::BinaryBitmap,
+        _image: &mut crate::BinaryBitmap,
         _hints: &crate::DecodingHintDictionary,
     ) -> Result<RXingResult, Exceptions> {
         todo!()

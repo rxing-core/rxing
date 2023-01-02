@@ -350,10 +350,7 @@ impl Code93Reader {
 mod Code93ReaderTestCase {
     use std::collections::HashMap;
 
-    use crate::{
-        common::{BitArray, BitMatrix},
-        oned::OneDReader,
-    };
+    use crate::{common::BitMatrix, oned::OneDReader};
 
     use super::Code93Reader;
 
@@ -366,8 +363,8 @@ mod Code93ReaderTestCase {
     fn doTest(expectedRXingResult: &str, encodedRXingResult: &str) {
         let mut sut = Code93Reader::new();
         let matrix = BitMatrix::parse_strings(encodedRXingResult, "1", "0").expect("must parse");
-        let mut row = BitArray::with_size(matrix.getWidth() as usize);
-        row = matrix.getRow(0, row);
+        // let mut row = BitArray::with_size(matrix.getWidth() as usize);
+        let row = matrix.getRow(0);
         let result = sut
             .decodeRow(0, &row, &HashMap::new())
             .expect("must decode");

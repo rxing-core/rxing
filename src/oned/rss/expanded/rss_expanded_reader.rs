@@ -179,14 +179,17 @@ impl OneDReader for RSSExpandedReader {
     }
 }
 impl Reader for RSSExpandedReader {
-    fn decode(&mut self, image: &crate::BinaryBitmap) -> Result<crate::RXingResult, Exceptions> {
+    fn decode(
+        &mut self,
+        image: &mut crate::BinaryBitmap,
+    ) -> Result<crate::RXingResult, Exceptions> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     // Note that we don't try rotation without the try harder flag, even if rotation was supported.
     fn decode_with_hints(
         &mut self,
-        image: &crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap,
         hints: &DecodingHintDictionary,
     ) -> Result<crate::RXingResult, Exceptions> {
         if let Ok(res) = self.doDecode(image, hints) {
@@ -194,8 +197,8 @@ impl Reader for RSSExpandedReader {
         } else {
             let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
             if tryHarder && image.isRotateSupported() {
-                let rotatedImage = image.rotateCounterClockwise();
-                let mut result = self.doDecode(&rotatedImage, hints)?;
+                let mut rotatedImage = image.rotateCounterClockwise();
+                let mut result = self.doDecode(&mut rotatedImage, hints)?;
                 // Record that we found it rotated 90 degrees CCW / 270 degrees CW
                 let metadata = result.getRXingResultMetadata();
                 let mut orientation = 270;
