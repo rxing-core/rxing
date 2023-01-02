@@ -24,7 +24,7 @@ use crate::{
         UPCEWriter,
     },
     qrcode::QRCodeWriter,
-    BarcodeFormat, Exceptions, Writer,
+    BarcodeFormat, Exceptions, Writer, pdf417::PDF417Writer,
 };
 
 /**
@@ -64,8 +64,7 @@ impl Writer for MultiFormatWriter {
             BarcodeFormat::CODE_93 => Box::new(Code93Writer::default()),
             BarcodeFormat::CODE_128 => Box::new(Code128Writer::default()),
             BarcodeFormat::ITF => Box::new(ITFWriter::default()),
-            BarcodeFormat::PDF_417 => unimplemented!(""),
-            // Box::new(PDF417Writer::default()),
+            BarcodeFormat::PDF_417 => Box::new(PDF417Writer::default()),
             BarcodeFormat::CODABAR => Box::new(Code128Writer::default()),
             BarcodeFormat::DATA_MATRIX => Box::new(DataMatrixWriter {}),
             BarcodeFormat::AZTEC => Box::new(AztecWriter {}),
