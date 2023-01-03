@@ -37,6 +37,7 @@ use super::encoder::error_correction;
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Guillaume Le Biller Added to zxing lib.
  */
+#[derive(Default)]
 pub struct DataMatrixWriter;
 
 impl Writer for DataMatrixWriter {

@@ -23,8 +23,9 @@ use crate::{
         Code128Writer, Code39Writer, Code93Writer, EAN13Writer, EAN8Writer, ITFWriter, UPCAWriter,
         UPCEWriter,
     },
+    pdf417::PDF417Writer,
     qrcode::QRCodeWriter,
-    BarcodeFormat, Exceptions, Writer, pdf417::PDF417Writer,
+    BarcodeFormat, Exceptions, Writer,
 };
 
 /**
@@ -55,19 +56,19 @@ impl Writer for MultiFormatWriter {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         let writer: Box<dyn Writer> = match format {
-            BarcodeFormat::EAN_8 => Box::new(EAN8Writer::default()),
-            BarcodeFormat::UPC_E => Box::new(UPCEWriter::default()),
-            BarcodeFormat::EAN_13 => Box::new(EAN13Writer::default()),
-            BarcodeFormat::UPC_A => Box::new(UPCAWriter::default()),
-            BarcodeFormat::QR_CODE => Box::new(QRCodeWriter {}),
-            BarcodeFormat::CODE_39 => Box::new(Code39Writer::default()),
-            BarcodeFormat::CODE_93 => Box::new(Code93Writer::default()),
-            BarcodeFormat::CODE_128 => Box::new(Code128Writer::default()),
-            BarcodeFormat::ITF => Box::new(ITFWriter::default()),
-            BarcodeFormat::PDF_417 => Box::new(PDF417Writer::default()),
-            BarcodeFormat::CODABAR => Box::new(Code128Writer::default()),
-            BarcodeFormat::DATA_MATRIX => Box::new(DataMatrixWriter {}),
-            BarcodeFormat::AZTEC => Box::new(AztecWriter {}),
+            BarcodeFormat::EAN_8 => Box::<EAN8Writer>::default(),
+            BarcodeFormat::UPC_E => Box::<UPCEWriter>::default(),
+            BarcodeFormat::EAN_13 => Box::<EAN13Writer>::default(),
+            BarcodeFormat::UPC_A => Box::<UPCAWriter>::default(),
+            BarcodeFormat::QR_CODE => Box::<QRCodeWriter>::default(),
+            BarcodeFormat::CODE_39 => Box::<Code39Writer>::default(),
+            BarcodeFormat::CODE_93 => Box::<Code93Writer>::default(),
+            BarcodeFormat::CODE_128 => Box::<Code128Writer>::default(),
+            BarcodeFormat::ITF => Box::<ITFWriter>::default(),
+            BarcodeFormat::PDF_417 => Box::<PDF417Writer>::default(),
+            BarcodeFormat::CODABAR => Box::<Code128Writer>::default(),
+            BarcodeFormat::DATA_MATRIX => Box::<DataMatrixWriter>::default(),
+            BarcodeFormat::AZTEC => Box::<AztecWriter>::default(),
             _ => {
                 return Err(Exceptions::IllegalArgumentException(format!(
                     "No encoder available for format {:?}",

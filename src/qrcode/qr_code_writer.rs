@@ -32,6 +32,7 @@ const QUIET_ZONE_SIZE: i32 = 4;
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[derive(Default)]
 pub struct QRCodeWriter; // {
 
 // private static final int QUIET_ZONE_SIZE = 4;

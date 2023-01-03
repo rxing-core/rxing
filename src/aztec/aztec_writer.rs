@@ -28,6 +28,7 @@ use super::encoder::{encoder, AztecCode};
 /**
  * Renders an Aztec code as a {@link BitMatrix}.
  */
+#[derive(Default)]
 pub struct AztecWriter;
 
 impl Writer for AztecWriter {
