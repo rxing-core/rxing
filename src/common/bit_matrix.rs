@@ -427,7 +427,7 @@ impl BitMatrix {
         let newWidth = self.height;
         let newHeight = self.width;
         let newRowSize = (newWidth + 31) / 32;
-        let mut newBits = vec![0; (newRowSize * newHeight).try_into().unwrap()];
+        let mut newBits = vec![0; (newRowSize * newHeight) as usize];
 
         for y in 0..self.height {
             //for (int y = 0; y < height; y++) {
@@ -435,16 +435,14 @@ impl BitMatrix {
                 //for (int x = 0; x < width; x++) {
                 let offset = y as usize * self.row_size + (x as usize / 32);
                 if ((self.bits[offset] >> (x & 0x1f)) & 1) != 0 {
-                    let newOffset: usize = ((newHeight - 1 - x) * newRowSize + (y / 32))
-                        .try_into()
-                        .unwrap();
+                    let newOffset: usize = ((newHeight - 1 - x) * newRowSize + (y / 32)) as usize;
                     newBits[newOffset] |= 1 << (y & 0x1f);
                 }
             }
         }
         self.width = newWidth;
         self.height = newHeight;
-        self.row_size = newRowSize.try_into().unwrap();
+        self.row_size = newRowSize as usize;
         self.bits = newBits;
     }
 
