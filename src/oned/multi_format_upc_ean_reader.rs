@@ -46,22 +46,22 @@ impl MultiFormatUPCEANReader {
             //   (Collection<BarcodeFormat>) hints.get(DecodeHintType.POSSIBLE_FORMATS);
             // Collection<UPCEANReader> readers = new ArrayList<>();
             if possibleFormats.contains(&BarcodeFormat::EAN_13) {
-                readers.push(Box::new(EAN13Reader::default()));
+                readers.push(Box::<EAN13Reader>::default());
             } else if possibleFormats.contains(&BarcodeFormat::UPC_A) {
-                readers.push(Box::new(UPCAReader::default()));
+                readers.push(Box::<UPCAReader>::default());
             }
             if possibleFormats.contains(&BarcodeFormat::EAN_8) {
-                readers.push(Box::new(EAN8Reader::default()));
+                readers.push(Box::<EAN8Reader>::default());
             }
             if possibleFormats.contains(&BarcodeFormat::UPC_E) {
-                readers.push(Box::new(UPCEReader::default()));
+                readers.push(Box::<UPCEReader>::default());
             }
         }
         if readers.is_empty() {
-            readers.push(Box::new(EAN13Reader::default()));
+            readers.push(Box::<EAN13Reader>::default());
             // UPC-A is covered by EAN-13
-            readers.push(Box::new(EAN8Reader::default()));
-            readers.push(Box::new(UPCEReader::default()));
+            readers.push(Box::<EAN8Reader>::default());
+            readers.push(Box::<UPCEReader>::default());
         }
 
         Self(readers)
