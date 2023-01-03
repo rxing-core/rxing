@@ -27,12 +27,17 @@ use super::{one_d_reader, OneDReader};
  * @author Sean Owen
  * @see Code93Reader
  */
-#[derive(OneDReader,Default)]
+#[derive(OneDReader)]
 pub struct Code39Reader {
     usingCheckDigit: bool,
     extendedMode: bool,
     decodeRowRXingResult: String,
     // counters: Vec<u32>,
+}
+impl Default for Code39Reader {
+    fn default() -> Self {
+        Self::with_use_check_digit(false)
+    }
 }
 impl OneDReader for Code39Reader {
     fn decodeRow(

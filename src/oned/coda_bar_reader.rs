@@ -40,9 +40,9 @@ pub struct CodaBarReader {
 impl Default for CodaBarReader {
     fn default() -> Self {
         Self {
-            decodeRowRXingResult: Default::default(),
-            counters: Default::default(),
-            counterLength: Default::default(),
+            decodeRowRXingResult: String::with_capacity(20),
+            counters: vec![0; 80],
+            counterLength: 0,
         }
     }
 }

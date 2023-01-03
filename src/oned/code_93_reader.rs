@@ -26,10 +26,19 @@ use super::{one_d_reader, OneDReader};
  * @author Sean Owen
  * @see Code39Reader
  */
-#[derive(OneDReader,Default)]
+#[derive(OneDReader)]
 pub struct Code93Reader {
     decodeRowRXingResult: String,
     counters: [u32; 6],
+}
+
+impl Default for Code93Reader {
+    fn default() -> Self {
+        Self {
+            decodeRowRXingResult: String::with_capacity(20),
+            counters: [0; 6],
+        }
+    }
 }
 
 impl OneDReader for Code93Reader {
