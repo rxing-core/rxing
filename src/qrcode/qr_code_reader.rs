@@ -32,6 +32,7 @@ use super::{
  *
  * @author Sean Owen
  */
+#[derive(Default)]
 pub struct QRCodeReader;
 // pub struct QRCodeReader;  {
 

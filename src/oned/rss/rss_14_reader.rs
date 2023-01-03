@@ -30,6 +30,7 @@ use super::{
 /**
  * Decodes RSS-14, including truncated and stacked variants. See ISO/IEC 24724:2006.
  */
+#[derive(Default)]
 pub struct RSS14Reader {
     possibleLeftPairs: Vec<Pair>,
     possibleRightPairs: Vec<Pair>,

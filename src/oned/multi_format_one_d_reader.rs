@@ -31,6 +31,7 @@ use crate::Exceptions;
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Sean Owen
  */
+#[derive(Default)]
 pub struct MultiFormatOneDReader(Vec<Box<dyn OneDReader>>);
 impl OneDReader for MultiFormatOneDReader {
     fn decodeRow(
@@ -77,33 +78,33 @@ impl MultiFormatOneDReader {
                 )));
             }
             if possibleFormats.contains(&BarcodeFormat::CODE_93) {
-                readers.push(Box::new(Code93Reader::new()));
+                readers.push(Box::<Code93Reader>::default());
             }
             if possibleFormats.contains(&BarcodeFormat::CODE_128) {
-                readers.push(Box::new(Code128Reader {}));
+                readers.push(Box::<Code128Reader>::default());
             }
             if possibleFormats.contains(&BarcodeFormat::ITF) {
-                readers.push(Box::new(ITFReader::default()));
+                readers.push(Box::<ITFReader>::default());
             }
             if possibleFormats.contains(&BarcodeFormat::CODABAR) {
-                readers.push(Box::new(CodaBarReader::new()));
+                readers.push(Box::<CodaBarReader>::default());
             }
             if possibleFormats.contains(&BarcodeFormat::RSS_14) {
-                readers.push(Box::new(RSS14Reader::new()));
+                readers.push(Box::<RSS14Reader>::default());
             }
             if possibleFormats.contains(&BarcodeFormat::RSS_EXPANDED) {
-                readers.push(Box::new(RSSExpandedReader::new()));
+                readers.push(Box::<RSSExpandedReader>::default());
             }
         }
         if readers.is_empty() {
             readers.push(Box::new(MultiFormatUPCEANReader::new(hints)));
-            readers.push(Box::new(Code39Reader::new()));
-            readers.push(Box::new(CodaBarReader::new()));
-            readers.push(Box::new(Code93Reader::new()));
-            readers.push(Box::new(Code128Reader {}));
-            readers.push(Box::new(ITFReader::default()));
-            readers.push(Box::new(RSS14Reader::new()));
-            readers.push(Box::new(RSSExpandedReader::new()));
+            readers.push(Box::<Code39Reader>::default());
+            readers.push(Box::<CodaBarReader>::default());
+            readers.push(Box::<Code93Reader>::default());
+            readers.push(Box::<Code128Reader>::default());
+            readers.push(Box::<ITFReader>::default());
+            readers.push(Box::<RSS14Reader>::default());
+            readers.push(Box::<RSSExpandedReader>::default());
         }
 
         Self(readers)

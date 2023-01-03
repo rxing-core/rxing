@@ -30,6 +30,7 @@ use super::{decoder, detector::Detector};
  *
  * @author David Olivier
  */
+#[derive(Default)]
 pub struct AztecReader;
 
 impl Reader for AztecReader {

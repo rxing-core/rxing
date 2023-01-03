@@ -35,6 +35,7 @@ lazy_static! {
  *
  * @author bbrown@google.com (Brian Brown)
  */
+#[derive(Default)]
 pub struct DataMatrixReader;
 
 // private static final RXingResultPoint[] NO_POINTS = new RXingResultPoint[0];

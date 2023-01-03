@@ -26,7 +26,7 @@ use super::{one_d_reader, OneDReader};
  * @author Sean Owen
  * @see Code39Reader
  */
-#[derive(OneDReader)]
+#[derive(OneDReader,Default)]
 pub struct Code93Reader {
     decodeRowRXingResult: String,
     counters: [u32; 6],

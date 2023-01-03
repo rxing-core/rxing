@@ -27,7 +27,7 @@ use super::{one_d_reader, OneDReader};
  * @author Sean Owen
  * @see Code93Reader
  */
-#[derive(OneDReader)]
+#[derive(OneDReader,Default)]
 pub struct Code39Reader {
     usingCheckDigit: bool,
     extendedMode: bool,

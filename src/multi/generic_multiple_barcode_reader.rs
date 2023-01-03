@@ -37,6 +37,7 @@ use super::MultipleBarcodeReader;
  *
  * @author Sean Owen
  */
+#[derive(Default)]
 pub struct GenericMultipleBarcodeReader<T: Reader>(T);
 
 impl<T: Reader> MultipleBarcodeReader for GenericMultipleBarcodeReader<T> {

@@ -34,6 +34,7 @@ use super::detector::MultiDetector;
  * @author Sean Owen
  * @author Hannes Erven
  */
+#[derive(Default)]
 pub struct QRCodeMultiReader(QRCodeReader);
 impl MultipleBarcodeReader for QRCodeMultiReader {
     fn decode_multiple(

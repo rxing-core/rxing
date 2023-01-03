@@ -25,6 +25,7 @@ use super::decoder::decoder;
 /**
  * This implementation can detect and decode a MaxiCode in an image.
  */
+#[derive(Default)]
 pub struct MaxiCodeReader {
     // private final Decoder decoder = new Decoder();
 }

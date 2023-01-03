@@ -131,19 +131,19 @@ impl MultiFormatReader {
                 readers.push(Box::new(MultiFormatOneDReader::new(hints)));
             }
             if formats.contains(&BarcodeFormat::QR_CODE) {
-                readers.push(Box::new(QRCodeReader {}));
+                readers.push(Box::<QRCodeReader>::default());
             }
             if formats.contains(&BarcodeFormat::DATA_MATRIX) {
-                readers.push(Box::new(DataMatrixReader {}));
+                readers.push(Box::<DataMatrixReader>::default());
             }
             if formats.contains(&BarcodeFormat::AZTEC) {
-                readers.push(Box::new(AztecReader {}));
+                readers.push(Box::<AztecReader>::default());
             }
             if formats.contains(&BarcodeFormat::PDF_417) {
-                readers.push(Box::new(PDF417Reader {}));
+                readers.push(Box::<PDF417Reader>::default());
             }
             if formats.contains(&BarcodeFormat::MAXICODE) {
-                readers.push(Box::new(MaxiCodeReader {}));
+                readers.push(Box::<MaxiCodeReader>::default());
             }
             // At end in "try harder" mode
             if addOneDReader && tryHarder {
@@ -155,11 +155,11 @@ impl MultiFormatReader {
                 readers.push(Box::new(MultiFormatOneDReader::new(hints)));
             }
 
-            readers.push(Box::new(QRCodeReader {}));
-            readers.push(Box::new(DataMatrixReader {}));
-            readers.push(Box::new(AztecReader {}));
-            readers.push(Box::new(PDF417Reader {}));
-            readers.push(Box::new(MaxiCodeReader {}));
+            readers.push(Box::<QRCodeReader>::default());
+            readers.push(Box::<DataMatrixReader>::default());
+            readers.push(Box::<AztecReader>::default());
+            readers.push(Box::<PDF417Reader>::default());
+            readers.push(Box::<MaxiCodeReader>::default());
             // unimplemented!("");
 
             if tryHarder {
