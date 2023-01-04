@@ -75,6 +75,8 @@ fn main() {
 ```
 
 ## Latest Release Notes
+v0.2.3 -> Implement most suggestions from clippy, as well as some simple changes, no surface changes.
+
 v0.2.0 -> Dramatically improve performance when cropping a BufferedImageLuminanceSource.
 
 v0.1.4 -> Dramatically improve performance for MultiFormatReader and for multiple barcode detection.
