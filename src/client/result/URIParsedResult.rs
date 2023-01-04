@@ -63,7 +63,7 @@ impl URIParsedRXingResult {
      */
     #[deprecated]
     pub fn is_possibly_malicious_uri(&self) -> bool {
-        return URIResultParser::is_possibly_malicious_uri(&self.uri);
+        URIResultParser::is_possibly_malicious_uri(&self.uri)
     }
 
     /**
@@ -98,6 +98,6 @@ impl URIParsedRXingResult {
         // if (nextSlash < 0) {
         //   nextSlash = uri.length();
         // }
-        return ResultParser::isSubstringOfDigits(uri, start, nextSlash - start);
+        ResultParser::isSubstringOfDigits(uri, start, nextSlash - start)
     }
 }

@@ -35,12 +35,12 @@ use super::AztecDetectorResult::AztecDetectorRXingResult;
 
 #[derive(PartialEq, Eq, Copy, Clone)]
 enum Table {
-    UPPER,
-    LOWER,
-    MIXED,
-    DIGIT,
-    PUNCT,
-    BINARY,
+    Upper,
+    Lower,
+    Mixed,
+    Digit,
+    Punct,
+    Binary,
 }
 
 const UPPER_TABLE: [&str; 32] = [
@@ -78,8 +78,8 @@ pub fn decode(
 ) -> Result<DecoderRXingResult, Exceptions> {
     //let mut detectorRXingResult = detectorRXingResult.clone();
     let matrix = detectorRXingResult.getBits();
-    let rawbits = extract_bits(&detectorRXingResult, matrix);
-    let corrected_bits = correct_bits(&detectorRXingResult, &rawbits)?;
+    let rawbits = extract_bits(detectorRXingResult, matrix);
+    let corrected_bits = correct_bits(detectorRXingResult, &rawbits)?;
     let raw_bytes = convertBoolArrayToByteArray(&corrected_bits.correct_bits);
     let result = get_encoded_data(&corrected_bits.correct_bits);
     let mut decoder_rxing_result = DecoderRXingResult::new(
@@ -105,8 +105,8 @@ pub fn highLevelDecode(correctedBits: &[bool]) -> Result<String, Exceptions> {
  */
 fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
     let end_index = corrected_bits.len();
-    let mut latch_table = Table::UPPER; // table most recently latched to
-    let mut shift_table = Table::UPPER; // table to use for the next read
+    let mut latch_table = Table::Upper; // table most recently latched to
+    let mut shift_table = Table::Upper; // table to use for the next read
 
     // Final decoded string result
     // (correctedBits-5) / 4 is an upper bound on the size (all-digit result)
@@ -121,7 +121,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
     let mut index = 0;
 
     'main: while index < end_index {
-        if shift_table == Table::BINARY {
+        if shift_table == Table::Binary {
             if end_index - index < 5 {
                 break;
             }
@@ -147,7 +147,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
             // Go back to whatever mode we had been in
             shift_table = latch_table;
         } else {
-            let size = if shift_table == Table::DIGIT { 4 } else { 5 };
+            let size = if shift_table == Table::Digit { 4 } else { 5 };
             if end_index - index < size {
                 break;
             }
@@ -171,9 +171,9 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
                 match n {
                     0 => result.push(29 as char), // translate FNC1 as ASCII 29
                     7 => {
-                        return Err(Exceptions::FormatException(
+                        return Err(Exceptions::FormatException(Some(
                             "FLG(7) is reserved and illegal".to_owned(),
-                        ))
+                        )))
                     } // FLG(7) is reserved and illegal
                     _ => {
                         // ECI is decimal integer encoded as 1-6 codes in DIGIT mode
@@ -185,19 +185,19 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
                             //while (n-- > 0) {
                             let next_digit = read_code(corrected_bits, index, 4);
                             index += 4;
-                            if next_digit < 2 || next_digit > 11 {
-                                return Err(Exceptions::FormatException(
+                            if !(2..=11).contains(&next_digit) {
+                                return Err(Exceptions::FormatException(Some(
                                     "Not a decimal digit".to_owned(),
-                                )); // Not a decimal digit
+                                ))); // Not a decimal digit
                             }
                             eci = eci * 10 + (next_digit - 2);
                             n -= 1;
                         }
                         let charset_eci = CharacterSetECI::getCharacterSetECIByValue(eci);
                         if charset_eci.is_err() {
-                            return Err(Exceptions::FormatException(
+                            return Err(Exceptions::FormatException(Some(
                                 "Charset must exist".to_owned(),
-                            ));
+                            )));
                         }
                         encdr = CharacterSetECI::getCharset(&charset_eci?);
                     }
@@ -232,7 +232,9 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
     if let Ok(str) = encdr.decode(&decoded_bytes, encoding::DecoderTrap::Strict) {
         result.push_str(&str);
     } else {
-        return Err(Exceptions::IllegalStateException("bad encoding".to_owned()));
+        return Err(Exceptions::IllegalStateException(Some(
+            "bad encoding".to_owned(),
+        )));
     }
     //   result.push_str(decodedBytes.toString(encoding.name()));
     //} catch (UnsupportedEncodingException uee) {
@@ -247,12 +249,12 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
  */
 fn getTable(t: char) -> Table {
     match t {
-        'L' => Table::LOWER,
-        'P' => Table::PUNCT,
-        'M' => Table::MIXED,
-        'D' => Table::DIGIT,
-        'B' => Table::BINARY,
-        _ => Table::UPPER,
+        'L' => Table::Lower,
+        'P' => Table::Punct,
+        'M' => Table::Mixed,
+        'D' => Table::Digit,
+        'B' => Table::Binary,
+        _ => Table::Upper,
     }
     // switch (t) {
     //   case 'L':
@@ -279,12 +281,14 @@ fn getTable(t: char) -> Table {
  */
 fn get_character(table: Table, code: u32) -> Result<&'static str, Exceptions> {
     match table {
-        Table::UPPER => Ok(UPPER_TABLE[code as usize]),
-        Table::LOWER => Ok(LOWER_TABLE[code as usize]),
-        Table::MIXED => Ok(MIXED_TABLE[code as usize]),
-        Table::DIGIT => Ok(DIGIT_TABLE[code as usize]),
-        Table::PUNCT => Ok(PUNCT_TABLE[code as usize]),
-        _ => Err(Exceptions::IllegalStateException("Bad table".to_owned())),
+        Table::Upper => Ok(UPPER_TABLE[code as usize]),
+        Table::Lower => Ok(LOWER_TABLE[code as usize]),
+        Table::Mixed => Ok(MIXED_TABLE[code as usize]),
+        Table::Digit => Ok(DIGIT_TABLE[code as usize]),
+        Table::Punct => Ok(PUNCT_TABLE[code as usize]),
+        _ => Err(Exceptions::IllegalStateException(Some(
+            "Bad table".to_owned(),
+        ))),
     }
     // switch (table) {
     //   case UPPER:
@@ -345,17 +349,18 @@ fn correct_bits(
     let num_data_codewords = ddata.getNbDatablocks();
     let num_codewords = rawbits.len() / codeword_size;
     if num_codewords < num_data_codewords as usize {
-        return Err(Exceptions::FormatException(format!(
+        return Err(Exceptions::FormatException(Some(format!(
             "numCodewords {}< numDataCodewords{}",
             num_codewords, num_data_codewords
-        )));
+        ))));
     }
     let mut offset = rawbits.len() % codeword_size;
 
     let mut data_words = vec![0i32; num_codewords];
-    for i in 0..num_codewords {
+    for word in data_words.iter_mut().take(num_codewords) {
+        // for i in 0..num_codewords {
         // for (int i = 0; i < numCodewords; i++, offset += codewordSize) {
-        data_words[i] = read_code(rawbits, offset, codeword_size) as i32;
+        *word = read_code(rawbits, offset, codeword_size) as i32;
         offset += codeword_size;
     }
 
@@ -373,15 +378,14 @@ fn correct_bits(
     // First, count how many bits are going to be thrown out as stuffing
     let mask = (1 << codeword_size) - 1;
     let mut stuffed_bits = 0;
-    for i in 0..num_data_codewords as usize {
+    for data_word in data_words.iter().take(num_data_codewords as usize) {
+        // for i in 0..num_data_codewords as usize {
         // for (int i = 0; i < numDataCodewords; i++) {
-        let data_word = data_words[i];
-        if data_word == 0 || data_word == mask {
-            return Err(Exceptions::FormatException(
-                "dataWord == 0 || dataWord == mask".to_owned(),
-            ));
+        // let data_word = data_words[i];
+        if data_word == &0 || data_word == &mask {
+            return Err(Exceptions::FormatException(None));
             //throw FormatException.getFormatInstance();
-        } else if data_word == 1 || data_word == mask - 1 {
+        } else if data_word == &1 || data_word == &(mask - 1) {
             stuffed_bits += 1;
         }
     }
@@ -389,21 +393,22 @@ fn correct_bits(
     let mut corrected_bits =
         vec![false; (num_data_codewords * codeword_size as u32 - stuffed_bits) as usize];
     let mut index = 0;
-    for i in 0..num_data_codewords as usize {
+    for data_word in data_words.iter().take(num_data_codewords as usize) {
+        // for i in 0..num_data_codewords as usize {
         // for (int i = 0; i < numDataCodewords; i++) {
-        let data_word = data_words[i];
-        if data_word == 1 || data_word == mask - 1 {
+        // let data_word = data_words[i];
+        if *data_word == 1 || *data_word == mask - 1 {
             // next codewordSize-1 bits are all zeros or all ones
             corrected_bits.splice(
                 index..index + codeword_size - 1,
-                vec![data_word > 1; codeword_size - 1],
+                vec![*data_word > 1; codeword_size - 1],
             );
             // Arrays.fill(correctedBits, index, index + codewordSize - 1, dataWord > 1);
             index += codeword_size - 1;
         } else {
             for bit in (0..codeword_size).rev() {
                 // for (int bit = codewordSize - 1; bit >= 0; --bit) {
-                corrected_bits[index] = (data_word & (1 << bit)) != 0;
+                corrected_bits[index] = (*data_word & (1 << bit)) != 0;
                 index += 1;
             }
         }
@@ -428,9 +433,9 @@ fn extract_bits(ddata: &AztecDetectorRXingResult, matrix: &BitMatrix) -> Vec<boo
     let mut rawbits = vec![false; total_bits_in_layer(layers as usize, compact)];
 
     if compact {
-        for i in 0..alignment_map.len() {
+        for (i, am) in alignment_map.iter_mut().enumerate() {
             //   for (int i = 0; i < alignmentMap.length; i++) {
-            alignment_map[i] = i as u32;
+            *am = i as u32;
         }
     } else {
         let matrix_size = base_matrix_size + 1 + 2 * ((base_matrix_size / 2 - 1) / 15);
@@ -481,7 +486,7 @@ fn extract_bits(ddata: &AztecDetectorRXingResult, matrix: &BitMatrix) -> Vec<boo
         }
         row_offset += row_size * 8;
     }
-    return rawbits;
+    rawbits
 }
 
 /**
@@ -489,14 +494,15 @@ fn extract_bits(ddata: &AztecDetectorRXingResult, matrix: &BitMatrix) -> Vec<boo
  */
 fn read_code(rawbits: &[bool], start_index: usize, length: usize) -> u32 {
     let mut res = 0;
-    for i in start_index..start_index + length {
+    for bit in rawbits.iter().skip(start_index).take(length) {
+        // for i in start_index..start_index + length {
         // for (int i = startIndex; i < startIndex + length; i++) {
         res <<= 1;
-        if rawbits[i] {
+        if *bit {
             res |= 0x01;
         }
     }
-    return res;
+    res
 }
 
 /**
@@ -507,7 +513,7 @@ fn read_byte(rawbits: &[bool], start_index: usize) -> u8 {
     if n >= 8 {
         return read_code(rawbits, start_index, 8) as u8;
     }
-    return (read_code(rawbits, start_index, n) << (8 - n)) as u8;
+    (read_code(rawbits, start_index, n) << (8 - n)) as u8
 }
 
 /**
@@ -515,11 +521,12 @@ fn read_byte(rawbits: &[bool], start_index: usize) -> u8 {
  */
 pub fn convertBoolArrayToByteArray(bool_arr: &[bool]) -> Vec<u8> {
     let mut byte_arr = vec![0u8; (bool_arr.len() + 7) / 8];
-    for i in 0..byte_arr.len() {
+    // for i in 0..byte_arr.len() {
+    for (i, byte) in byte_arr.iter_mut().enumerate() {
         // for (int i = 0; i < byteArr.length; i++) {
-        byte_arr[i] = read_byte(bool_arr, 8 * i);
+        *byte = read_byte(bool_arr, 8 * i);
     }
-    return byte_arr;
+    byte_arr
 }
 
 fn total_bits_in_layer(layers: usize, compact: bool) -> usize {

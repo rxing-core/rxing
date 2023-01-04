@@ -251,7 +251,7 @@ fn findAIvalue(i: usize, rawText: &str) -> Option<String> {
         if currentChar == ')' {
             return Some(buf);
         }
-        if currentChar < '0' || currentChar > '9' {
+        if !('0'..='9').contains(&currentChar) {
             return None;
         }
         buf.push(currentChar);
@@ -270,7 +270,7 @@ fn findValue(i: usize, rawText: &str) -> String {
         if c == '(' {
             // We look for a new AI. If it doesn't exist (ERROR), we continue
             // with the iteration
-            if let Some(_) = findAIvalue(index, rawTextAux) {
+            if findAIvalue(index, rawTextAux).is_some() {
                 break;
             }
             // if findAIvalue(index, rawTextAux) != null {

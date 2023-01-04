@@ -90,12 +90,11 @@ impl DetectionRXingResultRowIndicatorColumn for DetectionRXingResultColumn {
                 {
                     self.getCodewordsMut()[codewordsRow] = None;
                 } else {
-                    let checkedRows;
-                    if maxRowHeight > 2 {
-                        checkedRows = (maxRowHeight - 2) * rowDifference;
+                    let checkedRows = if maxRowHeight > 2 {
+                        (maxRowHeight - 2) * rowDifference
                     } else {
-                        checkedRows = rowDifference;
-                    }
+                        rowDifference
+                    };
                     let mut closePreviousCodewordFound = checkedRows >= codewordsRow as i32;
                     let mut i = 1;
                     while i <= checkedRows && !closePreviousCodewordFound {
@@ -103,7 +102,7 @@ impl DetectionRXingResultRowIndicatorColumn for DetectionRXingResultColumn {
                         // there must be (height * rowDifference) number of codewords missing. For now we assume height = 1.
                         // This should hopefully get rid of most problems already.
                         closePreviousCodewordFound =
-                            self.getCodewords()[codewordsRow as usize - i as usize].is_some();
+                            self.getCodewords()[codewordsRow - i as usize].is_some();
 
                         i += 1;
                     }
@@ -176,10 +175,10 @@ impl DetectionRXingResultRowIndicatorColumn for DetectionRXingResultColumn {
             }
         }
         // Maybe we should check if we have ambiguous values?
-        if (barcodeColumnCount.getValue().len() == 0)
-            || (barcodeRowCountUpperPart.getValue().len() == 0)
-            || (barcodeRowCountLowerPart.getValue().len() == 0)
-            || (barcodeECLevel.getValue().len() == 0)
+        if barcodeColumnCount.getValue().is_empty()
+            || barcodeRowCountUpperPart.getValue().is_empty()
+            || barcodeRowCountLowerPart.getValue().is_empty()
+            || barcodeECLevel.getValue().is_empty()
             || barcodeColumnCount.getValue()[0] < 1
             || barcodeRowCountUpperPart.getValue()[0] + barcodeRowCountLowerPart.getValue()[0]
                 < pdf_417_common::MIN_ROWS_IN_BARCODE
@@ -211,13 +210,13 @@ impl DetectionRXingResultRowIndicatorColumn for DetectionRXingResultColumn {
 // }
 
 fn setRowNumbers(code_words: &mut [Option<Codeword>]) {
-    for codeword_opt in code_words {
+    for codeword in code_words.iter_mut().flatten() {
         //self.0.getCodewordsMut() {
         // for (Codeword codeword : getCodewords()) {
-        if let Some(codeword) = codeword_opt {
-            // if (codeword != null) {
-            codeword.setRowNumberAsRowIndicatorColumn();
-        }
+        // if let Some(codeword) = codeword_opt {
+        // if (codeword != null) {
+        codeword.setRowNumberAsRowIndicatorColumn();
+        // }
     }
 }
 
@@ -228,13 +227,14 @@ fn removeIncorrectCodewords(
 ) {
     // Remove codewords which do not match the metadata
     // TODO Maybe we should keep the incorrect codewords for the start and end positions?
-    for codewordRow in 0..codewords.len() {
+    for codeword_row in codewords.iter_mut() {
+        // for codewordRow in 0..codewords.len() {
         // for (int codewordRow = 0; codewordRow < codewords.length; codewordRow++) {
-        if let Some(codeword) = codewords[codewordRow] {
+        if let Some(codeword) = codeword_row {
             let rowIndicatorValue = codeword.getValue() % 30;
             let mut codewordRowNumber = codeword.getRowNumber();
             if codewordRowNumber > barcodeMetadata.getRowCount() as i32 {
-                codewords[codewordRow] = None;
+                *codeword_row = None;
                 continue;
             }
             if !isLeft {
@@ -243,19 +243,19 @@ fn removeIncorrectCodewords(
             match codewordRowNumber % 3 {
                 0 => {
                     if rowIndicatorValue * 3 + 1 != barcodeMetadata.getRowCountUpperPart() {
-                        codewords[codewordRow] = None;
+                        *codeword_row = None;
                     }
                 }
                 1 => {
                     if rowIndicatorValue / 3 != barcodeMetadata.getErrorCorrectionLevel()
                         || rowIndicatorValue % 3 != barcodeMetadata.getRowCountLowerPart()
                     {
-                        codewords[codewordRow] = None;
+                        *codeword_row = None;
                     }
                 }
                 2 => {
                     if rowIndicatorValue + 1 != barcodeMetadata.getColumnCount() {
-                        codewords[codewordRow] = None;
+                        *codeword_row = None;
                     }
                 }
                 _ => {}
@@ -291,10 +291,10 @@ fn adjustIncompleteIndicatorColumnRowNumbers(
     let mut barcodeRow = -1;
     let mut maxRowHeight = 1;
     let mut currentRowHeight = 0;
-    for codewordsRow in firstRow..lastRow {
+    for codword_opt in codewords.iter_mut().take(lastRow).skip(firstRow) {
         // for (int codewordsRow = firstRow; codewordsRow < lastRow; codewordsRow++) {
 
-        if let Some(codeword) = &mut codewords[codewordsRow] {
+        if let Some(codeword) = codword_opt {
             codeword.setRowNumberAsRowIndicatorColumn();
 
             let rowDifference = codeword.getRowNumber() - barcodeRow;
@@ -308,7 +308,7 @@ fn adjustIncompleteIndicatorColumnRowNumbers(
                 currentRowHeight = 1;
                 barcodeRow = codeword.getRowNumber();
             } else if codeword.getRowNumber() >= barcodeMetadata.getRowCount() as i32 {
-                codewords[codewordsRow] = None;
+                *codword_opt = None;
             } else {
                 barcodeRow = codeword.getRowNumber();
                 currentRowHeight = 1;

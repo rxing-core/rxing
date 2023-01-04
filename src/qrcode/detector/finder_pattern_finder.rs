@@ -202,25 +202,26 @@ impl FinderPatternFinder {
      */
     pub fn foundPatternCross(stateCount: &[u32]) -> bool {
         let mut totalModuleSize = 0;
-        for i in 0..5 {
+        for count in stateCount.iter().take(5) {
+            // for i in 0..5 {
             // for (int i = 0; i < 5; i++) {
-            let count = stateCount[i];
-            if count == 0 {
+            // let count = *state;
+            if *count == 0 {
                 return false;
             }
-            totalModuleSize += count;
+            totalModuleSize += *count;
         }
         if totalModuleSize < 7 {
             return false;
         }
         let moduleSize = totalModuleSize as f64 / 7.0;
-        let maxVariance = moduleSize as f64 / 2.0;
+        let maxVariance = moduleSize / 2.0;
         // Allow less than 50% variance from 1-1-3-1-1 proportions
-        return ((moduleSize - stateCount[0] as f64).abs()) < maxVariance
+        ((moduleSize - stateCount[0] as f64).abs()) < maxVariance
             && ((moduleSize - stateCount[1] as f64).abs()) < maxVariance
             && ((3.0 * moduleSize - stateCount[2] as f64).abs()) < 3.0 * maxVariance
             && (moduleSize - stateCount[3] as f64).abs() < maxVariance
-            && (moduleSize - stateCount[4] as f64).abs() < maxVariance;
+            && (moduleSize - stateCount[4] as f64).abs() < maxVariance
     }
 
     /**
@@ -230,13 +231,13 @@ impl FinderPatternFinder {
      */
     pub fn foundPatternDiagonal(stateCount: &[u32]) -> bool {
         let mut totalModuleSize = 0;
-        for i in 0..5 {
+        for count in stateCount.iter().take(5) {
+            // for i in 0..5 {
             // for (int i = 0; i < 5; i++) {
-            let count = stateCount[i];
-            if count == 0 {
+            if *count == 0 {
                 return false;
             }
-            totalModuleSize += count;
+            totalModuleSize += *count;
         }
         if totalModuleSize < 7 {
             return false;
@@ -244,11 +245,11 @@ impl FinderPatternFinder {
         let moduleSize = totalModuleSize as f64 / 7.0;
         let maxVariance = moduleSize / 1.333;
         // Allow less than 75% variance from 1-1-3-1-1 proportions
-        return (moduleSize - stateCount[0] as f64).abs() < maxVariance
+        (moduleSize - stateCount[0] as f64).abs() < maxVariance
             && (moduleSize - stateCount[1] as f64).abs() < maxVariance
             && (3.0 * moduleSize - stateCount[2] as f64).abs() < 3.0 * maxVariance
             && (moduleSize - stateCount[3] as f64).abs() < maxVariance
-            && (moduleSize - stateCount[4] as f64).abs() < maxVariance;
+            && (moduleSize - stateCount[4] as f64).abs() < maxVariance
     }
 
     fn getCrossCheckStateCount(&mut self) -> &[u32; 5] {
@@ -488,7 +489,7 @@ impl FinderPatternFinder {
             return f32::NAN;
         }
         while j >= 0
-            && self.image.get(j as u32 as u32, centerI)
+            && self.image.get(j as u32, centerI)
             && self.crossCheckStateCount[0] <= maxCount
         {
             self.crossCheckStateCount[0] += 1;
@@ -624,7 +625,7 @@ impl FinderPatternFinder {
                 return true;
             }
         }
-        return false;
+        false
     }
 
     /**
@@ -638,28 +639,27 @@ impl FinderPatternFinder {
         if max <= 1 {
             return 0;
         }
-        let mut firstConfirmedCenter = None;
+        let mut firstConfirmedCenter: Option<&FinderPattern> = None;
         for center in &self.possibleCenters {
             // for (FinderPattern center : possibleCenters) {
             if center.getCount() >= Self::CENTER_QUORUM {
-                if firstConfirmedCenter.is_none() {
-                    firstConfirmedCenter = Some(center);
-                } else {
+                if let Some(fnp) = firstConfirmedCenter {
                     // We have two confirmed centers
                     // How far down can we skip before resuming looking for the next
                     // pattern? In the worst case, only the difference between the
                     // difference in the x / y coordinates of the two centers.
                     // This is the case where you find top left last.
                     self.hasSkipped = true;
-                    let fnp = firstConfirmedCenter.unwrap();
                     return (((fnp.getX() - center.getX()).abs()
                         - (fnp.getY() - center.getY()).abs())
                         / 2.0)
                         .floor() as u32;
+                } else {
+                    firstConfirmedCenter = Some(center);
                 }
             }
         }
-        return 0;
+        0
     }
 
     /**
@@ -691,7 +691,7 @@ impl FinderPatternFinder {
             // for (FinderPattern pattern : possibleCenters) {
             totalDeviation += (pattern.getEstimatedModuleSize() - average).abs();
         }
-        return totalDeviation <= 0.05 * totalModuleSize;
+        totalDeviation <= 0.05 * totalModuleSize
     }
 
     /**
@@ -713,7 +713,7 @@ impl FinderPatternFinder {
         let startSize = self.possibleCenters.len();
         if startSize < 3 {
             // Couldn't find enough finder patterns
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         self.possibleCenters.sort_by(|x, y| {
@@ -733,7 +733,7 @@ impl FinderPatternFinder {
             let fpi = if let Some(f) = self.possibleCenters.get(i) {
                 f
             } else {
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                return Err(Exceptions::NotFoundException(None));
             };
             let minModuleSize = fpi.getEstimatedModuleSize();
 
@@ -742,7 +742,7 @@ impl FinderPatternFinder {
                 let fpj = if let Some(f) = self.possibleCenters.get(j) {
                     f
                 } else {
-                    return Err(Exceptions::NotFoundException("".to_owned()));
+                    return Err(Exceptions::NotFoundException(None));
                 };
                 let squares0 = Self::squaredDistance(fpi, fpj);
 
@@ -751,7 +751,7 @@ impl FinderPatternFinder {
                     let fpk = if let Some(f) = self.possibleCenters.get(k) {
                         f
                     } else {
-                        return Err(Exceptions::NotFoundException("".to_owned()));
+                        return Err(Exceptions::NotFoundException(None));
                     };
                     let maxModuleSize = fpk.getEstimatedModuleSize();
                     if maxModuleSize > minModuleSize * 1.4 {
@@ -775,19 +775,17 @@ impl FinderPatternFinder {
                                 b = temp;
                             }
                         }
-                    } else {
-                        if b < c {
-                            if a < c {
-                                std::mem::swap(&mut a, &mut b)
-                            } else {
-                                let temp = a;
-                                a = b;
-                                b = c;
-                                c = temp;
-                            }
+                    } else if b < c {
+                        if a < c {
+                            std::mem::swap(&mut a, &mut b)
                         } else {
-                            std::mem::swap(&mut a, &mut c);
+                            let temp = a;
+                            a = b;
+                            b = c;
+                            c = temp;
                         }
+                    } else {
+                        std::mem::swap(&mut a, &mut c);
                     }
 
                     // a^2 + b^2 = c^2 (Pythagorean theorem), and a = b (isosceles triangle).
@@ -808,11 +806,11 @@ impl FinderPatternFinder {
         }
 
         if distortion == f64::MAX {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         if bestPatterns[0].is_none() {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         let p1 = bestPatterns[0].unwrap();

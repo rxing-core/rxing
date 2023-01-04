@@ -60,6 +60,6 @@ impl TelParsedRXingResult {
     }
 
     pub fn getTitle(&self) -> &str {
-        &&self.title
+        &self.title
     }
 }

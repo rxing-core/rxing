@@ -52,8 +52,8 @@ impl<'a> MultiDetector<'_> {
         let mut finder = MultiFinderPatternFinder::new(image, resultPointCallback);
         let infos = finder.findMulti(hints)?;
 
-        if infos.len() == 0 {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+        if infos.is_empty() {
+            return Err(Exceptions::NotFoundException(None));
         }
 
         let mut result = Vec::new();

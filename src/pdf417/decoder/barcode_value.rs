@@ -19,7 +19,7 @@ use std::collections::HashMap;
 /**
  * @author Guenther Grau
  */
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct BarcodeValue(HashMap<u32, u32>);
 // private final Map<Integer,Integer> values = new HashMap<>();
 
@@ -68,11 +68,5 @@ impl BarcodeValue {
         } else {
             0
         }
-    }
-}
-
-impl Default for BarcodeValue {
-    fn default() -> Self {
-        Self(Default::default())
     }
 }

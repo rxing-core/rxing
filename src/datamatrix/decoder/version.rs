@@ -111,7 +111,7 @@ impl Version {
         numColumns: u32,
     ) -> Result<&'static Version, Exceptions> {
         if (numRows & 0x01) != 0 || (numColumns & 0x01) != 0 {
-            return Err(Exceptions::FormatException("".to_owned()));
+            return Err(Exceptions::FormatException(None));
         }
 
         for version in VERSIONS.iter() {
@@ -120,7 +120,7 @@ impl Version {
             }
         }
 
-        Err(Exceptions::FormatException("".to_owned()))
+        Err(Exceptions::FormatException(None))
     }
 
     /**

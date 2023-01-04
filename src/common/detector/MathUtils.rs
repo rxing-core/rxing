@@ -31,7 +31,7 @@ use std::{f32, i32};
  * @return nearest {@code int}
  */
 pub fn round(d: f32) -> i32 {
-    return (d + (if d < 0.0f32 { -0.5f32 } else { 0.5f32 })) as i32;
+    (d + (if d < 0.0f32 { -0.5f32 } else { 0.5f32 })) as i32
 }
 
 /**
@@ -44,7 +44,7 @@ pub fn round(d: f32) -> i32 {
 pub fn distance_float(aX: f32, aY: f32, bX: f32, bY: f32) -> f32 {
     let xDiff: f64 = (aX - bX).into();
     let yDiff: f64 = (aY - bY).into();
-    return (xDiff * xDiff + yDiff * yDiff).sqrt() as f32;
+    (xDiff * xDiff + yDiff * yDiff).sqrt() as f32
 }
 
 /**
@@ -57,7 +57,7 @@ pub fn distance_float(aX: f32, aY: f32, bX: f32, bY: f32) -> f32 {
 pub fn distance_int(aX: i32, aY: i32, bX: i32, bY: i32) -> f32 {
     let xDiff: f64 = (aX - bX).into();
     let yDiff: f64 = (aY - bY).into();
-    return (xDiff * xDiff + yDiff * yDiff).sqrt() as f32;
+    (xDiff * xDiff + yDiff * yDiff).sqrt() as f32
 }
 
 /**
@@ -69,7 +69,7 @@ pub fn sum(array: &[i32]) -> i32 {
     for a in array {
         count += a;
     }
-    return count;
+    count
 }
 
 #[cfg(test)]
@@ -120,7 +120,7 @@ mod tests {
 
     #[test]
     fn testSum() {
-        assert_eq!(0, MathUtils::sum(&vec![]));
+        assert_eq!(0, MathUtils::sum(&[]));
         assert_eq!(1, MathUtils::sum(&[1]));
         assert_eq!(4, MathUtils::sum(&[1, 3]));
         assert_eq!(0, MathUtils::sum(&[-1, 1]));

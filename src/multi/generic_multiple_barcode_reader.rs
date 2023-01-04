@@ -56,7 +56,7 @@ impl<T: Reader> MultipleBarcodeReader for GenericMultipleBarcodeReader<T> {
         let mut results = Vec::new();
         self.doDecodeMultiple(image, hints, &mut results, 0, 0, 0);
         if results.is_empty() {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
         Ok(results)
     }

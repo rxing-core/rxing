@@ -85,19 +85,18 @@ pub fn decode(bytes: &[u8], mode: u8) -> Result<DecoderRXingResult, Exceptions> 
     let mut result = String::with_capacity(144);
     match mode {
         2 | 3 => {
-            let postcode;
-            if mode == 2 {
+            let postcode = if mode == 2 {
                 let pc = getPostCode2(bytes);
                 let ps2Length = getPostCode2Length(bytes) as usize;
                 if ps2Length > 10 {
-                    return Err(Exceptions::FormatException("".to_owned()));
+                    return Err(Exceptions::FormatException(None));
                 }
                 // NumberFormat df = new DecimalFormat("0000000000".substring(0, ps2Length));
                 // postcode = df.format(pc);
-                postcode = format!("{:0>ps2Length$}", pc)
+                format!("{:0>ps2Length$}", pc)
             } else {
-                postcode = getPostCode3(bytes);
-            }
+                getPostCode3(bytes)
+            };
             // NumberFormat threeDigits = new DecimalFormat("000");
             // let country = threeDigits.format(getCountry(bytes));
             // let service = threeDigits.format(getServiceClass(bytes));
@@ -134,11 +133,12 @@ pub fn decode(bytes: &[u8], mode: u8) -> Result<DecoderRXingResult, Exceptions> 
 
 fn getBit(bit: u8, bytes: &[u8]) -> u8 {
     let bit = bit - 1;
-    if (bytes[bit as usize / 6] & (1 << (5 - (bit % 6)))) == 0 {
-        0
-    } else {
-        1
-    }
+    u8::from((bytes[bit as usize / 6] & (1 << (5 - (bit % 6)))) != 0)
+    // if (bytes[bit as usize / 6] & (1 << (5 - (bit % 6)))) == 0 {
+    //     0
+    // } else {
+    //     1
+    // }
 }
 
 fn getInt(bytes: &[u8], x: &[u8]) -> u32 {
@@ -259,5 +259,5 @@ fn subtract_two_single_char_strings(str1: &str, str2: &str) -> usize {
     let str2_u16 =
         ((str2_bytes[0] as usize) << 4) + ((str2_bytes[1] as usize) << 2) + str2_bytes[2] as usize;
 
-    (str1_u16 - str2_u16) as usize
+    str1_u16 - str2_u16
 }

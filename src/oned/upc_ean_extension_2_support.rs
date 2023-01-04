@@ -26,15 +26,9 @@ use super::{upc_ean_reader, UPCEANReader, STAND_IN};
 /**
  * @see UPCEANExtension5Support
  */
+#[derive(Default)]
 pub struct UPCEANExtension2Support {
     decodeMiddleCounters: [u32; 4],
-}
-impl Default for UPCEANExtension2Support {
-    fn default() -> Self {
-        Self {
-            decodeMiddleCounters: Default::default(),
-        }
-    }
 }
 
 impl UPCEANExtension2Support {
@@ -114,12 +108,12 @@ impl UPCEANExtension2Support {
         }
 
         if resultString.chars().count() != 2 {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         if resultString.parse::<u32>().unwrap() % 4 != checkParity {
             // if (Integer.parseInt(resultString.toString()) % 4 != checkParity) {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         Ok(rowOffset as u32)

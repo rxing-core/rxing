@@ -65,3 +65,9 @@ impl BitSourceBuilder {
         &self.output
     }
 }
+
+impl Default for BitSourceBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}

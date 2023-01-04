@@ -122,7 +122,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
     }
 
     pub fn extractNumericValueFromBitArray(&self, pos: usize, bits: u32) -> u32 {
-        Self::extractNumericValueFromBitArrayWithInformation(&self.information, pos, bits)
+        Self::extractNumericValueFromBitArrayWithInformation(self.information, pos, bits)
     }
 
     pub fn extractNumericValueFromBitArrayWithInformation(
@@ -192,7 +192,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
                 break;
             }
 
-            if !(!isFinished) {
+            if isFinished {
                 break;
             }
         } //while (!isFinished);
@@ -200,7 +200,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         if result.getDecodedInformation().is_some() {
             Ok(result.getDecodedInformation().as_ref().unwrap().clone())
         } else {
-            Err(Exceptions::NotFoundException("".to_owned()))
+            Err(Exceptions::NotFoundException(None))
         }
     }
 
@@ -315,7 +315,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         }
 
         let fiveBitValue = self.extractNumericValueFromBitArray(pos, 5);
-        if fiveBitValue >= 5 && fiveBitValue < 16 {
+        if (5..16).contains(&fiveBitValue) {
             return true;
         }
 
@@ -324,7 +324,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         }
 
         let sevenBitValue = self.extractNumericValueFromBitArray(pos, 7);
-        if sevenBitValue >= 64 && sevenBitValue < 116 {
+        if (64..116).contains(&sevenBitValue) {
             return true;
         }
 
@@ -334,7 +334,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
 
         let eightBitValue = self.extractNumericValueFromBitArray(pos, 8);
 
-        eightBitValue >= 232 && eightBitValue < 253
+        (232..253).contains(&eightBitValue)
     }
 
     fn decodeIsoIec646(&self, pos: usize) -> Result<DecodedChar, Exceptions> {
@@ -343,7 +343,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
             return Ok(DecodedChar::new(pos + 5, DecodedChar::FNC1));
         }
 
-        if fiveBitValue >= 5 && fiveBitValue < 15 {
+        if (5..15).contains(&fiveBitValue) {
             return Ok(DecodedChar::new(
                 pos + 5,
                 char::from_u32('0' as u32 + fiveBitValue - 5).unwrap(),
@@ -352,14 +352,14 @@ impl<'a> GeneralAppIdDecoder<'_> {
 
         let sevenBitValue = self.extractNumericValueFromBitArray(pos, 7);
 
-        if sevenBitValue >= 64 && sevenBitValue < 90 {
+        if (64..90).contains(&sevenBitValue) {
             return Ok(DecodedChar::new(
                 pos + 7,
                 char::from_u32(sevenBitValue + 1).unwrap(),
             ));
         }
 
-        if sevenBitValue >= 90 && sevenBitValue < 116 {
+        if (90..116).contains(&sevenBitValue) {
             return Ok(DecodedChar::new(
                 pos + 7,
                 char::from_u32(sevenBitValue + 7).unwrap(),
@@ -389,7 +389,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
             250 => '?',
             251 => '_',
             252 => ' ',
-            _ => return Err(Exceptions::FormatException("".to_owned())),
+            _ => return Err(Exceptions::FormatException(None)),
         };
 
         Ok(DecodedChar::new(pos + 8, c))
@@ -402,7 +402,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
 
         // We now check if it's a valid 5-bit value (0..9 and FNC1)
         let fiveBitValue = self.extractNumericValueFromBitArray(pos, 5);
-        if fiveBitValue >= 5 && fiveBitValue < 16 {
+        if (5..16).contains(&fiveBitValue) {
             return true;
         }
 
@@ -412,7 +412,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
 
         let sixBitValue = self.extractNumericValueFromBitArray(pos, 6);
 
-        sixBitValue >= 16 && sixBitValue < 63 // 63 not included
+        (16..63).contains(&sixBitValue) // 63 not included
     }
 
     fn decodeAlphanumeric(&self, pos: usize) -> Result<DecodedChar, Exceptions> {
@@ -421,7 +421,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
             return Ok(DecodedChar::new(pos + 5, DecodedChar::FNC1));
         }
 
-        if fiveBitValue >= 5 && fiveBitValue < 15 {
+        if (5..15).contains(&fiveBitValue) {
             return Ok(DecodedChar::new(
                 pos + 5,
                 char::from_u32('0' as u32 + fiveBitValue - 5).unwrap(),
@@ -430,7 +430,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
 
         let sixBitValue = self.extractNumericValueFromBitArray(pos, 6);
 
-        if sixBitValue >= 32 && sixBitValue < 58 {
+        if (32..58).contains(&sixBitValue) {
             return Ok(DecodedChar::new(
                 pos + 6,
                 char::from_u32(sixBitValue + 33).unwrap(),
@@ -444,10 +444,10 @@ impl<'a> GeneralAppIdDecoder<'_> {
             61 => '.',
             62 => '/',
             _ => {
-                return Err(Exceptions::IllegalStateException(format!(
+                return Err(Exceptions::IllegalStateException(Some(format!(
                     "Decoding invalid alphanumeric value: {}",
                     sixBitValue
-                )))
+                ))))
             }
         };
 

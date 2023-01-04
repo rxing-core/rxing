@@ -58,25 +58,25 @@ impl Writer for QRCodeWriter {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         if contents.is_empty() {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Found empty contents".to_owned(),
-            ));
+            )));
             // throw new IllegalArgumentException("Found empty contents");
         }
 
         if format != &BarcodeFormat::QR_CODE {
-            return Err(Exceptions::IllegalArgumentException(format!(
+            return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "Can only encode QR_CODE, but got {:?}",
                 format
-            )));
+            ))));
             // throw new IllegalArgumentException("Can only encode QR_CODE, but got " + format);
         }
 
         if width < 0 || height < 0 {
-            return Err(Exceptions::IllegalArgumentException(format!(
+            return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "Requested dimensions are too small: {}x{}",
                 width, height
-            )));
+            ))));
             // throw new IllegalArgumentException("Requested dimensions are too small: " + width + 'x' +
             //     height);
         }
@@ -102,7 +102,7 @@ impl Writer for QRCodeWriter {
         }
         // }
 
-        let code = encoder::encode_with_hints(contents, errorCorrectionLevel, &hints)?;
+        let code = encoder::encode_with_hints(contents, errorCorrectionLevel, hints)?;
 
         Self::renderRXingResult(&code, width, height, quietZone)
     }
@@ -119,9 +119,9 @@ impl QRCodeWriter {
     ) -> Result<BitMatrix, Exceptions> {
         let input = code.getMatrix();
         if input.is_none() {
-            return Err(Exceptions::IllegalStateException(
+            return Err(Exceptions::IllegalStateException(Some(
                 "matrix is empty".to_owned(),
-            ));
+            )));
             // throw new IllegalStateException();
         }
 

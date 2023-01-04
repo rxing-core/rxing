@@ -102,7 +102,7 @@ impl BufferedImageLuminanceSource {
             for y in 0..image.height() {
                 let pixel = img.get_pixel(x, y);
                 let [red, green, blue, alpha] = pixel.0;
-                if (alpha & 0xFF) == 0 {
+                if alpha == 0 {
                     // white, so we know its luminance is 255
                     raster.put_pixel(x, y, Luma([0xFF]))
                 } else {
@@ -147,10 +147,10 @@ impl BufferedImageLuminanceSource {
 
         Self {
             image: Rc::new(DynamicImage::from(raster)),
-            width: width,
-            height: height,
-            left: left,
-            top: top,
+            width,
+            height,
+            left,
+            top,
         }
 
         // Self {
@@ -206,13 +206,12 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         let data = unmanaged
             .chunks(self.image.width() as usize)
             .into_iter() // Get rows
-            .map(|f| {
-                f.into_iter()
+            .flat_map(|f| {
+                f.iter()
                     .skip(row_skip as usize)
-                    .take(total_row_take as usize)
+                    .take(total_row_take)
                     .copied()
-            }) // Take data from each row
-            .flatten() // flatten this all out
+            }) // flatten this all out
             .copied() // copy it over so that it's u8
             .collect(); // collect into a vec
 
@@ -235,7 +234,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
     }
 
     fn isCropSupported(&self) -> bool {
-        return true;
+        true
     }
 
     fn crop(
@@ -266,7 +265,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
     }
 
     fn isRotateSupported(&self) -> bool {
-        return true;
+        true
     }
 
     fn rotateCounterClockwise(

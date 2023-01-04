@@ -73,10 +73,10 @@ impl Encoder for ASCIIEncoder {
                     }
 
                     _ => {
-                        return Err(Exceptions::IllegalStateException(format!(
+                        return Err(Exceptions::IllegalStateException(Some(format!(
                             "Illegal mode: {}",
                             newMode
-                        )));
+                        ))));
                     }
                 }
             } else if high_level_encoder::isExtendedASCII(c) {
@@ -105,10 +105,15 @@ impl ASCIIEncoder {
             let num = (digit1 as u8 - 48) * 10 + (digit2 as u8 - 48);
             Ok((num + 130) as char)
         } else {
-            Err(Exceptions::IllegalArgumentException(format!(
+            Err(Exceptions::IllegalArgumentException(Some(format!(
                 "not digits: {}{}",
                 digit1, digit2
-            )))
+            ))))
         }
+    }
+}
+impl Default for ASCIIEncoder {
+    fn default() -> Self {
+        Self::new()
     }
 }

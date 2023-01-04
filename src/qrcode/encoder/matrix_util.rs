@@ -171,14 +171,18 @@ pub fn embedTypeInfo(
     let mut typeInfoBits = BitArray::new();
     makeTypeInfoBits(ecLevel, maskPattern as u32, &mut typeInfoBits)?;
 
-    for i in 0..typeInfoBits.getSize() {
+    for (i, coordinates) in TYPE_INFO_COORDINATES
+        .iter()
+        .enumerate()
+        .take(typeInfoBits.getSize())
+    {
         // for (int i = 0; i < typeInfoBits.getSize(); ++i) {
         // Place bits in LSB to MSB order.  LSB (least significant bit) is the last value in
         // "typeInfoBits".
         let bit = typeInfoBits.get(typeInfoBits.getSize() - 1 - i);
 
         // Type info bits at the left top corner. See 8.9 of JISX0510:2004 (p.46).
-        let coordinates = TYPE_INFO_COORDINATES[i];
+        // let coordinates = TYPE_INFO_COORDINATES[i];
         let x1 = coordinates[0];
         let y1 = coordinates[1];
         matrix.set_bool(x1, y1, bit);
@@ -216,9 +220,7 @@ pub fn maybeEmbedVersionInfo(version: &Version, matrix: &mut ByteMatrix) -> Resu
             // for (int j = 0; j < 3; ++j) {
             // Place bits in LSB (least significant bit) to MSB order.
             let bit = versionInfoBits.get(bitIndex);
-            if bitIndex != 0 {
-                bitIndex -= 1;
-            }
+            bitIndex = bitIndex.saturating_sub(1);
             // Left bottom corner.
             matrix.set_bool(i, matrix.getHeight() - 11 + j, bit);
             // Right bottom corner.
@@ -280,11 +282,11 @@ pub fn embedDataBits(
     }
     // All bits should be consumed.
     if bitIndex != dataBits.getSize() {
-        return Err(Exceptions::WriterException(format!(
+        return Err(Exceptions::WriterException(Some(format!(
             "Not all bits consumed: {}/{}",
             bitIndex,
             dataBits.getSize()
-        )));
+        ))));
     }
     Ok(())
 }
@@ -325,9 +327,9 @@ pub fn findMSBSet(value: u32) -> u32 {
 // operations. We don't care if coefficients are positive or negative.
 pub fn calculateBCHCode(value: u32, poly: u32) -> Result<u32, Exceptions> {
     if poly == 0 {
-        return Err(Exceptions::IllegalArgumentException(
+        return Err(Exceptions::IllegalArgumentException(Some(
             "0 polynomial".to_owned(),
-        ));
+        )));
     }
     let mut value = value;
     // If poly is "1 1111 0010 0101" (version info poly), msbSetInPoly is 13. We'll subtract 1
@@ -351,9 +353,9 @@ pub fn makeTypeInfoBits(
     bits: &mut BitArray,
 ) -> Result<(), Exceptions> {
     if !QRCode::isValidMaskPattern(maskPattern as i32) {
-        return Err(Exceptions::WriterException(
+        return Err(Exceptions::WriterException(Some(
             "Invalid mask pattern".to_owned(),
-        ));
+        )));
     }
     let typeInfo = (ecLevel.get_value() << 3) as u32 | maskPattern;
     bits.appendBits(typeInfo, 5)?;
@@ -367,10 +369,10 @@ pub fn makeTypeInfoBits(
 
     if bits.getSize() != 15 {
         // Just in case.
-        return Err(Exceptions::WriterException(format!(
+        return Err(Exceptions::WriterException(Some(format!(
             "should not happen but we got: {}",
             bits.getSize()
-        )));
+        ))));
     }
     Ok(())
 }
@@ -384,17 +386,17 @@ pub fn makeVersionInfoBits(version: &Version, bits: &mut BitArray) -> Result<(),
 
     if bits.getSize() != 18 {
         // Just in case.
-        return Err(Exceptions::WriterException(format!(
+        return Err(Exceptions::WriterException(Some(format!(
             "should not happen but we got: {}",
             bits.getSize()
-        )));
+        ))));
     }
     Ok(())
 }
 
 // Check if "value" is empty.
 pub fn isEmpty(value: u8) -> bool {
-    return value == -1i8 as u8;
+    value == -1i8 as u8
 }
 
 pub fn embedTimingPatterns(matrix: &mut ByteMatrix) {
@@ -417,7 +419,7 @@ pub fn embedTimingPatterns(matrix: &mut ByteMatrix) {
 // Embed the lonely dark dot at left bottom corner. JISX0510:2004 (p.46)
 pub fn embedDarkDotAtLeftBottomCorner(matrix: &mut ByteMatrix) -> Result<(), Exceptions> {
     if matrix.get(8, matrix.getHeight() - 8) == 0 {
-        return Err(Exceptions::WriterException("".to_owned()));
+        return Err(Exceptions::WriterException(None));
     }
     matrix.set(8, matrix.getHeight() - 8, 1);
     Ok(())
@@ -431,7 +433,7 @@ pub fn embedHorizontalSeparationPattern(
     for x in 0..8 {
         // for (int x = 0; x < 8; ++x) {
         if !isEmpty(matrix.get(xStart + x, yStart)) {
-            return Err(Exceptions::WriterException("".to_owned()));
+            return Err(Exceptions::WriterException(None));
         }
         matrix.set(xStart + x, yStart, 0);
     }
@@ -446,7 +448,7 @@ pub fn embedVerticalSeparationPattern(
     for y in 0..7 {
         // for (int y = 0; y < 7; ++y) {
         if !isEmpty(matrix.get(xStart, yStart + y)) {
-            return Err(Exceptions::WriterException("".to_owned()));
+            return Err(Exceptions::WriterException(None));
             // throw new WriterException();
         }
         matrix.set(xStart, yStart + y, 0);
@@ -455,9 +457,10 @@ pub fn embedVerticalSeparationPattern(
 }
 
 pub fn embedPositionAdjustmentPattern(xStart: u32, yStart: u32, matrix: &mut ByteMatrix) {
-    for y in 0..5 {
+    for (y, patternY) in POSITION_ADJUSTMENT_PATTERN.iter().enumerate() {
+        // for y in 0..5 {
         // for (int y = 0; y < 5; ++y) {
-        let patternY = POSITION_ADJUSTMENT_PATTERN[y];
+        // let patternY = POSITION_ADJUSTMENT_PATTERN[y];
         for x in 0..5 {
             // for (int x = 0; x < 5; ++x) {
             matrix.set(xStart + x, yStart + y as u32, patternY[x as usize]);
@@ -466,9 +469,10 @@ pub fn embedPositionAdjustmentPattern(xStart: u32, yStart: u32, matrix: &mut Byt
 }
 
 pub fn embedPositionDetectionPattern(xStart: u32, yStart: u32, matrix: &mut ByteMatrix) {
-    for y in 0..7 {
+    for (y, patternY) in POSITION_DETECTION_PATTERN.iter().enumerate() {
+        // for y in 0..7 {
         // for (int y = 0; y < 7; ++y) {
-        let patternY = POSITION_DETECTION_PATTERN[y];
+        // let patternY = POSITION_DETECTION_PATTERN[y];
         for x in 0..7 {
             // for (int x = 0; x < 7; ++x) {
             matrix.set(xStart + x, yStart + y as u32, patternY[x as usize]);

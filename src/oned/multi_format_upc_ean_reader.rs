@@ -89,7 +89,7 @@ impl MultiFormatUPCEANReader {
         //
         // But, don't return UPC-A if UPC-A was not a requested format!
         let ean13MayBeUPCA = result.getBarcodeFormat() == &BarcodeFormat::EAN_13
-            && result.getText().chars().nth(0).unwrap() == '0';
+            && result.getText().starts_with('0');
 
         let canReturnUPCA = if let Some(DecodeHintValue::PossibleFormats(possibleFormats)) =
             hints.get(&DecodeHintType::POSSIBLE_FORMATS)
@@ -134,16 +134,14 @@ impl OneDReader for MultiFormatUPCEANReader {
             }
         }
 
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        Err(Exceptions::NotFoundException(None))
     }
 }
 
-use crate::result_point::ResultPoint;
 use crate::DecodeHintType;
 use crate::DecodingHintDictionary;
 use crate::RXingResultMetadataType;
 use crate::RXingResultMetadataValue;
-use crate::RXingResultPoint;
 use std::collections::HashMap;
 
 impl Reader for MultiFormatUPCEANReader {
@@ -193,18 +191,21 @@ impl Reader for MultiFormatUPCEANReader {
                 // for point in result.getRXingResultPointsMut().iter_mut() {
                 let total_points = result.getRXingResultPoints().len();
                 let points = result.getRXingResultPointsMut();
-                for i in 0..total_points {
+                for point in points.iter_mut().take(total_points) {
+                    // for i in 0..total_points {
                     // for (int i = 0; i < points.length; i++) {
-                    points[i] = RXingResultPoint::new(
-                        height as f32 - points[i].getY() - 1.0,
-                        points[i].getX(),
-                    );
+                    std::mem::swap(&mut point.x, &mut point.y);
+                    point.x = height as f32 - point.x - 1.0;
+                    // points[i] = RXingResultPoint::new(
+                    //     height as f32 - points[i].getY() - 1.0,
+                    //     points[i].getX(),
+                    // );
                 }
                 // }
 
                 Ok(result)
             } else {
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                Err(Exceptions::NotFoundException(None))
             }
         }
     }

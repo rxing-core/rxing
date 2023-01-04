@@ -118,20 +118,20 @@ impl AddressBookParsedRXingResult {
         urls: Vec<String>,
         geo: Vec<String>,
     ) -> Result<Self, Exceptions> {
-        if phone_numbers.len() != phone_types.len() && phone_types.len() > 0 {
-            return Err(Exceptions::IllegalArgumentException(
+        if phone_numbers.len() != phone_types.len() && !phone_types.is_empty() {
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Phone numbers and types lengths differ".to_owned(),
-            ));
+            )));
         }
-        if emails.len() != email_types.len() && email_types.len() > 0 {
-            return Err(Exceptions::IllegalArgumentException(
+        if emails.len() != email_types.len() && !email_types.is_empty() {
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Emails and types lengths differ".to_owned(),
-            ));
+            )));
         }
-        if addresses.len() != address_types.len() && address_types.len() > 0 {
-            return Err(Exceptions::IllegalArgumentException(
+        if addresses.len() != address_types.len() && !address_types.is_empty() {
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Addresses and types lengths differ".to_owned(),
-            ));
+            )));
         }
         Ok(Self {
             names,

@@ -99,16 +99,16 @@ impl HybridBinarizer {
         let ghb = GlobalHistogramBinarizer::new(source);
         Self {
             black_matrix: None,
-            ghb: ghb,
+            ghb,
         }
     }
 
     fn calculateBlackMatrix(ghb: &mut GlobalHistogramBinarizer) -> Result<BitMatrix, Exceptions> {
-        let matrix;
+        // let matrix;
         let source = ghb.getLuminanceSource();
         let width = source.getWidth();
         let height = source.getHeight();
-        if width >= HybridBinarizer::MINIMUM_DIMENSION
+        let matrix = if width >= HybridBinarizer::MINIMUM_DIMENSION
             && height >= HybridBinarizer::MINIMUM_DIMENSION
         {
             let luminances = source.getMatrix();
@@ -138,12 +138,12 @@ impl HybridBinarizer {
                 &black_points,
                 &mut new_matrix,
             );
-            matrix = Ok(new_matrix);
+            Ok(new_matrix)
         } else {
             // If the image is too small, fall back to the global histogram approach.
             let m = ghb.getBlackMatrix()?;
-            matrix = Ok(m.clone());
-        }
+            Ok(m.clone())
+        };
         //  dbg!(matrix.to_string());
         matrix
     }
@@ -159,7 +159,7 @@ impl HybridBinarizer {
         sub_height: u32,
         width: u32,
         height: u32,
-        black_points: &Vec<Vec<u32>>,
+        black_points: &[Vec<u32>],
         matrix: &mut BitMatrix,
     ) {
         let maxYOffset = height - HybridBinarizer::BLOCK_SIZE as u32;

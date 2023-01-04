@@ -124,9 +124,10 @@ impl AlignmentPatternFinder {
                             // A winner?
                             if self.foundPatternCross(&stateCount) {
                                 // Yes
-                                let confirmed = self.handlePossibleCenter(&stateCount, i, j);
-                                if confirmed.is_some() {
-                                    return Ok(confirmed.unwrap());
+                                if let Some(confirmed) =
+                                    self.handlePossibleCenter(&stateCount, i, j)
+                                {
+                                    return Ok(confirmed);
                                 }
                             }
                             stateCount[0] = stateCount[2];
@@ -149,9 +150,8 @@ impl AlignmentPatternFinder {
                 j += 1;
             }
             if self.foundPatternCross(&stateCount) {
-                let confirmed = self.handlePossibleCenter(&stateCount, i, maxJ);
-                if confirmed.is_some() {
-                    return Ok(confirmed.unwrap());
+                if let Some(confirmed) = self.handlePossibleCenter(&stateCount, i, maxJ) {
+                    return Ok(confirmed);
                 }
             }
         }
@@ -159,12 +159,10 @@ impl AlignmentPatternFinder {
         // Hmm, nothing we saw was observed and confirmed twice. If we had
         // any guess at all, return it.
         if !self.possibleCenters.is_empty() {
-            return Ok(self.possibleCenters.get(0).unwrap().clone());
+            return Ok(*self.possibleCenters.get(0).unwrap());
         }
 
-        Err(Exceptions::NotFoundException(
-            "nothing to locate".to_owned(),
-        ))
+        Err(Exceptions::NotFoundException(None))
     }
 
     /**
@@ -183,13 +181,14 @@ impl AlignmentPatternFinder {
     fn foundPatternCross(&self, stateCount: &[u32]) -> bool {
         let moduleSize = self.moduleSize;
         let maxVariance = moduleSize / 2.0;
-        for i in 0..3 {
+        for state in stateCount.iter().take(3) {
+            // for i in 0..3 {
             // for (int i = 0; i < 3; i++) {
-            if (moduleSize - stateCount[i] as f32).abs() >= maxVariance {
+            if (moduleSize - *state as f32).abs() >= maxVariance {
                 return false;
             }
         }
-        return true;
+        true
     }
 
     /**
@@ -262,7 +261,7 @@ impl AlignmentPatternFinder {
         let stateCountTotal = self.crossCheckStateCount[0]
             + self.crossCheckStateCount[1]
             + self.crossCheckStateCount[2];
-        if 5 * (stateCountTotal as i64 - originalStateCountTotal as i64).abs() as u32
+        if 5 * (stateCountTotal as i64 - originalStateCountTotal as i64).unsigned_abs() as u32
             >= 2 * originalStateCountTotal
         {
             return f32::NAN;

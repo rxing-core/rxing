@@ -243,7 +243,7 @@ fn reverse_algorithm_test() {
         let newBitsNew = newBitArray.getBitArray();
         assert!(arrays_are_equal(
             &newBitsOriginal,
-            &newBitsNew,
+            newBitsNew,
             size / 32 + 1
         ));
     }
@@ -276,14 +276,14 @@ fn reverse_original(oldBits: &[u32], size: usize) -> Vec<u32> {
     for i in 0..size {
         // for (int i = 0; i < size; i++) {
         if bit_set(oldBits, size - i - 1) {
-            newBits[i / 32 as usize] |= 1 << (i & 0x1F);
+            newBits[i / 32_usize] |= 1 << (i & 0x1F);
         }
     }
-    return newBits;
+    newBits
 }
 
 fn bit_set(bits: &[u32], i: usize) -> bool {
-    return (bits[i / 32] & (1 << (i & 0x1F))) != 0;
+    (bits[i / 32] & (1 << (i & 0x1F))) != 0
 }
 
 fn arrays_are_equal(left: &[u32], right: &[u32], size: usize) -> bool {
@@ -293,7 +293,7 @@ fn arrays_are_equal(left: &[u32], right: &[u32], size: usize) -> bool {
             return false;
         }
     }
-    return true;
+    true
 }
 
 // }

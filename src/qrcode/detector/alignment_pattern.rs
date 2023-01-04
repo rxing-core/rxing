@@ -64,7 +64,7 @@ impl AlignmentPattern {
             let moduleSizeDiff = (moduleSize - self.estimatedModuleSize).abs();
             return moduleSizeDiff <= 1.0 || moduleSizeDiff <= self.estimatedModuleSize;
         }
-        return false;
+        false
     }
 
     /**

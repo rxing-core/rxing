@@ -137,7 +137,7 @@ pub fn decode(bytes: &[u8]) -> Result<DecoderRXingResult, Exceptions> {
                     decodeECISegment(&mut bits, &mut result)?;
                     isECIencoded = true; // ECI detection only, atm continue decoding as ASCII
                 }
-                _ => return Err(Exceptions::FormatException("".to_owned())),
+                _ => return Err(Exceptions::FormatException(None)),
             };
             mode = Mode::ASCII_ENCODE;
         }
@@ -145,7 +145,7 @@ pub fn decode(bytes: &[u8]) -> Result<DecoderRXingResult, Exceptions> {
             break;
         }
     } //while (mode != Mode.PAD_ENCODE && bits.available() > 0);
-    if resultTrailer.len() > 0 {
+    if !resultTrailer.is_empty() {
         result.appendCharacters(&resultTrailer);
     }
     if isECIencoded {
@@ -158,14 +158,12 @@ pub fn decode(bytes: &[u8]) -> Result<DecoderRXingResult, Exceptions> {
         } else {
             symbologyModifier = 4;
         }
+    } else if fnc1Positions.contains(&0) || fnc1Positions.contains(&4) {
+        symbologyModifier = 2;
+    } else if fnc1Positions.contains(&1) || fnc1Positions.contains(&5) {
+        symbologyModifier = 3;
     } else {
-        if fnc1Positions.contains(&0) || fnc1Positions.contains(&4) {
-            symbologyModifier = 2;
-        } else if fnc1Positions.contains(&1) || fnc1Positions.contains(&5) {
-            symbologyModifier = 3;
-        } else {
-            symbologyModifier = 1;
-        }
+        symbologyModifier = 1;
     }
 
     Ok(DecoderRXingResult::with_symbology(
@@ -196,7 +194,7 @@ fn decodeAsciiSegment(
     loop {
         let mut oneByte = bits.readBits(8)?;
         if oneByte == 0 {
-            return Err(Exceptions::FormatException("".to_owned()));
+            return Err(Exceptions::FormatException(None));
         } else if oneByte <= 128 {
             // ASCII data (ASCII value + 1)
             if upperShift {
@@ -256,11 +254,11 @@ fn decodeAsciiSegment(
             // Not to be used in ASCII encodation
             // but work around encoders that end with 254, latch back to ASCII
             if oneByte != 254 || bits.available() != 0 {
-              return Err(Exceptions::FormatException("".to_owned()))
+              return Err(Exceptions::FormatException(None))
             }},
         }
         }
-        if !(bits.available() > 0) {
+        if bits.available() == 0 {
             break;
         }
     } //while (bits.available() > 0);
@@ -296,9 +294,10 @@ fn decodeC40Segment(
 
         parseTwoBytes(firstByte, bits.readBits(8)?, &mut cValues);
 
-        for i in 0..3 {
+        for cValue in cValues {
+            // for i in 0..3 {
             // for (int i = 0; i < 3; i++) {
-            let cValue = cValues[i];
+            // let cValue = cValues[i];
             match shift {
                 0 => {
                     if cValue < 3 {
@@ -312,15 +311,15 @@ fn decodeC40Segment(
                             result.append_char(c40char);
                         }
                     } else {
-                        return Err(Exceptions::FormatException("".to_owned()));
+                        return Err(Exceptions::FormatException(None));
                     }
                 }
                 1 => {
                     if upperShift {
-                        result.append_char(char::from_u32((cValue + 128) as u32).unwrap());
+                        result.append_char(char::from_u32(cValue + 128).unwrap());
                         upperShift = false;
                     } else {
-                        result.append_char(char::from_u32(cValue as u32).unwrap());
+                        result.append_char(char::from_u32(cValue).unwrap());
                     }
                     shift = 0;
                 }
@@ -346,25 +345,25 @@ fn decodeC40Segment(
                                 upperShift = true
                             }
 
-                            _ => return Err(Exceptions::FormatException("".to_owned())),
+                            _ => return Err(Exceptions::FormatException(None)),
                         }
                     }
                     shift = 0;
                 }
                 3 => {
                     if upperShift {
-                        result.append_char(char::from_u32(cValue as u32 + 224).unwrap());
+                        result.append_char(char::from_u32(cValue + 224).unwrap());
                         upperShift = false;
                     } else {
-                        result.append_char(char::from_u32(cValue as u32 + 96).unwrap());
+                        result.append_char(char::from_u32(cValue + 96).unwrap());
                     }
                     shift = 0;
                 }
 
-                _ => return Err(Exceptions::FormatException("".to_owned())),
+                _ => return Err(Exceptions::FormatException(None)),
             }
         }
-        if !(bits.available() > 0) {
+        if bits.available() == 0 {
             break;
         }
     } //while (bits.available() > 0);
@@ -409,14 +408,13 @@ fn decodeTextSegment(
                     } else if cValue < TEXT_BASIC_SET_CHARS.len() as u32 {
                         let textChar = TEXT_BASIC_SET_CHARS[cValue as usize];
                         if upperShift {
-                            result
-                                .append_char(char::from_u32(textChar as u32 + 128 as u32).unwrap());
+                            result.append_char(char::from_u32(textChar as u32 + 128_u32).unwrap());
                             upperShift = false;
                         } else {
                             result.append_char(textChar);
                         }
                     } else {
-                        return Err(Exceptions::FormatException("".to_owned()));
+                        return Err(Exceptions::FormatException(None));
                     }
                 }
                 1 => {
@@ -452,7 +450,7 @@ fn decodeTextSegment(
                                 upperShift = true
                             }
 
-                            _ => return Err(Exceptions::FormatException("".to_owned())),
+                            _ => return Err(Exceptions::FormatException(None)),
                         }
                     }
                     shift = 0;
@@ -468,14 +466,14 @@ fn decodeTextSegment(
                         }
                         shift = 0;
                     } else {
-                        return Err(Exceptions::FormatException("".to_owned()));
+                        return Err(Exceptions::FormatException(None));
                     }
                 }
 
-                _ => return Err(Exceptions::FormatException("".to_owned())),
+                _ => return Err(Exceptions::FormatException(None)),
             }
         }
-        if !(bits.available() > 0) {
+        if bits.available() == 0 {
             break;
         }
     } //while (bits.available() > 0);
@@ -543,12 +541,12 @@ fn decodeAnsiX12Segment(
                         // A - Z
                         result.append_char(char::from_u32(cValue + 51).unwrap());
                     } else {
-                        return Err(Exceptions::FormatException("".to_owned()));
+                        return Err(Exceptions::FormatException(None));
                     }
                 }
             }
         }
-        if !(bits.available() > 0) {
+        if bits.available() == 0 {
             break;
         }
     } //while (bits.available() > 0);
@@ -601,7 +599,7 @@ fn decodeEdifactSegment(
             result.append_char(char::from_u32(edifactValue).unwrap());
         }
 
-        if !(bits.available() > 0) {
+        if bits.available() == 0 {
             break;
         }
     }
@@ -635,18 +633,19 @@ fn decodeBase256Segment(
     // We're seeing NegativeArraySizeException errors from users.
     // but we shouldn't in rust because it's unsigned
     // if count < 0 {
-    //     return Err(Exceptions::FormatException("".to_owned()));
+    //     return Err(Exceptions::FormatException(None));
     // }
 
     let mut bytes = vec![0u8; count as usize];
-    for i in 0..count as usize {
+    for byte in bytes.iter_mut().take(count as usize) {
+        // for i in 0..count as usize {
         // for (int i = 0; i < count; i++) {
         // Have seen this particular error in the wild, such as at
         // http://www.bcgen.com/demo/IDAutomationStreamingDataMatrix.aspx?MODE=3&D=Fred&PFMT=3&PT=F&X=0.3&O=0&LM=0.2
         if bits.available() < 8 {
-            return Err(Exceptions::FormatException("".to_owned()));
+            return Err(Exceptions::FormatException(None));
         }
-        bytes[i] = unrandomize255State(bits.readBits(8)?, codewordPosition) as u8;
+        *byte = unrandomize255State(bits.readBits(8)?, codewordPosition) as u8;
         codewordPosition += 1;
     }
     result.append_string(
@@ -665,7 +664,7 @@ fn decodeBase256Segment(
  */
 fn decodeECISegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Result<(), Exceptions> {
     if bits.available() < 8 {
-        return Err(Exceptions::FormatException("".to_owned()));
+        return Err(Exceptions::FormatException(None));
     }
     let c1 = bits.readBits(8)?;
     if c1 <= 127 {

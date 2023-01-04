@@ -65,22 +65,22 @@ const ISO_8859_1_ENCODER: EncodingRef = encoding::all::ISO_8859_1;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 enum Mode {
-    ASCII,
+    Ascii,
     C40,
-    TEXT,
+    Text,
     X12,
-    EDF,
+    Edf,
     B256,
 }
 
 impl Mode {
     pub fn ordinal(&self) -> usize {
         match self {
-            Mode::ASCII => 0,
+            Mode::Ascii => 0,
             Mode::C40 => 1,
-            Mode::TEXT => 2,
+            Mode::Text => 2,
             Mode::X12 => 3,
-            Mode::EDF => 4,
+            Mode::Edf => 4,
             Mode::B256 => 5,
         }
     }
@@ -177,8 +177,7 @@ pub fn encodeHighLevelWithDetails(
             &encode(msg, priorityCharset, fnc1, shape, macroId)?,
             encoding::DecoderTrap::Strict,
         )
-        .expect("should decode")
-        .to_owned())
+        .expect("should decode"))
     // return new String(encode(msg, priorityCharset, fnc1, shape, macroId), StandardCharsets.ISO_8859_1);
 }
 
@@ -214,7 +213,7 @@ fn encode(
     .to_vec())
 }
 
-fn addEdge(edges: &mut Vec<Vec<Option<Rc<Edge>>>>, edge: Rc<Edge>) -> Result<(), Exceptions> {
+fn addEdge(edges: &mut [Vec<Option<Rc<Edge>>>], edge: Rc<Edge>) -> Result<(), Exceptions> {
     let vertexIndex = (edge.fromPosition + edge.characterLength) as usize;
     if edges[vertexIndex][edge.getEndMode()?.ordinal()].is_none()
         || edges[vertexIndex][edge.getEndMode()?.ordinal()]
@@ -256,7 +255,7 @@ fn getNumberOfC40Words(
         } else if !isExtendedASCII(ci, input.getFNC1Character()) {
             thirdsCount += 2; //shift
         } else {
-            let asciiValue = ci as u8 & 0xff;
+            let asciiValue = ci as u8;
             if asciiValue >= 128
                 && (c40 && high_level_encoder::isNativeC40((asciiValue - 128) as char)
                     || !c40 && high_level_encoder::isNativeText((asciiValue - 128) as char))
@@ -280,20 +279,20 @@ fn getNumberOfC40Words(
 
 fn addEdges(
     input: Rc<Input>,
-    edges: &mut Vec<Vec<Option<Rc<Edge>>>>,
+    edges: &mut [Vec<Option<Rc<Edge>>>],
     from: u32,
     previous: Option<Rc<Edge>>,
 ) -> Result<(), Exceptions> {
     if input.isECI(from)? {
         addEdge(
             edges,
-            Rc::new(Edge::new(input, Mode::ASCII, from, 1, previous.clone())?),
+            Rc::new(Edge::new(input, Mode::Ascii, from, 1, previous)?),
         )?;
         return Ok(());
     }
 
     let ch = input.charAt(from as usize)?;
-    if previous.is_none() || previous.as_ref().unwrap().getEndMode()? != Mode::EDF {
+    if previous.is_none() || previous.as_ref().unwrap().getEndMode()? != Mode::Edf {
         //not possible to unlatch a full EDF edge to something
         //else
         if high_level_encoder::isDigit(ch)
@@ -305,7 +304,7 @@ fn addEdges(
                 edges,
                 Rc::new(Edge::new(
                     input.clone(),
-                    Mode::ASCII,
+                    Mode::Ascii,
                     from,
                     2,
                     previous.clone(),
@@ -317,7 +316,7 @@ fn addEdges(
                 edges,
                 Rc::new(Edge::new(
                     input.clone(),
-                    Mode::ASCII,
+                    Mode::Ascii,
                     from,
                     1,
                     previous.clone(),
@@ -325,7 +324,7 @@ fn addEdges(
             )?;
         }
 
-        let modes = [Mode::C40, Mode::TEXT];
+        let modes = [Mode::C40, Mode::Text];
         for mode in modes {
             // for (Mode mode : modes) {
             let mut characterLength = [0u32; 1];
@@ -387,7 +386,7 @@ fn addEdges(
                 edges,
                 Rc::new(Edge::new(
                     input.clone(),
-                    Mode::EDF,
+                    Mode::Edf,
                     from,
                     i + 1,
                     previous.clone(),
@@ -404,7 +403,7 @@ fn addEdges(
     {
         addEdge(
             edges,
-            Rc::new(Edge::new(input, Mode::EDF, from, 4, previous.clone())?),
+            Rc::new(Edge::new(input, Mode::Edf, from, 4, previous)?),
         )?;
     }
     Ok(())
@@ -626,7 +625,7 @@ fn encodeMinimally(input: Rc<Input>) -> Result<RXingResult, Exceptions> {
         // for (int j = 0; j < 6; j++) {
         if edges[inputLength][j].is_some() {
             let edge = edges[inputLength][j].as_ref().unwrap();
-            let size = if j >= 1 && j <= 3 {
+            let size = if (1..=3).contains(&j) {
                 edge.cachedTotalSize + 1
             } else {
                 edge.cachedTotalSize
@@ -640,10 +639,10 @@ fn encodeMinimally(input: Rc<Input>) -> Result<RXingResult, Exceptions> {
     }
 
     if minimalJ < 0 {
-        return Err(Exceptions::RuntimeException(format!(
+        return Err(Exceptions::RuntimeException(Some(format!(
             "Internal error: failed to encode \"{}\"",
             input
-        )));
+        ))));
     }
     RXingResult::new(edges[inputLength][minimalJ as usize].clone())
 }
@@ -704,7 +703,7 @@ impl Edge {
          * B256 -> ASCII: without latch after n bytes
          */
         match mode {
-            Mode::ASCII => {
+            Mode::Ascii => {
                 size += 1;
                 if input.isECI(fromPosition).expect("bool")
                     || isExtendedASCII(
@@ -717,7 +716,7 @@ impl Edge {
                     size += 1;
                 }
                 if previousMode == Mode::C40
-                    || previousMode == Mode::TEXT
+                    || previousMode == Mode::Text
                     || previousMode == Mode::X12
                 {
                     size += 1; // unlatch 254 to ASCII
@@ -725,21 +724,22 @@ impl Edge {
             }
             Mode::B256 => {
                 size += 1;
-                if previousMode != Mode::B256 {
+                if previousMode != Mode::B256 || Self::getB256Size(mode, previous.clone()) == 250 {
                     size += 1; //byte count
-                } else if Self::getB256Size(mode, previous.clone()) == 250 {
-                    size += 1; //extra byte count
                 }
-                if previousMode == Mode::ASCII {
+                // } else if Self::getB256Size(mode, previous.clone()) == 250 {
+                //     size += 1; //extra byte count
+                // }
+                if previousMode == Mode::Ascii {
                     size += 1; //latch to B256
                 } else if previousMode == Mode::C40
-                    || previousMode == Mode::TEXT
+                    || previousMode == Mode::Text
                     || previousMode == Mode::X12
                 {
                     size += 2; //unlatch to ASCII, latch to B256
                 }
             }
-            Mode::C40 | Mode::TEXT | Mode::X12 => {
+            Mode::C40 | Mode::Text | Mode::X12 => {
                 if mode == Mode::X12 {
                     size += 2;
                 } else {
@@ -754,22 +754,22 @@ impl Edge {
                         * 2;
                 }
 
-                if previousMode == Mode::ASCII || previousMode == Mode::B256 {
+                if previousMode == Mode::Ascii || previousMode == Mode::B256 {
                     size += 1; //additional byte for latch from ASCII to this mode
                 } else if previousMode != mode
                     && (previousMode == Mode::C40
-                        || previousMode == Mode::TEXT
+                        || previousMode == Mode::Text
                         || previousMode == Mode::X12)
                 {
                     size += 2; //unlatch 254 to ASCII followed by latch to this mode
                 }
             }
-            Mode::EDF => {
+            Mode::Edf => {
                 size += 3;
-                if previousMode == Mode::ASCII || previousMode == Mode::B256 {
+                if previousMode == Mode::Ascii || previousMode == Mode::B256 {
                     size += 1; //additional byte for latch from ASCII to this mode
                 } else if previousMode == Mode::C40
-                    || previousMode == Mode::TEXT
+                    || previousMode == Mode::Text
                     || previousMode == Mode::X12
                 {
                     size += 2; //unlatch 254 to ASCII followed by latch to this mode
@@ -811,7 +811,7 @@ impl Edge {
         if let Some(prev) = previous {
             prev.mode
         } else {
-            Mode::ASCII
+            Mode::Ascii
         }
         // if previous.is_none() { Mode::ASCII} else {previous.as_ref().unwrap().mode}
     }
@@ -820,7 +820,7 @@ impl Edge {
         if let Some(prev) = previous {
             prev.getEndMode()
         } else {
-            Ok(Mode::ASCII)
+            Ok(Mode::Ascii)
         }
         // return  previous == null ? Mode::ASCII : previous.getEndMode();
     }
@@ -833,27 +833,27 @@ impl Edge {
      * */
     pub fn getEndMode(&self) -> Result<Mode, Exceptions> {
         let mode = self.mode;
-        if mode == Mode::EDF {
+        if mode == Mode::Edf {
             if self.characterLength < 4 {
-                return Ok(Mode::ASCII);
+                return Ok(Mode::Ascii);
             }
-            let lastASCII = Self::getLastASCII(&self)?; // see 5.2.8.2 EDIFACT encodation Rules
+            let lastASCII = Self::getLastASCII(self)?; // see 5.2.8.2 EDIFACT encodation Rules
             if lastASCII > 0
                 && self.getCodewordsRemaining(self.cachedTotalSize + lastASCII) <= 2 - lastASCII
             {
-                return Ok(Mode::ASCII);
+                return Ok(Mode::Ascii);
             }
         }
-        if mode == Mode::C40 || mode == Mode::TEXT || mode == Mode::X12 {
+        if mode == Mode::C40 || mode == Mode::Text || mode == Mode::X12 {
             // see 5.2.5.2 C40 encodation rules and 5.2.7.2 ANSI X12 encodation rules
             if self.fromPosition + self.characterLength >= self.input.length() as u32
                 && self.getCodewordsRemaining(self.cachedTotalSize) == 0
             {
-                return Ok(Mode::ASCII);
+                return Ok(Mode::Ascii);
             }
-            let lastASCII = Self::getLastASCII(&self)?;
+            let lastASCII = Self::getLastASCII(self)?;
             if lastASCII == 1 && self.getCodewordsRemaining(self.cachedTotalSize + 1) == 0 {
-                return Ok(Mode::ASCII);
+                return Ok(Mode::Ascii);
             }
         }
 
@@ -969,7 +969,7 @@ impl Edge {
      * minimal number of codewords.
      **/
     pub fn getCodewordsRemaining(&self, minimum: u32) -> u32 {
-        Self::getMinSymbolSize(&self, minimum) - minimum
+        Self::getMinSymbolSize(self, minimum) - minimum
     }
 
     pub fn getBytes1(c: u32) -> Vec<u8> {
@@ -1003,9 +1003,9 @@ impl Edge {
             2
         } else if c == 32 {
             3
-        } else if c >= 48 && c <= 57 {
+        } else if (48..=57).contains(&c) {
             c - 44
-        } else if c >= 65 && c <= 90 {
+        } else if (65..=90).contains(&c) {
             c - 51
         } else {
             c
@@ -1033,7 +1033,7 @@ impl Edge {
             );
             i += 2;
         }
-        return Ok(result);
+        Ok(result)
     }
 
     pub fn getShiftValue(c: char, c40: bool, fnc1: Option<char>) -> u32 {
@@ -1055,7 +1055,7 @@ impl Edge {
         }
         if c40 {
             let c = c as u32;
-            return if c <= 31 {
+            if c <= 31 {
                 c
             } else if c == 32 {
                 3
@@ -1073,10 +1073,10 @@ impl Edge {
                 c - 96
             } else {
                 c
-            };
+            }
         } else {
             let c = c as u32;
-            return if c == 0 {
+            if c == 0 {
                 0
             } else if setIndex == 0 && c <= 3 {
                 c - 1
@@ -1086,25 +1086,25 @@ impl Edge {
                 c
             } else if c == 32 {
                 3
-            } else if c >= 33 && c <= 47 {
+            } else if (33..=47).contains(&c) {
                 c - 33
-            } else if c >= 48 && c <= 57 {
+            } else if (48..=57).contains(&c) {
                 c - 44
-            } else if c >= 58 && c <= 64 {
+            } else if (58..=64).contains(&c) {
                 c - 43
-            } else if c >= 65 && c <= 90 {
+            } else if (65..=90).contains(&c) {
                 c - 64
-            } else if c >= 91 && c <= 95 {
+            } else if (91..=95).contains(&c) {
                 c - 69
             } else if c == 96 {
                 0
-            } else if c >= 97 && c <= 122 {
+            } else if (97..=122).contains(&c) {
                 c - 83
-            } else if c >= 123 && c <= 127 {
+            } else if (123..=127).contains(&c) {
                 c - 96
             } else {
                 c
-            };
+            }
         }
     }
 
@@ -1123,7 +1123,7 @@ impl Edge {
                 c40Values.push(shiftValue as u8); //Shift[123]
                 c40Values.push(Self::getC40Value(c40, shiftValue, ci, fnc1) as u8);
             } else {
-                let asciiValue = ((ci as u8 & 0xff) - 128) as char;
+                let asciiValue = (ci as u8 - 128) as char;
                 if c40 && high_level_encoder::isNativeC40(asciiValue)
                     || !c40 && high_level_encoder::isNativeText(asciiValue)
                 {
@@ -1178,13 +1178,14 @@ impl Edge {
         while i < numberOfThirds {
             // for (int i = 0; i < numberOfThirds; i += 3) {
             let mut edfValues = [0u32; 4];
-            for j in 0..4 {
+            for edfValue in &mut edfValues {
+                // for j in 0..4 {
                 // for (int j = 0; j < 4; j++) {
                 if pos <= endPos {
-                    edfValues[j] = self.input.charAt(pos)? as u32 & 0x3f;
+                    *edfValue = self.input.charAt(pos)? as u32 & 0x3f;
                     pos += 1;
                 } else {
-                    edfValues[j] = if pos == endPos + 1 { 0x1f } else { 0 };
+                    *edfValue = if pos == endPos + 1 { 0x1f } else { 0 };
                 }
             }
             let mut val24 = edfValues[0] << 18;
@@ -1203,32 +1204,32 @@ impl Edge {
 
     pub fn getLatchBytes(&self) -> Result<Vec<u8>, Exceptions> {
         match Self::getPreviousMode(self.previous.clone())? {
-            Mode::ASCII | Mode::B256 =>
+            Mode::Ascii | Mode::B256 =>
             //after B256 ends (via length) we are back to ASCII
             {
                 match self.mode {
                     Mode::B256 => return Ok(Self::getBytes1(231)),
                     Mode::C40 => return Ok(Self::getBytes1(230)),
-                    Mode::TEXT => return Ok(Self::getBytes1(239)),
+                    Mode::Text => return Ok(Self::getBytes1(239)),
                     Mode::X12 => return Ok(Self::getBytes1(238)),
-                    Mode::EDF => return Ok(Self::getBytes1(240)),
+                    Mode::Edf => return Ok(Self::getBytes1(240)),
                     _ => {}
                 }
             }
-            Mode::C40 | Mode::TEXT | Mode::X12
+            Mode::C40 | Mode::Text | Mode::X12
                 if self.mode != Self::getPreviousMode(self.previous.clone())? =>
             {
                 match self.mode {
-                    Mode::ASCII => return Ok(Self::getBytes1(254)),
+                    Mode::Ascii => return Ok(Self::getBytes1(254)),
                     Mode::B256 => return Ok(Self::getBytes2(254, 231)),
                     Mode::C40 => return Ok(Self::getBytes2(254, 230)),
-                    Mode::TEXT => return Ok(Self::getBytes2(254, 239)),
+                    Mode::Text => return Ok(Self::getBytes2(254, 239)),
                     Mode::X12 => return Ok(Self::getBytes2(254, 238)),
-                    Mode::EDF => return Ok(Self::getBytes2(254, 240)),
+                    Mode::Edf => return Ok(Self::getBytes2(254, 240)),
                 }
             }
-            Mode::C40 | Mode::TEXT | Mode::X12 => {}
-            Mode::EDF => assert!(self.mode == Mode::EDF), //The rightmost EDIFACT edge always contains an unlatch character
+            Mode::C40 | Mode::Text | Mode::X12 => {}
+            Mode::Edf => assert!(self.mode == Mode::Edf), //The rightmost EDIFACT edge always contains an unlatch character
         }
 
         Ok(Vec::new())
@@ -1237,12 +1238,12 @@ impl Edge {
     // Important: The function does not return the length bytes (one or two) in case of B256 encoding
     pub fn getDataBytes(&self) -> Result<Vec<u8>, Exceptions> {
         match self.mode {
-            Mode::ASCII => {
+            Mode::Ascii => {
                 if self.input.isECI(self.fromPosition)? {
-                    return Ok(Self::getBytes2(
+                    Ok(Self::getBytes2(
                         241,
                         self.input.getECIValue(self.fromPosition as usize)? as u32 + 1,
-                    ));
+                    ))
                 } else if isExtendedASCII(
                     self.input.charAt(self.fromPosition as usize)?,
                     self.input.getFNC1Character(),
@@ -1266,15 +1267,13 @@ impl Edge {
                     ));
                 }
             }
-            Mode::B256 => {
-                return Ok(Self::getBytes1(
-                    self.input.charAt(self.fromPosition as usize)? as u32,
-                ))
-            }
-            Mode::C40 => return self.getC40Words(true, self.input.getFNC1Character()),
-            Mode::TEXT => return self.getC40Words(false, self.input.getFNC1Character()),
-            Mode::X12 => return self.getX12Words(),
-            Mode::EDF => return self.getEDFBytes(),
+            Mode::B256 => Ok(Self::getBytes1(
+                self.input.charAt(self.fromPosition as usize)? as u32,
+            )),
+            Mode::C40 => self.getC40Words(true, self.input.getFNC1Character()),
+            Mode::Text => self.getC40Words(false, self.input.getFNC1Character()),
+            Mode::X12 => self.getX12Words(),
+            Mode::Edf => self.getEDFBytes(),
         }
         // assert!( false);
         // Ok(vec![0])
@@ -1289,15 +1288,15 @@ impl RXingResult {
         let solution = if let Some(edge) = solution {
             edge
         } else {
-            return Err(Exceptions::IllegalArgumentException("()".to_string()));
+            return Err(Exceptions::IllegalArgumentException(None));
         };
         let input = solution.input.clone();
         let mut size = 0;
         let mut bytesAL = Vec::new(); //new ArrayList<>();
         let mut randomizePostfixLength = Vec::new(); //new ArrayList<>();
         let mut randomizeLengths = Vec::new(); //new ArrayList<>();
-        if (solution.mode == Mode::C40 || solution.mode == Mode::TEXT || solution.mode == Mode::X12)
-            && solution.getEndMode()? != Mode::ASCII
+        if (solution.mode == Mode::C40 || solution.mode == Mode::Text || solution.mode == Mode::X12)
+            && solution.getEndMode()? != Mode::Ascii
         {
             size += Self::prepend(&Edge::getBytes1(254), &mut bytesAL);
         }
@@ -1355,10 +1354,11 @@ impl RXingResult {
         }
 
         let mut bytes = vec![0u8; bytesAL.len()];
-        for i in 0..bytes.len() {
-            // for (int i = 0; i < bytes.length; i++) {
-            bytes[i] = *bytesAL.get(i).unwrap();
-        }
+        // for (i, byte) in bytes.iter_mut().enumerate() {
+        //     // for (int i = 0; i < bytes.length; i++) {
+        //     *byte = *bytesAL.get(i).unwrap();
+        // }
+        bytes[..].copy_from_slice(&bytesAL[..]);
 
         Ok(Self { bytes })
     }

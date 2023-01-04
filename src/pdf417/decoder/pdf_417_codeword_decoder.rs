@@ -92,11 +92,11 @@ fn getDecodedCodewordValue(moduleBitCount: &[u32]) -> i32 {
 
 fn getBitValue(moduleBitCount: &[u32]) -> i32 {
     let mut result: u64 = 0;
-    for i in 0..moduleBitCount.len() {
+    for (i, mbc) in moduleBitCount.iter().enumerate() {
         // for (int i = 0; i < moduleBitCount.length; i++) {
-        for _bit in 0..moduleBitCount[i] {
+        for _bit in 0..(*mbc) {
             // for (int bit = 0; bit < moduleBitCount[i]; bit++) {
-            result = (result << 1) | (if i % 2 == 0 { 1 } else { 0 });
+            result = (result << 1) | u64::from(i % 2 == 0); //(if i % 2 == 0 { 1 } else { 0 });
         }
     }
     result as i32
@@ -113,10 +113,9 @@ fn getClosestDecodedValue(moduleBitCount: &[u32]) -> i32 {
     }
     let mut bestMatchError = f32::MAX;
     let mut bestMatch = -1_i32;
-    for j in 0..RATIOS_TABLE.len() {
+    for (j, ratioTableRow) in RATIOS_TABLE.iter().enumerate() {
         // for (int j = 0; j < RATIOS_TABLE.length; j++) {
         let mut error = 0.0;
-        let ratioTableRow = &RATIOS_TABLE[j];
         for k in 0..pdf_417_common::BARS_IN_MODULE as usize {
             // for (int k = 0; k < PDF417Common.BARS_IN_MODULE; k++) {
             let diff = ratioTableRow[k] - bitCountRatios[k];

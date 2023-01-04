@@ -62,7 +62,7 @@ impl Reader for MaxiCodeReader {
         // Note that MaxiCode reader effectively always assumes PURE_BARCODE mode
         // and can't detect it in an image
         let bits = Self::extractPureBits(image.getBlackMatrix())?;
-        let decoderRXingResult = decoder::decode_with_hints(bits, &hints)?;
+        let decoderRXingResult = decoder::decode_with_hints(bits, hints)?;
         let mut result = RXingResult::new(
             decoderRXingResult.getText(),
             decoderRXingResult.getRawBytes().clone(),
@@ -97,7 +97,7 @@ impl MaxiCodeReader {
     fn extractPureBits(image: &BitMatrix) -> Result<BitMatrix, Exceptions> {
         let enclosingRectangleOption = image.getEnclosingRectangle();
         if enclosingRectangleOption.is_none() {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         let enclosingRectangle = enclosingRectangleOption.unwrap();

@@ -171,7 +171,7 @@ impl QRCodeMultiReader {
 
         let mut newRXingResult =
             RXingResult::new(&newText, newRawBytes, Vec::new(), BarcodeFormat::QR_CODE);
-        if newByteSegment.len() > 0 {
+        if !newByteSegment.is_empty() {
             newRXingResult.putMetadata(
                 RXingResultMetadataType::BYTE_SEGMENTS,
                 RXingResultMetadataValue::ByteSegments(vec![newByteSegment]),

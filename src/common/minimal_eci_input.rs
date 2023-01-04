@@ -52,7 +52,7 @@ impl ECIInput for MinimalECIInput {
      * @return  the number of {@code char}s in this sequence
      */
     fn length(&self) -> usize {
-        return self.bytes.len();
+        self.bytes.len()
     }
 
     /**
@@ -73,13 +73,15 @@ impl ECIInput for MinimalECIInput {
      */
     fn charAt(&self, index: usize) -> Result<char, Exceptions> {
         if index >= self.length() {
-            return Err(Exceptions::IndexOutOfBoundsException(index.to_string()));
+            return Err(Exceptions::IndexOutOfBoundsException(Some(
+                index.to_string(),
+            )));
         }
         if self.isECI(index as u32)? {
-            return Err(Exceptions::IllegalArgumentException(format!(
+            return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "value at {} is not a character but an ECI",
                 index
-            )));
+            ))));
         }
         if self.isFNC1(index)? {
             Ok(self.fnc1 as u8 as char)
@@ -110,16 +112,18 @@ impl ECIInput for MinimalECIInput {
      */
     fn subSequence(&self, start: usize, end: usize) -> Result<Vec<char>, Exceptions> {
         if start > end || end > self.length() {
-            return Err(Exceptions::IndexOutOfBoundsException(start.to_string()));
+            return Err(Exceptions::IndexOutOfBoundsException(Some(
+                start.to_string(),
+            )));
         }
         let mut result = String::new();
         for i in start..end {
             //   for (int i = start; i < end; i++) {
             if self.isECI(i as u32)? {
-                return Err(Exceptions::IllegalArgumentException(format!(
+                return Err(Exceptions::IllegalArgumentException(Some(format!(
                     "value at {} is not a character but an ECI",
                     i
-                )));
+                ))));
             }
             result.push_str(&self.charAt(i)?.to_string());
         }
@@ -139,7 +143,9 @@ impl ECIInput for MinimalECIInput {
      */
     fn isECI(&self, index: u32) -> Result<bool, Exceptions> {
         if index >= self.length() as u32 {
-            return Err(Exceptions::IndexOutOfBoundsException(index.to_string()));
+            return Err(Exceptions::IndexOutOfBoundsException(Some(
+                index.to_string(),
+            )));
         }
         Ok(self.bytes[index as usize] > 255) // && self.bytes[index as usize] <= u16::MAX)
     }
@@ -164,19 +170,21 @@ impl ECIInput for MinimalECIInput {
      */
     fn getECIValue(&self, index: usize) -> Result<i32, Exceptions> {
         if index >= self.length() {
-            return Err(Exceptions::IndexOutOfBoundsException(index.to_string()));
+            return Err(Exceptions::IndexOutOfBoundsException(Some(
+                index.to_string(),
+            )));
         }
         if !self.isECI(index as u32)? {
-            return Err(Exceptions::IllegalArgumentException(format!(
+            return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "value at {} is not an ECI but a character",
                 index
-            )));
+            ))));
         }
         Ok((self.bytes[index] as u32 - 256) as i32)
     }
 
     fn haveNCharacters(&self, index: usize, n: usize) -> bool {
-        if index + n - 1 >= self.bytes.len() {
+        if index + n > self.bytes.len() {
             return false;
         }
         for i in 0..n {
@@ -185,7 +193,7 @@ impl ECIInput for MinimalECIInput {
                 return false;
             }
         }
-        return true;
+        true
     }
 }
 impl MinimalECIInput {
@@ -210,13 +218,14 @@ impl MinimalECIInput {
         let bytes = if encoderSet.len() == 1 {
             //optimization for the case when all can be encoded without ECI in ISO-8859-1
             let mut bytes_hld = vec![0; stringToEncode.len()];
-            for i in 0..stringToEncode.len() {
+            for (i, byt) in bytes_hld.iter_mut().enumerate().take(stringToEncode.len()) {
+                // for i in 0..stringToEncode.len() {
                 //   for (int i = 0; i < bytes.length; i++) {
                 let c = stringToEncode.get(i).unwrap();
-                bytes_hld[i] = if fnc1.is_some() && c == fnc1.as_ref().unwrap() {
+                *byt = if fnc1.is_some() && c == fnc1.as_ref().unwrap() {
                     1000
                 } else {
-                    c.chars().nth(0).unwrap() as u16
+                    c.chars().next().unwrap() as u16
                 };
             }
             bytes_hld
@@ -225,10 +234,10 @@ impl MinimalECIInput {
         };
 
         Self {
-            bytes: bytes,
+            bytes,
             fnc1: if let Some(fnc1_exists) = fnc1 {
                 //}.as_ref().unwrap().chars().nth(0).unwrap() as u16,
-                fnc1_exists.chars().nth(0).unwrap() as u16
+                fnc1_exists.chars().next().unwrap() as u16
             } else {
                 1000
             },
@@ -252,12 +261,14 @@ impl MinimalECIInput {
      */
     pub fn isFNC1(&self, index: usize) -> Result<bool, Exceptions> {
         if index >= self.length() {
-            return Err(Exceptions::IndexOutOfBoundsException(index.to_string()));
+            return Err(Exceptions::IndexOutOfBoundsException(Some(
+                index.to_string(),
+            )));
         }
         Ok(self.bytes[index] == 1000)
     }
 
-    fn addEdge(edges: &mut Vec<Vec<Option<Rc<InputEdge>>>>, to: usize, edge: Rc<InputEdge>) {
+    fn addEdge(edges: &mut [Vec<Option<Rc<InputEdge>>>], to: usize, edge: Rc<InputEdge>) {
         if edges[to][edge.encoderIndex].is_none()
             || edges[to][edge.encoderIndex]
                 .clone()
@@ -272,7 +283,7 @@ impl MinimalECIInput {
     fn addEdges(
         stringToEncode: &str,
         encoderSet: &ECIEncoderSet,
-        edges: &mut Vec<Vec<Option<Rc<InputEdge>>>>,
+        edges: &mut [Vec<Option<Rc<InputEdge>>>],
         from: usize,
         previous: Option<Rc<InputEdge>>,
         fnc1: Option<&str>,
@@ -285,7 +296,7 @@ impl MinimalECIInput {
         //if let Some(fnc1) = fnc1 {
         if encoderSet.getPriorityEncoderIndex().is_some()
             && ((fnc1.is_some()
-                && ch.chars().nth(0).unwrap() == fnc1.as_ref().unwrap().chars().nth(0).unwrap())
+                && ch.chars().next().unwrap() == fnc1.as_ref().unwrap().chars().next().unwrap())
                 || encoderSet.canEncode(ch, encoderSet.getPriorityEncoderIndex().unwrap()))
         {
             start = encoderSet.getPriorityEncoderIndex().unwrap();
@@ -296,7 +307,7 @@ impl MinimalECIInput {
         for i in start..end {
             // for (int i = start; i < end; i++) {
             if (fnc1.is_some()
-                && ch.chars().nth(0).unwrap() == fnc1.as_ref().unwrap().chars().nth(0).unwrap())
+                && ch.chars().next().unwrap() == fnc1.as_ref().unwrap().chars().next().unwrap())
                 || encoderSet.canEncode(ch, i)
             {
                 Self::addEdge(
@@ -380,19 +391,17 @@ impl MinimalECIInput {
                 //     0..0,
                 //     [256 as u16 + encoderSet.getECIValue(c.encoderIndex) as u16],
                 // );
-                intsAL.insert(
-                    0,
-                    256 as u16 + encoderSet.getECIValue(c.encoderIndex) as u16,
-                );
+                intsAL.insert(0, 256_u16 + encoderSet.getECIValue(c.encoderIndex) as u16);
             }
             current = c.previous.clone();
         }
         let mut ints = vec![0; intsAL.len()];
-        for i in 0..ints.len() {
-            // for (int i = 0; i < ints.length; i++) {
-            ints[i] = *intsAL.get(i).unwrap() as u16;
-        }
-        return ints;
+        // for i in 0..ints.len() {
+        //     // for (int i = 0; i < ints.length; i++) {
+        //     ints[i] = *intsAL.get(i).unwrap();
+        // }
+        ints[..].copy_from_slice(&intsAL[..]);
+        ints
     }
 }
 
@@ -432,7 +441,7 @@ impl InputEdge {
                     String::from(c)
                 },
                 encoderIndex,
-                previous: Some(prev.clone()),
+                previous: Some(prev),
                 cachedTotalSize: size,
             }
         } else {

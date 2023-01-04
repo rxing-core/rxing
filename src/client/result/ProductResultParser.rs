@@ -46,14 +46,14 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     }
     // Not actually checking the checksum again here
 
-    let normalizedProductID;
+    let normalizedProductID=
     // Expand UPC-E for purposes of searching
     if format == &BarcodeFormat::UPC_E && rawText.len() == 8 {
         // unimplemented!("UPCEReader is required to parse this");
-        normalizedProductID = crate::oned::convertUPCEtoUPCA(&rawText);
+         crate::oned::convertUPCEtoUPCA(&rawText)
     } else {
-        normalizedProductID = rawText.clone();
-    }
+         rawText.clone()
+    };
 
     Some(ParsedClientResult::ProductResult(
         ProductParsedRXingResult::with_normalized_id(rawText, normalizedProductID),

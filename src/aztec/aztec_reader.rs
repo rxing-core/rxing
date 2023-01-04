@@ -53,8 +53,7 @@ impl Reader for AztecReader {
         // let notFoundException = None;
         // let formatException = None;
         let mut detector = Detector::new(image.getBlackMatrix());
-        let points;
-        let decoderRXingResult: DecoderRXingResult;
+
         //  try {
 
         let detectorRXingResult = if let Ok(det) = detector.detect(false) {
@@ -62,13 +61,11 @@ impl Reader for AztecReader {
         } else if let Ok(det) = detector.detect(true) {
             det
         } else {
-            return Err(Exceptions::NotFoundException(
-                "barcode not found".to_owned(),
-            ));
+            return Err(Exceptions::NotFoundException(None));
         };
 
-        points = detectorRXingResult.getPoints();
-        decoderRXingResult = decoder::decode(&detectorRXingResult)?;
+        let points = detectorRXingResult.getPoints();
+        let decoderRXingResult: DecoderRXingResult = decoder::decode(&detectorRXingResult)?;
         // } catch (NotFoundException e) {
         //   notFoundException = e;
         // } catch (FormatException e) {

@@ -69,13 +69,13 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
 
     // Drop sms, query portion
     let query_start = raw_text[4..].find('?');
-    let sms_uriwithout_query;
+    let sms_uriwithout_query=
     // If it's not query syntax, the question mark is part of the subject or message
     if query_start.is_none() || !querySyntax {
-        sms_uriwithout_query = &raw_text[4..];
+         &raw_text[4..]
     } else {
-        sms_uriwithout_query = &raw_text[4..4 + query_start.unwrap_or(0)];
-    }
+         &raw_text[4..4 + query_start.unwrap_or(0)]
+    };
 
     let mut last_comma: i32 = -1;
     let mut comma: i32 = sms_uriwithout_query[(last_comma + 1) as usize..]
@@ -103,7 +103,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     );
 
     Some(ParsedClientResult::SMSResult(
-        SMSParsedRXingResult::with_arrays(numbers, vias, subject.to_owned(), body.to_owned()),
+        SMSParsedRXingResult::with_arrays(numbers, vias, subject, body),
     ))
 
     // return new SMSParsedRXingResult(numbers.toArray(EMPTY_STR_ARRAY),
@@ -120,8 +120,8 @@ fn add_number_via(numbers: &mut Vec<String>, vias: &mut Vec<String>, number_part
         // if numberEnd < 0 {
         numbers.push(number_part[..number_end].to_string());
         let maybe_via = &number_part[number_end + 1..];
-        let via = if maybe_via.starts_with("via=") {
-            &maybe_via[4..]
+        let via = if let Some(stripped) = maybe_via.strip_prefix("via=") {
+            stripped
         } else {
             ""
         };

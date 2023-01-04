@@ -33,12 +33,12 @@ use crate::{
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Mode {
-    ALPHA,
-    LOWER,
-    MIXED,
-    PUNCT,
-    ALPHA_SHIFT,
-    PUNCT_SHIFT,
+    Alpha,
+    Lower,
+    Mixed,
+    Punct,
+    AlphaShift,
+    PunctShift,
 }
 
 const TEXT_COMPACTION_MODE_LATCH: u32 = 900;
@@ -131,7 +131,7 @@ const NUMBER_OF_SEQUENCE_CODEWORDS: usize = 2;
 
 pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult, Exceptions> {
     let mut result = ECIStringBuilder::with_capacity(codewords.len() * 2);
-    let mut codeIndex = textCompaction(codewords, 1, &mut result)? as usize;
+    let mut codeIndex = textCompaction(codewords, 1, &mut result)?;
     let mut resultMetadata = PDF417RXingResultMetadata::default();
     while codeIndex < codewords[0] as usize {
         let code = codewords[codeIndex];
@@ -170,7 +170,7 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult, Ex
             BEGIN_MACRO_PDF417_OPTIONAL_FIELD | MACRO_PDF417_TERMINATOR =>
             // Should not see these outside a macro block
             {
-                return Err(Exceptions::FormatException("".to_owned()))
+                return Err(Exceptions::FormatException(None))
             }
             _ => {
                 // Default to text compaction. During testing numerous barcodes
@@ -185,7 +185,7 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult, Ex
     result = result.build_result();
 
     if result.is_empty() && resultMetadata.getFileId().is_empty() {
-        return Err(Exceptions::FormatException("".to_owned()));
+        return Err(Exceptions::FormatException(None));
     }
 
     let mut decoderRXingResult = DecoderRXingResult::new(
@@ -207,25 +207,26 @@ pub fn decodeMacroBlock(
     let mut codeIndex = codeIndex;
     if codeIndex + NUMBER_OF_SEQUENCE_CODEWORDS > codewords[0] as usize {
         // we must have at least two bytes left for the segment index
-        return Err(Exceptions::FormatException("".to_owned()));
+        return Err(Exceptions::FormatException(None));
     }
     let mut segmentIndexArray = [0; NUMBER_OF_SEQUENCE_CODEWORDS];
-    for i in 0..NUMBER_OF_SEQUENCE_CODEWORDS {
+    for seq in segmentIndexArray
+        .iter_mut()
+        .take(NUMBER_OF_SEQUENCE_CODEWORDS)
+    {
         // for (int i = 0; i < NUMBER_OF_SEQUENCE_CODEWORDS; i++, codeIndex++) {
-        segmentIndexArray[i] = codewords[codeIndex];
+        *seq = codewords[codeIndex];
         codeIndex += 1;
     }
     let segmentIndexString =
         decodeBase900toBase10(&segmentIndexArray, NUMBER_OF_SEQUENCE_CODEWORDS)?;
     if segmentIndexString.is_empty() {
         resultMetadata.setSegmentIndex(0);
+    } else if let Ok(parsed_int) = segmentIndexString.parse::<usize>() {
+        resultMetadata.setSegmentIndex(parsed_int);
     } else {
-        if let Ok(parsed_int) = segmentIndexString.parse::<usize>() {
-            resultMetadata.setSegmentIndex(parsed_int);
-        } else {
-            // too large; bad input?
-            return Err(Exceptions::FormatException("".to_owned()));
-        }
+        // too large; bad input?
+        return Err(Exceptions::FormatException(None));
     }
 
     // Decoding the fileId codewords as 0-899 numbers, each 0-filled to width 3. This follows the spec
@@ -242,7 +243,7 @@ pub fn decodeMacroBlock(
     }
     if fileId.chars().count() == 0 {
         // at least one fileId codeword is required (Annex H.2)
-        return Err(Exceptions::FormatException("".to_owned()));
+        return Err(Exceptions::FormatException(None));
     }
     resultMetadata.setFileId(fileId);
 
@@ -298,14 +299,14 @@ pub fn decodeMacroBlock(
                         fileSize = fileSize.build_result();
                         resultMetadata.setFileSize(fileSize.to_string().parse().unwrap());
                     }
-                    _ => return Err(Exceptions::FormatException("".to_owned())),
+                    _ => return Err(Exceptions::FormatException(None)),
                 }
             }
             MACRO_PDF417_TERMINATOR => {
                 codeIndex += 1;
                 resultMetadata.setLastSegment(true);
             }
-            _ => return Err(Exceptions::FormatException("".to_owned())),
+            _ => return Err(Exceptions::FormatException(None)),
         }
     }
 
@@ -345,13 +346,13 @@ fn textCompaction(
 ) -> Result<usize, Exceptions> {
     let mut codeIndex = codeIndex;
     // 2 character per codeword
-    let mut textCompactionData = vec![0; (codewords[0] as usize - codeIndex) as usize * 2];
+    let mut textCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
     // Used to hold the byte compaction value if there is a mode shift
-    let mut byteCompactionData = vec![0; (codewords[0] as usize - codeIndex) as usize * 2];
+    let mut byteCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
 
     let mut index = 0;
     let mut end = false;
-    let mut subMode = Mode::ALPHA;
+    let mut subMode = Mode::Alpha;
     while (codeIndex < codewords[0] as usize) && !end {
         let mut code = codewords[codeIndex];
         codeIndex += 1;
@@ -454,7 +455,7 @@ fn decodeTextCompaction(
         let subModeCh = textCompactionData[i];
         let mut ch = 0 as char;
         match subMode {
-            Mode::ALPHA =>
+            Mode::Alpha =>
             // Alpha (uppercase alphabetic)
             {
                 if subModeCh < 26 {
@@ -464,23 +465,23 @@ fn decodeTextCompaction(
                     match subModeCh {
                         26 => ch = ' ',
                         LL => {
-                            subMode = Mode::LOWER;
+                            subMode = Mode::Lower;
                             latchedMode = subMode;
                         }
                         ML => {
-                            subMode = Mode::MIXED;
+                            subMode = Mode::Mixed;
                             latchedMode = subMode;
                         }
                         PS => {
                             // Shift to punctuation
                             priorToShiftMode = subMode;
-                            subMode = Mode::PUNCT_SHIFT;
+                            subMode = Mode::PunctShift;
                         }
                         MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
                             result.append_char(char::from_u32(byteCompactionData[i]).unwrap())
                         }
                         TEXT_COMPACTION_MODE_LATCH => {
-                            subMode = Mode::ALPHA;
+                            subMode = Mode::Alpha;
                             latchedMode = subMode;
                         }
                         _ => {}
@@ -488,7 +489,7 @@ fn decodeTextCompaction(
                 }
             }
 
-            Mode::LOWER =>
+            Mode::Lower =>
             // Lower (lowercase alphabetic)
             {
                 if subModeCh < 26 {
@@ -499,22 +500,22 @@ fn decodeTextCompaction(
                         AS => {
                             // Shift to alpha
                             priorToShiftMode = subMode;
-                            subMode = Mode::ALPHA_SHIFT;
+                            subMode = Mode::AlphaShift;
                         }
                         ML => {
-                            subMode = Mode::MIXED;
+                            subMode = Mode::Mixed;
                             latchedMode = subMode;
                         }
                         PS => {
                             // Shift to punctuation
                             priorToShiftMode = subMode;
-                            subMode = Mode::PUNCT_SHIFT;
+                            subMode = Mode::PunctShift;
                         }
                         MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
                             result.append_char(char::from_u32(byteCompactionData[i]).unwrap())
                         }
                         TEXT_COMPACTION_MODE_LATCH => {
-                            subMode = Mode::ALPHA;
+                            subMode = Mode::Alpha;
                             latchedMode = subMode;
                         }
                         _ => {}
@@ -522,7 +523,7 @@ fn decodeTextCompaction(
                 }
             }
 
-            Mode::MIXED =>
+            Mode::Mixed =>
             // Mixed (numeric and some punctuation)
             {
                 if subModeCh < PL {
@@ -530,22 +531,22 @@ fn decodeTextCompaction(
                 } else {
                     match subModeCh {
                         PL => {
-                            subMode = Mode::PUNCT;
+                            subMode = Mode::Punct;
                             latchedMode = subMode;
                         }
                         26 => ch = ' ',
                         LL => {
-                            subMode = Mode::LOWER;
+                            subMode = Mode::Lower;
                             latchedMode = subMode;
                         }
                         AL | TEXT_COMPACTION_MODE_LATCH => {
-                            subMode = Mode::ALPHA;
+                            subMode = Mode::Alpha;
                             latchedMode = subMode;
                         }
                         PS => {
                             // Shift to punctuation
                             priorToShiftMode = subMode;
-                            subMode = Mode::PUNCT_SHIFT;
+                            subMode = Mode::PunctShift;
                         }
                         MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
                             result.append_char(char::from_u32(byteCompactionData[i]).unwrap())
@@ -555,7 +556,7 @@ fn decodeTextCompaction(
                 }
             }
 
-            Mode::PUNCT =>
+            Mode::Punct =>
             // Punctuation
             {
                 if subModeCh < PAL {
@@ -563,7 +564,7 @@ fn decodeTextCompaction(
                 } else {
                     match subModeCh {
                         PAL | TEXT_COMPACTION_MODE_LATCH => {
-                            subMode = Mode::ALPHA;
+                            subMode = Mode::Alpha;
                             latchedMode = subMode;
                         }
                         MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
@@ -574,7 +575,7 @@ fn decodeTextCompaction(
                 }
             }
 
-            Mode::ALPHA_SHIFT => {
+            Mode::AlphaShift => {
                 // Restore sub-mode
                 subMode = priorToShiftMode;
                 if subModeCh < 26 {
@@ -582,20 +583,20 @@ fn decodeTextCompaction(
                 } else {
                     match subModeCh {
                         26 => ch = ' ',
-                        TEXT_COMPACTION_MODE_LATCH => subMode = Mode::ALPHA,
+                        TEXT_COMPACTION_MODE_LATCH => subMode = Mode::Alpha,
                         _ => {}
                     }
                 }
             }
 
-            Mode::PUNCT_SHIFT => {
+            Mode::PunctShift => {
                 // Restore sub-mode
                 subMode = priorToShiftMode;
                 if subModeCh < PAL {
                     ch = PUNCT_CHARS[subModeCh as usize];
                 } else {
                     match subModeCh {
-                        PAL | TEXT_COMPACTION_MODE_LATCH => subMode = Mode::ALPHA,
+                        PAL | TEXT_COMPACTION_MODE_LATCH => subMode = Mode::Alpha,
                         MODE_SHIFT_TO_BYTE_COMPACTION_MODE =>
                         // PS before Shift-to-Byte is used as a padding character,
                         // see 5.4.2.4 of the specification
@@ -613,7 +614,7 @@ fn decodeTextCompaction(
         }
         i += 1;
     }
-    return latchedMode;
+    latchedMode
 }
 
 /**
@@ -802,8 +803,8 @@ fn decodeBase900toBase10(codewords: &[u32], count: usize) -> Result<String, Exce
         // result = result.add(EXP900[count - i - 1].multiply(BigInteger.valueOf(codewords[i])));
     }
     let resultString = result.to_string();
-    if resultString.chars().nth(0).unwrap() != '1' {
-        return Err(Exceptions::FormatException("".to_owned()));
+    if !resultString.starts_with('1') {
+        return Err(Exceptions::FormatException(None));
     }
     Ok(resultString[1..].to_owned())
 }

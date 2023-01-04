@@ -54,12 +54,11 @@ pub trait OneDReader: Reader {
 
         let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
         let rowStep = 1.max(height >> (if tryHarder { 8 } else { 5 }));
-        let maxLines;
-        if tryHarder {
-            maxLines = height; // Look at the whole image, not just the center
+        let maxLines = if tryHarder {
+            height // Look at the whole image, not just the center
         } else {
-            maxLines = 15; // 15 rows spaced 1/32 apart is roughly the middle half of the image
-        }
+            15 // 15 rows spaced 1/32 apart is roughly the middle half of the image
+        };
 
         let middle = height / 2;
         for x in 0..maxLines {
@@ -143,7 +142,7 @@ pub trait OneDReader: Reader {
             }
         }
 
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        Err(Exceptions::NotFoundException(None))
     }
 
     /**
@@ -193,7 +192,7 @@ pub fn patternMatchVariance(counters: &[u32], pattern: &[u32], maxIndividualVari
     }
 
     let unitBarWidth = total / patternLength as f32;
-    maxIndividualVariance *= unitBarWidth as f32;
+    maxIndividualVariance *= unitBarWidth;
 
     let mut totalVariance = 0.0;
     for x in 0..numCounters {
@@ -210,7 +209,7 @@ pub fn patternMatchVariance(counters: &[u32], pattern: &[u32], maxIndividualVari
         }
         totalVariance += variance;
     }
-    return totalVariance / total;
+    totalVariance / total
 }
 
 /**
@@ -232,7 +231,7 @@ pub fn recordPattern(row: &BitArray, start: usize, counters: &mut [u32]) -> Resu
     counters.fill(0);
     let end = row.getSize();
     if start >= end {
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        return Err(Exceptions::NotFoundException(None));
     }
     let mut isWhite = !row.get(start);
     let mut counterPosition = 0;
@@ -254,7 +253,7 @@ pub fn recordPattern(row: &BitArray, start: usize, counters: &mut [u32]) -> Resu
     // If we read fully the last section of pixels and filled up our counters -- or filled
     // the last counter but ran off the side of the image, OK. Otherwise, a problem.
     if !(counterPosition == numCounters || (counterPosition == numCounters - 1 && i == end)) {
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        return Err(Exceptions::NotFoundException(None));
     }
     Ok(())
 }
@@ -276,7 +275,7 @@ pub fn recordPatternInReverse(
         }
     }
     if numTransitionsLeft >= 0 {
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        return Err(Exceptions::NotFoundException(None));
     }
     recordPattern(row, start + 1, counters)?;
 

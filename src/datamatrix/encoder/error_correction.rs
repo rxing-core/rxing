@@ -152,9 +152,9 @@ const ALOG: [u32; 255] = {
  */
 pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String, Exceptions> {
     if codewords.chars().count() != symbolInfo.getDataCapacity() as usize {
-        return Err(Exceptions::IllegalArgumentException(
+        return Err(Exceptions::IllegalArgumentException(Some(
             "The number of codewords does not match the selected symbol".to_owned(),
-        ));
+        )));
     }
     let mut sb = String::with_capacity(
         (symbolInfo.getDataCapacity() + symbolInfo.getErrorCodewords()) as usize,
@@ -171,7 +171,7 @@ pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String, 
         for i in 0..blockCount {
             // for (int i = 0; i < blockCount; i++) {
             dataSizes[i] = symbolInfo.getDataLengthForInterleavedBlock(i as u32 + 1) as u32;
-            errorSizes[i] = symbolInfo.getErrorLengthForInterleavedBlock(i as u32 + 1) as u32;
+            errorSizes[i] = symbolInfo.getErrorLengthForInterleavedBlock(i as u32 + 1);
         }
         for block in 0..blockCount {
             // for (int block = 0; block < blockCount; block++) {
@@ -186,7 +186,7 @@ pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String, 
             let ecc = createECCBlock(&temp, errorSizes[block] as usize)?;
             let mut pos = 0;
             let mut e = block;
-            while e < errorSizes[block] as usize * blockCount as usize {
+            while e < errorSizes[block] as usize * blockCount {
                 // for (int e = block; e < errorSizes[block] * blockCount; e += blockCount) {
                 let (char_index, replace_char) = sb
                     .char_indices()
@@ -209,18 +209,19 @@ pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String, 
 
 fn createECCBlock(codewords: &str, numECWords: usize) -> Result<String, Exceptions> {
     let mut table = -1_isize;
-    for i in 0..FACTOR_SETS.len() {
+    for (i, set) in FACTOR_SETS.iter().enumerate() {
+        // for i in 0..FACTOR_SETS.len() {
         // for (int i = 0; i < FACTOR_SETS.length; i++) {
-        if FACTOR_SETS[i] as usize == numECWords {
+        if set == &(numECWords as u32) {
             table = i as isize;
             break;
         }
     }
     if table < 0 {
-        return Err(Exceptions::IllegalArgumentException(format!(
+        return Err(Exceptions::IllegalArgumentException(Some(format!(
             "Illegal number of error correction codewords specified: {}",
             numECWords
-        )));
+        ))));
     }
     let poly = &FACTORS[table as usize];
     let mut ecc = vec![0 as char; numECWords];

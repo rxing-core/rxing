@@ -38,9 +38,9 @@ const DECODER_TEST_ITERATIONS: i32 = 10;
 fn test_data_matrix() {
     let dm256 = super::get_predefined_genericgf(super::PredefinedGenericGF::DataMatrixField256);
     // real life test cases
-    test_encode_decode(&dm256, &vec![142, 164, 186], &vec![114, 25, 5, 88, 102]);
+    test_encode_decode(dm256, &vec![142, 164, 186], &vec![114, 25, 5, 88, 102]);
     test_encode_decode(
-        &dm256,
+        dm256,
         &vec![
             0x69, 0x75, 0x75, 0x71, 0x3B, 0x30, 0x30, 0x64, 0x70, 0x65, 0x66, 0x2F, 0x68, 0x70,
             0x70, 0x68, 0x6D, 0x66, 0x2F, 0x64, 0x70, 0x6E, 0x30, 0x71, 0x30, 0x7B, 0x79, 0x6A,
@@ -62,7 +62,7 @@ fn test_qr_code() {
     let qrcf256 = super::get_predefined_genericgf(super::PredefinedGenericGF::QrCodeField256);
     // Test case from example given in ISO 18004, Annex I
     test_encode_decode(
-        &qrcf256,
+        qrcf256,
         &vec![
             0x10, 0x20, 0x0C, 0x56, 0x61, 0x80, 0xEC, 0x11, 0xEC, 0x11, 0xEC, 0x11, 0xEC, 0x11,
             0xEC, 0x11,
@@ -70,7 +70,7 @@ fn test_qr_code() {
         &vec![0xA5, 0x24, 0xD4, 0xC1, 0xED, 0x36, 0xC7, 0x87, 0x2C, 0x55],
     );
     test_encode_decode(
-        &qrcf256,
+        qrcf256,
         &vec![
             0x72, 0x67, 0x2F, 0x77, 0x69, 0x6B, 0x69, 0x2F, 0x4D, 0x61, 0x69, 0x6E, 0x5F, 0x50,
             0x61, 0x67, 0x65, 0x3B, 0x3B, 0x00, 0xEC, 0x11, 0xEC, 0x11, 0xEC, 0x11, 0xEC, 0x11,
@@ -92,28 +92,28 @@ fn test_qr_code() {
 fn test_aztec() {
     // real life test cases
     test_encode_decode(
-        &super::get_predefined_genericgf(super::PredefinedGenericGF::AztecParam),
+        super::get_predefined_genericgf(super::PredefinedGenericGF::AztecParam),
         &vec![0x5, 0x6],
         &vec![0x3, 0x2, 0xB, 0xB, 0x7],
     );
     test_encode_decode(
-        &super::get_predefined_genericgf(super::PredefinedGenericGF::AztecParam),
+        super::get_predefined_genericgf(super::PredefinedGenericGF::AztecParam),
         &vec![0x0, 0x0, 0x0, 0x9],
         &vec![0xA, 0xD, 0x8, 0x6, 0x5, 0x6],
     );
     test_encode_decode(
-        &super::get_predefined_genericgf(super::PredefinedGenericGF::AztecParam),
+        super::get_predefined_genericgf(super::PredefinedGenericGF::AztecParam),
         &vec![0x2, 0x8, 0x8, 0x7],
         &vec![0xE, 0xC, 0xA, 0x9, 0x6, 0x8],
     );
     test_encode_decode(
-        &super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData6),
+        super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData6),
         &vec![0x9, 0x32, 0x1, 0x29, 0x2F, 0x2, 0x27, 0x25, 0x1, 0x1B],
         &vec![0x2C, 0x2, 0xD, 0xD, 0xA, 0x16, 0x28, 0x9, 0x22, 0xA, 0x14],
     );
 
     test_encode_decode(
-        &super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData8),
+        super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData8),
         &vec![
             0xE0, 0x86, 0x42, 0x98, 0xE8, 0x4A, 0x96, 0xC6, 0xB9, 0xF0, 0x8C, 0xA7, 0x4A, 0xDA,
             0xF8, 0xCE, 0xB7, 0xDE, 0x88, 0x64, 0x29, 0x8E, 0x84, 0xA9, 0x6C, 0x6B, 0x9F, 0x08,
@@ -129,7 +129,7 @@ fn test_aztec() {
         ],
     );
     test_encode_decode(
-        &super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData10),
+        super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData10),
         &vec![
             0x15C, 0x1E1, 0x2D5, 0x02E, 0x048, 0x1E2, 0x037, 0x0CD, 0x02E, 0x056, 0x26A, 0x281,
             0x1C2, 0x1A6, 0x296, 0x045, 0x041, 0x0AA, 0x095, 0x2CE, 0x003, 0x38F, 0x2CD, 0x1A2,
@@ -176,7 +176,7 @@ fn test_aztec() {
         ],
     );
     test_encode_decode(
-        &super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData12),
+        super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData12),
         &vec![
             0x571, 0xE1B, 0x542, 0xE12, 0x1E2, 0x0DC, 0xCD0, 0xB85, 0x69A, 0xA81, 0x709, 0xA6A,
             0x584, 0x510, 0x4AA, 0x256, 0xCE0, 0x0F8, 0xFB3, 0x5A2, 0x0D9, 0xAD1, 0x389, 0x09C,
@@ -432,7 +432,7 @@ fn test_encode_decode_random(field: GenericGFRef, dataSize: usize, ecSize: usize
         ecWords[0..ecSize].clone_from_slice(&message[dataSize..dataSize + ecSize]);
         //System.arraycopy(message, dataSize, ecWords, 0, ecSize);
         // check to see if Decoder can fix up to ecWords/2 random errors
-        test_decoder(&field, &dataWords, &ecWords);
+        test_decoder(field, &dataWords, &ecWords);
     }
 }
 
@@ -536,7 +536,7 @@ fn test_decoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
                         ecWords.len(),
                         i
                     ),
-                    &dataWords,
+                    dataWords,
                     &message,
                 );
             }
@@ -545,7 +545,7 @@ fn test_decoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
     }
 }
 
-fn assert_data_equals(message: String, expected: &Vec<i32>, received: &Vec<i32>) {
+fn assert_data_equals(message: String, expected: &Vec<i32>, received: &[i32]) {
     for i in 0..expected.len() {
         //for (int i = 0; i < expected.length; i++) {
         if expected[i] != received[i] {
@@ -553,7 +553,7 @@ fn assert_data_equals(message: String, expected: &Vec<i32>, received: &Vec<i32>)
                 "{}. Mismatch at {}. Expected {}, got {}",
                 message,
                 i,
-                array_to_string(&expected),
+                array_to_string(expected),
                 array_to_string(&received[0..expected.len()])
             );
             //fail();
@@ -563,12 +563,12 @@ fn assert_data_equals(message: String, expected: &Vec<i32>, received: &Vec<i32>)
 
 fn array_to_string(data: &[i32]) -> String {
     let mut sb = String::from("{");
-    for i in 0..data.len() {
+    for dtm in data.iter() {
         //for (int i = 0; i < data.length; i++) {
         //sb.append(String.format(i > 0 ? ",%X" : "%X", data[i]));
-        sb.push_str(&format!("{}", data[i]));
+        sb.push_str(&format!("{}", *dtm));
     }
-    sb.push_str("}");
+    sb.push('}');
 
     sb
 }

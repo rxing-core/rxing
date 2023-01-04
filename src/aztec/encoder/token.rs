@@ -115,3 +115,9 @@ impl IntoIterator for Token {
 
 //     fn appendTo(&self, bitArray: BitArray, text: &[u8]);
 // }
+
+impl Default for Token {
+    fn default() -> Self {
+        Self::new()
+    }
+}

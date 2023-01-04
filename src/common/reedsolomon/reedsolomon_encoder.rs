@@ -45,10 +45,7 @@ impl ReedSolomonEncoder {
 
     fn buildGenerator(&mut self, degree: usize) -> &GenericGFPoly {
         if degree >= self.cachedGenerators.len() {
-            let mut lastGenerator = self
-                .cachedGenerators
-                .get(self.cachedGenerators.len() - 1)
-                .unwrap();
+            let mut lastGenerator = self.cachedGenerators.last().unwrap();
             let cg_len = self.cachedGenerators.len();
             let mut nextGenerator;
             for d in cg_len..=degree {
@@ -71,20 +68,20 @@ impl ReedSolomonEncoder {
             }
         }
         let rv = self.cachedGenerators.get(degree).unwrap();
-        return rv;
+        rv
     }
 
     pub fn encode(&mut self, to_encode: &mut Vec<i32>, ec_bytes: usize) -> Result<(), Exceptions> {
         if ec_bytes == 0 {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "No error correction bytes".to_owned(),
-            ));
+            )));
         }
         let data_bytes = to_encode.len() - ec_bytes;
         if data_bytes == 0 {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "No data bytes provided".to_owned(),
-            ));
+            )));
         }
         let fld = self.field;
         let generator = self.buildGenerator(ec_bytes);
@@ -93,7 +90,7 @@ impl ReedSolomonEncoder {
         //System.arraycopy(toEncode, 0, infoCoefficients, 0, dataBytes);
         let mut info = GenericGFPoly::new(fld, &info_coefficients)?;
         info = info.multiply_by_monomial(ec_bytes, 1)?;
-        let remainder = &info.divide(&generator)?.1;
+        let remainder = &info.divide(generator)?.1;
         let coefficients = remainder.getCoefficients();
         let num_zero_coefficients = ec_bytes - coefficients.len();
         for i in 0..num_zero_coefficients {

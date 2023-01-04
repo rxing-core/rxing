@@ -50,7 +50,7 @@ impl Decoder {
      * @throws ChecksumException if error correction fails
      */
     pub fn decode_bools(&self, image: &Vec<Vec<bool>>) -> Result<DecoderRXingResult, Exceptions> {
-        self.decode(&BitMatrix::parse_bools(&image))
+        self.decode(&BitMatrix::parse_bools(image))
     }
 
     /**
@@ -72,7 +72,7 @@ impl Decoder {
         let version = parser.getVersion();
 
         // Separate into data blocks
-        let dataBlocks = DataBlock::getDataBlocks(&codewords, &version)?;
+        let dataBlocks = DataBlock::getDataBlocks(&codewords, version)?;
 
         // Count total number of data bytes
         let mut totalBytes = 0;
@@ -138,5 +138,11 @@ impl Decoder {
         }
         // codewordsInts.into_iter().take(numDataCodewords as usize).map(|x| x as u8).collect::<Vec<u8>>()
         Ok(())
+    }
+}
+
+impl Default for Decoder {
+    fn default() -> Self {
+        Self::new()
     }
 }

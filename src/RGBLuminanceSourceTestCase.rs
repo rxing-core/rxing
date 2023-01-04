@@ -32,7 +32,7 @@ const SRC_DATA: [u32; 9] = [
 
 #[test]
 fn testCrop() {
-    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3, 3, &SRC_DATA.to_vec());
+    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3, 3, SRC_DATA.as_ref());
 
     assert!(SOURCE.isCropSupported());
     let cropped = SOURCE.crop(1, 1, 1, 1).unwrap();
@@ -43,7 +43,7 @@ fn testCrop() {
 
 #[test]
 fn testMatrix() {
-    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3, 3, &SRC_DATA.to_vec());
+    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3, 3, SRC_DATA.as_ref());
 
     assert_eq!(
         vec![0x00, 0x7F, 0xFF, 0x3F, 0x7F, 0x3F, 0x3F, 0x7F, 0x3F],
@@ -60,7 +60,7 @@ fn testMatrix() {
 
 #[test]
 fn testGetRow() {
-    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3, 3, &SRC_DATA.to_vec());
+    let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3, 3, SRC_DATA.as_ref());
 
     assert_eq!(vec![0x3F, 0x7F, 0x3F], SOURCE.getRow(2));
 }

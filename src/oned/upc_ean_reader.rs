@@ -203,16 +203,16 @@ pub trait UPCEANReader: OneDReader {
         let end = endRange[1];
         let quietEnd = end + (end - endRange[0]);
         if quietEnd >= row.getSize() || !row.isRange(end, quietEnd, false)? {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         let resultString = result;
         // UPC/EAN should never be less than 8 chars anyway
         if resultString.chars().count() < 8 {
-            return Err(Exceptions::FormatException("".to_owned()));
+            return Err(Exceptions::FormatException(None));
         }
         if !self.checkChecksum(&resultString)? {
-            return Err(Exceptions::ChecksumException("".to_owned()));
+            return Err(Exceptions::ChecksumException(None));
         }
 
         let left = (startGuardRange[1] + startGuardRange[0]) as f32 / 2.0;
@@ -273,7 +273,7 @@ pub trait UPCEANReader: OneDReader {
                 }
             }
             if !valid {
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                return Err(Exceptions::NotFoundException(None));
             }
         }
         // let allowedExtensions =
@@ -287,7 +287,7 @@ pub trait UPCEANReader: OneDReader {
         //     }
         //   }
         //   if (!valid) {
-        //     return Err(Exceptions::NotFoundException("".to_owned()));
+        //     return Err(Exceptions::NotFoundException(None));
         //   }
         // }
 
@@ -335,7 +335,7 @@ pub trait UPCEANReader: OneDReader {
             return Ok(false);
         }
         let char_in_question = s.chars().nth(length - 1).unwrap();
-        let check = char_in_question.is_digit(10);
+        let check = char_in_question.is_ascii_digit();
         // let check = Character.digit(s.charAt(length - 1), 10);
 
         let check_against = &s[..length - 1]; //s.subSequence(0, length - 1);
@@ -356,8 +356,8 @@ pub trait UPCEANReader: OneDReader {
         while i >= 0 {
             // for (int i = length - 1; i >= 0; i -= 2) {
             let digit = (s.chars().nth(i as usize).unwrap() as i32) - ('0' as i32);
-            if digit < 0 || digit > 9 {
-                return Err(Exceptions::FormatException("".to_owned()));
+            if !(0..=9).contains(&digit) {
+                return Err(Exceptions::FormatException(None));
             }
             sum += digit;
 
@@ -368,8 +368,8 @@ pub trait UPCEANReader: OneDReader {
         while i >= 0 {
             // for (int i = length - 2; i >= 0; i -= 2) {
             let digit = (s.chars().nth(i as usize).unwrap() as i32) - ('0' as i32);
-            if digit < 0 || digit > 9 {
-                return Err(Exceptions::FormatException("".to_owned()));
+            if !(0..=9).contains(&digit) {
+                return Err(Exceptions::FormatException(None));
             }
             sum += digit;
 
@@ -456,7 +456,7 @@ pub trait UPCEANReader: OneDReader {
             }
         }
 
-        Err(Exceptions::NotFoundException("".to_owned()))
+        Err(Exceptions::NotFoundException(None))
     }
 
     /**
@@ -482,9 +482,8 @@ pub trait UPCEANReader: OneDReader {
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
         let max = patterns.len();
-        for i in 0..max {
+        for (i, pattern) in patterns.iter().enumerate().take(max) {
             // for (int i = 0; i < max; i++) {
-            let pattern = &patterns[i];
             let variance: f32 =
                 one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
@@ -495,7 +494,7 @@ pub trait UPCEANReader: OneDReader {
         if bestMatch >= 0 {
             Ok(bestMatch as usize)
         } else {
-            Err(Exceptions::NotFoundException("".to_owned()))
+            Err(Exceptions::NotFoundException(None))
         }
     }
 

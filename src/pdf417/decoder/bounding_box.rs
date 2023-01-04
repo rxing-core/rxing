@@ -44,7 +44,7 @@ impl BoundingBox {
         let leftUnspecified = topLeft.is_none() || bottomLeft.is_none();
         let rightUnspecified = topRight.is_none() || bottomRight.is_none();
         if leftUnspecified && rightUnspecified {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         let newTopLeft;

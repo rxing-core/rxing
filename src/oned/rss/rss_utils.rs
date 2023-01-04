@@ -64,13 +64,15 @@ pub fn getRSSvalue(widths: &[u32], maxWidth: u32, noNarrow: bool) -> u32 {
         }
         n -= elmWidth;
     }
-    return val;
+    val
 }
 
 fn combins(n: u32, r: u32) -> u32 {
     let maxDenom;
     let minDenom;
-    if n - r > r {
+
+    // if n - r > r {
+    if n.checked_sub(r).is_none() {
         minDenom = r;
         maxDenom = n - r;
     } else {

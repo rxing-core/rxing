@@ -55,8 +55,8 @@ impl MonochromeRectangleDetector {
         let width = self.image.getWidth() as i32;
         let halfHeight = height / 2;
         let halfWidth = width / 2;
-        let deltaY = 1.max(height as i32 / (MAX_MODULES * 8));
-        let deltaX = 1.max(width as i32 / (MAX_MODULES * 8));
+        let deltaY = 1.max(height / (MAX_MODULES * 8));
+        let deltaX = 1.max(width / (MAX_MODULES * 8));
 
         let mut top = 0;
         let mut bottom = height;
@@ -124,7 +124,7 @@ impl MonochromeRectangleDetector {
             halfWidth / 4,
         )?;
 
-        return Ok(vec![pointA, pointB, pointC, pointD]);
+        Ok(vec![pointA, pointB, pointC, pointD])
     }
 
     /**
@@ -161,14 +161,13 @@ impl MonochromeRectangleDetector {
         let mut y: i32 = centerY;
         let mut x: i32 = centerX;
         while y < bottom && y >= top && x < right && x >= left {
-            let range: Option<Vec<i32>>;
-            if deltaX == 0 {
+            let range: Option<Vec<i32>> = if deltaX == 0 {
                 // horizontal slices, up and down
-                range = self.blackWhiteRange(y, maxWhiteRun, left, right, true);
+                self.blackWhiteRange(y, maxWhiteRun, left, right, true)
             } else {
                 // vertical slices, left and right
-                range = self.blackWhiteRange(x, maxWhiteRun, top, bottom, false);
-            }
+                self.blackWhiteRange(x, maxWhiteRun, top, bottom, false)
+            };
             if range.is_none() {
                 if let Some(lastRange) = lastRange_z {
                     // lastRange was found
@@ -178,7 +177,7 @@ impl MonochromeRectangleDetector {
                             if lastRange[1] > centerX {
                                 // straddle, choose one or the other based on direction
                                 return Ok(RXingResultPoint::new(
-                                    lastRange[if deltaY > 0 { 0 } else { 1 }] as f32,
+                                    lastRange[usize::from(deltaY <= 0)] as f32,
                                     lastY as f32,
                                 ));
                             }
@@ -192,7 +191,7 @@ impl MonochromeRectangleDetector {
                             if lastRange[1] > centerY {
                                 return Ok(RXingResultPoint::new(
                                     lastX as f32,
-                                    lastRange[if deltaX < 0 { 0 } else { 1 }] as f32,
+                                    lastRange[usize::from(deltaX >= 0)] as f32,
                                 ));
                             }
                             return Ok(RXingResultPoint::new(lastX as f32, lastRange[0] as f32));
@@ -202,13 +201,13 @@ impl MonochromeRectangleDetector {
                     }
                 }
             } else {
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                return Err(Exceptions::NotFoundException(None));
             }
             lastRange_z = range;
             y += deltaY;
             x += deltaX
         }
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        Err(Exceptions::NotFoundException(None))
     }
 
     /**
@@ -243,10 +242,10 @@ impl MonochromeRectangleDetector {
             } else {
                 self.image.get(fixedDimension as u32, start as u32)
             } {
-                start = start - 1;
+                start -= 1;
             } else {
                 let whiteRunStart = start;
-                start = start - 1;
+                start -= 1;
                 while start >= minDim
                     && !(if horizontal {
                         self.image.get(start as u32, fixedDimension as u32)
@@ -254,7 +253,7 @@ impl MonochromeRectangleDetector {
                         self.image.get(fixedDimension as u32, start as u32)
                     })
                 {
-                    start = start - 1;
+                    start -= 1;
                 }
                 let whiteRunSize = whiteRunStart - start;
                 if start < minDim || whiteRunSize > maxWhiteRun {
@@ -263,7 +262,7 @@ impl MonochromeRectangleDetector {
                 }
             }
         }
-        start = start + 1;
+        start += 1;
 
         // Then try right/down
         let mut end = center;
@@ -273,10 +272,10 @@ impl MonochromeRectangleDetector {
             } else {
                 self.image.get(fixedDimension as u32, end as u32)
             } {
-                end = end + 1;
+                end += 1;
             } else {
                 let whiteRunStart = end;
-                end = end + 1;
+                end += 1;
                 while end < maxDim
                     && !(if horizontal {
                         self.image.get(end as u32, fixedDimension as u32)
@@ -284,7 +283,7 @@ impl MonochromeRectangleDetector {
                         self.image.get(fixedDimension as u32, end as u32)
                     })
                 {
-                    end = end + 1;
+                    end += 1;
                 }
                 let whiteRunSize = end - whiteRunStart;
                 if end >= maxDim || whiteRunSize > maxWhiteRun {
@@ -293,12 +292,12 @@ impl MonochromeRectangleDetector {
                 }
             }
         }
-        end = end - 1;
+        end -= 1;
 
-        return if end > start {
+        if end > start {
             Some(vec![start, end])
         } else {
             None
-        };
+        }
     }
 }

@@ -49,7 +49,7 @@ const _MAX_ERASURES: usize = ERROR_LIMIT;
 
 #[test]
 fn testNoError() {
-    let mut received = PDF417_TEST_WITH_EC.clone();
+    let mut received = PDF417_TEST_WITH_EC;
     // no errors
     checkDecode(&mut received).expect("ok");
 }
@@ -58,7 +58,7 @@ fn testNoError() {
 fn testExplicitError() {
     for i in 0..PDF417_TEST_WITH_EC.len() {
         // for (int i = 0; i < PDF417_TEST_WITH_EC.length; i++) {
-        let mut received = PDF417_TEST_WITH_EC.clone();
+        let mut received = PDF417_TEST_WITH_EC;
         received[i] = 610; //random.gen_range(0..256);// random.nextInt(256);
         checkDecode(&mut received).expect("ok");
     }
@@ -69,7 +69,7 @@ fn testOneError() {
     let mut random = getRandom();
     for i in 0..PDF417_TEST_WITH_EC.len() {
         // for (int i = 0; i < PDF417_TEST_WITH_EC.length; i++) {
-        let mut received = PDF417_TEST_WITH_EC.clone();
+        let mut received = PDF417_TEST_WITH_EC;
         received[i] = random.gen_range(0..256); //random.gen_range(0..256);// random.nextInt(256);
         checkDecode(&mut received).expect("ok");
     }
@@ -80,7 +80,7 @@ fn testMaxErrors() {
     let mut random = getRandom();
     for _testIterations in 0..100 {
         // for (int testIterations = 0; testIterations < 100; testIterations++) { // # iterations is kind of arbitrary
-        let mut received = PDF417_TEST_WITH_EC.clone();
+        let mut received = PDF417_TEST_WITH_EC;
         corrupt(&mut received, MAX_ERRORS as u32, &mut random);
         checkDecode(&mut received).expect("ok");
     }
@@ -88,7 +88,7 @@ fn testMaxErrors() {
 
 #[test]
 fn testTooManyErrors() {
-    let mut received = PDF417_TEST_WITH_EC.clone();
+    let mut received = PDF417_TEST_WITH_EC;
     let mut random = getRandom();
     corrupt(&mut received, MAX_ERRORS as u32 + 1, &mut random);
     // try {

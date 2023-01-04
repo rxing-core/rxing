@@ -39,7 +39,7 @@ impl AI01decoder for AI01393xDecoder<'_> {}
 impl AbstractExpandedDecoder for AI01393xDecoder<'_> {
     fn parseInformation(&mut self) -> Result<String, crate::Exceptions> {
         if self.information.getSize() < Self::HEADER_SIZE + Self::GTIN_SIZE as usize {
-            return Err(crate::Exceptions::NotFoundException("".to_owned()));
+            return Err(crate::Exceptions::NotFoundException(None));
         }
 
         let mut buf = String::new();
@@ -74,7 +74,7 @@ impl AbstractExpandedDecoder for AI01393xDecoder<'_> {
                 + Self::FIRST_THREE_DIGITS_SIZE,
             "",
         )?;
-        buf.push_str(&generalInformation.getNewString());
+        buf.push_str(generalInformation.getNewString());
 
         Ok(buf)
     }

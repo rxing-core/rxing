@@ -149,7 +149,7 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String, Excep
     // Processing 2-digit AIs
 
     if rawInformation.chars().count() < 2 {
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        return Err(Exceptions::NotFoundException(None));
     }
 
     let lookup: String = rawInformation.chars().take(2).collect();
@@ -162,7 +162,7 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String, Excep
     }
 
     if rawInformation.chars().count() < 3 {
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        return Err(Exceptions::NotFoundException(None));
     }
 
     let firstThreeDigits: String = rawInformation.chars().take(3).collect(); //rawInformation.substring(0, 3);
@@ -175,7 +175,7 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String, Excep
     }
 
     if rawInformation.chars().count() < 4 {
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        return Err(Exceptions::NotFoundException(None));
     }
 
     let threeDigitPlusDigitDataLength = THREE_DIGIT_PLUS_DIGIT_DATA_LENGTH.get(&firstThreeDigits);
@@ -195,7 +195,7 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String, Excep
         return processFixedAI(4, ffdl.length, rawInformation);
     }
 
-    return Err(Exceptions::NotFoundException("".to_owned()));
+    Err(Exceptions::NotFoundException(None))
 }
 
 fn processFixedAI(
@@ -204,13 +204,13 @@ fn processFixedAI(
     rawInformation: &str,
 ) -> Result<String, Exceptions> {
     if rawInformation.chars().count() < aiSize {
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        return Err(Exceptions::NotFoundException(None));
     }
 
     let ai: String = rawInformation.chars().take(aiSize).collect();
 
     if rawInformation.chars().count() < aiSize + fieldSize {
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        return Err(Exceptions::NotFoundException(None));
     }
 
     let field: String = rawInformation
@@ -234,16 +234,12 @@ fn processVariableAI(
     variableFieldSize: usize,
     rawInformation: &str,
 ) -> Result<String, Exceptions> {
-    let ai: String = rawInformation.chars().take(aiSize as usize).collect(); //rawInformation.substring(0, aiSize);
+    let ai: String = rawInformation.chars().take(aiSize).collect(); //rawInformation.substring(0, aiSize);
     let maxSize = rawInformation
         .chars()
         .count()
         .min(aiSize + variableFieldSize);
-    let field: String = rawInformation
-        .chars()
-        .skip(aiSize as usize)
-        .take(maxSize)
-        .collect(); // (aiSize, maxSize);
+    let field: String = rawInformation.chars().skip(aiSize).take(maxSize).collect(); // (aiSize, maxSize);
     let remaining: String = rawInformation.chars().skip(maxSize).collect();
     let result = format!("({}){}", ai, field); //'(' + ai + ')' + field;
     let parsedAI = parseFieldsInGeneralPurpose(&remaining)?;
@@ -287,7 +283,7 @@ impl DataLength {
 mod FieldParserTest {
 
     fn checkFields(expected: &str) {
-        let field = expected.replace("(", "").replace(")", "");
+        let field = expected.replace(['(', ')'], "");
         let actual = super::parseFieldsInGeneralPurpose(&field).expect("parse");
         assert_eq!(expected, actual);
     }

@@ -28,7 +28,7 @@ use super::{upc_ean_reader, OneDimensionalCodeWriter, UPCEANWriter};
  *
  * @author aripollak@gmail.com (Ari Pollak)
  */
-#[derive(OneDWriter)]
+#[derive(OneDWriter, Default)]
 pub struct EAN8Writer;
 
 const CODE_WIDTH: usize = 3 + // start guard
@@ -37,11 +37,6 @@ const CODE_WIDTH: usize = 3 + // start guard
       (7 * 4) + // right bars
       3; // end guard
 
-impl Default for EAN8Writer {
-    fn default() -> Self {
-        Self {}
-    }
-}
 impl UPCEANWriter for EAN8Writer {}
 impl OneDimensionalCodeWriter for EAN8Writer {
     /**
@@ -66,19 +61,19 @@ impl OneDimensionalCodeWriter for EAN8Writer {
             // try {
             {
                 if !EAN8Reader.checkStandardUPCEANChecksum(&contents)? {
-                    return Err(Exceptions::IllegalArgumentException(
+                    return Err(Exceptions::IllegalArgumentException(Some(
                         "Contents do not pass checksum".to_owned(),
-                    ));
+                    )));
                 }
             }
             // } catch (FormatException ignored) {
             //   throw new IllegalArgumentException("Illegal contents");
             // }},
             _ => {
-                return Err(Exceptions::IllegalArgumentException(format!(
+                return Err(Exceptions::IllegalArgumentException(Some(format!(
                     "Requested contents should be 7 or 8 digits long, but got {}",
                     length
-                )))
+                ))))
             }
         }
 

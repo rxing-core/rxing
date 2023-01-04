@@ -71,7 +71,7 @@ pub trait LuminanceSource {
      * @return Whether this subclass supports cropping.
      */
     fn isCropSupported(&self) -> bool {
-        return false;
+        false
     }
 
     /**
@@ -91,16 +91,16 @@ pub trait LuminanceSource {
         _width: usize,
         _height: usize,
     ) -> Result<Box<dyn LuminanceSource>, Exceptions> {
-        return Err(Exceptions::UnsupportedOperationException(
+        Err(Exceptions::UnsupportedOperationException(Some(
             "This luminance source does not support cropping.".to_owned(),
-        ));
+        )))
     }
 
     /**
      * @return Whether this subclass supports counter-clockwise rotation.
      */
     fn isRotateSupported(&self) -> bool {
-        return false;
+        false
     }
 
     /**
@@ -118,9 +118,9 @@ pub trait LuminanceSource {
      * @return A rotated version of this object.
      */
     fn rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>, Exceptions> {
-        return Err(Exceptions::UnsupportedOperationException(
+        Err(Exceptions::UnsupportedOperationException(Some(
             "This luminance source does not support rotation by 90 degrees.".to_owned(),
-        ));
+        )))
     }
 
     /**
@@ -130,16 +130,16 @@ pub trait LuminanceSource {
      * @return A rotated version of this object.
      */
     fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>, Exceptions> {
-        return Err(Exceptions::UnsupportedOperationException(
+        Err(Exceptions::UnsupportedOperationException(Some(
             "This luminance source does not support rotation by 45 degrees.".to_owned(),
-        ));
+        )))
     }
 
     fn invert_block_of_bytes(&self, vec_to_invert: Vec<u8>) -> Vec<u8> {
-        let mut iv = vec_to_invert.clone();
+        let mut iv = vec_to_invert;
         for itm in iv.iter_mut() {
             let z = *itm;
-            *itm = 255 - (z & 0xFF);
+            *itm = 255 - z;
         }
         iv
     }

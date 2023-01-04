@@ -40,11 +40,11 @@ impl TextEncoder {
             sb.push('\u{3}');
             return 1;
         }
-        if c >= '0' && c <= '9' {
+        if ('0'..='9').contains(&c) {
             sb.push((c as u8 - 48 + 4) as char);
             return 1;
         }
-        if c >= 'a' && c <= 'z' {
+        if ('a'..='z').contains(&c) {
             sb.push((c as u8 - 97 + 14) as char);
             return 1;
         }
@@ -63,7 +63,7 @@ impl TextEncoder {
             sb.push((c as u8 - 58 + 15) as char);
             return 2;
         }
-        if c >= '[' && c <= '_' {
+        if ('['..='_').contains(&c) {
             sb.push('\u{1}'); //Shift 2 Set
             sb.push((c as u8 - 91 + 22) as char);
             return 2;
@@ -86,6 +86,12 @@ impl TextEncoder {
         sb.push_str("\u{1}\u{001e}"); //Shift 2, Upper Shift
         let mut len = 2;
         len += Self::encodeChar((c as u8 - 128) as char, sb);
-        return len;
+        len
+    }
+}
+
+impl Default for TextEncoder {
+    fn default() -> Self {
+        Self::new()
     }
 }

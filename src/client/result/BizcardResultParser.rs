@@ -120,11 +120,9 @@ fn buildPhoneNumbers(number1: String, number2: String, number3: String) -> Vec<S
 fn buildName(firstName: &str, lastName: &str) -> String {
     if firstName.is_empty() {
         lastName.to_owned()
+    } else if lastName.is_empty() {
+        firstName.to_owned()
     } else {
-        if lastName.is_empty() {
-            firstName.to_owned()
-        } else {
-            format!("{} {}", firstName, lastName)
-        }
+        format!("{} {}", firstName, lastName)
     }
 }

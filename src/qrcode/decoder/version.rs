@@ -105,9 +105,9 @@ impl Version {
         dimension: u32,
     ) -> Result<&'static Version, Exceptions> {
         if dimension % 4 != 1 {
-            return Err(Exceptions::FormatException(
+            return Err(Exceptions::FormatException(Some(
                 "dimension incorrect".to_owned(),
-            ));
+            )));
         }
         Self::getVersionForNumber((dimension - 17) / 4)
         // try {
@@ -118,10 +118,10 @@ impl Version {
     }
 
     pub fn getVersionForNumber(versionNumber: u32) -> Result<&'static Version, Exceptions> {
-        if versionNumber < 1 || versionNumber > 40 {
-            return Err(Exceptions::IllegalArgumentException(
+        if !(1..=40).contains(&versionNumber) {
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "version out of spec".to_owned(),
-            ));
+            )));
         }
         Ok(&VERSIONS[versionNumber as usize - 1])
     }
@@ -150,7 +150,7 @@ impl Version {
             return Self::getVersionForNumber(bestVersion);
         }
         // If we didn't find a close enough match, fail
-        Err(Exceptions::NotFoundException("could not find".to_owned()))
+        Err(Exceptions::NotFoundException(None))
     }
 
     /**

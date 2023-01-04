@@ -35,8 +35,8 @@ pub fn parse(theRXingResult: &crate::RXingResult) -> Option<ParsedClientResult> 
         return None;
     }
     // Normalize "TEL:" to "tel:"
-    let telURI = if rawText.starts_with("TEL:") {
-        format!("tel:{}", &rawText[4..])
+    let telURI = if let Some(stripped) = rawText.strip_prefix("TEL:") {
+        format!("tel:{}", stripped)
     } else {
         rawText.clone()
     };
@@ -50,7 +50,7 @@ pub fn parse(theRXingResult: &crate::RXingResult) -> Option<ParsedClientResult> 
     // let number = queryStart < 0 ?  : ;
     Some(ParsedClientResult::TelResult(TelParsedRXingResult::new(
         number.to_owned(),
-        telURI.to_owned(),
+        telURI,
         "".to_owned(),
     )))
 }

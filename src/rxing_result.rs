@@ -82,7 +82,7 @@ impl RXingResult {
     ) -> Self {
         Self {
             text: text.to_owned(),
-            rawBytes: rawBytes,
+            rawBytes,
             numBits,
             resultPoints,
             format,
@@ -107,14 +107,14 @@ impl RXingResult {
      * @return raw text encoded by the barcode
      */
     pub fn getText(&self) -> &String {
-        return &self.text;
+        &self.text
     }
 
     /**
      * @return raw bytes encoded by the barcode, if applicable, otherwise {@code null}
      */
     pub fn getRawBytes(&self) -> &Vec<u8> {
-        return &self.rawBytes;
+        &self.rawBytes
     }
 
     /**
@@ -122,7 +122,7 @@ impl RXingResult {
      * @since 3.3.0
      */
     pub fn getNumBits(&self) -> usize {
-        return self.numBits;
+        self.numBits
     }
 
     /**
@@ -131,7 +131,7 @@ impl RXingResult {
      *         specific to the type of barcode that was decoded.
      */
     pub fn getRXingResultPoints(&self) -> &Vec<RXingResultPoint> {
-        return &self.resultPoints;
+        &self.resultPoints
     }
 
     pub fn getRXingResultPointsMut(&mut self) -> &mut Vec<RXingResultPoint> {
@@ -142,7 +142,7 @@ impl RXingResult {
      * @return {@link BarcodeFormat} representing the format of the barcode that was decoded
      */
     pub fn getBarcodeFormat(&self) -> &BarcodeFormat {
-        return &self.format;
+        &self.format
     }
 
     /**
@@ -153,7 +153,7 @@ impl RXingResult {
     pub fn getRXingResultMetadata(
         &self,
     ) -> &HashMap<RXingResultMetadataType, RXingResultMetadataValue> {
-        return &self.resultMetadata;
+        &self.resultMetadata
     }
 
     pub fn putMetadata(
@@ -189,7 +189,7 @@ impl RXingResult {
     }
 
     pub fn getTimestamp(&self) -> u128 {
-        return self.timestamp;
+        self.timestamp
     }
 }
 

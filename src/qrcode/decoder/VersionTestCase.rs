@@ -43,7 +43,7 @@ fn checkVersion(version: Result<&Version, Exceptions>, number: u32, dimension: u
     assert_eq!(number, version.getVersionNumber());
     // assertNotNull(version.getAlignmentPatternCenters());
     if number > 1 {
-        assert!(version.getAlignmentPatternCenters().len() > 0);
+        assert!(!version.getAlignmentPatternCenters().is_empty());
     }
     assert_eq!(dimension, version.getDimensionForVersion());
     let _tmp = version.getECBlocksForLevel(ErrorCorrectionLevel::H);

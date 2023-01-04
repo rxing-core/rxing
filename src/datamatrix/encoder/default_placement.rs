@@ -64,7 +64,7 @@ impl DefaultPlacement {
     }
 
     pub fn setBit(&mut self, col: usize, row: usize, bit: bool) {
-        self.bits[row * self.numcols + col] = if bit { 1 } else { 0 };
+        self.bits[row * self.numcols + col] = u8::from(bit); //if bit { 1 } else { 0 };
     }
 
     pub fn noBit(&self, col: usize, row: usize) -> bool {
@@ -281,7 +281,7 @@ mod test_placement {
 
     fn unvisualize(visualized: &str) -> String {
         let mut sb = String::new();
-        for token in visualized.split(" ") {
+        for token in visualized.split(' ') {
             // for (String token : SPACE.split(visualized)) {
             let tkn: u32 = token.parse().unwrap();
             sb.push(char::from_u32(tkn).unwrap());

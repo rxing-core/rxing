@@ -25,33 +25,32 @@ use super::{Code39Reader, OneDimensionalCodeWriter};
  *
  * @author erik.barbara@gmail.com (Erik Barbara)
  */
-#[derive(OneDWriter)]
+#[derive(OneDWriter, Default)]
 pub struct Code39Writer;
-
-impl Default for Code39Writer {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 impl OneDimensionalCodeWriter for Code39Writer {
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>, Exceptions> {
         let mut contents = contents.to_owned();
         let mut length = contents.chars().count();
         if length > 80 {
-            return Err(Exceptions::IllegalArgumentException(format!(
+            return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "Requested contents should be less than 80 digits long, but got {}",
                 length
-            )));
+            ))));
         }
 
-        for i in 0..length {
+        let mut i = 0;
+        while i < length {
+            // for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            if let None = Code39Reader::ALPHABET_STRING.find(contents.chars().nth(i).unwrap()) {
+            if Code39Reader::ALPHABET_STRING
+                .find(contents.chars().nth(i).unwrap())
+                .is_none()
+            {
                 contents = Self::tryToConvertToExtendedMode(&contents)?;
                 length = contents.chars().count();
                 if length > 80 {
-                    return Err(Exceptions::IllegalArgumentException(format!("Requested contents should be less than 80 digits long, but got {} (extended full ASCII mode)",length)));
+                    return Err(Exceptions::IllegalArgumentException(Some(format!("Requested contents should be less than 80 digits long, but got {} (extended full ASCII mode)",length))));
                 }
                 break;
             }
@@ -64,6 +63,7 @@ impl OneDimensionalCodeWriter for Code39Writer {
             //   }
             //   break;
             // }
+            i += 1;
         }
 
         let mut widths = [0_usize; 9]; //new int[9];
@@ -99,10 +99,10 @@ impl OneDimensionalCodeWriter for Code39Writer {
 }
 impl Code39Writer {
     fn toIntArray(a: u32, toReturn: &mut [usize; 9]) {
-        for i in 0..9 {
+        for (i, val) in toReturn.iter_mut().enumerate().take(9) {
             // for (int i = 0; i < 9; i++) {
             let temp = a & (1 << (8 - i));
-            toReturn[i] = if temp == 0 { 1 } else { 2 };
+            *val = if temp == 0 { 1 } else { 2 };
         }
     }
 
@@ -155,10 +155,10 @@ impl Code39Writer {
                         extendedContent
                             .push(char::from_u32('P' as u32 + (character as u32 - 123)).unwrap());
                     } else {
-                        return Err(Exceptions::IllegalArgumentException(format!(
+                        return Err(Exceptions::IllegalArgumentException(Some(format!(
                             "Requested content contains a non-encodable character: '{}'",
                             character
-                        )));
+                        ))));
                     }
                 }
             }

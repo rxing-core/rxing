@@ -83,7 +83,7 @@ impl Reader for DataMatrixReader {
             points = detectorRXingResult.getPoints().clone();
         }
         let mut result = RXingResult::new(
-            decoderRXingResult.getText().clone(),
+            decoderRXingResult.getText(),
             decoderRXingResult.getRawBytes().clone(),
             points.clone(),
             BarcodeFormat::DATA_MATRIX,
@@ -127,10 +127,10 @@ impl DataMatrixReader {
      */
     fn extractPureBits(&self, image: &BitMatrix) -> Result<BitMatrix, Exceptions> {
         let Some(leftTopBlack) = image.getTopLeftOnBit() else {
-      return Err(Exceptions::NotFoundException("".to_owned()))
+      return Err(Exceptions::NotFoundException(None))
     };
         let Some(rightBottomBlack) = image.getBottomRightOnBit()else {
-      return Err(Exceptions::NotFoundException("".to_owned()))
+      return Err(Exceptions::NotFoundException(None))
     };
 
         let moduleSize = Self::moduleSize(&leftTopBlack, image)?;
@@ -143,7 +143,7 @@ impl DataMatrixReader {
         let matrixWidth = (right as i32 - left as i32 + 1) / moduleSize as i32;
         let matrixHeight = (bottom as i32 - top as i32 + 1) / moduleSize as i32;
         if matrixWidth <= 0 || matrixHeight <= 0 {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
             // throw NotFoundException.getNotFoundInstance();
         }
 
@@ -180,12 +180,12 @@ impl DataMatrixReader {
             x += 1;
         }
         if x == width {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         let moduleSize = x - leftTopBlack[0];
         if moduleSize == 0 {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         Ok(moduleSize)

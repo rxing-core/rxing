@@ -64,7 +64,7 @@ impl OneDReader for CodaBarReader {
         loop {
             let charOffset = self.toNarrowWidePattern(nextStart);
             if charOffset == -1 {
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                return Err(Exceptions::NotFoundException(None));
             }
             // Hack: We store the position in the alphabet table into a
             // StringBuilder, so that we can access the decoded patterns in
@@ -81,7 +81,7 @@ impl OneDReader for CodaBarReader {
             {
                 break;
             }
-            if !(nextStart < self.counterLength) {
+            if nextStart >= self.counterLength {
                 break;
             } // no fixed end pattern so keep on reading while data is available
         } //while (nextStart < counterLength); // no fixed end pattern so keep on reading while data is available
@@ -98,7 +98,7 @@ impl OneDReader for CodaBarReader {
         // otherwise this is probably a false positive. The exception is if we are
         // at the end of the row. (I.e. the barcode barely fits.)
         if nextStart < self.counterLength && trailingWhitespace < lastPatternSize / 2 {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         self.validatePattern(startOffset)?;
@@ -114,9 +114,9 @@ impl OneDReader for CodaBarReader {
             // self.decodeRowRXingResult.setCharAt(i, Self::ALPHABET[self.decodeRowRXingResult.chars().nth(i).unwrap() as usize]);
         }
         // Ensure a valid start and end character
-        let startchar = self.decodeRowRXingResult.chars().nth(0).unwrap();
+        let startchar = self.decodeRowRXingResult.chars().next().unwrap();
         if !Self::arrayContains(&Self::STARTEND_ENCODING, startchar) {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
         let endchar = self
             .decodeRowRXingResult
@@ -124,13 +124,13 @@ impl OneDReader for CodaBarReader {
             .nth(self.decodeRowRXingResult.chars().count() - 1)
             .unwrap();
         if !Self::arrayContains(&Self::STARTEND_ENCODING, endchar) {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         // remove stop/start characters character and check if a long enough string is contained
         if (self.decodeRowRXingResult.chars().count()) <= Self::MIN_CHARACTER_LENGTH as usize {
             // Almost surely a false positive ( start + stop + at least 1 character)
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         if !hints.contains_key(&DecodeHintType::RETURN_CODABAR_START_END) {
@@ -231,7 +231,7 @@ impl CodaBarReader {
                 // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
                 // long stripes, while 0 and 1 are for short stripes.
                 let category = (j & 1) + ((pattern as usize) & 1) * 2;
-                sizes[category] += self.counters[(pos + j) as usize];
+                sizes[category] += self.counters[(pos + j)];
                 counts[category] += 1;
                 pattern >>= 1;
             }
@@ -269,7 +269,7 @@ impl CodaBarReader {
                 let category = (j & 1) + ((pattern as usize) & 1) * 2;
                 let size = self.counters[(pos + j)];
                 if (size as f32) < mins[category] || (size as f32) > maxes[category] {
-                    return Err(Exceptions::NotFoundException("".to_owned()));
+                    return Err(Exceptions::NotFoundException(None));
                 }
                 pattern >>= 1;
             }
@@ -290,7 +290,7 @@ impl CodaBarReader {
         let mut i = row.getNextUnset(0);
         let end = row.getSize();
         if i >= end {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
         let mut isWhite = true;
         let mut count = 0;
@@ -344,7 +344,7 @@ impl CodaBarReader {
 
             i += 2;
         }
-        Err(Exceptions::NotFoundException("".to_owned()))
+        Err(Exceptions::NotFoundException(None))
     }
 
     pub fn arrayContains(array: &[char], key: char) -> bool {
@@ -355,7 +355,7 @@ impl CodaBarReader {
             }
         }
         // }
-        return false;
+        false
     }
 
     // Assumes that counters[position] is a bar.
@@ -422,6 +422,6 @@ impl CodaBarReader {
                 return i as i32;
             }
         }
-        return -1;
+        -1
     }
 }

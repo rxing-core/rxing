@@ -56,5 +56,5 @@ fn make_larger(input: &BitMatrix, factor: u32) -> BitMatrix {
             }
         }
     }
-    return output;
+    output
 }

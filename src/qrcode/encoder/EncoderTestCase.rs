@@ -734,7 +734,7 @@ fn testGenerateECBytes() {
     assert_eq!(expected.len(), ecBytes.len());
     for x in 0..expected.len() {
         // for (int x = 0; x < expected.length; x++) {
-        assert_eq!(expected[x], ecBytes[x] & 0xFF);
+        assert_eq!(expected[x], ecBytes[x]);
     }
     let dataBytes = &[
         67, 70, 22, 38, 54, 70, 86, 102, 118, 134, 150, 166, 182, 198, 214,
@@ -746,7 +746,7 @@ fn testGenerateECBytes() {
     assert_eq!(expected.len(), ecBytes.len());
     for x in 0..expected.len() {
         // for (int x = 0; x < expected.length; x++) {
-        assert_eq!(expected[x], ecBytes[x] & 0xFF);
+        assert_eq!(expected[x], ecBytes[x]);
     }
     // High-order zero coefficient case.
     let dataBytes = &[32, 49, 205, 69, 42, 20, 0, 236, 17];
@@ -757,7 +757,7 @@ fn testGenerateECBytes() {
     assert_eq!(expected.len(), ecBytes.len());
     for x in 0..expected.len() {
         // for (int x = 0; x < expected.length; x++) {
-        assert_eq!(expected[x], ecBytes[x] & 0xFF);
+        assert_eq!(expected[x], ecBytes[x]);
     }
 }
 

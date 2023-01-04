@@ -33,9 +33,10 @@ use crate::common::StringUtils;
 fn test_random() {
     let mut r = rand::thread_rng();
     let mut bytes: Vec<u8> = vec![0; 1000];
-    for i in 0..bytes.len() {
-        bytes[i] = r.gen();
-    }
+    bytes.fill_with(|| r.gen());
+    // for byte in &mut bytes {
+    //     *byte = r.gen();
+    // }
     assert_eq!(
         encoding::all::UTF_8.name(),
         StringUtils::guessCharset(&bytes, &HashMap::new()).name()
@@ -102,7 +103,7 @@ fn test_utf16_le() {
     );
 }
 
-fn do_test(bytes: &Vec<u8>, charset: EncodingRef, encoding: &str) {
+fn do_test(bytes: &[u8], charset: EncodingRef, encoding: &str) {
     let guessedCharset = StringUtils::guessCharset(bytes, &HashMap::new());
     let guessedEncoding = StringUtils::guessEncoding(bytes, &HashMap::new());
     assert_eq!(charset.name(), guessedCharset.name());

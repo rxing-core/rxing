@@ -432,7 +432,7 @@ fn encodeDecodeWithLength(input: &str, expectedLength: u32) {
 }
 
 fn encodeDecode(input: &str) -> u32 {
-    return encodeDecodeWithAll(input, None, false, true);
+    encodeDecodeWithAll(input, None, false, true)
 }
 
 fn encodeDecodeWithAll(
@@ -451,9 +451,9 @@ fn encodeDecodeWithAll(
     if decode {
         let mut codewords = vec![0_u32; s.chars().count() + 1];
         codewords[0] = codewords.len() as u32;
-        for i in 1..codewords.len() {
+        for (i, codeword) in codewords.iter_mut().enumerate().skip(1) {
             // for (int i = 1; i < codewords.length; i++) {
-            codewords[i] = s.chars().nth(i - 1).unwrap() as u32;
+            *codeword = s.chars().nth(i - 1).unwrap() as u32;
         }
         performDecodeTest(&codewords, input);
     }
@@ -499,14 +499,9 @@ fn performPermutationTest(chars: &[char], length: u32, expectedTotal: u32) {
 }
 
 fn performEncodeTest(c: char, expectedLengths: &[u32]) {
-    for i in 0..expectedLengths.len() {
-        // for (int i = 0; i < expectedLengths.length; i++) {
-        let mut sb = String::new(); //new StringBuilder();
-        for _j in 0..=i {
-            // for (int j = 0; j <= i; j++) {
-            sb.push(c);
-        }
-        encodeDecodeWithLength(&sb, expectedLengths[i]);
+    for (i, epected_length) in expectedLengths.iter().enumerate() {
+        let sb = vec![c; i + 1].into_iter().collect::<String>();
+        encodeDecodeWithLength(&sb, *epected_length);
     }
 }
 
@@ -548,17 +543,17 @@ fn generateText(
     // }
     total += weights.iter().sum::<f32>();
 
-    for i in 0..weights.len() {
+    for weight in weights.iter_mut() {
         // for (int i = 0; i < weights.length; i++) {
-        weights[i] /= total;
+        *weight /= total;
     }
     let mut cnt = 0;
     loop {
         let mut maxValue = 0.0;
         let mut maxIndex = 0;
-        for j in 0..weights.len() {
+        for (j, weight) in weights.iter().enumerate() {
             // for (int j = 0; j < weights.length; j++) {
-            let value = random.next_f32() * weights[j];
+            let value = random.next_f32() * *weight;
             if value > maxValue {
                 maxValue = value;
                 maxIndex = j;
@@ -571,7 +566,7 @@ fn generateText(
         for j in 0..wordLength.ceil() as u32 {
             // for (int j = 0; j < wordLength; j++) {
             let mut c = chars[maxIndex];
-            if j == 0 && c >= 'a' && c <= 'z' && random.next_bool() {
+            if j == 0 && ('a'..='z').contains(&c) && random.next_bool() {
                 c = char::from_u32(c as u32 - 'a' as u32 + 'A' as u32).unwrap();
             }
             result.push(c);
@@ -581,7 +576,7 @@ fn generateText(
         }
         cnt += 1;
 
-        if !(result.chars().count() < (maxWidth as isize - maxWordWidth as isize) as usize) {
+        if result.chars().count() >= (maxWidth as isize - maxWordWidth as isize) as usize {
             break;
         }
     } //while (result.length() < maxWidth - maxWordWidth);

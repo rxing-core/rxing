@@ -61,7 +61,10 @@ fn test_set_region() {
         // for (int y = 0; y < 5; y++) {
         for x in 0..5 {
             // for (int x = 0; x < 5; x++) {
-            assert_eq!(y >= 1 && y <= 3 && x >= 1 && x <= 3, matrix.get(x, y));
+            assert_eq!(
+                (1..=3).contains(&y) && (1..=3).contains(&x),
+                matrix.get(x, y)
+            );
         }
     }
 }
@@ -133,7 +136,10 @@ fn test_rectangular_set_region() {
         // for (int y = 0; y < 240; y++) {
         for x in 0..320 {
             // for (int x = 0; x < 320; x++) {
-            assert_eq!(y >= 22 && y < 34 && x >= 105 && x < 185, matrix.get(x, y));
+            assert_eq!(
+                (22..34).contains(&y) && (105..185).contains(&x),
+                matrix.get(x, y)
+            );
         }
     }
 }
@@ -302,7 +308,7 @@ fn test_xor_case() {
     centerMatrix.setRegion(1, 1, 1, 1).expect("must set");
     let mut invertedCenterMatrix = fullMatrix.clone();
     invertedCenterMatrix.unset(1, 1);
-    let badMatrix = BitMatrix::new(4, 4).unwrap();
+    let mut badMatrix = BitMatrix::new(4, 4).unwrap();
 
     test_XOR(&emptyMatrix, &emptyMatrix, &emptyMatrix);
     test_XOR(&emptyMatrix, &centerMatrix, &centerMatrix);
@@ -328,7 +334,7 @@ fn test_xor_case() {
     //   // good
     // }
 
-    assert!(badMatrix.clone().xor(&emptyMatrix).is_err());
+    assert!(badMatrix.xor(&emptyMatrix).is_err());
     // try {
     //   badMatrix.clone().xor(emptyMatrix);
     //   fail();
@@ -344,7 +350,7 @@ pub fn matrix_to_string(result: &BitMatrix) -> String {
         // for (int i = 0; i < result.getWidth(); i++) {
         builder.push(if result.get(i, 0) { '1' } else { '0' });
     }
-    return builder;
+    builder
 }
 
 fn test_XOR(dataMatrix: &BitMatrix, flipMatrix: &BitMatrix, expectedMatrix: &BitMatrix) {
@@ -378,7 +384,7 @@ fn get_expected(width: u32, height: u32) -> BitMatrix {
         );
         i += 2;
     }
-    return result;
+    result
 }
 
 fn get_input(width: u32, height: u32) -> BitMatrix {
@@ -389,7 +395,7 @@ fn get_input(width: u32, height: u32) -> BitMatrix {
         result.set(BIT_MATRIX_POINTS[i], BIT_MATRIX_POINTS[i + 1]);
         i += 2;
     }
-    return result;
+    result
 }
 
 // }

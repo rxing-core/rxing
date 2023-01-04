@@ -33,7 +33,7 @@ use super::{AI01decoder, AbstractExpandedDecoder, GeneralAppIdDecoder};
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
 pub struct AI01AndOtherAIs<'a>(&'a BitArray, GeneralAppIdDecoder<'a>);
-impl<'a> AI01decoder for AI01AndOtherAIs<'_> {}
+impl AI01decoder for AI01AndOtherAIs<'_> {}
 impl AbstractExpandedDecoder for AI01AndOtherAIs<'_> {
     fn parseInformation(&mut self) -> Result<String, crate::Exceptions> {
         let mut buff = String::new(); //new StringBuilder();

@@ -40,6 +40,12 @@ pub struct PDF417 {
     minRows: u32,
 }
 
+impl Default for PDF417 {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PDF417 {
     pub fn new() -> Self {
         Self::with_compact_hint(false)
@@ -102,7 +108,7 @@ impl PDF417 {
     }
 
     fn encodeChar(pattern: u32, len: u32, logic: &mut BarcodeRow) {
-        let mut map = 1 << len - 1;
+        let mut map = 1 << (len - 1);
         let mut last = (pattern & map) != 0; //Initialize to inverse of first bit
         let mut width = 0;
         for _i in 0..len {
@@ -217,10 +223,10 @@ impl PDF417 {
         //2. step: construct data codewords
         if sourceCodeWords + errorCorrectionCodeWords + 1 > 929 {
             // +1 for symbol length CW
-            return Err(Exceptions::WriterException(format!(
+            return Err(Exceptions::WriterException(Some(format!(
                 "Encoded message contains too many code words, message too big ({} bytes)",
                 msg.chars().count()
-            )));
+            ))));
         }
         let n = sourceCodeWords + pad + 1;
         let mut sb = String::with_capacity(n as usize);
@@ -309,9 +315,9 @@ impl PDF417 {
         if let Some(dim) = dimension {
             Ok(dim)
         } else {
-            Err(Exceptions::WriterException(
+            Err(Exceptions::WriterException(Some(
                 "Unable to fit message in columns".to_owned(),
-            ))
+            )))
         }
     }
 

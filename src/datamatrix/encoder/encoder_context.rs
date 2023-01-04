@@ -64,9 +64,9 @@ impl<'a> EncoderContext<'_> {
                 .decode(&encoded_bytes, encoding::DecoderTrap::Strict)
                 .expect("round trip decode should always work")
         } else {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Message contains characters outside ISO-8859-1 encoding.".to_owned(),
-            ));
+            )));
         };
         Ok(Self {
             symbol_lookup: Rc::new(SymbolInfoLookup::new()),

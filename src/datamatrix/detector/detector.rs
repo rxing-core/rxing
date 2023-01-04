@@ -53,7 +53,9 @@ impl<'a> Detector<'_> {
         if let Some(point) = self.correctTopRight(&points) {
             points[3] = point;
         } else {
-            return Err(Exceptions::NotFoundException("point 4 unfound".to_owned()));
+            return Err(Exceptions::NotFoundException(Some(
+                "point 4 unfound".to_owned(),
+            )));
         }
         // points[3] = self.correctTopRight(&points);
         // if points[3] == null {
@@ -82,7 +84,7 @@ impl<'a> Detector<'_> {
         }
 
         let bits = Self::sampleGrid(
-            &self.image,
+            self.image,
             &topLeft,
             &bottomLeft,
             &bottomRight,
@@ -253,9 +255,9 @@ impl<'a> Detector<'_> {
             + self.transitionsBetween(&pointCs, &candidate2);
 
         if sumc1 > sumc2 {
-            return Some(candidate1);
+            Some(candidate1)
         } else {
-            return Some(candidate2);
+            Some(candidate2)
         }
     }
 
@@ -315,10 +317,10 @@ impl<'a> Detector<'_> {
     }
 
     fn isValid(&self, p: &RXingResultPoint) -> bool {
-        return p.getX() >= 0.0
+        p.getX() >= 0.0
             && p.getX() <= self.image.getWidth() as f32 - 1.0
             && p.getY() > 0.0
-            && p.getY() <= self.image.getHeight() as f32 - 1.0;
+            && p.getY() <= self.image.getHeight() as f32 - 1.0
     }
 
     fn sampleGrid(
@@ -332,7 +334,7 @@ impl<'a> Detector<'_> {
     ) -> Result<BitMatrix, Exceptions> {
         let sampler = DefaultGridSampler {};
 
-        return sampler.sample_grid_detailed(
+        sampler.sample_grid_detailed(
             image,
             dimensionX,
             dimensionY,
@@ -352,7 +354,7 @@ impl<'a> Detector<'_> {
             bottomRight.getY(),
             bottomLeft.getX(),
             bottomLeft.getY(),
-        );
+        )
     }
 
     /**
@@ -404,6 +406,6 @@ impl<'a> Detector<'_> {
 
             x += xstep;
         }
-        return transitions;
+        transitions
     }
 }

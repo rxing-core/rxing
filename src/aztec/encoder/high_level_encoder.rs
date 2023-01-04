@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-use std::cmp::Ordering;
-
 use crate::{
     common::{BitArray, CharacterSetECI},
     exceptions::Exceptions,
@@ -250,9 +248,9 @@ impl HighLevelEncoder {
                 initial_state = initial_state.appendFLGn(CharacterSetECI::getValue(&eci))?;
             }
         } else {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "No ECI code for character set".to_owned(),
-            ));
+            )));
         }
         // if self.charset != null {
         //   CharacterSetECI eci = CharacterSetECI.getCharacterSetECI(charset);
@@ -266,13 +264,13 @@ impl HighLevelEncoder {
         while index < self.text.len() {
             // for index in 0..self.text.len() {
             // for (int index = 0; index < text.length; index++) {
-            let pair_code;
+
             let next_char = if index + 1 < self.text.len() {
                 self.text[index + 1]
             } else {
                 0
             };
-            pair_code = match self.text[index] {
+            let pair_code = match self.text[index] {
                 b'\r' if next_char == b'\n' => 2,
                 b'.' if next_char == b' ' => 3,
                 b',' if next_char == b' ' => 4,
@@ -301,13 +299,19 @@ impl HighLevelEncoder {
             .into_iter()
             .min_by(|a, b| {
                 let diff: i64 = a.getBitCount() as i64 - b.getBitCount() as i64;
-                if diff < 0 {
-                    Ordering::Less
-                } else if diff == 0 {
-                    Ordering::Equal
-                } else {
-                    Ordering::Greater
-                }
+                diff.cmp(&0)
+                // match diff {
+                //     ..0 => Ordering::Less,
+                //     0 => Ordering::Equal,
+                //     0.. => Ordering::Greater,
+                // }
+                // if diff < 0 {
+                //     Ordering::Less
+                // } else if diff == 0 {
+                //     Ordering::Equal
+                // } else {
+                //     Ordering::Greater
+                // }
                 //  a.getBitCount() - b.getBitCount()
             })
             .unwrap();
@@ -344,7 +348,7 @@ impl HighLevelEncoder {
         let mut state_no_binary = None;
         for mode in 0..=Self::MODE_PUNCT {
             // for (int mode = 0; mode <= MODE_PUNCT; mode++) {
-            let char_in_mode = Self::CHAR_MAP[mode as usize][ch as usize];
+            let char_in_mode = Self::CHAR_MAP[mode][ch as usize];
             if char_in_mode > 0 {
                 if state_no_binary.is_none() {
                     // Only create stateNoBinary the first time it's required.
@@ -446,7 +450,7 @@ impl HighLevelEncoder {
                         add = false;
                         break;
                     }
-                    if newState.isBetterThanOrEqualTo(&oldState) {
+                    if newState.isBetterThanOrEqualTo(oldState) {
                         result.remove(i);
                     }
                 }
@@ -455,6 +459,6 @@ impl HighLevelEncoder {
                 result.push(newState);
             }
         }
-        return result;
+        result
     }
 }

@@ -446,16 +446,12 @@ fn testHighLevelEncodeBinary() {
         let expected_length = (8 * i)
             + if i <= 31 {
                 10
+            } else if i <= 62 {
+                20
+            } else if i <= 2078 {
+                21
             } else {
-                if i <= 62 {
-                    20
-                } else {
-                    if i <= 2078 {
-                        21
-                    } else {
-                        31
-                    }
-                }
+                31
             };
         // ( (i <= 31) ? 10 : (i <= 62) ? 20 : (i <= 2078) ? 21 : 31);
         // Verify that we are correct about the length.

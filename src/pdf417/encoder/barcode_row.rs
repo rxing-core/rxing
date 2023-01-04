@@ -51,7 +51,7 @@ impl BarcodeRow {
      * @param black Black if true, white if false;
      */
     fn set_bool(&mut self, x: usize, black: bool) {
-        self.row[x] = if black { 1 } else { 0 }
+        self.row[x] = u8::from(black); //if black { 1 } else { 0 }
     }
 
     /**
@@ -74,9 +74,10 @@ impl BarcodeRow {
      */
     pub fn getScaledRow(&self, scale: usize) -> Vec<u8> {
         let mut output = vec![0; self.row.len() * scale];
-        for i in 0..output.len() {
+        for (i, row) in output.iter_mut().enumerate() {
+            // for i in 0..output.len() {
             // for (int i = 0; i < output.length; i++) {
-            output[i] = self.row[i / scale];
+            *row = self.row[i / scale];
         }
 
         output

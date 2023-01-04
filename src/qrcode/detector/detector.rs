@@ -50,7 +50,7 @@ impl<'a> Detector<'_> {
     }
 
     pub fn getImage(&self) -> &BitMatrix {
-        &self.image
+        self.image
     }
 
     pub fn getRXingResultPointCallback(&self) -> &Option<RXingResultPointCallback> {
@@ -80,16 +80,17 @@ impl<'a> Detector<'_> {
         &mut self,
         hints: &DecodingHintDictionary,
     ) -> Result<QRCodeDetectorResult, Exceptions> {
-        self.resultPointCallback =
-            if let Some(nrpc) = hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK) {
-                if let DecodeHintValue::NeedResultPointCallback(cb) = nrpc {
-                    Some(*cb)
-                } else {
-                    None
-                }
-            } else {
-                None
-            };
+        self.resultPointCallback = if let Some(DecodeHintValue::NeedResultPointCallback(cb)) =
+            hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK)
+        {
+            // if let DecodeHintValue::NeedResultPointCallback(cb) = nrpc {
+            Some(*cb)
+            // } else {
+            //     None
+            // }
+        } else {
+            None
+        };
 
         // self.resultPointCallback = hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK);
         // resultPointCallback = hints == null ? null :
@@ -112,7 +113,7 @@ impl<'a> Detector<'_> {
 
         let moduleSize = self.calculateModuleSize(topLeft, topRight, bottomLeft);
         if moduleSize < 1.0 {
-            return Err(Exceptions::NotFoundException("not found".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
         let dimension = Self::computeDimension(topLeft, topRight, bottomLeft, moduleSize)?;
         let provisionalVersion = Version::getProvisionalVersionForDimension(dimension)?;
@@ -120,7 +121,7 @@ impl<'a> Detector<'_> {
 
         let mut alignmentPattern = None;
         // Anything above version 1 has an alignment pattern
-        if provisionalVersion.getAlignmentPatternCenters().len() > 0 {
+        if !provisionalVersion.getAlignmentPatternCenters().is_empty() {
             // Guess where a "bottom right" finder pattern would have been
             let bottomRightX = topRight.getX() - topLeft.getX() + bottomLeft.getX();
             let bottomRightY = topRight.getY() - topLeft.getY() + bottomLeft.getY();
@@ -165,7 +166,7 @@ impl<'a> Detector<'_> {
 
         let transform = Self::createTransform(topLeft, topRight, bottomLeft, ap_ref, dimension);
 
-        let bits = Detector::sampleGrid(&self.image, &transform, dimension)?;
+        let bits = Detector::sampleGrid(self.image, &transform, dimension)?;
 
         let points = if alignmentPattern.is_none() {
             vec![
@@ -211,7 +212,7 @@ impl<'a> Detector<'_> {
             sourceBottomRightY = dimMinusThree;
         }
 
-        return PerspectiveTransform::quadrilateralToQuadrilateral(
+        PerspectiveTransform::quadrilateralToQuadrilateral(
             3.5,
             3.5,
             dimMinusThree,
@@ -228,7 +229,7 @@ impl<'a> Detector<'_> {
             bottomRightY,
             bottomLeft.getX(),
             bottomLeft.getY(),
-        );
+        )
     }
 
     fn sampleGrid(
@@ -237,7 +238,7 @@ impl<'a> Detector<'_> {
         dimension: u32,
     ) -> Result<BitMatrix, Exceptions> {
         let sampler = DefaultGridSampler {};
-        return sampler.sample_grid(&image, dimension, dimension, transform);
+        sampler.sample_grid(image, dimension, dimension, transform)
     }
 
     /**
@@ -258,7 +259,7 @@ impl<'a> Detector<'_> {
         match dimension & 0x03 {
             0 => dimension += 1,
             2 => dimension -= 1,
-            3 => return Err(Exceptions::NotFoundException("not found".to_owned())),
+            3 => return Err(Exceptions::NotFoundException(None)),
             _ => {}
         }
         // switch (dimension & 0x03) { // mod 4
@@ -291,9 +292,9 @@ impl<'a> Detector<'_> {
         bottomLeft: &T,
     ) -> f32 {
         // Take the average
-        return (self.calculateModuleSizeOneWay(topLeft, topRight)
+        (self.calculateModuleSizeOneWay(topLeft, topRight)
             + self.calculateModuleSizeOneWay(topLeft, bottomLeft))
-            / 2.0;
+            / 2.0
     }
 
     /**
@@ -322,7 +323,7 @@ impl<'a> Detector<'_> {
         }
         // Average them, and divide by 7 since we've counted the width of 3 black modules,
         // and 1 white and 1 black module on either side. Ergo, divide sum by 14.
-        return (moduleSizeEst1 + moduleSizeEst2) / 14.0;
+        (moduleSizeEst1 + moduleSizeEst2) / 14.0
     }
 
     /**
@@ -357,15 +358,10 @@ impl<'a> Detector<'_> {
         }
         otherToX = (fromX as f32 + (otherToX as f32 - fromX as f32) * scale).floor() as i32;
 
-        result += self.sizeOfBlackWhiteBlackRun(
-            fromX as u32,
-            fromY as u32,
-            otherToX as u32,
-            otherToY as u32,
-        );
+        result += self.sizeOfBlackWhiteBlackRun(fromX, fromY, otherToX as u32, otherToY as u32);
 
         // Middle pixel is double-counted this way; subtract 1
-        return result - 1.0;
+        result - 1.0
     }
 
     /**
@@ -433,14 +429,14 @@ impl<'a> Detector<'_> {
         // small approximation; (toX+xStep,toY+yStep) might be really correct. Ignore this.
         if state == 2 {
             return MathUtils::distance_int(
-                toX as i32 + xstep as i32,
+                toX as i32 + xstep,
                 toY as i32,
                 fromX as i32,
                 fromY as i32,
             );
         }
         // else we didn't find even black-white-black; no estimate is really possible
-        return f32::NAN;
+        f32::NAN
     }
 
     /**
@@ -467,13 +463,13 @@ impl<'a> Detector<'_> {
         let alignmentAreaLeftX = 0.max(estAlignmentX as i32 - allowance as i32) as u32;
         let alignmentAreaRightX = (self.image.getWidth() - 1).min(estAlignmentX + allowance);
         if ((alignmentAreaRightX - alignmentAreaLeftX) as f32) < overallEstModuleSize * 3.0 {
-            return Err(Exceptions::NotFoundException("not found".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         let alignmentAreaTopY = 0.max(estAlignmentY as i32 - allowance as i32) as u32;
         let alignmentAreaBottomY = (self.image.getHeight() - 1).min(estAlignmentY + allowance);
         if alignmentAreaBottomY - alignmentAreaTopY < overallEstModuleSize as u32 * 3 {
-            return Err(Exceptions::NotFoundException("not found".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         let mut alignmentFinder = AlignmentPatternFinder::new(

@@ -42,7 +42,7 @@ fn testEmailAddress() {
 fn testTos() {
     do_test(
         "mailto:srowen@example.org,bob@example.org",
-        &vec!["srowen@example.org", "bob@example.org"],
+        &["srowen@example.org", "bob@example.org"],
         &Vec::new(),
         &Vec::new(),
         "",
@@ -50,7 +50,7 @@ fn testTos() {
     );
     do_test(
         "mailto:?to=srowen@example.org,bob@example.org",
-        &vec!["srowen@example.org", "bob@example.org"],
+        &["srowen@example.org", "bob@example.org"],
         &Vec::new(),
         &Vec::new(),
         "",
@@ -63,7 +63,7 @@ fn testCCs() {
     do_test(
         "mailto:?cc=srowen@example.org",
         &Vec::new(),
-        &vec!["srowen@example.org"],
+        &["srowen@example.org"],
         &Vec::new(),
         "",
         "",
@@ -71,7 +71,7 @@ fn testCCs() {
     do_test(
         "mailto:?cc=srowen@example.org,bob@example.org",
         &Vec::new(),
-        &vec!["srowen@example.org", "bob@example.org"],
+        &["srowen@example.org", "bob@example.org"],
         &Vec::new(),
         "",
         "",
@@ -84,7 +84,7 @@ fn testBCCs() {
         "mailto:?bcc=srowen@example.org",
         &Vec::new(),
         &Vec::new(),
-        &vec!["srowen@example.org"],
+        &["srowen@example.org"],
         "",
         "",
     );
@@ -92,7 +92,7 @@ fn testBCCs() {
         "mailto:?bcc=srowen@example.org,bob@example.org",
         &Vec::new(),
         &Vec::new(),
-        &vec!["srowen@example.org", "bob@example.org"],
+        &["srowen@example.org", "bob@example.org"],
         "",
         "",
     );
@@ -102,9 +102,9 @@ fn testBCCs() {
 fn testAll() {
     do_test(
         "mailto:bob@example.org?cc=foo@example.org&bcc=srowen@example.org&subject=baz&body=buzz",
-        &vec!["bob@example.org"],
-        &vec!["foo@example.org"],
-        &vec!["srowen@example.org"],
+        &["bob@example.org"],
+        &["foo@example.org"],
+        &["srowen@example.org"],
         "baz",
         "buzz",
     );
@@ -151,7 +151,7 @@ fn testSMTP() {
 }
 
 fn do_test_single(contents: &str, to: &str, subject: &str, body: &str) {
-    do_test(contents, &vec![to], &Vec::new(), &Vec::new(), subject, body);
+    do_test(contents, &[to], &Vec::new(), &Vec::new(), subject, body);
 }
 
 fn do_test(contents: &str, tos: &[&str], ccs: &[&str], bccs: &[&str], subject: &str, body: &str) {

@@ -47,16 +47,13 @@ impl BitArray {
     pub fn with_size(size: usize) -> Self {
         Self {
             bits: BitArray::makeArray(size),
-            size: size,
+            size,
         }
     }
 
     // For testing only
     pub fn with_initial_values(bits: Vec<u32>, size: usize) -> Self {
-        Self {
-            bits: bits,
-            size: size,
-        }
+        Self { bits, size }
     }
 
     pub fn getSize(&self) -> usize {
@@ -64,7 +61,7 @@ impl BitArray {
     }
 
     pub fn getSizeInBytes(&self) -> usize {
-        return (self.size + 7) / 8;
+        (self.size + 7) / 8
     }
 
     fn ensure_capacity(&mut self, newSize: usize) {
@@ -148,7 +145,7 @@ impl BitArray {
             currentBits = !self.bits[bitsOffset] as i64;
         }
         let result = (bitsOffset * 32) + currentBits.trailing_zeros() as usize;
-        return cmp::min(result, self.size);
+        cmp::min(result, self.size)
     }
 
     /**
@@ -171,9 +168,7 @@ impl BitArray {
     pub fn setRange(&mut self, start: usize, end: usize) -> Result<(), Exceptions> {
         let mut end = end;
         if end < start || end > self.size {
-            return Err(Exceptions::IllegalArgumentException(
-                "end < start || start < 0 || end > self.size".to_owned(),
-            ));
+            return Err(Exceptions::IllegalArgumentException(None));
         }
         if end == start {
             return Ok(());
@@ -216,9 +211,7 @@ impl BitArray {
     pub fn isRange(&self, start: usize, end: usize, value: bool) -> Result<bool, Exceptions> {
         let mut end = end;
         if end < start || end > self.size {
-            return Err(Exceptions::IllegalArgumentException(
-                "end < start || start < 0 || end > self.size".to_owned(),
-            ));
+            return Err(Exceptions::IllegalArgumentException(None));
         }
         if end == start {
             return Ok(true); // empty range matches
@@ -239,7 +232,7 @@ impl BitArray {
                 return Ok(false);
             }
         }
-        return Ok(true);
+        Ok(true)
     }
 
     pub fn appendBit(&mut self, bit: bool) {
@@ -260,9 +253,9 @@ impl BitArray {
      */
     pub fn appendBits(&mut self, value: u32, num_bits: usize) -> Result<(), Exceptions> {
         if num_bits > 32 {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Num bits must be between 0 and 32".to_owned(),
-            ));
+            )));
         }
 
         if num_bits == 0 {
@@ -293,9 +286,9 @@ impl BitArray {
 
     pub fn xor(&mut self, other: &BitArray) -> Result<(), Exceptions> {
         if self.size != other.size {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Sizes don't match".to_owned(),
-            ));
+            )));
         }
         for i in 0..self.bits.len() {
             //for (int i = 0; i < bits.length; i++) {
@@ -335,7 +328,7 @@ impl BitArray {
      *         significant bit is bit 0.
      */
     pub fn getBitArray(&self) -> &Vec<u32> {
-        return &self.bits;
+        &self.bits
     }
 
     /**
@@ -367,7 +360,7 @@ impl BitArray {
     }
 
     fn makeArray(size: usize) -> Vec<u32> {
-        return vec![0; (size + 31) / 32];
+        vec![0; (size + 31) / 32]
     }
 
     //   @Override
@@ -396,10 +389,16 @@ impl fmt::Display for BitArray {
         for i in 0..self.size {
             //for (int i = 0; i < size; i++) {
             if (i & 0x07) == 0 {
-                _str.push_str(" ");
+                _str.push(' ');
             }
             _str.push_str(if self.get(i) { "X" } else { "." });
         }
         write!(f, "{}", _str)
+    }
+}
+
+impl Default for BitArray {
+    fn default() -> Self {
+        Self::new()
     }
 }

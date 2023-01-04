@@ -119,7 +119,7 @@ fn testC40EncodationSpecialCases1() {
     let substitute_symbols = SymbolInfoLookup::new();
     let substitute_symbols = useTestSymbols(substitute_symbols);
 
-    let sil = Rc::new(substitute_symbols.clone());
+    let sil = Rc::new(substitute_symbols);
 
     let visualized = encodeHighLevelCompareSIL("AIMAIMAIMAIMAIMAIM", false, Some(sil.clone()));
     assert_eq!("230 91 11 91 11 91 11 91 11 91 11 91 11", visualized);

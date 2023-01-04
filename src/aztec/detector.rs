@@ -93,7 +93,7 @@ impl<'a> Detector<'_> {
 
         // 4. Sample the grid
         let bits = self.sample_grid(
-            &self.image,
+            self.image,
             &bulls_eye_corners[self.shift as usize % 4],
             &bulls_eye_corners[(self.shift as usize + 1) % 4],
             &bulls_eye_corners[(self.shift as usize + 2) % 4],
@@ -127,7 +127,9 @@ impl<'a> Detector<'_> {
             || !self.is_valid(&bulls_eye_corners[2])
             || !self.is_valid(&bulls_eye_corners[3])
         {
-            return Err(Exceptions::NotFoundException("no valid points".to_owned()));
+            return Err(Exceptions::NotFoundException(Some(
+                "no valid points".to_owned(),
+            )));
         }
         let length = 2 * self.nb_center_layers;
         // Get the bits around the bull's eye
@@ -208,7 +210,9 @@ impl<'a> Detector<'_> {
                 return Ok(shift);
             }
         }
-        Err(Exceptions::NotFoundException("rotation failure".to_owned()))
+        Err(Exceptions::NotFoundException(Some(
+            "rotation failure".to_owned(),
+        )))
     }
 
     /**
@@ -302,8 +306,7 @@ impl<'a> Detector<'_> {
                 //         &pind.to_rxing_result_point(),
                 //         &pina.to_rxing_result_point(),
                 //     ) * (nbCenterLayers + 2) as f32);
-                if q < 0.75
-                    || q > 1.25
+                if !(0.75..=1.25).contains(&q)
                     || !self.is_white_or_black_rectangle(&pouta, &poutb, &poutc, &poutd)
                 {
                     break;
@@ -321,7 +324,7 @@ impl<'a> Detector<'_> {
         }
 
         if self.nb_center_layers != 5 && self.nb_center_layers != 7 {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         self.compact = self.nb_center_layers == 5;
@@ -360,7 +363,7 @@ impl<'a> Detector<'_> {
         let mut fnd = false;
 
         //Get a white rectangle that can be the border of the matrix in center bull's eye or
-        if let Ok(wrd) = WhiteRectangleDetector::new_from_image(&self.image) {
+        if let Ok(wrd) = WhiteRectangleDetector::new_from_image(self.image) {
             if let Ok(cornerPoints) = wrd.detect() {
                 point_a = cornerPoints[0];
                 point_b = cornerPoints[1];
@@ -421,7 +424,7 @@ impl<'a> Detector<'_> {
         // This will ensure that we end up with a white rectangle in center bull's eye
         // in order to compute a more accurate center.
         let mut fnd = false;
-        if let Ok(wrd) = WhiteRectangleDetector::new(&self.image, 15, cx, cy) {
+        if let Ok(wrd) = WhiteRectangleDetector::new(self.image, 15, cx, cy) {
             if let Ok(cornerPoints) = wrd.detect() {
                 point_a = cornerPoints[0];
                 point_b = cornerPoints[1];
@@ -557,7 +560,7 @@ impl<'a> Detector<'_> {
                 result |= 1 << (size - i - 1);
             }
         }
-        return result;
+        result
     }
 
     /**
@@ -607,7 +610,7 @@ impl<'a> Detector<'_> {
 
         let c = self.get_color(&p3, &p4);
 
-        return c == c_init;
+        c == c_init
     }
 
     /**

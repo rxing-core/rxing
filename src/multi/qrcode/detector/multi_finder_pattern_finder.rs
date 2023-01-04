@@ -90,9 +90,9 @@ impl MultiFinderPatternFinder {
 
         if size < 3 {
             // Couldn't find enough finder patterns
-            return Err(Exceptions::NotFoundException(
+            return Err(Exceptions::NotFoundException(Some(
                 "Couldn't find enough finder patterns".to_owned(),
-            ));
+            )));
         }
 
         /*
@@ -179,8 +179,8 @@ impl MultiFinderPatternFinder {
 
                     // Check the sizes
                     let estimatedModuleCount = (dA + dB) / (p1.getEstimatedModuleSize() * 2.0);
-                    if estimatedModuleCount > MAX_MODULE_COUNT_PER_EDGE
-                        || estimatedModuleCount < MIN_MODULE_COUNT_PER_EDGE
+                    if !(MIN_MODULE_COUNT_PER_EDGE..=MAX_MODULE_COUNT_PER_EDGE)
+                        .contains(&estimatedModuleCount)
                     {
                         continue;
                     }
@@ -210,7 +210,7 @@ impl MultiFinderPatternFinder {
         if !results.is_empty() {
             Ok(results)
         } else {
-            Err(Exceptions::NotFoundException("no result".to_owned()))
+            Err(Exceptions::NotFoundException(None))
         }
     }
 

@@ -26,7 +26,7 @@ use super::UPCEANReader;
  *
  * @author Sean Owen
  */
-#[derive(OneDReader, EANReader)]
+#[derive(OneDReader, EANReader, Default)]
 pub struct EAN8Reader;
 
 impl UPCEANReader for EAN8Reader {
@@ -81,11 +81,5 @@ impl UPCEANReader for EAN8Reader {
         }
 
         Ok(rowOffset)
-    }
-}
-
-impl Default for EAN8Reader {
-    fn default() -> Self {
-        Self {}
     }
 }

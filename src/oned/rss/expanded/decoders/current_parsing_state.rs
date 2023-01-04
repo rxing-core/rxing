@@ -25,9 +25,9 @@
  */
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum State {
-    NUMERIC,
-    ALPHA,
-    ISO_IEC_646,
+    Numeric,
+    Alpha,
+    IsoIec646,
 }
 
 /**
@@ -42,7 +42,7 @@ impl CurrentParsingState {
     pub fn new() -> Self {
         Self {
             position: 0,
-            encoding: State::NUMERIC,
+            encoding: State::Numeric,
         }
     }
 
@@ -59,26 +59,32 @@ impl CurrentParsingState {
     }
 
     pub fn isAlpha(&self) -> bool {
-        self.encoding == State::ALPHA
+        self.encoding == State::Alpha
     }
 
     pub fn isNumeric(&self) -> bool {
-        self.encoding == State::NUMERIC
+        self.encoding == State::Numeric
     }
 
     pub fn isIsoIec646(&self) -> bool {
-        self.encoding == State::ISO_IEC_646
+        self.encoding == State::IsoIec646
     }
 
     pub fn setNumeric(&mut self) {
-        self.encoding = State::NUMERIC;
+        self.encoding = State::Numeric;
     }
 
     pub fn setAlpha(&mut self) {
-        self.encoding = State::ALPHA;
+        self.encoding = State::Alpha;
     }
 
     pub fn setIsoIec646(&mut self) {
-        self.encoding = State::ISO_IEC_646;
+        self.encoding = State::IsoIec646;
+    }
+}
+
+impl Default for CurrentParsingState {
+    fn default() -> Self {
+        Self::new()
     }
 }

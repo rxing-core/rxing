@@ -18,19 +18,12 @@ use crate::{common::BitArray, Exceptions, RXingResult};
 
 use super::{UPCEANExtension2Support, UPCEANExtension5Support, UPCEANReader, STAND_IN};
 
+#[derive(Default)]
 pub struct UPCEANExtensionSupport {
     twoSupport: UPCEANExtension2Support,
     fiveSupport: UPCEANExtension5Support,
 }
 
-impl Default for UPCEANExtensionSupport {
-    fn default() -> Self {
-        Self {
-            twoSupport: Default::default(),
-            fiveSupport: Default::default(),
-        }
-    }
-}
 impl UPCEANExtensionSupport {
     const EXTENSION_START_PATTERN: [u32; 3] = [1, 1, 2];
 

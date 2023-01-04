@@ -81,7 +81,7 @@ impl PerspectiveTransform {
         let q_to_s = PerspectiveTransform::quadrilateralToSquare(x0, y0, x1, y1, x2, y2, x3, y3);
         let s_to_q =
             PerspectiveTransform::squareToQuadrilateral(x0p, y0p, x1p, y1p, x2p, y2p, x3p, y3p);
-        return s_to_q.times(&q_to_s);
+        s_to_q.times(&q_to_s)
     }
 
     pub fn transform_points_single(&self, points: &mut [f32]) {
@@ -133,7 +133,7 @@ impl PerspectiveTransform {
         let dy3 = y0 - y1 + y2 - y3;
         if dx3 == 0.0f32 && dy3 == 0.0f32 {
             // Affine
-            return PerspectiveTransform::new(
+            PerspectiveTransform::new(
                 x1 - x0,
                 x2 - x1,
                 x0,
@@ -143,7 +143,7 @@ impl PerspectiveTransform {
                 0.0f32,
                 0.0f32,
                 1.0f32,
-            );
+            )
         } else {
             let dx1 = x1 - x2;
             let dx2 = x3 - x2;
@@ -152,7 +152,7 @@ impl PerspectiveTransform {
             let denominator = dx1 * dy2 - dx2 * dy1;
             let a13 = (dx3 * dy2 - dx2 * dy3) / denominator;
             let a23 = (dx1 * dy3 - dx3 * dy1) / denominator;
-            return PerspectiveTransform::new(
+            PerspectiveTransform::new(
                 x1 - x0 + a13 * x1,
                 x3 - x0 + a23 * x3,
                 x0,
@@ -162,7 +162,7 @@ impl PerspectiveTransform {
                 a13,
                 a23,
                 1.0f32,
-            );
+            )
         }
     }
 
@@ -177,13 +177,12 @@ impl PerspectiveTransform {
         y3: f32,
     ) -> Self {
         // Here, the adjoint serves as the inverse
-        return PerspectiveTransform::squareToQuadrilateral(x0, y0, x1, y1, x2, y2, x3, y3)
-            .buildAdjoint();
+        PerspectiveTransform::squareToQuadrilateral(x0, y0, x1, y1, x2, y2, x3, y3).buildAdjoint()
     }
 
     fn buildAdjoint(&self) -> Self {
         // Adjoint is the transpose of the cofactor matrix:
-        return PerspectiveTransform::new(
+        PerspectiveTransform::new(
             self.a22 * self.a33 - self.a23 * self.a32,
             self.a23 * self.a31 - self.a21 * self.a33,
             self.a21 * self.a32 - self.a22 * self.a31,
@@ -193,11 +192,11 @@ impl PerspectiveTransform {
             self.a12 * self.a23 - self.a13 * self.a22,
             self.a13 * self.a21 - self.a11 * self.a23,
             self.a11 * self.a22 - self.a12 * self.a21,
-        );
+        )
     }
 
     fn times(&self, other: &Self) -> Self {
-        return PerspectiveTransform::new(
+        PerspectiveTransform::new(
             self.a11 * other.a11 + self.a21 * other.a12 + self.a31 * other.a13,
             self.a11 * other.a21 + self.a21 * other.a22 + self.a31 * other.a23,
             self.a11 * other.a31 + self.a21 * other.a32 + self.a31 * other.a33,
@@ -207,6 +206,6 @@ impl PerspectiveTransform {
             self.a13 * other.a11 + self.a23 * other.a12 + self.a33 * other.a13,
             self.a13 * other.a21 + self.a23 * other.a22 + self.a33 * other.a23,
             self.a13 * other.a31 + self.a23 * other.a32 + self.a33 * other.a33,
-        );
+        )
     }
 }

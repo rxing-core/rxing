@@ -45,9 +45,7 @@ impl QRCodeDecoderMetaData {
         if !self.0 || points.is_empty() || points.len() < 3 {
             return;
         }
-        let bottom_left = points[0];
-        points[0] = points[2];
-        points[2] = bottom_left;
+        points.swap(0, 2);
         // No need to 'fix' top-left and alignment pattern.
     }
 }

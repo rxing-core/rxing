@@ -31,6 +31,7 @@ use crate::{
  * @author Sean Owen
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[derive(Default)]
 pub struct MultiFormatReader {
     hints: DecodingHintDictionary,
     readers: Vec<Box<dyn Reader>>,
@@ -205,15 +206,6 @@ impl MultiFormatReader {
                 }
             }
         }
-        return Err(Exceptions::NotFoundException("".to_owned()));
-    }
-}
-
-impl Default for MultiFormatReader {
-    fn default() -> Self {
-        Self {
-            hints: HashMap::new(),
-            readers: Vec::new(),
-        }
+        Err(Exceptions::NotFoundException(None))
     }
 }

@@ -29,7 +29,7 @@ lazy_static! {
     static ref GEO_URL: regex::Regex = regex::Regex::new(GEO_URL_PATTERN).unwrap();
 }
 
-const GEO_URL_PATTERN: &'static str = "geo:([\\-0-9.]+),([\\-0-9.]+)(?:,([\\-0-9.]+))?(?:\\?(.*))?";
+const GEO_URL_PATTERN: &str = "geo:([\\-0-9.]+),([\\-0-9.]+)(?:,([\\-0-9.]+))?(?:\\?(.*))?";
 
 /**
  * Parses a "geo:" URI result, which specifies a location on the surface of
@@ -54,7 +54,7 @@ pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientR
 
         let latitude = if let Some(la) = captures.get(1) {
             if let Ok(laf64) = la.as_str().parse::<f64>() {
-                if laf64 > 90.0 || laf64 < -90.0 {
+                if !(-90.0..=90.0).contains(&laf64) {
                     return None;
                 }
                 laf64
@@ -67,7 +67,7 @@ pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientR
 
         let longitude = if let Some(lo) = captures.get(2) {
             if let Ok(lof64) = lo.as_str().parse::<f64>() {
-                if lof64 > 180.0 || lof64 < -180.0 {
+                if !(-180.0..=180.0).contains(&lof64) {
                     return None;
                 }
                 lof64
@@ -119,7 +119,7 @@ pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientR
             String::from(query),
         )))
     } else {
-        return None;
+        None
     }
 
     // Matcher matcher = GEO_URL_PATTERN.matcher(rawText);

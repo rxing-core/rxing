@@ -163,8 +163,8 @@ impl ECIStringBuilder {
     /**
      * @return true iff nothing has been appended
      */
-    pub fn is_empty(&self) -> bool {
-        return self.current_bytes.is_empty() && self.result.is_empty();
+    pub fn is_empty(&mut self) -> bool {
+        self.current_bytes.is_empty() && self.result.is_empty()
     }
 
     pub fn build_result(mut self) -> Self {
@@ -178,5 +178,11 @@ impl fmt::Display for ECIStringBuilder {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         //self.encodeCurrentBytesIfAny();
         write!(f, "{}", self.result)
+    }
+}
+
+impl Default for ECIStringBuilder {
+    fn default() -> Self {
+        Self::new()
     }
 }

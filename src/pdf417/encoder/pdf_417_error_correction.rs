@@ -133,12 +133,12 @@ lazy_static! {
  */
 pub fn getErrorCorrectionCodewordCount(errorCorrectionLevel: u32) -> Result<u32, Exceptions> {
     if errorCorrectionLevel > 8 {
-        return Err(Exceptions::IllegalArgumentException(
+        return Err(Exceptions::IllegalArgumentException(Some(
             "Error correction level must be between 0 and 8!".to_owned(),
-        ));
+        )));
         // throw new IllegalArgumentException("Error correction level must be between 0 and 8!");
     }
-    Ok(1 << errorCorrectionLevel + 1)
+    Ok(1 << (errorCorrectionLevel + 1))
 }
 
 /**
@@ -149,10 +149,10 @@ pub fn getErrorCorrectionCodewordCount(errorCorrectionLevel: u32) -> Result<u32,
  * @return the recommended minimum error correction level
  */
 pub fn getRecommendedMinimumErrorCorrectionLevel(n: u32) -> Result<u32, Exceptions> {
-    if n <= 0 {
-        Err(Exceptions::IllegalArgumentException(
+    if n == 0 {
+        Err(Exceptions::IllegalArgumentException(Some(
             "n must be > 0".to_owned(),
-        ))
+        )))
     } else if n <= 40 {
         Ok(2)
     } else if n <= 160 {
@@ -162,9 +162,9 @@ pub fn getRecommendedMinimumErrorCorrectionLevel(n: u32) -> Result<u32, Exceptio
     } else if n <= 863 {
         Ok(5)
     } else {
-        Err(Exceptions::WriterException(
+        Err(Exceptions::WriterException(Some(
             "No recommendation possible".to_owned(),
-        ))
+        )))
     }
 }
 

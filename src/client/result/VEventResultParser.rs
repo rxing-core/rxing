@@ -32,7 +32,7 @@ use super::{CalendarParsedRXingResult, ParsedClientResult, ResultParser, VCardRe
  */
 pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let rawText = ResultParser::getMassagedText(result);
-    if let None = rawText.find("BEGIN:VEVENT") {
+    if !rawText.contains("BEGIN:VEVENT") {
         return None;
     }
     // if (vEventStart < 0) {
@@ -51,9 +51,10 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
 
     let mut attendees = matchVCardPrefixedField("ATTENDEE", &rawText);
     if !attendees.is_empty() {
-        for i in 0..attendees.len() {
+        for attendee in &mut attendees {
+            // for i in 0..attendees.len() {
             // for (int i = 0; i < attendees.length; i++) {
-            attendees[i] = stripMailto(&attendees[i]);
+            *attendee = stripMailto(attendee);
         }
     }
     let description = matchSingleVCardPrefixedField("DESCRIPTION", &rawText);
@@ -64,30 +65,19 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     if geoString.is_empty() {
         latitude = f64::NAN;
         longitude = f64::NAN;
-    } else {
-        if let Some(semicolon) = geoString.find(';') {
-            latitude = if let Ok(l) = geoString[..semicolon].parse() {
-                l
-            } else {
-                return None;
-            };
-            longitude = if let Ok(l) = geoString[semicolon + 1..].parse() {
-                l
-            } else {
-                return None;
-            }
+    } else if let Some(semicolon) = geoString.find(';') {
+        latitude = if let Ok(l) = geoString[..semicolon].parse() {
+            l
+        } else {
+            return None;
+        };
+        longitude = if let Ok(l) = geoString[semicolon + 1..].parse() {
+            l
         } else {
             return None;
         }
-        // if (semicolon < 0) {
-        //   return null;
-        // }
-        // try {
-        //   latitude = Double.parseDouble(geoString.substring(0, semicolon));
-        //   longitude = Double.parseDouble(geoString.substring(semicolon + 1));
-        // } catch (NumberFormatException ignored) {
-        //   return null;
-        // }
+    } else {
+        return None;
     }
 
     if let Ok(cpr) = CalendarParsedRXingResult::new(
@@ -159,9 +149,10 @@ fn matchVCardPrefixedField(prefix: &str, rawText: &str) -> Vec<String> {
         } else {
             let size = values.len();
             let mut result = vec!["".to_owned(); size]; //new String[size];
-            for i in 0..size {
+            for (i, res) in result.iter_mut().enumerate().take(size) {
+                // for i in 0..size {
                 // for (int i = 0; i < size; i++) {
-                result[i] = values.get(i).unwrap().get(0).unwrap().clone();
+                *res = values.get(i).unwrap().get(0).unwrap().clone();
             }
             result
         }

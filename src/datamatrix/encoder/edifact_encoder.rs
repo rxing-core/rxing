@@ -65,7 +65,7 @@ impl EdifactEncoder {
      * @param context the encoder context
      * @param buffer  the buffer with the remaining encoded characters
      */
-    fn handleEOD(context: &mut EncoderContext, buffer: &mut String) -> Result<(), Exceptions> {
+    fn handleEOD(context: &mut EncoderContext, buffer: &mut str) -> Result<(), Exceptions> {
         let mut runner = || -> Result<(), Exceptions> {
             let count = buffer.chars().count();
             if count == 0 {
@@ -89,9 +89,9 @@ impl EdifactEncoder {
             }
 
             if count > 4 {
-                return Err(Exceptions::IllegalStateException(
+                return Err(Exceptions::IllegalStateException(Some(
                     "Count must not exceed 4".to_owned(),
-                ));
+                )));
             }
             let restChars = count - 1;
             let encoded = Self::encodeToCodewords(buffer)?;
@@ -127,9 +127,9 @@ impl EdifactEncoder {
     }
 
     fn encodeChar(c: char, sb: &mut String) {
-        if c >= ' ' && c <= '?' {
+        if (' '..='?').contains(&c) {
             sb.push(c);
-        } else if c >= '@' && c <= '^' {
+        } else if ('@'..='^').contains(&c) {
             sb.push((c as u8 - 64) as char);
         } else {
             high_level_encoder::illegalCharacter(c).expect("");
@@ -139,11 +139,11 @@ impl EdifactEncoder {
     fn encodeToCodewords(sb: &str) -> Result<String, Exceptions> {
         let len = sb.chars().count();
         if len == 0 {
-            return Err(Exceptions::IllegalStateException(
+            return Err(Exceptions::IllegalStateException(Some(
                 "StringBuilder must not be empty".to_owned(),
-            ));
+            )));
         }
-        let c1 = sb.chars().nth(0).unwrap();
+        let c1 = sb.chars().next().unwrap();
         let c2 = if len >= 2 {
             sb.chars().nth(1).unwrap()
         } else {
@@ -161,9 +161,9 @@ impl EdifactEncoder {
         };
 
         let v: u32 = ((c1 as u32) << 18) + ((c2 as u32) << 12) + ((c3 as u32) << 6) + c4 as u32;
-        let cw1 = (v as u32 >> 16) & 255;
-        let cw2 = (v as u32 >> 8) & 255;
-        let cw3 = v as u32 & 255;
+        let cw1 = (v >> 16) & 255;
+        let cw2 = (v >> 8) & 255;
+        let cw3 = v & 255;
         let mut res = String::with_capacity(3);
         res.push(char::from_u32(cw1).unwrap());
         if len >= 2 {
@@ -174,5 +174,11 @@ impl EdifactEncoder {
         }
 
         Ok(res)
+    }
+}
+
+impl Default for EdifactEncoder {
+    fn default() -> Self {
+        Self::new()
     }
 }

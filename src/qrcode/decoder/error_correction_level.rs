@@ -47,10 +47,10 @@ impl ErrorCorrectionLevel {
             1 => Ok(Self::L),
             2 => Ok(Self::H),
             3 => Ok(Self::Q),
-            _ => Err(Exceptions::IllegalArgumentException(format!(
+            _ => Err(Exceptions::IllegalArgumentException(Some(format!(
                 "{} is not a valid bit selection",
                 bits
-            ))),
+            )))),
         }
     }
 
@@ -101,19 +101,19 @@ impl FromStr for ErrorCorrectionLevel {
         };
 
         // If we find something, cool, return it, otherwise keep trying as numbers
-        if as_str.is_some() {
-            return Ok(as_str.unwrap());
+        if let Some(as_str) = as_str {
+            return Ok(as_str);
         }
 
         let number_possible = s.parse::<u8>();
-        if number_possible.is_ok() {
-            return number_possible.unwrap().try_into();
+        if let Ok(number_possible) = number_possible {
+            return number_possible.try_into();
         }
 
-        return Err(Exceptions::IllegalArgumentException(format!(
+        return Err(Exceptions::IllegalArgumentException(Some(format!(
             "could not parse {} into an ec level",
             s
-        )));
+        ))));
     }
 }
 

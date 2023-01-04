@@ -141,7 +141,7 @@ impl ECIEncoderSet {
                     // for (CharsetEncoder encoder : ENCODERS) {
                     if encoder
                         .encode(
-                            &stringToEncode.get(i).unwrap(),
+                            stringToEncode.get(i).unwrap(),
                             encoding::EncoderTrap::Strict,
                         )
                         .is_ok()
@@ -185,9 +185,10 @@ impl ECIEncoderSet {
         //Compute priorityEncoderIndex by looking up priorityCharset in encoders
         // if priorityCharset != null {
         if priorityCharset.is_some() {
-            for i in 0..encoders.len() {
+            // for i in 0..encoders.len() {
+            for (i, encoder) in encoders.iter().enumerate() {
                 //   for (int i = 0; i < encoders.length; i++) {
-                if priorityCharset.as_ref().unwrap().name() == encoders[i].name() {
+                if priorityCharset.as_ref().unwrap().name() == encoder.name() {
                     priorityEncoderIndexValue = Some(i);
                     break;
                 }
@@ -197,13 +198,17 @@ impl ECIEncoderSet {
         //invariants
         assert_eq!(encoders[0].name(), encoding::all::ISO_8859_1.name());
         Self {
-            encoders: encoders,
+            encoders,
             priorityEncoderIndex: priorityEncoderIndexValue,
         }
     }
 
     pub fn len(&self) -> usize {
-        return self.encoders.len();
+        self.encoders.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.encoders.is_empty()
     }
 
     pub fn getCharsetName(&self, index: usize) -> &'static str {
@@ -213,7 +218,7 @@ impl ECIEncoderSet {
 
     pub fn getCharset(&self, index: usize) -> EncodingRef {
         assert!(index < self.len());
-        return self.encoders[index];
+        self.encoders[index]
     }
 
     pub fn getECIValue(&self, encoderIndex: usize) -> u32 {
@@ -240,9 +245,9 @@ impl ECIEncoderSet {
     pub fn encode_char(&self, c: &str, encoderIndex: usize) -> Vec<u8> {
         assert!(encoderIndex < self.len());
         let encoder = self.encoders[encoderIndex];
-        let enc_data = encoder.encode(&c.to_string(), encoding::EncoderTrap::Strict);
+        let enc_data = encoder.encode(c, encoding::EncoderTrap::Strict);
         assert!(enc_data.is_ok());
-        return enc_data.unwrap();
+        enc_data.unwrap()
     }
 
     pub fn encode_string(&self, s: &str, encoderIndex: usize) -> Vec<u8> {

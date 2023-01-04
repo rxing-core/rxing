@@ -47,13 +47,13 @@ lazy_static! {
  * @return number of errors
  * @throws ChecksumException if errors cannot be corrected, maybe because of too many errors
  */
-pub fn decode<'a>(
+pub fn decode(
     received: &mut [u32],
     numECCodewords: u32,
     erasures: &mut [u32],
 ) -> Result<usize, Exceptions> {
-    let field: Rc<&'static ModulusGF> = Rc::new(&FLD_INTERIOR);
-    let poly = ModulusPoly::new(field.clone(), received.to_vec())?;
+    let field: &'static ModulusGF = &FLD_INTERIOR;
+    let poly = ModulusPoly::new(field, received.to_vec())?;
     let mut S = vec![0u32; numECCodewords as usize];
     let mut error = false;
     for i in (1..=numECCodewords).rev() {
@@ -69,7 +69,7 @@ pub fn decode<'a>(
         return Ok(0);
     }
 
-    let mut knownErrors: Rc<ModulusPoly> = ModulusPoly::getOne(field.clone());
+    let mut knownErrors: Rc<ModulusPoly> = ModulusPoly::getOne(field);
     let mut b;
     let mut term;
     let mut kE: Rc<ModulusPoly>;
@@ -78,34 +78,34 @@ pub fn decode<'a>(
             // for (int erasure : erasures) {
             b = field.exp(received.len() as u32 - 1 - *erasure);
             // Add (1 - bx) term:
-            term = ModulusPoly::new(field.clone(), vec![field.subtract(0, b), 1])?;
+            term = ModulusPoly::new(field, vec![field.subtract(0, b), 1])?;
             kE = knownErrors.clone();
             knownErrors = kE.multiply(Rc::new(term))?;
         }
     }
 
-    let syndrome = Rc::new(ModulusPoly::new(field.clone(), S)?);
+    let syndrome = Rc::new(ModulusPoly::new(field, S)?);
     //syndrome = syndrome.multiply(knownErrors);
 
     let sigmaOmega = runEuclideanAlgorithm(
-        ModulusPoly::buildMonomial(field.clone(), numECCodewords as usize, 1),
+        ModulusPoly::buildMonomial(field, numECCodewords as usize, 1),
         syndrome,
         numECCodewords,
-        field.clone(),
+        field,
     )?;
     let sigma = sigmaOmega[0].clone();
     let omega = sigmaOmega[1].clone();
 
     //sigma = sigma.multiply(knownErrors);
 
-    let mut errorLocations = findErrorLocations(sigma.clone(), field.clone())?;
-    let errorMagnitudes = findErrorMagnitudes(omega, sigma, &mut errorLocations, field.clone());
+    let mut errorLocations = findErrorLocations(sigma.clone(), field)?;
+    let errorMagnitudes = findErrorMagnitudes(omega, sigma, &mut errorLocations, field);
 
     for i in 0..errorLocations.len() {
         // for (int i = 0; i < errorLocations.length; i++) {
         let position = received.len() as isize - 1 - field.log(errorLocations[i])? as isize;
         if position < 0 {
-            return Err(Exceptions::ChecksumException(format!("{}", file!())));
+            return Err(Exceptions::ChecksumException(Some(file!().to_string())));
         }
         received[position as usize] =
             field.subtract(received[position as usize], errorMagnitudes[i]);
@@ -118,7 +118,7 @@ fn runEuclideanAlgorithm(
     a: Rc<ModulusPoly>,
     b: Rc<ModulusPoly>,
     R: u32,
-    field: Rc<&'static ModulusGF>,
+    field: &'static ModulusGF,
 ) -> Result<[Rc<ModulusPoly>; 2], Exceptions> {
     // Assume a's degree is >= b's
     let mut a = a;
@@ -129,8 +129,8 @@ fn runEuclideanAlgorithm(
 
     let mut rLast = a;
     let mut r = b;
-    let mut tLast = ModulusPoly::getZero(field.clone());
-    let mut t = ModulusPoly::getOne(field.clone());
+    let mut tLast = ModulusPoly::getZero(field);
+    let mut t = ModulusPoly::getOne(field);
 
     // Run Euclidean algorithm until r's degree is less than R/2
     while r.getDegree() >= R / 2 {
@@ -142,17 +142,17 @@ fn runEuclideanAlgorithm(
         // Divide rLastLast by rLast, with quotient in q and remainder in r
         if rLast.isZero() {
             // Oops, Euclidean algorithm already terminated?
-            return Err(Exceptions::ChecksumException(format!("{}", file!())));
+            return Err(Exceptions::ChecksumException(Some(file!().to_string())));
         }
         r = rLastLast;
-        let mut q = ModulusPoly::getZero(field.clone()); //field.getZero();
+        let mut q = ModulusPoly::getZero(field); //field.getZero();
         let denominatorLeadingTerm = rLast.getCoefficient(rLast.getDegree() as usize);
         let dltInverse = field.inverse(denominatorLeadingTerm)?;
         while r.getDegree() >= rLast.getDegree() && !r.isZero() {
             let degreeDiff = r.getDegree() - rLast.getDegree();
             let scale = field.multiply(r.getCoefficient(r.getDegree() as usize), dltInverse);
             q = q.add(ModulusPoly::buildMonomial(
-                field.clone(),
+                field,
                 degreeDiff as usize,
                 scale,
             ))?;
@@ -164,7 +164,7 @@ fn runEuclideanAlgorithm(
 
     let sigmaTildeAtZero = t.getCoefficient(0);
     if sigmaTildeAtZero == 0 {
-        return Err(Exceptions::ChecksumException(format!("{}", file!())));
+        return Err(Exceptions::ChecksumException(Some(file!().to_string())));
     }
 
     let inverse = field.inverse(sigmaTildeAtZero)?;
@@ -176,7 +176,7 @@ fn runEuclideanAlgorithm(
 
 fn findErrorLocations(
     errorLocator: Rc<ModulusPoly>,
-    field: Rc<&ModulusGF>,
+    field: &ModulusGF,
 ) -> Result<Vec<u32>, Exceptions> {
     // This is a direct application of Chien's search
     let numErrors = errorLocator.getDegree();
@@ -192,7 +192,7 @@ fn findErrorLocations(
         i += 1;
     }
     if e != numErrors {
-        return Err(Exceptions::ChecksumException(format!("{}", file!())));
+        return Err(Exceptions::ChecksumException(Some(file!().to_string())));
     }
     Ok(result)
 }
@@ -201,7 +201,7 @@ fn findErrorMagnitudes(
     errorEvaluator: Rc<ModulusPoly>,
     errorLocator: Rc<ModulusPoly>,
     errorLocations: &mut [u32],
-    field: Rc<&'static ModulusGF>,
+    field: &'static ModulusGF,
 ) -> Vec<u32> {
     let errorLocatorDegree = errorLocator.getDegree();
     if errorLocatorDegree < 1 {
@@ -213,8 +213,8 @@ fn findErrorMagnitudes(
         formalDerivativeCoefficients[errorLocatorDegree as usize - i as usize] =
             field.multiply(i, errorLocator.getCoefficient(i as usize));
     }
-    let formalDerivative = ModulusPoly::new(field.clone(), formalDerivativeCoefficients)
-        .expect("should generate good poly");
+    let formalDerivative =
+        ModulusPoly::new(field, formalDerivativeCoefficients).expect("should generate good poly");
 
     // This is directly applying Forney's Formula
     let s = errorLocations.len();

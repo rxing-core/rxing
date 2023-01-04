@@ -87,7 +87,7 @@ pub fn decode(
         }
         detectionRXingResult = merge(&mut leftRowIndicatorColumn, &mut rightRowIndicatorColumn)?;
         if detectionRXingResult.is_none() {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
         // detectionRXingResult = detectionRXingResult;
 
@@ -159,8 +159,8 @@ pub fn decode(
                 minCodewordWidth,
                 maxCodewordWidth,
             );
-            if codeword.is_some() {
-                let codeword = codeword.unwrap();
+            if let Some(codeword) = codeword {
+                // let codeword = codeword.unwrap();
                 //detectionRXingResultColumn.setCodeword(imageRow, codeword);
                 detectionRXingResult
                     .getDetectionRXingResultColumnMut(barcodeColumn)
@@ -264,9 +264,13 @@ fn getBarcodeMetadata<T: DetectionRXingResultRowIndicatorColumn>(
     leftRowIndicatorColumn: &mut Option<T>,
     rightRowIndicatorColumn: &mut Option<T>,
 ) -> Option<BarcodeMetadata> {
-    let leftBarcodeMetadata;
-
-    if leftRowIndicatorColumn.is_none() {
+    let leftBarcodeMetadata = if leftRowIndicatorColumn.is_none()
+        || leftRowIndicatorColumn
+            .as_mut()
+            .unwrap()
+            .getBarcodeMetadata()
+            .is_none()
+    {
         return if rightRowIndicatorColumn.is_none() {
             None
         } else {
@@ -276,51 +280,30 @@ fn getBarcodeMetadata<T: DetectionRXingResultRowIndicatorColumn>(
                 .getBarcodeMetadata()
         };
     } else {
-        if leftRowIndicatorColumn
+        leftRowIndicatorColumn
             .as_mut()
             .unwrap()
             .getBarcodeMetadata()
-            .is_none()
-        {
-            return if rightRowIndicatorColumn.is_none() {
-                None
-            } else {
-                rightRowIndicatorColumn
-                    .as_mut()
-                    .unwrap()
-                    .getBarcodeMetadata()
-            };
-        } else {
-            leftBarcodeMetadata = leftRowIndicatorColumn
-                .as_mut()
-                .unwrap()
-                .getBarcodeMetadata()
-        }
-    }
+    };
     // if leftRowIndicatorColumn.is_none() ||
     //     (leftBarcodeMetadata = leftRowIndicatorColumn.getBarcodeMetadata()).is_none() {
     //   return if rightRowIndicatorColumn.is_none()  {None} else  {rightRowIndicatorColumn.getBarcodeMetadata()};
     // }
 
-    let rightBarcodeMetadata;
-
-    if rightRowIndicatorColumn.is_none() {
-        return leftBarcodeMetadata;
-    } else {
-        if rightRowIndicatorColumn
+    let rightBarcodeMetadata = if rightRowIndicatorColumn.is_none()
+        || rightRowIndicatorColumn
             .as_mut()
             .unwrap()
             .getBarcodeMetadata()
             .is_none()
-        {
-            return leftBarcodeMetadata;
-        } else {
-            rightBarcodeMetadata = rightRowIndicatorColumn
-                .as_mut()
-                .unwrap()
-                .getBarcodeMetadata();
-        }
-    }
+    {
+        return leftBarcodeMetadata;
+    } else {
+        rightRowIndicatorColumn
+            .as_mut()
+            .unwrap()
+            .getBarcodeMetadata()
+    };
     // if rightRowIndicatorColumn.is_none() ||
     //     (rightBarcodeMetadata = rightRowIndicatorColumn.getBarcodeMetadata()).is_none() {
     //   return leftBarcodeMetadata;
@@ -392,7 +375,7 @@ fn getRowIndicatorColumn<'a>(
 
 fn adjustCodewordCount(
     detectionRXingResult: &DetectionRXingResult,
-    barcodeMatrix: &mut Vec<Vec<BarcodeValue>>,
+    barcodeMatrix: &mut [Vec<BarcodeValue>],
 ) -> Result<(), Exceptions> {
     let barcodeMatrix01 = &mut barcodeMatrix[0][1];
     let numberOfCodewords = barcodeMatrix01.getValue();
@@ -400,20 +383,16 @@ fn adjustCodewordCount(
         * detectionRXingResult.getBarcodeRowCount() as isize
         - getNumberOfECCodeWords(detectionRXingResult.getBarcodeECLevel()) as isize)
         as u32;
-    if numberOfCodewords.len() == 0 {
-        if calculatedNumberOfCodewords < 1
-            || calculatedNumberOfCodewords > pdf_417_common::MAX_CODEWORDS_IN_BARCODE
-        {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+    if numberOfCodewords.is_empty() {
+        if !(1..=pdf_417_common::MAX_CODEWORDS_IN_BARCODE).contains(&calculatedNumberOfCodewords) {
+            return Err(Exceptions::NotFoundException(None));
         }
         barcodeMatrix01.setValue(calculatedNumberOfCodewords);
-    } else if numberOfCodewords[0] != calculatedNumberOfCodewords {
-        if calculatedNumberOfCodewords >= 1
-            && calculatedNumberOfCodewords <= pdf_417_common::MAX_CODEWORDS_IN_BARCODE
-        {
-            // The calculated one is more reliable as it is derived from the row indicator columns
-            barcodeMatrix01.setValue(calculatedNumberOfCodewords);
-        }
+    } else if numberOfCodewords[0] != calculatedNumberOfCodewords
+        && (1..=pdf_417_common::MAX_CODEWORDS_IN_BARCODE).contains(&calculatedNumberOfCodewords)
+    {
+        // The calculated one is more reliable as it is derived from the row indicator columns
+        barcodeMatrix01.setValue(calculatedNumberOfCodewords);
     }
     Ok(())
 }
@@ -438,7 +417,7 @@ fn createDecoderRXingResult(
             let values = barcodeMatrix[row as usize][column + 1].getValue();
             let codewordIndex =
                 row as usize * detectionRXingResult.getBarcodeColumnCount() + column;
-            if values.len() == 0 {
+            if values.is_empty() {
                 erasures.push(codewordIndex as u32);
             } else if values.len() == 1 {
                 codewords[codewordIndex] = values[0];
@@ -483,7 +462,7 @@ fn createDecoderRXingResultFromAmbiguousValues(
     codewords: &mut [u32],
     erasureArray: &mut [u32],
     ambiguousIndexes: &mut [u32],
-    ambiguousIndexValues: &Vec<Vec<u32>>,
+    ambiguousIndexValues: &[Vec<u32>],
 ) -> Result<DecoderRXingResult, Exceptions> {
     let mut ambiguousIndexCount = vec![0; ambiguousIndexes.len()];
 
@@ -503,8 +482,8 @@ fn createDecoderRXingResultFromAmbiguousValues(
         // } catch (ChecksumException ignored) {
         //   //
         // }
-        if ambiguousIndexCount.len() == 0 {
-            return Err(Exceptions::ChecksumException("".to_owned()));
+        if ambiguousIndexCount.is_empty() {
+            return Err(Exceptions::ChecksumException(None));
         }
         for i in 0..ambiguousIndexCount.len() {
             // for (int i = 0; i < ambiguousIndexCount.length; i++) {
@@ -514,14 +493,14 @@ fn createDecoderRXingResultFromAmbiguousValues(
             } else {
                 ambiguousIndexCount[i] = 0;
                 if i == ambiguousIndexCount.len() - 1 {
-                    return Err(Exceptions::ChecksumException("".to_owned()));
+                    return Err(Exceptions::ChecksumException(None));
                 }
             }
         }
 
         tries -= 1;
     }
-    Err(Exceptions::ChecksumException("".to_owned()))
+    Err(Exceptions::ChecksumException(None))
 }
 
 fn createBarcodeMatrix(detectionRXingResult: &mut DetectionRXingResult) -> Vec<Vec<BarcodeValue>> {
@@ -544,19 +523,25 @@ fn createBarcodeMatrix(detectionRXingResult: &mut DetectionRXingResult) -> Vec<V
     for detectionRXingResultColumn in detectionRXingResult.getDetectionRXingResultColumns() {
         // for (DetectionRXingResultColumn detectionRXingResultColumn : detectionRXingResult.getDetectionRXingResultColumns()) {
         if detectionRXingResultColumn.is_some() {
-            for codeword in detectionRXingResultColumn.as_ref().unwrap().getCodewords() {
+            for codeword in detectionRXingResultColumn
+                .as_ref()
+                .unwrap()
+                .getCodewords()
+                .iter()
+                .flatten()
+            {
                 // for (Codeword codeword : detectionRXingResultColumn.getCodewords()) {
-                if let Some(codeword) = codeword {
-                    // if codeword.is_some() {
-                    let rowNumber = codeword.getRowNumber();
-                    if rowNumber >= 0 {
-                        if rowNumber as usize >= barcodeMatrix.len() {
-                            // We have more rows than the barcode metadata allows for, ignore them.
-                            continue;
-                        }
-                        barcodeMatrix[rowNumber as usize][column].setValue(codeword.getValue());
+                // if let Some(codeword) = codeword {
+                // if codeword.is_some() {
+                let rowNumber = codeword.getRowNumber();
+                if rowNumber >= 0 {
+                    if rowNumber as usize >= barcodeMatrix.len() {
+                        // We have more rows than the barcode metadata allows for, ignore them.
+                        continue;
                     }
+                    barcodeMatrix[rowNumber as usize][column].setValue(codeword.getValue());
                 }
+                // }
             }
         }
         column += 1;
@@ -580,7 +565,7 @@ fn getStartColumn(
     let mut codeword = &None;
     if isValidBarcodeColumn(detectionRXingResult, (barcodeColumn - offset) as usize) {
         codeword = detectionRXingResult
-            .getDetectionRXingResultColumn((barcodeColumn as isize - offset) as usize)
+            .getDetectionRXingResultColumn((barcodeColumn - offset) as usize)
             .as_ref()
             .unwrap()
             .getCodeword(imageRow);
@@ -688,9 +673,7 @@ fn detectCodeword(
         startColumn,
         imageRow,
     );
-    if moduleBitCount.is_none() {
-        return None;
-    }
+    moduleBitCount?;
     let mut moduleBitCount = moduleBitCount.unwrap();
 
     let endColumn;
@@ -811,7 +794,7 @@ fn adjustCodewordStartColumn(
             correctedStartColumn < maxColumn
         }) && leftToRight == image.get(correctedStartColumn, imageRow)
         {
-            if (codewordStartColumn as i64 - correctedStartColumn as i64).abs() as u32
+            if (codewordStartColumn as i64 - correctedStartColumn as i64).unsigned_abs() as u32
                 > CODEWORD_SKEW_SIZE
             {
                 return codewordStartColumn;
@@ -824,12 +807,12 @@ fn adjustCodewordStartColumn(
         increment = -increment;
         leftToRight = !leftToRight;
     }
-    return correctedStartColumn;
+    correctedStartColumn
 }
 
 fn checkCodewordSkew(codewordSize: u32, minCodewordWidth: u32, maxCodewordWidth: u32) -> bool {
-    return minCodewordWidth - CODEWORD_SKEW_SIZE <= codewordSize
-        && codewordSize <= maxCodewordWidth + CODEWORD_SKEW_SIZE;
+    minCodewordWidth - CODEWORD_SKEW_SIZE <= codewordSize
+        && codewordSize <= maxCodewordWidth + CODEWORD_SKEW_SIZE
 }
 
 fn decodeCodewords(
@@ -838,7 +821,7 @@ fn decodeCodewords(
     erasures: &mut [u32],
 ) -> Result<DecoderRXingResult, Exceptions> {
     if codewords.is_empty() {
-        return Err(Exceptions::FormatException("".to_owned()));
+        return Err(Exceptions::FormatException(None));
     }
 
     let numECCodewords = 1 << (ecLevel + 1);
@@ -873,7 +856,7 @@ fn correctErrors(
         || numECCodewords > MAX_EC_CODEWORDS
     {
         // Too many errors or EC Codewords is corrupted
-        return Err(Exceptions::ChecksumException("".to_owned()));
+        return Err(Exceptions::ChecksumException(None));
     }
     ec::error_correction::decode(codewords, numECCodewords, erasures)
 }
@@ -885,21 +868,21 @@ fn verifyCodewordCount(codewords: &mut [u32], numECCodewords: u32) -> Result<(),
     if codewords.len() < 4 {
         // Codeword array size should be at least 4 allowing for
         // Count CW, At least one Data CW, Error Correction CW, Error Correction CW
-        return Err(Exceptions::FormatException("".to_owned()));
+        return Err(Exceptions::FormatException(None));
     }
     // The first codeword, the Symbol Length Descriptor, shall always encode the total number of data
     // codewords in the symbol, including the Symbol Length Descriptor itself, data codewords and pad
     // codewords, but excluding the number of error correction codewords.
     let numberOfCodewords = codewords[0];
     if numberOfCodewords > codewords.len() as u32 {
-        return Err(Exceptions::FormatException("".to_owned()));
+        return Err(Exceptions::FormatException(None));
     }
     if numberOfCodewords == 0 {
         // Reset to the length of the array - 8 (Allow for at least level 3 Error Correction (8 Error Codewords)
         if numECCodewords < codewords.len() as u32 {
             codewords[0] = codewords.len() as u32 - numECCodewords;
         } else {
-            return Err(Exceptions::FormatException("".to_owned()));
+            return Err(Exceptions::FormatException(None));
         }
     }
     Ok(())

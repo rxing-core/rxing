@@ -32,11 +32,11 @@ impl Dimension {
     }
 
     pub fn getWidth(&self) -> usize {
-        return self.0;
+        self.0
     }
 
     pub fn getHeight(&self) -> usize {
-        return self.1;
+        self.1
     }
 }
 

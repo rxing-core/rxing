@@ -98,14 +98,13 @@ impl StringUtils {
      *  none of these can possibly be correct
      */
     pub fn guessCharset(bytes: &[u8], hints: &DecodingHintDictionary) -> EncodingRef {
-        match hints.get(&DecodeHintType::CHARACTER_SET) {
-            Some(hint) => {
-                if let DecodeHintValue::CharacterSet(cs_name) = hint {
-                    return encoding::label::encoding_from_whatwg_label(cs_name).unwrap();
-                }
-            }
-            _ => {}
-        };
+        if let Some(DecodeHintValue::CharacterSet(cs_name)) =
+            hints.get(&DecodeHintType::CHARACTER_SET)
+        {
+            // if let DecodeHintValue::CharacterSet(cs_name) = hint {
+            return encoding::label::encoding_from_whatwg_label(cs_name).unwrap();
+            // }
+        }
         // if hints.contains_key(&DecodeHintType::CHARACTER_SET) {
         //   return Charset.forName(hints.get(DecodeHintType.CHARACTER_SET).toString());
         // }
@@ -141,7 +140,8 @@ impl StringUtils {
 
         let utf8bom = bytes.len() > 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF;
 
-        for i in 0..length {
+        // for i in 0..length {
+        for value in bytes.iter().take(length).copied() {
             // for (int i = 0;
             //      i < length && (canBeISO88591 || canBeShiftJIS || canBeUTF8);
             //      i++) {
@@ -149,7 +149,7 @@ impl StringUtils {
                 break;
             }
 
-            let value = bytes[i];
+            // let value = bytes[i];
 
             // UTF-8 stuff
             if can_be_utf8 {
@@ -270,6 +270,6 @@ impl StringUtils {
             return encoding::all::UTF_8;
         }
         // Otherwise, we take a wild guess with platform encoding
-        return encoding::all::UTF_8;
+        encoding::all::UTF_8
     }
 }

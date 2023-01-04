@@ -48,7 +48,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let tos = ResultParser::match_do_co_mo_prefixed_field("TO:", &rawText)?;
 
     for to in &tos {
-        if !isBasicallyValidEmailAddress(&to, &ATEXT_ALPHANUMERIC) {
+        if !isBasicallyValidEmailAddress(to, &ATEXT_ALPHANUMERIC) {
             return None;
         }
     }

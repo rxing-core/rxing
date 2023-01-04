@@ -37,12 +37,12 @@ const ALPHANUMERIC_CHARS: &str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:"
 const GB2312_SUBSET: u32 = 1;
 
 pub fn decode(
-    bytes: &Vec<u8>,
+    bytes: &[u8],
     version: VersionRef,
     ecLevel: ErrorCorrectionLevel,
     hints: &DecodingHintDictionary,
 ) -> Result<DecoderRXingResult, Exceptions> {
-    let mut bits = BitSource::new(bytes.clone());
+    let mut bits = BitSource::new(bytes.to_owned());
     let mut result = String::with_capacity(50);
     let mut byteSegments = vec![vec![0u8; 0]; 0];
     let mut symbolSequence = -1i32;
@@ -77,10 +77,10 @@ pub fn decode(
             }
             Mode::STRUCTURED_APPEND => {
                 if bits.available() < 16 {
-                    return Err(Exceptions::FormatException(format!(
+                    return Err(Exceptions::FormatException(Some(format!(
                         "Mode::Structured append expected bits.available() < 16, found bits of {}",
                         bits.available()
-                    )));
+                    ))));
                 }
                 // sequence number and parity is added later to the result metadata
                 // Read next 8 bits (symbol sequence #) and 8 bits (parity data), then continue
@@ -92,10 +92,10 @@ pub fn decode(
                 let value = parseECIValue(&mut bits)?;
                 currentCharacterSetECI = Some(CharacterSetECI::getCharacterSetECIByValue(value)?);
                 if currentCharacterSetECI.is_none() {
-                    return Err(Exceptions::FormatException(format!(
+                    return Err(Exceptions::FormatException(Some(format!(
                         "Value of {} not valid",
                         value
-                    )));
+                    ))));
                 }
             }
             Mode::HANZI => {
@@ -126,7 +126,7 @@ pub fn decode(
                         hints,
                     )?,
                     Mode::KANJI => decodeKanjiSegment(&mut bits, &mut result, count)?,
-                    _ => return Err(Exceptions::FormatException("".to_owned())),
+                    _ => return Err(Exceptions::FormatException(None)),
                 }
             }
         }
@@ -144,14 +144,12 @@ pub fn decode(
         } else {
             symbologyModifier = 2;
         }
+    } else if hasFNC1first {
+        symbologyModifier = 3;
+    } else if hasFNC1second {
+        symbologyModifier = 5;
     } else {
-        if hasFNC1first {
-            symbologyModifier = 3;
-        } else if hasFNC1second {
-            symbologyModifier = 5;
-        } else {
-            symbologyModifier = 1;
-        }
+        symbologyModifier = 1;
     }
 
     // } catch (IllegalArgumentException iae) {
@@ -160,7 +158,7 @@ pub fn decode(
     // }
 
     Ok(DecoderRXingResult::with_all(
-        bytes.clone(),
+        bytes.to_owned(),
         result,
         byteSegments.to_vec(),
         format!("{}", u8::from(ecLevel)),
@@ -180,7 +178,7 @@ fn decodeHanziSegment(
 ) -> Result<(), Exceptions> {
     // Don't crash trying to read more bits than we have available.
     if count * 13 > bits.available() {
-        return Err(Exceptions::FormatException("".to_owned()));
+        return Err(Exceptions::FormatException(None));
     }
 
     // Each character will require 2 bytes. Read the characters as 2-byte pairs
@@ -222,7 +220,7 @@ fn decodeKanjiSegment(
 ) -> Result<(), Exceptions> {
     // Don't crash trying to read more bits than we have available.
     if count * 13 > bits.available() {
-        return Err(Exceptions::FormatException("".to_owned()));
+        return Err(Exceptions::FormatException(None));
     }
 
     // Each character will require 2 bytes. Read the characters as 2-byte pairs
@@ -266,25 +264,26 @@ fn decodeByteSegment(
 ) -> Result<(), Exceptions> {
     // Don't crash trying to read more bits than we have available.
     if 8 * count > bits.available() {
-        return Err(Exceptions::FormatException("".to_owned()));
+        return Err(Exceptions::FormatException(None));
     }
 
     let mut readBytes = vec![0u8; count];
-    for i in 0..count {
+
+    for byte in readBytes.iter_mut().take(count) {
+        // for i in 0..count {
         // for (int i = 0; i < count; i++) {
-        readBytes[i] = bits.readBits(8)? as u8;
+        *byte = bits.readBits(8)? as u8;
     }
-    let encoding;
-    if currentCharacterSetECI.is_none() {
+    let encoding = if currentCharacterSetECI.is_none() {
         // The spec isn't clear on this mode; see
         // section 6.4.5: t does not say which encoding to assuming
         // upon decoding. I have seen ISO-8859-1 used as well as
         // Shift_JIS -- without anything like an ECI designator to
         // give a hint.
-        encoding = StringUtils::guessCharset(&readBytes, &hints);
+        StringUtils::guessCharset(&readBytes, hints)
     } else {
-        encoding = CharacterSetECI::getCharset(currentCharacterSetECI.as_ref().unwrap());
-    }
+        CharacterSetECI::getCharset(currentCharacterSetECI.as_ref().unwrap())
+    };
 
     let encode_string = if currentCharacterSetECI.is_some()
         && currentCharacterSetECI.as_ref().unwrap() == &CharacterSetECI::Cp437
@@ -312,7 +311,7 @@ fn decodeByteSegment(
 
 fn toAlphaNumericChar(value: u32) -> Result<char, Exceptions> {
     if value as usize >= ALPHANUMERIC_CHARS.len() {
-        return Err(Exceptions::FormatException("".to_owned()));
+        return Err(Exceptions::FormatException(None));
     }
     Ok(ALPHANUMERIC_CHARS.chars().nth(value as usize).unwrap())
 }
@@ -328,7 +327,7 @@ fn decodeAlphanumericSegment(
     let mut count = count;
     while count > 1 {
         if bits.available() < 11 {
-            return Err(Exceptions::FormatException("".to_owned()));
+            return Err(Exceptions::FormatException(None));
         }
         let nextTwoCharsBits = bits.readBits(11)?;
         result.push(toAlphaNumericChar(nextTwoCharsBits / 45)?);
@@ -338,7 +337,7 @@ fn decodeAlphanumericSegment(
     if count == 1 {
         // special case: one character left
         if bits.available() < 6 {
-            return Err(Exceptions::FormatException("".to_owned()));
+            return Err(Exceptions::FormatException(None));
         }
         result.push(toAlphaNumericChar(bits.readBits(6)?)?);
     }
@@ -374,11 +373,11 @@ fn decodeNumericSegment(
     while count >= 3 {
         // Each 10 bits encodes three digits
         if bits.available() < 10 {
-            return Err(Exceptions::FormatException("".to_owned()));
+            return Err(Exceptions::FormatException(None));
         }
         let threeDigitsBits = bits.readBits(10)?;
         if threeDigitsBits >= 1000 {
-            return Err(Exceptions::FormatException("".to_owned()));
+            return Err(Exceptions::FormatException(None));
         }
         result.push(toAlphaNumericChar(threeDigitsBits / 100)?);
         result.push(toAlphaNumericChar((threeDigitsBits / 10) % 10)?);
@@ -388,22 +387,22 @@ fn decodeNumericSegment(
     if count == 2 {
         // Two digits left over to read, encoded in 7 bits
         if bits.available() < 7 {
-            return Err(Exceptions::FormatException("".to_owned()));
+            return Err(Exceptions::FormatException(None));
         }
         let twoDigitsBits = bits.readBits(7)?;
         if twoDigitsBits >= 100 {
-            return Err(Exceptions::FormatException("".to_owned()));
+            return Err(Exceptions::FormatException(None));
         }
         result.push(toAlphaNumericChar(twoDigitsBits / 10)?);
         result.push(toAlphaNumericChar(twoDigitsBits % 10)?);
     } else if count == 1 {
         // One digit left over to read
         if bits.available() < 4 {
-            return Err(Exceptions::FormatException("".to_owned()));
+            return Err(Exceptions::FormatException(None));
         }
         let digitBits = bits.readBits(4)?;
         if digitBits >= 10 {
-            return Err(Exceptions::FormatException("".to_owned()));
+            return Err(Exceptions::FormatException(None));
         }
         result.push(toAlphaNumericChar(digitBits)?);
     }
@@ -428,5 +427,5 @@ fn parseECIValue(bits: &mut BitSource) -> Result<u32, Exceptions> {
         return Ok(((firstByte & 0x1F) << 16) | secondThirdBytes);
     }
 
-    Err(Exceptions::FormatException("".to_owned()))
+    Err(Exceptions::FormatException(None))
 }

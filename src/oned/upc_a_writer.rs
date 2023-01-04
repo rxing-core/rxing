@@ -25,13 +25,8 @@ use super::EAN13Writer;
  *
  * @author qwandor@google.com (Andrew Walbran)
  */
+#[derive(Default)]
 pub struct UPCAWriter(EAN13Writer);
-
-impl Default for UPCAWriter {
-    fn default() -> Self {
-        Self(Default::default())
-    }
-}
 
 impl Writer for UPCAWriter {
     fn encode(
@@ -53,10 +48,10 @@ impl Writer for UPCAWriter {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         if format != &BarcodeFormat::UPC_A {
-            return Err(Exceptions::IllegalArgumentException(format!(
+            return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "Can only encode UPC-A, but got {:?}",
                 format
-            )));
+            ))));
         }
         // Transform a UPC-A code into the equivalent EAN-13 code and write it that way
         self.0.encode_with_hints(
@@ -64,7 +59,7 @@ impl Writer for UPCAWriter {
             &BarcodeFormat::EAN_13,
             width,
             height,
-            &hints,
+            hints,
         )
     }
 }

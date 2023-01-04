@@ -230,10 +230,10 @@ impl TryFrom<u8> for DataMask {
             5 => Ok(DataMask::DATA_MASK_101),
             6 => Ok(DataMask::DATA_MASK_110),
             7 => Ok(DataMask::DATA_MASK_111),
-            _ => Err(Exceptions::IllegalArgumentException(format!(
+            _ => Err(Exceptions::IllegalArgumentException(Some(format!(
                 "{} is not between 0 and 7",
                 value
-            ))),
+            )))),
         }
     }
 }

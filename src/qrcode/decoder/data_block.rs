@@ -55,7 +55,7 @@ impl DataBlock {
         ecLevel: ErrorCorrectionLevel,
     ) -> Result<Vec<Self>, Exceptions> {
         if rawCodewords.len() as u32 != version.getTotalCodewords() {
-            return Err(Exceptions::IllegalArgumentException("".to_owned()));
+            return Err(Exceptions::IllegalArgumentException(None));
         }
 
         // Figure out the number and size of data blocks used by this version and
@@ -109,26 +109,32 @@ impl DataBlock {
         let mut rawCodewordsOffset = 0;
         for i in 0..shorterBlocksNumDataCodewords {
             // for (int i = 0; i < shorterBlocksNumDataCodewords; i++) {
-            for j in 0..numRXingResultBlocks {
+            for result_j in result.iter_mut().take(numRXingResultBlocks) {
+                // for j in 0..numRXingResultBlocks {
                 // for (int j = 0; j < numRXingResultBlocks; j++) {
-                result[j].codewords[i] = rawCodewords[rawCodewordsOffset];
+                result_j.codewords[i] = rawCodewords[rawCodewordsOffset];
                 rawCodewordsOffset += 1;
             }
         }
         // Fill out the last data block in the longer ones
-        for j in longerBlocksStartAt..numRXingResultBlocks {
+        for res in result
+            .iter_mut()
+            .take(numRXingResultBlocks)
+            .skip(longerBlocksStartAt)
+        {
+            // for j in longerBlocksStartAt..numRXingResultBlocks {
             // for (int j = longerBlocksStartAt; j < numRXingResultBlocks; j++) {
-            result[j].codewords[shorterBlocksNumDataCodewords] = rawCodewords[rawCodewordsOffset];
+            res.codewords[shorterBlocksNumDataCodewords] = rawCodewords[rawCodewordsOffset];
             rawCodewordsOffset += 1;
         }
         // Now add in error correction blocks
         let max = result[0].codewords.len();
         for i in shorterBlocksNumDataCodewords..max {
             // for (int i = shorterBlocksNumDataCodewords; i < max; i++) {
-            for j in 0..numRXingResultBlocks {
+            for (j, res) in result.iter_mut().enumerate().take(numRXingResultBlocks) {
                 // for (int j = 0; j < numRXingResultBlocks; j++) {
                 let iOffset = if j < longerBlocksStartAt { i } else { i + 1 };
-                result[j].codewords[iOffset] = rawCodewords[rawCodewordsOffset];
+                res.codewords[iOffset] = rawCodewords[rawCodewordsOffset];
                 rawCodewordsOffset += 1;
             }
         }

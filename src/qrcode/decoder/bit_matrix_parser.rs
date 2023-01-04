@@ -36,10 +36,10 @@ impl BitMatrixParser {
     pub fn new(bit_matrix: BitMatrix) -> Result<Self, Exceptions> {
         let dimension = bit_matrix.getHeight();
         if dimension < 21 || (dimension & 0x03) != 1 {
-            Err(Exceptions::FormatException(format!(
+            Err(Exceptions::FormatException(Some(format!(
                 "{} < 21 || ({} % 0x03) != 1",
                 dimension, dimension
-            )))
+            ))))
         } else {
             Ok(Self {
                 bitMatrix: bit_matrix,
@@ -59,7 +59,7 @@ impl BitMatrixParser {
      */
     pub fn readFormatInformation(&mut self) -> Result<&FormatInformation, Exceptions> {
         if self.parsedFormatInfo.is_some() {
-            return Ok(&self.parsedFormatInfo.as_ref().unwrap());
+            return Ok(self.parsedFormatInfo.as_ref().unwrap());
         }
 
         // Read top-left format info bits
@@ -96,7 +96,7 @@ impl BitMatrixParser {
         if let Some(pfi) = &self.parsedFormatInfo {
             return Ok(pfi);
         }
-        Err(Exceptions::FormatException("".to_owned()))
+        Err(Exceptions::FormatException(None))
     }
 
     /**
@@ -108,7 +108,7 @@ impl BitMatrixParser {
      */
     pub fn readVersion(&mut self) -> Result<VersionRef, Exceptions> {
         if let Some(pv) = self.parsedVersion {
-            return Ok(&pv);
+            return Ok(pv);
         }
 
         let dimension = self.bitMatrix.getHeight();
@@ -152,7 +152,7 @@ impl BitMatrixParser {
                 return Ok(theParsedVersion);
             }
         }
-        Err(Exceptions::FormatException("".to_owned()))
+        Err(Exceptions::FormatException(None))
     }
 
     fn copyBit(&self, i: u32, j: u32, versionBits: u32) -> u32 {
@@ -236,7 +236,7 @@ impl BitMatrixParser {
         }
 
         if resultOffset != version.getTotalCodewords() as usize {
-            return Err(Exceptions::FormatException("".to_owned()));
+            return Err(Exceptions::FormatException(None));
         }
         Ok(result)
     }
@@ -250,7 +250,7 @@ impl BitMatrixParser {
             let dimension = self.bitMatrix.getHeight();
             dataMask.unmaskBitMatrix(&mut self.bitMatrix, dimension);
         } else {
-            return; // We have no format information, and have no data mask
+            // We have no format information, and have no data mask
         }
         // if self.parsedFormatInfo.is_none() {
         //   return; // We have no format information, and have no data mask

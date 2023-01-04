@@ -33,16 +33,13 @@ use crate::{common::GlobalHistogramBinarizer, BinaryBitmap, BufferedImageLuminan
 fn getBufferedImage(fileName: &str) -> DynamicImage {
     let path = format!("test_resources/blackbox/rssexpandedstacked-2/{}", fileName);
 
-    let image = image::open(path).expect("load image");
-
-    image
+    image::open(path).expect("load image")
 }
 
 pub(crate) fn getBinaryBitmap(fileName: &str) -> BinaryBitmap {
     let bufferedImage = getBufferedImage(fileName);
-    let binaryMap = BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
-        Box::new(BufferedImageLuminanceSource::new(bufferedImage)),
-    ))));
 
-    binaryMap
+    BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
+        Box::new(BufferedImageLuminanceSource::new(bufferedImage)),
+    ))))
 }

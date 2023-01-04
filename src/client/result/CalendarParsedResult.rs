@@ -120,8 +120,6 @@ impl CalendarParsedRXingResult {
         } else {
             Self::parseDate(endString.clone())?
         };
-        let startAllDay;
-        let endAllDay;
 
         // try {
         //   this.start = parseDate(startString);
@@ -140,8 +138,8 @@ impl CalendarParsedRXingResult {
         //   }
         // }
 
-        startAllDay = startString.len() == 8;
-        endAllDay = !endString.is_empty() && endString.len() == 8;
+        let startAllDay = startString.len() == 8;
+        let endAllDay = !endString.is_empty() && endString.len() == 8;
 
         Ok(Self {
             summary,
@@ -168,7 +166,7 @@ impl CalendarParsedRXingResult {
     fn parseDate(when: String) -> Result<i64, Exceptions> {
         // let date_time_regex = Regex::new(DATE_TIME).unwrap();
         if !DATE_TIME.is_match(&when) {
-            return Err(Exceptions::ParseException(when));
+            return Err(Exceptions::ParseException(Some(when)));
         }
         if when.len() == 8 {
             // Show only year/month/day
@@ -196,10 +194,10 @@ impl CalendarParsedRXingResult {
         if when.len() == 16 && when.chars().nth(15).unwrap() == 'Z' {
             return match Utc.datetime_from_str(&when, "%Y%m%dT%H%M%SZ") {
                 Ok(dtm) => Ok(dtm.with_timezone(&Utc).timestamp()),
-                Err(e) => Err(Exceptions::ParseException(format!(
+                Err(e) => Err(Exceptions::ParseException(Some(format!(
                     "couldn't parse string: {}",
                     e
-                ))),
+                )))),
             };
             // let dtm = DateTime::parse_from_str(&when, "%Y%m%dT%H%M%S").unwrap().with_timezone(&Utc);
             // //let milliseconds = Self::parseDateTimeString(&when[0..15]);
@@ -219,18 +217,18 @@ impl CalendarParsedRXingResult {
             let tz_parsed: Tz = match tz_part.parse() {
                 Ok(time_zone) => time_zone,
                 Err(e) => {
-                    return Err(Exceptions::ParseException(format!(
+                    return Err(Exceptions::ParseException(Some(format!(
                         "couldn't parse timezone '{}': {}",
                         tz_part, e
-                    )))
+                    ))))
                 }
             };
             return match Utc.datetime_from_str(time_part, "%Y%m%dT%H%M%S") {
                 Ok(dtm) => Ok(dtm.with_timezone(&tz_parsed).timestamp()),
-                Err(e) => Err(Exceptions::ParseException(format!(
+                Err(e) => Err(Exceptions::ParseException(Some(format!(
                     "couldn't parse string: {}",
                     e
-                ))),
+                )))),
             };
         }
 
@@ -238,10 +236,10 @@ impl CalendarParsedRXingResult {
         if when.len() == 15 {
             return match Utc.datetime_from_str(&when, "%Y%m%dT%H%M%S") {
                 Ok(dtm) => Ok(dtm.timestamp()),
-                Err(e) => Err(Exceptions::ParseException(format!(
+                Err(e) => Err(Exceptions::ParseException(Some(format!(
                     "couldn't parse local time: {}",
                     e
-                ))),
+                )))),
             };
         }
         Self::parseDateTimeString(&when)
@@ -270,12 +268,13 @@ impl CalendarParsedRXingResult {
         // let regex = Regex::new(RFC2445_DURATION).unwrap();
         if let Some(m) = RFC2445_DURATION.captures(durationString) {
             let mut durationMS = 0i64;
-            for i in 0..RFC2445_DURATION_FIELD_UNITS.len() {
+            for (i, unit) in RFC2445_DURATION_FIELD_UNITS.iter().enumerate() {
+                // for i in 0..RFC2445_DURATION_FIELD_UNITS.len() {
                 // for (int i = 0; i < RFC2445_DURATION_FIELD_UNITS.length; i++) {
                 let fieldValue = m.get(i + 1);
-                if fieldValue.is_some() {
-                    let z = fieldValue.unwrap().as_str().parse::<i64>().unwrap();
-                    durationMS += RFC2445_DURATION_FIELD_UNITS[i] * z;
+                if let Some(parseable) = fieldValue {
+                    let z = parseable.as_str().parse::<i64>().unwrap();
+                    durationMS += unit * z;
                 }
             }
             durationMS
@@ -299,10 +298,10 @@ impl CalendarParsedRXingResult {
         if let Ok(dtm) = DateTime::parse_from_str(dateTimeString, "%Y%m%dT%H%M%S") {
             Ok(dtm.timestamp())
         } else {
-            Err(Exceptions::ParseException(format!(
+            Err(Exceptions::ParseException(Some(format!(
                 "Couldn't parse {}",
                 dateTimeString
-            )))
+            ))))
         }
         // DateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.ENGLISH);
         // return format.parse(dateTimeString).getTime();

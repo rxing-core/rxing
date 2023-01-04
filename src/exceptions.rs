@@ -2,44 +2,68 @@ use std::{error::Error, fmt};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Exceptions {
-    IllegalArgumentException(String),
-    UnsupportedOperationException(String),
-    IllegalStateException(String),
-    ArithmeticException(String),
-    NotFoundException(String),
-    FormatException(String),
-    ChecksumException(String),
-    ReaderException(String),
-    WriterException(String),
-    ReedSolomonException(String),
-    IndexOutOfBoundsException(String),
-    RuntimeException(String),
-    ParseException(String),
+    IllegalArgumentException(Option<String>),
+    UnsupportedOperationException(Option<String>),
+    IllegalStateException(Option<String>),
+    ArithmeticException(Option<String>),
+    NotFoundException(Option<String>),
+    FormatException(Option<String>),
+    ChecksumException(Option<String>),
+    ReaderException(Option<String>),
+    WriterException(Option<String>),
+    ReedSolomonException(Option<String>),
+    IndexOutOfBoundsException(Option<String>),
+    RuntimeException(Option<String>),
+    ParseException(Option<String>),
     ReaderDecodeException(),
 }
 
 impl fmt::Display for Exceptions {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Exceptions::IllegalArgumentException(a) => {
+            Exceptions::IllegalArgumentException(Some(a)) => {
                 write!(f, "IllegalArgumentException - {}", a)
             }
-            Exceptions::UnsupportedOperationException(a) => {
+
+            Exceptions::UnsupportedOperationException(Some(a)) => {
                 write!(f, "UnsupportedOperationException - {}", a)
             }
-            Exceptions::IllegalStateException(a) => write!(f, "IllegalStateException - {}", a),
-            Exceptions::ArithmeticException(a) => write!(f, "ArithmeticException - {}", a),
-            Exceptions::NotFoundException(a) => write!(f, "NotFoundException - {}", a),
-            Exceptions::FormatException(a) => write!(f, "FormatException - {}", a),
-            Exceptions::ChecksumException(a) => write!(f, "ChecksumException - {}", a),
-            Exceptions::ReaderException(a) => write!(f, "ReaderException - {}", a),
-            Exceptions::WriterException(a) => write!(f, "WriterException - {}", a),
-            Exceptions::ReedSolomonException(a) => write!(f, "ReedSolomonException - {}", a),
-            Exceptions::IndexOutOfBoundsException(a) => {
+
+            Exceptions::IllegalStateException(Some(a)) => {
+                write!(f, "IllegalStateException - {}", a)
+            }
+            Exceptions::ArithmeticException(Some(a)) => write!(f, "ArithmeticException - {}", a),
+            Exceptions::NotFoundException(Some(a)) => write!(f, "NotFoundException - {}", a),
+            Exceptions::FormatException(Some(a)) => write!(f, "FormatException - {}", a),
+            Exceptions::ChecksumException(Some(a)) => write!(f, "ChecksumException - {}", a),
+            Exceptions::ReaderException(Some(a)) => write!(f, "ReaderException - {}", a),
+            Exceptions::WriterException(Some(a)) => write!(f, "WriterException - {}", a),
+            Exceptions::ReedSolomonException(Some(a)) => write!(f, "ReedSolomonException - {}", a),
+            Exceptions::IndexOutOfBoundsException(Some(a)) => {
                 write!(f, "IndexOutOfBoundsException - {}", a)
             }
-            Exceptions::RuntimeException(a) => write!(f, "RuntimeException - {}", a),
-            Exceptions::ParseException(a) => write!(f, "ParseException - {}", a),
+
+            Exceptions::RuntimeException(Some(a)) => write!(f, "RuntimeException - {}", a),
+            Exceptions::ParseException(Some(a)) => write!(f, "ParseException - {}", a),
+
+            Exceptions::IllegalArgumentException(None) => write!(f, "IllegalArgumentException"),
+
+            Exceptions::UnsupportedOperationException(None) => {
+                write!(f, "UnsupportedOperationException")
+            }
+            Exceptions::IllegalStateException(None) => write!(f, "IllegalStateException"),
+            Exceptions::ArithmeticException(None) => write!(f, "ArithmeticException"),
+            Exceptions::NotFoundException(None) => write!(f, "NotFoundException"),
+            Exceptions::FormatException(None) => write!(f, "FormatException"),
+            Exceptions::ChecksumException(None) => write!(f, "ChecksumException"),
+            Exceptions::ReaderException(None) => write!(f, "ReaderException"),
+            Exceptions::WriterException(None) => write!(f, "WriterException"),
+            Exceptions::ReedSolomonException(None) => write!(f, "ReedSolomonException"),
+            Exceptions::IndexOutOfBoundsException(None) => write!(f, "IndexOutOfBoundsException"),
+
+            Exceptions::RuntimeException(None) => write!(f, "RuntimeException"),
+            Exceptions::ParseException(None) => write!(f, "ParseException"),
+
             Exceptions::ReaderDecodeException() => write!(f, "ReaderDecodeException - -"),
         }
     }

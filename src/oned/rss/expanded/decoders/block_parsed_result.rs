@@ -34,6 +34,13 @@ pub struct BlockParsedRXingResult {
     decodedInformation: Option<DecodedInformation>,
     finished: bool,
 }
+
+impl Default for BlockParsedRXingResult {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl BlockParsedRXingResult {
     pub fn new() -> Self {
         Self::with_information(None, false)

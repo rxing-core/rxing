@@ -49,9 +49,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let raw_text_res = result.getText().trim();
     let raw_text = IOQ_MATCHER.replace_all(raw_text_res, "").to_string();
     // rawText = IOQ.matcher(rawText).replaceAll("").trim();
-    if let None = AZ09_MATCHER.find(&raw_text) {
-        return None;
-    }
+    AZ09_MATCHER.find(&raw_text)?;
     // if !AZ09.matcher(rawText).matches() {
     //   return null;
     // }
@@ -95,8 +93,8 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     // }
 }
 
-const IOQ: &'static str = "[IOQ]";
-const AZ09: &'static str = "[A-Z0-9]{17}";
+const IOQ: &str = "[IOQ]";
+const AZ09: &str = "[A-Z0-9]{17}";
 
 fn check_checksum(vin: &str) -> Result<bool, Exceptions> {
     let mut sum = 0;
@@ -111,13 +109,13 @@ fn check_checksum(vin: &str) -> Result<bool, Exceptions> {
 
 fn vin_char_value(c: char) -> Result<u32, Exceptions> {
     match c {
-        'A'..='I' => Ok((c as u8 as u32 - 'A' as u8 as u32) + 1),
-        'J'..='R' => Ok((c as u8 as u32 - 'J' as u8 as u32) + 1),
-        'S'..='Z' => Ok((c as u8 as u32 - 'S' as u8 as u32) + 2),
-        '0'..='9' => Ok(c as u8 as u32 - '0' as u8 as u32),
-        _ => Err(Exceptions::IllegalArgumentException(
+        'A'..='I' => Ok((c as u8 as u32 - b'A' as u32) + 1),
+        'J'..='R' => Ok((c as u8 as u32 - b'J' as u32) + 1),
+        'S'..='Z' => Ok((c as u8 as u32 - b'S' as u32) + 2),
+        '0'..='9' => Ok(c as u8 as u32 - b'0' as u32),
+        _ => Err(Exceptions::IllegalArgumentException(Some(
             "vin char out of range".to_owned(),
-        )),
+        ))),
     }
     // if c >= 'A' && c <= 'I' {
     //     return Ok((c as u8 as u32 - 'A' as u8 as u32) + 1);
@@ -142,9 +140,9 @@ fn vin_position_weight(position: usize) -> Result<usize, Exceptions> {
         8 => Ok(10),
         9 => Ok(0),
         10..=17 => Ok(19 - position),
-        _ => Err(Exceptions::IllegalArgumentException(
+        _ => Err(Exceptions::IllegalArgumentException(Some(
             "vin position weight out of bounds".to_owned(),
-        )),
+        ))),
     }
     // if position >= 1 && position <= 7 {
     //   return 9 - position;
@@ -163,11 +161,11 @@ fn vin_position_weight(position: usize) -> Result<usize, Exceptions> {
 
 fn check_char(remainder: u8) -> Result<char, Exceptions> {
     match remainder {
-        0..=9 => Ok(('0' as u8 + remainder) as char),
+        0..=9 => Ok((b'0' + remainder) as char),
         10 => Ok('X'),
-        _ => Err(Exceptions::IllegalArgumentException(
+        _ => Err(Exceptions::IllegalArgumentException(Some(
             "remainder too high".to_owned(),
-        )),
+        ))),
     }
     // if remainder < 10 {
     //     return Ok(('0' as u8 + remainder) as char);
@@ -182,16 +180,16 @@ fn check_char(remainder: u8) -> Result<char, Exceptions> {
 
 fn model_year(c: char) -> Result<u32, Exceptions> {
     match c {
-        'E'..='H' => Ok((c as u8 as u32 - 'E' as u8 as u32) + 1984),
-        'J'..='N' => Ok((c as u8 as u32 - 'J' as u8 as u32) + 1988),
+        'E'..='H' => Ok((c as u8 as u32 - b'E' as u32) + 1984),
+        'J'..='N' => Ok((c as u8 as u32 - b'J' as u32) + 1988),
         'P' => Ok(1993),
-        'R'..='T' => Ok((c as u8 as u32 - 'R' as u8 as u32) + 1994),
-        'V'..='Y' => Ok((c as u8 as u32 - 'V' as u8 as u32) + 1997),
-        '1'..='9' => Ok((c as u8 as u32 - '1' as u8 as u32) + 2001),
-        'A'..='D' => Ok((c as u8 as u32 - 'A' as u8 as u32) + 2010),
-        _ => Err(Exceptions::IllegalArgumentException(String::from(
+        'R'..='T' => Ok((c as u8 as u32 - b'R' as u32) + 1994),
+        'V'..='Y' => Ok((c as u8 as u32 - b'V' as u32) + 1997),
+        '1'..='9' => Ok((c as u8 as u32 - b'1' as u32) + 2001),
+        'A'..='D' => Ok((c as u8 as u32 - b'A' as u32) + 2010),
+        _ => Err(Exceptions::IllegalArgumentException(Some(String::from(
             "model year argument out of range",
-        ))),
+        )))),
     }
     // if c >= 'E' && c <= 'H' {
     //   return (c - 'E') + 1984;
@@ -218,24 +216,24 @@ fn model_year(c: char) -> Result<u32, Exceptions> {
 }
 
 fn country_code(wmi: &str) -> Option<&'static str> {
-    let c1 = wmi.chars().nth(0).unwrap();
+    let c1 = wmi.chars().next().unwrap();
     let c2 = wmi.chars().nth(1).unwrap();
     match c1 {
         '1' | '4' | '5' => Some("US"),
         '2' => Some("CA"),
-        '3' if c2 >= 'A' && c2 <= 'W' => Some("MX"),
-        '9' if ((c2 >= 'A' && c2 <= 'E') || (c2 >= '3' && c2 <= '9')) => Some("BR"),
-        'J' if (c2 >= 'A' && c2 <= 'T') => Some("JP"),
-        'K' if (c2 >= 'L' && c2 <= 'R') => Some("KO"),
+        '3' if ('A'..='W').contains(&c2) => Some("MX"),
+        '9' if (('A'..='E').contains(&c2) || ('3'..='9').contains(&c2)) => Some("BR"),
+        'J' if ('A'..='T').contains(&c2) => Some("JP"),
+        'K' if ('L'..='R').contains(&c2) => Some("KO"),
         'L' => Some("CN"),
-        'M' if (c2 >= 'A' && c2 <= 'E') => Some("IN"),
-        'S' if (c2 >= 'A' && c2 <= 'M') => Some("UK"),
-        'S' if (c2 >= 'N' && c2 <= 'T') => Some("DE"),
-        'V' if (c2 >= 'F' && c2 <= 'R') => Some("FR"),
-        'V' if (c2 >= 'S' && c2 <= 'W') => Some("ES"),
+        'M' if ('A'..='E').contains(&c2) => Some("IN"),
+        'S' if ('A'..='M').contains(&c2) => Some("UK"),
+        'S' if ('N'..='T').contains(&c2) => Some("DE"),
+        'V' if ('F'..='R').contains(&c2) => Some("FR"),
+        'V' if ('S'..='W').contains(&c2) => Some("ES"),
         'W' => Some("DE"),
-        'X' if (c2 == '0' || (c2 >= '3' && c2 <= '9')) => Some("RU"),
-        'Z' if (c2 >= 'A' && c2 <= 'R') => Some("IT"),
+        'X' if (c2 == '0' || ('3'..='9').contains(&c2)) => Some("RU"),
+        'Z' if ('A'..='R').contains(&c2) => Some("IT"),
         _ => None,
     }
 }

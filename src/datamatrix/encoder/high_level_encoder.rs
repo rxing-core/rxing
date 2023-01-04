@@ -284,7 +284,7 @@ pub fn encodeHighLevelWithDimensionForceC40(
 
 pub fn lookAheadTest(msg: &str, startpos: u32, currentMode: u32) -> usize {
     let newMode = lookAheadTestIntern(msg, startpos, currentMode);
-    if currentMode as usize == X12_ENCODATION && newMode as usize == X12_ENCODATION {
+    if currentMode as usize == X12_ENCODATION && newMode == X12_ENCODATION {
         // let msg_graphemes = msg.graphemes(true);
         let endpos = (startpos + 3).min(msg.chars().count() as u32);
         for i in startpos..endpos {
@@ -540,20 +540,15 @@ fn findMinimums(
             mins[i] += 1;
         }
     }
-    return min;
+    min
 }
 
 fn getMinimumCount(mins: &[u8]) -> u32 {
-    let mut minCount = 0;
-    for i in 0..6 {
-        // for (int i = 0; i < 6; i++) {
-        minCount += mins[i] as u32;
-    }
-    minCount
+    mins.iter().take(6).sum::<u8>() as u32
 }
 
 pub fn isDigit(ch: char) -> bool {
-    ch >= '0' && ch <= '9'
+    ('0'..='9').contains(&ch)
 }
 
 pub fn isExtendedASCII(ch: char) -> bool {
@@ -561,15 +556,15 @@ pub fn isExtendedASCII(ch: char) -> bool {
 }
 
 pub fn isNativeC40(ch: char) -> bool {
-    (ch == ' ') || (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z')
+    (ch == ' ') || ('0'..='9').contains(&ch) || ('A'..='Z').contains(&ch)
 }
 
 pub fn isNativeText(ch: char) -> bool {
-    (ch == ' ') || (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'z')
+    (ch == ' ') || ('0'..='9').contains(&ch) || ('a'..='z').contains(&ch)
 }
 
 pub fn isNativeX12(ch: char) -> bool {
-    return isX12TermSep(ch) || (ch == ' ') || (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z');
+    isX12TermSep(ch) || (ch == ' ') || ('0'..='9').contains(&ch) || ('A'..='Z').contains(&ch)
 }
 
 fn isX12TermSep(ch: char) -> bool {
@@ -579,7 +574,7 @@ fn isX12TermSep(ch: char) -> bool {
 }
 
 pub fn isNativeEDIFACT(ch: char) -> bool {
-    ch >= ' ' && ch <= '^'
+    (' '..='^').contains(&ch)
 }
 
 fn isSpecialB256(_ch: char) -> bool {
@@ -607,8 +602,8 @@ pub fn determineConsecutiveDigitCount(msg: &str, startpos: u32) -> u32 {
 pub fn illegalCharacter(c: char) -> Result<(), Exceptions> {
     // let hex = Integer.toHexString(c);
     // hex = "0000".substring(0, 4 - hex.length()) + hex;
-    Err(Exceptions::IllegalArgumentException(format!(
+    Err(Exceptions::IllegalArgumentException(Some(format!(
         "Illegal character: {} (0x{})",
         c, c
-    )))
+    ))))
 }

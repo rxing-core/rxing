@@ -52,14 +52,14 @@ impl BitSource {
      * @return index of next bit in current byte which would be read by the next call to {@link #readBits(int)}.
      */
     pub fn getBitOffset(&self) -> usize {
-        return self.bit_offset;
+        self.bit_offset
     }
 
     /**
      * @return index of next byte in input byte array which would be read by the next call to {@link #readBits(int)}.
      */
     pub fn getByteOffset(&self) -> usize {
-        return self.byte_offset;
+        self.byte_offset
     }
 
     /**
@@ -69,8 +69,10 @@ impl BitSource {
      * @throws IllegalArgumentException if numBits isn't in [1,32] or more than is available
      */
     pub fn readBits(&mut self, numBits: usize) -> Result<u32, Exceptions> {
-        if numBits < 1 || numBits > 32 || numBits > self.available() {
-            return Err(Exceptions::IllegalArgumentException(numBits.to_string()));
+        if !(1..=32).contains(&numBits) || numBits > self.available() {
+            return Err(Exceptions::IllegalArgumentException(Some(
+                numBits.to_string(),
+            )));
         }
 
         let mut result: u32 = 0;
@@ -96,7 +98,7 @@ impl BitSource {
         // Next read whole bytes
         if num_bits > 0 {
             while num_bits >= 8 {
-                result = (result << 8) | (self.bytes[self.byte_offset] & 0xFF) as u32;
+                result = (result << 8) | self.bytes[self.byte_offset] as u32;
                 // result = ((result as u16) << 8) as u8 | (self.bytes[self.byte_offset]);
                 self.byte_offset += 1;
                 num_bits -= 8;
@@ -112,13 +114,13 @@ impl BitSource {
             }
         }
 
-        return Ok(result);
+        Ok(result)
     }
 
     /**
      * @return number of bits that can be read successfully
      */
     pub fn available(&self) -> usize {
-        return 8 * (self.bytes.len() - self.byte_offset) - self.bit_offset;
+        8 * (self.bytes.len() - self.byte_offset) - self.bit_offset
     }
 }

@@ -55,10 +55,10 @@ pub const DEFAULT_BYTE_MODE_ENCODING: EncodingRef = encoding::all::ISO_8859_1;
 // The mask penalty calculation is complicated.  See Table 21 of JISX0510:2004 (p.45) for details.
 // Basically it applies four rules and summate all penalties.
 pub fn calculateMaskPenalty(matrix: &ByteMatrix) -> u32 {
-    return mask_util::applyMaskPenaltyRule1(matrix)
+    mask_util::applyMaskPenaltyRule1(matrix)
         + mask_util::applyMaskPenaltyRule2(matrix)
         + mask_util::applyMaskPenaltyRule3(matrix)
-        + mask_util::applyMaskPenaltyRule4(matrix);
+        + mask_util::applyMaskPenaltyRule4(matrix)
 }
 
 /**
@@ -69,7 +69,7 @@ pub fn calculateMaskPenalty(matrix: &ByteMatrix) -> u32 {
  *   or configuration
  */
 pub fn encode(content: &str, ecLevel: ErrorCorrectionLevel) -> Result<QRCode, Exceptions> {
-    return encode_with_hints(content, ecLevel, &HashMap::new());
+    encode_with_hints(content, ecLevel, &HashMap::new())
 }
 
 pub fn encode_with_hints(
@@ -127,17 +127,15 @@ pub fn encode_with_hints(
         version = rn.getVersion();
     } else {
         //Switch to default encoding
-        let encoding = if encoding.is_some() {
-            encoding.unwrap()
+        let encoding = if let Some(encoding) = encoding {
+            encoding
+        } else if let Ok(_encs) =
+            DEFAULT_BYTE_MODE_ENCODING.encode(content, encoding::EncoderTrap::Strict)
+        {
+            DEFAULT_BYTE_MODE_ENCODING
         } else {
-            if let Ok(_encs) =
-                DEFAULT_BYTE_MODE_ENCODING.encode(content, encoding::EncoderTrap::Strict)
-            {
-                DEFAULT_BYTE_MODE_ENCODING
-            } else {
-                has_encoding_hint = true;
-                encoding::all::UTF_8
-            }
+            has_encoding_hint = true;
+            encoding::all::UTF_8
         };
 
         // Pick an encoding mode appropriate for the content. Note that this will not attempt to use
@@ -186,9 +184,9 @@ pub fn encode_with_hints(
             version = Version::getVersionForNumber(versionNumber)?;
             let bitsNeeded = calculateBitsNeeded(mode, &header_bits, &data_bits, version);
             if !willFit(bitsNeeded, version, &ec_level) {
-                return Err(Exceptions::WriterException(
+                return Err(Exceptions::WriterException(Some(
                     "Data too big for requested version".to_owned(),
-                ));
+                )));
             }
         } else {
             version = recommendVersion(&ec_level, mode, &header_bits, &data_bits)?;
@@ -317,7 +315,7 @@ pub fn getAlphanumericCode(code: u32) -> i8 {
 }
 
 pub fn chooseMode(content: &str) -> Mode {
-    return chooseModeWithEncoding(content, encoding::all::ISO_8859_1);
+    chooseModeWithEncoding(content, encoding::all::ISO_8859_1)
 }
 
 /**
@@ -335,7 +333,7 @@ fn chooseModeWithEncoding(content: &str, encoding: EncodingRef) -> Mode {
     for i in 0..content.len() {
         // for (int i = 0; i < content.length(); ++i) {
         let c = content.chars().nth(i).unwrap();
-        if c >= '0' && c <= '9' {
+        if ('0'..='9').contains(&c) {
             has_numeric = true;
         } else if getAlphanumericCode(c as u32) != -1 {
             has_alphanumeric = true;
@@ -349,7 +347,7 @@ fn chooseModeWithEncoding(content: &str, encoding: EncodingRef) -> Mode {
     if has_numeric {
         return Mode::NUMERIC;
     }
-    return Mode::BYTE;
+    Mode::BYTE
 }
 
 pub fn isOnlyDoubleByteKanji(content: &str) -> bool {
@@ -366,12 +364,12 @@ pub fn isOnlyDoubleByteKanji(content: &str) -> bool {
     while i < length {
         // for (int i = 0; i < length; i += 2) {
         let byte1 = bytes[i];
-        if (byte1 < 0x81 || byte1 > 0x9F) && (byte1 < 0xE0 || byte1 > 0xEB) {
+        if !(0x81..=0x9F).contains(&byte1) && !(0xE0..=0xEB).contains(&byte1) {
             return false;
         }
         i += 2;
     }
-    return true;
+    true
 }
 
 fn chooseMaskPattern(
@@ -407,7 +405,7 @@ fn chooseVersion(
             return Ok(version);
         }
     }
-    Err(Exceptions::WriterException("Data too big".to_owned()))
+    Err(Exceptions::WriterException(Some("Data too big".to_owned())))
 }
 
 /**
@@ -424,7 +422,7 @@ pub fn willFit(numInputBits: u32, version: VersionRef, ecLevel: &ErrorCorrection
     // getNumDataBytes = 196 - 130 = 66
     let num_data_bytes = num_bytes - num_ec_bytes;
     let total_input_bytes = (numInputBits + 7) / 8;
-    return num_data_bytes >= total_input_bytes;
+    num_data_bytes >= total_input_bytes
 }
 
 /**
@@ -433,10 +431,10 @@ pub fn willFit(numInputBits: u32, version: VersionRef, ecLevel: &ErrorCorrection
 pub fn terminateBits(num_data_bytes: u32, bits: &mut BitArray) -> Result<(), Exceptions> {
     let capacity = num_data_bytes * 8;
     if bits.getSize() > capacity as usize {
-        return Err(Exceptions::WriterException(format!(
+        return Err(Exceptions::WriterException(Some(format!(
             "data bits cannot fit in the QR Code{} > ",
             capacity
-        )));
+        ))));
         // throw new WriterException("data bits cannot fit in the QR Code" + bits.getSize() + " > " +
         //     capacity);
     }
@@ -468,9 +466,9 @@ pub fn terminateBits(num_data_bytes: u32, bits: &mut BitArray) -> Result<(), Exc
         bits.appendBits(if (i & 0x01) == 0 { 0xEC } else { 0x11 }, 8)?;
     }
     if bits.getSize() != capacity as usize {
-        return Err(Exceptions::WriterException(
+        return Err(Exceptions::WriterException(Some(
             "Bits size does not equal capacity".to_owned(),
-        ));
+        )));
         // throw new WriterException("Bits size does not equal capacity");
     }
     Ok(())
@@ -490,7 +488,9 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
     // numECBytesInBlock: &mut [u32],
 ) -> Result<(u32, u32), Exceptions> {
     if block_id >= num_rsblocks {
-        return Err(Exceptions::WriterException("Block ID too large".to_owned()));
+        return Err(Exceptions::WriterException(Some(
+            "Block ID too large".to_owned(),
+        )));
         // throw new WriterException("Block ID too large");
     }
     // numRsBlocksInGroup2 = 196 % 5 = 1
@@ -512,12 +512,16 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
     // Sanity checks.
     // 26 = 26
     if num_ec_bytes_in_group1 != numEcBytesInGroup2 {
-        return Err(Exceptions::WriterException("EC bytes mismatch".to_owned()));
+        return Err(Exceptions::WriterException(Some(
+            "EC bytes mismatch".to_owned(),
+        )));
         // throw new WriterException("EC bytes mismatch");
     }
     // 5 = 4 + 1.
     if num_rsblocks != num_rs_blocks_in_group1 + num_rs_blocks_in_group2 {
-        return Err(Exceptions::WriterException("RS blocks mismatch".to_owned()));
+        return Err(Exceptions::WriterException(Some(
+            "RS blocks mismatch".to_owned(),
+        )));
 
         // throw new WriterException("RS blocks mismatch");
     }
@@ -526,9 +530,9 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
         != ((num_data_bytes_in_group1 + num_ec_bytes_in_group1) * num_rs_blocks_in_group1)
             + ((num_data_bytes_in_group2 + numEcBytesInGroup2) * num_rs_blocks_in_group2)
     {
-        return Err(Exceptions::WriterException(
+        return Err(Exceptions::WriterException(Some(
             "Total bytes mismatch".to_owned(),
-        ));
+        )));
 
         // throw new WriterException("Total bytes mismatch");
     }
@@ -552,9 +556,9 @@ pub fn interleaveWithECBytes(
 ) -> Result<BitArray, Exceptions> {
     // "bits" must have "getNumDataBytes" bytes of data.
     if bits.getSizeInBytes() as u32 != num_data_bytes {
-        return Err(Exceptions::WriterException(
+        return Err(Exceptions::WriterException(Some(
             "Number of bits and data bytes does not match".to_owned(),
-        ));
+        )));
     }
 
     // Step 1.  Divide data bytes into blocks and generate error correction bytes for them. We'll
@@ -590,9 +594,9 @@ pub fn interleaveWithECBytes(
         data_bytes_offset += numDataBytesInBlock as usize;
     }
     if num_data_bytes != data_bytes_offset as u32 {
-        return Err(Exceptions::WriterException(
+        return Err(Exceptions::WriterException(Some(
             "Data bytes does not match offset".to_owned(),
-        ));
+        )));
     }
 
     let mut result = BitArray::new();
@@ -621,11 +625,11 @@ pub fn interleaveWithECBytes(
     }
     if num_total_bytes != result.getSizeInBytes() as u32 {
         // Should be same.
-        return Err(Exceptions::WriterException(format!(
+        return Err(Exceptions::WriterException(Some(format!(
             "Interleaving error: {} and {} differ.",
             num_total_bytes,
             result.getSizeInBytes()
-        )));
+        ))));
         // throw new WriterException("Interleaving error: " + numTotalBytes + " and " +
         //     result.getSizeInBytes() + " differ.");
     }
@@ -652,7 +656,7 @@ pub fn generateECBytes(dataBytes: &[u8], num_ec_bytes_in_block: usize) -> Vec<u8
         // for (int i = 0; i < numEcBytesInBlock; i++) {
         ecBytes[i] = to_encode[num_data_bytes + i] as u8;
     }
-    return ecBytes;
+    ecBytes
 }
 
 /**
@@ -674,11 +678,11 @@ pub fn appendLengthInfo(
 ) -> Result<(), Exceptions> {
     let numBits = mode.getCharacterCountBits(version);
     if num_letters >= (1 << numBits) {
-        return Err(Exceptions::WriterException(format!(
+        return Err(Exceptions::WriterException(Some(format!(
             "{} is bigger than {}",
             num_letters,
             ((1 << numBits) - 1)
-        )));
+        ))));
     }
     bits.appendBits(num_letters, numBits as usize)?;
     Ok(())
@@ -698,10 +702,10 @@ pub fn appendBytes(
         Mode::ALPHANUMERIC => appendAlphanumericBytes(content, bits),
         Mode::BYTE => append8BitBytes(content, bits, encoding),
         Mode::KANJI => appendKanjiBytes(content, bits),
-        _ => Err(Exceptions::WriterException(format!(
+        _ => Err(Exceptions::WriterException(Some(format!(
             "Invalid mode: {:?}",
             mode
-        ))),
+        )))),
     }
     // switch (mode) {
     //   case NUMERIC:
@@ -752,12 +756,12 @@ pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<(),
     while i < length {
         let code1 = getAlphanumericCode(content.chars().nth(i).unwrap() as u32);
         if code1 == -1 {
-            return Err(Exceptions::WriterException("".to_owned()));
+            return Err(Exceptions::WriterException(None));
         }
         if i + 1 < length {
             let code2 = getAlphanumericCode(content.chars().nth(i + 1).unwrap() as u32);
             if code2 == -1 {
-                return Err(Exceptions::WriterException("".to_owned()));
+                return Err(Exceptions::WriterException(None));
             }
             // Encode two alphanumeric letters in 11 bits.
             bits.appendBits((code1 as i16 * 45 + code2 as i16) as u32, 11)?;
@@ -795,9 +799,9 @@ pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<(), Except
         .expect("should encode fine");
     // let bytes = content.getBytes(StringUtils::SHIFT_JIS_CHARSET);
     if bytes.len() % 2 != 0 {
-        return Err(Exceptions::WriterException(
+        return Err(Exceptions::WriterException(Some(
             "Kanji byte size not even".to_owned(),
-        ));
+        )));
     }
     let max_i = bytes.len() - 1; // bytes.length must be even
     let mut i = 0;
@@ -807,15 +811,15 @@ pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<(), Except
         let byte2 = bytes[i + 1]; // & 0xFF;
         let code: u16 = ((byte1 as u16) << 8u16) | byte2 as u16;
         let mut subtracted: i32 = -1;
-        if code >= 0x8140 && code <= 0x9ffc {
+        if (0x8140..=0x9ffc).contains(&code) {
             subtracted = code as i32 - 0x8140;
-        } else if code >= 0xe040 && code <= 0xebbf {
+        } else if (0xe040..=0xebbf).contains(&code) {
             subtracted = code as i32 - 0xc140;
         }
         if subtracted == -1 {
-            return Err(Exceptions::WriterException(
+            return Err(Exceptions::WriterException(Some(
                 "Invalid byte sequence".to_owned(),
-            ));
+            )));
         }
         let encoded = ((subtracted >> 8) * 0xc0) + (subtracted & 0xff);
         bits.appendBits(encoded as u32, 13)?;

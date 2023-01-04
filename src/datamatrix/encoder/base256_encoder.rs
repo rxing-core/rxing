@@ -65,10 +65,10 @@ impl Encoder for Base256Encoder {
                 let (ci_pos, _) = buffer.char_indices().nth(1).unwrap();
                 buffer.insert(ci_pos, char::from_u32(dataCount as u32 % 250).unwrap());
             } else {
-                return Err(Exceptions::IllegalStateException(format!(
+                return Err(Exceptions::IllegalStateException(Some(format!(
                     "Message length not in valid ranges: {}",
                     dataCount
-                )));
+                ))));
             }
         }
         let c = buffer.chars().count();
@@ -94,5 +94,11 @@ impl Base256Encoder {
         } else {
             char::from_u32(tempVariable - 256).unwrap()
         }
+    }
+}
+
+impl Default for Base256Encoder {
+    fn default() -> Self {
+        Self::new()
     }
 }

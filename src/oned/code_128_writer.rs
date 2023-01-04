@@ -43,10 +43,10 @@ const CODE_FNC_4_B: usize = 100; // Code B
 // RXingResults of minimal lookahead for code C
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum CType {
-    UNCODABLE,
-    ONE_DIGIT,
-    TWO_DIGITS,
-    FNC_1,
+    Uncodable,
+    OneDigit,
+    TwoDigits,
+    Fnc1,
 }
 
 /**
@@ -54,13 +54,9 @@ enum CType {
  *
  * @author erik.barbara@gmail.com (Erik Barbara)
  */
-#[derive(OneDWriter)]
+#[derive(OneDWriter, Default)]
 pub struct Code128Writer;
-impl Default for Code128Writer {
-    fn default() -> Self {
-        Self {}
-    }
-}
+
 impl OneDimensionalCodeWriter for Code128Writer {
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>, Exceptions> {
         self.encode_oned_with_hints(contents, &HashMap::new())
@@ -98,11 +94,11 @@ impl OneDimensionalCodeWriter for Code128Writer {
 fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32, Exceptions> {
     let length = contents.chars().count();
     // Check length
-    if length < 1 || length > 80 {
-        return Err(Exceptions::IllegalArgumentException(format!(
+    if !(1..=80).contains(&length) {
+        return Err(Exceptions::IllegalArgumentException(Some(format!(
             "Contents length should be between 1 and 80 characters, but got {}",
             length
-        )));
+        ))));
     }
 
     // Check for forced code set hint.
@@ -114,10 +110,10 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32, E
             "B" => forcedCodeSet = CODE_CODE_B as i32,
             "C" => forcedCodeSet = CODE_CODE_C as i32,
             _ => {
-                return Err(Exceptions::IllegalArgumentException(format!(
+                return Err(Exceptions::IllegalArgumentException(Some(format!(
                     "Unsupported code set hint: {}",
                     codeSetHint
-                )))
+                ))))
             }
         }
     }
@@ -136,10 +132,10 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32, E
                 if c > 127 {
                     // no full Latin-1 character set available at the moment
                     // shift and manual code change are not supported
-                    return Err(Exceptions::IllegalArgumentException(format!(
+                    return Err(Exceptions::IllegalArgumentException(Some(format!(
                         "Bad character in input: ASCII value={}",
                         c
-                    )));
+                    ))));
                 }
             }
         }
@@ -152,20 +148,20 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32, E
             // allows no ascii above 95 (no lower caps, no special symbols)
             {
                 if c > 95 && c <= 127 {
-                    return Err(Exceptions::IllegalArgumentException(format!(
+                    return Err(Exceptions::IllegalArgumentException(Some(format!(
                         "Bad character in input for forced code set A: ASCII value={}",
                         c
-                    )));
+                    ))));
                 }
             }
             CODE_CODE_B_I32 =>
             // allows no ascii below 32 (terminal symbols)
             {
                 if c <= 32 {
-                    return Err(Exceptions::IllegalArgumentException(format!(
+                    return Err(Exceptions::IllegalArgumentException(Some(format!(
                         "Bad character in input for forced code set B: ASCII value={}",
                         c
-                    )));
+                    ))));
                 }
             }
             CODE_CODE_C_I32 =>
@@ -177,10 +173,10 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32, E
                     || ch == ESCAPE_FNC_3
                     || ch == ESCAPE_FNC_4
                 {
-                    return Err(Exceptions::IllegalArgumentException(format!(
+                    return Err(Exceptions::IllegalArgumentException(Some(format!(
                         "Bad character in input for forced code set C: ASCII value={}",
                         c
-                    )));
+                    ))));
                 }
             }
             _ => {}
@@ -225,7 +221,7 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>, Exception
                 _ =>
                 // Then handle normal characters otherwise
                 {
-                    match codeSet as usize {
+                    match codeSet {
                         CODE_CODE_A => {
                             patternIndex =
                                 contents.chars().nth(position).unwrap() as isize - ' ' as isize;
@@ -242,9 +238,9 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>, Exception
                             // CODE_CODE_C
                             if position + 1 == length {
                                 // this is the last character, but the encoding is C, which always encodes two characers
-                                return Err(Exceptions::IllegalArgumentException(
+                                return Err(Exceptions::IllegalArgumentException(Some(
                                     "Bad number of characters for digit only encoding.".to_owned(),
-                                ));
+                                )));
                             }
                             let s: String = contents
                                 .char_indices()
@@ -266,7 +262,7 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>, Exception
             // Do we have a code set?
             if codeSet == 0 {
                 // No, we don't have a code set
-                match newCodeSet as usize {
+                match newCodeSet {
                     CODE_CODE_A => patternIndex = CODE_START_A as isize,
                     CODE_CODE_B => patternIndex = CODE_START_B as isize,
                     _ => patternIndex = CODE_START_C as isize,
@@ -321,7 +317,7 @@ fn produceRXingResult(patterns: &mut Vec<Vec<usize>>, checkSum: usize) -> Vec<bo
         // for (int[] pattern : patterns) {
         for width in pattern {
             // for (int width : pattern) {
-            codeWidth += *width as usize;
+            codeWidth += *width;
         }
     }
 
@@ -333,40 +329,40 @@ fn produceRXingResult(patterns: &mut Vec<Vec<usize>>, checkSum: usize) -> Vec<bo
         pos += Code128Writer::appendPattern(&mut result, pos, pattern, true) as usize;
     }
 
-    return result;
+    result
 }
 
 fn findCType(value: &str, start: usize) -> CType {
     let last = value.chars().count();
     if start >= last {
-        return CType::UNCODABLE;
+        return CType::Uncodable;
     }
     let c = value.chars().nth(start).unwrap();
     if c == ESCAPE_FNC_1 {
-        return CType::FNC_1;
+        return CType::Fnc1;
     }
-    if c < '0' || c > '9' {
-        return CType::UNCODABLE;
+    if !('0'..='9').contains(&c) {
+        return CType::Uncodable;
     }
     if start + 1 >= last {
-        return CType::ONE_DIGIT;
+        return CType::OneDigit;
     }
     let c = value.chars().nth(start + 1).unwrap();
-    if c < '0' || c > '9' {
-        return CType::ONE_DIGIT;
+    if !('0'..='9').contains(&c) {
+        return CType::OneDigit;
     }
-    return CType::TWO_DIGITS;
+    CType::TwoDigits
 }
 
 fn chooseCode(value: &str, start: usize, oldCode: usize) -> usize {
     let mut lookahead = findCType(value, start);
-    if lookahead == CType::ONE_DIGIT {
+    if lookahead == CType::OneDigit {
         if oldCode == CODE_CODE_A {
             return CODE_CODE_A;
         }
         return CODE_CODE_B;
     }
-    if lookahead == CType::UNCODABLE {
+    if lookahead == CType::Uncodable {
         if start < value.chars().count() {
             let c = value.chars().nth(start).unwrap();
             if c < ' '
@@ -378,7 +374,7 @@ fn chooseCode(value: &str, start: usize, oldCode: usize) -> usize {
         }
         return CODE_CODE_B; // no choice
     }
-    if oldCode == CODE_CODE_A && lookahead == CType::FNC_1 {
+    if oldCode == CODE_CODE_A && lookahead == CType::Fnc1 {
         return CODE_CODE_A;
     }
     if oldCode == CODE_CODE_C {
@@ -386,18 +382,18 @@ fn chooseCode(value: &str, start: usize, oldCode: usize) -> usize {
         return CODE_CODE_C;
     }
     if oldCode == CODE_CODE_B {
-        if lookahead == CType::FNC_1 {
+        if lookahead == CType::Fnc1 {
             return CODE_CODE_B; // can continue in code B
         }
         // Seen two consecutive digits, see what follows
         lookahead = findCType(value, start + 2);
-        if lookahead == CType::UNCODABLE || lookahead == CType::ONE_DIGIT {
+        if lookahead == CType::Uncodable || lookahead == CType::OneDigit {
             return CODE_CODE_B; // not worth switching now
         }
-        if lookahead == CType::FNC_1 {
+        if lookahead == CType::Fnc1 {
             // two digits, then FNC_1...
             lookahead = findCType(value, start + 3);
-            if lookahead == CType::TWO_DIGITS {
+            if lookahead == CType::TwoDigits {
                 // then two more digits, switch
                 return CODE_CODE_C;
             } else {
@@ -408,27 +404,27 @@ fn chooseCode(value: &str, start: usize, oldCode: usize) -> usize {
         // Look ahead to choose whether to switch now or on the next round.
         let mut index = start + 4;
         let mut lookahead = findCType(value, index);
-        while lookahead == CType::TWO_DIGITS {
+        while lookahead == CType::TwoDigits {
             // while (lookahead = findCType(value, index)) == CType::TWO_DIGITS {
             index += 2;
             lookahead = findCType(value, index);
         }
-        if lookahead == CType::ONE_DIGIT {
+        if lookahead == CType::OneDigit {
             // odd number of digits, switch later
             return CODE_CODE_B;
         }
         return CODE_CODE_C; // even number of digits, switch now
     }
     // Here oldCode == 0, which means we are choosing the initial code
-    if lookahead == CType::FNC_1 {
+    if lookahead == CType::Fnc1 {
         // ignore FNC_1
         lookahead = findCType(value, start + 1);
     }
-    if lookahead == CType::TWO_DIGITS {
+    if lookahead == CType::TwoDigits {
         // at least two digits, start in code C
         return CODE_CODE_C;
     }
-    return CODE_CODE_B;
+    CODE_CODE_B
 }
 
 /**
@@ -452,15 +448,15 @@ mod MinimalEncoder {
         A,
         B,
         C,
-        NONE,
+        None,
     }
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     enum Latch {
         A,
         B,
         C,
-        SHIFT,
-        NONE,
+        Shift,
+        None,
     }
 
     const A : &str = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\u{0000}\u{0001}\u{0002}/
@@ -476,14 +472,14 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
     pub fn encode(contents: &str) -> Result<Vec<bool>, Exceptions> {
         let length = contents.chars().count();
         let mut memoizedCost = vec![vec![0_u32; length]; 4]; //new int[4][contents.length()];
-        let mut minPath = vec![vec![Latch::NONE; length]; 4]; //new Latch[4][contents.length()];
+        let mut minPath = vec![vec![Latch::None; length]; 4]; //new Latch[4][contents.length()];
 
-        encode_with_start_position(contents, Charset::NONE, 0, &mut memoizedCost, &mut minPath)?;
+        encode_with_start_position(contents, Charset::None, 0, &mut memoizedCost, &mut minPath)?;
 
         let mut patterns: Vec<Vec<usize>> = Vec::new(); //new ArrayList<>();
         let mut checkSum = vec![0_usize]; //new int[] {0};
         let mut checkWeight = vec![1]; //new int[] {1};
-        let mut charset = Charset::NONE;
+        let mut charset = Charset::None;
         let mut i = 0;
         while i < length {
             // for i in 0..length {
@@ -520,14 +516,14 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                         i,
                     );
                 }
-                Latch::SHIFT => addPattern(
+                Latch::Shift => addPattern(
                     &mut patterns,
                     CODE_SHIFT,
                     &mut checkSum,
                     &mut checkWeight,
                     i,
                 ),
-                Latch::NONE => { /* skip */ }
+                Latch::None => { /* skip */ }
             }
             if charset == Charset::C {
                 if contents.chars().nth(i).unwrap() == ESCAPE_FNC_1 {
@@ -564,8 +560,8 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                     ESCAPE_FNC_2 => CODE_FNC_2 as isize,
                     ESCAPE_FNC_3 => CODE_FNC_3 as isize,
                     ESCAPE_FNC_4 => {
-                        if (charset == Charset::A && latch != Latch::SHIFT)
-                            || (charset == Charset::B && latch == Latch::SHIFT)
+                        if (charset == Charset::A && latch != Latch::Shift)
+                            || (charset == Charset::B && latch == Latch::Shift)
                         {
                             CODE_FNC_4_A as isize
                         } else {
@@ -574,12 +570,11 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                     }
                     _ => contents.chars().nth(i).unwrap() as isize - ' ' as isize,
                 };
-                if (charset == Charset::A && latch != Latch::SHIFT)
-                    || (charset == Charset::B && latch == Latch::SHIFT)
+                if ((charset == Charset::A && latch != Latch::Shift)
+                    || (charset == Charset::B && latch == Latch::Shift))
+                    && patternIndex < 0
                 {
-                    if patternIndex < 0 {
-                        patternIndex += '`' as isize;
-                    }
+                    patternIndex += '`' as isize;
                 }
                 addPattern(
                     &mut patterns,
@@ -618,7 +613,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
     }
 
     fn isDigit(c: char) -> bool {
-        return c >= '0' && c <= '9';
+        ('0'..='9').contains(&c)
     }
 
     fn canEncode(contents: &str, charset: Charset, position: usize) -> bool {
@@ -665,7 +660,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
         }
 
         let mut minCost = u32::MAX;
-        let mut minLatch = Latch::NONE;
+        let mut minLatch = Latch::None;
         let atEnd = position + 1 >= contents.chars().count();
 
         let sets = [Charset::A, Charset::B];
@@ -673,7 +668,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
             // for (int i = 0; i <= 1; i++) {
             if canEncode(contents, sets[i], position) {
                 let mut cost = 1;
-                let mut latch = Latch::NONE;
+                let mut latch = Latch::None;
                 if charset != sets[i] {
                     cost += 1;
                     latch = sets[i].into(); //Latch::valueOf(sets[i].toString());
@@ -694,7 +689,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                 cost = 1;
                 if charset == sets[(i + 1) % 2] {
                     cost += 1;
-                    latch = Latch::SHIFT;
+                    latch = Latch::Shift;
                     if !atEnd {
                         cost += encode_with_start_position(
                             contents,
@@ -713,7 +708,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
         }
         if canEncode(contents, Charset::C, position) {
             let mut cost = 1;
-            let mut latch = Latch::NONE;
+            let mut latch = Latch::None;
             if charset != Charset::C {
                 cost += 1;
                 latch = Latch::C;
@@ -738,10 +733,10 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
             }
         }
         if minCost == u32::MAX {
-            return Err(Exceptions::IllegalArgumentException(format!(
+            return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "Bad character in input: ASCII value={}",
                 contents.chars().nth(position).unwrap_or('x')
-            )));
+            ))));
             // throw new IllegalArgumentException("Bad character in input: ASCII value=" + (int) contents.charAt(position));
         }
         memoizedCost[charset.ordinal()][position] = minCost;
@@ -759,7 +754,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                 Charset::A => 0,
                 Charset::B => 1,
                 Charset::C => 2,
-                Charset::NONE => 3,
+                Charset::None => 3,
             }
         }
     }
@@ -769,8 +764,8 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                 Latch::A => 0,
                 Latch::B => 1,
                 Latch::C => 2,
-                Latch::SHIFT => 3,
-                Latch::NONE => 4,
+                Latch::Shift => 3,
+                Latch::None => 4,
             }
         }
     }
@@ -780,7 +775,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                 Charset::A => Latch::A,
                 Charset::B => Latch::B,
                 Charset::C => Latch::C,
-                Charset::NONE => Latch::NONE,
+                Charset::None => Latch::None,
             }
         }
     }

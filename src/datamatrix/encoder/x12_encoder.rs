@@ -65,19 +65,19 @@ impl X12Encoder {
             '>' => sb.push('\u{2}'),
             ' ' => sb.push('\u{3}'),
             _ => {
-                if c >= '0' && c <= '9' {
+                if ('0'..='9').contains(&c) {
                     sb.push((c as u8 - 48 + 4) as char);
-                } else if c >= 'A' && c <= 'Z' {
+                } else if ('A'..='Z').contains(&c) {
                     sb.push((c as u8 - 65 + 14) as char);
                 } else {
                     high_level_encoder::illegalCharacter(c).expect("detect_illegal_character");
                 }
             }
         }
-        return 1;
+        1
     }
 
-    fn handleEOD(context: &mut EncoderContext, buffer: &mut String) -> Result<(), Exceptions> {
+    fn handleEOD(context: &mut EncoderContext, buffer: &mut str) -> Result<(), Exceptions> {
         context.updateSymbolInfo();
         let available =
             context.getSymbolInfo().unwrap().getDataCapacity() - context.getCodewordCount() as u32;
@@ -93,5 +93,11 @@ impl X12Encoder {
             context.signalEncoderChange(high_level_encoder::ASCII_ENCODATION);
         }
         Ok(())
+    }
+}
+
+impl Default for X12Encoder {
+    fn default() -> Self {
+        Self::new()
     }
 }

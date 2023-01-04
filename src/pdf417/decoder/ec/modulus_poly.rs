@@ -25,18 +25,18 @@ use super::ModulusGF;
  */
 #[derive(Clone, Debug)]
 pub struct ModulusPoly {
-    field: Rc<&'static ModulusGF>,
+    field: &'static ModulusGF,
     coefficients: Vec<u32>,
     // zero: Option<Rc<ModulusPoly>>,
     // one: Option<Rc<ModulusPoly>>,
 }
 impl ModulusPoly {
     pub fn new(
-        field: Rc<&'static ModulusGF>,
+        field: &'static ModulusGF,
         coefficients: Vec<u32>,
     ) -> Result<ModulusPoly, Exceptions> {
         if coefficients.is_empty() {
-            return Err(Exceptions::IllegalArgumentException("".to_owned()));
+            return Err(Exceptions::IllegalArgumentException(None));
         }
         let orig_coefs = coefficients.clone();
         let mut coefficients = coefficients;
@@ -51,20 +51,21 @@ impl ModulusPoly {
                 coefficients = vec![0];
             } else {
                 coefficients = vec![0u32; coefficientsLength - firstNonZero];
-                coefficients[..].copy_from_slice(&&orig_coefs[firstNonZero..]);
+                coefficients[..].copy_from_slice(&orig_coefs[firstNonZero..]);
                 // System.arraycopy(coefficients,
                 //     firstNonZero,
                 //     this.coefficients,
                 //     0,
                 //     this.coefficients.length);
             }
-        } else {
-            coefficients = coefficients;
         }
+        // } else {
+        //     coefficients = coefficients;
+        // }
 
         Ok(ModulusPoly {
-            field: field.clone(),
-            coefficients: coefficients,
+            field,
+            coefficients,
             // zero: Some(Self::getZero(field.clone())),
             // one: Some(Self::getOne(field.clone())),
         })
@@ -120,14 +121,14 @@ impl ModulusPoly {
                 .field
                 .add(self.field.multiply(a, result), self.coefficients[i]);
         }
-        return result;
+        result
     }
 
     pub fn add(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>, Exceptions> {
         if self.field != other.field {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "ModulusPolys do not have same ModulusGF field".to_owned(),
-            ));
+            )));
         }
         if self.isZero() {
             return Ok(other);
@@ -141,7 +142,7 @@ impl ModulusPoly {
         if smallerCoefficients.len() > largerCoefficients.len() {
             std::mem::swap(&mut smallerCoefficients, &mut largerCoefficients);
         }
-        let mut sumDiff = vec![0032; largerCoefficients.len()];
+        let mut sumDiff = vec![0_u32; largerCoefficients.len()];
         let lengthDiff = largerCoefficients.len() - smallerCoefficients.len();
         // Copy high-order terms only found in higher-degree polynomial's coefficients
         sumDiff[..lengthDiff].copy_from_slice(&largerCoefficients[..lengthDiff]);
@@ -155,31 +156,30 @@ impl ModulusPoly {
         }
 
         Ok(Rc::new(
-            ModulusPoly::new(self.field.clone(), sumDiff)
-                .expect("should always generate with known goods"),
+            ModulusPoly::new(self.field, sumDiff).expect("should always generate with known goods"),
         ))
     }
 
     pub fn subtract(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>, Exceptions> {
         if self.field != other.field {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "ModulusPolys do not have same ModulusGF field".to_owned(),
-            ));
+            )));
         }
         if other.isZero() {
             return Ok(Rc::new(self.clone()));
         };
-        self.add(other.negative().clone())
+        self.add(other.negative())
     }
 
     pub fn multiply(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>, Exceptions> {
         if !(self.field == other.field) {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "ModulusPolys do not have same ModulusGF field".to_owned(),
-            ));
+            )));
         }
         if self.isZero() || other.isZero() {
-            return Ok(Self::getZero(self.field.clone()).clone());
+            return Ok(Self::getZero(self.field));
         }
         let aCoefficients = &self.coefficients;
         let aLength = aCoefficients.len();
@@ -199,77 +199,68 @@ impl ModulusPoly {
         }
 
         Ok(Rc::new(
-            ModulusPoly::new(self.field.clone(), product)
-                .expect("should always generate with known goods"),
+            ModulusPoly::new(self.field, product).expect("should always generate with known goods"),
         ))
     }
 
     pub fn negative(&self) -> Rc<ModulusPoly> {
         let size = self.coefficients.len();
         let mut negativeCoefficients = vec![0u32; size];
-        for i in 0..size {
+        for (i, neg_coef) in negativeCoefficients.iter_mut().enumerate().take(size) {
             // for (int i = 0; i < size; i++) {
-            negativeCoefficients[i] = self.field.subtract(0, self.coefficients[i]);
+            *neg_coef = self.field.subtract(0, self.coefficients[i]);
         }
         Rc::new(
-            ModulusPoly::new(self.field.clone(), negativeCoefficients)
+            ModulusPoly::new(self.field, negativeCoefficients)
                 .expect("should always generate with known goods"),
         )
     }
 
     pub fn multiplyByScaler(&self, scalar: u32) -> Rc<ModulusPoly> {
         if scalar == 0 {
-            return Self::getZero(self.field.clone()).clone();
+            return Self::getZero(self.field);
         }
         if scalar == 1 {
             return Rc::new(self.clone());
         }
         let size = self.coefficients.len();
         let mut product = vec![0u32; size];
-        for i in 0..size {
+        for (i, prod) in product.iter_mut().enumerate().take(size) {
             // for (int i = 0; i < size; i++) {
-            product[i] = self.field.multiply(self.coefficients[i], scalar);
+            *prod = self.field.multiply(self.coefficients[i], scalar);
         }
 
         Rc::new(
-            ModulusPoly::new(self.field.clone(), product)
-                .expect("should always generate with known goods"),
+            ModulusPoly::new(self.field, product).expect("should always generate with known goods"),
         )
     }
 
     pub fn multiplyByMonomial(&self, degree: usize, coefficient: u32) -> Rc<ModulusPoly> {
         if coefficient == 0 {
-            return Self::getZero(self.field.clone()).clone();
+            return Self::getZero(self.field);
         }
         let size = self.coefficients.len();
         let mut product = vec![0u32; size + degree];
-        for i in 0..size {
+        for (i, prod) in product.iter_mut().enumerate().take(size) {
             // for (int i = 0; i < size; i++) {
-            product[i] = self.field.multiply(self.coefficients[i], coefficient);
+            *prod = self.field.multiply(self.coefficients[i], coefficient);
         }
 
         Rc::new(
-            ModulusPoly::new(self.field.clone(), product)
-                .expect("should always generate with known goods"),
+            ModulusPoly::new(self.field, product).expect("should always generate with known goods"),
         )
     }
 
-    pub fn getZero(field: Rc<&'static ModulusGF>) -> Rc<ModulusPoly> {
-        Rc::new(
-            ModulusPoly::new(field.clone(), vec![0])
-                .expect("should always generate with known goods"),
-        )
+    pub fn getZero(field: &'static ModulusGF) -> Rc<ModulusPoly> {
+        Rc::new(ModulusPoly::new(field, vec![0]).expect("should always generate with known goods"))
     }
 
-    pub fn getOne(field: Rc<&'static ModulusGF>) -> Rc<ModulusPoly> {
-        Rc::new(
-            ModulusPoly::new(field.clone(), vec![1])
-                .expect("should always generate with known goods"),
-        )
+    pub fn getOne(field: &'static ModulusGF) -> Rc<ModulusPoly> {
+        Rc::new(ModulusPoly::new(field, vec![1]).expect("should always generate with known goods"))
     }
 
     pub fn buildMonomial(
-        field: Rc<&'static ModulusGF>,
+        field: &'static ModulusGF,
         degree: usize,
         coefficient: u32,
     ) -> Rc<ModulusPoly> {
@@ -282,8 +273,7 @@ impl ModulusPoly {
         let mut coefficients = vec![0_u32; degree + 1];
         coefficients[0] = coefficient;
         Rc::new(
-            ModulusPoly::new(field.clone(), coefficients)
-                .expect("should always generate with known goods"),
+            ModulusPoly::new(field, coefficients).expect("should always generate with known goods"),
         )
     }
 

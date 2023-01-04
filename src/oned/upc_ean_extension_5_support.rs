@@ -26,15 +26,10 @@ use super::{upc_ean_reader, UPCEANReader, STAND_IN};
 /**
  * @see UPCEANExtension2Support
  */
+#[derive(Default)]
 pub struct UPCEANExtension5Support {
     //decodeMiddleCounters : [u32;4],
     //  decodeRowStringBuffer : String,
-}
-
-impl Default for UPCEANExtension5Support {
-    fn default() -> Self {
-        Self {}
-    }
 }
 
 impl UPCEANExtension5Support {
@@ -83,7 +78,7 @@ impl UPCEANExtension5Support {
                                        // counters[2] = 0;
                                        // counters[3] = 0;
         let end = row.getSize();
-        let mut rowOffset = startRange[1] as usize;
+        let mut rowOffset = startRange[1];
 
         let mut lgPatternFound = 0;
 
@@ -115,12 +110,12 @@ impl UPCEANExtension5Support {
         }
 
         if resultString.chars().count() != 5 {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         let checkDigit = Self::determineCheckDigit(lgPatternFound)?;
         if Self::extensionChecksum(resultString) != checkDigit as u32 {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         Ok(rowOffset as u32)
@@ -146,7 +141,7 @@ impl UPCEANExtension5Support {
             i -= 2;
         }
         sum *= 3;
-        return sum % 10;
+        sum % 10
     }
 
     fn determineCheckDigit(lgPatternFound: usize) -> Result<usize, Exceptions> {
@@ -156,7 +151,7 @@ impl UPCEANExtension5Support {
                 return Ok(d);
             }
         }
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        Err(Exceptions::NotFoundException(None))
     }
 
     /**
@@ -184,7 +179,7 @@ impl UPCEANExtension5Support {
     }
 
     fn parseExtension5String(raw: &str) -> Option<String> {
-        let currency = match raw.chars().nth(0).unwrap() {
+        let currency = match raw.chars().next().unwrap() {
             '0' => "£",
             '5' => "$",
             '9' => {

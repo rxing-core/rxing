@@ -47,18 +47,16 @@ pub trait AbstractRSSReaderTrait: OneDReader {
     // }
 
     fn parseFinderValue(counters: &[u32], finderPatterns: &[[u32; 4]]) -> Result<u32, Exceptions> {
-        for value in 0..finderPatterns.len() {
+        for (value, pattern) in finderPatterns.iter().enumerate() {
+            // for value in 0..finderPatterns.len() {
             // for (int value = 0; value < finderPatterns.length; value++) {
-            if one_d_reader::patternMatchVariance(
-                counters,
-                &finderPatterns[value],
-                Self::MAX_INDIVIDUAL_VARIANCE,
-            ) < Self::MAX_AVG_VARIANCE
+            if one_d_reader::patternMatchVariance(counters, pattern, Self::MAX_INDIVIDUAL_VARIANCE)
+                < Self::MAX_AVG_VARIANCE
             {
                 return Ok(value as u32);
             }
         }
-        Err(Exceptions::NotFoundException("".to_owned()))
+        Err(Exceptions::NotFoundException(None))
     }
 
     /**
@@ -74,10 +72,10 @@ pub trait AbstractRSSReaderTrait: OneDReader {
     fn increment(array: &mut [u32], errors: &[f32]) {
         let mut index = 0;
         let mut biggestError = errors[0];
-        for i in 1..array.len() {
+        for (i, error) in errors.iter().enumerate().take(array.len()).skip(1) {
             // for (int i = 1; i < array.length; i++) {
-            if errors[i] > biggestError {
-                biggestError = errors[i];
+            if *error > biggestError {
+                biggestError = *error;
                 index = i;
             }
         }
@@ -87,10 +85,11 @@ pub trait AbstractRSSReaderTrait: OneDReader {
     fn decrement(array: &mut [u32], errors: &[f32]) {
         let mut index = 0;
         let mut biggestError = errors[0];
-        for i in 1..array.len() {
+        for (i, error) in errors.iter().enumerate().take(array.len()).skip(1) {
+            // for i in 1..array.len() {
             // for (int i = 1; i < array.length; i++) {
-            if errors[i] < biggestError {
-                biggestError = errors[i];
+            if *error < biggestError {
+                biggestError = *error;
                 index = i;
             }
         }
@@ -116,6 +115,6 @@ pub trait AbstractRSSReaderTrait: OneDReader {
             }
             return maxCounter < 10 * minCounter;
         }
-        return false;
+        false
     }
 }

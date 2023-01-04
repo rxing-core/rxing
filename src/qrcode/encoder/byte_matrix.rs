@@ -69,7 +69,7 @@ impl ByteMatrix {
     // }
 
     pub fn set_bool(&mut self, x: u32, y: u32, value: bool) {
-        self.bytes[y as usize][x as usize] = if value { 1 } else { 0 };
+        self.bytes[y as usize][x as usize] = u8::from(value); //if value { 1 } else { 0 };
     }
 
     pub fn clear(&mut self, value: u8) {
@@ -88,9 +88,10 @@ impl fmt::Display for ByteMatrix {
         for y in 0..self.height as usize {
             // for (int y = 0; y < height; ++y) {
             let bytesY = &self.bytes[y];
-            for x in 0..self.width as usize {
+            for byte in bytesY.iter().take(self.width as usize) {
+                // for x in 0..self.width as usize {
                 // for (int x = 0; x < width; ++x) {
-                match bytesY[x] {
+                match *byte {
                     0 => result.push_str(" 0"),
                     1 => result.push_str(" 1"),
                     _ => result.push_str("  "),
@@ -119,7 +120,7 @@ impl From<ByteMatrix> for BitMatrix {
         for y in 0..bm.getHeight() {
             for x in 0..bm.getWidth() {
                 if bm.get(x, y) > 0 {
-                    bit_matrix.set(x as u32, y as u32);
+                    bit_matrix.set(x, y);
                 }
             }
         }

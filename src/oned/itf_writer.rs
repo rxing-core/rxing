@@ -25,28 +25,22 @@ use super::OneDimensionalCodeWriter;
  *
  * @author erik.barbara@gmail.com (Erik Barbara)
  */
-#[derive(OneDWriter)]
+#[derive(OneDWriter, Default)]
 pub struct ITFWriter;
-
-impl Default for ITFWriter {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 impl OneDimensionalCodeWriter for ITFWriter {
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>, Exceptions> {
         let length = contents.chars().count();
         if length % 2 != 0 {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "The length of the input should be even".to_owned(),
-            ));
+            )));
         }
         if length > 80 {
-            return Err(Exceptions::IllegalArgumentException(format!(
+            return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "Requested contents should be less than 80 digits long, but got {}",
                 length
-            )));
+            ))));
         }
 
         Self::checkNumeric(contents)?;

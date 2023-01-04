@@ -65,9 +65,9 @@ impl BitMatrix {
      */
     pub fn new(width: u32, height: u32) -> Result<Self, Exceptions> {
         if width < 1 || height < 1 {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Both dimensions must be greater than 0".to_owned(),
-            ));
+            )));
         }
         Ok(Self {
             width,
@@ -101,17 +101,19 @@ impl BitMatrix {
         let height: u32 = image.len().try_into().unwrap();
         let width: u32 = image[0].len().try_into().unwrap();
         let mut bits = BitMatrix::new(width, height).unwrap();
-        for i in 0..height as usize {
+        for (i, imageI) in image.iter().enumerate().take(height as usize) {
+            // for i in 0..height as usize {
             //for (int i = 0; i < height; i++) {
-            let imageI = &image[i];
-            for j in 0..width as usize {
+            // let imageI = &image[i];
+            for (j, imageI_j) in imageI.iter().enumerate().take(width as usize) {
+                // for j in 0..width as usize {
                 //for (int j = 0; j < width; j++) {
-                if imageI[j] {
+                if *imageI_j {
                     bits.set(j as u32, i as u32);
                 }
             }
         }
-        return bits;
+        bits
     }
 
     pub fn parse_strings(
@@ -141,9 +143,9 @@ impl BitMatrix {
                         first_run = false;
                         rowLength = bitsPos - rowStartPos;
                     } else if bitsPos - rowStartPos != rowLength {
-                        return Err(Exceptions::IllegalArgumentException(
+                        return Err(Exceptions::IllegalArgumentException(Some(
                             "row lengths do not match".to_owned(),
-                        ));
+                        )));
                     }
                     rowStartPos = bitsPos;
                     nRows += 1;
@@ -158,10 +160,10 @@ impl BitMatrix {
                 bits[bitsPos] = false;
                 bitsPos += 1;
             } else {
-                return Err(Exceptions::IllegalArgumentException(format!(
+                return Err(Exceptions::IllegalArgumentException(Some(format!(
                     "illegal character encountered: {}",
                     string_representation[pos..].to_owned()
-                )));
+                ))));
             }
         }
 
@@ -172,24 +174,25 @@ impl BitMatrix {
                 // first_run = false;
                 rowLength = bitsPos - rowStartPos;
             } else if bitsPos - rowStartPos != rowLength {
-                return Err(Exceptions::IllegalArgumentException(
+                return Err(Exceptions::IllegalArgumentException(Some(
                     "row lengths do not match".to_owned(),
-                ));
+                )));
             }
             nRows += 1;
         }
 
         let mut matrix = BitMatrix::new(rowLength.try_into().unwrap(), nRows)?;
-        for i in 0..bitsPos {
+        for (i, bit) in bits.iter().enumerate().take(bitsPos) {
+            // for i in 0..bitsPos {
             //for (int i = 0; i < bitsPos; i++) {
-            if bits[i] {
+            if *bit {
                 matrix.set(
                     (i % rowLength).try_into().unwrap(),
                     (i / rowLength).try_into().unwrap(),
                 );
             }
         }
-        return Ok(matrix);
+        Ok(matrix)
     }
 
     /**
@@ -201,15 +204,15 @@ impl BitMatrix {
      */
     pub fn get(&self, x: u32, y: u32) -> bool {
         let offset = y as usize * self.row_size + (x as usize / 32);
-        return ((self.bits[offset] >> (x & 0x1f)) & 1) != 0;
+        ((self.bits[offset] >> (x & 0x1f)) & 1) != 0
     }
 
     pub fn try_get(&self, x: u32, y: u32) -> Result<bool, Exceptions> {
         let offset = y as usize * self.row_size + (x as usize / 32);
         if offset > self.bits.len() {
-            return Err(Exceptions::IndexOutOfBoundsException("".to_owned()));
+            return Err(Exceptions::IndexOutOfBoundsException(None));
         }
-        return Ok(((self.bits[offset] >> (x & 0x1f)) & 1) != 0);
+        Ok(((self.bits[offset] >> (x & 0x1f)) & 1) != 0)
     }
 
     pub fn check_in_bounds(&self, x: u32, y: u32) -> bool {
@@ -263,9 +266,9 @@ impl BitMatrix {
     pub fn xor(&mut self, mask: &BitMatrix) -> Result<(), Exceptions> {
         if self.width != mask.width || self.height != mask.height || self.row_size != mask.row_size
         {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "input matrix dimensions do not match".to_owned(),
-            ));
+            )));
         }
         // let mut rowArray = BitArray::with_size(self.width as usize);
         for y in 0..self.height {
@@ -273,9 +276,10 @@ impl BitMatrix {
             let offset = y as usize * self.row_size;
             let rowArray = mask.getRow(y);
             let row = rowArray.getBitArray();
-            for x in 0..self.row_size {
+            for (x, row_x) in row.iter().enumerate().take(self.row_size) {
+                // for x in 0..self.row_size {
                 //for (int x = 0; x < rowSize; x++) {
-                self.bits[offset + x] ^= row[x];
+                self.bits[offset + x] ^= *row_x;
             }
         }
         Ok(())
@@ -314,16 +318,16 @@ impl BitMatrix {
         //     ));
         // }
         if height < 1 || width < 1 {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Height and width must be at least 1".to_owned(),
-            ));
+            )));
         }
         let right = left + width;
         let bottom = top + height;
         if bottom > self.height || right > self.width {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "The region must fit inside the matrix".to_owned(),
-            ));
+            )));
         }
         for y in top..bottom {
             //for (int y = top; y < bottom; y++) {
@@ -361,7 +365,7 @@ impl BitMatrix {
             //for (int x = 0; x < rowSize; x++) {
             rw.setBulk(x * 32, self.bits[offset + x]);
         }
-        return rw;
+        rw
     }
 
     /**
@@ -395,9 +399,9 @@ impl BitMatrix {
                 self.rotate180();
                 Ok(())
             }
-            _ => Err(Exceptions::IllegalArgumentException(
+            _ => Err(Exceptions::IllegalArgumentException(Some(
                 "degrees must be a multiple of 0, 90, 180, or 270".to_owned(),
-            )),
+            ))),
         }
     }
 
@@ -497,7 +501,7 @@ impl BitMatrix {
             return None;
         }
 
-        return Some(vec![left, top, right - left + 1, bottom - top + 1]);
+        Some(vec![left, top, right - left + 1, bottom - top + 1])
     }
 
     /**
@@ -522,7 +526,7 @@ impl BitMatrix {
             bit += 1;
         }
         x += bit;
-        return Some(vec![x as u32, y as u32]);
+        Some(vec![x as u32, y as u32])
     }
 
     pub fn getBottomRightOnBit(&self) -> Option<Vec<u32>> {
@@ -544,28 +548,28 @@ impl BitMatrix {
         }
         x += bit;
 
-        return Some(vec![x as u32, y as u32]);
+        Some(vec![x as u32, y as u32])
     }
 
     /**
      * @return The width of the matrix
      */
     pub fn getWidth(&self) -> u32 {
-        return self.width;
+        self.width
     }
 
     /**
      * @return The height of the matrix
      */
     pub fn getHeight(&self) -> u32 {
-        return self.height;
+        self.height
     }
 
     /**
      * @return The row size of the matrix
      */
     pub fn getRowSize(&self) -> usize {
-        return self.row_size;
+        self.row_size
     }
 
     // @Override
@@ -594,7 +598,7 @@ impl BitMatrix {
      * @return string representation of entire matrix utilizing given strings
      */
     pub fn toString(&self, setString: &str, unsetString: &str) -> String {
-        return self.buildToString(setString, unsetString, "\n");
+        self.buildToString(setString, unsetString, "\n")
     }
 
     /**
@@ -624,7 +628,7 @@ impl BitMatrix {
             }
             result.push_str(lineSeparator);
         }
-        return result;
+        result
     }
 
     // @Override

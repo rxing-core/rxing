@@ -68,12 +68,12 @@ pub fn orderBestPatterns<T: ResultPoint + Copy + Clone>(patterns: &mut [T; 3]) {
  * @return distance between two points
  */
 pub fn distance<T: ResultPoint>(pattern1: &T, pattern2: &T) -> f32 {
-    return MathUtils::distance_float(
+    MathUtils::distance_float(
         pattern1.getX(),
         pattern1.getY(),
         pattern2.getX(),
         pattern2.getY(),
-    );
+    )
 }
 
 /**
@@ -82,6 +82,5 @@ pub fn distance<T: ResultPoint>(pattern1: &T, pattern2: &T) -> f32 {
 pub fn crossProductZ<T: ResultPoint>(pointA: T, pointB: T, pointC: T) -> f32 {
     let bX = pointB.getX();
     let bY = pointB.getY();
-    return ((pointC.getX() - bX) * (pointA.getY() - bY))
-        - ((pointC.getY() - bY) * (pointA.getX() - bX));
+    ((pointC.getX() - bX) * (pointA.getY() - bY)) - ((pointC.getY() - bY) * (pointA.getX() - bX))
 }

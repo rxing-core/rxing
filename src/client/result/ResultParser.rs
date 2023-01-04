@@ -97,9 +97,9 @@ lazy_static! {
 }
 
 // const DIGITS: &'static str = "\\d+"; //= Pattern.compile("\\d+");
-const AMPERSAND: &'static str = "&"; // private static final Pattern AMPERSAND = Pattern.compile("&");
-const EQUALS: &'static str = "="; //private static final Pattern EQUALS = Pattern.compile("=");
-const BYTE_ORDER_MARK: &'static str = "\u{feff}"; //private static final String BYTE_ORDER_MARK = "\ufeff";
+const AMPERSAND: &str = "&"; // private static final Pattern AMPERSAND = Pattern.compile("&");
+const EQUALS: &str = "="; //private static final Pattern EQUALS = Pattern.compile("=");
+const BYTE_ORDER_MARK: &str = "\u{feff}"; //private static final String BYTE_ORDER_MARK = "\ufeff";
 
 // const EMPTY_STR_ARRAY: &'static str = "";
 
@@ -108,7 +108,7 @@ pub fn getMassagedText(result: &RXingResult) -> String {
     if text.starts_with(BYTE_ORDER_MARK) {
         text = text[1..].to_owned();
     }
-    return text;
+    text
 }
 
 pub fn parse_result_with_parsers(
@@ -117,8 +117,8 @@ pub fn parse_result_with_parsers(
 ) -> ParsedClientResult {
     for parser in parsers {
         let result = parser(the_rxing_result);
-        if result.is_some() {
-            return result.unwrap();
+        if let Some(res) = result {
+            return res;
         }
     }
     parseRXingResult(the_rxing_result)
@@ -150,8 +150,8 @@ pub fn parseRXingResult(the_rxing_result: &RXingResult) -> ParsedClientResult {
 
     for parser in PARSERS {
         let result = parser(the_rxing_result);
-        if result.is_some() {
-            return result.unwrap();
+        if let Some(res) = result {
+            return res;
         }
     }
     //   ParsedRXingResult result = parser.parse(theRXingResult);
@@ -193,7 +193,7 @@ pub fn maybeWrap(value: Option<String>) -> Option<Vec<String>> {
     if value.is_none() {
         None
     } else {
-        Some(vec![value.unwrap().to_owned()])
+        Some(vec![value.unwrap()])
     }
 }
 
@@ -222,16 +222,16 @@ pub fn unescapeBackslash(escaped: &str) -> String {
 }
 
 pub fn parseHexDigit(c: char) -> i32 {
-    if c >= '0' && c <= '9' {
-        return (c as u8 - '0' as u8) as i32;
+    if ('0'..='9').contains(&c) {
+        return (c as u8 - b'0') as i32;
     }
-    if c >= 'a' && c <= 'f' {
-        return 10 + (c as u8 - 'a' as u8) as i32;
+    if ('a'..='f').contains(&c) {
+        return 10 + (c as u8 - b'a') as i32;
     }
-    if c >= 'A' && c <= 'F' {
-        return 10 + (c as u8 - 'A' as u8) as i32;
+    if ('A'..='F').contains(&c) {
+        return 10 + (c as u8 - b'A') as i32;
     }
-    return -1;
+    -1
 }
 
 pub fn isStringOfDigits(value: &str, length: usize) -> bool {
@@ -242,16 +242,12 @@ pub fn isSubstringOfDigits(value: &str, offset: usize, length: usize) -> bool {
     if value.is_empty() || length == 0 {
         return false;
     }
-    let max = offset as usize + length;
+    let max = offset + length;
 
-    let sub_seq = &value[offset as usize..max];
+    let sub_seq = &value[offset..max];
 
     let is_a_match = if let Some(mtch) = DIGITS.find(sub_seq) {
-        if mtch.start() == 0 && mtch.end() == sub_seq.len() {
-            true
-        } else {
-            false
-        }
+        mtch.start() == 0 && mtch.end() == sub_seq.len()
     } else {
         false
     };
@@ -261,9 +257,7 @@ pub fn isSubstringOfDigits(value: &str, offset: usize, length: usize) -> bool {
 
 pub fn parseNameValuePairs(uri: &str) -> Option<HashMap<String, String>> {
     let paramStart = uri.find('?');
-    if paramStart.is_none() {
-        return None;
-    }
+    paramStart?;
     let mut result = HashMap::with_capacity(3);
     let paramStart = paramStart.unwrap_or(0);
 
@@ -285,7 +279,7 @@ pub fn appendKeyValue(keyValue: &str, result: &mut HashMap<String, String>) {
 
     let kvp: Vec<&str> = keyValueTokens.take(2).collect();
     if let [key, value] = kvp[..] {
-        let p_value = urlDecode(value).unwrap_or("".to_owned());
+        let p_value = urlDecode(value).unwrap_or_else(|_| "".to_owned());
         result.insert(key.to_owned(), p_value);
     }
 
@@ -305,9 +299,9 @@ pub fn urlDecode(encoded: &str) -> Result<String, Exceptions> {
     if let Ok(decoded) = decode(encoded) {
         Ok(decoded.to_string())
     } else {
-        Err(Exceptions::IllegalStateException(
+        Err(Exceptions::IllegalStateException(Some(
             "UnsupportedEncodingException".to_owned(),
-        ))
+        )))
     }
 }
 
@@ -334,14 +328,13 @@ pub fn matchPrefixedField(
         let start = i; // Found the start of a match here
         let mut more = true;
         while more {
-            let next_index = rawText[i..].find(endChar);
-            if next_index.is_none() {
+            if let Some(next_index) = rawText[i..].find(endChar) {
+                i += next_index;
+            } else {
                 // No terminating end character? uh, done. Set i such that loop terminates and break
                 i = rawText.len();
                 more = false;
                 continue;
-            } else {
-                i += next_index.unwrap();
             }
 
             if countPrecedingBackslashes(rawText, i) % 2 != 0 {
@@ -399,7 +392,7 @@ pub fn countPrecedingBackslashes(s: &str, pos: usize) -> u32 {
             break;
         }
     }
-    return count;
+    count
 }
 
 pub fn matchSinglePrefixedField(
@@ -409,11 +402,7 @@ pub fn matchSinglePrefixedField(
     trim: bool,
 ) -> Option<String> {
     let matches = matchPrefixedField(prefix, rawText, endChar, trim);
-    if let Some(m) = matches {
-        Some(m[0].clone())
-    } else {
-        None
-    }
+    matches.map(|m| m[0].clone())
     // return matches == null ? null : matches[0];
 }
 

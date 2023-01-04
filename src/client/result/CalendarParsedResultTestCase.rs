@@ -150,7 +150,7 @@ fn testAttendees() {
     doTest(
         "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nDTSTART:20080504T123456Z\r\nATTENDEE:mailto:bob@example.org\r\nATTENDEE:mailto:alice@example.org\r\nEND:VEVENT\r\nEND:VCALENDAR",
         "", "", "", "20080504T123456Z", "", "",
-        &vec!["bob@example.org", "alice@example.org"], f64::NAN, f64::NAN);
+        &["bob@example.org", "alice@example.org"], f64::NAN, f64::NAN);
 }
 
 #[test]

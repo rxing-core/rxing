@@ -124,8 +124,8 @@ pub fn decode_bitmatrix_with_hints(
         Ok(res) => Ok(res),
         Err(er) => match er {
             Exceptions::FormatException(_) | Exceptions::ChecksumException(_) => {
-                if fe.is_some() {
-                    Err(fe.unwrap())
+                if let Some(fe) = fe {
+                    Err(fe)
                 } else {
                     Err(ce.unwrap())
                 }
@@ -170,9 +170,10 @@ fn decode_bitmatrix_parser_with_hints(
         let mut codewordBytes = dataBlock.getCodewords().to_vec();
         let numDataCodewords = dataBlock.getNumDataCodewords() as usize;
         correctErrors(&mut codewordBytes, numDataCodewords)?;
-        for i in 0..numDataCodewords {
+        for codeword_byte in codewordBytes.iter().take(numDataCodewords) {
+            // for i in 0..numDataCodewords {
             // for (int i = 0; i < numDataCodewords; i++) {
-            resultBytes[resultOffset] = codewordBytes[i];
+            resultBytes[resultOffset] = *codeword_byte; //codewordBytes[i];
             resultOffset += 1;
         }
     }
@@ -193,20 +194,21 @@ fn correctErrors(codewordBytes: &mut [u8], numDataCodewords: usize) -> Result<()
     let numCodewords = codewordBytes.len();
     // First read into an array of ints
     let mut codewordsInts = vec![0u8; numCodewords];
-    for i in 0..numCodewords {
-        // for (int i = 0; i < numCodewords; i++) {
-        codewordsInts[i] = codewordBytes[i]; // & 0xFF;
-    }
+    // for i in 0..numCodewords {
+    //     // for (int i = 0; i < numCodewords; i++) {
+    //     codewordsInts[i] = codewordBytes[i]; // & 0xFF;
+    // }
+    codewordsInts[..numCodewords].copy_from_slice(&codewordBytes[..numCodewords]);
 
     let mut sending_code_words: Vec<i32> = codewordsInts.iter().map(|x| *x as i32).collect();
 
-    if let Err(e) = RS_DECODER.decode(
+    if let Err(Exceptions::ReedSolomonException(error_str)) = RS_DECODER.decode(
         &mut sending_code_words,
         (codewordBytes.len() - numDataCodewords) as i32,
     ) {
-        if let Exceptions::ReedSolomonException(error_str) = e {
-            return Err(Exceptions::ChecksumException(error_str));
-        }
+        // if let Exceptions::ReedSolomonException(error_str) = e {
+        return Err(Exceptions::ChecksumException(error_str));
+        // }
     }
 
     // Copy back into array of bytes -- only need to worry about the bytes that were data

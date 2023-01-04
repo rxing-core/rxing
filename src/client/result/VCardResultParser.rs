@@ -58,9 +58,9 @@ lazy_static! {
 // const NEWLINE_ESCAPE: &'static str = "\\\\[nN]";
 // const VCARD_ESCAPES: &'static str = "\\\\([,;\\\\])";
 // const EQUALS: &'static str = "=";
-const SEMICOLON: &'static str = ";";
+const SEMICOLON: &str = ";";
 // const UNESCAPED_SEMICOLONS: &'static str = "(?<!\\\\);+";
-const COMMA: &'static str = ",";
+const COMMA: &str = ",";
 // const SEMICOLON_OR_COMMA: &'static str = "[;,]";
 
 /**
@@ -130,14 +130,14 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let urls = matchVCardPrefixedField("URL", &rawText, true, false);
     let instantMessenger = matchSingleVCardPrefixedField("IMPP", &rawText, true, false);
     let geoString = matchSingleVCardPrefixedField("GEO", &rawText, true, false);
-    let geo = if geoString.is_none() {
-        Vec::new()
-    } else {
+    let geo = if let Some(geo_string) = geoString {
         SEMICOLON_OR_COMMA
-            .split(&geoString.unwrap()[0])
+            .split(&geo_string[0])
             .map(|x| x.to_owned())
             .collect()
         // SEMICOLON_OR_COMMA.split(geoString.unwrap()[0])
+    } else {
+        Vec::new()
     };
     // if geo.len() != 2 {
     //   geo = null;
@@ -322,7 +322,7 @@ pub fn matchVCardPrefixedField(
             //   matches.add(match);
             // } else {
             metadata.push(element);
-            matches.push(metadata.into_iter().map(|s| s.to_owned()).collect());
+            matches.push(metadata.into_iter().collect());
             // }
             i += 1;
         } else {
@@ -414,29 +414,22 @@ fn decodeQuotedPrintable(value: &str, charset: &str) -> String {
 }
 
 fn maybeAppendFragment(fragmentBuffer: &mut Vec<u8>, charset: &str, result: &mut String) {
-    if fragmentBuffer.len() > 0 {
+    if !fragmentBuffer.is_empty() {
         let fragmentBytes = fragmentBuffer.clone();
         let fragment;
         if charset.is_empty() {
-            fragment = String::from_utf8(fragmentBytes).unwrap_or("".to_owned());
+            fragment = String::from_utf8(fragmentBytes).unwrap_or_else(|_| "".to_owned());
             // fragment = new String(fragmentBytes, StandardCharsets.UTF_8);
-        } else {
-            if let Some(enc) = encoding::label::encoding_from_whatwg_label(charset) {
-                fragment = if let Ok(encoded_result) =
-                    enc.decode(&fragmentBytes, encoding::DecoderTrap::Strict)
-                {
-                    encoded_result
-                } else {
-                    String::from_utf8(fragmentBytes).unwrap_or("".to_owned())
-                }
+        } else if let Some(enc) = encoding::label::encoding_from_whatwg_label(charset) {
+            fragment = if let Ok(encoded_result) =
+                enc.decode(&fragmentBytes, encoding::DecoderTrap::Strict)
+            {
+                encoded_result
             } else {
-                fragment = String::from_utf8(fragmentBytes).unwrap_or("".to_owned())
+                String::from_utf8(fragmentBytes).unwrap_or_else(|_| "".to_owned())
             }
-            // try {
-            //   fragment = new String(fragmentBytes, charset);
-            // } catch (UnsupportedEncodingException e) {
-            //   fragment = new String(fragmentBytes, StandardCharsets.UTF_8);
-            // }
+        } else {
+            fragment = String::from_utf8(fragmentBytes).unwrap_or_else(|_| "".to_owned())
         }
         fragmentBuffer.clear();
         result.push_str(&fragment);
@@ -505,7 +498,7 @@ fn toTypes(lists: Option<Vec<Vec<String>>>) -> Vec<String> {
         if let Some(value) = list.get(0) {
             if !value.is_empty() {
                 let mut v_type = String::new();
-                let final_value = list.get(list.len() - 1).unwrap_or(&"".to_owned()).clone();
+                let final_value = list.last().unwrap_or(&"".to_owned()).clone();
                 if !final_value.is_empty() {
                     for i in 0..list.len() - 1 {
                         // for (int i = 1; i < list.size(); i++) {
@@ -553,7 +546,7 @@ fn formatNames(names: &mut Vec<Vec<String>>) {
         for list in names {
             // for (List<String> list : names) {
             let mut pos = 0;
-            while let Some(_fnd) = list.get(pos).unwrap_or(&"".to_owned()).find("=") {
+            while let Some(_fnd) = list.get(pos).unwrap_or(&"".to_owned()).find('=') {
                 pos += 1;
             }
             let name = list.get(pos).unwrap_or(&"".to_owned()).clone();
@@ -584,9 +577,9 @@ fn formatNames(names: &mut Vec<Vec<String>>) {
     }
 }
 
-fn maybeAppendComponent(components: &Vec<String>, i: usize, newName: &mut String) {
+fn maybeAppendComponent(components: &[String], i: usize, newName: &mut String) {
     if !components[i].is_empty() {
-        if newName.len() > 0 {
+        if !newName.is_empty() {
             newName.push(' ');
         }
         newName.push_str(&components[i]);

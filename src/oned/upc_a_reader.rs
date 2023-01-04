@@ -24,6 +24,7 @@ use super::{EAN13Reader, OneDReader, UPCEANReader};
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Sean Owen
  */
+#[derive(Default)]
 pub struct UPCAReader(EAN13Reader);
 
 impl Reader for UPCAReader {
@@ -87,20 +88,15 @@ impl UPCEANReader for UPCAReader {
     }
 }
 
-impl Default for UPCAReader {
-    fn default() -> Self {
-        Self(Default::default())
-    }
-}
-
 impl UPCAReader {
     // private final UPCEANReader ean13Reader = new EAN13Reader();
 
     fn maybeReturnRXingResult(result: RXingResult) -> Result<RXingResult, Exceptions> {
         let text = result.getText();
-        if text.chars().nth(0).unwrap() == '0' {
+        if let Some(stripped_text) = text.strip_prefix('0') {
+            // if text.starts_with('0') {
             let mut upcaRXingResult = RXingResult::new(
-                &text[1..],
+                stripped_text,
                 Vec::new(),
                 result.getRXingResultPoints().to_vec(),
                 BarcodeFormat::UPC_A,
@@ -110,7 +106,7 @@ impl UPCAReader {
             // }
             Ok(upcaRXingResult)
         } else {
-            Err(Exceptions::NotFoundException("".to_owned()))
+            Err(Exceptions::NotFoundException(None))
         }
     }
 }

@@ -165,9 +165,9 @@ impl PlanarYUVLuminanceSource {
         inverted: bool,
     ) -> Result<Self, Exceptions> {
         if left + width > data_width || top + height > data_height {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Crop rectangle does not fit within image data.".to_owned(),
-            ));
+            )));
         }
 
         let mut new_s: Self = Self {
@@ -200,26 +200,26 @@ impl PlanarYUVLuminanceSource {
             let output_offset = y * width;
             for x in 0..width {
                 //for (int x = 0; x < width; x++) {
-                let grey = yuv[input_offset + x * THUMBNAIL_SCALE_FACTOR] & 0xff;
+                let grey = yuv[input_offset + x * THUMBNAIL_SCALE_FACTOR];
                 pixels[output_offset + x] = (0xFF000000 | (grey as u32 * 0x00010101)) as u8;
             }
             input_offset += self.data_width * THUMBNAIL_SCALE_FACTOR;
         }
-        return pixels;
+        pixels
     }
 
     /**
      * @return width of image from {@link #renderThumbnail()}
      */
     pub fn getThumbnailWidth(&self) -> usize {
-        return self.getWidth() / THUMBNAIL_SCALE_FACTOR;
+        self.getWidth() / THUMBNAIL_SCALE_FACTOR
     }
 
     /**
      * @return height of image from {@link #renderThumbnail()}
      */
     pub fn getThumbnailHeight(&self) -> usize {
-        return self.getHeight() / THUMBNAIL_SCALE_FACTOR;
+        self.getHeight() / THUMBNAIL_SCALE_FACTOR
     }
 
     fn reverseHorizontal(&mut self, width: usize, height: usize) {
@@ -264,7 +264,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         if self.invert {
             row = self.invert_block_of_bytes(row);
         }
-        return row;
+        row
     }
 
     fn getMatrix(&self) -> Vec<u8> {
@@ -309,7 +309,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
             matrix = self.invert_block_of_bytes(matrix);
         }
 
-        return matrix;
+        matrix
     }
 
     fn getWidth(&self) -> usize {
@@ -321,7 +321,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
     }
 
     fn isCropSupported(&self) -> bool {
-        return true;
+        true
     }
 
     fn crop(
@@ -343,12 +343,12 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
             self.invert,
         ) {
             Ok(new) => Ok(Box::new(new)),
-            Err(_err) => Err(Exceptions::UnsupportedOperationException("".to_owned())),
+            Err(_err) => Err(Exceptions::UnsupportedOperationException(None)),
         }
     }
 
     fn isRotateSupported(&self) -> bool {
-        return false;
+        false
     }
 
     fn invert(&mut self) {

@@ -72,17 +72,17 @@ impl WhiteRectangleDetector {
             || downInit >= image.getHeight() as i32
             || rightInit >= image.getWidth() as i32
         {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         Ok(Self {
             image: image.clone(),
             height: image.getHeight() as i32,
             width: image.getWidth() as i32,
-            leftInit: leftInit,
-            rightInit: rightInit,
-            downInit: downInit,
-            upInit: upInit,
+            leftInit,
+            rightInit,
+            downInit,
+            upInit,
         })
     }
 
@@ -218,7 +218,7 @@ impl WhiteRectangleDetector {
             }
 
             if z.is_none() {
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                return Err(Exceptions::NotFoundException(None));
             }
 
             let mut t: Option<RXingResultPoint> = None;
@@ -236,7 +236,7 @@ impl WhiteRectangleDetector {
             }
 
             if t.is_none() {
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                return Err(Exceptions::NotFoundException(None));
             }
 
             let mut x: Option<RXingResultPoint> = None;
@@ -254,7 +254,7 @@ impl WhiteRectangleDetector {
             }
 
             if x.is_none() {
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                return Err(Exceptions::NotFoundException(None));
             }
 
             let mut y: Option<RXingResultPoint> = None;
@@ -272,12 +272,12 @@ impl WhiteRectangleDetector {
             }
 
             if y.is_none() {
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                return Err(Exceptions::NotFoundException(None));
             }
 
-            return Ok(self.center_edges(&y.unwrap(), &z.unwrap(), &x.unwrap(), &t.unwrap()));
+            Ok(self.center_edges(&y.unwrap(), &z.unwrap(), &x.unwrap(), &t.unwrap()))
         } else {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            Err(Exceptions::NotFoundException(None))
         }
     }
 
@@ -299,7 +299,7 @@ impl WhiteRectangleDetector {
                 return Some(RXingResultPoint::new(x as f32, y as f32));
             }
         }
-        return None;
+        None
     }
 
     /**
@@ -339,19 +339,19 @@ impl WhiteRectangleDetector {
         let tj = t.getY();
 
         if yi < self.width as f32 / 2.0f32 {
-            return vec![
+            vec![
                 RXingResultPoint::new(ti - CORR as f32, tj + CORR as f32),
                 RXingResultPoint::new(zi + CORR as f32, zj + CORR as f32),
                 RXingResultPoint::new(xi - CORR as f32, xj - CORR as f32),
                 RXingResultPoint::new(yi + CORR as f32, yj - CORR as f32),
-            ];
+            ]
         } else {
-            return vec![
+            vec![
                 RXingResultPoint::new(ti + CORR as f32, tj + CORR as f32),
                 RXingResultPoint::new(zi + CORR as f32, zj - CORR as f32),
                 RXingResultPoint::new(xi - CORR as f32, xj + CORR as f32),
                 RXingResultPoint::new(yi - CORR as f32, yj - CORR as f32),
-            ];
+            ]
         }
     }
 
@@ -379,6 +379,6 @@ impl WhiteRectangleDetector {
             }
         }
 
-        return false;
+        false
     }
 }

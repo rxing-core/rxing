@@ -44,7 +44,7 @@ lazy_static! {
         Regex::new("([a-zA-Z0-9\\-]+\\.){1,6}[a-zA-Z]{2,}(:\\d{1,5})?(/|\\?|$)").unwrap();
 }
 
-const ALLOWED_URI_CHARS_PATTERN: &'static str = "[-._~:/?#\\[\\]@!$&'()*+,;=%A-Za-z0-9]+";
+const ALLOWED_URI_CHARS_PATTERN: &str = "[-._~:/?#\\[\\]@!$&'()*+,;=%A-Za-z0-9]+";
 // const USER_IN_HOST: &'static str = ":/*([^/@]+)@[^/]+";
 /// See http://www.ietf.org/rfc/rfc2396.txt
 // const URL_WITH_PROTOCOL_PATTERN: &'static str = "[a-zA-Z][a-zA-Z0-9+-.]+:";
@@ -83,11 +83,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
  */
 pub fn is_possibly_malicious_uri(uri: &str) -> bool {
     let allowed = if let Some(fnd) = ALLOWED_URI_CHARS.find(uri) {
-        if fnd.start() == 0 && fnd.end() == uri.len() {
-            true
-        } else {
-            false
-        }
+        fnd.start() == 0 && fnd.end() == uri.len()
     } else {
         false
     };
@@ -97,7 +93,7 @@ pub fn is_possibly_malicious_uri(uri: &str) -> bool {
 }
 
 pub fn is_basically_valid_uri(uri: &str) -> bool {
-    if uri.contains(" ") {
+    if uri.contains(' ') {
         // Quick hack check for a common case
         return false;
     }
@@ -111,12 +107,7 @@ pub fn is_basically_valid_uri(uri: &str) -> bool {
 
     // let m = Regex::new(URL_WITHOUT_PROTOCOL_PATTERN).expect("Regex patterns should always copile"); //.matcher(uri);
     if let Some(found) = URL_WITHOUT_PROTOCOL_PATTERN.find(uri) {
-        if found.start() == 0 {
-            // match at start only
-            true
-        } else {
-            false
-        }
+        found.start() == 0
     } else {
         false
     }

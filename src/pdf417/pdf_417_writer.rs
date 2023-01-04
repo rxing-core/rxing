@@ -36,6 +36,7 @@ const DEFAULT_ERROR_CORRECTION_LEVEL: u32 = 2;
  * @author Jacob Haynes
  * @author qwandor@google.com (Andrew Walbran)
  */
+#[derive(Default)]
 pub struct PDF417Writer;
 
 impl Writer for PDF417Writer {
@@ -58,10 +59,10 @@ impl Writer for PDF417Writer {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         if format != &BarcodeFormat::PDF_417 {
-            return Err(Exceptions::IllegalArgumentException(format!(
+            return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "Can only encode PDF_417, but got {}",
                 format
-            )));
+            ))));
         }
 
         let mut encoder = PDF417::new();
@@ -209,17 +210,18 @@ impl PDF417Writer {
         while y < input.len() {
             // for (int y = 0, yOutput = output.getHeight() - margin - 1; y < input.length; y++, yOutput--) {
             let inputY = &input[y];
-            for x in 0..input[y].len() {
+            // for x in 0..input[y].len() {
+            for (x, x_index_val) in inputY.iter().enumerate().take(input[y].len()) {
                 // for (int x = 0; x < input[0].length; x++) {
                 // Zero is white in the byte matrix
-                if inputY[x] == 1 {
+                if x_index_val == &1 {
                     output.set(x as u32 + margin, yOutput as u32);
                 }
             }
             y += 1;
             yOutput -= 1;
         }
-        return output;
+        output
     }
 
     /**
@@ -232,9 +234,10 @@ impl PDF417Writer {
             // This makes the direction consistent on screen when rotating the
             // screen;
             let inverseii = bitarray.len() - ii - 1;
-            for jj in 0..bitarray[0].len() {
+            for (jj, tmp_spot) in temp.iter_mut().enumerate().take(bitarray[0].len()) {
+                // for jj in 0..bitarray[0].len() {
                 // for (int jj = 0; jj < bitarray[0].length; jj++) {
-                temp[jj][inverseii] = bitarray[ii][jj];
+                tmp_spot[inverseii] = bitarray[ii][jj];
             }
         }
 
@@ -242,12 +245,6 @@ impl PDF417Writer {
     }
     pub fn new() -> Self {
         Self::default()
-    }
-}
-
-impl Default for PDF417Writer {
-    fn default() -> Self {
-        Self {}
     }
 }
 

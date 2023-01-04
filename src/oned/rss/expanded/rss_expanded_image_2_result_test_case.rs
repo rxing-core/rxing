@@ -74,7 +74,7 @@ fn assertCorrectImage2result(fileName: &str, expected: ExpandedProductParsedRXin
     let mut binaryMap = BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
         Box::new(BufferedImageLuminanceSource::new(image)),
     ))));
-    let rowNumber = binaryMap.getHeight() as usize / 2;
+    let rowNumber = binaryMap.getHeight() / 2;
     let row = binaryMap.getBlackRow(rowNumber).expect("get row");
 
     let mut rssExpandedReader = RSSExpandedReader::new();

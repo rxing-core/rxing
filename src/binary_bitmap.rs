@@ -39,7 +39,7 @@ impl BinaryBitmap {
     pub fn new(binarizer: Rc<RefCell<dyn Binarizer>>) -> Self {
         Self {
             matrix: None,
-            binarizer: binarizer,
+            binarizer,
         }
     }
 
@@ -123,7 +123,7 @@ impl BinaryBitmap {
                     .clone(),
             )
         }
-        &self.matrix.as_ref().unwrap()
+        self.matrix.as_ref().unwrap()
     }
 
     /**
@@ -132,8 +132,8 @@ impl BinaryBitmap {
     pub fn isCropSupported(&self) -> bool {
         let b = self.binarizer.borrow();
         let r = b.getLuminanceSource();
-        let isCropOk = r.isCropSupported();
-        return isCropOk;
+
+        r.isCropSupported()
     }
 
     /**

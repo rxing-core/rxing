@@ -28,7 +28,7 @@ use super::{OneDimensionalCodeWriter, UPCEANReader, UPCEANWriter};
  *
  * @author aripollak@gmail.com (Ari Pollak)
  */
-#[derive(OneDWriter)]
+#[derive(OneDWriter, Default)]
 pub struct EAN13Writer;
 impl UPCEANWriter for EAN13Writer {}
 
@@ -40,9 +40,9 @@ impl OneDimensionalCodeWriter for EAN13Writer {
         match length {
             12 => {
                 // No check digit present, calculate it and add it
-                let check;
+
                 // try {
-                check = reader.getStandardUPCEANChecksum(&contents)?;
+                let check = reader.getStandardUPCEANChecksum(&contents)?;
                 // } catch (FormatException fe) {
                 // throw new IllegalArgumentException(fe);
                 // }
@@ -51,25 +51,25 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             13 => {
                 //try {
                 if !reader.checkStandardUPCEANChecksum(&contents)? {
-                    return Err(Exceptions::IllegalArgumentException(
+                    return Err(Exceptions::IllegalArgumentException(Some(
                         "Contents do not pass checksum".to_owned(),
-                    ));
+                    )));
                 }
                 //} catch (FormatException ignored) {
                 //return Err( Exceptions::IllegalArgumentException("Illegal contents".to_owned()));
                 //}
             }
             _ => {
-                return Err(Exceptions::IllegalArgumentException(format!(
+                return Err(Exceptions::IllegalArgumentException(Some(format!(
                     "Requested contents should be 12 or 13 digits long, but got {}",
                     length
-                )))
+                ))))
             }
         }
 
         EAN13Writer::checkNumeric(&contents)?;
 
-        let firstDigit = contents.chars().nth(0).unwrap().to_digit(10).unwrap() as usize; //, 10);
+        let firstDigit = contents.chars().next().unwrap().to_digit(10).unwrap() as usize; //, 10);
         let parities = EAN13Reader::FIRST_DIGIT_ENCODINGS[firstDigit];
         let mut result = [false; CODE_WIDTH];
         let mut pos = 0;
@@ -121,11 +121,6 @@ impl OneDimensionalCodeWriter for EAN13Writer {
         // CodaBar spec requires a side margin to be more than ten times wider than narrow space.
         // This seems like a decent idea for a default for all formats.
         Self::DEFAULT_MARGIN
-    }
-}
-impl Default for EAN13Writer {
-    fn default() -> Self {
-        Self {}
     }
 }
 

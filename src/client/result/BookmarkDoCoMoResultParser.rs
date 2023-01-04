@@ -32,14 +32,12 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     }
     let title = ResultParser::match_single_do_co_mo_prefixed_field("TITLE:", rawText, true);
     let rawUri = ResultParser::match_do_co_mo_prefixed_field("URL:", rawText);
-    if rawUri.is_none() {
-        return None;
-    }
+    rawUri.as_ref()?;
     let uri = rawUri?[0].clone();
     if URIResultParser::is_basically_valid_uri(&uri) {
         Some(ParsedClientResult::URIResult(URIParsedRXingResult::new(
             uri,
-            title.unwrap_or("".to_owned()),
+            title.unwrap_or_else(|| "".to_owned()),
         )))
     } else {
         None

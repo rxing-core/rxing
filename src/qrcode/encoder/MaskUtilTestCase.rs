@@ -198,7 +198,7 @@ fn testGetDataMaskBitInternal(maskPattern: u32, expected: &Vec<Vec<u32>>) -> boo
             }
         }
     }
-    return true;
+    true
 }
 
 // See mask patterns on the page 43 of JISX0510:2004.

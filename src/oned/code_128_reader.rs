@@ -25,7 +25,7 @@ use super::{one_d_reader, OneDReader};
  *
  * @author Sean Owen
  */
-#[derive(OneDReader)]
+#[derive(OneDReader, Default)]
 pub struct Code128Reader;
 
 impl OneDReader for Code128Reader {
@@ -50,7 +50,7 @@ impl OneDReader for Code128Reader {
             CODE_START_A => CODE_CODE_A,
             CODE_START_B => CODE_CODE_B,
             CODE_START_C => CODE_CODE_C,
-            _ => return Err(Exceptions::FormatException("".to_owned())),
+            _ => return Err(Exceptions::FormatException(None)),
         };
 
         let mut done = false;
@@ -106,7 +106,7 @@ impl OneDReader for Code128Reader {
             // Take care of illegal start codes
             match code {
                 CODE_START_A | CODE_START_B | CODE_START_C => {
-                    return Err(Exceptions::FormatException("".to_owned()))
+                    return Err(Exceptions::FormatException(None))
                 }
                 _ => {}
             }
@@ -301,21 +301,21 @@ impl OneDReader for Code128Reader {
             row.getSize().min(nextStart + (nextStart - lastStart) / 2),
             false,
         )? {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         // Pull out from sum the value of the penultimate check code
         checksumTotal -= multiplier as usize * lastCode as usize;
         // lastCode is the checksum then:
         if (checksumTotal % 103) as u8 != lastCode {
-            return Err(Exceptions::ChecksumException("".to_owned()));
+            return Err(Exceptions::ChecksumException(None));
         }
 
         // Need to pull out the check digits from string
         let resultLength = result.chars().count();
         if resultLength == 0 {
             // false positive
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         // Only bother if the result had at least one character, and if the checksum digit happened to
@@ -340,9 +340,9 @@ impl OneDReader for Code128Reader {
 
         let rawCodesSize = rawCodes.len();
         let mut rawBytes = vec![0u8; rawCodesSize];
-        for i in 0..rawCodesSize {
+        for (i, rawByte) in rawBytes.iter_mut().enumerate().take(rawCodesSize) {
             // for (int i = 0; i < rawCodesSize; i++) {
-            rawBytes[i] = *rawCodes.get(i).unwrap();
+            *rawByte = *rawCodes.get(i).unwrap();
         }
         let mut resultObject = RXingResult::new(
             &result,
@@ -419,7 +419,7 @@ impl Code128Reader {
             }
         }
 
-        Err(Exceptions::NotFoundException("".to_owned()))
+        Err(Exceptions::NotFoundException(None))
     }
 
     fn decodeCode(
@@ -435,7 +435,7 @@ impl Code128Reader {
             // for (int d = 0; d < CODE_PATTERNS.len(); d++) {
             let pattern = &CODE_PATTERNS[d];
             let variance =
-                one_d_reader::patternMatchVariance(counters, &pattern, MAX_INDIVIDUAL_VARIANCE);
+                one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
                 bestVariance = variance;
                 bestMatch = d as isize;
@@ -445,14 +445,8 @@ impl Code128Reader {
         if bestMatch >= 0 {
             Ok(bestMatch as u8)
         } else {
-            Err(Exceptions::NotFoundException("".to_owned()))
+            Err(Exceptions::NotFoundException(None))
         }
-    }
-}
-
-impl Default for Code128Reader {
-    fn default() -> Self {
-        Self {}
     }
 }
 

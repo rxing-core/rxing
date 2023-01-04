@@ -53,7 +53,7 @@ impl LuminanceSource for RGBLuminanceSource {
         if self.invert {
             row = self.invert_block_of_bytes(row);
         }
-        return row;
+        row
     }
 
     fn getMatrix(&self) -> Vec<u8> {
@@ -97,7 +97,7 @@ impl LuminanceSource for RGBLuminanceSource {
         if self.invert {
             matrix = self.invert_block_of_bytes(matrix);
         }
-        return matrix;
+        matrix
     }
 
     fn getWidth(&self) -> usize {
@@ -109,7 +109,7 @@ impl LuminanceSource for RGBLuminanceSource {
     }
 
     fn isCropSupported(&self) -> bool {
-        return true;
+        true
     }
 
     fn crop(
@@ -129,7 +129,7 @@ impl LuminanceSource for RGBLuminanceSource {
             height,
         ) {
             Ok(crop) => Ok(Box::new(crop)),
-            Err(_error) => Err(Exceptions::UnsupportedOperationException("".to_owned())),
+            Err(_error) => Err(Exceptions::UnsupportedOperationException(None)),
         }
     }
 
@@ -139,7 +139,7 @@ impl LuminanceSource for RGBLuminanceSource {
 }
 
 impl RGBLuminanceSource {
-    pub fn new_with_width_height_pixels(width: usize, height: usize, pixels: &Vec<u32>) -> Self {
+    pub fn new_with_width_height_pixels(width: usize, height: usize, pixels: &[u32]) -> Self {
         //super(width, height);
 
         let dataWidth = width;
@@ -166,8 +166,8 @@ impl RGBLuminanceSource {
             luminances,
             dataWidth,
             dataHeight,
-            left: left,
-            top: top,
+            left,
+            top,
             width,
             height,
             invert: false,
@@ -175,7 +175,7 @@ impl RGBLuminanceSource {
     }
 
     fn new_complex(
-        pixels: &Vec<u8>,
+        pixels: &[u8],
         data_width: usize,
         data_height: usize,
         left: usize,
@@ -184,12 +184,12 @@ impl RGBLuminanceSource {
         height: usize,
     ) -> Result<Self, Exceptions> {
         if left + width > data_width || top + height > data_height {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Crop rectangle does not fit within image data.".to_owned(),
-            ));
+            )));
         }
         Ok(Self {
-            luminances: pixels.clone(),
+            luminances: pixels.to_owned(),
             dataWidth: data_width,
             dataHeight: data_height,
             left,

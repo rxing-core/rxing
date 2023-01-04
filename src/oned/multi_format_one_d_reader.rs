@@ -51,7 +51,7 @@ impl OneDReader for MultiFormatOneDReader {
             // }
         }
 
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        Err(Exceptions::NotFoundException(None))
     }
 }
 impl MultiFormatOneDReader {
@@ -111,12 +111,10 @@ impl MultiFormatOneDReader {
     }
 }
 
-use crate::result_point::ResultPoint;
 use crate::DecodeHintType;
 use crate::DecodingHintDictionary;
 use crate::RXingResultMetadataType;
 use crate::RXingResultMetadataValue;
-use crate::RXingResultPoint;
 use crate::Reader;
 use std::collections::HashMap;
 
@@ -167,18 +165,21 @@ impl Reader for MultiFormatOneDReader {
                 // for point in result.getRXingResultPointsMut().iter_mut() {
                 let total_points = result.getRXingResultPoints().len();
                 let points = result.getRXingResultPointsMut();
-                for i in 0..total_points {
+                for point in points.iter_mut().take(total_points) {
+                    // for i in 0..total_points {
                     // for (int i = 0; i < points.length; i++) {
-                    points[i] = RXingResultPoint::new(
-                        height as f32 - points[i].getY() - 1.0,
-                        points[i].getX(),
-                    );
+                    std::mem::swap(&mut point.x, &mut point.y);
+                    point.x = height as f32 - point.x - 1.0;
+                    // points[i] = RXingResultPoint::new(
+                    //     height as f32 - points[i].getY() - 1.0,
+                    //     points[i].getX(),
+                    // );
                 }
                 // }
 
                 Ok(result)
             } else {
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                Err(Exceptions::NotFoundException(None))
             }
         }
     }

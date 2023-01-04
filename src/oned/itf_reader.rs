@@ -151,7 +151,7 @@ impl OneDReader for ITFReader {
             lengthOK = true;
         }
         if !lengthOK {
-            return Err(Exceptions::FormatException("".to_owned()));
+            return Err(Exceptions::FormatException(None));
         }
 
         let mut resultObject = RXingResult::new(
@@ -277,7 +277,7 @@ impl ITFReader {
 
         if quietCount != 0 {
             // Unable to find the necessary number of quiet zone pixels.
-            Err(Exceptions::NotFoundException("".to_owned()))
+            Err(Exceptions::NotFoundException(None))
         } else {
             Ok(())
         }
@@ -294,7 +294,7 @@ impl ITFReader {
         let width = row.getSize();
         let endStart = row.getNextSet(0);
         if endStart == width {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         Ok(endStart)
@@ -397,7 +397,7 @@ impl ITFReader {
                 isWhite = !isWhite;
             }
         }
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        Err(Exceptions::NotFoundException(None))
     }
 
     /**
@@ -412,9 +412,8 @@ impl ITFReader {
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
         let max = PATTERNS.len();
-        for i in 0..max {
+        for (i, pattern) in PATTERNS.iter().enumerate().take(max) {
             // for (int i = 0; i < max; i++) {
-            let pattern = &PATTERNS[i];
             let variance =
                 one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
@@ -428,7 +427,7 @@ impl ITFReader {
         if bestMatch >= 0 {
             Ok(bestMatch as u32 % 10)
         } else {
-            Err(Exceptions::NotFoundException("".to_owned()))
+            Err(Exceptions::NotFoundException(None))
         }
     }
 }

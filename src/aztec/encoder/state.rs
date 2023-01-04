@@ -80,9 +80,9 @@ impl State {
             token.add(0, 3); // 0: FNC1
         } else */
         if eci > 999999 {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "ECI code must be between 0 and 999999".to_owned(),
-            ));
+            )));
             // throw new IllegalArgumentException("ECI code must be between 0 and 999999");
         } else {
             let eci_digits = encoding::all::ISO_8859_1
@@ -155,12 +155,10 @@ impl State {
         let deltaBitCount =
             if self.binary_shift_byte_count == 0 || self.binary_shift_byte_count == 31 {
                 18
+            } else if self.binary_shift_byte_count == 62 {
+                9
             } else {
-                if self.binary_shift_byte_count == 62 {
-                    9
-                } else {
-                    8
-                }
+                8
             };
         let mut result = State::new(
             token,
@@ -240,7 +238,7 @@ impl State {
         if binary_shift_byte_count > 0 {
             return 10; // one B/S
         }
-        return 0;
+        0
     }
 }
 

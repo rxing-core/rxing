@@ -31,15 +31,11 @@ const CODE_WIDTH: usize = 3 + // start guard
  *
  * @author 0979097955s@gmail.com (RX)
  */
-#[derive(OneDWriter)]
+#[derive(OneDWriter, Default)]
 pub struct UPCEWriter;
 
 impl UPCEANWriter for UPCEWriter {}
-impl Default for UPCEWriter {
-    fn default() -> Self {
-        Self {}
-    }
-}
+
 impl OneDimensionalCodeWriter for UPCEWriter {
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>, Exceptions> {
         let length = contents.chars().count();
@@ -63,29 +59,29 @@ impl OneDimensionalCodeWriter for UPCEWriter {
                 if !reader
                     .checkStandardUPCEANChecksum(&upc_e_reader::convertUPCEtoUPCA(&contents))?
                 {
-                    return Err(Exceptions::IllegalArgumentException(
+                    return Err(Exceptions::IllegalArgumentException(Some(
                         "Contents do not pass checksum".to_owned(),
-                    ));
+                    )));
                 }
             }
             // } catch (FormatException ignored) {
             //   throw new IllegalArgumentException("Illegal contents");
             // }},
             _ => {
-                return Err(Exceptions::IllegalArgumentException(format!(
+                return Err(Exceptions::IllegalArgumentException(Some(format!(
                     "Requested contents should be 7 or 8 digits long, but got {}",
                     length
-                )))
+                ))))
             }
         }
 
         Self::checkNumeric(&contents)?;
 
-        let firstDigit = contents.chars().nth(0).unwrap().to_digit(10).unwrap() as usize; //Character.digit(contents.charAt(0), 10);
+        let firstDigit = contents.chars().next().unwrap().to_digit(10).unwrap() as usize; //Character.digit(contents.charAt(0), 10);
         if firstDigit != 0 && firstDigit != 1 {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Number system must be 0 or 1".to_owned(),
-            ));
+            )));
         }
 
         let checkDigit = contents.chars().nth(7).unwrap().to_digit(10).unwrap() as usize; //Character.digit(contents.charAt(7), 10);
@@ -109,7 +105,7 @@ impl OneDimensionalCodeWriter for UPCEWriter {
             ) as usize;
         }
 
-        Self::appendPattern(&mut result, pos, &upc_ean_reader::END_PATTERN, false) as usize;
+        Self::appendPattern(&mut result, pos, &upc_ean_reader::END_PATTERN, false);
 
         Ok(result.to_vec())
     }

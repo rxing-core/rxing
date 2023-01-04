@@ -93,9 +93,11 @@ impl DataBlock {
         let mut rawCodewordsOffset = 0;
         for i in 0..shorterBlocksNumDataCodewords {
             // for (int i = 0; i < shorterBlocksNumDataCodewords; i++) {
-            for j in 0..numRXingResultBlocks {
+
+            for res in result.iter_mut().take(numRXingResultBlocks) {
+                // for j in 0..numRXingResultBlocks {
                 // for (int j = 0; j < numRXingResultBlocks; j++) {
-                result[j].codewords[i] = rawCodewords[rawCodewordsOffset];
+                res.codewords[i] = rawCodewords[rawCodewordsOffset];
                 rawCodewordsOffset += 1;
             }
         }
@@ -107,10 +109,10 @@ impl DataBlock {
         } else {
             numRXingResultBlocks
         };
-        for j in 0..numLongerBlocks {
+        for res in result.iter_mut().take(numLongerBlocks) {
+            // for j in 0..numLongerBlocks {
             // for (int j = 0; j < numLongerBlocks; j++) {
-            result[j].codewords[longerBlocksNumDataCodewords - 1] =
-                rawCodewords[rawCodewordsOffset];
+            res.codewords[longerBlocksNumDataCodewords - 1] = rawCodewords[rawCodewordsOffset];
             rawCodewordsOffset += 1;
         }
 
@@ -136,7 +138,7 @@ impl DataBlock {
         }
 
         if rawCodewordsOffset != rawCodewords.len() {
-            return Err(Exceptions::IllegalArgumentException("".to_owned()));
+            return Err(Exceptions::IllegalArgumentException(None));
         }
 
         Ok(result)

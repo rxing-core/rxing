@@ -120,22 +120,16 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
             subject = nv.get("subject").unwrap_or(&"".to_owned()).clone();
             body = nv.get("body").unwrap_or(&"".to_owned()).clone();
         }
-        return Some(ParsedClientResult::EmailResult(
-            EmailAddressParsedRXingResult::with_details(
-                tos,
-                ccs,
-                bccs,
-                subject.to_owned(),
-                body.to_owned(),
-            ),
-        ));
+        Some(ParsedClientResult::EmailResult(
+            EmailAddressParsedRXingResult::with_details(tos, ccs, bccs, subject, body),
+        ))
     } else {
         // let atext_alphanumeric = Regex::new("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+").unwrap();
         if !EmailDoCoMoResultParser::isBasicallyValidEmailAddress(&rawText, &ATEXT_ALPHANUMERIC) {
             return None;
         }
-        return Some(ParsedClientResult::EmailResult(
+        Some(ParsedClientResult::EmailResult(
             EmailAddressParsedRXingResult::new(rawText),
-        ));
+        ))
     }
 }

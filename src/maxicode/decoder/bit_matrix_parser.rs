@@ -169,14 +169,16 @@ impl BitMatrixParser {
         let mut result = [0u8; 144];
         let height = self.0.getHeight() as usize;
         let width = self.0.getWidth() as usize;
-        for y in 0..height {
+        for (y, bitnrRow) in BITNR.iter().enumerate().take(height) {
+            // for y in 0..height {
             // for (int y = 0; y < height; y++) {
-            let bitnrRow = BITNR[y];
-            for x in 0..width {
+            // let bitnrRow = BITNR[y];
+            for (x, bit) in bitnrRow.iter().enumerate().take(width) {
+                // for x in 0..width {
                 // for (int x = 0; x < width; x++) {
-                let bit = bitnrRow[x];
-                if bit >= 0 && self.0.get(x as u32, y as u32) {
-                    result[bit as usize / 6] |= 1 << (5 - (bit % 6));
+                // let bit = bitnrRow[x];
+                if *bit >= 0 && self.0.get(x as u32, y as u32) {
+                    result[*bit as usize / 6] |= 1 << (5 - (bit % 6));
                 }
             }
         }

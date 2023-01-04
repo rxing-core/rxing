@@ -200,16 +200,16 @@ pub fn encodeHighLevel(
 ) -> Result<String, Exceptions> {
     let mut encoding = encoding;
     if msg.is_empty() {
-        return Err(Exceptions::WriterException(
+        return Err(Exceptions::WriterException(Some(
             "Empty message not allowed".to_owned(),
-        ));
+        )));
     }
 
     if encoding.is_none() && !autoECI {
         for i in 0..msg.chars().count() {
             // for (int i = 0; i < msg.length(); i++) {
             if msg.chars().nth(i).unwrap() as u32 > 255 {
-                return Err(Exceptions::WriterException(format!("Non-encodable character detected: {} (Unicode: {}). Consider specifying EncodeHintType.PDF417_AUTO_ECI and/or EncodeTypeHint.CHARACTER_SET.",msg.chars().nth(i).unwrap() as u32,msg.chars().nth(i).unwrap())));
+                return Err(Exceptions::WriterException(Some(format!("Non-encodable character detected: {} (Unicode: {}). Consider specifying EncodeHintType.PDF417_AUTO_ECI and/or EncodeTypeHint.CHARACTER_SET.",msg.chars().nth(i).unwrap() as u32,msg.chars().nth(i).unwrap()))));
             }
         }
     }
@@ -223,7 +223,7 @@ pub fn encodeHighLevel(
         input = Box::new(NoECIInput::new(msg.to_owned()));
         if encoding.is_none() {
             encoding = Some(DEFAULT_ENCODING);
-        } else if !(DEFAULT_ENCODING.name() == encoding.as_ref().unwrap().name()) {
+        } else if DEFAULT_ENCODING.name() != encoding.as_ref().unwrap().name() {
             if let Some(eci) = CharacterSetECI::getCharacterSetECI(encoding.unwrap()) {
                 // if (eci != null) {
                 encodingECI(CharacterSetECI::getValue(&eci) as i32, &mut sb)?;
@@ -395,20 +395,18 @@ fn encodeText<T: ECIInput + ?Sized>(
                         } else {
                             tmp.push(char::from_u32(ch as u32 - 65).unwrap());
                         }
+                    } else if isAlphaLower(ch) {
+                        submode = SUBMODE_LOWER;
+                        tmp.push(27 as char); //ll
+                        continue;
+                    } else if isMixed(ch) {
+                        submode = SUBMODE_MIXED;
+                        tmp.push(28 as char); //ml
+                        continue;
                     } else {
-                        if isAlphaLower(ch) {
-                            submode = SUBMODE_LOWER;
-                            tmp.push(27 as char); //ll
-                            continue;
-                        } else if isMixed(ch) {
-                            submode = SUBMODE_MIXED;
-                            tmp.push(28 as char); //ml
-                            continue;
-                        } else {
-                            tmp.push(29 as char); //ps
-                            tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).unwrap());
-                            //break;
-                        }
+                        tmp.push(29 as char); //ps
+                        tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).unwrap());
+                        //break;
                     }
                 }
                 // break;
@@ -419,49 +417,44 @@ fn encodeText<T: ECIInput + ?Sized>(
                         } else {
                             tmp.push(char::from_u32(ch as u32 - 97).unwrap());
                         }
+                    } else if isAlphaUpper(ch) {
+                        tmp.push(27 as char); //as
+                        tmp.push(char::from_u32(ch as u32 - 65).unwrap());
+                        //space cannot happen here, it is also in "Lower"
+                        //break;
+                    } else if isMixed(ch) {
+                        submode = SUBMODE_MIXED;
+                        tmp.push(28 as char); //ml
+                        continue;
                     } else {
-                        if isAlphaUpper(ch) {
-                            tmp.push(27 as char); //as
-                            tmp.push(char::from_u32(ch as u32 - 65).unwrap());
-                            //space cannot happen here, it is also in "Lower"
-                            //break;
-                        } else if isMixed(ch) {
-                            submode = SUBMODE_MIXED;
-                            tmp.push(28 as char); //ml
-                            continue;
-                        } else {
-                            tmp.push(29 as char); //ps
-                            tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).unwrap());
-                            //break;
-                        }
+                        tmp.push(29 as char); //ps
+                        tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).unwrap());
+                        //break;
                     }
                 }
                 // break;
                 SUBMODE_MIXED => {
                     if isMixed(ch) {
                         tmp.push(char::from_u32(MIXED[ch as usize] as u32).unwrap());
+                    } else if isAlphaUpper(ch) {
+                        submode = SUBMODE_ALPHA;
+                        tmp.push(28 as char); //al
+                        continue;
+                    } else if isAlphaLower(ch) {
+                        submode = SUBMODE_LOWER;
+                        tmp.push(27 as char); //ll
+                        continue;
                     } else {
-                        if isAlphaUpper(ch) {
-                            submode = SUBMODE_ALPHA;
-                            tmp.push(28 as char); //al
+                        if startpos + idx + 1 < count
+                            && !input.isECI(startpos + idx + 1)?
+                            && isPunctuation(input.charAt((startpos + idx + 1) as usize)?)
+                        {
+                            submode = SUBMODE_PUNCTUATION;
+                            tmp.push(25 as char); //pl
                             continue;
-                        } else if isAlphaLower(ch) {
-                            submode = SUBMODE_LOWER;
-                            tmp.push(27 as char); //ll
-                            continue;
-                        } else {
-                            if startpos + idx + 1 < count {
-                                if !input.isECI(startpos + idx + 1)?
-                                    && isPunctuation(input.charAt((startpos + idx + 1) as usize)?)
-                                {
-                                    submode = SUBMODE_PUNCTUATION;
-                                    tmp.push(25 as char); //pl
-                                    continue;
-                                }
-                            }
-                            tmp.push(29 as char); //ps
-                            tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).unwrap());
                         }
+                        tmp.push(29 as char); //ps
+                        tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).unwrap());
                     }
                 }
                 _ =>
@@ -530,7 +523,7 @@ fn encodeMultiECIBinary<T: ECIInput + ?Sized>(
             localEnd += 1;
         }
 
-        let localCount = localEnd - localStart;
+        let localCount = localEnd as i32 - localStart as i32;
         if localCount <= 0 {
             //done
             break;
@@ -539,7 +532,7 @@ fn encodeMultiECIBinary<T: ECIInput + ?Sized>(
             encodeBinary(
                 &subBytes(input, localStart, localEnd),
                 0,
-                localCount,
+                localCount as u32,
                 if localStart == startpos {
                     startmode
                 } else {
@@ -561,7 +554,7 @@ pub fn subBytes<T: ECIInput + ?Sized>(input: &Box<T>, start: u32, end: u32) -> V
         // for (int i = start; i < end; i++) {
         result[i - start as usize] = input.charAt(i).unwrap() as u8;
     }
-    return result;
+    result
 }
 
 /**
@@ -578,12 +571,10 @@ pub fn subBytes<T: ECIInput + ?Sized>(input: &Box<T>, start: u32, end: u32) -> V
 fn encodeBinary(bytes: &[u8], startpos: u32, count: u32, startmode: u32, sb: &mut String) {
     if count == 1 && startmode == TEXT_COMPACTION {
         sb.push(char::from_u32(SHIFT_TO_BYTE).unwrap());
+    } else if (count % 6) == 0 {
+        sb.push(char::from_u32(LATCH_TO_BYTE).unwrap());
     } else {
-        if (count % 6) == 0 {
-            sb.push(char::from_u32(LATCH_TO_BYTE).unwrap());
-        } else {
-            sb.push(char::from_u32(LATCH_TO_BYTE_PADDED).unwrap());
-        }
+        sb.push(char::from_u32(LATCH_TO_BYTE_PADDED).unwrap());
     }
 
     let mut idx = startpos;
@@ -597,14 +588,16 @@ fn encodeBinary(bytes: &[u8], startpos: u32, count: u32, startmode: u32, sb: &mu
                 t <<= 8;
                 t += bytes[idx as usize + i as usize] as i64;
             }
-            for i in 0..5 {
+            for ch in &mut chars {
+                // for i in 0..5 {
                 // for (int i = 0; i < 5; i++) {
-                chars[i] = char::from_u32((t % 900) as u32).unwrap();
+                *ch = char::from_u32((t % 900) as u32).unwrap();
                 t /= 900;
             }
-            for i in (0..chars.len()).rev() {
+            for ch in chars.into_iter().rev() {
+                // for i in (0..chars.len()).rev() {
                 // for (int i = chars.length - 1; i >= 0; i--) {
-                sb.push(chars[i]);
+                sb.push(ch);
             }
             idx += 6;
         }
@@ -639,7 +632,7 @@ fn encodeNumeric<T: ECIInput + ?Sized>(input: &Box<T>, startpos: u32, count: u32
         let mut bigint: u128 = part.parse().unwrap();
         loop {
             tmp.push(char::from_u32((bigint % num900) as u32).unwrap());
-            bigint = bigint / num900;
+            bigint /= num900;
 
             if bigint == num0 {
                 break;
@@ -659,27 +652,27 @@ fn encodeNumeric<T: ECIInput + ?Sized>(input: &Box<T>, startpos: u32, count: u32
 }
 
 fn isDigit(ch: char) -> bool {
-    return ch >= '0' && ch <= '9';
+    ('0'..='9').contains(&ch)
 }
 
 fn isAlphaUpper(ch: char) -> bool {
-    return ch == ' ' || (ch >= 'A' && ch <= 'Z');
+    ch == ' ' || ('A'..='Z').contains(&ch)
 }
 
 fn isAlphaLower(ch: char) -> bool {
-    return ch == ' ' || (ch >= 'a' && ch <= 'z');
+    ch == ' ' || ('a'..='z').contains(&ch)
 }
 
 fn isMixed(ch: char) -> bool {
-    return MIXED[ch as usize] != -1;
+    MIXED[ch as usize] != -1
 }
 
 fn isPunctuation(ch: char) -> bool {
-    return PUNCTUATION[ch as usize] != -1;
+    PUNCTUATION[ch as usize] != -1
 }
 
 fn isText(ch: char) -> bool {
-    return ch == '\t' || ch == '\n' || ch == '\r' || (ch as u32 >= 32 && ch as u32 <= 126);
+    ch == '\t' || ch == '\n' || ch == '\r' || (ch as u32 >= 32 && ch as u32 <= 126)
 }
 
 /**
@@ -789,10 +782,10 @@ fn determineConsecutiveBinaryCount<T: ECIInput + ?Sized + 'static>(
                 assert!(TypeId::of::<T>() == TypeId::of::<NoECIInput>());
                 // assert!(input instanceof NoECIInput);
                 let ch = input.charAt(idx).unwrap();
-                return Err(Exceptions::WriterException(format!(
+                return Err(Exceptions::WriterException(Some(format!(
                     "Non-encodable character detected: {} (Unicode: {})",
                     ch, ch as u32
-                )));
+                ))));
             }
         }
         idx += 1;
@@ -801,7 +794,7 @@ fn determineConsecutiveBinaryCount<T: ECIInput + ?Sized + 'static>(
 }
 
 fn encodingECI(eci: i32, sb: &mut String) -> Result<(), Exceptions> {
-    if eci >= 0 && eci < 900 {
+    if (0..900).contains(&eci) {
         sb.push(char::from_u32(ECI_CHARSET).unwrap());
         sb.push(char::from_u32(eci as u32).unwrap());
     } else if eci < 810900 {
@@ -812,10 +805,10 @@ fn encodingECI(eci: i32, sb: &mut String) -> Result<(), Exceptions> {
         sb.push(char::from_u32(ECI_USER_DEFINED).unwrap());
         sb.push(char::from_u32((810900 - eci) as u32).unwrap());
     } else {
-        return Err(Exceptions::WriterException(format!(
+        return Err(Exceptions::WriterException(Some(format!(
             "ECI number not in valid range from 0..811799, but was {}",
             eci
-        )));
+        ))));
     }
     Ok(())
 }
@@ -830,7 +823,7 @@ impl ECIInput for NoECIInput {
         if let Some(ch) = self.0.chars().nth(index) {
             Ok(ch)
         } else {
-            Err(Exceptions::IndexOutOfBoundsException("".to_owned()))
+            Err(Exceptions::IndexOutOfBoundsException(None))
         }
     }
 

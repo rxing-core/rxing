@@ -167,7 +167,7 @@ impl C40Encoder {
         let c = context.getCurrentChar();
         let lastCharSize = encodeChar(c, removed);
         context.resetSymbolInfo(); //Deal with possible reduction in symbol size
-        return lastCharSize;
+        lastCharSize
     }
 
     pub(super) fn writeNextTriplet(context: &mut EncoderContext, buffer: &mut String) {
@@ -219,9 +219,9 @@ impl C40Encoder {
                 context.writeCodeword(C40_UNLATCH);
             }
         } else {
-            return Err(Exceptions::IllegalStateException(
+            return Err(Exceptions::IllegalStateException(Some(
                 "Unexpected case. Please report!".to_owned(),
-            ));
+            )));
         }
         context.signalEncoderChange(ASCII_ENCODATION);
 
@@ -233,11 +233,11 @@ impl C40Encoder {
             sb.push('\u{3}');
             return 1;
         }
-        if c >= '0' && c <= '9' {
+        if ('0'..='9').contains(&c) {
             sb.push((c as u8 - 48 + 4) as char);
             return 1;
         }
-        if c >= 'A' && c <= 'Z' {
+        if ('A'..='Z').contains(&c) {
             sb.push((c as u8 - 65 + 14) as char);
             return 1;
         }
@@ -274,7 +274,7 @@ impl C40Encoder {
     }
 
     fn encodeToCodewords(sb: &str) -> String {
-        let v = (1600 * sb.chars().nth(0).unwrap() as u32)
+        let v = (1600 * sb.chars().next().unwrap() as u32)
             + (40 * sb.chars().nth(1).unwrap() as u32)
             + sb.chars().nth(2).unwrap() as u32
             + 1;
@@ -284,5 +284,11 @@ impl C40Encoder {
             .into_iter()
             .collect()
         // return new String(new char[] {cw1, cw2});
+    }
+}
+
+impl Default for C40Encoder {
+    fn default() -> Self {
+        Self::new()
     }
 }

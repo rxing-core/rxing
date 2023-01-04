@@ -40,9 +40,9 @@ impl TryFrom<&String> for Compaction {
                 _ => {}
             }
         }
-        Err(Exceptions::FormatException(format!(
+        Err(Exceptions::FormatException(Some(format!(
             "Compaction must be 0-3 (inclusivie). Found: {}",
             value
-        )))
+        ))))
     }
 }

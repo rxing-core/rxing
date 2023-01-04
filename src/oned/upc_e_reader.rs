@@ -25,7 +25,7 @@ use rxing_one_d_proc_derive::{EANReader, OneDReader};
  *
  * @author Sean Owen
  */
-#[derive(OneDReader, EANReader)]
+#[derive(OneDReader, EANReader, Default)]
 pub struct UPCEReader;
 
 impl UPCEANReader for UPCEReader {
@@ -81,12 +81,6 @@ impl UPCEANReader for UPCEReader {
         endStart: usize,
     ) -> Result<[usize; 2], Exceptions> {
         self.findGuardPattern(row, endStart, true, &Self::MIDDLE_END_PATTERN)
-    }
-}
-
-impl Default for UPCEReader {
-    fn default() -> Self {
-        Self {}
     }
 }
 
@@ -146,7 +140,7 @@ impl UPCEReader {
                 }
             }
         }
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        Err(Exceptions::NotFoundException(None))
     }
 }
 
@@ -160,7 +154,7 @@ pub fn convertUPCEtoUPCA(upce: &str) -> String {
     let upceChars = &upce[1..7]; //['0';6];//new char[6];
                                  //upce.getChars(1, 7, upceChars, 0);
     let mut result = String::with_capacity(12); //new StringBuilder(12);
-    result.push(upce.chars().nth(0).unwrap());
+    result.push(upce.chars().next().unwrap());
     let lastChar = upceChars.chars().nth(5).unwrap();
     match lastChar {
         '0' | '1' | '2' => {

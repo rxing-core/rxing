@@ -103,9 +103,9 @@ pub trait OneDimensionalCodeWriter: Writer {
      */
     fn checkNumeric(contents: &str) -> Result<(), Exceptions> {
         if !NUMERIC.is_match(contents) {
-            Err(Exceptions::IllegalArgumentException(
+            Err(Exceptions::IllegalArgumentException(Some(
                 "Input should only contain digits 0-9".to_owned(),
-            ))
+            )))
         } else {
             Ok(())
         }
@@ -168,23 +168,23 @@ impl Writer for L {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         if contents.is_empty() {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Found empty contents".to_owned(),
-            ));
+            )));
         }
 
         if width < 0 || height < 0 {
-            return Err(Exceptions::IllegalArgumentException(format!(
+            return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "Negative size is not allowed. Input: {}x{}",
                 width, height
-            )));
+            ))));
         }
         if let Some(supportedFormats) = self.getSupportedWriteFormats() {
             if !supportedFormats.contains(format) {
-                return Err(Exceptions::IllegalArgumentException(format!(
+                return Err(Exceptions::IllegalArgumentException(Some(format!(
                     "Can only encode {:?}, but got {:?}",
                     supportedFormats, format
-                )));
+                ))));
             }
         }
 

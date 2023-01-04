@@ -34,11 +34,11 @@ impl RXingResultPoint {
 
 impl ResultPoint for RXingResultPoint {
     fn getX(&self) -> f32 {
-        return self.x;
+        self.x
     }
 
     fn getY(&self) -> f32 {
-        return self.y;
+        self.y
     }
 
     fn into_rxing_result_point(self) -> RXingResultPoint {

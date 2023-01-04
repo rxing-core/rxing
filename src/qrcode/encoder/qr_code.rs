@@ -92,7 +92,7 @@ impl QRCode {
 
     // Check if "mask_pattern" is valid.
     pub fn isValidMaskPattern(maskPattern: i32) -> bool {
-        maskPattern >= 0 && maskPattern < Self::NUM_MASK_PATTERNS
+        (0..Self::NUM_MASK_PATTERNS).contains(&maskPattern)
     }
 }
 
@@ -135,5 +135,11 @@ impl fmt::Display for QRCode {
         result.push_str(">>\n");
 
         write!(f, "{}", result)
+    }
+}
+
+impl Default for QRCode {
+    fn default() -> Self {
+        Self::new()
     }
 }

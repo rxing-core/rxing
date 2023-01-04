@@ -30,7 +30,7 @@ const DEFAULT_GUARD: char = START_END_CHARS[0];
  *
  * @author dsbnatut@gmail.com (Kazuki Nishiura)
  */
-#[derive(OneDWriter)]
+#[derive(OneDWriter, Default)]
 pub struct CodaBarWriter;
 
 impl OneDimensionalCodeWriter for CodaBarWriter {
@@ -40,7 +40,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             format!("{}{}{}", DEFAULT_GUARD, contents, DEFAULT_GUARD)
         } else {
             // Verify input and calculate decoded length.
-            let firstChar = contents.chars().nth(0).unwrap().to_ascii_uppercase();
+            let firstChar = contents.chars().next().unwrap().to_ascii_uppercase();
             let lastChar = contents
                 .chars()
                 .nth(contents.chars().count() - 1)
@@ -52,29 +52,29 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             let endsAlt = CodaBarReader::arrayContains(&ALT_START_END_CHARS, lastChar);
             if startsNormal {
                 if !endsNormal {
-                    return Err(Exceptions::IllegalArgumentException(format!(
+                    return Err(Exceptions::IllegalArgumentException(Some(format!(
                         "Invalid start/end guards: {}",
                         contents
-                    )));
+                    ))));
                 }
                 // else already has valid start/end
                 contents.to_owned()
             } else if startsAlt {
                 if !endsAlt {
-                    return Err(Exceptions::IllegalArgumentException(format!(
+                    return Err(Exceptions::IllegalArgumentException(Some(format!(
                         "Invalid start/end guards: {}",
                         contents
-                    )));
+                    ))));
                 }
                 // else already has valid start/end
                 contents.to_owned()
             } else {
                 // Doesn't start with a guard
                 if endsNormal || endsAlt {
-                    return Err(Exceptions::IllegalArgumentException(format!(
+                    return Err(Exceptions::IllegalArgumentException(Some(format!(
                         "Invalid start/end guards: {}",
                         contents
-                    )));
+                    ))));
                 }
                 // else doesn't end with guard either, so add a default
                 format!("{}{}{}", DEFAULT_GUARD, contents, DEFAULT_GUARD)
@@ -86,7 +86,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
         //for i in 1..contents.chars().count() {
         for ch in contents[1..contents.chars().count() - 1].chars() {
             // for (int i = 1; i < contents.length() - 1; i++) {
-            if ch.is_digit(10) || ch == '-' || ch == '$' {
+            if ch.is_ascii_digit() || ch == '-' || ch == '$' {
                 resultLength += 9;
             } else if CodaBarReader::arrayContains(
                 &CHARS_WHICH_ARE_TEN_LENGTH_EACH_AFTER_DECODED,
@@ -94,10 +94,10 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             ) {
                 resultLength += 10;
             } else {
-                return Err(Exceptions::IllegalArgumentException(format!(
+                return Err(Exceptions::IllegalArgumentException(Some(format!(
                     "Cannot encode : '{}'",
                     ch
-                )));
+                ))));
             }
         }
         // A blank is placed between each character.
@@ -152,12 +152,6 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
 
     fn getSupportedWriteFormats(&self) -> Option<Vec<crate::BarcodeFormat>> {
         Some(vec![BarcodeFormat::CODABAR])
-    }
-}
-
-impl Default for CodaBarWriter {
-    fn default() -> Self {
-        Self {}
     }
 }
 

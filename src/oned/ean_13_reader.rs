@@ -31,7 +31,7 @@ use crate::Exceptions;
  * @author Sean Owen
  * @author alasdair@google.com (Alasdair Mackintosh)
  */
-#[derive(OneDReader, EANReader)]
+#[derive(OneDReader, EANReader, Default)]
 pub struct EAN13Reader;
 impl UPCEANReader for EAN13Reader {
     fn getBarcodeFormat(&self) -> crate::BarcodeFormat {
@@ -154,12 +154,6 @@ impl EAN13Reader {
                 return Ok(());
             }
         }
-        return Err(Exceptions::NotFoundException("".to_owned()));
-    }
-}
-
-impl Default for EAN13Reader {
-    fn default() -> Self {
-        Self {}
+        Err(Exceptions::NotFoundException(None))
     }
 }

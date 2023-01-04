@@ -26,8 +26,8 @@ image = {version = "0.24", optional = true}
 imageproc = {version = "0.23.0", optional = true}
 unicode-segmentation = "1.10.0"
 codepage-437 = "0.1.0"
-rxing-one-d-proc-derive = "0.2"
-#rxing-one-d-proc-derive = {path ="../rxing-one-d-proc-derive"}
+#rxing-one-d-proc-derive = "0.2.1"
+rxing-one-d-proc-derive = {path ="../rxing-one-d-proc-derive"}
 num = "0.4.0"
 
 [dev-dependencies]

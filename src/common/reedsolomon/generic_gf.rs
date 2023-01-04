@@ -42,10 +42,11 @@ impl GenericGF {
         let mut expTable = vec![0; size];
         let mut logTable = vec![0; size];
         let mut x = 1;
-        for i in 0..size {
+        for expTableEntry in expTable.iter_mut().take(size) {
+            // for i in 0..size {
             //for (int i = 0; i < size; i++) {
             //expTable.push(x);
-            expTable[i] = x;
+            *expTableEntry = x;
             x *= 2; // we're assuming the generator alpha is 2
             if x >= size as i32 {
                 x ^= primitive;
@@ -53,10 +54,11 @@ impl GenericGF {
                 x &= sz_m_1;
             }
         }
-        for i in 0..size - 1 {
+        for (i, loc) in expTable.iter().enumerate().take(size - 1) {
+            // for i in 0..size - 1 {
             //for (int i = 0; i < size - 1; i++) {
-            let loc: usize = expTable[i] as usize;
-            logTable[loc] = i as i32;
+            // let loc: usize = expTable[i] as usize;
+            logTable[*loc as usize] = i as i32;
         }
         logTable[0] = 0;
 
@@ -106,7 +108,7 @@ impl GenericGF {
         }
         let mut coefficients = vec![0; degree + 1];
         coefficients[0] = coefficient;
-        return GenericGFPoly::new(source, &coefficients).unwrap();
+        GenericGFPoly::new(source, &coefficients).unwrap()
     }
 
     /**
@@ -115,7 +117,7 @@ impl GenericGF {
      * @return sum/difference of a and b
      */
     pub fn addOrSubtract(a: i32, b: i32) -> i32 {
-        return a ^ b;
+        a ^ b
     }
 
     /**
@@ -123,7 +125,7 @@ impl GenericGF {
      */
     pub fn exp(&self, a: i32) -> i32 {
         // let pos: usize = a.try_into().unwrap();
-        return self.expTable[a as usize];
+        self.expTable[a as usize]
     }
 
     /**
@@ -131,10 +133,10 @@ impl GenericGF {
      */
     pub fn log(&self, a: i32) -> Result<i32, Exceptions> {
         if a == 0 {
-            return Err(Exceptions::IllegalArgumentException("".to_owned()));
+            return Err(Exceptions::IllegalArgumentException(None));
         }
         // let pos: usize = a.try_into().unwrap();
-        return Ok(self.logTable[a as usize]);
+        Ok(self.logTable[a as usize])
     }
 
     /**
@@ -142,11 +144,11 @@ impl GenericGF {
      */
     pub fn inverse(&self, a: i32) -> Result<i32, Exceptions> {
         if a == 0 {
-            return Err(Exceptions::ArithmeticException("".to_owned()));
+            return Err(Exceptions::ArithmeticException(None));
         }
         let log_t_loc: usize = a as usize;
         let loc: usize = ((self.size as i32) - self.logTable[log_t_loc] - 1) as usize;
-        return Ok(self.expTable[loc]);
+        Ok(self.expTable[loc])
     }
 
     /**
@@ -159,15 +161,15 @@ impl GenericGF {
         let a_loc: usize = a as usize; //.try_into().unwrap();
         let b_loc: usize = b as usize; //.try_into().unwrap();
         let comb_loc: usize = (self.logTable[a_loc] + self.logTable[b_loc]) as usize;
-        return self.expTable[comb_loc % (self.size - 1)];
+        self.expTable[comb_loc % (self.size - 1)]
     }
 
     pub fn getSize(&self) -> usize {
-        return self.size;
+        self.size
     }
 
     pub fn getGeneratorBase(&self) -> i32 {
-        return self.generatorBase;
+        self.generatorBase
     }
 }
 

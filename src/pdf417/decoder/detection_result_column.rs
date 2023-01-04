@@ -127,19 +127,19 @@ impl DetectionRXingResultColumnTrait for DetectionRXingResultColumn {
 impl Display for DetectionRXingResultColumn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.isLeft.is_some() {
-            write!(f, "IsLeft: {} \n", self.isLeft.as_ref().unwrap())?;
+            writeln!(f, "IsLeft: {} ", self.isLeft.as_ref().unwrap())?;
         }
         let mut row = 0;
         for codeword in &self.codewords {
             // for (Codeword codeword : codewords) {
             if codeword.is_none() {
-                write!(f, "{:3}:    |   \n", row)?;
+                writeln!(f, "{:3}:    |   ", row)?;
                 row += 1;
                 continue;
             }
-            write!(
+            writeln!(
                 f,
-                "{:3}: {:3}|{:3}\n",
+                "{:3}: {:3}|{:3}",
                 row,
                 codeword.as_ref().unwrap().getRowNumber(),
                 codeword.as_ref().unwrap().getValue()

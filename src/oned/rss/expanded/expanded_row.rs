@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-use std::fmt::Display;
+use std::{fmt::Display, hash::Hash};
 
 use super::ExpandedPair;
 
 /**
  * One row of an RSS Expanded Stacked symbol, consisting of 1+ expanded pairs.
  */
-#[derive(Hash, Clone)]
+#[derive(Clone)]
 pub struct ExpandedRow {
     pairs: Vec<ExpandedPair>,
     rowNumber: u32,
@@ -55,6 +55,12 @@ impl PartialEq for ExpandedRow {
      */
     fn eq(&self, other: &Self) -> bool {
         self.pairs == other.pairs
+    }
+}
+
+impl Hash for ExpandedRow {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.pairs.hash(state);
     }
 }
 

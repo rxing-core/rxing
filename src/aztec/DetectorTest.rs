@@ -101,14 +101,30 @@ fn test_error_in_parameter_locator(data: &str) {
                         clone(&matrix)
                     };
                     copy.flip_coords(
-                        orientation_points.get(error1).unwrap().get_x().abs() as u32,
-                        orientation_points.get(error1).unwrap().get_y().abs() as u32,
+                        orientation_points
+                            .get(error1)
+                            .unwrap()
+                            .get_x()
+                            .unsigned_abs(),
+                        orientation_points
+                            .get(error1)
+                            .unwrap()
+                            .get_y()
+                            .unsigned_abs(),
                     );
                     if error2 > error1 {
                         // if error2 == error1, we only test a single error
                         copy.flip_coords(
-                            orientation_points.get(error2).unwrap().get_x().abs() as u32,
-                            orientation_points.get(error2).unwrap().get_y().abs() as u32,
+                            orientation_points
+                                .get(error2)
+                                .unwrap()
+                                .get_x()
+                                .unsigned_abs(),
+                            orientation_points
+                                .get(error2)
+                                .unwrap()
+                                .get_y()
+                                .unsigned_abs(),
                         );
                     }
                     // dbg!(copy.to_string());
@@ -180,7 +196,7 @@ fn make_larger(input: &BitMatrix, factor: u32) -> BitMatrix {
             }
         }
     }
-    return output;
+    output
 }
 
 // Returns a list of the four rotations of the BitMatrix.
@@ -209,7 +225,7 @@ fn rotate_right(input: &BitMatrix) -> BitMatrix {
             }
         }
     }
-    return result;
+    result
 }
 
 // Returns the transpose of a bit matrix, which is equivalent to rotating the
@@ -226,7 +242,7 @@ fn transpose(input: &BitMatrix) -> BitMatrix {
             }
         }
     }
-    return result;
+    result
 }
 
 fn clone(input: &BitMatrix) -> BitMatrix {
@@ -268,7 +284,7 @@ fn get_orientation_points(code: &AztecCode) -> Vec<Point> {
         }
         xSign += 2;
     }
-    return result;
+    result
 }
 
 const TEST_BARCODE: &str = r"                    X X X X X                     X X X X X           X X X X X X X X X X                                         X X X X X           

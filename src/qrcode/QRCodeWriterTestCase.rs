@@ -44,12 +44,10 @@ fn loadImage(fileName: &str) -> DynamicImage {
         file.exists(),
         "Please download and install test images, and run from the 'core' directory"
     );
-    DynamicImage::from(
-        image::io::Reader::open(file)
-            .expect("image should load")
-            .decode()
-            .expect("decode"),
-    )
+    image::io::Reader::open(file)
+        .expect("image should load")
+        .decode()
+        .expect("decode")
 }
 
 // In case the golden images are not monochromatic, convert the RGB values to greyscale.
@@ -58,8 +56,8 @@ fn createMatrixFromImage(image: DynamicImage) -> BitMatrix {
     let height = image.height() as usize;
     // let pixels = vec![0u32; width * height]; //new int[width * height];
     // image.getRGB(0, 0, width, height, pixels, 0, width);
-    let img_src = DynamicImage::from(image).into_rgb8(); //image.as_rgb8().unwrap().as_bytes();
-                                                         // let pixels = img_src.as_bytes();
+    let img_src = image.into_rgb8(); //image.as_rgb8().unwrap().as_bytes();
+                                     // let pixels = img_src.as_bytes();
 
     let mut matrix = BitMatrix::new(width as u32, height as u32).expect("create new bitmatrix");
     for y in 0..height as u32 {
@@ -70,11 +68,11 @@ fn createMatrixFromImage(image: DynamicImage) -> BitMatrix {
             let [red, green, blue] = img_src.get_pixel(x, y).0;
             let luminance = (306 * red as u32 + 601 * green as u32 + 117 * blue as u32) >> 10;
             if luminance <= 0x7F {
-                matrix.set(x as u32, y as u32);
+                matrix.set(x, y);
             }
         }
     }
-    return matrix;
+    matrix
 }
 
 #[test]

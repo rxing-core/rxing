@@ -44,7 +44,7 @@ pub trait ParsedRXingResult {
     fn maybe_append(&self, value: &str, result: &mut String) {
         if !value.is_empty() {
             // Don't add a newline before the first value
-            if result.len() > 0 {
+            if !result.is_empty() {
                 result.push('\n');
             }
             result.push_str(value);

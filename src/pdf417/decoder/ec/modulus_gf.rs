@@ -38,9 +38,10 @@ impl ModulusGF {
         let mut expTable = vec![0u32; modulus as usize]; //new int[modulus];
         let mut logTable = vec![0u32; modulus as usize]; //new int[modulus];
         let mut x = 1;
-        for i in 0..modulus as usize {
+        for table_entry in expTable.iter_mut().take(modulus as usize) {
+            // for i in 0..modulus as usize {
             // for (int i = 0; i < modulus; i++) {
-            expTable[i] = x;
+            *table_entry = x;
             x = (x * generator) % modulus;
         }
         for i in 0..modulus as usize - 1 {
@@ -49,18 +50,17 @@ impl ModulusGF {
         }
         // logTable[0] == 0 but this should never be used
 
-        let potential_self = Self {
+        // zero = new ModulusPoly(this, new int[]{0});
+        // one = new ModulusPoly(this, new int[]{1});
+
+        Self {
             expTable,
             logTable,
             // zero: None,
             // one: None,
             modulus,
             generator,
-        };
-        // zero = new ModulusPoly(this, new int[]{0});
-        // one = new ModulusPoly(this, new int[]{1});
-
-        potential_self
+        }
     }
 
     pub fn add(&self, a: u32, b: u32) -> u32 {
@@ -77,7 +77,7 @@ impl ModulusGF {
 
     pub fn log(&self, a: u32) -> Result<u32, Exceptions> {
         if a == 0 {
-            Err(Exceptions::ArithmeticException("".to_owned()))
+            Err(Exceptions::ArithmeticException(None))
         } else {
             Ok(self.logTable[a as usize])
         }
@@ -85,7 +85,7 @@ impl ModulusGF {
 
     pub fn inverse(&self, a: u32) -> Result<u32, Exceptions> {
         if a == 0 {
-            Err(Exceptions::ArithmeticException("".to_owned()))
+            Err(Exceptions::ArithmeticException(None))
         } else {
             Ok(self.expTable[self.modulus as usize - self.logTable[a as usize] as usize - 1])
         }

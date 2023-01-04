@@ -64,13 +64,13 @@ impl Reader for QRCodeReader {
         let mut points: Vec<RXingResultPoint>;
         if hints.contains_key(&DecodeHintType::PURE_BARCODE) {
             let bits = Self::extractPureBits(image.getBlackMatrix())?;
-            decoderRXingResult = decoder::decode_bitmatrix_with_hints(&bits, &hints)?;
+            decoderRXingResult = decoder::decode_bitmatrix_with_hints(&bits, hints)?;
             points = Vec::new();
         } else {
             let detectorRXingResult =
-                Detector::new(image.getBlackMatrix()).detect_with_hints(&hints)?;
+                Detector::new(image.getBlackMatrix()).detect_with_hints(hints)?;
             decoderRXingResult =
-                decoder::decode_bitmatrix_with_hints(detectorRXingResult.getBits(), &hints)?;
+                decoder::decode_bitmatrix_with_hints(detectorRXingResult.getBits(), hints)?;
             points = detectorRXingResult.getPoints().clone();
         }
 
@@ -151,7 +151,7 @@ impl QRCodeReader {
         let leftTopBlack = image.getTopLeftOnBit();
         let rightBottomBlack = image.getBottomRightOnBit();
         if leftTopBlack.is_none() || rightBottomBlack.is_none() {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         let leftTopBlack = leftTopBlack.unwrap();
@@ -166,7 +166,7 @@ impl QRCodeReader {
 
         // Sanity check!
         if left >= right || top >= bottom {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         if bottom - top != right - left {
@@ -175,17 +175,17 @@ impl QRCodeReader {
             right = left + (bottom - top);
             if right >= image.getWidth() as i32 {
                 // Abort if that would not make sense -- off image
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                return Err(Exceptions::NotFoundException(None));
             }
         }
         let matrixWidth = ((right as f32 - left as f32 + 1.0) / moduleSize).round() as u32;
         let matrixHeight = ((bottom as f32 - top as f32 + 1.0) / moduleSize).round() as u32;
         if matrixWidth == 0 || matrixHeight == 0 {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
         if matrixHeight != matrixWidth {
             // Only possibly decode square regions
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
 
         // Push in the "border" by half the module width so that we start
@@ -198,13 +198,12 @@ impl QRCodeReader {
         // But careful that this does not sample off the edge
         // "right" is the farthest-right valid pixel location -- right+1 is not necessarily
         // This is positive by how much the inner x loop below would be too large
-        let nudgedTooFarRight = left as i32
-            + ((matrixWidth as i32 - 1) as f32 * moduleSize as f32) as i32
-            - right as i32;
+        let nudgedTooFarRight =
+            left + ((matrixWidth as i32 - 1) as f32 * moduleSize) as i32 - right;
         if nudgedTooFarRight > 0 {
             if nudgedTooFarRight > nudge as i32 {
                 // Neither way fits; abort
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                return Err(Exceptions::NotFoundException(None));
             }
             left -= nudgedTooFarRight;
         }
@@ -213,7 +212,7 @@ impl QRCodeReader {
         if nudgedTooFarDown > 0 {
             if nudgedTooFarDown > nudge as i32 {
                 // Neither way fits; abort
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                return Err(Exceptions::NotFoundException(None));
             }
             top -= nudgedTooFarDown;
         }
@@ -252,7 +251,7 @@ impl QRCodeReader {
             y += 1;
         }
         if x == width || y == height {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
         Ok((x - leftTopBlack[0]) as f32 / 7.0)
     }

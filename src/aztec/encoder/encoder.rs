@@ -171,25 +171,25 @@ pub fn encode_bytes_with_charset(
                 MAX_NB_BITS
             })
         {
-            return Err(Exceptions::IllegalArgumentException(format!(
+            return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "Illegal value {} for layers",
                 user_specified_layers
-            )));
+            ))));
         }
         total_bits_in_layer_var = total_bits_in_layer(layers, compact);
         word_size = WORD_SIZE[layers as usize];
         let usable_bits_in_layers = total_bits_in_layer_var - (total_bits_in_layer_var % word_size);
         stuffed_bits = stuffBits(&bits, word_size as usize);
         if stuffed_bits.getSize() as u32 + ecc_bits > usable_bits_in_layers {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Data to large for user specified layer".to_owned(),
-            ));
+            )));
         }
         if compact && stuffed_bits.getSize() as u32 > word_size * 64 {
             // Compact format only allows 64 data words, though C4 can hold more words than that
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Data to large for user specified layer".to_owned(),
-            ));
+            )));
         }
     } else {
         word_size = 0;
@@ -201,14 +201,14 @@ pub fn encode_bytes_with_charset(
         loop {
             // for (int i = 0; ; i++) {
             if i > MAX_NB_BITS {
-                return Err(Exceptions::IllegalArgumentException(
+                return Err(Exceptions::IllegalArgumentException(Some(
                     "Data too large for an Aztec code".to_owned(),
-                ));
+                )));
             }
             compact = i <= 3;
             layers = if compact { i + 1 } else { i };
             total_bits_in_layer_var = total_bits_in_layer(layers, compact);
-            if total_size_bits > total_bits_in_layer_var as u32 {
+            if total_size_bits > total_bits_in_layer_var {
                 i += 1;
                 continue;
             }
@@ -239,7 +239,7 @@ pub fn encode_bytes_with_charset(
 
     // generate mode message
     let messageSizeInWords = stuffed_bits.getSize() as u32 / word_size;
-    let modeMessage = generateModeMessage(compact, layers as u32, messageSizeInWords);
+    let modeMessage = generateModeMessage(compact, layers, messageSizeInWords);
 
     // allocate symbol
     let baseMatrixSize = (if compact { 11 } else { 14 }) + layers * 4; // not including alignment lines
@@ -248,10 +248,8 @@ pub fn encode_bytes_with_charset(
     if compact {
         // no alignment marks in compact mode, alignmentMap is a no-op
         matrixSize = baseMatrixSize;
-        for i in 0..alignmentMap.len() {
-            // for (int i = 0; i < alignmentMap.length; i++) {
-            alignmentMap[i] = i as u32;
-        }
+        // for i in 0..alignmentMap.len() {
+        alignmentMap[..].copy_from_slice(&(0..baseMatrixSize).collect::<Vec<u32>>()[..]);
     } else {
         matrixSize = baseMatrixSize + 1 + 2 * ((baseMatrixSize / 2 - 1) / 15);
         let origCenter = (baseMatrixSize / 2) as usize;
@@ -259,11 +257,11 @@ pub fn encode_bytes_with_charset(
         for i in 0..origCenter {
             // for (int i = 0; i < origCenter; i++) {
             let newOffset = (i + i / 15) as u32;
-            alignmentMap[origCenter - i - 1] = center as u32 - newOffset - 1;
-            alignmentMap[origCenter + i] = center as u32 + newOffset + 1;
+            alignmentMap[origCenter - i - 1] = center - newOffset - 1;
+            alignmentMap[origCenter + i] = center + newOffset + 1;
         }
     }
-    let mut matrix = BitMatrix::with_single_dimension(matrixSize as u32);
+    let mut matrix = BitMatrix::with_single_dimension(matrixSize);
 
     // dbg!(matrix.to_string());
 
@@ -306,25 +304,25 @@ pub fn encode_bytes_with_charset(
     // dbg!(matrix.to_string());
 
     // draw mode message
-    drawModeMessage(&mut matrix, compact, matrixSize as u32, modeMessage);
+    drawModeMessage(&mut matrix, compact, matrixSize, modeMessage);
 
     // dbg!(matrix.to_string());
 
     // draw alignment marks
     if compact {
-        drawBullsEye(&mut matrix, matrixSize as u32 / 2, 5);
+        drawBullsEye(&mut matrix, matrixSize / 2, 5);
     } else {
-        drawBullsEye(&mut matrix, matrixSize as u32 / 2, 7);
+        drawBullsEye(&mut matrix, matrixSize / 2, 7);
         let mut i = 0;
         let mut j = 0;
         while i < baseMatrixSize / 2 - 1 {
             let mut k = (matrixSize / 2) & 1;
             while k < matrixSize {
                 // for (int k = (matrixSize / 2) & 1; k < matrixSize; k += 2) {
-                matrix.set(matrixSize as u32 / 2 - j, k as u32);
-                matrix.set(matrixSize as u32 / 2 + j, k as u32);
-                matrix.set(k as u32, matrixSize as u32 / 2 - j);
-                matrix.set(k as u32, matrixSize as u32 / 2 + j);
+                matrix.set(matrixSize / 2 - j, k);
+                matrix.set(matrixSize / 2 + j, k);
+                matrix.set(k, matrixSize / 2 - j);
+                matrix.set(k, matrixSize / 2 + j);
 
                 k += 2;
             }
@@ -344,13 +342,7 @@ pub fn encode_bytes_with_charset(
 
     // dbg!(matrix.to_string());
 
-    let aztec = AztecCode::new(
-        compact,
-        matrixSize as u32,
-        layers,
-        messageSizeInWords as u32,
-        matrix,
-    );
+    let aztec = AztecCode::new(compact, matrixSize, layers, messageSizeInWords, matrix);
     // aztec.setCompact(compact);
     // aztec.setSize(matrixSize);
     // aztec.setLayers(layers);
@@ -399,7 +391,7 @@ pub fn generateModeMessage(compact: bool, layers: u32, messageSizeInWords: u32) 
             .expect("should append");
         mode_message = generateCheckWords(&mode_message, 40, 4);
     }
-    return mode_message;
+    mode_message
 }
 
 fn drawModeMessage(matrix: &mut BitMatrix, compact: bool, matrixSize: u32, modeMessage: BitArray) {
@@ -459,7 +451,7 @@ fn generateCheckWords(bitArray: &BitArray, totalBits: usize, wordSize: usize) ->
             .expect("must append");
     }
     // dbg!(message_bits.to_string());
-    return message_bits;
+    message_bits
 }
 
 fn bitsToWords(stuffedBits: &BitArray, wordSize: usize, totalWords: usize) -> Vec<i32> {
@@ -472,7 +464,7 @@ fn bitsToWords(stuffedBits: &BitArray, wordSize: usize, totalWords: usize) -> Ve
         for j in 0..wordSize {
             //   for (int j = 0; j < wordSize; j++) {
             value |= if stuffedBits.get(i * wordSize + j) {
-                1 << wordSize - j - 1
+                1 << (wordSize - j - 1)
             } else {
                 0
             };
@@ -481,7 +473,7 @@ fn bitsToWords(stuffedBits: &BitArray, wordSize: usize, totalWords: usize) -> Ve
 
         i += 1;
     }
-    return message;
+    message
 }
 
 fn getGF(wordSize: usize) -> Result<GenericGFRef, Exceptions> {
@@ -491,10 +483,10 @@ fn getGF(wordSize: usize) -> Result<GenericGFRef, Exceptions> {
         8 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecData8)),
         10 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecData10)),
         12 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecData12)),
-        _ => Err(Exceptions::IllegalArgumentException(format!(
+        _ => Err(Exceptions::IllegalArgumentException(Some(format!(
             "Unsupported word size {}",
             wordSize
-        ))),
+        )))),
     }
     // switch (wordSize) {
     //   case 4:
@@ -539,7 +531,7 @@ pub fn stuffBits(bits: &BitArray, word_size: usize) -> BitArray {
 
         i += word_size as isize;
     }
-    return out;
+    out
 }
 
 fn total_bits_in_layer(layers: u32, compact: bool) -> u32 {

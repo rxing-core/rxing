@@ -70,7 +70,7 @@ pub fn decode_with_hints(
             correctErrors(&mut codewords, 20, 68, 56, ODD)?;
             datawords = vec![0u8; 78];
         }
-        _ => return Err(Exceptions::NotFoundException("".to_owned())),
+        _ => return Err(Exceptions::NotFoundException(None)),
     }
 
     datawords[0..10].clone_from_slice(&codewords[0..10]);
@@ -79,7 +79,7 @@ pub fn decode_with_hints(
     datawords[10..datawords_len].clone_from_slice(&codewords[20..datawords_len + 10]);
     // System.arraycopy(codewords, 20, datawords, 10, datawords.length - 10);
 
-    return decoded_bit_stream_parser::decode(&datawords, mode);
+    decoded_bit_stream_parser::decode(&datawords, mode)
 }
 
 fn correctErrors(

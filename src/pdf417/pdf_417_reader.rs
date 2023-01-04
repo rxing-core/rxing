@@ -32,6 +32,7 @@ use super::{
  *
  * @author Guenther Grau
  */
+#[derive(Default)]
 pub struct PDF417Reader;
 
 impl Reader for PDF417Reader {
@@ -57,7 +58,7 @@ impl Reader for PDF417Reader {
         let result = Self::decode(image, hints, false)?;
         if result.is_empty() {
             // if (result.length == 0 || result[0] == null) {
-            return Err(Exceptions::NotFoundException("".to_owned()));
+            return Err(Exceptions::NotFoundException(None));
         }
         Ok(result[0].clone())
     }
@@ -83,12 +84,6 @@ impl MultipleBarcodeReader for PDF417Reader {
     }
 }
 
-impl Default for PDF417Reader {
-    fn default() -> Self {
-        Self {}
-    }
-}
-
 impl PDF417Reader {
     pub fn new() -> Self {
         Self::default()
@@ -102,7 +97,7 @@ impl PDF417Reader {
         let mut results = Vec::new(); //new ArrayList<>();
         let detectorRXingResult = detector::detect_with_hints(image, hints, multiple)?;
         for points in detectorRXingResult.getPoints() {
-            let points_filtered = points.iter().filter_map(|e| e.clone()).collect();
+            let points_filtered = points.iter().filter_map(|e| *e).collect();
             // for (RXingResultPoint[] points : detectorRXingResult.getPoints()) {
             let decoderRXingResult = pdf_417_scanning_decoder::decode(
                 detectorRXingResult.getBits(),

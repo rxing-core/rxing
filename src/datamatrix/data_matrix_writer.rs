@@ -60,23 +60,23 @@ impl Writer for DataMatrixWriter {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         if contents.is_empty() {
-            return Err(Exceptions::IllegalArgumentException(
+            return Err(Exceptions::IllegalArgumentException(Some(
                 "Found empty contents".to_owned(),
-            ));
+            )));
         }
 
         if format != &BarcodeFormat::DATA_MATRIX {
-            return Err(Exceptions::IllegalArgumentException(format!(
+            return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "Can only encode DATA_MATRIX, but got {:?}",
                 format
-            )));
+            ))));
         }
 
         if width < 0 || height < 0 {
-            return Err(Exceptions::IllegalArgumentException(format!(
+            return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "Requested dimensions can't be negative: {}x{}",
                 width, height
-            )));
+            ))));
         }
 
         // Try to get force shape & min / max size
@@ -125,7 +125,7 @@ impl Writer for DataMatrixWriter {
             if hasEncodingHint {
                 let Some(EncodeHintValue::CharacterSet(char_set_name)) =
                     hints.get(&EncodeHintType::CHARACTER_SET) else {
-                      return Err(Exceptions::IllegalArgumentException("charset does not exist".to_owned()))
+                      return Err(Exceptions::IllegalArgumentException(Some("charset does not exist".to_owned())))
                     };
                 charset = encoding::label::encoding_from_whatwg_label(char_set_name);
                 // charset = Charset.forName(hints.get(EncodeHintType.CHARACTER_SET).toString());
@@ -159,7 +159,7 @@ impl Writer for DataMatrixWriter {
 
         let symbol_lookup = SymbolInfoLookup::new();
         let Some(symbolInfo) = symbol_lookup.lookup_with_codewords_shape_size_fail(encoded.chars().count() as u32, *shape, &minSize, &maxSize, true)? else {
-      return Err(Exceptions::NotFoundException("symbol info is bad".to_owned()))
+      return Err(Exceptions::NotFoundException(Some("symbol info is bad".to_owned())))
     };
 
         //2. step: ECC generation

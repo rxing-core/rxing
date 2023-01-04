@@ -85,8 +85,8 @@ pub fn applyMaskPenaltyRule3(matrix: &ByteMatrix) -> u32 {
                 && arrayY[x + 4] == 1
                 && arrayY[x + 5] == 0
                 && arrayY[x + 6] == 1
-                && (isWhiteHorizontal(&arrayY, x as i32 - 4, x as u32)
-                    || isWhiteHorizontal(&arrayY, x as i32 + 7, x as u32 + 11))
+                && (isWhiteHorizontal(arrayY, x as i32 - 4, x as u32)
+                    || isWhiteHorizontal(arrayY, x as i32 + 7, x as u32 + 11))
             {
                 numPenalties += 1;
             }
@@ -118,7 +118,7 @@ pub fn isWhiteHorizontal(rowArray: &[u8], from: i32, to: u32) -> bool {
             return false;
         }
     }
-    return true;
+    true
 }
 
 pub fn isWhiteVertical(array: &Vec<Vec<u8>>, col: u32, from: i32, to: u32) -> bool {
@@ -131,7 +131,7 @@ pub fn isWhiteVertical(array: &Vec<Vec<u8>>, col: u32, from: i32, to: u32) -> bo
             return false;
         }
     }
-    return true;
+    true
 }
 
 /**
@@ -143,20 +143,22 @@ pub fn applyMaskPenaltyRule4(matrix: &ByteMatrix) -> u32 {
     let array = matrix.getArray();
     let width = matrix.getWidth();
     let height = matrix.getHeight();
-    for y in 0..height as usize {
+    for val_y in array.iter().take(height as usize) {
+        // for y in 0..height as usize {
         // for (int y = 0; y < height; y++) {
-        let arrayY = &array[y];
-        for x in 0..width as usize {
+        // let arrayY = val_y;
+        for val_x in val_y.iter().take(width as usize) {
+            // for x in 0..width as usize {
             // for (int x = 0; x < width; x++) {
-            if arrayY[x] == 1 {
+            if val_x == &1 {
                 numDarkCells += 1;
             }
         }
     }
     let numTotalCells = matrix.getHeight() * matrix.getWidth();
     let fivePercentVariances =
-        (numDarkCells as i64 * 2 - numTotalCells as i64).abs() as u32 * 10 / numTotalCells;
-    return fivePercentVariances * N4;
+        (numDarkCells as i64 * 2 - numTotalCells as i64).unsigned_abs() as u32 * 10 / numTotalCells;
+    fivePercentVariances * N4
 }
 
 /**
@@ -183,10 +185,10 @@ pub fn getDataMaskBit(maskPattern: u32, x: u32, y: u32) -> Result<bool, Exceptio
             ((temp % 3) + ((y + x) & 0x1)) & 0x1
         }
         _ => {
-            return Err(Exceptions::IllegalArgumentException(format!(
+            return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "Invalid mask pattern: {}",
                 maskPattern
-            )))
+            ))))
         }
     };
     // switch (maskPattern) {
@@ -266,5 +268,5 @@ fn applyMaskPenaltyRule1Internal(matrix: &ByteMatrix, isHorizontal: bool) -> u32
             penalty += N1 + (numSameBitCells - 5);
         }
     }
-    return penalty;
+    penalty
 }

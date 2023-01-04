@@ -287,24 +287,20 @@ fn findRowsWithPattern(
                 // don't differ too much. Pattern drift should be not bigger than two for consecutive rows. With
                 // a higher number of skipped rows drift could be larger. To keep it simple for now, we allow a slightly
                 // larger drift and don't check for skipped rows.
-                if ((previousRowLoc[0] as i32 - loc[0] as i32).abs() as u32) < MAX_PATTERN_DRIFT
-                    && ((previousRowLoc[1] as i32 - loc[1] as i32).abs() as u32) < MAX_PATTERN_DRIFT
+                if (previousRowLoc[0] as i32 - loc[0] as i32).unsigned_abs() < MAX_PATTERN_DRIFT
+                    && (previousRowLoc[1] as i32 - loc[1] as i32).unsigned_abs() < MAX_PATTERN_DRIFT
                 {
                     previousRowLoc = loc;
                     skippedRowCount = 0;
-                } else {
-                    if skippedRowCount > SKIPPED_ROW_COUNT_MAX {
-                        break;
-                    } else {
-                        skippedRowCount += 1;
-                    }
-                }
-            } else {
-                if skippedRowCount > SKIPPED_ROW_COUNT_MAX {
+                } else if skippedRowCount > SKIPPED_ROW_COUNT_MAX {
                     break;
                 } else {
                     skippedRowCount += 1;
                 }
+            } else if skippedRowCount > SKIPPED_ROW_COUNT_MAX {
+                break;
+            } else {
+                skippedRowCount += 1;
             }
 
             stopRow += 1;

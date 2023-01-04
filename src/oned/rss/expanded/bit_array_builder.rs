@@ -35,7 +35,7 @@ use super::ExpandedPair;
 
 pub fn buildBitArray(pairs: &Vec<ExpandedPair>) -> BitArray {
     let mut charNumber = (pairs.len() * 2) - 1;
-    if pairs.get(pairs.len() - 1).unwrap().getRightChar().is_none() {
+    if pairs.last().unwrap().getRightChar().is_none() {
         charNumber -= 1;
     }
 
@@ -88,7 +88,7 @@ pub fn buildBitArray(pairs: &Vec<ExpandedPair>) -> BitArray {
             }
         }
     }
-    return binary;
+    binary
 }
 
 /**
@@ -118,9 +118,8 @@ mod BitArrayBuilderTest {
 
     fn buildBitArray(pairValues: &Vec<Vec<u32>>) -> BitArray {
         let mut pairs = Vec::new(); //new ArrayList<>();
-        for i in 0..pairValues.len() {
+        for (i, pair) in pairValues.iter().enumerate() {
             // for (int i = 0; i < pairValues.length; ++i) {
-            let pair = &pairValues[i];
 
             let leftChar = if i == 0 {
                 None

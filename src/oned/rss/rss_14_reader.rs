@@ -20,7 +20,7 @@ use crate::{
     common::BitArray,
     oned::{one_d_reader, OneDReader},
     BarcodeFormat, DecodeHintType, DecodingHintDictionary, Exceptions, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader, ResultPoint,
+    RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{
@@ -63,13 +63,13 @@ impl OneDReader for RSS14Reader {
             if left.getCount() > 1 {
                 for right in &self.possibleRightPairs {
                     // for (Pair right : possibleRightPairs) {
-                    if right.getCount() > 1 && self.checkChecksum(&left, &right) {
-                        return Ok(self.constructRXingResult(&left, &right));
+                    if right.getCount() > 1 && self.checkChecksum(left, right) {
+                        return Ok(self.constructRXingResult(left, right));
                     }
                 }
             }
         }
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        Err(Exceptions::NotFoundException(None))
     }
 }
 impl Reader for RSS14Reader {
@@ -119,18 +119,21 @@ impl Reader for RSS14Reader {
                 // for point in result.getRXingResultPointsMut().iter_mut() {
                 let total_points = result.getRXingResultPoints().len();
                 let points = result.getRXingResultPointsMut();
-                for i in 0..total_points {
+                // for i in 0..total_points {
+                for point in points.iter_mut().take(total_points) {
                     // for (int i = 0; i < points.length; i++) {
-                    points[i] = RXingResultPoint::new(
-                        height as f32 - points[i].getY() - 1.0,
-                        points[i].getX(),
-                    );
+                    std::mem::swap(&mut point.x, &mut point.y);
+                    point.x = height as f32 - point.x - 1.0
+                    // points[i] = RXingResultPoint::new(
+                    //     height as f32 - points[i].getY() - 1.0,
+                    //     points[i].getX(),
+                    // );
                 }
                 // }
 
                 Ok(result)
             } else {
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                Err(Exceptions::NotFoundException(None))
             }
         }
     }
@@ -284,10 +287,10 @@ impl RSS14Reader {
                 pattern,
             ))
         }();
-        if pos_pair.is_err() {
-            None
+        if let Ok(ppair) = pos_pair {
+            Some(ppair)
         } else {
-            Some(pos_pair.unwrap())
+            None
         }
     }
 
@@ -328,15 +331,16 @@ impl RSS14Reader {
         // let  oddRoundingErrors = //&mut self.oddRoundingErrors;//[0f32; 4]; // self.getOddRoundingErrors();
         // let  evenRoundingErrors = &mut self.evenRoundingErrors;//[0f32; 4]; // self.getEvenRoundingErrors();
 
-        for i in 0..counters.len() {
+        for (i, counter) in counters.iter().enumerate() {
             // for (int i = 0; i < counters.length; i++) {
-            let value: f32 = counters[i] as f32 / elementWidth;
-            let mut count = (value + 0.5) as u32; // Round
-            if count < 1 {
-                count = 1;
-            } else if count > 8 {
-                count = 8;
-            }
+            let value: f32 = *counter as f32 / elementWidth;
+            // let mut count = (value + 0.5) as u32; // Round
+            let count = ((value + 0.5) as u32).clamp(1, 8);
+            // if count < 1 {
+            //     count = 1;
+            // } else if count > 8 {
+            //     count = 8;
+            // }
             let offset = i / 2;
             if (i & 0x01) == 0 {
                 self.oddCounts[offset] = count;
@@ -368,8 +372,8 @@ impl RSS14Reader {
         let checksumPortion = oddChecksumPortion + 3 * evenChecksumPortion;
 
         if outsideChar {
-            if (oddSum & 0x01) != 0 || oddSum > 12 || oddSum < 4 {
-                return Err(Exceptions::NotFoundException("".to_owned()));
+            if (oddSum & 0x01) != 0 || !(4..=12).contains(&oddSum) {
+                return Err(Exceptions::NotFoundException(None));
             }
             let group = ((12 - oddSum) / 2) as usize;
             let oddWidest = Self::OUTSIDE_ODD_WIDEST[group];
@@ -378,13 +382,13 @@ impl RSS14Reader {
             let vEven = rss_utils::getRSSvalue(&self.evenCounts, evenWidest, true);
             let tEven = Self::OUTSIDE_EVEN_TOTAL_SUBSET[group];
             let gSum = Self::OUTSIDE_GSUM[group];
-            return Ok(DataCharacter::new(
+            Ok(DataCharacter::new(
                 vOdd * tEven + vEven + gSum,
                 checksumPortion,
-            ));
+            ))
         } else {
-            if (evenSum & 0x01) != 0 || evenSum > 10 || evenSum < 4 {
-                return Err(Exceptions::NotFoundException("".to_owned()));
+            if (evenSum & 0x01) != 0 || !(4..=10).contains(&evenSum) {
+                return Err(Exceptions::NotFoundException(None));
             }
             let group = ((10 - evenSum) / 2) as usize;
             let oddWidest = Self::INSIDE_ODD_WIDEST[group];
@@ -393,10 +397,10 @@ impl RSS14Reader {
             let vEven = rss_utils::getRSSvalue(&self.evenCounts, evenWidest, false);
             let tOdd = Self::INSIDE_ODD_TOTAL_SUBSET[group];
             let gSum = Self::INSIDE_GSUM[group];
-            return Ok(DataCharacter::new(
+            Ok(DataCharacter::new(
                 vEven * tOdd + vOdd + gSum,
                 checksumPortion,
-            ));
+            ))
         }
     }
 
@@ -449,7 +453,7 @@ impl RSS14Reader {
                 isWhite = !isWhite;
             }
         }
-        return Err(Exceptions::NotFoundException("".to_owned()));
+        Err(Exceptions::NotFoundException(None))
     }
 
     fn parseFoundFinderPattern(
@@ -534,7 +538,7 @@ impl RSS14Reader {
         }
 
         let mismatch = oddSum as i32 + evenSum as i32 - numModules as i32;
-        let oddParityBad = (oddSum & 0x01) == (if outsideChar { 1 } else { 0 });
+        let oddParityBad = (oddSum & 0x01) == u32::from(outsideChar); //(if outsideChar { 1 } else { 0 });
         let evenParityBad = (evenSum & 0x01) == 1;
         /*if (mismatch == 2) {
           if (!(oddParityBad && evenParityBad)) {
@@ -553,12 +557,12 @@ impl RSS14Reader {
             1 => {
                 if oddParityBad {
                     if evenParityBad {
-                        return Err(Exceptions::NotFoundException("".to_owned()));
+                        return Err(Exceptions::NotFoundException(None));
                     }
                     decrementOdd = true;
                 } else {
                     if !evenParityBad {
-                        return Err(Exceptions::NotFoundException("".to_owned()));
+                        return Err(Exceptions::NotFoundException(None));
                     }
                     decrementEven = true;
                 }
@@ -566,12 +570,12 @@ impl RSS14Reader {
             -1 => {
                 if oddParityBad {
                     if evenParityBad {
-                        return Err(Exceptions::NotFoundException("".to_owned()));
+                        return Err(Exceptions::NotFoundException(None));
                     }
                     incrementOdd = true;
                 } else {
                     if !evenParityBad {
-                        return Err(Exceptions::NotFoundException("".to_owned()));
+                        return Err(Exceptions::NotFoundException(None));
                     }
                     incrementEven = true;
                 }
@@ -579,7 +583,7 @@ impl RSS14Reader {
             0 => {
                 if oddParityBad {
                     if !evenParityBad {
-                        return Err(Exceptions::NotFoundException("".to_owned()));
+                        return Err(Exceptions::NotFoundException(None));
                     }
                     // Both bad
                     if oddSum < evenSum {
@@ -589,19 +593,16 @@ impl RSS14Reader {
                         decrementOdd = true;
                         incrementEven = true;
                     }
-                } else {
-                    if evenParityBad {
-                        return Err(Exceptions::NotFoundException("".to_owned()));
-                    }
-                    // Nothing to do!
+                } else if evenParityBad {
+                    return Err(Exceptions::NotFoundException(None));
                 }
             }
-            _ => return Err(Exceptions::NotFoundException("".to_owned())),
+            _ => return Err(Exceptions::NotFoundException(None)),
         }
 
         if incrementOdd {
             if decrementOdd {
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                return Err(Exceptions::NotFoundException(None));
             }
             Self::increment(&mut self.oddCounts, &self.oddRoundingErrors);
         }
@@ -610,7 +611,7 @@ impl RSS14Reader {
         }
         if incrementEven {
             if decrementEven {
-                return Err(Exceptions::NotFoundException("".to_owned()));
+                return Err(Exceptions::NotFoundException(None));
             }
             Self::increment(&mut self.evenCounts, &self.evenRoundingErrors);
         }
