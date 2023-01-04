@@ -11,6 +11,7 @@ use crate::{
     DecodingHintDictionary, Exceptions, MultiFormatReader, RXingResult, Reader,
 };
 
+#[cfg(feature = "image")]
 pub fn detect_in_file(
     file_name: &str,
     barcode_type: Option<BarcodeFormat>,
@@ -18,6 +19,7 @@ pub fn detect_in_file(
     detect_in_file_with_hints(file_name, barcode_type, &mut HashMap::new())
 }
 
+#[cfg(feature = "image")]
 pub fn detect_in_file_with_hints(
     file_name: &str,
     barcode_type: Option<BarcodeFormat>,
@@ -45,10 +47,12 @@ pub fn detect_in_file_with_hints(
     )
 }
 
+#[cfg(feature = "image")]
 pub fn detect_multiple_in_file(file_name: &str) -> Result<Vec<RXingResult>, Exceptions> {
     detect_multiple_in_file_with_hints(file_name, &mut HashMap::new())
 }
 
+#[cfg(feature = "image")]
 pub fn detect_multiple_in_file_with_hints(
     file_name: &str,
     hints: &mut DecodingHintDictionary,
@@ -67,4 +71,30 @@ pub fn detect_multiple_in_file_with_hints(
         ))))),
         &hints,
     )
+}
+
+pub fn detect_in_luma(
+    luma: &[u8],
+    barcode_type: Option<BarcodeFormat>,
+) -> Result<RXingResult, Exceptions> {
+    detect_in_luma_with_hints(luma, barcode_type, &mut HashMap::new())
+}
+
+pub fn detect_in_luma_with_hints(
+    luma: &[u8],
+    barcode_type: Option<BarcodeFormat>,
+    hints: &mut DecodingHintDictionary,
+) -> Result<RXingResult, Exceptions> {
+    Err(Exceptions::NotFoundException(None))
+}
+
+pub fn detect_multiple_in_luma(luma: &[u8]) -> Result<Vec<RXingResult>, Exceptions> {
+    detect_multiple_in_luma_with_hints(luma, &mut HashMap::new())
+}
+
+pub fn detect_multiple_in_luma_with_hints(
+    file_name: &[u8],
+    hints: &mut DecodingHintDictionary,
+) -> Result<Vec<RXingResult>, Exceptions> {
+    Err(Exceptions::NotFoundException(None))
 }
