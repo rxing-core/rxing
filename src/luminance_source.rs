@@ -135,6 +135,7 @@ pub trait LuminanceSource {
         )))
     }
 
+    #[inline(always)]
     fn invert_block_of_bytes(&self, vec_to_invert: Vec<u8>) -> Vec<u8> {
         let mut iv = vec_to_invert;
         for itm in iv.iter_mut() {

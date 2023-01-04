@@ -96,3 +96,6 @@ pub use multi_format_reader::*;
 
 // Simple methods to help detect barcodes in common situations
 pub mod helpers;
+
+mod luma_luma_source;
+pub use luma_luma_source::*;
