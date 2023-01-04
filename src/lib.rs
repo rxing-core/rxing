@@ -93,3 +93,6 @@ pub use multi_format_writer::*;
 
 mod multi_format_reader;
 pub use multi_format_reader::*;
+
+// Simple methods to help detect barcodes in common situations
+pub mod helpers;
