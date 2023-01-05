@@ -20,7 +20,7 @@
 // import com.google.zxing.LuminanceSource;
 // import com.google.zxing.NotFoundException;
 
-use std::{rc::Rc, borrow::Cow};
+use std::{borrow::Cow, rc::Rc};
 
 use once_cell::unsync::OnceCell;
 
@@ -54,22 +54,22 @@ impl Binarizer for GlobalHistogramBinarizer {
     }
 
     // Applies simple sharpening to the row data to improve performance of the 1D Readers.
-    fn getBlackRow(& self, y: usize) -> Result<Cow<BitArray>, Exceptions> {
-        let row = self.black_row_cache[y].get_or_try_init(||{
+    fn getBlackRow(&self, y: usize) -> Result<Cow<BitArray>, Exceptions> {
+        let row = self.black_row_cache[y].get_or_try_init(|| {
             let source = self.getLuminanceSource();
             let width = source.getWidth();
             let mut row = BitArray::with_size(width);
-    
+
             // self.initArrays(width);
             let localLuminances = source.getRow(y);
             let mut localBuckets = [0; GlobalHistogramBinarizer::LUMINANCE_BUCKETS]; //self.buckets.clone();
             for x in 0..width {
                 // for (int x = 0; x < width; x++) {
-                localBuckets
-                    [((localLuminances[x]) >> GlobalHistogramBinarizer::LUMINANCE_SHIFT) as usize] += 1;
+                localBuckets[((localLuminances[x]) >> GlobalHistogramBinarizer::LUMINANCE_SHIFT)
+                    as usize] += 1;
             }
             let blackPoint = Self::estimateBlackPoint(&localBuckets)?;
-    
+
             if width < 3 {
                 // Special case for very small images
                 for (x, lum) in localLuminances.iter().enumerate().take(width) {
@@ -98,24 +98,22 @@ impl Binarizer for GlobalHistogramBinarizer {
         })?;
 
         Ok(Cow::Borrowed(row))
-
     }
 
     // Does not sharpen the data, as this call is intended to only be used by 2D Readers.
-    fn getBlackMatrix(& self) -> Result<&BitMatrix, Exceptions> {
+    fn getBlackMatrix(&self) -> Result<&BitMatrix, Exceptions> {
         // if self.black_matrix.is_none() {
         //     self.black_matrix =
         //         Some(Self::build_black_matrix(&self.source).expect("matrix must generate"))
         // }
         // Ok(self.black_matrix.as_ref().unwrap())
-        let matrix = self.black_matrix.get_or_try_init(||Self::build_black_matrix(&self.source))?;
+        let matrix = self
+            .black_matrix
+            .get_or_try_init(|| Self::build_black_matrix(&self.source))?;
         Ok(matrix)
     }
 
-    fn createBinarizer(
-        &self,
-        source: Box<dyn crate::LuminanceSource>,
-    ) -> Rc<dyn Binarizer> {
+    fn createBinarizer(&self, source: Box<dyn crate::LuminanceSource>) -> Rc<dyn Binarizer> {
         Rc::new(GlobalHistogramBinarizer::new(source))
     }
 

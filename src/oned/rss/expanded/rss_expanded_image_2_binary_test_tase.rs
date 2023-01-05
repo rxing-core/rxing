@@ -24,7 +24,7 @@
  *   http://www.piramidepse.com/
  */
 
-use std::{rc::Rc};
+use std::rc::Rc;
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
@@ -174,9 +174,9 @@ fn assertCorrectImage2binary(fileName: &str, expected: &str) {
     let path = format!("test_resources/blackbox/rssexpanded-1/{}", fileName);
 
     let image = image::open(path).expect("file exists");
-    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
-        Box::new(BufferedImageLuminanceSource::new(image)),
-    )));
+    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
+        BufferedImageLuminanceSource::new(image),
+    ))));
     let rowNumber = binaryMap.getHeight() / 2;
     let row = binaryMap.getBlackRow(rowNumber).expect("row");
 

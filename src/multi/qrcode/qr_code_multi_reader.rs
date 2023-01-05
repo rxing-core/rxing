@@ -250,9 +250,7 @@ mod multi_qr_code_test_case {
             .decode()
             .expect("must decode");
         let source = BufferedImageLuminanceSource::new(image);
-        let mut bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(
-            source,
-        ))));
+        let mut bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
 
         let mut reader = QRCodeMultiReader::new();
         let results = reader.decode_multiple(&mut bitmap).expect("must decode");

@@ -24,7 +24,7 @@
  *   http://www.piramidepse.com/
  */
 
-use std::{rc::Rc};
+use std::rc::Rc;
 
 use image::DynamicImage;
 
@@ -39,7 +39,7 @@ fn getBufferedImage(fileName: &str) -> DynamicImage {
 pub(crate) fn getBinaryBitmap(fileName: &str) -> BinaryBitmap {
     let bufferedImage = getBufferedImage(fileName);
 
-    BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
-        Box::new(BufferedImageLuminanceSource::new(bufferedImage)),
-    )))
+    BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
+        BufferedImageLuminanceSource::new(bufferedImage),
+    ))))
 }

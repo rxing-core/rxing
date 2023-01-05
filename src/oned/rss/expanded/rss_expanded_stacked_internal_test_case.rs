@@ -72,7 +72,10 @@ fn testDecodingRowByRow() {
         .getStartEndMut()[1] = 0;
 
     let secondRowNumber = 2 * binaryMap.getHeight() / 3;
-    let mut secondRow = binaryMap.getBlackRow(secondRowNumber).expect("get row").into_owned();
+    let mut secondRow = binaryMap
+        .getBlackRow(secondRowNumber)
+        .expect("get row")
+        .into_owned();
     secondRow.reverse();
 
     let totalPairs = rssExpandedReader

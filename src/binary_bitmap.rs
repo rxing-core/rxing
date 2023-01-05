@@ -16,7 +16,7 @@
 
 //package com.google.zxing;
 
-use std::{fmt, rc::Rc, borrow::Cow};
+use std::{borrow::Cow, fmt, rc::Rc};
 
 use crate::{
     common::{BitArray, BitMatrix},
@@ -68,8 +68,8 @@ impl BinaryBitmap {
      * @return The array of bits for this row (true means black).
      * @throws NotFoundException if row can't be binarized
      */
-    pub fn getBlackRow(& self, y: usize) -> Result<Cow<BitArray>, Exceptions> {
-         self.binarizer.getBlackRow(y)
+    pub fn getBlackRow(&self, y: usize) -> Result<Cow<BitArray>, Exceptions> {
+        self.binarizer.getBlackRow(y)
     }
 
     /**
@@ -88,12 +88,7 @@ impl BinaryBitmap {
         //    1D Reader finds a barcode before the 2D Readers run.
         // 2. This work will only be done once even if the caller installs multiple 2D Readers.
         if self.matrix.is_none() {
-            self.matrix = Some(
-                self.binarizer
-                    .getBlackMatrix()
-                    .unwrap()
-                    .clone(),
-            );
+            self.matrix = Some(self.binarizer.getBlackMatrix().unwrap().clone());
         }
         self.matrix.as_mut().unwrap()
     }
@@ -114,12 +109,7 @@ impl BinaryBitmap {
         //    1D Reader finds a barcode before the 2D Readers run.
         // 2. This work will only be done once even if the caller installs multiple 2D Readers.
         if self.matrix.is_none() {
-            self.matrix = Some(
-                self.binarizer
-                    .getBlackMatrix()
-                    .unwrap()
-                    .clone(),
-            )
+            self.matrix = Some(self.binarizer.getBlackMatrix().unwrap().clone())
         }
         self.matrix.as_ref().unwrap()
     }
@@ -160,10 +150,7 @@ impl BinaryBitmap {
      * @return Whether this bitmap supports counter-clockwise rotation.
      */
     pub fn isRotateSupported(&self) -> bool {
-        return self
-            .binarizer
-            .getLuminanceSource()
-            .isRotateSupported();
+        return self.binarizer.getLuminanceSource().isRotateSupported();
     }
 
     /**
@@ -173,10 +160,7 @@ impl BinaryBitmap {
      * @return A rotated version of this object.
      */
     pub fn rotateCounterClockwise(&mut self) -> BinaryBitmap {
-        let newSource = self
-            .binarizer
-            .getLuminanceSource()
-            .rotateCounterClockwise();
+        let newSource = self.binarizer.getLuminanceSource().rotateCounterClockwise();
         return BinaryBitmap::new(
             self.binarizer
                 .createBinarizer(newSource.expect("new lum source expected")),

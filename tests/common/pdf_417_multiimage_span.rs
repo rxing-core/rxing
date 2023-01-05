@@ -178,9 +178,8 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
                     let rotation: f32 = self.test_rxing_results.get(x).expect("ok").get_rotation();
                     let rotated_image = Self::rotate_image(&image, rotation);
                     let source = BufferedImageLuminanceSource::new(rotated_image);
-                    let mut bitmap = BinaryBitmap::new(Rc::new(
-                        HybridBinarizer::new(Box::new(source)),
-                    ));
+                    let mut bitmap =
+                        BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
 
                     if let Ok(res) =
                         Self::decode_pdf417(&mut bitmap, false, &mut self.barcode_reader)
@@ -387,9 +386,7 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
                 let rotation = self.test_rxing_results.get(x).unwrap().get_rotation();
                 let rotated_image = Self::rotate_image(&image, rotation);
                 let source = BufferedImageLuminanceSource::new(rotated_image);
-                let mut bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(
-                    Box::new(source),
-                )));
+                let mut bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
 
                 // if file_base_name == "15" {
                 // let mut f = File::create("test_file_output.txt").unwrap();

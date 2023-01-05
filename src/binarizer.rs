@@ -16,7 +16,7 @@
 
 //package com.google.zxing;
 
-use std::{rc::Rc, borrow::Cow};
+use std::{borrow::Cow, rc::Rc};
 
 use crate::{
     common::{BitArray, BitMatrix},
@@ -62,7 +62,7 @@ pub trait Binarizer {
      * @return The 2D array of bits for the image (true means black).
      * @throws NotFoundException if image can't be binarized to make a matrix
      */
-    fn getBlackMatrix(& self) -> Result<&BitMatrix, Exceptions>;
+    fn getBlackMatrix(&self) -> Result<&BitMatrix, Exceptions>;
 
     /**
      * Creates a new object with the same type as this Binarizer implementation, but with pristine

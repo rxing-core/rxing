@@ -20,7 +20,7 @@
 // import com.google.zxing.LuminanceSource;
 // import com.google.zxing.NotFoundException;
 
-use std::{rc::Rc, borrow::Cow};
+use std::{borrow::Cow, rc::Rc};
 
 use once_cell::unsync::OnceCell;
 
@@ -57,7 +57,7 @@ impl Binarizer for HybridBinarizer {
         self.ghb.getLuminanceSource()
     }
 
-    fn getBlackRow(& self, y: usize) -> Result<Cow<BitArray>, Exceptions> {
+    fn getBlackRow(&self, y: usize) -> Result<Cow<BitArray>, Exceptions> {
         self.ghb.getBlackRow(y)
     }
 
@@ -66,7 +66,7 @@ impl Binarizer for HybridBinarizer {
      * constructor instead, but there are some advantages to doing it lazily, such as making
      * profiling easier, and not doing heavy lifting when callers don't expect it.
      */
-    fn getBlackMatrix(& self) -> Result<&BitMatrix, Exceptions> {
+    fn getBlackMatrix(&self) -> Result<&BitMatrix, Exceptions> {
         // if self.black_matrix.is_none() {
         //     self.black_matrix = Some(
         //         Self::calculateBlackMatrix(&mut self.ghb)
@@ -74,7 +74,9 @@ impl Binarizer for HybridBinarizer {
         //     )
         // }
         // Ok(self.black_matrix.as_ref().unwrap())
-        let matrix = self.black_matrix.get_or_try_init(||Self::calculateBlackMatrix(& self.ghb))?;
+        let matrix = self
+            .black_matrix
+            .get_or_try_init(|| Self::calculateBlackMatrix(&self.ghb))?;
         Ok(matrix)
     }
 
@@ -107,7 +109,7 @@ impl HybridBinarizer {
         }
     }
 
-    fn calculateBlackMatrix(ghb: & GlobalHistogramBinarizer) -> Result<BitMatrix, Exceptions> {
+    fn calculateBlackMatrix(ghb: &GlobalHistogramBinarizer) -> Result<BitMatrix, Exceptions> {
         // let matrix;
         let source = ghb.getLuminanceSource();
         let width = source.getWidth();
