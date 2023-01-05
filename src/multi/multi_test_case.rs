@@ -38,9 +38,9 @@ fn testMulti() {
         .decode()
         .expect("must decode");
     let source = BufferedImageLuminanceSource::new(image);
-    let mut bitmap = BinaryBitmap::new(Rc::new(RefCell::new(HybridBinarizer::new(Box::new(
+    let mut bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(
         source,
-    )))));
+    ))));
 
     let mut reader = GenericMultipleBarcodeReader::new(MultiFormatReader::default());
     let results = reader
@@ -67,9 +67,9 @@ fn testMultiQR() {
         .decode()
         .expect("must decode");
     let source = BufferedImageLuminanceSource::new(image);
-    let mut bitmap = BinaryBitmap::new(Rc::new(RefCell::new(HybridBinarizer::new(Box::new(
+    let mut bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(
         source,
-    )))));
+    ))));
 
     let mut reader = GenericMultipleBarcodeReader::new(MultiFormatReader::default());
     let results = reader

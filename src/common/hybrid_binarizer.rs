@@ -20,7 +20,9 @@
 // import com.google.zxing.LuminanceSource;
 // import com.google.zxing.NotFoundException;
 
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc, borrow::Cow};
+
+use once_cell::unsync::OnceCell;
 
 use crate::{Binarizer, Exceptions, LuminanceSource};
 
@@ -48,14 +50,14 @@ pub struct HybridBinarizer {
     //height: usize,
     //source: Box<dyn LuminanceSource>,
     ghb: GlobalHistogramBinarizer,
-    black_matrix: Option<BitMatrix>,
+    black_matrix: OnceCell<BitMatrix>,
 }
 impl Binarizer for HybridBinarizer {
     fn getLuminanceSource(&self) -> &Box<dyn LuminanceSource> {
         self.ghb.getLuminanceSource()
     }
 
-    fn getBlackRow(&mut self, y: usize) -> Result<BitArray, Exceptions> {
+    fn getBlackRow(& self, y: usize) -> Result<Cow<BitArray>, Exceptions> {
         self.ghb.getBlackRow(y)
     }
 
@@ -64,18 +66,20 @@ impl Binarizer for HybridBinarizer {
      * constructor instead, but there are some advantages to doing it lazily, such as making
      * profiling easier, and not doing heavy lifting when callers don't expect it.
      */
-    fn getBlackMatrix(&mut self) -> Result<&BitMatrix, Exceptions> {
-        if self.black_matrix.is_none() {
-            self.black_matrix = Some(
-                Self::calculateBlackMatrix(&mut self.ghb)
-                    .expect("generate black matrix must complete"),
-            )
-        }
-        Ok(self.black_matrix.as_ref().unwrap())
+    fn getBlackMatrix(& self) -> Result<&BitMatrix, Exceptions> {
+        // if self.black_matrix.is_none() {
+        //     self.black_matrix = Some(
+        //         Self::calculateBlackMatrix(&mut self.ghb)
+        //             .expect("generate black matrix must complete"),
+        //     )
+        // }
+        // Ok(self.black_matrix.as_ref().unwrap())
+        let matrix = self.black_matrix.get_or_try_init(||Self::calculateBlackMatrix(& self.ghb))?;
+        Ok(matrix)
     }
 
-    fn createBinarizer(&self, source: Box<dyn LuminanceSource>) -> Rc<RefCell<dyn Binarizer>> {
-        Rc::new(RefCell::new(HybridBinarizer::new(source)))
+    fn createBinarizer(&self, source: Box<dyn LuminanceSource>) -> Rc<dyn Binarizer> {
+        Rc::new(HybridBinarizer::new(source))
     }
 
     fn getWidth(&self) -> usize {
@@ -98,12 +102,12 @@ impl HybridBinarizer {
     pub fn new(source: Box<dyn LuminanceSource>) -> Self {
         let ghb = GlobalHistogramBinarizer::new(source);
         Self {
-            black_matrix: None,
+            black_matrix: OnceCell::new(),
             ghb,
         }
     }
 
-    fn calculateBlackMatrix(ghb: &mut GlobalHistogramBinarizer) -> Result<BitMatrix, Exceptions> {
+    fn calculateBlackMatrix(ghb: & GlobalHistogramBinarizer) -> Result<BitMatrix, Exceptions> {
         // let matrix;
         let source = ghb.getLuminanceSource();
         let width = source.getWidth();

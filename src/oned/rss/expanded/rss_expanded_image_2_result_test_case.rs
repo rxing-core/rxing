@@ -71,9 +71,9 @@ fn assertCorrectImage2result(fileName: &str, expected: ExpandedProductParsedRXin
     let path = format!("test_resources/blackbox/rssexpanded-1/{}", fileName);
 
     let image = image::open(path).expect("image must exist");
-    let mut binaryMap = BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
+    let mut binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
         Box::new(BufferedImageLuminanceSource::new(image)),
-    ))));
+    )));
     let rowNumber = binaryMap.getHeight() / 2;
     let row = binaryMap.getBlackRow(rowNumber).expect("get row");
 

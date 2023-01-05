@@ -16,7 +16,7 @@
 
 //package com.google.zxing;
 
-use std::{cell::RefCell, fmt, rc::Rc};
+use std::{cell::RefCell, fmt, rc::Rc, borrow::Cow};
 
 use crate::{
     common::{BitArray, BitMatrix},
@@ -31,12 +31,12 @@ use crate::{
  */
 
 pub struct BinaryBitmap {
-    binarizer: Rc<RefCell<dyn Binarizer>>,
+    binarizer: Rc<dyn Binarizer>,
     matrix: Option<BitMatrix>,
 }
 
 impl BinaryBitmap {
-    pub fn new(binarizer: Rc<RefCell<dyn Binarizer>>) -> Self {
+    pub fn new(binarizer: Rc<dyn Binarizer>) -> Self {
         Self {
             matrix: None,
             binarizer,
@@ -47,14 +47,14 @@ impl BinaryBitmap {
      * @return The width of the bitmap.
      */
     pub fn getWidth(&self) -> usize {
-        return self.binarizer.borrow().getWidth();
+        return self.binarizer.getWidth();
     }
 
     /**
      * @return The height of the bitmap.
      */
     pub fn getHeight(&self) -> usize {
-        return self.binarizer.borrow().getHeight();
+        return self.binarizer.getHeight();
     }
 
     /**
@@ -68,8 +68,8 @@ impl BinaryBitmap {
      * @return The array of bits for this row (true means black).
      * @throws NotFoundException if row can't be binarized
      */
-    pub fn getBlackRow(&mut self, y: usize) -> Result<BitArray, Exceptions> {
-        return self.binarizer.borrow_mut().getBlackRow(y);
+    pub fn getBlackRow(& self, y: usize) -> Result<Cow<BitArray>, Exceptions> {
+         self.binarizer.getBlackRow(y)
     }
 
     /**
@@ -90,7 +90,6 @@ impl BinaryBitmap {
         if self.matrix.is_none() {
             self.matrix = Some(
                 self.binarizer
-                    .borrow_mut()
                     .getBlackMatrix()
                     .unwrap()
                     .clone(),
@@ -117,7 +116,6 @@ impl BinaryBitmap {
         if self.matrix.is_none() {
             self.matrix = Some(
                 self.binarizer
-                    .borrow_mut()
                     .getBlackMatrix()
                     .unwrap()
                     .clone(),
@@ -130,10 +128,7 @@ impl BinaryBitmap {
      * @return Whether this bitmap can be cropped.
      */
     pub fn isCropSupported(&self) -> bool {
-        let b = self.binarizer.borrow();
-        let r = b.getLuminanceSource();
-
-        r.isCropSupported()
+        self.binarizer.getLuminanceSource().isCropSupported()
     }
 
     /**
@@ -149,12 +144,10 @@ impl BinaryBitmap {
     pub fn crop(&mut self, left: usize, top: usize, width: usize, height: usize) -> BinaryBitmap {
         let newSource = self
             .binarizer
-            .borrow()
             .getLuminanceSource()
             .crop(left, top, width, height);
         return BinaryBitmap::new(
             self.binarizer
-                .borrow()
                 .createBinarizer(newSource.expect("new lum source expected")),
         );
         // Self {
@@ -169,7 +162,6 @@ impl BinaryBitmap {
     pub fn isRotateSupported(&self) -> bool {
         return self
             .binarizer
-            .borrow()
             .getLuminanceSource()
             .isRotateSupported();
     }
@@ -183,12 +175,10 @@ impl BinaryBitmap {
     pub fn rotateCounterClockwise(&mut self) -> BinaryBitmap {
         let newSource = self
             .binarizer
-            .borrow()
             .getLuminanceSource()
             .rotateCounterClockwise();
         return BinaryBitmap::new(
             self.binarizer
-                .borrow()
                 .createBinarizer(newSource.expect("new lum source expected")),
         );
         // let mut new_matrix = self.getBlackMatrix().clone();
@@ -209,12 +199,10 @@ impl BinaryBitmap {
     pub fn rotateCounterClockwise45(&self) -> BinaryBitmap {
         let newSource = self
             .binarizer
-            .borrow()
             .getLuminanceSource()
             .rotateCounterClockwise45();
         return BinaryBitmap::new(
             self.binarizer
-                .borrow()
                 .createBinarizer(newSource.expect("new lum source expected")),
         );
     }

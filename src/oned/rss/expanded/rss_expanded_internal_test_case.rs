@@ -42,9 +42,9 @@ use super::RSSExpandedReader;
 #[test]
 fn testFindFinderPatterns() {
     let image = readImage("2.png");
-    let mut binaryMap = BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
+    let mut binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
         Box::new(BufferedImageLuminanceSource::new(image)),
-    ))));
+    )));
     let rowNumber = binaryMap.getHeight() as u32 / 2;
     let row = binaryMap.getBlackRow(rowNumber as usize).expect("ok");
     let mut previousPairs = Vec::new(); //new ArrayList<>();
@@ -88,9 +88,9 @@ fn testFindFinderPatterns() {
 #[test]
 fn testRetrieveNextPairPatterns() {
     let image = readImage("3.png");
-    let mut binaryMap = BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
+    let mut binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
         Box::new(BufferedImageLuminanceSource::new(image)),
-    ))));
+    )));
     let rowNumber = binaryMap.getHeight() as u32 / 2;
     let row = binaryMap.getBlackRow(rowNumber as usize).expect("create");
     let mut previousPairs = Vec::new(); //new ArrayList<>();
@@ -116,9 +116,9 @@ fn testRetrieveNextPairPatterns() {
 #[test]
 fn testDecodeCheckCharacter() {
     let image = readImage("3.png");
-    let mut binaryMap = BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
+    let mut binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
         Box::new(BufferedImageLuminanceSource::new(image.clone())),
-    ))));
+    )));
     let row = binaryMap
         .getBlackRow(binaryMap.getHeight() / 2)
         .expect("create");
@@ -144,9 +144,9 @@ fn testDecodeCheckCharacter() {
 #[test]
 fn testDecodeDataCharacter() {
     let image = readImage("3.png");
-    let mut binaryMap = BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
+    let mut binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
         Box::new(BufferedImageLuminanceSource::new(image.clone())),
-    ))));
+    )));
     let row = binaryMap
         .getBlackRow(binaryMap.getHeight() / 2)
         .expect("create");

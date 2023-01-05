@@ -81,7 +81,7 @@ pub trait OneDReader: Reader {
 
             // Estimate black point for this row and load it:
             let mut row = if let Ok(res) = image.getBlackRow(rowNumber as usize) {
-                res
+                res.into_owned()
             } else {
                 continue;
             };

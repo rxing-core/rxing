@@ -39,7 +39,7 @@ fn getBufferedImage(fileName: &str) -> DynamicImage {
 pub(crate) fn getBinaryBitmap(fileName: &str) -> BinaryBitmap {
     let bufferedImage = getBufferedImage(fileName);
 
-    BinaryBitmap::new(Rc::new(RefCell::new(GlobalHistogramBinarizer::new(
+    BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
         Box::new(BufferedImageLuminanceSource::new(bufferedImage)),
-    ))))
+    )))
 }

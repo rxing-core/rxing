@@ -16,7 +16,7 @@
 
 //package com.google.zxing;
 
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc, borrow::Cow};
 
 use crate::{
     common::{BitArray, BitMatrix},
@@ -51,7 +51,7 @@ pub trait Binarizer {
      * @return The array of bits for this row (true means black).
      * @throws NotFoundException if row can't be binarized
      */
-    fn getBlackRow(&mut self, y: usize) -> Result<BitArray, Exceptions>;
+    fn getBlackRow(&self, y: usize) -> Result<Cow<BitArray>, Exceptions>;
 
     /**
      * Converts a 2D array of luminance data to 1 bit data. As above, assume this method is expensive
@@ -62,7 +62,7 @@ pub trait Binarizer {
      * @return The 2D array of bits for the image (true means black).
      * @throws NotFoundException if image can't be binarized to make a matrix
      */
-    fn getBlackMatrix(&mut self) -> Result<&BitMatrix, Exceptions>;
+    fn getBlackMatrix(& self) -> Result<&BitMatrix, Exceptions>;
 
     /**
      * Creates a new object with the same type as this Binarizer implementation, but with pristine
@@ -72,7 +72,7 @@ pub trait Binarizer {
      * @param source The LuminanceSource this Binarizer will operate on.
      * @return A new concrete Binarizer implementation object.
      */
-    fn createBinarizer(&self, source: Box<dyn LuminanceSource>) -> Rc<RefCell<dyn Binarizer>>;
+    fn createBinarizer(&self, source: Box<dyn LuminanceSource>) -> Rc<dyn Binarizer>;
 
     fn getWidth(&self) -> usize;
 

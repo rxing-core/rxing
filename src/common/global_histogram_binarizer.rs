@@ -20,7 +20,9 @@
 // import com.google.zxing.LuminanceSource;
 // import com.google.zxing.NotFoundException;
 
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc, borrow::Cow};
+
+use once_cell::unsync::OnceCell;
 
 use crate::{Binarizer, Exceptions, LuminanceSource};
 
@@ -42,8 +44,8 @@ pub struct GlobalHistogramBinarizer {
     width: usize,
     height: usize,
     source: Box<dyn LuminanceSource>,
-    black_matrix: Option<BitMatrix>,
-    black_row_cache: Vec<Option<BitArray>>,
+    black_matrix: OnceCell<BitMatrix>,
+    black_row_cache: Vec<OnceCell<BitArray>>,
 }
 
 impl Binarizer for GlobalHistogramBinarizer {
@@ -52,65 +54,69 @@ impl Binarizer for GlobalHistogramBinarizer {
     }
 
     // Applies simple sharpening to the row data to improve performance of the 1D Readers.
-    fn getBlackRow(&mut self, y: usize) -> Result<BitArray, Exceptions> {
-        if let Some(black_row) = &self.black_row_cache[y] {
-            return Ok(black_row.clone());
-        }
-        let source = self.getLuminanceSource();
-        let width = source.getWidth();
-        let mut row = BitArray::with_size(width);
-
-        // self.initArrays(width);
-        let localLuminances = source.getRow(y);
-        let mut localBuckets = [0; GlobalHistogramBinarizer::LUMINANCE_BUCKETS]; //self.buckets.clone();
-        for x in 0..width {
-            // for (int x = 0; x < width; x++) {
-            localBuckets
-                [((localLuminances[x]) >> GlobalHistogramBinarizer::LUMINANCE_SHIFT) as usize] += 1;
-        }
-        let blackPoint = Self::estimateBlackPoint(&localBuckets)?;
-
-        if width < 3 {
-            // Special case for very small images
-            for (x, lum) in localLuminances.iter().enumerate().take(width) {
-                // for x in 0..width {
-                //   for (int x = 0; x < width; x++) {
-                if (*lum as u32) < blackPoint {
-                    row.set(x);
+    fn getBlackRow(& self, y: usize) -> Result<Cow<BitArray>, Exceptions> {
+        let row = self.black_row_cache[y].get_or_try_init(||{
+            let source = self.getLuminanceSource();
+            let width = source.getWidth();
+            let mut row = BitArray::with_size(width);
+    
+            // self.initArrays(width);
+            let localLuminances = source.getRow(y);
+            let mut localBuckets = [0; GlobalHistogramBinarizer::LUMINANCE_BUCKETS]; //self.buckets.clone();
+            for x in 0..width {
+                // for (int x = 0; x < width; x++) {
+                localBuckets
+                    [((localLuminances[x]) >> GlobalHistogramBinarizer::LUMINANCE_SHIFT) as usize] += 1;
+            }
+            let blackPoint = Self::estimateBlackPoint(&localBuckets)?;
+    
+            if width < 3 {
+                // Special case for very small images
+                for (x, lum) in localLuminances.iter().enumerate().take(width) {
+                    // for x in 0..width {
+                    //   for (int x = 0; x < width; x++) {
+                    if (*lum as u32) < blackPoint {
+                        row.set(x);
+                    }
+                }
+            } else {
+                let mut left = localLuminances[0]; // & 0xff;
+                let mut center = localLuminances[1]; // & 0xff;
+                for x in 1..width - 1 {
+                    //   for (int x = 1; x < width - 1; x++) {
+                    let right = localLuminances[x + 1];
+                    // A simple -1 4 -1 box filter with a weight of 2.
+                    if ((center as i64 * 4) - left as i64 - right as i64) / 2 < blackPoint as i64 {
+                        row.set(x);
+                    }
+                    left = center;
+                    center = right;
                 }
             }
-        } else {
-            let mut left = localLuminances[0]; // & 0xff;
-            let mut center = localLuminances[1]; // & 0xff;
-            for x in 1..width - 1 {
-                //   for (int x = 1; x < width - 1; x++) {
-                let right = localLuminances[x + 1];
-                // A simple -1 4 -1 box filter with a weight of 2.
-                if ((center as i64 * 4) - left as i64 - right as i64) / 2 < blackPoint as i64 {
-                    row.set(x);
-                }
-                left = center;
-                center = right;
-            }
-        }
-        self.black_row_cache[y] = Some(row.clone());
-        Ok(row)
+
+            Ok(row)
+        })?;
+
+        Ok(Cow::Borrowed(row))
+
     }
 
     // Does not sharpen the data, as this call is intended to only be used by 2D Readers.
-    fn getBlackMatrix(&mut self) -> Result<&BitMatrix, Exceptions> {
-        if self.black_matrix.is_none() {
-            self.black_matrix =
-                Some(Self::build_black_matrix(&self.source).expect("matrix must generate"))
-        }
-        Ok(self.black_matrix.as_ref().unwrap())
+    fn getBlackMatrix(& self) -> Result<&BitMatrix, Exceptions> {
+        // if self.black_matrix.is_none() {
+        //     self.black_matrix =
+        //         Some(Self::build_black_matrix(&self.source).expect("matrix must generate"))
+        // }
+        // Ok(self.black_matrix.as_ref().unwrap())
+        let matrix = self.black_matrix.get_or_try_init(||Self::build_black_matrix(&self.source))?;
+        Ok(matrix)
     }
 
     fn createBinarizer(
         &self,
         source: Box<dyn crate::LuminanceSource>,
-    ) -> Rc<RefCell<dyn Binarizer>> {
-        Rc::new(RefCell::new(GlobalHistogramBinarizer::new(source)))
+    ) -> Rc<dyn Binarizer> {
+        Rc::new(GlobalHistogramBinarizer::new(source))
     }
 
     fn getWidth(&self) -> usize {
@@ -133,8 +139,8 @@ impl GlobalHistogramBinarizer {
             _luminances: vec![0; source.getWidth()],
             width: source.getWidth(),
             height: source.getHeight(),
-            black_matrix: None,
-            black_row_cache: vec![None; source.getHeight()],
+            black_matrix: OnceCell::new(),
+            black_row_cache: vec![OnceCell::default(); source.getHeight()],
             source,
         }
     }
