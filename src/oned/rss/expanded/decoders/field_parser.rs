@@ -31,115 +31,111 @@ use std::collections::HashMap;
 
 use crate::Exceptions;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
-lazy_static! {
+static TWO_DIGIT_DATA_LENGTH: Lazy<HashMap<String, DataLength>> = Lazy::new(|| {
+    let mut hm = HashMap::new();
+    hm.insert("00".to_owned(), DataLength::fixed(18));
+    hm.insert("01".to_owned(), DataLength::fixed(14));
+    hm.insert("02".to_owned(), DataLength::fixed(14));
+    hm.insert("10".to_owned(), DataLength::variable(20));
+    hm.insert("11".to_owned(), DataLength::fixed(6));
+    hm.insert("12".to_owned(), DataLength::fixed(6));
+    hm.insert("13".to_owned(), DataLength::fixed(6));
+    hm.insert("15".to_owned(), DataLength::fixed(6));
+    hm.insert("17".to_owned(), DataLength::fixed(6));
+    hm.insert("20".to_owned(), DataLength::fixed(2));
+    hm.insert("21".to_owned(), DataLength::variable(20));
+    hm.insert("22".to_owned(), DataLength::variable(29));
+    hm.insert("30".to_owned(), DataLength::variable(8));
+    hm.insert("37".to_owned(), DataLength::variable(8));
+    //internal company codes
+    for i in 90..=99 {
+        // for (int i = 90; i <= 99; i++) {
+        hm.insert(i.to_string(), DataLength::variable(30));
+    }
+    hm
+});
 
- static ref TWO_DIGIT_DATA_LENGTH : HashMap<String,DataLength> =  {
-   let mut hm = HashMap::new();
-   hm.insert("00".to_owned(), DataLength::fixed(18));
-   hm.insert("01".to_owned(), DataLength::fixed(14));
-   hm.insert("02".to_owned(), DataLength::fixed(14));
-   hm.insert("10".to_owned(), DataLength::variable(20));
-   hm.insert("11".to_owned(), DataLength::fixed(6));
-   hm.insert("12".to_owned(), DataLength::fixed(6));
-   hm.insert("13".to_owned(), DataLength::fixed(6));
-   hm.insert("15".to_owned(), DataLength::fixed(6));
-   hm.insert("17".to_owned(), DataLength::fixed(6));
-   hm.insert("20".to_owned(), DataLength::fixed(2));
-   hm.insert("21".to_owned(), DataLength::variable(20));
-   hm.insert("22".to_owned(), DataLength::variable(29));
-   hm.insert("30".to_owned(), DataLength::variable(8));
-   hm.insert("37".to_owned(), DataLength::variable(8));
-   //internal company codes
-   for i in 90..=99 {
-   // for (int i = 90; i <= 99; i++) {
-     hm.insert(i.to_string(), DataLength::variable(30));
-   }
-   hm
- };
+static THREE_DIGIT_DATA_LENGTH: Lazy<HashMap<String, DataLength>> = Lazy::new(|| {
+    let mut hm = HashMap::new();
+    hm.insert("240".to_owned(), DataLength::variable(30));
+    hm.insert("241".to_owned(), DataLength::variable(30));
+    hm.insert("242".to_owned(), DataLength::variable(6));
+    hm.insert("250".to_owned(), DataLength::variable(30));
+    hm.insert("251".to_owned(), DataLength::variable(30));
+    hm.insert("253".to_owned(), DataLength::variable(17));
+    hm.insert("254".to_owned(), DataLength::variable(20));
+    hm.insert("400".to_owned(), DataLength::variable(30));
+    hm.insert("401".to_owned(), DataLength::variable(30));
+    hm.insert("402".to_owned(), DataLength::fixed(17));
+    hm.insert("403".to_owned(), DataLength::variable(30));
+    hm.insert("410".to_owned(), DataLength::fixed(13));
+    hm.insert("411".to_owned(), DataLength::fixed(13));
+    hm.insert("412".to_owned(), DataLength::fixed(13));
+    hm.insert("413".to_owned(), DataLength::fixed(13));
+    hm.insert("414".to_owned(), DataLength::fixed(13));
+    hm.insert("420".to_owned(), DataLength::variable(20));
+    hm.insert("421".to_owned(), DataLength::variable(15));
+    hm.insert("422".to_owned(), DataLength::fixed(3));
+    hm.insert("423".to_owned(), DataLength::variable(15));
+    hm.insert("424".to_owned(), DataLength::fixed(3));
+    hm.insert("425".to_owned(), DataLength::fixed(3));
+    hm.insert("426".to_owned(), DataLength::fixed(3));
 
- static ref THREE_DIGIT_DATA_LENGTH : HashMap<String,DataLength>=
- {
-   let mut hm = HashMap::new();
-   hm.insert("240".to_owned(), DataLength::variable(30));
-   hm.insert("241".to_owned(), DataLength::variable(30));
-   hm.insert("242".to_owned(), DataLength::variable(6));
-   hm.insert("250".to_owned(), DataLength::variable(30));
-   hm.insert("251".to_owned(), DataLength::variable(30));
-   hm.insert("253".to_owned(), DataLength::variable(17));
-   hm.insert("254".to_owned(), DataLength::variable(20));
-   hm.insert("400".to_owned(), DataLength::variable(30));
-   hm.insert("401".to_owned(), DataLength::variable(30));
-   hm.insert("402".to_owned(), DataLength::fixed(17));
-   hm.insert("403".to_owned(), DataLength::variable(30));
-   hm.insert("410".to_owned(), DataLength::fixed(13));
-   hm.insert("411".to_owned(), DataLength::fixed(13));
-   hm.insert("412".to_owned(), DataLength::fixed(13));
-   hm.insert("413".to_owned(), DataLength::fixed(13));
-   hm.insert("414".to_owned(), DataLength::fixed(13));
-   hm.insert("420".to_owned(), DataLength::variable(20));
-   hm.insert("421".to_owned(), DataLength::variable(15));
-   hm.insert("422".to_owned(), DataLength::fixed(3));
-   hm.insert("423".to_owned(), DataLength::variable(15));
-   hm.insert("424".to_owned(), DataLength::fixed(3));
-   hm.insert("425".to_owned(), DataLength::fixed(3));
-   hm.insert("426".to_owned(), DataLength::fixed(3));
+    hm
+});
 
-   hm
- };
+static THREE_DIGIT_PLUS_DIGIT_DATA_LENGTH: Lazy<HashMap<String, DataLength>> = Lazy::new(|| {
+    let mut hm = HashMap::new();
+    for i in 310..=316 {
+        // for (int i = 310; i <= 316; i++) {
+        hm.insert(i.to_string(), DataLength::fixed(6));
+    }
+    for i in 320..=336 {
+        // for (int i = 320; i <= 336; i++) {
+        hm.insert(i.to_string(), DataLength::fixed(6));
+    }
+    for i in 340..=357 {
+        // for (int i = 340; i <= 357; i++) {
+        hm.insert(i.to_string(), DataLength::fixed(6));
+    }
+    for i in 360..=369 {
+        // for (int i = 360; i <= 369; i++) {
+        hm.insert(i.to_string(), DataLength::fixed(6));
+    }
+    hm.insert("390".to_owned(), DataLength::variable(15));
+    hm.insert("391".to_owned(), DataLength::variable(18));
+    hm.insert("392".to_owned(), DataLength::variable(15));
+    hm.insert("393".to_owned(), DataLength::variable(18));
+    hm.insert("703".to_owned(), DataLength::variable(30));
 
- static ref  THREE_DIGIT_PLUS_DIGIT_DATA_LENGTH:HashMap<String,DataLength> = {
-   let mut hm = HashMap::new();
-   for i in 310..=316 {
-   // for (int i = 310; i <= 316; i++) {
-     hm.insert(i.to_string(), DataLength::fixed(6));
-   }
-   for i in 320..=336 {
-   // for (int i = 320; i <= 336; i++) {
-     hm.insert(i.to_string(), DataLength::fixed(6));
-   }
-   for i in 340..=357 {
-   // for (int i = 340; i <= 357; i++) {
-     hm.insert(i.to_string(), DataLength::fixed(6));
-   }
-   for i in 360..=369 {
-   // for (int i = 360; i <= 369; i++) {
-     hm.insert(i.to_string(), DataLength::fixed(6));
-   }
-   hm.insert("390".to_owned(), DataLength::variable(15));
-   hm.insert("391".to_owned(), DataLength::variable(18));
-   hm.insert("392".to_owned(), DataLength::variable(15));
-   hm.insert("393".to_owned(), DataLength::variable(18));
-   hm.insert("703".to_owned(), DataLength::variable(30));
+    hm
+});
 
-   hm
- };
+static FOUR_DIGIT_DATA_LENGTH: Lazy<HashMap<String, DataLength>> = Lazy::new(|| {
+    let mut hm = HashMap::new();
+    hm.insert("7001".to_owned(), DataLength::fixed(13));
+    hm.insert("7002".to_owned(), DataLength::variable(30));
+    hm.insert("7003".to_owned(), DataLength::fixed(10));
+    hm.insert("8001".to_owned(), DataLength::fixed(14));
+    hm.insert("8002".to_owned(), DataLength::variable(20));
+    hm.insert("8003".to_owned(), DataLength::variable(30));
+    hm.insert("8004".to_owned(), DataLength::variable(30));
+    hm.insert("8005".to_owned(), DataLength::fixed(6));
+    hm.insert("8006".to_owned(), DataLength::fixed(18));
+    hm.insert("8007".to_owned(), DataLength::variable(30));
+    hm.insert("8008".to_owned(), DataLength::variable(12));
+    hm.insert("8018".to_owned(), DataLength::fixed(18));
+    hm.insert("8020".to_owned(), DataLength::variable(25));
+    hm.insert("8100".to_owned(), DataLength::fixed(6));
+    hm.insert("8101".to_owned(), DataLength::fixed(10));
+    hm.insert("8102".to_owned(), DataLength::fixed(2));
+    hm.insert("8110".to_owned(), DataLength::variable(70));
+    hm.insert("8200".to_owned(), DataLength::variable(70));
 
- static ref FOUR_DIGIT_DATA_LENGTH : HashMap<String,DataLength>={
-   let mut hm = HashMap::new();
-   hm.insert("7001".to_owned(), DataLength::fixed(13));
-   hm.insert("7002".to_owned(), DataLength::variable(30));
-   hm.insert("7003".to_owned(), DataLength::fixed(10));
-   hm.insert("8001".to_owned(), DataLength::fixed(14));
-   hm.insert("8002".to_owned(), DataLength::variable(20));
-   hm.insert("8003".to_owned(), DataLength::variable(30));
-   hm.insert("8004".to_owned(), DataLength::variable(30));
-   hm.insert("8005".to_owned(), DataLength::fixed(6));
-   hm.insert("8006".to_owned(), DataLength::fixed(18));
-   hm.insert("8007".to_owned(), DataLength::variable(30));
-   hm.insert("8008".to_owned(), DataLength::variable(12));
-   hm.insert("8018".to_owned(), DataLength::fixed(18));
-   hm.insert("8020".to_owned(), DataLength::variable(25));
-   hm.insert("8100".to_owned(), DataLength::fixed(6));
-   hm.insert("8101".to_owned(), DataLength::fixed(10));
-   hm.insert("8102".to_owned(), DataLength::fixed(2));
-   hm.insert("8110".to_owned(), DataLength::variable(70));
-   hm.insert("8200".to_owned(), DataLength::variable(70));
-
-   hm
- };
-}
+    hm
+});
 
 pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String, Exceptions> {
     if rawInformation.is_empty() {

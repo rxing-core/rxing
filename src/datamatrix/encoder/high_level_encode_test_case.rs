@@ -16,27 +16,26 @@
 
 use std::rc::Rc;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 use crate::datamatrix::encoder::{SymbolInfo, SymbolShapeHint};
 
 use super::{high_level_encoder, minimal_encoder, symbol_info, SymbolInfoLookup};
 
-lazy_static! {
-  /**
+/**
  * Tests for {@link HighLevelEncoder} and {@link MinimalEncoder}
  */
-  static ref  TEST_SYMBOLS :Vec<SymbolInfo>= vec![
-     SymbolInfo::new(false, 3, 5, 8, 8, 1),
-     SymbolInfo::new(false, 5, 7, 10, 10, 1),
-      /*rect*/ SymbolInfo::new(true, 5, 7, 16, 6, 1),
-     SymbolInfo::new(false, 8, 10, 12, 12, 1),
-      /*rect*/ SymbolInfo::new(true, 10, 11, 14, 6, 2),
-     SymbolInfo::new(false, 13, 0, 0, 0, 1),
-     SymbolInfo::new(false, 77, 0, 0, 0, 1)
-    //The last entries are fake entries to test special conditions with C40 encoding
-  ];
-}
+static TEST_SYMBOLS: Lazy<Vec<SymbolInfo>> = Lazy::new(|| {
+    vec![
+        SymbolInfo::new(false, 3, 5, 8, 8, 1),
+        SymbolInfo::new(false, 5, 7, 10, 10, 1),
+        /*rect*/ SymbolInfo::new(true, 5, 7, 16, 6, 1),
+        SymbolInfo::new(false, 8, 10, 12, 12, 1),
+        /*rect*/ SymbolInfo::new(true, 10, 11, 14, 6, 2),
+        SymbolInfo::new(false, 13, 0, 0, 0, 1),
+        SymbolInfo::new(false, 77, 0, 0, 0, 1), //The last entries are fake entries to test special conditions with C40 encoding
+    ]
+});
 
 // const SIL: SymbolInfoLookup = SymbolInfoLookup::new();
 

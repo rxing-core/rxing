@@ -26,12 +26,10 @@ use crate::RXingResult;
 
 use super::{EmailAddressParsedRXingResult, ParsedClientResult, ResultParser};
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
-lazy_static! {
-    static ref ATEXT_ALPHANUMERIC: Regex =
-        Regex::new("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+").unwrap();
-}
+static ATEXT_ALPHANUMERIC: Lazy<Regex> =
+    Lazy::new(|| Regex::new("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+").unwrap());
 
 /**
  * Implements the "MATMSG" email message entry format.

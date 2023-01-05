@@ -23,11 +23,9 @@
 
 use super::{GeoParsedRXingResult, ParsedClientResult, ResultParser};
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
-lazy_static! {
-    static ref GEO_URL: regex::Regex = regex::Regex::new(GEO_URL_PATTERN).unwrap();
-}
+static GEO_URL: Lazy<regex::Regex> = Lazy::new(|| regex::Regex::new(GEO_URL_PATTERN).unwrap());
 
 const GEO_URL_PATTERN: &str = "geo:([\\-0-9.]+),([\\-0-9.]+)(?:,([\\-0-9.]+))?(?:\\?(.*))?";
 

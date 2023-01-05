@@ -56,11 +56,7 @@ fn test_short_shift_jis1() {
 #[test]
 fn test_short_iso885911() {
     // båd
-    do_test(
-        &[0x62, 0xe5, 0x64],
-        encoding::all::ISO_8859_1,
-        "ISO8859_1",
-    );
+    do_test(&[0x62, 0xe5, 0x64], encoding::all::ISO_8859_1, "ISO8859_1");
 }
 
 #[test]

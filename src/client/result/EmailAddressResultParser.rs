@@ -24,13 +24,11 @@
 use regex::Regex;
 
 use crate::RXingResult;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
-lazy_static! {
-    static ref COMMA: Regex = Regex::new(",").unwrap();
-    static ref ATEXT_ALPHANUMERIC: Regex =
-        Regex::new("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+").unwrap();
-}
+static COMMA: Lazy<Regex> = Lazy::new(|| Regex::new(",").unwrap());
+static ATEXT_ALPHANUMERIC: Lazy<Regex> =
+    Lazy::new(|| Regex::new("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+").unwrap());
 
 use super::{
     EmailAddressParsedRXingResult, EmailDoCoMoResultParser, ParsedClientResult, ResultParser,

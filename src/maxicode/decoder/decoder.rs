@@ -16,7 +16,7 @@
 
 use std::collections::HashMap;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 use crate::{
     common::{
@@ -39,11 +39,11 @@ const ALL: u32 = 0;
 const EVEN: u32 = 1;
 const ODD: u32 = 2;
 
-lazy_static! {
-    static ref RS_DECODER: ReedSolomonDecoder = ReedSolomonDecoder::new(get_predefined_genericgf(
-        PredefinedGenericGF::MaxicodeField64
-    ));
-}
+static RS_DECODER: Lazy<ReedSolomonDecoder> = Lazy::new(|| {
+    ReedSolomonDecoder::new(get_predefined_genericgf(
+        PredefinedGenericGF::MaxicodeField64,
+    ))
+});
 
 pub fn decode(bits: BitMatrix) -> Result<DecoderRXingResult, Exceptions> {
     decode_with_hints(bits, &HashMap::new())

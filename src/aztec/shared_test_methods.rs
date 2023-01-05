@@ -2,12 +2,10 @@ use regex::Regex;
 
 use crate::common::BitArray;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
-lazy_static! {
-    static ref SPACES: Regex = Regex::new("\\s+").unwrap();
-    static ref DOTX: Regex = Regex::new("[^.X]").unwrap();
-}
+static SPACES: Lazy<Regex> = Lazy::new(|| Regex::new("\\s+").unwrap());
+static DOTX: Lazy<Regex> = Lazy::new(|| Regex::new("[^.X]").unwrap());
 
 #[allow(dead_code)]
 pub fn toBitArray(bits: &str) -> BitArray {

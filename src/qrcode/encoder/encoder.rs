@@ -21,7 +21,7 @@ use std::collections::HashMap;
 
 use encoding::EncodingRef;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{
@@ -35,10 +35,8 @@ use crate::{
 
 use super::{mask_util, matrix_util, BlockPair, ByteMatrix, MinimalEncoder, QRCode};
 
-lazy_static! {
-    static ref SHIFT_JIS_CHARSET: EncodingRef =
-        encoding::label::encoding_from_whatwg_label("SJIS").unwrap();
-}
+static SHIFT_JIS_CHARSET: Lazy<EncodingRef> =
+    Lazy::new(|| encoding::label::encoding_from_whatwg_label("SJIS").unwrap());
 
 // The original table is defined in the table 5 of JISX0510:2004 (p.19).
 const ALPHANUMERIC_TABLE: [i8; 96] = [

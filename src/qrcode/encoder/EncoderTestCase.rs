@@ -25,14 +25,12 @@ use crate::{
     EncodeHintType, EncodeHintValue,
 };
 use encoding::EncodingRef;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 use super::QRCode;
 
-lazy_static! {
-    static ref SHIFT_JIS_CHARSET: EncodingRef =
-        encoding::label::encoding_from_whatwg_label("SJIS").unwrap();
-}
+static SHIFT_JIS_CHARSET: Lazy<EncodingRef> =
+    Lazy::new(|| encoding::label::encoding_from_whatwg_label("SJIS").unwrap());
 
 /**
  * @author satorux@google.com (Satoru Takabayashi) - creator

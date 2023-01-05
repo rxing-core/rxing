@@ -20,13 +20,11 @@ use crate::{common::BitMatrix, Exceptions};
 
 use super::{ErrorCorrectionLevel, FormatInformation};
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 pub type VersionRef = &'static Version;
 
-lazy_static! {
-    static ref VERSIONS: Vec<Version> = Version::buildVersions();
-}
+static VERSIONS: Lazy<Vec<Version>> = Lazy::new(|| Version::buildVersions());
 
 /**
  * See ISO 18004:2006 Annex D.

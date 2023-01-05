@@ -32,7 +32,7 @@ use std::convert::TryFrom;
 
 use regex::Regex;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 use crate::RXingResult;
 
@@ -40,17 +40,15 @@ use uriparse::URI;
 
 use super::{AddressBookParsedRXingResult, ParsedClientResult, ResultParser};
 
-lazy_static! {
-    static ref BEGIN_VCARD: Regex = Regex::new("(?i:BEGIN:VCARD)").unwrap();
-    static ref VCARD_LIKE_DATE: Regex = Regex::new("\\d{4}-?\\d{2}-?\\d{2}").unwrap();
-    static ref CR_LF_SPACE_TAB: Regex = Regex::new("\r\n[ \t]").unwrap();
-    static ref NEWLINE_ESCAPE: Regex = Regex::new("\\\\[nN]").unwrap();
-    static ref VCARD_ESCAPE: Regex = Regex::new("\\\\([,;\\\\])").unwrap();
-    static ref EQUALS: Regex = Regex::new("=").unwrap();
-    static ref UNESCAPED_SEMICOLONS: fancy_regex::Regex =
-        fancy_regex::Regex::new("(?<!\\\\);+").unwrap();
-    static ref SEMICOLON_OR_COMMA: Regex = Regex::new("[;,]").unwrap();
-}
+static BEGIN_VCARD: Lazy<Regex> = Lazy::new(|| Regex::new("(?i:BEGIN:VCARD)").unwrap());
+static VCARD_LIKE_DATE: Lazy<Regex> = Lazy::new(|| Regex::new("\\d{4}-?\\d{2}-?\\d{2}").unwrap());
+static CR_LF_SPACE_TAB: Lazy<Regex> = Lazy::new(|| Regex::new("\r\n[ \t]").unwrap());
+static NEWLINE_ESCAPE: Lazy<Regex> = Lazy::new(|| Regex::new("\\\\[nN]").unwrap());
+static VCARD_ESCAPE: Lazy<Regex> = Lazy::new(|| Regex::new("\\\\([,;\\\\])").unwrap());
+static EQUALS: Lazy<Regex> = Lazy::new(|| Regex::new("=").unwrap());
+static UNESCAPED_SEMICOLONS: Lazy<fancy_regex::Regex> =
+    Lazy::new(|| fancy_regex::Regex::new("(?<!\\\\);+").unwrap());
+static SEMICOLON_OR_COMMA: Lazy<Regex> = Lazy::new(|| Regex::new("[;,]").unwrap());
 
 // const BEGIN_VCARD: &'static str = "(?i:BEGIN:VCARD)"; //, Pattern.CASE_INSENSITIVE);
 // const VCARD_LIKE_DATE: &'static str = "\\d{4}-?\\d{2}-?\\d{2}";

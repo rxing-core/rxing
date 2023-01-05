@@ -17,7 +17,7 @@
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{common::DecoderRXingResult, Exceptions};
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 /**
  * <p>MaxiCodes can encode text or structured information as bits in one of several modes,
@@ -59,8 +59,8 @@ const POSTCODE_3_BYTES: [[u8; 6]; 6] = [
     [9, 10, 11, 12, 1, 2],
 ];
 
-lazy_static! {
-static ref SETS : [String;5]= [
+static SETS: Lazy<[String; 5]> = Lazy::new(|| {
+    [
     format!("\rABCDEFGHIJKLMNOPQRSTUVWXYZ{}{}{}{}{} {}\"#$%&'()*+,-./0123456789:{}{}{}{}{}" , ECI , FS , GS , RS , NS , PAD ,
          SHIFTB , SHIFTC , SHIFTD , SHIFTE , LATCHB),
     format!("`abcdefghijklmnopqrstuvwxyz{}{}{}{}{}{{{}}}~\u{007F};<=>?[\\]^_ ,./:@!|{}{}{}{}{}{}{}{}{}" , ECI , FS , GS , RS , NS ,PAD ,
@@ -78,8 +78,8 @@ static ref SETS : [String;5]= [
         ECI , PAD , PAD , '\u{001B}' , NS , FS , GS , RS ,
         "\u{001F}\u{009F}\u{00A0}\u{00A2}\u{00A3}\u{00A4}\u{00A5}\u{00A6}\u{00A7}\u{00A9}\u{00AD}\u{00AE}\u{00B6}\u{0095}\u{0096}\u{0097}\u{0098}\u{0099}\u{009A}\u{009B}\u{009C}\u{009D}\u{009E}" ,
         LATCHA , ' ' , SHIFTC , SHIFTD , LOCK , LATCHB),
-   ];
-}
+   ]
+});
 
 pub fn decode(bytes: &[u8], mode: u8) -> Result<DecoderRXingResult, Exceptions> {
     let mut result = String::with_capacity(144);

@@ -15,13 +15,11 @@
  */
 
 use core::fmt;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 use crate::Exceptions;
 
-lazy_static! {
-    static ref VERSIONS: Vec<Version> = Version::buildVersions();
-}
+static VERSIONS: Lazy<Vec<Version>> = Lazy::new(|| Version::buildVersions());
 
 pub type VersionRef = &'static Version;
 

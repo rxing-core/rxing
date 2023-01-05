@@ -36,7 +36,9 @@ pub fn detect_in_file_with_hints(
         );
     }
 
-    hints.entry(DecodeHintType::TRY_HARDER).or_insert(DecodeHintValue::TryHarder(true));
+    hints
+        .entry(DecodeHintType::TRY_HARDER)
+        .or_insert(DecodeHintValue::TryHarder(true));
 
     multi_format_reader.decode_with_hints(
         &mut BinaryBitmap::new(Rc::new(RefCell::new(HybridBinarizer::new(Box::new(
@@ -60,7 +62,9 @@ pub fn detect_multiple_in_file_with_hints(
     let multi_format_reader = MultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
-    hints.entry(DecodeHintType::TRY_HARDER).or_insert(DecodeHintValue::TryHarder(true));
+    hints
+        .entry(DecodeHintType::TRY_HARDER)
+        .or_insert(DecodeHintValue::TryHarder(true));
 
     scanner.decode_multiple_with_hints(
         &mut BinaryBitmap::new(Rc::new(RefCell::new(HybridBinarizer::new(Box::new(
@@ -95,7 +99,9 @@ pub fn detect_in_luma_with_hints(
         );
     }
 
-    hints.entry(DecodeHintType::TRY_HARDER).or_insert(DecodeHintValue::TryHarder(true));
+    hints
+        .entry(DecodeHintType::TRY_HARDER)
+        .or_insert(DecodeHintValue::TryHarder(true));
 
     multi_format_reader.decode_with_hints(
         &mut BinaryBitmap::new(Rc::new(RefCell::new(HybridBinarizer::new(Box::new(
@@ -122,7 +128,9 @@ pub fn detect_multiple_in_luma_with_hints(
     let multi_format_reader = MultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
-    hints.entry(DecodeHintType::TRY_HARDER).or_insert(DecodeHintValue::TryHarder(true));
+    hints
+        .entry(DecodeHintType::TRY_HARDER)
+        .or_insert(DecodeHintValue::TryHarder(true));
 
     scanner.decode_multiple_with_hints(
         &mut BinaryBitmap::new(Rc::new(RefCell::new(HybridBinarizer::new(Box::new(

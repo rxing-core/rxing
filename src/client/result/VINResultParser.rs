@@ -29,12 +29,10 @@ use crate::{
 
 use super::ParsedClientResult;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
-lazy_static! {
-    static ref IOQ_MATCHER: Regex = Regex::new(IOQ).unwrap();
-    static ref AZ09_MATCHER: Regex = Regex::new(AZ09).unwrap();
-}
+static IOQ_MATCHER: Lazy<Regex> = Lazy::new(|| Regex::new(IOQ).unwrap());
+static AZ09_MATCHER: Lazy<Regex> = Lazy::new(|| Regex::new(AZ09).unwrap());
 
 /**
  * Detects a result that is likely a vehicle identification number.

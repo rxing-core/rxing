@@ -23,12 +23,10 @@ use crate::{
 
 use super::ModulusPoly;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
-lazy_static! {
-  // static ref PDF417_GF : Rc<&ModulusGF> =  Rc::new(&ModulusGF::new(NUMBER_OF_CODEWORDS, 3));
-  static ref FLD_INTERIOR : ModulusGF = ModulusGF::new(NUMBER_OF_CODEWORDS, 3);
-}
+// static ref PDF417_GF : Rc<&ModulusGF> =  Rc::new(&ModulusGF::new(NUMBER_OF_CODEWORDS, 3));
+static FLD_INTERIOR: Lazy<ModulusGF> = Lazy::new(|| ModulusGF::new(NUMBER_OF_CODEWORDS, 3));
 
 /**
  * <p>PDF417 error correction implementation.</p>

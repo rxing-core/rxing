@@ -22,18 +22,14 @@ pub(crate) mod ReedSolomonTestCase;
 //package com.google.zxing.common.reedsolomon;
 
 pub type GenericGFRef = &'static GenericGF;
+use once_cell::sync::Lazy;
 
-use lazy_static::lazy_static;
-
-lazy_static! {
-     static ref  AZTEC_DATA_12: GenericGF = GenericGF::new(0x1069, 4096, 1); // x^12 + x^6 + x^5 + x^3 + 1
-     static ref  AZTEC_DATA_10: GenericGF = GenericGF::new(0x409, 1024, 1); // x^10 + x^3 + 1
-     static ref  AZTEC_DATA_6: GenericGF = GenericGF::new(0x43, 64, 1); // x^6 + x + 1
-     static ref  AZTEC_PARAM: GenericGF = GenericGF::new(0x13, 16, 1); // x^4 + x + 1
-     static ref  QR_CODE_FIELD_256: GenericGF = GenericGF::new(0x011D, 256, 0); // x^8 + x^4 + x^3 + x^2 + 1
-     static ref  DATA_MATRIX_FIELD_256: GenericGF = GenericGF::new(0x012D, 256, 1); // x^8 + x^5 + x^3 + x^2 + 1
-    //  static ref  PDF_417_FIELD: GenericGF = GenericGF::new(3,crate::pdf417::pdf_417_common::NUMBER_OF_CODEWORDS as usize,1);
-}
+static AZTEC_DATA_12: Lazy<GenericGF> = Lazy::new(|| GenericGF::new(0x1069, 4096, 1)); // x^12 + x^6 + x^5 + x^3 + 1
+static AZTEC_DATA_10: Lazy<GenericGF> = Lazy::new(|| GenericGF::new(0x409, 1024, 1)); // x^10 + x^3 + 1
+static AZTEC_DATA_6: Lazy<GenericGF> = Lazy::new(|| GenericGF::new(0x43, 64, 1)); // x^6 + x + 1
+static AZTEC_PARAM: Lazy<GenericGF> = Lazy::new(|| GenericGF::new(0x13, 16, 1)); // x^4 + x + 1
+static QR_CODE_FIELD_256: Lazy<GenericGF> = Lazy::new(|| GenericGF::new(0x011D, 256, 0)); // x^8 + x^4 + x^3 + x^2 + 1
+static DATA_MATRIX_FIELD_256: Lazy<GenericGF> = Lazy::new(|| GenericGF::new(0x012D, 256, 1)); // x^8 + x^5 + x^3 + x^2 + 1
 
 // pub const AZTEC_DATA_12: GenericGF = GenericGF::new(0x1069, 4096, 1); // x^12 + x^6 + x^5 + x^3 + 1
 // pub const AZTEC_DATA_10: GenericGF = GenericGF::new(0x409, 1024, 1); // x^10 + x^3 + 1

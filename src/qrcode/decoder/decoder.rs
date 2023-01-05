@@ -22,7 +22,7 @@ use std::{collections::HashMap, rc::Rc};
  *
  * @author Sean Owen
  */
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 use crate::{
     common::{
@@ -34,10 +34,12 @@ use crate::{
 
 use super::{decoded_bit_stream_parser, BitMatrixParser, DataBlock, QRCodeDecoderMetaData};
 
-lazy_static! {
- //rsDecoder = new ReedSolomonDecoder(GenericGF.QR_CODE_FIELD_256);
- static ref RS_DECODER : ReedSolomonDecoder = ReedSolomonDecoder::new(get_predefined_genericgf(PredefinedGenericGF::QrCodeField256));
-}
+//rsDecoder = new ReedSolomonDecoder(GenericGF.QR_CODE_FIELD_256);
+static RS_DECODER: Lazy<ReedSolomonDecoder> = Lazy::new(|| {
+    ReedSolomonDecoder::new(get_predefined_genericgf(
+        PredefinedGenericGF::QrCodeField256,
+    ))
+});
 
 pub fn decode_bool_array(image: &Vec<Vec<bool>>) -> Result<DecoderRXingResult, Exceptions> {
     decode_bool_array_with_hints(image, &HashMap::new())

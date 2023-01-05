@@ -27,16 +27,14 @@
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  */
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::{common::BitArray, Exceptions};
 
-lazy_static! {
-    static ref ONE: Regex = Regex::new("1").unwrap();
-    static ref ZERO: Regex = Regex::new("0").unwrap();
-    static ref SPACE: Regex = Regex::new(" ").unwrap();
-}
+static ONE: Lazy<Regex> = Lazy::new(|| Regex::new("1").unwrap());
+static ZERO: Lazy<Regex> = Lazy::new(|| Regex::new("0").unwrap());
+static SPACE: Lazy<Regex> = Lazy::new(|| Regex::new(" ").unwrap());
 
 /*
  * Constructs a BitArray from a String like the one returned from BitArray.toString()

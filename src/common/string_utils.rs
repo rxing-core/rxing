@@ -24,7 +24,7 @@ use encoding::{Encoding, EncodingRef};
 
 use crate::{DecodeHintType, DecodeHintValue, DecodingHintDictionary};
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 /**
  * Common string-related functions.
@@ -55,10 +55,9 @@ pub struct StringUtils {
 const ASSUME_SHIFT_JIS: bool = false;
 // static SHIFT_JIS: &'static str = "SJIS";
 // static GB2312: &'static str = "GB2312";
-lazy_static! {
-    pub static ref SHIFT_JIS_CHARSET: EncodingRef =
-        encoding::label::encoding_from_whatwg_label("SJIS").unwrap();
-}
+
+pub static SHIFT_JIS_CHARSET: Lazy<EncodingRef> =
+    Lazy::new(|| encoding::label::encoding_from_whatwg_label("SJIS").unwrap());
 
 //    private static final boolean ASSUME_SHIFT_JIS =
 //        SHIFT_JIS_CHARSET.equals(PLATFORM_DEFAULT_ENCODING) ||

@@ -34,7 +34,7 @@ const LF: &str = "10000110010";
 
 use std::collections::HashMap;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 use crate::{
     common::{BitMatrix, BitMatrixTestCase},
@@ -43,9 +43,8 @@ use crate::{
 };
 
 use super::Code128Writer;
-lazy_static! {
-    static ref WRITER: Code128Writer = Code128Writer::default();
-}
+
+static WRITER: Lazy<Code128Writer> = Lazy::new(|| Code128Writer::default());
 
 #[test]
 fn testEncodeWithFunc3() {

@@ -28,23 +28,22 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use super::CharacterSetECI;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
-lazy_static! {
-    static ref ENCODERS : Vec<EncodingRef> = {
-        let mut enc_vec = Vec::new();
-        for name in NAMES {
-            if let Some(enc) = CharacterSetECI::getCharacterSetECIByName(name) {
-                // try {
-                    enc_vec.push(CharacterSetECI::getCharset(&enc));
-                // } catch (UnsupportedCharsetException e) {
-                // continue
-                // }
-            }
+static ENCODERS: Lazy<Vec<EncodingRef>> = Lazy::new(|| {
+    let mut enc_vec = Vec::new();
+    for name in NAMES {
+        if let Some(enc) = CharacterSetECI::getCharacterSetECIByName(name) {
+            // try {
+            enc_vec.push(CharacterSetECI::getCharset(&enc));
+            // } catch (UnsupportedCharsetException e) {
+            // continue
+            // }
         }
-        enc_vec
-    };
-}
+    }
+    enc_vec
+});
+
 const NAMES: [&str; 20] = [
     "IBM437",
     "ISO-8859-2",

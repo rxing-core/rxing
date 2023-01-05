@@ -29,7 +29,7 @@
 
 use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
 use chrono_tz::Tz;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::exceptions::Exceptions;
@@ -46,11 +46,11 @@ const RFC2445_DURATION_FIELD_UNITS: [i64; 5] = [
     1000i64,                    // 1 second
 ];
 
-lazy_static! {
-    static ref DATE_TIME: Regex = Regex::new("[0-9]{8}(T[0-9]{6}Z?)?").unwrap();
-    static ref RFC2445_DURATION: Regex =
-        Regex::new("P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?").unwrap();
-}
+static DATE_TIME: Lazy<Regex> = Lazy::new(|| Regex::new("[0-9]{8}(T[0-9]{6}Z?)?").unwrap());
+static RFC2445_DURATION: Lazy<Regex> = Lazy::new(|| {
+    Regex::new("P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?").unwrap()
+});
+
 // const DATE_TIME: &'static str = "[0-9]{8}(T[0-9]{6}Z?)?";
 
 /**

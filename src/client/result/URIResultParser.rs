@@ -21,7 +21,7 @@
 // import java.util.regex.Matcher;
 // import java.util.regex.Pattern;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 /**
  * Tries to parse results that are a URI of some kind.
  *
@@ -34,15 +34,15 @@ use crate::RXingResult;
 
 use super::{ParsedClientResult, ResultParser, URIParsedRXingResult};
 
-lazy_static! {
-    static ref ALLOWED_URI_CHARS: Regex =
-        Regex::new(ALLOWED_URI_CHARS_PATTERN).expect("Regex patterns should always copile");
-    static ref USER_IN_HOST: Regex =
-        Regex::new(":/*([^/@]+)@[^/]+").expect("Regex patterns should always copile");
-    static ref URL_WITH_PROTOCOL_PATTERN: Regex = Regex::new("[a-zA-Z][a-zA-Z0-9+-.]+:").unwrap();
-    static ref URL_WITHOUT_PROTOCOL_PATTERN: Regex =
-        Regex::new("([a-zA-Z0-9\\-]+\\.){1,6}[a-zA-Z]{2,}(:\\d{1,5})?(/|\\?|$)").unwrap();
-}
+static ALLOWED_URI_CHARS: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(ALLOWED_URI_CHARS_PATTERN).expect("Regex patterns should always copile")
+});
+static USER_IN_HOST: Lazy<Regex> =
+    Lazy::new(|| Regex::new(":/*([^/@]+)@[^/]+").expect("Regex patterns should always copile"));
+static URL_WITH_PROTOCOL_PATTERN: Lazy<Regex> =
+    Lazy::new(|| Regex::new("[a-zA-Z][a-zA-Z0-9+-.]+:").unwrap());
+static URL_WITHOUT_PROTOCOL_PATTERN: Lazy<Regex> =
+    Lazy::new(|| Regex::new("([a-zA-Z0-9\\-]+\\.){1,6}[a-zA-Z]{2,}(:\\d{1,5})?(/|\\?|$)").unwrap());
 
 const ALLOWED_URI_CHARS_PATTERN: &str = "[-._~:/?#\\[\\]@!$&'()*+,;=%A-Za-z0-9]+";
 // const USER_IN_HOST: &'static str = ":/*([^/@]+)@[^/]+";

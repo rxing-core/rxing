@@ -24,11 +24,9 @@ use crate::{
 
 use super::{decoder::Decoder, detector::Detector};
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
-lazy_static! {
-    static ref DECODER: Decoder = Decoder::new();
-}
+static DECODER: Lazy<Decoder> = Lazy::new(|| Decoder::new());
 
 /**
  * This implementation can detect and decode Data Matrix codes in an image.

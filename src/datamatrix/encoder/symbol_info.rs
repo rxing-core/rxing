@@ -19,42 +19,42 @@ use std::fmt;
 use crate::{Dimension, Exceptions};
 
 use super::SymbolShapeHint;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
-lazy_static! {
-pub(super) static ref PROD_SYMBOLS: Vec<SymbolInfo> = vec![
-  SymbolInfo::new(false, 3, 5, 8, 8, 1),
-  SymbolInfo::new(false, 5, 7, 10, 10, 1),
-  /*rect*/ SymbolInfo::new(true, 5, 7, 16, 6, 1),
-  SymbolInfo::new(false, 8, 10, 12, 12, 1),
-  /*rect*/ SymbolInfo::new(true, 10, 11, 14, 6, 2),
-  SymbolInfo::new(false, 12, 12, 14, 14, 1),
-  /*rect*/ SymbolInfo::new(true, 16, 14, 24, 10, 1),
-  SymbolInfo::new(false, 18, 14, 16, 16, 1),
-  SymbolInfo::new(false, 22, 18, 18, 18, 1),
-  /*rect*/ SymbolInfo::new(true, 22, 18, 16, 10, 2),
-  SymbolInfo::new(false, 30, 20, 20, 20, 1),
-  /*rect*/ SymbolInfo::new(true, 32, 24, 16, 14, 2),
-  SymbolInfo::new(false, 36, 24, 22, 22, 1),
-  SymbolInfo::new(false, 44, 28, 24, 24, 1),
-  /*rect*/ SymbolInfo::new(true, 49, 28, 22, 14, 2),
-  SymbolInfo::new(false, 62, 36, 14, 14, 4),
-  SymbolInfo::new(false, 86, 42, 16, 16, 4),
-  SymbolInfo::new(false, 114, 48, 18, 18, 4),
-  SymbolInfo::new(false, 144, 56, 20, 20, 4),
-  SymbolInfo::new(false, 174, 68, 22, 22, 4),
-  SymbolInfo::with_details(false, 204, 84, 24, 24, 4, 102, 42),
-  SymbolInfo::with_details(false, 280, 112, 14, 14, 16, 140, 56),
-  SymbolInfo::with_details(false, 368, 144, 16, 16, 16, 92, 36),
-  SymbolInfo::with_details(false, 456, 192, 18, 18, 16, 114, 48),
-  SymbolInfo::with_details(false, 576, 224, 20, 20, 16, 144, 56),
-  SymbolInfo::with_details(false, 696, 272, 22, 22, 16, 174, 68),
-  SymbolInfo::with_details(false, 816, 336, 24, 24, 16, 136, 56),
-  SymbolInfo::with_details(false, 1050, 408, 18, 18, 36, 175, 68),
-  SymbolInfo::with_details(false, 1304, 496, 20, 20, 36, 163, 62),
-  SymbolInfo::new_symbol_info_144(),
-];
-}
+pub(super) static PROD_SYMBOLS: Lazy<Vec<SymbolInfo>> = Lazy::new(|| {
+    vec![
+        SymbolInfo::new(false, 3, 5, 8, 8, 1),
+        SymbolInfo::new(false, 5, 7, 10, 10, 1),
+        /*rect*/ SymbolInfo::new(true, 5, 7, 16, 6, 1),
+        SymbolInfo::new(false, 8, 10, 12, 12, 1),
+        /*rect*/ SymbolInfo::new(true, 10, 11, 14, 6, 2),
+        SymbolInfo::new(false, 12, 12, 14, 14, 1),
+        /*rect*/ SymbolInfo::new(true, 16, 14, 24, 10, 1),
+        SymbolInfo::new(false, 18, 14, 16, 16, 1),
+        SymbolInfo::new(false, 22, 18, 18, 18, 1),
+        /*rect*/ SymbolInfo::new(true, 22, 18, 16, 10, 2),
+        SymbolInfo::new(false, 30, 20, 20, 20, 1),
+        /*rect*/ SymbolInfo::new(true, 32, 24, 16, 14, 2),
+        SymbolInfo::new(false, 36, 24, 22, 22, 1),
+        SymbolInfo::new(false, 44, 28, 24, 24, 1),
+        /*rect*/ SymbolInfo::new(true, 49, 28, 22, 14, 2),
+        SymbolInfo::new(false, 62, 36, 14, 14, 4),
+        SymbolInfo::new(false, 86, 42, 16, 16, 4),
+        SymbolInfo::new(false, 114, 48, 18, 18, 4),
+        SymbolInfo::new(false, 144, 56, 20, 20, 4),
+        SymbolInfo::new(false, 174, 68, 22, 22, 4),
+        SymbolInfo::with_details(false, 204, 84, 24, 24, 4, 102, 42),
+        SymbolInfo::with_details(false, 280, 112, 14, 14, 16, 140, 56),
+        SymbolInfo::with_details(false, 368, 144, 16, 16, 16, 92, 36),
+        SymbolInfo::with_details(false, 456, 192, 18, 18, 16, 114, 48),
+        SymbolInfo::with_details(false, 576, 224, 20, 20, 16, 144, 56),
+        SymbolInfo::with_details(false, 696, 272, 22, 22, 16, 174, 68),
+        SymbolInfo::with_details(false, 816, 336, 24, 24, 16, 136, 56),
+        SymbolInfo::with_details(false, 1050, 408, 18, 18, 36, 175, 68),
+        SymbolInfo::with_details(false, 1304, 496, 20, 20, 36, 163, 62),
+        SymbolInfo::new_symbol_info_144(),
+    ]
+});
 
 /**
  * Symbol info table for DataMatrix.

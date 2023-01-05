@@ -80,30 +80,28 @@ const MIXED_CHARS: [char; 25] = [
     '$', '/', '+', '%', '*', '=', '^',
 ];
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
-lazy_static! {
-    /**
-     * Table containing values for the exponent of 900.
-     * This is used in the numeric compaction decode algorithm.
-     */
-  static ref EXP900 : Vec<BigUint> = {
-    const EXP_LEN :usize= 16;
+/**
+ * Table containing values for the exponent of 900.
+ * This is used in the numeric compaction decode algorithm.
+ */
+static EXP900: Lazy<Vec<BigUint>> = Lazy::new(|| {
+    const EXP_LEN: usize = 16;
     let mut exp900 = Vec::with_capacity(EXP_LEN); //[0;16];
     exp900.push(ToBigUint::to_biguint(&1).unwrap());
     let nineHundred = ToBigUint::to_biguint(&900).unwrap();
     exp900.push(nineHundred);
     let mut i = 2;
     while i < EXP_LEN {
-    // for (int i = 2; i < EXP900.length; i++) {
-      exp900.push( &exp900[i - 1] * 900_u32);
+        // for (int i = 2; i < EXP900.length; i++) {
+        exp900.push(&exp900[i - 1] * 900_u32);
 
-      i+=1;
+        i += 1;
     }
 
     exp900
-  };
-}
+});
 
 // /**
 //  * Table containing values for the exponent of 900.

@@ -40,6 +40,8 @@ use crate::{
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
+use once_cell::sync::Lazy;
+
 use super::{bit_array_builder, decoders::abstract_expanded_decoder, ExpandedPair, ExpandedRow};
 
 const FINDER_PAT_A: u32 = 0;
@@ -49,9 +51,8 @@ const FINDER_PAT_D: u32 = 3;
 const FINDER_PAT_E: u32 = 4;
 const FINDER_PAT_F: u32 = 5;
 
-use lazy_static::lazy_static;
-lazy_static! {
-    static ref FINDER_PATTERN_SEQUENCES: Vec<Vec<u32>> = vec![
+static FINDER_PATTERN_SEQUENCES: Lazy<Vec<Vec<u32>>> = Lazy::new(|| {
+    vec![
         vec![FINDER_PAT_A, FINDER_PAT_A],
         vec![FINDER_PAT_A, FINDER_PAT_B, FINDER_PAT_B],
         vec![FINDER_PAT_A, FINDER_PAT_C, FINDER_PAT_B, FINDER_PAT_D],
@@ -60,7 +61,7 @@ lazy_static! {
             FINDER_PAT_E,
             FINDER_PAT_B,
             FINDER_PAT_D,
-            FINDER_PAT_C
+            FINDER_PAT_C,
         ],
         vec![
             FINDER_PAT_A,
@@ -68,7 +69,7 @@ lazy_static! {
             FINDER_PAT_B,
             FINDER_PAT_D,
             FINDER_PAT_D,
-            FINDER_PAT_F
+            FINDER_PAT_F,
         ],
         vec![
             FINDER_PAT_A,
@@ -77,7 +78,7 @@ lazy_static! {
             FINDER_PAT_D,
             FINDER_PAT_E,
             FINDER_PAT_F,
-            FINDER_PAT_F
+            FINDER_PAT_F,
         ],
         vec![
             FINDER_PAT_A,
@@ -87,7 +88,7 @@ lazy_static! {
             FINDER_PAT_C,
             FINDER_PAT_C,
             FINDER_PAT_D,
-            FINDER_PAT_D
+            FINDER_PAT_D,
         ],
         vec![
             FINDER_PAT_A,
@@ -98,7 +99,7 @@ lazy_static! {
             FINDER_PAT_C,
             FINDER_PAT_D,
             FINDER_PAT_E,
-            FINDER_PAT_E
+            FINDER_PAT_E,
         ],
         vec![
             FINDER_PAT_A,
@@ -110,7 +111,7 @@ lazy_static! {
             FINDER_PAT_D,
             FINDER_PAT_E,
             FINDER_PAT_F,
-            FINDER_PAT_F
+            FINDER_PAT_F,
         ],
         vec![
             FINDER_PAT_A,
@@ -123,10 +124,10 @@ lazy_static! {
             FINDER_PAT_E,
             FINDER_PAT_E,
             FINDER_PAT_F,
-            FINDER_PAT_F
+            FINDER_PAT_F,
         ],
-    ];
-}
+    ]
+});
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)

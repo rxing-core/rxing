@@ -20,12 +20,10 @@ use crate::{
     common::BitMatrix, BarcodeFormat, EncodeHintType, EncodeHintValue, Exceptions, Writer,
 };
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
-lazy_static! {
-    pub static ref NUMERIC: Regex = Regex::new("[0-9]+").unwrap();
-}
+pub static NUMERIC: Lazy<Regex> = Lazy::new(|| Regex::new("[0-9]+").unwrap());
 
 /**
  * <p>Encapsulates functionality and implementation that is common to one-dimensional barcodes.</p>

@@ -31,7 +31,7 @@ use std::collections::HashMap;
 use regex::Regex;
 use urlencoding::decode;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 use crate::{exceptions::Exceptions, RXingResult};
 
@@ -92,9 +92,7 @@ use super::{
 
 pub type ParserFunction = dyn Fn(&RXingResult) -> Option<ParsedClientResult>;
 
-lazy_static! {
-    static ref DIGITS: Regex = Regex::new("\\d+").unwrap();
-}
+static DIGITS: Lazy<Regex> = Lazy::new(|| Regex::new("\\d+").unwrap());
 
 // const DIGITS: &'static str = "\\d+"; //= Pattern.compile("\\d+");
 const AMPERSAND: &str = "&"; // private static final Pattern AMPERSAND = Pattern.compile("&");
