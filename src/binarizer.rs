@@ -16,7 +16,7 @@
 
 //package com.google.zxing;
 
-use std::{cell::RefCell, rc::Rc, borrow::Cow};
+use std::{rc::Rc, borrow::Cow};
 
 use crate::{
     common::{BitArray, BitMatrix},

@@ -24,7 +24,7 @@
  *   http://www.piramidepse.com/
  */
 
-use std::{cell::RefCell, rc::Rc};
+use std::{rc::Rc};
 
 use crate::{
     common::GlobalHistogramBinarizer,
@@ -42,7 +42,7 @@ use super::RSSExpandedReader;
 #[test]
 fn testFindFinderPatterns() {
     let image = readImage("2.png");
-    let mut binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
+    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
         Box::new(BufferedImageLuminanceSource::new(image)),
     )));
     let rowNumber = binaryMap.getHeight() as u32 / 2;
@@ -88,7 +88,7 @@ fn testFindFinderPatterns() {
 #[test]
 fn testRetrieveNextPairPatterns() {
     let image = readImage("3.png");
-    let mut binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
+    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
         Box::new(BufferedImageLuminanceSource::new(image)),
     )));
     let rowNumber = binaryMap.getHeight() as u32 / 2;
@@ -116,7 +116,7 @@ fn testRetrieveNextPairPatterns() {
 #[test]
 fn testDecodeCheckCharacter() {
     let image = readImage("3.png");
-    let mut binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
+    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
         Box::new(BufferedImageLuminanceSource::new(image.clone())),
     )));
     let row = binaryMap
@@ -144,7 +144,7 @@ fn testDecodeCheckCharacter() {
 #[test]
 fn testDecodeDataCharacter() {
     let image = readImage("3.png");
-    let mut binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
+    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
         Box::new(BufferedImageLuminanceSource::new(image.clone())),
     )));
     let row = binaryMap

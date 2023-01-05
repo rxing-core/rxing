@@ -222,7 +222,7 @@ mod multi_qr_code_test_case {
      * limitations under the License.
      */
 
-    use std::{cell::RefCell, collections::HashSet, path::PathBuf, rc::Rc};
+    use std::{collections::HashSet, path::PathBuf, rc::Rc};
 
     use image;
 

@@ -24,7 +24,7 @@
  *   http://www.piramidepse.com/
  */
 
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{collections::HashMap, rc::Rc};
 
 use crate::{
     common::GlobalHistogramBinarizer,
@@ -184,7 +184,7 @@ fn assertCorrectImage2string(fileName: &str, expected: &str) {
     let path = format!("test_resources/blackbox/rssexpanded-1/{}", fileName);
 
     let image = image::open(path).expect("load image");
-    let mut binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
+    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(
         Box::new(BufferedImageLuminanceSource::new(image)),
     )));
     let rowNumber = binaryMap.getHeight() / 2;

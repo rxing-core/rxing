@@ -36,7 +36,7 @@ use super::{test_case_util, RSSExpandedReader};
 fn testDecodingRowByRow() {
     let mut rssExpandedReader = RSSExpandedReader::new();
 
-    let mut binaryMap = test_case_util::getBinaryBitmap("1000.png");
+    let binaryMap = test_case_util::getBinaryBitmap("1000.png");
 
     let firstRowNumber = binaryMap.getHeight() / 3;
     let firstRow = binaryMap.getBlackRow(firstRowNumber).expect("get row");

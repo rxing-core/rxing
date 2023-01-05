@@ -24,7 +24,7 @@
  *   http://www.piramidepse.com/
  */
 
-use std::{cell::RefCell, rc::Rc};
+use std::{rc::Rc};
 
 use image::DynamicImage;
 

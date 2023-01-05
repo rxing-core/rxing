@@ -16,7 +16,7 @@
 
 //package com.google.zxing;
 
-use std::{cell::RefCell, fmt, rc::Rc, borrow::Cow};
+use std::{fmt, rc::Rc, borrow::Cow};
 
 use crate::{
     common::{BitArray, BitMatrix},
@@ -47,14 +47,14 @@ impl BinaryBitmap {
      * @return The width of the bitmap.
      */
     pub fn getWidth(&self) -> usize {
-        return self.binarizer.getWidth();
+        self.binarizer.getWidth()
     }
 
     /**
      * @return The height of the bitmap.
      */
     pub fn getHeight(&self) -> usize {
-        return self.binarizer.getHeight();
+        self.binarizer.getHeight()
     }
 
     /**

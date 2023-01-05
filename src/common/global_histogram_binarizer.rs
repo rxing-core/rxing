@@ -20,7 +20,7 @@
 // import com.google.zxing.LuminanceSource;
 // import com.google.zxing.NotFoundException;
 
-use std::{cell::RefCell, rc::Rc, borrow::Cow};
+use std::{rc::Rc, borrow::Cow};
 
 use once_cell::unsync::OnceCell;
 
