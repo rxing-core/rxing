@@ -1,10 +1,10 @@
 use crate::LuminanceSource;
 
-pub struct Luma8LuminanceSource(u32, u32, Vec<u8>, bool);
+pub struct Luma8LuminanceSource((u32, u32), (u32, u32), Vec<u8>, bool, (u32, u32));
 impl LuminanceSource for Luma8LuminanceSource {
     fn getRow(&self, y: usize) -> Vec<u8> {
         self.2
-            .chunks_exact(y * self.0 as usize)
+            .chunks_exact(y * self.0 .0 as usize)
             .skip(y)
             .take(1)
             .flatten()
@@ -20,11 +20,11 @@ impl LuminanceSource for Luma8LuminanceSource {
     }
 
     fn getWidth(&self) -> usize {
-        self.0 as usize
+        self.0 .0 as usize
     }
 
     fn getHeight(&self) -> usize {
-        self.1 as usize
+        self.0 .1 as usize
     }
 
     fn invert(&mut self) {
@@ -37,19 +37,23 @@ impl LuminanceSource for Luma8LuminanceSource {
 
     fn crop(
         &self,
-        _left: usize,
-        _top: usize,
-        _width: usize,
-        _height: usize,
+        left: usize,
+        top: usize,
+        width: usize,
+        height: usize,
     ) -> Result<Box<dyn LuminanceSource>, crate::Exceptions> {
-        Err(crate::Exceptions::UnsupportedOperationException(Some(
-            "This luminance source does not support cropping.".to_owned(),
+        Ok(Box::new(Self(
+            (width as u32, height as u32),
+            (left as u32, top as u32),
+            self.2.clone(),
+            self.3,
+            self.4,
         )))
     }
 }
 impl Luma8LuminanceSource {
     pub fn new(source: Vec<u8>, width: u32, height: u32) -> Self {
-        Self(width, height, source, false)
+        Self((width, height), (0, 0), source, false, (width, height))
     }
 
     #[inline(always)]
