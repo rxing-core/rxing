@@ -76,6 +76,7 @@ fn testDecodingRowByRow() {
         .getBlackRow(secondRowNumber)
         .expect("get row")
         .into_owned();
+
     secondRow.reverse();
 
     let totalPairs = rssExpandedReader
