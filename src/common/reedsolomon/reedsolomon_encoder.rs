@@ -38,7 +38,7 @@ impl ReedSolomonEncoder {
     pub fn new(field: GenericGFRef) -> Self {
         let n = field;
         Self {
-            cachedGenerators: vec![GenericGFPoly::new(n, &vec![1]).unwrap()],
+            cachedGenerators: vec![GenericGFPoly::new(n, &[1]).unwrap()],
             field: n,
         }
     }

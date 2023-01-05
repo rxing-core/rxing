@@ -215,6 +215,7 @@ impl BitMatrix {
         Ok(((self.bits[offset] >> (x & 0x1f)) & 1) != 0)
     }
 
+    /// Confusingly returns true if the requested element is out of bounds
     pub fn check_in_bounds(&self, x: u32, y: u32) -> bool {
         (y as usize * self.row_size + (x as usize / 32)) > self.bits.len()
     }

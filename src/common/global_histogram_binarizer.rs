@@ -40,7 +40,7 @@ use super::{BitArray, BitMatrix};
  * @author Sean Owen
  */
 pub struct GlobalHistogramBinarizer {
-    _luminances: Vec<u8>,
+    //_luminances: Vec<u8>,
     width: usize,
     height: usize,
     source: Box<dyn LuminanceSource>,
@@ -134,7 +134,7 @@ impl GlobalHistogramBinarizer {
 
     pub fn new(source: Box<dyn LuminanceSource>) -> Self {
         Self {
-            _luminances: vec![0; source.getWidth()],
+            //_luminances: vec![0; source.getWidth()],
             width: source.getWidth(),
             height: source.getHeight(),
             black_matrix: OnceCell::new(),

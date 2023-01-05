@@ -71,20 +71,21 @@ impl StringUtils {
      *  "SJIS", "UTF8", "ISO8859_1", or the platform default encoding if none
      *  of these can possibly be correct
      */
-    pub fn guessEncoding(bytes: &[u8], hints: &DecodingHintDictionary) -> String {
+    pub fn guessEncoding(bytes: &[u8], hints: &DecodingHintDictionary) -> &'static str {
         let c = StringUtils::guessCharset(bytes, hints);
         if c.name()
             == encoding::label::encoding_from_whatwg_label("SJIS")
                 .unwrap()
                 .name()
         {
-            return "SJIS".to_owned();
+             "SJIS"
         } else if c.name() == encoding::all::UTF_8.name() {
-            return "UTF8".to_owned();
+             "UTF8"
         } else if c.name() == encoding::all::ISO_8859_1.name() {
-            return "ISO8859_1".to_owned();
+             "ISO8859_1"
+        }else {
+     c.name()
         }
-        return c.name().to_owned();
     }
 
     /**

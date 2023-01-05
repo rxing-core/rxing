@@ -22,7 +22,6 @@ use std::{cmp, fmt};
 
 use crate::Exceptions;
 
-static EMPTY_BITS: [u32; 0] = [0; 0];
 static LOAD_FACTOR: f32 = 0.75f32;
 
 /**
@@ -39,7 +38,7 @@ pub struct BitArray {
 impl BitArray {
     pub fn new() -> Self {
         Self {
-            bits: EMPTY_BITS.to_vec(),
+            bits: Vec::new(),
             size: 0,
         }
     }
@@ -327,7 +326,7 @@ impl BitArray {
      * @return underlying array of ints. The first element holds the first 32 bits, and the least
      *         significant bit is bit 0.
      */
-    pub fn getBitArray(&self) -> &Vec<u32> {
+    pub fn getBitArray(&self) -> &[u32] {
         &self.bits
     }
 

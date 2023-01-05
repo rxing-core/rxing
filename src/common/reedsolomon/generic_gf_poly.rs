@@ -47,7 +47,7 @@ impl GenericGFPoly {
      * or if leading coefficient is 0 and this is not a
      * constant polynomial (that is, it is not the monomial "0")
      */
-    pub fn new(field: GenericGFRef, coefficients: &Vec<i32>) -> Result<Self, Exceptions> {
+    pub fn new(field: GenericGFRef, coefficients: &[i32]) -> Result<Self, Exceptions> {
         if coefficients.is_empty() {
             return Err(Exceptions::IllegalArgumentException(Some(
                 "coefficients.len()".to_owned(),
