@@ -1,19 +1,27 @@
 use crate::LuminanceSource;
 
+/// A simple luma8 source for bytes, supports cropping but not rotation
 pub struct Luma8LuminanceSource {
+    /// image dimension in form (x,y)
     dimensions: (u32, u32),
+    /// image origin in the form (x,y)
     origin: (u32, u32),
+    /// raw data for luma 8
     data: Vec<u8>,
+    /// flag indicating if the underlying data needs to be inverted for use
     inverted: bool,
+    /// original dimensions of the data, used to manage crop
     original_dimension: (u32, u32),
 }
 impl LuminanceSource for Luma8LuminanceSource {
     fn getRow(&self, y: usize) -> Vec<u8> {
         self.data
-            .chunks_exact(y * self.dimensions.0 as usize)
-            .skip(y)
+            .chunks_exact(self.original_dimension.0 as usize)
+            .skip(y + self.origin.1 as usize)
             .take(1)
             .flatten()
+            .skip(self.origin.0 as usize)
+            .take(self.dimensions.0 as usize)
             .map(|byte| Self::invert_if_should(*byte, self.inverted))
             .collect()
     }
@@ -21,8 +29,20 @@ impl LuminanceSource for Luma8LuminanceSource {
     fn getMatrix(&self) -> Vec<u8> {
         self.data
             .iter()
-            .map(|byte| Self::invert_if_should(*byte, self.inverted))
-            .collect()
+            .skip((self.original_dimension.0 * self.origin.1) as usize)
+            .take((self.dimensions.1 * self.original_dimension.0) as usize)
+            .collect::<Vec<&u8>>()
+            .chunks_exact(self.original_dimension.0 as usize)
+            .into_iter()
+            .flat_map(|f| {
+                f.iter()
+                    .skip((self.origin.0) as usize)
+                    .take(self.getWidth())
+                    .copied()
+            }) // flatten this all out
+            .copied() // copy it over so that it's u8
+            .map(|byte| Self::invert_if_should(byte, self.inverted))
+            .collect() // collect into a vec
     }
 
     fn getWidth(&self) -> usize {
@@ -38,7 +58,7 @@ impl LuminanceSource for Luma8LuminanceSource {
     }
 
     fn isCropSupported(&self) -> bool {
-        false
+        true
     }
 
     fn crop(

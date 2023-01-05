@@ -204,7 +204,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
             .collect::<Vec<&u8>>(); // get all the rows we want to look at
 
         let data = unmanaged
-            .chunks(self.image.width() as usize)
+            .chunks_exact(self.image.width() as usize)
             .into_iter() // Get rows
             .flat_map(|f| {
                 f.iter()
