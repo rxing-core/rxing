@@ -19,7 +19,7 @@ use once_cell::sync::Lazy;
 
 use crate::Exceptions;
 
-static VERSIONS: Lazy<Vec<Version>> = Lazy::new(|| Version::buildVersions());
+static VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::buildVersions);
 
 pub type VersionRef = &'static Version;
 

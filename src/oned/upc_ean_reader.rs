@@ -24,9 +24,9 @@ use super::{one_d_reader, EANManufacturerOrgSupport, OneDReader, UPCEANExtension
 use once_cell::sync::Lazy;
 
 pub static EAN_MANUFACTURER_SUPPORT: Lazy<EANManufacturerOrgSupport> =
-    Lazy::new(|| EANManufacturerOrgSupport::default());
+    Lazy::new(EANManufacturerOrgSupport::default);
 pub static UPC_EAN_EXTENSION_SUPPORT: Lazy<UPCEANExtensionSupport> =
-    Lazy::new(|| UPCEANExtensionSupport::default());
+    Lazy::new(UPCEANExtensionSupport::default);
 
 // These two values are critical for determining how permissive the decoding will be.
 // We've arrived at these values through a lot of trial and error. Setting them any higher

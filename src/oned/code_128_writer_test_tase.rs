@@ -44,7 +44,7 @@ use crate::{
 
 use super::Code128Writer;
 
-static WRITER: Lazy<Code128Writer> = Lazy::new(|| Code128Writer::default());
+static WRITER: Lazy<Code128Writer> = Lazy::new(Code128Writer::default);
 
 #[test]
 fn testEncodeWithFunc3() {
