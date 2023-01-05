@@ -47,7 +47,7 @@ fn test_random() {
 fn test_short_shift_jis1() {
     // 金魚
     do_test(
-        &vec![0x8b, 0xe0, 0x8b, 0x9b],
+        &[0x8b, 0xe0, 0x8b, 0x9b],
         encoding::label::encoding_from_whatwg_label("SJIS").unwrap(),
         "SJIS",
     );
@@ -57,7 +57,7 @@ fn test_short_shift_jis1() {
 fn test_short_iso885911() {
     // båd
     do_test(
-        &vec![0x62, 0xe5, 0x64],
+        &[0x62, 0xe5, 0x64],
         encoding::all::ISO_8859_1,
         "ISO8859_1",
     );
@@ -67,7 +67,7 @@ fn test_short_iso885911() {
 fn test_short_utf8() {
     // Español
     do_test(
-        &vec![0x45, 0x73, 0x70, 0x61, 0xc3, 0xb1, 0x6f, 0x6c],
+        &[0x45, 0x73, 0x70, 0x61, 0xc3, 0xb1, 0x6f, 0x6c],
         encoding::all::UTF_8,
         "UTF8",
     );
@@ -77,7 +77,7 @@ fn test_short_utf8() {
 fn test_mixed_shift_jis1() {
     // Hello 金!
     do_test(
-        &vec![0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x8b, 0xe0, 0x21],
+        &[0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x8b, 0xe0, 0x21],
         encoding::label::encoding_from_whatwg_label("SJIS").unwrap(),
         "SJIS",
     );
@@ -87,7 +87,7 @@ fn test_mixed_shift_jis1() {
 fn test_utf16_be() {
     // 调压柜
     do_test(
-        &vec![0xFE, 0xFF, 0x8c, 0x03, 0x53, 0x8b, 0x67, 0xdc],
+        &[0xFE, 0xFF, 0x8c, 0x03, 0x53, 0x8b, 0x67, 0xdc],
         encoding::all::UTF_16BE,
         encoding::all::UTF_16BE.name(),
     );
@@ -97,7 +97,7 @@ fn test_utf16_be() {
 fn test_utf16_le() {
     // 调压柜
     do_test(
-        &vec![0xFF, 0xFE, 0x03, 0x8c, 0x8b, 0x53, 0xdc, 0x67],
+        &[0xFF, 0xFE, 0x03, 0x8c, 0x8b, 0x53, 0xdc, 0x67],
         encoding::all::UTF_16LE,
         encoding::all::UTF_16LE.name(),
     );
