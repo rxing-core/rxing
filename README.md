@@ -31,47 +31,20 @@ The library has only been thurougly tested with the `BufferedImageLuminanceSourc
 source is currently experimental and may result in unexpected or undefined outputs. This means that the feature flag
 used to enable the use of the `image` crate is currently on by default. Turning it off may result in unexpected results.
 
-## Example
+## Example with helpers
 
 ```
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
-
-use rxing::multi::MultipleBarcodeReader;
-
-use image;
-
 use rxing;
 
 fn main() {
-    let file_name = "test_image.jpeg";
+    let file_name = "test_image.jpg";
 
-    let img = image::open(file_name).unwrap();
-    // let img = img.resize(768, 1024, image::imageops::FilterType::Gaussian);
-
-    let mut hints: rxing::DecodingHintDictionary = HashMap::new();
-    hints.insert(
-        rxing::DecodeHintType::TRY_HARDER,
-        rxing::DecodeHintValue::TryHarder(true),
-    );
-
-    let multi_format_reader = rxing::MultiFormatReader::default();
-    let mut scanner = rxing::multi::GenericMultipleBarcodeReader::new(multi_format_reader);
-    let results = scanner
-        .decode_multiple_with_hints(
-            &mut rxing::BinaryBitmap::new(Rc::new(RefCell::new(
-                rxing::common::HybridBinarizer::new(Box::new(
-                    rxing::BufferedImageLuminanceSource::new(img),
-                )),
-            ))),
-            &hints,
-        )
-        .expect("decodes");
+    let results = rxing::helpers::detect_multiple_in_file(file_name).expect("decodes");
 
     for result in results {
         println!("{} -> {}", result.getBarcodeFormat(), result.getText())
     }
 }
-
 ```
 
 ## Latest Release Notes

@@ -1,3 +1,19 @@
+/// helper functions for common decode scenarios
+/// ## Eample
+/// ```
+/// use rxing;
+/// 
+/// fn main() {
+///     let file_name = "test_image.jpg";
+/// 
+///     let results = rxing::helpers::detect_multiple_in_file(file_name).expect("decodes");
+/// 
+///     for result in results {
+///         println!("{} -> {}", result.getBarcodeFormat(), result.getText())
+///     }
+/// }
+///  ```
+
 use std::{
     collections::{HashMap, HashSet},
     rc::Rc,
