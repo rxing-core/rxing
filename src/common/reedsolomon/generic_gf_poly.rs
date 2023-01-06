@@ -222,11 +222,11 @@ impl GenericGFPoly {
     }
 
     pub fn getZero(&self) -> Self {
-        GenericGFPoly::new(self.field, &vec![0]).unwrap()
+        GenericGFPoly::new(self.field, &[0]).unwrap()
     }
 
     pub fn getOne(&self) -> Self {
-        GenericGFPoly::new(self.field, &vec![1]).unwrap()
+        GenericGFPoly::new(self.field, &[1]).unwrap()
     }
 
     pub fn multiply_by_monomial(

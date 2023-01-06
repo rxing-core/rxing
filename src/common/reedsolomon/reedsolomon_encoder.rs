@@ -54,10 +54,8 @@ impl ReedSolomonEncoder {
                     .multiply(
                         &GenericGFPoly::new(
                             self.field,
-                            &vec![
-                                1,
-                                self.field.exp(d as i32 - 1 + self.field.getGeneratorBase()),
-                            ],
+                            &[1,
+                                self.field.exp(d as i32 - 1 + self.field.getGeneratorBase())],
                         )
                         .unwrap(),
                     )

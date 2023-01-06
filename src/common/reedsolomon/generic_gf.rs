@@ -104,7 +104,7 @@ impl GenericGF {
      */
     pub fn buildMonomial(source: GenericGFRef, degree: usize, coefficient: i32) -> GenericGFPoly {
         if coefficient == 0 {
-            return GenericGFPoly::new(source, &vec![0]).unwrap();
+            return GenericGFPoly::new(source, &[0]).unwrap();
         }
         let mut coefficients = vec![0; degree + 1];
         coefficients[0] = coefficient;
