@@ -23,6 +23,7 @@
  *
  * @author Sean Owen
  */
+
 pub struct EANManufacturerOrgSupport {
     ranges: Vec<Vec<u32>>,           //= new ArrayList<>();
     countryIdentifiers: Vec<String>, // = new ArrayList<>();
@@ -40,13 +41,14 @@ impl Default for EANManufacturerOrgSupport {
 }
 
 impl EANManufacturerOrgSupport {
-    pub fn lookupCountryIdentifier(&self, productCode: &str) -> Option<String> {
+    pub fn lookupCountryIdentifier(&self, productCode: &str) -> Option<&str> {
         let prefix = productCode[0..3].parse::<u32>().expect("must parse prefix");
         // let prefix = Integer.parseInt(productCode.substring(0, 3));
         let max = self.ranges.len();
-        for i in 0..max {
+        for (i, range) in self.ranges.iter().enumerate().take(max) {
+        // for i in 0..max {
             // for (int i = 0; i < max; i++) {
-            let range = self.ranges.get(i).expect("must have index i or fail");
+            // let range = self.ranges.get(i).expect("must have index i or fail");
             let start = range[0];
             if prefix < start {
                 return None;
@@ -57,7 +59,7 @@ impl EANManufacturerOrgSupport {
                     self.countryIdentifiers
                         .get(i)
                         .expect("must have index i or fail")
-                        .clone(),
+                        // .clone(),
                 );
             }
         }

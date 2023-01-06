@@ -294,7 +294,7 @@ pub trait UPCEANReader: OneDReader {
             if let Some(cid) = countryID {
                 decodeRXingResult.putMetadata(
                     RXingResultMetadataType::POSSIBLE_COUNTRY,
-                    RXingResultMetadataValue::PossibleCountry(cid),
+                    RXingResultMetadataValue::PossibleCountry(cid.to_owned()),
                 );
             }
         }

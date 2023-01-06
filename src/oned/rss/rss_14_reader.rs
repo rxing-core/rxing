@@ -20,7 +20,7 @@ use crate::{
     common::BitArray,
     oned::{one_d_reader, OneDReader},
     BarcodeFormat, DecodeHintType, DecodingHintDictionary, Exceptions, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    RXingResultMetadataType, RXingResultMetadataValue, Reader, DecodeHintValue, RXingResultPoint,
 };
 
 use super::{
@@ -257,24 +257,21 @@ impl RSS14Reader {
         row: &BitArray,
         right: bool,
         rowNumber: u32,
-        _hints: &DecodingHintDictionary,
+        hints: &DecodingHintDictionary,
     ) -> Option<Pair> {
         let pos_pair = || -> Result<Pair, Exceptions> {
             let startEnd = self.findFinderPattern(row, right)?;
             let pattern = self.parseFoundFinderPattern(row, rowNumber, right, &startEnd)?;
 
-            // RXingResultPointCallback resultPointCallback = hints == null ? null :
-            //     (RXingResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
-
-            // if (resultPointCallback != null) {
-            //   startEnd = pattern.getStartEnd();
-            //   float center = (startEnd[0] + startEnd[1] - 1) / 2.0f;
-            //   if (right) {
-            //     // row is actually reversed
-            //     center = row.getSize() - 1 - center;
-            //   }
-            //   resultPointCallback.foundPossibleRXingResultPoint(new RXingResultPoint(center, rowNumber));
-            // }
+            if let Some(DecodeHintValue::NeedResultPointCallback(cb)) = hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK) {
+                let startEnd = pattern.getStartEnd();
+                let mut center :f32  = (startEnd[0] + startEnd[1] - 1) as f32 / 2.0;
+                if right {
+                  // row is actually reversed
+                  center = row.getSize() as f32 - 1.0 - center;
+                }
+                cb( &RXingResultPoint::new(center, rowNumber as f32));
+            }
 
             let outside = self.decodeDataCharacter(row, &pattern, true)?;
             let inside = self.decodeDataCharacter(row, &pattern, false)?;

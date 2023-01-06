@@ -48,6 +48,8 @@ fn main() {
 ```
 
 ## Latest Release Notes
+v0.2.6 -> Fix missing result point callback for rss14
+
 v0.2.4 -> Add helper functions for common cases (read a file, use raw luma8 data).
 
 v0.2.3 -> Implement most suggestions from clippy, as well as some simple changes, no surface changes.
