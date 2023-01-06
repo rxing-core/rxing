@@ -78,13 +78,13 @@ impl StringUtils {
                 .unwrap()
                 .name()
         {
-             "SJIS"
+            "SJIS"
         } else if c.name() == encoding::all::UTF_8.name() {
-             "UTF8"
+            "UTF8"
         } else if c.name() == encoding::all::ISO_8859_1.name() {
-             "ISO8859_1"
-        }else {
-     c.name()
+            "ISO8859_1"
+        } else {
+            c.name()
         }
     }
 

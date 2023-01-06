@@ -46,7 +46,7 @@ impl EANManufacturerOrgSupport {
         // let prefix = Integer.parseInt(productCode.substring(0, 3));
         let max = self.ranges.len();
         for (i, range) in self.ranges.iter().enumerate().take(max) {
-        // for i in 0..max {
+            // for i in 0..max {
             // for (int i = 0; i < max; i++) {
             // let range = self.ranges.get(i).expect("must have index i or fail");
             let start = range[0];
@@ -58,8 +58,7 @@ impl EANManufacturerOrgSupport {
                 return Some(
                     self.countryIdentifiers
                         .get(i)
-                        .expect("must have index i or fail")
-                        // .clone(),
+                        .expect("must have index i or fail"), // .clone(),
                 );
             }
         }

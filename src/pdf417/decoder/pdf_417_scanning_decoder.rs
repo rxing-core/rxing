@@ -309,6 +309,10 @@ fn getBarcodeMetadata<T: DetectionRXingResultRowIndicatorColumn>(
     //   return leftBarcodeMetadata;
     // }
 
+    if leftBarcodeMetadata.is_none() {
+        return None;
+    }
+
     if leftBarcodeMetadata.as_ref().unwrap().getColumnCount()
         != rightBarcodeMetadata.as_ref().unwrap().getColumnCount()
         && leftBarcodeMetadata
