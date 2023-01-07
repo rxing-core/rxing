@@ -20,8 +20,8 @@ use crate::{
     aztec::AztecWriter,
     datamatrix::DataMatrixWriter,
     oned::{
-        Code128Writer, Code39Writer, Code93Writer, EAN13Writer, EAN8Writer, ITFWriter, UPCAWriter,
-        UPCEWriter, CodaBarWriter,
+        CodaBarWriter, Code128Writer, Code39Writer, Code93Writer, EAN13Writer, EAN8Writer,
+        ITFWriter, UPCAWriter, UPCEWriter,
     },
     pdf417::PDF417Writer,
     qrcode::QRCodeWriter,
