@@ -104,3 +104,29 @@ impl Display for BarcodeFormat {
         )
     }
 }
+
+/// Defaults to QRCode if no proper formatting available
+impl From<&str> for BarcodeFormat {
+    fn from(value: &str) -> Self {
+        match value.to_lowercase().as_str() {
+            "aztec" => BarcodeFormat::AZTEC,
+            "codabar" => BarcodeFormat::CODABAR,
+            "code 39" | "code_39" | "code39" => BarcodeFormat::CODE_39,
+            "code 93" | "code_93" | "code93" => BarcodeFormat::CODE_93,
+            "code 128" | "code_129" | "code128" => BarcodeFormat::CODE_128,
+            "datamatrix" |"data matrix" | "data_matrix"=> BarcodeFormat::DATA_MATRIX,
+            "ean 8" | "ean_8" | "ean8" => BarcodeFormat::EAN_8,
+            "ean 13" |"ean_13" | "ean13"=> BarcodeFormat::EAN_13,
+            "itf" | "itf_code" | "itf14" | "itf 14" | "itf_14" | "interleaved 2 of 5"=> BarcodeFormat::ITF,
+            "maxicode" | "maxi_code"=> BarcodeFormat::MAXICODE,
+            "pdf 417" | "pdf_417" | "pdf417"=> BarcodeFormat::PDF_417,
+            "qrcode" | "qr_code" | "qr code"=> BarcodeFormat::QR_CODE,
+            "rss 14" | "rss_14" | "rss14" | "gs1 databar" => BarcodeFormat::RSS_14,
+            "rss expanded" | "expanded rss" | "rss_expanded"=> BarcodeFormat::RSS_EXPANDED,
+            "upc a" |"upc_a" | "upca"=> BarcodeFormat::UPC_A,
+            "upc e" |"upc_e" | "upce" => BarcodeFormat::UPC_E,
+            "upc ean extension" | "upc extension" | "ean extension" | "upc/ean extension" | "upc_ean_extension"=> BarcodeFormat::UPC_EAN_EXTENSION,
+            _ => BarcodeFormat::QR_CODE,
+        }
+    }
+}

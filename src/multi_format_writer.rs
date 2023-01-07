@@ -34,6 +34,7 @@ use crate::{
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[derive(Default)]
 pub struct MultiFormatWriter;
 
 impl Writer for MultiFormatWriter {

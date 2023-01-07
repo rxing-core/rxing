@@ -662,3 +662,24 @@ impl fmt::Display for BitMatrix {
         write!(f, "{}", self.toString("X ", "  "))
     }
 }
+
+#[cfg(feature = "image")]
+impl From<BitMatrix> for image::DynamicImage {
+    fn from(value: BitMatrix) -> Self {
+        (&value).into()
+    }
+}
+
+#[cfg(feature = "image")]
+impl From<&BitMatrix> for image::DynamicImage {
+    fn from(value: &BitMatrix) -> Self {
+        let mut pixels = image::ImageBuffer::new(value.width, value.height);
+        
+        for y in 0..value.height {
+            for x in 0..value.width {
+                pixels.put_pixel(x, y, image::Luma([if value.get(x, y)  {u8::MIN} else {u8::MAX} ]));
+            }
+        }
+        pixels.into()
+    }
+}

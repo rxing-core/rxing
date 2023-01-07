@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    common::HybridBinarizer,
+    common::{BitMatrix, HybridBinarizer},
     multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
     BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue,
     DecodingHintDictionary, Exceptions, Luma8LuminanceSource, MultiFormatReader, RXingResult,
@@ -25,7 +25,9 @@ pub fn detect_in_file_with_hints(
     barcode_type: Option<BarcodeFormat>,
     hints: &mut DecodingHintDictionary,
 ) -> Result<RXingResult, Exceptions> {
-    let img = image::open(file_name).unwrap();
+    let Ok(img) = image::open(file_name) else {
+        return Err(Exceptions::IllegalArgumentException(Some(format!("file '{}' not found or cannot be opened", file_name))));
+    };
     let mut multi_format_reader = MultiFormatReader::default();
 
     if let Some(bc_type) = barcode_type {
@@ -137,4 +139,16 @@ pub fn detect_multiple_in_luma_with_hints(
         )))),
         hints,
     )
+}
+
+#[cfg(feature = "image")]
+pub fn save_image(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Exceptions> {
+    let image: image::DynamicImage = bit_matrix.into();
+    match image.save(file_name) {
+        Ok(_) => Ok(()),
+        Err(err) => Err(Exceptions::IllegalArgumentException(Some(format!(
+            "could not save file '{}': {}",
+            file_name, err
+        )))),
+    }
 }
