@@ -732,7 +732,7 @@ pub fn appendNumericBytes(content: &str, bits: &mut BitArray) -> Result<(), Exce
             // Encode three numeric letters in ten bits.
             let num2 = content.chars().nth(i + 1).unwrap() as u8 - b'0';
             let num3 = content.chars().nth(i + 2).unwrap() as u8 - b'0';
-            bits.appendBits((num1 * 100 + num2 * 10 + num3) as u32, 10)?;
+            bits.appendBits(num1 as u32 * 100 + num2 as u32 * 10 + num3 as u32, 10)?;
             i += 3;
         } else if i + 1 < length {
             // Encode two numeric letters in seven bits.

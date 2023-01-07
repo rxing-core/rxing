@@ -72,6 +72,17 @@ fn testGetAlphanumericCode() {
 }
 
 #[test]
+fn test_digits_only() {
+    let test_data = "374833744734397449";
+    let data = encoder::encode(test_data, ErrorCorrectionLevel::H).expect("encode");
+    let decode = crate::qrcode::decoder::decoder::decode_bitmatrix(
+        &data.getMatrix().as_ref().unwrap().clone().into(),
+    )
+    .expect("decode");
+    assert_eq!(test_data, decode.getText());
+}
+
+#[test]
 fn testChooseMode() {
     // Numeric Mode::
     assert_eq!(Mode::NUMERIC, encoder::chooseMode("0"));
