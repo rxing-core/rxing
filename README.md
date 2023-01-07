@@ -48,6 +48,8 @@ fn main() {
 ```
 
 ## Latest Release Notes
+v0.2.9 -> Major fix, codabar was not being encoded by multiformat writer.
+
 v0.2.6 -> Fix missing result point callback for rss14
 
 v0.2.4 -> Add helper functions for common cases (read a file, use raw luma8 data).
