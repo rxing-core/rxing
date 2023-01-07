@@ -110,7 +110,7 @@ impl From<&str> for BarcodeFormat {
     fn from(value: &str) -> Self {
         match value.to_lowercase().as_str() {
             "aztec" => BarcodeFormat::AZTEC,
-            "codabar" => BarcodeFormat::CODABAR,
+            "codabar" | "coda" | "coda_bar" | "cod_a_bar" | "cod_a" => BarcodeFormat::CODABAR,
             "code 39" | "code_39" | "code39" => BarcodeFormat::CODE_39,
             "code 93" | "code_93" | "code93" => BarcodeFormat::CODE_93,
             "code 128" | "code_129" | "code128" => BarcodeFormat::CODE_128,
