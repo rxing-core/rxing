@@ -19,6 +19,7 @@
  *
  * @author qwandor@google.com (Andrew Walbran)
  */
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Dimensions {
     minCols: usize,
     maxCols: usize,

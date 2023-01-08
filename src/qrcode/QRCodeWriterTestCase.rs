@@ -19,7 +19,8 @@ use std::{collections::HashMap, path::PathBuf};
 use image::DynamicImage;
 
 use crate::{
-    common::BitMatrix, qrcode::QRCodeWriter, BarcodeFormat, EncodeHintType, EncodeHintValue, Writer,
+    common::BitMatrix, qrcode::QRCodeWriter, BarcodeFormat, DecodeHintType, DecodeHintValue,
+    EncodeHintType, EncodeHintValue, Writer,
 };
 
 use super::decoder::ErrorCorrectionLevel;

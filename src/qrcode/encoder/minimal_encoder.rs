@@ -1052,7 +1052,14 @@ impl RXingResultNode {
                 .encode_string(
                     // &self.stringToEncode[self.fromPosition as usize
                     //     ..(self.fromPosition + self.characterLength as usize)],
-                    self.stringToEncode.get(self.fromPosition).unwrap(),
+                    // self.stringToEncode.get(self.fromPosition).unwrap(),
+                    &(self
+                        .stringToEncode
+                        .iter()
+                        .skip(self.fromPosition)
+                        .take(self.characterLength as usize)
+                        .map(|s| s.as_str())
+                        .collect::<String>()),
                     self.charsetEncoderIndex,
                 )
                 .len() as u32
@@ -1080,7 +1087,13 @@ impl RXingResultNode {
             encoder::appendBytes(
                 // &self.stringToEncode[self.fromPosition as usize
                 //     ..(self.fromPosition + self.characterLength as usize)],
-                self.stringToEncode.get(self.fromPosition).unwrap(),
+                &(self
+                    .stringToEncode
+                    .iter()
+                    .skip(self.fromPosition)
+                    .take(self.characterLength as usize)
+                    .map(|s| s.as_str())
+                    .collect::<String>()), //self.stringToEncode.get(self.fromPosition).unwrap(),
                 self.mode,
                 bits,
                 self.encoders.getCharset(self.charsetEncoderIndex),
