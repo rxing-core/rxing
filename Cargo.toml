@@ -1,6 +1,6 @@
 [package]
 name = "rxing"
-version = "0.2.11"
+version = "0.2.12"
 description="A rust port of the zxing barcode library."
 license="Apache-2.0"
 repository="https://github.com/hschimke/rxing"
@@ -37,3 +37,4 @@ java-rand = "0.2.0"
 [features]
 default = ["image"]
 image = ["dep:image", "dep:imageproc"]
+allow_forced_iso_ied_18004_compliance = []

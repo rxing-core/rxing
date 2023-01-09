@@ -19,6 +19,9 @@ use crate::{
     DecodingHintDictionary, Exceptions,
 };
 
+#[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
+use crate::{DecodeHintType, DecodeHintValue};
+
 use super::{ErrorCorrectionLevel, Mode, VersionRef};
 
 /**
@@ -125,7 +128,13 @@ pub fn decode(
                         &mut byteSegments,
                         hints,
                     )?,
-                    Mode::KANJI => decodeKanjiSegment(&mut bits, &mut result, count)?,
+                    Mode::KANJI => decodeKanjiSegment(
+                        &mut bits,
+                        &mut result,
+                        count,
+                        currentCharacterSetECI,
+                        hints,
+                    )?,
                     _ => return Err(Exceptions::FormatException(None)),
                 }
             }
@@ -217,6 +226,8 @@ fn decodeKanjiSegment(
     bits: &mut BitSource,
     result: &mut String,
     count: usize,
+    currentCharacterSetECI: Option<CharacterSetECI>,
+    hints: &DecodingHintDictionary,
 ) -> Result<(), Exceptions> {
     // Don't crash trying to read more bits than we have available.
     if count * 13 > bits.available() {
@@ -245,10 +256,32 @@ fn decodeKanjiSegment(
         count -= 1;
     }
 
-    let sjs_encoder = encoding::label::encoding_from_whatwg_label("SJIS").unwrap();
-    let encode_string = sjs_encoder
+    #[cfg(not(feature = "allow_forced_iso_ied_18004_compliance"))]
+    let encoder = {
+        let _ = currentCharacterSetECI;
+        let _ = hints;
+        encoding::label::encoding_from_whatwg_label("SJIS").unwrap()
+    };
+
+    #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
+    let encoder = if let Some(DecodeHintValue::QrAssumeSpecConformInput(true)) =
+        hints.get(&DecodeHintType::QR_ASSUME_SPEC_CONFORM_INPUT)
+    {
+        // if (hints != null && hints.containsKey(DecodeHintType.QR_ASSUME_SPEC_CONFORM_INPUT)) {
+        if let Some(ccse) = &currentCharacterSetECI {
+            //   if (currentCharacterSetECI == null) {
+            CharacterSetECI::getCharset(ccse)
+        } else {
+            encoding::all::ISO_8859_1
+        }
+    } else {
+        encoding::label::encoding_from_whatwg_label("SJIS").unwrap()
+    };
+
+    let encode_string = encoder
         .decode(&buffer, encoding::DecoderTrap::Strict)
         .unwrap();
+
     result.push_str(&encode_string);
 
     Ok(())
@@ -280,7 +313,19 @@ fn decodeByteSegment(
         // upon decoding. I have seen ISO-8859-1 used as well as
         // Shift_JIS -- without anything like an ECI designator to
         // give a hint.
-        StringUtils::guessCharset(&readBytes, hints)
+        {
+            #[cfg(not(feature = "allow_forced_iso_ied_18004_compliance"))]
+            StringUtils::guessCharset(&readBytes, hints)
+        }
+
+        #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
+        if let Some(DecodeHintValue::QrAssumeSpecConformInput(true)) =
+            hints.get(&DecodeHintType::QR_ASSUME_SPEC_CONFORM_INPUT)
+        {
+            encoding::all::ISO_8859_1
+        } else {
+            StringUtils::guessCharset(&readBytes, hints)
+        }
     } else {
         CharacterSetECI::getCharset(currentCharacterSetECI.as_ref().unwrap())
     };
