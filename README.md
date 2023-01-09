@@ -64,3 +64,6 @@ v0.1.4 -> Dramatically improve performance for MultiFormatReader and for multipl
 
 ## Known Issues
 Performance is low for GenericMultipleBarcodeReader.
+
+## ZXing Track
+Currently tracking zxing 3.5.1
