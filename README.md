@@ -6,6 +6,9 @@ Porting of the testing library is incomplete.
 
 Porting was done with the rust language in mind, though some parts may resemble java more directly than a proper clean-sheet rust implementation.
 
+## CLI
+If you're looking for a CLI interface into the library, please see [rxing-cli](https://crates.io/crates/rxing-cli).
+
 ## Status
 All barcode formats are tested and functioning in their current state against current tests.
 
