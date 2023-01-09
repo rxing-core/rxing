@@ -133,7 +133,7 @@ impl BitMatrix {
         let mut first_run = true;
         let mut nRows = 0;
         let mut pos = 0;
-        while pos < string_representation.len() {
+        while pos < string_representation.chars().count() {
             if string_representation.chars().nth(pos).unwrap() == '\n'
                 || string_representation.chars().nth(pos).unwrap() == '\r'
             {
