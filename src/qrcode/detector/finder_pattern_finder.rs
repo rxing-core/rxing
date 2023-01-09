@@ -716,6 +716,15 @@ impl FinderPatternFinder {
             return Err(Exceptions::NotFoundException(None));
         }
 
+        // for (Iterator<FinderPattern> it = possibleCenters.iterator(); it.hasNext();) {
+        //     if (it.next().getCount() < CENTER_QUORUM) {
+        //       it.remove();
+        //     }
+        //   }
+
+        self.possibleCenters
+            .retain(|fp| fp.getCount() >= Self::CENTER_QUORUM);
+
         self.possibleCenters.sort_by(|x, y| {
             x.getEstimatedModuleSize()
                 .partial_cmp(&y.getEstimatedModuleSize())

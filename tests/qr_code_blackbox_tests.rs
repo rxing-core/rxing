@@ -51,7 +51,7 @@ fn qrcode_black_box2_test_case() {
         BarcodeFormat::QR_CODE,
     );
     tester.add_test(31, 31, 0.0);
-    tester.add_test(30, 30, 90.0);
+    tester.add_test(29, 29, 90.0);
     tester.add_test(30, 30, 180.0);
     tester.add_test(30, 30, 270.0);
 

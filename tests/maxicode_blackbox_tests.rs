@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use rxing::{maxicode::MaxiCodeReader, BarcodeFormat, DecodeHintType, MultiFormatReader};
+use rxing::{BarcodeFormat, DecodeHintType, MultiFormatReader};
 
 mod common;
 
@@ -29,7 +29,7 @@ fn maxicode1_test_case() {
         BarcodeFormat::MAXICODE,
     );
     // super("src/test/resources/blackbox/maxicode-1", new MultiFormatReader(), BarcodeFormat.MAXICODE);
-    tester.add_test(6, 6, 0.0);
+    tester.add_test(7, 7, 0.0);
 
     tester.test_black_box();
 }
@@ -44,7 +44,7 @@ fn maxicode1_test_case() {
 fn maxi_code_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/maxicode-1",
-        MaxiCodeReader {},
+        MultiFormatReader::default(),
         BarcodeFormat::MAXICODE,
     );
     // super("src/test/resources/blackbox/maxicode-1", new MultiFormatReader(), BarcodeFormat.MAXICODE);
@@ -53,7 +53,7 @@ fn maxi_code_black_box1_test_case() {
         rxing::DecodeHintValue::PureBarcode(true),
     );
 
-    tester.add_test(1, 1, 0.0);
+    tester.add_test(7, 7, 0.0);
 
     tester.test_black_box();
 }
