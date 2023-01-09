@@ -440,20 +440,11 @@ impl HighLevelEncoder {
     fn simplify_states(states: Vec<State>) -> Vec<State> {
         let mut result: Vec<State> = Vec::new();
         for newState in states {
-            // for (State newState : states) {
-            let mut add = true;
-            for i in 0..result.len() {
-                // for st in result {
-                // for (Iterator<State> iterator = result.iterator(); iterator.hasNext();) {
-                if let Some(oldState) = result.get(i) {
-                    if oldState.isBetterThanOrEqualTo(&newState) {
-                        add = false;
-                        break;
-                    }
-                    if newState.isBetterThanOrEqualTo(oldState) {
-                        result.remove(i);
-                    }
-                }
+            let add = result
+                .iter()
+                .fold(true, |acc, s| !s.isBetterThanOrEqualTo(&newState) && acc);
+            if add {
+                result.retain(|s| !newState.isBetterThanOrEqualTo(s));
             }
             if add {
                 result.push(newState);

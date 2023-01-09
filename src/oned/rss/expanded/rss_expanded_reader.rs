@@ -491,28 +491,43 @@ impl RSSExpandedReader {
 
     // Remove all the rows that contains only specified pairs
     fn removePartialRows(pairs: &[ExpandedPair], rows: &mut Vec<ExpandedRow>) {
-        let row_search = rows.clone();
-        for i in 0..row_search.len() {
-            // for r in rows {
-            // for (Iterator<ExpandedRow> iterator = rows.iterator(); iterator.hasNext();) {
-            //   ExpandedRow r = iterator.next();
-            let r = row_search.get(i).unwrap();
-            if r.getPairs().len() != pairs.len() {
-                let mut allFound = true;
-                for p in r.getPairs() {
+        rows.retain(|row| {
+            let mut allFound = true;
+            if row.getPairs().len() != pairs.len() {
+                for p in row.getPairs() {
                     // for (ExpandedPair p : r.getPairs()) {
                     if !pairs.contains(p) {
                         allFound = false;
                         break;
                     }
                 }
-                if allFound {
-                    // 'pairs' contains all the pairs from the row 'r'
-                    // iterator.remove();
-                    rows.remove(i);
-                }
+                !allFound
+            } else {
+                true
             }
-        }
+        });
+        // let row_search = rows.clone();
+        // for i in 0..row_search.len() {
+        //     // for r in rows {
+        //     // for (Iterator<ExpandedRow> iterator = rows.iterator(); iterator.hasNext();) {
+        //     //   ExpandedRow r = iterator.next();
+        //     let r = row_search.get(i).unwrap();
+        //     if r.getPairs().len() != pairs.len() {
+        //         let mut allFound = true;
+        //         for p in r.getPairs() {
+        //             // for (ExpandedPair p : r.getPairs()) {
+        //             if !pairs.contains(p) {
+        //                 allFound = false;
+        //                 break;
+        //             }
+        //         }
+        //         if allFound {
+        //             // 'pairs' contains all the pairs from the row 'r'
+        //             // iterator.remove();
+        //             rows.remove(i);
+        //         }
+        //     }
+        // }
     }
 
     // Returns true when one of the rows already contains all the pairs
