@@ -126,7 +126,7 @@ impl BitMatrix {
         //   throw new IllegalArgumentException();
         // }
 
-        let mut bits = vec![false; string_representation.len()];
+        let mut bits = vec![false; string_representation.chars().count()];
         let mut bitsPos = 0;
         let mut rowStartPos = 0;
         let mut rowLength = 0; //-1;
