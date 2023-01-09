@@ -277,25 +277,37 @@ pub fn decodeMacroBlock(
                         let mut segmentCount = ECIStringBuilder::new();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut segmentCount)?;
                         segmentCount = segmentCount.build_result();
-                        resultMetadata.setSegmentCount(segmentCount.to_string().parse().unwrap());
+                        let Ok(parsed_segment_count) = segmentCount.to_string().parse() else {
+                            return Err(Exceptions::FormatException(None));
+                        };
+                        resultMetadata.setSegmentCount(parsed_segment_count);
                     }
                     MACRO_PDF417_OPTIONAL_FIELD_TIME_STAMP => {
                         let mut timestamp = ECIStringBuilder::new();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut timestamp)?;
                         timestamp = timestamp.build_result();
-                        resultMetadata.setTimestamp(timestamp.to_string().parse().unwrap());
+                        let Ok(parsed_timestamp) = timestamp.to_string().parse() else {
+                            return Err(Exceptions::FormatException(None));
+                        };
+                        resultMetadata.setTimestamp(parsed_timestamp);
                     }
                     MACRO_PDF417_OPTIONAL_FIELD_CHECKSUM => {
                         let mut checksum = ECIStringBuilder::new();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut checksum)?;
                         checksum = checksum.build_result();
-                        resultMetadata.setChecksum(checksum.to_string().parse().unwrap());
+                        let Ok(parsed_checksum ) = checksum.to_string().parse() else {
+                            return Err(Exceptions::FormatException(None));
+                        };
+                        resultMetadata.setChecksum(parsed_checksum);
                     }
                     MACRO_PDF417_OPTIONAL_FIELD_FILE_SIZE => {
                         let mut fileSize = ECIStringBuilder::new();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut fileSize)?;
                         fileSize = fileSize.build_result();
-                        resultMetadata.setFileSize(fileSize.to_string().parse().unwrap());
+                        let Ok(parsed_file_size)= fileSize.to_string().parse()else {
+                            return Err(Exceptions::FormatException(None));
+                        };
+                        resultMetadata.setFileSize(parsed_file_size);
                     }
                     _ => return Err(Exceptions::FormatException(None)),
                 }
