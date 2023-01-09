@@ -639,7 +639,7 @@ fn encodeMinimally(input: Rc<Input>) -> Result<RXingResult, Exceptions> {
     }
 
     if minimalJ < 0 {
-        return Err(Exceptions::RuntimeException(Some(format!(
+        return Err(Exceptions::IllegalStateException(Some(format!(
             "Internal error: failed to encode \"{}\"",
             input
         ))));
