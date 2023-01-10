@@ -158,10 +158,10 @@ fn decode_bitmatrix_parser_with_hints(
     let dataBlocks = DataBlock::getDataBlocks(&codewords, version, ecLevel)?;
 
     // Count total number of data bytes
-    let  totalBytes = dataBlocks.iter().fold(0, |acc,dataBlock| {
+    let totalBytes = dataBlocks.iter().fold(0, |acc, dataBlock| {
         acc + dataBlock.getNumDataCodewords() as usize
     });
-    
+
     let mut resultBytes = vec![0u8; totalBytes];
     let mut resultOffset = 0;
 

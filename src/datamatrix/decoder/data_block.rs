@@ -57,9 +57,9 @@ impl DataBlock {
 
         // First count the total number of data blocks
         let ecBlockArray = ecBlocks.getECBlocks();
-        let totalBlocks = ecBlockArray.iter().fold(0, |acc, ecBlock| {
-            acc + ecBlock.getCount() as usize
-        });
+        let totalBlocks = ecBlockArray
+            .iter()
+            .fold(0, |acc, ecBlock| acc + ecBlock.getCount() as usize);
 
         // Now establish DataBlocks of the appropriate size and number of data codewords
         let mut result = Vec::with_capacity(totalBlocks);
