@@ -680,11 +680,7 @@ impl From<&BitMatrix> for image::DynamicImage {
                 let pixel_value = if value.get(x, y) { u8::MIN } else { u8::MAX };
                 let pixel_intrior = [pixel_value, pixel_value, pixel_value];
                 let pixel = image::Rgb(pixel_intrior);
-                pixels.put_pixel(
-                    x,
-                    y,
-                    pixel,
-                );
+                pixels.put_pixel(x, y, pixel);
             }
         }
         pixels.into()

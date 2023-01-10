@@ -215,9 +215,13 @@ fn correctErrors(codewordBytes: &mut [u8], numDataCodewords: usize) -> Result<()
 
     // Copy back into array of bytes -- only need to worry about the bytes that were data
     // We don't care about errors in the error-correction codewords
-    for (code_word, sent_code_word ) in codewordBytes.iter_mut().zip(sending_code_words.iter()).take(numDataCodewords){
-       *code_word = *sent_code_word as u8;
+    for (code_word, sent_code_word) in codewordBytes
+        .iter_mut()
+        .zip(sending_code_words.iter())
+        .take(numDataCodewords)
+    {
+        *code_word = *sent_code_word as u8;
     }
-    
+
     Ok(())
 }

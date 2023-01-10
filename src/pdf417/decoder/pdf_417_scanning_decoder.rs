@@ -616,25 +616,28 @@ fn getStartColumn(
 
     while isValidBarcodeColumn(detectionRXingResult, (barcodeColumn - offset) as usize) {
         barcodeColumn -= offset;
-        for previousRowCodeword in detectionRXingResult
+        if let Some(previousRowCodeword) = detectionRXingResult
             .getDetectionRXingResultColumn(barcodeColumn as usize)
             .as_ref()
             .unwrap()
             .getCodewords()
+            .iter()
+            .flatten()
+            .next()
         {
             // for (Codeword previousRowCodeword : detectionRXingResult.getDetectionRXingResultColumn(barcodeColumn).getCodewords()) {
-            if let Some(previousRowCodeword) = previousRowCodeword {
-                // if previousRowCodeword.is_some() {
-                return ((if leftToRight {
-                    previousRowCodeword.getEndX()
-                } else {
-                    previousRowCodeword.getStartX()
-                }) as isize
-                    + offset
-                        * skippedColumns as isize
-                        * (previousRowCodeword.getEndX() - previousRowCodeword.getStartX())
-                            as isize) as u32;
-            }
+            // if let Some(previousRowCodeword) = previousRowCodeword {
+            // if previousRowCodeword.is_some() {
+            return ((if leftToRight {
+                previousRowCodeword.getEndX()
+            } else {
+                previousRowCodeword.getStartX()
+            }) as isize
+                + offset
+                    * skippedColumns as isize
+                    * (previousRowCodeword.getEndX() - previousRowCodeword.getStartX()) as isize)
+                as u32;
+            // }
         }
         skippedColumns += 1;
     }
