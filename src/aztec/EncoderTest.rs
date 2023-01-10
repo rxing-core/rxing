@@ -671,7 +671,7 @@ fn testEncodeDecode(data: &str, compact: bool, layers: u32) {
     let mut matrix = aztec.getMatrix().clone();
     let mut r = AztecDetectorRXingResult::new(
         matrix.clone(),
-        NO_POINTS.clone(),
+        NO_POINTS,
         aztec.isCompact(),
         aztec.getCodeWords(),
         aztec.getLayers(),
@@ -698,7 +698,7 @@ fn testEncodeDecode(data: &str, compact: bool, layers: u32) {
     );
     r = AztecDetectorRXingResult::new(
         matrix,
-        NO_POINTS.clone(),
+        NO_POINTS,
         aztec.isCompact(),
         aztec.getCodeWords(),
         aztec.getLayers(),
@@ -751,7 +751,7 @@ fn testWriter(
 
     let mut r = AztecDetectorRXingResult::new(
         matrix.clone(),
-        NO_POINTS.clone(),
+        NO_POINTS,
         aztec.isCompact(),
         aztec.getCodeWords(),
         aztec.getLayers(),
@@ -780,7 +780,7 @@ fn testWriter(
     }
     r = AztecDetectorRXingResult::new(
         matrix,
-        NO_POINTS.clone(),
+        NO_POINTS,
         aztec.isCompact(),
         aztec.getCodeWords(),
         aztec.getLayers(),

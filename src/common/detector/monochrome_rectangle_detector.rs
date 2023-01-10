@@ -35,7 +35,7 @@ pub struct MonochromeRectangleDetector<'a> {
 
 impl<'a> MonochromeRectangleDetector<'_> {
     pub fn new(image: &'a BitMatrix) -> MonochromeRectangleDetector<'a> {
-        MonochromeRectangleDetector { image: image }
+        MonochromeRectangleDetector { image }
     }
 
     /**

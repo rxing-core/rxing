@@ -81,7 +81,7 @@ impl<'a> WhiteRectangleDetector<'_> {
         }
 
         Ok(WhiteRectangleDetector {
-            image: image,
+            image,
             height: image.getHeight() as i32,
             width: image.getWidth() as i32,
             leftInit,
