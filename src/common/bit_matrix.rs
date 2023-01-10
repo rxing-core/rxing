@@ -209,7 +209,6 @@ impl BitMatrix {
 
     #[inline(always)]
     fn get_offset(&self, y: u32, x: u32) -> usize {
-        
         y as usize * self.row_size + (x as usize / 32)
     }
 

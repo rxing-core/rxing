@@ -23,7 +23,7 @@ use crate::{
 };
 
 use super::{
-    decoder::pdf_417_scanning_decoder, detector::detector, pdf_417_common,
+    decoder::pdf_417_scanning_decoder, detector::pdf_417_detector, pdf_417_common,
     PDF417RXingResultMetadata,
 };
 
@@ -95,7 +95,7 @@ impl PDF417Reader {
         multiple: bool,
     ) -> Result<Vec<RXingResult>, Exceptions> {
         let mut results = Vec::new(); //new ArrayList<>();
-        let detectorRXingResult = detector::detect_with_hints(image, hints, multiple)?;
+        let detectorRXingResult = pdf_417_detector::detect_with_hints(image, hints, multiple)?;
         for points in detectorRXingResult.getPoints() {
             let points_filtered = points.iter().filter_map(|e| *e).collect();
             // for (RXingResultPoint[] points : detectorRXingResult.getPoints()) {

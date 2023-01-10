@@ -97,6 +97,7 @@ impl ParsedRXingResult for CalendarParsedRXingResult {
 }
 
 impl CalendarParsedRXingResult {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         summary: String,
         startString: String,

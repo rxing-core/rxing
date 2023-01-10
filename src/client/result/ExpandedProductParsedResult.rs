@@ -73,6 +73,7 @@ impl ExpandedProductParsedRXingResult {
     pub const KILOGRAM: &'static str = "KG";
     pub const POUND: &'static str = "LB";
 
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         rawText: String,
         productID: String,

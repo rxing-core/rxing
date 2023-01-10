@@ -2,11 +2,11 @@ mod bit_matrix_parser;
 mod data_block;
 mod data_mask;
 pub mod decoded_bit_stream_parser;
-pub mod decoder;
 mod error_correction_level;
 mod format_information;
 mod mode;
 mod qr_code_decoder_meta_data;
+pub mod qrcode_decoder;
 mod version;
 
 #[cfg(test)]

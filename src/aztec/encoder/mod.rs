@@ -5,7 +5,7 @@ mod simple_token;
 mod state;
 mod token;
 
-pub mod encoder;
+pub mod aztec_encoder;
 
 pub use aztec_code::*;
 pub use binary_shift_token::*;

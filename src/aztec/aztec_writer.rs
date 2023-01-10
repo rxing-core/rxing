@@ -23,7 +23,7 @@ use crate::{
     Writer,
 };
 
-use super::encoder::{encoder, AztecCode};
+use super::encoder::{aztec_encoder, AztecCode};
 
 /**
  * Renders an Aztec code as a {@link BitMatrix}.
@@ -51,8 +51,8 @@ impl Writer for AztecWriter {
         hints: &std::collections::HashMap<crate::EncodeHintType, crate::EncodeHintValue>,
     ) -> Result<crate::common::BitMatrix, crate::exceptions::Exceptions> {
         let mut charset = None; // Do not add any ECI code by default
-        let mut ecc_percent = encoder::DEFAULT_EC_PERCENT;
-        let mut layers = encoder::DEFAULT_AZTEC_LAYERS;
+        let mut ecc_percent = aztec_encoder::DEFAULT_EC_PERCENT;
+        let mut layers = aztec_encoder::DEFAULT_AZTEC_LAYERS;
         if hints.contains_key(&EncodeHintType::CHARACTER_SET) {
             if let EncodeHintValue::CharacterSet(cset_name) = hints
                 .get(&EncodeHintType::CHARACTER_SET)
@@ -113,9 +113,9 @@ fn encode(
     }
     let aztec = if let Some(cset) = charset {
         // dbg!(cset.name(), cset.whatwg_name());
-        encoder::encode_with_charset(contents, ecc_percent, layers, cset)?
+        aztec_encoder::encode_with_charset(contents, ecc_percent, layers, cset)?
     } else {
-        encoder::encode(contents, ecc_percent, layers)?
+        aztec_encoder::encode(contents, ecc_percent, layers)?
     };
     renderRXingResult(&aztec, width, height)
 }

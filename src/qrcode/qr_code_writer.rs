@@ -22,7 +22,7 @@ use crate::{
 
 use super::{
     decoder::ErrorCorrectionLevel,
-    encoder::{encoder, QRCode},
+    encoder::{qrcode_encoder, QRCode},
 };
 
 const QUIET_ZONE_SIZE: i32 = 4;
@@ -102,7 +102,7 @@ impl Writer for QRCodeWriter {
         }
         // }
 
-        let code = encoder::encode_with_hints(contents, errorCorrectionLevel, hints)?;
+        let code = qrcode_encoder::encode_with_hints(contents, errorCorrectionLevel, hints)?;
 
         Self::renderRXingResult(&code, width, height, quietZone)
     }

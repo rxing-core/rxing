@@ -153,6 +153,7 @@ pub struct PlanarYUVLuminanceSource {
 }
 
 impl PlanarYUVLuminanceSource {
+    #[allow(clippy::too_many_arguments)]
     pub fn new_with_all(
         yuv_data: Vec<u8>,
         data_width: usize,

@@ -36,6 +36,7 @@ pub struct PerspectiveTransform {
 }
 
 impl PerspectiveTransform {
+    #[allow(clippy::too_many_arguments)]
     fn new(
         a11: f32,
         a21: f32,
@@ -60,6 +61,7 @@ impl PerspectiveTransform {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn quadrilateralToQuadrilateral(
         x0: f32,
         y0: f32,
@@ -118,6 +120,7 @@ impl PerspectiveTransform {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn squareToQuadrilateral(
         x0: f32,
         y0: f32,
@@ -165,6 +168,7 @@ impl PerspectiveTransform {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn quadrilateralToSquare(
         x0: f32,
         y0: f32,

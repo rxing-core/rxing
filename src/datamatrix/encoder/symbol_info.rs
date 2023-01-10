@@ -93,6 +93,7 @@ impl SymbolInfo {
         )
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn with_details(
         rectangular: bool,
         dataCapacity: u32,

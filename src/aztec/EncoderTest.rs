@@ -28,7 +28,7 @@ use crate::{
     BarcodeFormat, EncodeHintType, EncodeHintValue, RXingResultPoint,
 };
 
-use super::{encoder::encoder, AztecWriter};
+use super::{encoder::aztec_encoder, AztecWriter};
 
 use crate::Writer;
 
@@ -180,10 +180,10 @@ fn testAztecWriter() {
     let matrix = writer
         .encode(data, &BarcodeFormat::AZTEC, 0, 0)
         .expect("matrix must exist");
-    let aztec = encoder::encode(
+    let aztec = aztec_encoder::encode(
         data,
-        encoder::DEFAULT_EC_PERCENT,
-        encoder::DEFAULT_AZTEC_LAYERS,
+        aztec_encoder::DEFAULT_EC_PERCENT,
+        aztec_encoder::DEFAULT_AZTEC_LAYERS,
     )
     .expect("encode should succeed");
     let expected_matrix = aztec.getMatrix();
@@ -599,15 +599,15 @@ fn testUserSpecifiedLayers2() {
 
 fn doTestUserSpecifiedLayers(userSpecifiedLayers: i32) {
     let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let mut aztec = encoder::encode(alphabet, 25, -2).expect("should encode");
+    let mut aztec = aztec_encoder::encode(alphabet, 25, -2).expect("should encode");
     assert_eq!(2, aztec.getLayers());
     assert!(aztec.isCompact());
 
-    aztec = encoder::encode(alphabet, 25, 32).expect("should encode");
+    aztec = aztec_encoder::encode(alphabet, 25, 32).expect("should encode");
     assert_eq!(32, aztec.getLayers());
     assert!(!aztec.isCompact());
 
-    encoder::encode(alphabet, 25, userSpecifiedLayers).expect("encode");
+    aztec_encoder::encode(alphabet, 25, userSpecifiedLayers).expect("encode");
 }
 
 #[test]
@@ -618,7 +618,7 @@ fn testBorderCompact4CaseFailed() {
     let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     // encodes as 26 * 5 * 4 = 520 bits of data
     let alphabet4 = format!("{}{}{}{}", alphabet, alphabet, alphabet, alphabet);
-    encoder::encode(&alphabet4, 0, -4).expect("encode");
+    aztec_encoder::encode(&alphabet4, 0, -4).expect("encode");
 }
 
 #[test]
@@ -630,14 +630,14 @@ fn testBorderCompact4Case() {
     let alphabet4 = format!("{}{}{}{}", alphabet, alphabet, alphabet, alphabet);
 
     // If we just try to encode it normally, it will go to a non-compact 4 layer
-    let mut aztecCode =
-        encoder::encode(&alphabet4, 0, encoder::DEFAULT_AZTEC_LAYERS).expect("Should encode");
+    let mut aztecCode = aztec_encoder::encode(&alphabet4, 0, aztec_encoder::DEFAULT_AZTEC_LAYERS)
+        .expect("Should encode");
     assert!(!aztecCode.isCompact());
     assert_eq!(4, aztecCode.getLayers());
 
     // But shortening the string to 100 bytes (500 bits of data), compact works fine, even if we
     // include more error checking.
-    aztecCode = encoder::encode(&alphabet4[..100], 10, encoder::DEFAULT_AZTEC_LAYERS)
+    aztecCode = aztec_encoder::encode(&alphabet4[..100], 10, aztec_encoder::DEFAULT_AZTEC_LAYERS)
         .expect("should encode");
     assert!(aztecCode.isCompact());
     assert_eq!(4, aztecCode.getLayers());
@@ -646,7 +646,8 @@ fn testBorderCompact4Case() {
 // Helper routines
 
 fn testEncode(data: &str, compact: bool, layers: u32, expected: &str) {
-    let aztec = encoder::encode(data, 33, encoder::DEFAULT_AZTEC_LAYERS).expect("should encode");
+    let aztec = aztec_encoder::encode(data, 33, aztec_encoder::DEFAULT_AZTEC_LAYERS)
+        .expect("should encode");
     assert_eq!(
         compact,
         aztec.isCompact(),
@@ -661,7 +662,8 @@ fn testEncode(data: &str, compact: bool, layers: u32, expected: &str) {
 }
 
 fn testEncodeDecode(data: &str, compact: bool, layers: u32) {
-    let aztec = encoder::encode(data, 25, encoder::DEFAULT_AZTEC_LAYERS).expect("should encode");
+    let aztec = aztec_encoder::encode(data, 25, aztec_encoder::DEFAULT_AZTEC_LAYERS)
+        .expect("should encode");
     assert_eq!(
         compact,
         aztec.isCompact(),
@@ -737,9 +739,13 @@ fn testWriter(
         Some(cs) => cs,
         None => encoding::all::ISO_8859_1,
     };
-    let aztec =
-        encoder::encode_with_charset(data, ecc_percent, encoder::DEFAULT_AZTEC_LAYERS, cset)
-            .expect("encode should encode");
+    let aztec = aztec_encoder::encode_with_charset(
+        data,
+        ecc_percent,
+        aztec_encoder::DEFAULT_AZTEC_LAYERS,
+        cset,
+    )
+    .expect("encode should encode");
     assert_eq!(
         compact,
         aztec.isCompact(),
@@ -794,7 +800,7 @@ fn getPseudoRandom() -> rand::rngs::ThreadRng {
 }
 
 fn testModeMessageComplex(compact: bool, layers: u32, words: u32, expected: &str) {
-    let indata = encoder::generateModeMessage(compact, layers, words).expect("generate mode");
+    let indata = aztec_encoder::generateModeMessage(compact, layers, words).expect("generate mode");
     assert_eq!(
         stripSpace(expected),
         stripSpace(&indata.to_string()),
@@ -804,7 +810,7 @@ fn testModeMessageComplex(compact: bool, layers: u32, words: u32, expected: &str
 
 fn testStuffBits(wordSize: usize, bits: &str, expected: &str) {
     let indata = toBitArray(bits);
-    let stuffed = encoder::stuffBits(&indata, wordSize);
+    let stuffed = aztec_encoder::stuffBits(&indata, wordSize);
     assert_eq!(
         stripSpace(expected),
         stripSpace(&stuffed.to_string()),

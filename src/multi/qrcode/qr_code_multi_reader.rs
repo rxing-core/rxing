@@ -53,7 +53,7 @@ impl MultipleBarcodeReader for QRCodeMultiReader {
         let detectorRXingResults = MultiDetector::new(image.getBlackMatrix()).detectMulti(hints)?;
         for detectorRXingResult in detectorRXingResults {
             let mut proc = || -> Result<(), Exceptions> {
-                let decoderRXingResult = decoder::decoder::decode_bitmatrix_with_hints(
+                let decoderRXingResult = decoder::qrcode_decoder::decode_bitmatrix_with_hints(
                     detectorRXingResult.getBits(),
                     hints,
                 )?;

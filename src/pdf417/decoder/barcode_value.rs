@@ -50,12 +50,14 @@ impl BarcodeValue {
         let mut result = Vec::new();
         for (key, value) in &self.0 {
             // for (Entry<Integer,Integer> entry : values.entrySet()) {
-            if *value as i32 > maxConfidence {
-                maxConfidence = *value as i32;
-                result.clear();
-                result.push(*key);
-            } else if *value as i32 == maxConfidence {
-                result.push(*key);
+            match (*value as i32).cmp(&maxConfidence) {
+                std::cmp::Ordering::Greater => {
+                    maxConfidence = *value as i32;
+                    result.clear();
+                    result.push(*key);
+                }
+                std::cmp::Ordering::Equal => result.push(*key),
+                std::cmp::Ordering::Less => {}
             }
         }
 

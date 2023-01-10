@@ -86,6 +86,7 @@ pub trait GridSampler {
      * @throws NotFoundException if image can't be sampled, for example, if the transformation defined
      *   by the given points is invalid or results in sampling outside the image boundaries
      */
+    #[allow(clippy::too_many_arguments)]
     fn sample_grid_detailed(
         &self,
         image: &BitMatrix,

@@ -20,7 +20,7 @@ use crate::{
     common::BitArray,
     qrcode::{
         decoder::{ErrorCorrectionLevel, Mode, Version},
-        encoder::{encoder, MinimalEncoder},
+        encoder::{qrcode_encoder, MinimalEncoder},
     },
     EncodeHintType, EncodeHintValue,
 };
@@ -42,7 +42,10 @@ fn testGetAlphanumericCode() {
     // The first ten code points are numbers.
     for i in 0..10u8 {
         // for (int i = 0; i < 10; ++i) {
-        assert_eq!(i as i8, encoder::getAlphanumericCode((b'0' + i) as u32));
+        assert_eq!(
+            i as i8,
+            qrcode_encoder::getAlphanumericCode((b'0' + i) as u32)
+        );
     }
 
     // The next 26 code points are capital alphabet letters.
@@ -50,32 +53,32 @@ fn testGetAlphanumericCode() {
         // for (int i = 10; i < 36; ++i) {
         assert_eq!(
             i as i8,
-            encoder::getAlphanumericCode((b'A' + i - 10) as u32)
+            qrcode_encoder::getAlphanumericCode((b'A' + i - 10) as u32)
         );
     }
 
     // Others are symbol letters
-    assert_eq!(36, encoder::getAlphanumericCode(b' ' as u32));
-    assert_eq!(37, encoder::getAlphanumericCode(b'$' as u32));
-    assert_eq!(38, encoder::getAlphanumericCode(b'%' as u32));
-    assert_eq!(39, encoder::getAlphanumericCode(b'*' as u32));
-    assert_eq!(40, encoder::getAlphanumericCode(b'+' as u32));
-    assert_eq!(41, encoder::getAlphanumericCode(b'-' as u32));
-    assert_eq!(42, encoder::getAlphanumericCode(b'.' as u32));
-    assert_eq!(43, encoder::getAlphanumericCode(b'/' as u32));
-    assert_eq!(44, encoder::getAlphanumericCode(b':' as u32));
+    assert_eq!(36, qrcode_encoder::getAlphanumericCode(b' ' as u32));
+    assert_eq!(37, qrcode_encoder::getAlphanumericCode(b'$' as u32));
+    assert_eq!(38, qrcode_encoder::getAlphanumericCode(b'%' as u32));
+    assert_eq!(39, qrcode_encoder::getAlphanumericCode(b'*' as u32));
+    assert_eq!(40, qrcode_encoder::getAlphanumericCode(b'+' as u32));
+    assert_eq!(41, qrcode_encoder::getAlphanumericCode(b'-' as u32));
+    assert_eq!(42, qrcode_encoder::getAlphanumericCode(b'.' as u32));
+    assert_eq!(43, qrcode_encoder::getAlphanumericCode(b'/' as u32));
+    assert_eq!(44, qrcode_encoder::getAlphanumericCode(b':' as u32));
 
     // Should return -1 for other letters;
-    assert_eq!(-1, encoder::getAlphanumericCode(b'a' as u32));
-    assert_eq!(-1, encoder::getAlphanumericCode(b'#' as u32));
-    assert_eq!(-1, encoder::getAlphanumericCode(b'\0' as u32));
+    assert_eq!(-1, qrcode_encoder::getAlphanumericCode(b'a' as u32));
+    assert_eq!(-1, qrcode_encoder::getAlphanumericCode(b'#' as u32));
+    assert_eq!(-1, qrcode_encoder::getAlphanumericCode(b'\0' as u32));
 }
 
 #[test]
 fn test_digits_only() {
     let test_data = "374833744734397449";
-    let data = encoder::encode(test_data, ErrorCorrectionLevel::H).expect("encode");
-    let decode = crate::qrcode::decoder::decoder::decode_bitmatrix(
+    let data = qrcode_encoder::encode(test_data, ErrorCorrectionLevel::H).expect("encode");
+    let decode = crate::qrcode::decoder::qrcode_decoder::decode_bitmatrix(
         &data.getMatrix().as_ref().unwrap().clone().into(),
     )
     .expect("decode");
@@ -85,18 +88,18 @@ fn test_digits_only() {
 #[test]
 fn testChooseMode() {
     // Numeric Mode::
-    assert_eq!(Mode::NUMERIC, encoder::chooseMode("0"));
-    assert_eq!(Mode::NUMERIC, encoder::chooseMode("0123456789"));
+    assert_eq!(Mode::NUMERIC, qrcode_encoder::chooseMode("0"));
+    assert_eq!(Mode::NUMERIC, qrcode_encoder::chooseMode("0123456789"));
     // Alphanumeric Mode::
-    assert_eq!(Mode::ALPHANUMERIC, encoder::chooseMode("A"));
+    assert_eq!(Mode::ALPHANUMERIC, qrcode_encoder::chooseMode("A"));
     assert_eq!(
         Mode::ALPHANUMERIC,
-        encoder::chooseMode("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:")
+        qrcode_encoder::chooseMode("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:")
     );
     // 8-bit byte Mode::
-    assert_eq!(Mode::BYTE, encoder::chooseMode("a"));
-    assert_eq!(Mode::BYTE, encoder::chooseMode("#"));
-    assert_eq!(Mode::BYTE, encoder::chooseMode(""));
+    assert_eq!(Mode::BYTE, qrcode_encoder::chooseMode("a"));
+    assert_eq!(Mode::BYTE, qrcode_encoder::chooseMode("#"));
+    assert_eq!(Mode::BYTE, qrcode_encoder::chooseMode(""));
     // Kanji Mode::  We used to use MODE_KANJI for these, but we stopped
     // doing that as we cannot distinguish Shift_JIS from other encodings
     // from data bytes alone.  See also comments in qrcode_encoder::h.
@@ -104,25 +107,25 @@ fn testChooseMode() {
     // AIUE in Hiragana in Shift_JIS
     assert_eq!(
         Mode::BYTE,
-        encoder::chooseMode(&shiftJISString(&[0x8, 0xa, 0x8, 0xa, 0x8, 0xa, 0x8, 0xa6]))
+        qrcode_encoder::chooseMode(&shiftJISString(&[0x8, 0xa, 0x8, 0xa, 0x8, 0xa, 0x8, 0xa6]))
     );
 
     // Nihon in Kanji in Shift_JIS.
     assert_eq!(
         Mode::BYTE,
-        encoder::chooseMode(&shiftJISString(&[0x9, 0xf, 0x9, 0x7b]))
+        qrcode_encoder::chooseMode(&shiftJISString(&[0x9, 0xf, 0x9, 0x7b]))
     );
 
     // Sou-Utsu-Byou in Kanji in Shift_JIS.
     assert_eq!(
         Mode::BYTE,
-        encoder::chooseMode(&shiftJISString(&[0xe, 0x4, 0x9, 0x5, 0x9, 0x61]))
+        qrcode_encoder::chooseMode(&shiftJISString(&[0xe, 0x4, 0x9, 0x5, 0x9, 0x61]))
     );
 }
 
 #[test]
 fn testEncode() {
-    let qrCode = encoder::encode("ABCDEF", ErrorCorrectionLevel::H).expect("encode");
+    let qrCode = qrcode_encoder::encode("ABCDEF", ErrorCorrectionLevel::H).expect("encode");
     let expected = r"<<
  mode: ALPHANUMERIC
  ecLevel: H
@@ -162,8 +165,8 @@ fn testEncodeWithVersion() {
         EncodeHintType::QR_VERSION,
         EncodeHintValue::QrVersion("7".to_owned()),
     );
-    let qrCode =
-        encoder::encode_with_hints("ABCDEF", ErrorCorrectionLevel::H, &hints).expect("encode");
+    let qrCode = qrcode_encoder::encode_with_hints("ABCDEF", ErrorCorrectionLevel::H, &hints)
+        .expect("encode");
     assert!(qrCode.to_string().contains(" version: 7\n"));
 }
 
@@ -175,7 +178,7 @@ fn testEncodeWithVersionTooSmall() {
         EncodeHintType::QR_VERSION,
         EncodeHintValue::QrVersion("3".to_owned()),
     );
-    encoder::encode_with_hints(
+    qrcode_encoder::encode_with_hints(
         "THISMESSAGEISTOOLONGFORAQRCODEVERSION3",
         ErrorCorrectionLevel::H,
         &hints,
@@ -190,8 +193,8 @@ fn testSimpleutf8ECI() {
         EncodeHintType::CHARACTER_SET,
         EncodeHintValue::CharacterSet("utf8".to_owned()),
     );
-    let qrCode =
-        encoder::encode_with_hints("hello", ErrorCorrectionLevel::H, &hints).expect("encode");
+    let qrCode = qrcode_encoder::encode_with_hints("hello", ErrorCorrectionLevel::H, &hints)
+        .expect("encode");
     let expected = r"<<
  mode: BYTE
  ecLevel: H
@@ -233,8 +236,9 @@ fn testEncodeKanjiMode() {
         EncodeHintValue::CharacterSet("Shift_JIS".to_owned()),
     );
     // Nihon in Kanji
-    let qrCode = encoder::encode_with_hints("\u{65e5}\u{672c}", ErrorCorrectionLevel::M, &hints)
-        .expect("encode");
+    let qrCode =
+        qrcode_encoder::encode_with_hints("\u{65e5}\u{672c}", ErrorCorrectionLevel::M, &hints)
+            .expect("encode");
     let expected = r"<<
  mode: KANJI
  ecLevel: M
@@ -277,7 +281,7 @@ fn testEncodeShiftjisNumeric() {
     );
 
     let qrCode =
-        encoder::encode_with_hints("0123", ErrorCorrectionLevel::M, &hints).expect("encode");
+        qrcode_encoder::encode_with_hints("0123", ErrorCorrectionLevel::M, &hints).expect("encode");
     let expected = r"<<
  mode: NUMERIC
  ecLevel: M
@@ -315,8 +319,9 @@ fn testEncodeGS1WithStringTypeHint() {
     let mut hints = HashMap::new();
 
     hints.insert(EncodeHintType::GS1_FORMAT, EncodeHintValue::Gs1Format(true));
-    let qrCode = encoder::encode_with_hints("100001%11171218", ErrorCorrectionLevel::H, &hints)
-        .expect("encode");
+    let qrCode =
+        qrcode_encoder::encode_with_hints("100001%11171218", ErrorCorrectionLevel::H, &hints)
+            .expect("encode");
     verifyGS1EncodedData(&qrCode);
 }
 
@@ -325,8 +330,9 @@ fn testEncodeGS1WithBooleanTypeHint() {
     let mut hints = HashMap::new();
 
     hints.insert(EncodeHintType::GS1_FORMAT, EncodeHintValue::Gs1Format(true));
-    let qrCode = encoder::encode_with_hints("100001%11171218", ErrorCorrectionLevel::H, &hints)
-        .expect("encode");
+    let qrCode =
+        qrcode_encoder::encode_with_hints("100001%11171218", ErrorCorrectionLevel::H, &hints)
+            .expect("encode");
     verifyGS1EncodedData(&qrCode);
 }
 
@@ -339,8 +345,8 @@ fn testDoesNotEncodeGS1WhenBooleanTypeHintExplicitlyFalse() {
         EncodeHintValue::Gs1Format(false),
     );
 
-    let qrCode =
-        encoder::encode_with_hints("ABCDEF", ErrorCorrectionLevel::H, &hints).expect("encode");
+    let qrCode = qrcode_encoder::encode_with_hints("ABCDEF", ErrorCorrectionLevel::H, &hints)
+        .expect("encode");
     verifyNotGS1EncodedData(&qrCode);
 }
 
@@ -352,8 +358,8 @@ fn testDoesNotEncodeGS1WhenStringTypeHintExplicitlyFalse() {
         EncodeHintType::GS1_FORMAT,
         EncodeHintValue::Gs1Format(false),
     );
-    let qrCode =
-        encoder::encode_with_hints("ABCDEF", ErrorCorrectionLevel::H, &hints).expect("encode");
+    let qrCode = qrcode_encoder::encode_with_hints("ABCDEF", ErrorCorrectionLevel::H, &hints)
+        .expect("encode");
     verifyNotGS1EncodedData(&qrCode);
 }
 
@@ -366,8 +372,8 @@ fn testGS1ModeHeaderWithECI() {
         EncodeHintValue::CharacterSet("utf8".to_owned()),
     );
     hints.insert(EncodeHintType::GS1_FORMAT, EncodeHintValue::Gs1Format(true));
-    let qrCode =
-        encoder::encode_with_hints("hello", ErrorCorrectionLevel::H, &hints).expect("encode");
+    let qrCode = qrcode_encoder::encode_with_hints("hello", ErrorCorrectionLevel::H, &hints)
+        .expect("encode");
     let expected = r"<<
  mode: BYTE
  ecLevel: H
@@ -403,14 +409,14 @@ fn testGS1ModeHeaderWithECI() {
 #[test]
 fn testAppendModeInfo() {
     let mut bits = BitArray::new();
-    assert!(encoder::appendModeInfo(Mode::NUMERIC, &mut bits).is_ok());
+    assert!(qrcode_encoder::appendModeInfo(Mode::NUMERIC, &mut bits).is_ok());
     assert_eq!(" ...X", bits.to_string());
 }
 
 #[test]
 fn testAppendLengthInfo() {
     let mut bits = BitArray::new();
-    encoder::appendLengthInfo(
+    qrcode_encoder::appendLengthInfo(
         1, // 1 letter (1/1).
         Version::getVersionForNumber(1).unwrap(),
         Mode::NUMERIC,
@@ -419,7 +425,7 @@ fn testAppendLengthInfo() {
     .expect("ok");
     assert_eq!(" ........ .X", bits.to_string()); // 10 bits.
     let mut bits = BitArray::new();
-    encoder::appendLengthInfo(
+    qrcode_encoder::appendLengthInfo(
         2, // 2 letters (2/1).
         Version::getVersionForNumber(10).unwrap(),
         Mode::ALPHANUMERIC,
@@ -428,7 +434,7 @@ fn testAppendLengthInfo() {
     .expect("ok");
     assert_eq!(" ........ .X.", bits.to_string()); // 11 bits.
     let mut bits = BitArray::new();
-    encoder::appendLengthInfo(
+    qrcode_encoder::appendLengthInfo(
         255, // 255 letter (255/1).
         Version::getVersionForNumber(27).unwrap(),
         Mode::BYTE,
@@ -437,7 +443,7 @@ fn testAppendLengthInfo() {
     .expect("ok");
     assert_eq!(" ........ XXXXXXXX", bits.to_string()); // 16 bits.
     let mut bits = BitArray::new();
-    encoder::appendLengthInfo(
+    qrcode_encoder::appendLengthInfo(
         512, // 512 letters (1024/2).
         Version::getVersionForNumber(40).unwrap(),
         Mode::KANJI,
@@ -452,32 +458,32 @@ fn testAppendBytes() {
     // Should use appendNumericBytes.
     // 1 = 01 = 0001 in 4 bits.
     let mut bits = BitArray::new();
-    encoder::appendBytes(
+    qrcode_encoder::appendBytes(
         "1",
         Mode::NUMERIC,
         &mut bits,
-        encoder::DEFAULT_BYTE_MODE_ENCODING,
+        qrcode_encoder::DEFAULT_BYTE_MODE_ENCODING,
     )
     .expect("ok");
     assert_eq!(" ...X", bits.to_string());
     // Should use appendAlphanumericBytes.
     // A = 10 = 0xa = 001010 in 6 bits
     let mut bits = BitArray::new();
-    encoder::appendBytes(
+    qrcode_encoder::appendBytes(
         "A",
         Mode::ALPHANUMERIC,
         &mut bits,
-        encoder::DEFAULT_BYTE_MODE_ENCODING,
+        qrcode_encoder::DEFAULT_BYTE_MODE_ENCODING,
     )
     .expect("ok");
     assert_eq!(" ..X.X.", bits.to_string());
     // Lower letters such as 'a' cannot be encoded in MODE_ALPHANUMERIC.
     //try {
-    if encoder::appendBytes(
+    if qrcode_encoder::appendBytes(
         "a",
         Mode::ALPHANUMERIC,
         &mut bits,
-        encoder::DEFAULT_BYTE_MODE_ENCODING,
+        qrcode_encoder::DEFAULT_BYTE_MODE_ENCODING,
     )
     .is_ok()
     {
@@ -489,30 +495,30 @@ fn testAppendBytes() {
     // Should use append8BitBytes.
     // 0x61, 0x62, 0x63
     let mut bits = BitArray::new();
-    encoder::appendBytes(
+    qrcode_encoder::appendBytes(
         "abc",
         Mode::BYTE,
         &mut bits,
-        encoder::DEFAULT_BYTE_MODE_ENCODING,
+        qrcode_encoder::DEFAULT_BYTE_MODE_ENCODING,
     )
     .expect("ok");
     assert_eq!(" .XX....X .XX...X. .XX...XX", bits.to_string());
     // Anything can be encoded in QRCode.MODE_8BIT_BYTE.
-    encoder::appendBytes(
+    qrcode_encoder::appendBytes(
         "\0",
         Mode::BYTE,
         &mut bits,
-        encoder::DEFAULT_BYTE_MODE_ENCODING,
+        qrcode_encoder::DEFAULT_BYTE_MODE_ENCODING,
     )
     .expect("ok");
     // Should use appendKanjiBytes.
     // 0x93, 0x5f
     let mut bits = BitArray::new();
-    encoder::appendBytes(
+    qrcode_encoder::appendBytes(
         &shiftJISString(&[0x93, 0x5f]),
         Mode::KANJI,
         &mut bits,
-        encoder::DEFAULT_BYTE_MODE_ENCODING,
+        qrcode_encoder::DEFAULT_BYTE_MODE_ENCODING,
     )
     .expect("ok");
     assert_eq!(" .XX.XX.. XXXXX", bits.to_string());
@@ -521,29 +527,29 @@ fn testAppendBytes() {
 #[test]
 fn testTerminateBits() {
     let mut v = BitArray::new();
-    encoder::terminateBits(0, &mut v).expect("terminate");
+    qrcode_encoder::terminateBits(0, &mut v).expect("terminate");
     assert_eq!("", v.to_string());
     let mut v = BitArray::new();
-    encoder::terminateBits(1, &mut v).expect("terminate");
+    qrcode_encoder::terminateBits(1, &mut v).expect("terminate");
     assert_eq!(" ........", v.to_string());
     let mut v = BitArray::new();
     v.appendBits(0, 3).expect("terminate"); // Append 000
-    encoder::terminateBits(1, &mut v).expect("terminate");
+    qrcode_encoder::terminateBits(1, &mut v).expect("terminate");
     assert_eq!(" ........", v.to_string());
     let mut v = BitArray::new();
     v.appendBits(0, 5).expect("terminate"); // Append 00000
-    encoder::terminateBits(1, &mut v).expect("terminate");
+    qrcode_encoder::terminateBits(1, &mut v).expect("terminate");
     assert_eq!(" ........", v.to_string());
     let mut v = BitArray::new();
     v.appendBits(0, 8).expect("terminate"); // Append 00000000
-    encoder::terminateBits(1, &mut v).expect("terminate");
+    qrcode_encoder::terminateBits(1, &mut v).expect("terminate");
     assert_eq!(" ........", v.to_string());
     let mut v = BitArray::new();
-    encoder::terminateBits(2, &mut v).expect("terminate");
+    qrcode_encoder::terminateBits(2, &mut v).expect("terminate");
     assert_eq!(" ........ XXX.XX..", v.to_string());
     let mut v = BitArray::new();
     v.appendBits(0, 1).expect("terminate"); // Append 0
-    encoder::terminateBits(3, &mut v).expect("terminate");
+    qrcode_encoder::terminateBits(3, &mut v).expect("terminate");
     assert_eq!(" ........ XXX.XX.. ...X...X", v.to_string());
 }
 
@@ -551,43 +557,43 @@ fn testTerminateBits() {
 fn testGetNumDataBytesAndNumECBytesForBlockID() {
     // Version 1-H.
     let (numDataBytes, numEcBytes) =
-        encoder::getNumDataBytesAndNumECBytesForBlockID(26, 9, 1, 0).expect("ok");
+        qrcode_encoder::getNumDataBytesAndNumECBytesForBlockID(26, 9, 1, 0).expect("ok");
     assert_eq!(9, numDataBytes);
     assert_eq!(17, numEcBytes);
 
     // Version 3-H.  2 blocks.
     let (numDataBytes, numEcBytes) =
-        encoder::getNumDataBytesAndNumECBytesForBlockID(70, 26, 2, 0).expect("ok");
+        qrcode_encoder::getNumDataBytesAndNumECBytesForBlockID(70, 26, 2, 0).expect("ok");
     assert_eq!(13, numDataBytes);
     assert_eq!(22, numEcBytes);
     let (numDataBytes, numEcBytes) =
-        encoder::getNumDataBytesAndNumECBytesForBlockID(70, 26, 2, 1).expect("ok");
+        qrcode_encoder::getNumDataBytesAndNumECBytesForBlockID(70, 26, 2, 1).expect("ok");
     assert_eq!(13, numDataBytes);
     assert_eq!(22, numEcBytes);
 
     // Version 7-H. (4 + 1) blocks.
     let (numDataBytes, numEcBytes) =
-        encoder::getNumDataBytesAndNumECBytesForBlockID(196, 66, 5, 0).expect("ok");
+        qrcode_encoder::getNumDataBytesAndNumECBytesForBlockID(196, 66, 5, 0).expect("ok");
     assert_eq!(13, numDataBytes);
     assert_eq!(26, numEcBytes);
     let (numDataBytes, numEcBytes) =
-        encoder::getNumDataBytesAndNumECBytesForBlockID(196, 66, 5, 4).expect("ok");
+        qrcode_encoder::getNumDataBytesAndNumECBytesForBlockID(196, 66, 5, 4).expect("ok");
     assert_eq!(14, numDataBytes);
     assert_eq!(26, numEcBytes);
 
     // Version 40-H. (20 + 61) blocks.
     let (numDataBytes, numEcBytes) =
-        encoder::getNumDataBytesAndNumECBytesForBlockID(3706, 1276, 81, 0).expect("ok");
+        qrcode_encoder::getNumDataBytesAndNumECBytesForBlockID(3706, 1276, 81, 0).expect("ok");
     assert_eq!(15, numDataBytes);
     assert_eq!(30, numEcBytes);
 
     let (numDataBytes, numEcBytes) =
-        encoder::getNumDataBytesAndNumECBytesForBlockID(3706, 1276, 81, 20).expect("ok");
+        qrcode_encoder::getNumDataBytesAndNumECBytesForBlockID(3706, 1276, 81, 20).expect("ok");
     assert_eq!(16, numDataBytes);
     assert_eq!(30, numEcBytes);
 
     let (numDataBytes, numEcBytes) =
-        encoder::getNumDataBytesAndNumECBytesForBlockID(3706, 1276, 81, 80).expect("ok");
+        qrcode_encoder::getNumDataBytesAndNumECBytesForBlockID(3706, 1276, 81, 80).expect("ok");
     assert_eq!(16, numDataBytes);
     assert_eq!(30, numEcBytes);
 }
@@ -600,7 +606,7 @@ fn testInterleaveWithECBytes() {
         // for (byte dataByte: dataBytes) {
         in_.appendBits(*dataByte, 8).expect("ok");
     }
-    let out = encoder::interleaveWithECBytes(&in_, 26, 9, 1).expect("encode");
+    let out = qrcode_encoder::interleaveWithECBytes(&in_, 26, 9, 1).expect("encode");
     let expected = &[
         // Data bytes.
         32, 65, 205, 69, 41, 220, 46, 128, 236, // Error correction bytes.
@@ -627,7 +633,7 @@ fn testInterleaveWithECBytes() {
         in_.appendBits(*dataByte, 8).expect("ok");
     }
 
-    let out = encoder::interleaveWithECBytes(&in_, 134, 62, 4).expect("interleave ok");
+    let out = qrcode_encoder::interleaveWithECBytes(&in_, 134, 62, 4).expect("interleave ok");
     let expected = &[
         // Data bytes.
         67, 230, 54, 55, 70, 247, 70, 71, 22, 7, 86, 87, 38, 23, 102, 103, 54, 39, 118, 119, 70, 55,
@@ -660,23 +666,23 @@ fn testInterleaveWithECBytes() {
 fn testAppendNumericBytes() {
     // 1 = 01 = 0001 in 4 bits.
     let mut bits = BitArray::new();
-    encoder::appendNumericBytes("1", &mut bits).expect("append");
+    qrcode_encoder::appendNumericBytes("1", &mut bits).expect("append");
     assert_eq!(" ...X", bits.to_string());
     // 12 = 0xc = 0001100 in 7 bits.
     let mut bits = BitArray::new();
-    encoder::appendNumericBytes("12", &mut bits).expect("append");
+    qrcode_encoder::appendNumericBytes("12", &mut bits).expect("append");
     assert_eq!(" ...XX..", bits.to_string());
     // 123 = 0x7b = 0001111011 in 10 bits.
     let mut bits = BitArray::new();
-    encoder::appendNumericBytes("123", &mut bits).expect("append");
+    qrcode_encoder::appendNumericBytes("123", &mut bits).expect("append");
     assert_eq!(" ...XXXX. XX", bits.to_string());
     // 1234 = "123" + "4" = 0001111011 + 0100
     let mut bits = BitArray::new();
-    encoder::appendNumericBytes("1234", &mut bits).expect("append");
+    qrcode_encoder::appendNumericBytes("1234", &mut bits).expect("append");
     assert_eq!(" ...XXXX. XX.X..", bits.to_string());
     // Empty.
     let mut bits = BitArray::new();
-    encoder::appendNumericBytes("", &mut bits).expect("append");
+    qrcode_encoder::appendNumericBytes("", &mut bits).expect("append");
     assert_eq!("", bits.to_string());
 }
 
@@ -684,23 +690,23 @@ fn testAppendNumericBytes() {
 fn testAppendAlphanumericBytes() {
     // A = 10 = 0xa = 001010 in 6 bits
     let mut bits = BitArray::new();
-    encoder::appendAlphanumericBytes("A", &mut bits).expect("append");
+    qrcode_encoder::appendAlphanumericBytes("A", &mut bits).expect("append");
     assert_eq!(" ..X.X.", bits.to_string());
     // AB = 10 * 45 + 11 = 461 = 0x1cd = 00111001101 in 11 bits
     let mut bits = BitArray::new();
-    encoder::appendAlphanumericBytes("AB", &mut bits).expect("append");
+    qrcode_encoder::appendAlphanumericBytes("AB", &mut bits).expect("append");
     assert_eq!(" ..XXX..X X.X", bits.to_string());
     // ABC = "AB" + "C" = 00111001101 + 001100
     let mut bits = BitArray::new();
-    encoder::appendAlphanumericBytes("ABC", &mut bits).expect("append");
+    qrcode_encoder::appendAlphanumericBytes("ABC", &mut bits).expect("append");
     assert_eq!(" ..XXX..X X.X..XX. .", bits.to_string());
     // Empty.
     let mut bits = BitArray::new();
-    encoder::appendAlphanumericBytes("", &mut bits).expect("append");
+    qrcode_encoder::appendAlphanumericBytes("", &mut bits).expect("append");
     assert_eq!("", bits.to_string());
     // Invalid data.
     // try {
-    if encoder::appendAlphanumericBytes("abc", &mut BitArray::new()).is_ok() {
+    if qrcode_encoder::appendAlphanumericBytes("abc", &mut BitArray::new()).is_ok() {
         panic!("should not be ok");
     }
     // } catch (WriterException we) {
@@ -712,12 +718,13 @@ fn testAppendAlphanumericBytes() {
 fn testAppend8BitBytes() {
     // 0x61, 0x62, 0x63
     let mut bits = BitArray::new();
-    encoder::append8BitBytes("abc", &mut bits, encoder::DEFAULT_BYTE_MODE_ENCODING)
+    qrcode_encoder::append8BitBytes("abc", &mut bits, qrcode_encoder::DEFAULT_BYTE_MODE_ENCODING)
         .expect("append");
     assert_eq!(" .XX....X .XX...X. .XX...XX", bits.to_string());
     // Empty.
     let mut bits = BitArray::new();
-    encoder::append8BitBytes("", &mut bits, encoder::DEFAULT_BYTE_MODE_ENCODING).expect("append");
+    qrcode_encoder::append8BitBytes("", &mut bits, qrcode_encoder::DEFAULT_BYTE_MODE_ENCODING)
+        .expect("append");
     assert_eq!("", bits.to_string());
 }
 
@@ -725,9 +732,9 @@ fn testAppend8BitBytes() {
 #[test]
 fn testAppendKanjiBytes() {
     let mut bits = BitArray::new();
-    encoder::appendKanjiBytes(&shiftJISString(&[0x93, 0x5f]), &mut bits).expect("append");
+    qrcode_encoder::appendKanjiBytes(&shiftJISString(&[0x93, 0x5f]), &mut bits).expect("append");
     assert_eq!(" .XX.XX.. XXXXX", bits.to_string());
-    encoder::appendKanjiBytes(&shiftJISString(&[0xe4, 0xaa]), &mut bits).expect("append");
+    qrcode_encoder::appendKanjiBytes(&shiftJISString(&[0xe4, 0xaa]), &mut bits).expect("append");
     assert_eq!(" .XX.XX.. XXXXXXX. X.X.X.X. X.", bits.to_string());
 }
 
@@ -736,7 +743,7 @@ fn testAppendKanjiBytes() {
 #[test]
 fn testGenerateECBytes() {
     let dataBytes = &[32, 65, 205, 69, 41, 220, 46, 128, 236];
-    let ecBytes = encoder::generateECBytes(dataBytes, 17);
+    let ecBytes = qrcode_encoder::generateECBytes(dataBytes, 17);
     let expected = [
         42, 159, 74, 221, 244, 169, 239, 150, 138, 70, 237, 85, 224, 96, 74, 219, 61,
     ];
@@ -748,7 +755,7 @@ fn testGenerateECBytes() {
     let dataBytes = &[
         67, 70, 22, 38, 54, 70, 86, 102, 118, 134, 150, 166, 182, 198, 214,
     ];
-    let ecBytes = encoder::generateECBytes(dataBytes, 18);
+    let ecBytes = qrcode_encoder::generateECBytes(dataBytes, 18);
     let expected = &[
         175, 80, 155, 64, 178, 45, 214, 233, 65, 209, 12, 155, 117, 31, 140, 214, 27, 187,
     ];
@@ -759,7 +766,7 @@ fn testGenerateECBytes() {
     }
     // High-order zero coefficient case.
     let dataBytes = &[32, 49, 205, 69, 42, 20, 0, 236, 17];
-    let ecBytes = encoder::generateECBytes(dataBytes, 17);
+    let ecBytes = qrcode_encoder::generateECBytes(dataBytes, 17);
     let expected = &[
         0, 3, 130, 179, 194, 0, 55, 211, 110, 79, 98, 72, 170, 96, 211, 137, 213,
     ];
@@ -805,7 +812,7 @@ fn testBugInBitVectorNumBytes() {
         // for (int x = 0; x < 3518; x++) {
         builder.push('0');
     }
-    assert!(encoder::encode(&builder, ErrorCorrectionLevel::L).is_ok());
+    assert!(qrcode_encoder::encode(&builder, ErrorCorrectionLevel::L).is_ok());
 }
 
 #[test]

@@ -79,8 +79,9 @@ fn test_aztec_rxing_result_sample() {
 
 // Test that we can tolerate errors in the parameter locator bits
 fn test_error_in_parameter_locator(data: &str) {
-    let aztec = encoder::encoder::encode(data, 25, encoder::encoder::DEFAULT_AZTEC_LAYERS)
-        .expect("encode should create");
+    let aztec =
+        encoder::aztec_encoder::encode(data, 25, encoder::aztec_encoder::DEFAULT_AZTEC_LAYERS)
+            .expect("encode should create");
     // dbg!(aztec.getMatrix().to_string());
     let mut random = rand::thread_rng(); //Random(aztec.getMatrix().hashCode());   // pseudo-random, but deterministic
     let layers = aztec.getLayers();

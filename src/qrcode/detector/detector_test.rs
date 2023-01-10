@@ -3,7 +3,8 @@ use std::collections::HashMap;
 use crate::{
     common::{BitMatrix, DetectorRXingResult},
     qrcode::{
-        decoder::decoder, decoder::ErrorCorrectionLevel, detector::Detector, encoder::encoder,
+        decoder::qrcode_decoder, decoder::ErrorCorrectionLevel, detector::Detector,
+        encoder::qrcode_encoder,
     },
 };
 
@@ -26,8 +27,8 @@ fn test_encode_decode(value: &str) {
     for ec_level_v in 0..4 {
         let ec_level: ErrorCorrectionLevel =
             ErrorCorrectionLevel::forBits(ec_level_v).expect("must get level");
-        let qr_code =
-            encoder::encode_with_hints(value, ec_level, &HashMap::new()).expect("must encode");
+        let qr_code = qrcode_encoder::encode_with_hints(value, ec_level, &HashMap::new())
+            .expect("must encode");
         // dbg!(&qr_code.to_string());
         let byt_matrix = qr_code.getMatrix().as_ref().unwrap().clone();
         // dbg!(BitMatrix::from(byt_matrix.clone()).to_string());
@@ -35,7 +36,8 @@ fn test_encode_decode(value: &str) {
         let new_matrix: &BitMatrix = &byt_matrix.into();
         let mut detector = Detector::new(new_matrix);
         let detected_points = detector.detect().expect("must detect");
-        let decoded = decoder::decode_bitmatrix(detected_points.getBits()).expect("must decode");
+        let decoded =
+            qrcode_decoder::decode_bitmatrix(detected_points.getBits()).expect("must decode");
         assert_eq!(decoded.getText(), value);
     }
 }

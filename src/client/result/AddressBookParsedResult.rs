@@ -100,6 +100,7 @@ impl AddressBookParsedRXingResult {
         )
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn with_details(
         names: Vec<String>,
         nicknames: Vec<String>,

@@ -74,6 +74,7 @@ impl WifiParsedRXingResult {
         )
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn with_details(
         networkEncryption: String,
         ssid: String,

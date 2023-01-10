@@ -648,6 +648,7 @@ fn getStartColumn(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn detectCodeword(
     image: &BitMatrix,
     minColumn: u32,

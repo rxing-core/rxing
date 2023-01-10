@@ -23,7 +23,7 @@ use crate::{
 };
 
 use super::{
-    decoder::{decoder, QRCodeDecoderMetaData},
+    decoder::{qrcode_decoder, QRCodeDecoderMetaData},
     detector::Detector,
 };
 
@@ -64,13 +64,13 @@ impl Reader for QRCodeReader {
         let mut points: Vec<RXingResultPoint>;
         if hints.contains_key(&DecodeHintType::PURE_BARCODE) {
             let bits = Self::extractPureBits(image.getBlackMatrix())?;
-            decoderRXingResult = decoder::decode_bitmatrix_with_hints(&bits, hints)?;
+            decoderRXingResult = qrcode_decoder::decode_bitmatrix_with_hints(&bits, hints)?;
             points = Vec::new();
         } else {
             let detectorRXingResult =
                 Detector::new(image.getBlackMatrix()).detect_with_hints(hints)?;
             decoderRXingResult =
-                decoder::decode_bitmatrix_with_hints(detectorRXingResult.getBits(), hints)?;
+                qrcode_decoder::decode_bitmatrix_with_hints(detectorRXingResult.getBits(), hints)?;
             points = detectorRXingResult.getPoints().clone();
         }
 

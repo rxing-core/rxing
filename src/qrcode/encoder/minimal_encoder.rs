@@ -26,7 +26,7 @@ use crate::{
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use super::encoder;
+use super::qrcode_encoder;
 
 pub enum VersionSize {
     SMALL,  //("version 1-9"),
@@ -155,7 +155,7 @@ impl MinimalEncoder {
         if let Some(version) = version {
             // compute minimal encoding for a given version
             let result = self.encodeSpecificVersion(version)?;
-            if !encoder::willFit(
+            if !qrcode_encoder::willFit(
                 result.getSize(),
                 Self::getVersion(Self::getVersionSize(result.getVersion())),
                 &self.ecLevel,
@@ -183,7 +183,8 @@ impl MinimalEncoder {
             for i in 0..3 {
                 // for (int i = 0; i < 3; i++) {
                 let size = results[i].getSize();
-                if encoder::willFit(size, versions[i], &self.ecLevel) && size < smallestSize {
+                if qrcode_encoder::willFit(size, versions[i], &self.ecLevel) && size < smallestSize
+                {
                     smallestSize = size;
                     smallestRXingResult = i as i32;
                 }
@@ -235,13 +236,13 @@ impl MinimalEncoder {
     }
 
     pub fn isDoubleByteKanji(c: &str) -> bool {
-        encoder::isOnlyDoubleByteKanji(c)
+        qrcode_encoder::isOnlyDoubleByteKanji(c)
     }
 
     pub fn isAlphanumeric(c: &str) -> bool {
         if c.len() == 1 {
             let ch = c.chars().next().unwrap();
-            encoder::getAlphanumericCode(ch as u32) != -1
+            qrcode_encoder::getAlphanumericCode(ch as u32) != -1
         } else {
             false
         }
@@ -612,6 +613,7 @@ pub struct Edge {
     _stringToEncode: Vec<String>,
 }
 impl Edge {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         mode: Mode,
         fromPosition: usize,
@@ -881,7 +883,7 @@ impl RXingResultList {
         let size = Self::internal_static_get_size(version, &list);
         // increase version if needed
         while versionNumber < upperLimit
-            && !encoder::willFit(
+            && !qrcode_encoder::willFit(
                 size,
                 Version::getVersionForNumber(versionNumber).unwrap(),
                 ecLevel,
@@ -891,7 +893,7 @@ impl RXingResultList {
         }
         // shrink version if possible
         while versionNumber > lowerLimit
-            && encoder::willFit(
+            && qrcode_encoder::willFit(
                 size,
                 Version::getVersionForNumber(versionNumber - 1).unwrap(),
                 ecLevel,
@@ -1084,7 +1086,7 @@ impl RXingResultNode {
             bits.appendBits(self.encoders.getECIValue(self.charsetEncoderIndex), 8)?;
         } else if self.characterLength > 0 {
             // append data
-            encoder::appendBytes(
+            qrcode_encoder::appendBytes(
                 // &self.stringToEncode[self.fromPosition as usize
                 //     ..(self.fromPosition + self.characterLength as usize)],
                 &(self

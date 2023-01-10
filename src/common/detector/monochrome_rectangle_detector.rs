@@ -143,6 +143,7 @@ impl<'a> MonochromeRectangleDetector<'_> {
      * @return a {@link RXingResultPoint} encapsulating the corner that was found
      * @throws NotFoundException if such a point cannot be found
      */
+    #[allow(clippy::too_many_arguments)]
     fn findCornerFromCenter(
         &self,
         centerX: i32,

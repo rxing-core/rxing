@@ -62,6 +62,7 @@ impl ParsedRXingResult for VINParsedRXingResult {
     }
 }
 impl VINParsedRXingResult {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         vin: String,
         world_manufacturer_id: String,

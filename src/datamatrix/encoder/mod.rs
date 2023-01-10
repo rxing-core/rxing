@@ -1,5 +1,5 @@
+mod datamatrix_encoder;
 mod default_placement;
-mod encoder;
 mod encoder_context;
 pub mod error_correction;
 pub mod high_level_encoder;
@@ -7,8 +7,8 @@ pub mod minimal_encoder;
 mod symbol_info;
 mod symbol_shape_hint;
 
+pub use datamatrix_encoder::*;
 pub use default_placement::*;
-pub use encoder::*;
 pub use encoder_context::*;
 pub use symbol_info::*;
 pub use symbol_shape_hint::*;

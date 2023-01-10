@@ -20,7 +20,7 @@ use crate::{
     common::BitMatrix, BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType, Reader,
 };
 
-use super::decoder::decoder;
+use super::decoder::maxicode_decoder;
 
 /**
  * This implementation can detect and decode a MaxiCode in an image.
@@ -62,7 +62,7 @@ impl Reader for MaxiCodeReader {
         // Note that MaxiCode reader effectively always assumes PURE_BARCODE mode
         // and can't detect it in an image
         let bits = Self::extractPureBits(image.getBlackMatrix())?;
-        let decoderRXingResult = decoder::decode_with_hints(bits, hints)?;
+        let decoderRXingResult = maxicode_decoder::decode_with_hints(bits, hints)?;
         let mut result = RXingResult::new(
             decoderRXingResult.getText(),
             decoderRXingResult.getRawBytes().clone(),
