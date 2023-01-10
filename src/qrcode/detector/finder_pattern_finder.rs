@@ -686,11 +686,10 @@ impl FinderPatternFinder {
         // vary too much. We arbitrarily say that when the total deviation from average exceeds
         // 5% of the total module size estimates, it's too much.
         let average = totalModuleSize / max as f32;
-        let mut totalDeviation = 0.0;
-        for pattern in &self.possibleCenters {
-            // for (FinderPattern pattern : possibleCenters) {
-            totalDeviation += (pattern.getEstimatedModuleSize() - average).abs();
-        }
+        let  totalDeviation = self.possibleCenters.iter().fold(0.0, |acc, pattern| {
+acc + (pattern.getEstimatedModuleSize() - average).abs()
+        });
+        
         totalDeviation <= 0.05 * totalModuleSize
     }
 

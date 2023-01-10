@@ -50,7 +50,7 @@ const WINDOWS_1252: EncodingRef = encoding::all::WINDOWS_1252; //Charset.forName
 
 // const DOTX: &str = "[^.X]";
 // const SPACES: &str = "\\s+";
-const NO_POINTS: Vec<RXingResultPoint> = Vec::new();
+const NO_POINTS: [RXingResultPoint; 4] = [RXingResultPoint { x: 0.0, y: 0.0 }; 4];
 
 // real life tests
 
@@ -671,7 +671,7 @@ fn testEncodeDecode(data: &str, compact: bool, layers: u32) {
     let mut matrix = aztec.getMatrix().clone();
     let mut r = AztecDetectorRXingResult::new(
         matrix.clone(),
-        NO_POINTS,
+        NO_POINTS.clone(),
         aztec.isCompact(),
         aztec.getCodeWords(),
         aztec.getLayers(),
@@ -698,7 +698,7 @@ fn testEncodeDecode(data: &str, compact: bool, layers: u32) {
     );
     r = AztecDetectorRXingResult::new(
         matrix,
-        NO_POINTS,
+        NO_POINTS.clone(),
         aztec.isCompact(),
         aztec.getCodeWords(),
         aztec.getLayers(),
@@ -751,7 +751,7 @@ fn testWriter(
 
     let mut r = AztecDetectorRXingResult::new(
         matrix.clone(),
-        NO_POINTS,
+        NO_POINTS.clone(),
         aztec.isCompact(),
         aztec.getCodeWords(),
         aztec.getLayers(),
@@ -780,7 +780,7 @@ fn testWriter(
     }
     r = AztecDetectorRXingResult::new(
         matrix,
-        NO_POINTS,
+        NO_POINTS.clone(),
         aztec.isCompact(),
         aztec.getCodeWords(),
         aztec.getLayers(),
@@ -794,7 +794,7 @@ fn getPseudoRandom() -> rand::rngs::ThreadRng {
 }
 
 fn testModeMessageComplex(compact: bool, layers: u32, words: u32, expected: &str) {
-    let indata = encoder::generateModeMessage(compact, layers, words);
+    let indata = encoder::generateModeMessage(compact, layers, words).expect("generate mode");
     assert_eq!(
         stripSpace(expected),
         stripSpace(&indata.to_string()),

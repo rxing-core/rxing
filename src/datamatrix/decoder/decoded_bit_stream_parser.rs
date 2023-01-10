@@ -106,6 +106,10 @@ const TEXT_SHIFT3_SET_CHARS: [char; 32] = [
     127 as char,
 ];
 
+const INSERT_STRING_CONST: &str = "\u{001E}\u{0004}";
+const VALUE_236: &str = "[)>\u{001E}05\u{001D}";
+const VALUE_237: &str = "[)>\u{001E}06\u{001D}";
+
 pub fn decode(bytes: &[u8]) -> Result<DecoderRXingResult, Exceptions> {
     let mut bits = BitSource::new(bytes.to_vec());
     let mut result = ECIStringBuilder::with_capacity(100);
@@ -233,13 +237,13 @@ fn decodeAsciiSegment(
            235=> // Upper Shift (shift to Extended ASCII)
             upperShift = true,
            236=> {// 05 Macro
-            result.append_string("[)>\u{001E}05\u{001D}");
-            resultTrailer.replace_range(0..0, "\u{001E}\u{0004}");
+            result.append_string(VALUE_236);
+            resultTrailer.replace_range(0..0, INSERT_STRING_CONST);
             // resultTrailer.insert(0, "\u{001E}\u{0004}");
             },
            237=>{ // 06 Macro
-            result.append_string("[)>\u{001E}06\u{001D}");
-            resultTrailer.replace_range(0..0, "\u{001E}\u{0004}");
+            result.append_string(VALUE_237);
+            resultTrailer.replace_range(0..0, INSERT_STRING_CONST);
             // resultTrailer.insert(0, "\u{001E}\u{0004}");
             },
            238=> // Latch to ANSI X12 encodation

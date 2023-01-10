@@ -25,7 +25,8 @@ use super::{BitMatrix, GridSampler, PerspectiveTransform};
 /**
  * @author Sean Owen
  */
-pub struct DefaultGridSampler {}
+#[derive(Default)]
+pub struct DefaultGridSampler;
 
 impl GridSampler for DefaultGridSampler {
     fn sample_grid_detailed(

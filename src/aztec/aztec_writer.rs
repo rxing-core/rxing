@@ -107,7 +107,7 @@ fn encode(
 ) -> Result<BitMatrix, Exceptions> {
     if format != BarcodeFormat::AZTEC {
         return Err(Exceptions::IllegalArgumentException(Some(format!(
-            "Can only encode AZTEC, but got {:?}",
+            "can only encode AZTEC, but got {:?}",
             format
         ))));
     }

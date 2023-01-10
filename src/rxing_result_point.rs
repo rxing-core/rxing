@@ -9,7 +9,7 @@ use std::hash::Hash;
  *
  * @author Sean Owen
  */
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct RXingResultPoint {
     pub(crate) x: f32,
     pub(crate) y: f32,

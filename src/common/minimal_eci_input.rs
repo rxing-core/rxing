@@ -112,9 +112,7 @@ impl ECIInput for MinimalECIInput {
      */
     fn subSequence(&self, start: usize, end: usize) -> Result<Vec<char>, Exceptions> {
         if start > end || end > self.length() {
-            return Err(Exceptions::IndexOutOfBoundsException(Some(
-                start.to_string(),
-            )));
+            return Err(Exceptions::IndexOutOfBoundsException(None));
         }
         let mut result = String::new();
         for i in start..end {
@@ -143,9 +141,7 @@ impl ECIInput for MinimalECIInput {
      */
     fn isECI(&self, index: u32) -> Result<bool, Exceptions> {
         if index >= self.length() as u32 {
-            return Err(Exceptions::IndexOutOfBoundsException(Some(
-                index.to_string(),
-            )));
+            return Err(Exceptions::IndexOutOfBoundsException(None));
         }
         Ok(self.bytes[index as usize] > 255) // && self.bytes[index as usize] <= u16::MAX)
     }
@@ -170,9 +166,7 @@ impl ECIInput for MinimalECIInput {
      */
     fn getECIValue(&self, index: usize) -> Result<i32, Exceptions> {
         if index >= self.length() {
-            return Err(Exceptions::IndexOutOfBoundsException(Some(
-                index.to_string(),
-            )));
+            return Err(Exceptions::IndexOutOfBoundsException(None));
         }
         if !self.isECI(index as u32)? {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
@@ -261,9 +255,7 @@ impl MinimalECIInput {
      */
     pub fn isFNC1(&self, index: usize) -> Result<bool, Exceptions> {
         if index >= self.length() {
-            return Err(Exceptions::IndexOutOfBoundsException(Some(
-                index.to_string(),
-            )));
+            return Err(Exceptions::IndexOutOfBoundsException(None));
         }
         Ok(self.bytes[index] == 1000)
     }
@@ -271,7 +263,8 @@ impl MinimalECIInput {
     fn addEdge(edges: &mut [Vec<Option<Rc<InputEdge>>>], to: usize, edge: Rc<InputEdge>) {
         if edges[to][edge.encoderIndex].is_none()
             || edges[to][edge.encoderIndex]
-                .clone()
+                // .clone()
+                .as_ref()
                 .unwrap()
                 .cachedTotalSize
                 > edge.cachedTotalSize
@@ -359,7 +352,7 @@ impl MinimalECIInput {
             }
         }
         if minimalJ < 0 {
-            panic!("Internal error: failed to encode \"{}\"", stringToEncode);
+            panic!("internal error: failed to encode \"{}\"", stringToEncode);
         }
         let mut intsAL: Vec<u16> = Vec::new();
         let mut current = edges[inputLength][minimalJ as usize].clone();
@@ -395,13 +388,13 @@ impl MinimalECIInput {
             }
             current = c.previous.clone();
         }
-        let mut ints = vec![0; intsAL.len()];
+        //let mut ints = vec![0; intsAL.len()];
         // for i in 0..ints.len() {
         //     // for (int i = 0; i < ints.length; i++) {
         //     ints[i] = *intsAL.get(i).unwrap();
         // }
-        ints[..].copy_from_slice(&intsAL[..]);
-        ints
+        //ints[..].copy_from_slice(&intsAL[..]);
+        intsAL
     }
 }
 
@@ -412,6 +405,8 @@ struct InputEdge {
     cachedTotalSize: usize,
 }
 impl InputEdge {
+    const FNC1_UNICODE: &str = "\u{1000}";
+
     pub fn new(
         c: &str,
         encoderSet: &ECIEncoderSet,
@@ -419,7 +414,7 @@ impl InputEdge {
         previous: Option<Rc<InputEdge>>,
         fnc1: Option<&str>,
     ) -> Self {
-        let mut size = if c == "\u{1000}" {
+        let mut size = if c == Self::FNC1_UNICODE {
             1
         } else {
             encoderSet.encode_char(c, encoderIndex).len()
@@ -436,7 +431,7 @@ impl InputEdge {
 
             Self {
                 c: if fnc1.is_some() && &c == fnc1.as_ref().unwrap() {
-                    String::from("\u{1000}")
+                    String::from(Self::FNC1_UNICODE)
                 } else {
                     String::from(c)
                 },
@@ -452,7 +447,7 @@ impl InputEdge {
 
             Self {
                 c: if fnc1.is_some() && &c == fnc1.as_ref().unwrap() {
-                    String::from("\u{1000}")
+                    String::from(Self::FNC1_UNICODE)
                 } else {
                     String::from(c)
                 },
@@ -489,7 +484,7 @@ impl InputEdge {
     }
 
     pub fn isFNC1(&self) -> bool {
-        self.c == "\u{1000}"
+        self.c == Self::FNC1_UNICODE
     }
 }
 

@@ -29,15 +29,13 @@ use crate::{common::BitMatrix, Exceptions, RXingResultPoint, ResultPoint};
  */
 const MAX_MODULES: i32 = 32;
 #[deprecated]
-pub struct MonochromeRectangleDetector {
-    image: BitMatrix,
+pub struct MonochromeRectangleDetector<'a> {
+    image: &'a BitMatrix,
 }
 
-impl MonochromeRectangleDetector {
-    pub fn new(image: &BitMatrix) -> Self {
-        Self {
-            image: image.clone(),
-        }
+impl<'a> MonochromeRectangleDetector<'_> {
+    pub fn new(image: &'a BitMatrix) -> MonochromeRectangleDetector<'a> {
+        MonochromeRectangleDetector { image: image }
     }
 
     /**
@@ -50,7 +48,7 @@ impl MonochromeRectangleDetector {
      *  third, the rightmost
      * @throws NotFoundException if no Data Matrix Code can be found
      */
-    pub fn detect(&self) -> Result<Vec<RXingResultPoint>, Exceptions> {
+    pub fn detect(&self) -> Result<[RXingResultPoint; 4], Exceptions> {
         let height = self.image.getHeight() as i32;
         let width = self.image.getWidth() as i32;
         let halfHeight = height / 2;
@@ -124,7 +122,7 @@ impl MonochromeRectangleDetector {
             halfWidth / 4,
         )?;
 
-        Ok(vec![pointA, pointB, pointC, pointD])
+        Ok([pointA, pointB, pointC, pointD])
     }
 
     /**
@@ -157,11 +155,11 @@ impl MonochromeRectangleDetector {
         bottom: i32,
         maxWhiteRun: i32,
     ) -> Result<RXingResultPoint, Exceptions> {
-        let mut lastRange_z: Option<Vec<i32>> = None;
+        let mut lastRange_z: Option<[i32; 2]> = None;
         let mut y: i32 = centerY;
         let mut x: i32 = centerX;
         while y < bottom && y >= top && x < right && x >= left {
-            let range: Option<Vec<i32>> = if deltaX == 0 {
+            let range: Option<[i32; 2]> = if deltaX == 0 {
                 // horizontal slices, up and down
                 self.blackWhiteRange(y, maxWhiteRun, left, right, true)
             } else {
@@ -231,7 +229,7 @@ impl MonochromeRectangleDetector {
         minDim: i32,
         maxDim: i32,
         horizontal: bool,
-    ) -> Option<Vec<i32>> {
+    ) -> Option<[i32; 2]> {
         let center = (minDim + maxDim) / 2;
 
         // Scan left/up first
@@ -295,7 +293,7 @@ impl MonochromeRectangleDetector {
         end -= 1;
 
         if end > start {
-            Some(vec![start, end])
+            Some([start, end])
         } else {
             None
         }

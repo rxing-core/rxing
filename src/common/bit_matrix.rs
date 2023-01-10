@@ -203,12 +203,18 @@ impl BitMatrix {
      * @return value of given bit in matrix
      */
     pub fn get(&self, x: u32, y: u32) -> bool {
-        let offset = y as usize * self.row_size + (x as usize / 32);
+        let offset = self.get_offset(y, x);
         ((self.bits[offset] >> (x & 0x1f)) & 1) != 0
     }
 
-    pub fn try_get(&self, x: u32, y: u32) -> Result<bool, Exceptions> {
+    #[inline(always)]
+    fn get_offset(&self, y: u32, x: u32) -> usize {
         let offset = y as usize * self.row_size + (x as usize / 32);
+        offset
+    }
+
+    pub fn try_get(&self, x: u32, y: u32) -> Result<bool, Exceptions> {
+        let offset = self.get_offset(y, x);
         if offset > self.bits.len() {
             return Err(Exceptions::IndexOutOfBoundsException(None));
         }
@@ -217,7 +223,7 @@ impl BitMatrix {
 
     /// Confusingly returns true if the requested element is out of bounds
     pub fn check_in_bounds(&self, x: u32, y: u32) -> bool {
-        (y as usize * self.row_size + (x as usize / 32)) > self.bits.len()
+        (self.get_offset(y, x)) > self.bits.len()
     }
 
     /**
@@ -227,12 +233,12 @@ impl BitMatrix {
      * @param y The vertical component (i.e. which row)
      */
     pub fn set(&mut self, x: u32, y: u32) {
-        let offset = y as usize * self.row_size + (x as usize / 32);
+        let offset = self.get_offset(y, x);
         self.bits[offset] |= 1 << (x & 0x1f);
     }
 
     pub fn unset(&mut self, x: u32, y: u32) {
-        let offset = y as usize * self.row_size + (x as usize / 32);
+        let offset = self.get_offset(y, x);
         self.bits[offset] &= !(1 << (x & 0x1f));
     }
 
@@ -243,7 +249,7 @@ impl BitMatrix {
      * @param y The vertical component (i.e. which row)
      */
     pub fn flip_coords(&mut self, x: u32, y: u32) {
-        let offset = y as usize * self.row_size + (x as usize / 32);
+        let offset = self.get_offset(y, x);
         self.bits[offset] ^= 1 << (x & 0x1f);
     }
 
@@ -252,9 +258,8 @@ impl BitMatrix {
      */
     pub fn flip_self(&mut self) {
         let max = self.bits.len();
-        for i in 0..max {
-            //for (int i = 0; i < max; i++) {
-            self.bits[i] = !self.bits[i];
+        for bit_set in self.bits.iter_mut().take(max) {
+            *bit_set = !*bit_set;
         }
     }
 
@@ -320,14 +325,14 @@ impl BitMatrix {
         // }
         if height < 1 || width < 1 {
             return Err(Exceptions::IllegalArgumentException(Some(
-                "Height and width must be at least 1".to_owned(),
+                "height and width must be at least 1".to_owned(),
             )));
         }
         let right = left + width;
         let bottom = top + height;
         if bottom > self.height || right > self.width {
             return Err(Exceptions::IllegalArgumentException(Some(
-                "The region must fit inside the matrix".to_owned(),
+                "the region must fit inside the matrix".to_owned(),
             )));
         }
         for y in top..bottom {
@@ -374,8 +379,8 @@ impl BitMatrix {
      * @param row {@link BitArray} to copy from
      */
     pub fn setRow(&mut self, y: u32, row: &BitArray) {
-        return self.bits[y as usize * self.row_size..y as usize * self.row_size + self.row_size]
-            .clone_from_slice(&row.getBitArray()[0..self.row_size]);
+        self.bits[y as usize * self.row_size..y as usize * self.row_size + self.row_size]
+            .clone_from_slice(&row.getBitArray()[0..self.row_size])
         //System.arraycopy(row.getBitArray(), 0, self.bits, y * self.rowSize, self.rowSize);
     }
 
@@ -438,7 +443,7 @@ impl BitMatrix {
             //for (int y = 0; y < height; y++) {
             for x in 0..self.width {
                 //for (int x = 0; x < width; x++) {
-                let offset = y as usize * self.row_size + (x as usize / 32);
+                let offset = self.get_offset(y, x);
                 if ((self.bits[offset] >> (x & 0x1f)) & 1) != 0 {
                     let newOffset: usize = ((newHeight - 1 - x) * newRowSize + (y / 32)) as usize;
                     newBits[newOffset] |= 1 << (y & 0x1f);
@@ -456,7 +461,7 @@ impl BitMatrix {
      *
      * @return {@code left,top,width,height} enclosing rectangle of all 1 bits, or null if it is all white
      */
-    pub fn getEnclosingRectangle(&self) -> Option<Vec<u32>> {
+    pub fn getEnclosingRectangle(&self) -> Option<[u32; 4]> {
         let mut left = self.width;
         let mut top = self.height;
         // let right = -1;
@@ -476,22 +481,22 @@ impl BitMatrix {
                     if y > bottom {
                         bottom = y;
                     }
-                    if x32 * 32 < left.try_into().unwrap() {
+                    if x32 * 32 < left as usize {
                         let mut bit = 0;
                         while (theBits << (31 - bit)) == 0 {
                             bit += 1;
                         }
-                        if (x32 * 32 + bit) < left.try_into().unwrap() {
-                            left = (x32 * 32 + bit).try_into().unwrap();
+                        if (x32 * 32 + bit) < left as usize {
+                            left = (x32 * 32 + bit) as u32;
                         }
                     }
-                    if x32 * 32 + 31 > right.try_into().unwrap() {
+                    if x32 * 32 + 31 > right as usize {
                         let mut bit = 31;
                         while (theBits >> bit) == 0 {
                             bit -= 1;
                         }
-                        if (x32 * 32 + bit) > right.try_into().unwrap() {
-                            right = (x32 * 32 + bit).try_into().unwrap();
+                        if (x32 * 32 + bit) > right as usize {
+                            right = (x32 * 32 + bit) as u32;
                         }
                     }
                 }
@@ -502,7 +507,7 @@ impl BitMatrix {
             return None;
         }
 
-        Some(vec![left, top, right - left + 1, bottom - top + 1])
+        Some([left, top, right - left + 1, bottom - top + 1])
     }
 
     /**
@@ -530,7 +535,7 @@ impl BitMatrix {
         Some(vec![x as u32, y as u32])
     }
 
-    pub fn getBottomRightOnBit(&self) -> Option<Vec<u32>> {
+    pub fn getBottomRightOnBit(&self) -> Option<[u32; 2]> {
         let mut bitsOffset = self.bits.len() as i64 - 1;
         while bitsOffset >= 0 && self.bits[bitsOffset as usize] == 0 {
             bitsOffset -= 1;
@@ -549,7 +554,7 @@ impl BitMatrix {
         }
         x += bit;
 
-        Some(vec![x as u32, y as u32])
+        Some([x as u32, y as u32])
     }
 
     /**

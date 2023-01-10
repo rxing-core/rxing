@@ -52,14 +52,14 @@ impl DetectorRXingResult for AztecDetectorRXingResult {
 impl AztecDetectorRXingResult {
     pub fn new(
         bits: BitMatrix,
-        points: Vec<RXingResultPoint>,
+        points: [RXingResultPoint; 4],
         compact: bool,
         nbDatablocks: u32,
         nbLayers: u32,
     ) -> Self {
         Self {
             bits,
-            points,
+            points: points.to_vec(),
             compact,
             nbDatablocks,
             nbLayers,

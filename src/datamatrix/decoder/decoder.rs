@@ -75,10 +75,10 @@ impl Decoder {
         let dataBlocks = DataBlock::getDataBlocks(&codewords, version)?;
 
         // Count total number of data bytes
-        let mut totalBytes = 0;
-        for db in &dataBlocks {
-            totalBytes += db.getNumDataCodewords();
-        }
+        let totalBytes = dataBlocks
+            .iter()
+            .fold(0, |acc, db| acc + db.getNumDataCodewords());
+
         let mut resultBytes = vec![0u8; totalBytes as usize];
 
         let dataBlocksCount = dataBlocks.len();

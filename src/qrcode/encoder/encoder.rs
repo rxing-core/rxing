@@ -529,7 +529,7 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
             + ((num_data_bytes_in_group2 + numEcBytesInGroup2) * num_rs_blocks_in_group2)
     {
         return Err(Exceptions::WriterException(Some(
-            "Total bytes mismatch".to_owned(),
+            "total bytes mismatch".to_owned(),
         )));
 
         // throw new WriterException("Total bytes mismatch");

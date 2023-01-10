@@ -32,8 +32,8 @@ use super::MathUtils;
  */
 const INIT_SIZE: i32 = 10;
 const CORR: i32 = 1;
-pub struct WhiteRectangleDetector {
-    image: BitMatrix,
+pub struct WhiteRectangleDetector<'a> {
+    image: &'a BitMatrix,
     height: i32,
     width: i32,
     leftInit: i32,
@@ -42,9 +42,9 @@ pub struct WhiteRectangleDetector {
     upInit: i32,
 }
 
-impl WhiteRectangleDetector {
-    pub fn new_from_image(image: &BitMatrix) -> Result<Self, Exceptions> {
-        Self::new(
+impl<'a> WhiteRectangleDetector<'_> {
+    pub fn new_from_image(image: &'a BitMatrix) -> Result<WhiteRectangleDetector<'a>, Exceptions> {
+        WhiteRectangleDetector::new(
             image,
             INIT_SIZE,
             image.getWidth() as i32 / 2,
@@ -59,7 +59,12 @@ impl WhiteRectangleDetector {
      * @param y y position of search center
      * @throws NotFoundException if image is too small to accommodate {@code initSize}
      */
-    pub fn new(image: &BitMatrix, initSize: i32, x: i32, y: i32) -> Result<Self, Exceptions> {
+    pub fn new(
+        image: &'a BitMatrix,
+        initSize: i32,
+        x: i32,
+        y: i32,
+    ) -> Result<WhiteRectangleDetector<'a>, Exceptions> {
         let halfsize = initSize / 2;
 
         let leftInit = x - halfsize;
@@ -75,8 +80,8 @@ impl WhiteRectangleDetector {
             return Err(Exceptions::NotFoundException(None));
         }
 
-        Ok(Self {
-            image: image.clone(),
+        Ok(WhiteRectangleDetector {
+            image: image,
             height: image.getHeight() as i32,
             width: image.getWidth() as i32,
             leftInit,
@@ -100,7 +105,7 @@ impl WhiteRectangleDetector {
      *         leftmost and the third, the rightmost
      * @throws NotFoundException if no Data Matrix Code can be found
      */
-    pub fn detect(&self) -> Result<Vec<RXingResultPoint>, Exceptions> {
+    pub fn detect(&self) -> Result<[RXingResultPoint; 4], Exceptions> {
         let mut left: i32 = self.leftInit;
         let mut right: i32 = self.rightInit;
         let mut up: i32 = self.upInit;
@@ -321,7 +326,7 @@ impl WhiteRectangleDetector {
         z: &RXingResultPoint,
         x: &RXingResultPoint,
         t: &RXingResultPoint,
-    ) -> Vec<RXingResultPoint> {
+    ) -> [RXingResultPoint; 4] {
         //
         //       t            t
         //  z                      x
@@ -339,14 +344,14 @@ impl WhiteRectangleDetector {
         let tj = t.getY();
 
         if yi < self.width as f32 / 2.0f32 {
-            vec![
+            [
                 RXingResultPoint::new(ti - CORR as f32, tj + CORR as f32),
                 RXingResultPoint::new(zi + CORR as f32, zj + CORR as f32),
                 RXingResultPoint::new(xi - CORR as f32, xj - CORR as f32),
                 RXingResultPoint::new(yi + CORR as f32, yj - CORR as f32),
             ]
         } else {
-            vec![
+            [
                 RXingResultPoint::new(ti + CORR as f32, tj + CORR as f32),
                 RXingResultPoint::new(zi + CORR as f32, zj - CORR as f32),
                 RXingResultPoint::new(xi - CORR as f32, xj + CORR as f32),

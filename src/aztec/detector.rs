@@ -272,7 +272,7 @@ impl<'a> Detector<'_> {
     fn get_bulls_eye_corners(
         &mut self,
         pCenter: Point,
-    ) -> Result<Vec<RXingResultPoint>, Exceptions> {
+    ) -> Result<[RXingResultPoint; 4], Exceptions> {
         let mut pina = pCenter;
         let mut pinb = pCenter;
         let mut pinc = pCenter;
@@ -355,10 +355,10 @@ impl<'a> Detector<'_> {
      * @return the center point
      */
     fn get_matrix_center(&self) -> Point {
-        let mut point_a = RXingResultPoint { x: 0.0, y: 0.0 };
-        let mut point_b = RXingResultPoint { x: 0.0, y: 0.0 };
-        let mut point_c = RXingResultPoint { x: 0.0, y: 0.0 };
-        let mut point_d = RXingResultPoint { x: 0.0, y: 0.0 };
+        let mut point_a = RXingResultPoint::default(); // { x: 0.0, y: 0.0 };
+        let mut point_b = RXingResultPoint::default(); // { x: 0.0, y: 0.0 };
+        let mut point_c = RXingResultPoint::default(); // { x: 0.0, y: 0.0 };
+        let mut point_d = RXingResultPoint::default(); // { x: 0.0, y: 0.0 };
 
         let mut fnd = false;
 
@@ -376,20 +376,20 @@ impl<'a> Detector<'_> {
         // This exception can be in case the initial rectangle is white
         // In that case, surely in the bull's eye, we try to expand the rectangle.
         if !fnd {
-            let cx: i32 = (self.image.getWidth() / 2).try_into().unwrap();
-            let cy: i32 = (self.image.getHeight() / 2).try_into().unwrap();
+            let cx: i32 = (self.image.getWidth() / 2) as i32;
+            let cy: i32 = (self.image.getHeight() / 2) as i32;
             point_a = self
                 .get_first_different(&Point::new(cx + 7, cy - 7), false, 1, -1)
-                .to_rxing_result_point();
+                .into();
             point_b = self
                 .get_first_different(&Point::new(cx + 7, cy + 7), false, 1, 1)
-                .to_rxing_result_point();
+                .into();
             point_c = self
                 .get_first_different(&Point::new(cx - 7, cy + 7), false, -1, 1)
-                .to_rxing_result_point();
+                .into();
             point_d = self
                 .get_first_different(&Point::new(cx - 7, cy - 7), false, -1, -1)
-                .to_rxing_result_point();
+                .into();
         }
         // try {
 
@@ -438,16 +438,16 @@ impl<'a> Detector<'_> {
         if !fnd {
             point_a = self
                 .get_first_different(&Point::new(cx + 7, cy - 7), false, 1, -1)
-                .to_rxing_result_point();
+                .into();
             point_b = self
                 .get_first_different(&Point::new(cx + 7, cy + 7), false, 1, 1)
-                .to_rxing_result_point();
+                .into();
             point_c = self
                 .get_first_different(&Point::new(cx - 7, cy + 7), false, -1, 1)
-                .to_rxing_result_point();
+                .into();
             point_d = self
                 .get_first_different(&Point::new(cx - 7, cy - 7), false, -1, -1)
-                .to_rxing_result_point();
+                .into();
         }
         // try {
         //   RXingResultPoint[] cornerPoints = new WhiteRectangleDetector(image, 15, cx, cy).detect();
@@ -484,7 +484,7 @@ impl<'a> Detector<'_> {
     fn get_matrix_corner_points(
         &self,
         bulls_eye_corners: &[RXingResultPoint],
-    ) -> Vec<RXingResultPoint> {
+    ) -> [RXingResultPoint; 4] {
         Self::expand_square(
             bulls_eye_corners,
             2 * self.nb_center_layers,
@@ -505,7 +505,7 @@ impl<'a> Detector<'_> {
         bottom_right: &RXingResultPoint,
         bottom_left: &RXingResultPoint,
     ) -> Result<BitMatrix, Exceptions> {
-        let sampler = DefaultGridSampler {};
+        let sampler = DefaultGridSampler::default();
         let dimension = self.get_dimension();
 
         let low = dimension as f32 / 2.0f32 - self.nb_center_layers as f32;
@@ -700,7 +700,7 @@ impl<'a> Detector<'_> {
         corner_points: &[RXingResultPoint],
         old_side: u32,
         new_side: u32,
-    ) -> Vec<RXingResultPoint> {
+    ) -> [RXingResultPoint; 4] {
         let ratio = new_side as f32 / (2.0f32 * old_side as f32);
         let mut dx = corner_points[0].getX() - corner_points[2].getX();
         let mut dy = corner_points[0].getY() - corner_points[2].getY();
@@ -717,14 +717,11 @@ impl<'a> Detector<'_> {
         let result1 = RXingResultPoint::new(centerx + ratio * dx, centery + ratio * dy);
         let result3 = RXingResultPoint::new(centerx - ratio * dx, centery - ratio * dy);
 
-        vec![result0, result1, result2, result3]
+        [result0, result1, result2, result3]
     }
 
     fn is_valid_points(&self, x: i32, y: i32) -> bool {
-        x >= 0
-            && x < self.image.getWidth().try_into().unwrap()
-            && y >= 0
-            && y < self.image.getHeight().try_into().unwrap()
+        x >= 0 && x < self.image.getWidth() as i32 && y >= 0 && y < self.image.getHeight() as i32
     }
 
     fn is_valid(&self, point: &RXingResultPoint) -> bool {
@@ -743,9 +740,10 @@ impl<'a> Detector<'_> {
 
     fn get_dimension(&self) -> u32 {
         if self.compact {
-            return 4 * self.nb_layers + 11;
+            4 * self.nb_layers + 11
+        } else {
+            4 * self.nb_layers + 2 * ((2 * self.nb_layers + 6) / 15) + 15
         }
-        4 * self.nb_layers + 2 * ((2 * self.nb_layers + 6) / 15) + 15
     }
 }
 
@@ -756,10 +754,6 @@ pub struct Point {
 }
 
 impl Point {
-    pub fn to_rxing_result_point(&self) -> RXingResultPoint {
-        RXingResultPoint::new(self.x as f32, self.y as f32)
-    }
-
     pub fn new(x: i32, y: i32) -> Self {
         Self { x, y }
     }
@@ -770,6 +764,12 @@ impl Point {
 
     pub fn get_y(&self) -> i32 {
         self.y
+    }
+}
+
+impl From<Point> for RXingResultPoint {
+    fn from(value: Point) -> Self {
+        RXingResultPoint::new(value.x as f32, value.y as f32)
     }
 }
 

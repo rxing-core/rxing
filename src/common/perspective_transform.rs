@@ -109,13 +109,12 @@ impl PerspectiveTransform {
 
     pub fn transform_points_double(&self, x_values: &mut [f32], y_valuess: &mut [f32]) {
         let n = x_values.len();
-        for i in 0..n {
+        // for i in 0..n {
+        for (x, y) in x_values.iter_mut().zip(y_valuess.iter_mut()).take(n) {
             // for (int i = 0; i < n; i++) {
-            let x = x_values[i];
-            let y = y_valuess[i];
-            let denominator = self.a13 * x + self.a23 * y + self.a33;
-            x_values[i] = (self.a11 * x + self.a21 * y + self.a31) / denominator;
-            y_valuess[i] = (self.a12 * x + self.a22 * y + self.a32) / denominator;
+            let denominator = self.a13 * *x + self.a23 * *y + self.a33;
+            *x = (self.a11 * *x + self.a21 * *y + self.a31) / denominator;
+            *y = (self.a12 * *x + self.a22 * *y + self.a32) / denominator;
         }
     }
 

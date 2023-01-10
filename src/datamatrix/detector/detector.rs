@@ -29,7 +29,7 @@ use super::DatamatrixDetectorResult;
  */
 pub struct Detector<'a> {
     image: &'a BitMatrix,
-    rectangleDetector: WhiteRectangleDetector,
+    rectangleDetector: WhiteRectangleDetector<'a>,
 }
 impl<'a> Detector<'_> {
     pub fn new(image: &'a BitMatrix) -> Result<Detector<'a>, Exceptions> {
@@ -127,7 +127,7 @@ impl<'a> Detector<'_> {
     /**
      * Detect a solid side which has minimum transition.
      */
-    fn detectSolid1(&self, cornerPoints: Vec<RXingResultPoint>) -> [RXingResultPoint; 4] {
+    fn detectSolid1(&self, cornerPoints: [RXingResultPoint; 4]) -> [RXingResultPoint; 4] {
         // 0  2
         // 1  3
         let pointA = cornerPoints[0];

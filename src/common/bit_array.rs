@@ -51,6 +51,7 @@ impl BitArray {
     }
 
     // For testing only
+    #[cfg(test)]
     pub fn with_initial_values(bits: Vec<u32>, size: usize) -> Self {
         Self { bits, size }
     }
@@ -253,7 +254,7 @@ impl BitArray {
     pub fn appendBits(&mut self, value: u32, num_bits: usize) -> Result<(), Exceptions> {
         if num_bits > 32 {
             return Err(Exceptions::IllegalArgumentException(Some(
-                "Num bits must be between 0 and 32".to_owned(),
+                "num bits must be between 0 and 32".to_owned(),
             )));
         }
 
@@ -310,15 +311,15 @@ impl BitArray {
         let mut bitOffset = bitOffset;
         for i in 0..numBytes {
             //for (int i = 0; i < numBytes; i++) {
-            let mut theByte = 0;
+            let mut the_byte = 0;
             for j in 0..8 {
                 //for (int j = 0; j < 8; j++) {
                 if self.get(bitOffset) {
-                    theByte |= 1 << (7 - j);
+                    the_byte |= 1 << (7 - j);
                 }
                 bitOffset += 1;
             }
-            array[offset + i] = theByte;
+            array[offset + i] = the_byte;
         }
     }
 

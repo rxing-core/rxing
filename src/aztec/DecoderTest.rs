@@ -38,7 +38,7 @@ use super::{decoder, AztecDetectorResult::AztecDetectorRXingResult};
  * Tests {@link Decoder}.
  */
 
-const NO_POINTS: &[RXingResultPoint] = &[RXingResultPoint { x: 0.0, y: 0.0 }; 0];
+const NO_POINTS: [RXingResultPoint; 4] = [RXingResultPoint { x: 0.0, y: 0.0 }; 4];
 
 #[test]
 fn test_high_level_decode() {
@@ -113,7 +113,7 @@ X X     X X X     X X X X     X X X     X X
         "  ",
     )
     .expect("Bitmatrix should init");
-    let r = AztecDetectorRXingResult::new(matrix, NO_POINTS.to_vec(), false, 30, 2);
+    let r = AztecDetectorRXingResult::new(matrix, NO_POINTS.clone(), false, 30, 2);
     let result = decoder::decode(&r).expect("decoder should init");
     assert_eq!("88888TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", result.getText());
     assert_eq!(
@@ -173,7 +173,7 @@ X     X       X X   X X X       X     ",
         "  ",
     )
     .expect("string parse success");
-    let r = AztecDetectorRXingResult::new(matrix, NO_POINTS.to_vec(), false, 15, 1);
+    let r = AztecDetectorRXingResult::new(matrix, NO_POINTS.clone(), false, 15, 1);
     let result = decoder::decode(&r).expect("decode success");
     assert_eq!("Français", result.getText());
 }
@@ -214,7 +214,7 @@ X X . X . X . . . X . X . . . . X X . X . . X X . . . ",
         ". ",
     )
     .expect("parse string failed");
-    let r = AztecDetectorRXingResult::new(matrix, NO_POINTS.to_vec(), true, 16, 4);
+    let r = AztecDetectorRXingResult::new(matrix, NO_POINTS.clone(), true, 16, 4);
     assert!(decoder::decode(&r).is_ok());
 }
 
@@ -254,7 +254,7 @@ X X . . . X X . . X . X . . . . X X . X . . X . X . X ",
         ". ",
     )
     .expect("String Parse failed");
-    let r = AztecDetectorRXingResult::new(matrix, NO_POINTS.to_vec(), true, 16, 4);
+    let r = AztecDetectorRXingResult::new(matrix, NO_POINTS.clone(), true, 16, 4);
     assert!(decoder::decode(&r).is_ok());
 }
 

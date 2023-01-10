@@ -51,9 +51,10 @@ pub const WORD_SIZE: [u32; 33] = [
  * @return Aztec symbol matrix with metadata
  */
 pub fn encode_simple(data: &str) -> Result<AztecCode, Exceptions> {
-    let bytes = encoding::all::ISO_8859_1
-        .encode(data, encoding::EncoderTrap::Replace)
-        .unwrap();
+    let Ok(bytes) = encoding::all::ISO_8859_1
+        .encode(data, encoding::EncoderTrap::Replace) else {
+            return Err(Exceptions::IllegalArgumentException(Some(format!("'{}' cannot be encoded as ISO_8859_1", data))));
+        };
     encode_bytes_simple(&bytes)
 }
 
@@ -71,10 +72,14 @@ pub fn encode(
     minECCPercent: u32,
     userSpecifiedLayers: i32,
 ) -> Result<AztecCode, Exceptions> {
-    let bytes = encoding::all::ISO_8859_1
-        .encode(data, encoding::EncoderTrap::Strict)
-        .expect("must encode cleanly in ISO_8859_1");
-    encode_bytes(&bytes, minECCPercent, userSpecifiedLayers)
+    if let Ok(bytes) = encoding::all::ISO_8859_1.encode(data, encoding::EncoderTrap::Strict) {
+        encode_bytes(&bytes, minECCPercent, userSpecifiedLayers)
+    } else {
+        Err(Exceptions::IllegalArgumentException(Some(format!(
+            "'{}' cannot be encoded as ISO_8859_1",
+            data
+        ))))
+    }
 }
 
 /**
@@ -95,10 +100,14 @@ pub fn encode_with_charset(
     userSpecifiedLayers: i32,
     charset: encoding::EncodingRef,
 ) -> Result<AztecCode, Exceptions> {
-    let bytes = charset
-        .encode(data, encoding::EncoderTrap::Strict)
-        .expect("must be encodeable"); //data.getBytes(null != charset ? charset : StandardCharsets.ISO_8859_1);
-    encode_bytes_with_charset(&bytes, minECCPercent, userSpecifiedLayers, charset)
+    if let Ok(bytes) = charset.encode(data, encoding::EncoderTrap::Strict) {
+        encode_bytes_with_charset(&bytes, minECCPercent, userSpecifiedLayers, charset)
+    } else {
+        Err(Exceptions::IllegalArgumentException(Some(format!(
+            "'{}' cannot be encoded as ISO_8859_1",
+            data
+        ))))
+    }
 }
 
 /**
@@ -235,11 +244,11 @@ pub fn encode_bytes_with_charset(
         &stuffed_bits,
         total_bits_in_layer_var as usize,
         word_size as usize,
-    );
+    )?;
 
     // generate mode message
     let messageSizeInWords = stuffed_bits.getSize() as u32 / word_size;
-    let modeMessage = generateModeMessage(compact, layers, messageSizeInWords);
+    let modeMessage = generateModeMessage(compact, layers, messageSizeInWords)?;
 
     // allocate symbol
     let baseMatrixSize = (if compact { 11 } else { 14 }) + layers * 4; // not including alignment lines
@@ -372,7 +381,11 @@ fn drawBullsEye(matrix: &mut BitMatrix, center: u32, size: u32) {
     matrix.set(center + size, center + size - 1);
 }
 
-pub fn generateModeMessage(compact: bool, layers: u32, messageSizeInWords: u32) -> BitArray {
+pub fn generateModeMessage(
+    compact: bool,
+    layers: u32,
+    messageSizeInWords: u32,
+) -> Result<BitArray, Exceptions> {
     let mut mode_message = BitArray::new();
     if compact {
         mode_message
@@ -381,7 +394,7 @@ pub fn generateModeMessage(compact: bool, layers: u32, messageSizeInWords: u32) 
         mode_message
             .appendBits(messageSizeInWords - 1, 6)
             .expect("should append");
-        mode_message = generateCheckWords(&mode_message, 28, 4);
+        mode_message = generateCheckWords(&mode_message, 28, 4)?;
     } else {
         mode_message
             .appendBits(layers - 1, 5)
@@ -389,9 +402,9 @@ pub fn generateModeMessage(compact: bool, layers: u32, messageSizeInWords: u32) 
         mode_message
             .appendBits(messageSizeInWords - 1, 11)
             .expect("should append");
-        mode_message = generateCheckWords(&mode_message, 40, 4);
+        mode_message = generateCheckWords(&mode_message, 40, 4)?;
     }
-    mode_message
+    Ok(mode_message)
 }
 
 fn drawModeMessage(matrix: &mut BitMatrix, compact: bool, matrixSize: u32, modeMessage: BitArray) {
@@ -433,25 +446,26 @@ fn drawModeMessage(matrix: &mut BitMatrix, compact: bool, matrixSize: u32, modeM
     }
 }
 
-fn generateCheckWords(bitArray: &BitArray, totalBits: usize, wordSize: usize) -> BitArray {
+fn generateCheckWords(
+    bitArray: &BitArray,
+    totalBits: usize,
+    wordSize: usize,
+) -> Result<BitArray, Exceptions> {
     // bitArray is guaranteed to be a multiple of the wordSize, so no padding needed
     let message_size_in_words = bitArray.getSize() / wordSize;
-    let mut rs = ReedSolomonEncoder::new(getGF(wordSize).expect("Should never have bad value"));
+    let mut rs = ReedSolomonEncoder::new(getGF(wordSize)?);
     let total_words = totalBits / wordSize;
     let mut message_words = bitsToWords(bitArray, wordSize, total_words);
-    rs.encode(&mut message_words, total_words - message_size_in_words)
-        .expect("must encode ok");
+    rs.encode(&mut message_words, total_words - message_size_in_words)?;
     let start_pad = totalBits % wordSize;
     let mut message_bits = BitArray::new();
     message_bits.appendBits(0, start_pad).expect("must append");
     for message_word in message_words {
         // for (int messageWord : messageWords) {
-        message_bits
-            .appendBits(message_word as u32, wordSize)
-            .expect("must append");
+        message_bits.appendBits(message_word as u32, wordSize)?
     }
     // dbg!(message_bits.to_string());
-    message_bits
+    Ok(message_bits)
 }
 
 fn bitsToWords(stuffedBits: &BitArray, wordSize: usize, totalWords: usize) -> Vec<i32> {

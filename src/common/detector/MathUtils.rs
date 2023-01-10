@@ -30,6 +30,7 @@ use std::{f32, i32};
  * @param d real value to round
  * @return nearest {@code int}
  */
+#[inline(always)]
 pub fn round(d: f32) -> i32 {
     (d + (if d < 0.0f32 { -0.5f32 } else { 0.5f32 })) as i32
 }
@@ -41,6 +42,7 @@ pub fn round(d: f32) -> i32 {
  * @param bY point B y coordinate
  * @return Euclidean distance between points A and B
  */
+#[inline(always)]
 pub fn distance_float(aX: f32, aY: f32, bX: f32, bY: f32) -> f32 {
     let xDiff: f64 = (aX - bX).into();
     let yDiff: f64 = (aY - bY).into();
@@ -54,6 +56,7 @@ pub fn distance_float(aX: f32, aY: f32, bX: f32, bY: f32) -> f32 {
  * @param bY point B y coordinate
  * @return Euclidean distance between points A and B
  */
+#[inline(always)]
 pub fn distance_int(aX: i32, aY: i32, bX: i32, bY: i32) -> f32 {
     let xDiff: f64 = (aX - bX).into();
     let yDiff: f64 = (aY - bY).into();
@@ -64,12 +67,14 @@ pub fn distance_int(aX: i32, aY: i32, bX: i32, bY: i32) -> f32 {
  * @param array values to sum
  * @return sum of values in array
  */
+#[inline(always)]
 pub fn sum(array: &[i32]) -> i32 {
-    let mut count = 0;
-    for a in array {
-        count += a;
-    }
-    count
+    array.iter().sum()
+    // let mut count = 0;
+    // for a in array {
+    //     count += a;
+    // }
+    // count
 }
 
 #[cfg(test)]

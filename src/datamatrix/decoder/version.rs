@@ -54,16 +54,23 @@ impl Version {
             dataRegionSizeRows,
             dataRegionSizeColumns,
             totalCodewords: {
-                // Calculate the total number of codewords
-                let mut total = 0;
                 let ecCodewords = &ecBlocks.getECCodewords();
                 let ecbArray = ecBlocks.getECBlocks();
-                for ecBlock in ecbArray {
-                    total += ecBlock.getCount() * (ecBlock.getDataCodewords() + ecCodewords);
-                }
-
-                total
+                ecbArray.iter().fold(0, |acc, ecBlock| {
+                    acc + ecBlock.getCount() * (ecBlock.getDataCodewords() + ecCodewords)
+                })
             },
+            // totalCodewords: {
+            //     // Calculate the total number of codewords
+            //     let mut total = 0;
+            //     let ecCodewords = &ecBlocks.getECCodewords();
+            //     let ecbArray = ecBlocks.getECBlocks();
+            //     for ecBlock in ecbArray {
+            //         total += ecBlock.getCount() * (ecBlock.getDataCodewords() + ecCodewords);
+            //     }
+
+            //     total
+            // },
             ecBlocks,
         }
     }
