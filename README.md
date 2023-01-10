@@ -2,9 +2,9 @@
 
 This is a port of the ZXing (https://github.com/zxing/zxing) java barcode library to pure rust. Conversion was done by hand. Original license resides with the authors of zxing.
 
-Porting of the testing library is incomplete.
+Porting of the testing library is incomplete. Currently all positive tests are implemented. Negative verfication tests are not implemented.
 
-Porting was done with the rust language in mind, though some parts may resemble java more directly than a proper clean-sheet rust implementation.
+Porting was done with the rust language in mind, though some parts may resemble java more directly than a proper clean-sheet rust implementation. The process of "rustifying" the code is ongoing.
 
 ## CLI
 If you're looking for a CLI interface into the library, please see [rxing-cli](https://crates.io/crates/rxing-cli).
@@ -36,7 +36,7 @@ used to enable the use of the `image` crate is currently on by default. Turning 
 
 ## Example with helpers
 
-```
+```rust
 use rxing;
 
 fn main() {
@@ -51,19 +51,17 @@ fn main() {
 ```
 
 ## Latest Release Notes
-v0.2.10 -> Fix major issue with qrcode generation.
+* *v0.2.14* -> Support for more image output formats, many rustification changes to the codebase.
 
-v0.2.9 -> Major fix, codabar was not being encoded by multiformat writer.
+    If you were using very deep, specific functions in the encoder/decoder sections this may require a function rename. For instance `qrcode::encoder::encoder` is now `qrcode::encoder::qrcode_encoder`.
 
-v0.2.6 -> Fix missing result point callback for rss14
-
-v0.2.4 -> Add helper functions for common cases (read a file, use raw luma8 data).
-
-v0.2.3 -> Implement most suggestions from clippy, as well as some simple changes, no surface changes.
-
-v0.2.0 -> Dramatically improve performance when cropping a BufferedImageLuminanceSource.
-
-v0.1.4 -> Dramatically improve performance for MultiFormatReader and for multiple barcode detection.
+* *v0.2.10* -> Fix major issue with qrcode generation.
+* *v0.2.9* -> Major fix, codabar was not being encoded by multiformat writer.
+* *v0.2.6* -> Fix missing result point callback for rss14
+* *v0.2.4* -> Add helper functions for common cases (read a file, use raw luma8 data).
+* *v0.2.3* -> Implement most suggestions from clippy, as well as some simple changes, no surface changes.
+* *v0.2.0* -> Dramatically improve performance when cropping a BufferedImageLuminanceSource.
+* *v0.1.4* -> Dramatically improve performance for MultiFormatReader and for multiple barcode detection.
 
 ## Known Issues
 Performance is low for GenericMultipleBarcodeReader.
