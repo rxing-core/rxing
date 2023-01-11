@@ -22,7 +22,7 @@ impl DetectorRXingResult for QRCodeDetectorResult {
         &self.bit_source
     }
 
-    fn getPoints(&self) -> &Vec<crate::RXingResultPoint> {
+    fn getPoints(&self) -> &[crate::RXingResultPoint] {
         &self.result_points
     }
 }

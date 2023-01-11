@@ -44,7 +44,7 @@ impl DetectorRXingResult for AztecDetectorRXingResult {
         &self.bits
     }
 
-    fn getPoints(&self) -> &Vec<RXingResultPoint> {
+    fn getPoints(&self) -> &[RXingResultPoint] {
         &self.points
     }
 }

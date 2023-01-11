@@ -71,7 +71,7 @@ impl Reader for QRCodeReader {
                 Detector::new(image.getBlackMatrix()).detect_with_hints(hints)?;
             decoderRXingResult =
                 qrcode_decoder::decode_bitmatrix_with_hints(detectorRXingResult.getBits(), hints)?;
-            points = detectorRXingResult.getPoints().clone();
+            points = detectorRXingResult.getPoints().to_vec();
         }
 
         // If the code was mirrored: swap the bottom-left and the top-right points.

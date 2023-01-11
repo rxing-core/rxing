@@ -16,7 +16,7 @@ impl DetectorRXingResult for DatamatrixDetectorResult {
         &self.0
     }
 
-    fn getPoints(&self) -> &Vec<RXingResultPoint> {
+    fn getPoints(&self) -> &[RXingResultPoint] {
         &self.1
     }
 }

@@ -54,7 +54,7 @@ pub use bit_array::*;
 pub trait DetectorRXingResult {
     fn getBits(&self) -> &BitMatrix;
 
-    fn getPoints(&self) -> &Vec<RXingResultPoint>;
+    fn getPoints(&self) -> &[RXingResultPoint];
 }
 
 // pub struct DetectorRXingResult {
