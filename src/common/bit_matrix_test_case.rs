@@ -396,5 +396,3 @@ fn get_input(width: u32, height: u32) -> BitMatrix {
     }
     result
 }
-
-// }

@@ -174,7 +174,7 @@ impl Code39Writer {
  * Tests {@link Code39Writer}.
  */
 mod Code39WriterTestCase {
-    use crate::{common::BitMatrixTestCase, oned::Code39Writer, BarcodeFormat, Writer};
+    use crate::{common::bit_matrix_test_case, oned::Code39Writer, BarcodeFormat, Writer};
 
     #[test]
     fn testEncode() {
@@ -248,7 +248,7 @@ mod Code39WriterTestCase {
             .expect("must encode");
         assert_eq!(
             expected,
-            BitMatrixTestCase::matrix_to_string(&result),
+            bit_matrix_test_case::matrix_to_string(&result),
             "{}",
             input
         );

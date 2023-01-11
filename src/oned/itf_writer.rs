@@ -97,7 +97,7 @@ const PATTERNS: [[usize; 5]; 10] = [
  */
 #[cfg(test)]
 mod ITFWriterTestCase {
-    use crate::{common::BitMatrixTestCase, BarcodeFormat, Writer};
+    use crate::{common::bit_matrix_test_case, BarcodeFormat, Writer};
 
     use super::ITFWriter;
 
@@ -114,7 +114,7 @@ mod ITFWriterTestCase {
         let result = ITFWriter::default()
             .encode(input, &BarcodeFormat::ITF, 0, 0)
             .expect("encode");
-        assert_eq!(expected, BitMatrixTestCase::matrix_to_string(&result));
+        assert_eq!(expected, bit_matrix_test_case::matrix_to_string(&result));
     }
 
     //@Test(expected = IllegalArgumentException.class)

@@ -37,7 +37,7 @@ use std::collections::HashMap;
 use once_cell::sync::Lazy;
 
 use crate::{
-    common::{BitMatrix, BitMatrixTestCase},
+    common::{bit_matrix_test_case, BitMatrix},
     oned::{Code128Reader, OneDReader},
     BarcodeFormat, EncodeHintType, EncodeHintValue, EncodingHintDictionary, Exceptions, Writer,
 };
@@ -65,7 +65,7 @@ fn testEncodeWithFunc3() {
 
     let result = encode(toEncode, false, "123").expect("encode");
 
-    let actual = BitMatrixTestCase::matrix_to_string(&result);
+    let actual = bit_matrix_test_case::matrix_to_string(&result);
     assert_eq!(expected, actual);
 
     let width = result.getWidth();
@@ -93,7 +93,7 @@ fn testEncodeWithFunc2() {
 
     let result = encode(toEncode, false, "123").expect("encode");
 
-    let actual = BitMatrixTestCase::matrix_to_string(&result);
+    let actual = bit_matrix_test_case::matrix_to_string(&result);
     assert_eq!(expected, actual);
 
     let width = result.getWidth();
@@ -121,7 +121,7 @@ fn testEncodeWithFunc1() {
 
     let result = encode(toEncode, false, "123").expect("encode");
 
-    let actual = BitMatrixTestCase::matrix_to_string(&result);
+    let actual = bit_matrix_test_case::matrix_to_string(&result);
     assert_eq!(expected, actual);
 
     let width = result.getWidth();
@@ -222,7 +222,7 @@ fn testEncodeWithFunc4() {
 
     let result = encode(toEncode, false, "").expect("encode");
 
-    let actual = BitMatrixTestCase::matrix_to_string(&result);
+    let actual = bit_matrix_test_case::matrix_to_string(&result);
     assert_eq!(expected, actual);
 
     let width = result.getWidth();
@@ -250,7 +250,7 @@ fn testEncodeWithFncsAndNumberInCodesetA() {
 
     let result = encode(toEncode, false, "").expect("encode");
 
-    let actual = BitMatrixTestCase::matrix_to_string(&result);
+    let actual = bit_matrix_test_case::matrix_to_string(&result);
 
     assert_eq!(expected, actual);
 
@@ -310,7 +310,7 @@ fn testEncodeSwitchBetweenCodesetsAAndB() {
 
 fn testEncode(toEncode: &str, expected: &str) {
     let result = encode(toEncode, false, toEncode).expect("encode");
-    let actual = BitMatrixTestCase::matrix_to_string(&result);
+    let actual = bit_matrix_test_case::matrix_to_string(&result);
     assert_eq!(expected, actual, "{}", toEncode);
 
     let width = result.getWidth();
@@ -432,7 +432,7 @@ fn testEncodeWithForcedCodeSetFailureCodeSetA() {
         .encode_with_hints(toEncode, &BarcodeFormat::CODE_128, 0, 0, &hints)
         .expect("encode");
 
-    let actual = BitMatrixTestCase::matrix_to_string(&result);
+    let actual = bit_matrix_test_case::matrix_to_string(&result);
     assert_eq!(expected, actual);
 }
 
@@ -465,7 +465,7 @@ fn testEncodeWithForcedCodeSetFailureCodeSetB() {
         .encode_with_hints(toEncode, &BarcodeFormat::CODE_128, 0, 0, &hints)
         .expect("encode");
 
-    let actual = BitMatrixTestCase::matrix_to_string(&result);
+    let actual = bit_matrix_test_case::matrix_to_string(&result);
     assert_eq!(expected, actual);
 }
 

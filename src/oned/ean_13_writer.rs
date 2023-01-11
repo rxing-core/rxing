@@ -135,7 +135,7 @@ const CODE_WIDTH: usize = 3 + // start guard
  */
 #[cfg(test)]
 mod EAN13WriterTestCase {
-    use crate::{common::BitMatrixTestCase, BarcodeFormat, Writer};
+    use crate::{common::bit_matrix_test_case, BarcodeFormat, Writer};
 
     use super::EAN13Writer;
 
@@ -151,7 +151,7 @@ mod EAN13WriterTestCase {
                 0,
             )
             .expect("exist");
-        assert_eq!(testStr, BitMatrixTestCase::matrix_to_string(&result));
+        assert_eq!(testStr, bit_matrix_test_case::matrix_to_string(&result));
     }
 
     #[test]
@@ -166,7 +166,7 @@ mod EAN13WriterTestCase {
                 0,
             )
             .expect("exist");
-        assert_eq!(testStr, BitMatrixTestCase::matrix_to_string(&result));
+        assert_eq!(testStr, bit_matrix_test_case::matrix_to_string(&result));
     }
 
     #[test]

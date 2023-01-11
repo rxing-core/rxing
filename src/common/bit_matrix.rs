@@ -690,3 +690,19 @@ impl From<&BitMatrix> for image::DynamicImage {
         pixels.into()
     }
 }
+
+// impl From<BitMatrix> for Vec<u8> {
+//     fn from(value: BitMatrix) -> Self {
+//         let mut output_vector = Vec::new();
+//         for y in 0..value.getHeight() {
+//             for col in (0..value.getWidth()).step_by(8) {
+//                 let mut byte = 0_u8;
+//                 for x in 0..8 {
+//                     byte |= u8::from(value.get(col+x, y)) << x
+//                 }
+//                 output_vector.push(byte);
+//             }
+//         }
+//         output_vector
+//     }
+// }

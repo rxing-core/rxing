@@ -10,7 +10,7 @@ mod StringUtilsTestCase;
 mod BitArrayTestCase;
 
 #[cfg(test)]
-pub(crate) mod BitMatrixTestCase;
+pub(crate) mod bit_matrix_test_case;
 
 #[cfg(test)]
 mod BitSourceTestCase;

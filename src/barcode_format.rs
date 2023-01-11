@@ -109,7 +109,12 @@ impl Display for BarcodeFormat {
     }
 }
 
-/// Defaults to QRCode if no proper formatting available
+impl From<String> for BarcodeFormat {
+    fn from(value: String) -> Self {
+        value.as_str().into()
+    }
+}
+
 impl From<&str> for BarcodeFormat {
     fn from(value: &str) -> Self {
         match value.to_lowercase().as_str() {
