@@ -22,7 +22,7 @@ pub use buffered_image_luminance_source::*;
 mod PlanarYUVLuminanceSourceTestCase;
 
 #[cfg(test)]
-mod RGBLuminanceSourceTestCase;
+mod rgb_luminance_source_test_case;
 
 pub type EncodingHintDictionary = HashMap<EncodeHintType, EncodeHintValue>;
 pub type DecodingHintDictionary = HashMap<DecodeHintType, DecodeHintValue>;
@@ -99,3 +99,8 @@ pub mod helpers;
 
 mod luma_luma_source;
 pub use luma_luma_source::*;
+
+#[cfg(feature = "svg_read")]
+mod svg_luminance_source;
+#[cfg(feature = "svg_read")]
+pub use svg_luminance_source::*;

@@ -23,20 +23,22 @@ uriparse = "0.6.4"
 chrono = "0.4.23"
 chrono-tz = "0.8"
 image = {version = "0.24", optional = true}
-imageproc = {version = "0.23.0", optional = true}
-unicode-segmentation = "1.10.0"
+imageproc = {version = "0.23", optional = true}
+unicode-segmentation = "1.10"
 codepage-437 = "0.1.0"
-rxing-one-d-proc-derive = "0.3.0"
+rxing-one-d-proc-derive = "0.3"
 #rxing-one-d-proc-derive = {path ="../rxing-one-d-proc-derive"}
 num = "0.4.0"
 svg = {version = "0.13", optional = true}
+resvg = {version = "0.28.0", optional = true, default-features=false}
 
 [dev-dependencies]
 java-properties = "1.4.1"
 java-rand = "0.2.0"
 
 [features]
-default = ["image", "svg_write"]
+default = ["image", "svg_write", "svg_read"]
 image = ["dep:image", "dep:imageproc"]
 allow_forced_iso_ied_18004_compliance = []
 svg_write = ["dep:svg"]
+svg_read = ["dep:resvg", "image"]

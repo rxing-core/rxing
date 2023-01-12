@@ -13,6 +13,110 @@ use crate::{
     Reader,
 };
 
+#[cfg(feature = "svg_read")]
+pub fn detect_in_svg(
+    file_name: &str,
+    barcode_type: Option<BarcodeFormat>,
+) -> Result<RXingResult, Exceptions> {
+    detect_in_svg_with_hints(file_name, barcode_type, &mut HashMap::new())
+}
+
+#[cfg(feature = "svg_read")]
+pub fn detect_in_svg_with_hints(
+    file_name: &str,
+    barcode_type: Option<BarcodeFormat>,
+    hints: &mut DecodingHintDictionary,
+) -> Result<RXingResult, Exceptions> {
+    use std::{fs::File, io::Read};
+
+    use crate::SVGLuminanceSource;
+
+    let path = PathBuf::from(file_name);
+    if !path.exists() {
+        return Err(Exceptions::IllegalArgumentException(Some(
+            "file does not exist".to_owned(),
+        )));
+    }
+
+    let Ok(mut file) = File::open(path) else {
+        return Err(Exceptions::IllegalArgumentException(Some("file cannot be opened".to_owned())));
+    };
+
+    let mut svg_data = Vec::new();
+    if file.read_to_end(&mut svg_data).is_err() {
+        return Err(Exceptions::IllegalArgumentException(Some(
+            "file cannot be read".to_owned(),
+        )));
+    }
+
+    let mut multi_format_reader = MultiFormatReader::default();
+
+    if let Some(bc_type) = barcode_type {
+        hints.insert(
+            DecodeHintType::POSSIBLE_FORMATS,
+            DecodeHintValue::PossibleFormats(HashSet::from([bc_type])),
+        );
+    }
+
+    hints
+        .entry(DecodeHintType::TRY_HARDER)
+        .or_insert(DecodeHintValue::TryHarder(true));
+
+    multi_format_reader.decode_with_hints(
+        &mut BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(
+            SVGLuminanceSource::new(&svg_data)?,
+        )))),
+        hints,
+    )
+}
+
+#[cfg(feature = "svg_read")]
+pub fn detect_multiple_in_svg(file_name: &str) -> Result<Vec<RXingResult>, Exceptions> {
+    detect_multiple_in_svg_with_hints(file_name, &mut HashMap::new())
+}
+
+#[cfg(feature = "svg_read")]
+pub fn detect_multiple_in_svg_with_hints(
+    file_name: &str,
+    hints: &mut DecodingHintDictionary,
+) -> Result<Vec<RXingResult>, Exceptions> {
+    use std::{fs::File, io::Read};
+
+    use crate::SVGLuminanceSource;
+
+    let path = PathBuf::from(file_name);
+    if !path.exists() {
+        return Err(Exceptions::IllegalArgumentException(Some(
+            "file does not exist".to_owned(),
+        )));
+    }
+
+    let Ok(mut file) = File::open(path) else {
+        return Err(Exceptions::IllegalArgumentException(Some("file cannot be opened".to_owned())));
+    };
+
+    let mut svg_data = Vec::new();
+    if file.read_to_end(&mut svg_data).is_err() {
+        return Err(Exceptions::IllegalArgumentException(Some(
+            "file cannot be read".to_owned(),
+        )));
+    }
+
+    let multi_format_reader = MultiFormatReader::default();
+    let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
+
+    hints
+        .entry(DecodeHintType::TRY_HARDER)
+        .or_insert(DecodeHintValue::TryHarder(true));
+
+    scanner.decode_multiple_with_hints(
+        &mut BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(
+            SVGLuminanceSource::new(&svg_data)?,
+        )))),
+        hints,
+    )
+}
+
 #[cfg(feature = "image")]
 pub fn detect_in_file(
     file_name: &str,
