@@ -29,12 +29,14 @@ codepage-437 = "0.1.0"
 rxing-one-d-proc-derive = "0.3.0"
 #rxing-one-d-proc-derive = {path ="../rxing-one-d-proc-derive"}
 num = "0.4.0"
+svg = {version = "0.13", optional = true}
 
 [dev-dependencies]
 java-properties = "1.4.1"
 java-rand = "0.2.0"
 
 [features]
-default = ["image"]
+default = ["image", "svg_write"]
 image = ["dep:image", "dep:imageproc"]
 allow_forced_iso_ied_18004_compliance = []
+svg_write = ["dep:svg"]

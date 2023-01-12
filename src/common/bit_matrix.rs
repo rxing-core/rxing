@@ -679,30 +679,44 @@ impl From<&BitMatrix> for image::DynamicImage {
     fn from(value: &BitMatrix) -> Self {
         let mut pixels = image::ImageBuffer::new(value.width, value.height);
 
-        for y in 0..value.height {
-            for x in 0..value.width {
-                let pixel_value = if value.get(x, y) { u8::MIN } else { u8::MAX };
-                let pixel_intrior = [pixel_value, pixel_value, pixel_value];
-                let pixel = image::Rgb(pixel_intrior);
-                pixels.put_pixel(x, y, pixel);
-            }
+        for (x, y, pixel) in pixels.enumerate_pixels_mut() {
+            let new_pixel = if value.get(x as u32, y as u32) {
+                image::Rgb([0, 0, 0])
+            } else {
+                image::Rgb([u8::MAX, u8::MAX, u8::MAX])
+            };
+            *pixel = new_pixel
         }
+
         pixels.into()
     }
 }
 
-// impl From<BitMatrix> for Vec<u8> {
-//     fn from(value: BitMatrix) -> Self {
-//         let mut output_vector = Vec::new();
-//         for y in 0..value.getHeight() {
-//             for col in (0..value.getWidth()).step_by(8) {
-//                 let mut byte = 0_u8;
-//                 for x in 0..8 {
-//                     byte |= u8::from(value.get(col+x, y)) << x
-//                 }
-//                 output_vector.push(byte);
-//             }
-//         }
-//         output_vector
-//     }
-// }
+#[cfg(feature = "svg_write")]
+impl From<&BitMatrix> for svg::Document {
+    fn from(value: &BitMatrix) -> Self {
+        let block_size = 1;
+        let mut document = svg::Document::new().set(
+            "viewBox",
+            (
+                0,
+                0,
+                value.width as u32 * block_size,
+                value.height as u32 * block_size,
+            ),
+        );
+        for x in 0..value.width {
+            for y in 0..value.height {
+                if value.get(x, y) {
+                    let block = svg::node::element::Rectangle::new()
+                        .set("x", x * block_size)
+                        .set("y", y * block_size)
+                        .set("width", block_size)
+                        .set("height", block_size);
+                    document = document.add(block);
+                }
+            }
+        }
+        document
+    }
+}

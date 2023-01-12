@@ -1,5 +1,7 @@
 use std::{
     collections::{HashMap, HashSet},
+    io::Write,
+    path::PathBuf,
     rc::Rc,
 };
 
@@ -149,6 +151,53 @@ pub fn save_image(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Excepti
         Err(err) => Err(Exceptions::IllegalArgumentException(Some(format!(
             "could not save file '{}': {}",
             file_name, err
+        )))),
+    }
+}
+
+#[cfg(feature = "svg_write")]
+pub fn save_svg(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Exceptions> {
+    let svg: svg::Document = bit_matrix.into();
+
+    match svg::save(file_name, &svg) {
+        Ok(_) => Ok(()),
+        Err(err) => Err(Exceptions::IllegalArgumentException(Some(format!(
+            "could not save file '{}': {}",
+            file_name, err
+        )))),
+    }
+}
+
+pub fn save_file(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Exceptions> {
+    let path = PathBuf::from(file_name);
+
+    let ext: String = if let Some(e) = path.extension() {
+        e.to_string_lossy().to_string()
+    } else {
+        String::default()
+    };
+
+    #[cfg(feature = "svg_write")]
+    if ext == "svg" {
+        return save_svg(file_name, bit_matrix);
+    }
+
+    #[cfg(feature = "image")]
+    if !ext.is_empty() && ext != "txt" {
+        return save_image(file_name, bit_matrix);
+    }
+
+    match || -> std::io::Result<_> {
+        let file = std::fs::File::create(path)?;
+        let mut output = std::io::BufWriter::new(file);
+        output.write_all(bit_matrix.to_string().as_bytes())?;
+        output.flush()?;
+        Ok(())
+    }() {
+        Ok(_) => Ok(()),
+        Err(_) => Err(Exceptions::IllegalArgumentException(Some(format!(
+            "could not write to '{}'",
+            file_name
         )))),
     }
 }
