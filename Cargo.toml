@@ -37,7 +37,7 @@ java-properties = "1.4.1"
 java-rand = "0.2.0"
 
 [features]
-default = ["image", "svg_write", "svg_read"]
+default = ["image"]
 image = ["dep:image", "dep:imageproc"]
 allow_forced_iso_ied_18004_compliance = []
 svg_write = ["dep:svg"]
