@@ -51,6 +51,10 @@ fn main() {
 ```
 
 ## Latest Release Notes
+* *v0.2.15* -> Support for reading and writing svg files through the feature flags `svg_read` and `svg_write`.
+
+    These flags are off by default.
+    
 * *v0.2.14* -> Support for more image output formats, many rustification changes to the codebase.
 
     If you were using very deep, specific functions in the encoder/decoder sections this may require a function rename. For instance `qrcode::encoder::encoder` is now `qrcode::encoder::qrcode_encoder`.

@@ -98,27 +98,21 @@ impl BufferedImageLuminanceSource {
 
         let mut raster: ImageBuffer<_, Vec<_>> = ImageBuffer::new(image.width(), image.height());
 
-        for x in 0..image.width() {
-            for y in 0..image.height() {
-                let pixel = img.get_pixel(x, y);
-                let [red, green, blue, alpha] = pixel.0;
-                if alpha == 0 {
-                    // white, so we know its luminance is 255
-                    raster.put_pixel(x, y, Luma([0xFF]))
-                } else {
-                    // .299R + 0.587G + 0.114B (YUV/YIQ for PAL and NTSC),
-                    // (306*R) >> 10 is approximately equal to R*0.299, and so on.
-                    // 0x200 >> 10 is 0.5, it implements rounding.
-                    raster.put_pixel(
-                        x,
-                        y,
-                        Luma([((306 * (red as u64)
-                            + 601 * (green as u64)
-                            + 117 * (blue as u64)
-                            + 0x200)
-                            >> 10) as u8]),
-                    );
-                }
+        for (x, y, new_pixel) in raster.enumerate_pixels_mut() {
+            let pixel = img.get_pixel(x, y);
+            let [red, green, blue, alpha] = pixel.0;
+            if alpha == 0 {
+                // white, so we know its luminance is 255
+                *new_pixel = Luma([0xFF])
+            } else {
+                // .299R + 0.587G + 0.114B (YUV/YIQ for PAL and NTSC),
+                // (306*R) >> 10 is approximately equal to R*0.299, and so on.
+                // 0x200 >> 10 is 0.5, it implements rounding.
+                *new_pixel = Luma([((306 * (red as u64)
+                    + 601 * (green as u64)
+                    + 117 * (blue as u64)
+                    + 0x200)
+                    >> 10) as u8])
             }
         }
 

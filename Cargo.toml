@@ -1,6 +1,6 @@
 [package]
 name = "rxing"
-version = "0.2.14"
+version = "0.2.15"
 description="A rust port of the zxing barcode library."
 license="Apache-2.0"
 repository="https://github.com/hschimke/rxing"

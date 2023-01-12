@@ -680,7 +680,7 @@ impl From<&BitMatrix> for image::DynamicImage {
         let mut pixels = image::ImageBuffer::new(value.width, value.height);
 
         for (x, y, pixel) in pixels.enumerate_pixels_mut() {
-            let new_pixel = if value.get(x as u32, y as u32) {
+            let new_pixel = if value.get(x, y) {
                 image::Rgb([0, 0, 0])
             } else {
                 image::Rgb([u8::MAX, u8::MAX, u8::MAX])
@@ -698,12 +698,7 @@ impl From<&BitMatrix> for svg::Document {
         let block_size = 1;
         let mut document = svg::Document::new().set(
             "viewBox",
-            (
-                0,
-                0,
-                value.width as u32 * block_size,
-                value.height as u32 * block_size,
-            ),
+            (0, 0, value.width * block_size, value.height * block_size),
         );
         for x in 0..value.width {
             for y in 0..value.height {
