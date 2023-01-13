@@ -9,5 +9,5 @@ mod qr_code_writer;
 pub use qr_code_writer::*;
 
 #[cfg(test)]
-#[cfg(feature="image")]
+#[cfg(feature = "image")]
 mod QRCodeWriterTestCase;

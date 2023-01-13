@@ -8,12 +8,11 @@ use std::{
 use crate::{
     common::{BitMatrix, HybridBinarizer},
     multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-    BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue,
-    DecodingHintDictionary, Exceptions, Luma8LuminanceSource, MultiFormatReader, RXingResult,
-    Reader,
+    BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
+    Exceptions, Luma8LuminanceSource, MultiFormatReader, RXingResult, Reader,
 };
 
-#[cfg(feature="image")]
+#[cfg(feature = "image")]
 use crate::BufferedImageLuminanceSource;
 
 #[cfg(feature = "svg_read")]
