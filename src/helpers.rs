@@ -277,13 +277,12 @@ pub fn save_svg(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Exception
 pub fn save_file(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Exceptions> {
     let path = PathBuf::from(file_name);
 
+    #[allow(unused_variables)]
     let ext: String = if let Some(e) = path.extension() {
         e.to_string_lossy().to_string()
     } else {
         String::default()
     };
-
-    let _ = &ext;
 
     #[cfg(feature = "svg_write")]
     if ext == "svg" {
