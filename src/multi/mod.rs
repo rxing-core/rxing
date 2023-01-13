@@ -9,4 +9,5 @@ mod generic_multiple_barcode_reader;
 pub use generic_multiple_barcode_reader::*;
 
 #[cfg(test)]
+#[cfg(feature="image")]
 mod multi_test_case;

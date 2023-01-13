@@ -205,6 +205,7 @@ fn compareRXingResult(a: &RXingResult, b: &RXingResult) -> Ordering {
 }
 
 #[cfg(test)]
+#[cfg(feature="image")]
 mod multi_qr_code_test_case {
     /*
      * Copyright 2016 ZXing authors

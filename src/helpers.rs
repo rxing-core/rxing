@@ -8,10 +8,13 @@ use std::{
 use crate::{
     common::{BitMatrix, HybridBinarizer},
     multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-    BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue,
+    BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue,
     DecodingHintDictionary, Exceptions, Luma8LuminanceSource, MultiFormatReader, RXingResult,
     Reader,
 };
+
+#[cfg(feature="image")]
+use crate::BufferedImageLuminanceSource;
 
 #[cfg(feature = "svg_read")]
 pub fn detect_in_svg(
@@ -280,6 +283,8 @@ pub fn save_file(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Exceptio
     } else {
         String::default()
     };
+
+    let _ = &ext;
 
     #[cfg(feature = "svg_write")]
     if ext == "svg" {
