@@ -68,7 +68,8 @@ fn main() {
 * *v0.1.4* -> Dramatically improve performance for MultiFormatReader and for multiple barcode detection.
 
 ## Known Issues
-Performance is low for GenericMultipleBarcodeReader.
+* Performance is low for GenericMultipleBarcodeReader.
+* Datamatrix codes are sometimes not correctly decoded, especially when they are _actually_ pure barcodes. This appears to be an issue with zxing 3.5.1 as well.
 
 ## ZXing Track
 Currently tracking zxing 3.5.1
