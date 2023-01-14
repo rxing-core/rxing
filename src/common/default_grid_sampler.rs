@@ -90,8 +90,7 @@ impl GridSampler for DefaultGridSampler {
             let mut x = 0;
             while x < max {
                 //   for (int x = 0; x < max; x += 2) {
-                if points[x] as u32 >= image.getWidth()
-                    || points[x + 1] as u32 >= image.getHeight()
+                if points[x] as u32 >= image.getWidth() || points[x + 1] as u32 >= image.getHeight()
                 {
                     return Err(Exceptions::NotFoundException(Some(
                         "index out of bounds, see documentation in file for explanation".to_owned(),
