@@ -70,15 +70,15 @@ impl GridSampler for DefaultGridSampler {
             return Err(Exceptions::NotFoundException(None));
         }
         let mut bits = BitMatrix::new(dimensionX, dimensionY)?;
-        let mut points = vec![0_f32; 2 * dimensionX as usize];
+        let mut points = vec![0.0; 2 * dimensionX as usize];
         for y in 0..dimensionY {
             //   for (int y = 0; y < dimensionY; y++) {
             let max = points.len();
-            let i_value = y as f32 + 0.5f32;
+            let i_value = y as f32 + 0.5;
             let mut x = 0;
             while x < max {
                 // for (int x = 0; x < max; x += 2) {
-                points[x] = (x as f32 / 2.0) + 0.5f32;
+                points[x] = (x as f32 / 2.0) + 0.5;
                 points[x + 1] = i_value;
                 x += 2;
             }
@@ -90,14 +90,14 @@ impl GridSampler for DefaultGridSampler {
             let mut x = 0;
             while x < max {
                 //   for (int x = 0; x < max; x += 2) {
-                if points[x].floor() as u32 >= image.getWidth()
-                    || points[x + 1].floor() as u32 >= image.getHeight()
+                if points[x] as u32 >= image.getWidth()
+                    || points[x + 1] as u32 >= image.getHeight()
                 {
                     return Err(Exceptions::NotFoundException(Some(
                         "index out of bounds, see documentation in file for explanation".to_owned(),
                     )));
                 }
-                if image.get(points[x].floor() as u32, points[x + 1].floor() as u32) {
+                if image.get(points[x] as u32, points[x + 1] as u32) {
                     // Black(-ish) pixel
                     bits.set(x as u32 / 2, y);
                 }

@@ -332,7 +332,7 @@ impl<'a> Detector<'_> {
         dimensionX: u32,
         dimensionY: u32,
     ) -> Result<BitMatrix, Exceptions> {
-        let sampler = DefaultGridSampler {};
+        let sampler = DefaultGridSampler::default();
 
         sampler.sample_grid_detailed(
             image,
