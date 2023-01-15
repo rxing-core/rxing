@@ -17,9 +17,9 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitMatrix, DetectorRXingResult},
-    BarcodeFormat, DecodeHintType, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, Reader,
+    common::{BitMatrix, DecoderRXingResult, DetectorRXingResult},
+    BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
+    RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{decoder::Decoder, detector::Detector};
@@ -69,6 +69,13 @@ impl Reader for DataMatrixReader {
         image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
+        let try_harder = if let Some(DecodeHintValue::TryHarder(true)) =
+            hints.get(&DecodeHintType::TRY_HARDER)
+        {
+            true
+        } else {
+            false
+        };
         let decoderRXingResult;
         let mut points = Vec::new();
         if hints.contains_key(&DecodeHintType::PURE_BARCODE) {
@@ -76,10 +83,24 @@ impl Reader for DataMatrixReader {
             decoderRXingResult = DECODER.decode(&bits)?;
             points.clear();
         } else {
-            let detectorRXingResult = Detector::new(image.getBlackMatrix())?.detect()?;
-            decoderRXingResult = DECODER.decode(detectorRXingResult.getBits())?;
-            points = detectorRXingResult.getPoints().to_vec();
+            //Result<DatamatrixDetectorResult, Exceptions>
+            decoderRXingResult = if let Ok(fnd) = || -> Result<DecoderRXingResult, Exceptions> {
+                let detectorRXingResult = Detector::new(image.getBlackMatrix())?.detect()?;
+                let decoded = DECODER.decode(detectorRXingResult.getBits())?;
+                points = detectorRXingResult.getPoints().to_vec();
+                Ok(decoded)
+            }() {
+                fnd
+            } else if try_harder {
+                let bits = self.extractPureBits(image.getBlackMatrix())?;
+                DECODER.decode(&bits)?
+            } else {
+                return Err(Exceptions::NotFoundException(None));
+            };
+
+            // decoderRXingResult = DECODER.decode(detectorRXingResult.getBits())?;
         }
+
         let mut result = RXingResult::new(
             decoderRXingResult.getText(),
             decoderRXingResult.getRawBytes().clone(),
