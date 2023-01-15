@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::{collections::HashMap, time::UNIX_EPOCH};
+use std::collections::HashMap;
 
 use crate::{
     common::{DecoderRXingResult, DetectorRXingResult},
@@ -103,10 +103,7 @@ impl Reader for AztecReader {
             decoderRXingResult.getNumBits(),
             points.to_vec(),
             BarcodeFormat::AZTEC,
-            std::time::SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .expect("Time went backwards")
-                .as_millis(),
+            chrono::Utc::now().timestamp_millis() as u128,
         );
 
         let byteSegments = decoderRXingResult.getByteSegments();

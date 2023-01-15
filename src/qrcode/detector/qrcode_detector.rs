@@ -237,7 +237,7 @@ impl<'a> Detector<'_> {
         transform: &PerspectiveTransform,
         dimension: u32,
     ) -> Result<BitMatrix, Exceptions> {
-        let sampler = DefaultGridSampler {};
+        let sampler = DefaultGridSampler::default();
         sampler.sample_grid(image, dimension, dimension, transform)
     }
 

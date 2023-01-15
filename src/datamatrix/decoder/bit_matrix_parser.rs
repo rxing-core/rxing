@@ -451,6 +451,7 @@ impl BitMatrixParser {
         bitMatrix: &BitMatrix,
         version: VersionRef,
     ) -> Result<BitMatrix, Exceptions> {
+        // dbg!(bitMatrix.to_string());
         let symbolSizeRows = version.getSymbolSizeRows();
         let symbolSizeColumns = version.getSymbolSizeColumns();
 
@@ -496,3 +497,11 @@ impl BitMatrixParser {
         Ok(bitMatrixWithoutAlignment)
     }
 }
+
+// const IS_MOSTLY_BLACK_RATIO : f32= 0.5;
+
+// fn is_mostly_black(array: &[bool]) -> bool {
+//     let array_len = array.len() as f32;
+//     let true_count = array.iter().fold(0, |acc,b| acc + i32::from(*b)) as f32;
+//     (array_len / true_count ) > IS_MOSTLY_BLACK_RATIO
+// }

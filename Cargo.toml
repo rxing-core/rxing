@@ -1,6 +1,6 @@
 [package]
 name = "rxing"
-version = "0.2.17"
+version = "0.2.18"
 description="A rust port of the zxing barcode library."
 license="Apache-2.0"
 repository="https://github.com/hschimke/rxing"
@@ -42,3 +42,4 @@ image = ["dep:image", "dep:imageproc"]
 allow_forced_iso_ied_18004_compliance = []
 svg_write = ["dep:svg"]
 svg_read = ["dep:resvg", "image"]
+wasm_support = ["chrono/wasmbind"]

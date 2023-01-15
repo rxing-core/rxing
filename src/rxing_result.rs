@@ -19,11 +19,7 @@
 //import java.util.EnumMap;
 //import java.util.Map;
 
-use std::{
-    collections::HashMap,
-    fmt,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::{collections::HashMap, fmt};
 
 use crate::{BarcodeFormat, RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint};
 
@@ -54,10 +50,7 @@ impl RXingResult {
             rawBytes,
             resultPoints,
             format,
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .expect("Time went backwards")
-                .as_millis(),
+            chrono::Utc::now().timestamp_millis() as u128,
         )
     }
 
