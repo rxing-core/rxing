@@ -418,7 +418,7 @@ impl DMRegressionLine {
         beg: &RXingResultPoint,
         end: &RXingResultPoint,
     ) -> Result<f64, Exceptions> {
-        if !(self.points.len() > 3) {
+        if self.points.len() <= 3 {
             return Err(Exceptions::IllegalStateException(None));
         }
 
@@ -1128,7 +1128,7 @@ impl<'a> EdgeTracer<'_> {
         // #ifdef PRINT_DEBUG
         // 		printf("turn: %.0f x %.0f -> %.2f, %.2f\n", p.x, p.y, d.x, d.y);
         // #endif
-        Ok(self.isIn(&corner) && self.isIn(&self.p))
+        Ok(self.isIn(corner) && self.isIn(&self.p))
     }
 }
 
