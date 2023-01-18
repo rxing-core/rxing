@@ -161,7 +161,7 @@ trait RegressionLine {
 
 #[inline(always)]
 fn intersect(l1: &DMRegressionLine, l2: &DMRegressionLine) -> Result<RXingResultPoint,Exceptions> {
-    if (l1.isValid() && l2.isValid()) {
+    if l1.isValid() && l2.isValid() {
         return Err(Exceptions::IllegalStateException(None))
     }
     let d = l1.a * l2.b - l1.b * l2.a;
@@ -238,7 +238,7 @@ impl RegressionLine for DMRegressionLine {
     }
 
     fn add(&mut self, p: &RXingResultPoint) -> Result<(),Exceptions> {
-        if (self.direction_inward != RXingResultPoint::default()) {
+        if self.direction_inward != RXingResultPoint::default() {
             return Err(Exceptions::IllegalStateException(None))
         }
         self.points.push(*p);
@@ -398,7 +398,7 @@ impl DMRegressionLine {
     }
 
     fn modules(&mut self, beg: &RXingResultPoint, end: &RXingResultPoint) -> Result<f64,Exceptions> {
-         if (self.points.len() > 3) {
+         if self.points.len() > 3 {
             return Err(Exceptions::IllegalStateException(None))
          }
 
@@ -895,7 +895,7 @@ impl<'a> EdgeTracer<'_> {
                         // for (int j = 0; j < std::max(maxStepSize, 3) && isIn(pEdge); ++j) {
                         if self.whiteAt(&pEdge) {
                             // if we are not making any progress, we still have another endless loop bug
-                            if (self.p != RXingResultPoint::centered(&pEdge)) {
+                            if self.p != RXingResultPoint::centered(&pEdge) {
                                 return Err(Exceptions::IllegalStateException(None))
                             }
                             self.p = RXingResultPoint::centered(&pEdge);
@@ -990,7 +990,7 @@ impl<'a> EdgeTracer<'_> {
         let mut gaps = 0;
         loop {
             // detect an endless loop (lack of progress). if encountered, please report.
-            if (line.points().is_empty() || &&self.p != line.points().last().as_ref().unwrap()) {
+            if line.points().is_empty() || &&self.p != line.points().last().as_ref().unwrap() {
                 return Err(Exceptions::IllegalStateException(None));
             }
             if !line.points().is_empty() && &&self.p == line.points().last().as_ref().unwrap() {
