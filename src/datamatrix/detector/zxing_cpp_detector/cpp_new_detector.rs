@@ -33,8 +33,8 @@ trait RegressionLine {
     // PointF _directionInward;
     // PointF::value_t a = NAN, b = NAN, c = NAN;
 
-    fn intersect<T: RegressionLine, T2: RegressionLine>(&self, l1: &T, l2: &T2)
-        -> RXingResultPoint;
+    // fn intersect<T: RegressionLine, T2: RegressionLine>(&self, l1: &T, l2: &T2)
+    //     -> RXingResultPoint;
 
     //  fn evaluate_begin_end(&self, begin:&RXingResultPoint, end:&RXingResultPoint) -> bool;// {
     // {
@@ -188,13 +188,13 @@ struct DMRegressionLine {
     // PointF::value_t a = NAN, b = NAN, c = NAN;
 }
 impl RegressionLine for DMRegressionLine {
-    fn intersect<T: RegressionLine, T2: RegressionLine>(
-        &self,
-        l1: &T,
-        l2: &T2,
-    ) -> RXingResultPoint {
-        todo!()
-    }
+    // fn intersect<T: RegressionLine, T2: RegressionLine>(
+    //     &self,
+    //     l1: &T,
+    //     l2: &T2,
+    // ) -> RXingResultPoint {
+    //     int
+    // }
 
     fn points(&self) -> &[RXingResultPoint] {
         &self.points
@@ -636,13 +636,13 @@ trait BitMatrixCursor {
     {
         let skipCorner = if let Some(sc) = skipCorner { sc } else { false };
 
-        if (false == self.edgeAt_direction(dir).into()) {
+        if (!self.edgeAt_direction(dir).isValid()) {
             self.turn(dir);
-        } else if (true == self.edgeAtFront().into()) {
+        } else if (self.edgeAtFront().isValid()) {
             self.turn(opposite(dir));
-            if (true == self.edgeAtFront().into()) {
+            if (self.edgeAtFront().isValid()) {
                 self.turn(opposite(dir));
-                if (true == self.edgeAtFront().into()) {
+                if (self.edgeAtFront().isValid()) {
                     return false;
                 }
             }
@@ -650,7 +650,7 @@ trait BitMatrixCursor {
 
         let mut ret = self.step(None);
 
-        if (ret && skipCorner && false == self.edgeAt_direction(dir).into()) {
+        if (ret && skipCorner && !self.edgeAt_direction(dir).isValid()) {
             self.turn(dir);
             ret = self.step(None);
         }
