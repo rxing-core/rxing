@@ -95,16 +95,18 @@ impl Reader for DataMatrixReader {
                 Ok(decoded)
             }() {
                 fnd
-            } /*else if let Ok(fnd) = || -> Result<DecoderRXingResult, Exceptions> {
-                let detectorRXingResult = Detector::new(image.getBlackMatrix())?.detect()?;
-                let decoded = DECODER.decode(detectorRXingResult.getBits())?;
-                points = detectorRXingResult.getPoints().to_vec();
-                Ok(decoded)
-            }() {
-                fnd
-            } */else if try_harder {
-                let bits = self.extractPureBits(image.getBlackMatrix())?;
-                DECODER.decode(&bits)?
+            } else if try_harder {
+                if let Ok(fnd) = || -> Result<DecoderRXingResult, Exceptions> {
+                    let detectorRXingResult = Detector::new(image.getBlackMatrix())?.detect()?;
+                    let decoded = DECODER.decode(detectorRXingResult.getBits())?;
+                    points = detectorRXingResult.getPoints().to_vec();
+                    Ok(decoded)
+                }() {
+                    fnd
+                } else {
+                    let bits = self.extractPureBits(image.getBlackMatrix())?;
+                    DECODER.decode(&bits)?
+                }
             } else {
                 return Err(Exceptions::NotFoundException(None));
             };

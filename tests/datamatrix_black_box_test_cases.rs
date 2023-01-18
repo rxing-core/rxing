@@ -37,7 +37,6 @@ fn data_matrix_black_box1_test_case() {
     tester.test_black_box();
 }
 
-
 /**
  * @author dswitkin@google.com (Daniel Switkin)
  */
