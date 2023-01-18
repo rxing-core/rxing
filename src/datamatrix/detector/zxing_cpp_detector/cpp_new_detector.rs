@@ -161,7 +161,7 @@ trait RegressionLine {
 
 #[inline(always)]
 fn intersect(l1: &DMRegressionLine, l2: &DMRegressionLine) -> Result<RXingResultPoint,Exceptions> {
-    if l1.isValid() && l2.isValid() {
+    if !(l1.isValid() && l2.isValid()) {
         return Err(Exceptions::IllegalStateException(None))
     }
     let d = l1.a * l2.b - l1.b * l2.a;
@@ -178,7 +178,7 @@ fn intersect(l1: &DMRegressionLine, l2: &DMRegressionLine) -> Result<RXingResult
 *  * works with real-world codes that have just one module wide quiet-zone (which is perfectly in spec)
 */
 
-#[derive(Default, Clone)]
+#[derive( Clone)]
 struct DMRegressionLine {
     points: Vec<RXingResultPoint>,
     direction_inward: RXingResultPoint,
@@ -189,6 +189,19 @@ struct DMRegressionLine {
     // PointF _directionInward;
     // PointF::value_t a = NAN, b = NAN, c = NAN;
 }
+
+impl Default for DMRegressionLine {
+    fn default() -> Self {
+        Self { 
+            points: Default::default(), 
+            direction_inward: Default::default(), 
+            a: f32::NAN, 
+            b: f32::NAN, 
+            c: f32::NAN,
+        }
+    }
+}
+
 impl RegressionLine for DMRegressionLine {
     // fn intersect<T: RegressionLine, T2: RegressionLine>(
     //     &self,
@@ -203,7 +216,8 @@ impl RegressionLine for DMRegressionLine {
     }
 
     fn length(&self) -> u32 {
-        self.points.len() as u32
+        if self.points.len() >= 2 {
+ RXingResultPoint::distance(*self.points.first().unwrap(), *self.points.last().unwrap()) as u32}else  {0}
     }
 
     fn isValid(&self) -> bool {
@@ -238,7 +252,7 @@ impl RegressionLine for DMRegressionLine {
     }
 
     fn add(&mut self, p: &RXingResultPoint) -> Result<(),Exceptions> {
-        if self.direction_inward != RXingResultPoint::default() {
+        if self.direction_inward == RXingResultPoint::default() {
             return Err(Exceptions::IllegalStateException(None))
         }
         self.points.push(*p);
@@ -398,7 +412,7 @@ impl DMRegressionLine {
     }
 
     fn modules(&mut self, beg: &RXingResultPoint, end: &RXingResultPoint) -> Result<f64,Exceptions> {
-         if self.points.len() > 3 {
+         if !(self.points.len() > 3 ){
             return Err(Exceptions::IllegalStateException(None))
          }
 
@@ -895,7 +909,7 @@ impl<'a> EdgeTracer<'_> {
                         // for (int j = 0; j < std::max(maxStepSize, 3) && isIn(pEdge); ++j) {
                         if self.whiteAt(&pEdge) {
                             // if we are not making any progress, we still have another endless loop bug
-                            if self.p != RXingResultPoint::centered(&pEdge) {
+                            if self.p == RXingResultPoint::centered(&pEdge) {
                                 return Err(Exceptions::IllegalStateException(None))
                             }
                             self.p = RXingResultPoint::centered(&pEdge);
@@ -960,7 +974,7 @@ impl<'a> EdgeTracer<'_> {
         line.setDirectionInward(dEdge);
         loop {
             // log(self.p);
-            line.add(&self.p);
+            line.add(&self.p)?;
             if line.points().len() % 50 == 10 {
                 if !line.evaluate_max_distance(None, None) {
                     return Ok(false);
@@ -983,14 +997,14 @@ impl<'a> EdgeTracer<'_> {
         dEdge: &RXingResultPoint,
         line: &mut T,
         maxStepSize: i32,
-        finishLine: &T,
+        finishLine: &mut T,
     ) -> Result<bool,Exceptions> {
         let mut maxStepSize = maxStepSize;
         line.setDirectionInward(dEdge);
         let mut gaps = 0;
         loop {
             // detect an endless loop (lack of progress). if encountered, please report.
-            if line.points().is_empty() || &&self.p != line.points().last().as_ref().unwrap() {
+            if !(line.points().is_empty() || &&self.p != line.points().last().as_ref().unwrap()) {
                 return Err(Exceptions::IllegalStateException(None));
             }
             if !line.points().is_empty() && &&self.p == line.points().last().as_ref().unwrap() {
@@ -1044,7 +1058,7 @@ impl<'a> EdgeTracer<'_> {
                         self.p - line.points().last().unwrap(),
                     )
                 };
-                line.add(&self.p);
+                line.add(&self.p)?;
 
                 if stepLengthInMainDir > 1.0 {
                     gaps += 1;
@@ -1064,7 +1078,7 @@ impl<'a> EdgeTracer<'_> {
                         if !finishLine.isValid() && gaps == 4 {
                             // undo the last insert, it will be inserted again after the restart
                             line.pop_back();
-                            gaps -= 1;
+                            // gaps -= 1;
                             return Ok(true);
                         }
                     }
@@ -1090,16 +1104,16 @@ impl<'a> EdgeTracer<'_> {
         } //while (true);
     }
 
-    pub fn traceCorner(&mut self, dir: &mut RXingResultPoint, _corner: &RXingResultPoint) -> bool {
+    pub fn traceCorner(&mut self, dir: &mut RXingResultPoint, corner: &mut RXingResultPoint) -> Result<bool,Exceptions> {
         self.step(None);
         // log(p);
-        let corner = self.p;
+         *corner = self.p;
         std::mem::swap(&mut self.d, dir);
-        self.traceStep(&(-1.0 * dir), 2, false);
+        self.traceStep(&(-1.0 * dir), 2, false)?;
         // #ifdef PRINT_DEBUG
         // 		printf("turn: %.0f x %.0f -> %.2f, %.2f\n", p.x, p.y, d.x, d.y);
         // #endif
-        self.isIn(&corner) && self.isIn(&self.p)
+        Ok(self.isIn(&corner) && self.isIn(&self.p))
     }
 }
 
@@ -1146,7 +1160,7 @@ fn Scan(
         t.turnRight();
         t.state = 1;
         CHECK!(t.traceLine(&t.right(), lineL)?);
-        CHECK!(t.traceCorner(&mut t.right(), &tl));
+        CHECK!(t.traceCorner(&mut t.right(), &mut tl)?);
         lineL.reverse();
         let mut tlTracer = t;
 
@@ -1159,7 +1173,7 @@ fn Scan(
             t.updateDirectionFromOrigin(&tl);
         }
         let up = t.back();
-        CHECK!(t.traceCorner(&mut t.left(), &bl));
+        CHECK!(t.traceCorner(&mut t.left(), &mut bl)?);
 
         // follow bottom leg right
         t.state = 2;
@@ -1168,7 +1182,7 @@ fn Scan(
             t.updateDirectionFromOrigin(&bl);
         }
         let right = *t.front();
-        CHECK!(t.traceCorner(&mut t.left(), &br));
+        CHECK!(t.traceCorner(&mut t.left(), &mut br)?);
 
         let lenL = distance(&tl, &bl) - 1.0;
         let lenB = distance(&bl, &br) - 1.0;
@@ -1183,16 +1197,20 @@ fn Scan(
             &tlTracer.right(),
             lineT,
             maxStepSize,
-            &DMRegressionLine::default()
+            &mut DMRegressionLine::default()
         )?);
 
+        // let a = lineT.length() as i32 / 3;
+        // let b = (lenL / 5.0) as i32;
+
+        // maxStepSize = std::cmp::min(a,  b) * 2;
         maxStepSize = std::cmp::min(lineT.length() as i32 / 3, (lenL / 5.0) as i32) * 2;
 
         // follow up until we reach the top line
         t.setDirection(&up);
         t.state = 3;
         CHECK!(t.traceGaps(&t.left(), lineR, maxStepSize, lineT)?);
-        CHECK!(t.traceCorner(&mut t.left(), &tr));
+        CHECK!(t.traceCorner(&mut t.left(), &mut tr)?);
 
         let lenT = distance(&tl, &tr) - 1.0;
         let lenR = distance(&tr, &br) - 1.0;
@@ -1311,7 +1329,7 @@ fn Scan(
 
         // let res = SampleGrid(*startTracer.img, dimT, dimR, PerspectiveTransform(Rectangle(dimT, dimR, 0), sourcePoints));
 
-        CHECK!(res.is_err());
+        CHECK!(res.is_ok());
 
         return Ok(DatamatrixDetectorResult::new(
             res.unwrap(),
@@ -1354,7 +1372,7 @@ pub fn detect(
         DMRegressionLine::default(),
     ]; // [DMRegressionLine::default();4];
 
-    const minSymbolSize: u32 = 8 * 2; // minimum realistic size in pixel: 8 modules x 2 pixels per module
+    const MIN_SYMBOL_SIZE: u32 = 8 * 2; // minimum realistic size in pixel: 8 modules x 2 pixels per module
 
     for dir in [
         RXingResultPoint { x: -1.0, y: 0.0 },
@@ -1368,7 +1386,7 @@ pub fn detect(
             y: (image.getHeight() / 2) as f32,
         }; //PointF(image.width() / 2, image.height() / 2);
         let startPos =
-            RXingResultPoint::centered(&(center - center * dir + minSymbolSize as i32 / 2 * dir));
+            RXingResultPoint::centered(&(center - center * dir + MIN_SYMBOL_SIZE as i32 / 2 * dir));
 
         if let Some(history) = &mut history {
             history.borrow_mut().clear(0);
@@ -1381,7 +1399,7 @@ pub fn detect(
             // EdgeTracer  tracer(image, startPos, dir);
             let mut tracer = EdgeTracer::new(image, startPos, dir);
             tracer.p +=
-                i / 2 * minSymbolSize as i32 * (if (i & 1) != 0 { -1 } else { 1 }) * tracer.right();
+                i / 2 * MIN_SYMBOL_SIZE as i32 * (if (i & 1) != 0 { -1 } else { 1 }) * tracer.right();
             if tryHarder {
                 // tracer.history = history.as_mut();
                 tracer.history = history.clone();

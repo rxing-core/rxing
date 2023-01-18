@@ -89,20 +89,20 @@ impl Reader for DataMatrixReader {
             //Result<DatamatrixDetectorResult, Exceptions>
             decoderRXingResult = if let Ok(fnd) = || -> Result<DecoderRXingResult, Exceptions> {
                 let detectorRXingResult =
-                    zxing_cpp_detector::detect(image.getBlackMatrix(), try_harder, try_harder)?;
+                    zxing_cpp_detector::detect(image.getBlackMatrix(), try_harder, true)?;
                 let decoded = DECODER.decode(detectorRXingResult.getBits())?;
                 points = detectorRXingResult.getPoints().to_vec();
                 Ok(decoded)
             }() {
                 fnd
-            } else if let Ok(fnd) = || -> Result<DecoderRXingResult, Exceptions> {
+            } /*else if let Ok(fnd) = || -> Result<DecoderRXingResult, Exceptions> {
                 let detectorRXingResult = Detector::new(image.getBlackMatrix())?.detect()?;
                 let decoded = DECODER.decode(detectorRXingResult.getBits())?;
                 points = detectorRXingResult.getPoints().to_vec();
                 Ok(decoded)
             }() {
                 fnd
-            } else if try_harder {
+            } */else if try_harder {
                 let bits = self.extractPureBits(image.getBlackMatrix())?;
                 DECODER.decode(&bits)?
             } else {
