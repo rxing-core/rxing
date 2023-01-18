@@ -43,7 +43,7 @@ impl std::ops::AddAssign for RXingResultPoint {
 }
 
 impl<'a> Sum<&'a RXingResultPoint> for RXingResultPoint {
-    fn sum<I: Iterator<Item = &'a RXingResultPoint>>(mut iter: I) -> Self {
+    fn sum<I: Iterator<Item = &'a RXingResultPoint>>(iter: I) -> Self {
         let mut add = RXingResultPoint { x: 0.0, y: 0.0 };
         for n in iter {
             add += *n;
