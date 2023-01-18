@@ -45,7 +45,7 @@ impl Quadrilateral {
             return 0.0;
         }
         let centerLineF = RXingResultPoint::normalized(centerLine);
-        return f32::atan2(centerLineF.y, centerLineF.x).into();
+        f32::atan2(centerLineF.y, centerLineF.x).into()
     }
     pub fn points(&self) -> &[RXingResultPoint] {
         &self.0
@@ -76,7 +76,7 @@ pub fn Rectangle(width: i32, height: i32, margin: Option<i32>) -> Quadrilateral 
 }
 
 pub fn CenteredSquare(size: i32) -> Quadrilateral {
-    return Scale(
+    Scale(
         &Quadrilateral([
             RXingResultPoint { x: -1.0, y: -1.0 },
             RXingResultPoint { x: 1.0, y: -1.0 },
@@ -84,7 +84,7 @@ pub fn CenteredSquare(size: i32) -> Quadrilateral {
             RXingResultPoint { x: -1.0, y: 1.0 },
         ]),
         size / 2,
-    );
+    )
 }
 
 pub fn Line(y: i32, xStart: i32, xStop: i32) -> Quadrilateral {
@@ -128,9 +128,9 @@ pub fn IsConvex(poly: &Quadrilateral) -> bool {
         // m = std::cmp::min((m).abs(), cp);
         // M = std::cmp::max((M).abs(), cp);
 
-        if (i == 0) {
+        if i == 0 {
             sign = cp > 0.0;
-        } else if (sign != (cp > 0.0)) {
+        } else if sign != (cp > 0.0) {
             return false;
         }
     }
@@ -142,7 +142,7 @@ pub fn IsConvex(poly: &Quadrilateral) -> bool {
     // for the complete existing sample set. For very "skewed" QRCodes a value of
     // around 3 is realistic. A value of 14 has been observed to trigger the
     // instability.
-    return M / m < 4.0;
+    M / m < 4.0
 }
 
 pub fn Scale(q: &Quadrilateral, factor: i32) -> Quadrilateral {
@@ -169,11 +169,11 @@ pub fn RotatedCorners(q: &Quadrilateral, n: Option<i32>, mirror: Option<bool>) -
     let mut res = q.clone();
     res.0.rotate_left(((n + 4) % 4) as usize);
     // std::rotate_copy(q.begin(), q.begin() + ((n + 4) % 4), q.end(), res.begin());
-    if (mirror) {
+    if mirror {
         res.0.swap(1, 3);
     }
     // {std::swap(res[1], res[3]);}
-    return res;
+    res
 }
 
 pub fn IsInside(p: &RXingResultPoint, q: &Quadrilateral) -> bool {

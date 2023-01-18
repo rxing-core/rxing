@@ -667,10 +667,10 @@ impl BitMatrix {
     }
 
     pub fn isIn(&self, p: &RXingResultPoint, b: i32) -> bool {
-        return b as f32 <= p.x
+        b as f32 <= p.x
             && p.x < self.getWidth() as f32 - b as f32
             && b as f32 <= p.y
-            && p.y < self.getHeight() as f32 - b as f32;
+            && p.y < self.getHeight() as f32 - b as f32
     }
 }
 

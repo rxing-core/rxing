@@ -45,7 +45,7 @@ impl std::ops::AddAssign for RXingResultPoint {
 impl<'a> Sum<&'a RXingResultPoint> for RXingResultPoint {
     fn sum<I: Iterator<Item = &'a RXingResultPoint>>(mut iter: I) -> Self {
         let mut add = RXingResultPoint { x: 0.0, y: 0.0 };
-        while let Some(n) = iter.next() {
+        for n in iter {
             add += *n;
         }
         add
@@ -206,21 +206,21 @@ impl std::ops::Div<f32> for RXingResultPoint {
 
 impl RXingResultPoint {
     pub fn dot(a: RXingResultPoint, b: RXingResultPoint) -> f32 {
-        return a.x * b.x + a.y * b.y;
+        a.x * b.x + a.y * b.y
     }
 
     pub fn cross(a: &RXingResultPoint, b: &RXingResultPoint) -> f32 {
-        return a.x * b.y - b.x * a.y;
+        a.x * b.y - b.x * a.y
     }
 
     /// L1 norm
     pub fn sumAbsComponent(p: &RXingResultPoint) -> f32 {
-        return (p.x).abs() + (p.y).abs();
+        (p.x).abs() + (p.y).abs()
     }
 
     /// L2 norm
     pub fn length(p: RXingResultPoint) -> f32 {
-        return (Self::dot(p, p)).sqrt();
+        (Self::dot(p, p)).sqrt()
     }
 
     /// L-inf norm
@@ -238,7 +238,7 @@ impl RXingResultPoint {
     }
 
     pub fn distance(a: RXingResultPoint, b: RXingResultPoint) -> f32 {
-        return Self::length(a - b);
+        Self::length(a - b)
     }
 
     /// Calculate a floating point pixel coordinate representing the 'center' of the pixel.
@@ -246,18 +246,18 @@ impl RXingResultPoint {
     /// See also the documentation of the GridSampler API.
     #[inline(always)]
     pub fn centered(p: &RXingResultPoint) -> RXingResultPoint {
-        return RXingResultPoint {
+        RXingResultPoint {
             x: (p.x).floor() + 0.5,
             y: (p.y).floor() + 0.5,
-        };
+        }
     }
 
     pub fn normalized(d: RXingResultPoint) -> RXingResultPoint {
-        return d / Self::length(d);
+        d / Self::length(d)
     }
 
     pub fn bresenhamDirection(d: &RXingResultPoint) -> RXingResultPoint {
-        return *d / Self::maxAbsComponent(d);
+        *d / Self::maxAbsComponent(d)
     }
 
     pub fn mainDirection(d: RXingResultPoint) -> RXingResultPoint {
