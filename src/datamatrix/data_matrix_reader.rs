@@ -22,7 +22,10 @@ use crate::{
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
-use super::{decoder::Decoder, detector::Detector};
+use super::{
+    decoder::Decoder,
+    detector::{zxing_cpp_detector, Detector},
+};
 
 use once_cell::sync::Lazy;
 
@@ -85,6 +88,14 @@ impl Reader for DataMatrixReader {
         } else {
             //Result<DatamatrixDetectorResult, Exceptions>
             decoderRXingResult = if let Ok(fnd) = || -> Result<DecoderRXingResult, Exceptions> {
+                let detectorRXingResult =
+                    zxing_cpp_detector::detect(image.getBlackMatrix(), try_harder, try_harder)?;
+                let decoded = DECODER.decode(detectorRXingResult.getBits())?;
+                points = detectorRXingResult.getPoints().to_vec();
+                Ok(decoded)
+            }() {
+                fnd
+            } else if let Ok(fnd) = || -> Result<DecoderRXingResult, Exceptions> {
                 let detectorRXingResult = Detector::new(image.getBlackMatrix())?.detect()?;
                 let decoded = DECODER.decode(detectorRXingResult.getBits())?;
                 points = detectorRXingResult.getPoints().to_vec();
