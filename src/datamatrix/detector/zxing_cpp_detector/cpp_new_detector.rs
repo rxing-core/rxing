@@ -11,11 +11,11 @@ macro_rules! CHECK {
 */
 // SPDX-License-Identifier: Apache-2.0
 
-use std::{cell::RefCell, ops::DerefMut, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     common::{
-        BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler, PerspectiveTransform,
+        BitMatrix, DefaultGridSampler, GridSampler,
     },
     datamatrix::detector::{zxing_cpp_detector::Quadrilateral, DatamatrixDetectorResult},
     qrcode::encoder::ByteMatrix,
@@ -67,7 +67,7 @@ trait RegressionLine {
     fn evaluateSelf(&mut self) -> bool;
 
     fn distance(&self, a: &RXingResultPoint, b: &RXingResultPoint) -> f32 {
-        return crate::result_point_utils::distance(a, b);
+        crate::result_point_utils::distance(a, b)
     }
 
     // RegressionLine() { _points.reserve(16); } // arbitrary but plausible start size (tiny performance improvement)
@@ -238,7 +238,7 @@ impl RegressionLine for DMRegressionLine {
     fn add(&mut self, p: &RXingResultPoint) {
         // assert(self.direction_inward != RXingResultPoint::default());
         self.points.push(*p);
-        if (self.points.len() == 1) {
+        if self.points.len() == 1 {
             self.c = RXingResultPoint::dot(self.normal(), *p);
         }
     }
@@ -260,7 +260,7 @@ impl RegressionLine for DMRegressionLine {
         let updatePoints = if let Some(u) = updatePoints { u } else { false };
 
         let mut ret = self.evaluateSelf();
-        if (maxSignedDist > 0.0) {
+        if maxSignedDist > 0.0 {
             let mut points = self.points.clone();
             loop {
                 let old_points_size = points.len();
@@ -274,7 +274,7 @@ impl RegressionLine for DMRegressionLine {
                     let sd = self.signedDistance(p) as f64;
                     !(sd > maxSignedDist || sd < -2.0 * maxSignedDist)
                 });
-                if (old_points_size == points.len()) {
+                if old_points_size == points.len() {
                     break;
                 }
                 // #ifdef PRINT_DEBUG
@@ -283,11 +283,11 @@ impl RegressionLine for DMRegressionLine {
                 ret = self.evaluate(&points);
             }
 
-            if (updatePoints) {
+            if updatePoints {
                 self.points = points;
             }
         }
-        return ret;
+        ret
     }
 
     fn isHighRes(&self) -> bool {
@@ -303,7 +303,7 @@ impl RegressionLine for DMRegressionLine {
         let len = RXingResultPoint::maxAbsComponent(&diff);
         let steps = float_min((diff.x).abs(), (diff.y).abs());
         // due to aliasing we get bad extrapolations if the line is short and too close to vertical/horizontal
-        return steps > 2.0 || len > 50.0;
+        steps > 2.0 || len > 50.0
     }
 
     fn evaluate(&mut self, points: &[RXingResultPoint]) -> bool {
@@ -319,7 +319,7 @@ impl RegressionLine for DMRegressionLine {
             sumYY += d.y * d.y;
             sumXY += d.x * d.y;
         }
-        if (sumYY >= sumXX) {
+        if sumYY >= sumXX {
             let l = (sumYY * sumYY + sumXY * sumXY).sqrt();
             self.a = sumYY / l;
             self.b = -sumXY / l;
@@ -334,7 +334,7 @@ impl RegressionLine for DMRegressionLine {
             self.b = -self.b;
         }
         self.c = RXingResultPoint::dot(self.normal(), mean); // (a*mean.x + b*mean.y);
-        return RXingResultPoint::dot(self.direction_inward, self.normal()) > 0.5;
+        RXingResultPoint::dot(self.direction_inward, self.normal()) > 0.5
         // angle between original and new direction is at most 60 degree
     }
 
@@ -351,7 +351,7 @@ impl RegressionLine for DMRegressionLine {
             sumYY += d.y * d.y;
             sumXY += d.x * d.y;
         }
-        if (sumYY >= sumXX) {
+        if sumYY >= sumXX {
             let l = (sumYY * sumYY + sumXY * sumXY).sqrt();
             self.a = sumYY / l;
             self.b = -sumXY / l;
@@ -366,7 +366,7 @@ impl RegressionLine for DMRegressionLine {
             self.b = -self.b;
         }
         self.c = RXingResultPoint::dot(self.normal(), mean); // (a*mean.x + b*mean.y);
-        return RXingResultPoint::dot(self.direction_inward, self.normal()) > 0.5;
+        RXingResultPoint::dot(self.direction_inward, self.normal()) > 0.5
         // angle between original and new direction is at most 60 degree
     }
 }
@@ -381,7 +381,7 @@ impl DMRegressionLine {
         let mut num = 0;
         for v in c {
             // for (const auto& v : c)
-            if (f(*v)) {
+            if f(*v) {
                 sum += *v;
                 num += 1;
             }
@@ -415,28 +415,28 @@ impl DMRegressionLine {
 
         // calculate the (expected average) distance of two adjacent pixels
         let unitPixelDist = RXingResultPoint::length(RXingResultPoint::bresenhamDirection(
-            &(*self.points.last().clone().unwrap() - *self.points.first().clone().unwrap()),
+            &(*self.points.last().unwrap() - *self.points.first().unwrap()),
         )) as f64;
 
         // calculate the width of 2 modules (first black pixel to first black pixel)
         let mut sumFront: f64 =
-            (self.distance(beg, &self.project(&self.points[0])) as f64 - unitPixelDist) as f64;
+            self.distance(beg, &self.project(&self.points[0])) as f64 - unitPixelDist;
         let mut sumBack: f64 = 0.0; // (last black pixel to last black pixel)
         for dist in gapSizes {
             // for (auto dist : gapSizes) {
-            if (dist > 1.9 * unitPixelDist) {
+            if dist > 1.9 * unitPixelDist {
                 modSizes.push(std::mem::take(&mut sumBack));
             }
             sumFront += dist;
             sumBack += dist;
-            if (dist > 1.9 * unitPixelDist) {
+            if dist > 1.9 * unitPixelDist {
                 modSizes.push(std::mem::take(&mut sumFront));
             }
         }
 
         modSizes.push(
             sumFront
-                + self.distance(end, &self.project(&self.points.last().clone().unwrap())) as f64,
+                + self.distance(end, &self.project(self.points.last().unwrap())) as f64,
         );
         modSizes[0] = 0.0; // the first element is an invalid sumBack value, would be pop_front() if vector supported this
         let lineLength = self.distance(beg, end) as f64 - unitPixelDist;
@@ -456,7 +456,7 @@ impl DMRegressionLine {
         // #ifdef PRINT_DEBUG
         // 		printf("post filter meanModSize: %.1f\n", meanModSize);
         // #endif
-        return lineLength / meanModSize;
+        lineLength / meanModSize
     }
 }
 
@@ -541,10 +541,10 @@ trait BitMatrixCursor {
                                                      // }
 
     fn blackAt(&self, pos: &RXingResultPoint) -> bool {
-        return self.testAt(pos).isBlack();
+        self.testAt(pos).isBlack()
     }
     fn whiteAt(&self, pos: &RXingResultPoint) -> bool {
-        return self.testAt(pos).isWhite();
+        self.testAt(pos).isWhite()
     }
 
     fn isIn(&self, p: &RXingResultPoint) -> bool; // { return img->isIn(p); }
@@ -557,7 +557,7 @@ trait BitMatrixCursor {
     fn left(&self) -> RXingResultPoint; //{ return {d.y, -d.x}; }
     fn right(&self) -> RXingResultPoint; //{ return {-d.y, d.x}; }
     fn direction(&self, dir: Direction) -> RXingResultPoint {
-        return self.right() * Into::<i32>::into(dir);
+        self.right() * Into::<i32>::into(dir)
     }
 
     fn turnBack(&mut self); // noexcept { d = back(); }
@@ -575,16 +575,16 @@ trait BitMatrixCursor {
         return self.edgeAt_point(self.front());
     }
     fn edgeAtBack(&self) -> Value {
-        return self.edgeAt_point(&self.back());
+        self.edgeAt_point(&self.back())
     }
     fn edgeAtLeft(&self) -> Value {
-        return self.edgeAt_point(&self.left());
+        self.edgeAt_point(&self.left())
     }
     fn edgeAtRight(&self) -> Value {
-        return self.edgeAt_point(&self.right());
+        self.edgeAt_point(&self.right())
     }
     fn edgeAt_direction(&self, dir: Direction) -> Value {
-        return self.edgeAt_point(&self.direction(dir));
+        self.edgeAt_point(&self.direction(dir))
     }
 
     fn setDirection(&mut self, dir: &RXingResultPoint); // { d = bresenhamDirection(dir); }
@@ -636,13 +636,13 @@ trait BitMatrixCursor {
     {
         let skipCorner = if let Some(sc) = skipCorner { sc } else { false };
 
-        if (!self.edgeAt_direction(dir).isValid()) {
+        if !self.edgeAt_direction(dir).isValid() {
             self.turn(dir);
-        } else if (self.edgeAtFront().isValid()) {
+        } else if self.edgeAtFront().isValid() {
             self.turn(opposite(dir));
-            if (self.edgeAtFront().isValid()) {
+            if self.edgeAtFront().isValid() {
                 self.turn(opposite(dir));
-                if (self.edgeAtFront().isValid()) {
+                if self.edgeAtFront().isValid() {
                     return false;
                 }
             }
@@ -650,12 +650,12 @@ trait BitMatrixCursor {
 
         let mut ret = self.step(None);
 
-        if (ret && skipCorner && !self.edgeAt_direction(dir).isValid()) {
+        if ret && skipCorner && !self.edgeAt_direction(dir).isValid() {
             self.turn(dir);
             ret = self.step(None);
         }
 
-        return ret;
+        ret
     }
 
     fn countEdges(&mut self, range: Option<i32>) -> i32 {
@@ -664,13 +664,13 @@ trait BitMatrixCursor {
 
         let mut steps = self.stepToEdge(Some(1), Some(range), None);
 
-        while (steps > 0) {
+        while steps > 0 {
             range -= steps;
             res += 1;
             steps = self.stepToEdge(Some(1), Some(range), None);
         }
 
-        return res;
+        res
     }
 
     // template<typename ARRAY>
@@ -806,7 +806,7 @@ impl<'a> BitMatrixCursor for EdgeTracer<'_> {
     fn step(&mut self, s: Option<f32>) -> bool {
         let s = if let Some(s) = s { s } else { 1.0 };
         self.p += self.d * s;
-        return self.isIn(&self.p);
+        self.isIn(&self.p)
     }
 
     fn movedBy<T: BitMatrixCursor>(self, d: &RXingResultPoint) -> Self {
@@ -831,19 +831,19 @@ impl<'a> BitMatrixCursor for EdgeTracer<'_> {
         let mut steps = 0;
         let mut lv = self.testAt(&self.p);
 
-        while nth > 0 && (!(range > 0) || steps < range) && lv.isValid() {
+        while nth > 0 && (range <= 0 || steps < range) && lv.isValid() {
             steps += 1;
             let v = self.testAt(&(self.p + steps * self.d));
-            if (lv != v) {
+            if lv != v {
                 lv = v;
                 nth -= 1;
             }
         }
-        if (backup) {
+        if backup {
             steps -= 1;
         }
         self.p += self.d * steps;
-        return steps * i32::from(nth == 0);
+        steps * i32::from(nth == 0)
     }
 }
 
@@ -868,9 +868,7 @@ impl<'a> EdgeTracer<'_> {
         let dEdge = RXingResultPoint::mainDirection(*dEdge);
         for breadth in 1..=(if maxStepSize == 1 {
             2
-        } else {
-            (if goodDirection { 1 } else { 3 })
-        }) {
+        } else if goodDirection { 1 } else { 3 }) {
             // for (int breadth = 1; breadth <= (maxStepSize == 1 ? 2 : (goodDirection ? 1 : 3)); ++breadth)
             for step in 1..=maxStepSize {
                 // for (int step = 1; step <= maxStepSize; ++step)
@@ -881,23 +879,23 @@ impl<'a> EdgeTracer<'_> {
                         + (if i & 1 > 0 { (i + 1) / 2 } else { -i / 2 }) * dEdge;
                     // dbg!(pEdge);
 
-                    if (!self.blackAt(&(pEdge + dEdge))) {
+                    if !self.blackAt(&(pEdge + dEdge)) {
                         continue;
                     }
 
                     // found black pixel -> go 'outward' until we hit the b/w border
-                    for j in 0..(std::cmp::max(maxStepSize, 3)) {
+                    for _j in 0..(std::cmp::max(maxStepSize, 3)) {
                         // for (int j = 0; j < std::max(maxStepSize, 3) && isIn(pEdge); ++j) {
-                        if (self.whiteAt(&pEdge)) {
+                        if self.whiteAt(&pEdge) {
                             // if we are not making any progress, we still have another endless loop bug
                             assert!(self.p != RXingResultPoint::centered(&pEdge));
                             self.p = RXingResultPoint::centered(&pEdge);
 
                             // if (self.history && maxStepSize == 1) {
                             if let Some(history) = &self.history {
-                                if (maxStepSize == 1) {
-                                    if (history.borrow().get(self.p.x as u32, self.p.y as u32)
-                                        == self.state as u8)
+                                if maxStepSize == 1 {
+                                    if history.borrow().get(self.p.x as u32, self.p.y as u32)
+                                        == self.state as u8
                                     {
                                         return StepResult::CLOSED_END;
                                     }
@@ -912,7 +910,7 @@ impl<'a> EdgeTracer<'_> {
                             return StepResult::FOUND;
                         }
                         pEdge = pEdge - dEdge;
-                        if (self.blackAt(&(pEdge - self.d))) {
+                        if self.blackAt(&(pEdge - self.d)) {
                             pEdge = pEdge - self.d;
                         }
                         // dbg!(pEdge);
@@ -926,27 +924,27 @@ impl<'a> EdgeTracer<'_> {
                 }
             }
         }
-        return StepResult::OPEN_END;
+        StepResult::OPEN_END
     }
 
     pub fn updateDirectionFromOrigin(&mut self, origin: &RXingResultPoint) -> bool {
         let old_d = self.d;
         self.setDirection(&(self.p - origin));
         // if the new direction is pointing "backward", i.e. angle(new, old) > 90 deg -> break
-        if (RXingResultPoint::dot(self.d, old_d) < 0.0) {
+        if RXingResultPoint::dot(self.d, old_d) < 0.0 {
             return false;
         }
         // make sure d stays in the same quadrant to prevent an infinite loop
-        if ((self.d.x).abs() == (self.d.y).abs()) {
+        if (self.d.x).abs() == (self.d.y).abs() {
             self.d = RXingResultPoint::mainDirection(old_d)
                 + 0.99 * (self.d - RXingResultPoint::mainDirection(old_d));
-        } else if (RXingResultPoint::mainDirection(self.d)
-            != RXingResultPoint::mainDirection(old_d))
+        } else if RXingResultPoint::mainDirection(self.d)
+            != RXingResultPoint::mainDirection(old_d)
         {
             self.d = RXingResultPoint::mainDirection(old_d)
                 + 0.99 * RXingResultPoint::mainDirection(self.d);
         }
-        return true;
+        true
     }
 
     pub fn traceLine<T: RegressionLine>(&mut self, dEdge: &RXingResultPoint, line: &mut T) -> bool {
@@ -954,18 +952,18 @@ impl<'a> EdgeTracer<'_> {
         loop {
             // log(self.p);
             line.add(&self.p);
-            if (line.points().len() % 50 == 10) {
-                if (!line.evaluate_max_distance(None, None)) {
+            if line.points().len() % 50 == 10 {
+                if !line.evaluate_max_distance(None, None) {
                     return false;
                 }
-                if (!self.updateDirectionFromOrigin(
+                if !self.updateDirectionFromOrigin(
                     &(self.p - line.project(&self.p) + **line.points().first().as_ref().unwrap()),
-                )) {
+                ) {
                     return false;
                 }
             }
             let stepResult = self.traceStep(dEdge, 1, line.isValid());
-            if (stepResult != StepResult::FOUND) {
+            if stepResult != StepResult::FOUND {
                 return stepResult == StepResult::OPEN_END && line.points().len() > 1;
             }
         } // while (true);
@@ -984,28 +982,28 @@ impl<'a> EdgeTracer<'_> {
         loop {
             // detect an endless loop (lack of progress). if encountered, please report.
             assert!(line.points().is_empty() || &&self.p != line.points().last().as_ref().unwrap());
-            if (!line.points().is_empty() && &&self.p == line.points().last().as_ref().unwrap()) {
+            if !line.points().is_empty() && &&self.p == line.points().last().as_ref().unwrap() {
                 return false;
             }
             // log(p);
 
             // if we drifted too far outside of the code, break
-            if (line.isValid()
+            if line.isValid()
                 && line.signedDistance(&self.p) < -5.0
-                && (!line.evaluate_max_distance(None, None) || line.signedDistance(&self.p) < -5.0))
+                && (!line.evaluate_max_distance(None, None) || line.signedDistance(&self.p) < -5.0)
             {
                 return false;
             }
 
             // if we are drifting towards the inside of the code, pull the current position back out onto the line
-            if (line.isValid() && line.signedDistance(&self.p) > 3.0) {
+            if line.isValid() && line.signedDistance(&self.p) > 3.0 {
                 // The current direction d and the line we are tracing are supposed to be roughly parallel.
                 // In case the 'go outward' step in traceStep lead us astray, we might end up with a line
                 // that is almost perpendicular to d. Then the back-projection below can result in an
                 // endless loop. Break if the angle between d and line is greater than 45 deg.
-                if ((RXingResultPoint::dot(RXingResultPoint::normalized(self.d), line.normal()))
+                if (RXingResultPoint::dot(RXingResultPoint::normalized(self.d), line.normal()))
                     .abs()
-                    > 0.7)
+                    > 0.7
                 // thresh is approx. sin(45 deg)
                 {
                     return false;
@@ -1018,12 +1016,12 @@ impl<'a> EdgeTracer<'_> {
                 // The 'while' instead of 'if' was introduced to fix the issue with #245. It turns out that
                 // np can actually be behind the projection of the last line point and we need 2 steps in d
                 // to prevent a dead lock. see #245.png
-                while (RXingResultPoint::distance(
+                while RXingResultPoint::distance(
                     np,
                     line.project(line.points().last().as_ref().unwrap()),
-                ) < 1.0)
+                ) < 1.0
                 {
-                    np = np + self.d;
+                    np += self.d;
                 }
                 self.p = RXingResultPoint::centered(&np);
             } else {
@@ -1032,46 +1030,46 @@ impl<'a> EdgeTracer<'_> {
                 } else {
                     RXingResultPoint::dot(
                         RXingResultPoint::mainDirection(self.d),
-                        (self.p - line.points().last().unwrap()),
+                        self.p - line.points().last().unwrap(),
                     )
                 };
                 line.add(&self.p);
 
-                if (stepLengthInMainDir > 1.0) {
+                if stepLengthInMainDir > 1.0 {
                     gaps += 1;
-                    if (gaps >= 2 || line.points().len() > 5) {
-                        if (!line.evaluate_max_distance(Some(1.5), None)) {
+                    if gaps >= 2 || line.points().len() > 5 {
+                        if !line.evaluate_max_distance(Some(1.5), None) {
                             return false;
                         }
-                        if (!self.updateDirectionFromOrigin(
+                        if !self.updateDirectionFromOrigin(
                             &(self.p - line.project(&self.p) + *line.points().first().unwrap()),
-                        )) {
+                        ) {
                             return false;
                         }
                         // check if the first half of the top-line trace is complete.
                         // the minimum code size is 10x10 -> every code has at least 4 gaps
                         //TODO: maybe switch to termination condition based on bottom line length to get a better
                         // finishLine for the right line trace
-                        if (!finishLine.isValid() && gaps == 4) {
+                        if !finishLine.isValid() && gaps == 4 {
                             // undo the last insert, it will be inserted again after the restart
                             line.pop_back();
                             gaps -= 1;
                             return true;
                         }
                     }
-                } else if (gaps == 0 && line.points().len() >= (2 * maxStepSize) as usize) {
+                } else if gaps == 0 && line.points().len() >= (2 * maxStepSize) as usize {
                     return false;
                 } // no point in following a line that has no gaps
             }
 
-            if (finishLine.isValid()) {
+            if finishLine.isValid() {
                 maxStepSize =
                     std::cmp::min(maxStepSize, (finishLine.signedDistance(&self.p)) as i32);
             }
 
             let stepResult = self.traceStep(dEdge, maxStepSize, line.isValid());
 
-            if (stepResult != StepResult::FOUND)
+            if stepResult != StepResult::FOUND
             // we are successful iff we found an open end across a valid finishLine
             {
                 return stepResult == StepResult::OPEN_END
@@ -1081,7 +1079,7 @@ impl<'a> EdgeTracer<'_> {
         } //while (true);
     }
 
-    pub fn traceCorner(&mut self, dir: &mut RXingResultPoint, corner: &RXingResultPoint) -> bool {
+    pub fn traceCorner(&mut self, dir: &mut RXingResultPoint, _corner: &RXingResultPoint) -> bool {
         self.step(None);
         // log(p);
         let corner = self.p;
@@ -1090,7 +1088,7 @@ impl<'a> EdgeTracer<'_> {
         // #ifdef PRINT_DEBUG
         // 		printf("turn: %.0f x %.0f -> %.2f, %.2f\n", p.x, p.y, d.x, d.y);
         // #endif
-        return self.isIn(&corner) && self.isIn(&self.p);
+        self.isIn(&corner) && self.isIn(&self.p)
     }
 }
 
@@ -1098,11 +1096,11 @@ fn Scan(
     startTracer: &mut EdgeTracer,
     lines: &mut [DMRegressionLine; 4],
 ) -> Result<DatamatrixDetectorResult, Exceptions> {
-    while (startTracer.step(None)) {
+    while startTracer.step(None) {
         //log(startTracer.p);
 
         // continue until we cross from black into white
-        if (!startTracer.edgeAtBack().isWhite()) {
+        if !startTracer.edgeAtBack().isWhite() {
             continue;
         }
 
@@ -1146,7 +1144,7 @@ fn Scan(
         t.state = 1;
         t.setDirection(&tlTracer.right());
         CHECK!(t.traceLine(&t.left(), lineL));
-        if (!lineL.isValid()) {
+        if !lineL.isValid() {
             t.updateDirectionFromOrigin(&tl);
         }
         let up = t.back();
@@ -1155,7 +1153,7 @@ fn Scan(
         // follow bottom leg right
         t.state = 2;
         CHECK!(t.traceLine(&t.left(), lineB));
-        if (!lineB.isValid()) {
+        if !lineB.isValid() {
             t.updateDirectionFromOrigin(&bl);
         }
         let right = *t.front();
@@ -1242,7 +1240,7 @@ fn Scan(
         // square. we use the dimension that is closer to an integral value. all valid rectangular symbols differ in
         // their dimension by at least 10 (here 5, see doubling below). Note: this is currently not required for the
         // black-box tests to complete.
-        if ((dimT - dimR).abs() < 5) {
+        if (dimT - dimR).abs() < 5 {
             dimR = if fracR < fracT { dimR } else { dimT };
             dimT = dimR;
         }
@@ -1251,7 +1249,7 @@ fn Scan(
         dimT *= 2;
         dimR *= 2;
 
-        CHECK!(dimT >= 10 && dimT <= 144 && dimR >= 8 && dimR <= 144);
+        CHECK!((10..=144).contains(&dimT) && (8..=144).contains(&dimR));
 
         let movedTowardsBy = |a: &RXingResultPoint,
                               b1: &RXingResultPoint,
@@ -1302,7 +1300,7 @@ fn Scan(
 
         // let res = SampleGrid(*startTracer.img, dimT, dimR, PerspectiveTransform(Rectangle(dimT, dimR, 0), sourcePoints));
 
-        CHECK!(!res.is_ok());
+        CHECK!(res.is_err());
 
         return Ok(DatamatrixDetectorResult::new(
             res.unwrap(),
@@ -1330,7 +1328,7 @@ pub fn detect(
 
     // a history log to remember where the tracing already passed by to prevent a later trace from doing the same work twice
     let mut history = None;
-    if (tryHarder) {
+    if tryHarder {
         history = Some(Rc::new(RefCell::new(ByteMatrix::new(
             image.getWidth(),
             image.getHeight(),
@@ -1373,7 +1371,7 @@ pub fn detect(
             let mut tracer = EdgeTracer::new(image, startPos, dir);
             tracer.p +=
                 i / 2 * minSymbolSize as i32 * (if (i & 1) != 0 { -1 } else { 1 }) * tracer.right();
-            if (tryHarder) {
+            if tryHarder {
                 // tracer.history = history.as_mut();
                 tracer.history = history.clone();
                 // if let Some(history) = &history {
@@ -1382,7 +1380,7 @@ pub fn detect(
                 // tracer.history = &history;
             }
 
-            if (!tracer.isInSelf()) {
+            if !tracer.isInSelf() {
                 break;
             }
 
@@ -1401,13 +1399,13 @@ pub fn detect(
             // 	{return res;}
             // #endif
 
-            if (!tryHarder) {
+            if !tryHarder {
                 break;
             } // only test center lines
             i += 1;
         }
 
-        if (!tryRotate) {
+        if !tryRotate {
             break;
         } // only test left direction
     }
