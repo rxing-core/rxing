@@ -34,11 +34,12 @@ pub fn intersect(
     Ok(RXingResultPoint { x, y })
 }
 
+#[allow(dead_code)]
 #[inline(always)]
 pub fn opposite(dir: Direction) -> Direction {
-    if dir == Direction::LEFT {
-        Direction::RIGHT
+    if dir == Direction::Left {
+        Direction::Right
     } else {
-        Direction::LEFT
+        Direction::Left
     }
 }

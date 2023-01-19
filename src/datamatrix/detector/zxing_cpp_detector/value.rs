@@ -1,26 +1,26 @@
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Value {
-    INVALID = -1,
-    WHITE = 0,
-    BLACK = 1,
+    Invalid = -1,
+    White = 0,
+    Black = 1,
 }
 impl Value {
     pub fn isBlack(&self) -> bool {
-        self == &Value::BLACK
+        self == &Value::Black
     }
     pub fn isWhite(&self) -> bool {
-        self == &Value::WHITE
+        self == &Value::White
     }
     pub fn isValid(&self) -> bool {
-        self != &Value::INVALID
+        self != &Value::Invalid
     }
 }
 
 impl From<bool> for Value {
     fn from(value: bool) -> Self {
         match value {
-            true => Value::BLACK,
-            false => Value::WHITE,
+            true => Value::Black,
+            false => Value::White,
         }
     }
 }
@@ -28,9 +28,9 @@ impl From<bool> for Value {
 impl From<Value> for bool {
     fn from(value: Value) -> Self {
         match value {
-            Value::INVALID => false,
-            Value::WHITE => true,
-            Value::BLACK => true,
+            Value::Invalid => false,
+            Value::White => true,
+            Value::Black => true,
         }
     }
 }

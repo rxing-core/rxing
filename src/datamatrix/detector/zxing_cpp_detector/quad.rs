@@ -9,6 +9,7 @@ impl Quadrilateral {
     // public:
     // using Point = T;
 
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Self([RXingResultPoint { x: 0.0, y: 0.0 }; 4])
     }
@@ -38,6 +39,7 @@ impl Quadrilateral {
         &self.0[3]
     } //const noexcept { return at(3); }
 
+    #[allow(dead_code)]
     pub fn orientation(&self) -> f64 {
         let centerLine =
             (*self.topRight() + *self.bottomRight()) - (*self.topLeft() + *self.bottomLeft());
@@ -52,6 +54,7 @@ impl Quadrilateral {
     }
 }
 
+#[allow(dead_code)]
 pub fn Rectangle(width: i32, height: i32, margin: Option<i32>) -> Quadrilateral {
     let margin = if let Some(m) = margin { m } else { 0 };
 
@@ -75,6 +78,7 @@ pub fn Rectangle(width: i32, height: i32, margin: Option<i32>) -> Quadrilateral 
     ])
 }
 
+#[allow(dead_code)]
 pub fn CenteredSquare(size: i32) -> Quadrilateral {
     Scale(
         &Quadrilateral([
@@ -87,6 +91,7 @@ pub fn CenteredSquare(size: i32) -> Quadrilateral {
     )
 }
 
+#[allow(dead_code)]
 pub fn Line(y: i32, xStart: i32, xStop: i32) -> Quadrilateral {
     Quadrilateral([
         RXingResultPoint {
@@ -108,6 +113,7 @@ pub fn Line(y: i32, xStart: i32, xStop: i32) -> Quadrilateral {
     ])
 }
 
+#[allow(dead_code)]
 pub fn IsConvex(poly: &Quadrilateral) -> bool {
     let N = poly.0.len();
     let mut sign = false;
@@ -145,6 +151,7 @@ pub fn IsConvex(poly: &Quadrilateral) -> bool {
     M / m < 4.0
 }
 
+#[allow(dead_code)]
 pub fn Scale(q: &Quadrilateral, factor: i32) -> Quadrilateral {
     Quadrilateral([
         q.0[0] * factor as f32,
@@ -154,6 +161,7 @@ pub fn Scale(q: &Quadrilateral, factor: i32) -> Quadrilateral {
     ])
 }
 
+#[allow(dead_code)]
 pub fn Center(q: &Quadrilateral) -> RXingResultPoint {
     let reduced: RXingResultPoint = q.0.iter().sum();
     let size = q.0.len() as f32;
@@ -161,6 +169,7 @@ pub fn Center(q: &Quadrilateral) -> RXingResultPoint {
     // return Reduce(q) / Size(q);
 }
 
+#[allow(dead_code)]
 pub fn RotatedCorners(q: &Quadrilateral, n: Option<i32>, mirror: Option<bool>) -> Quadrilateral {
     let n = if let Some(n) = n { n } else { 1 };
 
@@ -176,6 +185,7 @@ pub fn RotatedCorners(q: &Quadrilateral, n: Option<i32>, mirror: Option<bool>) -
     res
 }
 
+#[allow(dead_code)]
 pub fn IsInside(p: &RXingResultPoint, q: &Quadrilateral) -> bool {
     // Test if p is on the same side (right or left) of all polygon segments
     let mut pos = 0;
@@ -194,6 +204,7 @@ pub fn IsInside(p: &RXingResultPoint, q: &Quadrilateral) -> bool {
     pos == 0 || neg == 0
 }
 
+#[allow(dead_code)]
 pub fn HaveIntersectingBoundingBoxes(a: &Quadrilateral, b: &Quadrilateral) -> bool {
     // TODO: this is only a quick and dirty approximation that works for the trivial standard cases
     let x = b.topRight().x < a.topLeft().x || b.topLeft().x > a.topRight().x;

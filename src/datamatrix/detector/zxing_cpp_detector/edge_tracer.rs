@@ -30,12 +30,12 @@ pub struct EdgeTracer<'a> {
 //     }
 // }
 
-impl<'a> BitMatrixCursor for EdgeTracer<'_> {
+impl BitMatrixCursor for EdgeTracer<'_> {
     fn testAt(&self, p: &RXingResultPoint) -> Value {
         if self.img.isIn(p, 0) {
             Value::from(self.img.get_point(p))
         } else {
-            Value::INVALID
+            Value::Invalid
         }
     }
 
@@ -101,7 +101,7 @@ impl<'a> BitMatrixCursor for EdgeTracer<'_> {
         if self.testAt(&(self.p + *d)) != v {
             v
         } else {
-            Value::INVALID
+            Value::Invalid
         }
     }
 
@@ -209,7 +209,7 @@ impl<'a> EdgeTracer<'_> {
                                     if history.borrow().get(self.p.x as u32, self.p.y as u32)
                                         == self.state as u8
                                     {
-                                        return Ok(StepResult::CLOSED_END);
+                                        return Ok(StepResult::ClosedEnd);
                                     }
                                     history.borrow_mut().set(
                                         self.p.x as u32,
@@ -219,7 +219,7 @@ impl<'a> EdgeTracer<'_> {
                                 }
                             }
 
-                            return Ok(StepResult::FOUND);
+                            return Ok(StepResult::Found);
                         }
                         pEdge = pEdge - dEdge;
                         if self.blackAt(&(pEdge - self.d)) {
@@ -232,11 +232,11 @@ impl<'a> EdgeTracer<'_> {
                         }
                     }
                     // no valid b/w border found within reasonable range
-                    return Ok(StepResult::CLOSED_END);
+                    return Ok(StepResult::ClosedEnd);
                 }
             }
         }
-        Ok(StepResult::OPEN_END)
+        Ok(StepResult::OpenEnd)
     }
 
     pub fn updateDirectionFromOrigin(&mut self, origin: &RXingResultPoint) -> bool {
@@ -278,8 +278,8 @@ impl<'a> EdgeTracer<'_> {
                 }
             }
             let stepResult = self.traceStep(dEdge, 1, line.isValid())?;
-            if stepResult != StepResult::FOUND {
-                return Ok(stepResult == StepResult::OPEN_END && line.points().len() > 1);
+            if stepResult != StepResult::Found {
+                return Ok(stepResult == StepResult::OpenEnd && line.points().len() > 1);
             }
         } // while (true);
     }
@@ -386,10 +386,10 @@ impl<'a> EdgeTracer<'_> {
 
             let stepResult = self.traceStep(dEdge, maxStepSize, line.isValid())?;
 
-            if stepResult != StepResult::FOUND
+            if stepResult != StepResult::Found
             // we are successful iff we found an open end across a valid finishLine
             {
-                return Ok(stepResult == StepResult::OPEN_END
+                return Ok(stepResult == StepResult::OpenEnd
                     && finishLine.isValid()
                     && (finishLine.signedDistance(&self.p)) as i32 <= maxStepSize + 1);
             }
