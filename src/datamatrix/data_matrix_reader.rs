@@ -22,7 +22,10 @@ use crate::{
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
-use super::{decoder::Decoder, detector::Detector};
+use super::{
+    decoder::Decoder,
+    detector::{zxing_cpp_detector, Detector},
+};
 
 use once_cell::sync::Lazy;
 
@@ -69,13 +72,10 @@ impl Reader for DataMatrixReader {
         image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
-        let try_harder = if let Some(DecodeHintValue::TryHarder(true)) =
-            hints.get(&DecodeHintType::TRY_HARDER)
-        {
-            true
-        } else {
-            false
-        };
+        let try_harder = matches!(
+            hints.get(&DecodeHintType::TRY_HARDER),
+            Some(DecodeHintValue::TryHarder(true))
+        );
         let decoderRXingResult;
         let mut points = Vec::new();
         if hints.contains_key(&DecodeHintType::PURE_BARCODE) {
@@ -85,15 +85,25 @@ impl Reader for DataMatrixReader {
         } else {
             //Result<DatamatrixDetectorResult, Exceptions>
             decoderRXingResult = if let Ok(fnd) = || -> Result<DecoderRXingResult, Exceptions> {
-                let detectorRXingResult = Detector::new(image.getBlackMatrix())?.detect()?;
+                let detectorRXingResult =
+                    zxing_cpp_detector::detect(image.getBlackMatrix(), try_harder, true)?;
                 let decoded = DECODER.decode(detectorRXingResult.getBits())?;
                 points = detectorRXingResult.getPoints().to_vec();
                 Ok(decoded)
             }() {
                 fnd
             } else if try_harder {
-                let bits = self.extractPureBits(image.getBlackMatrix())?;
-                DECODER.decode(&bits)?
+                if let Ok(fnd) = || -> Result<DecoderRXingResult, Exceptions> {
+                    let detectorRXingResult = Detector::new(image.getBlackMatrix())?.detect()?;
+                    let decoded = DECODER.decode(detectorRXingResult.getBits())?;
+                    points = detectorRXingResult.getPoints().to_vec();
+                    Ok(decoded)
+                }() {
+                    fnd
+                } else {
+                    let bits = self.extractPureBits(image.getBlackMatrix())?;
+                    DECODER.decode(&bits)?
+                }
             } else {
                 return Err(Exceptions::NotFoundException(None));
             };
