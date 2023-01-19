@@ -51,6 +51,7 @@ fn main() {
 ```
 
 ## Latest Release Notes
+* *v0.2.19* -> The datamatrix detector for the c++ version of zxing [zxing-cpp](https://github.com/zxing-cpp/zxing-cpp) has been ported. This features a dramatically different method of detecting datamatrix symbols. If you want to fallback to the original version, include the decode hint TRY_HARDER.
 * *v0.2.15* -> Support for reading and writing svg files through the feature flags `svg_read` and `svg_write`.
 
     These flags are off by default.
@@ -73,3 +74,6 @@ fn main() {
 
 ## ZXing Track
 Currently tracking zxing 3.5.1
+
+## Copyright notes
+The original license remains with the zxing developers. The license for the ported components of the c++ port remain with the developers of that port, where applicable.
