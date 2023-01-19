@@ -72,7 +72,10 @@ impl Reader for DataMatrixReader {
         image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult, crate::Exceptions> {
-        let try_harder = matches!(hints.get(&DecodeHintType::TRY_HARDER), Some(DecodeHintValue::TryHarder(true)));
+        let try_harder = matches!(
+            hints.get(&DecodeHintType::TRY_HARDER),
+            Some(DecodeHintValue::TryHarder(true))
+        );
         let decoderRXingResult;
         let mut points = Vec::new();
         if hints.contains_key(&DecodeHintType::PURE_BARCODE) {

@@ -223,7 +223,7 @@ impl RegressionLine for DMRegressionLine {
 
 impl DMRegressionLine {
     // template <typename Container, typename Filter>
-    fn average< T>(c: & [f64], f: T) -> f64
+    fn average<T>(c: &[f64], f: T) -> f64
     where
         T: Fn(f64) -> bool,
     {
