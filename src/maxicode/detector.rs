@@ -14,6 +14,23 @@ use super::MaxiCodeReader;
 const PATTERN_VARIANCE_ALLOWANCE: f32 = 1.3;
 const ROW_SCAN_SKIP: u32 = 5;
 
+fn min_float<T: PartialOrd>(a: T, b: T) -> T {
+    if a > b {
+        b
+    } else {
+        a
+    }
+}
+
+fn max_float<T: PartialOrd>(a: T, b: T) -> T {
+    if a < b {
+        b
+    } else {
+        a
+    }
+}
+
+
 #[derive(Debug)]
 pub struct MaxicodeDetectionResult {
     bits: BitMatrix,
@@ -31,16 +48,23 @@ impl DetectorRXingResult for MaxicodeDetectionResult {
 }
 
 struct Circle {
-    center: (u32,u32),
+    center: (u32, u32),
     radius: u32,
-    horizontal_buckets: [u32;11],
+    horizontal_buckets: [u32; 11],
 }
 
 impl Circle {
     pub fn calculate_circle_variance(&self) -> f32 {
-        let total_circle_pixels = self.horizontal_buckets.iter().sum::<u32>() as f32;
-        let expected_module_size = total_circle_pixels / self.horizontal_buckets.len() as f32;
-        let total_variance = self.horizontal_buckets.iter().fold(0.0, |acc, module_size| acc + (expected_module_size - *module_size as f32).abs());
+        // let total_circle_pixels = [self.horizontal_buckets[..6],self.horizontal_buckets[7..]].concat().iter().sum::<u32>() as f32;
+        // let total_circle_pixels = self.horizontal_buckets.iter().sum::<u32>() as f32;
+        let total_circle_pixels = (self.horizontal_buckets[0..6].iter().sum::<u32>() + self.horizontal_buckets[7..].iter().sum::<u32>()) as f32;
+        let expected_module_size = total_circle_pixels / (self.horizontal_buckets.len()-1) as f32;
+        let total_variance = self
+            .horizontal_buckets
+            .iter()
+            .fold(0.0, |acc, module_size| {
+                acc + (expected_module_size - *module_size as f32).abs()
+            });
 
         total_variance
     }
@@ -52,7 +76,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         return Err(Exceptions::NotFoundException(None));
     };
 
-    circles.sort_by(|a, b| compare_circle(a,b));
+    circles.sort_by(|a, b| compare_circle(a, b));
 
     for circle in &circles {
         // build a box around this circle, trying to find the barcode
@@ -65,7 +89,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         };
         let grid_sampler = DefaultGridSampler::default();
 
-        let [ tl, bl, tr, br ] = &symbol_box;
+        let [tl, bl, tr, br] = &symbol_box;
 
         let target_width = (tr.0 - tl.0).round() as u32;
         let target_height = (br.1 - tr.1).round() as u32;
@@ -75,21 +99,21 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
             target_width,
             target_height,
             0.0,
-            0.0, 
-            target_width as f32 ,
-            0.0, 
-            target_width as f32,
-            target_height as f32, 
             0.0,
-            target_height as f32, 
+            target_width as f32 ,
+            0.0,
+            target_width as f32,
+            target_height as f32,
+            0.0,
+            target_height as f32,
             tl.0,
-            tl.1, 
+            tl.1,
             tr.0,
-            tr.1, 
+            tr.1,
             br.0,
-            br.1, 
+            br.1,
             bl.0,
-            bl.1, 
+            bl.1,
         ) else {
             if try_harder {
                 continue;
@@ -140,7 +164,7 @@ fn find_concentric_circles(image: &BitMatrix) -> Option<Vec<Circle>> {
 
                     // add it
                     bullseyes.push(Circle {
-                        center: (center,row),
+                        center: (center, row),
                         radius,
                         horizontal_buckets: buckets,
                     });
@@ -198,7 +222,7 @@ fn find_next_bullseye_horizontal(
     image: &BitMatrix,
     row: u32,
     start_column: u32,
-) -> Option<(u32, u32, [u32;11])> {
+) -> Option<(u32, u32, [u32; 11])> {
     let mut buckets = [0_u32; 11];
 
     let mut column = start_column;
@@ -298,73 +322,72 @@ fn validate_bullseye_widths(buckets: &[u32; 11]) -> bool {
     let total_width = buckets.iter().sum::<u32>() as f32;
     let estimated_module_size = total_width / buckets.len() as f32;
 
-    let max_variance = estimated_module_size / 3.0;
+    let max_variance = estimated_module_size / 2.5;
 
     let b1 = (estimated_module_size - buckets[0] as f32).abs();
     let b2 = (estimated_module_size - buckets[1] as f32).abs();
     let b3 = (estimated_module_size - buckets[2] as f32).abs();
     let b4 = (estimated_module_size - buckets[3] as f32).abs();
     let b5 = (estimated_module_size - buckets[4] as f32).abs();
-    let b6 = (estimated_module_size - buckets[5] as f32).abs();
+    // let b6 = (estimated_module_size - buckets[5] as f32).abs();
     let b7 = (estimated_module_size - buckets[6] as f32).abs();
     let b8 = (estimated_module_size - buckets[7] as f32).abs();
     let b9 = (estimated_module_size - buckets[8] as f32).abs();
     let b10 = (estimated_module_size - buckets[9] as f32).abs();
     let b11 = (estimated_module_size - buckets[10] as f32).abs();
 
-    (
-        b1 < max_variance &&
-        b2 < max_variance &&
-        b3 < max_variance &&
-        b4 < max_variance &&
-        b5 < max_variance &&
-        b6  < max_variance * 2.0 &&
-        b7 < max_variance &&
-        b8 < max_variance &&
-        b9 < max_variance &&
-        b10 < max_variance &&
-        b11 < max_variance 
-    )
+    (b1 < max_variance
+        && b2 < max_variance
+        && b3 < max_variance
+        && b4 < max_variance
+        && b5 < max_variance
+        // && b6 < max_variance * 2.0
+        && b7 < max_variance
+        && b8 < max_variance
+        && b9 < max_variance
+        && b10 < max_variance
+        && b11 < max_variance)
 }
 
 /// returns the (center , radius) of the possible bullseye
-fn get_bullseye_metadata(buckets: &[u32; 11], column: u32) -> (u32, u32, [u32;11]) {
-    let radius = buckets.iter().sum::<u32>() / 2; //buckets.iter().skip(6).sum::<u32>() + buckets[5] / 2;
+fn get_bullseye_metadata(buckets: &[u32; 11], column: u32) -> (u32, u32, [u32; 11]) {
+    let radius = ((buckets.iter().sum::<u32>() as f32) / 2.0).round() as u32; //buckets.iter().skip(6).sum::<u32>() + buckets[5] / 2;
     let center = column - radius; //buckets.iter().take(5).sum::<u32>() - (buckets[5] / 2);
     (center, radius, *buckets)
 }
 
 fn box_symbol(image: &BitMatrix, circle: &Circle) -> Result<[(f32, f32); 4], Exceptions> {
-    let (barcode_width, barcode_height) = guess_barcode_size(circle);
-let results = if let Ok(res) = || -> Result<[RXingResultPoint;4], Exceptions> {
-    let wrd = WhiteRectangleDetector::new(
-        image,
-        barcode_width as i32,
-        circle.center .0 as i32,
-        circle.center .1 as i32,
-    )?;
-     wrd.detect()}(){
+    let (symbol_width, symbol_height) = guess_barcode_size(circle);
+    let results = if let Ok(res) = || -> Result<[RXingResultPoint; 4], Exceptions> {
+        let wrd = WhiteRectangleDetector::new(
+            image,
+            symbol_height as i32,
+            circle.center.0 as i32,
+            circle.center.1 as i32,
+        )?;
+        wrd.detect()
+    }() {
         res
-     }else {
+    } else {
         // let center = circle.center;
         // let left_boundary = cmp::max(center.0 as i32 - (barcode_width as f32/ 2.0).ceil() as i32, 0) as u32;
         // let right_boundary = center.0 + (barcode_width as f32 / 2.0).ceil() as u32;
         // let top_boundary = center.1 + (barcode_height as f32 / 2.0).ceil() as u32;
         // let bottom_boundary = cmp::max(center.1 as i32 - (barcode_height as f32 / 2.0).ceil() as i32, 0) as u32;
         let left_boundary = 0;
-        let right_boundary = barcode_width;
-        let top_boundary = barcode_height;
+        let right_boundary = symbol_width.clamp(30, image.getWidth());
+        let top_boundary = symbol_height.clamp(33, image.getHeight());
         let bottom_boundary = 0;
 
         [
             RXingResultPoint::new(left_boundary as f32, bottom_boundary as f32),
             RXingResultPoint::new(left_boundary as f32, top_boundary as f32),
-        RXingResultPoint::new(right_boundary as f32, bottom_boundary as f32),
-        RXingResultPoint::new(right_boundary as f32, top_boundary as f32),
+            RXingResultPoint::new(right_boundary as f32, bottom_boundary as f32),
+            RXingResultPoint::new(right_boundary as f32, top_boundary as f32),
         ]
-     };
+    };
 
-    let adjusted_results = adjust_wrt_detection_box(results);
+    let adjusted_results = adjust_wrt_detection_box(results, symbol_width, symbol_height);
 
     Ok([
         (adjusted_results[0].x, adjusted_results[0].y),
@@ -375,12 +398,27 @@ let results = if let Ok(res) = || -> Result<[RXingResultPoint;4], Exceptions> {
 }
 
 // adjusts the bounding box a bit, order is [ bl, tl, br, tr ]
-fn adjust_wrt_detection_box( input: [RXingResultPoint;4]) -> [RXingResultPoint;4]{
+fn adjust_wrt_detection_box(input: [RXingResultPoint; 4], symbol_width: u32, symbol_height: u32) -> [RXingResultPoint; 4] {
     let [bl, tl, br, tr] = input;
-    let selected_top = max_float(tl.y, tr.y);
-    let selected_bottom = min_float(bl.y, br.y);
-    let selected_left = min_float(tl.x, bl.x);
-    let selected_right = max_float(tr.x, br.x);
+    let mut selected_top = max_float(tl.y, tr.y);
+    let mut selected_bottom = min_float(bl.y, br.y);
+    let mut selected_left = min_float(tl.x, bl.x);
+    let mut selected_right = max_float(tr.x, br.x);
+
+    // let symbol_width = symbol_width as f32;
+    // let symbol_height = symbol_height as f32;
+
+    // if (selected_top - selected_bottom).abs() < symbol_height {
+    //     let diff = symbol_height - ((selected_top - selected_bottom).abs());
+    //     selected_top += diff;
+    //     selected_bottom -= diff;
+    // }
+
+    // if (selected_right - selected_left).abs() < symbol_width {
+    //     let diff = symbol_width - ((selected_right - selected_left).abs());
+    //     selected_right += diff;
+    //     selected_left -= diff;
+    // }
 
     [
         RXingResultPoint::new(selected_left, selected_bottom),
@@ -390,51 +428,48 @@ fn adjust_wrt_detection_box( input: [RXingResultPoint;4]) -> [RXingResultPoint;4
     ]
 }
 
-/// calculate a likely size for the barcode.
-/// we know that maxicode symbols are square,
-/// and that the central bullseye is roughly
-/// 1/3 the width of the image.
-/// returns (width, height)
-fn guess_barcode_size(circle: &Circle) -> (u32,u32) {
-    let module_size = circle.horizontal_buckets.iter().sum::<u32>() as f32 / circle.horizontal_buckets.len() as f32;
-    
-    let height = (module_size * 1.1 * MaxiCodeReader::MATRIX_HEIGHT as f32).round() + (module_size /2.0);
-    let width = height * 1.03;
+// /// calculate a likely size for the barcode.
+// /// returns (width, height)
+// fn guess_barcode_size(circle: &Circle) -> (u32, u32) {
+//     let circle_area = std::f64::consts::PI * circle.radius.pow(2) as f64;
+//     let ideal_symbol_area = (circle_area / 0.07) / 0.97;
+//     let ideal_symbol_side = ideal_symbol_area.sqrt();
+//     (
+//         ideal_symbol_side .round() as u32,
+//         (ideal_symbol_side * 0.97).round() as u32,
+//     )
+// }
 
-(width as u32, height as u32)
-
-    // ((module_size * 1.13 * MaxiCodeReader::MATRIX_WIDTH as f32).round() as u32 + (module_size /2.0) as u32,
-
-    // (module_size * 1.1 * MaxiCodeReader::MATRIX_HEIGHT as f32).round() as u32 + (module_size /2.0) as u32
-// )
-    // ((radius as f32 / 5.0) * 33.0).round() as u32
+fn guess_barcode_size(circle: &Circle) -> (u32, u32) {
+    let diameter = circle.horizontal_buckets.iter().sum::<u32>() as f32;
+    (
+        (diameter / 0.29) as u32,
+        (diameter / 0.29) as u32
+    )
 }
 
+/// compare two circles to determine which has a better variance.
 fn compare_circle(a: &Circle, b: &Circle) -> std::cmp::Ordering {
     let a_var = a.calculate_circle_variance();
     let b_var = b.calculate_circle_variance();
 
     if a_var < b_var {
         std::cmp::Ordering::Greater
-    }else if a_var > b_var {
+    } else if a_var > b_var {
         std::cmp::Ordering::Less
-    }else {
+    } else {
         std::cmp::Ordering::Equal
     }
 }
 
-pub fn read_bits(image:&BitMatrix) -> Result<BitMatrix,Exceptions> {
+/// Read appropriate bits from a bitmatrix for the maxicode decoder
+pub fn read_bits(image: &BitMatrix) -> Result<BitMatrix, Exceptions> {
     let enclosingRectangle = image.getEnclosingRectangle().unwrap();
-    
+
     let left = enclosingRectangle[0];
     let top = enclosingRectangle[1];
     let width = enclosingRectangle[2];
     let height = enclosingRectangle[3];
-
-    // let top = image.getHeight();
-    // let left = 0;
-    // let width = image.getWidth();
-    // let height = image.getHeight(); 
 
     // Now just read off the bits
     let mut bits = BitMatrix::new(MaxiCodeReader::MATRIX_WIDTH, MaxiCodeReader::MATRIX_HEIGHT)?;
@@ -453,83 +488,100 @@ pub fn read_bits(image:&BitMatrix) -> Result<BitMatrix,Exceptions> {
             }
         }
     }
-    
+
     Ok(bits)
 }
 
 #[cfg(test)]
 mod detector_test {
-    use std::io::{Write, Read};
+    use std::io::{Read, Write};
 
-    use crate::{common::{HybridBinarizer, DetectorRXingResult}, BufferedImageLuminanceSource, Binarizer, maxicode::detector::read_bits};
+    use crate::{
+        common::{DetectorRXingResult, HybridBinarizer},
+        maxicode::detector::read_bits,
+        Binarizer, BufferedImageLuminanceSource,
+    };
 
-#[test]
-fn simple() {
-    finder_test("test_resources/blackbox/maxicode-1/1.png", "test_resources/blackbox/maxicode-1/1.txt")
-}
+    #[test]
+    fn mode_1() {
+        finder_test(
+            "test_resources/blackbox/maxicode-1/1.png",
+            "test_resources/blackbox/maxicode-1/1.txt",
+        )
+    }
 
-#[test]
-fn mode_2() {
-    finder_test("test_resources/blackbox/maxicode-1/MODE2.png", "test_resources/blackbox/maxicode-1/MODE2.txt")
+    #[test]
+    fn mode_2() {
+        finder_test(
+            "test_resources/blackbox/maxicode-1/MODE2.png",
+            "test_resources/blackbox/maxicode-1/MODE2.txt",
+        )
+    }
 
-    
-    
-}
+    #[test]
+    fn mode3() {
+        finder_test(
+            "test_resources/blackbox/maxicode-1/MODE3.png",
+            "test_resources/blackbox/maxicode-1/MODE3.txt",
+        )
+    }
 
-#[test]
-fn mode3() {
-    finder_test("test_resources/blackbox/maxicode-1/MODE3.png", "test_resources/blackbox/maxicode-1/MODE3.txt")
-}
+    #[test]
+    fn mixed_sets() {
+        finder_test(
+            "test_resources/blackbox/maxicode-1/mode4-mixed-sets.png",
+            "test_resources/blackbox/maxicode-1/mode4-mixed-sets.txt",
+        )
+    }
 
-#[test]
-fn mixed_sets() {
-    finder_test("test_resources/blackbox/maxicode-1/mode4-mixed-sets.png", "test_resources/blackbox/maxicode-1/mode4-mixed-sets.txt")
-}
+    #[test]
+    fn mode4() {
+        finder_test(
+            "test_resources/blackbox/maxicode-1/MODE4.png",
+            "test_resources/blackbox/maxicode-1/MODE4.txt",
+        )
+    }
 
-#[test]
-fn mode4() {
-    finder_test("test_resources/blackbox/maxicode-1/MODE4.png", "test_resources/blackbox/maxicode-1/MODE4.txt")
-}
+    #[test]
+    fn mode5() {
+        finder_test(
+            "test_resources/blackbox/maxicode-1/MODE5.png",
+            "test_resources/blackbox/maxicode-1/MODE5.txt",
+        )
+    }
 
-#[test]
-fn mode5() {
-    finder_test("test_resources/blackbox/maxicode-1/MODE5.png", "test_resources/blackbox/maxicode-1/MODE5.txt")
-}
+    #[test]
+    fn mode6() {
+        finder_test(
+            "test_resources/blackbox/maxicode-1/MODE6.png",
+            "test_resources/blackbox/maxicode-1/MODE6.txt",
+        )
+    }
 
-#[test]
-fn mode6() {
-    finder_test("test_resources/blackbox/maxicode-1/MODE6.png", "test_resources/blackbox/maxicode-1/MODE6.txt")
-}
+    fn finder_test(image: &str, data: &str) {
+        let filename = image;
+        let img = image::open(filename).unwrap();
+        let lum_src = BufferedImageLuminanceSource::new(img);
+        let binarizer = HybridBinarizer::new(Box::new(lum_src));
+        let bitmatrix = binarizer.getBlackMatrix().unwrap();
 
-fn finder_test(image: &str, data: &str) {
-    let filename = image;
-    let img = image::open(filename).unwrap();
-    let lum_src = BufferedImageLuminanceSource::new(img);
-    let binarizer = HybridBinarizer::new(Box::new(lum_src));
-    let bitmatrix = binarizer.getBlackMatrix().unwrap();
+        std::fs::File::create("dbgfle").unwrap().write_all(bitmatrix.to_string().as_bytes()).expect("write");
+        let mut expected_result = String::new();
+        std::fs::File::open(data)
+            .unwrap()
+            .read_to_string(&mut expected_result)
+            .unwrap();
 
-    // std::fs::File::create("dbgfle").unwrap().write_all(bitmatrix.to_string().as_bytes()).expect("write");
-    let mut expected_result = String::new();
-     std::fs::File::open(data).unwrap().read_to_string(&mut expected_result).unwrap();
+        let detection = super::detect(&bitmatrix, true).unwrap();
 
-    let detection = super::detect(&bitmatrix, true).unwrap();
-    
-    // std::fs::File::create("dbgfle-transformed").unwrap().write_all(detection.getBits().to_string().as_bytes()).expect("write");
+        std::fs::File::create("dbgfle-transformed").unwrap().write_all(detection.getBits().to_string().as_bytes()).expect("write");
 
-    let bits = read_bits(detection.getBits()).expect("read bits");
+        let bits = read_bits(detection.getBits()).expect("read bits");
 
-    // std::fs::File::create("dbgfle-read").unwrap().write_all(bits.to_string().as_bytes()).expect("write");
+        // std::fs::File::create("dbgfle-read").unwrap().write_all(bits.to_string().as_bytes()).expect("write");
 
-    let result = crate::maxicode::decoder::decode(&bits).expect("must decode");
+        let result = crate::maxicode::decoder::decode(&bits).expect("must decode");
 
-    assert_eq!(expected_result, result.getText());
-}
-}
-
-fn min_float<T:PartialOrd>(a:T,b:T) -> T {
-    if a > b { b } else { a }
-}
-
-fn max_float<T:PartialOrd>(a:T,b:T) -> T {
-    if a < b { b } else { a }
+        assert_eq!(expected_result, result.getText());
+    }
 }
