@@ -69,7 +69,7 @@ impl Reader for MaxiCodeReader {
         );
 
         let decoderRXingResult = if try_harder {
-            let result = detector::detect(&image.getBlackMatrixMut(), try_harder)?;
+            let result = detector::detect(image.getBlackMatrixMut(), try_harder)?;
             maxicode_decoder::decode_with_hints(result.getBits(), hints)?
         } else {
             let bits = Self::extractPureBits(image.getBlackMatrix())?;

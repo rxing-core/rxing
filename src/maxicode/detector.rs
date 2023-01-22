@@ -54,7 +54,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         return Err(Exceptions::NotFoundException(None));
     };
 
-    circles.sort_by(|a, b| compare_circle(a, b));
+    circles.sort_by(compare_circle);
 
     for circle in &circles {
         // build a box around this circle, trying to find the barcode
@@ -100,7 +100,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
             }
         };
         return Ok(MaxicodeDetectionResult {
-            bits: bits,
+            bits,
             points: symbol_box
                 .iter()
                 .map(|p| RXingResultPoint { x: p.0, y: p.1 })
@@ -373,12 +373,12 @@ fn box_symbol(image: &BitMatrix, circle: &Circle) -> Result<[(f32, f32); 4], Exc
     let right_shift = ((symbol_width as f32 / 2.0) + (symbol_width as f32 * 0.03)) as i32;
 
     let left_boundary =
-        (circle.center.0 as i32 - left_shift as i32).clamp(0, image.getWidth() as i32 - 33) as u32;
+        (circle.center.0 as i32 - left_shift).clamp(0, image.getWidth() as i32 - 33) as u32;
     let right_boundary =
         (circle.center.0 as i32 + right_shift).clamp(33, image.getWidth() as i32) as u32; //symbol_width.clamp(30, image.getWidth());
     let top_boundary =
         (circle.center.1 as i32 + up_down_shift).clamp(33, image.getHeight() as i32) as u32; //symbol_height.clamp(33, image.getHeight());
-    let bottom_boundary = (circle.center.1 as i32 - up_down_shift as i32)
+    let bottom_boundary = (circle.center.1 as i32 - up_down_shift)
         .clamp(0, image.getHeight() as i32 - 30) as u32;
 
     let naive_box = [
@@ -540,7 +540,7 @@ mod detector_test {
             .read_to_string(&mut expected_result)
             .unwrap();
 
-        let detection = super::detect(&bitmatrix, true).unwrap();
+        let detection = super::detect(bitmatrix, true).unwrap();
 
         std::fs::File::create("dbgfle-transformed")
             .unwrap()
