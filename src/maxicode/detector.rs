@@ -30,7 +30,6 @@ fn max_float<T: PartialOrd>(a: T, b: T) -> T {
     }
 }
 
-
 #[derive(Debug)]
 pub struct MaxicodeDetectionResult {
     bits: BitMatrix,
@@ -57,8 +56,10 @@ impl Circle {
     pub fn calculate_circle_variance(&self) -> f32 {
         // let total_circle_pixels = [self.horizontal_buckets[..6],self.horizontal_buckets[7..]].concat().iter().sum::<u32>() as f32;
         // let total_circle_pixels = self.horizontal_buckets.iter().sum::<u32>() as f32;
-        let total_circle_pixels = (self.horizontal_buckets[0..6].iter().sum::<u32>() + self.horizontal_buckets[7..].iter().sum::<u32>()) as f32;
-        let expected_module_size = total_circle_pixels / (self.horizontal_buckets.len()-1) as f32;
+        let total_circle_pixels = (self.horizontal_buckets[0..6].iter().sum::<u32>()
+            + self.horizontal_buckets[7..].iter().sum::<u32>())
+            as f32;
+        let expected_module_size = total_circle_pixels / (self.horizontal_buckets.len() - 1) as f32;
         let total_variance = self
             .horizontal_buckets
             .iter()
@@ -358,74 +359,30 @@ fn get_bullseye_metadata(buckets: &[u32; 11], column: u32) -> (u32, u32, [u32; 1
 
 fn box_symbol(image: &BitMatrix, circle: &Circle) -> Result<[(f32, f32); 4], Exceptions> {
     let (symbol_width, symbol_height) = guess_barcode_size(circle);
-    let results = if let Ok(res) = || -> Result<[RXingResultPoint; 4], Exceptions> {
-        let wrd = WhiteRectangleDetector::new(
-            image,
-            symbol_height as i32,
-            circle.center.0 as i32,
-            circle.center.1 as i32,
-        )?;
-        wrd.detect()
-    }() {
-        res
-    } else {
-        // let center = circle.center;
-        // let left_boundary = cmp::max(center.0 as i32 - (barcode_width as f32/ 2.0).ceil() as i32, 0) as u32;
-        // let right_boundary = center.0 + (barcode_width as f32 / 2.0).ceil() as u32;
-        // let top_boundary = center.1 + (barcode_height as f32 / 2.0).ceil() as u32;
-        // let bottom_boundary = cmp::max(center.1 as i32 - (barcode_height as f32 / 2.0).ceil() as i32, 0) as u32;
-        let left_boundary = 0;
-        let right_boundary = symbol_width.clamp(30, image.getWidth());
-        let top_boundary = symbol_height.clamp(33, image.getHeight());
-        let bottom_boundary = 0;
 
-        [
-            RXingResultPoint::new(left_boundary as f32, bottom_boundary as f32),
-            RXingResultPoint::new(left_boundary as f32, top_boundary as f32),
-            RXingResultPoint::new(right_boundary as f32, bottom_boundary as f32),
-            RXingResultPoint::new(right_boundary as f32, top_boundary as f32),
-        ]
-    };
+    let up_down_shift = symbol_height as i32 / 2;
 
-    let adjusted_results = adjust_wrt_detection_box(results, symbol_width, symbol_height);
+    let left_shift = ((symbol_width as f32 / 2.0) - (symbol_width as f32 * 0.03)) as i32;
+    let right_shift = ((symbol_width as f32 / 2.0) + (symbol_width as f32 * 0.03)) as i32;
+
+    let left_boundary = (circle.center.0 as i32 - left_shift as i32).clamp(0, image.getWidth() as i32 - 33) as u32;
+    let right_boundary = (circle.center.0 as i32+ right_shift).clamp(33,image.getWidth() as i32) as u32; //symbol_width.clamp(30, image.getWidth());
+    let top_boundary = (circle.center.1 as i32 + up_down_shift).clamp(33, image.getHeight() as i32) as u32; //symbol_height.clamp(33, image.getHeight());
+    let bottom_boundary = (circle.center.1 as i32 - up_down_shift as i32).clamp(0, image.getHeight() as i32 - 30) as u32;
+
+    let naive_box = [
+        RXingResultPoint::new(left_boundary as f32, bottom_boundary as f32),
+        RXingResultPoint::new(left_boundary as f32, top_boundary as f32),
+        RXingResultPoint::new(right_boundary as f32, bottom_boundary as f32),
+        RXingResultPoint::new(right_boundary as f32, top_boundary as f32),
+    ];
 
     Ok([
-        (adjusted_results[0].x, adjusted_results[0].y),
-        (adjusted_results[1].x, adjusted_results[1].y),
-        (adjusted_results[2].x, adjusted_results[2].y),
-        (adjusted_results[3].x, adjusted_results[3].y),
+        (naive_box[0].x, naive_box[0].y),
+        (naive_box[1].x, naive_box[1].y),
+        (naive_box[2].x, naive_box[2].y),
+        (naive_box[3].x, naive_box[3].y),
     ])
-}
-
-// adjusts the bounding box a bit, order is [ bl, tl, br, tr ]
-fn adjust_wrt_detection_box(input: [RXingResultPoint; 4], symbol_width: u32, symbol_height: u32) -> [RXingResultPoint; 4] {
-    let [bl, tl, br, tr] = input;
-    let mut selected_top = max_float(tl.y, tr.y);
-    let mut selected_bottom = min_float(bl.y, br.y);
-    let mut selected_left = min_float(tl.x, bl.x);
-    let mut selected_right = max_float(tr.x, br.x);
-
-    // let symbol_width = symbol_width as f32;
-    // let symbol_height = symbol_height as f32;
-
-    // if (selected_top - selected_bottom).abs() < symbol_height {
-    //     let diff = symbol_height - ((selected_top - selected_bottom).abs());
-    //     selected_top += diff;
-    //     selected_bottom -= diff;
-    // }
-
-    // if (selected_right - selected_left).abs() < symbol_width {
-    //     let diff = symbol_width - ((selected_right - selected_left).abs());
-    //     selected_right += diff;
-    //     selected_left -= diff;
-    // }
-
-    [
-        RXingResultPoint::new(selected_left, selected_bottom),
-        RXingResultPoint::new(selected_left, selected_top),
-        RXingResultPoint::new(selected_right, selected_bottom),
-        RXingResultPoint::new(selected_right, selected_top),
-    ]
 }
 
 // /// calculate a likely size for the barcode.
@@ -442,10 +399,7 @@ fn adjust_wrt_detection_box(input: [RXingResultPoint; 4], symbol_width: u32, sym
 
 fn guess_barcode_size(circle: &Circle) -> (u32, u32) {
     let diameter = circle.horizontal_buckets.iter().sum::<u32>() as f32;
-    (
-        (diameter / 0.29) as u32,
-        (diameter / 0.29) as u32
-    )
+    ((diameter / 0.29) as u32, ((diameter / 0.29) * 0.97) as u32)
 }
 
 /// compare two circles to determine which has a better variance.
@@ -565,7 +519,10 @@ mod detector_test {
         let binarizer = HybridBinarizer::new(Box::new(lum_src));
         let bitmatrix = binarizer.getBlackMatrix().unwrap();
 
-        std::fs::File::create("dbgfle").unwrap().write_all(bitmatrix.to_string().as_bytes()).expect("write");
+        std::fs::File::create("dbgfle")
+            .unwrap()
+            .write_all(bitmatrix.to_string().as_bytes())
+            .expect("write");
         let mut expected_result = String::new();
         std::fs::File::open(data)
             .unwrap()
@@ -574,7 +531,10 @@ mod detector_test {
 
         let detection = super::detect(&bitmatrix, true).unwrap();
 
-        std::fs::File::create("dbgfle-transformed").unwrap().write_all(detection.getBits().to_string().as_bytes()).expect("write");
+        std::fs::File::create("dbgfle-transformed")
+            .unwrap()
+            .write_all(detection.getBits().to_string().as_bytes())
+            .expect("write");
 
         let bits = read_bits(detection.getBits()).expect("read bits");
 
