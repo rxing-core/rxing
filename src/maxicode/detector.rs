@@ -1,34 +1,11 @@
-use std::cmp;
-
 use crate::{
-    common::{
-        detector::WhiteRectangleDetector, BitMatrix, DefaultGridSampler, DetectorRXingResult,
-        GridSampler,
-    },
-    oned::MAX_AVG_VARIANCE,
+    common::{BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler},
     Exceptions, RXingResultPoint,
 };
 
 use super::MaxiCodeReader;
 
-const PATTERN_VARIANCE_ALLOWANCE: f32 = 1.3;
 const ROW_SCAN_SKIP: u32 = 5;
-
-fn min_float<T: PartialOrd>(a: T, b: T) -> T {
-    if a > b {
-        b
-    } else {
-        a
-    }
-}
-
-fn max_float<T: PartialOrd>(a: T, b: T) -> T {
-    if a < b {
-        b
-    } else {
-        a
-    }
-}
 
 #[derive(Debug)]
 pub struct MaxicodeDetectionResult {
@@ -252,8 +229,9 @@ fn find_next_bullseye_horizontal(
                     pointer -= 1;
                     buckets.copy_within(1.., 0);
                     buckets[10] = 0;
-                    column += 1;
-                    continue;
+                    // column += 1;
+
+                    // continue;
                 }
             }
         }
@@ -271,7 +249,7 @@ fn verify_bullseye_vertical(
     image: &BitMatrix,
     row: u32,
     column: u32,
-    expected_radius: u32,
+    _expected_radius: u32,
 ) -> bool {
     // look up
     let up_vector = get_column_vector(image, column, row, true);
@@ -320,34 +298,63 @@ fn get_column_vector(image: &BitMatrix, column: u32, start_row: u32, looking_up:
 }
 
 fn validate_bullseye_widths(buckets: &[u32; 11]) -> bool {
-    let total_width = buckets.iter().sum::<u32>() as f32;
-    let estimated_module_size = total_width / buckets.len() as f32;
+    let total_width_even = buckets
+        .iter()
+        .enumerate()
+        .filter_map(|e| {
+            if e.0 != 5 && (e.0 == 0 || e.0 % 2 == 0) {
+                Some(*e.1)
+            } else {
+                None
+            }
+        })
+        .sum::<u32>() as f32;
+    let total_width_odd = buckets
+        .iter()
+        .enumerate()
+        .filter_map(|e| {
+            if e.0 != 5 && (e.0 != 0 && e.0 % 2 != 0) {
+                Some(*e.1)
+            } else {
+                None
+            }
+        })
+        .sum::<u32>() as f32;
 
-    let max_variance = estimated_module_size / 2.5;
+    let estimated_module_size_even = total_width_even / 5.0;
+    let estimated_module_size_odd = total_width_odd / 5.0;
 
-    let b1 = (estimated_module_size - buckets[0] as f32).abs();
-    let b2 = (estimated_module_size - buckets[1] as f32).abs();
-    let b3 = (estimated_module_size - buckets[2] as f32).abs();
-    let b4 = (estimated_module_size - buckets[3] as f32).abs();
-    let b5 = (estimated_module_size - buckets[4] as f32).abs();
+    let max_variance_even = estimated_module_size_even / 2.0;
+    let max_variance_odd = estimated_module_size_odd / 2.0;
+
+    // let total_width = buckets.iter().sum::<u32>() as f32;
+    // let estimated_module_size = total_width / (buckets.len() -1 ) as f32;
+
+    // let max_variance = estimated_module_size / 2.5;
+
+    let b1 = (estimated_module_size_even - buckets[0] as f32).abs();
+    let b2 = (estimated_module_size_odd - buckets[1] as f32).abs();
+    let b3 = (estimated_module_size_even - buckets[2] as f32).abs();
+    let b4 = (estimated_module_size_odd - buckets[3] as f32).abs();
+    let b5 = (estimated_module_size_even - buckets[4] as f32).abs();
     // let b6 = (estimated_module_size - buckets[5] as f32).abs();
-    let b7 = (estimated_module_size - buckets[6] as f32).abs();
-    let b8 = (estimated_module_size - buckets[7] as f32).abs();
-    let b9 = (estimated_module_size - buckets[8] as f32).abs();
-    let b10 = (estimated_module_size - buckets[9] as f32).abs();
-    let b11 = (estimated_module_size - buckets[10] as f32).abs();
+    let b7 = (estimated_module_size_even - buckets[6] as f32).abs();
+    let b8 = (estimated_module_size_odd - buckets[7] as f32).abs();
+    let b9 = (estimated_module_size_even - buckets[8] as f32).abs();
+    let b10 = (estimated_module_size_odd - buckets[9] as f32).abs();
+    let b11 = (estimated_module_size_even - buckets[10] as f32).abs();
 
-    (b1 < max_variance
-        && b2 < max_variance
-        && b3 < max_variance
-        && b4 < max_variance
-        && b5 < max_variance
+    b1 < max_variance_even
+        && b2 < max_variance_odd
+        && b3 < max_variance_even
+        && b4 < max_variance_odd
+        && b5 < max_variance_even
         // && b6 < max_variance * 2.0
-        && b7 < max_variance
-        && b8 < max_variance
-        && b9 < max_variance
-        && b10 < max_variance
-        && b11 < max_variance)
+        && b7 < max_variance_even
+        && b8 < max_variance_odd
+        && b9 < max_variance_even
+        && b10 < max_variance_odd
+        && b11 < max_variance_even
 }
 
 /// returns the (center , radius) of the possible bullseye
@@ -365,10 +372,14 @@ fn box_symbol(image: &BitMatrix, circle: &Circle) -> Result<[(f32, f32); 4], Exc
     let left_shift = ((symbol_width as f32 / 2.0) - (symbol_width as f32 * 0.03)) as i32;
     let right_shift = ((symbol_width as f32 / 2.0) + (symbol_width as f32 * 0.03)) as i32;
 
-    let left_boundary = (circle.center.0 as i32 - left_shift as i32).clamp(0, image.getWidth() as i32 - 33) as u32;
-    let right_boundary = (circle.center.0 as i32+ right_shift).clamp(33,image.getWidth() as i32) as u32; //symbol_width.clamp(30, image.getWidth());
-    let top_boundary = (circle.center.1 as i32 + up_down_shift).clamp(33, image.getHeight() as i32) as u32; //symbol_height.clamp(33, image.getHeight());
-    let bottom_boundary = (circle.center.1 as i32 - up_down_shift as i32).clamp(0, image.getHeight() as i32 - 30) as u32;
+    let left_boundary =
+        (circle.center.0 as i32 - left_shift as i32).clamp(0, image.getWidth() as i32 - 33) as u32;
+    let right_boundary =
+        (circle.center.0 as i32 + right_shift).clamp(33, image.getWidth() as i32) as u32; //symbol_width.clamp(30, image.getWidth());
+    let top_boundary =
+        (circle.center.1 as i32 + up_down_shift).clamp(33, image.getHeight() as i32) as u32; //symbol_height.clamp(33, image.getHeight());
+    let bottom_boundary = (circle.center.1 as i32 - up_down_shift as i32)
+        .clamp(0, image.getHeight() as i32 - 30) as u32;
 
     let naive_box = [
         RXingResultPoint::new(left_boundary as f32, bottom_boundary as f32),
@@ -385,22 +396,22 @@ fn box_symbol(image: &BitMatrix, circle: &Circle) -> Result<[(f32, f32); 4], Exc
     ])
 }
 
-// /// calculate a likely size for the barcode.
-// /// returns (width, height)
-// fn guess_barcode_size(circle: &Circle) -> (u32, u32) {
-//     let circle_area = std::f64::consts::PI * circle.radius.pow(2) as f64;
-//     let ideal_symbol_area = (circle_area / 0.07) / 0.97;
-//     let ideal_symbol_side = ideal_symbol_area.sqrt();
-//     (
-//         ideal_symbol_side .round() as u32,
-//         (ideal_symbol_side * 0.97).round() as u32,
-//     )
-// }
-
+/// calculate a likely size for the barcode.
+/// returns (width, height)
 fn guess_barcode_size(circle: &Circle) -> (u32, u32) {
-    let diameter = circle.horizontal_buckets.iter().sum::<u32>() as f32;
-    ((diameter / 0.29) as u32, ((diameter / 0.29) * 0.97) as u32)
+    let circle_area = std::f64::consts::PI * circle.radius.pow(2) as f64;
+    let ideal_symbol_area = (circle_area / 0.07) / 0.03;
+    let ideal_symbol_side = ideal_symbol_area.sqrt();
+    (
+        ideal_symbol_side.round() as u32,
+        (ideal_symbol_side * 0.97).round() as u32,
+    )
 }
+
+// fn guess_barcode_size(circle: &Circle) -> (u32, u32) {
+//     let diameter = circle.horizontal_buckets.iter().sum::<u32>() as f32;
+//     ((diameter / 0.29) as u32, ((diameter / 0.29) * 0.97) as u32)
+// }
 
 /// compare two circles to determine which has a better variance.
 fn compare_circle(a: &Circle, b: &Circle) -> std::cmp::Ordering {
