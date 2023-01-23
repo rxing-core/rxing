@@ -85,7 +85,7 @@ impl Circle {
             (self.horizontal_buckets[5] / 2).pow(2) as f32 * std::f32::consts::PI;
         let expected_area_horizontal =
             (self.vertical_buckets[5] / 2).pow(2) as f32 * std::f32::consts::PI;
-        let circle_area_average = ((expected_area_horizontal + expected_area_vertical) / 2.0);
+        let circle_area_average = (expected_area_horizontal + expected_area_vertical) / 2.0;
 
         let circle_area_variance = (expected_area_horizontal - circle_area_average).abs()
             + (expected_area_vertical - circle_area_average).abs();
@@ -129,9 +129,9 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
     // from what we have otherwise found.
     let center_point_std_dev = Circle::calculate_center_point_std_dev(&circles);
     circles.retain(|c| {
-        ((c.center.0 as i32 - center_point_std_dev.1 .0 as i32).abs() as u32)
+        (c.center.0 as i32 - center_point_std_dev.1 .0 as i32).unsigned_abs()
             <= center_point_std_dev.0 .0
-            && ((c.center.1 as i32 - center_point_std_dev.1 .1 as i32).abs() as u32)
+            && (c.center.1 as i32 - center_point_std_dev.1 .1 as i32).unsigned_abs()
                 <= center_point_std_dev.0 .1
     });
 
@@ -546,12 +546,10 @@ fn calculate_simple_boundary(
 ) -> (u32, u32, u32, u32) {
     let (symbol_width, symbol_height) = if image.is_some() {
         guess_barcode_size(circle)
+    } else if let Some(s) = center_scale {
+        guess_barcode_size_general(circle, 0.03, s, 0.97)
     } else {
-        if let Some(s) = center_scale {
-            guess_barcode_size_general(circle, 0.03, s, 0.97)
-        } else {
-            guess_barcode_size_tighter(circle)
-        }
+        guess_barcode_size_tighter(circle)
     };
 
     let (image_width, image_height) = if let Some(i) = image {
@@ -793,7 +791,7 @@ fn adjust_point_alternate(point: (u32, u32), circle: &Circle, center_scale: f64)
         + ((x * width + width / 2 + (y & 0x01) * width / 2) / MaxiCodeReader::MATRIX_WIDTH)
             .min(width - 1);
 
-    (ix as u32, iy as u32)
+    (ix, iy)
 }
 
 /// calculate a likely size for the barcode.
