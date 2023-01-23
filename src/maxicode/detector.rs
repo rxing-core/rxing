@@ -519,6 +519,7 @@ fn box_symbol(image: &BitMatrix, circle: &Circle) -> Result<[(f32, f32); 4], Exc
 
     let mut result_box = naive_box;
 
+    #[cfg(feature="experimental_features")]
     for scale in ACCEPTED_SCALES {
         if let Some(found_rotation) = attempt_rotation_box(image, circle, &naive_box, scale) {
             result_box = found_rotation;
