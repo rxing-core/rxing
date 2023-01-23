@@ -5,7 +5,7 @@ use crate::{
 
 use super::MaxiCodeReader;
 
-const ROW_SCAN_SKIP: u32 = 5;
+const ROW_SCAN_SKIP: u32 = 3;
 
 #[derive(Debug)]
 pub struct MaxicodeDetectionResult {
@@ -90,7 +90,7 @@ impl Circle {
         let circle_area_variance = (expected_area_horizontal - circle_area_average).abs()
             + (expected_area_vertical - circle_area_average).abs();
 
-        total_variance_even + total_variance_odd + circle_area_variance
+        (total_variance_even + total_variance_odd + circle_area_variance)/3.0
     }
 
     pub fn calculate_center_point_std_dev(circles: &[Self]) -> ((u32, u32), (u32, u32)) {
