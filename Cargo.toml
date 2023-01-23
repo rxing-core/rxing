@@ -37,7 +37,7 @@ java-rand = "0.2.0"
 rand = "0.8.5"
 
 [features]
-default = ["image"]
+default = ["image", "experimental_features"]
 image = ["dep:image", "dep:imageproc"]
 allow_forced_iso_ied_18004_compliance = []
 svg_write = ["dep:svg"]
