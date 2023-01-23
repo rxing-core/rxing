@@ -155,14 +155,14 @@ const BITNR: [[i16; 30]; 33] = [
  * @author mike32767
  * @author Manuel Kasten
  */
-pub struct BitMatrixParser(BitMatrix);
+pub struct BitMatrixParser<'a>(&'a BitMatrix);
 
-impl BitMatrixParser {
+impl<'a> BitMatrixParser<'_> {
     /**
      * @param bitMatrix {@link BitMatrix} to parse
      */
-    pub fn new(bitMatrix: BitMatrix) -> Self {
-        Self(bitMatrix)
+    pub fn new(bitMatrix: &'a BitMatrix) -> BitMatrixParser<'a> {
+        BitMatrixParser(bitMatrix)
     }
 
     pub fn readCodewords(&self) -> [u8; 144] {

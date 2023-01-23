@@ -45,12 +45,12 @@ static RS_DECODER: Lazy<ReedSolomonDecoder> = Lazy::new(|| {
     ))
 });
 
-pub fn decode(bits: BitMatrix) -> Result<DecoderRXingResult, Exceptions> {
+pub fn decode(bits: &BitMatrix) -> Result<DecoderRXingResult, Exceptions> {
     decode_with_hints(bits, &HashMap::new())
 }
 
 pub fn decode_with_hints(
-    bits: BitMatrix,
+    bits: &BitMatrix,
     _hints: &DecodingHintDictionary,
 ) -> Result<DecoderRXingResult, Exceptions> {
     let parser = BitMatrixParser::new(bits);

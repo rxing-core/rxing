@@ -17,10 +17,12 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::BitMatrix, BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType, Reader,
+    common::{BitMatrix, DetectorRXingResult},
+    BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
+    RXingResultMetadataType, Reader,
 };
 
-use super::decoder::maxicode_decoder;
+use super::{decoder::maxicode_decoder, detector};
 
 /**
  * This implementation can detect and decode a MaxiCode in an image.
@@ -61,8 +63,22 @@ impl Reader for MaxiCodeReader {
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         // Note that MaxiCode reader effectively always assumes PURE_BARCODE mode
         // and can't detect it in an image
-        let bits = Self::extractPureBits(image.getBlackMatrix())?;
-        let decoderRXingResult = maxicode_decoder::decode_with_hints(bits, hints)?;
+        let try_harder = matches!(
+            hints.get(&DecodeHintType::TRY_HARDER),
+            Some(DecodeHintValue::TryHarder(true))
+        );
+
+        let decoderRXingResult = if try_harder {
+            let result = detector::detect(image.getBlackMatrixMut(), try_harder)?;
+            let parsed_result = detector::read_bits(result.getBits())?;
+            maxicode_decoder::decode_with_hints(&parsed_result, hints)?
+        } else {
+            let bits = Self::extractPureBits(image.getBlackMatrix())?;
+            maxicode_decoder::decode_with_hints(&bits, hints)?
+        };
+
+        // let bits = Self::extractPureBits(image.getBlackMatrix())?;
+        // let decoderRXingResult = maxicode_decoder::decode_with_hints(bits, hints)?;
         let mut result = RXingResult::new(
             decoderRXingResult.getText(),
             decoderRXingResult.getRawBytes().clone(),
@@ -85,8 +101,8 @@ impl Reader for MaxiCodeReader {
     }
 }
 impl MaxiCodeReader {
-    const MATRIX_WIDTH: u32 = 30;
-    const MATRIX_HEIGHT: u32 = 33;
+    pub const MATRIX_WIDTH: u32 = 30;
+    pub const MATRIX_HEIGHT: u32 = 33;
 
     /**
      * This method detects a code in a "pure" image -- that is, pure monochrome image
