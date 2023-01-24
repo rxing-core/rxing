@@ -5,7 +5,7 @@ use crate::{
 
 use super::MaxiCodeReader;
 
-const ROW_SCAN_SKIP: u32 = 3;
+const ROW_SCAN_SKIP: u32 = 2;
 
 #[derive(Debug)]
 pub struct MaxicodeDetectionResult {
@@ -637,9 +637,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, topl_p1, rotation);
         let p2_rot = get_point(circle.center, topl_p2, rotation);
         let p3_rot = get_point(circle.center, topl_p3, rotation);
-        let found_tl = image.get(p1_rot.0 as u32, p1_rot.1 as u32)
-            && image.get(p2_rot.0 as u32, p2_rot.1 as u32)
-            && image.get(p3_rot.0 as u32, p3_rot.1 as u32);
+        let found_tl = image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
+            && image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
+            && image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
         if !found_tl {
             continue;
         }
@@ -650,9 +650,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, topr_p1, rotation);
         let p2_rot = get_point(circle.center, topr_p2, rotation);
         let p3_rot = get_point(circle.center, topr_p3, rotation);
-        let found_tr = !image.get(p1_rot.0 as u32, p1_rot.1 as u32)
-            && !image.get(p2_rot.0 as u32, p2_rot.1 as u32)
-            && !image.get(p3_rot.0 as u32, p3_rot.1 as u32);
+        let found_tr = !image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
+            && !image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
+            && !image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
         if !found_tr {
             continue;
         }
@@ -663,9 +663,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, l_p1, rotation);
         let p2_rot = get_point(circle.center, l_p2, rotation);
         let p3_rot = get_point(circle.center, l_p3, rotation);
-        let found_l = image.get(p1_rot.0 as u32, p1_rot.1 as u32)
-            && !image.get(p2_rot.0 as u32, p2_rot.1 as u32)
-            && image.get(p3_rot.0 as u32, p3_rot.1 as u32);
+        let found_l = image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
+            && !image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
+            && image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
         if !found_l {
             continue;
         }
@@ -676,9 +676,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, r_p1, rotation);
         let p2_rot = get_point(circle.center, r_p2, rotation);
         let p3_rot = get_point(circle.center, r_p3, rotation);
-        let found_r = image.get(p1_rot.0 as u32, p1_rot.1 as u32)
-            && !image.get(p2_rot.0 as u32, p2_rot.1 as u32)
-            && image.get(p3_rot.0 as u32, p3_rot.1 as u32);
+        let found_r = image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
+            && !image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
+            && image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
         if !found_r {
             continue;
         }
@@ -689,9 +689,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, bottoml_p1, rotation);
         let p2_rot = get_point(circle.center, bottoml_p2, rotation);
         let p3_rot = get_point(circle.center, bottoml_p3, rotation);
-        let found_bl = image.get(p1_rot.0 as u32, p1_rot.1 as u32)
-            && !image.get(p2_rot.0 as u32, p2_rot.1 as u32)
-            && image.get(p3_rot.0 as u32, p3_rot.1 as u32);
+        let found_bl = image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
+            && !image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
+            && image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
         if !found_bl {
             continue;
         }
@@ -702,9 +702,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, bottomr_p1, rotation);
         let p2_rot = get_point(circle.center, bottomr_p2, rotation);
         let p3_rot = get_point(circle.center, bottomr_p3, rotation);
-        let found_br = image.get(p1_rot.0 as u32, p1_rot.1 as u32)
-            && !image.get(p2_rot.0 as u32, p2_rot.1 as u32)
-            && image.get(p3_rot.0 as u32, p3_rot.1 as u32);
+        let found_br = image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
+            && !image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
+            && image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
         if !found_br {
             continue;
         }
