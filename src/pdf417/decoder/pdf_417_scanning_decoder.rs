@@ -290,19 +290,21 @@ fn getBarcodeMetadata<T: DetectionRXingResultRowIndicatorColumn>(
     //   return if rightRowIndicatorColumn.is_none()  {None} else  {rightRowIndicatorColumn.getBarcodeMetadata()};
     // }
 
-    let rightBarcodeMetadata = if rightRowIndicatorColumn.is_none()
-        || rightRowIndicatorColumn
-            .as_mut()
-            .unwrap()
-            .getBarcodeMetadata()
-            .is_none()
-    {
+    let rightBarcodeMetadata = if rightRowIndicatorColumn.is_none() {
         return leftBarcodeMetadata;
+    } else if let Some(mdt) = rightRowIndicatorColumn
+        .as_mut()
+        .unwrap()
+        .getBarcodeMetadata()
+    {
+        mdt
+        // rightRowIndicatorColumn
+        //     .as_mut()
+        //     .unwrap()
+        //     .getBarcodeMetadata()
+        //     .unwrap()
     } else {
-        rightRowIndicatorColumn
-            .as_mut()
-            .unwrap()
-            .getBarcodeMetadata()
+        return leftBarcodeMetadata;
     };
     // if rightRowIndicatorColumn.is_none() ||
     //     (rightBarcodeMetadata = rightRowIndicatorColumn.getBarcodeMetadata()).is_none() {
@@ -312,17 +314,13 @@ fn getBarcodeMetadata<T: DetectionRXingResultRowIndicatorColumn>(
     leftBarcodeMetadata?;
 
     if leftBarcodeMetadata.as_ref().unwrap().getColumnCount()
-        != rightBarcodeMetadata.as_ref().unwrap().getColumnCount()
+        != rightBarcodeMetadata.getColumnCount()
         && leftBarcodeMetadata
             .as_ref()
             .unwrap()
             .getErrorCorrectionLevel()
-            != rightBarcodeMetadata
-                .as_ref()
-                .unwrap()
-                .getErrorCorrectionLevel()
-        && leftBarcodeMetadata.as_ref().unwrap().getRowCount()
-            != rightBarcodeMetadata.as_ref().unwrap().getRowCount()
+            != rightBarcodeMetadata.getErrorCorrectionLevel()
+        && leftBarcodeMetadata.as_ref().unwrap().getRowCount() != rightBarcodeMetadata.getRowCount()
     {
         return None;
     }
