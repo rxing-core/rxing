@@ -116,6 +116,15 @@ impl Circle {
             (x_mean as u32, y_mean as u32),
         )
     }
+
+    pub fn calculate_high_accuracy_center(&self) -> (f32,f32) {
+        if self.horizontal_buckets[5] == self.vertical_buckets[5] {
+            // true circle, pick center point
+        }else {
+            // this is an ellipse
+        }
+        todo!()
+    }
 }
 
 pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionResult, Exceptions> {
@@ -595,13 +604,6 @@ fn attempt_rotation_box(
     naive_box: &[RXingResultPoint; 4],
     center_scale: f64,
 ) -> Option<[RXingResultPoint; 4]> {
-    // use the expected symbol syze to calculate the x,y module size (best guess)
-    // let (symbol_width, symbol_height) =
-    //     guess_barcode_size_general(circle, 0.03, center_scale, 0.97); //guess_barcode_size_tighter(circle);
-    // let x_module_size = (symbol_width as f32 / MaxiCodeReader::MATRIX_WIDTH as f32).round() as u32;
-    // let y_module_size =
-    //     (symbol_height as f32 / MaxiCodeReader::MATRIX_HEIGHT as f32).round() as u32;
-
     // we know that the locator symbols should appear at 60 degree increments around the circle
 
     // top left
@@ -842,15 +844,15 @@ fn compare_circle(a: &Circle, b: &Circle) -> std::cmp::Ordering {
     let a_var = a.calculate_circle_variance();
     let b_var = b.calculate_circle_variance();
 
-    // a_var.partial_cmp(&b_var).unwrap()
+    a_var.partial_cmp(&b_var).unwrap()
 
-    if a_var < b_var {
-        std::cmp::Ordering::Greater
-    } else if a_var > b_var {
-        std::cmp::Ordering::Less
-    } else {
-        std::cmp::Ordering::Equal
-    }
+    // if a_var < b_var {
+    //     std::cmp::Ordering::Greater
+    // } else if a_var > b_var {
+    //     std::cmp::Ordering::Less
+    // } else {
+    //     std::cmp::Ordering::Equal
+    // }
 }
 
 /// Read appropriate bits from a bitmatrix for the maxicode decoder

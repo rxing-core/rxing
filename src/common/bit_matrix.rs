@@ -220,7 +220,7 @@ impl BitMatrix {
 
     pub fn try_get(&self, x: u32, y: u32) -> Option<bool> {
         let offset = self.get_offset(y, x);
-        if offset < self.bits.len() {
+        if offset >= self.bits.len() {
             return None;
         }
         Some(((self.bits[offset] >> (x & 0x1f)) & 1) != 0)
