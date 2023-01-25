@@ -120,7 +120,19 @@ impl<'a> Circle<'_> {
         )
     }
 
-    pub fn calculate_high_accuracy_center(&self) -> (u32, u32) {
+    /// detect a higher accuracy center point for a circle
+    pub fn calculate_high_accuracy_center(&mut self) {
+        let [point_1, point_2] = self.find_width_at_degree(7.0).1;
+        let point_3 = self.find_width_at_degree(97.0).1[0];
+        let guessed_center_point = Self::find_center(point_1, point_2, point_3);
+        self.center = (
+            guessed_center_point.0.round() as u32,
+            guessed_center_point.1.round() as u32,
+        )
+    }
+
+    /// detect an ellipse, and try to find defining points of it.
+    pub fn detect_ellipse(&self) -> ((f32, f32), ((f32, f32), (f32, f32), (f32, f32), (f32, f32))) {
         if (self.image.get(self.center.0 + self.radius, self.center.1)
             && self.image.get(self.center.0, self.center.1 + self.radius)
             && self.image.get(self.center.0 - self.radius, self.center.1)
@@ -128,7 +140,9 @@ impl<'a> Circle<'_> {
             || self.horizontal_buckets[5] == self.vertical_buckets[5]
         {
             // probably allready a circle, or we already have true center
-            self.center
+
+            //self.center
+            todo!()
         } else {
             // this looks like an ellipse, do ellipse magic
             // find semi-major and semi-minor axi
@@ -150,7 +164,9 @@ impl<'a> Circle<'_> {
 
             if linear_eccentricity == 0 {
                 // it's a circle afterall, and we're probably at the center of it
-                self.center
+
+                //self.center
+                todo!()
             } else {
                 //it's an elipse, or we're off center, so we need to fix that problem
                 // let mut good_points = 0;
@@ -182,10 +198,11 @@ impl<'a> Circle<'_> {
                     let [point_1, point_2] = self.find_width_at_degree(0.0).1;
                     let point_3 = self.find_width_at_degree(90.0).1[0];
                     let guessed_center_point = Self::find_center(point_1, point_2, point_3);
-                    (
-                        guessed_center_point.0.round() as u32,
-                        guessed_center_point.1.round() as u32,
-                    )
+                    // (
+                    //     guessed_center_point.0.round() as u32,
+                    //     guessed_center_point.1.round() as u32,
+                    // )
+                    todo!()
                 } else {
                     // maybe an actual ellipse
                     todo!()
@@ -340,7 +357,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
     // Sort the points based on variance
     circles.sort_by(compare_circle);
 
-    for circle in &circles {
+    for circle in circles.iter_mut() {
         // build a box around this circle, trying to find the barcode
         let Ok(symbol_box) = box_symbol(image, circle) else {
             if try_harder {
@@ -709,7 +726,7 @@ const LEFT_SHIFT_PERCENT_ADJUST: f32 = 0.0;
 const RIGHT_SHIFT_PERCENT_ADJUST: f32 = 0.03;
 const ACCEPTED_SCALES: [f64; 5] = [0.065, 0.069, 0.07, 0.075, 0.08];
 
-fn box_symbol(image: &BitMatrix, circle: &Circle) -> Result<[(f32, f32); 4], Exceptions> {
+fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<[(f32, f32); 4], Exceptions> {
     let (left_boundary, right_boundary, top_boundary, bottom_boundary) =
         calculate_simple_boundary(circle, Some(image), None);
 
@@ -794,11 +811,11 @@ const BOTTOM_RIGHT_ORIENTATION_POS: ((u32, u32), (u32, u32), (u32, u32)) =
 
 fn attempt_rotation_box(
     image: &BitMatrix,
-    circle: &Circle,
+    circle: &mut Circle,
     naive_box: &[RXingResultPoint; 4],
     center_scale: f64,
 ) -> Option<[RXingResultPoint; 4]> {
-    let better_center = circle.calculate_high_accuracy_center();
+    circle.calculate_high_accuracy_center();
     // we know that the locator symbols should appear at 60 degree increments around the circle
 
     // top left
@@ -995,24 +1012,12 @@ fn adjust_point_alternate(point: (u32, u32), circle: &Circle, center_scale: f64)
 /// calculate a likely size for the barcode.
 /// returns (width, height)
 fn guess_barcode_size(circle: &Circle) -> (u32, u32) {
-    // let circle_area = std::f64::consts::PI * circle.radius.pow(2) as f64;
-    // let ideal_symbol_area = (circle_area / 0.065) / 0.97;
-    // let ideal_symbol_side = ideal_symbol_area.sqrt();
-    // (
-    //     ideal_symbol_side.round() as u32,
-    //     (ideal_symbol_side).round() as u32,
-    // )
     guess_barcode_size_general(circle, 0.03, 0.066, 1.0)
 }
 
 fn guess_barcode_size_tighter(circle: &Circle) -> (u32, u32) {
     guess_barcode_size_general(circle, 0.03, 0.0695, 0.97)
 }
-
-// fn guess_barcode_size(circle: &Circle) -> (u32, u32) {
-//     let diameter = circle.horizontal_buckets.iter().sum::<u32>() as f32;
-//     ((diameter / 0.29) as u32, ((diameter / 0.29) * 0.97) as u32)
-// }
 
 fn guess_barcode_size_general(
     circle: &Circle,
@@ -1023,10 +1028,6 @@ fn guess_barcode_size_general(
     let circle_area = std::f64::consts::PI * circle.radius.pow(2) as f64;
     let ideal_symbol_area = (circle_area / circle_area_percent) / (1.0 - height_adjust_percent);
     let ideal_symbol_side = ideal_symbol_area.sqrt();
-
-    // let estimated_module_x = ideal_symbol_side / MaxiCodeReader::MATRIX_WIDTH as f64;
-    // let estimated_module_y =
-    //     (ideal_symbol_side * height_final_adjust_percent) / MaxiCodeReader::MATRIX_HEIGHT as f64;
 
     (
         ideal_symbol_side.round() as u32,
@@ -1040,14 +1041,6 @@ fn compare_circle(a: &Circle, b: &Circle) -> std::cmp::Ordering {
     let b_var = b.calculate_circle_variance();
 
     a_var.partial_cmp(&b_var).unwrap()
-
-    // if a_var < b_var {
-    //     std::cmp::Ordering::Greater
-    // } else if a_var > b_var {
-    //     std::cmp::Ordering::Less
-    // } else {
-    //     std::cmp::Ordering::Equal
-    // }
 }
 
 /// Read appropriate bits from a bitmatrix for the maxicode decoder
@@ -1065,7 +1058,6 @@ pub fn read_bits(image: &BitMatrix) -> Result<BitMatrix, Exceptions> {
         // for (int y = 0; y < MATRIX_HEIGHT; y++) {
         let iy = (top + (y * height + height / 2) / MaxiCodeReader::MATRIX_HEIGHT).min(height - 1);
         for x in 0..MaxiCodeReader::MATRIX_WIDTH {
-            // for (int x = 0; x < MATRIX_WIDTH; x++) {
             // srowen: I don't quite understand why the formula below is necessary, but it
             // can walk off the image if left + width = the right boundary. So cap it.
             let ix = left
