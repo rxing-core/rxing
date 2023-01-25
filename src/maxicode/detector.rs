@@ -1,3 +1,5 @@
+use num::integer::Roots;
+
 use crate::{
     common::{BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler},
     Exceptions, RXingResultPoint,
@@ -5,7 +7,7 @@ use crate::{
 
 use super::MaxiCodeReader;
 
-const ROW_SCAN_SKIP: u32 = 5;
+const ROW_SCAN_SKIP: u32 = 2;
 
 #[derive(Debug)]
 pub struct MaxicodeDetectionResult {
@@ -23,14 +25,15 @@ impl DetectorRXingResult for MaxicodeDetectionResult {
     }
 }
 
-struct Circle {
+struct Circle<'a> {
     center: (u32, u32),
     radius: u32,
     horizontal_buckets: [u32; 11],
     vertical_buckets: [u32; 11],
+    image: &'a BitMatrix,
 }
 
-impl Circle {
+impl<'a> Circle<'_> {
     pub fn calculate_circle_variance(&self) -> f32 {
         let total_width_even = self
             .horizontal_buckets
@@ -90,7 +93,7 @@ impl Circle {
         let circle_area_variance = (expected_area_horizontal - circle_area_average).abs()
             + (expected_area_vertical - circle_area_average).abs();
 
-        total_variance_even + total_variance_odd + circle_area_variance
+        (total_variance_even + total_variance_odd + circle_area_variance) / 3.0
     }
 
     pub fn calculate_center_point_std_dev(circles: &[Self]) -> ((u32, u32), (u32, u32)) {
@@ -116,6 +119,222 @@ impl Circle {
             (x_mean as u32, y_mean as u32),
         )
     }
+
+    /// detect a higher accuracy center point for a circle
+    pub fn calculate_high_accuracy_center(&mut self) {
+        let [point_1, point_2] = self.find_width_at_degree(7.0).1;
+        let point_3 = self.find_width_at_degree(97.0).1[0];
+        let guessed_center_point = Self::find_center(point_1, point_2, point_3);
+        self.center = (
+            guessed_center_point.0.round() as u32,
+            guessed_center_point.1.round() as u32,
+        )
+    }
+
+    /// detect an ellipse, and try to find defining points of it.
+    pub fn detect_ellipse(&self) -> ((f32, f32), ((f32, f32), (f32, f32), (f32, f32), (f32, f32))) {
+        if (self.image.get(self.center.0 + self.radius, self.center.1)
+            && self.image.get(self.center.0, self.center.1 + self.radius)
+            && self.image.get(self.center.0 - self.radius, self.center.1)
+            && self.image.get(self.center.0, self.center.1 - self.radius))
+            || self.horizontal_buckets[5] == self.vertical_buckets[5]
+        {
+            // probably allready a circle, or we already have true center
+
+            //self.center
+            todo!()
+        } else {
+            // this looks like an ellipse, do ellipse magic
+            // find semi-major and semi-minor axi
+            let mut lengths = [(0, 0.0, [(0.0_f32, 0.0); 2]); 72];
+            let mut circle_points = Vec::new();
+            for i_rotation in 0..72 {
+                let rotation = i_rotation as f32 * 5.0;
+                let (length, points) = self.find_width_at_degree(rotation);
+                circle_points.extend_from_slice(&points);
+                lengths[i_rotation] = (length, rotation, points);
+            }
+            lengths.sort_by_key(|e| e.0);
+            let major_axis = lengths.last().unwrap();
+            let minor_axis = lengths.first().unwrap();
+
+            // // find foci
+            let linear_eccentricity =
+                ((major_axis.0 / 2).pow(2) - (minor_axis.0 / 2).pow(2)).sqrt();
+
+            if linear_eccentricity == 0 {
+                // it's a circle afterall, and we're probably at the center of it
+
+                //self.center
+                todo!()
+            } else {
+                //it's an elipse, or we're off center, so we need to fix that problem
+                // let mut good_points = 0;
+                // let mut bad_points = 0;
+                let mut found_all_on_ellipse = true;
+                for point in &circle_points {
+                    let check_result = Self::check_ellipse_point(
+                        self.center,
+                        point,
+                        major_axis.0 / 2,
+                        minor_axis.0 / 2,
+                    );
+                    if check_result > 1.0 {
+                        //&& check_result - Self::ALLOWABLE_ELLIPSE_SLIP > 1.0 {
+                        // a point is off the ellipse
+                        // bad_points += 1;
+                        found_all_on_ellipse = false;
+                        break;
+                    } /*else {
+                          good_points += 1;
+                      }*/
+                }
+                if !found_all_on_ellipse {
+                    // probably a circle that we wrongly accused of being an ellipse,
+                    // try to find the center of that circle given two points on circumference
+                    // let point_1 = major_axis.2[0];
+                    // let point_2 = minor_axis.2[1];
+                    // let point_3 = circle_points[((major_axis.0 + 3 + minor_axis.0 + 7) / 2) as usize];
+                    let [point_1, point_2] = self.find_width_at_degree(0.0).1;
+                    let point_3 = self.find_width_at_degree(90.0).1[0];
+                    let guessed_center_point = Self::find_center(point_1, point_2, point_3);
+                    // (
+                    //     guessed_center_point.0.round() as u32,
+                    //     guessed_center_point.1.round() as u32,
+                    // )
+                    todo!()
+                } else {
+                    // maybe an actual ellipse
+                    todo!()
+                }
+            }
+        }
+    }
+
+    fn find_center(p1: (f32, f32), p2: (f32, f32), p3: (f32, f32)) -> (f32, f32) {
+        let (x1, y1) = p1;
+        let (x2, y2) = p2;
+        let (x3, y3) = p3;
+
+        let a = x1 * (y2 - y3) - y1 * (x2 - x3) + (x2 * y3 - x3 * y2);
+        let bx = (x1 * x1 + y1 * y1) * (y3 - y2)
+            + (x2 * x2 + y2 * y2) * (y1 - y3)
+            + (x3 * x3 + y3 * y3) * (y2 - y1);
+        let by = (x1 * x1 + y1 * y1) * (x2 - x3)
+            + (x2 * x2 + y2 * y2) * (x3 - x1)
+            + (x3 * x3 + y3 * y3) * (x1 - x2);
+
+        let x = bx / (2.0 * a);
+        let y = by / (2.0 * a);
+
+        (x.abs(), y.abs())
+    }
+
+    fn check_ellipse_point(
+        center: (u32, u32),
+        point: &(f32, f32),
+        semi_major_axis: u32,
+        semi_minor_axis: u32,
+    ) -> f64 {
+        ((point.0 as f64 - center.0 as f64).powf(2.0) / (semi_major_axis as f64).powf(2.0))
+            + ((point.1 as f64 - center.1 as f64).powf(2.0) / (semi_minor_axis as f64).powf(2.0))
+    }
+
+    fn find_width_at_degree(&self, rotation: f32) -> (u32, [(f32, f32); 2]) {
+        let mut x = self.center.0;
+        let y = self.center.1;
+        let mut length = 0;
+
+        // count left
+        while {
+            let point = get_point(self.center, (x, y), rotation);
+            !self.image.get(point.0 as u32, point.1 as u32)
+        } {
+            x -= 1;
+            length += 1;
+        }
+
+        let x_left = x;
+        x = self.center.0 + 1;
+
+        // count right
+        while {
+            let point = get_point(self.center, (x, y), rotation);
+            !self.image.get(point.0 as u32, point.1 as u32)
+        } {
+            x += 1;
+            length += 1;
+        }
+
+        (
+            length,
+            [
+                get_point(self.center, (x_left, y), rotation),
+                get_point(self.center, (x, y), rotation),
+            ],
+        )
+    }
+
+    // fn find_cercumference(&self) -> (u32, Vec<(u32, u32)>) {
+    //     let mut x = self.center.0;
+    //     let mut y = self.center.1;
+    //     let mut points = Vec::new();
+    //     let mut circumference = 0;
+
+    //     // back up to the left wall
+    //     while !self.image.get(x, y) {
+    //         x -= 1;
+    //     }
+    //     x -= 1;
+
+    //     // this is our first point
+    //     points.push((x, y));
+
+    //     let start_x = x;
+    //     let start_y = y;
+
+    //     loop {
+
+    //         if x == start_x && y == start_y {
+    //             break;
+    //         }
+    //         circumference += 1;
+    //         points.push((x, y));
+    //     }
+
+    //     (circumference, points)
+    // }
+    // fn find_area(&self) -> u32 {
+    //     let mut pixel_area = 0;
+
+    //     let mut x = self.center.0;
+    //     let mut y = self.center.1;
+
+    //     // move to one end
+    //     while !self.image.get(x, y) {
+    //         y -= 1;
+    //     }
+
+    //     // work our way to the opposite side
+    //     while !self.image.get(x, y) {
+    //         // count left
+    //         x = self.center.0;
+    //         while !self.image.get(x, y) {
+    //             x -= 1;
+    //             pixel_area += 1;
+    //         }
+    //         // count right
+    //         x = self.center.0 + 1;
+    //         while !self.image.get(x, y) {
+    //             x += 1;
+    //             pixel_area += 1;
+    //         }
+
+    //         y += 1;
+    //     }
+
+    //     pixel_area
+    // }
 }
 
 pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionResult, Exceptions> {
@@ -138,7 +357,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
     // Sort the points based on variance
     circles.sort_by(compare_circle);
 
-    for circle in &circles {
+    for circle in circles.iter_mut() {
         // build a box around this circle, trying to find the barcode
         let Ok(symbol_box) = box_symbol(image, circle) else {
             if try_harder {
@@ -229,6 +448,7 @@ fn find_concentric_circles(image: &BitMatrix) -> Option<Vec<Circle>> {
                         radius,
                         horizontal_buckets,
                         vertical_buckets,
+                        image,
                     });
 
                     // update the search to the next possible location
@@ -506,7 +726,7 @@ const LEFT_SHIFT_PERCENT_ADJUST: f32 = 0.0;
 const RIGHT_SHIFT_PERCENT_ADJUST: f32 = 0.03;
 const ACCEPTED_SCALES: [f64; 5] = [0.065, 0.069, 0.07, 0.075, 0.08];
 
-fn box_symbol(image: &BitMatrix, circle: &Circle) -> Result<[(f32, f32); 4], Exceptions> {
+fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<[(f32, f32); 4], Exceptions> {
     let (left_boundary, right_boundary, top_boundary, bottom_boundary) =
         calculate_simple_boundary(circle, Some(image), None);
 
@@ -519,7 +739,7 @@ fn box_symbol(image: &BitMatrix, circle: &Circle) -> Result<[(f32, f32); 4], Exc
 
     let mut result_box = naive_box;
 
-    #[cfg(feature="experimental_features")]
+    #[cfg(feature = "experimental_features")]
     for scale in ACCEPTED_SCALES {
         if let Some(found_rotation) = attempt_rotation_box(image, circle, &naive_box, scale) {
             result_box = found_rotation;
@@ -591,17 +811,11 @@ const BOTTOM_RIGHT_ORIENTATION_POS: ((u32, u32), (u32, u32), (u32, u32)) =
 
 fn attempt_rotation_box(
     image: &BitMatrix,
-    circle: &Circle,
+    circle: &mut Circle,
     naive_box: &[RXingResultPoint; 4],
     center_scale: f64,
 ) -> Option<[RXingResultPoint; 4]> {
-    // use the expected symbol syze to calculate the x,y module size (best guess)
-    // let (symbol_width, symbol_height) =
-    //     guess_barcode_size_general(circle, 0.03, center_scale, 0.97); //guess_barcode_size_tighter(circle);
-    // let x_module_size = (symbol_width as f32 / MaxiCodeReader::MATRIX_WIDTH as f32).round() as u32;
-    // let y_module_size =
-    //     (symbol_height as f32 / MaxiCodeReader::MATRIX_HEIGHT as f32).round() as u32;
-
+    circle.calculate_high_accuracy_center();
     // we know that the locator symbols should appear at 60 degree increments around the circle
 
     // top left
@@ -637,9 +851,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, topl_p1, rotation);
         let p2_rot = get_point(circle.center, topl_p2, rotation);
         let p3_rot = get_point(circle.center, topl_p3, rotation);
-        let found_tl = image.get(p1_rot.0 as u32, p1_rot.1 as u32)
-            && image.get(p2_rot.0 as u32, p2_rot.1 as u32)
-            && image.get(p3_rot.0 as u32, p3_rot.1 as u32);
+        let found_tl = image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
+            && image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
+            && image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
         if !found_tl {
             continue;
         }
@@ -650,9 +864,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, topr_p1, rotation);
         let p2_rot = get_point(circle.center, topr_p2, rotation);
         let p3_rot = get_point(circle.center, topr_p3, rotation);
-        let found_tr = !image.get(p1_rot.0 as u32, p1_rot.1 as u32)
-            && !image.get(p2_rot.0 as u32, p2_rot.1 as u32)
-            && !image.get(p3_rot.0 as u32, p3_rot.1 as u32);
+        let found_tr = !image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
+            && !image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
+            && !image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
         if !found_tr {
             continue;
         }
@@ -663,9 +877,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, l_p1, rotation);
         let p2_rot = get_point(circle.center, l_p2, rotation);
         let p3_rot = get_point(circle.center, l_p3, rotation);
-        let found_l = image.get(p1_rot.0 as u32, p1_rot.1 as u32)
-            && !image.get(p2_rot.0 as u32, p2_rot.1 as u32)
-            && image.get(p3_rot.0 as u32, p3_rot.1 as u32);
+        let found_l = image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
+            && !image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
+            && image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
         if !found_l {
             continue;
         }
@@ -676,9 +890,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, r_p1, rotation);
         let p2_rot = get_point(circle.center, r_p2, rotation);
         let p3_rot = get_point(circle.center, r_p3, rotation);
-        let found_r = image.get(p1_rot.0 as u32, p1_rot.1 as u32)
-            && !image.get(p2_rot.0 as u32, p2_rot.1 as u32)
-            && image.get(p3_rot.0 as u32, p3_rot.1 as u32);
+        let found_r = image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
+            && !image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
+            && image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
         if !found_r {
             continue;
         }
@@ -689,9 +903,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, bottoml_p1, rotation);
         let p2_rot = get_point(circle.center, bottoml_p2, rotation);
         let p3_rot = get_point(circle.center, bottoml_p3, rotation);
-        let found_bl = image.get(p1_rot.0 as u32, p1_rot.1 as u32)
-            && !image.get(p2_rot.0 as u32, p2_rot.1 as u32)
-            && image.get(p3_rot.0 as u32, p3_rot.1 as u32);
+        let found_bl = image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
+            && !image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
+            && image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
         if !found_bl {
             continue;
         }
@@ -702,9 +916,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, bottomr_p1, rotation);
         let p2_rot = get_point(circle.center, bottomr_p2, rotation);
         let p3_rot = get_point(circle.center, bottomr_p3, rotation);
-        let found_br = image.get(p1_rot.0 as u32, p1_rot.1 as u32)
-            && !image.get(p2_rot.0 as u32, p2_rot.1 as u32)
-            && image.get(p3_rot.0 as u32, p3_rot.1 as u32);
+        let found_br = image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
+            && !image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
+            && image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
         if !found_br {
             continue;
         }
@@ -798,24 +1012,12 @@ fn adjust_point_alternate(point: (u32, u32), circle: &Circle, center_scale: f64)
 /// calculate a likely size for the barcode.
 /// returns (width, height)
 fn guess_barcode_size(circle: &Circle) -> (u32, u32) {
-    // let circle_area = std::f64::consts::PI * circle.radius.pow(2) as f64;
-    // let ideal_symbol_area = (circle_area / 0.065) / 0.97;
-    // let ideal_symbol_side = ideal_symbol_area.sqrt();
-    // (
-    //     ideal_symbol_side.round() as u32,
-    //     (ideal_symbol_side).round() as u32,
-    // )
     guess_barcode_size_general(circle, 0.03, 0.066, 1.0)
 }
 
 fn guess_barcode_size_tighter(circle: &Circle) -> (u32, u32) {
     guess_barcode_size_general(circle, 0.03, 0.0695, 0.97)
 }
-
-// fn guess_barcode_size(circle: &Circle) -> (u32, u32) {
-//     let diameter = circle.horizontal_buckets.iter().sum::<u32>() as f32;
-//     ((diameter / 0.29) as u32, ((diameter / 0.29) * 0.97) as u32)
-// }
 
 fn guess_barcode_size_general(
     circle: &Circle,
@@ -826,10 +1028,6 @@ fn guess_barcode_size_general(
     let circle_area = std::f64::consts::PI * circle.radius.pow(2) as f64;
     let ideal_symbol_area = (circle_area / circle_area_percent) / (1.0 - height_adjust_percent);
     let ideal_symbol_side = ideal_symbol_area.sqrt();
-
-    // let estimated_module_x = ideal_symbol_side / MaxiCodeReader::MATRIX_WIDTH as f64;
-    // let estimated_module_y =
-    //     (ideal_symbol_side * height_final_adjust_percent) / MaxiCodeReader::MATRIX_HEIGHT as f64;
 
     (
         ideal_symbol_side.round() as u32,
@@ -842,15 +1040,7 @@ fn compare_circle(a: &Circle, b: &Circle) -> std::cmp::Ordering {
     let a_var = a.calculate_circle_variance();
     let b_var = b.calculate_circle_variance();
 
-    // a_var.partial_cmp(&b_var).unwrap()
-
-    if a_var < b_var {
-        std::cmp::Ordering::Greater
-    } else if a_var > b_var {
-        std::cmp::Ordering::Less
-    } else {
-        std::cmp::Ordering::Equal
-    }
+    a_var.partial_cmp(&b_var).unwrap()
 }
 
 /// Read appropriate bits from a bitmatrix for the maxicode decoder
@@ -868,7 +1058,6 @@ pub fn read_bits(image: &BitMatrix) -> Result<BitMatrix, Exceptions> {
         // for (int y = 0; y < MATRIX_HEIGHT; y++) {
         let iy = (top + (y * height + height / 2) / MaxiCodeReader::MATRIX_HEIGHT).min(height - 1);
         for x in 0..MaxiCodeReader::MATRIX_WIDTH {
-            // for (int x = 0; x < MATRIX_WIDTH; x++) {
             // srowen: I don't quite understand why the formula below is necessary, but it
             // can walk off the image if left + width = the right boundary. So cap it.
             let ix = left

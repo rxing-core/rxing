@@ -218,12 +218,12 @@ impl BitMatrix {
         y as usize * self.row_size + (x as usize / 32)
     }
 
-    pub fn try_get(&self, x: u32, y: u32) -> Result<bool, Exceptions> {
+    pub fn try_get(&self, x: u32, y: u32) -> Option<bool> {
         let offset = self.get_offset(y, x);
-        if offset > self.bits.len() {
-            return Err(Exceptions::IndexOutOfBoundsException(None));
+        if offset >= self.bits.len() {
+            return None;
         }
-        Ok(((self.bits[offset] >> (x & 0x1f)) & 1) != 0)
+        Some(((self.bits[offset] >> (x & 0x1f)) & 1) != 0)
     }
 
     /// Confusingly returns true if the requested element is out of bounds
