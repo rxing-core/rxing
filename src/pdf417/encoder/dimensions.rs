@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /**
  * Data object to specify the minimum and maximum number of rows and columns for a PDF417 barcode.
  *
  * @author qwandor@google.com (Andrew Walbran)
  */
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Dimensions {
     minCols: usize,

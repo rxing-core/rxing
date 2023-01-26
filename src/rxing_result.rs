@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-//package com.google.zxing;
-
-//import java.util.EnumMap;
-//import java.util.Map;
-
 use std::{collections::HashMap, fmt};
 
 use crate::{BarcodeFormat, RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint};
+
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 /**
  * <p>Encapsulates the result of decoding a barcode within an image.</p>
  *
  * @author Sean Owen
  */
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone)]
 pub struct RXingResult {
     text: String,

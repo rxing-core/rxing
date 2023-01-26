@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /**
  * @author Guenther Grau
  */
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq)]
 pub struct PDF417RXingResultMetadata {
     segmentIndex: usize,

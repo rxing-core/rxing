@@ -20,12 +20,16 @@ use std::rc::Rc;
 
 use crate::pdf417::PDF417RXingResultMetadata;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /**
  * Represents some type of metadata about the result of the decoding that the decoder
  * wishes to communicate back to the caller.
  *
  * @author Sean Owen
  */
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Eq, PartialEq, Hash, Debug, Clone)]
 pub enum RXingResultMetadataType {
     /**
@@ -126,6 +130,7 @@ impl From<String> for RXingResultMetadataType {
     }
 }
 
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum RXingResultMetadataValue {
     /**

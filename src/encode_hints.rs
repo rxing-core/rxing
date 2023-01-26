@@ -16,13 +16,19 @@
 
 //package com.google.zxing;
 
+#![allow(deprecated)]
+
 use crate::{pdf417::encoder::Dimensions, Dimension};
+
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 /**
  * These are a set of hints that you may pass to Writers to specify their behavior.
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum EncodeHintType {
     /**
@@ -176,6 +182,7 @@ pub enum EncodeHintType {
     CODE128_COMPACT,
 }
 
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum EncodeHintValue {
     /**
      * Specifies what degree of error correction to use, for example in QR Codes.
