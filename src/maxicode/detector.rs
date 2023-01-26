@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use num::integer::Roots;
 
 use crate::{
@@ -132,81 +133,83 @@ impl<'a> Circle<'_> {
     }
 
     /// detect an ellipse, and try to find defining points of it.
-    pub fn detect_ellipse(&self) -> ((f32, f32), ((f32, f32), (f32, f32), (f32, f32), (f32, f32))) {
-        if (self.image.get(self.center.0 + self.radius, self.center.1)
-            && self.image.get(self.center.0, self.center.1 + self.radius)
-            && self.image.get(self.center.0 - self.radius, self.center.1)
-            && self.image.get(self.center.0, self.center.1 - self.radius))
-            || self.horizontal_buckets[5] == self.vertical_buckets[5]
-        {
-            // probably allready a circle, or we already have true center
+    /// returns (ellipse, center, semi_major, semi_minor, linear_eccentricity)
+    pub fn detect_ellipse(&self) -> (bool, (u32, u32), u32, u32, u32) {
+        // find semi-major and semi-minor axi
+        let mut lengths = [(0, 0.0, [(0.0_f32, 0.0); 2]); 72];
+        let mut circle_points = Vec::new();
+        for i_rotation in 0..72 {
+            let rotation = i_rotation as f32 * 5.0;
+            let (length, points) = self.find_width_at_degree(rotation);
+            circle_points.extend_from_slice(&points);
+            lengths[i_rotation] = (length, rotation, points);
+        }
+        lengths.sort_by_key(|e| e.0);
+        let major_axis = lengths.last().unwrap();
+        let minor_axis = lengths.first().unwrap();
 
-            //self.center
-            todo!()
+        // // find foci
+        let linear_eccentricity = ((major_axis.0 / 2).pow(2) - (minor_axis.0 / 2).pow(2)).sqrt();
+
+        if linear_eccentricity == 0 {
+            // it's a circle afterall, and we're probably at the center of it
+            (false, self.center, self.radius, self.radius, 0)
         } else {
-            // this looks like an ellipse, do ellipse magic
-            // find semi-major and semi-minor axi
-            let mut lengths = [(0, 0.0, [(0.0_f32, 0.0); 2]); 72];
-            let mut circle_points = Vec::new();
-            for i_rotation in 0..72 {
-                let rotation = i_rotation as f32 * 5.0;
-                let (length, points) = self.find_width_at_degree(rotation);
-                circle_points.extend_from_slice(&points);
-                lengths[i_rotation] = (length, rotation, points);
-            }
-            lengths.sort_by_key(|e| e.0);
-            let major_axis = lengths.last().unwrap();
-            let minor_axis = lengths.first().unwrap();
-
-            // // find foci
-            let linear_eccentricity =
-                ((major_axis.0 / 2).pow(2) - (minor_axis.0 / 2).pow(2)).sqrt();
-
-            if linear_eccentricity == 0 {
-                // it's a circle afterall, and we're probably at the center of it
-
-                //self.center
-                todo!()
-            } else {
-                //it's an elipse, or we're off center, so we need to fix that problem
-                // let mut good_points = 0;
-                // let mut bad_points = 0;
-                let mut found_all_on_ellipse = true;
-                for point in &circle_points {
-                    let check_result = Self::check_ellipse_point(
-                        self.center,
-                        point,
-                        major_axis.0 / 2,
-                        minor_axis.0 / 2,
-                    );
-                    if check_result > 1.0 {
-                        //&& check_result - Self::ALLOWABLE_ELLIPSE_SLIP > 1.0 {
-                        // a point is off the ellipse
-                        // bad_points += 1;
-                        found_all_on_ellipse = false;
-                        break;
-                    } /*else {
-                          good_points += 1;
-                      }*/
-                }
-                if !found_all_on_ellipse {
-                    // probably a circle that we wrongly accused of being an ellipse,
-                    // try to find the center of that circle given two points on circumference
-                    // let point_1 = major_axis.2[0];
-                    // let point_2 = minor_axis.2[1];
-                    // let point_3 = circle_points[((major_axis.0 + 3 + minor_axis.0 + 7) / 2) as usize];
-                    let [point_1, point_2] = self.find_width_at_degree(0.0).1;
-                    let point_3 = self.find_width_at_degree(90.0).1[0];
-                    let guessed_center_point = Self::find_center(point_1, point_2, point_3);
-                    // (
-                    //     guessed_center_point.0.round() as u32,
-                    //     guessed_center_point.1.round() as u32,
-                    // )
-                    todo!()
+            //it's an elipse, or we're off center, so we need to fix that problem
+            let mut good_points = 0;
+            let mut bad_points = 0;
+            let mut found_all_on_ellipse = true;
+            for point in &circle_points {
+                let check_result = Self::check_ellipse_point(
+                    self.center,
+                    point,
+                    major_axis.0 / 2,
+                    minor_axis.0 / 2,
+                );
+                if check_result > 1.0 {
+                    // a point is off the ellipse
+                    bad_points += 1;
+                    found_all_on_ellipse = false;
+                    // break;
                 } else {
-                    // maybe an actual ellipse
-                    todo!()
+                    good_points += 1;
                 }
+            }
+            if !found_all_on_ellipse
+                && (good_points as f32 / (good_points + bad_points) as f32) < 0.8
+            {
+                // probably a circle that we wrongly accused of being an ellipse,
+                // try to find the center of that circle given three points on circumference
+                let [point_1, point_2] = self.find_width_at_degree(0.0).1;
+                let point_3 = self.find_width_at_degree(90.0).1[0];
+                let guessed_center_point = Self::find_center(point_1, point_2, point_3);
+                (
+                    false,
+                    (guessed_center_point.0 as u32, guessed_center_point.1 as u32),
+                    self.radius,
+                    self.radius,
+                    0,
+                )
+            } else {
+                // this is a real ellipse
+
+                // find ellipse center
+                let [point_1, point_2] = self.find_width_at_degree(0.0).1;
+                let point_3 = self.find_width_at_degree(90.0).1[0];
+                let ellipse_center = Self::calculate_ellipse_center(
+                    major_axis.0 as f32,
+                    minor_axis.0 as f32,
+                    point_1,
+                    point_2,
+                    point_3,
+                );
+                (
+                    true,
+                    (ellipse_center.0 as u32, ellipse_center.1 as u32),
+                    major_axis.0 / 2,
+                    minor_axis.0 / 2,
+                    linear_eccentricity,
+                )
             }
         }
     }
@@ -230,6 +233,32 @@ impl<'a> Circle<'_> {
         (x.abs(), y.abs())
     }
 
+    fn calculate_ellipse_center(
+        a: f32,
+        _b: f32,
+        p1: (f32, f32),
+        p2: (f32, f32),
+        p3: (f32, f32),
+    ) -> (f32, f32) {
+        let x1 = p1.0;
+        let y1 = p1.1;
+        let x2 = p2.0;
+        let y2 = p2.1;
+        let x3 = p3.0;
+        let y3 = p3.1;
+
+        let ma = (x1 * x1 + y1 * y1 - a * a) / 2.0;
+        let mb = (x2 * x2 + y2 * y2 - a * a) / 2.0;
+        let mc = (x3 * x3 + y3 * y3 - a * a) / 2.0;
+
+        let determinant = (x1 * y2 + x2 * y3 + x3 * y1) - (y1 * x2 + y2 * x3 + y3 * x1);
+
+        let x = (ma * y2 + mb * y3 + mc * y1) / determinant;
+        let y = (x1 * mb + x2 * mc + x3 * ma) / determinant;
+
+        (x, y)
+    }
+
     fn check_ellipse_point(
         center: (u32, u32),
         point: &(f32, f32),
@@ -248,7 +277,7 @@ impl<'a> Circle<'_> {
         // count left
         while {
             let point = get_point(self.center, (x, y), rotation);
-            !self.image.get(point.0 as u32, point.1 as u32)
+            !self.image.get(point.0 as u32, point.1 as u32) && x > 0
         } {
             x -= 1;
             length += 1;
@@ -274,67 +303,6 @@ impl<'a> Circle<'_> {
             ],
         )
     }
-
-    // fn find_cercumference(&self) -> (u32, Vec<(u32, u32)>) {
-    //     let mut x = self.center.0;
-    //     let mut y = self.center.1;
-    //     let mut points = Vec::new();
-    //     let mut circumference = 0;
-
-    //     // back up to the left wall
-    //     while !self.image.get(x, y) {
-    //         x -= 1;
-    //     }
-    //     x -= 1;
-
-    //     // this is our first point
-    //     points.push((x, y));
-
-    //     let start_x = x;
-    //     let start_y = y;
-
-    //     loop {
-
-    //         if x == start_x && y == start_y {
-    //             break;
-    //         }
-    //         circumference += 1;
-    //         points.push((x, y));
-    //     }
-
-    //     (circumference, points)
-    // }
-    // fn find_area(&self) -> u32 {
-    //     let mut pixel_area = 0;
-
-    //     let mut x = self.center.0;
-    //     let mut y = self.center.1;
-
-    //     // move to one end
-    //     while !self.image.get(x, y) {
-    //         y -= 1;
-    //     }
-
-    //     // work our way to the opposite side
-    //     while !self.image.get(x, y) {
-    //         // count left
-    //         x = self.center.0;
-    //         while !self.image.get(x, y) {
-    //             x -= 1;
-    //             pixel_area += 1;
-    //         }
-    //         // count right
-    //         x = self.center.0 + 1;
-    //         while !self.image.get(x, y) {
-    //             x += 1;
-    //             pixel_area += 1;
-    //         }
-
-    //         y += 1;
-    //     }
-
-    //     pixel_area
-    // }
 }
 
 pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionResult, Exceptions> {
@@ -737,7 +705,17 @@ fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<[(f32, f32); 4],
         RXingResultPoint::new(right_boundary as f32, top_boundary as f32),
     ];
 
+    #[allow(unused_mut)]
     let mut result_box = naive_box;
+
+    // check and see if we're dealing with an ellipse
+    #[cfg(feature = "experimental_features")]
+    let (is_ellipse, _, _, _, _) = circle.detect_ellipse();
+    #[cfg(feature = "experimental_features")]
+    if is_ellipse {
+        // we don't deal with ellipses yet
+        return Err(Exceptions::NotFoundException(None));
+    }
 
     #[cfg(feature = "experimental_features")]
     for scale in ACCEPTED_SCALES {
@@ -746,11 +724,6 @@ fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<[(f32, f32); 4],
             break;
         }
     }
-    // let result_box = if let Some(found_rotation) = attempt_rotation_box(image, circle, &naive_box) {
-    //     found_rotation
-    // } else {
-    //     naive_box
-    // };
 
     Ok([
         (result_box[0].x, result_box[0].y),
