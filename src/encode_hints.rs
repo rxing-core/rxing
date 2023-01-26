@@ -16,6 +16,8 @@
 
 //package com.google.zxing;
 
+#![allow(deprecated)]
+
 use crate::{pdf417::encoder::Dimensions, Dimension};
 
 #[cfg(feature = "serde")]
