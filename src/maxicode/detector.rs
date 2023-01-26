@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use num::integer::Roots;
 
 use crate::{
@@ -704,6 +705,7 @@ fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<[(f32, f32); 4],
         RXingResultPoint::new(right_boundary as f32, top_boundary as f32),
     ];
 
+    #[allow(unused_mut)]
     let mut result_box = naive_box;
 
     // check and see if we're dealing with an ellipse
