@@ -653,11 +653,6 @@ fn validate_bullseye_widths(buckets: &[u32; 11]) -> bool {
     let max_variance_even = estimated_module_size_even / 2.0;
     let max_variance_odd = estimated_module_size_odd / 2.0;
 
-    // let total_width = buckets.iter().sum::<u32>() as f32;
-    // let estimated_module_size = total_width / (buckets.len() -1 ) as f32;
-
-    // let max_variance = estimated_module_size / 2.5;
-
     let b1 = (estimated_module_size_even - buckets[0] as f32).abs();
     let b2 = (estimated_module_size_odd - buckets[1] as f32).abs();
     let b3 = (estimated_module_size_even - buckets[2] as f32).abs();
@@ -685,18 +680,18 @@ fn validate_bullseye_widths(buckets: &[u32; 11]) -> bool {
 
 /// returns the (center , radius) of the possible bullseye
 fn get_bullseye_metadata(buckets: &[u32; 11], column: u32) -> (u32, u32, [u32; 11]) {
-    let radius = ((buckets.iter().sum::<u32>() as f32) / 2.0).round() as u32; //buckets.iter().skip(6).sum::<u32>() + buckets[5] / 2;
-    let center = column - radius; //buckets.iter().take(5).sum::<u32>() - (buckets[5] / 2);
+    let radius = ((buckets.iter().sum::<u32>() as f32) / 2.0).round() as u32; 
+    let center = column - radius; 
     (center, radius, *buckets)
 }
 
-const LEFT_SHIFT_PERCENT_ADJUST: f32 = 0.0;
+const LEFT_SHIFT_PERCENT_ADJUST: f32 = 0.03;
 const RIGHT_SHIFT_PERCENT_ADJUST: f32 = 0.03;
 const ACCEPTED_SCALES: [f64; 5] = [0.065, 0.069, 0.07, 0.075, 0.08];
 
 fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<[(f32, f32); 4], Exceptions> {
     let (left_boundary, right_boundary, top_boundary, bottom_boundary) =
-        calculate_simple_boundary(circle, Some(image), None);
+        calculate_simple_boundary(circle, Some(image), None, false);
 
     let naive_box = [
         RXingResultPoint::new(left_boundary as f32, bottom_boundary as f32),
@@ -737,11 +732,12 @@ fn calculate_simple_boundary(
     circle: &Circle,
     image: Option<&BitMatrix>,
     center_scale: Option<f64>,
+    tight: bool,
 ) -> (u32, u32, u32, u32) {
-    let (symbol_width, symbol_height) = if image.is_some() {
+    let (symbol_width, symbol_height) = if !tight {
         guess_barcode_size(circle)
     } else if let Some(s) = center_scale {
-        guess_barcode_size_general(circle, 0.03, s, 0.97)
+        guess_barcode_size_general(circle, 0.05, s, 0.95)
     } else {
         guess_barcode_size_tighter(circle)
     };
@@ -763,12 +759,11 @@ fn calculate_simple_boundary(
         (circle.center.0 as i32 - left_shift).clamp(0, image_width as i32 - 33) as u32;
     let right_boundary =
         (circle.center.0 as i32 + right_shift).clamp(33, image_width as i32) as u32;
-    //symbol_width.clamp(30, image.getWidth());
     let top_boundary =
         (circle.center.1 as i32 + up_down_shift).clamp(33, image_height as i32) as u32;
-    //symbol_height.clamp(33, image.getHeight());
     let bottom_boundary =
         (circle.center.1 as i32 - up_down_shift).clamp(0, image_height as i32 - 30) as u32;
+
     (left_boundary, right_boundary, top_boundary, bottom_boundary)
 }
 
@@ -788,7 +783,9 @@ fn attempt_rotation_box(
     naive_box: &[RXingResultPoint; 4],
     center_scale: f64,
 ) -> Option<[RXingResultPoint; 4]> {
+    // update our circle with a more accurate center point
     circle.calculate_high_accuracy_center();
+
     // we know that the locator symbols should appear at 60 degree increments around the circle
 
     // top left
@@ -959,12 +956,12 @@ fn get_point(center: (u32, u32), original: (u32, u32), angle: f32) -> (f32, f32)
         + radians.cos() * (original.1 as f32 - center.1 as f32)
         + center.1 as f32;
 
-    (x, y)
+    (x.abs(), y.abs())
 }
 
 fn adjust_point_alternate(point: (u32, u32), circle: &Circle, center_scale: f64) -> (u32, u32) {
     let (left_boundary, right_boundary, top_boundary, bottom_boundary) =
-        calculate_simple_boundary(circle, None, Some(center_scale));
+        calculate_simple_boundary(circle, Some(circle.image), Some(center_scale), true);
 
     let top = bottom_boundary;
     let height = top_boundary - bottom_boundary;
@@ -989,7 +986,7 @@ fn guess_barcode_size(circle: &Circle) -> (u32, u32) {
 }
 
 fn guess_barcode_size_tighter(circle: &Circle) -> (u32, u32) {
-    guess_barcode_size_general(circle, 0.03, 0.0695, 0.97)
+    guess_barcode_size_general(circle, 0.025, 0.0695, 0.97)
 }
 
 fn guess_barcode_size_general(
