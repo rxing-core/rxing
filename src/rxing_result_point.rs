@@ -3,12 +3,16 @@ use std::{fmt, iter::Sum};
 use crate::ResultPoint;
 use std::hash::Hash;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /**
  * <p>Encapsulates a point of interest in an image containing a barcode. Typically, this
  * would be the location of a finder pattern or the corner of the barcode, for example.</p>
  *
  * @author Sean Owen
  */
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy, Default)]
 pub struct RXingResultPoint {
     pub(crate) x: f32,

@@ -20,9 +20,13 @@ use std::fmt;
 
 use crate::Exceptions;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /**
  * Simply encapsulates a width and height.
  */
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Eq, PartialEq, Hash, Copy, Clone)]
 pub struct Dimension(usize, usize);
 

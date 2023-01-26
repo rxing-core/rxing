@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /**
  * Enumeration for DataMatrix symbol shape hint. It can be used to force square or rectangular
  * symbols.
  */
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum SymbolShapeHint {
     FORCE_NONE,

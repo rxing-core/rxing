@@ -18,11 +18,15 @@
 
 use std::fmt::Display;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /**
  * Enumerates barcode formats known to this package. Please keep alphabetized.
  *
  * @author Sean Owen
  */
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum BarcodeFormat {
     /** Aztec 2D barcode format. */

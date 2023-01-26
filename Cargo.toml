@@ -30,6 +30,7 @@ rxing-one-d-proc-derive = "0.3"
 num = "0.4.0"
 svg = {version = "0.13", optional = true}
 resvg = {version = "0.28.0", optional = true, default-features=false}
+serde = { version = "1.0", features = ["derive", "rc"], optional = true }
 
 [dev-dependencies]
 java-properties = "1.4.1"
@@ -37,10 +38,11 @@ java-rand = "0.2.0"
 rand = "0.8.5"
 
 [features]
-default = ["image"]
+default = ["image", "serde"]
 image = ["dep:image", "dep:imageproc"]
 allow_forced_iso_ied_18004_compliance = []
 svg_write = ["dep:svg"]
 svg_read = ["dep:resvg", "image"]
 wasm_support = ["chrono/wasmbind"]
 experimental_features = []
+serde = ["dep:serde"]

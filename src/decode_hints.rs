@@ -20,6 +20,9 @@ use std::collections::HashSet;
 
 use crate::{BarcodeFormat, RXingResultPointCallback};
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /**
  * Encapsulates a type of hint that a caller may pass to a barcode reader to help it
  * more quickly or accurately decode it. It is up to implementations to decide what,
@@ -29,6 +32,7 @@ use crate::{BarcodeFormat, RXingResultPointCallback};
  * @author dswitkin@google.com (Daniel Switkin)
  * @see Reader#decode(BinaryBitmap,java.util.Map)
  */
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Eq, PartialEq, Hash, Debug, Clone, Copy)]
 pub enum DecodeHintType {
     /**
@@ -137,6 +141,7 @@ pub enum DecodeHintType {
     }*/
 }
 
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone)]
 pub enum DecodeHintValue {
     /**
@@ -196,6 +201,7 @@ pub enum DecodeHintValue {
      * The caller needs to be notified via callback when a possible {@link RXingResultPoint}
      * is found. Maps to a {@link RXingResultPointCallback}.
      */
+    #[cfg_attr(feature = "serde", serde(skip_serializing, skip_deserializing))]
     NeedResultPointCallback(RXingResultPointCallback),
 
     /**
