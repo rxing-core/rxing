@@ -9,6 +9,10 @@ Porting was done with the rust language in mind, though some parts may resemble 
 ## CLI
 If you're looking for a CLI interface into the library, please see [rxing-cli](https://crates.io/crates/rxing-cli).
 
+## WASM
+If you're looking for a WASM version of this library, check out [rxing-wasm](https://github.com/hschimke/rxing-wasm), or on [NPM](https://www.npmjs.com/package/rxing-wasm).
+
+
 ## Status
 All barcode formats are tested and functioning in their current state against current tests.
 
@@ -51,6 +55,7 @@ fn main() {
 ```
 
 ## Latest Release Notes
+* *v0.2.20* -> Adds rudimentary support for MaxiCode detection. The detector works best on unrotated images on a flat plane. Very basic support for rotation correction is gated behind the `experimental_features` flag, but it is not ready for most use cases. The MaxiCode detector is gated behind the `TryHarder` decoder hint, by default rxing uses the old `PureBarcode` implementation.
 * *v0.2.19* -> The datamatrix detector for the c++ version of zxing [zxing-cpp](https://github.com/zxing-cpp/zxing-cpp) has been ported. This features a dramatically different method of detecting datamatrix symbols. If you want to fallback to the original version, include the decode hint TRY_HARDER.
 * *v0.2.15* -> Support for reading and writing svg files through the feature flags `svg_read` and `svg_write`.
 
