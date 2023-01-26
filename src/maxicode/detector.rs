@@ -234,7 +234,7 @@ impl<'a> Circle<'_> {
 
     fn calculate_ellipse_center(
         a: f32,
-        b: f32,
+        _b: f32,
         p1: (f32, f32),
         p2: (f32, f32),
         p3: (f32, f32),
