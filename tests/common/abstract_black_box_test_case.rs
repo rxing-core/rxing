@@ -124,7 +124,10 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
             .filter(|r| r.is_ok()) // Get rid of Err variants for Result<DirEntry>
             .map(|r| r.unwrap().path()) // This is safe, since we only have the Ok variants
             .filter(|r| r.is_file()) // Filter out non-folders
-            .filter(|r| r.extension().is_some() && POSSIBLE_EXTENSIONS.contains(r.extension().unwrap().to_str().unwrap()))
+            .filter(|r| {
+                r.extension().is_some()
+                    && POSSIBLE_EXTENSIONS.contains(r.extension().unwrap().to_str().unwrap())
+            })
             // .map(|r| r.into_boxed_path())
             .collect::<Vec<PathBuf>>();
 

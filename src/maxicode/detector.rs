@@ -819,91 +819,91 @@ fn attempt_rotation_box(
 
     for int_rotation in 0..175 {
         let rotation = (int_rotation * 2) as f32;
-            // look for top left
-            //  * *
-            //   *
-            let p1_rot = get_point(circle.center, topl_p1, rotation);
-            let p2_rot = get_point(circle.center, topl_p2, rotation);
-            let p3_rot = get_point(circle.center, topl_p3, rotation);
-            let found_tl = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32,3)?
-                && image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32,3)?
-                && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32,3)?;
-            if !found_tl {
-                continue;
-            }
+        // look for top left
+        //  * *
+        //   *
+        let p1_rot = get_point(circle.center, topl_p1, rotation);
+        let p2_rot = get_point(circle.center, topl_p2, rotation);
+        let p3_rot = get_point(circle.center, topl_p3, rotation);
+        let found_tl = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32, 3)?
+            && image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32, 3)?
+            && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32, 3)?;
+        if !found_tl {
+            continue;
+        }
 
-            // look for top right
-            //  /\
-            //  __
-            let p1_rot = get_point(circle.center, topr_p1, rotation);
-            let p2_rot = get_point(circle.center, topr_p2, rotation);
-            let p3_rot = get_point(circle.center, topr_p3, rotation);
-            let found_tr = !image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32,3)?
-                && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32,3)?
-                && !image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32,3)?;
-            if !found_tr {
-                continue;
-            }
+        // look for top right
+        //  /\
+        //  __
+        let p1_rot = get_point(circle.center, topr_p1, rotation);
+        let p2_rot = get_point(circle.center, topr_p2, rotation);
+        let p3_rot = get_point(circle.center, topr_p3, rotation);
+        let found_tr = !image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32, 3)?
+            && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32, 3)?
+            && !image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32, 3)?;
+        if !found_tr {
+            continue;
+        }
 
-            // look for left
-            //   *
-            //    *
-            let p1_rot = get_point(circle.center, l_p1, rotation);
-            let p2_rot = get_point(circle.center, l_p2, rotation);
-            let p3_rot = get_point(circle.center, l_p3, rotation);
-            let found_l = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32,3)?
-                && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32,3)?
-                && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32,3)?;
-            if !found_l {
-                continue;
-            }
+        // look for left
+        //   *
+        //    *
+        let p1_rot = get_point(circle.center, l_p1, rotation);
+        let p2_rot = get_point(circle.center, l_p2, rotation);
+        let p3_rot = get_point(circle.center, l_p3, rotation);
+        let found_l = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32, 3)?
+            && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32, 3)?
+            && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32, 3)?;
+        if !found_l {
+            continue;
+        }
 
-            // look for right
-            //   *
-            //    *
-            let p1_rot = get_point(circle.center, r_p1, rotation);
-            let p2_rot = get_point(circle.center, r_p2, rotation);
-            let p3_rot = get_point(circle.center, r_p3, rotation);
-            let found_r = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32,3)?
-                && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32,3)?
-                && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32,3)?;
-            if !found_r {
-                continue;
-            }
+        // look for right
+        //   *
+        //    *
+        let p1_rot = get_point(circle.center, r_p1, rotation);
+        let p2_rot = get_point(circle.center, r_p2, rotation);
+        let p3_rot = get_point(circle.center, r_p3, rotation);
+        let found_r = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32, 3)?
+            && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32, 3)?
+            && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32, 3)?;
+        if !found_r {
+            continue;
+        }
 
-            // look for bottom left
-            //   *
-            //    *
-            let p1_rot = get_point(circle.center, bottoml_p1, rotation);
-            let p2_rot = get_point(circle.center, bottoml_p2, rotation);
-            let p3_rot = get_point(circle.center, bottoml_p3, rotation);
-            let found_bl = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32,3)?
-                && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32,3)?
-                && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32,3)?;
-            if !found_bl {
-                continue;
-            }
+        // look for bottom left
+        //   *
+        //    *
+        let p1_rot = get_point(circle.center, bottoml_p1, rotation);
+        let p2_rot = get_point(circle.center, bottoml_p2, rotation);
+        let p3_rot = get_point(circle.center, bottoml_p3, rotation);
+        let found_bl = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32, 3)?
+            && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32, 3)?
+            && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32, 3)?;
+        if !found_bl {
+            continue;
+        }
 
-            // look for bottom right
-            //   *
-            //    *
-            let p1_rot = get_point(circle.center, bottomr_p1, rotation);
-            let p2_rot = get_point(circle.center, bottomr_p2, rotation);
-            let p3_rot = get_point(circle.center, bottomr_p3, rotation);
-            let found_br = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32,3)?
-                && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32,3)?
-                && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32,3)?;
-            if !found_br {
-                continue;
-            }
+        // look for bottom right
+        //   *
+        //    *
+        let p1_rot = get_point(circle.center, bottomr_p1, rotation);
+        let p2_rot = get_point(circle.center, bottomr_p2, rotation);
+        let p3_rot = get_point(circle.center, bottomr_p3, rotation);
+        let found_br = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32, 3)?
+            && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32, 3)?
+            && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32, 3)?;
+        if !found_br {
+            continue;
+        }
 
-            // did we find it?
-            found = found_tl && found_tr && found_l && found_r && found_bl && found_br;
+        // did we find it?
+        found = found_tl && found_tr && found_l && found_r && found_bl && found_br;
 
-            if found {
-                final_rotation = rotation;
-                break;
-            }
+        if found {
+            final_rotation = rotation;
+            break;
+        }
     }
 
     if found {

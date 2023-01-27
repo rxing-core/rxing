@@ -231,7 +231,7 @@ impl BitMatrix {
         let start_x = x - box_size / 2;
         let end_x = x + box_size / 2;
         let start_y = y - box_size / 2;
-        let end_y = y+ box_size / 2;
+        let end_y = y + box_size / 2;
 
         for get_x in start_x..=end_x {
             for get_y in start_y..=end_y {
@@ -239,10 +239,10 @@ impl BitMatrix {
             }
         }
 
-        let total_set = matrix.iter().filter(|bit| **bit ).count();
-        if (total_set as f32 / matrix.len() as f32) >=0.5 {
+        let total_set = matrix.iter().filter(|bit| **bit).count();
+        if (total_set as f32 / matrix.len() as f32) >= 0.5 {
             Some(true)
-        }else {
+        } else {
             Some(false)
         }
     }
