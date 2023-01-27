@@ -101,15 +101,9 @@ pub fn decode(bytes: &[u8], mode: u8) -> Result<DecoderRXingResult, Exceptions> 
             let service = format!("{:0>3}", getServiceClass(bytes));
             result.push_str(&getMessage(bytes, 10, 84));
             if result.starts_with(&format!("[)>{}{}{}", RS, "01", GS)) {
-                result.insert_str(
-                    9,
-                    &format!("{postcode}{GS}{country}{GS}{service}{GS}"),
-                );
+                result.insert_str(9, &format!("{postcode}{GS}{country}{GS}{service}{GS}"));
             } else {
-                result.insert_str(
-                    0,
-                    &format!("{postcode}{GS}{country}{GS}{service}{GS}"),
-                );
+                result.insert_str(0, &format!("{postcode}{GS}{country}{GS}{service}{GS}"));
             }
         }
         4 => {

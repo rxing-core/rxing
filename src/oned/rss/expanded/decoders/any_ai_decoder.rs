@@ -107,9 +107,7 @@ mod AnyAIDecoderTest {
 
     #[test]
     fn testAnyAIDecoderalphaFNC1() {
-        let data = format!(
-            "{HEADER}{NUMERIC10}{NUMERIC2ALPHA}{ALPHA_A}{ALPHA_FNC1}"
-        );
+        let data = format!("{HEADER}{NUMERIC10}{NUMERIC2ALPHA}{ALPHA_A}{ALPHA_FNC1}");
         let expected = "(10)A";
 
         assertCorrectBinaryString(&data, expected);

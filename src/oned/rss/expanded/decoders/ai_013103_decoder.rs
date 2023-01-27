@@ -82,18 +82,14 @@ mod AI013103DecoderTest {
 
     #[test]
     fn test0131031() {
-        let data = format!(
-            "{HEADER}{COMPRESSED_GTIN900123456798908}{COMPRESSED15BIT_WEIGHT1750}"
-        );
+        let data = format!("{HEADER}{COMPRESSED_GTIN900123456798908}{COMPRESSED15BIT_WEIGHT1750}");
         let expected = "(01)90012345678908(3103)001750";
         assertCorrectBinaryString(&data, expected);
     }
 
     #[test]
     fn test0131032() {
-        let data = format!(
-            "{HEADER}{COMPRESSED_GTIN900000000000008}{COMPRESSED15BIT_WEIGHT0}"
-        );
+        let data = format!("{HEADER}{COMPRESSED_GTIN900000000000008}{COMPRESSED15BIT_WEIGHT0}");
         let expected = "(01)90000000000003(3103)000000";
         assertCorrectBinaryString(&data, expected);
     }
@@ -101,9 +97,8 @@ mod AI013103DecoderTest {
     #[test]
     #[should_panic]
     fn test013103invalid() {
-        let data = format!(
-            "{HEADER}{COMPRESSED_GTIN900123456798908}{COMPRESSED15BIT_WEIGHT1750}.."
-        );
+        let data =
+            format!("{HEADER}{COMPRESSED_GTIN900123456798908}{COMPRESSED15BIT_WEIGHT1750}..");
         assertCorrectBinaryString(&data, "");
     }
 }

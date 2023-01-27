@@ -141,7 +141,7 @@ impl<'a> Circle<'_> {
         let mut lengths = [(0, 0.0, [(0.0_f32, 0.0); 2]); 72];
         let mut circle_points = Vec::new();
         // for i_rotation in 0..72 {
-            for (i_rotation, length_set) in lengths.iter_mut().enumerate(){
+        for (i_rotation, length_set) in lengths.iter_mut().enumerate() {
             let rotation = i_rotation as f32 * 5.0;
             let (length, points) = self.find_width_at_degree(rotation);
             circle_points.extend_from_slice(&points);
