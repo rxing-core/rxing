@@ -36,7 +36,7 @@ struct Circle<'a> {
     image: &'a BitMatrix,
 }
 
-impl<'a> Circle<'_> {
+impl Circle<'_> {
     pub fn calculate_circle_variance(&self) -> f32 {
         let total_width_even = self
             .horizontal_buckets
