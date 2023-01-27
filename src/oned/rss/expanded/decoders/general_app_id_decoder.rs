@@ -445,8 +445,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
             62 => '/',
             _ => {
                 return Err(Exceptions::IllegalStateException(Some(format!(
-                    "Decoding invalid alphanumeric value: {}",
-                    sixBitValue
+                    "Decoding invalid alphanumeric value: {sixBitValue}"
                 ))))
             }
         };

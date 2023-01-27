@@ -36,7 +36,7 @@ pub fn parse(theRXingResult: &crate::RXingResult) -> Option<ParsedClientResult> 
     }
     // Normalize "TEL:" to "tel:"
     let telURI = if let Some(stripped) = rawText.strip_prefix("TEL:") {
-        format!("tel:{}", stripped)
+        format!("tel:{stripped}")
     } else {
         rawText.clone()
     };

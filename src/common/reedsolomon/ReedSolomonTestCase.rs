@@ -398,13 +398,11 @@ public static void corrupt(int[] received, int howMany, Random random, int max) 
 fn test_encode_decode_random(field: GenericGFRef, dataSize: usize, ecSize: usize) {
     assert!(
         dataSize > 0 && dataSize <= field.getSize() - 3,
-        "Invalid data size for {}",
-        field
+        "Invalid data size for {field}"
     );
     assert!(
         ecSize > 0 && ecSize + dataSize <= field.getSize(),
-        "Invalid ECC size for {}",
-        field
+        "Invalid ECC size for {field}"
     );
     let mut encoder = ReedSolomonEncoder::new(field);
     let mut message = vec![0; dataSize + ecSize];
@@ -427,7 +425,7 @@ fn test_encode_decode_random(field: GenericGFRef, dataSize: usize, ecSize: usize
         message[0..dataWords.len()].clone_from_slice(&dataWords[..]);
         //System.arraycopy(dataWords, 0, message, 0, dataWords.len());
         if let Err(err) = encoder.encode(&mut message, ecWords.len()) {
-            panic!("{:#?}", err);
+            panic!("{err:#?}");
         }
         ecWords[0..ecSize].clone_from_slice(&message[dataSize..dataSize + ecSize]);
         //System.arraycopy(message, dataSize, ecWords, 0, ecSize);

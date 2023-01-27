@@ -151,11 +151,7 @@ mod AI013X0X1XDecoderTest {
     #[test]
     fn test01310X1XendDate() {
         let data = format!(
-            "{}{}{}{}",
-            HEADER310X11,
-            COMPRESSED_GTIN900123456798908,
-            COMPRESSED20BIT_WEIGHT1750,
-            COMPRESSED_DATE_END
+            "{HEADER310X11}{COMPRESSED_GTIN900123456798908}{COMPRESSED20BIT_WEIGHT1750}{COMPRESSED_DATE_END}"
         );
         let expected = "(01)90012345678908(3100)001750";
 
@@ -165,11 +161,7 @@ mod AI013X0X1XDecoderTest {
     #[test]
     fn test01310X111() {
         let data = format!(
-            "{}{}{}{}",
-            HEADER310X11,
-            COMPRESSED_GTIN900123456798908,
-            COMPRESSED20BIT_WEIGHT1750,
-            COMPRESSED_DATE_MARCH12TH2010
+            "{HEADER310X11}{COMPRESSED_GTIN900123456798908}{COMPRESSED20BIT_WEIGHT1750}{COMPRESSED_DATE_MARCH12TH2010}"
         );
         let expected = "(01)90012345678908(3100)001750(11)100312";
 
@@ -179,11 +171,7 @@ mod AI013X0X1XDecoderTest {
     #[test]
     fn test01320X111() {
         let data = format!(
-            "{}{}{}{}",
-            HEADER320X11,
-            COMPRESSED_GTIN900123456798908,
-            COMPRESSED20BIT_WEIGHT1750,
-            COMPRESSED_DATE_MARCH12TH2010
+            "{HEADER320X11}{COMPRESSED_GTIN900123456798908}{COMPRESSED20BIT_WEIGHT1750}{COMPRESSED_DATE_MARCH12TH2010}"
         );
         let expected = "(01)90012345678908(3200)001750(11)100312";
 
@@ -193,11 +181,7 @@ mod AI013X0X1XDecoderTest {
     #[test]
     fn test01310X131() {
         let data = format!(
-            "{}{}{}{}",
-            HEADER310X13,
-            COMPRESSED_GTIN900123456798908,
-            COMPRESSED20BIT_WEIGHT1750,
-            COMPRESSED_DATE_MARCH12TH2010
+            "{HEADER310X13}{COMPRESSED_GTIN900123456798908}{COMPRESSED20BIT_WEIGHT1750}{COMPRESSED_DATE_MARCH12TH2010}"
         );
         let expected = "(01)90012345678908(3100)001750(13)100312";
 
@@ -207,11 +191,7 @@ mod AI013X0X1XDecoderTest {
     #[test]
     fn test01320X131() {
         let data = format!(
-            "{}{}{}{}",
-            HEADER320X13,
-            COMPRESSED_GTIN900123456798908,
-            COMPRESSED20BIT_WEIGHT1750,
-            COMPRESSED_DATE_MARCH12TH2010
+            "{HEADER320X13}{COMPRESSED_GTIN900123456798908}{COMPRESSED20BIT_WEIGHT1750}{COMPRESSED_DATE_MARCH12TH2010}"
         );
         let expected = "(01)90012345678908(3200)001750(13)100312";
 
@@ -221,11 +201,7 @@ mod AI013X0X1XDecoderTest {
     #[test]
     fn test01310X151() {
         let data = format!(
-            "{}{}{}{}",
-            HEADER310X15,
-            COMPRESSED_GTIN900123456798908,
-            COMPRESSED20BIT_WEIGHT1750,
-            COMPRESSED_DATE_MARCH12TH2010
+            "{HEADER310X15}{COMPRESSED_GTIN900123456798908}{COMPRESSED20BIT_WEIGHT1750}{COMPRESSED_DATE_MARCH12TH2010}"
         );
         let expected = "(01)90012345678908(3100)001750(15)100312";
 
@@ -235,11 +211,7 @@ mod AI013X0X1XDecoderTest {
     #[test]
     fn test01320X151() {
         let data = format!(
-            "{}{}{}{}",
-            HEADER320X15,
-            COMPRESSED_GTIN900123456798908,
-            COMPRESSED20BIT_WEIGHT1750,
-            COMPRESSED_DATE_MARCH12TH2010
+            "{HEADER320X15}{COMPRESSED_GTIN900123456798908}{COMPRESSED20BIT_WEIGHT1750}{COMPRESSED_DATE_MARCH12TH2010}"
         );
         let expected = "(01)90012345678908(3200)001750(15)100312";
 
@@ -249,11 +221,7 @@ mod AI013X0X1XDecoderTest {
     #[test]
     fn test01310X171() {
         let data = format!(
-            "{}{}{}{}",
-            HEADER310X17,
-            COMPRESSED_GTIN900123456798908,
-            COMPRESSED20BIT_WEIGHT1750,
-            COMPRESSED_DATE_MARCH12TH2010
+            "{HEADER310X17}{COMPRESSED_GTIN900123456798908}{COMPRESSED20BIT_WEIGHT1750}{COMPRESSED_DATE_MARCH12TH2010}"
         );
         let expected = "(01)90012345678908(3100)001750(17)100312";
 
@@ -263,11 +231,7 @@ mod AI013X0X1XDecoderTest {
     #[test]
     fn test01320X171() {
         let data = format!(
-            "{}{}{}{}",
-            HEADER320X17,
-            COMPRESSED_GTIN900123456798908,
-            COMPRESSED20BIT_WEIGHT1750,
-            COMPRESSED_DATE_MARCH12TH2010
+            "{HEADER320X17}{COMPRESSED_GTIN900123456798908}{COMPRESSED20BIT_WEIGHT1750}{COMPRESSED_DATE_MARCH12TH2010}"
         );
         let expected = "(01)90012345678908(3200)001750(17)100312";
 

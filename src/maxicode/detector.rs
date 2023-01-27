@@ -140,11 +140,12 @@ impl<'a> Circle<'_> {
         // find semi-major and semi-minor axi
         let mut lengths = [(0, 0.0, [(0.0_f32, 0.0); 2]); 72];
         let mut circle_points = Vec::new();
-        for i_rotation in 0..72 {
+        // for i_rotation in 0..72 {
+            for (i_rotation, length_set) in lengths.iter_mut().enumerate(){
             let rotation = i_rotation as f32 * 5.0;
             let (length, points) = self.find_width_at_degree(rotation);
             circle_points.extend_from_slice(&points);
-            lengths[i_rotation] = (length, rotation, points);
+            *length_set = (length, rotation, points);
         }
         lengths.sort_by_key(|e| e.0);
         let major_axis = lengths.last().unwrap();
@@ -352,12 +353,12 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
             target_height.round() as u32,
             0.0,
             0.0,
-            target_width as f32 ,
+            target_width ,
             0.0,
-            target_width as f32,
-            target_height as f32,
+            target_width,
+            target_height,
             0.0,
-            target_height as f32,
+            target_height,
             tl.0,
             tl.1,
             tr.0,

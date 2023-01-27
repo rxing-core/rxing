@@ -94,7 +94,7 @@ impl ECIStringBuilder {
      * @param value int to append as a string
      */
     pub fn append(&mut self, value: i32) {
-        self.append_string(&format!("{}", value));
+        self.append_string(&format!("{value}"));
     }
 
     /**

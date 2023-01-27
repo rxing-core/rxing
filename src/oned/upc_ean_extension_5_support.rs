@@ -209,11 +209,11 @@ impl UPCEANExtension5Support {
         let unitsString = (rawAmount / 100).to_string();
         let hundredths = rawAmount % 100;
         let hundredthsString = if hundredths < 10 {
-            format!("0{}", hundredths)
+            format!("0{hundredths}")
         } else {
             hundredths.to_string()
         };
 
-        Some(format!("{}{}.{}", currency, unitsString, hundredthsString))
+        Some(format!("{currency}{unitsString}.{hundredthsString}"))
     }
 }

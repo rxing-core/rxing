@@ -89,7 +89,7 @@ fn matchMultipleValuePrefix(prefix: &str, rawText: &str) -> Vec<String> {
     for i in 1..=3 {
         // for (int i = 1; i <= 3; i++) {
         let value = ResultParser::matchSinglePrefixedField(
-            &format!("{}{}:", prefix, i),
+            &format!("{prefix}{i}:"),
             rawText,
             '\r',
             true,

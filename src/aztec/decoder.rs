@@ -350,8 +350,7 @@ fn correct_bits(
     let num_codewords = rawbits.len() / codeword_size;
     if num_codewords < num_data_codewords as usize {
         return Err(Exceptions::FormatException(Some(format!(
-            "numCodewords {}< numDataCodewords{}",
-            num_codewords, num_data_codewords
+            "numCodewords {num_codewords}< numDataCodewords{num_data_codewords}"
         ))));
     }
     let mut offset = rawbits.len() % codeword_size;

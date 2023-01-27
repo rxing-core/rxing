@@ -134,7 +134,7 @@ fn matchSingleVCardPrefixedField(prefix: &str, rawText: &str) -> String {
                 "".to_owned()
             };
             let root_time = values.last().unwrap().clone();
-            format!("{}{}", root_time, tz_mod)
+            format!("{root_time}{tz_mod}")
         }
     } else {
         "".to_owned()

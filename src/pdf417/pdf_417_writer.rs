@@ -60,8 +60,7 @@ impl Writer for PDF417Writer {
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         if format != &BarcodeFormat::PDF_417 {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
-                "Can only encode PDF_417, but got {}",
-                format
+                "Can only encode PDF_417, but got {format}"
             ))));
         }
 

@@ -319,7 +319,7 @@ impl fmt::Display for GenericGFPoly {
                             result.push('a');
                         } else {
                             result.push_str("a^");
-                            result.push_str(&format!("{}", alpha_power));
+                            result.push_str(&format!("{alpha_power}"));
                         }
                     }
                 }
@@ -328,11 +328,11 @@ impl fmt::Display for GenericGFPoly {
                         result.push('x');
                     } else {
                         result.push_str("x^");
-                        result.push_str(&format!("{}", degree));
+                        result.push_str(&format!("{degree}"));
                     }
                 }
             }
         }
-        write!(f, "{}", result)
+        write!(f, "{result}")
     }
 }

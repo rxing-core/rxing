@@ -172,8 +172,7 @@ fn testDecodeDataCharacter() {
 
 fn readImage(fileName: &str) -> image::DynamicImage {
     image::open(format!(
-        "test_resources/blackbox/rssexpanded-1/{}",
-        fileName
+        "test_resources/blackbox/rssexpanded-1/{fileName}"
     ))
     .unwrap()
     // Path path = AbstractBlackBoxTestCase.buildTestBase("src/test/resources/blackbox/rssexpanded-1/").resolve(fileName);

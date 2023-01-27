@@ -96,8 +96,7 @@ pub fn decode(
                 currentCharacterSetECI = Some(CharacterSetECI::getCharacterSetECIByValue(value)?);
                 if currentCharacterSetECI.is_none() {
                     return Err(Exceptions::FormatException(Some(format!(
-                        "Value of {} not valid",
-                        value
+                        "Value of {value} not valid"
                     ))));
                 }
             }

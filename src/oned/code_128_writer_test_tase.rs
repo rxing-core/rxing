@@ -311,7 +311,7 @@ fn testEncodeSwitchBetweenCodesetsAAndB() {
 fn testEncode(toEncode: &str, expected: &str) {
     let result = encode(toEncode, false, toEncode).expect("encode");
     let actual = bit_matrix_test_case::matrix_to_string(&result);
-    assert_eq!(expected, actual, "{}", toEncode);
+    assert_eq!(expected, actual, "{toEncode}");
 
     let width = result.getWidth();
     let result = encode(toEncode, true, toEncode).expect("encode");

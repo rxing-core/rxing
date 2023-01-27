@@ -652,7 +652,7 @@ impl Display for DetectionRXingResult {
         // try (Formatter formatter = new Formatter()) {
         for codewordsRow in 0..rowIndicatorColumn.as_ref().unwrap().getCodewords().len() {
             //   for (int codewordsRow = 0; codewordsRow < rowIndicatorColumn.getCodewords().length; codewordsRow++) {
-            write!(f, "CW {0:3}", codewordsRow)?;
+            write!(f, "CW {codewordsRow:3}")?;
             // formatter.format("CW %3d:", codewordsRow);
             for barcodeColumn in 0..self.barcodeColumnCount + 2 {
                 // for (int barcodeColumn = 0; barcodeColumn < barcodeColumnCount + 2; barcodeColumn++) {

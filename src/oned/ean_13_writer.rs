@@ -61,8 +61,7 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             }
             _ => {
                 return Err(Exceptions::IllegalArgumentException(Some(format!(
-                    "Requested contents should be 12 or 13 digits long, but got {}",
-                    length
+                    "Requested contents should be 12 or 13 digits long, but got {length}"
                 ))))
             }
         }

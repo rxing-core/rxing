@@ -161,8 +161,7 @@ impl MinimalEncoder {
                 &self.ecLevel,
             ) {
                 return Err(Exceptions::WriterException(Some(format!(
-                    "Data too big for version {}",
-                    version
+                    "Data too big for version {version}"
                 ))));
             }
             Ok(result)
@@ -270,8 +269,7 @@ impl MinimalEncoder {
             Mode::BYTE => Ok(3),
             Mode::KANJI => Ok(0),
             _ => Err(Exceptions::IllegalArgumentException(Some(format!(
-                "Illegal mode {:?}",
-                mode
+                "Illegal mode {mode:?}"
             )))),
         }
         // switch (mode) {
@@ -956,7 +954,7 @@ impl fmt::Display for RXingResultList {
             result.push_str(&current.to_string());
             previous = Some(current);
         }
-        write!(f, "{}", result)
+        write!(f, "{result}")
     }
 }
 
@@ -1141,6 +1139,6 @@ impl fmt::Display for RXingResultNode {
         }
         result.push(')');
 
-        write!(f, "{}", result)
+        write!(f, "{result}")
     }
 }

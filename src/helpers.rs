@@ -134,7 +134,7 @@ pub fn detect_in_file_with_hints(
     hints: &mut DecodingHintDictionary,
 ) -> Result<RXingResult, Exceptions> {
     let Ok(img) = image::open(file_name) else {
-        return Err(Exceptions::IllegalArgumentException(Some(format!("file '{}' not found or cannot be opened", file_name))));
+        return Err(Exceptions::IllegalArgumentException(Some(format!("file '{file_name}' not found or cannot be opened"))));
     };
     let mut multi_format_reader = MultiFormatReader::default();
 
@@ -255,8 +255,7 @@ pub fn save_image(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Excepti
     match image.save(file_name) {
         Ok(_) => Ok(()),
         Err(err) => Err(Exceptions::IllegalArgumentException(Some(format!(
-            "could not save file '{}': {}",
-            file_name, err
+            "could not save file '{file_name}': {err}"
         )))),
     }
 }
@@ -303,8 +302,7 @@ pub fn save_file(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Exceptio
     }() {
         Ok(_) => Ok(()),
         Err(_) => Err(Exceptions::IllegalArgumentException(Some(format!(
-            "could not write to '{}'",
-            file_name
+            "could not write to '{file_name}'"
         )))),
     }
 }

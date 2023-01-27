@@ -34,8 +34,7 @@ impl OneDimensionalCodeWriter for Code39Writer {
         let mut length = contents.chars().count();
         if length > 80 {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
-                "Requested contents should be less than 80 digits long, but got {}",
-                length
+                "Requested contents should be less than 80 digits long, but got {length}"
             ))));
         }
 
@@ -50,7 +49,7 @@ impl OneDimensionalCodeWriter for Code39Writer {
                 contents = Self::tryToConvertToExtendedMode(&contents)?;
                 length = contents.chars().count();
                 if length > 80 {
-                    return Err(Exceptions::IllegalArgumentException(Some(format!("Requested contents should be less than 80 digits long, but got {} (extended full ASCII mode)",length))));
+                    return Err(Exceptions::IllegalArgumentException(Some(format!("Requested contents should be less than 80 digits long, but got {length} (extended full ASCII mode)"))));
                 }
                 break;
             }
@@ -156,8 +155,7 @@ impl Code39Writer {
                             .push(char::from_u32('P' as u32 + (character as u32 - 123)).unwrap());
                     } else {
                         return Err(Exceptions::IllegalArgumentException(Some(format!(
-                            "Requested content contains a non-encodable character: '{}'",
-                            character
+                            "Requested content contains a non-encodable character: '{character}'"
                         ))));
                     }
                 }
@@ -249,8 +247,7 @@ mod Code39WriterTestCase {
         assert_eq!(
             expected,
             bit_matrix_test_case::matrix_to_string(&result),
-            "{}",
-            input
+            "{input}"
         );
     }
 }

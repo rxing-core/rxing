@@ -617,7 +617,7 @@ fn testBorderCompact4CaseFailed() {
     // be error correction
     let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     // encodes as 26 * 5 * 4 = 520 bits of data
-    let alphabet4 = format!("{}{}{}{}", alphabet, alphabet, alphabet, alphabet);
+    let alphabet4 = format!("{alphabet}{alphabet}{alphabet}{alphabet}");
     aztec_encoder::encode(&alphabet4, 0, -4).expect("encode");
 }
 
@@ -627,7 +627,7 @@ fn testBorderCompact4Case() {
     // be error correction
     let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     // encodes as 26 * 5 * 4 = 520 bits of data
-    let alphabet4 = format!("{}{}{}{}", alphabet, alphabet, alphabet, alphabet);
+    let alphabet4 = format!("{alphabet}{alphabet}{alphabet}{alphabet}");
 
     // If we just try to encode it normally, it will go to a non-compact 4 layer
     let mut aztecCode = aztec_encoder::encode(&alphabet4, 0, aztec_encoder::DEFAULT_AZTEC_LAYERS)
@@ -658,7 +658,7 @@ fn testEncode(data: &str, compact: bool, layers: u32, expected: &str) {
 
     // let mut xored = BitMatrix::parse_strings(&stripSpace(expected), "X ", "  ").expect("should parse");
     // xored.xor(matrix).expect("should xor");
-    assert_eq!(expected, matrix.to_string(), "encode({}) failed", data);
+    assert_eq!(expected, matrix.to_string(), "encode({data}) failed");
 }
 
 fn testEncodeDecode(data: &str, compact: bool, layers: u32) {
@@ -814,8 +814,7 @@ fn testStuffBits(wordSize: usize, bits: &str, expected: &str) {
     assert_eq!(
         stripSpace(expected),
         stripSpace(&stuffed.to_string()),
-        "stuffBits() failed for input string: {}",
-        bits
+        "stuffBits() failed for input string: {bits}"
     );
 }
 
@@ -838,8 +837,7 @@ fn testHighLevelEncodeStringUtf8(s: &str, expectedBits: &str) {
     assert_eq!(
         stripSpace(expectedBits),
         receivedBits,
-        "highLevelEncode() failed for input string: {}",
-        s
+        "highLevelEncode() failed for input string: {s}"
     );
 }
 
@@ -856,8 +854,7 @@ fn testHighLevelEncodeString(s: &str, expectedBits: &str) {
     assert_eq!(
         stripSpace(expectedBits),
         receivedBits,
-        "highLevelEncode() failed for input string: {}",
-        s
+        "highLevelEncode() failed for input string: {s}"
     );
     assert_eq!(
         s,
@@ -888,7 +885,6 @@ fn testHighLevelEncodeStringCount(s: &str, expectedReceivedBits: u32) {
     // );
     assert_eq!(
         expectedReceivedBits as usize, receivedBitCount,
-        "highLevelEncode() failed for input string: {} with byte count ({}!={})",
-        s, expectedReceivedBits, receivedBitCount
+        "highLevelEncode() failed for input string: {s} with byte count ({expectedReceivedBits}!={receivedBitCount})"
     );
 }

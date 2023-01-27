@@ -204,8 +204,7 @@ impl ReedSolomonDecoder {
 
             if r.getDegree() >= rLast.getDegree() {
                 return Err(Exceptions::ReedSolomonException(Some(format!(
-                    "Division algorithm failed to reduce polynomial? r: {}, rLast: {}",
-                    r, rLast
+                    "Division algorithm failed to reduce polynomial? r: {r}, rLast: {rLast}"
                 ))));
             }
         }

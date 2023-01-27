@@ -110,7 +110,7 @@ impl fmt::Display for ByteMatrix {
             }
             result.push('\n');
         }
-        write!(f, "{}", result)
+        write!(f, "{result}")
     }
 }
 

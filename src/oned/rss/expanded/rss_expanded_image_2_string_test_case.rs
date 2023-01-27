@@ -181,7 +181,7 @@ fn testDecodeRow2string32() {
 }
 
 fn assertCorrectImage2string(fileName: &str, expected: &str) {
-    let path = format!("test_resources/blackbox/rssexpanded-1/{}", fileName);
+    let path = format!("test_resources/blackbox/rssexpanded-1/{fileName}");
 
     let image = image::open(path).expect("load image");
     let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(

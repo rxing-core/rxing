@@ -64,7 +64,7 @@ fn test_error_in_parameter_locator_compact() {
 #[test]
 fn test_error_in_parameter_locator_not_compact() {
     let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxyz";
-    test_error_in_parameter_locator(&format!("{}{}{}", alphabet, alphabet, alphabet));
+    test_error_in_parameter_locator(&format!("{alphabet}{alphabet}{alphabet}"));
 }
 
 #[test]
@@ -165,7 +165,7 @@ fn test_error_in_parameter_locator(data: &str) {
                     if let Exceptions::NotFoundException(_msg) = res {
                         // all ok
                     } else {
-                        panic!("Only Exceptions::NotFoundException allowed, got {}", res);
+                        panic!("Only Exceptions::NotFoundException allowed, got {res}");
                     }
                 } else {
                     let r = Detector::new(&make_larger(&copy, 3)).detect(false);

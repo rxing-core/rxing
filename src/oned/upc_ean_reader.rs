@@ -304,7 +304,7 @@ pub trait UPCEANReader: OneDReader {
 
         decodeRXingResult.putMetadata(
             RXingResultMetadataType::SYMBOLOGY_IDENTIFIER,
-            RXingResultMetadataValue::SymbologyIdentifier(format!("]E{}", symbologyIdentifier)),
+            RXingResultMetadataValue::SymbologyIdentifier(format!("]E{symbologyIdentifier}")),
         );
 
         Ok(decodeRXingResult)

@@ -37,8 +37,7 @@ impl BitMatrixParser {
         let dimension = bit_matrix.getHeight();
         if dimension < 21 || (dimension & 0x03) != 1 {
             Err(Exceptions::FormatException(Some(format!(
-                "{} < 21 || ({} % 0x03) != 1",
-                dimension, dimension
+                "{dimension} < 21 || ({dimension} % 0x03) != 1"
             ))))
         } else {
             Ok(Self {

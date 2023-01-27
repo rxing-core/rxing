@@ -640,8 +640,7 @@ fn encodeMinimally(input: Rc<Input>) -> Result<RXingResult, Exceptions> {
 
     if minimalJ < 0 {
         return Err(Exceptions::IllegalStateException(Some(format!(
-            "Internal error: failed to encode \"{}\"",
-            input
+            "Internal error: failed to encode \"{input}\""
         ))));
     }
     RXingResult::new(edges[inputLength][minimalJ as usize].clone())

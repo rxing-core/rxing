@@ -53,7 +53,7 @@ pub const WORD_SIZE: [u32; 33] = [
 pub fn encode_simple(data: &str) -> Result<AztecCode, Exceptions> {
     let Ok(bytes) = encoding::all::ISO_8859_1
         .encode(data, encoding::EncoderTrap::Replace) else {
-            return Err(Exceptions::IllegalArgumentException(Some(format!("'{}' cannot be encoded as ISO_8859_1", data))));
+            return Err(Exceptions::IllegalArgumentException(Some(format!("'{data}' cannot be encoded as ISO_8859_1"))));
         };
     encode_bytes_simple(&bytes)
 }
@@ -76,8 +76,7 @@ pub fn encode(
         encode_bytes(&bytes, minECCPercent, userSpecifiedLayers)
     } else {
         Err(Exceptions::IllegalArgumentException(Some(format!(
-            "'{}' cannot be encoded as ISO_8859_1",
-            data
+            "'{data}' cannot be encoded as ISO_8859_1"
         ))))
     }
 }
@@ -104,8 +103,7 @@ pub fn encode_with_charset(
         encode_bytes_with_charset(&bytes, minECCPercent, userSpecifiedLayers, charset)
     } else {
         Err(Exceptions::IllegalArgumentException(Some(format!(
-            "'{}' cannot be encoded as ISO_8859_1",
-            data
+            "'{data}' cannot be encoded as ISO_8859_1"
         ))))
     }
 }
@@ -181,8 +179,7 @@ pub fn encode_bytes_with_charset(
             })
         {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
-                "Illegal value {} for layers",
-                user_specified_layers
+                "Illegal value {user_specified_layers} for layers"
             ))));
         }
         total_bits_in_layer_var = total_bits_in_layer(layers, compact);
@@ -498,8 +495,7 @@ fn getGF(wordSize: usize) -> Result<GenericGFRef, Exceptions> {
         10 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecData10)),
         12 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecData12)),
         _ => Err(Exceptions::IllegalArgumentException(Some(format!(
-            "Unsupported word size {}",
-            wordSize
+            "Unsupported word size {wordSize}"
         )))),
     }
     // switch (wordSize) {

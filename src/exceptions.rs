@@ -22,29 +22,29 @@ impl fmt::Display for Exceptions {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Exceptions::IllegalArgumentException(Some(a)) => {
-                write!(f, "IllegalArgumentException - {}", a)
+                write!(f, "IllegalArgumentException - {a}")
             }
 
             Exceptions::UnsupportedOperationException(Some(a)) => {
-                write!(f, "UnsupportedOperationException - {}", a)
+                write!(f, "UnsupportedOperationException - {a}")
             }
 
             Exceptions::IllegalStateException(Some(a)) => {
-                write!(f, "IllegalStateException - {}", a)
+                write!(f, "IllegalStateException - {a}")
             }
-            Exceptions::ArithmeticException(Some(a)) => write!(f, "ArithmeticException - {}", a),
-            Exceptions::NotFoundException(Some(a)) => write!(f, "NotFoundException - {}", a),
-            Exceptions::FormatException(Some(a)) => write!(f, "FormatException - {}", a),
-            Exceptions::ChecksumException(Some(a)) => write!(f, "ChecksumException - {}", a),
-            Exceptions::ReaderException(Some(a)) => write!(f, "ReaderException - {}", a),
-            Exceptions::WriterException(Some(a)) => write!(f, "WriterException - {}", a),
-            Exceptions::ReedSolomonException(Some(a)) => write!(f, "ReedSolomonException - {}", a),
+            Exceptions::ArithmeticException(Some(a)) => write!(f, "ArithmeticException - {a}"),
+            Exceptions::NotFoundException(Some(a)) => write!(f, "NotFoundException - {a}"),
+            Exceptions::FormatException(Some(a)) => write!(f, "FormatException - {a}"),
+            Exceptions::ChecksumException(Some(a)) => write!(f, "ChecksumException - {a}"),
+            Exceptions::ReaderException(Some(a)) => write!(f, "ReaderException - {a}"),
+            Exceptions::WriterException(Some(a)) => write!(f, "WriterException - {a}"),
+            Exceptions::ReedSolomonException(Some(a)) => write!(f, "ReedSolomonException - {a}"),
             Exceptions::IndexOutOfBoundsException(Some(a)) => {
-                write!(f, "IndexOutOfBoundsException - {}", a)
+                write!(f, "IndexOutOfBoundsException - {a}")
             }
 
-            Exceptions::RuntimeException(Some(a)) => write!(f, "RuntimeException - {}", a),
-            Exceptions::ParseException(Some(a)) => write!(f, "ParseException - {}", a),
+            Exceptions::RuntimeException(Some(a)) => write!(f, "RuntimeException - {a}"),
+            Exceptions::ParseException(Some(a)) => write!(f, "ParseException - {a}"),
 
             Exceptions::IllegalArgumentException(None) => write!(f, "IllegalArgumentException"),
 

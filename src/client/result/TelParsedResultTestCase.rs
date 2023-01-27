@@ -49,7 +49,7 @@ fn doTest(contents: &str, number: &str, title: &str) {
     if let ParsedClientResult::TelResult(telRXingResult) = result {
         assert_eq!(number, telRXingResult.getNumber());
         assert_eq!(title, telRXingResult.getTitle());
-        assert_eq!(format!("tel:{}", number), telRXingResult.getTelURI());
+        assert_eq!(format!("tel:{number}"), telRXingResult.getTelURI());
     } else {
         panic!("wrong return type, expected TelResult");
     }

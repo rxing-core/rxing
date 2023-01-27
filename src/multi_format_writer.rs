@@ -72,8 +72,7 @@ impl Writer for MultiFormatWriter {
             BarcodeFormat::AZTEC => Box::<AztecWriter>::default(),
             _ => {
                 return Err(Exceptions::IllegalArgumentException(Some(format!(
-                    "No encoder available for format {:?}",
-                    format
+                    "No encoder available for format {format:?}"
                 ))))
             }
         };

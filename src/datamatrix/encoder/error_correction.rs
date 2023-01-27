@@ -221,8 +221,7 @@ fn createECCBlock(codewords: &str, numECWords: usize) -> Result<String, Exceptio
     }
     if table < 0 {
         return Err(Exceptions::IllegalArgumentException(Some(format!(
-            "Illegal number of error correction codewords specified: {}",
-            numECWords
+            "Illegal number of error correction codewords specified: {numECWords}"
         ))));
     }
     let poly = &FACTORS[table as usize];

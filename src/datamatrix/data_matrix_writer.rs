@@ -67,15 +67,13 @@ impl Writer for DataMatrixWriter {
 
         if format != &BarcodeFormat::DATA_MATRIX {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
-                "Can only encode DATA_MATRIX, but got {:?}",
-                format
+                "Can only encode DATA_MATRIX, but got {format:?}"
             ))));
         }
 
         if width < 0 || height < 0 {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
-                "Requested dimensions can't be negative: {}x{}",
-                width, height
+                "Requested dimensions can't be negative: {width}x{height}"
             ))));
         }
 

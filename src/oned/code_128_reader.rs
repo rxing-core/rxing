@@ -356,7 +356,7 @@ impl OneDReader for Code128Reader {
 
         resultObject.putMetadata(
             RXingResultMetadataType::SYMBOLOGY_IDENTIFIER,
-            RXingResultMetadataValue::SymbologyIdentifier(format!("]C{}", symbologyModifier)),
+            RXingResultMetadataValue::SymbologyIdentifier(format!("]C{symbologyModifier}")),
         );
 
         Ok(resultObject)

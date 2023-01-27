@@ -74,8 +74,7 @@ impl Encoder for ASCIIEncoder {
 
                     _ => {
                         return Err(Exceptions::IllegalStateException(Some(format!(
-                            "Illegal mode: {}",
-                            newMode
+                            "Illegal mode: {newMode}"
                         ))));
                     }
                 }
@@ -106,8 +105,7 @@ impl ASCIIEncoder {
             Ok((num + 130) as char)
         } else {
             Err(Exceptions::IllegalArgumentException(Some(format!(
-                "not digits: {}{}",
-                digit1, digit2
+                "not digits: {digit1}{digit2}"
             ))))
         }
     }

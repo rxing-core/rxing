@@ -77,8 +77,7 @@ fn test_high_level_decode_string(expectedString: &str, b: &str) {
     assert_eq!(
         expectedString,
         decoder::highLevelDecode(&toBooleanArray(&bits)).expect("highLevelDecode Failed"),
-        "highLevelDecode() failed for input bits: {}",
-        b
+        "highLevelDecode() failed for input bits: {b}"
     );
 }
 

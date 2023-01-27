@@ -367,7 +367,7 @@ fn test_rotate_180(width: u32, height: u32) {
         // for (int y = 0; y < height; y++) {
         for x in 0..width {
             // for (int x = 0; x < width; x++) {
-            assert_eq!(expected.get(x, y), input.get(x, y), "({},{})", x, y);
+            assert_eq!(expected.get(x, y), input.get(x, y), "({x},{y})");
         }
     }
 }

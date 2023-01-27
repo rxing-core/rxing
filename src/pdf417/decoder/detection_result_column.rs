@@ -133,7 +133,7 @@ impl Display for DetectionRXingResultColumn {
         for codeword in &self.codewords {
             // for (Codeword codeword : codewords) {
             if codeword.is_none() {
-                writeln!(f, "{:3}:    |   ", row)?;
+                writeln!(f, "{row:3}:    |   ")?;
                 row += 1;
                 continue;
             }

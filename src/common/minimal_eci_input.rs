@@ -79,8 +79,7 @@ impl ECIInput for MinimalECIInput {
         }
         if self.isECI(index as u32)? {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
-                "value at {} is not a character but an ECI",
-                index
+                "value at {index} is not a character but an ECI"
             ))));
         }
         if self.isFNC1(index)? {
@@ -119,8 +118,7 @@ impl ECIInput for MinimalECIInput {
             //   for (int i = start; i < end; i++) {
             if self.isECI(i as u32)? {
                 return Err(Exceptions::IllegalArgumentException(Some(format!(
-                    "value at {} is not a character but an ECI",
-                    i
+                    "value at {i} is not a character but an ECI"
                 ))));
             }
             result.push_str(&self.charAt(i)?.to_string());
@@ -170,8 +168,7 @@ impl ECIInput for MinimalECIInput {
         }
         if !self.isECI(index as u32)? {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
-                "value at {} is not an ECI but a character",
-                index
+                "value at {index} is not an ECI but a character"
             ))));
         }
         Ok((self.bytes[index] as u32 - 256) as i32)
@@ -352,7 +349,7 @@ impl MinimalECIInput {
             }
         }
         if minimalJ < 0 {
-            panic!("internal error: failed to encode \"{}\"", stringToEncode);
+            panic!("internal error: failed to encode \"{stringToEncode}\"");
         }
         let mut intsAL: Vec<u16> = Vec::new();
         let mut current = edges[inputLength][minimalJ as usize].clone();
@@ -508,6 +505,6 @@ impl fmt::Display for MinimalECIInput {
                 result.push(self.charAt(i).unwrap());
             }
         }
-        write!(f, "{}", result)
+        write!(f, "{result}")
     }
 }

@@ -393,7 +393,7 @@ impl fmt::Display for BitArray {
             }
             _str.push_str(if self.get(i) { "X" } else { "." });
         }
-        write!(f, "{}", _str)
+        write!(f, "{_str}")
     }
 }
 

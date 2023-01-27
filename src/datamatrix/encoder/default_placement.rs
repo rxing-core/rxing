@@ -275,7 +275,7 @@ mod test_placement {
         let actual = placement.toBitFieldStringArray();
         for i in 0..actual.len() {
             // for (int i = 0; i < actual.length; i++) {
-            assert_eq!(expected[i], actual[i], "Row {}", i);
+            assert_eq!(expected[i], actual[i], "Row {i}");
         }
     }
 

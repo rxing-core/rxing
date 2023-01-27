@@ -603,7 +603,6 @@ pub fn illegalCharacter(c: char) -> Result<(), Exceptions> {
     // let hex = Integer.toHexString(c);
     // hex = "0000".substring(0, 4 - hex.length()) + hex;
     Err(Exceptions::IllegalArgumentException(Some(format!(
-        "Illegal character: {} (0x{})",
-        c, c
+        "Illegal character: {c} (0x{c})"
     ))))
 }

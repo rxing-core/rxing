@@ -430,8 +430,7 @@ pub fn terminateBits(num_data_bytes: u32, bits: &mut BitArray) -> Result<(), Exc
     let capacity = num_data_bytes * 8;
     if bits.getSize() > capacity as usize {
         return Err(Exceptions::WriterException(Some(format!(
-            "data bits cannot fit in the QR Code{} > ",
-            capacity
+            "data bits cannot fit in the QR Code{capacity} > "
         ))));
         // throw new WriterException("data bits cannot fit in the QR Code" + bits.getSize() + " > " +
         //     capacity);
@@ -701,8 +700,7 @@ pub fn appendBytes(
         Mode::BYTE => append8BitBytes(content, bits, encoding),
         Mode::KANJI => appendKanjiBytes(content, bits),
         _ => Err(Exceptions::WriterException(Some(format!(
-            "Invalid mode: {:?}",
-            mode
+            "Invalid mode: {mode:?}"
         )))),
     }
     // switch (mode) {

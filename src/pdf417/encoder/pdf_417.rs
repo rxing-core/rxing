@@ -247,7 +247,7 @@ impl PDF417 {
         //4. step: low-level encoding
         let mut barcode_matrix = BarcodeMatrix::new(rows as usize, cols as usize);
         self.encodeLowLevel(
-            &format!("{}{}", dataCodewords, ec),
+            &format!("{dataCodewords}{ec}"),
             cols,
             rows,
             errorCorrectionLevel,

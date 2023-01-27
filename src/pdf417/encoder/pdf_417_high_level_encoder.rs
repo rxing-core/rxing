@@ -806,8 +806,7 @@ fn encodingECI(eci: i32, sb: &mut String) -> Result<(), Exceptions> {
         sb.push(char::from_u32((810900 - eci) as u32).unwrap());
     } else {
         return Err(Exceptions::WriterException(Some(format!(
-            "ECI number not in valid range from 0..811799, but was {}",
-            eci
+            "ECI number not in valid range from 0..811799, but was {eci}"
         ))));
     }
     Ok(())

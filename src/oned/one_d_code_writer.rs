@@ -173,15 +173,13 @@ impl Writer for L {
 
         if width < 0 || height < 0 {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
-                "Negative size is not allowed. Input: {}x{}",
-                width, height
+                "Negative size is not allowed. Input: {width}x{height}"
             ))));
         }
         if let Some(supportedFormats) = self.getSupportedWriteFormats() {
             if !supportedFormats.contains(format) {
                 return Err(Exceptions::IllegalArgumentException(Some(format!(
-                    "Can only encode {:?}, but got {:?}",
-                    supportedFormats, format
+                    "Can only encode {supportedFormats:?}, but got {format:?}"
                 ))));
             }
         }

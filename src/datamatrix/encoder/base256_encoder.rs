@@ -66,8 +66,7 @@ impl Encoder for Base256Encoder {
                 buffer.insert(ci_pos, char::from_u32(dataCount as u32 % 250).unwrap());
             } else {
                 return Err(Exceptions::IllegalStateException(Some(format!(
-                    "Message length not in valid ranges: {}",
-                    dataCount
+                    "Message length not in valid ranges: {dataCount}"
                 ))));
             }
         }

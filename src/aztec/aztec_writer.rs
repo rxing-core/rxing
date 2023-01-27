@@ -107,8 +107,7 @@ fn encode(
 ) -> Result<BitMatrix, Exceptions> {
     if format != BarcodeFormat::AZTEC {
         return Err(Exceptions::IllegalArgumentException(Some(format!(
-            "can only encode AZTEC, but got {:?}",
-            format
+            "can only encode AZTEC, but got {format:?}"
         ))));
     }
     let aztec = if let Some(cset) = charset {

@@ -134,7 +134,7 @@ impl fmt::Display for QRCode {
         }
         result.push_str(">>\n");
 
-        write!(f, "{}", result)
+        write!(f, "{result}")
     }
 }
 

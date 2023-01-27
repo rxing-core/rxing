@@ -98,7 +98,7 @@ fn testMask(mask: DataMask, dimension: u32, condition: MaskCondition) {
         // for (int i = 0; i < dimension; i++) {
         for j in 0..dimension {
             // for (int j = 0; j < dimension; j++) {
-            assert_eq!(condition(i, j), bits.get(j, i), "({},{})", i, j);
+            assert_eq!(condition(i, j), bits.get(j, i), "({i},{j})");
         }
     }
 }

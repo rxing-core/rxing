@@ -346,8 +346,7 @@ impl<'a> SymbolInfoLookup<'a> {
         }
         if fail {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
-                "Can't find a symbol arrangement that matches the message. Data codewords: {}",
-                dataCodewords
+                "Can't find a symbol arrangement that matches the message. Data codewords: {dataCodewords}"
             ))));
         }
         Ok(None)

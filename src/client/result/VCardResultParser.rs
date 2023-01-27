@@ -182,7 +182,7 @@ pub fn matchVCardPrefixedField(
 
     // At start or after newline, match prefix, followed by optional metadata
     // (led by ;) ultimately ending in colon
-    let matcher_primary = Regex::new(&format!("(?:^|\\n)(?i:{})(?:;([^:]*))?:", prefix)).unwrap();
+    let matcher_primary = Regex::new(&format!("(?:^|\\n)(?i:{prefix})(?:;([^:]*))?:")).unwrap();
     // let matcher_primary = Regex::new(&format!("(?:^|\n){}(.*)", prefix)).unwrap();
 
     //let lower_case_raw_text = rawText.to_lowercase();

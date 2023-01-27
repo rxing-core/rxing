@@ -40,7 +40,7 @@ pub struct RGBLuminanceSource {
 impl LuminanceSource for RGBLuminanceSource {
     fn getRow(&self, y: usize) -> Vec<u8> {
         if y >= self.getHeight() {
-            panic!("Requested row is outside the image: {}", y);
+            panic!("Requested row is outside the image: {y}");
         }
         let width = self.getWidth();
 

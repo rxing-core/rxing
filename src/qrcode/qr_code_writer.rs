@@ -66,16 +66,14 @@ impl Writer for QRCodeWriter {
 
         if format != &BarcodeFormat::QR_CODE {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
-                "Can only encode QR_CODE, but got {:?}",
-                format
+                "Can only encode QR_CODE, but got {format:?}"
             ))));
             // throw new IllegalArgumentException("Can only encode QR_CODE, but got " + format);
         }
 
         if width < 0 || height < 0 {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
-                "Requested dimensions are too small: {}x{}",
-                width, height
+                "Requested dimensions are too small: {width}x{height}"
             ))));
             // throw new IllegalArgumentException("Requested dimensions are too small: " + width + 'x' +
             //     height);

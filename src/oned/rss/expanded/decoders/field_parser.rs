@@ -215,13 +215,13 @@ fn processFixedAI(
         .take(fieldSize)
         .collect(); //rawInformation.substring(aiSize, aiSize + fieldSize);
     let remaining: String = rawInformation.chars().skip(aiSize + fieldSize).collect(); // rawInformation.substring(aiSize + fieldSize);
-    let result = format!("({}){}", ai, field);
+    let result = format!("({ai}){field}");
     let parsedAI = parseFieldsInGeneralPurpose(&remaining)?;
 
     Ok(if parsedAI.is_empty() {
         result
     } else {
-        format!("{}{}", result, parsedAI)
+        format!("{result}{parsedAI}")
     })
 }
 
@@ -237,13 +237,13 @@ fn processVariableAI(
         .min(aiSize + variableFieldSize);
     let field: String = rawInformation.chars().skip(aiSize).take(maxSize).collect(); // (aiSize, maxSize);
     let remaining: String = rawInformation.chars().skip(maxSize).collect();
-    let result = format!("({}){}", ai, field); //'(' + ai + ')' + field;
+    let result = format!("({ai}){field}"); //'(' + ai + ')' + field;
     let parsedAI = parseFieldsInGeneralPurpose(&remaining)?;
 
     Ok(if parsedAI.is_empty() {
         result
     } else {
-        format!("{}{}", result, parsedAI)
+        format!("{result}{parsedAI}")
     })
 }
 

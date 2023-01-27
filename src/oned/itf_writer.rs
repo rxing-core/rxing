@@ -38,8 +38,7 @@ impl OneDimensionalCodeWriter for ITFWriter {
         }
         if length > 80 {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
-                "Requested contents should be less than 80 digits long, but got {}",
-                length
+                "Requested contents should be less than 80 digits long, but got {length}"
             ))));
         }
 

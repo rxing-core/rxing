@@ -35,7 +35,7 @@ impl OneDimensionalCodeWriter for Code93Writer {
         let mut contents = Self::convertToExtended(contents)?;
         let length = contents.chars().count();
         if length > 80 {
-            return Err(Exceptions::IllegalArgumentException(Some(format!("Requested contents should be less than 80 digits long after converting to extended encoding, but got {}" , length))));
+            return Err(Exceptions::IllegalArgumentException(Some(format!("Requested contents should be less than 80 digits long after converting to extended encoding, but got {length}" ))));
         }
 
         //length of code + 2 start/stop characters + 2 checksums, each of 9 bits, plus a termination bar
@@ -197,8 +197,7 @@ impl Code93Writer {
                     .push(char::from_u32('P' as u32 + character as u32 - '{' as u32).unwrap());
             } else {
                 return Err(Exceptions::IllegalArgumentException(Some(format!(
-                    "Requested content contains a non-encodable character: '{}'",
-                    character
+                    "Requested content contains a non-encodable character: '{character}'"
                 ))));
             }
         }

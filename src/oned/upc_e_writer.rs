@@ -69,8 +69,7 @@ impl OneDimensionalCodeWriter for UPCEWriter {
             // }},
             _ => {
                 return Err(Exceptions::IllegalArgumentException(Some(format!(
-                    "Requested contents should be 7 or 8 digits long, but got {}",
-                    length
+                    "Requested contents should be 7 or 8 digits long, but got {length}"
                 ))))
             }
         }

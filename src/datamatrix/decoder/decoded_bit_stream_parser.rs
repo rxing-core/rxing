@@ -218,7 +218,7 @@ fn decodeAsciiSegment(
                 result.append_char('0');
             }
             //result.append_char(char::from_u32(value).unwrap());
-            result.append_string(&format!("{}", value));
+            result.append_string(&format!("{value}"));
         } else {
             match oneByte {
            230=> // Latch to C40 encodation

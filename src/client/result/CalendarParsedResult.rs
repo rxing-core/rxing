@@ -196,8 +196,7 @@ impl CalendarParsedRXingResult {
             return match Utc.datetime_from_str(&when, "%Y%m%dT%H%M%SZ") {
                 Ok(dtm) => Ok(dtm.with_timezone(&Utc).timestamp()),
                 Err(e) => Err(Exceptions::ParseException(Some(format!(
-                    "couldn't parse string: {}",
-                    e
+                    "couldn't parse string: {e}"
                 )))),
             };
             // let dtm = DateTime::parse_from_str(&when, "%Y%m%dT%H%M%S").unwrap().with_timezone(&Utc);
@@ -219,16 +218,14 @@ impl CalendarParsedRXingResult {
                 Ok(time_zone) => time_zone,
                 Err(e) => {
                     return Err(Exceptions::ParseException(Some(format!(
-                        "couldn't parse timezone '{}': {}",
-                        tz_part, e
+                        "couldn't parse timezone '{tz_part}': {e}"
                     ))))
                 }
             };
             return match Utc.datetime_from_str(time_part, "%Y%m%dT%H%M%S") {
                 Ok(dtm) => Ok(dtm.with_timezone(&tz_parsed).timestamp()),
                 Err(e) => Err(Exceptions::ParseException(Some(format!(
-                    "couldn't parse string: {}",
-                    e
+                    "couldn't parse string: {e}"
                 )))),
             };
         }
@@ -238,8 +235,7 @@ impl CalendarParsedRXingResult {
             return match Utc.datetime_from_str(&when, "%Y%m%dT%H%M%S") {
                 Ok(dtm) => Ok(dtm.timestamp()),
                 Err(e) => Err(Exceptions::ParseException(Some(format!(
-                    "couldn't parse local time: {}",
-                    e
+                    "couldn't parse local time: {e}"
                 )))),
             };
         }
@@ -300,8 +296,7 @@ impl CalendarParsedRXingResult {
             Ok(dtm.timestamp())
         } else {
             Err(Exceptions::ParseException(Some(format!(
-                "Couldn't parse {}",
-                dateTimeString
+                "Couldn't parse {dateTimeString}"
             ))))
         }
         // DateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.ENGLISH);

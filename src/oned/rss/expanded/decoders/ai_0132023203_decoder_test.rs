@@ -35,8 +35,7 @@ const HEADER: &str = "..X.X";
 #[test]
 fn test0132021() {
     let data = format!(
-        "{}{}{}",
-        HEADER, COMPRESSED_GTIN900123456798908, COMPRESSED15BIT_WEIGHT1750
+        "{HEADER}{COMPRESSED_GTIN900123456798908}{COMPRESSED15BIT_WEIGHT1750}"
     );
     let expected = "(01)90012345678908(3202)001750";
 
@@ -46,8 +45,7 @@ fn test0132021() {
 #[test]
 fn test0132031() {
     let data = format!(
-        "{}{}{}",
-        HEADER, COMPRESSED_GTIN900123456798908, COMPRESSED15BIT_WEIGHT11750
+        "{HEADER}{COMPRESSED_GTIN900123456798908}{COMPRESSED15BIT_WEIGHT11750}"
     );
     let expected = "(01)90012345678908(3203)001750";
 

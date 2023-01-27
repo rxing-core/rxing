@@ -68,7 +68,7 @@ fn testDecodeRow2result2() {
 }
 
 fn assertCorrectImage2result(fileName: &str, expected: ExpandedProductParsedRXingResult) {
-    let path = format!("test_resources/blackbox/rssexpanded-1/{}", fileName);
+    let path = format!("test_resources/blackbox/rssexpanded-1/{fileName}");
 
     let image = image::open(path).expect("image must exist");
     let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(

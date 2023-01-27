@@ -45,12 +45,12 @@ fn test_get_next_set1() {
     let array = BitArray::with_size(32);
     for i in 0..array.getSize() {
         // for (int i = 0; i < array.getSize(); i++) {
-        assert_eq!(32, array.getNextSet(i), "{}", i);
+        assert_eq!(32, array.getNextSet(i), "{i}");
     }
     let array = BitArray::with_size(33);
     for i in 0..array.getSize() {
         // for (int i = 0; i < array.getSize(); i++) {
-        assert_eq!(33, array.getNextSet(i), "{}", i);
+        assert_eq!(33, array.getNextSet(i), "{i}");
     }
 }
 
@@ -60,13 +60,13 @@ fn test_get_next_set2() {
     array.set(31);
     for i in 0..array.getSize() {
         // for (int i = 0; i < array.getSize(); i++) {
-        assert_eq!(if i <= 31 { 31 } else { 33 }, array.getNextSet(i), "{}", i);
+        assert_eq!(if i <= 31 { 31 } else { 33 }, array.getNextSet(i), "{i}");
     }
     array = BitArray::with_size(33);
     array.set(32);
     for i in 0..array.getSize() {
         // for (int i = 0; i < array.getSize(); i++) {
-        assert_eq!(32, array.getNextSet(i), "{}", i);
+        assert_eq!(32, array.getNextSet(i), "{i}");
     }
 }
 
@@ -85,7 +85,7 @@ fn test_get_next_set3() {
         } else {
             expected = 63;
         }
-        assert_eq!(expected, array.getNextSet(i), "{}", i);
+        assert_eq!(expected, array.getNextSet(i), "{i}");
     }
 }
 
@@ -104,7 +104,7 @@ fn test_get_next_set4() {
         } else {
             expected = 63;
         }
-        assert_eq!(expected, array.getNextSet(i), "{}", i);
+        assert_eq!(expected, array.getNextSet(i), "{i}");
     }
 }
 

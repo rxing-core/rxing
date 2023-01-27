@@ -263,7 +263,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                         misread_counts[x] += 1;
                     }
                 } else {
-                    log::fine(format!("could not read at rotation {}", rotation));
+                    log::fine(format!("could not read at rotation {rotation}"));
                 }
                 // try {
                 //   if (decode(bitmap, rotation, expectedText, expectedMetadata, false)) {
@@ -287,7 +287,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                         try_harder_misread_counts[x] += 1;
                     }
                 } else {
-                    log::fine(format!("could not read at rotation {} w/TH", rotation));
+                    log::fine(format!("could not read at rotation {rotation} w/TH"));
                 }
                 // try {
                 //   if (decode(bitmap, rotation, expectedText, expectedMetadata, true)) {
@@ -393,8 +393,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
             );
             assert!(
                 try_harder_counts[x] >= test_rxing_result.get_try_harder_count() as usize,
-                "Try harder, {}",
-                label,
+                "Try harder, {label}",
             );
             let label = format!(
                 "Rotation {} degrees: Too many images misread",
@@ -408,8 +407,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
             assert!(
                 try_harder_misread_counts[x]
                     <= test_rxing_result.get_max_try_harder_misreads() as usize,
-                "Try harder, {}",
-                label
+                "Try harder, {label}"
             );
         }
     }
@@ -468,8 +466,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
         let result_text = result.getText();
         if expected_text != result_text {
             log::info(format!(
-                "Content mismatch: expected '{}' but got '{}'{}",
-                expected_text, result_text, suffix
+                "Content mismatch: expected '{expected_text}' but got '{result_text}'{suffix}"
             ));
             return Ok(false);
         }
@@ -481,8 +478,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
             let actual_value = result_metadata.get(key);
             if actual_value.is_none() || !(value == actual_value.unwrap()) {
                 log::info(format!(
-                    "Metadata mismatch for key '{:?}': expected '{:?}' but got '{:?}'",
-                    key, value, actual_value
+                    "Metadata mismatch for key '{key:?}': expected '{value:?}' but got '{actual_value:?}'"
                 ));
                 return Ok(false);
             }
@@ -607,6 +603,6 @@ mod log {
     }
 
     fn prn(level: &str, data: String) {
-        println!("{} :: {}", level, data)
+        println!("{level} :: {data}")
     }
 }

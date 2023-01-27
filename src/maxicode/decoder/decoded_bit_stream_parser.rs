@@ -61,11 +61,8 @@ const POSTCODE_3_BYTES: [[u8; 6]; 6] = [
 
 static SETS: Lazy<[String; 5]> = Lazy::new(|| {
     [
-    format!("\rABCDEFGHIJKLMNOPQRSTUVWXYZ{}{}{}{}{} {}\"#$%&'()*+,-./0123456789:{}{}{}{}{}" , ECI , FS , GS , RS , NS , PAD ,
-         SHIFTB , SHIFTC , SHIFTD , SHIFTE , LATCHB),
-    format!("`abcdefghijklmnopqrstuvwxyz{}{}{}{}{}{{{}}}~\u{007F};<=>?[\\]^_ ,./:@!|{}{}{}{}{}{}{}{}{}" , ECI , FS , GS , RS , NS ,PAD ,
-         PAD , TWOSHIFTA , THREESHIFTA , PAD ,
-        SHIFTA , SHIFTC , SHIFTD , SHIFTE , LATCHA),
+    format!("\rABCDEFGHIJKLMNOPQRSTUVWXYZ{ECI}{FS}{GS}{RS}{NS} {PAD}\"#$%&'()*+,-./0123456789:{SHIFTB}{SHIFTC}{SHIFTD}{SHIFTE}{LATCHB}"           ),
+    format!("`abcdefghijklmnopqrstuvwxyz{ECI}{FS}{GS}{RS}{NS}{{{PAD}}}~\u{007F};<=>?[\\]^_ ,./:@!|{PAD}{TWOSHIFTA}{THREESHIFTA}{PAD}{SHIFTA}{SHIFTC}{SHIFTD}{SHIFTE}{LATCHA}"               ),
         format!("\u{00C0}\u{00C1}\u{00C2}\u{00C3}\u{00C4}\u{00C5}\u{00C6}\u{00C7}\u{00C8}\u{00C9}\u{00CA}\u{00CB}\u{00CC}\u{00CD}\u{00CE}\u{00CF}\u{00D0}\u{00D1}\u{00D2}\u{00D3}\u{00D4}\u{00D5}\u{00D6}\u{00D7}\u{00D8}\u{00D9}\u{00DA}{}{}{}{}{}{}{}{}{}{}{}{}" ,
         ECI , FS , GS , RS , NS ,
         "\u{00DB}\u{00DC}\u{00DD}\u{00DE}\u{00DF}\u{00AA}\u{00AC}\u{00B1}\u{00B2}\u{00B3}\u{00B5}\u{00B9}\u{00BA}\u{00BC}\u{00BD}\u{00BE}\u{0080}\u{0081}\u{0082}\u{0083}\u{0084}\u{0085}\u{0086}\u{0087}\u{0088}\u{0089}" ,
@@ -93,7 +90,7 @@ pub fn decode(bytes: &[u8], mode: u8) -> Result<DecoderRXingResult, Exceptions> 
                 }
                 // NumberFormat df = new DecimalFormat("0000000000".substring(0, ps2Length));
                 // postcode = df.format(pc);
-                format!("{:0>ps2Length$}", pc)
+                format!("{pc:0>ps2Length$}")
             } else {
                 getPostCode3(bytes)
             };
@@ -106,12 +103,12 @@ pub fn decode(bytes: &[u8], mode: u8) -> Result<DecoderRXingResult, Exceptions> 
             if result.starts_with(&format!("[)>{}{}{}", RS, "01", GS)) {
                 result.insert_str(
                     9,
-                    &format!("{}{}{}{}{}{}", postcode, GS, country, GS, service, GS),
+                    &format!("{postcode}{GS}{country}{GS}{service}{GS}"),
                 );
             } else {
                 result.insert_str(
                     0,
-                    &format!("{}{}{}{}{}{}", postcode, GS, country, GS, service, GS),
+                    &format!("{postcode}{GS}{country}{GS}{service}{GS}"),
                 );
             }
         }
@@ -226,7 +223,7 @@ fn getMessage(bytes: &[u8], start: u32, len: u32) -> String {
                 i += 1;
                 nsval += bytes[i as usize] as u32;
                 // sb.append(new DecimalFormat("000000000").format(nsval));},
-                sb.push_str(&format!("{:0>9}", nsval));
+                sb.push_str(&format!("{nsval:0>9}"));
             }
             LOCK => {
                 shift = -1;

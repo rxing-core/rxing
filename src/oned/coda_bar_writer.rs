@@ -37,7 +37,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>, crate::Exceptions> {
         let contents = if contents.chars().count() < 2 {
             // Can't have a start/end guard, so tentatively add default guards
-            format!("{}{}{}", DEFAULT_GUARD, contents, DEFAULT_GUARD)
+            format!("{DEFAULT_GUARD}{contents}{DEFAULT_GUARD}")
         } else {
             // Verify input and calculate decoded length.
             let firstChar = contents.chars().next().unwrap().to_ascii_uppercase();
@@ -53,8 +53,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             if startsNormal {
                 if !endsNormal {
                     return Err(Exceptions::IllegalArgumentException(Some(format!(
-                        "Invalid start/end guards: {}",
-                        contents
+                        "Invalid start/end guards: {contents}"
                     ))));
                 }
                 // else already has valid start/end
@@ -62,8 +61,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             } else if startsAlt {
                 if !endsAlt {
                     return Err(Exceptions::IllegalArgumentException(Some(format!(
-                        "Invalid start/end guards: {}",
-                        contents
+                        "Invalid start/end guards: {contents}"
                     ))));
                 }
                 // else already has valid start/end
@@ -72,12 +70,11 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
                 // Doesn't start with a guard
                 if endsNormal || endsAlt {
                     return Err(Exceptions::IllegalArgumentException(Some(format!(
-                        "Invalid start/end guards: {}",
-                        contents
+                        "Invalid start/end guards: {contents}"
                     ))));
                 }
                 // else doesn't end with guard either, so add a default
-                format!("{}{}{}", DEFAULT_GUARD, contents, DEFAULT_GUARD)
+                format!("{DEFAULT_GUARD}{contents}{DEFAULT_GUARD}")
             }
         };
 
@@ -95,8 +92,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
                 resultLength += 10;
             } else {
                 return Err(Exceptions::IllegalArgumentException(Some(format!(
-                    "Cannot encode : '{}'",
-                    ch
+                    "Cannot encode : '{ch}'"
                 ))));
             }
         }

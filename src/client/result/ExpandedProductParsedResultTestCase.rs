@@ -78,7 +78,7 @@ fn testRSSExpanded() {
                     let ev = epr_res.getUncommonAIs().get(k).unwrap();
                     assert_eq!(v, ev);
                 } else {
-                    panic!("key not found {}", k)
+                    panic!("key not found {k}")
                 }
             }
             // assert_eq!(&uncommonAIs, epr_res.getUncommonAIs());

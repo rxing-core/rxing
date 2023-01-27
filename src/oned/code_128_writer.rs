@@ -96,8 +96,7 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32, E
     // Check length
     if !(1..=80).contains(&length) {
         return Err(Exceptions::IllegalArgumentException(Some(format!(
-            "Contents length should be between 1 and 80 characters, but got {}",
-            length
+            "Contents length should be between 1 and 80 characters, but got {length}"
         ))));
     }
 
@@ -111,8 +110,7 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32, E
             "C" => forcedCodeSet = CODE_CODE_C as i32,
             _ => {
                 return Err(Exceptions::IllegalArgumentException(Some(format!(
-                    "Unsupported code set hint: {}",
-                    codeSetHint
+                    "Unsupported code set hint: {codeSetHint}"
                 ))))
             }
         }
@@ -133,8 +131,7 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32, E
                     // no full Latin-1 character set available at the moment
                     // shift and manual code change are not supported
                     return Err(Exceptions::IllegalArgumentException(Some(format!(
-                        "Bad character in input: ASCII value={}",
-                        c
+                        "Bad character in input: ASCII value={c}"
                     ))));
                 }
             }
@@ -149,8 +146,7 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32, E
             {
                 if c > 95 && c <= 127 {
                     return Err(Exceptions::IllegalArgumentException(Some(format!(
-                        "Bad character in input for forced code set A: ASCII value={}",
-                        c
+                        "Bad character in input for forced code set A: ASCII value={c}"
                     ))));
                 }
             }
@@ -159,8 +155,7 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32, E
             {
                 if c <= 32 {
                     return Err(Exceptions::IllegalArgumentException(Some(format!(
-                        "Bad character in input for forced code set B: ASCII value={}",
-                        c
+                        "Bad character in input for forced code set B: ASCII value={c}"
                     ))));
                 }
             }
@@ -174,8 +169,7 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32, E
                     || ch == ESCAPE_FNC_4
                 {
                     return Err(Exceptions::IllegalArgumentException(Some(format!(
-                        "Bad character in input for forced code set C: ASCII value={}",
-                        c
+                        "Bad character in input for forced code set C: ASCII value={c}"
                     ))));
                 }
             }

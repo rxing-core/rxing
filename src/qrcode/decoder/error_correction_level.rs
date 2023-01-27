@@ -48,8 +48,7 @@ impl ErrorCorrectionLevel {
             2 => Ok(Self::H),
             3 => Ok(Self::Q),
             _ => Err(Exceptions::IllegalArgumentException(Some(format!(
-                "{} is not a valid bit selection",
-                bits
+                "{bits} is not a valid bit selection"
             )))),
         }
     }
@@ -111,8 +110,7 @@ impl FromStr for ErrorCorrectionLevel {
         }
 
         return Err(Exceptions::IllegalArgumentException(Some(format!(
-            "could not parse {} into an ec level",
-            s
+            "could not parse {s} into an ec level"
         ))));
     }
 }

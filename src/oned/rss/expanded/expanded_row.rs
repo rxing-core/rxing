@@ -68,7 +68,7 @@ impl Display for ExpandedRow {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{{ ")?;
         for p in &self.pairs {
-            write!(f, "{}", p)?;
+            write!(f, "{p}")?;
         }
         write!(f, " }}") //{:?} }} " , self.pairs )
     }

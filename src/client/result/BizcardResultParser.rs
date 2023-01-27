@@ -123,6 +123,6 @@ fn buildName(firstName: &str, lastName: &str) -> String {
     } else if lastName.is_empty() {
         firstName.to_owned()
     } else {
-        format!("{} {}", firstName, lastName)
+        format!("{firstName} {lastName}")
     }
 }
