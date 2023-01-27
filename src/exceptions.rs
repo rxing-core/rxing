@@ -1,5 +1,9 @@
 use std::{error::Error, fmt};
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq)]
 pub enum Exceptions {
     IllegalArgumentException(Option<String>),
