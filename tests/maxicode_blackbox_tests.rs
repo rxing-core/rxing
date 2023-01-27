@@ -29,7 +29,9 @@ fn maxicode1_test_case() {
         BarcodeFormat::MAXICODE,
     );
     // super("src/test/resources/blackbox/maxicode-1", new MultiFormatReader(), BarcodeFormat.MAXICODE);
-    tester.add_test(7, 7, 0.0);
+    tester.add_test(7, 8, 0.0);
+    tester.add_test(0, 4, 90.0);
+    tester.add_test(0, 3, 180.0);
 
     tester.test_black_box();
 }

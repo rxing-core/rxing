@@ -32,6 +32,8 @@ use rxing::{
 
 use super::TestRXingResult;
 
+const POSSIBLE_EXTENSIONS: &str = "jpg,jpeg,gif,png,JPG,JPEG,GIF,PNG";
+
 /**
  * @author Sean Owen
  * @author dswitkin@google.com (Daniel Switkin)
@@ -115,7 +117,6 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
         );
         // let paths = Vec::new();
         let path_search = read_dir(&self.test_base);
-        const POSSIBLE_EXTENSIONS: &str = "jpg,jpeg,gif,png,JPG,JPEG,GIF,PNG";
 
         let mut paths = path_search
             .unwrap()
@@ -123,7 +124,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
             .filter(|r| r.is_ok()) // Get rid of Err variants for Result<DirEntry>
             .map(|r| r.unwrap().path()) // This is safe, since we only have the Ok variants
             .filter(|r| r.is_file()) // Filter out non-folders
-            .filter(|r| POSSIBLE_EXTENSIONS.contains(r.extension().unwrap().to_str().unwrap()))
+            .filter(|r| r.extension().is_some() && POSSIBLE_EXTENSIONS.contains(r.extension().unwrap().to_str().unwrap()))
             // .map(|r| r.into_boxed_path())
             .collect::<Vec<PathBuf>>();
 

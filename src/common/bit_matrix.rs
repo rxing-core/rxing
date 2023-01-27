@@ -226,6 +226,27 @@ impl BitMatrix {
         Some(((self.bits[offset] >> (x & 0x1f)) & 1) != 0)
     }
 
+    pub fn try_get_area(&self, x: u32, y: u32, box_size: u32) -> Option<bool> {
+        let mut matrix = Vec::with_capacity((box_size * box_size) as usize);
+        let start_x = x - box_size / 2;
+        let end_x = x + box_size / 2;
+        let start_y = y - box_size / 2;
+        let end_y = y+ box_size / 2;
+
+        for get_x in start_x..=end_x {
+            for get_y in start_y..=end_y {
+                matrix.push(self.try_get(get_x, get_y)?);
+            }
+        }
+
+        let total_set = matrix.iter().filter(|bit| **bit ).count();
+        if (total_set as f32 / matrix.len() as f32) >=0.5 {
+            Some(true)
+        }else {
+            Some(false)
+        }
+    }
+
     /// Confusingly returns true if the requested element is out of bounds
     pub fn check_in_bounds(&self, x: u32, y: u32) -> bool {
         (self.get_offset(y, x)) > self.bits.len()
