@@ -2,7 +2,9 @@
 use num::integer::Roots;
 
 use crate::{
-    common::{BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler},
+    common::{
+        detector::MathUtils, BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler,
+    },
     Exceptions, RXingResultPoint,
 };
 
@@ -338,13 +340,16 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
 
         let [tl, bl, tr, br] = &symbol_box;
 
-        let target_width = (tr.0 - tl.0).round() as u32;
-        let target_height = (br.1 - tr.1).round() as u32;
+        let target_width = MathUtils::distance_float(tl.0, tl.1, tr.0, tr.1);
+        let target_height = MathUtils::distance_float(br.0, br.1, tr.0, tr.1);
+
+        // let target_width = (tr.0 - tl.0).round().abs() as u32;
+        // let target_height = (br.1 - tr.1).round().abs() as u32;
 
         let Ok(bits) = grid_sampler.sample_grid_detailed(
             image,
-            target_width,
-            target_height,
+            target_width.round() as u32,
+            target_height.round() as u32,
             0.0,
             0.0,
             target_width as f32 ,
@@ -653,11 +658,6 @@ fn validate_bullseye_widths(buckets: &[u32; 11]) -> bool {
     let max_variance_even = estimated_module_size_even / 2.0;
     let max_variance_odd = estimated_module_size_odd / 2.0;
 
-    // let total_width = buckets.iter().sum::<u32>() as f32;
-    // let estimated_module_size = total_width / (buckets.len() -1 ) as f32;
-
-    // let max_variance = estimated_module_size / 2.5;
-
     let b1 = (estimated_module_size_even - buckets[0] as f32).abs();
     let b2 = (estimated_module_size_odd - buckets[1] as f32).abs();
     let b3 = (estimated_module_size_even - buckets[2] as f32).abs();
@@ -685,18 +685,18 @@ fn validate_bullseye_widths(buckets: &[u32; 11]) -> bool {
 
 /// returns the (center , radius) of the possible bullseye
 fn get_bullseye_metadata(buckets: &[u32; 11], column: u32) -> (u32, u32, [u32; 11]) {
-    let radius = ((buckets.iter().sum::<u32>() as f32) / 2.0).round() as u32; //buckets.iter().skip(6).sum::<u32>() + buckets[5] / 2;
-    let center = column - radius; //buckets.iter().take(5).sum::<u32>() - (buckets[5] / 2);
+    let radius = ((buckets.iter().sum::<u32>() as f32) / 2.0).round() as u32;
+    let center = column - radius;
     (center, radius, *buckets)
 }
 
-const LEFT_SHIFT_PERCENT_ADJUST: f32 = 0.0;
+const LEFT_SHIFT_PERCENT_ADJUST: f32 = 0.03;
 const RIGHT_SHIFT_PERCENT_ADJUST: f32 = 0.03;
 const ACCEPTED_SCALES: [f64; 5] = [0.065, 0.069, 0.07, 0.075, 0.08];
 
 fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<[(f32, f32); 4], Exceptions> {
     let (left_boundary, right_boundary, top_boundary, bottom_boundary) =
-        calculate_simple_boundary(circle, Some(image), None);
+        calculate_simple_boundary(circle, Some(image), None, false);
 
     let naive_box = [
         RXingResultPoint::new(left_boundary as f32, bottom_boundary as f32),
@@ -717,7 +717,6 @@ fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<[(f32, f32); 4],
         return Err(Exceptions::NotFoundException(None));
     }
 
-    #[cfg(feature = "experimental_features")]
     for scale in ACCEPTED_SCALES {
         if let Some(found_rotation) = attempt_rotation_box(image, circle, &naive_box, scale) {
             result_box = found_rotation;
@@ -737,11 +736,12 @@ fn calculate_simple_boundary(
     circle: &Circle,
     image: Option<&BitMatrix>,
     center_scale: Option<f64>,
+    tight: bool,
 ) -> (u32, u32, u32, u32) {
-    let (symbol_width, symbol_height) = if image.is_some() {
+    let (symbol_width, symbol_height) = if !tight {
         guess_barcode_size(circle)
     } else if let Some(s) = center_scale {
-        guess_barcode_size_general(circle, 0.03, s, 0.97)
+        guess_barcode_size_general(circle, 0.05, s, 0.95)
     } else {
         guess_barcode_size_tighter(circle)
     };
@@ -763,12 +763,11 @@ fn calculate_simple_boundary(
         (circle.center.0 as i32 - left_shift).clamp(0, image_width as i32 - 33) as u32;
     let right_boundary =
         (circle.center.0 as i32 + right_shift).clamp(33, image_width as i32) as u32;
-    //symbol_width.clamp(30, image.getWidth());
     let top_boundary =
         (circle.center.1 as i32 + up_down_shift).clamp(33, image_height as i32) as u32;
-    //symbol_height.clamp(33, image.getHeight());
     let bottom_boundary =
         (circle.center.1 as i32 - up_down_shift).clamp(0, image_height as i32 - 30) as u32;
+
     (left_boundary, right_boundary, top_boundary, bottom_boundary)
 }
 
@@ -788,7 +787,9 @@ fn attempt_rotation_box(
     naive_box: &[RXingResultPoint; 4],
     center_scale: f64,
 ) -> Option<[RXingResultPoint; 4]> {
+    // update our circle with a more accurate center point
     circle.calculate_high_accuracy_center();
+
     // we know that the locator symbols should appear at 60 degree increments around the circle
 
     // top left
@@ -816,96 +817,98 @@ fn attempt_rotation_box(
     let mut found = false;
     let mut final_rotation = 0.0;
 
-    for int_rotation in 0..355 {
-        let rotation = int_rotation as f32;
-        // look for top left
-        //  * *
-        //   *
-        let p1_rot = get_point(circle.center, topl_p1, rotation);
-        let p2_rot = get_point(circle.center, topl_p2, rotation);
-        let p3_rot = get_point(circle.center, topl_p3, rotation);
-        let found_tl = image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
-            && image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
-            && image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
-        if !found_tl {
-            continue;
-        }
+    for int_rotation in 0..175 {
+        let rotation = (int_rotation * 2) as f32;
+            // look for top left
+            //  * *
+            //   *
+            let p1_rot = get_point(circle.center, topl_p1, rotation);
+            let p2_rot = get_point(circle.center, topl_p2, rotation);
+            let p3_rot = get_point(circle.center, topl_p3, rotation);
+            let found_tl = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32,3)?
+                && image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32,3)?
+                && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32,3)?;
+            if !found_tl {
+                continue;
+            }
 
-        // look for top right
-        //  /\
-        //  __
-        let p1_rot = get_point(circle.center, topr_p1, rotation);
-        let p2_rot = get_point(circle.center, topr_p2, rotation);
-        let p3_rot = get_point(circle.center, topr_p3, rotation);
-        let found_tr = !image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
-            && !image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
-            && !image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
-        if !found_tr {
-            continue;
-        }
+            // look for top right
+            //  /\
+            //  __
+            let p1_rot = get_point(circle.center, topr_p1, rotation);
+            let p2_rot = get_point(circle.center, topr_p2, rotation);
+            let p3_rot = get_point(circle.center, topr_p3, rotation);
+            let found_tr = !image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32,3)?
+                && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32,3)?
+                && !image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32,3)?;
+            if !found_tr {
+                continue;
+            }
 
-        // look for left
-        //   *
-        //    *
-        let p1_rot = get_point(circle.center, l_p1, rotation);
-        let p2_rot = get_point(circle.center, l_p2, rotation);
-        let p3_rot = get_point(circle.center, l_p3, rotation);
-        let found_l = image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
-            && !image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
-            && image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
-        if !found_l {
-            continue;
-        }
+            // look for left
+            //   *
+            //    *
+            let p1_rot = get_point(circle.center, l_p1, rotation);
+            let p2_rot = get_point(circle.center, l_p2, rotation);
+            let p3_rot = get_point(circle.center, l_p3, rotation);
+            let found_l = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32,3)?
+                && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32,3)?
+                && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32,3)?;
+            if !found_l {
+                continue;
+            }
 
-        // look for right
-        //   *
-        //    *
-        let p1_rot = get_point(circle.center, r_p1, rotation);
-        let p2_rot = get_point(circle.center, r_p2, rotation);
-        let p3_rot = get_point(circle.center, r_p3, rotation);
-        let found_r = image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
-            && !image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
-            && image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
-        if !found_r {
-            continue;
-        }
+            // look for right
+            //   *
+            //    *
+            let p1_rot = get_point(circle.center, r_p1, rotation);
+            let p2_rot = get_point(circle.center, r_p2, rotation);
+            let p3_rot = get_point(circle.center, r_p3, rotation);
+            let found_r = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32,3)?
+                && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32,3)?
+                && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32,3)?;
+            if !found_r {
+                continue;
+            }
 
-        // look for bottom left
-        //   *
-        //    *
-        let p1_rot = get_point(circle.center, bottoml_p1, rotation);
-        let p2_rot = get_point(circle.center, bottoml_p2, rotation);
-        let p3_rot = get_point(circle.center, bottoml_p3, rotation);
-        let found_bl = image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
-            && !image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
-            && image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
-        if !found_bl {
-            continue;
-        }
+            // look for bottom left
+            //   *
+            //    *
+            let p1_rot = get_point(circle.center, bottoml_p1, rotation);
+            let p2_rot = get_point(circle.center, bottoml_p2, rotation);
+            let p3_rot = get_point(circle.center, bottoml_p3, rotation);
+            let found_bl = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32,3)?
+                && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32,3)?
+                && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32,3)?;
+            if !found_bl {
+                continue;
+            }
 
-        // look for bottom right
-        //   *
-        //    *
-        let p1_rot = get_point(circle.center, bottomr_p1, rotation);
-        let p2_rot = get_point(circle.center, bottomr_p2, rotation);
-        let p3_rot = get_point(circle.center, bottomr_p3, rotation);
-        let found_br = image.try_get(p1_rot.0 as u32, p1_rot.1 as u32)?
-            && !image.try_get(p2_rot.0 as u32, p2_rot.1 as u32)?
-            && image.try_get(p3_rot.0 as u32, p3_rot.1 as u32)?;
-        if !found_br {
-            continue;
-        }
+            // look for bottom right
+            //   *
+            //    *
+            let p1_rot = get_point(circle.center, bottomr_p1, rotation);
+            let p2_rot = get_point(circle.center, bottomr_p2, rotation);
+            let p3_rot = get_point(circle.center, bottomr_p3, rotation);
+            let found_br = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32,3)?
+                && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32,3)?
+                && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32,3)?;
+            if !found_br {
+                continue;
+            }
 
-        // did we find it?
-        found = found_tl && found_tr && found_l && found_r && found_bl && found_br;
+            // did we find it?
+            found = found_tl && found_tr && found_l && found_r && found_bl && found_br;
 
-        if found {
-            final_rotation = rotation;
-            break;
-        }
+            if found {
+                final_rotation = rotation;
+                break;
+            }
     }
 
     if found {
+        // if final_rotation > 180.0 { final_rotation = final_rotation + 0.0 }
+
         let new_1 = get_point(
             circle.center,
             (naive_box[0].x as u32, naive_box[0].y as u32),
@@ -926,6 +929,7 @@ fn attempt_rotation_box(
             (naive_box[3].x as u32, naive_box[3].y as u32),
             final_rotation,
         );
+
         Some([
             RXingResultPoint::new(new_1.0, new_1.1),
             RXingResultPoint::new(new_2.0, new_2.1),
@@ -959,12 +963,12 @@ fn get_point(center: (u32, u32), original: (u32, u32), angle: f32) -> (f32, f32)
         + radians.cos() * (original.1 as f32 - center.1 as f32)
         + center.1 as f32;
 
-    (x, y)
+    (x.abs(), y.abs())
 }
 
 fn adjust_point_alternate(point: (u32, u32), circle: &Circle, center_scale: f64) -> (u32, u32) {
     let (left_boundary, right_boundary, top_boundary, bottom_boundary) =
-        calculate_simple_boundary(circle, None, Some(center_scale));
+        calculate_simple_boundary(circle, Some(circle.image), Some(center_scale), true);
 
     let top = bottom_boundary;
     let height = top_boundary - bottom_boundary;
@@ -989,7 +993,7 @@ fn guess_barcode_size(circle: &Circle) -> (u32, u32) {
 }
 
 fn guess_barcode_size_tighter(circle: &Circle) -> (u32, u32) {
-    guess_barcode_size_general(circle, 0.03, 0.0695, 0.97)
+    guess_barcode_size_general(circle, 0.025, 0.0695, 0.97)
 }
 
 fn guess_barcode_size_general(
@@ -1003,8 +1007,8 @@ fn guess_barcode_size_general(
     let ideal_symbol_side = ideal_symbol_area.sqrt();
 
     (
-        ideal_symbol_side.round() as u32,
-        (ideal_symbol_side * height_final_adjust_percent).round() as u32,
+        ideal_symbol_side.floor() as u32,
+        (ideal_symbol_side * height_final_adjust_percent).floor() as u32,
     )
 }
 
@@ -1069,6 +1073,14 @@ mod detector_test {
         finder_test(
             "test_resources/blackbox/maxicode-1/MODE2.png",
             "test_resources/blackbox/maxicode-1/MODE2.txt",
+        )
+    }
+
+    #[test]
+    fn mode_2_rot90() {
+        finder_test(
+            "test_resources/blackbox/maxicode-1/MODE2-rotate-90.png",
+            "test_resources/blackbox/maxicode-1/MODE2-rotate-90.txt",
         )
     }
 
