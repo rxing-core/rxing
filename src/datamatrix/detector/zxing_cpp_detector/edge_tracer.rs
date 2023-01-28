@@ -326,6 +326,10 @@ impl<'a> EdgeTracer<'_> {
                     return Ok(false);
                 }
 
+                // re-evaluate line with all the points up to here before projecting
+ 				if (!line.evaluate_max_distance(Some(1.5), None))
+                 {return Ok(false);}
+
                 let mut np = line.project(&self.p);
                 // make sure we are making progress even when back-projecting:
                 // consider a 90deg corner, rotated 45deg. we step away perpendicular from the line and get

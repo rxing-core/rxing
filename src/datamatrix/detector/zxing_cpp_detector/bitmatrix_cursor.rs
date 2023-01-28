@@ -139,16 +139,18 @@ pub trait BitMatrixCursor {
         ret
     }
 
-    fn countEdges(&mut self, range: Option<i32>) -> i32 {
-        let mut range = if let Some(r) = range { r } else { 0 };
+    fn countEdges(&mut self, range: i32) -> i32 {
         let mut res = 0;
+        let mut range = range;
 
-        let mut steps = self.stepToEdge(Some(1), Some(range), None);
+        let mut steps;
 
-        while steps > 0 {
+        while {
+            steps = if range == 0 { 0 } else {self.stepToEdge(Some(1), Some(range), None)};
+            steps > 0
+        } {
             range -= steps;
             res += 1;
-            steps = self.stepToEdge(Some(1), Some(range), None);
         }
 
         res

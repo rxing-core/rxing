@@ -51,6 +51,7 @@ impl DataBlock {
     pub fn getDataBlocks(
         rawCodewords: &[u8],
         version: &Version,
+        fix259: bool,
     ) -> Result<Vec<DataBlock>, Exceptions> {
         // Figure out the number and size of data blocks used by this version
         let ecBlocks = version.getECBlocks();
@@ -121,7 +122,7 @@ impl DataBlock {
             // for (int i = longerBlocksNumDataCodewords; i < max; i++) {
             for j in 0..numRXingResultBlocks {
                 // for (int j = 0; j < numRXingResultBlocks; j++) {
-                let jOffset = if specialVersion {
+                let jOffset = if specialVersion && fix259 {
                     (j + 8) % numRXingResultBlocks
                 } else {
                     j

@@ -41,6 +41,19 @@ impl Decoder {
     }
 
     /**
+     * <p>Decodes a Data Matrix Code represented as a {@link BitMatrix}. A 1 or "true" is taken
+     * to mean a black module.</p>
+     *
+     * @param bits booleans representing white/black Data Matrix Code modules
+     * @return text and bytes encoded within the Data Matrix Code
+     * @throws FormatException if the Data Matrix Code cannot be decoded
+     * @throws ChecksumException if error correction fails
+     */
+    pub fn decode(&self, bits: &BitMatrix) -> Result<DecoderRXingResult, Exceptions> {
+        self.perform_decode(bits, false)
+    }
+
+    /**
      * <p>Convenience method that can decode a Data Matrix Code represented as a 2D array of booleans.
      * "true" is taken to mean a black module.</p>
      *
@@ -50,7 +63,7 @@ impl Decoder {
      * @throws ChecksumException if error correction fails
      */
     pub fn decode_bools(&self, image: &Vec<Vec<bool>>) -> Result<DecoderRXingResult, Exceptions> {
-        self.decode(&BitMatrix::parse_bools(image))
+        self.perform_decode(&BitMatrix::parse_bools(image),false)
     }
 
     /**
@@ -62,7 +75,7 @@ impl Decoder {
      * @throws FormatException if the Data Matrix Code cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-    pub fn decode(&self, bits: &BitMatrix) -> Result<DecoderRXingResult, Exceptions> {
+     fn perform_decode(&self, bits: &BitMatrix, fix259: bool) -> Result<DecoderRXingResult, Exceptions> {
         // Construct a parser and read version, error-correction level
         let mut parser = BitMatrixParser::new(bits)?;
 
@@ -72,7 +85,7 @@ impl Decoder {
         let version = parser.getVersion();
 
         // Separate into data blocks
-        let dataBlocks = DataBlock::getDataBlocks(&codewords, version)?;
+        let dataBlocks = DataBlock::getDataBlocks(&codewords, version, fix259)?;
 
         // Count total number of data bytes
         let totalBytes = dataBlocks
@@ -88,7 +101,12 @@ impl Decoder {
             let dataBlock = &dataBlocks[j];
             let mut codewordBytes = dataBlock.getCodewords().to_vec();
             let numDataCodewords = dataBlock.getNumDataCodewords() as usize;
-            self.correctErrors(&mut codewordBytes, numDataCodewords as u32)?;
+            let errors_corrected = self.correctErrors(&mut codewordBytes, numDataCodewords as u32);
+            if errors_corrected.is_err() && !fix259 {
+                return self.perform_decode(bits, true);
+            }else if errors_corrected.is_err() {
+                return Err(errors_corrected.err().unwrap())
+            }
             for i in 0..numDataCodewords {
                 // for (int i = 0; i < numDataCodewords; i++) {
                 // De-interlace data blocks.
