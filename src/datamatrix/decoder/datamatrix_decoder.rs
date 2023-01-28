@@ -50,8 +50,23 @@ impl Decoder {
      * @throws ChecksumException if error correction fails
      */
     pub fn decode(&self, bits: &BitMatrix) -> Result<DecoderRXingResult, Exceptions> {
-        self.perform_decode(bits, false)
+        let decoded = self.perform_decode(bits, false);
+        if decoded.is_ok() {
+            return decoded
+        }
+
+         self.perform_decode(&Self::flip_bitmatrix(bits)?, false)
     }
+
+    fn flip_bitmatrix( bits:&BitMatrix) ->  Result<BitMatrix,Exceptions>
+{
+	let mut res = BitMatrix::new(bits.getHeight(), bits.getWidth())?;
+    for y in 0..res.getHeight() {
+        for x in 0..res.getWidth() {
+			{res.set_bool(x, y, bits.get(bits.getWidth() - 1 - y, bits.getHeight() - 1 - x));}}}
+	
+            Ok(res)
+}
 
     /**
      * <p>Convenience method that can decode a Data Matrix Code represented as a 2D array of booleans.

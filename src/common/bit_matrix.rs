@@ -263,6 +263,14 @@ impl BitMatrix {
         self.bits[offset] |= 1 << (x & 0x1f);
     }
 
+    pub fn set_bool(&mut self, x: u32, y: u32, value: bool) {
+        if value {
+            self.set(x, y)
+        }else {
+            self.unset(x, y)
+        }
+    }
+
     pub fn unset(&mut self, x: u32, y: u32) {
         let offset = self.get_offset(y, x);
         self.bits[offset] &= !(1 << (x & 0x1f));
