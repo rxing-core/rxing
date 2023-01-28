@@ -195,6 +195,9 @@ fn decodeAsciiSegment(
     fnc1positions: &mut Vec<usize>,
 ) -> Result<Mode, Exceptions> {
     let mut upperShift = false;
+    let mut firstFNC1Position = 1;
+    let mut firstCodeword = true;
+    let mut sai = StructuredAppendInfo::default();
     loop {
         let mut oneByte = bits.readBits(8)?;
         if oneByte == 0 {
@@ -226,14 +229,24 @@ fn decodeAsciiSegment(
            231=> // Latch to Base 256 encodation
             return Ok(Mode::BASE256_ENCODE),
            232=> {// FNC1
-            fnc1positions.push(result.len());
-            result.append_char( 29 as char); // translate as ASCII 29
+            if (bits.getByteOffset() == firstFNC1Position)
+					{/*result.symbology.modifier = '2';*/} // GS1
+				else if (bits.getByteOffset() == firstFNC1Position + 1)
+					{/*result.symbology.modifier = '3';*/} // AIM, note no AIM Application Indicator format defined, ISO 16022:2006 11.2
+				else
+					{fnc1positions.push(result.len());
+                        result.append_char( 29 as char); }// translate as ASCII 29
             },
            233| // Structured Append
            234=> // Reader Programming
             // Ignore these symbols for now
             //throw ReaderException.getInstance();
-            {},
+            {
+                if (!firstCodeword) // Must be first ISO 16022:2006 5.6.1
+					{return Err(Exceptions::FormatException(Some("structured append tag must be first code word".to_owned())));}
+				parse_structured_append(bits, &mut sai)?;
+				firstFNC1Position = 5;
+            },
            235=> // Upper Shift (shift to Extended ASCII)
             upperShift = true,
            236=> {// 05 Macro
@@ -265,6 +278,7 @@ fn decodeAsciiSegment(
         if bits.available() == 0 {
             break;
         }
+        firstCodeword = false;
     } //while (bits.available() > 0);
     Ok(Mode::ASCII_ENCODE)
 }
@@ -412,7 +426,7 @@ fn decodeTextSegment(
                     } else if cValue < TEXT_BASIC_SET_CHARS.len() as u32 {
                         let textChar = TEXT_BASIC_SET_CHARS[cValue as usize];
                         if upperShift {
-                            result.append_char(char::from_u32(textChar as u32 + 128_u32).unwrap());
+                            result.append_char(char::from_u32(textChar as u32 + 128).unwrap());
                             upperShift = false;
                         } else {
                             result.append_char(textChar);
@@ -667,15 +681,30 @@ fn decodeBase256Segment(
  * See ISO 16022:2007, 5.4.1
  */
 fn decodeECISegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Result<(), Exceptions> {
-    if bits.available() < 8 {
-        return Err(Exceptions::FormatException(None));
-    }
-    let c1 = bits.readBits(8)?;
-    if c1 <= 127 {
-        result.appendECI(c1 - 1)?;
+    let firstByte = bits.readBits(8)?;
+    if (firstByte <= 127) {
+        return result.appendECI(firstByte - 1);
     }
 
-    Ok(())
+    let secondByte = bits.readBits(8)?;
+    if (firstByte <= 191) {
+        return result.appendECI(firstByte - 1);
+    }
+
+    let thirdByte = bits.readBits(8)?;
+
+    return result
+        .appendECI((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1);
+
+    // if bits.available() < 8 {
+    //     return Err(Exceptions::FormatException(None));
+    // }
+    // let c1 = bits.readBits(8)?;
+    // if c1 <= 127 {
+    //     result.appendECI(c1 - 1)?;
+    // }
+
+    // Ok(())
     //currently we only support character set ECIs
     /*} else {
       if (bits.available() < 8) {
@@ -690,6 +719,48 @@ fn decodeECISegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Resu
         int c3 = bits.readBits(8);
       }
     }*/
+}
+
+/**
+* See ISO 16022:2006, 5.6
+*/
+fn parse_structured_append(
+    bits: &mut BitSource,
+    sai: &mut StructuredAppendInfo,
+) -> Result<(), Exceptions> {
+    // 5.6.2 Table 8
+    let symbolSequenceIndicator = bits.readBits(8)?;
+    sai.index = (symbolSequenceIndicator >> 4) as i32;
+    sai.count = (17 - (symbolSequenceIndicator & 0x0F)) as i32; // 2-16 permitted, 17 invalid
+
+    if (sai.count == 17 || sai.count <= sai.index)
+    // If info doesn't make sense
+    {
+        sai.count = 0; // Choose to mark count as unknown
+    }
+
+    let fileId1 = bits.readBits(8)?; // File identification 1
+    let fileId2 = bits.readBits(8)?; // File identification 2
+
+    // There's no conversion method or meaning given to the 2 file id codewords in Section 5.6.3, apart from
+    // saying that each value should be 1-254. Choosing here to represent them as base 256.
+    sai.id = ((fileId1 << 8) | fileId2).to_string();
+    Ok(())
+}
+struct StructuredAppendInfo {
+    index: i32, //= -1;
+    count: i32, // = -1;
+    id: String,
+}
+
+impl Default for StructuredAppendInfo {
+    fn default() -> Self {
+        Self {
+            index: -1,
+            count: -1,
+            id: Default::default(),
+        }
+    }
 }
 
 /**

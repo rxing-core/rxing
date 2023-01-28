@@ -45,7 +45,7 @@ impl ECIStringBuilder {
         Self {
             current_bytes: Vec::new(),
             result: String::new(),
-            current_charset: encoding::all::UTF_8,
+            current_charset: encoding::all::ISO_8859_1,
         }
     }
     pub fn with_capacity(initial_capacity: usize) -> Self {

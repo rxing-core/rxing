@@ -466,7 +466,9 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
         let result_text = result.getText();
         if expected_text != result_text {
             log::info(format!(
-                "Content mismatch: expected '{expected_text}' but got '{result_text}'{suffix}"
+                "Content mismatch: expected '{}' but got '{}'{suffix}",
+                expected_text.escape_default(),
+                result_text.escape_default()
             ));
             return Ok(false);
         }
