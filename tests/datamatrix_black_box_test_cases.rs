@@ -29,10 +29,10 @@ fn data_matrix_black_box1_test_case() {
         rxing::BarcodeFormat::DATA_MATRIX,
     );
     // super("src/test/resources/blackbox/datamatrix-1", new MultiFormatReader(), BarcodeFormat.DATA_MATRIX);
-    tester.add_test(26, 28, 0.0);
-    tester.add_test(21, 26, 90.0);
-    tester.add_test(21, 26, 180.0);
-    tester.add_test(21, 26, 270.0);
+    tester.add_test(27, 29, 0.0);
+    tester.add_test(21, 27, 90.0);
+    tester.add_test(21, 27, 180.0);
+    tester.add_test(21, 27, 270.0);
 
     tester.test_black_box();
 }

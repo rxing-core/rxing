@@ -146,7 +146,11 @@ pub trait BitMatrixCursor {
         let mut steps;
 
         while {
-            steps = if range == 0 { 0 } else {self.stepToEdge(Some(1), Some(range), None)};
+            steps = if range == 0 {
+                0
+            } else {
+                self.stepToEdge(Some(1), Some(range), None)
+            };
             steps > 0
         } {
             range -= steps;
