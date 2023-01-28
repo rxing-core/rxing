@@ -229,9 +229,9 @@ fn decodeAsciiSegment(
            231=> // Latch to Base 256 encodation
             return Ok(Mode::BASE256_ENCODE),
            232=> {// FNC1
-            if (bits.getByteOffset() == firstFNC1Position)
+            if bits.getByteOffset() == firstFNC1Position
 					{/*result.symbology.modifier = '2';*/} // GS1
-				else if (bits.getByteOffset() == firstFNC1Position + 1)
+				else if bits.getByteOffset() == firstFNC1Position + 1
 					{/*result.symbology.modifier = '3';*/} // AIM, note no AIM Application Indicator format defined, ISO 16022:2006 11.2
 				else
 					{fnc1positions.push(result.len());
@@ -242,7 +242,7 @@ fn decodeAsciiSegment(
             // Ignore these symbols for now
             //throw ReaderException.getInstance();
             {
-                if (!firstCodeword) // Must be first ISO 16022:2006 5.6.1
+                if !firstCodeword // Must be first ISO 16022:2006 5.6.1
 					{return Err(Exceptions::FormatException(Some("structured append tag must be first code word".to_owned())));}
 				parse_structured_append(bits, &mut sai)?;
 				firstFNC1Position = 5;
@@ -682,19 +682,19 @@ fn decodeBase256Segment(
  */
 fn decodeECISegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Result<(), Exceptions> {
     let firstByte = bits.readBits(8)?;
-    if (firstByte <= 127) {
+    if firstByte <= 127 {
         return result.appendECI(firstByte - 1);
     }
 
     let secondByte = bits.readBits(8)?;
-    if (firstByte <= 191) {
+    if firstByte <= 191 {
         return result.appendECI(firstByte - 1);
     }
 
     let thirdByte = bits.readBits(8)?;
 
-    return result
-        .appendECI((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1);
+    result
+        .appendECI((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1)
 
     // if bits.available() < 8 {
     //     return Err(Exceptions::FormatException(None));
@@ -733,7 +733,7 @@ fn parse_structured_append(
     sai.index = (symbolSequenceIndicator >> 4) as i32;
     sai.count = (17 - (symbolSequenceIndicator & 0x0F)) as i32; // 2-16 permitted, 17 invalid
 
-    if (sai.count == 17 || sai.count <= sai.index)
+    if sai.count == 17 || sai.count <= sai.index
     // If info doesn't make sense
     {
         sai.count = 0; // Choose to mark count as unknown
