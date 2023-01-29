@@ -105,10 +105,11 @@ impl ECIStringBuilder {
      */
     pub fn appendECI(&mut self, value: u32) -> Result<(), Exceptions> {
         self.encodeCurrentBytesIfAny();
-        
+
         if let Ok(character_set_eci) = CharacterSetECI::getCharacterSetECIByValue(value) {
+            dbg!(character_set_eci, CharacterSetECI::getCharset(&character_set_eci).name(), CharacterSetECI::getCharset(&character_set_eci).whatwg_name());
             self.current_charset = Some(CharacterSetECI::getCharset(&character_set_eci));
-        }else {
+        } else {
             self.current_charset = None
         }
 
@@ -118,35 +119,35 @@ impl ECIStringBuilder {
 
     pub fn encodeCurrentBytesIfAny(&mut self) {
         if let Some(encoder) = self.current_charset {
-        if encoder.name() == encoding::all::UTF_8.name() {
-            if !self.current_bytes.is_empty() {
-                // if result == null {
-                //   result = currentBytes;
-                //   currentBytes = new StringBuilder();
-                // } else {
-                self.result
-                    .push_str(&String::from_utf8(self.current_bytes.clone()).unwrap());
+            if encoder.name() == encoding::all::UTF_8.name() {
+                if !self.current_bytes.is_empty() {
+                    // if result == null {
+                    //   result = currentBytes;
+                    //   currentBytes = new StringBuilder();
+                    // } else {
+                    self.result
+                        .push_str(&String::from_utf8(std::mem::take(&mut self.current_bytes)).unwrap());
+                    self.current_bytes.clear();
+                    // }
+                }
+            } else if !self.current_bytes.is_empty() {
+                let bytes = std::mem::take(&mut self.current_bytes);
                 self.current_bytes.clear();
-                // }
+                //   if (result == null) {
+                //     result = new StringBuilder(new String(bytes, currentCharset));
+                //   } else {
+                let encoded_value = encoder
+                    .decode(&bytes, encoding::DecoderTrap::Strict)
+                    .unwrap();
+                self.result.push_str(&encoded_value);
+                //   }
             }
-        } else if !self.current_bytes.is_empty() {
-            let bytes = self.current_bytes.clone();
+        } else {
+            for byte in &self.current_bytes {
+                self.result.push(char::from(*byte))
+            }
             self.current_bytes.clear();
-            //   if (result == null) {
-            //     result = new StringBuilder(new String(bytes, currentCharset));
-            //   } else {
-            let encoded_value = encoder
-                .decode(&bytes, encoding::DecoderTrap::Replace)
-                .unwrap();
-            self.result.push_str(&encoded_value);
-            //   }
         }
-    }else {
-        for byte in &self.current_bytes {
-            self.result.push(char::from(*byte))
-        }
-        self.current_bytes.clear();
-    }
     }
 
     /**

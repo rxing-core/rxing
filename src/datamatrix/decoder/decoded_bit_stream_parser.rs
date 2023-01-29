@@ -121,30 +121,43 @@ pub fn decode(bytes: &[u8]) -> Result<DecoderRXingResult, Exceptions> {
     let symbologyModifier;
     let mut isECIencoded = false;
     loop {
-        if mode == Mode::ASCII_ENCODE {
-            mode = decodeAsciiSegment(
-                &mut bits,
-                &mut result,
-                &mut resultTrailer,
-                &mut fnc1Positions,
-            )?;
-        } else {
-            match mode {
-                Mode::C40_ENCODE => decodeC40Segment(&mut bits, &mut result, &mut fnc1Positions)?,
-                Mode::TEXT_ENCODE => decodeTextSegment(&mut bits, &mut result, &mut fnc1Positions)?,
-                Mode::ANSIX12_ENCODE => decodeAnsiX12Segment(&mut bits, &mut result)?,
-                Mode::EDIFACT_ENCODE => decodeEdifactSegment(&mut bits, &mut result)?,
-                Mode::BASE256_ENCODE => {
-                    decodeBase256Segment(&mut bits, &mut result, &mut byteSegments)?
-                }
-                Mode::ECI_ENCODE => {
-                    decodeECISegment(&mut bits, &mut result)?;
-                    isECIencoded = true; // ECI detection only, atm continue decoding as ASCII
-                }
-                _ => return Err(Exceptions::FormatException(None)),
-            };
-            mode = Mode::ASCII_ENCODE;
+        match mode {
+            Mode::ASCII_ENCODE => {
+                mode = decodeAsciiSegment(
+                    &mut bits,
+                    &mut result,
+                    &mut resultTrailer,
+                    &mut fnc1Positions,
+                )?
+            }
+            Mode::C40_ENCODE => {
+                decodeC40Segment(&mut bits, &mut result, &mut fnc1Positions)?;
+                mode = Mode::ASCII_ENCODE;
+            }
+            Mode::TEXT_ENCODE => {
+                decodeTextSegment(&mut bits, &mut result, &mut fnc1Positions)?;
+                mode = Mode::ASCII_ENCODE;
+            }
+            Mode::ANSIX12_ENCODE => {
+                decodeAnsiX12Segment(&mut bits, &mut result)?;
+                mode = Mode::ASCII_ENCODE;
+            }
+            Mode::EDIFACT_ENCODE => {
+                decodeEdifactSegment(&mut bits, &mut result)?;
+                mode = Mode::ASCII_ENCODE;
+            }
+            Mode::BASE256_ENCODE => {
+                decodeBase256Segment(&mut bits, &mut result, &mut byteSegments)?;
+                mode = Mode::ASCII_ENCODE;
+            }
+            Mode::ECI_ENCODE => {
+                decodeECISegment(&mut bits, &mut result)?;
+                isECIencoded = true; // ECI detection only, atm continue decoding as ASCII
+                mode = Mode::ASCII_ENCODE;
+            }
+            _ => return Err(Exceptions::FormatException(None)),
         }
+
         if !(mode != Mode::PAD_ENCODE && bits.available() > 0) {
             break;
         }
@@ -200,31 +213,29 @@ fn decodeAsciiSegment(
     let mut sai = StructuredAppendInfo::default();
     loop {
         let mut oneByte = bits.readBits(8)?;
-        if oneByte == 0 {
-            return Err(Exceptions::FormatException(None));
-        } else if oneByte <= 128 {
-            // ASCII data (ASCII value + 1)
-            if upperShift {
-                oneByte += 128;
-                //upperShift = false;
-            }
-            result.append_char(char::from_u32(oneByte - 1).unwrap());
-            return Ok(Mode::ASCII_ENCODE);
-        } else if oneByte == 129 {
-            // Pad
-            return Ok(Mode::PAD_ENCODE);
-        } else if oneByte <= 229 {
-            // 2-digit data 00-99 (Numeric Value + 130)
-            let value = oneByte - 130;
-            if value < 10 {
-                // pad with '0' for single digit values
-                result.append_char('0');
-            }
-            //result.append_char(char::from_u32(value).unwrap());
-            result.append_string(&format!("{value}"));
-        } else {
-            match oneByte {
-           230=> // Latch to C40 encodation
+        match oneByte {
+            0 => return Err(Exceptions::FormatException(None)),
+            1..=128 => {
+                // ASCII data (ASCII value + 1)
+                if upperShift {
+                    oneByte += 128;
+                    //upperShift = false;
+                }
+                result.append_char(char::from_u32(oneByte - 1).unwrap());
+                return Ok(Mode::ASCII_ENCODE);
+            },
+            129 => return Ok(Mode::PAD_ENCODE), // Pad
+            129..=229 => {
+                // 2-digit data 00-99 (Numeric Value + 130)
+                let value = oneByte - 130;
+                if value < 10 {
+                    // pad with '0' for single digit values
+                    result.append_char('0');
+                }
+                //result.append_char(char::from_u32(value).unwrap());
+                result.append_string(&format!("{value}"));
+            },
+            230=> // Latch to C40 encodation
             return Ok(Mode::C40_ENCODE),
            231=> // Latch to Base 256 encodation
             return Ok(Mode::BASE256_ENCODE),
@@ -237,16 +248,17 @@ fn decodeAsciiSegment(
 					{fnc1positions.push(result.len());
                         result.append_char( 29 as char); }// translate as ASCII 29
             },
-           233| // Structured Append
+           233 =>  // Structured Append
+           {
+            if !firstCodeword // Must be first ISO 16022:2006 5.6.1
+                {return Err(Exceptions::FormatException(Some("structured append tag must be first code word".to_owned())));}
+            parse_structured_append(bits, &mut sai)?;
+            firstFNC1Position = 5;
+        },
            234=> // Reader Programming
             // Ignore these symbols for now
             //throw ReaderException.getInstance();
-            {
-                if !firstCodeword // Must be first ISO 16022:2006 5.6.1
-					{return Err(Exceptions::FormatException(Some("structured append tag must be first code word".to_owned())));}
-				parse_structured_append(bits, &mut sai)?;
-				firstFNC1Position = 5;
-            },
+            {},
            235=> // Upper Shift (shift to Extended ASCII)
             upperShift = true,
            236=> {// 05 Macro
@@ -274,7 +286,7 @@ fn decodeAsciiSegment(
               return Err(Exceptions::FormatException(None))
             }},
         }
-        }
+
         if bits.available() == 0 {
             break;
         }
