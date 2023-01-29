@@ -37,7 +37,7 @@ use super::CharacterSetECI;
 pub struct ECIStringBuilder {
     current_bytes: Vec<u8>,
     result: String,
-    current_charset: EncodingRef, //= StandardCharsets.ISO_8859_1;
+    current_charset: Option<EncodingRef>, //= StandardCharsets.ISO_8859_1;
 }
 
 impl ECIStringBuilder {
@@ -45,14 +45,14 @@ impl ECIStringBuilder {
         Self {
             current_bytes: Vec::new(),
             result: String::new(),
-            current_charset: encoding::all::ISO_8859_1,
+            current_charset: Some(encoding::all::ISO_8859_1),
         }
     }
     pub fn with_capacity(initial_capacity: usize) -> Self {
         Self {
             current_bytes: Vec::with_capacity(initial_capacity),
             result: String::new(),
-            current_charset: encoding::all::ISO_8859_1,
+            current_charset: Some(encoding::all::ISO_8859_1),
         }
     }
 
@@ -105,14 +105,20 @@ impl ECIStringBuilder {
      */
     pub fn appendECI(&mut self, value: u32) -> Result<(), Exceptions> {
         self.encodeCurrentBytesIfAny();
-        let character_set_eci = CharacterSetECI::getCharacterSetECIByValue(value)?;
+        
+        if let Ok(character_set_eci) = CharacterSetECI::getCharacterSetECIByValue(value) {
+            self.current_charset = Some(CharacterSetECI::getCharset(&character_set_eci));
+        }else {
+            self.current_charset = None
+        }
 
-        self.current_charset = CharacterSetECI::getCharset(&character_set_eci);
+        // self.current_charset = CharacterSetECI::getCharset(&character_set_eci);
         Ok(())
     }
 
     pub fn encodeCurrentBytesIfAny(&mut self) {
-        if self.current_charset.name() == encoding::all::UTF_8.name() {
+        if let Some(encoder) = self.current_charset {
+        if encoder.name() == encoding::all::UTF_8.name() {
             if !self.current_bytes.is_empty() {
                 // if result == null {
                 //   result = currentBytes;
@@ -129,13 +135,18 @@ impl ECIStringBuilder {
             //   if (result == null) {
             //     result = new StringBuilder(new String(bytes, currentCharset));
             //   } else {
-            let encoded_value = self
-                .current_charset
+            let encoded_value = encoder
                 .decode(&bytes, encoding::DecoderTrap::Replace)
                 .unwrap();
             self.result.push_str(&encoded_value);
             //   }
         }
+    }else {
+        for byte in &self.current_bytes {
+            self.result.push(char::from(*byte))
+        }
+        self.current_bytes.clear();
+    }
     }
 
     /**
