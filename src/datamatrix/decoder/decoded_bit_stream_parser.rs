@@ -688,7 +688,7 @@ fn decodeECISegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Resu
 
     let secondByte = bits.readBits(8)?;
     if firstByte <= 191 {
-        return result.appendECI(firstByte - 1);
+        return result.appendECI((firstByte - 128) * 254 + 127 + secondByte - 1);
     }
 
     let thirdByte = bits.readBits(8)?;
