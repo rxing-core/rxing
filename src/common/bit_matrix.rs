@@ -266,7 +266,7 @@ impl BitMatrix {
     pub fn set_bool(&mut self, x: u32, y: u32, value: bool) {
         if value {
             self.set(x, y)
-        }else {
+        } else {
             self.unset(x, y)
         }
     }

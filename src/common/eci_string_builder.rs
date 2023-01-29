@@ -106,7 +106,7 @@ impl ECIStringBuilder {
     pub fn appendECI(&mut self, value: u32) -> Result<(), Exceptions> {
         self.encodeCurrentBytesIfAny();
         let character_set_eci = CharacterSetECI::getCharacterSetECIByValue(value)?;
-        
+
         self.current_charset = CharacterSetECI::getCharset(&character_set_eci);
         Ok(())
     }

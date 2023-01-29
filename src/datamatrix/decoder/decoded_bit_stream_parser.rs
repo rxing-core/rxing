@@ -693,8 +693,7 @@ fn decodeECISegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Resu
 
     let thirdByte = bits.readBits(8)?;
 
-    result
-        .appendECI((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1)
+    result.appendECI((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1)
 
     // if bits.available() < 8 {
     //     return Err(Exceptions::FormatException(None));

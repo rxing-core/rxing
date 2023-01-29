@@ -52,21 +52,28 @@ impl Decoder {
     pub fn decode(&self, bits: &BitMatrix) -> Result<DecoderRXingResult, Exceptions> {
         let decoded = self.perform_decode(bits, false);
         if decoded.is_ok() {
-            return decoded
+            return decoded;
         }
 
-         self.perform_decode(&Self::flip_bitmatrix(bits)?, false)
+        self.perform_decode(&Self::flip_bitmatrix(bits)?, false)
     }
 
-    fn flip_bitmatrix( bits:&BitMatrix) ->  Result<BitMatrix,Exceptions>
-{
-	let mut res = BitMatrix::new(bits.getHeight(), bits.getWidth())?;
-    for y in 0..res.getHeight() {
-        for x in 0..res.getWidth() {
-			{res.set_bool(x, y, bits.get(bits.getWidth() - 1 - y, bits.getHeight() - 1 - x));}}}
-	
-            Ok(res)
-}
+    fn flip_bitmatrix(bits: &BitMatrix) -> Result<BitMatrix, Exceptions> {
+        let mut res = BitMatrix::new(bits.getHeight(), bits.getWidth())?;
+        for y in 0..res.getHeight() {
+            for x in 0..res.getWidth() {
+                {
+                    res.set_bool(
+                        x,
+                        y,
+                        bits.get(bits.getWidth() - 1 - y, bits.getHeight() - 1 - x),
+                    );
+                }
+            }
+        }
+
+        Ok(res)
+    }
 
     /**
      * <p>Convenience method that can decode a Data Matrix Code represented as a 2D array of booleans.
@@ -78,7 +85,7 @@ impl Decoder {
      * @throws ChecksumException if error correction fails
      */
     pub fn decode_bools(&self, image: &Vec<Vec<bool>>) -> Result<DecoderRXingResult, Exceptions> {
-        self.perform_decode(&BitMatrix::parse_bools(image),false)
+        self.perform_decode(&BitMatrix::parse_bools(image), false)
     }
 
     /**
@@ -90,7 +97,11 @@ impl Decoder {
      * @throws FormatException if the Data Matrix Code cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-     fn perform_decode(&self, bits: &BitMatrix, fix259: bool) -> Result<DecoderRXingResult, Exceptions> {
+    fn perform_decode(
+        &self,
+        bits: &BitMatrix,
+        fix259: bool,
+    ) -> Result<DecoderRXingResult, Exceptions> {
         // Construct a parser and read version, error-correction level
         let mut parser = BitMatrixParser::new(bits)?;
 
@@ -119,8 +130,8 @@ impl Decoder {
             let errors_corrected = self.correctErrors(&mut codewordBytes, numDataCodewords as u32);
             if errors_corrected.is_err() && !fix259 {
                 return self.perform_decode(bits, true);
-            }else if errors_corrected.is_err() {
-                return Err(errors_corrected.err().unwrap())
+            } else if errors_corrected.is_err() {
+                return Err(errors_corrected.err().unwrap());
             }
             for i in 0..numDataCodewords {
                 // for (int i = 0; i < numDataCodewords; i++) {
