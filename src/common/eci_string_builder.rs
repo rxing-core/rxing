@@ -107,7 +107,11 @@ impl ECIStringBuilder {
         self.encodeCurrentBytesIfAny();
 
         if let Ok(character_set_eci) = CharacterSetECI::getCharacterSetECIByValue(value) {
-            dbg!(character_set_eci, CharacterSetECI::getCharset(&character_set_eci).name(), CharacterSetECI::getCharset(&character_set_eci).whatwg_name());
+            dbg!(
+                character_set_eci,
+                CharacterSetECI::getCharset(&character_set_eci).name(),
+                CharacterSetECI::getCharset(&character_set_eci).whatwg_name()
+            );
             self.current_charset = Some(CharacterSetECI::getCharset(&character_set_eci));
         } else {
             self.current_charset = None
@@ -125,8 +129,9 @@ impl ECIStringBuilder {
                     //   result = currentBytes;
                     //   currentBytes = new StringBuilder();
                     // } else {
-                    self.result
-                        .push_str(&String::from_utf8(std::mem::take(&mut self.current_bytes)).unwrap());
+                    self.result.push_str(
+                        &String::from_utf8(std::mem::take(&mut self.current_bytes)).unwrap(),
+                    );
                     self.current_bytes.clear();
                     // }
                 }

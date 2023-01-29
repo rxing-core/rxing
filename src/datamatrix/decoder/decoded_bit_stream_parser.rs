@@ -223,7 +223,7 @@ fn decodeAsciiSegment(
                 }
                 result.append_char(char::from_u32(oneByte - 1).unwrap());
                 return Ok(Mode::ASCII_ENCODE);
-            },
+            }
             129 => return Ok(Mode::PAD_ENCODE), // Pad
             129..=229 => {
                 // 2-digit data 00-99 (Numeric Value + 130)
@@ -234,57 +234,92 @@ fn decodeAsciiSegment(
                 }
                 //result.append_char(char::from_u32(value).unwrap());
                 result.append_string(&format!("{value}"));
-            },
-            230=> // Latch to C40 encodation
-            return Ok(Mode::C40_ENCODE),
-           231=> // Latch to Base 256 encodation
-            return Ok(Mode::BASE256_ENCODE),
-           232=> {// FNC1
-            if bits.getByteOffset() == firstFNC1Position
-					{/*result.symbology.modifier = '2';*/} // GS1
-				else if bits.getByteOffset() == firstFNC1Position + 1
-					{/*result.symbology.modifier = '3';*/} // AIM, note no AIM Application Indicator format defined, ISO 16022:2006 11.2
-				else
-					{fnc1positions.push(result.len());
-                        result.append_char( 29 as char); }// translate as ASCII 29
-            },
-           233 =>  // Structured Append
-           {
-            if !firstCodeword // Must be first ISO 16022:2006 5.6.1
-                {return Err(Exceptions::FormatException(Some("structured append tag must be first code word".to_owned())));}
-            parse_structured_append(bits, &mut sai)?;
-            firstFNC1Position = 5;
-        },
-           234=> // Reader Programming
+            }
+            230 =>
+            // Latch to C40 encodation
+            {
+                return Ok(Mode::C40_ENCODE)
+            }
+            231 =>
+            // Latch to Base 256 encodation
+            {
+                return Ok(Mode::BASE256_ENCODE)
+            }
+            232 => {
+                // FNC1
+                if bits.getByteOffset() == firstFNC1Position { /*result.symbology.modifier = '2';*/
+                }
+                // GS1
+                else if bits.getByteOffset() == firstFNC1Position + 1 { /*result.symbology.modifier = '3';*/
+                }
+                // AIM, note no AIM Application Indicator format defined, ISO 16022:2006 11.2
+                else {
+                    fnc1positions.push(result.len());
+                    result.append_char(29 as char);
+                } // translate as ASCII 29
+            }
+            233 =>
+            // Structured Append
+            {
+                if !firstCodeword
+                // Must be first ISO 16022:2006 5.6.1
+                {
+                    return Err(Exceptions::FormatException(Some(
+                        "structured append tag must be first code word".to_owned(),
+                    )));
+                }
+                parse_structured_append(bits, &mut sai)?;
+                firstFNC1Position = 5;
+            }
+            234 =>
+                // Reader Programming
             // Ignore these symbols for now
             //throw ReaderException.getInstance();
-            {},
-           235=> // Upper Shift (shift to Extended ASCII)
-            upperShift = true,
-           236=> {// 05 Macro
-            result.append_string(VALUE_236);
-            resultTrailer.replace_range(0..0, INSERT_STRING_CONST);
-            // resultTrailer.insert(0, "\u{001E}\u{0004}");
-            },
-           237=>{ // 06 Macro
-            result.append_string(VALUE_237);
-            resultTrailer.replace_range(0..0, INSERT_STRING_CONST);
-            // resultTrailer.insert(0, "\u{001E}\u{0004}");
-            },
-           238=> // Latch to ANSI X12 encodation
-            return Ok(Mode::ANSIX12_ENCODE),
-           239=> // Latch to Text encodation
-            return Ok(Mode::TEXT_ENCODE),
-           240=> // Latch to EDIFACT encodation
-            return Ok(Mode::EDIFACT_ENCODE),
-           241=> // ECI Character
-            return Ok(Mode::ECI_ENCODE),
-          _=>{
-            // Not to be used in ASCII encodation
-            // but work around encoders that end with 254, latch back to ASCII
-            if oneByte != 254 || bits.available() != 0 {
-              return Err(Exceptions::FormatException(None))
-            }},
+                {}
+            235 =>
+            // Upper Shift (shift to Extended ASCII)
+            {
+                upperShift = true
+            }
+            236 => {
+                // 05 Macro
+                result.append_string(VALUE_236);
+                resultTrailer.replace_range(0..0, INSERT_STRING_CONST);
+                // resultTrailer.insert(0, "\u{001E}\u{0004}");
+            }
+            237 => {
+                // 06 Macro
+                result.append_string(VALUE_237);
+                resultTrailer.replace_range(0..0, INSERT_STRING_CONST);
+                // resultTrailer.insert(0, "\u{001E}\u{0004}");
+            }
+            238 =>
+            // Latch to ANSI X12 encodation
+            {
+                return Ok(Mode::ANSIX12_ENCODE)
+            }
+            239 =>
+            // Latch to Text encodation
+            {
+                return Ok(Mode::TEXT_ENCODE)
+            }
+            240 =>
+            // Latch to EDIFACT encodation
+            {
+                return Ok(Mode::EDIFACT_ENCODE)
+            }
+            241 =>
+            // ECI Character
+            {
+                return Ok(Mode::ECI_ENCODE)
+            }
+            _ => {
+                // Not to be used in ASCII encodation
+                // but work around encoders that end with 254, latch back to ASCII
+                if oneByte != 254 || bits.available() != 0 {
+                    return Err(Exceptions::FormatException(None));
+                }
+            }
         }
 
         if bits.available() == 0 {
