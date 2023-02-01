@@ -131,6 +131,31 @@ impl Reader for DataMatrixReader {
                 RXingResultMetadataValue::ErrorCorrectionLevel(ecLevel.to_string()),
             );
         }
+        let other_meta = decoderRXingResult.getOther();
+        if let Some(other) = other_meta {
+            if let Some(dcr) = other.downcast_ref::<String>() {
+                result.putMetadata(
+                    RXingResultMetadataType::OTHER,
+                    RXingResultMetadataValue::OTHER(dcr.to_owned()),
+                );
+            }
+        }
+        let contentType = decoderRXingResult.getContentType();
+        if !contentType.is_empty() {
+            result.putMetadata(
+                RXingResultMetadataType::CONTENT_TYPE,
+                RXingResultMetadataValue::ContentType(contentType.to_owned()),
+            );
+        }
+
+        let mirrored = decoderRXingResult.getIsMirrored();
+        if mirrored {
+            result.putMetadata(
+                RXingResultMetadataType::IS_MIRRORED,
+                RXingResultMetadataValue::IsMirrored(mirrored),
+            );
+        }
+
         result.putMetadata(
             RXingResultMetadataType::SYMBOLOGY_IDENTIFIER,
             RXingResultMetadataValue::SymbologyIdentifier(format!(

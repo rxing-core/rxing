@@ -108,23 +108,39 @@ pub enum RXingResultMetadataType {
      * when prepending to the barcode content.
      */
     SYMBOLOGY_IDENTIFIER,
+
+    IS_MIRRORED,
+
+    CONTENT_TYPE,
 }
 
 impl From<String> for RXingResultMetadataType {
     fn from(in_str: String) -> Self {
-        match in_str.as_str() {
+        match in_str.to_uppercase().as_str() {
             "OTHER" => RXingResultMetadataType::OTHER,
             "ORIENTATION" => RXingResultMetadataType::ORIENTATION,
-            "BYTE_SEGMENTS" => RXingResultMetadataType::BYTE_SEGMENTS,
-            "ERROR_CORRECTION_LEVEL" => RXingResultMetadataType::ERROR_CORRECTION_LEVEL,
-            "ISSUE_NUMBER" => RXingResultMetadataType::ISSUE_NUMBER,
-            "SUGGESTED_PRICE" => RXingResultMetadataType::SUGGESTED_PRICE,
-            "POSSIBLE_COUNTRY" => RXingResultMetadataType::POSSIBLE_COUNTRY,
-            "UPC_EAN_EXTENSION" => RXingResultMetadataType::UPC_EAN_EXTENSION,
-            "PDF417_EXTRA_METADATA" => RXingResultMetadataType::PDF417_EXTRA_METADATA,
-            "STRUCTURED_APPEND_SEQUENCE" => RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE,
-            "STRUCTURED_APPEND_PARITY" => RXingResultMetadataType::STRUCTURED_APPEND_PARITY,
-            "SYMBOLOGY_IDENTIFIER" => RXingResultMetadataType::SYMBOLOGY_IDENTIFIER,
+            "BYTE_SEGMENTS" | "BYTESEGMENTS" => RXingResultMetadataType::BYTE_SEGMENTS,
+            "ERROR_CORRECTION_LEVEL" | "ERRORCORRECTIONLEVEL" => {
+                RXingResultMetadataType::ERROR_CORRECTION_LEVEL
+            }
+            "ISSUE_NUMBER" | "ISSUENUMBER" => RXingResultMetadataType::ISSUE_NUMBER,
+            "SUGGESTED_PRICE" | "SUGGESTEDPRICE" => RXingResultMetadataType::SUGGESTED_PRICE,
+            "POSSIBLE_COUNTRY" | "POSSIBLECOUNTRY" => RXingResultMetadataType::POSSIBLE_COUNTRY,
+            "UPC_EAN_EXTENSION" | "UPCEANEXTENSION" => RXingResultMetadataType::UPC_EAN_EXTENSION,
+            "PDF417_EXTRA_METADATA" | "PDF417EXTRAMETADATA" => {
+                RXingResultMetadataType::PDF417_EXTRA_METADATA
+            }
+            "STRUCTURED_APPEND_SEQUENCE" | "STRUCTUREDAPPENDSEQUENCE" => {
+                RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE
+            }
+            "STRUCTURED_APPEND_PARITY" | "STRUCTUREDAPPENDPARITY" => {
+                RXingResultMetadataType::STRUCTURED_APPEND_PARITY
+            }
+            "SYMBOLOGY_IDENTIFIER" | "SYMBOLOGYIDENTIFIER" => {
+                RXingResultMetadataType::SYMBOLOGY_IDENTIFIER
+            }
+            "IS_MIRRORED" | "ISMIRRORED" => RXingResultMetadataType::IS_MIRRORED,
+            "CONTENT_TYPE" | "CONTENTTYPE" => RXingResultMetadataType::CONTENT_TYPE,
             _ => RXingResultMetadataType::OTHER,
         }
     }
@@ -209,4 +225,8 @@ pub enum RXingResultMetadataValue {
      * when prepending to the barcode content.
      */
     SymbologyIdentifier(String),
+
+    IsMirrored(bool),
+
+    ContentType(String),
 }

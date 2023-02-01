@@ -50,12 +50,12 @@ impl Decoder {
      * @throws ChecksumException if error correction fails
      */
     pub fn decode(&self, bits: &BitMatrix) -> Result<DecoderRXingResult, Exceptions> {
-        let decoded = self.perform_decode(bits, false);
+        let decoded = self.perform_decode(bits, false, false);
         if decoded.is_ok() {
             return decoded;
         }
 
-        self.perform_decode(&Self::flip_bitmatrix(bits)?, false)
+        self.perform_decode(&Self::flip_bitmatrix(bits)?, false, true)
     }
 
     fn flip_bitmatrix(bits: &BitMatrix) -> Result<BitMatrix, Exceptions> {
@@ -85,7 +85,7 @@ impl Decoder {
      * @throws ChecksumException if error correction fails
      */
     pub fn decode_bools(&self, image: &Vec<Vec<bool>>) -> Result<DecoderRXingResult, Exceptions> {
-        self.perform_decode(&BitMatrix::parse_bools(image), false)
+        self.perform_decode(&BitMatrix::parse_bools(image), false, false)
     }
 
     /**
@@ -101,6 +101,7 @@ impl Decoder {
         &self,
         bits: &BitMatrix,
         fix259: bool,
+        is_flipped: bool,
     ) -> Result<DecoderRXingResult, Exceptions> {
         // Construct a parser and read version, error-correction level
         let mut parser = BitMatrixParser::new(bits)?;
@@ -129,7 +130,7 @@ impl Decoder {
             let numDataCodewords = dataBlock.getNumDataCodewords() as usize;
             let errors_corrected = self.correctErrors(&mut codewordBytes, numDataCodewords as u32);
             if errors_corrected.is_err() && !fix259 {
-                return self.perform_decode(bits, true);
+                return self.perform_decode(bits, true, is_flipped);
             } else if errors_corrected.is_err() {
                 return Err(errors_corrected.err().unwrap());
             }
@@ -141,7 +142,7 @@ impl Decoder {
         }
 
         // Decode the contents of that stream of bytes
-        decoded_bit_stream_parser::decode(&resultBytes)
+        decoded_bit_stream_parser::decode(&resultBytes, is_flipped)
     }
 
     /**

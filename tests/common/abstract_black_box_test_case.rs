@@ -175,8 +175,9 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
             .unwrap();
 
             let mut expected_metadata_file: PathBuf = self.test_base.clone().to_path_buf();
-            expected_metadata_file.push(format!("{}.metadata", file_base_name.to_str().unwrap()));
-            expected_metadata_file.set_extension("txt");
+            expected_metadata_file
+                .push(format!("{}.metadata.txt", file_base_name.to_str().unwrap()));
+            // expected_metadata_file.set_extension("txt");
             let expected_metadata_unfinished = if expected_metadata_file.exists() {
                 java_properties::read(
                     std::fs::File::open(expected_metadata_file)
@@ -189,10 +190,10 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
             } else {
                 HashMap::new()
             };
-            let expected_metadata = HashMap::new();
+            let mut expected_metadata = HashMap::new();
             for (k, v) in expected_metadata_unfinished {
                 let new_k = RXingResultMetadataType::from(k);
-                let _new_v = match new_k {
+                let new_v = match new_k {
                     RXingResultMetadataType::OTHER => RXingResultMetadataValue::OTHER(v),
                     RXingResultMetadataType::ORIENTATION => {
                         RXingResultMetadataValue::Orientation(v.parse().unwrap_or_default())
@@ -233,7 +234,14 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                     RXingResultMetadataType::SYMBOLOGY_IDENTIFIER => {
                         RXingResultMetadataValue::SymbologyIdentifier(v)
                     }
+                    RXingResultMetadataType::IS_MIRRORED => {
+                        RXingResultMetadataValue::IsMirrored(v.parse().unwrap())
+                    }
+                    RXingResultMetadataType::CONTENT_TYPE => {
+                        RXingResultMetadataValue::ContentType(v)
+                    }
                 };
+                expected_metadata.insert(new_k, new_v);
             }
 
             for x in 0..test_count {

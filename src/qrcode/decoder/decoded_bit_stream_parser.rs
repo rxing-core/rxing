@@ -173,6 +173,8 @@ pub fn decode(
         symbolSequence,
         parityData,
         symbologyModifier,
+        String::default(),
+        false,
     ))
 }
 

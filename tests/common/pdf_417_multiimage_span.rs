@@ -334,10 +334,10 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
             } else {
                 HashMap::new()
             };
-            let expected_metadata = HashMap::new();
+            let mut expected_metadata = HashMap::new();
             for (k, v) in expected_metadata_unfinished {
                 let new_k = RXingResultMetadataType::from(k);
-                let _new_v = match new_k {
+                let new_v = match new_k {
                     RXingResultMetadataType::OTHER => RXingResultMetadataValue::OTHER(v),
                     RXingResultMetadataType::ORIENTATION => {
                         RXingResultMetadataValue::Orientation(v.parse().unwrap_or_default())
@@ -378,7 +378,14 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
                     RXingResultMetadataType::SYMBOLOGY_IDENTIFIER => {
                         RXingResultMetadataValue::SymbologyIdentifier(v)
                     }
+                    RXingResultMetadataType::IS_MIRRORED => {
+                        RXingResultMetadataValue::IsMirrored(v.parse().unwrap())
+                    }
+                    RXingResultMetadataType::CONTENT_TYPE => {
+                        RXingResultMetadataValue::ContentType(v)
+                    }
                 };
+                expected_metadata.insert(new_k, new_v);
             }
 
             for x in 0..test_count {

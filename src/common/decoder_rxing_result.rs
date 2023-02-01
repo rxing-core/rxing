@@ -39,6 +39,8 @@ pub struct DecoderRXingResult {
     structuredAppendParity: i32,
     structuredAppendSequenceNumber: i32,
     symbologyModifier: u32,
+    contentType: String,
+    isMirrored: bool,
 }
 
 impl DecoderRXingResult {
@@ -48,7 +50,17 @@ impl DecoderRXingResult {
         byteSegments: Vec<Vec<u8>>,
         ecLevel: String,
     ) -> Self {
-        Self::with_all(rawBytes, text, byteSegments, ecLevel, -2, -2, 0)
+        Self::with_all(
+            rawBytes,
+            text,
+            byteSegments,
+            ecLevel,
+            -2,
+            -2,
+            0,
+            String::default(),
+            false,
+        )
     }
 
     pub fn with_symbology(
@@ -66,6 +78,8 @@ impl DecoderRXingResult {
             -1,
             -1,
             symbologyModifier,
+            String::default(),
+            false,
         )
     }
 
@@ -85,6 +99,8 @@ impl DecoderRXingResult {
             saSequence,
             saParity,
             0,
+            String::default(),
+            false,
         )
     }
 
@@ -96,6 +112,8 @@ impl DecoderRXingResult {
         saSequence: i32,
         saParity: i32,
         symbologyModifier: u32,
+        contentType: String,
+        isMirrored: bool,
     ) -> Self {
         let nb = rawBytes.len();
         Self {
@@ -110,6 +128,8 @@ impl DecoderRXingResult {
             structuredAppendParity: saParity,
             structuredAppendSequenceNumber: saSequence,
             symbologyModifier,
+            contentType,
+            isMirrored,
         }
     }
 
@@ -204,5 +224,21 @@ impl DecoderRXingResult {
 
     pub fn getSymbologyModifier(&self) -> u32 {
         self.symbologyModifier
+    }
+
+    pub fn getContentType(&self) -> &str {
+        &self.contentType
+    }
+
+    pub fn setContentType(&mut self, content_type: String) {
+        self.contentType = content_type
+    }
+
+    pub fn getIsMirrored(&self) -> bool {
+        self.isMirrored
+    }
+
+    pub fn setIsMirrored(&mut self, is_mirrored: bool) {
+        self.isMirrored = is_mirrored
     }
 }

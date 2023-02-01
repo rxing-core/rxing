@@ -110,7 +110,7 @@ const INSERT_STRING_CONST: &str = "\u{001E}\u{0004}";
 const VALUE_236: &str = "[)>\u{001E}05\u{001D}";
 const VALUE_237: &str = "[)>\u{001E}06\u{001D}";
 
-pub fn decode(bytes: &[u8]) -> Result<DecoderRXingResult, Exceptions> {
+pub fn decode(bytes: &[u8], is_flipped: bool) -> Result<DecoderRXingResult, Exceptions> {
     let mut bits = BitSource::new(bytes.to_vec());
     let mut result = ECIStringBuilder::with_capacity(100);
     let mut resultTrailer = String::new();
@@ -120,6 +120,8 @@ pub fn decode(bytes: &[u8]) -> Result<DecoderRXingResult, Exceptions> {
     let mut fnc1Positions = Vec::new();
     let symbologyModifier;
     let mut isECIencoded = false;
+    let mut known_eci = true;
+    let mut is_gs1 = false;
     loop {
         match mode {
             Mode::ASCII_ENCODE => {
@@ -128,6 +130,7 @@ pub fn decode(bytes: &[u8]) -> Result<DecoderRXingResult, Exceptions> {
                     &mut result,
                     &mut resultTrailer,
                     &mut fnc1Positions,
+                    &mut is_gs1,
                 )?
             }
             Mode::C40_ENCODE => {
@@ -151,7 +154,7 @@ pub fn decode(bytes: &[u8]) -> Result<DecoderRXingResult, Exceptions> {
                 mode = Mode::ASCII_ENCODE;
             }
             Mode::ECI_ENCODE => {
-                decodeECISegment(&mut bits, &mut result)?;
+                known_eci &= decodeECISegment(&mut bits, &mut result)?;
                 isECIencoded = true; // ECI detection only, atm continue decoding as ASCII
                 mode = Mode::ASCII_ENCODE;
             }
@@ -165,7 +168,7 @@ pub fn decode(bytes: &[u8]) -> Result<DecoderRXingResult, Exceptions> {
     if !resultTrailer.is_empty() {
         result.appendCharacters(&resultTrailer);
     }
-    if isECIencoded {
+    if isECIencoded && known_eci {
         // Examples for this numbers can be found in this documentation of a hardware barcode scanner:
         // https://honeywellaidc.force.com/supportppr/s/article/List-of-barcode-symbology-AIM-Identifiers
         if fnc1Positions.contains(&0) || fnc1Positions.contains(&4) {
@@ -183,13 +186,26 @@ pub fn decode(bytes: &[u8]) -> Result<DecoderRXingResult, Exceptions> {
         symbologyModifier = 1;
     }
 
-    Ok(DecoderRXingResult::with_symbology(
+    let mut result = DecoderRXingResult::with_symbology(
         bytes.to_vec(),
         result.build_result().to_string(),
         byteSegments,
         String::new(),
         symbologyModifier,
-    ))
+    );
+    if is_gs1 {
+        result.setContentType(String::from("GS1"));
+    }
+
+    if !known_eci {
+        result.setContentType(String::from("UnknownECI"));
+    }
+
+    if is_flipped {
+        result.setIsMirrored(is_flipped);
+    }
+
+    Ok(result)
 
     // return new DecoderRXingResult(bytes,
     //                          result.toString(),
@@ -206,6 +222,7 @@ fn decodeAsciiSegment(
     result: &mut ECIStringBuilder,
     resultTrailer: &mut String,
     fnc1positions: &mut Vec<usize>,
+    is_gs1: &mut bool,
 ) -> Result<Mode, Exceptions> {
     let mut upperShift = false;
     let mut firstFNC1Position = 1;
@@ -247,16 +264,20 @@ fn decodeAsciiSegment(
             }
             232 => {
                 // FNC1
-                if bits.getByteOffset() == firstFNC1Position { /*result.symbology.modifier = '2';*/
+                if bits.getByteOffset() == firstFNC1Position {
+                    /*result.symbology.modifier = '2';*/
+                    *is_gs1 = true;
                 }
                 // GS1
-                else if bits.getByteOffset() == firstFNC1Position + 1 { /*result.symbology.modifier = '3';*/
+                else if bits.getByteOffset() == firstFNC1Position + 1 {
+                    /*result.symbology.modifier = '3';*/
                 }
                 // AIM, note no AIM Application Indicator format defined, ISO 16022:2006 11.2
                 else {
-                    fnc1positions.push(result.len());
                     result.append_char(29 as char);
                 } // translate as ASCII 29
+
+                fnc1positions.push(result.len());
             }
             233 =>
             // Structured Append
@@ -727,20 +748,26 @@ fn decodeBase256Segment(
 /**
  * See ISO 16022:2007, 5.4.1
  */
-fn decodeECISegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Result<(), Exceptions> {
+fn decodeECISegment(
+    bits: &mut BitSource,
+    result: &mut ECIStringBuilder,
+) -> Result<bool, Exceptions> {
     let firstByte = bits.readBits(8)?;
     if firstByte <= 127 {
-        return result.appendECI(firstByte - 1);
+        result.appendECI(firstByte - 1)?;
+        return Ok(true);
     }
 
     let secondByte = bits.readBits(8)?;
     if firstByte <= 191 {
-        return result.appendECI((firstByte - 128) * 254 + 127 + secondByte - 1);
+        result.appendECI((firstByte - 128) * 254 + 127 + secondByte - 1)?;
+        return Ok((firstByte - 128) * 254 + 127 + secondByte - 1 > 900);
     }
 
     let thirdByte = bits.readBits(8)?;
 
-    result.appendECI((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1)
+    result.appendECI((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1)?;
+    return Ok((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1 > 900);
 
     // if bits.available() < 8 {
     //     return Err(Exceptions::FormatException(None));
@@ -839,7 +866,7 @@ mod tests {
             (b'C' + 1),
         ];
         let decodedString = String::from(
-            decoded_bit_stream_parser::decode(&bytes)
+            decoded_bit_stream_parser::decode(&bytes, false)
                 .expect("decode")
                 .getText(),
         );
@@ -851,7 +878,7 @@ mod tests {
         // ASCII double digit (00 - 99) Numeric Value + 130
         let bytes = [130, (1 + 130), (98 + 130), (99 + 130)];
         let decodedString = String::from(
-            decoded_bit_stream_parser::decode(&bytes)
+            decoded_bit_stream_parser::decode(&bytes, false)
                 .expect("decode")
                 .getText(),
         );
