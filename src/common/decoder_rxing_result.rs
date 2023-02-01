@@ -104,6 +104,7 @@ impl DecoderRXingResult {
         )
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn with_all(
         rawBytes: Vec<u8>,
         text: String,

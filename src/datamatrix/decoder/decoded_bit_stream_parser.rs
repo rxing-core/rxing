@@ -242,7 +242,7 @@ fn decodeAsciiSegment(
                 return Ok(Mode::ASCII_ENCODE);
             }
             129 => return Ok(Mode::PAD_ENCODE), // Pad
-            129..=229 => {
+            130..=229 => {
                 // 2-digit data 00-99 (Numeric Value + 130)
                 let value = oneByte - 130;
                 if value < 10 {
