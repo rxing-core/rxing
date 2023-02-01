@@ -68,8 +68,11 @@ impl Reader for MaxiCodeReader {
             Some(DecodeHintValue::TryHarder(true))
         );
 
+        let mut rotation = None;
+
         let decoderRXingResult = if try_harder {
             let result = detector::detect(image.getBlackMatrixMut(), try_harder)?;
+            rotation = Some(result.rotation());
             let parsed_result = detector::read_bits(result.getBits())?;
             maxicode_decoder::decode_with_hints(&parsed_result, hints)?
         } else {
@@ -93,6 +96,16 @@ impl Reader for MaxiCodeReader {
                 crate::RXingResultMetadataValue::ErrorCorrectionLevel(ecLevel.to_owned()),
             );
         }
+
+        if let Some(rot) = rotation {
+            if rot > 0.0 {
+                result.putMetadata(
+                    RXingResultMetadataType::ORIENTATION,
+                    crate::RXingResultMetadataValue::Orientation(rot as i32),
+                )
+            }
+        }
+
         Ok(result)
     }
 

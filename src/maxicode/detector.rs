@@ -16,6 +16,13 @@ const ROW_SCAN_SKIP: u32 = 2;
 pub struct MaxicodeDetectionResult {
     bits: BitMatrix,
     points: Vec<RXingResultPoint>,
+    rotation: f32,
+}
+
+impl MaxicodeDetectionResult {
+    pub fn rotation(&self) -> f32 {
+        self.rotation
+    }
 }
 
 impl DetectorRXingResult for MaxicodeDetectionResult {
@@ -339,7 +346,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         };
         let grid_sampler = DefaultGridSampler::default();
 
-        let [tl, bl, tr, br] = &symbol_box;
+        let [tl, bl, tr, br] = &symbol_box.0;
 
         let target_width = MathUtils::distance_float(tl.0, tl.1, tr.0, tr.1);
         let target_height = MathUtils::distance_float(br.0, br.1, tr.0, tr.1);
@@ -377,9 +384,11 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         return Ok(MaxicodeDetectionResult {
             bits,
             points: symbol_box
+                .0
                 .iter()
                 .map(|p| RXingResultPoint { x: p.0, y: p.1 })
                 .collect(),
+            rotation: symbol_box.1,
         });
     }
 
@@ -702,7 +711,10 @@ const LEFT_SHIFT_PERCENT_ADJUST: f32 = 0.03;
 const RIGHT_SHIFT_PERCENT_ADJUST: f32 = 0.03;
 const ACCEPTED_SCALES: [f64; 5] = [0.065, 0.069, 0.07, 0.075, 0.08];
 
-fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<[(f32, f32); 4], Exceptions> {
+fn box_symbol(
+    image: &BitMatrix,
+    circle: &mut Circle,
+) -> Result<([(f32, f32); 4], f32), Exceptions> {
     let (left_boundary, right_boundary, top_boundary, bottom_boundary) =
         calculate_simple_boundary(circle, Some(image), None, false);
 
@@ -725,19 +737,24 @@ fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<[(f32, f32); 4],
         return Err(Exceptions::NotFoundException(None));
     }
 
+    let mut final_rotation = 0.0;
+
     for scale in ACCEPTED_SCALES {
         if let Some(found_rotation) = attempt_rotation_box(image, circle, &naive_box, scale) {
-            result_box = found_rotation;
+            (result_box, final_rotation) = found_rotation;
             break;
         }
     }
 
-    Ok([
-        (result_box[0].x, result_box[0].y),
-        (result_box[1].x, result_box[1].y),
-        (result_box[2].x, result_box[2].y),
-        (result_box[3].x, result_box[3].y),
-    ])
+    Ok((
+        [
+            (result_box[0].x, result_box[0].y),
+            (result_box[1].x, result_box[1].y),
+            (result_box[2].x, result_box[2].y),
+            (result_box[3].x, result_box[3].y),
+        ],
+        final_rotation,
+    ))
 }
 
 fn calculate_simple_boundary(
@@ -794,7 +811,7 @@ fn attempt_rotation_box(
     circle: &mut Circle,
     naive_box: &[RXingResultPoint; 4],
     center_scale: f64,
-) -> Option<[RXingResultPoint; 4]> {
+) -> Option<([RXingResultPoint; 4], f32)> {
     // update our circle with a more accurate center point
     circle.calculate_high_accuracy_center();
 
@@ -938,12 +955,15 @@ fn attempt_rotation_box(
             final_rotation,
         );
 
-        Some([
-            RXingResultPoint::new(new_1.0, new_1.1),
-            RXingResultPoint::new(new_2.0, new_2.1),
-            RXingResultPoint::new(new_3.0, new_3.1),
-            RXingResultPoint::new(new_4.0, new_4.1),
-        ])
+        Some((
+            [
+                RXingResultPoint::new(new_1.0, new_1.1),
+                RXingResultPoint::new(new_2.0, new_2.1),
+                RXingResultPoint::new(new_3.0, new_3.1),
+                RXingResultPoint::new(new_4.0, new_4.1),
+            ],
+            final_rotation,
+        ))
     } else {
         // panic!("couldn't find");
         None
