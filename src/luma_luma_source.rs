@@ -76,7 +76,63 @@ impl LuminanceSource for Luma8LuminanceSource {
             original_dimension: self.original_dimension,
         }))
     }
+
+    fn isRotateSupported(&self) -> bool {
+        true
+    }
+
+    fn rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>, crate::Exceptions> {
+        let mut new_matrix = Self {
+            dimensions: self.dimensions,
+            origin: self.origin,
+            data: self.data.clone(),
+            inverted: self.inverted,
+            original_dimension: self.original_dimension,
+        };
+        new_matrix.transpose();
+        new_matrix.reverseColumns();
+        Ok(Box::new(new_matrix))
+    }
+
+    fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>, crate::Exceptions> {
+        Err(crate::Exceptions::UnsupportedOperationException(Some(
+            "This luminance source does not support rotation by 45 degrees.".to_owned(),
+        )))
+    }
 }
+
+impl Luma8LuminanceSource {
+    fn reverseColumns(&mut self) {
+        for i in 0..self.getWidth() {
+            // for (int i = 0; i < C; i++)
+            let mut j = 0;
+            let mut k = self.getWidth() - 1;
+            while j < k {
+                // for (int j = 0, k = C - 1; j < k; j++, k--)
+                let offset_a = (self.getWidth() * i) + j;
+                let offset_b = (self.getWidth() * i) + k;
+                self.data.swap(offset_a, offset_b);
+                // swap(arr[j][i], arr[k][i]);
+                j += 1;
+                k -= 1;
+            }
+        }
+    }
+
+    fn transpose(&mut self) {
+        for i in 0..self.getHeight() {
+            // for (int i = 0; i < R; i++)
+            for j in i..self.getWidth() {
+                // for (int j = i; j < C; j++)
+                let offset_a = (self.getWidth() * i) + j;
+                let offset_b = (self.getWidth() * j) + i;
+                self.data.swap(offset_a, offset_b);
+                // swap(arr[i][j], arr[j][i]);
+            }
+        }
+    }
+}
+
 impl Luma8LuminanceSource {
     pub fn new(source: Vec<u8>, width: u32, height: u32) -> Self {
         Self {
