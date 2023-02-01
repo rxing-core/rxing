@@ -228,9 +228,9 @@ impl BitMatrix {
 
     pub fn try_get_area(&self, x: u32, y: u32, box_size: u32) -> Option<bool> {
         let mut matrix = Vec::with_capacity((box_size * box_size) as usize);
-        let start_x = x - box_size / 2;
+        let start_x = (x as i32 - box_size as i32 / 2).max(0) as u32;
         let end_x = x + box_size / 2;
-        let start_y = y - box_size / 2;
+        let start_y = (y as i32 - box_size as i32 / 2).max(0) as u32;
         let end_y = y + box_size / 2;
 
         for get_x in start_x..=end_x {
