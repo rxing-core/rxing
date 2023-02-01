@@ -430,7 +430,14 @@ fn find_concentric_circles(image: &BitMatrix) -> Option<Vec<Circle>> {
                     continue;
                 } else {
                     // false alarm, go on with the row
-                    current_column = center - radius + (radius / 4);
+                    let new_column = center - radius + (radius / 4);
+                    if new_column == current_column {
+                        // this is necessary because sometimes the loop can get 
+                        // stuck when the result always comes out the same.
+                        row += ROW_SCAN_SKIP;
+                        break;
+                    }
+                    current_column = new_column;
                     continue;
                 }
             } else {
