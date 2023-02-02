@@ -16,7 +16,7 @@
 
 //package com.google.zxing;
 
-use std::collections::HashSet;
+use std::{collections::HashSet, rc::Rc};
 
 use crate::{BarcodeFormat, RXingResultPointCallback};
 
@@ -202,7 +202,7 @@ pub enum DecodeHintValue {
      * is found. Maps to a {@link RXingResultPointCallback}.
      */
     #[cfg_attr(feature = "serde", serde(skip_serializing, skip_deserializing))]
-    NeedResultPointCallback(RXingResultPointCallback),
+    NeedResultPointCallback(Rc<RXingResultPointCallback>),
 
     /**
      * Allowed extension lengths for EAN or UPC barcodes. Other formats will ignore this.

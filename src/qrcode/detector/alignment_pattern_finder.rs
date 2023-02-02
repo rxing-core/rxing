@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use std::rc::Rc;
+
 use crate::{common::BitMatrix, Exceptions, RXingResultPointCallback};
 
 use super::AlignmentPattern;
@@ -41,7 +43,7 @@ pub struct AlignmentPatternFinder {
     height: u32,
     moduleSize: f32,
     crossCheckStateCount: [u32; 3],
-    resultPointCallback: Option<RXingResultPointCallback>,
+    resultPointCallback: Option<Rc<RXingResultPointCallback>>,
 }
 
 impl AlignmentPatternFinder {
@@ -62,7 +64,7 @@ impl AlignmentPatternFinder {
         width: u32,
         height: u32,
         moduleSize: f32,
-        resultPointCallback: Option<RXingResultPointCallback>,
+        resultPointCallback: Option<Rc<RXingResultPointCallback>>,
     ) -> Self {
         Self {
             image,

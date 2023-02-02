@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::cmp::Ordering;
+use std::{cmp::Ordering, rc::Rc};
 
 use crate::{
     common::BitMatrix,
@@ -66,7 +66,7 @@ impl MultiFinderPatternFinder {
     // TODO MIN_MODULE_COUNT and MAX_MODULE_COUNT would be great hints to ask the user for
     // since it limits the number of regions to decode
 
-    pub fn new(image: &BitMatrix, resultPointCallback: Option<RXingResultPointCallback>) -> Self {
+    pub fn new(image: &BitMatrix, resultPointCallback: Option<Rc<RXingResultPointCallback>>) -> Self {
         Self(FinderPatternFinder::with_callback(
             image.clone(),
             resultPointCallback,

@@ -40,7 +40,7 @@ pub use encode_hints::*;
  *
  * @see DecodeHintType#NEED_RESULT_POINT_CALLBACK
  */
-pub type RXingResultPointCallback = fn(&dyn ResultPoint);
+pub type RXingResultPointCallback = dyn Fn(&dyn ResultPoint);
 
 mod decode_hints;
 pub use decode_hints::*;

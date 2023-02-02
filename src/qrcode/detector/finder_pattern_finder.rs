@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use std::rc::Rc;
+
 use crate::{
     common::BitMatrix, result_point_utils, DecodeHintType, DecodingHintDictionary, Exceptions,
     RXingResultPointCallback, ResultPoint,
@@ -34,7 +36,7 @@ pub struct FinderPatternFinder {
     possibleCenters: Vec<FinderPattern>,
     hasSkipped: bool,
     crossCheckStateCount: [u32; 5],
-    resultPointCallback: Option<RXingResultPointCallback>,
+    resultPointCallback: Option<Rc<RXingResultPointCallback>>,
 }
 impl FinderPatternFinder {
     pub const CENTER_QUORUM: usize = 2;
@@ -53,7 +55,7 @@ impl FinderPatternFinder {
 
     pub fn with_callback(
         image: BitMatrix,
-        resultPointCallback: Option<RXingResultPointCallback>,
+        resultPointCallback: Option<Rc<RXingResultPointCallback>>,
     ) -> Self {
         Self {
             image,
