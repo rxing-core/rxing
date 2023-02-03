@@ -103,3 +103,8 @@ pub use global_histogram_binarizer::*;
 
 mod hybrid_binarizer;
 pub use hybrid_binarizer::*;
+
+#[cfg(feature = "otsu_level")]
+mod otsu_level_binarizer;
+#[cfg(feature = "otsu_level")]
+pub use otsu_level_binarizer::*;

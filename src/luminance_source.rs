@@ -16,6 +16,8 @@
 
 //package com.google.zxing;
 
+use std::any::Any;
+
 use crate::Exceptions;
 
 /**

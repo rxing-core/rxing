@@ -60,3 +60,6 @@ experimental_features = []
 
 #/// Adds support for serde Serialize and Deserialize for outward facing structs
 serde = ["dep:serde"]
+
+#/// Adds otsu binarizer support using imageproc
+otsu_level = ["image"]
