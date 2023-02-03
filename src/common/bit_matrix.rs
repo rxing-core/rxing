@@ -710,6 +710,22 @@ impl fmt::Display for BitMatrix {
 }
 
 #[cfg(feature = "image")]
+/// This should only be used if you *know* that the `DynamicImage` is binary.
+impl TryFrom<image::DynamicImage> for BitMatrix {
+    type Error = Exceptions;
+
+    fn try_from(value: image::DynamicImage) -> Result<Self, Self::Error> {
+        let mut new_bitmatrix = BitMatrix::new(value.width(), value.height())?;
+        for (x, y, value) in value.as_luma8().unwrap().enumerate_pixels() {
+            if value.0[0] != u8::MAX {
+                new_bitmatrix.set(x, y)
+            }
+        }
+        Ok(new_bitmatrix)
+    }
+}
+
+#[cfg(feature = "image")]
 impl From<BitMatrix> for image::DynamicImage {
     fn from(value: BitMatrix) -> Self {
         (&value).into()
