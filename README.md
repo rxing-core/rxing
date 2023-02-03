@@ -33,7 +33,7 @@ All barcode formats are tested and functioning in their current state against cu
 | upc a | complete |
 | upc e | complete |
 
-## feature flags
+## Feature Flags
 The following feature flags are available:
 * `image`: Enable features required for image manipulation and reading.
 * `allow_forced_iso_ied_18004_compliance`: Allows the ability to force ISO/IED 18004 compliance. Leave disabled unless specificially needed.
@@ -42,6 +42,9 @@ The following feature flags are available:
 * `wasm_support`: Make certain changes to support building this module in WASM
 * `experimental_features`: Enable experimental features, risky.
 * `serde`: Adds support for serde Serialize and Deserialize for outward facing structs
+* `otsu_level`: Adds the otsu level binarizer.
+
+    This is not used by any of the helper functions, you must specifically use it while setting up a new decoder. The `OtsuLevelBinarizer` is not well tested and it does *not* pass the current test suite. Consider this only if you know why you would want to use it. In many cases, the standard binarizer is likely better. If you have a very specific use case, and you know what your incoming data will resemble, you should consider implementing your own `Binarizer` and using that instead.
 
 The default feature set includes only the `image` feature mentioned above.
 
