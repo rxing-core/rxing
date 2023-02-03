@@ -45,7 +45,7 @@ impl<'a> MultiDetector<'_> {
         let resultPointCallback = if let Some(DecodeHintValue::NeedResultPointCallback(cb)) =
             hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK)
         {
-            Some(*cb)
+            Some(cb.clone())
         } else {
             None
         };

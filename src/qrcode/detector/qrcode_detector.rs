@@ -84,7 +84,7 @@ impl<'a> Detector<'_> {
             hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK)
         {
             // if let DecodeHintValue::NeedResultPointCallback(cb) = nrpc {
-            Some(*cb)
+            Some(cb.clone())
             // } else {
             //     None
             // }
@@ -97,7 +97,7 @@ impl<'a> Detector<'_> {
         //     (RXingResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
 
         let mut finder =
-            FinderPatternFinder::with_callback(self.image.clone(), self.resultPointCallback);
+            FinderPatternFinder::with_callback(self.image.clone(), self.resultPointCallback.clone());
         let info = finder.find(hints)?;
 
         self.processFinderPatternInfo(info)
@@ -479,7 +479,7 @@ impl<'a> Detector<'_> {
             alignmentAreaRightX - alignmentAreaLeftX,
             alignmentAreaBottomY - alignmentAreaTopY,
             overallEstModuleSize,
-            self.resultPointCallback,
+            self.resultPointCallback.clone(),
         );
         alignmentFinder.find()
     }

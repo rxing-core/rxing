@@ -8,7 +8,7 @@ mod exceptions;
 pub mod maxicode;
 pub mod qrcode;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
 pub use exceptions::Exceptions;
 
@@ -40,7 +40,7 @@ pub use encode_hints::*;
  *
  * @see DecodeHintType#NEED_RESULT_POINT_CALLBACK
  */
-pub type RXingResultPointCallback = fn(&dyn ResultPoint);
+pub type RXingResultPointCallback = Rc<dyn Fn(&dyn ResultPoint)>;
 
 mod decode_hints;
 pub use decode_hints::*;
