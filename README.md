@@ -33,6 +33,18 @@ All barcode formats are tested and functioning in their current state against cu
 | upc a | complete |
 | upc e | complete |
 
+## feature flags
+The following feature flags are available:
+* `image`: Enable features required for image manipulation and reading.
+* `allow_forced_iso_ied_18004_compliance`: Allows the ability to force ISO/IED 18004 compliance. Leave disabled unless specificially needed.
+* `svg_write`: Enable support for writing SVG files
+* `svg_read`: Enable support for reading SVG files
+* `wasm_support`: Make certain changes to support building this module in WASM
+* `experimental_features`: Enable experimental features, risky.
+* `serde`: Adds support for serde Serialize and Deserialize for outward facing structs
+
+The default feature set includes only the `image` feature mentioned above.
+
 ## Incomplete
 The library has only been thurougly tested with the `BufferedImageLuminanceSource` source format. Using any other
 source is currently experimental and may result in unexpected or undefined outputs. This means that the feature flag
