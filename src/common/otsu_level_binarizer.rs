@@ -37,7 +37,7 @@ impl OtsuLevelBinarizer {
         Self {
             width: source.getWidth(),
             height: source.getHeight(),
-            black_row_cache: vec![OnceCell::default(); source.getHeight() as usize],
+            black_row_cache: vec![OnceCell::default(); source.getHeight()],
             source,
             black_matrix: OnceCell::new(),
         }
