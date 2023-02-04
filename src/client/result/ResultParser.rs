@@ -122,6 +122,13 @@ pub fn parse_result_with_parsers(
     parseRXingResult(the_rxing_result)
 }
 
+pub fn parse_result_with_parser<F: Fn(&RXingResult) -> Option<ParsedClientResult>>(
+    the_rxing_result: &RXingResult,
+    parser: F,
+) -> Option<ParsedClientResult> {
+        parser(the_rxing_result)
+}
+
 pub fn parseRXingResult(the_rxing_result: &RXingResult) -> ParsedClientResult {
     let PARSERS: [&ParserFunction; 20] = [
         &BookmarkDoCoMoResultParser::parse,
