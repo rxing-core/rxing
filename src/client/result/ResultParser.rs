@@ -422,3 +422,31 @@ pub fn match_single_do_co_mo_prefixed_field(
 ) -> Option<String> {
     matchSinglePrefixedField(prefix, raw_text, ';', trim)
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        client::result::{ParsedClientResult, TextParsedRXingResult},
+        RXingResult,
+    };
+
+    use super::parse_result_with_parser;
+
+    #[test]
+    fn test_single_parser() {
+        let result: RXingResult = RXingResult::new(
+            "text",
+            vec![12, 23, 54, 23],
+            Vec::new(),
+            crate::BarcodeFormat::EAN_13,
+        );
+        let p_res = parse_result_with_parser(&result, |_| {
+            Some(ParsedClientResult::TextResult(TextParsedRXingResult::new(
+                String::from("parsed with parser"),
+                String::from("en/us"),
+            )))
+        })
+        .unwrap();
+        assert_eq!(p_res.to_string(), "parsed with parser");
+    }
+}

@@ -51,11 +51,13 @@ pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientR
         return None;
     }
     let rawText = rawText_unstripped[WIFI_TEST.len()..].to_owned();
-    let ssid = ResultParser::matchSinglePrefixedField("S:", &rawText, ';', false).unwrap_or_default();
+    let ssid =
+        ResultParser::matchSinglePrefixedField("S:", &rawText, ';', false).unwrap_or_default();
     if ssid.is_empty() {
         return None;
     }
-    let pass = ResultParser::matchSinglePrefixedField("P:", &rawText, ';', false).unwrap_or_default();
+    let pass =
+        ResultParser::matchSinglePrefixedField("P:", &rawText, ';', false).unwrap_or_default();
     let n_type =
         if let Some(nt) = ResultParser::matchSinglePrefixedField("T:", &rawText, ';', false) {
             nt
@@ -82,9 +84,12 @@ pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientR
         String::default()
     };
 
-    let identity = ResultParser::matchSinglePrefixedField("I:", &rawText, ';', false).unwrap_or_default();
-    let anonymousIdentity = ResultParser::matchSinglePrefixedField("A:", &rawText, ';', false).unwrap_or_default();
-    let eapMethod = ResultParser::matchSinglePrefixedField("E:", &rawText, ';', false).unwrap_or_default();
+    let identity =
+        ResultParser::matchSinglePrefixedField("I:", &rawText, ';', false).unwrap_or_default();
+    let anonymousIdentity =
+        ResultParser::matchSinglePrefixedField("A:", &rawText, ';', false).unwrap_or_default();
+    let eapMethod =
+        ResultParser::matchSinglePrefixedField("E:", &rawText, ';', false).unwrap_or_default();
 
     Some(ParsedClientResult::WiFiResult(
         WifiParsedRXingResult::with_details(
