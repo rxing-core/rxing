@@ -96,8 +96,10 @@ impl<'a> Detector<'_> {
         // resultPointCallback = hints == null ? null :
         //     (RXingResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
 
-        let mut finder =
-            FinderPatternFinder::with_callback(self.image.clone(), self.resultPointCallback.clone());
+        let mut finder = FinderPatternFinder::with_callback(
+            self.image.clone(),
+            self.resultPointCallback.clone(),
+        );
         let info = finder.find(hints)?;
 
         self.processFinderPatternInfo(info)

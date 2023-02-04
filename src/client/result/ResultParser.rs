@@ -126,7 +126,7 @@ pub fn parse_result_with_parser<F: Fn(&RXingResult) -> Option<ParsedClientResult
     the_rxing_result: &RXingResult,
     parser: F,
 ) -> Option<ParsedClientResult> {
-        parser(the_rxing_result)
+    parser(the_rxing_result)
 }
 
 pub fn parseRXingResult(the_rxing_result: &RXingResult) -> ParsedClientResult {
