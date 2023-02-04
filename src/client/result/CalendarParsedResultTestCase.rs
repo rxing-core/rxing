@@ -225,7 +225,7 @@ fn doTest(
         assert_eq!(
             endString,
             if calRXingResult.getEndTimestamp() < 0i64 {
-                "".to_owned()
+                String::default()
             } else {
                 format_date_string(calRXingResult.getEndTimestamp(), dateFormat)
                 // dateFormat.format(calRXingResult.getEndTimestamp())
@@ -253,7 +253,7 @@ fn format_date_string(timestamp: i64, format_string: &str) -> String {
     if let Some(dtm) = NaiveDateTime::from_timestamp_opt(timestamp, 0) {
         dtm.format(format_string).to_string()
     } else {
-        String::from("")
+        String::default()
     }
     // DateTime::from(timestamp,0).with_timezone(Utc).format(format_string).to_string()
 }

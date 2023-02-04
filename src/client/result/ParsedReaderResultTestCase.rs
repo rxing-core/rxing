@@ -503,7 +503,7 @@ fn format_date(year: i32, month: u32, day: u32) -> String {
     if let LocalResult::Single(dtm) = Utc.with_ymd_and_hms(year, month, day, 0, 0, 0) {
         dtm.format("%F").to_string()
     } else {
-        String::from("")
+        String::default()
     }
     // Calendar cal = Calendar.getInstance();
     // cal.clear();
@@ -517,7 +517,7 @@ fn format_time(year: i32, month: u32, day: u32, hour: u32, min: u32, sec: u32) -
 
         dtm.format("%c").to_string()
     } else {
-        String::from("")
+        String::default()
     }
     // Calendar cal = Calendar.getInstance();
     // cal.clear();

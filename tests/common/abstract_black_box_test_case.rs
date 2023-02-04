@@ -509,7 +509,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                 read_to_string(&file).expect("ok")
             }
         } else {
-            "".to_owned()
+            String::default()
         };
         // let string_contents = read_to_string(&file)?; //new String(Files.readAllBytes(file), charset);
         if string_contents.ends_with('\n') {

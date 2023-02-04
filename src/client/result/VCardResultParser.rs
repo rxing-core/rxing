@@ -116,10 +116,10 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
             if isLikeVCardDate(&bday_array[0]) {
                 bday_array
             } else {
-                vec!["".to_owned()]
+                vec![String::default()]
             }
         } else {
-            vec!["".to_owned()]
+            vec![String::default()]
         };
     // if birthday != null && !isLikeVCardDate(birthday.get(0)) {
     //   birthday = null;
@@ -143,7 +143,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     if let Ok(adb) = AddressBookParsedRXingResult::with_details(
         toPrimaryValues(Some(names)),
         nicknames,
-        "".to_owned(),
+        String::default(),
         toPrimaryValues(phoneNumbers.clone()),
         toTypes(phoneNumbers),
         toPrimaryValues(emails.clone()),
@@ -416,7 +416,7 @@ fn maybeAppendFragment(fragmentBuffer: &mut Vec<u8>, charset: &str, result: &mut
         let fragmentBytes = fragmentBuffer.clone();
         let fragment;
         if charset.is_empty() {
-            fragment = String::from_utf8(fragmentBytes).unwrap_or_else(|_| "".to_owned());
+            fragment = String::from_utf8(fragmentBytes).unwrap_or_else(|_| String::default());
             // fragment = new String(fragmentBytes, StandardCharsets.UTF_8);
         } else if let Some(enc) = encoding::label::encoding_from_whatwg_label(charset) {
             fragment = if let Ok(encoded_result) =
@@ -424,10 +424,10 @@ fn maybeAppendFragment(fragmentBuffer: &mut Vec<u8>, charset: &str, result: &mut
             {
                 encoded_result
             } else {
-                String::from_utf8(fragmentBytes).unwrap_or_else(|_| "".to_owned())
+                String::from_utf8(fragmentBytes).unwrap_or_else(|_| String::default())
             }
         } else {
-            fragment = String::from_utf8(fragmentBytes).unwrap_or_else(|_| "".to_owned())
+            fragment = String::from_utf8(fragmentBytes).unwrap_or_else(|_| String::default())
         }
         fragmentBuffer.clear();
         result.push_str(&fragment);
@@ -451,19 +451,13 @@ pub fn matchSingleVCardPrefixedField(
 fn toPrimaryValue(list: Option<Vec<String>>) -> String {
     if let Some(l) = list {
         if l.is_empty() {
-            "".to_owned()
+            String::default()
         } else {
-            l.get(0).unwrap_or(&"".to_owned()).clone()
+            l.get(0).unwrap_or(&String::default()).clone()
         }
     } else {
-        "".to_owned()
+        String::default()
     }
-    // if list.is_empty() {
-    //   "".to_owned()
-    // }else {
-    //   *list.get(0).unwrap_or(&"".to_owned())
-    // }
-    // return list == null || list.isEmpty() ? null : list.get(0);
 }
 
 fn toPrimaryValues(lists: Option<Vec<Vec<String>>>) -> Vec<String> {
@@ -496,11 +490,11 @@ fn toTypes(lists: Option<Vec<Vec<String>>>) -> Vec<String> {
         if let Some(value) = list.get(0) {
             if !value.is_empty() {
                 let mut v_type = String::new();
-                let final_value = list.last().unwrap_or(&"".to_owned()).clone();
+                let final_value = list.last().unwrap_or(&String::default()).clone();
                 if !final_value.is_empty() {
                     for i in 0..list.len() - 1 {
                         // for (int i = 1; i < list.size(); i++) {
-                        let metadatum = list.get(i).unwrap_or(&"".to_owned()).clone();
+                        let metadatum = list.get(i).unwrap_or(&String::default()).clone();
                         if let Some(equals) = metadatum.find('=') {
                             if "TYPE" == (metadatum[0..equals]).to_uppercase() {
                                 v_type = metadatum[equals + 1..].to_owned();
@@ -544,12 +538,12 @@ fn formatNames(names: &mut Vec<Vec<String>>) {
         for list in names {
             // for (List<String> list : names) {
             let mut pos = 0;
-            while let Some(_fnd) = list.get(pos).unwrap_or(&"".to_owned()).find('=') {
+            while let Some(_fnd) = list.get(pos).unwrap_or(&String::default()).find('=') {
                 pos += 1;
             }
-            let name = list.get(pos).unwrap_or(&"".to_owned()).clone();
+            let name = list.get(pos).unwrap_or(&String::default()).clone();
 
-            let mut components = vec!["".to_owned(); 5];
+            let mut components = vec![String::default(); 5];
             let mut start = 0;
             let mut end = 0;
             let mut componentIndex = 0;

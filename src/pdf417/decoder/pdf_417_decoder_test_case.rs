@@ -476,7 +476,7 @@ fn generatePermutation(index: u32, length: u32, chars: &[char]) -> String {
         baseNNumber.insert(0, '0');
         // baseNNumber = "0" + baseNNumber;
     }
-    let mut prefix = String::from("");
+    let mut prefix = String::default();
     for ch in baseNNumber.chars() {
         prefix.push(chars[(ch as isize - '0' as isize) as usize]);
     }

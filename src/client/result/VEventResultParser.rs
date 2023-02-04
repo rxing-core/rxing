@@ -118,26 +118,26 @@ fn matchSingleVCardPrefixedField(prefix: &str, rawText: &str) -> String {
         VCardResultParser::matchSingleVCardPrefixedField(prefix, rawText, true, false)
     {
         if values.is_empty() {
-            "".to_owned()
+            String::default()
         } else {
             let tz_mod = if values.len() > 1 {
                 if let Some(v) = values.get(values.len() - 2) {
                     if let Some(tz_loc) = v.find("TZID=") {
                         v[tz_loc + 5..].to_owned()
                     } else {
-                        "".to_owned()
+                        String::default()
                     }
                 } else {
-                    "".to_owned()
+                    String::default()
                 }
             } else {
-                "".to_owned()
+                String::default()
             };
             let root_time = values.last().unwrap().clone();
             format!("{root_time}{tz_mod}")
         }
     } else {
-        "".to_owned()
+        String::default()
     }
     // return values == null || values.isEmpty() ? null : values.get(0);
 }
@@ -148,7 +148,7 @@ fn matchVCardPrefixedField(prefix: &str, rawText: &str) -> Vec<String> {
             Vec::new()
         } else {
             let size = values.len();
-            let mut result = vec!["".to_owned(); size]; //new String[size];
+            let mut result = vec![String::default(); size]; //new String[size];
             for (i, res) in result.iter_mut().enumerate().take(size) {
                 // for i in 0..size {
                 // for (int i = 0; i < size; i++) {

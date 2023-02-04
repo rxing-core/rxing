@@ -79,8 +79,8 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
         let nameValues = ResultParser::parseNameValuePairs(&rawText);
         let mut ccs: Vec<String> = Vec::new();
         let mut bccs: Vec<String> = Vec::new();
-        let mut subject = "".to_owned();
-        let mut body = "".to_owned();
+        let mut subject = String::default();
+        let mut body = String::default();
         if let Some(nv) = nameValues {
             // if (nameValues != null) {
             if tos.is_empty() {
@@ -115,8 +115,8 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
             // if bccString != null {
             //   bccs = COMMA.split(bccString);
             // }
-            subject = nv.get("subject").unwrap_or(&"".to_owned()).clone();
-            body = nv.get("body").unwrap_or(&"".to_owned()).clone();
+            subject = nv.get("subject").unwrap_or(&String::default()).clone();
+            body = nv.get("body").unwrap_or(&String::default()).clone();
         }
         Some(ParsedClientResult::EmailResult(
             EmailAddressParsedRXingResult::with_details(tos, ccs, bccs, subject, body),

@@ -54,15 +54,15 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
         return None;
     }
 
-    let mut subject = "".to_owned();
-    let mut body = "".to_owned();
+    let mut subject = String::default();
+    let mut body = String::default();
     let mut querySyntax = false;
 
     // Check up front if this is a URI syntax string with query arguments
     if let Some(name_value_pairs) = ResultParser::parseNameValuePairs(&raw_text) {
         if !name_value_pairs.is_empty() {
-            subject = String::from(name_value_pairs.get("subject").unwrap_or(&"".to_owned()));
-            body = String::from(name_value_pairs.get("body").unwrap_or(&"".to_owned()));
+            subject = String::from(name_value_pairs.get("subject").unwrap_or(&String::default()));
+            body = String::from(name_value_pairs.get("body").unwrap_or(&String::default()));
             querySyntax = true;
         }
     }
@@ -130,7 +130,7 @@ fn add_number_via(numbers: &mut Vec<String>, vias: &mut Vec<String>, number_part
         }
     } else {
         numbers.push(number_part.to_owned());
-        //vias.push("".to_owned());
+        //vias.push(String::default());
     }
 }
 

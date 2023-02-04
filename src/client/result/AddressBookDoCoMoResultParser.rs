@@ -61,7 +61,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
         .unwrap_or_default();
     if !ResultParser::isStringOfDigits(&birthday, 8) {
         // No reason to throw out the whole card because the birthday is formatted wrong.
-        birthday = "".to_owned();
+        birthday = String::default();
     }
     let urls = ResultParser::match_do_co_mo_prefixed_field("URL:", &rawText).unwrap_or_default();
 
@@ -78,13 +78,13 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
         Vec::new(),
         emails,
         Vec::new(),
-        "".to_owned(),
+        String::default(),
         note,
         addresses,
         Vec::new(),
         org,
         birthday,
-        "".to_owned(),
+        String::default(),
         urls,
         Vec::new(),
     ) {

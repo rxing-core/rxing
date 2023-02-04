@@ -37,7 +37,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     if URIResultParser::is_basically_valid_uri(&uri) {
         Some(ParsedClientResult::URIResult(URIParsedRXingResult::new(
             uri,
-            title.unwrap_or_else(|| "".to_owned()),
+            title.unwrap_or_else(|| String::default()),
         )))
     } else {
         None

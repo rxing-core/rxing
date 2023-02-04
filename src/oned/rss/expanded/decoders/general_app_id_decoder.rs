@@ -57,7 +57,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
     ) -> Result<String, Exceptions> {
         let mut buff = buff;
         let mut currentPosition = initialPosition;
-        let mut remaining = "".to_owned();
+        let mut remaining = String::default();
         loop {
             let info = self.decodeGeneralPurposeField(currentPosition, &remaining)?;
             let parsedFields = field_parser::parseFieldsInGeneralPurpose(info.getNewString())?;
@@ -67,7 +67,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
             if info.isRemaining() {
                 remaining = info.getRemainingValue().to_string();
             } else {
-                remaining = "".to_owned();
+                remaining = String::default();
             }
 
             if currentPosition == info.getNewPosition() {

@@ -67,10 +67,10 @@ impl WifiParsedRXingResult {
             ssid,
             password,
             hidden,
-            String::from(""),
-            String::from(""),
-            String::from(""),
-            String::from(""),
+            String::default(),
+            String::default(),
+            String::default(),
+            String::default(),
         )
     }
 

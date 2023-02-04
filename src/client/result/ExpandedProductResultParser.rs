@@ -52,19 +52,19 @@ pub fn parse(result: &crate::RXingResult) -> Option<super::ParsedClientResult> {
     }
     let rawText = ResultParser::getMassagedText(result);
 
-    let mut productID: String = "".to_owned(); // = null;
-    let mut sscc: String = "".to_owned();
-    let mut lotNumber: String = "".to_owned();
-    let mut productionDate: String = "".to_owned();
-    let mut packagingDate: String = "".to_owned();
-    let mut bestBeforeDate: String = "".to_owned();
-    let mut expirationDate: String = "".to_owned();
-    let mut weight: String = "".to_owned();
-    let mut weightType: String = "".to_owned();
-    let mut weightIncrement: String = "".to_owned();
-    let mut price: String = "".to_owned();
-    let mut priceIncrement: String = "".to_owned();
-    let mut priceCurrency: String = "".to_owned();
+    let mut productID: String = String::default(); // = null;
+    let mut sscc: String = String::default();
+    let mut lotNumber: String = String::default();
+    let mut productionDate: String = String::default();
+    let mut packagingDate: String = String::default();
+    let mut bestBeforeDate: String = String::default();
+    let mut expirationDate: String = String::default();
+    let mut weight: String = String::default();
+    let mut weightType: String = String::default();
+    let mut weightIncrement: String = String::default();
+    let mut price: String = String::default();
+    let mut priceIncrement: String = String::default();
+    let mut priceCurrency: String = String::default();
     let mut uncommonAIs = HashMap::new();
 
     let mut i = 0;

@@ -59,7 +59,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     if raw_text.starts_with("URL:") || raw_text.starts_with("URI:") {
         return Some(ParsedClientResult::URIResult(URIParsedRXingResult::new(
             raw_text[4..].trim().to_owned(),
-            "".to_owned(),
+            String::default(),
         )));
         // return new URIParsedRXingResult(rawText.substring(4).trim(), null);
     }
@@ -69,7 +69,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     }
     Some(ParsedClientResult::URIResult(URIParsedRXingResult::new(
         raw_text.to_owned(),
-        "".to_owned(),
+        String::default(),
     )))
 }
 

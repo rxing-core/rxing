@@ -139,7 +139,7 @@ static FOUR_DIGIT_DATA_LENGTH: Lazy<HashMap<String, DataLength>> = Lazy::new(|| 
 
 pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String, Exceptions> {
     if rawInformation.is_empty() {
-        return Ok("".to_owned());
+        return Ok(String::default());
     }
 
     // Processing 2-digit AIs

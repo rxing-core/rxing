@@ -244,7 +244,7 @@ impl CalendarParsedRXingResult {
 
     fn format_event(allDay: bool, date: i64) -> String {
         if date < 0 {
-            return "".to_owned();
+            return String::default();
         }
         let format_string = if allDay { "%F" } else { "%c" };
         // DateFormat format = allDay
@@ -254,7 +254,7 @@ impl CalendarParsedRXingResult {
         if let Some(dtm) = NaiveDateTime::from_timestamp_opt(date, 0) {
             dtm.format(format_string).to_string()
         } else {
-            String::from("")
+            String::default()
         }
     }
 

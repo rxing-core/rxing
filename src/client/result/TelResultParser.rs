@@ -51,7 +51,7 @@ pub fn parse(theRXingResult: &crate::RXingResult) -> Option<ParsedClientResult> 
     Some(ParsedClientResult::TelResult(TelParsedRXingResult::new(
         number.to_owned(),
         telURI,
-        "".to_owned(),
+        String::default(),
     )))
 }
 // }

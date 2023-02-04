@@ -57,8 +57,8 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     Some(ParsedClientResult::SMSResult(
         SMSParsedRXingResult::with_singles(
             number.to_owned(),
-            String::from(""),
-            String::from(""),
+            String::default(),
+            String::default(),
             body.to_owned(),
         ),
     ))

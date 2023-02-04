@@ -55,8 +55,8 @@ impl EmailAddressParsedRXingResult {
             vec![to],
             Vec::new(),
             Vec::new(),
-            "".to_owned(),
-            "".to_owned(),
+            String::default(),
+            String::default(),
         )
     }
 

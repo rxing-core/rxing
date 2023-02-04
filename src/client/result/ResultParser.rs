@@ -167,7 +167,7 @@ pub fn parseRXingResult(the_rxing_result: &RXingResult) -> ParsedClientResult {
 
     ParsedClientResult::TextResult(TextParsedRXingResult::new(
         the_rxing_result.getText().to_owned(),
-        "".to_owned(),
+        String::default(),
     ))
 }
 
@@ -284,7 +284,7 @@ pub fn appendKeyValue(keyValue: &str, result: &mut HashMap<String, String>) {
 
     let kvp: Vec<&str> = keyValueTokens.take(2).collect();
     if let [key, value] = kvp[..] {
-        let p_value = urlDecode(value).unwrap_or_else(|_| "".to_owned());
+        let p_value = urlDecode(value).unwrap_or_else(|_| String::default());
         result.insert(key.to_owned(), p_value);
     }
 
