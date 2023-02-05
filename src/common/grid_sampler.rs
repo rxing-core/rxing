@@ -144,22 +144,22 @@ pub trait GridSampler {
             // for (int offset = 0; offset < maxOffset && nudged; offset += 2) {
             let x = points[offset] as i32;
             let y = points[offset + 1] as i32;
-            if x < -1 || x > width.try_into().unwrap() || y < -1 || y > height.try_into().unwrap() {
+            if x < -1 || x > width as i32 || y < -1 || y > height as i32 {
                 return Err(Exceptions::NotFoundException(None));
             }
             nudged = false;
             if x == -1 {
-                points[offset] = 0.0f32;
+                points[offset] = 0.0;
                 nudged = true;
-            } else if x == width.try_into().unwrap() {
-                points[offset] = width as f32 - 1f32;
+            } else if x == width as i32 {
+                points[offset] = width as f32 - 1.0;
                 nudged = true;
             }
             if y == -1 {
-                points[offset + 1] = 0.0f32;
+                points[offset + 1] = 0.0;
                 nudged = true;
-            } else if y == height.try_into().unwrap() {
-                points[offset + 1] = height as f32 - 1f32;
+            } else if y == height as i32 {
+                points[offset + 1] = height as f32 - 1.0;
                 nudged = true;
             }
             offset += 2;
@@ -171,22 +171,22 @@ pub trait GridSampler {
             // for (int offset = points.length - 2; offset >= 0 && nudged; offset -= 2) {
             let x = points[offset as usize] as i32;
             let y = points[offset as usize + 1] as i32;
-            if x < -1 || x > width.try_into().unwrap() || y < -1 || y > height.try_into().unwrap() {
+            if x < -1 || x > width as i32 || y < -1 || y > height as i32 {
                 return Err(Exceptions::NotFoundException(None));
             }
             nudged = false;
             if x == -1 {
-                points[offset as usize] = 0.0f32;
+                points[offset as usize] = 0.0;
                 nudged = true;
-            } else if x == width.try_into().unwrap() {
-                points[offset as usize] = width as f32 - 1f32;
+            } else if x == width as i32 {
+                points[offset as usize] = width as f32 - 1.0;
                 nudged = true;
             }
             if y == -1 {
-                points[offset as usize + 1] = 0.0f32;
+                points[offset as usize + 1] = 0.0;
                 nudged = true;
-            } else if y == height.try_into().unwrap() {
-                points[offset as usize + 1] = height as f32 - 1f32;
+            } else if y == height as i32 {
+                points[offset as usize + 1] = height as f32 - 1.0;
                 nudged = true;
             }
             offset += -2;

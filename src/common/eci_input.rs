@@ -106,5 +106,5 @@ pub trait ECIInput: Display {
      *          if the value at the {@code index} argument is not an ECI (@see #isECI)
      */
     fn getECIValue(&self, index: usize) -> Result<i32, Exceptions>;
-    fn haveNCharacters(&self, index: usize, n: usize) -> bool;
+    fn haveNCharacters(&self, index: usize, n: usize) -> Result<bool, Exceptions>;
 }

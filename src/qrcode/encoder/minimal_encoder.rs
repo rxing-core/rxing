@@ -315,11 +315,14 @@ impl MinimalEncoder {
         let mut end = self.encoders.len();
         let priorityEncoderIndex = self.encoders.getPriorityEncoderIndex();
         if priorityEncoderIndex.is_some()
-            && self.encoders.canEncode(
-                // self.stringToEncode.chars().nth(from as usize).unwrap() as i16,
-                &self.stringToEncode[from],
-                priorityEncoderIndex.unwrap(),
-            )
+            && self
+                .encoders
+                .canEncode(
+                    // self.stringToEncode.chars().nth(from as usize).unwrap() as i16,
+                    &self.stringToEncode[from],
+                    priorityEncoderIndex.unwrap(),
+                )
+                .unwrap()
         {
             start = priorityEncoderIndex.unwrap();
             end = priorityEncoderIndex.unwrap() + 1;
@@ -330,6 +333,7 @@ impl MinimalEncoder {
             if self
                 .encoders
                 .canEncode(self.stringToEncode.get(from).unwrap(), i)
+                .unwrap()
             {
                 self.addEdge(
                     edges,
@@ -666,7 +670,10 @@ impl Edge {
                             .take(characterLength as usize)
                             .map(String::from)
                             .collect();
-                        size += 8 * encoders.encode_string(&n, charsetEncoderIndex).len() as u32;
+                        size += 8 * encoders
+                            .encode_string(&n, charsetEncoderIndex)
+                            .unwrap()
+                            .len() as u32;
                         // size += 8 * encoders
                         //     .encode_string(
                         //         &stringToEncode[fromPosition as usize
@@ -1062,6 +1069,7 @@ impl RXingResultNode {
                         .collect::<String>()),
                     self.charsetEncoderIndex,
                 )
+                .unwrap()
                 .len() as u32
         } else {
             self.characterLength
@@ -1096,7 +1104,7 @@ impl RXingResultNode {
                     .collect::<String>()), //self.stringToEncode.get(self.fromPosition).unwrap(),
                 self.mode,
                 bits,
-                self.encoders.getCharset(self.charsetEncoderIndex),
+                self.encoders.getCharset(self.charsetEncoderIndex).unwrap(),
             )?;
         }
         Ok(())
@@ -1122,7 +1130,12 @@ impl fmt::Display for RXingResultNode {
         result.push_str(&format!("{:?}", self.mode));
         result.push('(');
         if self.mode == Mode::ECI {
-            result.push_str(self.encoders.getCharset(self.charsetEncoderIndex).name());
+            result.push_str(
+                self.encoders
+                    .getCharset(self.charsetEncoderIndex)
+                    .unwrap()
+                    .name(),
+            );
         } else {
             let sub_string: String = self
                 .stringToEncode

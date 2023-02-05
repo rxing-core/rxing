@@ -16,7 +16,7 @@
 
 use std::{
     f32, i32,
-    ops::{Add, Mul, Sub},
+    ops::{Add, Sub},
 };
 
 /**

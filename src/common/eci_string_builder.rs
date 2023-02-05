@@ -51,7 +51,7 @@ impl ECIStringBuilder {
     pub fn with_capacity(initial_capacity: usize) -> Self {
         Self {
             current_bytes: Vec::with_capacity(initial_capacity),
-            result: String::new(),
+            result: String::with_capacity(initial_capacity),
             current_charset: Some(encoding::all::ISO_8859_1),
         }
     }
@@ -121,31 +121,25 @@ impl ECIStringBuilder {
         Ok(())
     }
 
+    /// Finishes encoding anything in the buffer using the current ECI and resets.
+    ///
+    /// This function can panic
     pub fn encodeCurrentBytesIfAny(&mut self) {
         if let Some(encoder) = self.current_charset {
             if encoder.name() == encoding::all::UTF_8.name() {
                 if !self.current_bytes.is_empty() {
-                    // if result == null {
-                    //   result = currentBytes;
-                    //   currentBytes = new StringBuilder();
-                    // } else {
                     self.result.push_str(
                         &String::from_utf8(std::mem::take(&mut self.current_bytes)).unwrap(),
                     );
                     self.current_bytes.clear();
-                    // }
                 }
             } else if !self.current_bytes.is_empty() {
                 let bytes = std::mem::take(&mut self.current_bytes);
                 self.current_bytes.clear();
-                //   if (result == null) {
-                //     result = new StringBuilder(new String(bytes, currentCharset));
-                //   } else {
                 let encoded_value = encoder
                     .decode(&bytes, encoding::DecoderTrap::Strict)
                     .unwrap();
                 self.result.push_str(&encoded_value);
-                //   }
             }
         } else {
             for byte in &self.current_bytes {

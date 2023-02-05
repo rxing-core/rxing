@@ -317,6 +317,7 @@ fn decodeByteSegment(
         {
             #[cfg(not(feature = "allow_forced_iso_ied_18004_compliance"))]
             StringUtils::guessCharset(&readBytes, hints)
+                .ok_or(Exceptions::IllegalStateException(None))?
         }
 
         #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]

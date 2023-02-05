@@ -267,7 +267,7 @@ pub fn encode_bytes_with_charset(
             alignmentMap[origCenter + i] = center + newOffset + 1;
         }
     }
-    let mut matrix = BitMatrix::with_single_dimension(matrixSize);
+    let mut matrix = BitMatrix::with_single_dimension(matrixSize)?;
 
     // dbg!(matrix.to_string());
 

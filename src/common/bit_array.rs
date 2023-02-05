@@ -50,7 +50,7 @@ impl BitArray {
         }
     }
 
-    // For testing only
+    /// For testing only
     #[cfg(test)]
     pub fn with_initial_values(bits: Vec<u32>, size: usize) -> Self {
         Self { bits, size }

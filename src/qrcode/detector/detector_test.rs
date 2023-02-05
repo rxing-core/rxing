@@ -46,7 +46,7 @@ fn test_encode_decode(value: &str) {
 #[allow(dead_code)]
 fn make_larger(input: &BitMatrix, factor: u32) -> BitMatrix {
     let width = input.getWidth();
-    let mut output = BitMatrix::with_single_dimension(width * factor);
+    let mut output = BitMatrix::with_single_dimension(width * factor).expect("new");
     for inputY in 0..width {
         // for (int inputY = 0; inputY < width; inputY++) {
         for inputX in 0..width {

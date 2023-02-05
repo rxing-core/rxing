@@ -156,7 +156,7 @@ impl Version {
      */
     pub fn buildFunctionPattern(&self) -> Result<BitMatrix, Exceptions> {
         let dimension = self.getDimensionForVersion();
-        let mut bitMatrix = BitMatrix::with_single_dimension(dimension);
+        let mut bitMatrix = BitMatrix::with_single_dimension(dimension)?;
 
         // Top left finder pattern + separator + format
         bitMatrix.setRegion(0, 0, 9, 9)?;

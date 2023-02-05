@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-// package com.google.zxing.common;
-
-// import java.nio.charset.Charset;
-// import java.nio.charset.StandardCharsets;
-// import java.util.Map;
-
 use encoding::{Encoding, EncodingRef};
 
 use crate::{DecodeHintType, DecodeHintValue, DecodingHintDictionary};
@@ -71,20 +65,16 @@ impl StringUtils {
      *  "SJIS", "UTF8", "ISO8859_1", or the platform default encoding if none
      *  of these can possibly be correct
      */
-    pub fn guessEncoding(bytes: &[u8], hints: &DecodingHintDictionary) -> &'static str {
-        let c = StringUtils::guessCharset(bytes, hints);
-        if c.name()
-            == encoding::label::encoding_from_whatwg_label("SJIS")
-                .unwrap()
-                .name()
-        {
-            "SJIS"
+    pub fn guessEncoding(bytes: &[u8], hints: &DecodingHintDictionary) -> Option<&'static str> {
+        let c = StringUtils::guessCharset(bytes, hints)?;
+        if c.name() == encoding::label::encoding_from_whatwg_label("SJIS")?.name() {
+            Some("SJIS")
         } else if c.name() == encoding::all::UTF_8.name() {
-            "UTF8"
+            Some("UTF8")
         } else if c.name() == encoding::all::ISO_8859_1.name() {
-            "ISO8859_1"
+            Some("ISO8859_1")
         } else {
-            c.name()
+            Some(c.name())
         }
     }
 
@@ -97,12 +87,12 @@ impl StringUtils {
      *  or the platform default encoding if
      *  none of these can possibly be correct
      */
-    pub fn guessCharset(bytes: &[u8], hints: &DecodingHintDictionary) -> EncodingRef {
+    pub fn guessCharset(bytes: &[u8], hints: &DecodingHintDictionary) -> Option<EncodingRef> {
         if let Some(DecodeHintValue::CharacterSet(cs_name)) =
             hints.get(&DecodeHintType::CHARACTER_SET)
         {
             // if let DecodeHintValue::CharacterSet(cs_name) = hint {
-            return encoding::label::encoding_from_whatwg_label(cs_name).unwrap();
+            return encoding::label::encoding_from_whatwg_label(cs_name);
             // }
         }
         // if hints.contains_key(&DecodeHintType::CHARACTER_SET) {
@@ -114,9 +104,9 @@ impl StringUtils {
             && ((bytes[0] == 0xFE && bytes[1] == 0xFF) || (bytes[0] == 0xFF && bytes[1] == 0xFE))
         {
             if bytes[0] == 0xFE && bytes[1] == 0xFF {
-                return encoding::all::UTF_16BE;
+                return Some(encoding::all::UTF_16BE);
             } else {
-                return encoding::all::UTF_16LE;
+                return Some(encoding::all::UTF_16LE);
             }
         }
 
@@ -234,7 +224,7 @@ impl StringUtils {
 
         // Easy -- if there is BOM or at least 1 valid not-single byte character (and no evidence it can't be UTF-8), done
         if can_be_utf8 && (utf8bom || utf2_bytes_chars + utf3_bytes_chars + utf4_bytes_chars > 0) {
-            return encoding::all::UTF_8;
+            return Some(encoding::all::UTF_8);
         }
         // Easy -- if assuming Shift_JIS or >= 3 valid consecutive not-ascii characters (and no evidence it can't be), done
         if can_be_shift_jis
@@ -242,7 +232,7 @@ impl StringUtils {
                 || sjis_max_katakana_word_length >= 3
                 || sjis_max_double_bytes_word_length >= 3)
         {
-            return encoding::label::encoding_from_whatwg_label("SJIS").unwrap();
+            return encoding::label::encoding_from_whatwg_label("SJIS");
         }
         // Distinguishing Shift_JIS and ISO-8859-1 can be a little tough for short words. The crude heuristic is:
         // - If we saw
@@ -253,23 +243,23 @@ impl StringUtils {
             return if (sjis_max_katakana_word_length == 2 && sjis_katakana_chars == 2)
                 || iso_high_other * 10 >= length
             {
-                encoding::label::encoding_from_whatwg_label("SJIS").unwrap()
+                encoding::label::encoding_from_whatwg_label("SJIS")
             } else {
-                encoding::all::ISO_8859_1
+                Some(encoding::all::ISO_8859_1)
             };
         }
 
         // Otherwise, try in order ISO-8859-1, Shift JIS, UTF-8 and fall back to default platform encoding
         if can_be_iso88591 {
-            return encoding::all::ISO_8859_1;
+            return Some(encoding::all::ISO_8859_1);
         }
         if can_be_shift_jis {
-            return encoding::label::encoding_from_whatwg_label("SJIS").unwrap();
+            return Some(encoding::label::encoding_from_whatwg_label("SJIS").unwrap());
         }
         if can_be_utf8 {
-            return encoding::all::UTF_8;
+            return Some(encoding::all::UTF_8);
         }
         // Otherwise, we take a wild guess with platform encoding
-        encoding::all::UTF_8
+        Some(encoding::all::UTF_8)
     }
 }

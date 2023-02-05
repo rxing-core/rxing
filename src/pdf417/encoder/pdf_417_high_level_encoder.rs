@@ -839,8 +839,8 @@ impl ECIInput for NoECIInput {
         Ok(-1)
     }
 
-    fn haveNCharacters(&self, index: usize, n: usize) -> bool {
-        index + n <= self.0.len()
+    fn haveNCharacters(&self, index: usize, n: usize) -> Result<bool, Exceptions> {
+        Ok(index + n <= self.0.len())
     }
 }
 impl NoECIInput {

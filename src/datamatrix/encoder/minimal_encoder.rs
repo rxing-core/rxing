@@ -296,7 +296,7 @@ fn addEdges(
         //not possible to unlatch a full EDF edge to something
         //else
         if high_level_encoder::isDigit(ch)
-            && input.haveNCharacters(from as usize, 2)
+            && input.haveNCharacters(from as usize, 2)?
             && high_level_encoder::isDigit(input.charAt(from as usize + 1)?)
         {
             // two digits ASCII encoded
@@ -344,7 +344,7 @@ fn addEdges(
             }
         }
 
-        if input.haveNCharacters(from as usize, 3)
+        if input.haveNCharacters(from as usize, 3)?
             && high_level_encoder::isNativeX12(input.charAt(from as usize)?)
             && high_level_encoder::isNativeX12(input.charAt(from as usize + 1)?)
             && high_level_encoder::isNativeX12(input.charAt(from as usize + 2)?)
@@ -379,7 +379,7 @@ fn addEdges(
     while i < 3 {
         // for (i = 0; i < 3; i++) {
         let pos = from + i;
-        if input.haveNCharacters(pos as usize, 1)
+        if input.haveNCharacters(pos as usize, 1)?
             && high_level_encoder::isNativeEDIFACT(input.charAt(pos as usize)?)
         {
             addEdge(
@@ -398,7 +398,7 @@ fn addEdges(
         i += 1;
     }
     if i == 3
-        && input.haveNCharacters(from as usize, 4)
+        && input.haveNCharacters(from as usize, 4)?
         && high_level_encoder::isNativeEDIFACT(input.charAt(from as usize + 3)?)
     {
         addEdge(
@@ -1452,7 +1452,7 @@ impl Input {
             Some(self.internal.getFNC1Character() as u8 as char)
         }
     }
-    fn haveNCharacters(&self, index: usize, n: usize) -> bool {
+    fn haveNCharacters(&self, index: usize, n: usize) -> Result<bool, Exceptions> {
         self.internal.haveNCharacters(index, n)
     }
     fn isFNC1(&self, index: usize) -> Result<bool, Exceptions> {

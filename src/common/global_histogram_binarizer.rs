@@ -102,11 +102,6 @@ impl Binarizer for GlobalHistogramBinarizer {
 
     // Does not sharpen the data, as this call is intended to only be used by 2D Readers.
     fn getBlackMatrix(&self) -> Result<&BitMatrix, Exceptions> {
-        // if self.black_matrix.is_none() {
-        //     self.black_matrix =
-        //         Some(Self::build_black_matrix(&self.source).expect("matrix must generate"))
-        // }
-        // Ok(self.black_matrix.as_ref().unwrap())
         let matrix = self
             .black_matrix
             .get_or_try_init(|| Self::build_black_matrix(&self.source))?;
