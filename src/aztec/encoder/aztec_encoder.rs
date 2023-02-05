@@ -450,7 +450,7 @@ fn generateCheckWords(
 ) -> Result<BitArray, Exceptions> {
     // bitArray is guaranteed to be a multiple of the wordSize, so no padding needed
     let message_size_in_words = bitArray.getSize() / wordSize;
-    let mut rs = ReedSolomonEncoder::new(getGF(wordSize)?);
+    let mut rs = ReedSolomonEncoder::new(getGF(wordSize)?)?;
     let total_words = totalBits / wordSize;
     let mut message_words = bitsToWords(bitArray, wordSize, total_words);
     rs.encode(&mut message_words, total_words - message_size_in_words)?;

@@ -404,7 +404,7 @@ fn test_encode_decode_random(field: GenericGFRef, dataSize: usize, ecSize: usize
         ecSize > 0 && ecSize + dataSize <= field.getSize(),
         "Invalid ECC size for {field}"
     );
-    let mut encoder = ReedSolomonEncoder::new(field);
+    let mut encoder = ReedSolomonEncoder::new(field).expect("new");
     let mut message = vec![0; dataSize + ecSize];
     let mut dataWords: Vec<i32> = vec![0; dataSize];
     let mut ecWords = vec![0; ecSize];
@@ -440,7 +440,7 @@ fn test_encode_decode(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i
 }
 
 fn test_encoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
-    let mut encoder = ReedSolomonEncoder::new(field);
+    let mut encoder = ReedSolomonEncoder::new(field).expect("new");
     let mut messageExpected = vec![0; dataWords.len() + ecWords.len()];
     let mut message = vec![0; dataWords.len() + ecWords.len()];
     messageExpected[0..dataWords.len()].clone_from_slice(&dataWords[0..dataWords.len()]);

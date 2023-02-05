@@ -583,7 +583,7 @@ pub fn interleaveWithECBytes(
         let size = numDataBytesInBlock;
         let mut dataBytes = vec![0u8; size as usize];
         bits.toBytes(8 * data_bytes_offset, &mut dataBytes, 0, size as usize);
-        let ec_bytes = generateECBytes(&dataBytes, numEcBytesInBlock as usize);
+        let ec_bytes = generateECBytes(&dataBytes, numEcBytesInBlock as usize)?;
         blocks.push(BlockPair::new(dataBytes, ec_bytes.clone()));
 
         max_num_data_bytes = max_num_data_bytes.max(size);
@@ -634,7 +634,10 @@ pub fn interleaveWithECBytes(
     Ok(result)
 }
 
-pub fn generateECBytes(dataBytes: &[u8], num_ec_bytes_in_block: usize) -> Vec<u8> {
+pub fn generateECBytes(
+    dataBytes: &[u8],
+    num_ec_bytes_in_block: usize,
+) -> Result<Vec<u8>, Exceptions> {
     let num_data_bytes = dataBytes.len();
     let mut to_encode = vec![0; num_data_bytes + num_ec_bytes_in_block];
     for i in 0..num_data_bytes {
@@ -644,7 +647,7 @@ pub fn generateECBytes(dataBytes: &[u8], num_ec_bytes_in_block: usize) -> Vec<u8
 
     ReedSolomonEncoder::new(get_predefined_genericgf(
         PredefinedGenericGF::QrCodeField256,
-    ))
+    ))?
     .encode(&mut to_encode, num_ec_bytes_in_block)
     .expect("rs encode must complete");
 
@@ -653,7 +656,7 @@ pub fn generateECBytes(dataBytes: &[u8], num_ec_bytes_in_block: usize) -> Vec<u8
         // for (int i = 0; i < numEcBytesInBlock; i++) {
         ecBytes[i] = to_encode[num_data_bytes + i] as u8;
     }
-    ecBytes
+    Ok(ecBytes)
 }
 
 /**
