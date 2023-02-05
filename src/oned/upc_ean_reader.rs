@@ -234,7 +234,9 @@ pub trait UPCEANReader: OneDReader {
 
             decodeRXingResult.putMetadata(
                 RXingResultMetadataType::UPC_EAN_EXTENSION,
-                RXingResultMetadataValue::UpcEanExtension(extensionRXingResult.getText().clone()),
+                RXingResultMetadataValue::UpcEanExtension(
+                    extensionRXingResult.getText().to_owned(),
+                ),
             );
             decodeRXingResult.putAllMetadata(extensionRXingResult.getRXingResultMetadata().clone());
             decodeRXingResult

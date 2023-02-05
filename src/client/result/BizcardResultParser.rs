@@ -41,24 +41,24 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
         return None;
     }
 
-    let firstName = ResultParser::match_single_do_co_mo_prefixed_field("N:", &rawText, true)
-        .unwrap_or_default();
-    let lastName = ResultParser::match_single_do_co_mo_prefixed_field("X:", &rawText, true)
-        .unwrap_or_default();
+    let firstName =
+        ResultParser::match_single_docomo_prefixed_field("N:", &rawText, true).unwrap_or_default();
+    let lastName =
+        ResultParser::match_single_docomo_prefixed_field("X:", &rawText, true).unwrap_or_default();
     let fullName = buildName(&firstName, &lastName);
-    let title = ResultParser::match_single_do_co_mo_prefixed_field("T:", &rawText, true)
-        .unwrap_or_default();
-    let org = ResultParser::match_single_do_co_mo_prefixed_field("C:", &rawText, true)
-        .unwrap_or_default();
-    let addresses = ResultParser::match_do_co_mo_prefixed_field("A:", &rawText);
-    let phoneNumber1 = ResultParser::match_single_do_co_mo_prefixed_field("B:", &rawText, true)
-        .unwrap_or_default();
-    let phoneNumber2 = ResultParser::match_single_do_co_mo_prefixed_field("M:", &rawText, true)
-        .unwrap_or_default();
-    let phoneNumber3 = ResultParser::match_single_do_co_mo_prefixed_field("F:", &rawText, true)
-        .unwrap_or_default();
-    let email = ResultParser::match_single_do_co_mo_prefixed_field("E:", &rawText, true)
-        .unwrap_or_default();
+    let title =
+        ResultParser::match_single_docomo_prefixed_field("T:", &rawText, true).unwrap_or_default();
+    let org =
+        ResultParser::match_single_docomo_prefixed_field("C:", &rawText, true).unwrap_or_default();
+    let addresses = ResultParser::match_docomo_prefixed_field("A:", &rawText);
+    let phoneNumber1 =
+        ResultParser::match_single_docomo_prefixed_field("B:", &rawText, true).unwrap_or_default();
+    let phoneNumber2 =
+        ResultParser::match_single_docomo_prefixed_field("M:", &rawText, true).unwrap_or_default();
+    let phoneNumber3 =
+        ResultParser::match_single_docomo_prefixed_field("F:", &rawText, true).unwrap_or_default();
+    let email =
+        ResultParser::match_single_docomo_prefixed_field("E:", &rawText, true).unwrap_or_default();
 
     if let Ok(adb) = AddressBookParsedRXingResult::with_details(
         ResultParser::maybeWrap(Some(fullName))?,

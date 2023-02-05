@@ -98,7 +98,7 @@ impl RXingResult {
     /**
      * @return raw text encoded by the barcode
      */
-    pub fn getText(&self) -> &String {
+    pub fn getText(&self) -> &str {
         &self.text
     }
 
