@@ -40,6 +40,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     {
         return None;
     }
+
     let rawText = ResultParser::getMassagedText(result);
     if !ResultParser::isStringOfDigits(&rawText, rawText.len()) {
         return None;

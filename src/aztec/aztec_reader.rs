@@ -130,8 +130,4 @@ impl Reader for AztecReader {
 
         Ok(result)
     }
-
-    fn reset(&mut self) {
-        // do nothing
-    }
 }

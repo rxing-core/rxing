@@ -31,8 +31,8 @@ use serde::{Deserialize, Serialize};
 pub struct Dimension(usize, usize);
 
 impl Dimension {
-    pub fn new(width: usize, height: usize) -> Result<Self, Exceptions> {
-        Ok(Self(width, height))
+    pub fn new(width: usize, height: usize) -> Self {
+        Self(width, height)
     }
 
     pub fn getWidth(&self) -> usize {

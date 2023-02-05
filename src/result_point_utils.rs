@@ -27,10 +27,11 @@ pub fn orderBestPatterns<T: ResultPoint + Copy + Clone>(patterns: &mut [T; 3]) {
         patterns[2].getY(),
     );
 
-    let mut pointA; //: &RXingResultPoint;
-    let pointB; //: &RXingResultPoint;
-    let mut pointC; //: &RXingResultPoint;
-                    // Assume one closest to other two is B; A and C will just be guesses at first
+    let mut pointA;
+    let pointB;
+    let mut pointC;
+
+    // Assume one closest to other two is B; A and C will just be guesses at first
     if oneTwoDistance >= zeroOneDistance && oneTwoDistance >= zeroTwoDistance {
         pointB = patterns[0];
         pointA = patterns[1];
@@ -49,7 +50,7 @@ pub fn orderBestPatterns<T: ResultPoint + Copy + Clone>(patterns: &mut [T; 3]) {
     // This asks whether BC x BA has a positive z component, which is the arrangement
     // we want for A, B, C. If it's negative, then we've got it flipped around and
     // should swap A and C.
-    if crossProductZ(pointA, pointB, pointC) < 0.0f32 {
+    if crossProductZ(pointA, pointB, pointC) < 0.0 {
         std::mem::swap(&mut pointA, &mut pointC);
     }
 

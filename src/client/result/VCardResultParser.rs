@@ -14,20 +14,6 @@
  * limitations under the License.
  */
 
-// package com.google.zxing.client.result;
-
-// import com.google.zxing.RXingResult;
-
-// import java.io.ByteArrayOutputStream;
-// import java.io.UnsupportedEncodingException;
-// import java.net.URI;
-// import java.nio.charset.StandardCharsets;
-// import java.util.ArrayList;
-// import java.util.Collection;
-// import java.util.List;
-// import java.util.regex.Matcher;
-// import java.util.regex.Pattern;
-
 use std::convert::TryFrom;
 
 use regex::Regex;

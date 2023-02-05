@@ -324,7 +324,7 @@ impl HighLevelEncoder {
         // Convert it to a bit array, and return.
         // dbg!(min_state.clone().toBitArray(&self.text).to_string());
 
-        Ok(min_state.toBitArray(&self.text))
+        min_state.toBitArray(&self.text)
     }
 
     // We update a set of states for a new character by updating each state

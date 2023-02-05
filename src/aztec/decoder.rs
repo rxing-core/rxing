@@ -24,7 +24,7 @@ use crate::{
     exceptions::Exceptions,
 };
 
-use super::AztecDetectorResult::AztecDetectorRXingResult;
+use super::aztec_detector_result::AztecDetectorRXingResult;
 
 /**
  * <p>The main class which implements Aztec Code decoding -- as opposed to locating and extracting
@@ -164,7 +164,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
                 result.push_str(
                     &encdr
                         .decode(&decoded_bytes, encoding::DecoderTrap::Strict)
-                        .unwrap(),
+                        .map_err(|a| Exceptions::IllegalStateException(Some(a.to_string())))?,
                 );
 
                 decoded_bytes.clear();
@@ -210,8 +210,17 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
                 // That's including when that mode is a shift.
                 // Our test case dlusbs.png for issue #642 exercises that.
                 latch_table = shift_table; // Latch the current mode, so as to return to Upper after U/S B/S
-                shift_table = getTable(str.chars().nth(5).unwrap());
-                if str.chars().nth(6).unwrap() == 'L' {
+                shift_table = getTable(
+                    str.chars()
+                        .nth(5)
+                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                );
+                if str
+                    .chars()
+                    .nth(6)
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                    == 'L'
+                {
                     latch_table = shift_table;
                 }
             } else {

@@ -186,7 +186,10 @@ impl MultiFormatReader {
                 // continue
                 //}
             }
-            if self.hints.contains_key(&DecodeHintType::ALSO_INVERTED) {
+            if matches!(
+                self.hints.get(&DecodeHintType::ALSO_INVERTED),
+                Some(DecodeHintValue::AlsoInverted(true))
+            ) {
                 // Calling all readers again with inverted image
                 // let mut image = image.clone();
                 image.getBlackMatrixMut().flip_self();

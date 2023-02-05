@@ -424,7 +424,7 @@ mod tests {
         assert_eq!(24, info.getSymbolWidth().expect("return"));
         assert_eq!(24, info.getSymbolHeight().expect("return"));
 
-        let fixedSize = Dimension::new(26, 26).expect("new dimension");
+        let fixedSize = Dimension::new(26, 26);
         let info = LOOKUP
             .lookup_with_codewords_shape_size_fail(
                 35,
@@ -451,7 +451,7 @@ mod tests {
         assert!(info.is_none());
 
         let minSize = fixedSize;
-        let maxSize = Dimension::new(32, 32).expect("new dimension");
+        let maxSize = Dimension::new(32, 32);
 
         let info = LOOKUP
             .lookup_with_codewords_shape_size_fail(

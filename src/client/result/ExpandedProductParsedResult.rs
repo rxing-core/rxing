@@ -110,47 +110,6 @@ impl ExpandedProductParsedRXingResult {
         }
     }
 
-    // @Override
-    // public boolean equals(Object o) {
-    //   if (!(o instanceof ExpandedProductParsedRXingResult)) {
-    //     return false;
-    //   }
-
-    //   ExpandedProductParsedRXingResult other = (ExpandedProductParsedRXingResult) o;
-
-    //   return Objects.equals(productID, other.productID)
-    //       && Objects.equals(sscc, other.sscc)
-    //       && Objects.equals(lotNumber, other.lotNumber)
-    //       && Objects.equals(productionDate, other.productionDate)
-    //       && Objects.equals(bestBeforeDate, other.bestBeforeDate)
-    //       && Objects.equals(expirationDate, other.expirationDate)
-    //       && Objects.equals(weight, other.weight)
-    //       && Objects.equals(weightType, other.weightType)
-    //       && Objects.equals(weightIncrement, other.weightIncrement)
-    //       && Objects.equals(price, other.price)
-    //       && Objects.equals(priceIncrement, other.priceIncrement)
-    //       && Objects.equals(priceCurrency, other.priceCurrency)
-    //       && Objects.equals(uncommonAIs, other.uncommonAIs);
-    // }
-
-    // @Override
-    // public int hashCode() {
-    //   int hash = Objects.hashCode(productID);
-    //   hash ^= Objects.hashCode(sscc);
-    //   hash ^= Objects.hashCode(lotNumber);
-    //   hash ^= Objects.hashCode(productionDate);
-    //   hash ^= Objects.hashCode(bestBeforeDate);
-    //   hash ^= Objects.hashCode(expirationDate);
-    //   hash ^= Objects.hashCode(weight);
-    //   hash ^= Objects.hashCode(weightType);
-    //   hash ^= Objects.hashCode(weightIncrement);
-    //   hash ^= Objects.hashCode(price);
-    //   hash ^= Objects.hashCode(priceIncrement);
-    //   hash ^= Objects.hashCode(priceCurrency);
-    //   hash ^= Objects.hashCode(uncommonAIs);
-    //   return hash;
-    // }
-
     pub fn getRawText(&self) -> &str {
         &self.rawText
     }

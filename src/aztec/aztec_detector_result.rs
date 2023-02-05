@@ -33,7 +33,7 @@ use crate::{
  */
 pub struct AztecDetectorRXingResult {
     bits: BitMatrix,
-    points: Vec<RXingResultPoint>,
+    points: [RXingResultPoint; 4],
     compact: bool,
     nbDatablocks: u32,
     nbLayers: u32,
@@ -59,7 +59,7 @@ impl AztecDetectorRXingResult {
     ) -> Self {
         Self {
             bits,
-            points: points.to_vec(),
+            points: points,
             compact,
             nbDatablocks,
             nbLayers,

@@ -16,7 +16,7 @@
 
 use std::fmt;
 
-use crate::common::BitArray;
+use crate::{common::BitArray, Exceptions};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct BinaryShiftToken {
@@ -32,28 +32,27 @@ impl BinaryShiftToken {
         }
     }
 
-    pub fn appendTo(&self, bit_array: &mut BitArray, text: &[u8]) {
+    pub fn appendTo(&self, bit_array: &mut BitArray, text: &[u8]) -> Result<(), Exceptions> {
         let bsbc = self.binary_shift_byte_count as usize;
         for i in 0..bsbc {
             // for (int i = 0; i < bsbc; i++) {
             if i == 0 || (i == 31 && bsbc <= 62) {
                 // We need a header before the first character, and before
                 // character 31 when the total byte code is <= 62
-                bit_array.appendBits(31, 5).unwrap(); // BINARY_SHIFT
+                bit_array.appendBits(31, 5)?; // BINARY_SHIFT
                 if bsbc > 62 {
-                    bit_array.appendBits(bsbc as u32 - 31, 16).unwrap();
+                    bit_array.appendBits(bsbc as u32 - 31, 16)?;
                 } else if i == 0 {
                     // 1 <= binaryShiftByteCode <= 62
-                    bit_array.appendBits(bsbc.min(31) as u32, 5).unwrap();
+                    bit_array.appendBits(bsbc.min(31) as u32, 5)?;
                 } else {
                     // 32 <= binaryShiftCount <= 62 and i == 31
-                    bit_array.appendBits(bsbc as u32 - 31, 5).unwrap();
+                    bit_array.appendBits(bsbc as u32 - 31, 5)?;
                 }
             }
-            bit_array
-                .appendBits(text[self.binary_shift_start as usize + i].into(), 8)
-                .expect("should never fail to append");
+            bit_array.appendBits(text[self.binary_shift_start as usize + i].into(), 8)?;
         }
+        Ok(())
     }
 
     // @Override

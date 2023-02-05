@@ -68,7 +68,7 @@ impl fmt::Display for Exceptions {
             Exceptions::RuntimeException(None) => write!(f, "RuntimeException"),
             Exceptions::ParseException(None) => write!(f, "ParseException"),
 
-            Exceptions::ReaderDecodeException() => write!(f, "ReaderDecodeException - -"),
+            Exceptions::ReaderDecodeException() => write!(f, "ReaderDecodeException"),
         }
     }
 }

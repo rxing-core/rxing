@@ -44,16 +44,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
             subject = &subject[..new_colon];
         }
     }
-    // let colon = emailAddress.indexOf(':');
-    // if (colon >= 0) {
-    //   subject = emailAddress.substring(colon + 1);
-    //   emailAddress = emailAddress.substring(0, colon);
-    //   colon = subject.indexOf(':');
-    //   if (colon >= 0) {
-    //     body = subject.substring(colon + 1);
-    //     subject = subject.substring(0, colon);
-    //   }
-    // }
+
     Some(ParsedClientResult::EmailResult(
         EmailAddressParsedRXingResult::with_details(
             vec![emailAddress.to_owned()],
@@ -63,9 +54,4 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
             body.to_owned(),
         ),
     ))
-    // return new EmailAddressParsedRXingResult(new String[] {emailAddress},
-    //                                     null,
-    //                                     null,
-    //                                     subject,
-    //                                     body);
 }

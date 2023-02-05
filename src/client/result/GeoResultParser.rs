@@ -50,31 +50,41 @@ pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientR
             ""
         };
 
-        let latitude = if let Some(la) = captures.get(1) {
-            if let Ok(laf64) = la.as_str().parse::<f64>() {
-                if !(-90.0..=90.0).contains(&laf64) {
-                    return None;
-                }
-                laf64
-            } else {
-                return None;
-            }
-        } else {
+        let latitude = captures.get(1)?.as_str().parse::<f64>().ok()?;
+        if !(-90.0..=90.0).contains(&latitude) {
             return None;
-        };
+        }
 
-        let longitude = if let Some(lo) = captures.get(2) {
-            if let Ok(lof64) = lo.as_str().parse::<f64>() {
-                if !(-180.0..=180.0).contains(&lof64) {
-                    return None;
-                }
-                lof64
-            } else {
-                return None;
-            }
-        } else {
+        // let latitude = if let Some(la) = captures.get(1) {
+        //     if let Ok(laf64) = la.as_str().parse::<f64>() {
+        //         if !(-90.0..=90.0).contains(&laf64) {
+        //             return None;
+        //         }
+        //         laf64
+        //     } else {
+        //         return None;
+        //     }
+        // } else {
+        //     return None;
+        // };
+
+        let longitude = captures.get(2)?.as_str().parse::<f64>().ok()?;
+        if !(-180.0..=180.0).contains(&longitude) {
             return None;
-        };
+        }
+
+        // let longitude = if let Some(lo) = captures.get(2) {
+        //     if let Ok(lof64) = lo.as_str().parse::<f64>() {
+        //         if !(-180.0..=180.0).contains(&lof64) {
+        //             return None;
+        //         }
+        //         lof64
+        //     } else {
+        //         return None;
+        //     }
+        // } else {
+        //     return None;
+        // };
 
         let altitude = if let Some(al) = captures.get(3) {
             if let Ok(alf64) = al.as_str().parse::<f64>() {
@@ -88,28 +98,6 @@ pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientR
         } else {
             0.0
         };
-        // let longitude;
-        // let altitude;
-        // try {
-        //   // latitude = Double.parseDouble(matcher.group(1));
-        //   // if (latitude > 90.0 || latitude < -90.0) {
-        //   //   return null;
-        //   // }
-        //   // longitude = Double.parseDouble(matcher.group(2));
-        //   // if (longitude > 180.0 || longitude < -180.0) {
-        //   //   return null;
-        //   // }
-        //   // if (matcher.group(3) == null) {
-        //   //   altitude = 0.0;
-        //   // } else {
-        //   //   altitude = Double.parseDouble(matcher.group(3));
-        //   //   if (altitude < 0.0) {
-        //   //     return null;
-        //   //   }
-        //   // }
-        // } catch (NumberFormatException ignored) {
-        //   return null;
-        // }
         Some(ParsedClientResult::GeoResult(GeoParsedRXingResult::new(
             latitude,
             longitude,
@@ -119,10 +107,4 @@ pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientR
     } else {
         None
     }
-
-    // Matcher matcher = GEO_URL_PATTERN.matcher(rawText);
-    // if (!matcher.matches()) {
-    //   return null;
-    // }
 }
-// }

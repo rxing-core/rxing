@@ -53,36 +53,25 @@ impl Writer for AztecWriter {
         let mut charset = None; // Do not add any ECI code by default
         let mut ecc_percent = aztec_encoder::DEFAULT_EC_PERCENT;
         let mut layers = aztec_encoder::DEFAULT_AZTEC_LAYERS;
-        if hints.contains_key(&EncodeHintType::CHARACTER_SET) {
-            if let EncodeHintValue::CharacterSet(cset_name) = hints
-                .get(&EncodeHintType::CHARACTER_SET)
-                .expect("already knonw presence")
-            {
-                if cset_name != "iso-8859-1" {
-                    charset = Some(encoding::label::encoding_from_whatwg_label(cset_name).unwrap());
-                }
-                //          dbg!(cset_name);
-                //  dbg!(encoding::label::encoding_from_whatwg_label(cset_name).unwrap().name(), encoding::label::encoding_from_whatwg_label(cset_name).unwrap().whatwg_name());
+        if let Some(EncodeHintValue::CharacterSet(cset_name)) =
+            hints.get(&EncodeHintType::CHARACTER_SET)
+        {
+            if cset_name.to_lowercase() != "iso-8859-1" {
+                charset = Some(
+                    encoding::label::encoding_from_whatwg_label(cset_name)
+                        .ok_or(Exceptions::IllegalArgumentException(None))?,
+                );
             }
-            // charset = Charset.forName(hints.get(EncodeHintType.CHARACTER_SET).toString());
         }
-        if hints.contains_key(&EncodeHintType::ERROR_CORRECTION) {
-            if let EncodeHintValue::ErrorCorrection(ecc_level) = hints
-                .get(&EncodeHintType::ERROR_CORRECTION)
-                .expect("key exists")
-            {
-                ecc_percent = ecc_level.parse().expect("should convert to int");
-            }
-            // eccPercent = Integer.parseInt(hints.get(EncodeHintType::ERROR_CORRECTION).toString());
+        if let Some(EncodeHintValue::ErrorCorrection(ecc_level)) =
+            hints.get(&EncodeHintType::ERROR_CORRECTION)
+        {
+            ecc_percent = ecc_level.parse().unwrap_or(23);
         }
-        if hints.contains_key(&EncodeHintType::AZTEC_LAYERS) {
-            if let EncodeHintValue::AztecLayers(az_layers) = hints
-                .get(&EncodeHintType::AZTEC_LAYERS)
-                .expect("key exists")
-            {
-                layers = *az_layers;
-            }
-            // layers = Integer.parseInt(hints.get(EncodeHintType.AZTEC_LAYERS).toString());
+        if let Some(EncodeHintValue::AztecLayers(az_layers)) =
+            hints.get(&EncodeHintType::AZTEC_LAYERS)
+        {
+            layers = *az_layers;
         }
         encode(
             contents,
@@ -121,9 +110,7 @@ fn encode(
 
 fn renderRXingResult(code: &AztecCode, width: u32, height: u32) -> Result<BitMatrix, Exceptions> {
     let input = code.getMatrix();
-    // if input == null {
-    //   throw new IllegalStateException();
-    // }
+
     let input_width = input.getWidth();
     let input_height = input.getHeight();
     let output_width = width.max(input_width);
@@ -152,13 +139,5 @@ fn renderRXingResult(code: &AztecCode, width: u32, height: u32) -> Result<BitMat
         input_y += 1;
         output_y += multiple
     }
-    // for (int inputY = 0, outputY = topPadding; inputY < inputHeight; inputY++, outputY += multiple) {
-    //   // Write the contents of this row of the barcode
-    //   for (int inputX = 0, outputX = leftPadding; inputX < inputWidth; inputX++, outputX += multiple) {
-    //     if (input.get(inputX, inputY)) {
-    //       output.setRegion(outputX, outputY, multiple, multiple);
-    //     }
-    //   }
-    // }
     Ok(output)
 }

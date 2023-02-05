@@ -32,7 +32,7 @@ use crate::{
     RXingResultPoint,
 };
 
-use super::{decoder, AztecDetectorResult::AztecDetectorRXingResult};
+use super::{aztec_detector_result::AztecDetectorRXingResult, decoder};
 
 /**
  * Tests {@link Decoder}.

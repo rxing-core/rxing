@@ -24,16 +24,6 @@
  *   http://www.piramidepse.com/
  */
 
-// package com.google.zxing.client.result;
-
-// import com.google.zxing.BarcodeFormat;
-// import com.google.zxing.RXingResult;
-// import org.junit.Assert;
-// import org.junit.Test;
-
-// import java.util.HashMap;
-// import java.util.Map;
-
 // /**
 //  * @author Antonio Manuel Benjumea Conde, Servinform, S.A.
 //  * @author Agustín Delgado, Servinform, S.A.

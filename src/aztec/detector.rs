@@ -26,7 +26,7 @@ use crate::{
     RXingResultPoint, ResultPoint,
 };
 
-use super::AztecDetectorResult::AztecDetectorRXingResult;
+use super::aztec_detector_result::AztecDetectorRXingResult;
 
 const EXPECTED_CORNER_BITS: [u32; 4] = [
     0xee0, // 07340  XXX .XX X.. ...

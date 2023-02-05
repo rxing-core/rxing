@@ -68,7 +68,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
         .unwrap_or_default();
 
     if let Ok(new_adb) = AddressBookParsedRXingResult::with_details(
-        ResultParser::maybeWrap(Some(name))?,
+        ResultParser::maybeWrap(Some(name)).unwrap_or_default(),
         Vec::new(),
         pronunciation,
         phoneNumbers,
@@ -97,12 +97,4 @@ fn parseName(name: &str) -> String {
     } else {
         name.to_owned()
     }
-    // let comma = name.indexOf(',');
-    // if (comma >= 0) {
-    //   // Format may be last,first; switch it around
-    //   return name.substring(comma + 1) + ' ' + name.substring(0, comma);
-    // }
-    // return name;
 }
-
-// }

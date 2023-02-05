@@ -92,7 +92,7 @@ impl URIParsedRXingResult {
         let nextSlash = if let Some(pos) = uri[start..].find('/') {
             pos + start
         } else {
-            uri.len()
+            uri.chars().count()
         };
         // let nextSlash = uri.indexOf('/', start);
         // if (nextSlash < 0) {

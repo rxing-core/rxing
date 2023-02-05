@@ -20,10 +20,10 @@ use encoding::EncodingRef;
 
 use crate::{
     aztec::{
+        aztec_detector_result::AztecDetectorRXingResult,
         decoder,
         encoder::HighLevelEncoder,
         shared_test_methods::{stripSpace, toBitArray, toBooleanArray},
-        AztecDetectorResult::AztecDetectorRXingResult,
     },
     BarcodeFormat, EncodeHintType, EncodeHintValue, RXingResultPoint,
 };
@@ -810,7 +810,7 @@ fn testModeMessageComplex(compact: bool, layers: u32, words: u32, expected: &str
 
 fn testStuffBits(wordSize: usize, bits: &str, expected: &str) {
     let indata = toBitArray(bits);
-    let stuffed = aztec_encoder::stuffBits(&indata, wordSize);
+    let stuffed = aztec_encoder::stuffBits(&indata, wordSize).unwrap();
     assert_eq!(
         stripSpace(expected),
         stripSpace(&stuffed.to_string()),
