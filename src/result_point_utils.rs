@@ -8,19 +8,19 @@ use crate::{common::detector::MathUtils, ResultPoint};
  */
 pub fn orderBestPatterns<T: ResultPoint + Copy + Clone>(patterns: &mut [T; 3]) {
     // Find distances between pattern centers
-    let zeroOneDistance = MathUtils::distance_float(
+    let zeroOneDistance = MathUtils::distance(
         patterns[0].getX(),
         patterns[0].getY(),
         patterns[1].getX(),
         patterns[1].getY(),
     );
-    let oneTwoDistance = MathUtils::distance_float(
+    let oneTwoDistance = MathUtils::distance(
         patterns[1].getX(),
         patterns[1].getY(),
         patterns[2].getX(),
         patterns[2].getY(),
     );
-    let zeroTwoDistance = MathUtils::distance_float(
+    let zeroTwoDistance = MathUtils::distance(
         patterns[0].getX(),
         patterns[0].getY(),
         patterns[2].getX(),
@@ -68,7 +68,7 @@ pub fn orderBestPatterns<T: ResultPoint + Copy + Clone>(patterns: &mut [T; 3]) {
  * @return distance between two points
  */
 pub fn distance<T: ResultPoint>(pattern1: &T, pattern2: &T) -> f32 {
-    MathUtils::distance_float(
+    MathUtils::distance(
         pattern1.getX(),
         pattern1.getY(),
         pattern2.getX(),

@@ -731,11 +731,11 @@ impl<'a> Detector<'_> {
     }
 
     fn distance_points(a: &Point, b: &Point) -> f32 {
-        MathUtils::distance_int(a.get_x(), a.get_y(), b.get_x(), b.get_y())
+        MathUtils::distance(a.get_x(), a.get_y(), b.get_x(), b.get_y())
     }
 
     fn distance(a: &RXingResultPoint, b: &RXingResultPoint) -> f32 {
-        MathUtils::distance_float(a.getX(), a.getY(), b.getX(), b.getY())
+        MathUtils::distance(a.getX(), a.getY(), b.getX(), b.getY())
     }
 
     fn get_dimension(&self) -> u32 {

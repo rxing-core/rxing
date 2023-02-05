@@ -410,7 +410,7 @@ impl<'a> Detector<'_> {
             // color, advance to next state or end if we are in state 2 already
             if (state == 1) == self.image.get(realX as u32, realY as u32) {
                 if state == 2 {
-                    return MathUtils::distance_int(x, y, fromX as i32, fromY as i32);
+                    return MathUtils::distance(x, y, fromX as i32, fromY as i32);
                 }
                 state += 1;
             }
@@ -430,12 +430,7 @@ impl<'a> Detector<'_> {
         // is "white" so this last point at (toX+xStep,toY) is the right ending. This is really a
         // small approximation; (toX+xStep,toY+yStep) might be really correct. Ignore this.
         if state == 2 {
-            return MathUtils::distance_int(
-                toX as i32 + xstep,
-                toY as i32,
-                fromX as i32,
-                fromY as i32,
-            );
+            return MathUtils::distance(toX as i32 + xstep, toY as i32, fromX as i32, fromY as i32);
         }
         // else we didn't find even black-white-black; no estimate is really possible
         f32::NAN

@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-//package com.google.zxing.common.detector;
-use std::{f32, i32};
+use std::{
+    f32, i32,
+    ops::{Add, Mul, Sub},
+};
 
 /**
  * General math-related and numeric utility functions.
@@ -32,32 +34,43 @@ use std::{f32, i32};
  */
 #[inline(always)]
 pub fn round(d: f32) -> i32 {
-    (d + (if d < 0.0f32 { -0.5f32 } else { 0.5f32 })) as i32
+    // (d + (if d < 0.0f32 { -0.5f32 } else { 0.5f32 })) as i32
+    d.round() as i32
 }
 
-/**
- * @param aX point A x coordinate
- * @param aY point A y coordinate
- * @param bX point B x coordinate
- * @param bY point B y coordinate
- * @return Euclidean distance between points A and B
- */
-#[inline(always)]
-pub fn distance_float(aX: f32, aY: f32, bX: f32, bY: f32) -> f32 {
-    let xDiff: f64 = (aX - bX).into();
-    let yDiff: f64 = (aY - bY).into();
-    (xDiff * xDiff + yDiff * yDiff).sqrt() as f32
-}
+// /**
+//  * @param aX point A x coordinate
+//  * @param aY point A y coordinate
+//  * @param bX point B x coordinate
+//  * @param bY point B y coordinate
+//  * @return Euclidean distance between points A and B
+//  */
+// #[inline(always)]
+// pub fn distance_float(aX: f32, aY: f32, bX: f32, bY: f32) -> f32 {
+//     let xDiff: f64 = (aX - bX).into();
+//     let yDiff: f64 = (aY - bY).into();
+//     (xDiff * xDiff + yDiff * yDiff).sqrt() as f32
+// }
 
-/**
- * @param aX point A x coordinate
- * @param aY point A y coordinate
- * @param bX point B x coordinate
- * @param bY point B y coordinate
- * @return Euclidean distance between points A and B
- */
+// /**
+//  * @param aX point A x coordinate
+//  * @param aY point A y coordinate
+//  * @param bX point B x coordinate
+//  * @param bY point B y coordinate
+//  * @return Euclidean distance between points A and B
+//  */
+// #[inline(always)]
+// pub fn distance_int(aX: i32, aY: i32, bX: i32, bY: i32) -> f32 {
+//     let xDiff: f64 = (aX - bX).into();
+//     let yDiff: f64 = (aY - bY).into();
+//     (xDiff * xDiff + yDiff * yDiff).sqrt() as f32
+// }
+
 #[inline(always)]
-pub fn distance_int(aX: i32, aY: i32, bX: i32, bY: i32) -> f32 {
+pub fn distance<T>(aX: T, aY: T, bX: T, bY: T) -> f32
+where
+    T: Sub<T, Output = T> + Into<f64>,
+{
     let xDiff: f64 = (aX - bX).into();
     let yDiff: f64 = (aY - bY).into();
     (xDiff * xDiff + yDiff * yDiff).sqrt() as f32
@@ -68,13 +81,11 @@ pub fn distance_int(aX: i32, aY: i32, bX: i32, bY: i32) -> f32 {
  * @return sum of values in array
  */
 #[inline(always)]
-pub fn sum(array: &[i32]) -> i32 {
+pub fn sum<'a, T>(array: &'a [T]) -> T
+where
+    T: Add + std::iter::Sum<&'a T>,
+{
     array.iter().sum()
-    // let mut count = 0;
-    // for a in array {
-    //     count += a;
-    // }
-    // count
 }
 
 #[cfg(test)]
@@ -112,15 +123,12 @@ mod tests {
     fn testDistance() {
         assert_eq!(
             (8.0f32).sqrt(),
-            MathUtils::distance_float(1.0f32, 2.0f32, 3.0f32, 4.0f32)
+            MathUtils::distance(1.0f32, 2.0f32, 3.0f32, 4.0f32)
         );
-        assert_eq!(
-            0.0f32,
-            MathUtils::distance_float(1.0f32, 2.0f32, 1.0f32, 2.0f32)
-        );
+        assert_eq!(0.0f32, MathUtils::distance(1.0f32, 2.0f32, 1.0f32, 2.0f32));
 
-        assert_eq!((8.0f32).sqrt(), MathUtils::distance_int(1, 2, 3, 4));
-        assert_eq!(0.0f32, MathUtils::distance_int(1, 2, 1, 2));
+        assert_eq!((8.0f32).sqrt(), MathUtils::distance(1, 2, 3, 4));
+        assert_eq!(0.0f32, MathUtils::distance(1, 2, 1, 2));
     }
 
     #[test]
@@ -129,5 +137,7 @@ mod tests {
         assert_eq!(1, MathUtils::sum(&[1]));
         assert_eq!(4, MathUtils::sum(&[1, 3]));
         assert_eq!(0, MathUtils::sum(&[-1, 1]));
+        assert_eq!(0.0, MathUtils::sum(&[-1.0, 1.0]));
+        assert_eq!(4.0, MathUtils::sum(&[1.0, 3.0]));
     }
 }

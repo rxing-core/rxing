@@ -293,7 +293,7 @@ impl<'a> WhiteRectangleDetector<'_> {
         b_x: f32,
         b_y: f32,
     ) -> Option<RXingResultPoint> {
-        let dist = MathUtils::round(MathUtils::distance_float(a_x, a_y, b_x, b_y));
+        let dist = MathUtils::round(MathUtils::distance(a_x, a_y, b_x, b_y));
         let x_step: f32 = (b_x - a_x) / dist as f32;
         let y_step: f32 = (b_y - a_y) / dist as f32;
 
