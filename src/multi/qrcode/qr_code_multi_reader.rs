@@ -58,18 +58,14 @@ impl MultipleBarcodeReader for QRCodeMultiReader {
                     hints,
                 )?;
                 let mut points = detectorRXingResult.getPoints().to_vec();
+
                 // If the code was mirrored: swap the bottom-left and the top-right points.
                 if let Some(other) = decoderRXingResult.getOther() {
-                    if other.is::<QRCodeDecoderMetaData>() {
-                        (other
-                            .downcast::<QRCodeDecoderMetaData>()
-                            .expect("must downcast to QRCodeDecoderMetaData"))
-                        .applyMirroredCorrection(&mut points);
+                    if let Some(oth) = other.downcast_ref::<QRCodeDecoderMetaData>() {
+                        oth.applyMirroredCorrection(&mut points);
                     }
                 }
-                // if (decoderRXingResult.getOther() instanceof QRCodeDecoderMetaData) {
-                //   ((QRCodeDecoderMetaData) decoderRXingResult.getOther()).applyMirroredCorrection(points);
-                // }
+
                 let mut result = RXingResult::new(
                     decoderRXingResult.getText(),
                     decoderRXingResult.getRawBytes().clone(),
@@ -77,14 +73,14 @@ impl MultipleBarcodeReader for QRCodeMultiReader {
                     BarcodeFormat::QR_CODE,
                 );
                 let byteSegments = decoderRXingResult.getByteSegments();
-                // if (byteSegments != null) {
+
                 result.putMetadata(
                     RXingResultMetadataType::BYTE_SEGMENTS,
                     RXingResultMetadataValue::ByteSegments(byteSegments.clone()),
                 );
-                // }
+
                 let ecLevel = decoderRXingResult.getECLevel();
-                // if (ecLevel != null) {
+
                 result.putMetadata(
                     RXingResultMetadataType::ERROR_CORRECTION_LEVEL,
                     RXingResultMetadataValue::ErrorCorrectionLevel(ecLevel.to_owned()),
@@ -115,7 +111,7 @@ impl MultipleBarcodeReader for QRCodeMultiReader {
                 // ignore and continue
                 continue;
             } else {
-                return Err(output.err().unwrap());
+                return Err(output.err().unwrap_or(Exceptions::NotFoundException(None)));
             }
         }
 

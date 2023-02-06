@@ -46,24 +46,21 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
         let halfWidth = width / 2;
         let halfHeight = height / 2;
 
-        // try {
         let attempt = self
             .0
             .decode_with_hints(&mut image.crop(0, 0, halfWidth, halfHeight), hints);
         // No need to call makeAbsolute as results will be relative to original top left here
+        // This is a match because only NotFoundExceptions should be ignored
         match attempt {
-            // Ok() => return attempt,
             Err(Exceptions::NotFoundException(_)) => {}
             _ => return attempt,
         }
-        // } catch (NotFoundException re) {
-        // continue
-        // }
 
         // try {
         let result = self
             .0
             .decode_with_hints(&mut image.crop(halfWidth, 0, halfWidth, halfHeight), hints);
+        // This is a match because only NotFoundExceptions should be ignored
         match result {
             Ok(res) => {
                 let points = Self::makeAbsolute(res.getRXingResultPoints(), halfWidth as f32, 0.0);
@@ -72,15 +69,11 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
             Err(Exceptions::NotFoundException(_)) => {}
             _ => return result,
         }
-        // makeAbsolute(result.getRXingResultPoints(), halfWidth, 0);
-        // return result;
-        // } catch (NotFoundException re) {
-        // continue
-        // }
 
         let result = self
             .0
             .decode_with_hints(&mut image.crop(0, halfHeight, halfWidth, halfHeight), hints);
+        // This is a match because only NotFoundExceptions should be ignored
         match result {
             Ok(res) => {
                 let points = Self::makeAbsolute(res.getRXingResultPoints(), 0.0, halfHeight as f32);
@@ -89,18 +82,12 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
             Err(Exceptions::NotFoundException(_)) => {}
             _ => return result,
         }
-        // try {
-        //   RXingResult result = delegate.decode(image.crop(0, halfHeight, halfWidth, halfHeight), hints);
-        //   makeAbsolute(result.getRXingResultPoints(), 0, halfHeight);
-        //   return result;
-        // } catch (NotFoundException re) {
-        //   // continue
-        // }
 
         let result = self.0.decode_with_hints(
             &mut image.crop(halfWidth, halfHeight, halfWidth, halfHeight),
             hints,
         );
+        // This is a match because only NotFoundExceptions should be ignored
         match result {
             Ok(res) => {
                 let points = Self::makeAbsolute(
@@ -113,14 +100,6 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
             Err(Exceptions::NotFoundException(_)) => {}
             _ => return result,
         }
-
-        // try {
-        //   RXingResult result = delegate.decode(image.crop(halfWidth, halfHeight, halfWidth, halfHeight), hints);
-        //   makeAbsolute(result.getRXingResultPoints(), halfWidth, halfHeight);
-        //   return result;
-        // } catch (NotFoundException re) {
-        //   // continue
-        // }
 
         let quarterWidth = halfWidth / 2;
         let quarterHeight = halfHeight / 2;
@@ -150,19 +129,22 @@ impl<T: Reader> ByQuadrantReader<T> {
         leftOffset: f32,
         topOffset: f32,
     ) -> Vec<RXingResultPoint> {
-        let mut result = Vec::new();
-        if !points.is_empty() {
-            for relative in points {
-                // for (int i = 0; i < points.length; i++) {
-                // let relative = points[i];
-                // if relative != null {
-                result.push(RXingResultPoint::new(
-                    relative.getX() + leftOffset,
-                    relative.getY() + topOffset,
-                ));
-                // }
-            }
-        }
-        result
+        // let mut result = Vec::new();
+        // if !points.is_empty() {
+
+        //     // for relative in points {
+        //     //     result.push(RXingResultPoint::new(
+        //     //         relative.getX() + leftOffset,
+        //     //         relative.getY() + topOffset,
+        //     //     ));
+        //     // }
+        // }
+        // result
+        points
+            .iter()
+            .map(|relative| {
+                RXingResultPoint::new(relative.getX() + leftOffset, relative.getY() + topOffset)
+            })
+            .collect()
     }
 }
