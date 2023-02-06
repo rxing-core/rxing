@@ -50,7 +50,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let note = ResultParser::matchSinglePrefixedField("MEMORY:", &rawText, '\r', false)
         .unwrap_or_default();
     let address = ResultParser::matchSinglePrefixedField("ADD:", &rawText, '\r', true);
-    let addresses = address.map_or_else(|| Vec::new(), |add| vec![add]);
+    let addresses = address.map_or_else(Vec::new, |add| vec![add]);
 
     if let Ok(new_data) = AddressBookParsedRXingResult::with_details(
         ResultParser::maybeWrap(name).unwrap_or_default(),

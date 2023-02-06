@@ -61,16 +61,13 @@ pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientR
     // is 'true' or 'false':
     let mut hidden = false;
     let mut phase2Method = ResultParser::matchSinglePrefixedField("PH2:", &rawText, ';', false);
-    let _hValue = if let Some(hv) =
-        ResultParser::matchSinglePrefixedField("H:", &rawText, ';', false)
-    {
+    if let Some(hv) = ResultParser::matchSinglePrefixedField("H:", &rawText, ';', false) {
         // If PH2 was specified separately, or if the value is clearly boolean, interpret it as 'hidden'
         if phase2Method.is_some() || "true" == hv.to_lowercase() || "false" == hv.to_lowercase() {
             hidden = hv.parse().ok()?;
         } else {
             phase2Method = Some(hv);
         }
-        
     };
 
     let identity =

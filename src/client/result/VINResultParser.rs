@@ -39,15 +39,15 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
 
     let raw_text_res = result.getText().trim();
     let raw_text = IOQ_MATCHER.replace_all(raw_text_res, "").to_string();
-    
+
     AZ09_MATCHER.find(&raw_text)?;
-    
+
     let check_cs = check_checksum(&raw_text).unwrap_or(false);
     if !check_cs {
         return None;
     }
     let wmi = &raw_text[..3];
-    
+
     let country_code = country_code(wmi).unwrap_or("");
     let model_year = model_year(raw_text.chars().nth(9).unwrap_or('_')).ok();
 
@@ -70,9 +70,17 @@ const AZ09: &str = "[A-Z0-9]{17}";
 fn check_checksum(vin: &str) -> Result<bool, Exceptions> {
     let mut sum = 0;
     for i in 0..vin.len() {
-        sum += vin_position_weight(i + 1)? as u32 * vin_char_value(vin.chars().nth(i).ok_or(Exceptions::IllegalArgumentException(None))?)?;
+        sum += vin_position_weight(i + 1)? as u32
+            * vin_char_value(
+                vin.chars()
+                    .nth(i)
+                    .ok_or(Exceptions::IllegalArgumentException(None))?,
+            )?;
     }
-    let check_to_char = vin.chars().nth(8).ok_or(Exceptions::IllegalArgumentException(None))?;
+    let check_to_char = vin
+        .chars()
+        .nth(8)
+        .ok_or(Exceptions::IllegalArgumentException(None))?;
     let expected_check_char = check_char((sum % 11) as u8)?;
     Ok(check_to_char == expected_check_char)
 }

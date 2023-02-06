@@ -59,7 +59,7 @@ impl AztecDetectorRXingResult {
     ) -> Self {
         Self {
             bits,
-            points: points,
+            points,
             compact,
             nbDatablocks,
             nbLayers,

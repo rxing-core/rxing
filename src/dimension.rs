@@ -18,8 +18,6 @@
 
 use std::fmt;
 
-use crate::Exceptions;
-
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
