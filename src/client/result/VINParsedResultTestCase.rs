@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 
-// package com.google.zxing.client.result;
-
-// import com.google.zxing.BarcodeFormat;
-// import com.google.zxing.RXingResult;
-// import org.junit.Assert;
-// import org.junit.Test;
-
 /**
  * Tests {@link VINParsedRXingResult}.
  */

@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-// package com.google.zxing.client.result;
-
-// import com.google.zxing.RXingResult;
-
 use crate::client::result::{ParsedClientResult, WifiParsedRXingResult};
 
 use super::ResultParser;
 
-// @SuppressWarnings("checkstyle:lineLength")
 /**
  * <p>Parses a WIFI configuration string. Strings will be of the form:</p>
  *
@@ -40,9 +35,6 @@ use super::ResultParser;
  * @author Sean Owen
  * @author Steffen Kieß
  */
-// pub struct WifiRXingResultParser  {}
-
-// impl RXingResultParser for WifiRXingResultParser {
 pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientResult> {
     const WIFI_TEST: &str = "WIFI:";
 
@@ -53,17 +45,16 @@ pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientR
     let rawText = rawText_unstripped[WIFI_TEST.len()..].to_owned();
     let ssid =
         ResultParser::matchSinglePrefixedField("S:", &rawText, ';', false).unwrap_or_default();
+
     if ssid.is_empty() {
         return None;
     }
+
     let pass =
         ResultParser::matchSinglePrefixedField("P:", &rawText, ';', false).unwrap_or_default();
-    let n_type =
-        if let Some(nt) = ResultParser::matchSinglePrefixedField("T:", &rawText, ';', false) {
-            nt
-        } else {
-            String::from("nopass")
-        };
+
+    let n_type = ResultParser::matchSinglePrefixedField("T:", &rawText, ';', false)
+        .unwrap_or(String::from("nopass"));
 
     // Unfortunately, in the past, H: was not just used for boolean 'hidden', but 'phase 2 method'.
     // To try to retain backwards compatibility, we set one or the other based on whether the string
@@ -75,13 +66,11 @@ pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientR
     {
         // If PH2 was specified separately, or if the value is clearly boolean, interpret it as 'hidden'
         if phase2Method.is_some() || "true" == hv.to_lowercase() || "false" == hv.to_lowercase() {
-            hidden = hv.parse().unwrap(); //Boolean.parseBoolean(hValue);
+            hidden = hv.parse().ok()?;
         } else {
-            phase2Method = Some(hv.clone());
+            phase2Method = Some(hv);
         }
-        hv
-    } else {
-        String::default()
+        
     };
 
     let identity =
