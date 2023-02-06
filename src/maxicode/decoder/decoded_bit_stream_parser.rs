@@ -162,7 +162,9 @@ fn getPostCode3(bytes: &[u8]) -> String {
     let mut graphemes = SETS[0].graphemes(true);
     for p3bytes in &POSTCODE_3_BYTES {
         // for (byte[] p3bytes : POSTCODE_3_BYTES) {
-        sb.push_str(graphemes.nth(getInt(bytes, p3bytes) as usize).unwrap());
+            if let Some(c) = graphemes.nth(getInt(bytes, p3bytes) as usize) {
+                sb.push_str(c);
+            }
     }
     sb
 }
@@ -178,7 +180,7 @@ fn getMessage(bytes: &[u8], start: u32, len: u32) -> String {
         // for i in start..(start+len) {
         // for (int i = start; i < start + len; i++) {
         let mut set_graphemes = SETS[set].graphemes(true);
-        let c = set_graphemes.nth(bytes[i as usize] as usize).unwrap();
+        let Some(c) = set_graphemes.nth(bytes[i as usize] as usize) else { break; };
         match c {
             LATCHA => {
                 set = 0;
@@ -234,11 +236,6 @@ fn getMessage(bytes: &[u8], start: u32, len: u32) -> String {
     }
 
     String::from(sb.trim_end_matches(PAD))
-    // while sb.len() > 0 && sb.chars().nth(sb.len() - 1).unwrap() == PAD {
-    //   sb.setLength(sb.length() - 1);
-    // }
-
-    // sb
 }
 
 fn subtract_two_single_char_strings(str1: &str, str2: &str) -> usize {

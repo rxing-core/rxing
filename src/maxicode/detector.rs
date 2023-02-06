@@ -155,8 +155,8 @@ impl Circle<'_> {
             *length_set = (length, rotation, points);
         }
         lengths.sort_by_key(|e| e.0);
-        let major_axis = lengths.last().unwrap();
-        let minor_axis = lengths.first().unwrap();
+        let Some(major_axis) = lengths.last() else {return (false, (0,0),0,0,0)};
+        let Some(minor_axis) = lengths.first() else {return (false, (0,0),0,0,0)};
 
         // // find foci
         let linear_eccentricity = ((major_axis.0 / 2).pow(2) - (minor_axis.0 / 2).pow(2)).sqrt();
@@ -1045,12 +1045,12 @@ fn compare_circle(a: &Circle, b: &Circle) -> std::cmp::Ordering {
     let a_var = a.calculate_circle_variance();
     let b_var = b.calculate_circle_variance();
 
-    a_var.partial_cmp(&b_var).unwrap()
+    a_var.partial_cmp(&b_var).unwrap_or(std::cmp::Ordering::Equal)
 }
 
 /// Read appropriate bits from a bitmatrix for the maxicode decoder
 pub fn read_bits(image: &BitMatrix) -> Result<BitMatrix, Exceptions> {
-    let enclosingRectangle = image.getEnclosingRectangle().unwrap();
+    let enclosingRectangle = image.getEnclosingRectangle().ok_or(Exceptions::NotFoundException(None))?;
 
     let left = enclosingRectangle[0];
     let top = enclosingRectangle[1];
