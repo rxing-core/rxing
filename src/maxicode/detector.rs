@@ -1045,12 +1045,16 @@ fn compare_circle(a: &Circle, b: &Circle) -> std::cmp::Ordering {
     let a_var = a.calculate_circle_variance();
     let b_var = b.calculate_circle_variance();
 
-    a_var.partial_cmp(&b_var).unwrap_or(std::cmp::Ordering::Equal)
+    a_var
+        .partial_cmp(&b_var)
+        .unwrap_or(std::cmp::Ordering::Equal)
 }
 
 /// Read appropriate bits from a bitmatrix for the maxicode decoder
 pub fn read_bits(image: &BitMatrix) -> Result<BitMatrix, Exceptions> {
-    let enclosingRectangle = image.getEnclosingRectangle().ok_or(Exceptions::NotFoundException(None))?;
+    let enclosingRectangle = image
+        .getEnclosingRectangle()
+        .ok_or(Exceptions::NotFoundException(None))?;
 
     let left = enclosingRectangle[0];
     let top = enclosingRectangle[1];

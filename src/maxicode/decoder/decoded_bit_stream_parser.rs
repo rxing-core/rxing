@@ -162,9 +162,9 @@ fn getPostCode3(bytes: &[u8]) -> String {
     let mut graphemes = SETS[0].graphemes(true);
     for p3bytes in &POSTCODE_3_BYTES {
         // for (byte[] p3bytes : POSTCODE_3_BYTES) {
-            if let Some(c) = graphemes.nth(getInt(bytes, p3bytes) as usize) {
-                sb.push_str(c);
-            }
+        if let Some(c) = graphemes.nth(getInt(bytes, p3bytes) as usize) {
+            sb.push_str(c);
+        }
     }
     sb
 }
