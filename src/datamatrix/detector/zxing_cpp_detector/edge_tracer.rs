@@ -272,7 +272,12 @@ impl<'a> EdgeTracer<'_> {
                     return Ok(false);
                 }
                 if !self.updateDirectionFromOrigin(
-                    &(self.p - line.project(&self.p) + **line.points().first().as_ref().ok_or(Exceptions::IndexOutOfBoundsException(None))?),
+                    &(self.p - line.project(&self.p)
+                        + **line
+                            .points()
+                            .first()
+                            .as_ref()
+                            .ok_or(Exceptions::IndexOutOfBoundsException(None))?),
                 ) {
                     return Ok(false);
                 }
@@ -296,10 +301,24 @@ impl<'a> EdgeTracer<'_> {
         let mut gaps = 0;
         loop {
             // detect an endless loop (lack of progress). if encountered, please report.
-            if !(line.points().is_empty() || &&self.p != line.points().last().as_ref().ok_or(Exceptions::IndexOutOfBoundsException(None))?) {
+            if !(line.points().is_empty()
+                || &&self.p
+                    != line
+                        .points()
+                        .last()
+                        .as_ref()
+                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?)
+            {
                 return Err(Exceptions::IllegalStateException(None));
             }
-            if !line.points().is_empty() && &&self.p == line.points().last().as_ref().ok_or(Exceptions::IndexOutOfBoundsException(None))? {
+            if !line.points().is_empty()
+                && &&self.p
+                    == line
+                        .points()
+                        .last()
+                        .as_ref()
+                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+            {
                 return Ok(false);
             }
             // log(p);
@@ -340,7 +359,12 @@ impl<'a> EdgeTracer<'_> {
                 // to prevent a dead lock. see #245.png
                 while RXingResultPoint::distance(
                     np,
-                    line.project(line.points().last().as_ref().ok_or(Exceptions::IndexOutOfBoundsException(None))?),
+                    line.project(
+                        line.points()
+                            .last()
+                            .as_ref()
+                            .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                    ),
                 ) < 1.0
                 {
                     np += self.d;
@@ -352,7 +376,11 @@ impl<'a> EdgeTracer<'_> {
                 } else {
                     RXingResultPoint::dot(
                         RXingResultPoint::mainDirection(self.d),
-                        self.p - line.points().last().ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                        self.p
+                            - line
+                                .points()
+                                .last()
+                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
                     )
                 };
                 line.add(&self.p)?;
@@ -364,7 +392,11 @@ impl<'a> EdgeTracer<'_> {
                             return Ok(false);
                         }
                         if !self.updateDirectionFromOrigin(
-                            &(self.p - line.project(&self.p) + *line.points().first().ok_or(Exceptions::IndexOutOfBoundsException(None))?),
+                            &(self.p - line.project(&self.p)
+                                + *line
+                                    .points()
+                                    .first()
+                                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?),
                         ) {
                             return Ok(false);
                         }

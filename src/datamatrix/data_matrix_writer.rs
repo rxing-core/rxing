@@ -172,12 +172,7 @@ impl Writer for DataMatrixWriter {
         placement.place()?;
 
         //4. step: low-level encoding
-        Self::encodeLowLevel(
-            &placement,
-            symbolInfo,
-            width as u32,
-            height as u32,
-        )
+        Self::encodeLowLevel(&placement, symbolInfo, width as u32, height as u32)
     }
 }
 

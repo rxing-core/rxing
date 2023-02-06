@@ -264,7 +264,14 @@ impl DMRegressionLine {
 
         // calculate the (expected average) distance of two adjacent pixels
         let unitPixelDist = RXingResultPoint::length(RXingResultPoint::bresenhamDirection(
-            &(*self.points.last().ok_or(Exceptions::IndexOutOfBoundsException(None))? - *self.points.first().ok_or(Exceptions::IndexOutOfBoundsException(None))?),
+            &(*self
+                .points
+                .last()
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                - *self
+                    .points
+                    .first()
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?),
         )) as f64;
 
         // calculate the width of 2 modules (first black pixel to first black pixel)
@@ -283,8 +290,17 @@ impl DMRegressionLine {
             }
         }
 
-        modSizes
-            .push(sumFront + self.distance(end, &self.project(self.points.last().ok_or(Exceptions::IndexOutOfBoundsException(None))?)) as f64);
+        modSizes.push(
+            sumFront
+                + self.distance(
+                    end,
+                    &self.project(
+                        self.points
+                            .last()
+                            .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                    ),
+                ) as f64,
+        );
         modSizes[0] = 0.0; // the first element is an invalid sumBack value, would be pop_front() if vector supported this
         let lineLength = self.distance(beg, end) as f64 - unitPixelDist;
         let mut meanModSize = Self::average(&modSizes, |_: f64| true);

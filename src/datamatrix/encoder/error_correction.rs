@@ -181,7 +181,12 @@ pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String, 
             let mut d = block;
             while d < symbolInfo.getDataCapacity() as usize {
                 // for (int d = block; d < symbolInfo.getDataCapacity(); d += blockCount) {
-                temp.push(codewords.chars().nth(d).ok_or(Exceptions::IndexOutOfBoundsException(None))?);
+                temp.push(
+                    codewords
+                        .chars()
+                        .nth(d)
+                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                );
 
                 d += blockCount;
             }
@@ -196,7 +201,10 @@ pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String, 
                     .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
                 sb.replace_range(
                     char_index..(replace_char.len_utf8()),
-                    &ecc.chars().nth(pos).ok_or(Exceptions::IndexOutOfBoundsException(None))?.to_string(),
+                    &ecc.chars()
+                        .nth(pos)
+                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                        .to_string(),
                 );
                 // sb.setCharAt(symbolInfo.getDataCapacity() + e, ecc.charAt(pos));
                 pos += 1;
@@ -232,7 +240,11 @@ fn createECCBlock(codewords: &str, numECWords: usize) -> Result<String, Exceptio
     // }
     for i in 0..codewords.chars().count() {
         // for (int i = 0; i < codewords.length(); i++) {
-        let m = ecc[numECWords - 1] as usize ^ codewords.chars().nth(i).ok_or(Exceptions::IndexOutOfBoundsException(None))? as usize;
+        let m = ecc[numECWords - 1] as usize
+            ^ codewords
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))? as usize;
         for k in (1..numECWords).rev() {
             // for (int k = numECWords - 1; k > 0; k--) {
             if m != 0 && poly[k] != 0 {
@@ -245,7 +257,8 @@ fn createECCBlock(codewords: &str, numECWords: usize) -> Result<String, Exceptio
             }
         }
         if m != 0 && poly[0] != 0 {
-            ecc[0] = char::from_u32(ALOG[(LOG[m] + LOG[poly[0] as usize]) as usize % 255]).ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+            ecc[0] = char::from_u32(ALOG[(LOG[m] + LOG[poly[0] as usize]) as usize % 255])
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
         } else {
             ecc[0] = 0 as char;
         }

@@ -74,13 +74,19 @@ impl EdifactEncoder {
             if count == 1 {
                 //Only an unlatch at the end
                 context.updateSymbolInfo();
-                let mut available = context.getSymbolInfo().ok_or(Exceptions::IllegalStateException(None))?.getDataCapacity()
+                let mut available = context
+                    .getSymbolInfo()
+                    .ok_or(Exceptions::IllegalStateException(None))?
+                    .getDataCapacity()
                     - context.getCodewordCount() as u32;
                 let remaining = context.getRemainingCharacters();
                 // The following two lines are a hack inspired by the 'fix' from https://sourceforge.net/p/barcode4j/svn/221/
                 if remaining > available {
                     context.updateSymbolInfoWithLength(context.getCodewordCount() + 1);
-                    available = context.getSymbolInfo().ok_or(Exceptions::IllegalStateException(None))?.getDataCapacity()
+                    available = context
+                        .getSymbolInfo()
+                        .ok_or(Exceptions::IllegalStateException(None))?
+                        .getDataCapacity()
                         - context.getCodewordCount() as u32;
                 }
                 if remaining <= available && available <= 2 {
@@ -100,7 +106,10 @@ impl EdifactEncoder {
 
             if restChars <= 2 {
                 context.updateSymbolInfoWithLength(context.getCodewordCount() + restChars);
-                let available = context.getSymbolInfo().ok_or(Exceptions::IllegalStateException(None))?.getDataCapacity()
+                let available = context
+                    .getSymbolInfo()
+                    .ok_or(Exceptions::IllegalStateException(None))?
+                    .getDataCapacity()
                     - context.getCodewordCount() as u32;
                 if available >= 3 {
                     restInAscii = false;
@@ -126,7 +135,7 @@ impl EdifactEncoder {
         res
     }
 
-    fn encodeChar(c: char, sb: &mut String) -> Result<(),Exceptions>{
+    fn encodeChar(c: char, sb: &mut String) -> Result<(), Exceptions> {
         if (' '..='?').contains(&c) {
             sb.push(c);
         } else if ('@'..='^').contains(&c) {
@@ -144,19 +153,28 @@ impl EdifactEncoder {
                 "StringBuilder must not be empty".to_owned(),
             )));
         }
-        let c1 = sb.chars().next().ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+        let c1 = sb
+            .chars()
+            .next()
+            .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
         let c2 = if len >= 2 {
-            sb.chars().nth(1).ok_or(Exceptions::IndexOutOfBoundsException(None))?
+            sb.chars()
+                .nth(1)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
         } else {
             0 as char
         };
         let c3 = if len >= 3 {
-            sb.chars().nth(2).ok_or(Exceptions::IndexOutOfBoundsException(None))?
+            sb.chars()
+                .nth(2)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
         } else {
             0 as char
         };
         let c4 = if len >= 4 {
-            sb.chars().nth(3).ok_or(Exceptions::IndexOutOfBoundsException(None))?
+            sb.chars()
+                .nth(3)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
         } else {
             0 as char
         };

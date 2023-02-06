@@ -51,10 +51,20 @@ impl Encoder for Base256Encoder {
         let lengthFieldSize = 1;
         let currentSize = context.getCodewordCount() + dataCount + lengthFieldSize;
         context.updateSymbolInfoWithLength(currentSize);
-        let mustPad = (context.getSymbolInfo().ok_or(Exceptions::IllegalStateException(None))?.getDataCapacity() - currentSize as u32) > 0;
+        let mustPad = (context
+            .getSymbolInfo()
+            .ok_or(Exceptions::IllegalStateException(None))?
+            .getDataCapacity()
+            - currentSize as u32)
+            > 0;
         if context.hasMoreCharacters() || mustPad {
             if dataCount <= 249 {
-                buffer.replace_range(0..1, &char::from_u32(dataCount as u32).ok_or(Exceptions::ParseException(None))?.to_string());
+                buffer.replace_range(
+                    0..1,
+                    &char::from_u32(dataCount as u32)
+                        .ok_or(Exceptions::ParseException(None))?
+                        .to_string(),
+                );
             } else if dataCount <= 1555 {
                 buffer.replace_range(
                     0..1,
@@ -62,8 +72,15 @@ impl Encoder for Base256Encoder {
                         .ok_or(Exceptions::ParseException(None))?
                         .to_string(),
                 );
-                let (ci_pos, _) = buffer.char_indices().nth(1).ok_or(Exceptions::IndexOutOfBoundsException(None))?;
-                buffer.insert(ci_pos, char::from_u32(dataCount as u32 % 250).ok_or(Exceptions::IndexOutOfBoundsException(None))?);
+                let (ci_pos, _) = buffer
+                    .char_indices()
+                    .nth(1)
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+                buffer.insert(
+                    ci_pos,
+                    char::from_u32(dataCount as u32 % 250)
+                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                );
             } else {
                 return Err(Exceptions::IllegalStateException(Some(format!(
                     "Message length not in valid ranges: {dataCount}"
@@ -73,10 +90,16 @@ impl Encoder for Base256Encoder {
         let c = buffer.chars().count();
         for i in 0..c {
             // for (int i = 0, c = buffer.length(); i < c; i++) {
-            context.writeCodeword(Self::randomize255State(
-                buffer.chars().nth(i).ok_or(Exceptions::IndexOutOfBoundsException(None))?,
-                context.getCodewordCount() as u32 + 1,
-            ).ok_or(Exceptions::ParseException(None))? as u8);
+            context.writeCodeword(
+                Self::randomize255State(
+                    buffer
+                        .chars()
+                        .nth(i)
+                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                    context.getCodewordCount() as u32 + 1,
+                )
+                .ok_or(Exceptions::ParseException(None))? as u8,
+            );
         }
         Ok(())
     }
