@@ -17,25 +17,15 @@
 /** Adapted from listings in ISO/IEC 24724 Appendix B and Appendix G. */
 
 pub fn getRSSvalue(widths: &[u32], maxWidth: u32, noNarrow: bool) -> u32 {
-    let mut n = 0;
-    // for width in widths {
-    // // for (int width : widths) {
-    //   n += width;
-    // }
-    n += widths.iter().sum::<u32>();
+    let mut n = widths.iter().sum::<u32>();
 
     let mut val = 0;
     let mut narrowMask = 0;
     let elements = widths.len() as u32;
     for bar in 0..(elements - 1) {
-        // for (int bar = 0; bar < elements - 1; bar++) {
-        // let elmWidth;
         let mut elmWidth = 1;
         narrowMask |= 1 << bar;
         while elmWidth < widths[bar as usize] {
-            // for (elmWidth = 1, narrowMask |= 1 << bar;
-            //      elmWidth < widths[bar];
-            //      elmWidth++, narrowMask &= ~(1 << bar)) {
             let mut subVal = combins(n - elmWidth - 1, elements - bar - 2);
             if noNarrow
                 && (narrowMask == 0)
@@ -47,8 +37,6 @@ pub fn getRSSvalue(widths: &[u32], maxWidth: u32, noNarrow: bool) -> u32 {
                 let mut lessVal = 0;
                 let mut mxwElement = n - elmWidth - (elements - bar - 2);
                 while mxwElement > maxWidth {
-                    //       for (int mxwElement = n - elmWidth - (elements - bar - 2);
-                    //  mxwElement > maxWidth; mxwElement--) {
                     lessVal += combins(n - elmWidth - mxwElement - 1, elements - bar - 3);
 
                     mxwElement -= 1;
@@ -83,7 +71,6 @@ fn combins(n: u32, r: u32) -> u32 {
     let mut j = 1;
     let mut i = n;
     while i > maxDenom {
-        // for (int i = n; i > maxDenom; i--) {
         val *= i;
         if j <= minDenom {
             val /= j;

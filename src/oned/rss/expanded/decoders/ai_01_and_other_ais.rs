@@ -36,7 +36,7 @@ pub struct AI01AndOtherAIs<'a>(&'a BitArray, GeneralAppIdDecoder<'a>);
 impl AI01decoder for AI01AndOtherAIs<'_> {}
 impl AbstractExpandedDecoder for AI01AndOtherAIs<'_> {
     fn parseInformation(&mut self) -> Result<String, crate::Exceptions> {
-        let mut buff = String::new(); //new StringBuilder();
+        let mut buff = String::new();
 
         buff.push_str("(01)");
         let initialGtinPosition = buff.chars().count();
@@ -59,9 +59,7 @@ impl<'a> AI01AndOtherAIs<'_> {
         AI01AndOtherAIs(information, GeneralAppIdDecoder::new(information))
     }
 
-    const HEADER_SIZE: usize = 1 + 1 + 2; //first bit encodes the linkage flag,
-                                          //the second one is the encodation method, and the other two are for the variable length
-                                          // AI01AndOtherAIs(BitArray information) {
-                                          //   super(information);
-                                          // }
+    //first bit encodes the linkage flag,
+    //the second one is the encodation method, and the other two are for the variable length
+    const HEADER_SIZE: usize = 1 + 1 + 2;
 }

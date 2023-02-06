@@ -190,6 +190,6 @@ fn assertCorrectImage2binary(fileName: &str, expected: &str) {
     //   fail(re.toString());
     //   return;
     // }
-    let binary = bit_array_builder::buildBitArray(&pairs);
+    let binary = bit_array_builder::buildBitArray(&pairs).unwrap();
     assert_eq!(expected, binary.to_string());
 }

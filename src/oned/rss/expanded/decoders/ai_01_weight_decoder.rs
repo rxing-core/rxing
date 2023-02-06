@@ -40,7 +40,6 @@ pub trait AI01weightDecoder: AI01decoder {
 
         let mut currentDivisor = 100000;
         for _i in 0..5 {
-            // for (int i = 0; i < 5; ++i) {
             if weightNumeric / currentDivisor == 0 {
                 buf.push('0');
             }

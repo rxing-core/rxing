@@ -161,7 +161,7 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String, Excep
         return Err(Exceptions::NotFoundException(None));
     }
 
-    let firstThreeDigits: String = rawInformation.chars().take(3).collect(); //rawInformation.substring(0, 3);
+    let firstThreeDigits: String = rawInformation.chars().take(3).collect();
     let threeDigitDataLength = THREE_DIGIT_DATA_LENGTH.get(&firstThreeDigits);
     if let Some(tddl) = threeDigitDataLength {
         if tddl.variable {
@@ -230,7 +230,7 @@ fn processVariableAI(
     variableFieldSize: usize,
     rawInformation: &str,
 ) -> Result<String, Exceptions> {
-    let ai: String = rawInformation.chars().take(aiSize).collect(); //rawInformation.substring(0, aiSize);
+    let ai: String = rawInformation.chars().take(aiSize).collect();
     let maxSize = rawInformation
         .chars()
         .count()
