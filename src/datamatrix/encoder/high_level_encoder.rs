@@ -121,7 +121,8 @@ fn randomize253State(codewordPosition: u32) -> String {
     } else {
         char::from_u32(tempVariable - 254)
     }
-    .expect("must become a char")
+    // .expect("must become a char")
+    .unwrap_or(char::default())
     .to_string()
     // return (char) (tempVariable <= 254 ? tempVariable : tempVariable - 254);
 }
@@ -219,21 +220,21 @@ pub fn encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
     let mut encodingMode = ASCII_ENCODATION; //Default mode
 
     if forceC40 {
-        c40Encoder.encodeMaximalC40(&mut context);
-        encodingMode = context.getNewEncoding().unwrap();
+        c40Encoder.encodeMaximalC40(&mut context)?;
+        encodingMode = context.getNewEncoding().ok_or(Exceptions::IllegalStateException(None))?;
         context.resetEncoderSignal();
     }
 
     while context.hasMoreCharacters() {
         encoders[encodingMode].encode(&mut context)?;
         if context.getNewEncoding().is_some() {
-            encodingMode = context.getNewEncoding().unwrap();
+            encodingMode = context.getNewEncoding().ok_or(Exceptions::IllegalStateException(None))?;
             context.resetEncoderSignal();
         }
     }
     let len = context.getCodewordCount();
     context.updateSymbolInfo();
-    let capacity = context.getSymbolInfo().unwrap().getDataCapacity();
+    let capacity = context.getSymbolInfo().ok_or(Exceptions::IllegalStateException(None))?.getDataCapacity();
     if len < capacity as usize
         && encodingMode != ASCII_ENCODATION
         && encodingMode != BASE256_ENCODATION
@@ -289,18 +290,22 @@ pub fn lookAheadTest(msg: &str, startpos: u32, currentMode: u32) -> usize {
         let endpos = (startpos + 3).min(msg.chars().count() as u32);
         for i in startpos..endpos {
             // for (int i = startpos; i < endpos; i++) {
-            if !isNativeX12(msg.chars().nth(i as usize).unwrap()) {
-                return ASCII_ENCODATION;
-            }
+                if let Some(c) = msg.chars().nth(i as usize){
+                    if !isNativeX12(c) {
+                        return ASCII_ENCODATION;
+                    }
+                }
         }
     } else if currentMode as usize == EDIFACT_ENCODATION && newMode == EDIFACT_ENCODATION {
         // let msg_graphemes = msg.graphemes(true);
         let endpos = (startpos + 4).min(msg.chars().count() as u32);
         for i in startpos..endpos {
             // for (int i = startpos; i < endpos; i++) {
-            if !isNativeEDIFACT(msg.chars().nth(i as usize).unwrap()) {
-                return ASCII_ENCODATION;
-            }
+                if let Some(c) = msg.chars().nth(i as usize) {
+                    if !isNativeEDIFACT(c) {
+                        return ASCII_ENCODATION;
+                    }
+                }
         }
     }
     newMode
@@ -352,15 +357,11 @@ fn lookAheadTestIntern(msg: &str, startpos: u32, currentMode: u32) -> usize {
             return C40_ENCODATION;
         }
 
-        // let c = msg
-        //     .graphemes(true)
-        //     .nth((startpos + charsProcessed) as usize)
-        //     .unwrap();
-        // let c = msg.charAt(startpos + charsProcessed);
-        let c = msg
-            .chars()
-            .nth((startpos + charsProcessed) as usize)
-            .unwrap();
+        let Some(c) = msg
+        .chars()
+        .nth((startpos + charsProcessed) as usize) else {
+            break 0;
+        };
         charsProcessed += 1;
 
         //step L
@@ -593,7 +594,7 @@ pub fn determineConsecutiveDigitCount(msg: &str, startpos: u32) -> u32 {
     let len = msg.chars().count(); //len();
     let mut idx = startpos;
     // let graphemes = msg.graphemes(true);
-    while (idx as usize) < len && isDigit(msg.chars().nth(idx as usize).unwrap()) {
+    while (idx as usize) < len && isDigit(msg.chars().nth(idx as usize).unwrap_or(char::default())) {
         idx += 1;
     }
     idx - startpos

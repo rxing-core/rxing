@@ -31,12 +31,12 @@ impl Encoder for ASCIIEncoder {
                     .getMessage()
                     .chars()
                     .nth(context.pos as usize)
-                    .unwrap(),
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
                 context
                     .getMessage()
                     .chars()
                     .nth(context.pos as usize + 1)
-                    .unwrap(),
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
             )? as u8);
             context.pos += 2;
         } else {

@@ -212,7 +212,7 @@ impl<'a> Detector<'_> {
     /**
      * Calculates the corner position of the white top right module.
      */
-    fn correctTopRight(&self, points: &[RXingResultPoint]) -> Option<RXingResultPoint> {
+    fn correctTopRight(&self, points: &[RXingResultPoint;4]) -> Option<RXingResultPoint> {
         // A..D
         // |  :
         // B--C

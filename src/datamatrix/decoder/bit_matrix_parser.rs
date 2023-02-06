@@ -85,8 +85,8 @@ impl BitMatrixParser {
         let mut row = 4;
         let mut column = 0;
 
-        let numRows = self.mappingBitMatrix.getHeight().try_into().unwrap();
-        let numColumns = self.mappingBitMatrix.getWidth().try_into().unwrap();
+        let numRows = self.mappingBitMatrix.getHeight() as isize;
+        let numColumns = self.mappingBitMatrix.getWidth() as isize;
 
         let mut corner1Read = false;
         let mut corner2Read = false;
@@ -497,11 +497,3 @@ impl BitMatrixParser {
         Ok(bitMatrixWithoutAlignment)
     }
 }
-
-// const IS_MOSTLY_BLACK_RATIO : f32= 0.5;
-
-// fn is_mostly_black(array: &[bool]) -> bool {
-//     let array_len = array.len() as f32;
-//     let true_count = array.iter().fold(0, |acc,b| acc + i32::from(*b)) as f32;
-//     (array_len / true_count ) > IS_MOSTLY_BLACK_RATIO
-// }

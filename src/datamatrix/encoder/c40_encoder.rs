@@ -64,7 +64,7 @@ impl C40Encoder {
             let curCodewordCount = context.getCodewordCount() + unwritten;
             context.updateSymbolInfoWithLength(curCodewordCount);
             let available =
-                context.getSymbolInfo().unwrap().getDataCapacity() as usize - curCodewordCount;
+                context.getSymbolInfo().ok_or(Exceptions::IllegalStateException(None))?.getDataCapacity() as usize - curCodewordCount;
 
             if !context.hasMoreCharacters() {
                 //Avoid having a single C40 value in the last triplet
@@ -107,7 +107,7 @@ impl C40Encoder {
         handleEOD(context, &mut buffer)
     }
 
-    pub fn encodeMaximalC40(&self, context: &mut EncoderContext) {
+    pub fn encodeMaximalC40(&self, context: &mut EncoderContext) -> Result<(), Exceptions>{
         self.encodeMaximal(context, &Self::encodeChar_c40, &Self::handleEOD_c40)
     }
 
@@ -116,7 +116,7 @@ impl C40Encoder {
         context: &mut EncoderContext,
         encodeChar: &dyn Fn(char, &mut String) -> u32,
         handleEOD: &dyn Fn(&mut EncoderContext, &mut String) -> Result<(), Exceptions>,
-    ) {
+    ) -> Result<(),Exceptions>{
         let mut buffer = String::new();
         let mut lastCharSize = 0;
         let mut backtrackStartPosition = context.pos;
@@ -136,7 +136,7 @@ impl C40Encoder {
             let curCodewordCount = context.getCodewordCount() + unwritten + 1; // +1 for the latch to C40
             context.updateSymbolInfoWithLength(curCodewordCount);
             let available =
-                context.getSymbolInfo().unwrap().getDataCapacity() as usize - curCodewordCount;
+                context.getSymbolInfo().ok_or(Exceptions::IllegalStateException(None))?.getDataCapacity() as usize - curCodewordCount;
             let rest = buffer.chars().count() % 3;
             if (rest == 2 && available != 2) || (rest == 1 && (lastCharSize > 3 || available != 1))
             {
@@ -150,6 +150,8 @@ impl C40Encoder {
         }
 
         handleEOD(context, &mut buffer).expect("eod");
+
+        Ok(())
     }
 
     fn backtrackOneCharacter(
@@ -170,10 +172,11 @@ impl C40Encoder {
         lastCharSize
     }
 
-    pub(super) fn writeNextTriplet(context: &mut EncoderContext, buffer: &mut String) {
-        context.writeCodewords(&Self::encodeToCodewords(buffer));
+    pub(super) fn writeNextTriplet(context: &mut EncoderContext, buffer: &mut String) -> Result<(),Exceptions> {
+        context.writeCodewords(&Self::encodeToCodewords(buffer).ok_or(Exceptions::FormatException(None))?);
         buffer.replace_range(0..3, "");
         // buffer.delete(0, 3);
+        Ok(())
     }
 
     /**
@@ -192,19 +195,19 @@ impl C40Encoder {
         let curCodewordCount = context.getCodewordCount() + unwritten;
         context.updateSymbolInfoWithLength(curCodewordCount);
         let available =
-            context.getSymbolInfo().unwrap().getDataCapacity() as usize - curCodewordCount;
+            context.getSymbolInfo().ok_or(Exceptions::IllegalStateException(None))?.getDataCapacity() as usize - curCodewordCount;
 
         if rest == 2 {
             buffer.push('\0'); //Shift 1
             while buffer.chars().count() >= 3 {
-                C40Encoder::writeNextTriplet(context, buffer);
+                C40Encoder::writeNextTriplet(context, buffer)?;
             }
             if context.hasMoreCharacters() {
                 context.writeCodeword(C40_UNLATCH);
             }
         } else if available == 1 && rest == 1 {
             while buffer.chars().count() >= 3 {
-                C40Encoder::writeNextTriplet(context, buffer);
+                C40Encoder::writeNextTriplet(context, buffer)?;
             }
             if context.hasMoreCharacters() {
                 context.writeCodeword(C40_UNLATCH);
@@ -213,7 +216,7 @@ impl C40Encoder {
             context.pos -= 1;
         } else if rest == 0 {
             while buffer.chars().count() >= 3 {
-                C40Encoder::writeNextTriplet(context, buffer);
+                C40Encoder::writeNextTriplet(context, buffer)?;
             }
             if available > 0 || context.hasMoreCharacters() {
                 context.writeCodeword(C40_UNLATCH);
@@ -273,16 +276,16 @@ impl C40Encoder {
         len
     }
 
-    fn encodeToCodewords(sb: &str) -> String {
-        let v = (1600 * sb.chars().next().unwrap() as u32)
-            + (40 * sb.chars().nth(1).unwrap() as u32)
-            + sb.chars().nth(2).unwrap() as u32
+    fn encodeToCodewords(sb: &str) -> Option<String> {
+        let v = (1600 * sb.chars().next()? as u32)
+            + (40 * sb.chars().nth(1)? as u32)
+            + sb.chars().nth(2)? as u32
             + 1;
         let cw1 = v / 256;
         let cw2 = v % 256;
-        [char::from_u32(cw1).unwrap(), char::from_u32(cw2).unwrap()]
+        Some([char::from_u32(cw1)?, char::from_u32(cw2)?]
             .into_iter()
-            .collect()
+            .collect())
         // return new String(new char[] {cw1, cw2});
     }
 }

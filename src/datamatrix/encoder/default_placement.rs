@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use crate::Exceptions;
+
 const EMPTY_BIT_VAL: u8 = 13;
 
 /**
@@ -71,7 +73,7 @@ impl DefaultPlacement {
         self.bits[row * self.numcols + col] == EMPTY_BIT_VAL
     }
 
-    pub fn place(&mut self) {
+    pub fn place(&mut self) -> Result<(),Exceptions> {
         let mut pos = 0;
         let mut row = 4_isize;
         let mut col = 0_isize;
@@ -79,19 +81,19 @@ impl DefaultPlacement {
         loop {
             // repeatedly first check for one of the special corner cases, then...
             if (row == self.numrows as isize) && (col == 0) {
-                self.corner1(pos);
+                self.corner1(pos)?;
                 pos += 1;
             }
             if (row == self.numrows as isize - 2) && (col == 0) && ((self.numcols % 4) != 0) {
-                self.corner2(pos);
+                self.corner2(pos)?;
                 pos += 1;
             }
             if (row == self.numrows as isize - 2) && (col == 0) && (self.numcols % 8 == 4) {
-                self.corner3(pos);
+                self.corner3(pos)?;
                 pos += 1;
             }
             if (row == self.numrows as isize + 4) && (col == 2) && ((self.numcols % 8) == 0) {
-                self.corner4(pos);
+                self.corner4(pos)?;
                 pos += 1;
             }
             // sweep upward diagonally, inserting successive characters...
@@ -100,7 +102,7 @@ impl DefaultPlacement {
                     && (col >= 0)
                     && self.noBit(col as usize, row as usize)
                 {
-                    self.utah(row, col, pos);
+                    self.utah(row, col, pos)?;
                     pos += 1;
                 }
                 row -= 2;
@@ -118,7 +120,7 @@ impl DefaultPlacement {
                     && (col < self.numcols as isize)
                     && self.noBit(col as usize, row as usize)
                 {
-                    self.utah(row, col, pos);
+                    self.utah(row, col, pos)?;
                     pos += 1;
                 }
                 row += 2;
@@ -142,9 +144,10 @@ impl DefaultPlacement {
             self.setBit(self.numcols - 1, self.numrows - 1, true);
             self.setBit(self.numcols - 2, self.numrows - 2, true);
         }
+        Ok(())
     }
 
-    fn module(&mut self, row: isize, col: isize, pos: usize, bit: u32) {
+    fn module(&mut self, row: isize, col: isize, pos: usize, bit: u32) -> Result<(),Exceptions> {
         let mut row = row;
         let mut col = col;
 
@@ -157,9 +160,11 @@ impl DefaultPlacement {
             row += 4 - ((self.numcols + 4) % 8) as isize;
         }
         // Note the conversion:
-        let mut v = self.codewords.chars().nth(pos).unwrap() as u32;
+        let mut v = self.codewords.chars().nth(pos).ok_or(Exceptions::IndexOutOfBoundsException(None))? as u32;
         v &= 1 << (8 - bit);
         self.setBit(col as usize, row as usize, v != 0);
+
+        Ok(())
     }
 
     /**
@@ -169,59 +174,64 @@ impl DefaultPlacement {
      * @param col the column
      * @param pos character position
      */
-    fn utah(&mut self, row: isize, col: isize, pos: usize) {
-        self.module(row - 2, col - 2, pos, 1);
-        self.module(row - 2, col - 1, pos, 2);
-        self.module(row - 1, col - 2, pos, 3);
-        self.module(row - 1, col - 1, pos, 4);
-        self.module(row - 1, col, pos, 5);
-        self.module(row, col - 2, pos, 6);
-        self.module(row, col - 1, pos, 7);
-        self.module(row, col, pos, 8);
+    fn utah(&mut self, row: isize, col: isize, pos: usize) -> Result<(),Exceptions> {
+        self.module(row - 2, col - 2, pos, 1)?;
+        self.module(row - 2, col - 1, pos, 2)?;
+        self.module(row - 1, col - 2, pos, 3)?;
+        self.module(row - 1, col - 1, pos, 4)?;
+        self.module(row - 1, col, pos, 5)?;
+        self.module(row, col - 2, pos, 6)?;
+        self.module(row, col - 1, pos, 7)?;
+        self.module(row, col, pos, 8)?;
+        Ok(())
     }
 
-    fn corner1(&mut self, pos: usize) {
-        self.module(self.numrows as isize - 1, 0, pos, 1);
-        self.module(self.numrows as isize - 1, 1, pos, 2);
-        self.module(self.numrows as isize - 1, 2, pos, 3);
-        self.module(0, self.numcols as isize - 2, pos, 4);
-        self.module(0, self.numcols as isize - 1, pos, 5);
-        self.module(1, self.numcols as isize - 1, pos, 6);
-        self.module(2, self.numcols as isize - 1, pos, 7);
-        self.module(3, self.numcols as isize - 1, pos, 8);
+    fn corner1(&mut self, pos: usize)-> Result<(),Exceptions> {
+        self.module(self.numrows as isize - 1, 0, pos, 1)?;
+        self.module(self.numrows as isize - 1, 1, pos, 2)?;
+        self.module(self.numrows as isize - 1, 2, pos, 3)?;
+        self.module(0, self.numcols as isize - 2, pos, 4)?;
+        self.module(0, self.numcols as isize - 1, pos, 5)?;
+        self.module(1, self.numcols as isize - 1, pos, 6)?;
+        self.module(2, self.numcols as isize - 1, pos, 7)?;
+        self.module(3, self.numcols as isize - 1, pos, 8)?;
+Ok(())
     }
 
-    fn corner2(&mut self, pos: usize) {
-        self.module(self.numrows as isize - 3, 0, pos, 1);
-        self.module(self.numrows as isize - 2, 0, pos, 2);
-        self.module(self.numrows as isize - 1, 0, pos, 3);
-        self.module(0, self.numcols as isize - 4, pos, 4);
-        self.module(0, self.numcols as isize - 3, pos, 5);
-        self.module(0, self.numcols as isize - 2, pos, 6);
-        self.module(0, self.numcols as isize - 1, pos, 7);
-        self.module(1, self.numcols as isize - 1, pos, 8);
+    fn corner2(&mut self, pos: usize) -> Result<(),Exceptions>{
+        self.module(self.numrows as isize - 3, 0, pos, 1)?;
+        self.module(self.numrows as isize - 2, 0, pos, 2)?;
+        self.module(self.numrows as isize - 1, 0, pos, 3)?;
+        self.module(0, self.numcols as isize - 4, pos, 4)?;
+        self.module(0, self.numcols as isize - 3, pos, 5)?;
+        self.module(0, self.numcols as isize - 2, pos, 6)?;
+        self.module(0, self.numcols as isize - 1, pos, 7)?;
+        self.module(1, self.numcols as isize - 1, pos, 8)?;
+        Ok(())
     }
 
-    fn corner3(&mut self, pos: usize) {
-        self.module(self.numrows as isize - 3, 0, pos, 1);
-        self.module(self.numrows as isize - 2, 0, pos, 2);
-        self.module(self.numrows as isize - 1, 0, pos, 3);
-        self.module(0, self.numcols as isize - 2, pos, 4);
-        self.module(0, self.numcols as isize - 1, pos, 5);
-        self.module(1, self.numcols as isize - 1, pos, 6);
-        self.module(2, self.numcols as isize - 1, pos, 7);
-        self.module(3, self.numcols as isize - 1, pos, 8);
+    fn corner3(&mut self, pos: usize) -> Result<(),Exceptions>{
+        self.module(self.numrows as isize - 3, 0, pos, 1)?;
+        self.module(self.numrows as isize - 2, 0, pos, 2)?;
+        self.module(self.numrows as isize - 1, 0, pos, 3)?;
+        self.module(0, self.numcols as isize - 2, pos, 4)?;
+        self.module(0, self.numcols as isize - 1, pos, 5)?;
+        self.module(1, self.numcols as isize - 1, pos, 6)?;
+        self.module(2, self.numcols as isize - 1, pos, 7)?;
+        self.module(3, self.numcols as isize - 1, pos, 8)?;
+        Ok(())
     }
 
-    fn corner4(&mut self, pos: usize) {
-        self.module(self.numrows as isize - 1, 0, pos, 1);
-        self.module(self.numrows as isize - 1, self.numcols as isize - 1, pos, 2);
-        self.module(0, self.numcols as isize - 3, pos, 3);
-        self.module(0, self.numcols as isize - 2, pos, 4);
-        self.module(0, self.numcols as isize - 1, pos, 5);
-        self.module(1, self.numcols as isize - 3, pos, 6);
-        self.module(1, self.numcols as isize - 2, pos, 7);
-        self.module(1, self.numcols as isize - 1, pos, 8);
+    fn corner4(&mut self, pos: usize)-> Result<(),Exceptions> {
+        self.module(self.numrows as isize - 1, 0, pos, 1)?;
+        self.module(self.numrows as isize - 1, self.numcols as isize - 1, pos, 2)?;
+        self.module(0, self.numcols as isize - 3, pos, 3)?;
+        self.module(0, self.numcols as isize - 2, pos, 4)?;
+        self.module(0, self.numcols as isize - 1, pos, 5)?;
+        self.module(1, self.numcols as isize - 3, pos, 6)?;
+        self.module(1, self.numcols as isize - 2, pos, 7)?;
+        self.module(1, self.numcols as isize - 1, pos, 8)?;
+        Ok(())
     }
 
     #[allow(dead_code)]
@@ -257,7 +267,7 @@ mod test_placement {
     fn testPlacement() {
         let codewords = unvisualize("66 74 78 66 74 78 129 56 35 102 192 96 226 100 156 1 107 221"); //"AIMAIM" encoded
         let mut placement = DefaultPlacement::new(codewords, 12, 12);
-        placement.place();
+        placement.place().expect("msg");
         let expected = [
             "011100001111",
             "001010101000",

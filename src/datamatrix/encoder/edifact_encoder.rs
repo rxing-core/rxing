@@ -29,7 +29,7 @@ impl Encoder for EdifactEncoder {
         let mut buffer = String::new();
         while context.hasMoreCharacters() {
             let c = context.getCurrentChar();
-            Self::encodeChar(c, &mut buffer);
+            Self::encodeChar(c, &mut buffer)?;
             context.pos += 1;
 
             let count = buffer.chars().count();
@@ -74,13 +74,13 @@ impl EdifactEncoder {
             if count == 1 {
                 //Only an unlatch at the end
                 context.updateSymbolInfo();
-                let mut available = context.getSymbolInfo().unwrap().getDataCapacity()
+                let mut available = context.getSymbolInfo().ok_or(Exceptions::IllegalStateException(None))?.getDataCapacity()
                     - context.getCodewordCount() as u32;
                 let remaining = context.getRemainingCharacters();
                 // The following two lines are a hack inspired by the 'fix' from https://sourceforge.net/p/barcode4j/svn/221/
                 if remaining > available {
                     context.updateSymbolInfoWithLength(context.getCodewordCount() + 1);
-                    available = context.getSymbolInfo().unwrap().getDataCapacity()
+                    available = context.getSymbolInfo().ok_or(Exceptions::IllegalStateException(None))?.getDataCapacity()
                         - context.getCodewordCount() as u32;
                 }
                 if remaining <= available && available <= 2 {
@@ -100,7 +100,7 @@ impl EdifactEncoder {
 
             if restChars <= 2 {
                 context.updateSymbolInfoWithLength(context.getCodewordCount() + restChars);
-                let available = context.getSymbolInfo().unwrap().getDataCapacity()
+                let available = context.getSymbolInfo().ok_or(Exceptions::IllegalStateException(None))?.getDataCapacity()
                     - context.getCodewordCount() as u32;
                 if available >= 3 {
                     restInAscii = false;
@@ -126,14 +126,15 @@ impl EdifactEncoder {
         res
     }
 
-    fn encodeChar(c: char, sb: &mut String) {
+    fn encodeChar(c: char, sb: &mut String) -> Result<(),Exceptions>{
         if (' '..='?').contains(&c) {
             sb.push(c);
         } else if ('@'..='^').contains(&c) {
             sb.push((c as u8 - 64) as char);
         } else {
-            high_level_encoder::illegalCharacter(c).expect("");
+            high_level_encoder::illegalCharacter(c)?
         }
+        Ok(())
     }
 
     fn encodeToCodewords(sb: &str) -> Result<String, Exceptions> {
@@ -143,19 +144,19 @@ impl EdifactEncoder {
                 "StringBuilder must not be empty".to_owned(),
             )));
         }
-        let c1 = sb.chars().next().unwrap();
+        let c1 = sb.chars().next().ok_or(Exceptions::IndexOutOfBoundsException(None))?;
         let c2 = if len >= 2 {
-            sb.chars().nth(1).unwrap()
+            sb.chars().nth(1).ok_or(Exceptions::IndexOutOfBoundsException(None))?
         } else {
             0 as char
         };
         let c3 = if len >= 3 {
-            sb.chars().nth(2).unwrap()
+            sb.chars().nth(2).ok_or(Exceptions::IndexOutOfBoundsException(None))?
         } else {
             0 as char
         };
         let c4 = if len >= 4 {
-            sb.chars().nth(3).unwrap()
+            sb.chars().nth(3).ok_or(Exceptions::IndexOutOfBoundsException(None))?
         } else {
             0 as char
         };
@@ -165,12 +166,12 @@ impl EdifactEncoder {
         let cw2 = (v >> 8) & 255;
         let cw3 = v & 255;
         let mut res = String::with_capacity(3);
-        res.push(char::from_u32(cw1).unwrap());
+        res.push(char::from_u32(cw1).ok_or(Exceptions::IndexOutOfBoundsException(None))?);
         if len >= 2 {
-            res.push(char::from_u32(cw2).unwrap());
+            res.push(char::from_u32(cw2).ok_or(Exceptions::IndexOutOfBoundsException(None))?);
         }
         if len >= 3 {
-            res.push(char::from_u32(cw3).unwrap());
+            res.push(char::from_u32(cw3).ok_or(Exceptions::IndexOutOfBoundsException(None))?);
         }
 
         Ok(res)
