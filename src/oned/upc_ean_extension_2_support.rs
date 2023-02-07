@@ -70,10 +70,8 @@ impl UPCEANExtension2Support {
         resultString: &mut String,
     ) -> Result<u32, Exceptions> {
         let mut counters = self.decodeMiddleCounters;
-        counters[0] = 0;
-        counters[1] = 0;
-        counters[2] = 0;
-        counters[3] = 0;
+        counters.fill(0);
+
         let end = row.getSize();
         let mut rowOffset = startRange[1] as usize;
 
@@ -88,11 +86,10 @@ impl UPCEANExtension2Support {
                 rowOffset,
                 &upc_ean_reader::L_AND_G_PATTERNS,
             )?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch as u32 % 10).unwrap());
-            // for counter in counters {
-            // // for (int counter : counters) {
-            //   rowOffset += counter;
-            // }
+            resultString.push(
+                char::from_u32('0' as u32 + bestMatch as u32 % 10)
+                    .ok_or(Exceptions::ParseException(None))?,
+            );
 
             rowOffset += counters.iter().sum::<u32>() as usize;
 
@@ -111,8 +108,11 @@ impl UPCEANExtension2Support {
             return Err(Exceptions::NotFoundException(None));
         }
 
-        if resultString.parse::<u32>().unwrap() % 4 != checkParity {
-            // if (Integer.parseInt(resultString.toString()) % 4 != checkParity) {
+        if resultString.parse::<u32>().map_err(|e| {
+            Exceptions::ParseException(Some(format!("could not parse {resultString}: {e}")))
+        })? % 4
+            != checkParity
+        {
             return Err(Exceptions::NotFoundException(None));
         }
 
@@ -134,7 +134,7 @@ impl UPCEANExtension2Support {
 
         result.insert(
             RXingResultMetadataType::ISSUE_NUMBER,
-            RXingResultMetadataValue::IssueNumber(raw.parse::<i32>().unwrap()),
+            RXingResultMetadataValue::IssueNumber(raw.parse::<i32>().ok()?),
         );
 
         Some(result)

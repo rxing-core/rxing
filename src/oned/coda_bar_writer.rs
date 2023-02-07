@@ -40,11 +40,15 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             format!("{DEFAULT_GUARD}{contents}{DEFAULT_GUARD}")
         } else {
             // Verify input and calculate decoded length.
-            let firstChar = contents.chars().next().unwrap().to_ascii_uppercase();
+            let firstChar = contents
+                .chars()
+                .next()
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .to_ascii_uppercase();
             let lastChar = contents
                 .chars()
                 .nth(contents.chars().count() - 1)
-                .unwrap()
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
                 .to_ascii_uppercase();
             let startsNormal = CodaBarReader::arrayContains(&START_END_CHARS, firstChar);
             let endsNormal = CodaBarReader::arrayContains(&START_END_CHARS, lastChar);
@@ -80,9 +84,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
 
         // The start character and the end character are decoded to 10 length each.
         let mut resultLength = 20;
-        //for i in 1..contents.chars().count() {
         for ch in contents[1..contents.chars().count() - 1].chars() {
-            // for (int i = 1; i < contents.length() - 1; i++) {
             if ch.is_ascii_digit() || ch == '-' || ch == '$' {
                 resultLength += 9;
             } else if CodaBarReader::arrayContains(
@@ -103,7 +105,11 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
         let mut position = 0;
         for index in 0..contents.chars().count() {
             // for (int index = 0; index < contents.length(); index++) {
-            let mut c = contents.chars().nth(index).unwrap().to_ascii_uppercase();
+            let mut c = contents
+                .chars()
+                .nth(index)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .to_ascii_uppercase();
             if index == 0 || index == contents.chars().count() - 1 {
                 // The start/end chars are not in the CodaBarReader.ALPHABET.
                 c = match c {
@@ -116,7 +122,6 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             }
             let mut code = 0;
             for i in 0..CodaBarReader::ALPHABET.len() {
-                // for (int i = 0; i < CodaBarReader::ALPHABET.length; i++) {
                 // Found any, because I checked above.
                 if c == CodaBarReader::ALPHABET[i] {
                     code = CodaBarReader::CHARACTER_ENCODINGS[i];

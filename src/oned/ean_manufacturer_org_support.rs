@@ -43,23 +43,15 @@ impl Default for EANManufacturerOrgSupport {
 impl EANManufacturerOrgSupport {
     pub fn lookupCountryIdentifier(&self, productCode: &str) -> Option<&str> {
         let prefix = productCode[0..3].parse::<u32>().expect("must parse prefix");
-        // let prefix = Integer.parseInt(productCode.substring(0, 3));
         let max = self.ranges.len();
         for (i, range) in self.ranges.iter().enumerate().take(max) {
-            // for i in 0..max {
-            // for (int i = 0; i < max; i++) {
-            // let range = self.ranges.get(i).expect("must have index i or fail");
             let start = range[0];
             if prefix < start {
                 return None;
             }
             let end = if range.len() == 1 { start } else { range[1] };
             if prefix <= end {
-                return Some(
-                    self.countryIdentifiers
-                        .get(i)
-                        .expect("must have index i or fail"), // .clone(),
-                );
+                return Some(self.countryIdentifiers.get(i)?);
             }
         }
 

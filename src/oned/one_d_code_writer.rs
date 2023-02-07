@@ -84,7 +84,6 @@ pub trait OneDimensionalCodeWriter: Writer {
         let mut outputX = leftPadding;
 
         while inputX < inputWidth {
-            // for (int inputX = 0, outputX = leftPadding; inputX < inputWidth; inputX++, outputX += multiple) {
             if code[inputX] {
                 output.setRegion(outputX as u32, 0, multiple as u32, outputHeight as u32)?;
             }
@@ -126,9 +125,7 @@ pub trait OneDimensionalCodeWriter: Writer {
         let mut numAdded = 0;
         let mut pos = pos;
         for len in pattern {
-            // for (int len : pattern) {
             for _j in 0..TryInto::<usize>::try_into(*len).unwrap_or_default() {
-                // for (int j = 0; j < len; j++) {
                 target[pos] = color;
                 pos += 1;
             }
@@ -186,17 +183,17 @@ impl Writer for L {
 
         let mut sidesMargin = self.getDefaultMargin();
         if let Some(EncodeHintValue::Margin(margin)) = hints.get(&EncodeHintType::MARGIN) {
-            sidesMargin = margin.parse::<u32>().unwrap();
+            sidesMargin = margin.parse::<u32>().map_err(|e| {
+                Exceptions::IllegalArgumentException(Some(format!("couldnt parse {margin}: {e}")))
+            })?;
         }
-        // if  hints.contains_key(&EncodeHintType::MARGIN) {
-        //   sidesMargin = Integer.parseInt(hints.get(EncodeHintType.MARGIN).toString());
-        // }
 
         let code = self.encode_oned_with_hints(contents, hints)?;
 
         Self::renderRXingResult(&code, width, height, sidesMargin)
     }
 }
+
 impl OneDimensionalCodeWriter for L {
     fn encode_oned(&self, _contents: &str) -> Result<Vec<bool>, Exceptions> {
         todo!()

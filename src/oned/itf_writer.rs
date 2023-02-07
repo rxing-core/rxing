@@ -48,12 +48,20 @@ impl OneDimensionalCodeWriter for ITFWriter {
         let mut pos = Self::appendPattern(&mut result, 0, &START_PATTERN, true) as usize;
         let mut i = 0;
         while i < length {
-            // for (int i = 0; i < length; i += 2) {
-            let one = contents.chars().nth(i).unwrap().to_digit(10).unwrap() as usize;
-            let two = contents.chars().nth(i + 1).unwrap().to_digit(10).unwrap() as usize;
-            let mut encoding = [0; 10]; //new int[10];
+            let one = contents
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .to_digit(10)
+                .ok_or(Exceptions::ParseException(None))? as usize;
+            let two = contents
+                .chars()
+                .nth(i + 1)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .to_digit(10)
+                .ok_or(Exceptions::ParseException(None))? as usize;
+            let mut encoding = [0; 10];
             for j in 0..5 {
-                // for (int j = 0; j < 5; j++) {
                 encoding[2 * j] = PATTERNS[one][j];
                 encoding[2 * j + 1] = PATTERNS[two][j];
             }

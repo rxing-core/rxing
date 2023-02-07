@@ -48,7 +48,7 @@ impl OneDimensionalCodeWriter for Code93Writer {
 
         for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            let Some(indexInString) = Code93Reader::ALPHABET_STRING.find(contents.chars().nth(i).unwrap()) else {panic!("alphabet")};
+            let Some(indexInString) = Code93Reader::ALPHABET_STRING.find(contents.chars().nth(i).ok_or(Exceptions::IndexOutOfBoundsException(None))?) else {panic!("alphabet")};
             pos += Self::appendPattern(
                 &mut result,
                 pos,
@@ -61,7 +61,12 @@ impl OneDimensionalCodeWriter for Code93Writer {
         pos += Self::appendPattern(&mut result, pos, Code93Reader::CHARACTER_ENCODINGS[check1]);
 
         //append the contents to reflect the first checksum added
-        contents.push(Code93Reader::ALPHABET_STRING.chars().nth(check1).unwrap());
+        contents.push(
+            Code93Reader::ALPHABET_STRING
+                .chars()
+                .nth(check1)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+        );
 
         let check2 = Self::computeChecksumIndex(&contents, 15);
         pos += Self::appendPattern(&mut result, pos, Code93Reader::CHARACTER_ENCODINGS[check2]);
@@ -110,7 +115,6 @@ impl Code93Writer {
 
     fn appendPattern(target: &mut [bool], pos: usize, a: u32) -> usize {
         for i in 0..9 {
-            // for (int i = 0; i < 9; i++) {
             let temp = a & (1 << (8 - i));
             target[pos + i] = temp != 0;
         }
@@ -118,6 +122,9 @@ impl Code93Writer {
         9
     }
 
+    /// Compute the checksum index
+    ///
+    /// Panics if out of bounds or character isn't in the alphabet
     fn computeChecksumIndex(contents: &str, maxWeight: u32) -> usize {
         let mut weight = 1_u32;
         let mut total = 0_u32;
@@ -148,19 +155,27 @@ impl Code93Writer {
             } else if character as u32 <= 26 {
                 // SOH - SUB: ($)A - ($)Z
                 extendedContent.push('a');
-                extendedContent.push(char::from_u32('A' as u32 + character as u32 - 1).unwrap());
+                extendedContent.push(
+                    char::from_u32('A' as u32 + character as u32 - 1)
+                        .ok_or(Exceptions::ParseException(None))?,
+                );
             } else if character as u32 <= 31 {
                 // ESC - US: (%)A - (%)E
                 extendedContent.push('b');
-                extendedContent.push(char::from_u32('A' as u32 + character as u32 - 27).unwrap());
+                extendedContent.push(
+                    char::from_u32('A' as u32 + character as u32 - 27)
+                        .ok_or(Exceptions::ParseException(None))?,
+                );
             } else if character == ' ' || character == '$' || character == '%' || character == '+' {
                 // space $ % +
                 extendedContent.push(character);
             } else if character <= ',' {
                 // ! " # & ' ( ) * ,: (/)A - (/)L
                 extendedContent.push('c');
-                extendedContent
-                    .push(char::from_u32('A' as u32 + character as u32 - '!' as u32).unwrap());
+                extendedContent.push(
+                    char::from_u32('A' as u32 + character as u32 - '!' as u32)
+                        .ok_or(Exceptions::ParseException(None))?,
+                );
             } else if character <= '9' {
                 extendedContent.push(character);
             } else if character == ':' {
@@ -169,8 +184,10 @@ impl Code93Writer {
             } else if character <= '?' {
                 // ; - ?: (%)F - (%)J
                 extendedContent.push('b');
-                extendedContent
-                    .push(char::from_u32('F' as u32 + character as u32 - ';' as u32).unwrap());
+                extendedContent.push(
+                    char::from_u32('F' as u32 + character as u32 - ';' as u32)
+                        .ok_or(Exceptions::ParseException(None))?,
+                );
             } else if character == '@' {
                 // @: (%)V
                 extendedContent.push_str("bV");
@@ -180,21 +197,27 @@ impl Code93Writer {
             } else if character <= '_' {
                 // [ - _: (%)K - (%)O
                 extendedContent.push('b');
-                extendedContent
-                    .push(char::from_u32('K' as u32 + character as u32 - '[' as u32).unwrap());
+                extendedContent.push(
+                    char::from_u32('K' as u32 + character as u32 - '[' as u32)
+                        .ok_or(Exceptions::ParseException(None))?,
+                );
             } else if character == '`' {
                 // `: (%)W
                 extendedContent.push_str("bW");
             } else if character <= 'z' {
                 // a - z: (*)A - (*)Z
                 extendedContent.push('d');
-                extendedContent
-                    .push(char::from_u32('A' as u32 + character as u32 - 'a' as u32).unwrap());
+                extendedContent.push(
+                    char::from_u32('A' as u32 + character as u32 - 'a' as u32)
+                        .ok_or(Exceptions::ParseException(None))?,
+                );
             } else if character as u32 <= 127 {
                 // { - DEL: (%)P - (%)T
                 extendedContent.push('b');
-                extendedContent
-                    .push(char::from_u32('P' as u32 + character as u32 - '{' as u32).unwrap());
+                extendedContent.push(
+                    char::from_u32('P' as u32 + character as u32 - '{' as u32)
+                        .ok_or(Exceptions::ParseException(None))?,
+                );
             } else {
                 return Err(Exceptions::IllegalArgumentException(Some(format!(
                     "Requested content contains a non-encodable character: '{character}'"

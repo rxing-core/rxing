@@ -40,24 +40,15 @@ impl OneDimensionalCodeWriter for EAN13Writer {
         match length {
             12 => {
                 // No check digit present, calculate it and add it
-
-                // try {
                 let check = reader.getStandardUPCEANChecksum(&contents)?;
-                // } catch (FormatException fe) {
-                // throw new IllegalArgumentException(fe);
-                // }
                 contents.push_str(&check.to_string());
             }
             13 => {
-                //try {
                 if !reader.checkStandardUPCEANChecksum(&contents)? {
                     return Err(Exceptions::IllegalArgumentException(Some(
                         "Contents do not pass checksum".to_owned(),
                     )));
                 }
-                //} catch (FormatException ignored) {
-                //return Err( Exceptions::IllegalArgumentException("Illegal contents".to_owned()));
-                //}
             }
             _ => {
                 return Err(Exceptions::IllegalArgumentException(Some(format!(
@@ -68,7 +59,12 @@ impl OneDimensionalCodeWriter for EAN13Writer {
 
         EAN13Writer::checkNumeric(&contents)?;
 
-        let firstDigit = contents.chars().next().unwrap().to_digit(10).unwrap() as usize; //, 10);
+        let firstDigit = contents
+            .chars()
+            .next()
+            .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+            .to_digit(10)
+            .ok_or(Exceptions::ParseException(None))? as usize;
         let parities = EAN13Reader::FIRST_DIGIT_ENCODINGS[firstDigit];
         let mut result = [false; CODE_WIDTH];
         let mut pos = 0;
@@ -80,7 +76,12 @@ impl OneDimensionalCodeWriter for EAN13Writer {
         // See EAN13Reader for a description of how the first digit & left bars are encoded
         for i in 1..=6 {
             // for (int i = 1; i <= 6; i++) {
-            let mut digit = contents.chars().nth(i).unwrap().to_digit(10).unwrap() as usize; //Character.digit(contents.charAt(i), 10);
+            let mut digit = contents
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .to_digit(10)
+                .ok_or(Exceptions::ParseException(None))? as usize;
             if (parities >> (6 - i) & 1) == 1 {
                 digit += 10;
             }
@@ -96,9 +97,12 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             as usize;
 
         for i in 7..=12 {
-            // for (int i = 7; i <= 12; i++) {
-            // let digit = Character.digit(contents.charAt(i), 10);
-            let digit = contents.chars().nth(i).unwrap().to_digit(10).unwrap() as usize; //Character.digit(contents.charAt(i), 10);
+            let digit = contents
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .to_digit(10)
+                .ok_or(Exceptions::ParseException(None))? as usize;
 
             pos += EAN13Writer::appendPattern(
                 &mut result,

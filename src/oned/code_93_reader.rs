@@ -68,8 +68,8 @@ impl OneDReader for Code93Reader {
             decodedChar = Self::patternToChar(pattern as u32)?;
             self.decodeRowRXingResult.push(decodedChar);
             lastStart = nextStart;
+
             for counter in theCounters {
-                // for (int counter : theCounters) {
                 nextStart += counter as usize;
             }
             // Read off white space
@@ -171,7 +171,6 @@ impl Code93Reader {
 
         let mut counterPosition = 0;
         for i in rowOffset..width {
-            // for (int i = rowOffset; i < width; i++) {
             if row.get(i) != isWhite {
                 theCounters[counterPosition] += 1;
             } else {
@@ -182,7 +181,6 @@ impl Code93Reader {
                     patternStart += (theCounters[0] + theCounters[1]) as usize;
 
                     theCounters.copy_within(2..(counterPosition - 1 + 2), 0);
-                    // System.arraycopy(theCounters, 2, theCounters, 0, counterPosition - 1);
                     theCounters[counterPosition - 1] = 0;
                     theCounters[counterPosition] = 0;
                     counterPosition -= 1;
@@ -197,23 +195,17 @@ impl Code93Reader {
     }
 
     fn toPattern(counters: &[u32; 6]) -> i32 {
-        let mut sum = 0;
-        for counter in counters {
-            // for (int counter : counters) {
-            sum += counter;
-        }
+        let sum = counters.iter().sum::<u32>();
+
         let mut pattern = 0;
         let max = counters.len();
         for (i, counter) in counters.iter().enumerate().take(max) {
-            // for (int i = 0; i < max; i++) {
             let scaled = (*counter as f32 * 9.0 / sum as f32).round() as u32;
-            // let scaled = Math.round(counters[i] * 9.0 / sum);
             if !(1..=4).contains(&scaled) {
                 return -1;
             }
             if (i & 0x01) == 0 {
                 for _j in 0..scaled {
-                    // for (int j = 0; j < scaled; j++) {
                     pattern = (pattern << 1) | 0x01;
                 }
             } else {
@@ -225,7 +217,6 @@ impl Code93Reader {
 
     fn patternToChar(pattern: u32) -> Result<char, Exceptions> {
         for i in 0..Self::CHARACTER_ENCODINGS.len() {
-            // for (int i = 0; i < CHARACTER_ENCODINGS.length; i++) {
             if Self::CHARACTER_ENCODINGS[i] == pattern {
                 return Ok(Self::ALPHABET[i]);
             }
@@ -240,18 +231,25 @@ impl Code93Reader {
         while i < length {
             // for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            let c = encoded.chars().nth(i).unwrap();
+            let c = encoded
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
             if ('a'..='d').contains(&c) {
                 if i >= length - 1 {
                     return Err(Exceptions::FormatException(None));
                 }
-                let next = encoded.chars().nth(i + 1).unwrap();
+                let next = encoded
+                    .chars()
+                    .nth(i + 1)
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
                 let mut decodedChar = '\0';
                 match c {
                     'd' => {
                         // +A to +Z map to a to z
                         if ('A'..='Z').contains(&next) {
-                            decodedChar = char::from_u32(next as u32 + 32).unwrap();
+                            decodedChar = char::from_u32(next as u32 + 32)
+                                .ok_or(Exceptions::ParseException(None))?;
                         } else {
                             return Err(Exceptions::FormatException(None));
                         }
@@ -259,7 +257,8 @@ impl Code93Reader {
                     'a' => {
                         // $A to $Z map to control codes SH to SB
                         if ('A'..='Z').contains(&next) {
-                            decodedChar = char::from_u32(next as u32 - 64).unwrap();
+                            decodedChar = char::from_u32(next as u32 - 64)
+                                .ok_or(Exceptions::ParseException(None))?;
                         } else {
                             return Err(Exceptions::FormatException(None));
                         }
@@ -267,16 +266,20 @@ impl Code93Reader {
                     'b' => {
                         if ('A'..='E').contains(&next) {
                             // %A to %E map to control codes ESC to USep
-                            decodedChar = char::from_u32(next as u32 - 38).unwrap();
+                            decodedChar = char::from_u32(next as u32 - 38)
+                                .ok_or(Exceptions::ParseException(None))?;
                         } else if ('F'..='J').contains(&next) {
                             // %F to %J map to ; < = > ?
-                            decodedChar = char::from_u32(next as u32 - 11).unwrap();
+                            decodedChar = char::from_u32(next as u32 - 11)
+                                .ok_or(Exceptions::ParseException(None))?;
                         } else if ('K'..='O').contains(&next) {
                             // %K to %O map to [ \ ] ^ _
-                            decodedChar = char::from_u32(next as u32 + 16).unwrap();
+                            decodedChar = char::from_u32(next as u32 + 16)
+                                .ok_or(Exceptions::ParseException(None))?;
                         } else if ('P'..='T').contains(&next) {
                             // %P to %T map to { | } ~ DEL
-                            decodedChar = char::from_u32(next as u32 + 43).unwrap();
+                            decodedChar = char::from_u32(next as u32 + 43)
+                                .ok_or(Exceptions::ParseException(None))?;
                         } else if next == 'U' {
                             // %U map to NUL
                             decodedChar = '\0';
@@ -296,7 +299,8 @@ impl Code93Reader {
                     'c' => {
                         // /A to /O map to ! to , and /Z maps to :
                         if ('A'..='O').contains(&next) {
-                            decodedChar = char::from_u32(next as u32 - 32).unwrap();
+                            decodedChar = char::from_u32(next as u32 - 32)
+                                .ok_or(Exceptions::ParseException(None))?;
                         } else if next == 'Z' {
                             decodedChar = ':';
                         } else {
@@ -332,19 +336,26 @@ impl Code93Reader {
         let mut weight = 1;
         let mut total = 0;
         for i in (0..checkPosition).rev() {
-            // for (int i = checkPosition - 1; i >= 0; i--) {
             total += weight
-                * if let Some(pos) = Self::ALPHABET_STRING.find(result.chars().nth(i).unwrap()) {
-                    pos as i32
-                } else {
-                    -1
-                };
+                * Self::ALPHABET_STRING
+                    .find(
+                        result
+                            .chars()
+                            .nth(i)
+                            .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                    )
+                    .map_or_else(|| -1_i32, |v| v as i32);
             weight += 1;
             if weight > weightMax as i32 {
                 weight = 1;
             }
         }
-        if result.chars().nth(checkPosition).unwrap() != Self::ALPHABET[(total as usize) % 47] {
+        if result
+            .chars()
+            .nth(checkPosition)
+            .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+            != Self::ALPHABET[(total as usize) % 47]
+        {
             Err(Exceptions::ChecksumException(None))
         } else {
             Ok(())

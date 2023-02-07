@@ -64,11 +64,13 @@ impl UPCEANReader for EAN13Reader {
                 rowOffset,
                 &upc_ean_reader::L_AND_G_PATTERNS,
             )?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch as u32 % 10).unwrap());
-            // for (int counter : counters) {
-            //   rowOffset += counter;
-            // }
+            resultString.push(
+                char::from_u32('0' as u32 + bestMatch as u32 % 10)
+                    .ok_or(Exceptions::ParseException(None))?,
+            );
+
             rowOffset += counters.iter().sum::<u32>() as usize;
+
             if bestMatch >= 10 {
                 lgPatternFound |= 1 << (5 - x);
             }
@@ -85,13 +87,13 @@ impl UPCEANReader for EAN13Reader {
         let mut x = 0;
 
         while x < 6 && rowOffset < end {
-            // for (int x = 0; x < 6 && rowOffset < end; x++) {
             let bestMatch =
                 self.decodeDigit(row, &mut counters, rowOffset, &upc_ean_reader::L_PATTERNS)?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch as u32).unwrap());
-            // for (int counter : counters) {
-            //   rowOffset += counter;
-            // }
+            resultString.push(
+                char::from_u32('0' as u32 + bestMatch as u32)
+                    .ok_or(Exceptions::ParseException(None))?,
+            );
+
             rowOffset += counters.iter().sum::<u32>() as usize;
 
             x += 1;
@@ -150,7 +152,11 @@ impl EAN13Reader {
         for d in 0..10 {
             // for (int d = 0; d < 10; d++) {
             if lgPatternFound == Self::FIRST_DIGIT_ENCODINGS[d] {
-                resultString.insert(0, char::from_u32('0' as u32 + d as u32).unwrap());
+                resultString.insert(
+                    0,
+                    char::from_u32('0' as u32 + d as u32)
+                        .ok_or(Exceptions::ParseException(None))?,
+                );
                 return Ok(());
             }
         }

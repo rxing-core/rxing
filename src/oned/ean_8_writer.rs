@@ -50,25 +50,16 @@ impl OneDimensionalCodeWriter for EAN8Writer {
             7 => {
                 // No check digit present, calculate it and add it
                 let check = reader.getStandardUPCEANChecksum(&contents)?;
-                // try {
-                //   check = UPCEANReader.getStandardUPCEANChecksum(contents);
-                // } catch (FormatException fe) {
-                //   throw new IllegalArgumentException(fe);
-                // }
+
                 contents.push_str(&check.to_string());
             }
-            8 =>
-            // try {
-            {
+            8 => {
                 if !EAN8Reader.checkStandardUPCEANChecksum(&contents)? {
                     return Err(Exceptions::IllegalArgumentException(Some(
                         "Contents do not pass checksum".to_owned(),
                     )));
                 }
             }
-            // } catch (FormatException ignored) {
-            //   throw new IllegalArgumentException("Illegal contents");
-            // }},
             _ => {
                 return Err(Exceptions::IllegalArgumentException(Some(format!(
                     "Requested contents should be 7 or 8 digits long, but got {length}"
@@ -78,7 +69,7 @@ impl OneDimensionalCodeWriter for EAN8Writer {
 
         Self::checkNumeric(&contents)?;
 
-        let mut result = [false; CODE_WIDTH]; //new boolean[CODE_WIDTH];
+        let mut result = [false; CODE_WIDTH];
         let mut pos = 0;
 
         pos += Self::appendPattern(&mut result, pos, &upc_ean_reader::START_END_PATTERN, true)
@@ -86,7 +77,13 @@ impl OneDimensionalCodeWriter for EAN8Writer {
 
         for i in 0..=3 {
             // for (int i = 0; i <= 3; i++) {
-            let digit = contents.chars().nth(i).unwrap().to_digit(10).unwrap() as usize; //Character.digit(contents.charAt(i), 10);
+            let digit = contents
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .to_digit(10)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                as usize;
             pos += Self::appendPattern(&mut result, pos, &upc_ean_reader::L_PATTERNS[digit], false)
                 as usize;
         }
@@ -96,7 +93,13 @@ impl OneDimensionalCodeWriter for EAN8Writer {
 
         for i in 4..=7 {
             // for (int i = 4; i <= 7; i++) {
-            let digit = contents.chars().nth(i).unwrap().to_digit(10).unwrap() as usize; //Character.digit(contents.charAt(i), 10);
+            let digit = contents
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .to_digit(10)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                as usize;
             pos += Self::appendPattern(&mut result, pos, &upc_ean_reader::L_PATTERNS[digit], true)
                 as usize;
         }

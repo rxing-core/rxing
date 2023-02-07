@@ -67,22 +67,18 @@ pub const L_PATTERNS: [[u32; 4]; 10] = [
  * As above but also including the "even", or "G" patterns used to encode UPC/EAN digits.
  */
 pub const L_AND_G_PATTERNS: [[u32; 4]; 20] = {
-    let mut new_array = [[0_u32; 4]; 20]; //new int[20][];
+    let mut new_array = [[0_u32; 4]; 20];
     let mut i = 0;
     while i < 10 {
         new_array[i] = L_PATTERNS[i];
         i += 1;
     }
-    // new_array[0..10].copy_from_slice(&L_PATTERNS[0..10]);
-    // System.arraycopy(L_PATTERNS, 0, L_AND_G_PATTERNS, 0, 10);
     let mut i = 10;
     while i < 20 {
-        // for (int i = 10; i < 20; i++) {
         let widths = &L_PATTERNS[i - 10];
-        let mut reversedWidths = [0_u32; 4]; //new int[widths.length];
+        let mut reversedWidths = [0_u32; 4];
         let mut j = 0;
         while j < 4 {
-            // for (int j = 0; j < widths.length; j++) {
             reversedWidths[j] = widths[4 - j - 1];
 
             j += 1;
@@ -104,24 +100,14 @@ pub const L_AND_G_PATTERNS: [[u32; 4]; 20] = {
  * @author alasdair@google.com (Alasdair Mackintosh)
  */
 pub trait UPCEANReader: OneDReader {
-    // private final StringBuilder decodeRowStringBuffer;
-    // private final UPCEANExtensionSupport extensionReader;
-    // private final EANManufacturerOrgSupport eanManSupport;
-
-    // protected UPCEANReader() {
-    //   decodeRowStringBuffer = new StringBuilder(20);
-    //   extensionReader = new UPCEANExtensionSupport();
-    //   eanManSupport = new EANManufacturerOrgSupport();
-    // }
-
     fn findStartGuardPattern(&self, row: &BitArray) -> Result<[usize; 2], Exceptions> {
         let mut foundStart = false;
-        let mut startRange = [0; 2]; //= null;
+        let mut startRange = [0; 2];
         let mut nextStart = 0;
-        let mut counters = [0_u32; 3]; //vec![0_u32;START_END_PATTERN.len()];
+        let mut counters = [0_u32; 3];
         while !foundStart {
             counters.fill(0);
-            // Arrays.fill(counters, 0, START_END_PATTERN.len(), 0);
+
             startRange = self.findGuardPatternWithCounters(
                 row,
                 nextStart,
@@ -131,6 +117,7 @@ pub trait UPCEANReader: OneDReader {
             )?;
             let start = startRange[0];
             nextStart = startRange[1];
+
             // Make sure there is a quiet zone at least as big as the start pattern before the barcode.
             // If this check would run off the left edge of the image, do not accept this barcode,
             // as it is very likely to be a false positive.
@@ -142,12 +129,6 @@ pub trait UPCEANReader: OneDReader {
 
         Ok(startRange)
     }
-
-    // @Override
-    // public RXingResult decodeRow(int rowNumber, BitArray row, Map<DecodeHintType,?> hints)
-    //     throws NotFoundException, ChecksumException, FormatException {
-    //   return decodeRow(rowNumber, row, findStartGuardPattern(row), hints);
-    // }
 
     /**
      * <p>Like {@link #decodeRow(int, BitArray, Map)}, but
@@ -180,7 +161,7 @@ pub trait UPCEANReader: OneDReader {
             ));
         }
 
-        let mut result = String::new(); //decodeRowStringBuffer;
+        let mut result = String::new();
         let endStart = self.decodeMiddle(row, startGuardRange, &mut result)?;
 
         if let Some(DecodeHintValue::NeedResultPointCallback(cb)) = resultPointCallback {
@@ -205,10 +186,12 @@ pub trait UPCEANReader: OneDReader {
         }
 
         let resultString = result;
+
         // UPC/EAN should never be less than 8 chars anyway
         if resultString.chars().count() < 8 {
             return Err(Exceptions::FormatException(None));
         }
+
         if !self.checkChecksum(&resultString)? {
             return Err(Exceptions::ChecksumException(None));
         }
@@ -246,27 +229,12 @@ pub trait UPCEANReader: OneDReader {
         };
 
         let _try_result = attempt();
-        // if let Err(Exceptions::ReaderException(_)) = try_result {
-        // } else if try_result.is_err() {
-        //     return Err(try_result.err().unwrap());
-        // }
-
-        // try {
-        //   RXingResult extensionRXingResult = extensionReader.decodeRow(rowNumber, row, endRange[1]);
-        //   decodeRXingResult.putMetadata(RXingResultMetadataType.UPC_EAN_EXTENSION, extensionRXingResult.getText());
-        //   decodeRXingResult.putAllMetadata(extensionRXingResult.getRXingResultMetadata());
-        //   decodeRXingResult.addRXingResultPoints(extensionRXingResult.getRXingResultPoints());
-        //   extensionLength = extensionRXingResult.getText().length();
-        // } catch (ReaderException re) {
-        //   // continue
-        // }
 
         if let Some(DecodeHintValue::AllowedEanExtensions(allowedExtensions)) =
             hints.get(&DecodeHintType::ALLOWED_EAN_EXTENSIONS)
         {
             let mut valid = false;
             for length in allowedExtensions {
-                // for (int length : allowedExtensions) {
                 if extensionLength == *length as usize {
                     valid = true;
                     break;
@@ -276,20 +244,6 @@ pub trait UPCEANReader: OneDReader {
                 return Err(Exceptions::NotFoundException(None));
             }
         }
-        // let allowedExtensions =
-        //     hints == null ? null : (int[]) hints.get(DecodeHintType.ALLOWED_EAN_EXTENSIONS);
-        // if (allowedExtensions != null) {
-        //   let valid = false;
-        //   for (int length : allowedExtensions) {
-        //     if (extensionLength == length) {
-        //       valid = true;
-        //       break;
-        //     }
-        //   }
-        //   if (!valid) {
-        //     return Err(Exceptions::NotFoundException(None));
-        //   }
-        // }
 
         if format == BarcodeFormat::EAN_13 || format == BarcodeFormat::UPC_A {
             let countryID = EAN_MANUFACTURER_SUPPORT.lookupCountryIdentifier(&resultString);
@@ -300,6 +254,7 @@ pub trait UPCEANReader: OneDReader {
                 );
             }
         }
+
         if format == BarcodeFormat::EAN_8 {
             symbologyIdentifier = 4;
         }
@@ -334,16 +289,20 @@ pub trait UPCEANReader: OneDReader {
         if length == 0 {
             return Ok(false);
         }
-        let char_in_question = s.chars().nth(length - 1).unwrap();
+        let char_in_question = s
+            .chars()
+            .nth(length - 1)
+            .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
         let check = char_in_question.is_ascii_digit();
-        // let check = Character.digit(s.charAt(length - 1), 10);
 
         let check_against = &s[..length - 1]; //s.subSequence(0, length - 1);
         let calculated_checksum = self.getStandardUPCEANChecksum(check_against)?;
 
         Ok(calculated_checksum
             == if check {
-                char_in_question.to_digit(10).unwrap()
+                char_in_question
+                    .to_digit(10)
+                    .ok_or(Exceptions::ParseException(None))?
             } else {
                 u32::MAX
             })
@@ -355,7 +314,11 @@ pub trait UPCEANReader: OneDReader {
         let mut i = length as isize - 1;
         while i >= 0 {
             // for (int i = length - 1; i >= 0; i -= 2) {
-            let digit = (s.chars().nth(i as usize).unwrap() as i32) - ('0' as i32);
+            let digit =
+                (s.chars()
+                    .nth(i as usize)
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))? as i32)
+                    - ('0' as i32);
             if !(0..=9).contains(&digit) {
                 return Err(Exceptions::FormatException(None));
             }
@@ -367,7 +330,11 @@ pub trait UPCEANReader: OneDReader {
         let mut i = length as isize - 2;
         while i >= 0 {
             // for (int i = length - 2; i >= 0; i -= 2) {
-            let digit = (s.chars().nth(i as usize).unwrap() as i32) - ('0' as i32);
+            let digit =
+                (s.chars()
+                    .nth(i as usize)
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))? as i32)
+                    - ('0' as i32);
             if !(0..=9).contains(&digit) {
                 return Err(Exceptions::FormatException(None));
             }
@@ -444,7 +411,7 @@ pub trait UPCEANReader: OneDReader {
                     patternStart += (counters[0] + counters[1]) as usize;
 
                     counters.copy_within(2..(counterPosition - 1 + 2), 0);
-                    // System.arraycopy(counters, 2, counters, 0, counterPosition - 1);
+
                     counters[counterPosition - 1] = 0;
                     counters[counterPosition] = 0;
                     counterPosition -= 1;
@@ -483,7 +450,6 @@ pub trait UPCEANReader: OneDReader {
         let mut bestMatch = -1_isize;
         let max = patterns.len();
         for (i, pattern) in patterns.iter().enumerate().take(max) {
-            // for (int i = 0; i < max; i++) {
             let variance: f32 =
                 one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {

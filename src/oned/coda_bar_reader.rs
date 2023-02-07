@@ -18,6 +18,7 @@ use rxing_one_d_proc_derive::OneDReader;
 
 use crate::common::BitArray;
 use crate::BarcodeFormat;
+use crate::DecodeHintValue;
 use crate::Exceptions;
 use crate::RXingResult;
 
@@ -70,7 +71,7 @@ impl OneDReader for CodaBarReader {
             // StringBuilder, so that we can access the decoded patterns in
             // validatePattern. We'll translate to the actual characters later.
             self.decodeRowRXingResult
-                .push(char::from_u32(charOffset as u32).unwrap());
+                .push(char::from_u32(charOffset as u32).ok_or(Exceptions::ParseException(None))?);
             nextStart += 8;
             // Stop as soon as we see the end character.
             if self.decodeRowRXingResult.chars().count() > 1
@@ -81,16 +82,16 @@ impl OneDReader for CodaBarReader {
             {
                 break;
             }
+
+            // no fixed end pattern so keep on reading while data is available
             if nextStart >= self.counterLength {
                 break;
-            } // no fixed end pattern so keep on reading while data is available
-        } //while (nextStart < counterLength); // no fixed end pattern so keep on reading while data is available
-
+            }
+        }
         // Look for whitespace after pattern:
         let trailingWhitespace = self.counters[nextStart - 1];
         let mut lastPatternSize = 0;
-        for i in -8isize..-1isize {
-            // for (int i = -8; i < -1; i++) {
+        for i in -8isize..-1 {
             lastPatternSize += self.counters[(nextStart as isize + i) as usize];
         }
 
@@ -108,13 +109,21 @@ impl OneDReader for CodaBarReader {
             // for (int i = 0; i < decodeRowRXingResult.length(); i++) {
             self.decodeRowRXingResult.replace_range(
                 i..=i,
-                &Self::ALPHABET[self.decodeRowRXingResult.chars().nth(i).unwrap() as usize]
+                &Self::ALPHABET[self
+                    .decodeRowRXingResult
+                    .chars()
+                    .nth(i)
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                    as usize]
                     .to_string(),
             );
-            // self.decodeRowRXingResult.setCharAt(i, Self::ALPHABET[self.decodeRowRXingResult.chars().nth(i).unwrap() as usize]);
         }
         // Ensure a valid start and end character
-        let startchar = self.decodeRowRXingResult.chars().next().unwrap();
+        let startchar = self
+            .decodeRowRXingResult
+            .chars()
+            .next()
+            .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
         if !Self::arrayContains(&Self::STARTEND_ENCODING, startchar) {
             return Err(Exceptions::NotFoundException(None));
         }
@@ -122,7 +131,7 @@ impl OneDReader for CodaBarReader {
             .decodeRowRXingResult
             .chars()
             .nth(self.decodeRowRXingResult.chars().count() - 1)
-            .unwrap();
+            .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
         if !Self::arrayContains(&Self::STARTEND_ENCODING, endchar) {
             return Err(Exceptions::NotFoundException(None));
         }
@@ -133,23 +142,29 @@ impl OneDReader for CodaBarReader {
             return Err(Exceptions::NotFoundException(None));
         }
 
-        if !hints.contains_key(&DecodeHintType::RETURN_CODABAR_START_END) {
-            // self.decodeRowRXingResult.deleteCharAt(self.decodeRowRXingResult.chars().count() - 1);
-            // self.decodeRowRXingResult.deleteCharAt(0);
+        if !matches!(
+            hints.get(&DecodeHintType::RETURN_CODABAR_START_END),
+            Some(DecodeHintValue::ReturnCodabarStartEnd(true))
+        ) {
             self.decodeRowRXingResult =
                 self.decodeRowRXingResult[1..self.decodeRowRXingResult.len() - 1].to_owned();
         }
 
         let mut runningCount = 0;
-        for i in 0..startOffset {
-            // for (int i = 0; i < startOffset; i++) {
-            runningCount += self.counters[i];
-        }
+        runningCount += self.counters.iter().take(startOffset).sum::<u32>();
+        // for i in 0..startOffset {
+        //     runningCount += self.counters[i];
+        // }
         let left: f32 = runningCount as f32;
-        for i in startOffset..(nextStart - 1) {
-            // for (int i = startOffset; i < nextStart - 1; i++) {
-            runningCount += self.counters[i];
-        }
+        runningCount += self
+            .counters
+            .iter()
+            .skip(startOffset)
+            .take(nextStart)
+            .sum::<u32>();
+        // for i in startOffset..(nextStart - 1) {
+        //     runningCount += self.counters[i];
+        // }
         let right: f32 = runningCount as f32;
 
         let mut result = RXingResult::new(
@@ -224,10 +239,13 @@ impl CodaBarReader {
         let mut pos = start;
         for i in 0..=end {
             // for (int i = 0; i <= end; i++) {
-            let mut pattern = Self::CHARACTER_ENCODINGS
-                [self.decodeRowRXingResult.chars().nth(i).unwrap() as usize];
+            let mut pattern = Self::CHARACTER_ENCODINGS[self
+                .decodeRowRXingResult
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                as usize];
             for j in (0_usize..=6).rev() {
-                // for (int j = 6; j >= 0; j--) {
                 // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
                 // long stripes, while 0 and 1 are for short stripes.
                 let category = (j & 1) + ((pattern as usize) & 1) * 2;
@@ -260,10 +278,13 @@ impl CodaBarReader {
         pos = start;
         for i in 0..=end {
             // for (int i = 0; i <= end; i++) {
-            let mut pattern = Self::CHARACTER_ENCODINGS
-                [self.decodeRowRXingResult.chars().nth(i).unwrap() as usize];
+            let mut pattern = Self::CHARACTER_ENCODINGS[self
+                .decodeRowRXingResult
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                as usize];
             for j in (0usize..=6).rev() {
-                // for (int j = 6; j >= 0; j--) {
                 // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
                 // long stripes, while 0 and 1 are for short stripes.
                 let category = (j & 1) + ((pattern as usize) & 1) * 2;
@@ -312,9 +333,8 @@ impl CodaBarReader {
         self.counters[self.counterLength] = e;
         self.counterLength += 1;
         if self.counterLength >= self.counters.len() {
-            let mut temp = vec![0; self.counterLength * 2]; //new int[counterLength * 2];
+            let mut temp = vec![0; self.counterLength * 2];
             temp[0..self.counterLength].clone_from_slice(&self.counters[..]);
-            // System.arraycopy(counters, 0, temp, 0, counterLength);
             self.counters = temp;
         }
     }
@@ -334,7 +354,6 @@ impl CodaBarReader {
                 // We make an exception if the whitespace is the first element.
                 let mut patternSize = 0;
                 for j in i..(i + 7) {
-                    // for (int j = i; j < i + 7; j++) {
                     patternSize += self.counters[j];
                 }
                 if i == 1 || self.counters[i - 1] >= patternSize / 2 {
@@ -348,14 +367,7 @@ impl CodaBarReader {
     }
 
     pub fn arrayContains(array: &[char], key: char) -> bool {
-        // if (array != null) {
-        for c in array {
-            if c == &key {
-                return true;
-            }
-        }
-        // }
-        false
+        array.contains(&key)
     }
 
     // Assumes that counters[position] is a bar.
@@ -371,7 +383,6 @@ impl CodaBarReader {
         let mut minBar = u32::MAX;
         let mut j = position;
         while j < end {
-            // for (int j = position; j < end; j += 2) {
             let currentCounter = theCounters[j];
             if currentCounter < minBar {
                 minBar = currentCounter;
@@ -388,14 +399,9 @@ impl CodaBarReader {
         let mut minSpace = u32::MAX;
         let mut j = position + 1;
         while j < end {
-            // for (int j = position + 1; j < end; j += 2) {
             let currentCounter = theCounters[j];
-            if currentCounter < minSpace {
-                minSpace = currentCounter;
-            }
-            if currentCounter > maxSpace {
-                maxSpace = currentCounter;
-            }
+            minSpace = std::cmp::min(currentCounter, minSpace);
+            maxSpace = std::cmp::max(currentCounter, maxSpace);
 
             j += 2;
         }
@@ -404,7 +410,6 @@ impl CodaBarReader {
         let mut bitmask = 1 << 7;
         let mut pattern = 0;
         for i in 0..7 {
-            // for (int i = 0; i < 7; i++) {
             let threshold = if (i & 1) == 0 {
                 thresholdBar
             } else {
@@ -417,7 +422,6 @@ impl CodaBarReader {
         }
 
         for i in 0..Self::CHARACTER_ENCODINGS.len() {
-            // for (int i = 0; i < CHARACTER_ENCODINGS.length; i++) {
             if Self::CHARACTER_ENCODINGS[i] == pattern {
                 return i as i32;
             }

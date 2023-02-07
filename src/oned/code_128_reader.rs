@@ -98,11 +98,6 @@ impl OneDReader for Code128Reader {
 
             nextStart += counters.iter().sum::<u32>() as usize;
 
-            // for counter in counters {
-            // // for (int counter : counters) {
-            //   nextStart += counter;
-            // }
-
             // Take care of illegal start codes
             match code {
                 CODE_START_A | CODE_START_B | CODE_START_C => {
@@ -328,11 +323,6 @@ impl OneDReader for Code128Reader {
             };
             let new_str = result.chars().take(len_trim).collect();
             result = new_str;
-            // if codeSet == CODE_CODE_C {
-            //   result.delete(resultLength - 2, resultLength);
-            // } else {
-            //   result.delete(resultLength - 1, resultLength);
-            // }
         }
 
         let left: f32 = (startPatternInfo[1] + startPatternInfo[0]) as f32 / 2.0;
@@ -341,8 +331,9 @@ impl OneDReader for Code128Reader {
         let rawCodesSize = rawCodes.len();
         let mut rawBytes = vec![0u8; rawCodesSize];
         for (i, rawByte) in rawBytes.iter_mut().enumerate().take(rawCodesSize) {
-            // for (int i = 0; i < rawCodesSize; i++) {
-            *rawByte = *rawCodes.get(i).unwrap();
+            *rawByte = *rawCodes
+                .get(i)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
         }
         let mut resultObject = RXingResult::new(
             &result,
@@ -374,7 +365,6 @@ impl Code128Reader {
         let patternLength = counters.len();
 
         for i in rowOffset..width {
-            // for (int i = rowOffset; i < width; i++) {
             if row.get(i) != isWhite {
                 counters[counterPosition] += 1;
             } else {
@@ -382,7 +372,6 @@ impl Code128Reader {
                     let mut bestVariance = MAX_AVG_VARIANCE;
                     let mut bestMatch = -1_isize;
                     for startCode in CODE_START_A..=CODE_START_C {
-                        // for (int startCode = CODE_START_A; startCode <= CODE_START_C; startCode++) {
                         let variance = one_d_reader::patternMatchVariance(
                             &counters,
                             &CODE_PATTERNS[startCode as usize],
@@ -407,7 +396,6 @@ impl Code128Reader {
                     patternStart += (counters[0] + counters[1]) as usize;
 
                     counters.copy_within(2..(counterPosition - 1 + 2), 0);
-                    // System.arraycopy(counters, 2, counters, 0, counterPosition - 1);
                     counters[counterPosition - 1] = 0;
                     counters[counterPosition] = 0;
                     counterPosition -= 1;
@@ -432,7 +420,6 @@ impl Code128Reader {
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
         for d in 0..CODE_PATTERNS.len() {
-            // for (int d = 0; d < CODE_PATTERNS.len(); d++) {
             let pattern = &CODE_PATTERNS[d];
             let variance =
                 one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);

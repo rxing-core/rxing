@@ -46,11 +46,7 @@ impl OneDReader for Code39Reader {
         row: &crate::common::BitArray,
         _hints: &DecodingHintDictionary,
     ) -> Result<crate::RXingResult, Exceptions> {
-        // let theCounters = self.counters;
         let mut counters = [0_u32; 9];
-        // self.counters.fill(0);
-        // let result = self.decodeRowRXingResult;
-        // result.setLength(0);
         self.decodeRowRXingResult.clear();
 
         let start = Self::findAsteriskPattern(row, &mut counters)?;
@@ -70,7 +66,6 @@ impl OneDReader for Code39Reader {
             self.decodeRowRXingResult.push(decodedChar);
             lastStart = nextStart;
             for counter in &counters {
-                // for (int counter : theCounters) {
                 nextStart += *counter as usize;
             }
             // Read off white space
@@ -79,16 +74,13 @@ impl OneDReader for Code39Reader {
             if decodedChar == '*' {
                 break;
             }
-        } //(decodedChar != '*');
+        }
         self.decodeRowRXingResult
             .truncate(self.decodeRowRXingResult.len() - 1); // remove asterisk
 
         // Look for whitespace after pattern:
-        let mut lastPatternSize = 0;
-        for counter in &counters {
-            // for (int counter : self.counters) {
-            lastPatternSize += *counter;
-        }
+        let lastPatternSize = counters.iter().sum::<u32>();
+
         let whiteSpaceAfterEnd = nextStart - lastStart - lastPatternSize as usize;
         // If 50% of last pattern size, following last pattern, is not whitespace, fail
         // (but if it's whitespace to the very end of the image, that's OK)
@@ -100,16 +92,24 @@ impl OneDReader for Code39Reader {
             let max = self.decodeRowRXingResult.chars().count() - 1;
             let mut total = 0;
             for i in 0..max {
-                // for (int i = 0; i < max; i++) {
-                if let Some(pos) =
-                    Self::ALPHABET_STRING.find(self.decodeRowRXingResult.chars().nth(i).unwrap())
-                {
+                if let Some(pos) = Self::ALPHABET_STRING.find(
+                    self.decodeRowRXingResult
+                        .chars()
+                        .nth(i)
+                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                ) {
                     total += pos;
                 }
-                // total += Self::ALPHABET_STRING.indexOf(self.decodeRowRXingResult.chars().nth(i).unwrap());
             }
-            if self.decodeRowRXingResult.chars().nth(max).unwrap()
-                != Self::ALPHABET_STRING.chars().nth(total % 43).unwrap()
+            if self
+                .decodeRowRXingResult
+                .chars()
+                .nth(max)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                != Self::ALPHABET_STRING
+                    .chars()
+                    .nth(total % 43)
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?
             {
                 return Err(Exceptions::NotFoundException(None));
             }
@@ -256,9 +256,8 @@ impl Code39Reader {
         let mut maxNarrowCounter = 0;
         let mut wideCounters;
         loop {
-            let mut minCounter = u32::MAX; //Integer.MAX_VALUE;
+            let mut minCounter = u32::MAX;
             for counter in counters {
-                // for (int counter : counters) {
                 if counter < &minCounter && counter > &maxNarrowCounter {
                     minCounter = *counter;
                 }
@@ -268,7 +267,6 @@ impl Code39Reader {
             let mut totalWideCountersWidth = 0;
             let mut pattern = 0;
             for (i, counter) in counters.iter().enumerate().take(numCounters) {
-                // for (int i = 0; i < numCounters; i++) {
                 if *counter > maxNarrowCounter {
                     pattern |= 1 << (numCounters - 1 - i);
                     wideCounters += 1;
@@ -281,7 +279,6 @@ impl Code39Reader {
                 // counter is more than 1.5 times the average:
                 let mut i = 0;
                 while i < numCounters && wideCounters > 0 {
-                    // for (int i = 0; i < numCounters && wideCounters > 0; i++) {
                     let counter = counters[i];
                     if counter > maxNarrowCounter {
                         wideCounters -= 1;
@@ -299,15 +296,17 @@ impl Code39Reader {
             if wideCounters <= 3 {
                 break;
             }
-        } //while ;
+        }
         -1
     }
 
     fn patternToChar(pattern: u32) -> Result<char, Exceptions> {
         for i in 0..Self::CHARACTER_ENCODINGS.len() {
-            // for (int i = 0; i < CHARACTER_ENCODINGS.length; i++) {
             if Self::CHARACTER_ENCODINGS[i] == pattern {
-                return Ok(Self::ALPHABET_STRING.chars().nth(i).unwrap());
+                return Ok(Self::ALPHABET_STRING
+                    .chars()
+                    .nth(i)
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?);
             }
         }
         if pattern == Self::ASTERISK_ENCODING {
@@ -323,15 +322,22 @@ impl Code39Reader {
         while i < length {
             // for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            let c = encoded.chars().nth(i).unwrap();
+            let c = encoded
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
             if c == '+' || c == '$' || c == '%' || c == '/' {
-                let next = encoded.chars().nth(i + 1).unwrap();
+                let next = encoded
+                    .chars()
+                    .nth(i + 1)
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
                 let mut decodedChar = '\0';
                 match c {
                     '+' => {
                         // +A to +Z map to a to z
                         if ('A'..='Z').contains(&next) {
-                            decodedChar = char::from_u32(next as u32 + 32).unwrap();
+                            decodedChar = char::from_u32(next as u32 + 32)
+                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
                         } else {
                             return Err(Exceptions::NotFoundException(None));
                         }
@@ -339,7 +345,8 @@ impl Code39Reader {
                     '$' => {
                         // $A to $Z map to control codes SH to SB
                         if ('A'..='Z').contains(&next) {
-                            decodedChar = char::from_u32(next as u32 - 64).unwrap();
+                            decodedChar = char::from_u32(next as u32 - 64)
+                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
                         } else {
                             return Err(Exceptions::NotFoundException(None));
                         }
@@ -347,13 +354,17 @@ impl Code39Reader {
                     '%' => {
                         // %A to %E map to control codes ESC to US
                         if ('A'..='E').contains(&next) {
-                            decodedChar = char::from_u32(next as u32 - 38).unwrap();
+                            decodedChar = char::from_u32(next as u32 - 38)
+                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
                         } else if ('F'..='J').contains(&next) {
-                            decodedChar = char::from_u32(next as u32 - 11).unwrap();
+                            decodedChar = char::from_u32(next as u32 - 11)
+                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
                         } else if ('K'..='O').contains(&next) {
-                            decodedChar = char::from_u32(next as u32 + 16).unwrap();
+                            decodedChar = char::from_u32(next as u32 + 16)
+                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
                         } else if ('P'..='T').contains(&next) {
-                            decodedChar = char::from_u32(next as u32 + 43).unwrap();
+                            decodedChar = char::from_u32(next as u32 + 43)
+                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
                         } else if next == 'U' {
                             decodedChar = 0 as char;
                         } else if next == 'V' {
@@ -369,7 +380,8 @@ impl Code39Reader {
                     '/' => {
                         // /A to /O map to ! to , and /Z maps to :
                         if ('A'..='O').contains(&next) {
-                            decodedChar = char::from_u32(next as u32 - 32).unwrap();
+                            decodedChar = char::from_u32(next as u32 - 32)
+                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
                         } else if next == 'Z' {
                             decodedChar = ':';
                         } else {
