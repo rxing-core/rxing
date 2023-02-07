@@ -21,7 +21,6 @@ use std::collections::HashMap;
  */
 #[derive(Clone, Default)]
 pub struct BarcodeValue(HashMap<u32, u32>);
-// private final Map<Integer,Integer> values = new HashMap<>();
 
 impl BarcodeValue {
     pub fn new() -> Self {
@@ -32,13 +31,7 @@ impl BarcodeValue {
      * Add an occurrence of a value
      */
     pub fn setValue(&mut self, value: u32) {
-        let mut confidence = if let Some(value) = self.0.get(&value) {
-            *value
-        } else {
-            0
-        };
-        confidence += 1;
-        self.0.insert(value, confidence);
+        self.0.entry(value).and_modify(|confidence| *confidence += 1).or_insert(1);
     }
 
     /**
@@ -49,7 +42,6 @@ impl BarcodeValue {
         let mut maxConfidence = -1_i32;
         let mut result = Vec::new();
         for (key, value) in &self.0 {
-            // for (Entry<Integer,Integer> entry : values.entrySet()) {
             match (*value as i32).cmp(&maxConfidence) {
                 std::cmp::Ordering::Greater => {
                     maxConfidence = *value as i32;
@@ -65,10 +57,6 @@ impl BarcodeValue {
     }
 
     pub fn getConfidence(&self, value: u32) -> u32 {
-        if let Some(v) = self.0.get(&value) {
-            *v
-        } else {
-            0
-        }
+        *self.0.get(&value).unwrap_or(&0)
     }
 }

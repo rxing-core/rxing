@@ -32,14 +32,13 @@ pub fn corrupt(received: &mut [u32], howMany: u32, random: &mut rand::rngs::Thre
 
 #[allow(dead_code)]
 pub fn erase(received: &mut [u32], howMany: u32, random: &mut rand::rngs::ThreadRng) -> Vec<u32> {
-    let mut erased = vec![false; received.len()]; //BitSet::new(received.len());
+    let mut erased = vec![false; received.len()];
     let mut erasures = vec![0_u32; howMany as usize];
     let mut erasureOffset = 0;
     let mut j = 0;
     while j < howMany {
-        // for (int j = 0; j < howMany; j++) {
-        let location = random.gen_range(0..received.len()); //random.nextInt(received.len());
-        if *erased.get(location).unwrap() {
+        let location = random.gen_range(0..received.len());
+        if *erased.get(location).unwrap_or(&false) {
             j -= 1;
         } else {
             erased[location] = true;

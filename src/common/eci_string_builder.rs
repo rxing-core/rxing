@@ -166,7 +166,7 @@ impl ECIStringBuilder {
      */
     pub fn len(&mut self) -> usize {
         self.encodeCurrentBytesIfAny(); //return toString().length();
-        self.result.len()
+        self.result.chars().count()
     }
 
     /**

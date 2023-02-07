@@ -53,21 +53,21 @@ impl BoundingBox {
         let newBottomRight;
 
         if leftUnspecified {
-            newTopRight = topRight.unwrap();
-            newBottomRight = bottomRight.unwrap();
+            newTopRight = topRight.ok_or(Exceptions::IllegalStateException(None))?;
+            newBottomRight = bottomRight.ok_or(Exceptions::IllegalStateException(None))?;
             newTopLeft = RXingResultPoint::new(0.0, newTopRight.getY());
             newBottomLeft = RXingResultPoint::new(0.0, newBottomRight.getY());
         } else if rightUnspecified {
-            newTopLeft = topLeft.unwrap();
-            newBottomLeft = bottomLeft.unwrap();
+            newTopLeft = topLeft.ok_or(Exceptions::IllegalStateException(None))?;
+            newBottomLeft = bottomLeft.ok_or(Exceptions::IllegalStateException(None))?;
             newTopRight = RXingResultPoint::new(image.getWidth() as f32 - 1.0, newTopLeft.getY());
             newBottomRight =
                 RXingResultPoint::new(image.getWidth() as f32 - 1.0, newBottomLeft.getY());
         } else {
-            newTopLeft = topLeft.unwrap();
-            newTopRight = topRight.unwrap();
-            newBottomLeft = bottomLeft.unwrap();
-            newBottomRight = bottomRight.unwrap();
+            newTopLeft = topLeft.ok_or(Exceptions::IllegalStateException(None))?;
+            newTopRight = topRight.ok_or(Exceptions::IllegalStateException(None))?;
+            newBottomLeft = bottomLeft.ok_or(Exceptions::IllegalStateException(None))?;
+            newBottomRight = bottomRight.ok_or(Exceptions::IllegalStateException(None))?;
         }
 
         Ok(BoundingBox {
@@ -102,13 +102,13 @@ impl BoundingBox {
         rightBox: Option<BoundingBox>,
     ) -> Result<BoundingBox, Exceptions> {
         if leftBox.is_none() {
-            return Ok(rightBox.as_ref().unwrap().clone());
+            return Ok(rightBox.as_ref().ok_or(Exceptions::IllegalStateException(None))?.clone());
         }
         if rightBox.is_none() {
-            return Ok(leftBox.as_ref().unwrap().clone());
+            return Ok(leftBox.as_ref().ok_or(Exceptions::IllegalStateException(None))?.clone());
         }
-        let leftBox = leftBox.unwrap();
-        let rightBox = rightBox.unwrap();
+        let leftBox = leftBox.ok_or(Exceptions::IllegalStateException(None))?;
+        let rightBox = rightBox.ok_or(Exceptions::IllegalStateException(None))?;
 
         BoundingBox::new(
             leftBox.image,

@@ -156,7 +156,7 @@ impl ModulusPoly {
         }
 
         Ok(Rc::new(
-            ModulusPoly::new(self.field, sumDiff).expect("should always generate with known goods"),
+            ModulusPoly::new(self.field, sumDiff)?,
         ))
     }
 
@@ -199,7 +199,7 @@ impl ModulusPoly {
         }
 
         Ok(Rc::new(
-            ModulusPoly::new(self.field, product).expect("should always generate with known goods"),
+            ModulusPoly::new(self.field, product)?,
         ))
     }
 

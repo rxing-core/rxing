@@ -89,12 +89,11 @@ use once_cell::sync::Lazy;
 static EXP900: Lazy<Vec<BigUint>> = Lazy::new(|| {
     const EXP_LEN: usize = 16;
     let mut exp900 = Vec::with_capacity(EXP_LEN); //[0;16];
-    exp900.push(ToBigUint::to_biguint(&1).unwrap());
-    let nineHundred = ToBigUint::to_biguint(&900).unwrap();
+    exp900.push(ToBigUint::to_biguint(&1).unwrap_or_default());
+    let nineHundred = ToBigUint::to_biguint(&900).unwrap_or_default();
     exp900.push(nineHundred);
     let mut i = 2;
     while i < EXP_LEN {
-        // for (int i = 2; i < EXP900.length; i++) {
         exp900.push(&exp900[i - 1] * 900_u32);
 
         i += 1;
@@ -102,28 +101,6 @@ static EXP900: Lazy<Vec<BigUint>> = Lazy::new(|| {
 
     exp900
 });
-
-// /**
-//  * Table containing values for the exponent of 900.
-//  * This is used in the numeric compaction decode algorithm.
-//  */
-// const  EXP900 : [u128;16] =
-
-//  {
-//   let mut exp900 = [0;16];
-//   exp900[0] = 1;
-//   let nineHundred = 900;
-//   exp900[1] = nineHundred;
-//   let mut i = 2;
-//   while i < exp900.len() {
-//   // for (int i = 2; i < EXP900.length; i++) {
-//     exp900[i] = exp900[i - 1] * (nineHundred);
-
-//     i+=1;
-//   }
-
-//   exp900
-// };
 
 const NUMBER_OF_SEQUENCE_CODEWORDS: usize = 2;
 
@@ -142,7 +119,7 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult, Ex
                 codeIndex = byteCompaction(code, codewords, codeIndex, &mut result)?
             }
             MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
-                result.append_char(char::from_u32(codewords[codeIndex]).unwrap());
+                result.append_char(char::from_u32(codewords[codeIndex]).ok_or(Exceptions::ParseException(None))?);
                 codeIndex += 1;
             }
             NUMERIC_COMPACTION_MODE_LATCH => {
@@ -212,7 +189,6 @@ pub fn decodeMacroBlock(
         .iter_mut()
         .take(NUMBER_OF_SEQUENCE_CODEWORDS)
     {
-        // for (int i = 0; i < NUMBER_OF_SEQUENCE_CODEWORDS; i++, codeIndex++) {
         *seq = codewords[codeIndex];
         codeIndex += 1;
     }
@@ -304,7 +280,7 @@ pub fn decodeMacroBlock(
                         let mut fileSize = ECIStringBuilder::new();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut fileSize)?;
                         fileSize = fileSize.build_result();
-                        let Ok(parsed_file_size)= fileSize.to_string().parse()else {
+                        let Ok(parsed_file_size)= fileSize.to_string().parse() else {
                             return Err(Exceptions::FormatException(None));
                         };
                         resultMetadata.setFileSize(parsed_file_size);
@@ -327,8 +303,7 @@ pub fn decodeMacroBlock(
             // do not include terminator
             optionalFieldsLength -= 1;
         }
-        // resultMetadata.setOptionalData(
-        //     Arrays.copyOfRange(codewords, optionalFieldsStart, optionalFieldsStart + optionalFieldsLength));
+
         resultMetadata.setOptionalData(
             codewords[optionalFieldsStart as usize
                 ..(optionalFieldsStart + optionalFieldsLength as isize) as usize]
