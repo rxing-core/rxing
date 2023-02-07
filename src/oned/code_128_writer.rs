@@ -681,7 +681,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
         memoizedCost: &mut Vec<Vec<u32>>,
         minPath: &mut Vec<Vec<Latch>>,
     ) -> Result<u32, Exceptions> {
-        if !(position < contents.chars().count()) {
+        if position >= contents.chars().count() {
             return Err(Exceptions::IllegalStateException(None));
         }
         let mCost = memoizedCost[charset.ordinal()][position];

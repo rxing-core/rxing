@@ -303,10 +303,10 @@ impl Code39Reader {
     fn patternToChar(pattern: u32) -> Result<char, Exceptions> {
         for i in 0..Self::CHARACTER_ENCODINGS.len() {
             if Self::CHARACTER_ENCODINGS[i] == pattern {
-                return Ok(Self::ALPHABET_STRING
+                return Self::ALPHABET_STRING
                     .chars()
                     .nth(i)
-                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?);
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None));
             }
         }
         if pattern == Self::ASTERISK_ENCODING {

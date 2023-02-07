@@ -62,9 +62,9 @@ impl OneDReader for RSS14Reader {
             if left.getCount() > 1 {
                 for right in &self.possibleRightPairs {
                     if right.getCount() > 1 && self.checkChecksum(left, right) {
-                        return Ok(self
+                        return self
                             .constructRXingResult(left, right)
-                            .ok_or(Exceptions::IllegalStateException(None))?);
+                            .ok_or(Exceptions::IllegalStateException(None));
                     }
                 }
             }
