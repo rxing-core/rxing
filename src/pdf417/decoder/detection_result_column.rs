@@ -121,7 +121,7 @@ impl DetectionRXingResultColumnTrait for DetectionRXingResultColumn {
 impl Display for DetectionRXingResultColumn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(isLeft) = self.isLeft {
-            writeln!(f, "IsLeft: {} ", isLeft)?;
+            writeln!(f, "IsLeft: {isLeft} ")?;
         }
         for (row, codeword) in self.codewords.iter().enumerate() {
             if let Some(codeword) = codeword {
