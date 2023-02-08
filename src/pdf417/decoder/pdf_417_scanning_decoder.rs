@@ -64,7 +64,6 @@ pub fn decode(
     let mut rightRowIndicatorColumn = None;
     let mut detectionRXingResult = None;
     for firstPass in [true, false] {
-        // for (boolean firstPass = true; ; firstPass = false) {
         if imageTopLeft.is_some() {
             leftRowIndicatorColumn = Some(getRowIndicatorColumn(
                 image,
@@ -142,7 +141,8 @@ pub fn decode(
         for imageRow in boundingBox.getMinY()..=boundingBox.getMaxY() {
             // for (int imageRow = boundingBox.getMinY(); imageRow <= boundingBox.getMaxY(); imageRow++) {
             startColumn =
-                getStartColumn(&detectionRXingResult, barcodeColumn, imageRow, leftToRight) as i32;
+                getStartColumn(&detectionRXingResult, barcodeColumn, imageRow, leftToRight)
+                    .ok_or(Exceptions::IllegalStateException(None))? as i32;
             if startColumn < 0 || startColumn > boundingBox.getMaxX() as i32 {
                 if previousStartColumn == -1 {
                     continue;
@@ -264,68 +264,95 @@ fn getBarcodeMetadata<T: DetectionRXingResultRowIndicatorColumn>(
     leftRowIndicatorColumn: &mut Option<T>,
     rightRowIndicatorColumn: &mut Option<T>,
 ) -> Option<BarcodeMetadata> {
-    let leftBarcodeMetadata = if leftRowIndicatorColumn.is_none()
-        || leftRowIndicatorColumn
-            .as_mut()
-            .unwrap()
-            .getBarcodeMetadata()
-            .is_none()
-    {
-        return if rightRowIndicatorColumn.is_none() {
-            None
-        } else {
-            rightRowIndicatorColumn
-                .as_mut()
-                .unwrap()
-                .getBarcodeMetadata()
-        };
-    } else {
-        leftRowIndicatorColumn
-            .as_mut()
-            .unwrap()
-            .getBarcodeMetadata()
-    };
-    // if leftRowIndicatorColumn.is_none() ||
-    //     (leftBarcodeMetadata = leftRowIndicatorColumn.getBarcodeMetadata()).is_none() {
-    //   return if rightRowIndicatorColumn.is_none()  {None} else  {rightRowIndicatorColumn.getBarcodeMetadata()};
-    // }
-
-    let rightBarcodeMetadata = if rightRowIndicatorColumn.is_none() {
-        return leftBarcodeMetadata;
-    } else if let Some(mdt) = rightRowIndicatorColumn
+    let left_ri_md = leftRowIndicatorColumn
         .as_mut()
-        .unwrap()
-        .getBarcodeMetadata()
-    {
-        mdt
-        // rightRowIndicatorColumn
-        //     .as_mut()
-        //     .unwrap()
-        //     .getBarcodeMetadata()
-        //     .unwrap()
-    } else {
-        return leftBarcodeMetadata;
-    };
-    // if rightRowIndicatorColumn.is_none() ||
-    //     (rightBarcodeMetadata = rightRowIndicatorColumn.getBarcodeMetadata()).is_none() {
-    //   return leftBarcodeMetadata;
-    // }
+        .map_or_else(|| None, |col| col.getBarcodeMetadata());
+    let right_ri_md = rightRowIndicatorColumn
+        .as_mut()
+        .map_or_else(|| None, |col| col.getBarcodeMetadata());
 
-    leftBarcodeMetadata?;
-
-    if leftBarcodeMetadata.as_ref().unwrap().getColumnCount()
-        != rightBarcodeMetadata.getColumnCount()
-        && leftBarcodeMetadata
-            .as_ref()
-            .unwrap()
-            .getErrorCorrectionLevel()
-            != rightBarcodeMetadata.getErrorCorrectionLevel()
-        && leftBarcodeMetadata.as_ref().unwrap().getRowCount() != rightBarcodeMetadata.getRowCount()
-    {
+    if leftRowIndicatorColumn.is_none() && rightRowIndicatorColumn.is_none() {
         return None;
+    } else if leftRowIndicatorColumn.is_none() {
+        return right_ri_md;
+    } else if rightRowIndicatorColumn.is_none() && right_ri_md.is_none() {
+        return left_ri_md;
+    } else if let Some((leftBarcodeMetadata, rightBarcodeMetadata)) =
+        left_ri_md.as_ref().zip(right_ri_md.as_ref())
+    {
+        if leftBarcodeMetadata.getColumnCount() != rightBarcodeMetadata.getColumnCount()
+            && leftBarcodeMetadata.getErrorCorrectionLevel()
+                != rightBarcodeMetadata.getErrorCorrectionLevel()
+            && leftBarcodeMetadata.getRowCount() != rightBarcodeMetadata.getRowCount()
+        {
+            return None;
+        }
     }
 
-    leftBarcodeMetadata
+    left_ri_md
+
+    // let leftBarcodeMetadata = if leftRowIndicatorColumn.is_none()
+    //     || leftRowIndicatorColumn
+    //         .as_mut()
+    //         .unwrap()
+    //         .getBarcodeMetadata()
+    //         .is_none()
+    // {
+    //     return if rightRowIndicatorColumn.is_none() {
+    //         None
+    //     } else {
+    //         rightRowIndicatorColumn
+    //             .as_mut()
+    //             .unwrap()
+    //             .getBarcodeMetadata()
+    //     };
+    // } else {
+    //     leftRowIndicatorColumn
+    //         .as_mut()
+    //         .unwrap()
+    //         .getBarcodeMetadata()
+    // };
+    // // if leftRowIndicatorColumn.is_none() ||
+    // //     (leftBarcodeMetadata = leftRowIndicatorColumn.getBarcodeMetadata()).is_none() {
+    // //   return if rightRowIndicatorColumn.is_none()  {None} else  {rightRowIndicatorColumn.getBarcodeMetadata()};
+    // // }
+
+    // let rightBarcodeMetadata = if rightRowIndicatorColumn.is_none() {
+    //     return leftBarcodeMetadata;
+    // } else if let Some(mdt) = rightRowIndicatorColumn
+    //     .as_mut()
+    //     .unwrap()
+    //     .getBarcodeMetadata()
+    // {
+    //     mdt
+    //     // rightRowIndicatorColumn
+    //     //     .as_mut()
+    //     //     .unwrap()
+    //     //     .getBarcodeMetadata()
+    //     //     .unwrap()
+    // } else {
+    //     return leftBarcodeMetadata;
+    // };
+    // // if rightRowIndicatorColumn.is_none() ||
+    // //     (rightBarcodeMetadata = rightRowIndicatorColumn.getBarcodeMetadata()).is_none() {
+    // //   return leftBarcodeMetadata;
+    // // }
+
+    // leftBarcodeMetadata?;
+
+    // if leftBarcodeMetadata.as_ref().unwrap().getColumnCount()
+    //     != rightBarcodeMetadata.getColumnCount()
+    //     && leftBarcodeMetadata
+    //         .as_ref()
+    //         .unwrap()
+    //         .getErrorCorrectionLevel()
+    //         != rightBarcodeMetadata.getErrorCorrectionLevel()
+    //     && leftBarcodeMetadata.as_ref().unwrap().getRowCount() != rightBarcodeMetadata.getRowCount()
+    // {
+    //     return None;
+    // }
+
+    // leftBarcodeMetadata
 }
 
 fn getRowIndicatorColumn<'a>(
@@ -402,18 +429,16 @@ fn createDecoderRXingResult(
 ) -> Result<DecoderRXingResult, Exceptions> {
     let mut barcodeMatrix = createBarcodeMatrix(detectionRXingResult);
     adjustCodewordCount(detectionRXingResult, &mut barcodeMatrix)?;
-    let mut erasures = Vec::new(); //new ArrayList<>();
+    let mut erasures = Vec::new();
     let mut codewords = vec![
         0;
         detectionRXingResult.getBarcodeRowCount() as usize
             * detectionRXingResult.getBarcodeColumnCount()
     ];
     let mut ambiguousIndexValuesList: Vec<Vec<u32>> = Vec::new();
-    let mut ambiguousIndexesList = Vec::new(); //new ArrayList<>();
+    let mut ambiguousIndexesList = Vec::new();
     for row in 0..detectionRXingResult.getBarcodeRowCount() {
-        // for (int row = 0; row < detectionRXingResult.getBarcodeRowCount(); row++) {
         for column in 0..detectionRXingResult.getBarcodeColumnCount() {
-            // for (int column = 0; column < detectionRXingResult.getBarcodeColumnCount(); column++) {
             let values = barcodeMatrix[row as usize][column + 1].getValue();
             let codewordIndex =
                 row as usize * detectionRXingResult.getBarcodeColumnCount() + column;
@@ -427,10 +452,10 @@ fn createDecoderRXingResult(
             }
         }
     }
-    let mut ambiguousIndexValues = Vec::new(); //new int[ambiguousIndexValuesList.size()][];
-    for value in ambiguousIndexValuesList {
-        ambiguousIndexValues.push(value);
-    }
+    let ambiguousIndexValues = Vec::from_iter(ambiguousIndexValuesList.into_iter());
+    // for value in ambiguousIndexValuesList {
+    //     ambiguousIndexValues.push(value);
+    // }
     // for i in 0..ambiguousIndexValuesList.len() {
     // // for (int i = 0; i < ambiguousIndexValues.length; i++) {
     //   ambiguousIndexValues[i] = ambiguousIndexValuesList.get(i) as u32;
@@ -559,22 +584,21 @@ fn getStartColumn(
     barcodeColumn: usize,
     imageRow: u32,
     leftToRight: bool,
-) -> u32 {
+) -> Option<u32> {
     let offset: isize = if leftToRight { 1 } else { -1 };
     let mut barcodeColumn = barcodeColumn as isize;
     let mut codeword = &None;
     if isValidBarcodeColumn(detectionRXingResult, (barcodeColumn - offset) as usize) {
         codeword = detectionRXingResult
             .getDetectionRXingResultColumn((barcodeColumn - offset) as usize)
-            .as_ref()
-            .unwrap()
+            .as_ref()?
             .getCodeword(imageRow);
     }
     if let Some(codeword) = codeword {
         return if leftToRight {
-            codeword.getEndX()
+            Some(codeword.getEndX())
         } else {
-            codeword.getStartX()
+            Some(codeword.getStartX())
         };
     }
 
@@ -584,30 +608,28 @@ fn getStartColumn(
     {
         codeword = detectionRXingResult
             .getDetectionRXingResultColumn(barcodeColumn as usize)
-            .as_ref()
-            .unwrap()
+            .as_ref()?
             .getCodewordNearby(imageRow);
     }
 
     if let Some(codeword) = codeword {
         return if leftToRight {
-            codeword.getStartX()
+            Some(codeword.getStartX())
         } else {
-            codeword.getEndX()
+            Some(codeword.getEndX())
         };
     }
     if isValidBarcodeColumn(detectionRXingResult, (barcodeColumn - offset) as usize) {
         codeword = detectionRXingResult
             .getDetectionRXingResultColumn((barcodeColumn - offset) as usize)
-            .as_ref()
-            .unwrap()
+            .as_ref()?
             .getCodewordNearby(imageRow);
     }
     if let Some(codeword) = codeword {
         return if leftToRight {
-            codeword.getEndX()
+            Some(codeword.getEndX())
         } else {
-            codeword.getStartX()
+            Some(codeword.getStartX())
         };
     }
     let mut skippedColumns = 0;
@@ -616,8 +638,7 @@ fn getStartColumn(
         barcodeColumn -= offset;
         if let Some(previousRowCodeword) = detectionRXingResult
             .getDetectionRXingResultColumn(barcodeColumn as usize)
-            .as_ref()
-            .unwrap()
+            .as_ref()?
             .getCodewords()
             .iter()
             .flatten()
@@ -626,23 +647,25 @@ fn getStartColumn(
             // for (Codeword previousRowCodeword : detectionRXingResult.getDetectionRXingResultColumn(barcodeColumn).getCodewords()) {
             // if let Some(previousRowCodeword) = previousRowCodeword {
             // if previousRowCodeword.is_some() {
-            return ((if leftToRight {
-                previousRowCodeword.getEndX()
-            } else {
-                previousRowCodeword.getStartX()
-            }) as isize
-                + offset
-                    * skippedColumns as isize
-                    * (previousRowCodeword.getEndX() - previousRowCodeword.getStartX()) as isize)
-                as u32;
+            return Some(
+                ((if leftToRight {
+                    previousRowCodeword.getEndX()
+                } else {
+                    previousRowCodeword.getStartX()
+                }) as isize
+                    + offset
+                        * skippedColumns as isize
+                        * (previousRowCodeword.getEndX() - previousRowCodeword.getStartX())
+                            as isize) as u32,
+            );
             // }
         }
         skippedColumns += 1;
     }
     if leftToRight {
-        detectionRXingResult.getBoundingBox().getMinX()
+        Some(detectionRXingResult.getBoundingBox().getMinX())
     } else {
-        detectionRXingResult.getBoundingBox().getMaxX()
+        Some(detectionRXingResult.getBoundingBox().getMaxX())
     }
 }
 
@@ -669,16 +692,14 @@ fn detectCodeword(
     // and try to adjust the read pixels, e.g. remove single pixel errors or try to cut off exceeding pixels.
     // min and maxCodewordWidth should not be used as they are calculated for the whole barcode an can be inaccurate
     // for the current position
-    let moduleBitCount = getModuleBitCount(
+    let mut moduleBitCount = getModuleBitCount(
         image,
         minColumn,
         maxColumn,
         leftToRight,
         startColumn,
         imageRow,
-    );
-    moduleBitCount?;
-    let mut moduleBitCount = moduleBitCount.unwrap();
+    )?;
 
     let endColumn;
     let codewordBitCount = moduleBitCount.iter().sum::<u32>();
@@ -791,7 +812,6 @@ fn adjustCodewordStartColumn(
     let mut leftToRight = leftToRight;
     // there should be no black pixels before the start column. If there are, then we need to start earlier.
     for _i in 0..2 {
-        // for (int i = 0; i < 2; i++) {
         while (if leftToRight {
             correctedStartColumn >= minColumn
         } else {
@@ -815,7 +835,7 @@ fn adjustCodewordStartColumn(
 }
 
 fn checkCodewordSkew(codewordSize: u32, minCodewordWidth: u32, maxCodewordWidth: u32) -> bool {
-    minCodewordWidth - CODEWORD_SKEW_SIZE <= codewordSize
+    minCodewordWidth as i64 - CODEWORD_SKEW_SIZE as i64 <= codewordSize as i64
         && codewordSize <= maxCodewordWidth + CODEWORD_SKEW_SIZE
 }
 
@@ -894,7 +914,7 @@ fn verifyCodewordCount(codewords: &mut [u32], numECCodewords: u32) -> Result<(),
 
 fn getBitCountForCodeword(codeword: u32) -> [u32; 8] {
     let mut codeword = codeword;
-    let mut result = [0; 8]; //new int[8];
+    let mut result = [0; 8];
     let mut previousValue = 0;
     let mut i = result.len() as isize - 1;
     loop {

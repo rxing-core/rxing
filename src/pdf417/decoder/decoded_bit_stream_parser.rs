@@ -62,6 +62,8 @@ const MACRO_PDF417_OPTIONAL_FIELD_ADDRESSEE: u32 = 4;
 const MACRO_PDF417_OPTIONAL_FIELD_FILE_SIZE: u32 = 5;
 const MACRO_PDF417_OPTIONAL_FIELD_CHECKSUM: u32 = 6;
 
+const PRE_TEXT_COMPACTION_MODE_LATCH: u32 = TEXT_COMPACTION_MODE_LATCH - 1;
+
 const PL: u32 = 25;
 const LL: u32 = 27;
 const AS: u32 = 27;
@@ -119,7 +121,9 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult, Ex
                 codeIndex = byteCompaction(code, codewords, codeIndex, &mut result)?
             }
             MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
-                result.append_char(char::from_u32(codewords[codeIndex]).ok_or(Exceptions::ParseException(None))?);
+                result.append_char(
+                    char::from_u32(codewords[codeIndex]).ok_or(Exceptions::ParseException(None))?,
+                );
                 codeIndex += 1;
             }
             NUMERIC_COMPACTION_MODE_LATCH => {
@@ -338,58 +342,60 @@ fn textCompaction(
     let mut index = 0;
     let mut end = false;
     let mut subMode = Mode::Alpha;
+
     while (codeIndex < codewords[0] as usize) && !end {
         let mut code = codewords[codeIndex];
         codeIndex += 1;
-        if code < TEXT_COMPACTION_MODE_LATCH {
-            textCompactionData[index] = code / 30;
-            textCompactionData[index + 1] = code % 30;
-            index += 2;
-        } else {
-            match code {
-                TEXT_COMPACTION_MODE_LATCH => {
-                    // reinitialize text compaction mode to alpha sub mode
-                    textCompactionData[index] = TEXT_COMPACTION_MODE_LATCH;
-                    index += 1;
-                }
-                BYTE_COMPACTION_MODE_LATCH
-                | BYTE_COMPACTION_MODE_LATCH_6
-                | NUMERIC_COMPACTION_MODE_LATCH
-                | BEGIN_MACRO_PDF417_CONTROL_BLOCK
-                | BEGIN_MACRO_PDF417_OPTIONAL_FIELD
-                | MACRO_PDF417_TERMINATOR => {
-                    codeIndex -= 1;
-                    end = true;
-                }
-                MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
-                    // The Mode Shift codeword 913 shall cause a temporary
-                    // switch from Text Compaction mode to Byte Compaction Mode::
-                    // This switch shall be in effect for only the next codeword,
-                    // after which the mode shall revert to the prevailing sub-mode
-                    // of the Text Compaction Mode:: Codeword 913 is only available
-                    // in Text Compaction mode; its use is described in 5.4.2.4.
-                    textCompactionData[index] = MODE_SHIFT_TO_BYTE_COMPACTION_MODE;
-                    code = codewords[codeIndex];
-                    codeIndex += 1;
-                    byteCompactionData[index] = code;
-                    index += 1;
-                }
-                ECI_CHARSET => {
-                    subMode = decodeTextCompaction(
-                        &textCompactionData,
-                        &byteCompactionData,
-                        index,
-                        result,
-                        subMode,
-                    );
-                    result.appendECI(codewords[codeIndex])?;
-                    codeIndex += 1;
-                    textCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
-                    byteCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
-                    index = 0;
-                }
-                _ => {}
+
+        match code {
+            ..=PRE_TEXT_COMPACTION_MODE_LATCH => {
+                textCompactionData[index] = code / 30;
+                textCompactionData[index + 1] = code % 30;
+                index += 2;
             }
+            TEXT_COMPACTION_MODE_LATCH => {
+                // reinitialize text compaction mode to alpha sub mode
+                textCompactionData[index] = TEXT_COMPACTION_MODE_LATCH;
+                index += 1;
+            }
+            BYTE_COMPACTION_MODE_LATCH
+            | BYTE_COMPACTION_MODE_LATCH_6
+            | NUMERIC_COMPACTION_MODE_LATCH
+            | BEGIN_MACRO_PDF417_CONTROL_BLOCK
+            | BEGIN_MACRO_PDF417_OPTIONAL_FIELD
+            | MACRO_PDF417_TERMINATOR => {
+                codeIndex -= 1;
+                end = true;
+            }
+            MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
+                // The Mode Shift codeword 913 shall cause a temporary
+                // switch from Text Compaction mode to Byte Compaction Mode::
+                // This switch shall be in effect for only the next codeword,
+                // after which the mode shall revert to the prevailing sub-mode
+                // of the Text Compaction Mode:: Codeword 913 is only available
+                // in Text Compaction mode; its use is described in 5.4.2.4.
+                textCompactionData[index] = MODE_SHIFT_TO_BYTE_COMPACTION_MODE;
+                code = codewords[codeIndex];
+                codeIndex += 1;
+                byteCompactionData[index] = code;
+                index += 1;
+            }
+            ECI_CHARSET => {
+                subMode = decodeTextCompaction(
+                    &textCompactionData,
+                    &byteCompactionData,
+                    index,
+                    result,
+                    subMode,
+                )
+                .ok_or(Exceptions::IllegalStateException(None))?;
+                result.appendECI(codewords[codeIndex])?;
+                codeIndex += 1;
+                textCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
+                byteCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
+                index = 0;
+            }
+            _ => {}
         }
     }
     decodeTextCompaction(
@@ -427,7 +433,7 @@ fn decodeTextCompaction(
     length: usize,
     result: &mut ECIStringBuilder,
     startMode: Mode,
-) -> Mode {
+) -> Option<Mode> {
     // Beginning from an initial state
     // The default compaction mode for PDF417 in effect at the start of each symbol shall always be Text
     // Compaction mode Alpha sub-mode (uppercase alphabetic). A latch codeword from another mode to the Text
@@ -436,6 +442,8 @@ fn decodeTextCompaction(
     let mut priorToShiftMode = startMode;
     let mut latchedMode = startMode;
     let mut i = 0;
+    const PRE_PL: u32 = PL - 1;
+    const PRE_PAL: u32 = PAL - 1;
     while i < length {
         let subModeCh = textCompactionData[i];
         let mut ch = 0 as char;
@@ -443,153 +451,137 @@ fn decodeTextCompaction(
             Mode::Alpha =>
             // Alpha (uppercase alphabetic)
             {
-                if subModeCh < 26 {
+                match subModeCh {
                     // Upper case Alpha Character
-                    ch = char::from_u32('A' as u32 + subModeCh).unwrap();
-                } else {
-                    match subModeCh {
-                        26 => ch = ' ',
-                        LL => {
-                            subMode = Mode::Lower;
-                            latchedMode = subMode;
-                        }
-                        ML => {
-                            subMode = Mode::Mixed;
-                            latchedMode = subMode;
-                        }
-                        PS => {
-                            // Shift to punctuation
-                            priorToShiftMode = subMode;
-                            subMode = Mode::PunctShift;
-                        }
-                        MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
-                            result.append_char(char::from_u32(byteCompactionData[i]).unwrap())
-                        }
-                        TEXT_COMPACTION_MODE_LATCH => {
-                            subMode = Mode::Alpha;
-                            latchedMode = subMode;
-                        }
-                        _ => {}
+                    0..=25 => ch = char::from_u32('A' as u32 + subModeCh)?,
+                    26 => ch = ' ',
+                    LL => {
+                        subMode = Mode::Lower;
+                        latchedMode = subMode;
                     }
+                    ML => {
+                        subMode = Mode::Mixed;
+                        latchedMode = subMode;
+                    }
+                    PS => {
+                        // Shift to punctuation
+                        priorToShiftMode = subMode;
+                        subMode = Mode::PunctShift;
+                    }
+                    MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
+                        result.append_char(char::from_u32(byteCompactionData[i])?)
+                    }
+                    TEXT_COMPACTION_MODE_LATCH => {
+                        subMode = Mode::Alpha;
+                        latchedMode = subMode;
+                    }
+                    _ => {}
                 }
             }
 
             Mode::Lower =>
             // Lower (lowercase alphabetic)
             {
-                if subModeCh < 26 {
-                    ch = char::from_u32('a' as u32 + subModeCh).unwrap();
-                } else {
-                    match subModeCh {
-                        26 => ch = ' ',
-                        AS => {
-                            // Shift to alpha
-                            priorToShiftMode = subMode;
-                            subMode = Mode::AlphaShift;
-                        }
-                        ML => {
-                            subMode = Mode::Mixed;
-                            latchedMode = subMode;
-                        }
-                        PS => {
-                            // Shift to punctuation
-                            priorToShiftMode = subMode;
-                            subMode = Mode::PunctShift;
-                        }
-                        MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
-                            result.append_char(char::from_u32(byteCompactionData[i]).unwrap())
-                        }
-                        TEXT_COMPACTION_MODE_LATCH => {
-                            subMode = Mode::Alpha;
-                            latchedMode = subMode;
-                        }
-                        _ => {}
+                match subModeCh {
+                    ..=25 => ch = char::from_u32('a' as u32 + subModeCh)?,
+                    26 => ch = ' ',
+                    AS => {
+                        // Shift to alpha
+                        priorToShiftMode = subMode;
+                        subMode = Mode::AlphaShift;
                     }
+                    ML => {
+                        subMode = Mode::Mixed;
+                        latchedMode = subMode;
+                    }
+                    PS => {
+                        // Shift to punctuation
+                        priorToShiftMode = subMode;
+                        subMode = Mode::PunctShift;
+                    }
+                    MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
+                        result.append_char(char::from_u32(byteCompactionData[i])?)
+                    }
+                    TEXT_COMPACTION_MODE_LATCH => {
+                        subMode = Mode::Alpha;
+                        latchedMode = subMode;
+                    }
+                    _ => {}
                 }
             }
 
             Mode::Mixed =>
             // Mixed (numeric and some punctuation)
             {
-                if subModeCh < PL {
-                    ch = MIXED_CHARS[subModeCh as usize];
-                } else {
-                    match subModeCh {
-                        PL => {
-                            subMode = Mode::Punct;
-                            latchedMode = subMode;
-                        }
-                        26 => ch = ' ',
-                        LL => {
-                            subMode = Mode::Lower;
-                            latchedMode = subMode;
-                        }
-                        AL | TEXT_COMPACTION_MODE_LATCH => {
-                            subMode = Mode::Alpha;
-                            latchedMode = subMode;
-                        }
-                        PS => {
-                            // Shift to punctuation
-                            priorToShiftMode = subMode;
-                            subMode = Mode::PunctShift;
-                        }
-                        MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
-                            result.append_char(char::from_u32(byteCompactionData[i]).unwrap())
-                        }
-                        _ => {}
+                match subModeCh {
+                    0..=PRE_PL => ch = MIXED_CHARS[subModeCh as usize],
+                    PL => {
+                        subMode = Mode::Punct;
+                        latchedMode = subMode;
                     }
+                    26 => ch = ' ',
+                    LL => {
+                        subMode = Mode::Lower;
+                        latchedMode = subMode;
+                    }
+                    AL | TEXT_COMPACTION_MODE_LATCH => {
+                        subMode = Mode::Alpha;
+                        latchedMode = subMode;
+                    }
+                    PS => {
+                        // Shift to punctuation
+                        priorToShiftMode = subMode;
+                        subMode = Mode::PunctShift;
+                    }
+                    MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
+                        result.append_char(char::from_u32(byteCompactionData[i])?)
+                    }
+                    _ => {}
                 }
             }
 
             Mode::Punct =>
             // Punctuation
             {
-                if subModeCh < PAL {
-                    ch = PUNCT_CHARS[subModeCh as usize];
-                } else {
-                    match subModeCh {
-                        PAL | TEXT_COMPACTION_MODE_LATCH => {
-                            subMode = Mode::Alpha;
-                            latchedMode = subMode;
-                        }
-                        MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
-                            result.append_char(char::from_u32(byteCompactionData[i]).unwrap())
-                        }
-                        _ => {}
+                match subModeCh {
+                    ..=PRE_PAL => ch = PUNCT_CHARS[subModeCh as usize],
+                    PAL | TEXT_COMPACTION_MODE_LATCH => {
+                        subMode = Mode::Alpha;
+                        latchedMode = subMode;
                     }
+                    MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
+                        result.append_char(char::from_u32(byteCompactionData[i])?)
+                    }
+                    _ => {}
                 }
             }
 
             Mode::AlphaShift => {
                 // Restore sub-mode
                 subMode = priorToShiftMode;
-                if subModeCh < 26 {
-                    ch = char::from_u32('A' as u32 + subModeCh).unwrap();
-                } else {
-                    match subModeCh {
-                        26 => ch = ' ',
-                        TEXT_COMPACTION_MODE_LATCH => subMode = Mode::Alpha,
-                        _ => {}
-                    }
+
+                match subModeCh {
+                    ..=25 => ch = char::from_u32('A' as u32 + subModeCh)?,
+                    26 => ch = ' ',
+                    TEXT_COMPACTION_MODE_LATCH => subMode = Mode::Alpha,
+                    _ => {}
                 }
             }
 
             Mode::PunctShift => {
                 // Restore sub-mode
                 subMode = priorToShiftMode;
-                if subModeCh < PAL {
-                    ch = PUNCT_CHARS[subModeCh as usize];
-                } else {
-                    match subModeCh {
-                        PAL | TEXT_COMPACTION_MODE_LATCH => subMode = Mode::Alpha,
-                        MODE_SHIFT_TO_BYTE_COMPACTION_MODE =>
-                        // PS before Shift-to-Byte is used as a padding character,
-                        // see 5.4.2.4 of the specification
-                        {
-                            result.append_char(char::from_u32(byteCompactionData[i]).unwrap())
-                        }
-                        _ => {}
+
+                match subModeCh {
+                    ..=PRE_PAL => ch = PUNCT_CHARS[subModeCh as usize],
+                    PAL | TEXT_COMPACTION_MODE_LATCH => subMode = Mode::Alpha,
+                    MODE_SHIFT_TO_BYTE_COMPACTION_MODE =>
+                    // PS before Shift-to-Byte is used as a padding character,
+                    // see 5.4.2.4 of the specification
+                    {
+                        result.append_char(char::from_u32(byteCompactionData[i])?)
                     }
+                    _ => {}
                 }
             }
         }
@@ -599,7 +591,7 @@ fn decodeTextCompaction(
         }
         i += 1;
     }
-    latchedMode
+    Some(latchedMode)
 }
 
 /**
@@ -647,16 +639,13 @@ fn byteCompaction(
                 {
                     break;
                 }
-            } /*while (count < 5 &&
-              codeIndex < codewords[0] &&
-              codewords[codeIndex] < TEXT_COMPACTION_MODE_LATCH);*/
+            }
             if count == 5
                 && (mode == BYTE_COMPACTION_MODE_LATCH_6
                     || codeIndex < codewords[0] as usize
                         && codewords[codeIndex] < TEXT_COMPACTION_MODE_LATCH)
             {
                 for i in 0..6 {
-                    // for (int i = 0; i < 6; i++) {
                     result.append_byte((value >> (8 * (5 - i))) as u8);
                 }
             } else {
@@ -705,24 +694,24 @@ fn numericCompaction(
         if codeIndex == codewords[0] as usize {
             end = true;
         }
-        if code < TEXT_COMPACTION_MODE_LATCH {
-            numericCodewords[count] = code;
-            count += 1;
-        } else {
-            match code {
-                TEXT_COMPACTION_MODE_LATCH
-                | BYTE_COMPACTION_MODE_LATCH
-                | BYTE_COMPACTION_MODE_LATCH_6
-                | BEGIN_MACRO_PDF417_CONTROL_BLOCK
-                | BEGIN_MACRO_PDF417_OPTIONAL_FIELD
-                | MACRO_PDF417_TERMINATOR
-                | ECI_CHARSET => {
-                    codeIndex -= 1;
-                    end = true;
-                }
-                _ => {}
+        match code {
+            ..=PRE_TEXT_COMPACTION_MODE_LATCH => {
+                numericCodewords[count] = code;
+                count += 1;
             }
+            TEXT_COMPACTION_MODE_LATCH
+            | BYTE_COMPACTION_MODE_LATCH
+            | BYTE_COMPACTION_MODE_LATCH_6
+            | BEGIN_MACRO_PDF417_CONTROL_BLOCK
+            | BEGIN_MACRO_PDF417_OPTIONAL_FIELD
+            | MACRO_PDF417_TERMINATOR
+            | ECI_CHARSET => {
+                codeIndex -= 1;
+                end = true;
+            }
+            _ => {}
         }
+
         if (count % MAX_NUMERIC_CODEWORDS == 0 || code == NUMERIC_COMPACTION_MODE_LATCH || end)
             && count > 0
         {
@@ -781,11 +770,14 @@ fn numericCompaction(
   Remove leading 1 =>  RXingResult is 000213298174000
 */
 fn decodeBase900toBase10(codewords: &[u32], count: usize) -> Result<String, Exceptions> {
-    let mut result = 0.to_biguint().unwrap();
+    let mut result = 0
+        .to_biguint()
+        .ok_or(Exceptions::ArithmeticException(None))?;
     for i in 0..count {
-        // for (int i = 0; i < count; i++) {
-        result += &EXP900[count - i - 1] * (codewords[i].to_biguint().unwrap());
-        // result = result.add(EXP900[count - i - 1].multiply(BigInteger.valueOf(codewords[i])));
+        result += &EXP900[count - i - 1]
+            * (codewords[i]
+                .to_biguint()
+                .ok_or(Exceptions::ArithmeticException(None))?);
     }
     let resultString = result.to_string();
     if !resultString.starts_with('1') {

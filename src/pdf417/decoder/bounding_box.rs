@@ -102,10 +102,16 @@ impl BoundingBox {
         rightBox: Option<BoundingBox>,
     ) -> Result<BoundingBox, Exceptions> {
         if leftBox.is_none() {
-            return Ok(rightBox.as_ref().ok_or(Exceptions::IllegalStateException(None))?.clone());
+            return Ok(rightBox
+                .as_ref()
+                .ok_or(Exceptions::IllegalStateException(None))?
+                .clone());
         }
         if rightBox.is_none() {
-            return Ok(leftBox.as_ref().ok_or(Exceptions::IllegalStateException(None))?.clone());
+            return Ok(leftBox
+                .as_ref()
+                .ok_or(Exceptions::IllegalStateException(None))?
+                .clone());
         }
         let leftBox = leftBox.ok_or(Exceptions::IllegalStateException(None))?;
         let rightBox = rightBox.ok_or(Exceptions::IllegalStateException(None))?;

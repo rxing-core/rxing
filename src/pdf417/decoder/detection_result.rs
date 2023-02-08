@@ -40,20 +40,16 @@ impl DetectionRXingResult {
         barcodeMetadata: BarcodeMetadata,
         boundingBox: Rc<BoundingBox>,
     ) -> DetectionRXingResult {
-        let mut columns = Vec::new();
+        let mut columns = Vec::with_capacity(barcodeMetadata.getColumnCount() as usize + 2);
         for _i in 0..(barcodeMetadata.getColumnCount() as usize + 2) {
             columns.push(None);
         }
         DetectionRXingResult {
             barcodeColumnCount: barcodeMetadata.getColumnCount() as usize,
-            detectionRXingResultColumns: columns, //vec![None; barcodeMetadata.getColumnCount() as usize + 2],
+            detectionRXingResultColumns: columns,
             barcodeMetadata,
             boundingBox,
         }
-        // this.barcodeMetadata = barcodeMetadata;
-        // this.barcodeColumnCount = barcodeMetadata.getColumnCount();
-        // this.boundingBox = boundingBox;
-        // detectionRXingResultColumns = new DetectionRXingResultColumn[barcodeColumnCount + 2];
     }
 
     pub fn getDetectionRXingResultColumns(
@@ -70,7 +66,7 @@ impl DetectionRXingResult {
             if !(unadjustedCodewordCount > 0 && unadjustedCodewordCount < previousUnadjustedCount) {
                 break;
             }
-        } //while (unadjustedCodewordCount > 0 && unadjustedCodewordCount < previousUnadjustedCount);
+        }
         &self.detectionRXingResultColumns
     }
 
@@ -79,15 +75,13 @@ impl DetectionRXingResult {
         pos: usize,
         // detectionRXingResultColumn: &mut Option<DetectionRXingResultColumn>,
     ) {
-        if self.detectionRXingResultColumns[pos].is_some() {
+        if let Some(col) = self.detectionRXingResultColumns[pos].as_mut() {
+            // if self.detectionRXingResultColumns[pos].is_some() {
             // if (detectionRXingResultColumn != null) {
             //   ((DetectionRXingResultRowIndicatorColumn) detectionRXingResultColumn)
             //       .adjustCompleteIndicatorColumnRowNumbers(barcodeMetadata);
             // }
-            self.detectionRXingResultColumns[pos]
-                .as_mut()
-                .unwrap()
-                .as_indicator_row()
+            col.as_indicator_row()
                 .adjustCompleteIndicatorColumnRowNumbers(&self.barcodeMetadata);
         }
     }

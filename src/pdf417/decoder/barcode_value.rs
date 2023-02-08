@@ -31,7 +31,10 @@ impl BarcodeValue {
      * Add an occurrence of a value
      */
     pub fn setValue(&mut self, value: u32) {
-        self.0.entry(value).and_modify(|confidence| *confidence += 1).or_insert(1);
+        self.0
+            .entry(value)
+            .and_modify(|confidence| *confidence += 1)
+            .or_insert(1);
     }
 
     /**
