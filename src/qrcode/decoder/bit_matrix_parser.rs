@@ -58,13 +58,15 @@ impl BitMatrixParser {
      */
     pub fn readFormatInformation(&mut self) -> Result<&FormatInformation, Exceptions> {
         if self.parsedFormatInfo.is_some() {
-            return Ok(self.parsedFormatInfo.as_ref().unwrap());
+            return self
+                .parsedFormatInfo
+                .as_ref()
+                .ok_or(Exceptions::ParseException(None));
         }
 
         // Read top-left format info bits
         let mut formatInfoBits1 = 0;
         for i in 0..6 {
-            // for (int i = 0; i < 6; i++) {
             formatInfoBits1 = self.copyBit(i, 8, formatInfoBits1);
         }
         // .. and skip a bit in the timing pattern ...
@@ -73,7 +75,6 @@ impl BitMatrixParser {
         formatInfoBits1 = self.copyBit(8, 7, formatInfoBits1);
         // .. and skip a bit in the timing pattern ...
         for j in (0..=5).rev() {
-            // for (int j = 5; j >= 0; j--) {
             formatInfoBits1 = self.copyBit(8, j, formatInfoBits1);
         }
 
@@ -82,20 +83,18 @@ impl BitMatrixParser {
         let mut formatInfoBits2 = 0;
         let jMin = dimension - 7;
         for j in (jMin..=dimension - 1).rev() {
-            // for (int j = dimension - 1; j >= jMin; j--) {
             formatInfoBits2 = self.copyBit(8, j, formatInfoBits2);
         }
         for i in (dimension - 8)..dimension {
-            // for (int i = dimension - 8; i < dimension; i++) {
             formatInfoBits2 = self.copyBit(i, 8, formatInfoBits2);
         }
 
         self.parsedFormatInfo =
             FormatInformation::decodeFormatInformation(formatInfoBits1, formatInfoBits2);
-        if let Some(pfi) = &self.parsedFormatInfo {
-            return Ok(pfi);
-        }
-        Err(Exceptions::FormatException(None))
+
+        self.parsedFormatInfo
+            .as_ref()
+            .ok_or(Exceptions::FormatException(None))
     }
 
     /**
@@ -121,9 +120,7 @@ impl BitMatrixParser {
         let mut versionBits = 0;
         let ijMin = dimension - 11;
         for j in (0..=5).rev() {
-            // for (int j = 5; j >= 0; j--) {
             for i in (ijMin..(dimension - 8)).rev() {
-                // for (int i = dimension - 9; i >= ijMin; i--) {
                 versionBits = self.copyBit(i, j, versionBits);
             }
         }
@@ -138,9 +135,7 @@ impl BitMatrixParser {
         // Hmm, failed. Try bottom left: 6 wide by 3 tall
         versionBits = 0;
         for i in (0..=5).rev() {
-            // for (int i = 5; i >= 0; i--) {
             for j in (ijMin..(dimension - 5)).rev() {
-                // for (int j = dimension - 9; j >= ijMin; j--) {
                 versionBits = self.copyBit(i, j, versionBits);
             }
         }
@@ -160,6 +155,7 @@ impl BitMatrixParser {
         } else {
             self.bitMatrix.get(i, j)
         };
+
         if bit {
             (versionBits << 1) | 0x1
         } else {
@@ -176,12 +172,11 @@ impl BitMatrixParser {
      * @throws FormatException if the exact number of bytes expected is not read
      */
     pub fn readCodewords(&mut self) -> Result<Vec<u8>, Exceptions> {
-        // let formatInfo = self.readFormatInformation()?;
         let version = self.readVersion()?;
 
         // Get the data mask for the format used in this QR Code. This will exclude
         // some bits from reading as we wind through the bit matrix.
-        let dataMask: DataMask = self.readFormatInformation()?.getDataMask().try_into()?; //DataMask.values()[formatInfo.getDataMask()];
+        let dataMask: DataMask = self.readFormatInformation()?.getDataMask().try_into()?;
         let dimension = self.bitMatrix.getHeight();
         dataMask.unmaskBitMatrix(&mut self.bitMatrix, dimension);
 
@@ -195,7 +190,6 @@ impl BitMatrixParser {
         // Read columns in pairs, from right to left
         let mut j = dimension as i32 - 1;
         while j > 0 {
-            // for (int j = dimension - 1; j > 0; j -= 2) {
             if j == 6 {
                 // Skip whole column with vertical alignment pattern;
                 // saves time and makes the other code proceed more cleanly
@@ -203,14 +197,12 @@ impl BitMatrixParser {
             }
             // Read alternatingly from bottom to top then top to bottom
             for count in 0..dimension {
-                // for (int count = 0; count < dimension; count++) {
                 let i = if readingUp {
                     dimension - 1 - count
                 } else {
                     count
                 };
                 for col in 0..2 {
-                    // for (int col = 0; col < 2; col++) {
                     // Ignore bits covered by the function pattern
                     if !functionPattern.get(j as u32 - col, i) {
                         // Read a bit
@@ -243,20 +235,15 @@ impl BitMatrixParser {
     /**
      * Revert the mask removal done while reading the code words. The bit matrix should revert to its original state.
      */
-    pub fn remask(&mut self) {
+    pub fn remask(&mut self) -> Result<(), Exceptions> {
         if let Some(pfi) = &self.parsedFormatInfo {
-            let dataMask: DataMask = pfi.getDataMask().try_into().unwrap(); // DataMask.values()[self.parsedFormatInfo.getDataMask()];
+            let dataMask: DataMask = pfi.getDataMask().try_into()?;
             let dimension = self.bitMatrix.getHeight();
             dataMask.unmaskBitMatrix(&mut self.bitMatrix, dimension);
         } else {
             // We have no format information, and have no data mask
         }
-        // if self.parsedFormatInfo.is_none() {
-        //   return; // We have no format information, and have no data mask
-        // }
-        // let dataMask = self.parsedFormatInfo.getDataMask()// DataMask.values()[self.parsedFormatInfo.getDataMask()];
-        // let dimension = self.bitMatrix.getHeight();
-        // dataMask.unmaskBitMatrix(self.bitMatrix, dimension);
+        Ok(())
     }
 
     /**
@@ -276,9 +263,7 @@ impl BitMatrixParser {
     /** Mirror the bit matrix in order to attempt a second reading. */
     pub fn mirror(&mut self) {
         for x in 0..self.bitMatrix.getWidth() {
-            // for (int x = 0; x < bitMatrix.getWidth(); x++) {
             for y in (x + 1)..self.bitMatrix.getHeight() {
-                // for (int y = x + 1; y < bitMatrix.getHeight(); y++) {
                 if self.bitMatrix.get(x, y) != self.bitMatrix.get(y, x) {
                     self.bitMatrix.flip_coords(y, x);
                     self.bitMatrix.flip_coords(x, y);

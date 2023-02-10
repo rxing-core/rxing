@@ -50,9 +50,7 @@ pub fn decode(
     let mut byteSegments = vec![vec![0u8; 0]; 0];
     let mut symbolSequence = -1i32;
     let mut parityData = -1i32;
-    let symbologyModifier;
 
-    // try {
     let mut currentCharacterSetECI = None;
     let mut fc1InEffect = false;
     let mut hasFNC1first = false;
@@ -93,7 +91,7 @@ pub fn decode(
             Mode::ECI => {
                 // Count doesn't apply to ECI
                 let value = parseECIValue(&mut bits)?;
-                currentCharacterSetECI = Some(CharacterSetECI::getCharacterSetECIByValue(value)?);
+                currentCharacterSetECI = CharacterSetECI::getCharacterSetECIByValue(value).ok();
                 if currentCharacterSetECI.is_none() {
                     return Err(Exceptions::FormatException(Some(format!(
                         "Value of {value} not valid"
@@ -144,26 +142,21 @@ pub fn decode(
         }
     }
 
-    if currentCharacterSetECI.is_some() {
+    let symbologyModifier = if currentCharacterSetECI.is_some() {
         if hasFNC1first {
-            symbologyModifier = 4;
+            4
         } else if hasFNC1second {
-            symbologyModifier = 6;
+            6
         } else {
-            symbologyModifier = 2;
+            2
         }
     } else if hasFNC1first {
-        symbologyModifier = 3;
+        3
     } else if hasFNC1second {
-        symbologyModifier = 5;
+        5
     } else {
-        symbologyModifier = 1;
-    }
-
-    // } catch (IllegalArgumentException iae) {
-    //   // from readBits() calls
-    //   throw FormatException.getFormatInstance();
-    // }
+        1
+    };
 
     Ok(DecoderRXingResult::with_all(
         bytes.to_owned(),
@@ -207,18 +200,20 @@ fn decodeHanziSegment(
             // In the 0xB0A1 to 0xFAFE range
             assembledTwoBytes += 0x0A6A1;
         }
-        // buffer[offset] = ((assembledTwoBytes >> 8) & 0xFF);
-        // buffer[offset + 1] = (assembledTwoBytes & 0xFF);
+
         buffer[offset] = (assembledTwoBytes >> 8) as u8;
         buffer[offset + 1] = assembledTwoBytes as u8;
         offset += 2;
         count -= 1;
     }
 
-    let gb_encoder = encoding::label::encoding_from_whatwg_label("GBK").unwrap();
+    let gb_encoder = encoding::label::encoding_from_whatwg_label("GBK")
+        .ok_or(Exceptions::IllegalStateException(None))?;
     let encode_string = gb_encoder
         .decode(&buffer, encoding::DecoderTrap::Strict)
-        .unwrap();
+        .map_err(|e| {
+            Exceptions::ParseException(Some(format!("unable to decode buffer {buffer:?}: {e}")))
+        })?;
     result.push_str(&encode_string);
     Ok(())
 }
@@ -261,27 +256,29 @@ fn decodeKanjiSegment(
     let encoder = {
         let _ = currentCharacterSetECI;
         let _ = hints;
-        encoding::label::encoding_from_whatwg_label("SJIS").unwrap()
+        encoding::label::encoding_from_whatwg_label("SJIS")
+            .ok_or(Exceptions::FormatException(None))?
     };
 
     #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
     let encoder = if let Some(DecodeHintValue::QrAssumeSpecConformInput(true)) =
         hints.get(&DecodeHintType::QR_ASSUME_SPEC_CONFORM_INPUT)
     {
-        // if (hints != null && hints.containsKey(DecodeHintType.QR_ASSUME_SPEC_CONFORM_INPUT)) {
         if let Some(ccse) = &currentCharacterSetECI {
-            //   if (currentCharacterSetECI == null) {
             CharacterSetECI::getCharset(ccse)
         } else {
             encoding::all::ISO_8859_1
         }
     } else {
-        encoding::label::encoding_from_whatwg_label("SJIS").unwrap()
+        encoding::label::encoding_from_whatwg_label("SJIS")
+            .ok_or(Exceptions::FormatException(None))?
     };
 
     let encode_string = encoder
         .decode(&buffer, encoding::DecoderTrap::Strict)
-        .unwrap();
+        .map_err(|e| {
+            Exceptions::ParseException(Some(format!("unable to decode buffer {buffer:?}: {e}")))
+        })?;
 
     result.push_str(&encode_string);
 
@@ -304,8 +301,6 @@ fn decodeByteSegment(
     let mut readBytes = vec![0u8; count];
 
     for byte in readBytes.iter_mut().take(count) {
-        // for i in 0..count {
-        // for (int i = 0; i < count; i++) {
         *byte = bits.readBits(8)? as u8;
     }
     let encoding = if currentCharacterSetECI.is_none() {
@@ -329,11 +324,18 @@ fn decodeByteSegment(
             StringUtils::guessCharset(&readBytes, hints)
         }
     } else {
-        CharacterSetECI::getCharset(currentCharacterSetECI.as_ref().unwrap())
+        CharacterSetECI::getCharset(
+            currentCharacterSetECI
+                .as_ref()
+                .ok_or(Exceptions::IllegalStateException(None))?,
+        )
     };
 
     let encode_string = if currentCharacterSetECI.is_some()
-        && currentCharacterSetECI.as_ref().unwrap() == &CharacterSetECI::Cp437
+        && currentCharacterSetECI
+            .as_ref()
+            .ok_or(Exceptions::IllegalStateException(None))?
+            == &CharacterSetECI::Cp437
     {
         {
             use codepage_437::BorrowFromCp437;
@@ -344,12 +346,13 @@ fn decodeByteSegment(
     } else {
         encoding
             .decode(&readBytes, encoding::DecoderTrap::Strict)
-            .unwrap()
+            .map_err(|e| {
+                Exceptions::ParseException(Some(format!(
+                    "unable to decode buffer {readBytes:?}: {e}"
+                )))
+            })?
     };
 
-    // let encode_string = encoding
-    //     .decode(&readBytes, encoding::DecoderTrap::Strict)
-    //     .unwrap();
     result.push_str(&encode_string);
     byteSegments.push(readBytes);
 
@@ -360,7 +363,11 @@ fn toAlphaNumericChar(value: u32) -> Result<char, Exceptions> {
     if value as usize >= ALPHANUMERIC_CHARS.len() {
         return Err(Exceptions::FormatException(None));
     }
-    Ok(ALPHANUMERIC_CHARS.chars().nth(value as usize).unwrap())
+
+    ALPHANUMERIC_CHARS
+        .chars()
+        .nth(value as usize)
+        .ok_or(Exceptions::FormatException(None))
 }
 
 fn decodeAlphanumericSegment(
@@ -392,16 +399,24 @@ fn decodeAlphanumericSegment(
     if fc1InEffect {
         // We need to massage the result a bit if in an FNC1 mode:
         for i in start..result.len() {
-            // for (int i = start; i < result.length(); i++) {
-            if result.chars().nth(i).unwrap() == '%' {
-                if i < result.len() - 1 && result.chars().nth(i + 1).unwrap() == '%' {
+            if result
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                == '%'
+            {
+                if i < result.len() - 1
+                    && result
+                        .chars()
+                        .nth(i + 1)
+                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                        == '%'
+                {
                     // %% is rendered as %
                     result.remove(i + 1);
-                    // result.deleteCharAt(i + 1);
                 } else {
                     // In alpha mode, % should be converted to FNC1 separator 0x1D
                     result.replace_range(i..i + 1, "\u{1D}");
-                    // result.setCharAt(i, 0x1D);
                 }
             }
         }

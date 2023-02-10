@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use crate::Exceptions;
+
 use super::ErrorCorrectionLevel;
 
 const FORMAT_INFO_MASK_QR: u32 = 0x5412;
@@ -71,16 +73,15 @@ pub struct FormatInformation {
 }
 
 impl FormatInformation {
-    fn new(format_info: u8) -> Self {
+    fn new(format_info: u8) -> Result<Self, Exceptions> {
         // Bits 3,4
-        let errorCorrectionLevel =
-            ErrorCorrectionLevel::forBits((format_info >> 3) & 0x03).expect("pass in valid bits");
+        let errorCorrectionLevel = ErrorCorrectionLevel::forBits((format_info >> 3) & 0x03)?;
         // Bottom 3 bits
         let dataMask = format_info & 0x07;
-        Self {
+        Ok(Self {
             error_correction_level: errorCorrectionLevel,
             data_mask: dataMask,
-        }
+        })
     }
 
     pub fn numBitsDiffering(a: u32, b: u32) -> u32 {
@@ -120,11 +121,10 @@ impl FormatInformation {
         let mut best_difference = u32::MAX;
         let mut best_format_info = 0;
         for decodeInfo in FORMAT_INFO_DECODE_LOOKUP {
-            // for (int[] decodeInfo : FORMAT_INFO_DECODE_LOOKUP) {
             let targetInfo = decodeInfo[0];
             if targetInfo == masked_format_info1 || targetInfo == masked_format_info2 {
                 // Found an exact match
-                return Some(FormatInformation::new(decodeInfo[1] as u8));
+                return FormatInformation::new(decodeInfo[1] as u8).ok();
             }
             let mut bits_difference = Self::numBitsDiffering(masked_format_info1, targetInfo);
             if bits_difference < best_difference {
@@ -143,7 +143,7 @@ impl FormatInformation {
         // Hamming distance of the 32 masked codes is 7, by construction, so <= 3 bits
         // differing means we found a match
         if best_difference <= 3 {
-            return Some(FormatInformation::new(best_format_info));
+            return FormatInformation::new(best_format_info).ok();
         }
         None
     }

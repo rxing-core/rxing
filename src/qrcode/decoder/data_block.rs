@@ -66,7 +66,6 @@ impl DataBlock {
         let mut _totalBlocks = 0;
         let ecBlockArray = ecBlocks.getECBlocks();
         for ecBlock in ecBlockArray {
-            // for (Version.ECB ecBlock : ecBlockArray) {
             _totalBlocks += ecBlock.getCount();
         }
 
@@ -74,12 +73,9 @@ impl DataBlock {
         let mut result = Vec::new();
         let mut numRXingResultBlocks = 0;
         for ecBlock in ecBlockArray {
-            // for (Version.ECB ecBlock : ecBlockArray) {
             for _i in 0..ecBlock.getCount() {
-                // for (int i = 0; i < ecBlock.getCount(); i++) {
                 let numDataCodewords = ecBlock.getDataCodewords();
                 let numBlockCodewords = ecBlocks.getECCodewordsPerBlock() + numDataCodewords;
-                // result[numRXingResultBlocks] =  DataBlock::new(numDataCodewords, vec![0u8;numBlockCodewords as usize]);
                 result.push(DataBlock::new(
                     numDataCodewords,
                     vec![0u8; numBlockCodewords as usize],
@@ -93,8 +89,8 @@ impl DataBlock {
         let shorterBlocksTotalCodewords = result[0].codewords.len();
         let mut longerBlocksStartAt = result.len() - 1;
         loop {
-            //while longerBlocksStartAt >= 0 {
             let numCodewords = result[longerBlocksStartAt].codewords.len();
+
             if numCodewords == shorterBlocksTotalCodewords {
                 break;
             }
@@ -108,10 +104,7 @@ impl DataBlock {
         // first fill out as many elements as all of them have
         let mut rawCodewordsOffset = 0;
         for i in 0..shorterBlocksNumDataCodewords {
-            // for (int i = 0; i < shorterBlocksNumDataCodewords; i++) {
             for result_j in result.iter_mut().take(numRXingResultBlocks) {
-                // for j in 0..numRXingResultBlocks {
-                // for (int j = 0; j < numRXingResultBlocks; j++) {
                 result_j.codewords[i] = rawCodewords[rawCodewordsOffset];
                 rawCodewordsOffset += 1;
             }
@@ -122,17 +115,13 @@ impl DataBlock {
             .take(numRXingResultBlocks)
             .skip(longerBlocksStartAt)
         {
-            // for j in longerBlocksStartAt..numRXingResultBlocks {
-            // for (int j = longerBlocksStartAt; j < numRXingResultBlocks; j++) {
             res.codewords[shorterBlocksNumDataCodewords] = rawCodewords[rawCodewordsOffset];
             rawCodewordsOffset += 1;
         }
         // Now add in error correction blocks
         let max = result[0].codewords.len();
         for i in shorterBlocksNumDataCodewords..max {
-            // for (int i = shorterBlocksNumDataCodewords; i < max; i++) {
             for (j, res) in result.iter_mut().enumerate().take(numRXingResultBlocks) {
-                // for (int j = 0; j < numRXingResultBlocks; j++) {
                 let iOffset = if j < longerBlocksStartAt { i } else { i + 1 };
                 res.codewords[iOffset] = rawCodewords[rawCodewordsOffset];
                 rawCodewordsOffset += 1;
