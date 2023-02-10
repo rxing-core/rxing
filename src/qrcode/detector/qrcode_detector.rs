@@ -83,23 +83,13 @@ impl<'a> Detector<'_> {
         self.resultPointCallback = if let Some(DecodeHintValue::NeedResultPointCallback(cb)) =
             hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK)
         {
-            // if let DecodeHintValue::NeedResultPointCallback(cb) = nrpc {
             Some(cb.clone())
-            // } else {
-            //     None
-            // }
         } else {
             None
         };
 
-        // self.resultPointCallback = hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK);
-        // resultPointCallback = hints == null ? null :
-        //     (RXingResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
-
-        let mut finder = FinderPatternFinder::with_callback(
-            self.image.clone(),
-            self.resultPointCallback.clone(),
-        );
+        let mut finder =
+            FinderPatternFinder::with_callback(self.image, self.resultPointCallback.clone());
         let info = finder.find(hints)?;
 
         self.processFinderPatternInfo(info)
@@ -139,51 +129,41 @@ impl<'a> Detector<'_> {
             // Kind of arbitrary -- expand search radius before giving up
             let mut i = 4;
             while i <= 16 {
-                // for (int i = 4; i <= 16; i <<= 1) {
                 if let Ok(ap) =
                     self.findAlignmentInRegion(moduleSize, estAlignmentX, estAlignmentY, i as f32)
                 {
                     alignmentPattern = Some(ap);
                     break;
                 }
-                // try {
-                //   alignmentPattern = findAlignmentInRegion(moduleSize,
-                //       estAlignmentX,
-                //       estAlignmentY,
-                //       i);
-                //   break;
-                // } catch (NotFoundException re) {
-                //   // try next round
-                // }
                 i <<= 1;
             }
             // If we didn't find alignment pattern... well try anyway without it
         }
 
-        let ap_ref = if alignmentPattern.is_some() {
-            Some(alignmentPattern.as_ref().unwrap())
-        } else {
-            None
-        };
-
-        let transform = Self::createTransform(topLeft, topRight, bottomLeft, ap_ref, dimension);
+        let transform = Self::createTransform(
+            topLeft,
+            topRight,
+            bottomLeft,
+            alignmentPattern.as_ref(),
+            dimension,
+        )
+        .ok_or(Exceptions::NotFoundException(None))?;
 
         let bits = Detector::sampleGrid(self.image, &transform, dimension)?;
 
-        let points = if alignmentPattern.is_none() {
-            vec![
-                bottomLeft.into_rxing_result_point(),
-                topLeft.into_rxing_result_point(),
-                topRight.into_rxing_result_point(),
-            ]
-        } else {
-            vec![
-                bottomLeft.into_rxing_result_point(),
-                topLeft.into_rxing_result_point(),
-                topRight.into_rxing_result_point(),
-                alignmentPattern.unwrap().into_rxing_result_point(),
-            ]
-        };
+        let mut points = vec![
+            bottomLeft.into_rxing_result_point(),
+            topLeft.into_rxing_result_point(),
+            topRight.into_rxing_result_point(),
+        ];
+
+        if alignmentPattern.is_some() {
+            points.push(
+                alignmentPattern
+                    .ok_or(Exceptions::NotFoundException(None))?
+                    .into_rxing_result_point(),
+            )
+        }
 
         Ok(QRCodeDetectorResult::new(bits, points))
     }
@@ -194,14 +174,14 @@ impl<'a> Detector<'_> {
         bottomLeft: &T,
         alignmentPattern: Option<&X>,
         dimension: u32,
-    ) -> PerspectiveTransform {
+    ) -> Option<PerspectiveTransform> {
         let dimMinusThree = dimension as f32 - 3.5;
         let bottomRightX: f32;
         let bottomRightY: f32;
         let sourceBottomRightX: f32;
         let sourceBottomRightY: f32;
         if alignmentPattern.is_some() {
-            let alignmentPattern = alignmentPattern.as_ref().unwrap();
+            let alignmentPattern = alignmentPattern?;
             bottomRightX = alignmentPattern.getX();
             bottomRightY = alignmentPattern.getY();
             sourceBottomRightX = dimMinusThree - 3.0;
@@ -214,7 +194,7 @@ impl<'a> Detector<'_> {
             sourceBottomRightY = dimMinusThree;
         }
 
-        PerspectiveTransform::quadrilateralToQuadrilateral(
+        Some(PerspectiveTransform::quadrilateralToQuadrilateral(
             3.5,
             3.5,
             dimMinusThree,
@@ -231,7 +211,7 @@ impl<'a> Detector<'_> {
             bottomRightY,
             bottomLeft.getX(),
             bottomLeft.getY(),
-        )
+        ))
     }
 
     fn sampleGrid(
@@ -264,17 +244,6 @@ impl<'a> Detector<'_> {
             3 => return Err(Exceptions::NotFoundException(None)),
             _ => {}
         }
-        // switch (dimension & 0x03) { // mod 4
-        //   case 0:
-        //     dimension++;
-        //     break;
-        //     // 1? do nothing
-        //   case 2:
-        //     dimension--;
-        //     break;
-        //   case 3:
-        //   return Err(Exceptions::NotFoundException("not found".to_owned()))
-        // }
         Ok(dimension as u32)
     }
 
@@ -401,7 +370,6 @@ impl<'a> Detector<'_> {
         let mut x: i32 = fromX as i32;
         let mut y: i32 = fromY as i32;
         while x != xLimit {
-            // for (int x = fromX, y = fromY; x != xLimit; x += xstep) {
             let realX = if steep { y } else { x };
             let realY = if steep { x } else { y };
 

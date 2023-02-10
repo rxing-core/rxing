@@ -15,8 +15,8 @@
  */
 
 use crate::{
-    common::BitMatrix, result_point_utils, DecodeHintType, DecodingHintDictionary, Exceptions,
-    RXingResultPointCallback, ResultPoint,
+    common::BitMatrix, result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
+    Exceptions, RXingResultPointCallback, ResultPoint,
 };
 
 use super::{FinderPattern, FinderPatternInfo};
@@ -29,16 +29,15 @@ use super::{FinderPattern, FinderPatternInfo};
  *
  * @author Sean Owen
  */
-pub struct FinderPatternFinder {
-    image: BitMatrix,
+pub struct FinderPatternFinder<'a> {
+    image: &'a BitMatrix,
     possibleCenters: Vec<FinderPattern>,
     hasSkipped: bool,
     crossCheckStateCount: [u32; 5],
     resultPointCallback: Option<RXingResultPointCallback>,
 }
-impl FinderPatternFinder {
+impl<'a> FinderPatternFinder<'_> {
     pub const CENTER_QUORUM: usize = 2;
-    // private static final EstimatedModuleComparator moduleComparator = new EstimatedModuleComparator();
     pub const MIN_SKIP: u32 = 3; // 1 pixel/module times 3 modules/center
     pub const MAX_MODULES: u32 = 97; // support up to version 20 for mobile clients
 
@@ -47,15 +46,15 @@ impl FinderPatternFinder {
      *
      * @param image image to search
      */
-    pub fn new(image: BitMatrix) -> Self {
+    pub fn new(image: &'a BitMatrix) -> FinderPatternFinder<'a> {
         Self::with_callback(image, None)
     }
 
     pub fn with_callback(
-        image: BitMatrix,
+        image: &'a BitMatrix,
         resultPointCallback: Option<RXingResultPointCallback>,
-    ) -> Self {
-        Self {
+    ) -> FinderPatternFinder<'a> {
+        FinderPatternFinder {
             image,
             possibleCenters: Vec::new(),
             hasSkipped: false,
@@ -76,7 +75,10 @@ impl FinderPatternFinder {
         &mut self,
         hints: &DecodingHintDictionary,
     ) -> Result<FinderPatternInfo, Exceptions> {
-        let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
+        let tryHarder = matches!(
+            hints.get(&DecodeHintType::TRY_HARDER),
+            Some(DecodeHintValue::TryHarder(true))
+        );
         let maxI = self.image.getHeight();
         let maxJ = self.image.getWidth();
         // We are looking for black/white/black/white/black modules in
@@ -95,13 +97,11 @@ impl FinderPatternFinder {
         let mut stateCount = [0u32; 5];
         let mut i = iSkip as i32 - 1;
         while i < maxI as i32 && !done {
-            // for (int i = iSkip - 1; i < maxI && !done; i += iSkip) {
             // Get a row of black/white values
             FinderPatternFinder::doClearCounts(&mut stateCount);
             let mut currentState = 0;
             let mut j = 0;
             while j < maxJ {
-                // for (int j = 0; j < maxJ; j++) {
                 if self.image.get(j, i as u32) {
                     // Black pixel
                     if (currentState & 1) == 1 {
@@ -203,9 +203,6 @@ impl FinderPatternFinder {
     pub fn foundPatternCross(stateCount: &[u32]) -> bool {
         let mut totalModuleSize = 0;
         for count in stateCount.iter().take(5) {
-            // for i in 0..5 {
-            // for (int i = 0; i < 5; i++) {
-            // let count = *state;
             if *count == 0 {
                 return false;
             }
@@ -232,8 +229,6 @@ impl FinderPatternFinder {
     pub fn foundPatternDiagonal(stateCount: &[u32]) -> bool {
         let mut totalModuleSize = 0;
         for count in stateCount.iter().take(5) {
-            // for i in 0..5 {
-            // for (int i = 0; i < 5; i++) {
             if *count == 0 {
                 return false;
             }
@@ -367,8 +362,6 @@ impl FinderPatternFinder {
         maxCount: u32,
         originalStateCountTotal: u32,
     ) -> f32 {
-        // let image = &self.image;
-
         let maxI = self.image.getHeight() as i32;
         let _stateCount = self.getCrossCheckStateCount();
 
@@ -435,11 +428,8 @@ impl FinderPatternFinder {
 
         // If we found a finder-pattern-like section, but its size is more than 40% different than
         // the original, assume it's a false positive
-        let stateCountTotal = self.crossCheckStateCount[0]
-            + self.crossCheckStateCount[1]
-            + self.crossCheckStateCount[2]
-            + self.crossCheckStateCount[3]
-            + self.crossCheckStateCount[4];
+        let stateCountTotal = self.crossCheckStateCount.iter().sum::<u32>();
+
         if 5 * (stateCountTotal as i64 - originalStateCountTotal as i64)
             >= 2 * originalStateCountTotal as i64
         {
@@ -465,8 +455,6 @@ impl FinderPatternFinder {
         maxCount: u32,
         originalStateCountTotal: u32,
     ) -> f32 {
-        // let image = &self.image;
-
         let maxJ = self.image.getWidth();
         let _stateCount = self.getCrossCheckStateCount();
 
@@ -478,6 +466,7 @@ impl FinderPatternFinder {
         if j < 0 {
             return f32::NAN;
         }
+
         while j >= 0
             && !self.image.get(j as u32, centerI)
             && self.crossCheckStateCount[1] <= maxCount
@@ -488,6 +477,7 @@ impl FinderPatternFinder {
         if j < 0 || self.crossCheckStateCount[1] > maxCount {
             return f32::NAN;
         }
+
         while j >= 0
             && self.image.get(j as u32, centerI)
             && self.crossCheckStateCount[0] <= maxCount
@@ -507,6 +497,7 @@ impl FinderPatternFinder {
         if j == maxJ as i32 {
             return f32::NAN;
         }
+
         while j < maxJ as i32
             && !self.image.get(j as u32, centerI)
             && self.crossCheckStateCount[3] < maxCount
@@ -517,6 +508,7 @@ impl FinderPatternFinder {
         if j == (maxJ as i32) || self.crossCheckStateCount[3] >= maxCount {
             return f32::NAN;
         }
+
         while j < (maxJ as i32)
             && self.image.get(j as u32, centerI)
             && self.crossCheckStateCount[4] < maxCount
@@ -530,11 +522,8 @@ impl FinderPatternFinder {
 
         // If we found a finder-pattern-like section, but its size is significantly different than
         // the original, assume it's a false positive
-        let stateCountTotal = self.crossCheckStateCount[0]
-            + self.crossCheckStateCount[1]
-            + self.crossCheckStateCount[2]
-            + self.crossCheckStateCount[3]
-            + self.crossCheckStateCount[4];
+        let stateCountTotal = self.crossCheckStateCount.iter().sum::<u32>();
+
         if 5 * (stateCountTotal as i64 - originalStateCountTotal as i64)
             >= originalStateCountTotal as i64
         {
@@ -604,13 +593,10 @@ impl FinderPatternFinder {
             {
                 let estimatedModuleSize = stateCountTotal as f32 / 7.0;
                 let mut found = false;
-                for index in 0..self.possibleCenters.len() {
-                    // for (int index = 0; index < possibleCenters.size(); index++) {
-                    let center = self.possibleCenters.get(index).unwrap();
+                for center in self.possibleCenters.iter_mut() {
                     // Look for about the same center and module size:
                     if center.aboutEquals(estimatedModuleSize, centerI, centerJ) {
-                        self.possibleCenters[index] =
-                            center.combineEstimate(centerI, centerJ, estimatedModuleSize);
+                        *center = center.combineEstimate(centerI, centerJ, estimatedModuleSize);
                         found = true;
                         break;
                     }
@@ -618,8 +604,8 @@ impl FinderPatternFinder {
                 if !found {
                     let point = FinderPattern::new(centerJ, centerI, estimatedModuleSize);
                     self.possibleCenters.push(point);
-                    if self.resultPointCallback.is_some() {
-                        self.resultPointCallback.as_ref().unwrap()(&point);
+                    if let Some(rpc) = self.resultPointCallback.clone() {
+                        rpc(&point);
                     }
                 }
                 return true;
@@ -641,7 +627,6 @@ impl FinderPatternFinder {
         }
         let mut firstConfirmedCenter: Option<&FinderPattern> = None;
         for center in &self.possibleCenters {
-            // for (FinderPattern center : possibleCenters) {
             if center.getCount() >= Self::CENTER_QUORUM {
                 if let Some(fnp) = firstConfirmedCenter {
                     // We have two confirmed centers
@@ -655,7 +640,7 @@ impl FinderPatternFinder {
                         / 2.0)
                         .floor() as u32;
                 } else {
-                    firstConfirmedCenter = Some(center);
+                    firstConfirmedCenter.replace(center);
                 }
             }
         }
@@ -672,7 +657,6 @@ impl FinderPatternFinder {
         let mut totalModuleSize = 0.0;
         let max = self.possibleCenters.len();
         for pattern in &self.possibleCenters {
-            // for (FinderPattern pattern : possibleCenters) {
             if pattern.getCount() >= Self::CENTER_QUORUM {
                 confirmedCount += 1;
                 totalModuleSize += pattern.getEstimatedModuleSize();
@@ -715,50 +699,32 @@ impl FinderPatternFinder {
             return Err(Exceptions::NotFoundException(None));
         }
 
-        // for (Iterator<FinderPattern> it = possibleCenters.iterator(); it.hasNext();) {
-        //     if (it.next().getCount() < CENTER_QUORUM) {
-        //       it.remove();
-        //     }
-        //   }
-
         self.possibleCenters
             .retain(|fp| fp.getCount() >= Self::CENTER_QUORUM);
 
-        self.possibleCenters.sort_by(|x, y| {
+        self.possibleCenters.sort_unstable_by(|x, y| {
             x.getEstimatedModuleSize()
                 .partial_cmp(&y.getEstimatedModuleSize())
-                .unwrap()
-            // Float.compare(center1.getEstimatedModuleSize(), center2.getEstimatedModuleSize());
+                .unwrap_or(std::cmp::Ordering::Less) // we are making a weird assumption that uncomparable items are result in Less
         });
-
-        // self.possibleCenters.sort(self.moduleComparator);
 
         let mut distortion = f64::MAX;
         let mut bestPatterns = [None; 3];
 
         for i in 0..self.possibleCenters.len() {
-            // for (int i = 0; i < possibleCenters.size() - 2; i++) {
-            let fpi = if let Some(f) = self.possibleCenters.get(i) {
-                f
-            } else {
+            let Some(fpi) = self.possibleCenters.get(i) else {
                 return Err(Exceptions::NotFoundException(None));
             };
             let minModuleSize = fpi.getEstimatedModuleSize();
 
             for j in (i + 1)..(self.possibleCenters.len() - 1) {
-                // for (int j = i + 1; j < possibleCenters.size() - 1; j++) {
-                let fpj = if let Some(f) = self.possibleCenters.get(j) {
-                    f
-                } else {
+                let Some(fpj) =  self.possibleCenters.get(j) else {
                     return Err(Exceptions::NotFoundException(None));
                 };
                 let squares0 = Self::squaredDistance(fpi, fpj);
 
                 for k in (j + 1)..(self.possibleCenters.len()) {
-                    // for (int k = j + 1; k < possibleCenters.size(); k++) {
-                    let fpk = if let Some(f) = self.possibleCenters.get(k) {
-                        f
-                    } else {
+                    let Some(fpk) = self.possibleCenters.get(k) else {
                         return Err(Exceptions::NotFoundException(None));
                     };
                     let maxModuleSize = fpk.getEstimatedModuleSize();
@@ -805,9 +771,6 @@ impl FinderPatternFinder {
                     if d < distortion {
                         distortion = d;
                         bestPatterns = [Some(*fpi), Some(*fpj), Some(*fpk)];
-                        // bestPatterns[0] = *fpi;
-                        // bestPatterns[1] = *fpj;
-                        // bestPatterns[2] = *fpk;
                     }
                 }
             }
@@ -821,20 +784,10 @@ impl FinderPatternFinder {
             return Err(Exceptions::NotFoundException(None));
         }
 
-        let p1 = bestPatterns[0].unwrap();
-        let p2 = bestPatterns[1].unwrap();
-        let p3 = bestPatterns[2].unwrap();
+        let p1 = bestPatterns[0].ok_or(Exceptions::NotFoundException(None))?;
+        let p2 = bestPatterns[1].ok_or(Exceptions::NotFoundException(None))?;
+        let p3 = bestPatterns[2].ok_or(Exceptions::NotFoundException(None))?;
 
         Ok([p1, p2, p3])
     }
 }
-
-// /**
-//    * <p>Orders by {@link FinderPattern#getEstimatedModuleSize()}</p>
-//    */
-//   private static final class EstimatedModuleComparator implements Comparator<FinderPattern>, Serializable {
-//     @Override
-//     public int compare(FinderPattern center1, FinderPattern center2) {
-//       return Float.compare(center1.getEstimatedModuleSize(), center2.getEstimatedModuleSize());
-//     }
-//   }

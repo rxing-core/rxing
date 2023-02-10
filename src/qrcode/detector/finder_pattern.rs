@@ -75,9 +75,10 @@ impl FinderPattern {
     pub fn aboutEquals(&self, moduleSize: f32, i: f32, j: f32) -> bool {
         if (i - self.getY()).abs() <= moduleSize && (j - self.getX()).abs() <= moduleSize {
             let moduleSizeDiff = (moduleSize - self.estimatedModuleSize).abs();
-            return moduleSizeDiff <= 1.0 || moduleSizeDiff <= self.estimatedModuleSize;
+            moduleSizeDiff <= 1.0 || moduleSizeDiff <= self.estimatedModuleSize
+        } else {
+            false
         }
-        false
     }
 
     /**

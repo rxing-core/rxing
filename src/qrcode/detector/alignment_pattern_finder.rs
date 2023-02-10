@@ -91,9 +91,8 @@ impl AlignmentPatternFinder {
         let middleI = self.startY + (height / 2);
         // We are looking for black/white/black modules in 1:1:1 ratio;
         // this tracks the number of black/white/black modules seen so far
-        let mut stateCount = vec![0u32; 3];
+        let mut stateCount = [0u32; 3];
         for iGen in 0..height {
-            // for (int iGen = 0; iGen < height; iGen++) {
             // Search from middle outwards
             let i = (middleI as i32
                 + (if (iGen & 0x01) == 0 {
@@ -101,9 +100,9 @@ impl AlignmentPatternFinder {
                 } else {
                     -((iGen as i32 + 1) / 2)
                 })) as u32;
-            stateCount[0] = 0;
-            stateCount[1] = 0;
-            stateCount[2] = 0;
+
+            stateCount.fill(0);
+
             let mut j = startX;
             // Burn off leading white pixels before anything else; if we start in the middle of
             // a white run, it doesn't make sense to count its length, since we don't know if the
@@ -159,10 +158,13 @@ impl AlignmentPatternFinder {
         // Hmm, nothing we saw was observed and confirmed twice. If we had
         // any guess at all, return it.
         if !self.possibleCenters.is_empty() {
-            return Ok(*self.possibleCenters.get(0).unwrap());
+            Ok(*(self
+                .possibleCenters
+                .get(0)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None)))?)
+        } else {
+            Err(Exceptions::NotFoundException(None))
         }
-
-        Err(Exceptions::NotFoundException(None))
     }
 
     /**
@@ -182,8 +184,6 @@ impl AlignmentPatternFinder {
         let moduleSize = self.moduleSize;
         let maxVariance = moduleSize / 2.0;
         for state in stateCount.iter().take(3) {
-            // for i in 0..3 {
-            // for (int i = 0; i < 3; i++) {
             if (moduleSize - *state as f32).abs() >= maxVariance {
                 return false;
             }
@@ -212,10 +212,7 @@ impl AlignmentPatternFinder {
         let image = &self.image;
 
         let maxI = image.getHeight();
-        // let mut stateCount = &self.crossCheckStateCount;
-        self.crossCheckStateCount[0] = 0;
-        self.crossCheckStateCount[1] = 0;
-        self.crossCheckStateCount[2] = 0;
+        self.crossCheckStateCount.fill(0);
 
         // Start counting up from center
         let mut i = startI as i32;
@@ -303,7 +300,6 @@ impl AlignmentPatternFinder {
         if !centerI.is_nan() {
             let estimatedModuleSize = (stateCount[0] + stateCount[1] + stateCount[2]) as f32 / 3.0;
             for center in &self.possibleCenters {
-                // for (AlignmentPattern center : possibleCenters) {
                 // Look for about the same center and module size:
                 if center.aboutEquals(estimatedModuleSize, centerI, centerJ) {
                     return Some(center.combineEstimate(centerI, centerJ, estimatedModuleSize));
@@ -311,13 +307,11 @@ impl AlignmentPatternFinder {
             }
             // Hadn't found this before; save it
             let point = AlignmentPattern::new(centerJ, centerI, estimatedModuleSize);
-            if self.resultPointCallback.is_some() {
-                self.resultPointCallback.as_ref().unwrap()(&point);
+            if let Some(rpc) = self.resultPointCallback.clone() {
+                rpc(&point);
             }
+
             self.possibleCenters.push(point);
-            // if self.resultPointCallback.is_some() {
-            //     self.resultPointCallback.as_ref().unwrap()(point.as_RXingResultPoint());
-            // }
         }
 
         None

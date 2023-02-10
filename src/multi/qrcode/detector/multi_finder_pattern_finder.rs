@@ -56,9 +56,9 @@ const DIFF_MODSIZE_CUTOFF: f32 = 0.5_f32;
  * @author Sean Owen
  * @author Hannes Erven
  */
-pub struct MultiFinderPatternFinder(FinderPatternFinder);
+pub struct MultiFinderPatternFinder<'a>(FinderPatternFinder<'a>);
 
-impl MultiFinderPatternFinder {
+impl<'a> MultiFinderPatternFinder<'_> {
     // private static final FinderPatternInfo[] EMPTY_RESULT_ARRAY = new FinderPatternInfo[0];
     // private static final FinderPattern[] EMPTY_FP_ARRAY = new FinderPattern[0];
     // private static final FinderPattern[][] EMPTY_FP_2D_ARRAY = new FinderPattern[0][];
@@ -66,9 +66,12 @@ impl MultiFinderPatternFinder {
     // TODO MIN_MODULE_COUNT and MAX_MODULE_COUNT would be great hints to ask the user for
     // since it limits the number of regions to decode
 
-    pub fn new(image: &BitMatrix, resultPointCallback: Option<RXingResultPointCallback>) -> Self {
-        Self(FinderPatternFinder::with_callback(
-            image.clone(),
+    pub fn new(
+        image: &'a BitMatrix,
+        resultPointCallback: Option<RXingResultPointCallback>,
+    ) -> MultiFinderPatternFinder<'a> {
+        MultiFinderPatternFinder(FinderPatternFinder::with_callback(
+            image,
             resultPointCallback,
         ))
     }
