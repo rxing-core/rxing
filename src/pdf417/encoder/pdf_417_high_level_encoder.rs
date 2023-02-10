@@ -125,10 +125,6 @@ const TEXT_PUNCTUATION_RAW: [u8; 30] = [
     40, 41, 63, 123, 125, 39, 0,
 ];
 
-// const MIXED : [u8;128]= [0;128];//new byte[128];
-
-// const PUNCTUATION : [u8;128]= [0;128];//new byte[128];
-
 const DEFAULT_ENCODING: EncodingRef = encoding::all::ISO_8859_1; //StandardCharsets.ISO_8859_1;
 
 const MIXED: [i8; 128] = {
@@ -158,23 +154,6 @@ const PUNCTUATION: [i8; 128] = {
 
     punct
 };
-// static {
-//   //Construct inverse lookups
-//   Arrays.fill(MIXED, (byte) -1);
-//   for (int i = 0; i < TEXT_MIXED_RAW.length; i++) {
-//     byte b = TEXT_MIXED_RAW[i];
-//     if (b > 0) {
-//       MIXED[b] = (byte) i;
-//     }
-//   }
-//   Arrays.fill(PUNCTUATION, (byte) -1);
-//   for (int i = 0; i < TEXT_PUNCTUATION_RAW.length; i++) {
-//     byte b = TEXT_PUNCTUATION_RAW[i];
-//     if (b > 0) {
-//       PUNCTUATION[b] = (byte) i;
-//     }
-//   }
-// }
 
 /**
  * Performs high-level encoding of a PDF417 message using the algorithm described in annex P
@@ -206,15 +185,14 @@ pub fn encodeHighLevel(
     }
 
     if encoding.is_none() && !autoECI {
-        for i in 0..msg.chars().count() {
-            // for (int i = 0; i < msg.length(); i++) {
-            if msg.chars().nth(i).unwrap() as u32 > 255 {
-                return Err(Exceptions::WriterException(Some(format!("Non-encodable character detected: {} (Unicode: {}). Consider specifying EncodeHintType.PDF417_AUTO_ECI and/or EncodeTypeHint.CHARACTER_SET.",msg.chars().nth(i).unwrap() as u32,msg.chars().nth(i).unwrap()))));
+            for ch in msg.chars() {
+            if ch as u32 > 255 {
+                return Err(Exceptions::WriterException(Some(format!("Non-encodable character detected: {} (Unicode: {}). Consider specifying EncodeHintType.PDF417_AUTO_ECI and/or EncodeTypeHint.CHARACTER_SET.",ch as u32,ch))));
             }
         }
     }
     //the codewords 0..928 are encoded as Unicode characters
-    let mut sb = String::with_capacity(msg.len()); //new StringBuilder(msg.length());
+    let mut sb = String::with_capacity(msg.len());
 
     let input: Box<dyn ECIInput>;
     if autoECI {
@@ -223,9 +201,8 @@ pub fn encodeHighLevel(
         input = Box::new(NoECIInput::new(msg.to_owned()));
         if encoding.is_none() {
             encoding = Some(DEFAULT_ENCODING);
-        } else if DEFAULT_ENCODING.name() != encoding.as_ref().unwrap().name() {
-            if let Some(eci) = CharacterSetECI::getCharacterSetECI(encoding.unwrap()) {
-                // if (eci != null) {
+        } else if DEFAULT_ENCODING.name() != encoding.as_ref().ok_or(Exceptions::IllegalStateException(None))?.name() {
+            if let Some(eci) = CharacterSetECI::getCharacterSetECI(encoding.ok_or(Exceptions::IllegalStateException(None))?) {
                 encodingECI(CharacterSetECI::getValue(&eci) as i32, &mut sb)?;
             }
         }
@@ -240,26 +217,25 @@ pub fn encodeHighLevel(
         Compaction::TEXT => {
             encodeText(&input, p, len as u32, &mut sb, textSubMode)?;
         }
+        Compaction::BYTE if autoECI => {
+            encodeMultiECIBinary(&input, 0, input.length() as u32, TEXT_COMPACTION, &mut sb)?
+        }
         Compaction::BYTE => {
-            if autoECI {
-                encodeMultiECIBinary(&input, 0, input.length() as u32, TEXT_COMPACTION, &mut sb)?;
-            } else {
-                let msgBytes = encoding
-                    .as_ref()
-                    .unwrap()
-                    .encode(&input.to_string(), encoding::EncoderTrap::Strict)
-                    .unwrap_or_default(); //input.to_string().getBytes(encoding);
-                encodeBinary(
-                    &msgBytes,
-                    p,
-                    msgBytes.len() as u32,
-                    BYTE_COMPACTION,
-                    &mut sb,
-                );
-            }
+            let msgBytes = encoding
+                .as_ref()
+                .ok_or(Exceptions::IllegalStateException(None))?
+                .encode(&input.to_string(), encoding::EncoderTrap::Strict)
+                .unwrap_or_default(); //input.to_string().getBytes(encoding);
+            encodeBinary(
+                &msgBytes,
+                p,
+                msgBytes.len() as u32,
+                BYTE_COMPACTION,
+                &mut sb,
+            );
         }
         Compaction::NUMERIC => {
-            sb.push(char::from_u32(LATCH_TO_NUMERIC).unwrap());
+            sb.push(char::from_u32(LATCH_TO_NUMERIC).ok_or(Exceptions::ParseException(None))?);
             encodeNumeric(&input, p, len as u32, &mut sb);
         }
         _ => {
@@ -274,7 +250,7 @@ pub fn encodeHighLevel(
                 }
                 let n = determineConsecutiveDigitCount(&input, p);
                 if n >= 13 {
-                    sb.push(char::from_u32(LATCH_TO_NUMERIC).unwrap());
+                    sb.push(char::from_u32(LATCH_TO_NUMERIC).ok_or(Exceptions::ParseException(None))?);
                     encodingMode = NUMERIC_COMPACTION;
                     textSubMode = SUBMODE_ALPHA; //Reset after latch
                     encodeNumeric(&input, p, n, &mut sb);
@@ -283,7 +259,7 @@ pub fn encodeHighLevel(
                     let t = determineConsecutiveTextCount(&input, p);
                     if t >= 5 || n == len as u32 {
                         if encodingMode != TEXT_COMPACTION {
-                            sb.push(char::from_u32(LATCH_TO_TEXT).unwrap());
+                            sb.push(char::from_u32(LATCH_TO_TEXT).ok_or(Exceptions::ParseException(None))?);
                             encodingMode = TEXT_COMPACTION;
                             textSubMode = SUBMODE_ALPHA; //start with submode alpha after latch
                         }
@@ -307,19 +283,17 @@ pub fn encodeHighLevel(
                                 .collect::<String>();
                             if let Ok(enc_str) = encoding
                                 .as_ref()
-                                .unwrap()
+                                .ok_or(Exceptions::IllegalStateException(None))?
                                 .encode(&str, encoding::EncoderTrap::Strict)
                             {
                                 Some(enc_str)
                             } else {
                                 None
                             }
-                        }; //.getBytes(encoding))};
-                           // if let Some(byts) = bytes {
-                        let bytes_ok = bytes.is_some(); //if let Some(_) = bytes { true } else { false };
+                        }; 
+                        
+                        let bytes_ok = bytes.is_some(); 
                         if (bytes_ok && b == 1)
-                        /*((bytes_ok && b == 1)
-                            || (!bytes_ok && bytes.as_ref().unwrap().len() == 1))*/
                             && (encodingMode == TEXT_COMPACTION)
                         {
                             //Switch for one byte (instead of latch)
@@ -327,7 +301,7 @@ pub fn encodeHighLevel(
                                 encodeMultiECIBinary(&input, p, 1, TEXT_COMPACTION, &mut sb)?;
                             } else {
                                 encodeBinary(
-                                    bytes.as_ref().unwrap(),
+                                    bytes.as_ref().ok_or(Exceptions::IllegalStateException(None))?,
                                     0,
                                     1,
                                     TEXT_COMPACTION,
@@ -340,9 +314,9 @@ pub fn encodeHighLevel(
                                 encodeMultiECIBinary(&input, p, p + b, encodingMode, &mut sb)?;
                             } else {
                                 encodeBinary(
-                                    bytes.as_ref().unwrap(),
+                                    bytes.as_ref().ok_or(Exceptions::IllegalStateException(None))?,
                                     0,
-                                    bytes.as_ref().unwrap().len() as u32,
+                                    bytes.as_ref().ok_or(Exceptions::IllegalStateException(None))?.len() as u32,
                                     encodingMode,
                                     &mut sb,
                                 );
@@ -393,7 +367,7 @@ fn encodeText<T: ECIInput + ?Sized>(
                         if ch == ' ' {
                             tmp.push(26 as char); //space
                         } else {
-                            tmp.push(char::from_u32(ch as u32 - 65).unwrap());
+                            tmp.push(char::from_u32(ch as u32 - 65).ok_or(Exceptions::ParseException(None))?);
                         }
                     } else if isAlphaLower(ch) {
                         submode = SUBMODE_LOWER;
@@ -405,37 +379,34 @@ fn encodeText<T: ECIInput + ?Sized>(
                         continue;
                     } else {
                         tmp.push(29 as char); //ps
-                        tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).unwrap());
-                        //break;
+                        tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Exceptions::ParseException(None))?);
                     }
                 }
-                // break;
+                
                 SUBMODE_LOWER => {
                     if isAlphaLower(ch) {
                         if ch == ' ' {
                             tmp.push(26 as char); //space
                         } else {
-                            tmp.push(char::from_u32(ch as u32 - 97).unwrap());
+                            tmp.push(char::from_u32(ch as u32 - 97).ok_or(Exceptions::ParseException(None))?);
                         }
                     } else if isAlphaUpper(ch) {
                         tmp.push(27 as char); //as
-                        tmp.push(char::from_u32(ch as u32 - 65).unwrap());
+                        tmp.push(char::from_u32(ch as u32 - 65).ok_or(Exceptions::ParseException(None))?);
                         //space cannot happen here, it is also in "Lower"
-                        //break;
                     } else if isMixed(ch) {
                         submode = SUBMODE_MIXED;
                         tmp.push(28 as char); //ml
                         continue;
                     } else {
                         tmp.push(29 as char); //ps
-                        tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).unwrap());
-                        //break;
+                        tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Exceptions::ParseException(None))?);
                     }
                 }
                 // break;
                 SUBMODE_MIXED => {
                     if isMixed(ch) {
-                        tmp.push(char::from_u32(MIXED[ch as usize] as u32).unwrap());
+                        tmp.push(char::from_u32(MIXED[ch as usize] as u32).ok_or(Exceptions::ParseException(None))?);
                     } else if isAlphaUpper(ch) {
                         submode = SUBMODE_ALPHA;
                         tmp.push(28 as char); //al
@@ -454,14 +425,14 @@ fn encodeText<T: ECIInput + ?Sized>(
                             continue;
                         }
                         tmp.push(29 as char); //ps
-                        tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).unwrap());
+                        tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Exceptions::ParseException(None))?);
                     }
                 }
                 _ =>
                 //SUBMODE_PUNCTUATION
                 {
                     if isPunctuation(ch) {
-                        tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).unwrap());
+                        tmp.push(char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Exceptions::ParseException(None))?);
                     } else {
                         submode = SUBMODE_ALPHA;
                         tmp.push(29 as char); //al
@@ -478,17 +449,16 @@ fn encodeText<T: ECIInput + ?Sized>(
     let mut h = 0 as char;
     let len = tmp.chars().count();
     for i in 0..len {
-        // for (int i = 0; i < len; i++) {
         let odd = (i % 2) != 0;
         if odd {
-            h = char::from_u32((h as u32 * 30) + tmp.chars().nth(i).unwrap() as u32).unwrap();
+            h = char::from_u32((h as u32 * 30) + tmp.chars().nth(i).ok_or(Exceptions::IndexOutOfBoundsException(None))? as u32).ok_or(Exceptions::ParseException(None))?;
             sb.push(h);
         } else {
-            h = tmp.chars().nth(i).unwrap();
+            h = tmp.chars().nth(i).ok_or(Exceptions::IndexOutOfBoundsException(None))?;
         }
     }
     if (len % 2) != 0 {
-        sb.push(char::from_u32((h as u32 * 30) + 29).unwrap()); //ps
+        sb.push(char::from_u32((h as u32 * 30) + 29).ok_or(Exceptions::ParseException(None))?); //ps
     }
     Ok(submode)
 }
@@ -530,7 +500,7 @@ fn encodeMultiECIBinary<T: ECIInput + ?Sized>(
         } else {
             //encode the segment
             encodeBinary(
-                &subBytes(input, localStart, localEnd),
+                &subBytes(input, localStart, localEnd)?,
                 0,
                 localCount as u32,
                 if localStart == startpos {
@@ -547,14 +517,13 @@ fn encodeMultiECIBinary<T: ECIInput + ?Sized>(
     Ok(())
 }
 
-pub fn subBytes<T: ECIInput + ?Sized>(input: &Box<T>, start: u32, end: u32) -> Vec<u8> {
+pub fn subBytes<T: ECIInput + ?Sized>(input: &Box<T>, start: u32, end: u32) -> Result<Vec<u8>,Exceptions> {
     let count = (end - start) as usize;
     let mut result = vec![0_u8; count];
     for i in start as usize..end as usize {
-        // for (int i = start; i < end; i++) {
-        result[i - start as usize] = input.charAt(i).unwrap() as u8;
+        result[i - start as usize] = input.charAt(i)? as u8;
     }
-    result
+    Ok(result)
 }
 
 /**
@@ -568,7 +537,7 @@ pub fn subBytes<T: ECIInput + ?Sized>(input: &Box<T>, start: u32, end: u32) -> V
  * @param startmode the mode from which this method starts
  * @param sb        receives the encoded codewords
  */
-fn encodeBinary(bytes: &[u8], startpos: u32, count: u32, startmode: u32, sb: &mut String) {
+fn encodeBinary(bytes: &[u8], startpos: u32, count: u32, startmode: u32, sb: &mut String) -> Result<(),Exceptions> {
     if count == 1 && startmode == TEXT_COMPACTION {
         sb.push(char::from_u32(SHIFT_TO_BYTE).unwrap());
     } else if (count % 6) == 0 {
@@ -608,6 +577,8 @@ fn encodeBinary(bytes: &[u8], startpos: u32, count: u32, startmode: u32, sb: &mu
         let ch = bytes[i as usize];
         sb.push(ch as char);
     }
+
+    Ok(())
 }
 
 fn encodeNumeric<T: ECIInput + ?Sized>(input: &Box<T>, startpos: u32, count: u32, sb: &mut String) {
@@ -819,11 +790,10 @@ impl ECIInput for NoECIInput {
     }
 
     fn charAt(&self, index: usize) -> Result<char, Exceptions> {
-        if let Some(ch) = self.0.chars().nth(index) {
-            Ok(ch)
-        } else {
-            Err(Exceptions::IndexOutOfBoundsException(None))
-        }
+        self.0
+            .chars()
+            .nth(index)
+            .ok_or(Exceptions::IndexOutOfBoundsException(None))
     }
 
     fn subSequence(&self, start: usize, end: usize) -> Result<Vec<char>, Exceptions> {

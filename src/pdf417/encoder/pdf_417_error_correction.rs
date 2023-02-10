@@ -122,7 +122,6 @@ pub fn getErrorCorrectionCodewordCount(errorCorrectionLevel: u32) -> Result<u32,
         return Err(Exceptions::IllegalArgumentException(Some(
             "Error correction level must be between 0 and 8!".to_owned(),
         )));
-        // throw new IllegalArgumentException("Error correction level must be between 0 and 8!");
     }
     Ok(1 << (errorCorrectionLevel + 1))
 }
@@ -169,28 +168,32 @@ pub fn generateErrorCorrection(
     let mut e = vec![0 as char; k as usize]; //new char[k];
     let sld = dataCodewords.chars().count();
     for i in 0..sld {
-        // for (int i = 0; i < sld; i++) {
-        let t1 = (dataCodewords.chars().nth(i).unwrap() as u32 + e[e.len() - 1] as u32) % 929;
+        let t1 = (dataCodewords
+            .chars()
+            .nth(i)
+            .ok_or(Exceptions::IndexOutOfBoundsException(None))? as u32
+            + e[e.len() - 1] as u32)
+            % 929;
         let mut t2;
         let mut t3;
         let mut j = k as usize - 1;
         while j >= 1 {
-            // for (int j = k - 1; j >= 1; j--) {
             t2 = (t1 * EC_COEFFICIENTS[errorCorrectionLevel as usize][j]) % 929;
             t3 = 929 - t2;
-            e[j] = char::from_u32((e[j - 1] as u32 + t3) % 929).unwrap();
+            e[j] = char::from_u32((e[j - 1] as u32 + t3) % 929)
+                .ok_or(Exceptions::ParseException(None))?;
             j -= 1;
         }
         t2 = (t1 * EC_COEFFICIENTS[errorCorrectionLevel as usize][0]) % 929;
         t3 = 929 - t2;
-        e[0] = char::from_u32(t3 % 929).unwrap();
+        e[0] = char::from_u32(t3 % 929).ok_or(Exceptions::ParseException(None))?;
     }
-    let mut sb = String::with_capacity(k as usize); // StringBuilder(k);
+    let mut sb = String::with_capacity(k as usize);
     let mut j = k as isize - 1;
     while j >= 0 {
-        // for (int j = k - 1; j >= 0; j--) {
         if e[j as usize] as u32 != 0 {
-            e[j as usize] = char::from_u32(929 - e[j as usize] as u32).unwrap();
+            e[j as usize] = char::from_u32(929 - e[j as usize] as u32)
+                .ok_or(Exceptions::ParseException(None))?;
         }
         sb.push(e[j as usize]);
 

@@ -33,11 +33,10 @@ impl BarcodeMatrix {
      * @param width  the width of the matrix (Cols)
      */
     pub fn new(height: usize, width: usize) -> Self {
-        let mut matrix = Vec::new(); //new BarcodeRow[height];
-                                     //Initializes the array to the correct width
+        //Initializes the array to the correct width
+        let mut matrix = Vec::with_capacity(height);
+
         for _i in 0..height {
-            // for (int i = 0, matrixLength = matrix.length; i < matrixLength; i++) {
-            //matrix[i] = new BarcodeRow((width + 4) * 17 + 1);
             matrix.push(BarcodeRow::new((width + 4) * 17 + 1));
         }
         Self {
@@ -46,9 +45,6 @@ impl BarcodeMatrix {
             height,
             width: width * 17,
         }
-        // this.width = width * 17;
-        // this.height = height;
-        // this.currentRow = -1;
     }
 
     pub fn set(&mut self, x: usize, y: usize, value: u8) {
@@ -73,10 +69,8 @@ impl BarcodeMatrix {
 
     pub fn getScaledMatrix(&self, xScale: usize, yScale: usize) -> Vec<Vec<u8>> {
         let mut matrixOut = vec![vec![0; self.width * xScale]; self.height * yScale];
-        // byte[][] matrixOut = new byte[height * yScale][width * xScale];
         let yMax = self.height * yScale;
         for i in 0..yMax {
-            // for (int i = 0; i < yMax; i++) {
             matrixOut[yMax - i - 1] = self.matrix[i / yScale].getScaledRow(xScale);
         }
 
