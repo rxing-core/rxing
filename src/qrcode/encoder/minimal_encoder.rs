@@ -997,7 +997,8 @@ impl RXingResultNode {
                         .map(|s| s.as_str())
                         .collect::<String>()),
                     self.charsetEncoderIndex,
-                ).unwrap_or_default()
+                )
+                .unwrap_or_default()
                 .len() as u32
         } else {
             self.characterLength
