@@ -817,7 +817,7 @@ fn determineConsecutiveBinaryCount<T: ECIInput + ?Sized + 'static>(
                 .is_ok();
 
             if !can_encode {
-                if !(TypeId::of::<T>() == TypeId::of::<NoECIInput>()) {
+                if TypeId::of::<T>() != TypeId::of::<NoECIInput>() {
                     return Err(Exceptions::IllegalStateException(Some(
                         "expected NoECIInput type".to_owned(),
                     )));
