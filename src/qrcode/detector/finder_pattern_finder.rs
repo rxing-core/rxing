@@ -64,7 +64,7 @@ impl<'a> FinderPatternFinder<'_> {
     }
 
     pub fn getImage(&self) -> &BitMatrix {
-        &self.image
+        self.image
     }
 
     pub fn getPossibleCenters(&self) -> &Vec<FinderPattern> {
