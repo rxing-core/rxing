@@ -73,23 +73,18 @@ impl Writer for PDF417Writer {
             if let Some(EncodeHintValue::Pdf417Compact(compact)) =
                 hints.get(&EncodeHintType::PDF417_COMPACT)
             {
-                // if hints.containsKey(EncodeHintType::PDF417_COMPACT) {
                 if let Ok(res) = compact.parse::<bool>() {
                     encoder.setCompact(res);
                 }
-                // encoder.setCompact(Boolean.parseBoolean(hints.get(EncodeHintType::PDF417_COMPACT).toString()));
             }
             if let Some(EncodeHintValue::Pdf417Compaction(compaction)) =
                 hints.get(&EncodeHintType::PDF417_COMPACTION)
             {
-                // if hints.containsKey(EncodeHintType::PDF417_COMPACTION) {
                 encoder.setCompaction(compaction.try_into()?);
             }
             if let Some(EncodeHintValue::Pdf417Dimensions(dimensions)) =
                 hints.get(&EncodeHintType::PDF417_DIMENSIONS)
             {
-                // if hints.containsKey(EncodeHintType::PDF417_DIMENSIONS) {
-                // Dimensions dimensions = (Dimensions) hints.get(EncodeHintType::PDF417_DIMENSIONS);
                 encoder.setDimensions(
                     dimensions.getMaxCols() as u32,
                     dimensions.getMinCols() as u32,
@@ -98,27 +93,20 @@ impl Writer for PDF417Writer {
                 );
             }
             if let Some(EncodeHintValue::Margin(m1)) = hints.get(&EncodeHintType::MARGIN) {
-                // if hints.containsKey(EncodeHintType::MARGIN) {
                 if let Ok(m) = m1.parse::<u32>() {
-                    //margin = Integer.parseInt(hints.get(EncodeHintType::MARGIN).toString());
                     margin = m;
                 }
             }
             if let Some(EncodeHintValue::ErrorCorrection(ec)) =
                 hints.get(&EncodeHintType::ERROR_CORRECTION)
             {
-                // if hints.containsKey(EncodeHintType::ERROR_CORRECTION) {
                 if let Ok(ec_parsed) = ec.parse::<u32>() {
                     errorCorrectionLevel = ec_parsed;
                 }
-                // errorCorrectionLevel = Integer.parseInt(hints.get(EncodeHintType::ERROR_CORRECTION).toString());
             }
             if let Some(EncodeHintValue::CharacterSet(cs)) =
                 hints.get(&EncodeHintType::CHARACTER_SET)
             {
-                // if hints.containsKey(EncodeHintType::CHARACTER_SET) {
-                // if let Some(encoding::label::encoding_from_whatwg_label(cs))
-                // let encoding = Charset.forName(hints.get(&EncodeHintType::CHARACTER_SET).toString());
                 encoder.setEncoding(encoding::label::encoding_from_whatwg_label(cs));
             }
             if let Some(EncodeHintValue::Pdf417AutoEci(auto_eci_str)) =
@@ -128,8 +116,6 @@ impl Writer for PDF417Writer {
                     autoECI = auto_eci_parsed;
                 }
             }
-            //   autoECI = hints.containsKey(EncodeHintType::PDF417_AUTO_ECI) &&
-            //       Boolean.parseBoolean(hints.get(EncodeHintType::PDF417_AUTO_ECI).toString());
         }
 
         Self::bitMatrixFromEncoder(
@@ -163,7 +149,7 @@ impl PDF417Writer {
         let mut originalScale = encoder
             .getBarcodeMatrix()
             .as_ref()
-            .unwrap()
+            .ok_or(Exceptions::IllegalStateException(None))?
             .getScaledMatrix(1, aspectRatio);
         let mut rotated = false;
         if (height > width) != (originalScale[0].len() < originalScale.len()) {
@@ -179,14 +165,17 @@ impl PDF417Writer {
             let mut scaledMatrix = encoder
                 .getBarcodeMatrix()
                 .as_ref()
-                .unwrap()
+                .ok_or(Exceptions::IllegalStateException(None))?
                 .getScaledMatrix(scale, scale * aspectRatio);
             if rotated {
                 scaledMatrix = Self::rotateArray(&scaledMatrix);
             }
-            return Ok(Self::bitMatrixFromBitArray(&scaledMatrix, margin));
+            return Ok(Self::bitMatrixFromBitArray(&scaledMatrix, margin)
+                .ok_or(Exceptions::IllegalStateException(None))?);
         }
-        Ok(Self::bitMatrixFromBitArray(&originalScale, margin))
+
+        Self::bitMatrixFromBitArray(&originalScale, margin)
+            .ok_or(Exceptions::IllegalStateException(None))
     }
 
     /**
@@ -196,22 +185,19 @@ impl PDF417Writer {
      * @param margin border around the barcode
      * @return BitMatrix of the input
      */
-    fn bitMatrixFromBitArray(input: &Vec<Vec<u8>>, margin: u32) -> BitMatrix {
+    fn bitMatrixFromBitArray(input: &Vec<Vec<u8>>, margin: u32) -> Option<BitMatrix> {
         // Creates the bit matrix with extra space for whitespace
         let mut output = BitMatrix::new(
             input[0].len() as u32 + 2 * margin,
             input.len() as u32 + 2 * margin,
         )
-        .expect("must generate");
+        .ok()?;
         output.clear();
         let mut y = 0;
         let mut yOutput = (output.getHeight() - margin - 1) as isize;
         while y < input.len() {
-            // for (int y = 0, yOutput = output.getHeight() - margin - 1; y < input.length; y++, yOutput--) {
             let inputY = &input[y];
-            // for x in 0..input[y].len() {
             for (x, x_index_val) in inputY.iter().enumerate().take(input[y].len()) {
-                // for (int x = 0; x < input[0].length; x++) {
                 // Zero is white in the byte matrix
                 if x_index_val == &1 {
                     output.set(x as u32 + margin, yOutput as u32);
@@ -220,22 +206,19 @@ impl PDF417Writer {
             y += 1;
             yOutput -= 1;
         }
-        output
+        Some(output)
     }
 
     /**
      * Takes and rotates the it 90 degrees
      */
     fn rotateArray(bitarray: &Vec<Vec<u8>>) -> Vec<Vec<u8>> {
-        let mut temp = vec![vec![0; bitarray[0].len()]; bitarray.len()]; // new byte[bitarray[0].length][bitarray.length];
+        let mut temp = vec![vec![0; bitarray[0].len()]; bitarray.len()];
+
         for ii in 0..bitarray.len() {
-            // for (int ii = 0; ii < bitarray.length; ii++) {
-            // This makes the direction consistent on screen when rotating the
-            // screen;
+            // This makes the direction consistent on screen when rotating the screen;
             let inverseii = bitarray.len() - ii - 1;
             for (jj, tmp_spot) in temp.iter_mut().enumerate().take(bitarray[0].len()) {
-                // for jj in 0..bitarray[0].len() {
-                // for (int jj = 0; jj < bitarray[0].length; jj++) {
                 tmp_spot[inverseii] = bitarray[ii][jj];
             }
         }

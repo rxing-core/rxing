@@ -57,12 +57,12 @@ impl Reader for PDF417Reader {
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         let result = Self::decode(image, hints, false)?;
         if result.is_empty() {
-            // if (result.length == 0 || result[0] == null) {
             return Err(Exceptions::NotFoundException(None));
         }
         Ok(result[0].clone())
     }
 }
+
 impl MultipleBarcodeReader for PDF417Reader {
     fn decode_multiple(
         &mut self,
@@ -76,11 +76,7 @@ impl MultipleBarcodeReader for PDF417Reader {
         image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
-        //try {
         Self::decode(image, hints, true)
-        //} catch (FormatException | ChecksumException ignored) {
-        //  throw NotFoundException.getNotFoundInstance();
-        //}
     }
 }
 
@@ -94,11 +90,13 @@ impl PDF417Reader {
         hints: &DecodingHintDictionary,
         multiple: bool,
     ) -> Result<Vec<RXingResult>, Exceptions> {
-        let mut results = Vec::new(); //new ArrayList<>();
+        let mut results = Vec::new();
         let detectorRXingResult = pdf_417_detector::detect_with_hints(image, hints, multiple)?;
+
         for points in detectorRXingResult.getPoints() {
-            let points_filtered = points.iter().filter_map(|e| *e).collect();
-            // for (RXingResultPoint[] points : detectorRXingResult.getPoints()) {
+            let points_filtered = points.iter().flatten().copied().collect();
+            // let points_filtered = points.iter().filter_map(|e| *e).collect();
+
             let decoderRXingResult = pdf_417_scanning_decoder::decode(
                 detectorRXingResult.getBits(),
                 points[4],
@@ -108,6 +106,7 @@ impl PDF417Reader {
                 Self::getMinCodewordWidth(points),
                 Self::getMaxCodewordWidth(points),
             )?;
+
             let mut result = RXingResult::new(
                 decoderRXingResult.getText(),
                 decoderRXingResult.getRawBytes().clone(),
@@ -128,7 +127,7 @@ impl PDF417Reader {
                         pdf417RXingResultMetadata
                             .clone()
                             .downcast::<PDF417RXingResultMetadata>()
-                            .unwrap(),
+                            .map_err(|_| Exceptions::IllegalStateException(None))?,
                     );
                     result.putMetadata(RXingResultMetadataType::PDF417_EXTRA_METADATA, data);
                 }
@@ -161,10 +160,6 @@ impl PDF417Reader {
         } else {
             0
         }
-        // if p1 == null || p2 == null {
-        //   return 0;
-        // }
-        // return (int) Math.abs(p1.getX() - p2.getX());
     }
 
     fn getMinWidth(p1: &Option<RXingResultPoint>, p2: &Option<RXingResultPoint>) -> u64 {
@@ -173,10 +168,6 @@ impl PDF417Reader {
         } else {
             u32::MAX as u64
         }
-        // if (p1 == null || p2 == null) {
-        //   return Integer.MAX_VALUE;
-        // }
-        // return (int) Math.abs(p1.getX() - p2.getX());
     }
 
     fn getMaxCodewordWidth(p: &[Option<RXingResultPoint>]) -> u32 {

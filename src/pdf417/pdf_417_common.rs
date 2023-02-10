@@ -39,33 +39,23 @@ pub const EMPTY_INT_ARRAY: [u32; 0] = [];
  */
 #[deprecated]
 pub fn getBitCountSum(moduleBitCount: &[u32]) -> u32 {
-    // return MathUtils.sum(moduleBitCount);
     moduleBitCount.iter().sum::<u32>()
 }
-
-// pub fn toIntArray(list: Vec<u32>) -> Vec<u32> {
-//     // if (list == null || list.isEmpty()) {
-//     //   return EMPTY_INT_ARRAY;
-//     // }
-//     // int[] result = new int[list.size()];
-//     // int i = 0;
-//     // for (Integer integer : list) {
-//     //   result[i++] = integer;
-//     // }
-//     // return result;
-//     list
-// }
 
 /**
  * @param symbol encoded symbol to translate to a codeword
  * @return the codeword corresponding to the symbol.
  */
 pub fn getCodeword(symbol: u32) -> i32 {
-    if let Ok(pos) = SYMBOL_TABLE.binary_search(&(symbol & 0x3FFFF)) {
-        ((CODEWORD_TABLE[pos] - 1) % NUMBER_OF_CODEWORDS) as i32
-    } else {
-        -1
-    }
+    SYMBOL_TABLE.binary_search(&(symbol & 0x3FFFF)).map_or_else(
+        |_| -1,
+        |pos| ((CODEWORD_TABLE[pos] - 1) % NUMBER_OF_CODEWORDS) as i32,
+    )
+    // if let Ok(pos) = SYMBOL_TABLE.binary_search(&(symbol & 0x3FFFF)) {
+    //     ((CODEWORD_TABLE[pos] - 1) % NUMBER_OF_CODEWORDS) as i32
+    // } else {
+    //     -1
+    // }
     // int i = Arrays.binarySearch(SYMBOL_TABLE, symbol & 0x3FFFF);
     // if (i < 0) {
     //   return -1;
