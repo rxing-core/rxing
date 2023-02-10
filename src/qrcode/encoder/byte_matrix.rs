@@ -16,7 +16,7 @@
 
 use std::fmt;
 
-use crate::common::BitMatrix;
+use crate::{common::BitMatrix, Exceptions};
 
 /**
  * JAVAPORT: The original code was a 2D array of ints, but since it only ever gets assigned
@@ -38,7 +38,6 @@ impl ByteMatrix {
             width,
             height,
         }
-        // bytes = new byte[height][width];
     }
 
     pub fn getHeight(&self) -> u32 {
@@ -64,21 +63,14 @@ impl ByteMatrix {
         self.bytes[y as usize][x as usize] = value;
     }
 
-    // pub fn set(int x, int y, int value) {
-    //   bytes[y][x] = (byte) value;
-    // }
-
     pub fn set_bool(&mut self, x: u32, y: u32, value: bool) {
         self.bytes[y as usize][x as usize] = u8::from(value); //if value { 1 } else { 0 };
     }
 
     pub fn clear(&mut self, value: u8) {
         for row in self.bytes.iter_mut() {
-            *row = vec![value; row.len()];
+            row.fill(value);
         }
-        // for (byte[] aByte : bytes) {
-        //   Arrays.fill(aByte, value);
-        // }
     }
 }
 
@@ -86,27 +78,13 @@ impl fmt::Display for ByteMatrix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut result = String::with_capacity(2 * self.width as usize * self.height as usize + 2);
         for y in 0..self.height as usize {
-            // for (int y = 0; y < height; ++y) {
             let bytesY = &self.bytes[y];
             for byte in bytesY.iter().take(self.width as usize) {
-                // for x in 0..self.width as usize {
-                // for (int x = 0; x < width; ++x) {
                 match *byte {
                     0 => result.push_str(" 0"),
                     1 => result.push_str(" 1"),
                     _ => result.push_str("  "),
                 };
-                // switch (bytesY[x]) {
-                //   case 0:
-                //     result.append(" 0");
-                //     break;
-                //   case 1:
-                //     result.append(" 1");
-                //     break;
-                //   default:
-                //     result.append("  ");
-                //     break;
-                // }
             }
             result.push('\n');
         }
@@ -114,16 +92,18 @@ impl fmt::Display for ByteMatrix {
     }
 }
 
-impl From<ByteMatrix> for BitMatrix {
-    fn from(bm: ByteMatrix) -> Self {
-        let mut bit_matrix = BitMatrix::new(bm.getWidth(), bm.getHeight()).unwrap();
-        for y in 0..bm.getHeight() {
-            for x in 0..bm.getWidth() {
-                if bm.get(x, y) > 0 {
+impl TryFrom<ByteMatrix> for BitMatrix {
+    type Error = Exceptions;
+
+    fn try_from(value: ByteMatrix) -> Result<Self, Self::Error> {
+        let mut bit_matrix = BitMatrix::new(value.getWidth(), value.getHeight())?;
+        for y in 0..value.getHeight() {
+            for x in 0..value.getWidth() {
+                if value.get(x, y) > 0 {
                     bit_matrix.set(x, y);
                 }
             }
         }
-        bit_matrix
+        Ok(bit_matrix)
     }
 }

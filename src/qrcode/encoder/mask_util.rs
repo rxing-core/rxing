@@ -49,10 +49,8 @@ pub fn applyMaskPenaltyRule2(matrix: &ByteMatrix) -> u32 {
     let width = matrix.getWidth();
     let height = matrix.getHeight();
     for y in 0..(height - 1) as usize {
-        // for (int y = 0; y < height - 1; y++) {
         let arrayY = &array[y];
         for x in 0..(width - 1) as usize {
-            // for (int x = 0; x < width - 1; x++) {
             let value = arrayY[x];
             if value == arrayY[x + 1] && value == array[y + 1][x] && value == array[y + 1][x + 1] {
                 penalty += 1;
@@ -73,9 +71,7 @@ pub fn applyMaskPenaltyRule3(matrix: &ByteMatrix) -> u32 {
     let width = matrix.getWidth();
     let height = matrix.getHeight();
     for y in 0..height as usize {
-        // for (int y = 0; y < height; y++) {
         for x in 0..width as usize {
-            // for (int x = 0; x < width; x++) {
             let arrayY = &array[y]; // We can at least optimize this access
             if x + 6 < width as usize
                 && arrayY[x] == 1
@@ -113,7 +109,6 @@ pub fn isWhiteHorizontal(rowArray: &[u8], from: i32, to: u32) -> bool {
         return false;
     }
     for i in from..to as i32 {
-        // for (int i = from; i < to; i++) {
         if rowArray[i as usize] == 1 {
             return false;
         }
@@ -126,7 +121,6 @@ pub fn isWhiteVertical(array: &Vec<Vec<u8>>, col: u32, from: i32, to: u32) -> bo
         return false;
     }
     for i in from..to as i32 {
-        // for (int i = from; i < to; i++) {
         if array[i as usize][col as usize] == 1 {
             return false;
         }
@@ -144,12 +138,7 @@ pub fn applyMaskPenaltyRule4(matrix: &ByteMatrix) -> u32 {
     let width = matrix.getWidth();
     let height = matrix.getHeight();
     for val_y in array.iter().take(height as usize) {
-        // for y in 0..height as usize {
-        // for (int y = 0; y < height; y++) {
-        // let arrayY = val_y;
         for val_x in val_y.iter().take(width as usize) {
-            // for x in 0..width as usize {
-            // for (int x = 0; x < width; x++) {
             if val_x == &1 {
                 numDarkCells += 1;
             }
@@ -242,12 +231,9 @@ fn applyMaskPenaltyRule1Internal(matrix: &ByteMatrix, isHorizontal: bool) -> u32
     };
     let array = matrix.getArray();
     for i in 0..iLimit as usize {
-        // for (int i = 0; i < iLimit; i++) {
         let mut numSameBitCells = 0;
-        // let prevBit = -1;
         let mut prevBit = 0;
         for j in 0..jLimit as usize {
-            // for (int j = 0; j < jLimit; j++) {
             let bit = if isHorizontal {
                 array[i][j]
             } else {

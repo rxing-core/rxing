@@ -79,7 +79,13 @@ fn test_digits_only() {
     let test_data = "374833744734397449";
     let data = qrcode_encoder::encode(test_data, ErrorCorrectionLevel::H).expect("encode");
     let decode = crate::qrcode::decoder::qrcode_decoder::decode_bitmatrix(
-        &data.getMatrix().as_ref().unwrap().clone().into(),
+        &data
+            .getMatrix()
+            .as_ref()
+            .unwrap()
+            .clone()
+            .try_into()
+            .expect("convert"),
     )
     .expect("decode");
     assert_eq!(test_data, decode.getText());

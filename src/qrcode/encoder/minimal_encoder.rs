@@ -120,8 +120,6 @@ impl MinimalEncoder {
             encoders: ECIEncoderSet::new(stringToEncode, priorityCharset, None),
             ecLevel,
         }
-
-        // let encoders =  ECIEncoderSet::new(&stringToEncode, priorityCharset, -1);
     }
 
     /**
@@ -157,7 +155,7 @@ impl MinimalEncoder {
             let result = self.encodeSpecificVersion(version)?;
             if !qrcode_encoder::willFit(
                 result.getSize(),
-                Self::getVersion(Self::getVersionSize(result.getVersion())),
+                Self::getVersion(Self::getVersionSize(result.getVersion()))?,
                 &self.ecLevel,
             ) {
                 return Err(Exceptions::WriterException(Some(format!(
@@ -168,9 +166,9 @@ impl MinimalEncoder {
         } else {
             // compute minimal encoding trying the three version sizes.
             let versions = [
-                Self::getVersion(VersionSize::SMALL),
-                Self::getVersion(VersionSize::MEDIUM),
-                Self::getVersion(VersionSize::LARGE),
+                Self::getVersion(VersionSize::SMALL)?,
+                Self::getVersion(VersionSize::MEDIUM)?,
+                Self::getVersion(VersionSize::LARGE)?,
             ];
             let results = [
                 self.encodeSpecificVersion(versions[0])?,
@@ -180,7 +178,6 @@ impl MinimalEncoder {
             let mut smallestSize = u32::MAX;
             let mut smallestRXingResult: i32 = -1;
             for i in 0..3 {
-                // for (int i = 0; i < 3; i++) {
                 let size = results[i].getSize();
                 if qrcode_encoder::willFit(size, versions[i], &self.ecLevel) && size < smallestSize
                 {
@@ -198,40 +195,28 @@ impl MinimalEncoder {
     }
 
     pub fn getVersionSize(version: VersionRef) -> VersionSize {
-        if version.getVersionNumber() <= 9 {
-            VersionSize::SMALL
-        } else if version.getVersionNumber() <= 26 {
-            VersionSize::MEDIUM
-        } else {
-            VersionSize::LARGE
+        match version.getVersionNumber() {
+            0..=9 => VersionSize::SMALL,
+            10..=26 => VersionSize::MEDIUM,
+            _ => VersionSize::LARGE,
         }
     }
 
-    pub fn getVersion(versionSize: VersionSize) -> VersionRef {
+    pub fn getVersion(versionSize: VersionSize) -> Result<VersionRef, Exceptions> {
         match versionSize {
-            VersionSize::SMALL => Version::getVersionForNumber(9).expect("should always exist"),
-            VersionSize::MEDIUM => Version::getVersionForNumber(26).expect("should always exist"),
-            VersionSize::LARGE => Version::getVersionForNumber(40).expect("should always exist"),
+            VersionSize::SMALL => Version::getVersionForNumber(9),
+            VersionSize::MEDIUM => Version::getVersionForNumber(26),
+            VersionSize::LARGE => Version::getVersionForNumber(40),
         }
-        // switch (versionSize) {
-        //   case SMALL:
-        //     return Version.getVersionForNumber(9);
-        //   case MEDIUM:
-        //     return Version.getVersionForNumber(26);
-        //   case LARGE:
-        //   default:
-        //     return Version.getVersionForNumber(40);
-        // }
     }
 
     pub fn isNumeric(c: &str) -> bool {
         if c.len() == 1 {
-            let ch = c.chars().next().unwrap();
-            ('0'..='9').contains(&ch)
-        } else {
-            false
+            if let Some(ch) = c.chars().next() {
+                return ('0'..='9').contains(&ch);
+            }
         }
-        // return c >= '0' && c <= '9';
+        false
     }
 
     pub fn isDoubleByteKanji(c: &str) -> bool {
@@ -240,12 +225,11 @@ impl MinimalEncoder {
 
     pub fn isAlphanumeric(c: &str) -> bool {
         if c.len() == 1 {
-            let ch = c.chars().next().unwrap();
-            qrcode_encoder::getAlphanumericCode(ch as u32) != -1
-        } else {
-            false
+            if let Some(ch) = c.chars().next() {
+                return qrcode_encoder::getAlphanumericCode(ch as u32) != -1;
+            }
         }
-        // return encoder::getAlphanumericCode(c as u8 as u32) != -1;
+        false
     }
 
     pub fn canEncode(&self, mode: &Mode, c: &str) -> bool {
@@ -260,30 +244,15 @@ impl MinimalEncoder {
     }
 
     pub fn getCompactedOrdinal(mode: Option<Mode>) -> Result<u32, Exceptions> {
-        if mode.is_none() {
-            return Ok(0);
-        }
-        match &mode.unwrap() {
-            Mode::NUMERIC => Ok(2),
-            Mode::ALPHANUMERIC => Ok(1),
-            Mode::BYTE => Ok(3),
-            Mode::KANJI => Ok(0),
+        match mode {
+            Some(Mode::NUMERIC) => Ok(2),
+            Some(Mode::ALPHANUMERIC) => Ok(1),
+            Some(Mode::BYTE) => Ok(3),
+            Some(Mode::KANJI) | None => Ok(0),
             _ => Err(Exceptions::IllegalArgumentException(Some(format!(
                 "Illegal mode {mode:?}"
             )))),
         }
-        // switch (mode) {
-        //   case KANJI:
-        //     return 0;
-        //   case ALPHANUMERIC:
-        //     return 1;
-        //   case NUMERIC:
-        //     return 2;
-        //   case BYTE:
-        //     return 3;
-        //   default:
-        //     throw new IllegalStateException("Illegal mode " + mode);
-        // }
     }
 
     pub fn addEdge(
@@ -291,17 +260,33 @@ impl MinimalEncoder {
         edges: &mut [Vec<Vec<Option<Rc<Edge>>>>],
         position: usize,
         edge: Option<Rc<Edge>>,
-    ) {
-        let vertexIndex = position + edge.as_ref().unwrap().characterLength as usize;
-        let modeEdges = &mut edges[vertexIndex][edge.as_ref().unwrap().charsetEncoderIndex];
-        let modeOrdinal =
-            Self::getCompactedOrdinal(Some(edge.as_ref().unwrap().mode)).expect("value") as usize;
+    ) -> Result<(), Exceptions> {
+        let vertexIndex = position
+            + edge
+                .as_ref()
+                .ok_or(Exceptions::FormatException(None))?
+                .characterLength as usize;
+        let modeEdges = &mut edges[vertexIndex][edge
+            .as_ref()
+            .ok_or(Exceptions::FormatException(None))?
+            .charsetEncoderIndex];
+        let modeOrdinal = Self::getCompactedOrdinal(Some(
+            edge.as_ref().ok_or(Exceptions::FormatException(None))?.mode,
+        ))? as usize;
         if modeEdges[modeOrdinal].is_none()
-            || modeEdges[modeOrdinal].as_ref().unwrap().cachedTotalSize
-                > edge.as_ref().unwrap().cachedTotalSize
+            || modeEdges[modeOrdinal]
+                .as_ref()
+                .ok_or(Exceptions::FormatException(None))?
+                .cachedTotalSize
+                > edge
+                    .as_ref()
+                    .ok_or(Exceptions::FormatException(None))?
+                    .cachedTotalSize
         {
             modeEdges[modeOrdinal] = edge;
         }
+
+        Ok(())
     }
 
     pub fn addEdges(
@@ -310,7 +295,7 @@ impl MinimalEncoder {
         edges: &mut [Vec<Vec<Option<Rc<Edge>>>>],
         from: usize,
         previous: Option<Rc<Edge>>,
-    ) {
+    ) -> Result<(), Exceptions> {
         let mut start = 0;
         let mut end = self.encoders.len();
         let priorityEncoderIndex = self.encoders.getPriorityEncoderIndex();
@@ -318,112 +303,154 @@ impl MinimalEncoder {
             && self
                 .encoders
                 .canEncode(
-                    // self.stringToEncode.chars().nth(from as usize).unwrap() as i16,
                     &self.stringToEncode[from],
-                    priorityEncoderIndex.unwrap(),
+                    priorityEncoderIndex.ok_or(Exceptions::FormatException(None))?,
                 )
-                .unwrap()
+                .ok_or(Exceptions::FormatException(None))?
         {
-            start = priorityEncoderIndex.unwrap();
-            end = priorityEncoderIndex.unwrap() + 1;
+            start = priorityEncoderIndex.ok_or(Exceptions::FormatException(None))?;
+            end = priorityEncoderIndex.ok_or(Exceptions::FormatException(None))? + 1;
         }
 
         for i in start..end {
-            // for (int i = start; i < end; i++) {
             if self
                 .encoders
-                .canEncode(self.stringToEncode.get(from).unwrap(), i)
-                .unwrap()
+                .canEncode(
+                    self.stringToEncode
+                        .get(from)
+                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                    i,
+                )
+                .ok_or(Exceptions::FormatException(None))?
             {
                 self.addEdge(
                     edges,
                     from,
-                    Some(Rc::new(Edge::new(
-                        Mode::BYTE,
+                    Some(Rc::new(
+                        Edge::new(
+                            Mode::BYTE,
+                            from,
+                            i,
+                            1,
+                            previous.clone(),
+                            version,
+                            self.encoders.clone(),
+                            self.stringToEncode.clone(),
+                        )
+                        .ok_or(Exceptions::WriterException(None))?,
+                    )),
+                )?;
+            }
+        }
+
+        if self.canEncode(
+            &Mode::KANJI,
+            self.stringToEncode
+                .get(from)
+                .ok_or(Exceptions::FormatException(None))?,
+        ) {
+            self.addEdge(
+                edges,
+                from,
+                Some(Rc::new(
+                    Edge::new(
+                        Mode::KANJI,
                         from,
-                        i,
+                        0,
                         1,
                         previous.clone(),
                         version,
                         self.encoders.clone(),
                         self.stringToEncode.clone(),
-                    ))),
-                );
-            }
-        }
-
-        if self.canEncode(&Mode::KANJI, self.stringToEncode.get(from).unwrap()) {
-            self.addEdge(
-                edges,
-                from,
-                Some(Rc::new(Edge::new(
-                    Mode::KANJI,
-                    from,
-                    0,
-                    1,
-                    previous.clone(),
-                    version,
-                    self.encoders.clone(),
-                    self.stringToEncode.clone(),
-                ))),
-            );
+                    )
+                    .ok_or(Exceptions::WriterException(None))?,
+                )),
+            )?;
         }
 
         let inputLength = self.stringToEncode.len();
-        if self.canEncode(&Mode::ALPHANUMERIC, self.stringToEncode.get(from).unwrap()) {
+        if self.canEncode(
+            &Mode::ALPHANUMERIC,
+            self.stringToEncode
+                .get(from)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+        ) {
             self.addEdge(
                 edges,
                 from,
-                Some(Rc::new(Edge::new(
-                    Mode::ALPHANUMERIC,
-                    from,
-                    0,
-                    if from + 1 >= inputLength
-                        || !self.canEncode(
-                            &Mode::ALPHANUMERIC,
-                            self.stringToEncode.get(from + 1).unwrap(),
-                        )
-                    {
-                        1
-                    } else {
-                        2
-                    },
-                    previous.clone(),
-                    version,
-                    self.encoders.clone(),
-                    self.stringToEncode.clone(),
-                ))),
-            );
+                Some(Rc::new(
+                    Edge::new(
+                        Mode::ALPHANUMERIC,
+                        from,
+                        0,
+                        if from + 1 >= inputLength
+                            || !self.canEncode(
+                                &Mode::ALPHANUMERIC,
+                                self.stringToEncode
+                                    .get(from + 1)
+                                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                            )
+                        {
+                            1
+                        } else {
+                            2
+                        },
+                        previous.clone(),
+                        version,
+                        self.encoders.clone(),
+                        self.stringToEncode.clone(),
+                    )
+                    .ok_or(Exceptions::WriterException(None))?,
+                )),
+            )?;
         }
 
-        if self.canEncode(&Mode::NUMERIC, self.stringToEncode.get(from).unwrap()) {
+        if self.canEncode(
+            &Mode::NUMERIC,
+            self.stringToEncode
+                .get(from)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+        ) {
             self.addEdge(
                 edges,
                 from,
-                Some(Rc::new(Edge::new(
-                    Mode::NUMERIC,
-                    from,
-                    0,
-                    if from + 1 >= inputLength
-                        || !self
-                            .canEncode(&Mode::NUMERIC, self.stringToEncode.get(from + 1).unwrap())
-                    {
-                        1
-                    } else if from + 2 >= inputLength
-                        || !self
-                            .canEncode(&Mode::NUMERIC, self.stringToEncode.get(from + 2).unwrap())
-                    {
-                        2
-                    } else {
-                        3
-                    },
-                    previous,
-                    version,
-                    self.encoders.clone(),
-                    self.stringToEncode.clone(),
-                ))),
-            );
+                Some(Rc::new(
+                    Edge::new(
+                        Mode::NUMERIC,
+                        from,
+                        0,
+                        if from + 1 >= inputLength
+                            || !self.canEncode(
+                                &Mode::NUMERIC,
+                                self.stringToEncode
+                                    .get(from + 1)
+                                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                            )
+                        {
+                            1
+                        } else if from + 2 >= inputLength
+                            || !self.canEncode(
+                                &Mode::NUMERIC,
+                                self.stringToEncode
+                                    .get(from + 2)
+                                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                            )
+                        {
+                            2
+                        } else {
+                            3
+                        },
+                        previous,
+                        version,
+                        self.encoders.clone(),
+                        self.stringToEncode.clone(),
+                    )
+                    .ok_or(Exceptions::WriterException(None))?,
+                )),
+            )?;
         }
+
+        Ok(())
     }
     pub fn encodeSpecificVersion(
         &self,
@@ -548,18 +575,15 @@ impl MinimalEncoder {
 
         // The last dimension in the array below encodes the 4 modes KANJI, ALPHANUMERIC, NUMERIC and BYTE via the
         // function getCompactedOrdinal(Mode)
-        let mut edges = vec![vec![vec![None; 4]; self.encoders.len()]; inputLength + 1]; //new Edge[inputLength + 1][encoders.length()][4];
-        self.addEdges(version, &mut edges, 0, None);
+        let mut edges = vec![vec![vec![None; 4]; self.encoders.len()]; inputLength + 1];
+        self.addEdges(version, &mut edges, 0, None)?;
 
         for i in 1..=inputLength {
-            // for (int i = 1; i <= inputLength; i++) {
             for j in 0..self.encoders.len() {
-                // for (int j = 0; j < encoders.length(); j++) {
                 for k in 0..4 {
-                    // for (int k = 0; k < 4; k++) {
                     if edges[i][j][k].is_some() && i < inputLength {
                         let e = edges[i][j][k].clone();
-                        self.addEdges(version, &mut edges, i, e);
+                        self.addEdges(version, &mut edges, i, e)?;
                     }
                 }
             }
@@ -568,11 +592,8 @@ impl MinimalEncoder {
         let mut minimalK = None;
         let mut minimalSize = u32::MAX;
         for j in 0..self.encoders.len() {
-            // for (int j = 0; j < encoders.length(); j++) {
             for k in 0..4 {
-                // for (int k = 0; k < 4; k++) {
-                if edges[inputLength][j][k].is_some() {
-                    let edge = edges[inputLength][j][k].as_ref().unwrap();
+                if let Some(edge) = &edges[inputLength][j][k] {
                     if edge.cachedTotalSize < minimalSize {
                         minimalSize = edge.cachedTotalSize;
                         minimalJ = Some(j);
@@ -581,26 +602,29 @@ impl MinimalEncoder {
                 }
             }
         }
-        if minimalJ.is_none() {
-            return Err(Exceptions::WriterException(Some(format!(
+
+        if let Some((minJ, minK)) = minimalJ.zip(minimalK) {
+            Ok(RXingResultList::new(
+                version,
+                edges[inputLength][minJ][minK]
+                    .as_ref()
+                    .ok_or(Exceptions::WriterException(None))?
+                    .clone(),
+                self.isGS1,
+                &self.ecLevel,
+                self.encoders.clone(),
+                self.stringToEncode.clone(),
+            )
+            .ok_or(Exceptions::WriterException(None))?)
+        } else {
+            Err(Exceptions::WriterException(Some(format!(
                 r#"Internal error: failed to encode "{}"#,
                 self.stringToEncode
                     .iter()
                     .map(String::from)
-                    .collect::<String>() //fold("", |acc,x| [acc,&x].concat())
-            ))));
+                    .collect::<String>()
+            ))))
         }
-        Ok(RXingResultList::new(
-            version,
-            edges[inputLength][minimalJ.unwrap()][minimalK.unwrap()]
-                .as_ref()
-                .unwrap()
-                .clone(),
-            self.isGS1,
-            &self.ecLevel,
-            self.encoders.clone(),
-            self.stringToEncode.clone(),
-        ))
     }
 }
 
@@ -625,13 +649,14 @@ impl Edge {
         version: VersionRef,
         encoders: ECIEncoderSet,
         stringToEncode: Vec<String>,
-    ) -> Self {
+    ) -> Option<Self> {
         let nci = if mode == Mode::BYTE || previous.is_none() {
             charsetEncoderIndex
         } else {
-            previous.as_ref().unwrap().charsetEncoderIndex
+            previous.as_ref()?.charsetEncoderIndex
         };
-        Self {
+
+        Some(Self {
             mode,
             fromPosition,
             charsetEncoderIndex: nci,
@@ -640,16 +665,16 @@ impl Edge {
             _stringToEncode: stringToEncode.clone(),
             cachedTotalSize: {
                 let mut size = if previous.is_some() {
-                    previous.as_ref().unwrap().cachedTotalSize
+                    previous.as_ref()?.cachedTotalSize
                 } else {
                     0
                 };
 
                 let needECI = mode == Mode::BYTE &&
                           (previous.is_none() && nci != 0) || // at the beginning and charset is not ISO-8859-1
-                          (previous.is_some() && nci != previous.as_ref().unwrap().charsetEncoderIndex);
+                          (previous.is_some() && nci != previous.as_ref()?.charsetEncoderIndex);
 
-                if previous.is_none() || mode != previous.as_ref().unwrap().mode || needECI {
+                if previous.is_none() || mode != previous.as_ref()?.mode || needECI {
                     size += 4 + mode.getCharacterCountBits(version) as u32;
                 }
                 match mode {
@@ -670,17 +695,7 @@ impl Edge {
                             .take(characterLength as usize)
                             .map(String::from)
                             .collect();
-                        size += 8 * encoders
-                            .encode_string(&n, charsetEncoderIndex)
-                            .unwrap()
-                            .len() as u32;
-                        // size += 8 * encoders
-                        //     .encode_string(
-                        //         &stringToEncode[fromPosition as usize
-                        //             ..(fromPosition + characterLength as usize)],
-                        //         charsetEncoderIndex as usize,
-                        //     )
-                        //     .len() as u32;
+                        size += 8 * encoders.encode_string(&n, charsetEncoderIndex)?.len() as u32;
                         if needECI {
                             size += 4 + 8; // the ECI assignment numbers for ISO-8859-x, UTF-8 and UTF-16 are all 8 bit long
                         }
@@ -688,63 +703,10 @@ impl Edge {
                     Mode::KANJI => size += 13,
                     _ => {}
                 }
-                // switch (mode) {
-                //   case KANJI:
-                //     size += 13;
-                //     break;
-                //   case ALPHANUMERIC:
-                //     size += characterLength == 1 ? 6 : 11;
-                //     break;
-                //   case NUMERIC:
-                //     size += characterLength == 1 ? 4 : characterLength == 2 ? 7 : 10;
-                //     break;
-                //   case BYTE:
-                //     size += 8 * encoders.encode(stringToEncode.substring(fromPosition, fromPosition + characterLength),
-                //         charsetEncoderIndex).length;
-                //     if (needECI) {
-                //       size += 4 + 8; // the ECI assignment numbers for ISO-8859-x, UTF-8 and UTF-16 are all 8 bit long
-                //     }
-                //     break;
-                // }
                 size
             },
             _encoders: encoders,
-        }
-        // this.mode = mode;
-        // this.fromPosition = fromPosition;
-        // this.charsetEncoderIndex = mode == Mode.BYTE || previous == null ? charsetEncoderIndex :
-        //     previous.charsetEncoderIndex; // inherit the encoding if not of type BYTE
-        // this.characterLength = characterLength;
-        // this.previous = previous;
-
-        // int size = previous != null ? previous.cachedTotalSize : 0;
-
-        // boolean needECI = mode == Mode.BYTE &&
-        //     (previous == null && this.charsetEncoderIndex != 0) || // at the beginning and charset is not ISO-8859-1
-        //     (previous != null && this.charsetEncoderIndex != previous.charsetEncoderIndex);
-
-        // if (previous == null || mode != previous.mode || needECI) {
-        //   size += 4 + mode.getCharacterCountBits(version);
-        // }
-        // switch (mode) {
-        //   case KANJI:
-        //     size += 13;
-        //     break;
-        //   case ALPHANUMERIC:
-        //     size += characterLength == 1 ? 6 : 11;
-        //     break;
-        //   case NUMERIC:
-        //     size += characterLength == 1 ? 4 : characterLength == 2 ? 7 : 10;
-        //     break;
-        //   case BYTE:
-        //     size += 8 * encoders.encode(stringToEncode.substring(fromPosition, fromPosition + characterLength),
-        //         charsetEncoderIndex).length;
-        //     if (needECI) {
-        //       size += 4 + 8; // the ECI assignment numbers for ISO-8859-x, UTF-8 and UTF-16 are all 8 bit long
-        //     }
-        //     break;
-        // }
-        // cachedTotalSize = size;
+        })
     }
 }
 
@@ -761,32 +723,29 @@ impl RXingResultList {
         ecLevel: &ErrorCorrectionLevel,
         encoders: ECIEncoderSet,
         stringToEncode: Vec<String>,
-    ) -> Self {
+    ) -> Option<Self> {
         let mut length = 0;
         let mut current = Some(solution);
         let mut containsECI = false;
         let mut list = Vec::new();
 
-        while current.is_some() {
-            length += current.as_ref().unwrap().characterLength;
-            let previous = current.as_ref().unwrap().previous.clone();
+        while let Some(loop_current) = &current {
+            length += loop_current.characterLength;
+            let previous = current.as_ref()?.previous.clone();
 
-            let needECI = current.as_ref().unwrap().mode == Mode::BYTE &&
-          (previous.is_none() && current.as_ref().unwrap().charsetEncoderIndex != 0) || // at the beginning and charset is not ISO-8859-1
-          (previous.is_some() && current.as_ref().unwrap().charsetEncoderIndex != previous.as_ref().unwrap().charsetEncoderIndex);
+            let needECI = loop_current.mode == Mode::BYTE &&
+          (previous.is_none() && loop_current.charsetEncoderIndex != 0) || // at the beginning and charset is not ISO-8859-1
+          (previous.is_some() && loop_current.charsetEncoderIndex != previous.as_ref()?.charsetEncoderIndex);
 
             if needECI {
                 containsECI = true;
             }
 
-            if previous.is_none()
-                || previous.as_ref().unwrap().mode != current.as_ref().unwrap().mode
-                || needECI
-            {
+            if previous.is_none() || previous.as_ref()?.mode != loop_current.mode || needECI {
                 list.push(RXingResultNode::new(
-                    current.as_ref().unwrap().mode,
-                    current.as_ref().unwrap().fromPosition,
-                    current.as_ref().unwrap().charsetEncoderIndex,
+                    loop_current.mode,
+                    loop_current.fromPosition,
+                    loop_current.charsetEncoderIndex,
                     length,
                     encoders.clone(),
                     stringToEncode.clone(),
@@ -798,8 +757,8 @@ impl RXingResultList {
             if needECI {
                 list.push(RXingResultNode::new(
                     Mode::ECI,
-                    current.as_ref().unwrap().fromPosition,
-                    current.as_ref().unwrap().charsetEncoderIndex,
+                    loop_current.fromPosition,
+                    loop_current.charsetEncoderIndex,
                     0,
                     encoders.clone(),
                     stringToEncode.clone(),
@@ -813,7 +772,6 @@ impl RXingResultList {
         // If there is no ECI at the beginning then we put an ECI to the default charset (ISO-8859-1)
         if isGS1 {
             if let Some(first) = list.get(0) {
-                // if first != null && first.mode != Mode.ECI && containsECI {
                 if first.mode != Mode::ECI && containsECI {
                     // prepend a default character set ECI
                     list.push(RXingResultNode::new(
@@ -827,37 +785,30 @@ impl RXingResultList {
                     ));
                 }
             }
-            let first = list.get(0);
-            // prepend or insert a FNC1_FIRST_POSITION after the ECI (if any)
-            if first.is_some() && first.as_ref().unwrap().mode != Mode::ECI {
-                //&& containsECI {
-                list.insert(
-                    if first.as_ref().unwrap().mode != Mode::ECI {
-                        //first
-                        list.len()
-                    } else {
-                        //second
-                        list.len() - 1
-                    },
-                    RXingResultNode::new(
-                        Mode::FNC1_FIRST_POSITION,
-                        0,
-                        0,
-                        0,
-                        encoders,
-                        stringToEncode,
-                        version,
-                    ),
-                );
-                // list.push(RXingResultNode::new(
-                //     Mode::FNC1_FIRST_POSITION,
-                //     0,
-                //     0,
-                //     0,
-                //     encoders.clone(),
-                //     stringToEncode.clone(),
-                //     version,
-                // ));
+
+            if let Some(first) = list.get(0) {
+                // prepend or insert a FNC1_FIRST_POSITION after the ECI (if any)
+                if first.mode != Mode::ECI {
+                    //&& containsECI {
+                    list.insert(
+                        if first.mode != Mode::ECI {
+                            //first
+                            list.len()
+                        } else {
+                            //second
+                            list.len() - 1
+                        },
+                        RXingResultNode::new(
+                            Mode::FNC1_FIRST_POSITION,
+                            0,
+                            0,
+                            0,
+                            encoders,
+                            stringToEncode,
+                            version,
+                        ),
+                    );
+                }
             }
         }
 
@@ -868,29 +819,13 @@ impl RXingResultList {
             VersionSize::MEDIUM => (10, 26),
             _ => (27, 40),
         };
-        // let lowerLimit;
-        // let upperLimit;
-        // switch (getVersionSize(version)) {
-        //   case SMALL:
-        //     lowerLimit = 1;
-        //     upperLimit = 9;
-        //     break;
-        //   case MEDIUM:
-        //     lowerLimit = 10;
-        //     upperLimit = 26;
-        //     break;
-        //   case LARGE:
-        //   default:
-        //     lowerLimit = 27;
-        //     upperLimit = 40;
-        //     break;
-        // }
+
         let size = Self::internal_static_get_size(version, &list);
         // increase version if needed
         while versionNumber < upperLimit
             && !qrcode_encoder::willFit(
                 size,
-                Version::getVersionForNumber(versionNumber).unwrap(),
+                Version::getVersionForNumber(versionNumber).ok()?,
                 ecLevel,
             )
         {
@@ -900,15 +835,15 @@ impl RXingResultList {
         while versionNumber > lowerLimit
             && qrcode_encoder::willFit(
                 size,
-                Version::getVersionForNumber(versionNumber - 1).unwrap(),
+                Version::getVersionForNumber(versionNumber - 1).ok()?,
                 ecLevel,
             )
         {
             versionNumber -= 1;
         }
-        let version = Version::getVersionForNumber(versionNumber).unwrap();
+        let version = Version::getVersionForNumber(versionNumber).ok()?;
         list.reverse();
-        Self { list, version }
+        Some(Self { list, version })
     }
 
     /**
@@ -919,18 +854,15 @@ impl RXingResultList {
     }
 
     fn getSizeLocal(&self, version: VersionRef) -> u32 {
-        let mut result = 0;
-        for resultNode in &self.list {
-            result += resultNode.getSize(version);
-        }
+        let result = self
+            .list
+            .iter()
+            .fold(0, |acc, node| acc + node.getSize(version));
         result
     }
 
     fn internal_static_get_size(version: VersionRef, list: &Vec<RXingResultNode>) -> u32 {
-        let mut result = 0;
-        for resultNode in list {
-            result += resultNode.getSize(version);
-        }
+        let result = list.iter().fold(0, |acc, node| acc + node.getSize(version));
         result
     }
 
@@ -1057,9 +989,6 @@ impl RXingResultNode {
         if self.mode == Mode::BYTE {
             self.encoders
                 .encode_string(
-                    // &self.stringToEncode[self.fromPosition as usize
-                    //     ..(self.fromPosition + self.characterLength as usize)],
-                    // self.stringToEncode.get(self.fromPosition).unwrap(),
                     &(self
                         .stringToEncode
                         .iter()
@@ -1069,7 +998,7 @@ impl RXingResultNode {
                         .collect::<String>()),
                     self.charsetEncoderIndex,
                 )
-                .unwrap()
+                .unwrap_or_else(Vec::default)
                 .len() as u32
         } else {
             self.characterLength
@@ -1093,18 +1022,18 @@ impl RXingResultNode {
         } else if self.characterLength > 0 {
             // append data
             qrcode_encoder::appendBytes(
-                // &self.stringToEncode[self.fromPosition as usize
-                //     ..(self.fromPosition + self.characterLength as usize)],
                 &(self
                     .stringToEncode
                     .iter()
                     .skip(self.fromPosition)
                     .take(self.characterLength as usize)
                     .map(|s| s.as_str())
-                    .collect::<String>()), //self.stringToEncode.get(self.fromPosition).unwrap(),
+                    .collect::<String>()),
                 self.mode,
                 bits,
-                self.encoders.getCharset(self.charsetEncoderIndex).unwrap(),
+                self.encoders
+                    .getCharset(self.charsetEncoderIndex)
+                    .ok_or(Exceptions::WriterException(None))?,
             )?;
         }
         Ok(())
@@ -1112,12 +1041,11 @@ impl RXingResultNode {
 
     fn makePrintable(s: &str) -> String {
         let mut result = String::new();
-        for i in 0..s.chars().count() {
-            // for (int i = 0; i < s.length(); i++) {
-            if (s.chars().nth(i).unwrap() as u32) < 32 || (s.chars().nth(i).unwrap() as u32) > 126 {
+        for ch in s.chars() {
+            if (ch as u32) < 32 || (ch as u32) > 126 {
                 result.push('.');
             } else {
-                result.push(s.chars().nth(i).unwrap());
+                result.push(ch);
             }
         }
         result
@@ -1133,7 +1061,7 @@ impl fmt::Display for RXingResultNode {
             result.push_str(
                 self.encoders
                     .getCharset(self.charsetEncoderIndex)
-                    .unwrap()
+                    .ok_or(fmt::Error)?
                     .name(),
             );
         } else {

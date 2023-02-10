@@ -102,21 +102,21 @@ impl fmt::Display for QRCode {
         result.push_str("<<\n");
         result.push_str(" mode: ");
         if self.mode.is_some() {
-            result.push_str(&format!("{:?}", self.mode.as_ref().unwrap()));
+            result.push_str(&format!("{:?}", self.mode.as_ref().ok_or(fmt::Error)?));
         } else {
             result.push_str("null");
         }
         // result.push_str(&format!("{:?}", self.mode));
         result.push_str("\n ecLevel: ");
         if self.ecLevel.is_some() {
-            result.push_str(&format!("{:?}", self.ecLevel.as_ref().unwrap()));
+            result.push_str(&format!("{:?}", self.ecLevel.as_ref().ok_or(fmt::Error)?));
         } else {
             result.push_str("null");
         }
         // result.push_str(&format!("{:?}", self.ecLevel));
         result.push_str("\n version: ");
         if self.version.is_some() {
-            result.push_str(&format!("{}", self.version.as_ref().unwrap()));
+            result.push_str(&format!("{}", self.version.as_ref().ok_or(fmt::Error)?));
         } else {
             result.push_str("null");
         }
@@ -127,7 +127,7 @@ impl fmt::Display for QRCode {
         } else {
             result.push_str("\n matrix:\n");
             if self.matrix.is_some() {
-                result.push_str(&format!("{}", self.matrix.as_ref().unwrap()));
+                result.push_str(&format!("{}", self.matrix.as_ref().ok_or(fmt::Error)?));
             } else {
                 result.push_str("null");
             }
