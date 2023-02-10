@@ -170,8 +170,8 @@ impl PDF417Writer {
             if rotated {
                 scaledMatrix = Self::rotateArray(&scaledMatrix);
             }
-            return Ok(Self::bitMatrixFromBitArray(&scaledMatrix, margin)
-                .ok_or(Exceptions::IllegalStateException(None))?);
+            return Self::bitMatrixFromBitArray(&scaledMatrix, margin)
+                .ok_or(Exceptions::IllegalStateException(None));
         }
 
         Self::bitMatrixFromBitArray(&originalScale, margin)

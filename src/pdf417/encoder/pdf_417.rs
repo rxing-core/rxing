@@ -289,13 +289,13 @@ impl PDF417 {
                 continue;
             }
 
-            let newRatio: f64 = ((17 * cols + 69) as f64 * DEFAULT_MODULE_WIDTH as f64)
-                / (rows as f64 * HEIGHT as f64);
+            let newRatio: f64 = ((17 * cols + 69) as f64 * DEFAULT_MODULE_WIDTH)
+                / (rows as f64 * HEIGHT);
 
             // ignore if previous ratio is closer to preferred ratio
             if dimension.is_some()
-                && (newRatio - PREFERRED_RATIO as f64).abs()
-                    > (ratio - PREFERRED_RATIO as f64).abs()
+                && (newRatio - PREFERRED_RATIO).abs()
+                    > (ratio - PREFERRED_RATIO).abs()
             {
                 continue;
             }
