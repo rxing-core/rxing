@@ -60,6 +60,9 @@ pub use SMSParsedResult::*;
 pub use URIParsedResult::*;
 pub use VINParsedResult::*;
 
+mod other_parsed_result;
+pub use other_parsed_result::*;
+
 #[cfg(test)]
 mod AddressBookParsedResultTestCase;
 #[cfg(test)]
@@ -102,6 +105,7 @@ pub enum ParsedClientResult {
     AddressBookResult(AddressBookParsedRXingResult),
     CalendarEventResult(CalendarParsedRXingResult),
     ExpandedProductResult(ExpandedProductParsedRXingResult),
+    Other(OtherParsedResult),
 }
 
 impl ParsedRXingResult for ParsedClientResult {
@@ -120,6 +124,7 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::AddressBookResult(a) => a.getType(),
             ParsedClientResult::CalendarEventResult(a) => a.getType(),
             ParsedClientResult::ExpandedProductResult(a) => a.getType(),
+            ParsedClientResult::Other(a) => a.getType(),
         }
     }
 
@@ -138,6 +143,7 @@ impl ParsedRXingResult for ParsedClientResult {
             ParsedClientResult::AddressBookResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::CalendarEventResult(a) => a.getDisplayRXingResult(),
             ParsedClientResult::ExpandedProductResult(a) => a.getDisplayRXingResult(),
+            ParsedClientResult::Other(a) => a.getDisplayRXingResult(),
         }
     }
 }

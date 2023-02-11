@@ -36,4 +36,5 @@ pub enum ParsedRXingResultType {
     WIFI,
     ISBN,
     VIN,
+    OTHER,
 }

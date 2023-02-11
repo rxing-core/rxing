@@ -422,7 +422,9 @@ pub fn match_single_docomo_prefixed_field(
 #[cfg(test)]
 mod tests {
     use crate::{
-        client::result::{ParsedClientResult, TextParsedRXingResult},
+        client::result::{
+            OtherParsedResult, ParsedClientResult, ParsedRXingResult, TextParsedRXingResult,
+        },
         RXingResult,
     };
 
@@ -444,5 +446,33 @@ mod tests {
         })
         .unwrap();
         assert_eq!(p_res.to_string(), "parsed with parser");
+    }
+
+    #[test]
+    fn test_other_parser() {
+        let result: RXingResult = RXingResult::new(
+            "text",
+            vec![12, 23, 54, 23],
+            Vec::new(),
+            crate::BarcodeFormat::EAN_13,
+        );
+        let p_res = parse_result_with_parser(&result, |v| {
+            Some(ParsedClientResult::Other(OtherParsedResult::new(Box::new(
+                v.getRawBytes().clone(),
+            ))))
+        })
+        .unwrap();
+
+        assert_eq!(p_res.getDisplayRXingResult(), "Any { .. }");
+
+        if let ParsedClientResult::Other(opr) = p_res {
+            if let Some(d) = opr.get_data().downcast_ref::<Vec<u8>>() {
+                assert_eq!(d, result.getRawBytes());
+            } else {
+                panic!("did not get vec<u8>");
+            }
+        } else {
+            panic!("did not get ParsedClientResult::Other");
+        }
     }
 }
