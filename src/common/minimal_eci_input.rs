@@ -309,6 +309,9 @@ impl MinimalECIInput {
         }
     }
 
+    /// Minimially encode a string with the given characterset.
+    ///
+    /// Function can panic if the string cannot be encoded.
     pub fn encodeMinimally(
         stringToEncode: &str,
         encoderSet: &ECIEncoderSet,
