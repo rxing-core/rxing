@@ -668,7 +668,7 @@ impl Edge {
         characterLength: u32,
         previous: Option<Rc<Edge>>,
     ) -> Result<Self, Exceptions> {
-        if !(fromPosition + characterLength <= input.length() as u32) {
+        if fromPosition + characterLength > input.length() as u32 {
             return Err(Exceptions::FormatException(None));
         }
 
