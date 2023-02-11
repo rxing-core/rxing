@@ -155,7 +155,7 @@ impl C40Encoder {
             context.writeCodeword(LATCH_TO_C40);
         }
 
-        handleEOD(context, &mut buffer).expect("eod");
+        handleEOD(context, &mut buffer)?;
 
         Ok(())
     }

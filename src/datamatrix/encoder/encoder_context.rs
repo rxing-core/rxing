@@ -103,10 +103,12 @@ impl<'a> EncoderContext<'_> {
         self.skipAtEnd = count;
     }
 
+    /// panics if current position is out of bounds
     pub fn getCurrentChar(&self) -> char {
         self.msg.chars().nth(self.pos as usize).unwrap()
     }
 
+    /// panics if current position is out of bounds
     pub fn getCurrent(&self) -> char {
         self.msg.chars().nth(self.pos as usize).unwrap()
     }

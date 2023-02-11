@@ -218,7 +218,7 @@ fn addEdge(edges: &mut [Vec<Option<Rc<Edge>>>], edge: Rc<Edge>) -> Result<(), Ex
     if edges[vertexIndex][edge.getEndMode()?.ordinal()].is_none()
         || edges[vertexIndex][edge.getEndMode()?.ordinal()]
             .as_ref()
-            .unwrap()
+            .ok_or(Exceptions::IllegalStateException(None))?
             .cachedTotalSize
             > edge.cachedTotalSize
     {
@@ -604,9 +604,7 @@ fn encodeMinimally(input: Rc<Input>) -> Result<RXingResult, Exceptions> {
     addEdges(input.clone(), &mut edges, 0, None)?;
 
     for i in 1..=inputLength {
-        // for (int i = 1; i <= inputLength; i++) {
         for j in 0..6 {
-            // for (int j = 0; j < 6; j++) {
             if edges[i][j].is_some() && i < inputLength {
                 let edge = edges[i][j].clone();
                 addEdges(input.clone(), &mut edges, i as u32, edge)?;
@@ -614,7 +612,6 @@ fn encodeMinimally(input: Rc<Input>) -> Result<RXingResult, Exceptions> {
         }
         //optimize memory by removing edges that have been passed.
         for j in 0..6 {
-            // for (int j = 0; j < 6; j++) {
             edges[i - 1][j] = None;
         }
     }
@@ -622,7 +619,6 @@ fn encodeMinimally(input: Rc<Input>) -> Result<RXingResult, Exceptions> {
     let mut minimalJ: i32 = -1;
     let mut minimalSize = i32::MAX;
     for j in 0..6 {
-        // for (int j = 0; j < 6; j++) {
         if edges[inputLength][j].is_some() {
             let edge = edges[inputLength][j].as_ref().unwrap();
             let size = if (1..=3).contains(&j) {
@@ -672,12 +668,9 @@ impl Edge {
         characterLength: u32,
         previous: Option<Rc<Edge>>,
     ) -> Result<Self, Exceptions> {
-        // this.input = input;
-        // this.mode = mode;
-        // this.fromPosition = fromPosition;
-        // this.characterLength = characterLength;
-        // this.previous = previous;
-        assert!(fromPosition + characterLength <= input.length() as u32);
+        if !(fromPosition + characterLength <= input.length() as u32) {
+            return Err(Exceptions::FormatException(None));
+        }
 
         let mut size = if let Some(previous) = previous.clone() {
             previous.cachedTotalSize
@@ -704,11 +697,9 @@ impl Edge {
         match mode {
             Mode::Ascii => {
                 size += 1;
-                if input.isECI(fromPosition).expect("bool")
+                if input.isECI(fromPosition)?
                     || isExtendedASCII(
-                        input
-                            .charAt(fromPosition as usize)
-                            .expect("char must exist)"),
+                        input.charAt(fromPosition as usize)?,
                         input.getFNC1Character(),
                     )
                 {
@@ -748,9 +739,7 @@ impl Edge {
                         fromPosition,
                         mode == Mode::C40,
                         &mut charLen,
-                    )
-                    .expect("works")
-                        * 2;
+                    )? * 2;
                 }
 
                 if previousMode == Mode::Ascii || previousMode == Mode::B256 {
@@ -1382,10 +1371,9 @@ impl RXingResult {
 
     pub fn applyRandomPattern(bytesAL: &mut [u8], startPosition: u32, length: u32) {
         for i in 0..length as usize {
-            // for (int i = 0; i < length; i++) {
             //See "B.1 253-state algorithm
             let Pad_codeword_position = startPosition as usize + i;
-            let Pad_codeword_value = bytesAL.get(Pad_codeword_position).expect("known to exist");
+            let Pad_codeword_value = bytesAL.get(Pad_codeword_position).unwrap_or(&0);
             let pseudo_random_number = ((149 * (Pad_codeword_position + 1)) % 255) + 1;
             let temp_variable: u16 = *Pad_codeword_value as u16 + pseudo_random_number as u16;
             bytesAL[Pad_codeword_position] = if temp_variable <= 255 {
