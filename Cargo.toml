@@ -1,9 +1,9 @@
 [package]
 name = "rxing"
-version = "0.3.0"
+version = "0.3.1"
 description="A rust port of the zxing barcode library."
 license="Apache-2.0"
-repository="https://github.com/hschimke/rxing"
+repository="https://github.com/rxing-core/rxing"
 keywords = ["barcode", "2d_barcode", "1d_barcode", "barcode_reader", "barcode_writer"]
 edition = "2021"
 exclude = [

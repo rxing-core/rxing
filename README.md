@@ -70,6 +70,7 @@ fn main() {
 ```
 
 ## Latest Release Notes
+* *v0.3.1* -> Support for closures in NEEDS_RESULT_CALLBACK. rxing has moved to https://github.com/rxing-core/rxing.
 * *v0.2.21* -> Adds partial support for detecting and decoding rotated MaxiCode symbols. Adds support for basic serialization of many public facing datatypes using serde (gated behind `serde` feature).
 
     Rotation detection is no longer gated behind the `experimental_features` flag. Rotation of maxicodes is simplistic. Current tests detect about 50% of codes when rotated 90 degrees. Detection of skewed MaxiCodes is now behind `experimental_features`.
