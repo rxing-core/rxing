@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![allow(clippy::all)]
 /*
  * Copyright 2008 ZXing authors
  *
