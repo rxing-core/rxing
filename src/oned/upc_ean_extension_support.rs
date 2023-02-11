@@ -44,11 +44,5 @@ impl UPCEANExtensionSupport {
             self.twoSupport
                 .decodeRow(rowNumber, row, &Self::EXTENSION_START_PATTERN)
         }
-        // let res_2 = twoSupport.decodeRow(rowNumber, row, extensionStartRange);
-        // try {
-        //   return fiveSupport.decodeRow(rowNumber, row, extensionStartRange);
-        // } catch (ReaderException ignored) {
-        //   return twoSupport.decodeRow(rowNumber, row, extensionStartRange);
-        // }
     }
 }

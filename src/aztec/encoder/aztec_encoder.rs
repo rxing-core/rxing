@@ -185,7 +185,7 @@ pub fn encode_bytes_with_charset(
         total_bits_in_layer_var = total_bits_in_layer(layers, compact);
         word_size = WORD_SIZE[layers as usize];
         let usable_bits_in_layers = total_bits_in_layer_var - (total_bits_in_layer_var % word_size);
-        stuffed_bits = stuffBits(&bits, word_size as usize);
+        stuffed_bits = stuffBits(&bits, word_size as usize)?;
         if stuffed_bits.getSize() as u32 + ecc_bits > usable_bits_in_layers {
             return Err(Exceptions::IllegalArgumentException(Some(
                 "Data to large for user specified layer".to_owned(),
@@ -222,7 +222,7 @@ pub fn encode_bytes_with_charset(
             // wordSize has changed
             if stuffed_bits.getSize() == 0 || word_size != WORD_SIZE[layers as usize] {
                 word_size = WORD_SIZE[layers as usize];
-                stuffed_bits = stuffBits(&bits, word_size as usize);
+                stuffed_bits = stuffBits(&bits, word_size as usize)?;
             }
             let usable_bits_in_layers =
                 total_bits_in_layer_var - (total_bits_in_layer_var % word_size);
@@ -267,7 +267,7 @@ pub fn encode_bytes_with_charset(
             alignmentMap[origCenter + i] = center + newOffset + 1;
         }
     }
-    let mut matrix = BitMatrix::with_single_dimension(matrixSize);
+    let mut matrix = BitMatrix::with_single_dimension(matrixSize)?;
 
     // dbg!(matrix.to_string());
 
@@ -307,12 +307,8 @@ pub fn encode_bytes_with_charset(
         rowOffset += rowSize * 8;
     }
 
-    // dbg!(matrix.to_string());
-
     // draw mode message
     drawModeMessage(&mut matrix, compact, matrixSize, modeMessage);
-
-    // dbg!(matrix.to_string());
 
     // draw alignment marks
     if compact {
@@ -385,20 +381,12 @@ pub fn generateModeMessage(
 ) -> Result<BitArray, Exceptions> {
     let mut mode_message = BitArray::new();
     if compact {
-        mode_message
-            .appendBits(layers - 1, 2)
-            .expect("should append");
-        mode_message
-            .appendBits(messageSizeInWords - 1, 6)
-            .expect("should append");
+        mode_message.appendBits(layers - 1, 2)?;
+        mode_message.appendBits(messageSizeInWords - 1, 6)?;
         mode_message = generateCheckWords(&mode_message, 28, 4)?;
     } else {
-        mode_message
-            .appendBits(layers - 1, 5)
-            .expect("should append");
-        mode_message
-            .appendBits(messageSizeInWords - 1, 11)
-            .expect("should append");
+        mode_message.appendBits(layers - 1, 5)?;
+        mode_message.appendBits(messageSizeInWords - 1, 11)?;
         mode_message = generateCheckWords(&mode_message, 40, 4)?;
     }
     Ok(mode_message)
@@ -407,7 +395,7 @@ pub fn generateModeMessage(
 fn drawModeMessage(matrix: &mut BitMatrix, compact: bool, matrixSize: u32, modeMessage: BitArray) {
     let center = matrixSize / 2;
     if compact {
-        for i in 0..7usize {
+        for i in 0..7_usize {
             // for (int i = 0; i < 7; i++) {
             let offset = (center as usize - 3 + i) as u32;
             if modeMessage.get(i) {
@@ -424,7 +412,7 @@ fn drawModeMessage(matrix: &mut BitMatrix, compact: bool, matrixSize: u32, modeM
             }
         }
     } else {
-        for i in 0..10usize {
+        for i in 0..10_usize {
             // for (int i = 0; i < 10; i++) {
             let offset = (center as usize - 5 + i + i / 5) as u32;
             if modeMessage.get(i) {
@@ -450,13 +438,13 @@ fn generateCheckWords(
 ) -> Result<BitArray, Exceptions> {
     // bitArray is guaranteed to be a multiple of the wordSize, so no padding needed
     let message_size_in_words = bitArray.getSize() / wordSize;
-    let mut rs = ReedSolomonEncoder::new(getGF(wordSize)?);
+    let mut rs = ReedSolomonEncoder::new(getGF(wordSize)?)?;
     let total_words = totalBits / wordSize;
     let mut message_words = bitsToWords(bitArray, wordSize, total_words);
     rs.encode(&mut message_words, total_words - message_size_in_words)?;
     let start_pad = totalBits % wordSize;
     let mut message_bits = BitArray::new();
-    message_bits.appendBits(0, start_pad).expect("must append");
+    message_bits.appendBits(0, start_pad)?;
     for message_word in message_words {
         // for (int messageWord : messageWords) {
         message_bits.appendBits(message_word as u32, wordSize)?
@@ -498,23 +486,9 @@ fn getGF(wordSize: usize) -> Result<GenericGFRef, Exceptions> {
             "Unsupported word size {wordSize}"
         )))),
     }
-    // switch (wordSize) {
-    //   case 4:
-    //     return GenericGF.AZTEC_PARAM;
-    //   case 6:
-    //     return GenericGF.AZTEC_DATA_6;
-    //   case 8:
-    //     return GenericGF.AZTEC_DATA_8;
-    //   case 10:
-    //     return GenericGF.AZTEC_DATA_10;
-    //   case 12:
-    //     return GenericGF.AZTEC_DATA_12;
-    //   default:
-    //     throw new IllegalArgumentException("Unsupported word size " + wordSize);
-    // }
 }
 
-pub fn stuffBits(bits: &BitArray, word_size: usize) -> BitArray {
+pub fn stuffBits(bits: &BitArray, word_size: usize) -> Result<BitArray, Exceptions> {
     let mut out = BitArray::new();
 
     let n = bits.getSize() as isize;
@@ -530,21 +504,20 @@ pub fn stuffBits(bits: &BitArray, word_size: usize) -> BitArray {
             }
         }
         if (word & mask) == mask {
-            out.appendBits(word & mask, word_size).unwrap();
+            out.appendBits(word & mask, word_size)?;
             i -= 1;
         } else if (word & mask) == 0 {
-            out.appendBits(word | 1, word_size).unwrap();
+            out.appendBits(word | 1, word_size)?;
             i -= 1;
         } else {
-            out.appendBits(word, word_size).unwrap();
+            out.appendBits(word, word_size)?;
         }
 
         i += word_size as isize;
     }
-    out
+    Ok(out)
 }
 
 fn total_bits_in_layer(layers: u32, compact: bool) -> u32 {
     ((if compact { 88 } else { 112 }) + 16 * layers) * layers
-    // return ((compact ? 88 : 112) + 16 * layers) * layers;
 }

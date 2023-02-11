@@ -85,9 +85,11 @@ impl State {
             )));
             // throw new IllegalArgumentException("ECI code must be between 0 and 999999");
         } else {
-            let eci_digits = encoding::all::ISO_8859_1
+            let Ok(eci_digits) = encoding::all::ISO_8859_1
                 .encode(&format!("{eci}"), encoding::EncoderTrap::Strict)
-                .unwrap();
+                 else {
+                    return Err(Exceptions::IllegalArgumentException(None))
+                 };
             // let eciDigits = Integer.toString(eci).getBytes(StandardCharsets.ISO_8859_1);
             token.add(eci_digits.len() as i32, 3); // 1-6: number of ECI digits
             for eci_digit in &eci_digits {
@@ -205,7 +207,7 @@ impl State {
         new_mode_bit_count <= other.bit_count
     }
 
-    pub fn toBitArray(self, text: &[u8]) -> BitArray {
+    pub fn toBitArray(self, text: &[u8]) -> Result<BitArray, Exceptions> {
         let mut symbols = Vec::new();
         let tok = self.endBinaryShift(text.len() as u32).token;
         for tkn in tok.into_iter() {
@@ -223,22 +225,22 @@ impl State {
         for symbol in symbols.into_iter().rev() {
             // for i in (0..symbols.len()).rev() {
             // for (int i = symbols.size() - 1; i >= 0; i--) {
-            symbol.appendTo(&mut bit_array, text);
+            symbol.appendTo(&mut bit_array, text)?;
         }
-        bit_array
+        Ok(bit_array)
     }
 
+    #[inline(always)]
     fn calculate_binary_shift_cost(binary_shift_byte_count: u32) -> u32 {
         if binary_shift_byte_count > 62 {
-            return 21; // B/S with extended length
+            21 // B/S with extended length
+        } else if binary_shift_byte_count > 31 {
+            20 // two B/S
+        } else if binary_shift_byte_count > 0 {
+            10 // one B/S
+        } else {
+            0
         }
-        if binary_shift_byte_count > 31 {
-            return 20; // two B/S
-        }
-        if binary_shift_byte_count > 0 {
-            return 10; // one B/S
-        }
-        0
     }
 }
 

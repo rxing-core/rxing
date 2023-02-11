@@ -92,7 +92,7 @@ fn testMaskAcrossDimensions(mask: DataMask, condition: MaskCondition) {
 }
 
 fn testMask(mask: DataMask, dimension: u32, condition: MaskCondition) {
-    let mut bits = BitMatrix::with_single_dimension(dimension);
+    let mut bits = BitMatrix::with_single_dimension(dimension).expect("new");
     mask.unmaskBitMatrix(&mut bits, dimension);
     for i in 0..dimension {
         // for (int i = 0; i < dimension; i++) {

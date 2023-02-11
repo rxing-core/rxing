@@ -249,7 +249,7 @@ fn Scan(
         CHECK!(res.is_ok());
 
         return Ok(DatamatrixDetectorResult::new(
-            res.unwrap(),
+            res?,
             sourcePoints.points().to_vec(),
         ));
     }

@@ -61,11 +61,6 @@ impl<'a> MultiDetector<'_> {
             if let Ok(potential) = self.0.processFinderPatternInfo(info) {
                 result.push(potential);
             }
-            // try {
-            //   result.add(processFinderPatternInfo(info));
-            // } catch (ReaderException e) {
-            //   // ignore
-            // }
         }
 
         Ok(result)

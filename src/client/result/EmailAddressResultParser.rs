@@ -41,8 +41,6 @@ use super::{
  * @author Sean Owen
  */
 pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
-    // let comma_regex = Regex::new(",").unwrap();
-    // private static final Pattern COMMA = Pattern.compile(",");
     let rawText = ResultParser::getMassagedText(result);
     if rawText.starts_with("mailto:") || rawText.starts_with("MAILTO:") {
         // If it starts with mailto:, assume it is definitely trying to be an email address
@@ -55,11 +53,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
         //   hostEmail = hostEmail.substring(0, queryStart);
         // }
         // try {
-        let tmp = if let Ok(res) = ResultParser::urlDecode(hostEmail) {
-            res
-        } else {
-            return None;
-        };
+        let tmp = ResultParser::urlDecode(hostEmail).ok()?;
         hostEmail = tmp.as_str();
         // } catch (IllegalArgumentException iae) {
         //   return null;

@@ -73,13 +73,17 @@ impl OneDimensionalCodeWriter for Code128Writer {
     ) -> Result<Vec<bool>, Exceptions> {
         let forcedCodeSet = check(contents, hints)?;
 
-        let hasCompactionHint = if let Some(EncodeHintValue::Code128Compact(compat)) =
-            hints.get(&EncodeHintType::CODE128_COMPACT)
-        {
-            *compat
-        } else {
-            false
-        };
+        let hasCompactionHint = matches!(
+            hints.get(&EncodeHintType::CODE128_COMPACT),
+            Some(EncodeHintValue::Code128Compact(true))
+        );
+        // let hasCompactionHint = if let Some(EncodeHintValue::Code128Compact(compat)) =
+        //     hints.get(&EncodeHintType::CODE128_COMPACT)
+        // {
+        //     *compat
+        // } else {
+        //     false
+        // };
         // let hasCompactionHint = hints != null && hints.containsKey(EncodeHintType::CODE128_COMPACT) &&
         //     Boolean.parseBoolean(hints.get(EncodeHintType::CODE128_COMPACT).toString());
 
@@ -103,7 +107,7 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32, E
     // Check for forced code set hint.
     let mut forcedCodeSet = -1_i32;
     if hints.contains_key(&EncodeHintType::FORCE_CODE_SET) {
-        let Some(EncodeHintValue::ForceCodeSet(codeSetHint)) = hints.get(&EncodeHintType::FORCE_CODE_SET) else { panic!("This must exist by checks previous")};
+        let Some(EncodeHintValue::ForceCodeSet(codeSetHint)) = hints.get(&EncodeHintType::FORCE_CODE_SET) else { return Err(Exceptions::IllegalStateException(None)) };
         match codeSetHint.as_str() {
             "A" => forcedCodeSet = CODE_CODE_A as i32,
             "B" => forcedCodeSet = CODE_CODE_B as i32,
@@ -192,6 +196,7 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>, Exception
         //Select code to use
         let newCodeSet = if forcedCodeSet == -1 {
             chooseCode(contents, position, codeSet)
+                .ok_or(Exceptions::IllegalStateException(None))?
         } else {
             forcedCodeSet as usize // THIS IS RISKY
         };
@@ -201,7 +206,11 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>, Exception
         if newCodeSet == codeSet {
             // Encode the current character
             // First handle escapes
-            match contents.chars().nth(position).unwrap() {
+            match contents
+                .chars()
+                .nth(position)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+            {
                 ESCAPE_FNC_1 => patternIndex = CODE_FNC_1 as isize,
                 ESCAPE_FNC_2 => patternIndex = CODE_FNC_2 as isize,
                 ESCAPE_FNC_3 => patternIndex = CODE_FNC_3 as isize,
@@ -217,16 +226,24 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>, Exception
                 {
                     match codeSet {
                         CODE_CODE_A => {
-                            patternIndex =
-                                contents.chars().nth(position).unwrap() as isize - ' ' as isize;
+                            patternIndex = contents
+                                .chars()
+                                .nth(position)
+                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                                as isize
+                                - ' ' as isize;
                             if patternIndex < 0 {
                                 // everything below a space character comes behind the underscore in the code patterns table
                                 patternIndex += '`' as isize;
                             }
                         }
                         CODE_CODE_B => {
-                            patternIndex =
-                                contents.chars().nth(position).unwrap() as isize - ' ' as isize
+                            patternIndex = contents
+                                .chars()
+                                .nth(position)
+                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                                as isize
+                                - ' ' as isize
                         }
                         _ => {
                             // CODE_CODE_C
@@ -242,9 +259,9 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>, Exception
                                 .take(2)
                                 .map(|(_u, c)| c)
                                 .collect();
-                            patternIndex = s.parse::<isize>().unwrap();
-                            // contents[position..position + 2].parse::<isize>().unwrap();
-                            // patternIndex = Integer.parseInt(contents.substring(position, position + 2));
+                            patternIndex = s.parse::<isize>().map_err(|e| {
+                                Exceptions::ParseException(Some(format!("issue parsing {s}: {e}")))
+                            })?;
                             position += 1;
                         } // Also incremented below
                     }
@@ -308,11 +325,7 @@ fn produceRXingResult(patterns: &mut Vec<Vec<usize>>, checkSum: usize) -> Vec<bo
     // Compute code width
     let mut codeWidth = 0_usize;
     for pattern in &mut *patterns {
-        // for (int[] pattern : patterns) {
-        for width in pattern {
-            // for (int width : pattern) {
-            codeWidth += *width;
-        }
+        codeWidth += pattern.iter().sum::<usize>();
     }
 
     // Compute result
@@ -326,99 +339,99 @@ fn produceRXingResult(patterns: &mut Vec<Vec<usize>>, checkSum: usize) -> Vec<bo
     result
 }
 
-fn findCType(value: &str, start: usize) -> CType {
+fn findCType(value: &str, start: usize) -> Option<CType> {
     let last = value.chars().count();
     if start >= last {
-        return CType::Uncodable;
+        return Some(CType::Uncodable);
     }
-    let c = value.chars().nth(start).unwrap();
+    let c = value.chars().nth(start)?;
     if c == ESCAPE_FNC_1 {
-        return CType::Fnc1;
+        return Some(CType::Fnc1);
     }
     if !('0'..='9').contains(&c) {
-        return CType::Uncodable;
+        return Some(CType::Uncodable);
     }
     if start + 1 >= last {
-        return CType::OneDigit;
+        return Some(CType::OneDigit);
     }
-    let c = value.chars().nth(start + 1).unwrap();
+    let c = value.chars().nth(start + 1)?;
     if !('0'..='9').contains(&c) {
-        return CType::OneDigit;
+        return Some(CType::OneDigit);
     }
-    CType::TwoDigits
+    Some(CType::TwoDigits)
 }
 
-fn chooseCode(value: &str, start: usize, oldCode: usize) -> usize {
-    let mut lookahead = findCType(value, start);
+fn chooseCode(value: &str, start: usize, oldCode: usize) -> Option<usize> {
+    let mut lookahead = findCType(value, start)?;
     if lookahead == CType::OneDigit {
         if oldCode == CODE_CODE_A {
-            return CODE_CODE_A;
+            return Some(CODE_CODE_A);
         }
-        return CODE_CODE_B;
+        return Some(CODE_CODE_B);
     }
     if lookahead == CType::Uncodable {
         if start < value.chars().count() {
-            let c = value.chars().nth(start).unwrap();
+            let c = value.chars().nth(start)?;
             if c < ' '
                 || (oldCode == CODE_CODE_A && (c < '`' || (c >= ESCAPE_FNC_1 && c <= ESCAPE_FNC_4)))
             {
                 // can continue in code A, encodes ASCII 0 to 95 or FNC1 to FNC4
-                return CODE_CODE_A;
+                return Some(CODE_CODE_A);
             }
         }
-        return CODE_CODE_B; // no choice
+        return Some(CODE_CODE_B); // no choice
     }
     if oldCode == CODE_CODE_A && lookahead == CType::Fnc1 {
-        return CODE_CODE_A;
+        return Some(CODE_CODE_A);
     }
     if oldCode == CODE_CODE_C {
         // can continue in code C
-        return CODE_CODE_C;
+        return Some(CODE_CODE_C);
     }
     if oldCode == CODE_CODE_B {
         if lookahead == CType::Fnc1 {
-            return CODE_CODE_B; // can continue in code B
+            return Some(CODE_CODE_B); // can continue in code B
         }
         // Seen two consecutive digits, see what follows
-        lookahead = findCType(value, start + 2);
+        lookahead = findCType(value, start + 2)?;
         if lookahead == CType::Uncodable || lookahead == CType::OneDigit {
-            return CODE_CODE_B; // not worth switching now
+            return Some(CODE_CODE_B); // not worth switching now
         }
         if lookahead == CType::Fnc1 {
             // two digits, then FNC_1...
-            lookahead = findCType(value, start + 3);
+            lookahead = findCType(value, start + 3)?;
             if lookahead == CType::TwoDigits {
                 // then two more digits, switch
-                return CODE_CODE_C;
+                return Some(CODE_CODE_C);
             } else {
-                return CODE_CODE_B; // otherwise not worth switching
+                return Some(CODE_CODE_B); // otherwise not worth switching
             }
         }
         // At this point, there are at least 4 consecutive digits.
         // Look ahead to choose whether to switch now or on the next round.
         let mut index = start + 4;
-        let mut lookahead = findCType(value, index);
+        let mut lookahead = findCType(value, index)?;
         while lookahead == CType::TwoDigits {
             // while (lookahead = findCType(value, index)) == CType::TWO_DIGITS {
             index += 2;
-            lookahead = findCType(value, index);
+            lookahead = findCType(value, index)?;
         }
         if lookahead == CType::OneDigit {
             // odd number of digits, switch later
-            return CODE_CODE_B;
+            return Some(CODE_CODE_B);
         }
-        return CODE_CODE_C; // even number of digits, switch now
+        return Some(CODE_CODE_C); // even number of digits, switch now
     }
     // Here oldCode == 0, which means we are choosing the initial code
     if lookahead == CType::Fnc1 {
         // ignore FNC_1
-        lookahead = findCType(value, start + 1);
+        lookahead = findCType(value, start + 1)?;
     }
     if lookahead == CType::TwoDigits {
         // at least two digits, start in code C
-        return CODE_CODE_C;
+        return Some(CODE_CODE_C);
     }
-    CODE_CODE_B
+    Some(CODE_CODE_B)
 }
 
 /**
@@ -520,7 +533,12 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                 Latch::None => { /* skip */ }
             }
             if charset == Charset::C {
-                if contents.chars().nth(i).unwrap() == ESCAPE_FNC_1 {
+                if contents
+                    .chars()
+                    .nth(i)
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                    == ESCAPE_FNC_1
+                {
                     addPattern(
                         &mut patterns,
                         CODE_FNC_1,
@@ -537,7 +555,9 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                         .collect();
                     addPattern(
                         &mut patterns,
-                        s.parse::<usize>().unwrap(),
+                        s.parse::<usize>().map_err(|e| {
+                            Exceptions::ParseException(Some(format!("unable to parse {s} {e}")))
+                        })?,
                         &mut checkSum,
                         &mut checkWeight,
                         i,
@@ -549,7 +569,11 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                 }
             } else {
                 // charset A or B
-                let mut patternIndex = match contents.chars().nth(i).unwrap() {
+                let mut patternIndex = match contents
+                    .chars()
+                    .nth(i)
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                {
                     ESCAPE_FNC_1 => CODE_FNC_1 as isize,
                     ESCAPE_FNC_2 => CODE_FNC_2 as isize,
                     ESCAPE_FNC_3 => CODE_FNC_3 as isize,
@@ -562,7 +586,14 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                             CODE_FNC_4_B as isize
                         }
                     }
-                    _ => contents.chars().nth(i).unwrap() as isize - ' ' as isize,
+                    _ => {
+                        contents
+                            .chars()
+                            .nth(i)
+                            .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                            as isize
+                            - ' ' as isize
+                    }
                 };
                 if ((charset == Charset::A && latch != Latch::Shift)
                     || (charset == Charset::B && latch == Latch::Shift))
@@ -611,7 +642,9 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
     }
 
     fn canEncode(contents: &str, charset: Charset, position: usize) -> bool {
-        let c = contents.chars().nth(position).unwrap();
+        let Some(c) = contents.chars().nth(position) else {
+            return false;
+        };
         match charset {
             Charset::A => {
                 c == ESCAPE_FNC_1
@@ -628,10 +661,11 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                     || B.find(c).is_some()
             }
             Charset::C => {
+                let Some(c_p_1) = contents.chars().nth(position + 1) else {
+                    return false;
+                };
                 c == ESCAPE_FNC_1
-                    || (position + 1 < contents.chars().count()
-                        && isDigit(c)
-                        && isDigit(contents.chars().nth(position + 1).unwrap()))
+                    || (position + 1 < contents.chars().count() && isDigit(c) && isDigit(c_p_1))
             }
             _ => false,
         }
@@ -647,7 +681,9 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
         memoizedCost: &mut Vec<Vec<u32>>,
         minPath: &mut Vec<Vec<Latch>>,
     ) -> Result<u32, Exceptions> {
-        assert!(position < contents.chars().count());
+        if position >= contents.chars().count() {
+            return Err(Exceptions::IllegalStateException(None));
+        }
         let mCost = memoizedCost[charset.ordinal()][position];
         if mCost > 0 {
             return Ok(mCost);
@@ -665,7 +701,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                 let mut latch = Latch::None;
                 if charset != sets[i] {
                     cost += 1;
-                    latch = sets[i].into(); //Latch::valueOf(sets[i].toString());
+                    latch = sets[i].into();
                 }
                 if !atEnd {
                     cost += encode_with_start_position(
@@ -707,7 +743,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                 cost += 1;
                 latch = Latch::C;
             }
-            let advance = if contents.chars().nth(position).unwrap() == ESCAPE_FNC_1 {
+            let advance = if contents.chars().nth(position).unwrap_or_default() == ESCAPE_FNC_1 {
                 1
             } else {
                 2

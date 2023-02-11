@@ -50,17 +50,10 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let note = ResultParser::matchSinglePrefixedField("MEMORY:", &rawText, '\r', false)
         .unwrap_or_default();
     let address = ResultParser::matchSinglePrefixedField("ADD:", &rawText, '\r', true);
-    let addresses = if address.is_none() {
-        Vec::new()
-    } else {
-        vec![address?]
-    };
+    let addresses = address.map_or_else(Vec::new, |add| vec![add]);
+
     if let Ok(new_data) = AddressBookParsedRXingResult::with_details(
-        if let Some(nm) = ResultParser::maybeWrap(name) {
-            nm
-        } else {
-            Vec::new()
-        },
+        ResultParser::maybeWrap(name).unwrap_or_default(),
         Vec::new(),
         pronunciation.unwrap_or_default(),
         phoneNumbers,
@@ -90,10 +83,12 @@ fn matchMultipleValuePrefix(prefix: &str, rawText: &str) -> Vec<String> {
         // for (int i = 1; i <= 3; i++) {
         let value =
             ResultParser::matchSinglePrefixedField(&format!("{prefix}{i}:"), rawText, '\r', true);
-        if value.is_none() {
+
+        if let Some(value) = value {
+            values.push(value)
+        } else {
             break;
         }
-        values.push(value.unwrap());
     }
 
     values

@@ -67,13 +67,6 @@ impl Binarizer for HybridBinarizer {
      * profiling easier, and not doing heavy lifting when callers don't expect it.
      */
     fn getBlackMatrix(&self) -> Result<&BitMatrix, Exceptions> {
-        // if self.black_matrix.is_none() {
-        //     self.black_matrix = Some(
-        //         Self::calculateBlackMatrix(&mut self.ghb)
-        //             .expect("generate black matrix must complete"),
-        //     )
-        // }
-        // Ok(self.black_matrix.as_ref().unwrap())
         let matrix = self
             .black_matrix
             .get_or_try_init(|| Self::calculateBlackMatrix(&self.ghb))?;
@@ -200,6 +193,7 @@ impl HybridBinarizer {
         }
     }
 
+    #[inline(always)]
     fn cap(value: u32, max: u32) -> u32 {
         if value < 2 {
             2

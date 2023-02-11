@@ -1,4 +1,4 @@
-mod AztecDetectorResult;
+mod aztec_detector_result;
 mod aztec_reader;
 mod aztec_writer;
 pub mod decoder;

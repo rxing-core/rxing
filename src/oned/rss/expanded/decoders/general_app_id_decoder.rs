@@ -132,7 +132,6 @@ impl<'a> GeneralAppIdDecoder<'_> {
     ) -> u32 {
         let mut value = 0;
         for i in 0..bits {
-            // for (int i = 0; i < bits; ++i) {
             if information.get(pos + i as usize) {
                 value |= 1 << (bits - i - 1);
             }
@@ -197,8 +196,8 @@ impl<'a> GeneralAppIdDecoder<'_> {
             }
         } //while (!isFinished);
 
-        if result.getDecodedInformation().is_some() {
-            Ok(result.getDecodedInformation().as_ref().unwrap().clone())
+        if let Some(r) = result.getDecodedInformation() {
+            Ok(r.clone())
         } else {
             Err(Exceptions::NotFoundException(None))
         }
@@ -346,7 +345,8 @@ impl<'a> GeneralAppIdDecoder<'_> {
         if (5..15).contains(&fiveBitValue) {
             return Ok(DecodedChar::new(
                 pos + 5,
-                char::from_u32('0' as u32 + fiveBitValue - 5).unwrap(),
+                char::from_u32('0' as u32 + fiveBitValue - 5)
+                    .ok_or(Exceptions::ParseException(None))?,
             ));
         }
 
@@ -355,14 +355,14 @@ impl<'a> GeneralAppIdDecoder<'_> {
         if (64..90).contains(&sevenBitValue) {
             return Ok(DecodedChar::new(
                 pos + 7,
-                char::from_u32(sevenBitValue + 1).unwrap(),
+                char::from_u32(sevenBitValue + 1).ok_or(Exceptions::ParseException(None))?,
             ));
         }
 
         if (90..116).contains(&sevenBitValue) {
             return Ok(DecodedChar::new(
                 pos + 7,
-                char::from_u32(sevenBitValue + 7).unwrap(),
+                char::from_u32(sevenBitValue + 7).ok_or(Exceptions::ParseException(None))?,
             ));
         }
 
@@ -424,7 +424,8 @@ impl<'a> GeneralAppIdDecoder<'_> {
         if (5..15).contains(&fiveBitValue) {
             return Ok(DecodedChar::new(
                 pos + 5,
-                char::from_u32('0' as u32 + fiveBitValue - 5).unwrap(),
+                char::from_u32('0' as u32 + fiveBitValue - 5)
+                    .ok_or(Exceptions::ParseException(None))?,
             ));
         }
 
@@ -433,7 +434,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         if (32..58).contains(&sixBitValue) {
             return Ok(DecodedChar::new(
                 pos + 6,
-                char::from_u32(sixBitValue + 33).unwrap(),
+                char::from_u32(sixBitValue + 33).ok_or(Exceptions::ParseException(None))?,
             ));
         }
 
@@ -460,7 +461,6 @@ impl<'a> GeneralAppIdDecoder<'_> {
 
         let mut i = 0;
         while i < 5 && i + pos < self.information.getSize() {
-            // for (int i = 0; i < 5 && i + pos < this.information.getSize(); ++i) {
             if i == 2 {
                 if !self.information.get(pos + 2) {
                     return false;
@@ -482,7 +482,6 @@ impl<'a> GeneralAppIdDecoder<'_> {
         }
 
         for i in pos..pos + 3 {
-            // for (int i = pos; i < pos + 3; ++i) {
             if self.information.get(i) {
                 return false;
             }
@@ -500,7 +499,6 @@ impl<'a> GeneralAppIdDecoder<'_> {
 
         let mut i = 0;
         while i < 4 && i + pos < self.information.getSize() {
-            // for (int i = 0; i < 4 && i + pos < this.information.getSize(); ++i) {
             if self.information.get(pos + i) {
                 return false;
             }

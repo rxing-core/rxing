@@ -58,8 +58,6 @@ impl Version {
         let ecbArray = ecBlocks[0].getECBlocks();
         let mut i = 0;
         while i < ecbArray.len() {
-            //    for ecBlock in ecbArray {
-            // for (ECB ecBlock : ecbArray) {
             total += ecbArray[i].getCount() * (ecbArray[i].getDataCodewords() + ecCodewords);
             i += 1;
         }
@@ -108,11 +106,6 @@ impl Version {
             )));
         }
         Self::getVersionForNumber((dimension - 17) / 4)
-        // try {
-        //   return getVersionForNumber((dimension - 17) / 4);
-        // } catch (IllegalArgumentException ignored) {
-        //   throw FormatException.getFormatInstance();
-        // }
     }
 
     pub fn getVersionForNumber(versionNumber: u32) -> Result<&'static Version, Exceptions> {
@@ -128,7 +121,6 @@ impl Version {
         let mut bestDifference = u32::MAX;
         let mut bestVersion = 0;
         for i in 0..VERSION_DECODE_INFO.len() as u32 {
-            // for (int i = 0; i < VERSION_DECODE_INFO.length; i++) {
             let targetVersion = VERSION_DECODE_INFO[i as usize];
             // Do the version info bits match exactly? done.
             if targetVersion == versionBits {
@@ -156,7 +148,7 @@ impl Version {
      */
     pub fn buildFunctionPattern(&self) -> Result<BitMatrix, Exceptions> {
         let dimension = self.getDimensionForVersion();
-        let mut bitMatrix = BitMatrix::with_single_dimension(dimension);
+        let mut bitMatrix = BitMatrix::with_single_dimension(dimension)?;
 
         // Top left finder pattern + separator + format
         bitMatrix.setRegion(0, 0, 9, 9)?;
@@ -168,10 +160,8 @@ impl Version {
         // Alignment patterns
         let max = self.alignmentPatternCenters.len();
         for x in 0..max {
-            // for (int x = 0; x < max; x++) {
             let i = self.alignmentPatternCenters[x] - 2;
             for y in 0..max {
-                //   for (int y = 0; y < max; y++) {
                 if (x != 0 || (y != 0 && y != max - 1)) && (x != max - 1 || y != 0) {
                     bitMatrix.setRegion(self.alignmentPatternCenters[y] - 2, i, 5, 5)?;
                 }
@@ -950,7 +940,6 @@ impl ECBlocks {
     pub fn getNumBlocks(&self) -> u32 {
         let mut total = 0;
         for ecBlock in &self.ecBlocks {
-            //   for (ECB ecBlock : ecBlocks) {
             total += ecBlock.getCount();
         }
         total

@@ -36,8 +36,8 @@ use crate::{
         },
         OneDReader,
     },
-    BarcodeFormat, DecodeHintType, DecodingHintDictionary, Exceptions, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    BarcodeFormat, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
+    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use once_cell::sync::Lazy;
@@ -144,9 +144,9 @@ pub struct RSSExpandedReader {
     oddCounts: [u32; 4],
     evenCounts: [u32; 4],
 
-    pub(super) pairs: Vec<ExpandedPair>, //new ArrayList<>(MAX_PAIRS);
-    pub(super) rows: Vec<ExpandedRow>,   // new ArrayList<>();
-    startEnd: [u32; 2],                  // new int[2];
+    pub(super) pairs: Vec<ExpandedPair>,
+    pub(super) rows: Vec<ExpandedRow>,
+    startEnd: [u32; 2],
     startFromEven: bool,
 }
 impl AbstractRSSReaderTrait for RSSExpandedReader {}
@@ -161,19 +161,11 @@ impl OneDReader for RSSExpandedReader {
         // So lets try twice
         self.pairs.clear();
         self.startFromEven = false;
-        // try {
         if let Ok(decoded_two_pairs) = self.decodeRow2pairs(rowNumber, row) {
             if let Ok(possible_result) = Self::constructRXingResult(&decoded_two_pairs) {
                 return Ok(possible_result);
             }
         }
-        // let possible = Self::constructRXingResult(&self.decodeRow2pairs(rowNumber, row)?);
-        // if possible.is_ok() {
-        //     return possible;
-        // }
-        // } catch (NotFoundException e) {
-        // OK
-        // }
 
         self.pairs.clear();
         self.startFromEven = true;
@@ -197,7 +189,10 @@ impl Reader for RSSExpandedReader {
         if let Ok(res) = self.doDecode(image, hints) {
             Ok(res)
         } else {
-            let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
+            let tryHarder = matches!(
+                hints.get(&DecodeHintType::TRY_HARDER),
+                Some(DecodeHintValue::TryHarder(true))
+            );
             if tryHarder && image.isRotateSupported() {
                 let mut rotatedImage = image.rotateCounterClockwise();
                 let mut result = self.doDecode(&mut rotatedImage, hints)?;
@@ -221,23 +216,14 @@ impl Reader for RSSExpandedReader {
                     RXingResultMetadataValue::Orientation(orientation),
                 );
                 // Update result points
-                // let points = result.getRXingResultPoints();
-                // if points != null {
                 let height = rotatedImage.getHeight();
-                // for point in result.getRXingResultPointsMut().iter_mut() {
+
                 let total_points = result.getRXingResultPoints().len();
                 let points = result.getRXingResultPointsMut();
                 for point in points.iter_mut().take(total_points) {
-                    // for i in 0..total_points {
-                    // for (int i = 0; i < points.length; i++) {
                     std::mem::swap(&mut point.x, &mut point.y);
                     point.x = height as f32 - point.x - 1.0;
-                    // points[i] = RXingResultPoint::new(
-                    //     height as f32 - points[i].getY() - 1.0,
-                    //     points[i].getX(),
-                    // );
                 }
-                // }
 
                 Ok(result)
             } else {
@@ -311,23 +297,14 @@ impl RSSExpandedReader {
             if let Ok(to_add) = to_add_res {
                 self.pairs.push(to_add);
             } else if self.pairs.is_empty() {
-                return Err(to_add_res.err().unwrap());
+                return Err(to_add_res
+                    .err()
+                    .unwrap_or(Exceptions::IllegalStateException(None)));
             } else {
                 // exit this loop when retrieveNextPair() fails and throws
                 done = true;
             }
-            // self.pairs = previousPairs;
         }
-        //   try {
-        //     this.pairs.add(retrieveNextPair(row, this.pairs, rowNumber));
-        //   } catch (NotFoundException nfe) {
-        //     if (this.pairs.isEmpty()) {
-        //       throw nfe;
-        //     }
-        //     // exit this loop when retrieveNextPair() fails and throws
-        //     done = true;
-        //   }
-        // }
 
         // TODO: verify sequence of finder patterns as in checkPairSequence()
         if self.checkChecksum() {
@@ -339,14 +316,19 @@ impl RSSExpandedReader {
         if tryStackedDecode {
             // When the image is 180-rotated, then rows are sorted in wrong direction.
             // Try twice with both the directions.
-            let ps = self.checkRows(false);
+            let ps = self.checkRows(false).or(self.checkRows(true));
             if let Some(ps) = ps {
                 return Ok(ps);
             }
-            let ps = self.checkRows(true);
-            if let Some(ps) = ps {
-                return Ok(ps);
-            }
+
+            // let ps = self.checkRows(false);
+            // if let Some(ps) = ps {
+            //     return Ok(ps);
+            // }
+            // let ps = self.checkRows(true);
+            // if let Some(ps) = ps {
+            //     return Ok(ps);
+            // }
         }
 
         Err(Exceptions::NotFoundException(None))
@@ -367,11 +349,12 @@ impl RSSExpandedReader {
         }
 
         let mut c_rows = Vec::new();
-        let ps = if let Ok(res) = self.checkRowsDetails(&mut c_rows, 0) {
-            Some(res)
-        } else {
-            None
-        };
+        let ps = self.checkRowsDetails(&mut c_rows, 0).ok();
+        // let ps = if let Ok(res) = self.checkRowsDetails(&mut c_rows, 0) {
+        //     Some(res)
+        // } else {
+        //     None
+        // };
         // } catch (NotFoundException e) {
         // OK
         // }
@@ -392,7 +375,10 @@ impl RSSExpandedReader {
     ) -> Result<Vec<ExpandedPair>, Exceptions> {
         for i in currentRow..self.rows.len() {
             // for (int i = currentRow; i < rows.size(); i++) {
-            let row = self.rows.get(i).unwrap();
+            let row = self
+                .rows
+                .get(i)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
             self.pairs.clear();
             for collectedRow in &collectedRows.clone() {
                 // for (ExpandedRow collectedRow : collectedRows) {
@@ -423,12 +409,15 @@ impl RSSExpandedReader {
         Err(Exceptions::NotFoundException(None))
     }
 
-    // Whether the pairs form a valid find pattern sequence,
-    // either complete or a prefix
+    /// Whether the pairs form a valid find pattern sequence,
+    /// either complete or a prefix
+    ///
+    /// Could potentially panic in a very out of bounds situation
     fn isValidSequence(pairs: &[ExpandedPair]) -> bool {
-        for i in 0..FINDER_PATTERN_SEQUENCES.len() {
+        for sequence in FINDER_PATTERN_SEQUENCES.iter() {
+            // for i in 0..FINDER_PATTERN_SEQUENCES.len() {
             // for sequence in &FINDER_PATTERN_SEQUENCES.iter() {
-            let sequence = FINDER_PATTERN_SEQUENCES.get(i).unwrap();
+            // let sequence = FINDER_PATTERN_SEQUENCES.get(i).unwrap();
             // for (int[] sequence : FINDER_PATTERN_SEQUENCES) {
             if pairs.len() <= sequence.len() {
                 let mut stop = true;
@@ -462,13 +451,14 @@ impl RSSExpandedReader {
         let mut prevIsSame = false;
         let mut nextIsSame = false;
         while insertPos < self.rows.len() {
-            let erow = self.rows.get(insertPos).unwrap();
-            if erow.getRowNumber() > rowNumber {
-                nextIsSame = erow.isEquivalent(&self.pairs);
-                break;
+            if let Some(erow) = self.rows.get(insertPos) {
+                if erow.getRowNumber() > rowNumber {
+                    nextIsSame = erow.isEquivalent(&self.pairs);
+                    break;
+                }
+                prevIsSame = erow.isEquivalent(&self.pairs);
+                insertPos += 1;
             }
-            prevIsSame = erow.isEquivalent(&self.pairs);
-            insertPos += 1;
         }
         if nextIsSame || prevIsSame {
             return;
@@ -506,40 +496,15 @@ impl RSSExpandedReader {
                 true
             }
         });
-        // let row_search = rows.clone();
-        // for i in 0..row_search.len() {
-        //     // for r in rows {
-        //     // for (Iterator<ExpandedRow> iterator = rows.iterator(); iterator.hasNext();) {
-        //     //   ExpandedRow r = iterator.next();
-        //     let r = row_search.get(i).unwrap();
-        //     if r.getPairs().len() != pairs.len() {
-        //         let mut allFound = true;
-        //         for p in r.getPairs() {
-        //             // for (ExpandedPair p : r.getPairs()) {
-        //             if !pairs.contains(p) {
-        //                 allFound = false;
-        //                 break;
-        //             }
-        //         }
-        //         if allFound {
-        //             // 'pairs' contains all the pairs from the row 'r'
-        //             // iterator.remove();
-        //             rows.remove(i);
-        //         }
-        //     }
-        // }
     }
 
     // Returns true when one of the rows already contains all the pairs
     fn isPartialRow(pairs: &[ExpandedPair], rows: &[ExpandedRow]) -> bool {
         for r in rows {
-            // for (ExpandedRow r : rows) {
             let mut allFound = true;
             for p in pairs {
-                // for (ExpandedPair p : pairs) {
                 let mut found = false;
                 for pp in r.getPairs() {
-                    // for (ExpandedPair pp : r.getPairs()) {
                     if p == pp {
                         found = true;
                         break;
@@ -571,24 +536,25 @@ impl RSSExpandedReader {
 
     // Not private for unit testing
     pub(crate) fn constructRXingResult(pairs: &[ExpandedPair]) -> Result<RXingResult, Exceptions> {
-        let binary = bit_array_builder::buildBitArray(&pairs.to_vec());
+        let binary = bit_array_builder::buildBitArray(&pairs.to_vec())
+            .ok_or(Exceptions::IllegalStateException(None))?;
 
         let mut decoder = abstract_expanded_decoder::createDecoder(&binary)?;
         let resultingString = decoder.parseInformation()?;
 
         let firstPoints = pairs
             .get(0)
-            .unwrap()
+            .ok_or(Exceptions::IndexOutOfBoundsException(None))?
             .getFinderPattern()
             .as_ref()
-            .unwrap()
+            .ok_or(Exceptions::IllegalStateException(None))?
             .getRXingResultPoints();
         let lastPoints = pairs
             .last()
-            .unwrap()
+            .ok_or(Exceptions::IndexOutOfBoundsException(None))?
             .getFinderPattern()
             .as_ref()
-            .unwrap()
+            .ok_or(Exceptions::IllegalStateException(None))?
             .getRXingResultPoints();
 
         let mut result = RXingResult::new(
@@ -607,23 +573,24 @@ impl RSSExpandedReader {
     }
 
     fn checkChecksum(&self) -> bool {
-        let firstPair = self.pairs.get(0).unwrap();
+        let Some(firstPair) = self.pairs.get(0) else {
+            return false;
+        };
         let checkCharacter = firstPair.getLeftChar();
         let Some(firstCharacter) = firstPair.getRightChar() else {
-      return false;
-    };
+            return false;
+        };
 
         let mut checksum = firstCharacter.getChecksumPortion();
         let mut s = 2;
 
-        // for i in 1..self.pairs.len() {
-        // for (int i = 1; i < this.pairs.size(); ++i) {
         for currentPair in self.pairs.iter().skip(1) {
-            // let currentPair = self.pairs.get(i).unwrap();
-            checksum += currentPair.getLeftChar().unwrap().getChecksumPortion();
+            let Some(currentPairLeftChar) = currentPair.getLeftChar() else {
+                return false;
+            };
+            checksum += currentPairLeftChar.getChecksumPortion();
             s += 1;
             if let Some(currentRightChar) = currentPair.getRightChar() {
-                // if (currentRightChar != null) {
                 checksum += currentRightChar.getChecksumPortion();
                 s += 1;
             }
@@ -633,7 +600,11 @@ impl RSSExpandedReader {
 
         let checkCharacterValue = (211 * (s as i64 - 4) + checksum as i64) as u32;
 
-        checkCharacterValue == checkCharacter.unwrap().getValue()
+        if let Some(checkCharacter) = checkCharacter {
+            checkCharacterValue == checkCharacter.getValue()
+        } else {
+            false
+        }
     }
 
     fn getNextSecondBar(row: &BitArray, initialPos: usize) -> usize {
@@ -675,30 +646,39 @@ impl RSSExpandedReader {
             if !keepFinding {
                 break;
             }
-        } //while (keepFinding);
+        }
 
         // When stacked symbol is split over multiple rows, there's no way to guess if this pair can be last or not.
         // boolean mayBeLast = checkPairSequence(previousPairs, pattern);
 
-        let leftChar =
-            self.decodeDataCharacter(row, pattern.as_ref().unwrap(), isOddPattern, true)?;
+        let leftChar = self.decodeDataCharacter(
+            row,
+            pattern
+                .as_ref()
+                .ok_or(Exceptions::NotFoundException(None))?,
+            isOddPattern,
+            true,
+        )?;
 
-        if !previousPairs.is_empty() && previousPairs.last().unwrap().mustBeLast() {
+        if !previousPairs.is_empty()
+            && previousPairs
+                .last()
+                .ok_or(Exceptions::NotFoundException(None))?
+                .mustBeLast()
+        {
             return Err(Exceptions::NotFoundException(None));
         }
 
-        let rightChar = if let Ok(ch) =
-            self.decodeDataCharacter(row, pattern.as_ref().unwrap(), isOddPattern, false)
-        {
-            Some(ch)
-        } else {
-            None
-        };
-        // try {
-        //   rightChar = this.decodeDataCharacter(row, pattern, isOddPattern, false);
-        // } catch (NotFoundException ignored) {
-        //   rightChar = null;
-        // }
+        let rightChar = self
+            .decodeDataCharacter(
+                row,
+                pattern
+                    .as_ref()
+                    .ok_or(Exceptions::NotFoundException(None))?,
+                isOddPattern,
+                false,
+            )
+            .ok();
 
         Ok(ExpandedPair::new(Some(leftChar), rightChar, pattern))
     }
@@ -710,10 +690,11 @@ impl RSSExpandedReader {
         forcedOffset: i32,
     ) -> Result<(), Exceptions> {
         let counters = &mut self.decodeFinderCounters;
-        counters[0] = 0;
-        counters[1] = 0;
-        counters[2] = 0;
-        counters[3] = 0;
+        counters.fill(0);
+        // counters[0] = 0;
+        // counters[1] = 0;
+        // counters[2] = 0;
+        // counters[3] = 0;
 
         let width = row.getSize();
 
@@ -723,8 +704,14 @@ impl RSSExpandedReader {
         } else if previousPairs.is_empty() {
             rowOffset = 0;
         } else {
-            let lastPair = previousPairs.last().unwrap();
-            rowOffset = lastPair.getFinderPattern().as_ref().unwrap().getStartEnd()[1] as i32;
+            let lastPair = previousPairs
+                .last()
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+            rowOffset = lastPair
+                .getFinderPattern()
+                .as_ref()
+                .ok_or(Exceptions::IllegalStateException(None))?
+                .getStartEnd()[1] as i32;
         }
         let mut searchingEvenPair = previousPairs.len() % 2 != 0;
         if self.startFromEven {
@@ -779,11 +766,11 @@ impl RSSExpandedReader {
     }
 
     fn reverseCounters(counters: &mut [u32]) {
-        let length = counters.len();
-        for i in 0..length / 2 {
-            // for (int i = 0; i < length / 2; ++i) {
-            counters.swap(i, length - i - 1);
-        }
+        counters.reverse();
+        // let length = counters.len();
+        // for i in 0..length / 2 {
+        //     counters.swap(i, length - i - 1);
+        // }
     }
 
     fn parseFoundFinderPattern(
@@ -826,9 +813,7 @@ impl RSSExpandedReader {
         // System.arraycopy(counters, 0, counters, 1, counters.length - 1);
 
         counters[0] = firstCounter as u32;
-        let Ok(value) = Self::parseFinderValue(&counters, &Self::FINDER_PATTERNS) else {
-      return None
-    };
+        let value = Self::parseFinderValue(&counters, &Self::FINDER_PATTERNS).ok()?;
 
         Some(FinderPattern::new(
             value,
@@ -854,33 +839,28 @@ impl RSSExpandedReader {
         } else {
             recordPattern(row, pattern.getStartEnd()[1], counters)?;
             // reverse it
-            let mut i = 0;
-            let mut j = counters.len() - 1;
-            while i < j {
-                // for (int i = 0, j = counters.length - 1; i < j; i++, j--) {
+            counters.reverse();
+            // let mut i = 0;
+            // let mut j = counters.len() - 1;
+            // while i < j {
+            //     counters.swap(i, j);
 
-                counters.swap(i, j);
-
-                i += 1;
-                j -= 1;
-            }
+            //     i += 1;
+            //     j -= 1;
+            // }
         } //counters[] has the pixels of the module
 
-        let numModules = 17; //left and right data characters have all the same length
-                             // let elementWidth: f32 = MathUtils::sum(counters) / numModules;
+        //left and right data characters have all the same length
+        let numModules = 17;
+
         let elementWidth: f32 = (counters.iter().sum::<u32>() as f32) / numModules as f32;
 
-        // Sanity check: element width for pattern and the character should match
+        // Logic check: element width for pattern and the character should match
         let expectedElementWidth: f32 =
             (pattern.getStartEnd()[1] - pattern.getStartEnd()[0]) as f32 / 15.0;
         if (elementWidth - expectedElementWidth).abs() / expectedElementWidth > 0.3 {
             return Err(Exceptions::NotFoundException(None));
         }
-
-        // let oddCounts = &mut self.oddCounts;
-        // let evenCounts = &mut self.evenCounts;
-        // let oddRoundingErrors = &mut self.oddRoundingErrors;
-        // let evenRoundingErrors = &mut self.evenRoundingErrors;
 
         for (i, counter) in counters.iter().enumerate() {
             // for (int i = 0; i < counters.length; i++) {
@@ -911,13 +891,12 @@ impl RSSExpandedReader {
 
         let weightRowNumber = (4 * pattern.getValue() as isize
             + (if isOddPattern { 0 } else { 2 })
-            + isize::from(!leftChar)//(if leftChar { 0 } else { 1 })
+            + isize::from(!leftChar)
             - 1) as usize;
 
         let mut oddSum = 0;
         let mut oddChecksumPortion = 0;
         for i in (0..self.oddCounts.len()).rev() {
-            // for (int i = oddCounts.length - 1; i >= 0; i--) {
             if Self::isNotA1left(pattern, isOddPattern, leftChar) {
                 let weight = Self::WEIGHTS[weightRowNumber][2 * i];
                 oddChecksumPortion += self.oddCounts[i] * weight;
@@ -926,7 +905,6 @@ impl RSSExpandedReader {
         }
         let mut evenChecksumPortion = 0;
         for i in (0..self.evenCounts.len()).rev() {
-            //  for (int i = evenCounts.length - 1; i >= 0; i--) {
             if Self::isNotA1left(pattern, isOddPattern, leftChar) {
                 let weight = Self::WEIGHTS[weightRowNumber][2 * i + 1];
                 evenChecksumPortion += self.evenCounts[i] * weight;
@@ -950,14 +928,13 @@ impl RSSExpandedReader {
         Ok(DataCharacter::new(value, checksumPortion))
     }
 
+    #[inline(always)]
     fn isNotA1left(pattern: &FinderPattern, isOddPattern: bool, leftChar: bool) -> bool {
         // A1: pattern.getValue is 0 (A), and it's an oddPattern, and it is a left char
         !(pattern.getValue() == 0 && isOddPattern && leftChar)
     }
 
     fn adjustOddEvenCounts(&mut self, numModules: u32) -> Result<(), Exceptions> {
-        // let oddSum = MathUtils::sum(&self.oddCounts);
-        // let evenSum = MathUtils::sum(&self.evenCounts);
         let oddSum = self.oddCounts.iter().sum::<u32>();
         let evenSum = self.evenCounts.iter().sum::<u32>();
 

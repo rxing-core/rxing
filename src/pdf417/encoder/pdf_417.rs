@@ -112,7 +112,6 @@ impl PDF417 {
         let mut last = (pattern & map) != 0; //Initialize to inverse of first bit
         let mut width = 0;
         for _i in 0..len {
-            // for (int i = 0; i < len; i++) {
             let black = (pattern & map) != 0;
             if last == black {
                 width += 1;
@@ -134,33 +133,36 @@ impl PDF417 {
         r: u32,
         errorCorrectionLevel: u32,
         logic: &mut BarcodeMatrix,
-    ) {
+    ) -> Result<(), Exceptions> {
         let mut idx = 0;
         for y in 0..r {
-            // for (int y = 0; y < r; y++) {
             let cluster = y as usize % 3;
             logic.startRow();
             Self::encodeChar(START_PATTERN, 17, logic.getCurrentRowMut());
 
-            let left;
-            let right;
-            if cluster == 0 {
-                left = (30 * (y / 3)) + ((r - 1) / 3);
-                right = (30 * (y / 3)) + (c - 1);
-            } else if cluster == 1 {
-                left = (30 * (y / 3)) + (errorCorrectionLevel * 3) + ((r - 1) % 3);
-                right = (30 * (y / 3)) + ((r - 1) / 3);
-            } else {
-                left = (30 * (y / 3)) + (c - 1);
-                right = (30 * (y / 3)) + (errorCorrectionLevel * 3) + ((r - 1) % 3);
-            }
+            let (left, right) = match cluster {
+                0 => ((30 * (y / 3)) + ((r - 1) / 3), (30 * (y / 3)) + (c - 1)),
+
+                1 => (
+                    (30 * (y / 3)) + (errorCorrectionLevel * 3) + ((r - 1) % 3),
+                    (30 * (y / 3)) + ((r - 1) / 3),
+                ),
+
+                _ => (
+                    (30 * (y / 3)) + (c - 1),
+                    (30 * (y / 3)) + (errorCorrectionLevel * 3) + ((r - 1) % 3),
+                ),
+            };
 
             let mut pattern = CODEWORD_TABLE[cluster][left as usize];
             Self::encodeChar(pattern, 17, logic.getCurrentRowMut());
 
             for _x in 0..c {
-                // for (int x = 0; x < c; x++) {
-                pattern = CODEWORD_TABLE[cluster][fullCodewords.chars().nth(idx).unwrap() as usize];
+                pattern = CODEWORD_TABLE[cluster][fullCodewords
+                    .chars()
+                    .nth(idx)
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                    as usize];
                 Self::encodeChar(pattern, 17, logic.getCurrentRowMut());
                 idx += 1;
             }
@@ -174,6 +176,7 @@ impl PDF417 {
                 Self::encodeChar(STOP_PATTERN, 18, logic.getCurrentRowMut());
             }
         }
+        Ok(())
     }
 
     /**
@@ -230,11 +233,11 @@ impl PDF417 {
         }
         let n = sourceCodeWords + pad + 1;
         let mut sb = String::with_capacity(n as usize);
-        sb.push(char::from_u32(n).unwrap());
+        sb.push(char::from_u32(n).ok_or(Exceptions::ParseException(None))?);
         sb.push_str(&highLevel);
         for _i in 0..pad {
-            // for (int i = 0; i < pad; i++) {
-            sb.push(char::from_u32(900).unwrap()); //PAD characters
+            sb.push(char::from_u32(900).ok_or(Exceptions::ParseException(None))?);
+            //PAD characters
         }
         let dataCodewords = sb;
 
@@ -252,7 +255,7 @@ impl PDF417 {
             rows,
             errorCorrectionLevel,
             &mut barcode_matrix,
-        );
+        )?;
         self.barcodeMatrix = Some(barcode_matrix);
         Ok(())
     }
@@ -286,8 +289,8 @@ impl PDF417 {
                 continue;
             }
 
-            let newRatio: f32 =
-                ((17 * cols + 69) as f32 * DEFAULT_MODULE_WIDTH) / (rows as f32 * HEIGHT);
+            let newRatio: f64 =
+                ((17 * cols + 69) as f64 * DEFAULT_MODULE_WIDTH) / (rows as f64 * HEIGHT);
 
             // ignore if previous ratio is closer to preferred ratio
             if dimension.is_some()
@@ -312,13 +315,9 @@ impl PDF417 {
             }
         }
 
-        if let Some(dim) = dimension {
-            Ok(dim)
-        } else {
-            Err(Exceptions::WriterException(Some(
-                "Unable to fit message in columns".to_owned(),
-            )))
-        }
+        dimension.ok_or(Exceptions::WriterException(Some(
+            "Unable to fit message in columns".to_owned(),
+        )))
     }
 
     /**
@@ -658,6 +657,6 @@ const CODEWORD_TABLE: [[u32; 929]; 3] = [
     ],
 ];
 
-const PREFERRED_RATIO: f32 = 3.0;
-const DEFAULT_MODULE_WIDTH: f32 = 0.357; //1px in mm
-const HEIGHT: f32 = 2.0; //mm
+const PREFERRED_RATIO: f64 = 3.0;
+const DEFAULT_MODULE_WIDTH: f64 = 0.357; //1px in mm
+const HEIGHT: f64 = 2.0; //mm

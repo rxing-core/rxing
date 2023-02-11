@@ -129,7 +129,8 @@ impl MaxiCodeReader {
             return Err(Exceptions::NotFoundException(None));
         }
 
-        let enclosingRectangle = enclosingRectangleOption.unwrap();
+        let enclosingRectangle =
+            enclosingRectangleOption.ok_or(Exceptions::NotFoundException(None))?;
 
         let left = enclosingRectangle[0];
         let top = enclosingRectangle[1];

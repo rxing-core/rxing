@@ -50,7 +50,12 @@ pub fn buildBitArrayFromString(data: &str) -> Result<BitArray, Exceptions> {
         // for (int i = 0; i < dotsAndXs.length(); ++i) {
         if i % 9 == 0 {
             // spaces
-            if dotsAndXs.chars().nth(i).unwrap() != ' ' {
+            if dotsAndXs
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::ParseException(None))?
+                != ' '
+            {
                 return Err(Exceptions::IllegalStateException(Some(
                     "space expected".to_owned(),
                 )));
@@ -58,7 +63,10 @@ pub fn buildBitArrayFromString(data: &str) -> Result<BitArray, Exceptions> {
             continue;
         }
 
-        let currentChar = dotsAndXs.chars().nth(i).unwrap();
+        let currentChar = dotsAndXs
+            .chars()
+            .nth(i)
+            .ok_or(Exceptions::ParseException(None))?;
         if currentChar == 'X' || currentChar == 'x' {
             binary.set(counter);
         }
@@ -75,12 +83,17 @@ pub fn buildBitArrayFromStringWithoutSpaces(data: &str) -> Result<BitArray, Exce
         .replace_all(&ONE.replace_all(data, "X"), ".")
         .to_string();
     let mut current = 0;
-    while current < dotsAndXs.chars().count() {
+    let dotsAndXs_length = dotsAndXs.chars().count();
+    while current < dotsAndXs_length {
         sb.push(' ');
         let mut i = 0;
-        while i < 8 && current < dotsAndXs.chars().count() {
-            // for (int i = 0; i < 8 && current < dotsAndXs.length(); ++i) {
-            sb.push(dotsAndXs.chars().nth(current).unwrap());
+        while i < 8 && current < dotsAndXs_length {
+            sb.push(
+                dotsAndXs
+                    .chars()
+                    .nth(current)
+                    .ok_or(Exceptions::ParseException(None))?,
+            );
             current += 1;
 
             i += 1;

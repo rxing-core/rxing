@@ -43,16 +43,16 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     if !rawText.starts_with("MATMSG:") {
         return None;
     }
-    let tos = ResultParser::match_do_co_mo_prefixed_field("TO:", &rawText)?;
+    let tos = ResultParser::match_docomo_prefixed_field("TO:", &rawText)?;
 
     for to in &tos {
         if !isBasicallyValidEmailAddress(to, &ATEXT_ALPHANUMERIC) {
             return None;
         }
     }
-    let subject = ResultParser::match_single_do_co_mo_prefixed_field("SUB:", &rawText, false)
+    let subject = ResultParser::match_single_docomo_prefixed_field("SUB:", &rawText, false)
         .unwrap_or_default();
-    let body = ResultParser::match_single_do_co_mo_prefixed_field("BODY:", &rawText, false)
+    let body = ResultParser::match_single_docomo_prefixed_field("BODY:", &rawText, false)
         .unwrap_or_default();
     Some(ParsedClientResult::EmailResult(
         EmailAddressParsedRXingResult::with_details(tos, Vec::new(), Vec::new(), subject, body),

@@ -94,16 +94,14 @@ impl UPCAReader {
     fn maybeReturnRXingResult(result: RXingResult) -> Result<RXingResult, Exceptions> {
         let text = result.getText();
         if let Some(stripped_text) = text.strip_prefix('0') {
-            // if text.starts_with('0') {
             let mut upcaRXingResult = RXingResult::new(
                 stripped_text,
                 Vec::new(),
                 result.getRXingResultPoints().to_vec(),
                 BarcodeFormat::UPC_A,
             );
-            // if result.getRXingResultMetadata() != null {
             upcaRXingResult.putAllMetadata(result.getRXingResultMetadata().clone());
-            // }
+
             Ok(upcaRXingResult)
         } else {
             Err(Exceptions::NotFoundException(None))

@@ -33,7 +33,7 @@ static BIT_MATRIX_POINTS: [u32; 6] = [1, 2, 2, 0, 3, 1];
 
 #[test]
 fn test_get_set() {
-    let mut matrix = BitMatrix::with_single_dimension(33);
+    let mut matrix = BitMatrix::with_single_dimension(33).expect("new");
     assert_eq!(33, matrix.getHeight());
     for y in 0..33 {
         // for (int y = 0; y < 33; y++) {
@@ -55,7 +55,7 @@ fn test_get_set() {
 
 #[test]
 fn test_set_region() {
-    let mut matrix = BitMatrix::with_single_dimension(5);
+    let mut matrix = BitMatrix::with_single_dimension(5).expect("new");
     matrix.setRegion(1, 1, 3, 3).expect("must set");
     for y in 0..5 {
         // for (int y = 0; y < 5; y++) {
@@ -71,7 +71,7 @@ fn test_set_region() {
 
 #[test]
 fn test_enclosing() {
-    let mut matrix = BitMatrix::with_single_dimension(5);
+    let mut matrix = BitMatrix::with_single_dimension(5).expect("new");
     assert!(matrix.getEnclosingRectangle().is_none());
     matrix.setRegion(1, 1, 1, 1).expect("must set");
     assert_eq!(vec![1, 1, 1, 1], matrix.getEnclosingRectangle().unwrap());
@@ -83,7 +83,7 @@ fn test_enclosing() {
 
 #[test]
 fn test_on_bit() {
-    let mut matrix = BitMatrix::with_single_dimension(5);
+    let mut matrix = BitMatrix::with_single_dimension(5).expect("new");
     assert!(matrix.getTopLeftOnBit().is_none());
     assert!(matrix.getBottomRightOnBit().is_none());
     matrix.setRegion(1, 1, 1, 1).expect("must set");

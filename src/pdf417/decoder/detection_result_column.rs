@@ -54,8 +54,6 @@ impl DetectionRXingResultColumnTrait for DetectionRXingResultColumn {
             codewords: vec![None; (boundingBox.getMaxY() - boundingBox.getMinY() + 1) as usize],
             isLeft: None,
         }
-        // this.boundingBox = new BoundingBox(boundingBox);
-        // codewords = new Codeword[boundingBox.getMaxY() - boundingBox.getMinY() + 1];
     }
 
     fn new_with_is_left(boundingBox: Rc<BoundingBox>, isLeft: bool) -> DetectionRXingResultColumn {
@@ -72,7 +70,6 @@ impl DetectionRXingResultColumnTrait for DetectionRXingResultColumn {
             return codeword;
         }
         for i in 1..MAX_NEARBY_DISTANCE as usize {
-            // for (int i = 1; i < MAX_NEARBY_DISTANCE; i++) {
             let mut nearImageRow = self.imageRowToCodewordIndex(imageRow) as isize - i as isize;
             if nearImageRow >= 0 {
                 codeword = &self.codewords[nearImageRow as usize];
@@ -119,48 +116,26 @@ impl DetectionRXingResultColumnTrait for DetectionRXingResultColumn {
     fn as_indicator_row(&mut self) -> &mut dyn DetectionRXingResultRowIndicatorColumn {
         self as &mut dyn DetectionRXingResultRowIndicatorColumn
     }
-    // pub fn as_row_indicator(&self) -> DetectionRXingResultRowIndicatorColumn {
-    //     DetectionRXingResultRowIndicatorColumn::new(&self.boundingBox, false)
-    // }
 }
 
 impl Display for DetectionRXingResultColumn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.isLeft.is_some() {
-            writeln!(f, "IsLeft: {} ", self.isLeft.as_ref().unwrap())?;
+        if let Some(isLeft) = self.isLeft {
+            writeln!(f, "IsLeft: {isLeft} ")?;
         }
-        let mut row = 0;
-        for codeword in &self.codewords {
-            // for (Codeword codeword : codewords) {
-            if codeword.is_none() {
+        for (row, codeword) in self.codewords.iter().enumerate() {
+            if let Some(codeword) = codeword {
+                writeln!(
+                    f,
+                    "{:3}: {:3}|{:3}",
+                    row,
+                    codeword.getRowNumber(),
+                    codeword.getValue()
+                )?;
+            } else {
                 writeln!(f, "{row:3}:    |   ")?;
-                row += 1;
-                continue;
             }
-            writeln!(
-                f,
-                "{:3}: {:3}|{:3}",
-                row,
-                codeword.as_ref().unwrap().getRowNumber(),
-                codeword.as_ref().unwrap().getValue()
-            )?;
-            row += 1;
         }
         write!(f, "")
     }
-
-    // @Override
-    // public String toString() {
-    //   try (Formatter formatter = new Formatter()) {
-    //     int row = 0;
-    //     for (Codeword codeword : codewords) {
-    //       if (codeword == null) {
-    //         formatter.format("%3d:    |   %n", row++);
-    //         continue;
-    //       }
-    //       formatter.format("%3d: %3d|%3d%n", row++, codeword.getRowNumber(), codeword.getValue());
-    //     }
-    //     return formatter.toString();
-    //   }
-    // }
 }

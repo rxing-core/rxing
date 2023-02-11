@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-// package com.google.zxing.common;
-
-// import java.nio.charset.Charset;
-// import java.util.ArrayList;
-// import java.util.List;
-
 use std::{fmt, rc::Rc};
 
 use encoding::EncodingRef;
@@ -174,17 +168,17 @@ impl ECIInput for MinimalECIInput {
         Ok((self.bytes[index] as u32 - 256) as i32)
     }
 
-    fn haveNCharacters(&self, index: usize, n: usize) -> bool {
+    fn haveNCharacters(&self, index: usize, n: usize) -> Result<bool, Exceptions> {
         if index + n > self.bytes.len() {
-            return false;
+            return Ok(false);
         }
         for i in 0..n {
             //   for (int i = 0; i < n; i++) {
-            if self.isECI(index as u32 + i as u32).unwrap() {
-                return false;
+            if self.isECI(index as u32 + i as u32)? {
+                return Ok(false);
             }
         }
-        true
+        Ok(true)
     }
 }
 impl MinimalECIInput {
@@ -209,10 +203,14 @@ impl MinimalECIInput {
         let bytes = if encoderSet.len() == 1 {
             //optimization for the case when all can be encoded without ECI in ISO-8859-1
             let mut bytes_hld = vec![0; stringToEncode.len()];
-            for (i, byt) in bytes_hld.iter_mut().enumerate().take(stringToEncode.len()) {
+            for (byt, c) in bytes_hld
+                .iter_mut()
+                .zip(&stringToEncode)
+                .take(stringToEncode.len())
+            {
                 // for i in 0..stringToEncode.len() {
                 //   for (int i = 0; i < bytes.length; i++) {
-                let c = stringToEncode.get(i).unwrap();
+                // let c = stringToEncode.get(i).unwrap();
                 *byt = if fnc1.is_some() && c == fnc1.as_ref().unwrap() {
                     1000
                 } else {
@@ -287,7 +285,9 @@ impl MinimalECIInput {
         if encoderSet.getPriorityEncoderIndex().is_some()
             && ((fnc1.is_some()
                 && ch.chars().next().unwrap() == fnc1.as_ref().unwrap().chars().next().unwrap())
-                || encoderSet.canEncode(ch, encoderSet.getPriorityEncoderIndex().unwrap()))
+                || encoderSet
+                    .canEncode(ch, encoderSet.getPriorityEncoderIndex().unwrap())
+                    .unwrap())
         {
             start = encoderSet.getPriorityEncoderIndex().unwrap();
             end = start + 1;
@@ -298,7 +298,7 @@ impl MinimalECIInput {
             // for (int i = start; i < end; i++) {
             if (fnc1.is_some()
                 && ch.chars().next().unwrap() == fnc1.as_ref().unwrap().chars().next().unwrap())
-                || encoderSet.canEncode(ch, i)
+                || encoderSet.canEncode(ch, i).unwrap()
             {
                 Self::addEdge(
                     edges,
@@ -309,6 +309,9 @@ impl MinimalECIInput {
         }
     }
 
+    /// Minimially encode a string with the given characterset.
+    ///
+    /// Function can panic if the string cannot be encoded.
     pub fn encodeMinimally(
         stringToEncode: &str,
         encoderSet: &ECIEncoderSet,
@@ -360,6 +363,7 @@ impl MinimalECIInput {
             } else {
                 let bytes: Vec<u16> = encoderSet
                     .encode_char(&c.c, c.encoderIndex)
+                    .unwrap()
                     .iter()
                     .map(|x| *x as u16)
                     .collect();
@@ -414,7 +418,7 @@ impl InputEdge {
         let mut size = if c == Self::FNC1_UNICODE {
             1
         } else {
-            encoderSet.encode_char(c, encoderIndex).len()
+            encoderSet.encode_char(c, encoderIndex).unwrap().len()
         };
 
         //let fnc1Str = String::from_utf16(&[fnc1]).unwrap();

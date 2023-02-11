@@ -112,7 +112,7 @@ impl CalendarParsedRXingResult {
     ) -> Result<Self, Exceptions> {
         let start = Self::parseDate(startString.clone())?;
         let end = if endString.is_empty() {
-            let durationMS = Self::parseDurationMS(&durationString);
+            let durationMS = Self::parseDurationMS(&durationString)?;
             if durationMS < 0i64 {
                 -1i64
             } else {
@@ -165,7 +165,6 @@ impl CalendarParsedRXingResult {
      * @throws ParseException if not able to parse as a date
      */
     fn parseDate(when: String) -> Result<i64, Exceptions> {
-        // let date_time_regex = Regex::new(DATE_TIME).unwrap();
         if !DATE_TIME.is_match(&when) {
             return Err(Exceptions::ParseException(Some(when)));
         }
@@ -178,37 +177,23 @@ impl CalendarParsedRXingResult {
             // http://code.google.com/p/android/issues/detail?id=8330
             return match Utc.datetime_from_str(&format!("{}T000000Z", &when,), date_format_string) {
                 Ok(dtm) => Ok(dtm.timestamp()),
-                Err(e) => panic!("{}", e),
-                // Err(e) => Err(Exceptions::ParseException(format!(
-                //     "couldn't parse string: {}",
-                //     e
-                // ))),
+                Err(e) => Err(Exceptions::ParseException(Some(e.to_string()))),
             };
-            // let dtm = DateTime::parse_from_str(&when, date_format_string).unwrap();
-            // let dtm = dtm.with_timezone(&Utc);
-
-            // // format.setTimeZone(TimeZone.getTimeZone("GMT"));
-            // // return format.parse(when).getTime();
-            // return Ok(dtm.timestamp());
         }
         // The when string can be local time, or UTC if it ends with a Z
-        if when.len() == 16 && when.chars().nth(15).unwrap() == 'Z' {
+        if when.len() == 16
+            && when
+                .chars()
+                .nth(15)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                == 'Z'
+        {
             return match Utc.datetime_from_str(&when, "%Y%m%dT%H%M%SZ") {
                 Ok(dtm) => Ok(dtm.with_timezone(&Utc).timestamp()),
                 Err(e) => Err(Exceptions::ParseException(Some(format!(
                     "couldn't parse string: {e}"
                 )))),
             };
-            // let dtm = DateTime::parse_from_str(&when, "%Y%m%dT%H%M%S").unwrap().with_timezone(&Utc);
-            // //let milliseconds = Self::parseDateTimeString(&when[0..15]);
-            // // Calendar calendar = new GregorianCalendar();
-            // // // Account for time zone difference
-            // // milliseconds += calendar.get(Calendar.ZONE_OFFSET);
-            // // // Might need to correct for daylight savings time, but use target time since
-            // // // now might be in DST but not then, or vice versa
-            // // calendar.setTime(new Date(milliseconds));
-            // // return milliseconds + calendar.get(Calendar.DST_OFFSET);
-            // return Ok(dtm.timestamp());
         }
         // Try once more, with weird tz formatting
         if when.len() > 16 {
@@ -258,9 +243,9 @@ impl CalendarParsedRXingResult {
         }
     }
 
-    fn parseDurationMS(durationString: &str) -> i64 {
+    fn parseDurationMS(durationString: &str) -> Result<i64, Exceptions> {
         if durationString.is_empty() {
-            return -1;
+            return Ok(-1);
         }
         // let regex = Regex::new(RFC2445_DURATION).unwrap();
         if let Some(m) = RFC2445_DURATION.captures(durationString) {
@@ -270,13 +255,16 @@ impl CalendarParsedRXingResult {
                 // for (int i = 0; i < RFC2445_DURATION_FIELD_UNITS.length; i++) {
                 let fieldValue = m.get(i + 1);
                 if let Some(parseable) = fieldValue {
-                    let z = parseable.as_str().parse::<i64>().unwrap();
+                    let z = parseable
+                        .as_str()
+                        .parse::<i64>()
+                        .map_err(|e| Exceptions::ParseException(Some(e.to_string())))?;
                     durationMS += unit * z;
                 }
             }
-            durationMS
+            Ok(durationMS)
         } else {
-            -1
+            Ok(-1)
         }
         // if (!m.matches()) {
         //   return -1L;

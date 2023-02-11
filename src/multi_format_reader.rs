@@ -73,11 +73,9 @@ impl Reader for MultiFormatReader {
     }
 
     fn reset(&mut self) {
-        // if (readers != null) {
         for reader in self.readers.iter_mut() {
             reader.reset();
         }
-        // }
     }
 }
 
@@ -109,10 +107,13 @@ impl MultiFormatReader {
      * @param hints The set of hints to use for subsequent calls to decode(image)
      */
     pub fn set_ints(&mut self, hints: &DecodingHintDictionary) {
-        self.hints = hints.clone(); // {hint} else {HashMap::new()};
+        self.hints = hints.clone();
 
-        let tryHarder = self.hints.contains_key(&DecodeHintType::TRY_HARDER);
-        //@SuppressWarnings("unchecked")
+        let tryHarder = matches!(
+            self.hints.get(&DecodeHintType::TRY_HARDER),
+            Some(DecodeHintValue::TryHarder(true))
+        );
+
         let formats = hints.get(&DecodeHintType::POSSIBLE_FORMATS);
         let mut readers: Vec<Box<dyn Reader>> = Vec::new();
         if let Some(DecodeHintValue::PossibleFormats(formats)) = formats {
@@ -161,48 +162,33 @@ impl MultiFormatReader {
             readers.push(Box::<AztecReader>::default());
             readers.push(Box::<PDF417Reader>::default());
             readers.push(Box::<MaxiCodeReader>::default());
-            // unimplemented!("");
 
             if tryHarder {
                 readers.push(Box::new(MultiFormatOneDReader::new(hints)));
             }
         }
-        self.readers = readers; //Vec::new(); //readers.toArray(EMPTY_READER_ARRAY);
+        self.readers = readers;
     }
 
     pub fn decode_internal(&mut self, image: &mut BinaryBitmap) -> Result<RXingResult, Exceptions> {
         if !self.readers.is_empty() {
             for reader in self.readers.iter_mut() {
-                // I'm not sure how to model this in rust
-                // if (Thread.currentThread().isInterrupted()) {
-                //   throw NotFoundException.getNotFoundInstance();
-                // }
-                //try {
                 let res = reader.decode_with_hints(image, &self.hints);
                 if res.is_ok() {
                     return res;
                 }
-                //} catch (ReaderException re) {
-                // continue
-                //}
             }
-            if self.hints.contains_key(&DecodeHintType::ALSO_INVERTED) {
+            if matches!(
+                self.hints.get(&DecodeHintType::ALSO_INVERTED),
+                Some(DecodeHintValue::AlsoInverted(true))
+            ) {
                 // Calling all readers again with inverted image
-                // let mut image = image.clone();
                 image.getBlackMatrixMut().flip_self();
                 for reader in self.readers.iter_mut() {
-                    // if (Thread.currentThread().isInterrupted()) {
-                    //   throw NotFoundException.getNotFoundInstance();
-                    // }
                     let res = reader.decode_with_hints(image, &self.hints);
                     if res.is_ok() {
                         return res;
                     }
-                    // try {
-                    //   return reader.decode(image, hints);
-                    // } catch (ReaderException re) {
-                    //   // continue
-                    // }
                 }
             }
         }

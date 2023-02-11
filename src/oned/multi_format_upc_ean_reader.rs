@@ -158,60 +158,54 @@ impl Reader for MultiFormatUPCEANReader {
         image: &mut crate::BinaryBitmap,
         hints: &DecodingHintDictionary,
     ) -> Result<crate::RXingResult, Exceptions> {
-        if let Ok(res) = self.doDecode(image, hints) {
-            Ok(res)
-        } else {
-            let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
-            if tryHarder && image.isRotateSupported() {
-                let mut rotatedImage = image.rotateCounterClockwise();
-                let mut result = self.doDecode(&mut rotatedImage, hints)?;
-                // Record that we found it rotated 90 degrees CCW / 270 degrees CW
-                let metadata = result.getRXingResultMetadata();
-                let mut orientation = 270;
-                if metadata.contains_key(&RXingResultMetadataType::ORIENTATION) {
-                    // But if we found it reversed in doDecode(), add in that result here:
-                    orientation = (orientation
-                        + if let Some(crate::RXingResultMetadataValue::Orientation(or)) =
-                            metadata.get(&RXingResultMetadataType::ORIENTATION)
-                        {
-                            *or
-                        } else {
-                            0
-                        })
-                        % 360;
-                }
-                result.putMetadata(
-                    RXingResultMetadataType::ORIENTATION,
-                    RXingResultMetadataValue::Orientation(orientation),
-                );
-                // Update result points
-                // let points = result.getRXingResultPoints();
-                // if points != null {
-                let height = rotatedImage.getHeight();
-                // for point in result.getRXingResultPointsMut().iter_mut() {
-                let total_points = result.getRXingResultPoints().len();
-                let points = result.getRXingResultPointsMut();
-                for point in points.iter_mut().take(total_points) {
-                    // for i in 0..total_points {
-                    // for (int i = 0; i < points.length; i++) {
-                    std::mem::swap(&mut point.x, &mut point.y);
-                    point.x = height as f32 - point.x - 1.0;
-                    // points[i] = RXingResultPoint::new(
-                    //     height as f32 - points[i].getY() - 1.0,
-                    //     points[i].getX(),
-                    // );
-                }
-                // }
+        let first_try = self.doDecode(image, hints);
+        if first_try.is_ok() {
+            return first_try;
+        }
 
-                Ok(result)
-            } else {
-                Err(Exceptions::NotFoundException(None))
+        let tryHarder = matches!(
+            hints.get(&DecodeHintType::TRY_HARDER),
+            Some(DecodeHintValue::TryHarder(true))
+        );
+        if tryHarder && image.isRotateSupported() {
+            let mut rotatedImage = image.rotateCounterClockwise();
+            let mut result = self.doDecode(&mut rotatedImage, hints)?;
+            // Record that we found it rotated 90 degrees CCW / 270 degrees CW
+            let metadata = result.getRXingResultMetadata();
+            let mut orientation = 270;
+            if metadata.contains_key(&RXingResultMetadataType::ORIENTATION) {
+                // But if we found it reversed in doDecode(), add in that result here:
+                orientation = (orientation
+                    + if let Some(crate::RXingResultMetadataValue::Orientation(or)) =
+                        metadata.get(&RXingResultMetadataType::ORIENTATION)
+                    {
+                        *or
+                    } else {
+                        0
+                    })
+                    % 360;
             }
+            result.putMetadata(
+                RXingResultMetadataType::ORIENTATION,
+                RXingResultMetadataValue::Orientation(orientation),
+            );
+            // Update result points
+            let height = rotatedImage.getHeight();
+            let total_points = result.getRXingResultPoints().len();
+            let points = result.getRXingResultPointsMut();
+            for point in points.iter_mut().take(total_points) {
+                std::mem::swap(&mut point.x, &mut point.y);
+                point.x = height as f32 - point.x - 1.0;
+            }
+
+            Ok(result)
+        } else {
+            Err(Exceptions::NotFoundException(None))
         }
     }
+
     fn reset(&mut self) {
         for reader in self.0.iter_mut() {
-            // for (Reader reader : readers) {
             reader.reset();
         }
     }

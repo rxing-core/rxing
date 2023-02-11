@@ -53,8 +53,8 @@ impl BitMatrix {
      *
      * @param dimension height and width
      */
-    pub fn with_single_dimension(dimension: u32) -> Self {
-        Self::new(dimension, dimension).unwrap()
+    pub fn with_single_dimension(dimension: u32) -> Result<Self, Exceptions> {
+        Self::new(dimension, dimension)
     }
 
     /**
@@ -134,8 +134,16 @@ impl BitMatrix {
         let mut nRows = 0;
         let mut pos = 0;
         while pos < string_representation.chars().count() {
-            if string_representation.chars().nth(pos).unwrap() == '\n'
-                || string_representation.chars().nth(pos).unwrap() == '\r'
+            if string_representation
+                .chars()
+                .nth(pos)
+                .ok_or(Exceptions::IllegalStateException(None))?
+                == '\n'
+                || string_representation
+                    .chars()
+                    .nth(pos)
+                    .ok_or(Exceptions::IllegalStateException(None))?
+                    == '\r'
             {
                 if bitsPos > rowStartPos {
                     //if rowLength == -1 {
@@ -181,15 +189,12 @@ impl BitMatrix {
             nRows += 1;
         }
 
-        let mut matrix = BitMatrix::new(rowLength.try_into().unwrap(), nRows)?;
+        let mut matrix = BitMatrix::new(rowLength as u32, nRows)?;
         for (i, bit) in bits.iter().enumerate().take(bitsPos) {
             // for i in 0..bitsPos {
             //for (int i = 0; i < bitsPos; i++) {
             if *bit {
-                matrix.set(
-                    (i % rowLength).try_into().unwrap(),
-                    (i / rowLength).try_into().unwrap(),
-                );
+                matrix.set((i % rowLength) as u32, (i / rowLength) as u32);
             }
         }
         Ok(matrix)

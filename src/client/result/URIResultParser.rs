@@ -39,18 +39,16 @@ static ALLOWED_URI_CHARS: Lazy<Regex> = Lazy::new(|| {
 });
 static USER_IN_HOST: Lazy<Regex> =
     Lazy::new(|| Regex::new(":/*([^/@]+)@[^/]+").expect("Regex patterns should always copile"));
+
+/// See http://www.ietf.org/rfc/rfc2396.txt
 static URL_WITH_PROTOCOL_PATTERN: Lazy<Regex> =
     Lazy::new(|| Regex::new("[a-zA-Z][a-zA-Z0-9+-.]+:").unwrap());
+
+/// (host name elements; allow up to say 6 domain elements), (maybe port), (query, path or nothing)
 static URL_WITHOUT_PROTOCOL_PATTERN: Lazy<Regex> =
     Lazy::new(|| Regex::new("([a-zA-Z0-9\\-]+\\.){1,6}[a-zA-Z]{2,}(:\\d{1,5})?(/|\\?|$)").unwrap());
 
 const ALLOWED_URI_CHARS_PATTERN: &str = "[-._~:/?#\\[\\]@!$&'()*+,;=%A-Za-z0-9]+";
-// const USER_IN_HOST: &'static str = ":/*([^/@]+)@[^/]+";
-/// See http://www.ietf.org/rfc/rfc2396.txt
-// const URL_WITH_PROTOCOL_PATTERN: &'static str = "[a-zA-Z][a-zA-Z0-9+-.]+:";
-/// (host name elements; allow up to say 6 domain elements), (maybe port), (query, path or nothing)
-// const URL_WITHOUT_PROTOCOL_PATTERN: &'static str =
-//     "([a-zA-Z0-9\\-]+\\.){1,6}[a-zA-Z]{2,}(:\\d{1,5})?(/|\\?|$)";
 
 pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let raw_text = ResultParser::getMassagedText(result);

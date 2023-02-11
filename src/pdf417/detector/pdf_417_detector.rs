@@ -19,6 +19,8 @@ use crate::{
     ResultPoint,
 };
 
+use std::borrow::Cow;
+
 use super::PDF417DetectorRXingResult;
 
 /**
@@ -32,8 +34,8 @@ use super::PDF417DetectorRXingResult;
 
 const INDEXES_START_PATTERN: [u32; 4] = [0, 4, 1, 5];
 const INDEXES_STOP_PATTERN: [u32; 4] = [6, 2, 7, 3];
-const MAX_AVG_VARIANCE: f32 = 0.42;
-const MAX_INDIVIDUAL_VARIANCE: f32 = 0.8;
+const MAX_AVG_VARIANCE: f64 = 0.42;
+const MAX_INDIVIDUAL_VARIANCE: f64 = 0.8;
 
 // B S B S B S B S Bar/Space pattern
 // 11111111 0 1 0 1 0 1 000
@@ -70,15 +72,17 @@ pub fn detect_with_hints(
     // TODO detection improvement, tryHarder could try several different luminance thresholds/blackpoints or even
     // different binarizers
     //boolean tryHarder = hints != null && hints.containsKey(DecodeHintType.TRY_HARDER);
+    //let try_harder = matches!(hints.get(&DecodeHintType::TRY_HARDER), Some(DecodeHintValue::TryHarder(true)));
 
     let originalMatrix = image.getBlackMatrix();
     for rotation in ROTATIONS {
         // for (int rotation : ROTATIONS) {
-        let bitMatrix = applyRotation(originalMatrix, rotation);
-        let barcodeCoordinates = detect(multiple, &bitMatrix);
+        let bitMatrix = applyRotation(originalMatrix, rotation)?;
+        let barcodeCoordinates =
+            detect(multiple, &bitMatrix).ok_or(Exceptions::NotFoundException(None))?;
         if !barcodeCoordinates.is_empty() {
             return Ok(PDF417DetectorRXingResult::with_rotation(
-                bitMatrix,
+                bitMatrix.into_owned(),
                 barcodeCoordinates,
                 rotation,
             ));
@@ -97,13 +101,13 @@ pub fn detect_with_hints(
  * @param rotation the degrees of rotation to apply
  * @return BitMatrix with applied rotation
  */
-fn applyRotation(matrix: &BitMatrix, rotation: u32) -> BitMatrix {
+fn applyRotation(matrix: &BitMatrix, rotation: u32) -> Result<Cow<BitMatrix>, Exceptions> {
     if rotation % 360 == 0 {
-        matrix.clone()
+        Ok(Cow::Borrowed(matrix))
     } else {
         let mut newMatrix = matrix.clone();
-        newMatrix.rotate(rotation).expect("rotation must complete");
-        newMatrix
+        newMatrix.rotate(rotation)?;
+        Ok(Cow::Owned(newMatrix))
     }
 }
 
@@ -114,13 +118,13 @@ fn applyRotation(matrix: &BitMatrix, rotation: u32) -> BitMatrix {
  * @param bitMatrix bit matrix to detect barcodes in
  * @return List of RXingResultPoint arrays containing the coordinates of found barcodes
  */
-pub fn detect(multiple: bool, bitMatrix: &BitMatrix) -> Vec<[Option<RXingResultPoint>; 8]> {
+pub fn detect(multiple: bool, bitMatrix: &BitMatrix) -> Option<Vec<[Option<RXingResultPoint>; 8]>> {
     let mut barcodeCoordinates: Vec<[Option<RXingResultPoint>; 8]> = Vec::new();
     let mut row = 0;
     let mut column = 0;
     let mut foundBarcodeInRow = false;
     while row < bitMatrix.getHeight() {
-        let vertices = findVertices(bitMatrix, row, column);
+        let vertices = findVertices(bitMatrix, row, column)?;
 
         if vertices[0].is_none() && vertices[3].is_none() {
             if !foundBarcodeInRow {
@@ -132,9 +136,7 @@ pub fn detect(multiple: bool, bitMatrix: &BitMatrix) -> Vec<[Option<RXingResultP
             foundBarcodeInRow = false;
             column = 0;
             for barcodeCoordinate in &barcodeCoordinates {
-                // for (RXingResultPoint[] barcodeCoordinate : barcodeCoordinates) {
                 if let Some(coord_1) = barcodeCoordinate[1] {
-                    // if barcodeCoordinate[1].is_some() {
                     row = row.max(coord_1.getY() as u32);
                 }
                 if let Some(coord_3) = barcodeCoordinate[3] {
@@ -159,7 +161,7 @@ pub fn detect(multiple: bool, bitMatrix: &BitMatrix) -> Vec<[Option<RXingResultP
             row = vertices[4].as_ref().unwrap().getY() as u32;
         }
     }
-    barcodeCoordinates
+    Some(barcodeCoordinates)
 }
 
 /**
@@ -181,7 +183,7 @@ fn findVertices(
     matrix: &BitMatrix,
     startRow: u32,
     startColumn: u32,
-) -> [Option<RXingResultPoint>; 8] {
+) -> Option<[Option<RXingResultPoint>; 8]> {
     let height = matrix.getHeight();
     let width = matrix.getWidth();
     let mut startRow = startRow;
@@ -190,7 +192,7 @@ fn findVertices(
     let mut result = [None::<RXingResultPoint>; 8]; //RXingResultPoint[8];
     copyToRXingResult(
         &mut result,
-        &findRowsWithPattern(matrix, height, width, startRow, startColumn, &START_PATTERN),
+        &findRowsWithPattern(matrix, height, width, startRow, startColumn, &START_PATTERN)?,
         &INDEXES_START_PATTERN,
     );
 
@@ -200,11 +202,11 @@ fn findVertices(
     }
     copyToRXingResult(
         &mut result,
-        &findRowsWithPattern(matrix, height, width, startRow, startColumn, &STOP_PATTERN),
+        &findRowsWithPattern(matrix, height, width, startRow, startColumn, &STOP_PATTERN)?,
         &INDEXES_STOP_PATTERN,
     );
 
-    result
+    Some(result)
 }
 
 fn copyToRXingResult(
@@ -213,7 +215,6 @@ fn copyToRXingResult(
     destinationIndexes: &[u32],
 ) {
     for i in 0..destinationIndexes.len() {
-        // for (int i = 0; i < destinationIndexes.length; i++) {
         result[destinationIndexes[i] as usize] = tmpRXingResult[i];
     }
 }
@@ -225,38 +226,35 @@ fn findRowsWithPattern(
     startRow: u32,
     startColumn: u32,
     pattern: &[u32],
-) -> [Option<RXingResultPoint>; 4] {
+) -> Option<[Option<RXingResultPoint>; 4]> {
     let mut startRow = startRow;
-    let mut result = [None; 4]; //new RXingResultPoint[4];
+    let mut result = [None; 4];
     let mut found = false;
     let mut counters = vec![0_u32; pattern.len()];
     while startRow < height {
-        // for (; startRow < height; startRow += ROW_STEP) {
-        let mut loc_store; // = None;
+        let mut loc_store;
         if let Some(loc) =
             findGuardPattern(matrix, startColumn, startRow, width, pattern, &mut counters)
         {
-            // if (loc != null) {
             loc_store = Some(loc);
             while startRow > 0 {
                 startRow -= 1;
                 if let Some(previousRowLoc) =
                     findGuardPattern(matrix, startColumn, startRow, width, pattern, &mut counters)
                 {
-                    // if (previousRowLoc != null) {
-                    //loc = previousRowLoc;
-                    loc_store = Some(previousRowLoc);
+                    loc_store.replace(previousRowLoc);
+                    // loc_store = Some(previousRowLoc);
                 } else {
                     startRow += 1;
                     break;
                 }
             }
             result[0] = Some(RXingResultPoint::new(
-                loc_store.as_ref().unwrap()[0] as f32,
+                loc_store.as_ref()?[0] as f32,
                 startRow as f32,
             ));
             result[1] = Some(RXingResultPoint::new(
-                loc_store.as_ref().unwrap()[1] as f32,
+                loc_store.as_ref()?[1] as f32,
                 startRow as f32,
             ));
             found = true;
@@ -265,16 +263,16 @@ fn findRowsWithPattern(
 
         startRow += ROW_STEP;
     }
+
     let mut stopRow = startRow + 1;
     // Last row of the current symbol that contains pattern
     if found {
         let mut skippedRowCount = 0;
         let mut previousRowLoc = [
-            result[0].as_ref().unwrap().getX() as u32,
-            result[1].as_ref().unwrap().getX() as u32,
+            result[0].as_ref()?.getX() as u32,
+            result[1].as_ref()?.getX() as u32,
         ];
         while stopRow < height {
-            // for (; stopRow < height; stopRow++) {
             if let Some(loc) = findGuardPattern(
                 matrix,
                 previousRowLoc[0],
@@ -317,10 +315,9 @@ fn findRowsWithPattern(
     }
     if stopRow - startRow < BARCODE_MIN_HEIGHT {
         result.fill(None);
-        // Arrays.fill(result, null);
     }
 
-    result
+    Some(result)
 }
 
 /**
@@ -342,7 +339,6 @@ fn findGuardPattern(
     counters: &mut [u32],
 ) -> Option<[u32; 2]> {
     counters.fill(0);
-    // Arrays.fill(counters, 0, counters.length, 0);
     let mut patternStart = column;
     let mut pixelDrift = 0;
 
@@ -400,40 +396,38 @@ fn findGuardPattern(
  * @param pattern expected pattern
  * @return ratio of total variance between counters and pattern compared to total pattern size
  */
-fn patternMatchVariance(counters: &[u32], pattern: &[u32]) -> f32 {
+fn patternMatchVariance(counters: &[u32], pattern: &[u32]) -> f64 {
     let numCounters = counters.len();
-    let mut total = 0;
-    let mut patternLength = 0;
-    for i in 0..numCounters {
-        // for (int i = 0; i < numCounters; i++) {
-        total += counters[i];
-        patternLength += pattern[i];
-    }
+    let total = counters.iter().take(numCounters).sum::<u32>();
+    let patternLength = pattern.iter().take(numCounters).sum::<u32>();
+    // for i in 0..numCounters {
+    //     total += counters[i];
+    //     patternLength += pattern[i];
+    // }
     if total < patternLength {
         // If we don't even have one pixel per unit of bar width, assume this
         // is too small to reliably match, so fail:
-        return f32::INFINITY; //Float.POSITIVE_INFINITY;
+        return f64::INFINITY; //Float.POSITIVE_INFINITY;
     }
     // We're going to fake floating-point math in integers. We just need to use more bits.
     // Scale up patternLength so that intermediate values below like scaledCounter will have
     // more "significant digits".
-    let unitBarWidth: f32 = total as f32 / patternLength as f32;
+    let unitBarWidth: f64 = total as f64 / patternLength as f64;
     let maxIndividualVariance = MAX_INDIVIDUAL_VARIANCE * unitBarWidth;
 
     let mut totalVariance = 0.0;
     for x in 0..numCounters {
-        // for (int x = 0; x < numCounters; x++) {
         let counter = counters[x];
-        let scaledPattern: f32 = pattern[x] as f32 * unitBarWidth;
-        let variance: f32 = if counter as f32 > scaledPattern {
-            counter as f32 - scaledPattern
+        let scaledPattern: f64 = pattern[x] as f64 * unitBarWidth;
+        let variance: f64 = if counter as f64 > scaledPattern {
+            counter as f64 - scaledPattern
         } else {
-            scaledPattern - counter as f32
+            scaledPattern - counter as f64
         };
         if variance > maxIndividualVariance {
-            return f32::INFINITY;
+            return f64::INFINITY;
         }
         totalVariance += variance;
     }
-    totalVariance / total as f32
+    totalVariance / total as f64
 }

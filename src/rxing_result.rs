@@ -98,7 +98,7 @@ impl RXingResult {
     /**
      * @return raw text encoded by the barcode
      */
-    pub fn getText(&self) -> &String {
+    pub fn getText(&self) -> &str {
         &self.text
     }
 
@@ -170,12 +170,7 @@ impl RXingResult {
     }
 
     pub fn addRXingResultPoints(&mut self, newPoints: &mut Vec<RXingResultPoint>) {
-        //RXingResultPoint[] oldPoints = resultPoints;
         if !newPoints.is_empty() {
-            // let allPoints:Vec<RXingResultPoint>= Vec::with_capacity(oldPoints.len() + newPoints.len());
-            //System.arraycopy(oldPoints, 0, allPoints, 0, oldPoints.length);
-            //System.arraycopy(newPoints, 0, allPoints, oldPoints.length, newPoints.length);
-            //resultPoints = allPoints;
             self.resultPoints.append(newPoints);
         }
     }

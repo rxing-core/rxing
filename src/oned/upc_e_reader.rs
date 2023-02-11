@@ -39,11 +39,8 @@ impl UPCEANReader for UPCEReader {
         startRange: &[usize; 2],
         resultString: &mut String,
     ) -> Result<usize, Exceptions> {
-        let mut counters = [0_u32; 4]; //decodeMiddleCounters;
-                                       // counters[0] = 0;
-                                       // counters[1] = 0;
-                                       // counters[2] = 0;
-                                       // counters[3] = 0;
+        let mut counters = [0_u32; 4];
+
         let end = row.getSize();
         let mut rowOffset = startRange[1];
 
@@ -51,12 +48,11 @@ impl UPCEANReader for UPCEReader {
 
         let mut x = 0;
         while x < 6 && rowOffset < end {
-            // for (int x = 0; x < 6 && rowOffset < end; x++) {
             let bestMatch = self.decodeDigit(row, &mut counters, rowOffset, &L_AND_G_PATTERNS)?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch as u32 % 10).unwrap());
-            // for (int counter : counters) {
-            //   rowOffset += counter;
-            // }
+            resultString.push(
+                char::from_u32('0' as u32 + bestMatch as u32 % 10)
+                    .ok_or(Exceptions::ParseException(None))?,
+            );
             rowOffset += counters.iter().sum::<u32>() as usize;
 
             if bestMatch >= 10 {
@@ -72,7 +68,9 @@ impl UPCEANReader for UPCEReader {
     }
 
     fn checkChecksum(&self, s: &str) -> Result<bool, Exceptions> {
-        self.checkStandardUPCEANChecksum(&convertUPCEtoUPCA(s))
+        self.checkStandardUPCEANChecksum(
+            &convertUPCEtoUPCA(s).ok_or(Exceptions::IllegalArgumentException(None))?,
+        )
     }
 
     fn decodeEnd(
@@ -130,12 +128,17 @@ impl UPCEReader {
         lgPatternFound: usize,
     ) -> Result<(), Exceptions> {
         for numSys in 0..=1 {
-            // for (int numSys = 0; numSys <= 1; numSys++) {
             for d in 0..10 {
-                // for (int d = 0; d < 10; d++) {
                 if lgPatternFound == Self::NUMSYS_AND_CHECK_DIGIT_PATTERNS[numSys][d] {
-                    resultString.insert(0, char::from_u32('0' as u32 + numSys as u32).unwrap());
-                    resultString.push(char::from_u32('0' as u32 + d as u32).unwrap());
+                    resultString.insert(
+                        0,
+                        char::from_u32('0' as u32 + numSys as u32)
+                            .ok_or(Exceptions::ParseException(None))?,
+                    );
+                    resultString.push(
+                        char::from_u32('0' as u32 + d as u32)
+                            .ok_or(Exceptions::ParseException(None))?,
+                    );
                     return Ok(());
                 }
             }
@@ -150,12 +153,13 @@ impl UPCEReader {
  * @param upce UPC-E code as string of digits
  * @return equivalent UPC-A code as string of digits
  */
-pub fn convertUPCEtoUPCA(upce: &str) -> String {
-    let upceChars = &upce[1..7]; //['0';6];//new char[6];
-                                 //upce.getChars(1, 7, upceChars, 0);
-    let mut result = String::with_capacity(12); //new StringBuilder(12);
-    result.push(upce.chars().next().unwrap());
-    let lastChar = upceChars.chars().nth(5).unwrap();
+pub fn convertUPCEtoUPCA(upce: &str) -> Option<String> {
+    let upceChars = &upce[1..7];
+
+    let mut result = String::with_capacity(12);
+
+    result.push(upce.chars().next()?);
+    let lastChar = upceChars.chars().nth(5)?;
     match lastChar {
         '0' | '1' | '2' => {
             result.push_str(&upceChars[0..2]);
@@ -172,7 +176,7 @@ pub fn convertUPCEtoUPCA(upce: &str) -> String {
         '4' => {
             result.push_str(&upceChars[0..4]);
             result.push_str("00000");
-            result.push(upceChars.chars().nth(4).unwrap());
+            result.push(upceChars.chars().nth(4)?);
         }
         _ => {
             result.push_str(&upceChars[0..5]);
@@ -182,8 +186,8 @@ pub fn convertUPCEtoUPCA(upce: &str) -> String {
     }
     // Only append check digit in conversion if supplied
     if upce.chars().count() >= 8 {
-        result.push(upce.chars().nth(7).unwrap());
+        result.push(upce.chars().nth(7)?);
     }
 
-    result
+    Some(result)
 }

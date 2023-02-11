@@ -35,17 +35,17 @@ pub struct ReedSolomonEncoder {
 }
 
 impl ReedSolomonEncoder {
-    pub fn new(field: GenericGFRef) -> Self {
+    pub fn new(field: GenericGFRef) -> Result<Self, Exceptions> {
         let n = field;
-        Self {
-            cachedGenerators: vec![GenericGFPoly::new(n, &[1]).unwrap()],
+        Ok(Self {
+            cachedGenerators: vec![GenericGFPoly::new(n, &[1])?],
             field: n,
-        }
+        })
     }
 
-    fn buildGenerator(&mut self, degree: usize) -> &GenericGFPoly {
+    fn buildGenerator(&mut self, degree: usize) -> Option<&GenericGFPoly> {
         if degree >= self.cachedGenerators.len() {
-            let mut lastGenerator = self.cachedGenerators.last().unwrap();
+            let mut lastGenerator = self.cachedGenerators.last()?;
             let cg_len = self.cachedGenerators.len();
             let mut nextGenerator;
             for d in cg_len..=degree {
@@ -59,16 +59,16 @@ impl ReedSolomonEncoder {
                                 self.field.exp(d as i32 - 1 + self.field.getGeneratorBase()),
                             ],
                         )
-                        .unwrap(),
+                        .ok()?,
                     )
-                    .unwrap();
+                    .ok()?;
                 self.cachedGenerators.push(nextGenerator);
-                lastGenerator = self.cachedGenerators.get(d).unwrap();
+                lastGenerator = self.cachedGenerators.get(d)?;
                 //lastGenerator = &nextGenerator;
             }
         }
-        let rv = self.cachedGenerators.get(degree).unwrap();
-        rv
+        let rv = self.cachedGenerators.get(degree)?;
+        Some(rv)
     }
 
     pub fn encode(&mut self, to_encode: &mut Vec<i32>, ec_bytes: usize) -> Result<(), Exceptions> {
@@ -90,7 +90,9 @@ impl ReedSolomonEncoder {
         //System.arraycopy(toEncode, 0, infoCoefficients, 0, dataBytes);
         let mut info = GenericGFPoly::new(fld, &info_coefficients)?;
         info = info.multiply_by_monomial(ec_bytes, 1)?;
-        let remainder = &info.divide(generator)?.1;
+        let remainder = &info
+            .divide(generator.ok_or(Exceptions::ReedSolomonException(None))?)?
+            .1;
         let coefficients = remainder.getCoefficients();
         let num_zero_coefficients = ec_bytes - coefficients.len();
         for i in 0..num_zero_coefficients {

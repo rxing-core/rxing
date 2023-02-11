@@ -59,12 +59,12 @@ impl OneDReader for RSS14Reader {
         Self::addOrTally(&mut self.possibleRightPairs, rightPair);
         row.reverse();
         for left in &self.possibleLeftPairs {
-            // for (Pair left : possibleLeftPairs) {
             if left.getCount() > 1 {
                 for right in &self.possibleRightPairs {
-                    // for (Pair right : possibleRightPairs) {
                     if right.getCount() > 1 && self.checkChecksum(left, right) {
-                        return Ok(self.constructRXingResult(left, right));
+                        return self
+                            .constructRXingResult(left, right)
+                            .ok_or(Exceptions::IllegalStateException(None));
                     }
                 }
             }
@@ -89,7 +89,10 @@ impl Reader for RSS14Reader {
         if let Ok(res) = self.doDecode(image, hints) {
             Ok(res)
         } else {
-            let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
+            let tryHarder = matches!(
+                hints.get(&DecodeHintType::TRY_HARDER),
+                Some(DecodeHintValue::TryHarder(true))
+            );
             if tryHarder && image.isRotateSupported() {
                 let mut rotatedImage = image.rotateCounterClockwise();
                 let mut result = self.doDecode(&mut rotatedImage, hints)?;
@@ -113,23 +116,13 @@ impl Reader for RSS14Reader {
                     RXingResultMetadataValue::Orientation(orientation),
                 );
                 // Update result points
-                // let points = result.getRXingResultPoints();
-                // if points != null {
                 let height = rotatedImage.getHeight();
-                // for point in result.getRXingResultPointsMut().iter_mut() {
                 let total_points = result.getRXingResultPoints().len();
                 let points = result.getRXingResultPointsMut();
-                // for i in 0..total_points {
                 for point in points.iter_mut().take(total_points) {
-                    // for (int i = 0; i < points.length; i++) {
                     std::mem::swap(&mut point.x, &mut point.y);
                     point.x = height as f32 - point.x - 1.0
-                    // points[i] = RXingResultPoint::new(
-                    //     height as f32 - points[i].getY() - 1.0,
-                    //     points[i].getX(),
-                    // );
                 }
-                // }
 
                 Ok(result)
             } else {
@@ -172,19 +165,18 @@ impl RSS14Reader {
             dataCharacterCounters: [0u32; 8],
             oddRoundingErrors: [0.0; 4],
             evenRoundingErrors: [0.0; 4],
-            oddCounts: [0u32; 4],  //vec![0u32;4],
-            evenCounts: [0u32; 4], //vec![0u32;4],
+            oddCounts: [0u32; 4],
+            evenCounts: [0u32; 4],
         }
     }
 
     fn addOrTally(possiblePairs: &mut Vec<Pair>, pair: Option<Pair>) {
         let Some(pair) = pair else {
-      return;
-    };
+            return;
+        };
 
         let mut found = false;
         for other in possiblePairs.iter_mut() {
-            // for (Pair other : possiblePairs) {
             if other.getValue() == pair.getValue() {
                 other.incrementCount();
                 found = true;
@@ -196,14 +188,13 @@ impl RSS14Reader {
         }
     }
 
-    fn constructRXingResult(&self, leftPair: &Pair, rightPair: &Pair) -> RXingResult {
+    fn constructRXingResult(&self, leftPair: &Pair, rightPair: &Pair) -> Option<RXingResult> {
         let symbolValue: u64 = 4537077 * leftPair.getValue() as u64 + rightPair.getValue() as u64;
         let text = symbolValue.to_string();
 
         let mut buffer = String::with_capacity(14);
         let mut i = 13 - text.chars().count() as isize;
         while i > 0 {
-            // for (int i = 13 - text.length(); i > 0; i--) {
             buffer.push('0');
 
             i -= 1;
@@ -212,8 +203,7 @@ impl RSS14Reader {
 
         let mut checkDigit = 0;
         for i in 0..13 {
-            // for (int i = 0; i < 13; i++) {
-            let digit = buffer.chars().nth(i).unwrap() as u32 - '0' as u32;
+            let digit = buffer.chars().nth(i)? as u32 - '0' as u32;
             checkDigit += if (i & 0x01) == 0 { 3 * digit } else { digit };
         }
         checkDigit = 10 - (checkDigit % 10);
@@ -236,7 +226,7 @@ impl RSS14Reader {
             RXingResultMetadataValue::SymbologyIdentifier("]e0".to_owned()),
         );
 
-        result
+        Some(result)
     }
 
     fn checkChecksum(&self, leftPair: &Pair, rightPair: &Pair) -> bool {
@@ -286,11 +276,8 @@ impl RSS14Reader {
                 pattern,
             ))
         }();
-        if let Ok(ppair) = pos_pair {
-            Some(ppair)
-        } else {
-            None
-        }
+
+        pos_pair.ok()
     }
 
     fn decodeDataCharacter(
@@ -299,47 +286,33 @@ impl RSS14Reader {
         pattern: &FinderPattern,
         outsideChar: bool,
     ) -> Result<DataCharacter, Exceptions> {
-        let counters = &mut self.dataCharacterCounters; //[0_u32; 8]; //self.getDataCharacterCounters();
-                                                        //Arrays.fill(counters, 0);
-                                                        // counters.fill(0);
+        let counters = &mut self.dataCharacterCounters;
         counters.fill(0);
 
         if outsideChar {
-            one_d_reader::recordPatternInReverse(row, pattern.getStartEnd()[0], &mut counters[..])?;
+            one_d_reader::recordPatternInReverse(row, pattern.getStartEnd()[0], counters)?;
         } else {
-            one_d_reader::recordPattern(row, pattern.getStartEnd()[1], &mut counters[..])?;
+            one_d_reader::recordPattern(row, pattern.getStartEnd()[1], counters)?;
             // reverse it
-            let mut i = 0;
-            let mut j = counters.len() - 1;
-            while i < j {
-                // for (int i = 0, j = counters.length - 1; i < j; i++, j--) {
+            counters.reverse();
+            // let mut i = 0;
+            // let mut j = counters.len() - 1;
+            // while i < j {
+            //     counters.swap(i, j);
 
-                counters.swap(i, j);
-
-                i += 1;
-                j -= 1;
-            }
+            //     i += 1;
+            //     j -= 1;
+            // }
         }
 
         let numModules = if outsideChar { 16 } else { 15 };
 
         let elementWidth: f32 = counters.iter().sum::<u32>() as f32 / numModules as f32;
 
-        // let  oddCounts = &mut self.oddCounts;//[0u32; 4]; //self.getOddCounts();
-        // let  evenCounts = //&mut self.evenCounts;//[0u32; 4]; // self.getEvenCounts();
-        // let  oddRoundingErrors = //&mut self.oddRoundingErrors;//[0f32; 4]; // self.getOddRoundingErrors();
-        // let  evenRoundingErrors = &mut self.evenRoundingErrors;//[0f32; 4]; // self.getEvenRoundingErrors();
-
         for (i, counter) in counters.iter().enumerate() {
-            // for (int i = 0; i < counters.length; i++) {
             let value: f32 = *counter as f32 / elementWidth;
-            // let mut count = (value + 0.5) as u32; // Round
             let count = ((value + 0.5) as u32).clamp(1, 8);
-            // if count < 1 {
-            //     count = 1;
-            // } else if count > 8 {
-            //     count = 8;
-            // }
+
             let offset = i / 2;
             if (i & 0x01) == 0 {
                 self.oddCounts[offset] = count;
@@ -355,7 +328,6 @@ impl RSS14Reader {
         let mut oddSum = 0;
         let mut oddChecksumPortion = 0;
         for i in (0..self.oddCounts.len()).rev() {
-            // for (int i = oddCounts.length - 1; i >= 0; i--) {
             oddChecksumPortion *= 9;
             oddChecksumPortion += &self.oddCounts[i];
             oddSum += &self.oddCounts[i];
@@ -363,7 +335,6 @@ impl RSS14Reader {
         let mut evenChecksumPortion = 0;
         let mut evenSum = 0;
         for i in (0..self.evenCounts.len()).rev() {
-            // for (int i = evenCounts.length - 1; i >= 0; i--) {
             evenChecksumPortion *= 9;
             evenChecksumPortion += self.evenCounts[i];
             evenSum += self.evenCounts[i];
@@ -408,11 +379,6 @@ impl RSS14Reader {
         row: &BitArray,
         rightFinderPattern: bool,
     ) -> Result<[usize; 2], Exceptions> {
-        // let  counters = self.getDecodeFinderCounters();
-        // counters[0] = 0;
-        // counters[1] = 0;
-        // counters[2] = 0;
-        // counters[3] = 0;
         let counters = &mut self.decodeFinderCounters;
         counters.fill(0);
 
@@ -431,7 +397,6 @@ impl RSS14Reader {
         let mut counterPosition = 0;
         let mut patternStart = rowOffset;
         for x in rowOffset..width {
-            // for (int x = rowOffset; x < width; x++) {
             if row.get(x) != isWhite {
                 counters[counterPosition] += 1;
             } else {
@@ -476,9 +441,6 @@ impl RSS14Reader {
 
         counters.copy_within(..counter_len - 1, 1);
         // Make 'counters' hold 1-4
-        // let counters = self.getDecodeFinderCounters();
-        // System.arraycopy(counters, 0, counters, 1, counters.length - 1);
-        // counters.fill(0);
 
         counters[0] = firstCounter as u32;
         let value = Self::parseFinderValue(counters, &Self::FINDER_PATTERNS)?;
@@ -504,8 +466,8 @@ impl RSS14Reader {
         outsideChar: bool,
         numModules: u32,
     ) -> Result<(), Exceptions> {
-        let oddSum = self.oddCounts.iter().sum::<u32>(); //MathUtils.sum(getOddCounts());
-        let evenSum = self.evenCounts.iter().sum::<u32>(); //MathUtils.sum(getEvenCounts());
+        let oddSum = self.oddCounts.iter().sum::<u32>();
+        let evenSum = self.evenCounts.iter().sum::<u32>();
 
         let mut incrementOdd = false;
         let mut decrementOdd = false;
@@ -537,7 +499,7 @@ impl RSS14Reader {
         }
 
         let mismatch = oddSum as i32 + evenSum as i32 - numModules as i32;
-        let oddParityBad = (oddSum & 0x01) == u32::from(outsideChar); //(if outsideChar { 1 } else { 0 });
+        let oddParityBad = (oddSum & 0x01) == u32::from(outsideChar);
         let evenParityBad = (evenSum & 0x01) == 1;
         /*if (mismatch == 2) {
           if (!(oddParityBad && evenParityBad)) {

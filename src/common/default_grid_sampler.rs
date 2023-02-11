@@ -90,13 +90,18 @@ impl GridSampler for DefaultGridSampler {
             let mut x = 0;
             while x < max {
                 //   for (int x = 0; x < max; x += 2) {
-                if points[x] as u32 >= image.getWidth() || points[x + 1] as u32 >= image.getHeight()
-                {
-                    return Err(Exceptions::NotFoundException(Some(
+                // if points[x] as u32 >= image.getWidth() || points[x + 1] as u32 >= image.getHeight()
+                // {
+                //     return Err(Exceptions::NotFoundException(Some(
+                //         "index out of bounds, see documentation in file for explanation".to_owned(),
+                //     )));
+                // }
+                if image
+                    .try_get(points[x] as u32, points[x + 1] as u32)
+                    .ok_or(Exceptions::NotFoundException(Some(
                         "index out of bounds, see documentation in file for explanation".to_owned(),
-                    )));
-                }
-                if image.get(points[x] as u32, points[x + 1] as u32) {
+                    )))?
+                {
                     // Black(-ish) pixel
                     bits.set(x as u32 / 2, y);
                 }

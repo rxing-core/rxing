@@ -15,9 +15,9 @@
  */
 
 use crate::{
-    common::BitArray, BinaryBitmap, DecodeHintType, DecodingHintDictionary, Exceptions,
-    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader,
-    ResultPoint,
+    common::BitArray, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
+    Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint,
+    Reader, ResultPoint,
 };
 
 /**
@@ -50,9 +50,11 @@ pub trait OneDReader: Reader {
         let mut hints = hints.clone();
         let width = image.getWidth();
         let height = image.getHeight();
-        // let mut row = BitArray::with_size(width);
 
-        let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
+        let tryHarder = matches!(
+            hints.get(&DecodeHintType::TRY_HARDER),
+            Some(DecodeHintValue::TryHarder(true))
+        );
         let rowStep = 1.max(height >> (if tryHarder { 8 } else { 5 }));
         let maxLines = if tryHarder {
             height // Look at the whole image, not just the center
@@ -62,8 +64,6 @@ pub trait OneDReader: Reader {
 
         let middle = height / 2;
         for x in 0..maxLines {
-            // for (int x = 0; x < maxLines; x++) {
-
             // Scanning from the middle out. Determine which row we're looking at next:
             let rowStepsAboveOrBelow = (x + 1) / 2;
             let isAbove = (x & 0x01) == 0; // i.e. is x even?
@@ -85,11 +85,6 @@ pub trait OneDReader: Reader {
             } else {
                 continue;
             };
-            // try {
-            //   row = image.getBlackRow(rowNumber, row);
-            // } catch (NotFoundException ignored) {
-            //   continue;
-            // }
 
             // While we have the image data in a BitArray, it's fairly cheap to reverse it in place to
             // handle decoding upside down barcodes.
@@ -97,21 +92,18 @@ pub trait OneDReader: Reader {
                 // for (int attempt = 0; attempt < 2; attempt++) {
                 if attempt == 1 {
                     // trying again?
-                    row.to_mut().reverse(); // reverse the row and continue
-                                            // This means we will only ever draw result points *once* in the life of this method
-                                            // since we want to avoid drawing the wrong points after flipping the row, and,
-                                            // don't want to clutter with noise from every single row scan -- just the scans
-                                            // that start on the center line.
+
+                    // reverse the row and continue
+                    // This means we will only ever draw result points *once* in the life of this method
+                    // since we want to avoid drawing the wrong points after flipping the row, and,
+                    // don't want to clutter with noise from every single row scan -- just the scans
+                    // that start on the center line.
+                    row.to_mut().reverse();
+
                     if hints.contains_key(&DecodeHintType::NEED_RESULT_POINT_CALLBACK) {
-                        // let newHints = HashMap::new();
-                        // newHints.putAll(hints);
-                        // newHints.remove(&DecodeHintType::NEED_RESULT_POINT_CALLBACK);
                         hints.remove(&DecodeHintType::NEED_RESULT_POINT_CALLBACK);
-                        // hints = newHints;
                     }
                 }
-                //try {
-                // Look for a barcode
                 let Ok(mut result) = self.decodeRow(rowNumber as u32, &row, &hints) else {
             continue
           };
@@ -136,9 +128,6 @@ pub trait OneDReader: Reader {
                     }
                 }
                 return Ok(result);
-                // } catch (ReaderException re) {
-                //   // continue -- just couldn't decode this row
-                // }
             }
         }
 
@@ -181,7 +170,6 @@ pub fn patternMatchVariance(counters: &[u32], pattern: &[u32], maxIndividualVari
     let mut total = 0.0;
     let mut patternLength = 0;
     for i in 0..numCounters {
-        // for (int i = 0; i < numCounters; i++) {
         total += counters[i] as f32;
         patternLength += pattern[i];
     }
@@ -196,7 +184,6 @@ pub fn patternMatchVariance(counters: &[u32], pattern: &[u32], maxIndividualVari
 
     let mut totalVariance = 0.0;
     for x in 0..numCounters {
-        // for (int x = 0; x < numCounters; x++) {
         let counter = counters[x];
         let scaledPattern = (pattern[x] as f32) * unitBarWidth;
         let variance = if (counter as f32) > scaledPattern {
@@ -227,12 +214,13 @@ pub fn patternMatchVariance(counters: &[u32], pattern: &[u32], maxIndividualVari
  */
 pub fn recordPattern(row: &BitArray, start: usize, counters: &mut [u32]) -> Result<(), Exceptions> {
     let numCounters = counters.len();
-    // Arrays.fill(counters, 0, numCounters, 0);
     counters.fill(0);
+
     let end = row.getSize();
     if start >= end {
         return Err(Exceptions::NotFoundException(None));
     }
+
     let mut isWhite = !row.get(start);
     let mut counterPosition = 0;
     let mut i = start;

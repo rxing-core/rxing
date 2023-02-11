@@ -40,18 +40,8 @@ impl BarcodeRow {
      * @param x The location in the bar
      * @param value Black if true, white if false;
      */
-    pub fn set(&mut self, x: usize, value: u8) {
-        self.row[x] = value
-    }
-
-    /**
-     * Sets a specific location in the bar
-     *
-     * @param x The location in the bar
-     * @param black Black if true, white if false;
-     */
-    fn set_bool(&mut self, x: usize, black: bool) {
-        self.row[x] = u8::from(black); //if black { 1 } else { 0 }
+    pub fn set<T: Into<u8>>(&mut self, x: usize, value: T) {
+        self.row[x] = value.into()
     }
 
     /**
@@ -61,7 +51,7 @@ impl BarcodeRow {
     pub fn addBar(&mut self, black: bool, width: usize) {
         for _ii in 0..width {
             // for (int ii = 0; ii < width; ii++) {
-            self.set_bool(self.currentLocation, black);
+            self.set(self.currentLocation, black);
             self.currentLocation += 1;
         }
     }
@@ -75,8 +65,6 @@ impl BarcodeRow {
     pub fn getScaledRow(&self, scale: usize) -> Vec<u8> {
         let mut output = vec![0; self.row.len() * scale];
         for (i, row) in output.iter_mut().enumerate() {
-            // for i in 0..output.len() {
-            // for (int i = 0; i < output.length; i++) {
             *row = self.row[i / scale];
         }
 

@@ -61,7 +61,7 @@ impl ReedSolomonDecoder {
      * @throws ReedSolomonException if decoding fails for any reason
      */
     pub fn decode(&self, received: &mut Vec<i32>, twoS: i32) -> Result<usize, Exceptions> {
-        let poly = GenericGFPoly::new(self.field, received).unwrap();
+        let poly = GenericGFPoly::new(self.field, received)?;
         let mut syndromeCoefficients = vec![0; twoS as usize];
         let mut noError = true;
         for i in 0..twoS {
@@ -87,7 +87,7 @@ impl ReedSolomonDecoder {
         let sigma = &sigmaOmega[0];
         let omega = &sigmaOmega[1];
         let errorLocations = self.findErrorLocations(sigma)?;
-        let errorMagnitudes = self.findErrorMagnitudes(omega, &errorLocations);
+        let errorMagnitudes = self.findErrorMagnitudes(omega, &errorLocations)?;
         for i in 0..errorLocations.len() {
             //for (int i = 0; i < errorLocations.length; i++) {
             let log_value = self.field.log(errorLocations[i] as i32)?;
@@ -145,62 +145,17 @@ impl ReedSolomonDecoder {
             r = rLastLast;
             let mut q = r.getZero();
             let denominatorLeadingTerm = rLast.getCoefficient(rLast.getDegree());
-            let dltInverse = match self.field.inverse(denominatorLeadingTerm) {
-                Ok(inv) => inv,
-                Err(_err) => {
-                    return Err(Exceptions::ReedSolomonException(Some(
-                        "ArithmetricException".to_owned(),
-                    )))
-                }
-            };
+            let dltInverse = self.field.inverse(denominatorLeadingTerm)?;
             while r.getDegree() >= rLast.getDegree() && !r.isZero() {
                 let degreeDiff = r.getDegree() - rLast.getDegree();
                 let scale = self
                     .field
                     .multiply(r.getCoefficient(r.getDegree()), dltInverse);
-                q = match q.addOrSubtract(&GenericGF::buildMonomial(self.field, degreeDiff, scale))
-                {
-                    Ok(res) => res,
-                    Err(_err) => {
-                        return Err(Exceptions::ReedSolomonException(Some(
-                            "IllegalArgumentException".to_owned(),
-                        )))
-                    }
-                };
-                r = match r.addOrSubtract(&match rLast.multiply_by_monomial(degreeDiff, scale) {
-                    Ok(res) => res,
-                    Err(_err) => {
-                        return Err(Exceptions::ReedSolomonException(Some(
-                            "IllegalArgumentException".to_owned(),
-                        )))
-                    }
-                }) {
-                    Ok(res) => res,
-                    Err(_err) => {
-                        return Err(Exceptions::ReedSolomonException(Some(
-                            "IllegalArgumentException".to_owned(),
-                        )))
-                    }
-                };
+                q = q.addOrSubtract(&GenericGF::buildMonomial(self.field, degreeDiff, scale))?;
+                r = r.addOrSubtract(&rLast.multiply_by_monomial(degreeDiff, scale)?)?;
             }
 
-            t = match (match q.multiply(&tLast) {
-                Ok(res) => res,
-                Err(_err) => {
-                    return Err(Exceptions::ReedSolomonException(Some(
-                        "IllegalArgumentException".to_owned(),
-                    )))
-                }
-            })
-            .addOrSubtract(&tLastLast)
-            {
-                Ok(res) => res,
-                Err(_err) => {
-                    return Err(Exceptions::ReedSolomonException(Some(
-                        "IllegalArgumentException".to_owned(),
-                    )))
-                }
-            };
+            t = (q.multiply(&tLast)?).addOrSubtract(&tLastLast)?;
 
             if r.getDegree() >= rLast.getDegree() {
                 return Err(Exceptions::ReedSolomonException(Some(format!(
@@ -245,14 +200,7 @@ impl ReedSolomonDecoder {
                 break;
             }
             if errorLocator.evaluateAt(i) == 0 {
-                result[e] = match self.field.inverse(i as i32) {
-                    Ok(res) => res as usize,
-                    Err(_err) => {
-                        return Err(Exceptions::ReedSolomonException(Some(
-                            "ArithmetricException".to_owned(),
-                        )))
-                    }
-                };
+                result[e] = self.field.inverse(i as i32)? as usize;
                 e += 1;
             }
         }
@@ -268,13 +216,13 @@ impl ReedSolomonDecoder {
         &self,
         errorEvaluator: &GenericGFPoly,
         errorLocations: &Vec<usize>,
-    ) -> Vec<i32> {
+    ) -> Result<Vec<i32>, Exceptions> {
         // This is directly applying Forney's Formula
         let s = errorLocations.len();
         let mut result = vec![0; s];
         for i in 0..s {
             //for (int i = 0; i < s; i++) {
-            let xiInverse = self.field.inverse(errorLocations[i] as i32).unwrap();
+            let xiInverse = self.field.inverse(errorLocations[i] as i32)?;
             let mut denominator = 1;
             for (j, loc) in errorLocations.iter().enumerate().take(s) {
                 // for j in 0..s {
@@ -295,12 +243,12 @@ impl ReedSolomonDecoder {
             }
             result[i] = self.field.multiply(
                 errorEvaluator.evaluateAt(xiInverse as usize),
-                self.field.inverse(denominator).unwrap(),
+                self.field.inverse(denominator)?,
             );
             if self.field.getGeneratorBase() != 0 {
                 result[i] = self.field.multiply(result[i], xiInverse);
             }
         }
-        result
+        Ok(result)
     }
 }

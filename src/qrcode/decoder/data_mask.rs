@@ -85,9 +85,7 @@ impl DataMask {
      */
     pub fn unmaskBitMatrix(&self, bits: &mut BitMatrix, dimension: u32) {
         for i in 0..dimension {
-            // for (int i = 0; i < dimension; i++) {
             for j in 0..dimension {
-                // for (int j = 0; j < dimension; j++) {
                 if self.isMasked(i, j) {
                     bits.flip_coords(j, i);
                 }

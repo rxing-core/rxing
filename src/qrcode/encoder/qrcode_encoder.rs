@@ -79,16 +79,15 @@ pub fn encode_with_hints(
     let mut header_and_data_bits;
     let mode;
 
-    let has_gs1_format_hint = hints.contains_key(&EncodeHintType::GS1_FORMAT)
-        && if let EncodeHintValue::Gs1Format(v) = hints.get(&EncodeHintType::GS1_FORMAT).unwrap() {
-            *v
-        } else {
-            false
-        };
-    let has_compaction_hint = hints.contains_key(&EncodeHintType::QR_COMPACT)
-        && if let EncodeHintValue::QrCompact(v) = hints.get(&EncodeHintType::QR_COMPACT).unwrap() {
-            if let Ok(vb) = v.parse::<bool>() {
-                vb
+    let has_gs1_format_hint = matches!(
+        hints.get(&EncodeHintType::GS1_FORMAT),
+        Some(EncodeHintValue::Gs1Format(true))
+    );
+
+    let has_compaction_hint =
+        if let Some(EncodeHintValue::QrCompact(vb)) = hints.get(&EncodeHintType::QR_COMPACT) {
+            if let Ok(v) = vb.parse::<bool>() {
+                v
             } else {
                 false
             }
@@ -100,11 +99,12 @@ pub fn encode_with_hints(
     let mut encoding = None; //DEFAULT_BYTE_MODE_ENCODING;
     let mut has_encoding_hint = hints.contains_key(&EncodeHintType::CHARACTER_SET);
     if has_encoding_hint {
-        if let EncodeHintValue::CharacterSet(v) = hints.get(&EncodeHintType::CHARACTER_SET).unwrap()
-        {
-            encoding = Some(encoding::label::encoding_from_whatwg_label(v).unwrap())
+        if let Some(EncodeHintValue::CharacterSet(v)) = hints.get(&EncodeHintType::CHARACTER_SET) {
+            encoding = Some(
+                encoding::label::encoding_from_whatwg_label(v)
+                    .ok_or(Exceptions::WriterException(None))?,
+            )
         }
-        // encoding = encoding::label::encoding_from_whatwg_label(hints.get(&EncodeHintType::CHARACTER_SET).unwrap());
     }
 
     if has_compaction_hint {
@@ -146,9 +146,8 @@ pub fn encode_with_hints(
 
         // Append ECI segment if applicable
         if mode == Mode::BYTE && has_encoding_hint {
-            let eci = CharacterSetECI::getCharacterSetECI(encoding);
-            if eci.is_some() {
-                appendECI(&eci.unwrap(), &mut header_bits)?;
+            if let Some(eci) = CharacterSetECI::getCharacterSetECI(encoding) {
+                appendECI(&eci, &mut header_bits)?;
             }
         }
 
@@ -167,8 +166,8 @@ pub fn encode_with_hints(
         appendBytes(content, mode, &mut data_bits, encoding)?;
 
         if hints.contains_key(&EncodeHintType::QR_VERSION) {
-            let versionNumber = if let EncodeHintValue::QrVersion(v) =
-                hints.get(&EncodeHintType::QR_VERSION).unwrap()
+            let versionNumber = if let Some(EncodeHintValue::QrVersion(v)) =
+                hints.get(&EncodeHintType::QR_VERSION)
             {
                 if let Ok(vb) = v.parse::<u32>() {
                     vb
@@ -178,7 +177,7 @@ pub fn encode_with_hints(
             } else {
                 0
             };
-            // let versionNumber = Integer.parseInt(hints.get(&EncodeHintType::QR_VERSION).unwrap()());
+
             version = Version::getVersionForNumber(versionNumber)?;
             let bitsNeeded = calculateBitsNeeded(mode, &header_bits, &data_bits, version);
             if !willFit(bitsNeeded, version, &ec_level) {
@@ -229,19 +228,13 @@ pub fn encode_with_hints(
 
     // Enable manual selection of the pattern to be used via hint
     let mut mask_pattern = -1;
-    if hints.contains_key(&EncodeHintType::QR_MASK_PATTERN) {
-        let hint_mask_pattern = if let EncodeHintValue::QrMaskPattern(v) =
-            hints.get(&EncodeHintType::QR_MASK_PATTERN).unwrap()
-        {
-            if let Ok(vb) = v.parse::<i32>() {
-                vb
-            } else {
-                -1
-            }
+    if let Some(EncodeHintValue::QrMaskPattern(v)) = hints.get(&EncodeHintType::QR_MASK_PATTERN) {
+        let hint_mask_pattern = if let Ok(vb) = v.parse::<i32>() {
+            vb
         } else {
             -1
         };
-        // let hintMaskPattern = Integer.parseInt(hints.get(&EncodeHintType::QR_MASK_PATTERN).unwrap());
+
         mask_pattern = if QRCode::isValidMaskPattern(hint_mask_pattern) {
             hint_mask_pattern
         } else {
@@ -322,15 +315,12 @@ pub fn chooseMode(content: &str) -> Mode {
  */
 fn chooseModeWithEncoding(content: &str, encoding: EncodingRef) -> Mode {
     if SHIFT_JIS_CHARSET.name() == encoding.name() && isOnlyDoubleByteKanji(content) {
-        // if (StringUtils.SHIFT_JIS_CHARSET.equals(encoding) && isOnlyDoubleByteKanji(content)) {
         // Choose Kanji mode if all input are double-byte characters
         return Mode::KANJI;
     }
     let mut has_numeric = false;
     let mut has_alphanumeric = false;
-    for i in 0..content.len() {
-        // for (int i = 0; i < content.length(); ++i) {
-        let c = content.chars().nth(i).unwrap();
+    for c in content.chars() {
         if ('0'..='9').contains(&c) {
             has_numeric = true;
         } else if getAlphanumericCode(c as u32) != -1 {
@@ -354,13 +344,13 @@ pub fn isOnlyDoubleByteKanji(content: &str) -> bool {
     } else {
         return false;
     };
+
     let length = bytes.len();
     if length % 2 != 0 {
         return false;
     }
     let mut i = 0;
     while i < length {
-        // for (int i = 0; i < length; i += 2) {
         let byte1 = bytes[i];
         if !(0x81..=0x9F).contains(&byte1) && !(0xE0..=0xEB).contains(&byte1) {
             return false;
@@ -380,7 +370,6 @@ fn chooseMaskPattern(
     let mut best_mask_pattern = -1;
     // We try all mask patterns to choose the best one.
     for maskPattern in 0..QRCode::NUM_MASK_PATTERNS {
-        // for (int maskPattern = 0; maskPattern < QRCode.NUM_MASK_PATTERNS; maskPattern++) {
         let mut matrix = matrix.clone();
         matrix_util::buildMatrix(bits, ec_level, version, maskPattern, &mut matrix)?;
         let penalty = calculateMaskPenalty(&matrix);
@@ -397,13 +386,14 @@ fn chooseVersion(
     ecLevel: &ErrorCorrectionLevel,
 ) -> Result<VersionRef, Exceptions> {
     for versionNum in 1..=40 {
-        // for (int versionNum = 1; versionNum <= 40; versionNum++) {
         let version = Version::getVersionForNumber(versionNum)?;
         if willFit(numInputBits, version, ecLevel) {
             return Ok(version);
         }
     }
-    Err(Exceptions::WriterException(Some("Data too big".to_owned())))
+    Err(Exceptions::WriterException(Some(format!(
+        "data too big {numInputBits}/{ecLevel:?}"
+    ))))
 }
 
 /**
@@ -432,16 +422,12 @@ pub fn terminateBits(num_data_bytes: u32, bits: &mut BitArray) -> Result<(), Exc
         return Err(Exceptions::WriterException(Some(format!(
             "data bits cannot fit in the QR Code{capacity} > "
         ))));
-        // throw new WriterException("data bits cannot fit in the QR Code" + bits.getSize() + " > " +
-        //     capacity);
     }
     // Append Mode.TERMINATE if there is enough space (value is 0000)
     for _i in 0..4 {
         if bits.getSize() >= capacity as usize {
             break;
         }
-        // }
-        // for (int i = 0; i < 4 && bits.getSize() < capacity; ++i) {
         bits.appendBit(false);
     }
     // Append termination bits. See 8.4.8 of JISX0510:2004 (p.24) for details.
@@ -449,7 +435,6 @@ pub fn terminateBits(num_data_bytes: u32, bits: &mut BitArray) -> Result<(), Exc
     let num_bits_in_last_byte = bits.getSize() & 0x07;
     if num_bits_in_last_byte > 0 {
         for _i in num_bits_in_last_byte..8 {
-            // for (int i = numBitsInLastByte; i < 8; i++) {
             bits.appendBit(false);
         }
     }
@@ -459,14 +444,12 @@ pub fn terminateBits(num_data_bytes: u32, bits: &mut BitArray) -> Result<(), Exc
         if i >= num_padding_bytes {
             break;
         }
-        // for (int i = 0; i < numPaddingBytes; ++i) {
         bits.appendBits(if (i & 0x01) == 0 { 0xEC } else { 0x11 }, 8)?;
     }
     if bits.getSize() != capacity as usize {
         return Err(Exceptions::WriterException(Some(
             "Bits size does not equal capacity".to_owned(),
         )));
-        // throw new WriterException("Bits size does not equal capacity");
     }
     Ok(())
 }
@@ -488,7 +471,6 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
         return Err(Exceptions::WriterException(Some(
             "Block ID too large".to_owned(),
         )));
-        // throw new WriterException("Block ID too large");
     }
     // numRsBlocksInGroup2 = 196 % 5 = 1
     let num_rs_blocks_in_group2 = num_total_bytes % num_rsblocks;
@@ -512,15 +494,12 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
         return Err(Exceptions::WriterException(Some(
             "EC bytes mismatch".to_owned(),
         )));
-        // throw new WriterException("EC bytes mismatch");
     }
     // 5 = 4 + 1.
     if num_rsblocks != num_rs_blocks_in_group1 + num_rs_blocks_in_group2 {
         return Err(Exceptions::WriterException(Some(
             "RS blocks mismatch".to_owned(),
         )));
-
-        // throw new WriterException("RS blocks mismatch");
     }
     // 196 = (13 + 26) * 4 + (14 + 26) * 1
     if num_total_bytes
@@ -530,8 +509,6 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
         return Err(Exceptions::WriterException(Some(
             "total bytes mismatch".to_owned(),
         )));
-
-        // throw new WriterException("Total bytes mismatch");
     }
 
     Ok(if block_id < num_rs_blocks_in_group1 {
@@ -568,9 +545,6 @@ pub fn interleaveWithECBytes(
     let mut blocks = Vec::new();
 
     for i in 0..num_rsblocks {
-        // for (int i = 0; i < numRSBlocks; ++i) {
-        // let mut numDataBytesInBlock = vec![0; 1]; //new int[1];
-        // let mut numEcBytesInBlock = vec![0; 1]; //new int[1];
         let (numDataBytesInBlock, numEcBytesInBlock) = getNumDataBytesAndNumECBytesForBlockID(
             num_total_bytes,
             num_data_bytes,
@@ -583,7 +557,7 @@ pub fn interleaveWithECBytes(
         let size = numDataBytesInBlock;
         let mut dataBytes = vec![0u8; size as usize];
         bits.toBytes(8 * data_bytes_offset, &mut dataBytes, 0, size as usize);
-        let ec_bytes = generateECBytes(&dataBytes, numEcBytesInBlock as usize);
+        let ec_bytes = generateECBytes(&dataBytes, numEcBytesInBlock as usize)?;
         blocks.push(BlockPair::new(dataBytes, ec_bytes.clone()));
 
         max_num_data_bytes = max_num_data_bytes.max(size);
@@ -600,9 +574,7 @@ pub fn interleaveWithECBytes(
 
     // First, place data blocks.
     for i in 0..max_num_data_bytes as usize {
-        // for (int i = 0; i < maxNumDataBytes; ++i) {
         for block in &blocks {
-            // for (BlockPair block : blocks) {
             let data_bytes = block.getDataBytes();
             if i < data_bytes.len() {
                 result.appendBits(data_bytes[i] as u32, 8)?;
@@ -611,9 +583,7 @@ pub fn interleaveWithECBytes(
     }
     // Then, place error correction blocks.
     for i in 0..max_num_ec_bytes {
-        // for (int i = 0; i < maxNumEcBytes; ++i) {
         for block in &blocks {
-            // for (BlockPair block : blocks) {
             let ec_bytes = block.getErrorCorrectionBytes();
             if i < ec_bytes.len() {
                 result.appendBits(ec_bytes[i] as u32, 8)?;
@@ -627,41 +597,38 @@ pub fn interleaveWithECBytes(
             num_total_bytes,
             result.getSizeInBytes()
         ))));
-        // throw new WriterException("Interleaving error: " + numTotalBytes + " and " +
-        //     result.getSizeInBytes() + " differ.");
     }
 
     Ok(result)
 }
 
-pub fn generateECBytes(dataBytes: &[u8], num_ec_bytes_in_block: usize) -> Vec<u8> {
+pub fn generateECBytes(
+    dataBytes: &[u8],
+    num_ec_bytes_in_block: usize,
+) -> Result<Vec<u8>, Exceptions> {
     let num_data_bytes = dataBytes.len();
     let mut to_encode = vec![0; num_data_bytes + num_ec_bytes_in_block];
     for i in 0..num_data_bytes {
-        // for (int i = 0; i < numDataBytes; i++) {
         to_encode[i] = dataBytes[i] as i32;
     }
 
     ReedSolomonEncoder::new(get_predefined_genericgf(
         PredefinedGenericGF::QrCodeField256,
-    ))
-    .encode(&mut to_encode, num_ec_bytes_in_block)
-    .expect("rs encode must complete");
+    ))?
+    .encode(&mut to_encode, num_ec_bytes_in_block)?;
 
     let mut ecBytes = vec![0u8; num_ec_bytes_in_block];
     for i in 0..num_ec_bytes_in_block {
-        // for (int i = 0; i < numEcBytesInBlock; i++) {
         ecBytes[i] = to_encode[num_data_bytes + i] as u8;
     }
-    ecBytes
+    Ok(ecBytes)
 }
 
 /**
  * Append mode info. On success, store the result in "bits".
  */
 pub fn appendModeInfo(mode: Mode, bits: &mut BitArray) -> Result<(), Exceptions> {
-    bits.appendBits(mode.getBits() as u32, 4)?;
-    Ok(())
+    bits.appendBits(mode.getBits() as u32, 4)
 }
 
 /**
@@ -681,8 +648,7 @@ pub fn appendLengthInfo(
             ((1 << numBits) - 1)
         ))));
     }
-    bits.appendBits(num_letters, numBits as usize)?;
-    Ok(())
+    bits.appendBits(num_letters, numBits as usize)
 }
 
 /**
@@ -703,38 +669,38 @@ pub fn appendBytes(
             "Invalid mode: {mode:?}"
         )))),
     }
-    // switch (mode) {
-    //   case NUMERIC:
-    //     appendNumericBytes(content, bits);
-    //     break;
-    //   case ALPHANUMERIC:
-    //     appendAlphanumericBytes(content, bits);
-    //     break;
-    //   case BYTE:
-    //     append8BitBytes(content, bits, encoding);
-    //     break;
-    //   case KANJI:
-    //     appendKanjiBytes(content, bits);
-    //     break;
-    //   default:
-    //     throw new WriterException("Invalid mode: " + mode);
-    // }
 }
 
 pub fn appendNumericBytes(content: &str, bits: &mut BitArray) -> Result<(), Exceptions> {
     let length = content.len();
     let mut i = 0;
     while i < length {
-        let num1 = content.chars().nth(i).unwrap() as u8 - b'0';
+        let num1 = content
+            .chars()
+            .nth(i)
+            .ok_or(Exceptions::IndexOutOfBoundsException(None))? as u8
+            - b'0';
         if i + 2 < length {
             // Encode three numeric letters in ten bits.
-            let num2 = content.chars().nth(i + 1).unwrap() as u8 - b'0';
-            let num3 = content.chars().nth(i + 2).unwrap() as u8 - b'0';
+            let num2 = content
+                .chars()
+                .nth(i + 1)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))? as u8
+                - b'0';
+            let num3 = content
+                .chars()
+                .nth(i + 2)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))? as u8
+                - b'0';
             bits.appendBits(num1 as u32 * 100 + num2 as u32 * 10 + num3 as u32, 10)?;
             i += 3;
         } else if i + 1 < length {
             // Encode two numeric letters in seven bits.
-            let num2 = content.chars().nth(i + 1).unwrap() as u8 - b'0';
+            let num2 = content
+                .chars()
+                .nth(i + 1)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))? as u8
+                - b'0';
             bits.appendBits(num1 as u32 * 10 + num2 as u32, 7)?;
             i += 2;
         } else {
@@ -750,12 +716,22 @@ pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<(),
     let length = content.len();
     let mut i = 0;
     while i < length {
-        let code1 = getAlphanumericCode(content.chars().nth(i).unwrap() as u32);
+        let code1 = getAlphanumericCode(
+            content
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))? as u32,
+        );
         if code1 == -1 {
             return Err(Exceptions::WriterException(None));
         }
         if i + 1 < length {
-            let code2 = getAlphanumericCode(content.chars().nth(i + 1).unwrap() as u32);
+            let code2 = getAlphanumericCode(
+                content
+                    .chars()
+                    .nth(i + 1)
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))? as u32,
+            );
             if code2 == -1 {
                 return Err(Exceptions::WriterException(None));
             }
@@ -778,22 +754,19 @@ pub fn append8BitBytes(
 ) -> Result<(), Exceptions> {
     let bytes = encoding
         .encode(content, encoding::EncoderTrap::Strict)
-        .expect("should encode");
-    // let bytes = content.getBytes(encoding);
+        .map_err(|e| Exceptions::WriterException(Some(format!("error {e}"))))?;
     for b in bytes {
-        // for (byte b : bytes) {
         bits.appendBits(b as u32, 8)?;
     }
     Ok(())
 }
 
 pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<(), Exceptions> {
-    let sjis = &SHIFT_JIS_CHARSET; //encoding::label::encoding_from_whatwg_label("SJIS").unwrap();
+    let sjis = &SHIFT_JIS_CHARSET;
 
     let bytes = sjis
         .encode(content, encoding::EncoderTrap::Strict)
-        .expect("should encode fine");
-    // let bytes = content.getBytes(StringUtils::SHIFT_JIS_CHARSET);
+        .map_err(|e| Exceptions::WriterException(Some(format!("error {e}"))))?;
     if bytes.len() % 2 != 0 {
         return Err(Exceptions::WriterException(Some(
             "Kanji byte size not even".to_owned(),
@@ -802,7 +775,6 @@ pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<(), Except
     let max_i = bytes.len() - 1; // bytes.length must be even
     let mut i = 0;
     while i < max_i {
-        // for (int i = 0; i < maxI; i += 2) {
         let byte1 = bytes[i]; // & 0xFF;
         let byte2 = bytes[i + 1]; // & 0xFF;
         let code: u16 = ((byte1 as u16) << 8u16) | byte2 as u16;
@@ -828,6 +800,5 @@ pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<(), Except
 fn appendECI(eci: &CharacterSetECI, bits: &mut BitArray) -> Result<(), Exceptions> {
     bits.appendBits(Mode::ECI.getBits() as u32, 4)?;
     // This is correct for values up to 127, which is all we need now.
-    bits.appendBits(eci.getValueSelf(), 8)?;
-    Ok(())
+    bits.appendBits(eci.getValueSelf(), 8)
 }

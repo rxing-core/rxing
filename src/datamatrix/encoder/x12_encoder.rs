@@ -31,11 +31,11 @@ impl Encoder for X12Encoder {
             let c = context.getCurrentChar();
             context.pos += 1;
 
-            Self::encodeChar(c, &mut buffer);
+            Self::encodeChar(c, &mut buffer)?;
 
             let count = buffer.chars().count();
             if (count % 3) == 0 {
-                C40Encoder::writeNextTriplet(context, &mut buffer);
+                C40Encoder::writeNextTriplet(context, &mut buffer)?;
 
                 let newMode = high_level_encoder::lookAheadTest(
                     context.getMessage(),
@@ -58,7 +58,7 @@ impl X12Encoder {
         Self(C40Encoder::new())
     }
 
-    fn encodeChar(c: char, sb: &mut String) -> u32 {
+    fn encodeChar(c: char, sb: &mut String) -> Result<u32, Exceptions> {
         match c {
             '\r' => sb.push('\0'),
             '*' => sb.push('\u{1}'),
@@ -70,17 +70,20 @@ impl X12Encoder {
                 } else if ('A'..='Z').contains(&c) {
                     sb.push((c as u8 - 65 + 14) as char);
                 } else {
-                    high_level_encoder::illegalCharacter(c).expect("detect_illegal_character");
+                    high_level_encoder::illegalCharacter(c)?;
                 }
             }
         }
-        1
+        Ok(1)
     }
 
     fn handleEOD(context: &mut EncoderContext, buffer: &mut str) -> Result<(), Exceptions> {
         context.updateSymbolInfo();
-        let available =
-            context.getSymbolInfo().unwrap().getDataCapacity() - context.getCodewordCount() as u32;
+        let available = context
+            .getSymbolInfo()
+            .ok_or(Exceptions::IllegalStateException(None))?
+            .getDataCapacity()
+            - context.getCodewordCount() as u32;
         let count = buffer.chars().count();
         context.pos -= count as u32;
         if context.getRemainingCharacters() > 1

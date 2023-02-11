@@ -94,7 +94,7 @@ pub fn decode_bitmatrix_with_hints(
 
     let mut trying = || -> Result<DecoderRXingResult, Exceptions> {
         // Revert the bit matrix
-        parser.remask();
+        parser.remask()?;
 
         // Will be attempting a mirrored reading of the version and format info.
         parser.setMirror(true);
@@ -129,20 +129,12 @@ pub fn decode_bitmatrix_with_hints(
                 if let Some(fe) = fe {
                     Err(fe)
                 } else {
-                    Err(ce.unwrap())
+                    Err(ce.unwrap_or(Exceptions::ChecksumException(None)))
                 }
             }
             _ => Err(er),
         },
     }
-
-    //  catch (FormatException | ChecksumException e) {
-    //   // Throw the exception from the original reading
-    //   if (fe != null) {
-    //     throw fe;
-    //   }
-    //   throw ce; // If fe is null, this can't be
-    // }
 }
 
 fn decode_bitmatrix_parser_with_hints(
@@ -167,14 +159,11 @@ fn decode_bitmatrix_parser_with_hints(
 
     // Error-correct and copy data blocks together into a stream of bytes
     for dataBlock in &dataBlocks {
-        // for (DataBlock dataBlock : dataBlocks) {
         let mut codewordBytes = dataBlock.getCodewords().to_vec();
         let numDataCodewords = dataBlock.getNumDataCodewords() as usize;
         correctErrors(&mut codewordBytes, numDataCodewords)?;
         for codeword_byte in codewordBytes.iter().take(numDataCodewords) {
-            // for i in 0..numDataCodewords {
-            // for (int i = 0; i < numDataCodewords; i++) {
-            resultBytes[resultOffset] = *codeword_byte; //codewordBytes[i];
+            resultBytes[resultOffset] = *codeword_byte;
             resultOffset += 1;
         }
     }
@@ -195,10 +184,6 @@ fn correctErrors(codewordBytes: &mut [u8], numDataCodewords: usize) -> Result<()
     let numCodewords = codewordBytes.len();
     // First read into an array of ints
     let mut codewordsInts = vec![0u8; numCodewords];
-    // for i in 0..numCodewords {
-    //     // for (int i = 0; i < numCodewords; i++) {
-    //     codewordsInts[i] = codewordBytes[i]; // & 0xFF;
-    // }
     codewordsInts[..numCodewords].copy_from_slice(&codewordBytes[..numCodewords]);
 
     let mut sending_code_words: Vec<i32> = codewordsInts.iter().map(|x| *x as i32).collect();
@@ -207,9 +192,7 @@ fn correctErrors(codewordBytes: &mut [u8], numDataCodewords: usize) -> Result<()
         &mut sending_code_words,
         (codewordBytes.len() - numDataCodewords) as i32,
     ) {
-        // if let Exceptions::ReedSolomonException(error_str) = e {
         return Err(Exceptions::ChecksumException(error_str));
-        // }
     }
 
     // Copy back into array of bytes -- only need to worry about the bytes that were data

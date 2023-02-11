@@ -78,6 +78,8 @@ impl BinaryBitmap {
      * may not apply sharpening. Therefore, a row from this matrix may not be identical to one
      * fetched using getBlackRow(), so don't mix and match between them.
      *
+     * Panics if the binarizer cannot be created.
+     *
      * @return The 2D array of bits for the image (true means black).
      * @throws NotFoundException if image can't be binarized to make a matrix
      */
@@ -98,6 +100,8 @@ impl BinaryBitmap {
      * and do not call it repeatedly. This method is intended for decoding 2D barcodes and may or
      * may not apply sharpening. Therefore, a row from this matrix may not be identical to one
      * fetched using getBlackRow(), so don't mix and match between them.
+     *
+     * Panics if the binarizer cannot be created.
      *
      * @return The 2D array of bits for the image (true means black).
      * @throws NotFoundException if image can't be binarized to make a matrix
@@ -125,6 +129,8 @@ impl BinaryBitmap {
      * Returns a new object with cropped image data. Implementations may keep a reference to the
      * original data rather than a copy. Only callable if isCropSupported() is true.
      *
+     * Panics if the binarizer cannot be created.
+     *
      * @param left The left coordinate, which must be in [0,getWidth())
      * @param top The top coordinate, which must be in [0,getHeight())
      * @param width The width of the rectangle to crop.
@@ -140,10 +146,6 @@ impl BinaryBitmap {
             self.binarizer
                 .createBinarizer(newSource.expect("new lum source expected")),
         );
-        // Self {
-        //     binarizer: self.binarizer.clone(),
-        //     matrix: Some(self.getBlackMatrix().crop(top, left, height, width)),
-        // }
     }
 
     /**
@@ -157,6 +159,8 @@ impl BinaryBitmap {
      * Returns a new object with rotated image data by 90 degrees counterclockwise.
      * Only callable if {@link #isRotateSupported()} is true.
      *
+     * Panics if the binarizer cannot be created.
+     *
      * @return A rotated version of this object.
      */
     pub fn rotateCounterClockwise(&mut self) -> BinaryBitmap {
@@ -165,18 +169,13 @@ impl BinaryBitmap {
             self.binarizer
                 .createBinarizer(newSource.expect("new lum source expected")),
         );
-        // let mut new_matrix = self.getBlackMatrix().clone();
-        // new_matrix.rotate90();
-
-        // Self {
-        //     binarizer: self.binarizer.clone(),
-        //     matrix: Some(new_matrix),
-        // }
     }
 
     /**
      * Returns a new object with rotated image data by 45 degrees counterclockwise.
      * Only callable if {@link #isRotateSupported()} is true.
+     *
+     * Panics if the binarizer cannot be created.
      *
      * @return A rotated version of this object.
      */

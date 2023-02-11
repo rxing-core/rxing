@@ -79,7 +79,13 @@ fn test_digits_only() {
     let test_data = "374833744734397449";
     let data = qrcode_encoder::encode(test_data, ErrorCorrectionLevel::H).expect("encode");
     let decode = crate::qrcode::decoder::qrcode_decoder::decode_bitmatrix(
-        &data.getMatrix().as_ref().unwrap().clone().into(),
+        &data
+            .getMatrix()
+            .as_ref()
+            .unwrap()
+            .clone()
+            .try_into()
+            .expect("convert"),
     )
     .expect("decode");
     assert_eq!(test_data, decode.getText());
@@ -743,7 +749,7 @@ fn testAppendKanjiBytes() {
 #[test]
 fn testGenerateECBytes() {
     let dataBytes = &[32, 65, 205, 69, 41, 220, 46, 128, 236];
-    let ecBytes = qrcode_encoder::generateECBytes(dataBytes, 17);
+    let ecBytes = qrcode_encoder::generateECBytes(dataBytes, 17).expect("ecb");
     let expected = [
         42, 159, 74, 221, 244, 169, 239, 150, 138, 70, 237, 85, 224, 96, 74, 219, 61,
     ];
@@ -755,7 +761,7 @@ fn testGenerateECBytes() {
     let dataBytes = &[
         67, 70, 22, 38, 54, 70, 86, 102, 118, 134, 150, 166, 182, 198, 214,
     ];
-    let ecBytes = qrcode_encoder::generateECBytes(dataBytes, 18);
+    let ecBytes = qrcode_encoder::generateECBytes(dataBytes, 18).expect("ecb");
     let expected = &[
         175, 80, 155, 64, 178, 45, 214, 233, 65, 209, 12, 155, 117, 31, 140, 214, 27, 187,
     ];
@@ -766,7 +772,7 @@ fn testGenerateECBytes() {
     }
     // High-order zero coefficient case.
     let dataBytes = &[32, 49, 205, 69, 42, 20, 0, 236, 17];
-    let ecBytes = qrcode_encoder::generateECBytes(dataBytes, 17);
+    let ecBytes = qrcode_encoder::generateECBytes(dataBytes, 17).expect("ecb");
     let expected = &[
         0, 3, 130, 179, 194, 0, 55, 211, 110, 79, 98, 72, 170, 96, 211, 137, 213,
     ];

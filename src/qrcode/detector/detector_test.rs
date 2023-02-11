@@ -33,7 +33,7 @@ fn test_encode_decode(value: &str) {
         let byt_matrix = qr_code.getMatrix().as_ref().unwrap().clone();
         // dbg!(BitMatrix::from(byt_matrix.clone()).to_string());
         // let mut detector = Detector::new(make_larger(&byt_matrix.into(),5));
-        let new_matrix: &BitMatrix = &byt_matrix.into();
+        let new_matrix: &BitMatrix = &byt_matrix.try_into().expect("convert");
         let mut detector = Detector::new(new_matrix);
         let detected_points = detector.detect().expect("must detect");
         let decoded =
@@ -46,7 +46,7 @@ fn test_encode_decode(value: &str) {
 #[allow(dead_code)]
 fn make_larger(input: &BitMatrix, factor: u32) -> BitMatrix {
     let width = input.getWidth();
-    let mut output = BitMatrix::with_single_dimension(width * factor);
+    let mut output = BitMatrix::with_single_dimension(width * factor).expect("new");
     for inputY in 0..width {
         // for (int inputY = 0; inputY < width; inputY++) {
         for inputX in 0..width {

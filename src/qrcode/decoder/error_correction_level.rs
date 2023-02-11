@@ -114,7 +114,3 @@ impl FromStr for ErrorCorrectionLevel {
         ))));
     }
 }
-
-//private static final ErrorCorrectionLevel[] FOR_BITS = {M, L, H, Q};
-
-//private final int bits;

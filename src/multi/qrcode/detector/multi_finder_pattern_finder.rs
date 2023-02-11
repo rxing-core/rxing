@@ -56,9 +56,9 @@ const DIFF_MODSIZE_CUTOFF: f32 = 0.5_f32;
  * @author Sean Owen
  * @author Hannes Erven
  */
-pub struct MultiFinderPatternFinder(FinderPatternFinder);
+pub struct MultiFinderPatternFinder<'a>(FinderPatternFinder<'a>);
 
-impl MultiFinderPatternFinder {
+impl<'a> MultiFinderPatternFinder<'_> {
     // private static final FinderPatternInfo[] EMPTY_RESULT_ARRAY = new FinderPatternInfo[0];
     // private static final FinderPattern[] EMPTY_FP_ARRAY = new FinderPattern[0];
     // private static final FinderPattern[][] EMPTY_FP_2D_ARRAY = new FinderPattern[0][];
@@ -66,9 +66,12 @@ impl MultiFinderPatternFinder {
     // TODO MIN_MODULE_COUNT and MAX_MODULE_COUNT would be great hints to ask the user for
     // since it limits the number of regions to decode
 
-    pub fn new(image: &BitMatrix, resultPointCallback: Option<RXingResultPointCallback>) -> Self {
-        Self(FinderPatternFinder::with_callback(
-            image.clone(),
+    pub fn new(
+        image: &'a BitMatrix,
+        resultPointCallback: Option<RXingResultPointCallback>,
+    ) -> MultiFinderPatternFinder<'a> {
+        MultiFinderPatternFinder(FinderPatternFinder::with_callback(
+            image,
             resultPointCallback,
         ))
     }
@@ -80,7 +83,7 @@ impl MultiFinderPatternFinder {
      * @throws NotFoundException if 3 such finder patterns do not exist
      */
     fn selectMultipleBestPatterns(&self) -> Result<Vec<[FinderPattern; 3]>, Exceptions> {
-        let mut possibleCenters = Vec::new(); //new ArrayList<>();
+        let mut possibleCenters = Vec::new();
         for fp in self.0.getPossibleCenters() {
             if fp.getCount() >= 2 {
                 possibleCenters.push(*fp);
@@ -125,19 +128,18 @@ impl MultiFinderPatternFinder {
          * So, if the layout seems right, lets have the decoder try to decode.
          */
 
-        let mut results = Vec::new(); //new ArrayList<>(); // holder for the results
+        let mut results = Vec::new(); // holder for the results
 
         for i1 in 0..(size - 2) {
-            // for (int i1 = 0; i1 < (size - 2); i1++) {
-            let Some(p1) = possibleCenters.get(i1)else {
-        continue;
-      };
+            let Some(p1) = possibleCenters.get(i1) else {
+                continue;
+            };
 
             for i2 in (i1 + 1)..(size - 1) {
                 // for (int i2 = i1 + 1; i2 < (size - 1); i2++) {
                 let Some(p2) = possibleCenters.get(i2) else {
-          continue;
-        };
+                    continue;
+                };
 
                 // Compare the expected module sizes; if they are really off, skip
                 let vModSize12 = (p1.getEstimatedModuleSize() - p2.getEstimatedModuleSize())
@@ -151,9 +153,9 @@ impl MultiFinderPatternFinder {
 
                 for i3 in (i2 + 1)..size {
                     // for (int i3 = i2 + 1; i3 < size; i3++) {
-                    let Some( p3) = possibleCenters.get(i3)else {
-            continue;
-          };
+                    let Some( p3) = possibleCenters.get(i3) else {
+                        continue;
+                    };
 
                     // Compare the expected module sizes; if they are really off, skip
                     let vModSize23 = (p2.getEstimatedModuleSize() - p3.getEstimatedModuleSize())

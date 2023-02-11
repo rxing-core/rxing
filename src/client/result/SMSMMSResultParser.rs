@@ -14,15 +14,6 @@
  * limitations under the License.
  */
 
-// package com.google.zxing.client.result;
-
-// import com.google.zxing.RXingResult;
-
-// import java.util.ArrayList;
-// import java.util.Collection;
-// import java.util.List;
-// import java.util.Map;
-
 /**
  * <p>Parses an "sms:" URI result, which specifies a number to SMS.
  * See <a href="http://tools.ietf.org/html/rfc5724"> RFC 5724</a> on this.</p>
@@ -38,7 +29,6 @@
  *
  * @author Sean Owen
  */
-// public final class SMSMMSRXingResultParser extends RXingResultParser {
 use crate::RXingResult;
 
 use super::{ParsedClientResult, ResultParser, SMSParsedRXingResult};
@@ -121,21 +111,13 @@ fn add_number_via(numbers: &mut Vec<String>, vias: &mut Vec<String>, number_part
         return;
     }
     if let Some(number_end) = number_part.find(';') {
-        // if numberEnd < 0 {
         numbers.push(number_part[..number_end].to_string());
         let maybe_via = &number_part[number_end + 1..];
-        let via = if let Some(stripped) = maybe_via.strip_prefix("via=") {
-            stripped
-        } else {
-            ""
-        };
+        let via = maybe_via.strip_prefix("via=").unwrap_or_default();
         if !via.is_empty() {
             vias.push(via.to_owned());
         }
     } else {
         numbers.push(number_part.to_owned());
-        //vias.push(String::default());
     }
 }
-
-// }

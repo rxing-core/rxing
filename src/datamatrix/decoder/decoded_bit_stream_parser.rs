@@ -206,12 +206,6 @@ pub fn decode(bytes: &[u8], is_flipped: bool) -> Result<DecoderRXingResult, Exce
     }
 
     Ok(result)
-
-    // return new DecoderRXingResult(bytes,
-    //                          result.toString(),
-    //                          byteSegments.isEmpty() ? null : byteSegments,
-    //                          null,
-    //                          symbologyModifier);
 }
 
 /**
@@ -238,7 +232,9 @@ fn decodeAsciiSegment(
                     oneByte += 128;
                     //upperShift = false;
                 }
-                result.append_char(char::from_u32(oneByte - 1).unwrap());
+                result.append_char(
+                    char::from_u32(oneByte - 1).ok_or(Exceptions::ParseException(None))?,
+                );
                 return Ok(Mode::ASCII_ENCODE);
             }
             129 => return Ok(Mode::PAD_ENCODE), // Pad
@@ -249,7 +245,6 @@ fn decodeAsciiSegment(
                     // pad with '0' for single digit values
                     result.append_char('0');
                 }
-                //result.append_char(char::from_u32(value).unwrap());
                 result.append_string(&format!("{value}"));
             }
             230 =>
@@ -391,7 +386,10 @@ fn decodeC40Segment(
                     } else if cValue < C40_BASIC_SET_CHARS.len() as u32 {
                         let c40char = C40_BASIC_SET_CHARS[cValue as usize];
                         if upperShift {
-                            result.append_char(char::from_u32(c40char as u32 + 128).unwrap());
+                            result.append_char(
+                                char::from_u32(c40char as u32 + 128)
+                                    .ok_or(Exceptions::ParseException(None))?,
+                            );
                             upperShift = false;
                         } else {
                             result.append_char(c40char);
@@ -402,10 +400,14 @@ fn decodeC40Segment(
                 }
                 1 => {
                     if upperShift {
-                        result.append_char(char::from_u32(cValue + 128).unwrap());
+                        result.append_char(
+                            char::from_u32(cValue + 128).ok_or(Exceptions::ParseException(None))?,
+                        );
                         upperShift = false;
                     } else {
-                        result.append_char(char::from_u32(cValue).unwrap());
+                        result.append_char(
+                            char::from_u32(cValue).ok_or(Exceptions::ParseException(None))?,
+                        );
                     }
                     shift = 0;
                 }
@@ -413,7 +415,10 @@ fn decodeC40Segment(
                     if cValue < C40_SHIFT2_SET_CHARS.len() as u32 {
                         let c40char = C40_SHIFT2_SET_CHARS[cValue as usize];
                         if upperShift {
-                            result.append_char(char::from_u32(c40char as u32 + 128).unwrap());
+                            result.append_char(
+                                char::from_u32(c40char as u32 + 128)
+                                    .ok_or(Exceptions::ParseException(None))?,
+                            );
                             upperShift = false;
                         } else {
                             result.append_char(c40char);
@@ -438,10 +443,14 @@ fn decodeC40Segment(
                 }
                 3 => {
                     if upperShift {
-                        result.append_char(char::from_u32(cValue + 224).unwrap());
+                        result.append_char(
+                            char::from_u32(cValue + 224).ok_or(Exceptions::ParseException(None))?,
+                        );
                         upperShift = false;
                     } else {
-                        result.append_char(char::from_u32(cValue + 96).unwrap());
+                        result.append_char(
+                            char::from_u32(cValue + 96).ok_or(Exceptions::ParseException(None))?,
+                        );
                     }
                     shift = 0;
                 }
@@ -494,7 +503,10 @@ fn decodeTextSegment(
                     } else if cValue < TEXT_BASIC_SET_CHARS.len() as u32 {
                         let textChar = TEXT_BASIC_SET_CHARS[cValue as usize];
                         if upperShift {
-                            result.append_char(char::from_u32(textChar as u32 + 128).unwrap());
+                            result.append_char(
+                                char::from_u32(textChar as u32 + 128)
+                                    .ok_or(Exceptions::ParseException(None))?,
+                            );
                             upperShift = false;
                         } else {
                             result.append_char(textChar);
@@ -505,10 +517,14 @@ fn decodeTextSegment(
                 }
                 1 => {
                     if upperShift {
-                        result.append_char(char::from_u32(cValue + 128).unwrap());
+                        result.append_char(
+                            char::from_u32(cValue + 128).ok_or(Exceptions::ParseException(None))?,
+                        );
                         upperShift = false;
                     } else {
-                        result.append_char(char::from_u32(cValue).unwrap());
+                        result.append_char(
+                            char::from_u32(cValue).ok_or(Exceptions::ParseException(None))?,
+                        );
                     }
                     shift = 0;
                 }
@@ -518,7 +534,10 @@ fn decodeTextSegment(
                     if cValue < TEXT_SHIFT2_SET_CHARS.len() as u32 {
                         let textChar = TEXT_SHIFT2_SET_CHARS[cValue as usize];
                         if upperShift {
-                            result.append_char(char::from_u32(textChar as u32 + 128).unwrap());
+                            result.append_char(
+                                char::from_u32(textChar as u32 + 128)
+                                    .ok_or(Exceptions::ParseException(None))?,
+                            );
                             upperShift = false;
                         } else {
                             result.append_char(textChar);
@@ -545,7 +564,10 @@ fn decodeTextSegment(
                     if cValue < TEXT_SHIFT3_SET_CHARS.len() as u32 {
                         let textChar = TEXT_SHIFT3_SET_CHARS[cValue as usize];
                         if upperShift {
-                            result.append_char(char::from_u32(textChar as u32 + 128).unwrap());
+                            result.append_char(
+                                char::from_u32(textChar as u32 + 128)
+                                    .ok_or(Exceptions::ParseException(None))?,
+                            );
                             upperShift = false;
                         } else {
                             result.append_char(textChar);
@@ -622,10 +644,14 @@ fn decodeAnsiX12Segment(
                 _ => {
                     if cValue < 14 {
                         // 0 - 9
-                        result.append_char(char::from_u32(cValue + 44).unwrap());
+                        result.append_char(
+                            char::from_u32(cValue + 44).ok_or(Exceptions::ParseException(None))?,
+                        );
                     } else if cValue < 40 {
                         // A - Z
-                        result.append_char(char::from_u32(cValue + 51).unwrap());
+                        result.append_char(
+                            char::from_u32(cValue + 51).ok_or(Exceptions::ParseException(None))?,
+                        );
                     } else {
                         return Err(Exceptions::FormatException(None));
                     }
@@ -682,7 +708,8 @@ fn decodeEdifactSegment(
                 // no 1 in the leading (6th) bit
                 edifactValue |= 0x40; // Add a leading 01 to the 6 bit binary value
             }
-            result.append_char(char::from_u32(edifactValue).unwrap());
+            result
+                .append_char(char::from_u32(edifactValue).ok_or(Exceptions::ParseException(None))?);
         }
 
         if bits.available() == 0 {
@@ -724,8 +751,6 @@ fn decodeBase256Segment(
 
     let mut bytes = vec![0u8; count as usize];
     for byte in bytes.iter_mut().take(count as usize) {
-        // for i in 0..count as usize {
-        // for (int i = 0; i < count; i++) {
         // Have seen this particular error in the wild, such as at
         // http://www.bcgen.com/demo/IDAutomationStreamingDataMatrix.aspx?MODE=3&D=Fred&PFMT=3&PT=F&X=0.3&O=0&LM=0.2
         if bits.available() < 8 {
@@ -737,10 +762,9 @@ fn decodeBase256Segment(
     result.append_string(
         &encoding::all::ISO_8859_1
             .decode(&bytes, encoding::DecoderTrap::Strict)
-            .expect("decode"),
+            .map_err(|e| Exceptions::ParseException(Some(e.to_string())))?,
     );
     byteSegments.push(bytes);
-    // result.append_string(&encoding::all::ISO_8859_1.decode(&bytes, encoding::DecoderTrap::Strict).expect("decode"));
 
     Ok(())
 }
@@ -768,30 +792,6 @@ fn decodeECISegment(
 
     result.appendECI((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1)?;
     Ok((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1 > 900)
-
-    // if bits.available() < 8 {
-    //     return Err(Exceptions::FormatException(None));
-    // }
-    // let c1 = bits.readBits(8)?;
-    // if c1 <= 127 {
-    //     result.appendECI(c1 - 1)?;
-    // }
-
-    // Ok(())
-    //currently we only support character set ECIs
-    /*} else {
-      if (bits.available() < 8) {
-        throw FormatException.getFormatInstance();
-      }
-      int c2 = bits.readBits(8);
-      if (c1 >= 128 && c1 <= 191) {
-      } else {
-        if (bits.available() < 8) {
-          throw FormatException.getFormatInstance();
-        }
-        int c3 = bits.readBits(8);
-      }
-    }*/
 }
 
 /**

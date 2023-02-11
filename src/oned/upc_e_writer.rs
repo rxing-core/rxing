@@ -44,29 +44,22 @@ impl OneDimensionalCodeWriter for UPCEWriter {
         match length {
             7 => {
                 // No check digit present, calculate it and add it
-                let check = reader
-                    .getStandardUPCEANChecksum(&upc_e_reader::convertUPCEtoUPCA(&contents))?;
-                // try {
-                //   check = UPCEANReader.getStandardUPCEANChecksum(UPCEReader.convertUPCEtoUPCA(contents));
-                // } catch (FormatException fe) {
-                //   throw new IllegalArgumentException(fe);
-                // }
+                let check = reader.getStandardUPCEANChecksum(
+                    &upc_e_reader::convertUPCEtoUPCA(&contents)
+                        .ok_or(Exceptions::IllegalArgumentException(None))?,
+                )?;
                 contents.push_str(&check.to_string());
             }
-            8 =>
-            // try {
-            {
-                if !reader
-                    .checkStandardUPCEANChecksum(&upc_e_reader::convertUPCEtoUPCA(&contents))?
-                {
+            8 => {
+                if !reader.checkStandardUPCEANChecksum(
+                    &upc_e_reader::convertUPCEtoUPCA(&contents)
+                        .ok_or(Exceptions::IllegalArgumentException(None))?,
+                )? {
                     return Err(Exceptions::IllegalArgumentException(Some(
                         "Contents do not pass checksum".to_owned(),
                     )));
                 }
             }
-            // } catch (FormatException ignored) {
-            //   throw new IllegalArgumentException("Illegal contents");
-            // }},
             _ => {
                 return Err(Exceptions::IllegalArgumentException(Some(format!(
                     "Requested contents should be 7 or 8 digits long, but got {length}"
@@ -76,14 +69,24 @@ impl OneDimensionalCodeWriter for UPCEWriter {
 
         Self::checkNumeric(&contents)?;
 
-        let firstDigit = contents.chars().next().unwrap().to_digit(10).unwrap() as usize; //Character.digit(contents.charAt(0), 10);
+        let firstDigit = contents
+            .chars()
+            .next()
+            .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+            .to_digit(10)
+            .ok_or(Exceptions::ParseException(None))? as usize; //Character.digit(contents.charAt(0), 10);
         if firstDigit != 0 && firstDigit != 1 {
             return Err(Exceptions::IllegalArgumentException(Some(
                 "Number system must be 0 or 1".to_owned(),
             )));
         }
 
-        let checkDigit = contents.chars().nth(7).unwrap().to_digit(10).unwrap() as usize; //Character.digit(contents.charAt(7), 10);
+        let checkDigit = contents
+            .chars()
+            .nth(7)
+            .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+            .to_digit(10)
+            .ok_or(Exceptions::ParseException(None))? as usize; //Character.digit(contents.charAt(7), 10);
         let parities = UPCEReader::NUMSYS_AND_CHECK_DIGIT_PATTERNS[firstDigit][checkDigit];
         let mut result = [false; CODE_WIDTH];
 
@@ -92,7 +95,12 @@ impl OneDimensionalCodeWriter for UPCEWriter {
 
         for i in 1..=6 {
             // for (int i = 1; i <= 6; i++) {
-            let mut digit = contents.chars().nth(i).unwrap().to_digit(10).unwrap() as usize; //Character.digit(contents.charAt(i), 10);
+            let mut digit = contents
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .to_digit(10)
+                .ok_or(Exceptions::ParseException(None))? as usize; //Character.digit(contents.charAt(i), 10);
             if (parities >> (6 - i) & 1) == 1 {
                 digit += 10;
             }
@@ -112,6 +120,7 @@ impl OneDimensionalCodeWriter for UPCEWriter {
     fn getSupportedWriteFormats(&self) -> Option<Vec<crate::BarcodeFormat>> {
         Some(vec![BarcodeFormat::UPC_E])
     }
+
     fn getDefaultMargin(&self) -> u32 {
         Self::DEFAULT_MARGIN
     }

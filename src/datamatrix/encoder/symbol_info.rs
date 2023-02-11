@@ -132,19 +132,6 @@ impl SymbolInfo {
                 "Cannot handle this number of data regions".to_owned(),
             ))),
         }
-        // switch (dataRegions) {
-        //   case 1:
-        //     return 1;
-        //   case 2:
-        //   case 4:
-        //     return 2;
-        //   case 16:
-        //     return 4;
-        //   case 36:
-        //     return 6;
-        //   default:
-        //     throw new IllegalStateException("Cannot handle this number of data regions");
-        // }
     }
 
     fn getVerticalDataRegions(&self) -> Result<u32, Exceptions> {
@@ -157,19 +144,6 @@ impl SymbolInfo {
                 "Cannot handle this number of data regions".to_owned(),
             ))),
         }
-        // switch (dataRegions) {
-        //   case 1:
-        //   case 2:
-        //     return 1;
-        //   case 4:
-        //     return 2;
-        //   case 16:
-        //     return 4;
-        //   case 36:
-        //     return 6;
-        //   default:
-        //     throw new IllegalStateException("Cannot handle this number of data regions");
-        // }
     }
 
     pub fn getSymbolDataWidth(&self) -> Result<u32, Exceptions> {
@@ -223,15 +197,6 @@ impl SymbolInfo {
     pub fn getErrorLengthForInterleavedBlock(&self, _index: u32) -> u32 {
         self.rsBlockError
     }
-
-    // @Override
-    // public final String toString() {
-    //   return (rectangular ? "Rectangular Symbol:" : "Square Symbol:") +
-    //       " data region " + matrixWidth + 'x' + matrixHeight +
-    //       ", symbol size " + getSymbolWidth() + 'x' + getSymbolHeight() +
-    //       ", symbol data size " + getSymbolDataWidth() + 'x' + getSymbolDataHeight() +
-    //       ", codewords " + dataCapacity + '+' + errorCodewords;
-    // }
 }
 
 impl fmt::Display for SymbolInfo {
@@ -424,7 +389,7 @@ mod tests {
         assert_eq!(24, info.getSymbolWidth().expect("return"));
         assert_eq!(24, info.getSymbolHeight().expect("return"));
 
-        let fixedSize = Dimension::new(26, 26).expect("new dimension");
+        let fixedSize = Dimension::new(26, 26);
         let info = LOOKUP
             .lookup_with_codewords_shape_size_fail(
                 35,
@@ -451,7 +416,7 @@ mod tests {
         assert!(info.is_none());
 
         let minSize = fixedSize;
-        let maxSize = Dimension::new(32, 32).expect("new dimension");
+        let maxSize = Dimension::new(32, 32);
 
         let info = LOOKUP
             .lookup_with_codewords_shape_size_fail(

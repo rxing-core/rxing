@@ -33,19 +33,24 @@ use super::ExpandedPair;
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
 
-pub fn buildBitArray(pairs: &Vec<ExpandedPair>) -> BitArray {
+pub fn buildBitArray(pairs: &Vec<ExpandedPair>) -> Option<BitArray> {
     let mut charNumber = (pairs.len() * 2) - 1;
-    if pairs.last().unwrap().getRightChar().is_none() {
-        charNumber -= 1;
+    if let Some(pair) = pairs.last() {
+        if pair.getRightChar().is_none() {
+            charNumber -= 1;
+        }
     }
+    // if pairs.last().unwrap().getRightChar().is_none() {
+    //     charNumber -= 1;
+    // }
 
     let size = 12 * charNumber;
 
     let mut binary = BitArray::with_size(size);
     let mut accPos = 0;
 
-    let firstPair = pairs.get(0).unwrap();
-    let Some(rp) = firstPair.getRightChar() else { panic!("first char must exist");};
+    let firstPair = pairs.get(0)?;
+    let rp = firstPair.getRightChar().as_ref()?;
     let firstValue = rp.getValue();
     let mut i = 11;
     while i >= 0 {
@@ -60,8 +65,8 @@ pub fn buildBitArray(pairs: &Vec<ExpandedPair>) -> BitArray {
 
     for i in 1..pairs.len() {
         // for (int i = 1; i < pairs.size(); ++i) {
-        let currentPair = pairs.get(i).unwrap();
-        let Some(lv) = currentPair.getLeftChar() else { panic!("I'm not sure how we get here ");};
+        let currentPair = pairs.get(i)?;
+        let lv = currentPair.getLeftChar().as_ref()?;
         let leftValue = lv.getValue();
         let mut j = 11;
         while j >= 0 {
@@ -88,7 +93,7 @@ pub fn buildBitArray(pairs: &Vec<ExpandedPair>) -> BitArray {
             }
         }
     }
-    binary
+    Some(binary)
 }
 
 /**
@@ -139,6 +144,6 @@ mod BitArrayBuilderTest {
             pairs.push(expandedPair);
         }
 
-        super::buildBitArray(&pairs)
+        super::buildBitArray(&pairs).unwrap()
     }
 }

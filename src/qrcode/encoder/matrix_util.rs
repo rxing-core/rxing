@@ -176,7 +176,6 @@ pub fn embedTypeInfo(
         .enumerate()
         .take(typeInfoBits.getSize())
     {
-        // for (int i = 0; i < typeInfoBits.getSize(); ++i) {
         // Place bits in LSB to MSB order.  LSB (least significant bit) is the last value in
         // "typeInfoBits".
         let bit = typeInfoBits.get(typeInfoBits.getSize() - 1 - i);
@@ -215,9 +214,7 @@ pub fn maybeEmbedVersionInfo(version: &Version, matrix: &mut ByteMatrix) -> Resu
 
     let mut bitIndex = 6 * 3 - 1; // It will decrease from 17 to 0.
     for i in 0..6 {
-        // for (int i = 0; i < 6; ++i) {
         for j in 0..3 {
-            // for (int j = 0; j < 3; ++j) {
             // Place bits in LSB (least significant bit) to MSB order.
             let bit = versionInfoBits.get(bitIndex);
             bitIndex = bitIndex.saturating_sub(1);
@@ -250,7 +247,6 @@ pub fn embedDataBits(
         }
         while y >= 0 && y < matrix.getHeight() as i32 {
             for i in 0..2 {
-                // for (int i = 0; i < 2; ++i) {
                 let xx = x - i;
                 // Skip the cell if it's not empty.
                 if !isEmpty(matrix.get(xx as u32, y as u32)) {
@@ -431,7 +427,6 @@ pub fn embedHorizontalSeparationPattern(
     matrix: &mut ByteMatrix,
 ) -> Result<(), Exceptions> {
     for x in 0..8 {
-        // for (int x = 0; x < 8; ++x) {
         if !isEmpty(matrix.get(xStart + x, yStart)) {
             return Err(Exceptions::WriterException(None));
         }
@@ -446,10 +441,8 @@ pub fn embedVerticalSeparationPattern(
     matrix: &mut ByteMatrix,
 ) -> Result<(), Exceptions> {
     for y in 0..7 {
-        // for (int y = 0; y < 7; ++y) {
         if !isEmpty(matrix.get(xStart, yStart + y)) {
             return Err(Exceptions::WriterException(None));
-            // throw new WriterException();
         }
         matrix.set(xStart, yStart + y, 0);
     }
@@ -458,11 +451,7 @@ pub fn embedVerticalSeparationPattern(
 
 pub fn embedPositionAdjustmentPattern(xStart: u32, yStart: u32, matrix: &mut ByteMatrix) {
     for (y, patternY) in POSITION_ADJUSTMENT_PATTERN.iter().enumerate() {
-        // for y in 0..5 {
-        // for (int y = 0; y < 5; ++y) {
-        // let patternY = POSITION_ADJUSTMENT_PATTERN[y];
         for x in 0..5 {
-            // for (int x = 0; x < 5; ++x) {
             matrix.set(xStart + x, yStart + y as u32, patternY[x as usize]);
         }
     }
@@ -470,11 +459,7 @@ pub fn embedPositionAdjustmentPattern(xStart: u32, yStart: u32, matrix: &mut Byt
 
 pub fn embedPositionDetectionPattern(xStart: u32, yStart: u32, matrix: &mut ByteMatrix) {
     for (y, patternY) in POSITION_DETECTION_PATTERN.iter().enumerate() {
-        // for y in 0..7 {
-        // for (int y = 0; y < 7; ++y) {
-        // let patternY = POSITION_DETECTION_PATTERN[y];
         for x in 0..7 {
-            // for (int x = 0; x < 7; ++x) {
             matrix.set(xStart + x, yStart + y as u32, patternY[x as usize]);
         }
     }
@@ -523,10 +508,8 @@ pub fn maybeEmbedPositionAdjustmentPatterns(version: &Version, matrix: &mut Byte
     let index = version.getVersionNumber() - 1;
     let coordinates = POSITION_ADJUSTMENT_PATTERN_COORDINATE_TABLE[index as usize];
     for y in coordinates {
-        // for (int y : coordinates) {
         if y >= 0 {
             for x in coordinates {
-                // for (int x : coordinates) {
                 if x >= 0 && isEmpty(matrix.get(x as u32, y as u32)) {
                     // If the cell is unset, we embed the position adjustment pattern here.
                     // -2 is necessary since the x/y coordinates point to the center of the pattern, not the

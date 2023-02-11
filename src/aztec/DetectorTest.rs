@@ -185,7 +185,7 @@ fn test_error_in_parameter_locator(data: &str) {
 // Zooms a bit matrix so that each bit is factor x factor
 fn make_larger(input: &BitMatrix, factor: u32) -> BitMatrix {
     let width = input.getWidth();
-    let mut output = BitMatrix::with_single_dimension(width * factor);
+    let mut output = BitMatrix::with_single_dimension(width * factor).expect("new");
     for inputY in 0..width {
         // for (int inputY = 0; inputY < width; inputY++) {
         for inputX in 0..width {
@@ -216,7 +216,7 @@ fn get_rotations(matrix0: &BitMatrix) -> Vec<BitMatrix> {
 // Rotates a square BitMatrix to the right by 90 degrees
 fn rotate_right(input: &BitMatrix) -> BitMatrix {
     let width = input.getWidth();
-    let mut result = BitMatrix::with_single_dimension(width);
+    let mut result = BitMatrix::with_single_dimension(width).expect("new");
     for x in 0..width {
         // for (int x = 0; x < width; x++) {
         for y in 0..width {
@@ -233,7 +233,7 @@ fn rotate_right(input: &BitMatrix) -> BitMatrix {
 // matrix to the right, and then flipping it left-to-right
 fn transpose(input: &BitMatrix) -> BitMatrix {
     let width = input.getWidth();
-    let mut result = BitMatrix::with_single_dimension(width);
+    let mut result = BitMatrix::with_single_dimension(width).expect("new");
     for x in 0..width {
         // for (int x = 0; x < width; x++) {
         for y in 0..width {
@@ -248,7 +248,7 @@ fn transpose(input: &BitMatrix) -> BitMatrix {
 
 fn clone(input: &BitMatrix) -> BitMatrix {
     let width = input.getWidth();
-    let mut result = BitMatrix::with_single_dimension(width);
+    let mut result = BitMatrix::with_single_dimension(width).expect("new");
     for x in 0..width {
         // for (int x = 0; x < width; x++) {
         for y in 0..width {

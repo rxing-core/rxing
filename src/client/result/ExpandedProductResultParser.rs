@@ -77,7 +77,7 @@ pub fn parse(result: &crate::RXingResult) -> Option<super::ParsedClientResult> {
         // return None;
         // }
         i += ai.len() + 2;
-        let value = findValue(i, &rawText);
+        let value = findValue(i, &rawText)?;
         i += value.len();
         match ai.as_str() {
             "00" => sscc = value,
@@ -260,13 +260,13 @@ fn findAIvalue(i: usize, rawText: &str) -> Option<String> {
     Some(buf)
 }
 
-fn findValue(i: usize, rawText: &str) -> String {
+fn findValue(i: usize, rawText: &str) -> Option<String> {
     let mut buf = String::new();
     let rawTextAux = &rawText[i..];
 
     for index in 0..rawTextAux.len() {
         // for (int index = 0; index < rawTextAux.length(); index++) {
-        let c = rawTextAux.chars().nth(index).unwrap();
+        let c = rawTextAux.chars().nth(index)?;
         if c == '(' {
             // We look for a new AI. If it doesn't exist (ERROR), we continue
             // with the iteration
@@ -281,5 +281,5 @@ fn findValue(i: usize, rawText: &str) -> String {
             buf.push(c);
         }
     }
-    buf
+    Some(buf)
 }

@@ -210,14 +210,20 @@ impl ECIEncoderSet {
         self.encoders.is_empty()
     }
 
-    pub fn getCharsetName(&self, index: usize) -> &'static str {
-        assert!(index < self.len());
-        return self.encoders[index].name();
+    pub fn getCharsetName(&self, index: usize) -> Option<&'static str> {
+        if index < self.len() {
+            Some(self.encoders[index].name())
+        } else {
+            None
+        }
     }
 
-    pub fn getCharset(&self, index: usize) -> EncodingRef {
-        assert!(index < self.len());
-        self.encoders[index]
+    pub fn getCharset(&self, index: usize) -> Option<EncodingRef> {
+        if index < self.len() {
+            Some(self.encoders[index])
+        } else {
+            None
+        }
     }
 
     pub fn getECIValue(&self, encoderIndex: usize) -> u32 {
@@ -233,25 +239,35 @@ impl ECIEncoderSet {
         self.priorityEncoderIndex
     }
 
-    pub fn canEncode(&self, c: &str, encoderIndex: usize) -> bool {
-        assert!(encoderIndex < self.len());
-        let encoder = self.encoders[encoderIndex];
-        let enc_data = encoder.encode(c, encoding::EncoderTrap::Strict);
+    pub fn canEncode(&self, c: &str, encoderIndex: usize) -> Option<bool> {
+        if encoderIndex < self.len() {
+            let encoder = self.encoders[encoderIndex];
+            let enc_data = encoder.encode(c, encoding::EncoderTrap::Strict);
 
-        enc_data.is_ok()
+            Some(enc_data.is_ok())
+        } else {
+            None
+        }
     }
 
-    pub fn encode_char(&self, c: &str, encoderIndex: usize) -> Vec<u8> {
-        assert!(encoderIndex < self.len());
-        let encoder = self.encoders[encoderIndex];
-        let enc_data = encoder.encode(c, encoding::EncoderTrap::Strict);
-        assert!(enc_data.is_ok());
-        enc_data.unwrap()
+    pub fn encode_char(&self, c: &str, encoderIndex: usize) -> Option<Vec<u8>> {
+        if encoderIndex < self.len() {
+            let encoder = self.encoders[encoderIndex];
+            let enc_data = encoder.encode(c, encoding::EncoderTrap::Strict);
+            enc_data.ok()
+        // assert!(enc_data.is_ok());
+        // enc_data.unwrap()
+        } else {
+            None
+        }
     }
 
-    pub fn encode_string(&self, s: &str, encoderIndex: usize) -> Vec<u8> {
-        assert!(encoderIndex < self.len());
-        let encoder = self.encoders[encoderIndex];
-        encoder.encode(s, encoding::EncoderTrap::Replace).unwrap()
+    pub fn encode_string(&self, s: &str, encoderIndex: usize) -> Option<Vec<u8>> {
+        if encoderIndex < self.len() {
+            let encoder = self.encoders[encoderIndex];
+            encoder.encode(s, encoding::EncoderTrap::Strict).ok()
+        } else {
+            None
+        }
     }
 }

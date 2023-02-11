@@ -18,8 +18,8 @@ use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult},
-    BarcodeFormat, DecodeHintType, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, RXingResultPoint, Reader,
+    BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
+    RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader,
 };
 
 use super::{
@@ -62,7 +62,10 @@ impl Reader for QRCodeReader {
     ) -> Result<crate::RXingResult, crate::Exceptions> {
         let decoderRXingResult: DecoderRXingResult;
         let mut points: Vec<RXingResultPoint>;
-        if hints.contains_key(&DecodeHintType::PURE_BARCODE) {
+        if matches!(
+            hints.get(&DecodeHintType::PURE_BARCODE),
+            Some(DecodeHintValue::PureBarcode(true))
+        ) {
             let bits = Self::extractPureBits(image.getBlackMatrix())?;
             decoderRXingResult = qrcode_decoder::decode_bitmatrix_with_hints(&bits, hints)?;
             points = Vec::new();
@@ -80,9 +83,8 @@ impl Reader for QRCodeReader {
                 // if (decoderRXingResult.getOther() instanceof QRCodeDecoderMetaData) {
                 other
                     .downcast_ref::<QRCodeDecoderMetaData>()
-                    .unwrap()
+                    .ok_or(Exceptions::IllegalStateException(None))?
                     .applyMirroredCorrection(&mut points);
-                // ((QRCodeDecoderMetaData) decoderRXingResult.getOther()).applyMirroredCorrection(points);
             }
         }
 
@@ -92,6 +94,7 @@ impl Reader for QRCodeReader {
             points,
             BarcodeFormat::QR_CODE,
         );
+
         let byteSegments = decoderRXingResult.getByteSegments();
         if !byteSegments.is_empty() {
             result.putMetadata(
@@ -99,6 +102,7 @@ impl Reader for QRCodeReader {
                 RXingResultMetadataValue::ByteSegments(byteSegments.clone()),
             );
         }
+
         let ecLevel = decoderRXingResult.getECLevel();
         if !ecLevel.is_empty() {
             result.putMetadata(
@@ -106,6 +110,7 @@ impl Reader for QRCodeReader {
                 RXingResultMetadataValue::ErrorCorrectionLevel(ecLevel.to_owned()),
             );
         }
+
         if decoderRXingResult.hasStructuredAppend() {
             result.putMetadata(
                 RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE,
@@ -120,6 +125,7 @@ impl Reader for QRCodeReader {
                 ),
             );
         }
+
         result.putMetadata(
             RXingResultMetadataType::SYMBOLOGY_IDENTIFIER,
             RXingResultMetadataValue::SymbologyIdentifier(format!(
@@ -129,10 +135,6 @@ impl Reader for QRCodeReader {
         );
 
         Ok(result)
-    }
-
-    fn reset(&mut self) {
-        // nothing
     }
 }
 
@@ -154,8 +156,9 @@ impl QRCodeReader {
             return Err(Exceptions::NotFoundException(None));
         }
 
-        let leftTopBlack = leftTopBlack.unwrap();
-        let rightBottomBlack = rightBottomBlack.unwrap();
+        let leftTopBlack = leftTopBlack.ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+        let rightBottomBlack =
+            rightBottomBlack.ok_or(Exceptions::IndexOutOfBoundsException(None))?;
 
         let moduleSize = Self::moduleSize(&leftTopBlack, image)?;
 
@@ -220,10 +223,8 @@ impl QRCodeReader {
         // Now just read off the bits
         let mut bits = BitMatrix::new(matrixWidth, matrixHeight)?;
         for y in 0..matrixHeight {
-            // for (int y = 0; y < matrixHeight; y++) {
             let iOffset = top + ((y as f32) * moduleSize) as i32;
             for x in 0..matrixWidth {
-                // for (int x = 0; x < matrixWidth; x++) {
                 if image.get(left as u32 + (x as f32 * moduleSize) as u32, iOffset as u32) {
                     bits.set(x, y);
                 }

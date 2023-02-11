@@ -62,7 +62,11 @@ impl<'a> EncoderContext<'_> {
         {
             ISO_8859_1_ENCODER
                 .decode(&encoded_bytes, encoding::DecoderTrap::Strict)
-                .expect("round trip decode should always work")
+                .map_err(|e| {
+                    Exceptions::ParseException(Some(format!(
+                        "round trip decode should always work: {e}"
+                    )))
+                })?
         } else {
             return Err(Exceptions::IllegalArgumentException(Some(
                 "Message contains characters outside ISO-8859-1 encoding.".to_owned(),
@@ -99,13 +103,13 @@ impl<'a> EncoderContext<'_> {
         self.skipAtEnd = count;
     }
 
+    /// panics if current position is out of bounds
     pub fn getCurrentChar(&self) -> char {
-        // self.msg.graphemes(true).nth(self.pos as usize).unwrap()
         self.msg.chars().nth(self.pos as usize).unwrap()
     }
 
+    /// panics if current position is out of bounds
     pub fn getCurrent(&self) -> char {
-        // self.msg.graphemes(true).nth(self.pos as usize).unwrap()
         self.msg.chars().nth(self.pos as usize).unwrap()
     }
 
@@ -157,6 +161,9 @@ impl<'a> EncoderContext<'_> {
         self.updateSymbolInfoWithLength(self.getCodewordCount());
     }
 
+    /// Update symbol info with the length
+    ///
+    /// This function can panic
     pub fn updateSymbolInfoWithLength(&mut self, len: usize) {
         if self.symbolInfo.is_none()
             || len > self.symbolInfo.as_ref().unwrap().getDataCapacity() as usize

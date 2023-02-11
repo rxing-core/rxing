@@ -29,6 +29,7 @@ pub struct FinderPatternInfo {
 }
 
 impl FinderPatternInfo {
+    /// Expects the order to be [bottom_left, top_left, top_right]
     pub fn new(patternCenters: [FinderPattern; 3]) -> Self {
         let [a, b, c] = patternCenters;
         Self {

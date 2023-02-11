@@ -38,9 +38,10 @@ pub struct RGBLuminanceSource {
 }
 
 impl LuminanceSource for RGBLuminanceSource {
+    /// gets a row, returns an empty row if we are out of bounds.
     fn getRow(&self, y: usize) -> Vec<u8> {
         if y >= self.getHeight() {
-            panic!("Requested row is outside the image: {y}");
+            return Vec::new();
         }
         let width = self.getWidth();
 
@@ -49,7 +50,7 @@ impl LuminanceSource for RGBLuminanceSource {
         let mut row = vec![0; width];
 
         row[..width].clone_from_slice(&self.luminances[offset..offset + width]);
-        //System.arraycopy(self.luminances, offset, row, 0, width);
+
         if self.invert {
             row = self.invert_block_of_bytes(row);
         }
@@ -77,7 +78,6 @@ impl LuminanceSource for RGBLuminanceSource {
         // If the width matches the full width of the underlying data, perform a single copy.
         if width == self.dataWidth {
             matrix[..area].clone_from_slice(&self.luminances[inputOffset..area + inputOffset]);
-            //System.arraycopy(self.luminances, inputOffset, matrix, 0, area);
             if self.invert {
                 matrix = self.invert_block_of_bytes(matrix);
             }
@@ -86,11 +86,9 @@ impl LuminanceSource for RGBLuminanceSource {
 
         // Otherwise copy one cropped row at a time.
         for y in 0..height {
-            //for (int y = 0; y < height; y++) {
             let outputOffset = y * width;
             matrix[outputOffset..width + outputOffset]
                 .clone_from_slice(&self.luminances[inputOffset..width + inputOffset]);
-            //System.arraycopy(luminances, inputOffset, matrix, outputOffset, width);
             inputOffset += self.dataWidth;
         }
 
@@ -140,8 +138,6 @@ impl LuminanceSource for RGBLuminanceSource {
 
 impl RGBLuminanceSource {
     pub fn new_with_width_height_pixels(width: usize, height: usize, pixels: &[u32]) -> Self {
-        //super(width, height);
-
         let dataWidth = width;
         let dataHeight = height;
         let left = 0;
@@ -154,13 +150,12 @@ impl RGBLuminanceSource {
         let size = width * height;
         let mut luminances: Vec<u8> = vec![0; size];
         for offset in 0..size {
-            //for (int offset = 0; offset < size; offset++) {
             let pixel = pixels[offset];
             let r = (pixel >> 16) & 0xff; // red
             let g2 = (pixel >> 7) & 0x1fe; // 2 * green
             let b = pixel & 0xff; // blue
                                   // Calculate green-favouring average cheaply
-            luminances[offset] = ((r + g2 + b) / 4).try_into().unwrap();
+            luminances[offset] = ((r + g2 + b) / 4) as u8;
         }
         Self {
             luminances,

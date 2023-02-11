@@ -59,46 +59,39 @@ impl Writer for QRCodeWriter {
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         if contents.is_empty() {
             return Err(Exceptions::IllegalArgumentException(Some(
-                "Found empty contents".to_owned(),
+                "found empty contents".to_owned(),
             )));
-            // throw new IllegalArgumentException("Found empty contents");
         }
 
         if format != &BarcodeFormat::QR_CODE {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
-                "Can only encode QR_CODE, but got {format:?}"
+                "can only encode QR_CODE, but got {format:?}"
             ))));
             // throw new IllegalArgumentException("Can only encode QR_CODE, but got " + format);
         }
 
         if width < 0 || height < 0 {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
-                "Requested dimensions are too small: {width}x{height}"
+                "requested dimensions are too small: {width}x{height}"
             ))));
-            // throw new IllegalArgumentException("Requested dimensions are too small: " + width + 'x' +
-            //     height);
         }
 
-        let mut errorCorrectionLevel = ErrorCorrectionLevel::L;
-        let mut quietZone = QUIET_ZONE_SIZE;
-        // if (hints != null) {
-        if hints.contains_key(&EncodeHintType::ERROR_CORRECTION) {
-            if let EncodeHintValue::ErrorCorrection(ec_level) =
-                hints.get(&EncodeHintType::ERROR_CORRECTION).unwrap()
-            {
-                errorCorrectionLevel = ec_level.parse()?;
-            }
-            // errorCorrectionLevel = ErrorCorrectionLevel.valueOf(hints.get(EncodeHintType.ERROR_CORRECTION).toString());
-        }
-        if hints.contains_key(&EncodeHintType::MARGIN) {
-            if let EncodeHintValue::Margin(margin) = hints.get(&EncodeHintType::MARGIN).unwrap() {
-                quietZone = margin.parse().unwrap();
-                // quietZone = Integer.parseInt(hints.get(EncodeHintType.MARGIN).toString());
-            }
+        let errorCorrectionLevel = if let Some(EncodeHintValue::ErrorCorrection(ec_level)) =
+            hints.get(&EncodeHintType::ERROR_CORRECTION)
+        {
+            ec_level.parse()?
+        } else {
+            ErrorCorrectionLevel::L
+        };
 
-            // quietZone = Integer.parseInt(hints.get(EncodeHintType.MARGIN).toString());
-        }
-        // }
+        let quietZone =
+            if let Some(EncodeHintValue::Margin(margin)) = hints.get(&EncodeHintType::MARGIN) {
+                margin.parse::<i32>().map_err(|e| {
+                    Exceptions::ParseException(Some(format!("could not parse {margin}: {e}")))
+                })?
+            } else {
+                QUIET_ZONE_SIZE
+            };
 
         let code = qrcode_encoder::encode_with_hints(contents, errorCorrectionLevel, hints)?;
 
@@ -120,10 +113,11 @@ impl QRCodeWriter {
             return Err(Exceptions::IllegalStateException(Some(
                 "matrix is empty".to_owned(),
             )));
-            // throw new IllegalStateException();
         }
 
-        let input = input.as_ref().unwrap();
+        let input = input
+            .as_ref()
+            .ok_or(Exceptions::IllegalStateException(None))?;
 
         let inputWidth = input.getWidth() as i32;
         let inputHeight = input.getHeight() as i32;

@@ -182,17 +182,24 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         if oldRXingResultPoints.is_empty() {
             return result;
         }
-        let mut newRXingResultPoints = Vec::with_capacity(oldRXingResultPoints.len()); //new RXingResultPoint[oldRXingResultPoints.length];
-        for oldPoint in oldRXingResultPoints {
-            // for (int i = 0; i < oldRXingResultPoints.length; i++) {
-            // RXingResultPoint oldPoint = oldRXingResultPoints[i];
-            // if (oldPoint != null) {
-            newRXingResultPoints.push(RXingResultPoint::new(
-                oldPoint.getX() + xOffset as f32,
-                oldPoint.getY() + yOffset as f32,
-            ));
-            // }
-        }
+
+        let newRXingResultPoints: Vec<RXingResultPoint> = oldRXingResultPoints
+            .iter()
+            .map(|oldPoint| {
+                RXingResultPoint::new(
+                    oldPoint.getX() + xOffset as f32,
+                    oldPoint.getY() + yOffset as f32,
+                )
+            })
+            .collect();
+
+        // let mut newRXingResultPoints = Vec::with_capacity(oldRXingResultPoints.len());
+        // for oldPoint in oldRXingResultPoints {
+        //     newRXingResultPoints.push(RXingResultPoint::new(
+        //         oldPoint.getX() + xOffset as f32,
+        //         oldPoint.getY() + yOffset as f32,
+        //     ));
+        // }
         let mut newRXingResult = RXingResult::new_complex(
             result.getText(),
             result.getRawBytes().clone(),

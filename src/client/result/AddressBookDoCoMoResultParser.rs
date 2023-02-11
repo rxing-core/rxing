@@ -43,35 +43,32 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     if !rawText.starts_with("MECARD:") {
         return None;
     }
-    let rawName = ResultParser::match_do_co_mo_prefixed_field("N:", &rawText)?;
+    let rawName = ResultParser::match_docomo_prefixed_field("N:", &rawText)?;
 
     let name = parseName(&rawName[0]);
-    let pronunciation =
-        ResultParser::match_single_do_co_mo_prefixed_field("SOUND:", &rawText, true)
-            .unwrap_or_default();
-    let phoneNumbers =
-        ResultParser::match_do_co_mo_prefixed_field("TEL:", &rawText).unwrap_or_default();
-    let emails =
-        ResultParser::match_do_co_mo_prefixed_field("EMAIL:", &rawText).unwrap_or_default();
-    let note = ResultParser::match_single_do_co_mo_prefixed_field("NOTE:", &rawText, false)
+    let pronunciation = ResultParser::match_single_docomo_prefixed_field("SOUND:", &rawText, true)
         .unwrap_or_default();
-    let addresses =
-        ResultParser::match_do_co_mo_prefixed_field("ADR:", &rawText).unwrap_or_default();
-    let mut birthday = ResultParser::match_single_do_co_mo_prefixed_field("BDAY:", &rawText, true)
+    let phoneNumbers =
+        ResultParser::match_docomo_prefixed_field("TEL:", &rawText).unwrap_or_default();
+    let emails = ResultParser::match_docomo_prefixed_field("EMAIL:", &rawText).unwrap_or_default();
+    let note = ResultParser::match_single_docomo_prefixed_field("NOTE:", &rawText, false)
+        .unwrap_or_default();
+    let addresses = ResultParser::match_docomo_prefixed_field("ADR:", &rawText).unwrap_or_default();
+    let mut birthday = ResultParser::match_single_docomo_prefixed_field("BDAY:", &rawText, true)
         .unwrap_or_default();
     if !ResultParser::isStringOfDigits(&birthday, 8) {
         // No reason to throw out the whole card because the birthday is formatted wrong.
         birthday = String::default();
     }
-    let urls = ResultParser::match_do_co_mo_prefixed_field("URL:", &rawText).unwrap_or_default();
+    let urls = ResultParser::match_docomo_prefixed_field("URL:", &rawText).unwrap_or_default();
 
     // Although ORG may not be strictly legal in MECARD, it does exist in VCARD and we might as well
     // honor it when found in the wild.
-    let org = ResultParser::match_single_do_co_mo_prefixed_field("ORG:", &rawText, true)
+    let org = ResultParser::match_single_docomo_prefixed_field("ORG:", &rawText, true)
         .unwrap_or_default();
 
     if let Ok(new_adb) = AddressBookParsedRXingResult::with_details(
-        ResultParser::maybeWrap(Some(name))?,
+        ResultParser::maybeWrap(Some(name)).unwrap_or_default(),
         Vec::new(),
         pronunciation,
         phoneNumbers,
@@ -100,12 +97,4 @@ fn parseName(name: &str) -> String {
     } else {
         name.to_owned()
     }
-    // let comma = name.indexOf(',');
-    // if (comma >= 0) {
-    //   // Format may be last,first; switch it around
-    //   return name.substring(comma + 1) + ' ' + name.substring(0, comma);
-    // }
-    // return name;
 }
-
-// }

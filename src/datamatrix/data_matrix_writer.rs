@@ -169,15 +169,10 @@ impl Writer for DataMatrixWriter {
             symbolInfo.getSymbolDataWidth()? as usize,
             symbolInfo.getSymbolDataHeight()? as usize,
         );
-        placement.place();
+        placement.place()?;
 
         //4. step: low-level encoding
-        Self::encodeLowLevel(
-            &placement,
-            symbolInfo,
-            width.try_into().unwrap(),
-            height.try_into().unwrap(),
-        )
+        Self::encodeLowLevel(&placement, symbolInfo, width as u32, height as u32)
     }
 }
 

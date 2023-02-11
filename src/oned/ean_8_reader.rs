@@ -50,13 +50,12 @@ impl UPCEANReader for EAN8Reader {
 
         let mut x = 0;
         while x < 4 && rowOffset < end {
-            // for (int x = 0; x < 4 && rowOffset < end; x++) {
             let bestMatch =
                 self.decodeDigit(row, &mut counters, rowOffset, &upc_ean_reader::L_PATTERNS)?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch as u32).unwrap());
-            // for (int counter : counters) {
-            //   rowOffset += counter;
-            // }
+            resultString.push(
+                char::from_u32('0' as u32 + bestMatch as u32)
+                    .ok_or(Exceptions::ParseException(None))?,
+            );
 
             rowOffset += counters.iter().sum::<u32>() as usize;
 
@@ -69,13 +68,13 @@ impl UPCEANReader for EAN8Reader {
 
         let mut x = 0;
         while x < 4 && rowOffset < end {
-            // for (int x = 0; x < 4 && rowOffset < end; x++) {
             let bestMatch =
                 self.decodeDigit(row, &mut counters, rowOffset, &upc_ean_reader::L_PATTERNS)?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch as u32).unwrap());
-            // for (int counter : counters) {
-            //   rowOffset += counter;
-            // }
+            resultString.push(
+                char::from_u32('0' as u32 + bestMatch as u32)
+                    .ok_or(Exceptions::ParseException(None))?,
+            );
+
             rowOffset += counters.iter().sum::<u32>() as usize;
             x += 1;
         }

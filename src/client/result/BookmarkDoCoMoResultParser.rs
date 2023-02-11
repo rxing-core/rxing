@@ -30,20 +30,16 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     if !rawText.starts_with("MEBKM:") {
         return None;
     }
-    let title = ResultParser::match_single_do_co_mo_prefixed_field("TITLE:", rawText, true);
-    let rawUri = ResultParser::match_do_co_mo_prefixed_field("URL:", rawText);
-    rawUri.as_ref()?;
-    let uri = rawUri?[0].clone();
-    if URIResultParser::is_basically_valid_uri(&uri) {
+    let title = ResultParser::match_single_docomo_prefixed_field("TITLE:", rawText, true);
+    let rawUri = ResultParser::match_docomo_prefixed_field("URL:", rawText)?;
+
+    let uri = &rawUri[0];
+    if URIResultParser::is_basically_valid_uri(uri) {
         Some(ParsedClientResult::URIResult(URIParsedRXingResult::new(
-            uri,
+            uri.to_string(),
             title.unwrap_or_default(),
         )))
     } else {
         None
     }
-
-    // return URIRXingResultParser.isBasicallyValidURI(uri) ? new URIParsedRXingResult(uri, title) : null;
 }
-
-// }

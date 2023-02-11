@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::common::BitArray;
+use crate::{common::BitArray, Exceptions};
 
 use super::{BinaryShiftToken, SimpleToken};
 
@@ -26,12 +26,14 @@ pub enum TokenType {
 }
 
 impl TokenType {
-    pub fn appendTo(&self, bit_array: &mut BitArray, text: &[u8]) {
+    pub fn appendTo(&self, bit_array: &mut BitArray, text: &[u8]) -> Result<(), Exceptions> {
         // let token = &self.tokens[self.current_pointer];
         match self {
             TokenType::Simple(a) => a.appendTo(bit_array, text),
             TokenType::BinaryShift(a) => a.appendTo(bit_array, text),
-            TokenType::Empty => panic!("cannot appendTo on Empty final item"),
+            TokenType::Empty => Err(Exceptions::IllegalStateException(Some(String::from(
+                "cannot appendTo on Empty final item",
+            )))),
         }
     }
 }
@@ -94,27 +96,6 @@ impl IntoIterator for Token {
         }
     }
 }
-
-// pub enum Token{
-//   Simple(Rc<SimpleToken>),
-//   BinaryShift(),
-//   Empty,
-// }
-
-// pub trait TokenTrait {
-//     fn getPrevious(&self)->&Token;
-
-//     fn add(&self, value: i32, bitCount: u32) -> Token{
-//       Token::Simple(Rc::new(SimpleToken::new(self, value, bitCount)))
-//     }
-
-//     fn addBinaryShift(&self, start: i32, byteCount: u32) -> &Token; //{
-//                                                                   //   //int bitCount = (byteCount * 8) + (byteCount <= 31 ? 10 : byteCount <= 62 ? 20 : 21);
-//                                                                   //   return new BinaryShiftToken(this, start, byteCount);
-//                                                                   // }
-
-//     fn appendTo(&self, bitArray: BitArray, text: &[u8]);
-// }
 
 impl Default for Token {
     fn default() -> Self {

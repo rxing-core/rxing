@@ -49,11 +49,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
         body = &number[body_start + 1..];
         number = &number[..body_start];
     }
-    // let bodyStart = number.indexOf(':');
-    // if (bodyStart >= 0) {
-    //   body = number.substring(bodyStart + 1);
-    //   number = number.substring(0, bodyStart);
-    // }
+
     Some(ParsedClientResult::SMSResult(
         SMSParsedRXingResult::with_singles(
             number.to_owned(),
@@ -62,5 +58,4 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
             body.to_owned(),
         ),
     ))
-    // return new SMSParsedRXingResult(number, null, null, body);
 }

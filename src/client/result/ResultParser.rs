@@ -102,11 +102,14 @@ const BYTE_ORDER_MARK: &str = "\u{feff}"; //private static final String BYTE_ORD
 // const EMPTY_STR_ARRAY: &'static str = "";
 
 pub fn getMassagedText(result: &RXingResult) -> String {
-    let mut text = result.getText().clone();
-    if text.starts_with(BYTE_ORDER_MARK) {
-        text = text[1..].to_owned();
-    }
-    text
+    result
+        .getText()
+        .trim_start_matches(BYTE_ORDER_MARK)
+        .to_owned()
+    // if text.starts_with(BYTE_ORDER_MARK) {
+    //     text = &text[1..];
+    // }
+    // text.to_owned()
 }
 
 pub fn parse_result_with_parsers(
@@ -181,19 +184,18 @@ pub fn maybe_append_string(value: &str, result: &mut String) {
 }
 
 pub fn maybe_append_multiple(value: &[String], result: &mut String) {
-    if !value.is_empty() {
-        for s in value {
-            // for (String s : value) {
-            if !s.is_empty() {
-                if !result.is_empty() {
-                    result.push('\n');
-                }
-                result.push_str(s);
+    for s in value {
+        // for (String s : value) {
+        if !s.is_empty() {
+            if !result.is_empty() {
+                result.push('\n');
             }
+            result.push_str(s);
         }
     }
 }
 
+#[inline(always)]
 pub fn maybeWrap(value: Option<String>) -> Option<Vec<String>> {
     if value.is_none() {
         None
@@ -207,14 +209,12 @@ pub fn unescapeBackslash(escaped: &str) -> String {
     if backslash.is_none() {
         return escaped.to_owned();
     }
-    let max = escaped.len();
-    let mut unescaped = String::with_capacity(max - 1);
+    let max = escaped.chars().count();
     let backslash = backslash.unwrap_or(0);
-    unescaped.push_str(&escaped[0..backslash]);
+    let mut unescaped = escaped.chars().take(backslash).collect::<String>();
+    unescaped.reserve(max - 1);
     let mut nextIsEscaped = false;
-    for i in backslash..max {
-        // for (int i = backslash; i < max; i++) {
-        let c = escaped.chars().nth(i).unwrap();
+    for c in escaped.chars().skip(backslash) {
         if nextIsEscaped || c != '\\' {
             unescaped.push(c);
             nextIsEscaped = false;
@@ -239,6 +239,7 @@ pub fn parseHexDigit(c: char) -> i32 {
     -1
 }
 
+#[inline(always)]
 pub fn isStringOfDigits(value: &str, length: usize) -> bool {
     !value.is_empty() && length > 0 && length == value.len() && DIGITS.is_match(value)
 }
@@ -249,10 +250,10 @@ pub fn isSubstringOfDigits(value: &str, offset: usize, length: usize) -> bool {
     }
     let max = offset + length;
 
-    let sub_seq = &value[offset..max];
+    let sub_seq: String = value.chars().skip(offset).take(length).collect(); //&value[offset..max];
 
-    let is_a_match = if let Some(mtch) = DIGITS.find(sub_seq) {
-        mtch.start() == 0 && mtch.end() == sub_seq.len()
+    let is_a_match = if let Some(mtch) = DIGITS.find(&sub_seq) {
+        mtch.start() == 0 && mtch.end() == sub_seq.chars().count()
     } else {
         false
     };
@@ -266,16 +267,11 @@ pub fn parseNameValuePairs(uri: &str) -> Option<HashMap<String, String>> {
     let mut result = HashMap::with_capacity(3);
     let paramStart = paramStart.unwrap_or(0);
 
-    let sub_str = &uri[paramStart + 1..];
+    let sub_str = &uri[paramStart + 1..]; // This is likely ok because we're looking for a specific single byte charaacter
     let list = sub_str.split(AMPERSAND);
     for keyValue in list {
         appendKeyValue(keyValue, &mut result);
     }
-
-    // for keyValue in Self::AMPERSAND.split(uri[paramStart + 1..]) {
-    // // for (String keyValue : AMPERSAND.split(uri.substring(paramStart + 1))) {
-    //   Self::appendKeyValue(keyValue, &mut result);
-    // }
     Some(result)
 }
 
@@ -304,9 +300,9 @@ pub fn urlDecode(encoded: &str) -> Result<String, Exceptions> {
     if let Ok(decoded) = decode(encoded) {
         Ok(decoded.to_string())
     } else {
-        Err(Exceptions::IllegalStateException(Some(
-            "UnsupportedEncodingException".to_owned(),
-        )))
+        Err(Exceptions::IllegalStateException(Some(String::from(
+            "UnsupportedEncodingException",
+        ))))
     }
 }
 
@@ -329,7 +325,7 @@ pub fn matchPrefixedField(
         //   if (i < 0) {
         //     break;
         //   }
-        i += prefix.len(); // Skip past this prefix we found to start
+        i += prefix.chars().count(); // Skip past this prefix we found to start
         let start = i; // Found the start of a match here
         let mut more = true;
         while more {
@@ -337,7 +333,7 @@ pub fn matchPrefixedField(
                 i += next_index;
             } else {
                 // No terminating end character? uh, done. Set i such that loop terminates and break
-                i = rawText.len();
+                i = rawText.chars().count();
                 more = false;
                 continue;
             }
@@ -411,11 +407,11 @@ pub fn matchSinglePrefixedField(
     // return matches == null ? null : matches[0];
 }
 
-pub fn match_do_co_mo_prefixed_field(prefix: &str, raw_text: &str) -> Option<Vec<String>> {
+pub fn match_docomo_prefixed_field(prefix: &str, raw_text: &str) -> Option<Vec<String>> {
     matchPrefixedField(prefix, raw_text, ';', true)
 }
 
-pub fn match_single_do_co_mo_prefixed_field(
+pub fn match_single_docomo_prefixed_field(
     prefix: &str,
     raw_text: &str,
     trim: bool,
@@ -426,7 +422,9 @@ pub fn match_single_do_co_mo_prefixed_field(
 #[cfg(test)]
 mod tests {
     use crate::{
-        client::result::{ParsedClientResult, TextParsedRXingResult},
+        client::result::{
+            OtherParsedResult, ParsedClientResult, ParsedRXingResult, TextParsedRXingResult,
+        },
         RXingResult,
     };
 
@@ -448,5 +446,33 @@ mod tests {
         })
         .unwrap();
         assert_eq!(p_res.to_string(), "parsed with parser");
+    }
+
+    #[test]
+    fn test_other_parser() {
+        let result: RXingResult = RXingResult::new(
+            "text",
+            vec![12, 23, 54, 23],
+            Vec::new(),
+            crate::BarcodeFormat::EAN_13,
+        );
+        let p_res = parse_result_with_parser(&result, |v| {
+            Some(ParsedClientResult::Other(OtherParsedResult::new(Box::new(
+                v.getRawBytes().clone(),
+            ))))
+        })
+        .unwrap();
+
+        assert_eq!(p_res.getDisplayRXingResult(), "Any { .. }");
+
+        if let ParsedClientResult::Other(opr) = p_res {
+            if let Some(d) = opr.get_data().downcast_ref::<Vec<u8>>() {
+                assert_eq!(d, result.getRawBytes());
+            } else {
+                panic!("did not get vec<u8>");
+            }
+        } else {
+            panic!("did not get ParsedClientResult::Other");
+        }
     }
 }

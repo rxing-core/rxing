@@ -123,14 +123,6 @@ impl OneDReader for ITFReader {
         } else {
             DEFAULT_ALLOWED_LENGTHS.to_vec()
         };
-        // int[] allowedLengths = null;
-        // if (hints != null) {
-        //   allowedLengths = (int[]) hints.get(DecodeHintType.ALLOWED_LENGTHS);
-
-        // }
-        // if (allowedLengths == null) {
-        //   allowedLengths = DEFAULT_ALLOWED_LENGTHS;
-        // }
 
         // To avoid false positives with 2D barcodes (and other patterns), make
         // an assumption that the decoded string must be a 'standard' length if it's short
@@ -138,14 +130,11 @@ impl OneDReader for ITFReader {
         let mut lengthOK = false;
         let mut maxAllowedLength = 0;
         for allowedLength in allowedLengths {
-            // for (int allowedLength : allowedLengths) {
             if length == allowedLength as usize {
                 lengthOK = true;
                 break;
             }
-            if allowedLength > maxAllowedLength {
-                maxAllowedLength = allowedLength;
-            }
+            maxAllowedLength = std::cmp::max(allowedLength, maxAllowedLength);
         }
         if !lengthOK && length > maxAllowedLength as usize {
             lengthOK = true;
@@ -188,8 +177,7 @@ impl ITFReader {
     ) -> Result<(), Exceptions> {
         let mut payloadStart = payloadStart;
         // Digits are interleaved in pairs - 5 black lines for one digit, and the
-        // 5
-        // interleaved white lines for the second digit.
+        // 5 interleaved white lines for the second digit.
         // Therefore, need to scan 10 lines and then
         // split these into two arrays
         let mut counterDigitPair = [0_u32; 10]; //new int[10];
@@ -201,23 +189,21 @@ impl ITFReader {
             one_d_reader::recordPattern(row, payloadStart, &mut counterDigitPair)?;
             // Split them into each array
             for k in 0..5 {
-                // for (int k = 0; k < 5; k++) {
                 let twoK = 2 * k;
                 counterBlack[k] = counterDigitPair[twoK];
                 counterWhite[k] = counterDigitPair[twoK + 1];
             }
 
             let mut bestMatch = self.decodeDigit(&counterBlack)?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch).unwrap());
+            resultString.push(
+                char::from_u32('0' as u32 + bestMatch).ok_or(Exceptions::ParseException(None))?,
+            );
             bestMatch = self.decodeDigit(&counterWhite)?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch).unwrap());
+            resultString.push(
+                char::from_u32('0' as u32 + bestMatch).ok_or(Exceptions::ParseException(None))?,
+            );
 
             payloadStart += counterDigitPair.iter().sum::<u32>() as usize;
-
-            // for counterDigit in counterDigitPair {
-            // // for (int counterDigit : counterDigitPair) {
-            //   payloadStart += counterDigit;
-            // }
         }
 
         Ok(())
@@ -267,7 +253,6 @@ impl ITFReader {
 
         let mut i = startPattern as isize - 1;
         while quietCount > 0 && i >= 0 {
-            // for (int i = startPattern - 1; quietCount > 0 && i >= 0; i--) {
             if row.get(i as usize) {
                 break;
             }
@@ -313,18 +298,12 @@ impl ITFReader {
         row.reverse();
         let interim_function = || -> Result<[usize; 2], Exceptions> {
             let endStart = Self::skipWhiteSpace(row)?;
-            let mut endPattern;
-            endPattern =
+            let mut endPattern =
                 if let Ok(ptrn) = self.findGuardPattern(row, endStart, &END_PATTERN_REVERSED[0]) {
                     ptrn
                 } else {
                     self.findGuardPattern(row, endStart, &END_PATTERN_REVERSED[1])?
                 };
-            // try {
-            //   endPattern = findGuardPattern(row, endStart, END_PATTERN_REVERSED[0]);
-            // } catch (NotFoundException nfe) {
-            //   endPattern = findGuardPattern(row, endStart, END_PATTERN_REVERSED[1]);
-            // }
 
             // The start & end patterns must be pre/post fixed by a quiet zone. This
             // zone must be at least 10 times the width of a narrow line.
@@ -332,8 +311,7 @@ impl ITFReader {
             self.validateQuietZone(row, endPattern[0])?;
 
             // Now recalculate the indices of where the 'endblock' starts & stops to
-            // accommodate
-            // the reversed nature of the search
+            // accommodate the reversed nature of the search
             let temp = endPattern[0];
             endPattern[0] = row.getSize() - endPattern[1];
             endPattern[1] = row.getSize() - temp;
@@ -386,7 +364,6 @@ impl ITFReader {
                     patternStart += (counters[0] + counters[1]) as usize;
 
                     counters.copy_within(2..(counterPosition - 1 + 2), 0);
-                    // System.arraycopy(counters, 2, counters, 0, counterPosition - 1);
                     counters[counterPosition - 1] = 0;
                     counters[counterPosition] = 0;
                     counterPosition -= 1;
@@ -413,7 +390,6 @@ impl ITFReader {
         let mut bestMatch = -1_isize;
         let max = PATTERNS.len();
         for (i, pattern) in PATTERNS.iter().enumerate().take(max) {
-            // for (int i = 0; i < max; i++) {
             let variance =
                 one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
