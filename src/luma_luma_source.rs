@@ -104,15 +104,12 @@ impl LuminanceSource for Luma8LuminanceSource {
 impl Luma8LuminanceSource {
     fn reverseColumns(&mut self) {
         for i in 0..self.getWidth() {
-            // for (int i = 0; i < C; i++)
             let mut j = 0;
             let mut k = self.getWidth() - 1;
             while j < k {
-                // for (int j = 0, k = C - 1; j < k; j++, k--)
                 let offset_a = (self.getWidth() * i) + j;
                 let offset_b = (self.getWidth() * i) + k;
                 self.data.swap(offset_a, offset_b);
-                // swap(arr[j][i], arr[k][i]);
                 j += 1;
                 k -= 1;
             }
@@ -121,13 +118,10 @@ impl Luma8LuminanceSource {
 
     fn transpose(&mut self) {
         for i in 0..self.getHeight() {
-            // for (int i = 0; i < R; i++)
             for j in i..self.getWidth() {
-                // for (int j = i; j < C; j++)
                 let offset_a = (self.getWidth() * i) + j;
                 let offset_b = (self.getWidth() * j) + i;
                 self.data.swap(offset_a, offset_b);
-                // swap(arr[i][j], arr[j][i]);
             }
         }
     }

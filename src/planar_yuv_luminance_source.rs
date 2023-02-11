@@ -197,10 +197,8 @@ impl PlanarYUVLuminanceSource {
         let mut input_offset = self.top * self.data_width + self.left;
 
         for y in 0..height {
-            //for (int y = 0; y < height; y++) {
             let output_offset = y * width;
             for x in 0..width {
-                //for (int x = 0; x < width; x++) {
                 let grey = yuv[input_offset + x * THUMBNAIL_SCALE_FACTOR];
                 pixels[output_offset + x] = (0xFF000000 | (grey as u32 * 0x00010101)) as u8;
             }
@@ -224,35 +222,25 @@ impl PlanarYUVLuminanceSource {
     }
 
     fn reverseHorizontal(&mut self, width: usize, height: usize) {
-        //let mut yuvData = self.yuvData;
         let mut rowStart = self.top * self.data_width + self.left;
         for _y in 0..height {
             let middle = rowStart + width / 2;
             let mut x2 = rowStart + width - 1;
             for x1 in rowStart..middle {
-                //for (int x1 = rowStart, x2 = rowStart + width - 1; x1 < middle; x1++, x2--) {
                 self.yuv_data.swap(x1, x2);
                 x2 -= 1;
             }
             rowStart += self.data_width;
         }
-        //self.yuvData = yuvData;
-        /*for (int y = 0, rowStart = top * dataWidth + left; y < height; y++, rowStart += dataWidth) {
-          let middle = rowStart + width / 2;
-          for (int x1 = rowStart, x2 = rowStart + width - 1; x1 < middle; x1++, x2--) {
-            let temp = yuvData[x1];
-            yuvData[x1] = yuvData[x2];
-            yuvData[x2] = temp;
-          }
-        }*/
     }
 }
 
 impl LuminanceSource for PlanarYUVLuminanceSource {
     fn getRow(&self, y: usize) -> Vec<u8> {
         if y >= self.getHeight() {
-            //throw new IllegalArgumentException("Requested row is outside the image: " + y);
-            panic!("Requested row is outside the image: {y}");
+            // //throw new IllegalArgumentException("Requested row is outside the image: " + y);
+            // panic!("Requested row is outside the image: {y}");
+            return Vec::new();
         }
         let width = self.getWidth();
 
@@ -261,7 +249,6 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         let mut row = vec![0; width];
 
         row[..width].clone_from_slice(&self.yuv_data[offset..width + offset]);
-        //System.arraycopy(yuvData, offset, row, 0, width);
         if self.invert {
             row = self.invert_block_of_bytes(row);
         }
@@ -289,7 +276,6 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         // If the width matches the full width of the underlying data, perform a single copy.
         if width == self.data_width {
             matrix[0..area].clone_from_slice(&self.yuv_data[inputOffset..area]);
-            //System.arraycopy(yuvData, inputOffset, matrix, 0, area);
             if self.invert {
                 matrix = self.invert_block_of_bytes(matrix);
             }
@@ -298,11 +284,9 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
 
         // Otherwise copy one cropped row at a time.
         for y in 0..height {
-            //for (int y = 0; y < height; y++) {
             let outputOffset = y * width;
             matrix[outputOffset..outputOffset + width]
                 .clone_from_slice(&self.yuv_data[inputOffset..inputOffset + width]);
-            //System.arraycopy(yuvData, inputOffset, matrix, outputOffset, width);
             inputOffset += self.data_width;
         }
 

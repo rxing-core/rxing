@@ -170,12 +170,7 @@ impl RXingResult {
     }
 
     pub fn addRXingResultPoints(&mut self, newPoints: &mut Vec<RXingResultPoint>) {
-        //RXingResultPoint[] oldPoints = resultPoints;
         if !newPoints.is_empty() {
-            // let allPoints:Vec<RXingResultPoint>= Vec::with_capacity(oldPoints.len() + newPoints.len());
-            //System.arraycopy(oldPoints, 0, allPoints, 0, oldPoints.length);
-            //System.arraycopy(newPoints, 0, allPoints, oldPoints.length, newPoints.length);
-            //resultPoints = allPoints;
             self.resultPoints.append(newPoints);
         }
     }

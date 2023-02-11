@@ -34,12 +34,8 @@ pub use barcode_format::*;
 mod encode_hints;
 pub use encode_hints::*;
 
-/**
- * Callback which is invoked when a possible result point (significant
- * point in the barcode image such as a corner) is found.
- *
- * @see DecodeHintType#NEED_RESULT_POINT_CALLBACK
- */
+/// Callback which is invoked when a possible result point (significant
+/// point in the barcode image such as a corner) is found.
 pub type RXingResultPointCallback = Rc<dyn Fn(&dyn ResultPoint)>;
 
 mod decode_hints;
