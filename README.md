@@ -10,7 +10,7 @@ Porting was done with the rust language in mind, though some parts may resemble 
 If you're looking for a CLI interface into the library, please see [rxing-cli](https://crates.io/crates/rxing-cli).
 
 ## WASM
-If you're looking for a WASM version of this library, check out [rxing-wasm](https://github.com/hschimke/rxing-wasm), or on [NPM](https://www.npmjs.com/package/rxing-wasm).
+If you're looking for a WASM version of this library, check out [rxing-wasm](https://github.com/rxing-core/rxing-wasm), or on [NPM](https://www.npmjs.com/package/rxing-wasm).
 
 
 ## Status
