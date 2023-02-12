@@ -16,22 +16,26 @@ If you're looking for a WASM version of this library, check out [rxing-wasm](htt
 ## Status
 All barcode formats are tested and functioning in their current state against current tests.
 
-| Symbology | Status |
-| --- | --- |
-| aztec | complete |
-| datamatrix | complete |
-| maxicode | complete |
-| pdf417 | complete |
-| qrcode | complete |
-| coda | complete |
-| code 39 | complete |
-| code 93 | complete |
-| code 128 | complete |
-| itf | complete |
-| ean 8 | complete |
-| ean 13 | complete |
-| upc a | complete |
-| upc e | complete |
+| Symbology | Status | Encode | Decode |
+| --- | --- | --- | --- |
+| aztec | complete | yes | yes |
+| datamatrix | complete | yes | yes |
+| maxicode | complete | no | yes |
+| pdf417 | complete | yes | yes |
+| qrcode | complete | yes | yes |
+| coda | complete | yes | yes |
+| code 39 | complete | yes | yes |
+| code 93 | complete | yes | yes |
+| code 128 | complete | yes | yes |
+| itf | complete | yes | yes |
+| ean 8 | complete | yes | yes |
+| ean 13 | complete | yes | yes |
+| upc a | complete | yes | yes |
+| upc e | complete | yes | yes |
+| rss-14 | complete | no | yes |
+| rss-expanded | complete | no | yes|
+
+Please note that currently UPC/EAN Extension 2/5 is supported.
 
 ## Feature Flags
 The following feature flags are available:
@@ -51,7 +55,9 @@ The default feature set includes only the `image` feature mentioned above.
 ## Incomplete
 The library has only been thurougly tested with the `BufferedImageLuminanceSource` source format. Using any other
 source is currently experimental and may result in unexpected or undefined outputs. This means that the feature flag
-used to enable the use of the `image` crate is currently on by default. Turning it off may result in unexpected results.
+used to enable the use of the `image` crate is currently on by default. The `Luma8LuminanceSource` is the second best
+tested library, and is the underpinning for the wasm based wrapper for the library. Consider `Luma8LuminanceSource` as
+a reasonable option if building the crate with the `image` feature turned off is desired.
 
 ## Example with helpers
 
@@ -94,11 +100,11 @@ fn main() {
 * *v0.1.4* -> Dramatically improve performance for MultiFormatReader and for multiple barcode detection.
 
 ## Known Issues
-* Performance is low for GenericMultipleBarcodeReader.
-* Datamatrix codes are sometimes not correctly decoded, especially when they are _actually_ pure barcodes. This appears to be an issue with zxing 3.5.1 as well.
+* Performance is slow for GenericMultipleBarcodeReader.
+* ~~Datamatrix codes are sometimes not correctly decoded, especially when they are _actually_ pure barcodes. This appears to be an issue with zxing 3.5.1 as well.~~ This issue has been resolved with the porting of the ZXing-C++ datamatrix module in *v0.2.19*.
 
 ## ZXing Track
 Currently tracking zxing 3.5.1
 
 ## Copyright notes
-The original license remains with the zxing developers. The license for the ported components of the c++ port remain with the developers of that port, where applicable.
+The original license / copyright remains with the zxing developers. The license / copyright for the ported components of the c++ port remain with the developers of that port, where applicable.
