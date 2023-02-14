@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-use crate::{common::BitMatrix, Exceptions};
+use crate::{
+    common::{BitMatrix, Result},
+    Exceptions,
+};
 
 use super::{DataMask, FormatInformation, Version, VersionRef};
 
@@ -33,7 +36,7 @@ impl BitMatrixParser {
      * @param bitMatrix {@link BitMatrix} to parse
      * @throws FormatException if dimension is not >= 21 and 1 mod 4
      */
-    pub fn new(bit_matrix: BitMatrix) -> Result<Self, Exceptions> {
+    pub fn new(bit_matrix: BitMatrix) -> Result<Self> {
         let dimension = bit_matrix.getHeight();
         if dimension < 21 || (dimension & 0x03) != 1 {
             Err(Exceptions::FormatException(Some(format!(
@@ -56,7 +59,7 @@ impl BitMatrixParser {
      * @throws FormatException if both format information locations cannot be parsed as
      * the valid encoding of format information
      */
-    pub fn readFormatInformation(&mut self) -> Result<&FormatInformation, Exceptions> {
+    pub fn readFormatInformation(&mut self) -> Result<&FormatInformation> {
         if self.parsedFormatInfo.is_some() {
             return self
                 .parsedFormatInfo
@@ -104,7 +107,7 @@ impl BitMatrixParser {
      * @throws FormatException if both version information locations cannot be parsed as
      * the valid encoding of version information
      */
-    pub fn readVersion(&mut self) -> Result<VersionRef, Exceptions> {
+    pub fn readVersion(&mut self) -> Result<VersionRef> {
         if let Some(pv) = self.parsedVersion {
             return Ok(pv);
         }
@@ -171,7 +174,7 @@ impl BitMatrixParser {
      * @return bytes encoded within the QR Code
      * @throws FormatException if the exact number of bytes expected is not read
      */
-    pub fn readCodewords(&mut self) -> Result<Vec<u8>, Exceptions> {
+    pub fn readCodewords(&mut self) -> Result<Vec<u8>> {
         let version = self.readVersion()?;
 
         // Get the data mask for the format used in this QR Code. This will exclude
@@ -235,7 +238,7 @@ impl BitMatrixParser {
     /**
      * Revert the mask removal done while reading the code words. The bit matrix should revert to its original state.
      */
-    pub fn remask(&mut self) -> Result<(), Exceptions> {
+    pub fn remask(&mut self) -> Result<()> {
         if let Some(pfi) = &self.parsedFormatInfo {
             let dataMask: DataMask = pfi.getDataMask().try_into()?;
             let dimension = self.bitMatrix.getHeight();

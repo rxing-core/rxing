@@ -20,6 +20,7 @@
 
 use std::{cmp, fmt};
 
+use crate::common::Result;
 use crate::Exceptions;
 
 static LOAD_FACTOR: f32 = 0.75f32;
@@ -165,7 +166,7 @@ impl BitArray {
      * @param start start of range, inclusive.
      * @param end end of range, exclusive
      */
-    pub fn setRange(&mut self, start: usize, end: usize) -> Result<(), Exceptions> {
+    pub fn setRange(&mut self, start: usize, end: usize) -> Result<()> {
         let mut end = end;
         if end < start || end > self.size {
             return Err(Exceptions::IllegalArgumentException(None));
@@ -208,7 +209,7 @@ impl BitArray {
      * @return true iff all bits are set or not set in range, according to value argument
      * @throws IllegalArgumentException if end is less than start or the range is not contained in the array
      */
-    pub fn isRange(&self, start: usize, end: usize, value: bool) -> Result<bool, Exceptions> {
+    pub fn isRange(&self, start: usize, end: usize, value: bool) -> Result<bool> {
         let mut end = end;
         if end < start || end > self.size {
             return Err(Exceptions::IllegalArgumentException(None));
@@ -251,7 +252,7 @@ impl BitArray {
      * @param value {@code int} containing bits to append
      * @param numBits bits from value to append
      */
-    pub fn appendBits(&mut self, value: u32, num_bits: usize) -> Result<(), Exceptions> {
+    pub fn appendBits(&mut self, value: u32, num_bits: usize) -> Result<()> {
         if num_bits > 32 {
             return Err(Exceptions::IllegalArgumentException(Some(
                 "num bits must be between 0 and 32".to_owned(),
@@ -284,7 +285,7 @@ impl BitArray {
         }
     }
 
-    pub fn xor(&mut self, other: &BitArray) -> Result<(), Exceptions> {
+    pub fn xor(&mut self, other: &BitArray) -> Result<()> {
         if self.size != other.size {
             return Err(Exceptions::IllegalArgumentException(Some(
                 "Sizes don't match".to_owned(),

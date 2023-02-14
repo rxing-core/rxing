@@ -16,6 +16,7 @@
 
 use std::fmt;
 
+use crate::common::Result;
 use crate::{Dimension, Exceptions};
 
 use super::SymbolShapeHint;
@@ -122,7 +123,7 @@ impl SymbolInfo {
         new_symbol
     }
 
-    fn getHorizontalDataRegions(&self) -> Result<u32, Exceptions> {
+    fn getHorizontalDataRegions(&self) -> Result<u32> {
         match self.dataRegions {
             1 => Ok(1),
             2 | 4 => Ok(2),
@@ -134,7 +135,7 @@ impl SymbolInfo {
         }
     }
 
-    fn getVerticalDataRegions(&self) -> Result<u32, Exceptions> {
+    fn getVerticalDataRegions(&self) -> Result<u32> {
         match self.dataRegions {
             1 | 2 => Ok(1),
             4 => Ok(2),
@@ -146,19 +147,19 @@ impl SymbolInfo {
         }
     }
 
-    pub fn getSymbolDataWidth(&self) -> Result<u32, Exceptions> {
+    pub fn getSymbolDataWidth(&self) -> Result<u32> {
         Ok(self.getHorizontalDataRegions()? * self.matrixWidth)
     }
 
-    pub fn getSymbolDataHeight(&self) -> Result<u32, Exceptions> {
+    pub fn getSymbolDataHeight(&self) -> Result<u32> {
         Ok(self.getVerticalDataRegions()? * self.matrixHeight)
     }
 
-    pub fn getSymbolWidth(&self) -> Result<u32, Exceptions> {
+    pub fn getSymbolWidth(&self) -> Result<u32> {
         Ok(self.getSymbolDataWidth()? + (self.getHorizontalDataRegions()? * 2))
     }
 
-    pub fn getSymbolHeight(&self) -> Result<u32, Exceptions> {
+    pub fn getSymbolHeight(&self) -> Result<u32> {
         Ok(self.getSymbolDataHeight()? + (self.getVerticalDataRegions()? * 2))
     }
 
@@ -236,7 +237,7 @@ impl<'a> SymbolInfoLookup<'a> {
         self.0 = Some(override_symbols);
     }
 
-    pub fn lookup(&self, dataCodewords: u32) -> Result<Option<&'a SymbolInfo>, Exceptions> {
+    pub fn lookup(&self, dataCodewords: u32) -> Result<Option<&'a SymbolInfo>> {
         self.lookup_with_codewords_shape_fail(dataCodewords, SymbolShapeHint::FORCE_NONE, true)
     }
 
@@ -244,7 +245,7 @@ impl<'a> SymbolInfoLookup<'a> {
         &self,
         dataCodewords: u32,
         shape: SymbolShapeHint,
-    ) -> Result<Option<&'a SymbolInfo>, Exceptions> {
+    ) -> Result<Option<&'a SymbolInfo>> {
         self.lookup_with_codewords_shape_fail(dataCodewords, shape, true)
     }
 
@@ -253,7 +254,7 @@ impl<'a> SymbolInfoLookup<'a> {
         dataCodewords: u32,
         allowRectangular: bool,
         fail: bool,
-    ) -> Result<Option<&'a SymbolInfo>, Exceptions> {
+    ) -> Result<Option<&'a SymbolInfo>> {
         let shape = if allowRectangular {
             SymbolShapeHint::FORCE_NONE
         } else {
@@ -267,7 +268,7 @@ impl<'a> SymbolInfoLookup<'a> {
         dataCodewords: u32,
         shape: SymbolShapeHint,
         fail: bool,
-    ) -> Result<Option<&'a SymbolInfo>, Exceptions> {
+    ) -> Result<Option<&'a SymbolInfo>> {
         self.lookup_with_codewords_shape_size_fail(dataCodewords, shape, &None, &None, fail)
     }
 
@@ -279,7 +280,7 @@ impl<'a> SymbolInfoLookup<'a> {
         maxSize: &Option<Dimension>,
         fail: bool,
         // alternate_symbols_chart: Option<&'a Vec<SymbolInfo>>,
-    ) -> Result<Option<&'a SymbolInfo>, Exceptions> {
+    ) -> Result<Option<&'a SymbolInfo>> {
         let symbol_search_chart: &Vec<SymbolInfo> = if self.0.is_none() {
             &PROD_SYMBOLS
         } else {

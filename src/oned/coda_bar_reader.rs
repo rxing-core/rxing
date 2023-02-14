@@ -16,7 +16,7 @@
 
 use rxing_one_d_proc_derive::OneDReader;
 
-use crate::common::BitArray;
+use crate::common::{BitArray, Result};
 use crate::BarcodeFormat;
 use crate::DecodeHintValue;
 use crate::Exceptions;
@@ -54,7 +54,7 @@ impl OneDReader for CodaBarReader {
         rowNumber: u32,
         row: &crate::common::BitArray,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    ) -> Result<crate::RXingResult> {
         self.counters.fill(0);
         // Arrays.fill(counters, 0);
         self.setCounters(row)?;
@@ -228,7 +228,7 @@ impl CodaBarReader {
         }
     }
 
-    fn validatePattern(&self, start: usize) -> Result<(), Exceptions> {
+    fn validatePattern(&self, start: usize) -> Result<()> {
         // First, sum up the total size of our four categories of stripe sizes;
         let mut sizes = [0, 0, 0, 0];
         let mut counts = [0, 0, 0, 0];
@@ -305,7 +305,7 @@ impl CodaBarReader {
      * uses our builtin "counters" member for storage.
      * @param row row to count from
      */
-    fn setCounters(&mut self, row: &BitArray) -> Result<(), Exceptions> {
+    fn setCounters(&mut self, row: &BitArray) -> Result<()> {
         self.counterLength = 0;
         // Start from the first white bit.
         let mut i = row.getNextUnset(0);
@@ -339,7 +339,7 @@ impl CodaBarReader {
         }
     }
 
-    fn findStartPattern(&mut self) -> Result<u32, Exceptions> {
+    fn findStartPattern(&mut self) -> Result<u32> {
         let mut i = 1;
         while i < self.counterLength {
             // for (int i = 1; i < counterLength; i += 2) {

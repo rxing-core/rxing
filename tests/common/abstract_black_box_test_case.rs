@@ -428,7 +428,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
         expected_text: &str,
         expected_metadata: &HashMap<RXingResultMetadataType, RXingResultMetadataValue>,
         try_harder: bool,
-    ) -> Result<bool, rxing::Exceptions> {
+    ) -> Result<bool> {
         let suffix = format!(
             " ({}rotation: {})",
             if try_harder { "try harder, " } else { "" },

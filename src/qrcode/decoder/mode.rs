@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::Version;
@@ -52,7 +53,7 @@ impl Mode {
      * @return Mode encoded by these bits
      * @throws IllegalArgumentException if bits do not correspond to a known mode
      */
-    pub fn forBits(bits: u8) -> Result<Self, Exceptions> {
+    pub fn forBits(bits: u8) -> Result<Self> {
         match bits {
             0x0 => Ok(Self::TERMINATOR),
             0x1 => Ok(Self::NUMERIC),

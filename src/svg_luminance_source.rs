@@ -1,3 +1,4 @@
+use crate::common::Result;
 use crate::{BufferedImageLuminanceSource, Exceptions, LuminanceSource};
 use image::{DynamicImage, RgbaImage};
 use resvg::{self, usvg::Options};
@@ -35,7 +36,7 @@ impl LuminanceSource for SVGLuminanceSource {
         top: usize,
         width: usize,
         height: usize,
-    ) -> Result<Box<dyn LuminanceSource>, Exceptions> {
+    ) -> Result<Box<dyn LuminanceSource>> {
         self.0.crop(left, top, width, height)
     }
 
@@ -43,17 +44,17 @@ impl LuminanceSource for SVGLuminanceSource {
         self.0.isRotateSupported()
     }
 
-    fn rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>, Exceptions> {
+    fn rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>> {
         self.0.rotateCounterClockwise()
     }
 
-    fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>, Exceptions> {
+    fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>> {
         self.0.rotateCounterClockwise45()
     }
 }
 
 impl SVGLuminanceSource {
-    pub fn new(svg_data: &[u8]) -> Result<Self, Exceptions> {
+    pub fn new(svg_data: &[u8]) -> Result<Self> {
         // Load the SVG file
         let Ok(tree) = resvg::usvg::Tree::from_data(svg_data, &Options::default()) else {
             return Err(Exceptions::FormatException(Some(format!("could not parse svg data: {}", "err"))));

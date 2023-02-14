@@ -17,7 +17,8 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::BitMatrix, BarcodeFormat, EncodeHintType, EncodeHintValue, Exceptions, Writer,
+    common::{BitMatrix, Result},
+    BarcodeFormat, EncodeHintType, EncodeHintValue, Exceptions, Writer,
 };
 
 use super::encoder::PDF417;
@@ -46,7 +47,7 @@ impl Writer for PDF417Writer {
         format: &crate::BarcodeFormat,
         width: i32,
         height: i32,
-    ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+    ) -> Result<crate::common::BitMatrix> {
         self.encode_with_hints(contents, format, width, height, &HashMap::new())
     }
 
@@ -57,7 +58,7 @@ impl Writer for PDF417Writer {
         width: i32,
         height: i32,
         hints: &crate::EncodingHintDictionary,
-    ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+    ) -> Result<crate::common::BitMatrix> {
         if format != &BarcodeFormat::PDF_417 {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "Can only encode PDF_417, but got {format}"
@@ -142,7 +143,7 @@ impl PDF417Writer {
         height: u32,
         margin: u32,
         autoECI: bool,
-    ) -> Result<BitMatrix, Exceptions> {
+    ) -> Result<BitMatrix> {
         encoder.generateBarcodeLogicWithAutoECI(contents, errorCorrectionLevel, autoECI)?;
 
         let aspectRatio = 4;

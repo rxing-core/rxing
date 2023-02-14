@@ -17,7 +17,8 @@
 use regex::Regex;
 
 use crate::{
-    client::result::VINParsedRXingResult, exceptions::Exceptions, BarcodeFormat, RXingResult,
+    client::result::VINParsedRXingResult, common::Result, exceptions::Exceptions, BarcodeFormat,
+    RXingResult,
 };
 
 use super::ParsedClientResult;
@@ -67,7 +68,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
 const IOQ: &str = "[IOQ]";
 const AZ09: &str = "[A-Z0-9]{17}";
 
-fn check_checksum(vin: &str) -> Result<bool, Exceptions> {
+fn check_checksum(vin: &str) -> Result<bool> {
     let mut sum = 0;
     for i in 0..vin.len() {
         sum += vin_position_weight(i + 1)? as u32
@@ -85,7 +86,7 @@ fn check_checksum(vin: &str) -> Result<bool, Exceptions> {
     Ok(check_to_char == expected_check_char)
 }
 
-fn vin_char_value(c: char) -> Result<u32, Exceptions> {
+fn vin_char_value(c: char) -> Result<u32> {
     match c {
         'A'..='I' => Ok((c as u8 as u32 - b'A' as u32) + 1),
         'J'..='R' => Ok((c as u8 as u32 - b'J' as u32) + 1),
@@ -97,7 +98,7 @@ fn vin_char_value(c: char) -> Result<u32, Exceptions> {
     }
 }
 
-fn vin_position_weight(position: usize) -> Result<usize, Exceptions> {
+fn vin_position_weight(position: usize) -> Result<usize> {
     match position {
         1..=7 => Ok(9 - position),
         8 => Ok(10),
@@ -109,7 +110,7 @@ fn vin_position_weight(position: usize) -> Result<usize, Exceptions> {
     }
 }
 
-fn check_char(remainder: u8) -> Result<char, Exceptions> {
+fn check_char(remainder: u8) -> Result<char> {
     match remainder {
         0..=9 => Ok((b'0' + remainder) as char),
         10 => Ok('X'),
@@ -119,7 +120,7 @@ fn check_char(remainder: u8) -> Result<char, Exceptions> {
     }
 }
 
-fn model_year(c: char) -> Result<u32, Exceptions> {
+fn model_year(c: char) -> Result<u32> {
     match c {
         'E'..='H' => Ok((c as u8 as u32 - b'E' as u32) + 1984),
         'J'..='N' => Ok((c as u8 as u32 - b'J' as u32) + 1988),

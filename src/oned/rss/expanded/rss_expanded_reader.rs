@@ -27,7 +27,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::BitArray,
+    common::{BitArray, Result},
     oned::{
         recordPattern, recordPatternInReverse,
         rss::{
@@ -156,7 +156,7 @@ impl OneDReader for RSSExpandedReader {
         rowNumber: u32,
         row: &crate::common::BitArray,
         _hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    ) -> Result<crate::RXingResult> {
         // Rows can start with even pattern in case in prev rows there where odd number of patters.
         // So lets try twice
         self.pairs.clear();
@@ -173,10 +173,7 @@ impl OneDReader for RSSExpandedReader {
     }
 }
 impl Reader for RSSExpandedReader {
-    fn decode(
-        &mut self,
-        image: &mut crate::BinaryBitmap,
-    ) -> Result<crate::RXingResult, Exceptions> {
+    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
@@ -185,7 +182,7 @@ impl Reader for RSSExpandedReader {
         &mut self,
         image: &mut crate::BinaryBitmap,
         hints: &DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, Exceptions> {
+    ) -> Result<crate::RXingResult> {
         if let Ok(res) = self.doDecode(image, hints) {
             Ok(res)
         } else {
@@ -289,7 +286,7 @@ impl RSSExpandedReader {
         &mut self,
         rowNumber: u32,
         row: &BitArray,
-    ) -> Result<Vec<ExpandedPair>, Exceptions> {
+    ) -> Result<Vec<ExpandedPair>> {
         let mut done = false;
         while !done {
             let previousPairs = self.pairs.clone();
@@ -372,7 +369,7 @@ impl RSSExpandedReader {
         &mut self,
         collectedRows: &mut Vec<ExpandedRow>,
         currentRow: usize,
-    ) -> Result<Vec<ExpandedPair>, Exceptions> {
+    ) -> Result<Vec<ExpandedPair>> {
         for i in currentRow..self.rows.len() {
             // for (int i = currentRow; i < rows.size(); i++) {
             let row = self
@@ -535,7 +532,7 @@ impl RSSExpandedReader {
     }
 
     // Not private for unit testing
-    pub(crate) fn constructRXingResult(pairs: &[ExpandedPair]) -> Result<RXingResult, Exceptions> {
+    pub(crate) fn constructRXingResult(pairs: &[ExpandedPair]) -> Result<RXingResult> {
         let binary = bit_array_builder::buildBitArray(&pairs.to_vec())
             .ok_or(Exceptions::IllegalStateException(None))?;
 
@@ -625,7 +622,7 @@ impl RSSExpandedReader {
         row: &BitArray,
         previousPairs: &[ExpandedPair],
         rowNumber: u32,
-    ) -> Result<ExpandedPair, Exceptions> {
+    ) -> Result<ExpandedPair> {
         let mut isOddPattern = previousPairs.len() % 2 == 0;
         if self.startFromEven {
             isOddPattern = !isOddPattern;
@@ -688,7 +685,7 @@ impl RSSExpandedReader {
         row: &BitArray,
         previousPairs: &[ExpandedPair],
         forcedOffset: i32,
-    ) -> Result<(), Exceptions> {
+    ) -> Result<()> {
         let counters = &mut self.decodeFinderCounters;
         counters.fill(0);
         // counters[0] = 0;
@@ -830,7 +827,7 @@ impl RSSExpandedReader {
         pattern: &FinderPattern,
         isOddPattern: bool,
         leftChar: bool,
-    ) -> Result<DataCharacter, Exceptions> {
+    ) -> Result<DataCharacter> {
         let counters = &mut self.dataCharacterCounters;
         counters.fill(0);
 
@@ -934,7 +931,7 @@ impl RSSExpandedReader {
         !(pattern.getValue() == 0 && isOddPattern && leftChar)
     }
 
-    fn adjustOddEvenCounts(&mut self, numModules: u32) -> Result<(), Exceptions> {
+    fn adjustOddEvenCounts(&mut self, numModules: u32) -> Result<()> {
         let oddSum = self.oddCounts.iter().sum::<u32>();
         let evenSum = self.evenCounts.iter().sum::<u32>();
 

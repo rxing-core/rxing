@@ -30,7 +30,10 @@
 use once_cell::sync::Lazy;
 use regex::Regex;
 
-use crate::{common::BitArray, Exceptions};
+use crate::{
+    common::{BitArray, Result},
+    Exceptions,
+};
 
 static ONE: Lazy<Regex> = Lazy::new(|| Regex::new("1").unwrap());
 static ZERO: Lazy<Regex> = Lazy::new(|| Regex::new("0").unwrap());
@@ -39,7 +42,7 @@ static SPACE: Lazy<Regex> = Lazy::new(|| Regex::new(" ").unwrap());
 /*
  * Constructs a BitArray from a String like the one returned from BitArray.toString()
  */
-pub fn buildBitArrayFromString(data: &str) -> Result<BitArray, Exceptions> {
+pub fn buildBitArrayFromString(data: &str) -> Result<BitArray> {
     let dotsAndXs = ZERO
         .replace_all(&ONE.replace_all(data, "X"), ".")
         .to_string();
@@ -75,7 +78,7 @@ pub fn buildBitArrayFromString(data: &str) -> Result<BitArray, Exceptions> {
     Ok(binary)
 }
 
-pub fn buildBitArrayFromStringWithoutSpaces(data: &str) -> Result<BitArray, Exceptions> {
+pub fn buildBitArrayFromStringWithoutSpaces(data: &str) -> Result<BitArray> {
     let mut sb = String::new();
 
     // let dotsAndXs = ZERO.matcher(ONE.matcher(data).replaceAll("X")).replaceAll(".");

@@ -6,7 +6,7 @@ use std::{
 };
 
 use crate::{
-    common::{BitMatrix, HybridBinarizer},
+    common::{BitMatrix, HybridBinarizer, Result},
     multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
     BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
     Exceptions, Luma8LuminanceSource, MultiFormatReader, RXingResult, Reader,
@@ -16,10 +16,7 @@ use crate::{
 use crate::BufferedImageLuminanceSource;
 
 #[cfg(feature = "svg_read")]
-pub fn detect_in_svg(
-    file_name: &str,
-    barcode_type: Option<BarcodeFormat>,
-) -> Result<RXingResult, Exceptions> {
+pub fn detect_in_svg(file_name: &str, barcode_type: Option<BarcodeFormat>) -> Result<RXingResult> {
     detect_in_svg_with_hints(file_name, barcode_type, &mut HashMap::new())
 }
 
@@ -28,7 +25,7 @@ pub fn detect_in_svg_with_hints(
     file_name: &str,
     barcode_type: Option<BarcodeFormat>,
     hints: &mut DecodingHintDictionary,
-) -> Result<RXingResult, Exceptions> {
+) -> Result<RXingResult> {
     use std::{fs::File, io::Read};
 
     use crate::SVGLuminanceSource;
@@ -73,7 +70,7 @@ pub fn detect_in_svg_with_hints(
 }
 
 #[cfg(feature = "svg_read")]
-pub fn detect_multiple_in_svg(file_name: &str) -> Result<Vec<RXingResult>, Exceptions> {
+pub fn detect_multiple_in_svg(file_name: &str) -> Result<Vec<RXingResult>> {
     detect_multiple_in_svg_with_hints(file_name, &mut HashMap::new())
 }
 
@@ -81,7 +78,7 @@ pub fn detect_multiple_in_svg(file_name: &str) -> Result<Vec<RXingResult>, Excep
 pub fn detect_multiple_in_svg_with_hints(
     file_name: &str,
     hints: &mut DecodingHintDictionary,
-) -> Result<Vec<RXingResult>, Exceptions> {
+) -> Result<Vec<RXingResult>> {
     use std::{fs::File, io::Read};
 
     use crate::SVGLuminanceSource;
@@ -120,10 +117,7 @@ pub fn detect_multiple_in_svg_with_hints(
 }
 
 #[cfg(feature = "image")]
-pub fn detect_in_file(
-    file_name: &str,
-    barcode_type: Option<BarcodeFormat>,
-) -> Result<RXingResult, Exceptions> {
+pub fn detect_in_file(file_name: &str, barcode_type: Option<BarcodeFormat>) -> Result<RXingResult> {
     detect_in_file_with_hints(file_name, barcode_type, &mut HashMap::new())
 }
 
@@ -132,7 +126,7 @@ pub fn detect_in_file_with_hints(
     file_name: &str,
     barcode_type: Option<BarcodeFormat>,
     hints: &mut DecodingHintDictionary,
-) -> Result<RXingResult, Exceptions> {
+) -> Result<RXingResult> {
     let Ok(img) = image::open(file_name) else {
         return Err(Exceptions::IllegalArgumentException(Some(format!("file '{file_name}' not found or cannot be opened"))));
     };
@@ -158,7 +152,7 @@ pub fn detect_in_file_with_hints(
 }
 
 #[cfg(feature = "image")]
-pub fn detect_multiple_in_file(file_name: &str) -> Result<Vec<RXingResult>, Exceptions> {
+pub fn detect_multiple_in_file(file_name: &str) -> Result<Vec<RXingResult>> {
     detect_multiple_in_file_with_hints(file_name, &mut HashMap::new())
 }
 
@@ -166,7 +160,7 @@ pub fn detect_multiple_in_file(file_name: &str) -> Result<Vec<RXingResult>, Exce
 pub fn detect_multiple_in_file_with_hints(
     file_name: &str,
     hints: &mut DecodingHintDictionary,
-) -> Result<Vec<RXingResult>, Exceptions> {
+) -> Result<Vec<RXingResult>> {
     let img = image::open(file_name).map_err(|e| {
         Exceptions::RuntimeException(Some(format!("couldn't read {file_name}: {e}")))
     })?;
@@ -190,7 +184,7 @@ pub fn detect_in_luma(
     width: u32,
     height: u32,
     barcode_type: Option<BarcodeFormat>,
-) -> Result<RXingResult, Exceptions> {
+) -> Result<RXingResult> {
     detect_in_luma_with_hints(luma, height, width, barcode_type, &mut HashMap::new())
 }
 
@@ -200,7 +194,7 @@ pub fn detect_in_luma_with_hints(
     height: u32,
     barcode_type: Option<BarcodeFormat>,
     hints: &mut DecodingHintDictionary,
-) -> Result<RXingResult, Exceptions> {
+) -> Result<RXingResult> {
     let mut multi_format_reader = MultiFormatReader::default();
 
     if let Some(bc_type) = barcode_type {
@@ -222,11 +216,7 @@ pub fn detect_in_luma_with_hints(
     )
 }
 
-pub fn detect_multiple_in_luma(
-    luma: Vec<u8>,
-    width: u32,
-    height: u32,
-) -> Result<Vec<RXingResult>, Exceptions> {
+pub fn detect_multiple_in_luma(luma: Vec<u8>, width: u32, height: u32) -> Result<Vec<RXingResult>> {
     detect_multiple_in_luma_with_hints(luma, width, height, &mut HashMap::new())
 }
 
@@ -235,7 +225,7 @@ pub fn detect_multiple_in_luma_with_hints(
     width: u32,
     height: u32,
     hints: &mut DecodingHintDictionary,
-) -> Result<Vec<RXingResult>, Exceptions> {
+) -> Result<Vec<RXingResult>> {
     let multi_format_reader = MultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
@@ -252,7 +242,7 @@ pub fn detect_multiple_in_luma_with_hints(
 }
 
 #[cfg(feature = "image")]
-pub fn save_image(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Exceptions> {
+pub fn save_image(file_name: &str, bit_matrix: &BitMatrix) -> Result<()> {
     let image: image::DynamicImage = bit_matrix.into();
     match image.save(file_name) {
         Ok(_) => Ok(()),
@@ -263,7 +253,7 @@ pub fn save_image(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Excepti
 }
 
 #[cfg(feature = "svg_write")]
-pub fn save_svg(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Exceptions> {
+pub fn save_svg(file_name: &str, bit_matrix: &BitMatrix) -> Result<()> {
     let svg: svg::Document = bit_matrix.into();
 
     match svg::save(file_name, &svg) {
@@ -275,7 +265,7 @@ pub fn save_svg(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Exception
     }
 }
 
-pub fn save_file(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Exceptions> {
+pub fn save_file(file_name: &str, bit_matrix: &BitMatrix) -> Result<()> {
     let path = PathBuf::from(file_name);
 
     #[allow(unused_variables)]

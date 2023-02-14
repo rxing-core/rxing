@@ -1,4 +1,5 @@
-use crate::{Exceptions, RXingResultPoint};
+use crate::common::Result;
+use crate::RXingResultPoint;
 
 pub trait RegressionLine {
     //     points: Vec<RXingResultPoint>,
@@ -76,12 +77,12 @@ pub trait RegressionLine {
     // 	a = b = c = NAN;
     // }
 
-    fn add(&mut self, p: &RXingResultPoint) -> Result<(), Exceptions>; //{
-                                                                       // 	assert(_directionInward != PointF());
-                                                                       // 	_points.push_back(p);
-                                                                       // 	if (_points.size() == 1)
-                                                                       // 		c = dot(normal(), p);
-                                                                       // }
+    fn add(&mut self, p: &RXingResultPoint) -> Result<()>; //{
+                                                           // 	assert(_directionInward != PointF());
+                                                           // 	_points.push_back(p);
+                                                           // 	if (_points.size() == 1)
+                                                           // 		c = dot(normal(), p);
+                                                           // }
 
     fn pop_back(&mut self); // { _points.pop_back(); }
 

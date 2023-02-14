@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::ByteMatrix;
@@ -154,7 +155,7 @@ pub fn applyMaskPenaltyRule4(matrix: &ByteMatrix) -> u32 {
  * Return the mask bit for "getMaskPattern" at "x" and "y". See 8.8 of JISX0510:2004 for mask
  * pattern conditions.
  */
-pub fn getDataMaskBit(maskPattern: u32, x: u32, y: u32) -> Result<bool, Exceptions> {
+pub fn getDataMaskBit(maskPattern: u32, x: u32, y: u32) -> Result<bool> {
     let intermediate = match maskPattern {
         0 => (y + x) & 0x1,
         1 => y & 0x1,

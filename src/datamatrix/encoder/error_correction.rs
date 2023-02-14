@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::SymbolInfo;
@@ -152,7 +153,7 @@ const ALOG: [u32; 255] = {
  * @param symbolInfo information about the symbol to be encoded
  * @return the codewords with interleaved error correction.
  */
-pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String, Exceptions> {
+pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String> {
     if codewords.chars().count() != symbolInfo.getDataCapacity() as usize {
         return Err(Exceptions::IllegalArgumentException(Some(
             "The number of codewords does not match the selected symbol".to_owned(),
@@ -217,7 +218,7 @@ pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String, 
     Ok(sb)
 }
 
-fn createECCBlock(codewords: &str, numECWords: usize) -> Result<String, Exceptions> {
+fn createECCBlock(codewords: &str, numECWords: usize) -> Result<String> {
     let mut table = -1_isize;
     for (i, set) in FACTOR_SETS.iter().enumerate() {
         // for i in 0..FACTOR_SETS.len() {

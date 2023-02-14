@@ -24,7 +24,7 @@
  *   http://www.piramidepse.com/
  */
 
-use crate::common::BitArray;
+use crate::common::{BitArray, Result};
 
 use super::{AI01decoder, AbstractExpandedDecoder, GeneralAppIdDecoder};
 
@@ -35,7 +35,7 @@ use super::{AI01decoder, AbstractExpandedDecoder, GeneralAppIdDecoder};
 pub struct AI01AndOtherAIs<'a>(&'a BitArray, GeneralAppIdDecoder<'a>);
 impl AI01decoder for AI01AndOtherAIs<'_> {}
 impl AbstractExpandedDecoder for AI01AndOtherAIs<'_> {
-    fn parseInformation(&mut self) -> Result<String, crate::Exceptions> {
+    fn parseInformation(&mut self) -> Result<String> {
         let mut buff = String::new();
 
         buff.push_str("(01)");

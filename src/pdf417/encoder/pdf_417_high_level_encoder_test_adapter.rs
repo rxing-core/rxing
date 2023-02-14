@@ -16,7 +16,7 @@
 
 use encoding::EncodingRef;
 
-use crate::Exceptions;
+use crate::common::Result;
 
 use super::{pdf_417_high_level_encoder, Compaction};
 
@@ -29,6 +29,6 @@ pub fn encodeHighLevel(
     compaction: Compaction,
     encoding: Option<EncodingRef>,
     autoECI: bool,
-) -> Result<String, Exceptions> {
+) -> Result<String> {
     pdf_417_high_level_encoder::encodeHighLevel(msg, compaction, encoding, autoECI)
 }

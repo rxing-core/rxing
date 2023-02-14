@@ -24,7 +24,10 @@
  *   http://www.piramidepse.com/
  */
 
-use crate::{common::BitArray, Exceptions};
+use crate::{
+    common::{BitArray, Result},
+    Exceptions,
+};
 
 use super::{
     field_parser, BlockParsedRXingResult, CurrentParsingState, DecodedChar, DecodedInformation,
@@ -50,11 +53,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         }
     }
 
-    pub fn decodeAllCodes(
-        &mut self,
-        buff: String,
-        initialPosition: usize,
-    ) -> Result<String, Exceptions> {
+    pub fn decodeAllCodes(&mut self, buff: String, initialPosition: usize) -> Result<String> {
         let mut buff = buff;
         let mut currentPosition = initialPosition;
         let mut remaining = String::default();
@@ -97,7 +96,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         self.information.get(pos + 3)
     }
 
-    fn decodeNumeric(&self, pos: usize) -> Result<DecodedNumeric, Exceptions> {
+    fn decodeNumeric(&self, pos: usize) -> Result<DecodedNumeric> {
         if pos + 7 > self.information.getSize() {
             let numeric = self.extractNumericValueFromBitArray(pos, 4);
             if numeric == 0 {
@@ -144,7 +143,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         &mut self,
         pos: usize,
         remaining: &str,
-    ) -> Result<DecodedInformation, Exceptions> {
+    ) -> Result<DecodedInformation> {
         self.buffer.clear();
 
         if !remaining.is_empty() {
@@ -168,7 +167,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         ))
     }
 
-    fn parseBlocks(&mut self) -> Result<DecodedInformation, Exceptions> {
+    fn parseBlocks(&mut self) -> Result<DecodedInformation> {
         let mut isFinished;
         let mut result: BlockParsedRXingResult;
         loop {
@@ -203,7 +202,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         }
     }
 
-    fn parseNumericBlock(&mut self) -> Result<BlockParsedRXingResult, Exceptions> {
+    fn parseNumericBlock(&mut self) -> Result<BlockParsedRXingResult> {
         while self.isStillNumeric(self.current.getPosition()) {
             let numeric = self.decodeNumeric(self.current.getPosition())?;
             self.current.setPosition(numeric.getNewPosition());
@@ -244,7 +243,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         Ok(BlockParsedRXingResult::new())
     }
 
-    fn parseIsoIec646Block(&mut self) -> Result<BlockParsedRXingResult, Exceptions> {
+    fn parseIsoIec646Block(&mut self) -> Result<BlockParsedRXingResult> {
         while self.isStillIsoIec646(self.current.getPosition()) {
             let iso = self.decodeIsoIec646(self.current.getPosition())?;
             self.current.setPosition(iso.getNewPosition());
@@ -275,7 +274,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         Ok(BlockParsedRXingResult::new())
     }
 
-    fn parseAlphaBlock(&mut self) -> Result<BlockParsedRXingResult, Exceptions> {
+    fn parseAlphaBlock(&mut self) -> Result<BlockParsedRXingResult> {
         while self.isStillAlpha(self.current.getPosition()) {
             let alpha = self.decodeAlphanumeric(self.current.getPosition())?;
             self.current.setPosition(alpha.getNewPosition());
@@ -336,7 +335,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         (232..253).contains(&eightBitValue)
     }
 
-    fn decodeIsoIec646(&self, pos: usize) -> Result<DecodedChar, Exceptions> {
+    fn decodeIsoIec646(&self, pos: usize) -> Result<DecodedChar> {
         let fiveBitValue = self.extractNumericValueFromBitArray(pos, 5);
         if fiveBitValue == 15 {
             return Ok(DecodedChar::new(pos + 5, DecodedChar::FNC1));
@@ -415,7 +414,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         (16..63).contains(&sixBitValue) // 63 not included
     }
 
-    fn decodeAlphanumeric(&self, pos: usize) -> Result<DecodedChar, Exceptions> {
+    fn decodeAlphanumeric(&self, pos: usize) -> Result<DecodedChar> {
         let fiveBitValue = self.extractNumericValueFromBitArray(pos, 5);
         if fiveBitValue == 15 {
             return Ok(DecodedChar::new(pos + 5, DecodedChar::FNC1));

@@ -23,7 +23,7 @@ use std::{any::TypeId, fmt::Display, str::FromStr};
 use encoding::EncodingRef;
 
 use crate::{
-    common::{CharacterSetECI, ECIInput, MinimalECIInput},
+    common::{CharacterSetECI, ECIInput, MinimalECIInput, Result},
     Exceptions,
 };
 
@@ -176,7 +176,7 @@ pub fn encodeHighLevel(
     compaction: Compaction,
     encoding: Option<EncodingRef>,
     autoECI: bool,
-) -> Result<String, Exceptions> {
+) -> Result<String> {
     let mut encoding = encoding;
     if msg.is_empty() {
         return Err(Exceptions::WriterException(Some(
@@ -368,7 +368,7 @@ fn encodeText<T: ECIInput + ?Sized>(
     count: u32,
     sb: &mut String,
     initialSubmode: u32,
-) -> Result<u32, Exceptions> {
+) -> Result<u32> {
     let mut tmp = String::with_capacity(count as usize);
     let mut submode = initialSubmode;
     let mut idx = 0;
@@ -531,7 +531,7 @@ fn encodeMultiECIBinary<T: ECIInput + ?Sized>(
     count: u32,
     startmode: u32,
     sb: &mut String,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     let end = (startpos + count).min(input.length() as u32);
     let mut localStart = startpos;
     loop {
@@ -570,11 +570,7 @@ fn encodeMultiECIBinary<T: ECIInput + ?Sized>(
     Ok(())
 }
 
-pub fn subBytes<T: ECIInput + ?Sized>(
-    input: &Box<T>,
-    start: u32,
-    end: u32,
-) -> Result<Vec<u8>, Exceptions> {
+pub fn subBytes<T: ECIInput + ?Sized>(input: &Box<T>, start: u32, end: u32) -> Result<Vec<u8>> {
     let count = (end - start) as usize;
     let mut result = vec![0_u8; count];
     for i in start as usize..end as usize {
@@ -600,7 +596,7 @@ fn encodeBinary(
     count: u32,
     startmode: u32,
     sb: &mut String,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     if count == 1 && startmode == TEXT_COMPACTION {
         sb.push(char::from_u32(SHIFT_TO_BYTE).ok_or(Exceptions::ParseException(None))?);
     } else if (count % 6) == 0 {
@@ -641,7 +637,7 @@ fn encodeNumeric<T: ECIInput + ?Sized>(
     startpos: u32,
     count: u32,
     sb: &mut String,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     let mut idx = 0;
     let mut tmp = String::with_capacity(count as usize / 3 + 1);
     let NUM900: num::BigUint = num::BigUint::from(900_u16); //.ok_or(Exceptions::ParseException(None))?;
@@ -723,7 +719,7 @@ fn isText(ch: char) -> bool {
 fn determineConsecutiveDigitCount<T: ECIInput + ?Sized>(
     input: &Box<T>,
     startpos: u32,
-) -> Result<u32, Exceptions> {
+) -> Result<u32> {
     let mut count = 0;
     let len = input.length();
     let mut idx = startpos as usize;
@@ -747,7 +743,7 @@ fn determineConsecutiveDigitCount<T: ECIInput + ?Sized>(
 fn determineConsecutiveTextCount<T: ECIInput + ?Sized>(
     input: &Box<T>,
     startpos: u32,
-) -> Result<u32, Exceptions> {
+) -> Result<u32> {
     let len = input.length();
     let mut idx = startpos as usize;
     while idx < len {
@@ -789,7 +785,7 @@ fn determineConsecutiveBinaryCount<T: ECIInput + ?Sized + 'static>(
     input: &Box<T>,
     startpos: u32,
     encoding: Option<EncodingRef>,
-) -> Result<u32, Exceptions> {
+) -> Result<u32> {
     let len = input.length();
     let mut idx = startpos as usize;
     while idx < len {
@@ -834,7 +830,7 @@ fn determineConsecutiveBinaryCount<T: ECIInput + ?Sized + 'static>(
     Ok(idx as u32 - startpos)
 }
 
-fn encodingECI(eci: i32, sb: &mut String) -> Result<(), Exceptions> {
+fn encodingECI(eci: i32, sb: &mut String) -> Result<()> {
     if (0..900).contains(&eci) {
         sb.push(char::from_u32(ECI_CHARSET).ok_or(Exceptions::ParseException(None))?);
         sb.push(char::from_u32(eci as u32).ok_or(Exceptions::ParseException(None))?);
@@ -859,27 +855,27 @@ impl ECIInput for NoECIInput {
         self.0.chars().count()
     }
 
-    fn charAt(&self, index: usize) -> Result<char, Exceptions> {
+    fn charAt(&self, index: usize) -> Result<char> {
         self.0
             .chars()
             .nth(index)
             .ok_or(Exceptions::IndexOutOfBoundsException(None))
     }
 
-    fn subSequence(&self, start: usize, end: usize) -> Result<Vec<char>, Exceptions> {
+    fn subSequence(&self, start: usize, end: usize) -> Result<Vec<char>> {
         let res: Vec<char> = self.0.chars().skip(start).take(end - start).collect();
         Ok(res)
     }
 
-    fn isECI(&self, _index: u32) -> Result<bool, Exceptions> {
+    fn isECI(&self, _index: u32) -> Result<bool> {
         Ok(false)
     }
 
-    fn getECIValue(&self, _index: usize) -> Result<i32, Exceptions> {
+    fn getECIValue(&self, _index: usize) -> Result<i32> {
         Ok(-1)
     }
 
-    fn haveNCharacters(&self, index: usize, n: usize) -> Result<bool, Exceptions> {
+    fn haveNCharacters(&self, index: usize, n: usize) -> Result<bool> {
         Ok(index + n <= self.0.len())
     }
 }

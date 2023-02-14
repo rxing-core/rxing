@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::common::Result;
 use crate::Exceptions;
 
 const EMPTY_BIT_VAL: u8 = 13;
@@ -73,7 +74,7 @@ impl DefaultPlacement {
         self.bits[row * self.numcols + col] == EMPTY_BIT_VAL
     }
 
-    pub fn place(&mut self) -> Result<(), Exceptions> {
+    pub fn place(&mut self) -> Result<()> {
         let mut pos = 0;
         let mut row = 4_isize;
         let mut col = 0_isize;
@@ -147,7 +148,7 @@ impl DefaultPlacement {
         Ok(())
     }
 
-    fn module(&mut self, row: isize, col: isize, pos: usize, bit: u32) -> Result<(), Exceptions> {
+    fn module(&mut self, row: isize, col: isize, pos: usize, bit: u32) -> Result<()> {
         let mut row = row;
         let mut col = col;
 
@@ -178,7 +179,7 @@ impl DefaultPlacement {
      * @param col the column
      * @param pos character position
      */
-    fn utah(&mut self, row: isize, col: isize, pos: usize) -> Result<(), Exceptions> {
+    fn utah(&mut self, row: isize, col: isize, pos: usize) -> Result<()> {
         self.module(row - 2, col - 2, pos, 1)?;
         self.module(row - 2, col - 1, pos, 2)?;
         self.module(row - 1, col - 2, pos, 3)?;
@@ -190,7 +191,7 @@ impl DefaultPlacement {
         Ok(())
     }
 
-    fn corner1(&mut self, pos: usize) -> Result<(), Exceptions> {
+    fn corner1(&mut self, pos: usize) -> Result<()> {
         self.module(self.numrows as isize - 1, 0, pos, 1)?;
         self.module(self.numrows as isize - 1, 1, pos, 2)?;
         self.module(self.numrows as isize - 1, 2, pos, 3)?;
@@ -202,7 +203,7 @@ impl DefaultPlacement {
         Ok(())
     }
 
-    fn corner2(&mut self, pos: usize) -> Result<(), Exceptions> {
+    fn corner2(&mut self, pos: usize) -> Result<()> {
         self.module(self.numrows as isize - 3, 0, pos, 1)?;
         self.module(self.numrows as isize - 2, 0, pos, 2)?;
         self.module(self.numrows as isize - 1, 0, pos, 3)?;
@@ -214,7 +215,7 @@ impl DefaultPlacement {
         Ok(())
     }
 
-    fn corner3(&mut self, pos: usize) -> Result<(), Exceptions> {
+    fn corner3(&mut self, pos: usize) -> Result<()> {
         self.module(self.numrows as isize - 3, 0, pos, 1)?;
         self.module(self.numrows as isize - 2, 0, pos, 2)?;
         self.module(self.numrows as isize - 1, 0, pos, 3)?;
@@ -226,7 +227,7 @@ impl DefaultPlacement {
         Ok(())
     }
 
-    fn corner4(&mut self, pos: usize) -> Result<(), Exceptions> {
+    fn corner4(&mut self, pos: usize) -> Result<()> {
         self.module(self.numrows as isize - 1, 0, pos, 1)?;
         self.module(self.numrows as isize - 1, self.numcols as isize - 1, pos, 2)?;
         self.module(0, self.numcols as isize - 3, pos, 3)?;

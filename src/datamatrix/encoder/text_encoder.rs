@@ -15,6 +15,7 @@
  */
 
 use super::{high_level_encoder, C40Encoder, Encoder};
+use crate::common::Result;
 
 pub struct TextEncoder(C40Encoder);
 impl Encoder for TextEncoder {
@@ -22,7 +23,7 @@ impl Encoder for TextEncoder {
         high_level_encoder::TEXT_ENCODATION
     }
 
-    fn encode(&self, context: &mut super::EncoderContext) -> Result<(), crate::Exceptions> {
+    fn encode(&self, context: &mut super::EncoderContext) -> Result<()> {
         self.0.encode_with_encode_char_fn(
             context,
             &Self::encodeChar,

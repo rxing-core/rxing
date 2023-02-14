@@ -18,7 +18,7 @@
 
 use std::fmt::Display;
 
-use crate::Exceptions;
+use crate::common::Result;
 
 /**
  * Interface to navigate a sequence of ECIs and bytes.
@@ -50,7 +50,7 @@ pub trait ECIInput: Display {
      * @throws  IllegalArgumentException
      *          if the value at the {@code index} argument is an ECI (@see #isECI)
      */
-    fn charAt(&self, index: usize) -> Result<char, Exceptions>;
+    fn charAt(&self, index: usize) -> Result<char>;
 
     /**
      * Returns a {@code CharSequence} that is a subsequence of this sequence.
@@ -72,7 +72,7 @@ pub trait ECIInput: Display {
      * @throws  IllegalArgumentException
      *          if a value in the range {@code start}-{@code end} is an ECI (@see #isECI)
      */
-    fn subSequence(&self, start: usize, end: usize) -> Result<Vec<char>, Exceptions>;
+    fn subSequence(&self, start: usize, end: usize) -> Result<Vec<char>>;
 
     /**
      * Determines if a value is an ECI
@@ -85,7 +85,7 @@ pub trait ECIInput: Display {
      *          if the {@code index} argument is negative or not less than
      *          {@code length()}
      */
-    fn isECI(&self, index: u32) -> Result<bool, Exceptions>;
+    fn isECI(&self, index: u32) -> Result<bool>;
 
     /**
      * Returns the {@code int} ECI value at the specified index.  An index ranges from zero
@@ -105,6 +105,6 @@ pub trait ECIInput: Display {
      * @throws  IllegalArgumentException
      *          if the value at the {@code index} argument is not an ECI (@see #isECI)
      */
-    fn getECIValue(&self, index: usize) -> Result<i32, Exceptions>;
-    fn haveNCharacters(&self, index: usize, n: usize) -> Result<bool, Exceptions>;
+    fn getECIValue(&self, index: usize) -> Result<i32>;
+    fn haveNCharacters(&self, index: usize, n: usize) -> Result<bool>;
 }

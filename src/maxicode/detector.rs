@@ -4,6 +4,7 @@ use num::integer::Roots;
 use crate::{
     common::{
         detector::MathUtils, BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler,
+        Result,
     },
     Exceptions, RXingResultPoint,
 };
@@ -315,7 +316,7 @@ impl Circle<'_> {
     }
 }
 
-pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionResult, Exceptions> {
+pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionResult> {
     // find concentric circles
     let Some( mut circles) = find_concentric_circles(image) else {
         return Err(Exceptions::NotFoundException(None));
@@ -711,10 +712,7 @@ const LEFT_SHIFT_PERCENT_ADJUST: f32 = 0.03;
 const RIGHT_SHIFT_PERCENT_ADJUST: f32 = 0.03;
 const ACCEPTED_SCALES: [f64; 5] = [0.065, 0.069, 0.07, 0.075, 0.08];
 
-fn box_symbol(
-    image: &BitMatrix,
-    circle: &mut Circle,
-) -> Result<([(f32, f32); 4], f32), Exceptions> {
+fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<([(f32, f32); 4], f32)> {
     let (left_boundary, right_boundary, top_boundary, bottom_boundary) =
         calculate_simple_boundary(circle, Some(image), None, false);
 
@@ -1051,7 +1049,7 @@ fn compare_circle(a: &Circle, b: &Circle) -> std::cmp::Ordering {
 }
 
 /// Read appropriate bits from a bitmatrix for the maxicode decoder
-pub fn read_bits(image: &BitMatrix) -> Result<BitMatrix, Exceptions> {
+pub fn read_bits(image: &BitMatrix) -> Result<BitMatrix> {
     let enclosingRectangle = image
         .getEnclosingRectangle()
         .ok_or(Exceptions::NotFoundException(None))?;

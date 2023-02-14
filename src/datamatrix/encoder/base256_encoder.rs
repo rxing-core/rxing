@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::{
@@ -27,7 +28,7 @@ impl Encoder for Base256Encoder {
         BASE256_ENCODATION
     }
 
-    fn encode(&self, context: &mut super::EncoderContext) -> Result<(), crate::Exceptions> {
+    fn encode(&self, context: &mut super::EncoderContext) -> Result<()> {
         let mut buffer = String::new();
         buffer.push('\0'); //Initialize length field
         while context.hasMoreCharacters() {

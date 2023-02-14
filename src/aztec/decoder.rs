@@ -19,7 +19,7 @@ use crate::{
         reedsolomon::{
             get_predefined_genericgf, GenericGFRef, PredefinedGenericGF, ReedSolomonDecoder,
         },
-        BitMatrix, CharacterSetECI, DecoderRXingResult, DetectorRXingResult,
+        BitMatrix, CharacterSetECI, DecoderRXingResult, DetectorRXingResult, Result,
     },
     exceptions::Exceptions,
 };
@@ -73,9 +73,7 @@ const DIGIT_TABLE: [&str; 16] = [
 
 //   private AztecDetectorRXingResult ddata;
 
-pub fn decode(
-    detectorRXingResult: &AztecDetectorRXingResult,
-) -> Result<DecoderRXingResult, Exceptions> {
+pub fn decode(detectorRXingResult: &AztecDetectorRXingResult) -> Result<DecoderRXingResult> {
     //let mut detectorRXingResult = detectorRXingResult.clone();
     let matrix = detectorRXingResult.getBits();
     let rawbits = extract_bits(detectorRXingResult, matrix);
@@ -94,7 +92,7 @@ pub fn decode(
 }
 
 /// This method is used for testing the high-level encoder
-pub fn highLevelDecode(correctedBits: &[bool]) -> Result<String, Exceptions> {
+pub fn highLevelDecode(correctedBits: &[bool]) -> Result<String> {
     get_encoded_data(correctedBits)
 }
 
@@ -103,7 +101,7 @@ pub fn highLevelDecode(correctedBits: &[bool]) -> Result<String, Exceptions> {
  *
  * @return the decoded string
  */
-fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
+fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
     let end_index = corrected_bits.len();
     let mut latch_table = Table::Upper; // table most recently latched to
     let mut shift_table = Table::Upper; // table to use for the next read
@@ -288,7 +286,7 @@ fn getTable(t: char) -> Table {
  * @param table the table used
  * @param code the code of the character
  */
-fn get_character(table: Table, code: u32) -> Result<&'static str, Exceptions> {
+fn get_character(table: Table, code: u32) -> Result<&'static str> {
     match table {
         Table::Upper => Ok(UPPER_TABLE[code as usize]),
         Table::Lower => Ok(LOWER_TABLE[code as usize]),
@@ -337,7 +335,7 @@ impl CorrectedBitsRXingResult {
 fn correct_bits(
     ddata: &AztecDetectorRXingResult,
     rawbits: &[bool],
-) -> Result<CorrectedBitsRXingResult, Exceptions> {
+) -> Result<CorrectedBitsRXingResult> {
     let gf: GenericGFRef;
     let codeword_size;
 

@@ -17,7 +17,7 @@
 use std::cmp::Ordering;
 
 use crate::{
-    common::BitMatrix,
+    common::{BitMatrix, Result},
     qrcode::detector::{FinderPattern, FinderPatternFinder, FinderPatternInfo},
     result_point_utils, DecodeHintType, DecodingHintDictionary, Exceptions,
     RXingResultPointCallback,
@@ -82,7 +82,7 @@ impl<'a> MultiFinderPatternFinder<'_> {
      *         size differs from the average among those patterns the least
      * @throws NotFoundException if 3 such finder patterns do not exist
      */
-    fn selectMultipleBestPatterns(&self) -> Result<Vec<[FinderPattern; 3]>, Exceptions> {
+    fn selectMultipleBestPatterns(&self) -> Result<Vec<[FinderPattern; 3]>> {
         let mut possibleCenters = Vec::new();
         for fp in self.0.getPossibleCenters() {
             if fp.getCount() >= 2 {
@@ -216,10 +216,7 @@ impl<'a> MultiFinderPatternFinder<'_> {
         }
     }
 
-    pub fn findMulti(
-        &mut self,
-        hints: &DecodingHintDictionary,
-    ) -> Result<Vec<FinderPatternInfo>, Exceptions> {
+    pub fn findMulti(&mut self, hints: &DecodingHintDictionary) -> Result<Vec<FinderPatternInfo>> {
         let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
         let image = self.0.getImage().clone();
         let maxI = image.getHeight();

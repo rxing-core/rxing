@@ -24,7 +24,7 @@
  *   http://www.piramidepse.com/
  */
 
-use crate::common::BitArray;
+use crate::common::{BitArray, Result};
 
 use super::{AI01decoder, AbstractExpandedDecoder, GeneralAppIdDecoder};
 
@@ -37,7 +37,7 @@ pub struct AI01393xDecoder<'a> {
 }
 impl AI01decoder for AI01393xDecoder<'_> {}
 impl AbstractExpandedDecoder for AI01393xDecoder<'_> {
-    fn parseInformation(&mut self) -> Result<String, crate::Exceptions> {
+    fn parseInformation(&mut self) -> Result<String> {
         if self.information.getSize() < Self::HEADER_SIZE + Self::GTIN_SIZE as usize {
             return Err(crate::Exceptions::NotFoundException(None));
         }
