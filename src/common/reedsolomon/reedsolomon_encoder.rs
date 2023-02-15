@@ -73,15 +73,11 @@ impl ReedSolomonEncoder {
 
     pub fn encode(&mut self, to_encode: &mut Vec<i32>, ec_bytes: usize) -> Result<(), Exceptions> {
         if ec_bytes == 0 {
-            return Err(Exceptions::illegalArgument(
-                "No error correction bytes".to_owned(),
-            ));
+            return Err(Exceptions::illegalArgument("No error correction bytes"));
         }
         let data_bytes = to_encode.len() - ec_bytes;
         if data_bytes == 0 {
-            return Err(Exceptions::illegalArgument(
-                "No data bytes provided".to_owned(),
-            ));
+            return Err(Exceptions::illegalArgument("No data bytes provided"));
         }
         let fld = self.field;
         let generator = self.buildGenerator(ec_bytes);

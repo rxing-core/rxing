@@ -95,9 +95,7 @@ impl EdifactEncoder {
             }
 
             if count > 4 {
-                return Err(Exceptions::illegalState(
-                    "Count must not exceed 4".to_owned(),
-                ));
+                return Err(Exceptions::illegalState("Count must not exceed 4"));
             }
             let restChars = count - 1;
             let encoded = Self::encodeToCodewords(buffer)?;
@@ -149,9 +147,7 @@ impl EdifactEncoder {
     fn encodeToCodewords(sb: &str) -> Result<String, Exceptions> {
         let len = sb.chars().count();
         if len == 0 {
-            return Err(Exceptions::illegalState(
-                "StringBuilder must not be empty".to_owned(),
-            ));
+            return Err(Exceptions::illegalState("StringBuilder must not be empty"));
         }
         let c1 = sb
             .chars()

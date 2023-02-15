@@ -234,7 +234,7 @@ impl GlobalHistogramBinarizer {
         // than waste time trying to decode the image, and risk false positives.
         if secondPeak - firstPeak <= numBuckets / 16 {
             return Err(Exceptions::notFound(
-                "secondPeak - firstPeak <= numBuckets / 16 ".to_owned(),
+                "secondPeak - firstPeak <= numBuckets / 16 ",
             ));
         }
 

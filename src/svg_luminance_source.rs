@@ -60,7 +60,7 @@ impl SVGLuminanceSource {
         };
 
         let Some(mut pixmap) = resvg::tiny_skia::Pixmap::new(tree.size.width() as u32, tree.size.height() as u32) else {
-            return Err(Exceptions::format("could not create pixmap".to_owned()));
+            return Err(Exceptions::format("could not create pixmap"));
         };
 
         resvg::render(
@@ -71,11 +71,11 @@ impl SVGLuminanceSource {
         );
 
         let Some(buffer) = RgbaImage::from_raw(tree.size.width() as u32, tree.size.height() as u32, pixmap.data().to_vec()) else {
-        return Err(Exceptions::format("could not create image buffer".to_owned()));
+        return Err(Exceptions::format("could not create image buffer"));
     };
 
         // let Ok(image) = image::load_from_memory_with_format(pixmap.data(), image::ImageFormat::Bmp)  else {
-        //     return Err(Exceptions::format("could not generate image".to_owned()));
+        //     return Err(Exceptions::format("could not generate image"));
         // };
 
         Ok(Self(BufferedImageLuminanceSource::new(DynamicImage::from(

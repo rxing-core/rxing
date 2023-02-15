@@ -234,9 +234,7 @@ impl C40Encoder {
                 context.writeCodeword(C40_UNLATCH);
             }
         } else {
-            return Err(Exceptions::illegalState(
-                "Unexpected case. Please report!".to_owned(),
-            ));
+            return Err(Exceptions::illegalState("Unexpected case. Please report!"));
         }
         context.signalEncoderChange(ASCII_ENCODATION);
 

@@ -101,7 +101,7 @@ pub trait OneDimensionalCodeWriter: Writer {
     fn checkNumeric(contents: &str) -> Result<(), Exceptions> {
         if !NUMERIC.is_match(contents) {
             Err(Exceptions::illegalArgument(
-                "Input should only contain digits 0-9".to_owned(),
+                "Input should only contain digits 0-9",
             ))
         } else {
             Ok(())
@@ -163,9 +163,7 @@ impl Writer for L {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         if contents.is_empty() {
-            return Err(Exceptions::illegalArgument(
-                "Found empty contents".to_owned(),
-            ));
+            return Err(Exceptions::illegalArgument("Found empty contents"));
         }
 
         if width < 0 || height < 0 {

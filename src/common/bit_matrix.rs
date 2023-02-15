@@ -66,7 +66,7 @@ impl BitMatrix {
     pub fn new(width: u32, height: u32) -> Result<Self, Exceptions> {
         if width < 1 || height < 1 {
             return Err(Exceptions::illegalArgument(
-                "Both dimensions must be greater than 0".to_owned(),
+                "Both dimensions must be greater than 0",
             ));
         }
         Ok(Self {
@@ -151,9 +151,7 @@ impl BitMatrix {
                         first_run = false;
                         rowLength = bitsPos - rowStartPos;
                     } else if bitsPos - rowStartPos != rowLength {
-                        return Err(Exceptions::illegalArgument(
-                            "row lengths do not match".to_owned(),
-                        ));
+                        return Err(Exceptions::illegalArgument("row lengths do not match"));
                     }
                     rowStartPos = bitsPos;
                     nRows += 1;
@@ -182,9 +180,7 @@ impl BitMatrix {
                 // first_run = false;
                 rowLength = bitsPos - rowStartPos;
             } else if bitsPos - rowStartPos != rowLength {
-                return Err(Exceptions::illegalArgument(
-                    "row lengths do not match".to_owned(),
-                ));
+                return Err(Exceptions::illegalArgument("row lengths do not match"));
             }
             nRows += 1;
         }
@@ -312,7 +308,7 @@ impl BitMatrix {
         if self.width != mask.width || self.height != mask.height || self.row_size != mask.row_size
         {
             return Err(Exceptions::illegalArgument(
-                "input matrix dimensions do not match".to_owned(),
+                "input matrix dimensions do not match",
             ));
         }
         // let mut rowArray = BitArray::with_size(self.width as usize);
@@ -364,14 +360,14 @@ impl BitMatrix {
         // }
         if height < 1 || width < 1 {
             return Err(Exceptions::illegalArgument(
-                "height and width must be at least 1".to_owned(),
+                "height and width must be at least 1",
             ));
         }
         let right = left + width;
         let bottom = top + height;
         if bottom > self.height || right > self.width {
             return Err(Exceptions::illegalArgument(
-                "the region must fit inside the matrix".to_owned(),
+                "the region must fit inside the matrix",
             ));
         }
         for y in top..bottom {
@@ -445,7 +441,7 @@ impl BitMatrix {
                 Ok(())
             }
             _ => Err(Exceptions::illegalArgument(
-                "degrees must be a multiple of 0, 90, 180, or 270".to_owned(),
+                "degrees must be a multiple of 0, 90, 180, or 270",
             )),
         }
     }

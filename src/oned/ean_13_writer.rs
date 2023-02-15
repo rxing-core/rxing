@@ -45,9 +45,7 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             }
             13 => {
                 if !reader.checkStandardUPCEANChecksum(&contents)? {
-                    return Err(Exceptions::illegalArgument(
-                        "Contents do not pass checksum".to_owned(),
-                    ));
+                    return Err(Exceptions::illegalArgument("Contents do not pass checksum"));
                 }
             }
             _ => {

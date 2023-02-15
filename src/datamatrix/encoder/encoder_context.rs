@@ -67,7 +67,7 @@ impl<'a> EncoderContext<'_> {
                 })?
         } else {
             return Err(Exceptions::illegalArgument(
-                "Message contains characters outside ISO-8859-1 encoding.".to_owned(),
+                "Message contains characters outside ISO-8859-1 encoding.",
             ));
         };
         Ok(Self {

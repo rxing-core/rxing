@@ -121,17 +121,17 @@ impl AddressBookParsedRXingResult {
     ) -> Result<Self, Exceptions> {
         if phone_numbers.len() != phone_types.len() && !phone_types.is_empty() {
             return Err(Exceptions::illegalArgument(
-                "Phone numbers and types lengths differ".to_owned(),
+                "Phone numbers and types lengths differ",
             ));
         }
         if emails.len() != email_types.len() && !email_types.is_empty() {
             return Err(Exceptions::illegalArgument(
-                "Emails and types lengths differ".to_owned(),
+                "Emails and types lengths differ",
             ));
         }
         if addresses.len() != address_types.len() && !address_types.is_empty() {
             return Err(Exceptions::illegalArgument(
-                "Addresses and types lengths differ".to_owned(),
+                "Addresses and types lengths differ",
             ));
         }
         Ok(Self {

@@ -55,9 +55,7 @@ impl OneDimensionalCodeWriter for UPCEWriter {
                     &upc_e_reader::convertUPCEtoUPCA(&contents)
                         .ok_or(Exceptions::illegalArgumentEmpty())?,
                 )? {
-                    return Err(Exceptions::illegalArgument(
-                        "Contents do not pass checksum".to_owned(),
-                    ));
+                    return Err(Exceptions::illegalArgument("Contents do not pass checksum"));
                 }
             }
             _ => {
@@ -76,9 +74,7 @@ impl OneDimensionalCodeWriter for UPCEWriter {
             .to_digit(10)
             .ok_or(Exceptions::parseEmpty())? as usize; //Character.digit(contents.charAt(0), 10);
         if firstDigit != 0 && firstDigit != 1 {
-            return Err(Exceptions::illegalArgument(
-                "Number system must be 0 or 1".to_owned(),
-            ));
+            return Err(Exceptions::illegalArgument("Number system must be 0 or 1"));
         }
 
         let checkDigit = contents

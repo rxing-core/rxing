@@ -457,7 +457,7 @@ impl BitMatrixParser {
 
         if bitMatrix.getHeight() != symbolSizeRows {
             return Err(Exceptions::illegalArgument(
-                "Dimension of bitMatrix must match the version size".to_owned(),
+                "Dimension of bitMatrix must match the version size",
             ));
         }
 

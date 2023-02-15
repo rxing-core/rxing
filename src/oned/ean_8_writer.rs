@@ -55,9 +55,7 @@ impl OneDimensionalCodeWriter for EAN8Writer {
             }
             8 => {
                 if !EAN8Reader.checkStandardUPCEANChecksum(&contents)? {
-                    return Err(Exceptions::illegalArgument(
-                        "Contents do not pass checksum".to_owned(),
-                    ));
+                    return Err(Exceptions::illegalArgument("Contents do not pass checksum"));
                 }
             }
             _ => {

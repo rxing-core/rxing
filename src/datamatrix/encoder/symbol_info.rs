@@ -129,7 +129,7 @@ impl SymbolInfo {
             16 => Ok(4),
             36 => Ok(6),
             _ => Err(Exceptions::illegalState(
-                "Cannot handle this number of data regions".to_owned(),
+                "Cannot handle this number of data regions",
             )),
         }
     }
@@ -141,7 +141,7 @@ impl SymbolInfo {
             16 => Ok(4),
             36 => Ok(6),
             _ => Err(Exceptions::illegalState(
-                "Cannot handle this number of data regions".to_owned(),
+                "Cannot handle this number of data regions",
             )),
         }
     }

@@ -127,7 +127,7 @@ impl ModulusPoly {
     pub fn add(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>, Exceptions> {
         if self.field != other.field {
             return Err(Exceptions::illegalArgument(
-                "ModulusPolys do not have same ModulusGF field".to_owned(),
+                "ModulusPolys do not have same ModulusGF field",
             ));
         }
         if self.isZero() {
@@ -161,7 +161,7 @@ impl ModulusPoly {
     pub fn subtract(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>, Exceptions> {
         if self.field != other.field {
             return Err(Exceptions::illegalArgument(
-                "ModulusPolys do not have same ModulusGF field".to_owned(),
+                "ModulusPolys do not have same ModulusGF field",
             ));
         }
         if other.isZero() {
@@ -173,7 +173,7 @@ impl ModulusPoly {
     pub fn multiply(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>, Exceptions> {
         if !(self.field == other.field) {
             return Err(Exceptions::illegalArgument(
-                "ModulusPolys do not have same ModulusGF field".to_owned(),
+                "ModulusPolys do not have same ModulusGF field",
             ));
         }
         if self.isZero() || other.isZero() {

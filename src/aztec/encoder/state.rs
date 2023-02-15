@@ -81,7 +81,7 @@ impl State {
         } else */
         if eci > 999999 {
             return Err(Exceptions::illegalArgument(
-                "ECI code must be between 0 and 999999".to_owned(),
+                "ECI code must be between 0 and 999999",
             ));
             // throw new IllegalArgumentException("ECI code must be between 0 and 999999");
         } else {

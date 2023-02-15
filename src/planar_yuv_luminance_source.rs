@@ -167,7 +167,7 @@ impl PlanarYUVLuminanceSource {
     ) -> Result<Self, Exceptions> {
         if left + width > data_width || top + height > data_height {
             return Err(Exceptions::illegalArgument(
-                "Crop rectangle does not fit within image data.".to_owned(),
+                "Crop rectangle does not fit within image data.",
             ));
         }
 

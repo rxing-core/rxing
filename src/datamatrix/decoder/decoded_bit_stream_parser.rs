@@ -279,7 +279,7 @@ fn decodeAsciiSegment(
                 // Must be first ISO 16022:2006 5.6.1
                 {
                     return Err(Exceptions::format(
-                        "structured append tag must be first code word".to_owned(),
+                        "structured append tag must be first code word",
                     ));
                 }
                 parse_structured_append(bits, &mut sai)?;

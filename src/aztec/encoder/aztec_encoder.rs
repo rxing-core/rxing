@@ -188,13 +188,13 @@ pub fn encode_bytes_with_charset(
         stuffed_bits = stuffBits(&bits, word_size as usize)?;
         if stuffed_bits.getSize() as u32 + ecc_bits > usable_bits_in_layers {
             return Err(Exceptions::illegalArgument(
-                "Data to large for user specified layer".to_owned(),
+                "Data to large for user specified layer",
             ));
         }
         if compact && stuffed_bits.getSize() as u32 > word_size * 64 {
             // Compact format only allows 64 data words, though C4 can hold more words than that
             return Err(Exceptions::illegalArgument(
-                "Data to large for user specified layer".to_owned(),
+                "Data to large for user specified layer",
             ));
         }
     } else {
@@ -208,7 +208,7 @@ pub fn encode_bytes_with_charset(
             // for (int i = 0; ; i++) {
             if i > MAX_NB_BITS {
                 return Err(Exceptions::illegalArgument(
-                    "Data too large for an Aztec code".to_owned(),
+                    "Data too large for an Aztec code",
                 ));
             }
             compact = i <= 3;

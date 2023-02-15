@@ -120,7 +120,7 @@ static EC_COEFFICIENTS: Lazy<[Vec<u32>; 9]> = Lazy::new(|| {
 pub fn getErrorCorrectionCodewordCount(errorCorrectionLevel: u32) -> Result<u32, Exceptions> {
     if errorCorrectionLevel > 8 {
         return Err(Exceptions::illegalArgument(
-            "Error correction level must be between 0 and 8!".to_owned(),
+            "Error correction level must be between 0 and 8!",
         ));
     }
     Ok(1 << (errorCorrectionLevel + 1))
@@ -135,7 +135,7 @@ pub fn getErrorCorrectionCodewordCount(errorCorrectionLevel: u32) -> Result<u32,
  */
 pub fn getRecommendedMinimumErrorCorrectionLevel(n: u32) -> Result<u32, Exceptions> {
     if n == 0 {
-        Err(Exceptions::illegalArgument("n must be > 0".to_owned()))
+        Err(Exceptions::illegalArgument("n must be > 0"))
     } else if n <= 40 {
         Ok(2)
     } else if n <= 160 {
@@ -145,7 +145,7 @@ pub fn getRecommendedMinimumErrorCorrectionLevel(n: u32) -> Result<u32, Exceptio
     } else if n <= 863 {
         Ok(5)
     } else {
-        Err(Exceptions::writer("No recommendation possible".to_owned()))
+        Err(Exceptions::writer("No recommendation possible"))
     }
 }
 

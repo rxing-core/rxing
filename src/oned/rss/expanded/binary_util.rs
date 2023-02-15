@@ -51,7 +51,7 @@ pub fn buildBitArrayFromString(data: &str) -> Result<BitArray, Exceptions> {
         if i % 9 == 0 {
             // spaces
             if dotsAndXs.chars().nth(i).ok_or(Exceptions::parseEmpty())? != ' ' {
-                return Err(Exceptions::illegalState("space expected".to_owned()));
+                return Err(Exceptions::illegalState("space expected"));
             }
             continue;
         }

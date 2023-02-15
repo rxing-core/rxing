@@ -249,7 +249,7 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>, Exception
                             if position + 1 == length {
                                 // this is the last character, but the encoding is C, which always encodes two characers
                                 return Err(Exceptions::illegalArgument(
-                                    "Bad number of characters for digit only encoding.".to_owned(),
+                                    "Bad number of characters for digit only encoding.",
                                 ));
                             }
                             let s: String = contents

@@ -179,7 +179,7 @@ pub fn encodeHighLevel(
 ) -> Result<String, Exceptions> {
     let mut encoding = encoding;
     if msg.is_empty() {
-        return Err(Exceptions::writer("Empty message not allowed".to_owned()));
+        return Err(Exceptions::writer("Empty message not allowed"));
     }
 
     if encoding.is_none() && !autoECI {
@@ -797,9 +797,7 @@ fn determineConsecutiveBinaryCount<T: ECIInput + ?Sized + 'static>(
 
             if !can_encode {
                 if TypeId::of::<T>() != TypeId::of::<NoECIInput>() {
-                    return Err(Exceptions::illegalState(
-                        "expected NoECIInput type".to_owned(),
-                    ));
+                    return Err(Exceptions::illegalState("expected NoECIInput type"));
                 }
                 let ch = input.charAt(idx)?;
                 return Err(Exceptions::writer(format!(

@@ -248,9 +248,7 @@ impl HighLevelEncoder {
                 initial_state = initial_state.appendFLGn(CharacterSetECI::getValue(&eci))?;
             }
         } else {
-            return Err(Exceptions::illegalArgument(
-                "No ECI code for character set".to_owned(),
-            ));
+            return Err(Exceptions::illegalArgument("No ECI code for character set"));
         }
         // if self.charset != null {
         //   CharacterSetECI eci = CharacterSetECI.getCharacterSetECI(charset);

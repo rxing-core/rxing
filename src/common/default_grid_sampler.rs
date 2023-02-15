@@ -99,7 +99,7 @@ impl GridSampler for DefaultGridSampler {
                 if image
                     .try_get(points[x] as u32, points[x + 1] as u32)
                     .ok_or(Exceptions::notFound(
-                        "index out of bounds, see documentation in file for explanation".to_owned(),
+                        "index out of bounds, see documentation in file for explanation",
                     ))?
                 {
                     // Black(-ish) pixel

@@ -323,7 +323,7 @@ pub fn findMSBSet(value: u32) -> u32 {
 // operations. We don't care if coefficients are positive or negative.
 pub fn calculateBCHCode(value: u32, poly: u32) -> Result<u32, Exceptions> {
     if poly == 0 {
-        return Err(Exceptions::illegalArgument("0 polynomial".to_owned()));
+        return Err(Exceptions::illegalArgument("0 polynomial"));
     }
     let mut value = value;
     // If poly is "1 1111 0010 0101" (version info poly), msbSetInPoly is 13. We'll subtract 1
@@ -347,7 +347,7 @@ pub fn makeTypeInfoBits(
     bits: &mut BitArray,
 ) -> Result<(), Exceptions> {
     if !QRCode::isValidMaskPattern(maskPattern as i32) {
-        return Err(Exceptions::writer("Invalid mask pattern".to_owned()));
+        return Err(Exceptions::writer("Invalid mask pattern"));
     }
     let typeInfo = (ecLevel.get_value() << 3) as u32 | maskPattern;
     bits.appendBits(typeInfo, 5)?;

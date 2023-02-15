@@ -170,11 +170,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
                 decoded_bytes.clear();
                 match n {
                     0 => result.push(29 as char), // translate FNC1 as ASCII 29
-                    7 => {
-                        return Err(Exceptions::format(
-                            "FLG(7) is reserved and illegal".to_owned(),
-                        ))
-                    } // FLG(7) is reserved and illegal
+                    7 => return Err(Exceptions::format("FLG(7) is reserved and illegal")), // FLG(7) is reserved and illegal
                     _ => {
                         // ECI is decimal integer encoded as 1-6 codes in DIGIT mode
                         let mut eci = 0;
@@ -186,7 +182,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
                             let next_digit = read_code(corrected_bits, index, 4);
                             index += 4;
                             if !(2..=11).contains(&next_digit) {
-                                return Err(Exceptions::format("Not a decimal digit".to_owned()));
+                                return Err(Exceptions::format("Not a decimal digit"));
                                 // Not a decimal digit
                             }
                             eci = eci * 10 + (next_digit - 2);
@@ -194,7 +190,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
                         }
                         let charset_eci = CharacterSetECI::getCharacterSetECIByValue(eci);
                         if charset_eci.is_err() {
-                            return Err(Exceptions::format("Charset must exist".to_owned()));
+                            return Err(Exceptions::format("Charset must exist"));
                         }
                         encdr = CharacterSetECI::getCharset(&charset_eci?);
                     }
@@ -238,7 +234,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
     if let Ok(str) = encdr.decode(&decoded_bytes, encoding::DecoderTrap::Strict) {
         result.push_str(&str);
     } else {
-        return Err(Exceptions::illegalState("bad encoding".to_owned()));
+        return Err(Exceptions::illegalState("bad encoding"));
     }
     //   result.push_str(decodedBytes.toString(encoding.name()));
     //} catch (UnsupportedEncodingException uee) {
@@ -290,7 +286,7 @@ fn get_character(table: Table, code: u32) -> Result<&'static str, Exceptions> {
         Table::Mixed => Ok(MIXED_TABLE[code as usize]),
         Table::Digit => Ok(DIGIT_TABLE[code as usize]),
         Table::Punct => Ok(PUNCT_TABLE[code as usize]),
-        _ => Err(Exceptions::illegalState("Bad table".to_owned())),
+        _ => Err(Exceptions::illegalState("Bad table")),
     }
     // switch (table) {
     //   case UPPER:

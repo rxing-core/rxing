@@ -58,9 +58,7 @@ impl Writer for QRCodeWriter {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         if contents.is_empty() {
-            return Err(Exceptions::illegalArgument(
-                "found empty contents".to_owned(),
-            ));
+            return Err(Exceptions::illegalArgument("found empty contents"));
         }
 
         if format != &BarcodeFormat::QR_CODE {
@@ -110,7 +108,7 @@ impl QRCodeWriter {
     ) -> Result<BitMatrix, Exceptions> {
         let input = code.getMatrix();
         if input.is_none() {
-            return Err(Exceptions::illegalState("matrix is empty".to_owned()));
+            return Err(Exceptions::illegalState("matrix is empty"));
         }
 
         let input = input.as_ref().ok_or(Exceptions::illegalStateEmpty())?;

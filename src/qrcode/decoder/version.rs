@@ -101,16 +101,14 @@ impl Version {
         dimension: u32,
     ) -> Result<&'static Version, Exceptions> {
         if dimension % 4 != 1 {
-            return Err(Exceptions::format("dimension incorrect".to_owned()));
+            return Err(Exceptions::format("dimension incorrect"));
         }
         Self::getVersionForNumber((dimension - 17) / 4)
     }
 
     pub fn getVersionForNumber(versionNumber: u32) -> Result<&'static Version, Exceptions> {
         if !(1..=40).contains(&versionNumber) {
-            return Err(Exceptions::illegalArgument(
-                "version out of spec".to_owned(),
-            ));
+            return Err(Exceptions::illegalArgument("version out of spec"));
         }
         Ok(&VERSIONS[versionNumber as usize - 1])
     }

@@ -186,9 +186,7 @@ impl MinimalEncoder {
                 }
             }
             if smallestRXingResult < 0 {
-                return Err(Exceptions::writer(
-                    "Data too big for any version".to_owned(),
-                ));
+                return Err(Exceptions::writer("Data too big for any version"));
             }
             Ok(results[smallestRXingResult as usize].clone())
         }

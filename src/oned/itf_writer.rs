@@ -33,7 +33,7 @@ impl OneDimensionalCodeWriter for ITFWriter {
         let length = contents.chars().count();
         if length % 2 != 0 {
             return Err(Exceptions::illegalArgument(
-                "The length of the input should be even".to_owned(),
+                "The length of the input should be even",
             ));
         }
         if length > 80 {

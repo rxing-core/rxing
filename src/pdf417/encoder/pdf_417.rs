@@ -315,9 +315,7 @@ impl PDF417 {
             }
         }
 
-        dimension.ok_or(Exceptions::writer(
-            "Unable to fit message in columns".to_owned(),
-        ))
+        dimension.ok_or(Exceptions::writer("Unable to fit message in columns"))
     }
 
     /**

@@ -155,7 +155,7 @@ const ALOG: [u32; 255] = {
 pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String, Exceptions> {
     if codewords.chars().count() != symbolInfo.getDataCapacity() as usize {
         return Err(Exceptions::illegalArgument(
-            "The number of codewords does not match the selected symbol".to_owned(),
+            "The number of codewords does not match the selected symbol",
         ));
     }
     let mut sb = String::with_capacity(

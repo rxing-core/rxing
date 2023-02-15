@@ -35,20 +35,16 @@ pub fn detect_in_svg_with_hints(
 
     let path = PathBuf::from(file_name);
     if !path.exists() {
-        return Err(Exceptions::illegalArgument(
-            "file does not exist".to_owned(),
-        ));
+        return Err(Exceptions::illegalArgument("file does not exist"));
     }
 
     let Ok(mut file) = File::open(path) else {
-        return Err(Exceptions::illegalArgument("file cannot be opened".to_owned()));
+        return Err(Exceptions::illegalArgument("file cannot be opened"));
     };
 
     let mut svg_data = Vec::new();
     if file.read_to_end(&mut svg_data).is_err() {
-        return Err(Exceptions::illegalArgument(
-            "file cannot be read".to_owned(),
-        ));
+        return Err(Exceptions::illegalArgument("file cannot be read"));
     }
 
     let mut multi_format_reader = MultiFormatReader::default();
@@ -88,20 +84,16 @@ pub fn detect_multiple_in_svg_with_hints(
 
     let path = PathBuf::from(file_name);
     if !path.exists() {
-        return Err(Exceptions::illegalArgument(
-            "file does not exist".to_owned(),
-        ));
+        return Err(Exceptions::illegalArgument("file does not exist"));
     }
 
     let Ok(mut file) = File::open(path) else {
-        return Err(Exceptions::illegalArgument("file cannot be opened".to_owned()));
+        return Err(Exceptions::illegalArgument("file cannot be opened"));
     };
 
     let mut svg_data = Vec::new();
     if file.read_to_end(&mut svg_data).is_err() {
-        return Err(Exceptions::illegalArgument(
-            "file cannot be read".to_owned(),
-        ));
+        return Err(Exceptions::illegalArgument("file cannot be read"));
     }
 
     let multi_format_reader = MultiFormatReader::default();

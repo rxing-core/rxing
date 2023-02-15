@@ -91,9 +91,7 @@ fn vin_char_value(c: char) -> Result<u32, Exceptions> {
         'J'..='R' => Ok((c as u8 as u32 - b'J' as u32) + 1),
         'S'..='Z' => Ok((c as u8 as u32 - b'S' as u32) + 2),
         '0'..='9' => Ok(c as u8 as u32 - b'0' as u32),
-        _ => Err(Exceptions::illegalArgument(
-            "vin char out of range".to_owned(),
-        )),
+        _ => Err(Exceptions::illegalArgument("vin char out of range")),
     }
 }
 
@@ -104,7 +102,7 @@ fn vin_position_weight(position: usize) -> Result<usize, Exceptions> {
         9 => Ok(0),
         10..=17 => Ok(19 - position),
         _ => Err(Exceptions::illegalArgument(
-            "vin position weight out of bounds".to_owned(),
+            "vin position weight out of bounds",
         )),
     }
 }
@@ -113,7 +111,7 @@ fn check_char(remainder: u8) -> Result<char, Exceptions> {
     match remainder {
         0..=9 => Ok((b'0' + remainder) as char),
         10 => Ok('X'),
-        _ => Err(Exceptions::illegalArgument("remainder too high".to_owned())),
+        _ => Err(Exceptions::illegalArgument("remainder too high")),
     }
 }
 
