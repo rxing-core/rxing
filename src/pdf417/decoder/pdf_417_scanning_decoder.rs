@@ -86,7 +86,7 @@ pub fn decode(
         }
         detectionRXingResult = merge(&mut leftRowIndicatorColumn, &mut rightRowIndicatorColumn)?;
         if detectionRXingResult.is_none() {
-            return Err(Exceptions::notFoundEmpty());
+            return Err(Exceptions::notFound);
         }
         // detectionRXingResult = detectionRXingResult;
 
@@ -142,7 +142,7 @@ pub fn decode(
             // for (int imageRow = boundingBox.getMinY(); imageRow <= boundingBox.getMaxY(); imageRow++) {
             startColumn =
                 getStartColumn(&detectionRXingResult, barcodeColumn, imageRow, leftToRight)
-                    .ok_or(Exceptions::illegalStateEmpty())? as i32;
+                    .ok_or(Exceptions::illegalState)? as i32;
             if startColumn < 0 || startColumn > boundingBox.getMaxX() as i32 {
                 if previousStartColumn == -1 {
                     continue;
@@ -412,7 +412,7 @@ fn adjustCodewordCount(
         as u32;
     if numberOfCodewords.is_empty() {
         if !(1..=pdf_417_common::MAX_CODEWORDS_IN_BARCODE).contains(&calculatedNumberOfCodewords) {
-            return Err(Exceptions::notFoundEmpty());
+            return Err(Exceptions::notFound);
         }
         barcodeMatrix01.setValue(calculatedNumberOfCodewords);
     } else if numberOfCodewords[0] != calculatedNumberOfCodewords
@@ -508,7 +508,7 @@ fn createDecoderRXingResultFromAmbiguousValues(
         //   //
         // }
         if ambiguousIndexCount.is_empty() {
-            return Err(Exceptions::checksumEmpty());
+            return Err(Exceptions::checksum);
         }
         for i in 0..ambiguousIndexCount.len() {
             // for (int i = 0; i < ambiguousIndexCount.length; i++) {
@@ -518,14 +518,14 @@ fn createDecoderRXingResultFromAmbiguousValues(
             } else {
                 ambiguousIndexCount[i] = 0;
                 if i == ambiguousIndexCount.len() - 1 {
-                    return Err(Exceptions::checksumEmpty());
+                    return Err(Exceptions::checksum);
                 }
             }
         }
 
         tries -= 1;
     }
-    Err(Exceptions::checksumEmpty())
+    Err(Exceptions::checksum)
 }
 
 fn createBarcodeMatrix(detectionRXingResult: &mut DetectionRXingResult) -> Vec<Vec<BarcodeValue>> {
@@ -845,7 +845,7 @@ fn decodeCodewords(
     erasures: &mut [u32],
 ) -> Result<DecoderRXingResult, Exceptions> {
     if codewords.is_empty() {
-        return Err(Exceptions::formatEmpty());
+        return Err(Exceptions::format);
     }
 
     let numECCodewords = 1 << (ecLevel + 1);
@@ -880,7 +880,7 @@ fn correctErrors(
         || numECCodewords > MAX_EC_CODEWORDS
     {
         // Too many errors or EC Codewords is corrupted
-        return Err(Exceptions::checksumEmpty());
+        return Err(Exceptions::checksum);
     }
     ec::error_correction::decode(codewords, numECCodewords, erasures)
 }
@@ -892,21 +892,21 @@ fn verifyCodewordCount(codewords: &mut [u32], numECCodewords: u32) -> Result<(),
     if codewords.len() < 4 {
         // Codeword array size should be at least 4 allowing for
         // Count CW, At least one Data CW, Error Correction CW, Error Correction CW
-        return Err(Exceptions::formatEmpty());
+        return Err(Exceptions::format);
     }
     // The first codeword, the Symbol Length Descriptor, shall always encode the total number of data
     // codewords in the symbol, including the Symbol Length Descriptor itself, data codewords and pad
     // codewords, but excluding the number of error correction codewords.
     let numberOfCodewords = codewords[0];
     if numberOfCodewords > codewords.len() as u32 {
-        return Err(Exceptions::formatEmpty());
+        return Err(Exceptions::format);
     }
     if numberOfCodewords == 0 {
         // Reset to the length of the array - 8 (Allow for at least level 3 Error Correction (8 Error Codewords)
         if numECCodewords < codewords.len() as u32 {
             codewords[0] = codewords.len() as u32 - numECCodewords;
         } else {
-            return Err(Exceptions::formatEmpty());
+            return Err(Exceptions::format);
         }
     }
     Ok(())

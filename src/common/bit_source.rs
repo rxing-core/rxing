@@ -70,7 +70,7 @@ impl BitSource {
      */
     pub fn readBits(&mut self, numBits: usize) -> Result<u32, Exceptions> {
         if !(1..=32).contains(&numBits) || numBits > self.available() {
-            return Err(Exceptions::illegalArgument(numBits.to_string()));
+            return Err(Exceptions::illegalArgumentWith(numBits.to_string()));
         }
 
         let mut result: u32 = 0;

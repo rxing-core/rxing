@@ -133,7 +133,7 @@ impl GenericGF {
      */
     pub fn log(&self, a: i32) -> Result<i32, Exceptions> {
         if a == 0 {
-            return Err(Exceptions::illegalArgumentEmpty());
+            return Err(Exceptions::illegalArgument);
         }
         // let pos: usize = a.try_into().unwrap();
         Ok(self.logTable[a as usize])
@@ -144,7 +144,7 @@ impl GenericGF {
      */
     pub fn inverse(&self, a: i32) -> Result<i32, Exceptions> {
         if a == 0 {
-            return Err(Exceptions::arithmeticEmpty());
+            return Err(Exceptions::arithmetic);
         }
         let log_t_loc: usize = a as usize;
         let loc: usize = ((self.size as i32) - self.logTable[log_t_loc] - 1) as usize;

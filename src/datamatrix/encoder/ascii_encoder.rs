@@ -31,12 +31,12 @@ impl Encoder for ASCIIEncoder {
                     .getMessage()
                     .chars()
                     .nth(context.pos as usize)
-                    .ok_or(Exceptions::indexOutOfBoundsEmpty())?,
+                    .ok_or(Exceptions::indexOutOfBounds)?,
                 context
                     .getMessage()
                     .chars()
                     .nth(context.pos as usize + 1)
-                    .ok_or(Exceptions::indexOutOfBoundsEmpty())?,
+                    .ok_or(Exceptions::indexOutOfBounds)?,
             )? as u8);
             context.pos += 2;
         } else {
@@ -73,7 +73,9 @@ impl Encoder for ASCIIEncoder {
                     }
 
                     _ => {
-                        return Err(Exceptions::illegalState(format!("Illegal mode: {newMode}")));
+                        return Err(Exceptions::illegalStateWith(format!(
+                            "Illegal mode: {newMode}"
+                        )));
                     }
                 }
             } else if high_level_encoder::isExtendedASCII(c) {
@@ -102,7 +104,7 @@ impl ASCIIEncoder {
             let num = (digit1 as u8 - 48) * 10 + (digit2 as u8 - 48);
             Ok((num + 130) as char)
         } else {
-            Err(Exceptions::illegalArgument(format!(
+            Err(Exceptions::illegalArgumentWith(format!(
                 "not digits: {digit1}{digit2}"
             )))
         }

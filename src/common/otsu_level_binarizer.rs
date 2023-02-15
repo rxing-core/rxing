@@ -19,7 +19,7 @@ impl OtsuLevelBinarizer {
     fn generate_threshold_matrix(source: &dyn LuminanceSource) -> Result<BitMatrix, Exceptions> {
         let image_buffer = {
             let Some(buff) : Option<ImageBuffer<Luma<u8>,Vec<u8>>> = ImageBuffer::from_vec(source.getWidth() as u32, source.getHeight() as u32, source.getMatrix()) else {
-                return Err(Exceptions::illegalArgumentEmpty())
+                return Err(Exceptions::illegalArgument)
             };
             buff
         };

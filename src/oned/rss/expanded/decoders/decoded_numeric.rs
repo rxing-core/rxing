@@ -51,7 +51,7 @@ impl DecodedNumeric {
         if
         /*firstDigit < 0 ||*/
         firstDigit > 10 || /*secondDigit < 0 ||*/ secondDigit > 10 {
-            return Err(Exceptions::formatEmpty());
+            return Err(Exceptions::format);
         }
 
         Ok(Self {

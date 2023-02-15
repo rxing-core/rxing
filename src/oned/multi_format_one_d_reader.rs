@@ -46,7 +46,7 @@ impl OneDReader for MultiFormatOneDReader {
             }
         }
 
-        Err(Exceptions::notFoundEmpty())
+        Err(Exceptions::notFound)
     }
 }
 impl MultiFormatOneDReader {
@@ -168,7 +168,7 @@ impl Reader for MultiFormatOneDReader {
 
             Ok(result)
         } else {
-            Err(Exceptions::notFoundEmpty())
+            Err(Exceptions::notFound)
         }
     }
 

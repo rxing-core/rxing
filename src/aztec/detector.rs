@@ -127,7 +127,7 @@ impl<'a> Detector<'_> {
             || !self.is_valid(&bulls_eye_corners[2])
             || !self.is_valid(&bulls_eye_corners[3])
         {
-            return Err(Exceptions::notFound("no valid points"));
+            return Err(Exceptions::notFoundWith("no valid points"));
         }
         let length = 2 * self.nb_center_layers;
         // Get the bits around the bull's eye
@@ -208,7 +208,7 @@ impl<'a> Detector<'_> {
                 return Ok(shift);
             }
         }
-        Err(Exceptions::notFound("rotation failure"))
+        Err(Exceptions::notFoundWith("rotation failure"))
     }
 
     /**
@@ -320,7 +320,7 @@ impl<'a> Detector<'_> {
         }
 
         if self.nb_center_layers != 5 && self.nb_center_layers != 7 {
-            return Err(Exceptions::notFoundEmpty());
+            return Err(Exceptions::notFound);
         }
 
         self.compact = self.nb_center_layers == 5;

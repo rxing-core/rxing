@@ -166,7 +166,7 @@ impl CalendarParsedRXingResult {
      */
     fn parseDate(when: String) -> Result<i64, Exceptions> {
         if !DATE_TIME.is_match(&when) {
-            return Err(Exceptions::parse(when));
+            return Err(Exceptions::parseWith(when));
         }
         if when.len() == 8 {
             // Show only year/month/day
@@ -177,20 +177,14 @@ impl CalendarParsedRXingResult {
             // http://code.google.com/p/android/issues/detail?id=8330
             return match Utc.datetime_from_str(&format!("{}T000000Z", &when,), date_format_string) {
                 Ok(dtm) => Ok(dtm.timestamp()),
-                Err(e) => Err(Exceptions::parse(e.to_string())),
+                Err(e) => Err(Exceptions::parseWith(e.to_string())),
             };
         }
         // The when string can be local time, or UTC if it ends with a Z
-        if when.len() == 16
-            && when
-                .chars()
-                .nth(15)
-                .ok_or(Exceptions::indexOutOfBoundsEmpty())?
-                == 'Z'
-        {
+        if when.len() == 16 && when.chars().nth(15).ok_or(Exceptions::indexOutOfBounds)? == 'Z' {
             return match Utc.datetime_from_str(&when, "%Y%m%dT%H%M%SZ") {
                 Ok(dtm) => Ok(dtm.with_timezone(&Utc).timestamp()),
-                Err(e) => Err(Exceptions::parse(format!("couldn't parse string: {e}"))),
+                Err(e) => Err(Exceptions::parseWith(format!("couldn't parse string: {e}"))),
             };
         }
         // Try once more, with weird tz formatting
@@ -200,14 +194,14 @@ impl CalendarParsedRXingResult {
             let tz_parsed: Tz = match tz_part.parse() {
                 Ok(time_zone) => time_zone,
                 Err(e) => {
-                    return Err(Exceptions::parse(format!(
+                    return Err(Exceptions::parseWith(format!(
                         "couldn't parse timezone '{tz_part}': {e}"
                     )))
                 }
             };
             return match Utc.datetime_from_str(time_part, "%Y%m%dT%H%M%S") {
                 Ok(dtm) => Ok(dtm.with_timezone(&tz_parsed).timestamp()),
-                Err(e) => Err(Exceptions::parse(format!("couldn't parse string: {e}"))),
+                Err(e) => Err(Exceptions::parseWith(format!("couldn't parse string: {e}"))),
             };
         }
 
@@ -215,7 +209,9 @@ impl CalendarParsedRXingResult {
         if when.len() == 15 {
             return match Utc.datetime_from_str(&when, "%Y%m%dT%H%M%S") {
                 Ok(dtm) => Ok(dtm.timestamp()),
-                Err(e) => Err(Exceptions::parse(format!("couldn't parse local time: {e}"))),
+                Err(e) => Err(Exceptions::parseWith(format!(
+                    "couldn't parse local time: {e}"
+                ))),
             };
         }
         Self::parseDateTimeString(&when)
@@ -252,7 +248,7 @@ impl CalendarParsedRXingResult {
                     let z = parseable
                         .as_str()
                         .parse::<i64>()
-                        .map_err(|e| Exceptions::parse(e.to_string()))?;
+                        .map_err(|e| Exceptions::parseWith(e.to_string()))?;
                     durationMS += unit * z;
                 }
             }
@@ -277,7 +273,7 @@ impl CalendarParsedRXingResult {
         if let Ok(dtm) = DateTime::parse_from_str(dateTimeString, "%Y%m%dT%H%M%S") {
             Ok(dtm.timestamp())
         } else {
-            Err(Exceptions::parse(format!(
+            Err(Exceptions::parseWith(format!(
                 "Couldn't parse {dateTimeString}"
             )))
         }

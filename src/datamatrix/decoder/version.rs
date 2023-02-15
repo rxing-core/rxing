@@ -105,7 +105,7 @@ impl Version {
         numColumns: u32,
     ) -> Result<&'static Version, Exceptions> {
         if (numRows & 0x01) != 0 || (numColumns & 0x01) != 0 {
-            return Err(Exceptions::formatEmpty());
+            return Err(Exceptions::format);
         }
 
         for version in VERSIONS.iter() {
@@ -114,7 +114,7 @@ impl Version {
             }
         }
 
-        Err(Exceptions::formatEmpty())
+        Err(Exceptions::format)
     }
 
     /**

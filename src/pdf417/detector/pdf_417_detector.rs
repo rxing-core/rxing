@@ -78,7 +78,7 @@ pub fn detect_with_hints(
     for rotation in ROTATIONS {
         // for (int rotation : ROTATIONS) {
         let bitMatrix = applyRotation(originalMatrix, rotation)?;
-        let barcodeCoordinates = detect(multiple, &bitMatrix).ok_or(Exceptions::notFoundEmpty())?;
+        let barcodeCoordinates = detect(multiple, &bitMatrix).ok_or(Exceptions::notFound)?;
         if !barcodeCoordinates.is_empty() {
             return Ok(PDF417DetectorRXingResult::with_rotation(
                 bitMatrix.into_owned(),

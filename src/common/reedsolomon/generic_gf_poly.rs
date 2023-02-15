@@ -49,7 +49,9 @@ impl GenericGFPoly {
      */
     pub fn new(field: GenericGFRef, coefficients: &[i32]) -> Result<Self, Exceptions> {
         if coefficients.is_empty() {
-            return Err(Exceptions::illegalArgument("coefficients cannot be empty"));
+            return Err(Exceptions::illegalArgumentWith(
+                "coefficients cannot be empty",
+            ));
         }
         Ok(Self {
             field,
@@ -138,7 +140,7 @@ impl GenericGFPoly {
 
     pub fn addOrSubtract(&self, other: &GenericGFPoly) -> Result<GenericGFPoly, Exceptions> {
         if self.field != other.field {
-            return Err(Exceptions::illegalArgument(
+            return Err(Exceptions::illegalArgumentWith(
                 "GenericGFPolys do not have same GenericGF field",
             ));
         }
@@ -175,7 +177,7 @@ impl GenericGFPoly {
     pub fn multiply(&self, other: &GenericGFPoly) -> Result<GenericGFPoly, Exceptions> {
         if self.field != other.field {
             //if (!field.equals(other.field)) {
-            return Err(Exceptions::illegalArgument(
+            return Err(Exceptions::illegalArgumentWith(
                 "GenericGFPolys do not have same GenericGF field",
             ));
         }
@@ -250,12 +252,12 @@ impl GenericGFPoly {
         other: &GenericGFPoly,
     ) -> Result<(GenericGFPoly, GenericGFPoly), Exceptions> {
         if self.field != other.field {
-            return Err(Exceptions::illegalArgument(
+            return Err(Exceptions::illegalArgumentWith(
                 "GenericGFPolys do not have same GenericGF field",
             ));
         }
         if other.isZero() {
-            return Err(Exceptions::illegalArgument("Divide by 0"));
+            return Err(Exceptions::illegalArgumentWith("Divide by 0"));
         }
 
         let mut quotient = self.getZero();
@@ -264,7 +266,7 @@ impl GenericGFPoly {
         let denominator_leading_term = other.getCoefficient(other.getDegree());
         let inverse_denominator_leading_term = match self.field.inverse(denominator_leading_term) {
             Ok(val) => val,
-            Err(_issue) => return Err(Exceptions::illegalArgument("arithmetic issue")),
+            Err(_issue) => return Err(Exceptions::illegalArgumentWith("arithmetic issue")),
         };
 
         while remainder.getDegree() >= other.getDegree() && !remainder.isZero() {

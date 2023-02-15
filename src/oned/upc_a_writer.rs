@@ -48,7 +48,7 @@ impl Writer for UPCAWriter {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         if format != &BarcodeFormat::UPC_A {
-            return Err(Exceptions::illegalArgument(format!(
+            return Err(Exceptions::illegalArgumentWith(format!(
                 "Can only encode UPC-A, but got {format:?}"
             )));
         }

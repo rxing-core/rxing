@@ -65,7 +65,7 @@ impl BitMatrix {
      */
     pub fn new(width: u32, height: u32) -> Result<Self, Exceptions> {
         if width < 1 || height < 1 {
-            return Err(Exceptions::illegalArgument(
+            return Err(Exceptions::illegalArgumentWith(
                 "Both dimensions must be greater than 0",
             ));
         }
@@ -137,12 +137,12 @@ impl BitMatrix {
             if string_representation
                 .chars()
                 .nth(pos)
-                .ok_or(Exceptions::illegalStateEmpty())?
+                .ok_or(Exceptions::illegalState)?
                 == '\n'
                 || string_representation
                     .chars()
                     .nth(pos)
-                    .ok_or(Exceptions::illegalStateEmpty())?
+                    .ok_or(Exceptions::illegalState)?
                     == '\r'
             {
                 if bitsPos > rowStartPos {
@@ -151,7 +151,7 @@ impl BitMatrix {
                         first_run = false;
                         rowLength = bitsPos - rowStartPos;
                     } else if bitsPos - rowStartPos != rowLength {
-                        return Err(Exceptions::illegalArgument("row lengths do not match"));
+                        return Err(Exceptions::illegalArgumentWith("row lengths do not match"));
                     }
                     rowStartPos = bitsPos;
                     nRows += 1;
@@ -166,7 +166,7 @@ impl BitMatrix {
                 bits[bitsPos] = false;
                 bitsPos += 1;
             } else {
-                return Err(Exceptions::illegalArgument(format!(
+                return Err(Exceptions::illegalArgumentWith(format!(
                     "illegal character encountered: {}",
                     string_representation[pos..].to_owned()
                 )));
@@ -180,7 +180,7 @@ impl BitMatrix {
                 // first_run = false;
                 rowLength = bitsPos - rowStartPos;
             } else if bitsPos - rowStartPos != rowLength {
-                return Err(Exceptions::illegalArgument("row lengths do not match"));
+                return Err(Exceptions::illegalArgumentWith("row lengths do not match"));
             }
             nRows += 1;
         }
@@ -307,7 +307,7 @@ impl BitMatrix {
     pub fn xor(&mut self, mask: &BitMatrix) -> Result<(), Exceptions> {
         if self.width != mask.width || self.height != mask.height || self.row_size != mask.row_size
         {
-            return Err(Exceptions::illegalArgument(
+            return Err(Exceptions::illegalArgumentWith(
                 "input matrix dimensions do not match",
             ));
         }
@@ -359,14 +359,14 @@ impl BitMatrix {
         //     ));
         // }
         if height < 1 || width < 1 {
-            return Err(Exceptions::illegalArgument(
+            return Err(Exceptions::illegalArgumentWith(
                 "height and width must be at least 1",
             ));
         }
         let right = left + width;
         let bottom = top + height;
         if bottom > self.height || right > self.width {
-            return Err(Exceptions::illegalArgument(
+            return Err(Exceptions::illegalArgumentWith(
                 "the region must fit inside the matrix",
             ));
         }
@@ -440,7 +440,7 @@ impl BitMatrix {
                 self.rotate180();
                 Ok(())
             }
-            _ => Err(Exceptions::illegalArgument(
+            _ => Err(Exceptions::illegalArgumentWith(
                 "degrees must be a multiple of 0, 90, 180, or 270",
             )),
         }

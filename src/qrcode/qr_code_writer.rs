@@ -58,18 +58,18 @@ impl Writer for QRCodeWriter {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         if contents.is_empty() {
-            return Err(Exceptions::illegalArgument("found empty contents"));
+            return Err(Exceptions::illegalArgumentWith("found empty contents"));
         }
 
         if format != &BarcodeFormat::QR_CODE {
-            return Err(Exceptions::illegalArgument(format!(
+            return Err(Exceptions::illegalArgumentWith(format!(
                 "can only encode QR_CODE, but got {format:?}"
             )));
             // throw new IllegalArgumentException("Can only encode QR_CODE, but got " + format);
         }
 
         if width < 0 || height < 0 {
-            return Err(Exceptions::illegalArgument(format!(
+            return Err(Exceptions::illegalArgumentWith(format!(
                 "requested dimensions are too small: {width}x{height}"
             )));
         }
@@ -86,7 +86,7 @@ impl Writer for QRCodeWriter {
             if let Some(EncodeHintValue::Margin(margin)) = hints.get(&EncodeHintType::MARGIN) {
                 margin
                     .parse::<i32>()
-                    .map_err(|e| Exceptions::parse(format!("could not parse {margin}: {e}")))?
+                    .map_err(|e| Exceptions::parseWith(format!("could not parse {margin}: {e}")))?
             } else {
                 QUIET_ZONE_SIZE
             };
@@ -108,10 +108,10 @@ impl QRCodeWriter {
     ) -> Result<BitMatrix, Exceptions> {
         let input = code.getMatrix();
         if input.is_none() {
-            return Err(Exceptions::illegalState("matrix is empty"));
+            return Err(Exceptions::illegalStateWith("matrix is empty"));
         }
 
-        let input = input.as_ref().ok_or(Exceptions::illegalStateEmpty())?;
+        let input = input.as_ref().ok_or(Exceptions::illegalState)?;
 
         let inputWidth = input.getWidth() as i32;
         let inputHeight = input.getHeight() as i32;

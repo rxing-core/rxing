@@ -126,10 +126,10 @@ impl MaxiCodeReader {
     fn extractPureBits(image: &BitMatrix) -> Result<BitMatrix, Exceptions> {
         let enclosingRectangleOption = image.getEnclosingRectangle();
         if enclosingRectangleOption.is_none() {
-            return Err(Exceptions::notFoundEmpty());
+            return Err(Exceptions::notFound);
         }
 
-        let enclosingRectangle = enclosingRectangleOption.ok_or(Exceptions::notFoundEmpty())?;
+        let enclosingRectangle = enclosingRectangleOption.ok_or(Exceptions::notFound)?;
 
         let left = enclosingRectangle[0];
         let top = enclosingRectangle[1];

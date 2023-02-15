@@ -161,7 +161,7 @@ impl PDF417 {
                 pattern = CODEWORD_TABLE[cluster][fullCodewords
                     .chars()
                     .nth(idx)
-                    .ok_or(Exceptions::indexOutOfBoundsEmpty())?
+                    .ok_or(Exceptions::indexOutOfBounds)?
                     as usize];
                 Self::encodeChar(pattern, 17, logic.getCurrentRowMut());
                 idx += 1;
@@ -226,17 +226,17 @@ impl PDF417 {
         //2. step: construct data codewords
         if sourceCodeWords + errorCorrectionCodeWords + 1 > 929 {
             // +1 for symbol length CW
-            return Err(Exceptions::writer(format!(
+            return Err(Exceptions::writerWith(format!(
                 "Encoded message contains too many code words, message too big ({} bytes)",
                 msg.chars().count()
             )));
         }
         let n = sourceCodeWords + pad + 1;
         let mut sb = String::with_capacity(n as usize);
-        sb.push(char::from_u32(n).ok_or(Exceptions::parseEmpty())?);
+        sb.push(char::from_u32(n).ok_or(Exceptions::parse)?);
         sb.push_str(&highLevel);
         for _i in 0..pad {
-            sb.push(char::from_u32(900).ok_or(Exceptions::parseEmpty())?);
+            sb.push(char::from_u32(900).ok_or(Exceptions::parse)?);
             //PAD characters
         }
         let dataCodewords = sb;
@@ -315,7 +315,7 @@ impl PDF417 {
             }
         }
 
-        dimension.ok_or(Exceptions::writer("Unable to fit message in columns"))
+        dimension.ok_or(Exceptions::writerWith("Unable to fit message in columns"))
     }
 
     /**

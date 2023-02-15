@@ -120,17 +120,17 @@ impl AddressBookParsedRXingResult {
         geo: Vec<String>,
     ) -> Result<Self, Exceptions> {
         if phone_numbers.len() != phone_types.len() && !phone_types.is_empty() {
-            return Err(Exceptions::illegalArgument(
+            return Err(Exceptions::illegalArgumentWith(
                 "Phone numbers and types lengths differ",
             ));
         }
         if emails.len() != email_types.len() && !email_types.is_empty() {
-            return Err(Exceptions::illegalArgument(
+            return Err(Exceptions::illegalArgumentWith(
                 "Emails and types lengths differ",
             ));
         }
         if addresses.len() != address_types.len() && !address_types.is_empty() {
-            return Err(Exceptions::illegalArgument(
+            return Err(Exceptions::illegalArgumentWith(
                 "Addresses and types lengths differ",
             ));
         }

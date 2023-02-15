@@ -60,17 +60,17 @@ impl Writer for DataMatrixWriter {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         if contents.is_empty() {
-            return Err(Exceptions::illegalArgument("Found empty contents"));
+            return Err(Exceptions::illegalArgumentWith("Found empty contents"));
         }
 
         if format != &BarcodeFormat::DATA_MATRIX {
-            return Err(Exceptions::illegalArgument(format!(
+            return Err(Exceptions::illegalArgumentWith(format!(
                 "Can only encode DATA_MATRIX, but got {format:?}"
             )));
         }
 
         if width < 0 || height < 0 {
-            return Err(Exceptions::illegalArgument(format!(
+            return Err(Exceptions::illegalArgumentWith(format!(
                 "Requested dimensions can't be negative: {width}x{height}"
             )));
         }
@@ -121,7 +121,7 @@ impl Writer for DataMatrixWriter {
             if hasEncodingHint {
                 let Some(EncodeHintValue::CharacterSet(char_set_name)) =
                     hints.get(&EncodeHintType::CHARACTER_SET) else {
-                      return Err(Exceptions::illegalArgument("charset does not exist"))
+                      return Err(Exceptions::illegalArgumentWith("charset does not exist"))
                     };
                 charset = encoding::label::encoding_from_whatwg_label(char_set_name);
                 // charset = Charset.forName(hints.get(EncodeHintType.CHARACTER_SET).toString());
@@ -155,7 +155,7 @@ impl Writer for DataMatrixWriter {
 
         let symbol_lookup = SymbolInfoLookup::new();
         let Some(symbolInfo) = symbol_lookup.lookup_with_codewords_shape_size_fail(encoded.chars().count() as u32, *shape, &minSize, &maxSize, true)? else {
-      return Err(Exceptions::notFound("symbol info is bad"))
+      return Err(Exceptions::notFoundWith("symbol info is bad"))
     };
 
         //2. step: ECC generation

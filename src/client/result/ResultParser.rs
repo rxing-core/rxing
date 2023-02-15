@@ -300,7 +300,7 @@ pub fn urlDecode(encoded: &str) -> Result<String, Exceptions> {
     if let Ok(decoded) = decode(encoded) {
         Ok(decoded.to_string())
     } else {
-        Err(Exceptions::illegalState("UnsupportedEncodingException"))
+        Err(Exceptions::illegalStateWith("UnsupportedEncodingException"))
     }
 }
 

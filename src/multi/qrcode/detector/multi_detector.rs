@@ -53,7 +53,7 @@ impl<'a> MultiDetector<'_> {
         let infos = finder.findMulti(hints)?;
 
         if infos.is_empty() {
-            return Err(Exceptions::notFoundEmpty());
+            return Err(Exceptions::notFound);
         }
 
         let mut result = Vec::new();

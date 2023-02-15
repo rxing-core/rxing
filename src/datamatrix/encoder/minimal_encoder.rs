@@ -218,7 +218,7 @@ fn addEdge(edges: &mut [Vec<Option<Rc<Edge>>>], edge: Rc<Edge>) -> Result<(), Ex
     if edges[vertexIndex][edge.getEndMode()?.ordinal()].is_none()
         || edges[vertexIndex][edge.getEndMode()?.ordinal()]
             .as_ref()
-            .ok_or(Exceptions::illegalStateEmpty())?
+            .ok_or(Exceptions::illegalState)?
             .cachedTotalSize
             > edge.cachedTotalSize
     {
@@ -635,7 +635,7 @@ fn encodeMinimally(input: Rc<Input>) -> Result<RXingResult, Exceptions> {
     }
 
     if minimalJ < 0 {
-        return Err(Exceptions::illegalState(format!(
+        return Err(Exceptions::illegalStateWith(format!(
             "Internal error: failed to encode \"{input}\""
         )));
     }
@@ -669,7 +669,7 @@ impl Edge {
         previous: Option<Rc<Edge>>,
     ) -> Result<Self, Exceptions> {
         if fromPosition + characterLength > input.length() as u32 {
-            return Err(Exceptions::formatEmpty());
+            return Err(Exceptions::format);
         }
 
         let mut size = if let Some(previous) = previous.clone() {
@@ -1276,7 +1276,7 @@ impl RXingResult {
         let solution = if let Some(edge) = solution {
             edge
         } else {
-            return Err(Exceptions::illegalArgumentEmpty());
+            return Err(Exceptions::illegalArgument);
         };
         let input = solution.input.clone();
         let mut size = 0;

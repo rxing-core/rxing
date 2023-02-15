@@ -696,7 +696,7 @@ impl<'a> FinderPatternFinder<'_> {
         let startSize = self.possibleCenters.len();
         if startSize < 3 {
             // Couldn't find enough finder patterns
-            return Err(Exceptions::notFoundEmpty());
+            return Err(Exceptions::notFound);
         }
 
         self.possibleCenters
@@ -713,19 +713,19 @@ impl<'a> FinderPatternFinder<'_> {
 
         for i in 0..self.possibleCenters.len() {
             let Some(fpi) = self.possibleCenters.get(i) else {
-                return Err(Exceptions::notFoundEmpty());
+                return Err(Exceptions::notFound);
             };
             let minModuleSize = fpi.getEstimatedModuleSize();
 
             for j in (i + 1)..(self.possibleCenters.len() - 1) {
                 let Some(fpj) =  self.possibleCenters.get(j) else {
-                    return Err(Exceptions::notFoundEmpty());
+                    return Err(Exceptions::notFound);
                 };
                 let squares0 = Self::squaredDistance(fpi, fpj);
 
                 for k in (j + 1)..(self.possibleCenters.len()) {
                     let Some(fpk) = self.possibleCenters.get(k) else {
-                        return Err(Exceptions::notFoundEmpty());
+                        return Err(Exceptions::notFound);
                     };
                     let maxModuleSize = fpk.getEstimatedModuleSize();
                     if maxModuleSize > minModuleSize * 1.4 {
@@ -777,16 +777,16 @@ impl<'a> FinderPatternFinder<'_> {
         }
 
         if distortion == f64::MAX {
-            return Err(Exceptions::notFoundEmpty());
+            return Err(Exceptions::notFound);
         }
 
         if bestPatterns[0].is_none() {
-            return Err(Exceptions::notFoundEmpty());
+            return Err(Exceptions::notFound);
         }
 
-        let p1 = bestPatterns[0].ok_or(Exceptions::notFoundEmpty())?;
-        let p2 = bestPatterns[1].ok_or(Exceptions::notFoundEmpty())?;
-        let p3 = bestPatterns[2].ok_or(Exceptions::notFoundEmpty())?;
+        let p1 = bestPatterns[0].ok_or(Exceptions::notFound)?;
+        let p2 = bestPatterns[1].ok_or(Exceptions::notFound)?;
+        let p3 = bestPatterns[2].ok_or(Exceptions::notFound)?;
 
         Ok([p1, p2, p3])
     }

@@ -93,7 +93,9 @@ impl<'a> MultiFinderPatternFinder<'_> {
 
         if size < 3 {
             // Couldn't find enough finder patterns
-            return Err(Exceptions::notFound("Couldn't find enough finder patterns"));
+            return Err(Exceptions::notFoundWith(
+                "Couldn't find enough finder patterns",
+            ));
         }
 
         /*
@@ -210,7 +212,7 @@ impl<'a> MultiFinderPatternFinder<'_> {
         if !results.is_empty() {
             Ok(results)
         } else {
-            Err(Exceptions::notFoundEmpty())
+            Err(Exceptions::notFound)
         }
     }
 

@@ -67,7 +67,7 @@ impl GridSampler for DefaultGridSampler {
         transform: &PerspectiveTransform,
     ) -> Result<BitMatrix, Exceptions> {
         if dimensionX == 0 || dimensionY == 0 {
-            return Err(Exceptions::notFoundEmpty());
+            return Err(Exceptions::notFound);
         }
         let mut bits = BitMatrix::new(dimensionX, dimensionY)?;
         let mut points = vec![0.0; 2 * dimensionX as usize];
@@ -98,7 +98,7 @@ impl GridSampler for DefaultGridSampler {
                 // }
                 if image
                     .try_get(points[x] as u32, points[x + 1] as u32)
-                    .ok_or(Exceptions::notFound(
+                    .ok_or(Exceptions::notFoundWith(
                         "index out of bounds, see documentation in file for explanation",
                     ))?
                 {

@@ -76,7 +76,7 @@ impl EdifactEncoder {
                 context.updateSymbolInfo();
                 let mut available = context
                     .getSymbolInfo()
-                    .ok_or(Exceptions::illegalStateEmpty())?
+                    .ok_or(Exceptions::illegalState)?
                     .getDataCapacity()
                     - context.getCodewordCount() as u32;
                 let remaining = context.getRemainingCharacters();
@@ -85,7 +85,7 @@ impl EdifactEncoder {
                     context.updateSymbolInfoWithLength(context.getCodewordCount() + 1);
                     available = context
                         .getSymbolInfo()
-                        .ok_or(Exceptions::illegalStateEmpty())?
+                        .ok_or(Exceptions::illegalState)?
                         .getDataCapacity()
                         - context.getCodewordCount() as u32;
                 }
@@ -95,7 +95,7 @@ impl EdifactEncoder {
             }
 
             if count > 4 {
-                return Err(Exceptions::illegalState("Count must not exceed 4"));
+                return Err(Exceptions::illegalStateWith("Count must not exceed 4"));
             }
             let restChars = count - 1;
             let encoded = Self::encodeToCodewords(buffer)?;
@@ -106,7 +106,7 @@ impl EdifactEncoder {
                 context.updateSymbolInfoWithLength(context.getCodewordCount() + restChars);
                 let available = context
                     .getSymbolInfo()
-                    .ok_or(Exceptions::illegalStateEmpty())?
+                    .ok_or(Exceptions::illegalState)?
                     .getDataCapacity()
                     - context.getCodewordCount() as u32;
                 if available >= 3 {
@@ -147,30 +147,23 @@ impl EdifactEncoder {
     fn encodeToCodewords(sb: &str) -> Result<String, Exceptions> {
         let len = sb.chars().count();
         if len == 0 {
-            return Err(Exceptions::illegalState("StringBuilder must not be empty"));
+            return Err(Exceptions::illegalStateWith(
+                "StringBuilder must not be empty",
+            ));
         }
-        let c1 = sb
-            .chars()
-            .next()
-            .ok_or(Exceptions::indexOutOfBoundsEmpty())?;
+        let c1 = sb.chars().next().ok_or(Exceptions::indexOutOfBounds)?;
         let c2 = if len >= 2 {
-            sb.chars()
-                .nth(1)
-                .ok_or(Exceptions::indexOutOfBoundsEmpty())?
+            sb.chars().nth(1).ok_or(Exceptions::indexOutOfBounds)?
         } else {
             0 as char
         };
         let c3 = if len >= 3 {
-            sb.chars()
-                .nth(2)
-                .ok_or(Exceptions::indexOutOfBoundsEmpty())?
+            sb.chars().nth(2).ok_or(Exceptions::indexOutOfBounds)?
         } else {
             0 as char
         };
         let c4 = if len >= 4 {
-            sb.chars()
-                .nth(3)
-                .ok_or(Exceptions::indexOutOfBoundsEmpty())?
+            sb.chars().nth(3).ok_or(Exceptions::indexOutOfBounds)?
         } else {
             0 as char
         };
@@ -180,12 +173,12 @@ impl EdifactEncoder {
         let cw2 = (v >> 8) & 255;
         let cw3 = v & 255;
         let mut res = String::with_capacity(3);
-        res.push(char::from_u32(cw1).ok_or(Exceptions::indexOutOfBoundsEmpty())?);
+        res.push(char::from_u32(cw1).ok_or(Exceptions::indexOutOfBounds)?);
         if len >= 2 {
-            res.push(char::from_u32(cw2).ok_or(Exceptions::indexOutOfBoundsEmpty())?);
+            res.push(char::from_u32(cw2).ok_or(Exceptions::indexOutOfBounds)?);
         }
         if len >= 3 {
-            res.push(char::from_u32(cw3).ok_or(Exceptions::indexOutOfBoundsEmpty())?);
+            res.push(char::from_u32(cw3).ok_or(Exceptions::indexOutOfBounds)?);
         }
 
         Ok(res)

@@ -22,109 +22,71 @@ pub enum Exceptions {
     ReaderDecodeException(),
 }
 
+#[allow(non_upper_case_globals)]
 impl Exceptions {
-    pub fn illegalArgument<I: Into<String>>(x: I) -> Self {
+    pub const illegalArgument: Self = Self::IllegalArgumentException(None);
+    pub fn illegalArgumentWith<I: Into<String>>(x: I) -> Self {
         Self::IllegalArgumentException(Some(x.into()))
     }
 
-    pub fn illegalArgumentEmpty() -> Self {
-        Self::IllegalArgumentException(None)
-    }
-
-    pub fn unsupportedOperation<I: Into<String>>(x: I) -> Self {
+    pub const unsupportedOperation: Self = Self::UnsupportedOperationException(None);
+    pub fn unsupportedOperationWith<I: Into<String>>(x: I) -> Self {
         Self::UnsupportedOperationException(Some(x.into()))
     }
 
-    pub fn unsupportedOperationEmpty() -> Self {
-        Self::UnsupportedOperationException(None)
-    }
-
-    pub fn illegalState<I: Into<String>>(x: I) -> Self {
+    pub const illegalState: Self = Self::IllegalStateException(None);
+    pub fn illegalStateWith<I: Into<String>>(x: I) -> Self {
         Self::IllegalStateException(Some(x.into()))
     }
 
-    pub fn illegalStateEmpty() -> Self {
-        Self::IllegalStateException(None)
-    }
-
-    pub fn arithmetic<I: Into<String>>(x: I) -> Self {
+    pub const arithmetic: Self = Self::ArithmeticException(None);
+    pub fn arithmeticWith<I: Into<String>>(x: I) -> Self {
         Self::ArithmeticException(Some(x.into()))
     }
 
-    pub fn arithmeticEmpty() -> Self {
-        Self::ArithmeticException(None)
-    }
-
-    pub fn notFound<I: Into<String>>(x: I) -> Self {
+    pub const notFound: Self = Self::NotFoundException(None);
+    pub fn notFoundWith<I: Into<String>>(x: I) -> Self {
         Self::NotFoundException(Some(x.into()))
     }
 
-    pub fn notFoundEmpty() -> Self {
-        Self::NotFoundException(None)
-    }
-
-    pub fn format<I: Into<String>>(x: I) -> Self {
+    pub const format: Self = Self::FormatException(None);
+    pub fn formatWith<I: Into<String>>(x: I) -> Self {
         Self::FormatException(Some(x.into()))
     }
 
-    pub fn formatEmpty() -> Self {
-        Self::FormatException(None)
-    }
-
-    pub fn checksum<I: Into<String>>(x: I) -> Self {
+    pub const checksum: Self = Self::ChecksumException(None);
+    pub fn checksumWith<I: Into<String>>(x: I) -> Self {
         Self::ChecksumException(Some(x.into()))
     }
 
-    pub fn checksumEmpty() -> Self {
-        Self::ChecksumException(None)
-    }
-
-    pub fn reader<I: Into<String>>(x: I) -> Self {
+    pub const reader: Self = Self::ReaderException(None);
+    pub fn readerWith<I: Into<String>>(x: I) -> Self {
         Self::ReaderException(Some(x.into()))
     }
 
-    pub fn readerEmpty() -> Self {
-        Self::ReaderException(None)
-    }
-
-    pub fn writer<I: Into<String>>(x: I) -> Self {
+    pub const writer: Self = Self::WriterException(None);
+    pub fn writerWith<I: Into<String>>(x: I) -> Self {
         Self::WriterException(Some(x.into()))
     }
 
-    pub fn writerEmpty() -> Self {
-        Self::WriterException(None)
-    }
-
-    pub fn reedSolomon<I: Into<String>>(x: I) -> Self {
+    pub const reedSolomon: Self = Self::ReedSolomonException(None);
+    pub fn reedSolomonWith<I: Into<String>>(x: I) -> Self {
         Self::ReedSolomonException(Some(x.into()))
     }
 
-    pub fn reedSolomonEmpty() -> Self {
-        Self::ReedSolomonException(None)
-    }
-
-    pub fn indexOutOfBounds<I: Into<String>>(x: I) -> Self {
+    pub const indexOutOfBounds: Self = Self::IndexOutOfBoundsException(None);
+    pub fn indexOutOfBoundsWith<I: Into<String>>(x: I) -> Self {
         Self::IndexOutOfBoundsException(Some(x.into()))
     }
 
-    pub fn indexOutOfBoundsEmpty() -> Self {
-        Self::IndexOutOfBoundsException(None)
-    }
-
-    pub fn runtime<I: Into<String>>(x: I) -> Self {
+    pub const runtime: Self = Self::RuntimeException(None);
+    pub fn runtimeWith<I: Into<String>>(x: I) -> Self {
         Self::RuntimeException(Some(x.into()))
     }
 
-    pub fn runtimeEmpty() -> Self {
-        Self::RuntimeException(None)
-    }
-
-    pub fn parse<I: Into<String>>(x: I) -> Self {
+    pub const parse: Self = Self::ParseException(None);
+    pub fn parseWith<I: Into<String>>(x: I) -> Self {
         Self::ParseException(Some(x.into()))
-    }
-
-    pub fn parseEmpty() -> Self {
-        Self::ParseException(None)
     }
 }
 

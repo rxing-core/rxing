@@ -71,7 +71,7 @@ impl Writer for MultiFormatWriter {
             BarcodeFormat::DATA_MATRIX => Box::<DataMatrixWriter>::default(),
             BarcodeFormat::AZTEC => Box::<AztecWriter>::default(),
             _ => {
-                return Err(Exceptions::illegalArgument(format!(
+                return Err(Exceptions::illegalArgumentWith(format!(
                     "No encoder available for format {format:?}"
                 )))
             }

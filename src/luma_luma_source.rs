@@ -95,7 +95,7 @@ impl LuminanceSource for Luma8LuminanceSource {
     }
 
     fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>, crate::Exceptions> {
-        Err(crate::Exceptions::unsupportedOperation(
+        Err(crate::Exceptions::unsupportedOperationWith(
             "This luminance source does not support rotation by 45 degrees.",
         ))
     }

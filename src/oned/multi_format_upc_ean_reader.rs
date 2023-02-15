@@ -134,7 +134,7 @@ impl OneDReader for MultiFormatUPCEANReader {
             }
         }
 
-        Err(Exceptions::notFoundEmpty())
+        Err(Exceptions::notFound)
     }
 }
 
@@ -200,7 +200,7 @@ impl Reader for MultiFormatUPCEANReader {
 
             Ok(result)
         } else {
-            Err(Exceptions::notFoundEmpty())
+            Err(Exceptions::notFound)
         }
     }
 

@@ -91,7 +91,7 @@ pub trait LuminanceSource {
         _width: usize,
         _height: usize,
     ) -> Result<Box<dyn LuminanceSource>, Exceptions> {
-        Err(Exceptions::unsupportedOperation(
+        Err(Exceptions::unsupportedOperationWith(
             "This luminance source does not support cropping.",
         ))
     }
@@ -118,7 +118,7 @@ pub trait LuminanceSource {
      * @return A rotated version of this object.
      */
     fn rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>, Exceptions> {
-        Err(Exceptions::unsupportedOperation(
+        Err(Exceptions::unsupportedOperationWith(
             "This luminance source does not support rotation by 90 degrees.",
         ))
     }
@@ -130,7 +130,7 @@ pub trait LuminanceSource {
      * @return A rotated version of this object.
      */
     fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>, Exceptions> {
-        Err(Exceptions::unsupportedOperation(
+        Err(Exceptions::unsupportedOperationWith(
             "This luminance source does not support rotation by 45 degrees.",
         ))
     }

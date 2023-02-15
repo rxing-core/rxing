@@ -192,6 +192,6 @@ impl MultiFormatReader {
                 }
             }
         }
-        Err(Exceptions::notFoundEmpty())
+        Err(Exceptions::notFound)
     }
 }
