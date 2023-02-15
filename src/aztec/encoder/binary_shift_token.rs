@@ -16,7 +16,7 @@
 
 use std::fmt;
 
-use crate::{common::BitArray, Exceptions};
+use crate::common::{BitArray, Result};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct BinaryShiftToken {
@@ -32,7 +32,7 @@ impl BinaryShiftToken {
         }
     }
 
-    pub fn appendTo(&self, bit_array: &mut BitArray, text: &[u8]) -> Result<(), Exceptions> {
+    pub fn appendTo(&self, bit_array: &mut BitArray, text: &[u8]) -> Result<()> {
         let bsbc = self.binary_shift_byte_count as usize;
         for i in 0..bsbc {
             // for (int i = 0; i < bsbc; i++) {

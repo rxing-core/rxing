@@ -17,7 +17,8 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::BitMatrix, BarcodeFormat, EncodeHintType, EncodeHintValue, Exceptions, Writer,
+    common::{BitMatrix, Result},
+    BarcodeFormat, EncodeHintType, EncodeHintValue, Exceptions, Writer,
 };
 
 use once_cell::sync::Lazy;
@@ -40,7 +41,7 @@ pub trait OneDimensionalCodeWriter: Writer {
      * @param contents barcode contents to encode
      * @return a {@code boolean[]} of horizontal pixels (false = white, true = black)
      */
-    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>, Exceptions>;
+    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>>;
 
     /**
      * Can be overwritten if the encode requires to read the hints map. Otherwise it defaults to {@code encode}.
@@ -52,7 +53,7 @@ pub trait OneDimensionalCodeWriter: Writer {
         &self,
         contents: &str,
         _hints: &crate::EncodingHintDictionary,
-    ) -> Result<Vec<bool>, Exceptions> {
+    ) -> Result<Vec<bool>> {
         self.encode_oned(contents)
     }
 
@@ -68,7 +69,7 @@ pub trait OneDimensionalCodeWriter: Writer {
         width: i32,
         height: i32,
         sidesMargin: u32,
-    ) -> Result<BitMatrix, Exceptions> {
+    ) -> Result<BitMatrix> {
         let inputWidth = code.len();
         // Add quiet zone on both sides.
         let fullWidth = inputWidth + sidesMargin as usize;
@@ -98,7 +99,7 @@ pub trait OneDimensionalCodeWriter: Writer {
      * @param contents string to check for numeric characters
      * @throws IllegalArgumentException if input contains characters other than digits 0-9.
      */
-    fn checkNumeric(contents: &str) -> Result<(), Exceptions> {
+    fn checkNumeric(contents: &str) -> Result<()> {
         if !NUMERIC.is_match(contents) {
             Err(Exceptions::IllegalArgumentException(Some(
                 "Input should only contain digits 0-9".to_owned(),
@@ -150,7 +151,7 @@ impl Writer for L {
         format: &crate::BarcodeFormat,
         width: i32,
         height: i32,
-    ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+    ) -> Result<crate::common::BitMatrix> {
         self.encode_with_hints(contents, format, width, height, &HashMap::new())
     }
 
@@ -161,7 +162,7 @@ impl Writer for L {
         width: i32,
         height: i32,
         hints: &crate::EncodingHintDictionary,
-    ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+    ) -> Result<crate::common::BitMatrix> {
         if contents.is_empty() {
             return Err(Exceptions::IllegalArgumentException(Some(
                 "Found empty contents".to_owned(),
@@ -195,7 +196,7 @@ impl Writer for L {
 }
 
 impl OneDimensionalCodeWriter for L {
-    fn encode_oned(&self, _contents: &str) -> Result<Vec<bool>, Exceptions> {
+    fn encode_oned(&self, _contents: &str) -> Result<Vec<bool>> {
         todo!()
     }
 }

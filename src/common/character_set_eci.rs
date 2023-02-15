@@ -25,6 +25,7 @@
 
 use encoding::EncodingRef;
 
+use crate::common::Result;
 use crate::Exceptions;
 
 /**
@@ -215,7 +216,7 @@ impl CharacterSetECI {
      *   unsupported
      * @throws FormatException if ECI value is invalid
      */
-    pub fn getCharacterSetECIByValue(value: u32) -> Result<CharacterSetECI, Exceptions> {
+    pub fn getCharacterSetECIByValue(value: u32) -> Result<CharacterSetECI> {
         match value {
             0 | 2 => Ok(CharacterSetECI::Cp437),
             1 | 3 => Ok(CharacterSetECI::ISO8859_1),

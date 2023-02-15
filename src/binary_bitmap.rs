@@ -19,8 +19,8 @@
 use std::{borrow::Cow, fmt, rc::Rc};
 
 use crate::{
-    common::{BitArray, BitMatrix},
-    Binarizer, Exceptions,
+    common::{BitArray, BitMatrix, Result},
+    Binarizer,
 };
 
 /**
@@ -68,7 +68,7 @@ impl BinaryBitmap {
      * @return The array of bits for this row (true means black).
      * @throws NotFoundException if row can't be binarized
      */
-    pub fn getBlackRow(&self, y: usize) -> Result<Cow<BitArray>, Exceptions> {
+    pub fn getBlackRow(&self, y: usize) -> Result<Cow<BitArray>> {
         self.binarizer.getBlackRow(y)
     }
 

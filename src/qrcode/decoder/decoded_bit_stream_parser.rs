@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    common::{BitSource, CharacterSetECI, DecoderRXingResult, StringUtils},
+    common::{BitSource, CharacterSetECI, DecoderRXingResult, Result, StringUtils},
     DecodingHintDictionary, Exceptions,
 };
 
@@ -44,7 +44,7 @@ pub fn decode(
     version: VersionRef,
     ecLevel: ErrorCorrectionLevel,
     hints: &DecodingHintDictionary,
-) -> Result<DecoderRXingResult, Exceptions> {
+) -> Result<DecoderRXingResult> {
     let mut bits = BitSource::new(bytes.to_owned());
     let mut result = String::with_capacity(50);
     let mut byteSegments = vec![vec![0u8; 0]; 0];
@@ -174,11 +174,7 @@ pub fn decode(
 /**
  * See specification GBT 18284-2000
  */
-fn decodeHanziSegment(
-    bits: &mut BitSource,
-    result: &mut String,
-    count: usize,
-) -> Result<(), Exceptions> {
+fn decodeHanziSegment(bits: &mut BitSource, result: &mut String, count: usize) -> Result<()> {
     // Don't crash trying to read more bits than we have available.
     if count * 13 > bits.available() {
         return Err(Exceptions::FormatException(None));
@@ -224,7 +220,7 @@ fn decodeKanjiSegment(
     count: usize,
     currentCharacterSetECI: Option<CharacterSetECI>,
     hints: &DecodingHintDictionary,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     // Don't crash trying to read more bits than we have available.
     if count * 13 > bits.available() {
         return Err(Exceptions::FormatException(None));
@@ -292,7 +288,7 @@ fn decodeByteSegment(
     currentCharacterSetECI: Option<CharacterSetECI>,
     byteSegments: &mut Vec<Vec<u8>>,
     hints: &DecodingHintDictionary,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     // Don't crash trying to read more bits than we have available.
     if 8 * count > bits.available() {
         return Err(Exceptions::FormatException(None));
@@ -359,7 +355,7 @@ fn decodeByteSegment(
     Ok(())
 }
 
-fn toAlphaNumericChar(value: u32) -> Result<char, Exceptions> {
+fn toAlphaNumericChar(value: u32) -> Result<char> {
     if value as usize >= ALPHANUMERIC_CHARS.len() {
         return Err(Exceptions::FormatException(None));
     }
@@ -375,7 +371,7 @@ fn decodeAlphanumericSegment(
     result: &mut String,
     count: usize,
     fc1InEffect: bool,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     // Read two characters at a time
     let start = result.len();
     let mut count = count;
@@ -425,11 +421,7 @@ fn decodeAlphanumericSegment(
     Ok(())
 }
 
-fn decodeNumericSegment(
-    bits: &mut BitSource,
-    result: &mut String,
-    count: usize,
-) -> Result<(), Exceptions> {
+fn decodeNumericSegment(bits: &mut BitSource, result: &mut String, count: usize) -> Result<()> {
     let mut count = count;
     // Read three digits at a time
     while count >= 3 {
@@ -472,7 +464,7 @@ fn decodeNumericSegment(
     Ok(())
 }
 
-fn parseECIValue(bits: &mut BitSource) -> Result<u32, Exceptions> {
+fn parseECIValue(bits: &mut BitSource) -> Result<u32> {
     let firstByte = bits.readBits(8)?;
     if (firstByte & 0x80) == 0 {
         // just one byte

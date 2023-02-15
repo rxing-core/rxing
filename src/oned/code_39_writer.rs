@@ -16,6 +16,7 @@
 
 use rxing_one_d_proc_derive::OneDWriter;
 
+use crate::common::Result;
 use crate::BarcodeFormat;
 
 use super::{Code39Reader, OneDimensionalCodeWriter};
@@ -29,7 +30,7 @@ use super::{Code39Reader, OneDimensionalCodeWriter};
 pub struct Code39Writer;
 
 impl OneDimensionalCodeWriter for Code39Writer {
-    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>, Exceptions> {
+    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
         let mut contents = contents.to_owned();
         let mut length = contents.chars().count();
         if length > 80 {
@@ -99,7 +100,7 @@ impl Code39Writer {
         }
     }
 
-    fn tryToConvertToExtendedMode(contents: &str) -> Result<String, Exceptions> {
+    fn tryToConvertToExtendedMode(contents: &str) -> Result<String> {
         // let length = contents.chars().count();
         let mut extendedContent = String::new(); //new StringBuilder();
         for character in contents.chars() {

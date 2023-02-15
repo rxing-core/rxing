@@ -16,6 +16,7 @@
 
 use std::collections::HashMap;
 
+use crate::common::Result;
 use crate::{Exceptions, RXingResult, RXingResultPoint, Reader, ResultPoint};
 
 /**
@@ -29,10 +30,7 @@ use crate::{Exceptions, RXingResult, RXingResultPoint, Reader, ResultPoint};
  */
 pub struct ByQuadrantReader<T: Reader>(T);
 impl<T: Reader> Reader for ByQuadrantReader<T> {
-    fn decode(
-        &mut self,
-        image: &mut crate::BinaryBitmap,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
@@ -40,7 +38,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
         &mut self,
         image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    ) -> Result<crate::RXingResult> {
         let width = image.getWidth();
         let height = image.getHeight();
         let halfWidth = width / 2;

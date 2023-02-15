@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::common::Result;
 use crate::BarcodeFormat;
 use crate::DecodeHintValue;
 use crate::Exceptions;
@@ -74,7 +75,7 @@ impl MultiFormatUPCEANReader {
         row: &crate::common::BitArray,
         hints: &crate::DecodingHintDictionary,
         startGuardPattern: &[usize; 2],
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    ) -> Result<crate::RXingResult> {
         let result = reader.decodeRowWithGuardRange(rowNumber, row, startGuardPattern, hints)?;
         // Special case: a 12-digit code encoded in UPC-A is identical to a "0"
         // followed by those 12 digits encoded as EAN-13. Each will recognize such a code,
@@ -122,7 +123,7 @@ impl OneDReader for MultiFormatUPCEANReader {
         rowNumber: u32,
         row: &crate::common::BitArray,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    ) -> Result<crate::RXingResult> {
         // Compute this location once and reuse it on multiple implementations
         let startGuardPattern = STAND_IN.findStartGuardPattern(row)?;
         for reader in &self.0 {
@@ -145,10 +146,7 @@ use crate::RXingResultMetadataValue;
 use std::collections::HashMap;
 
 impl Reader for MultiFormatUPCEANReader {
-    fn decode(
-        &mut self,
-        image: &mut crate::BinaryBitmap,
-    ) -> Result<crate::RXingResult, Exceptions> {
+    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
@@ -157,7 +155,7 @@ impl Reader for MultiFormatUPCEANReader {
         &mut self,
         image: &mut crate::BinaryBitmap,
         hints: &DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, Exceptions> {
+    ) -> Result<crate::RXingResult> {
         let first_try = self.doDecode(image, hints);
         if first_try.is_ok() {
             return first_try;

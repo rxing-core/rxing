@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-use crate::{
-    common::{
-        reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder},
-        BitMatrix, DecoderRXingResult,
-    },
-    Exceptions,
+use crate::common::{
+    reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder},
+    BitMatrix, DecoderRXingResult, Result,
 };
 
 use super::{decoded_bit_stream_parser, BitMatrixParser, DataBlock};
@@ -49,7 +46,7 @@ impl Decoder {
      * @throws FormatException if the Data Matrix Code cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-    pub fn decode(&self, bits: &BitMatrix) -> Result<DecoderRXingResult, Exceptions> {
+    pub fn decode(&self, bits: &BitMatrix) -> Result<DecoderRXingResult> {
         let decoded = self.perform_decode(bits, false, false);
         if decoded.is_ok() {
             return decoded;
@@ -58,7 +55,7 @@ impl Decoder {
         self.perform_decode(&Self::flip_bitmatrix(bits)?, false, true)
     }
 
-    fn flip_bitmatrix(bits: &BitMatrix) -> Result<BitMatrix, Exceptions> {
+    fn flip_bitmatrix(bits: &BitMatrix) -> Result<BitMatrix> {
         let mut res = BitMatrix::new(bits.getHeight(), bits.getWidth())?;
         for y in 0..res.getHeight() {
             for x in 0..res.getWidth() {
@@ -84,7 +81,7 @@ impl Decoder {
      * @throws FormatException if the Data Matrix Code cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-    pub fn decode_bools(&self, image: &Vec<Vec<bool>>) -> Result<DecoderRXingResult, Exceptions> {
+    pub fn decode_bools(&self, image: &Vec<Vec<bool>>) -> Result<DecoderRXingResult> {
         self.perform_decode(&BitMatrix::parse_bools(image), false, false)
     }
 
@@ -102,7 +99,7 @@ impl Decoder {
         bits: &BitMatrix,
         fix259: bool,
         is_flipped: bool,
-    ) -> Result<DecoderRXingResult, Exceptions> {
+    ) -> Result<DecoderRXingResult> {
         // Construct a parser and read version, error-correction level
         let mut parser = BitMatrixParser::new(bits)?;
 
@@ -153,11 +150,7 @@ impl Decoder {
      * @param numDataCodewords number of codewords that are data bytes
      * @throws ChecksumException if error correction fails
      */
-    fn correctErrors(
-        &self,
-        codewordBytes: &mut [u8],
-        numDataCodewords: u32,
-    ) -> Result<(), Exceptions> {
+    fn correctErrors(&self, codewordBytes: &mut [u8], numDataCodewords: u32) -> Result<()> {
         let _numCodewords = codewordBytes.len();
         // First read into an array of ints
         // let codewordsInts = vec![0i32;numCodewords];

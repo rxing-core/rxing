@@ -23,6 +23,7 @@ use super::Code93Reader;
 use super::ITFReader;
 use super::MultiFormatUPCEANReader;
 use super::OneDReader;
+use crate::common::Result;
 use crate::BarcodeFormat;
 use crate::DecodeHintValue;
 use crate::Exceptions;
@@ -39,7 +40,7 @@ impl OneDReader for MultiFormatOneDReader {
         rowNumber: u32,
         row: &crate::common::BitArray,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    ) -> Result<crate::RXingResult> {
         for reader in self.0.iter_mut() {
             if let Ok(res) = reader.decodeRow(rowNumber, row, hints) {
                 return Ok(res);
@@ -113,10 +114,7 @@ use crate::Reader;
 use std::collections::HashMap;
 
 impl Reader for MultiFormatOneDReader {
-    fn decode(
-        &mut self,
-        image: &mut crate::BinaryBitmap,
-    ) -> Result<crate::RXingResult, Exceptions> {
+    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
@@ -125,7 +123,7 @@ impl Reader for MultiFormatOneDReader {
         &mut self,
         image: &mut crate::BinaryBitmap,
         hints: &DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, Exceptions> {
+    ) -> Result<crate::RXingResult> {
         let first_try = self.doDecode(image, hints);
         if first_try.is_ok() {
             return first_try;

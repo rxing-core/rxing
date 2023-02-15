@@ -19,8 +19,8 @@
 use std::{borrow::Cow, rc::Rc};
 
 use crate::{
-    common::{BitArray, BitMatrix},
-    Exceptions, LuminanceSource,
+    common::{BitArray, BitMatrix, Result},
+    LuminanceSource,
 };
 
 /**
@@ -51,7 +51,7 @@ pub trait Binarizer {
      * @return The array of bits for this row (true means black).
      * @throws NotFoundException if row can't be binarized
      */
-    fn getBlackRow(&self, y: usize) -> Result<Cow<BitArray>, Exceptions>;
+    fn getBlackRow(&self, y: usize) -> Result<Cow<BitArray>>;
 
     /**
      * Converts a 2D array of luminance data to 1 bit data. As above, assume this method is expensive
@@ -62,7 +62,7 @@ pub trait Binarizer {
      * @return The 2D array of bits for the image (true means black).
      * @throws NotFoundException if image can't be binarized to make a matrix
      */
-    fn getBlackMatrix(&self) -> Result<&BitMatrix, Exceptions>;
+    fn getBlackMatrix(&self) -> Result<&BitMatrix>;
 
     /**
      * Creates a new object with the same type as this Binarizer implementation, but with pristine

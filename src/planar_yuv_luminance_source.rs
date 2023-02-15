@@ -126,6 +126,7 @@
 
 //package com.google.zxing;
 
+use crate::common::Result;
 use crate::{Exceptions, LuminanceSource};
 
 const THUMBNAIL_SCALE_FACTOR: usize = 2;
@@ -164,7 +165,7 @@ impl PlanarYUVLuminanceSource {
         height: usize,
         reverse_horizontal: bool,
         inverted: bool,
-    ) -> Result<Self, Exceptions> {
+    ) -> Result<Self> {
         if left + width > data_width || top + height > data_height {
             return Err(Exceptions::IllegalArgumentException(Some(
                 "Crop rectangle does not fit within image data.".to_owned(),
@@ -315,7 +316,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         top: usize,
         width: usize,
         height: usize,
-    ) -> Result<Box<dyn LuminanceSource>, Exceptions> {
+    ) -> Result<Box<dyn LuminanceSource>> {
         match PlanarYUVLuminanceSource::new_with_all(
             self.yuv_data.clone(),
             self.data_width,

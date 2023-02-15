@@ -1,6 +1,10 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{common::BitMatrix, qrcode::encoder::ByteMatrix, Exceptions, RXingResultPoint};
+use crate::{
+    common::{BitMatrix, Result},
+    qrcode::encoder::ByteMatrix,
+    Exceptions, RXingResultPoint,
+};
 
 use super::{BitMatrixCursor, Direction, RegressionLine, StepResult, Value};
 
@@ -170,7 +174,7 @@ impl<'a> EdgeTracer<'_> {
         dEdge: &RXingResultPoint,
         maxStepSize: i32,
         goodDirection: bool,
-    ) -> Result<StepResult, Exceptions> {
+    ) -> Result<StepResult> {
         let dEdge = RXingResultPoint::mainDirection(*dEdge);
         for breadth in 1..=(if maxStepSize == 1 {
             2
@@ -262,7 +266,7 @@ impl<'a> EdgeTracer<'_> {
         &mut self,
         dEdge: &RXingResultPoint,
         line: &mut T,
-    ) -> Result<bool, Exceptions> {
+    ) -> Result<bool> {
         line.setDirectionInward(dEdge);
         loop {
             // log(self.p);
@@ -295,7 +299,7 @@ impl<'a> EdgeTracer<'_> {
         line: &mut T,
         maxStepSize: i32,
         finishLine: &mut T,
-    ) -> Result<bool, Exceptions> {
+    ) -> Result<bool> {
         let mut maxStepSize = maxStepSize;
         line.setDirectionInward(dEdge);
         let mut gaps = 0;
@@ -437,7 +441,7 @@ impl<'a> EdgeTracer<'_> {
         &mut self,
         dir: &mut RXingResultPoint,
         corner: &mut RXingResultPoint,
-    ) -> Result<bool, Exceptions> {
+    ) -> Result<bool> {
         self.step(None);
         // log(p);
         *corner = self.p;

@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-use crate::{common::BitMatrix, Exceptions};
+use crate::{
+    common::{BitMatrix, Result},
+    Exceptions,
+};
 
 use super::{Version, VersionRef};
 
@@ -31,7 +34,7 @@ impl BitMatrixParser {
      * @param bitMatrix {@link BitMatrix} to parse
      * @throws FormatException if dimension is < 8 or > 144 or not 0 mod 2
      */
-    pub fn new(bitMatrix: &BitMatrix) -> Result<Self, Exceptions> {
+    pub fn new(bitMatrix: &BitMatrix) -> Result<Self> {
         let dimension = bitMatrix.getHeight();
         if !(8..=144).contains(&dimension) || (dimension & 0x01) != 0 {
             return Err(Exceptions::FormatException(None));
@@ -64,7 +67,7 @@ impl BitMatrixParser {
      * @throws FormatException if the dimensions of the mapping matrix are not valid
      * Data Matrix dimensions.
      */
-    fn readVersion(bitMatrix: &BitMatrix) -> Result<VersionRef, Exceptions> {
+    fn readVersion(bitMatrix: &BitMatrix) -> Result<VersionRef> {
         let numRows = bitMatrix.getHeight();
         let numColumns = bitMatrix.getWidth();
         Version::getVersionForDimensions(numRows, numColumns)
@@ -78,7 +81,7 @@ impl BitMatrixParser {
      * @return bytes encoded within the Data Matrix Code
      * @throws FormatException if the exact number of bytes expected is not read
      */
-    pub fn readCodewords(&mut self) -> Result<Vec<u8>, Exceptions> {
+    pub fn readCodewords(&mut self) -> Result<Vec<u8>> {
         let mut result = vec![0u8; self.version.getTotalCodewords() as usize];
         let mut resultOffset = 0;
 
@@ -447,10 +450,7 @@ impl BitMatrixParser {
      * @param bitMatrix Original {@link BitMatrix} with alignment patterns
      * @return BitMatrix that has the alignment patterns removed
      */
-    fn extractDataRegion(
-        bitMatrix: &BitMatrix,
-        version: VersionRef,
-    ) -> Result<BitMatrix, Exceptions> {
+    fn extractDataRegion(bitMatrix: &BitMatrix, version: VersionRef) -> Result<BitMatrix> {
         // dbg!(bitMatrix.to_string());
         let symbolSizeRows = version.getSymbolSizeRows();
         let symbolSizeColumns = version.getSymbolSizeColumns();

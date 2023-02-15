@@ -29,6 +29,7 @@
  */
 use std::collections::HashMap;
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use once_cell::sync::Lazy;
@@ -137,7 +138,7 @@ static FOUR_DIGIT_DATA_LENGTH: Lazy<HashMap<String, DataLength>> = Lazy::new(|| 
     hm
 });
 
-pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String, Exceptions> {
+pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String> {
     if rawInformation.is_empty() {
         return Ok(String::default());
     }
@@ -194,11 +195,7 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String, Excep
     Err(Exceptions::NotFoundException(None))
 }
 
-fn processFixedAI(
-    aiSize: usize,
-    fieldSize: usize,
-    rawInformation: &str,
-) -> Result<String, Exceptions> {
+fn processFixedAI(aiSize: usize, fieldSize: usize, rawInformation: &str) -> Result<String> {
     if rawInformation.chars().count() < aiSize {
         return Err(Exceptions::NotFoundException(None));
     }
@@ -229,7 +226,7 @@ fn processVariableAI(
     aiSize: usize,
     variableFieldSize: usize,
     rawInformation: &str,
-) -> Result<String, Exceptions> {
+) -> Result<String> {
     let ai: String = rawInformation.chars().take(aiSize).collect();
     let maxSize = rawInformation
         .chars()

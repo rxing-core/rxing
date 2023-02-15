@@ -17,6 +17,7 @@
 use core::fmt;
 use once_cell::sync::Lazy;
 
+use crate::common::Result;
 use crate::Exceptions;
 
 static VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::buildVersions);
@@ -100,10 +101,7 @@ impl Version {
      * @return Version for a Data Matrix Code of those dimensions
      * @throws FormatException if dimensions do correspond to a valid Data Matrix size
      */
-    pub fn getVersionForDimensions(
-        numRows: u32,
-        numColumns: u32,
-    ) -> Result<&'static Version, Exceptions> {
+    pub fn getVersionForDimensions(numRows: u32, numColumns: u32) -> Result<&'static Version> {
         if (numRows & 0x01) != 0 || (numColumns & 0x01) != 0 {
             return Err(Exceptions::FormatException(None));
         }

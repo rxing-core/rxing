@@ -16,7 +16,10 @@
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{common::DecoderRXingResult, Exceptions};
+use crate::{
+    common::{DecoderRXingResult, Result},
+    Exceptions,
+};
 use once_cell::sync::Lazy;
 
 /**
@@ -78,7 +81,7 @@ static SETS: Lazy<[String; 5]> = Lazy::new(|| {
    ]
 });
 
-pub fn decode(bytes: &[u8], mode: u8) -> Result<DecoderRXingResult, Exceptions> {
+pub fn decode(bytes: &[u8], mode: u8) -> Result<DecoderRXingResult> {
     let mut result = String::with_capacity(144);
     match mode {
         2 | 3 => {

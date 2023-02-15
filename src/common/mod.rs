@@ -24,6 +24,8 @@ pub use string_utils::*;
 mod bit_array;
 pub use bit_array::*;
 
+pub type Result<T, E = crate::Exceptions> = std::result::Result<T, E>;
+
 /*
  * Copyright 2007 ZXing authors
  *

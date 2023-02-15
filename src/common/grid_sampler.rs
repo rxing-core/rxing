@@ -18,6 +18,7 @@
 
 // import com.google.zxing.NotFoundException;
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::{BitMatrix, PerspectiveTransform};
@@ -108,7 +109,7 @@ pub trait GridSampler {
         p3FromY: f32,
         p4FromX: f32,
         p4FromY: f32,
-    ) -> Result<BitMatrix, Exceptions>;
+    ) -> Result<BitMatrix>;
 
     fn sample_grid(
         &self,
@@ -116,7 +117,7 @@ pub trait GridSampler {
         dimensionX: u32,
         dimensionY: u32,
         transform: &PerspectiveTransform,
-    ) -> Result<BitMatrix, Exceptions>;
+    ) -> Result<BitMatrix>;
 
     /**
      * <p>Checks a set of points that have been transformed to sample points on an image against
@@ -133,7 +134,7 @@ pub trait GridSampler {
      * @param points actual points in x1,y1,...,xn,yn form
      * @throws NotFoundException if an endpoint is lies outside the image boundaries
      */
-    fn checkAndNudgePoints(&self, image: &BitMatrix, points: &mut [f32]) -> Result<(), Exceptions> {
+    fn checkAndNudgePoints(&self, image: &BitMatrix, points: &mut [f32]) -> Result<()> {
         let width = image.getWidth();
         let height = image.getHeight();
         // Check and nudge points from start until we see some that are OK:

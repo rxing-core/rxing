@@ -16,7 +16,7 @@
 
 //package com.google.zxing;
 
-use crate::{BinaryBitmap, DecodingHintDictionary, Exceptions, RXingResult};
+use crate::{common::Result, BinaryBitmap, DecodingHintDictionary, RXingResult};
 
 /**
  * Implementations of this interface can decode an image of a barcode in some format into
@@ -40,7 +40,7 @@ pub trait Reader {
      * @throws ChecksumException if a potential barcode is found but does not pass its checksum
      * @throws FormatException if a potential barcode is found but format is invalid
      */
-    fn decode(&mut self, image: &mut BinaryBitmap) -> Result<RXingResult, Exceptions>;
+    fn decode(&mut self, image: &mut BinaryBitmap) -> Result<RXingResult>;
 
     /**
      * Locates and decodes a barcode in some format within an image. This method also accepts
@@ -60,7 +60,7 @@ pub trait Reader {
         &mut self,
         image: &mut BinaryBitmap,
         hints: &DecodingHintDictionary,
-    ) -> Result<RXingResult, Exceptions>;
+    ) -> Result<RXingResult>;
 
     /**
      * Resets any internal state the implementation has after a decode, to prepare it

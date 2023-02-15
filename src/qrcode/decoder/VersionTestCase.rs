@@ -15,8 +15,8 @@
  */
 
 use crate::{
+    common::Result,
     qrcode::decoder::{ErrorCorrectionLevel, Version},
-    Exceptions,
 };
 
 /**
@@ -37,7 +37,7 @@ fn testVersionForNumber() {
     }
 }
 
-fn checkVersion(version: Result<&Version, Exceptions>, number: u32, dimension: u32) {
+fn checkVersion(version: Result<&Version>, number: u32, dimension: u32) {
     assert!(version.is_ok());
     let version = version.unwrap();
     assert_eq!(number, version.getVersionNumber());

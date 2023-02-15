@@ -24,7 +24,7 @@
  *   http://www.piramidepse.com/
  */
 
-use crate::common::BitArray;
+use crate::common::{BitArray, Result};
 
 use super::{AbstractExpandedDecoder, GeneralAppIdDecoder};
 
@@ -37,7 +37,7 @@ pub struct AnyAIDecoder<'a> {
     general_decoder: GeneralAppIdDecoder<'a>,
 }
 impl AbstractExpandedDecoder for AnyAIDecoder<'_> {
-    fn parseInformation(&mut self) -> Result<String, crate::Exceptions> {
+    fn parseInformation(&mut self) -> Result<String> {
         let buf = String::new();
         self.general_decoder.decodeAllCodes(buf, Self::HEADER_SIZE)
     }

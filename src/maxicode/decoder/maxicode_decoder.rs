@@ -21,7 +21,7 @@ use once_cell::sync::Lazy;
 use crate::{
     common::{
         reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder},
-        BitMatrix, DecoderRXingResult,
+        BitMatrix, DecoderRXingResult, Result,
     },
     DecodingHintDictionary, Exceptions,
 };
@@ -45,14 +45,14 @@ static RS_DECODER: Lazy<ReedSolomonDecoder> = Lazy::new(|| {
     ))
 });
 
-pub fn decode(bits: &BitMatrix) -> Result<DecoderRXingResult, Exceptions> {
+pub fn decode(bits: &BitMatrix) -> Result<DecoderRXingResult> {
     decode_with_hints(bits, &HashMap::new())
 }
 
 pub fn decode_with_hints(
     bits: &BitMatrix,
     _hints: &DecodingHintDictionary,
-) -> Result<DecoderRXingResult, Exceptions> {
+) -> Result<DecoderRXingResult> {
     let parser = BitMatrixParser::new(bits);
     let mut codewords = parser.readCodewords();
 
@@ -88,7 +88,7 @@ fn correctErrors(
     dataCodewords: u32,
     ecCodewords: u32,
     mode: u32,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     let codewords = dataCodewords + ecCodewords;
 
     // in EVEN or ODD mode only half the codewords

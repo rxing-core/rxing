@@ -19,6 +19,7 @@ use std::rc::Rc;
 use image::{DynamicImage, ImageBuffer, Luma};
 use imageproc::geometric_transformations::rotate_about_center;
 
+use crate::common::Result;
 use crate::LuminanceSource;
 
 // const MINUS_45_IN_RADIANS: f32 = -0.7853981633974483; // Math.toRadians(-45.0)
@@ -164,7 +165,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         top: usize,
         width: usize,
         height: usize,
-    ) -> Result<Box<dyn LuminanceSource>, crate::exceptions::Exceptions> {
+    ) -> Result<Box<dyn LuminanceSource>> {
         Ok(Box::new(Self {
             image: self.image.clone(),
             width,
@@ -178,9 +179,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         true
     }
 
-    fn rotateCounterClockwise(
-        &self,
-    ) -> Result<Box<dyn LuminanceSource>, crate::exceptions::Exceptions> {
+    fn rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>> {
         let img = self.image.rotate270();
         Ok(Box::new(Self {
             width: img.width() as usize,
@@ -191,9 +190,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         }))
     }
 
-    fn rotateCounterClockwise45(
-        &self,
-    ) -> Result<Box<dyn LuminanceSource>, crate::exceptions::Exceptions> {
+    fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>> {
         let img = rotate_about_center(
             &self.image.to_luma8(),
             MINUS_45_IN_RADIANS,

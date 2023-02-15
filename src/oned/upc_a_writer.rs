@@ -16,7 +16,7 @@
 
 use std::collections::HashMap;
 
-use crate::{BarcodeFormat, Exceptions, Writer};
+use crate::{common::Result, BarcodeFormat, Exceptions, Writer};
 
 use super::EAN13Writer;
 
@@ -35,7 +35,7 @@ impl Writer for UPCAWriter {
         format: &crate::BarcodeFormat,
         width: i32,
         height: i32,
-    ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+    ) -> Result<crate::common::BitMatrix> {
         self.encode_with_hints(contents, format, width, height, &HashMap::new())
     }
 
@@ -46,7 +46,7 @@ impl Writer for UPCAWriter {
         width: i32,
         height: i32,
         hints: &crate::EncodingHintDictionary,
-    ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+    ) -> Result<crate::common::BitMatrix> {
         if format != &BarcodeFormat::UPC_A {
             return Err(Exceptions::IllegalArgumentException(Some(format!(
                 "Can only encode UPC-A, but got {format:?}"

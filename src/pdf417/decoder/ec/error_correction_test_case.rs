@@ -16,7 +16,7 @@
 
 use rand::Rng;
 
-use crate::Exceptions;
+use crate::common::Result;
 
 use super::{
     abstract_error_correction_test_case::{corrupt, getRandom},
@@ -99,11 +99,11 @@ fn testTooManyErrors() {
     // }
 }
 
-fn checkDecode(received: &mut [u32]) -> Result<(), Exceptions> {
+fn checkDecode(received: &mut [u32]) -> Result<()> {
     checkDecodeErasures(received, &mut [0_u32; 0])
 }
 
-fn checkDecodeErasures(received: &mut [u32], erasures: &mut [u32]) -> Result<(), Exceptions> {
+fn checkDecodeErasures(received: &mut [u32], erasures: &mut [u32]) -> Result<()> {
     decode(received, ECC_BYTES as u32, erasures)?;
     // ec.decode(received, ECC_BYTES, erasures);
     for i in 0..PDF417_TEST.len() {

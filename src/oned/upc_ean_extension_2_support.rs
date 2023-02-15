@@ -17,8 +17,9 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::BitArray, BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, RXingResultPoint,
+    common::{BitArray, Result},
+    BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue,
+    RXingResultPoint,
 };
 
 use super::{upc_ean_reader, UPCEANReader, STAND_IN};
@@ -37,7 +38,7 @@ impl UPCEANExtension2Support {
         rowNumber: u32,
         row: &BitArray,
         extensionStartRange: &[u32; 3],
-    ) -> Result<RXingResult, Exceptions> {
+    ) -> Result<RXingResult> {
         let mut result = String::new();
         let end = self.decodeMiddle(row, extensionStartRange, &mut result)?;
 
@@ -68,7 +69,7 @@ impl UPCEANExtension2Support {
         row: &BitArray,
         startRange: &[u32; 3],
         resultString: &mut String,
-    ) -> Result<u32, Exceptions> {
+    ) -> Result<u32> {
         let mut counters = self.decodeMiddleCounters;
         counters.fill(0);
 

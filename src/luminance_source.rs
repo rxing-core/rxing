@@ -16,6 +16,7 @@
 
 //package com.google.zxing;
 
+use crate::common::Result;
 use crate::Exceptions;
 
 /**
@@ -90,7 +91,7 @@ pub trait LuminanceSource {
         _top: usize,
         _width: usize,
         _height: usize,
-    ) -> Result<Box<dyn LuminanceSource>, Exceptions> {
+    ) -> Result<Box<dyn LuminanceSource>> {
         Err(Exceptions::UnsupportedOperationException(Some(
             "This luminance source does not support cropping.".to_owned(),
         )))
@@ -117,7 +118,7 @@ pub trait LuminanceSource {
      *
      * @return A rotated version of this object.
      */
-    fn rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>, Exceptions> {
+    fn rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>> {
         Err(Exceptions::UnsupportedOperationException(Some(
             "This luminance source does not support rotation by 90 degrees.".to_owned(),
         )))
@@ -129,7 +130,7 @@ pub trait LuminanceSource {
      *
      * @return A rotated version of this object.
      */
-    fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>, Exceptions> {
+    fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>> {
         Err(Exceptions::UnsupportedOperationException(Some(
             "This luminance source does not support rotation by 45 degrees.".to_owned(),
         )))
