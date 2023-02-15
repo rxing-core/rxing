@@ -100,9 +100,9 @@ pub trait OneDimensionalCodeWriter: Writer {
      */
     fn checkNumeric(contents: &str) -> Result<(), Exceptions> {
         if !NUMERIC.is_match(contents) {
-            Err(Exceptions::IllegalArgumentException(Some(
+            Err(Exceptions::illegalArgument(
                 "Input should only contain digits 0-9".to_owned(),
-            )))
+            ))
         } else {
             Ok(())
         }
@@ -163,29 +163,29 @@ impl Writer for L {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         if contents.is_empty() {
-            return Err(Exceptions::IllegalArgumentException(Some(
+            return Err(Exceptions::illegalArgument(
                 "Found empty contents".to_owned(),
-            )));
+            ));
         }
 
         if width < 0 || height < 0 {
-            return Err(Exceptions::IllegalArgumentException(Some(format!(
+            return Err(Exceptions::illegalArgument(format!(
                 "Negative size is not allowed. Input: {width}x{height}"
-            ))));
+            )));
         }
         if let Some(supportedFormats) = self.getSupportedWriteFormats() {
             if !supportedFormats.contains(format) {
-                return Err(Exceptions::IllegalArgumentException(Some(format!(
+                return Err(Exceptions::illegalArgument(format!(
                     "Can only encode {supportedFormats:?}, but got {format:?}"
-                ))));
+                )));
             }
         }
 
         let mut sidesMargin = self.getDefaultMargin();
         if let Some(EncodeHintValue::Margin(margin)) = hints.get(&EncodeHintType::MARGIN) {
-            sidesMargin = margin.parse::<u32>().map_err(|e| {
-                Exceptions::IllegalArgumentException(Some(format!("couldnt parse {margin}: {e}")))
-            })?;
+            sidesMargin = margin
+                .parse::<u32>()
+                .map_err(|e| Exceptions::illegalArgument(format!("couldnt parse {margin}: {e}")))?;
         }
 
         let code = self.encode_oned_with_hints(contents, hints)?;

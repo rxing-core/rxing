@@ -36,9 +36,9 @@ impl BitMatrixParser {
     pub fn new(bit_matrix: BitMatrix) -> Result<Self, Exceptions> {
         let dimension = bit_matrix.getHeight();
         if dimension < 21 || (dimension & 0x03) != 1 {
-            Err(Exceptions::FormatException(Some(format!(
+            Err(Exceptions::format(format!(
                 "{dimension} < 21 || ({dimension} % 0x03) != 1"
-            ))))
+            )))
         } else {
             Ok(Self {
                 bitMatrix: bit_matrix,
@@ -61,7 +61,7 @@ impl BitMatrixParser {
             return self
                 .parsedFormatInfo
                 .as_ref()
-                .ok_or(Exceptions::ParseException(None));
+                .ok_or(Exceptions::parseEmpty());
         }
 
         // Read top-left format info bits
@@ -94,7 +94,7 @@ impl BitMatrixParser {
 
         self.parsedFormatInfo
             .as_ref()
-            .ok_or(Exceptions::FormatException(None))
+            .ok_or(Exceptions::formatEmpty())
     }
 
     /**
@@ -146,7 +146,7 @@ impl BitMatrixParser {
                 return Ok(theParsedVersion);
             }
         }
-        Err(Exceptions::FormatException(None))
+        Err(Exceptions::formatEmpty())
     }
 
     fn copyBit(&self, i: u32, j: u32, versionBits: u32) -> u32 {
@@ -227,7 +227,7 @@ impl BitMatrixParser {
         }
 
         if resultOffset != version.getTotalCodewords() as usize {
-            return Err(Exceptions::FormatException(None));
+            return Err(Exceptions::formatEmpty());
         }
         Ok(result)
     }

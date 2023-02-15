@@ -36,7 +36,7 @@ impl ModulusPoly {
         coefficients: Vec<u32>,
     ) -> Result<ModulusPoly, Exceptions> {
         if coefficients.is_empty() {
-            return Err(Exceptions::IllegalArgumentException(None));
+            return Err(Exceptions::illegalArgumentEmpty());
         }
         let orig_coefs = coefficients.clone();
         let mut coefficients = coefficients;
@@ -126,9 +126,9 @@ impl ModulusPoly {
 
     pub fn add(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>, Exceptions> {
         if self.field != other.field {
-            return Err(Exceptions::IllegalArgumentException(Some(
+            return Err(Exceptions::illegalArgument(
                 "ModulusPolys do not have same ModulusGF field".to_owned(),
-            )));
+            ));
         }
         if self.isZero() {
             return Ok(other);
@@ -160,9 +160,9 @@ impl ModulusPoly {
 
     pub fn subtract(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>, Exceptions> {
         if self.field != other.field {
-            return Err(Exceptions::IllegalArgumentException(Some(
+            return Err(Exceptions::illegalArgument(
                 "ModulusPolys do not have same ModulusGF field".to_owned(),
-            )));
+            ));
         }
         if other.isZero() {
             return Ok(Rc::new(self.clone()));
@@ -172,9 +172,9 @@ impl ModulusPoly {
 
     pub fn multiply(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>, Exceptions> {
         if !(self.field == other.field) {
-            return Err(Exceptions::IllegalArgumentException(Some(
+            return Err(Exceptions::illegalArgument(
                 "ModulusPolys do not have same ModulusGF field".to_owned(),
-            )));
+            ));
         }
         if self.isZero() || other.isZero() {
             return Ok(Self::getZero(self.field));

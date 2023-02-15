@@ -47,9 +47,9 @@ impl ErrorCorrectionLevel {
             1 => Ok(Self::L),
             2 => Ok(Self::H),
             3 => Ok(Self::Q),
-            _ => Err(Exceptions::IllegalArgumentException(Some(format!(
+            _ => Err(Exceptions::illegalArgument(format!(
                 "{bits} is not a valid bit selection"
-            )))),
+            ))),
         }
     }
 
@@ -109,8 +109,8 @@ impl FromStr for ErrorCorrectionLevel {
             return number_possible.try_into();
         }
 
-        return Err(Exceptions::IllegalArgumentException(Some(format!(
+        return Err(Exceptions::illegalArgument(format!(
             "could not parse {s} into an ec level"
-        ))));
+        )));
     }
 }

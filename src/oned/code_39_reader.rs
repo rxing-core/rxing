@@ -60,7 +60,7 @@ impl OneDReader for Code39Reader {
             one_d_reader::recordPattern(row, nextStart, &mut counters)?;
             let pattern = Self::toNarrowWidePattern(&counters);
             if pattern < 0 {
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFoundEmpty());
             }
             decodedChar = Self::patternToChar(pattern as u32)?;
             self.decodeRowRXingResult.push(decodedChar);
@@ -85,7 +85,7 @@ impl OneDReader for Code39Reader {
         // If 50% of last pattern size, following last pattern, is not whitespace, fail
         // (but if it's whitespace to the very end of the image, that's OK)
         if nextStart != end && (whiteSpaceAfterEnd * 2) < lastPatternSize as usize {
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFoundEmpty());
         }
 
         if self.usingCheckDigit {
@@ -96,7 +96,7 @@ impl OneDReader for Code39Reader {
                     self.decodeRowRXingResult
                         .chars()
                         .nth(i)
-                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                        .ok_or(Exceptions::indexOutOfBoundsEmpty())?,
                 ) {
                     total += pos;
                 }
@@ -105,20 +105,20 @@ impl OneDReader for Code39Reader {
                 .decodeRowRXingResult
                 .chars()
                 .nth(max)
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .ok_or(Exceptions::indexOutOfBoundsEmpty())?
                 != Self::ALPHABET_STRING
                     .chars()
                     .nth(total % 43)
-                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                    .ok_or(Exceptions::indexOutOfBoundsEmpty())?
             {
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFoundEmpty());
             }
             self.decodeRowRXingResult.truncate(max);
         }
 
         if self.decodeRowRXingResult.chars().count() == 0 {
             // false positive
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFoundEmpty());
         }
 
         let resultString = if self.extendedMode {
@@ -246,7 +246,7 @@ impl Code39Reader {
                 isWhite = !isWhite;
             }
         }
-        Err(Exceptions::NotFoundException(None))
+        Err(Exceptions::notFoundEmpty())
     }
 
     // For efficiency, returns -1 on failure. Not throwing here saved as many as 700 exceptions
@@ -306,13 +306,13 @@ impl Code39Reader {
                 return Self::ALPHABET_STRING
                     .chars()
                     .nth(i)
-                    .ok_or(Exceptions::IndexOutOfBoundsException(None));
+                    .ok_or(Exceptions::indexOutOfBoundsEmpty());
             }
         }
         if pattern == Self::ASTERISK_ENCODING {
             return Ok('*');
         }
-        Err(Exceptions::NotFoundException(None))
+        Err(Exceptions::notFoundEmpty())
     }
 
     fn decodeExtended(encoded: &str) -> Result<String, Exceptions> {
@@ -325,46 +325,46 @@ impl Code39Reader {
             let c = encoded
                 .chars()
                 .nth(i)
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+                .ok_or(Exceptions::indexOutOfBoundsEmpty())?;
             if c == '+' || c == '$' || c == '%' || c == '/' {
                 let next = encoded
                     .chars()
                     .nth(i + 1)
-                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+                    .ok_or(Exceptions::indexOutOfBoundsEmpty())?;
                 let mut decodedChar = '\0';
                 match c {
                     '+' => {
                         // +A to +Z map to a to z
                         if ('A'..='Z').contains(&next) {
                             decodedChar = char::from_u32(next as u32 + 32)
-                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+                                .ok_or(Exceptions::indexOutOfBoundsEmpty())?;
                         } else {
-                            return Err(Exceptions::NotFoundException(None));
+                            return Err(Exceptions::notFoundEmpty());
                         }
                     }
                     '$' => {
                         // $A to $Z map to control codes SH to SB
                         if ('A'..='Z').contains(&next) {
                             decodedChar = char::from_u32(next as u32 - 64)
-                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+                                .ok_or(Exceptions::indexOutOfBoundsEmpty())?;
                         } else {
-                            return Err(Exceptions::NotFoundException(None));
+                            return Err(Exceptions::notFoundEmpty());
                         }
                     }
                     '%' => {
                         // %A to %E map to control codes ESC to US
                         if ('A'..='E').contains(&next) {
                             decodedChar = char::from_u32(next as u32 - 38)
-                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+                                .ok_or(Exceptions::indexOutOfBoundsEmpty())?;
                         } else if ('F'..='J').contains(&next) {
                             decodedChar = char::from_u32(next as u32 - 11)
-                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+                                .ok_or(Exceptions::indexOutOfBoundsEmpty())?;
                         } else if ('K'..='O').contains(&next) {
                             decodedChar = char::from_u32(next as u32 + 16)
-                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+                                .ok_or(Exceptions::indexOutOfBoundsEmpty())?;
                         } else if ('P'..='T').contains(&next) {
                             decodedChar = char::from_u32(next as u32 + 43)
-                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+                                .ok_or(Exceptions::indexOutOfBoundsEmpty())?;
                         } else if next == 'U' {
                             decodedChar = 0 as char;
                         } else if next == 'V' {
@@ -374,18 +374,18 @@ impl Code39Reader {
                         } else if next == 'X' || next == 'Y' || next == 'Z' {
                             decodedChar = 127 as char;
                         } else {
-                            return Err(Exceptions::NotFoundException(None));
+                            return Err(Exceptions::notFoundEmpty());
                         }
                     }
                     '/' => {
                         // /A to /O map to ! to , and /Z maps to :
                         if ('A'..='O').contains(&next) {
                             decodedChar = char::from_u32(next as u32 - 32)
-                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+                                .ok_or(Exceptions::indexOutOfBoundsEmpty())?;
                         } else if next == 'Z' {
                             decodedChar = ':';
                         } else {
-                            return Err(Exceptions::NotFoundException(None));
+                            return Err(Exceptions::notFoundEmpty());
                         }
                     }
                     _ => {}

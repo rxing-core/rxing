@@ -53,7 +53,7 @@ impl Encoder for Base256Encoder {
         context.updateSymbolInfoWithLength(currentSize);
         let mustPad = (context
             .getSymbolInfo()
-            .ok_or(Exceptions::IllegalStateException(None))?
+            .ok_or(Exceptions::illegalStateEmpty())?
             .getDataCapacity()
             - currentSize as u32)
             > 0;
@@ -62,29 +62,29 @@ impl Encoder for Base256Encoder {
                 buffer.replace_range(
                     0..1,
                     &char::from_u32(dataCount as u32)
-                        .ok_or(Exceptions::ParseException(None))?
+                        .ok_or(Exceptions::parseEmpty())?
                         .to_string(),
                 );
             } else if dataCount <= 1555 {
                 buffer.replace_range(
                     0..1,
                     &char::from_u32((dataCount as u32 / 250) + 249)
-                        .ok_or(Exceptions::ParseException(None))?
+                        .ok_or(Exceptions::parseEmpty())?
                         .to_string(),
                 );
                 let (ci_pos, _) = buffer
                     .char_indices()
                     .nth(1)
-                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+                    .ok_or(Exceptions::indexOutOfBoundsEmpty())?;
                 buffer.insert(
                     ci_pos,
                     char::from_u32(dataCount as u32 % 250)
-                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                        .ok_or(Exceptions::indexOutOfBoundsEmpty())?,
                 );
             } else {
-                return Err(Exceptions::IllegalStateException(Some(format!(
+                return Err(Exceptions::illegalState(format!(
                     "Message length not in valid ranges: {dataCount}"
-                ))));
+                )));
             }
         }
         let c = buffer.chars().count();
@@ -95,10 +95,10 @@ impl Encoder for Base256Encoder {
                     buffer
                         .chars()
                         .nth(i)
-                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                        .ok_or(Exceptions::indexOutOfBoundsEmpty())?,
                     context.getCodewordCount() as u32 + 1,
                 )
-                .ok_or(Exceptions::ParseException(None))? as u8,
+                .ok_or(Exceptions::parseEmpty())? as u8,
             );
         }
         Ok(())

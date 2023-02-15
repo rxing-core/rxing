@@ -73,15 +73,15 @@ impl ReedSolomonEncoder {
 
     pub fn encode(&mut self, to_encode: &mut Vec<i32>, ec_bytes: usize) -> Result<(), Exceptions> {
         if ec_bytes == 0 {
-            return Err(Exceptions::IllegalArgumentException(Some(
+            return Err(Exceptions::illegalArgument(
                 "No error correction bytes".to_owned(),
-            )));
+            ));
         }
         let data_bytes = to_encode.len() - ec_bytes;
         if data_bytes == 0 {
-            return Err(Exceptions::IllegalArgumentException(Some(
+            return Err(Exceptions::illegalArgument(
                 "No data bytes provided".to_owned(),
-            )));
+            ));
         }
         let fld = self.field;
         let generator = self.buildGenerator(ec_bytes);
@@ -91,7 +91,7 @@ impl ReedSolomonEncoder {
         let mut info = GenericGFPoly::new(fld, &info_coefficients)?;
         info = info.multiply_by_monomial(ec_bytes, 1)?;
         let remainder = &info
-            .divide(generator.ok_or(Exceptions::ReedSolomonException(None))?)?
+            .divide(generator.ok_or(Exceptions::reedSolomonEmpty())?)?
             .1;
         let coefficients = remainder.getCoefficients();
         let num_zero_coefficients = ec_bytes - coefficients.len();

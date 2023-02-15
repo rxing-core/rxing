@@ -83,7 +83,7 @@ impl Reader for QRCodeReader {
                 // if (decoderRXingResult.getOther() instanceof QRCodeDecoderMetaData) {
                 other
                     .downcast_ref::<QRCodeDecoderMetaData>()
-                    .ok_or(Exceptions::IllegalStateException(None))?
+                    .ok_or(Exceptions::illegalStateEmpty())?
                     .applyMirroredCorrection(&mut points);
             }
         }
@@ -153,12 +153,11 @@ impl QRCodeReader {
         let leftTopBlack = image.getTopLeftOnBit();
         let rightBottomBlack = image.getBottomRightOnBit();
         if leftTopBlack.is_none() || rightBottomBlack.is_none() {
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFoundEmpty());
         }
 
-        let leftTopBlack = leftTopBlack.ok_or(Exceptions::IndexOutOfBoundsException(None))?;
-        let rightBottomBlack =
-            rightBottomBlack.ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+        let leftTopBlack = leftTopBlack.ok_or(Exceptions::indexOutOfBoundsEmpty())?;
+        let rightBottomBlack = rightBottomBlack.ok_or(Exceptions::indexOutOfBoundsEmpty())?;
 
         let moduleSize = Self::moduleSize(&leftTopBlack, image)?;
 
@@ -169,7 +168,7 @@ impl QRCodeReader {
 
         // Sanity check!
         if left >= right || top >= bottom {
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFoundEmpty());
         }
 
         if bottom - top != right - left {
@@ -178,17 +177,17 @@ impl QRCodeReader {
             right = left + (bottom - top);
             if right >= image.getWidth() as i32 {
                 // Abort if that would not make sense -- off image
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFoundEmpty());
             }
         }
         let matrixWidth = ((right as f32 - left as f32 + 1.0) / moduleSize).round() as u32;
         let matrixHeight = ((bottom as f32 - top as f32 + 1.0) / moduleSize).round() as u32;
         if matrixWidth == 0 || matrixHeight == 0 {
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFoundEmpty());
         }
         if matrixHeight != matrixWidth {
             // Only possibly decode square regions
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFoundEmpty());
         }
 
         // Push in the "border" by half the module width so that we start
@@ -206,7 +205,7 @@ impl QRCodeReader {
         if nudgedTooFarRight > 0 {
             if nudgedTooFarRight > nudge as i32 {
                 // Neither way fits; abort
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFoundEmpty());
             }
             left -= nudgedTooFarRight;
         }
@@ -215,7 +214,7 @@ impl QRCodeReader {
         if nudgedTooFarDown > 0 {
             if nudgedTooFarDown > nudge as i32 {
                 // Neither way fits; abort
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFoundEmpty());
             }
             top -= nudgedTooFarDown;
         }
@@ -252,7 +251,7 @@ impl QRCodeReader {
             y += 1;
         }
         if x == width || y == height {
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFoundEmpty());
         }
         Ok((x - leftTopBlack[0]) as f32 / 7.0)
     }

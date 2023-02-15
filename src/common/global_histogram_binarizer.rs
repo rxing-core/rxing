@@ -233,9 +233,9 @@ impl GlobalHistogramBinarizer {
         // If there is too little contrast in the image to pick a meaningful black point, throw rather
         // than waste time trying to decode the image, and risk false positives.
         if secondPeak - firstPeak <= numBuckets / 16 {
-            return Err(Exceptions::NotFoundException(Some(
+            return Err(Exceptions::notFound(
                 "secondPeak - firstPeak <= numBuckets / 16 ".to_owned(),
-            )));
+            ));
         }
 
         // Find a valley between them that is low and closer to the white peak.

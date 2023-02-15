@@ -318,7 +318,7 @@ impl Circle<'_> {
 pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionResult, Exceptions> {
     // find concentric circles
     let Some( mut circles) = find_concentric_circles(image) else {
-        return Err(Exceptions::NotFoundException(None));
+        return Err(Exceptions::notFoundEmpty());
     };
 
     // we should have an idea where the center is at this point,
@@ -341,7 +341,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
             if try_harder {
                 continue;
             }else {
-                return Err(Exceptions::NotFoundException(None))
+                return Err(Exceptions::notFoundEmpty())
             }
         };
         let grid_sampler = DefaultGridSampler::default();
@@ -378,7 +378,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
             if try_harder {
                 continue;
             }else {
-                return Err(Exceptions::NotFoundException(None))
+                return Err(Exceptions::notFoundEmpty())
             }
         };
         return Ok(MaxicodeDetectionResult {
@@ -392,7 +392,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         });
     }
 
-    Err(Exceptions::NotFoundException(None))
+    Err(Exceptions::notFoundEmpty())
 }
 
 /// Locate concentric circles.
@@ -734,7 +734,7 @@ fn box_symbol(
     #[cfg(feature = "experimental_features")]
     if is_ellipse {
         // we don't deal with ellipses yet
-        return Err(Exceptions::NotFoundException(None));
+        return Err(Exceptions::notFoundEmpty());
     }
 
     let mut final_rotation = 0.0;
@@ -1054,7 +1054,7 @@ fn compare_circle(a: &Circle, b: &Circle) -> std::cmp::Ordering {
 pub fn read_bits(image: &BitMatrix) -> Result<BitMatrix, Exceptions> {
     let enclosingRectangle = image
         .getEnclosingRectangle()
-        .ok_or(Exceptions::NotFoundException(None))?;
+        .ok_or(Exceptions::notFoundEmpty())?;
 
     let left = enclosingRectangle[0];
     let top = enclosingRectangle[1];

@@ -76,7 +76,7 @@ impl RegressionLine for DMRegressionLine {
 
     fn add(&mut self, p: &RXingResultPoint) -> Result<(), Exceptions> {
         if self.direction_inward == RXingResultPoint::default() {
-            return Err(Exceptions::IllegalStateException(None));
+            return Err(Exceptions::illegalStateEmpty());
         }
         self.points.push(*p);
         if self.points.len() == 1 {
@@ -241,7 +241,7 @@ impl DMRegressionLine {
         end: &RXingResultPoint,
     ) -> Result<f64, Exceptions> {
         if self.points.len() <= 3 {
-            return Err(Exceptions::IllegalStateException(None));
+            return Err(Exceptions::illegalStateEmpty());
         }
 
         // re-evaluate and filter out all points too far away. required for the gapSizes calculation.
@@ -267,11 +267,11 @@ impl DMRegressionLine {
             &(*self
                 .points
                 .last()
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .ok_or(Exceptions::indexOutOfBoundsEmpty())?
                 - *self
                     .points
                     .first()
-                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?),
+                    .ok_or(Exceptions::indexOutOfBoundsEmpty())?),
         )) as f64;
 
         // calculate the width of 2 modules (first black pixel to first black pixel)
@@ -297,7 +297,7 @@ impl DMRegressionLine {
                     &self.project(
                         self.points
                             .last()
-                            .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                            .ok_or(Exceptions::indexOutOfBoundsEmpty())?,
                     ),
                 ) as f64,
         );

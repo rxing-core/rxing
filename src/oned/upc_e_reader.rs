@@ -51,7 +51,7 @@ impl UPCEANReader for UPCEReader {
             let bestMatch = self.decodeDigit(row, &mut counters, rowOffset, &L_AND_G_PATTERNS)?;
             resultString.push(
                 char::from_u32('0' as u32 + bestMatch as u32 % 10)
-                    .ok_or(Exceptions::ParseException(None))?,
+                    .ok_or(Exceptions::parseEmpty())?,
             );
             rowOffset += counters.iter().sum::<u32>() as usize;
 
@@ -69,7 +69,7 @@ impl UPCEANReader for UPCEReader {
 
     fn checkChecksum(&self, s: &str) -> Result<bool, Exceptions> {
         self.checkStandardUPCEANChecksum(
-            &convertUPCEtoUPCA(s).ok_or(Exceptions::IllegalArgumentException(None))?,
+            &convertUPCEtoUPCA(s).ok_or(Exceptions::illegalArgumentEmpty())?,
         )
     }
 
@@ -133,17 +133,16 @@ impl UPCEReader {
                     resultString.insert(
                         0,
                         char::from_u32('0' as u32 + numSys as u32)
-                            .ok_or(Exceptions::ParseException(None))?,
+                            .ok_or(Exceptions::parseEmpty())?,
                     );
                     resultString.push(
-                        char::from_u32('0' as u32 + d as u32)
-                            .ok_or(Exceptions::ParseException(None))?,
+                        char::from_u32('0' as u32 + d as u32).ok_or(Exceptions::parseEmpty())?,
                     );
                     return Ok(());
                 }
             }
         }
-        Err(Exceptions::NotFoundException(None))
+        Err(Exceptions::notFoundEmpty())
     }
 }
 

@@ -278,11 +278,11 @@ pub fn embedDataBits(
     }
     // All bits should be consumed.
     if bitIndex != dataBits.getSize() {
-        return Err(Exceptions::WriterException(Some(format!(
+        return Err(Exceptions::writer(format!(
             "Not all bits consumed: {}/{}",
             bitIndex,
             dataBits.getSize()
-        ))));
+        )));
     }
     Ok(())
 }
@@ -323,9 +323,7 @@ pub fn findMSBSet(value: u32) -> u32 {
 // operations. We don't care if coefficients are positive or negative.
 pub fn calculateBCHCode(value: u32, poly: u32) -> Result<u32, Exceptions> {
     if poly == 0 {
-        return Err(Exceptions::IllegalArgumentException(Some(
-            "0 polynomial".to_owned(),
-        )));
+        return Err(Exceptions::illegalArgument("0 polynomial".to_owned()));
     }
     let mut value = value;
     // If poly is "1 1111 0010 0101" (version info poly), msbSetInPoly is 13. We'll subtract 1
@@ -349,9 +347,7 @@ pub fn makeTypeInfoBits(
     bits: &mut BitArray,
 ) -> Result<(), Exceptions> {
     if !QRCode::isValidMaskPattern(maskPattern as i32) {
-        return Err(Exceptions::WriterException(Some(
-            "Invalid mask pattern".to_owned(),
-        )));
+        return Err(Exceptions::writer("Invalid mask pattern".to_owned()));
     }
     let typeInfo = (ecLevel.get_value() << 3) as u32 | maskPattern;
     bits.appendBits(typeInfo, 5)?;
@@ -365,10 +361,10 @@ pub fn makeTypeInfoBits(
 
     if bits.getSize() != 15 {
         // Just in case.
-        return Err(Exceptions::WriterException(Some(format!(
+        return Err(Exceptions::writer(format!(
             "should not happen but we got: {}",
             bits.getSize()
-        ))));
+        )));
     }
     Ok(())
 }
@@ -382,10 +378,10 @@ pub fn makeVersionInfoBits(version: &Version, bits: &mut BitArray) -> Result<(),
 
     if bits.getSize() != 18 {
         // Just in case.
-        return Err(Exceptions::WriterException(Some(format!(
+        return Err(Exceptions::writer(format!(
             "should not happen but we got: {}",
             bits.getSize()
-        ))));
+        )));
     }
     Ok(())
 }
@@ -415,7 +411,7 @@ pub fn embedTimingPatterns(matrix: &mut ByteMatrix) {
 // Embed the lonely dark dot at left bottom corner. JISX0510:2004 (p.46)
 pub fn embedDarkDotAtLeftBottomCorner(matrix: &mut ByteMatrix) -> Result<(), Exceptions> {
     if matrix.get(8, matrix.getHeight() - 8) == 0 {
-        return Err(Exceptions::WriterException(None));
+        return Err(Exceptions::writerEmpty());
     }
     matrix.set(8, matrix.getHeight() - 8, 1);
     Ok(())
@@ -428,7 +424,7 @@ pub fn embedHorizontalSeparationPattern(
 ) -> Result<(), Exceptions> {
     for x in 0..8 {
         if !isEmpty(matrix.get(xStart + x, yStart)) {
-            return Err(Exceptions::WriterException(None));
+            return Err(Exceptions::writerEmpty());
         }
         matrix.set(xStart + x, yStart, 0);
     }
@@ -442,7 +438,7 @@ pub fn embedVerticalSeparationPattern(
 ) -> Result<(), Exceptions> {
     for y in 0..7 {
         if !isEmpty(matrix.get(xStart, yStart + y)) {
-            return Err(Exceptions::WriterException(None));
+            return Err(Exceptions::writerEmpty());
         }
         matrix.set(xStart, yStart + y, 0);
     }

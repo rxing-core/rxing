@@ -131,7 +131,7 @@ pub trait OneDReader: Reader {
             }
         }
 
-        Err(Exceptions::NotFoundException(None))
+        Err(Exceptions::notFoundEmpty())
     }
 
     /**
@@ -218,7 +218,7 @@ pub fn recordPattern(row: &BitArray, start: usize, counters: &mut [u32]) -> Resu
 
     let end = row.getSize();
     if start >= end {
-        return Err(Exceptions::NotFoundException(None));
+        return Err(Exceptions::notFoundEmpty());
     }
 
     let mut isWhite = !row.get(start);
@@ -241,7 +241,7 @@ pub fn recordPattern(row: &BitArray, start: usize, counters: &mut [u32]) -> Resu
     // If we read fully the last section of pixels and filled up our counters -- or filled
     // the last counter but ran off the side of the image, OK. Otherwise, a problem.
     if !(counterPosition == numCounters || (counterPosition == numCounters - 1 && i == end)) {
-        return Err(Exceptions::NotFoundException(None));
+        return Err(Exceptions::notFoundEmpty());
     }
     Ok(())
 }
@@ -263,7 +263,7 @@ pub fn recordPatternInReverse(
         }
     }
     if numTransitionsLeft >= 0 {
-        return Err(Exceptions::NotFoundException(None));
+        return Err(Exceptions::notFoundEmpty());
     }
     recordPattern(row, start + 1, counters)?;
 

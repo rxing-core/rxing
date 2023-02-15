@@ -31,9 +31,9 @@ impl TokenType {
         match self {
             TokenType::Simple(a) => a.appendTo(bit_array, text),
             TokenType::BinaryShift(a) => a.appendTo(bit_array, text),
-            TokenType::Empty => Err(Exceptions::IllegalStateException(Some(String::from(
+            TokenType::Empty => Err(Exceptions::illegalState(String::from(
                 "cannot appendTo on Empty final item",
-            )))),
+            ))),
         }
     }
 }

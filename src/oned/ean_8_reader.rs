@@ -53,8 +53,7 @@ impl UPCEANReader for EAN8Reader {
             let bestMatch =
                 self.decodeDigit(row, &mut counters, rowOffset, &upc_ean_reader::L_PATTERNS)?;
             resultString.push(
-                char::from_u32('0' as u32 + bestMatch as u32)
-                    .ok_or(Exceptions::ParseException(None))?,
+                char::from_u32('0' as u32 + bestMatch as u32).ok_or(Exceptions::parseEmpty())?,
             );
 
             rowOffset += counters.iter().sum::<u32>() as usize;
@@ -71,8 +70,7 @@ impl UPCEANReader for EAN8Reader {
             let bestMatch =
                 self.decodeDigit(row, &mut counters, rowOffset, &upc_ean_reader::L_PATTERNS)?;
             resultString.push(
-                char::from_u32('0' as u32 + bestMatch as u32)
-                    .ok_or(Exceptions::ParseException(None))?,
+                char::from_u32('0' as u32 + bestMatch as u32).ok_or(Exceptions::parseEmpty())?,
             );
 
             rowOffset += counters.iter().sum::<u32>() as usize;

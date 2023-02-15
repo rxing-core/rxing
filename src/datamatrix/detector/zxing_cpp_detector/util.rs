@@ -26,7 +26,7 @@ pub fn intersect(
     l2: &DMRegressionLine,
 ) -> Result<RXingResultPoint, Exceptions> {
     if !(l1.isValid() && l2.isValid()) {
-        return Err(Exceptions::IllegalStateException(None));
+        return Err(Exceptions::illegalStateEmpty());
     }
     let d = l1.a * l2.b - l1.b * l2.a;
     let x = (l1.c * l2.b - l1.b * l2.c) / d;

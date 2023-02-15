@@ -55,7 +55,7 @@ impl DataBlock {
         ecLevel: ErrorCorrectionLevel,
     ) -> Result<Vec<Self>, Exceptions> {
         if rawCodewords.len() as u32 != version.getTotalCodewords() {
-            return Err(Exceptions::IllegalArgumentException(None));
+            return Err(Exceptions::illegalArgumentEmpty());
         }
 
         // Figure out the number and size of data blocks used by this version and

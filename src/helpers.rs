@@ -35,20 +35,20 @@ pub fn detect_in_svg_with_hints(
 
     let path = PathBuf::from(file_name);
     if !path.exists() {
-        return Err(Exceptions::IllegalArgumentException(Some(
+        return Err(Exceptions::illegalArgument(
             "file does not exist".to_owned(),
-        )));
+        ));
     }
 
     let Ok(mut file) = File::open(path) else {
-        return Err(Exceptions::IllegalArgumentException(Some("file cannot be opened".to_owned())));
+        return Err(Exceptions::illegalArgument("file cannot be opened".to_owned()));
     };
 
     let mut svg_data = Vec::new();
     if file.read_to_end(&mut svg_data).is_err() {
-        return Err(Exceptions::IllegalArgumentException(Some(
+        return Err(Exceptions::illegalArgument(
             "file cannot be read".to_owned(),
-        )));
+        ));
     }
 
     let mut multi_format_reader = MultiFormatReader::default();
@@ -88,20 +88,20 @@ pub fn detect_multiple_in_svg_with_hints(
 
     let path = PathBuf::from(file_name);
     if !path.exists() {
-        return Err(Exceptions::IllegalArgumentException(Some(
+        return Err(Exceptions::illegalArgument(
             "file does not exist".to_owned(),
-        )));
+        ));
     }
 
     let Ok(mut file) = File::open(path) else {
-        return Err(Exceptions::IllegalArgumentException(Some("file cannot be opened".to_owned())));
+        return Err(Exceptions::illegalArgument("file cannot be opened".to_owned()));
     };
 
     let mut svg_data = Vec::new();
     if file.read_to_end(&mut svg_data).is_err() {
-        return Err(Exceptions::IllegalArgumentException(Some(
+        return Err(Exceptions::illegalArgument(
             "file cannot be read".to_owned(),
-        )));
+        ));
     }
 
     let multi_format_reader = MultiFormatReader::default();
@@ -134,7 +134,7 @@ pub fn detect_in_file_with_hints(
     hints: &mut DecodingHintDictionary,
 ) -> Result<RXingResult, Exceptions> {
     let Ok(img) = image::open(file_name) else {
-        return Err(Exceptions::IllegalArgumentException(Some(format!("file '{file_name}' not found or cannot be opened"))));
+        return Err(Exceptions::illegalArgument(format!("file '{file_name}' not found or cannot be opened")));
     };
     let mut multi_format_reader = MultiFormatReader::default();
 
@@ -167,9 +167,8 @@ pub fn detect_multiple_in_file_with_hints(
     file_name: &str,
     hints: &mut DecodingHintDictionary,
 ) -> Result<Vec<RXingResult>, Exceptions> {
-    let img = image::open(file_name).map_err(|e| {
-        Exceptions::RuntimeException(Some(format!("couldn't read {file_name}: {e}")))
-    })?;
+    let img = image::open(file_name)
+        .map_err(|e| Exceptions::runtime(format!("couldn't read {file_name}: {e}")))?;
     let multi_format_reader = MultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
@@ -256,9 +255,9 @@ pub fn save_image(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Excepti
     let image: image::DynamicImage = bit_matrix.into();
     match image.save(file_name) {
         Ok(_) => Ok(()),
-        Err(err) => Err(Exceptions::IllegalArgumentException(Some(format!(
+        Err(err) => Err(Exceptions::illegalArgument(format!(
             "could not save file '{file_name}': {err}"
-        )))),
+        ))),
     }
 }
 
@@ -268,10 +267,10 @@ pub fn save_svg(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Exception
 
     match svg::save(file_name, &svg) {
         Ok(_) => Ok(()),
-        Err(err) => Err(Exceptions::IllegalArgumentException(Some(format!(
+        Err(err) => Err(Exceptions::illegalArgument(format!(
             "could not save file '{}': {}",
             file_name, err
-        )))),
+        ))),
     }
 }
 
@@ -303,8 +302,8 @@ pub fn save_file(file_name: &str, bit_matrix: &BitMatrix) -> Result<(), Exceptio
         Ok(())
     }() {
         Ok(_) => Ok(()),
-        Err(_) => Err(Exceptions::IllegalArgumentException(Some(format!(
+        Err(_) => Err(Exceptions::illegalArgument(format!(
             "could not write to '{file_name}'"
-        )))),
+        ))),
     }
 }

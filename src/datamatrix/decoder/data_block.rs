@@ -138,7 +138,7 @@ impl DataBlock {
         }
 
         if rawCodewordsOffset != rawCodewords.len() {
-            return Err(Exceptions::IllegalArgumentException(None));
+            return Err(Exceptions::illegalArgumentEmpty());
         }
 
         Ok(result)

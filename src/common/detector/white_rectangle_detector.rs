@@ -77,7 +77,7 @@ impl<'a> WhiteRectangleDetector<'_> {
             || downInit >= image.getHeight() as i32
             || rightInit >= image.getWidth() as i32
         {
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFoundEmpty());
         }
 
         Ok(WhiteRectangleDetector {
@@ -223,7 +223,7 @@ impl<'a> WhiteRectangleDetector<'_> {
             }
 
             if z.is_none() {
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFoundEmpty());
             }
 
             let mut t: Option<RXingResultPoint> = None;
@@ -241,7 +241,7 @@ impl<'a> WhiteRectangleDetector<'_> {
             }
 
             if t.is_none() {
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFoundEmpty());
             }
 
             let mut x: Option<RXingResultPoint> = None;
@@ -259,7 +259,7 @@ impl<'a> WhiteRectangleDetector<'_> {
             }
 
             if x.is_none() {
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFoundEmpty());
             }
 
             let mut y: Option<RXingResultPoint> = None;
@@ -277,12 +277,12 @@ impl<'a> WhiteRectangleDetector<'_> {
             }
 
             if y.is_none() {
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFoundEmpty());
             }
 
             Ok(self.center_edges(&y.unwrap(), &z.unwrap(), &x.unwrap(), &t.unwrap()))
         } else {
-            Err(Exceptions::NotFoundException(None))
+            Err(Exceptions::notFoundEmpty())
         }
     }
 

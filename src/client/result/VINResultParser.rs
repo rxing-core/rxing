@@ -74,13 +74,13 @@ fn check_checksum(vin: &str) -> Result<bool, Exceptions> {
             * vin_char_value(
                 vin.chars()
                     .nth(i)
-                    .ok_or(Exceptions::IllegalArgumentException(None))?,
+                    .ok_or(Exceptions::illegalArgumentEmpty())?,
             )?;
     }
     let check_to_char = vin
         .chars()
         .nth(8)
-        .ok_or(Exceptions::IllegalArgumentException(None))?;
+        .ok_or(Exceptions::illegalArgumentEmpty())?;
     let expected_check_char = check_char((sum % 11) as u8)?;
     Ok(check_to_char == expected_check_char)
 }
@@ -91,9 +91,9 @@ fn vin_char_value(c: char) -> Result<u32, Exceptions> {
         'J'..='R' => Ok((c as u8 as u32 - b'J' as u32) + 1),
         'S'..='Z' => Ok((c as u8 as u32 - b'S' as u32) + 2),
         '0'..='9' => Ok(c as u8 as u32 - b'0' as u32),
-        _ => Err(Exceptions::IllegalArgumentException(Some(
+        _ => Err(Exceptions::illegalArgument(
             "vin char out of range".to_owned(),
-        ))),
+        )),
     }
 }
 
@@ -103,9 +103,9 @@ fn vin_position_weight(position: usize) -> Result<usize, Exceptions> {
         8 => Ok(10),
         9 => Ok(0),
         10..=17 => Ok(19 - position),
-        _ => Err(Exceptions::IllegalArgumentException(Some(
+        _ => Err(Exceptions::illegalArgument(
             "vin position weight out of bounds".to_owned(),
-        ))),
+        )),
     }
 }
 
@@ -113,9 +113,7 @@ fn check_char(remainder: u8) -> Result<char, Exceptions> {
     match remainder {
         0..=9 => Ok((b'0' + remainder) as char),
         10 => Ok('X'),
-        _ => Err(Exceptions::IllegalArgumentException(Some(
-            "remainder too high".to_owned(),
-        ))),
+        _ => Err(Exceptions::illegalArgument("remainder too high".to_owned())),
     }
 }
 
@@ -128,9 +126,9 @@ fn model_year(c: char) -> Result<u32, Exceptions> {
         'V'..='Y' => Ok((c as u8 as u32 - b'V' as u32) + 1997),
         '1'..='9' => Ok((c as u8 as u32 - b'1' as u32) + 2001),
         'A'..='D' => Ok((c as u8 as u32 - b'A' as u32) + 2010),
-        _ => Err(Exceptions::IllegalArgumentException(Some(String::from(
+        _ => Err(Exceptions::illegalArgument(String::from(
             "model year argument out of range",
-        )))),
+        ))),
     }
 }
 

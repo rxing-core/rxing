@@ -59,9 +59,9 @@ impl Writer for PDF417Writer {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
         if format != &BarcodeFormat::PDF_417 {
-            return Err(Exceptions::IllegalArgumentException(Some(format!(
+            return Err(Exceptions::illegalArgument(format!(
                 "Can only encode PDF_417, but got {format}"
-            ))));
+            )));
         }
 
         let mut encoder = PDF417::new();
@@ -149,7 +149,7 @@ impl PDF417Writer {
         let mut originalScale = encoder
             .getBarcodeMatrix()
             .as_ref()
-            .ok_or(Exceptions::IllegalStateException(None))?
+            .ok_or(Exceptions::illegalStateEmpty())?
             .getScaledMatrix(1, aspectRatio);
         let mut rotated = false;
         if (height > width) != (originalScale[0].len() < originalScale.len()) {
@@ -165,17 +165,16 @@ impl PDF417Writer {
             let mut scaledMatrix = encoder
                 .getBarcodeMatrix()
                 .as_ref()
-                .ok_or(Exceptions::IllegalStateException(None))?
+                .ok_or(Exceptions::illegalStateEmpty())?
                 .getScaledMatrix(scale, scale * aspectRatio);
             if rotated {
                 scaledMatrix = Self::rotateArray(&scaledMatrix);
             }
             return Self::bitMatrixFromBitArray(&scaledMatrix, margin)
-                .ok_or(Exceptions::IllegalStateException(None));
+                .ok_or(Exceptions::illegalStateEmpty());
         }
 
-        Self::bitMatrixFromBitArray(&originalScale, margin)
-            .ok_or(Exceptions::IllegalStateException(None))
+        Self::bitMatrixFromBitArray(&originalScale, margin).ok_or(Exceptions::illegalStateEmpty())
     }
 
     /**

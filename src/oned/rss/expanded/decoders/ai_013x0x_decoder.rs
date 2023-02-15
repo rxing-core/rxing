@@ -53,7 +53,7 @@ impl AbstractExpandedDecoder for AI013x0xDecoder<'_> {
         if self.information.getSize()
             != Self::HEADER_SIZE + Self::GTIN_SIZE as usize + Self::WEIGHT_SIZE
         {
-            return Err(crate::Exceptions::NotFoundException(None));
+            return Err(crate::Exceptions::notFoundEmpty());
         }
 
         let mut buf = String::new();

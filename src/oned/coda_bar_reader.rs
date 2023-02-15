@@ -65,13 +65,13 @@ impl OneDReader for CodaBarReader {
         loop {
             let charOffset = self.toNarrowWidePattern(nextStart);
             if charOffset == -1 {
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFoundEmpty());
             }
             // Hack: We store the position in the alphabet table into a
             // StringBuilder, so that we can access the decoded patterns in
             // validatePattern. We'll translate to the actual characters later.
             self.decodeRowRXingResult
-                .push(char::from_u32(charOffset as u32).ok_or(Exceptions::ParseException(None))?);
+                .push(char::from_u32(charOffset as u32).ok_or(Exceptions::parseEmpty())?);
             nextStart += 8;
             // Stop as soon as we see the end character.
             if self.decodeRowRXingResult.chars().count() > 1
@@ -99,7 +99,7 @@ impl OneDReader for CodaBarReader {
         // otherwise this is probably a false positive. The exception is if we are
         // at the end of the row. (I.e. the barcode barely fits.)
         if nextStart < self.counterLength && trailingWhitespace < lastPatternSize / 2 {
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFoundEmpty());
         }
 
         self.validatePattern(startOffset)?;
@@ -113,7 +113,7 @@ impl OneDReader for CodaBarReader {
                     .decodeRowRXingResult
                     .chars()
                     .nth(i)
-                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                    .ok_or(Exceptions::indexOutOfBoundsEmpty())?
                     as usize]
                     .to_string(),
             );
@@ -123,23 +123,23 @@ impl OneDReader for CodaBarReader {
             .decodeRowRXingResult
             .chars()
             .next()
-            .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+            .ok_or(Exceptions::indexOutOfBoundsEmpty())?;
         if !Self::arrayContains(&Self::STARTEND_ENCODING, startchar) {
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFoundEmpty());
         }
         let endchar = self
             .decodeRowRXingResult
             .chars()
             .nth(self.decodeRowRXingResult.chars().count() - 1)
-            .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+            .ok_or(Exceptions::indexOutOfBoundsEmpty())?;
         if !Self::arrayContains(&Self::STARTEND_ENCODING, endchar) {
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFoundEmpty());
         }
 
         // remove stop/start characters character and check if a long enough string is contained
         if (self.decodeRowRXingResult.chars().count()) <= Self::MIN_CHARACTER_LENGTH as usize {
             // Almost surely a false positive ( start + stop + at least 1 character)
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFoundEmpty());
         }
 
         if !matches!(
@@ -243,7 +243,7 @@ impl CodaBarReader {
                 .decodeRowRXingResult
                 .chars()
                 .nth(i)
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .ok_or(Exceptions::indexOutOfBoundsEmpty())?
                 as usize];
             for j in (0_usize..=6).rev() {
                 // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
@@ -282,7 +282,7 @@ impl CodaBarReader {
                 .decodeRowRXingResult
                 .chars()
                 .nth(i)
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .ok_or(Exceptions::indexOutOfBoundsEmpty())?
                 as usize];
             for j in (0usize..=6).rev() {
                 // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
@@ -290,7 +290,7 @@ impl CodaBarReader {
                 let category = (j & 1) + ((pattern as usize) & 1) * 2;
                 let size = self.counters[(pos + j)];
                 if (size as f32) < mins[category] || (size as f32) > maxes[category] {
-                    return Err(Exceptions::NotFoundException(None));
+                    return Err(Exceptions::notFoundEmpty());
                 }
                 pattern >>= 1;
             }
@@ -311,7 +311,7 @@ impl CodaBarReader {
         let mut i = row.getNextUnset(0);
         let end = row.getSize();
         if i >= end {
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFoundEmpty());
         }
         let mut isWhite = true;
         let mut count = 0;
@@ -363,7 +363,7 @@ impl CodaBarReader {
 
             i += 2;
         }
-        Err(Exceptions::NotFoundException(None))
+        Err(Exceptions::notFoundEmpty())
     }
 
     pub fn arrayContains(array: &[char], key: char) -> bool {

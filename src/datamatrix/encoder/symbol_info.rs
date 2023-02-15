@@ -128,9 +128,9 @@ impl SymbolInfo {
             2 | 4 => Ok(2),
             16 => Ok(4),
             36 => Ok(6),
-            _ => Err(Exceptions::IllegalStateException(Some(
+            _ => Err(Exceptions::illegalState(
                 "Cannot handle this number of data regions".to_owned(),
-            ))),
+            )),
         }
     }
 
@@ -140,9 +140,9 @@ impl SymbolInfo {
             4 => Ok(2),
             16 => Ok(4),
             36 => Ok(6),
-            _ => Err(Exceptions::IllegalStateException(Some(
+            _ => Err(Exceptions::illegalState(
                 "Cannot handle this number of data regions".to_owned(),
-            ))),
+            )),
         }
     }
 
@@ -310,9 +310,9 @@ impl<'a> SymbolInfoLookup<'a> {
             }
         }
         if fail {
-            return Err(Exceptions::IllegalArgumentException(Some(format!(
+            return Err(Exceptions::illegalArgument(format!(
                 "Can't find a symbol arrangement that matches the message. Data codewords: {dataCodewords}"
-            ))));
+            )));
         }
         Ok(None)
     }

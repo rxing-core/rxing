@@ -223,7 +223,7 @@ pub fn encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
         c40Encoder.encodeMaximalC40(&mut context)?;
         encodingMode = context
             .getNewEncoding()
-            .ok_or(Exceptions::IllegalStateException(None))?;
+            .ok_or(Exceptions::illegalStateEmpty())?;
         context.resetEncoderSignal();
     }
 
@@ -232,7 +232,7 @@ pub fn encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
         if context.getNewEncoding().is_some() {
             encodingMode = context
                 .getNewEncoding()
-                .ok_or(Exceptions::IllegalStateException(None))?;
+                .ok_or(Exceptions::illegalStateEmpty())?;
             context.resetEncoderSignal();
         }
     }
@@ -240,7 +240,7 @@ pub fn encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
     context.updateSymbolInfo();
     let capacity = context
         .getSymbolInfo()
-        .ok_or(Exceptions::IllegalStateException(None))?
+        .ok_or(Exceptions::illegalStateEmpty())?
         .getDataCapacity();
     if len < capacity as usize
         && encodingMode != ASCII_ENCODATION
@@ -611,7 +611,7 @@ pub fn determineConsecutiveDigitCount(msg: &str, startpos: u32) -> u32 {
 pub fn illegalCharacter(c: char) -> Result<(), Exceptions> {
     // let hex = Integer.toHexString(c);
     // hex = "0000".substring(0, 4 - hex.length()) + hex;
-    Err(Exceptions::IllegalArgumentException(Some(format!(
+    Err(Exceptions::illegalArgument(format!(
         "Illegal character: {c} (0x{c})"
-    ))))
+    )))
 }

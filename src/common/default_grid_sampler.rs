@@ -67,7 +67,7 @@ impl GridSampler for DefaultGridSampler {
         transform: &PerspectiveTransform,
     ) -> Result<BitMatrix, Exceptions> {
         if dimensionX == 0 || dimensionY == 0 {
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFoundEmpty());
         }
         let mut bits = BitMatrix::new(dimensionX, dimensionY)?;
         let mut points = vec![0.0; 2 * dimensionX as usize];
@@ -92,15 +92,15 @@ impl GridSampler for DefaultGridSampler {
                 //   for (int x = 0; x < max; x += 2) {
                 // if points[x] as u32 >= image.getWidth() || points[x + 1] as u32 >= image.getHeight()
                 // {
-                //     return Err(Exceptions::NotFoundException(Some(
+                //     return Err(Exceptions::notFound(
                 //         "index out of bounds, see documentation in file for explanation".to_owned(),
-                //     )));
+                //     ));
                 // }
                 if image
                     .try_get(points[x] as u32, points[x + 1] as u32)
-                    .ok_or(Exceptions::NotFoundException(Some(
+                    .ok_or(Exceptions::notFound(
                         "index out of bounds, see documentation in file for explanation".to_owned(),
-                    )))?
+                    ))?
                 {
                     // Black(-ish) pixel
                     bits.set(x as u32 / 2, y);

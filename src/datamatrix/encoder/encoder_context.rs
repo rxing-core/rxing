@@ -63,14 +63,12 @@ impl<'a> EncoderContext<'_> {
             ISO_8859_1_ENCODER
                 .decode(&encoded_bytes, encoding::DecoderTrap::Strict)
                 .map_err(|e| {
-                    Exceptions::ParseException(Some(format!(
-                        "round trip decode should always work: {e}"
-                    )))
+                    Exceptions::parse(format!("round trip decode should always work: {e}"))
                 })?
         } else {
-            return Err(Exceptions::IllegalArgumentException(Some(
+            return Err(Exceptions::illegalArgument(
                 "Message contains characters outside ISO-8859-1 encoding.".to_owned(),
-            )));
+            ));
         };
         Ok(Self {
             symbol_lookup: Rc::new(SymbolInfoLookup::new()),

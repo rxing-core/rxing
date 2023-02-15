@@ -45,15 +45,15 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             }
             13 => {
                 if !reader.checkStandardUPCEANChecksum(&contents)? {
-                    return Err(Exceptions::IllegalArgumentException(Some(
+                    return Err(Exceptions::illegalArgument(
                         "Contents do not pass checksum".to_owned(),
-                    )));
+                    ));
                 }
             }
             _ => {
-                return Err(Exceptions::IllegalArgumentException(Some(format!(
+                return Err(Exceptions::illegalArgument(format!(
                     "Requested contents should be 12 or 13 digits long, but got {length}"
-                ))))
+                )))
             }
         }
 
@@ -62,9 +62,9 @@ impl OneDimensionalCodeWriter for EAN13Writer {
         let firstDigit = contents
             .chars()
             .next()
-            .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+            .ok_or(Exceptions::indexOutOfBoundsEmpty())?
             .to_digit(10)
-            .ok_or(Exceptions::ParseException(None))? as usize;
+            .ok_or(Exceptions::parseEmpty())? as usize;
         let parities = EAN13Reader::FIRST_DIGIT_ENCODINGS[firstDigit];
         let mut result = [false; CODE_WIDTH];
         let mut pos = 0;
@@ -79,9 +79,9 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             let mut digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .ok_or(Exceptions::indexOutOfBoundsEmpty())?
                 .to_digit(10)
-                .ok_or(Exceptions::ParseException(None))? as usize;
+                .ok_or(Exceptions::parseEmpty())? as usize;
             if (parities >> (6 - i) & 1) == 1 {
                 digit += 10;
             }
@@ -100,9 +100,9 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             let digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .ok_or(Exceptions::indexOutOfBoundsEmpty())?
                 .to_digit(10)
-                .ok_or(Exceptions::ParseException(None))? as usize;
+                .ok_or(Exceptions::parseEmpty())? as usize;
 
             pos += EAN13Writer::appendPattern(
                 &mut result,

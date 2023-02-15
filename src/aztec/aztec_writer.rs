@@ -59,7 +59,7 @@ impl Writer for AztecWriter {
             if cset_name.to_lowercase() != "iso-8859-1" {
                 charset = Some(
                     encoding::label::encoding_from_whatwg_label(cset_name)
-                        .ok_or(Exceptions::IllegalArgumentException(None))?,
+                        .ok_or(Exceptions::illegalArgumentEmpty())?,
                 );
             }
         }
@@ -95,9 +95,9 @@ fn encode(
     layers: i32,
 ) -> Result<BitMatrix, Exceptions> {
     if format != BarcodeFormat::AZTEC {
-        return Err(Exceptions::IllegalArgumentException(Some(format!(
+        return Err(Exceptions::illegalArgument(format!(
             "can only encode AZTEC, but got {format:?}"
-        ))));
+        )));
     }
     let aztec = if let Some(cset) = charset {
         // dbg!(cset.name(), cset.whatwg_name());

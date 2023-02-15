@@ -49,9 +49,9 @@ impl GenericGFPoly {
      */
     pub fn new(field: GenericGFRef, coefficients: &[i32]) -> Result<Self, Exceptions> {
         if coefficients.is_empty() {
-            return Err(Exceptions::IllegalArgumentException(Some(String::from(
+            return Err(Exceptions::illegalArgument(String::from(
                 "coefficients cannot be empty",
-            ))));
+            )));
         }
         Ok(Self {
             field,
@@ -140,9 +140,9 @@ impl GenericGFPoly {
 
     pub fn addOrSubtract(&self, other: &GenericGFPoly) -> Result<GenericGFPoly, Exceptions> {
         if self.field != other.field {
-            return Err(Exceptions::IllegalArgumentException(Some(
+            return Err(Exceptions::illegalArgument(
                 "GenericGFPolys do not have same GenericGF field".to_owned(),
-            )));
+            ));
         }
         if self.isZero() {
             return Ok(other.clone());
@@ -177,9 +177,9 @@ impl GenericGFPoly {
     pub fn multiply(&self, other: &GenericGFPoly) -> Result<GenericGFPoly, Exceptions> {
         if self.field != other.field {
             //if (!field.equals(other.field)) {
-            return Err(Exceptions::IllegalArgumentException(Some(
+            return Err(Exceptions::illegalArgument(
                 "GenericGFPolys do not have same GenericGF field".to_owned(),
-            )));
+            ));
         }
         if self.isZero() || other.isZero() {
             return Ok(self.getZero());
@@ -252,14 +252,12 @@ impl GenericGFPoly {
         other: &GenericGFPoly,
     ) -> Result<(GenericGFPoly, GenericGFPoly), Exceptions> {
         if self.field != other.field {
-            return Err(Exceptions::IllegalArgumentException(Some(
+            return Err(Exceptions::illegalArgument(
                 "GenericGFPolys do not have same GenericGF field".to_owned(),
-            )));
+            ));
         }
         if other.isZero() {
-            return Err(Exceptions::IllegalArgumentException(Some(
-                "Divide by 0".to_owned(),
-            )));
+            return Err(Exceptions::illegalArgument("Divide by 0".to_owned()));
         }
 
         let mut quotient = self.getZero();
@@ -268,11 +266,7 @@ impl GenericGFPoly {
         let denominator_leading_term = other.getCoefficient(other.getDegree());
         let inverse_denominator_leading_term = match self.field.inverse(denominator_leading_term) {
             Ok(val) => val,
-            Err(_issue) => {
-                return Err(Exceptions::IllegalArgumentException(Some(
-                    "arithmetic issue".to_owned(),
-                )))
-            }
+            Err(_issue) => return Err(Exceptions::illegalArgument("arithmetic issue".to_owned())),
         };
 
         while remainder.getDegree() >= other.getDegree() && !remainder.isZero() {

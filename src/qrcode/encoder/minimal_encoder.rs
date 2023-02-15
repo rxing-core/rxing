@@ -158,9 +158,9 @@ impl MinimalEncoder {
                 Self::getVersion(Self::getVersionSize(result.getVersion()))?,
                 &self.ecLevel,
             ) {
-                return Err(Exceptions::WriterException(Some(format!(
+                return Err(Exceptions::writer(format!(
                     "Data too big for version {version}"
-                ))));
+                )));
             }
             Ok(result)
         } else {
@@ -186,9 +186,9 @@ impl MinimalEncoder {
                 }
             }
             if smallestRXingResult < 0 {
-                return Err(Exceptions::WriterException(Some(
+                return Err(Exceptions::writer(
                     "Data too big for any version".to_owned(),
-                )));
+                ));
             }
             Ok(results[smallestRXingResult as usize].clone())
         }
@@ -249,9 +249,9 @@ impl MinimalEncoder {
             Some(Mode::ALPHANUMERIC) => Ok(1),
             Some(Mode::BYTE) => Ok(3),
             Some(Mode::KANJI) | None => Ok(0),
-            _ => Err(Exceptions::IllegalArgumentException(Some(format!(
+            _ => Err(Exceptions::illegalArgument(format!(
                 "Illegal mode {mode:?}"
-            )))),
+            ))),
         }
     }
 
@@ -264,23 +264,23 @@ impl MinimalEncoder {
         let vertexIndex = position
             + edge
                 .as_ref()
-                .ok_or(Exceptions::FormatException(None))?
+                .ok_or(Exceptions::formatEmpty())?
                 .characterLength as usize;
         let modeEdges = &mut edges[vertexIndex][edge
             .as_ref()
-            .ok_or(Exceptions::FormatException(None))?
+            .ok_or(Exceptions::formatEmpty())?
             .charsetEncoderIndex];
-        let modeOrdinal = Self::getCompactedOrdinal(Some(
-            edge.as_ref().ok_or(Exceptions::FormatException(None))?.mode,
-        ))? as usize;
+        let modeOrdinal =
+            Self::getCompactedOrdinal(Some(edge.as_ref().ok_or(Exceptions::formatEmpty())?.mode))?
+                as usize;
         if modeEdges[modeOrdinal].is_none()
             || modeEdges[modeOrdinal]
                 .as_ref()
-                .ok_or(Exceptions::FormatException(None))?
+                .ok_or(Exceptions::formatEmpty())?
                 .cachedTotalSize
                 > edge
                     .as_ref()
-                    .ok_or(Exceptions::FormatException(None))?
+                    .ok_or(Exceptions::formatEmpty())?
                     .cachedTotalSize
         {
             modeEdges[modeOrdinal] = edge;
@@ -304,12 +304,12 @@ impl MinimalEncoder {
                 .encoders
                 .canEncode(
                     &self.stringToEncode[from],
-                    priorityEncoderIndex.ok_or(Exceptions::FormatException(None))?,
+                    priorityEncoderIndex.ok_or(Exceptions::formatEmpty())?,
                 )
-                .ok_or(Exceptions::FormatException(None))?
+                .ok_or(Exceptions::formatEmpty())?
         {
-            start = priorityEncoderIndex.ok_or(Exceptions::FormatException(None))?;
-            end = priorityEncoderIndex.ok_or(Exceptions::FormatException(None))? + 1;
+            start = priorityEncoderIndex.ok_or(Exceptions::formatEmpty())?;
+            end = priorityEncoderIndex.ok_or(Exceptions::formatEmpty())? + 1;
         }
 
         for i in start..end {
@@ -318,10 +318,10 @@ impl MinimalEncoder {
                 .canEncode(
                     self.stringToEncode
                         .get(from)
-                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                        .ok_or(Exceptions::indexOutOfBoundsEmpty())?,
                     i,
                 )
-                .ok_or(Exceptions::FormatException(None))?
+                .ok_or(Exceptions::formatEmpty())?
             {
                 self.addEdge(
                     edges,
@@ -337,7 +337,7 @@ impl MinimalEncoder {
                             self.encoders.clone(),
                             self.stringToEncode.clone(),
                         )
-                        .ok_or(Exceptions::WriterException(None))?,
+                        .ok_or(Exceptions::writerEmpty())?,
                     )),
                 )?;
             }
@@ -347,7 +347,7 @@ impl MinimalEncoder {
             &Mode::KANJI,
             self.stringToEncode
                 .get(from)
-                .ok_or(Exceptions::FormatException(None))?,
+                .ok_or(Exceptions::formatEmpty())?,
         ) {
             self.addEdge(
                 edges,
@@ -363,7 +363,7 @@ impl MinimalEncoder {
                         self.encoders.clone(),
                         self.stringToEncode.clone(),
                     )
-                    .ok_or(Exceptions::WriterException(None))?,
+                    .ok_or(Exceptions::writerEmpty())?,
                 )),
             )?;
         }
@@ -373,7 +373,7 @@ impl MinimalEncoder {
             &Mode::ALPHANUMERIC,
             self.stringToEncode
                 .get(from)
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                .ok_or(Exceptions::indexOutOfBoundsEmpty())?,
         ) {
             self.addEdge(
                 edges,
@@ -388,7 +388,7 @@ impl MinimalEncoder {
                                 &Mode::ALPHANUMERIC,
                                 self.stringToEncode
                                     .get(from + 1)
-                                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                                    .ok_or(Exceptions::indexOutOfBoundsEmpty())?,
                             )
                         {
                             1
@@ -400,7 +400,7 @@ impl MinimalEncoder {
                         self.encoders.clone(),
                         self.stringToEncode.clone(),
                     )
-                    .ok_or(Exceptions::WriterException(None))?,
+                    .ok_or(Exceptions::writerEmpty())?,
                 )),
             )?;
         }
@@ -409,7 +409,7 @@ impl MinimalEncoder {
             &Mode::NUMERIC,
             self.stringToEncode
                 .get(from)
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                .ok_or(Exceptions::indexOutOfBoundsEmpty())?,
         ) {
             self.addEdge(
                 edges,
@@ -424,7 +424,7 @@ impl MinimalEncoder {
                                 &Mode::NUMERIC,
                                 self.stringToEncode
                                     .get(from + 1)
-                                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                                    .ok_or(Exceptions::indexOutOfBoundsEmpty())?,
                             )
                         {
                             1
@@ -433,7 +433,7 @@ impl MinimalEncoder {
                                 &Mode::NUMERIC,
                                 self.stringToEncode
                                     .get(from + 2)
-                                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                                    .ok_or(Exceptions::indexOutOfBoundsEmpty())?,
                             )
                         {
                             2
@@ -445,7 +445,7 @@ impl MinimalEncoder {
                         self.encoders.clone(),
                         self.stringToEncode.clone(),
                     )
-                    .ok_or(Exceptions::WriterException(None))?,
+                    .ok_or(Exceptions::writerEmpty())?,
                 )),
             )?;
         }
@@ -608,22 +608,22 @@ impl MinimalEncoder {
                 version,
                 edges[inputLength][minJ][minK]
                     .as_ref()
-                    .ok_or(Exceptions::WriterException(None))?
+                    .ok_or(Exceptions::writerEmpty())?
                     .clone(),
                 self.isGS1,
                 &self.ecLevel,
                 self.encoders.clone(),
                 self.stringToEncode.clone(),
             )
-            .ok_or(Exceptions::WriterException(None))?)
+            .ok_or(Exceptions::writerEmpty())?)
         } else {
-            Err(Exceptions::WriterException(Some(format!(
+            Err(Exceptions::writer(format!(
                 r#"Internal error: failed to encode "{}"#,
                 self.stringToEncode
                     .iter()
                     .map(String::from)
                     .collect::<String>()
-            ))))
+            )))
         }
     }
 }
@@ -1033,7 +1033,7 @@ impl RXingResultNode {
                 bits,
                 self.encoders
                     .getCharset(self.charsetEncoderIndex)
-                    .ok_or(Exceptions::WriterException(None))?,
+                    .ok_or(Exceptions::writerEmpty())?,
             )?;
         }
         Ok(())
