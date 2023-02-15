@@ -25,9 +25,11 @@ use std::{
 
 use encoding::Encoding;
 use rxing::{
-    common::HybridBinarizer, multi::MultipleBarcodeReader, pdf417::PDF417RXingResultMetadata,
+    common::{HybridBinarizer, Result},
+    multi::MultipleBarcodeReader,
+    pdf417::PDF417RXingResultMetadata,
     BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue,
-    Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::TestRXingResult;
