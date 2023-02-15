@@ -124,9 +124,9 @@ fn model_year(c: char) -> Result<u32, Exceptions> {
         'V'..='Y' => Ok((c as u8 as u32 - b'V' as u32) + 1997),
         '1'..='9' => Ok((c as u8 as u32 - b'1' as u32) + 2001),
         'A'..='D' => Ok((c as u8 as u32 - b'A' as u32) + 2010),
-        _ => Err(Exceptions::illegalArgument(String::from(
+        _ => Err(Exceptions::illegalArgument(
             "model year argument out of range",
-        ))),
+        )),
     }
 }
 

@@ -49,9 +49,7 @@ impl GenericGFPoly {
      */
     pub fn new(field: GenericGFRef, coefficients: &[i32]) -> Result<Self, Exceptions> {
         if coefficients.is_empty() {
-            return Err(Exceptions::illegalArgument(String::from(
-                "coefficients cannot be empty",
-            )));
+            return Err(Exceptions::illegalArgument("coefficients cannot be empty"));
         }
         Ok(Self {
             field,
