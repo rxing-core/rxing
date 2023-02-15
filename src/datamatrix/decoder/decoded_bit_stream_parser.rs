@@ -755,7 +755,7 @@ fn decodeBase256Segment(
     result.append_string(
         &encoding::all::ISO_8859_1
             .decode(&bytes, encoding::DecoderTrap::Strict)
-            .map_err(|e| Exceptions::parse(e.to_string()))?,
+            .map_err(|e| Exceptions::parse(e))?,
     );
     byteSegments.push(bytes);
 

@@ -164,7 +164,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String, Exceptions> {
                 result.push_str(
                     &encdr
                         .decode(&decoded_bytes, encoding::DecoderTrap::Strict)
-                        .map_err(|a| Exceptions::illegalState(a.to_string()))?,
+                        .map_err(|a| Exceptions::illegalState(a))?,
                 );
 
                 decoded_bytes.clear();
