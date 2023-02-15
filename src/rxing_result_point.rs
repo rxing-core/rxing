@@ -214,6 +214,10 @@ impl RXingResultPoint {
         }
     }
 
+    pub fn middle(self, p: Self) -> Self {
+        (self + p) / 2.0
+    }
+
     pub fn normalized(self) -> Self {
         self / Self::length(self)
     }

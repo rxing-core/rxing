@@ -355,10 +355,10 @@ impl<'a> Detector<'_> {
      * @return the center point
      */
     fn get_matrix_center(&self) -> Point {
-        let mut point_a = RXingResultPoint::default(); // { x: 0.0, y: 0.0 };
-        let mut point_b = RXingResultPoint::default(); // { x: 0.0, y: 0.0 };
-        let mut point_c = RXingResultPoint::default(); // { x: 0.0, y: 0.0 };
-        let mut point_d = RXingResultPoint::default(); // { x: 0.0, y: 0.0 };
+        let mut point_a = RXingResultPoint::default();
+        let mut point_b = RXingResultPoint::default();
+        let mut point_c = RXingResultPoint::default();
+        let mut point_d = RXingResultPoint::default();
 
         let mut fnd = false;
 
@@ -702,20 +702,16 @@ impl<'a> Detector<'_> {
         new_side: u32,
     ) -> [RXingResultPoint; 4] {
         let ratio = new_side as f32 / (2.0f32 * old_side as f32);
-        let mut dx = corner_points[0].getX() - corner_points[2].getX();
-        let mut dy = corner_points[0].getY() - corner_points[2].getY();
-        let mut centerx = (corner_points[0].getX() + corner_points[2].getX()) / 2.0f32;
-        let mut centery = (corner_points[0].getY() + corner_points[2].getY()) / 2.0f32;
 
-        let result0 = RXingResultPoint::new(centerx + ratio * dx, centery + ratio * dy);
-        let result2 = RXingResultPoint::new(centerx - ratio * dx, centery - ratio * dy);
+        let d = corner_points[0] - corner_points[2];
+        let middle = corner_points[0].middle(corner_points[2]);
+        let result0 = middle + ratio * d;
+        let result2 = middle - ratio * d;
 
-        dx = corner_points[1].getX() - corner_points[3].getX();
-        dy = corner_points[1].getY() - corner_points[3].getY();
-        centerx = (corner_points[1].getX() + corner_points[3].getX()) / 2.0f32;
-        centery = (corner_points[1].getY() + corner_points[3].getY()) / 2.0f32;
-        let result1 = RXingResultPoint::new(centerx + ratio * dx, centery + ratio * dy);
-        let result3 = RXingResultPoint::new(centerx - ratio * dx, centery - ratio * dy);
+        let d = corner_points[1] - corner_points[3];
+        let middle = corner_points[1].middle(corner_points[3]);
+        let result1 = middle + ratio * d;
+        let result3 = middle - ratio * d;
 
         [result0, result1, result2, result3]
     }
