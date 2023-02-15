@@ -22,6 +22,112 @@ pub enum Exceptions {
     ReaderDecodeException(),
 }
 
+impl Exceptions {
+    pub fn illegalArgument<I: Into<String>>(x: I) -> Self {
+        Self::IllegalArgumentException(Some(x.into()))
+    }
+
+    pub fn illegalArgumentEmpty() -> Self {
+        Self::IllegalArgumentException(None)
+    }
+
+    pub fn unsupportedOperation<I: Into<String>>(x: I) -> Self {
+        Self::UnsupportedOperationException(Some(x.into()))
+    }
+
+    pub fn unsupportedOperationEmpty() -> Self {
+        Self::UnsupportedOperationException(None)
+    }
+
+    pub fn illegalState<I: Into<String>>(x: I) -> Self {
+        Self::IllegalStateException(Some(x.into()))
+    }
+
+    pub fn illegalStateEmpty() -> Self {
+        Self::IllegalStateException(None)
+    }
+
+    pub fn arithmetic<I: Into<String>>(x: I) -> Self {
+        Self::ArithmeticException(Some(x.into()))
+    }
+
+    pub fn arithmeticEmpty() -> Self {
+        Self::ArithmeticException(None)
+    }
+
+    pub fn notFound<I: Into<String>>(x: I) -> Self {
+        Self::NotFoundException(Some(x.into()))
+    }
+
+    pub fn notFoundEmpty() -> Self {
+        Self::NotFoundException(None)
+    }
+
+    pub fn format<I: Into<String>>(x: I) -> Self {
+        Self::FormatException(Some(x.into()))
+    }
+
+    pub fn formatEmpty() -> Self {
+        Self::FormatException(None)
+    }
+
+    pub fn checksum<I: Into<String>>(x: I) -> Self {
+        Self::ChecksumException(Some(x.into()))
+    }
+
+    pub fn checksumEmpty() -> Self {
+        Self::ChecksumException(None)
+    }
+
+    pub fn reader<I: Into<String>>(x: I) -> Self {
+        Self::ReaderException(Some(x.into()))
+    }
+
+    pub fn readerEmpty() -> Self {
+        Self::ReaderException(None)
+    }
+
+    pub fn writer<I: Into<String>>(x: I) -> Self {
+        Self::WriterException(Some(x.into()))
+    }
+
+    pub fn writerEmpty() -> Self {
+        Self::WriterException(None)
+    }
+
+    pub fn reedSolomon<I: Into<String>>(x: I) -> Self {
+        Self::ReedSolomonException(Some(x.into()))
+    }
+
+    pub fn reedSolomonEmpty() -> Self {
+        Self::ReedSolomonException(None)
+    }
+
+    pub fn indexOutOfBounds<I: Into<String>>(x: I) -> Self {
+        Self::IndexOutOfBoundsException(Some(x.into()))
+    }
+
+    pub fn indexOutOfBoundsEmpty() -> Self {
+        Self::IndexOutOfBoundsException(None)
+    }
+
+    pub fn runtime<I: Into<String>>(x: I) -> Self {
+        Self::RuntimeException(Some(x.into()))
+    }
+
+    pub fn runtimeEmpty() -> Self {
+        Self::RuntimeException(None)
+    }
+
+    pub fn parse<I: Into<String>>(x: I) -> Self {
+        Self::ParseException(Some(x.into()))
+    }
+
+    pub fn parseEmpty() -> Self {
+        Self::ParseException(None)
+    }
+}
+
 impl fmt::Display for Exceptions {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
