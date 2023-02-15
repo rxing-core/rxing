@@ -68,8 +68,8 @@ impl<'a> Detector<'_> {
         let bottomRight = points[2];
         let topRight = points[3];
 
-        let mut dimensionTop = self.transitionsBetween(&topLeft, &topRight) + 1;
-        let mut dimensionRight = self.transitionsBetween(&bottomRight, &topRight) + 1;
+        let mut dimensionTop = self.transitionsBetween(topLeft, topRight) + 1;
+        let mut dimensionRight = self.transitionsBetween(bottomRight, topRight) + 1;
         if (dimensionTop & 0x01) == 1 {
             dimensionTop += 1;
         }
@@ -85,10 +85,10 @@ impl<'a> Detector<'_> {
 
         let bits = Self::sampleGrid(
             self.image,
-            &topLeft,
-            &bottomLeft,
-            &bottomRight,
-            &topRight,
+            topLeft,
+            bottomLeft,
+            bottomRight,
+            topRight,
             dimensionTop,
             dimensionRight,
         )?;
@@ -135,10 +135,10 @@ impl<'a> Detector<'_> {
         let pointC = cornerPoints[3];
         let pointD = cornerPoints[2];
 
-        let trAB = self.transitionsBetween(&pointA, &pointB);
-        let trBC = self.transitionsBetween(&pointB, &pointC);
-        let trCD = self.transitionsBetween(&pointC, &pointD);
-        let trDA = self.transitionsBetween(&pointD, &pointA);
+        let trAB = self.transitionsBetween(pointA, pointB);
+        let trBC = self.transitionsBetween(pointB, pointC);
+        let trCD = self.transitionsBetween(pointC, pointD);
+        let trDA = self.transitionsBetween(pointD, pointA);
 
         // 0..3
         // :  :
@@ -183,11 +183,11 @@ impl<'a> Detector<'_> {
 
         // Transition detection on the edge is not stable.
         // To safely detect, shift the points to the module center.
-        let tr = self.transitionsBetween(&pointA, &pointD);
+        let tr = self.transitionsBetween(pointA, pointD);
         let pointBs = Self::shiftPoint(pointB, pointC, (tr + 1) * 4);
         let pointCs = Self::shiftPoint(pointC, pointB, (tr + 1) * 4);
-        let trBA = self.transitionsBetween(&pointBs, &pointA);
-        let trCD = self.transitionsBetween(&pointCs, &pointD);
+        let trBA = self.transitionsBetween(pointBs, pointA);
+        let trCD = self.transitionsBetween(pointCs, pointD);
 
         // 0..3
         // |  :
@@ -222,13 +222,13 @@ impl<'a> Detector<'_> {
         let pointD = points[3];
 
         // shift points for safe transition detection.
-        let mut trTop = self.transitionsBetween(&pointA, &pointD);
-        let mut trRight = self.transitionsBetween(&pointB, &pointD);
+        let mut trTop = self.transitionsBetween(pointA, pointD);
+        let mut trRight = self.transitionsBetween(pointB, pointD);
         let pointAs = Self::shiftPoint(pointA, pointB, (trRight + 1) * 4);
         let pointCs = Self::shiftPoint(pointC, pointB, (trTop + 1) * 4);
 
-        trTop = self.transitionsBetween(&pointAs, &pointD);
-        trRight = self.transitionsBetween(&pointCs, &pointD);
+        trTop = self.transitionsBetween(pointAs, pointD);
+        trRight = self.transitionsBetween(pointCs, pointD);
 
         let candidate1 = RXingResultPoint::new(
             pointD.getX() + (pointC.getX() - pointB.getX()) / (trTop as f32 + 1.0),
@@ -239,20 +239,20 @@ impl<'a> Detector<'_> {
             pointD.getY() + (pointA.getY() - pointB.getY()) / (trRight as f32 + 1.0),
         );
 
-        if !self.isValid(&candidate1) {
-            if self.isValid(&candidate2) {
+        if !self.isValid(candidate1) {
+            if self.isValid(candidate2) {
                 return Some(candidate2);
             }
             return None;
         }
-        if !self.isValid(&candidate2) {
+        if !self.isValid(candidate2) {
             return Some(candidate1);
         }
 
-        let sumc1 = self.transitionsBetween(&pointAs, &candidate1)
-            + self.transitionsBetween(&pointCs, &candidate1);
-        let sumc2 = self.transitionsBetween(&pointAs, &candidate2)
-            + self.transitionsBetween(&pointCs, &candidate2);
+        let sumc1 = self.transitionsBetween(pointAs, candidate1)
+            + self.transitionsBetween(pointCs, candidate1);
+        let sumc2 = self.transitionsBetween(pointAs, candidate2)
+            + self.transitionsBetween(pointCs, candidate2);
 
         if sumc1 > sumc2 {
             Some(candidate1)
@@ -274,16 +274,16 @@ impl<'a> Detector<'_> {
         let mut pointD = points[3];
 
         // calculate pseudo dimensions
-        let mut dimH = self.transitionsBetween(&pointA, &pointD) + 1;
-        let mut dimV = self.transitionsBetween(&pointC, &pointD) + 1;
+        let mut dimH = self.transitionsBetween(pointA, pointD) + 1;
+        let mut dimV = self.transitionsBetween(pointC, pointD) + 1;
 
         // shift points for safe dimension detection
         let mut pointAs = Self::shiftPoint(pointA, pointB, dimV * 4);
         let mut pointCs = Self::shiftPoint(pointC, pointB, dimH * 4);
 
         //  calculate more precise dimensions
-        dimH = self.transitionsBetween(&pointAs, &pointD) + 1;
-        dimV = self.transitionsBetween(&pointCs, &pointD) + 1;
+        dimH = self.transitionsBetween(pointAs, pointD) + 1;
+        dimV = self.transitionsBetween(pointCs, pointD) + 1;
         if (dimH & 0x01) == 1 {
             dimH += 1;
         }
@@ -316,7 +316,7 @@ impl<'a> Detector<'_> {
         [pointAs, pointBs, pointCs, pointDs]
     }
 
-    fn isValid(&self, p: &RXingResultPoint) -> bool {
+    fn isValid(&self, p: RXingResultPoint) -> bool {
         p.getX() >= 0.0
             && p.getX() <= self.image.getWidth() as f32 - 1.0
             && p.getY() > 0.0
@@ -325,10 +325,10 @@ impl<'a> Detector<'_> {
 
     fn sampleGrid(
         image: &BitMatrix,
-        topLeft: &RXingResultPoint,
-        bottomLeft: &RXingResultPoint,
-        bottomRight: &RXingResultPoint,
-        topRight: &RXingResultPoint,
+        topLeft: RXingResultPoint,
+        bottomLeft: RXingResultPoint,
+        bottomRight: RXingResultPoint,
+        topRight: RXingResultPoint,
         dimensionX: u32,
         dimensionY: u32,
     ) -> Result<BitMatrix, Exceptions> {
@@ -360,7 +360,7 @@ impl<'a> Detector<'_> {
     /**
      * Counts the number of black/white transitions between two points, using something like Bresenham's algorithm.
      */
-    fn transitionsBetween(&self, from: &RXingResultPoint, to: &RXingResultPoint) -> u32 {
+    fn transitionsBetween(&self, from: RXingResultPoint, to: RXingResultPoint) -> u32 {
         // See QR Code Detector, sizeOfBlackWhiteBlackRun()
         let mut fromX = from.getX().floor() as i32;
         let mut fromY = from.getY().floor() as i32;

@@ -16,19 +16,19 @@ pub trait BitMatrixCursor {
 
     // BitMatrixCursor(const BitMatrix& image, POINT p, POINT d) : img(&image), p(p) { setDirection(d); }
 
-    fn testAt(&self, p: &RXingResultPoint) -> Value; //const
-                                                     // {
-                                                     // 	return img->isIn(p) ? Value{img->get(p)} : Value{};
-                                                     // }
+    fn testAt(&self, p: RXingResultPoint) -> Value; //const
+                                                    // {
+                                                    // 	return img->isIn(p) ? Value{img->get(p)} : Value{};
+                                                    // }
 
-    fn blackAt(&self, pos: &RXingResultPoint) -> bool {
+    fn blackAt(&self, pos: RXingResultPoint) -> bool {
         self.testAt(pos).isBlack()
     }
-    fn whiteAt(&self, pos: &RXingResultPoint) -> bool {
+    fn whiteAt(&self, pos: RXingResultPoint) -> bool {
         self.testAt(pos).isWhite()
     }
 
-    fn isIn(&self, p: &RXingResultPoint) -> bool; // { return img->isIn(p); }
+    fn isIn(&self, p: RXingResultPoint) -> bool; // { return img->isIn(p); }
     fn isInSelf(&self) -> bool; // { return self.isIn(p); }
     fn isBlack(&self) -> bool; // { return blackAt(p); }
     fn isWhite(&self) -> bool; // { return whiteAt(p); }
@@ -46,30 +46,30 @@ pub trait BitMatrixCursor {
     fn turnRight(&mut self); //noexcept { d = right(); }
     fn turn(&mut self, dir: Direction); //noexcept { d = direction(dir); }
 
-    fn edgeAt_point(&self, d: &RXingResultPoint) -> Value;
+    fn edgeAt_point(&self, d: RXingResultPoint) -> Value;
     // {
     // 	Value v = testAt(p);
     // 	return testAt(p + d) != v ? v : Value();
     // }
 
     fn edgeAtFront(&self) -> Value {
-        return self.edgeAt_point(self.front());
+        return self.edgeAt_point(*self.front());
     }
     fn edgeAtBack(&self) -> Value {
-        self.edgeAt_point(&self.back())
+        self.edgeAt_point(self.back())
     }
     fn edgeAtLeft(&self) -> Value {
-        self.edgeAt_point(&self.left())
+        self.edgeAt_point(self.left())
     }
     fn edgeAtRight(&self) -> Value {
-        self.edgeAt_point(&self.right())
+        self.edgeAt_point(self.right())
     }
     fn edgeAt_direction(&self, dir: Direction) -> Value {
-        self.edgeAt_point(&self.direction(dir))
+        self.edgeAt_point(self.direction(dir))
     }
 
-    fn setDirection(&mut self, dir: &RXingResultPoint); // { d = bresenhamDirection(dir); }
-                                                        // fn setDirection(&self, dir:&RXingResultPoint);// { d = dir; }
+    fn setDirection(&mut self, dir: RXingResultPoint); // { d = bresenhamDirection(dir); }
+                                                       // fn setDirection(&self, dir: RXingResultPoint);// { d = dir; }
 
     fn step(&mut self, s: Option<f32>) -> bool; // DEF to 1
                                                 // {
@@ -77,7 +77,7 @@ pub trait BitMatrixCursor {
                                                 // 	return isIn(p);
                                                 // }
 
-    fn movedBy<T: BitMatrixCursor>(self, d: &RXingResultPoint) -> Self;
+    fn movedBy<T: BitMatrixCursor>(self, d: RXingResultPoint) -> Self;
     // {
     // 	auto res = *this;
     // 	res.p += d;

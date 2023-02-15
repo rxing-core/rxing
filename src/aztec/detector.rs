@@ -94,10 +94,10 @@ impl<'a> Detector<'_> {
         // 4. Sample the grid
         let bits = self.sample_grid(
             self.image,
-            &bulls_eye_corners[self.shift as usize % 4],
-            &bulls_eye_corners[(self.shift as usize + 1) % 4],
-            &bulls_eye_corners[(self.shift as usize + 2) % 4],
-            &bulls_eye_corners[(self.shift as usize + 3) % 4],
+            bulls_eye_corners[self.shift as usize % 4],
+            bulls_eye_corners[(self.shift as usize + 1) % 4],
+            bulls_eye_corners[(self.shift as usize + 2) % 4],
+            bulls_eye_corners[(self.shift as usize + 3) % 4],
         )?;
 
         // 5. Get the corners of the matrix.
@@ -122,10 +122,10 @@ impl<'a> Detector<'_> {
         &mut self,
         bulls_eye_corners: &[RXingResultPoint],
     ) -> Result<(), Exceptions> {
-        if !self.is_valid(&bulls_eye_corners[0])
-            || !self.is_valid(&bulls_eye_corners[1])
-            || !self.is_valid(&bulls_eye_corners[2])
-            || !self.is_valid(&bulls_eye_corners[3])
+        if !self.is_valid(bulls_eye_corners[0])
+            || !self.is_valid(bulls_eye_corners[1])
+            || !self.is_valid(bulls_eye_corners[2])
+            || !self.is_valid(bulls_eye_corners[3])
         {
             return Err(Exceptions::NotFoundException(Some(
                 "no valid points".to_owned(),
@@ -134,10 +134,10 @@ impl<'a> Detector<'_> {
         let length = 2 * self.nb_center_layers;
         // Get the bits around the bull's eye
         let sides = [
-            self.sample_line(&bulls_eye_corners[0], &bulls_eye_corners[1], length), // Right side
-            self.sample_line(&bulls_eye_corners[1], &bulls_eye_corners[2], length), // Bottom
-            self.sample_line(&bulls_eye_corners[2], &bulls_eye_corners[3], length), // Left side
-            self.sample_line(&bulls_eye_corners[3], &bulls_eye_corners[0], length), // Top
+            self.sample_line(bulls_eye_corners[0], bulls_eye_corners[1], length), // Right side
+            self.sample_line(bulls_eye_corners[1], bulls_eye_corners[2], length), // Bottom
+            self.sample_line(bulls_eye_corners[2], bulls_eye_corners[3], length), // Left side
+            self.sample_line(bulls_eye_corners[3], bulls_eye_corners[0], length), // Top
         ];
 
         // bullsEyeCorners[shift] is the corner of the bulls'eye that has three
@@ -500,10 +500,10 @@ impl<'a> Detector<'_> {
     fn sample_grid(
         &self,
         image: &BitMatrix,
-        top_left: &RXingResultPoint,
-        top_right: &RXingResultPoint,
-        bottom_right: &RXingResultPoint,
-        bottom_left: &RXingResultPoint,
+        top_left: RXingResultPoint,
+        top_right: RXingResultPoint,
+        bottom_right: RXingResultPoint,
+        bottom_left: RXingResultPoint,
     ) -> Result<BitMatrix, Exceptions> {
         let sampler = DefaultGridSampler::default();
         let dimension = self.get_dimension();
@@ -542,7 +542,7 @@ impl<'a> Detector<'_> {
      * @param size number of bits
      * @return the array of bits as an int (first bit is high-order bit of result)
      */
-    fn sample_line(&self, p1: &RXingResultPoint, p2: &RXingResultPoint, size: u32) -> u32 {
+    fn sample_line(&self, p1: RXingResultPoint, p2: RXingResultPoint, size: u32) -> u32 {
         let mut result = 0;
 
         let d = Self::distance(p1, p2);
@@ -724,7 +724,7 @@ impl<'a> Detector<'_> {
         x >= 0 && x < self.image.getWidth() as i32 && y >= 0 && y < self.image.getHeight() as i32
     }
 
-    fn is_valid(&self, point: &RXingResultPoint) -> bool {
+    fn is_valid(&self, point: RXingResultPoint) -> bool {
         let x = MathUtils::round(point.getX());
         let y = MathUtils::round(point.getY());
         self.is_valid_points(x, y)
@@ -734,7 +734,7 @@ impl<'a> Detector<'_> {
         MathUtils::distance(a.get_x(), a.get_y(), b.get_x(), b.get_y())
     }
 
-    fn distance(a: &RXingResultPoint, b: &RXingResultPoint) -> f32 {
+    fn distance(a: RXingResultPoint, b: RXingResultPoint) -> f32 {
         MathUtils::distance(a.getX(), a.getY(), b.getX(), b.getY())
     }
 

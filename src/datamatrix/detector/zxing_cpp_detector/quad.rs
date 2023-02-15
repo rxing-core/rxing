@@ -126,7 +126,7 @@ pub fn IsConvex(poly: &Quadrilateral) -> bool {
     {
         let d1 = poly.0[(i + 2) % N] - poly.0[(i + 1) % N];
         let d2 = poly.0[i] - poly.0[(i + 1) % N];
-        let cp = RXingResultPoint::cross(&d1, &d2);
+        let cp = d1.cross(d2);
 
         m = if m.abs() > cp { cp } else { m.abs() };
 
@@ -186,14 +186,14 @@ pub fn RotatedCorners(q: &Quadrilateral, n: Option<i32>, mirror: Option<bool>) -
 }
 
 #[allow(dead_code)]
-pub fn IsInside(p: &RXingResultPoint, q: &Quadrilateral) -> bool {
+pub fn IsInside(p: RXingResultPoint, q: &Quadrilateral) -> bool {
     // Test if p is on the same side (right or left) of all polygon segments
     let mut pos = 0;
     let mut neg = 0;
     for i in 0..q.0.len()
     // for (int i = 0; i < Size(q); ++i)
     {
-        if RXingResultPoint::cross(&(*p - q.0[i]), &(q.0[(i + 1) % q.0.len()] - q.0[i])) < 0.0 {
+        if RXingResultPoint::cross(p - q.0[i], q.0[(i + 1) % q.0.len()] - q.0[i]) < 0.0 {
             neg += 1;
         } else {
             pos += 1;

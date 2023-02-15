@@ -212,7 +212,7 @@ impl BitMatrix {
         ((self.bits[offset] >> (x & 0x1f)) & 1) != 0
     }
 
-    pub fn get_point(&self, point: &RXingResultPoint) -> bool {
+    pub fn get_point(&self, point: RXingResultPoint) -> bool {
         self.get(point.x as u32, point.y as u32)
         // let offset = self.get_offset(point.y as u32, point.x as u32);
         // ((self.bits[offset] >> (x & 0x1f)) & 1) != 0
@@ -700,7 +700,7 @@ impl BitMatrix {
         new_bm
     }
 
-    pub fn isIn(&self, p: &RXingResultPoint, b: i32) -> bool {
+    pub fn isIn(&self, p: RXingResultPoint, b: i32) -> bool {
         b as f32 <= p.x
             && p.x < self.getWidth() as f32 - b as f32
             && b as f32 <= p.y

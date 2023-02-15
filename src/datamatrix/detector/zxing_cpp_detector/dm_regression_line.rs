@@ -58,11 +58,11 @@ impl RegressionLine for DMRegressionLine {
         }
     }
 
-    fn signedDistance(&self, p: &RXingResultPoint) -> f32 {
-        RXingResultPoint::dot(self.normal(), *p) - self.c
+    fn signedDistance(&self, p: RXingResultPoint) -> f32 {
+        RXingResultPoint::dot(self.normal(), p) - self.c
     }
 
-    fn distance_single(&self, p: &RXingResultPoint) -> f32 {
+    fn distance_single(&self, p: RXingResultPoint) -> f32 {
         (self.signedDistance(p)).abs()
     }
 
@@ -74,13 +74,13 @@ impl RegressionLine for DMRegressionLine {
         self.c = f32::NAN;
     }
 
-    fn add(&mut self, p: &RXingResultPoint) -> Result<(), Exceptions> {
+    fn add(&mut self, p: RXingResultPoint) -> Result<(), Exceptions> {
         if self.direction_inward == RXingResultPoint::default() {
             return Err(Exceptions::IllegalStateException(None));
         }
-        self.points.push(*p);
+        self.points.push(p);
         if self.points.len() == 1 {
-            self.c = RXingResultPoint::dot(self.normal(), *p);
+            self.c = RXingResultPoint::dot(self.normal(), p);
         }
         Ok(())
     }
@@ -89,8 +89,8 @@ impl RegressionLine for DMRegressionLine {
         self.points.pop();
     }
 
-    fn setDirectionInward(&mut self, d: &RXingResultPoint) {
-        self.direction_inward = RXingResultPoint::normalized(*d);
+    fn setDirectionInward(&mut self, d: RXingResultPoint) {
+        self.direction_inward = RXingResultPoint::normalized(d);
     }
 
     fn evaluate_max_distance(
@@ -112,7 +112,7 @@ impl RegressionLine for DMRegressionLine {
                 //     return sd > maxSignedDist || sd < -2 * maxSignedDist;
                 // });
                 // points.erase(end, points.end());
-                points.retain(|p| {
+                points.retain(|&p| {
                     let sd = self.signedDistance(p) as f64;
                     !(sd > maxSignedDist || sd < -2.0 * maxSignedDist)
                 });
@@ -142,8 +142,8 @@ impl RegressionLine for DMRegressionLine {
             max.y = float_max(max.y, p.y);
         }
         let diff = max - min;
-        let len = RXingResultPoint::maxAbsComponent(&diff);
-        let steps = float_min((diff.x).abs(), (diff.y).abs());
+        let len = diff.maxAbsComponent();
+        let steps = float_min(diff.x.abs(), diff.y.abs());
         // due to aliasing we get bad extrapolations if the line is short and too close to vertical/horizontal
         steps > 2.0 || len > 50.0
     }
@@ -237,8 +237,8 @@ impl DMRegressionLine {
 
     pub fn modules(
         &mut self,
-        beg: &RXingResultPoint,
-        end: &RXingResultPoint,
+        beg: RXingResultPoint,
+        end: RXingResultPoint,
     ) -> Result<f64, Exceptions> {
         if self.points.len() <= 3 {
             return Err(Exceptions::IllegalStateException(None));
@@ -257,26 +257,27 @@ impl DMRegressionLine {
         for i in 1..self.points.len() {
             // for (size_t i = 1; i < _points.size(); ++i)
             gapSizes.push(self.distance(
-                &self.project(&self.points[i]),
-                &self.project(&self.points[i - 1]),
+                self.project(self.points[i]),
+                self.project(self.points[i - 1]),
             ) as f64);
         }
 
         // calculate the (expected average) distance of two adjacent pixels
         let unitPixelDist = RXingResultPoint::length(RXingResultPoint::bresenhamDirection(
-            &(*self
-                .points
+            self.points
                 .last()
+                .copied()
                 .ok_or(Exceptions::IndexOutOfBoundsException(None))?
-                - *self
+                - self
                     .points
                     .first()
-                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?),
+                    .copied()
+                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
         )) as f64;
 
         // calculate the width of 2 modules (first black pixel to first black pixel)
         let mut sumFront: f64 =
-            self.distance(beg, &self.project(&self.points[0])) as f64 - unitPixelDist;
+            self.distance(beg, self.project(self.points[0])) as f64 - unitPixelDist;
         let mut sumBack: f64 = 0.0; // (last black pixel to last black pixel)
         for dist in gapSizes {
             // for (auto dist : gapSizes) {
@@ -294,9 +295,10 @@ impl DMRegressionLine {
             sumFront
                 + self.distance(
                     end,
-                    &self.project(
+                    self.project(
                         self.points
                             .last()
+                            .copied()
                             .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
                     ),
                 ) as f64,

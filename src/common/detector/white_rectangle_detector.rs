@@ -280,7 +280,7 @@ impl<'a> WhiteRectangleDetector<'_> {
                 return Err(Exceptions::NotFoundException(None));
             }
 
-            Ok(self.center_edges(&y.unwrap(), &z.unwrap(), &x.unwrap(), &t.unwrap()))
+            Ok(self.center_edges(y.unwrap(), z.unwrap(), x.unwrap(), t.unwrap()))
         } else {
             Err(Exceptions::NotFoundException(None))
         }
@@ -322,10 +322,10 @@ impl<'a> WhiteRectangleDetector<'_> {
      */
     fn center_edges(
         &self,
-        y: &RXingResultPoint,
-        z: &RXingResultPoint,
-        x: &RXingResultPoint,
-        t: &RXingResultPoint,
+        y: RXingResultPoint,
+        z: RXingResultPoint,
+        x: RXingResultPoint,
+        t: RXingResultPoint,
     ) -> [RXingResultPoint; 4] {
         //
         //       t            t

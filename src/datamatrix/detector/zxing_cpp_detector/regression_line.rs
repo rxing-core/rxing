@@ -13,7 +13,7 @@ pub trait RegressionLine {
     // fn intersect<T: RegressionLine, T2: RegressionLine>(&self, l1: &T, l2: &T2)
     //     -> RXingResultPoint;
 
-    //  fn evaluate_begin_end(&self, begin:&RXingResultPoint, end:&RXingResultPoint) -> bool;// {
+    //  fn evaluate_begin_end(&self, begin: RXingResultPoint, end: RXingResultPoint) -> bool;// {
     // {
     // 	let mean = std::accumulate(begin, end, PointF()) / std::distance(begin, end);
     // 	PointF::value_t sumXX = 0, sumYY = 0, sumXY = 0;
@@ -43,8 +43,8 @@ pub trait RegressionLine {
     fn evaluate(&mut self, points: &[RXingResultPoint]) -> bool; // { return self.evaluate_begin_end(&points.front(), &points.back() + 1); }
     fn evaluateSelf(&mut self) -> bool;
 
-    fn distance(&self, a: &RXingResultPoint, b: &RXingResultPoint) -> f32 {
-        crate::result_point_utils::distance(a, b)
+    fn distance(&self, a: RXingResultPoint, b: RXingResultPoint) -> f32 {
+        crate::result_point_utils::distance(&a, &b)
     }
 
     // RegressionLine() { _points.reserve(16); } // arbitrary but plausible start size (tiny performance improvement)
@@ -63,10 +63,10 @@ pub trait RegressionLine {
     fn length(&self) -> u32; //const { return _points.size() >= 2 ? int(distance(_points.front(), _points.back())) : 0; }
     fn isValid(&self) -> bool; //const { return !std::isnan(a); }
     fn normal(&self) -> RXingResultPoint; //const { return isValid() ? PointF(a, b) : _directionInward; }
-    fn signedDistance(&self, p: &RXingResultPoint) -> f32; //const { return dot(normal(), p) - c; }
-    fn distance_single(&self, p: &RXingResultPoint) -> f32; //const { return std::abs(signedDistance(PointF(p))); }
-    fn project(&self, p: &RXingResultPoint) -> RXingResultPoint {
-        *p - self.normal() * self.signedDistance(p)
+    fn signedDistance(&self, p: RXingResultPoint) -> f32; //const { return dot(normal(), p) - c; }
+    fn distance_single(&self, p: RXingResultPoint) -> f32; //const { return std::abs(signedDistance(PointF(p))); }
+    fn project(&self, p: RXingResultPoint) -> RXingResultPoint {
+        p - self.normal() * self.signedDistance(p)
     }
 
     fn reset(&mut self);
@@ -76,16 +76,16 @@ pub trait RegressionLine {
     // 	a = b = c = NAN;
     // }
 
-    fn add(&mut self, p: &RXingResultPoint) -> Result<(), Exceptions>; //{
-                                                                       // 	assert(_directionInward != PointF());
-                                                                       // 	_points.push_back(p);
-                                                                       // 	if (_points.size() == 1)
-                                                                       // 		c = dot(normal(), p);
-                                                                       // }
+    fn add(&mut self, p: RXingResultPoint) -> Result<(), Exceptions>; //{
+                                                                      // 	assert(_directionInward != PointF());
+                                                                      // 	_points.push_back(p);
+                                                                      // 	if (_points.size() == 1)
+                                                                      // 		c = dot(normal(), p);
+                                                                      // }
 
     fn pop_back(&mut self); // { _points.pop_back(); }
 
-    fn setDirectionInward(&mut self, d: &RXingResultPoint); //{ _directionInward = normalized(d); }
+    fn setDirectionInward(&mut self, d: RXingResultPoint); //{ _directionInward = normalized(d); }
 
     // fn evaluate(&self, double maxSignedDist = -1, bool updatePoints = false) -> bool
     fn evaluate_max_distance(

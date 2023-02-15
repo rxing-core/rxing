@@ -76,7 +76,7 @@ fn Scan(
         // follow left leg upwards
         t.turnRight();
         t.state = 1;
-        CHECK!(t.traceLine(&t.right(), lineL)?);
+        CHECK!(t.traceLine(t.right(), lineL)?);
         CHECK!(t.traceCorner(&mut t.right(), &mut tl)?);
         lineL.reverse();
         let mut tlTracer = t;
@@ -84,19 +84,19 @@ fn Scan(
         // follow left leg downwards
         t = startTracer.clone();
         t.state = 1;
-        t.setDirection(&tlTracer.right());
-        CHECK!(t.traceLine(&t.left(), lineL)?);
+        t.setDirection(tlTracer.right());
+        CHECK!(t.traceLine(t.left(), lineL)?);
         if !lineL.isValid() {
-            t.updateDirectionFromOrigin(&tl);
+            t.updateDirectionFromOrigin(tl);
         }
         let up = t.back();
         CHECK!(t.traceCorner(&mut t.left(), &mut bl)?);
 
         // follow bottom leg right
         t.state = 2;
-        CHECK!(t.traceLine(&t.left(), lineB)?);
+        CHECK!(t.traceLine(t.left(), lineB)?);
         if !lineB.isValid() {
-            t.updateDirectionFromOrigin(&bl);
+            t.updateDirectionFromOrigin(bl);
         }
         let right = *t.front();
         CHECK!(t.traceCorner(&mut t.left(), &mut br)?);
@@ -109,9 +109,9 @@ fn Scan(
 
         // at this point we found a plausible L-shape and are now looking for the b/w pattern at the top and right:
         // follow top row right 'half way' (4 gaps), see traceGaps break condition with 'invalid' line
-        tlTracer.setDirection(&right);
+        tlTracer.setDirection(right);
         CHECK!(tlTracer.traceGaps(
-            &tlTracer.right(),
+            tlTracer.right(),
             lineT,
             maxStepSize,
             &mut DMRegressionLine::default()
@@ -124,9 +124,9 @@ fn Scan(
         maxStepSize = std::cmp::min(lineT.length() as i32 / 3, (lenL / 5.0) as i32) * 2;
 
         // follow up until we reach the top line
-        t.setDirection(&up);
+        t.setDirection(up);
         t.state = 3;
-        CHECK!(t.traceGaps(&t.left(), lineR, maxStepSize, lineT)?);
+        CHECK!(t.traceGaps(t.left(), lineR, maxStepSize, lineT)?);
         CHECK!(t.traceCorner(&mut t.left(), &mut tr)?);
 
         let lenT = distance(&tl, &tr) - 1.0;
@@ -140,7 +140,7 @@ fn Scan(
         );
 
         // continue top row right until we cross the right line
-        CHECK!(tlTracer.traceGaps(&tlTracer.right(), lineT, maxStepSize, lineR)?);
+        CHECK!(tlTracer.traceGaps(tlTracer.right(), lineT, maxStepSize, lineR)?);
 
         // #ifdef PRINT_DEBUG
         // 		printf("L: %.1f, %.1f ^ %.1f, %.1f > %.1f, %.1f (%d : %d : %d : %d)\n", bl.x, bl.y,
@@ -173,8 +173,8 @@ fn Scan(
                 f64::INFINITY
             };
         };
-        splitDouble(lineT.modules(&tl, &tr)?, &mut dimT, &mut fracT);
-        splitDouble(lineR.modules(&br, &tr)?, &mut dimR, &mut fracR);
+        splitDouble(lineT.modules(tl, tr)?, &mut dimT, &mut fracT);
+        splitDouble(lineR.modules(br, tr)?, &mut dimR, &mut fracR);
 
         // #ifdef PRINT_DEBUG
         // 		printf("L: %.1f, %.1f ^ %.1f, %.1f > %.1f, %.1f ^> %.1f, %.1f\n", bl.x, bl.y,
@@ -197,24 +197,24 @@ fn Scan(
 
         CHECK!((10..=144).contains(&dimT) && (8..=144).contains(&dimR));
 
-        let movedTowardsBy = |a: &RXingResultPoint,
-                              b1: &RXingResultPoint,
-                              b2: &RXingResultPoint,
+        let movedTowardsBy = |a: RXingResultPoint,
+                              b1: RXingResultPoint,
+                              b2: RXingResultPoint,
                               d: f32|
          -> RXingResultPoint {
-            *a + d * RXingResultPoint::normalized(
-                RXingResultPoint::normalized(*b1 - *a) + RXingResultPoint::normalized(*b2 - *a),
+            a + d * RXingResultPoint::normalized(
+                RXingResultPoint::normalized(b1 - a) + RXingResultPoint::normalized(b2 - a),
             )
         };
 
         // shrink shape by half a pixel to go from center of white pixel outside of code to the edge between white and black
         let sourcePoints = Quadrilateral::with_points(
-            movedTowardsBy(&tl, &tr, &bl, 0.5),
+            movedTowardsBy(tl, tr, bl, 0.5),
             // move the tr point a little less because the jagged top and right line tend to be statistically slightly
             // inclined toward the center anyway.
-            movedTowardsBy(&tr, &br, &tl, 0.3),
-            movedTowardsBy(&br, &bl, &tr, 0.5),
-            movedTowardsBy(&bl, &tl, &br, 0.5),
+            movedTowardsBy(tr, br, tl, 0.3),
+            movedTowardsBy(br, bl, tr, 0.5),
+            movedTowardsBy(bl, tl, br, 0.5),
         );
 
         let grid_sampler = DefaultGridSampler::default();
@@ -303,7 +303,7 @@ pub fn detect(
             y: (image.getHeight() / 2) as f32,
         }; //PointF(image.width() / 2, image.height() / 2);
         let startPos =
-            RXingResultPoint::centered(&(center - center * dir + MIN_SYMBOL_SIZE as i32 / 2 * dir));
+            RXingResultPoint::centered(center - center * dir + MIN_SYMBOL_SIZE as i32 / 2 * dir);
 
         if let Some(history) = &mut history {
             history.borrow_mut().clear(0);

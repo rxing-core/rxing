@@ -31,7 +31,7 @@ pub struct EdgeTracer<'a> {
 // }
 
 impl BitMatrixCursor for EdgeTracer<'_> {
-    fn testAt(&self, p: &RXingResultPoint) -> Value {
+    fn testAt(&self, p: RXingResultPoint) -> Value {
         if self.img.isIn(p, 0) {
             Value::from(self.img.get_point(p))
         } else {
@@ -39,20 +39,20 @@ impl BitMatrixCursor for EdgeTracer<'_> {
         }
     }
 
-    fn isIn(&self, p: &RXingResultPoint) -> bool {
+    fn isIn(&self, p: RXingResultPoint) -> bool {
         self.img.isIn(p, 0)
     }
 
     fn isInSelf(&self) -> bool {
-        self.isIn(&self.p)
+        self.isIn(self.p)
     }
 
     fn isBlack(&self) -> bool {
-        self.blackAt(&self.p)
+        self.blackAt(self.p)
     }
 
     fn isWhite(&self) -> bool {
-        self.whiteAt(&self.p)
+        self.whiteAt(self.p)
     }
 
     fn front(&self) -> &RXingResultPoint {
@@ -96,28 +96,28 @@ impl BitMatrixCursor for EdgeTracer<'_> {
         self.d = self.direction(dir)
     }
 
-    fn edgeAt_point(&self, d: &RXingResultPoint) -> Value {
-        let v = self.testAt(&self.p);
-        if self.testAt(&(self.p + *d)) != v {
+    fn edgeAt_point(&self, d: RXingResultPoint) -> Value {
+        let v = self.testAt(self.p);
+        if self.testAt(self.p + d) != v {
             v
         } else {
             Value::Invalid
         }
     }
 
-    fn setDirection(&mut self, dir: &RXingResultPoint) {
-        self.d = RXingResultPoint::bresenhamDirection(dir)
+    fn setDirection(&mut self, dir: RXingResultPoint) {
+        self.d = dir.bresenhamDirection();
     }
 
     fn step(&mut self, s: Option<f32>) -> bool {
         let s = if let Some(s) = s { s } else { 1.0 };
         self.p += self.d * s;
-        self.isIn(&self.p)
+        self.isIn(self.p)
     }
 
-    fn movedBy<T: BitMatrixCursor>(self, d: &RXingResultPoint) -> Self {
+    fn movedBy<T: BitMatrixCursor>(self, d: RXingResultPoint) -> Self {
         let mut res = self;
-        res.p += *d;
+        res.p += d;
 
         res
     }
@@ -135,11 +135,11 @@ impl BitMatrixCursor for EdgeTracer<'_> {
         let backup = if let Some(b) = backup { b } else { false };
         // TODO: provide an alternative and faster out-of-bounds check than isIn() inside testAt()
         let mut steps = 0;
-        let mut lv = self.testAt(&self.p);
+        let mut lv = self.testAt(self.p);
 
         while nth > 0 && (range <= 0 || steps < range) && lv.isValid() {
             steps += 1;
-            let v = self.testAt(&(self.p + steps * self.d));
+            let v = self.testAt(self.p + steps * self.d);
             if lv != v {
                 lv = v;
                 nth -= 1;
@@ -167,11 +167,11 @@ impl<'a> EdgeTracer<'_> {
 
     fn traceStep(
         &mut self,
-        dEdge: &RXingResultPoint,
+        dEdge: RXingResultPoint,
         maxStepSize: i32,
         goodDirection: bool,
     ) -> Result<StepResult, Exceptions> {
-        let dEdge = RXingResultPoint::mainDirection(*dEdge);
+        let dEdge = RXingResultPoint::mainDirection(dEdge);
         for breadth in 1..=(if maxStepSize == 1 {
             2
         } else if goodDirection {
@@ -189,19 +189,19 @@ impl<'a> EdgeTracer<'_> {
                         + (if i & 1 > 0 { (i + 1) / 2 } else { -i / 2 }) * dEdge;
                     // dbg!(pEdge);
 
-                    if !self.blackAt(&(pEdge + dEdge)) {
+                    if !self.blackAt(pEdge + dEdge) {
                         continue;
                     }
 
                     // found black pixel -> go 'outward' until we hit the b/w border
                     for _j in 0..(std::cmp::max(maxStepSize, 3)) {
                         // for (int j = 0; j < std::max(maxStepSize, 3) && isIn(pEdge); ++j) {
-                        if self.whiteAt(&pEdge) {
+                        if self.whiteAt(pEdge) {
                             // if we are not making any progress, we still have another endless loop bug
-                            if self.p == RXingResultPoint::centered(&pEdge) {
+                            if self.p == pEdge.centered() {
                                 return Err(Exceptions::IllegalStateException(None));
                             }
-                            self.p = RXingResultPoint::centered(&pEdge);
+                            self.p = pEdge.centered();
 
                             // if (self.history && maxStepSize == 1) {
                             if let Some(history) = &self.history {
@@ -222,12 +222,12 @@ impl<'a> EdgeTracer<'_> {
                             return Ok(StepResult::Found);
                         }
                         pEdge = pEdge - dEdge;
-                        if self.blackAt(&(pEdge - self.d)) {
+                        if self.blackAt(pEdge - self.d) {
                             pEdge = pEdge - self.d;
                         }
                         // dbg!(pEdge);
 
-                        if !self.isIn(&pEdge) {
+                        if !self.isIn(pEdge) {
                             break;
                         }
                     }
@@ -239,9 +239,9 @@ impl<'a> EdgeTracer<'_> {
         Ok(StepResult::OpenEnd)
     }
 
-    pub fn updateDirectionFromOrigin(&mut self, origin: &RXingResultPoint) -> bool {
+    pub fn updateDirectionFromOrigin(&mut self, origin: RXingResultPoint) -> bool {
         let old_d = self.d;
-        self.setDirection(&(self.p - origin));
+        self.setDirection(self.p - origin);
         // if the new direction is pointing "backward", i.e. angle(new, old) > 90 deg -> break
         if RXingResultPoint::dot(self.d, old_d) < 0.0 {
             return false;
@@ -260,24 +260,24 @@ impl<'a> EdgeTracer<'_> {
 
     pub fn traceLine<T: RegressionLine>(
         &mut self,
-        dEdge: &RXingResultPoint,
+        dEdge: RXingResultPoint,
         line: &mut T,
     ) -> Result<bool, Exceptions> {
         line.setDirectionInward(dEdge);
         loop {
             // log(self.p);
-            line.add(&self.p)?;
+            line.add(self.p)?;
             if line.points().len() % 50 == 10 {
                 if !line.evaluate_max_distance(None, None) {
                     return Ok(false);
                 }
                 if !self.updateDirectionFromOrigin(
-                    &(self.p - line.project(&self.p)
+                    self.p - line.project(self.p)
                         + **line
                             .points()
                             .first()
                             .as_ref()
-                            .ok_or(Exceptions::IndexOutOfBoundsException(None))?),
+                            .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
                 ) {
                     return Ok(false);
                 }
@@ -291,7 +291,7 @@ impl<'a> EdgeTracer<'_> {
 
     pub fn traceGaps<T: RegressionLine>(
         &mut self,
-        dEdge: &RXingResultPoint,
+        dEdge: RXingResultPoint,
         line: &mut T,
         maxStepSize: i32,
         finishLine: &mut T,
@@ -325,14 +325,14 @@ impl<'a> EdgeTracer<'_> {
 
             // if we drifted too far outside of the code, break
             if line.isValid()
-                && line.signedDistance(&self.p) < -5.0
-                && (!line.evaluate_max_distance(None, None) || line.signedDistance(&self.p) < -5.0)
+                && line.signedDistance(self.p) < -5.0
+                && (!line.evaluate_max_distance(None, None) || line.signedDistance(self.p) < -5.0)
             {
                 return Ok(false);
             }
 
             // if we are drifting towards the inside of the code, pull the current position back out onto the line
-            if line.isValid() && line.signedDistance(&self.p) > 3.0 {
+            if line.isValid() && line.signedDistance(self.p) > 3.0 {
                 // The current direction d and the line we are tracing are supposed to be roughly parallel.
                 // In case the 'go outward' step in traceStep lead us astray, we might end up with a line
                 // that is almost perpendicular to d. Then the back-projection below can result in an
@@ -350,7 +350,7 @@ impl<'a> EdgeTracer<'_> {
                     return Ok(false);
                 }
 
-                let mut np = line.project(&self.p);
+                let mut np = line.project(self.p);
                 // make sure we are making progress even when back-projecting:
                 // consider a 90deg corner, rotated 45deg. we step away perpendicular from the line and get
                 // back projected where we left off the line.
@@ -362,14 +362,14 @@ impl<'a> EdgeTracer<'_> {
                     line.project(
                         line.points()
                             .last()
-                            .as_ref()
+                            .copied()
                             .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
                     ),
                 ) < 1.0
                 {
                     np += self.d;
                 }
-                self.p = RXingResultPoint::centered(&np);
+                self.p = RXingResultPoint::centered(np);
             } else {
                 let stepLengthInMainDir = if line.points().is_empty() {
                     0.0
@@ -380,10 +380,11 @@ impl<'a> EdgeTracer<'_> {
                             - line
                                 .points()
                                 .last()
+                                .copied()
                                 .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
                     )
                 };
-                line.add(&self.p)?;
+                line.add(self.p)?;
 
                 if stepLengthInMainDir > 1.0 {
                     gaps += 1;
@@ -392,11 +393,12 @@ impl<'a> EdgeTracer<'_> {
                             return Ok(false);
                         }
                         if !self.updateDirectionFromOrigin(
-                            &(self.p - line.project(&self.p)
-                                + *line
+                            self.p - line.project(self.p)
+                                + line
                                     .points()
                                     .first()
-                                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?),
+                                    .copied()
+                                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
                         ) {
                             return Ok(false);
                         }
@@ -418,7 +420,7 @@ impl<'a> EdgeTracer<'_> {
 
             if finishLine.isValid() {
                 maxStepSize =
-                    std::cmp::min(maxStepSize, (finishLine.signedDistance(&self.p)) as i32);
+                    std::cmp::min(maxStepSize, (finishLine.signedDistance(self.p)) as i32);
             }
 
             let stepResult = self.traceStep(dEdge, maxStepSize, line.isValid())?;
@@ -428,7 +430,7 @@ impl<'a> EdgeTracer<'_> {
             {
                 return Ok(stepResult == StepResult::OpenEnd
                     && finishLine.isValid()
-                    && (finishLine.signedDistance(&self.p)) as i32 <= maxStepSize + 1);
+                    && (finishLine.signedDistance(self.p)) as i32 <= maxStepSize + 1);
             }
         } //while (true);
     }
@@ -442,10 +444,10 @@ impl<'a> EdgeTracer<'_> {
         // log(p);
         *corner = self.p;
         std::mem::swap(&mut self.d, dir);
-        self.traceStep(&(-1.0 * dir), 2, false)?;
+        self.traceStep(-1.0 * (*dir), 2, false)?;
         // #ifdef PRINT_DEBUG
         // 		printf("turn: %.0f x %.0f -> %.2f, %.2f\n", p.x, p.y, d.x, d.y);
         // #endif
-        Ok(self.isIn(corner) && self.isIn(&self.p))
+        Ok(self.isIn(*corner) && self.isIn(self.p))
     }
 }

@@ -68,7 +68,7 @@ pub fn decode(
             leftRowIndicatorColumn = Some(getRowIndicatorColumn(
                 image,
                 boundingBox.clone(),
-                imageTopLeft.as_ref().unwrap(),
+                imageTopLeft.unwrap(),
                 true,
                 minCodewordWidth,
                 maxCodewordWidth,
@@ -78,7 +78,7 @@ pub fn decode(
             rightRowIndicatorColumn = Some(getRowIndicatorColumn(
                 image,
                 boundingBox.clone(),
-                imageTopRight.as_ref().unwrap(),
+                imageTopRight.unwrap(),
                 false,
                 minCodewordWidth,
                 maxCodewordWidth,
@@ -358,7 +358,7 @@ fn getBarcodeMetadata<T: DetectionRXingResultRowIndicatorColumn>(
 fn getRowIndicatorColumn<'a>(
     image: &BitMatrix,
     boundingBox: Rc<BoundingBox>,
-    startPoint: &RXingResultPoint,
+    startPoint: RXingResultPoint,
     leftToRight: bool,
     minCodewordWidth: u32,
     maxCodewordWidth: u32,
