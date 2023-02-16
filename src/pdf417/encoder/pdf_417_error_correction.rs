@@ -120,9 +120,9 @@ static EC_COEFFICIENTS: Lazy<[Vec<u32>; 9]> = Lazy::new(|| {
  */
 pub fn getErrorCorrectionCodewordCount(errorCorrectionLevel: u32) -> Result<u32> {
     if errorCorrectionLevel > 8 {
-        return Err(Exceptions::IllegalArgumentException(Some(
-            "Error correction level must be between 0 and 8!".to_owned(),
-        )));
+        return Err(Exceptions::illegalArgumentWith(
+            "Error correction level must be between 0 and 8!",
+        ));
     }
     Ok(1 << (errorCorrectionLevel + 1))
 }
@@ -136,9 +136,7 @@ pub fn getErrorCorrectionCodewordCount(errorCorrectionLevel: u32) -> Result<u32>
  */
 pub fn getRecommendedMinimumErrorCorrectionLevel(n: u32) -> Result<u32> {
     if n == 0 {
-        Err(Exceptions::IllegalArgumentException(Some(
-            "n must be > 0".to_owned(),
-        )))
+        Err(Exceptions::illegalArgumentWith("n must be > 0"))
     } else if n <= 40 {
         Ok(2)
     } else if n <= 160 {
@@ -148,9 +146,7 @@ pub fn getRecommendedMinimumErrorCorrectionLevel(n: u32) -> Result<u32> {
     } else if n <= 863 {
         Ok(5)
     } else {
-        Err(Exceptions::WriterException(Some(
-            "No recommendation possible".to_owned(),
-        )))
+        Err(Exceptions::writerWith("No recommendation possible"))
     }
 }
 
@@ -169,7 +165,7 @@ pub fn generateErrorCorrection(dataCodewords: &str, errorCorrectionLevel: u32) -
         let t1 = (dataCodewords
             .chars()
             .nth(i)
-            .ok_or(Exceptions::IndexOutOfBoundsException(None))? as u32
+            .ok_or(Exceptions::indexOutOfBounds)? as u32
             + e[e.len() - 1] as u32)
             % 929;
         let mut t2;
@@ -178,20 +174,18 @@ pub fn generateErrorCorrection(dataCodewords: &str, errorCorrectionLevel: u32) -
         while j >= 1 {
             t2 = (t1 * EC_COEFFICIENTS[errorCorrectionLevel as usize][j]) % 929;
             t3 = 929 - t2;
-            e[j] = char::from_u32((e[j - 1] as u32 + t3) % 929)
-                .ok_or(Exceptions::ParseException(None))?;
+            e[j] = char::from_u32((e[j - 1] as u32 + t3) % 929).ok_or(Exceptions::parse)?;
             j -= 1;
         }
         t2 = (t1 * EC_COEFFICIENTS[errorCorrectionLevel as usize][0]) % 929;
         t3 = 929 - t2;
-        e[0] = char::from_u32(t3 % 929).ok_or(Exceptions::ParseException(None))?;
+        e[0] = char::from_u32(t3 % 929).ok_or(Exceptions::parse)?;
     }
     let mut sb = String::with_capacity(k as usize);
     let mut j = k as isize - 1;
     while j >= 0 {
         if e[j as usize] as u32 != 0 {
-            e[j as usize] = char::from_u32(929 - e[j as usize] as u32)
-                .ok_or(Exceptions::ParseException(None))?;
+            e[j as usize] = char::from_u32(929 - e[j as usize] as u32).ok_or(Exceptions::parse)?;
         }
         sb.push(e[j as usize]);
 

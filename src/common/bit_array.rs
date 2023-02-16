@@ -169,7 +169,7 @@ impl BitArray {
     pub fn setRange(&mut self, start: usize, end: usize) -> Result<()> {
         let mut end = end;
         if end < start || end > self.size {
-            return Err(Exceptions::IllegalArgumentException(None));
+            return Err(Exceptions::illegalArgument);
         }
         if end == start {
             return Ok(());
@@ -212,7 +212,7 @@ impl BitArray {
     pub fn isRange(&self, start: usize, end: usize, value: bool) -> Result<bool> {
         let mut end = end;
         if end < start || end > self.size {
-            return Err(Exceptions::IllegalArgumentException(None));
+            return Err(Exceptions::illegalArgument);
         }
         if end == start {
             return Ok(true); // empty range matches
@@ -254,9 +254,9 @@ impl BitArray {
      */
     pub fn appendBits(&mut self, value: u32, num_bits: usize) -> Result<()> {
         if num_bits > 32 {
-            return Err(Exceptions::IllegalArgumentException(Some(
-                "num bits must be between 0 and 32".to_owned(),
-            )));
+            return Err(Exceptions::illegalArgumentWith(
+                "num bits must be between 0 and 32",
+            ));
         }
 
         if num_bits == 0 {
@@ -287,9 +287,7 @@ impl BitArray {
 
     pub fn xor(&mut self, other: &BitArray) -> Result<()> {
         if self.size != other.size {
-            return Err(Exceptions::IllegalArgumentException(Some(
-                "Sizes don't match".to_owned(),
-            )));
+            return Err(Exceptions::illegalArgumentWith("Sizes don't match"));
         }
         for i in 0..self.bits.len() {
             //for (int i = 0; i < bits.length; i++) {

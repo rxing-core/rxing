@@ -59,22 +59,20 @@ impl Writer for QRCodeWriter {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix> {
         if contents.is_empty() {
-            return Err(Exceptions::IllegalArgumentException(Some(
-                "found empty contents".to_owned(),
-            )));
+            return Err(Exceptions::illegalArgumentWith("found empty contents"));
         }
 
         if format != &BarcodeFormat::QR_CODE {
-            return Err(Exceptions::IllegalArgumentException(Some(format!(
+            return Err(Exceptions::illegalArgumentWith(format!(
                 "can only encode QR_CODE, but got {format:?}"
-            ))));
+            )));
             // throw new IllegalArgumentException("Can only encode QR_CODE, but got " + format);
         }
 
         if width < 0 || height < 0 {
-            return Err(Exceptions::IllegalArgumentException(Some(format!(
+            return Err(Exceptions::illegalArgumentWith(format!(
                 "requested dimensions are too small: {width}x{height}"
-            ))));
+            )));
         }
 
         let errorCorrectionLevel = if let Some(EncodeHintValue::ErrorCorrection(ec_level)) =
@@ -87,9 +85,9 @@ impl Writer for QRCodeWriter {
 
         let quietZone =
             if let Some(EncodeHintValue::Margin(margin)) = hints.get(&EncodeHintType::MARGIN) {
-                margin.parse::<i32>().map_err(|e| {
-                    Exceptions::ParseException(Some(format!("could not parse {margin}: {e}")))
-                })?
+                margin
+                    .parse::<i32>()
+                    .map_err(|e| Exceptions::parseWith(format!("could not parse {margin}: {e}")))?
             } else {
                 QUIET_ZONE_SIZE
             };
@@ -111,14 +109,10 @@ impl QRCodeWriter {
     ) -> Result<BitMatrix> {
         let input = code.getMatrix();
         if input.is_none() {
-            return Err(Exceptions::IllegalStateException(Some(
-                "matrix is empty".to_owned(),
-            )));
+            return Err(Exceptions::illegalStateWith("matrix is empty"));
         }
 
-        let input = input
-            .as_ref()
-            .ok_or(Exceptions::IllegalStateException(None))?;
+        let input = input.as_ref().ok_or(Exceptions::illegalState)?;
 
         let inputWidth = input.getWidth() as i32;
         let inputHeight = input.getHeight() as i32;

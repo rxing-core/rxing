@@ -22,6 +22,74 @@ pub enum Exceptions {
     ReaderDecodeException(),
 }
 
+#[allow(non_upper_case_globals)]
+impl Exceptions {
+    pub const illegalArgument: Self = Self::IllegalArgumentException(None);
+    pub fn illegalArgumentWith<I: Into<String>>(x: I) -> Self {
+        Self::IllegalArgumentException(Some(x.into()))
+    }
+
+    pub const unsupportedOperation: Self = Self::UnsupportedOperationException(None);
+    pub fn unsupportedOperationWith<I: Into<String>>(x: I) -> Self {
+        Self::UnsupportedOperationException(Some(x.into()))
+    }
+
+    pub const illegalState: Self = Self::IllegalStateException(None);
+    pub fn illegalStateWith<I: Into<String>>(x: I) -> Self {
+        Self::IllegalStateException(Some(x.into()))
+    }
+
+    pub const arithmetic: Self = Self::ArithmeticException(None);
+    pub fn arithmeticWith<I: Into<String>>(x: I) -> Self {
+        Self::ArithmeticException(Some(x.into()))
+    }
+
+    pub const notFound: Self = Self::NotFoundException(None);
+    pub fn notFoundWith<I: Into<String>>(x: I) -> Self {
+        Self::NotFoundException(Some(x.into()))
+    }
+
+    pub const format: Self = Self::FormatException(None);
+    pub fn formatWith<I: Into<String>>(x: I) -> Self {
+        Self::FormatException(Some(x.into()))
+    }
+
+    pub const checksum: Self = Self::ChecksumException(None);
+    pub fn checksumWith<I: Into<String>>(x: I) -> Self {
+        Self::ChecksumException(Some(x.into()))
+    }
+
+    pub const reader: Self = Self::ReaderException(None);
+    pub fn readerWith<I: Into<String>>(x: I) -> Self {
+        Self::ReaderException(Some(x.into()))
+    }
+
+    pub const writer: Self = Self::WriterException(None);
+    pub fn writerWith<I: Into<String>>(x: I) -> Self {
+        Self::WriterException(Some(x.into()))
+    }
+
+    pub const reedSolomon: Self = Self::ReedSolomonException(None);
+    pub fn reedSolomonWith<I: Into<String>>(x: I) -> Self {
+        Self::ReedSolomonException(Some(x.into()))
+    }
+
+    pub const indexOutOfBounds: Self = Self::IndexOutOfBoundsException(None);
+    pub fn indexOutOfBoundsWith<I: Into<String>>(x: I) -> Self {
+        Self::IndexOutOfBoundsException(Some(x.into()))
+    }
+
+    pub const runtime: Self = Self::RuntimeException(None);
+    pub fn runtimeWith<I: Into<String>>(x: I) -> Self {
+        Self::RuntimeException(Some(x.into()))
+    }
+
+    pub const parse: Self = Self::ParseException(None);
+    pub fn parseWith<I: Into<String>>(x: I) -> Self {
+        Self::ParseException(Some(x.into()))
+    }
+}
+
 impl fmt::Display for Exceptions {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

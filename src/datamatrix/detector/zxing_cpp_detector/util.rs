@@ -24,7 +24,7 @@ pub fn float_max<T: PartialOrd>(a: T, b: T) -> T {
 #[inline(always)]
 pub fn intersect(l1: &DMRegressionLine, l2: &DMRegressionLine) -> Result<Point> {
     if !(l1.isValid() && l2.isValid()) {
-        return Err(Exceptions::IllegalStateException(None));
+        return Err(Exceptions::illegalState);
     }
     let d = l1.a * l2.b - l1.b * l2.a;
     let x = (l1.c * l2.b - l1.b * l2.c) / d;

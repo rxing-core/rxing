@@ -47,7 +47,7 @@ impl BoundingBox {
         let leftUnspecified = topLeft.is_none() || bottomLeft.is_none();
         let rightUnspecified = topRight.is_none() || bottomRight.is_none();
         if leftUnspecified && rightUnspecified {
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFound);
         }
 
         let newTopLeft;
@@ -56,20 +56,20 @@ impl BoundingBox {
         let newBottomRight;
 
         if leftUnspecified {
-            newTopRight = topRight.ok_or(Exceptions::IllegalStateException(None))?;
-            newBottomRight = bottomRight.ok_or(Exceptions::IllegalStateException(None))?;
+            newTopRight = topRight.ok_or(Exceptions::illegalState)?;
+            newBottomRight = bottomRight.ok_or(Exceptions::illegalState)?;
             newTopLeft = point(0.0, newTopRight.y);
             newBottomLeft = point(0.0, newBottomRight.y);
         } else if rightUnspecified {
-            newTopLeft = topLeft.ok_or(Exceptions::IllegalStateException(None))?;
-            newBottomLeft = bottomLeft.ok_or(Exceptions::IllegalStateException(None))?;
+            newTopLeft = topLeft.ok_or(Exceptions::illegalState)?;
+            newBottomLeft = bottomLeft.ok_or(Exceptions::illegalState)?;
             newTopRight = point(image.getWidth() as f32 - 1.0, newTopLeft.y);
             newBottomRight = point(image.getWidth() as f32 - 1.0, newBottomLeft.y);
         } else {
-            newTopLeft = topLeft.ok_or(Exceptions::IllegalStateException(None))?;
-            newTopRight = topRight.ok_or(Exceptions::IllegalStateException(None))?;
-            newBottomLeft = bottomLeft.ok_or(Exceptions::IllegalStateException(None))?;
-            newBottomRight = bottomRight.ok_or(Exceptions::IllegalStateException(None))?;
+            newTopLeft = topLeft.ok_or(Exceptions::illegalState)?;
+            newTopRight = topRight.ok_or(Exceptions::illegalState)?;
+            newBottomLeft = bottomLeft.ok_or(Exceptions::illegalState)?;
+            newBottomRight = bottomRight.ok_or(Exceptions::illegalState)?;
         }
 
         Ok(BoundingBox {
@@ -104,19 +104,13 @@ impl BoundingBox {
         rightBox: Option<BoundingBox>,
     ) -> Result<BoundingBox> {
         if leftBox.is_none() {
-            return Ok(rightBox
-                .as_ref()
-                .ok_or(Exceptions::IllegalStateException(None))?
-                .clone());
+            return Ok(rightBox.as_ref().ok_or(Exceptions::illegalState)?.clone());
         }
         if rightBox.is_none() {
-            return Ok(leftBox
-                .as_ref()
-                .ok_or(Exceptions::IllegalStateException(None))?
-                .clone());
+            return Ok(leftBox.as_ref().ok_or(Exceptions::illegalState)?.clone());
         }
-        let leftBox = leftBox.ok_or(Exceptions::IllegalStateException(None))?;
-        let rightBox = rightBox.ok_or(Exceptions::IllegalStateException(None))?;
+        let leftBox = leftBox.ok_or(Exceptions::illegalState)?;
+        let rightBox = rightBox.ok_or(Exceptions::illegalState)?;
 
         BoundingBox::new(
             leftBox.image,

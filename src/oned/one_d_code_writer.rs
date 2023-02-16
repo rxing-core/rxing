@@ -101,9 +101,9 @@ pub trait OneDimensionalCodeWriter: Writer {
      */
     fn checkNumeric(contents: &str) -> Result<()> {
         if !NUMERIC.is_match(contents) {
-            Err(Exceptions::IllegalArgumentException(Some(
-                "Input should only contain digits 0-9".to_owned(),
-            )))
+            Err(Exceptions::illegalArgumentWith(
+                "Input should only contain digits 0-9",
+            ))
         } else {
             Ok(())
         }
@@ -164,28 +164,26 @@ impl Writer for L {
         hints: &crate::EncodingHintDictionary,
     ) -> Result<crate::common::BitMatrix> {
         if contents.is_empty() {
-            return Err(Exceptions::IllegalArgumentException(Some(
-                "Found empty contents".to_owned(),
-            )));
+            return Err(Exceptions::illegalArgumentWith("Found empty contents"));
         }
 
         if width < 0 || height < 0 {
-            return Err(Exceptions::IllegalArgumentException(Some(format!(
+            return Err(Exceptions::illegalArgumentWith(format!(
                 "Negative size is not allowed. Input: {width}x{height}"
-            ))));
+            )));
         }
         if let Some(supportedFormats) = self.getSupportedWriteFormats() {
             if !supportedFormats.contains(format) {
-                return Err(Exceptions::IllegalArgumentException(Some(format!(
+                return Err(Exceptions::illegalArgumentWith(format!(
                     "Can only encode {supportedFormats:?}, but got {format:?}"
-                ))));
+                )));
             }
         }
 
         let mut sidesMargin = self.getDefaultMargin();
         if let Some(EncodeHintValue::Margin(margin)) = hints.get(&EncodeHintType::MARGIN) {
             sidesMargin = margin.parse::<u32>().map_err(|e| {
-                Exceptions::IllegalArgumentException(Some(format!("couldnt parse {margin}: {e}")))
+                Exceptions::illegalArgumentWith(format!("couldnt parse {margin}: {e}"))
             })?;
         }
 

@@ -78,10 +78,10 @@ pub fn decode(
             }
             Mode::STRUCTURED_APPEND => {
                 if bits.available() < 16 {
-                    return Err(Exceptions::FormatException(Some(format!(
+                    return Err(Exceptions::formatWith(format!(
                         "Mode::Structured append expected bits.available() < 16, found bits of {}",
                         bits.available()
-                    ))));
+                    )));
                 }
                 // sequence number and parity is added later to the result metadata
                 // Read next 8 bits (symbol sequence #) and 8 bits (parity data), then continue
@@ -93,9 +93,9 @@ pub fn decode(
                 let value = parseECIValue(&mut bits)?;
                 currentCharacterSetECI = CharacterSetECI::getCharacterSetECIByValue(value).ok();
                 if currentCharacterSetECI.is_none() {
-                    return Err(Exceptions::FormatException(Some(format!(
+                    return Err(Exceptions::formatWith(format!(
                         "Value of {value} not valid"
-                    ))));
+                    )));
                 }
             }
             Mode::HANZI => {
@@ -132,7 +132,7 @@ pub fn decode(
                         currentCharacterSetECI,
                         hints,
                     )?,
-                    _ => return Err(Exceptions::FormatException(None)),
+                    _ => return Err(Exceptions::format),
                 }
             }
         }
@@ -177,7 +177,7 @@ pub fn decode(
 fn decodeHanziSegment(bits: &mut BitSource, result: &mut String, count: usize) -> Result<()> {
     // Don't crash trying to read more bits than we have available.
     if count * 13 > bits.available() {
-        return Err(Exceptions::FormatException(None));
+        return Err(Exceptions::format);
     }
 
     // Each character will require 2 bytes. Read the characters as 2-byte pairs
@@ -203,13 +203,11 @@ fn decodeHanziSegment(bits: &mut BitSource, result: &mut String, count: usize) -
         count -= 1;
     }
 
-    let gb_encoder = encoding::label::encoding_from_whatwg_label("GBK")
-        .ok_or(Exceptions::IllegalStateException(None))?;
+    let gb_encoder =
+        encoding::label::encoding_from_whatwg_label("GBK").ok_or(Exceptions::illegalState)?;
     let encode_string = gb_encoder
         .decode(&buffer, encoding::DecoderTrap::Strict)
-        .map_err(|e| {
-            Exceptions::ParseException(Some(format!("unable to decode buffer {buffer:?}: {e}")))
-        })?;
+        .map_err(|e| Exceptions::parseWith(format!("unable to decode buffer {buffer:?}: {e}")))?;
     result.push_str(&encode_string);
     Ok(())
 }
@@ -223,7 +221,7 @@ fn decodeKanjiSegment(
 ) -> Result<()> {
     // Don't crash trying to read more bits than we have available.
     if count * 13 > bits.available() {
-        return Err(Exceptions::FormatException(None));
+        return Err(Exceptions::format);
     }
 
     // Each character will require 2 bytes. Read the characters as 2-byte pairs
@@ -252,8 +250,7 @@ fn decodeKanjiSegment(
     let encoder = {
         let _ = currentCharacterSetECI;
         let _ = hints;
-        encoding::label::encoding_from_whatwg_label("SJIS")
-            .ok_or(Exceptions::FormatException(None))?
+        encoding::label::encoding_from_whatwg_label("SJIS").ok_or(Exceptions::format)?
     };
 
     #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
@@ -266,15 +263,12 @@ fn decodeKanjiSegment(
             encoding::all::ISO_8859_1
         }
     } else {
-        encoding::label::encoding_from_whatwg_label("SJIS")
-            .ok_or(Exceptions::FormatException(None))?
+        encoding::label::encoding_from_whatwg_label("SJIS").ok_or(Exceptions::format)?
     };
 
     let encode_string = encoder
         .decode(&buffer, encoding::DecoderTrap::Strict)
-        .map_err(|e| {
-            Exceptions::ParseException(Some(format!("unable to decode buffer {buffer:?}: {e}")))
-        })?;
+        .map_err(|e| Exceptions::parseWith(format!("unable to decode buffer {buffer:?}: {e}")))?;
 
     result.push_str(&encode_string);
 
@@ -291,7 +285,7 @@ fn decodeByteSegment(
 ) -> Result<()> {
     // Don't crash trying to read more bits than we have available.
     if 8 * count > bits.available() {
-        return Err(Exceptions::FormatException(None));
+        return Err(Exceptions::format);
     }
 
     let mut readBytes = vec![0u8; count];
@@ -307,8 +301,7 @@ fn decodeByteSegment(
         // give a hint.
         {
             #[cfg(not(feature = "allow_forced_iso_ied_18004_compliance"))]
-            StringUtils::guessCharset(&readBytes, hints)
-                .ok_or(Exceptions::IllegalStateException(None))?
+            StringUtils::guessCharset(&readBytes, hints).ok_or(Exceptions::illegalState)?
         }
 
         #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
@@ -323,14 +316,14 @@ fn decodeByteSegment(
         CharacterSetECI::getCharset(
             currentCharacterSetECI
                 .as_ref()
-                .ok_or(Exceptions::IllegalStateException(None))?,
+                .ok_or(Exceptions::illegalState)?,
         )
     };
 
     let encode_string = if currentCharacterSetECI.is_some()
         && currentCharacterSetECI
             .as_ref()
-            .ok_or(Exceptions::IllegalStateException(None))?
+            .ok_or(Exceptions::illegalState)?
             == &CharacterSetECI::Cp437
     {
         {
@@ -343,9 +336,7 @@ fn decodeByteSegment(
         encoding
             .decode(&readBytes, encoding::DecoderTrap::Strict)
             .map_err(|e| {
-                Exceptions::ParseException(Some(format!(
-                    "unable to decode buffer {readBytes:?}: {e}"
-                )))
+                Exceptions::parseWith(format!("unable to decode buffer {readBytes:?}: {e}"))
             })?
     };
 
@@ -357,13 +348,13 @@ fn decodeByteSegment(
 
 fn toAlphaNumericChar(value: u32) -> Result<char> {
     if value as usize >= ALPHANUMERIC_CHARS.len() {
-        return Err(Exceptions::FormatException(None));
+        return Err(Exceptions::format);
     }
 
     ALPHANUMERIC_CHARS
         .chars()
         .nth(value as usize)
-        .ok_or(Exceptions::FormatException(None))
+        .ok_or(Exceptions::format)
 }
 
 fn decodeAlphanumericSegment(
@@ -377,7 +368,7 @@ fn decodeAlphanumericSegment(
     let mut count = count;
     while count > 1 {
         if bits.available() < 11 {
-            return Err(Exceptions::FormatException(None));
+            return Err(Exceptions::format);
         }
         let nextTwoCharsBits = bits.readBits(11)?;
         result.push(toAlphaNumericChar(nextTwoCharsBits / 45)?);
@@ -387,7 +378,7 @@ fn decodeAlphanumericSegment(
     if count == 1 {
         // special case: one character left
         if bits.available() < 6 {
-            return Err(Exceptions::FormatException(None));
+            return Err(Exceptions::format);
         }
         result.push(toAlphaNumericChar(bits.readBits(6)?)?);
     }
@@ -395,17 +386,12 @@ fn decodeAlphanumericSegment(
     if fc1InEffect {
         // We need to massage the result a bit if in an FNC1 mode:
         for i in start..result.len() {
-            if result
-                .chars()
-                .nth(i)
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
-                == '%'
-            {
+            if result.chars().nth(i).ok_or(Exceptions::indexOutOfBounds)? == '%' {
                 if i < result.len() - 1
                     && result
                         .chars()
                         .nth(i + 1)
-                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                        .ok_or(Exceptions::indexOutOfBounds)?
                         == '%'
                 {
                     // %% is rendered as %
@@ -427,11 +413,11 @@ fn decodeNumericSegment(bits: &mut BitSource, result: &mut String, count: usize)
     while count >= 3 {
         // Each 10 bits encodes three digits
         if bits.available() < 10 {
-            return Err(Exceptions::FormatException(None));
+            return Err(Exceptions::format);
         }
         let threeDigitsBits = bits.readBits(10)?;
         if threeDigitsBits >= 1000 {
-            return Err(Exceptions::FormatException(None));
+            return Err(Exceptions::format);
         }
         result.push(toAlphaNumericChar(threeDigitsBits / 100)?);
         result.push(toAlphaNumericChar((threeDigitsBits / 10) % 10)?);
@@ -441,22 +427,22 @@ fn decodeNumericSegment(bits: &mut BitSource, result: &mut String, count: usize)
     if count == 2 {
         // Two digits left over to read, encoded in 7 bits
         if bits.available() < 7 {
-            return Err(Exceptions::FormatException(None));
+            return Err(Exceptions::format);
         }
         let twoDigitsBits = bits.readBits(7)?;
         if twoDigitsBits >= 100 {
-            return Err(Exceptions::FormatException(None));
+            return Err(Exceptions::format);
         }
         result.push(toAlphaNumericChar(twoDigitsBits / 10)?);
         result.push(toAlphaNumericChar(twoDigitsBits % 10)?);
     } else if count == 1 {
         // One digit left over to read
         if bits.available() < 4 {
-            return Err(Exceptions::FormatException(None));
+            return Err(Exceptions::format);
         }
         let digitBits = bits.readBits(4)?;
         if digitBits >= 10 {
-            return Err(Exceptions::FormatException(None));
+            return Err(Exceptions::format);
         }
         result.push(toAlphaNumericChar(digitBits)?);
     }
@@ -481,5 +467,5 @@ fn parseECIValue(bits: &mut BitSource) -> Result<u32> {
         return Ok(((firstByte & 0x1F) << 16) | secondThirdBytes);
     }
 
-    Err(Exceptions::FormatException(None))
+    Err(Exceptions::format)
 }
