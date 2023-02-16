@@ -24,7 +24,8 @@ use std::{borrow::Cow, rc::Rc};
 
 use once_cell::unsync::OnceCell;
 
-use crate::{Binarizer, Exceptions, LuminanceSource};
+use crate::common::Result;
+use crate::{Binarizer, LuminanceSource};
 
 use super::{BitArray, BitMatrix, GlobalHistogramBinarizer};
 
@@ -57,7 +58,7 @@ impl Binarizer for HybridBinarizer {
         self.ghb.getLuminanceSource()
     }
 
-    fn getBlackRow(&self, y: usize) -> Result<Cow<BitArray>, Exceptions> {
+    fn getBlackRow(&self, y: usize) -> Result<Cow<BitArray>> {
         self.ghb.getBlackRow(y)
     }
 
@@ -66,7 +67,7 @@ impl Binarizer for HybridBinarizer {
      * constructor instead, but there are some advantages to doing it lazily, such as making
      * profiling easier, and not doing heavy lifting when callers don't expect it.
      */
-    fn getBlackMatrix(&self) -> Result<&BitMatrix, Exceptions> {
+    fn getBlackMatrix(&self) -> Result<&BitMatrix> {
         let matrix = self
             .black_matrix
             .get_or_try_init(|| Self::calculateBlackMatrix(&self.ghb))?;
@@ -102,7 +103,7 @@ impl HybridBinarizer {
         }
     }
 
-    fn calculateBlackMatrix(ghb: &GlobalHistogramBinarizer) -> Result<BitMatrix, Exceptions> {
+    fn calculateBlackMatrix(ghb: &GlobalHistogramBinarizer) -> Result<BitMatrix> {
         // let matrix;
         let source = ghb.getLuminanceSource();
         let width = source.getWidth();

@@ -20,6 +20,7 @@
 
 use encoding::EncodingRef;
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::{
@@ -133,7 +134,7 @@ impl PDF417 {
         r: u32,
         errorCorrectionLevel: u32,
         logic: &mut BarcodeMatrix,
-    ) -> Result<(), Exceptions> {
+    ) -> Result<()> {
         let mut idx = 0;
         for y in 0..r {
             let cluster = y as usize % 3;
@@ -184,11 +185,7 @@ impl PDF417 {
      * @param errorCorrectionLevel PDF417 error correction level to use
      * @throws WriterException if the contents cannot be encoded in this format
      */
-    pub fn generateBarcodeLogic(
-        &mut self,
-        msg: &str,
-        errorCorrectionLevel: u32,
-    ) -> Result<(), Exceptions> {
+    pub fn generateBarcodeLogic(&mut self, msg: &str, errorCorrectionLevel: u32) -> Result<()> {
         self.generateBarcodeLogicWithAutoECI(msg, errorCorrectionLevel, false)
     }
 
@@ -203,7 +200,7 @@ impl PDF417 {
         msg: &str,
         errorCorrectionLevel: u32,
         autoECI: bool,
-    ) -> Result<(), Exceptions> {
+    ) -> Result<()> {
         //1. step: High-level encoding
         let errorCorrectionCodeWords =
             pdf_417_error_correction::getErrorCorrectionCodewordCount(errorCorrectionLevel)?;
@@ -272,7 +269,7 @@ impl PDF417 {
         &self,
         sourceCodeWords: u32,
         errorCorrectionCodeWords: u32,
-    ) -> Result<[u32; 2], Exceptions> {
+    ) -> Result<[u32; 2]> {
         let mut ratio = 0.0;
         let mut dimension = None;
 

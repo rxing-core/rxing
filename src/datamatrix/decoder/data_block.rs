@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::Version;
@@ -52,7 +53,7 @@ impl DataBlock {
         rawCodewords: &[u8],
         version: &Version,
         fix259: bool,
-    ) -> Result<Vec<DataBlock>, Exceptions> {
+    ) -> Result<Vec<DataBlock>> {
         // Figure out the number and size of data blocks used by this version
         let ecBlocks = version.getECBlocks();
 

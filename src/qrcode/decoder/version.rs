@@ -16,7 +16,10 @@
 
 use std::fmt;
 
-use crate::{common::BitMatrix, Exceptions};
+use crate::{
+    common::{BitMatrix, Result},
+    Exceptions,
+};
 
 use super::{ErrorCorrectionLevel, FormatInformation};
 
@@ -97,9 +100,7 @@ impl Version {
      * @return Version for a QR Code of that dimension
      * @throws FormatException if dimension is not 1 mod 4
      */
-    pub fn getProvisionalVersionForDimension(
-        dimension: u32,
-    ) -> Result<&'static Version, Exceptions> {
+    pub fn getProvisionalVersionForDimension(dimension: u32) -> Result<&'static Version> {
         if dimension % 4 != 1 {
             return Err(Exceptions::FormatException(Some(
                 "dimension incorrect".to_owned(),
@@ -108,7 +109,7 @@ impl Version {
         Self::getVersionForNumber((dimension - 17) / 4)
     }
 
-    pub fn getVersionForNumber(versionNumber: u32) -> Result<&'static Version, Exceptions> {
+    pub fn getVersionForNumber(versionNumber: u32) -> Result<&'static Version> {
         if !(1..=40).contains(&versionNumber) {
             return Err(Exceptions::IllegalArgumentException(Some(
                 "version out of spec".to_owned(),
@@ -117,7 +118,7 @@ impl Version {
         Ok(&VERSIONS[versionNumber as usize - 1])
     }
 
-    pub fn decodeVersionInformation(versionBits: u32) -> Result<&'static Version, Exceptions> {
+    pub fn decodeVersionInformation(versionBits: u32) -> Result<&'static Version> {
         let mut bestDifference = u32::MAX;
         let mut bestVersion = 0;
         for i in 0..VERSION_DECODE_INFO.len() as u32 {
@@ -146,7 +147,7 @@ impl Version {
     /**
      * See ISO 18004:2006 Annex E
      */
-    pub fn buildFunctionPattern(&self) -> Result<BitMatrix, Exceptions> {
+    pub fn buildFunctionPattern(&self) -> Result<BitMatrix> {
         let dimension = self.getDimensionForVersion();
         let mut bitMatrix = BitMatrix::with_single_dimension(dimension)?;
 

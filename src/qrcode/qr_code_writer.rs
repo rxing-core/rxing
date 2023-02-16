@@ -17,7 +17,8 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::BitMatrix, BarcodeFormat, EncodeHintType, EncodeHintValue, Exceptions, Writer,
+    common::{BitMatrix, Result},
+    BarcodeFormat, EncodeHintType, EncodeHintValue, Exceptions, Writer,
 };
 
 use super::{
@@ -45,7 +46,7 @@ impl Writer for QRCodeWriter {
         format: &crate::BarcodeFormat,
         width: i32,
         height: i32,
-    ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+    ) -> Result<crate::common::BitMatrix> {
         self.encode_with_hints(contents, format, width, height, &HashMap::new())
     }
 
@@ -56,7 +57,7 @@ impl Writer for QRCodeWriter {
         width: i32,
         height: i32,
         hints: &crate::EncodingHintDictionary,
-    ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+    ) -> Result<crate::common::BitMatrix> {
         if contents.is_empty() {
             return Err(Exceptions::IllegalArgumentException(Some(
                 "found empty contents".to_owned(),
@@ -107,7 +108,7 @@ impl QRCodeWriter {
         width: i32,
         height: i32,
         quietZone: i32,
-    ) -> Result<BitMatrix, Exceptions> {
+    ) -> Result<BitMatrix> {
         let input = code.getMatrix();
         if input.is_none() {
             return Err(Exceptions::IllegalStateException(Some(

@@ -24,7 +24,8 @@
  *   http://www.piramidepse.com/
  */
 
-use crate::{oned::rss::expanded::ExpandedPair, Exceptions, Reader};
+use crate::common::Result;
+use crate::{oned::rss::expanded::ExpandedPair, Reader};
 
 use super::{test_case_util, RSSExpandedReader};
 
@@ -43,7 +44,7 @@ fn testDecodingRowByRow() {
 
     // let tester = ;
 
-    assert!(|| -> Result<Vec<ExpandedPair>, Exceptions> {
+    assert!(|| -> Result<Vec<ExpandedPair>> {
         rssExpandedReader.decodeRow2pairs(firstRowNumber as u32, &firstRow)
         // fail(NotFoundException.class.getName() + " expected");
     }()

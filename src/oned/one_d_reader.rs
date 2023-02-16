@@ -15,9 +15,9 @@
  */
 
 use crate::{
-    common::BitArray, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
-    Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint,
-    Reader, ResultPoint,
+    common::{BitArray, Result},
+    BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, RXingResult,
+    RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader, ResultPoint,
 };
 
 /**
@@ -46,7 +46,7 @@ pub trait OneDReader: Reader {
         &mut self,
         image: &mut BinaryBitmap,
         hints: &DecodingHintDictionary,
-    ) -> Result<RXingResult, Exceptions> {
+    ) -> Result<RXingResult> {
         let mut hints = hints.clone();
         let width = image.getWidth();
         let height = image.getHeight();
@@ -151,7 +151,7 @@ pub trait OneDReader: Reader {
         rowNumber: u32,
         row: &BitArray,
         hints: &DecodingHintDictionary,
-    ) -> Result<RXingResult, Exceptions>;
+    ) -> Result<RXingResult>;
 }
 
 /**
@@ -212,7 +212,7 @@ pub fn patternMatchVariance(counters: &[u32], pattern: &[u32], maxIndividualVari
  * @throws NotFoundException if counters cannot be filled entirely from row before running out
  *  of pixels
  */
-pub fn recordPattern(row: &BitArray, start: usize, counters: &mut [u32]) -> Result<(), Exceptions> {
+pub fn recordPattern(row: &BitArray, start: usize, counters: &mut [u32]) -> Result<()> {
     let numCounters = counters.len();
     counters.fill(0);
 
@@ -246,11 +246,7 @@ pub fn recordPattern(row: &BitArray, start: usize, counters: &mut [u32]) -> Resu
     Ok(())
 }
 
-pub fn recordPatternInReverse(
-    row: &BitArray,
-    start: usize,
-    counters: &mut [u32],
-) -> Result<(), Exceptions> {
+pub fn recordPatternInReverse(row: &BitArray, start: usize, counters: &mut [u32]) -> Result<()> {
     let mut start = start;
     // This could be more efficient I guess
     let mut numTransitionsLeft = counters.len() as isize;

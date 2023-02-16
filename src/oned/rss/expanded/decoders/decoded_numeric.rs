@@ -24,6 +24,7 @@
  *   http://www.piramidepse.com/
  */
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::DecodedObject;
@@ -45,7 +46,7 @@ impl DecodedObject for DecodedNumeric {
 impl DecodedNumeric {
     pub const FNC1: u32 = 10;
 
-    pub fn new(newPosition: usize, firstDigit: u32, secondDigit: u32) -> Result<Self, Exceptions> {
+    pub fn new(newPosition: usize, firstDigit: u32, secondDigit: u32) -> Result<Self> {
         // super(newPosition);
 
         if

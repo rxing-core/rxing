@@ -1,3 +1,4 @@
+use crate::common::Result;
 use crate::LuminanceSource;
 
 /// A simple luma8 source for bytes, supports cropping but not rotation
@@ -67,7 +68,7 @@ impl LuminanceSource for Luma8LuminanceSource {
         top: usize,
         width: usize,
         height: usize,
-    ) -> Result<Box<dyn LuminanceSource>, crate::Exceptions> {
+    ) -> Result<Box<dyn LuminanceSource>> {
         Ok(Box::new(Self {
             dimensions: (width as u32, height as u32),
             origin: (left as u32, top as u32),
@@ -81,7 +82,7 @@ impl LuminanceSource for Luma8LuminanceSource {
         true
     }
 
-    fn rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>, crate::Exceptions> {
+    fn rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>> {
         let mut new_matrix = Self {
             dimensions: self.dimensions,
             origin: self.origin,
@@ -94,7 +95,7 @@ impl LuminanceSource for Luma8LuminanceSource {
         Ok(Box::new(new_matrix))
     }
 
-    fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>, crate::Exceptions> {
+    fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>> {
         Err(crate::Exceptions::UnsupportedOperationException(Some(
             "This luminance source does not support rotation by 45 degrees.".to_owned(),
         )))

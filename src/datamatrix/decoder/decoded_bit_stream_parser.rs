@@ -17,7 +17,7 @@
 use encoding::Encoding;
 
 use crate::{
-    common::{BitSource, DecoderRXingResult, ECIStringBuilder},
+    common::{BitSource, DecoderRXingResult, ECIStringBuilder, Result},
     Exceptions,
 };
 
@@ -110,7 +110,7 @@ const INSERT_STRING_CONST: &str = "\u{001E}\u{0004}";
 const VALUE_236: &str = "[)>\u{001E}05\u{001D}";
 const VALUE_237: &str = "[)>\u{001E}06\u{001D}";
 
-pub fn decode(bytes: &[u8], is_flipped: bool) -> Result<DecoderRXingResult, Exceptions> {
+pub fn decode(bytes: &[u8], is_flipped: bool) -> Result<DecoderRXingResult> {
     let mut bits = BitSource::new(bytes.to_vec());
     let mut result = ECIStringBuilder::with_capacity(100);
     let mut resultTrailer = String::new();
@@ -217,7 +217,7 @@ fn decodeAsciiSegment(
     resultTrailer: &mut String,
     fnc1positions: &mut Vec<usize>,
     is_gs1: &mut bool,
-) -> Result<Mode, Exceptions> {
+) -> Result<Mode> {
     let mut upperShift = false;
     let mut firstFNC1Position = 1;
     let mut firstCodeword = true;
@@ -353,7 +353,7 @@ fn decodeC40Segment(
     bits: &mut BitSource,
     result: &mut ECIStringBuilder,
     fnc1positions: &mut Vec<usize>,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     // Three C40 values are encoded in a 16-bit value as
     // (1600 * C1) + (40 * C2) + C3 + 1
     // TODO(bbrown): The Upper Shift with C40 doesn't work in the 4 value scenario all the time
@@ -472,7 +472,7 @@ fn decodeTextSegment(
     bits: &mut BitSource,
     result: &mut ECIStringBuilder,
     fnc1positions: &mut Vec<usize>,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     // Three Text values are encoded in a 16-bit value as
     // (1600 * C1) + (40 * C2) + C3 + 1
     // TODO(bbrown): The Upper Shift with Text doesn't work in the 4 value scenario all the time
@@ -592,10 +592,7 @@ fn decodeTextSegment(
 /**
  * See ISO 16022:2006, 5.2.7
  */
-fn decodeAnsiX12Segment(
-    bits: &mut BitSource,
-    result: &mut ECIStringBuilder,
-) -> Result<(), Exceptions> {
+fn decodeAnsiX12Segment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Result<()> {
     // Three ANSI X12 values are encoded in a 16-bit value as
     // (1600 * C1) + (40 * C2) + C3 + 1
 
@@ -679,10 +676,7 @@ fn parseTwoBytes(firstByte: u32, secondByte: u32, result: &mut [u32]) {
 /**
  * See ISO 16022:2006, 5.2.8 and Annex C Table C.3
  */
-fn decodeEdifactSegment(
-    bits: &mut BitSource,
-    result: &mut ECIStringBuilder,
-) -> Result<(), Exceptions> {
+fn decodeEdifactSegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Result<()> {
     loop {
         // If there is only two or less bytes left then it will be encoded as ASCII
         if bits.available() <= 16 {
@@ -727,7 +721,7 @@ fn decodeBase256Segment(
     bits: &mut BitSource,
     result: &mut ECIStringBuilder,
     byteSegments: &mut Vec<Vec<u8>>,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     // Figure out how long the Base 256 Segment is.
     let mut codewordPosition = 1 + bits.getByteOffset(); // position is 1-indexed
     let d1 = unrandomize255State(bits.readBits(8)?, codewordPosition);
@@ -772,10 +766,7 @@ fn decodeBase256Segment(
 /**
  * See ISO 16022:2007, 5.4.1
  */
-fn decodeECISegment(
-    bits: &mut BitSource,
-    result: &mut ECIStringBuilder,
-) -> Result<bool, Exceptions> {
+fn decodeECISegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Result<bool> {
     let firstByte = bits.readBits(8)?;
     if firstByte <= 127 {
         result.appendECI(firstByte - 1)?;
@@ -797,10 +788,7 @@ fn decodeECISegment(
 /**
 * See ISO 16022:2006, 5.6
 */
-fn parse_structured_append(
-    bits: &mut BitSource,
-    sai: &mut StructuredAppendInfo,
-) -> Result<(), Exceptions> {
+fn parse_structured_append(bits: &mut BitSource, sai: &mut StructuredAppendInfo) -> Result<()> {
     // 5.6.2 Table 8
     let symbolSequenceIndicator = bits.readBits(8)?;
     sai.index = (symbolSequenceIndicator >> 4) as i32;

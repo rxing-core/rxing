@@ -24,6 +24,7 @@
  */
 use once_cell::sync::Lazy;
 
+use crate::common::Result;
 use crate::Exceptions;
 
 /**
@@ -117,7 +118,7 @@ static EC_COEFFICIENTS: Lazy<[Vec<u32>; 9]> = Lazy::new(|| {
  * @param errorCorrectionLevel the error correction level (0-8)
  * @return the number of codewords generated for error correction
  */
-pub fn getErrorCorrectionCodewordCount(errorCorrectionLevel: u32) -> Result<u32, Exceptions> {
+pub fn getErrorCorrectionCodewordCount(errorCorrectionLevel: u32) -> Result<u32> {
     if errorCorrectionLevel > 8 {
         return Err(Exceptions::IllegalArgumentException(Some(
             "Error correction level must be between 0 and 8!".to_owned(),
@@ -133,7 +134,7 @@ pub fn getErrorCorrectionCodewordCount(errorCorrectionLevel: u32) -> Result<u32,
  * @param n the number of data codewords
  * @return the recommended minimum error correction level
  */
-pub fn getRecommendedMinimumErrorCorrectionLevel(n: u32) -> Result<u32, Exceptions> {
+pub fn getRecommendedMinimumErrorCorrectionLevel(n: u32) -> Result<u32> {
     if n == 0 {
         Err(Exceptions::IllegalArgumentException(Some(
             "n must be > 0".to_owned(),
@@ -160,10 +161,7 @@ pub fn getRecommendedMinimumErrorCorrectionLevel(n: u32) -> Result<u32, Exceptio
  * @param errorCorrectionLevel the error correction level (0-8)
  * @return the String representing the error correction codewords
  */
-pub fn generateErrorCorrection(
-    dataCodewords: &str,
-    errorCorrectionLevel: u32,
-) -> Result<String, Exceptions> {
+pub fn generateErrorCorrection(dataCodewords: &str, errorCorrectionLevel: u32) -> Result<String> {
     let k = getErrorCorrectionCodewordCount(errorCorrectionLevel)?;
     let mut e = vec![0 as char; k as usize]; //new char[k];
     let sld = dataCodewords.chars().count();

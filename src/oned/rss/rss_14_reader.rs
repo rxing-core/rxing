@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::BitArray,
+    common::{BitArray, Result},
     oned::{one_d_reader, OneDReader},
     BarcodeFormat, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
     RXingResult, RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader,
@@ -50,7 +50,7 @@ impl OneDReader for RSS14Reader {
         rowNumber: u32,
         row: &crate::common::BitArray,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    ) -> Result<crate::RXingResult> {
         let mut row = row.clone();
         let leftPair = self.decodePair(&row, false, rowNumber, hints);
         Self::addOrTally(&mut self.possibleLeftPairs, leftPair);
@@ -73,10 +73,7 @@ impl OneDReader for RSS14Reader {
     }
 }
 impl Reader for RSS14Reader {
-    fn decode(
-        &mut self,
-        image: &mut crate::BinaryBitmap,
-    ) -> Result<crate::RXingResult, Exceptions> {
+    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
@@ -85,7 +82,7 @@ impl Reader for RSS14Reader {
         &mut self,
         image: &mut crate::BinaryBitmap,
         hints: &DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, Exceptions> {
+    ) -> Result<crate::RXingResult> {
         if let Ok(res) = self.doDecode(image, hints) {
             Ok(res)
         } else {
@@ -249,7 +246,7 @@ impl RSS14Reader {
         rowNumber: u32,
         hints: &DecodingHintDictionary,
     ) -> Option<Pair> {
-        let pos_pair = || -> Result<Pair, Exceptions> {
+        let pos_pair = || -> Result<Pair> {
             let startEnd = self.findFinderPattern(row, right)?;
             let pattern = self.parseFoundFinderPattern(row, rowNumber, right, &startEnd)?;
 
@@ -285,7 +282,7 @@ impl RSS14Reader {
         row: &BitArray,
         pattern: &FinderPattern,
         outsideChar: bool,
-    ) -> Result<DataCharacter, Exceptions> {
+    ) -> Result<DataCharacter> {
         let counters = &mut self.dataCharacterCounters;
         counters.fill(0);
 
@@ -378,7 +375,7 @@ impl RSS14Reader {
         &mut self,
         row: &BitArray,
         rightFinderPattern: bool,
-    ) -> Result<[usize; 2], Exceptions> {
+    ) -> Result<[usize; 2]> {
         let counters = &mut self.decodeFinderCounters;
         counters.fill(0);
 
@@ -426,7 +423,7 @@ impl RSS14Reader {
         rowNumber: u32,
         right: bool,
         startEnd: &[usize],
-    ) -> Result<FinderPattern, Exceptions> {
+    ) -> Result<FinderPattern> {
         // Actually we found elements 2-5
         let firstIsBlack = row.get(startEnd[0]);
         let mut firstElementStart = startEnd[0] as isize - 1;
@@ -461,11 +458,7 @@ impl RSS14Reader {
         ))
     }
 
-    fn adjustOddEvenCounts(
-        &mut self,
-        outsideChar: bool,
-        numModules: u32,
-    ) -> Result<(), Exceptions> {
+    fn adjustOddEvenCounts(&mut self, outsideChar: bool, numModules: u32) -> Result<()> {
         let oddSum = self.oddCounts.iter().sum::<u32>();
         let evenSum = self.evenCounts.iter().sum::<u32>();
 

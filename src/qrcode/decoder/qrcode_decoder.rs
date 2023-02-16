@@ -27,7 +27,7 @@ use once_cell::sync::Lazy;
 use crate::{
     common::{
         reedsolomon::get_predefined_genericgf, reedsolomon::PredefinedGenericGF,
-        reedsolomon::ReedSolomonDecoder, BitMatrix, DecoderRXingResult,
+        reedsolomon::ReedSolomonDecoder, BitMatrix, DecoderRXingResult, Result,
     },
     DecodingHintDictionary, Exceptions,
 };
@@ -41,7 +41,7 @@ static RS_DECODER: Lazy<ReedSolomonDecoder> = Lazy::new(|| {
     ))
 });
 
-pub fn decode_bool_array(image: &Vec<Vec<bool>>) -> Result<DecoderRXingResult, Exceptions> {
+pub fn decode_bool_array(image: &Vec<Vec<bool>>) -> Result<DecoderRXingResult> {
     decode_bool_array_with_hints(image, &HashMap::new())
 }
 
@@ -58,11 +58,11 @@ pub fn decode_bool_array(image: &Vec<Vec<bool>>) -> Result<DecoderRXingResult, E
 pub fn decode_bool_array_with_hints(
     image: &Vec<Vec<bool>>,
     hints: &DecodingHintDictionary,
-) -> Result<DecoderRXingResult, Exceptions> {
+) -> Result<DecoderRXingResult> {
     decode_bitmatrix_with_hints(&BitMatrix::parse_bools(image), hints)
 }
 
-pub fn decode_bitmatrix(bits: &BitMatrix) -> Result<DecoderRXingResult, Exceptions> {
+pub fn decode_bitmatrix(bits: &BitMatrix) -> Result<DecoderRXingResult> {
     decode_bitmatrix_with_hints(bits, &HashMap::new())
 }
 
@@ -78,7 +78,7 @@ pub fn decode_bitmatrix(bits: &BitMatrix) -> Result<DecoderRXingResult, Exceptio
 pub fn decode_bitmatrix_with_hints(
     bits: &BitMatrix,
     hints: &DecodingHintDictionary,
-) -> Result<DecoderRXingResult, Exceptions> {
+) -> Result<DecoderRXingResult> {
     // Construct a parser and read version, error-correction level
     let mut parser = BitMatrixParser::new(bits.clone())?;
     let mut fe = None;
@@ -92,7 +92,7 @@ pub fn decode_bitmatrix_with_hints(
         },
     }
 
-    let mut trying = || -> Result<DecoderRXingResult, Exceptions> {
+    let mut trying = || -> Result<DecoderRXingResult> {
         // Revert the bit matrix
         parser.remask()?;
 
@@ -140,7 +140,7 @@ pub fn decode_bitmatrix_with_hints(
 fn decode_bitmatrix_parser_with_hints(
     parser: &mut BitMatrixParser,
     hints: &DecodingHintDictionary,
-) -> Result<DecoderRXingResult, Exceptions> {
+) -> Result<DecoderRXingResult> {
     let version = parser.readVersion()?;
     let ecLevel = parser.readFormatInformation()?.getErrorCorrectionLevel();
 
@@ -180,7 +180,7 @@ fn decode_bitmatrix_parser_with_hints(
  * @param numDataCodewords number of codewords that are data bytes
  * @throws ChecksumException if error correction fails
  */
-fn correctErrors(codewordBytes: &mut [u8], numDataCodewords: usize) -> Result<(), Exceptions> {
+fn correctErrors(codewordBytes: &mut [u8], numDataCodewords: usize) -> Result<()> {
     let numCodewords = codewordBytes.len();
     // First read into an array of ints
     let mut codewordsInts = vec![0u8; numCodewords];

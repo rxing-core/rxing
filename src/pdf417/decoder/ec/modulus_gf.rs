@@ -16,6 +16,7 @@
 
 //public static final ModulusGF PDF417_GF = new ModulusGF(PDF417Common.NUMBER_OF_CODEWORDS, 3);
 
+use crate::common::Result;
 use crate::Exceptions;
 
 /**
@@ -75,7 +76,7 @@ impl ModulusGF {
         self.expTable[a as usize]
     }
 
-    pub fn log(&self, a: u32) -> Result<u32, Exceptions> {
+    pub fn log(&self, a: u32) -> Result<u32> {
         if a == 0 {
             Err(Exceptions::ArithmeticException(None))
         } else {
@@ -83,7 +84,7 @@ impl ModulusGF {
         }
     }
 
-    pub fn inverse(&self, a: u32) -> Result<u32, Exceptions> {
+    pub fn inverse(&self, a: u32) -> Result<u32> {
         if a == 0 {
             Err(Exceptions::ArithmeticException(None))
         } else {

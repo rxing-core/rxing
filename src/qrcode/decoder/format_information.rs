@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::Exceptions;
+use crate::common::Result;
 
 use super::ErrorCorrectionLevel;
 
@@ -73,7 +73,7 @@ pub struct FormatInformation {
 }
 
 impl FormatInformation {
-    fn new(format_info: u8) -> Result<Self, Exceptions> {
+    fn new(format_info: u8) -> Result<Self> {
         // Bits 3,4
         let errorCorrectionLevel = ErrorCorrectionLevel::forBits((format_info >> 3) & 0x03)?;
         // Bottom 3 bits

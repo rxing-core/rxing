@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-use crate::{common::BitArray, Exceptions};
+use crate::{
+    common::{BitArray, Result},
+    Exceptions,
+};
 
 use super::{BinaryShiftToken, SimpleToken};
 
@@ -26,7 +29,7 @@ pub enum TokenType {
 }
 
 impl TokenType {
-    pub fn appendTo(&self, bit_array: &mut BitArray, text: &[u8]) -> Result<(), Exceptions> {
+    pub fn appendTo(&self, bit_array: &mut BitArray, text: &[u8]) -> Result<()> {
         // let token = &self.tokens[self.current_pointer];
         match self {
             TokenType::Simple(a) => a.appendTo(bit_array, text),

@@ -18,6 +18,7 @@ use std::rc::Rc;
 
 use encoding::{self, EncodingRef};
 
+use crate::common::Result;
 use crate::{Dimension, Exceptions};
 
 use super::{
@@ -134,7 +135,7 @@ fn randomize253State(codewordPosition: u32) -> String {
  * @param msg the message
  * @return the encoded message (the char values range from 0 to 255)
  */
-pub fn encodeHighLevel(msg: &str) -> Result<String, Exceptions> {
+pub fn encodeHighLevel(msg: &str) -> Result<String> {
     encodeHighLevelWithDimensionForceC40(msg, SymbolShapeHint::FORCE_NONE, None, None, false)
 }
 
@@ -148,7 +149,7 @@ pub fn encodeHighLevel(msg: &str) -> Result<String, Exceptions> {
 pub fn encodeHighLevelSIL(
     msg: &str,
     symbol_lookup: Option<Rc<SymbolInfoLookup>>,
-) -> Result<String, Exceptions> {
+) -> Result<String> {
     encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
         msg,
         SymbolShapeHint::FORCE_NONE,
@@ -175,7 +176,7 @@ pub fn encodeHighLevelWithDimension(
     shape: SymbolShapeHint,
     minSize: Option<Dimension>,
     maxSize: Option<Dimension>,
-) -> Result<String, Exceptions> {
+) -> Result<String> {
     encodeHighLevelWithDimensionForceC40(msg, shape, minSize, maxSize, false)
 }
 
@@ -186,7 +187,7 @@ pub fn encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
     maxSize: Option<Dimension>,
     forceC40: bool,
     symbol_lookup: Option<Rc<SymbolInfoLookup>>,
-) -> Result<String, Exceptions> {
+) -> Result<String> {
     //the codewords 0..255 are encoded as Unicode characters
     let c40Encoder = Rc::new(C40Encoder::new());
     let encoders: [Rc<dyn Encoder>; 6] = [
@@ -284,7 +285,7 @@ pub fn encodeHighLevelWithDimensionForceC40(
     minSize: Option<Dimension>,
     maxSize: Option<Dimension>,
     forceC40: bool,
-) -> Result<String, Exceptions> {
+) -> Result<String> {
     encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
         msg, shape, minSize, maxSize, forceC40, None,
     )
@@ -608,7 +609,7 @@ pub fn determineConsecutiveDigitCount(msg: &str, startpos: u32) -> u32 {
     idx - startpos
 }
 
-pub fn illegalCharacter(c: char) -> Result<(), Exceptions> {
+pub fn illegalCharacter(c: char) -> Result<()> {
     // let hex = Integer.toHexString(c);
     // hex = "0000".substring(0, 4 - hex.length()) + hex;
     Err(Exceptions::IllegalArgumentException(Some(format!(

@@ -16,6 +16,7 @@
 
 use rxing_one_d_proc_derive::OneDWriter;
 
+use crate::common::Result;
 use crate::BarcodeFormat;
 
 use super::{code_128_reader, OneDimensionalCodeWriter};
@@ -58,7 +59,7 @@ enum CType {
 pub struct Code128Writer;
 
 impl OneDimensionalCodeWriter for Code128Writer {
-    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>, Exceptions> {
+    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
         self.encode_oned_with_hints(contents, &HashMap::new())
     }
 
@@ -70,7 +71,7 @@ impl OneDimensionalCodeWriter for Code128Writer {
         &self,
         contents: &str,
         hints: &crate::EncodingHintDictionary,
-    ) -> Result<Vec<bool>, Exceptions> {
+    ) -> Result<Vec<bool>> {
         let forcedCodeSet = check(contents, hints)?;
 
         let hasCompactionHint = matches!(
@@ -95,7 +96,7 @@ impl OneDimensionalCodeWriter for Code128Writer {
     }
 }
 
-fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32, Exceptions> {
+fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32> {
     let length = contents.chars().count();
     // Check length
     if !(1..=80).contains(&length) {
@@ -183,7 +184,7 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32, E
     Ok(forcedCodeSet)
 }
 
-fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>, Exceptions> {
+fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>> {
     let length = contents.chars().count();
 
     let mut patterns: Vec<Vec<usize>> = Vec::new(); //new ArrayList<>(); // temporary storage for patterns
@@ -442,7 +443,7 @@ fn chooseCode(value: &str, start: usize, oldCode: usize) -> Option<usize> {
 //    minPath:Vec<Vec<Latch>>,
 // }
 mod MinimalEncoder {
-    use crate::{oned::code_128_reader, Exceptions};
+    use crate::{common::Result, oned::code_128_reader, Exceptions};
 
     use super::{
         produceRXingResult, CODE_CODE_A, CODE_CODE_B, CODE_CODE_C, CODE_FNC_1, CODE_FNC_2,
@@ -476,7 +477,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
 
     const CODE_SHIFT: usize = 98;
 
-    pub fn encode(contents: &str) -> Result<Vec<bool>, Exceptions> {
+    pub fn encode(contents: &str) -> Result<Vec<bool>> {
         let length = contents.chars().count();
         let mut memoizedCost = vec![vec![0_u32; length]; 4]; //new int[4][contents.length()];
         let mut minPath = vec![vec![Latch::None; length]; 4]; //new Latch[4][contents.length()];
@@ -680,7 +681,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
         position: usize,
         memoizedCost: &mut Vec<Vec<u32>>,
         minPath: &mut Vec<Vec<Latch>>,
-    ) -> Result<u32, Exceptions> {
+    ) -> Result<u32> {
         if position >= contents.chars().count() {
             return Err(Exceptions::IllegalStateException(None));
         }

@@ -16,7 +16,10 @@
 
 use std::rc::Rc;
 
-use crate::{common::BitMatrix, Exceptions, RXingResultPoint, ResultPoint};
+use crate::{
+    common::{BitMatrix, Result},
+    Exceptions, RXingResultPoint, ResultPoint,
+};
 
 /**
  * @author Guenther Grau
@@ -40,7 +43,7 @@ impl BoundingBox {
         bottomLeft: Option<RXingResultPoint>,
         topRight: Option<RXingResultPoint>,
         bottomRight: Option<RXingResultPoint>,
-    ) -> Result<BoundingBox, Exceptions> {
+    ) -> Result<BoundingBox> {
         let leftUnspecified = topLeft.is_none() || bottomLeft.is_none();
         let rightUnspecified = topRight.is_none() || bottomRight.is_none();
         if leftUnspecified && rightUnspecified {
@@ -100,7 +103,7 @@ impl BoundingBox {
     pub fn merge(
         leftBox: Option<BoundingBox>,
         rightBox: Option<BoundingBox>,
-    ) -> Result<BoundingBox, Exceptions> {
+    ) -> Result<BoundingBox> {
         if leftBox.is_none() {
             return Ok(rightBox
                 .as_ref()
@@ -130,7 +133,7 @@ impl BoundingBox {
         missingStartRows: u32,
         missingEndRows: u32,
         isLeft: bool,
-    ) -> Result<BoundingBox, Exceptions> {
+    ) -> Result<BoundingBox> {
         let mut newTopLeft = self.topLeft;
         let mut newBottomLeft = self.bottomLeft;
         let mut newTopRight = self.topRight;

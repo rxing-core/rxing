@@ -16,6 +16,7 @@
 
 //package com.google.zxing.common.reedsolomon;
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::{GenericGF, GenericGFPoly, GenericGFRef};
@@ -60,7 +61,7 @@ impl ReedSolomonDecoder {
      * @param twoS number of error-correction codewords available
      * @throws ReedSolomonException if decoding fails for any reason
      */
-    pub fn decode(&self, received: &mut Vec<i32>, twoS: i32) -> Result<usize, Exceptions> {
+    pub fn decode(&self, received: &mut Vec<i32>, twoS: i32) -> Result<usize> {
         let poly = GenericGFPoly::new(self.field, received)?;
         let mut syndromeCoefficients = vec![0; twoS as usize];
         let mut noError = true;
@@ -113,7 +114,7 @@ impl ReedSolomonDecoder {
         a: &GenericGFPoly,
         b: &GenericGFPoly,
         R: usize,
-    ) -> Result<Vec<GenericGFPoly>, Exceptions> {
+    ) -> Result<Vec<GenericGFPoly>> {
         // Assume a's degree is >= b's
         let mut a = a.clone();
         let mut b = b.clone();
@@ -184,7 +185,7 @@ impl ReedSolomonDecoder {
         Ok(vec![sigma, omega])
     }
 
-    fn findErrorLocations(&self, errorLocator: &GenericGFPoly) -> Result<Vec<usize>, Exceptions> {
+    fn findErrorLocations(&self, errorLocator: &GenericGFPoly) -> Result<Vec<usize>> {
         // This is a direct application of Chien's search
         let numErrors = errorLocator.getDegree();
         if numErrors == 1 {
@@ -216,7 +217,7 @@ impl ReedSolomonDecoder {
         &self,
         errorEvaluator: &GenericGFPoly,
         errorLocations: &Vec<usize>,
-    ) -> Result<Vec<i32>, Exceptions> {
+    ) -> Result<Vec<i32>> {
         // This is directly applying Forney's Formula
         let s = errorLocations.len();
         let mut result = vec![0; s];

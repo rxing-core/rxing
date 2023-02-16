@@ -16,7 +16,10 @@
 
 //package com.google.zxing;
 
-use crate::{common::BitMatrix, BarcodeFormat, EncodingHintDictionary, Exceptions};
+use crate::{
+    common::{BitMatrix, Result},
+    BarcodeFormat, EncodingHintDictionary,
+};
 
 /**
  * The base class for all objects which encode/generate a barcode image.
@@ -40,7 +43,7 @@ pub trait Writer {
         format: &BarcodeFormat,
         width: i32,
         height: i32,
-    ) -> Result<BitMatrix, Exceptions>;
+    ) -> Result<BitMatrix>;
 
     /**
      * @param contents The contents to encode in the barcode
@@ -58,5 +61,5 @@ pub trait Writer {
         width: i32,
         height: i32,
         hints: &EncodingHintDictionary,
-    ) -> Result<BitMatrix, Exceptions>;
+    ) -> Result<BitMatrix>;
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{BarcodeFormat, Exceptions, RXingResult, Reader};
+use crate::{common::Result, BarcodeFormat, Exceptions, RXingResult, Reader};
 
 use super::{EAN13Reader, OneDReader, UPCEANReader};
 
@@ -28,10 +28,7 @@ use super::{EAN13Reader, OneDReader, UPCEANReader};
 pub struct UPCAReader(EAN13Reader);
 
 impl Reader for UPCAReader {
-    fn decode(
-        &mut self,
-        image: &mut crate::BinaryBitmap,
-    ) -> Result<crate::RXingResult, Exceptions> {
+    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
         Self::maybeReturnRXingResult(self.0.decode(image)?)
     }
 
@@ -39,7 +36,7 @@ impl Reader for UPCAReader {
         &mut self,
         image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, Exceptions> {
+    ) -> Result<crate::RXingResult> {
         Self::maybeReturnRXingResult(self.0.decode_with_hints(image, hints)?)
     }
 }
@@ -50,7 +47,7 @@ impl OneDReader for UPCAReader {
         rowNumber: u32,
         row: &crate::common::BitArray,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, Exceptions> {
+    ) -> Result<crate::RXingResult> {
         Self::maybeReturnRXingResult(self.0.decodeRow(rowNumber, row, hints)?)
     }
 }
@@ -65,7 +62,7 @@ impl UPCEANReader for UPCAReader {
         row: &crate::common::BitArray,
         startRange: &[usize; 2],
         resultString: &mut String,
-    ) -> Result<usize, Exceptions> {
+    ) -> Result<usize> {
         self.0.decodeMiddle(row, startRange, resultString)
     }
 
@@ -75,7 +72,7 @@ impl UPCEANReader for UPCAReader {
         row: &crate::common::BitArray,
         startGuardRange: &[usize; 2],
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, Exceptions>
+    ) -> Result<crate::RXingResult>
     where
         Self: Sized,
     {
@@ -91,7 +88,7 @@ impl UPCEANReader for UPCAReader {
 impl UPCAReader {
     // private final UPCEANReader ean13Reader = new EAN13Reader();
 
-    fn maybeReturnRXingResult(result: RXingResult) -> Result<RXingResult, Exceptions> {
+    fn maybeReturnRXingResult(result: RXingResult) -> Result<RXingResult> {
         let text = result.getText();
         if let Some(stripped_text) = text.strip_prefix('0') {
             let mut upcaRXingResult = RXingResult::new(

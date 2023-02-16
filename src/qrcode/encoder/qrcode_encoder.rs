@@ -27,7 +27,7 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::{
     common::{
         reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonEncoder},
-        BitArray, CharacterSetECI,
+        BitArray, CharacterSetECI, Result,
     },
     qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
     EncodeHintType, EncodeHintValue, EncodingHintDictionary, Exceptions,
@@ -66,7 +66,7 @@ pub fn calculateMaskPenalty(matrix: &ByteMatrix) -> u32 {
  * @throws WriterException if encoding can't succeed, because of for example invalid content
  *   or configuration
  */
-pub fn encode(content: &str, ecLevel: ErrorCorrectionLevel) -> Result<QRCode, Exceptions> {
+pub fn encode(content: &str, ecLevel: ErrorCorrectionLevel) -> Result<QRCode> {
     encode_with_hints(content, ecLevel, &HashMap::new())
 }
 
@@ -74,7 +74,7 @@ pub fn encode_with_hints(
     content: &str,
     ec_level: ErrorCorrectionLevel,
     hints: &EncodingHintDictionary,
-) -> Result<QRCode, Exceptions> {
+) -> Result<QRCode> {
     let version;
     let mut header_and_data_bits;
     let mode;
@@ -264,7 +264,7 @@ fn recommendVersion(
     mode: Mode,
     header_bits: &BitArray,
     data_bits: &BitArray,
-) -> Result<VersionRef, Exceptions> {
+) -> Result<VersionRef> {
     // Hard part: need to know version to know how many bits length takes. But need to know how many
     // bits it takes to know version. First we take a guess at version by assuming version will be
     // the minimum, 1:
@@ -365,7 +365,7 @@ fn chooseMaskPattern(
     ec_level: &ErrorCorrectionLevel,
     version: VersionRef,
     matrix: &mut ByteMatrix,
-) -> Result<u32, Exceptions> {
+) -> Result<u32> {
     let mut min_penalty = u32::MAX; // Lower penalty is better.
     let mut best_mask_pattern = -1;
     // We try all mask patterns to choose the best one.
@@ -381,10 +381,7 @@ fn chooseMaskPattern(
     Ok(best_mask_pattern as u32)
 }
 
-fn chooseVersion(
-    numInputBits: u32,
-    ecLevel: &ErrorCorrectionLevel,
-) -> Result<VersionRef, Exceptions> {
+fn chooseVersion(numInputBits: u32, ecLevel: &ErrorCorrectionLevel) -> Result<VersionRef> {
     for versionNum in 1..=40 {
         let version = Version::getVersionForNumber(versionNum)?;
         if willFit(numInputBits, version, ecLevel) {
@@ -416,7 +413,7 @@ pub fn willFit(numInputBits: u32, version: VersionRef, ecLevel: &ErrorCorrection
 /**
  * Terminate bits as described in 8.4.8 and 8.4.9 of JISX0510:2004 (p.24).
  */
-pub fn terminateBits(num_data_bytes: u32, bits: &mut BitArray) -> Result<(), Exceptions> {
+pub fn terminateBits(num_data_bytes: u32, bits: &mut BitArray) -> Result<()> {
     let capacity = num_data_bytes * 8;
     if bits.getSize() > capacity as usize {
         return Err(Exceptions::WriterException(Some(format!(
@@ -466,7 +463,7 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
     block_id: u32,
     // numDataBytesInBlock: &mut [u32],
     // numECBytesInBlock: &mut [u32],
-) -> Result<(u32, u32), Exceptions> {
+) -> Result<(u32, u32)> {
     if block_id >= num_rsblocks {
         return Err(Exceptions::WriterException(Some(
             "Block ID too large".to_owned(),
@@ -527,7 +524,7 @@ pub fn interleaveWithECBytes(
     num_total_bytes: u32,
     num_data_bytes: u32,
     num_rsblocks: u32,
-) -> Result<BitArray, Exceptions> {
+) -> Result<BitArray> {
     // "bits" must have "getNumDataBytes" bytes of data.
     if bits.getSizeInBytes() as u32 != num_data_bytes {
         return Err(Exceptions::WriterException(Some(
@@ -602,10 +599,7 @@ pub fn interleaveWithECBytes(
     Ok(result)
 }
 
-pub fn generateECBytes(
-    dataBytes: &[u8],
-    num_ec_bytes_in_block: usize,
-) -> Result<Vec<u8>, Exceptions> {
+pub fn generateECBytes(dataBytes: &[u8], num_ec_bytes_in_block: usize) -> Result<Vec<u8>> {
     let num_data_bytes = dataBytes.len();
     let mut to_encode = vec![0; num_data_bytes + num_ec_bytes_in_block];
     for i in 0..num_data_bytes {
@@ -627,7 +621,7 @@ pub fn generateECBytes(
 /**
  * Append mode info. On success, store the result in "bits".
  */
-pub fn appendModeInfo(mode: Mode, bits: &mut BitArray) -> Result<(), Exceptions> {
+pub fn appendModeInfo(mode: Mode, bits: &mut BitArray) -> Result<()> {
     bits.appendBits(mode.getBits() as u32, 4)
 }
 
@@ -639,7 +633,7 @@ pub fn appendLengthInfo(
     version: VersionRef,
     mode: Mode,
     bits: &mut BitArray,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     let numBits = mode.getCharacterCountBits(version);
     if num_letters >= (1 << numBits) {
         return Err(Exceptions::WriterException(Some(format!(
@@ -659,7 +653,7 @@ pub fn appendBytes(
     mode: Mode,
     bits: &mut BitArray,
     encoding: EncodingRef,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     match mode {
         Mode::NUMERIC => appendNumericBytes(content, bits),
         Mode::ALPHANUMERIC => appendAlphanumericBytes(content, bits),
@@ -671,7 +665,7 @@ pub fn appendBytes(
     }
 }
 
-pub fn appendNumericBytes(content: &str, bits: &mut BitArray) -> Result<(), Exceptions> {
+pub fn appendNumericBytes(content: &str, bits: &mut BitArray) -> Result<()> {
     let length = content.len();
     let mut i = 0;
     while i < length {
@@ -712,7 +706,7 @@ pub fn appendNumericBytes(content: &str, bits: &mut BitArray) -> Result<(), Exce
     Ok(())
 }
 
-pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<(), Exceptions> {
+pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<()> {
     let length = content.len();
     let mut i = 0;
     while i < length {
@@ -747,11 +741,7 @@ pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<(),
     Ok(())
 }
 
-pub fn append8BitBytes(
-    content: &str,
-    bits: &mut BitArray,
-    encoding: EncodingRef,
-) -> Result<(), Exceptions> {
+pub fn append8BitBytes(content: &str, bits: &mut BitArray, encoding: EncodingRef) -> Result<()> {
     let bytes = encoding
         .encode(content, encoding::EncoderTrap::Strict)
         .map_err(|e| Exceptions::WriterException(Some(format!("error {e}"))))?;
@@ -761,7 +751,7 @@ pub fn append8BitBytes(
     Ok(())
 }
 
-pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<(), Exceptions> {
+pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<()> {
     let sjis = &SHIFT_JIS_CHARSET;
 
     let bytes = sjis
@@ -797,7 +787,7 @@ pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<(), Except
     Ok(())
 }
 
-fn appendECI(eci: &CharacterSetECI, bits: &mut BitArray) -> Result<(), Exceptions> {
+fn appendECI(eci: &CharacterSetECI, bits: &mut BitArray) -> Result<()> {
     bits.appendBits(Mode::ECI.getBits() as u32, 4)?;
     // This is correct for values up to 127, which is all we need now.
     bits.appendBits(eci.getValueSelf(), 8)

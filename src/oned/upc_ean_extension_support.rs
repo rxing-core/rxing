@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-use crate::{common::BitArray, Exceptions, RXingResult};
+use crate::{
+    common::{BitArray, Result},
+    RXingResult,
+};
 
 use super::{UPCEANExtension2Support, UPCEANExtension5Support, UPCEANReader, STAND_IN};
 
@@ -32,7 +35,7 @@ impl UPCEANExtensionSupport {
         rowNumber: u32,
         row: &BitArray,
         rowOffset: usize,
-    ) -> Result<RXingResult, Exceptions> {
+    ) -> Result<RXingResult> {
         let extensionStartRange =
             STAND_IN.findGuardPattern(row, rowOffset, false, &Self::EXTENSION_START_PATTERN)?;
         if let Ok(res_1) = self

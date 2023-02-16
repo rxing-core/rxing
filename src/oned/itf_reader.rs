@@ -16,7 +16,10 @@
 
 use rxing_one_d_proc_derive::OneDReader;
 
-use crate::{common::BitArray, BarcodeFormat, DecodeHintValue, Exceptions, RXingResult};
+use crate::{
+    common::{BitArray, Result},
+    BarcodeFormat, DecodeHintValue, Exceptions, RXingResult,
+};
 
 use super::{one_d_reader, OneDReader};
 
@@ -106,7 +109,7 @@ impl OneDReader for ITFReader {
         rowNumber: u32,
         row: &crate::common::BitArray,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    ) -> Result<crate::RXingResult> {
         // Find out where the Middle section (payload) starts & ends
         let mut row = row.clone();
         let startRange = self.decodeStart(&row)?;
@@ -174,7 +177,7 @@ impl ITFReader {
         payloadStart: usize,
         payloadEnd: usize,
         resultString: &mut String,
-    ) -> Result<(), Exceptions> {
+    ) -> Result<()> {
         let mut payloadStart = payloadStart;
         // Digits are interleaved in pairs - 5 black lines for one digit, and the
         // 5 interleaved white lines for the second digit.
@@ -216,7 +219,7 @@ impl ITFReader {
      * @return Array, containing index of start of 'start block' and end of
      *         'start block'
      */
-    fn decodeStart(&mut self, row: &BitArray) -> Result<[usize; 2], Exceptions> {
+    fn decodeStart(&mut self, row: &BitArray) -> Result<[usize; 2]> {
         let endStart = Self::skipWhiteSpace(row)?;
         let startPattern = self.findGuardPattern(row, endStart, &START_PATTERN)?;
 
@@ -245,7 +248,7 @@ impl ITFReader {
      * @param startPattern index into row of the start or end pattern.
      * @throws NotFoundException if the quiet zone cannot be found
      */
-    fn validateQuietZone(&self, row: &BitArray, startPattern: usize) -> Result<(), Exceptions> {
+    fn validateQuietZone(&self, row: &BitArray, startPattern: usize) -> Result<()> {
         let mut quietCount = self.narrowLineWidth * 10; // expect to find this many pixels of quiet zone
 
         // if there are not so many pixel at all let's try as many as possible
@@ -275,7 +278,7 @@ impl ITFReader {
      * @return index of the first black line.
      * @throws NotFoundException Throws exception if no black lines are found in the row
      */
-    fn skipWhiteSpace(row: &BitArray) -> Result<usize, Exceptions> {
+    fn skipWhiteSpace(row: &BitArray) -> Result<usize> {
         let width = row.getSize();
         let endStart = row.getNextSet(0);
         if endStart == width {
@@ -292,11 +295,11 @@ impl ITFReader {
      * @return Array, containing index of start of 'end block' and end of 'end
      *         block'
      */
-    fn decodeEnd(&self, row: &mut BitArray) -> Result<[usize; 2], Exceptions> {
+    fn decodeEnd(&self, row: &mut BitArray) -> Result<[usize; 2]> {
         // For convenience, reverse the row and then
         // search from 'the start' for the end block
         row.reverse();
-        let interim_function = || -> Result<[usize; 2], Exceptions> {
+        let interim_function = || -> Result<[usize; 2]> {
             let endStart = Self::skipWhiteSpace(row)?;
             let mut endPattern =
                 if let Ok(ptrn) = self.findGuardPattern(row, endStart, &END_PATTERN_REVERSED[0]) {
@@ -339,7 +342,7 @@ impl ITFReader {
         row: &BitArray,
         rowOffset: usize,
         pattern: &[u32],
-    ) -> Result<[usize; 2], Exceptions> {
+    ) -> Result<[usize; 2]> {
         let patternLength = pattern.len();
         let mut counters = vec![0u32; patternLength]; //new int[patternLength];
         let width = row.getSize();
@@ -385,7 +388,7 @@ impl ITFReader {
      * @return The decoded digit
      * @throws NotFoundException if digit cannot be decoded
      */
-    fn decodeDigit(&self, counters: &[u32]) -> Result<u32, Exceptions> {
+    fn decodeDigit(&self, counters: &[u32]) -> Result<u32> {
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
         let max = PATTERNS.len();

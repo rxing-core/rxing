@@ -18,7 +18,10 @@ use std::fmt;
 
 use encoding::Encoding;
 
-use crate::{common::BitArray, exceptions::Exceptions};
+use crate::{
+    common::{BitArray, Result},
+    exceptions::Exceptions,
+};
 
 use super::{HighLevelEncoder, Token};
 
@@ -70,7 +73,7 @@ impl State {
         self.bit_count
     }
 
-    pub fn appendFLGn(self, eci: u32) -> Result<Self, Exceptions> {
+    pub fn appendFLGn(self, eci: u32) -> Result<Self> {
         let bit_count = self.bit_count;
         let mode = self.mode;
         let result = self.shiftAndAppend(HighLevelEncoder::MODE_PUNCT as u32, 0); // 0: FLG(n)
@@ -207,7 +210,7 @@ impl State {
         new_mode_bit_count <= other.bit_count
     }
 
-    pub fn toBitArray(self, text: &[u8]) -> Result<BitArray, Exceptions> {
+    pub fn toBitArray(self, text: &[u8]) -> Result<BitArray> {
         let mut symbols = Vec::new();
         let tok = self.endBinaryShift(text.len() as u32).token;
         for tkn in tok.into_iter() {

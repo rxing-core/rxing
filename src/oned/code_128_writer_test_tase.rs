@@ -37,9 +37,9 @@ use std::collections::HashMap;
 use once_cell::sync::Lazy;
 
 use crate::{
-    common::{bit_matrix_test_case, BitMatrix},
+    common::{bit_matrix_test_case, BitMatrix, Result},
     oned::{Code128Reader, OneDReader},
-    BarcodeFormat, EncodeHintType, EncodeHintValue, EncodingHintDictionary, Exceptions, Writer,
+    BarcodeFormat, EncodeHintType, EncodeHintValue, EncodingHintDictionary, Writer,
 };
 
 use super::Code128Writer;
@@ -469,7 +469,7 @@ fn testEncodeWithForcedCodeSetFailureCodeSetB() {
     assert_eq!(expected, actual);
 }
 
-fn encode(toEncode: &str, compact: bool, expectedLoopback: &str) -> Result<BitMatrix, Exceptions> {
+fn encode(toEncode: &str, compact: bool, expectedLoopback: &str) -> Result<BitMatrix> {
     let mut reader = Code128Reader::default();
 
     let mut hints: EncodingHintDictionary = HashMap::new();

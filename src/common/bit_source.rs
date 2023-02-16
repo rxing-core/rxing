@@ -18,6 +18,7 @@
 
 use std::cmp;
 
+use crate::common::Result;
 use crate::Exceptions;
 
 /**
@@ -68,7 +69,7 @@ impl BitSource {
      *         bits of the int
      * @throws IllegalArgumentException if numBits isn't in [1,32] or more than is available
      */
-    pub fn readBits(&mut self, numBits: usize) -> Result<u32, Exceptions> {
+    pub fn readBits(&mut self, numBits: usize) -> Result<u32> {
         if !(1..=32).contains(&numBits) || numBits > self.available() {
             return Err(Exceptions::IllegalArgumentException(Some(
                 numBits.to_string(),

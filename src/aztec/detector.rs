@@ -20,7 +20,7 @@ use crate::{
     common::{
         detector::{MathUtils, WhiteRectangleDetector},
         reedsolomon::{self, ReedSolomonDecoder},
-        BitMatrix, DefaultGridSampler, GridSampler,
+        BitMatrix, DefaultGridSampler, GridSampler, Result,
     },
     exceptions::Exceptions,
     RXingResultPoint, ResultPoint,
@@ -64,7 +64,7 @@ impl<'a> Detector<'_> {
         }
     }
 
-    pub fn detect_false(&mut self) -> Result<AztecDetectorRXingResult, Exceptions> {
+    pub fn detect_false(&mut self) -> Result<AztecDetectorRXingResult> {
         self.detect(false)
     }
 
@@ -75,7 +75,7 @@ impl<'a> Detector<'_> {
      * @return {@link AztecDetectorRXingResult} encapsulating results of detecting an Aztec Code
      * @throws NotFoundException if no Aztec Code can be found
      */
-    pub fn detect(&mut self, is_mirror: bool) -> Result<AztecDetectorRXingResult, Exceptions> {
+    pub fn detect(&mut self, is_mirror: bool) -> Result<AztecDetectorRXingResult> {
         // dbg!(self.image.to_string());
         // 1. Get the center of the aztec matrix
         let p_center = self.get_matrix_center();
@@ -118,10 +118,7 @@ impl<'a> Detector<'_> {
      * @param bullsEyeCorners the array of bull's eye corners
      * @throws NotFoundException in case of too many errors or invalid parameters
      */
-    fn extractParameters(
-        &mut self,
-        bulls_eye_corners: &[RXingResultPoint],
-    ) -> Result<(), Exceptions> {
+    fn extractParameters(&mut self, bulls_eye_corners: &[RXingResultPoint]) -> Result<()> {
         if !self.is_valid(bulls_eye_corners[0])
             || !self.is_valid(bulls_eye_corners[1])
             || !self.is_valid(bulls_eye_corners[2])
@@ -179,7 +176,7 @@ impl<'a> Detector<'_> {
         Ok(())
     }
 
-    fn get_rotation(sides: &[u32], length: u32) -> Result<u32, Exceptions> {
+    fn get_rotation(sides: &[u32], length: u32) -> Result<u32> {
         // In a normal pattern, we expect to See
         //   **    .*             D       A
         //   *      *
@@ -222,7 +219,7 @@ impl<'a> Detector<'_> {
      * @param compact true if this is a compact Aztec code
      * @throws NotFoundException if the array contains too many errors
      */
-    fn get_corrected_parameter_data(parameterData: u64, compact: bool) -> Result<u32, Exceptions> {
+    fn get_corrected_parameter_data(parameterData: u64, compact: bool) -> Result<u32> {
         let mut parameter_data = parameterData;
 
         let num_codewords: i32;
@@ -269,10 +266,7 @@ impl<'a> Detector<'_> {
      * @return The corners of the bull-eye
      * @throws NotFoundException If no valid bull-eye can be found
      */
-    fn get_bulls_eye_corners(
-        &mut self,
-        pCenter: Point,
-    ) -> Result<[RXingResultPoint; 4], Exceptions> {
+    fn get_bulls_eye_corners(&mut self, pCenter: Point) -> Result<[RXingResultPoint; 4]> {
         let mut pina = pCenter;
         let mut pinb = pCenter;
         let mut pinc = pCenter;
@@ -504,7 +498,7 @@ impl<'a> Detector<'_> {
         top_right: RXingResultPoint,
         bottom_right: RXingResultPoint,
         bottom_left: RXingResultPoint,
-    ) -> Result<BitMatrix, Exceptions> {
+    ) -> Result<BitMatrix> {
         let sampler = DefaultGridSampler::default();
         let dimension = self.get_dimension();
 
