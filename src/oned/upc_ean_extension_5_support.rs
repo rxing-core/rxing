@@ -18,8 +18,8 @@ use std::collections::HashMap;
 
 use crate::{
     common::{BitArray, Result},
-    BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue,
-    Point,
+    BarcodeFormat, Exceptions, Point, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue,
 };
 
 use super::{upc_ean_reader, UPCEANReader, STAND_IN};

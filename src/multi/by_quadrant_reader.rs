@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::common::Result;
-use crate::{Exceptions, RXingResult, Point, Reader, ResultPoint};
+use crate::{Exceptions, Point, RXingResult, Reader, ResultPoint};
 
 /**
  * This class attempts to decode a barcode from an image, not by scanning the whole image,
@@ -88,11 +88,8 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
         // This is a match because only NotFoundExceptions should be ignored
         match result {
             Ok(res) => {
-                let points = Self::makeAbsolute(
-                    res.getPoints(),
-                    halfWidth as f32,
-                    halfHeight as f32,
-                );
+                let points =
+                    Self::makeAbsolute(res.getPoints(), halfWidth as f32, halfHeight as f32);
                 return Ok(RXingResult::new_from_existing_result(res, points));
             }
             Err(Exceptions::NotFoundException(_)) => {}
@@ -122,11 +119,7 @@ impl<T: Reader> ByQuadrantReader<T> {
         Self(delegate)
     }
 
-    fn makeAbsolute(
-        points: &[Point],
-        leftOffset: f32,
-        topOffset: f32,
-    ) -> Vec<Point> {
+    fn makeAbsolute(points: &[Point], leftOffset: f32, topOffset: f32) -> Vec<Point> {
         // let mut result = Vec::new();
         // if !points.is_empty() {
 
@@ -140,9 +133,7 @@ impl<T: Reader> ByQuadrantReader<T> {
         // result
         points
             .iter()
-            .map(|relative| {
-                Point::new(relative.getX() + leftOffset, relative.getY() + topOffset)
-            })
+            .map(|relative| Point::new(relative.getX() + leftOffset, relative.getY() + topOffset))
             .collect()
     }
 }

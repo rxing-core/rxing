@@ -16,7 +16,7 @@
 
 use std::{collections::HashMap, fmt};
 
-use crate::{BarcodeFormat, RXingResultMetadataType, RXingResultMetadataValue, Point};
+use crate::{BarcodeFormat, Point, RXingResultMetadataType, RXingResultMetadataValue};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};

@@ -37,8 +37,7 @@ impl RegressionLine for DMRegressionLine {
 
     fn length(&self) -> u32 {
         if self.points.len() >= 2 {
-            Point::distance(*self.points.first().unwrap(), *self.points.last().unwrap())
-                as u32
+            Point::distance(*self.points.first().unwrap(), *self.points.last().unwrap()) as u32
         } else {
             0
         }

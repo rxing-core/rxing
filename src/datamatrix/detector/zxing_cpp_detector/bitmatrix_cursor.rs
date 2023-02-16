@@ -17,9 +17,9 @@ pub trait BitMatrixCursor {
     // BitMatrixCursor(const BitMatrix& image, POINT p, POINT d) : img(&image), p(p) { setDirection(d); }
 
     fn testAt(&self, p: Point) -> Value; //const
-                                                    // {
-                                                    // 	return img->isIn(p) ? Value{img->get(p)} : Value{};
-                                                    // }
+                                         // {
+                                         // 	return img->isIn(p) ? Value{img->get(p)} : Value{};
+                                         // }
 
     fn blackAt(&self, pos: Point) -> bool {
         self.testAt(pos).isBlack()
@@ -69,7 +69,7 @@ pub trait BitMatrixCursor {
     }
 
     fn setDirection(&mut self, dir: Point); // { d = bresenhamDirection(dir); }
-                                                       // fn setDirection(&self, dir: Point);// { d = dir; }
+                                            // fn setDirection(&self, dir: Point);// { d = dir; }
 
     fn step(&mut self, s: Option<f32>) -> bool; // DEF to 1
                                                 // {

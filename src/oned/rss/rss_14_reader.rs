@@ -19,8 +19,8 @@ use std::collections::HashMap;
 use crate::{
     common::{BitArray, Result},
     oned::{one_d_reader, OneDReader},
-    BarcodeFormat, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
-    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Point, Reader,
+    BarcodeFormat, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, Point,
+    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{

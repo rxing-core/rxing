@@ -26,11 +26,7 @@ pub struct PDF417DetectorRXingResult {
 }
 
 impl PDF417DetectorRXingResult {
-    pub fn with_rotation(
-        bits: BitMatrix,
-        points: Vec<[Option<Point>; 8]>,
-        rotation: u32,
-    ) -> Self {
+    pub fn with_rotation(bits: BitMatrix, points: Vec<[Option<Point>; 8]>, rotation: u32) -> Self {
         Self {
             bits,
             points,

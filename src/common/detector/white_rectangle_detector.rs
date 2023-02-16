@@ -289,13 +289,7 @@ impl<'a> WhiteRectangleDetector<'_> {
         }
     }
 
-    fn get_black_point_on_segment(
-        &self,
-        a_x: f32,
-        a_y: f32,
-        b_x: f32,
-        b_y: f32,
-    ) -> Option<Point> {
+    fn get_black_point_on_segment(&self, a_x: f32, a_y: f32, b_x: f32, b_y: f32) -> Option<Point> {
         let dist = MathUtils::round(MathUtils::distance(a_x, a_y, b_x, b_y));
         let x_step: f32 = (b_x - a_x) / dist as f32;
         let y_step: f32 = (b_y - a_y) / dist as f32;
@@ -323,13 +317,7 @@ impl<'a> WhiteRectangleDetector<'_> {
      *         point and the last, the bottommost. The second point will be
      *         leftmost and the third, the rightmost
      */
-    fn center_edges(
-        &self,
-        y: Point,
-        z: Point,
-        x: Point,
-        t: Point,
-    ) -> [Point; 4] {
+    fn center_edges(&self, y: Point, z: Point, x: Point, t: Point) -> [Point; 4] {
         //
         //       t            t
         //  z                      x

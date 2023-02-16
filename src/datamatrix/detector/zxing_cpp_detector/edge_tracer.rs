@@ -252,21 +252,14 @@ impl<'a> EdgeTracer<'_> {
         }
         // make sure d stays in the same quadrant to prevent an infinite loop
         if (self.d.x).abs() == (self.d.y).abs() {
-            self.d = Point::mainDirection(old_d)
-                + 0.99 * (self.d - Point::mainDirection(old_d));
-        } else if Point::mainDirection(self.d) != Point::mainDirection(old_d)
-        {
-            self.d = Point::mainDirection(old_d)
-                + 0.99 * Point::mainDirection(self.d);
+            self.d = Point::mainDirection(old_d) + 0.99 * (self.d - Point::mainDirection(old_d));
+        } else if Point::mainDirection(self.d) != Point::mainDirection(old_d) {
+            self.d = Point::mainDirection(old_d) + 0.99 * Point::mainDirection(self.d);
         }
         true
     }
 
-    pub fn traceLine<T: RegressionLine>(
-        &mut self,
-        dEdge: Point,
-        line: &mut T,
-    ) -> Result<bool> {
+    pub fn traceLine<T: RegressionLine>(&mut self, dEdge: Point, line: &mut T) -> Result<bool> {
         line.setDirectionInward(dEdge);
         loop {
             // log(self.p);
@@ -341,9 +334,7 @@ impl<'a> EdgeTracer<'_> {
                 // In case the 'go outward' step in traceStep lead us astray, we might end up with a line
                 // that is almost perpendicular to d. Then the back-projection below can result in an
                 // endless loop. Break if the angle between d and line is greater than 45 deg.
-                if (Point::dot(Point::normalized(self.d), line.normal()))
-                    .abs()
-                    > 0.7
+                if (Point::dot(Point::normalized(self.d), line.normal())).abs() > 0.7
                 // thresh is approx. sin(45 deg)
                 {
                     return Ok(false);
@@ -439,11 +430,7 @@ impl<'a> EdgeTracer<'_> {
         } //while (true);
     }
 
-    pub fn traceCorner(
-        &mut self,
-        dir: &mut Point,
-        corner: &mut Point,
-    ) -> Result<bool> {
+    pub fn traceCorner(&mut self, dir: &mut Point, corner: &mut Point) -> Result<bool> {
         self.step(None);
         // log(p);
         *corner = self.p;

@@ -197,14 +197,8 @@ fn Scan(
 
         CHECK!((10..=144).contains(&dimT) && (8..=144).contains(&dimR));
 
-        let movedTowardsBy = |a: Point,
-                              b1: Point,
-                              b2: Point,
-                              d: f32|
-         -> Point {
-            a + d * Point::normalized(
-                Point::normalized(b1 - a) + Point::normalized(b2 - a),
-            )
+        let movedTowardsBy = |a: Point, b1: Point, b2: Point, d: f32| -> Point {
+            a + d * Point::normalized(Point::normalized(b1 - a) + Point::normalized(b2 - a))
         };
 
         // shrink shape by half a pixel to go from center of white pixel outside of code to the edge between white and black
@@ -302,8 +296,7 @@ pub fn detect(
             x: (image.getWidth() / 2) as f32,
             y: (image.getHeight() / 2) as f32,
         }; //PointF(image.width() / 2, image.height() / 2);
-        let startPos =
-            Point::centered(center - center * dir + MIN_SYMBOL_SIZE as i32 / 2 * dir);
+        let startPos = Point::centered(center - center * dir + MIN_SYMBOL_SIZE as i32 / 2 * dir);
 
         if let Some(history) = &mut history {
             history.borrow_mut().clear(0);

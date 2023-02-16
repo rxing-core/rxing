@@ -78,11 +78,11 @@ pub trait RegressionLine {
     // }
 
     fn add(&mut self, p: Point) -> Result<()>; //{
-                                                          // 	assert(_directionInward != PointF());
-                                                          // 	_points.push_back(p);
-                                                          // 	if (_points.size() == 1)
-                                                          // 		c = dot(normal(), p);
-                                                          // }
+                                               // 	assert(_directionInward != PointF());
+                                               // 	_points.push_back(p);
+                                               // 	if (_points.size() == 1)
+                                               // 		c = dot(normal(), p);
+                                               // }
 
     fn pop_back(&mut self); // { _points.pop_back(); }
 

@@ -16,8 +16,8 @@
 
 use crate::{
     common::{BitArray, Result},
-    BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, Point, Reader,
+    BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, Point, RXingResult,
+    RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{one_d_reader, EANManufacturerOrgSupport, OneDReader, UPCEANExtensionSupport};
@@ -223,8 +223,7 @@ pub trait UPCEANReader: OneDReader {
                 ),
             );
             decodeRXingResult.putAllMetadata(extensionRXingResult.getRXingResultMetadata().clone());
-            decodeRXingResult
-                .addPoints(&mut extensionRXingResult.getPoints().clone());
+            decodeRXingResult.addPoints(&mut extensionRXingResult.getPoints().clone());
             extensionLength = extensionRXingResult.getText().chars().count();
             Ok(())
         };

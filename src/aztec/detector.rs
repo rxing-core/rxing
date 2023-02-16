@@ -325,14 +325,10 @@ impl<'a> Detector<'_> {
 
         // Expand the square by .5 pixel in each direction so that we're on the border
         // between the white square and the black square
-        let pinax =
-            Point::new(pina.get_x() as f32 + 0.5f32, pina.get_y() as f32 - 0.5f32);
-        let pinbx =
-            Point::new(pinb.get_x() as f32 + 0.5f32, pinb.get_y() as f32 + 0.5f32);
-        let pincx =
-            Point::new(pinc.get_x() as f32 - 0.5f32, pinc.get_y() as f32 + 0.5f32);
-        let pindx =
-            Point::new(pind.get_x() as f32 - 0.5f32, pind.get_y() as f32 - 0.5f32);
+        let pinax = Point::new(pina.get_x() as f32 + 0.5f32, pina.get_y() as f32 - 0.5f32);
+        let pinbx = Point::new(pinb.get_x() as f32 + 0.5f32, pinb.get_y() as f32 + 0.5f32);
+        let pincx = Point::new(pinc.get_x() as f32 - 0.5f32, pinc.get_y() as f32 + 0.5f32);
+        let pindx = Point::new(pind.get_x() as f32 - 0.5f32, pind.get_y() as f32 - 0.5f32);
 
         // Expand the square so that its corners are the centers of the points
         // just outside the bull's eye.
@@ -475,10 +471,7 @@ impl<'a> Detector<'_> {
      * @param bullsEyeCorners the array of bull's eye corners
      * @return the array of aztec code corners
      */
-    fn get_matrix_corner_points(
-        &self,
-        bulls_eye_corners: &[Point],
-    ) -> [Point; 4] {
+    fn get_matrix_corner_points(&self, bulls_eye_corners: &[Point]) -> [Point; 4] {
         Self::expand_square(
             bulls_eye_corners,
             2 * self.nb_center_layers,
@@ -561,7 +554,13 @@ impl<'a> Detector<'_> {
      * @return true if the border of the rectangle passed in parameter is compound of white points only
      *         or black points only
      */
-    fn is_white_or_black_rectangle(&self, p1: &AztecPoint, p2: &AztecPoint, p3: &AztecPoint, p4: &AztecPoint) -> bool {
+    fn is_white_or_black_rectangle(
+        &self,
+        p1: &AztecPoint,
+        p2: &AztecPoint,
+        p3: &AztecPoint,
+        p4: &AztecPoint,
+    ) -> bool {
         let corr = 3;
 
         let p1 = AztecPoint::new(
@@ -690,11 +689,7 @@ impl<'a> Detector<'_> {
      * @param newSide the new length of the size of the square in the target bit matrix
      * @return the corners of the expanded square
      */
-    fn expand_square(
-        corner_points: &[Point],
-        old_side: u32,
-        new_side: u32,
-    ) -> [Point; 4] {
+    fn expand_square(corner_points: &[Point], old_side: u32, new_side: u32) -> [Point; 4] {
         let ratio = new_side as f32 / (2.0f32 * old_side as f32);
 
         let d = corner_points[0] - corner_points[2];

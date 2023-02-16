@@ -39,7 +39,7 @@ use rand::Rng;
 use crate::{aztec::decoder, common::BitMatrix, exceptions::Exceptions};
 
 use super::{
-    detector::{self, Detector, AztecPoint},
+    detector::{self, AztecPoint, Detector},
     encoder::{self, AztecCode},
 };
 
@@ -271,7 +271,10 @@ fn get_orientation_points(code: &AztecCode) -> Vec<AztecPoint> {
         let mut ySign: i32 = -1;
         while ySign <= 1 {
             // for (int ySign = -1; ySign <= 1; ySign += 2) {
-            result.push(AztecPoint::new(center + xSign * offset, center + ySign * offset));
+            result.push(AztecPoint::new(
+                center + xSign * offset,
+                center + ySign * offset,
+            ));
             result.push(AztecPoint::new(
                 center + xSign * (offset - 1),
                 center + ySign * offset,

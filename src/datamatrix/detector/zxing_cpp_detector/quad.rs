@@ -17,12 +17,7 @@ impl Quadrilateral {
     //     Self([tl, tr,br, bl ])
     // }
 
-    pub fn with_points(
-        tl: Point,
-        tr: Point,
-        br: Point,
-        bl: Point,
-    ) -> Self {
+    pub fn with_points(tl: Point, tr: Point, br: Point, bl: Point) -> Self {
         Self([tl, tr, br, bl])
     }
 

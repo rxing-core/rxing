@@ -64,8 +64,7 @@ impl BoundingBox {
             newTopLeft = topLeft.ok_or(Exceptions::IllegalStateException(None))?;
             newBottomLeft = bottomLeft.ok_or(Exceptions::IllegalStateException(None))?;
             newTopRight = Point::new(image.getWidth() as f32 - 1.0, newTopLeft.getY());
-            newBottomRight =
-                Point::new(image.getWidth() as f32 - 1.0, newBottomLeft.getY());
+            newBottomRight = Point::new(image.getWidth() as f32 - 1.0, newBottomLeft.getY());
         } else {
             newTopLeft = topLeft.ok_or(Exceptions::IllegalStateException(None))?;
             newTopRight = topRight.ok_or(Exceptions::IllegalStateException(None))?;

@@ -17,8 +17,8 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::Result, BinaryBitmap, DecodingHintDictionary, Exceptions, RXingResult,
-    Point, Reader, ResultPoint,
+    common::Result, BinaryBitmap, DecodingHintDictionary, Exceptions, Point, RXingResult, Reader,
+    ResultPoint,
 };
 
 use super::MultipleBarcodeReader;

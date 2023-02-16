@@ -18,8 +18,8 @@ use std::collections::HashMap;
 
 use crate::{
     common::Result, multi::MultipleBarcodeReader, BarcodeFormat, BinaryBitmap,
-    DecodingHintDictionary, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, Point, Reader, ResultPoint,
+    DecodingHintDictionary, Exceptions, Point, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue, Reader, ResultPoint,
 };
 
 use super::{

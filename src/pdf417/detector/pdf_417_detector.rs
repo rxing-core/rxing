@@ -179,11 +179,7 @@ pub fn detect(multiple: bool, bitMatrix: &BitMatrix) -> Option<Vec<[Option<Point
  *           vertices[6] x, y top right codeword area
  *           vertices[7] x, y bottom right codeword area
  */
-fn findVertices(
-    matrix: &BitMatrix,
-    startRow: u32,
-    startColumn: u32,
-) -> Option<[Option<Point>; 8]> {
+fn findVertices(matrix: &BitMatrix, startRow: u32, startColumn: u32) -> Option<[Option<Point>; 8]> {
     let height = matrix.getHeight();
     let width = matrix.getWidth();
     let mut startRow = startRow;
@@ -249,14 +245,8 @@ fn findRowsWithPattern(
                     break;
                 }
             }
-            result[0] = Some(Point::new(
-                loc_store.as_ref()?[0] as f32,
-                startRow as f32,
-            ));
-            result[1] = Some(Point::new(
-                loc_store.as_ref()?[1] as f32,
-                startRow as f32,
-            ));
+            result[0] = Some(Point::new(loc_store.as_ref()?[0] as f32, startRow as f32));
+            result[1] = Some(Point::new(loc_store.as_ref()?[1] as f32, startRow as f32));
             found = true;
             break;
         }
@@ -304,14 +294,8 @@ fn findRowsWithPattern(
             stopRow += 1;
         }
         stopRow -= skippedRowCount + 1;
-        result[2] = Some(Point::new(
-            previousRowLoc[0] as f32,
-            stopRow as f32,
-        ));
-        result[3] = Some(Point::new(
-            previousRowLoc[1] as f32,
-            stopRow as f32,
-        ));
+        result[2] = Some(Point::new(previousRowLoc[0] as f32, stopRow as f32));
+        result[3] = Some(Point::new(previousRowLoc[1] as f32, stopRow as f32));
     }
     if stopRow - startRow < BARCODE_MIN_HEIGHT {
         result.fill(None);
