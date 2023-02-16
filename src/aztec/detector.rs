@@ -18,7 +18,7 @@ use std::fmt;
 
 use crate::{
     common::{
-        detector::{MathUtils, WhiteRectangleDetector},
+        detector::WhiteRectangleDetector,
         reedsolomon::{self, ReedSolomonDecoder},
         BitMatrix, DefaultGridSampler, GridSampler, Result,
     },
@@ -403,12 +403,10 @@ impl<'a> Detector<'_> {
         // }
 
         //Compute the center of the rectangle
-        let mut cx = MathUtils::round(
-            (point_a.getX() + point_d.getX() + point_b.getX() + point_c.getX()) / 4.0f32,
-        );
-        let mut cy = MathUtils::round(
-            (point_a.getY() + point_d.getY() + point_b.getY() + point_c.getY()) / 4.0f32,
-        );
+        let mut cx = ((point_a.getX() + point_d.getX() + point_b.getX() + point_c.getX()) / 4.0)
+            .round() as i32;
+        let mut cy = ((point_a.getY() + point_d.getY() + point_b.getY() + point_c.getY()) / 4.0)
+            .round() as i32;
 
         // Redetermine the white rectangle starting from previously computed center.
         // This will ensure that we end up with a white rectangle in center bull's eye
@@ -455,12 +453,10 @@ impl<'a> Detector<'_> {
         // }
 
         // Recompute the center of the rectangle
-        cx = MathUtils::round(
-            (point_a.getX() + point_d.getX() + point_b.getX() + point_c.getX()) / 4.0f32,
-        );
-        cy = MathUtils::round(
-            (point_a.getY() + point_d.getY() + point_b.getY() + point_c.getY()) / 4.0f32,
-        );
+        cx = ((point_a.getX() + point_d.getX() + point_b.getX() + point_c.getX()) / 4.0).round()
+            as i32;
+        cy = ((point_a.getY() + point_d.getY() + point_b.getY() + point_c.getY()) / 4.0).round()
+            as i32;
 
         AztecPoint::new(cx, cy)
     }
@@ -541,8 +537,8 @@ impl<'a> Detector<'_> {
         for i in 0..size {
             // for (int i = 0; i < size; i++) {
             if self.image.get(
-                MathUtils::round(px + i as f32 * dx) as u32,
-                MathUtils::round(py + i as f32 * dy) as u32,
+                (px + i as f32 * dx).round() as u32,
+                (py + i as f32 * dy).round() as u32,
             ) {
                 result |= 1 << (size - i - 1);
             }
@@ -629,11 +625,7 @@ impl<'a> Detector<'_> {
         for _i in 0..i_max {
             // for (int i = 0; i < iMax; i++) {
 
-            if self
-                .image
-                .get(MathUtils::round(px) as u32, MathUtils::round(py) as u32)
-                != color_model
-            {
+            if self.image.get(px.round() as u32, py.round() as u32) != color_model {
                 error += 1;
             }
             px += dx;
@@ -710,8 +702,8 @@ impl<'a> Detector<'_> {
     }
 
     fn is_valid(&self, point: Point) -> bool {
-        let x = MathUtils::round(point.getX());
-        let y = MathUtils::round(point.getY());
+        let x = point.getX().round() as i32;
+        let y = point.getY().round() as i32;
         self.is_valid_points(x, y)
     }
 

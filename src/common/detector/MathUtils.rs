@@ -14,26 +14,11 @@
  * limitations under the License.
  */
 
-use std::{f32, i32, ops::Add};
+use std::ops::Add;
 
 /**
  * General math-related and numeric utility functions.
  */
-
-/**
- * Ends up being a bit faster than {@link Math#round(float)}. This merely rounds its
- * argument to the nearest int, where x.5 rounds up to x+1. Semantics of this shortcut
- * differ slightly from {@link Math#round(float)} in that half rounds down for negative
- * values. -2.5 rounds to -3, not -2. For purposes here it makes no difference.
- *
- * @param d real value to round
- * @return nearest {@code int}
- */
-#[inline(always)]
-pub fn round(d: f32) -> i32 {
-    // (d + (if d < 0.0f32 { -0.5f32 } else { 0.5f32 })) as i32
-    d.round() as i32
-}
 
 // /**
 //  * @param aX point A x coordinate
@@ -77,33 +62,31 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::common::detector::MathUtils;
-
     // static EPSILON: f32 = 1.0E-8f32;
 
     #[test]
     fn testRound() {
-        assert_eq!(-1, MathUtils::round(-1.0f32));
-        assert_eq!(0, MathUtils::round(0.0f32));
-        assert_eq!(1, MathUtils::round(1.0f32));
+        assert_eq!(-1, (-1.0f32).round() as i32);
+        assert_eq!(0, (0.0f32).round() as i32);
+        assert_eq!(1, (1.0f32).round() as i32);
 
-        assert_eq!(2, MathUtils::round(1.9f32));
-        assert_eq!(2, MathUtils::round(2.1f32));
+        assert_eq!(2, (1.9f32).round() as i32);
+        assert_eq!(2, (2.1f32).round() as i32);
 
-        assert_eq!(3, MathUtils::round(2.5f32));
+        assert_eq!(3, (2.5f32).round() as i32);
 
-        assert_eq!(-2, MathUtils::round(-1.9f32));
-        assert_eq!(-2, MathUtils::round(-2.1f32));
+        assert_eq!(-2, (-1.9f32).round() as i32);
+        assert_eq!(-2, (-2.1f32).round() as i32);
 
-        assert_eq!(-3, MathUtils::round(-2.5f32)); // This differs from Math.round()
+        assert_eq!(-3, (-2.5f32).round() as i32); // This differs from Math.round()
 
-        assert_eq!(i32::MAX, MathUtils::round(i32::MAX as f32));
-        assert_eq!(i32::MIN, MathUtils::round(i32::MIN as f32));
+        assert_eq!(i32::MAX, (i32::MAX as f32).round() as i32);
+        assert_eq!(i32::MIN, (i32::MIN as f32).round() as i32);
 
-        assert_eq!(i32::MAX, MathUtils::round(f32::MAX));
-        assert_eq!(i32::MIN, MathUtils::round(f32::NEG_INFINITY));
+        assert_eq!(i32::MAX, (f32::MAX).round() as i32);
+        assert_eq!(i32::MIN, (f32::NEG_INFINITY).round() as i32);
 
-        assert_eq!(0, MathUtils::round(f32::NAN));
+        assert_eq!(0, (f32::NAN).round() as i32);
     }
 
     // #[test]

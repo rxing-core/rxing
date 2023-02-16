@@ -21,8 +21,6 @@ use crate::{
     Exceptions, Point, ResultPoint,
 };
 
-use super::MathUtils;
-
 /**
  * <p>
  * Detects a candidate barcode-like rectangular region within an image. It
@@ -293,13 +291,13 @@ impl<'a> WhiteRectangleDetector<'_> {
         let a = Point::new(a_x, a_y);
         let b = Point::new(b_x, b_y);
 
-        let dist = MathUtils::round(a.distance(b));
+        let dist = a.distance(b).round() as i32;
         let x_step: f32 = (b_x - a_x) / dist as f32;
         let y_step: f32 = (b_y - a_y) / dist as f32;
 
         for i in 0..dist {
-            let x = MathUtils::round(a_x + i as f32 * x_step);
-            let y = MathUtils::round(a_y + i as f32 * y_step);
+            let x = (a_x + i as f32 * x_step).round() as i32;
+            let y = (a_y + i as f32 * y_step).round() as i32;
             if self.image.get(x as u32, y as u32) {
                 return Some(Point::new(x as f32, y as f32));
             }
