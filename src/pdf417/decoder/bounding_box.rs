@@ -18,7 +18,7 @@ use std::rc::Rc;
 
 use crate::{
     common::{BitMatrix, Result},
-    point, Exceptions, Point, ResultPoint,
+    point, Exceptions, Point,
 };
 
 /**
@@ -58,13 +58,13 @@ impl BoundingBox {
         if leftUnspecified {
             newTopRight = topRight.ok_or(Exceptions::IllegalStateException(None))?;
             newBottomRight = bottomRight.ok_or(Exceptions::IllegalStateException(None))?;
-            newTopLeft = point(0.0, newTopRight.getY());
-            newBottomLeft = point(0.0, newBottomRight.getY());
+            newTopLeft = point(0.0, newTopRight.y);
+            newBottomLeft = point(0.0, newBottomRight.y);
         } else if rightUnspecified {
             newTopLeft = topLeft.ok_or(Exceptions::IllegalStateException(None))?;
             newBottomLeft = bottomLeft.ok_or(Exceptions::IllegalStateException(None))?;
-            newTopRight = point(image.getWidth() as f32 - 1.0, newTopLeft.getY());
-            newBottomRight = point(image.getWidth() as f32 - 1.0, newBottomLeft.getY());
+            newTopRight = point(image.getWidth() as f32 - 1.0, newTopLeft.y);
+            newBottomRight = point(image.getWidth() as f32 - 1.0, newBottomLeft.y);
         } else {
             newTopLeft = topLeft.ok_or(Exceptions::IllegalStateException(None))?;
             newTopRight = topRight.ok_or(Exceptions::IllegalStateException(None))?;
@@ -74,10 +74,10 @@ impl BoundingBox {
 
         Ok(BoundingBox {
             image,
-            minX: newTopLeft.getX().min(newBottomLeft.getX()) as u32,
-            maxX: newTopRight.getX().max(newBottomRight.getX()) as u32,
-            minY: newTopLeft.getY().min(newTopRight.getY()) as u32,
-            maxY: newBottomLeft.getY().max(newBottomRight.getY()) as u32,
+            minX: newTopLeft.x.min(newBottomLeft.x) as u32,
+            maxX: newTopRight.x.max(newBottomRight.x) as u32,
+            minY: newTopLeft.y.min(newTopRight.y) as u32,
+            maxY: newBottomLeft.y.max(newBottomRight.y) as u32,
             topLeft: newTopLeft,
             bottomLeft: newBottomLeft,
             topRight: newTopRight,
@@ -140,11 +140,11 @@ impl BoundingBox {
 
         if missingStartRows > 0 {
             let top = if isLeft { self.topLeft } else { self.topRight };
-            let mut newMinY = top.getY() - missingStartRows as f32;
+            let mut newMinY = top.y - missingStartRows as f32;
             if newMinY < 0.0 {
                 newMinY = 0.0;
             }
-            let newTop = point(top.getX(), newMinY);
+            let newTop = point(top.x, newMinY);
             if isLeft {
                 newTopLeft = newTop;
             } else {
@@ -158,11 +158,11 @@ impl BoundingBox {
             } else {
                 self.bottomRight
             };
-            let mut newMaxY = bottom.getY() as u32 + missingEndRows;
+            let mut newMaxY = bottom.y as u32 + missingEndRows;
             if newMaxY >= self.image.getHeight() {
                 newMaxY = self.image.getHeight() - 1;
             }
-            let newBottom = point(bottom.getX(), newMaxY as f32);
+            let newBottom = point(bottom.x, newMaxY as f32);
             if isLeft {
                 newBottomLeft = newBottom;
             } else {

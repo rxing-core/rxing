@@ -23,7 +23,7 @@ use crate::{
         BitMatrix, DefaultGridSampler, GridSampler, Result,
     },
     exceptions::Exceptions,
-    point, Point, ResultPoint,
+    point, Point,
 };
 
 use super::aztec_detector_result::AztecDetectorRXingResult;
@@ -403,10 +403,8 @@ impl<'a> Detector<'_> {
         // }
 
         //Compute the center of the rectangle
-        let mut cx = ((point_a.getX() + point_d.getX() + point_b.getX() + point_c.getX()) / 4.0)
-            .round() as i32;
-        let mut cy = ((point_a.getY() + point_d.getY() + point_b.getY() + point_c.getY()) / 4.0)
-            .round() as i32;
+        let mut cx = ((point_a.x + point_d.x + point_b.x + point_c.x) / 4.0).round() as i32;
+        let mut cy = ((point_a.y + point_d.y + point_b.y + point_c.y) / 4.0).round() as i32;
 
         // Redetermine the white rectangle starting from previously computed center.
         // This will ensure that we end up with a white rectangle in center bull's eye
@@ -453,10 +451,8 @@ impl<'a> Detector<'_> {
         // }
 
         // Recompute the center of the rectangle
-        cx = ((point_a.getX() + point_d.getX() + point_b.getX() + point_c.getX()) / 4.0).round()
-            as i32;
-        cy = ((point_a.getY() + point_d.getY() + point_b.getY() + point_c.getY()) / 4.0).round()
-            as i32;
+        cx = ((point_a.x + point_d.x + point_b.x + point_c.x) / 4.0).round() as i32;
+        cy = ((point_a.y + point_d.y + point_b.y + point_c.y) / 4.0).round() as i32;
 
         AztecPoint::new(cx, cy)
     }
@@ -506,14 +502,14 @@ impl<'a> Detector<'_> {
             high, // bottomright
             low,
             high, // bottomleft
-            top_left.getX(),
-            top_left.getY(),
-            top_right.getX(),
-            top_right.getY(),
-            bottom_right.getX(),
-            bottom_right.getY(),
-            bottom_left.getX(),
-            bottom_left.getY(),
+            top_left.x,
+            top_left.y,
+            top_right.x,
+            top_right.y,
+            bottom_right.x,
+            bottom_right.y,
+            bottom_left.x,
+            bottom_left.y,
         )
     }
 
@@ -530,10 +526,10 @@ impl<'a> Detector<'_> {
 
         let d = Self::distance(p1, p2);
         let module_size = d / size as f32;
-        let px = p1.getX();
-        let py = p1.getY();
-        let dx = module_size * (p2.getX() - p1.getX()) / d;
-        let dy = module_size * (p2.getY() - p1.getY()) / d;
+        let px = p1.x;
+        let py = p1.y;
+        let dx = module_size * (p2.x - p1.x) / d;
+        let dy = module_size * (p2.y - p1.y) / d;
         for i in 0..size {
             // for (int i = 0; i < size; i++) {
             if self.image.get(
@@ -702,8 +698,8 @@ impl<'a> Detector<'_> {
     }
 
     fn is_valid(&self, point: Point) -> bool {
-        let x = point.getX().round() as i32;
-        let y = point.getY().round() as i32;
+        let x = point.x.round() as i32;
+        let y = point.y.round() as i32;
         self.is_valid_points(x, y)
     }
 

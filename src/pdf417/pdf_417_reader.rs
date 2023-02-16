@@ -19,7 +19,7 @@ use std::collections::HashMap;
 use crate::{
     common::Result, multi::MultipleBarcodeReader, BarcodeFormat, BinaryBitmap,
     DecodingHintDictionary, Exceptions, Point, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, Reader, ResultPoint,
+    RXingResultMetadataValue, Reader,
 };
 
 use super::{
@@ -153,7 +153,7 @@ impl PDF417Reader {
 
     fn getMaxWidth(p1: &Option<Point>, p2: &Option<Point>) -> u64 {
         if let (Some(p1), Some(p2)) = (p1, p2) {
-            (p1.getX() - p2.getX()).abs() as u64
+            (p1.x - p2.x).abs() as u64
         } else {
             0
         }
@@ -161,7 +161,7 @@ impl PDF417Reader {
 
     fn getMinWidth(p1: &Option<Point>, p2: &Option<Point>) -> u64 {
         if let (Some(p1), Some(p2)) = (p1, p2) {
-            (p1.getX() - p2.getX()).abs() as u64
+            (p1.x - p2.x).abs() as u64
         } else {
             u32::MAX as u64
         }

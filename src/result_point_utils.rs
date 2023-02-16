@@ -6,7 +6,7 @@ use crate::Point;
  *
  * @param patterns array of three {@code Point} to order
  */
-pub fn orderBestPatterns<T: Into<Point>>(patterns: &mut [T; 3]) {
+pub fn orderBestPatterns<T: Into<Point> + Copy>(patterns: &mut [T; 3]) {
     // Find distances between pattern centers
     let zeroOneDistance = Point::distance(patterns[0].into(), patterns[1].into());
     let oneTwoDistance = Point::distance(patterns[1].into(), patterns[2].into());

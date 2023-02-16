@@ -19,7 +19,7 @@ use std::rc::Rc;
 use crate::{
     common::{BitMatrix, DecoderRXingResult, Result},
     pdf417::pdf_417_common,
-    Exceptions, Point, ResultPoint,
+    Exceptions, Point,
 };
 
 use super::{
@@ -368,8 +368,8 @@ fn getRowIndicatorColumn<'a>(
     for i in 0..2 {
         // for (int i = 0; i < 2; i++) {
         let increment: i32 = if i == 0 { 1 } else { -1 };
-        let mut startColumn: u32 = startPoint.getX() as u32;
-        let mut imageRow: i32 = startPoint.getY() as i32;
+        let mut startColumn: u32 = startPoint.x as u32;
+        let mut imageRow: i32 = startPoint.y as i32;
         while imageRow <= boundingBox.getMaxY() as i32 && imageRow >= boundingBox.getMinY() as i32 {
             // for (int imageRow = (int) startPoint.getY(); imageRow <= boundingBox.getMaxY() &&
             //     imageRow >= boundingBox.getMinY(); imageRow += increment) {

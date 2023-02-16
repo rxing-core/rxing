@@ -17,7 +17,7 @@
 use crate::{
     common::{BitArray, Result},
     point, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
-    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader, ResultPoint,
+    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 /**
@@ -117,8 +117,8 @@ pub trait OneDReader: Reader {
                     // And remember to flip the result points horizontally.
                     let points = result.getPointsMut();
                     if !points.is_empty() && points.len() >= 2 {
-                        points[0] = point(width as f32 - points[0].getX() - 1.0, points[0].getY());
-                        points[1] = point(width as f32 - points[1].getX() - 1.0, points[1].getY());
+                        points[0] = point(width as f32 - points[0].x - 1.0, points[0].y);
+                        points[1] = point(width as f32 - points[1].x - 1.0, points[1].y);
                     }
                 }
                 return Ok(result);

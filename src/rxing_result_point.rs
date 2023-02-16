@@ -1,10 +1,11 @@
 use std::{fmt, iter::Sum};
 
-use crate::ResultPoint;
 use std::hash::Hash;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+
+use crate::ResultPoint;
 
 /**
  * <p>Encapsulates a point of interest in an image containing a barcode. Typically, this
@@ -64,6 +65,7 @@ impl<'a> Sum<&'a Point> for Point {
     }
 }
 
+/** This impl is temporary and is there to ease refactoring. */
 impl ResultPoint for Point {
     fn getX(&self) -> f32 {
         self.x

@@ -19,7 +19,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    point, Exceptions, Point, ResultPoint,
+    point, Exceptions, Point,
 };
 
 /**
@@ -74,7 +74,7 @@ impl<'a> MonochromeRectangleDetector<'_> {
             bottom,
             halfWidth / 2,
         )?;
-        top = (pointA.getY() - 1f32) as i32;
+        top = (pointA.y - 1f32) as i32;
         let pointB = self.findCornerFromCenter(
             halfWidth,
             -deltaX,
@@ -86,7 +86,7 @@ impl<'a> MonochromeRectangleDetector<'_> {
             bottom,
             halfHeight / 2,
         )?;
-        left = (pointB.getX() - 1f32) as i32;
+        left = (pointB.x - 1f32) as i32;
         let pointC = self.findCornerFromCenter(
             halfWidth,
             deltaX,
@@ -98,7 +98,7 @@ impl<'a> MonochromeRectangleDetector<'_> {
             bottom,
             halfHeight / 2,
         )?;
-        right = (pointC.getX() + 1f32) as i32;
+        right = (pointC.x + 1f32) as i32;
         let pointD = self.findCornerFromCenter(
             halfWidth,
             0,
@@ -110,7 +110,7 @@ impl<'a> MonochromeRectangleDetector<'_> {
             bottom,
             halfWidth / 2,
         )?;
-        bottom = (pointD.getY() + 1f32) as i32;
+        bottom = (pointD.y + 1f32) as i32;
 
         // Go try to find point A again with better information -- might have been off at first.
         pointA = self.findCornerFromCenter(

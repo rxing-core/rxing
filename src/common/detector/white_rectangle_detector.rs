@@ -18,7 +18,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    point, Exceptions, Point, ResultPoint,
+    point, Exceptions, Point,
 };
 
 /**
@@ -326,14 +326,14 @@ impl<'a> WhiteRectangleDetector<'_> {
         //   y                    y
         //
 
-        let yi = y.getX();
-        let yj = y.getY();
-        let zi = z.getX();
-        let zj = z.getY();
-        let xi = x.getX();
-        let xj = x.getY();
-        let ti = t.getX();
-        let tj = t.getY();
+        let yi = y.x;
+        let yj = y.y;
+        let zi = z.x;
+        let zj = z.y;
+        let xi = x.x;
+        let xj = x.y;
+        let ti = t.x;
+        let tj = t.y;
 
         if yi < self.width as f32 / 2.0f32 {
             [

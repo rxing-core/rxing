@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{pdf417::pdf_417_common, ResultPoint};
+use crate::pdf417::pdf_417_common;
 
 use super::{
     BarcodeMetadata, BarcodeValue, Codeword, DetectionRXingResultColumn,
@@ -63,8 +63,8 @@ impl DetectionRXingResultRowIndicatorColumn for DetectionRXingResultColumn {
             boundingBox.getBottomRight()
         };
 
-        let firstRow = self.imageRowToCodewordIndex(top.getY() as u32);
-        let lastRow = self.imageRowToCodewordIndex(bottom.getY() as u32);
+        let firstRow = self.imageRowToCodewordIndex(top.y as u32);
+        let lastRow = self.imageRowToCodewordIndex(bottom.y as u32);
         // We need to be careful using the average row height. Barcode could be skewed so that we have smaller and
         // taller rows
         let averageRowHeight: f64 =
@@ -263,8 +263,8 @@ fn adjustIncompleteIndicatorColumnRowNumbers(
     } else {
         boundingBox.getBottomRight()
     };
-    let firstRow = col.imageRowToCodewordIndex(top.getY() as u32);
-    let lastRow = col.imageRowToCodewordIndex(bottom.getY() as u32);
+    let firstRow = col.imageRowToCodewordIndex(top.y as u32);
+    let lastRow = col.imageRowToCodewordIndex(bottom.y as u32);
     let averageRowHeight: f64 =
         (lastRow as f64 - firstRow as f64) / barcodeMetadata.getRowCount() as f64;
     let codewords = col.getCodewordsMut();

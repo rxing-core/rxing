@@ -16,7 +16,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    point, BinaryBitmap, DecodingHintDictionary, Exceptions, Point, ResultPoint,
+    point, BinaryBitmap, DecodingHintDictionary, Exceptions, Point,
 };
 
 use std::borrow::Cow;
@@ -137,10 +137,10 @@ pub fn detect(multiple: bool, bitMatrix: &BitMatrix) -> Option<Vec<[Option<Point
             column = 0;
             for barcodeCoordinate in &barcodeCoordinates {
                 if let Some(coord_1) = barcodeCoordinate[1] {
-                    row = row.max(coord_1.getY() as u32);
+                    row = row.max(coord_1.y as u32);
                 }
                 if let Some(coord_3) = barcodeCoordinate[3] {
-                    row = row.max(coord_3.getY() as u32);
+                    row = row.max(coord_3.y as u32);
                 }
             }
             row += ROW_STEP;
@@ -154,11 +154,11 @@ pub fn detect(multiple: bool, bitMatrix: &BitMatrix) -> Option<Vec<[Option<Point
         // if we didn't find a right row indicator column, then continue the search for the next barcode after the
         // start pattern of the barcode just found.
         if let Some(vert_2) = vertices[2] {
-            column = vert_2.getX() as u32;
-            row = vert_2.getY() as u32;
+            column = vert_2.x as u32;
+            row = vert_2.y as u32;
         } else {
-            column = vertices[4].as_ref().unwrap().getX() as u32;
-            row = vertices[4].as_ref().unwrap().getY() as u32;
+            column = vertices[4].as_ref().unwrap().x as u32;
+            row = vertices[4].as_ref().unwrap().y as u32;
         }
     }
     Some(barcodeCoordinates)
@@ -193,8 +193,8 @@ fn findVertices(matrix: &BitMatrix, startRow: u32, startColumn: u32) -> Option<[
     );
 
     if let Some(result_4) = result[4] {
-        startColumn = result_4.getX() as u32;
-        startRow = result_4.getY() as u32;
+        startColumn = result_4.x as u32;
+        startRow = result_4.y as u32;
     }
     copyToRXingResult(
         &mut result,
@@ -258,10 +258,7 @@ fn findRowsWithPattern(
     // Last row of the current symbol that contains pattern
     if found {
         let mut skippedRowCount = 0;
-        let mut previousRowLoc = [
-            result[0].as_ref()?.getX() as u32,
-            result[1].as_ref()?.getX() as u32,
-        ];
+        let mut previousRowLoc = [result[0].as_ref()?.x as u32, result[1].as_ref()?.x as u32];
         while stopRow < height {
             if let Some(loc) = findGuardPattern(
                 matrix,

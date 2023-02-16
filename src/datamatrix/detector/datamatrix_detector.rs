@@ -18,7 +18,7 @@ use crate::{
     common::{
         detector::WhiteRectangleDetector, BitMatrix, DefaultGridSampler, GridSampler, Result,
     },
-    point, Exceptions, Point, ResultPoint,
+    point, Exceptions, Point,
 };
 
 use super::DatamatrixDetectorResult;
@@ -102,14 +102,14 @@ impl<'a> Detector<'_> {
     }
 
     fn shiftPoint(p: Point, to: Point, div: u32) -> Point {
-        let x = (to.getX() - p.getX()) / (div as f32 + 1.0);
-        let y = (to.getY() - p.getY()) / (div as f32 + 1.0);
-        point(p.getX() + x, p.getY() + y)
+        let x = (to.x - p.x) / (div as f32 + 1.0);
+        let y = (to.y - p.y) / (div as f32 + 1.0);
+        point(p.x + x, p.y + y)
     }
 
     fn moveAway(p: Point, fromX: f32, fromY: f32) -> Point {
-        let mut x = p.getX();
-        let mut y = p.getY();
+        let mut x = p.x;
+        let mut y = p.y;
 
         if x < fromX {
             x -= 1.0;
@@ -233,12 +233,12 @@ impl<'a> Detector<'_> {
         trRight = self.transitionsBetween(pointCs, pointD);
 
         let candidate1 = point(
-            pointD.getX() + (pointC.getX() - pointB.getX()) / (trTop as f32 + 1.0),
-            pointD.getY() + (pointC.getY() - pointB.getY()) / (trTop as f32 + 1.0),
+            pointD.x + (pointC.x - pointB.x) / (trTop as f32 + 1.0),
+            pointD.y + (pointC.y - pointB.y) / (trTop as f32 + 1.0),
         );
         let candidate2 = point(
-            pointD.getX() + (pointA.getX() - pointB.getX()) / (trRight as f32 + 1.0),
-            pointD.getY() + (pointA.getY() - pointB.getY()) / (trRight as f32 + 1.0),
+            pointD.x + (pointA.x - pointB.x) / (trRight as f32 + 1.0),
+            pointD.y + (pointA.y - pointB.y) / (trRight as f32 + 1.0),
         );
 
         if !self.isValid(candidate1) {
@@ -295,8 +295,8 @@ impl<'a> Detector<'_> {
 
         // WhiteRectangleDetector returns points inside of the rectangle.
         // I want points on the edges.
-        let centerX = (pointA.getX() + pointB.getX() + pointC.getX() + pointD.getX()) / 4.0;
-        let centerY = (pointA.getY() + pointB.getY() + pointC.getY() + pointD.getY()) / 4.0;
+        let centerX = (pointA.x + pointB.x + pointC.x + pointD.x) / 4.0;
+        let centerY = (pointA.y + pointB.y + pointC.y + pointD.y) / 4.0;
         pointA = Self::moveAway(pointA, centerX, centerY);
         pointB = Self::moveAway(pointB, centerX, centerY);
         pointC = Self::moveAway(pointC, centerX, centerY);
@@ -319,10 +319,10 @@ impl<'a> Detector<'_> {
     }
 
     fn isValid(&self, p: Point) -> bool {
-        p.getX() >= 0.0
-            && p.getX() <= self.image.getWidth() as f32 - 1.0
-            && p.getY() > 0.0
-            && p.getY() <= self.image.getHeight() as f32 - 1.0
+        p.x >= 0.0
+            && p.x <= self.image.getWidth() as f32 - 1.0
+            && p.y > 0.0
+            && p.y <= self.image.getHeight() as f32 - 1.0
     }
 
     fn sampleGrid(
@@ -348,14 +348,14 @@ impl<'a> Detector<'_> {
             dimensionY as f32 - 0.5,
             0.5,
             dimensionY as f32 - 0.5,
-            topLeft.getX(),
-            topLeft.getY(),
-            topRight.getX(),
-            topRight.getY(),
-            bottomRight.getX(),
-            bottomRight.getY(),
-            bottomLeft.getX(),
-            bottomLeft.getY(),
+            topLeft.x,
+            topLeft.y,
+            topRight.x,
+            topRight.y,
+            bottomRight.x,
+            bottomRight.y,
+            bottomLeft.x,
+            bottomLeft.y,
         )
     }
 
@@ -364,10 +364,10 @@ impl<'a> Detector<'_> {
      */
     fn transitionsBetween(&self, from: Point, to: Point) -> u32 {
         // See QR Code Detector, sizeOfBlackWhiteBlackRun()
-        let mut fromX = from.getX().floor() as i32;
-        let mut fromY = from.getY().floor() as i32;
-        let mut toX = to.getX().floor() as i32;
-        let mut toY = (self.image.getHeight() - 1).min(to.getY().floor() as u32) as i32;
+        let mut fromX = from.x.floor() as i32;
+        let mut fromY = from.y.floor() as i32;
+        let mut toX = to.x.floor() as i32;
+        let mut toY = (self.image.getHeight() - 1).min(to.y.floor() as u32) as i32;
 
         let steep = (toY - fromY).abs() > (toX - fromX).abs();
         if steep {

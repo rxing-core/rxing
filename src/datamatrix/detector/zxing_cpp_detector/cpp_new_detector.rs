@@ -20,7 +20,7 @@ use crate::{
         DatamatrixDetectorResult,
     },
     qrcode::encoder::ByteMatrix,
-    Exceptions, Point, ResultPoint,
+    Exceptions, Point,
 };
 
 use super::{DMRegressionLine, EdgeTracer};
@@ -225,14 +225,14 @@ fn Scan(
             dimR as f32,
             0.0,
             dimR as f32,
-            sourcePoints.topLeft().getX(),
-            sourcePoints.topLeft().getY(),
-            sourcePoints.topRight().getX(),
-            sourcePoints.topRight().getY(),
-            sourcePoints.bottomRight().getX(),
-            sourcePoints.bottomRight().getY(),
-            sourcePoints.bottomLeft().getX(),
-            sourcePoints.bottomLeft().getY(),
+            sourcePoints.topLeft().x,
+            sourcePoints.topLeft().y,
+            sourcePoints.topRight().x,
+            sourcePoints.topRight().y,
+            sourcePoints.bottomRight().x,
+            sourcePoints.bottomRight().y,
+            sourcePoints.bottomLeft().x,
+            sourcePoints.bottomLeft().y,
         );
 
         // let res = grid_sampler.sample_grid(startTracer.img, dimT as u32, dimR as u32, &transform);

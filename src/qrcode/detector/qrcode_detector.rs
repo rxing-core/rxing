@@ -186,14 +186,14 @@ impl<'a> Detector<'_> {
         let sourceBottomRightY: f32;
         if alignmentPattern.is_some() {
             let alignmentPattern = alignmentPattern?;
-            bottomRightX = alignmentPattern.getX();
-            bottomRightY = alignmentPattern.getY();
+            bottomRightX = alignmentPattern.x;
+            bottomRightY = alignmentPattern.y;
             sourceBottomRightX = dimMinusThree - 3.0;
             sourceBottomRightY = sourceBottomRightX;
         } else {
             // Don't have an alignment pattern, just make up the bottom-right point
-            bottomRightX = (topRight.getX() - topLeft.getX()) + bottomLeft.getX();
-            bottomRightY = (topRight.getY() - topLeft.getY()) + bottomLeft.getY();
+            bottomRightX = (topRight.x - topLeft.x) + bottomLeft.x;
+            bottomRightY = (topRight.y - topLeft.y) + bottomLeft.y;
             sourceBottomRightX = dimMinusThree;
             sourceBottomRightY = dimMinusThree;
         }
@@ -207,14 +207,14 @@ impl<'a> Detector<'_> {
             sourceBottomRightY,
             3.5,
             dimMinusThree,
-            topLeft.getX(),
-            topLeft.getY(),
-            topRight.getX(),
-            topRight.getY(),
+            topLeft.x,
+            topLeft.y,
+            topRight.x,
+            topRight.y,
             bottomRightX,
             bottomRightY,
-            bottomLeft.getX(),
-            bottomLeft.getY(),
+            bottomLeft.x,
+            bottomLeft.y,
         ))
     }
 
@@ -231,7 +231,7 @@ impl<'a> Detector<'_> {
      * <p>Computes the dimension (number of modules on a size) of the QR Code based on the position
      * of the finder patterns and estimated module size.</p>
      */
-    fn computeDimension<T: Into<Point>>(
+    fn computeDimension<T: Into<Point> + Copy>(
         topLeft: T,
         topRight: T,
         bottomLeft: T,
@@ -260,7 +260,7 @@ impl<'a> Detector<'_> {
      * @param bottomLeft detected bottom-left finder pattern center
      * @return estimated module size
      */
-    pub fn calculateModuleSize<T: Into<Point>>(
+    pub fn calculateModuleSize<T: Into<Point> + Copy>(
         &self,
         topLeft: T,
         topRight: T,
@@ -282,16 +282,16 @@ impl<'a> Detector<'_> {
         let otherPattern: Point = otherPattern.into();
 
         let moduleSizeEst1 = self.sizeOfBlackWhiteBlackRunBothWays(
-            pattern.getX().floor() as u32,
-            pattern.getY().floor() as u32,
-            otherPattern.getX().floor() as u32,
-            otherPattern.getY().floor() as u32,
+            pattern.x.floor() as u32,
+            pattern.y.floor() as u32,
+            otherPattern.x.floor() as u32,
+            otherPattern.y.floor() as u32,
         );
         let moduleSizeEst2 = self.sizeOfBlackWhiteBlackRunBothWays(
-            otherPattern.getX().floor() as u32,
-            otherPattern.getY().floor() as u32,
-            pattern.getX().floor() as u32,
-            pattern.getY().floor() as u32,
+            otherPattern.x.floor() as u32,
+            otherPattern.y.floor() as u32,
+            pattern.x.floor() as u32,
+            pattern.y.floor() as u32,
         );
         if moduleSizeEst1.is_nan() {
             return moduleSizeEst2 / 7.0;
