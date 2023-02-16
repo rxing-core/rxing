@@ -76,14 +76,11 @@ impl fmt::Display for RXingResultPoint {
     }
 }
 
-impl std::ops::Sub<RXingResultPoint> for RXingResultPoint {
+impl std::ops::Sub for RXingResultPoint {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Self {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-        }
+        Self::new(self.x - rhs.x, self.y - rhs.y)
     }
 }
 
@@ -91,32 +88,23 @@ impl std::ops::Neg for RXingResultPoint {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Self {
-            x: -self.x,
-            y: -self.y,
-        }
+        Self::new(-self.x, -self.y)
     }
 }
 
-impl std::ops::Add<RXingResultPoint> for RXingResultPoint {
+impl std::ops::Add for RXingResultPoint {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Self {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-        }
+        Self::new(self.x + rhs.x, self.y + rhs.y)
     }
 }
 
-impl std::ops::Mul<RXingResultPoint> for RXingResultPoint {
+impl std::ops::Mul for RXingResultPoint {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        Self {
-            x: self.x * rhs.x,
-            y: self.y * rhs.y,
-        }
+        Self::new(self.x * rhs.x, self.y * rhs.y)
     }
 }
 
@@ -124,10 +112,7 @@ impl std::ops::Mul<f32> for RXingResultPoint {
     type Output = Self;
 
     fn mul(self, rhs: f32) -> Self::Output {
-        Self {
-            x: self.x * rhs,
-            y: self.y * rhs,
-        }
+        Self::new(self.x * rhs, self.y * rhs)
     }
 }
 
@@ -135,10 +120,7 @@ impl std::ops::Mul<i32> for RXingResultPoint {
     type Output = Self;
 
     fn mul(self, rhs: i32) -> Self::Output {
-        Self {
-            x: self.x * rhs as f32,
-            y: self.y * rhs as f32,
-        }
+        Self::new(self.x * rhs as f32, self.y * rhs as f32)
     }
 }
 
@@ -146,10 +128,7 @@ impl std::ops::Mul<RXingResultPoint> for i32 {
     type Output = RXingResultPoint;
 
     fn mul(self, rhs: RXingResultPoint) -> Self::Output {
-        Self::Output {
-            x: rhs.x * self as f32,
-            y: rhs.y * self as f32,
-        }
+        Self::Output::new(rhs.x * self as f32, rhs.y * self as f32)
     }
 }
 
@@ -157,10 +136,7 @@ impl std::ops::Mul<RXingResultPoint> for f32 {
     type Output = RXingResultPoint;
 
     fn mul(self, rhs: RXingResultPoint) -> Self::Output {
-        Self::Output {
-            x: rhs.x * self,
-            y: rhs.y * self,
-        }
+        Self::Output::new(rhs.x * self, rhs.y * self)
     }
 }
 
@@ -168,10 +144,7 @@ impl std::ops::Div<f32> for RXingResultPoint {
     type Output = RXingResultPoint;
 
     fn div(self, rhs: f32) -> Self::Output {
-        Self {
-            x: self.x / rhs,
-            y: self.y / rhs,
-        }
+        Self::Output::new(self.x / rhs, self.y / rhs)
     }
 }
 
@@ -208,10 +181,7 @@ impl RXingResultPoint {
     /// See also the documentation of the GridSampler API.
     #[inline(always)]
     pub fn centered(self) -> Self {
-        Self {
-            x: self.x.floor() + 0.5,
-            y: self.y.floor() + 0.5,
-        }
+        Self::new(self.x.floor() + 0.5, self.y.floor() + 0.5)
     }
 
     pub fn middle(self, p: Self) -> Self {
