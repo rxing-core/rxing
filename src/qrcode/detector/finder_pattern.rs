@@ -44,6 +44,18 @@ impl ResultPoint for FinderPattern {
     }
 }
 
+impl From<&FinderPattern> for Point {
+    fn from(value: &FinderPattern) -> Self {
+        value.point
+    }
+}
+
+impl From<FinderPattern> for Point {
+    fn from(value: FinderPattern) -> Self {
+        value.point
+    }
+}
+
 impl FinderPattern {
     pub fn new(posX: f32, posY: f32, estimatedModuleSize: f32) -> Self {
         Self::private_new(posX, posY, estimatedModuleSize, 1)
