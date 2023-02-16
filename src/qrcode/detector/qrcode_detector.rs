@@ -18,6 +18,7 @@ use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform, Result},
+    point,
     qrcode::decoder::Version,
     result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, Point,
     PointCallback, ResultPoint,
@@ -377,8 +378,8 @@ impl<'a> Detector<'_> {
             if (state == 1) == self.image.get(realX as u32, realY as u32) {
                 if state == 2 {
                     return Point::distance(
-                        Point::new(x as f32, y as f32),
-                        Point::new(fromX as f32, fromY as f32),
+                        point(x as f32, y as f32),
+                        point(fromX as f32, fromY as f32),
                     );
                 }
                 state += 1;
@@ -400,8 +401,8 @@ impl<'a> Detector<'_> {
         // small approximation; (toX+xStep,toY+yStep) might be really correct. Ignore this.
         if state == 2 {
             return Point::distance(
-                Point::new((toX as i32 + xstep) as f32, toY as f32),
-                Point::new(fromX as f32, fromY as f32),
+                point((toX as i32 + xstep) as f32, toY as f32),
+                point(fromX as f32, fromY as f32),
             );
         }
         // else we didn't find even black-white-black; no estimate is really possible

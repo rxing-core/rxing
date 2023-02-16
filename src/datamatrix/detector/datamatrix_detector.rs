@@ -18,7 +18,7 @@ use crate::{
     common::{
         detector::WhiteRectangleDetector, BitMatrix, DefaultGridSampler, GridSampler, Result,
     },
-    Exceptions, Point, ResultPoint,
+    point, Exceptions, Point, ResultPoint,
 };
 
 use super::DatamatrixDetectorResult;
@@ -101,15 +101,15 @@ impl<'a> Detector<'_> {
         ))
     }
 
-    fn shiftPoint(point: Point, to: Point, div: u32) -> Point {
-        let x = (to.getX() - point.getX()) / (div as f32 + 1.0);
-        let y = (to.getY() - point.getY()) / (div as f32 + 1.0);
-        Point::new(point.getX() + x, point.getY() + y)
+    fn shiftPoint(p: Point, to: Point, div: u32) -> Point {
+        let x = (to.getX() - p.getX()) / (div as f32 + 1.0);
+        let y = (to.getY() - p.getY()) / (div as f32 + 1.0);
+        point(p.getX() + x, p.getY() + y)
     }
 
-    fn moveAway(point: Point, fromX: f32, fromY: f32) -> Point {
-        let mut x = point.getX();
-        let mut y = point.getY();
+    fn moveAway(p: Point, fromX: f32, fromY: f32) -> Point {
+        let mut x = p.getX();
+        let mut y = p.getY();
 
         if x < fromX {
             x -= 1.0;
@@ -123,7 +123,7 @@ impl<'a> Detector<'_> {
             y += 1.0;
         }
 
-        Point::new(x, y)
+        point(x, y)
     }
 
     /**
@@ -232,11 +232,11 @@ impl<'a> Detector<'_> {
         trTop = self.transitionsBetween(pointAs, pointD);
         trRight = self.transitionsBetween(pointCs, pointD);
 
-        let candidate1 = Point::new(
+        let candidate1 = point(
             pointD.getX() + (pointC.getX() - pointB.getX()) / (trTop as f32 + 1.0),
             pointD.getY() + (pointC.getY() - pointB.getY()) / (trTop as f32 + 1.0),
         );
-        let candidate2 = Point::new(
+        let candidate2 = point(
             pointD.getX() + (pointA.getX() - pointB.getX()) / (trRight as f32 + 1.0),
             pointD.getY() + (pointA.getY() - pointB.getY()) / (trRight as f32 + 1.0),
         );

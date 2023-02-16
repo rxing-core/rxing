@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::common::Result;
-use crate::{Exceptions, Point, RXingResult, Reader, ResultPoint};
+use crate::{point, Exceptions, Point, RXingResult, Reader, ResultPoint};
 
 /**
  * This class attempts to decode a barcode from an image, not by scanning the whole image,
@@ -124,7 +124,7 @@ impl<T: Reader> ByQuadrantReader<T> {
         // if !points.is_empty() {
 
         //     // for relative in points {
-        //     //     result.push(Point::new(
+        //     //     result.push(point(
         //     //         relative.getX() + leftOffset,
         //     //         relative.getY() + topOffset,
         //     //     ));
@@ -133,7 +133,7 @@ impl<T: Reader> ByQuadrantReader<T> {
         // result
         points
             .iter()
-            .map(|relative| Point::new(relative.getX() + leftOffset, relative.getY() + topOffset))
+            .map(|relative| point(relative.getX() + leftOffset, relative.getY() + topOffset))
             .collect()
     }
 }

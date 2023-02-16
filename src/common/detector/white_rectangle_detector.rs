@@ -18,7 +18,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    Exceptions, Point, ResultPoint,
+    point, Exceptions, Point, ResultPoint,
 };
 
 /**
@@ -288,8 +288,8 @@ impl<'a> WhiteRectangleDetector<'_> {
     }
 
     fn get_black_point_on_segment(&self, a_x: f32, a_y: f32, b_x: f32, b_y: f32) -> Option<Point> {
-        let a = Point::new(a_x, a_y);
-        let b = Point::new(b_x, b_y);
+        let a = point(a_x, a_y);
+        let b = point(b_x, b_y);
 
         let dist = a.distance(b).round() as i32;
         let x_step: f32 = (b_x - a_x) / dist as f32;
@@ -299,7 +299,7 @@ impl<'a> WhiteRectangleDetector<'_> {
             let x = (a_x + i as f32 * x_step).round() as i32;
             let y = (a_y + i as f32 * y_step).round() as i32;
             if self.image.get(x as u32, y as u32) {
-                return Some(Point::new(x as f32, y as f32));
+                return Some(point(x as f32, y as f32));
             }
         }
         None
@@ -337,17 +337,17 @@ impl<'a> WhiteRectangleDetector<'_> {
 
         if yi < self.width as f32 / 2.0f32 {
             [
-                Point::new(ti - CORR as f32, tj + CORR as f32),
-                Point::new(zi + CORR as f32, zj + CORR as f32),
-                Point::new(xi - CORR as f32, xj - CORR as f32),
-                Point::new(yi + CORR as f32, yj - CORR as f32),
+                point(ti - CORR as f32, tj + CORR as f32),
+                point(zi + CORR as f32, zj + CORR as f32),
+                point(xi - CORR as f32, xj - CORR as f32),
+                point(yi + CORR as f32, yj - CORR as f32),
             ]
         } else {
             [
-                Point::new(ti + CORR as f32, tj + CORR as f32),
-                Point::new(zi + CORR as f32, zj - CORR as f32),
-                Point::new(xi - CORR as f32, xj + CORR as f32),
-                Point::new(yi - CORR as f32, yj - CORR as f32),
+                point(ti + CORR as f32, tj + CORR as f32),
+                point(zi + CORR as f32, zj - CORR as f32),
+                point(xi - CORR as f32, xj + CORR as f32),
+                point(yi - CORR as f32, yj - CORR as f32),
             ]
         }
     }

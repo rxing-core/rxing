@@ -18,7 +18,7 @@ use std::rc::Rc;
 
 use crate::{
     common::{BitMatrix, Result},
-    Exceptions, Point, ResultPoint,
+    point, Exceptions, Point, ResultPoint,
 };
 
 /**
@@ -58,13 +58,13 @@ impl BoundingBox {
         if leftUnspecified {
             newTopRight = topRight.ok_or(Exceptions::IllegalStateException(None))?;
             newBottomRight = bottomRight.ok_or(Exceptions::IllegalStateException(None))?;
-            newTopLeft = Point::new(0.0, newTopRight.getY());
-            newBottomLeft = Point::new(0.0, newBottomRight.getY());
+            newTopLeft = point(0.0, newTopRight.getY());
+            newBottomLeft = point(0.0, newBottomRight.getY());
         } else if rightUnspecified {
             newTopLeft = topLeft.ok_or(Exceptions::IllegalStateException(None))?;
             newBottomLeft = bottomLeft.ok_or(Exceptions::IllegalStateException(None))?;
-            newTopRight = Point::new(image.getWidth() as f32 - 1.0, newTopLeft.getY());
-            newBottomRight = Point::new(image.getWidth() as f32 - 1.0, newBottomLeft.getY());
+            newTopRight = point(image.getWidth() as f32 - 1.0, newTopLeft.getY());
+            newBottomRight = point(image.getWidth() as f32 - 1.0, newBottomLeft.getY());
         } else {
             newTopLeft = topLeft.ok_or(Exceptions::IllegalStateException(None))?;
             newTopRight = topRight.ok_or(Exceptions::IllegalStateException(None))?;
@@ -144,7 +144,7 @@ impl BoundingBox {
             if newMinY < 0.0 {
                 newMinY = 0.0;
             }
-            let newTop = Point::new(top.getX(), newMinY);
+            let newTop = point(top.getX(), newMinY);
             if isLeft {
                 newTopLeft = newTop;
             } else {
@@ -162,7 +162,7 @@ impl BoundingBox {
             if newMaxY >= self.image.getHeight() {
                 newMaxY = self.image.getHeight() - 1;
             }
-            let newBottom = Point::new(bottom.getX(), newMaxY as f32);
+            let newBottom = point(bottom.getX(), newMaxY as f32);
             if isLeft {
                 newBottomLeft = newBottom;
             } else {

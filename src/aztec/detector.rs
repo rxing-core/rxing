@@ -23,7 +23,7 @@ use crate::{
         BitMatrix, DefaultGridSampler, GridSampler, Result,
     },
     exceptions::Exceptions,
-    Point, ResultPoint,
+    point, Point, ResultPoint,
 };
 
 use super::aztec_detector_result::AztecDetectorRXingResult;
@@ -325,10 +325,10 @@ impl<'a> Detector<'_> {
 
         // Expand the square by .5 pixel in each direction so that we're on the border
         // between the white square and the black square
-        let pinax = Point::new(pina.get_x() as f32 + 0.5f32, pina.get_y() as f32 - 0.5f32);
-        let pinbx = Point::new(pinb.get_x() as f32 + 0.5f32, pinb.get_y() as f32 + 0.5f32);
-        let pincx = Point::new(pinc.get_x() as f32 - 0.5f32, pinc.get_y() as f32 + 0.5f32);
-        let pindx = Point::new(pind.get_x() as f32 - 0.5f32, pind.get_y() as f32 - 0.5f32);
+        let pinax = point(pina.get_x() as f32 + 0.5f32, pina.get_y() as f32 - 0.5f32);
+        let pinbx = point(pinb.get_x() as f32 + 0.5f32, pinb.get_y() as f32 + 0.5f32);
+        let pincx = point(pinc.get_x() as f32 - 0.5f32, pinc.get_y() as f32 + 0.5f32);
+        let pindx = point(pind.get_x() as f32 - 0.5f32, pind.get_y() as f32 - 0.5f32);
 
         // Expand the square so that its corners are the centers of the points
         // just outside the bull's eye.
@@ -563,20 +563,20 @@ impl<'a> Detector<'_> {
             0.max(p1.get_x() - corr),
             (self.image.getHeight() as i32 - 1).min(p1.get_y() + corr),
         );
-        // let p1 =  Point::new(Math.max(0, p1.getX() - corr), Math.min(image.getHeight() - 1, p1.getY() + corr));
+        // let p1 =  point(Math.max(0, p1.getX() - corr), Math.min(image.getHeight() - 1, p1.getY() + corr));
         let p2 = AztecPoint::new(0.max(p2.get_x() - corr), 0.max(p2.get_y() - corr));
-        // let p2 =  Point::new(Math.max(0, p2.getX() - corr), Math.max(0, p2.getY() - corr));
+        // let p2 =  point(Math.max(0, p2.getX() - corr), Math.max(0, p2.getY() - corr));
         let p3 = AztecPoint::new(
             (self.image.getWidth() as i32 - 1).min(p3.get_x() + corr),
             0.max((self.image.getHeight() as i32 - 1).min(p3.get_y() - corr)),
         );
-        //  let p3 =  Point::new(Math.min(image.getWidth() - 1, p3.getX() + corr),
+        //  let p3 =  point(Math.min(image.getWidth() - 1, p3.getX() + corr),
         //  Math.max(0, Math.min(image.getHeight() - 1, p3.getY() - corr)));
         let p4 = AztecPoint::new(
             (self.image.getWidth() as i32 - 1).min(p4.get_x() + corr),
             (self.image.getHeight() as i32 - 1).min(p4.get_y() + corr),
         );
-        //  let p4 =  Point::new(Math.min(image.getWidth() - 1, p4.getX() + corr),
+        //  let p4 =  point(Math.min(image.getWidth() - 1, p4.getX() + corr),
         //  Math.min(image.getHeight() - 1, p4.getY() + corr));
 
         let c_init = self.get_color(p4, p1);
@@ -746,7 +746,7 @@ impl AztecPoint {
 
 impl From<AztecPoint> for Point {
     fn from(value: AztecPoint) -> Self {
-        Point::new(value.x as f32, value.y as f32)
+        point(value.x as f32, value.y as f32)
     }
 }
 

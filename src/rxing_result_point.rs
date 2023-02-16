@@ -19,6 +19,11 @@ pub struct Point {
     pub(crate) y: f32,
 }
 
+/** An alias for `Point::new`. */
+pub fn point(x: f32, y: f32) -> Point {
+    Point::new(x, y)
+}
+
 /** Currently necessary because the external OneDReader proc macro uses it. */
 pub type RXingResultPoint = Point;
 

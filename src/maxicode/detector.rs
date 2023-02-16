@@ -3,7 +3,7 @@ use num::integer::Roots;
 
 use crate::{
     common::{BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler, Result},
-    Exceptions, Point,
+    point, Exceptions, Point,
 };
 
 use super::MaxiCodeReader;
@@ -714,10 +714,10 @@ fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<([(f32, f32); 4]
         calculate_simple_boundary(circle, Some(image), None, false);
 
     let naive_box = [
-        Point::new(left_boundary as f32, bottom_boundary as f32),
-        Point::new(left_boundary as f32, top_boundary as f32),
-        Point::new(right_boundary as f32, bottom_boundary as f32),
-        Point::new(right_boundary as f32, top_boundary as f32),
+        point(left_boundary as f32, bottom_boundary as f32),
+        point(left_boundary as f32, top_boundary as f32),
+        point(right_boundary as f32, bottom_boundary as f32),
+        point(right_boundary as f32, top_boundary as f32),
     ];
 
     #[allow(unused_mut)]
@@ -952,10 +952,10 @@ fn attempt_rotation_box(
 
         Some((
             [
-                Point::new(new_1.0, new_1.1),
-                Point::new(new_2.0, new_2.1),
-                Point::new(new_3.0, new_3.1),
-                Point::new(new_4.0, new_4.1),
+                point(new_1.0, new_1.1),
+                point(new_2.0, new_2.1),
+                point(new_3.0, new_3.1),
+                point(new_4.0, new_4.1),
             ],
             final_rotation,
         ))

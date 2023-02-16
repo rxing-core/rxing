@@ -20,7 +20,7 @@ use crate::common::{BitArray, Result};
 use crate::DecodeHintValue;
 use crate::Exceptions;
 use crate::RXingResult;
-use crate::{BarcodeFormat, Point};
+use crate::{point, BarcodeFormat};
 
 use super::OneDReader;
 
@@ -171,8 +171,8 @@ impl OneDReader for CodaBarReader {
             &self.decodeRowRXingResult,
             Vec::new(),
             vec![
-                Point::new(left, rowNumber as f32),
-                Point::new(right, rowNumber as f32),
+                point(left, rowNumber as f32),
+                point(right, rowNumber as f32),
             ],
             BarcodeFormat::CODABAR,
         );

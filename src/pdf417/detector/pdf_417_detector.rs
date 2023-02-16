@@ -16,7 +16,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    BinaryBitmap, DecodingHintDictionary, Exceptions, Point, ResultPoint,
+    point, BinaryBitmap, DecodingHintDictionary, Exceptions, Point, ResultPoint,
 };
 
 use std::borrow::Cow;
@@ -245,8 +245,8 @@ fn findRowsWithPattern(
                     break;
                 }
             }
-            result[0] = Some(Point::new(loc_store.as_ref()?[0] as f32, startRow as f32));
-            result[1] = Some(Point::new(loc_store.as_ref()?[1] as f32, startRow as f32));
+            result[0] = Some(point(loc_store.as_ref()?[0] as f32, startRow as f32));
+            result[1] = Some(point(loc_store.as_ref()?[1] as f32, startRow as f32));
             found = true;
             break;
         }
@@ -294,8 +294,8 @@ fn findRowsWithPattern(
             stopRow += 1;
         }
         stopRow -= skippedRowCount + 1;
-        result[2] = Some(Point::new(previousRowLoc[0] as f32, stopRow as f32));
-        result[3] = Some(Point::new(previousRowLoc[1] as f32, stopRow as f32));
+        result[2] = Some(point(previousRowLoc[0] as f32, stopRow as f32));
+        result[3] = Some(point(previousRowLoc[1] as f32, stopRow as f32));
     }
     if stopRow - startRow < BARCODE_MIN_HEIGHT {
         result.fill(None);

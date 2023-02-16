@@ -17,7 +17,7 @@
 use rxing_one_d_proc_derive::OneDReader;
 
 use crate::common::{BitArray, Result};
-use crate::{BarcodeFormat, Exceptions, Point, RXingResult};
+use crate::{point, BarcodeFormat, Exceptions, RXingResult};
 
 use super::{one_d_reader, OneDReader};
 
@@ -134,8 +134,8 @@ impl OneDReader for Code39Reader {
             &resultString,
             Vec::new(),
             vec![
-                Point::new(left, rowNumber as f32),
-                Point::new(right, rowNumber as f32),
+                point(left, rowNumber as f32),
+                point(right, rowNumber as f32),
             ],
             BarcodeFormat::CODE_39,
         );
