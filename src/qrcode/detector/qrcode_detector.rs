@@ -21,7 +21,6 @@ use crate::{
     point,
     qrcode::decoder::Version,
     DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, Point, PointCallback,
-    ResultPoint,
 };
 
 use super::{
@@ -114,16 +113,16 @@ impl<'a> Detector<'_> {
         // Anything above version 1 has an alignment pattern
         if !provisionalVersion.getAlignmentPatternCenters().is_empty() {
             // Guess where a "bottom right" finder pattern would have been
-            let bottomRightX = topRight.getX() - topLeft.getX() + bottomLeft.getX();
-            let bottomRightY = topRight.getY() - topLeft.getY() + bottomLeft.getY();
+            let bottomRightX = topRight.point.x - topLeft.point.x + bottomLeft.point.x;
+            let bottomRightY = topRight.point.y - topLeft.point.y + bottomLeft.point.y;
 
             // Estimate that alignment pattern is closer by 3 modules
             // from "bottom right" to known top left location
             let correctionToTopLeft = 1.0 - (3.0 / modulesBetweenFPCenters as f32);
             let estAlignmentX =
-                (topLeft.getX() + correctionToTopLeft * (bottomRightX - topLeft.getX())) as u32;
+                (topLeft.point.x + correctionToTopLeft * (bottomRightX - topLeft.point.x)) as u32;
             let estAlignmentY =
-                (topLeft.getY() + correctionToTopLeft * (bottomRightY - topLeft.getY())) as u32;
+                (topLeft.point.y + correctionToTopLeft * (bottomRightY - topLeft.point.y)) as u32;
 
             // Kind of arbitrary -- expand search radius before giving up
             let mut i = 4;
@@ -151,16 +150,16 @@ impl<'a> Detector<'_> {
         let bits = Detector::sampleGrid(self.image, &transform, dimension)?;
 
         let mut points = vec![
-            bottomLeft.to_rxing_result_point(),
-            topLeft.to_rxing_result_point(),
-            topRight.to_rxing_result_point(),
+            Point::from(bottomLeft),
+            Point::from(topLeft),
+            Point::from(topRight),
         ];
 
         if alignmentPattern.is_some() {
             points.push(
                 alignmentPattern
                     .ok_or(Exceptions::NotFoundException(None))?
-                    .to_rxing_result_point(),
+                    .into(),
             )
         }
 

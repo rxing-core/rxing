@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{point, Point, ResultPoint};
+use crate::{point, Point};
 
 /**
  * <p>Encapsulates a finder pattern, which are the three square patterns found in
@@ -27,21 +27,7 @@ use crate::{point, Point, ResultPoint};
 pub struct FinderPattern {
     estimatedModuleSize: f32,
     count: usize,
-    point: Point,
-}
-
-impl ResultPoint for FinderPattern {
-    fn getX(&self) -> f32 {
-        self.point.x
-    }
-
-    fn getY(&self) -> f32 {
-        self.point.y
-    }
-
-    fn to_rxing_result_point(&self) -> Point {
-        self.point
-    }
+    pub(crate) point: Point,
 }
 
 impl From<&FinderPattern> for Point {
@@ -82,7 +68,7 @@ impl FinderPattern {
      * position and size -- meaning, it is at nearly the same center with nearly the same size.</p>
      */
     pub fn aboutEquals(&self, moduleSize: f32, i: f32, j: f32) -> bool {
-        if (i - self.getY()).abs() <= moduleSize && (j - self.getX()).abs() <= moduleSize {
+        if (i - self.point.y).abs() <= moduleSize && (j - self.point.x).abs() <= moduleSize {
             let moduleSizeDiff = (moduleSize - self.estimatedModuleSize).abs();
             moduleSizeDiff <= 1.0 || moduleSizeDiff <= self.estimatedModuleSize
         } else {
@@ -97,8 +83,8 @@ impl FinderPattern {
      */
     pub fn combineEstimate(&self, i: f32, j: f32, newModuleSize: f32) -> FinderPattern {
         let combinedCount = self.count as f32 + 1.0;
-        let combinedX = (self.count as f32 * self.getX() + j) / combinedCount;
-        let combinedY = (self.count as f32 * self.getY() + i) / combinedCount;
+        let combinedX = (self.count as f32 * self.point.x + j) / combinedCount;
+        let combinedY = (self.count as f32 * self.point.y + i) / combinedCount;
         let combinedModuleSize =
             (self.count as f32 * self.estimatedModuleSize + newModuleSize) / combinedCount;
         FinderPattern::private_new(

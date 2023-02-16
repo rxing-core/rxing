@@ -182,8 +182,21 @@ impl Point {
         f32::max(self.x.abs(), self.y.abs())
     }
 
+    pub fn squaredDistance(self, p: Self) -> f32 {
+        let diff = self - p;
+        diff.x * diff.x + diff.y * diff.y
+    }
+
     pub fn distance(self, p: Self) -> f32 {
         (self - p).length()
+    }
+
+    pub fn abs(self) -> Self {
+        Self::new(self.x.abs(), self.y.abs())
+    }
+
+    pub fn fold<U, F: Fn(f32, f32) -> U>(self, f: F) -> U {
+        f(self.x, self.y)
     }
 
     /// Calculate a floating point pixel coordinate representing the 'center' of the pixel.
