@@ -38,6 +38,9 @@ pub use encode_hints::*;
 /// point in the barcode image such as a corner) is found.
 pub type PointCallback = Rc<dyn Fn(&dyn ResultPoint)>;
 
+/** Temporary type to ease refactoring and keep backwards-compatibility */
+pub type RXingResultPointCallback = PointCallback;
+
 mod decode_hints;
 pub use decode_hints::*;
 
