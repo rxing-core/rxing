@@ -252,7 +252,7 @@ impl DMRegressionLine {
         // calculate the distance between the points projected onto the regression line
         for i in 1..self.points.len() {
             // for (size_t i = 1; i < _points.size(); ++i)
-            gapSizes.push(self.distance(
+            gapSizes.push(Point::distance(
                 self.project(self.points[i]),
                 self.project(self.points[i - 1]),
             ) as f64);
@@ -273,7 +273,7 @@ impl DMRegressionLine {
 
         // calculate the width of 2 modules (first black pixel to first black pixel)
         let mut sumFront: f64 =
-            self.distance(beg, self.project(self.points[0])) as f64 - unitPixelDist;
+            Point::distance(beg, self.project(self.points[0])) as f64 - unitPixelDist;
         let mut sumBack: f64 = 0.0; // (last black pixel to last black pixel)
         for dist in gapSizes {
             // for (auto dist : gapSizes) {
@@ -289,7 +289,7 @@ impl DMRegressionLine {
 
         modSizes.push(
             sumFront
-                + self.distance(
+                + Point::distance(
                     end,
                     self.project(
                         self.points
@@ -300,7 +300,7 @@ impl DMRegressionLine {
                 ) as f64,
         );
         modSizes[0] = 0.0; // the first element is an invalid sumBack value, would be pop_front() if vector supported this
-        let lineLength = self.distance(beg, end) as f64 - unitPixelDist;
+        let lineLength = Point::distance(beg, end) as f64 - unitPixelDist;
         let mut meanModSize = Self::average(&modSizes, |_: f64| true);
         // let meanModSize = average(modSizes, [](double){ return true; });
         // #ifdef PRINT_DEBUG

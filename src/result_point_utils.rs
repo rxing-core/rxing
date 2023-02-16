@@ -58,18 +58,6 @@ pub fn orderBestPatterns<T: ResultPoint + Copy + Clone>(patterns: &mut [T; 3]) {
 }
 
 /**
- * @param pattern1 first pattern
- * @param pattern2 second pattern
- * @return distance between two points
- */
-pub fn distance<T: ResultPoint>(pattern1: &T, pattern2: &T) -> f32 {
-    Point::distance(
-        pattern1.to_rxing_result_point(),
-        pattern2.to_rxing_result_point(),
-    )
-}
-
-/**
  * Returns the z component of the cross product between vectors BC and BA.
  */
 pub fn crossProductZ<T: ResultPoint>(pointA: T, pointB: T, pointC: T) -> f32 {

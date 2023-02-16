@@ -20,8 +20,8 @@ use crate::{
     common::{BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform, Result},
     point,
     qrcode::decoder::Version,
-    result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, Point,
-    PointCallback, ResultPoint,
+    DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, Point, PointCallback,
+    ResultPoint,
 };
 
 use super::{
@@ -232,10 +232,16 @@ impl<'a> Detector<'_> {
         bottomLeft: &T,
         moduleSize: f32,
     ) -> Result<u32> {
-        let tltrCentersDimension =
-            (result_point_utils::distance(topLeft, topRight) / moduleSize).round() as i32;
-        let tlblCentersDimension =
-            (result_point_utils::distance(topLeft, bottomLeft) / moduleSize).round() as i32;
+        let tltrCentersDimension = (Point::distance(
+            topLeft.to_rxing_result_point(),
+            topRight.to_rxing_result_point(),
+        ) / moduleSize)
+            .round() as i32;
+        let tlblCentersDimension = (Point::distance(
+            topLeft.to_rxing_result_point(),
+            bottomLeft.to_rxing_result_point(),
+        ) / moduleSize)
+            .round() as i32;
         let mut dimension = ((tltrCentersDimension + tlblCentersDimension) / 2) + 7;
         match dimension & 0x03 {
             0 => dimension += 1,

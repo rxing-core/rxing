@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{Point, ResultPoint};
+use crate::{point, Point, ResultPoint};
 
 /**
  * <p>Encapsulates a finder pattern, which are the three square patterns found in
@@ -27,23 +27,20 @@ use crate::{Point, ResultPoint};
 pub struct FinderPattern {
     estimatedModuleSize: f32,
     count: usize,
-    point: (f32, f32),
+    point: Point,
 }
 
 impl ResultPoint for FinderPattern {
     fn getX(&self) -> f32 {
-        self.point.0
+        self.point.x
     }
 
     fn getY(&self) -> f32 {
-        self.point.1
+        self.point.y
     }
 
     fn to_rxing_result_point(&self) -> Point {
-        Point {
-            x: self.point.0,
-            y: self.point.1,
-        }
+        self.point
     }
 }
 
@@ -56,7 +53,7 @@ impl FinderPattern {
         Self {
             estimatedModuleSize,
             count,
-            point: (posX, posY),
+            point: point(posX, posY),
         }
     }
 

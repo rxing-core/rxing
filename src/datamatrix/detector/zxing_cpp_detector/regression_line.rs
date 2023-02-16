@@ -44,10 +44,6 @@ pub trait RegressionLine {
     fn evaluate(&mut self, points: &[Point]) -> bool; // { return self.evaluate_begin_end(&points.front(), &points.back() + 1); }
     fn evaluateSelf(&mut self) -> bool;
 
-    fn distance(&self, a: Point, b: Point) -> f32 {
-        crate::result_point_utils::distance(&a, &b)
-    }
-
     // RegressionLine() { _points.reserve(16); } // arbitrary but plausible start size (tiny performance improvement)
 
     // template<typename T> RegressionLine(PointT<T> a, PointT<T> b)

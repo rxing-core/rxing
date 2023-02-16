@@ -20,7 +20,6 @@ use crate::{
         DatamatrixDetectorResult,
     },
     qrcode::encoder::ByteMatrix,
-    result_point_utils::distance,
     Exceptions, Point, ResultPoint,
 };
 
@@ -101,8 +100,8 @@ fn Scan(
         let right = *t.front();
         CHECK!(t.traceCorner(&mut t.left(), &mut br)?);
 
-        let lenL = distance(&tl, &bl) - 1.0;
-        let lenB = distance(&bl, &br) - 1.0;
+        let lenL = Point::distance(tl, bl) - 1.0;
+        let lenB = Point::distance(bl, br) - 1.0;
         CHECK!(lenL >= 8.0 && lenB >= 10.0 && lenB >= lenL / 4.0 && lenB <= lenL * 18.0);
 
         let mut maxStepSize: i32 = (lenB / 5.0 + 1.0) as i32; // datamatrix bottom dim is at least 10
@@ -129,8 +128,8 @@ fn Scan(
         CHECK!(t.traceGaps(t.left(), lineR, maxStepSize, lineT)?);
         CHECK!(t.traceCorner(&mut t.left(), &mut tr)?);
 
-        let lenT = distance(&tl, &tr) - 1.0;
-        let lenR = distance(&tr, &br) - 1.0;
+        let lenT = Point::distance(tl, tr) - 1.0;
+        let lenR = Point::distance(tr, br) - 1.0;
 
         CHECK!(
             (lenT - lenB).abs() / lenB < 0.5
