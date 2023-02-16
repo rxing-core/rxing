@@ -1,4 +1,4 @@
-use crate::{common::detector::MathUtils, ResultPoint};
+use crate::{Point, ResultPoint};
 
 /**
  * Orders an array of three Points in an order [A,B,C] such that AB is less than AC
@@ -8,23 +8,17 @@ use crate::{common::detector::MathUtils, ResultPoint};
  */
 pub fn orderBestPatterns<T: ResultPoint + Copy + Clone>(patterns: &mut [T; 3]) {
     // Find distances between pattern centers
-    let zeroOneDistance = MathUtils::distance(
-        patterns[0].getX(),
-        patterns[0].getY(),
-        patterns[1].getX(),
-        patterns[1].getY(),
+    let zeroOneDistance = Point::distance(
+        patterns[0].to_rxing_result_point(),
+        patterns[1].to_rxing_result_point(),
     );
-    let oneTwoDistance = MathUtils::distance(
-        patterns[1].getX(),
-        patterns[1].getY(),
-        patterns[2].getX(),
-        patterns[2].getY(),
+    let oneTwoDistance = Point::distance(
+        patterns[1].to_rxing_result_point(),
+        patterns[2].to_rxing_result_point(),
     );
-    let zeroTwoDistance = MathUtils::distance(
-        patterns[0].getX(),
-        patterns[0].getY(),
-        patterns[2].getX(),
-        patterns[2].getY(),
+    let zeroTwoDistance = Point::distance(
+        patterns[0].to_rxing_result_point(),
+        patterns[2].to_rxing_result_point(),
     );
 
     let mut pointA;
@@ -69,11 +63,9 @@ pub fn orderBestPatterns<T: ResultPoint + Copy + Clone>(patterns: &mut [T; 3]) {
  * @return distance between two points
  */
 pub fn distance<T: ResultPoint>(pattern1: &T, pattern2: &T) -> f32 {
-    MathUtils::distance(
-        pattern1.getX(),
-        pattern1.getY(),
-        pattern2.getX(),
-        pattern2.getY(),
+    Point::distance(
+        pattern1.to_rxing_result_point(),
+        pattern2.to_rxing_result_point(),
     )
 }
 

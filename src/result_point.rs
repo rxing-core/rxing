@@ -21,5 +21,5 @@ use crate::Point;
 pub trait ResultPoint {
     fn getX(&self) -> f32;
     fn getY(&self) -> f32;
-    fn into_rxing_result_point(self) -> Point;
+    fn to_rxing_result_point(&self) -> Point;
 }

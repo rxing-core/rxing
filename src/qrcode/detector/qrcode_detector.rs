@@ -22,7 +22,7 @@ use crate::{
         Result,
     },
     qrcode::decoder::Version,
-    result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
+    result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, Point,
     PointCallback, ResultPoint,
 };
 
@@ -153,16 +153,16 @@ impl<'a> Detector<'_> {
         let bits = Detector::sampleGrid(self.image, &transform, dimension)?;
 
         let mut points = vec![
-            bottomLeft.into_rxing_result_point(),
-            topLeft.into_rxing_result_point(),
-            topRight.into_rxing_result_point(),
+            bottomLeft.to_rxing_result_point(),
+            topLeft.to_rxing_result_point(),
+            topRight.to_rxing_result_point(),
         ];
 
         if alignmentPattern.is_some() {
             points.push(
                 alignmentPattern
                     .ok_or(Exceptions::NotFoundException(None))?
-                    .into_rxing_result_point(),
+                    .to_rxing_result_point(),
             )
         }
 
@@ -379,7 +379,10 @@ impl<'a> Detector<'_> {
             // color, advance to next state or end if we are in state 2 already
             if (state == 1) == self.image.get(realX as u32, realY as u32) {
                 if state == 2 {
-                    return MathUtils::distance(x, y, fromX as i32, fromY as i32);
+                    return Point::distance(
+                        Point::new(x as f32, y as f32),
+                        Point::new(fromX as f32, fromY as f32),
+                    );
                 }
                 state += 1;
             }
@@ -399,7 +402,10 @@ impl<'a> Detector<'_> {
         // is "white" so this last point at (toX+xStep,toY) is the right ending. This is really a
         // small approximation; (toX+xStep,toY+yStep) might be really correct. Ignore this.
         if state == 2 {
-            return MathUtils::distance(toX as i32 + xstep, toY as i32, fromX as i32, fromY as i32);
+            return Point::distance(
+                Point::new((toX as i32 + xstep) as f32, toY as f32),
+                Point::new(fromX as f32, fromY as f32),
+            );
         }
         // else we didn't find even black-white-black; no estimate is really possible
         f32::NAN

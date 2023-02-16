@@ -289,8 +289,8 @@ impl<'a> Detector<'_> {
             //c      b
 
             if self.nb_center_layers > 2 {
-                let q: f32 = Self::distance_points(&poutd, &pouta) * self.nb_center_layers as f32
-                    / (Self::distance_points(&pind, &pina) * (self.nb_center_layers + 2) as f32);
+                let q: f32 = Self::distance_points(poutd, pouta) * self.nb_center_layers as f32
+                    / (Self::distance_points(pind, pina) * (self.nb_center_layers + 2) as f32);
 
                 // let q: f32 = Self::distance(
                 //     &poutd.to_rxing_result_point(),
@@ -583,25 +583,25 @@ impl<'a> Detector<'_> {
         //  let p4 =  Point::new(Math.min(image.getWidth() - 1, p4.getX() + corr),
         //  Math.min(image.getHeight() - 1, p4.getY() + corr));
 
-        let c_init = self.get_color(&p4, &p1);
+        let c_init = self.get_color(p4, p1);
 
         if c_init == 0 {
             return false;
         }
 
-        let c = self.get_color(&p1, &p2);
+        let c = self.get_color(p1, p2);
 
         if c != c_init {
             return false;
         }
 
-        let c = self.get_color(&p2, &p3);
+        let c = self.get_color(p2, p3);
 
         if c != c_init {
             return false;
         }
 
-        let c = self.get_color(&p3, &p4);
+        let c = self.get_color(p3, p4);
 
         c == c_init
     }
@@ -611,7 +611,7 @@ impl<'a> Detector<'_> {
      *
      * @return 1 if segment more than 90% black, -1 if segment is more than 90% white, 0 else
      */
-    fn get_color(&self, p1: &AztecPoint, p2: &AztecPoint) -> i32 {
+    fn get_color(&self, p1: AztecPoint, p2: AztecPoint) -> i32 {
         let d = Self::distance_points(p1, p2);
         if d == 0.0f32 {
             return 0;
@@ -715,12 +715,12 @@ impl<'a> Detector<'_> {
         self.is_valid_points(x, y)
     }
 
-    fn distance_points(a: &AztecPoint, b: &AztecPoint) -> f32 {
-        MathUtils::distance(a.get_x(), a.get_y(), b.get_x(), b.get_y())
+    fn distance_points(a: AztecPoint, b: AztecPoint) -> f32 {
+        Point::from(a).distance(b.into())
     }
 
     fn distance(a: Point, b: Point) -> f32 {
-        MathUtils::distance(a.getX(), a.getY(), b.getX(), b.getY())
+        a.distance(b)
     }
 
     fn get_dimension(&self) -> u32 {

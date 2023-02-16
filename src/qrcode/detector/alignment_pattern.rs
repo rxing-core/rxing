@@ -39,7 +39,7 @@ impl ResultPoint for AlignmentPattern {
         self.point.1
     }
 
-    fn into_rxing_result_point(self) -> Point {
+    fn to_rxing_result_point(&self) -> Point {
         Point {
             x: self.point.0,
             y: self.point.1,

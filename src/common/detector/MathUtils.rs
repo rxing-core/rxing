@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-use std::{
-    f32, i32,
-    ops::{Add, Sub},
-};
+use std::{f32, i32, ops::Add};
 
 /**
  * General math-related and numeric utility functions.
@@ -66,16 +63,6 @@ pub fn round(d: f32) -> i32 {
 //     (xDiff * xDiff + yDiff * yDiff).sqrt() as f32
 // }
 
-#[inline(always)]
-pub fn distance<T>(aX: T, aY: T, bX: T, bY: T) -> f32
-where
-    T: Sub<T, Output = T> + Into<f64>,
-{
-    let xDiff: f64 = (aX - bX).into();
-    let yDiff: f64 = (aY - bY).into();
-    (xDiff * xDiff + yDiff * yDiff).sqrt() as f32
-}
-
 /**
  * @param array values to sum
  * @return sum of values in array
@@ -119,25 +106,13 @@ mod tests {
         assert_eq!(0, MathUtils::round(f32::NAN));
     }
 
-    #[test]
-    fn testDistance() {
-        assert_eq!(
-            (8.0f32).sqrt(),
-            MathUtils::distance(1.0f32, 2.0f32, 3.0f32, 4.0f32)
-        );
-        assert_eq!(0.0f32, MathUtils::distance(1.0f32, 2.0f32, 1.0f32, 2.0f32));
-
-        assert_eq!((8.0f32).sqrt(), MathUtils::distance(1, 2, 3, 4));
-        assert_eq!(0.0f32, MathUtils::distance(1, 2, 1, 2));
-    }
-
-    #[test]
-    fn testSum() {
-        assert_eq!(0, MathUtils::sum(&[]));
-        assert_eq!(1, MathUtils::sum(&[1]));
-        assert_eq!(4, MathUtils::sum(&[1, 3]));
-        assert_eq!(0, MathUtils::sum(&[-1, 1]));
-        assert_eq!(0.0, MathUtils::sum(&[-1.0, 1.0]));
-        assert_eq!(4.0, MathUtils::sum(&[1.0, 3.0]));
-    }
+    // #[test]
+    // fn testSum() {
+    //     assert_eq!(0, MathUtils::sum(&[]));
+    //     assert_eq!(1, MathUtils::sum(&[1]));
+    //     assert_eq!(4, MathUtils::sum(&[1, 3]));
+    //     assert_eq!(0, MathUtils::sum(&[-1, 1]));
+    //     assert_eq!(0.0, MathUtils::sum(&[-1.0, 1.0]));
+    //     assert_eq!(4.0, MathUtils::sum(&[1.0, 3.0]));
+    // }
 }

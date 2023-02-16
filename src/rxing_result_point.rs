@@ -68,8 +68,8 @@ impl ResultPoint for Point {
         self.y
     }
 
-    fn into_rxing_result_point(self) -> Self {
-        self
+    fn to_rxing_result_point(&self) -> Self {
+        *self
     }
 }
 
@@ -167,7 +167,7 @@ impl Point {
 
     /// L2 norm
     pub fn length(self) -> f32 {
-        Self::dot(self, self).sqrt()
+        self.x.hypot(self.y)
     }
 
     /// L-inf norm
@@ -176,7 +176,7 @@ impl Point {
     }
 
     pub fn distance(self, p: Self) -> f32 {
-        Self::length(self - p)
+        (self - p).length()
     }
 
     /// Calculate a floating point pixel coordinate representing the 'center' of the pixel.
@@ -205,5 +205,37 @@ impl Point {
         } else {
             Self::new(0.0, self.y)
         }
+    }
+}
+
+impl From<&(f32, f32)> for Point {
+    fn from(&(x, y): &(f32, f32)) -> Self {
+        Self::new(x, y)
+    }
+}
+
+impl From<(f32, f32)> for Point {
+    fn from((x, y): (f32, f32)) -> Self {
+        Self::new(x, y)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Point;
+
+    #[test]
+    fn testDistance() {
+        assert_eq!(
+            (8.0f32).sqrt(),
+            Point::new(1.0, 2.0).distance(Point::new(3.0, 4.0))
+        );
+        assert_eq!(0.0, Point::new(1.0, 2.0).distance(Point::new(1.0, 2.0)));
+
+        assert_eq!(
+            (8.0f32).sqrt(),
+            Point::new(1.0, 2.0).distance(Point::new(3.0, 4.0))
+        );
+        assert_eq!(0.0, Point::new(1.0, 2.0).distance(Point::new(1.0, 2.0)));
     }
 }
