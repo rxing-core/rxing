@@ -130,6 +130,16 @@ impl RXingResult {
         &mut self.resultPoints
     }
 
+    /** Currently necessary because the external OneDReader proc macro uses it. */
+    pub fn getRXingResultPoints(&self) -> &Vec<Point> {
+        &&self.resultPoints
+    }
+
+    /** Currently necessary because the external OneDReader proc macro uses it. */
+    pub fn getRXingResultPointsMut(&mut self) -> &mut Vec<Point> {
+        &mut self.resultPoints
+    }
+
     /**
      * @return {@link BarcodeFormat} representing the format of the barcode that was decoded
      */

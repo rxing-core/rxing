@@ -19,6 +19,9 @@ pub struct Point {
     pub(crate) y: f32,
 }
 
+/** Currently necessary because the external OneDReader proc macro uses it. */
+pub type RXingResultPoint = Point;
+
 impl Hash for Point {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.x.to_string().hash(state);
