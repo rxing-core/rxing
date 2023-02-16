@@ -311,7 +311,7 @@ impl AlignmentPatternFinder {
             // Hadn't found this before; save it
             let point = AlignmentPattern::new(centerJ, centerI, estimatedModuleSize);
             if let Some(rpc) = self.resultPointCallback.clone() {
-                rpc(&point);
+                rpc((&point).into());
             }
 
             self.possibleCenters.push(point);

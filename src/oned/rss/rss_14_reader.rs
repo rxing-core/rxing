@@ -259,7 +259,7 @@ impl RSS14Reader {
                     // row is actually reversed
                     center = row.getSize() as f32 - 1.0 - center;
                 }
-                cb(&point(center, rowNumber as f32));
+                cb(point(center, rowNumber as f32));
             }
 
             let outside = self.decodeDataCharacter(row, &pattern, true)?;

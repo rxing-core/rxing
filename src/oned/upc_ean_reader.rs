@@ -156,7 +156,7 @@ pub trait UPCEANReader: OneDReader {
         let mut symbologyIdentifier = 0;
 
         if let Some(DecodeHintValue::NeedResultPointCallback(cb)) = resultPointCallback {
-            cb(&point(
+            cb(point(
                 (startGuardRange[0] + startGuardRange[1]) as f32 / 2.0,
                 rowNumber as f32,
             ));
@@ -166,13 +166,13 @@ pub trait UPCEANReader: OneDReader {
         let endStart = self.decodeMiddle(row, startGuardRange, &mut result)?;
 
         if let Some(DecodeHintValue::NeedResultPointCallback(cb)) = resultPointCallback {
-            cb(&point(endStart as f32, rowNumber as f32));
+            cb(point(endStart as f32, rowNumber as f32));
         }
 
         let endRange = self.decodeEnd(row, endStart)?;
 
         if let Some(DecodeHintValue::NeedResultPointCallback(cb)) = resultPointCallback {
-            cb(&point(
+            cb(point(
                 (endRange[0] + endRange[1]) as f32 / 2.0,
                 rowNumber as f32,
             ));

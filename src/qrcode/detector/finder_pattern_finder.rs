@@ -603,7 +603,7 @@ impl<'a> FinderPatternFinder<'_> {
                     let point = FinderPattern::new(centerJ, centerI, estimatedModuleSize);
                     self.possibleCenters.push(point);
                     if let Some(rpc) = self.resultPointCallback.clone() {
-                        rpc(&point);
+                        rpc((&point).into());
                     }
                 }
                 return true;

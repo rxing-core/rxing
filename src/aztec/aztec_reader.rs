@@ -92,7 +92,7 @@ impl Reader for AztecReader {
         {
             // if let DecodeHintValue::NeedResultPointCallback(cb) = rpcb {
             for point in points {
-                cb(point);
+                cb(*point);
             }
             // }
         }
