@@ -18,6 +18,7 @@
 
 use std::fmt;
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::{GenericGF, GenericGFRef};
@@ -47,7 +48,7 @@ impl GenericGFPoly {
      * or if leading coefficient is 0 and this is not a
      * constant polynomial (that is, it is not the monomial "0")
      */
-    pub fn new(field: GenericGFRef, coefficients: &[i32]) -> Result<Self, Exceptions> {
+    pub fn new(field: GenericGFRef, coefficients: &[i32]) -> Result<Self> {
         if coefficients.is_empty() {
             return Err(Exceptions::illegalArgumentWith(
                 "coefficients cannot be empty",
@@ -138,7 +139,7 @@ impl GenericGFPoly {
         result
     }
 
-    pub fn addOrSubtract(&self, other: &GenericGFPoly) -> Result<GenericGFPoly, Exceptions> {
+    pub fn addOrSubtract(&self, other: &GenericGFPoly) -> Result<GenericGFPoly> {
         if self.field != other.field {
             return Err(Exceptions::illegalArgumentWith(
                 "GenericGFPolys do not have same GenericGF field",
@@ -174,7 +175,7 @@ impl GenericGFPoly {
         GenericGFPoly::new(self.field, &sumDiff)
     }
 
-    pub fn multiply(&self, other: &GenericGFPoly) -> Result<GenericGFPoly, Exceptions> {
+    pub fn multiply(&self, other: &GenericGFPoly) -> Result<GenericGFPoly> {
         if self.field != other.field {
             //if (!field.equals(other.field)) {
             return Err(Exceptions::illegalArgumentWith(
@@ -229,11 +230,7 @@ impl GenericGFPoly {
         GenericGFPoly::new(self.field, &[1]).unwrap()
     }
 
-    pub fn multiply_by_monomial(
-        &self,
-        degree: usize,
-        coefficient: i32,
-    ) -> Result<GenericGFPoly, Exceptions> {
+    pub fn multiply_by_monomial(&self, degree: usize, coefficient: i32) -> Result<GenericGFPoly> {
         if coefficient == 0 {
             return Ok(self.getZero());
         }
@@ -247,10 +244,7 @@ impl GenericGFPoly {
         GenericGFPoly::new(self.field, &product)
     }
 
-    pub fn divide(
-        &self,
-        other: &GenericGFPoly,
-    ) -> Result<(GenericGFPoly, GenericGFPoly), Exceptions> {
+    pub fn divide(&self, other: &GenericGFPoly) -> Result<(GenericGFPoly, GenericGFPoly)> {
         if self.field != other.field {
             return Err(Exceptions::illegalArgumentWith(
                 "GenericGFPolys do not have same GenericGF field",

@@ -15,6 +15,7 @@
  */
 
 use super::OneDReader;
+use crate::common::Result;
 use crate::{BarcodeFormat, Exceptions};
 use rxing_one_d_proc_derive::{EANReader, OneDReader};
 
@@ -39,7 +40,7 @@ impl UPCEANReader for EAN8Reader {
         row: &crate::common::BitArray,
         startRange: &[usize; 2],
         resultString: &mut String,
-    ) -> Result<usize, Exceptions> {
+    ) -> Result<usize> {
         let mut counters = [0_u32; 4]; //decodeMiddleCounters;
                                        // counters[0] = 0;
                                        // counters[1] = 0;

@@ -21,6 +21,7 @@ use super::UPCEANReader;
 use super::upc_ean_reader;
 use super::OneDReader;
 
+use crate::common::Result;
 use crate::BarcodeFormat;
 use crate::Exceptions;
 
@@ -43,7 +44,7 @@ impl UPCEANReader for EAN13Reader {
         row: &crate::common::BitArray,
         startRange: &[usize; 2],
         resultString: &mut String,
-    ) -> Result<usize, crate::Exceptions> {
+    ) -> Result<usize> {
         let mut counters = [0_u32; 4]; //decodeMiddleCounters;
                                        // counters[0] = 0;
                                        // counters[1] = 0;
@@ -141,10 +142,7 @@ impl EAN13Reader {
      *  encode digits
      * @throws NotFoundException if first digit cannot be determined
      */
-    fn determineFirstDigit(
-        resultString: &mut String,
-        lgPatternFound: usize,
-    ) -> Result<(), Exceptions> {
+    fn determineFirstDigit(resultString: &mut String, lgPatternFound: usize) -> Result<()> {
         for d in 0..10 {
             // for (int d = 0; d < 10; d++) {
             if lgPatternFound == Self::FIRST_DIGIT_ENCODINGS[d] {

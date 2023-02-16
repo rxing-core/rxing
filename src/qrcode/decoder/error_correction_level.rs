@@ -16,6 +16,7 @@
 
 use std::str::FromStr;
 
+use crate::common::Result;
 use crate::Exceptions;
 
 /**
@@ -41,7 +42,7 @@ impl ErrorCorrectionLevel {
      * @param bits int containing the two bits encoding a QR Code's error correction level
      * @return ErrorCorrectionLevel representing the encoded error correction level
      */
-    pub fn forBits(bits: u8) -> Result<Self, Exceptions> {
+    pub fn forBits(bits: u8) -> Result<Self> {
         match bits {
             0 => Ok(Self::M),
             1 => Ok(Self::L),

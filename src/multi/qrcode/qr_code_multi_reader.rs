@@ -17,7 +17,7 @@
 use std::{cmp::Ordering, collections::HashMap};
 
 use crate::{
-    common::DetectorRXingResult,
+    common::{DetectorRXingResult, Result},
     multi::MultipleBarcodeReader,
     qrcode::{
         decoder::{self, QRCodeDecoderMetaData},
@@ -40,7 +40,7 @@ impl MultipleBarcodeReader for QRCodeMultiReader {
     fn decode_multiple(
         &mut self,
         image: &mut crate::BinaryBitmap,
-    ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
+    ) -> Result<Vec<crate::RXingResult>> {
         self.decode_multiple_with_hints(image, &HashMap::new())
     }
 
@@ -48,11 +48,11 @@ impl MultipleBarcodeReader for QRCodeMultiReader {
         &mut self,
         image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
+    ) -> Result<Vec<crate::RXingResult>> {
         let mut results = Vec::new();
         let detectorRXingResults = MultiDetector::new(image.getBlackMatrix()).detectMulti(hints)?;
         for detectorRXingResult in detectorRXingResults {
-            let mut proc = || -> Result<(), Exceptions> {
+            let mut proc = || -> Result<()> {
                 let decoderRXingResult = decoder::qrcode_decoder::decode_bitmatrix_with_hints(
                     detectorRXingResult.getBits(),
                     hints,
@@ -126,7 +126,7 @@ impl QRCodeMultiReader {
         Self(QRCodeReader::new())
     }
 
-    fn processStructuredAppend(results: Vec<RXingResult>) -> Result<Vec<RXingResult>, Exceptions> {
+    fn processStructuredAppend(results: Vec<RXingResult>) -> Result<Vec<RXingResult>> {
         let mut newRXingResults = Vec::new();
         let mut saRXingResults = Vec::new();
         for result in &results {

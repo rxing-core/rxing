@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitMatrix, DecoderRXingResult, DetectorRXingResult},
+    common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
     BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
@@ -52,10 +52,7 @@ impl Reader for DataMatrixReader {
      * @throws FormatException if a Data Matrix code cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-    fn decode(
-        &mut self,
-        image: &mut crate::BinaryBitmap,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
@@ -71,7 +68,7 @@ impl Reader for DataMatrixReader {
         &mut self,
         image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    ) -> Result<crate::RXingResult> {
         let try_harder = matches!(
             hints.get(&DecodeHintType::TRY_HARDER),
             Some(DecodeHintValue::TryHarder(true))
@@ -84,7 +81,7 @@ impl Reader for DataMatrixReader {
             points.clear();
         } else {
             //Result<DatamatrixDetectorResult, Exceptions>
-            decoderRXingResult = if let Ok(fnd) = || -> Result<DecoderRXingResult, Exceptions> {
+            decoderRXingResult = if let Ok(fnd) = || -> Result<DecoderRXingResult> {
                 let detectorRXingResult =
                     zxing_cpp_detector::detect(image.getBlackMatrix(), try_harder, true)?;
                 let decoded = DECODER.decode(detectorRXingResult.getBits())?;
@@ -93,7 +90,7 @@ impl Reader for DataMatrixReader {
             }() {
                 fnd
             } else if try_harder {
-                if let Ok(fnd) = || -> Result<DecoderRXingResult, Exceptions> {
+                if let Ok(fnd) = || -> Result<DecoderRXingResult> {
                     let detectorRXingResult = Detector::new(image.getBlackMatrix())?.detect()?;
                     let decoded = DECODER.decode(detectorRXingResult.getBits())?;
                     points = detectorRXingResult.getPoints().to_vec();
@@ -179,7 +176,7 @@ impl DataMatrixReader {
      * around it. This is a specialized method that works exceptionally fast in this special
      * case.
      */
-    fn extractPureBits(&self, image: &BitMatrix) -> Result<BitMatrix, Exceptions> {
+    fn extractPureBits(&self, image: &BitMatrix) -> Result<BitMatrix> {
         let Some(leftTopBlack) = image.getTopLeftOnBit() else {
       return Err(Exceptions::notFound)
     };
@@ -226,7 +223,7 @@ impl DataMatrixReader {
         Ok(bits)
     }
 
-    fn moduleSize(leftTopBlack: &[u32], image: &BitMatrix) -> Result<u32, Exceptions> {
+    fn moduleSize(leftTopBlack: &[u32], image: &BitMatrix) -> Result<u32> {
         let width = image.getWidth();
         let mut x = leftTopBlack[0];
         let y = leftTopBlack[1];

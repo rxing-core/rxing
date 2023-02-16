@@ -24,7 +24,7 @@
  *   http://www.piramidepse.com/
  */
 
-use crate::common::BitArray;
+use crate::common::{BitArray, Result};
 
 use super::{AI013x0xDecoder, AI01decoder, AI01weightDecoder, AbstractExpandedDecoder};
 
@@ -43,7 +43,7 @@ impl AI01weightDecoder for AI013103decoder<'_> {
     }
 }
 impl AbstractExpandedDecoder for AI013103decoder<'_> {
-    fn parseInformation(&mut self) -> Result<String, crate::Exceptions> {
+    fn parseInformation(&mut self) -> Result<String> {
         self.0.parseInformation()
     }
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::{high_level_encoder, C40Encoder, Encoder, EncoderContext};
@@ -24,7 +25,7 @@ impl Encoder for X12Encoder {
         high_level_encoder::X12_ENCODATION
     }
 
-    fn encode(&self, context: &mut super::EncoderContext) -> Result<(), crate::Exceptions> {
+    fn encode(&self, context: &mut super::EncoderContext) -> Result<()> {
         //step C
         let mut buffer = String::new();
         while context.hasMoreCharacters() {
@@ -58,7 +59,7 @@ impl X12Encoder {
         Self(C40Encoder::new())
     }
 
-    fn encodeChar(c: char, sb: &mut String) -> Result<u32, Exceptions> {
+    fn encodeChar(c: char, sb: &mut String) -> Result<u32> {
         match c {
             '\r' => sb.push('\0'),
             '*' => sb.push('\u{1}'),
@@ -77,7 +78,7 @@ impl X12Encoder {
         Ok(1)
     }
 
-    fn handleEOD(context: &mut EncoderContext, buffer: &mut str) -> Result<(), Exceptions> {
+    fn handleEOD(context: &mut EncoderContext, buffer: &mut str) -> Result<()> {
         context.updateSymbolInfo();
         let available = context
             .getSymbolInfo()

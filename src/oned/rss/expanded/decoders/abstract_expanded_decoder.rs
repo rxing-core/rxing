@@ -24,7 +24,10 @@
  *   http://www.piramidepse.com/
  */
 
-use crate::{common::BitArray, Exceptions};
+use crate::{
+    common::{BitArray, Result},
+    Exceptions,
+};
 
 use super::{
     AI013103decoder, AI01320xDecoder, AI01392xDecoder, AI01393xDecoder, AI013x0x1xDecoder,
@@ -53,14 +56,14 @@ pub trait AbstractExpandedDecoder {
     //   return generalDecoder;
     // }
 
-    fn parseInformation(&mut self) -> Result<String, Exceptions>;
+    fn parseInformation(&mut self) -> Result<String>;
     fn getGeneralDecoder(&self) -> &GeneralAppIdDecoder;
     // fn new(information:&BitArray) -> Self where Self:Sized;
 }
 
 pub fn createDecoder<'a>(
     information: &'a BitArray,
-) -> Result<Box<dyn AbstractExpandedDecoder + 'a>, Exceptions> {
+) -> Result<Box<dyn AbstractExpandedDecoder + 'a>> {
     if information.get(1) {
         return Ok(Box::new(AI01AndOtherAIs::new(information)));
     }

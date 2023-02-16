@@ -16,6 +16,7 @@
 
 use std::rc::Rc;
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::ModulusGF;
@@ -31,10 +32,7 @@ pub struct ModulusPoly {
     // one: Option<Rc<ModulusPoly>>,
 }
 impl ModulusPoly {
-    pub fn new(
-        field: &'static ModulusGF,
-        coefficients: Vec<u32>,
-    ) -> Result<ModulusPoly, Exceptions> {
+    pub fn new(field: &'static ModulusGF, coefficients: Vec<u32>) -> Result<ModulusPoly> {
         if coefficients.is_empty() {
             return Err(Exceptions::illegalArgument);
         }
@@ -124,7 +122,7 @@ impl ModulusPoly {
         result
     }
 
-    pub fn add(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>, Exceptions> {
+    pub fn add(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>> {
         if self.field != other.field {
             return Err(Exceptions::illegalArgumentWith(
                 "ModulusPolys do not have same ModulusGF field",
@@ -158,7 +156,7 @@ impl ModulusPoly {
         Ok(Rc::new(ModulusPoly::new(self.field, sumDiff)?))
     }
 
-    pub fn subtract(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>, Exceptions> {
+    pub fn subtract(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>> {
         if self.field != other.field {
             return Err(Exceptions::illegalArgumentWith(
                 "ModulusPolys do not have same ModulusGF field",
@@ -170,7 +168,7 @@ impl ModulusPoly {
         self.add(other.negative())
     }
 
-    pub fn multiply(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>, Exceptions> {
+    pub fn multiply(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>> {
         if !(self.field == other.field) {
             return Err(Exceptions::illegalArgumentWith(
                 "ModulusPolys do not have same ModulusGF field",

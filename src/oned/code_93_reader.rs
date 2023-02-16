@@ -16,7 +16,10 @@
 
 use rxing_one_d_proc_derive::OneDReader;
 
-use crate::{common::BitArray, BarcodeFormat, Exceptions, RXingResult};
+use crate::{
+    common::{BitArray, Result},
+    BarcodeFormat, Exceptions, RXingResult,
+};
 
 use super::{one_d_reader, OneDReader};
 
@@ -47,7 +50,7 @@ impl OneDReader for Code93Reader {
         rowNumber: u32,
         row: &crate::common::BitArray,
         _hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, Exceptions> {
+    ) -> Result<crate::RXingResult> {
         let start = self.findAsteriskPattern(row)?;
         // Read off white space
         let mut nextStart = row.getNextSet(start[1]);
@@ -159,7 +162,7 @@ impl Code93Reader {
         }
     }
 
-    fn findAsteriskPattern(&mut self, row: &BitArray) -> Result<[usize; 2], Exceptions> {
+    fn findAsteriskPattern(&mut self, row: &BitArray) -> Result<[usize; 2]> {
         let width = row.getSize();
         let rowOffset = row.getNextSet(0);
 
@@ -215,7 +218,7 @@ impl Code93Reader {
         pattern
     }
 
-    fn patternToChar(pattern: u32) -> Result<char, Exceptions> {
+    fn patternToChar(pattern: u32) -> Result<char> {
         for i in 0..Self::CHARACTER_ENCODINGS.len() {
             if Self::CHARACTER_ENCODINGS[i] == pattern {
                 return Ok(Self::ALPHABET[i]);
@@ -224,7 +227,7 @@ impl Code93Reader {
         Err(Exceptions::notFound)
     }
 
-    fn decodeExtended(encoded: &str) -> Result<String, Exceptions> {
+    fn decodeExtended(encoded: &str) -> Result<String> {
         let length = encoded.chars().count();
         let mut decoded = String::with_capacity(length);
         let mut i = 0;
@@ -318,18 +321,14 @@ impl Code93Reader {
         Ok(decoded)
     }
 
-    fn checkChecksums(result: &str) -> Result<(), Exceptions> {
+    fn checkChecksums(result: &str) -> Result<()> {
         let length = result.chars().count();
         Self::checkOneChecksum(result, length - 2, 20)?;
         Self::checkOneChecksum(result, length - 1, 15)?;
         Ok(())
     }
 
-    fn checkOneChecksum(
-        result: &str,
-        checkPosition: usize,
-        weightMax: u32,
-    ) -> Result<(), Exceptions> {
+    fn checkOneChecksum(result: &str, checkPosition: usize, weightMax: u32) -> Result<()> {
         let mut weight = 1;
         let mut total = 0;
         for i in (0..checkPosition).rev() {

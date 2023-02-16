@@ -16,7 +16,7 @@
 
 use rxing_one_d_proc_derive::OneDReader;
 
-use crate::common::BitArray;
+use crate::common::{BitArray, Result};
 use crate::{BarcodeFormat, Exceptions, RXingResult};
 
 use super::{one_d_reader, OneDReader};
@@ -45,7 +45,7 @@ impl OneDReader for Code39Reader {
         rowNumber: u32,
         row: &crate::common::BitArray,
         _hints: &DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, Exceptions> {
+    ) -> Result<crate::RXingResult> {
         let mut counters = [0_u32; 9];
         self.decodeRowRXingResult.clear();
 
@@ -204,7 +204,7 @@ impl Code39Reader {
         }
     }
 
-    fn findAsteriskPattern(row: &BitArray, counters: &mut [u32]) -> Result<Vec<u32>, Exceptions> {
+    fn findAsteriskPattern(row: &BitArray, counters: &mut [u32]) -> Result<Vec<u32>> {
         let width = row.getSize();
         let rowOffset = row.getNextSet(0);
 
@@ -300,7 +300,7 @@ impl Code39Reader {
         -1
     }
 
-    fn patternToChar(pattern: u32) -> Result<char, Exceptions> {
+    fn patternToChar(pattern: u32) -> Result<char> {
         for i in 0..Self::CHARACTER_ENCODINGS.len() {
             if Self::CHARACTER_ENCODINGS[i] == pattern {
                 return Self::ALPHABET_STRING
@@ -315,7 +315,7 @@ impl Code39Reader {
         Err(Exceptions::notFound)
     }
 
-    fn decodeExtended(encoded: &str) -> Result<String, Exceptions> {
+    fn decodeExtended(encoded: &str) -> Result<String> {
         let length = encoded.chars().count();
         let mut decoded = String::with_capacity(length); //new StringBuilder(length);
         let mut i = 0;

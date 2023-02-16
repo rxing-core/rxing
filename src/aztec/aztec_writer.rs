@@ -19,8 +19,9 @@ use std::collections::HashMap;
 use encoding::EncodingRef;
 
 use crate::{
-    common::BitMatrix, exceptions::Exceptions, BarcodeFormat, EncodeHintType, EncodeHintValue,
-    Writer,
+    common::{BitMatrix, Result},
+    exceptions::Exceptions,
+    BarcodeFormat, EncodeHintType, EncodeHintValue, Writer,
 };
 
 use super::encoder::{aztec_encoder, AztecCode};
@@ -38,7 +39,7 @@ impl Writer for AztecWriter {
         format: &crate::BarcodeFormat,
         width: i32,
         height: i32,
-    ) -> Result<crate::common::BitMatrix, crate::exceptions::Exceptions> {
+    ) -> Result<crate::common::BitMatrix> {
         self.encode_with_hints(contents, format, width, height, &HashMap::new())
     }
 
@@ -49,7 +50,7 @@ impl Writer for AztecWriter {
         width: i32,
         height: i32,
         hints: &std::collections::HashMap<crate::EncodeHintType, crate::EncodeHintValue>,
-    ) -> Result<crate::common::BitMatrix, crate::exceptions::Exceptions> {
+    ) -> Result<crate::common::BitMatrix> {
         let mut charset = None; // Do not add any ECI code by default
         let mut ecc_percent = aztec_encoder::DEFAULT_EC_PERCENT;
         let mut layers = aztec_encoder::DEFAULT_AZTEC_LAYERS;
@@ -93,7 +94,7 @@ fn encode(
     charset: Option<EncodingRef>,
     ecc_percent: u32,
     layers: i32,
-) -> Result<BitMatrix, Exceptions> {
+) -> Result<BitMatrix> {
     if format != BarcodeFormat::AZTEC {
         return Err(Exceptions::illegalArgumentWith(format!(
             "can only encode AZTEC, but got {format:?}"
@@ -108,7 +109,7 @@ fn encode(
     renderRXingResult(&aztec, width, height)
 }
 
-fn renderRXingResult(code: &AztecCode, width: u32, height: u32) -> Result<BitMatrix, Exceptions> {
+fn renderRXingResult(code: &AztecCode, width: u32, height: u32) -> Result<BitMatrix> {
     let input = code.getMatrix();
 
     let input_width = input.getWidth();

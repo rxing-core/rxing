@@ -32,6 +32,7 @@ use chrono_tz::Tz;
 use once_cell::sync::Lazy;
 use regex::Regex;
 
+use crate::common::Result;
 use crate::exceptions::Exceptions;
 
 use super::{maybe_append_multiple, maybe_append_string, ParsedRXingResult, ParsedRXingResultType};
@@ -109,7 +110,7 @@ impl CalendarParsedRXingResult {
         description: String,
         latitude: f64,
         longitude: f64,
-    ) -> Result<Self, Exceptions> {
+    ) -> Result<Self> {
         let start = Self::parseDate(startString.clone())?;
         let end = if endString.is_empty() {
             let durationMS = Self::parseDurationMS(&durationString)?;
@@ -164,7 +165,7 @@ impl CalendarParsedRXingResult {
      * @param when The string to parse
      * @throws ParseException if not able to parse as a date
      */
-    fn parseDate(when: String) -> Result<i64, Exceptions> {
+    fn parseDate(when: String) -> Result<i64> {
         if !DATE_TIME.is_match(&when) {
             return Err(Exceptions::parseWith(when));
         }
@@ -233,7 +234,7 @@ impl CalendarParsedRXingResult {
         }
     }
 
-    fn parseDurationMS(durationString: &str) -> Result<i64, Exceptions> {
+    fn parseDurationMS(durationString: &str) -> Result<i64> {
         if durationString.is_empty() {
             return Ok(-1);
         }
@@ -269,7 +270,7 @@ impl CalendarParsedRXingResult {
         // return durationMS;
     }
 
-    fn parseDateTimeString(dateTimeString: &str) -> Result<i64, Exceptions> {
+    fn parseDateTimeString(dateTimeString: &str) -> Result<i64> {
         if let Ok(dtm) = DateTime::parse_from_str(dateTimeString, "%Y%m%dT%H%M%S") {
             Ok(dtm.timestamp())
         } else {

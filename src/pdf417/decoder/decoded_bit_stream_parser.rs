@@ -19,7 +19,7 @@ use num::{self, bigint::ToBigUint, BigUint};
 use std::rc::Rc;
 
 use crate::{
-    common::{DecoderRXingResult, ECIStringBuilder},
+    common::{DecoderRXingResult, ECIStringBuilder, Result},
     pdf417::PDF417RXingResultMetadata,
     Exceptions,
 };
@@ -106,7 +106,7 @@ static EXP900: Lazy<Vec<BigUint>> = Lazy::new(|| {
 
 const NUMBER_OF_SEQUENCE_CODEWORDS: usize = 2;
 
-pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult, Exceptions> {
+pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult> {
     let mut result = ECIStringBuilder::with_capacity(codewords.len() * 2);
     let mut codeIndex = textCompaction(codewords, 1, &mut result)?;
     let mut resultMetadata = PDF417RXingResultMetadata::default();
@@ -180,7 +180,7 @@ pub fn decodeMacroBlock(
     codewords: &[u32],
     codeIndex: usize,
     resultMetadata: &mut PDF417RXingResultMetadata,
-) -> Result<usize, Exceptions> {
+) -> Result<usize> {
     let mut codeIndex = codeIndex;
     if codeIndex + NUMBER_OF_SEQUENCE_CODEWORDS > codewords[0] as usize {
         // we must have at least two bytes left for the segment index
@@ -330,7 +330,7 @@ fn textCompaction(
     codewords: &[u32],
     codeIndex: usize,
     result: &mut ECIStringBuilder,
-) -> Result<usize, Exceptions> {
+) -> Result<usize> {
     let mut codeIndex = codeIndex;
     // 2 character per codeword
     let mut textCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
@@ -608,7 +608,7 @@ fn byteCompaction(
     codewords: &[u32],
     codeIndex: usize,
     result: &mut ECIStringBuilder,
-) -> Result<usize, Exceptions> {
+) -> Result<usize> {
     let mut end = false;
     let mut codeIndex = codeIndex;
 
@@ -679,7 +679,7 @@ fn numericCompaction(
     codewords: &[u32],
     codeIndex: usize,
     result: &mut ECIStringBuilder,
-) -> Result<usize, Exceptions> {
+) -> Result<usize> {
     let mut count = 0;
     let mut end = false;
     let mut codeIndex = codeIndex;
@@ -767,8 +767,10 @@ fn numericCompaction(
 
   Remove leading 1 =>  RXingResult is 000213298174000
 */
-fn decodeBase900toBase10(codewords: &[u32], count: usize) -> Result<String, Exceptions> {
-    let mut result = 0.to_biguint().ok_or(Exceptions::arithmetic)?;
+fn decodeBase900toBase10(codewords: &[u32], count: usize) -> Result<String> {
+    let mut result = 0
+        .to_biguint()
+        .ok_or(Exceptions::ArithmeticException(None))?;
     for i in 0..count {
         result +=
             &EXP900[count - i - 1] * (codewords[i].to_biguint().ok_or(Exceptions::arithmetic)?);

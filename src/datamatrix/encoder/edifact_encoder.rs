@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::{high_level_encoder, Encoder, EncoderContext};
@@ -24,7 +25,7 @@ impl Encoder for EdifactEncoder {
         high_level_encoder::EDIFACT_ENCODATION
     }
 
-    fn encode(&self, context: &mut super::EncoderContext) -> Result<(), crate::Exceptions> {
+    fn encode(&self, context: &mut super::EncoderContext) -> Result<()> {
         //step F
         let mut buffer = String::new();
         while context.hasMoreCharacters() {
@@ -65,8 +66,8 @@ impl EdifactEncoder {
      * @param context the encoder context
      * @param buffer  the buffer with the remaining encoded characters
      */
-    fn handleEOD(context: &mut EncoderContext, buffer: &mut str) -> Result<(), Exceptions> {
-        let mut runner = || -> Result<(), Exceptions> {
+    fn handleEOD(context: &mut EncoderContext, buffer: &mut str) -> Result<()> {
+        let mut runner = || -> Result<()> {
             let count = buffer.chars().count();
             if count == 0 {
                 return Ok(()); //Already finished
@@ -133,7 +134,7 @@ impl EdifactEncoder {
         res
     }
 
-    fn encodeChar(c: char, sb: &mut String) -> Result<(), Exceptions> {
+    fn encodeChar(c: char, sb: &mut String) -> Result<()> {
         if (' '..='?').contains(&c) {
             sb.push(c);
         } else if ('@'..='^').contains(&c) {
@@ -144,7 +145,7 @@ impl EdifactEncoder {
         Ok(())
     }
 
-    fn encodeToCodewords(sb: &str) -> Result<String, Exceptions> {
+    fn encodeToCodewords(sb: &str) -> Result<String> {
         let len = sb.chars().count();
         if len == 0 {
             return Err(Exceptions::illegalStateWith(

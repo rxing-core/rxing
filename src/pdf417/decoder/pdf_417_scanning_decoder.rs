@@ -17,7 +17,7 @@
 use std::rc::Rc;
 
 use crate::{
-    common::{BitMatrix, DecoderRXingResult},
+    common::{BitMatrix, DecoderRXingResult, Result},
     pdf417::pdf_417_common,
     Exceptions, RXingResultPoint, ResultPoint,
 };
@@ -50,7 +50,7 @@ pub fn decode(
     imageBottomRight: Option<RXingResultPoint>,
     minCodewordWidth: u32,
     maxCodewordWidth: u32,
-) -> Result<DecoderRXingResult, Exceptions> {
+) -> Result<DecoderRXingResult> {
     let mut minCodewordWidth = minCodewordWidth;
     let mut maxCodewordWidth = maxCodewordWidth;
     let mut boundingBox = Rc::new(BoundingBox::new(
@@ -180,7 +180,7 @@ pub fn decode(
 fn merge<'a, T: DetectionRXingResultRowIndicatorColumn>(
     leftRowIndicatorColumn: &'a mut Option<T>,
     rightRowIndicatorColumn: &'a mut Option<T>,
-) -> Result<Option<DetectionRXingResult>, Exceptions> {
+) -> Result<Option<DetectionRXingResult>> {
     if leftRowIndicatorColumn.is_none() && rightRowIndicatorColumn.is_none() {
         return Ok(None);
     }
@@ -201,7 +201,7 @@ fn merge<'a, T: DetectionRXingResultRowIndicatorColumn>(
 
 fn adjustBoundingBox<T: DetectionRXingResultRowIndicatorColumn>(
     rowIndicatorColumn: &mut Option<T>,
-) -> Result<Option<BoundingBox>, Exceptions> {
+) -> Result<Option<BoundingBox>> {
     if rowIndicatorColumn.is_none() {
         return Ok(None);
     }
@@ -403,7 +403,7 @@ fn getRowIndicatorColumn<'a>(
 fn adjustCodewordCount(
     detectionRXingResult: &DetectionRXingResult,
     barcodeMatrix: &mut [Vec<BarcodeValue>],
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     let barcodeMatrix01 = &mut barcodeMatrix[0][1];
     let numberOfCodewords = barcodeMatrix01.getValue();
     let calculatedNumberOfCodewords = (detectionRXingResult.getBarcodeColumnCount() as isize
@@ -426,7 +426,7 @@ fn adjustCodewordCount(
 
 fn createDecoderRXingResult(
     detectionRXingResult: &mut DetectionRXingResult,
-) -> Result<DecoderRXingResult, Exceptions> {
+) -> Result<DecoderRXingResult> {
     let mut barcodeMatrix = createBarcodeMatrix(detectionRXingResult);
     adjustCodewordCount(detectionRXingResult, &mut barcodeMatrix)?;
     let mut erasures = Vec::new();
@@ -488,7 +488,7 @@ fn createDecoderRXingResultFromAmbiguousValues(
     erasureArray: &mut [u32],
     ambiguousIndexes: &mut [u32],
     ambiguousIndexValues: &[Vec<u32>],
-) -> Result<DecoderRXingResult, Exceptions> {
+) -> Result<DecoderRXingResult> {
     let mut ambiguousIndexCount = vec![0; ambiguousIndexes.len()];
 
     let mut tries = 100;
@@ -843,7 +843,7 @@ fn decodeCodewords(
     codewords: &mut [u32],
     ecLevel: u32,
     erasures: &mut [u32],
-) -> Result<DecoderRXingResult, Exceptions> {
+) -> Result<DecoderRXingResult> {
     if codewords.is_empty() {
         return Err(Exceptions::format);
     }
@@ -874,7 +874,7 @@ fn correctErrors(
     codewords: &mut [u32],
     erasures: &mut [u32],
     numECCodewords: u32,
-) -> Result<usize, Exceptions> {
+) -> Result<usize> {
     if !erasures.is_empty() && erasures.len() as u32 > numECCodewords / 2 + MAX_ERRORS
         /*|| numECCodewords < 0*/
         || numECCodewords > MAX_EC_CODEWORDS
@@ -888,7 +888,7 @@ fn correctErrors(
 /**
  * Verify that all is OK with the codeword array.
  */
-fn verifyCodewordCount(codewords: &mut [u32], numECCodewords: u32) -> Result<(), Exceptions> {
+fn verifyCodewordCount(codewords: &mut [u32], numECCodewords: u32) -> Result<()> {
     if codewords.len() < 4 {
         // Codeword array size should be at least 4 allowing for
         // Count CW, At least one Data CW, Error Correction CW, Error Correction CW

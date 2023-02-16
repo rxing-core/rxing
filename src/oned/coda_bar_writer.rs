@@ -16,6 +16,7 @@
 
 use rxing_one_d_proc_derive::OneDWriter;
 
+use crate::common::Result;
 use crate::BarcodeFormat;
 
 use super::{CodaBarReader, OneDimensionalCodeWriter};
@@ -34,7 +35,7 @@ const DEFAULT_GUARD: char = START_END_CHARS[0];
 pub struct CodaBarWriter;
 
 impl OneDimensionalCodeWriter for CodaBarWriter {
-    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>, crate::Exceptions> {
+    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
         let contents = if contents.chars().count() < 2 {
             // Can't have a start/end guard, so tentatively add default guards
             format!("{DEFAULT_GUARD}{contents}{DEFAULT_GUARD}")

@@ -19,7 +19,7 @@ use std::{fmt, rc::Rc};
 use encoding::{self, EncodingRef};
 
 use crate::{
-    common::{ECIInput, MinimalECIInput},
+    common::{ECIInput, MinimalECIInput, Result},
     Exceptions,
 };
 
@@ -134,7 +134,7 @@ fn isInTextShift2Set(ch: char, fnc1: Option<char>) -> bool {
  * @param msg the message
  * @return the encoded message (the char values range from 0 to 255)
  */
-pub fn encodeHighLevel(msg: &str) -> Result<String, Exceptions> {
+pub fn encodeHighLevel(msg: &str) -> Result<String> {
     encodeHighLevelWithDetails(msg, None, None, SymbolShapeHint::FORCE_NONE)
 }
 
@@ -156,7 +156,7 @@ pub fn encodeHighLevelWithDetails(
     priorityCharset: Option<EncodingRef>,
     fnc1: Option<char>,
     shape: SymbolShapeHint,
-) -> Result<String, Exceptions> {
+) -> Result<String> {
     let mut msg = msg;
     let mut macroId = 0;
     if msg.starts_with(high_level_encoder::MACRO_05_HEADER)
@@ -201,7 +201,7 @@ fn encode(
     fnc1: Option<char>,
     shape: SymbolShapeHint,
     macroId: i32,
-) -> Result<Vec<u8>, Exceptions> {
+) -> Result<Vec<u8>> {
     Ok(encodeMinimally(Rc::new(Input::new(
         input,
         priorityCharset,
@@ -213,7 +213,7 @@ fn encode(
     .to_vec())
 }
 
-fn addEdge(edges: &mut [Vec<Option<Rc<Edge>>>], edge: Rc<Edge>) -> Result<(), Exceptions> {
+fn addEdge(edges: &mut [Vec<Option<Rc<Edge>>>], edge: Rc<Edge>) -> Result<()> {
     let vertexIndex = (edge.fromPosition + edge.characterLength) as usize;
     if edges[vertexIndex][edge.getEndMode()?.ordinal()].is_none()
         || edges[vertexIndex][edge.getEndMode()?.ordinal()]
@@ -239,7 +239,7 @@ fn getNumberOfC40Words(
     from: u32,
     c40: bool,
     characterLength: &mut [u32],
-) -> Result<u32, Exceptions> {
+) -> Result<u32> {
     let mut thirdsCount = 0;
     for i in (from as usize)..input.length() {
         // for (int i = from; i < input.length(); i++) {
@@ -282,7 +282,7 @@ fn addEdges(
     edges: &mut [Vec<Option<Rc<Edge>>>],
     from: u32,
     previous: Option<Rc<Edge>>,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     if input.isECI(from)? {
         addEdge(
             edges,
@@ -409,7 +409,7 @@ fn addEdges(
     Ok(())
 }
 
-fn encodeMinimally(input: Rc<Input>) -> Result<RXingResult, Exceptions> {
+fn encodeMinimally(input: Rc<Input>) -> Result<RXingResult> {
     // @SuppressWarnings("checkstyle:lineLength")
     /* The minimal encoding is computed by Dijkstra. The acyclic graph is modeled as follows:
      * A vertex represents a combination of a position in the input and an encoding mode where position 0
@@ -667,7 +667,7 @@ impl Edge {
         fromPosition: u32,
         characterLength: u32,
         previous: Option<Rc<Edge>>,
-    ) -> Result<Self, Exceptions> {
+    ) -> Result<Self> {
         if fromPosition + characterLength > input.length() as u32 {
             return Err(Exceptions::format);
         }
@@ -804,7 +804,7 @@ impl Edge {
         // if previous.is_none() { Mode::ASCII} else {previous.as_ref().unwrap().mode}
     }
 
-    pub fn getPreviousMode(previous: Option<Rc<Edge>>) -> Result<Mode, Exceptions> {
+    pub fn getPreviousMode(previous: Option<Rc<Edge>>) -> Result<Mode> {
         if let Some(prev) = previous {
             prev.getEndMode()
         } else {
@@ -819,7 +819,7 @@ impl Edge {
      *  - Mode is C40, TEXT or X12 and the remaining characters can be encoded in at most 1 ASCII byte.
      *  Returns mode in all other cases.
      * */
-    pub fn getEndMode(&self) -> Result<Mode, Exceptions> {
+    pub fn getEndMode(&self) -> Result<Mode> {
         let mode = self.mode;
         if mode == Mode::Edf {
             if self.characterLength < 4 {
@@ -856,7 +856,7 @@ impl Edge {
      *  two consecutive digits and a non extended character or of 4 digits.
      *  Returns 0 in any other case
      **/
-    pub fn getLastASCII(&self) -> Result<u32, Exceptions> {
+    pub fn getLastASCII(&self) -> Result<u32> {
         let length = self.input.length() as u32;
         let from = self.fromPosition + self.characterLength;
         if length - from > 4 || from >= length {
@@ -1000,7 +1000,7 @@ impl Edge {
         }
     }
 
-    pub fn getX12Words(&self) -> Result<Vec<u8>, Exceptions> {
+    pub fn getX12Words(&self) -> Result<Vec<u8>> {
         assert!(self.characterLength % 3 == 0);
         let mut result = vec![0u8; self.characterLength as usize / 3 * 2];
         let mut i = 0;
@@ -1096,7 +1096,7 @@ impl Edge {
         }
     }
 
-    pub fn getC40Words(&self, c40: bool, fnc1: Option<char>) -> Result<Vec<u8>, Exceptions> {
+    pub fn getC40Words(&self, c40: bool, fnc1: Option<char>) -> Result<Vec<u8>> {
         let mut c40Values: Vec<u8> = Vec::new();
         let fromPosition = self.fromPosition as usize;
         for i in 0..self.characterLength as usize {
@@ -1156,7 +1156,7 @@ impl Edge {
         Ok(result)
     }
 
-    pub fn getEDFBytes(&self) -> Result<Vec<u8>, Exceptions> {
+    pub fn getEDFBytes(&self) -> Result<Vec<u8>> {
         let numberOfThirds = (self.characterLength as f32 / 4.0).ceil() as usize;
         let mut result = vec![0u8; numberOfThirds * 3];
         let mut pos = self.fromPosition as usize;
@@ -1190,7 +1190,7 @@ impl Edge {
         Ok(result)
     }
 
-    pub fn getLatchBytes(&self) -> Result<Vec<u8>, Exceptions> {
+    pub fn getLatchBytes(&self) -> Result<Vec<u8>> {
         match Self::getPreviousMode(self.previous.clone())? {
             Mode::Ascii | Mode::B256 =>
             //after B256 ends (via length) we are back to ASCII
@@ -1224,7 +1224,7 @@ impl Edge {
     }
 
     // Important: The function does not return the length bytes (one or two) in case of B256 encoding
-    pub fn getDataBytes(&self) -> Result<Vec<u8>, Exceptions> {
+    pub fn getDataBytes(&self) -> Result<Vec<u8>> {
         match self.mode {
             Mode::Ascii => {
                 if self.input.isECI(self.fromPosition)? {
@@ -1272,7 +1272,7 @@ struct RXingResult {
     bytes: Vec<u8>,
 }
 impl RXingResult {
-    pub fn new(solution: Option<Rc<Edge>>) -> Result<Self, Exceptions> {
+    pub fn new(solution: Option<Rc<Edge>>) -> Result<Self> {
         let solution = if let Some(edge) = solution {
             edge
         } else {
@@ -1427,10 +1427,10 @@ impl Input {
     pub fn length(&self) -> usize {
         self.internal.length()
     }
-    pub fn isECI(&self, index: u32) -> Result<bool, Exceptions> {
+    pub fn isECI(&self, index: u32) -> Result<bool> {
         self.internal.isECI(index)
     }
-    pub fn charAt(&self, index: usize) -> Result<char, Exceptions> {
+    pub fn charAt(&self, index: usize) -> Result<char> {
         self.internal.charAt(index)
     }
     pub fn getFNC1Character(&self) -> Option<char> {
@@ -1440,13 +1440,13 @@ impl Input {
             Some(self.internal.getFNC1Character() as u8 as char)
         }
     }
-    fn haveNCharacters(&self, index: usize, n: usize) -> Result<bool, Exceptions> {
+    fn haveNCharacters(&self, index: usize, n: usize) -> Result<bool> {
         self.internal.haveNCharacters(index, n)
     }
-    fn isFNC1(&self, index: usize) -> Result<bool, Exceptions> {
+    fn isFNC1(&self, index: usize) -> Result<bool> {
         self.internal.isFNC1(index)
     }
-    fn getECIValue(&self, index: usize) -> Result<i32, Exceptions> {
+    fn getECIValue(&self, index: usize) -> Result<i32> {
         self.internal.getECIValue(index)
     }
 }

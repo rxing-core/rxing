@@ -17,8 +17,9 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::BitArray, BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, RXingResultPoint,
+    common::{BitArray, Result},
+    BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue,
+    RXingResultPoint,
 };
 
 use super::{upc_ean_reader, UPCEANReader, STAND_IN};
@@ -38,7 +39,7 @@ impl UPCEANExtension5Support {
         rowNumber: u32,
         row: &BitArray,
         extensionStartRange: &[usize; 2],
-    ) -> Result<RXingResult, Exceptions> {
+    ) -> Result<RXingResult> {
         let mut result = String::new();
 
         let end = Self::decodeMiddle(row, extensionStartRange, &mut result)?;
@@ -70,7 +71,7 @@ impl UPCEANExtension5Support {
         row: &BitArray,
         startRange: &[usize; 2],
         resultString: &mut String,
-    ) -> Result<u32, Exceptions> {
+    ) -> Result<u32> {
         let mut counters = [0_u32; 4];
         let end = row.getSize();
         let mut rowOffset = startRange[1];
@@ -139,7 +140,7 @@ impl UPCEANExtension5Support {
         Some(sum % 10)
     }
 
-    fn determineCheckDigit(lgPatternFound: usize) -> Result<usize, Exceptions> {
+    fn determineCheckDigit(lgPatternFound: usize) -> Result<usize> {
         for d in 0..10 {
             if lgPatternFound == Self::CHECK_DIGIT_ENCODINGS[d] {
                 return Ok(d);

@@ -1,3 +1,4 @@
+use crate::common::Result;
 use crate::{Exceptions, RXingResultPoint};
 
 use super::{
@@ -74,7 +75,7 @@ impl RegressionLine for DMRegressionLine {
         self.c = f32::NAN;
     }
 
-    fn add(&mut self, p: &RXingResultPoint) -> Result<(), Exceptions> {
+    fn add(&mut self, p: &RXingResultPoint) -> Result<()> {
         if self.direction_inward == RXingResultPoint::default() {
             return Err(Exceptions::illegalState);
         }
@@ -235,11 +236,7 @@ impl DMRegressionLine {
         self.points.reverse();
     }
 
-    pub fn modules(
-        &mut self,
-        beg: &RXingResultPoint,
-        end: &RXingResultPoint,
-    ) -> Result<f64, Exceptions> {
+    pub fn modules(&mut self, beg: &RXingResultPoint, end: &RXingResultPoint) -> Result<f64> {
         if self.points.len() <= 3 {
             return Err(Exceptions::illegalState);
         }

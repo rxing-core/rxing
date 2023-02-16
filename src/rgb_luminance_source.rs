@@ -16,6 +16,7 @@
 
 //package com.google.zxing;
 
+use crate::common::Result;
 use crate::{Exceptions, LuminanceSource};
 
 /**
@@ -116,7 +117,7 @@ impl LuminanceSource for RGBLuminanceSource {
         top: usize,
         width: usize,
         height: usize,
-    ) -> Result<Box<dyn LuminanceSource>, Exceptions> {
+    ) -> Result<Box<dyn LuminanceSource>> {
         match RGBLuminanceSource::new_complex(
             &self.luminances,
             self.dataWidth,
@@ -177,7 +178,7 @@ impl RGBLuminanceSource {
         top: usize,
         width: usize,
         height: usize,
-    ) -> Result<Self, Exceptions> {
+    ) -> Result<Self> {
         if left + width > data_width || top + height > data_height {
             return Err(Exceptions::illegalArgumentWith(
                 "Crop rectangle does not fit within image data.",

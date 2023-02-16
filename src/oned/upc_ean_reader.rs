@@ -15,7 +15,8 @@
  */
 
 use crate::{
-    common::BitArray, BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
+    common::{BitArray, Result},
+    BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader,
 };
 
@@ -100,7 +101,7 @@ pub const L_AND_G_PATTERNS: [[u32; 4]; 20] = {
  * @author alasdair@google.com (Alasdair Mackintosh)
  */
 pub trait UPCEANReader: OneDReader {
-    fn findStartGuardPattern(&self, row: &BitArray) -> Result<[usize; 2], Exceptions> {
+    fn findStartGuardPattern(&self, row: &BitArray) -> Result<[usize; 2]> {
         let mut foundStart = false;
         let mut startRange = [0; 2];
         let mut nextStart = 0;
@@ -150,7 +151,7 @@ pub trait UPCEANReader: OneDReader {
         row: &BitArray,
         startGuardRange: &[usize; 2],
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<RXingResult, Exceptions> {
+    ) -> Result<RXingResult> {
         let resultPointCallback = hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK);
         let mut symbologyIdentifier = 0;
 
@@ -211,7 +212,7 @@ pub trait UPCEANReader: OneDReader {
 
         let mut extensionLength = 0;
 
-        let mut attempt = || -> Result<(), Exceptions> {
+        let mut attempt = || -> Result<()> {
             let extensionRXingResult =
                 UPC_EAN_EXTENSION_SUPPORT.decodeRow(rowNumber, row, endRange[1])?;
 
@@ -272,7 +273,7 @@ pub trait UPCEANReader: OneDReader {
      * @return {@link #checkStandardUPCEANChecksum(CharSequence)}
      * @throws FormatException if the string does not contain only digits
      */
-    fn checkChecksum(&self, s: &str) -> Result<bool, Exceptions> {
+    fn checkChecksum(&self, s: &str) -> Result<bool> {
         self.checkStandardUPCEANChecksum(s)
     }
 
@@ -284,7 +285,7 @@ pub trait UPCEANReader: OneDReader {
      * @return true iff string of digits passes the UPC/EAN checksum algorithm
      * @throws FormatException if the string does not contain only digits
      */
-    fn checkStandardUPCEANChecksum(&self, s: &str) -> Result<bool, Exceptions> {
+    fn checkStandardUPCEANChecksum(&self, s: &str) -> Result<bool> {
         let length = s.len();
         if length == 0 {
             return Ok(false);
@@ -306,7 +307,7 @@ pub trait UPCEANReader: OneDReader {
             })
     }
 
-    fn getStandardUPCEANChecksum(&self, s: &str) -> Result<u32, Exceptions> {
+    fn getStandardUPCEANChecksum(&self, s: &str) -> Result<u32> {
         let length = s.chars().count();
         let mut sum = 0;
         let mut i = length as isize - 1;
@@ -343,7 +344,7 @@ pub trait UPCEANReader: OneDReader {
         Ok(((1000 - sum) % 10) as u32)
     }
 
-    fn decodeEnd(&self, row: &BitArray, endStart: usize) -> Result<[usize; 2], Exceptions> {
+    fn decodeEnd(&self, row: &BitArray, endStart: usize) -> Result<[usize; 2]> {
         self.findGuardPattern(row, endStart, false, &START_END_PATTERN)
     }
 
@@ -353,7 +354,7 @@ pub trait UPCEANReader: OneDReader {
         rowOffset: usize,
         whiteFirst: bool,
         pattern: &[u32],
-    ) -> Result<[usize; 2], Exceptions> {
+    ) -> Result<[usize; 2]> {
         self.findGuardPatternWithCounters(
             row,
             rowOffset,
@@ -381,7 +382,7 @@ pub trait UPCEANReader: OneDReader {
         whiteFirst: bool,
         pattern: &[u32],
         counters: &mut [u32],
-    ) -> Result<[usize; 2], Exceptions> {
+    ) -> Result<[usize; 2]> {
         let width = row.getSize();
         let rowOffset = if whiteFirst {
             row.getNextUnset(rowOffset)
@@ -442,7 +443,7 @@ pub trait UPCEANReader: OneDReader {
         counters: &mut [u32; 4],
         rowOffset: usize,
         patterns: &[[u32; 4]],
-    ) -> Result<usize, Exceptions> {
+    ) -> Result<usize> {
         one_d_reader::recordPattern(row, rowOffset, counters)?;
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
@@ -484,7 +485,7 @@ pub trait UPCEANReader: OneDReader {
         row: &BitArray,
         startRange: &[usize; 2],
         resultString: &mut String,
-    ) -> Result<usize, Exceptions>;
+    ) -> Result<usize>;
 }
 
 pub(crate) struct StandInStruct;
@@ -498,7 +499,7 @@ impl UPCEANReader for StandInStruct {
         _row: &BitArray,
         _startRange: &[usize; 2],
         _resultString: &mut String,
-    ) -> Result<usize, Exceptions> {
+    ) -> Result<usize> {
         todo!()
     }
 }
@@ -508,13 +509,13 @@ impl OneDReader for StandInStruct {
         _rowNumber: u32,
         _row: &BitArray,
         _hints: &crate::DecodingHintDictionary,
-    ) -> Result<RXingResult, Exceptions> {
+    ) -> Result<RXingResult> {
         todo!()
     }
 }
 
 impl Reader for StandInStruct {
-    fn decode(&mut self, _image: &mut crate::BinaryBitmap) -> Result<RXingResult, Exceptions> {
+    fn decode(&mut self, _image: &mut crate::BinaryBitmap) -> Result<RXingResult> {
         todo!()
     }
 
@@ -522,7 +523,7 @@ impl Reader for StandInStruct {
         &mut self,
         _image: &mut crate::BinaryBitmap,
         _hints: &crate::DecodingHintDictionary,
-    ) -> Result<RXingResult, Exceptions> {
+    ) -> Result<RXingResult> {
         todo!()
     }
 }

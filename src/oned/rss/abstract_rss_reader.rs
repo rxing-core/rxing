@@ -15,6 +15,7 @@
  */
 
 use crate::{
+    common::Result,
     oned::{one_d_reader, OneDReader},
     Exceptions,
 };
@@ -30,7 +31,7 @@ pub trait AbstractRSSReaderTrait: OneDReader {
     const MIN_FINDER_PATTERN_RATIO: f32 = 9.5 / 12.0;
     const MAX_FINDER_PATTERN_RATIO: f32 = 12.5 / 14.0;
 
-    fn parseFinderValue(counters: &[u32], finderPatterns: &[[u32; 4]]) -> Result<u32, Exceptions> {
+    fn parseFinderValue(counters: &[u32], finderPatterns: &[[u32; 4]]) -> Result<u32> {
         for (value, pattern) in finderPatterns.iter().enumerate() {
             if one_d_reader::patternMatchVariance(counters, pattern, Self::MAX_INDIVIDUAL_VARIANCE)
                 < Self::MAX_AVG_VARIANCE

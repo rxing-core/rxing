@@ -19,6 +19,7 @@ use std::{fmt, rc::Rc};
 use encoding::EncodingRef;
 use unicode_segmentation::UnicodeSegmentation;
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::{ECIEncoderSet, ECIInput};
@@ -65,7 +66,7 @@ impl ECIInput for MinimalECIInput {
      * @throws  IllegalArgumentException
      *          if the value at the {@code index} argument is an ECI (@see #isECI)
      */
-    fn charAt(&self, index: usize) -> Result<char, Exceptions> {
+    fn charAt(&self, index: usize) -> Result<char> {
         if index >= self.length() {
             return Err(Exceptions::indexOutOfBoundsWith(index.to_string()));
         }
@@ -101,7 +102,7 @@ impl ECIInput for MinimalECIInput {
      * @throws  IllegalArgumentException
      *          if a value in the range {@code start}-{@code end} is an ECI (@see #isECI)
      */
-    fn subSequence(&self, start: usize, end: usize) -> Result<Vec<char>, Exceptions> {
+    fn subSequence(&self, start: usize, end: usize) -> Result<Vec<char>> {
         if start > end || end > self.length() {
             return Err(Exceptions::indexOutOfBounds);
         }
@@ -129,7 +130,7 @@ impl ECIInput for MinimalECIInput {
      *          if the {@code index} argument is negative or not less than
      *          {@code length()}
      */
-    fn isECI(&self, index: u32) -> Result<bool, Exceptions> {
+    fn isECI(&self, index: u32) -> Result<bool> {
         if index >= self.length() as u32 {
             return Err(Exceptions::indexOutOfBounds);
         }
@@ -154,7 +155,7 @@ impl ECIInput for MinimalECIInput {
      * @throws  IllegalArgumentException
      *          if the value at the {@code index} argument is not an ECI (@see #isECI)
      */
-    fn getECIValue(&self, index: usize) -> Result<i32, Exceptions> {
+    fn getECIValue(&self, index: usize) -> Result<i32> {
         if index >= self.length() {
             return Err(Exceptions::indexOutOfBounds);
         }
@@ -166,7 +167,7 @@ impl ECIInput for MinimalECIInput {
         Ok((self.bytes[index] as u32 - 256) as i32)
     }
 
-    fn haveNCharacters(&self, index: usize, n: usize) -> Result<bool, Exceptions> {
+    fn haveNCharacters(&self, index: usize, n: usize) -> Result<bool> {
         if index + n > self.bytes.len() {
             return Ok(false);
         }
@@ -246,7 +247,7 @@ impl MinimalECIInput {
      *          if the {@code index} argument is negative or not less than
      *          {@code length()}
      */
-    pub fn isFNC1(&self, index: usize) -> Result<bool, Exceptions> {
+    pub fn isFNC1(&self, index: usize) -> Result<bool> {
         if index >= self.length() {
             return Err(Exceptions::indexOutOfBounds);
         }

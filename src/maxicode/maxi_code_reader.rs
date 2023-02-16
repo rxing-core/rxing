@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitMatrix, DetectorRXingResult},
+    common::{BitMatrix, DetectorRXingResult, Result},
     BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
     RXingResultMetadataType, Reader,
 };
@@ -41,10 +41,7 @@ impl Reader for MaxiCodeReader {
      * @throws FormatException if a MaxiCode cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-    fn decode(
-        &mut self,
-        image: &mut crate::BinaryBitmap,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
@@ -60,7 +57,7 @@ impl Reader for MaxiCodeReader {
         &mut self,
         image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    ) -> Result<crate::RXingResult> {
         // Note that MaxiCode reader effectively always assumes PURE_BARCODE mode
         // and can't detect it in an image
         let try_harder = matches!(
@@ -123,7 +120,7 @@ impl MaxiCodeReader {
      * around it. This is a specialized method that works exceptionally fast in this special
      * case.
      */
-    fn extractPureBits(image: &BitMatrix) -> Result<BitMatrix, Exceptions> {
+    fn extractPureBits(image: &BitMatrix) -> Result<BitMatrix> {
         let enclosingRectangleOption = image.getEnclosingRectangle();
         if enclosingRectangleOption.is_none() {
             return Err(Exceptions::notFound);

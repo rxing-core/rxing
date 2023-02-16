@@ -17,7 +17,10 @@
 
 //package com.google.zxing.common.detector;
 
-use crate::{common::BitMatrix, Exceptions, RXingResultPoint, ResultPoint};
+use crate::{
+    common::{BitMatrix, Result},
+    Exceptions, RXingResultPoint, ResultPoint,
+};
 
 /**
  * <p>A somewhat generic detector that looks for a barcode-like rectangular region within an image.
@@ -48,7 +51,7 @@ impl<'a> MonochromeRectangleDetector<'_> {
      *  third, the rightmost
      * @throws NotFoundException if no Data Matrix Code can be found
      */
-    pub fn detect(&self) -> Result<[RXingResultPoint; 4], Exceptions> {
+    pub fn detect(&self) -> Result<[RXingResultPoint; 4]> {
         let height = self.image.getHeight() as i32;
         let width = self.image.getWidth() as i32;
         let halfHeight = height / 2;
@@ -155,7 +158,7 @@ impl<'a> MonochromeRectangleDetector<'_> {
         top: i32,
         bottom: i32,
         maxWhiteRun: i32,
-    ) -> Result<RXingResultPoint, Exceptions> {
+    ) -> Result<RXingResultPoint> {
         let mut lastRange_z: Option<[i32; 2]> = None;
         let mut y: i32 = centerY;
         let mut x: i32 = centerX;

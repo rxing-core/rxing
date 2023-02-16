@@ -1,3 +1,4 @@
+use crate::common::Result;
 use crate::{Exceptions, RXingResultPoint};
 
 use super::{DMRegressionLine, Direction, RegressionLine};
@@ -21,10 +22,7 @@ pub fn float_max<T: PartialOrd>(a: T, b: T) -> T {
 }
 
 #[inline(always)]
-pub fn intersect(
-    l1: &DMRegressionLine,
-    l2: &DMRegressionLine,
-) -> Result<RXingResultPoint, Exceptions> {
+pub fn intersect(l1: &DMRegressionLine, l2: &DMRegressionLine) -> Result<RXingResultPoint> {
     if !(l1.isValid() && l2.isValid()) {
         return Err(Exceptions::illegalState);
     }

@@ -15,8 +15,9 @@
  */
 
 use crate::{
-    common::BitMatrix, result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
-    Exceptions, RXingResultPointCallback, ResultPoint,
+    common::{BitMatrix, Result},
+    result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
+    RXingResultPointCallback, ResultPoint,
 };
 
 use super::{FinderPattern, FinderPatternInfo};
@@ -71,10 +72,7 @@ impl<'a> FinderPatternFinder<'_> {
         &self.possibleCenters
     }
 
-    pub fn find(
-        &mut self,
-        hints: &DecodingHintDictionary,
-    ) -> Result<FinderPatternInfo, Exceptions> {
+    pub fn find(&mut self, hints: &DecodingHintDictionary) -> Result<FinderPatternInfo> {
         let tryHarder = matches!(
             hints.get(&DecodeHintType::TRY_HARDER),
             Some(DecodeHintValue::TryHarder(true))
@@ -692,7 +690,7 @@ impl<'a> FinderPatternFinder<'_> {
      *         those have similar module size and form a shape closer to a isosceles right triangle.
      * @throws NotFoundException if 3 such finder patterns do not exist
      */
-    fn selectBestPatterns(&mut self) -> Result<[FinderPattern; 3], Exceptions> {
+    fn selectBestPatterns(&mut self) -> Result<[FinderPattern; 3]> {
         let startSize = self.possibleCenters.len();
         if startSize < 3 {
             // Couldn't find enough finder patterns

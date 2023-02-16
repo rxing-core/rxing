@@ -20,6 +20,7 @@
 
 use std::fmt;
 
+use crate::common::Result;
 use crate::{Exceptions, RXingResultPoint};
 
 use super::BitArray;
@@ -53,7 +54,7 @@ impl BitMatrix {
      *
      * @param dimension height and width
      */
-    pub fn with_single_dimension(dimension: u32) -> Result<Self, Exceptions> {
+    pub fn with_single_dimension(dimension: u32) -> Result<Self> {
         Self::new(dimension, dimension)
     }
 
@@ -63,7 +64,7 @@ impl BitMatrix {
      * @param width bit matrix width
      * @param height bit matrix height
      */
-    pub fn new(width: u32, height: u32) -> Result<Self, Exceptions> {
+    pub fn new(width: u32, height: u32) -> Result<Self> {
         if width < 1 || height < 1 {
             return Err(Exceptions::illegalArgumentWith(
                 "Both dimensions must be greater than 0",
@@ -120,7 +121,7 @@ impl BitMatrix {
         string_representation: &str,
         set_string: &str,
         unset_string: &str,
-    ) -> Result<Self, Exceptions> {
+    ) -> Result<Self> {
         // cannot pass nulls in rust
         // if (stringRepresentation == null) {
         //   throw new IllegalArgumentException();
@@ -304,7 +305,7 @@ impl BitMatrix {
      *
      * @param mask XOR mask
      */
-    pub fn xor(&mut self, mask: &BitMatrix) -> Result<(), Exceptions> {
+    pub fn xor(&mut self, mask: &BitMatrix) -> Result<()> {
         if self.width != mask.width || self.height != mask.height || self.row_size != mask.row_size
         {
             return Err(Exceptions::illegalArgumentWith(
@@ -346,13 +347,7 @@ impl BitMatrix {
      * @param width The width of the region
      * @param height The height of the region
      */
-    pub fn setRegion(
-        &mut self,
-        left: u32,
-        top: u32,
-        width: u32,
-        height: u32,
-    ) -> Result<(), Exceptions> {
+    pub fn setRegion(&mut self, left: u32, top: u32, width: u32, height: u32) -> Result<()> {
         // if top < 0 || left < 0 {
         //     return Err(Exceptions::IllegalArgumentException(
         //         "Left and top must be nonnegative".to_owned(),
@@ -424,7 +419,7 @@ impl BitMatrix {
      *
      * @param degrees number of degrees to rotate through counter-clockwise (0, 90, 180, 270)
      */
-    pub fn rotate(&mut self, degrees: u32) -> Result<(), Exceptions> {
+    pub fn rotate(&mut self, degrees: u32) -> Result<()> {
         match degrees % 360 {
             0 => Ok(()),
             90 => {

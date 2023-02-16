@@ -16,6 +16,7 @@
 
 use std::rc::Rc;
 
+use crate::common::Result;
 use crate::{Dimension, Exceptions};
 
 use super::{SymbolInfo, SymbolInfoLookup, SymbolShapeHint};
@@ -40,13 +41,13 @@ impl<'a> EncoderContext<'_> {
     pub fn with_symbol_info_lookup(
         msg: &str,
         symbol_lookup: Rc<SymbolInfoLookup<'a>>,
-    ) -> Result<EncoderContext<'a>, Exceptions> {
+    ) -> Result<EncoderContext<'a>> {
         let mut new_self = EncoderContext::new(msg)?;
         new_self.symbol_lookup = symbol_lookup.clone();
         Ok(new_self)
     }
 
-    pub fn new(msg: &str) -> Result<Self, Exceptions> {
+    pub fn new(msg: &str) -> Result<Self> {
         //From this point on Strings are not Unicode anymore!
         // let msgBinary = ISO_8859_1_ENCODER.encode(msg, encoding::EncoderTrap::Strict).expect("encode to bytes");//msg.getBytes(StandardCharsets.ISO_8859_1);
         // let sb =  String::with_capacity(msgBinary.len());

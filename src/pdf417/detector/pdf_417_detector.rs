@@ -15,8 +15,8 @@
  */
 
 use crate::{
-    common::BitMatrix, BinaryBitmap, DecodingHintDictionary, Exceptions, RXingResultPoint,
-    ResultPoint,
+    common::{BitMatrix, Result},
+    BinaryBitmap, DecodingHintDictionary, Exceptions, RXingResultPoint, ResultPoint,
 };
 
 use std::borrow::Cow;
@@ -68,7 +68,7 @@ pub fn detect_with_hints(
     image: &mut BinaryBitmap,
     _hints: &DecodingHintDictionary,
     multiple: bool,
-) -> Result<PDF417DetectorRXingResult, Exceptions> {
+) -> Result<PDF417DetectorRXingResult> {
     // TODO detection improvement, tryHarder could try several different luminance thresholds/blackpoints or even
     // different binarizers
     //boolean tryHarder = hints != null && hints.containsKey(DecodeHintType.TRY_HARDER);
@@ -100,7 +100,7 @@ pub fn detect_with_hints(
  * @param rotation the degrees of rotation to apply
  * @return BitMatrix with applied rotation
  */
-fn applyRotation(matrix: &BitMatrix, rotation: u32) -> Result<Cow<BitMatrix>, Exceptions> {
+fn applyRotation(matrix: &BitMatrix, rotation: u32) -> Result<Cow<BitMatrix>> {
     if rotation % 360 == 0 {
         Ok(Cow::Borrowed(matrix))
     } else {

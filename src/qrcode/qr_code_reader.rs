@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitMatrix, DecoderRXingResult, DetectorRXingResult},
+    common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
     BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader,
 };
@@ -48,10 +48,7 @@ impl Reader for QRCodeReader {
      * @throws FormatException if a QR code cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-    fn decode(
-        &mut self,
-        image: &mut crate::BinaryBitmap,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
@@ -59,7 +56,7 @@ impl Reader for QRCodeReader {
         &mut self,
         image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    ) -> Result<crate::RXingResult> {
         let decoderRXingResult: DecoderRXingResult;
         let mut points: Vec<RXingResultPoint>;
         if matches!(
@@ -149,7 +146,7 @@ impl QRCodeReader {
      * around it. This is a specialized method that works exceptionally fast in this special
      * case.
      */
-    fn extractPureBits(image: &BitMatrix) -> Result<BitMatrix, Exceptions> {
+    fn extractPureBits(image: &BitMatrix) -> Result<BitMatrix> {
         let leftTopBlack = image.getTopLeftOnBit();
         let rightBottomBlack = image.getBottomRightOnBit();
         if leftTopBlack.is_none() || rightBottomBlack.is_none() {
@@ -232,7 +229,7 @@ impl QRCodeReader {
         Ok(bits)
     }
 
-    fn moduleSize(leftTopBlack: &[u32], image: &BitMatrix) -> Result<f32, Exceptions> {
+    fn moduleSize(leftTopBlack: &[u32], image: &BitMatrix) -> Result<f32> {
         let height = image.getHeight();
         let width = image.getWidth();
         let mut x = leftTopBlack[0];

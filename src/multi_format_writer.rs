@@ -18,6 +18,7 @@ use std::collections::HashMap;
 
 use crate::{
     aztec::AztecWriter,
+    common::Result,
     datamatrix::DataMatrixWriter,
     oned::{
         CodaBarWriter, Code128Writer, Code39Writer, Code93Writer, EAN13Writer, EAN8Writer,
@@ -44,7 +45,7 @@ impl Writer for MultiFormatWriter {
         format: &crate::BarcodeFormat,
         width: i32,
         height: i32,
-    ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+    ) -> Result<crate::common::BitMatrix> {
         self.encode_with_hints(contents, format, width, height, &HashMap::new())
     }
 
@@ -55,7 +56,7 @@ impl Writer for MultiFormatWriter {
         width: i32,
         height: i32,
         hints: &crate::EncodingHintDictionary,
-    ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+    ) -> Result<crate::common::BitMatrix> {
         let writer: Box<dyn Writer> = match format {
             BarcodeFormat::EAN_8 => Box::<EAN8Writer>::default(),
             BarcodeFormat::UPC_E => Box::<UPCEWriter>::default(),

@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    common::{BitArray, CharacterSetECI},
+    common::{BitArray, CharacterSetECI, Result},
     exceptions::Exceptions,
 };
 
@@ -240,7 +240,7 @@ impl HighLevelEncoder {
     /**
      * @return text represented by this encoder encoded as a {@link BitArray}
      */
-    pub fn encode(&self) -> Result<BitArray, Exceptions> {
+    pub fn encode(&self) -> Result<BitArray> {
         let mut initial_state = State::new(Token::new(), Self::MODE_UPPER as u32, 0, 0);
         if let Some(eci) = CharacterSetECI::getCharacterSetECI(self.charset) {
             if eci != CharacterSetECI::ISO8859_1 {

@@ -16,7 +16,10 @@
 
 use rxing_one_d_proc_derive::OneDReader;
 
-use crate::{common::BitArray, BarcodeFormat, Exceptions, RXingResult};
+use crate::{
+    common::{BitArray, Result},
+    BarcodeFormat, Exceptions, RXingResult,
+};
 
 use super::{one_d_reader, OneDReader};
 
@@ -34,7 +37,7 @@ impl OneDReader for Code128Reader {
         rowNumber: u32,
         row: &crate::common::BitArray,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    ) -> Result<crate::RXingResult> {
         let convertFNC1 = hints.contains_key(&DecodeHintType::ASSUME_GS1);
 
         let mut symbologyModifier = 0;
@@ -350,7 +353,7 @@ impl OneDReader for Code128Reader {
     }
 }
 impl Code128Reader {
-    fn findStartPattern(&self, row: &BitArray) -> Result<[usize; 3], Exceptions> {
+    fn findStartPattern(&self, row: &BitArray) -> Result<[usize; 3]> {
         let width = row.getSize();
         let rowOffset = row.getNextSet(0);
 
@@ -406,12 +409,7 @@ impl Code128Reader {
         Err(Exceptions::notFound)
     }
 
-    fn decodeCode(
-        &self,
-        row: &BitArray,
-        counters: &mut [u32; 6],
-        rowOffset: usize,
-    ) -> Result<u8, Exceptions> {
+    fn decodeCode(&self, row: &BitArray, counters: &mut [u32; 6], rowOffset: usize) -> Result<u8> {
         one_d_reader::recordPattern(row, rowOffset, counters)?;
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;

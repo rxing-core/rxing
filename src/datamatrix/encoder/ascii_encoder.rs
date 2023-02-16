@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::{high_level_encoder, Encoder};
@@ -21,7 +22,7 @@ use super::{high_level_encoder, Encoder};
 pub struct ASCIIEncoder;
 
 impl Encoder for ASCIIEncoder {
-    fn encode(&self, context: &mut super::EncoderContext) -> Result<(), Exceptions> {
+    fn encode(&self, context: &mut super::EncoderContext) -> Result<()> {
         //step B
         let n =
             high_level_encoder::determineConsecutiveDigitCount(context.getMessage(), context.pos);
@@ -99,7 +100,7 @@ impl ASCIIEncoder {
     pub fn new() -> Self {
         Self
     }
-    fn encodeASCIIDigits(digit1: char, digit2: char) -> Result<char, Exceptions> {
+    fn encodeASCIIDigits(digit1: char, digit2: char) -> Result<char> {
         if high_level_encoder::isDigit(digit1) && high_level_encoder::isDigit(digit2) {
             let num = (digit1 as u8 - 48) * 10 + (digit2 as u8 - 48);
             Ok((num + 130) as char)

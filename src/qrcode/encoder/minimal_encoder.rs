@@ -19,7 +19,7 @@ use std::{fmt, rc::Rc};
 use encoding::EncodingRef;
 
 use crate::{
-    common::{BitArray, ECIEncoderSet},
+    common::{BitArray, ECIEncoderSet, Result},
     qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
     Exceptions,
 };
@@ -145,11 +145,11 @@ impl MinimalEncoder {
         priorityCharset: Option<EncodingRef>,
         isGS1: bool,
         ecLevel: ErrorCorrectionLevel,
-    ) -> Result<RXingResultList, Exceptions> {
+    ) -> Result<RXingResultList> {
         MinimalEncoder::new(stringToEncode, priorityCharset, isGS1, ecLevel).encode(version)
     }
 
-    pub fn encode(&self, version: Option<VersionRef>) -> Result<RXingResultList, Exceptions> {
+    pub fn encode(&self, version: Option<VersionRef>) -> Result<RXingResultList> {
         if let Some(version) = version {
             // compute minimal encoding for a given version
             let result = self.encodeSpecificVersion(version)?;
@@ -200,7 +200,7 @@ impl MinimalEncoder {
         }
     }
 
-    pub fn getVersion(versionSize: VersionSize) -> Result<VersionRef, Exceptions> {
+    pub fn getVersion(versionSize: VersionSize) -> Result<VersionRef> {
         match versionSize {
             VersionSize::SMALL => Version::getVersionForNumber(9),
             VersionSize::MEDIUM => Version::getVersionForNumber(26),
@@ -241,7 +241,7 @@ impl MinimalEncoder {
         }
     }
 
-    pub fn getCompactedOrdinal(mode: Option<Mode>) -> Result<u32, Exceptions> {
+    pub fn getCompactedOrdinal(mode: Option<Mode>) -> Result<u32> {
         match mode {
             Some(Mode::NUMERIC) => Ok(2),
             Some(Mode::ALPHANUMERIC) => Ok(1),
@@ -258,14 +258,19 @@ impl MinimalEncoder {
         edges: &mut [Vec<Vec<Option<Rc<Edge>>>>],
         position: usize,
         edge: Option<Rc<Edge>>,
-    ) -> Result<(), Exceptions> {
-        let vertexIndex =
-            position + edge.as_ref().ok_or(Exceptions::format)?.characterLength as usize;
-        let modeEdges =
-            &mut edges[vertexIndex][edge.as_ref().ok_or(Exceptions::format)?.charsetEncoderIndex];
-        let modeOrdinal =
-            Self::getCompactedOrdinal(Some(edge.as_ref().ok_or(Exceptions::format)?.mode))?
-                as usize;
+    ) -> Result<()> {
+        let vertexIndex = position
+            + edge
+                .as_ref()
+                .ok_or(Exceptions::FormatException(None))?
+                .characterLength as usize;
+        let modeEdges = &mut edges[vertexIndex][edge
+            .as_ref()
+            .ok_or(Exceptions::FormatException(None))?
+            .charsetEncoderIndex];
+        let modeOrdinal = Self::getCompactedOrdinal(Some(
+            edge.as_ref().ok_or(Exceptions::FormatException(None))?.mode,
+        ))? as usize;
         if modeEdges[modeOrdinal].is_none()
             || modeEdges[modeOrdinal]
                 .as_ref()
@@ -285,7 +290,7 @@ impl MinimalEncoder {
         edges: &mut [Vec<Vec<Option<Rc<Edge>>>>],
         from: usize,
         previous: Option<Rc<Edge>>,
-    ) -> Result<(), Exceptions> {
+    ) -> Result<()> {
         let mut start = 0;
         let mut end = self.encoders.len();
         let priorityEncoderIndex = self.encoders.getPriorityEncoderIndex();
@@ -440,10 +445,7 @@ impl MinimalEncoder {
 
         Ok(())
     }
-    pub fn encodeSpecificVersion(
-        &self,
-        version: VersionRef,
-    ) -> Result<RXingResultList, Exceptions> {
+    pub fn encodeSpecificVersion(&self, version: VersionRef) -> Result<RXingResultList> {
         // @SuppressWarnings("checkstyle:lineLength")
         /* A vertex represents a tuple of a position in the input, a mode and a character encoding where position 0
          * denotes the position left of the first character, 1 the position left of the second character and so on.
@@ -857,7 +859,7 @@ impl RXingResultList {
     /**
      * appends the bits
      */
-    pub fn getBits(&self, bits: &mut BitArray) -> Result<(), Exceptions> {
+    pub fn getBits(&self, bits: &mut BitArray) -> Result<()> {
         for resultNode in &self.list {
             resultNode.getBits(bits)?;
         }
@@ -996,7 +998,7 @@ impl RXingResultNode {
     /**
      * appends the bits
      */
-    fn getBits(&self, bits: &mut BitArray) -> Result<(), Exceptions> {
+    fn getBits(&self, bits: &mut BitArray) -> Result<()> {
         bits.appendBits(self.mode.getBits() as u32, 4)?;
         if self.characterLength > 0 {
             let length = self.getCharacterCountIndicator();

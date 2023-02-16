@@ -21,7 +21,7 @@ use crate::{
         reedsolomon::{
             get_predefined_genericgf, GenericGFRef, PredefinedGenericGF, ReedSolomonEncoder,
         },
-        BitArray, BitMatrix,
+        BitArray, BitMatrix, Result,
     },
     exceptions::Exceptions,
 };
@@ -50,7 +50,7 @@ pub const WORD_SIZE: [u32; 33] = [
  * @param data input data string; must be encodable as ISO/IEC 8859-1 (Latin-1)
  * @return Aztec symbol matrix with metadata
  */
-pub fn encode_simple(data: &str) -> Result<AztecCode, Exceptions> {
+pub fn encode_simple(data: &str) -> Result<AztecCode> {
     let Ok(bytes) = encoding::all::ISO_8859_1
         .encode(data, encoding::EncoderTrap::Replace) else {
             return Err(Exceptions::illegalArgumentWith(format!("'{data}' cannot be encoded as ISO_8859_1")));
@@ -67,11 +67,7 @@ pub fn encode_simple(data: &str) -> Result<AztecCode, Exceptions> {
  * @param userSpecifiedLayers if non-zero, a user-specified value for the number of layers
  * @return Aztec symbol matrix with metadata
  */
-pub fn encode(
-    data: &str,
-    minECCPercent: u32,
-    userSpecifiedLayers: i32,
-) -> Result<AztecCode, Exceptions> {
+pub fn encode(data: &str, minECCPercent: u32, userSpecifiedLayers: i32) -> Result<AztecCode> {
     if let Ok(bytes) = encoding::all::ISO_8859_1.encode(data, encoding::EncoderTrap::Strict) {
         encode_bytes(&bytes, minECCPercent, userSpecifiedLayers)
     } else {
@@ -98,7 +94,7 @@ pub fn encode_with_charset(
     minECCPercent: u32,
     userSpecifiedLayers: i32,
     charset: encoding::EncodingRef,
-) -> Result<AztecCode, Exceptions> {
+) -> Result<AztecCode> {
     if let Ok(bytes) = charset.encode(data, encoding::EncoderTrap::Strict) {
         encode_bytes_with_charset(&bytes, minECCPercent, userSpecifiedLayers, charset)
     } else {
@@ -114,7 +110,7 @@ pub fn encode_with_charset(
  * @param data input data string
  * @return Aztec symbol matrix with metadata
  */
-pub fn encode_bytes_simple(data: &[u8]) -> Result<AztecCode, Exceptions> {
+pub fn encode_bytes_simple(data: &[u8]) -> Result<AztecCode> {
     encode_bytes(data, DEFAULT_EC_PERCENT, DEFAULT_AZTEC_LAYERS)
 }
 
@@ -131,7 +127,7 @@ pub fn encode_bytes(
     data: &[u8],
     minECCPercent: u32,
     userSpecifiedLayers: i32,
-) -> Result<AztecCode, Exceptions> {
+) -> Result<AztecCode> {
     encode_bytes_with_charset(
         data,
         minECCPercent,
@@ -156,7 +152,7 @@ pub fn encode_bytes_with_charset(
     min_eccpercent: u32,
     user_specified_layers: i32,
     charset: encoding::EncodingRef,
-) -> Result<AztecCode, Exceptions> {
+) -> Result<AztecCode> {
     // High-level encode
     let bits = HighLevelEncoder::with_charset(data.into(), charset).encode()?;
 
@@ -378,7 +374,7 @@ pub fn generateModeMessage(
     compact: bool,
     layers: u32,
     messageSizeInWords: u32,
-) -> Result<BitArray, Exceptions> {
+) -> Result<BitArray> {
     let mut mode_message = BitArray::new();
     if compact {
         mode_message.appendBits(layers - 1, 2)?;
@@ -431,11 +427,7 @@ fn drawModeMessage(matrix: &mut BitMatrix, compact: bool, matrixSize: u32, modeM
     }
 }
 
-fn generateCheckWords(
-    bitArray: &BitArray,
-    totalBits: usize,
-    wordSize: usize,
-) -> Result<BitArray, Exceptions> {
+fn generateCheckWords(bitArray: &BitArray, totalBits: usize, wordSize: usize) -> Result<BitArray> {
     // bitArray is guaranteed to be a multiple of the wordSize, so no padding needed
     let message_size_in_words = bitArray.getSize() / wordSize;
     let mut rs = ReedSolomonEncoder::new(getGF(wordSize)?)?;
@@ -475,7 +467,7 @@ fn bitsToWords(stuffedBits: &BitArray, wordSize: usize, totalWords: usize) -> Ve
     message
 }
 
-fn getGF(wordSize: usize) -> Result<GenericGFRef, Exceptions> {
+fn getGF(wordSize: usize) -> Result<GenericGFRef> {
     match wordSize {
         4 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecParam)),
         6 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecData6)),
@@ -488,7 +480,7 @@ fn getGF(wordSize: usize) -> Result<GenericGFRef, Exceptions> {
     }
 }
 
-pub fn stuffBits(bits: &BitArray, word_size: usize) -> Result<BitArray, Exceptions> {
+pub fn stuffBits(bits: &BitArray, word_size: usize) -> Result<BitArray> {
     let mut out = BitArray::new();
 
     let n = bits.getSize() as isize;

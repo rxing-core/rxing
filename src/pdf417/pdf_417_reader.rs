@@ -17,9 +17,9 @@
 use std::collections::HashMap;
 
 use crate::{
-    multi::MultipleBarcodeReader, BarcodeFormat, BinaryBitmap, DecodingHintDictionary, Exceptions,
-    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader,
-    ResultPoint,
+    common::Result, multi::MultipleBarcodeReader, BarcodeFormat, BinaryBitmap,
+    DecodingHintDictionary, Exceptions, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue, RXingResultPoint, Reader, ResultPoint,
 };
 
 use super::{
@@ -43,10 +43,7 @@ impl Reader for PDF417Reader {
      * @throws NotFoundException if a PDF417 code cannot be found,
      * @throws FormatException if a PDF417 cannot be decoded
      */
-    fn decode(
-        &mut self,
-        image: &mut crate::BinaryBitmap,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
@@ -54,7 +51,7 @@ impl Reader for PDF417Reader {
         &mut self,
         image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    ) -> Result<crate::RXingResult> {
         let result = Self::decode(image, hints, false)?;
         if result.is_empty() {
             return Err(Exceptions::notFound);
@@ -67,7 +64,7 @@ impl MultipleBarcodeReader for PDF417Reader {
     fn decode_multiple(
         &mut self,
         image: &mut crate::BinaryBitmap,
-    ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
+    ) -> Result<Vec<crate::RXingResult>> {
         self.decode_multiple_with_hints(image, &HashMap::new())
     }
 
@@ -75,7 +72,7 @@ impl MultipleBarcodeReader for PDF417Reader {
         &mut self,
         image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<Vec<crate::RXingResult>, crate::Exceptions> {
+    ) -> Result<Vec<crate::RXingResult>> {
         Self::decode(image, hints, true)
     }
 }
@@ -89,7 +86,7 @@ impl PDF417Reader {
         image: &mut BinaryBitmap,
         hints: &DecodingHintDictionary,
         multiple: bool,
-    ) -> Result<Vec<RXingResult>, Exceptions> {
+    ) -> Result<Vec<RXingResult>> {
         let mut results = Vec::new();
         let detectorRXingResult = pdf_417_detector::detect_with_hints(image, hints, multiple)?;
 

@@ -16,7 +16,10 @@
 
 //package com.google.zxing.common.detector;
 
-use crate::{common::BitMatrix, Exceptions, RXingResultPoint, ResultPoint};
+use crate::{
+    common::{BitMatrix, Result},
+    Exceptions, RXingResultPoint, ResultPoint,
+};
 
 use super::MathUtils;
 
@@ -43,7 +46,7 @@ pub struct WhiteRectangleDetector<'a> {
 }
 
 impl<'a> WhiteRectangleDetector<'_> {
-    pub fn new_from_image(image: &'a BitMatrix) -> Result<WhiteRectangleDetector<'a>, Exceptions> {
+    pub fn new_from_image(image: &'a BitMatrix) -> Result<WhiteRectangleDetector<'a>> {
         WhiteRectangleDetector::new(
             image,
             INIT_SIZE,
@@ -64,7 +67,7 @@ impl<'a> WhiteRectangleDetector<'_> {
         initSize: i32,
         x: i32,
         y: i32,
-    ) -> Result<WhiteRectangleDetector<'a>, Exceptions> {
+    ) -> Result<WhiteRectangleDetector<'a>> {
         let halfsize = initSize / 2;
 
         let leftInit = x - halfsize;
@@ -105,7 +108,7 @@ impl<'a> WhiteRectangleDetector<'_> {
      *         leftmost and the third, the rightmost
      * @throws NotFoundException if no Data Matrix Code can be found
      */
-    pub fn detect(&self) -> Result<[RXingResultPoint; 4], Exceptions> {
+    pub fn detect(&self) -> Result<[RXingResultPoint; 4]> {
         let mut left: i32 = self.leftInit;
         let mut right: i32 = self.rightInit;
         let mut up: i32 = self.upInit;

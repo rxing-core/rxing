@@ -16,6 +16,7 @@
 
 use rxing_one_d_proc_derive::OneDWriter;
 
+use crate::common::Result;
 use crate::BarcodeFormat;
 
 use super::OneDimensionalCodeWriter;
@@ -29,7 +30,7 @@ use super::OneDimensionalCodeWriter;
 pub struct ITFWriter;
 
 impl OneDimensionalCodeWriter for ITFWriter {
-    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>, Exceptions> {
+    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
         let length = contents.chars().count();
         if length % 2 != 0 {
             return Err(Exceptions::illegalArgumentWith(

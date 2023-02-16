@@ -3,6 +3,7 @@ use std::{borrow::Cow, rc::Rc};
 use image::{DynamicImage, ImageBuffer, Luma};
 use once_cell::sync::OnceCell;
 
+use crate::common::Result;
 use crate::{Binarizer, Exceptions, LuminanceSource};
 
 use super::{BitArray, BitMatrix};
@@ -16,7 +17,7 @@ pub struct OtsuLevelBinarizer {
 }
 
 impl OtsuLevelBinarizer {
-    fn generate_threshold_matrix(source: &dyn LuminanceSource) -> Result<BitMatrix, Exceptions> {
+    fn generate_threshold_matrix(source: &dyn LuminanceSource) -> Result<BitMatrix> {
         let image_buffer = {
             let Some(buff) : Option<ImageBuffer<Luma<u8>,Vec<u8>>> = ImageBuffer::from_vec(source.getWidth() as u32, source.getHeight() as u32, source.getMatrix()) else {
                 return Err(Exceptions::illegalArgument)
@@ -49,10 +50,7 @@ impl Binarizer for OtsuLevelBinarizer {
         &self.source
     }
 
-    fn getBlackRow(
-        &self,
-        y: usize,
-    ) -> Result<std::borrow::Cow<super::BitArray>, crate::Exceptions> {
+    fn getBlackRow(&self, y: usize) -> Result<std::borrow::Cow<super::BitArray>> {
         let row = self.black_row_cache[y].get_or_try_init(|| {
             let matrix = self.getBlackMatrix()?;
             Ok(matrix.getRow(y as u32))
@@ -61,7 +59,7 @@ impl Binarizer for OtsuLevelBinarizer {
         Ok(Cow::Borrowed(row))
     }
 
-    fn getBlackMatrix(&self) -> Result<&super::BitMatrix, crate::Exceptions> {
+    fn getBlackMatrix(&self) -> Result<&super::BitMatrix> {
         let matrix = self
             .black_matrix
             .get_or_try_init(|| Self::generate_threshold_matrix(self.source.as_ref()))?;

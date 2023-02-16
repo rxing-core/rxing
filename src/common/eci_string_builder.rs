@@ -25,7 +25,7 @@ use std::fmt;
 
 use encoding::{Encoding, EncodingRef};
 
-use crate::Exceptions;
+use crate::common::Result;
 
 use super::CharacterSetECI;
 
@@ -103,7 +103,7 @@ impl ECIStringBuilder {
      * @param value ECI value to append, as an int
      * @throws FormatException on invalid ECI value
      */
-    pub fn appendECI(&mut self, value: u32) -> Result<(), Exceptions> {
+    pub fn appendECI(&mut self, value: u32) -> Result<()> {
         self.encodeCurrentBytesIfAny();
 
         if let Ok(character_set_eci) = CharacterSetECI::getCharacterSetECIByValue(value) {

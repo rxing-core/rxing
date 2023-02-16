@@ -15,7 +15,7 @@
  */
 
 use super::{OneDReader, UPCEANReader, L_AND_G_PATTERNS};
-use crate::{BarcodeFormat, Exceptions};
+use crate::{common::Result, BarcodeFormat, Exceptions};
 use rxing_one_d_proc_derive::{EANReader, OneDReader};
 
 /**
@@ -38,7 +38,7 @@ impl UPCEANReader for UPCEReader {
         row: &crate::common::BitArray,
         startRange: &[usize; 2],
         resultString: &mut String,
-    ) -> Result<usize, Exceptions> {
+    ) -> Result<usize> {
         let mut counters = [0_u32; 4];
 
         let end = row.getSize();
@@ -65,15 +65,13 @@ impl UPCEANReader for UPCEReader {
         Ok(rowOffset)
     }
 
-    fn checkChecksum(&self, s: &str) -> Result<bool, Exceptions> {
-        self.checkStandardUPCEANChecksum(&convertUPCEtoUPCA(s).ok_or(Exceptions::illegalArgument)?)
+    fn checkChecksum(&self, s: &str) -> Result<bool> {
+        self.checkStandardUPCEANChecksum(
+            &convertUPCEtoUPCA(s).ok_or(Exceptions::IllegalArgumentException(None))?,
+        )
     }
 
-    fn decodeEnd(
-        &self,
-        row: &crate::common::BitArray,
-        endStart: usize,
-    ) -> Result<[usize; 2], Exceptions> {
+    fn decodeEnd(&self, row: &crate::common::BitArray, endStart: usize) -> Result<[usize; 2]> {
         self.findGuardPattern(row, endStart, true, &Self::MIDDLE_END_PATTERN)
     }
 }
@@ -122,7 +120,7 @@ impl UPCEReader {
     fn determineNumSysAndCheckDigit(
         resultString: &mut String,
         lgPatternFound: usize,
-    ) -> Result<(), Exceptions> {
+    ) -> Result<()> {
         for numSys in 0..=1 {
             for d in 0..10 {
                 if lgPatternFound == Self::NUMSYS_AND_CHECK_DIGIT_PATTERNS[numSys][d] {

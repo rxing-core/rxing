@@ -19,6 +19,7 @@ use std::collections::HashMap;
 use crate::{
     common::{
         detector::MathUtils, BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform,
+        Result,
     },
     qrcode::decoder::Version,
     result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
@@ -64,7 +65,7 @@ impl<'a> Detector<'_> {
      * @throws NotFoundException if QR Code cannot be found
      * @throws FormatException if a QR Code cannot be decoded
      */
-    pub fn detect(&mut self) -> Result<QRCodeDetectorResult, Exceptions> {
+    pub fn detect(&mut self) -> Result<QRCodeDetectorResult> {
         self.detect_with_hints(&HashMap::new())
     }
 
@@ -79,7 +80,7 @@ impl<'a> Detector<'_> {
     pub fn detect_with_hints(
         &mut self,
         hints: &DecodingHintDictionary,
-    ) -> Result<QRCodeDetectorResult, Exceptions> {
+    ) -> Result<QRCodeDetectorResult> {
         self.resultPointCallback = if let Some(DecodeHintValue::NeedResultPointCallback(cb)) =
             hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK)
         {
@@ -98,7 +99,7 @@ impl<'a> Detector<'_> {
     pub fn processFinderPatternInfo(
         &self,
         info: FinderPatternInfo,
-    ) -> Result<QRCodeDetectorResult, Exceptions> {
+    ) -> Result<QRCodeDetectorResult> {
         let topLeft = info.getTopLeft();
         let topRight = info.getTopRight();
         let bottomLeft = info.getBottomLeft();
@@ -218,7 +219,7 @@ impl<'a> Detector<'_> {
         image: &BitMatrix,
         transform: &PerspectiveTransform,
         dimension: u32,
-    ) -> Result<BitMatrix, Exceptions> {
+    ) -> Result<BitMatrix> {
         let sampler = DefaultGridSampler::default();
         sampler.sample_grid(image, dimension, dimension, transform)
     }
@@ -232,7 +233,7 @@ impl<'a> Detector<'_> {
         topRight: &T,
         bottomLeft: &T,
         moduleSize: f32,
-    ) -> Result<u32, Exceptions> {
+    ) -> Result<u32> {
         let tltrCentersDimension =
             MathUtils::round(result_point_utils::distance(topLeft, topRight) / moduleSize);
         let tlblCentersDimension =
@@ -421,7 +422,7 @@ impl<'a> Detector<'_> {
         estAlignmentX: u32,
         estAlignmentY: u32,
         allowanceFactor: f32,
-    ) -> Result<AlignmentPattern, Exceptions> {
+    ) -> Result<AlignmentPattern> {
         // Look for an alignment pattern (3 modules in size) around where it
         // should be
         let allowance = (allowanceFactor * overallEstModuleSize) as u32;

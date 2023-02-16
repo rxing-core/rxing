@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::{ErrorCorrectionLevel, VersionRef};
@@ -53,7 +54,7 @@ impl DataBlock {
         rawCodewords: &[u8],
         version: VersionRef,
         ecLevel: ErrorCorrectionLevel,
-    ) -> Result<Vec<Self>, Exceptions> {
+    ) -> Result<Vec<Self>> {
         if rawCodewords.len() as u32 != version.getTotalCodewords() {
             return Err(Exceptions::illegalArgument);
         }

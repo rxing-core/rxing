@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-use crate::{common::BitMatrix, Exceptions, RXingResultPointCallback};
+use crate::{
+    common::{BitMatrix, Result},
+    Exceptions, RXingResultPointCallback,
+};
 
 use super::AlignmentPattern;
 
@@ -84,7 +87,7 @@ impl AlignmentPatternFinder {
      * @return {@link AlignmentPattern} if found
      * @throws NotFoundException if not found
      */
-    pub fn find(&mut self) -> Result<AlignmentPattern, Exceptions> {
+    pub fn find(&mut self) -> Result<AlignmentPattern> {
         let startX = self.startX;
         let height = self.height;
         let maxJ = startX + self.width;

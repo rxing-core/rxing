@@ -19,6 +19,7 @@
 //import java.util.ArrayList;
 //import java.util.List;
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::{GenericGFPoly, GenericGFRef};
@@ -35,7 +36,7 @@ pub struct ReedSolomonEncoder {
 }
 
 impl ReedSolomonEncoder {
-    pub fn new(field: GenericGFRef) -> Result<Self, Exceptions> {
+    pub fn new(field: GenericGFRef) -> Result<Self> {
         let n = field;
         Ok(Self {
             cachedGenerators: vec![GenericGFPoly::new(n, &[1])?],
@@ -71,7 +72,7 @@ impl ReedSolomonEncoder {
         Some(rv)
     }
 
-    pub fn encode(&mut self, to_encode: &mut Vec<i32>, ec_bytes: usize) -> Result<(), Exceptions> {
+    pub fn encode(&mut self, to_encode: &mut Vec<i32>, ec_bytes: usize) -> Result<()> {
         if ec_bytes == 0 {
             return Err(Exceptions::illegalArgumentWith("No error correction bytes"));
         }

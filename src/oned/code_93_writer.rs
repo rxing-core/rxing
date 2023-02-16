@@ -16,6 +16,7 @@
 
 use rxing_one_d_proc_derive::OneDWriter;
 
+use crate::common::Result;
 use crate::BarcodeFormat;
 
 use super::{Code93Reader, OneDimensionalCodeWriter};
@@ -31,7 +32,7 @@ impl OneDimensionalCodeWriter for Code93Writer {
      * @param contents barcode contents to encode. It should not be encoded for extended characters.
      * @return a {@code boolean[]} of horizontal pixels (false = white, true = black)
      */
-    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>, Exceptions> {
+    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
         let mut contents = Self::convertToExtended(contents)?;
         let length = contents.chars().count();
         if length > 80 {
@@ -142,7 +143,7 @@ impl Code93Writer {
         total as usize % 47
     }
 
-    fn convertToExtended(contents: &str) -> Result<String, Exceptions> {
+    fn convertToExtended(contents: &str) -> Result<String> {
         let length = contents.chars().count();
         let mut extendedContent = String::with_capacity(length * 2);
         for character in contents.chars() {

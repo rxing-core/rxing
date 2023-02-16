@@ -17,6 +17,7 @@
 use rxing_one_d_proc_derive::OneDWriter;
 
 use crate::{
+    common::Result,
     oned::{upc_ean_reader, EAN13Reader},
     BarcodeFormat,
 };
@@ -33,7 +34,7 @@ pub struct EAN13Writer;
 impl UPCEANWriter for EAN13Writer {}
 
 impl OneDimensionalCodeWriter for EAN13Writer {
-    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>, crate::Exceptions> {
+    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
         let reader: EAN13Reader = EAN13Reader::default();
         let mut contents = contents.to_owned();
         let length = contents.chars().count();

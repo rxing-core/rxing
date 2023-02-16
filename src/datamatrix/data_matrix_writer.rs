@@ -20,8 +20,9 @@ use std::collections::HashMap;
 use encoding::EncodingRef;
 
 use crate::{
-    common::BitMatrix, qrcode::encoder::ByteMatrix, BarcodeFormat, EncodeHintType, EncodeHintValue,
-    Exceptions, Writer,
+    common::{BitMatrix, Result},
+    qrcode::encoder::ByteMatrix,
+    BarcodeFormat, EncodeHintType, EncodeHintValue, Exceptions, Writer,
 };
 
 use super::encoder::{
@@ -47,7 +48,7 @@ impl Writer for DataMatrixWriter {
         format: &crate::BarcodeFormat,
         width: i32,
         height: i32,
-    ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+    ) -> Result<crate::common::BitMatrix> {
         self.encode_with_hints(contents, format, width, height, &HashMap::new())
     }
 
@@ -58,7 +59,7 @@ impl Writer for DataMatrixWriter {
         width: i32,
         height: i32,
         hints: &crate::EncodingHintDictionary,
-    ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+    ) -> Result<crate::common::BitMatrix> {
         if contents.is_empty() {
             return Err(Exceptions::illegalArgumentWith("Found empty contents"));
         }
@@ -187,7 +188,7 @@ impl DataMatrixWriter {
         symbolInfo: &SymbolInfo,
         width: u32,
         height: u32,
-    ) -> Result<BitMatrix, Exceptions> {
+    ) -> Result<BitMatrix> {
         let symbolWidth = symbolInfo.getSymbolDataWidth()?;
         let symbolHeight = symbolInfo.getSymbolDataHeight()?;
 
@@ -253,7 +254,7 @@ impl DataMatrixWriter {
         matrix: &ByteMatrix,
         reqWidth: u32,
         reqHeight: u32,
-    ) -> Result<BitMatrix, Exceptions> {
+    ) -> Result<BitMatrix> {
         let matrixWidth = matrix.getWidth();
         let matrixHeight = matrix.getHeight();
         let outputWidth = reqWidth.max(matrixWidth);

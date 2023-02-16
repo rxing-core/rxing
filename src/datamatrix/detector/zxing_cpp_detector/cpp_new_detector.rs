@@ -14,7 +14,7 @@ macro_rules! CHECK {
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    common::{BitMatrix, DefaultGridSampler, GridSampler},
+    common::{BitMatrix, DefaultGridSampler, GridSampler, Result},
     datamatrix::detector::{
         zxing_cpp_detector::{util::intersect, BitMatrixCursor, Quadrilateral, RegressionLine},
         DatamatrixDetectorResult,
@@ -37,7 +37,7 @@ use super::{DMRegressionLine, EdgeTracer};
 fn Scan(
     startTracer: &mut EdgeTracer,
     lines: &mut [DMRegressionLine; 4],
-) -> Result<DatamatrixDetectorResult, Exceptions> {
+) -> Result<DatamatrixDetectorResult> {
     while startTracer.step(None) {
         //log(startTracer.p);
 
@@ -261,7 +261,7 @@ pub fn detect(
     image: &BitMatrix,
     tryHarder: bool,
     tryRotate: bool,
-) -> Result<DatamatrixDetectorResult, Exceptions> {
+) -> Result<DatamatrixDetectorResult> {
     // #ifdef PRINT_DEBUG
     // 	LogMatrixWriter lmw(log, image, 1, "dm-log.pnm");
     // //	tryRotate = tryHarder = false;

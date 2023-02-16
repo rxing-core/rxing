@@ -33,7 +33,7 @@ use urlencoding::decode;
 
 use once_cell::sync::Lazy;
 
-use crate::{exceptions::Exceptions, RXingResult};
+use crate::{common::Result, exceptions::Exceptions, RXingResult};
 
 use super::{
     AddressBookAUResultParser, AddressBookDoCoMoResultParser, BizcardResultParser,
@@ -296,7 +296,7 @@ pub fn appendKeyValue(keyValue: &str, result: &mut HashMap<String, String>) {
     // }
 }
 
-pub fn urlDecode(encoded: &str) -> Result<String, Exceptions> {
+pub fn urlDecode(encoded: &str) -> Result<String> {
     if let Ok(decoded) = decode(encoded) {
         Ok(decoded.to_string())
     } else {

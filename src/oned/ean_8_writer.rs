@@ -17,6 +17,7 @@
 use rxing_one_d_proc_derive::OneDWriter;
 
 use crate::{
+    common::Result,
     oned::{EAN8Reader, UPCEANReader},
     BarcodeFormat,
 };
@@ -42,7 +43,7 @@ impl OneDimensionalCodeWriter for EAN8Writer {
     /**
      * @return a byte array of horizontal pixels (false = white, true = black)
      */
-    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>, Exceptions> {
+    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
         let length = contents.chars().count();
         let reader = EAN8Reader::default();
         let mut contents = contents.to_owned();

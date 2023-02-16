@@ -25,9 +25,11 @@ use std::{
 
 use encoding::Encoding;
 use rxing::{
-    common::HybridBinarizer, multi::MultipleBarcodeReader, pdf417::PDF417RXingResultMetadata,
+    common::{HybridBinarizer, Result},
+    multi::MultipleBarcodeReader,
+    pdf417::PDF417RXingResultMetadata,
     BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue,
-    Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::TestRXingResult;
@@ -571,7 +573,7 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
         expected_text: &str,
         expected_metadata: &HashMap<RXingResultMetadataType, RXingResultMetadataValue>,
         try_harder: bool,
-    ) -> Result<bool, rxing::Exceptions> {
+    ) -> Result<bool> {
         let suffix = format!(
             " ({}rotation: {})",
             if try_harder { "try harder, " } else { "" },
@@ -756,7 +758,7 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
         source: &mut BinaryBitmap,
         try_harder: bool,
         barcode_reader: &mut T,
-    ) -> Result<Vec<RXingResult>, Exceptions> {
+    ) -> Result<Vec<RXingResult>> {
         let mut hints = HashMap::new(); //new EnumMap<>(DecodeHintType.class);
         if try_harder {
             hints.insert(DecodeHintType::TRY_HARDER, DecodeHintValue::TryHarder(true));

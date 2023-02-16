@@ -17,6 +17,7 @@
 use std::rc::Rc;
 
 use crate::{
+    common::Result,
     pdf417::{decoder::ec::ModulusGF, pdf_417_common::NUMBER_OF_CODEWORDS},
     Exceptions,
 };
@@ -45,11 +46,7 @@ static FLD_INTERIOR: Lazy<ModulusGF> = Lazy::new(|| ModulusGF::new(NUMBER_OF_COD
  * @return number of errors
  * @throws ChecksumException if errors cannot be corrected, maybe because of too many errors
  */
-pub fn decode(
-    received: &mut [u32],
-    numECCodewords: u32,
-    erasures: &mut [u32],
-) -> Result<usize, Exceptions> {
+pub fn decode(received: &mut [u32], numECCodewords: u32, erasures: &mut [u32]) -> Result<usize> {
     let field: &'static ModulusGF = &FLD_INTERIOR;
     let poly = ModulusPoly::new(field, received.to_vec())?;
     let mut S = vec![0u32; numECCodewords as usize];
@@ -117,7 +114,7 @@ fn runEuclideanAlgorithm(
     b: Rc<ModulusPoly>,
     R: u32,
     field: &'static ModulusGF,
-) -> Result<[Rc<ModulusPoly>; 2], Exceptions> {
+) -> Result<[Rc<ModulusPoly>; 2]> {
     // Assume a's degree is >= b's
     let mut a = a;
     let mut b = b;
@@ -172,10 +169,7 @@ fn runEuclideanAlgorithm(
     Ok([sigma, omega])
 }
 
-fn findErrorLocations(
-    errorLocator: Rc<ModulusPoly>,
-    field: &ModulusGF,
-) -> Result<Vec<u32>, Exceptions> {
+fn findErrorLocations(errorLocator: Rc<ModulusPoly>, field: &ModulusGF) -> Result<Vec<u32>> {
     // This is a direct application of Chien's search
     let numErrors = errorLocator.getDegree();
     let mut result = vec![0u32; numErrors as usize];

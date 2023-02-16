@@ -24,6 +24,7 @@ use std::{borrow::Cow, rc::Rc};
 
 use once_cell::unsync::OnceCell;
 
+use crate::common::Result;
 use crate::{Binarizer, Exceptions, LuminanceSource};
 
 use super::{BitArray, BitMatrix};
@@ -54,7 +55,7 @@ impl Binarizer for GlobalHistogramBinarizer {
     }
 
     // Applies simple sharpening to the row data to improve performance of the 1D Readers.
-    fn getBlackRow(&self, y: usize) -> Result<Cow<BitArray>, Exceptions> {
+    fn getBlackRow(&self, y: usize) -> Result<Cow<BitArray>> {
         let row = self.black_row_cache[y].get_or_try_init(|| {
             let source = self.getLuminanceSource();
             let width = source.getWidth();
@@ -101,7 +102,7 @@ impl Binarizer for GlobalHistogramBinarizer {
     }
 
     // Does not sharpen the data, as this call is intended to only be used by 2D Readers.
-    fn getBlackMatrix(&self) -> Result<&BitMatrix, Exceptions> {
+    fn getBlackMatrix(&self) -> Result<&BitMatrix> {
         let matrix = self
             .black_matrix
             .get_or_try_init(|| Self::build_black_matrix(&self.source))?;
@@ -138,7 +139,7 @@ impl GlobalHistogramBinarizer {
         }
     }
 
-    fn build_black_matrix(source: &Box<dyn LuminanceSource>) -> Result<BitMatrix, Exceptions> {
+    fn build_black_matrix(source: &Box<dyn LuminanceSource>) -> Result<BitMatrix> {
         // let source = source.getLuminanceSource();
         let width = source.getWidth();
         let height = source.getHeight();
@@ -192,7 +193,7 @@ impl GlobalHistogramBinarizer {
     //     // }
     // }
 
-    fn estimateBlackPoint(buckets: &[u32]) -> Result<u32, Exceptions> {
+    fn estimateBlackPoint(buckets: &[u32]) -> Result<u32> {
         // Find the tallest peak in the histogram.
         let numBuckets = buckets.len();
         let mut maxBucketCount = 0;

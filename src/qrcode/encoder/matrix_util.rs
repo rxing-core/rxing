@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    common::BitArray,
+    common::{BitArray, Result},
     qrcode::decoder::{ErrorCorrectionLevel, Version},
     Exceptions,
 };
@@ -131,7 +131,7 @@ pub fn buildMatrix(
     version: &Version,
     maskPattern: i32,
     matrix: &mut ByteMatrix,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     clearMatrix(matrix);
     embedBasicPatterns(version, matrix)?;
     // Type information appear with any version.
@@ -149,7 +149,7 @@ pub fn buildMatrix(
 // - Timing patterns
 // - Dark dot at the left bottom corner
 // - Position adjustment patterns, if need be
-pub fn embedBasicPatterns(version: &Version, matrix: &mut ByteMatrix) -> Result<(), Exceptions> {
+pub fn embedBasicPatterns(version: &Version, matrix: &mut ByteMatrix) -> Result<()> {
     // Let's get started with embedding big squares at corners.
     embedPositionDetectionPatternsAndSeparators(matrix)?;
     // Then, embed the dark dot at the left bottom corner.
@@ -167,7 +167,7 @@ pub fn embedTypeInfo(
     ecLevel: &ErrorCorrectionLevel,
     maskPattern: i32,
     matrix: &mut ByteMatrix,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     let mut typeInfoBits = BitArray::new();
     makeTypeInfoBits(ecLevel, maskPattern as u32, &mut typeInfoBits)?;
 
@@ -204,7 +204,7 @@ pub fn embedTypeInfo(
 
 // Embed version information if need be. On success, modify the matrix and return true.
 // See 8.10 of JISX0510:2004 (p.47) for how to embed version information.
-pub fn maybeEmbedVersionInfo(version: &Version, matrix: &mut ByteMatrix) -> Result<(), Exceptions> {
+pub fn maybeEmbedVersionInfo(version: &Version, matrix: &mut ByteMatrix) -> Result<()> {
     if version.getVersionNumber() < 7 {
         // Version info is necessary if version >= 7.
         return Ok(()); // Don't need version info.
@@ -230,11 +230,7 @@ pub fn maybeEmbedVersionInfo(version: &Version, matrix: &mut ByteMatrix) -> Resu
 // Embed "dataBits" using "getMaskPattern". On success, modify the matrix and return true.
 // For debugging purposes, it skips masking process if "getMaskPattern" is -1.
 // See 8.7 of JISX0510:2004 (p.38) for how to embed data bits.
-pub fn embedDataBits(
-    dataBits: &BitArray,
-    maskPattern: i32,
-    matrix: &mut ByteMatrix,
-) -> Result<(), Exceptions> {
+pub fn embedDataBits(dataBits: &BitArray, maskPattern: i32, matrix: &mut ByteMatrix) -> Result<()> {
     let mut bitIndex = 0;
     let mut direction: i32 = -1;
     // Start from the right bottom cell.
@@ -321,7 +317,7 @@ pub fn findMSBSet(value: u32) -> u32 {
 //
 // Since all coefficients in the polynomials are 1 or 0, we can do the calculation by bit
 // operations. We don't care if coefficients are positive or negative.
-pub fn calculateBCHCode(value: u32, poly: u32) -> Result<u32, Exceptions> {
+pub fn calculateBCHCode(value: u32, poly: u32) -> Result<u32> {
     if poly == 0 {
         return Err(Exceptions::illegalArgumentWith("0 polynomial"));
     }
@@ -345,7 +341,7 @@ pub fn makeTypeInfoBits(
     ecLevel: &ErrorCorrectionLevel,
     maskPattern: u32,
     bits: &mut BitArray,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     if !QRCode::isValidMaskPattern(maskPattern as i32) {
         return Err(Exceptions::writerWith("Invalid mask pattern"));
     }
@@ -371,7 +367,7 @@ pub fn makeTypeInfoBits(
 
 // Make bit vector of version information. On success, store the result in "bits" and return true.
 // See 8.10 of JISX0510:2004 (p.45) for details.
-pub fn makeVersionInfoBits(version: &Version, bits: &mut BitArray) -> Result<(), Exceptions> {
+pub fn makeVersionInfoBits(version: &Version, bits: &mut BitArray) -> Result<()> {
     bits.appendBits(version.getVersionNumber(), 6)?;
     let bchCode = calculateBCHCode(version.getVersionNumber(), VERSION_INFO_POLY)?;
     bits.appendBits(bchCode, 12)?;
@@ -409,7 +405,7 @@ pub fn embedTimingPatterns(matrix: &mut ByteMatrix) {
 }
 
 // Embed the lonely dark dot at left bottom corner. JISX0510:2004 (p.46)
-pub fn embedDarkDotAtLeftBottomCorner(matrix: &mut ByteMatrix) -> Result<(), Exceptions> {
+pub fn embedDarkDotAtLeftBottomCorner(matrix: &mut ByteMatrix) -> Result<()> {
     if matrix.get(8, matrix.getHeight() - 8) == 0 {
         return Err(Exceptions::writer);
     }
@@ -421,7 +417,7 @@ pub fn embedHorizontalSeparationPattern(
     xStart: u32,
     yStart: u32,
     matrix: &mut ByteMatrix,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     for x in 0..8 {
         if !isEmpty(matrix.get(xStart + x, yStart)) {
             return Err(Exceptions::writer);
@@ -435,7 +431,7 @@ pub fn embedVerticalSeparationPattern(
     xStart: u32,
     yStart: u32,
     matrix: &mut ByteMatrix,
-) -> Result<(), Exceptions> {
+) -> Result<()> {
     for y in 0..7 {
         if !isEmpty(matrix.get(xStart, yStart + y)) {
             return Err(Exceptions::writer);
@@ -462,9 +458,7 @@ pub fn embedPositionDetectionPattern(xStart: u32, yStart: u32, matrix: &mut Byte
 }
 
 // Embed position detection patterns and surrounding vertical/horizontal separators.
-pub fn embedPositionDetectionPatternsAndSeparators(
-    matrix: &mut ByteMatrix,
-) -> Result<(), Exceptions> {
+pub fn embedPositionDetectionPatternsAndSeparators(matrix: &mut ByteMatrix) -> Result<()> {
     // Embed three big squares at corners.
     let pdpWidth = POSITION_DETECTION_PATTERN[0].len() as u32;
     // Left top corner.

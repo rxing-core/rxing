@@ -1,5 +1,6 @@
 use std::fmt;
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::{GenericGFPoly, GenericGFRef};
@@ -131,7 +132,7 @@ impl GenericGF {
     /**
      * @return base 2 log of a in GF(size)
      */
-    pub fn log(&self, a: i32) -> Result<i32, Exceptions> {
+    pub fn log(&self, a: i32) -> Result<i32> {
         if a == 0 {
             return Err(Exceptions::illegalArgument);
         }
@@ -142,7 +143,7 @@ impl GenericGF {
     /**
      * @return multiplicative inverse of a
      */
-    pub fn inverse(&self, a: i32) -> Result<i32, Exceptions> {
+    pub fn inverse(&self, a: i32) -> Result<i32> {
         if a == 0 {
             return Err(Exceptions::arithmetic);
         }

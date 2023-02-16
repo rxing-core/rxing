@@ -16,6 +16,7 @@
 
 use rxing_one_d_proc_derive::OneDWriter;
 
+use crate::common::Result;
 use crate::BarcodeFormat;
 
 use super::{
@@ -37,7 +38,7 @@ pub struct UPCEWriter;
 impl UPCEANWriter for UPCEWriter {}
 
 impl OneDimensionalCodeWriter for UPCEWriter {
-    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>, Exceptions> {
+    fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
         let length = contents.chars().count();
         let mut contents = contents.to_owned();
         let reader = UPCEReader::default();

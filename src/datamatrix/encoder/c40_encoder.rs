@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::common::Result;
 use crate::Exceptions;
 
 use super::high_level_encoder::{
@@ -25,7 +26,7 @@ use super::{Encoder, EncoderContext};
 pub struct C40Encoder;
 
 impl Encoder for C40Encoder {
-    fn encode(&self, context: &mut super::EncoderContext) -> Result<(), Exceptions> {
+    fn encode(&self, context: &mut super::EncoderContext) -> Result<()> {
         self.encode_with_encode_char_fn(
             context,
             &Self::encodeChar_c40,
@@ -48,9 +49,9 @@ impl C40Encoder {
         &self,
         context: &mut super::EncoderContext,
         encodeChar: &dyn Fn(char, &mut String) -> u32,
-        handleEOD: &dyn Fn(&mut EncoderContext, &mut String) -> Result<(), Exceptions>,
+        handleEOD: &dyn Fn(&mut EncoderContext, &mut String) -> Result<()>,
         getEncodingMode: &dyn Fn() -> usize,
-    ) -> Result<(), Exceptions> {
+    ) -> Result<()> {
         //step C
         let mut buffer = String::new();
         while context.hasMoreCharacters() {
@@ -110,7 +111,7 @@ impl C40Encoder {
         handleEOD(context, &mut buffer)
     }
 
-    pub fn encodeMaximalC40(&self, context: &mut EncoderContext) -> Result<(), Exceptions> {
+    pub fn encodeMaximalC40(&self, context: &mut EncoderContext) -> Result<()> {
         self.encodeMaximal(context, &Self::encodeChar_c40, &Self::handleEOD_c40)
     }
 
@@ -118,8 +119,8 @@ impl C40Encoder {
         &self,
         context: &mut EncoderContext,
         encodeChar: &dyn Fn(char, &mut String) -> u32,
-        handleEOD: &dyn Fn(&mut EncoderContext, &mut String) -> Result<(), Exceptions>,
-    ) -> Result<(), Exceptions> {
+        handleEOD: &dyn Fn(&mut EncoderContext, &mut String) -> Result<()>,
+    ) -> Result<()> {
         let mut buffer = String::new();
         let mut lastCharSize = 0;
         let mut backtrackStartPosition = context.pos;
@@ -181,8 +182,10 @@ impl C40Encoder {
     pub(super) fn writeNextTriplet(
         context: &mut EncoderContext,
         buffer: &mut String,
-    ) -> Result<(), Exceptions> {
-        context.writeCodewords(&Self::encodeToCodewords(buffer).ok_or(Exceptions::format)?);
+    ) -> Result<()> {
+        context.writeCodewords(
+            &Self::encodeToCodewords(buffer).ok_or(Exceptions::FormatException(None))?,
+        );
         buffer.replace_range(0..3, "");
         // buffer.delete(0, 3);
         Ok(())
@@ -194,10 +197,7 @@ impl C40Encoder {
      * @param context the encoder context
      * @param buffer  the buffer with the remaining encoded characters
      */
-    pub fn handleEOD_c40(
-        context: &mut EncoderContext,
-        buffer: &mut String,
-    ) -> Result<(), Exceptions> {
+    pub fn handleEOD_c40(context: &mut EncoderContext, buffer: &mut String) -> Result<()> {
         let unwritten = (buffer.chars().count() / 3) * 2;
         let rest = buffer.chars().count() % 3;
 

@@ -16,6 +16,7 @@
 
 use std::collections::HashMap;
 
+use crate::common::Result;
 use crate::{
     aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
     oned::MultiFormatOneDReader, pdf417::PDF417Reader, qrcode::QRCodeReader, BarcodeFormat,
@@ -47,10 +48,7 @@ impl Reader for MultiFormatReader {
      * @return The contents of the image
      * @throws NotFoundException Any errors which occurred
      */
-    fn decode(
-        &mut self,
-        image: &mut crate::BinaryBitmap,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
         self.set_ints(&HashMap::new());
         self.decode_internal(image)
     }
@@ -67,7 +65,7 @@ impl Reader for MultiFormatReader {
         &mut self,
         image: &mut crate::BinaryBitmap,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
+    ) -> Result<crate::RXingResult> {
         self.set_ints(hints);
         self.decode_internal(image)
     }
@@ -88,10 +86,7 @@ impl MultiFormatReader {
      * @return The contents of the image
      * @throws NotFoundException Any errors which occurred
      */
-    pub fn decode_with_state(
-        &mut self,
-        image: &mut BinaryBitmap,
-    ) -> Result<RXingResult, Exceptions> {
+    pub fn decode_with_state(&mut self, image: &mut BinaryBitmap) -> Result<RXingResult> {
         // Make sure to set up the default state so we don't crash
         if self.readers.is_empty() {
             self.set_ints(&HashMap::new());
@@ -170,7 +165,7 @@ impl MultiFormatReader {
         self.readers = readers;
     }
 
-    pub fn decode_internal(&mut self, image: &mut BinaryBitmap) -> Result<RXingResult, Exceptions> {
+    pub fn decode_internal(&mut self, image: &mut BinaryBitmap) -> Result<RXingResult> {
         if !self.readers.is_empty() {
             for reader in self.readers.iter_mut() {
                 let res = reader.decode_with_hints(image, &self.hints);

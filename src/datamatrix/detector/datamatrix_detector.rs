@@ -15,7 +15,9 @@
  */
 
 use crate::{
-    common::{detector::WhiteRectangleDetector, BitMatrix, DefaultGridSampler, GridSampler},
+    common::{
+        detector::WhiteRectangleDetector, BitMatrix, DefaultGridSampler, GridSampler, Result,
+    },
     Exceptions, RXingResultPoint, ResultPoint,
 };
 
@@ -32,7 +34,7 @@ pub struct Detector<'a> {
     rectangleDetector: WhiteRectangleDetector<'a>,
 }
 impl<'a> Detector<'_> {
-    pub fn new(image: &'a BitMatrix) -> Result<Detector<'a>, Exceptions> {
+    pub fn new(image: &'a BitMatrix) -> Result<Detector<'a>> {
         Ok(Detector {
             rectangleDetector: WhiteRectangleDetector::new_from_image(image)?,
             image,
@@ -45,7 +47,7 @@ impl<'a> Detector<'_> {
      * @return {@link DetectorRXingResult} encapsulating results of detecting a Data Matrix Code
      * @throws NotFoundException if no Data Matrix Code can be found
      */
-    pub fn detect(&self) -> Result<DatamatrixDetectorResult, Exceptions> {
+    pub fn detect(&self) -> Result<DatamatrixDetectorResult> {
         let cornerPoints = self.rectangleDetector.detect()?;
 
         let mut points = self.detectSolid1(cornerPoints);
@@ -329,7 +331,7 @@ impl<'a> Detector<'_> {
         topRight: &RXingResultPoint,
         dimensionX: u32,
         dimensionY: u32,
-    ) -> Result<BitMatrix, Exceptions> {
+    ) -> Result<BitMatrix> {
         let sampler = DefaultGridSampler::default();
 
         sampler.sample_grid_detailed(
