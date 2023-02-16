@@ -16,7 +16,7 @@
 
 //Point
 
-use crate::{Point, ResultPoint};
+use crate::{point, Point, ResultPoint};
 
 /**
  * <p>Encapsulates an alignment pattern, which are the smaller square patterns found in
@@ -27,23 +27,26 @@ use crate::{Point, ResultPoint};
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct AlignmentPattern {
     estimatedModuleSize: f32,
-    point: (f32, f32),
+    point: Point,
+}
+
+impl From<&AlignmentPattern> for Point {
+    fn from(value: &AlignmentPattern) -> Self {
+        value.point
+    }
 }
 
 impl ResultPoint for AlignmentPattern {
     fn getX(&self) -> f32 {
-        self.point.0
+        self.point.x
     }
 
     fn getY(&self) -> f32 {
-        self.point.1
+        self.point.y
     }
 
     fn to_rxing_result_point(&self) -> Point {
-        Point {
-            x: self.point.0,
-            y: self.point.1,
-        }
+        self.point
     }
 }
 
@@ -51,7 +54,7 @@ impl AlignmentPattern {
     pub fn new(posX: f32, posY: f32, estimatedModuleSize: f32) -> Self {
         Self {
             estimatedModuleSize,
-            point: (posX, posY),
+            point: point(posX, posY),
         }
     }
 

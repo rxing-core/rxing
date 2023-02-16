@@ -167,13 +167,18 @@ impl<'a> Detector<'_> {
         Ok(QRCodeDetectorResult::new(bits, points))
     }
 
-    fn createTransform<T: ResultPoint, X: ResultPoint>(
-        topLeft: &T,
-        topRight: &T,
-        bottomLeft: &T,
-        alignmentPattern: Option<&X>,
+    fn createTransform<T: Into<Point>, X: Into<Point>>(
+        topLeft: T,
+        topRight: T,
+        bottomLeft: T,
+        alignmentPattern: Option<X>,
         dimension: u32,
     ) -> Option<PerspectiveTransform> {
+        let topLeft: Point = topLeft.into();
+        let topRight: Point = topRight.into();
+        let bottomLeft: Point = bottomLeft.into();
+        let alignmentPattern: Option<Point> = alignmentPattern.map(Into::into);
+
         let dimMinusThree = dimension as f32 - 3.5;
         let bottomRightX: f32;
         let bottomRightY: f32;
@@ -226,22 +231,16 @@ impl<'a> Detector<'_> {
      * <p>Computes the dimension (number of modules on a size) of the QR Code based on the position
      * of the finder patterns and estimated module size.</p>
      */
-    fn computeDimension<T: ResultPoint>(
-        topLeft: &T,
-        topRight: &T,
-        bottomLeft: &T,
+    fn computeDimension<T: Into<Point>>(
+        topLeft: T,
+        topRight: T,
+        bottomLeft: T,
         moduleSize: f32,
     ) -> Result<u32> {
-        let tltrCentersDimension = (Point::distance(
-            topLeft.to_rxing_result_point(),
-            topRight.to_rxing_result_point(),
-        ) / moduleSize)
-            .round() as i32;
-        let tlblCentersDimension = (Point::distance(
-            topLeft.to_rxing_result_point(),
-            bottomLeft.to_rxing_result_point(),
-        ) / moduleSize)
-            .round() as i32;
+        let tltrCentersDimension =
+            (Point::distance(topLeft.into(), topRight.into()) / moduleSize).round() as i32;
+        let tlblCentersDimension =
+            (Point::distance(topLeft.into(), bottomLeft.into()) / moduleSize).round() as i32;
         let mut dimension = ((tltrCentersDimension + tlblCentersDimension) / 2) + 7;
         match dimension & 0x03 {
             0 => dimension += 1,
@@ -261,11 +260,11 @@ impl<'a> Detector<'_> {
      * @param bottomLeft detected bottom-left finder pattern center
      * @return estimated module size
      */
-    pub fn calculateModuleSize<T: ResultPoint>(
+    pub fn calculateModuleSize<T: Into<Point>>(
         &self,
-        topLeft: &T,
-        topRight: &T,
-        bottomLeft: &T,
+        topLeft: T,
+        topRight: T,
+        bottomLeft: T,
     ) -> f32 {
         // Take the average
         (self.calculateModuleSizeOneWay(topLeft, topRight)
@@ -278,7 +277,10 @@ impl<'a> Detector<'_> {
      * {@link #sizeOfBlackWhiteBlackRunBothWays(int, int, int, int)} to figure the
      * width of each, measuring along the axis between their centers.</p>
      */
-    fn calculateModuleSizeOneWay<T: ResultPoint>(&self, pattern: &T, otherPattern: &T) -> f32 {
+    fn calculateModuleSizeOneWay<T: Into<Point>>(&self, pattern: T, otherPattern: T) -> f32 {
+        let pattern: Point = pattern.into();
+        let otherPattern: Point = otherPattern.into();
+
         let moduleSizeEst1 = self.sizeOfBlackWhiteBlackRunBothWays(
             pattern.getX().floor() as u32,
             pattern.getY().floor() as u32,
