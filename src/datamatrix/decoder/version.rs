@@ -103,7 +103,7 @@ impl Version {
      */
     pub fn getVersionForDimensions(numRows: u32, numColumns: u32) -> Result<&'static Version> {
         if (numRows & 0x01) != 0 || (numColumns & 0x01) != 0 {
-            return Err(Exceptions::FormatException(None));
+            return Err(Exceptions::format);
         }
 
         for version in VERSIONS.iter() {
@@ -112,7 +112,7 @@ impl Version {
             }
         }
 
-        Err(Exceptions::FormatException(None))
+        Err(Exceptions::format)
     }
 
     /**

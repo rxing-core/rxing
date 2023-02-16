@@ -53,7 +53,7 @@ impl OneDReader for Code128Reader {
             CODE_START_A => CODE_CODE_A,
             CODE_START_B => CODE_CODE_B,
             CODE_START_C => CODE_CODE_C,
-            _ => return Err(Exceptions::FormatException(None)),
+            _ => return Err(Exceptions::format),
         };
 
         let mut done = false;
@@ -103,9 +103,7 @@ impl OneDReader for Code128Reader {
 
             // Take care of illegal start codes
             match code {
-                CODE_START_A | CODE_START_B | CODE_START_C => {
-                    return Err(Exceptions::FormatException(None))
-                }
+                CODE_START_A | CODE_START_B | CODE_START_C => return Err(Exceptions::format),
                 _ => {}
             }
 
@@ -299,21 +297,21 @@ impl OneDReader for Code128Reader {
             row.getSize().min(nextStart + (nextStart - lastStart) / 2),
             false,
         )? {
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFound);
         }
 
         // Pull out from sum the value of the penultimate check code
         checksumTotal -= multiplier as usize * lastCode as usize;
         // lastCode is the checksum then:
         if (checksumTotal % 103) as u8 != lastCode {
-            return Err(Exceptions::ChecksumException(None));
+            return Err(Exceptions::checksum);
         }
 
         // Need to pull out the check digits from string
         let resultLength = result.chars().count();
         if resultLength == 0 {
             // false positive
-            return Err(Exceptions::NotFoundException(None));
+            return Err(Exceptions::notFound);
         }
 
         // Only bother if the result had at least one character, and if the checksum digit happened to
@@ -334,9 +332,7 @@ impl OneDReader for Code128Reader {
         let rawCodesSize = rawCodes.len();
         let mut rawBytes = vec![0u8; rawCodesSize];
         for (i, rawByte) in rawBytes.iter_mut().enumerate().take(rawCodesSize) {
-            *rawByte = *rawCodes
-                .get(i)
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?;
+            *rawByte = *rawCodes.get(i).ok_or(Exceptions::indexOutOfBounds)?;
         }
         let mut resultObject = RXingResult::new(
             &result,
@@ -410,7 +406,7 @@ impl Code128Reader {
             }
         }
 
-        Err(Exceptions::NotFoundException(None))
+        Err(Exceptions::notFound)
     }
 
     fn decodeCode(&self, row: &BitArray, counters: &mut [u32; 6], rowOffset: usize) -> Result<u8> {
@@ -430,7 +426,7 @@ impl Code128Reader {
         if bestMatch >= 0 {
             Ok(bestMatch as u8)
         } else {
-            Err(Exceptions::NotFoundException(None))
+            Err(Exceptions::notFound)
         }
     }
 }

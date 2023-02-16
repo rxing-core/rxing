@@ -203,13 +203,13 @@ impl<'a> MonochromeRectangleDetector<'_> {
                     }
                 }
             } else {
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFound);
             }
             lastRange_z = range;
             y += deltaY;
             x += deltaX
         }
-        Err(Exceptions::NotFoundException(None))
+        Err(Exceptions::notFound)
     }
 
     /**

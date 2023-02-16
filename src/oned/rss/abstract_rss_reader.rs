@@ -39,7 +39,7 @@ pub trait AbstractRSSReaderTrait: OneDReader {
                 return Ok(value as u32);
             }
         }
-        Err(Exceptions::NotFoundException(None))
+        Err(Exceptions::notFound)
     }
 
     /**

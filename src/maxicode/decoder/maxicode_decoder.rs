@@ -70,7 +70,7 @@ pub fn decode_with_hints(
             correctErrors(&mut codewords, 20, 68, 56, ODD)?;
             datawords = vec![0u8; 78];
         }
-        _ => return Err(Exceptions::NotFoundException(None)),
+        _ => return Err(Exceptions::notFound),
     }
 
     datawords[0..10].clone_from_slice(&codewords[0..10]);

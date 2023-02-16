@@ -146,7 +146,7 @@ pub trait GridSampler {
             let x = points[offset] as i32;
             let y = points[offset + 1] as i32;
             if x < -1 || x > width as i32 || y < -1 || y > height as i32 {
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFound);
             }
             nudged = false;
             if x == -1 {
@@ -173,7 +173,7 @@ pub trait GridSampler {
             let x = points[offset as usize] as i32;
             let y = points[offset as usize + 1] as i32;
             if x < -1 || x > width as i32 || y < -1 || y > height as i32 {
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFound);
             }
             nudged = false;
             if x == -1 {

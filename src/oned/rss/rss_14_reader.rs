@@ -64,12 +64,12 @@ impl OneDReader for RSS14Reader {
                     if right.getCount() > 1 && self.checkChecksum(left, right) {
                         return self
                             .constructRXingResult(left, right)
-                            .ok_or(Exceptions::IllegalStateException(None));
+                            .ok_or(Exceptions::illegalState);
                     }
                 }
             }
         }
-        Err(Exceptions::NotFoundException(None))
+        Err(Exceptions::notFound)
     }
 }
 impl Reader for RSS14Reader {
@@ -123,7 +123,7 @@ impl Reader for RSS14Reader {
 
                 Ok(result)
             } else {
-                Err(Exceptions::NotFoundException(None))
+                Err(Exceptions::notFound)
             }
         }
     }
@@ -340,7 +340,7 @@ impl RSS14Reader {
 
         if outsideChar {
             if (oddSum & 0x01) != 0 || !(4..=12).contains(&oddSum) {
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFound);
             }
             let group = ((12 - oddSum) / 2) as usize;
             let oddWidest = Self::OUTSIDE_ODD_WIDEST[group];
@@ -355,7 +355,7 @@ impl RSS14Reader {
             ))
         } else {
             if (evenSum & 0x01) != 0 || !(4..=10).contains(&evenSum) {
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFound);
             }
             let group = ((10 - evenSum) / 2) as usize;
             let oddWidest = Self::INSIDE_ODD_WIDEST[group];
@@ -414,7 +414,7 @@ impl RSS14Reader {
                 isWhite = !isWhite;
             }
         }
-        Err(Exceptions::NotFoundException(None))
+        Err(Exceptions::notFound)
     }
 
     fn parseFoundFinderPattern(
@@ -511,12 +511,12 @@ impl RSS14Reader {
             1 => {
                 if oddParityBad {
                     if evenParityBad {
-                        return Err(Exceptions::NotFoundException(None));
+                        return Err(Exceptions::notFound);
                     }
                     decrementOdd = true;
                 } else {
                     if !evenParityBad {
-                        return Err(Exceptions::NotFoundException(None));
+                        return Err(Exceptions::notFound);
                     }
                     decrementEven = true;
                 }
@@ -524,12 +524,12 @@ impl RSS14Reader {
             -1 => {
                 if oddParityBad {
                     if evenParityBad {
-                        return Err(Exceptions::NotFoundException(None));
+                        return Err(Exceptions::notFound);
                     }
                     incrementOdd = true;
                 } else {
                     if !evenParityBad {
-                        return Err(Exceptions::NotFoundException(None));
+                        return Err(Exceptions::notFound);
                     }
                     incrementEven = true;
                 }
@@ -537,7 +537,7 @@ impl RSS14Reader {
             0 => {
                 if oddParityBad {
                     if !evenParityBad {
-                        return Err(Exceptions::NotFoundException(None));
+                        return Err(Exceptions::notFound);
                     }
                     // Both bad
                     if oddSum < evenSum {
@@ -548,15 +548,15 @@ impl RSS14Reader {
                         incrementEven = true;
                     }
                 } else if evenParityBad {
-                    return Err(Exceptions::NotFoundException(None));
+                    return Err(Exceptions::notFound);
                 }
             }
-            _ => return Err(Exceptions::NotFoundException(None)),
+            _ => return Err(Exceptions::notFound),
         }
 
         if incrementOdd {
             if decrementOdd {
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFound);
             }
             Self::increment(&mut self.oddCounts, &self.oddRoundingErrors);
         }
@@ -565,7 +565,7 @@ impl RSS14Reader {
         }
         if incrementEven {
             if decrementEven {
-                return Err(Exceptions::NotFoundException(None));
+                return Err(Exceptions::notFound);
             }
             Self::increment(&mut self.evenCounts, &self.evenRoundingErrors);
         }

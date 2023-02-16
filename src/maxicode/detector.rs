@@ -319,7 +319,7 @@ impl Circle<'_> {
 pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionResult> {
     // find concentric circles
     let Some( mut circles) = find_concentric_circles(image) else {
-        return Err(Exceptions::NotFoundException(None));
+        return Err(Exceptions::notFound);
     };
 
     // we should have an idea where the center is at this point,
@@ -342,7 +342,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
             if try_harder {
                 continue;
             }else {
-                return Err(Exceptions::NotFoundException(None))
+                return Err(Exceptions::notFound)
             }
         };
         let grid_sampler = DefaultGridSampler::default();
@@ -379,7 +379,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
             if try_harder {
                 continue;
             }else {
-                return Err(Exceptions::NotFoundException(None))
+                return Err(Exceptions::notFound)
             }
         };
         return Ok(MaxicodeDetectionResult {
@@ -393,7 +393,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         });
     }
 
-    Err(Exceptions::NotFoundException(None))
+    Err(Exceptions::notFound)
 }
 
 /// Locate concentric circles.
@@ -732,7 +732,7 @@ fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<([(f32, f32); 4]
     #[cfg(feature = "experimental_features")]
     if is_ellipse {
         // we don't deal with ellipses yet
-        return Err(Exceptions::NotFoundException(None));
+        return Err(Exceptions::notFound);
     }
 
     let mut final_rotation = 0.0;

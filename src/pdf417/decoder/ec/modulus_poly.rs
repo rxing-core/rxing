@@ -34,7 +34,7 @@ pub struct ModulusPoly {
 impl ModulusPoly {
     pub fn new(field: &'static ModulusGF, coefficients: Vec<u32>) -> Result<ModulusPoly> {
         if coefficients.is_empty() {
-            return Err(Exceptions::IllegalArgumentException(None));
+            return Err(Exceptions::illegalArgument);
         }
         let orig_coefs = coefficients.clone();
         let mut coefficients = coefficients;
@@ -124,9 +124,9 @@ impl ModulusPoly {
 
     pub fn add(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>> {
         if self.field != other.field {
-            return Err(Exceptions::IllegalArgumentException(Some(
-                "ModulusPolys do not have same ModulusGF field".to_owned(),
-            )));
+            return Err(Exceptions::illegalArgumentWith(
+                "ModulusPolys do not have same ModulusGF field",
+            ));
         }
         if self.isZero() {
             return Ok(other);
@@ -158,9 +158,9 @@ impl ModulusPoly {
 
     pub fn subtract(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>> {
         if self.field != other.field {
-            return Err(Exceptions::IllegalArgumentException(Some(
-                "ModulusPolys do not have same ModulusGF field".to_owned(),
-            )));
+            return Err(Exceptions::illegalArgumentWith(
+                "ModulusPolys do not have same ModulusGF field",
+            ));
         }
         if other.isZero() {
             return Ok(Rc::new(self.clone()));
@@ -170,9 +170,9 @@ impl ModulusPoly {
 
     pub fn multiply(&self, other: Rc<ModulusPoly>) -> Result<Rc<ModulusPoly>> {
         if !(self.field == other.field) {
-            return Err(Exceptions::IllegalArgumentException(Some(
-                "ModulusPolys do not have same ModulusGF field".to_owned(),
-            )));
+            return Err(Exceptions::illegalArgumentWith(
+                "ModulusPolys do not have same ModulusGF field",
+            ));
         }
         if self.isZero() || other.isZero() {
             return Ok(Self::getZero(self.field));

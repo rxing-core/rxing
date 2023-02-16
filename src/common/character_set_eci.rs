@@ -245,9 +245,7 @@ impl CharacterSetECI {
             28 => Ok(CharacterSetECI::Big5),
             29 => Ok(CharacterSetECI::GB18030),
             30 => Ok(CharacterSetECI::EUC_KR),
-            _ => Err(Exceptions::NotFoundException(Some(
-                "Bad ECI Value".to_owned(),
-            ))),
+            _ => Err(Exceptions::notFoundWith("Bad ECI Value")),
         }
     }
 

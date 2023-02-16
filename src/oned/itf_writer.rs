@@ -33,14 +33,14 @@ impl OneDimensionalCodeWriter for ITFWriter {
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
         let length = contents.chars().count();
         if length % 2 != 0 {
-            return Err(Exceptions::IllegalArgumentException(Some(
-                "The length of the input should be even".to_owned(),
-            )));
+            return Err(Exceptions::illegalArgumentWith(
+                "The length of the input should be even",
+            ));
         }
         if length > 80 {
-            return Err(Exceptions::IllegalArgumentException(Some(format!(
+            return Err(Exceptions::illegalArgumentWith(format!(
                 "Requested contents should be less than 80 digits long, but got {length}"
-            ))));
+            )));
         }
 
         Self::checkNumeric(contents)?;
@@ -52,15 +52,15 @@ impl OneDimensionalCodeWriter for ITFWriter {
             let one = contents
                 .chars()
                 .nth(i)
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .ok_or(Exceptions::indexOutOfBounds)?
                 .to_digit(10)
-                .ok_or(Exceptions::ParseException(None))? as usize;
+                .ok_or(Exceptions::parse)? as usize;
             let two = contents
                 .chars()
                 .nth(i + 1)
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .ok_or(Exceptions::indexOutOfBounds)?
                 .to_digit(10)
-                .ok_or(Exceptions::ParseException(None))? as usize;
+                .ok_or(Exceptions::parse)? as usize;
             let mut encoding = [0; 10];
             for j in 0..5 {
                 encoding[2 * j] = PATTERNS[one][j];

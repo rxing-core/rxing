@@ -44,12 +44,12 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             let firstChar = contents
                 .chars()
                 .next()
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .ok_or(Exceptions::indexOutOfBounds)?
                 .to_ascii_uppercase();
             let lastChar = contents
                 .chars()
                 .nth(contents.chars().count() - 1)
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .ok_or(Exceptions::indexOutOfBounds)?
                 .to_ascii_uppercase();
             let startsNormal = CodaBarReader::arrayContains(&START_END_CHARS, firstChar);
             let endsNormal = CodaBarReader::arrayContains(&START_END_CHARS, lastChar);
@@ -57,26 +57,26 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             let endsAlt = CodaBarReader::arrayContains(&ALT_START_END_CHARS, lastChar);
             if startsNormal {
                 if !endsNormal {
-                    return Err(Exceptions::IllegalArgumentException(Some(format!(
+                    return Err(Exceptions::illegalArgumentWith(format!(
                         "Invalid start/end guards: {contents}"
-                    ))));
+                    )));
                 }
                 // else already has valid start/end
                 contents.to_owned()
             } else if startsAlt {
                 if !endsAlt {
-                    return Err(Exceptions::IllegalArgumentException(Some(format!(
+                    return Err(Exceptions::illegalArgumentWith(format!(
                         "Invalid start/end guards: {contents}"
-                    ))));
+                    )));
                 }
                 // else already has valid start/end
                 contents.to_owned()
             } else {
                 // Doesn't start with a guard
                 if endsNormal || endsAlt {
-                    return Err(Exceptions::IllegalArgumentException(Some(format!(
+                    return Err(Exceptions::illegalArgumentWith(format!(
                         "Invalid start/end guards: {contents}"
-                    ))));
+                    )));
                 }
                 // else doesn't end with guard either, so add a default
                 format!("{DEFAULT_GUARD}{contents}{DEFAULT_GUARD}")
@@ -94,9 +94,9 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             ) {
                 resultLength += 10;
             } else {
-                return Err(Exceptions::IllegalArgumentException(Some(format!(
+                return Err(Exceptions::illegalArgumentWith(format!(
                     "Cannot encode : '{ch}'"
-                ))));
+                )));
             }
         }
         // A blank is placed between each character.
@@ -109,7 +109,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             let mut c = contents
                 .chars()
                 .nth(index)
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                .ok_or(Exceptions::indexOutOfBounds)?
                 .to_ascii_uppercase();
             if index == 0 || index == contents.chars().count() - 1 {
                 // The start/end chars are not in the CodaBarReader.ALPHABET.

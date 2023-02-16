@@ -254,7 +254,7 @@ fn Scan(
         ));
     }
 
-    Err(Exceptions::NotFoundException(None))
+    Err(Exceptions::notFound)
 }
 
 pub fn detect(
@@ -359,6 +359,6 @@ pub fn detect(
     }
 
     // #ifndef __cpp_impl_coroutine
-    Err(Exceptions::NotFoundException(None))
+    Err(Exceptions::notFound)
     // #endif
 }

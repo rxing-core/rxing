@@ -77,7 +77,7 @@ impl RegressionLine for DMRegressionLine {
 
     fn add(&mut self, p: &RXingResultPoint) -> Result<()> {
         if self.direction_inward == RXingResultPoint::default() {
-            return Err(Exceptions::IllegalStateException(None));
+            return Err(Exceptions::illegalState);
         }
         self.points.push(*p);
         if self.points.len() == 1 {
@@ -238,7 +238,7 @@ impl DMRegressionLine {
 
     pub fn modules(&mut self, beg: &RXingResultPoint, end: &RXingResultPoint) -> Result<f64> {
         if self.points.len() <= 3 {
-            return Err(Exceptions::IllegalStateException(None));
+            return Err(Exceptions::illegalState);
         }
 
         // re-evaluate and filter out all points too far away. required for the gapSizes calculation.
@@ -261,14 +261,8 @@ impl DMRegressionLine {
 
         // calculate the (expected average) distance of two adjacent pixels
         let unitPixelDist = RXingResultPoint::length(RXingResultPoint::bresenhamDirection(
-            &(*self
-                .points
-                .last()
-                .ok_or(Exceptions::IndexOutOfBoundsException(None))?
-                - *self
-                    .points
-                    .first()
-                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?),
+            &(*self.points.last().ok_or(Exceptions::indexOutOfBounds)?
+                - *self.points.first().ok_or(Exceptions::indexOutOfBounds)?),
         )) as f64;
 
         // calculate the width of 2 modules (first black pixel to first black pixel)
@@ -291,11 +285,7 @@ impl DMRegressionLine {
             sumFront
                 + self.distance(
                     end,
-                    &self.project(
-                        self.points
-                            .last()
-                            .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
-                    ),
+                    &self.project(self.points.last().ok_or(Exceptions::indexOutOfBounds)?),
                 ) as f64,
         );
         modSizes[0] = 0.0; // the first element is an invalid sumBack value, would be pop_front() if vector supported this

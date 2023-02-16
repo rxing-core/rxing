@@ -152,7 +152,7 @@ pub fn createDecoder<'a>(
         _ => {}
     }
 
-    Err(Exceptions::IllegalStateException(Some(format!(
+    Err(Exceptions::illegalStateWith(format!(
         "unknown decoder: {information}"
-    ))))
+    )))
 }

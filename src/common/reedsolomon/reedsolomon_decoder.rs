@@ -78,7 +78,7 @@ impl ReedSolomonDecoder {
             return Ok(0);
         }
         let Ok(syndrome) = GenericGFPoly::new(self.field, &syndromeCoefficients) else {
-             return Err(Exceptions::ReedSolomonException(None));
+             return Err(Exceptions::reedSolomon);
         };
         let sigmaOmega = self.runEuclideanAlgorithm(
             &GenericGF::buildMonomial(self.field, twoS as usize, 1),
@@ -93,15 +93,11 @@ impl ReedSolomonDecoder {
             //for (int i = 0; i < errorLocations.length; i++) {
             let log_value = self.field.log(errorLocations[i] as i32)?;
             if log_value > received.len() as i32 - 1 {
-                return Err(Exceptions::ReedSolomonException(Some(
-                    "Bad error location".to_owned(),
-                )));
+                return Err(Exceptions::reedSolomonWith("Bad error location"));
             }
             let position: isize = received.len() as isize - 1 - log_value as isize;
             if position < 0 {
-                return Err(Exceptions::ReedSolomonException(Some(
-                    "Bad error location".to_owned(),
-                )));
+                return Err(Exceptions::reedSolomonWith("Bad error location"));
             }
             received[position as usize] =
                 GenericGF::addOrSubtract(received[position as usize], errorMagnitudes[i]);
@@ -139,9 +135,7 @@ impl ReedSolomonDecoder {
             // Divide rLastLast by rLast, with quotient in q and remainder in r
             if rLast.isZero() {
                 // Oops, Euclidean algorithm already terminated?
-                return Err(Exceptions::ReedSolomonException(Some(
-                    "r_{i-1} was zero".to_owned(),
-                )));
+                return Err(Exceptions::reedSolomonWith("r_{i-1} was zero"));
             }
             r = rLastLast;
             let mut q = r.getZero();
@@ -159,26 +153,20 @@ impl ReedSolomonDecoder {
             t = (q.multiply(&tLast)?).addOrSubtract(&tLastLast)?;
 
             if r.getDegree() >= rLast.getDegree() {
-                return Err(Exceptions::ReedSolomonException(Some(format!(
+                return Err(Exceptions::reedSolomonWith(format!(
                     "Division algorithm failed to reduce polynomial? r: {r}, rLast: {rLast}"
-                ))));
+                )));
             }
         }
 
         let sigmaTildeAtZero = t.getCoefficient(0);
         if sigmaTildeAtZero == 0 {
-            return Err(Exceptions::ReedSolomonException(Some(
-                "sigmaTilde(0) was zero".to_owned(),
-            )));
+            return Err(Exceptions::reedSolomonWith("sigmaTilde(0) was zero"));
         }
 
         let inverse = match self.field.inverse(sigmaTildeAtZero) {
             Ok(res) => res,
-            Err(_err) => {
-                return Err(Exceptions::ReedSolomonException(Some(
-                    "ArithmetricException".to_owned(),
-                )))
-            }
+            Err(_err) => return Err(Exceptions::reedSolomonWith("ArithmetricException")),
         };
         let sigma = t.multiply_with_scalar(inverse);
         let omega = r.multiply_with_scalar(inverse);
@@ -206,9 +194,9 @@ impl ReedSolomonDecoder {
             }
         }
         if e != numErrors {
-            return Err(Exceptions::ReedSolomonException(Some(
-                "Error locator degree does not match number of roots".to_owned(),
-            )));
+            return Err(Exceptions::reedSolomonWith(
+                "Error locator degree does not match number of roots",
+            ));
         }
         Ok(result)
     }

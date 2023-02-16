@@ -57,11 +57,11 @@ impl SVGLuminanceSource {
     pub fn new(svg_data: &[u8]) -> Result<Self> {
         // Load the SVG file
         let Ok(tree) = resvg::usvg::Tree::from_data(svg_data, &Options::default()) else {
-            return Err(Exceptions::FormatException(Some(format!("could not parse svg data: {}", "err"))));
+            return Err(Exceptions::formatWith(format!("could not parse svg data: {}", "err")));
         };
 
         let Some(mut pixmap) = resvg::tiny_skia::Pixmap::new(tree.size.width() as u32, tree.size.height() as u32) else {
-            return Err(Exceptions::FormatException(Some("could not create pixmap".to_owned())));
+            return Err(Exceptions::formatWith("could not create pixmap"));
         };
 
         resvg::render(
@@ -72,11 +72,11 @@ impl SVGLuminanceSource {
         );
 
         let Some(buffer) = RgbaImage::from_raw(tree.size.width() as u32, tree.size.height() as u32, pixmap.data().to_vec()) else {
-        return Err(Exceptions::FormatException(Some("could not create image buffer".to_owned())));
+        return Err(Exceptions::formatWith("could not create image buffer"));
     };
 
         // let Ok(image) = image::load_from_memory_with_format(pixmap.data(), image::ImageFormat::Bmp)  else {
-        //     return Err(Exceptions::FormatException(Some("could not generate image".to_owned())));
+        //     return Err(Exceptions::format("could not generate image"));
         // };
 
         Ok(Self(BufferedImageLuminanceSource::new(DynamicImage::from(

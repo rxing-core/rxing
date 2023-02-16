@@ -34,9 +34,9 @@ impl OneDimensionalCodeWriter for Code39Writer {
         let mut contents = contents.to_owned();
         let mut length = contents.chars().count();
         if length > 80 {
-            return Err(Exceptions::IllegalArgumentException(Some(format!(
+            return Err(Exceptions::illegalArgumentWith(format!(
                 "Requested contents should be less than 80 digits long, but got {length}"
-            ))));
+            )));
         }
 
         let mut i = 0;
@@ -48,14 +48,14 @@ impl OneDimensionalCodeWriter for Code39Writer {
                     contents
                         .chars()
                         .nth(i)
-                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                        .ok_or(Exceptions::indexOutOfBounds)?,
                 )
                 .is_none()
             {
                 contents = Self::tryToConvertToExtendedMode(&contents)?;
                 length = contents.chars().count();
                 if length > 80 {
-                    return Err(Exceptions::IllegalArgumentException(Some(format!("Requested contents should be less than 80 digits long, but got {length} (extended full ASCII mode)"))));
+                    return Err(Exceptions::illegalArgumentWith(format!("Requested contents should be less than 80 digits long, but got {length} (extended full ASCII mode)")));
                 }
                 break;
             }
@@ -71,7 +71,7 @@ impl OneDimensionalCodeWriter for Code39Writer {
         pos += Self::appendPattern(&mut result, pos as usize, &narrowWhite, false);
         //append next character to byte matrix
         for i in 0..length {
-            let Some(indexInString) = Code39Reader::ALPHABET_STRING.find(contents.chars().nth(i).ok_or(Exceptions::IndexOutOfBoundsException(None))?) else {
+            let Some(indexInString) = Code39Reader::ALPHABET_STRING.find(contents.chars().nth(i).ok_or(Exceptions::indexOutOfBounds)?) else {
               continue;
             };
             Self::toIntArray(
@@ -118,58 +118,58 @@ impl Code39Writer {
                         extendedContent.push('$');
                         extendedContent.push(
                             char::from_u32('A' as u32 + (character as u32 - 1))
-                                .ok_or(Exceptions::ParseException(None))?,
+                                .ok_or(Exceptions::parse)?,
                         );
                     } else if character < ' ' {
                         extendedContent.push('%');
                         extendedContent.push(
                             char::from_u32('A' as u32 + (character as u32 - 27))
-                                .ok_or(Exceptions::ParseException(None))?,
+                                .ok_or(Exceptions::parse)?,
                         );
                     } else if character <= ',' || character == '/' || character == ':' {
                         extendedContent.push('/');
                         extendedContent.push(
                             char::from_u32('A' as u32 + (character as u32 - 33))
-                                .ok_or(Exceptions::ParseException(None))?,
+                                .ok_or(Exceptions::parse)?,
                         );
                     } else if character <= '9' {
                         extendedContent.push(
                             char::from_u32('0' as u32 + (character as u32 - 48))
-                                .ok_or(Exceptions::ParseException(None))?,
+                                .ok_or(Exceptions::parse)?,
                         );
                     } else if character <= '?' {
                         extendedContent.push('%');
                         extendedContent.push(
                             char::from_u32('F' as u32 + (character as u32 - 59))
-                                .ok_or(Exceptions::ParseException(None))?,
+                                .ok_or(Exceptions::parse)?,
                         );
                     } else if character <= 'Z' {
                         extendedContent.push(
                             char::from_u32('A' as u32 + (character as u32 - 65))
-                                .ok_or(Exceptions::ParseException(None))?,
+                                .ok_or(Exceptions::parse)?,
                         );
                     } else if character <= '_' {
                         extendedContent.push('%');
                         extendedContent.push(
                             char::from_u32('K' as u32 + (character as u32 - 91))
-                                .ok_or(Exceptions::ParseException(None))?,
+                                .ok_or(Exceptions::parse)?,
                         );
                     } else if character <= 'z' {
                         extendedContent.push('+');
                         extendedContent.push(
                             char::from_u32('A' as u32 + (character as u32 - 97))
-                                .ok_or(Exceptions::ParseException(None))?,
+                                .ok_or(Exceptions::parse)?,
                         );
                     } else if character as u32 <= 127 {
                         extendedContent.push('%');
                         extendedContent.push(
                             char::from_u32('P' as u32 + (character as u32 - 123))
-                                .ok_or(Exceptions::ParseException(None))?,
+                                .ok_or(Exceptions::parse)?,
                         );
                     } else {
-                        return Err(Exceptions::IllegalArgumentException(Some(format!(
+                        return Err(Exceptions::illegalArgumentWith(format!(
                             "Requested content contains a non-encodable character: '{character}'"
-                        ))));
+                        )));
                     }
                 }
             }

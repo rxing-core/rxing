@@ -128,7 +128,7 @@ impl LuminanceSource for RGBLuminanceSource {
             height,
         ) {
             Ok(crop) => Ok(Box::new(crop)),
-            Err(_error) => Err(Exceptions::UnsupportedOperationException(None)),
+            Err(_error) => Err(Exceptions::unsupportedOperation),
         }
     }
 
@@ -180,9 +180,9 @@ impl RGBLuminanceSource {
         height: usize,
     ) -> Result<Self> {
         if left + width > data_width || top + height > data_height {
-            return Err(Exceptions::IllegalArgumentException(Some(
-                "Crop rectangle does not fit within image data.".to_owned(),
-            )));
+            return Err(Exceptions::illegalArgumentWith(
+                "Crop rectangle does not fit within image data.",
+            ));
         }
         Ok(Self {
             luminances: pixels.to_owned(),

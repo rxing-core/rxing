@@ -203,7 +203,7 @@ impl<'a> EdgeTracer<'_> {
                         if self.whiteAt(&pEdge) {
                             // if we are not making any progress, we still have another endless loop bug
                             if self.p == RXingResultPoint::centered(&pEdge) {
-                                return Err(Exceptions::IllegalStateException(None));
+                                return Err(Exceptions::illegalState);
                             }
                             self.p = RXingResultPoint::centered(&pEdge);
 
@@ -281,7 +281,7 @@ impl<'a> EdgeTracer<'_> {
                             .points()
                             .first()
                             .as_ref()
-                            .ok_or(Exceptions::IndexOutOfBoundsException(None))?),
+                            .ok_or(Exceptions::indexOutOfBounds)?),
                 ) {
                     return Ok(false);
                 }
@@ -311,9 +311,9 @@ impl<'a> EdgeTracer<'_> {
                         .points()
                         .last()
                         .as_ref()
-                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?)
+                        .ok_or(Exceptions::indexOutOfBounds)?)
             {
-                return Err(Exceptions::IllegalStateException(None));
+                return Err(Exceptions::illegalState);
             }
             if !line.points().is_empty()
                 && &&self.p
@@ -321,7 +321,7 @@ impl<'a> EdgeTracer<'_> {
                         .points()
                         .last()
                         .as_ref()
-                        .ok_or(Exceptions::IndexOutOfBoundsException(None))?
+                        .ok_or(Exceptions::indexOutOfBounds)?
             {
                 return Ok(false);
             }
@@ -367,7 +367,7 @@ impl<'a> EdgeTracer<'_> {
                         line.points()
                             .last()
                             .as_ref()
-                            .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                            .ok_or(Exceptions::indexOutOfBounds)?,
                     ),
                 ) < 1.0
                 {
@@ -380,11 +380,7 @@ impl<'a> EdgeTracer<'_> {
                 } else {
                     RXingResultPoint::dot(
                         RXingResultPoint::mainDirection(self.d),
-                        self.p
-                            - line
-                                .points()
-                                .last()
-                                .ok_or(Exceptions::IndexOutOfBoundsException(None))?,
+                        self.p - line.points().last().ok_or(Exceptions::indexOutOfBounds)?,
                     )
                 };
                 line.add(&self.p)?;
@@ -397,10 +393,7 @@ impl<'a> EdgeTracer<'_> {
                         }
                         if !self.updateDirectionFromOrigin(
                             &(self.p - line.project(&self.p)
-                                + *line
-                                    .points()
-                                    .first()
-                                    .ok_or(Exceptions::IndexOutOfBoundsException(None))?),
+                                + *line.points().first().ok_or(Exceptions::indexOutOfBounds)?),
                         ) {
                             return Ok(false);
                         }
