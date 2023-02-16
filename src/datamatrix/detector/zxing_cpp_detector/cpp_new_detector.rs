@@ -21,7 +21,7 @@ use crate::{
     },
     qrcode::encoder::ByteMatrix,
     result_point_utils::distance,
-    Exceptions, RXingResultPoint, ResultPoint,
+    Exceptions, Point, ResultPoint,
 };
 
 use super::{DMRegressionLine, EdgeTracer};
@@ -46,10 +46,10 @@ fn Scan(
             continue;
         }
 
-        let mut tl = RXingResultPoint::default();
-        let mut bl = RXingResultPoint::default();
-        let mut br = RXingResultPoint::default();
-        let mut tr = RXingResultPoint::default();
+        let mut tl = Point::default();
+        let mut bl = Point::default();
+        let mut br = Point::default();
+        let mut tr = Point::default();
 
         for l in lines.iter_mut() {
             l.reset();
@@ -197,13 +197,13 @@ fn Scan(
 
         CHECK!((10..=144).contains(&dimT) && (8..=144).contains(&dimR));
 
-        let movedTowardsBy = |a: RXingResultPoint,
-                              b1: RXingResultPoint,
-                              b2: RXingResultPoint,
+        let movedTowardsBy = |a: Point,
+                              b1: Point,
+                              b2: Point,
                               d: f32|
-         -> RXingResultPoint {
-            a + d * RXingResultPoint::normalized(
-                RXingResultPoint::normalized(b1 - a) + RXingResultPoint::normalized(b2 - a),
+         -> Point {
+            a + d * Point::normalized(
+                Point::normalized(b1 - a) + Point::normalized(b2 - a),
             )
         };
 
@@ -292,18 +292,18 @@ pub fn detect(
     const MIN_SYMBOL_SIZE: u32 = 8 * 2; // minimum realistic size in pixel: 8 modules x 2 pixels per module
 
     for dir in [
-        RXingResultPoint { x: -1.0, y: 0.0 },
-        RXingResultPoint { x: 1.0, y: 0.0 },
-        RXingResultPoint { x: 0.0, y: -1.0 },
-        RXingResultPoint { x: 0.0, y: 1.0 },
+        Point { x: -1.0, y: 0.0 },
+        Point { x: 1.0, y: 0.0 },
+        Point { x: 0.0, y: -1.0 },
+        Point { x: 0.0, y: 1.0 },
     ] {
         // for (auto dir : {PointF(-1, 0), PointF(1, 0), PointF(0, -1), PointF(0, 1)}) {
-        let center = RXingResultPoint {
+        let center = Point {
             x: (image.getWidth() / 2) as f32,
             y: (image.getHeight() / 2) as f32,
         }; //PointF(image.width() / 2, image.height() / 2);
         let startPos =
-            RXingResultPoint::centered(center - center * dir + MIN_SYMBOL_SIZE as i32 / 2 * dir);
+            Point::centered(center - center * dir + MIN_SYMBOL_SIZE as i32 / 2 * dir);
 
         if let Some(history) = &mut history {
             history.borrow_mut().clear(0);

@@ -150,8 +150,8 @@ impl OneDReader for ITFReader {
             &resultString,
             Vec::new(), // no natural byte representation for these barcodes
             vec![
-                RXingResultPoint::new(startRange[1] as f32, rowNumber as f32),
-                RXingResultPoint::new(endRange[0] as f32, rowNumber as f32),
+                Point::new(startRange[1] as f32, rowNumber as f32),
+                Point::new(endRange[0] as f32, rowNumber as f32),
             ],
             BarcodeFormat::ITF,
         );

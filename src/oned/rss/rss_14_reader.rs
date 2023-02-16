@@ -20,7 +20,7 @@ use crate::{
     common::{BitArray, Result},
     oned::{one_d_reader, OneDReader},
     BarcodeFormat, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
-    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader,
+    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Point, Reader,
 };
 
 use super::{
@@ -114,8 +114,8 @@ impl Reader for RSS14Reader {
                 );
                 // Update result points
                 let height = rotatedImage.getHeight();
-                let total_points = result.getRXingResultPoints().len();
-                let points = result.getRXingResultPointsMut();
+                let total_points = result.getPoints().len();
+                let points = result.getPointsMut();
                 for point in points.iter_mut().take(total_points) {
                     std::mem::swap(&mut point.x, &mut point.y);
                     point.x = height as f32 - point.x - 1.0
@@ -209,8 +209,8 @@ impl RSS14Reader {
         }
         buffer.push_str(&checkDigit.to_string());
 
-        let leftPoints = leftPair.getFinderPattern().getRXingResultPoints();
-        let rightPoints = rightPair.getFinderPattern().getRXingResultPoints();
+        let leftPoints = leftPair.getFinderPattern().getPoints();
+        let rightPoints = rightPair.getFinderPattern().getPoints();
         let mut result = RXingResult::new(
             &buffer,
             Vec::new(),
@@ -259,7 +259,7 @@ impl RSS14Reader {
                     // row is actually reversed
                     center = row.getSize() as f32 - 1.0 - center;
                 }
-                cb(&RXingResultPoint::new(center, rowNumber as f32));
+                cb(&Point::new(center, rowNumber as f32));
             }
 
             let outside = self.decodeDataCharacter(row, &pattern, true)?;

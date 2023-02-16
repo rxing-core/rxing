@@ -18,7 +18,7 @@ use std::collections::HashMap;
 
 use crate::{
     common::Result, BinaryBitmap, DecodingHintDictionary, Exceptions, RXingResult,
-    RXingResultPoint, Reader, ResultPoint,
+    Point, Reader, ResultPoint,
 };
 
 use super::MultipleBarcodeReader;
@@ -26,7 +26,7 @@ use super::MultipleBarcodeReader;
 /**
  * <p>Attempts to locate multiple barcodes in an image by repeatedly decoding portion of the image.
  * After one barcode is found, the areas left, above, right and below the barcode's
- * {@link RXingResultPoint}s are scanned, recursively.</p>
+ * {@link Point}s are scanned, recursively.</p>
  *
  * <p>A caller may want to also employ {@link ByQuadrantReader} when attempting to find multiple
  * 2D barcodes, like QR Codes, in an image, where the presence of multiple barcodes might prevent
@@ -95,10 +95,10 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
             }
         }
 
-        let resultPoints = result.getRXingResultPoints().clone();
+        let resultPoints = result.getPoints().clone();
 
         if !alreadyFound {
-            results.push(Self::translateRXingResultPoints(result, xOffset, yOffset));
+            results.push(Self::translatePoints(result, xOffset, yOffset));
         }
 
         if resultPoints.is_empty() {
@@ -177,25 +177,25 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         }
     }
 
-    fn translateRXingResultPoints(result: RXingResult, xOffset: u32, yOffset: u32) -> RXingResult {
-        let oldRXingResultPoints = result.getRXingResultPoints();
-        if oldRXingResultPoints.is_empty() {
+    fn translatePoints(result: RXingResult, xOffset: u32, yOffset: u32) -> RXingResult {
+        let oldPoints = result.getPoints();
+        if oldPoints.is_empty() {
             return result;
         }
 
-        let newRXingResultPoints: Vec<RXingResultPoint> = oldRXingResultPoints
+        let newPoints: Vec<Point> = oldPoints
             .iter()
             .map(|oldPoint| {
-                RXingResultPoint::new(
+                Point::new(
                     oldPoint.getX() + xOffset as f32,
                     oldPoint.getY() + yOffset as f32,
                 )
             })
             .collect();
 
-        // let mut newRXingResultPoints = Vec::with_capacity(oldRXingResultPoints.len());
-        // for oldPoint in oldRXingResultPoints {
-        //     newRXingResultPoints.push(RXingResultPoint::new(
+        // let mut newPoints = Vec::with_capacity(oldPoints.len());
+        // for oldPoint in oldPoints {
+        //     newPoints.push(Point::new(
         //         oldPoint.getX() + xOffset as f32,
         //         oldPoint.getY() + yOffset as f32,
         //     ));
@@ -204,7 +204,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
             result.getText(),
             result.getRawBytes().clone(),
             result.getNumBits(),
-            newRXingResultPoints,
+            newPoints,
             *result.getBarcodeFormat(),
             result.getTimestamp(),
         );

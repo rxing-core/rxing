@@ -23,7 +23,7 @@ use crate::{
         BitMatrix, DefaultGridSampler, GridSampler, Result,
     },
     exceptions::Exceptions,
-    RXingResultPoint, ResultPoint,
+    Point, ResultPoint,
 };
 
 use super::aztec_detector_result::AztecDetectorRXingResult;
@@ -118,7 +118,7 @@ impl<'a> Detector<'_> {
      * @param bullsEyeCorners the array of bull's eye corners
      * @throws NotFoundException in case of too many errors or invalid parameters
      */
-    fn extractParameters(&mut self, bulls_eye_corners: &[RXingResultPoint]) -> Result<()> {
+    fn extractParameters(&mut self, bulls_eye_corners: &[Point]) -> Result<()> {
         if !self.is_valid(bulls_eye_corners[0])
             || !self.is_valid(bulls_eye_corners[1])
             || !self.is_valid(bulls_eye_corners[2])
@@ -266,7 +266,7 @@ impl<'a> Detector<'_> {
      * @return The corners of the bull-eye
      * @throws NotFoundException If no valid bull-eye can be found
      */
-    fn get_bulls_eye_corners(&mut self, pCenter: Point) -> Result<[RXingResultPoint; 4]> {
+    fn get_bulls_eye_corners(&mut self, pCenter: AztecPoint) -> Result<[Point; 4]> {
         let mut pina = pCenter;
         let mut pinb = pCenter;
         let mut pinc = pCenter;
@@ -326,13 +326,13 @@ impl<'a> Detector<'_> {
         // Expand the square by .5 pixel in each direction so that we're on the border
         // between the white square and the black square
         let pinax =
-            RXingResultPoint::new(pina.get_x() as f32 + 0.5f32, pina.get_y() as f32 - 0.5f32);
+            Point::new(pina.get_x() as f32 + 0.5f32, pina.get_y() as f32 - 0.5f32);
         let pinbx =
-            RXingResultPoint::new(pinb.get_x() as f32 + 0.5f32, pinb.get_y() as f32 + 0.5f32);
+            Point::new(pinb.get_x() as f32 + 0.5f32, pinb.get_y() as f32 + 0.5f32);
         let pincx =
-            RXingResultPoint::new(pinc.get_x() as f32 - 0.5f32, pinc.get_y() as f32 + 0.5f32);
+            Point::new(pinc.get_x() as f32 - 0.5f32, pinc.get_y() as f32 + 0.5f32);
         let pindx =
-            RXingResultPoint::new(pind.get_x() as f32 - 0.5f32, pind.get_y() as f32 - 0.5f32);
+            Point::new(pind.get_x() as f32 - 0.5f32, pind.get_y() as f32 - 0.5f32);
 
         // Expand the square so that its corners are the centers of the points
         // just outside the bull's eye.
@@ -348,11 +348,11 @@ impl<'a> Detector<'_> {
      *
      * @return the center point
      */
-    fn get_matrix_center(&self) -> Point {
-        let mut point_a = RXingResultPoint::default();
-        let mut point_b = RXingResultPoint::default();
-        let mut point_c = RXingResultPoint::default();
-        let mut point_d = RXingResultPoint::default();
+    fn get_matrix_center(&self) -> AztecPoint {
+        let mut point_a = Point::default();
+        let mut point_b = Point::default();
+        let mut point_c = Point::default();
+        let mut point_d = Point::default();
 
         let mut fnd = false;
 
@@ -373,16 +373,16 @@ impl<'a> Detector<'_> {
             let cx: i32 = (self.image.getWidth() / 2) as i32;
             let cy: i32 = (self.image.getHeight() / 2) as i32;
             point_a = self
-                .get_first_different(&Point::new(cx + 7, cy - 7), false, 1, -1)
+                .get_first_different(&AztecPoint::new(cx + 7, cy - 7), false, 1, -1)
                 .into();
             point_b = self
-                .get_first_different(&Point::new(cx + 7, cy + 7), false, 1, 1)
+                .get_first_different(&AztecPoint::new(cx + 7, cy + 7), false, 1, 1)
                 .into();
             point_c = self
-                .get_first_different(&Point::new(cx - 7, cy + 7), false, -1, 1)
+                .get_first_different(&AztecPoint::new(cx - 7, cy + 7), false, -1, 1)
                 .into();
             point_d = self
-                .get_first_different(&Point::new(cx - 7, cy - 7), false, -1, -1)
+                .get_first_different(&AztecPoint::new(cx - 7, cy - 7), false, -1, -1)
                 .into();
         }
         // try {
@@ -399,10 +399,10 @@ impl<'a> Detector<'_> {
         //   // In that case, surely in the bull's eye, we try to expand the rectangle.
         //   int cx = image.getWidth() / 2;
         //   int cy = image.getHeight() / 2;
-        //   pointA = getFirstDifferent(new Point(cx + 7, cy - 7), false, 1, -1).toRXingResultPoint();
-        //   pointB = getFirstDifferent(new Point(cx + 7, cy + 7), false, 1, 1).toRXingResultPoint();
-        //   pointC = getFirstDifferent(new Point(cx - 7, cy + 7), false, -1, 1).toRXingResultPoint();
-        //   pointD = getFirstDifferent(new Point(cx - 7, cy - 7), false, -1, -1).toRXingResultPoint();
+        //   pointA = getFirstDifferent(new Point(cx + 7, cy - 7), false, 1, -1).toPoint();
+        //   pointB = getFirstDifferent(new Point(cx + 7, cy + 7), false, 1, 1).toPoint();
+        //   pointC = getFirstDifferent(new Point(cx - 7, cy + 7), false, -1, 1).toPoint();
+        //   pointD = getFirstDifferent(new Point(cx - 7, cy - 7), false, -1, -1).toPoint();
 
         // }
 
@@ -431,20 +431,20 @@ impl<'a> Detector<'_> {
         // In that case we try to expand the rectangle.
         if !fnd {
             point_a = self
-                .get_first_different(&Point::new(cx + 7, cy - 7), false, 1, -1)
+                .get_first_different(&AztecPoint::new(cx + 7, cy - 7), false, 1, -1)
                 .into();
             point_b = self
-                .get_first_different(&Point::new(cx + 7, cy + 7), false, 1, 1)
+                .get_first_different(&AztecPoint::new(cx + 7, cy + 7), false, 1, 1)
                 .into();
             point_c = self
-                .get_first_different(&Point::new(cx - 7, cy + 7), false, -1, 1)
+                .get_first_different(&AztecPoint::new(cx - 7, cy + 7), false, -1, 1)
                 .into();
             point_d = self
-                .get_first_different(&Point::new(cx - 7, cy - 7), false, -1, -1)
+                .get_first_different(&AztecPoint::new(cx - 7, cy - 7), false, -1, -1)
                 .into();
         }
         // try {
-        //   RXingResultPoint[] cornerPoints = new WhiteRectangleDetector(image, 15, cx, cy).detect();
+        //   Point[] cornerPoints = new WhiteRectangleDetector(image, 15, cx, cy).detect();
         //   pointA = cornerPoints[0];
         //   pointB = cornerPoints[1];
         //   pointC = cornerPoints[2];
@@ -452,10 +452,10 @@ impl<'a> Detector<'_> {
         // } catch (NotFoundException e) {
         //   // This exception can be in case the initial rectangle is white
         //   // In that case we try to expand the rectangle.
-        //   pointA = getFirstDifferent(new Point(cx + 7, cy - 7), false, 1, -1).toRXingResultPoint();
-        //   pointB = getFirstDifferent(new Point(cx + 7, cy + 7), false, 1, 1).toRXingResultPoint();
-        //   pointC = getFirstDifferent(new Point(cx - 7, cy + 7), false, -1, 1).toRXingResultPoint();
-        //   pointD = getFirstDifferent(new Point(cx - 7, cy - 7), false, -1, -1).toRXingResultPoint();
+        //   pointA = getFirstDifferent(new Point(cx + 7, cy - 7), false, 1, -1).toPoint();
+        //   pointB = getFirstDifferent(new Point(cx + 7, cy + 7), false, 1, 1).toPoint();
+        //   pointC = getFirstDifferent(new Point(cx - 7, cy + 7), false, -1, 1).toPoint();
+        //   pointD = getFirstDifferent(new Point(cx - 7, cy - 7), false, -1, -1).toPoint();
         // }
 
         // Recompute the center of the rectangle
@@ -466,7 +466,7 @@ impl<'a> Detector<'_> {
             (point_a.getY() + point_d.getY() + point_b.getY() + point_c.getY()) / 4.0f32,
         );
 
-        Point::new(cx, cy)
+        AztecPoint::new(cx, cy)
     }
 
     /**
@@ -477,8 +477,8 @@ impl<'a> Detector<'_> {
      */
     fn get_matrix_corner_points(
         &self,
-        bulls_eye_corners: &[RXingResultPoint],
-    ) -> [RXingResultPoint; 4] {
+        bulls_eye_corners: &[Point],
+    ) -> [Point; 4] {
         Self::expand_square(
             bulls_eye_corners,
             2 * self.nb_center_layers,
@@ -494,10 +494,10 @@ impl<'a> Detector<'_> {
     fn sample_grid(
         &self,
         image: &BitMatrix,
-        top_left: RXingResultPoint,
-        top_right: RXingResultPoint,
-        bottom_right: RXingResultPoint,
-        bottom_left: RXingResultPoint,
+        top_left: Point,
+        top_right: Point,
+        bottom_right: Point,
+        bottom_left: Point,
     ) -> Result<BitMatrix> {
         let sampler = DefaultGridSampler::default();
         let dimension = self.get_dimension();
@@ -536,7 +536,7 @@ impl<'a> Detector<'_> {
      * @param size number of bits
      * @return the array of bits as an int (first bit is high-order bit of result)
      */
-    fn sample_line(&self, p1: RXingResultPoint, p2: RXingResultPoint, size: u32) -> u32 {
+    fn sample_line(&self, p1: Point, p2: Point, size: u32) -> u32 {
         let mut result = 0;
 
         let d = Self::distance(p1, p2);
@@ -561,23 +561,23 @@ impl<'a> Detector<'_> {
      * @return true if the border of the rectangle passed in parameter is compound of white points only
      *         or black points only
      */
-    fn is_white_or_black_rectangle(&self, p1: &Point, p2: &Point, p3: &Point, p4: &Point) -> bool {
+    fn is_white_or_black_rectangle(&self, p1: &AztecPoint, p2: &AztecPoint, p3: &AztecPoint, p4: &AztecPoint) -> bool {
         let corr = 3;
 
-        let p1 = Point::new(
+        let p1 = AztecPoint::new(
             0.max(p1.get_x() - corr),
             (self.image.getHeight() as i32 - 1).min(p1.get_y() + corr),
         );
         // let p1 =  Point::new(Math.max(0, p1.getX() - corr), Math.min(image.getHeight() - 1, p1.getY() + corr));
-        let p2 = Point::new(0.max(p2.get_x() - corr), 0.max(p2.get_y() - corr));
+        let p2 = AztecPoint::new(0.max(p2.get_x() - corr), 0.max(p2.get_y() - corr));
         // let p2 =  Point::new(Math.max(0, p2.getX() - corr), Math.max(0, p2.getY() - corr));
-        let p3 = Point::new(
+        let p3 = AztecPoint::new(
             (self.image.getWidth() as i32 - 1).min(p3.get_x() + corr),
             0.max((self.image.getHeight() as i32 - 1).min(p3.get_y() - corr)),
         );
         //  let p3 =  Point::new(Math.min(image.getWidth() - 1, p3.getX() + corr),
         //  Math.max(0, Math.min(image.getHeight() - 1, p3.getY() - corr)));
-        let p4 = Point::new(
+        let p4 = AztecPoint::new(
             (self.image.getWidth() as i32 - 1).min(p4.get_x() + corr),
             (self.image.getHeight() as i32 - 1).min(p4.get_y() + corr),
         );
@@ -612,7 +612,7 @@ impl<'a> Detector<'_> {
      *
      * @return 1 if segment more than 90% black, -1 if segment is more than 90% white, 0 else
      */
-    fn get_color(&self, p1: &Point, p2: &Point) -> i32 {
+    fn get_color(&self, p1: &AztecPoint, p2: &AztecPoint) -> i32 {
         let d = Self::distance_points(p1, p2);
         if d == 0.0f32 {
             return 0;
@@ -657,7 +657,7 @@ impl<'a> Detector<'_> {
     /**
      * Gets the coordinate of the first point with a different color in the given direction
      */
-    fn get_first_different(&self, init: &Point, color: bool, dx: i32, dy: i32) -> Point {
+    fn get_first_different(&self, init: &AztecPoint, color: bool, dx: i32, dy: i32) -> AztecPoint {
         let mut x = init.get_x() + dx;
         let mut y = init.get_y() + dy;
 
@@ -679,7 +679,7 @@ impl<'a> Detector<'_> {
         }
         y -= dy;
 
-        Point::new(x, y)
+        AztecPoint::new(x, y)
     }
 
     /**
@@ -691,10 +691,10 @@ impl<'a> Detector<'_> {
      * @return the corners of the expanded square
      */
     fn expand_square(
-        corner_points: &[RXingResultPoint],
+        corner_points: &[Point],
         old_side: u32,
         new_side: u32,
-    ) -> [RXingResultPoint; 4] {
+    ) -> [Point; 4] {
         let ratio = new_side as f32 / (2.0f32 * old_side as f32);
 
         let d = corner_points[0] - corner_points[2];
@@ -714,17 +714,17 @@ impl<'a> Detector<'_> {
         x >= 0 && x < self.image.getWidth() as i32 && y >= 0 && y < self.image.getHeight() as i32
     }
 
-    fn is_valid(&self, point: RXingResultPoint) -> bool {
+    fn is_valid(&self, point: Point) -> bool {
         let x = MathUtils::round(point.getX());
         let y = MathUtils::round(point.getY());
         self.is_valid_points(x, y)
     }
 
-    fn distance_points(a: &Point, b: &Point) -> f32 {
+    fn distance_points(a: &AztecPoint, b: &AztecPoint) -> f32 {
         MathUtils::distance(a.get_x(), a.get_y(), b.get_x(), b.get_y())
     }
 
-    fn distance(a: RXingResultPoint, b: RXingResultPoint) -> f32 {
+    fn distance(a: Point, b: Point) -> f32 {
         MathUtils::distance(a.getX(), a.getY(), b.getX(), b.getY())
     }
 
@@ -738,12 +738,12 @@ impl<'a> Detector<'_> {
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub struct Point {
+pub struct AztecPoint {
     x: i32,
     y: i32,
 }
 
-impl Point {
+impl AztecPoint {
     pub fn new(x: i32, y: i32) -> Self {
         Self { x, y }
     }
@@ -757,13 +757,13 @@ impl Point {
     }
 }
 
-impl From<Point> for RXingResultPoint {
-    fn from(value: Point) -> Self {
-        RXingResultPoint::new(value.x as f32, value.y as f32)
+impl From<AztecPoint> for Point {
+    fn from(value: AztecPoint) -> Self {
+        Point::new(value.x as f32, value.y as f32)
     }
 }
 
-impl fmt::Display for Point {
+impl fmt::Display for AztecPoint {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "<{} {}>", &self.x, &self.y)
     }

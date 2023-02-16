@@ -20,7 +20,7 @@ use crate::{
     common::{BitMatrix, Result},
     qrcode::detector::{FinderPattern, FinderPatternFinder, FinderPatternInfo},
     result_point_utils, DecodeHintType, DecodingHintDictionary, Exceptions,
-    RXingResultPointCallback,
+    PointCallback,
 };
 
 // max. legal count of modules per QR code edge (177)
@@ -68,7 +68,7 @@ impl<'a> MultiFinderPatternFinder<'_> {
 
     pub fn new(
         image: &'a BitMatrix,
-        resultPointCallback: Option<RXingResultPointCallback>,
+        resultPointCallback: Option<PointCallback>,
     ) -> MultiFinderPatternFinder<'a> {
         MultiFinderPatternFinder(FinderPatternFinder::with_callback(
             image,

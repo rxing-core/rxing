@@ -18,7 +18,7 @@ use std::rc::Rc;
 
 use crate::{
     common::{BitMatrix, Result},
-    Exceptions, RXingResultPoint, ResultPoint,
+    Exceptions, Point, ResultPoint,
 };
 
 /**
@@ -27,10 +27,10 @@ use crate::{
 #[derive(Clone)]
 pub struct BoundingBox {
     image: Rc<BitMatrix>,
-    topLeft: RXingResultPoint,
-    bottomLeft: RXingResultPoint,
-    topRight: RXingResultPoint,
-    bottomRight: RXingResultPoint,
+    topLeft: Point,
+    bottomLeft: Point,
+    topRight: Point,
+    bottomRight: Point,
     minX: u32,
     maxX: u32,
     minY: u32,
@@ -39,10 +39,10 @@ pub struct BoundingBox {
 impl BoundingBox {
     pub fn new(
         image: Rc<BitMatrix>,
-        topLeft: Option<RXingResultPoint>,
-        bottomLeft: Option<RXingResultPoint>,
-        topRight: Option<RXingResultPoint>,
-        bottomRight: Option<RXingResultPoint>,
+        topLeft: Option<Point>,
+        bottomLeft: Option<Point>,
+        topRight: Option<Point>,
+        bottomRight: Option<Point>,
     ) -> Result<BoundingBox> {
         let leftUnspecified = topLeft.is_none() || bottomLeft.is_none();
         let rightUnspecified = topRight.is_none() || bottomRight.is_none();
@@ -58,14 +58,14 @@ impl BoundingBox {
         if leftUnspecified {
             newTopRight = topRight.ok_or(Exceptions::IllegalStateException(None))?;
             newBottomRight = bottomRight.ok_or(Exceptions::IllegalStateException(None))?;
-            newTopLeft = RXingResultPoint::new(0.0, newTopRight.getY());
-            newBottomLeft = RXingResultPoint::new(0.0, newBottomRight.getY());
+            newTopLeft = Point::new(0.0, newTopRight.getY());
+            newBottomLeft = Point::new(0.0, newBottomRight.getY());
         } else if rightUnspecified {
             newTopLeft = topLeft.ok_or(Exceptions::IllegalStateException(None))?;
             newBottomLeft = bottomLeft.ok_or(Exceptions::IllegalStateException(None))?;
-            newTopRight = RXingResultPoint::new(image.getWidth() as f32 - 1.0, newTopLeft.getY());
+            newTopRight = Point::new(image.getWidth() as f32 - 1.0, newTopLeft.getY());
             newBottomRight =
-                RXingResultPoint::new(image.getWidth() as f32 - 1.0, newBottomLeft.getY());
+                Point::new(image.getWidth() as f32 - 1.0, newBottomLeft.getY());
         } else {
             newTopLeft = topLeft.ok_or(Exceptions::IllegalStateException(None))?;
             newTopRight = topRight.ok_or(Exceptions::IllegalStateException(None))?;
@@ -145,7 +145,7 @@ impl BoundingBox {
             if newMinY < 0.0 {
                 newMinY = 0.0;
             }
-            let newTop = RXingResultPoint::new(top.getX(), newMinY);
+            let newTop = Point::new(top.getX(), newMinY);
             if isLeft {
                 newTopLeft = newTop;
             } else {
@@ -163,7 +163,7 @@ impl BoundingBox {
             if newMaxY >= self.image.getHeight() {
                 newMaxY = self.image.getHeight() - 1;
             }
-            let newBottom = RXingResultPoint::new(bottom.getX(), newMaxY as f32);
+            let newBottom = Point::new(bottom.getX(), newMaxY as f32);
             if isLeft {
                 newBottomLeft = newBottom;
             } else {
@@ -196,19 +196,19 @@ impl BoundingBox {
         self.maxY
     }
 
-    pub fn getTopLeft(&self) -> &RXingResultPoint {
+    pub fn getTopLeft(&self) -> &Point {
         &self.topLeft
     }
 
-    pub fn getTopRight(&self) -> &RXingResultPoint {
+    pub fn getTopRight(&self) -> &Point {
         &self.topRight
     }
 
-    pub fn getBottomLeft(&self) -> &RXingResultPoint {
+    pub fn getBottomLeft(&self) -> &Point {
         &self.bottomLeft
     }
 
-    pub fn getBottomRight(&self) -> &RXingResultPoint {
+    pub fn getBottomRight(&self) -> &Point {
         &self.bottomRight
     }
 }

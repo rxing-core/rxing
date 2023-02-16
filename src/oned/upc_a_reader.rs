@@ -94,7 +94,7 @@ impl UPCAReader {
             let mut upcaRXingResult = RXingResult::new(
                 stripped_text,
                 Vec::new(),
-                result.getRXingResultPoints().to_vec(),
+                result.getPoints().to_vec(),
                 BarcodeFormat::UPC_A,
             );
             upcaRXingResult.putAllMetadata(result.getRXingResultMetadata().clone());

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::RXingResultPoint;
+use crate::Point;
 
 /**
  * Meta-data container for QR Code decoding. Instances of this class may be used to convey information back to the
@@ -41,7 +41,7 @@ impl QRCodeDecoderMetaData {
      *
      * @param points Array of points to apply mirror correction to.
      */
-    pub fn applyMirroredCorrection(&self, points: &mut [RXingResultPoint]) {
+    pub fn applyMirroredCorrection(&self, points: &mut [Point]) {
         if !self.0 || points.is_empty() || points.len() < 3 {
             return;
         }

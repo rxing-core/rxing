@@ -18,7 +18,7 @@
 
 use std::collections::HashSet;
 
-use crate::{BarcodeFormat, RXingResultPointCallback};
+use crate::{BarcodeFormat, PointCallback};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -89,8 +89,8 @@ pub enum DecodeHintType {
     RETURN_CODABAR_START_END,
 
     /**
-     * The caller needs to be notified via callback when a possible {@link RXingResultPoint}
-     * is found. Maps to a {@link RXingResultPointCallback}.
+     * The caller needs to be notified via callback when a possible {@link Point}
+     * is found. Maps to a {@link PointCallback}.
      */
     NEED_RESULT_POINT_CALLBACK,
 
@@ -198,11 +198,11 @@ pub enum DecodeHintValue {
     ReturnCodabarStartEnd(bool),
 
     /**
-     * The caller needs to be notified via callback when a possible {@link RXingResultPoint}
-     * is found. Maps to a {@link RXingResultPointCallback}.
+     * The caller needs to be notified via callback when a possible {@link Point}
+     * is found. Maps to a {@link PointCallback}.
      */
     #[cfg_attr(feature = "serde", serde(skip_serializing, skip_deserializing))]
-    NeedResultPointCallback(RXingResultPointCallback),
+    NeedResultPointCallback(PointCallback),
 
     /**
      * Allowed extension lengths for EAN or UPC barcodes. Other formats will ignore this.

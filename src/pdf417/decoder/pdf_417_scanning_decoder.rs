@@ -19,7 +19,7 @@ use std::rc::Rc;
 use crate::{
     common::{BitMatrix, DecoderRXingResult, Result},
     pdf417::pdf_417_common,
-    Exceptions, RXingResultPoint, ResultPoint,
+    Exceptions, Point, ResultPoint,
 };
 
 use super::{
@@ -44,10 +44,10 @@ const MAX_EC_CODEWORDS: u32 = 512;
 // than it should be. This can happen if the scanner used a bad blackpoint.
 pub fn decode(
     image: &BitMatrix,
-    imageTopLeft: Option<RXingResultPoint>,
-    imageBottomLeft: Option<RXingResultPoint>,
-    imageTopRight: Option<RXingResultPoint>,
-    imageBottomRight: Option<RXingResultPoint>,
+    imageTopLeft: Option<Point>,
+    imageBottomLeft: Option<Point>,
+    imageTopRight: Option<Point>,
+    imageBottomRight: Option<Point>,
     minCodewordWidth: u32,
     maxCodewordWidth: u32,
 ) -> Result<DecoderRXingResult> {
@@ -358,7 +358,7 @@ fn getBarcodeMetadata<T: DetectionRXingResultRowIndicatorColumn>(
 fn getRowIndicatorColumn<'a>(
     image: &BitMatrix,
     boundingBox: Rc<BoundingBox>,
-    startPoint: RXingResultPoint,
+    startPoint: Point,
     leftToRight: bool,
     minCodewordWidth: u32,
     maxCodewordWidth: u32,

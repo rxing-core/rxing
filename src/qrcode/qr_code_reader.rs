@@ -19,7 +19,7 @@ use std::collections::HashMap;
 use crate::{
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
     BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader,
+    RXingResultMetadataType, RXingResultMetadataValue, Point, Reader,
 };
 
 use super::{
@@ -36,7 +36,7 @@ use super::{
 pub struct QRCodeReader;
 // pub struct QRCodeReader;  {
 
-//   // private static final RXingResultPoint[] NO_POINTS = new RXingResultPoint[0];
+//   // private static final Point[] NO_POINTS = new Point[0];
 // }
 
 impl Reader for QRCodeReader {
@@ -58,7 +58,7 @@ impl Reader for QRCodeReader {
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult> {
         let decoderRXingResult: DecoderRXingResult;
-        let mut points: Vec<RXingResultPoint>;
+        let mut points: Vec<Point>;
         if matches!(
             hints.get(&DecodeHintType::PURE_BARCODE),
             Some(DecodeHintValue::PureBarcode(true))

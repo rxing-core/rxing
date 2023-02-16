@@ -171,8 +171,8 @@ impl OneDReader for CodaBarReader {
             &self.decodeRowRXingResult,
             Vec::new(),
             vec![
-                RXingResultPoint::new(left, rowNumber as f32),
-                RXingResultPoint::new(right, rowNumber as f32),
+                Point::new(left, rowNumber as f32),
+                Point::new(right, rowNumber as f32),
             ],
             BarcodeFormat::CODABAR,
         );

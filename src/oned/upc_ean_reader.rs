@@ -17,7 +17,7 @@
 use crate::{
     common::{BitArray, Result},
     BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint, Reader,
+    RXingResultMetadataType, RXingResultMetadataValue, Point, Reader,
 };
 
 use super::{one_d_reader, EANManufacturerOrgSupport, OneDReader, UPCEANExtensionSupport};
@@ -156,7 +156,7 @@ pub trait UPCEANReader: OneDReader {
         let mut symbologyIdentifier = 0;
 
         if let Some(DecodeHintValue::NeedResultPointCallback(cb)) = resultPointCallback {
-            cb(&RXingResultPoint::new(
+            cb(&Point::new(
                 (startGuardRange[0] + startGuardRange[1]) as f32 / 2.0,
                 rowNumber as f32,
             ));
@@ -166,13 +166,13 @@ pub trait UPCEANReader: OneDReader {
         let endStart = self.decodeMiddle(row, startGuardRange, &mut result)?;
 
         if let Some(DecodeHintValue::NeedResultPointCallback(cb)) = resultPointCallback {
-            cb(&RXingResultPoint::new(endStart as f32, rowNumber as f32));
+            cb(&Point::new(endStart as f32, rowNumber as f32));
         }
 
         let endRange = self.decodeEnd(row, endStart)?;
 
         if let Some(DecodeHintValue::NeedResultPointCallback(cb)) = resultPointCallback {
-            cb(&RXingResultPoint::new(
+            cb(&Point::new(
                 (endRange[0] + endRange[1]) as f32 / 2.0,
                 rowNumber as f32,
             ));
@@ -204,8 +204,8 @@ pub trait UPCEANReader: OneDReader {
             &resultString,
             Vec::new(), // no natural byte representation for these barcodes
             vec![
-                RXingResultPoint::new(left, rowNumber as f32),
-                RXingResultPoint::new(right, rowNumber as f32),
+                Point::new(left, rowNumber as f32),
+                Point::new(right, rowNumber as f32),
             ],
             format,
         );
@@ -224,7 +224,7 @@ pub trait UPCEANReader: OneDReader {
             );
             decodeRXingResult.putAllMetadata(extensionRXingResult.getRXingResultMetadata().clone());
             decodeRXingResult
-                .addRXingResultPoints(&mut extensionRXingResult.getRXingResultPoints().clone());
+                .addPoints(&mut extensionRXingResult.getPoints().clone());
             extensionLength = extensionRXingResult.getText().chars().count();
             Ok(())
         };

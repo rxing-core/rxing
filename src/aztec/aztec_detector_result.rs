@@ -16,13 +16,13 @@
 
 // package com.google.zxing.aztec;
 
-// import com.google.zxing.RXingResultPoint;
+// import com.google.zxing.Point;
 // import com.google.zxing.common.BitMatrix;
 // import com.google.zxing.common.DetectorRXingResult;
 
 use crate::{
     common::{BitMatrix, DetectorRXingResult},
-    RXingResultPoint,
+    Point,
 };
 
 /**
@@ -33,7 +33,7 @@ use crate::{
  */
 pub struct AztecDetectorRXingResult {
     bits: BitMatrix,
-    points: [RXingResultPoint; 4],
+    points: [Point; 4],
     compact: bool,
     nbDatablocks: u32,
     nbLayers: u32,
@@ -44,7 +44,7 @@ impl DetectorRXingResult for AztecDetectorRXingResult {
         &self.bits
     }
 
-    fn getPoints(&self) -> &[RXingResultPoint] {
+    fn getPoints(&self) -> &[Point] {
         &self.points
     }
 }
@@ -52,7 +52,7 @@ impl DetectorRXingResult for AztecDetectorRXingResult {
 impl AztecDetectorRXingResult {
     pub fn new(
         bits: BitMatrix,
-        points: [RXingResultPoint; 4],
+        points: [Point; 4],
         compact: bool,
         nbDatablocks: u32,
         nbLayers: u32,

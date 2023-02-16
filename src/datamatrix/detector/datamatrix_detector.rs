@@ -18,7 +18,7 @@ use crate::{
     common::{
         detector::WhiteRectangleDetector, BitMatrix, DefaultGridSampler, GridSampler, Result,
     },
-    Exceptions, RXingResultPoint, ResultPoint,
+    Exceptions, Point, ResultPoint,
 };
 
 use super::DatamatrixDetectorResult;
@@ -101,13 +101,13 @@ impl<'a> Detector<'_> {
         ))
     }
 
-    fn shiftPoint(point: RXingResultPoint, to: RXingResultPoint, div: u32) -> RXingResultPoint {
+    fn shiftPoint(point: Point, to: Point, div: u32) -> Point {
         let x = (to.getX() - point.getX()) / (div as f32 + 1.0);
         let y = (to.getY() - point.getY()) / (div as f32 + 1.0);
-        RXingResultPoint::new(point.getX() + x, point.getY() + y)
+        Point::new(point.getX() + x, point.getY() + y)
     }
 
-    fn moveAway(point: RXingResultPoint, fromX: f32, fromY: f32) -> RXingResultPoint {
+    fn moveAway(point: Point, fromX: f32, fromY: f32) -> Point {
         let mut x = point.getX();
         let mut y = point.getY();
 
@@ -123,13 +123,13 @@ impl<'a> Detector<'_> {
             y += 1.0;
         }
 
-        RXingResultPoint::new(x, y)
+        Point::new(x, y)
     }
 
     /**
      * Detect a solid side which has minimum transition.
      */
-    fn detectSolid1(&self, cornerPoints: [RXingResultPoint; 4]) -> [RXingResultPoint; 4] {
+    fn detectSolid1(&self, cornerPoints: [Point; 4]) -> [Point; 4] {
         // 0  2
         // 1  3
         let pointA = cornerPoints[0];
@@ -174,7 +174,7 @@ impl<'a> Detector<'_> {
     /**
      * Detect a second solid side next to first solid side.
      */
-    fn detectSolid2(&self, points: [RXingResultPoint; 4]) -> [RXingResultPoint; 4] {
+    fn detectSolid2(&self, points: [Point; 4]) -> [Point; 4] {
         // A..D
         // :  :
         // B--C
@@ -214,7 +214,7 @@ impl<'a> Detector<'_> {
     /**
      * Calculates the corner position of the white top right module.
      */
-    fn correctTopRight(&self, points: &[RXingResultPoint; 4]) -> Option<RXingResultPoint> {
+    fn correctTopRight(&self, points: &[Point; 4]) -> Option<Point> {
         // A..D
         // |  :
         // B--C
@@ -232,11 +232,11 @@ impl<'a> Detector<'_> {
         trTop = self.transitionsBetween(pointAs, pointD);
         trRight = self.transitionsBetween(pointCs, pointD);
 
-        let candidate1 = RXingResultPoint::new(
+        let candidate1 = Point::new(
             pointD.getX() + (pointC.getX() - pointB.getX()) / (trTop as f32 + 1.0),
             pointD.getY() + (pointC.getY() - pointB.getY()) / (trTop as f32 + 1.0),
         );
-        let candidate2 = RXingResultPoint::new(
+        let candidate2 = Point::new(
             pointD.getX() + (pointA.getX() - pointB.getX()) / (trRight as f32 + 1.0),
             pointD.getY() + (pointA.getY() - pointB.getY()) / (trRight as f32 + 1.0),
         );
@@ -266,7 +266,7 @@ impl<'a> Detector<'_> {
     /**
      * Shift the edge points to the module center.
      */
-    fn shiftToModuleCenter(&self, points: [RXingResultPoint; 4]) -> [RXingResultPoint; 4] {
+    fn shiftToModuleCenter(&self, points: [Point; 4]) -> [Point; 4] {
         // A..D
         // |  :
         // B--C
@@ -318,7 +318,7 @@ impl<'a> Detector<'_> {
         [pointAs, pointBs, pointCs, pointDs]
     }
 
-    fn isValid(&self, p: RXingResultPoint) -> bool {
+    fn isValid(&self, p: Point) -> bool {
         p.getX() >= 0.0
             && p.getX() <= self.image.getWidth() as f32 - 1.0
             && p.getY() > 0.0
@@ -327,10 +327,10 @@ impl<'a> Detector<'_> {
 
     fn sampleGrid(
         image: &BitMatrix,
-        topLeft: RXingResultPoint,
-        bottomLeft: RXingResultPoint,
-        bottomRight: RXingResultPoint,
-        topRight: RXingResultPoint,
+        topLeft: Point,
+        bottomLeft: Point,
+        bottomRight: Point,
+        topRight: Point,
         dimensionX: u32,
         dimensionY: u32,
     ) -> Result<BitMatrix> {
@@ -362,7 +362,7 @@ impl<'a> Detector<'_> {
     /**
      * Counts the number of black/white transitions between two points, using something like Bresenham's algorithm.
      */
-    fn transitionsBetween(&self, from: RXingResultPoint, to: RXingResultPoint) -> u32 {
+    fn transitionsBetween(&self, from: Point, to: Point) -> u32 {
         // See QR Code Detector, sizeOfBlackWhiteBlackRun()
         let mut fromX = from.getX().floor() as i32;
         let mut fromY = from.getY().floor() as i32;

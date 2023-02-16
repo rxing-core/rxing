@@ -23,7 +23,7 @@ use crate::{
     },
     qrcode::decoder::Version,
     result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
-    RXingResultPointCallback, ResultPoint,
+    PointCallback, ResultPoint,
 };
 
 use super::{
@@ -39,7 +39,7 @@ use super::{
  */
 pub struct Detector<'a> {
     image: &'a BitMatrix,
-    resultPointCallback: Option<RXingResultPointCallback>,
+    resultPointCallback: Option<PointCallback>,
 }
 
 impl<'a> Detector<'_> {
@@ -54,7 +54,7 @@ impl<'a> Detector<'_> {
         self.image
     }
 
-    pub fn getRXingResultPointCallback(&self) -> &Option<RXingResultPointCallback> {
+    pub fn getPointCallback(&self) -> &Option<PointCallback> {
         &self.resultPointCallback
     }
 

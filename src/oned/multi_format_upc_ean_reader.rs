@@ -105,7 +105,7 @@ impl MultiFormatUPCEANReader {
             let mut resultUPCA = RXingResult::new(
                 &result.getText()[1..],
                 result.getRawBytes().clone(),
-                result.getRXingResultPoints().clone(),
+                result.getPoints().clone(),
                 BarcodeFormat::UPC_A,
             );
             resultUPCA.putAllMetadata(result.getRXingResultMetadata().clone());
@@ -189,8 +189,8 @@ impl Reader for MultiFormatUPCEANReader {
             );
             // Update result points
             let height = rotatedImage.getHeight();
-            let total_points = result.getRXingResultPoints().len();
-            let points = result.getRXingResultPointsMut();
+            let total_points = result.getPoints().len();
+            let points = result.getPointsMut();
             for point in points.iter_mut().take(total_points) {
                 std::mem::swap(&mut point.x, &mut point.y);
                 point.x = height as f32 - point.x - 1.0;

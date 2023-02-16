@@ -3,7 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use crate::{
     common::{BitMatrix, Result},
     qrcode::encoder::ByteMatrix,
-    Exceptions, RXingResultPoint,
+    Exceptions, Point,
 };
 
 use super::{BitMatrixCursor, Direction, RegressionLine, StepResult, Value};
@@ -12,8 +12,8 @@ use super::{BitMatrixCursor, Direction, RegressionLine, StepResult, Value};
 pub struct EdgeTracer<'a> {
     pub(super) img: &'a BitMatrix,
 
-    pub(super) p: RXingResultPoint, // current position
-    d: RXingResultPoint,            // current direction
+    pub(super) p: Point, // current position
+    d: Point,            // current direction
 
     // pub history: Option<&'a mut ByteMatrix>, // = nullptr;
     pub history: Option<Rc<RefCell<ByteMatrix>>>,
@@ -35,7 +35,7 @@ pub struct EdgeTracer<'a> {
 // }
 
 impl BitMatrixCursor for EdgeTracer<'_> {
-    fn testAt(&self, p: RXingResultPoint) -> Value {
+    fn testAt(&self, p: Point) -> Value {
         if self.img.isIn(p, 0) {
             Value::from(self.img.get_point(p))
         } else {
@@ -43,7 +43,7 @@ impl BitMatrixCursor for EdgeTracer<'_> {
         }
     }
 
-    fn isIn(&self, p: RXingResultPoint) -> bool {
+    fn isIn(&self, p: Point) -> bool {
         self.img.isIn(p, 0)
     }
 
@@ -59,26 +59,26 @@ impl BitMatrixCursor for EdgeTracer<'_> {
         self.whiteAt(self.p)
     }
 
-    fn front(&self) -> &RXingResultPoint {
+    fn front(&self) -> &Point {
         &self.d
     }
 
-    fn back(&self) -> RXingResultPoint {
-        RXingResultPoint {
+    fn back(&self) -> Point {
+        Point {
             x: -self.d.x,
             y: -self.d.y,
         }
     }
 
-    fn left(&self) -> RXingResultPoint {
-        RXingResultPoint {
+    fn left(&self) -> Point {
+        Point {
             x: self.d.y,
             y: -self.d.x,
         }
     }
 
-    fn right(&self) -> RXingResultPoint {
-        RXingResultPoint {
+    fn right(&self) -> Point {
+        Point {
             x: -self.d.y,
             y: self.d.x,
         }
@@ -100,7 +100,7 @@ impl BitMatrixCursor for EdgeTracer<'_> {
         self.d = self.direction(dir)
     }
 
-    fn edgeAt_point(&self, d: RXingResultPoint) -> Value {
+    fn edgeAt_point(&self, d: Point) -> Value {
         let v = self.testAt(self.p);
         if self.testAt(self.p + d) != v {
             v
@@ -109,7 +109,7 @@ impl BitMatrixCursor for EdgeTracer<'_> {
         }
     }
 
-    fn setDirection(&mut self, dir: RXingResultPoint) {
+    fn setDirection(&mut self, dir: Point) {
         self.d = dir.bresenhamDirection();
     }
 
@@ -119,7 +119,7 @@ impl BitMatrixCursor for EdgeTracer<'_> {
         self.isIn(self.p)
     }
 
-    fn movedBy<T: BitMatrixCursor>(self, d: RXingResultPoint) -> Self {
+    fn movedBy<T: BitMatrixCursor>(self, d: Point) -> Self {
         let mut res = self;
         res.p += d;
 
@@ -158,7 +158,7 @@ impl BitMatrixCursor for EdgeTracer<'_> {
 }
 
 impl<'a> EdgeTracer<'_> {
-    pub fn new(image: &'a BitMatrix, p: RXingResultPoint, d: RXingResultPoint) -> EdgeTracer<'a> {
+    pub fn new(image: &'a BitMatrix, p: Point, d: Point) -> EdgeTracer<'a> {
         // : img(&image), p(p) { setDirection(d); }
         EdgeTracer {
             img: image,
@@ -171,11 +171,11 @@ impl<'a> EdgeTracer<'_> {
 
     fn traceStep(
         &mut self,
-        dEdge: RXingResultPoint,
+        dEdge: Point,
         maxStepSize: i32,
         goodDirection: bool,
     ) -> Result<StepResult> {
-        let dEdge = RXingResultPoint::mainDirection(dEdge);
+        let dEdge = Point::mainDirection(dEdge);
         for breadth in 1..=(if maxStepSize == 1 {
             2
         } else if goodDirection {
@@ -243,28 +243,28 @@ impl<'a> EdgeTracer<'_> {
         Ok(StepResult::OpenEnd)
     }
 
-    pub fn updateDirectionFromOrigin(&mut self, origin: RXingResultPoint) -> bool {
+    pub fn updateDirectionFromOrigin(&mut self, origin: Point) -> bool {
         let old_d = self.d;
         self.setDirection(self.p - origin);
         // if the new direction is pointing "backward", i.e. angle(new, old) > 90 deg -> break
-        if RXingResultPoint::dot(self.d, old_d) < 0.0 {
+        if Point::dot(self.d, old_d) < 0.0 {
             return false;
         }
         // make sure d stays in the same quadrant to prevent an infinite loop
         if (self.d.x).abs() == (self.d.y).abs() {
-            self.d = RXingResultPoint::mainDirection(old_d)
-                + 0.99 * (self.d - RXingResultPoint::mainDirection(old_d));
-        } else if RXingResultPoint::mainDirection(self.d) != RXingResultPoint::mainDirection(old_d)
+            self.d = Point::mainDirection(old_d)
+                + 0.99 * (self.d - Point::mainDirection(old_d));
+        } else if Point::mainDirection(self.d) != Point::mainDirection(old_d)
         {
-            self.d = RXingResultPoint::mainDirection(old_d)
-                + 0.99 * RXingResultPoint::mainDirection(self.d);
+            self.d = Point::mainDirection(old_d)
+                + 0.99 * Point::mainDirection(self.d);
         }
         true
     }
 
     pub fn traceLine<T: RegressionLine>(
         &mut self,
-        dEdge: RXingResultPoint,
+        dEdge: Point,
         line: &mut T,
     ) -> Result<bool> {
         line.setDirectionInward(dEdge);
@@ -295,7 +295,7 @@ impl<'a> EdgeTracer<'_> {
 
     pub fn traceGaps<T: RegressionLine>(
         &mut self,
-        dEdge: RXingResultPoint,
+        dEdge: Point,
         line: &mut T,
         maxStepSize: i32,
         finishLine: &mut T,
@@ -341,7 +341,7 @@ impl<'a> EdgeTracer<'_> {
                 // In case the 'go outward' step in traceStep lead us astray, we might end up with a line
                 // that is almost perpendicular to d. Then the back-projection below can result in an
                 // endless loop. Break if the angle between d and line is greater than 45 deg.
-                if (RXingResultPoint::dot(RXingResultPoint::normalized(self.d), line.normal()))
+                if (Point::dot(Point::normalized(self.d), line.normal()))
                     .abs()
                     > 0.7
                 // thresh is approx. sin(45 deg)
@@ -361,7 +361,7 @@ impl<'a> EdgeTracer<'_> {
                 // The 'while' instead of 'if' was introduced to fix the issue with #245. It turns out that
                 // np can actually be behind the projection of the last line point and we need 2 steps in d
                 // to prevent a dead lock. see #245.png
-                while RXingResultPoint::distance(
+                while Point::distance(
                     np,
                     line.project(
                         line.points()
@@ -373,13 +373,13 @@ impl<'a> EdgeTracer<'_> {
                 {
                     np += self.d;
                 }
-                self.p = RXingResultPoint::centered(np);
+                self.p = Point::centered(np);
             } else {
                 let stepLengthInMainDir = if line.points().is_empty() {
                     0.0
                 } else {
-                    RXingResultPoint::dot(
-                        RXingResultPoint::mainDirection(self.d),
+                    Point::dot(
+                        Point::mainDirection(self.d),
                         self.p
                             - line
                                 .points()
@@ -441,8 +441,8 @@ impl<'a> EdgeTracer<'_> {
 
     pub fn traceCorner(
         &mut self,
-        dir: &mut RXingResultPoint,
-        corner: &mut RXingResultPoint,
+        dir: &mut Point,
+        corner: &mut Point,
     ) -> Result<bool> {
         self.step(None);
         // log(p);

@@ -14,26 +14,26 @@ use serde::{Deserialize, Serialize};
  */
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy, Default)]
-pub struct RXingResultPoint {
+pub struct Point {
     pub(crate) x: f32,
     pub(crate) y: f32,
 }
 
-impl Hash for RXingResultPoint {
+impl Hash for Point {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.x.to_string().hash(state);
         self.y.to_string().hash(state);
     }
 }
 
-impl PartialEq for RXingResultPoint {
+impl PartialEq for Point {
     fn eq(&self, other: &Self) -> bool {
         self.x == other.x && self.y == other.y
     }
 }
-impl Eq for RXingResultPoint {}
+impl Eq for Point {}
 
-impl RXingResultPoint {
+impl Point {
     pub const fn new(x: f32, y: f32) -> Self {
         Self { x, y }
     }
@@ -43,20 +43,20 @@ impl RXingResultPoint {
     }
 }
 
-impl std::ops::AddAssign for RXingResultPoint {
+impl std::ops::AddAssign for Point {
     fn add_assign(&mut self, rhs: Self) {
         self.x = self.x + rhs.x;
         self.y = self.y + rhs.y;
     }
 }
 
-impl<'a> Sum<&'a RXingResultPoint> for RXingResultPoint {
+impl<'a> Sum<&'a Point> for Point {
     fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
         iter.fold(Self::default(), |acc, &p| acc + p)
     }
 }
 
-impl ResultPoint for RXingResultPoint {
+impl ResultPoint for Point {
     fn getX(&self) -> f32 {
         self.x
     }
@@ -70,13 +70,13 @@ impl ResultPoint for RXingResultPoint {
     }
 }
 
-impl fmt::Display for RXingResultPoint {
+impl fmt::Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({},{})", self.x, self.y)
     }
 }
 
-impl std::ops::Sub for RXingResultPoint {
+impl std::ops::Sub for Point {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -84,7 +84,7 @@ impl std::ops::Sub for RXingResultPoint {
     }
 }
 
-impl std::ops::Neg for RXingResultPoint {
+impl std::ops::Neg for Point {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
@@ -92,7 +92,7 @@ impl std::ops::Neg for RXingResultPoint {
     }
 }
 
-impl std::ops::Add for RXingResultPoint {
+impl std::ops::Add for Point {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -100,7 +100,7 @@ impl std::ops::Add for RXingResultPoint {
     }
 }
 
-impl std::ops::Mul for RXingResultPoint {
+impl std::ops::Mul for Point {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
@@ -108,7 +108,7 @@ impl std::ops::Mul for RXingResultPoint {
     }
 }
 
-impl std::ops::Mul<f32> for RXingResultPoint {
+impl std::ops::Mul<f32> for Point {
     type Output = Self;
 
     fn mul(self, rhs: f32) -> Self::Output {
@@ -116,7 +116,7 @@ impl std::ops::Mul<f32> for RXingResultPoint {
     }
 }
 
-impl std::ops::Mul<i32> for RXingResultPoint {
+impl std::ops::Mul<i32> for Point {
     type Output = Self;
 
     fn mul(self, rhs: i32) -> Self::Output {
@@ -124,31 +124,31 @@ impl std::ops::Mul<i32> for RXingResultPoint {
     }
 }
 
-impl std::ops::Mul<RXingResultPoint> for i32 {
-    type Output = RXingResultPoint;
+impl std::ops::Mul<Point> for i32 {
+    type Output = Point;
 
-    fn mul(self, rhs: RXingResultPoint) -> Self::Output {
+    fn mul(self, rhs: Point) -> Self::Output {
         Self::Output::new(rhs.x * self as f32, rhs.y * self as f32)
     }
 }
 
-impl std::ops::Mul<RXingResultPoint> for f32 {
-    type Output = RXingResultPoint;
+impl std::ops::Mul<Point> for f32 {
+    type Output = Point;
 
-    fn mul(self, rhs: RXingResultPoint) -> Self::Output {
+    fn mul(self, rhs: Point) -> Self::Output {
         Self::Output::new(rhs.x * self, rhs.y * self)
     }
 }
 
-impl std::ops::Div<f32> for RXingResultPoint {
-    type Output = RXingResultPoint;
+impl std::ops::Div<f32> for Point {
+    type Output = Point;
 
     fn div(self, rhs: f32) -> Self::Output {
         Self::Output::new(self.x / rhs, self.y / rhs)
     }
 }
 
-impl RXingResultPoint {
+impl Point {
     pub fn dot(self, p: Self) -> f32 {
         self.x * p.x + self.y * p.y
     }

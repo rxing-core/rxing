@@ -17,7 +17,7 @@
 use crate::{
     common::{BitMatrix, Result},
     result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
-    RXingResultPointCallback, ResultPoint,
+    PointCallback, ResultPoint,
 };
 
 use super::{FinderPattern, FinderPatternInfo};
@@ -35,7 +35,7 @@ pub struct FinderPatternFinder<'a> {
     possibleCenters: Vec<FinderPattern>,
     hasSkipped: bool,
     crossCheckStateCount: [u32; 5],
-    resultPointCallback: Option<RXingResultPointCallback>,
+    resultPointCallback: Option<PointCallback>,
 }
 impl<'a> FinderPatternFinder<'_> {
     pub const CENTER_QUORUM: usize = 2;
@@ -53,7 +53,7 @@ impl<'a> FinderPatternFinder<'_> {
 
     pub fn with_callback(
         image: &'a BitMatrix,
-        resultPointCallback: Option<RXingResultPointCallback>,
+        resultPointCallback: Option<PointCallback>,
     ) -> FinderPatternFinder<'a> {
         FinderPatternFinder {
             image,

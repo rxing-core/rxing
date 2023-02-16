@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{RXingResultPoint, ResultPoint};
+use crate::{Point, ResultPoint};
 
 /**
  * <p>Encapsulates a finder pattern, which are the three square patterns found in
@@ -39,8 +39,8 @@ impl ResultPoint for FinderPattern {
         self.point.1
     }
 
-    fn into_rxing_result_point(self) -> RXingResultPoint {
-        RXingResultPoint {
+    fn into_rxing_result_point(self) -> Point {
+        Point {
             x: self.point.0,
             y: self.point.1,
         }

@@ -1,5 +1,5 @@
 use crate::common::Result;
-use crate::{Exceptions, RXingResultPoint};
+use crate::{Exceptions, Point};
 
 use super::{
     util::{float_max, float_min},
@@ -8,8 +8,8 @@ use super::{
 
 #[derive(Clone)]
 pub struct DMRegressionLine {
-    points: Vec<RXingResultPoint>,
-    direction_inward: RXingResultPoint,
+    points: Vec<Point>,
+    direction_inward: Point,
     pub(super) a: f32,
     pub(super) b: f32,
     pub(super) c: f32,
@@ -31,13 +31,13 @@ impl Default for DMRegressionLine {
 }
 
 impl RegressionLine for DMRegressionLine {
-    fn points(&self) -> &[RXingResultPoint] {
+    fn points(&self) -> &[Point] {
         &self.points
     }
 
     fn length(&self) -> u32 {
         if self.points.len() >= 2 {
-            RXingResultPoint::distance(*self.points.first().unwrap(), *self.points.last().unwrap())
+            Point::distance(*self.points.first().unwrap(), *self.points.last().unwrap())
                 as u32
         } else {
             0
@@ -48,9 +48,9 @@ impl RegressionLine for DMRegressionLine {
         !self.a.is_nan()
     }
 
-    fn normal(&self) -> RXingResultPoint {
+    fn normal(&self) -> Point {
         if self.isValid() {
-            RXingResultPoint {
+            Point {
                 x: self.a,
                 y: self.b,
             }
@@ -59,29 +59,29 @@ impl RegressionLine for DMRegressionLine {
         }
     }
 
-    fn signedDistance(&self, p: RXingResultPoint) -> f32 {
-        RXingResultPoint::dot(self.normal(), p) - self.c
+    fn signedDistance(&self, p: Point) -> f32 {
+        Point::dot(self.normal(), p) - self.c
     }
 
-    fn distance_single(&self, p: RXingResultPoint) -> f32 {
+    fn distance_single(&self, p: Point) -> f32 {
         (self.signedDistance(p)).abs()
     }
 
     fn reset(&mut self) {
         self.points.clear();
-        self.direction_inward = RXingResultPoint { x: 0.0, y: 0.0 };
+        self.direction_inward = Point { x: 0.0, y: 0.0 };
         self.a = f32::NAN;
         self.b = f32::NAN;
         self.c = f32::NAN;
     }
 
-    fn add(&mut self, p: RXingResultPoint) -> Result<()> {
-        if self.direction_inward == RXingResultPoint::default() {
+    fn add(&mut self, p: Point) -> Result<()> {
+        if self.direction_inward == Point::default() {
             return Err(Exceptions::IllegalStateException(None));
         }
         self.points.push(p);
         if self.points.len() == 1 {
-            self.c = RXingResultPoint::dot(self.normal(), p);
+            self.c = Point::dot(self.normal(), p);
         }
         Ok(())
     }
@@ -90,8 +90,8 @@ impl RegressionLine for DMRegressionLine {
         self.points.pop();
     }
 
-    fn setDirectionInward(&mut self, d: RXingResultPoint) {
-        self.direction_inward = RXingResultPoint::normalized(d);
+    fn setDirectionInward(&mut self, d: Point) {
+        self.direction_inward = Point::normalized(d);
     }
 
     fn evaluate_max_distance(
@@ -149,8 +149,8 @@ impl RegressionLine for DMRegressionLine {
         steps > 2.0 || len > 50.0
     }
 
-    fn evaluate(&mut self, points: &[RXingResultPoint]) -> bool {
-        let mean = points.iter().sum::<RXingResultPoint>() / points.len() as f32;
+    fn evaluate(&mut self, points: &[Point]) -> bool {
+        let mean = points.iter().sum::<Point>() / points.len() as f32;
 
         let mut sumXX = 0.0;
         let mut sumYY = 0.0;
@@ -171,18 +171,18 @@ impl RegressionLine for DMRegressionLine {
             self.a = sumXY / l;
             self.b = -sumXX / l;
         }
-        if RXingResultPoint::dot(self.direction_inward, self.normal()) < 0.0 {
+        if Point::dot(self.direction_inward, self.normal()) < 0.0 {
             // if (dot(_directionInward, normal()) < 0) {
             self.a = -self.a;
             self.b = -self.b;
         }
-        self.c = RXingResultPoint::dot(self.normal(), mean); // (a*mean.x + b*mean.y);
-        RXingResultPoint::dot(self.direction_inward, self.normal()) > 0.5
+        self.c = Point::dot(self.normal(), mean); // (a*mean.x + b*mean.y);
+        Point::dot(self.direction_inward, self.normal()) > 0.5
         // angle between original and new direction is at most 60 degree
     }
 
     fn evaluateSelf(&mut self) -> bool {
-        let mean = self.points.iter().sum::<RXingResultPoint>() / self.points.len() as f32;
+        let mean = self.points.iter().sum::<Point>() / self.points.len() as f32;
 
         let mut sumXX = 0.0;
         let mut sumYY = 0.0;
@@ -203,13 +203,13 @@ impl RegressionLine for DMRegressionLine {
             self.a = sumXY / l;
             self.b = -sumXX / l;
         }
-        if RXingResultPoint::dot(self.direction_inward, self.normal()) < 0.0 {
+        if Point::dot(self.direction_inward, self.normal()) < 0.0 {
             // if (dot(_directionInward, normal()) < 0) {
             self.a = -self.a;
             self.b = -self.b;
         }
-        self.c = RXingResultPoint::dot(self.normal(), mean); // (a*mean.x + b*mean.y);
-        RXingResultPoint::dot(self.direction_inward, self.normal()) > 0.5
+        self.c = Point::dot(self.normal(), mean); // (a*mean.x + b*mean.y);
+        Point::dot(self.direction_inward, self.normal()) > 0.5
         // angle between original and new direction is at most 60 degree
     }
 }
@@ -236,7 +236,7 @@ impl DMRegressionLine {
         self.points.reverse();
     }
 
-    pub fn modules(&mut self, beg: RXingResultPoint, end: RXingResultPoint) -> Result<f64> {
+    pub fn modules(&mut self, beg: Point, end: Point) -> Result<f64> {
         if self.points.len() <= 3 {
             return Err(Exceptions::IllegalStateException(None));
         }
@@ -260,7 +260,7 @@ impl DMRegressionLine {
         }
 
         // calculate the (expected average) distance of two adjacent pixels
-        let unitPixelDist = RXingResultPoint::length(RXingResultPoint::bresenhamDirection(
+        let unitPixelDist = Point::length(Point::bresenhamDirection(
             self.points
                 .last()
                 .copied()

@@ -117,8 +117,8 @@ impl OneDReader for Code93Reader {
             &resultString,
             Vec::new(),
             vec![
-                RXingResultPoint::new(left, rowNumber as f32),
-                RXingResultPoint::new(right, rowNumber as f32),
+                Point::new(left, rowNumber as f32),
+                Point::new(right, rowNumber as f32),
             ],
             BarcodeFormat::CODE_93,
         );

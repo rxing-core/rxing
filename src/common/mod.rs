@@ -1,7 +1,7 @@
 pub mod detector;
 pub mod reedsolomon;
 
-use crate::RXingResultPoint;
+use crate::Point;
 
 #[cfg(test)]
 mod StringUtilsTestCase;
@@ -44,7 +44,7 @@ pub type Result<T, E = crate::Exceptions> = std::result::Result<T, E>;
 
 // package com.google.zxing.common;
 
-// import com.google.zxing.RXingResultPoint;
+// import com.google.zxing.Point;
 
 /**
  * <p>Encapsulates the result of detecting a barcode in an image. This includes the raw
@@ -56,12 +56,12 @@ pub type Result<T, E = crate::Exceptions> = std::result::Result<T, E>;
 pub trait DetectorRXingResult {
     fn getBits(&self) -> &BitMatrix;
 
-    fn getPoints(&self) -> &[RXingResultPoint];
+    fn getPoints(&self) -> &[Point];
 }
 
 // pub struct DetectorRXingResult {
 //     bits: BitMatrix,
-//     points: Vec<RXingResultPoint>,
+//     points: Vec<Point>,
 // }
 
 mod bit_matrix;

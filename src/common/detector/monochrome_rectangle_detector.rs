@@ -19,7 +19,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    Exceptions, RXingResultPoint, ResultPoint,
+    Exceptions, Point, ResultPoint,
 };
 
 /**
@@ -45,13 +45,13 @@ impl<'a> MonochromeRectangleDetector<'_> {
      * <p>Detects a rectangular region of black and white -- mostly black -- with a region of mostly
      * white, in an image.</p>
      *
-     * @return {@link RXingResultPoint}[] describing the corners of the rectangular region. The first and
+     * @return {@link Point}[] describing the corners of the rectangular region. The first and
      *  last points are opposed on the diagonal, as are the second and third. The first point will be
      *  the topmost point and the last, the bottommost. The second point will be leftmost and the
      *  third, the rightmost
      * @throws NotFoundException if no Data Matrix Code can be found
      */
-    pub fn detect(&self) -> Result<[RXingResultPoint; 4]> {
+    pub fn detect(&self) -> Result<[Point; 4]> {
         let height = self.image.getHeight() as i32;
         let width = self.image.getWidth() as i32;
         let halfHeight = height / 2;
@@ -143,7 +143,7 @@ impl<'a> MonochromeRectangleDetector<'_> {
      * @param bottom maximum value of y
      * @param maxWhiteRun maximum run of white pixels that can still be considered to be within
      *  the barcode
-     * @return a {@link RXingResultPoint} encapsulating the corner that was found
+     * @return a {@link Point} encapsulating the corner that was found
      * @throws NotFoundException if such a point cannot be found
      */
     #[allow(clippy::too_many_arguments)]
@@ -158,7 +158,7 @@ impl<'a> MonochromeRectangleDetector<'_> {
         top: i32,
         bottom: i32,
         maxWhiteRun: i32,
-    ) -> Result<RXingResultPoint> {
+    ) -> Result<Point> {
         let mut lastRange_z: Option<[i32; 2]> = None;
         let mut y: i32 = centerY;
         let mut x: i32 = centerX;
@@ -178,27 +178,27 @@ impl<'a> MonochromeRectangleDetector<'_> {
                         if lastRange[0] < centerX {
                             if lastRange[1] > centerX {
                                 // straddle, choose one or the other based on direction
-                                return Ok(RXingResultPoint::new(
+                                return Ok(Point::new(
                                     lastRange[usize::from(deltaY <= 0)] as f32,
                                     lastY as f32,
                                 ));
                             }
-                            return Ok(RXingResultPoint::new(lastRange[0] as f32, lastY as f32));
+                            return Ok(Point::new(lastRange[0] as f32, lastY as f32));
                         } else {
-                            return Ok(RXingResultPoint::new(lastRange[1] as f32, lastY as f32));
+                            return Ok(Point::new(lastRange[1] as f32, lastY as f32));
                         }
                     } else {
                         let lastX = x - deltaX;
                         if lastRange[0] < centerY {
                             if lastRange[1] > centerY {
-                                return Ok(RXingResultPoint::new(
+                                return Ok(Point::new(
                                     lastX as f32,
                                     lastRange[usize::from(deltaX >= 0)] as f32,
                                 ));
                             }
-                            return Ok(RXingResultPoint::new(lastX as f32, lastRange[0] as f32));
+                            return Ok(Point::new(lastX as f32, lastRange[0] as f32));
                         } else {
-                            return Ok(RXingResultPoint::new(lastX as f32, lastRange[1] as f32));
+                            return Ok(Point::new(lastX as f32, lastRange[1] as f32));
                         }
                     }
                 }

@@ -342,8 +342,8 @@ impl OneDReader for Code128Reader {
             &result,
             rawBytes,
             vec![
-                RXingResultPoint::new(left, rowNumber as f32),
-                RXingResultPoint::new(right, rowNumber as f32),
+                Point::new(left, rowNumber as f32),
+                Point::new(right, rowNumber as f32),
             ],
             BarcodeFormat::CODE_128,
         );

@@ -1,10 +1,10 @@
 use crate::{common::detector::MathUtils, ResultPoint};
 
 /**
- * Orders an array of three RXingResultPoints in an order [A,B,C] such that AB is less than AC
+ * Orders an array of three Points in an order [A,B,C] such that AB is less than AC
  * and BC is less than AC, and the angle between BC and BA is less than 180 degrees.
  *
- * @param patterns array of three {@code RXingResultPoint} to order
+ * @param patterns array of three {@code Point} to order
  */
 pub fn orderBestPatterns<T: ResultPoint + Copy + Clone>(patterns: &mut [T; 3]) {
     // Find distances between pattern centers

@@ -215,8 +215,8 @@ impl Reader for RSSExpandedReader {
                 // Update result points
                 let height = rotatedImage.getHeight();
 
-                let total_points = result.getRXingResultPoints().len();
-                let points = result.getRXingResultPointsMut();
+                let total_points = result.getPoints().len();
+                let points = result.getPointsMut();
                 for point in points.iter_mut().take(total_points) {
                     std::mem::swap(&mut point.x, &mut point.y);
                     point.x = height as f32 - point.x - 1.0;
@@ -545,14 +545,14 @@ impl RSSExpandedReader {
             .getFinderPattern()
             .as_ref()
             .ok_or(Exceptions::IllegalStateException(None))?
-            .getRXingResultPoints();
+            .getPoints();
         let lastPoints = pairs
             .last()
             .ok_or(Exceptions::IndexOutOfBoundsException(None))?
             .getFinderPattern()
             .as_ref()
             .ok_or(Exceptions::IllegalStateException(None))?
-            .getRXingResultPoints();
+            .getPoints();
 
         let mut result = RXingResult::new(
             &resultingString,
