@@ -342,7 +342,7 @@ fn correct_bits(
     }
     let mut offset = rawbits.len() % codeword_size;
 
-    let mut data_words = vec![0i32; num_codewords];
+    let mut data_words = vec![0; num_codewords];
     for word in data_words.iter_mut().take(num_codewords) {
         // for i in 0..num_codewords {
         // for (int i = 0; i < numCodewords; i++, offset += codewordSize) {

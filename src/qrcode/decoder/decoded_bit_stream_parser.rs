@@ -48,8 +48,8 @@ pub fn decode(
     let mut bits = BitSource::new(bytes.to_owned());
     let mut result = String::with_capacity(50);
     let mut byteSegments = vec![vec![0u8; 0]; 0];
-    let mut symbolSequence = -1i32;
-    let mut parityData = -1i32;
+    let mut symbolSequence = -1;
+    let mut parityData = -1;
 
     let mut currentCharacterSetECI = None;
     let mut fc1InEffect = false;

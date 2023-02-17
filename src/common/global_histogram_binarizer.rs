@@ -241,7 +241,7 @@ impl GlobalHistogramBinarizer {
 
         // Find a valley between them that is low and closer to the white peak.
         let mut bestValley = secondPeak - 1;
-        let mut bestValleyScore = -1i32;
+        let mut bestValleyScore = -1;
         let mut x = secondPeak;
         while x > firstPeak {
             // for (int x = secondPeak - 1; x > firstPeak; x--) {
