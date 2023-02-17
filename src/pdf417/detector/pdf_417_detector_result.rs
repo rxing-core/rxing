@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-use crate::{common::BitMatrix, RXingResultPoint};
+use crate::{common::BitMatrix, Point};
 
 /**
  * @author Guenther Grau
  */
 pub struct PDF417DetectorRXingResult {
     bits: BitMatrix,
-    points: Vec<[Option<RXingResultPoint>; 8]>,
+    points: Vec<[Option<Point>; 8]>,
     rotation: u32,
 }
 
 impl PDF417DetectorRXingResult {
-    pub fn with_rotation(
-        bits: BitMatrix,
-        points: Vec<[Option<RXingResultPoint>; 8]>,
-        rotation: u32,
-    ) -> Self {
+    pub fn with_rotation(bits: BitMatrix, points: Vec<[Option<Point>; 8]>, rotation: u32) -> Self {
         Self {
             bits,
             points,
@@ -38,7 +34,7 @@ impl PDF417DetectorRXingResult {
         }
     }
 
-    pub fn new(bits: BitMatrix, points: Vec<[Option<RXingResultPoint>; 8]>) -> Self {
+    pub fn new(bits: BitMatrix, points: Vec<[Option<Point>; 8]>) -> Self {
         Self::with_rotation(bits, points, 0)
     }
 
@@ -46,7 +42,7 @@ impl PDF417DetectorRXingResult {
         &self.bits
     }
 
-    pub fn getPoints(&self) -> &Vec<[Option<RXingResultPoint>; 8]> {
+    pub fn getPoints(&self) -> &Vec<[Option<Point>; 8]> {
         &self.points
     }
 

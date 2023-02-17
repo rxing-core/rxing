@@ -1,5 +1,3 @@
-pub mod MathUtils;
-
 mod monochrome_rectangle_detector;
 pub use monochrome_rectangle_detector::*;
 

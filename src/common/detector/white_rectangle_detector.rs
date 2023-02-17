@@ -18,10 +18,8 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    Exceptions, RXingResultPoint, ResultPoint,
+    point, Exceptions, Point,
 };
-
-use super::MathUtils;
 
 /**
  * <p>
@@ -101,14 +99,14 @@ impl<'a> WhiteRectangleDetector<'_> {
      * region until it finds a white rectangular region.
      * </p>
      *
-     * @return {@link RXingResultPoint}[] describing the corners of the rectangular
+     * @return {@link Point}[] describing the corners of the rectangular
      *         region. The first and last points are opposed on the diagonal, as
      *         are the second and third. The first point will be the topmost
      *         point and the last, the bottommost. The second point will be
      *         leftmost and the third, the rightmost
      * @throws NotFoundException if no Data Matrix Code can be found
      */
-    pub fn detect(&self) -> Result<[RXingResultPoint; 4]> {
+    pub fn detect(&self) -> Result<[Point; 4]> {
         let mut left: i32 = self.leftInit;
         let mut right: i32 = self.rightInit;
         let mut up: i32 = self.upInit;
@@ -212,7 +210,7 @@ impl<'a> WhiteRectangleDetector<'_> {
         if !size_exceeded {
             let max_size = right - left;
 
-            let mut z: Option<RXingResultPoint> = None;
+            let mut z: Option<Point> = None;
             let mut i = 1;
             while z.is_none() && i < max_size {
                 //for (int i = 1; z == null && i < maxSize; i++) {
@@ -229,7 +227,7 @@ impl<'a> WhiteRectangleDetector<'_> {
                 return Err(Exceptions::notFound);
             }
 
-            let mut t: Option<RXingResultPoint> = None;
+            let mut t: Option<Point> = None;
             //go down right
             let mut i = 1;
             while t.is_none() && i < max_size {
@@ -247,7 +245,7 @@ impl<'a> WhiteRectangleDetector<'_> {
                 return Err(Exceptions::notFound);
             }
 
-            let mut x: Option<RXingResultPoint> = None;
+            let mut x: Option<Point> = None;
             //go down left
             let mut i = 1;
             while x.is_none() && i < max_size {
@@ -265,7 +263,7 @@ impl<'a> WhiteRectangleDetector<'_> {
                 return Err(Exceptions::notFound);
             }
 
-            let mut y: Option<RXingResultPoint> = None;
+            let mut y: Option<Point> = None;
             //go up left
             let mut i = 1;
             while y.is_none() && i < max_size {
@@ -283,28 +281,25 @@ impl<'a> WhiteRectangleDetector<'_> {
                 return Err(Exceptions::notFound);
             }
 
-            Ok(self.center_edges(&y.unwrap(), &z.unwrap(), &x.unwrap(), &t.unwrap()))
+            Ok(self.center_edges(y.unwrap(), z.unwrap(), x.unwrap(), t.unwrap()))
         } else {
             Err(Exceptions::notFound)
         }
     }
 
-    fn get_black_point_on_segment(
-        &self,
-        a_x: f32,
-        a_y: f32,
-        b_x: f32,
-        b_y: f32,
-    ) -> Option<RXingResultPoint> {
-        let dist = MathUtils::round(MathUtils::distance(a_x, a_y, b_x, b_y));
+    fn get_black_point_on_segment(&self, a_x: f32, a_y: f32, b_x: f32, b_y: f32) -> Option<Point> {
+        let a = point(a_x, a_y);
+        let b = point(b_x, b_y);
+
+        let dist = a.distance(b).round() as i32;
         let x_step: f32 = (b_x - a_x) / dist as f32;
         let y_step: f32 = (b_y - a_y) / dist as f32;
 
         for i in 0..dist {
-            let x = MathUtils::round(a_x + i as f32 * x_step);
-            let y = MathUtils::round(a_y + i as f32 * y_step);
+            let x = (a_x + i as f32 * x_step).round() as i32;
+            let y = (a_y + i as f32 * y_step).round() as i32;
             if self.image.get(x as u32, y as u32) {
-                return Some(RXingResultPoint::new(x as f32, y as f32));
+                return Some(point(x as f32, y as f32));
             }
         }
         None
@@ -317,19 +312,13 @@ impl<'a> WhiteRectangleDetector<'_> {
      * @param z left most point
      * @param x right most point
      * @param t top most point
-     * @return {@link RXingResultPoint}[] describing the corners of the rectangular
+     * @return {@link Point}[] describing the corners of the rectangular
      *         region. The first and last points are opposed on the diagonal, as
      *         are the second and third. The first point will be the topmost
      *         point and the last, the bottommost. The second point will be
      *         leftmost and the third, the rightmost
      */
-    fn center_edges(
-        &self,
-        y: &RXingResultPoint,
-        z: &RXingResultPoint,
-        x: &RXingResultPoint,
-        t: &RXingResultPoint,
-    ) -> [RXingResultPoint; 4] {
+    fn center_edges(&self, y: Point, z: Point, x: Point, t: Point) -> [Point; 4] {
         //
         //       t            t
         //  z                      x
@@ -337,28 +326,28 @@ impl<'a> WhiteRectangleDetector<'_> {
         //   y                    y
         //
 
-        let yi = y.getX();
-        let yj = y.getY();
-        let zi = z.getX();
-        let zj = z.getY();
-        let xi = x.getX();
-        let xj = x.getY();
-        let ti = t.getX();
-        let tj = t.getY();
+        let yi = y.x;
+        let yj = y.y;
+        let zi = z.x;
+        let zj = z.y;
+        let xi = x.x;
+        let xj = x.y;
+        let ti = t.x;
+        let tj = t.y;
 
         if yi < self.width as f32 / 2.0f32 {
             [
-                RXingResultPoint::new(ti - CORR as f32, tj + CORR as f32),
-                RXingResultPoint::new(zi + CORR as f32, zj + CORR as f32),
-                RXingResultPoint::new(xi - CORR as f32, xj - CORR as f32),
-                RXingResultPoint::new(yi + CORR as f32, yj - CORR as f32),
+                point(ti - CORR as f32, tj + CORR as f32),
+                point(zi + CORR as f32, zj + CORR as f32),
+                point(xi - CORR as f32, xj - CORR as f32),
+                point(yi + CORR as f32, yj - CORR as f32),
             ]
         } else {
             [
-                RXingResultPoint::new(ti + CORR as f32, tj + CORR as f32),
-                RXingResultPoint::new(zi + CORR as f32, zj - CORR as f32),
-                RXingResultPoint::new(xi - CORR as f32, xj + CORR as f32),
-                RXingResultPoint::new(yi - CORR as f32, yj - CORR as f32),
+                point(ti + CORR as f32, tj + CORR as f32),
+                point(zi + CORR as f32, zj - CORR as f32),
+                point(xi - CORR as f32, xj + CORR as f32),
+                point(yi - CORR as f32, yj - CORR as f32),
             ]
         }
     }

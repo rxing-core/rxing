@@ -1,7 +1,7 @@
-use crate::RXingResultPoint;
+use crate::Point;
 
 #[derive(Clone, Debug)]
-pub struct Quadrilateral([RXingResultPoint; 4]);
+pub struct Quadrilateral([Point; 4]);
 
 impl Quadrilateral {
     // 	using Base = std::array<T, 4>;
@@ -11,31 +11,26 @@ impl Quadrilateral {
 
     #[allow(dead_code)]
     pub fn new() -> Self {
-        Self([RXingResultPoint { x: 0.0, y: 0.0 }; 4])
+        Self([Point { x: 0.0, y: 0.0 }; 4])
     }
     // pub fn with_f32( tl:f32,  tr:f32,  br:f32,  bl:f32) -> Self {
     //     Self([tl, tr,br, bl ])
     // }
 
-    pub fn with_points(
-        tl: RXingResultPoint,
-        tr: RXingResultPoint,
-        br: RXingResultPoint,
-        bl: RXingResultPoint,
-    ) -> Self {
+    pub fn with_points(tl: Point, tr: Point, br: Point, bl: Point) -> Self {
         Self([tl, tr, br, bl])
     }
 
-    pub fn topLeft(&self) -> &RXingResultPoint {
+    pub fn topLeft(&self) -> &Point {
         &self.0[0]
     } //const noexcept { return at(0); }
-    pub fn topRight(&self) -> &RXingResultPoint {
+    pub fn topRight(&self) -> &Point {
         &self.0[1]
     } //const noexcept { return at(1); }
-    pub fn bottomRight(&self) -> &RXingResultPoint {
+    pub fn bottomRight(&self) -> &Point {
         &self.0[2]
     } //const noexcept { return at(2); }
-    pub fn bottomLeft(&self) -> &RXingResultPoint {
+    pub fn bottomLeft(&self) -> &Point {
         &self.0[3]
     } //const noexcept { return at(3); }
 
@@ -43,13 +38,13 @@ impl Quadrilateral {
     pub fn orientation(&self) -> f64 {
         let centerLine =
             (*self.topRight() + *self.bottomRight()) - (*self.topLeft() + *self.bottomLeft());
-        if (centerLine == RXingResultPoint { x: 0.0, y: 0.0 }) {
+        if (centerLine == Point { x: 0.0, y: 0.0 }) {
             return 0.0;
         }
-        let centerLineF = RXingResultPoint::normalized(centerLine);
+        let centerLineF = Point::normalized(centerLine);
         f32::atan2(centerLineF.y, centerLineF.x).into()
     }
-    pub fn points(&self) -> &[RXingResultPoint] {
+    pub fn points(&self) -> &[Point] {
         &self.0
     }
 }
@@ -59,19 +54,19 @@ pub fn Rectangle(width: i32, height: i32, margin: Option<i32>) -> Quadrilateral 
     let margin = if let Some(m) = margin { m } else { 0 };
 
     Quadrilateral([
-        RXingResultPoint {
+        Point {
             x: margin as f32,
             y: margin as f32,
         },
-        RXingResultPoint {
+        Point {
             x: width as f32 - margin as f32,
             y: margin as f32,
         },
-        RXingResultPoint {
+        Point {
             x: width as f32 - margin as f32,
             y: height as f32 - margin as f32,
         },
-        RXingResultPoint {
+        Point {
             x: margin as f32,
             y: height as f32 - margin as f32,
         },
@@ -82,10 +77,10 @@ pub fn Rectangle(width: i32, height: i32, margin: Option<i32>) -> Quadrilateral 
 pub fn CenteredSquare(size: i32) -> Quadrilateral {
     Scale(
         &Quadrilateral([
-            RXingResultPoint { x: -1.0, y: -1.0 },
-            RXingResultPoint { x: 1.0, y: -1.0 },
-            RXingResultPoint { x: 1.0, y: 1.0 },
-            RXingResultPoint { x: -1.0, y: 1.0 },
+            Point { x: -1.0, y: -1.0 },
+            Point { x: 1.0, y: -1.0 },
+            Point { x: 1.0, y: 1.0 },
+            Point { x: -1.0, y: 1.0 },
         ]),
         size / 2,
     )
@@ -94,19 +89,19 @@ pub fn CenteredSquare(size: i32) -> Quadrilateral {
 #[allow(dead_code)]
 pub fn Line(y: i32, xStart: i32, xStop: i32) -> Quadrilateral {
     Quadrilateral([
-        RXingResultPoint {
+        Point {
             x: xStart as f32,
             y: y as f32,
         },
-        RXingResultPoint {
+        Point {
             x: xStop as f32,
             y: y as f32,
         },
-        RXingResultPoint {
+        Point {
             x: xStop as f32,
             y: y as f32,
         },
-        RXingResultPoint {
+        Point {
             x: xStart as f32,
             y: y as f32,
         },
@@ -126,7 +121,7 @@ pub fn IsConvex(poly: &Quadrilateral) -> bool {
     {
         let d1 = poly.0[(i + 2) % N] - poly.0[(i + 1) % N];
         let d2 = poly.0[i] - poly.0[(i + 1) % N];
-        let cp = RXingResultPoint::cross(&d1, &d2);
+        let cp = d1.cross(d2);
 
         m = if m.abs() > cp { cp } else { m.abs() };
 
@@ -162,8 +157,8 @@ pub fn Scale(q: &Quadrilateral, factor: i32) -> Quadrilateral {
 }
 
 #[allow(dead_code)]
-pub fn Center(q: &Quadrilateral) -> RXingResultPoint {
-    let reduced: RXingResultPoint = q.0.iter().sum();
+pub fn Center(q: &Quadrilateral) -> Point {
+    let reduced: Point = q.0.iter().sum();
     let size = q.0.len() as f32;
     reduced / size
     // return Reduce(q) / Size(q);
@@ -186,14 +181,14 @@ pub fn RotatedCorners(q: &Quadrilateral, n: Option<i32>, mirror: Option<bool>) -
 }
 
 #[allow(dead_code)]
-pub fn IsInside(p: &RXingResultPoint, q: &Quadrilateral) -> bool {
+pub fn IsInside(p: Point, q: &Quadrilateral) -> bool {
     // Test if p is on the same side (right or left) of all polygon segments
     let mut pos = 0;
     let mut neg = 0;
     for i in 0..q.0.len()
     // for (int i = 0; i < Size(q); ++i)
     {
-        if RXingResultPoint::cross(&(*p - q.0[i]), &(q.0[(i + 1) % q.0.len()] - q.0[i])) < 0.0 {
+        if Point::cross(p - q.0[i], q.0[(i + 1) % q.0.len()] - q.0[i]) < 0.0 {
             neg += 1;
         } else {
             pos += 1;

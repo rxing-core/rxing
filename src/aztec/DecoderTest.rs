@@ -18,7 +18,7 @@
 // import com.google.zxing.aztec.encoder.EncoderTest;
 
 // import com.google.zxing.FormatException;
-// import com.google.zxing.RXingResultPoint;
+// import com.google.zxing.Point;
 // import com.google.zxing.aztec.AztecDetectorRXingResult;
 // import com.google.zxing.common.BitArray;
 // import com.google.zxing.common.BitMatrix;
@@ -29,7 +29,7 @@
 use crate::{
     aztec::shared_test_methods::{stripSpace, toBitArray, toBooleanArray},
     common::BitMatrix,
-    RXingResultPoint,
+    Point,
 };
 
 use super::{aztec_detector_result::AztecDetectorRXingResult, decoder};
@@ -38,7 +38,7 @@ use super::{aztec_detector_result::AztecDetectorRXingResult, decoder};
  * Tests {@link Decoder}.
  */
 
-const NO_POINTS: [RXingResultPoint; 4] = [RXingResultPoint { x: 0.0, y: 0.0 }; 4];
+const NO_POINTS: [Point; 4] = [Point { x: 0.0, y: 0.0 }; 4];
 
 #[test]
 fn test_high_level_decode() {

@@ -18,8 +18,8 @@ use std::collections::HashMap;
 
 use crate::{
     common::{BitArray, Result},
-    BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue,
-    RXingResultPoint,
+    point, BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue,
 };
 
 use super::{upc_ean_reader, UPCEANReader, STAND_IN};
@@ -49,11 +49,11 @@ impl UPCEANExtension2Support {
             &resultString,
             Vec::new(),
             vec![
-                RXingResultPoint::new(
+                point(
                     (extensionStartRange[0] + extensionStartRange[1]) as f32 / 2.0,
                     rowNumber as f32,
                 ),
-                RXingResultPoint::new(end as f32, rowNumber as f32),
+                point(end as f32, rowNumber as f32),
             ],
             BarcodeFormat::UPC_EAN_EXTENSION,
         );

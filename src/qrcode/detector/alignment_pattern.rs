@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-//RXingResultPoint
+//Point
 
-use crate::{RXingResultPoint, ResultPoint};
+use crate::{point, Point};
 
 /**
  * <p>Encapsulates an alignment pattern, which are the smaller square patterns found in
@@ -27,23 +27,18 @@ use crate::{RXingResultPoint, ResultPoint};
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct AlignmentPattern {
     estimatedModuleSize: f32,
-    point: (f32, f32),
+    point: Point,
 }
 
-impl ResultPoint for AlignmentPattern {
-    fn getX(&self) -> f32 {
-        self.point.0
+impl From<&AlignmentPattern> for Point {
+    fn from(value: &AlignmentPattern) -> Self {
+        value.point
     }
+}
 
-    fn getY(&self) -> f32 {
-        self.point.1
-    }
-
-    fn into_rxing_result_point(self) -> RXingResultPoint {
-        RXingResultPoint {
-            x: self.point.0,
-            y: self.point.1,
-        }
+impl From<AlignmentPattern> for Point {
+    fn from(value: AlignmentPattern) -> Self {
+        value.point
     }
 }
 
@@ -51,7 +46,7 @@ impl AlignmentPattern {
     pub fn new(posX: f32, posY: f32, estimatedModuleSize: f32) -> Self {
         Self {
             estimatedModuleSize,
-            point: (posX, posY),
+            point: point(posX, posY),
         }
     }
 
@@ -60,7 +55,7 @@ impl AlignmentPattern {
      * position and size -- meaning, it is at nearly the same center with nearly the same size.</p>
      */
     pub fn aboutEquals(&self, moduleSize: f32, i: f32, j: f32) -> bool {
-        if (i - self.getY()).abs() <= moduleSize && (j - self.getX()).abs() <= moduleSize {
+        if (i - self.point.y).abs() <= moduleSize && (j - self.point.x).abs() <= moduleSize {
             let moduleSizeDiff = (moduleSize - self.estimatedModuleSize).abs();
             return moduleSizeDiff <= 1.0 || moduleSizeDiff <= self.estimatedModuleSize;
         }
@@ -72,8 +67,8 @@ impl AlignmentPattern {
      * with a new estimate. It returns a new {@code FinderPattern} containing an average of the two.
      */
     pub fn combineEstimate(&self, i: f32, j: f32, newModuleSize: f32) -> AlignmentPattern {
-        let combinedX = (self.getX() + j) / 2.0;
-        let combinedY = (self.getY() + i) / 2.0;
+        let combinedX = (self.point.x + j) / 2.0;
+        let combinedY = (self.point.y + i) / 2.0;
         let combinedModuleSize = (self.estimatedModuleSize + newModuleSize) / 2.0;
         AlignmentPattern::new(combinedX, combinedY, combinedModuleSize)
     }

@@ -17,13 +17,10 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{
-        detector::MathUtils, BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform,
-        Result,
-    },
+    common::{BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform, Result},
+    point,
     qrcode::decoder::Version,
-    result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
-    RXingResultPointCallback, ResultPoint,
+    DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, Point, PointCallback,
 };
 
 use super::{
@@ -39,7 +36,7 @@ use super::{
  */
 pub struct Detector<'a> {
     image: &'a BitMatrix,
-    resultPointCallback: Option<RXingResultPointCallback>,
+    resultPointCallback: Option<PointCallback>,
 }
 
 impl<'a> Detector<'_> {
@@ -54,7 +51,7 @@ impl<'a> Detector<'_> {
         self.image
     }
 
-    pub fn getRXingResultPointCallback(&self) -> &Option<RXingResultPointCallback> {
+    pub fn getPointCallback(&self) -> &Option<PointCallback> {
         &self.resultPointCallback
     }
 
@@ -116,16 +113,16 @@ impl<'a> Detector<'_> {
         // Anything above version 1 has an alignment pattern
         if !provisionalVersion.getAlignmentPatternCenters().is_empty() {
             // Guess where a "bottom right" finder pattern would have been
-            let bottomRightX = topRight.getX() - topLeft.getX() + bottomLeft.getX();
-            let bottomRightY = topRight.getY() - topLeft.getY() + bottomLeft.getY();
+            let bottomRightX = topRight.point.x - topLeft.point.x + bottomLeft.point.x;
+            let bottomRightY = topRight.point.y - topLeft.point.y + bottomLeft.point.y;
 
             // Estimate that alignment pattern is closer by 3 modules
             // from "bottom right" to known top left location
             let correctionToTopLeft = 1.0 - (3.0 / modulesBetweenFPCenters as f32);
             let estAlignmentX =
-                (topLeft.getX() + correctionToTopLeft * (bottomRightX - topLeft.getX())) as u32;
+                (topLeft.point.x + correctionToTopLeft * (bottomRightX - topLeft.point.x)) as u32;
             let estAlignmentY =
-                (topLeft.getY() + correctionToTopLeft * (bottomRightY - topLeft.getY())) as u32;
+                (topLeft.point.y + correctionToTopLeft * (bottomRightY - topLeft.point.y)) as u32;
 
             // Kind of arbitrary -- expand search radius before giving up
             let mut i = 4;
@@ -153,29 +150,30 @@ impl<'a> Detector<'_> {
         let bits = Detector::sampleGrid(self.image, &transform, dimension)?;
 
         let mut points = vec![
-            bottomLeft.into_rxing_result_point(),
-            topLeft.into_rxing_result_point(),
-            topRight.into_rxing_result_point(),
+            Point::from(bottomLeft),
+            Point::from(topLeft),
+            Point::from(topRight),
         ];
 
         if alignmentPattern.is_some() {
-            points.push(
-                alignmentPattern
-                    .ok_or(Exceptions::notFound)?
-                    .into_rxing_result_point(),
-            )
+            points.push(alignmentPattern.ok_or(Exceptions::notFound)?.into())
         }
 
         Ok(QRCodeDetectorResult::new(bits, points))
     }
 
-    fn createTransform<T: ResultPoint, X: ResultPoint>(
-        topLeft: &T,
-        topRight: &T,
-        bottomLeft: &T,
-        alignmentPattern: Option<&X>,
+    fn createTransform<T: Into<Point>, X: Into<Point>>(
+        topLeft: T,
+        topRight: T,
+        bottomLeft: T,
+        alignmentPattern: Option<X>,
         dimension: u32,
     ) -> Option<PerspectiveTransform> {
+        let topLeft: Point = topLeft.into();
+        let topRight: Point = topRight.into();
+        let bottomLeft: Point = bottomLeft.into();
+        let alignmentPattern: Option<Point> = alignmentPattern.map(Into::into);
+
         let dimMinusThree = dimension as f32 - 3.5;
         let bottomRightX: f32;
         let bottomRightY: f32;
@@ -183,14 +181,14 @@ impl<'a> Detector<'_> {
         let sourceBottomRightY: f32;
         if alignmentPattern.is_some() {
             let alignmentPattern = alignmentPattern?;
-            bottomRightX = alignmentPattern.getX();
-            bottomRightY = alignmentPattern.getY();
+            bottomRightX = alignmentPattern.x;
+            bottomRightY = alignmentPattern.y;
             sourceBottomRightX = dimMinusThree - 3.0;
             sourceBottomRightY = sourceBottomRightX;
         } else {
             // Don't have an alignment pattern, just make up the bottom-right point
-            bottomRightX = (topRight.getX() - topLeft.getX()) + bottomLeft.getX();
-            bottomRightY = (topRight.getY() - topLeft.getY()) + bottomLeft.getY();
+            bottomRightX = (topRight.x - topLeft.x) + bottomLeft.x;
+            bottomRightY = (topRight.y - topLeft.y) + bottomLeft.y;
             sourceBottomRightX = dimMinusThree;
             sourceBottomRightY = dimMinusThree;
         }
@@ -204,14 +202,14 @@ impl<'a> Detector<'_> {
             sourceBottomRightY,
             3.5,
             dimMinusThree,
-            topLeft.getX(),
-            topLeft.getY(),
-            topRight.getX(),
-            topRight.getY(),
+            topLeft.x,
+            topLeft.y,
+            topRight.x,
+            topRight.y,
             bottomRightX,
             bottomRightY,
-            bottomLeft.getX(),
-            bottomLeft.getY(),
+            bottomLeft.x,
+            bottomLeft.y,
         ))
     }
 
@@ -228,16 +226,16 @@ impl<'a> Detector<'_> {
      * <p>Computes the dimension (number of modules on a size) of the QR Code based on the position
      * of the finder patterns and estimated module size.</p>
      */
-    fn computeDimension<T: ResultPoint>(
-        topLeft: &T,
-        topRight: &T,
-        bottomLeft: &T,
+    fn computeDimension<T: Into<Point> + Copy>(
+        topLeft: T,
+        topRight: T,
+        bottomLeft: T,
         moduleSize: f32,
     ) -> Result<u32> {
         let tltrCentersDimension =
-            MathUtils::round(result_point_utils::distance(topLeft, topRight) / moduleSize);
+            (Point::distance(topLeft.into(), topRight.into()) / moduleSize).round() as i32;
         let tlblCentersDimension =
-            MathUtils::round(result_point_utils::distance(topLeft, bottomLeft) / moduleSize);
+            (Point::distance(topLeft.into(), bottomLeft.into()) / moduleSize).round() as i32;
         let mut dimension = ((tltrCentersDimension + tlblCentersDimension) / 2) + 7;
         match dimension & 0x03 {
             0 => dimension += 1,
@@ -257,11 +255,11 @@ impl<'a> Detector<'_> {
      * @param bottomLeft detected bottom-left finder pattern center
      * @return estimated module size
      */
-    pub fn calculateModuleSize<T: ResultPoint>(
+    pub fn calculateModuleSize<T: Into<Point> + Copy>(
         &self,
-        topLeft: &T,
-        topRight: &T,
-        bottomLeft: &T,
+        topLeft: T,
+        topRight: T,
+        bottomLeft: T,
     ) -> f32 {
         // Take the average
         (self.calculateModuleSizeOneWay(topLeft, topRight)
@@ -274,18 +272,21 @@ impl<'a> Detector<'_> {
      * {@link #sizeOfBlackWhiteBlackRunBothWays(int, int, int, int)} to figure the
      * width of each, measuring along the axis between their centers.</p>
      */
-    fn calculateModuleSizeOneWay<T: ResultPoint>(&self, pattern: &T, otherPattern: &T) -> f32 {
+    fn calculateModuleSizeOneWay<T: Into<Point>>(&self, pattern: T, otherPattern: T) -> f32 {
+        let pattern: Point = pattern.into();
+        let otherPattern: Point = otherPattern.into();
+
         let moduleSizeEst1 = self.sizeOfBlackWhiteBlackRunBothWays(
-            pattern.getX().floor() as u32,
-            pattern.getY().floor() as u32,
-            otherPattern.getX().floor() as u32,
-            otherPattern.getY().floor() as u32,
+            pattern.x.floor() as u32,
+            pattern.y.floor() as u32,
+            otherPattern.x.floor() as u32,
+            otherPattern.y.floor() as u32,
         );
         let moduleSizeEst2 = self.sizeOfBlackWhiteBlackRunBothWays(
-            otherPattern.getX().floor() as u32,
-            otherPattern.getY().floor() as u32,
-            pattern.getX().floor() as u32,
-            pattern.getY().floor() as u32,
+            otherPattern.x.floor() as u32,
+            otherPattern.y.floor() as u32,
+            pattern.x.floor() as u32,
+            pattern.y.floor() as u32,
         );
         if moduleSizeEst1.is_nan() {
             return moduleSizeEst2 / 7.0;
@@ -379,7 +380,10 @@ impl<'a> Detector<'_> {
             // color, advance to next state or end if we are in state 2 already
             if (state == 1) == self.image.get(realX as u32, realY as u32) {
                 if state == 2 {
-                    return MathUtils::distance(x, y, fromX as i32, fromY as i32);
+                    return Point::distance(
+                        point(x as f32, y as f32),
+                        point(fromX as f32, fromY as f32),
+                    );
                 }
                 state += 1;
             }
@@ -399,7 +403,10 @@ impl<'a> Detector<'_> {
         // is "white" so this last point at (toX+xStep,toY) is the right ending. This is really a
         // small approximation; (toX+xStep,toY+yStep) might be really correct. Ignore this.
         if state == 2 {
-            return MathUtils::distance(toX as i32 + xstep, toY as i32, fromX as i32, fromY as i32);
+            return Point::distance(
+                point((toX as i32 + xstep) as f32, toY as f32),
+                point(fromX as f32, fromY as f32),
+            );
         }
         // else we didn't find even black-white-black; no estimate is really possible
         f32::NAN

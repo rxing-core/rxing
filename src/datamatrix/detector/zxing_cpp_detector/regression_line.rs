@@ -1,9 +1,9 @@
 use crate::common::Result;
-use crate::RXingResultPoint;
+use crate::Point;
 
 pub trait RegressionLine {
-    //     points: Vec<RXingResultPoint>,
-    //     direction_inward: RXingResultPoint,
+    //     points: Vec<Point>,
+    //     direction_inward: Point,
 
     // }
     // impl RegressionLine {
@@ -12,9 +12,9 @@ pub trait RegressionLine {
     // PointF::value_t a = NAN, b = NAN, c = NAN;
 
     // fn intersect<T: RegressionLine, T2: RegressionLine>(&self, l1: &T, l2: &T2)
-    //     -> RXingResultPoint;
+    //     -> Point;
 
-    //  fn evaluate_begin_end(&self, begin:&RXingResultPoint, end:&RXingResultPoint) -> bool;// {
+    //  fn evaluate_begin_end(&self, begin: Point, end: Point) -> bool;// {
     // {
     // 	let mean = std::accumulate(begin, end, PointF()) / std::distance(begin, end);
     // 	PointF::value_t sumXX = 0, sumYY = 0, sumXY = 0;
@@ -41,12 +41,8 @@ pub trait RegressionLine {
     // 	return dot(_directionInward, normal()) > 0.5f; // angle between original and new direction is at most 60 degree
     // }
 
-    fn evaluate(&mut self, points: &[RXingResultPoint]) -> bool; // { return self.evaluate_begin_end(&points.front(), &points.back() + 1); }
+    fn evaluate(&mut self, points: &[Point]) -> bool; // { return self.evaluate_begin_end(&points.front(), &points.back() + 1); }
     fn evaluateSelf(&mut self) -> bool;
-
-    fn distance(&self, a: &RXingResultPoint, b: &RXingResultPoint) -> f32 {
-        crate::result_point_utils::distance(a, b)
-    }
 
     // RegressionLine() { _points.reserve(16); } // arbitrary but plausible start size (tiny performance improvement)
 
@@ -60,14 +56,14 @@ pub trait RegressionLine {
     // 	evaluate(b, e);
     // }
 
-    fn points(&self) -> &[RXingResultPoint]; //const { return _points; }
+    fn points(&self) -> &[Point]; //const { return _points; }
     fn length(&self) -> u32; //const { return _points.size() >= 2 ? int(distance(_points.front(), _points.back())) : 0; }
     fn isValid(&self) -> bool; //const { return !std::isnan(a); }
-    fn normal(&self) -> RXingResultPoint; //const { return isValid() ? PointF(a, b) : _directionInward; }
-    fn signedDistance(&self, p: &RXingResultPoint) -> f32; //const { return dot(normal(), p) - c; }
-    fn distance_single(&self, p: &RXingResultPoint) -> f32; //const { return std::abs(signedDistance(PointF(p))); }
-    fn project(&self, p: &RXingResultPoint) -> RXingResultPoint {
-        *p - self.normal() * self.signedDistance(p)
+    fn normal(&self) -> Point; //const { return isValid() ? PointF(a, b) : _directionInward; }
+    fn signedDistance(&self, p: Point) -> f32; //const { return dot(normal(), p) - c; }
+    fn distance_single(&self, p: Point) -> f32; //const { return std::abs(signedDistance(PointF(p))); }
+    fn project(&self, p: Point) -> Point {
+        p - self.normal() * self.signedDistance(p)
     }
 
     fn reset(&mut self);
@@ -77,16 +73,16 @@ pub trait RegressionLine {
     // 	a = b = c = NAN;
     // }
 
-    fn add(&mut self, p: &RXingResultPoint) -> Result<()>; //{
-                                                           // 	assert(_directionInward != PointF());
-                                                           // 	_points.push_back(p);
-                                                           // 	if (_points.size() == 1)
-                                                           // 		c = dot(normal(), p);
-                                                           // }
+    fn add(&mut self, p: Point) -> Result<()>; //{
+                                               // 	assert(_directionInward != PointF());
+                                               // 	_points.push_back(p);
+                                               // 	if (_points.size() == 1)
+                                               // 		c = dot(normal(), p);
+                                               // }
 
     fn pop_back(&mut self); // { _points.pop_back(); }
 
-    fn setDirectionInward(&mut self, d: &RXingResultPoint); //{ _directionInward = normalized(d); }
+    fn setDirectionInward(&mut self, d: Point); //{ _directionInward = normalized(d); }
 
     // fn evaluate(&self, double maxSignedDist = -1, bool updatePoints = false) -> bool
     fn evaluate_max_distance(

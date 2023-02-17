@@ -18,8 +18,8 @@ use std::collections::HashMap;
 
 use crate::{
     common::Result, multi::MultipleBarcodeReader, BarcodeFormat, BinaryBitmap,
-    DecodingHintDictionary, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, RXingResultPoint, Reader, ResultPoint,
+    DecodingHintDictionary, Exceptions, Point, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue, Reader,
 };
 
 use super::{
@@ -151,23 +151,23 @@ impl PDF417Reader {
         Ok(results)
     }
 
-    fn getMaxWidth(p1: &Option<RXingResultPoint>, p2: &Option<RXingResultPoint>) -> u64 {
+    fn getMaxWidth(p1: &Option<Point>, p2: &Option<Point>) -> u64 {
         if let (Some(p1), Some(p2)) = (p1, p2) {
-            (p1.getX() - p2.getX()).abs() as u64
+            (p1.x - p2.x).abs() as u64
         } else {
             0
         }
     }
 
-    fn getMinWidth(p1: &Option<RXingResultPoint>, p2: &Option<RXingResultPoint>) -> u64 {
+    fn getMinWidth(p1: &Option<Point>, p2: &Option<Point>) -> u64 {
         if let (Some(p1), Some(p2)) = (p1, p2) {
-            (p1.getX() - p2.getX()).abs() as u64
+            (p1.x - p2.x).abs() as u64
         } else {
             u32::MAX as u64
         }
     }
 
-    fn getMaxCodewordWidth(p: &[Option<RXingResultPoint>]) -> u32 {
+    fn getMaxCodewordWidth(p: &[Option<Point>]) -> u32 {
         Self::getMaxWidth(&p[0], &p[4])
             .max(
                 Self::getMaxWidth(&p[6], &p[2]) * pdf_417_common::MODULES_IN_CODEWORD as u64
@@ -179,7 +179,7 @@ impl PDF417Reader {
             )) as u32
     }
 
-    fn getMinCodewordWidth(p: &[Option<RXingResultPoint>]) -> u32 {
+    fn getMinCodewordWidth(p: &[Option<Point>]) -> u32 {
         Self::getMinWidth(&p[0], &p[4])
             .min(
                 Self::getMinWidth(&p[6], &p[2]) * pdf_417_common::MODULES_IN_CODEWORD as u64

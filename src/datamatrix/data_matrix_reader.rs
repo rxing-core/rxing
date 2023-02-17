@@ -39,7 +39,7 @@ static DECODER: Lazy<Decoder> = Lazy::new(Decoder::new);
 #[derive(Default)]
 pub struct DataMatrixReader;
 
-// private static final RXingResultPoint[] NO_POINTS = new RXingResultPoint[0];
+// private static final Point[] NO_POINTS = new Point[0];
 
 // private final Decoder decoder = new Decoder();
 

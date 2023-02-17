@@ -1,12 +1,12 @@
 use crate::{
     common::{BitMatrix, DetectorRXingResult},
-    RXingResultPoint,
+    Point,
 };
 
-pub struct DatamatrixDetectorResult(BitMatrix, Vec<RXingResultPoint>);
+pub struct DatamatrixDetectorResult(BitMatrix, Vec<Point>);
 
 impl DatamatrixDetectorResult {
-    pub fn new(bits: BitMatrix, points: Vec<RXingResultPoint>) -> Self {
+    pub fn new(bits: BitMatrix, points: Vec<Point>) -> Self {
         Self(bits, points)
     }
 }
@@ -16,7 +16,7 @@ impl DetectorRXingResult for DatamatrixDetectorResult {
         &self.0
     }
 
-    fn getPoints(&self) -> &[RXingResultPoint] {
+    fn getPoints(&self) -> &[Point] {
         &self.1
     }
 }

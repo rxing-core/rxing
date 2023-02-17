@@ -16,7 +16,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    Exceptions, RXingResultPointCallback,
+    Exceptions, PointCallback,
 };
 
 use super::AlignmentPattern;
@@ -44,7 +44,7 @@ pub struct AlignmentPatternFinder {
     height: u32,
     moduleSize: f32,
     crossCheckStateCount: [u32; 3],
-    resultPointCallback: Option<RXingResultPointCallback>,
+    resultPointCallback: Option<PointCallback>,
 }
 
 impl AlignmentPatternFinder {
@@ -65,7 +65,7 @@ impl AlignmentPatternFinder {
         width: u32,
         height: u32,
         moduleSize: f32,
-        resultPointCallback: Option<RXingResultPointCallback>,
+        resultPointCallback: Option<PointCallback>,
     ) -> Self {
         Self {
             image,
@@ -311,7 +311,7 @@ impl AlignmentPatternFinder {
             // Hadn't found this before; save it
             let point = AlignmentPattern::new(centerJ, centerI, estimatedModuleSize);
             if let Some(rpc) = self.resultPointCallback.clone() {
-                rpc(&point);
+                rpc((&point).into());
             }
 
             self.possibleCenters.push(point);

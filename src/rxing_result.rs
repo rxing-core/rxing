@@ -16,7 +16,7 @@
 
 use std::{collections::HashMap, fmt};
 
-use crate::{BarcodeFormat, RXingResultMetadataType, RXingResultMetadataValue, RXingResultPoint};
+use crate::{BarcodeFormat, Point, RXingResultMetadataType, RXingResultMetadataValue};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -32,7 +32,7 @@ pub struct RXingResult {
     text: String,
     rawBytes: Vec<u8>,
     numBits: usize,
-    resultPoints: Vec<RXingResultPoint>,
+    resultPoints: Vec<Point>,
     format: BarcodeFormat,
     resultMetadata: HashMap<RXingResultMetadataType, RXingResultMetadataValue>,
     timestamp: u128,
@@ -41,7 +41,7 @@ impl RXingResult {
     pub fn new(
         text: &str,
         rawBytes: Vec<u8>,
-        resultPoints: Vec<RXingResultPoint>,
+        resultPoints: Vec<Point>,
         format: BarcodeFormat,
     ) -> Self {
         Self::new_timestamp(
@@ -56,7 +56,7 @@ impl RXingResult {
     pub fn new_timestamp(
         text: &str,
         rawBytes: Vec<u8>,
-        resultPoints: Vec<RXingResultPoint>,
+        resultPoints: Vec<Point>,
         format: BarcodeFormat,
         timestamp: u128,
     ) -> Self {
@@ -68,7 +68,7 @@ impl RXingResult {
         text: &str,
         rawBytes: Vec<u8>,
         numBits: usize,
-        resultPoints: Vec<RXingResultPoint>,
+        resultPoints: Vec<Point>,
         format: BarcodeFormat,
         timestamp: u128,
     ) -> Self {
@@ -83,7 +83,7 @@ impl RXingResult {
         }
     }
 
-    pub fn new_from_existing_result(prev: Self, points: Vec<RXingResultPoint>) -> Self {
+    pub fn new_from_existing_result(prev: Self, points: Vec<Point>) -> Self {
         Self {
             text: prev.text,
             rawBytes: prev.rawBytes,
@@ -122,11 +122,21 @@ impl RXingResult {
      *         identifying finder patterns or the corners of the barcode. The exact meaning is
      *         specific to the type of barcode that was decoded.
      */
-    pub fn getRXingResultPoints(&self) -> &Vec<RXingResultPoint> {
+    pub fn getPoints(&self) -> &Vec<Point> {
         &self.resultPoints
     }
 
-    pub fn getRXingResultPointsMut(&mut self) -> &mut Vec<RXingResultPoint> {
+    pub fn getPointsMut(&mut self) -> &mut Vec<Point> {
+        &mut self.resultPoints
+    }
+
+    /** Currently necessary because the external OneDReader proc macro uses it. */
+    pub fn getRXingResultPoints(&self) -> &Vec<Point> {
+        &&self.resultPoints
+    }
+
+    /** Currently necessary because the external OneDReader proc macro uses it. */
+    pub fn getRXingResultPointsMut(&mut self) -> &mut Vec<Point> {
         &mut self.resultPoints
     }
 
@@ -169,7 +179,7 @@ impl RXingResult {
         }
     }
 
-    pub fn addRXingResultPoints(&mut self, newPoints: &mut Vec<RXingResultPoint>) {
+    pub fn addPoints(&mut self, newPoints: &mut Vec<Point>) {
         if !newPoints.is_empty() {
             self.resultPoints.append(newPoints);
         }

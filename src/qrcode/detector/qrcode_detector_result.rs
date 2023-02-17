@@ -1,15 +1,15 @@
 use crate::{
     common::{BitMatrix, DetectorRXingResult},
-    RXingResultPoint,
+    Point,
 };
 
 pub struct QRCodeDetectorResult {
     bit_source: BitMatrix,
-    result_points: Vec<RXingResultPoint>,
+    result_points: Vec<Point>,
 }
 
 impl QRCodeDetectorResult {
-    pub fn new(bit_source: BitMatrix, result_points: Vec<RXingResultPoint>) -> Self {
+    pub fn new(bit_source: BitMatrix, result_points: Vec<Point>) -> Self {
         Self {
             bit_source,
             result_points,
@@ -22,7 +22,7 @@ impl DetectorRXingResult for QRCodeDetectorResult {
         &self.bit_source
     }
 
-    fn getPoints(&self) -> &[crate::RXingResultPoint] {
+    fn getPoints(&self) -> &[crate::Point] {
         &self.result_points
     }
 }

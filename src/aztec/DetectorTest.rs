@@ -39,7 +39,7 @@ use rand::Rng;
 use crate::{aztec::decoder, common::BitMatrix, exceptions::Exceptions};
 
 use super::{
-    detector::{self, Detector, Point},
+    detector::{self, AztecPoint, Detector},
     encoder::{self, AztecCode},
 };
 
@@ -261,7 +261,7 @@ fn clone(input: &BitMatrix) -> BitMatrix {
     result
 }
 
-fn get_orientation_points(code: &AztecCode) -> Vec<Point> {
+fn get_orientation_points(code: &AztecCode) -> Vec<AztecPoint> {
     let center = code.getMatrix().getWidth() as i32 / 2;
     let offset = if code.isCompact() { 5 } else { 7 };
     let mut result = Vec::new();
@@ -271,12 +271,15 @@ fn get_orientation_points(code: &AztecCode) -> Vec<Point> {
         let mut ySign: i32 = -1;
         while ySign <= 1 {
             // for (int ySign = -1; ySign <= 1; ySign += 2) {
-            result.push(Point::new(center + xSign * offset, center + ySign * offset));
-            result.push(Point::new(
+            result.push(AztecPoint::new(
+                center + xSign * offset,
+                center + ySign * offset,
+            ));
+            result.push(AztecPoint::new(
                 center + xSign * (offset - 1),
                 center + ySign * offset,
             ));
-            result.push(Point::new(
+            result.push(AztecPoint::new(
                 center + xSign * offset,
                 center + ySign * (offset - 1),
             ));

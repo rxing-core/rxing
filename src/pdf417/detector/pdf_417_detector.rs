@@ -16,7 +16,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    BinaryBitmap, DecodingHintDictionary, Exceptions, RXingResultPoint, ResultPoint,
+    point, BinaryBitmap, DecodingHintDictionary, Exceptions, Point,
 };
 
 use std::borrow::Cow;
@@ -115,10 +115,10 @@ fn applyRotation(matrix: &BitMatrix, rotation: u32) -> Result<Cow<BitMatrix>> {
  * @param multiple if true, then the image is searched for multiple codes. If false, then at most one code will
  * be found and returned
  * @param bitMatrix bit matrix to detect barcodes in
- * @return List of RXingResultPoint arrays containing the coordinates of found barcodes
+ * @return List of Point arrays containing the coordinates of found barcodes
  */
-pub fn detect(multiple: bool, bitMatrix: &BitMatrix) -> Option<Vec<[Option<RXingResultPoint>; 8]>> {
-    let mut barcodeCoordinates: Vec<[Option<RXingResultPoint>; 8]> = Vec::new();
+pub fn detect(multiple: bool, bitMatrix: &BitMatrix) -> Option<Vec<[Option<Point>; 8]>> {
+    let mut barcodeCoordinates: Vec<[Option<Point>; 8]> = Vec::new();
     let mut row = 0;
     let mut column = 0;
     let mut foundBarcodeInRow = false;
@@ -136,10 +136,10 @@ pub fn detect(multiple: bool, bitMatrix: &BitMatrix) -> Option<Vec<[Option<RXing
             column = 0;
             for barcodeCoordinate in &barcodeCoordinates {
                 if let Some(coord_1) = barcodeCoordinate[1] {
-                    row = row.max(coord_1.getY() as u32);
+                    row = row.max(coord_1.y as u32);
                 }
                 if let Some(coord_3) = barcodeCoordinate[3] {
-                    row = row.max(coord_3.getY() as u32);
+                    row = row.max(coord_3.y as u32);
                 }
             }
             row += ROW_STEP;
@@ -153,11 +153,11 @@ pub fn detect(multiple: bool, bitMatrix: &BitMatrix) -> Option<Vec<[Option<RXing
         // if we didn't find a right row indicator column, then continue the search for the next barcode after the
         // start pattern of the barcode just found.
         if let Some(vert_2) = vertices[2] {
-            column = vert_2.getX() as u32;
-            row = vert_2.getY() as u32;
+            column = vert_2.x as u32;
+            row = vert_2.y as u32;
         } else {
-            column = vertices[4].as_ref().unwrap().getX() as u32;
-            row = vertices[4].as_ref().unwrap().getY() as u32;
+            column = vertices[4].as_ref().unwrap().x as u32;
+            row = vertices[4].as_ref().unwrap().y as u32;
         }
     }
     Some(barcodeCoordinates)
@@ -178,17 +178,13 @@ pub fn detect(multiple: bool, bitMatrix: &BitMatrix) -> Option<Vec<[Option<RXing
  *           vertices[6] x, y top right codeword area
  *           vertices[7] x, y bottom right codeword area
  */
-fn findVertices(
-    matrix: &BitMatrix,
-    startRow: u32,
-    startColumn: u32,
-) -> Option<[Option<RXingResultPoint>; 8]> {
+fn findVertices(matrix: &BitMatrix, startRow: u32, startColumn: u32) -> Option<[Option<Point>; 8]> {
     let height = matrix.getHeight();
     let width = matrix.getWidth();
     let mut startRow = startRow;
     let mut startColumn = startColumn;
 
-    let mut result = [None::<RXingResultPoint>; 8]; //RXingResultPoint[8];
+    let mut result = [None::<Point>; 8]; //Point[8];
     copyToRXingResult(
         &mut result,
         &findRowsWithPattern(matrix, height, width, startRow, startColumn, &START_PATTERN)?,
@@ -196,8 +192,8 @@ fn findVertices(
     );
 
     if let Some(result_4) = result[4] {
-        startColumn = result_4.getX() as u32;
-        startRow = result_4.getY() as u32;
+        startColumn = result_4.x as u32;
+        startRow = result_4.y as u32;
     }
     copyToRXingResult(
         &mut result,
@@ -209,8 +205,8 @@ fn findVertices(
 }
 
 fn copyToRXingResult(
-    result: &mut [Option<RXingResultPoint>],
-    tmpRXingResult: &[Option<RXingResultPoint>],
+    result: &mut [Option<Point>],
+    tmpRXingResult: &[Option<Point>],
     destinationIndexes: &[u32],
 ) {
     for i in 0..destinationIndexes.len() {
@@ -225,7 +221,7 @@ fn findRowsWithPattern(
     startRow: u32,
     startColumn: u32,
     pattern: &[u32],
-) -> Option<[Option<RXingResultPoint>; 4]> {
+) -> Option<[Option<Point>; 4]> {
     let mut startRow = startRow;
     let mut result = [None; 4];
     let mut found = false;
@@ -248,14 +244,8 @@ fn findRowsWithPattern(
                     break;
                 }
             }
-            result[0] = Some(RXingResultPoint::new(
-                loc_store.as_ref()?[0] as f32,
-                startRow as f32,
-            ));
-            result[1] = Some(RXingResultPoint::new(
-                loc_store.as_ref()?[1] as f32,
-                startRow as f32,
-            ));
+            result[0] = Some(point(loc_store.as_ref()?[0] as f32, startRow as f32));
+            result[1] = Some(point(loc_store.as_ref()?[1] as f32, startRow as f32));
             found = true;
             break;
         }
@@ -267,10 +257,7 @@ fn findRowsWithPattern(
     // Last row of the current symbol that contains pattern
     if found {
         let mut skippedRowCount = 0;
-        let mut previousRowLoc = [
-            result[0].as_ref()?.getX() as u32,
-            result[1].as_ref()?.getX() as u32,
-        ];
+        let mut previousRowLoc = [result[0].as_ref()?.x as u32, result[1].as_ref()?.x as u32];
         while stopRow < height {
             if let Some(loc) = findGuardPattern(
                 matrix,
@@ -303,14 +290,8 @@ fn findRowsWithPattern(
             stopRow += 1;
         }
         stopRow -= skippedRowCount + 1;
-        result[2] = Some(RXingResultPoint::new(
-            previousRowLoc[0] as f32,
-            stopRow as f32,
-        ));
-        result[3] = Some(RXingResultPoint::new(
-            previousRowLoc[1] as f32,
-            stopRow as f32,
-        ));
+        result[2] = Some(point(previousRowLoc[0] as f32, stopRow as f32));
+        result[3] = Some(point(previousRowLoc[1] as f32, stopRow as f32));
     }
     if stopRow - startRow < BARCODE_MIN_HEIGHT {
         result.fill(None);

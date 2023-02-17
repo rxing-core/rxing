@@ -2,11 +2,8 @@
 use num::integer::Roots;
 
 use crate::{
-    common::{
-        detector::MathUtils, BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler,
-        Result,
-    },
-    Exceptions, RXingResultPoint,
+    common::{BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler, Result},
+    point, Exceptions, Point,
 };
 
 use super::MaxiCodeReader;
@@ -16,7 +13,7 @@ const ROW_SCAN_SKIP: u32 = 2;
 #[derive(Debug)]
 pub struct MaxicodeDetectionResult {
     bits: BitMatrix,
-    points: Vec<RXingResultPoint>,
+    points: Vec<Point>,
     rotation: f32,
 }
 
@@ -31,7 +28,7 @@ impl DetectorRXingResult for MaxicodeDetectionResult {
         &self.bits
     }
 
-    fn getPoints(&self) -> &[RXingResultPoint] {
+    fn getPoints(&self) -> &[Point] {
         &self.points
     }
 }
@@ -349,8 +346,8 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
 
         let [tl, bl, tr, br] = &symbol_box.0;
 
-        let target_width = MathUtils::distance(tl.0, tl.1, tr.0, tr.1);
-        let target_height = MathUtils::distance(br.0, br.1, tr.0, tr.1);
+        let target_width = Point::distance(tl.into(), tr.into());
+        let target_height = Point::distance(br.into(), tr.into());
 
         // let target_width = (tr.0 - tl.0).round().abs() as u32;
         // let target_height = (br.1 - tr.1).round().abs() as u32;
@@ -387,7 +384,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
             points: symbol_box
                 .0
                 .iter()
-                .map(|p| RXingResultPoint { x: p.0, y: p.1 })
+                .map(|p| Point { x: p.0, y: p.1 })
                 .collect(),
             rotation: symbol_box.1,
         });
@@ -717,10 +714,10 @@ fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<([(f32, f32); 4]
         calculate_simple_boundary(circle, Some(image), None, false);
 
     let naive_box = [
-        RXingResultPoint::new(left_boundary as f32, bottom_boundary as f32),
-        RXingResultPoint::new(left_boundary as f32, top_boundary as f32),
-        RXingResultPoint::new(right_boundary as f32, bottom_boundary as f32),
-        RXingResultPoint::new(right_boundary as f32, top_boundary as f32),
+        point(left_boundary as f32, bottom_boundary as f32),
+        point(left_boundary as f32, top_boundary as f32),
+        point(right_boundary as f32, bottom_boundary as f32),
+        point(right_boundary as f32, top_boundary as f32),
     ];
 
     #[allow(unused_mut)]
@@ -807,9 +804,9 @@ const BOTTOM_RIGHT_ORIENTATION_POS: ((u32, u32), (u32, u32), (u32, u32)) =
 fn attempt_rotation_box(
     image: &BitMatrix,
     circle: &mut Circle,
-    naive_box: &[RXingResultPoint; 4],
+    naive_box: &[Point; 4],
     center_scale: f64,
-) -> Option<([RXingResultPoint; 4], f32)> {
+) -> Option<([Point; 4], f32)> {
     // update our circle with a more accurate center point
     circle.calculate_high_accuracy_center();
 
@@ -955,10 +952,10 @@ fn attempt_rotation_box(
 
         Some((
             [
-                RXingResultPoint::new(new_1.0, new_1.1),
-                RXingResultPoint::new(new_2.0, new_2.1),
-                RXingResultPoint::new(new_3.0, new_3.1),
-                RXingResultPoint::new(new_4.0, new_4.1),
+                point(new_1.0, new_1.1),
+                point(new_2.0, new_2.1),
+                point(new_3.0, new_3.1),
+                point(new_4.0, new_4.1),
             ],
             final_rotation,
         ))

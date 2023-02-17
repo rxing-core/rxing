@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+use std::ops::Div;
+
 use crate::{
     common::{BitMatrix, Result},
-    result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
-    RXingResultPointCallback, ResultPoint,
+    result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, Point,
+    PointCallback,
 };
 
 use super::{FinderPattern, FinderPatternInfo};
@@ -35,7 +37,7 @@ pub struct FinderPatternFinder<'a> {
     possibleCenters: Vec<FinderPattern>,
     hasSkipped: bool,
     crossCheckStateCount: [u32; 5],
-    resultPointCallback: Option<RXingResultPointCallback>,
+    resultPointCallback: Option<PointCallback>,
 }
 impl<'a> FinderPatternFinder<'_> {
     pub const CENTER_QUORUM: usize = 2;
@@ -53,7 +55,7 @@ impl<'a> FinderPatternFinder<'_> {
 
     pub fn with_callback(
         image: &'a BitMatrix,
-        resultPointCallback: Option<RXingResultPointCallback>,
+        resultPointCallback: Option<PointCallback>,
     ) -> FinderPatternFinder<'a> {
         FinderPatternFinder {
             image,
@@ -603,7 +605,7 @@ impl<'a> FinderPatternFinder<'_> {
                     let point = FinderPattern::new(centerJ, centerI, estimatedModuleSize);
                     self.possibleCenters.push(point);
                     if let Some(rpc) = self.resultPointCallback.clone() {
-                        rpc(&point);
+                        rpc((&point).into());
                     }
                 }
                 return true;
@@ -633,9 +635,11 @@ impl<'a> FinderPatternFinder<'_> {
                     // difference in the x / y coordinates of the two centers.
                     // This is the case where you find top left last.
                     self.hasSkipped = true;
-                    return (((fnp.getX() - center.getX()).abs()
-                        - (fnp.getY() - center.getY()).abs())
-                        / 2.0)
+
+                    return (Point::from(fnp) - Point::from(center))
+                        .abs()
+                        .fold(|x, y| x - y)
+                        .div(2.0)
                         .floor() as u32;
                 } else {
                     firstConfirmedCenter.replace(center);
@@ -679,10 +683,7 @@ impl<'a> FinderPatternFinder<'_> {
      * Get square of distance between a and b.
      */
     fn squaredDistance(a: &FinderPattern, b: &FinderPattern) -> f64 {
-        let x = a.getX() as f64 - b.getX() as f64;
-        let y = a.getY() as f64 - b.getY() as f64;
-
-        x * x + y * y
+        Point::from(a).squaredDistance(Point::from(b)) as f64
     }
 
     /**

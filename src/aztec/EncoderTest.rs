@@ -25,7 +25,7 @@ use crate::{
         encoder::HighLevelEncoder,
         shared_test_methods::{stripSpace, toBitArray, toBooleanArray},
     },
-    BarcodeFormat, EncodeHintType, EncodeHintValue, RXingResultPoint,
+    BarcodeFormat, EncodeHintType, EncodeHintValue, Point,
 };
 
 use super::{encoder::aztec_encoder, AztecWriter};
@@ -50,7 +50,7 @@ const WINDOWS_1252: EncodingRef = encoding::all::WINDOWS_1252; //Charset.forName
 
 // const DOTX: &str = "[^.X]";
 // const SPACES: &str = "\\s+";
-const NO_POINTS: [RXingResultPoint; 4] = [RXingResultPoint { x: 0.0, y: 0.0 }; 4];
+const NO_POINTS: [Point; 4] = [Point { x: 0.0, y: 0.0 }; 4];
 
 // real life tests
 

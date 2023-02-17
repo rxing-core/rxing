@@ -19,8 +19,7 @@ use std::cmp::Ordering;
 use crate::{
     common::{BitMatrix, Result},
     qrcode::detector::{FinderPattern, FinderPatternFinder, FinderPatternInfo},
-    result_point_utils, DecodeHintType, DecodingHintDictionary, Exceptions,
-    RXingResultPointCallback,
+    result_point_utils, DecodeHintType, DecodingHintDictionary, Exceptions, Point, PointCallback,
 };
 
 // max. legal count of modules per QR code edge (177)
@@ -68,7 +67,7 @@ impl<'a> MultiFinderPatternFinder<'_> {
 
     pub fn new(
         image: &'a BitMatrix,
-        resultPointCallback: Option<RXingResultPointCallback>,
+        resultPointCallback: Option<PointCallback>,
     ) -> MultiFinderPatternFinder<'a> {
         MultiFinderPatternFinder(FinderPatternFinder::with_callback(
             image,
@@ -175,9 +174,10 @@ impl<'a> MultiFinderPatternFinder<'_> {
 
                     // Calculate the distances: a = topleft-bottomleft, b=topleft-topright, c = diagonal
                     let info = FinderPatternInfo::new(test);
-                    let dA = result_point_utils::distance(info.getTopLeft(), info.getBottomLeft());
-                    let dC = result_point_utils::distance(info.getTopRight(), info.getBottomLeft());
-                    let dB = result_point_utils::distance(info.getTopLeft(), info.getTopRight());
+                    let dA = Point::distance(info.getTopLeft().into(), info.getBottomLeft().into());
+                    let dC =
+                        Point::distance(info.getTopRight().into(), info.getBottomLeft().into());
+                    let dB = Point::distance(info.getTopLeft().into(), info.getTopRight().into());
 
                     // Check the sizes
                     let estimatedModuleCount = (dA + dB) / (p1.getEstimatedModuleSize() * 2.0);

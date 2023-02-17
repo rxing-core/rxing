@@ -16,7 +16,7 @@
 
 use std::hash::Hash;
 
-use crate::RXingResultPoint;
+use crate::{point, Point};
 
 /**
  * Encapsulates an RSS barcode finder pattern, including its start/end position and row.
@@ -25,7 +25,7 @@ use crate::RXingResultPoint;
 pub struct FinderPattern {
     value: u32,
     startEnd: [usize; 2],
-    resultPoints: Vec<RXingResultPoint>,
+    resultPoints: Vec<Point>,
 }
 
 impl FinderPattern {
@@ -34,8 +34,8 @@ impl FinderPattern {
             value,
             startEnd,
             resultPoints: vec![
-                RXingResultPoint::new(start as f32, rowNumber as f32),
-                RXingResultPoint::new(end as f32, rowNumber as f32),
+                point(start as f32, rowNumber as f32),
+                point(end as f32, rowNumber as f32),
             ],
         }
     }
@@ -53,7 +53,7 @@ impl FinderPattern {
         &mut self.startEnd
     }
 
-    pub fn getRXingResultPoints(&self) -> &[RXingResultPoint] {
+    pub fn getPoints(&self) -> &[Point] {
         &self.resultPoints
     }
 }
