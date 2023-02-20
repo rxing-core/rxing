@@ -143,7 +143,7 @@ impl OneDReader for ITFReader {
             lengthOK = true;
         }
         if !lengthOK {
-            return Err(Exceptions::format);
+            return Err(Exceptions::FORMAT);
         }
 
         let mut resultObject = RXingResult::new(
@@ -198,9 +198,9 @@ impl ITFReader {
             }
 
             let mut bestMatch = self.decodeDigit(&counterBlack)?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch).ok_or(Exceptions::parse)?);
+            resultString.push(char::from_u32('0' as u32 + bestMatch).ok_or(Exceptions::PARSE)?);
             bestMatch = self.decodeDigit(&counterWhite)?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch).ok_or(Exceptions::parse)?);
+            resultString.push(char::from_u32('0' as u32 + bestMatch).ok_or(Exceptions::PARSE)?);
 
             payloadStart += counterDigitPair.iter().sum::<u32>() as usize;
         }
@@ -261,7 +261,7 @@ impl ITFReader {
 
         if quietCount != 0 {
             // Unable to find the necessary number of quiet zone pixels.
-            Err(Exceptions::notFound)
+            Err(Exceptions::NOT_FOUND)
         } else {
             Ok(())
         }
@@ -278,7 +278,7 @@ impl ITFReader {
         let width = row.getSize();
         let endStart = row.getNextSet(0);
         if endStart == width {
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         }
 
         Ok(endStart)
@@ -373,7 +373,7 @@ impl ITFReader {
                 isWhite = !isWhite;
             }
         }
-        Err(Exceptions::notFound)
+        Err(Exceptions::NOT_FOUND)
     }
 
     /**
@@ -402,7 +402,7 @@ impl ITFReader {
         if bestMatch >= 0 {
             Ok(bestMatch as u32 % 10)
         } else {
-            Err(Exceptions::notFound)
+            Err(Exceptions::NOT_FOUND)
         }
     }
 }

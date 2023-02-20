@@ -164,9 +164,9 @@ impl AlignmentPatternFinder {
             Ok(*(self
                 .possibleCenters
                 .get(0)
-                .ok_or(Exceptions::indexOutOfBounds))?)
+                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS))?)
         } else {
-            Err(Exceptions::notFound)
+            Err(Exceptions::NOT_FOUND)
         }
     }
 

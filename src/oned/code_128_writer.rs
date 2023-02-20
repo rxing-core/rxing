@@ -100,7 +100,7 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32> {
     let length = contents.chars().count();
     // Check length
     if !(1..=80).contains(&length) {
-        return Err(Exceptions::illegalArgumentWith(format!(
+        return Err(Exceptions::illegal_argument_with(format!(
             "Contents length should be between 1 and 80 characters, but got {length}"
         )));
     }
@@ -108,13 +108,13 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32> {
     // Check for forced code set hint.
     let mut forcedCodeSet = -1_i32;
     if hints.contains_key(&EncodeHintType::FORCE_CODE_SET) {
-        let Some(EncodeHintValue::ForceCodeSet(codeSetHint)) = hints.get(&EncodeHintType::FORCE_CODE_SET) else { return Err(Exceptions::illegalState) };
+        let Some(EncodeHintValue::ForceCodeSet(codeSetHint)) = hints.get(&EncodeHintType::FORCE_CODE_SET) else { return Err(Exceptions::ILLEGAL_STATE) };
         match codeSetHint.as_str() {
             "A" => forcedCodeSet = CODE_CODE_A as i32,
             "B" => forcedCodeSet = CODE_CODE_B as i32,
             "C" => forcedCodeSet = CODE_CODE_C as i32,
             _ => {
-                return Err(Exceptions::illegalArgumentWith(format!(
+                return Err(Exceptions::illegal_argument_with(format!(
                     "Unsupported code set hint: {codeSetHint}"
                 )))
             }
@@ -135,7 +135,7 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32> {
                 if c > 127 {
                     // no full Latin-1 character set available at the moment
                     // shift and manual code change are not supported
-                    return Err(Exceptions::illegalArgumentWith(format!(
+                    return Err(Exceptions::illegal_argument_with(format!(
                         "Bad character in input: ASCII value={c}"
                     )));
                 }
@@ -150,7 +150,7 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32> {
             // allows no ascii above 95 (no lower caps, no special symbols)
             {
                 if c > 95 && c <= 127 {
-                    return Err(Exceptions::illegalArgumentWith(format!(
+                    return Err(Exceptions::illegal_argument_with(format!(
                         "Bad character in input for forced code set A: ASCII value={c}"
                     )));
                 }
@@ -159,7 +159,7 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32> {
             // allows no ascii below 32 (terminal symbols)
             {
                 if c <= 32 {
-                    return Err(Exceptions::illegalArgumentWith(format!(
+                    return Err(Exceptions::illegal_argument_with(format!(
                         "Bad character in input for forced code set B: ASCII value={c}"
                     )));
                 }
@@ -173,7 +173,7 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32> {
                     || ch == ESCAPE_FNC_3
                     || ch == ESCAPE_FNC_4
                 {
-                    return Err(Exceptions::illegalArgumentWith(format!(
+                    return Err(Exceptions::illegal_argument_with(format!(
                         "Bad character in input for forced code set C: ASCII value={c}"
                     )));
                 }
@@ -196,7 +196,7 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>> {
     while position < length {
         //Select code to use
         let newCodeSet = if forcedCodeSet == -1 {
-            chooseCode(contents, position, codeSet).ok_or(Exceptions::illegalState)?
+            chooseCode(contents, position, codeSet).ok_or(Exceptions::ILLEGAL_STATE)?
         } else {
             forcedCodeSet as usize // THIS IS RISKY
         };
@@ -209,7 +209,7 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>> {
             match contents
                 .chars()
                 .nth(position)
-                .ok_or(Exceptions::indexOutOfBounds)?
+                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
             {
                 ESCAPE_FNC_1 => patternIndex = CODE_FNC_1 as isize,
                 ESCAPE_FNC_2 => patternIndex = CODE_FNC_2 as isize,
@@ -229,7 +229,7 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>> {
                             patternIndex = contents
                                 .chars()
                                 .nth(position)
-                                .ok_or(Exceptions::indexOutOfBounds)?
+                                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
                                 as isize
                                 - ' ' as isize;
                             if patternIndex < 0 {
@@ -241,7 +241,7 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>> {
                             patternIndex = contents
                                 .chars()
                                 .nth(position)
-                                .ok_or(Exceptions::indexOutOfBounds)?
+                                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
                                 as isize
                                 - ' ' as isize
                         }
@@ -249,7 +249,7 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>> {
                             // CODE_CODE_C
                             if position + 1 == length {
                                 // this is the last character, but the encoding is C, which always encodes two characers
-                                return Err(Exceptions::illegalArgumentWith(
+                                return Err(Exceptions::illegal_argument_with(
                                     "Bad number of characters for digit only encoding.",
                                 ));
                             }
@@ -260,7 +260,7 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>> {
                                 .map(|(_u, c)| c)
                                 .collect();
                             patternIndex = s.parse::<isize>().map_err(|e| {
-                                Exceptions::parseWith(format!("issue parsing {s}: {e}"))
+                                Exceptions::parse_with(format!("issue parsing {s}: {e}"))
                             })?;
                             position += 1;
                         } // Also incremented below
@@ -536,7 +536,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                 if contents
                     .chars()
                     .nth(i)
-                    .ok_or(Exceptions::indexOutOfBounds)?
+                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
                     == ESCAPE_FNC_1
                 {
                     addPattern(
@@ -556,7 +556,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                     addPattern(
                         &mut patterns,
                         s.parse::<usize>().map_err(|e| {
-                            Exceptions::parseWith(format!("unable to parse {s} {e}"))
+                            Exceptions::parse_with(format!("unable to parse {s} {e}"))
                         })?,
                         &mut checkSum,
                         &mut checkWeight,
@@ -572,7 +572,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                 let mut patternIndex = match contents
                     .chars()
                     .nth(i)
-                    .ok_or(Exceptions::indexOutOfBounds)?
+                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
                 {
                     ESCAPE_FNC_1 => CODE_FNC_1 as isize,
                     ESCAPE_FNC_2 => CODE_FNC_2 as isize,
@@ -590,7 +590,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                         contents
                             .chars()
                             .nth(i)
-                            .ok_or(Exceptions::indexOutOfBounds)? as isize
+                            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as isize
                             - ' ' as isize
                     }
                 };
@@ -681,7 +681,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
         minPath: &mut Vec<Vec<Latch>>,
     ) -> Result<u32> {
         if position >= contents.chars().count() {
-            return Err(Exceptions::illegalState);
+            return Err(Exceptions::ILLEGAL_STATE);
         }
         let mCost = memoizedCost[charset.ordinal()][position];
         if mCost > 0 {
@@ -762,7 +762,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
             }
         }
         if minCost == u32::MAX {
-            return Err(Exceptions::illegalArgumentWith(format!(
+            return Err(Exceptions::illegal_argument_with(format!(
                 "Bad character in input: ASCII value={}",
                 contents.chars().nth(position).unwrap_or('x')
             )));

@@ -167,7 +167,7 @@ impl PlanarYUVLuminanceSource {
         inverted: bool,
     ) -> Result<Self> {
         if left + width > data_width || top + height > data_height {
-            return Err(Exceptions::illegalArgumentWith(
+            return Err(Exceptions::illegal_argument_with(
                 "Crop rectangle does not fit within image data.",
             ));
         }
@@ -329,7 +329,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
             self.invert,
         ) {
             Ok(new) => Ok(Box::new(new)),
-            Err(_err) => Err(Exceptions::unsupportedOperation),
+            Err(_err) => Err(Exceptions::UNSUPPORTED_OPERATION),
         }
     }
 

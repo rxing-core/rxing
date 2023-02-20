@@ -158,7 +158,7 @@ pub fn decode(bytes: &[u8], is_flipped: bool) -> Result<DecoderRXingResult> {
                 isECIencoded = true; // ECI detection only, atm continue decoding as ASCII
                 mode = Mode::ASCII_ENCODE;
             }
-            _ => return Err(Exceptions::format),
+            _ => return Err(Exceptions::FORMAT),
         }
 
         if !(mode != Mode::PAD_ENCODE && bits.available() > 0) {
@@ -225,14 +225,14 @@ fn decodeAsciiSegment(
     loop {
         let mut oneByte = bits.readBits(8)?;
         match oneByte {
-            0 => return Err(Exceptions::format),
+            0 => return Err(Exceptions::FORMAT),
             1..=128 => {
                 // ASCII data (ASCII value + 1)
                 if upperShift {
                     oneByte += 128;
                     //upperShift = false;
                 }
-                result.append_char(char::from_u32(oneByte - 1).ok_or(Exceptions::parse)?);
+                result.append_char(char::from_u32(oneByte - 1).ok_or(Exceptions::PARSE)?);
                 return Ok(Mode::ASCII_ENCODE);
             }
             129 => return Ok(Mode::PAD_ENCODE), // Pad
@@ -278,7 +278,7 @@ fn decodeAsciiSegment(
                 if !firstCodeword
                 // Must be first ISO 16022:2006 5.6.1
                 {
-                    return Err(Exceptions::formatWith(
+                    return Err(Exceptions::format_with(
                         "structured append tag must be first code word",
                     ));
                 }
@@ -331,7 +331,7 @@ fn decodeAsciiSegment(
                 // Not to be used in ASCII encodation
                 // but work around encoders that end with 254, latch back to ASCII
                 if oneByte != 254 || bits.available() != 0 {
-                    return Err(Exceptions::format);
+                    return Err(Exceptions::FORMAT);
                 }
             }
         }
@@ -385,22 +385,22 @@ fn decodeC40Segment(
                         let c40char = C40_BASIC_SET_CHARS[cValue as usize];
                         if upperShift {
                             result.append_char(
-                                char::from_u32(c40char as u32 + 128).ok_or(Exceptions::parse)?,
+                                char::from_u32(c40char as u32 + 128).ok_or(Exceptions::PARSE)?,
                             );
                             upperShift = false;
                         } else {
                             result.append_char(c40char);
                         }
                     } else {
-                        return Err(Exceptions::format);
+                        return Err(Exceptions::FORMAT);
                     }
                 }
                 1 => {
                     if upperShift {
-                        result.append_char(char::from_u32(cValue + 128).ok_or(Exceptions::parse)?);
+                        result.append_char(char::from_u32(cValue + 128).ok_or(Exceptions::PARSE)?);
                         upperShift = false;
                     } else {
-                        result.append_char(char::from_u32(cValue).ok_or(Exceptions::parse)?);
+                        result.append_char(char::from_u32(cValue).ok_or(Exceptions::PARSE)?);
                     }
                     shift = 0;
                 }
@@ -409,7 +409,7 @@ fn decodeC40Segment(
                         let c40char = C40_SHIFT2_SET_CHARS[cValue as usize];
                         if upperShift {
                             result.append_char(
-                                char::from_u32(c40char as u32 + 128).ok_or(Exceptions::parse)?,
+                                char::from_u32(c40char as u32 + 128).ok_or(Exceptions::PARSE)?,
                             );
                             upperShift = false;
                         } else {
@@ -428,22 +428,22 @@ fn decodeC40Segment(
                                 upperShift = true
                             }
 
-                            _ => return Err(Exceptions::format),
+                            _ => return Err(Exceptions::FORMAT),
                         }
                     }
                     shift = 0;
                 }
                 3 => {
                     if upperShift {
-                        result.append_char(char::from_u32(cValue + 224).ok_or(Exceptions::parse)?);
+                        result.append_char(char::from_u32(cValue + 224).ok_or(Exceptions::PARSE)?);
                         upperShift = false;
                     } else {
-                        result.append_char(char::from_u32(cValue + 96).ok_or(Exceptions::parse)?);
+                        result.append_char(char::from_u32(cValue + 96).ok_or(Exceptions::PARSE)?);
                     }
                     shift = 0;
                 }
 
-                _ => return Err(Exceptions::format),
+                _ => return Err(Exceptions::FORMAT),
             }
         }
         if bits.available() == 0 {
@@ -492,22 +492,22 @@ fn decodeTextSegment(
                         let textChar = TEXT_BASIC_SET_CHARS[cValue as usize];
                         if upperShift {
                             result.append_char(
-                                char::from_u32(textChar as u32 + 128).ok_or(Exceptions::parse)?,
+                                char::from_u32(textChar as u32 + 128).ok_or(Exceptions::PARSE)?,
                             );
                             upperShift = false;
                         } else {
                             result.append_char(textChar);
                         }
                     } else {
-                        return Err(Exceptions::format);
+                        return Err(Exceptions::FORMAT);
                     }
                 }
                 1 => {
                     if upperShift {
-                        result.append_char(char::from_u32(cValue + 128).ok_or(Exceptions::parse)?);
+                        result.append_char(char::from_u32(cValue + 128).ok_or(Exceptions::PARSE)?);
                         upperShift = false;
                     } else {
-                        result.append_char(char::from_u32(cValue).ok_or(Exceptions::parse)?);
+                        result.append_char(char::from_u32(cValue).ok_or(Exceptions::PARSE)?);
                     }
                     shift = 0;
                 }
@@ -518,7 +518,7 @@ fn decodeTextSegment(
                         let textChar = TEXT_SHIFT2_SET_CHARS[cValue as usize];
                         if upperShift {
                             result.append_char(
-                                char::from_u32(textChar as u32 + 128).ok_or(Exceptions::parse)?,
+                                char::from_u32(textChar as u32 + 128).ok_or(Exceptions::PARSE)?,
                             );
                             upperShift = false;
                         } else {
@@ -537,7 +537,7 @@ fn decodeTextSegment(
                                 upperShift = true
                             }
 
-                            _ => return Err(Exceptions::format),
+                            _ => return Err(Exceptions::FORMAT),
                         }
                     }
                     shift = 0;
@@ -547,7 +547,7 @@ fn decodeTextSegment(
                         let textChar = TEXT_SHIFT3_SET_CHARS[cValue as usize];
                         if upperShift {
                             result.append_char(
-                                char::from_u32(textChar as u32 + 128).ok_or(Exceptions::parse)?,
+                                char::from_u32(textChar as u32 + 128).ok_or(Exceptions::PARSE)?,
                             );
                             upperShift = false;
                         } else {
@@ -555,11 +555,11 @@ fn decodeTextSegment(
                         }
                         shift = 0;
                     } else {
-                        return Err(Exceptions::format);
+                        return Err(Exceptions::FORMAT);
                     }
                 }
 
-                _ => return Err(Exceptions::format),
+                _ => return Err(Exceptions::FORMAT),
             }
         }
         if bits.available() == 0 {
@@ -622,12 +622,12 @@ fn decodeAnsiX12Segment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> 
                 _ => {
                     if cValue < 14 {
                         // 0 - 9
-                        result.append_char(char::from_u32(cValue + 44).ok_or(Exceptions::parse)?);
+                        result.append_char(char::from_u32(cValue + 44).ok_or(Exceptions::PARSE)?);
                     } else if cValue < 40 {
                         // A - Z
-                        result.append_char(char::from_u32(cValue + 51).ok_or(Exceptions::parse)?);
+                        result.append_char(char::from_u32(cValue + 51).ok_or(Exceptions::PARSE)?);
                     } else {
-                        return Err(Exceptions::format);
+                        return Err(Exceptions::FORMAT);
                     }
                 }
             }
@@ -679,7 +679,7 @@ fn decodeEdifactSegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> 
                 // no 1 in the leading (6th) bit
                 edifactValue |= 0x40; // Add a leading 01 to the 6 bit binary value
             }
-            result.append_char(char::from_u32(edifactValue).ok_or(Exceptions::parse)?);
+            result.append_char(char::from_u32(edifactValue).ok_or(Exceptions::PARSE)?);
         }
 
         if bits.available() == 0 {
@@ -724,7 +724,7 @@ fn decodeBase256Segment(
         // Have seen this particular error in the wild, such as at
         // http://www.bcgen.com/demo/IDAutomationStreamingDataMatrix.aspx?MODE=3&D=Fred&PFMT=3&PT=F&X=0.3&O=0&LM=0.2
         if bits.available() < 8 {
-            return Err(Exceptions::format);
+            return Err(Exceptions::FORMAT);
         }
         *byte = unrandomize255State(bits.readBits(8)?, codewordPosition) as u8;
         codewordPosition += 1;
@@ -732,7 +732,7 @@ fn decodeBase256Segment(
     result.append_string(
         &encoding::all::ISO_8859_1
             .decode(&bytes, encoding::DecoderTrap::Strict)
-            .map_err(|e| Exceptions::parseWith(e))?,
+            .map_err(|e| Exceptions::parse_with(e))?,
     );
     byteSegments.push(bytes);
 

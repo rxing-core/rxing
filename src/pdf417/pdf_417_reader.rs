@@ -54,7 +54,7 @@ impl Reader for PDF417Reader {
     ) -> Result<crate::RXingResult> {
         let result = Self::decode(image, hints, false)?;
         if result.is_empty() {
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         }
         Ok(result[0].clone())
     }
@@ -124,7 +124,7 @@ impl PDF417Reader {
                         pdf417RXingResultMetadata
                             .clone()
                             .downcast::<PDF417RXingResultMetadata>()
-                            .map_err(|_| Exceptions::illegalState)?,
+                            .map_err(|_| Exceptions::ILLEGAL_STATE)?,
                     );
                     result.putMetadata(RXingResultMetadataType::PDF417_EXTRA_METADATA, data);
                 }

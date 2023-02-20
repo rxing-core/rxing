@@ -165,7 +165,7 @@ impl DefaultPlacement {
             .codewords
             .chars()
             .nth(pos)
-            .ok_or(Exceptions::indexOutOfBounds)? as u32;
+            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u32;
         v &= 1 << (8 - bit);
         self.setBit(col as usize, row as usize, v != 0);
 

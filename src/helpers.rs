@@ -32,16 +32,16 @@ pub fn detect_in_svg_with_hints(
 
     let path = PathBuf::from(file_name);
     if !path.exists() {
-        return Err(Exceptions::illegalArgumentWith("file does not exist"));
+        return Err(Exceptions::illegal_argument_with("file does not exist"));
     }
 
     let Ok(mut file) = File::open(path) else {
-        return Err(Exceptions::illegalArgumentWith("file cannot be opened"));
+        return Err(Exceptions::illegal_argument_with("file cannot be opened"));
     };
 
     let mut svg_data = Vec::new();
     if file.read_to_end(&mut svg_data).is_err() {
-        return Err(Exceptions::illegalArgumentWith("file cannot be read"));
+        return Err(Exceptions::illegal_argument_with("file cannot be read"));
     }
 
     let mut multi_format_reader = MultiFormatReader::default();
@@ -81,16 +81,16 @@ pub fn detect_multiple_in_svg_with_hints(
 
     let path = PathBuf::from(file_name);
     if !path.exists() {
-        return Err(Exceptions::illegalArgumentWith("file does not exist"));
+        return Err(Exceptions::illegal_argument_with("file does not exist"));
     }
 
     let Ok(mut file) = File::open(path) else {
-        return Err(Exceptions::illegalArgumentWith("file cannot be opened"));
+        return Err(Exceptions::illegal_argument_with("file cannot be opened"));
     };
 
     let mut svg_data = Vec::new();
     if file.read_to_end(&mut svg_data).is_err() {
-        return Err(Exceptions::illegalArgumentWith("file cannot be read"));
+        return Err(Exceptions::illegal_argument_with("file cannot be read"));
     }
 
     let multi_format_reader = MultiFormatReader::default();
@@ -120,7 +120,7 @@ pub fn detect_in_file_with_hints(
     hints: &mut DecodingHintDictionary,
 ) -> Result<RXingResult> {
     let Ok(img) = image::open(file_name) else {
-        return Err(Exceptions::illegalArgumentWith(format!("file '{file_name}' not found or cannot be opened")));
+        return Err(Exceptions::illegal_argument_with(format!("file '{file_name}' not found or cannot be opened")));
     };
     let mut multi_format_reader = MultiFormatReader::default();
 
@@ -154,7 +154,7 @@ pub fn detect_multiple_in_file_with_hints(
     hints: &mut DecodingHintDictionary,
 ) -> Result<Vec<RXingResult>> {
     let img = image::open(file_name).map_err(|e| {
-        Exceptions::RuntimeException(Some(format!("couldn't read {file_name}: {e}")))
+        Exceptions::runtime_with(format!("couldn't read {file_name}: {e}"))
     })?;
     let multi_format_reader = MultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
@@ -238,7 +238,7 @@ pub fn save_image(file_name: &str, bit_matrix: &BitMatrix) -> Result<()> {
     let image: image::DynamicImage = bit_matrix.into();
     match image.save(file_name) {
         Ok(_) => Ok(()),
-        Err(err) => Err(Exceptions::illegalArgumentWith(format!(
+        Err(err) => Err(Exceptions::illegal_argument_with(format!(
             "could not save file '{file_name}': {err}"
         ))),
     }
@@ -250,7 +250,7 @@ pub fn save_svg(file_name: &str, bit_matrix: &BitMatrix) -> Result<()> {
 
     match svg::save(file_name, &svg) {
         Ok(_) => Ok(()),
-        Err(err) => Err(Exceptions::illegalArgumentWith(format!(
+        Err(err) => Err(Exceptions::illegal_argument_with(format!(
             "could not save file '{}': {}",
             file_name, err
         ))),
@@ -285,7 +285,7 @@ pub fn save_file(file_name: &str, bit_matrix: &BitMatrix) -> Result<()> {
         Ok(())
     }() {
         Ok(_) => Ok(()),
-        Err(_) => Err(Exceptions::illegalArgumentWith(format!(
+        Err(_) => Err(Exceptions::illegal_argument_with(format!(
             "could not write to '{file_name}'"
         ))),
     }

@@ -61,7 +61,7 @@ impl Reader for AztecReader {
         } else if let Ok(det) = detector.detect(true) {
             det
         } else {
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         };
 
         let points = detectorRXingResult.getPoints();

@@ -111,7 +111,7 @@ impl MultipleBarcodeReader for QRCodeMultiReader {
                 // ignore and continue
                 continue;
             } else {
-                return Err(output.err().unwrap_or(Exceptions::notFound));
+                return Err(output.err().unwrap_or(Exceptions::NOT_FOUND));
             }
         }
 

@@ -224,7 +224,7 @@ impl Reader for RSSExpandedReader {
 
                 Ok(result)
             } else {
-                Err(Exceptions::notFound)
+                Err(Exceptions::NOT_FOUND)
             }
         }
     }
@@ -294,7 +294,7 @@ impl RSSExpandedReader {
             if let Ok(to_add) = to_add_res {
                 self.pairs.push(to_add);
             } else if self.pairs.is_empty() {
-                return Err(to_add_res.err().unwrap_or(Exceptions::illegalState));
+                return Err(to_add_res.err().unwrap_or(Exceptions::ILLEGAL_STATE));
             } else {
                 // exit this loop when retrieveNextPair() fails and throws
                 done = true;
@@ -326,7 +326,7 @@ impl RSSExpandedReader {
             // }
         }
 
-        Err(Exceptions::notFound)
+        Err(Exceptions::NOT_FOUND)
     }
 
     fn checkRows(&mut self, reverse: bool) -> Option<Vec<ExpandedPair>> {
@@ -370,7 +370,7 @@ impl RSSExpandedReader {
     ) -> Result<Vec<ExpandedPair>> {
         for i in currentRow..self.rows.len() {
             // for (int i = currentRow; i < rows.size(); i++) {
-            let row = self.rows.get(i).ok_or(Exceptions::indexOutOfBounds)?;
+            let row = self.rows.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
             self.pairs.clear();
             for collectedRow in &collectedRows.clone() {
                 // for (ExpandedRow collectedRow : collectedRows) {
@@ -398,7 +398,7 @@ impl RSSExpandedReader {
             }
         }
 
-        Err(Exceptions::notFound)
+        Err(Exceptions::NOT_FOUND)
     }
 
     /// Whether the pairs form a valid find pattern sequence,
@@ -529,24 +529,24 @@ impl RSSExpandedReader {
     // Not private for unit testing
     pub(crate) fn constructRXingResult(pairs: &[ExpandedPair]) -> Result<RXingResult> {
         let binary = bit_array_builder::buildBitArray(&pairs.to_vec())
-            .ok_or(Exceptions::IllegalStateException(None))?;
+            .ok_or(Exceptions::ILLEGAL_STATE)?;
 
         let mut decoder = abstract_expanded_decoder::createDecoder(&binary)?;
         let resultingString = decoder.parseInformation()?;
 
         let firstPoints = pairs
             .get(0)
-            .ok_or(Exceptions::indexOutOfBounds)?
+            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
             .getFinderPattern()
             .as_ref()
-            .ok_or(Exceptions::illegalState)?
+            .ok_or(Exceptions::ILLEGAL_STATE)?
             .getPoints();
         let lastPoints = pairs
             .last()
-            .ok_or(Exceptions::indexOutOfBounds)?
+            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
             .getFinderPattern()
             .as_ref()
-            .ok_or(Exceptions::illegalState)?
+            .ok_or(Exceptions::ILLEGAL_STATE)?
             .getPoints();
 
         let mut result = RXingResult::new(
@@ -645,7 +645,7 @@ impl RSSExpandedReader {
 
         let leftChar = self.decodeDataCharacter(
             row,
-            pattern.as_ref().ok_or(Exceptions::notFound)?,
+            pattern.as_ref().ok_or(Exceptions::NOT_FOUND)?,
             isOddPattern,
             true,
         )?;
@@ -653,16 +653,16 @@ impl RSSExpandedReader {
         if !previousPairs.is_empty()
             && previousPairs
                 .last()
-                .ok_or(Exceptions::notFound)?
+                .ok_or(Exceptions::NOT_FOUND)?
                 .mustBeLast()
         {
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         }
 
         let rightChar = self
             .decodeDataCharacter(
                 row,
-                pattern.as_ref().ok_or(Exceptions::notFound)?,
+                pattern.as_ref().ok_or(Exceptions::NOT_FOUND)?,
                 isOddPattern,
                 false,
             )
@@ -692,11 +692,11 @@ impl RSSExpandedReader {
         } else if previousPairs.is_empty() {
             rowOffset = 0;
         } else {
-            let lastPair = previousPairs.last().ok_or(Exceptions::indexOutOfBounds)?;
+            let lastPair = previousPairs.last().ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
             rowOffset = lastPair
                 .getFinderPattern()
                 .as_ref()
-                .ok_or(Exceptions::illegalState)?
+                .ok_or(Exceptions::ILLEGAL_STATE)?
                 .getStartEnd()[1] as i32;
         }
         let mut searchingEvenPair = previousPairs.len() % 2 != 0;
@@ -748,7 +748,7 @@ impl RSSExpandedReader {
                 isWhite = !isWhite;
             }
         }
-        Err(Exceptions::notFound)
+        Err(Exceptions::NOT_FOUND)
     }
 
     fn reverseCounters(counters: &mut [u32]) {
@@ -845,7 +845,7 @@ impl RSSExpandedReader {
         let expectedElementWidth: f32 =
             (pattern.getStartEnd()[1] - pattern.getStartEnd()[0]) as f32 / 15.0;
         if (elementWidth - expectedElementWidth).abs() / expectedElementWidth > 0.3 {
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         }
 
         for (i, counter) in counters.iter().enumerate() {
@@ -854,12 +854,12 @@ impl RSSExpandedReader {
             let mut count = (value + 0.5) as i32; // Round
             if count < 1 {
                 if value < 0.3 {
-                    return Err(Exceptions::notFound);
+                    return Err(Exceptions::NOT_FOUND);
                 }
                 count = 1;
             } else if count > 8 {
                 if value > 8.7 {
-                    return Err(Exceptions::notFound);
+                    return Err(Exceptions::NOT_FOUND);
                 }
                 count = 8;
             }
@@ -899,7 +899,7 @@ impl RSSExpandedReader {
         let checksumPortion = oddChecksumPortion + evenChecksumPortion;
 
         if (oddSum & 0x01) != 0 || !(4..=13).contains(&oddSum) {
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         }
 
         let group = ((13 - oddSum) / 2) as usize;
@@ -947,12 +947,12 @@ impl RSSExpandedReader {
             1 => {
                 if oddParityBad {
                     if evenParityBad {
-                        return Err(Exceptions::notFound);
+                        return Err(Exceptions::NOT_FOUND);
                     }
                     decrementOdd = true;
                 } else {
                     if !evenParityBad {
-                        return Err(Exceptions::notFound);
+                        return Err(Exceptions::NOT_FOUND);
                     }
                     decrementEven = true;
                 }
@@ -960,12 +960,12 @@ impl RSSExpandedReader {
             -1 => {
                 if oddParityBad {
                     if evenParityBad {
-                        return Err(Exceptions::notFound);
+                        return Err(Exceptions::NOT_FOUND);
                     }
                     incrementOdd = true;
                 } else {
                     if !evenParityBad {
-                        return Err(Exceptions::notFound);
+                        return Err(Exceptions::NOT_FOUND);
                     }
                     incrementEven = true;
                 }
@@ -973,7 +973,7 @@ impl RSSExpandedReader {
             0 => {
                 if oddParityBad {
                     if !evenParityBad {
-                        return Err(Exceptions::notFound);
+                        return Err(Exceptions::NOT_FOUND);
                     }
                     // Both bad
                     if oddSum < evenSum {
@@ -984,16 +984,16 @@ impl RSSExpandedReader {
                         incrementEven = true;
                     }
                 } else if evenParityBad {
-                    return Err(Exceptions::notFound);
+                    return Err(Exceptions::NOT_FOUND);
                 }
             }
 
-            _ => return Err(Exceptions::notFound),
+            _ => return Err(Exceptions::NOT_FOUND),
         }
 
         if incrementOdd {
             if decrementOdd {
-                return Err(Exceptions::notFound);
+                return Err(Exceptions::NOT_FOUND);
             }
             Self::increment(&mut self.oddCounts, &self.oddRoundingErrors);
         }
@@ -1002,7 +1002,7 @@ impl RSSExpandedReader {
         }
         if incrementEven {
             if decrementEven {
-                return Err(Exceptions::notFound);
+                return Err(Exceptions::NOT_FOUND);
             }
             Self::increment(&mut self.evenCounts, &self.oddRoundingErrors);
         }

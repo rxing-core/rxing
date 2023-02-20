@@ -146,7 +146,7 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String> {
     // Processing 2-digit AIs
 
     if rawInformation.chars().count() < 2 {
-        return Err(Exceptions::notFound);
+        return Err(Exceptions::NOT_FOUND);
     }
 
     let lookup: String = rawInformation.chars().take(2).collect();
@@ -159,7 +159,7 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String> {
     }
 
     if rawInformation.chars().count() < 3 {
-        return Err(Exceptions::notFound);
+        return Err(Exceptions::NOT_FOUND);
     }
 
     let firstThreeDigits: String = rawInformation.chars().take(3).collect();
@@ -172,7 +172,7 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String> {
     }
 
     if rawInformation.chars().count() < 4 {
-        return Err(Exceptions::notFound);
+        return Err(Exceptions::NOT_FOUND);
     }
 
     let threeDigitPlusDigitDataLength = THREE_DIGIT_PLUS_DIGIT_DATA_LENGTH.get(&firstThreeDigits);
@@ -192,18 +192,18 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String> {
         return processFixedAI(4, ffdl.length, rawInformation);
     }
 
-    Err(Exceptions::notFound)
+    Err(Exceptions::NOT_FOUND)
 }
 
 fn processFixedAI(aiSize: usize, fieldSize: usize, rawInformation: &str) -> Result<String> {
     if rawInformation.chars().count() < aiSize {
-        return Err(Exceptions::notFound);
+        return Err(Exceptions::NOT_FOUND);
     }
 
     let ai: String = rawInformation.chars().take(aiSize).collect();
 
     if rawInformation.chars().count() < aiSize + fieldSize {
-        return Err(Exceptions::notFound);
+        return Err(Exceptions::NOT_FOUND);
     }
 
     let field: String = rawInformation

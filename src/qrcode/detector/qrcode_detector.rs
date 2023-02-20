@@ -103,7 +103,7 @@ impl<'a> Detector<'_> {
 
         let moduleSize = self.calculateModuleSize(topLeft, topRight, bottomLeft);
         if moduleSize < 1.0 {
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         }
         let dimension = Self::computeDimension(topLeft, topRight, bottomLeft, moduleSize)?;
         let provisionalVersion = Version::getProvisionalVersionForDimension(dimension)?;
@@ -145,7 +145,7 @@ impl<'a> Detector<'_> {
             alignmentPattern.as_ref(),
             dimension,
         )
-        .ok_or(Exceptions::notFound)?;
+        .ok_or(Exceptions::NOT_FOUND)?;
 
         let bits = Detector::sampleGrid(self.image, &transform, dimension)?;
 
@@ -156,7 +156,7 @@ impl<'a> Detector<'_> {
         ];
 
         if alignmentPattern.is_some() {
-            points.push(alignmentPattern.ok_or(Exceptions::notFound)?.into())
+            points.push(alignmentPattern.ok_or(Exceptions::NOT_FOUND)?.into())
         }
 
         Ok(QRCodeDetectorResult::new(bits, points))
@@ -240,7 +240,7 @@ impl<'a> Detector<'_> {
         match dimension & 0x03 {
             0 => dimension += 1,
             2 => dimension -= 1,
-            3 => return Err(Exceptions::notFound),
+            3 => return Err(Exceptions::NOT_FOUND),
             _ => {}
         }
         Ok(dimension as u32)
@@ -436,13 +436,13 @@ impl<'a> Detector<'_> {
         let alignmentAreaLeftX = 0.max(estAlignmentX as i32 - allowance as i32) as u32;
         let alignmentAreaRightX = (self.image.getWidth() - 1).min(estAlignmentX + allowance);
         if ((alignmentAreaRightX - alignmentAreaLeftX) as f32) < overallEstModuleSize * 3.0 {
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         }
 
         let alignmentAreaTopY = 0.max(estAlignmentY as i32 - allowance as i32) as u32;
         let alignmentAreaBottomY = (self.image.getHeight() - 1).min(estAlignmentY + allowance);
         if alignmentAreaBottomY - alignmentAreaTopY < overallEstModuleSize as u32 * 3 {
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         }
 
         let mut alignmentFinder = AlignmentPatternFinder::new(

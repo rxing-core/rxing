@@ -83,7 +83,7 @@ impl State {
             token.add(0, 3); // 0: FNC1
         } else */
         if eci > 999999 {
-            return Err(Exceptions::illegalArgumentWith(
+            return Err(Exceptions::illegal_argument_with(
                 "ECI code must be between 0 and 999999",
             ));
             // throw new IllegalArgumentException("ECI code must be between 0 and 999999");
@@ -91,7 +91,7 @@ impl State {
             let Ok(eci_digits) = encoding::all::ISO_8859_1
                 .encode(&format!("{eci}"), encoding::EncoderTrap::Strict)
                  else {
-                    return Err(Exceptions::illegalArgument)
+                    return Err(Exceptions::ILLEGAL_ARGUMENT)
                  };
             // let eciDigits = Integer.toString(eci).getBytes(StandardCharsets.ISO_8859_1);
             token.add(eci_digits.len() as i32, 3); // 1-6: number of ECI digits
