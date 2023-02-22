@@ -35,7 +35,6 @@ pub enum Exceptions {
     ReaderDecodeException(),
 }
 
-#[allow(non_upper_case_globals)]
 impl Exceptions {
     pub const ILLEGAL_ARGUMENT: Self = Self::IllegalArgumentException(String::new());
     pub fn illegal_argument_with<I: Into<String>>(x: I) -> Self {
