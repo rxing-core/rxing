@@ -23,7 +23,7 @@ use std::{cmp, fmt};
 use crate::common::Result;
 use crate::Exceptions;
 
-static LOAD_FACTOR: f32 = 0.75f32;
+static LOAD_FACTOR: f32 = 0.75;
 
 /**
  * <p>A simple, fast array of bits, represented compactly by an array of ints internally.</p>

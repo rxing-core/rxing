@@ -133,19 +133,9 @@ impl PerspectiveTransform {
     ) -> Self {
         let dx3 = x0 - x1 + x2 - x3;
         let dy3 = y0 - y1 + y2 - y3;
-        if dx3 == 0.0f32 && dy3 == 0.0f32 {
+        if dx3 == 0.0 && dy3 == 0.0 {
             // Affine
-            PerspectiveTransform::new(
-                x1 - x0,
-                x2 - x1,
-                x0,
-                y1 - y0,
-                y2 - y1,
-                y0,
-                0.0f32,
-                0.0f32,
-                1.0f32,
-            )
+            PerspectiveTransform::new(x1 - x0, x2 - x1, x0, y1 - y0, y2 - y1, y0, 0.0, 0.0, 1.0)
         } else {
             let dx1 = x1 - x2;
             let dx2 = x3 - x2;
@@ -163,7 +153,7 @@ impl PerspectiveTransform {
                 y0,
                 a13,
                 a23,
-                1.0f32,
+                1.0,
             )
         }
     }

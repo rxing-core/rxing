@@ -348,7 +348,7 @@ pub(crate) fn corrupt(
 ) {
     let mut corrupted = vec![false; received.len()];
     //BitSet corrupted = new BitSet(received.length);
-    let mut j = 0isize;
+    let mut j: isize = 0;
     while j < howMany as isize {
         // for (int j = 0; j < howMany; j++) {
         let location: usize = random.gen_range(0..received.len());
@@ -477,7 +477,7 @@ fn test_decoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
     };
     for _j in 0..iterations {
         //for (int j = 0; j < iterations; j++) {
-        let mut i = 0isize;
+        let mut i: isize = 0;
         while i < ecWords.len() as isize {
             //for (int i = 0; i < ecWords.length; i++) {
             if i > 10 && i < ecWords.len() as isize / 2 - 10 {

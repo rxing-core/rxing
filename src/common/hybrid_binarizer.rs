@@ -179,7 +179,7 @@ impl HybridBinarizer {
                 }
                 let left = Self::cap(x, sub_width - 3);
                 let mut sum = 0;
-                for z in -2i32..=2 {
+                for z in -2..=2 {
                     // for (int z = -2; z <= 2; z++) {
                     let blackRow = &black_points[(top as i32 + z) as usize];
                     sum += blackRow[(left - 2) as usize]
@@ -255,7 +255,7 @@ impl HybridBinarizer {
                 if xoffset > maxXOffset as u32 {
                     xoffset = maxXOffset as u32;
                 }
-                let mut sum = 0u32;
+                let mut sum: u32 = 0;
                 let mut min = 0xff;
                 let mut max = 0;
 

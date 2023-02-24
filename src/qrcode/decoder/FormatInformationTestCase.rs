@@ -28,7 +28,7 @@ fn testBitsDiffering() {
     assert_eq!(0, FormatInformation::numBitsDiffering(1, 1));
     assert_eq!(1, FormatInformation::numBitsDiffering(0, 2));
     assert_eq!(2, FormatInformation::numBitsDiffering(1, 2));
-    assert_eq!(32, FormatInformation::numBitsDiffering(-1i32 as u32, 0));
+    assert_eq!(32, FormatInformation::numBitsDiffering(u32::MAX, 0));
 }
 
 #[test]

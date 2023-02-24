@@ -136,7 +136,7 @@ fn getBit(bit: u8, bytes: &[u8]) -> u8 {
 }
 
 fn getInt(bytes: &[u8], x: &[u8]) -> u32 {
-    let mut val = 0u32;
+    let mut val: u32 = 0;
     for i in 0..x.len() {
         // for (int i = 0; i < x.length; i++) {
         val += (getBit(x[i], bytes) as u32) << ((x.len() - i - 1) as u32);
