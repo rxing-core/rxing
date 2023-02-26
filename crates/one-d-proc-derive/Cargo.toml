@@ -1,0 +1,16 @@
+[package]
+name = "rxing-one-d-proc-derive"
+repository = "https://github.com/rxing-core/rxing/tree/main/crates/one-d-proc-derive"
+version = "0.3.0"
+edition = "2021"
+description = "proc macros to simplify the development of one-d barcode symbologies in rxing (https://github.com/rxing-core/rxing)"
+license = "Apache-2.0"
+
+[lib]
+proc-macro = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+syn = "1.0"
+quote = "1.0"
