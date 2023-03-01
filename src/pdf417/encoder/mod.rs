@@ -7,8 +7,7 @@ pub use barcode_row::*;
 mod barcode_matrix;
 pub use barcode_matrix::*;
 
-mod dimensions;
-pub use dimensions::*;
+pub use rxing_common::Dimensions;
 
 pub mod pdf_417_error_correction;
 pub mod pdf_417_high_level_encoder;

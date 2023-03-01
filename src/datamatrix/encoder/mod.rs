@@ -5,13 +5,11 @@ pub mod error_correction;
 pub mod high_level_encoder;
 pub mod minimal_encoder;
 mod symbol_info;
-mod symbol_shape_hint;
 
 pub use datamatrix_encoder::*;
 pub use default_placement::*;
 pub use encoder_context::*;
 pub use symbol_info::*;
-pub use symbol_shape_hint::*;
 
 mod c40_encoder;
 pub use c40_encoder::*;
@@ -30,6 +28,8 @@ pub use edifact_encoder::*;
 
 mod base256_encoder;
 pub use base256_encoder::*;
+
+pub use rxing_common::SymbolShapeHint;
 
 #[cfg(test)]
 mod high_level_encode_test_case;

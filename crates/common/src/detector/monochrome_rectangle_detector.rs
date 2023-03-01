@@ -18,7 +18,7 @@
 //package com.google.zxing.common.detector;
 
 use crate::{
-    common::{BitMatrix, Result},
+    BitMatrix, Result,
     point, Exceptions, Point,
 };
 

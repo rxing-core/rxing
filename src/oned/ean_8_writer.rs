@@ -121,7 +121,7 @@ impl OneDimensionalCodeWriter for EAN8Writer {
  */
 #[cfg(test)]
 mod EAN8WriterTestCase {
-    use crate::{common::bit_matrix_test_case, BarcodeFormat, Writer};
+    use crate::{common::bit_matrix_test_helpers, BarcodeFormat, Writer};
 
     use super::EAN8Writer;
 
@@ -137,7 +137,7 @@ mod EAN8WriterTestCase {
                 0,
             )
             .expect("ok");
-        assert_eq!(testStr, bit_matrix_test_case::matrix_to_string(&result));
+        assert_eq!(testStr, bit_matrix_test_helpers::matrix_to_string(&result));
     }
 
     #[test]
@@ -152,7 +152,7 @@ mod EAN8WriterTestCase {
                 0,
             )
             .expect("ok");
-        assert_eq!(testStr, bit_matrix_test_case::matrix_to_string(&result));
+        assert_eq!(testStr, bit_matrix_test_helpers::matrix_to_string(&result));
     }
 
     #[test]

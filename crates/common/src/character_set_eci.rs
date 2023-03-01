@@ -25,7 +25,7 @@
 
 use encoding::EncodingRef;
 
-use crate::common::Result;
+use crate::Result;
 use crate::Exceptions;
 
 /**

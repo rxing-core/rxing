@@ -18,7 +18,7 @@
 
 use std::fmt::Display;
 
-use crate::common::Result;
+use crate::Result;
 
 /**
  * Interface to navigate a sequence of ECIs and bytes.

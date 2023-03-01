@@ -18,7 +18,7 @@
 
 // import com.google.zxing.NotFoundException;
 
-use crate::common::Result;
+use crate::Result;
 use crate::Exceptions;
 
 use super::{BitMatrix, GridSampler, PerspectiveTransform};

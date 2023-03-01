@@ -16,7 +16,7 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         use std::collections::HashMap;
-        use crate::result_point::ResultPoint;
+        use crate::ResultPoint;
         use crate::DecodeHintType;
         use crate::DecodingHintDictionary;
         use crate::RXingResultMetadataType;

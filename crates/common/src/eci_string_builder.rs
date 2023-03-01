@@ -25,7 +25,7 @@ use std::fmt;
 
 use encoding::{Encoding, EncodingRef};
 
-use crate::common::Result;
+use crate::Result;
 
 use super::CharacterSetECI;
 

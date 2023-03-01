@@ -132,7 +132,7 @@ impl OneDimensionalCodeWriter for UPCEWriter {
  */
 #[cfg(test)]
 mod UPCEWriterTestCase {
-    use crate::{common::bit_matrix_test_case, BarcodeFormat, Writer};
+    use crate::{common::bit_matrix_test_helpers, BarcodeFormat, Writer};
 
     use super::UPCEWriter;
 
@@ -169,7 +169,7 @@ mod UPCEWriterTestCase {
                 0,
             )
             .expect("ok");
-        assert_eq!(encoding, bit_matrix_test_case::matrix_to_string(&result));
+        assert_eq!(encoding, bit_matrix_test_helpers::matrix_to_string(&result));
     }
 
     #[test]

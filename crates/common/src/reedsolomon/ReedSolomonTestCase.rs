@@ -340,7 +340,7 @@ fn test_aztec() {
     test_encode_decode_random(azd12, 3072, 1023);
 }
 
-pub(crate) fn corrupt(
+pub fn corrupt(
     received: &mut Vec<i32>,
     howMany: i32,
     random: &mut rand::rngs::ThreadRng,

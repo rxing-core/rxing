@@ -1,5 +1,10 @@
+#![allow(non_snake_case)]
+#![allow(non_camel_case_types)]
+
 pub mod detector;
 pub mod reedsolomon;
+
+use std::{rc::Rc, collections::HashMap};
 
 use crate::Point;
 
@@ -10,7 +15,7 @@ mod StringUtilsTestCase;
 mod BitArrayTestCase;
 
 #[cfg(test)]
-pub(crate) mod bit_matrix_test_case;
+pub mod bit_matrix_test_case;
 
 #[cfg(test)]
 mod BitSourceTestCase;
@@ -23,6 +28,15 @@ pub use string_utils::*;
 
 mod bit_array;
 pub use bit_array::*;
+
+mod dimensions;
+pub use dimensions::*;
+
+mod symbol_shape_hint;
+pub use symbol_shape_hint::*;
+
+mod pdf_417_result_metadata;
+pub use pdf_417_result_metadata::*;
 
 pub type Result<T, E = crate::Exceptions> = std::result::Result<T, E>;
 
@@ -105,6 +119,47 @@ pub use global_histogram_binarizer::*;
 
 mod hybrid_binarizer;
 pub use hybrid_binarizer::*;
+
+pub mod exceptions;
+pub use exceptions::*;
+
+pub mod rxing_result_point;
+pub use rxing_result_point::*;
+
+pub mod result_point;
+pub use result_point::*;
+
+pub mod result_point_utils;
+
+pub mod binarizer;
+
+pub mod luminance_source;
+pub use luminance_source::*;
+
+pub mod decode_hints;
+pub use decode_hints::*;
+
+pub mod barcode_format;
+pub use barcode_format::*;
+
+pub mod encode_hints;
+pub use encode_hints::*;
+
+pub mod rxing_result_metadata;
+pub use rxing_result_metadata::*;
+
+pub mod dimension;
+pub use dimension::*;
+
+/// Callback which is invoked when a possible result point (significant
+/// point in the barcode image such as a corner) is found.
+pub type PointCallback = Rc<dyn Fn(Point)>;
+
+pub type EncodingHintDictionary = HashMap<EncodeHintType, EncodeHintValue>;
+pub type DecodingHintDictionary = HashMap<DecodeHintType, DecodeHintValue>;
+pub type MetadataDictionary = HashMap<RXingResultMetadataType, RXingResultMetadataValue>;
+
+pub mod bit_matrix_test_helpers;
 
 #[cfg(feature = "otsu_level")]
 mod otsu_level_binarizer;

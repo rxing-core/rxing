@@ -19,7 +19,7 @@ use std::{fmt, rc::Rc};
 use encoding::EncodingRef;
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::common::Result;
+use crate::Result;
 use crate::Exceptions;
 
 use super::{ECIEncoderSet, ECIInput};

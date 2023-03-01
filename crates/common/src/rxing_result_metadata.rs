@@ -18,7 +18,7 @@
 
 use std::rc::Rc;
 
-use crate::pdf417::PDF417RXingResultMetadata;
+use crate::PDF417RXingResultMetadata;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};

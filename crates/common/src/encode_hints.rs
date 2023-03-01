@@ -18,7 +18,7 @@
 
 #![allow(deprecated)]
 
-use crate::{pdf417::encoder::Dimensions, Dimension};
+use crate::{Dimensions, Dimension};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -203,7 +203,7 @@ pub enum EncodeHintValue {
     /**
      * Specifies the matrix shape for Data Matrix (type {@link com.google.zxing.datamatrix.encoder.SymbolShapeHint})
      */
-    DataMatrixShape(crate::datamatrix::encoder::SymbolShapeHint),
+    DataMatrixShape(crate::SymbolShapeHint),
 
     /**
      * Specifies whether to use compact mode for Data Matrix (type {@link Boolean}, or "true" or "false"

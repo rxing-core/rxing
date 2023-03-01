@@ -18,7 +18,7 @@
 
 use std::cmp;
 
-use crate::common::Result;
+use crate::Result;
 use crate::Exceptions;
 
 /**

@@ -70,7 +70,7 @@ impl Writer for UPCAWriter {
  */
 #[cfg(test)]
 mod UPCAWriterTestCase {
-    use crate::{common::bit_matrix_test_case, BarcodeFormat, Writer};
+    use crate::{common::bit_matrix_test_helpers, BarcodeFormat, Writer};
 
     use super::UPCAWriter;
 
@@ -86,7 +86,7 @@ mod UPCAWriterTestCase {
                 0,
             )
             .expect("ok");
-        assert_eq!(testStr, bit_matrix_test_case::matrix_to_string(&result));
+        assert_eq!(testStr, bit_matrix_test_helpers::matrix_to_string(&result));
     }
 
     #[test]
@@ -101,6 +101,6 @@ mod UPCAWriterTestCase {
                 0,
             )
             .expect("ok");
-        assert_eq!(testStr, bit_matrix_test_case::matrix_to_string(&result));
+        assert_eq!(testStr, bit_matrix_test_helpers::matrix_to_string(&result));
     }
 }

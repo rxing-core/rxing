@@ -4,8 +4,7 @@ pub mod encoder;
 
 pub mod pdf_417_common;
 
-mod pdf_417_result_metadata;
-pub use pdf_417_result_metadata::*;
+pub use rxing_common::PDF417RXingResultMetadata;
 
 mod pdf_417_reader;
 pub use pdf_417_reader::*;

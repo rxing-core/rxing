@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::common::Result;
+use crate::Result;
 use crate::Exceptions;
 
 use super::{GenericGFPoly, GenericGFRef};

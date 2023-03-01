@@ -27,7 +27,7 @@ use encoding::{Encoding, EncodingRef};
 use rand::Rng;
 use std::collections::HashMap;
 
-use crate::common::StringUtils;
+use crate::StringUtils;
 
 #[test]
 fn test_random() {

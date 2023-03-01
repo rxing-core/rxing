@@ -1,16 +1,16 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
+pub use rxing_common as common;
+
+
 pub mod aztec;
 pub mod client;
-pub mod common;
-mod exceptions;
 pub mod maxicode;
 pub mod qrcode;
 
-use std::{collections::HashMap, rc::Rc};
-
-pub use exceptions::Exceptions;
+pub use rxing_common::exceptions;
+pub use rxing_common::exceptions::Exceptions;
 
 #[cfg(feature = "image")]
 mod buffered_image_luminance_source;
@@ -24,25 +24,16 @@ mod PlanarYUVLuminanceSourceTestCase;
 #[cfg(test)]
 mod rgb_luminance_source_test_case;
 
-pub type EncodingHintDictionary = HashMap<EncodeHintType, EncodeHintValue>;
-pub type DecodingHintDictionary = HashMap<DecodeHintType, DecodeHintValue>;
-pub type MetadataDictionary = HashMap<RXingResultMetadataType, RXingResultMetadataValue>;
+pub use rxing_common::PointCallback as PointCallback;
 
-mod barcode_format;
-pub use barcode_format::*;
+pub use rxing_common::barcode_format::*;
 
-mod encode_hints;
-pub use encode_hints::*;
-
-/// Callback which is invoked when a possible result point (significant
-/// point in the barcode image such as a corner) is found.
-pub type PointCallback = Rc<dyn Fn(Point)>;
+pub use rxing_common::encode_hints::*;
 
 /** Temporary type to ease refactoring and keep backwards-compatibility */
 pub type RXingResultPointCallback = PointCallback;
 
-mod decode_hints;
-pub use decode_hints::*;
+pub use rxing_common::decode_hints::*;
 
 mod writer;
 pub use writer::*;
@@ -50,31 +41,25 @@ pub use writer::*;
 mod reader;
 pub use reader::*;
 
-mod rxing_result_metadata;
-pub use rxing_result_metadata::*;
+pub use rxing_common::rxing_result_metadata::*;
 
 mod rxing_result;
 pub use rxing_result::*;
 
-mod result_point;
-pub use result_point::*;
+pub use rxing_common::result_point::*;
 
-pub mod result_point_utils;
+pub use rxing_common::result_point_utils;
 
-mod rxing_result_point;
-pub use rxing_result_point::*;
+pub use rxing_common::rxing_result_point::*;
 
-mod dimension;
-pub use dimension::*;
+pub use rxing_common::dimension::*;
 
-mod binarizer;
-pub use binarizer::*;
+pub use rxing_common::binarizer::*;
 
 mod binary_bitmap;
 pub use binary_bitmap::*;
 
-mod luminance_source;
-pub use luminance_source::*;
+pub use rxing_common::luminance_source::*;
 
 mod planar_yuv_luminance_source;
 pub use planar_yuv_luminance_source::*;
@@ -98,6 +83,11 @@ pub mod helpers;
 
 mod luma_luma_source;
 pub use luma_luma_source::*;
+
+pub use rxing_common::DecodingHintDictionary;
+pub use rxing_common::EncodingHintDictionary;
+
+pub use rxing_common::result_point::ResultPoint;
 
 #[cfg(feature = "svg_read")]
 mod svg_luminance_source;

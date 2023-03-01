@@ -16,8 +16,8 @@ use crate::ResultPoint;
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Point {
-    pub(crate) x: f32,
-    pub(crate) y: f32,
+    pub x: f32,
+    pub y: f32,
 }
 
 /** An alias for `Point::new`. */

@@ -16,7 +16,43 @@
 
 use rand::Rng;
 
-use crate::common::reedsolomon::ReedSolomonTestCase;
+ fn primary_corrupt(
+    received: &mut Vec<i32>,
+    howMany: i32,
+    random: &mut rand::rngs::ThreadRng,
+    max: i32,
+) {
+    let mut corrupted = vec![false; received.len()];
+    //BitSet corrupted = new BitSet(received.length);
+    let mut j: isize = 0;
+    while j < howMany as isize {
+        // for (int j = 0; j < howMany; j++) {
+        let location: usize = random.gen_range(0..received.len());
+        let value = random.gen_range(0..max);
+        if corrupted[location] || received[location] == value {
+            j -= 1;
+        } else {
+            corrupted[location] = true;
+            received[location] = value;
+        }
+        j += 1;
+    }
+    // for _j in 0..howMany {
+    //     //for (int j = 0; j < howMany; j++) {
+    //     if skip {
+    //         skip = false;
+    //         continue;
+    //     }
+    //     let location: usize = random.gen_range(0..received.len());
+    //     let value = random.gen_range(0..max);
+    //     if corrupted[location] || received[location] == value {
+    //         skip = true;
+    //     } else {
+    //         corrupted[location] = true;
+    //         received[location] = value;
+    //     }
+    // }
+}
 
 /**
  * @author Sean Owen
@@ -24,7 +60,7 @@ use crate::common::reedsolomon::ReedSolomonTestCase;
 
 pub fn corrupt(received: &mut [u32], howMany: u32, random: &mut rand::rngs::ThreadRng) {
     let mut pass: Vec<i32> = received.iter().map(|x| *x as i32).collect();
-    ReedSolomonTestCase::corrupt(&mut pass, howMany as i32, random, 929);
+    primary_corrupt(&mut pass, howMany as i32, random, 929);
     for i in 0..received.len() {
         received[i] = pass[i] as u32;
     }

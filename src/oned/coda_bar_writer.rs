@@ -164,7 +164,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
 #[cfg(test)]
 mod CodaBarWriterTestCase {
     use crate::{
-        common::{bit_matrix_test_case, BitMatrix},
+        common::{bit_matrix_test_helpers, BitMatrix},
         BarcodeFormat, Writer,
     };
 
@@ -212,7 +212,7 @@ mod CodaBarWriterTestCase {
 
     fn doTest(input: &str, expected: &str) {
         let result = encode(input);
-        assert_eq!(expected, bit_matrix_test_case::matrix_to_string(&result));
+        assert_eq!(expected, bit_matrix_test_helpers::matrix_to_string(&result));
     }
 
     fn encode(input: &str) -> BitMatrix {

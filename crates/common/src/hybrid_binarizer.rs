@@ -24,8 +24,8 @@ use std::{borrow::Cow, rc::Rc};
 
 use once_cell::unsync::OnceCell;
 
-use crate::common::Result;
-use crate::{Binarizer, LuminanceSource};
+use crate::Result;
+use crate::{binarizer::Binarizer, LuminanceSource};
 
 use super::{BitArray, BitMatrix, GlobalHistogramBinarizer};
 

@@ -233,7 +233,7 @@ impl Code93Writer {
  */
 #[cfg(test)]
 mod Code93WriterTestCase {
-    use crate::{common::bit_matrix_test_case, oned::Code93Writer, BarcodeFormat, Writer};
+    use crate::{common::bit_matrix_test_helpers, oned::Code93Writer, BarcodeFormat, Writer};
 
     #[test]
     fn testEncode() {
@@ -268,7 +268,7 @@ mod Code93WriterTestCase {
         let result = Code93Writer::default()
             .encode(input, &BarcodeFormat::CODE_93, 0, 0)
             .expect("encode");
-        assert_eq!(expected, bit_matrix_test_case::matrix_to_string(&result));
+        assert_eq!(expected, bit_matrix_test_helpers::matrix_to_string(&result));
     }
 
     #[test]
