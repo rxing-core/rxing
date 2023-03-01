@@ -16,10 +16,7 @@
 
 //package com.google.zxing.common.detector;
 
-use crate::{
-    BitMatrix, Result,
-    point, Exceptions, Point,
-};
+use crate::{point, BitMatrix, Exceptions, Point, Result};
 
 /**
  * <p>

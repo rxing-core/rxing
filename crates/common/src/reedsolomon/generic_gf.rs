@@ -1,7 +1,7 @@
 use std::fmt;
 
-use crate::Result;
 use crate::Exceptions;
+use crate::Result;
 
 use super::{GenericGFPoly, GenericGFRef};
 

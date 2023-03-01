@@ -19,8 +19,8 @@ use std::{fmt, rc::Rc};
 use encoding::EncodingRef;
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::Result;
 use crate::Exceptions;
+use crate::Result;
 
 use super::{ECIEncoderSet, ECIInput};
 

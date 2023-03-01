@@ -4,7 +4,7 @@
 pub mod detector;
 pub mod reedsolomon;
 
-use std::{rc::Rc, collections::HashMap};
+use std::{collections::HashMap, rc::Rc};
 
 use crate::Point;
 

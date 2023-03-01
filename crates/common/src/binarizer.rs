@@ -19,8 +19,7 @@
 use std::{borrow::Cow, rc::Rc};
 
 use crate::{
-    {BitArray, BitMatrix, Result},
-    LuminanceSource,
+    LuminanceSource, {BitArray, BitMatrix, Result},
 };
 
 /**

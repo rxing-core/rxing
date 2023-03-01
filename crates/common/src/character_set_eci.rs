@@ -25,8 +25,8 @@
 
 use encoding::EncodingRef;
 
-use crate::Result;
 use crate::Exceptions;
+use crate::Result;
 
 /**
  * Encapsulates a Character Set ECI, according to "Extended Channel Interpretations" 5.3.1.1

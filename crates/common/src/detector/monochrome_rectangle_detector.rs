@@ -17,10 +17,7 @@
 
 //package com.google.zxing.common.detector;
 
-use crate::{
-    BitMatrix, Result,
-    point, Exceptions, Point,
-};
+use crate::{point, BitMatrix, Exceptions, Point, Result};
 
 /**
  * <p>A somewhat generic detector that looks for a barcode-like rectangular region within an image.

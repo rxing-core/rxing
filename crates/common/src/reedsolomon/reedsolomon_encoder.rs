@@ -19,8 +19,8 @@
 //import java.util.ArrayList;
 //import java.util.List;
 
-use crate::Result;
 use crate::Exceptions;
+use crate::Result;
 
 use super::{GenericGFPoly, GenericGFRef};
 

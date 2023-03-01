@@ -20,8 +20,8 @@
 
 use std::{cmp, fmt};
 
-use crate::Result;
 use crate::Exceptions;
+use crate::Result;
 
 static LOAD_FACTOR: f32 = 0.75;
 

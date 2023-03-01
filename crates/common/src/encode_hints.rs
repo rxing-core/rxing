@@ -18,7 +18,7 @@
 
 #![allow(deprecated)]
 
-use crate::{Dimensions, Dimension};
+use crate::{Dimension, Dimensions};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};

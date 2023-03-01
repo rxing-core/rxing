@@ -16,8 +16,8 @@
 
 //package com.google.zxing;
 
-use crate::Result;
 use crate::Exceptions;
+use crate::Result;
 
 /**
  * The purpose of this class hierarchy is to abstract different bitmap implementations across

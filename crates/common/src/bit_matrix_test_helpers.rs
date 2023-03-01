@@ -1,6 +1,5 @@
 use crate::BitMatrix;
 
-
 pub fn matrix_to_string(result: &BitMatrix) -> String {
     assert_eq!(1, result.getHeight());
     let mut builder = String::with_capacity(result.getWidth().try_into().unwrap());

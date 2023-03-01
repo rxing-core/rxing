@@ -18,8 +18,8 @@
 
 use std::cmp;
 
-use crate::Result;
 use crate::Exceptions;
+use crate::Result;
 
 /**
  * <p>This provides an easy abstraction to read bits at a time from a sequence of bytes, where the

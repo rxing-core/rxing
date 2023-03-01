@@ -3,7 +3,6 @@
 
 pub use rxing_common as common;
 
-
 pub mod aztec;
 pub mod client;
 pub mod maxicode;
@@ -24,7 +23,7 @@ mod PlanarYUVLuminanceSourceTestCase;
 #[cfg(test)]
 mod rgb_luminance_source_test_case;
 
-pub use rxing_common::PointCallback as PointCallback;
+pub use rxing_common::PointCallback;
 
 pub use rxing_common::barcode_format::*;
 

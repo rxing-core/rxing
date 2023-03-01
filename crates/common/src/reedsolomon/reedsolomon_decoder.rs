@@ -16,8 +16,8 @@
 
 //package com.google.zxing.common.reedsolomon;
 
-use crate::Result;
 use crate::Exceptions;
+use crate::Result;
 
 use super::{GenericGF, GenericGFPoly, GenericGFRef};
 

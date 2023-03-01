@@ -16,7 +16,7 @@
 
 use rand::Rng;
 
- fn primary_corrupt(
+fn primary_corrupt(
     received: &mut Vec<i32>,
     howMany: i32,
     random: &mut rand::rngs::ThreadRng,

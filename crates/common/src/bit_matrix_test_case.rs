@@ -342,8 +342,6 @@ fn test_xor_case() {
     // }
 }
 
-
-
 fn test_XOR(dataMatrix: &BitMatrix, flipMatrix: &BitMatrix, expectedMatrix: &BitMatrix) {
     let mut matrix = dataMatrix.clone();
     matrix.xor(flipMatrix).expect("must set");
