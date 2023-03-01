@@ -451,9 +451,7 @@ fn decode_command(
                 );
             }
             Err(search_err) => {
-                println!(
-                    "Error while attempting to locate barcode in '{file_name}': {search_err}"
-                );
+                println!("Error while attempting to locate barcode in '{file_name}': {search_err}");
             }
         }
     }
