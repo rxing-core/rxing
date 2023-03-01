@@ -340,8 +340,8 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
 
         let [tl, bl, tr, br] = symbol_box.0;
 
-        let target_width = Point::distance(tl.into(), tr.into());
-        let target_height = Point::distance(br.into(), tr.into());
+        let target_width = Point::distance(tl, tr);
+        let target_height = Point::distance(br, tr);
 
         // let target_width = (tr.0 - tl.0).round().abs() as u32;
         // let target_height = (br.1 - tr.1).round().abs() as u32;
@@ -376,11 +376,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         return Ok(MaxicodeDetectionResult {
             bits,
             points: symbol_box
-                .0
-                .iter()
-                // .map(|p| Point { x: p.x, y: p.y })
-                .copied()
-                .collect(),
+                .0.to_vec(),
             rotation: symbol_box.1,
         });
     }

@@ -132,7 +132,7 @@ impl RXingResult {
 
     /** Currently necessary because the external OneDReader proc macro uses it. */
     pub fn getRXingResultPoints(&self) -> &Vec<Point> {
-        &&self.resultPoints
+        &self.resultPoints
     }
 
     /** Currently necessary because the external OneDReader proc macro uses it. */
