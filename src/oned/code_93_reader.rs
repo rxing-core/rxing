@@ -66,7 +66,7 @@ impl OneDReader for Code93Reader {
             one_d_reader::recordPattern(row, nextStart, &mut theCounters)?;
             let pattern = Self::toPattern(&theCounters);
             if pattern < 0 {
-                return Err(Exceptions::notFound);
+                return Err(Exceptions::NOT_FOUND);
             }
             decodedChar = Self::patternToChar(pattern as u32)?;
             self.decodeRowRXingResult.push(decodedChar);
@@ -95,12 +95,12 @@ impl OneDReader for Code93Reader {
 
         // Should be at least one more black module
         if nextStart == end || !row.get(nextStart) {
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         }
 
         if self.decodeRowRXingResult.chars().count() < 2 {
             // false positive -- need at least 2 checksum digits
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         }
 
         Self::checkChecksums(&self.decodeRowRXingResult)?;
@@ -194,7 +194,7 @@ impl Code93Reader {
                 isWhite = !isWhite;
             }
         }
-        Err(Exceptions::notFound)
+        Err(Exceptions::NOT_FOUND)
     }
 
     fn toPattern(counters: &[u32; 6]) -> i32 {
@@ -224,7 +224,7 @@ impl Code93Reader {
                 return Ok(Self::ALPHABET[i]);
             }
         }
-        Err(Exceptions::notFound)
+        Err(Exceptions::NOT_FOUND)
     }
 
     fn decodeExtended(encoded: &str) -> Result<String> {
@@ -234,52 +234,55 @@ impl Code93Reader {
         while i < length {
             // for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            let c = encoded.chars().nth(i).ok_or(Exceptions::indexOutOfBounds)?;
+            let c = encoded
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
             if ('a'..='d').contains(&c) {
                 if i >= length - 1 {
-                    return Err(Exceptions::format);
+                    return Err(Exceptions::FORMAT);
                 }
                 let next = encoded
                     .chars()
                     .nth(i + 1)
-                    .ok_or(Exceptions::indexOutOfBounds)?;
+                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
                 let mut decodedChar = '\0';
                 match c {
                     'd' => {
                         // +A to +Z map to a to z
                         if ('A'..='Z').contains(&next) {
                             decodedChar =
-                                char::from_u32(next as u32 + 32).ok_or(Exceptions::parse)?;
+                                char::from_u32(next as u32 + 32).ok_or(Exceptions::PARSE)?;
                         } else {
-                            return Err(Exceptions::format);
+                            return Err(Exceptions::FORMAT);
                         }
                     }
                     'a' => {
                         // $A to $Z map to control codes SH to SB
                         if ('A'..='Z').contains(&next) {
                             decodedChar =
-                                char::from_u32(next as u32 - 64).ok_or(Exceptions::parse)?;
+                                char::from_u32(next as u32 - 64).ok_or(Exceptions::PARSE)?;
                         } else {
-                            return Err(Exceptions::format);
+                            return Err(Exceptions::FORMAT);
                         }
                     }
                     'b' => {
                         if ('A'..='E').contains(&next) {
                             // %A to %E map to control codes ESC to USep
                             decodedChar =
-                                char::from_u32(next as u32 - 38).ok_or(Exceptions::parse)?;
+                                char::from_u32(next as u32 - 38).ok_or(Exceptions::PARSE)?;
                         } else if ('F'..='J').contains(&next) {
                             // %F to %J map to ; < = > ?
                             decodedChar =
-                                char::from_u32(next as u32 - 11).ok_or(Exceptions::parse)?;
+                                char::from_u32(next as u32 - 11).ok_or(Exceptions::PARSE)?;
                         } else if ('K'..='O').contains(&next) {
                             // %K to %O map to [ \ ] ^ _
                             decodedChar =
-                                char::from_u32(next as u32 + 16).ok_or(Exceptions::parse)?;
+                                char::from_u32(next as u32 + 16).ok_or(Exceptions::PARSE)?;
                         } else if ('P'..='T').contains(&next) {
                             // %P to %T map to { | } ~ DEL
                             decodedChar =
-                                char::from_u32(next as u32 + 43).ok_or(Exceptions::parse)?;
+                                char::from_u32(next as u32 + 43).ok_or(Exceptions::PARSE)?;
                         } else if next == 'U' {
                             // %U map to NUL
                             decodedChar = '\0';
@@ -293,18 +296,18 @@ impl Code93Reader {
                             // %X to %Z all map to DEL (127)
                             decodedChar = 127 as char;
                         } else {
-                            return Err(Exceptions::format);
+                            return Err(Exceptions::FORMAT);
                         }
                     }
                     'c' => {
                         // /A to /O map to ! to , and /Z maps to :
                         if ('A'..='O').contains(&next) {
                             decodedChar =
-                                char::from_u32(next as u32 - 32).ok_or(Exceptions::parse)?;
+                                char::from_u32(next as u32 - 32).ok_or(Exceptions::PARSE)?;
                         } else if next == 'Z' {
                             decodedChar = ':';
                         } else {
-                            return Err(Exceptions::format);
+                            return Err(Exceptions::FORMAT);
                         }
                     }
                     _ => {}
@@ -334,7 +337,12 @@ impl Code93Reader {
         for i in (0..checkPosition).rev() {
             total += weight
                 * Self::ALPHABET_STRING
-                    .find(result.chars().nth(i).ok_or(Exceptions::indexOutOfBounds)?)
+                    .find(
+                        result
+                            .chars()
+                            .nth(i)
+                            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                    )
                     .map_or_else(|| -1_i32, |v| v as i32);
             weight += 1;
             if weight > weightMax as i32 {
@@ -344,10 +352,10 @@ impl Code93Reader {
         if result
             .chars()
             .nth(checkPosition)
-            .ok_or(Exceptions::indexOutOfBounds)?
+            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
             != Self::ALPHABET[(total as usize) % 47]
         {
-            Err(Exceptions::checksum)
+            Err(Exceptions::CHECKSUM)
         } else {
             Ok(())
         }

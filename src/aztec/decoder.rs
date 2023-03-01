@@ -162,13 +162,13 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                 result.push_str(
                     &encdr
                         .decode(&decoded_bytes, encoding::DecoderTrap::Strict)
-                        .map_err(Exceptions::illegalStateWith)?,
+                        .map_err(Exceptions::illegal_state_with)?,
                 );
 
                 decoded_bytes.clear();
                 match n {
                     0 => result.push(29 as char), // translate FNC1 as ASCII 29
-                    7 => return Err(Exceptions::formatWith("FLG(7) is reserved and illegal")), // FLG(7) is reserved and illegal
+                    7 => return Err(Exceptions::format_with("FLG(7) is reserved and illegal")), // FLG(7) is reserved and illegal
                     _ => {
                         // ECI is decimal integer encoded as 1-6 codes in DIGIT mode
                         let mut eci = 0;
@@ -180,7 +180,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                             let next_digit = read_code(corrected_bits, index, 4);
                             index += 4;
                             if !(2..=11).contains(&next_digit) {
-                                return Err(Exceptions::formatWith("Not a decimal digit"));
+                                return Err(Exceptions::format_with("Not a decimal digit"));
                                 // Not a decimal digit
                             }
                             eci = eci * 10 + (next_digit - 2);
@@ -188,7 +188,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                         }
                         let charset_eci = CharacterSetECI::getCharacterSetECIByValue(eci);
                         if charset_eci.is_err() {
-                            return Err(Exceptions::formatWith("Charset must exist"));
+                            return Err(Exceptions::format_with("Charset must exist"));
                         }
                         encdr = CharacterSetECI::getCharset(&charset_eci?);
                     }
@@ -201,8 +201,8 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                 // That's including when that mode is a shift.
                 // Our test case dlusbs.png for issue #642 exercises that.
                 latch_table = shift_table; // Latch the current mode, so as to return to Upper after U/S B/S
-                shift_table = getTable(str.chars().nth(5).ok_or(Exceptions::indexOutOfBounds)?);
-                if str.chars().nth(6).ok_or(Exceptions::indexOutOfBounds)? == 'L' {
+                shift_table = getTable(str.chars().nth(5).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?);
+                if str.chars().nth(6).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == 'L' {
                     latch_table = shift_table;
                 }
             } else {
@@ -223,7 +223,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
     if let Ok(str) = encdr.decode(&decoded_bytes, encoding::DecoderTrap::Strict) {
         result.push_str(&str);
     } else {
-        return Err(Exceptions::illegalStateWith("bad encoding"));
+        return Err(Exceptions::illegal_state_with("bad encoding"));
     }
     //   result.push_str(decodedBytes.toString(encoding.name()));
     //} catch (UnsupportedEncodingException uee) {
@@ -275,7 +275,7 @@ fn get_character(table: Table, code: u32) -> Result<&'static str> {
         Table::Mixed => Ok(MIXED_TABLE[code as usize]),
         Table::Digit => Ok(DIGIT_TABLE[code as usize]),
         Table::Punct => Ok(PUNCT_TABLE[code as usize]),
-        _ => Err(Exceptions::illegalStateWith("Bad table")),
+        _ => Err(Exceptions::illegal_state_with("Bad table")),
     }
     // switch (table) {
     //   case UPPER:
@@ -336,7 +336,7 @@ fn correct_bits(
     let num_data_codewords = ddata.getNbDatablocks();
     let num_codewords = rawbits.len() / codeword_size;
     if num_codewords < num_data_codewords as usize {
-        return Err(Exceptions::formatWith(format!(
+        return Err(Exceptions::format_with(format!(
             "numCodewords {num_codewords}< numDataCodewords{num_data_codewords}"
         )));
     }
@@ -369,7 +369,7 @@ fn correct_bits(
         // for (int i = 0; i < numDataCodewords; i++) {
         // let data_word = data_words[i];
         if data_word == &0 || data_word == &mask {
-            return Err(Exceptions::format);
+            return Err(Exceptions::FORMAT);
             //throw FormatException.getFormatInstance();
         } else if data_word == &1 || data_word == &(mask - 1) {
             stuffed_bits += 1;

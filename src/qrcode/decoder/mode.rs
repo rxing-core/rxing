@@ -69,7 +69,7 @@ impl Mode {
             {
                 Ok(Self::HANZI)
             }
-            _ => Err(Exceptions::illegalArgumentWith(format!(
+            _ => Err(Exceptions::illegal_argument_with(format!(
                 "{bits} is not valid"
             ))),
         }

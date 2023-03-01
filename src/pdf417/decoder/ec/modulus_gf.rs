@@ -78,7 +78,7 @@ impl ModulusGF {
 
     pub fn log(&self, a: u32) -> Result<u32> {
         if a == 0 {
-            Err(Exceptions::arithmetic)
+            Err(Exceptions::ARITHMETIC)
         } else {
             Ok(self.logTable[a as usize])
         }
@@ -86,7 +86,7 @@ impl ModulusGF {
 
     pub fn inverse(&self, a: u32) -> Result<u32> {
         if a == 0 {
-            Err(Exceptions::arithmetic)
+            Err(Exceptions::ARITHMETIC)
         } else {
             Ok(self.expTable[self.modulus as usize - self.logTable[a as usize] as usize - 1])
         }

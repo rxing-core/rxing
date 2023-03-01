@@ -87,7 +87,7 @@ impl UPCEANExtension5Support {
                 &upc_ean_reader::L_AND_G_PATTERNS,
             )?;
             resultString
-                .push(char::from_u32('0' as u32 + bestMatch as u32 % 10).ok_or(Exceptions::parse)?);
+                .push(char::from_u32('0' as u32 + bestMatch as u32 % 10).ok_or(Exceptions::PARSE)?);
 
             rowOffset += counters.iter().sum::<u32>() as usize;
 
@@ -104,14 +104,14 @@ impl UPCEANExtension5Support {
         }
 
         if resultString.chars().count() != 5 {
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         }
 
         let checkDigit = Self::determineCheckDigit(lgPatternFound)?;
-        if Self::extensionChecksum(resultString).ok_or(Exceptions::illegalArgument)?
+        if Self::extensionChecksum(resultString).ok_or(Exceptions::ILLEGAL_ARGUMENT)?
             != checkDigit as u32
         {
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         }
 
         Ok(rowOffset as u32)
@@ -146,7 +146,7 @@ impl UPCEANExtension5Support {
                 return Ok(d);
             }
         }
-        Err(Exceptions::notFound)
+        Err(Exceptions::NOT_FOUND)
     }
 
     /**

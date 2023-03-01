@@ -121,7 +121,7 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult> {
                 codeIndex = byteCompaction(code, codewords, codeIndex, &mut result)?
             }
             MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
-                result.append_char(char::from_u32(codewords[codeIndex]).ok_or(Exceptions::parse)?);
+                result.append_char(char::from_u32(codewords[codeIndex]).ok_or(Exceptions::PARSE)?);
                 codeIndex += 1;
             }
             NUMERIC_COMPACTION_MODE_LATCH => {
@@ -147,7 +147,7 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult> {
             BEGIN_MACRO_PDF417_OPTIONAL_FIELD | MACRO_PDF417_TERMINATOR =>
             // Should not see these outside a macro block
             {
-                return Err(Exceptions::format)
+                return Err(Exceptions::FORMAT)
             }
             _ => {
                 // Default to text compaction. During testing numerous barcodes
@@ -162,7 +162,7 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult> {
     result = result.build_result();
 
     if result.is_empty() && resultMetadata.getFileId().is_empty() {
-        return Err(Exceptions::format);
+        return Err(Exceptions::FORMAT);
     }
 
     let mut decoderRXingResult = DecoderRXingResult::new(
@@ -184,7 +184,7 @@ pub fn decodeMacroBlock(
     let mut codeIndex = codeIndex;
     if codeIndex + NUMBER_OF_SEQUENCE_CODEWORDS > codewords[0] as usize {
         // we must have at least two bytes left for the segment index
-        return Err(Exceptions::format);
+        return Err(Exceptions::FORMAT);
     }
     let mut segmentIndexArray = [0; NUMBER_OF_SEQUENCE_CODEWORDS];
     for seq in segmentIndexArray
@@ -202,7 +202,7 @@ pub fn decodeMacroBlock(
         resultMetadata.setSegmentIndex(parsed_int);
     } else {
         // too large; bad input?
-        return Err(Exceptions::format);
+        return Err(Exceptions::FORMAT);
     }
 
     // Decoding the fileId codewords as 0-899 numbers, each 0-filled to width 3. This follows the spec
@@ -219,7 +219,7 @@ pub fn decodeMacroBlock(
     }
     if fileId.chars().count() == 0 {
         // at least one fileId codeword is required (Annex H.2)
-        return Err(Exceptions::format);
+        return Err(Exceptions::FORMAT);
     }
     resultMetadata.setFileId(fileId);
 
@@ -256,7 +256,7 @@ pub fn decodeMacroBlock(
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut segmentCount)?;
                         segmentCount = segmentCount.build_result();
                         let Ok(parsed_segment_count) = segmentCount.to_string().parse() else {
-                            return Err(Exceptions::format);
+                            return Err(Exceptions::FORMAT);
                         };
                         resultMetadata.setSegmentCount(parsed_segment_count);
                     }
@@ -265,7 +265,7 @@ pub fn decodeMacroBlock(
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut timestamp)?;
                         timestamp = timestamp.build_result();
                         let Ok(parsed_timestamp) = timestamp.to_string().parse() else {
-                            return Err(Exceptions::format);
+                            return Err(Exceptions::FORMAT);
                         };
                         resultMetadata.setTimestamp(parsed_timestamp);
                     }
@@ -274,7 +274,7 @@ pub fn decodeMacroBlock(
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut checksum)?;
                         checksum = checksum.build_result();
                         let Ok(parsed_checksum ) = checksum.to_string().parse() else {
-                            return Err(Exceptions::format);
+                            return Err(Exceptions::FORMAT);
                         };
                         resultMetadata.setChecksum(parsed_checksum);
                     }
@@ -283,18 +283,18 @@ pub fn decodeMacroBlock(
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut fileSize)?;
                         fileSize = fileSize.build_result();
                         let Ok(parsed_file_size)= fileSize.to_string().parse() else {
-                            return Err(Exceptions::format);
+                            return Err(Exceptions::FORMAT);
                         };
                         resultMetadata.setFileSize(parsed_file_size);
                     }
-                    _ => return Err(Exceptions::format),
+                    _ => return Err(Exceptions::FORMAT),
                 }
             }
             MACRO_PDF417_TERMINATOR => {
                 codeIndex += 1;
                 resultMetadata.setLastSegment(true);
             }
-            _ => return Err(Exceptions::format),
+            _ => return Err(Exceptions::FORMAT),
         }
     }
 
@@ -386,7 +386,7 @@ fn textCompaction(
                     result,
                     subMode,
                 )
-                .ok_or(Exceptions::illegalState)?;
+                .ok_or(Exceptions::ILLEGAL_STATE)?;
                 result.appendECI(codewords[codeIndex])?;
                 codeIndex += 1;
                 textCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
@@ -768,16 +768,14 @@ fn numericCompaction(
   Remove leading 1 =>  RXingResult is 000213298174000
 */
 fn decodeBase900toBase10(codewords: &[u32], count: usize) -> Result<String> {
-    let mut result = 0
-        .to_biguint()
-        .ok_or(Exceptions::ArithmeticException(None))?;
+    let mut result = 0.to_biguint().ok_or(Exceptions::ARITHMETIC)?;
     for i in 0..count {
         result +=
-            &EXP900[count - i - 1] * (codewords[i].to_biguint().ok_or(Exceptions::arithmetic)?);
+            &EXP900[count - i - 1] * (codewords[i].to_biguint().ok_or(Exceptions::ARITHMETIC)?);
     }
     let resultString = result.to_string();
     if !resultString.starts_with('1') {
-        return Err(Exceptions::format);
+        return Err(Exceptions::FORMAT);
     }
     Ok(resultString[1..].to_owned())
 }

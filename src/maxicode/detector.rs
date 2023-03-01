@@ -310,7 +310,7 @@ impl Circle<'_> {
 pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionResult> {
     // find concentric circles
     let Some( mut circles) = find_concentric_circles(image) else {
-        return Err(Exceptions::notFound);
+        return Err(Exceptions::NOT_FOUND);
     };
 
     // we should have an idea where the center is at this point,
@@ -333,7 +333,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
             if try_harder {
                 continue;
             }else {
-                return Err(Exceptions::notFound)
+                return Err(Exceptions::NOT_FOUND)
             }
         };
         let grid_sampler = DefaultGridSampler::default();
@@ -370,18 +370,17 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
             if try_harder {
                 continue;
             }else {
-                return Err(Exceptions::notFound)
+                return Err(Exceptions::NOT_FOUND)
             }
         };
         return Ok(MaxicodeDetectionResult {
             bits,
-            points: symbol_box
-                .0.to_vec(),
+            points: symbol_box.0.to_vec(),
             rotation: symbol_box.1,
         });
     }
 
-    Err(Exceptions::notFound)
+    Err(Exceptions::NOT_FOUND)
 }
 
 /// Locate concentric circles.
@@ -720,7 +719,7 @@ fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<([Point; 4], f32
     #[cfg(feature = "experimental_features")]
     if is_ellipse {
         // we don't deal with ellipses yet
-        return Err(Exceptions::notFound);
+        return Err(Exceptions::NOT_FOUND);
     }
 
     let mut final_rotation = 0.0;
@@ -1038,9 +1037,7 @@ fn compare_circle(a: &Circle, b: &Circle) -> std::cmp::Ordering {
 
 /// Read appropriate bits from a bitmatrix for the maxicode decoder
 pub fn read_bits(image: &BitMatrix) -> Result<BitMatrix> {
-    let enclosingRectangle = image
-        .getEnclosingRectangle()
-        .ok_or(Exceptions::NotFoundException(None))?;
+    let enclosingRectangle = image.getEnclosingRectangle().ok_or(Exceptions::NOT_FOUND)?;
 
     let left = enclosingRectangle[0];
     let top = enclosingRectangle[1];

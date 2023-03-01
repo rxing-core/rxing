@@ -183,18 +183,18 @@ pub trait UPCEANReader: OneDReader {
         let end = endRange[1];
         let quietEnd = end + (end - endRange[0]);
         if quietEnd >= row.getSize() || !row.isRange(end, quietEnd, false)? {
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         }
 
         let resultString = result;
 
         // UPC/EAN should never be less than 8 chars anyway
         if resultString.chars().count() < 8 {
-            return Err(Exceptions::format);
+            return Err(Exceptions::FORMAT);
         }
 
         if !self.checkChecksum(&resultString)? {
-            return Err(Exceptions::checksum);
+            return Err(Exceptions::CHECKSUM);
         }
 
         let left = (startGuardRange[1] + startGuardRange[0]) as f32 / 2.0;
@@ -241,7 +241,7 @@ pub trait UPCEANReader: OneDReader {
                 }
             }
             if !valid {
-                return Err(Exceptions::notFound);
+                return Err(Exceptions::NOT_FOUND);
             }
         }
 
@@ -292,7 +292,7 @@ pub trait UPCEANReader: OneDReader {
         let char_in_question = s
             .chars()
             .nth(length - 1)
-            .ok_or(Exceptions::indexOutOfBounds)?;
+            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
         let check = char_in_question.is_ascii_digit();
 
         let check_against = &s[..length - 1]; //s.subSequence(0, length - 1);
@@ -300,7 +300,7 @@ pub trait UPCEANReader: OneDReader {
 
         Ok(calculated_checksum
             == if check {
-                char_in_question.to_digit(10).ok_or(Exceptions::parse)?
+                char_in_question.to_digit(10).ok_or(Exceptions::PARSE)?
             } else {
                 u32::MAX
             })
@@ -315,10 +315,10 @@ pub trait UPCEANReader: OneDReader {
             let digit = (s
                 .chars()
                 .nth(i as usize)
-                .ok_or(Exceptions::indexOutOfBounds)? as i32)
+                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as i32)
                 - ('0' as i32);
             if !(0..=9).contains(&digit) {
-                return Err(Exceptions::format);
+                return Err(Exceptions::FORMAT);
             }
             sum += digit;
 
@@ -331,10 +331,10 @@ pub trait UPCEANReader: OneDReader {
             let digit = (s
                 .chars()
                 .nth(i as usize)
-                .ok_or(Exceptions::indexOutOfBounds)? as i32)
+                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as i32)
                 - ('0' as i32);
             if !(0..=9).contains(&digit) {
-                return Err(Exceptions::format);
+                return Err(Exceptions::FORMAT);
             }
             sum += digit;
 
@@ -421,7 +421,7 @@ pub trait UPCEANReader: OneDReader {
             }
         }
 
-        Err(Exceptions::notFound)
+        Err(Exceptions::NOT_FOUND)
     }
 
     /**
@@ -458,7 +458,7 @@ pub trait UPCEANReader: OneDReader {
         if bestMatch >= 0 {
             Ok(bestMatch as usize)
         } else {
-            Err(Exceptions::notFound)
+            Err(Exceptions::NOT_FOUND)
         }
     }
 

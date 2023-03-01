@@ -198,7 +198,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         if let Some(r) = result.getDecodedInformation() {
             Ok(r.clone())
         } else {
-            Err(Exceptions::notFound)
+            Err(Exceptions::NOT_FOUND)
         }
     }
 
@@ -344,7 +344,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         if (5..15).contains(&fiveBitValue) {
             return Ok(DecodedChar::new(
                 pos + 5,
-                char::from_u32('0' as u32 + fiveBitValue - 5).ok_or(Exceptions::parse)?,
+                char::from_u32('0' as u32 + fiveBitValue - 5).ok_or(Exceptions::PARSE)?,
             ));
         }
 
@@ -353,14 +353,14 @@ impl<'a> GeneralAppIdDecoder<'_> {
         if (64..90).contains(&sevenBitValue) {
             return Ok(DecodedChar::new(
                 pos + 7,
-                char::from_u32(sevenBitValue + 1).ok_or(Exceptions::parse)?,
+                char::from_u32(sevenBitValue + 1).ok_or(Exceptions::PARSE)?,
             ));
         }
 
         if (90..116).contains(&sevenBitValue) {
             return Ok(DecodedChar::new(
                 pos + 7,
-                char::from_u32(sevenBitValue + 7).ok_or(Exceptions::parse)?,
+                char::from_u32(sevenBitValue + 7).ok_or(Exceptions::PARSE)?,
             ));
         }
 
@@ -387,7 +387,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
             250 => '?',
             251 => '_',
             252 => ' ',
-            _ => return Err(Exceptions::format),
+            _ => return Err(Exceptions::FORMAT),
         };
 
         Ok(DecodedChar::new(pos + 8, c))
@@ -422,7 +422,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         if (5..15).contains(&fiveBitValue) {
             return Ok(DecodedChar::new(
                 pos + 5,
-                char::from_u32('0' as u32 + fiveBitValue - 5).ok_or(Exceptions::parse)?,
+                char::from_u32('0' as u32 + fiveBitValue - 5).ok_or(Exceptions::PARSE)?,
             ));
         }
 
@@ -431,7 +431,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
         if (32..58).contains(&sixBitValue) {
             return Ok(DecodedChar::new(
                 pos + 6,
-                char::from_u32(sixBitValue + 33).ok_or(Exceptions::parse)?,
+                char::from_u32(sixBitValue + 33).ok_or(Exceptions::PARSE)?,
             ));
         }
 
@@ -442,7 +442,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
             61 => '.',
             62 => '/',
             _ => {
-                return Err(Exceptions::illegalStateWith(format!(
+                return Err(Exceptions::illegal_state_with(format!(
                     "Decoding invalid alphanumeric value: {sixBitValue}"
                 )))
             }

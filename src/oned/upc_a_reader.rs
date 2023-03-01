@@ -101,7 +101,7 @@ impl UPCAReader {
 
             Ok(upcaRXingResult)
         } else {
-            Err(Exceptions::notFound)
+            Err(Exceptions::NOT_FOUND)
         }
     }
 }

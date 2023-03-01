@@ -66,7 +66,7 @@ impl C40Encoder {
             context.updateSymbolInfoWithLength(curCodewordCount);
             let available = context
                 .getSymbolInfo()
-                .ok_or(Exceptions::illegalState)?
+                .ok_or(Exceptions::ILLEGAL_STATE)?
                 .getDataCapacity() as usize
                 - curCodewordCount;
 
@@ -141,7 +141,7 @@ impl C40Encoder {
             context.updateSymbolInfoWithLength(curCodewordCount);
             let available = context
                 .getSymbolInfo()
-                .ok_or(Exceptions::illegalState)?
+                .ok_or(Exceptions::ILLEGAL_STATE)?
                 .getDataCapacity() as usize
                 - curCodewordCount;
             let rest = buffer.chars().count() % 3;
@@ -183,9 +183,7 @@ impl C40Encoder {
         context: &mut EncoderContext,
         buffer: &mut String,
     ) -> Result<()> {
-        context.writeCodewords(
-            &Self::encodeToCodewords(buffer).ok_or(Exceptions::FormatException(None))?,
-        );
+        context.writeCodewords(&Self::encodeToCodewords(buffer).ok_or(Exceptions::FORMAT)?);
         buffer.replace_range(0..3, "");
         // buffer.delete(0, 3);
         Ok(())
@@ -205,7 +203,7 @@ impl C40Encoder {
         context.updateSymbolInfoWithLength(curCodewordCount);
         let available = context
             .getSymbolInfo()
-            .ok_or(Exceptions::illegalState)?
+            .ok_or(Exceptions::ILLEGAL_STATE)?
             .getDataCapacity() as usize
             - curCodewordCount;
 
@@ -234,7 +232,7 @@ impl C40Encoder {
                 context.writeCodeword(C40_UNLATCH);
             }
         } else {
-            return Err(Exceptions::illegalStateWith(
+            return Err(Exceptions::illegal_state_with(
                 "Unexpected case. Please report!",
             ));
         }

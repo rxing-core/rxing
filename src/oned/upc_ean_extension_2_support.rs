@@ -88,7 +88,7 @@ impl UPCEANExtension2Support {
                 &upc_ean_reader::L_AND_G_PATTERNS,
             )?;
             resultString
-                .push(char::from_u32('0' as u32 + bestMatch as u32 % 10).ok_or(Exceptions::parse)?);
+                .push(char::from_u32('0' as u32 + bestMatch as u32 % 10).ok_or(Exceptions::PARSE)?);
 
             rowOffset += counters.iter().sum::<u32>() as usize;
 
@@ -104,16 +104,16 @@ impl UPCEANExtension2Support {
         }
 
         if resultString.chars().count() != 2 {
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         }
 
         if resultString
             .parse::<u32>()
-            .map_err(|e| Exceptions::parseWith(format!("could not parse {resultString}: {e}")))?
+            .map_err(|e| Exceptions::parse_with(format!("could not parse {resultString}: {e}")))?
             % 4
             != checkParity
         {
-            return Err(Exceptions::notFound);
+            return Err(Exceptions::NOT_FOUND);
         }
 
         Ok(rowOffset as u32)
