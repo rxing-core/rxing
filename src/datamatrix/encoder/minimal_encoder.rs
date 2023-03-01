@@ -375,7 +375,7 @@ fn addEdges(
 
     //We create 4 EDF edges,  with 1, 2 3 or 4 characters length. The fourth normally doesn't have a latch to ASCII
     //unless it is 2 characters away from the end of the input.
-    let mut i = 0u32;
+    let mut i: u32 = 0;
     while i < 3 {
         // for (i = 0; i < 3; i++) {
         let pos = from + i;

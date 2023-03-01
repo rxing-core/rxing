@@ -22,7 +22,7 @@ use crate::common::BitArray;
  */
 
 fn getUnsignedInt(v: &BitArray) -> u64 {
-    let mut result = 0u64;
+    let mut result: u64 = 0;
     const OFFSET: usize = 0;
     for i in 0..32 {
         // for (int i = 0, offset = 0; i < 32; i++) {

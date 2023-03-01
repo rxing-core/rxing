@@ -134,8 +134,8 @@ impl Circle<'_> {
         let point_3 = self.find_width_at_degree(97.0).1[0];
         let guessed_center_point = Self::find_center(point_1, point_2, point_3);
         self.center = (
-            guessed_center_point.0.round() as u32,
-            guessed_center_point.1.round() as u32,
+            guessed_center_point.x.round() as u32,
+            guessed_center_point.y.round() as u32,
         )
     }
 
@@ -143,7 +143,7 @@ impl Circle<'_> {
     /// returns (ellipse, center, semi_major, semi_minor, linear_eccentricity)
     pub fn detect_ellipse(&self) -> (bool, (u32, u32), u32, u32, u32) {
         // find semi-major and semi-minor axi
-        let mut lengths = [(0, 0.0, [(0.0_f32, 0.0); 2]); 72];
+        let mut lengths = [(0, 0.0, [Point::default(); 2]); 72];
         let mut circle_points = Vec::new();
         // for i_rotation in 0..72 {
         for (i_rotation, length_set) in lengths.iter_mut().enumerate() {
@@ -193,7 +193,7 @@ impl Circle<'_> {
                 let guessed_center_point = Self::find_center(point_1, point_2, point_3);
                 (
                     false,
-                    (guessed_center_point.0 as u32, guessed_center_point.1 as u32),
+                    (guessed_center_point.x as u32, guessed_center_point.y as u32),
                     self.radius,
                     self.radius,
                     0,
@@ -213,7 +213,7 @@ impl Circle<'_> {
                 );
                 (
                     true,
-                    (ellipse_center.0 as u32, ellipse_center.1 as u32),
+                    (ellipse_center.x as u32, ellipse_center.y as u32),
                     major_axis.0 / 2,
                     minor_axis.0 / 2,
                     linear_eccentricity,
@@ -222,10 +222,10 @@ impl Circle<'_> {
         }
     }
 
-    fn find_center(p1: (f32, f32), p2: (f32, f32), p3: (f32, f32)) -> (f32, f32) {
-        let (x1, y1) = p1;
-        let (x2, y2) = p2;
-        let (x3, y3) = p3;
+    fn find_center(p1: Point, p2: Point, p3: Point) -> Point {
+        let Point { x: x1, y: y1 } = p1;
+        let Point { x: x2, y: y2 } = p2;
+        let Point { x: x3, y: y3 } = p3;
 
         let a = x1 * (y2 - y3) - y1 * (x2 - x3) + (x2 * y3 - x3 * y2);
         let bx = (x1 * x1 + y1 * y1) * (y3 - y2)
@@ -238,22 +238,16 @@ impl Circle<'_> {
         let x = bx / (2.0 * a);
         let y = by / (2.0 * a);
 
-        (x.abs(), y.abs())
+        (x.abs(), y.abs()).into()
     }
 
-    fn calculate_ellipse_center(
-        a: f32,
-        _b: f32,
-        p1: (f32, f32),
-        p2: (f32, f32),
-        p3: (f32, f32),
-    ) -> (f32, f32) {
-        let x1 = p1.0;
-        let y1 = p1.1;
-        let x2 = p2.0;
-        let y2 = p2.1;
-        let x3 = p3.0;
-        let y3 = p3.1;
+    fn calculate_ellipse_center(a: f32, _b: f32, p1: Point, p2: Point, p3: Point) -> Point {
+        let x1 = p1.x;
+        let y1 = p1.y;
+        let x2 = p2.x;
+        let y2 = p2.y;
+        let x3 = p3.x;
+        let y3 = p3.y;
 
         let ma = (x1 * x1 + y1 * y1 - a * a) / 2.0;
         let mb = (x2 * x2 + y2 * y2 - a * a) / 2.0;
@@ -264,20 +258,20 @@ impl Circle<'_> {
         let x = (ma * y2 + mb * y3 + mc * y1) / determinant;
         let y = (x1 * mb + x2 * mc + x3 * ma) / determinant;
 
-        (x, y)
+        (x, y).into()
     }
 
     fn check_ellipse_point(
         center: (u32, u32),
-        point: &(f32, f32),
+        point: &Point,
         semi_major_axis: u32,
         semi_minor_axis: u32,
     ) -> f64 {
-        ((point.0 as f64 - center.0 as f64).powf(2.0) / (semi_major_axis as f64).powf(2.0))
-            + ((point.1 as f64 - center.1 as f64).powf(2.0) / (semi_minor_axis as f64).powf(2.0))
+        ((point.x as f64 - center.0 as f64).powf(2.0) / (semi_major_axis as f64).powf(2.0))
+            + ((point.y as f64 - center.1 as f64).powf(2.0) / (semi_minor_axis as f64).powf(2.0))
     }
 
-    fn find_width_at_degree(&self, rotation: f32) -> (u32, [(f32, f32); 2]) {
+    fn find_width_at_degree(&self, rotation: f32) -> (u32, [Point; 2]) {
         let mut x = self.center.0;
         let y = self.center.1;
         let mut length = 0;
@@ -285,7 +279,7 @@ impl Circle<'_> {
         // count left
         while {
             let point = get_point(self.center, (x, y), rotation);
-            !self.image.get(point.0 as u32, point.1 as u32) && x > 0
+            !self.image.get(point.x as u32, point.y as u32) && x > 0
         } {
             x -= 1;
             length += 1;
@@ -297,7 +291,7 @@ impl Circle<'_> {
         // count right
         while {
             let point = get_point(self.center, (x, y), rotation);
-            !self.image.get(point.0 as u32, point.1 as u32)
+            !self.image.get(point.x as u32, point.y as u32)
         } {
             x += 1;
             length += 1;
@@ -344,10 +338,10 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         };
         let grid_sampler = DefaultGridSampler::default();
 
-        let [tl, bl, tr, br] = &symbol_box.0;
+        let [tl, bl, tr, br] = symbol_box.0;
 
-        let target_width = Point::distance(tl.into(), tr.into());
-        let target_height = Point::distance(br.into(), tr.into());
+        let target_width = Point::distance(tl, tr);
+        let target_height = Point::distance(br, tr);
 
         // let target_width = (tr.0 - tl.0).round().abs() as u32;
         // let target_height = (br.1 - tr.1).round().abs() as u32;
@@ -364,14 +358,14 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
             target_height,
             0.0,
             target_height,
-            tl.0,
-            tl.1,
-            tr.0,
-            tr.1,
-            br.0,
-            br.1,
-            bl.0,
-            bl.1,
+            tl.x,
+            tl.y,
+            tr.x,
+            tr.y,
+            br.x,
+            br.y,
+            bl.x,
+            bl.y,
         ) else {
             if try_harder {
                 continue;
@@ -382,10 +376,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         return Ok(MaxicodeDetectionResult {
             bits,
             points: symbol_box
-                .0
-                .iter()
-                .map(|p| Point { x: p.0, y: p.1 })
-                .collect(),
+                .0.to_vec(),
             rotation: symbol_box.1,
         });
     }
@@ -709,7 +700,7 @@ const LEFT_SHIFT_PERCENT_ADJUST: f32 = 0.03;
 const RIGHT_SHIFT_PERCENT_ADJUST: f32 = 0.03;
 const ACCEPTED_SCALES: [f64; 5] = [0.065, 0.069, 0.07, 0.075, 0.08];
 
-fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<([(f32, f32); 4], f32)> {
+fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<([Point; 4], f32)> {
     let (left_boundary, right_boundary, top_boundary, bottom_boundary) =
         calculate_simple_boundary(circle, Some(image), None, false);
 
@@ -743,10 +734,10 @@ fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<([(f32, f32); 4]
 
     Ok((
         [
-            (result_box[0].x, result_box[0].y),
-            (result_box[1].x, result_box[1].y),
-            (result_box[2].x, result_box[2].y),
-            (result_box[3].x, result_box[3].y),
+            (result_box[0].x, result_box[0].y).into(),
+            (result_box[1].x, result_box[1].y).into(),
+            (result_box[2].x, result_box[2].y).into(),
+            (result_box[3].x, result_box[3].y).into(),
         ],
         final_rotation,
     ))
@@ -845,9 +836,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, topl_p1, rotation);
         let p2_rot = get_point(circle.center, topl_p2, rotation);
         let p3_rot = get_point(circle.center, topl_p3, rotation);
-        let found_tl = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32, 3)?
-            && image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32, 3)?
-            && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32, 3)?;
+        let found_tl = image.try_get_area(p1_rot.x as u32, p1_rot.y as u32, 3)?
+            && image.try_get_area(p2_rot.x as u32, p2_rot.y as u32, 3)?
+            && image.try_get_area(p3_rot.x as u32, p3_rot.y as u32, 3)?;
         if !found_tl {
             continue;
         }
@@ -858,9 +849,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, topr_p1, rotation);
         let p2_rot = get_point(circle.center, topr_p2, rotation);
         let p3_rot = get_point(circle.center, topr_p3, rotation);
-        let found_tr = !image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32, 3)?
-            && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32, 3)?
-            && !image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32, 3)?;
+        let found_tr = !image.try_get_area(p1_rot.x as u32, p1_rot.y as u32, 3)?
+            && !image.try_get_area(p2_rot.x as u32, p2_rot.y as u32, 3)?
+            && !image.try_get_area(p3_rot.x as u32, p3_rot.y as u32, 3)?;
         if !found_tr {
             continue;
         }
@@ -871,9 +862,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, l_p1, rotation);
         let p2_rot = get_point(circle.center, l_p2, rotation);
         let p3_rot = get_point(circle.center, l_p3, rotation);
-        let found_l = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32, 3)?
-            && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32, 3)?
-            && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32, 3)?;
+        let found_l = image.try_get_area(p1_rot.x as u32, p1_rot.y as u32, 3)?
+            && !image.try_get_area(p2_rot.x as u32, p2_rot.y as u32, 3)?
+            && image.try_get_area(p3_rot.x as u32, p3_rot.y as u32, 3)?;
         if !found_l {
             continue;
         }
@@ -884,9 +875,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, r_p1, rotation);
         let p2_rot = get_point(circle.center, r_p2, rotation);
         let p3_rot = get_point(circle.center, r_p3, rotation);
-        let found_r = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32, 3)?
-            && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32, 3)?
-            && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32, 3)?;
+        let found_r = image.try_get_area(p1_rot.x as u32, p1_rot.y as u32, 3)?
+            && !image.try_get_area(p2_rot.x as u32, p2_rot.y as u32, 3)?
+            && image.try_get_area(p3_rot.x as u32, p3_rot.y as u32, 3)?;
         if !found_r {
             continue;
         }
@@ -897,9 +888,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, bottoml_p1, rotation);
         let p2_rot = get_point(circle.center, bottoml_p2, rotation);
         let p3_rot = get_point(circle.center, bottoml_p3, rotation);
-        let found_bl = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32, 3)?
-            && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32, 3)?
-            && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32, 3)?;
+        let found_bl = image.try_get_area(p1_rot.x as u32, p1_rot.y as u32, 3)?
+            && !image.try_get_area(p2_rot.x as u32, p2_rot.y as u32, 3)?
+            && image.try_get_area(p3_rot.x as u32, p3_rot.y as u32, 3)?;
         if !found_bl {
             continue;
         }
@@ -910,9 +901,9 @@ fn attempt_rotation_box(
         let p1_rot = get_point(circle.center, bottomr_p1, rotation);
         let p2_rot = get_point(circle.center, bottomr_p2, rotation);
         let p3_rot = get_point(circle.center, bottomr_p3, rotation);
-        let found_br = image.try_get_area(p1_rot.0 as u32, p1_rot.1 as u32, 3)?
-            && !image.try_get_area(p2_rot.0 as u32, p2_rot.1 as u32, 3)?
-            && image.try_get_area(p3_rot.0 as u32, p3_rot.1 as u32, 3)?;
+        let found_br = image.try_get_area(p1_rot.x as u32, p1_rot.y as u32, 3)?
+            && !image.try_get_area(p2_rot.x as u32, p2_rot.y as u32, 3)?
+            && image.try_get_area(p3_rot.x as u32, p3_rot.y as u32, 3)?;
         if !found_br {
             continue;
         }
@@ -952,10 +943,10 @@ fn attempt_rotation_box(
 
         Some((
             [
-                point(new_1.0, new_1.1),
-                point(new_2.0, new_2.1),
-                point(new_3.0, new_3.1),
-                point(new_4.0, new_4.1),
+                point(new_1.x, new_1.y),
+                point(new_2.x, new_2.y),
+                point(new_3.x, new_3.y),
+                point(new_4.x, new_4.y),
             ],
             final_rotation,
         ))
@@ -977,7 +968,7 @@ fn get_adjusted_points(
     )
 }
 
-fn get_point(center: (u32, u32), original: (u32, u32), angle: f32) -> (f32, f32) {
+fn get_point(center: (u32, u32), original: (u32, u32), angle: f32) -> Point {
     let radians = angle.to_radians();
     let x = radians.cos() * (original.0 as f32 - center.0 as f32)
         - radians.sin() * (original.1 as f32 - center.1 as f32)
@@ -986,7 +977,7 @@ fn get_point(center: (u32, u32), original: (u32, u32), angle: f32) -> (f32, f32)
         + radians.cos() * (original.1 as f32 - center.1 as f32)
         + center.1 as f32;
 
-    (x.abs(), y.abs())
+    Point::new(x.abs(), y.abs())
 }
 
 fn adjust_point_alternate(point: (u32, u32), circle: &Circle, center_scale: f64) -> (u32, u32) {

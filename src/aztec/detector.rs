@@ -142,7 +142,7 @@ impl<'a> Detector<'_> {
         self.shift = Self::get_rotation(&sides, length)?;
 
         // Flatten the parameter bits into a single 28- or 40-bit long
-        let mut parameter_data = 0u64;
+        let mut parameter_data: u64 = 0;
         for i in 0..4 {
             // for (int i = 0; i < 4; i++) {
             let side = sides[(self.shift + i) as usize % 4];
@@ -230,7 +230,7 @@ impl<'a> Detector<'_> {
         }
 
         let num_eccodewords = num_codewords - num_data_codewords;
-        let mut parameterWords = vec![0i32; num_codewords as usize];
+        let mut parameterWords = vec![0; num_codewords as usize];
         for i in (0..num_codewords).rev() {
             // for (int i = numCodewords - 1; i >= 0; --i) {
             parameterWords[i as usize] = (parameter_data & 0xF) as i32;
@@ -245,7 +245,7 @@ impl<'a> Detector<'_> {
         //throw NotFoundException.getNotFoundInstance();
         //}
         // Toss the error correction.  Just return the data as an integer
-        let mut result = 0u32;
+        let mut result: u32 = 0;
         for i in 0..num_data_codewords {
             // for (int i = 0; i < numDataCodewords; i++) {
             result = (result << 4) + parameterWords[i as usize] as u32;
@@ -321,10 +321,10 @@ impl<'a> Detector<'_> {
 
         // Expand the square by .5 pixel in each direction so that we're on the border
         // between the white square and the black square
-        let pinax = point(pina.get_x() as f32 + 0.5f32, pina.get_y() as f32 - 0.5f32);
-        let pinbx = point(pinb.get_x() as f32 + 0.5f32, pinb.get_y() as f32 + 0.5f32);
-        let pincx = point(pinc.get_x() as f32 - 0.5f32, pinc.get_y() as f32 + 0.5f32);
-        let pindx = point(pind.get_x() as f32 - 0.5f32, pind.get_y() as f32 - 0.5f32);
+        let pinax = point(pina.get_x() as f32 + 0.5, pina.get_y() as f32 - 0.5);
+        let pinbx = point(pinb.get_x() as f32 + 0.5, pinb.get_y() as f32 + 0.5);
+        let pincx = point(pinc.get_x() as f32 - 0.5, pinc.get_y() as f32 + 0.5);
+        let pindx = point(pind.get_x() as f32 - 0.5, pind.get_y() as f32 - 0.5);
 
         // Expand the square so that its corners are the centers of the points
         // just outside the bull's eye.
@@ -483,8 +483,8 @@ impl<'a> Detector<'_> {
         let sampler = DefaultGridSampler::default();
         let dimension = self.get_dimension();
 
-        let low = dimension as f32 / 2.0f32 - self.nb_center_layers as f32;
-        let high = dimension as f32 / 2.0f32 + self.nb_center_layers as f32;
+        let low = dimension as f32 / 2.0 - self.nb_center_layers as f32;
+        let high = dimension as f32 / 2.0 + self.nb_center_layers as f32;
 
         sampler.sample_grid_detailed(
             image,
@@ -601,7 +601,7 @@ impl<'a> Detector<'_> {
      */
     fn get_color(&self, p1: AztecPoint, p2: AztecPoint) -> i32 {
         let d = Self::distance_points(p1, p2);
-        if d == 0.0f32 {
+        if d == 0.0 {
             return 0;
         }
         let dx = (p2.get_x() - p1.get_x()) as f32 / d;
@@ -626,11 +626,11 @@ impl<'a> Detector<'_> {
 
         let err_ratio = error as f32 / d;
 
-        if err_ratio > 0.1f32 && err_ratio < 0.9f32 {
+        if err_ratio > 0.1 && err_ratio < 0.9 {
             return 0;
         }
 
-        if (err_ratio <= 0.1f32) == color_model {
+        if (err_ratio <= 0.1) == color_model {
             1
         } else {
             -1
@@ -674,7 +674,7 @@ impl<'a> Detector<'_> {
      * @return the corners of the expanded square
      */
     fn expand_square(corner_points: &[Point], old_side: u32, new_side: u32) -> [Point; 4] {
-        let ratio = new_side as f32 / (2.0f32 * old_side as f32);
+        let ratio = new_side as f32 / (2.0 * old_side as f32);
 
         let d = corner_points[0] - corner_points[2];
         let middle = corner_points[0].middle(corner_points[2]);

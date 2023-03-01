@@ -196,7 +196,7 @@ impl HighLevelEncoder {
     // shown
     pub const SHIFT_TABLE: [[i32; 6]; 6] = {
         // mode shift codes, per table
-        let mut shift_table = [[-1i32; 6]; 6];
+        let mut shift_table = [[-1; 6]; 6];
 
         shift_table[Self::MODE_UPPER][Self::MODE_PUNCT] = 0;
 

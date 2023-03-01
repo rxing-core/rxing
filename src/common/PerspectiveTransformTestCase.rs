@@ -29,9 +29,7 @@ static EPSILON: f32 = 1.0E-4f32;
 
 #[test]
 fn test_square_to_quadrilateral() {
-    let pt = PerspectiveTransform::squareToQuadrilateral(
-        2.0f32, 3.0f32, 10.0, 4.0, 16.0, 15.0, 4.0, 9.0,
-    );
+    let pt = PerspectiveTransform::squareToQuadrilateral(2.0, 3.0, 10.0, 4.0, 16.0, 15.0, 4.0, 9.0);
     assert_point_equals(2.0, 3.0, 0.0, 0.0, &pt);
     assert_point_equals(10.0, 4.0, 1.0, 0.0, &pt);
     assert_point_equals(4.0, 9.0, 0.0, 1.0, &pt);

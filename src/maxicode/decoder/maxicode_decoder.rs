@@ -95,7 +95,7 @@ fn correctErrors(
     let divisor = if mode == ALL { 1 } else { 2 };
 
     // First read into an array of ints
-    let mut codewordsInts = vec![0i32; (codewords / divisor) as usize];
+    let mut codewordsInts = vec![0; (codewords / divisor) as usize];
     for i in 0..codewords {
         if (mode == ALL) || (i % 2 == (mode - 1)) {
             codewordsInts[(i / divisor) as usize] = codewordBytes[(i + start) as usize] as i32;

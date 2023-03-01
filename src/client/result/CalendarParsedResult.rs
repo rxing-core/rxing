@@ -40,11 +40,11 @@ use super::{maybe_append_multiple, maybe_append_string, ParsedRXingResult, Parse
 // const RFC2445_DURATION: &'static str =
 //     "P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?";
 const RFC2445_DURATION_FIELD_UNITS: [i64; 5] = [
-    7 * 24 * 60 * 60 * 1000i64, // 1 week
-    24 * 60 * 60 * 1000i64,     // 1 day
-    60 * 60 * 1000i64,          // 1 hour
-    60 * 1000i64,               // 1 minute
-    1000i64,                    // 1 second
+    7 * 24 * 60 * 60 * 1000, // 1 week
+    24 * 60 * 60 * 1000,     // 1 day
+    60 * 60 * 1000,          // 1 hour
+    60 * 1000,               // 1 minute
+    1000,                    // 1 second
 ];
 
 static DATE_TIME: Lazy<Regex> = Lazy::new(|| Regex::new("[0-9]{8}(T[0-9]{6}Z?)?").unwrap());
@@ -114,8 +114,8 @@ impl CalendarParsedRXingResult {
         let start = Self::parseDate(startString.clone())?;
         let end = if endString.is_empty() {
             let durationMS = Self::parseDurationMS(&durationString)?;
-            if durationMS < 0i64 {
-                -1i64
+            if durationMS < 0 {
+                -1
             } else {
                 start + (durationMS / 1000)
             }
@@ -240,7 +240,7 @@ impl CalendarParsedRXingResult {
         }
         // let regex = Regex::new(RFC2445_DURATION).unwrap();
         if let Some(m) = RFC2445_DURATION.captures(durationString) {
-            let mut durationMS = 0i64;
+            let mut durationMS: i64 = 0;
             for (i, unit) in RFC2445_DURATION_FIELD_UNITS.iter().enumerate() {
                 // for i in 0..RFC2445_DURATION_FIELD_UNITS.len() {
                 // for (int i = 0; i < RFC2445_DURATION_FIELD_UNITS.length; i++) {

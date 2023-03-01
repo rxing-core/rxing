@@ -446,7 +446,7 @@ fn generateCheckWords(bitArray: &BitArray, totalBits: usize, wordSize: usize) ->
 }
 
 fn bitsToWords(stuffedBits: &BitArray, wordSize: usize, totalWords: usize) -> Vec<i32> {
-    let mut message = vec![0i32; totalWords];
+    let mut message = vec![0; totalWords];
     let mut i = 0;
     let n = stuffedBits.getSize() / wordSize;
     while i < n {

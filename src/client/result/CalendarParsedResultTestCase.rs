@@ -224,7 +224,7 @@ fn doTest(
         );
         assert_eq!(
             endString,
-            if calRXingResult.getEndTimestamp() < 0i64 {
+            if calRXingResult.getEndTimestamp() < 0 {
                 String::default()
             } else {
                 format_date_string(calRXingResult.getEndTimestamp(), dateFormat)

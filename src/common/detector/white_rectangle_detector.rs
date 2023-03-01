@@ -335,7 +335,7 @@ impl<'a> WhiteRectangleDetector<'_> {
         let ti = t.x;
         let tj = t.y;
 
-        if yi < self.width as f32 / 2.0f32 {
+        if yi < self.width as f32 / 2.0 {
             [
                 point(ti - CORR as f32, tj + CORR as f32),
                 point(zi + CORR as f32, zj + CORR as f32),

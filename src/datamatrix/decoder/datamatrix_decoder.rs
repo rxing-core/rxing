@@ -153,7 +153,7 @@ impl Decoder {
     fn correctErrors(&self, codewordBytes: &mut [u8], numDataCodewords: u32) -> Result<()> {
         let _numCodewords = codewordBytes.len();
         // First read into an array of ints
-        // let codewordsInts = vec![0i32;numCodewords];
+        // let codewordsInts = vec![0;numCodewords];
         // for i in 0..numCodewords {
         // // for (int i = 0; i < numCodewords; i++) {
         //   codewordsInts[i] = codewordBytes[i];

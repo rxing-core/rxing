@@ -91,7 +91,7 @@ impl OneDReader for CodaBarReader {
         // Look for whitespace after pattern:
         let trailingWhitespace = self.counters[nextStart - 1];
         let mut lastPatternSize = 0;
-        for i in -8isize..-1 {
+        for i in -8..-1 {
             lastPatternSize += self.counters[(nextStart as isize + i) as usize];
         }
 
@@ -283,7 +283,7 @@ impl CodaBarReader {
                 .nth(i)
                 .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
                 as usize];
-            for j in (0usize..=6).rev() {
+            for j in (0..=6).rev() {
                 // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
                 // long stripes, while 0 and 1 are for short stripes.
                 let category = (j & 1) + ((pattern as usize) & 1) * 2;
