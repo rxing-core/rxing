@@ -152,7 +152,9 @@ impl BitMatrix {
                         first_run = false;
                         rowLength = bitsPos - rowStartPos;
                     } else if bitsPos - rowStartPos != rowLength {
-                        return Err(Exceptions::illegal_argument_with("row lengths do not match"));
+                        return Err(Exceptions::illegal_argument_with(
+                            "row lengths do not match",
+                        ));
                     }
                     rowStartPos = bitsPos;
                     nRows += 1;
@@ -181,7 +183,9 @@ impl BitMatrix {
                 // first_run = false;
                 rowLength = bitsPos - rowStartPos;
             } else if bitsPos - rowStartPos != rowLength {
-                return Err(Exceptions::illegal_argument_with("row lengths do not match"));
+                return Err(Exceptions::illegal_argument_with(
+                    "row lengths do not match",
+                ));
             }
             nRows += 1;
         }

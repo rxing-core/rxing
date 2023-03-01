@@ -375,8 +375,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         };
         return Ok(MaxicodeDetectionResult {
             bits,
-            points: symbol_box
-                .0.to_vec(),
+            points: symbol_box.0.to_vec(),
             rotation: symbol_box.1,
         });
     }
@@ -1038,9 +1037,7 @@ fn compare_circle(a: &Circle, b: &Circle) -> std::cmp::Ordering {
 
 /// Read appropriate bits from a bitmatrix for the maxicode decoder
 pub fn read_bits(image: &BitMatrix) -> Result<BitMatrix> {
-    let enclosingRectangle = image
-        .getEnclosingRectangle()
-        .ok_or(Exceptions::NOT_FOUND)?;
+    let enclosingRectangle = image.getEnclosingRectangle().ok_or(Exceptions::NOT_FOUND)?;
 
     let left = enclosingRectangle[0];
     let top = enclosingRectangle[1];

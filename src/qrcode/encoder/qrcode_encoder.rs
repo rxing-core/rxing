@@ -179,7 +179,9 @@ pub fn encode_with_hints(
             version = Version::getVersionForNumber(versionNumber)?;
             let bitsNeeded = calculateBitsNeeded(mode, &header_bits, &data_bits, version);
             if !willFit(bitsNeeded, version, &ec_level) {
-                return Err(Exceptions::writer_with("Data too big for requested version"));
+                return Err(Exceptions::writer_with(
+                    "Data too big for requested version",
+                ));
             }
         } else {
             version = recommendVersion(&ec_level, mode, &header_bits, &data_bits)?;
@@ -651,7 +653,11 @@ pub fn appendNumericBytes(content: &str, bits: &mut BitArray) -> Result<()> {
     let length = content.len();
     let mut i = 0;
     while i < length {
-        let num1 = content.chars().nth(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u8 - b'0';
+        let num1 = content
+            .chars()
+            .nth(i)
+            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u8
+            - b'0';
         if i + 2 < length {
             // Encode three numeric letters in ten bits.
             let num2 = content
@@ -688,8 +694,12 @@ pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<()>
     let length = content.len();
     let mut i = 0;
     while i < length {
-        let code1 =
-            getAlphanumericCode(content.chars().nth(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u32);
+        let code1 = getAlphanumericCode(
+            content
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u32,
+        );
         if code1 == -1 {
             return Err(Exceptions::WRITER);
         }

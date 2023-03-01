@@ -322,7 +322,10 @@ impl Code39Reader {
         while i < length {
             // for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            let c = encoded.chars().nth(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+            let c = encoded
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
             if c == '+' || c == '$' || c == '%' || c == '/' {
                 let next = encoded
                     .chars()

@@ -386,7 +386,12 @@ fn decodeAlphanumericSegment(
     if fc1InEffect {
         // We need to massage the result a bit if in an FNC1 mode:
         for i in start..result.len() {
-            if result.chars().nth(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == '%' {
+            if result
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                == '%'
+            {
                 if i < result.len() - 1
                     && result
                         .chars()

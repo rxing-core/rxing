@@ -153,9 +153,8 @@ pub fn detect_multiple_in_file_with_hints(
     file_name: &str,
     hints: &mut DecodingHintDictionary,
 ) -> Result<Vec<RXingResult>> {
-    let img = image::open(file_name).map_err(|e| {
-        Exceptions::runtime_with(format!("couldn't read {file_name}: {e}"))
-    })?;
+    let img = image::open(file_name)
+        .map_err(|e| Exceptions::runtime_with(format!("couldn't read {file_name}: {e}")))?;
     let multi_format_reader = MultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 

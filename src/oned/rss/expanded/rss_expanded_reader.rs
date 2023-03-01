@@ -528,8 +528,8 @@ impl RSSExpandedReader {
 
     // Not private for unit testing
     pub(crate) fn constructRXingResult(pairs: &[ExpandedPair]) -> Result<RXingResult> {
-        let binary = bit_array_builder::buildBitArray(&pairs.to_vec())
-            .ok_or(Exceptions::ILLEGAL_STATE)?;
+        let binary =
+            bit_array_builder::buildBitArray(&pairs.to_vec()).ok_or(Exceptions::ILLEGAL_STATE)?;
 
         let mut decoder = abstract_expanded_decoder::createDecoder(&binary)?;
         let resultingString = decoder.parseInformation()?;
@@ -692,7 +692,9 @@ impl RSSExpandedReader {
         } else if previousPairs.is_empty() {
             rowOffset = 0;
         } else {
-            let lastPair = previousPairs.last().ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+            let lastPair = previousPairs
+                .last()
+                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
             rowOffset = lastPair
                 .getFinderPattern()
                 .as_ref()

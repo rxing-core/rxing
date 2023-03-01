@@ -259,18 +259,13 @@ impl MinimalEncoder {
         position: usize,
         edge: Option<Rc<Edge>>,
     ) -> Result<()> {
-        let vertexIndex = position
-            + edge
-                .as_ref()
-                .ok_or(Exceptions::FORMAT)?
-                .characterLength as usize;
-        let modeEdges = &mut edges[vertexIndex][edge
-            .as_ref()
-            .ok_or(Exceptions::FORMAT)?
-            .charsetEncoderIndex];
-        let modeOrdinal = Self::getCompactedOrdinal(Some(
-            edge.as_ref().ok_or(Exceptions::FORMAT)?.mode,
-        ))? as usize;
+        let vertexIndex =
+            position + edge.as_ref().ok_or(Exceptions::FORMAT)?.characterLength as usize;
+        let modeEdges =
+            &mut edges[vertexIndex][edge.as_ref().ok_or(Exceptions::FORMAT)?.charsetEncoderIndex];
+        let modeOrdinal =
+            Self::getCompactedOrdinal(Some(edge.as_ref().ok_or(Exceptions::FORMAT)?.mode))?
+                as usize;
         if modeEdges[modeOrdinal].is_none()
             || modeEdges[modeOrdinal]
                 .as_ref()
@@ -378,8 +373,8 @@ impl MinimalEncoder {
                         0,
                         if from + 1 >= inputLength
                             || !self.canEncode(
-                            &Mode::ALPHANUMERIC,
-                            self.stringToEncode
+                                &Mode::ALPHANUMERIC,
+                                self.stringToEncode
                                     .get(from + 1)
                                     .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
                             )
@@ -414,8 +409,8 @@ impl MinimalEncoder {
                         0,
                         if from + 1 >= inputLength
                             || !self.canEncode(
-                            &Mode::NUMERIC,
-                            self.stringToEncode
+                                &Mode::NUMERIC,
+                                self.stringToEncode
                                     .get(from + 1)
                                     .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
                             )
@@ -423,8 +418,8 @@ impl MinimalEncoder {
                             1
                         } else if from + 2 >= inputLength
                             || !self.canEncode(
-                            &Mode::NUMERIC,
-                            self.stringToEncode
+                                &Mode::NUMERIC,
+                                self.stringToEncode
                                     .get(from + 2)
                                     .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
                             )

@@ -66,9 +66,7 @@ impl UPCEANReader for UPCEReader {
     }
 
     fn checkChecksum(&self, s: &str) -> Result<bool> {
-        self.checkStandardUPCEANChecksum(
-            &convertUPCEtoUPCA(s).ok_or(Exceptions::ILLEGAL_ARGUMENT)?,
-        )
+        self.checkStandardUPCEANChecksum(&convertUPCEtoUPCA(s).ok_or(Exceptions::ILLEGAL_ARGUMENT)?)
     }
 
     fn decodeEnd(&self, row: &crate::common::BitArray, endStart: usize) -> Result<[usize; 2]> {

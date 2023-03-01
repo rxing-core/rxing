@@ -79,7 +79,8 @@ impl Encoder for Base256Encoder {
                     .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
                 buffer.insert(
                     ci_pos,
-                    char::from_u32(dataCount as u32 % 250).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                    char::from_u32(dataCount as u32 % 250)
+                        .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
                 );
             } else {
                 return Err(Exceptions::illegal_state_with(format!(
@@ -92,7 +93,10 @@ impl Encoder for Base256Encoder {
             // for (int i = 0, c = buffer.length(); i < c; i++) {
             context.writeCodeword(
                 Self::randomize255State(
-                    buffer.chars().nth(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                    buffer
+                        .chars()
+                        .nth(i)
+                        .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
                     context.getCodewordCount() as u32 + 1,
                 )
                 .ok_or(Exceptions::PARSE)? as u8,

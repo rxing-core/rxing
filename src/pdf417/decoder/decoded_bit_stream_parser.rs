@@ -768,9 +768,7 @@ fn numericCompaction(
   Remove leading 1 =>  RXingResult is 000213298174000
 */
 fn decodeBase900toBase10(codewords: &[u32], count: usize) -> Result<String> {
-    let mut result = 0
-        .to_biguint()
-        .ok_or(Exceptions::ARITHMETIC)?;
+    let mut result = 0.to_biguint().ok_or(Exceptions::ARITHMETIC)?;
     for i in 0..count {
         result +=
             &EXP900[count - i - 1] * (codewords[i].to_biguint().ok_or(Exceptions::ARITHMETIC)?);

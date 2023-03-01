@@ -183,9 +183,7 @@ impl C40Encoder {
         context: &mut EncoderContext,
         buffer: &mut String,
     ) -> Result<()> {
-        context.writeCodewords(
-            &Self::encodeToCodewords(buffer).ok_or(Exceptions::FORMAT)?,
-        );
+        context.writeCodewords(&Self::encodeToCodewords(buffer).ok_or(Exceptions::FORMAT)?);
         buffer.replace_range(0..3, "");
         // buffer.delete(0, 3);
         Ok(())

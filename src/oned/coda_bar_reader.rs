@@ -113,7 +113,8 @@ impl OneDReader for CodaBarReader {
                     .decodeRowRXingResult
                     .chars()
                     .nth(i)
-                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as usize]
+                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                    as usize]
                     .to_string(),
             );
         }

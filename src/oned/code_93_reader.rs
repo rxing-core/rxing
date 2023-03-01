@@ -234,7 +234,10 @@ impl Code93Reader {
         while i < length {
             // for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            let c = encoded.chars().nth(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+            let c = encoded
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
             if ('a'..='d').contains(&c) {
                 if i >= length - 1 {
                     return Err(Exceptions::FORMAT);
@@ -334,7 +337,12 @@ impl Code93Reader {
         for i in (0..checkPosition).rev() {
             total += weight
                 * Self::ALPHABET_STRING
-                    .find(result.chars().nth(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?)
+                    .find(
+                        result
+                            .chars()
+                            .nth(i)
+                            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                    )
                     .map_or_else(|| -1_i32, |v| v as i32);
             weight += 1;
             if weight > weightMax as i32 {

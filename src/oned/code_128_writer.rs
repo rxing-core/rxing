@@ -590,7 +590,8 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                         contents
                             .chars()
                             .nth(i)
-                            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as isize
+                            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                            as isize
                             - ' ' as isize
                     }
                 };

@@ -182,10 +182,18 @@ impl CalendarParsedRXingResult {
             };
         }
         // The when string can be local time, or UTC if it ends with a Z
-        if when.len() == 16 && when.chars().nth(15).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == 'Z' {
+        if when.len() == 16
+            && when
+                .chars()
+                .nth(15)
+                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                == 'Z'
+        {
             return match Utc.datetime_from_str(&when, "%Y%m%dT%H%M%SZ") {
                 Ok(dtm) => Ok(dtm.with_timezone(&Utc).timestamp()),
-                Err(e) => Err(Exceptions::parse_with(format!("couldn't parse string: {e}"))),
+                Err(e) => Err(Exceptions::parse_with(format!(
+                    "couldn't parse string: {e}"
+                ))),
             };
         }
         // Try once more, with weird tz formatting
@@ -202,7 +210,9 @@ impl CalendarParsedRXingResult {
             };
             return match Utc.datetime_from_str(time_part, "%Y%m%dT%H%M%S") {
                 Ok(dtm) => Ok(dtm.with_timezone(&tz_parsed).timestamp()),
-                Err(e) => Err(Exceptions::parse_with(format!("couldn't parse string: {e}"))),
+                Err(e) => Err(Exceptions::parse_with(format!(
+                    "couldn't parse string: {e}"
+                ))),
             };
         }
 
