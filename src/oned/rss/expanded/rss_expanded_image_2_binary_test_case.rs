@@ -24,8 +24,6 @@
  *   http://www.piramidepse.com/
  */
 
-use std::rc::Rc;
-
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)

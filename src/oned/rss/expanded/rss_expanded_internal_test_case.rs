@@ -24,8 +24,6 @@
  *   http://www.piramidepse.com/
  */
 
-use std::rc::Rc;
-
 use crate::{
     common::GlobalHistogramBinarizer,
     oned::rss::{DataCharacterTrait, FinderPattern},

@@ -24,13 +24,9 @@
  *   http://www.piramidepse.com/
  */
 
-use std::rc::Rc;
-
 use image::DynamicImage;
 
-use crate::{
-    common::GlobalHistogramBinarizer, Binarizer, BinaryBitmap, BufferedImageLuminanceSource,
-};
+use crate::{common::GlobalHistogramBinarizer, BinaryBitmap, BufferedImageLuminanceSource};
 
 fn getBufferedImage(fileName: &str) -> DynamicImage {
     let path = format!("test_resources/blackbox/rssexpandedstacked-2/{fileName}");

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::{collections::HashSet, path::PathBuf, rc::Rc};
+use std::{collections::HashSet, path::PathBuf};
 
 use crate::{
     common::HybridBinarizer, BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
