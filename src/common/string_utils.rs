@@ -16,8 +16,6 @@
 
 use crate::{DecodeHintType, DecodeHintValue, DecodingHintDictionary};
 
-use once_cell::sync::Lazy;
-
 use super::CharacterSetECI;
 
 /**
@@ -50,8 +48,7 @@ const ASSUME_SHIFT_JIS: bool = false;
 // static SHIFT_JIS: &'static str = "SJIS";
 // static GB2312: &'static str = "GB2312";
 
-pub static SHIFT_JIS_CHARSET: CharacterSetECI =
-    CharacterSetECI::SJIS;
+pub static SHIFT_JIS_CHARSET: CharacterSetECI = CharacterSetECI::SJIS;
 
 //    private static final boolean ASSUME_SHIFT_JIS =
 //        SHIFT_JIS_CHARSET.equals(PLATFORM_DEFAULT_ENCODING) ||
@@ -74,7 +71,7 @@ impl StringUtils {
         } else if c == CharacterSetECI::ISO8859_1 {
             Some("ISO8859_1")
         } else {
-            Some(&c.getCharsetName())
+            Some(c.getCharsetName())
         }
     }
 
@@ -92,7 +89,7 @@ impl StringUtils {
             hints.get(&DecodeHintType::CHARACTER_SET)
         {
             // if let DecodeHintValue::CharacterSet(cs_name) = hint {
-                return CharacterSetECI::getCharacterSetECIByName(cs_name)
+            return CharacterSetECI::getCharacterSetECIByName(cs_name);
             // }
         }
         // if hints.contains_key(&DecodeHintType::CHARACTER_SET) {
@@ -260,6 +257,6 @@ impl StringUtils {
             return Some(CharacterSetECI::UTF8);
         }
         // Otherwise, we take a wild guess with platform encoding
-         Some(CharacterSetECI::UTF8)
+        Some(CharacterSetECI::UTF8)
     }
 }

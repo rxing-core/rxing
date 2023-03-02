@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitMatrix, Result, CharacterSetECI},
+    common::{BitMatrix, CharacterSetECI, Result},
     BarcodeFormat, EncodeHintType, EncodeHintValue, Exceptions, Writer,
 };
 

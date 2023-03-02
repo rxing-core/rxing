@@ -23,7 +23,8 @@ use crate::{
         encoder::HighLevelEncoder,
         shared_test_methods::{stripSpace, toBitArray, toBooleanArray},
     },
-    BarcodeFormat, EncodeHintType, EncodeHintValue, Point, common::CharacterSetECI,
+    common::CharacterSetECI,
+    BarcodeFormat, EncodeHintType, EncodeHintValue, Point,
 };
 
 use super::{encoder::aztec_encoder, AztecWriter};
@@ -137,8 +138,8 @@ X       X           X   X   X     X X   X               X     X     X X X
 #[test]
 fn testAztecWriter() {
     let shift_jis: CharacterSetECI =
-    CharacterSetECI::getCharacterSetECIByName("Shift_JIS").expect("must exist");
-        
+        CharacterSetECI::getCharacterSetECIByName("Shift_JIS").expect("must exist");
+
     testWriter("Espa\u{00F1}ol", None, 25, true, 1); // Without ECI (implicit ISO-8859-1)
     testWriter("Espa\u{00F1}ol", Some(ISO_8859_1), 25, true, 1); // Explicit ISO-8859-1
     testWriter("\u{20AC} 1 sample data.", Some(WINDOWS_1252), 25, true, 2); // ISO-8859-1 can't encode Euro; Windows-1252 can
@@ -817,7 +818,9 @@ fn testStuffBits(wordSize: usize, bits: &str, expected: &str) {
 
 fn testHighLevelEncodeStringUtf8(s: &str, expectedBits: &str) {
     let bits = HighLevelEncoder::with_charset(
-        CharacterSetECI::UTF8.encode(s).expect("should encode to bytes"),
+        CharacterSetECI::UTF8
+            .encode(s)
+            .expect("should encode to bytes"),
         CharacterSetECI::UTF8,
     )
     .encode()
@@ -838,7 +841,9 @@ fn testHighLevelEncodeStringUtf8(s: &str, expectedBits: &str) {
 
 fn testHighLevelEncodeString(s: &str, expectedBits: &str) {
     let bits = HighLevelEncoder::new(
-        CharacterSetECI::ISO8859_1.encode(s).expect("should encode to bytes"),
+        CharacterSetECI::ISO8859_1
+            .encode(s)
+            .expect("should encode to bytes"),
     )
     .encode()
     .expect("high level ok");
@@ -857,7 +862,9 @@ fn testHighLevelEncodeString(s: &str, expectedBits: &str) {
 
 fn testHighLevelEncodeStringCount(s: &str, expectedReceivedBits: u32) {
     let bits = HighLevelEncoder::new(
-        CharacterSetECI::ISO8859_1.encode(s).expect("should encode to bytes"),
+        CharacterSetECI::ISO8859_1
+            .encode(s)
+            .expect("should encode to bytes"),
     )
     .encode()
     .expect("high level ok");

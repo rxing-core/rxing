@@ -18,7 +18,7 @@
  * This file has been modified from its original form in Barcode4J.
  */
 
-use crate::common::{Result, CharacterSetECI};
+use crate::common::{CharacterSetECI, Result};
 use crate::Exceptions;
 
 use super::{

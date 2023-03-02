@@ -16,7 +16,7 @@
 
 use std::rc::Rc;
 
-use crate::common::{Result, CharacterSetECI};
+use crate::common::{CharacterSetECI, Result};
 use crate::{Dimension, Exceptions};
 
 use super::{

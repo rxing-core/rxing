@@ -203,8 +203,7 @@ fn decodeHanziSegment(bits: &mut BitSource, result: &mut String, count: usize) -
         count -= 1;
     }
 
-    let gb_encoder =
-        CharacterSetECI::GB18030;
+    let gb_encoder = CharacterSetECI::GB18030;
     let encode_string = gb_encoder
         .decode(&buffer)
         .map_err(|e| Exceptions::parse_with(format!("unable to decode buffer {buffer:?}: {e}")))?;
@@ -321,13 +320,9 @@ fn decodeByteSegment(
         // )
     };
 
-    let encode_string = 
-        encoding
-            .decode(&readBytes)
-            .map_err(|e| {
-                Exceptions::parse_with(format!("unable to decode buffer {readBytes:?}: {e}"))
-            })?
-    ;
+    let encode_string = encoding.decode(&readBytes).map_err(|e| {
+        Exceptions::parse_with(format!("unable to decode buffer {readBytes:?}: {e}"))
+    })?;
 
     result.push_str(&encode_string);
     byteSegments.push(readBytes);

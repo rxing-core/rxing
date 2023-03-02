@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::common::{Result, CharacterSetECI};
+use crate::common::{CharacterSetECI, Result};
 
 use super::{pdf_417_high_level_encoder, Compaction};
 

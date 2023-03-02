@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{
-    common::{BitArray, CharacterSetECI, Result},
-    exceptions::Exceptions,
-};
+use crate::common::{BitArray, CharacterSetECI, Result};
 
 use super::{State, Token};
 
@@ -243,10 +240,10 @@ impl HighLevelEncoder {
     pub fn encode(&self) -> Result<BitArray> {
         let mut initial_state = State::new(Token::new(), Self::MODE_UPPER as u32, 0, 0);
         //if let Some(eci) = CharacterSetECI::getCharacterSetECI(self.charset) {
-            if self.charset != CharacterSetECI::ISO8859_1 {
-                //} && eci != CharacterSetECI::Cp1252 {
-                    initial_state = initial_state.appendFLGn(self.charset.getValue())?;
-            }
+        if self.charset != CharacterSetECI::ISO8859_1 {
+            //} && eci != CharacterSetECI::Cp1252 {
+            initial_state = initial_state.appendFLGn(self.charset.getValue())?;
+        }
         // } else {
         //     return Err(Exceptions::illegal_argument_with(
         //         "No ECI code for character set",

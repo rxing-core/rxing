@@ -32,8 +32,7 @@ use crate::{
 
 use super::{mask_util, matrix_util, BlockPair, ByteMatrix, MinimalEncoder, QRCode};
 
-static SHIFT_JIS_CHARSET: CharacterSetECI =
-     CharacterSetECI::SJIS;
+static SHIFT_JIS_CHARSET: CharacterSetECI = CharacterSetECI::SJIS;
 
 // The original table is defined in the table 5 of JISX0510:2004 (p.19).
 const ALPHANUMERIC_TABLE: [i8; 96] = [
@@ -97,8 +96,7 @@ pub fn encode_with_hints(
     let mut has_encoding_hint = hints.contains_key(&EncodeHintType::CHARACTER_SET);
     if has_encoding_hint {
         if let Some(EncodeHintValue::CharacterSet(v)) = hints.get(&EncodeHintType::CHARACTER_SET) {
-            encoding =
-                Some(CharacterSetECI::getCharacterSetECIByName(v).ok_or(Exceptions::WRITER)?)
+            encoding = Some(CharacterSetECI::getCharacterSetECIByName(v).ok_or(Exceptions::WRITER)?)
         }
     }
 
@@ -122,9 +120,7 @@ pub fn encode_with_hints(
         //Switch to default encoding
         let encoding = if let Some(encoding) = encoding {
             encoding
-        } else if let Ok(_encs) =
-            DEFAULT_BYTE_MODE_ENCODING.encode(content)
-        {
+        } else if let Ok(_encs) = DEFAULT_BYTE_MODE_ENCODING.encode(content) {
             DEFAULT_BYTE_MODE_ENCODING
         } else {
             has_encoding_hint = true;
@@ -720,7 +716,11 @@ pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<()>
     Ok(())
 }
 
-pub fn append8BitBytes(content: &str, bits: &mut BitArray, encoding: CharacterSetECI) -> Result<()> {
+pub fn append8BitBytes(
+    content: &str,
+    bits: &mut BitArray,
+    encoding: CharacterSetECI,
+) -> Result<()> {
     let bytes = encoding
         .encode(content)
         .map_err(|e| Exceptions::writer_with(format!("error {e}")))?;

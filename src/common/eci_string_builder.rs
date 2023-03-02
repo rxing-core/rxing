@@ -136,9 +136,7 @@ impl ECIStringBuilder {
             } else if !self.current_bytes.is_empty() {
                 let bytes = std::mem::take(&mut self.current_bytes);
                 self.current_bytes.clear();
-                let encoded_value = encoder
-                    .decode(&bytes)
-                    .unwrap();
+                let encoded_value = encoder.decode(&bytes).unwrap();
                 self.result.push_str(&encoded_value);
             }
         } else {
