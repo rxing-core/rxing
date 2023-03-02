@@ -204,9 +204,9 @@ fn decodeHanziSegment(bits: &mut BitSource, result: &mut String, count: usize) -
     }
 
     let gb_encoder =
-        encoding::label::encoding_from_whatwg_label("GBK").ok_or(Exceptions::ILLEGAL_STATE)?;
+        CharacterSetECI::GB18030;
     let encode_string = gb_encoder
-        .decode(&buffer, encoding::DecoderTrap::Strict)
+        .decode(&buffer)
         .map_err(|e| Exceptions::parse_with(format!("unable to decode buffer {buffer:?}: {e}")))?;
     result.push_str(&encode_string);
     Ok(())
@@ -250,7 +250,7 @@ fn decodeKanjiSegment(
     let encoder = {
         let _ = currentCharacterSetECI;
         let _ = hints;
-        encoding::label::encoding_from_whatwg_label("SJIS").ok_or(Exceptions::FORMAT)?
+        CharacterSetECI::SJIS
     };
 
     #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
@@ -258,16 +258,16 @@ fn decodeKanjiSegment(
         hints.get(&DecodeHintType::QR_ASSUME_SPEC_CONFORM_INPUT)
     {
         if let Some(ccse) = &currentCharacterSetECI {
-            CharacterSetECI::getCharset(ccse)
+            CharacterSetECI::getCharacterSetECIByName(ccse)
         } else {
-            encoding::all::ISO_8859_1
+            CharacterSetECI::ISO8859_1
         }
     } else {
-        encoding::label::encoding_from_whatwg_label("SJIS").ok_or(Exceptions::FORMAT)?
+        CharacterSetECI::SJIS
     };
 
     let encode_string = encoder
-        .decode(&buffer, encoding::DecoderTrap::Strict)
+        .decode(&buffer)
         .map_err(|e| Exceptions::parse_with(format!("unable to decode buffer {buffer:?}: {e}")))?;
 
     result.push_str(&encode_string);
@@ -308,37 +308,26 @@ fn decodeByteSegment(
         if let Some(DecodeHintValue::QrAssumeSpecConformInput(true)) =
             hints.get(&DecodeHintType::QR_ASSUME_SPEC_CONFORM_INPUT)
         {
-            encoding::all::ISO_8859_1
+            CharacterSetECI::ISO8859_1
         } else {
             StringUtils::guessCharset(&readBytes, hints).ok_or(Exceptions::ILLEGAL_STATE)?
         }
     } else {
-        CharacterSetECI::getCharset(
-            currentCharacterSetECI
-                .as_ref()
-                .ok_or(Exceptions::ILLEGAL_STATE)?,
-        )
+        currentCharacterSetECI.ok_or(Exceptions::ILLEGAL_STATE)?
+        // CharacterSetECI::getCharset(
+        //     currentCharacterSetECI
+        //         .as_ref()
+        //         .ok_or(Exceptions::ILLEGAL_STATE)?,
+        // )
     };
 
-    let encode_string = if currentCharacterSetECI.is_some()
-        && currentCharacterSetECI
-            .as_ref()
-            .ok_or(Exceptions::ILLEGAL_STATE)?
-            == &CharacterSetECI::Cp437
-    {
-        {
-            use codepage_437::BorrowFromCp437;
-            use codepage_437::CP437_CONTROL;
-
-            String::borrow_from_cp437(&readBytes, &CP437_CONTROL)
-        }
-    } else {
+    let encode_string = 
         encoding
-            .decode(&readBytes, encoding::DecoderTrap::Strict)
+            .decode(&readBytes)
             .map_err(|e| {
                 Exceptions::parse_with(format!("unable to decode buffer {readBytes:?}: {e}"))
             })?
-    };
+    ;
 
     result.push_str(&encode_string);
     byteSegments.push(readBytes);

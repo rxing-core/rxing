@@ -18,7 +18,7 @@ use std::rc::Rc;
 
 use once_cell::sync::Lazy;
 
-use crate::datamatrix::encoder::{SymbolInfo, SymbolShapeHint};
+use crate::{datamatrix::encoder::{SymbolInfo, SymbolShapeHint}, common::CharacterSetECI};
 
 use super::{high_level_encoder, minimal_encoder, symbol_info, SymbolInfoLookup};
 
@@ -534,7 +534,7 @@ fn testECIs() {
     assert_eq!("239 209 151 206 214 92 122 140 35 158 144 162 52 205 55 171 137 23 67 206 218 175 147 113 15 254 116 33 241 25 231 186 14 212 64 253 151 252 159 33 41 241 27 231 83 171 53 209 35 25 134 6 42 33 35 239 184 31 193 234 7 252 205 101 127 241 209 34 24 5 22 23 221 148 179 239 128 140 92 187 106 204 198 59 19 25 114 248 118 36 254 231 106 196 19 239 101 27 107 69 189 112 236 156 252 16 174 125 24 10 125 116 42 129",
         visualized);
 
-    let visualized = visualize(&minimal_encoder::encodeHighLevelWithDetails("that particularly stands out to me is \u{0625}\u{0650}\u{062C}\u{064E}\u{0651}\u{0627}\u{0635} (\u{02BE}\u{0101}\u{1E63}) \"pear\", suggested to have originated from Hebrew \u{05D0}\u{05B7}\u{05D2}\u{05B8}\u{05BC}\u{05E1} (ag\u{00E1}s)", Some(encoding::all::UTF_8), None , SymbolShapeHint::FORCE_NONE).expect("encode"));
+    let visualized = visualize(&minimal_encoder::encodeHighLevelWithDetails("that particularly stands out to me is \u{0625}\u{0650}\u{062C}\u{064E}\u{0651}\u{0627}\u{0635} (\u{02BE}\u{0101}\u{1E63}) \"pear\", suggested to have originated from Hebrew \u{05D0}\u{05B7}\u{05D2}\u{05B8}\u{05BC}\u{05E1} (ag\u{00E1}s)", Some(CharacterSetECI::UTF8), None , SymbolShapeHint::FORCE_NONE).expect("encode"));
     assert_eq!("241 27 239 209 151 206 214 92 122 140 35 158 144 162 52 205 55 171 137 23 67 206 218 175 147 113 15 254 116 33 231 202 33 131 77 154 119 225 163 238 206 28 249 93 36 150 151 53 108 246 145 228 217 71 199 42 33 35 239 184 31 193 234 7 252 205 101 127 241 209 34 24 5 22 23 221 148 179 239 128 140 92 187 106 204 198 59 19 25 114 248 118 36 254 231 43 133 212 175 38 220 44 6 125 49 172 93 189 209 111 61 217 203 62 116 42 129 1 151 46 196 91 241 137 32 182 77 227 122 18 168 63 213 108 4 154 49 199 94 244 140 35 185 80",
          visualized);
 }

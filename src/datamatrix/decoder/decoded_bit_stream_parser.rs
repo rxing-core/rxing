@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-use encoding::Encoding;
-
 use crate::{
-    common::{BitSource, DecoderRXingResult, ECIStringBuilder, Result},
+    common::{BitSource, DecoderRXingResult, ECIStringBuilder, Result, CharacterSetECI},
     Exceptions,
 };
 
@@ -730,9 +728,10 @@ fn decodeBase256Segment(
         codewordPosition += 1;
     }
     result.append_string(
-        &encoding::all::ISO_8859_1
-            .decode(&bytes, encoding::DecoderTrap::Strict)
-            .map_err(Exceptions::parse_with)?,
+        
+        &CharacterSetECI::ISO8859_1
+            .decode(&bytes)
+            ?,
     );
     byteSegments.push(bytes);
 

@@ -23,8 +23,6 @@
 
 use std::fmt;
 
-use encoding::{Encoding, EncodingRef};
-
 use crate::common::Result;
 
 use super::CharacterSetECI;
@@ -37,7 +35,7 @@ use super::CharacterSetECI;
 pub struct ECIStringBuilder {
     current_bytes: Vec<u8>,
     result: String,
-    current_charset: Option<EncodingRef>, //= StandardCharsets.ISO_8859_1;
+    current_charset: Option<CharacterSetECI>, //= StandardCharsets.ISO_8859_1;
 }
 
 impl ECIStringBuilder {
@@ -45,14 +43,14 @@ impl ECIStringBuilder {
         Self {
             current_bytes: Vec::new(),
             result: String::new(),
-            current_charset: Some(encoding::all::ISO_8859_1),
+            current_charset: Some(CharacterSetECI::ISO8859_1),
         }
     }
     pub fn with_capacity(initial_capacity: usize) -> Self {
         Self {
             current_bytes: Vec::with_capacity(initial_capacity),
             result: String::with_capacity(initial_capacity),
-            current_charset: Some(encoding::all::ISO_8859_1),
+            current_charset: Some(CharacterSetECI::ISO8859_1),
         }
     }
 
@@ -106,16 +104,18 @@ impl ECIStringBuilder {
     pub fn appendECI(&mut self, value: u32) -> Result<()> {
         self.encodeCurrentBytesIfAny();
 
-        if let Ok(character_set_eci) = CharacterSetECI::getCharacterSetECIByValue(value) {
-            // dbg!(
-            //     character_set_eci,
-            //     CharacterSetECI::getCharset(&character_set_eci).name(),
-            //     CharacterSetECI::getCharset(&character_set_eci).whatwg_name()
-            // );
-            self.current_charset = Some(CharacterSetECI::getCharset(&character_set_eci));
-        } else {
-            self.current_charset = None
-        }
+        self.current_charset = CharacterSetECI::getCharacterSetECIByValue(value).ok();
+
+        // if let Ok(character_set_eci) = CharacterSetECI::getCharacterSetECIByValue(value) {
+        //     // dbg!(
+        //     //     character_set_eci,
+        //     //     CharacterSetECI::getCharset(&character_set_eci).name(),
+        //     //     CharacterSetECI::getCharset(&character_set_eci).whatwg_name()
+        //     // );
+        //     self.current_charset = Some(character_set_eci);
+        // } else {
+        //     self.current_charset = None
+        // }
 
         // self.current_charset = CharacterSetECI::getCharset(&character_set_eci);
         Ok(())
@@ -126,7 +126,7 @@ impl ECIStringBuilder {
     /// This function can panic
     pub fn encodeCurrentBytesIfAny(&mut self) {
         if let Some(encoder) = self.current_charset {
-            if encoder.name() == encoding::all::UTF_8.name() {
+            if encoder == CharacterSetECI::UTF8 {
                 if !self.current_bytes.is_empty() {
                     self.result.push_str(
                         &String::from_utf8(std::mem::take(&mut self.current_bytes)).unwrap(),
@@ -137,7 +137,7 @@ impl ECIStringBuilder {
                 let bytes = std::mem::take(&mut self.current_bytes);
                 self.current_bytes.clear();
                 let encoded_value = encoder
-                    .decode(&bytes, encoding::DecoderTrap::Strict)
+                    .decode(&bytes)
                     .unwrap();
                 self.result.push_str(&encoded_value);
             }

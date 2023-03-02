@@ -16,13 +16,12 @@
 
 use std::rc::Rc;
 
-use crate::common::Result;
+use crate::common::{Result, CharacterSetECI};
 use crate::{Dimension, Exceptions};
 
 use super::{SymbolInfo, SymbolInfoLookup, SymbolShapeHint};
-use encoding::{self, EncodingRef};
 
-const ISO_8859_1_ENCODER: EncodingRef = encoding::all::ISO_8859_1;
+const ISO_8859_1_ENCODER: CharacterSetECI = CharacterSetECI::ISO8859_1;
 
 pub struct EncoderContext<'a> {
     symbol_lookup: Rc<SymbolInfoLookup<'a>>,
@@ -59,10 +58,10 @@ impl<'a> EncoderContext<'_> {
         //   sb.append(ch);
         // }
         let sb = if let Ok(encoded_bytes) =
-            ISO_8859_1_ENCODER.encode(msg, encoding::EncoderTrap::Strict)
+            ISO_8859_1_ENCODER.encode(msg)
         {
             ISO_8859_1_ENCODER
-                .decode(&encoded_bytes, encoding::DecoderTrap::Strict)
+                .decode(&encoded_bytes)
                 .map_err(|e| {
                     Exceptions::parse_with(format!("round trip decode should always work: {e}"))
                 })?

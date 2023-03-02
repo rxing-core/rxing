@@ -14,15 +14,6 @@
  * limitations under the License.
  */
 
-// package com.google.zxing.common;
-
-// import com.google.zxing.FormatException;
-
-// import java.nio.charset.Charset;
-
-// import java.util.HashMap;
-// import java.util.Map;
-
 use encoding::EncodingRef;
 
 use crate::common::Result;
@@ -59,6 +50,7 @@ pub enum CharacterSetECI {
     Cp1252,             //(23, "windows-1252"),
     Cp1256,             //(24, "windows-1256"),
     UnicodeBigUnmarked, //(25, "UTF-16BE", "UnicodeBig"),
+    UTF16LE,
     UTF8,               //(26, "UTF-8"),
     ASCII,              //(new int[] {27, 170}, "US-ASCII"),
     Big5,               //(28),
@@ -101,8 +93,8 @@ impl CharacterSetECI {
         Self::getValue(self)
     }
 
-    pub fn getValue(cs_eci: &CharacterSetECI) -> u32 {
-        match cs_eci {
+    pub fn getValue(&self) -> u32 {
+        match self {
             CharacterSetECI::Cp437 => 0,
             CharacterSetECI::ISO8859_1 => 1,
             CharacterSetECI::ISO8859_2 => 4,
@@ -125,6 +117,7 @@ impl CharacterSetECI {
             CharacterSetECI::Cp1252 => 23,
             CharacterSetECI::Cp1256 => 24,
             CharacterSetECI::UnicodeBigUnmarked => 25,
+            CharacterSetECI::UTF16LE => 100025,
             CharacterSetECI::UTF8 => 26,
             CharacterSetECI::ASCII => 27,
             CharacterSetECI::Big5 => 28,
@@ -136,8 +129,8 @@ impl CharacterSetECI {
     pub fn getCharset(&self, ) -> EncodingRef {
         let name = match self {
             // CharacterSetECI::Cp437 => "CP437",
-            CharacterSetECI::Cp437 => "UTF-8",
-            CharacterSetECI::ISO8859_1 => "ISO-8859-1",
+            CharacterSetECI::Cp437 => "cp437",
+            CharacterSetECI::ISO8859_1 => return encoding::all::ISO_8859_1,
             CharacterSetECI::ISO8859_2 => "ISO-8859-2",
             CharacterSetECI::ISO8859_3 => "ISO-8859-3",
             CharacterSetECI::ISO8859_4 => "ISO-8859-4",
@@ -152,12 +145,13 @@ impl CharacterSetECI {
             // CharacterSetECI::ISO8859_14 => "ISO-8859-14",
             CharacterSetECI::ISO8859_15 => "ISO-8859-15",
             CharacterSetECI::ISO8859_16 => "ISO-8859-16",
-            CharacterSetECI::SJIS => "Shift_JIS",
+            CharacterSetECI::SJIS => "shift_jis",
             CharacterSetECI::Cp1250 => "windows-1250",
             CharacterSetECI::Cp1251 => "windows-1251",
             CharacterSetECI::Cp1252 => "windows-1252",
             CharacterSetECI::Cp1256 => "windows-1256",
             CharacterSetECI::UnicodeBigUnmarked => "UTF-16BE",
+            CharacterSetECI::UTF16LE => "UTF-16LE",
             CharacterSetECI::UTF8 => "UTF-8",
             CharacterSetECI::ASCII => "US-ASCII",
             CharacterSetECI::Big5 => "Big5",
@@ -165,6 +159,41 @@ impl CharacterSetECI {
             CharacterSetECI::EUC_KR => "EUC-KR",
         };
         encoding::label::encoding_from_whatwg_label(name).unwrap()
+    }
+
+    pub fn getCharsetName(&self, ) -> &'static str {
+         match self {
+            // CharacterSetECI::Cp437 => "CP437",
+            CharacterSetECI::Cp437 => "cp437",
+            CharacterSetECI::ISO8859_1 => "iso-8859-1",
+            CharacterSetECI::ISO8859_2 => "iso-8859-2",
+            CharacterSetECI::ISO8859_3 => "iso-8859-3",
+            CharacterSetECI::ISO8859_4 => "iso-8859-4",
+            CharacterSetECI::ISO8859_5 => "iso-8859-5",
+            // CharacterSetECI::ISO8859_6 => "ISO-8859-6",
+            CharacterSetECI::ISO8859_7 => "iso-8859-7",
+            // CharacterSetECI::ISO8859_8 => "ISO-8859-8",
+            CharacterSetECI::ISO8859_9 => "iso-8859-9",
+            // CharacterSetECI::ISO8859_10 => "ISO-8859-10",
+            // CharacterSetECI::ISO8859_11 => "ISO-8859-11",
+            CharacterSetECI::ISO8859_13 => "iso-8859-13",
+            // CharacterSetECI::ISO8859_14 => "ISO-8859-14",
+            CharacterSetECI::ISO8859_15 => "iso-8859-15",
+            CharacterSetECI::ISO8859_16 => "iso-8859-16",
+            CharacterSetECI::SJIS => "shift_jis",
+            CharacterSetECI::Cp1250 => "windows-1250",
+            CharacterSetECI::Cp1251 => "windows-1251",
+            CharacterSetECI::Cp1252 => "windows-1252",
+            CharacterSetECI::Cp1256 => "windows-1256",
+            CharacterSetECI::UnicodeBigUnmarked => "utf-16be",
+            CharacterSetECI::UTF16LE => "utf-16le",
+            CharacterSetECI::UTF8 => "utf-8",
+            CharacterSetECI::ASCII => "us-ascii",
+            CharacterSetECI::Big5 => "big5",
+            CharacterSetECI::GB18030 => "gb2312",
+            CharacterSetECI::EUC_KR => "euc-kr",
+        }
+        
     }
 
     /**
@@ -179,7 +208,7 @@ impl CharacterSetECI {
             charset.name()
         };
         match name {
-            "CP437" => Some(CharacterSetECI::Cp437),
+            "cp437" => Some(CharacterSetECI::Cp437),
             "iso-8859-1" => Some(CharacterSetECI::ISO8859_1),
             "iso-8859-2" => Some(CharacterSetECI::ISO8859_2),
             "iso-8859-3" => Some(CharacterSetECI::ISO8859_3),
@@ -201,7 +230,7 @@ impl CharacterSetECI {
             "windows-1252" => Some(CharacterSetECI::Cp1252),
             "windows-1256" => Some(CharacterSetECI::Cp1256),
             "utf-16be" => Some(CharacterSetECI::UnicodeBigUnmarked),
-            "utf-8" => Some(CharacterSetECI::UTF8),
+            "utf-8" | "utf8" => Some(CharacterSetECI::UTF8),
             "us-ascii" => Some(CharacterSetECI::ASCII),
             "big5" => Some(CharacterSetECI::Big5),
             "gb2312" => Some(CharacterSetECI::GB18030),
@@ -255,34 +284,34 @@ impl CharacterSetECI {
      *   but unsupported
      */
     pub fn getCharacterSetECIByName(name: &str) -> Option<CharacterSetECI> {
-        match name {
-            "CP437" => Some(CharacterSetECI::Cp437),
-            "ISO-8859-1" => Some(CharacterSetECI::ISO8859_1),
-            "ISO-8859-2" => Some(CharacterSetECI::ISO8859_2),
-            "ISO-8859-3" => Some(CharacterSetECI::ISO8859_3),
-            "ISO-8859-4" => Some(CharacterSetECI::ISO8859_4),
-            "ISO-8859-5" => Some(CharacterSetECI::ISO8859_5),
+        match name.to_lowercase().as_str() {
+            "cp437" => Some(CharacterSetECI::Cp437),
+            "iso-8859-1" => Some(CharacterSetECI::ISO8859_1),
+            "iso-8859-2" => Some(CharacterSetECI::ISO8859_2),
+            "iso-8859-3" => Some(CharacterSetECI::ISO8859_3),
+            "iso-8859-4" => Some(CharacterSetECI::ISO8859_4),
+            "iso-8859-5" => Some(CharacterSetECI::ISO8859_5),
             // "ISO-8859-6" => Some(CharacterSetECI::ISO8859_6),
-            "ISO-8859-7" => Some(CharacterSetECI::ISO8859_7),
+            "iso-8859-7" => Some(CharacterSetECI::ISO8859_7),
             // "ISO-8859-8" => Some(CharacterSetECI::ISO8859_8),
-            "ISO-8859-9" => Some(CharacterSetECI::ISO8859_9),
+            "iso-8859-9" => Some(CharacterSetECI::ISO8859_9),
             // "ISO-8859-10" => Some(CharacterSetECI::ISO8859_10),
             // "ISO-8859-11" => Some(CharacterSetECI::ISO8859_11),
-            "ISO-8859-13" => Some(CharacterSetECI::ISO8859_13),
+            "iso-8859-13" => Some(CharacterSetECI::ISO8859_13),
             // "ISO-8859-14" => Some(CharacterSetECI::ISO8859_14),
-            "ISO-8859-15" => Some(CharacterSetECI::ISO8859_15),
-            "ISO-8859-16" => Some(CharacterSetECI::ISO8859_16),
-            "Shift_JIS" => Some(CharacterSetECI::SJIS),
+            "iso-8859-15" => Some(CharacterSetECI::ISO8859_15),
+            "iso-8859-16" => Some(CharacterSetECI::ISO8859_16),
+            "shift_jis" => Some(CharacterSetECI::SJIS),
             "windows-1250" => Some(CharacterSetECI::Cp1250),
             "windows-1251" => Some(CharacterSetECI::Cp1251),
             "windows-1252" => Some(CharacterSetECI::Cp1252),
             "windows-1256" => Some(CharacterSetECI::Cp1256),
-            "UTF-16BE" => Some(CharacterSetECI::UnicodeBigUnmarked),
-            "UTF-8" => Some(CharacterSetECI::UTF8),
-            "US-ASCII" => Some(CharacterSetECI::ASCII),
-            "Big5" => Some(CharacterSetECI::Big5),
-            "GB2312" => Some(CharacterSetECI::GB18030),
-            "EUC-KR" => Some(CharacterSetECI::EUC_KR),
+            "utf-16be" => Some(CharacterSetECI::UnicodeBigUnmarked),
+            "utf-8" | "utf8" => Some(CharacterSetECI::UTF8),
+            "us-ascii" => Some(CharacterSetECI::ASCII),
+            "big5" => Some(CharacterSetECI::Big5),
+            "gb2312" => Some(CharacterSetECI::GB18030),
+            "euc-kr" => Some(CharacterSetECI::EUC_KR),
             _ => None,
         }
     }
@@ -296,7 +325,14 @@ impl CharacterSetECI {
     }
 
     pub fn decode(&self, input:&[u8]) -> Result<String> {
+        if self == &CharacterSetECI::Cp437 {
+            use codepage_437::BorrowFromCp437;
+            use codepage_437::CP437_CONTROL;
+
+            Ok(String::borrow_from_cp437(&input, &CP437_CONTROL))
+        }else {
         self.getCharset().decode(input, encoding::DecoderTrap::Strict).map_err(|e| Exceptions::format_with(e.to_string()))
+        }
     }
 
     pub fn decode_replace(&self, input:&[u8]) -> Result<String> {
