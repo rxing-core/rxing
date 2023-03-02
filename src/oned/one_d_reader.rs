@@ -105,8 +105,8 @@ pub trait OneDReader: Reader {
                     }
                 }
                 let Ok(mut result) = self.decode_row(row_number as u32, &row, &hints) else {
-            continue
-          };
+                    continue
+                };
                 // We found our barcode
                 if attempt == 1 {
                     // But it was upside down, so note that

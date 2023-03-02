@@ -119,21 +119,19 @@ impl MultiFormatReader {
         &mut self,
         image: &mut BinaryBitmap<B>,
     ) -> Result<RXingResult> {
-        if !self.possible_formats.is_empty() {
+        let res = self.decode_formats(image);
+        if res.is_ok() {
+            return res;
+        }
+        if matches!(
+            self.hints.get(&DecodeHintType::ALSO_INVERTED),
+            Some(DecodeHintValue::AlsoInverted(true))
+        ) {
+            // Calling all readers again with inverted image
+            image.get_black_matrix_mut().flip_self();
             let res = self.decode_formats(image);
             if res.is_ok() {
                 return res;
-            }
-            if matches!(
-                self.hints.get(&DecodeHintType::ALSO_INVERTED),
-                Some(DecodeHintValue::AlsoInverted(true))
-            ) {
-                // Calling all readers again with inverted image
-                image.get_black_matrix_mut().flip_self();
-                let res = self.decode_formats(image);
-                if res.is_ok() {
-                    return res;
-                }
             }
         }
         Err(Exceptions::NOT_FOUND)

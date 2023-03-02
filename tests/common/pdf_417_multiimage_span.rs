@@ -24,7 +24,13 @@ use std::{
 };
 
 use encoding::Encoding;
-use rxing::{common::{HybridBinarizer, Result}, multi::MultipleBarcodeReader, pdf417::PDF417RXingResultMetadata, BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader, Binarizer};
+use rxing::{
+    common::{HybridBinarizer, Result},
+    multi::MultipleBarcodeReader,
+    pdf417::PDF417RXingResultMetadata,
+    BarcodeFormat, Binarizer, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType,
+    DecodeHintValue, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+};
 
 use super::TestRXingResult;
 
@@ -174,8 +180,7 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
                     let rotation: f32 = self.test_rxing_results.get(x).expect("ok").get_rotation();
                     let rotated_image = Self::rotate_image(&image, rotation);
                     let source = BufferedImageLuminanceSource::new(rotated_image);
-                    let mut bitmap =
-                        BinaryBitmap::new(HybridBinarizer::new(source));
+                    let mut bitmap = BinaryBitmap::new(HybridBinarizer::new(source));
 
                     if let Ok(res) =
                         Self::decode_pdf417(&mut bitmap, false, &mut self.barcode_reader)
