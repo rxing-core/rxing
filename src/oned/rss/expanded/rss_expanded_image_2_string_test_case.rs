@@ -184,9 +184,9 @@ fn assertCorrectImage2string(fileName: &str, expected: &str) {
     let path = format!("test_resources/blackbox/rssexpanded-1/{fileName}");
 
     let image = image::open(path).expect("load image");
-    let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
+    let binaryMap = BinaryBitmap::new(GlobalHistogramBinarizer::new(
         BufferedImageLuminanceSource::new(image),
-    ))));
+    ));
     let rowNumber = binaryMap.get_height() / 2;
     let row = binaryMap.get_black_row(rowNumber).expect("get row");
 

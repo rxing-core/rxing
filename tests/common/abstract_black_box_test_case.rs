@@ -25,12 +25,7 @@ use std::{
 };
 
 use encoding::Encoding;
-use rxing::{
-    common::{HybridBinarizer, Result},
-    pdf417::PDF417RXingResultMetadata,
-    BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue,
-    RXingResultMetadataType, RXingResultMetadataValue, Reader,
-};
+use rxing::{common::{HybridBinarizer, Result}, pdf417::PDF417RXingResultMetadata, BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue, RXingResultMetadataType, RXingResultMetadataValue, Reader, Binarizer};
 
 use super::TestRXingResult;
 
@@ -251,7 +246,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                 let rotation = self.test_rxing_results.get(x).unwrap().get_rotation();
                 let rotated_image = Self::rotate_image(&image, rotation);
                 let source = BufferedImageLuminanceSource::new(rotated_image);
-                let mut bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
+                let mut bitmap = BinaryBitmap::new(HybridBinarizer::new(source));
 
                 // if file_base_name == "15" {
                 // let mut f = File::create("test_file_output.txt").unwrap();
@@ -422,9 +417,9 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
         }
     }
 
-    fn decode(
+    fn decode<B: Binarizer>(
         &mut self,
-        source: &mut BinaryBitmap,
+        source: &mut BinaryBitmap<B>,
         rotation: f32,
         expected_text: &str,
         expected_metadata: &HashMap<RXingResultMetadataType, RXingResultMetadataValue>,
