@@ -38,7 +38,7 @@ pub struct MultiFormatOneDReader {
     possible_formats: HashSet<BarcodeFormat>,
     use_code_39_check_digit: bool,
     rss_14_reader: RSS14Reader,
-    rss_expanded_reader: RSSExpandedReader
+    rss_expanded_reader: RSSExpandedReader,
 }
 impl OneDReader for MultiFormatOneDReader {
     fn decode_row(
