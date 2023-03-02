@@ -37,6 +37,8 @@ pub struct MultiFormatOneDReader {
     internal_hints: DecodingHintDictionary,
     possible_formats: HashSet<BarcodeFormat>,
     use_code_39_check_digit: bool,
+    rss_14_reader: RSS14Reader,
+    rss_expanded_reader: RSSExpandedReader
 }
 impl OneDReader for MultiFormatOneDReader {
     fn decode_row(
@@ -45,11 +47,12 @@ impl OneDReader for MultiFormatOneDReader {
         row: &crate::common::BitArray,
         hints: &DecodingHintDictionary,
     ) -> Result<RXingResult> {
-        // reader.decode_row(rowNumber, row, hints)
         let Self {
             possible_formats,
             use_code_39_check_digit,
             internal_hints,
+            rss_14_reader,
+            rss_expanded_reader,
         } = self;
 
         if !possible_formats.is_empty() {
@@ -92,12 +95,12 @@ impl OneDReader for MultiFormatOneDReader {
                 }
             }
             if possible_formats.contains(&BarcodeFormat::RSS_14) {
-                if let Ok(res) = RSS14Reader::default().decode_row(row_number, row, hints) {
+                if let Ok(res) = rss_14_reader.decode_row(row_number, row, hints) {
                     return Ok(res);
                 }
             }
             if possible_formats.contains(&BarcodeFormat::RSS_EXPANDED) {
-                if let Ok(res) = RSSExpandedReader::default().decode_row(row_number, row, hints) {
+                if let Ok(res) = rss_expanded_reader.decode_row(row_number, row, hints) {
                     return Ok(res);
                 }
             }
@@ -124,10 +127,10 @@ impl OneDReader for MultiFormatOneDReader {
             if let Ok(res) = ITFReader::default().decode_row(row_number, row, hints) {
                 return Ok(res);
             }
-            if let Ok(res) = RSS14Reader::default().decode_row(row_number, row, hints) {
+            if let Ok(res) = rss_14_reader.decode_row(row_number, row, hints) {
                 return Ok(res);
             }
-            if let Ok(res) = RSSExpandedReader::default().decode_row(row_number, row, hints) {
+            if let Ok(res) = rss_expanded_reader.decode_row(row_number, row, hints) {
                 return Ok(res);
             }
         }
@@ -152,7 +155,9 @@ impl MultiFormatOneDReader {
         Self {
             possible_formats,
             use_code_39_check_digit,
+            rss_14_reader: RSS14Reader::default(),
             internal_hints: hints.clone(),
+            rss_expanded_reader: RSSExpandedReader::default(),
         }
     }
 }

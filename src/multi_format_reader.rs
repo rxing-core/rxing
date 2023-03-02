@@ -37,6 +37,7 @@ pub struct MultiFormatReader {
     hints: DecodingHintDictionary,
     possible_formats: HashSet<BarcodeFormat>,
     try_harder: bool,
+    one_d_reader: MultiFormatOneDReader
 }
 
 impl Reader for MultiFormatReader {
@@ -113,6 +114,7 @@ impl MultiFormatReader {
         } else {
             HashSet::new()
         };
+        self.one_d_reader = MultiFormatOneDReader::new(&hints);
     }
 
     pub fn decode_internal<B: Binarizer>(
@@ -137,7 +139,7 @@ impl MultiFormatReader {
         Err(Exceptions::NOT_FOUND)
     }
 
-    fn decode_formats<B: Binarizer>(&self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
+    fn decode_formats<B: Binarizer>(&mut self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
         if !self.possible_formats.is_empty() {
             let one_d = self.possible_formats.contains(&BarcodeFormat::UPC_A)
                 || self.possible_formats.contains(&BarcodeFormat::UPC_E)
@@ -152,7 +154,7 @@ impl MultiFormatReader {
                 || self.possible_formats.contains(&BarcodeFormat::RSS_EXPANDED);
             if one_d && !self.try_harder {
                 if let Ok(res) =
-                    MultiFormatOneDReader::new(&self.hints).decode_with_hints(image, &self.hints)
+                    self.one_d_reader.decode_with_hints(image, &self.hints)
                 {
                     return Ok(res);
                 }
@@ -182,7 +184,7 @@ impl MultiFormatReader {
             }
             if one_d && self.try_harder {
                 if let Ok(res) =
-                    MultiFormatOneDReader::new(&self.hints).decode_with_hints(image, &self.hints)
+                    self.one_d_reader.decode_with_hints(image, &self.hints)
                 {
                     return Ok(res);
                 }
@@ -190,7 +192,7 @@ impl MultiFormatReader {
         } else {
             if !self.try_harder {
                 if let Ok(res) =
-                    MultiFormatOneDReader::new(&self.hints).decode_with_hints(image, &self.hints)
+                    self.one_d_reader.decode_with_hints(image, &self.hints)
                 {
                     return Ok(res);
                 }
@@ -214,7 +216,7 @@ impl MultiFormatReader {
 
             if self.try_harder {
                 if let Ok(res) =
-                    MultiFormatOneDReader::new(&self.hints).decode_with_hints(image, &self.hints)
+                    self.one_d_reader.decode_with_hints(image, &self.hints)
                 {
                     return Ok(res);
                 }
