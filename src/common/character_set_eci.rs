@@ -26,7 +26,7 @@
 use encoding::EncodingRef;
 
 use crate::common::Result;
-use crate::Exceptions;
+use crate::{Exceptions};
 
 /**
  * Encapsulates a Character Set ECI, according to "Extended Channel Interpretations" 5.3.1.1
@@ -133,8 +133,8 @@ impl CharacterSetECI {
         }
     }
 
-    pub fn getCharset(cs_eci: &CharacterSetECI) -> EncodingRef {
-        let name = match cs_eci {
+    pub fn getCharset(&self, ) -> EncodingRef {
+        let name = match self {
             // CharacterSetECI::Cp437 => "CP437",
             CharacterSetECI::Cp437 => "UTF-8",
             CharacterSetECI::ISO8859_1 => "ISO-8859-1",
@@ -285,5 +285,21 @@ impl CharacterSetECI {
             "EUC-KR" => Some(CharacterSetECI::EUC_KR),
             _ => None,
         }
+    }
+
+    pub fn encode(&self, input: &str) -> Result<Vec<u8>> {
+        self.getCharset().encode(input, encoding::EncoderTrap::Strict).map_err(|e| Exceptions::format_with(e.to_string()))
+    }
+
+    pub fn encode_replace(&self, input: &str) -> Result<Vec<u8>> {
+        self.getCharset().encode(input, encoding::EncoderTrap::Replace).map_err(|e| Exceptions::format_with(e.to_string()))
+    }
+
+    pub fn decode(&self, input:&[u8]) -> Result<String> {
+        self.getCharset().decode(input, encoding::DecoderTrap::Strict).map_err(|e| Exceptions::format_with(e.to_string()))
+    }
+
+    pub fn decode_replace(&self, input:&[u8]) -> Result<String> {
+        self.getCharset().decode(input, encoding::DecoderTrap::Replace).map_err(|e| Exceptions::format_with(e.to_string()))
     }
 }
