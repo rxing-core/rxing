@@ -57,9 +57,7 @@ pub fn detect_in_svg_with_hints(
         .or_insert(DecodeHintValue::TryHarder(true));
 
     multi_format_reader.decode_with_hints(
-        &mut BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(
-            SVGLuminanceSource::new(&svg_data)?,
-        )))),
+        &mut BinaryBitmap::new(HybridBinarizer::new(SVGLuminanceSource::new(&svg_data)?)),
         hints,
     )
 }
@@ -100,9 +98,7 @@ pub fn detect_multiple_in_svg_with_hints(
         .or_insert(DecodeHintValue::TryHarder(true));
 
     scanner.decode_multiple_with_hints(
-        &mut BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(
-            SVGLuminanceSource::new(&svg_data)?,
-        )))),
+        &mut BinaryBitmap::new(HybridBinarizer::new(SVGLuminanceSource::new(&svg_data)?)),
         hints,
     )
 }

@@ -22,34 +22,28 @@ impl LuminanceSource for SVGLuminanceSource {
         self.0.get_height()
     }
 
-    fn invert(&mut self) {
-        self.0.invert()
-    }
-
     fn is_crop_supported(&self) -> bool {
         self.0.is_crop_supported()
     }
 
-    fn crop(
-        &self,
-        left: usize,
-        top: usize,
-        width: usize,
-        height: usize,
-    ) -> Result<Box<dyn LuminanceSource>> {
-        self.0.crop(left, top, width, height)
+    fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
+        self.0.crop(left, top, width, height).map(|src| Self(src))
     }
 
     fn is_rotate_supported(&self) -> bool {
         self.0.is_rotate_supported()
     }
 
-    fn rotate_counter_clockwise(&self) -> Result<Box<dyn LuminanceSource>> {
-        self.0.rotate_counter_clockwise()
+    fn invert(&mut self) {
+        self.0.invert()
     }
 
-    fn rotate_counter_clockwise_45(&self) -> Result<Box<dyn LuminanceSource>> {
-        self.0.rotate_counter_clockwise_45()
+    fn rotate_counter_clockwise(&self) -> Result<Self> {
+        self.0.rotate_counter_clockwise().map(|src| Self(src))
+    }
+
+    fn rotate_counter_clockwise_45(&self) -> Result<Self> {
+        self.0.rotate_counter_clockwise_45().map(|src| Self(src))
     }
 }
 

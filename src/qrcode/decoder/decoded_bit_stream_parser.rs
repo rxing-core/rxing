@@ -310,7 +310,7 @@ fn decodeByteSegment(
         {
             encoding::all::ISO_8859_1
         } else {
-            StringUtils::guessCharset(&readBytes, hints)
+            StringUtils::guessCharset(&readBytes, hints).ok_or(Exceptions::ILLEGAL_STATE)?
         }
     } else {
         CharacterSetECI::getCharset(
