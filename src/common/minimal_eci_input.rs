@@ -21,7 +21,7 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::common::Result;
 use crate::Exceptions;
 
-use super::{ECIEncoderSet, ECIInput, CharacterSetECI};
+use super::{CharacterSetECI, ECIEncoderSet, ECIInput};
 
 //* approximated (latch + 2 codewords)
 pub const COST_PER_ECI: usize = 3;

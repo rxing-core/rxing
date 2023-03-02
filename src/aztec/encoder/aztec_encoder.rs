@@ -19,7 +19,7 @@ use crate::{
         reedsolomon::{
             get_predefined_genericgf, GenericGFRef, PredefinedGenericGF, ReedSolomonEncoder,
         },
-        BitArray, BitMatrix, Result, CharacterSetECI,
+        BitArray, BitMatrix, CharacterSetECI, Result,
     },
     exceptions::Exceptions,
 };

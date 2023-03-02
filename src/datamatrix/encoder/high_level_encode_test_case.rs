@@ -18,7 +18,10 @@ use std::rc::Rc;
 
 use once_cell::sync::Lazy;
 
-use crate::{datamatrix::encoder::{SymbolInfo, SymbolShapeHint}, common::CharacterSetECI};
+use crate::{
+    common::CharacterSetECI,
+    datamatrix::encoder::{SymbolInfo, SymbolShapeHint},
+};
 
 use super::{high_level_encoder, minimal_encoder, symbol_info, SymbolInfoLookup};
 

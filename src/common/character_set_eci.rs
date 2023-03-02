@@ -17,7 +17,7 @@
 use encoding::EncodingRef;
 
 use crate::common::Result;
-use crate::{Exceptions};
+use crate::Exceptions;
 
 /**
  * Encapsulates a Character Set ECI, according to "Extended Channel Interpretations" 5.3.1.1
@@ -51,11 +51,11 @@ pub enum CharacterSetECI {
     Cp1256,             //(24, "windows-1256"),
     UnicodeBigUnmarked, //(25, "UTF-16BE", "UnicodeBig"),
     UTF16LE,
-    UTF8,               //(26, "UTF-8"),
-    ASCII,              //(new int[] {27, 170}, "US-ASCII"),
-    Big5,               //(28),
-    GB18030,            //(29, "GB2312", "EUC_CN", "GBK"),
-    EUC_KR,             //(30, "EUC-KR");
+    UTF8,    //(26, "UTF-8"),
+    ASCII,   //(new int[] {27, 170}, "US-ASCII"),
+    Big5,    //(28),
+    GB18030, //(29, "GB2312", "EUC_CN", "GBK"),
+    EUC_KR,  //(30, "EUC-KR");
 }
 impl CharacterSetECI {
     //   private static final Map<Integer,CharacterSetECI> VALUE_TO_ECI = new HashMap<>();
@@ -126,7 +126,7 @@ impl CharacterSetECI {
         }
     }
 
-    pub fn getCharset(&self, ) -> EncodingRef {
+    pub fn getCharset(&self) -> EncodingRef {
         let name = match self {
             // CharacterSetECI::Cp437 => "CP437",
             CharacterSetECI::Cp437 => "cp437",
@@ -161,8 +161,8 @@ impl CharacterSetECI {
         encoding::label::encoding_from_whatwg_label(name).unwrap()
     }
 
-    pub fn getCharsetName(&self, ) -> &'static str {
-         match self {
+    pub fn getCharsetName(&self) -> &'static str {
+        match self {
             // CharacterSetECI::Cp437 => "CP437",
             CharacterSetECI::Cp437 => "cp437",
             CharacterSetECI::ISO8859_1 => "iso-8859-1",
@@ -193,7 +193,6 @@ impl CharacterSetECI {
             CharacterSetECI::GB18030 => "gb2312",
             CharacterSetECI::EUC_KR => "euc-kr",
         }
-        
     }
 
     /**
@@ -317,25 +316,33 @@ impl CharacterSetECI {
     }
 
     pub fn encode(&self, input: &str) -> Result<Vec<u8>> {
-        self.getCharset().encode(input, encoding::EncoderTrap::Strict).map_err(|e| Exceptions::format_with(e.to_string()))
+        self.getCharset()
+            .encode(input, encoding::EncoderTrap::Strict)
+            .map_err(|e| Exceptions::format_with(e.to_string()))
     }
 
     pub fn encode_replace(&self, input: &str) -> Result<Vec<u8>> {
-        self.getCharset().encode(input, encoding::EncoderTrap::Replace).map_err(|e| Exceptions::format_with(e.to_string()))
+        self.getCharset()
+            .encode(input, encoding::EncoderTrap::Replace)
+            .map_err(|e| Exceptions::format_with(e.to_string()))
     }
 
-    pub fn decode(&self, input:&[u8]) -> Result<String> {
+    pub fn decode(&self, input: &[u8]) -> Result<String> {
         if self == &CharacterSetECI::Cp437 {
             use codepage_437::BorrowFromCp437;
             use codepage_437::CP437_CONTROL;
 
             Ok(String::borrow_from_cp437(&input, &CP437_CONTROL))
-        }else {
-        self.getCharset().decode(input, encoding::DecoderTrap::Strict).map_err(|e| Exceptions::format_with(e.to_string()))
+        } else {
+            self.getCharset()
+                .decode(input, encoding::DecoderTrap::Strict)
+                .map_err(|e| Exceptions::format_with(e.to_string()))
         }
     }
 
-    pub fn decode_replace(&self, input:&[u8]) -> Result<String> {
-        self.getCharset().decode(input, encoding::DecoderTrap::Replace).map_err(|e| Exceptions::format_with(e.to_string()))
+    pub fn decode_replace(&self, input: &[u8]) -> Result<String> {
+        self.getCharset()
+            .decode(input, encoding::DecoderTrap::Replace)
+            .map_err(|e| Exceptions::format_with(e.to_string()))
     }
 }

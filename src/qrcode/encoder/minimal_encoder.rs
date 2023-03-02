@@ -17,7 +17,7 @@
 use std::{fmt, rc::Rc};
 
 use crate::{
-    common::{BitArray, ECIEncoderSet, Result, CharacterSetECI},
+    common::{BitArray, CharacterSetECI, ECIEncoderSet, Result},
     qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
     Exceptions,
 };
@@ -1042,7 +1042,7 @@ impl fmt::Display for RXingResultNode {
         result.push('(');
         if self.mode == Mode::ECI {
             result.push_str(
-                &self.encoders
+                self.encoders
                     .getCharset(self.charsetEncoderIndex)
                     .ok_or(fmt::Error)?
                     .getCharsetName(),

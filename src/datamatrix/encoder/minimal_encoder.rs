@@ -17,7 +17,7 @@
 use std::{fmt, rc::Rc};
 
 use crate::{
-    common::{ECIInput, MinimalECIInput, Result, CharacterSetECI},
+    common::{CharacterSetECI, ECIInput, MinimalECIInput, Result},
     Exceptions,
 };
 
@@ -171,10 +171,7 @@ pub fn encodeHighLevelWithDetails(
         msg = &msg[high_level_encoder::MACRO_06_HEADER.chars().count()..(msg.chars().count() - 2)];
     }
     Ok(ISO_8859_1_ENCODER
-        .decode(
-            &encode(msg, priorityCharset, fnc1, shape, macroId)?
-            
-        )
+        .decode(&encode(msg, priorityCharset, fnc1, shape, macroId)?)
         .expect("should decode"))
     // return new String(encode(msg, priorityCharset, fnc1, shape, macroId), StandardCharsets.ISO_8859_1);
 }

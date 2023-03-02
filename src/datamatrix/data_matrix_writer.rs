@@ -18,7 +18,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitMatrix, Result, CharacterSetECI},
+    common::{BitMatrix, CharacterSetECI, Result},
     qrcode::encoder::ByteMatrix,
     BarcodeFormat, EncodeHintType, EncodeHintValue, Exceptions, Writer,
 };
@@ -122,7 +122,8 @@ impl Writer for DataMatrixWriter {
                     hints.get(&EncodeHintType::CHARACTER_SET) else {
                       return Err(Exceptions::illegal_argument_with("charset does not exist"))
                     };
-                charset = CharacterSetECI::getCharacterSetECIByName(char_set_name);//encoding::label::encoding_from_whatwg_label(char_set_name);
+                charset = CharacterSetECI::getCharacterSetECIByName(char_set_name);
+                //encoding::label::encoding_from_whatwg_label(char_set_name);
                 // charset = Charset.forName(hints.get(EncodeHintType.CHARACTER_SET).toString());
             }
             encoded = minimal_encoder::encodeHighLevelWithDetails(

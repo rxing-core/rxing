@@ -113,7 +113,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
     // Intermediary buffer of decoded bytes, which is decoded into a string and flushed
     // when character encoding changes (ECI) or input ends.
     let mut decoded_bytes: Vec<u8> = Vec::new();
-    
+
     let mut encdr: CharacterSetECI = CharacterSetECI::ISO8859_1;
 
     let mut index = 0;
@@ -159,10 +159,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                 let mut n = read_code(corrected_bits, index, 3);
                 index += 3;
                 //  flush bytes, FLG changes state
-                result.push_str(
-                    &encdr
-                        .decode(&decoded_bytes)?,
-                );
+                result.push_str(&encdr.decode(&decoded_bytes)?);
 
                 decoded_bytes.clear();
                 match n {
@@ -206,7 +203,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                 }
             } else {
                 // Though stored as a table of strings for convenience, codes actually represent 1 or 2 *bytes*.
-                
+
                 let b = str.as_bytes();
                 //let b = str.getBytes(StandardCharsets.US_ASCII);
                 //decodedBytes.write(b, 0, b.length);

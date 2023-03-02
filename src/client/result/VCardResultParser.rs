@@ -20,7 +20,7 @@ use regex::Regex;
 
 use once_cell::sync::Lazy;
 
-use crate::{RXingResult, common::CharacterSetECI};
+use crate::{common::CharacterSetECI, RXingResult};
 
 use uriparse::URI;
 
@@ -405,9 +405,7 @@ fn maybeAppendFragment(fragmentBuffer: &mut Vec<u8>, charset: &str, result: &mut
             fragment = String::from_utf8(fragmentBytes).unwrap_or_else(|_| String::default());
             // fragment = new String(fragmentBytes, StandardCharsets.UTF_8);
         } else if let Some(enc) = CharacterSetECI::getCharacterSetECIByName(charset) {
-            fragment = if let Ok(encoded_result) =
-                enc.decode(&fragmentBytes)
-            {
+            fragment = if let Ok(encoded_result) = enc.decode(&fragmentBytes) {
                 encoded_result
             } else {
                 String::from_utf8(fragmentBytes).unwrap_or_else(|_| String::default())

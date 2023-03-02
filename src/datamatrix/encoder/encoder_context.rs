@@ -16,7 +16,7 @@
 
 use std::rc::Rc;
 
-use crate::common::{Result, CharacterSetECI};
+use crate::common::{CharacterSetECI, Result};
 use crate::{Dimension, Exceptions};
 
 use super::{SymbolInfo, SymbolInfoLookup, SymbolShapeHint};
@@ -57,14 +57,10 @@ impl<'a> EncoderContext<'_> {
         //   }
         //   sb.append(ch);
         // }
-        let sb = if let Ok(encoded_bytes) =
-            ISO_8859_1_ENCODER.encode(msg)
-        {
-            ISO_8859_1_ENCODER
-                .decode(&encoded_bytes)
-                .map_err(|e| {
-                    Exceptions::parse_with(format!("round trip decode should always work: {e}"))
-                })?
+        let sb = if let Ok(encoded_bytes) = ISO_8859_1_ENCODER.encode(msg) {
+            ISO_8859_1_ENCODER.decode(&encoded_bytes).map_err(|e| {
+                Exceptions::parse_with(format!("round trip decode should always work: {e}"))
+            })?
         } else {
             return Err(Exceptions::illegal_argument_with(
                 "Message contains characters outside ISO-8859-1 encoding.",

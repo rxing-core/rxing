@@ -197,16 +197,17 @@ pub fn encodeHighLevel(
         input = Box::new(NoECIInput::new(msg.to_owned()));
         if encoding.is_none() {
             encoding = Some(DEFAULT_ENCODING);
-        } else if &DEFAULT_ENCODING
-            != encoding.as_ref().ok_or(Exceptions::ILLEGAL_STATE)?
-        {
+        } else if &DEFAULT_ENCODING != encoding.as_ref().ok_or(Exceptions::ILLEGAL_STATE)? {
             // if let Some(eci) =
             //     CharacterSetECI::getCharacterSetECI(encoding.ok_or(Exceptions::ILLEGAL_STATE)?)
             // {
             //     encodingECI(CharacterSetECI::getValue(&eci) as i32, &mut sb)?;
             // }
 
-            encodingECI(CharacterSetECI::getValue(&encoding.ok_or(Exceptions::ILLEGAL_STATE)?) as i32, &mut sb)?;
+            encodingECI(
+                CharacterSetECI::getValue(&encoding.ok_or(Exceptions::ILLEGAL_STATE)?) as i32,
+                &mut sb,
+            )?;
         }
     }
 
@@ -768,12 +769,7 @@ fn determineConsecutiveBinaryCount<T: ECIInput + ?Sized + 'static>(
         }
 
         if let Some(encoder) = encoding {
-            let can_encode = encoder
-                .encode(
-                    &input.charAt(idx)?.to_string()
-                    
-                )
-                .is_ok();
+            let can_encode = encoder.encode(&input.charAt(idx)?.to_string()).is_ok();
 
             if !can_encode {
                 if TypeId::of::<T>() != TypeId::of::<NoECIInput>() {
@@ -856,7 +852,10 @@ impl Display for NoECIInput {
  */
 #[cfg(test)]
 mod PDF417EncoderTestCase {
-    use crate::{pdf417::encoder::{pdf_417_high_level_encoder::encodeHighLevel, Compaction}, common::CharacterSetECI};
+    use crate::{
+        common::CharacterSetECI,
+        pdf417::encoder::{pdf_417_high_level_encoder::encodeHighLevel, Compaction},
+    };
 
     #[test]
     fn testEncodeAuto() {

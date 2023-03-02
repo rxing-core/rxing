@@ -112,9 +112,7 @@ impl ECIEncoderSet {
             for encoder in &neededEncoders {
                 //   for (CharsetEncoder encoder : neededEncoders) {
                 let c = stringToEncode.get(i).unwrap();
-                if (fnc1.is_some() && c == fnc1.as_ref().unwrap())
-                    || encoder.encode(c).is_ok()
-                {
+                if (fnc1.is_some() && c == fnc1.as_ref().unwrap()) || encoder.encode(c).is_ok() {
                     canEncode = true;
                     break;
                 }
@@ -125,12 +123,7 @@ impl ECIEncoderSet {
                     // for encoder in ENCODERS {
                     let encoder = ENCODERS.get(i_encoder).unwrap();
                     // for (CharsetEncoder encoder : ENCODERS) {
-                    if encoder
-                        .encode(
-                            stringToEncode.get(i).unwrap()
-                        )
-                        .is_ok()
-                    {
+                    if encoder.encode(stringToEncode.get(i).unwrap()).is_ok() {
                         //Good, we found an encoder that can encode the character. We add him to the list and continue scanning
                         //the input
                         neededEncoders.push(*encoder);

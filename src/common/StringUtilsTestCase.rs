@@ -40,19 +40,14 @@ fn test_random() {
     // }
     assert_eq!(
         CharacterSetECI::UTF8,
-        StringUtils::guessCharset(&bytes, &HashMap::new())
-            .unwrap()
+        StringUtils::guessCharset(&bytes, &HashMap::new()).unwrap()
     );
 }
 
 #[test]
 fn test_short_shift_jis1() {
     // 金魚
-    do_test(
-        &[0x8b, 0xe0, 0x8b, 0x9b],
-        CharacterSetECI::SJIS,
-        "SJIS",
-    );
+    do_test(&[0x8b, 0xe0, 0x8b, 0x9b], CharacterSetECI::SJIS, "SJIS");
 }
 
 #[test]
@@ -87,7 +82,7 @@ fn test_utf16_be() {
     do_test(
         &[0xFE, 0xFF, 0x8c, 0x03, 0x53, 0x8b, 0x67, 0xdc],
         CharacterSetECI::UnicodeBigUnmarked,
-        &CharacterSetECI::UnicodeBigUnmarked.getCharsetName(),
+        CharacterSetECI::UnicodeBigUnmarked.getCharsetName(),
     );
 }
 
@@ -97,7 +92,7 @@ fn test_utf16_le() {
     do_test(
         &[0xFF, 0xFE, 0x03, 0x8c, 0x8b, 0x53, 0xdc, 0x67],
         CharacterSetECI::UTF16LE,
-        &CharacterSetECI::UTF16LE.getCharsetName(),
+        CharacterSetECI::UTF16LE.getCharsetName(),
     );
 }
 
