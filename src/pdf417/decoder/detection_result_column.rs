@@ -21,7 +21,7 @@ use super::{BoundingBox, Codeword, DetectionRXingResultRowIndicatorColumn};
 const MAX_NEARBY_DISTANCE: u32 = 5;
 
 pub trait DetectionRXingResultColumnTrait {
-    fn new(boundingBox: Rc<BoundingBox>) -> DetectionRXingResultColumn
+    fn new_column(boundingBox: Rc<BoundingBox>) -> DetectionRXingResultColumn
     where
         Self: Sized;
     fn new_with_is_left(boundingBox: Rc<BoundingBox>, isLeft: bool) -> DetectionRXingResultColumn
@@ -48,7 +48,7 @@ pub struct DetectionRXingResultColumn {
 }
 
 impl DetectionRXingResultColumnTrait for DetectionRXingResultColumn {
-    fn new(boundingBox: Rc<BoundingBox>) -> DetectionRXingResultColumn {
+    fn new_column(boundingBox: Rc<BoundingBox>) -> DetectionRXingResultColumn {
         DetectionRXingResultColumn {
             boundingBox: BoundingBox::from_other(boundingBox.clone()),
             codewords: vec![None; (boundingBox.getMaxY() - boundingBox.getMinY() + 1) as usize],

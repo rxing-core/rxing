@@ -142,10 +142,10 @@ impl<B: Binarizer> BinaryBitmap<B> {
             .binarizer
             .get_luminance_source()
             .crop(left, top, width, height);
-        return BinaryBitmap::new(
+        BinaryBitmap::new(
             self.binarizer
                 .create_binarizer(newSource.expect("new lum source expected")),
-        );
+        )
     }
 
     /**
@@ -168,10 +168,10 @@ impl<B: Binarizer> BinaryBitmap<B> {
             .binarizer
             .get_luminance_source()
             .rotate_counter_clockwise();
-        return BinaryBitmap::new(
+        BinaryBitmap::new(
             self.binarizer
                 .create_binarizer(newSource.expect("new lum source expected")),
-        );
+        )
     }
 
     /**
@@ -187,10 +187,10 @@ impl<B: Binarizer> BinaryBitmap<B> {
             .binarizer
             .get_luminance_source()
             .rotate_counter_clockwise_45();
-        return BinaryBitmap::new(
+        BinaryBitmap::new(
             self.binarizer
                 .create_binarizer(newSource.expect("new lum source expected")),
-        );
+        )
     }
 }
 

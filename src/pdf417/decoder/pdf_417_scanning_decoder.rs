@@ -44,9 +44,9 @@ const MAX_EC_CODEWORDS: u32 = 512;
 // than it should be. This can happen if the scanner used a bad blackpoint.
 pub fn decode(
     image: &BitMatrix,
-    imageTopLeft: Option<Point>,
+    image_top_left: Option<Point>,
     imageBottomLeft: Option<Point>,
-    imageTopRight: Option<Point>,
+    image_top_right: Option<Point>,
     imageBottomRight: Option<Point>,
     minCodewordWidth: u32,
     maxCodewordWidth: u32,
@@ -55,30 +55,30 @@ pub fn decode(
     let mut maxCodewordWidth = maxCodewordWidth;
     let mut boundingBox = Rc::new(BoundingBox::new(
         Rc::new(image.clone()),
-        imageTopLeft,
+        image_top_left,
         imageBottomLeft,
-        imageTopRight,
+        image_top_right,
         imageBottomRight,
     )?);
     let mut leftRowIndicatorColumn = None;
     let mut rightRowIndicatorColumn = None;
     let mut detectionRXingResult = None;
     for firstPass in [true, false] {
-        if imageTopLeft.is_some() {
+        if let Some(image_top_left) = image_top_left {
             leftRowIndicatorColumn = Some(getRowIndicatorColumn(
                 image,
                 boundingBox.clone(),
-                imageTopLeft.unwrap(),
+                image_top_left,
                 true,
                 minCodewordWidth,
                 maxCodewordWidth,
             ));
         }
-        if imageTopRight.is_some() {
+        if let Some(image_top_right) = image_top_right {
             rightRowIndicatorColumn = Some(getRowIndicatorColumn(
                 image,
                 boundingBox.clone(),
-                imageTopRight.unwrap(),
+                image_top_right,
                 false,
                 minCodewordWidth,
                 maxCodewordWidth,
@@ -129,7 +129,7 @@ pub fn decode(
         {
             DetectionRXingResultColumn::new_with_is_left(boundingBox.clone(), barcodeColumn == 0)
         } else {
-            DetectionRXingResultColumn::new(boundingBox.clone())
+            DetectionRXingResultColumn::new_column(boundingBox.clone())
         };
 
         detectionRXingResult

@@ -1,6 +1,5 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn;
 
 #[proc_macro_derive(OneDReader)]
 pub fn one_d_reader_derive(input: TokenStream) -> TokenStream {

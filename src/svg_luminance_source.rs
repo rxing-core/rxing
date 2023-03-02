@@ -27,7 +27,7 @@ impl LuminanceSource for SVGLuminanceSource {
     }
 
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
-        self.0.crop(left, top, width, height).map(|src| Self(src))
+        self.0.crop(left, top, width, height).map(Self)
     }
 
     fn is_rotate_supported(&self) -> bool {
@@ -39,11 +39,11 @@ impl LuminanceSource for SVGLuminanceSource {
     }
 
     fn rotate_counter_clockwise(&self) -> Result<Self> {
-        self.0.rotate_counter_clockwise().map(|src| Self(src))
+        self.0.rotate_counter_clockwise().map(Self)
     }
 
     fn rotate_counter_clockwise_45(&self) -> Result<Self> {
-        self.0.rotate_counter_clockwise_45().map(|src| Self(src))
+        self.0.rotate_counter_clockwise_45().map(Self)
     }
 }
 

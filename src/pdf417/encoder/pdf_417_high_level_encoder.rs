@@ -217,11 +217,15 @@ pub fn encodeHighLevel(
     // User selected encoding mode
     match compaction {
         Compaction::TEXT => {
-            encodeText(&input, p, len as u32, &mut sb, textSubMode)?;
+            encodeText(input.as_ref(), p, len as u32, &mut sb, textSubMode)?;
         }
-        Compaction::BYTE if autoECI => {
-            encodeMultiECIBinary(&input, 0, input.length() as u32, TEXT_COMPACTION, &mut sb)?
-        }
+        Compaction::BYTE if autoECI => encodeMultiECIBinary(
+            input.as_ref(),
+            0,
+            input.length() as u32,
+            TEXT_COMPACTION,
+            &mut sb,
+        )?,
         Compaction::BYTE => {
             let msgBytes = encoding
                 .as_ref()
@@ -238,7 +242,7 @@ pub fn encodeHighLevel(
         }
         Compaction::NUMERIC => {
             sb.push(char::from_u32(LATCH_TO_NUMERIC).ok_or(Exceptions::PARSE)?);
-            encodeNumeric(&input, p, len as u32, &mut sb)?;
+            encodeNumeric(input.as_ref(), p, len as u32, &mut sb)?;
         }
         _ => {
             let mut encodingMode = TEXT_COMPACTION; //Default mode, see 4.4.2.1
@@ -250,26 +254,26 @@ pub fn encodeHighLevel(
                 if p >= len as u32 {
                     break;
                 }
-                let n = determineConsecutiveDigitCount(&input, p)?;
+                let n = determineConsecutiveDigitCount(input.as_ref(), p)?;
                 if n >= 13 {
                     sb.push(char::from_u32(LATCH_TO_NUMERIC).ok_or(Exceptions::PARSE)?);
                     encodingMode = NUMERIC_COMPACTION;
                     textSubMode = SUBMODE_ALPHA; //Reset after latch
-                    encodeNumeric(&input, p, n, &mut sb)?;
+                    encodeNumeric(input.as_ref(), p, n, &mut sb)?;
                     p += n;
                 } else {
-                    let t = determineConsecutiveTextCount(&input, p)?;
+                    let t = determineConsecutiveTextCount(input.as_ref(), p)?;
                     if t >= 5 || n == len as u32 {
                         if encodingMode != TEXT_COMPACTION {
                             sb.push(char::from_u32(LATCH_TO_TEXT).ok_or(Exceptions::PARSE)?);
                             encodingMode = TEXT_COMPACTION;
                             textSubMode = SUBMODE_ALPHA; //start with submode alpha after latch
                         }
-                        textSubMode = encodeText(&input, p, t, &mut sb, textSubMode)?;
+                        textSubMode = encodeText(input.as_ref(), p, t, &mut sb, textSubMode)?;
                         p += t;
                     } else {
                         let mut b = determineConsecutiveBinaryCount(
-                            &input,
+                            input.as_ref(),
                             p,
                             if autoECI { None } else { encoding },
                         )?;
@@ -298,7 +302,13 @@ pub fn encodeHighLevel(
                         if (bytes_ok && b == 1) && (encodingMode == TEXT_COMPACTION) {
                             //Switch for one byte (instead of latch)
                             if autoECI {
-                                encodeMultiECIBinary(&input, p, 1, TEXT_COMPACTION, &mut sb)?;
+                                encodeMultiECIBinary(
+                                    input.as_ref(),
+                                    p,
+                                    1,
+                                    TEXT_COMPACTION,
+                                    &mut sb,
+                                )?;
                             } else {
                                 encodeBinary(
                                     bytes.as_ref().ok_or(Exceptions::ILLEGAL_STATE)?,
@@ -311,7 +321,13 @@ pub fn encodeHighLevel(
                         } else {
                             //Mode latch performed by encodeBinary()
                             if autoECI {
-                                encodeMultiECIBinary(&input, p, p + b, encodingMode, &mut sb)?;
+                                encodeMultiECIBinary(
+                                    input.as_ref(),
+                                    p,
+                                    p + b,
+                                    encodingMode,
+                                    &mut sb,
+                                )?;
                             } else {
                                 encodeBinary(
                                     bytes.as_ref().ok_or(Exceptions::ILLEGAL_STATE)?,
@@ -346,7 +362,7 @@ pub fn encodeHighLevel(
  * @return the text submode in which this method ends
  */
 fn encodeText<T: ECIInput + ?Sized>(
-    input: &Box<T>,
+    input: &T,
     startpos: u32,
     count: u32,
     sb: &mut String,
@@ -491,7 +507,7 @@ fn encodeText<T: ECIInput + ?Sized>(
  * @param sb        receives the encoded codewords
  */
 fn encodeMultiECIBinary<T: ECIInput + ?Sized>(
-    input: &Box<T>,
+    input: &T,
     startpos: u32,
     count: u32,
     startmode: u32,
@@ -535,7 +551,7 @@ fn encodeMultiECIBinary<T: ECIInput + ?Sized>(
     Ok(())
 }
 
-pub fn subBytes<T: ECIInput + ?Sized>(input: &Box<T>, start: u32, end: u32) -> Result<Vec<u8>> {
+pub fn subBytes<T: ECIInput + ?Sized>(input: &T, start: u32, end: u32) -> Result<Vec<u8>> {
     let count = (end - start) as usize;
     let mut result = vec![0_u8; count];
     for i in start as usize..end as usize {
@@ -598,7 +614,7 @@ fn encodeBinary(
 }
 
 fn encodeNumeric<T: ECIInput + ?Sized>(
-    input: &Box<T>,
+    input: &T,
     startpos: u32,
     count: u32,
     sb: &mut String,
@@ -679,10 +695,7 @@ fn isText(ch: char) -> bool {
  * @param startpos the start position within the input
  * @return the requested character count
  */
-fn determineConsecutiveDigitCount<T: ECIInput + ?Sized>(
-    input: &Box<T>,
-    startpos: u32,
-) -> Result<u32> {
+fn determineConsecutiveDigitCount<T: ECIInput + ?Sized>(input: &T, startpos: u32) -> Result<u32> {
     let mut count = 0;
     let len = input.length();
     let mut idx = startpos as usize;
@@ -703,10 +716,7 @@ fn determineConsecutiveDigitCount<T: ECIInput + ?Sized>(
  * @param startpos the start position within the input
  * @return the requested character count
  */
-fn determineConsecutiveTextCount<T: ECIInput + ?Sized>(
-    input: &Box<T>,
-    startpos: u32,
-) -> Result<u32> {
+fn determineConsecutiveTextCount<T: ECIInput + ?Sized>(input: &T, startpos: u32) -> Result<u32> {
     let len = input.length();
     let mut idx = startpos as usize;
     while idx < len {
@@ -745,7 +755,7 @@ fn determineConsecutiveTextCount<T: ECIInput + ?Sized>(
  * @return the requested character count
  */
 fn determineConsecutiveBinaryCount<T: ECIInput + ?Sized + 'static>(
-    input: &Box<T>,
+    input: &T,
     startpos: u32,
     encoding: Option<EncodingRef>,
 ) -> Result<u32> {

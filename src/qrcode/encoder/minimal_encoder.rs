@@ -846,7 +846,7 @@ impl RXingResultList {
         result
     }
 
-    fn internal_static_get_size(version: VersionRef, list: &Vec<RXingResultNode>) -> u32 {
+    fn internal_static_get_size(version: VersionRef, list: &[RXingResultNode]) -> u32 {
         let result = list.iter().fold(0, |acc, node| acc + node.getSize(version));
         result
     }
