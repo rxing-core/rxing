@@ -157,8 +157,8 @@ pub fn encode_bytes_with_charset(
     let bits = HighLevelEncoder::with_charset(data.into(), charset).encode()?;
 
     // stuff bits and choose symbol size
-    let ecc_bits = bits.getSize() as u32 * min_eccpercent / 100 + 11;
-    let total_size_bits = bits.getSize() as u32 + ecc_bits;
+    let ecc_bits = bits.get_size() as u32 * min_eccpercent / 100 + 11;
+    let total_size_bits = bits.get_size() as u32 + ecc_bits;
     let mut compact;
     let mut layers: u32;
     let mut total_bits_in_layer_var;
@@ -182,12 +182,12 @@ pub fn encode_bytes_with_charset(
         word_size = WORD_SIZE[layers as usize];
         let usable_bits_in_layers = total_bits_in_layer_var - (total_bits_in_layer_var % word_size);
         stuffed_bits = stuffBits(&bits, word_size as usize)?;
-        if stuffed_bits.getSize() as u32 + ecc_bits > usable_bits_in_layers {
+        if stuffed_bits.get_size() as u32 + ecc_bits > usable_bits_in_layers {
             return Err(Exceptions::illegal_argument_with(
                 "Data to large for user specified layer",
             ));
         }
-        if compact && stuffed_bits.getSize() as u32 > word_size * 64 {
+        if compact && stuffed_bits.get_size() as u32 > word_size * 64 {
             // Compact format only allows 64 data words, though C4 can hold more words than that
             return Err(Exceptions::illegal_argument_with(
                 "Data to large for user specified layer",
@@ -216,18 +216,18 @@ pub fn encode_bytes_with_charset(
             }
             // [Re]stuff the bits if this is the first opportunity, or if the
             // wordSize has changed
-            if stuffed_bits.getSize() == 0 || word_size != WORD_SIZE[layers as usize] {
+            if stuffed_bits.get_size() == 0 || word_size != WORD_SIZE[layers as usize] {
                 word_size = WORD_SIZE[layers as usize];
                 stuffed_bits = stuffBits(&bits, word_size as usize)?;
             }
             let usable_bits_in_layers =
                 total_bits_in_layer_var - (total_bits_in_layer_var % word_size);
-            if compact && stuffed_bits.getSize() as u32 > word_size * 64 {
+            if compact && stuffed_bits.get_size() as u32 > word_size * 64 {
                 // Compact format only allows 64 data words, though C4 can hold more words than that
                 i += 1;
                 continue;
             }
-            if stuffed_bits.getSize() as u32 + ecc_bits <= usable_bits_in_layers {
+            if stuffed_bits.get_size() as u32 + ecc_bits <= usable_bits_in_layers {
                 break;
             }
             i += 1;
@@ -240,7 +240,7 @@ pub fn encode_bytes_with_charset(
     )?;
 
     // generate mode message
-    let messageSizeInWords = stuffed_bits.getSize() as u32 / word_size;
+    let messageSizeInWords = stuffed_bits.get_size() as u32 / word_size;
     let modeMessage = generateModeMessage(compact, layers, messageSizeInWords)?;
 
     // allocate symbol
@@ -429,7 +429,7 @@ fn drawModeMessage(matrix: &mut BitMatrix, compact: bool, matrixSize: u32, modeM
 
 fn generateCheckWords(bitArray: &BitArray, totalBits: usize, wordSize: usize) -> Result<BitArray> {
     // bitArray is guaranteed to be a multiple of the wordSize, so no padding needed
-    let message_size_in_words = bitArray.getSize() / wordSize;
+    let message_size_in_words = bitArray.get_size() / wordSize;
     let mut rs = ReedSolomonEncoder::new(getGF(wordSize)?)?;
     let total_words = totalBits / wordSize;
     let mut message_words = bitsToWords(bitArray, wordSize, total_words);
@@ -448,7 +448,7 @@ fn generateCheckWords(bitArray: &BitArray, totalBits: usize, wordSize: usize) ->
 fn bitsToWords(stuffedBits: &BitArray, wordSize: usize, totalWords: usize) -> Vec<i32> {
     let mut message = vec![0; totalWords];
     let mut i = 0;
-    let n = stuffedBits.getSize() / wordSize;
+    let n = stuffedBits.get_size() / wordSize;
     while i < n {
         // for (i = 0, n = stuffedBits.getSize() / wordSize; i < n; i++) {
         let mut value = 0;
@@ -483,7 +483,7 @@ fn getGF(wordSize: usize) -> Result<GenericGFRef> {
 pub fn stuffBits(bits: &BitArray, word_size: usize) -> Result<BitArray> {
     let mut out = BitArray::new();
 
-    let n = bits.getSize() as isize;
+    let n = bits.get_size() as isize;
     let mask = (1 << word_size) - 2;
     let mut i: isize = 0;
     while i < n {

@@ -74,12 +74,12 @@ fn assertCorrectImage2result(fileName: &str, expected: ExpandedProductParsedRXin
     let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
         BufferedImageLuminanceSource::new(image),
     ))));
-    let rowNumber = binaryMap.getHeight() / 2;
-    let row = binaryMap.getBlackRow(rowNumber).expect("get row");
+    let rowNumber = binaryMap.get_height() / 2;
+    let row = binaryMap.get_black_row(rowNumber).expect("get row");
 
     let mut rssExpandedReader = RSSExpandedReader::new();
     let theRXingResult = rssExpandedReader
-        .decodeRow(rowNumber as u32, &row, &HashMap::new())
+        .decode_row(rowNumber as u32, &row, &HashMap::new())
         .expect("must decode");
 
     assert_eq!(

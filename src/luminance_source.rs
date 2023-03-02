@@ -46,7 +46,7 @@ pub trait LuminanceSource {
      *            Always use the returned object, and ignore the .length of the array.
      * @return An array containing the luminance data.
      */
-    fn getRow(&self, y: usize) -> Vec<u8>;
+    fn get_row(&self, y: usize) -> Vec<u8>;
 
     /**
      * Fetches luminance data for the underlying bitmap. Values should be fetched using:
@@ -56,22 +56,22 @@ pub trait LuminanceSource {
      *         larger than width * height bytes on some platforms. Do not modify the contents
      *         of the result.
      */
-    fn getMatrix(&self) -> Vec<u8>;
+    fn get_matrix(&self) -> Vec<u8>;
 
     /**
      * @return The width of the bitmap.
      */
-    fn getWidth(&self) -> usize;
+    fn get_width(&self) -> usize;
 
     /**
      * @return The height of the bitmap.
      */
-    fn getHeight(&self) -> usize;
+    fn get_height(&self) -> usize;
 
     /**
      * @return Whether this subclass supports cropping.
      */
-    fn isCropSupported(&self) -> bool {
+    fn is_crop_supported(&self) -> bool {
         false
     }
 
@@ -85,13 +85,10 @@ pub trait LuminanceSource {
      * @param height The height of the rectangle to crop.
      * @return A cropped version of this object.
      */
-    fn crop(
-        &self,
-        _left: usize,
-        _top: usize,
-        _width: usize,
-        _height: usize,
-    ) -> Result<Box<dyn LuminanceSource>> {
+    fn crop(&self, _left: usize, _top: usize, _width: usize, _height: usize) -> Result<Self>
+    where
+        Self: Sized,
+    {
         Err(Exceptions::unsupported_operation_with(
             "This luminance source does not support cropping.",
         ))
@@ -100,7 +97,7 @@ pub trait LuminanceSource {
     /**
      * @return Whether this subclass supports counter-clockwise rotation.
      */
-    fn isRotateSupported(&self) -> bool {
+    fn is_rotate_supported(&self) -> bool {
         false
     }
 
@@ -118,7 +115,10 @@ pub trait LuminanceSource {
      *
      * @return A rotated version of this object.
      */
-    fn rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>> {
+    fn rotate_counter_clockwise(&self) -> Result<Self>
+    where
+        Self: Sized,
+    {
         Err(Exceptions::unsupported_operation_with(
             "This luminance source does not support rotation by 90 degrees.",
         ))
@@ -130,7 +130,10 @@ pub trait LuminanceSource {
      *
      * @return A rotated version of this object.
      */
-    fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>> {
+    fn rotate_counter_clockwise_45(&self) -> Result<Self>
+    where
+        Self: Sized,
+    {
         Err(Exceptions::unsupported_operation_with(
             "This luminance source does not support rotation by 45 degrees.",
         ))

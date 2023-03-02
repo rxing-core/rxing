@@ -17,8 +17,8 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::Result, point, BinaryBitmap, DecodingHintDictionary, Exceptions, Point, RXingResult,
-    Reader,
+    common::Result, point, Binarizer, BinaryBitmap, DecodingHintDictionary, Exceptions, Point,
+    RXingResult, Reader,
 };
 
 use super::MultipleBarcodeReader;
@@ -41,20 +41,20 @@ use super::MultipleBarcodeReader;
 pub struct GenericMultipleBarcodeReader<T: Reader>(T);
 
 impl<T: Reader> MultipleBarcodeReader for GenericMultipleBarcodeReader<T> {
-    fn decode_multiple(
+    fn decode_multiple<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
-    ) -> Result<Vec<crate::RXingResult>> {
+        image: &mut BinaryBitmap<B>,
+    ) -> Result<Vec<RXingResult>> {
         self.decode_multiple_with_hints(image, &HashMap::new())
     }
 
-    fn decode_multiple_with_hints(
+    fn decode_multiple_with_hints<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
-        hints: &crate::DecodingHintDictionary,
-    ) -> Result<Vec<crate::RXingResult>> {
+        image: &mut BinaryBitmap<B>,
+        hints: &DecodingHintDictionary,
+    ) -> Result<Vec<RXingResult>> {
         let mut results = Vec::new();
-        self.doDecodeMultiple(image, hints, &mut results, 0, 0, 0);
+        self.do_decode_multiple(image, hints, &mut results, 0, 0, 0);
         if results.is_empty() {
             return Err(Exceptions::NOT_FOUND);
         }
@@ -69,9 +69,9 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         Self(delegate)
     }
 
-    fn doDecodeMultiple(
+    fn do_decode_multiple<B: Binarizer>(
         &mut self,
-        image: &mut BinaryBitmap,
+        image: &mut BinaryBitmap<B>,
         hints: &DecodingHintDictionary,
         results: &mut Vec<RXingResult>,
         xOffset: u32,
@@ -105,8 +105,8 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
             return;
         }
 
-        let width = image.getWidth();
-        let height = image.getHeight();
+        let width = image.get_width();
+        let height = image.get_height();
         let mut minX: f32 = width as f32;
         let mut minY: f32 = height as f32;
         let mut maxX: f32 = 0.0;
@@ -133,7 +133,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
 
         // Decode left of barcode
         if minX > Self::MIN_DIMENSION_TO_RECUR {
-            self.doDecodeMultiple(
+            self.do_decode_multiple(
                 &mut image.crop(0, 0, minX as usize, height),
                 hints,
                 results,
@@ -144,7 +144,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         }
         // Decode above barcode
         if minY > Self::MIN_DIMENSION_TO_RECUR {
-            self.doDecodeMultiple(
+            self.do_decode_multiple(
                 &mut image.crop(0, 0, width, minY as usize),
                 hints,
                 results,
@@ -155,7 +155,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         }
         // Decode right of barcode
         if maxX < (width as f32) - Self::MIN_DIMENSION_TO_RECUR {
-            self.doDecodeMultiple(
+            self.do_decode_multiple(
                 &mut image.crop(maxX as usize, 0, width - maxX as usize, height),
                 hints,
                 results,
@@ -166,7 +166,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         }
         // Decode below barcode
         if maxY < (height as f32) - Self::MIN_DIMENSION_TO_RECUR {
-            self.doDecodeMultiple(
+            self.do_decode_multiple(
                 &mut image.crop(0, maxY as usize, width, height - maxY as usize),
                 hints,
                 results,

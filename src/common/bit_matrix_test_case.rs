@@ -156,12 +156,12 @@ fn test_get_row() {
 
     // Should allocate
     let array = matrix.getRow(2);
-    assert_eq!(102, array.getSize());
+    assert_eq!(102, array.get_size());
 
     // Should reallocate
     // let mut array2 = BitArray::with_size(60);
     let array2 = matrix.getRow(2);
-    assert_eq!(102, array2.getSize());
+    assert_eq!(102, array2.get_size());
 
     // Should use provided object, with original BitArray size
     // let mut array3 = BitArray::with_size(200);

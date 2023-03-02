@@ -40,11 +40,11 @@ pub struct RGBLuminanceSource {
 
 impl LuminanceSource for RGBLuminanceSource {
     /// gets a row, returns an empty row if we are out of bounds.
-    fn getRow(&self, y: usize) -> Vec<u8> {
-        if y >= self.getHeight() {
+    fn get_row(&self, y: usize) -> Vec<u8> {
+        if y >= self.get_height() {
             return Vec::new();
         }
-        let width = self.getWidth();
+        let width = self.get_width();
 
         let offset = (y + self.top) * self.dataWidth + self.left;
 
@@ -58,9 +58,9 @@ impl LuminanceSource for RGBLuminanceSource {
         row
     }
 
-    fn getMatrix(&self) -> Vec<u8> {
-        let width = self.getWidth();
-        let height = self.getHeight();
+    fn get_matrix(&self) -> Vec<u8> {
+        let width = self.get_width();
+        let height = self.get_height();
 
         // If the caller asks for the entire underlying image, save the copy and give them the
         // original data. The docs specifically warn that result.length must be ignored.
@@ -99,26 +99,20 @@ impl LuminanceSource for RGBLuminanceSource {
         matrix
     }
 
-    fn getWidth(&self) -> usize {
+    fn get_width(&self) -> usize {
         self.width
     }
 
-    fn getHeight(&self) -> usize {
+    fn get_height(&self) -> usize {
         self.height
     }
 
-    fn isCropSupported(&self) -> bool {
+    fn is_crop_supported(&self) -> bool {
         true
     }
 
-    fn crop(
-        &self,
-        left: usize,
-        top: usize,
-        width: usize,
-        height: usize,
-    ) -> Result<Box<dyn LuminanceSource>> {
-        match RGBLuminanceSource::new_complex(
+    fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
+        RGBLuminanceSource::new_complex(
             &self.luminances,
             self.dataWidth,
             self.dataHeight,
@@ -126,10 +120,8 @@ impl LuminanceSource for RGBLuminanceSource {
             self.top + top,
             width,
             height,
-        ) {
-            Ok(crop) => Ok(Box::new(crop)),
-            Err(_error) => Err(Exceptions::UNSUPPORTED_OPERATION),
-        }
+        )
+        .map_err(|_| Exceptions::UNSUPPORTED_OPERATION)
     }
 
     fn invert(&mut self) {

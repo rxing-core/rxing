@@ -23,7 +23,8 @@ use crate::{
         decoder::{self, QRCodeDecoderMetaData},
         QRCodeReader,
     },
-    BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue,
+    BarcodeFormat, Binarizer, Exceptions, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue,
 };
 
 use super::detector::MultiDetector;
@@ -37,20 +38,21 @@ use super::detector::MultiDetector;
 #[derive(Default)]
 pub struct QRCodeMultiReader(QRCodeReader);
 impl MultipleBarcodeReader for QRCodeMultiReader {
-    fn decode_multiple(
+    fn decode_multiple<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
-    ) -> Result<Vec<crate::RXingResult>> {
+        image: &mut crate::BinaryBitmap<B>,
+    ) -> Result<Vec<RXingResult>> {
         self.decode_multiple_with_hints(image, &HashMap::new())
     }
 
-    fn decode_multiple_with_hints(
+    fn decode_multiple_with_hints<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<Vec<crate::RXingResult>> {
+    ) -> Result<Vec<RXingResult>> {
         let mut results = Vec::new();
-        let detectorRXingResults = MultiDetector::new(image.getBlackMatrix()).detectMulti(hints)?;
+        let detectorRXingResults =
+            MultiDetector::new(image.get_black_matrix()).detectMulti(hints)?;
         for detectorRXingResult in detectorRXingResults {
             let mut proc = || -> Result<()> {
                 let decoderRXingResult = decoder::qrcode_decoder::decode_bitmatrix_with_hints(

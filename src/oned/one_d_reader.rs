@@ -16,8 +16,8 @@
 
 use crate::{
     common::{BitArray, Result},
-    point, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
-    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    point, Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
+    Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 /**
@@ -42,45 +42,45 @@ pub trait OneDReader: Reader {
      * @return The contents of the decoded barcode
      * @throws NotFoundException Any spontaneous errors which occur
      */
-    fn doDecode(
+    fn _do_decode<B: Binarizer>(
         &mut self,
-        image: &mut BinaryBitmap,
+        image: &mut BinaryBitmap<B>,
         hints: &DecodingHintDictionary,
     ) -> Result<RXingResult> {
         let mut hints = hints.clone();
-        let width = image.getWidth();
-        let height = image.getHeight();
+        let width = image.get_width();
+        let height = image.get_height();
 
-        let tryHarder = matches!(
+        let try_harder = matches!(
             hints.get(&DecodeHintType::TRY_HARDER),
             Some(DecodeHintValue::TryHarder(true))
         );
-        let rowStep = 1.max(height >> (if tryHarder { 8 } else { 5 }));
-        let maxLines = if tryHarder {
+        let row_step = 1.max(height >> (if try_harder { 8 } else { 5 }));
+        let max_lines = if try_harder {
             height // Look at the whole image, not just the center
         } else {
             15 // 15 rows spaced 1/32 apart is roughly the middle half of the image
         };
 
         let middle = height / 2;
-        for x in 0..maxLines {
+        for x in 0..max_lines {
             // Scanning from the middle out. Determine which row we're looking at next:
-            let rowStepsAboveOrBelow = (x + 1) / 2;
-            let isAbove = (x & 0x01) == 0; // i.e. is x even?
-            let rowNumber: isize = middle as isize
-                + rowStep as isize
-                    * (if isAbove {
-                        rowStepsAboveOrBelow as isize
+            let row_steps_above_or_below = (x + 1) / 2;
+            let is_above = (x & 0x01) == 0; // i.e. is x even?
+            let row_number: isize = middle as isize
+                + row_step as isize
+                    * (if is_above {
+                        row_steps_above_or_below as isize
                     } else {
-                        -(rowStepsAboveOrBelow as isize)
+                        -(row_steps_above_or_below as isize)
                     });
-            if rowNumber < 0 || rowNumber >= height as isize {
+            if row_number < 0 || row_number >= height as isize {
                 // Oops, if we run off the top or bottom, stop
                 break;
             }
 
             // Estimate black point for this row and load it:
-            let mut row = if let Ok(res) = image.getBlackRow(rowNumber as usize) {
+            let mut row = if let Ok(res) = image.get_black_row(row_number as usize) {
                 res
             } else {
                 continue;
@@ -104,7 +104,7 @@ pub trait OneDReader: Reader {
                         hints.remove(&DecodeHintType::NEED_RESULT_POINT_CALLBACK);
                     }
                 }
-                let Ok(mut result) = self.decodeRow(rowNumber as u32, &row, &hints) else {
+                let Ok(mut result) = self.decode_row(row_number as u32, &row, &hints) else {
             continue
           };
                 // We found our barcode
@@ -140,7 +140,7 @@ pub trait OneDReader: Reader {
      * @throws ChecksumException if a potential barcode is found but does not pass its checksum
      * @throws FormatException if a potential barcode is found but format is invalid
      */
-    fn decodeRow(
+    fn decode_row(
         &mut self,
         rowNumber: u32,
         row: &BitArray,
@@ -158,39 +158,42 @@ pub trait OneDReader: Reader {
  * @param maxIndividualVariance The most any counter can differ before we give up
  * @return ratio of total variance between counters and pattern compared to total pattern size
  */
-pub fn patternMatchVariance(counters: &[u32], pattern: &[u32], maxIndividualVariance: f32) -> f32 {
-    let mut maxIndividualVariance = maxIndividualVariance;
-    let numCounters = counters.len();
+pub fn pattern_match_variance(
+    counters: &[u32],
+    pattern: &[u32],
+    mut max_individual_variance: f32,
+) -> f32 {
+    let num_counters = counters.len();
     let mut total = 0.0;
-    let mut patternLength = 0;
-    for i in 0..numCounters {
+    let mut pattern_length = 0;
+    for i in 0..num_counters {
         total += counters[i] as f32;
-        patternLength += pattern[i];
+        pattern_length += pattern[i];
     }
-    if total < patternLength as f32 {
+    if total < pattern_length as f32 {
         // If we don't even have one pixel per unit of bar width, assume this is too small
         // to reliably match, so fail:
         return f32::INFINITY;
     }
 
-    let unitBarWidth = total / patternLength as f32;
-    maxIndividualVariance *= unitBarWidth;
+    let unit_bar_width = total / pattern_length as f32;
+    max_individual_variance *= unit_bar_width;
 
-    let mut totalVariance = 0.0;
-    for x in 0..numCounters {
+    let mut total_variance = 0.0;
+    for x in 0..num_counters {
         let counter = counters[x];
-        let scaledPattern = (pattern[x] as f32) * unitBarWidth;
-        let variance = if (counter as f32) > scaledPattern {
-            counter as f32 - scaledPattern
+        let scaled_pattern = (pattern[x] as f32) * unit_bar_width;
+        let variance = if (counter as f32) > scaled_pattern {
+            counter as f32 - scaled_pattern
         } else {
-            scaledPattern - counter as f32
+            scaled_pattern - counter as f32
         };
-        if variance > maxIndividualVariance {
+        if variance > max_individual_variance {
             return f32::INFINITY;
         }
-        totalVariance += variance;
+        total_variance += variance;
     }
-    totalVariance / total
+    total_variance / total
 }
 
 /**
@@ -206,56 +209,56 @@ pub fn patternMatchVariance(counters: &[u32], pattern: &[u32], maxIndividualVari
  * @throws NotFoundException if counters cannot be filled entirely from row before running out
  *  of pixels
  */
-pub fn recordPattern(row: &BitArray, start: usize, counters: &mut [u32]) -> Result<()> {
-    let numCounters = counters.len();
+pub fn record_pattern(row: &BitArray, start: usize, counters: &mut [u32]) -> Result<()> {
+    let num_counters = counters.len();
     counters.fill(0);
 
-    let end = row.getSize();
+    let end = row.get_size();
     if start >= end {
         return Err(Exceptions::NOT_FOUND);
     }
 
-    let mut isWhite = !row.get(start);
-    let mut counterPosition = 0;
+    let mut is_white = !row.get(start);
+    let mut counter_position = 0;
     let mut i = start;
     while i < end {
-        if row.get(i) != isWhite {
-            counters[counterPosition] += 1;
+        if row.get(i) != is_white {
+            counters[counter_position] += 1;
         } else {
-            counterPosition += 1;
-            if counterPosition == numCounters {
+            counter_position += 1;
+            if counter_position == num_counters {
                 break;
             } else {
-                counters[counterPosition] = 1;
-                isWhite = !isWhite;
+                counters[counter_position] = 1;
+                is_white = !is_white;
             }
         }
         i += 1;
     }
     // If we read fully the last section of pixels and filled up our counters -- or filled
     // the last counter but ran off the side of the image, OK. Otherwise, a problem.
-    if !(counterPosition == numCounters || (counterPosition == numCounters - 1 && i == end)) {
+    if !(counter_position == num_counters || (counter_position == num_counters - 1 && i == end)) {
         return Err(Exceptions::NOT_FOUND);
     }
     Ok(())
 }
 
-pub fn recordPatternInReverse(row: &BitArray, start: usize, counters: &mut [u32]) -> Result<()> {
+pub fn record_pattern_in_reverse(row: &BitArray, start: usize, counters: &mut [u32]) -> Result<()> {
     let mut start = start;
     // This could be more efficient I guess
-    let mut numTransitionsLeft = counters.len() as isize;
+    let mut num_transitions_left = counters.len() as isize;
     let mut last = row.get(start);
-    while start > 0 && numTransitionsLeft >= 0 {
+    while start > 0 && num_transitions_left >= 0 {
         start -= 1;
         if row.get(start) != last {
-            numTransitionsLeft -= 1;
+            num_transitions_left -= 1;
             last = !last;
         }
     }
-    if numTransitionsLeft >= 0 {
+    if num_transitions_left >= 0 {
         return Err(Exceptions::NOT_FOUND);
     }
-    recordPattern(row, start + 1, counters)?;
+    record_pattern(row, start + 1, counters)?;
 
     Ok(())
 }

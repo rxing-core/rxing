@@ -21,7 +21,7 @@ pub fn toBitArray(bits: &str) -> BitArray {
 
 #[allow(dead_code)]
 pub fn toBooleanArray(bitArray: &BitArray) -> Vec<bool> {
-    let mut result = vec![false; bitArray.getSize()];
+    let mut result = vec![false; bitArray.get_size()];
     // for i in 0..result.len() {
     for (i, res) in result.iter_mut().enumerate() {
         // for (int i = 0; i < result.length; i++) {

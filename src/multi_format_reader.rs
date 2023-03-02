@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::common::Result;
 use crate::{
     aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
     oned::MultiFormatOneDReader, pdf417::PDF417Reader, qrcode::QRCodeReader, BarcodeFormat,
-    BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, RXingResult,
-    Reader,
+    Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
+    RXingResult, Reader,
 };
 
 /**
@@ -35,7 +35,8 @@ use crate::{
 #[derive(Default)]
 pub struct MultiFormatReader {
     hints: DecodingHintDictionary,
-    readers: Vec<Box<dyn Reader>>,
+    possible_formats: HashSet<BarcodeFormat>,
+    try_harder: bool,
 }
 
 impl Reader for MultiFormatReader {
@@ -48,8 +49,8 @@ impl Reader for MultiFormatReader {
      * @return The contents of the image
      * @throws NotFoundException Any errors which occurred
      */
-    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
-        self.set_ints(&HashMap::new());
+    fn decode<B: Binarizer>(&mut self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
+        self.set_hints(&HashMap::new());
         self.decode_internal(image)
     }
 
@@ -61,19 +62,13 @@ impl Reader for MultiFormatReader {
      * @return The contents of the image
      * @throws NotFoundException Any errors which occurred
      */
-    fn decode_with_hints(
+    fn decode_with_hints<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
-        hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult> {
-        self.set_ints(hints);
+        image: &mut BinaryBitmap<B>,
+        hints: &DecodingHintDictionary,
+    ) -> Result<RXingResult> {
+        self.set_hints(hints);
         self.decode_internal(image)
-    }
-
-    fn reset(&mut self) {
-        for reader in self.readers.iter_mut() {
-            reader.reset();
-        }
     }
 }
 
@@ -86,10 +81,13 @@ impl MultiFormatReader {
      * @return The contents of the image
      * @throws NotFoundException Any errors which occurred
      */
-    pub fn decode_with_state(&mut self, image: &mut BinaryBitmap) -> Result<RXingResult> {
+    pub fn decode_with_state<B: Binarizer>(
+        &mut self,
+        image: &mut BinaryBitmap<B>,
+    ) -> Result<RXingResult> {
         // Make sure to set up the default state so we don't crash
-        if self.readers.is_empty() {
-            self.set_ints(&HashMap::new());
+        if self.possible_formats.is_empty() {
+            self.set_hints(&HashMap::new());
         }
         self.decode_internal(image)
     }
@@ -101,92 +99,130 @@ impl MultiFormatReader {
      *
      * @param hints The set of hints to use for subsequent calls to decode(image)
      */
-    pub fn set_ints(&mut self, hints: &DecodingHintDictionary) {
+    pub fn set_hints(&mut self, hints: &DecodingHintDictionary) {
         self.hints = hints.clone();
 
-        let tryHarder = matches!(
+        self.try_harder = matches!(
             self.hints.get(&DecodeHintType::TRY_HARDER),
             Some(DecodeHintValue::TryHarder(true))
         );
-
-        let formats = hints.get(&DecodeHintType::POSSIBLE_FORMATS);
-        let mut readers: Vec<Box<dyn Reader>> = Vec::new();
-        if let Some(DecodeHintValue::PossibleFormats(formats)) = formats {
-            let addOneDReader = formats.contains(&BarcodeFormat::UPC_A)
-                || formats.contains(&BarcodeFormat::UPC_E)
-                || formats.contains(&BarcodeFormat::EAN_13)
-                || formats.contains(&BarcodeFormat::EAN_8)
-                || formats.contains(&BarcodeFormat::CODABAR)
-                || formats.contains(&BarcodeFormat::CODE_39)
-                || formats.contains(&BarcodeFormat::CODE_93)
-                || formats.contains(&BarcodeFormat::CODE_128)
-                || formats.contains(&BarcodeFormat::ITF)
-                || formats.contains(&BarcodeFormat::RSS_14)
-                || formats.contains(&BarcodeFormat::RSS_EXPANDED);
-            // Put 1D readers upfront in "normal" mode
-            if addOneDReader && !tryHarder {
-                readers.push(Box::new(MultiFormatOneDReader::new(hints)));
-            }
-            if formats.contains(&BarcodeFormat::QR_CODE) {
-                readers.push(Box::<QRCodeReader>::default());
-            }
-            if formats.contains(&BarcodeFormat::DATA_MATRIX) {
-                readers.push(Box::<DataMatrixReader>::default());
-            }
-            if formats.contains(&BarcodeFormat::AZTEC) {
-                readers.push(Box::<AztecReader>::default());
-            }
-            if formats.contains(&BarcodeFormat::PDF_417) {
-                readers.push(Box::<PDF417Reader>::default());
-            }
-            if formats.contains(&BarcodeFormat::MAXICODE) {
-                readers.push(Box::<MaxiCodeReader>::default());
-            }
-            // At end in "try harder" mode
-            if addOneDReader && tryHarder {
-                readers.push(Box::new(MultiFormatOneDReader::new(hints)));
-            }
-        }
-        if readers.is_empty() {
-            if !tryHarder {
-                readers.push(Box::new(MultiFormatOneDReader::new(hints)));
-            }
-
-            readers.push(Box::<QRCodeReader>::default());
-            readers.push(Box::<DataMatrixReader>::default());
-            readers.push(Box::<AztecReader>::default());
-            readers.push(Box::<PDF417Reader>::default());
-            readers.push(Box::<MaxiCodeReader>::default());
-
-            if tryHarder {
-                readers.push(Box::new(MultiFormatOneDReader::new(hints)));
-            }
-        }
-        self.readers = readers;
+        self.possible_formats = if let Some(DecodeHintValue::PossibleFormats(formats)) =
+            hints.get(&DecodeHintType::POSSIBLE_FORMATS)
+        {
+            formats.clone()
+        } else {
+            HashSet::new()
+        };
     }
 
-    pub fn decode_internal(&mut self, image: &mut BinaryBitmap) -> Result<RXingResult> {
-        if !self.readers.is_empty() {
-            for reader in self.readers.iter_mut() {
-                let res = reader.decode_with_hints(image, &self.hints);
-                if res.is_ok() {
-                    return res;
-                }
+    pub fn decode_internal<B: Binarizer>(
+        &mut self,
+        image: &mut BinaryBitmap<B>,
+    ) -> Result<RXingResult> {
+        if !self.possible_formats.is_empty() {
+            let res = self.decode_formats(image);
+            if res.is_ok() {
+                return res;
             }
             if matches!(
                 self.hints.get(&DecodeHintType::ALSO_INVERTED),
                 Some(DecodeHintValue::AlsoInverted(true))
             ) {
                 // Calling all readers again with inverted image
-                image.getBlackMatrixMut().flip_self();
-                for reader in self.readers.iter_mut() {
-                    let res = reader.decode_with_hints(image, &self.hints);
-                    if res.is_ok() {
-                        return res;
-                    }
+                image.get_black_matrix_mut().flip_self();
+                let res = self.decode_formats(image);
+                if res.is_ok() {
+                    return res;
                 }
             }
         }
         Err(Exceptions::NOT_FOUND)
+    }
+
+    fn decode_formats<B: Binarizer>(&self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
+        if !self.possible_formats.is_empty() {
+            let one_d = self.possible_formats.contains(&BarcodeFormat::UPC_A)
+                || self.possible_formats.contains(&BarcodeFormat::UPC_E)
+                || self.possible_formats.contains(&BarcodeFormat::EAN_13)
+                || self.possible_formats.contains(&BarcodeFormat::EAN_8)
+                || self.possible_formats.contains(&BarcodeFormat::CODABAR)
+                || self.possible_formats.contains(&BarcodeFormat::CODE_39)
+                || self.possible_formats.contains(&BarcodeFormat::CODE_93)
+                || self.possible_formats.contains(&BarcodeFormat::CODE_128)
+                || self.possible_formats.contains(&BarcodeFormat::ITF)
+                || self.possible_formats.contains(&BarcodeFormat::RSS_14)
+                || self.possible_formats.contains(&BarcodeFormat::RSS_EXPANDED);
+            if one_d && !self.try_harder {
+                if let Ok(res) =
+                    MultiFormatOneDReader::new(&self.hints).decode_with_hints(image, &self.hints)
+                {
+                    return Ok(res);
+                }
+            }
+            for possible_format in self.possible_formats.iter() {
+                let res = match possible_format {
+                    BarcodeFormat::QR_CODE => {
+                        QRCodeReader::default().decode_with_hints(image, &self.hints)
+                    }
+                    BarcodeFormat::DATA_MATRIX => {
+                        DataMatrixReader::default().decode_with_hints(image, &self.hints)
+                    }
+                    BarcodeFormat::AZTEC => {
+                        AztecReader::default().decode_with_hints(image, &self.hints)
+                    }
+                    BarcodeFormat::PDF_417 => {
+                        PDF417Reader::default().decode_with_hints(image, &self.hints)
+                    }
+                    BarcodeFormat::MAXICODE => {
+                        MaxiCodeReader::default().decode_with_hints(image, &self.hints)
+                    }
+                    _ => Err(Exceptions::UNSUPPORTED_OPERATION),
+                };
+                if res.is_ok() {
+                    return res;
+                }
+            }
+            if one_d && self.try_harder {
+                if let Ok(res) =
+                    MultiFormatOneDReader::new(&self.hints).decode_with_hints(image, &self.hints)
+                {
+                    return Ok(res);
+                }
+            }
+        } else {
+            if !self.try_harder {
+                if let Ok(res) =
+                    MultiFormatOneDReader::new(&self.hints).decode_with_hints(image, &self.hints)
+                {
+                    return Ok(res);
+                }
+            }
+
+            if let Ok(res) = QRCodeReader::default().decode_with_hints(image, &self.hints) {
+                return Ok(res);
+            }
+            if let Ok(res) = DataMatrixReader::default().decode_with_hints(image, &self.hints) {
+                return Ok(res);
+            }
+            if let Ok(res) = AztecReader::default().decode_with_hints(image, &self.hints) {
+                return Ok(res);
+            }
+            if let Ok(res) = PDF417Reader::default().decode_with_hints(image, &self.hints) {
+                return Ok(res);
+            }
+            if let Ok(res) = MaxiCodeReader::default().decode_with_hints(image, &self.hints) {
+                return Ok(res);
+            }
+
+            if self.try_harder {
+                if let Ok(res) =
+                    MultiFormatOneDReader::new(&self.hints).decode_with_hints(image, &self.hints)
+                {
+                    return Ok(res);
+                }
+            }
+        }
+
+        Err(Exceptions::UNSUPPORTED_OPERATION)
     }
 }

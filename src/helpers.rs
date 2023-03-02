@@ -2,7 +2,6 @@ use std::{
     collections::{HashMap, HashSet},
     io::Write,
     path::PathBuf,
-    rc::Rc,
 };
 
 use crate::{
@@ -136,9 +135,7 @@ pub fn detect_in_file_with_hints(
         .or_insert(DecodeHintValue::TryHarder(true));
 
     multi_format_reader.decode_with_hints(
-        &mut BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(
-            BufferedImageLuminanceSource::new(img),
-        )))),
+        &mut BinaryBitmap::new(HybridBinarizer::new(BufferedImageLuminanceSource::new(img))),
         hints,
     )
 }
@@ -163,9 +160,7 @@ pub fn detect_multiple_in_file_with_hints(
         .or_insert(DecodeHintValue::TryHarder(true));
 
     scanner.decode_multiple_with_hints(
-        &mut BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(
-            BufferedImageLuminanceSource::new(img),
-        )))),
+        &mut BinaryBitmap::new(HybridBinarizer::new(BufferedImageLuminanceSource::new(img))),
         hints,
     )
 }
@@ -200,9 +195,9 @@ pub fn detect_in_luma_with_hints(
         .or_insert(DecodeHintValue::TryHarder(true));
 
     multi_format_reader.decode_with_hints(
-        &mut BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(
-            Luma8LuminanceSource::new(luma, width, height),
-        )))),
+        &mut BinaryBitmap::new(HybridBinarizer::new(Luma8LuminanceSource::new(
+            luma, width, height,
+        ))),
         hints,
     )
 }
@@ -225,9 +220,9 @@ pub fn detect_multiple_in_luma_with_hints(
         .or_insert(DecodeHintValue::TryHarder(true));
 
     scanner.decode_multiple_with_hints(
-        &mut BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(
-            Luma8LuminanceSource::new(luma, width, height),
-        )))),
+        &mut BinaryBitmap::new(HybridBinarizer::new(Luma8LuminanceSource::new(
+            luma, width, height,
+        ))),
         hints,
     )
 }

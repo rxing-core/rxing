@@ -49,7 +49,7 @@ impl Default for CodaBarReader {
 }
 
 impl OneDReader for CodaBarReader {
-    fn decodeRow(
+    fn decode_row(
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
@@ -309,7 +309,7 @@ impl CodaBarReader {
         self.counterLength = 0;
         // Start from the first white bit.
         let mut i = row.getNextUnset(0);
-        let end = row.getSize();
+        let end = row.get_size();
         if i >= end {
             return Err(Exceptions::NOT_FOUND);
         }

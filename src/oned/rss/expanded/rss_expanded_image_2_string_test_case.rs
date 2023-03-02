@@ -187,12 +187,12 @@ fn assertCorrectImage2string(fileName: &str, expected: &str) {
     let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
         BufferedImageLuminanceSource::new(image),
     ))));
-    let rowNumber = binaryMap.getHeight() / 2;
-    let row = binaryMap.getBlackRow(rowNumber).expect("get row");
+    let rowNumber = binaryMap.get_height() / 2;
+    let row = binaryMap.get_black_row(rowNumber).expect("get row");
 
     let mut rssExpandedReader = RSSExpandedReader::new();
     let result = rssExpandedReader
-        .decodeRow(rowNumber as u32, &row, &HashMap::new())
+        .decode_row(rowNumber as u32, &row, &HashMap::new())
         .expect("should decode");
 
     assert_eq!(&BarcodeFormat::RSS_EXPANDED, result.getBarcodeFormat());

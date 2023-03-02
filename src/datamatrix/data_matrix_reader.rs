@@ -18,7 +18,7 @@ use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
-    BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
+    BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
@@ -52,7 +52,10 @@ impl Reader for DataMatrixReader {
      * @throws FormatException if a Data Matrix code cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
+    fn decode<B: Binarizer>(
+        &mut self,
+        image: &mut crate::BinaryBitmap<B>,
+    ) -> Result<crate::RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
@@ -64,9 +67,9 @@ impl Reader for DataMatrixReader {
      * @throws FormatException if a Data Matrix code cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-    fn decode_with_hints(
+    fn decode_with_hints<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult> {
         let try_harder = matches!(
@@ -76,14 +79,14 @@ impl Reader for DataMatrixReader {
         let decoderRXingResult;
         let mut points = Vec::new();
         if hints.contains_key(&DecodeHintType::PURE_BARCODE) {
-            let bits = self.extractPureBits(image.getBlackMatrix())?;
+            let bits = self.extractPureBits(image.get_black_matrix())?;
             decoderRXingResult = DECODER.decode(&bits)?;
             points.clear();
         } else {
             //Result<DatamatrixDetectorResult, Exceptions>
             decoderRXingResult = if let Ok(fnd) = || -> Result<DecoderRXingResult> {
                 let detectorRXingResult =
-                    zxing_cpp_detector::detect(image.getBlackMatrix(), try_harder, true)?;
+                    zxing_cpp_detector::detect(image.get_black_matrix(), try_harder, true)?;
                 let decoded = DECODER.decode(detectorRXingResult.getBits())?;
                 points = detectorRXingResult.getPoints().to_vec();
                 Ok(decoded)
@@ -91,14 +94,14 @@ impl Reader for DataMatrixReader {
                 fnd
             } else if try_harder {
                 if let Ok(fnd) = || -> Result<DecoderRXingResult> {
-                    let detectorRXingResult = Detector::new(image.getBlackMatrix())?.detect()?;
+                    let detectorRXingResult = Detector::new(image.get_black_matrix())?.detect()?;
                     let decoded = DECODER.decode(detectorRXingResult.getBits())?;
                     points = detectorRXingResult.getPoints().to_vec();
                     Ok(decoded)
                 }() {
                     fnd
                 } else {
-                    let bits = self.extractPureBits(image.getBlackMatrix())?;
+                    let bits = self.extractPureBits(image.get_black_matrix())?;
                     DECODER.decode(&bits)?
                 }
             } else {

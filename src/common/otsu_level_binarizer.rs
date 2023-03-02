@@ -19,7 +19,7 @@ pub struct OtsuLevelBinarizer {
 impl OtsuLevelBinarizer {
     fn generate_threshold_matrix(source: &dyn LuminanceSource) -> Result<BitMatrix> {
         let image_buffer = {
-            let Some(buff) : Option<ImageBuffer<Luma<u8>,Vec<u8>>> = ImageBuffer::from_vec(source.getWidth() as u32, source.getHeight() as u32, source.getMatrix()) else {
+            let Some(buff) : Option<ImageBuffer<Luma<u8>,Vec<u8>>> = ImageBuffer::from_vec(source.get_width() as u32, source.get_height() as u32, source.get_matrix()) else {
                 return Err(Exceptions::ILLEGAL_ARGUMENT)
             };
             buff
@@ -36,9 +36,9 @@ impl OtsuLevelBinarizer {
 
     pub fn new(source: Box<dyn LuminanceSource>) -> Self {
         Self {
-            width: source.getWidth(),
-            height: source.getHeight(),
-            black_row_cache: vec![OnceCell::default(); source.getHeight()],
+            width: source.get_width(),
+            height: source.get_height(),
+            black_row_cache: vec![OnceCell::default(); source.get_height()],
             source,
             black_matrix: OnceCell::new(),
         }
@@ -46,38 +46,38 @@ impl OtsuLevelBinarizer {
 }
 
 impl Binarizer for OtsuLevelBinarizer {
-    fn getLuminanceSource(&self) -> &Box<dyn crate::LuminanceSource> {
+    fn get_luminance_source(&self) -> &Box<dyn crate::LuminanceSource> {
         &self.source
     }
 
-    fn getBlackRow(&self, y: usize) -> Result<std::borrow::Cow<super::BitArray>> {
+    fn get_black_row(&self, y: usize) -> Result<std::borrow::Cow<super::BitArray>> {
         let row = self.black_row_cache[y].get_or_try_init(|| {
-            let matrix = self.getBlackMatrix()?;
+            let matrix = self.get_black_matrix()?;
             Ok(matrix.getRow(y as u32))
         })?;
 
         Ok(Cow::Borrowed(row))
     }
 
-    fn getBlackMatrix(&self) -> Result<&super::BitMatrix> {
+    fn get_black_matrix(&self) -> Result<&super::BitMatrix> {
         let matrix = self
             .black_matrix
             .get_or_try_init(|| Self::generate_threshold_matrix(self.source.as_ref()))?;
         Ok(matrix)
     }
 
-    fn createBinarizer(
+    fn create_binarizer(
         &self,
         source: Box<dyn crate::LuminanceSource>,
     ) -> std::rc::Rc<dyn Binarizer> {
         Rc::new(Self::new(source))
     }
 
-    fn getWidth(&self) -> usize {
+    fn get_width(&self) -> usize {
         self.width
     }
 
-    fn getHeight(&self) -> usize {
+    fn get_height(&self) -> usize {
         self.height
     }
 }

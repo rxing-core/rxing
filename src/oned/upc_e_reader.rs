@@ -41,7 +41,7 @@ impl UPCEANReader for UPCEReader {
     ) -> Result<usize> {
         let mut counters = [0_u32; 4];
 
-        let end = row.getSize();
+        let end = row.get_size();
         let mut rowOffset = startRange[1];
 
         let mut lgPatternFound = 0;

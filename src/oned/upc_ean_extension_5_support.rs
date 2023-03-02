@@ -73,7 +73,7 @@ impl UPCEANExtension5Support {
         resultString: &mut String,
     ) -> Result<u32> {
         let mut counters = [0_u32; 4];
-        let end = row.getSize();
+        let end = row.get_size();
         let mut rowOffset = startRange[1];
 
         let mut lgPatternFound = 0;

@@ -50,7 +50,7 @@ impl AI01weightDecoder for AI013x0xDecoder<'_> {
 }
 impl AbstractExpandedDecoder for AI013x0xDecoder<'_> {
     fn parseInformation(&mut self) -> Result<String> {
-        if self.information.getSize()
+        if self.information.get_size()
             != Self::HEADER_SIZE + Self::GTIN_SIZE as usize + Self::WEIGHT_SIZE
         {
             return Err(crate::Exceptions::NOT_FOUND);

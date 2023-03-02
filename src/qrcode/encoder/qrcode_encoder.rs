@@ -286,7 +286,7 @@ fn calculateBitsNeeded(
     data_bits: &BitArray,
     version: VersionRef,
 ) -> u32 {
-    (header_bits.getSize() + mode.getCharacterCountBits(version) as usize + data_bits.getSize())
+    (header_bits.get_size() + mode.getCharacterCountBits(version) as usize + data_bits.get_size())
         as u32
 }
 
@@ -413,21 +413,21 @@ pub fn willFit(numInputBits: u32, version: VersionRef, ecLevel: &ErrorCorrection
  */
 pub fn terminateBits(num_data_bytes: u32, bits: &mut BitArray) -> Result<()> {
     let capacity = num_data_bytes * 8;
-    if bits.getSize() > capacity as usize {
+    if bits.get_size() > capacity as usize {
         return Err(Exceptions::writer_with(format!(
             "data bits cannot fit in the QR Code{capacity} > "
         )));
     }
     // Append Mode.TERMINATE if there is enough space (value is 0000)
     for _i in 0..4 {
-        if bits.getSize() >= capacity as usize {
+        if bits.get_size() >= capacity as usize {
             break;
         }
         bits.appendBit(false);
     }
     // Append termination bits. See 8.4.8 of JISX0510:2004 (p.24) for details.
     // If the last byte isn't 8-bit aligned, we'll add padding bits.
-    let num_bits_in_last_byte = bits.getSize() & 0x07;
+    let num_bits_in_last_byte = bits.get_size() & 0x07;
     if num_bits_in_last_byte > 0 {
         for _i in num_bits_in_last_byte..8 {
             bits.appendBit(false);
@@ -441,7 +441,7 @@ pub fn terminateBits(num_data_bytes: u32, bits: &mut BitArray) -> Result<()> {
         }
         bits.appendBits(if (i & 0x01) == 0 { 0xEC } else { 0x11 }, 8)?;
     }
-    if bits.getSize() != capacity as usize {
+    if bits.get_size() != capacity as usize {
         return Err(Exceptions::writer_with("Bits size does not equal capacity"));
     }
     Ok(())

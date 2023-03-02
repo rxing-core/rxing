@@ -177,8 +177,8 @@ fn assertCorrectImage2binary(fileName: &str, expected: &str) {
     let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
         BufferedImageLuminanceSource::new(image),
     ))));
-    let rowNumber = binaryMap.getHeight() / 2;
-    let row = binaryMap.getBlackRow(rowNumber).expect("row");
+    let rowNumber = binaryMap.get_height() / 2;
+    let row = binaryMap.get_black_row(rowNumber).expect("row");
 
     // let pairs = Vec::new();
     // try {

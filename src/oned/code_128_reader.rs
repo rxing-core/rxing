@@ -32,7 +32,7 @@ use super::{one_d_reader, OneDReader};
 pub struct Code128Reader;
 
 impl OneDReader for Code128Reader {
-    fn decodeRow(
+    fn decode_row(
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
@@ -294,7 +294,7 @@ impl OneDReader for Code128Reader {
         nextStart = row.getNextUnset(nextStart);
         if !row.isRange(
             nextStart,
-            row.getSize().min(nextStart + (nextStart - lastStart) / 2),
+            row.get_size().min(nextStart + (nextStart - lastStart) / 2),
             false,
         )? {
             return Err(Exceptions::NOT_FOUND);
@@ -354,7 +354,7 @@ impl OneDReader for Code128Reader {
 }
 impl Code128Reader {
     fn findStartPattern(&self, row: &BitArray) -> Result<[usize; 3]> {
-        let width = row.getSize();
+        let width = row.get_size();
         let rowOffset = row.getNextSet(0);
 
         let mut counterPosition = 0;
@@ -371,7 +371,7 @@ impl Code128Reader {
                     let mut bestVariance = MAX_AVG_VARIANCE;
                     let mut bestMatch = -1_isize;
                     for startCode in CODE_START_A..=CODE_START_C {
-                        let variance = one_d_reader::patternMatchVariance(
+                        let variance = one_d_reader::pattern_match_variance(
                             &counters,
                             &CODE_PATTERNS[startCode as usize],
                             MAX_INDIVIDUAL_VARIANCE,
@@ -410,13 +410,13 @@ impl Code128Reader {
     }
 
     fn decodeCode(&self, row: &BitArray, counters: &mut [u32; 6], rowOffset: usize) -> Result<u8> {
-        one_d_reader::recordPattern(row, rowOffset, counters)?;
+        one_d_reader::record_pattern(row, rowOffset, counters)?;
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
         for d in 0..CODE_PATTERNS.len() {
             let pattern = &CODE_PATTERNS[d];
             let variance =
-                one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
+                one_d_reader::pattern_match_variance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
                 bestVariance = variance;
                 bestMatch = d as isize;

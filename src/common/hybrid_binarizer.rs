@@ -20,7 +20,7 @@
 // import com.google.zxing.LuminanceSource;
 // import com.google.zxing.NotFoundException;
 
-use std::{borrow::Cow, rc::Rc};
+use std::borrow::Cow;
 
 use once_cell::unsync::OnceCell;
 
@@ -46,20 +46,22 @@ use super::{BitArray, BitMatrix, GlobalHistogramBinarizer};
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
-pub struct HybridBinarizer {
+pub struct HybridBinarizer<LS: LuminanceSource> {
     //width: usize,
     //height: usize,
     //source: Box<dyn LuminanceSource>,
-    ghb: GlobalHistogramBinarizer,
+    ghb: GlobalHistogramBinarizer<LS>,
     black_matrix: OnceCell<BitMatrix>,
 }
-impl Binarizer for HybridBinarizer {
-    fn getLuminanceSource(&self) -> &Box<dyn LuminanceSource> {
-        self.ghb.getLuminanceSource()
+impl<LS: LuminanceSource> Binarizer for HybridBinarizer<LS> {
+    type Source = LS;
+
+    fn get_luminance_source(&self) -> &LS {
+        self.ghb.get_luminance_source()
     }
 
-    fn getBlackRow(&self, y: usize) -> Result<Cow<BitArray>> {
-        self.ghb.getBlackRow(y)
+    fn get_black_row(&self, y: usize) -> Result<Cow<BitArray>> {
+        self.ghb.get_black_row(y)
     }
 
     /**
@@ -67,35 +69,36 @@ impl Binarizer for HybridBinarizer {
      * constructor instead, but there are some advantages to doing it lazily, such as making
      * profiling easier, and not doing heavy lifting when callers don't expect it.
      */
-    fn getBlackMatrix(&self) -> Result<&BitMatrix> {
+    fn get_black_matrix(&self) -> Result<&BitMatrix> {
         let matrix = self
             .black_matrix
             .get_or_try_init(|| Self::calculateBlackMatrix(&self.ghb))?;
         Ok(matrix)
     }
 
-    fn createBinarizer(&self, source: Box<dyn LuminanceSource>) -> Rc<dyn Binarizer> {
-        Rc::new(HybridBinarizer::new(source))
+    fn create_binarizer(&self, source: LS) -> Self {
+        Self::new(source)
     }
 
-    fn getWidth(&self) -> usize {
-        self.ghb.getWidth()
+    fn get_width(&self) -> usize {
+        self.ghb.get_width()
     }
 
-    fn getHeight(&self) -> usize {
-        self.ghb.getHeight()
+    fn get_height(&self) -> usize {
+        self.ghb.get_height()
     }
 }
-impl HybridBinarizer {
-    // This class uses 5x5 blocks to compute local luminance, where each block is 8x8 pixels.
-    // So this is the smallest dimension in each axis we can accept.
-    const BLOCK_SIZE_POWER: usize = 3;
-    const BLOCK_SIZE: usize = 1 << HybridBinarizer::BLOCK_SIZE_POWER; // ...0100...00
-    const BLOCK_SIZE_MASK: usize = HybridBinarizer::BLOCK_SIZE - 1; // ...0011...11
-    const MINIMUM_DIMENSION: usize = HybridBinarizer::BLOCK_SIZE * 5;
-    const MIN_DYNAMIC_RANGE: usize = 24;
 
-    pub fn new(source: Box<dyn LuminanceSource>) -> Self {
+// This class uses 5x5 blocks to compute local luminance, where each block is 8x8 pixels.
+// So this is the smallest dimension in each axis we can accept.
+const BLOCK_SIZE_POWER: usize = 3;
+const BLOCK_SIZE: usize = 1 << BLOCK_SIZE_POWER; // ...0100...00
+const BLOCK_SIZE_MASK: usize = BLOCK_SIZE - 1; // ...0011...11
+const MINIMUM_DIMENSION: usize = BLOCK_SIZE * 5;
+const MIN_DYNAMIC_RANGE: usize = 24;
+
+impl<LS: LuminanceSource> HybridBinarizer<LS> {
+    pub fn new(source: LS) -> Self {
         let ghb = GlobalHistogramBinarizer::new(source);
         Self {
             black_matrix: OnceCell::new(),
@@ -103,21 +106,21 @@ impl HybridBinarizer {
         }
     }
 
-    fn calculateBlackMatrix(ghb: &GlobalHistogramBinarizer) -> Result<BitMatrix> {
+    fn calculateBlackMatrix<LS2: LuminanceSource>(
+        ghb: &GlobalHistogramBinarizer<LS2>,
+    ) -> Result<BitMatrix> {
         // let matrix;
-        let source = ghb.getLuminanceSource();
-        let width = source.getWidth();
-        let height = source.getHeight();
-        let matrix = if width >= HybridBinarizer::MINIMUM_DIMENSION
-            && height >= HybridBinarizer::MINIMUM_DIMENSION
-        {
-            let luminances = source.getMatrix();
-            let mut sub_width = width >> HybridBinarizer::BLOCK_SIZE_POWER;
-            if (width & HybridBinarizer::BLOCK_SIZE_MASK) != 0 {
+        let source = ghb.get_luminance_source();
+        let width = source.get_width();
+        let height = source.get_height();
+        let matrix = if width >= MINIMUM_DIMENSION && height >= MINIMUM_DIMENSION {
+            let luminances = source.get_matrix();
+            let mut sub_width = width >> BLOCK_SIZE_POWER;
+            if (width & BLOCK_SIZE_MASK) != 0 {
                 sub_width += 1;
             }
-            let mut sub_height = height >> HybridBinarizer::BLOCK_SIZE_POWER;
-            if (height & HybridBinarizer::BLOCK_SIZE_MASK) != 0 {
+            let mut sub_height = height >> BLOCK_SIZE_POWER;
+            if (height & BLOCK_SIZE_MASK) != 0 {
                 sub_height += 1;
             }
             let black_points = Self::calculateBlackPoints(
@@ -141,7 +144,7 @@ impl HybridBinarizer {
             Ok(new_matrix)
         } else {
             // If the image is too small, fall back to the global histogram approach.
-            let m = ghb.getBlackMatrix()?;
+            let m = ghb.get_black_matrix()?;
             Ok(m.clone())
         };
         //  dbg!(matrix.to_string());
@@ -162,18 +165,18 @@ impl HybridBinarizer {
         black_points: &[Vec<u32>],
         matrix: &mut BitMatrix,
     ) {
-        let maxYOffset = height - HybridBinarizer::BLOCK_SIZE as u32;
-        let maxXOffset = width - HybridBinarizer::BLOCK_SIZE as u32;
+        let maxYOffset = height - BLOCK_SIZE as u32;
+        let maxXOffset = width - BLOCK_SIZE as u32;
         for y in 0..sub_height {
             // for (int y = 0; y < subHeight; y++) {
-            let mut yoffset = y << HybridBinarizer::BLOCK_SIZE_POWER;
+            let mut yoffset = y << BLOCK_SIZE_POWER;
             if yoffset > maxYOffset {
                 yoffset = maxYOffset;
             }
             let top = Self::cap(y, sub_height - 3);
             for x in 0..sub_width {
                 //   for (int x = 0; x < subWidth; x++) {
-                let mut xoffset = x << HybridBinarizer::BLOCK_SIZE_POWER;
+                let mut xoffset = x << BLOCK_SIZE_POWER;
                 if xoffset > maxXOffset {
                     xoffset = maxXOffset;
                 }
@@ -215,9 +218,9 @@ impl HybridBinarizer {
         matrix: &mut BitMatrix,
     ) {
         let mut offset = yoffset * stride + xoffset;
-        for y in 0..HybridBinarizer::BLOCK_SIZE {
+        for y in 0..BLOCK_SIZE {
             // for (int y = 0, offset = yoffset * stride + xoffset; y < HybridBinarizer::BLOCK_SIZE; y++, offset += stride) {
-            for x in 0..HybridBinarizer::BLOCK_SIZE {
+            for x in 0..BLOCK_SIZE {
                 //   for (int x = 0; x < HybridBinarizer::BLOCK_SIZE; x++) {
                 // Comparison needs to be <= so that black == 0 pixels are black even if the threshold is 0.
                 if luminances[offset as usize + x] as u32 <= threshold {
@@ -240,18 +243,18 @@ impl HybridBinarizer {
         width: u32,
         height: u32,
     ) -> Vec<Vec<u32>> {
-        let maxYOffset = height as usize - HybridBinarizer::BLOCK_SIZE;
-        let maxXOffset = width as usize - HybridBinarizer::BLOCK_SIZE;
+        let maxYOffset = height as usize - BLOCK_SIZE;
+        let maxXOffset = width as usize - BLOCK_SIZE;
         let mut blackPoints = vec![vec![0; subWidth as usize]; subHeight as usize];
         for y in 0..subHeight {
             // for (int y = 0; y < subHeight; y++) {
-            let mut yoffset = y << HybridBinarizer::BLOCK_SIZE_POWER;
+            let mut yoffset = y << BLOCK_SIZE_POWER;
             if yoffset > maxYOffset as u32 {
                 yoffset = maxYOffset as u32;
             }
             for x in 0..subWidth {
                 //   for (int x = 0; x < subWidth; x++) {
-                let mut xoffset = x << HybridBinarizer::BLOCK_SIZE_POWER;
+                let mut xoffset = x << BLOCK_SIZE_POWER;
                 if xoffset > maxXOffset as u32 {
                     xoffset = maxXOffset as u32;
                 }
@@ -261,9 +264,9 @@ impl HybridBinarizer {
 
                 let mut offset = yoffset * width + xoffset;
                 let mut yy = 0;
-                while yy < HybridBinarizer::BLOCK_SIZE {
+                while yy < BLOCK_SIZE {
                     // for (int yy = 0, offset = yoffset * width + xoffset; yy < HybridBinarizer::BLOCK_SIZE; yy++, offset += width) {
-                    for xx in 0..HybridBinarizer::BLOCK_SIZE {
+                    for xx in 0..BLOCK_SIZE {
                         //   for (int xx = 0; xx < HybridBinarizer::BLOCK_SIZE; xx++) {
                         let pixel = luminances[offset as usize + xx];
                         sum += pixel as u32;
@@ -276,13 +279,13 @@ impl HybridBinarizer {
                         }
                     }
                     // short-circuit min/max tests once dynamic range is met
-                    if (max - min) as usize > HybridBinarizer::MIN_DYNAMIC_RANGE {
+                    if (max - min) as usize > MIN_DYNAMIC_RANGE {
                         // finish the rest of the rows quickly
                         offset += width;
                         yy += 1;
-                        while yy < HybridBinarizer::BLOCK_SIZE {
+                        while yy < BLOCK_SIZE {
                             // for (yy++, offset += width; yy < HybridBinarizer::BLOCK_SIZE; yy++, offset += width) {
-                            for xx in 0..HybridBinarizer::BLOCK_SIZE {
+                            for xx in 0..BLOCK_SIZE {
                                 //   for (int xx = 0; xx < BLOCK_SIZE; xx++) {
                                 sum += luminances[offset as usize + xx] as u32;
                             }
@@ -296,8 +299,8 @@ impl HybridBinarizer {
                 }
 
                 // The default estimate is the average of the values in the block.
-                let mut average = sum >> (HybridBinarizer::BLOCK_SIZE_POWER * 2);
-                if (max - min) as usize <= HybridBinarizer::MIN_DYNAMIC_RANGE {
+                let mut average = sum >> (BLOCK_SIZE_POWER * 2);
+                if (max - min) as usize <= MIN_DYNAMIC_RANGE {
                     // If variation within the block is low, assume this is a block with only light or only
                     // dark pixels. In that case we do not want to use the average, as it would divide this
                     // low contrast area into black and white pixels, essentially creating data out of noise.

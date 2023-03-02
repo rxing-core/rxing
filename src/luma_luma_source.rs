@@ -15,7 +15,7 @@ pub struct Luma8LuminanceSource {
     original_dimension: (u32, u32),
 }
 impl LuminanceSource for Luma8LuminanceSource {
-    fn getRow(&self, y: usize) -> Vec<u8> {
+    fn get_row(&self, y: usize) -> Vec<u8> {
         self.data
             .chunks_exact(self.original_dimension.0 as usize)
             .skip(y + self.origin.1 as usize)
@@ -27,7 +27,7 @@ impl LuminanceSource for Luma8LuminanceSource {
             .collect()
     }
 
-    fn getMatrix(&self) -> Vec<u8> {
+    fn get_matrix(&self) -> Vec<u8> {
         self.data
             .iter()
             .skip((self.original_dimension.0 * self.origin.1) as usize)
@@ -38,7 +38,7 @@ impl LuminanceSource for Luma8LuminanceSource {
             .flat_map(|f| {
                 f.iter()
                     .skip((self.origin.0) as usize)
-                    .take(self.getWidth())
+                    .take(self.get_width())
                     .copied()
             }) // flatten this all out
             .copied() // copy it over so that it's u8
@@ -46,11 +46,11 @@ impl LuminanceSource for Luma8LuminanceSource {
             .collect() // collect into a vec
     }
 
-    fn getWidth(&self) -> usize {
+    fn get_width(&self) -> usize {
         self.dimensions.0 as usize
     }
 
-    fn getHeight(&self) -> usize {
+    fn get_height(&self) -> usize {
         self.dimensions.1 as usize
     }
 
@@ -58,31 +58,25 @@ impl LuminanceSource for Luma8LuminanceSource {
         self.inverted = !self.inverted;
     }
 
-    fn isCropSupported(&self) -> bool {
+    fn is_crop_supported(&self) -> bool {
         true
     }
 
-    fn crop(
-        &self,
-        left: usize,
-        top: usize,
-        width: usize,
-        height: usize,
-    ) -> Result<Box<dyn LuminanceSource>> {
-        Ok(Box::new(Self {
+    fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
+        Ok(Self {
             dimensions: (width as u32, height as u32),
             origin: (left as u32, top as u32),
             data: self.data.clone(),
             inverted: self.inverted,
             original_dimension: self.original_dimension,
-        }))
+        })
     }
 
-    fn isRotateSupported(&self) -> bool {
+    fn is_rotate_supported(&self) -> bool {
         true
     }
 
-    fn rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>> {
+    fn rotate_counter_clockwise(&self) -> Result<Self> {
         let mut new_matrix = Self {
             dimensions: self.dimensions,
             origin: self.origin,
@@ -92,10 +86,10 @@ impl LuminanceSource for Luma8LuminanceSource {
         };
         new_matrix.transpose();
         new_matrix.reverseColumns();
-        Ok(Box::new(new_matrix))
+        Ok(new_matrix)
     }
 
-    fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>> {
+    fn rotate_counter_clockwise_45(&self) -> Result<Self> {
         Err(crate::Exceptions::unsupported_operation_with(
             "This luminance source does not support rotation by 45 degrees.",
         ))
@@ -104,12 +98,12 @@ impl LuminanceSource for Luma8LuminanceSource {
 
 impl Luma8LuminanceSource {
     fn reverseColumns(&mut self) {
-        for i in 0..self.getWidth() {
+        for i in 0..self.get_width() {
             let mut j = 0;
-            let mut k = self.getWidth() - 1;
+            let mut k = self.get_width() - 1;
             while j < k {
-                let offset_a = (self.getWidth() * i) + j;
-                let offset_b = (self.getWidth() * i) + k;
+                let offset_a = (self.get_width() * i) + j;
+                let offset_b = (self.get_width() * i) + k;
                 self.data.swap(offset_a, offset_b);
                 j += 1;
                 k -= 1;
@@ -118,10 +112,10 @@ impl Luma8LuminanceSource {
     }
 
     fn transpose(&mut self) {
-        for i in 0..self.getHeight() {
-            for j in i..self.getWidth() {
-                let offset_a = (self.getWidth() * i) + j;
-                let offset_b = (self.getWidth() * j) + i;
+        for i in 0..self.get_height() {
+            for j in i..self.get_width() {
+                let offset_a = (self.get_width() * i) + j;
+                let offset_b = (self.get_width() * j) + i;
                 self.data.swap(offset_a, offset_b);
             }
         }

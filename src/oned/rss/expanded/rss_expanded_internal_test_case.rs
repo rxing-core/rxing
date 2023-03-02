@@ -45,8 +45,8 @@ fn testFindFinderPatterns() {
     let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
         BufferedImageLuminanceSource::new(image),
     ))));
-    let rowNumber = binaryMap.getHeight() as u32 / 2;
-    let row = binaryMap.getBlackRow(rowNumber as usize).expect("ok");
+    let rowNumber = binaryMap.get_height() as u32 / 2;
+    let row = binaryMap.get_black_row(rowNumber as usize).expect("ok");
     let mut previousPairs = Vec::new(); //new ArrayList<>();
 
     let mut rssExpandedReader = RSSExpandedReader::new();
@@ -91,8 +91,8 @@ fn testRetrieveNextPairPatterns() {
     let binaryMap = BinaryBitmap::new(Rc::new(GlobalHistogramBinarizer::new(Box::new(
         BufferedImageLuminanceSource::new(image),
     ))));
-    let rowNumber = binaryMap.getHeight() as u32 / 2;
-    let row = binaryMap.getBlackRow(rowNumber as usize).expect("create");
+    let rowNumber = binaryMap.get_height() as u32 / 2;
+    let row = binaryMap.get_black_row(rowNumber as usize).expect("create");
     let mut previousPairs = Vec::new(); //new ArrayList<>();
 
     let mut rssExpandedReader = RSSExpandedReader::new();
@@ -120,7 +120,7 @@ fn testDecodeCheckCharacter() {
         BufferedImageLuminanceSource::new(image.clone()),
     ))));
     let row = binaryMap
-        .getBlackRow(binaryMap.getHeight() / 2)
+        .get_black_row(binaryMap.get_height() / 2)
         .expect("create");
 
     let startEnd = [145, 243]; //image pixels where the A1 pattern starts (at 124) and ends (at 214)
@@ -148,7 +148,7 @@ fn testDecodeDataCharacter() {
         BufferedImageLuminanceSource::new(image.clone()),
     ))));
     let row = binaryMap
-        .getBlackRow(binaryMap.getHeight() / 2)
+        .get_black_row(binaryMap.get_height() / 2)
         .expect("create");
 
     let startEnd = [145, 243]; //image pixels where the A1 pattern starts (at 124) and ends (at 214)

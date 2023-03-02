@@ -23,27 +23,28 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
         use crate::RXingResultMetadataValue;
         use crate::RXingResultPoint;
         use crate::Reader;
+        use crate::Binarizer;
 
         impl Reader for #name {
-            fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult, Exceptions> {
+            fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<crate::RXingResult, Exceptions> {
               self.decode_with_hints(image, &HashMap::new())
             }
 
             // Note that we don't try rotation without the try harder flag, even if rotation was supported.
-            fn decode_with_hints(
+            fn decode_with_hints<B: Binarizer>(
                 &mut self,
-                image: &mut crate::BinaryBitmap,
+                image: &mut crate::BinaryBitmap<B>,
                 hints: &DecodingHintDictionary,
             ) -> Result<crate::RXingResult, Exceptions> {
-              if let Ok(res) = self.doDecode(image, hints) {
+              if let Ok(res) = self._do_decode(image, hints) {
                  Ok(res)
               }else {
                 let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
-                if tryHarder && image.isRotateSupported() {
-                  let mut rotatedImage = image.rotateCounterClockwise();
-                  let mut result = self.doDecode(&mut rotatedImage, hints)?;
+                if tryHarder && image.is_rotate_supported() {
+                  let mut rotated_image = image.rotate_counter_clockwise();
+                  let mut result = self._do_decode(&mut rotated_image, hints)?;
                   // Record that we found it rotated 90 degrees CCW / 270 degrees CW
-                 let metadata = result.getRXingResultMetadata();
+                  let metadata = result.getRXingResultMetadata();
                   let mut orientation = 270;
                   if metadata.contains_key(&RXingResultMetadataType::ORIENTATION) {
                     // But if we found it reversed in doDecode(), add in that result here:
@@ -58,7 +59,7 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
                   // Update result points
                   // let points = result.getRXingResultPoints();
                   // if points != null {
-                    let height = rotatedImage.getHeight();
+                    let height = rotated_image.get_height();
                     // for point in result.getRXingResultPointsMut().iter_mut() {
                       let total_points = result.getRXingResultPoints().len();
                       let points = result.getRXingResultPointsMut();
@@ -93,13 +94,13 @@ fn impl_ean_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
       impl super::OneDReader for #name {
-        fn decodeRow(
+        fn decode_row(
           &mut self,
           rowNumber: u32,
           row: &crate::common::BitArray,
           hints: &crate::DecodingHintDictionary,
       ) -> Result<crate::RXingResult, crate::Exceptions> {
-        self.decodeRowWithGuardRange(rowNumber, row, &self.findStartGuardPattern(row)?, hints)
+        self.decodeRowWithGuardRange(rowNumber, row, &self.find_start_guard_pattern(row)?, hints)
       }
     }
     };

@@ -6,28 +6,28 @@ use resvg::{self, usvg::Options};
 pub struct SVGLuminanceSource(BufferedImageLuminanceSource);
 
 impl LuminanceSource for SVGLuminanceSource {
-    fn getRow(&self, y: usize) -> Vec<u8> {
-        self.0.getRow(y)
+    fn get_row(&self, y: usize) -> Vec<u8> {
+        self.0.get_row(y)
     }
 
-    fn getMatrix(&self) -> Vec<u8> {
-        self.0.getMatrix()
+    fn get_matrix(&self) -> Vec<u8> {
+        self.0.get_matrix()
     }
 
-    fn getWidth(&self) -> usize {
-        self.0.getWidth()
+    fn get_width(&self) -> usize {
+        self.0.get_width()
     }
 
-    fn getHeight(&self) -> usize {
-        self.0.getHeight()
+    fn get_height(&self) -> usize {
+        self.0.get_height()
     }
 
     fn invert(&mut self) {
         self.0.invert()
     }
 
-    fn isCropSupported(&self) -> bool {
-        self.0.isCropSupported()
+    fn is_crop_supported(&self) -> bool {
+        self.0.is_crop_supported()
     }
 
     fn crop(
@@ -40,16 +40,16 @@ impl LuminanceSource for SVGLuminanceSource {
         self.0.crop(left, top, width, height)
     }
 
-    fn isRotateSupported(&self) -> bool {
-        self.0.isRotateSupported()
+    fn is_rotate_supported(&self) -> bool {
+        self.0.is_rotate_supported()
     }
 
-    fn rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>> {
-        self.0.rotateCounterClockwise()
+    fn rotate_counter_clockwise(&self) -> Result<Box<dyn LuminanceSource>> {
+        self.0.rotate_counter_clockwise()
     }
 
-    fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>> {
-        self.0.rotateCounterClockwise45()
+    fn rotate_counter_clockwise_45(&self) -> Result<Box<dyn LuminanceSource>> {
+        self.0.rotate_counter_clockwise_45()
     }
 }
 

@@ -18,7 +18,7 @@ use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
-    BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, Point, RXingResult,
+    BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, Point, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
@@ -48,27 +48,27 @@ impl Reader for QRCodeReader {
      * @throws FormatException if a QR code cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
+    fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
-    fn decode_with_hints(
+    fn decode_with_hints<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult> {
+    ) -> Result<RXingResult> {
         let decoderRXingResult: DecoderRXingResult;
         let mut points: Vec<Point>;
         if matches!(
             hints.get(&DecodeHintType::PURE_BARCODE),
             Some(DecodeHintValue::PureBarcode(true))
         ) {
-            let bits = Self::extractPureBits(image.getBlackMatrix())?;
+            let bits = Self::extractPureBits(image.get_black_matrix())?;
             decoderRXingResult = qrcode_decoder::decode_bitmatrix_with_hints(&bits, hints)?;
             points = Vec::new();
         } else {
             let detectorRXingResult =
-                Detector::new(image.getBlackMatrix()).detect_with_hints(hints)?;
+                Detector::new(image.get_black_matrix()).detect_with_hints(hints)?;
             decoderRXingResult =
                 qrcode_decoder::decode_bitmatrix_with_hints(detectorRXingResult.getBits(), hints)?;
             points = detectorRXingResult.getPoints().to_vec();

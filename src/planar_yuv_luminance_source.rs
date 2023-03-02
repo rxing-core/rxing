@@ -191,8 +191,8 @@ impl PlanarYUVLuminanceSource {
     }
 
     pub fn renderThumbnail(&self) -> Vec<u8> {
-        let width = self.getWidth() / THUMBNAIL_SCALE_FACTOR;
-        let height = self.getHeight() / THUMBNAIL_SCALE_FACTOR;
+        let width = self.get_width() / THUMBNAIL_SCALE_FACTOR;
+        let height = self.get_height() / THUMBNAIL_SCALE_FACTOR;
         let mut pixels = vec![0; width * height];
         let yuv = &self.yuv_data;
         let mut input_offset = self.top * self.data_width + self.left;
@@ -212,14 +212,14 @@ impl PlanarYUVLuminanceSource {
      * @return width of image from {@link #renderThumbnail()}
      */
     pub fn getThumbnailWidth(&self) -> usize {
-        self.getWidth() / THUMBNAIL_SCALE_FACTOR
+        self.get_width() / THUMBNAIL_SCALE_FACTOR
     }
 
     /**
      * @return height of image from {@link #renderThumbnail()}
      */
     pub fn getThumbnailHeight(&self) -> usize {
-        self.getHeight() / THUMBNAIL_SCALE_FACTOR
+        self.get_height() / THUMBNAIL_SCALE_FACTOR
     }
 
     fn reverseHorizontal(&mut self, width: usize, height: usize) {
@@ -237,13 +237,13 @@ impl PlanarYUVLuminanceSource {
 }
 
 impl LuminanceSource for PlanarYUVLuminanceSource {
-    fn getRow(&self, y: usize) -> Vec<u8> {
-        if y >= self.getHeight() {
+    fn get_row(&self, y: usize) -> Vec<u8> {
+        if y >= self.get_height() {
             // //throw new IllegalArgumentException("Requested row is outside the image: " + y);
             // panic!("Requested row is outside the image: {y}");
             return Vec::new();
         }
-        let width = self.getWidth();
+        let width = self.get_width();
 
         let offset = (y + self.top) * self.data_width + self.left;
 
@@ -256,9 +256,9 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         row
     }
 
-    fn getMatrix(&self) -> Vec<u8> {
-        let width = self.getWidth();
-        let height = self.getHeight();
+    fn get_matrix(&self) -> Vec<u8> {
+        let width = self.get_width();
+        let height = self.get_height();
 
         // If the caller asks for the entire underlying image, save the copy and give them the
         // original data. The docs specifically warn that result.length must be ignored.
@@ -298,26 +298,20 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         matrix
     }
 
-    fn getWidth(&self) -> usize {
+    fn get_width(&self) -> usize {
         self.width
     }
 
-    fn getHeight(&self) -> usize {
+    fn get_height(&self) -> usize {
         self.height
     }
 
-    fn isCropSupported(&self) -> bool {
+    fn is_crop_supported(&self) -> bool {
         true
     }
 
-    fn crop(
-        &self,
-        left: usize,
-        top: usize,
-        width: usize,
-        height: usize,
-    ) -> Result<Box<dyn LuminanceSource>> {
-        match PlanarYUVLuminanceSource::new_with_all(
+    fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
+        PlanarYUVLuminanceSource::new_with_all(
             self.yuv_data.clone(),
             self.data_width,
             self.data_height,
@@ -327,13 +321,11 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
             height,
             false,
             self.invert,
-        ) {
-            Ok(new) => Ok(Box::new(new)),
-            Err(_err) => Err(Exceptions::UNSUPPORTED_OPERATION),
-        }
+        )
+        .map_err(|_| Exceptions::UNSUPPORTED_OPERATION)
     }
 
-    fn isRotateSupported(&self) -> bool {
+    fn is_rotate_supported(&self) -> bool {
         false
     }
 

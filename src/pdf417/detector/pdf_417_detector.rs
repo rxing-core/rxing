@@ -16,7 +16,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    point, BinaryBitmap, DecodingHintDictionary, Exceptions, Point,
+    point, Binarizer, BinaryBitmap, DecodingHintDictionary, Exceptions, Point,
 };
 
 use std::borrow::Cow;
@@ -64,8 +64,8 @@ const ROTATIONS: [u32; 4] = [0, 180, 270, 90];
  * @return {@link PDF417DetectorRXingResult} encapsulating results of detecting a PDF417 code
  * @throws NotFoundException if no PDF417 Code can be found
  */
-pub fn detect_with_hints(
-    image: &mut BinaryBitmap,
+pub fn detect_with_hints<B: Binarizer>(
+    image: &mut BinaryBitmap<B>,
     _hints: &DecodingHintDictionary,
     multiple: bool,
 ) -> Result<PDF417DetectorRXingResult> {
@@ -74,7 +74,7 @@ pub fn detect_with_hints(
     //boolean tryHarder = hints != null && hints.containsKey(DecodeHintType.TRY_HARDER);
     //let try_harder = matches!(hints.get(&DecodeHintType::TRY_HARDER), Some(DecodeHintValue::TryHarder(true)));
 
-    let originalMatrix = image.getBlackMatrix();
+    let originalMatrix = image.get_black_matrix();
     for rotation in ROTATIONS {
         // for (int rotation : ROTATIONS) {
         let bitMatrix = applyRotation(originalMatrix, rotation)?;

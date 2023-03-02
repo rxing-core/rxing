@@ -174,11 +174,11 @@ pub fn embedTypeInfo(
     for (i, coordinates) in TYPE_INFO_COORDINATES
         .iter()
         .enumerate()
-        .take(typeInfoBits.getSize())
+        .take(typeInfoBits.get_size())
     {
         // Place bits in LSB to MSB order.  LSB (least significant bit) is the last value in
         // "typeInfoBits".
-        let bit = typeInfoBits.get(typeInfoBits.getSize() - 1 - i);
+        let bit = typeInfoBits.get(typeInfoBits.get_size() - 1 - i);
 
         // Type info bits at the left top corner. See 8.9 of JISX0510:2004 (p.46).
         // let coordinates = TYPE_INFO_COORDINATES[i];
@@ -249,7 +249,7 @@ pub fn embedDataBits(dataBits: &BitArray, maskPattern: i32, matrix: &mut ByteMat
                     continue;
                 }
                 let mut bit;
-                if bitIndex < dataBits.getSize() {
+                if bitIndex < dataBits.get_size() {
                     bit = dataBits.get(bitIndex);
                     bitIndex += 1;
                 } else {
@@ -273,11 +273,11 @@ pub fn embedDataBits(dataBits: &BitArray, maskPattern: i32, matrix: &mut ByteMat
         x -= 2; // Move to the left.
     }
     // All bits should be consumed.
-    if bitIndex != dataBits.getSize() {
+    if bitIndex != dataBits.get_size() {
         return Err(Exceptions::writer_with(format!(
             "Not all bits consumed: {}/{}",
             bitIndex,
-            dataBits.getSize()
+            dataBits.get_size()
         )));
     }
     Ok(())
@@ -355,11 +355,11 @@ pub fn makeTypeInfoBits(
     maskBits.appendBits(TYPE_INFO_MASK_PATTERN, 15)?;
     bits.xor(&maskBits)?;
 
-    if bits.getSize() != 15 {
+    if bits.get_size() != 15 {
         // Just in case.
         return Err(Exceptions::writer_with(format!(
             "should not happen but we got: {}",
-            bits.getSize()
+            bits.get_size()
         )));
     }
     Ok(())
@@ -372,11 +372,11 @@ pub fn makeVersionInfoBits(version: &Version, bits: &mut BitArray) -> Result<()>
     let bchCode = calculateBCHCode(version.getVersionNumber(), VERSION_INFO_POLY)?;
     bits.appendBits(bchCode, 12)?;
 
-    if bits.getSize() != 18 {
+    if bits.get_size() != 18 {
         // Just in case.
         return Err(Exceptions::writer_with(format!(
             "should not happen but we got: {}",
-            bits.getSize()
+            bits.get_size()
         )));
     }
     Ok(())

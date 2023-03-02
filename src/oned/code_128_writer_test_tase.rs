@@ -483,18 +483,18 @@ fn encode(toEncode: &str, compact: bool, expectedLoopback: &str) -> Result<BitMa
         WRITER.encode_with_hints(toEncode, &BarcodeFormat::CODE_128, 0, 0, &hints)?;
     if !expectedLoopback.is_empty() {
         let row = encRXingResult.getRow(0);
-        let rtRXingResult = reader.decodeRow(0, &row, &HashMap::new())?;
+        let rtRXingResult = reader.decode_row(0, &row, &HashMap::new())?;
         let actual = rtRXingResult.getText();
         assert_eq!(expectedLoopback, actual);
     }
     if compact {
         //check that what is encoded compactly yields the same on loopback as what was encoded fast.
         let row = encRXingResult.getRow(0);
-        let rtRXingResult = reader.decodeRow(0, &row, &HashMap::new())?;
+        let rtRXingResult = reader.decode_row(0, &row, &HashMap::new())?;
         let actual = rtRXingResult.getText();
         let encRXingResultFast = WRITER.encode(toEncode, &BarcodeFormat::CODE_128, 0, 0)?;
         let row = encRXingResultFast.getRow(0);
-        let rtRXingResult = reader.decodeRow(0, &row, &HashMap::new())?;
+        let rtRXingResult = reader.decode_row(0, &row, &HashMap::new())?;
         assert_eq!(rtRXingResult.getText(), actual);
     }
     Ok(encRXingResult)

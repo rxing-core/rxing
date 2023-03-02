@@ -73,7 +73,7 @@ impl UPCEANExtension2Support {
         let mut counters = self.decodeMiddleCounters;
         counters.fill(0);
 
-        let end = row.getSize();
+        let end = row.get_size();
         let mut rowOffset = startRange[1] as usize;
 
         let mut checkParity = 0;

@@ -39,43 +39,43 @@ fn testAppendBit() {
     assert_eq!(0, v.getSizeInBytes());
     // 1
     v.appendBit(true);
-    assert_eq!(1, v.getSize());
+    assert_eq!(1, v.get_size());
     assert_eq!(0x80000000, getUnsignedInt(&v));
     // 10
     v.appendBit(false);
-    assert_eq!(2, v.getSize());
+    assert_eq!(2, v.get_size());
     assert_eq!(0x80000000, getUnsignedInt(&v));
     // 101
     v.appendBit(true);
-    assert_eq!(3, v.getSize());
+    assert_eq!(3, v.get_size());
     assert_eq!(0xa0000000, getUnsignedInt(&v));
     // 1010
     v.appendBit(false);
-    assert_eq!(4, v.getSize());
+    assert_eq!(4, v.get_size());
     assert_eq!(0xa0000000, getUnsignedInt(&v));
     // 10101
     v.appendBit(true);
-    assert_eq!(5, v.getSize());
+    assert_eq!(5, v.get_size());
     assert_eq!(0xa8000000, getUnsignedInt(&v));
     // 101010
     v.appendBit(false);
-    assert_eq!(6, v.getSize());
+    assert_eq!(6, v.get_size());
     assert_eq!(0xa8000000, getUnsignedInt(&v));
     // 1010101
     v.appendBit(true);
-    assert_eq!(7, v.getSize());
+    assert_eq!(7, v.get_size());
     assert_eq!(0xaa000000, getUnsignedInt(&v));
     // 10101010
     v.appendBit(false);
-    assert_eq!(8, v.getSize());
+    assert_eq!(8, v.get_size());
     assert_eq!(0xaa000000, getUnsignedInt(&v));
     // 10101010 1
     v.appendBit(true);
-    assert_eq!(9, v.getSize());
+    assert_eq!(9, v.get_size());
     assert_eq!(0xaa800000, getUnsignedInt(&v));
     // 10101010 10
     v.appendBit(false);
-    assert_eq!(10, v.getSize());
+    assert_eq!(10, v.get_size());
     assert_eq!(0xaa800000, getUnsignedInt(&v));
 }
 
@@ -83,15 +83,15 @@ fn testAppendBit() {
 fn testAppendBits() {
     let mut v = BitArray::new();
     v.appendBits(0x1, 1).expect("append");
-    assert_eq!(1, v.getSize());
+    assert_eq!(1, v.get_size());
     assert_eq!(0x80000000, getUnsignedInt(&v));
     let mut v = BitArray::new();
     v.appendBits(0xff, 8).expect("append");
-    assert_eq!(8, v.getSize());
+    assert_eq!(8, v.get_size());
     assert_eq!(0xff000000, getUnsignedInt(&v));
     let mut v = BitArray::new();
     v.appendBits(0xff7, 12).expect("append");
-    assert_eq!(12, v.getSize());
+    assert_eq!(12, v.get_size());
     assert_eq!(0xff700000, getUnsignedInt(&v));
 }
 

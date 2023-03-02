@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::common::Result;
-use crate::{point, Exceptions, Point, RXingResult, Reader};
+use crate::{point, Binarizer, Exceptions, Point, RXingResult, Reader};
 
 /**
  * This class attempts to decode a barcode from an image, not by scanning the whole image,
@@ -30,17 +30,17 @@ use crate::{point, Exceptions, Point, RXingResult, Reader};
  */
 pub struct ByQuadrantReader<T: Reader>(T);
 impl<T: Reader> Reader for ByQuadrantReader<T> {
-    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
+    fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
-    fn decode_with_hints(
+    fn decode_with_hints<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult> {
-        let width = image.getWidth();
-        let height = image.getHeight();
+        let width = image.get_width();
+        let height = image.get_height();
         let halfWidth = width / 2;
         let halfHeight = height / 2;
 

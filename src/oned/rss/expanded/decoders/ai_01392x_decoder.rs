@@ -38,7 +38,7 @@ pub struct AI01392xDecoder<'a> {
 impl AI01decoder for AI01392xDecoder<'_> {}
 impl AbstractExpandedDecoder for AI01392xDecoder<'_> {
     fn parseInformation(&mut self) -> Result<String> {
-        if self.information.getSize() < Self::HEADER_SIZE + Self::GTIN_SIZE as usize {
+        if self.information.get_size() < Self::HEADER_SIZE + Self::GTIN_SIZE as usize {
             return Err(crate::Exceptions::NOT_FOUND);
         }
 

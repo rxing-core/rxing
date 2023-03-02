@@ -19,7 +19,7 @@ use std::collections::HashMap;
 use crate::{
     common::{DecoderRXingResult, DetectorRXingResult, Result},
     exceptions::Exceptions,
-    BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, RXingResult,
+    BarcodeFormat, Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
@@ -41,18 +41,18 @@ impl Reader for AztecReader {
      * @throws NotFoundException if a Data Matrix code cannot be found
      * @throws FormatException if a Data Matrix code cannot be decoded
      */
-    fn decode(&mut self, image: &mut BinaryBitmap) -> Result<RXingResult> {
+    fn decode<B: Binarizer>(&mut self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
-    fn decode_with_hints(
+    fn decode_with_hints<B: Binarizer>(
         &mut self,
-        image: &mut BinaryBitmap,
+        image: &mut BinaryBitmap<B>,
         hints: &HashMap<DecodeHintType, DecodeHintValue>,
     ) -> Result<RXingResult> {
         // let notFoundException = None;
         // let formatException = None;
-        let mut detector = Detector::new(image.getBlackMatrix());
+        let mut detector = Detector::new(image.get_black_matrix());
 
         //  try {
 

@@ -82,8 +82,8 @@ impl<'a> GeneralAppIdDecoder<'_> {
     fn isStillNumeric(&self, pos: usize) -> bool {
         // It's numeric if it still has 7 positions
         // and one of the first 4 bits is "1".
-        if pos + 7 > self.information.getSize() {
-            return pos + 4 <= self.information.getSize();
+        if pos + 7 > self.information.get_size() {
+            return pos + 4 <= self.information.get_size();
         }
 
         for i in pos..pos + 3 {
@@ -97,17 +97,17 @@ impl<'a> GeneralAppIdDecoder<'_> {
     }
 
     fn decodeNumeric(&self, pos: usize) -> Result<DecodedNumeric> {
-        if pos + 7 > self.information.getSize() {
+        if pos + 7 > self.information.get_size() {
             let numeric = self.extractNumericValueFromBitArray(pos, 4);
             if numeric == 0 {
                 return DecodedNumeric::new(
-                    self.information.getSize(),
+                    self.information.get_size(),
                     DecodedNumeric::FNC1,
                     DecodedNumeric::FNC1,
                 );
             }
             return DecodedNumeric::new(
-                self.information.getSize(),
+                self.information.get_size(),
                 numeric - 1,
                 DecodedNumeric::FNC1,
             );
@@ -263,10 +263,10 @@ impl<'a> GeneralAppIdDecoder<'_> {
             self.current.incrementPosition(3);
             self.current.setNumeric();
         } else if self.isAlphaTo646ToAlphaLatch(self.current.getPosition()) {
-            if self.current.getPosition() + 5 < self.information.getSize() {
+            if self.current.getPosition() + 5 < self.information.get_size() {
                 self.current.incrementPosition(5);
             } else {
-                self.current.setPosition(self.information.getSize());
+                self.current.setPosition(self.information.get_size());
             }
 
             self.current.setAlpha();
@@ -295,10 +295,10 @@ impl<'a> GeneralAppIdDecoder<'_> {
             self.current.incrementPosition(3);
             self.current.setNumeric();
         } else if self.isAlphaTo646ToAlphaLatch(self.current.getPosition()) {
-            if self.current.getPosition() + 5 < self.information.getSize() {
+            if self.current.getPosition() + 5 < self.information.get_size() {
                 self.current.incrementPosition(5);
             } else {
-                self.current.setPosition(self.information.getSize());
+                self.current.setPosition(self.information.get_size());
             }
 
             self.current.setIsoIec646();
@@ -308,7 +308,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
     }
 
     fn isStillIsoIec646(&self, pos: usize) -> bool {
-        if pos + 5 > self.information.getSize() {
+        if pos + 5 > self.information.get_size() {
             return false;
         }
 
@@ -317,7 +317,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
             return true;
         }
 
-        if pos + 7 > self.information.getSize() {
+        if pos + 7 > self.information.get_size() {
             return false;
         }
 
@@ -326,7 +326,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
             return true;
         }
 
-        if pos + 8 > self.information.getSize() {
+        if pos + 8 > self.information.get_size() {
             return false;
         }
 
@@ -394,7 +394,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
     }
 
     fn isStillAlpha(&self, pos: usize) -> bool {
-        if pos + 5 > self.information.getSize() {
+        if pos + 5 > self.information.get_size() {
             return false;
         }
 
@@ -404,7 +404,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
             return true;
         }
 
-        if pos + 6 > self.information.getSize() {
+        if pos + 6 > self.information.get_size() {
             return false;
         }
 
@@ -452,12 +452,12 @@ impl<'a> GeneralAppIdDecoder<'_> {
     }
 
     fn isAlphaTo646ToAlphaLatch(&self, pos: usize) -> bool {
-        if pos + 1 > self.information.getSize() {
+        if pos + 1 > self.information.get_size() {
             return false;
         }
 
         let mut i = 0;
-        while i < 5 && i + pos < self.information.getSize() {
+        while i < 5 && i + pos < self.information.get_size() {
             if i == 2 {
                 if !self.information.get(pos + 2) {
                     return false;
@@ -474,7 +474,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
 
     fn isAlphaOr646ToNumericLatch(&self, pos: usize) -> bool {
         // Next is alphanumeric if there are 3 positions and they are all zeros
-        if pos + 3 > self.information.getSize() {
+        if pos + 3 > self.information.get_size() {
             return false;
         }
 
@@ -490,12 +490,12 @@ impl<'a> GeneralAppIdDecoder<'_> {
     fn isNumericToAlphaNumericLatch(&self, pos: usize) -> bool {
         // Next is alphanumeric if there are 4 positions and they are all zeros, or
         // if there is a subset of this just before the end of the symbol
-        if pos + 1 > self.information.getSize() {
+        if pos + 1 > self.information.get_size() {
             return false;
         }
 
         let mut i = 0;
-        while i < 4 && i + pos < self.information.getSize() {
+        while i < 4 && i + pos < self.information.get_size() {
             if self.information.get(pos + i) {
                 return false;
             }
