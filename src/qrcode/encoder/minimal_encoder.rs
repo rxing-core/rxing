@@ -16,10 +16,8 @@
 
 use std::{fmt, rc::Rc};
 
-use encoding::EncodingRef;
-
 use crate::{
-    common::{BitArray, ECIEncoderSet, Result},
+    common::{BitArray, ECIEncoderSet, Result, CharacterSetECI},
     qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
     Exceptions,
 };
@@ -107,7 +105,7 @@ impl MinimalEncoder {
      */
     pub fn new(
         stringToEncode: &str,
-        priorityCharset: Option<EncodingRef>,
+        priorityCharset: Option<CharacterSetECI>,
         isGS1: bool,
         ecLevel: ErrorCorrectionLevel,
     ) -> Self {
@@ -142,7 +140,7 @@ impl MinimalEncoder {
     pub fn encode_with_details(
         stringToEncode: &str,
         version: Option<VersionRef>,
-        priorityCharset: Option<EncodingRef>,
+        priorityCharset: Option<CharacterSetECI>,
         isGS1: bool,
         ecLevel: ErrorCorrectionLevel,
     ) -> Result<RXingResultList> {
@@ -1044,10 +1042,10 @@ impl fmt::Display for RXingResultNode {
         result.push('(');
         if self.mode == Mode::ECI {
             result.push_str(
-                self.encoders
+                &self.encoders
                     .getCharset(self.charsetEncoderIndex)
                     .ok_or(fmt::Error)?
-                    .name(),
+                    .getCharsetName(),
             );
         } else {
             let sub_string: String = self

@@ -16,10 +16,8 @@
 
 use std::fmt;
 
-use encoding::Encoding;
-
 use crate::{
-    common::{BitArray, Result},
+    common::{BitArray, Result, CharacterSetECI},
     exceptions::Exceptions,
 };
 
@@ -88,8 +86,8 @@ impl State {
             ));
             // throw new IllegalArgumentException("ECI code must be between 0 and 999999");
         } else {
-            let Ok(eci_digits) = encoding::all::ISO_8859_1
-                .encode(&format!("{eci}"), encoding::EncoderTrap::Strict)
+            let Ok(eci_digits) = CharacterSetECI::ISO8859_1
+                .encode(&format!("{eci}"))
                  else {
                     return Err(Exceptions::ILLEGAL_ARGUMENT)
                  };

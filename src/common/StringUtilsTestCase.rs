@@ -23,11 +23,12 @@
 // import java.nio.charset.StandardCharsets;
 // import java.util.Random;
 
-use encoding::{Encoding, EncodingRef};
 use rand::Rng;
 use std::collections::HashMap;
 
 use crate::common::StringUtils;
+
+use super::CharacterSetECI;
 
 #[test]
 fn test_random() {
@@ -38,10 +39,9 @@ fn test_random() {
     //     *byte = r.gen();
     // }
     assert_eq!(
-        encoding::all::UTF_8.name(),
+        CharacterSetECI::UTF8,
         StringUtils::guessCharset(&bytes, &HashMap::new())
             .unwrap()
-            .name()
     );
 }
 
@@ -50,7 +50,7 @@ fn test_short_shift_jis1() {
     // 金魚
     do_test(
         &[0x8b, 0xe0, 0x8b, 0x9b],
-        encoding::label::encoding_from_whatwg_label("SJIS").unwrap(),
+        CharacterSetECI::SJIS,
         "SJIS",
     );
 }
@@ -58,7 +58,7 @@ fn test_short_shift_jis1() {
 #[test]
 fn test_short_iso885911() {
     // båd
-    do_test(&[0x62, 0xe5, 0x64], encoding::all::ISO_8859_1, "ISO8859_1");
+    do_test(&[0x62, 0xe5, 0x64], CharacterSetECI::ISO8859_1, "ISO8859_1");
 }
 
 #[test]
@@ -66,7 +66,7 @@ fn test_short_utf8() {
     // Español
     do_test(
         &[0x45, 0x73, 0x70, 0x61, 0xc3, 0xb1, 0x6f, 0x6c],
-        encoding::all::UTF_8,
+        CharacterSetECI::UTF8,
         "UTF8",
     );
 }
@@ -76,7 +76,7 @@ fn test_mixed_shift_jis1() {
     // Hello 金!
     do_test(
         &[0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x8b, 0xe0, 0x21],
-        encoding::label::encoding_from_whatwg_label("SJIS").unwrap(),
+        CharacterSetECI::SJIS,
         "SJIS",
     );
 }
@@ -86,8 +86,8 @@ fn test_utf16_be() {
     // 调压柜
     do_test(
         &[0xFE, 0xFF, 0x8c, 0x03, 0x53, 0x8b, 0x67, 0xdc],
-        encoding::all::UTF_16BE,
-        encoding::all::UTF_16BE.name(),
+        CharacterSetECI::UnicodeBigUnmarked,
+        &CharacterSetECI::UnicodeBigUnmarked.getCharsetName(),
     );
 }
 
@@ -96,15 +96,15 @@ fn test_utf16_le() {
     // 调压柜
     do_test(
         &[0xFF, 0xFE, 0x03, 0x8c, 0x8b, 0x53, 0xdc, 0x67],
-        encoding::all::UTF_16LE,
-        encoding::all::UTF_16LE.name(),
+        CharacterSetECI::UTF16LE,
+        &CharacterSetECI::UTF16LE.getCharsetName(),
     );
 }
 
-fn do_test(bytes: &[u8], charset: EncodingRef, encoding: &str) {
+fn do_test(bytes: &[u8], charset: CharacterSetECI, encoding: &str) {
     let guessedCharset = StringUtils::guessCharset(bytes, &HashMap::new()).unwrap();
     let guessedEncoding = StringUtils::guessEncoding(bytes, &HashMap::new()).unwrap();
-    assert_eq!(charset.name(), guessedCharset.name());
+    assert_eq!(charset, guessedCharset);
     assert_eq!(encoding, guessedEncoding);
 }
 

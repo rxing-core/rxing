@@ -16,13 +16,12 @@
 
 use std::{fmt, rc::Rc};
 
-use encoding::EncodingRef;
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::common::Result;
 use crate::Exceptions;
 
-use super::{ECIEncoderSet, ECIInput};
+use super::{ECIEncoderSet, ECIInput, CharacterSetECI};
 
 //* approximated (latch + 2 codewords)
 pub const COST_PER_ECI: usize = 3;
@@ -194,7 +193,7 @@ impl MinimalECIInput {
      */
     pub fn new(
         stringToEncodeInput: &str,
-        priorityCharset: Option<EncodingRef>,
+        priorityCharset: Option<CharacterSetECI>,
         fnc1: Option<&str>,
     ) -> Self {
         let stringToEncode = stringToEncodeInput.graphemes(true).collect::<Vec<&str>>();

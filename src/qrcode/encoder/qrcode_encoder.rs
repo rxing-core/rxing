@@ -19,9 +19,6 @@
  */
 use std::collections::HashMap;
 
-use encoding::EncodingRef;
-
-use once_cell::sync::Lazy;
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{
@@ -35,8 +32,8 @@ use crate::{
 
 use super::{mask_util, matrix_util, BlockPair, ByteMatrix, MinimalEncoder, QRCode};
 
-static SHIFT_JIS_CHARSET: Lazy<EncodingRef> =
-    Lazy::new(|| encoding::label::encoding_from_whatwg_label("SJIS").unwrap());
+static SHIFT_JIS_CHARSET: CharacterSetECI =
+     CharacterSetECI::SJIS;
 
 // The original table is defined in the table 5 of JISX0510:2004 (p.19).
 const ALPHANUMERIC_TABLE: [i8; 96] = [
@@ -48,7 +45,7 @@ const ALPHANUMERIC_TABLE: [i8; 96] = [
     25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, -1, -1, -1, -1, -1, // 0x50-0x5f
 ];
 
-pub const DEFAULT_BYTE_MODE_ENCODING: EncodingRef = encoding::all::ISO_8859_1;
+pub const DEFAULT_BYTE_MODE_ENCODING: CharacterSetECI = CharacterSetECI::ISO8859_1;
 
 // The mask penalty calculation is complicated.  See Table 21 of JISX0510:2004 (p.45) for details.
 // Basically it applies four rules and summate all penalties.
@@ -101,7 +98,7 @@ pub fn encode_with_hints(
     if has_encoding_hint {
         if let Some(EncodeHintValue::CharacterSet(v)) = hints.get(&EncodeHintType::CHARACTER_SET) {
             encoding =
-                Some(encoding::label::encoding_from_whatwg_label(v).ok_or(Exceptions::WRITER)?)
+                Some(CharacterSetECI::getCharacterSetECIByName(v).ok_or(Exceptions::WRITER)?)
         }
     }
 
@@ -126,12 +123,12 @@ pub fn encode_with_hints(
         let encoding = if let Some(encoding) = encoding {
             encoding
         } else if let Ok(_encs) =
-            DEFAULT_BYTE_MODE_ENCODING.encode(content, encoding::EncoderTrap::Strict)
+            DEFAULT_BYTE_MODE_ENCODING.encode(content)
         {
             DEFAULT_BYTE_MODE_ENCODING
         } else {
             has_encoding_hint = true;
-            encoding::all::UTF_8
+            CharacterSetECI::UTF8
         };
 
         // Pick an encoding mode appropriate for the content. Note that this will not attempt to use
@@ -144,9 +141,7 @@ pub fn encode_with_hints(
 
         // Append ECI segment if applicable
         if mode == Mode::BYTE && has_encoding_hint {
-            if let Some(eci) = CharacterSetECI::getCharacterSetECI(encoding) {
-                appendECI(&eci, &mut header_bits)?;
-            }
+            appendECI(&encoding, &mut header_bits)?;
         }
 
         // Append the FNC1 mode header for GS1 formatted data if applicable
@@ -304,15 +299,15 @@ pub fn getAlphanumericCode(code: u32) -> i8 {
 }
 
 pub fn chooseMode(content: &str) -> Mode {
-    chooseModeWithEncoding(content, encoding::all::ISO_8859_1)
+    chooseModeWithEncoding(content, CharacterSetECI::ISO8859_1)
 }
 
 /**
  * Choose the best mode by examining the content. Note that 'encoding' is used as a hint;
  * if it is Shift_JIS, and the input is only double-byte Kanji, then we return {@link Mode#KANJI}.
  */
-fn chooseModeWithEncoding(content: &str, encoding: EncodingRef) -> Mode {
-    if SHIFT_JIS_CHARSET.name() == encoding.name() && isOnlyDoubleByteKanji(content) {
+fn chooseModeWithEncoding(content: &str, encoding: CharacterSetECI) -> Mode {
+    if SHIFT_JIS_CHARSET == encoding && isOnlyDoubleByteKanji(content) {
         // Choose Kanji mode if all input are double-byte characters
         return Mode::KANJI;
     }
@@ -337,7 +332,7 @@ fn chooseModeWithEncoding(content: &str, encoding: EncodingRef) -> Mode {
 }
 
 pub fn isOnlyDoubleByteKanji(content: &str) -> bool {
-    let bytes = if let Ok(byt) = SHIFT_JIS_CHARSET.encode(content, encoding::EncoderTrap::Strict) {
+    let bytes = if let Ok(byt) = SHIFT_JIS_CHARSET.encode(content) {
         byt
     } else {
         return false;
@@ -638,7 +633,7 @@ pub fn appendBytes(
     content: &str,
     mode: Mode,
     bits: &mut BitArray,
-    encoding: EncodingRef,
+    encoding: CharacterSetECI,
 ) -> Result<()> {
     match mode {
         Mode::NUMERIC => appendNumericBytes(content, bits),
@@ -725,9 +720,9 @@ pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<()>
     Ok(())
 }
 
-pub fn append8BitBytes(content: &str, bits: &mut BitArray, encoding: EncodingRef) -> Result<()> {
+pub fn append8BitBytes(content: &str, bits: &mut BitArray, encoding: CharacterSetECI) -> Result<()> {
     let bytes = encoding
-        .encode(content, encoding::EncoderTrap::Strict)
+        .encode(content)
         .map_err(|e| Exceptions::writer_with(format!("error {e}")))?;
     for b in bytes {
         bits.appendBits(b as u32, 8)?;
@@ -739,7 +734,7 @@ pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<()> {
     let sjis = &SHIFT_JIS_CHARSET;
 
     let bytes = sjis
-        .encode(content, encoding::EncoderTrap::Strict)
+        .encode(content)
         .map_err(|e| Exceptions::writer_with(format!("error {e}")))?;
     if bytes.len() % 2 != 0 {
         return Err(Exceptions::writer_with("Kanji byte size not even"));
