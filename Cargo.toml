@@ -36,6 +36,7 @@ thiserror = "1.0.38"
 java-properties = "1.4.1"
 java-rand = "0.2.0"
 rand = "0.8.5"
+criterion = "0.4.0"
 
 [features]
 default = ["image"]
@@ -69,6 +70,10 @@ members = [
     "crates/one-d-proc-derive",
     "crates/cli"
 ]
+
+[[bench]]
+name = "benchmarks"
+harness = false
 
 [profile.release]
 codegen-units = 1
