@@ -24,7 +24,7 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::{
     common::{
         reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonEncoder},
-        BitArray, CharacterSetECI, Result,
+        BitArray, CharacterSet, Result,
     },
     qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
     EncodeHintType, EncodeHintValue, EncodingHintDictionary, Exceptions,
@@ -32,7 +32,7 @@ use crate::{
 
 use super::{mask_util, matrix_util, BlockPair, ByteMatrix, MinimalEncoder, QRCode};
 
-static SHIFT_JIS_CHARSET: CharacterSetECI = CharacterSetECI::SJIS;
+static SHIFT_JIS_CHARSET: CharacterSet = CharacterSet::SJIS;
 
 // The original table is defined in the table 5 of JISX0510:2004 (p.19).
 const ALPHANUMERIC_TABLE: [i8; 96] = [
@@ -44,7 +44,7 @@ const ALPHANUMERIC_TABLE: [i8; 96] = [
     25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, -1, -1, -1, -1, -1, // 0x50-0x5f
 ];
 
-pub const DEFAULT_BYTE_MODE_ENCODING: CharacterSetECI = CharacterSetECI::ISO8859_1;
+pub const DEFAULT_BYTE_MODE_ENCODING: CharacterSet = CharacterSet::ISO8859_1;
 
 // The mask penalty calculation is complicated.  See Table 21 of JISX0510:2004 (p.45) for details.
 // Basically it applies four rules and summate all penalties.
@@ -96,7 +96,7 @@ pub fn encode_with_hints(
     let mut has_encoding_hint = hints.contains_key(&EncodeHintType::CHARACTER_SET);
     if has_encoding_hint {
         if let Some(EncodeHintValue::CharacterSet(v)) = hints.get(&EncodeHintType::CHARACTER_SET) {
-            encoding = Some(CharacterSetECI::getCharacterSetECIByName(v).ok_or(Exceptions::WRITER)?)
+            encoding = Some(CharacterSet::get_character_set_by_name(v).ok_or(Exceptions::WRITER)?)
         }
     }
 
@@ -124,7 +124,7 @@ pub fn encode_with_hints(
             DEFAULT_BYTE_MODE_ENCODING
         } else {
             has_encoding_hint = true;
-            CharacterSetECI::UTF8
+            CharacterSet::UTF8
         };
 
         // Pick an encoding mode appropriate for the content. Note that this will not attempt to use
@@ -295,14 +295,14 @@ pub fn getAlphanumericCode(code: u32) -> i8 {
 }
 
 pub fn chooseMode(content: &str) -> Mode {
-    chooseModeWithEncoding(content, CharacterSetECI::ISO8859_1)
+    chooseModeWithEncoding(content, CharacterSet::ISO8859_1)
 }
 
 /**
  * Choose the best mode by examining the content. Note that 'encoding' is used as a hint;
  * if it is Shift_JIS, and the input is only double-byte Kanji, then we return {@link Mode#KANJI}.
  */
-fn chooseModeWithEncoding(content: &str, encoding: CharacterSetECI) -> Mode {
+fn chooseModeWithEncoding(content: &str, encoding: CharacterSet) -> Mode {
     if SHIFT_JIS_CHARSET == encoding && isOnlyDoubleByteKanji(content) {
         // Choose Kanji mode if all input are double-byte characters
         return Mode::KANJI;
@@ -629,7 +629,7 @@ pub fn appendBytes(
     content: &str,
     mode: Mode,
     bits: &mut BitArray,
-    encoding: CharacterSetECI,
+    encoding: CharacterSet,
 ) -> Result<()> {
     match mode {
         Mode::NUMERIC => appendNumericBytes(content, bits),
@@ -719,7 +719,7 @@ pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<()>
 pub fn append8BitBytes(
     content: &str,
     bits: &mut BitArray,
-    encoding: CharacterSetECI,
+    encoding: CharacterSet,
 ) -> Result<()> {
     let bytes = encoding
         .encode(content)
@@ -762,8 +762,8 @@ pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<()> {
     Ok(())
 }
 
-fn appendECI(eci: &CharacterSetECI, bits: &mut BitArray) -> Result<()> {
+fn appendECI(eci: &CharacterSet, bits: &mut BitArray) -> Result<()> {
     bits.appendBits(Mode::ECI.getBits() as u32, 4)?;
     // This is correct for values up to 127, which is all we need now.
-    bits.appendBits(eci.getValueSelf(), 8)
+    bits.appendBits(eci.get_eci_value(), 8)
 }

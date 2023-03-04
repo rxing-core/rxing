@@ -16,14 +16,14 @@
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use super::CharacterSetECI;
+use super::CharacterSet;
 
 use once_cell::sync::Lazy;
 
-static ENCODERS: Lazy<Vec<CharacterSetECI>> = Lazy::new(|| {
+static ENCODERS: Lazy<Vec<CharacterSet>> = Lazy::new(|| {
     let mut enc_vec = Vec::new();
     for name in NAMES {
-        if let Some(enc) = CharacterSetECI::getCharacterSetECIByName(name) {
+        if let Some(enc) = CharacterSet::get_character_set_by_name(name) {
             enc_vec.push(enc);
         }
     }
@@ -69,7 +69,7 @@ const NAMES: [&str; 20] = [
  */
 #[derive(Clone)]
 pub struct ECIEncoderSet {
-    encoders: Vec<CharacterSetECI>,
+    encoders: Vec<CharacterSet>,
     priorityEncoderIndex: Option<usize>,
 }
 
@@ -84,23 +84,23 @@ impl ECIEncoderSet {
      */
     pub fn new(
         stringToEncodeMain: &str,
-        priorityCharset: Option<CharacterSetECI>,
+        priorityCharset: Option<CharacterSet>,
         fnc1: Option<&str>,
     ) -> Self {
         // List of encoders that potentially encode characters not in ISO-8859-1 in one byte.
 
-        let mut encoders: Vec<CharacterSetECI>;
+        let mut encoders: Vec<CharacterSet>;
         let mut priorityEncoderIndexValue = None;
 
-        let mut neededEncoders: Vec<CharacterSetECI> = Vec::new();
+        let mut neededEncoders: Vec<CharacterSet> = Vec::new();
 
         let stringToEncode = stringToEncodeMain.graphemes(true).collect::<Vec<&str>>();
 
         //we always need the ISO-8859-1 encoder. It is the default encoding
-        neededEncoders.push(CharacterSetECI::ISO8859_1);
+        neededEncoders.push(CharacterSet::ISO8859_1);
         let mut needUnicodeEncoder = if let Some(pc) = priorityCharset {
             //pc.name().starts_with("UTF") || pc.name().starts_with("utf")
-            pc == CharacterSetECI::UTF8 || pc == CharacterSetECI::UnicodeBigUnmarked
+            pc == CharacterSet::UTF8 || pc == CharacterSet::UnicodeBigUnmarked
         } else {
             false
         };
@@ -142,7 +142,7 @@ impl ECIEncoderSet {
 
         if neededEncoders.len() == 1 && !needUnicodeEncoder {
             //the entire input can be encoded by the ISO-8859-1 encoder
-            encoders = vec![CharacterSetECI::ISO8859_1];
+            encoders = vec![CharacterSet::ISO8859_1];
         } else {
             // we need more than one single byte encoder or we need a Unicode encoder.
             // In this case we append a UTF-8 and UTF-16 encoder to the list
@@ -156,8 +156,8 @@ impl ECIEncoderSet {
                 encoders.push(encoder);
             }
 
-            encoders.push(CharacterSetECI::UTF8);
-            encoders.push(CharacterSetECI::UnicodeBigUnmarked);
+            encoders.push(CharacterSet::UTF8);
+            encoders.push(CharacterSet::UnicodeBigUnmarked);
         }
 
         //Compute priorityEncoderIndex by looking up priorityCharset in encoders
@@ -175,7 +175,7 @@ impl ECIEncoderSet {
         }
         // }
         //invariants
-        assert_eq!(encoders[0], CharacterSetECI::ISO8859_1);
+        assert_eq!(encoders[0], CharacterSet::ISO8859_1);
         Self {
             encoders,
             priorityEncoderIndex: priorityEncoderIndexValue,
@@ -192,13 +192,13 @@ impl ECIEncoderSet {
 
     pub fn getCharsetName(&self, index: usize) -> Option<&'static str> {
         if index < self.len() {
-            Some(self.encoders[index].getCharsetName())
+            Some(self.encoders[index].get_charset_name())
         } else {
             None
         }
     }
 
-    pub fn getCharset(&self, index: usize) -> Option<CharacterSetECI> {
+    pub fn getCharset(&self, index: usize) -> Option<CharacterSet> {
         if index < self.len() {
             Some(self.encoders[index])
         } else {
@@ -207,7 +207,7 @@ impl ECIEncoderSet {
     }
 
     pub fn getECIValue(&self, encoderIndex: usize) -> u32 {
-        self.encoders[encoderIndex].getValue()
+        self.encoders[encoderIndex].get_eci_value()
         // CharacterSetECI::getValue(
         //     &CharacterSetECI::getCharacterSetECI(self.encoders[encoderIndex]).unwrap(),
         // )

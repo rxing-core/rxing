@@ -25,7 +25,7 @@ use std::fmt;
 
 use crate::common::Result;
 
-use super::CharacterSetECI;
+use super::CharacterSet;
 
 /**
  * Class that converts a sequence of ECIs and bytes into a string
@@ -35,7 +35,7 @@ use super::CharacterSetECI;
 pub struct ECIStringBuilder {
     current_bytes: Vec<u8>,
     result: String,
-    current_charset: Option<CharacterSetECI>, //= StandardCharsets.ISO_8859_1;
+    current_charset: Option<CharacterSet>, //= StandardCharsets.ISO_8859_1;
 }
 
 impl ECIStringBuilder {
@@ -43,14 +43,14 @@ impl ECIStringBuilder {
         Self {
             current_bytes: Vec::new(),
             result: String::new(),
-            current_charset: Some(CharacterSetECI::ISO8859_1),
+            current_charset: Some(CharacterSet::ISO8859_1),
         }
     }
     pub fn with_capacity(initial_capacity: usize) -> Self {
         Self {
             current_bytes: Vec::with_capacity(initial_capacity),
             result: String::with_capacity(initial_capacity),
-            current_charset: Some(CharacterSetECI::ISO8859_1),
+            current_charset: Some(CharacterSet::ISO8859_1),
         }
     }
 
@@ -104,7 +104,8 @@ impl ECIStringBuilder {
     pub fn appendECI(&mut self, value: u32) -> Result<()> {
         self.encodeCurrentBytesIfAny();
 
-        self.current_charset = CharacterSetECI::getCharacterSetECIByValue(value).ok();
+        self.current_charset = CharacterSet::get_character_set_by_eci(value).ok();
+
 
         // if let Ok(character_set_eci) = CharacterSetECI::getCharacterSetECIByValue(value) {
         //     // dbg!(
@@ -126,7 +127,7 @@ impl ECIStringBuilder {
     /// This function can panic
     pub fn encodeCurrentBytesIfAny(&mut self) {
         if let Some(encoder) = self.current_charset {
-            if encoder == CharacterSetECI::UTF8 {
+            if encoder == CharacterSet::UTF8 {
                 if !self.current_bytes.is_empty() {
                     self.result.push_str(
                         &String::from_utf8(std::mem::take(&mut self.current_bytes)).unwrap(),

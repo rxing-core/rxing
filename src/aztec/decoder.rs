@@ -19,7 +19,7 @@ use crate::{
         reedsolomon::{
             get_predefined_genericgf, GenericGFRef, PredefinedGenericGF, ReedSolomonDecoder,
         },
-        BitMatrix, CharacterSetECI, DecoderRXingResult, DetectorRXingResult, Result,
+        BitMatrix, CharacterSet, DecoderRXingResult, DetectorRXingResult, Result,
     },
     exceptions::Exceptions,
 };
@@ -114,7 +114,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
     // when character encoding changes (ECI) or input ends.
     let mut decoded_bytes: Vec<u8> = Vec::new();
 
-    let mut encdr: CharacterSetECI = CharacterSetECI::ISO8859_1;
+    let mut encdr: CharacterSet = CharacterSet::ISO8859_1;
 
     let mut index = 0;
 
@@ -182,7 +182,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                             eci = eci * 10 + (next_digit - 2);
                             n -= 1;
                         }
-                        let charset_eci = CharacterSetECI::getCharacterSetECIByValue(eci);
+                        let charset_eci = CharacterSet::get_character_set_by_eci(eci);
                         if charset_eci.is_err() {
                             return Err(Exceptions::format_with("Charset must exist"));
                         }

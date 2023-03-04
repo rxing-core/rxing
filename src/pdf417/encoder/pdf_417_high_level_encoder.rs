@@ -21,7 +21,7 @@
 use std::{any::TypeId, fmt::Display, str::FromStr};
 
 use crate::{
-    common::{CharacterSetECI, ECIInput, MinimalECIInput, Result},
+    common::{CharacterSet, ECIInput, MinimalECIInput, Result},
     Exceptions,
 };
 
@@ -123,7 +123,7 @@ const TEXT_PUNCTUATION_RAW: [u8; 30] = [
     40, 41, 63, 123, 125, 39, 0,
 ];
 
-const DEFAULT_ENCODING: CharacterSetECI = CharacterSetECI::ISO8859_1; //StandardCharsets.ISO_8859_1;
+const DEFAULT_ENCODING: CharacterSet = CharacterSet::ISO8859_1; //StandardCharsets.ISO_8859_1;
 
 const MIXED: [i8; 128] = {
     let mut mixed = [-1_i8; 128];
@@ -172,7 +172,7 @@ const PUNCTUATION: [i8; 128] = {
 pub fn encodeHighLevel(
     msg: &str,
     compaction: Compaction,
-    encoding: Option<CharacterSetECI>,
+    encoding: Option<CharacterSet>,
     autoECI: bool,
 ) -> Result<String> {
     let mut encoding = encoding;
@@ -205,7 +205,7 @@ pub fn encodeHighLevel(
             // }
 
             encodingECI(
-                CharacterSetECI::getValue(&encoding.ok_or(Exceptions::ILLEGAL_STATE)?) as i32,
+                CharacterSet::get_eci_value(&encoding.ok_or(Exceptions::ILLEGAL_STATE)?) as i32,
                 &mut sb,
             )?;
         }
@@ -758,7 +758,7 @@ fn determineConsecutiveTextCount<T: ECIInput + ?Sized>(input: &T, startpos: u32)
 fn determineConsecutiveBinaryCount<T: ECIInput + ?Sized + 'static>(
     input: &T,
     startpos: u32,
-    encoding: Option<CharacterSetECI>,
+    encoding: Option<CharacterSet>,
 ) -> Result<u32> {
     let len = input.length();
     let mut idx = startpos as usize;
@@ -863,13 +863,13 @@ impl Display for NoECIInput {
 #[cfg(test)]
 mod PDF417EncoderTestCase {
     use crate::{
-        common::CharacterSetECI,
+        common::CharacterSet,
         pdf417::encoder::{pdf_417_high_level_encoder::encodeHighLevel, Compaction},
     };
 
     #[test]
     fn testEncodeAuto() {
-        let encoded = encodeHighLevel("ABCD", Compaction::AUTO, Some(CharacterSetECI::UTF8), false)
+        let encoded = encodeHighLevel("ABCD", Compaction::AUTO, Some(CharacterSet::UTF8), false)
             .expect("encode");
         assert_eq!("\u{039f}\u{001A}\u{0385}ABCD", encoded);
     }
@@ -880,7 +880,7 @@ mod PDF417EncoderTestCase {
         encodeHighLevel(
             "1%§s ?aG$",
             Compaction::AUTO,
-            Some(CharacterSetECI::UTF8),
+            Some(CharacterSet::UTF8),
             false,
         )
         .expect("encode");
@@ -892,7 +892,7 @@ mod PDF417EncoderTestCase {
         encodeHighLevel(
             "asdfg§asd",
             Compaction::AUTO,
-            Some(CharacterSetECI::ISO8859_1),
+            Some(CharacterSet::ISO8859_1),
             false,
         )
         .expect("encode");
@@ -900,7 +900,7 @@ mod PDF417EncoderTestCase {
 
     #[test]
     fn testEncodeText() {
-        let encoded = encodeHighLevel("ABCD", Compaction::TEXT, Some(CharacterSetECI::UTF8), false)
+        let encoded = encodeHighLevel("ABCD", Compaction::TEXT, Some(CharacterSet::UTF8), false)
             .expect("encode");
         assert_eq!("Ο\u{001A}\u{0001}?", encoded);
     }
@@ -910,7 +910,7 @@ mod PDF417EncoderTestCase {
         let encoded = encodeHighLevel(
             "1234",
             Compaction::NUMERIC,
-            Some(CharacterSetECI::UTF8),
+            Some(CharacterSet::UTF8),
             false,
         )
         .expect("encode");
@@ -920,7 +920,7 @@ mod PDF417EncoderTestCase {
 
     #[test]
     fn testEncodeByte() {
-        let encoded = encodeHighLevel("abcd", Compaction::BYTE, Some(CharacterSetECI::UTF8), false)
+        let encoded = encodeHighLevel("abcd", Compaction::BYTE, Some(CharacterSet::UTF8), false)
             .expect("encode");
         assert_eq!("\u{039f}\u{001A}\u{0385}abcd", encoded);
     }

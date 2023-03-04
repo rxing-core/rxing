@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::common::{BitArray, CharacterSetECI, Result};
+use crate::common::{BitArray, CharacterSet, Result};
 
 use super::{State, Token};
 
@@ -32,7 +32,7 @@ use super::{State, Token};
  */
 pub struct HighLevelEncoder {
     text: Vec<u8>,
-    charset: CharacterSetECI,
+    charset: CharacterSet,
 }
 
 impl HighLevelEncoder {
@@ -226,11 +226,11 @@ impl HighLevelEncoder {
     pub fn new(text: Vec<u8>) -> Self {
         Self {
             text,
-            charset: CharacterSetECI::ISO8859_1,
+            charset: CharacterSet::ISO8859_1,
         }
     }
 
-    pub fn with_charset(text: Vec<u8>, charset: CharacterSetECI) -> Self {
+    pub fn with_charset(text: Vec<u8>, charset: CharacterSet) -> Self {
         Self { text, charset }
     }
 
@@ -240,9 +240,9 @@ impl HighLevelEncoder {
     pub fn encode(&self) -> Result<BitArray> {
         let mut initial_state = State::new(Token::new(), Self::MODE_UPPER as u32, 0, 0);
         //if let Some(eci) = CharacterSetECI::getCharacterSetECI(self.charset) {
-        if self.charset != CharacterSetECI::ISO8859_1 {
+        if self.charset != CharacterSet::ISO8859_1 {
             //} && eci != CharacterSetECI::Cp1252 {
-            initial_state = initial_state.appendFLGn(self.charset.getValue())?;
+            initial_state = initial_state.appendFLGn(self.charset.get_eci_value())?;
         }
         // } else {
         //     return Err(Exceptions::illegal_argument_with(

@@ -18,7 +18,7 @@
  * This file has been modified from its original form in Barcode4J.
  */
 
-use crate::common::{CharacterSetECI, Result};
+use crate::common::{CharacterSet, Result};
 use crate::Exceptions;
 
 use super::{
@@ -32,7 +32,7 @@ pub struct PDF417 {
     barcodeMatrix: Option<BarcodeMatrix>,
     compact: bool,
     compaction: Compaction,
-    encoding: Option<CharacterSetECI>,
+    encoding: Option<CharacterSet>,
     minCols: u32,
     maxCols: u32,
     maxRows: u32,
@@ -345,7 +345,7 @@ impl PDF417 {
     /**
      * @param encoding sets character encoding to use
      */
-    pub fn setEncoding(&mut self, encoding: Option<CharacterSetECI>) {
+    pub fn setEncoding(&mut self, encoding: Option<CharacterSet>) {
         self.encoding = encoding;
     }
 }

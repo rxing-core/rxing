@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitMatrix, CharacterSetECI, Result},
+    common::{BitMatrix, CharacterSet, Result},
     BarcodeFormat, EncodeHintType, EncodeHintValue, Exceptions, Writer,
 };
 
@@ -108,7 +108,7 @@ impl Writer for PDF417Writer {
             if let Some(EncodeHintValue::CharacterSet(cs)) =
                 hints.get(&EncodeHintType::CHARACTER_SET)
             {
-                encoder.setEncoding(CharacterSetECI::getCharacterSetECIByName(cs));
+                encoder.setEncoding(CharacterSet::get_character_set_by_name(cs));
             }
             if let Some(EncodeHintValue::Pdf417AutoEci(auto_eci_str)) =
                 hints.get(&EncodeHintType::PDF417_AUTO_ECI)

@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitArray, CharacterSetECI},
+    common::{BitArray, CharacterSet},
     qrcode::{
         decoder::{ErrorCorrectionLevel, Mode, Version},
         encoder::{qrcode_encoder, MinimalEncoder},
@@ -28,7 +28,7 @@ use once_cell::sync::Lazy;
 
 use super::QRCode;
 
-static SHIFT_JIS_CHARSET: Lazy<CharacterSetECI> = Lazy::new(|| CharacterSetECI::SJIS);
+static SHIFT_JIS_CHARSET: Lazy<CharacterSet> = Lazy::new(|| CharacterSet::SJIS);
 
 /**
  * @author satorux@google.com (Satoru Takabayashi) - creator
@@ -1108,7 +1108,7 @@ fn testMinimalEncoder44() {
 fn verifyMinimalEncoding(
     input: &str,
     expectedRXingResult: &str,
-    priorityCharset: Option<CharacterSetECI>,
+    priorityCharset: Option<CharacterSet>,
     isGS1: bool,
 ) {
     let result = MinimalEncoder::encode_with_details(

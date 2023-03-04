@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::common::{CharacterSetECI, Result};
+use crate::common::{CharacterSet, Result};
 
 use super::{pdf_417_high_level_encoder, Compaction};
 
@@ -25,7 +25,7 @@ use super::{pdf_417_high_level_encoder, Compaction};
 pub fn encodeHighLevel(
     msg: &str,
     compaction: Compaction,
-    encoding: Option<CharacterSetECI>,
+    encoding: Option<CharacterSet>,
     autoECI: bool,
 ) -> Result<String> {
     pdf_417_high_level_encoder::encodeHighLevel(msg, compaction, encoding, autoECI)

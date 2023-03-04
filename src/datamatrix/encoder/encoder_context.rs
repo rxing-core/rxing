@@ -16,12 +16,12 @@
 
 use std::rc::Rc;
 
-use crate::common::{CharacterSetECI, Result};
+use crate::common::{CharacterSet, Result};
 use crate::{Dimension, Exceptions};
 
 use super::{SymbolInfo, SymbolInfoLookup, SymbolShapeHint};
 
-const ISO_8859_1_ENCODER: CharacterSetECI = CharacterSetECI::ISO8859_1;
+const ISO_8859_1_ENCODER: CharacterSet = CharacterSet::ISO8859_1;
 
 pub struct EncoderContext<'a> {
     symbol_lookup: Rc<SymbolInfoLookup<'a>>,

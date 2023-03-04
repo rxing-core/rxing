@@ -23,7 +23,7 @@ use crate::{
         encoder::HighLevelEncoder,
         shared_test_methods::{stripSpace, toBitArray, toBooleanArray},
     },
-    common::CharacterSetECI,
+    common::CharacterSet,
     BarcodeFormat, EncodeHintType, EncodeHintValue, Point,
 };
 
@@ -40,10 +40,10 @@ use rand::Rng;
  * @author Frank Yellin
  */
 
-const ISO_8859_1: CharacterSetECI = CharacterSetECI::ISO8859_1; //StandardCharsets.ISO_8859_1;
-const UTF_8: CharacterSetECI = CharacterSetECI::UTF8; //StandardCharsets.UTF_8;
-const ISO_8859_15: CharacterSetECI = CharacterSetECI::ISO8859_15; //Charset.forName("ISO-8859-15");
-const WINDOWS_1252: CharacterSetECI = CharacterSetECI::Cp1252; //Charset.forName("Windows-1252");
+const ISO_8859_1: CharacterSet = CharacterSet::ISO8859_1; //StandardCharsets.ISO_8859_1;
+const UTF_8: CharacterSet = CharacterSet::UTF8; //StandardCharsets.UTF_8;
+const ISO_8859_15: CharacterSet = CharacterSet::ISO8859_15; //Charset.forName("ISO-8859-15");
+const WINDOWS_1252: CharacterSet = CharacterSet::Cp1252; //Charset.forName("Windows-1252");
 
 // const DOTX: &str = "[^.X]";
 // const SPACES: &str = "\\s+";
@@ -137,8 +137,8 @@ X       X           X   X   X     X X   X               X     X     X X X
 
 #[test]
 fn testAztecWriter() {
-    let shift_jis: CharacterSetECI =
-        CharacterSetECI::getCharacterSetECIByName("Shift_JIS").expect("must exist");
+    let shift_jis: CharacterSet =
+        CharacterSet::get_character_set_by_name("Shift_JIS").expect("must exist");
 
     testWriter("Espa\u{00F1}ol", None, 25, true, 1); // Without ECI (implicit ISO-8859-1)
     testWriter("Espa\u{00F1}ol", Some(ISO_8859_1), 25, true, 1); // Explicit ISO-8859-1
@@ -148,7 +148,7 @@ fn testAztecWriter() {
     testWriter("\u{20AC} 1 sample data.", Some(ISO_8859_15), 0, true, 2);
     testWriter(
         "\u{20AC} 1 sample data.",
-        Some(CharacterSetECI::UnicodeBigUnmarked),
+        Some(CharacterSet::UnicodeBigUnmarked),
         0,
         true,
         3,
@@ -709,7 +709,7 @@ fn testEncodeDecode(data: &str, compact: bool, layers: u32) {
 
 fn testWriter(
     data: &str,
-    charset: Option<CharacterSetECI>,
+    charset: Option<CharacterSet>,
     ecc_percent: u32,
     compact: bool,
     layers: u32,
@@ -719,7 +719,7 @@ fn testWriter(
     if charset.is_some() {
         hints.insert(
             EncodeHintType::CHARACTER_SET,
-            EncodeHintValue::CharacterSet(charset.unwrap().getCharsetName().to_string()),
+            EncodeHintValue::CharacterSet(charset.unwrap().get_charset_name().to_string()),
         );
     }
     // if (null != charset) {
@@ -735,7 +735,7 @@ fn testWriter(
 
     let cset = match charset {
         Some(cs) => cs,
-        None => CharacterSetECI::ISO8859_1,
+        None => CharacterSet::ISO8859_1,
     };
     let aztec = aztec_encoder::encode_with_charset(
         data,
@@ -818,10 +818,10 @@ fn testStuffBits(wordSize: usize, bits: &str, expected: &str) {
 
 fn testHighLevelEncodeStringUtf8(s: &str, expectedBits: &str) {
     let bits = HighLevelEncoder::with_charset(
-        CharacterSetECI::UTF8
+        CharacterSet::UTF8
             .encode(s)
             .expect("should encode to bytes"),
-        CharacterSetECI::UTF8,
+        CharacterSet::UTF8,
     )
     .encode()
     .expect("high level ok");
@@ -841,7 +841,7 @@ fn testHighLevelEncodeStringUtf8(s: &str, expectedBits: &str) {
 
 fn testHighLevelEncodeString(s: &str, expectedBits: &str) {
     let bits = HighLevelEncoder::new(
-        CharacterSetECI::ISO8859_1
+        CharacterSet::ISO8859_1
             .encode(s)
             .expect("should encode to bytes"),
     )
@@ -862,7 +862,7 @@ fn testHighLevelEncodeString(s: &str, expectedBits: &str) {
 
 fn testHighLevelEncodeStringCount(s: &str, expectedReceivedBits: u32) {
     let bits = HighLevelEncoder::new(
-        CharacterSetECI::ISO8859_1
+        CharacterSet::ISO8859_1
             .encode(s)
             .expect("should encode to bytes"),
     )

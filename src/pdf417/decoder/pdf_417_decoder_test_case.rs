@@ -17,7 +17,7 @@
 
 use java_rand;
 
-use crate::common::CharacterSetECI;
+use crate::common::CharacterSet;
 use crate::pdf417::decoder::decoded_bit_stream_parser;
 use crate::pdf417::encoder::{pdf_417_high_level_encoder_test_adapter, Compaction};
 use crate::pdf417::PDF417RXingResultMetadata;
@@ -307,7 +307,7 @@ fn testBinaryData() {
         random.next_bytes(&mut bytes);
 
         total += encodeDecode(
-            &CharacterSetECI::ISO8859_1
+            &CharacterSet::ISO8859_1
                 .decode(&bytes)
                 .expect("decode bytes"),
         );
@@ -437,7 +437,7 @@ fn encodeDecode(input: &str) -> u32 {
 
 fn encodeDecodeWithAll(
     input: &str,
-    charset: Option<CharacterSetECI>,
+    charset: Option<CharacterSet>,
     autoECI: bool,
     decode: bool,
 ) -> u32 {
@@ -523,7 +523,7 @@ fn performECITest(
         // for (int i = 0; i < 1000; i++) {
         let s = generateText(&mut random, 100, chars, weights);
         minLength += encodeDecodeWithAll(&s, None, true, true);
-        utfLength += encodeDecodeWithAll(&s, Some(CharacterSetECI::UTF8), false, true);
+        utfLength += encodeDecodeWithAll(&s, Some(CharacterSet::UTF8), false, true);
     }
     assert_eq!(expectedMinLength, minLength);
     assert_eq!(expectedUTFLength, utfLength);

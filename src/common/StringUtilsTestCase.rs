@@ -28,7 +28,7 @@ use std::collections::HashMap;
 
 use crate::common::StringUtils;
 
-use super::CharacterSetECI;
+use super::CharacterSet;
 
 #[test]
 fn test_random() {
@@ -39,7 +39,7 @@ fn test_random() {
     //     *byte = r.gen();
     // }
     assert_eq!(
-        CharacterSetECI::UTF8,
+        CharacterSet::UTF8,
         StringUtils::guessCharset(&bytes, &HashMap::new()).unwrap()
     );
 }
@@ -47,13 +47,13 @@ fn test_random() {
 #[test]
 fn test_short_shift_jis1() {
     // 金魚
-    do_test(&[0x8b, 0xe0, 0x8b, 0x9b], CharacterSetECI::SJIS, "SJIS");
+    do_test(&[0x8b, 0xe0, 0x8b, 0x9b], CharacterSet::SJIS, "SJIS");
 }
 
 #[test]
 fn test_short_iso885911() {
     // båd
-    do_test(&[0x62, 0xe5, 0x64], CharacterSetECI::ISO8859_1, "ISO8859_1");
+    do_test(&[0x62, 0xe5, 0x64], CharacterSet::ISO8859_1, "ISO8859_1");
 }
 
 #[test]
@@ -61,7 +61,7 @@ fn test_short_utf8() {
     // Español
     do_test(
         &[0x45, 0x73, 0x70, 0x61, 0xc3, 0xb1, 0x6f, 0x6c],
-        CharacterSetECI::UTF8,
+        CharacterSet::UTF8,
         "UTF8",
     );
 }
@@ -71,7 +71,7 @@ fn test_mixed_shift_jis1() {
     // Hello 金!
     do_test(
         &[0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x8b, 0xe0, 0x21],
-        CharacterSetECI::SJIS,
+        CharacterSet::SJIS,
         "SJIS",
     );
 }
@@ -81,8 +81,8 @@ fn test_utf16_be() {
     // 调压柜
     do_test(
         &[0xFE, 0xFF, 0x8c, 0x03, 0x53, 0x8b, 0x67, 0xdc],
-        CharacterSetECI::UnicodeBigUnmarked,
-        CharacterSetECI::UnicodeBigUnmarked.getCharsetName(),
+        CharacterSet::UnicodeBigUnmarked,
+        CharacterSet::UnicodeBigUnmarked.get_charset_name(),
     );
 }
 
@@ -91,12 +91,12 @@ fn test_utf16_le() {
     // 调压柜
     do_test(
         &[0xFF, 0xFE, 0x03, 0x8c, 0x8b, 0x53, 0xdc, 0x67],
-        CharacterSetECI::UTF16LE,
-        CharacterSetECI::UTF16LE.getCharsetName(),
+        CharacterSet::UTF16LE,
+        CharacterSet::UTF16LE.get_charset_name(),
     );
 }
 
-fn do_test(bytes: &[u8], charset: CharacterSetECI, encoding: &str) {
+fn do_test(bytes: &[u8], charset: CharacterSet, encoding: &str) {
     let guessedCharset = StringUtils::guessCharset(bytes, &HashMap::new()).unwrap();
     let guessedEncoding = StringUtils::guessEncoding(bytes, &HashMap::new()).unwrap();
     assert_eq!(charset, guessedCharset);

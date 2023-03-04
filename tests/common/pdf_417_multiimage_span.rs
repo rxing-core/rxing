@@ -24,7 +24,7 @@ use std::{
 };
 
 use rxing::{
-    common::{CharacterSetECI, HybridBinarizer, Result},
+    common::{CharacterSet, HybridBinarizer, Result},
     multi::MultipleBarcodeReader,
     pdf417::PDF417RXingResultMetadata,
     BarcodeFormat, Binarizer, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType,
@@ -644,7 +644,7 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
             if ext == "bin" {
                 let mut buffer: Vec<u8> = Vec::new();
                 File::open(&file)?.read_to_end(&mut buffer)?;
-                CharacterSetECI::ISO8859_1
+                CharacterSet::ISO8859_1
                     .decode_replace(&buffer)
                     .expect("decode")
             } else {

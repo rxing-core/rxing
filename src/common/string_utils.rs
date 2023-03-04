@@ -16,7 +16,7 @@
 
 use crate::{DecodeHintType, DecodeHintValue, DecodingHintDictionary};
 
-use super::CharacterSetECI;
+use super::CharacterSet;
 
 /**
  * Common string-related functions.
@@ -48,7 +48,7 @@ const ASSUME_SHIFT_JIS: bool = false;
 // static SHIFT_JIS: &'static str = "SJIS";
 // static GB2312: &'static str = "GB2312";
 
-pub static SHIFT_JIS_CHARSET: CharacterSetECI = CharacterSetECI::SJIS;
+pub static SHIFT_JIS_CHARSET: CharacterSet = CharacterSet::SJIS;
 
 //    private static final boolean ASSUME_SHIFT_JIS =
 //        SHIFT_JIS_CHARSET.equals(PLATFORM_DEFAULT_ENCODING) ||
@@ -64,14 +64,14 @@ impl StringUtils {
      */
     pub fn guessEncoding(bytes: &[u8], hints: &DecodingHintDictionary) -> Option<&'static str> {
         let c = StringUtils::guessCharset(bytes, hints)?;
-        if c == CharacterSetECI::SJIS {
+        if c == CharacterSet::SJIS {
             Some("SJIS")
-        } else if c == CharacterSetECI::UTF8 {
+        } else if c == CharacterSet::UTF8 {
             Some("UTF8")
-        } else if c == CharacterSetECI::ISO8859_1 {
+        } else if c == CharacterSet::ISO8859_1 {
             Some("ISO8859_1")
         } else {
-            Some(c.getCharsetName())
+            Some(c.get_charset_name())
         }
     }
 
@@ -84,12 +84,12 @@ impl StringUtils {
      *  or the platform default encoding if
      *  none of these can possibly be correct
      */
-    pub fn guessCharset(bytes: &[u8], hints: &DecodingHintDictionary) -> Option<CharacterSetECI> {
+    pub fn guessCharset(bytes: &[u8], hints: &DecodingHintDictionary) -> Option<CharacterSet> {
         if let Some(DecodeHintValue::CharacterSet(cs_name)) =
             hints.get(&DecodeHintType::CHARACTER_SET)
         {
             // if let DecodeHintValue::CharacterSet(cs_name) = hint {
-            return CharacterSetECI::getCharacterSetECIByName(cs_name);
+            return CharacterSet::get_character_set_by_name(cs_name);
             // }
         }
         // if hints.contains_key(&DecodeHintType::CHARACTER_SET) {
@@ -101,9 +101,9 @@ impl StringUtils {
             && ((bytes[0] == 0xFE && bytes[1] == 0xFF) || (bytes[0] == 0xFF && bytes[1] == 0xFE))
         {
             if bytes[0] == 0xFE && bytes[1] == 0xFF {
-                return Some(CharacterSetECI::UnicodeBigUnmarked);
+                return Some(CharacterSet::UnicodeBigUnmarked);
             } else {
-                return Some(CharacterSetECI::UTF16LE);
+                return Some(CharacterSet::UTF16LE);
             }
         }
 
@@ -221,7 +221,7 @@ impl StringUtils {
 
         // Easy -- if there is BOM or at least 1 valid not-single byte character (and no evidence it can't be UTF-8), done
         if can_be_utf8 && (utf8bom || utf2_bytes_chars + utf3_bytes_chars + utf4_bytes_chars > 0) {
-            return Some(CharacterSetECI::UTF8);
+            return Some(CharacterSet::UTF8);
         }
         // Easy -- if assuming Shift_JIS or >= 3 valid consecutive not-ascii characters (and no evidence it can't be), done
         if can_be_shift_jis
@@ -229,7 +229,7 @@ impl StringUtils {
                 || sjis_max_katakana_word_length >= 3
                 || sjis_max_double_bytes_word_length >= 3)
         {
-            return Some(CharacterSetECI::SJIS); //encoding::label::encoding_from_whatwg_label("SJIS");
+            return Some(CharacterSet::SJIS); //encoding::label::encoding_from_whatwg_label("SJIS");
         }
         // Distinguishing Shift_JIS and ISO-8859-1 can be a little tough for short words. The crude heuristic is:
         // - If we saw
@@ -240,23 +240,23 @@ impl StringUtils {
             return if (sjis_max_katakana_word_length == 2 && sjis_katakana_chars == 2)
                 || iso_high_other * 10 >= length
             {
-                Some(CharacterSetECI::SJIS)
+                Some(CharacterSet::SJIS)
             } else {
-                Some(CharacterSetECI::ISO8859_1)
+                Some(CharacterSet::ISO8859_1)
             };
         }
 
         // Otherwise, try in order ISO-8859-1, Shift JIS, UTF-8 and fall back to default platform encoding
         if can_be_iso88591 {
-            return Some(CharacterSetECI::ISO8859_1);
+            return Some(CharacterSet::ISO8859_1);
         }
         if can_be_shift_jis {
-            return Some(CharacterSetECI::SJIS);
+            return Some(CharacterSet::SJIS);
         }
         if can_be_utf8 {
-            return Some(CharacterSetECI::UTF8);
+            return Some(CharacterSet::UTF8);
         }
         // Otherwise, we take a wild guess with platform encoding
-        Some(CharacterSetECI::UTF8)
+        Some(CharacterSet::UTF8)
     }
 }

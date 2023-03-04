@@ -21,7 +21,7 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::common::Result;
 use crate::Exceptions;
 
-use super::{CharacterSetECI, ECIEncoderSet, ECIInput};
+use super::{CharacterSet, ECIEncoderSet, ECIInput};
 
 //* approximated (latch + 2 codewords)
 pub const COST_PER_ECI: usize = 3;
@@ -193,7 +193,7 @@ impl MinimalECIInput {
      */
     pub fn new(
         stringToEncodeInput: &str,
-        priorityCharset: Option<CharacterSetECI>,
+        priorityCharset: Option<CharacterSet>,
         fnc1: Option<&str>,
     ) -> Self {
         let stringToEncode = stringToEncodeInput.graphemes(true).collect::<Vec<&str>>();

@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    common::{BitSource, CharacterSetECI, DecoderRXingResult, Result, StringUtils},
+    common::{BitSource, CharacterSet, DecoderRXingResult, Result, StringUtils},
     DecodingHintDictionary, Exceptions,
 };
 
@@ -91,7 +91,7 @@ pub fn decode(
             Mode::ECI => {
                 // Count doesn't apply to ECI
                 let value = parseECIValue(&mut bits)?;
-                currentCharacterSetECI = CharacterSetECI::getCharacterSetECIByValue(value).ok();
+                currentCharacterSetECI = CharacterSet::get_character_set_by_eci(value).ok();
                 if currentCharacterSetECI.is_none() {
                     return Err(Exceptions::format_with(format!(
                         "Value of {value} not valid"
@@ -203,7 +203,7 @@ fn decodeHanziSegment(bits: &mut BitSource, result: &mut String, count: usize) -
         count -= 1;
     }
 
-    let gb_encoder = CharacterSetECI::GB18030;
+    let gb_encoder = CharacterSet::GB18030;
     let encode_string = gb_encoder
         .decode(&buffer)
         .map_err(|e| Exceptions::parse_with(format!("unable to decode buffer {buffer:?}: {e}")))?;
@@ -215,7 +215,7 @@ fn decodeKanjiSegment(
     bits: &mut BitSource,
     result: &mut String,
     count: usize,
-    currentCharacterSetECI: Option<CharacterSetECI>,
+    currentCharacterSetECI: Option<CharacterSet>,
     hints: &DecodingHintDictionary,
 ) -> Result<()> {
     // Don't crash trying to read more bits than we have available.
@@ -249,7 +249,7 @@ fn decodeKanjiSegment(
     let encoder = {
         let _ = currentCharacterSetECI;
         let _ = hints;
-        CharacterSetECI::SJIS
+        CharacterSet::SJIS
     };
 
     #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
@@ -257,12 +257,12 @@ fn decodeKanjiSegment(
         hints.get(&DecodeHintType::QR_ASSUME_SPEC_CONFORM_INPUT)
     {
         if let Some(ccse) = &currentCharacterSetECI {
-            CharacterSetECI::getCharacterSetECIByName(ccse)
+            CharacterSet::getCharacterSetECIByName(ccse)
         } else {
-            CharacterSetECI::ISO8859_1
+            CharacterSet::ISO8859_1
         }
     } else {
-        CharacterSetECI::SJIS
+        CharacterSet::SJIS
     };
 
     let encode_string = encoder
@@ -278,7 +278,7 @@ fn decodeByteSegment(
     bits: &mut BitSource,
     result: &mut String,
     count: usize,
-    currentCharacterSetECI: Option<CharacterSetECI>,
+    currentCharacterSetECI: Option<CharacterSet>,
     byteSegments: &mut Vec<Vec<u8>>,
     hints: &DecodingHintDictionary,
 ) -> Result<()> {
@@ -307,7 +307,7 @@ fn decodeByteSegment(
         if let Some(DecodeHintValue::QrAssumeSpecConformInput(true)) =
             hints.get(&DecodeHintType::QR_ASSUME_SPEC_CONFORM_INPUT)
         {
-            CharacterSetECI::ISO8859_1
+            CharacterSet::ISO8859_1
         } else {
             StringUtils::guessCharset(&readBytes, hints).ok_or(Exceptions::ILLEGAL_STATE)?
         }

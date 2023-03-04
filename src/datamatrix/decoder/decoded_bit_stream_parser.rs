@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    common::{BitSource, CharacterSetECI, DecoderRXingResult, ECIStringBuilder, Result},
+    common::{BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Result},
     Exceptions,
 };
 
@@ -727,7 +727,7 @@ fn decodeBase256Segment(
         *byte = unrandomize255State(bits.readBits(8)?, codewordPosition) as u8;
         codewordPosition += 1;
     }
-    result.append_string(&CharacterSetECI::ISO8859_1.decode(&bytes)?);
+    result.append_string(&CharacterSet::ISO8859_1.decode(&bytes)?);
     byteSegments.push(bytes);
 
     Ok(())

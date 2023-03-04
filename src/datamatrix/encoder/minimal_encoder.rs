@@ -17,13 +17,13 @@
 use std::{fmt, rc::Rc};
 
 use crate::{
-    common::{CharacterSetECI, ECIInput, MinimalECIInput, Result},
+    common::{CharacterSet, ECIInput, MinimalECIInput, Result},
     Exceptions,
 };
 
 use super::{high_level_encoder, SymbolShapeHint};
 
-const ISO_8859_1_ENCODER: CharacterSetECI = CharacterSetECI::ISO8859_1;
+const ISO_8859_1_ENCODER: CharacterSet = CharacterSet::ISO8859_1;
 
 /**
  * Encoder that encodes minimally
@@ -151,7 +151,7 @@ pub fn encodeHighLevel(msg: &str) -> Result<String> {
  */
 pub fn encodeHighLevelWithDetails(
     msg: &str,
-    priorityCharset: Option<CharacterSetECI>,
+    priorityCharset: Option<CharacterSet>,
     fnc1: Option<char>,
     shape: SymbolShapeHint,
 ) -> Result<String> {
@@ -192,7 +192,7 @@ pub fn encodeHighLevelWithDetails(
  */
 fn encode(
     input: &str,
-    priorityCharset: Option<CharacterSetECI>,
+    priorityCharset: Option<CharacterSet>,
     fnc1: Option<char>,
     shape: SymbolShapeHint,
     macroId: i32,
@@ -1393,7 +1393,7 @@ struct Input {
 impl Input {
     pub fn new(
         stringToEncode: &str,
-        priorityCharset: Option<CharacterSetECI>,
+        priorityCharset: Option<CharacterSet>,
         fnc1: Option<char>,
         shape: SymbolShapeHint,
         macroId: i32,
