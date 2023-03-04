@@ -13,6 +13,8 @@ use rxing::pdf417::PDF417Reader;
 use rxing::qrcode::QRCodeReader;
 use rxing::{BinaryBitmap, BufferedImageLuminanceSource, Reader};
 use std::path::Path;
+use rxing::multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader};
+use rxing::MultiFormatReader;
 
 fn get_image(
     path: impl AsRef<Path>,
@@ -183,6 +185,16 @@ fn upce_benchmark(c: &mut Criterion) {
     });
 }
 
+fn multi_barcode_benchmark(c: &mut Criterion) {
+    let mut image = get_image("test_resources/blackbox/multi-1/1.png");
+    c.bench_function("multi_barcode", |b| {
+        b.iter( || {
+            let mut reader = GenericMultipleBarcodeReader::new(MultiFormatReader::default());
+            let _res = reader.decode_multiple(&mut image);
+        });
+    });
+}
+
 criterion_group!(
     benches,
     aztec_benchmark,
@@ -199,6 +211,7 @@ criterion_group!(
     rss14_benchmark,
     rss_expanded_benchmark,
     upca_benchmark,
-    upce_benchmark
+    upce_benchmark,
+    multi_barcode_benchmark
 );
 criterion_main!(benches);
