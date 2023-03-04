@@ -71,6 +71,10 @@ impl Reader for MultiFormatReader {
         self.set_hints(hints);
         self.decode_internal(image)
     }
+
+    fn reset(&mut self) {
+        self.one_d_reader.reset();
+    }
 }
 
 impl MultiFormatReader {

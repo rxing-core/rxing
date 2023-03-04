@@ -225,4 +225,9 @@ impl Reader for MultiFormatOneDReader {
             Err(Exceptions::NOT_FOUND)
         }
     }
+
+    fn reset(&mut self) {
+        self.rss_14_reader.reset();
+        self.rss_expanded_reader.reset();
+    }
 }
