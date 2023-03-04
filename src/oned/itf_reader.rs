@@ -104,7 +104,7 @@ impl Default for ITFReader {
 }
 
 impl OneDReader for ITFReader {
-    fn decodeRow(
+    fn decode_row(
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
@@ -189,7 +189,7 @@ impl ITFReader {
 
         while payloadStart < payloadEnd {
             // Get 10 runs of black/white.
-            one_d_reader::recordPattern(row, payloadStart, &mut counterDigitPair)?;
+            one_d_reader::record_pattern(row, payloadStart, &mut counterDigitPair)?;
             // Split them into each array
             for k in 0..5 {
                 let twoK = 2 * k;
@@ -275,7 +275,7 @@ impl ITFReader {
      * @throws NotFoundException Throws exception if no black lines are found in the row
      */
     fn skipWhiteSpace(row: &BitArray) -> Result<usize> {
-        let width = row.getSize();
+        let width = row.get_size();
         let endStart = row.getNextSet(0);
         if endStart == width {
             return Err(Exceptions::NOT_FOUND);
@@ -312,8 +312,8 @@ impl ITFReader {
             // Now recalculate the indices of where the 'endblock' starts & stops to
             // accommodate the reversed nature of the search
             let temp = endPattern[0];
-            endPattern[0] = row.getSize() - endPattern[1];
-            endPattern[1] = row.getSize() - temp;
+            endPattern[0] = row.get_size() - endPattern[1];
+            endPattern[1] = row.get_size() - temp;
 
             Ok(endPattern)
         };
@@ -341,7 +341,7 @@ impl ITFReader {
     ) -> Result<[usize; 2]> {
         let patternLength = pattern.len();
         let mut counters = vec![0u32; patternLength]; //new int[patternLength];
-        let width = row.getSize();
+        let width = row.get_size();
         let mut isWhite = false;
 
         let mut counterPosition = 0;
@@ -352,7 +352,7 @@ impl ITFReader {
                 counters[counterPosition] += 1;
             } else {
                 if counterPosition == patternLength - 1 {
-                    if one_d_reader::patternMatchVariance(
+                    if one_d_reader::pattern_match_variance(
                         &counters,
                         pattern,
                         MAX_INDIVIDUAL_VARIANCE,
@@ -390,7 +390,7 @@ impl ITFReader {
         let max = PATTERNS.len();
         for (i, pattern) in PATTERNS.iter().enumerate().take(max) {
             let variance =
-                one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
+                one_d_reader::pattern_match_variance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
                 bestVariance = variance;
                 bestMatch = i as isize;

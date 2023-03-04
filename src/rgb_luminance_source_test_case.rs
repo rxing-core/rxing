@@ -34,11 +34,11 @@ const SRC_DATA: [u32; 9] = [
 fn testCrop() {
     let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3, 3, SRC_DATA.as_ref());
 
-    assert!(SOURCE.isCropSupported());
+    assert!(SOURCE.is_crop_supported());
     let cropped = SOURCE.crop(1, 1, 1, 1).unwrap();
-    assert_eq!(1, cropped.getHeight());
-    assert_eq!(1, cropped.getWidth());
-    assert_eq!(vec![0x7F], cropped.getRow(0));
+    assert_eq!(1, cropped.get_height());
+    assert_eq!(1, cropped.get_width());
+    assert_eq!(vec![0x7F], cropped.get_row(0));
 }
 
 #[test]
@@ -47,22 +47,22 @@ fn testMatrix() {
 
     assert_eq!(
         vec![0x00, 0x7F, 0xFF, 0x3F, 0x7F, 0x3F, 0x3F, 0x7F, 0x3F],
-        SOURCE.getMatrix()
+        SOURCE.get_matrix()
     );
     let croppedFullWidth = SOURCE.crop(0, 1, 3, 2).unwrap();
     assert_eq!(
         vec![0x3F, 0x7F, 0x3F, 0x3F, 0x7F, 0x3F],
-        croppedFullWidth.getMatrix()
+        croppedFullWidth.get_matrix()
     );
     let croppedCorner = SOURCE.crop(1, 1, 2, 2).unwrap();
-    assert_eq!(vec![0x7F, 0x3F, 0x7F, 0x3F], croppedCorner.getMatrix());
+    assert_eq!(vec![0x7F, 0x3F, 0x7F, 0x3F], croppedCorner.get_matrix());
 }
 
 #[test]
 fn testGetRow() {
     let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3, 3, SRC_DATA.as_ref());
 
-    assert_eq!(vec![0x3F, 0x7F, 0x3F], SOURCE.getRow(2));
+    assert_eq!(vec![0x3F, 0x7F, 0x3F], SOURCE.get_row(2));
 }
 
 // #[test]

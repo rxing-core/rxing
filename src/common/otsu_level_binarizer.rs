@@ -1,4 +1,4 @@
-use std::{borrow::Cow, rc::Rc};
+use std::borrow::Cow;
 
 use image::{DynamicImage, ImageBuffer, Luma};
 use once_cell::sync::OnceCell;
@@ -8,18 +8,18 @@ use crate::{Binarizer, Exceptions, LuminanceSource};
 
 use super::{BitArray, BitMatrix};
 
-pub struct OtsuLevelBinarizer {
+pub struct OtsuLevelBinarizer<LS: LuminanceSource> {
     width: usize,
     height: usize,
-    source: Box<dyn LuminanceSource>,
+    source: LS,
     black_matrix: OnceCell<BitMatrix>,
     black_row_cache: Vec<OnceCell<BitArray>>,
 }
 
-impl OtsuLevelBinarizer {
-    fn generate_threshold_matrix(source: &dyn LuminanceSource) -> Result<BitMatrix> {
+impl<LS: LuminanceSource> OtsuLevelBinarizer<LS> {
+    fn generate_threshold_matrix<LS2: LuminanceSource>(source: &LS2) -> Result<BitMatrix> {
         let image_buffer = {
-            let Some(buff) : Option<ImageBuffer<Luma<u8>,Vec<u8>>> = ImageBuffer::from_vec(source.getWidth() as u32, source.getHeight() as u32, source.getMatrix()) else {
+            let Some(buff) : Option<ImageBuffer<Luma<u8>,Vec<u8>>> = ImageBuffer::from_vec(source.get_width() as u32, source.get_height() as u32, source.get_matrix()) else {
                 return Err(Exceptions::ILLEGAL_ARGUMENT)
             };
             buff
@@ -34,50 +34,49 @@ impl OtsuLevelBinarizer {
         dynamic_filtered.try_into()
     }
 
-    pub fn new(source: Box<dyn LuminanceSource>) -> Self {
+    pub fn new(source: LS) -> Self {
         Self {
-            width: source.getWidth(),
-            height: source.getHeight(),
-            black_row_cache: vec![OnceCell::default(); source.getHeight()],
+            width: source.get_width(),
+            height: source.get_height(),
+            black_row_cache: vec![OnceCell::default(); source.get_height()],
             source,
             black_matrix: OnceCell::new(),
         }
     }
 }
 
-impl Binarizer for OtsuLevelBinarizer {
-    fn getLuminanceSource(&self) -> &Box<dyn crate::LuminanceSource> {
+impl<LS: LuminanceSource> Binarizer for OtsuLevelBinarizer<LS> {
+    type Source = LS;
+
+    fn get_luminance_source(&self) -> &LS {
         &self.source
     }
 
-    fn getBlackRow(&self, y: usize) -> Result<std::borrow::Cow<super::BitArray>> {
+    fn get_black_row(&self, y: usize) -> Result<Cow<BitArray>> {
         let row = self.black_row_cache[y].get_or_try_init(|| {
-            let matrix = self.getBlackMatrix()?;
+            let matrix = self.get_black_matrix()?;
             Ok(matrix.getRow(y as u32))
         })?;
 
         Ok(Cow::Borrowed(row))
     }
 
-    fn getBlackMatrix(&self) -> Result<&super::BitMatrix> {
+    fn get_black_matrix(&self) -> Result<&BitMatrix> {
         let matrix = self
             .black_matrix
-            .get_or_try_init(|| Self::generate_threshold_matrix(self.source.as_ref()))?;
+            .get_or_try_init(|| Self::generate_threshold_matrix(&self.source))?;
         Ok(matrix)
     }
 
-    fn createBinarizer(
-        &self,
-        source: Box<dyn crate::LuminanceSource>,
-    ) -> std::rc::Rc<dyn Binarizer> {
-        Rc::new(Self::new(source))
+    fn create_binarizer(&self, source: LS) -> Self {
+        Self::new(source)
     }
 
-    fn getWidth(&self) -> usize {
+    fn get_width(&self) -> usize {
         self.width
     }
 
-    fn getHeight(&self) -> usize {
+    fn get_height(&self) -> usize {
         self.height
     }
 }

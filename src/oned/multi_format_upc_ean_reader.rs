@@ -15,11 +15,11 @@
  */
 
 use crate::common::Result;
-use crate::BarcodeFormat;
 use crate::DecodeHintValue;
 use crate::Exceptions;
 use crate::RXingResult;
 use crate::Reader;
+use crate::{BarcodeFormat, Binarizer};
 
 use super::EAN13Reader;
 use super::EAN8Reader;
@@ -35,47 +35,122 @@ use super::{OneDReader, UPCEANReader};
  *
  * @author Sean Owen
  */
-pub struct MultiFormatUPCEANReader(Vec<Box<dyn UPCEANReader>>);
+pub struct MultiFormatUPCEANReader {
+    possible_formats: HashSet<BarcodeFormat>,
+}
+
+impl OneDReader for MultiFormatUPCEANReader {
+    fn decode_row(
+        &mut self,
+        rowNumber: u32,
+        row: &crate::common::BitArray,
+        hints: &DecodingHintDictionary,
+    ) -> Result<RXingResult> {
+        let Self {
+            ref possible_formats,
+        } = self;
+        // Compute this location once and reuse it on multiple implementations
+        let start_guard_pattern = STAND_IN.find_start_guard_pattern(row)?;
+
+        if !possible_formats.is_empty() {
+            if possible_formats.contains(&BarcodeFormat::EAN_13) {
+                if let Ok(res) = self.try_decode_function(
+                    &EAN13Reader::default(),
+                    rowNumber,
+                    row,
+                    hints,
+                    &start_guard_pattern,
+                ) {
+                    return Ok(res);
+                }
+            } else if possible_formats.contains(&BarcodeFormat::UPC_A) {
+                if let Ok(res) = self.try_decode_function(
+                    &UPCAReader::default(),
+                    rowNumber,
+                    row,
+                    hints,
+                    &start_guard_pattern,
+                ) {
+                    return Ok(res);
+                }
+            }
+            if possible_formats.contains(&BarcodeFormat::EAN_8) {
+                if let Ok(res) = self.try_decode_function(
+                    &EAN8Reader::default(),
+                    rowNumber,
+                    row,
+                    hints,
+                    &start_guard_pattern,
+                ) {
+                    return Ok(res);
+                }
+            }
+            if possible_formats.contains(&BarcodeFormat::UPC_E) {
+                if let Ok(res) = self.try_decode_function(
+                    &UPCEReader::default(),
+                    rowNumber,
+                    row,
+                    hints,
+                    &start_guard_pattern,
+                ) {
+                    return Ok(res);
+                }
+            }
+        } else {
+            if let Ok(res) = self.try_decode_function(
+                &EAN13Reader::default(),
+                rowNumber,
+                row,
+                hints,
+                &start_guard_pattern,
+            ) {
+                return Ok(res);
+            }
+            if let Ok(res) = self.try_decode_function(
+                &EAN8Reader::default(),
+                rowNumber,
+                row,
+                hints,
+                &start_guard_pattern,
+            ) {
+                return Ok(res);
+            }
+            if let Ok(res) = self.try_decode_function(
+                &UPCEReader::default(),
+                rowNumber,
+                row,
+                hints,
+                &start_guard_pattern,
+            ) {
+                return Ok(res);
+            }
+        }
+
+        Err(Exceptions::NOT_FOUND)
+    }
+}
 
 impl MultiFormatUPCEANReader {
     pub fn new(hints: &DecodingHintDictionary) -> Self {
-        let mut readers: Vec<Box<dyn UPCEANReader>> = Vec::new();
-        if let Some(DecodeHintValue::PossibleFormats(possibleFormats)) =
+        let possible_formats = if let Some(DecodeHintValue::PossibleFormats(p)) =
             hints.get(&DecodeHintType::POSSIBLE_FORMATS)
         {
-            // Collection<BarcodeFormat> possibleFormats = hints == null ? null :
-            //   (Collection<BarcodeFormat>) hints.get(DecodeHintType.POSSIBLE_FORMATS);
-            // Collection<UPCEANReader> readers = new ArrayList<>();
-            if possibleFormats.contains(&BarcodeFormat::EAN_13) {
-                readers.push(Box::<EAN13Reader>::default());
-            } else if possibleFormats.contains(&BarcodeFormat::UPC_A) {
-                readers.push(Box::<UPCAReader>::default());
-            }
-            if possibleFormats.contains(&BarcodeFormat::EAN_8) {
-                readers.push(Box::<EAN8Reader>::default());
-            }
-            if possibleFormats.contains(&BarcodeFormat::UPC_E) {
-                readers.push(Box::<UPCEReader>::default());
-            }
-        }
-        if readers.is_empty() {
-            readers.push(Box::<EAN13Reader>::default());
-            // UPC-A is covered by EAN-13
-            readers.push(Box::<EAN8Reader>::default());
-            readers.push(Box::<UPCEReader>::default());
-        }
+            p.clone()
+        } else {
+            HashSet::default()
+        };
 
-        Self(readers)
+        Self { possible_formats }
     }
 
-    fn try_decode_function(
+    fn try_decode_function<R: UPCEANReader>(
         &self,
-        reader: &Box<dyn UPCEANReader>,
+        reader: &R,
         rowNumber: u32,
         row: &crate::common::BitArray,
-        hints: &crate::DecodingHintDictionary,
+        hints: &DecodingHintDictionary,
         startGuardPattern: &[usize; 2],
-    ) -> Result<crate::RXingResult> {
+    ) -> Result<RXingResult> {
         let result = reader.decodeRowWithGuardRange(rowNumber, row, startGuardPattern, hints)?;
         // Special case: a 12-digit code encoded in UPC-A is identical to a "0"
         // followed by those 12 digits encoded as EAN-13. Each will recognize such a code,
@@ -117,46 +192,24 @@ impl MultiFormatUPCEANReader {
     }
 }
 
-impl OneDReader for MultiFormatUPCEANReader {
-    fn decodeRow(
-        &mut self,
-        rowNumber: u32,
-        row: &crate::common::BitArray,
-        hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult> {
-        // Compute this location once and reuse it on multiple implementations
-        let startGuardPattern = STAND_IN.findStartGuardPattern(row)?;
-        for reader in &self.0 {
-            // for (UPCEANReader reader : readers) {
-            let try_result =
-                self.try_decode_function(reader, rowNumber, row, hints, &startGuardPattern);
-            if try_result.is_ok() {
-                return try_result;
-            }
-        }
-
-        Err(Exceptions::NOT_FOUND)
-    }
-}
-
 use crate::DecodeHintType;
 use crate::DecodingHintDictionary;
 use crate::RXingResultMetadataType;
 use crate::RXingResultMetadataValue;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 impl Reader for MultiFormatUPCEANReader {
-    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
+    fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     // Note that we don't try rotation without the try harder flag, even if rotation was supported.
-    fn decode_with_hints(
+    fn decode_with_hints<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap<B>,
         hints: &DecodingHintDictionary,
-    ) -> Result<crate::RXingResult> {
-        let first_try = self.doDecode(image, hints);
+    ) -> Result<RXingResult> {
+        let first_try = self._do_decode(image, hints);
         if first_try.is_ok() {
             return first_try;
         }
@@ -165,16 +218,16 @@ impl Reader for MultiFormatUPCEANReader {
             hints.get(&DecodeHintType::TRY_HARDER),
             Some(DecodeHintValue::TryHarder(true))
         );
-        if tryHarder && image.isRotateSupported() {
-            let mut rotatedImage = image.rotateCounterClockwise();
-            let mut result = self.doDecode(&mut rotatedImage, hints)?;
+        if tryHarder && image.is_rotate_supported() {
+            let mut rotatedImage = image.rotate_counter_clockwise();
+            let mut result = self._do_decode(&mut rotatedImage, hints)?;
             // Record that we found it rotated 90 degrees CCW / 270 degrees CW
             let metadata = result.getRXingResultMetadata();
             let mut orientation = 270;
             if metadata.contains_key(&RXingResultMetadataType::ORIENTATION) {
                 // But if we found it reversed in doDecode(), add in that result here:
                 orientation = (orientation
-                    + if let Some(crate::RXingResultMetadataValue::Orientation(or)) =
+                    + if let Some(RXingResultMetadataValue::Orientation(or)) =
                         metadata.get(&RXingResultMetadataType::ORIENTATION)
                     {
                         *or
@@ -188,7 +241,7 @@ impl Reader for MultiFormatUPCEANReader {
                 RXingResultMetadataValue::Orientation(orientation),
             );
             // Update result points
-            let height = rotatedImage.getHeight();
+            let height = rotatedImage.get_height();
             let total_points = result.getPoints().len();
             let points = result.getPointsMut();
             for point in points.iter_mut().take(total_points) {
@@ -199,12 +252,6 @@ impl Reader for MultiFormatUPCEANReader {
             Ok(result)
         } else {
             Err(Exceptions::NOT_FOUND)
-        }
-    }
-
-    fn reset(&mut self) {
-        for reader in self.0.iter_mut() {
-            reader.reset();
         }
     }
 }

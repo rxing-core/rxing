@@ -16,7 +16,7 @@
 
 //package com.google.zxing;
 
-use std::{borrow::Cow, rc::Rc};
+use std::borrow::Cow;
 
 use crate::{
     common::{BitArray, BitMatrix, Result},
@@ -35,7 +35,9 @@ pub trait Binarizer {
     //private final LuminanceSource source;
     //fn new(source:dyn LuminanceSource) -> Self;
 
-    fn getLuminanceSource(&self) -> &Box<dyn LuminanceSource>;
+    type Source: LuminanceSource;
+
+    fn get_luminance_source(&self) -> &Self::Source;
 
     /**
      * Converts one row of luminance data to 1 bit data. May actually do the conversion, or return
@@ -51,7 +53,7 @@ pub trait Binarizer {
      * @return The array of bits for this row (true means black).
      * @throws NotFoundException if row can't be binarized
      */
-    fn getBlackRow(&self, y: usize) -> Result<Cow<BitArray>>;
+    fn get_black_row(&self, y: usize) -> Result<Cow<BitArray>>;
 
     /**
      * Converts a 2D array of luminance data to 1 bit data. As above, assume this method is expensive
@@ -62,7 +64,7 @@ pub trait Binarizer {
      * @return The 2D array of bits for the image (true means black).
      * @throws NotFoundException if image can't be binarized to make a matrix
      */
-    fn getBlackMatrix(&self) -> Result<&BitMatrix>;
+    fn get_black_matrix(&self) -> Result<&BitMatrix>;
 
     /**
      * Creates a new object with the same type as this Binarizer implementation, but with pristine
@@ -72,9 +74,11 @@ pub trait Binarizer {
      * @param source The LuminanceSource this Binarizer will operate on.
      * @return A new concrete Binarizer implementation object.
      */
-    fn createBinarizer(&self, source: Box<dyn LuminanceSource>) -> Rc<dyn Binarizer>;
+    fn create_binarizer(&self, source: Self::Source) -> Self
+    where
+        Self: Sized;
 
-    fn getWidth(&self) -> usize;
+    fn get_width(&self) -> usize;
 
-    fn getHeight(&self) -> usize;
+    fn get_height(&self) -> usize;
 }

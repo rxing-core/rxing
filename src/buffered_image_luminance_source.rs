@@ -88,8 +88,8 @@ impl BufferedImageLuminanceSource {
 }
 
 impl LuminanceSource for BufferedImageLuminanceSource {
-    fn getRow(&self, y: usize) -> Vec<u8> {
-        let width = self.getWidth(); // - self.left as usize;
+    fn get_row(&self, y: usize) -> Vec<u8> {
+        let width = self.get_width(); // - self.left as usize;
 
         let pixels: Vec<u8> = || -> Option<Vec<u8>> {
             Some(
@@ -108,7 +108,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         pixels
     }
 
-    fn getMatrix(&self) -> Vec<u8> {
+    fn get_matrix(&self) -> Vec<u8> {
         if self.height == self.image.height() as usize && self.width == self.image.width() as usize
         {
             return self.image.as_bytes().to_vec();
@@ -141,12 +141,30 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         data
     }
 
-    fn getWidth(&self) -> usize {
+    fn get_width(&self) -> usize {
         self.width
     }
 
-    fn getHeight(&self) -> usize {
+    fn get_height(&self) -> usize {
         self.height
+    }
+
+    fn is_crop_supported(&self) -> bool {
+        true
+    }
+
+    fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
+        Ok(Self {
+            image: self.image.clone(),
+            width,
+            height,
+            left: self.left + left as u32,
+            top: self.top + top as u32,
+        })
+    }
+
+    fn is_rotate_supported(&self) -> bool {
+        true
     }
 
     fn invert(&mut self) {
@@ -155,42 +173,18 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         self.image = Rc::new(img);
     }
 
-    fn isCropSupported(&self) -> bool {
-        true
-    }
-
-    fn crop(
-        &self,
-        left: usize,
-        top: usize,
-        width: usize,
-        height: usize,
-    ) -> Result<Box<dyn LuminanceSource>> {
-        Ok(Box::new(Self {
-            image: self.image.clone(),
-            width,
-            height,
-            left: self.left + left as u32,
-            top: self.top + top as u32,
-        }))
-    }
-
-    fn isRotateSupported(&self) -> bool {
-        true
-    }
-
-    fn rotateCounterClockwise(&self) -> Result<Box<dyn LuminanceSource>> {
+    fn rotate_counter_clockwise(&self) -> Result<Self> {
         let img = self.image.rotate270();
-        Ok(Box::new(Self {
+        Ok(Self {
             width: img.width() as usize,
             height: img.height() as usize,
             image: Rc::new(img),
             left: 0,
             top: 0,
-        }))
+        })
     }
 
-    fn rotateCounterClockwise45(&self) -> Result<Box<dyn LuminanceSource>> {
+    fn rotate_counter_clockwise_45(&self) -> Result<Self> {
         let img = rotate_about_center(
             &self.image.to_luma8(),
             MINUS_45_IN_RADIANS,
@@ -200,12 +194,12 @@ impl LuminanceSource for BufferedImageLuminanceSource {
 
         let new_img = DynamicImage::from(img);
 
-        Ok(Box::new(Self {
+        Ok(Self {
             width: new_img.width() as usize,
             height: new_img.height() as usize,
             image: Rc::new(new_img),
             left: 0,
             top: 0,
-        }))
+        })
     }
 }

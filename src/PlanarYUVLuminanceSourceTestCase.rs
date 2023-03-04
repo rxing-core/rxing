@@ -52,10 +52,10 @@ fn test_no_crop() {
         false,
     )
     .unwrap();
-    assert_equals(&Y, 0, &source.getMatrix(), 0, Y.len());
+    assert_equals(&Y, 0, &source.get_matrix(), 0, Y.len());
     for r in 0..ROWS {
         // for (int r = 0; r < ROWS; r++) {
-        assert_equals(&Y, r * COLS, &source.getRow(r), 0, COLS);
+        assert_equals(&Y, r * COLS, &source.get_row(r), 0, COLS);
     }
 }
 
@@ -73,8 +73,8 @@ fn test_crop() {
         false,
     )
     .unwrap();
-    assert!(source.isCropSupported());
-    let cropMatrix = source.getMatrix();
+    assert!(source.is_crop_supported());
+    let cropMatrix = source.get_matrix();
     for r in 0..ROWS - 2 {
         // for (int r = 0; r < ROWS - 2; r++) {
         assert_equals(
@@ -87,7 +87,7 @@ fn test_crop() {
     }
     for r in 0..ROWS - 2 {
         // for (int r = 0; r < ROWS - 2; r++) {
-        assert_equals(&Y, (r + 1) * COLS + 1, &source.getRow(r), 0, COLS - 2);
+        assert_equals(&Y, (r + 1) * COLS + 1, &source.get_row(r), 0, COLS - 2);
     }
 }
 

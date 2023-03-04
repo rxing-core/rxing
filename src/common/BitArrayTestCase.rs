@@ -43,12 +43,12 @@ fn test_get_set() {
 #[test]
 fn test_get_next_set1() {
     let array = BitArray::with_size(32);
-    for i in 0..array.getSize() {
+    for i in 0..array.get_size() {
         // for (int i = 0; i < array.getSize(); i++) {
         assert_eq!(32, array.getNextSet(i), "{i}");
     }
     let array = BitArray::with_size(33);
-    for i in 0..array.getSize() {
+    for i in 0..array.get_size() {
         // for (int i = 0; i < array.getSize(); i++) {
         assert_eq!(33, array.getNextSet(i), "{i}");
     }
@@ -58,13 +58,13 @@ fn test_get_next_set1() {
 fn test_get_next_set2() {
     let mut array = BitArray::with_size(33);
     array.set(31);
-    for i in 0..array.getSize() {
+    for i in 0..array.get_size() {
         // for (int i = 0; i < array.getSize(); i++) {
         assert_eq!(if i <= 31 { 31 } else { 33 }, array.getNextSet(i), "{i}");
     }
     array = BitArray::with_size(33);
     array.set(32);
-    for i in 0..array.getSize() {
+    for i in 0..array.get_size() {
         // for (int i = 0; i < array.getSize(); i++) {
         assert_eq!(32, array.getNextSet(i), "{i}");
     }
@@ -75,7 +75,7 @@ fn test_get_next_set3() {
     let mut array = BitArray::with_size(63);
     array.set(31);
     array.set(32);
-    for i in 0..array.getSize() {
+    for i in 0..array.get_size() {
         // for (int i = 0; i < array.getSize(); i++) {
         let expected;
         if i <= 31 {
@@ -94,7 +94,7 @@ fn test_get_next_set4() {
     let mut array = BitArray::with_size(63);
     array.set(33);
     array.set(40);
-    for i in 0..array.getSize() {
+    for i in 0..array.get_size() {
         // for (int i = 0; i < array.getSize(); i++) {
         let expected;
         if i <= 33 {
@@ -117,14 +117,14 @@ fn test_get_next_set5() {
         let numSet = r.gen_range(0..20);
         for _j in 0..numSet {
             // for (int j = 0; j < numSet; j++) {
-            array.set(r.gen_range(0..array.getSize()));
+            array.set(r.gen_range(0..array.get_size()));
         }
         let numQueries = r.gen_range(0..20);
         for _j in 0..numQueries {
             // for (int j = 0; j < numQueries; j++) {
-            let query = r.gen_range(0..array.getSize());
+            let query = r.gen_range(0..array.get_size());
             let mut expected = query;
-            while expected < array.getSize() && !array.get(expected) {
+            while expected < array.get_size() && !array.get(expected) {
                 expected += 1;
             }
             let actual = array.getNextSet(query);

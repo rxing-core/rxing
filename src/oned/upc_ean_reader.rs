@@ -16,7 +16,7 @@
 
 use crate::{
     common::{BitArray, Result},
-    point, BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
+    point, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
@@ -101,7 +101,7 @@ pub const L_AND_G_PATTERNS: [[u32; 4]; 20] = {
  * @author alasdair@google.com (Alasdair Mackintosh)
  */
 pub trait UPCEANReader: OneDReader {
-    fn findStartGuardPattern(&self, row: &BitArray) -> Result<[usize; 2]> {
+    fn find_start_guard_pattern(&self, row: &BitArray) -> Result<[usize; 2]> {
         let mut foundStart = false;
         let mut startRange = [0; 2];
         let mut nextStart = 0;
@@ -182,7 +182,7 @@ pub trait UPCEANReader: OneDReader {
         // spec might want more whitespace, but in practice this is the maximum we can count on.
         let end = endRange[1];
         let quietEnd = end + (end - endRange[0]);
-        if quietEnd >= row.getSize() || !row.isRange(end, quietEnd, false)? {
+        if quietEnd >= row.get_size() || !row.isRange(end, quietEnd, false)? {
             return Err(Exceptions::NOT_FOUND);
         }
 
@@ -382,7 +382,7 @@ pub trait UPCEANReader: OneDReader {
         pattern: &[u32],
         counters: &mut [u32],
     ) -> Result<[usize; 2]> {
-        let width = row.getSize();
+        let width = row.get_size();
         let rowOffset = if whiteFirst {
             row.getNextUnset(rowOffset)
         } else {
@@ -398,7 +398,7 @@ pub trait UPCEANReader: OneDReader {
                 counters[counterPosition] += 1;
             } else {
                 if counterPosition == patternLength - 1 {
-                    if one_d_reader::patternMatchVariance(
+                    if one_d_reader::pattern_match_variance(
                         counters,
                         pattern,
                         MAX_INDIVIDUAL_VARIANCE,
@@ -443,13 +443,13 @@ pub trait UPCEANReader: OneDReader {
         rowOffset: usize,
         patterns: &[[u32; 4]],
     ) -> Result<usize> {
-        one_d_reader::recordPattern(row, rowOffset, counters)?;
+        one_d_reader::record_pattern(row, rowOffset, counters)?;
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
         let max = patterns.len();
         for (i, pattern) in patterns.iter().enumerate().take(max) {
             let variance: f32 =
-                one_d_reader::patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
+                one_d_reader::pattern_match_variance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
                 bestVariance = variance;
                 bestMatch = i as isize;
@@ -503,7 +503,7 @@ impl UPCEANReader for StandInStruct {
     }
 }
 impl OneDReader for StandInStruct {
-    fn decodeRow(
+    fn decode_row(
         &mut self,
         _rowNumber: u32,
         _row: &BitArray,
@@ -514,13 +514,13 @@ impl OneDReader for StandInStruct {
 }
 
 impl Reader for StandInStruct {
-    fn decode(&mut self, _image: &mut crate::BinaryBitmap) -> Result<RXingResult> {
+    fn decode<B: Binarizer>(&mut self, _image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
         todo!()
     }
 
-    fn decode_with_hints(
+    fn decode_with_hints<B: Binarizer>(
         &mut self,
-        _image: &mut crate::BinaryBitmap,
+        _image: &mut crate::BinaryBitmap<B>,
         _hints: &crate::DecodingHintDictionary,
     ) -> Result<RXingResult> {
         todo!()

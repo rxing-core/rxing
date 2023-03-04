@@ -57,7 +57,7 @@ impl BitArray {
         Self { bits, size }
     }
 
-    pub fn getSize(&self) -> usize {
+    pub fn get_size(&self) -> usize {
         self.size
     }
 

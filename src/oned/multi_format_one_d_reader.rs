@@ -24,25 +24,113 @@ use super::ITFReader;
 use super::MultiFormatUPCEANReader;
 use super::OneDReader;
 use crate::common::Result;
-use crate::BarcodeFormat;
 use crate::DecodeHintValue;
 use crate::Exceptions;
+use crate::{BarcodeFormat, Binarizer, RXingResult};
 
 /**
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Sean Owen
  */
 #[derive(Default)]
-pub struct MultiFormatOneDReader(Vec<Box<dyn OneDReader>>);
+pub struct MultiFormatOneDReader {
+    internal_hints: DecodingHintDictionary,
+    possible_formats: HashSet<BarcodeFormat>,
+    use_code_39_check_digit: bool,
+    rss_14_reader: RSS14Reader,
+    rss_expanded_reader: RSSExpandedReader,
+}
 impl OneDReader for MultiFormatOneDReader {
-    fn decodeRow(
+    fn decode_row(
         &mut self,
-        rowNumber: u32,
+        row_number: u32,
         row: &crate::common::BitArray,
-        hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult> {
-        for reader in self.0.iter_mut() {
-            if let Ok(res) = reader.decodeRow(rowNumber, row, hints) {
+        hints: &DecodingHintDictionary,
+    ) -> Result<RXingResult> {
+        let Self {
+            possible_formats,
+            use_code_39_check_digit,
+            internal_hints,
+            rss_14_reader,
+            rss_expanded_reader,
+        } = self;
+
+        if !possible_formats.is_empty() {
+            if possible_formats.contains(&BarcodeFormat::EAN_13)
+                || possible_formats.contains(&BarcodeFormat::UPC_A)
+                || possible_formats.contains(&BarcodeFormat::EAN_8)
+                || possible_formats.contains(&BarcodeFormat::UPC_E)
+            {
+                if let Ok(res) =
+                    MultiFormatUPCEANReader::new(internal_hints).decode_row(row_number, row, hints)
+                {
+                    return Ok(res);
+                }
+            }
+            if possible_formats.contains(&BarcodeFormat::CODE_39) {
+                if let Ok(res) = Code39Reader::with_use_check_digit(*use_code_39_check_digit)
+                    .decode_row(row_number, row, hints)
+                {
+                    return Ok(res);
+                }
+            }
+            if possible_formats.contains(&BarcodeFormat::CODE_93) {
+                if let Ok(res) = Code93Reader::default().decode_row(row_number, row, hints) {
+                    return Ok(res);
+                }
+            }
+            if possible_formats.contains(&BarcodeFormat::CODE_128) {
+                if let Ok(res) = Code128Reader::default().decode_row(row_number, row, hints) {
+                    return Ok(res);
+                }
+            }
+            if possible_formats.contains(&BarcodeFormat::ITF) {
+                if let Ok(res) = ITFReader::default().decode_row(row_number, row, hints) {
+                    return Ok(res);
+                }
+            }
+            if possible_formats.contains(&BarcodeFormat::CODABAR) {
+                if let Ok(res) = CodaBarReader::default().decode_row(row_number, row, hints) {
+                    return Ok(res);
+                }
+            }
+            if possible_formats.contains(&BarcodeFormat::RSS_14) {
+                if let Ok(res) = rss_14_reader.decode_row(row_number, row, hints) {
+                    return Ok(res);
+                }
+            }
+            if possible_formats.contains(&BarcodeFormat::RSS_EXPANDED) {
+                if let Ok(res) = rss_expanded_reader.decode_row(row_number, row, hints) {
+                    return Ok(res);
+                }
+            }
+        } else {
+            if let Ok(res) =
+                MultiFormatUPCEANReader::new(internal_hints).decode_row(row_number, row, hints)
+            {
+                return Ok(res);
+            }
+            if let Ok(res) = Code39Reader::with_use_check_digit(*use_code_39_check_digit)
+                .decode_row(row_number, row, hints)
+            {
+                return Ok(res);
+            }
+            if let Ok(res) = CodaBarReader::default().decode_row(row_number, row, hints) {
+                return Ok(res);
+            }
+            if let Ok(res) = Code93Reader::default().decode_row(row_number, row, hints) {
+                return Ok(res);
+            }
+            if let Ok(res) = Code128Reader::default().decode_row(row_number, row, hints) {
+                return Ok(res);
+            }
+            if let Ok(res) = ITFReader::default().decode_row(row_number, row, hints) {
+                return Ok(res);
+            }
+            if let Ok(res) = rss_14_reader.decode_row(row_number, row, hints) {
+                return Ok(res);
+            }
+            if let Ok(res) = rss_expanded_reader.decode_row(row_number, row, hints) {
                 return Ok(res);
             }
         }
@@ -52,57 +140,25 @@ impl OneDReader for MultiFormatOneDReader {
 }
 impl MultiFormatOneDReader {
     pub fn new(hints: &DecodingHintDictionary) -> Self {
-        let useCode39CheckDigit = matches!(
+        let use_code_39_check_digit = matches!(
             hints.get(&DecodeHintType::ASSUME_CODE_39_CHECK_DIGIT),
             Some(DecodeHintValue::AssumeCode39CheckDigit(true))
         );
-        let mut readers: Vec<Box<dyn OneDReader>> = Vec::new();
-        if let Some(DecodeHintValue::PossibleFormats(possibleFormats)) =
+        let possible_formats = if let Some(DecodeHintValue::PossibleFormats(p)) =
             hints.get(&DecodeHintType::POSSIBLE_FORMATS)
         {
-            if possibleFormats.contains(&BarcodeFormat::EAN_13)
-                || possibleFormats.contains(&BarcodeFormat::UPC_A)
-                || possibleFormats.contains(&BarcodeFormat::EAN_8)
-                || possibleFormats.contains(&BarcodeFormat::UPC_E)
-            {
-                readers.push(Box::new(MultiFormatUPCEANReader::new(hints)));
-            }
-            if possibleFormats.contains(&BarcodeFormat::CODE_39) {
-                readers.push(Box::new(Code39Reader::with_use_check_digit(
-                    useCode39CheckDigit,
-                )));
-            }
-            if possibleFormats.contains(&BarcodeFormat::CODE_93) {
-                readers.push(Box::<Code93Reader>::default());
-            }
-            if possibleFormats.contains(&BarcodeFormat::CODE_128) {
-                readers.push(Box::<Code128Reader>::default());
-            }
-            if possibleFormats.contains(&BarcodeFormat::ITF) {
-                readers.push(Box::<ITFReader>::default());
-            }
-            if possibleFormats.contains(&BarcodeFormat::CODABAR) {
-                readers.push(Box::<CodaBarReader>::default());
-            }
-            if possibleFormats.contains(&BarcodeFormat::RSS_14) {
-                readers.push(Box::<RSS14Reader>::default());
-            }
-            if possibleFormats.contains(&BarcodeFormat::RSS_EXPANDED) {
-                readers.push(Box::<RSSExpandedReader>::default());
-            }
-        }
-        if readers.is_empty() {
-            readers.push(Box::new(MultiFormatUPCEANReader::new(hints)));
-            readers.push(Box::<Code39Reader>::default());
-            readers.push(Box::<CodaBarReader>::default());
-            readers.push(Box::<Code93Reader>::default());
-            readers.push(Box::<Code128Reader>::default());
-            readers.push(Box::<ITFReader>::default());
-            readers.push(Box::<RSS14Reader>::default());
-            readers.push(Box::<RSSExpandedReader>::default());
-        }
+            p.clone()
+        } else {
+            HashSet::new()
+        };
 
-        Self(readers)
+        Self {
+            possible_formats,
+            use_code_39_check_digit,
+            rss_14_reader: RSS14Reader::default(),
+            internal_hints: hints.clone(),
+            rss_expanded_reader: RSSExpandedReader::default(),
+        }
     }
 }
 
@@ -111,20 +167,20 @@ use crate::DecodingHintDictionary;
 use crate::RXingResultMetadataType;
 use crate::RXingResultMetadataValue;
 use crate::Reader;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 impl Reader for MultiFormatOneDReader {
-    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
+    fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     // Note that we don't try rotation without the try harder flag, even if rotation was supported.
-    fn decode_with_hints(
+    fn decode_with_hints<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap<B>,
         hints: &DecodingHintDictionary,
-    ) -> Result<crate::RXingResult> {
-        let first_try = self.doDecode(image, hints);
+    ) -> Result<RXingResult> {
+        let first_try = self._do_decode(image, hints);
         if first_try.is_ok() {
             return first_try;
         }
@@ -133,9 +189,9 @@ impl Reader for MultiFormatOneDReader {
             hints.get(&DecodeHintType::TRY_HARDER),
             Some(DecodeHintValue::TryHarder(true))
         );
-        if tryHarder && image.isRotateSupported() {
-            let mut rotatedImage = image.rotateCounterClockwise();
-            let mut result = self.doDecode(&mut rotatedImage, hints)?;
+        if tryHarder && image.is_rotate_supported() {
+            let mut rotatedImage = image.rotate_counter_clockwise();
+            let mut result = self._do_decode(&mut rotatedImage, hints)?;
             // Record that we found it rotated 90 degrees CCW / 270 degrees CW
             let metadata = result.getRXingResultMetadata();
             let mut orientation = 270;
@@ -156,7 +212,7 @@ impl Reader for MultiFormatOneDReader {
                 RXingResultMetadataValue::Orientation(orientation),
             );
             // Update result points
-            let height = rotatedImage.getHeight();
+            let height = rotatedImage.get_height();
             let total_points = result.getPoints().len();
             let points = result.getPointsMut();
             for point in points.iter_mut().take(total_points) {
@@ -171,8 +227,7 @@ impl Reader for MultiFormatOneDReader {
     }
 
     fn reset(&mut self) {
-        for reader in self.0.iter_mut() {
-            reader.reset();
-        }
+        self.rss_14_reader.reset();
+        self.rss_expanded_reader.reset();
     }
 }

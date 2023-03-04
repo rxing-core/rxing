@@ -18,7 +18,7 @@ use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, DetectorRXingResult, Result},
-    BarcodeFormat, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
+    BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
     RXingResultMetadataType, Reader,
 };
 
@@ -41,7 +41,10 @@ impl Reader for MaxiCodeReader {
      * @throws FormatException if a MaxiCode cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
+    fn decode<B: Binarizer>(
+        &mut self,
+        image: &mut crate::BinaryBitmap<B>,
+    ) -> Result<crate::RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
@@ -53,9 +56,9 @@ impl Reader for MaxiCodeReader {
      * @throws FormatException if a MaxiCode cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-    fn decode_with_hints(
+    fn decode_with_hints<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult> {
         // Note that MaxiCode reader effectively always assumes PURE_BARCODE mode
@@ -68,12 +71,12 @@ impl Reader for MaxiCodeReader {
         let mut rotation = None;
 
         let decoderRXingResult = if try_harder {
-            let result = detector::detect(image.getBlackMatrixMut(), try_harder)?;
+            let result = detector::detect(image.get_black_matrix_mut(), try_harder)?;
             rotation = Some(result.rotation());
             let parsed_result = detector::read_bits(result.getBits())?;
             maxicode_decoder::decode_with_hints(&parsed_result, hints)?
         } else {
-            let bits = Self::extractPureBits(image.getBlackMatrix())?;
+            let bits = Self::extractPureBits(image.get_black_matrix())?;
             maxicode_decoder::decode_with_hints(&bits, hints)?
         };
 

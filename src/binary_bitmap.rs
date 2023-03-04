@@ -16,11 +16,11 @@
 
 //package com.google.zxing;
 
-use std::{borrow::Cow, fmt, rc::Rc};
+use std::{borrow::Cow, fmt};
 
 use crate::{
     common::{BitArray, BitMatrix, Result},
-    Binarizer,
+    Binarizer, LuminanceSource,
 };
 
 /**
@@ -30,13 +30,13 @@ use crate::{
  * @author dswitkin@google.com (Daniel Switkin)
  */
 
-pub struct BinaryBitmap {
-    binarizer: Rc<dyn Binarizer>,
+pub struct BinaryBitmap<B: Binarizer> {
+    binarizer: B,
     matrix: Option<BitMatrix>,
 }
 
-impl BinaryBitmap {
-    pub fn new(binarizer: Rc<dyn Binarizer>) -> Self {
+impl<B: Binarizer> BinaryBitmap<B> {
+    pub fn new(binarizer: B) -> Self {
         Self {
             matrix: None,
             binarizer,
@@ -46,15 +46,15 @@ impl BinaryBitmap {
     /**
      * @return The width of the bitmap.
      */
-    pub fn getWidth(&self) -> usize {
-        self.binarizer.getWidth()
+    pub fn get_width(&self) -> usize {
+        self.binarizer.get_width()
     }
 
     /**
      * @return The height of the bitmap.
      */
-    pub fn getHeight(&self) -> usize {
-        self.binarizer.getHeight()
+    pub fn get_height(&self) -> usize {
+        self.binarizer.get_height()
     }
 
     /**
@@ -68,8 +68,8 @@ impl BinaryBitmap {
      * @return The array of bits for this row (true means black).
      * @throws NotFoundException if row can't be binarized
      */
-    pub fn getBlackRow(&self, y: usize) -> Result<Cow<BitArray>> {
-        self.binarizer.getBlackRow(y)
+    pub fn get_black_row(&self, y: usize) -> Result<Cow<BitArray>> {
+        self.binarizer.get_black_row(y)
     }
 
     /**
@@ -83,14 +83,14 @@ impl BinaryBitmap {
      * @return The 2D array of bits for the image (true means black).
      * @throws NotFoundException if image can't be binarized to make a matrix
      */
-    pub fn getBlackMatrixMut(&mut self) -> &mut BitMatrix {
+    pub fn get_black_matrix_mut(&mut self) -> &mut BitMatrix {
         // The matrix is created on demand the first time it is requested, then cached. There are two
         // reasons for this:
         // 1. This work will never be done if the caller only installs 1D Reader objects, or if a
         //    1D Reader finds a barcode before the 2D Readers run.
         // 2. This work will only be done once even if the caller installs multiple 2D Readers.
         if self.matrix.is_none() {
-            self.matrix = Some(self.binarizer.getBlackMatrix().unwrap().clone());
+            self.matrix = Some(self.binarizer.get_black_matrix().unwrap().clone());
         }
         self.matrix.as_mut().unwrap()
     }
@@ -106,14 +106,14 @@ impl BinaryBitmap {
      * @return The 2D array of bits for the image (true means black).
      * @throws NotFoundException if image can't be binarized to make a matrix
      */
-    pub fn getBlackMatrix(&mut self) -> &BitMatrix {
+    pub fn get_black_matrix(&mut self) -> &BitMatrix {
         // The matrix is created on demand the first time it is requested, then cached. There are two
         // reasons for this:
         // 1. This work will never be done if the caller only installs 1D Reader objects, or if a
         //    1D Reader finds a barcode before the 2D Readers run.
         // 2. This work will only be done once even if the caller installs multiple 2D Readers.
         if self.matrix.is_none() {
-            self.matrix = Some(self.binarizer.getBlackMatrix().unwrap().clone())
+            self.matrix = Some(self.binarizer.get_black_matrix().unwrap().clone())
         }
         self.matrix.as_ref().unwrap()
     }
@@ -121,8 +121,8 @@ impl BinaryBitmap {
     /**
      * @return Whether this bitmap can be cropped.
      */
-    pub fn isCropSupported(&self) -> bool {
-        self.binarizer.getLuminanceSource().isCropSupported()
+    pub fn is_crop_supported(&self) -> bool {
+        self.binarizer.get_luminance_source().is_crop_supported()
     }
 
     /**
@@ -137,22 +137,22 @@ impl BinaryBitmap {
      * @param height The height of the rectangle to crop.
      * @return A cropped version of this object.
      */
-    pub fn crop(&mut self, left: usize, top: usize, width: usize, height: usize) -> BinaryBitmap {
+    pub fn crop(&mut self, left: usize, top: usize, width: usize, height: usize) -> Self {
         let newSource = self
             .binarizer
-            .getLuminanceSource()
+            .get_luminance_source()
             .crop(left, top, width, height);
-        return BinaryBitmap::new(
+        BinaryBitmap::new(
             self.binarizer
-                .createBinarizer(newSource.expect("new lum source expected")),
-        );
+                .create_binarizer(newSource.expect("new lum source expected")),
+        )
     }
 
     /**
      * @return Whether this bitmap supports counter-clockwise rotation.
      */
-    pub fn isRotateSupported(&self) -> bool {
-        return self.binarizer.getLuminanceSource().isRotateSupported();
+    pub fn is_rotate_supported(&self) -> bool {
+        return self.binarizer.get_luminance_source().is_rotate_supported();
     }
 
     /**
@@ -163,12 +163,15 @@ impl BinaryBitmap {
      *
      * @return A rotated version of this object.
      */
-    pub fn rotateCounterClockwise(&mut self) -> BinaryBitmap {
-        let newSource = self.binarizer.getLuminanceSource().rotateCounterClockwise();
-        return BinaryBitmap::new(
+    pub fn rotate_counter_clockwise(&mut self) -> Self {
+        let newSource = self
+            .binarizer
+            .get_luminance_source()
+            .rotate_counter_clockwise();
+        BinaryBitmap::new(
             self.binarizer
-                .createBinarizer(newSource.expect("new lum source expected")),
-        );
+                .create_binarizer(newSource.expect("new lum source expected")),
+        )
     }
 
     /**
@@ -179,19 +182,19 @@ impl BinaryBitmap {
      *
      * @return A rotated version of this object.
      */
-    pub fn rotateCounterClockwise45(&self) -> BinaryBitmap {
+    pub fn rotate_counter_clockwise_45(&self) -> Self {
         let newSource = self
             .binarizer
-            .getLuminanceSource()
-            .rotateCounterClockwise45();
-        return BinaryBitmap::new(
+            .get_luminance_source()
+            .rotate_counter_clockwise_45();
+        BinaryBitmap::new(
             self.binarizer
-                .createBinarizer(newSource.expect("new lum source expected")),
-        );
+                .create_binarizer(newSource.expect("new lum source expected")),
+        )
     }
 }
 
-impl fmt::Display for BinaryBitmap {
+impl<B: Binarizer> fmt::Display for BinaryBitmap<B> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self.matrix)
     }

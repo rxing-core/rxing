@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{common::Result, BarcodeFormat, Exceptions, RXingResult, Reader};
+use crate::{common::Result, BarcodeFormat, Binarizer, Exceptions, RXingResult, Reader};
 
 use super::{EAN13Reader, OneDReader, UPCEANReader};
 
@@ -28,32 +28,50 @@ use super::{EAN13Reader, OneDReader, UPCEANReader};
 pub struct UPCAReader(EAN13Reader);
 
 impl Reader for UPCAReader {
-    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
+    fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
         Self::maybeReturnRXingResult(self.0.decode(image)?)
     }
 
-    fn decode_with_hints(
+    fn decode_with_hints<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult> {
+    ) -> Result<RXingResult> {
         Self::maybeReturnRXingResult(self.0.decode_with_hints(image, hints)?)
     }
 }
 
 impl OneDReader for UPCAReader {
-    fn decodeRow(
+    fn decode_row(
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult> {
-        Self::maybeReturnRXingResult(self.0.decodeRow(rowNumber, row, hints)?)
+    ) -> Result<RXingResult> {
+        Self::maybeReturnRXingResult(self.0.decode_row(rowNumber, row, hints)?)
     }
 }
 
 impl UPCEANReader for UPCAReader {
-    fn getBarcodeFormat(&self) -> crate::BarcodeFormat {
+    fn decodeRowWithGuardRange(
+        &self,
+        rowNumber: u32,
+        row: &crate::common::BitArray,
+        startGuardRange: &[usize; 2],
+        hints: &crate::DecodingHintDictionary,
+    ) -> Result<RXingResult>
+    where
+        Self: Sized,
+    {
+        Self::maybeReturnRXingResult(self.0.decodeRowWithGuardRange(
+            rowNumber,
+            row,
+            startGuardRange,
+            hints,
+        )?)
+    }
+
+    fn getBarcodeFormat(&self) -> BarcodeFormat {
         BarcodeFormat::UPC_A
     }
 
@@ -64,24 +82,6 @@ impl UPCEANReader for UPCAReader {
         resultString: &mut String,
     ) -> Result<usize> {
         self.0.decodeMiddle(row, startRange, resultString)
-    }
-
-    fn decodeRowWithGuardRange(
-        &self,
-        rowNumber: u32,
-        row: &crate::common::BitArray,
-        startGuardRange: &[usize; 2],
-        hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult>
-    where
-        Self: Sized,
-    {
-        Self::maybeReturnRXingResult(self.0.decodeRowWithGuardRange(
-            rowNumber,
-            row,
-            startGuardRange,
-            hints,
-        )?)
     }
 }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::{collections::HashSet, path::PathBuf, rc::Rc};
+use std::{collections::HashSet, path::PathBuf};
 
 use crate::{
     common::HybridBinarizer, BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
@@ -38,7 +38,7 @@ fn testMulti() {
         .decode()
         .expect("must decode");
     let source = BufferedImageLuminanceSource::new(image);
-    let mut bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
+    let mut bitmap = BinaryBitmap::new(HybridBinarizer::new(source));
 
     let mut reader = GenericMultipleBarcodeReader::new(MultiFormatReader::default());
     let results = reader
@@ -65,7 +65,7 @@ fn testMultiQR() {
         .decode()
         .expect("must decode");
     let source = BufferedImageLuminanceSource::new(image);
-    let mut bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
+    let mut bitmap = BinaryBitmap::new(HybridBinarizer::new(source));
 
     let mut reader = GenericMultipleBarcodeReader::new(MultiFormatReader::default());
     let results = reader

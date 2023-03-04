@@ -28,8 +28,8 @@ use encoding::Encoding;
 use rxing::{
     common::{HybridBinarizer, Result},
     pdf417::PDF417RXingResultMetadata,
-    BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue,
-    RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    BarcodeFormat, Binarizer, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType,
+    DecodeHintValue, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::TestRXingResult;
@@ -251,7 +251,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                 let rotation = self.test_rxing_results.get(x).unwrap().get_rotation();
                 let rotated_image = Self::rotate_image(&image, rotation);
                 let source = BufferedImageLuminanceSource::new(rotated_image);
-                let mut bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
+                let mut bitmap = BinaryBitmap::new(HybridBinarizer::new(source));
 
                 // if file_base_name == "15" {
                 // let mut f = File::create("test_file_output.txt").unwrap();
@@ -259,21 +259,23 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                 // drop(f);
                 // Self::rotate_image(&image, rotation).save("test_image.png").unwrap();
                 // }
-
-                if let Ok(decoded) = self.decode(
+                match self.decode(
                     &mut bitmap,
                     rotation,
                     &expected_text,
                     &expected_metadata,
                     false,
                 ) {
-                    if decoded {
-                        passed_counts[x] += 1;
-                    } else {
-                        misread_counts[x] += 1;
+                    Ok(decoded) => {
+                        if decoded {
+                            passed_counts[x] += 1;
+                        } else {
+                            misread_counts[x] += 1;
+                        }
                     }
-                } else {
-                    log::fine(format!("could not read at rotation {rotation}"));
+                    Err(e) => {
+                        log::fine(format!("could not read at rotation {rotation}: {e:?}"));
+                    }
                 }
                 // try {
                 //   if (decode(bitmap, rotation, expectedText, expectedMetadata, false)) {
@@ -284,20 +286,23 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                 // } catch (ReaderException ignored) {
                 //   log::fine(format!("could not read at rotation {}", rotation));
                 // }
-                if let Ok(decoded) = self.decode(
+                match self.decode(
                     &mut bitmap,
                     rotation,
                     &expected_text,
                     &expected_metadata,
                     true,
                 ) {
-                    if decoded {
-                        try_harder_counts[x] += 1;
-                    } else {
-                        try_harder_misread_counts[x] += 1;
+                    Ok(decoded) => {
+                        if decoded {
+                            try_harder_counts[x] += 1;
+                        } else {
+                            try_harder_misread_counts[x] += 1;
+                        }
                     }
-                } else {
-                    log::fine(format!("could not read at rotation {rotation} w/TH"));
+                    Err(e) => {
+                        log::fine(format!("could not read at rotation {rotation} w/TH: {e:?}"));
+                    }
                 }
                 // try {
                 //   if (decode(bitmap, rotation, expectedText, expectedMetadata, true)) {
@@ -422,9 +427,9 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
         }
     }
 
-    fn decode(
+    fn decode<B: Binarizer>(
         &mut self,
-        source: &mut BinaryBitmap,
+        source: &mut BinaryBitmap<B>,
         rotation: f32,
         expected_text: &str,
         expected_metadata: &HashMap<RXingResultMetadataType, RXingResultMetadataValue>,

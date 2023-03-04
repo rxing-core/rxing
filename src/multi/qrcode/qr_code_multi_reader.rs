@@ -23,7 +23,8 @@ use crate::{
         decoder::{self, QRCodeDecoderMetaData},
         QRCodeReader,
     },
-    BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue,
+    BarcodeFormat, Binarizer, Exceptions, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue,
 };
 
 use super::detector::MultiDetector;
@@ -37,20 +38,21 @@ use super::detector::MultiDetector;
 #[derive(Default)]
 pub struct QRCodeMultiReader(QRCodeReader);
 impl MultipleBarcodeReader for QRCodeMultiReader {
-    fn decode_multiple(
+    fn decode_multiple<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
-    ) -> Result<Vec<crate::RXingResult>> {
+        image: &mut crate::BinaryBitmap<B>,
+    ) -> Result<Vec<RXingResult>> {
         self.decode_multiple_with_hints(image, &HashMap::new())
     }
 
-    fn decode_multiple_with_hints(
+    fn decode_multiple_with_hints<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
-    ) -> Result<Vec<crate::RXingResult>> {
+    ) -> Result<Vec<RXingResult>> {
         let mut results = Vec::new();
-        let detectorRXingResults = MultiDetector::new(image.getBlackMatrix()).detectMulti(hints)?;
+        let detectorRXingResults =
+            MultiDetector::new(image.get_black_matrix()).detectMulti(hints)?;
         for detectorRXingResult in detectorRXingResults {
             let mut proc = || -> Result<()> {
                 let decoderRXingResult = decoder::qrcode_decoder::decode_bitmatrix_with_hints(
@@ -219,7 +221,7 @@ mod multi_qr_code_test_case {
      * limitations under the License.
      */
 
-    use std::{collections::HashSet, path::PathBuf, rc::Rc};
+    use std::{collections::HashSet, path::PathBuf};
 
     use image;
 
@@ -247,7 +249,7 @@ mod multi_qr_code_test_case {
             .decode()
             .expect("must decode");
         let source = BufferedImageLuminanceSource::new(image);
-        let mut bitmap = BinaryBitmap::new(Rc::new(HybridBinarizer::new(Box::new(source))));
+        let mut bitmap = BinaryBitmap::new(HybridBinarizer::new(source));
 
         let mut reader = QRCodeMultiReader::new();
         let results = reader.decode_multiple(&mut bitmap).expect("must decode");

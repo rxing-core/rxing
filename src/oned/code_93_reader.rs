@@ -45,7 +45,7 @@ impl Default for Code93Reader {
 }
 
 impl OneDReader for Code93Reader {
-    fn decodeRow(
+    fn decode_row(
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
@@ -54,7 +54,7 @@ impl OneDReader for Code93Reader {
         let start = self.findAsteriskPattern(row)?;
         // Read off white space
         let mut nextStart = row.getNextSet(start[1]);
-        let end = row.getSize();
+        let end = row.get_size();
 
         let mut theCounters = self.counters;
         theCounters.fill(0);
@@ -63,7 +63,7 @@ impl OneDReader for Code93Reader {
         let mut decodedChar;
         let mut lastStart;
         loop {
-            one_d_reader::recordPattern(row, nextStart, &mut theCounters)?;
+            one_d_reader::record_pattern(row, nextStart, &mut theCounters)?;
             let pattern = Self::toPattern(&theCounters);
             if pattern < 0 {
                 return Err(Exceptions::NOT_FOUND);
@@ -163,7 +163,7 @@ impl Code93Reader {
     }
 
     fn findAsteriskPattern(&mut self, row: &BitArray) -> Result<[usize; 2]> {
-        let width = row.getSize();
+        let width = row.get_size();
         let rowOffset = row.getNextSet(0);
 
         self.counters.fill(0);
@@ -385,7 +385,7 @@ mod Code93ReaderTestCase {
         // let mut row = BitArray::with_size(matrix.getWidth() as usize);
         let row = matrix.getRow(0);
         let result = sut
-            .decodeRow(0, &row, &HashMap::new())
+            .decode_row(0, &row, &HashMap::new())
             .expect("must decode");
         assert_eq!(expectedRXingResult, result.getText());
     }

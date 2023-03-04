@@ -50,7 +50,7 @@ impl UPCEANReader for EAN13Reader {
                                        // counters[1] = 0;
                                        // counters[2] = 0;
                                        // counters[3] = 0;
-        let end = row.getSize();
+        let end = row.get_size();
         let mut rowOffset = startRange[1];
 
         let mut lgPatternFound = 0;

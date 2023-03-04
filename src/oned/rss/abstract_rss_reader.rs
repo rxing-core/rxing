@@ -33,8 +33,11 @@ pub trait AbstractRSSReaderTrait: OneDReader {
 
     fn parseFinderValue(counters: &[u32], finderPatterns: &[[u32; 4]]) -> Result<u32> {
         for (value, pattern) in finderPatterns.iter().enumerate() {
-            if one_d_reader::patternMatchVariance(counters, pattern, Self::MAX_INDIVIDUAL_VARIANCE)
-                < Self::MAX_AVG_VARIANCE
+            if one_d_reader::pattern_match_variance(
+                counters,
+                pattern,
+                Self::MAX_INDIVIDUAL_VARIANCE,
+            ) < Self::MAX_AVG_VARIANCE
             {
                 return Ok(value as u32);
             }

@@ -19,8 +19,8 @@ use std::collections::HashMap;
 use crate::{
     common::{BitArray, Result},
     oned::{one_d_reader, OneDReader},
-    point, BarcodeFormat, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
-    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    point, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
+    Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{
@@ -45,12 +45,12 @@ pub struct RSS14Reader {
 impl AbstractRSSReaderTrait for RSS14Reader {}
 
 impl OneDReader for RSS14Reader {
-    fn decodeRow(
+    fn decode_row(
         &mut self,
         rowNumber: u32,
-        row: &crate::common::BitArray,
-        hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult> {
+        row: &BitArray,
+        hints: &DecodingHintDictionary,
+    ) -> Result<RXingResult> {
         let mut row = row.clone();
         let leftPair = self.decodePair(&row, false, rowNumber, hints);
         Self::addOrTally(&mut self.possibleLeftPairs, leftPair);
@@ -73,26 +73,26 @@ impl OneDReader for RSS14Reader {
     }
 }
 impl Reader for RSS14Reader {
-    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
+    fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
     // Note that we don't try rotation without the try harder flag, even if rotation was supported.
-    fn decode_with_hints(
+    fn decode_with_hints<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
+        image: &mut crate::BinaryBitmap<B>,
         hints: &DecodingHintDictionary,
     ) -> Result<crate::RXingResult> {
-        if let Ok(res) = self.doDecode(image, hints) {
+        if let Ok(res) = self._do_decode(image, hints) {
             Ok(res)
         } else {
             let tryHarder = matches!(
                 hints.get(&DecodeHintType::TRY_HARDER),
                 Some(DecodeHintValue::TryHarder(true))
             );
-            if tryHarder && image.isRotateSupported() {
-                let mut rotatedImage = image.rotateCounterClockwise();
-                let mut result = self.doDecode(&mut rotatedImage, hints)?;
+            if tryHarder && image.is_rotate_supported() {
+                let mut rotatedImage = image.rotate_counter_clockwise();
+                let mut result = self._do_decode(&mut rotatedImage, hints)?;
                 // Record that we found it rotated 90 degrees CCW / 270 degrees CW
                 let metadata = result.getRXingResultMetadata();
                 let mut orientation = 270;
@@ -113,7 +113,7 @@ impl Reader for RSS14Reader {
                     RXingResultMetadataValue::Orientation(orientation),
                 );
                 // Update result points
-                let height = rotatedImage.getHeight();
+                let height = rotatedImage.get_height();
                 let total_points = result.getPoints().len();
                 let points = result.getPointsMut();
                 for point in points.iter_mut().take(total_points) {
@@ -257,7 +257,7 @@ impl RSS14Reader {
                 let mut center: f32 = (startEnd[0] + startEnd[1] - 1) as f32 / 2.0;
                 if right {
                     // row is actually reversed
-                    center = row.getSize() as f32 - 1.0 - center;
+                    center = row.get_size() as f32 - 1.0 - center;
                 }
                 cb(point(center, rowNumber as f32));
             }
@@ -287,9 +287,9 @@ impl RSS14Reader {
         counters.fill(0);
 
         if outsideChar {
-            one_d_reader::recordPatternInReverse(row, pattern.getStartEnd()[0], counters)?;
+            one_d_reader::record_pattern_in_reverse(row, pattern.getStartEnd()[0], counters)?;
         } else {
-            one_d_reader::recordPattern(row, pattern.getStartEnd()[1], counters)?;
+            one_d_reader::record_pattern(row, pattern.getStartEnd()[1], counters)?;
             // reverse it
             counters.reverse();
             // let mut i = 0;
@@ -379,7 +379,7 @@ impl RSS14Reader {
         let counters = &mut self.decodeFinderCounters;
         counters.fill(0);
 
-        let width = row.getSize();
+        let width = row.get_size();
         let mut isWhite = false;
         let mut rowOffset = 0;
         while rowOffset < width {
@@ -445,8 +445,8 @@ impl RSS14Reader {
         let mut end = startEnd[1];
         if right {
             // row is actually reversed
-            start = row.getSize() - 1 - start;
-            end = row.getSize() - 1 - end;
+            start = row.get_size() - 1 - start;
+            end = row.get_size() - 1 - end;
         }
 
         Ok(FinderPattern::new(

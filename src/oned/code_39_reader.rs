@@ -40,7 +40,7 @@ impl Default for Code39Reader {
     }
 }
 impl OneDReader for Code39Reader {
-    fn decodeRow(
+    fn decode_row(
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
@@ -52,12 +52,12 @@ impl OneDReader for Code39Reader {
         let start = Self::findAsteriskPattern(row, &mut counters)?;
         // Read off white space
         let mut nextStart = row.getNextSet(start[1] as usize);
-        let end = row.getSize();
+        let end = row.get_size();
 
         let mut decodedChar;
         let mut lastStart;
         loop {
-            one_d_reader::recordPattern(row, nextStart, &mut counters)?;
+            one_d_reader::record_pattern(row, nextStart, &mut counters)?;
             let pattern = Self::toNarrowWidePattern(&counters);
             if pattern < 0 {
                 return Err(Exceptions::NOT_FOUND);
@@ -205,7 +205,7 @@ impl Code39Reader {
     }
 
     fn findAsteriskPattern(row: &BitArray, counters: &mut [u32]) -> Result<Vec<u32>> {
-        let width = row.getSize();
+        let width = row.get_size();
         let rowOffset = row.getNextSet(0);
 
         let mut counterPosition = 0;
@@ -429,7 +429,9 @@ mod code_39_extended_mode_test_case {
             BitMatrix::parse_strings(encodedRXingResult, "1", "0").expect("bitmatrix parse");
         // let row = BitArray::with_size(matrix.getWidth() as usize);
         let row = matrix.getRow(0);
-        let result = sut.decodeRow(0, &row, &HashMap::new()).expect("decode row");
+        let result = sut
+            .decode_row(0, &row, &HashMap::new())
+            .expect("decode row");
         assert_eq!(expectedRXingResult, result.getText());
     }
 }

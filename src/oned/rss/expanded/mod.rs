@@ -21,7 +21,7 @@ mod rss_expanded_internal_test_case;
 
 #[cfg(test)]
 #[cfg(feature = "image")]
-mod rss_expanded_image_2_binary_test_tase;
+mod rss_expanded_image_2_binary_test_case;
 
 #[cfg(test)]
 #[cfg(feature = "image")]

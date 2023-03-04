@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::Result, multi::MultipleBarcodeReader, BarcodeFormat, BinaryBitmap,
+    common::Result, multi::MultipleBarcodeReader, BarcodeFormat, Binarizer, BinaryBitmap,
     DecodingHintDictionary, Exceptions, Point, RXingResult, RXingResultMetadataType,
     RXingResultMetadataValue, Reader,
 };
@@ -43,13 +43,13 @@ impl Reader for PDF417Reader {
      * @throws NotFoundException if a PDF417 code cannot be found,
      * @throws FormatException if a PDF417 cannot be decoded
      */
-    fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult> {
+    fn decode<B: Binarizer>(&mut self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
         self.decode_with_hints(image, &HashMap::new())
     }
 
-    fn decode_with_hints(
+    fn decode_with_hints<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
+        image: &mut BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult> {
         let result = Self::decode(image, hints, false)?;
@@ -61,18 +61,18 @@ impl Reader for PDF417Reader {
 }
 
 impl MultipleBarcodeReader for PDF417Reader {
-    fn decode_multiple(
+    fn decode_multiple<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
-    ) -> Result<Vec<crate::RXingResult>> {
+        image: &mut BinaryBitmap<B>,
+    ) -> Result<Vec<RXingResult>> {
         self.decode_multiple_with_hints(image, &HashMap::new())
     }
 
-    fn decode_multiple_with_hints(
+    fn decode_multiple_with_hints<B: Binarizer>(
         &mut self,
-        image: &mut crate::BinaryBitmap,
-        hints: &crate::DecodingHintDictionary,
-    ) -> Result<Vec<crate::RXingResult>> {
+        image: &mut BinaryBitmap<B>,
+        hints: &DecodingHintDictionary,
+    ) -> Result<Vec<RXingResult>> {
         Self::decode(image, hints, true)
     }
 }
@@ -82,8 +82,8 @@ impl PDF417Reader {
         Self::default()
     }
 
-    fn decode(
-        image: &mut BinaryBitmap,
+    fn decode<B: Binarizer>(
+        image: &mut BinaryBitmap<B>,
         hints: &DecodingHintDictionary,
         multiple: bool,
     ) -> Result<Vec<RXingResult>> {

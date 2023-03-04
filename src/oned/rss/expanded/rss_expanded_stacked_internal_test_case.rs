@@ -39,8 +39,8 @@ fn testDecodingRowByRow() {
 
     let binaryMap = test_case_util::getBinaryBitmap("1000.png");
 
-    let firstRowNumber = binaryMap.getHeight() / 3;
-    let firstRow = binaryMap.getBlackRow(firstRowNumber).expect("get row");
+    let firstRowNumber = binaryMap.get_height() / 3;
+    let firstRow = binaryMap.get_black_row(firstRowNumber).expect("get row");
 
     // let tester = ;
 
@@ -72,9 +72,9 @@ fn testDecodingRowByRow() {
         .unwrap()
         .getStartEndMut()[1] = 0;
 
-    let secondRowNumber = 2 * binaryMap.getHeight() / 3;
+    let secondRowNumber = 2 * binaryMap.get_height() / 3;
     let mut secondRow = binaryMap
-        .getBlackRow(secondRowNumber)
+        .get_black_row(secondRowNumber)
         .expect("get row")
         .into_owned();
 

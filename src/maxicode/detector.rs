@@ -1143,8 +1143,8 @@ mod detector_test {
         let filename = image;
         let img = image::open(filename).unwrap();
         let lum_src = BufferedImageLuminanceSource::new(img);
-        let binarizer = HybridBinarizer::new(Box::new(lum_src));
-        let bitmatrix = binarizer.getBlackMatrix().unwrap();
+        let binarizer = HybridBinarizer::new(lum_src);
+        let bitmatrix = binarizer.get_black_matrix().unwrap();
 
         // let i: image::DynamicImage = bitmatrix.into();
         // i.save("dbgfle.png").expect("should write image");
