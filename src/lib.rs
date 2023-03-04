@@ -89,6 +89,8 @@ pub mod pdf417;
 
 mod multi_format_writer;
 pub use multi_format_writer::*;
+mod multi_use_multi_format_reader;
+pub use multi_use_multi_format_reader::*;
 
 mod multi_format_reader;
 pub use multi_format_reader::*;
