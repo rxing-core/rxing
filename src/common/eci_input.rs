@@ -20,6 +20,8 @@ use std::fmt::Display;
 
 use crate::common::Result;
 
+use super::Eci;
+
 /**
  * Interface to navigate a sequence of ECIs and bytes.
  *
@@ -105,6 +107,6 @@ pub trait ECIInput: Display {
      * @throws  IllegalArgumentException
      *          if the value at the {@code index} argument is not an ECI (@see #isECI)
      */
-    fn getECIValue(&self, index: usize) -> Result<i32>;
+    fn getECIValue(&self, index: usize) -> Result<Eci>;
     fn haveNCharacters(&self, index: usize, n: usize) -> Result<bool>;
 }

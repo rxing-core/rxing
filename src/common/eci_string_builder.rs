@@ -25,7 +25,7 @@ use std::fmt;
 
 use crate::common::Result;
 
-use super::CharacterSet;
+use super::{CharacterSet, Eci};
 
 /**
  * Class that converts a sequence of ECIs and bytes into a string
@@ -35,7 +35,7 @@ use super::CharacterSet;
 pub struct ECIStringBuilder {
     current_bytes: Vec<u8>,
     result: String,
-    current_charset: Option<CharacterSet>, //= StandardCharsets.ISO_8859_1;
+    current_charset: CharacterSet, //= StandardCharsets.ISO_8859_1;
 }
 
 impl ECIStringBuilder {
@@ -43,14 +43,14 @@ impl ECIStringBuilder {
         Self {
             current_bytes: Vec::new(),
             result: String::new(),
-            current_charset: Some(CharacterSet::ISO8859_1),
+            current_charset: CharacterSet::ISO8859_1,
         }
     }
     pub fn with_capacity(initial_capacity: usize) -> Self {
         Self {
             current_bytes: Vec::with_capacity(initial_capacity),
             result: String::with_capacity(initial_capacity),
-            current_charset: Some(CharacterSet::ISO8859_1),
+            current_charset: CharacterSet::ISO8859_1,
         }
     }
 
@@ -101,11 +101,10 @@ impl ECIStringBuilder {
      * @param value ECI value to append, as an int
      * @throws FormatException on invalid ECI value
      */
-    pub fn appendECI(&mut self, value: u32) -> Result<()> {
+    pub fn appendECI(&mut self, eci: Eci) -> Result<()> {
         self.encodeCurrentBytesIfAny();
 
-        self.current_charset = CharacterSet::get_character_set_by_eci(value).ok();
-
+        self.current_charset = eci.into(); //CharacterSet::get_character_set_by_eci(value).ok();
 
         // if let Ok(character_set_eci) = CharacterSetECI::getCharacterSetECIByValue(value) {
         //     // dbg!(
@@ -126,8 +125,8 @@ impl ECIStringBuilder {
     ///
     /// This function can panic
     pub fn encodeCurrentBytesIfAny(&mut self) {
-        if let Some(encoder) = self.current_charset {
-            if encoder == CharacterSet::UTF8 {
+        if ![CharacterSet::Binary, CharacterSet::Unknown].contains(&self.current_charset) {
+            if self.current_charset == CharacterSet::UTF8 {
                 if !self.current_bytes.is_empty() {
                     self.result.push_str(
                         &String::from_utf8(std::mem::take(&mut self.current_bytes)).unwrap(),
@@ -137,7 +136,7 @@ impl ECIStringBuilder {
             } else if !self.current_bytes.is_empty() {
                 let bytes = std::mem::take(&mut self.current_bytes);
                 self.current_bytes.clear();
-                let encoded_value = encoder.decode(&bytes).unwrap();
+                let encoded_value = self.current_charset.decode(&bytes).unwrap();
                 self.result.push_str(&encoded_value);
             }
         } else {

@@ -88,8 +88,8 @@ pub use grid_sampler::*;
 mod default_grid_sampler;
 pub use default_grid_sampler::*;
 
-mod character_set_eci;
-pub use character_set_eci::*;
+mod character_set;
+pub use character_set::*;
 
 mod eci_string_builder;
 pub use eci_string_builder::*;
@@ -105,6 +105,9 @@ pub use global_histogram_binarizer::*;
 
 mod hybrid_binarizer;
 pub use hybrid_binarizer::*;
+
+mod eci;
+pub use eci::*;
 
 #[cfg(feature = "otsu_level")]
 mod otsu_level_binarizer;

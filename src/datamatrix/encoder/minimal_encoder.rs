@@ -17,7 +17,7 @@
 use std::{fmt, rc::Rc};
 
 use crate::{
-    common::{CharacterSet, ECIInput, MinimalECIInput, Result},
+    common::{CharacterSet, ECIInput, MinimalECIInput, Result, Eci},
     Exceptions,
 };
 
@@ -1441,7 +1441,7 @@ impl Input {
     fn isFNC1(&self, index: usize) -> Result<bool> {
         self.internal.isFNC1(index)
     }
-    fn getECIValue(&self, index: usize) -> Result<i32> {
+    fn getECIValue(&self, index: usize) -> Result<Eci> {
         self.internal.getECIValue(index)
     }
 }

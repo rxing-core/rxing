@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    common::{BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Result},
+    common::{BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Result, Eci},
     Exceptions,
 };
 
@@ -739,19 +739,19 @@ fn decodeBase256Segment(
 fn decodeECISegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Result<bool> {
     let firstByte = bits.readBits(8)?;
     if firstByte <= 127 {
-        result.appendECI(firstByte - 1)?;
+        result.appendECI(Eci::from(firstByte - 1))?;
         return Ok(true);
     }
 
     let secondByte = bits.readBits(8)?;
     if firstByte <= 191 {
-        result.appendECI((firstByte - 128) * 254 + 127 + secondByte - 1)?;
+        result.appendECI(Eci::from((firstByte - 128) * 254 + 127 + secondByte - 1))?;
         return Ok((firstByte - 128) * 254 + 127 + secondByte - 1 > 900);
     }
 
     let thirdByte = bits.readBits(8)?;
 
-    result.appendECI((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1)?;
+    result.appendECI(Eci::from((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1))?;
     Ok((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1 > 900)
 }
 

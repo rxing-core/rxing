@@ -24,7 +24,7 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::{
     common::{
         reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonEncoder},
-        BitArray, CharacterSet, Result,
+        BitArray, CharacterSet, Result, Eci,
     },
     qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
     EncodeHintType, EncodeHintValue, EncodingHintDictionary, Exceptions,
@@ -32,7 +32,7 @@ use crate::{
 
 use super::{mask_util, matrix_util, BlockPair, ByteMatrix, MinimalEncoder, QRCode};
 
-static SHIFT_JIS_CHARSET: CharacterSet = CharacterSet::SJIS;
+static SHIFT_JIS_CHARSET: CharacterSet = CharacterSet::Shift_JIS;
 
 // The original table is defined in the table 5 of JISX0510:2004 (p.19).
 const ALPHANUMERIC_TABLE: [i8; 96] = [
@@ -137,7 +137,7 @@ pub fn encode_with_hints(
 
         // Append ECI segment if applicable
         if mode == Mode::BYTE && has_encoding_hint {
-            appendECI(&encoding, &mut header_bits)?;
+            appendECI(encoding.into(), &mut header_bits)?;
         }
 
         // Append the FNC1 mode header for GS1 formatted data if applicable
@@ -762,8 +762,8 @@ pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<()> {
     Ok(())
 }
 
-fn appendECI(eci: &CharacterSet, bits: &mut BitArray) -> Result<()> {
+fn appendECI(eci: Eci, bits: &mut BitArray) -> Result<()> {
     bits.appendBits(Mode::ECI.getBits() as u32, 4)?;
     // This is correct for values up to 127, which is all we need now.
-    bits.appendBits(eci.get_eci_value(), 8)
+    bits.appendBits(eci as u32, 8)
 }

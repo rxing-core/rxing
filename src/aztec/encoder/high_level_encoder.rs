@@ -242,7 +242,7 @@ impl HighLevelEncoder {
         //if let Some(eci) = CharacterSetECI::getCharacterSetECI(self.charset) {
         if self.charset != CharacterSet::ISO8859_1 {
             //} && eci != CharacterSetECI::Cp1252 {
-            initial_state = initial_state.appendFLGn(self.charset.get_eci_value())?;
+            initial_state = initial_state.appendFLGn(self.charset.into())?;
         }
         // } else {
         //     return Err(Exceptions::illegal_argument_with(

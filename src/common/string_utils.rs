@@ -48,7 +48,7 @@ const ASSUME_SHIFT_JIS: bool = false;
 // static SHIFT_JIS: &'static str = "SJIS";
 // static GB2312: &'static str = "GB2312";
 
-pub static SHIFT_JIS_CHARSET: CharacterSet = CharacterSet::SJIS;
+pub static SHIFT_JIS_CHARSET: CharacterSet = CharacterSet::Shift_JIS;
 
 //    private static final boolean ASSUME_SHIFT_JIS =
 //        SHIFT_JIS_CHARSET.equals(PLATFORM_DEFAULT_ENCODING) ||
@@ -64,7 +64,7 @@ impl StringUtils {
      */
     pub fn guessEncoding(bytes: &[u8], hints: &DecodingHintDictionary) -> Option<&'static str> {
         let c = StringUtils::guessCharset(bytes, hints)?;
-        if c == CharacterSet::SJIS {
+        if c == CharacterSet::Shift_JIS {
             Some("SJIS")
         } else if c == CharacterSet::UTF8 {
             Some("UTF8")
@@ -101,7 +101,7 @@ impl StringUtils {
             && ((bytes[0] == 0xFE && bytes[1] == 0xFF) || (bytes[0] == 0xFF && bytes[1] == 0xFE))
         {
             if bytes[0] == 0xFE && bytes[1] == 0xFF {
-                return Some(CharacterSet::UnicodeBigUnmarked);
+                return Some(CharacterSet::UTF16BE);
             } else {
                 return Some(CharacterSet::UTF16LE);
             }
@@ -229,7 +229,7 @@ impl StringUtils {
                 || sjis_max_katakana_word_length >= 3
                 || sjis_max_double_bytes_word_length >= 3)
         {
-            return Some(CharacterSet::SJIS); //encoding::label::encoding_from_whatwg_label("SJIS");
+            return Some(CharacterSet::Shift_JIS); //encoding::label::encoding_from_whatwg_label("SJIS");
         }
         // Distinguishing Shift_JIS and ISO-8859-1 can be a little tough for short words. The crude heuristic is:
         // - If we saw
@@ -240,7 +240,7 @@ impl StringUtils {
             return if (sjis_max_katakana_word_length == 2 && sjis_katakana_chars == 2)
                 || iso_high_other * 10 >= length
             {
-                Some(CharacterSet::SJIS)
+                Some(CharacterSet::Shift_JIS)
             } else {
                 Some(CharacterSet::ISO8859_1)
             };
@@ -251,7 +251,7 @@ impl StringUtils {
             return Some(CharacterSet::ISO8859_1);
         }
         if can_be_shift_jis {
-            return Some(CharacterSet::SJIS);
+            return Some(CharacterSet::Shift_JIS);
         }
         if can_be_utf8 {
             return Some(CharacterSet::UTF8);

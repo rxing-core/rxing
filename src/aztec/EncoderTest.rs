@@ -148,7 +148,7 @@ fn testAztecWriter() {
     testWriter("\u{20AC} 1 sample data.", Some(ISO_8859_15), 0, true, 2);
     testWriter(
         "\u{20AC} 1 sample data.",
-        Some(CharacterSet::UnicodeBigUnmarked),
+        Some(CharacterSet::UTF16BE),
         0,
         true,
         3,

@@ -47,7 +47,7 @@ fn test_random() {
 #[test]
 fn test_short_shift_jis1() {
     // 金魚
-    do_test(&[0x8b, 0xe0, 0x8b, 0x9b], CharacterSet::SJIS, "SJIS");
+    do_test(&[0x8b, 0xe0, 0x8b, 0x9b], CharacterSet::Shift_JIS, "SJIS");
 }
 
 #[test]
@@ -71,7 +71,7 @@ fn test_mixed_shift_jis1() {
     // Hello 金!
     do_test(
         &[0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x8b, 0xe0, 0x21],
-        CharacterSet::SJIS,
+        CharacterSet::Shift_JIS,
         "SJIS",
     );
 }
@@ -81,8 +81,8 @@ fn test_utf16_be() {
     // 调压柜
     do_test(
         &[0xFE, 0xFF, 0x8c, 0x03, 0x53, 0x8b, 0x67, 0xdc],
-        CharacterSet::UnicodeBigUnmarked,
-        CharacterSet::UnicodeBigUnmarked.get_charset_name(),
+        CharacterSet::UTF16BE,
+        CharacterSet::UTF16BE.get_charset_name(),
     );
 }
 

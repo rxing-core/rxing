@@ -21,7 +21,7 @@
 use std::{any::TypeId, fmt::Display, str::FromStr};
 
 use crate::{
-    common::{CharacterSet, ECIInput, MinimalECIInput, Result},
+    common::{CharacterSet, ECIInput, MinimalECIInput, Result, Eci},
     Exceptions,
 };
 
@@ -205,7 +205,8 @@ pub fn encodeHighLevel(
             // }
 
             encodingECI(
-                CharacterSet::get_eci_value(&encoding.ok_or(Exceptions::ILLEGAL_STATE)?) as i32,
+                Eci::from(encoding.ok_or(Exceptions::ILLEGAL_STATE)?),
+                //CharacterSet::get_eci_value(&encoding.ok_or(Exceptions::ILLEGAL_STATE)?) as i32,
                 &mut sb,
             )?;
         }
@@ -797,17 +798,17 @@ fn determineConsecutiveBinaryCount<T: ECIInput + ?Sized + 'static>(
     Ok(idx as u32 - startpos)
 }
 
-fn encodingECI(eci: i32, sb: &mut String) -> Result<()> {
-    if (0..900).contains(&eci) {
+fn encodingECI(eci: Eci, sb: &mut String) -> Result<()> {
+    if (0..900).contains(&(eci as i32)) {
         sb.push(char::from_u32(ECI_CHARSET).ok_or(Exceptions::PARSE)?);
         sb.push(char::from_u32(eci as u32).ok_or(Exceptions::PARSE)?);
-    } else if eci < 810900 {
+    } else if (eci as i32 )< 810900 {
         sb.push(char::from_u32(ECI_GENERAL_PURPOSE).ok_or(Exceptions::PARSE)?);
-        sb.push(char::from_u32((eci / 900 - 1) as u32).ok_or(Exceptions::PARSE)?);
-        sb.push(char::from_u32((eci % 900) as u32).ok_or(Exceptions::PARSE)?);
-    } else if eci < 811800 {
+        sb.push(char::from_u32(((eci as i32) / 900 - 1) as u32).ok_or(Exceptions::PARSE)?);
+        sb.push(char::from_u32(((eci as i32) % 900) as u32).ok_or(Exceptions::PARSE)?);
+    } else if (eci as i32) < 811800 {
         sb.push(char::from_u32(ECI_USER_DEFINED).ok_or(Exceptions::PARSE)?);
-        sb.push(char::from_u32((810900 - eci) as u32).ok_or(Exceptions::PARSE)?);
+        sb.push(char::from_u32((810900 - (eci as i32)) as u32).ok_or(Exceptions::PARSE)?);
     } else {
         return Err(Exceptions::writer_with(format!(
             "ECI number not in valid range from 0..811799, but was {eci}"
@@ -838,8 +839,8 @@ impl ECIInput for NoECIInput {
         Ok(false)
     }
 
-    fn getECIValue(&self, _index: usize) -> Result<i32> {
-        Ok(-1)
+    fn getECIValue(&self, _index: usize) -> Result<Eci> {
+        Ok(Eci::Unknown)
     }
 
     fn haveNCharacters(&self, index: usize, n: usize) -> Result<bool> {

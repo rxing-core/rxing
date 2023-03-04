@@ -28,7 +28,7 @@ use once_cell::sync::Lazy;
 
 use super::QRCode;
 
-static SHIFT_JIS_CHARSET: Lazy<CharacterSet> = Lazy::new(|| CharacterSet::SJIS);
+static SHIFT_JIS_CHARSET: Lazy<CharacterSet> = Lazy::new(|| CharacterSet::Shift_JIS);
 
 /**
  * @author satorux@google.com (Satoru Takabayashi) - creator

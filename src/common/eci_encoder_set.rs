@@ -16,7 +16,7 @@
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use super::CharacterSet;
+use super::{CharacterSet, Eci};
 
 use once_cell::sync::Lazy;
 
@@ -100,7 +100,7 @@ impl ECIEncoderSet {
         neededEncoders.push(CharacterSet::ISO8859_1);
         let mut needUnicodeEncoder = if let Some(pc) = priorityCharset {
             //pc.name().starts_with("UTF") || pc.name().starts_with("utf")
-            pc == CharacterSet::UTF8 || pc == CharacterSet::UnicodeBigUnmarked
+            pc == CharacterSet::UTF8 || pc == CharacterSet::UTF16BE
         } else {
             false
         };
@@ -157,7 +157,7 @@ impl ECIEncoderSet {
             }
 
             encoders.push(CharacterSet::UTF8);
-            encoders.push(CharacterSet::UnicodeBigUnmarked);
+            encoders.push(CharacterSet::UTF16BE);
         }
 
         //Compute priorityEncoderIndex by looking up priorityCharset in encoders
@@ -206,8 +206,8 @@ impl ECIEncoderSet {
         }
     }
 
-    pub fn getECIValue(&self, encoderIndex: usize) -> u32 {
-        self.encoders[encoderIndex].get_eci_value()
+    pub fn get_eci(&self, encoderIndex: usize) -> Eci {
+        self.encoders[encoderIndex].into()
         // CharacterSetECI::getValue(
         //     &CharacterSetECI::getCharacterSetECI(self.encoders[encoderIndex]).unwrap(),
         // )

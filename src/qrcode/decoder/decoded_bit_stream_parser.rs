@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    common::{BitSource, CharacterSet, DecoderRXingResult, Result, StringUtils},
+    common::{BitSource, CharacterSet, DecoderRXingResult, Result, StringUtils, Eci},
     DecodingHintDictionary, Exceptions,
 };
 
@@ -91,7 +91,7 @@ pub fn decode(
             Mode::ECI => {
                 // Count doesn't apply to ECI
                 let value = parseECIValue(&mut bits)?;
-                currentCharacterSetECI = CharacterSet::get_character_set_by_eci(value).ok();
+                currentCharacterSetECI = CharacterSet::from(Eci::from(value)).into();//CharacterSet::get_character_set_by_eci(value).ok();
                 if currentCharacterSetECI.is_none() {
                     return Err(Exceptions::format_with(format!(
                         "Value of {value} not valid"
@@ -249,7 +249,7 @@ fn decodeKanjiSegment(
     let encoder = {
         let _ = currentCharacterSetECI;
         let _ = hints;
-        CharacterSet::SJIS
+        CharacterSet::Shift_JIS
     };
 
     #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
@@ -262,7 +262,7 @@ fn decodeKanjiSegment(
             CharacterSet::ISO8859_1
         }
     } else {
-        CharacterSet::SJIS
+        CharacterSet::Shift_JIS
     };
 
     let encode_string = encoder

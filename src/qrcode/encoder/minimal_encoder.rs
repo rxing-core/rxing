@@ -1001,7 +1001,7 @@ impl RXingResultNode {
             )?;
         }
         if self.mode == Mode::ECI {
-            bits.appendBits(self.encoders.getECIValue(self.charsetEncoderIndex), 8)?;
+            bits.appendBits(self.encoders.get_eci(self.charsetEncoderIndex) as u32, 8)?;
         } else if self.characterLength > 0 {
             // append data
             qrcode_encoder::appendBytes(
