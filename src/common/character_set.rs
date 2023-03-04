@@ -28,34 +28,34 @@ use crate::Exceptions;
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum CharacterSet {
     // Enum name is a Java encoding valid for java.lang and java.io
-    Cp437,     //(new int[]{0,2}),
-    ISO8859_1, //(new int[]{1,3}, "ISO-8859-1"),
-    ISO8859_2, //(4, "ISO-8859-2"),
-    ISO8859_3, //(5, "ISO-8859-3"),
-    ISO8859_4, //(6, "ISO-8859-4"),
-    ISO8859_5, //(7, "ISO-8859-5"),
-    ISO8859_6,          //(8, "ISO-8859-6"),
-    ISO8859_7, //(9, "ISO-8859-7"),
-    ISO8859_8,          //(10, "ISO-8859-8"),
-    ISO8859_9, //(11, "ISO-8859-9"),
-    ISO8859_10,         //(12, "ISO-8859-10"),
-    ISO8859_11,         //(13, "ISO-8859-11"),
+    Cp437,      //(new int[]{0,2}),
+    ISO8859_1,  //(new int[]{1,3}, "ISO-8859-1"),
+    ISO8859_2,  //(4, "ISO-8859-2"),
+    ISO8859_3,  //(5, "ISO-8859-3"),
+    ISO8859_4,  //(6, "ISO-8859-4"),
+    ISO8859_5,  //(7, "ISO-8859-5"),
+    ISO8859_6,  //(8, "ISO-8859-6"),
+    ISO8859_7,  //(9, "ISO-8859-7"),
+    ISO8859_8,  //(10, "ISO-8859-8"),
+    ISO8859_9,  //(11, "ISO-8859-9"),
+    ISO8859_10, //(12, "ISO-8859-10"),
+    ISO8859_11, //(13, "ISO-8859-11"),
     ISO8859_13, //(15, "ISO-8859-13"),
-    ISO8859_14,         //(16, "ISO-8859-14"),
-    ISO8859_15,         //(17, "ISO-8859-15"),
-    ISO8859_16,         //(18, "ISO-8859-16"),
-    Shift_JIS,               //(20, "Shift_JIS"),
-    Cp1250,             //(21, "windows-1250"),
-    Cp1251,             //(22, "windows-1251"),
-    Cp1252,             //(23, "windows-1252"),
-    Cp1256,             //(24, "windows-1256"),
-    UTF16BE, //(25, "UTF-16BE", "UnicodeBig"),
-    UTF8,               //(26, "UTF-8"),
-    ASCII,              //(new int[] {27, 170}, "US-ASCII"),
-    Big5,               //(28),
+    ISO8859_14, //(16, "ISO-8859-14"),
+    ISO8859_15, //(17, "ISO-8859-15"),
+    ISO8859_16, //(18, "ISO-8859-16"),
+    Shift_JIS,  //(20, "Shift_JIS"),
+    Cp1250,     //(21, "windows-1250"),
+    Cp1251,     //(22, "windows-1251"),
+    Cp1252,     //(23, "windows-1252"),
+    Cp1256,     //(24, "windows-1256"),
+    UTF16BE,    //(25, "UTF-16BE", "UnicodeBig"),
+    UTF8,       //(26, "UTF-8"),
+    ASCII,      //(new int[] {27, 170}, "US-ASCII"),
+    Big5,       //(28),
     GB2312,
-    GB18030,            //(29, "GB2312", "EUC_CN", "GBK"),
-    EUC_KR,             //(30, "EUC-KR");
+    GB18030, //(29, "GB2312", "EUC_CN", "GBK"),
+    EUC_KR,  //(30, "EUC-KR");
     UTF16LE,
     UTF32BE,
     UTF32LE,
@@ -278,9 +278,9 @@ impl CharacterSet {
             "iso-8859-3" => Some(CharacterSet::ISO8859_3),
             "iso-8859-4" => Some(CharacterSet::ISO8859_4),
             "iso-8859-5" => Some(CharacterSet::ISO8859_5),
-            "ISO-8859-6" => Some(CharacterSet::ISO8859_6),
+            "iso-8859-6" => Some(CharacterSet::ISO8859_6),
             "iso-8859-7" => Some(CharacterSet::ISO8859_7),
-            "ISO-8859-8" => Some(CharacterSet::ISO8859_8),
+            "iso-8859-8" => Some(CharacterSet::ISO8859_8),
             "iso-8859-9" => Some(CharacterSet::ISO8859_9),
             "ISO-8859-10" => Some(CharacterSet::ISO8859_10),
             "ISO-8859-11" => Some(CharacterSet::ISO8859_11),
@@ -300,9 +300,9 @@ impl CharacterSet {
             "gb2312" => Some(CharacterSet::GB2312),
             "gb18030" => Some(CharacterSet::GB18030),
             "euc-kr" => Some(CharacterSet::EUC_KR),
-            "utf-32be"=>Some(CharacterSet::UTF32BE) ,
-            "utf-32le"=>Some(CharacterSet::UTF32LE) ,
-            "binary"=>Some(CharacterSet::Binary) ,
+            "utf-32be" => Some(CharacterSet::UTF32BE),
+            "utf-32le" => Some(CharacterSet::UTF32LE),
+            "binary" => Some(CharacterSet::Binary),
             "unknown" => Some(CharacterSet::Unknown),
             _ => None,
         }
@@ -313,11 +313,14 @@ impl CharacterSet {
             use codepage_437::ToCp437;
             use codepage_437::CP437_CONTROL;
 
-             input.to_cp437(&CP437_CONTROL).map(|data| data.to_vec()).map_err(|e| Exceptions::format_with(format!("{e:?}")))
-        }else {
-        self.get_base_encoder()
-            .encode(input, encoding::EncoderTrap::Strict)
-            .map_err(|e| Exceptions::format_with(e.to_string()))
+            input
+                .to_cp437(&CP437_CONTROL)
+                .map(|data| data.to_vec())
+                .map_err(|e| Exceptions::format_with(format!("{e:?}")))
+        } else {
+            self.get_base_encoder()
+                .encode(input, encoding::EncoderTrap::Strict)
+                .map_err(|e| Exceptions::format_with(e.to_string()))
         }
     }
 

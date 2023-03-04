@@ -17,7 +17,7 @@
 use std::fmt;
 
 use crate::{
-    common::{BitArray, CharacterSet, Result, Eci},
+    common::{BitArray, CharacterSet, Eci, Result},
     exceptions::Exceptions,
 };
 

@@ -19,7 +19,7 @@ use num::{self, bigint::ToBigUint, BigUint};
 use std::rc::Rc;
 
 use crate::{
-    common::{DecoderRXingResult, ECIStringBuilder, Result, Eci},
+    common::{DecoderRXingResult, ECIStringBuilder, Eci, Result},
     pdf417::PDF417RXingResultMetadata,
     Exceptions,
 };

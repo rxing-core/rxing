@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    common::{BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Result, Eci},
+    common::{BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Eci, Result},
     Exceptions,
 };
 
@@ -751,7 +751,9 @@ fn decodeECISegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Resu
 
     let thirdByte = bits.readBits(8)?;
 
-    result.appendECI(Eci::from((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1))?;
+    result.appendECI(Eci::from(
+        (firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1,
+    ))?;
     Ok((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1 > 900)
 }
 

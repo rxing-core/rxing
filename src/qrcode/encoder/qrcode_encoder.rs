@@ -24,7 +24,7 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::{
     common::{
         reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonEncoder},
-        BitArray, CharacterSet, Result, Eci,
+        BitArray, CharacterSet, Eci, Result,
     },
     qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
     EncodeHintType, EncodeHintValue, EncodingHintDictionary, Exceptions,
@@ -716,11 +716,7 @@ pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<()>
     Ok(())
 }
 
-pub fn append8BitBytes(
-    content: &str,
-    bits: &mut BitArray,
-    encoding: CharacterSet,
-) -> Result<()> {
+pub fn append8BitBytes(content: &str, bits: &mut BitArray, encoding: CharacterSet) -> Result<()> {
     let bytes = encoding
         .encode(content)
         .map_err(|e| Exceptions::writer_with(format!("error {e}")))?;

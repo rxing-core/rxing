@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    common::{BitSource, CharacterSet, DecoderRXingResult, Result, StringUtils, Eci},
+    common::{BitSource, CharacterSet, DecoderRXingResult, Eci, Result, StringUtils},
     DecodingHintDictionary, Exceptions,
 };
 
@@ -91,7 +91,7 @@ pub fn decode(
             Mode::ECI => {
                 // Count doesn't apply to ECI
                 let value = parseECIValue(&mut bits)?;
-                currentCharacterSetECI = CharacterSet::from(Eci::from(value)).into();//CharacterSet::get_character_set_by_eci(value).ok();
+                currentCharacterSetECI = CharacterSet::from(Eci::from(value)).into(); //CharacterSet::get_character_set_by_eci(value).ok();
                 if currentCharacterSetECI.is_none() {
                     return Err(Exceptions::format_with(format!(
                         "Value of {value} not valid"

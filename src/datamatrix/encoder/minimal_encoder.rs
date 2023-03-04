@@ -17,7 +17,7 @@
 use std::{fmt, rc::Rc};
 
 use crate::{
-    common::{CharacterSet, ECIInput, MinimalECIInput, Result, Eci},
+    common::{CharacterSet, ECIInput, Eci, MinimalECIInput, Result},
     Exceptions,
 };
 

@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use super::CharacterSet;
 
-#[derive(Copy,Clone,Debug,PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Eci {
     Unknown = -1,
     Cp437 = 2, // obsolete
@@ -126,9 +126,9 @@ impl From<CharacterSet> for Eci {
             CharacterSet::ISO8859_6 => Eci::ISO8859_6,
             CharacterSet::ISO8859_8 => Eci::ISO8859_8,
             CharacterSet::ISO8859_10 => Eci::ISO8859_10,
-            CharacterSet::ISO8859_11 =>Eci::ISO8859_11,
+            CharacterSet::ISO8859_11 => Eci::ISO8859_11,
             CharacterSet::ISO8859_14 => Eci::ISO8859_14,
-         _=>Eci::Unknown,
+            _ => Eci::Unknown,
         }
     }
 }
@@ -176,6 +176,6 @@ impl From<Eci> for CharacterSet {
 
 impl Display for Eci {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}", *self as i32)
+        write!(f, "{}", *self as i32)
     }
 }

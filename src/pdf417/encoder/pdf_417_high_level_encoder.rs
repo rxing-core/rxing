@@ -21,7 +21,7 @@
 use std::{any::TypeId, fmt::Display, str::FromStr};
 
 use crate::{
-    common::{CharacterSet, ECIInput, MinimalECIInput, Result, Eci},
+    common::{CharacterSet, ECIInput, Eci, MinimalECIInput, Result},
     Exceptions,
 };
 
@@ -802,7 +802,7 @@ fn encodingECI(eci: Eci, sb: &mut String) -> Result<()> {
     if (0..900).contains(&(eci as i32)) {
         sb.push(char::from_u32(ECI_CHARSET).ok_or(Exceptions::PARSE)?);
         sb.push(char::from_u32(eci as u32).ok_or(Exceptions::PARSE)?);
-    } else if (eci as i32 )< 810900 {
+    } else if (eci as i32) < 810900 {
         sb.push(char::from_u32(ECI_GENERAL_PURPOSE).ok_or(Exceptions::PARSE)?);
         sb.push(char::from_u32(((eci as i32) / 900 - 1) as u32).ok_or(Exceptions::PARSE)?);
         sb.push(char::from_u32(((eci as i32) % 900) as u32).ok_or(Exceptions::PARSE)?);
@@ -908,13 +908,8 @@ mod PDF417EncoderTestCase {
 
     #[test]
     fn testEncodeNumeric() {
-        let encoded = encodeHighLevel(
-            "1234",
-            Compaction::NUMERIC,
-            Some(CharacterSet::UTF8),
-            false,
-        )
-        .expect("encode");
+        let encoded = encodeHighLevel("1234", Compaction::NUMERIC, Some(CharacterSet::UTF8), false)
+            .expect("encode");
         assert_eq!("\u{039f}\u{001A}\u{0386}\u{C}\u{01b2}", encoded);
         // converted \f to \u{0046}
     }
