@@ -16,10 +16,8 @@
 
 use std::collections::HashMap;
 
-use encoding::EncodingRef;
-
 use crate::{
-    common::{BitMatrix, Result},
+    common::{BitMatrix, CharacterSet, Result},
     exceptions::Exceptions,
     BarcodeFormat, EncodeHintType, EncodeHintValue, Writer,
 };
@@ -58,10 +56,7 @@ impl Writer for AztecWriter {
             hints.get(&EncodeHintType::CHARACTER_SET)
         {
             if cset_name.to_lowercase() != "iso-8859-1" {
-                charset = Some(
-                    encoding::label::encoding_from_whatwg_label(cset_name)
-                        .ok_or(Exceptions::ILLEGAL_ARGUMENT)?,
-                );
+                charset = CharacterSet::get_character_set_by_name(cset_name);
             }
         }
         if let Some(EncodeHintValue::ErrorCorrection(ecc_level)) =
@@ -91,7 +86,7 @@ fn encode(
     format: BarcodeFormat,
     width: u32,
     height: u32,
-    charset: Option<EncodingRef>,
+    charset: Option<CharacterSet>,
     ecc_percent: u32,
     layers: i32,
 ) -> Result<BitMatrix> {

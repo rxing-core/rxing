@@ -16,16 +16,14 @@
 
 use std::{fmt, rc::Rc};
 
-use encoding::{self, EncodingRef};
-
 use crate::{
-    common::{ECIInput, MinimalECIInput, Result},
+    common::{CharacterSet, ECIInput, Eci, MinimalECIInput, Result},
     Exceptions,
 };
 
 use super::{high_level_encoder, SymbolShapeHint};
 
-const ISO_8859_1_ENCODER: EncodingRef = encoding::all::ISO_8859_1;
+const ISO_8859_1_ENCODER: CharacterSet = CharacterSet::ISO8859_1;
 
 /**
  * Encoder that encodes minimally
@@ -153,7 +151,7 @@ pub fn encodeHighLevel(msg: &str) -> Result<String> {
  */
 pub fn encodeHighLevelWithDetails(
     msg: &str,
-    priorityCharset: Option<EncodingRef>,
+    priorityCharset: Option<CharacterSet>,
     fnc1: Option<char>,
     shape: SymbolShapeHint,
 ) -> Result<String> {
@@ -173,10 +171,7 @@ pub fn encodeHighLevelWithDetails(
         msg = &msg[high_level_encoder::MACRO_06_HEADER.chars().count()..(msg.chars().count() - 2)];
     }
     Ok(ISO_8859_1_ENCODER
-        .decode(
-            &encode(msg, priorityCharset, fnc1, shape, macroId)?,
-            encoding::DecoderTrap::Strict,
-        )
+        .decode(&encode(msg, priorityCharset, fnc1, shape, macroId)?)
         .expect("should decode"))
     // return new String(encode(msg, priorityCharset, fnc1, shape, macroId), StandardCharsets.ISO_8859_1);
 }
@@ -197,7 +192,7 @@ pub fn encodeHighLevelWithDetails(
  */
 fn encode(
     input: &str,
-    priorityCharset: Option<EncodingRef>,
+    priorityCharset: Option<CharacterSet>,
     fnc1: Option<char>,
     shape: SymbolShapeHint,
     macroId: i32,
@@ -1398,7 +1393,7 @@ struct Input {
 impl Input {
     pub fn new(
         stringToEncode: &str,
-        priorityCharset: Option<EncodingRef>,
+        priorityCharset: Option<CharacterSet>,
         fnc1: Option<char>,
         shape: SymbolShapeHint,
         macroId: i32,
@@ -1446,7 +1441,7 @@ impl Input {
     fn isFNC1(&self, index: usize) -> Result<bool> {
         self.internal.isFNC1(index)
     }
-    fn getECIValue(&self, index: usize) -> Result<i32> {
+    fn getECIValue(&self, index: usize) -> Result<Eci> {
         self.internal.getECIValue(index)
     }
 }

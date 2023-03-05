@@ -16,10 +16,8 @@
 
 use std::fmt;
 
-use encoding::Encoding;
-
 use crate::{
-    common::{BitArray, Result},
+    common::{BitArray, CharacterSet, Eci, Result},
     exceptions::Exceptions,
 };
 
@@ -73,7 +71,7 @@ impl State {
         self.bit_count
     }
 
-    pub fn appendFLGn(self, eci: u32) -> Result<Self> {
+    pub fn appendFLGn(self, eci: Eci) -> Result<Self> {
         let bit_count = self.bit_count;
         let mode = self.mode;
         let result = self.shiftAndAppend(HighLevelEncoder::MODE_PUNCT as u32, 0); // 0: FLG(n)
@@ -82,14 +80,14 @@ impl State {
         /*if eci < 0 {
             token.add(0, 3); // 0: FNC1
         } else */
-        if eci > 999999 {
+        if eci as u32 > 999999 {
             return Err(Exceptions::illegal_argument_with(
                 "ECI code must be between 0 and 999999",
             ));
             // throw new IllegalArgumentException("ECI code must be between 0 and 999999");
         } else {
-            let Ok(eci_digits) = encoding::all::ISO_8859_1
-                .encode(&format!("{eci}"), encoding::EncoderTrap::Strict)
+            let Ok(eci_digits) = CharacterSet::ISO8859_1
+                .encode(&format!("{eci}"))
                  else {
                     return Err(Exceptions::ILLEGAL_ARGUMENT)
                  };

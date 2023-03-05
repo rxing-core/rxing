@@ -14,31 +14,17 @@
  * limitations under the License.
  */
 
-// package com.google.zxing.common;
-
-// import java.nio.charset.Charset;
-// import java.nio.charset.CharsetEncoder;
-// import java.nio.charset.StandardCharsets;
-// import java.nio.charset.UnsupportedCharsetException;
-// import java.util.ArrayList;
-// import java.util.List;
-
-use encoding::{Encoding, EncodingRef};
 use unicode_segmentation::UnicodeSegmentation;
 
-use super::CharacterSetECI;
+use super::{CharacterSet, Eci};
 
 use once_cell::sync::Lazy;
 
-static ENCODERS: Lazy<Vec<EncodingRef>> = Lazy::new(|| {
+static ENCODERS: Lazy<Vec<CharacterSet>> = Lazy::new(|| {
     let mut enc_vec = Vec::new();
     for name in NAMES {
-        if let Some(enc) = CharacterSetECI::getCharacterSetECIByName(name) {
-            // try {
-            enc_vec.push(CharacterSetECI::getCharset(&enc));
-            // } catch (UnsupportedCharsetException e) {
-            // continue
-            // }
+        if let Some(enc) = CharacterSet::get_character_set_by_name(name) {
+            enc_vec.push(enc);
         }
     }
     enc_vec
@@ -83,7 +69,7 @@ const NAMES: [&str; 20] = [
  */
 #[derive(Clone)]
 pub struct ECIEncoderSet {
-    encoders: Vec<EncodingRef>,
+    encoders: Vec<CharacterSet>,
     priorityEncoderIndex: Option<usize>,
 }
 
@@ -98,22 +84,23 @@ impl ECIEncoderSet {
      */
     pub fn new(
         stringToEncodeMain: &str,
-        priorityCharset: Option<EncodingRef>,
+        priorityCharset: Option<CharacterSet>,
         fnc1: Option<&str>,
     ) -> Self {
         // List of encoders that potentially encode characters not in ISO-8859-1 in one byte.
 
-        let mut encoders: Vec<EncodingRef>;
+        let mut encoders: Vec<CharacterSet>;
         let mut priorityEncoderIndexValue = None;
 
-        let mut neededEncoders: Vec<EncodingRef> = Vec::new();
+        let mut neededEncoders: Vec<CharacterSet> = Vec::new();
 
         let stringToEncode = stringToEncodeMain.graphemes(true).collect::<Vec<&str>>();
 
         //we always need the ISO-8859-1 encoder. It is the default encoding
-        neededEncoders.push(encoding::all::ISO_8859_1);
+        neededEncoders.push(CharacterSet::ISO8859_1);
         let mut needUnicodeEncoder = if let Some(pc) = priorityCharset {
-            pc.name().starts_with("UTF") || pc.name().starts_with("utf")
+            //pc.name().starts_with("UTF") || pc.name().starts_with("utf")
+            pc == CharacterSet::UTF8 || pc == CharacterSet::UTF16BE
         } else {
             false
         };
@@ -125,9 +112,7 @@ impl ECIEncoderSet {
             for encoder in &neededEncoders {
                 //   for (CharsetEncoder encoder : neededEncoders) {
                 let c = stringToEncode.get(i).unwrap();
-                if (fnc1.is_some() && c == fnc1.as_ref().unwrap())
-                    || encoder.encode(c, encoding::EncoderTrap::Strict).is_ok()
-                {
+                if (fnc1.is_some() && c == fnc1.as_ref().unwrap()) || encoder.encode(c).is_ok() {
                     canEncode = true;
                     break;
                 }
@@ -138,13 +123,7 @@ impl ECIEncoderSet {
                     // for encoder in ENCODERS {
                     let encoder = ENCODERS.get(i_encoder).unwrap();
                     // for (CharsetEncoder encoder : ENCODERS) {
-                    if encoder
-                        .encode(
-                            stringToEncode.get(i).unwrap(),
-                            encoding::EncoderTrap::Strict,
-                        )
-                        .is_ok()
-                    {
+                    if encoder.encode(stringToEncode.get(i).unwrap()).is_ok() {
                         //Good, we found an encoder that can encode the character. We add him to the list and continue scanning
                         //the input
                         neededEncoders.push(*encoder);
@@ -163,7 +142,7 @@ impl ECIEncoderSet {
 
         if neededEncoders.len() == 1 && !needUnicodeEncoder {
             //the entire input can be encoded by the ISO-8859-1 encoder
-            encoders = vec![encoding::all::ISO_8859_1];
+            encoders = vec![CharacterSet::ISO8859_1];
         } else {
             // we need more than one single byte encoder or we need a Unicode encoder.
             // In this case we append a UTF-8 and UTF-16 encoder to the list
@@ -177,8 +156,8 @@ impl ECIEncoderSet {
                 encoders.push(encoder);
             }
 
-            encoders.push(encoding::all::UTF_8);
-            encoders.push(encoding::all::UTF_16BE);
+            encoders.push(CharacterSet::UTF8);
+            encoders.push(CharacterSet::UTF16BE);
         }
 
         //Compute priorityEncoderIndex by looking up priorityCharset in encoders
@@ -187,7 +166,8 @@ impl ECIEncoderSet {
             // for i in 0..encoders.len() {
             for (i, encoder) in encoders.iter().enumerate() {
                 //   for (int i = 0; i < encoders.length; i++) {
-                if priorityCharset.as_ref().unwrap().name() == encoder.name() {
+                // if priorityCharset.as_ref().unwrap().name() == encoder.name() {
+                if priorityCharset.as_ref().unwrap() == encoder {
                     priorityEncoderIndexValue = Some(i);
                     break;
                 }
@@ -195,7 +175,7 @@ impl ECIEncoderSet {
         }
         // }
         //invariants
-        assert_eq!(encoders[0].name(), encoding::all::ISO_8859_1.name());
+        assert_eq!(encoders[0], CharacterSet::ISO8859_1);
         Self {
             encoders,
             priorityEncoderIndex: priorityEncoderIndexValue,
@@ -212,13 +192,13 @@ impl ECIEncoderSet {
 
     pub fn getCharsetName(&self, index: usize) -> Option<&'static str> {
         if index < self.len() {
-            Some(self.encoders[index].name())
+            Some(self.encoders[index].get_charset_name())
         } else {
             None
         }
     }
 
-    pub fn getCharset(&self, index: usize) -> Option<EncodingRef> {
+    pub fn getCharset(&self, index: usize) -> Option<CharacterSet> {
         if index < self.len() {
             Some(self.encoders[index])
         } else {
@@ -226,10 +206,11 @@ impl ECIEncoderSet {
         }
     }
 
-    pub fn getECIValue(&self, encoderIndex: usize) -> u32 {
-        CharacterSetECI::getValue(
-            &CharacterSetECI::getCharacterSetECI(self.encoders[encoderIndex]).unwrap(),
-        )
+    pub fn get_eci(&self, encoderIndex: usize) -> Eci {
+        self.encoders[encoderIndex].into()
+        // CharacterSetECI::getValue(
+        //     &CharacterSetECI::getCharacterSetECI(self.encoders[encoderIndex]).unwrap(),
+        // )
     }
 
     /*
@@ -242,7 +223,7 @@ impl ECIEncoderSet {
     pub fn canEncode(&self, c: &str, encoderIndex: usize) -> Option<bool> {
         if encoderIndex < self.len() {
             let encoder = self.encoders[encoderIndex];
-            let enc_data = encoder.encode(c, encoding::EncoderTrap::Strict);
+            let enc_data = encoder.encode(c);
 
             Some(enc_data.is_ok())
         } else {
@@ -253,7 +234,7 @@ impl ECIEncoderSet {
     pub fn encode_char(&self, c: &str, encoderIndex: usize) -> Option<Vec<u8>> {
         if encoderIndex < self.len() {
             let encoder = self.encoders[encoderIndex];
-            let enc_data = encoder.encode(c, encoding::EncoderTrap::Strict);
+            let enc_data = encoder.encode(c);
             enc_data.ok()
         // assert!(enc_data.is_ok());
         // enc_data.unwrap()
@@ -265,7 +246,7 @@ impl ECIEncoderSet {
     pub fn encode_string(&self, s: &str, encoderIndex: usize) -> Option<Vec<u8>> {
         if encoderIndex < self.len() {
             let encoder = self.encoders[encoderIndex];
-            encoder.encode(s, encoding::EncoderTrap::Strict).ok()
+            encoder.encode(s).ok()
         } else {
             None
         }

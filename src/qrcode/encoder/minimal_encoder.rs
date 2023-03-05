@@ -16,10 +16,8 @@
 
 use std::{fmt, rc::Rc};
 
-use encoding::EncodingRef;
-
 use crate::{
-    common::{BitArray, ECIEncoderSet, Result},
+    common::{BitArray, CharacterSet, ECIEncoderSet, Result},
     qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
     Exceptions,
 };
@@ -107,7 +105,7 @@ impl MinimalEncoder {
      */
     pub fn new(
         stringToEncode: &str,
-        priorityCharset: Option<EncodingRef>,
+        priorityCharset: Option<CharacterSet>,
         isGS1: bool,
         ecLevel: ErrorCorrectionLevel,
     ) -> Self {
@@ -142,7 +140,7 @@ impl MinimalEncoder {
     pub fn encode_with_details(
         stringToEncode: &str,
         version: Option<VersionRef>,
-        priorityCharset: Option<EncodingRef>,
+        priorityCharset: Option<CharacterSet>,
         isGS1: bool,
         ecLevel: ErrorCorrectionLevel,
     ) -> Result<RXingResultList> {
@@ -1003,7 +1001,7 @@ impl RXingResultNode {
             )?;
         }
         if self.mode == Mode::ECI {
-            bits.appendBits(self.encoders.getECIValue(self.charsetEncoderIndex), 8)?;
+            bits.appendBits(self.encoders.get_eci(self.charsetEncoderIndex) as u32, 8)?;
         } else if self.characterLength > 0 {
             // append data
             qrcode_encoder::appendBytes(
@@ -1047,7 +1045,7 @@ impl fmt::Display for RXingResultNode {
                 self.encoders
                     .getCharset(self.charsetEncoderIndex)
                     .ok_or(fmt::Error)?
-                    .name(),
+                    .get_charset_name(),
             );
         } else {
             let sub_string: String = self

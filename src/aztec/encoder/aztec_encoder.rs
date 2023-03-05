@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-use encoding::Encoding;
-
 use crate::{
     common::{
         reedsolomon::{
             get_predefined_genericgf, GenericGFRef, PredefinedGenericGF, ReedSolomonEncoder,
         },
-        BitArray, BitMatrix, Result,
+        BitArray, BitMatrix, CharacterSet, Result,
     },
     exceptions::Exceptions,
 };
@@ -51,10 +49,9 @@ pub const WORD_SIZE: [u32; 33] = [
  * @return Aztec symbol matrix with metadata
  */
 pub fn encode_simple(data: &str) -> Result<AztecCode> {
-    let Ok(bytes) = encoding::all::ISO_8859_1
-        .encode(data, encoding::EncoderTrap::Replace) else {
-            return Err(Exceptions::illegal_argument_with(format!("'{data}' cannot be encoded as ISO_8859_1")));
-        };
+    let Ok(bytes) =CharacterSet::ISO8859_1.encode_replace(data) else {
+        return Err(Exceptions::illegal_argument_with(format!("'{data}' cannot be encoded as ISO_8859_1")));
+    };
     encode_bytes_simple(&bytes)
 }
 
@@ -68,7 +65,7 @@ pub fn encode_simple(data: &str) -> Result<AztecCode> {
  * @return Aztec symbol matrix with metadata
  */
 pub fn encode(data: &str, minECCPercent: u32, userSpecifiedLayers: i32) -> Result<AztecCode> {
-    if let Ok(bytes) = encoding::all::ISO_8859_1.encode(data, encoding::EncoderTrap::Strict) {
+    if let Ok(bytes) = CharacterSet::ISO8859_1.encode(data) {
         encode_bytes(&bytes, minECCPercent, userSpecifiedLayers)
     } else {
         Err(Exceptions::illegal_argument_with(format!(
@@ -93,9 +90,9 @@ pub fn encode_with_charset(
     data: &str,
     minECCPercent: u32,
     userSpecifiedLayers: i32,
-    charset: encoding::EncodingRef,
+    charset: CharacterSet,
 ) -> Result<AztecCode> {
-    if let Ok(bytes) = charset.encode(data, encoding::EncoderTrap::Strict) {
+    if let Ok(bytes) = charset.encode(data) {
         encode_bytes_with_charset(&bytes, minECCPercent, userSpecifiedLayers, charset)
     } else {
         Err(Exceptions::illegal_argument_with(format!(
@@ -132,7 +129,7 @@ pub fn encode_bytes(
         data,
         minECCPercent,
         userSpecifiedLayers,
-        encoding::all::ISO_8859_1,
+        CharacterSet::ISO8859_1,
     )
 }
 
@@ -151,7 +148,7 @@ pub fn encode_bytes_with_charset(
     data: &[u8],
     min_eccpercent: u32,
     user_specified_layers: i32,
-    charset: encoding::EncodingRef,
+    charset: CharacterSet,
 ) -> Result<AztecCode> {
     // High-level encode
     let bits = HighLevelEncoder::with_charset(data.into(), charset).encode()?;

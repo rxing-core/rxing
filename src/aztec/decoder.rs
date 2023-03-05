@@ -19,7 +19,7 @@ use crate::{
         reedsolomon::{
             get_predefined_genericgf, GenericGFRef, PredefinedGenericGF, ReedSolomonDecoder,
         },
-        BitMatrix, CharacterSetECI, DecoderRXingResult, DetectorRXingResult, Result,
+        BitMatrix, CharacterSet, DecoderRXingResult, DetectorRXingResult, Eci, Result,
     },
     exceptions::Exceptions,
 };
@@ -113,8 +113,8 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
     // Intermediary buffer of decoded bytes, which is decoded into a string and flushed
     // when character encoding changes (ECI) or input ends.
     let mut decoded_bytes: Vec<u8> = Vec::new();
-    // let mut encdr: &'static dyn encoding::Encoding = encoding::all::UTF_8;
-    let mut encdr: encoding::EncodingRef = encoding::all::ISO_8859_1;
+
+    let mut encdr: CharacterSet = CharacterSet::ISO8859_1;
 
     let mut index = 0;
 
@@ -159,11 +159,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                 let mut n = read_code(corrected_bits, index, 3);
                 index += 3;
                 //  flush bytes, FLG changes state
-                result.push_str(
-                    &encdr
-                        .decode(&decoded_bytes, encoding::DecoderTrap::Strict)
-                        .map_err(Exceptions::illegal_state_with)?,
-                );
+                result.push_str(&encdr.decode(&decoded_bytes)?);
 
                 decoded_bytes.clear();
                 match n {
@@ -186,11 +182,11 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                             eci = eci * 10 + (next_digit - 2);
                             n -= 1;
                         }
-                        let charset_eci = CharacterSetECI::getCharacterSetECIByValue(eci);
-                        if charset_eci.is_err() {
+                        let charset_eci: Eci = eci.into();
+                        if charset_eci == Eci::Unknown {
                             return Err(Exceptions::format_with("Charset must exist"));
                         }
-                        encdr = CharacterSetECI::getCharset(&charset_eci?);
+                        encdr = charset_eci.into();
                     }
                 }
                 // Go back to whatever mode we had been in
@@ -207,7 +203,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                 }
             } else {
                 // Though stored as a table of strings for convenience, codes actually represent 1 or 2 *bytes*.
-                // let b = encoding::all::ASCII.encode(str, encoding::EncoderTrap::Strict).unwrap();
+
                 let b = str.as_bytes();
                 //let b = str.getBytes(StandardCharsets.US_ASCII);
                 //decodedBytes.write(b, 0, b.length);
@@ -220,7 +216,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
         }
     }
     //try {
-    if let Ok(str) = encdr.decode(&decoded_bytes, encoding::DecoderTrap::Strict) {
+    if let Ok(str) = encdr.decode(&decoded_bytes) {
         result.push_str(&str);
     } else {
         return Err(Exceptions::illegal_state_with("bad encoding"));

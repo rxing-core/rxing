@@ -19,7 +19,7 @@ use num::{self, bigint::ToBigUint, BigUint};
 use std::rc::Rc;
 
 use crate::{
-    common::{DecoderRXingResult, ECIStringBuilder, Result},
+    common::{DecoderRXingResult, ECIStringBuilder, Eci, Result},
     pdf417::PDF417RXingResultMetadata,
     Exceptions,
 };
@@ -128,7 +128,7 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult> {
                 codeIndex = numericCompaction(codewords, codeIndex, &mut result)?
             }
             ECI_CHARSET => {
-                result.appendECI(codewords[codeIndex])?;
+                result.appendECI(Eci::from(codewords[codeIndex]))?;
                 codeIndex += 1;
             }
             ECI_GENERAL_PURPOSE =>
@@ -387,7 +387,7 @@ fn textCompaction(
                     subMode,
                 )
                 .ok_or(Exceptions::ILLEGAL_STATE)?;
-                result.appendECI(codewords[codeIndex])?;
+                result.appendECI(Eci::from(codewords[codeIndex]))?;
                 codeIndex += 1;
                 textCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
                 byteCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
@@ -616,7 +616,7 @@ fn byteCompaction(
         //handle leading ECIs
         while codeIndex < codewords[0] as usize && codewords[codeIndex] == ECI_CHARSET {
             codeIndex += 1;
-            result.appendECI(codewords[codeIndex])?;
+            result.appendECI(Eci::from(codewords[codeIndex]))?;
             codeIndex += 1;
         }
 
@@ -654,7 +654,7 @@ fn byteCompaction(
                     if code < TEXT_COMPACTION_MODE_LATCH {
                         result.append_byte(code as u8);
                     } else if code == ECI_CHARSET {
-                        result.appendECI(codewords[codeIndex])?;
+                        result.appendECI(Eci::from(codewords[codeIndex]))?;
                         codeIndex += 1;
                     } else {
                         codeIndex -= 1;

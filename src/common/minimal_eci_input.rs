@@ -16,13 +16,12 @@
 
 use std::{fmt, rc::Rc};
 
-use encoding::EncodingRef;
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::common::Result;
 use crate::Exceptions;
 
-use super::{ECIEncoderSet, ECIInput};
+use super::{CharacterSet, ECIEncoderSet, ECIInput, Eci};
 
 //* approximated (latch + 2 codewords)
 pub const COST_PER_ECI: usize = 3;
@@ -155,7 +154,7 @@ impl ECIInput for MinimalECIInput {
      * @throws  IllegalArgumentException
      *          if the value at the {@code index} argument is not an ECI (@see #isECI)
      */
-    fn getECIValue(&self, index: usize) -> Result<i32> {
+    fn getECIValue(&self, index: usize) -> Result<Eci> {
         if index >= self.length() {
             return Err(Exceptions::INDEX_OUT_OF_BOUNDS);
         }
@@ -164,7 +163,7 @@ impl ECIInput for MinimalECIInput {
                 "value at {index} is not an ECI but a character"
             )));
         }
-        Ok((self.bytes[index] as u32 - 256) as i32)
+        Ok(Eci::from(self.bytes[index] as u32 - 256))
     }
 
     fn haveNCharacters(&self, index: usize, n: usize) -> Result<bool> {
@@ -194,7 +193,7 @@ impl MinimalECIInput {
      */
     pub fn new(
         stringToEncodeInput: &str,
-        priorityCharset: Option<EncodingRef>,
+        priorityCharset: Option<CharacterSet>,
         fnc1: Option<&str>,
     ) -> Self {
         let stringToEncode = stringToEncodeInput.graphemes(true).collect::<Vec<&str>>();
@@ -384,7 +383,7 @@ impl MinimalECIInput {
                 //     0..0,
                 //     [256 as u16 + encoderSet.getECIValue(c.encoderIndex) as u16],
                 // );
-                intsAL.insert(0, 256_u16 + encoderSet.getECIValue(c.encoderIndex) as u16);
+                intsAL.insert(0, 256_u16 + encoderSet.get_eci(c.encoderIndex) as u16);
             }
             current = c.previous.clone();
         }

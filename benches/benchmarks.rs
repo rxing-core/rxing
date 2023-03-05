@@ -3,6 +3,7 @@ use rxing::aztec::AztecReader;
 use rxing::common::HybridBinarizer;
 use rxing::datamatrix::DataMatrixReader;
 use rxing::maxicode::MaxiCodeReader;
+use rxing::multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader};
 use rxing::oned::rss::expanded::RSSExpandedReader;
 use rxing::oned::rss::RSS14Reader;
 use rxing::oned::{
@@ -11,10 +12,9 @@ use rxing::oned::{
 };
 use rxing::pdf417::PDF417Reader;
 use rxing::qrcode::QRCodeReader;
+use rxing::MultiFormatReader;
 use rxing::{BinaryBitmap, BufferedImageLuminanceSource, Reader};
 use std::path::Path;
-use rxing::multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader};
-use rxing::MultiFormatReader;
 
 fn get_image(
     path: impl AsRef<Path>,
@@ -188,7 +188,7 @@ fn upce_benchmark(c: &mut Criterion) {
 fn multi_barcode_benchmark(c: &mut Criterion) {
     let mut image = get_image("test_resources/blackbox/multi-1/1.png");
     c.bench_function("multi_barcode", |b| {
-        b.iter( || {
+        b.iter(|| {
             let mut reader = GenericMultipleBarcodeReader::new(MultiFormatReader::default());
             let _res = reader.decode_multiple(&mut image);
         });

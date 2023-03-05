@@ -16,9 +16,7 @@
 
 use std::rc::Rc;
 
-use encoding::{self, EncodingRef};
-
-use crate::common::Result;
+use crate::common::{CharacterSet, Result};
 use crate::{Dimension, Exceptions};
 
 use super::{
@@ -26,7 +24,7 @@ use super::{
     SymbolInfoLookup, SymbolShapeHint, TextEncoder, X12Encoder,
 };
 #[allow(dead_code)]
-const DEFAULT_ENCODING: EncodingRef = encoding::all::ISO_8859_1;
+const DEFAULT_ENCODING: CharacterSet = CharacterSet::ISO8859_1;
 
 /**
  * DataMatrix ECC 200 data encoder following the algorithm described in ISO/IEC 16022:200(E) in

@@ -20,7 +20,7 @@ use regex::Regex;
 
 use once_cell::sync::Lazy;
 
-use crate::RXingResult;
+use crate::{common::CharacterSet, RXingResult};
 
 use uriparse::URI;
 
@@ -404,10 +404,8 @@ fn maybeAppendFragment(fragmentBuffer: &mut Vec<u8>, charset: &str, result: &mut
         if charset.is_empty() {
             fragment = String::from_utf8(fragmentBytes).unwrap_or_else(|_| String::default());
             // fragment = new String(fragmentBytes, StandardCharsets.UTF_8);
-        } else if let Some(enc) = encoding::label::encoding_from_whatwg_label(charset) {
-            fragment = if let Ok(encoded_result) =
-                enc.decode(&fragmentBytes, encoding::DecoderTrap::Strict)
-            {
+        } else if let Some(enc) = CharacterSet::get_character_set_by_name(charset) {
+            fragment = if let Ok(encoded_result) = enc.decode(&fragmentBytes) {
                 encoded_result
             } else {
                 String::from_utf8(fragmentBytes).unwrap_or_else(|_| String::default())

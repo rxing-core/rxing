@@ -17,20 +17,18 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::BitArray,
+    common::{BitArray, CharacterSet},
     qrcode::{
         decoder::{ErrorCorrectionLevel, Mode, Version},
         encoder::{qrcode_encoder, MinimalEncoder},
     },
     EncodeHintType, EncodeHintValue,
 };
-use encoding::EncodingRef;
 use once_cell::sync::Lazy;
 
 use super::QRCode;
 
-static SHIFT_JIS_CHARSET: Lazy<EncodingRef> =
-    Lazy::new(|| encoding::label::encoding_from_whatwg_label("SJIS").unwrap());
+static SHIFT_JIS_CHARSET: Lazy<CharacterSet> = Lazy::new(|| CharacterSet::Shift_JIS);
 
 /**
  * @author satorux@google.com (Satoru Takabayashi) - creator
@@ -1075,10 +1073,9 @@ fn testMinimalEncoder41() {
 #[test]
 fn testMinimalEncoder42() {
     // test halfwidth Katakana character (they are single byte encoded in Shift_JIS)
-    // NOTE: Changed to windows-31j because that is what is supported in encoding crate
     verifyMinimalEncoding(
         "Katakana:\u{FF66}\u{FF66}\u{FF66}\u{FF66}\u{FF66}\u{FF66}",
-        "ECI(windows-31j),BYTE(Katakana:......)",
+        "ECI(shift_jis),BYTE(Katakana:......)",
         None,
         false,
     );
@@ -1100,10 +1097,9 @@ fn testMinimalEncoder44() {
     // The character \u30A2 encodes as double byte in Shift_JIS but KANJI is not more compact in this case because
     // KANJI is only more compact when it encodes pairs of characters. In the case of mixed text it can however be
     // that Shift_JIS encoding is more compact as in this example
-    // NOTE: Changed to windows-31j because that is what is supported in encoding crate
     verifyMinimalEncoding(
         "Katakana:\u{30A2}a\u{30A2}a\u{30A2}a\u{30A2}a\u{30A2}a\u{30A2}",
-        "ECI(windows-31j),BYTE(Katakana:.a.a.a.a.a.)",
+        "ECI(shift_jis),BYTE(Katakana:.a.a.a.a.a.)",
         None,
         false,
     );
@@ -1112,7 +1108,7 @@ fn testMinimalEncoder44() {
 fn verifyMinimalEncoding(
     input: &str,
     expectedRXingResult: &str,
-    priorityCharset: Option<EncodingRef>,
+    priorityCharset: Option<CharacterSet>,
     isGS1: bool,
 ) {
     let result = MinimalEncoder::encode_with_details(
@@ -1198,7 +1194,7 @@ fn verifyNotGS1EncodedData(qrCode: &QRCode) {
 
 fn shiftJISString(bytes: &[u8]) -> String {
     SHIFT_JIS_CHARSET
-        .decode(bytes, encoding::DecoderTrap::Strict)
+        .decode(bytes)
         .expect("decode should be ok")
     // return new String(bytes, StringUtils.SHIFT_JIS_CHARSET);
 }

@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{
-    common::{BitArray, CharacterSetECI, Result},
-    exceptions::Exceptions,
-};
+use crate::common::{BitArray, CharacterSet, Result};
 
 use super::{State, Token};
 
@@ -35,7 +32,7 @@ use super::{State, Token};
  */
 pub struct HighLevelEncoder {
     text: Vec<u8>,
-    charset: encoding::EncodingRef,
+    charset: CharacterSet,
 }
 
 impl HighLevelEncoder {
@@ -229,11 +226,11 @@ impl HighLevelEncoder {
     pub fn new(text: Vec<u8>) -> Self {
         Self {
             text,
-            charset: encoding::all::ISO_8859_1,
+            charset: CharacterSet::ISO8859_1,
         }
     }
 
-    pub fn with_charset(text: Vec<u8>, charset: encoding::EncodingRef) -> Self {
+    pub fn with_charset(text: Vec<u8>, charset: CharacterSet) -> Self {
         Self { text, charset }
     }
 
@@ -242,16 +239,16 @@ impl HighLevelEncoder {
      */
     pub fn encode(&self) -> Result<BitArray> {
         let mut initial_state = State::new(Token::new(), Self::MODE_UPPER as u32, 0, 0);
-        if let Some(eci) = CharacterSetECI::getCharacterSetECI(self.charset) {
-            if eci != CharacterSetECI::ISO8859_1 {
-                //} && eci != CharacterSetECI::Cp1252 {
-                initial_state = initial_state.appendFLGn(CharacterSetECI::getValue(&eci))?;
-            }
-        } else {
-            return Err(Exceptions::illegal_argument_with(
-                "No ECI code for character set",
-            ));
+        //if let Some(eci) = CharacterSetECI::getCharacterSetECI(self.charset) {
+        if self.charset != CharacterSet::ISO8859_1 {
+            //} && eci != CharacterSetECI::Cp1252 {
+            initial_state = initial_state.appendFLGn(self.charset.into())?;
         }
+        // } else {
+        //     return Err(Exceptions::illegal_argument_with(
+        //         "No ECI code for character set",
+        //     ));
+        // }
         // if self.charset != null {
         //   CharacterSetECI eci = CharacterSetECI.getCharacterSetECI(charset);
         //   if (null == eci) {
