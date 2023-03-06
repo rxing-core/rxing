@@ -235,7 +235,10 @@ impl Point {
     }
 
     pub fn round(self) -> Self {
-        Self { x: self.x.round(), y: self.y.round() }
+        Self {
+            x: self.x.round(),
+            y: self.y.round(),
+        }
     }
 }
 
@@ -251,8 +254,8 @@ impl From<(f32, f32)> for Point {
     }
 }
 
-impl From<(i32,i32)> for Point {
-    fn from(value: (i32,i32)) -> Self {
+impl From<(i32, i32)> for Point {
+    fn from(value: (i32, i32)) -> Self {
         Self::new(value.0 as f32, value.1 as f32)
     }
 }

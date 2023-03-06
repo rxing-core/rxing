@@ -225,9 +225,9 @@ impl<'a> EdgeTracer<'_> {
 
                             return Ok(StepResult::Found);
                         }
-                        pEdge = pEdge - dEdge;
+                        pEdge -= dEdge;
                         if self.blackAt(pEdge - self.d) {
-                            pEdge = pEdge - self.d;
+                            pEdge -= self.d;
                         }
                         // dbg!(pEdge);
 

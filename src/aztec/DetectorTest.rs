@@ -102,30 +102,14 @@ fn test_error_in_parameter_locator(data: &str) {
                         clone(&matrix)
                     };
                     copy.flip_coords(
-                        (orientation_points
-                            .get(error1)
-                            .unwrap()
-                            .x as i32)
-                            .unsigned_abs(),
-                        (orientation_points
-                            .get(error1)
-                            .unwrap()
-                            .y as i32)
-                            .unsigned_abs(),
+                        (orientation_points.get(error1).unwrap().x as i32).unsigned_abs(),
+                        (orientation_points.get(error1).unwrap().y as i32).unsigned_abs(),
                     );
                     if error2 > error1 {
                         // if error2 == error1, we only test a single error
                         copy.flip_coords(
-                            (orientation_points
-                                .get(error2)
-                                .unwrap()
-                                .x as i32)
-                                .unsigned_abs(),
-                            (orientation_points
-                                .get(error2)
-                                .unwrap()
-                                .y as i32)
-                                .unsigned_abs(),
+                            (orientation_points.get(error2).unwrap().x as i32).unsigned_abs(),
+                            (orientation_points.get(error2).unwrap().y as i32).unsigned_abs(),
                         );
                     }
                     // dbg!(copy.to_string());

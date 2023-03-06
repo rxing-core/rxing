@@ -319,10 +319,10 @@ impl<'a> Detector<'_> {
 
         // Expand the square by .5 pixel in each direction so that we're on the border
         // between the white square and the black square
-        let pinax = point(pina.x as f32 + 0.5, pina.y as f32 - 0.5);
-        let pinbx = point(pinb.x as f32 + 0.5, pinb.y as f32 + 0.5);
-        let pincx = point(pinc.x as f32 - 0.5, pinc.y as f32 + 0.5);
-        let pindx = point(pind.x as f32 - 0.5, pind.y as f32 - 0.5);
+        let pinax = point(pina.x + 0.5, pina.y - 0.5);
+        let pinbx = point(pinb.x + 0.5, pinb.y + 0.5);
+        let pincx = point(pinc.x - 0.5, pinc.y + 0.5);
+        let pindx = point(pind.x - 0.5, pind.y - 0.5);
 
         // Expand the square so that its corners are the centers of the points
         // just outside the bull's eye.
@@ -362,18 +362,10 @@ impl<'a> Detector<'_> {
         if !fnd {
             let cx: i32 = (self.image.getWidth() / 2) as i32;
             let cy: i32 = (self.image.getHeight() / 2) as i32;
-            point_a = self
-                .get_first_different(Point::from((cx + 7, cy - 7)), false, 1, -1)
-                .into();
-            point_b = self
-                .get_first_different(Point::from((cx + 7, cy + 7)), false, 1, 1)
-                .into();
-            point_c = self
-                .get_first_different(Point::from((cx - 7, cy + 7)), false, -1, 1)
-                .into();
-            point_d = self
-                .get_first_different(Point::from((cx - 7, cy - 7)), false, -1, -1)
-                .into();
+            point_a = self.get_first_different(Point::from((cx + 7, cy - 7)), false, 1, -1);
+            point_b = self.get_first_different(Point::from((cx + 7, cy + 7)), false, 1, 1);
+            point_c = self.get_first_different(Point::from((cx - 7, cy + 7)), false, -1, 1);
+            point_d = self.get_first_different(Point::from((cx - 7, cy - 7)), false, -1, -1);
         }
         // try {
 
@@ -416,18 +408,10 @@ impl<'a> Detector<'_> {
         // This exception can be in case the initial rectangle is white
         // In that case we try to expand the rectangle.
         if !fnd {
-            point_a = self
-                .get_first_different(Point::from((cx + 7, cy - 7)), false, 1, -1)
-                .into();
-            point_b = self
-                .get_first_different(Point::from((cx + 7, cy + 7)), false, 1, 1)
-                .into();
-            point_c = self
-                .get_first_different(Point::from((cx - 7, cy + 7)), false, -1, 1)
-                .into();
-            point_d = self
-                .get_first_different(Point::from((cx - 7, cy - 7)), false, -1, -1)
-                .into();
+            point_a = self.get_first_different(Point::from((cx + 7, cy - 7)), false, 1, -1);
+            point_b = self.get_first_different(Point::from((cx + 7, cy + 7)), false, 1, 1);
+            point_c = self.get_first_different(Point::from((cx - 7, cy + 7)), false, -1, 1);
+            point_d = self.get_first_different(Point::from((cx - 7, cy - 7)), false, -1, -1);
         }
         // try {
         //   Point[] cornerPoints = new WhiteRectangleDetector(image, 15, cx, cy).detect();
@@ -540,13 +524,7 @@ impl<'a> Detector<'_> {
      * @return true if the border of the rectangle passed in parameter is compound of white points only
      *         or black points only
      */
-    fn is_white_or_black_rectangle(
-        &self,
-        p1: &Point,
-        p2: &Point,
-        p3: &Point,
-        p4: &Point,
-    ) -> bool {
+    fn is_white_or_black_rectangle(&self, p1: &Point, p2: &Point, p3: &Point, p4: &Point) -> bool {
         let corr = 3.0;
 
         let p1 = Point::new(
@@ -602,12 +580,12 @@ impl<'a> Detector<'_> {
         if d == 0.0 {
             return 0;
         }
-        let dx = (p2.x - p1.x) as f32 / d;
-        let dy = (p2.y - p1.y) as f32 / d;
+        let dx = (p2.x - p1.x) / d;
+        let dy = (p2.y - p1.y) / d;
         let mut error = 0;
 
-        let mut px = p1.x as f32;
-        let mut py = p1.y as f32;
+        let mut px = p1.x;
+        let mut py = p1.y;
 
         let color_model = self.image.get(p1.x as u32, p1.y as u32);
 
@@ -639,20 +617,23 @@ impl<'a> Detector<'_> {
      * Gets the coordinate of the first point with a different color in the given direction
      */
     fn get_first_different(&self, init: Point, color: bool, dx: i32, dy: i32) -> Point {
-        let mut point = init + Point::from((dx,dy));
+        let mut point = init + Point::from((dx, dy));
 
-        while self.is_valid_points(point) && self.image.get(point.x as u32, point.y as u32) == color {
-            point += Point::from((dx,dy));
+        while self.is_valid_points(point) && self.image.get(point.x as u32, point.y as u32) == color
+        {
+            point += Point::from((dx, dy));
         }
 
-        point -= Point::from((dx,dy));
+        point -= Point::from((dx, dy));
 
-        while self.is_valid_points(point) && self.image.get(point.x as u32, point.y as u32) == color {
+        while self.is_valid_points(point) && self.image.get(point.x as u32, point.y as u32) == color
+        {
             point.x += dx as f32;
         }
         point.x -= dx as f32;
 
-        while self.is_valid_points(point) && self.image.get(point.x as u32, point.y as u32) == color {
+        while self.is_valid_points(point) && self.image.get(point.x as u32, point.y as u32) == color
+        {
             point.y += dy as f32;
         }
         point.y -= dy as f32;
@@ -685,7 +666,10 @@ impl<'a> Detector<'_> {
     }
 
     fn is_valid_points(&self, p: Point) -> bool {
-        p.x >= 0.0 && p.x < self.image.getWidth() as f32 && p.y >= 0.0 && p.y < self.image.getHeight() as f32
+        p.x >= 0.0
+            && p.x < self.image.getWidth() as f32
+            && p.y >= 0.0
+            && p.y < self.image.getHeight() as f32
     }
 
     fn is_valid(&self, point: Point) -> bool {
@@ -693,7 +677,7 @@ impl<'a> Detector<'_> {
     }
 
     fn distance_points(a: Point, b: Point) -> f32 {
-        Point::from(a).distance(b.into())
+        a.distance(b)
     }
 
     fn distance(a: Point, b: Point) -> f32 {
