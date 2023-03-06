@@ -8,7 +8,8 @@ use crate::{
     common::{BitMatrix, HybridBinarizer, Result},
     multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
     BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
-    Exceptions, Luma8LuminanceSource, MultiFormatReader, RXingResult, Reader, MultiUseMultiFormatReader,
+    Exceptions, Luma8LuminanceSource, MultiFormatReader, MultiUseMultiFormatReader, RXingResult,
+    Reader,
 };
 
 #[cfg(feature = "image")]
@@ -74,7 +75,7 @@ pub fn detect_multiple_in_svg_with_hints(
 ) -> Result<Vec<RXingResult>> {
     use std::{fs::File, io::Read};
 
-    use crate::{SVGLuminanceSource};
+    use crate::SVGLuminanceSource;
 
     let path = PathBuf::from(file_name);
     if !path.exists() {
