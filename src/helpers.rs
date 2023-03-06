@@ -8,7 +8,7 @@ use crate::{
     common::{BitMatrix, HybridBinarizer, Result},
     multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
     BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
-    Exceptions, Luma8LuminanceSource, MultiFormatReader, RXingResult, Reader,
+    Exceptions, Luma8LuminanceSource, MultiFormatReader, RXingResult, Reader, MultiUseMultiFormatReader,
 };
 
 #[cfg(feature = "image")]
@@ -74,7 +74,7 @@ pub fn detect_multiple_in_svg_with_hints(
 ) -> Result<Vec<RXingResult>> {
     use std::{fs::File, io::Read};
 
-    use crate::SVGLuminanceSource;
+    use crate::{SVGLuminanceSource};
 
     let path = PathBuf::from(file_name);
     if !path.exists() {
@@ -90,7 +90,7 @@ pub fn detect_multiple_in_svg_with_hints(
         return Err(Exceptions::illegal_argument_with("file cannot be read"));
     }
 
-    let multi_format_reader = MultiFormatReader::default();
+    let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
     hints
@@ -148,7 +148,7 @@ pub fn detect_multiple_in_file_with_hints(
 ) -> Result<Vec<RXingResult>> {
     let img = image::open(file_name)
         .map_err(|e| Exceptions::runtime_with(format!("couldn't read {file_name}: {e}")))?;
-    let multi_format_reader = MultiFormatReader::default();
+    let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
     hints
@@ -208,7 +208,7 @@ pub fn detect_multiple_in_luma_with_hints(
     height: u32,
     hints: &mut DecodingHintDictionary,
 ) -> Result<Vec<RXingResult>> {
-    let multi_format_reader = MultiFormatReader::default();
+    let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
     hints
