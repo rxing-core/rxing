@@ -59,6 +59,13 @@ impl std::ops::AddAssign for Point {
     }
 }
 
+impl std::ops::SubAssign for Point {
+    fn sub_assign(&mut self, rhs: Self) {
+        self.x = self.x - rhs.x;
+        self.y = self.y - rhs.y;
+    }
+}
+
 impl<'a> Sum<&'a Point> for Point {
     fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
         iter.fold(Self::default(), |acc, &p| acc + p)
@@ -226,6 +233,10 @@ impl Point {
             Self::new(0.0, self.y)
         }
     }
+
+    pub fn round(self) -> Self {
+        Self { x: self.x.round(), y: self.y.round() }
+    }
 }
 
 impl From<&(f32, f32)> for Point {
@@ -237,6 +248,12 @@ impl From<&(f32, f32)> for Point {
 impl From<(f32, f32)> for Point {
     fn from((x, y): (f32, f32)) -> Self {
         Self::new(x, y)
+    }
+}
+
+impl From<(i32,i32)> for Point {
+    fn from(value: (i32,i32)) -> Self {
+        Self::new(value.0 as f32, value.1 as f32)
     }
 }
 

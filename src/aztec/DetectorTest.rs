@@ -36,10 +36,10 @@
 
 use rand::Rng;
 
-use crate::{aztec::decoder, common::BitMatrix, exceptions::Exceptions};
+use crate::{aztec::decoder, common::BitMatrix, exceptions::Exceptions, Point};
 
 use super::{
-    detector::{self, AztecPoint, Detector},
+    detector::{self, Detector},
     encoder::{self, AztecCode},
 };
 
@@ -102,29 +102,29 @@ fn test_error_in_parameter_locator(data: &str) {
                         clone(&matrix)
                     };
                     copy.flip_coords(
-                        orientation_points
+                        (orientation_points
                             .get(error1)
                             .unwrap()
-                            .get_x()
+                            .x as i32)
                             .unsigned_abs(),
-                        orientation_points
+                        (orientation_points
                             .get(error1)
                             .unwrap()
-                            .get_y()
+                            .y as i32)
                             .unsigned_abs(),
                     );
                     if error2 > error1 {
                         // if error2 == error1, we only test a single error
                         copy.flip_coords(
-                            orientation_points
+                            (orientation_points
                                 .get(error2)
                                 .unwrap()
-                                .get_x()
+                                .x as i32)
                                 .unsigned_abs(),
-                            orientation_points
+                            (orientation_points
                                 .get(error2)
                                 .unwrap()
-                                .get_y()
+                                .y as i32)
                                 .unsigned_abs(),
                         );
                     }
@@ -152,8 +152,8 @@ fn test_error_in_parameter_locator(data: &str) {
                 for error in errors {
                     // for (int error : errors) {
                     copy.flip_coords(
-                        orientation_points.get(error).unwrap().get_x() as u32,
-                        orientation_points.get(error).unwrap().get_y() as u32,
+                        orientation_points.get(error).unwrap().x as u32,
+                        orientation_points.get(error).unwrap().y as u32,
                     );
                     // copy.flip_coords(
                     //     orientation_points.get(error).unwrap().get_x().abs() as u32,
@@ -261,7 +261,7 @@ fn clone(input: &BitMatrix) -> BitMatrix {
     result
 }
 
-fn get_orientation_points(code: &AztecCode) -> Vec<AztecPoint> {
+fn get_orientation_points(code: &AztecCode) -> Vec<Point> {
     let center = code.getMatrix().getWidth() as i32 / 2;
     let offset = if code.isCompact() { 5 } else { 7 };
     let mut result = Vec::new();
@@ -271,18 +271,18 @@ fn get_orientation_points(code: &AztecCode) -> Vec<AztecPoint> {
         let mut ySign: i32 = -1;
         while ySign <= 1 {
             // for (int ySign = -1; ySign <= 1; ySign += 2) {
-            result.push(AztecPoint::new(
+            result.push(Point::from((
                 center + xSign * offset,
                 center + ySign * offset,
-            ));
-            result.push(AztecPoint::new(
+            )));
+            result.push(Point::from((
                 center + xSign * (offset - 1),
                 center + ySign * offset,
-            ));
-            result.push(AztecPoint::new(
+            )));
+            result.push(Point::from((
                 center + xSign * offset,
                 center + ySign * (offset - 1),
-            ));
+            )));
 
             ySign += 2;
         }

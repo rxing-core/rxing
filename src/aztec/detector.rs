@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-use std::fmt;
-
 use crate::{
     common::{
         detector::WhiteRectangleDetector,
@@ -262,7 +260,7 @@ impl<'a> Detector<'_> {
      * @return The corners of the bull-eye
      * @throws NotFoundException If no valid bull-eye can be found
      */
-    fn get_bulls_eye_corners(&mut self, pCenter: AztecPoint) -> Result<[Point; 4]> {
+    fn get_bulls_eye_corners(&mut self, pCenter: Point) -> Result<[Point; 4]> {
         let mut pina = pCenter;
         let mut pinb = pCenter;
         let mut pinc = pCenter;
@@ -275,10 +273,10 @@ impl<'a> Detector<'_> {
         while self.nb_center_layers < 9 {
             // for nbCenterLayers in 1..9 {
             // for (nbCenterLayers = 1; nbCenterLayers < 9; nbCenterLayers++) {
-            let pouta = self.get_first_different(&pina, color, 1, -1);
-            let poutb = self.get_first_different(&pinb, color, 1, 1);
-            let poutc = self.get_first_different(&pinc, color, -1, 1);
-            let poutd = self.get_first_different(&pind, color, -1, -1);
+            let pouta = self.get_first_different(pina, color, 1, -1);
+            let poutb = self.get_first_different(pinb, color, 1, 1);
+            let poutc = self.get_first_different(pinc, color, -1, 1);
+            let poutd = self.get_first_different(pind, color, -1, -1);
 
             //d      a
             //
@@ -321,10 +319,10 @@ impl<'a> Detector<'_> {
 
         // Expand the square by .5 pixel in each direction so that we're on the border
         // between the white square and the black square
-        let pinax = point(pina.get_x() as f32 + 0.5, pina.get_y() as f32 - 0.5);
-        let pinbx = point(pinb.get_x() as f32 + 0.5, pinb.get_y() as f32 + 0.5);
-        let pincx = point(pinc.get_x() as f32 - 0.5, pinc.get_y() as f32 + 0.5);
-        let pindx = point(pind.get_x() as f32 - 0.5, pind.get_y() as f32 - 0.5);
+        let pinax = point(pina.x as f32 + 0.5, pina.y as f32 - 0.5);
+        let pinbx = point(pinb.x as f32 + 0.5, pinb.y as f32 + 0.5);
+        let pincx = point(pinc.x as f32 - 0.5, pinc.y as f32 + 0.5);
+        let pindx = point(pind.x as f32 - 0.5, pind.y as f32 - 0.5);
 
         // Expand the square so that its corners are the centers of the points
         // just outside the bull's eye.
@@ -340,7 +338,7 @@ impl<'a> Detector<'_> {
      *
      * @return the center point
      */
-    fn get_matrix_center(&self) -> AztecPoint {
+    fn get_matrix_center(&self) -> Point {
         let mut point_a = Point::default();
         let mut point_b = Point::default();
         let mut point_c = Point::default();
@@ -365,16 +363,16 @@ impl<'a> Detector<'_> {
             let cx: i32 = (self.image.getWidth() / 2) as i32;
             let cy: i32 = (self.image.getHeight() / 2) as i32;
             point_a = self
-                .get_first_different(&AztecPoint::new(cx + 7, cy - 7), false, 1, -1)
+                .get_first_different(Point::from((cx + 7, cy - 7)), false, 1, -1)
                 .into();
             point_b = self
-                .get_first_different(&AztecPoint::new(cx + 7, cy + 7), false, 1, 1)
+                .get_first_different(Point::from((cx + 7, cy + 7)), false, 1, 1)
                 .into();
             point_c = self
-                .get_first_different(&AztecPoint::new(cx - 7, cy + 7), false, -1, 1)
+                .get_first_different(Point::from((cx - 7, cy + 7)), false, -1, 1)
                 .into();
             point_d = self
-                .get_first_different(&AztecPoint::new(cx - 7, cy - 7), false, -1, -1)
+                .get_first_different(Point::from((cx - 7, cy - 7)), false, -1, -1)
                 .into();
         }
         // try {
@@ -419,16 +417,16 @@ impl<'a> Detector<'_> {
         // In that case we try to expand the rectangle.
         if !fnd {
             point_a = self
-                .get_first_different(&AztecPoint::new(cx + 7, cy - 7), false, 1, -1)
+                .get_first_different(Point::from((cx + 7, cy - 7)), false, 1, -1)
                 .into();
             point_b = self
-                .get_first_different(&AztecPoint::new(cx + 7, cy + 7), false, 1, 1)
+                .get_first_different(Point::from((cx + 7, cy + 7)), false, 1, 1)
                 .into();
             point_c = self
-                .get_first_different(&AztecPoint::new(cx - 7, cy + 7), false, -1, 1)
+                .get_first_different(Point::from((cx - 7, cy + 7)), false, -1, 1)
                 .into();
             point_d = self
-                .get_first_different(&AztecPoint::new(cx - 7, cy - 7), false, -1, -1)
+                .get_first_different(Point::from((cx - 7, cy - 7)), false, -1, -1)
                 .into();
         }
         // try {
@@ -450,7 +448,7 @@ impl<'a> Detector<'_> {
         cx = ((point_a.x + point_d.x + point_b.x + point_c.x) / 4.0).round() as i32;
         cy = ((point_a.y + point_d.y + point_b.y + point_c.y) / 4.0).round() as i32;
 
-        AztecPoint::new(cx, cy)
+        Point::from((cx, cy))
     }
 
     /**
@@ -544,29 +542,29 @@ impl<'a> Detector<'_> {
      */
     fn is_white_or_black_rectangle(
         &self,
-        p1: &AztecPoint,
-        p2: &AztecPoint,
-        p3: &AztecPoint,
-        p4: &AztecPoint,
+        p1: &Point,
+        p2: &Point,
+        p3: &Point,
+        p4: &Point,
     ) -> bool {
-        let corr = 3;
+        let corr = 3.0;
 
-        let p1 = AztecPoint::new(
-            0.max(p1.get_x() - corr),
-            (self.image.getHeight() as i32 - 1).min(p1.get_y() + corr),
+        let p1 = Point::new(
+            0_f32.max(p1.x - corr),
+            (self.image.getHeight() as f32 - 1.0).min(p1.y + corr),
         );
         // let p1 =  point(Math.max(0, p1.getX() - corr), Math.min(image.getHeight() - 1, p1.getY() + corr));
-        let p2 = AztecPoint::new(0.max(p2.get_x() - corr), 0.max(p2.get_y() - corr));
+        let p2 = Point::new(0_f32.max(p2.x - corr), 0_f32.max(p2.y - corr));
         // let p2 =  point(Math.max(0, p2.getX() - corr), Math.max(0, p2.getY() - corr));
-        let p3 = AztecPoint::new(
-            (self.image.getWidth() as i32 - 1).min(p3.get_x() + corr),
-            0.max((self.image.getHeight() as i32 - 1).min(p3.get_y() - corr)),
+        let p3 = Point::new(
+            (self.image.getWidth() as f32 - 1.0).min(p3.x + corr),
+            0_f32.max((self.image.getHeight() as f32 - 1.0).min(p3.y - corr)),
         );
         //  let p3 =  point(Math.min(image.getWidth() - 1, p3.getX() + corr),
         //  Math.max(0, Math.min(image.getHeight() - 1, p3.getY() - corr)));
-        let p4 = AztecPoint::new(
-            (self.image.getWidth() as i32 - 1).min(p4.get_x() + corr),
-            (self.image.getHeight() as i32 - 1).min(p4.get_y() + corr),
+        let p4 = Point::new(
+            (self.image.getWidth() as f32 - 1.0).min(p4.x + corr),
+            (self.image.getHeight() as f32 - 1.0).min(p4.y + corr),
         );
         //  let p4 =  point(Math.min(image.getWidth() - 1, p4.getX() + corr),
         //  Math.min(image.getHeight() - 1, p4.getY() + corr));
@@ -599,19 +597,19 @@ impl<'a> Detector<'_> {
      *
      * @return 1 if segment more than 90% black, -1 if segment is more than 90% white, 0 else
      */
-    fn get_color(&self, p1: AztecPoint, p2: AztecPoint) -> i32 {
+    fn get_color(&self, p1: Point, p2: Point) -> i32 {
         let d = Self::distance_points(p1, p2);
         if d == 0.0 {
             return 0;
         }
-        let dx = (p2.get_x() - p1.get_x()) as f32 / d;
-        let dy = (p2.get_y() - p1.get_y()) as f32 / d;
+        let dx = (p2.x - p1.x) as f32 / d;
+        let dy = (p2.y - p1.y) as f32 / d;
         let mut error = 0;
 
-        let mut px = p1.get_x() as f32;
-        let mut py = p1.get_y() as f32;
+        let mut px = p1.x as f32;
+        let mut py = p1.y as f32;
 
-        let color_model = self.image.get(p1.get_x() as u32, p1.get_y() as u32);
+        let color_model = self.image.get(p1.x as u32, p1.y as u32);
 
         let i_max = d.floor() as u32; //(int) Math.floor(d);
         for _i in 0..i_max {
@@ -640,29 +638,26 @@ impl<'a> Detector<'_> {
     /**
      * Gets the coordinate of the first point with a different color in the given direction
      */
-    fn get_first_different(&self, init: &AztecPoint, color: bool, dx: i32, dy: i32) -> AztecPoint {
-        let mut x = init.get_x() + dx;
-        let mut y = init.get_y() + dy;
+    fn get_first_different(&self, init: Point, color: bool, dx: i32, dy: i32) -> Point {
+        let mut point = init + Point::from((dx,dy));
 
-        while self.is_valid_points(x, y) && self.image.get(x as u32, y as u32) == color {
-            x += dx;
-            y += dy;
+        while self.is_valid_points(point) && self.image.get(point.x as u32, point.y as u32) == color {
+            point += Point::from((dx,dy));
         }
 
-        x -= dx;
-        y -= dy;
+        point -= Point::from((dx,dy));
 
-        while self.is_valid_points(x, y) && self.image.get(x as u32, y as u32) == color {
-            x += dx;
+        while self.is_valid_points(point) && self.image.get(point.x as u32, point.y as u32) == color {
+            point.x += dx as f32;
         }
-        x -= dx;
+        point.x -= dx as f32;
 
-        while self.is_valid_points(x, y) && self.image.get(x as u32, y as u32) == color {
-            y += dy;
+        while self.is_valid_points(point) && self.image.get(point.x as u32, point.y as u32) == color {
+            point.y += dy as f32;
         }
-        y -= dy;
+        point.y -= dy as f32;
 
-        AztecPoint::new(x, y)
+        point
     }
 
     /**
@@ -689,17 +684,15 @@ impl<'a> Detector<'_> {
         [result0, result1, result2, result3]
     }
 
-    fn is_valid_points(&self, x: i32, y: i32) -> bool {
-        x >= 0 && x < self.image.getWidth() as i32 && y >= 0 && y < self.image.getHeight() as i32
+    fn is_valid_points(&self, p: Point) -> bool {
+        p.x >= 0.0 && p.x < self.image.getWidth() as f32 && p.y >= 0.0 && p.y < self.image.getHeight() as f32
     }
 
     fn is_valid(&self, point: Point) -> bool {
-        let x = point.x.round() as i32;
-        let y = point.y.round() as i32;
-        self.is_valid_points(x, y)
+        self.is_valid_points(point.round())
     }
 
-    fn distance_points(a: AztecPoint, b: AztecPoint) -> f32 {
+    fn distance_points(a: Point, b: Point) -> f32 {
         Point::from(a).distance(b.into())
     }
 
@@ -713,37 +706,5 @@ impl<'a> Detector<'_> {
         } else {
             4 * self.nb_layers + 2 * ((2 * self.nb_layers + 6) / 15) + 15
         }
-    }
-}
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub struct AztecPoint {
-    x: i32,
-    y: i32,
-}
-
-impl AztecPoint {
-    pub fn new(x: i32, y: i32) -> Self {
-        Self { x, y }
-    }
-
-    pub fn get_x(&self) -> i32 {
-        self.x
-    }
-
-    pub fn get_y(&self) -> i32 {
-        self.y
-    }
-}
-
-impl From<AztecPoint> for Point {
-    fn from(value: AztecPoint) -> Self {
-        point(value.x as f32, value.y as f32)
-    }
-}
-
-impl fmt::Display for AztecPoint {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "<{} {}>", &self.x, &self.y)
     }
 }
