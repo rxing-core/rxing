@@ -20,38 +20,63 @@ use super::{CharacterSet, Eci};
 
 use once_cell::sync::Lazy;
 
-static ENCODERS: Lazy<Vec<CharacterSet>> = Lazy::new(|| {
-    let mut enc_vec = Vec::new();
-    for name in NAMES {
-        if let Some(enc) = CharacterSet::get_character_set_by_name(name) {
-            enc_vec.push(enc);
-        }
-    }
-    enc_vec
-});
+// static ENCODERS: Lazy<Vec<CharacterSet>> = Lazy::new(|| {
+//     let mut enc_vec = Vec::new();
+//     for name in NAMES {
+//         if let Some(enc) = CharacterSet::get_character_set_by_name(name) {
+//             enc_vec.push(enc);
+//         }
+//     }
+//     enc_vec
+// });
 
-const NAMES: [&str; 20] = [
-    "IBM437",
-    "ISO-8859-2",
-    "ISO-8859-3",
-    "ISO-8859-4",
-    "ISO-8859-5",
-    "ISO-8859-6",
-    "ISO-8859-7",
-    "ISO-8859-8",
-    "ISO-8859-9",
-    "ISO-8859-10",
-    "ISO-8859-11",
-    "ISO-8859-13",
-    "ISO-8859-14",
-    "ISO-8859-15",
-    "ISO-8859-16",
-    "windows-1250",
-    "windows-1251",
-    "windows-1252",
-    "windows-1256",
-    "Shift_JIS",
-];
+// const NAMES: [&str; 20] = [
+//     "IBM437",
+//     "ISO-8859-2",
+//     "ISO-8859-3",
+//     "ISO-8859-4",
+//     "ISO-8859-5",
+//     "ISO-8859-6",
+//     "ISO-8859-7",
+//     "ISO-8859-8",
+//     "ISO-8859-9",
+//     "ISO-8859-10",
+//     "ISO-8859-11",
+//     "ISO-8859-13",
+//     "ISO-8859-14",
+//     "ISO-8859-15",
+//     "ISO-8859-16",
+//     "windows-1250",
+//     "windows-1251",
+//     "windows-1252",
+//     "windows-1256",
+//     "Shift_JIS",
+// ];
+
+static ENCODERS: Lazy<Vec<CharacterSet>> = Lazy::new(|| {
+    vec![
+        CharacterSet::Cp437,     
+        CharacterSet::ISO8859_2, 
+        CharacterSet::ISO8859_3, 
+        CharacterSet::ISO8859_4, 
+        CharacterSet::ISO8859_5, 
+        // CharacterSet::ISO8859_6, 
+        CharacterSet::ISO8859_7, 
+        // CharacterSet::ISO8859_8, 
+        CharacterSet::ISO8859_9, 
+        // CharacterSet::ISO8859_10,
+        // CharacterSet::ISO8859_11,
+        // CharacterSet::ISO8859_13,
+        // CharacterSet::ISO8859_14,
+        CharacterSet::ISO8859_15,
+        CharacterSet::ISO8859_16,
+        CharacterSet::Shift_JIS, 
+        CharacterSet::Cp1250,    
+        CharacterSet::Cp1251,    
+        CharacterSet::Cp1252,    
+        CharacterSet::Cp1256,    
+    ]
+});
 
 /**
  * Set of CharsetEncoders for a given input string
