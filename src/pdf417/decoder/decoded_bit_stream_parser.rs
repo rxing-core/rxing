@@ -128,7 +128,7 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult> {
                 codeIndex = numericCompaction(codewords, codeIndex, &mut result)?
             }
             ECI_CHARSET => {
-                result.appendECI(Eci::from(codewords[codeIndex]))?;
+                result.append_eci(Eci::from(codewords[codeIndex]));
                 codeIndex += 1;
             }
             ECI_GENERAL_PURPOSE =>
@@ -234,54 +234,47 @@ pub fn decodeMacroBlock(
                 codeIndex += 1;
                 match codewords[codeIndex] {
                     MACRO_PDF417_OPTIONAL_FIELD_FILE_NAME => {
-                        let mut fileName = ECIStringBuilder::new();
+                        let mut fileName = ECIStringBuilder::default();
                         codeIndex = textCompaction(codewords, codeIndex + 1, &mut fileName)?;
-                        fileName = fileName.build_result();
                         resultMetadata.setFileName(fileName.to_string());
                     }
                     MACRO_PDF417_OPTIONAL_FIELD_SENDER => {
-                        let mut sender = ECIStringBuilder::new();
+                        let mut sender = ECIStringBuilder::default();
                         codeIndex = textCompaction(codewords, codeIndex + 1, &mut sender)?;
-                        sender = sender.build_result();
                         resultMetadata.setSender(sender.to_string());
                     }
                     MACRO_PDF417_OPTIONAL_FIELD_ADDRESSEE => {
-                        let mut addressee = ECIStringBuilder::new();
+                        let mut addressee = ECIStringBuilder::default();
                         codeIndex = textCompaction(codewords, codeIndex + 1, &mut addressee)?;
-                        addressee = addressee.build_result();
                         resultMetadata.setAddressee(addressee.to_string());
                     }
                     MACRO_PDF417_OPTIONAL_FIELD_SEGMENT_COUNT => {
-                        let mut segmentCount = ECIStringBuilder::new();
+                        let mut segmentCount = ECIStringBuilder::default();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut segmentCount)?;
-                        segmentCount = segmentCount.build_result();
                         let Ok(parsed_segment_count) = segmentCount.to_string().parse() else {
                             return Err(Exceptions::FORMAT);
                         };
                         resultMetadata.setSegmentCount(parsed_segment_count);
                     }
                     MACRO_PDF417_OPTIONAL_FIELD_TIME_STAMP => {
-                        let mut timestamp = ECIStringBuilder::new();
+                        let mut timestamp = ECIStringBuilder::default();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut timestamp)?;
-                        timestamp = timestamp.build_result();
                         let Ok(parsed_timestamp) = timestamp.to_string().parse() else {
                             return Err(Exceptions::FORMAT);
                         };
                         resultMetadata.setTimestamp(parsed_timestamp);
                     }
                     MACRO_PDF417_OPTIONAL_FIELD_CHECKSUM => {
-                        let mut checksum = ECIStringBuilder::new();
+                        let mut checksum = ECIStringBuilder::default();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut checksum)?;
-                        checksum = checksum.build_result();
                         let Ok(parsed_checksum ) = checksum.to_string().parse() else {
                             return Err(Exceptions::FORMAT);
                         };
                         resultMetadata.setChecksum(parsed_checksum);
                     }
                     MACRO_PDF417_OPTIONAL_FIELD_FILE_SIZE => {
-                        let mut fileSize = ECIStringBuilder::new();
+                        let mut fileSize = ECIStringBuilder::default();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut fileSize)?;
-                        fileSize = fileSize.build_result();
                         let Ok(parsed_file_size)= fileSize.to_string().parse() else {
                             return Err(Exceptions::FORMAT);
                         };
@@ -387,7 +380,7 @@ fn textCompaction(
                     subMode,
                 )
                 .ok_or(Exceptions::ILLEGAL_STATE)?;
-                result.appendECI(Eci::from(codewords[codeIndex]))?;
+                result.append_eci(Eci::from(codewords[codeIndex]));
                 codeIndex += 1;
                 textCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
                 byteCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
@@ -616,7 +609,7 @@ fn byteCompaction(
         //handle leading ECIs
         while codeIndex < codewords[0] as usize && codewords[codeIndex] == ECI_CHARSET {
             codeIndex += 1;
-            result.appendECI(Eci::from(codewords[codeIndex]))?;
+            result.append_eci(Eci::from(codewords[codeIndex]));
             codeIndex += 1;
         }
 
@@ -654,7 +647,7 @@ fn byteCompaction(
                     if code < TEXT_COMPACTION_MODE_LATCH {
                         result.append_byte(code as u8);
                     } else if code == ECI_CHARSET {
-                        result.appendECI(Eci::from(codewords[codeIndex]))?;
+                        result.append_eci(Eci::from(codewords[codeIndex]));
                         codeIndex += 1;
                     } else {
                         codeIndex -= 1;

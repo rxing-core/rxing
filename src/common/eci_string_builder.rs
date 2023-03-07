@@ -23,8 +23,6 @@
 
 use std::fmt;
 
-use crate::common::Result;
-
 use super::{CharacterSet, Eci};
 
 /**
@@ -32,26 +30,26 @@ use super::{CharacterSet, Eci};
  *
  * @author Alex Geller
  */
+#[derive(Default)]
 pub struct ECIStringBuilder {
-    current_bytes: Vec<u8>,
-    result: String,
-    current_charset: CharacterSet, //= StandardCharsets.ISO_8859_1;
+    is_eci: bool,
+    eci_result: Option<String>,
+    bytes: Vec<u8>,
+    eci_positions: Vec<(Eci, usize, usize)>, // (Eci, start, end)
 }
 
 impl ECIStringBuilder {
-    pub fn new() -> Self {
-        Self {
-            current_bytes: Vec::new(),
-            result: String::new(),
-            current_charset: CharacterSet::ISO8859_1,
-        }
-    }
     pub fn with_capacity(initial_capacity: usize) -> Self {
         Self {
-            current_bytes: Vec::with_capacity(initial_capacity),
-            result: String::with_capacity(initial_capacity),
-            current_charset: CharacterSet::ISO8859_1,
+            eci_result: None,
+            bytes: Vec::with_capacity(initial_capacity),
+            eci_positions: Vec::default(),
+            is_eci: false,
         }
+    }
+
+    pub fn bytes(&self) -> &[u8] {
+        &self.bytes
     }
 
     /**
@@ -60,7 +58,8 @@ impl ECIStringBuilder {
      * @param value character whose lowest byte is to be appended
      */
     pub fn append_char(&mut self, value: char) {
-        self.current_bytes.push(value as u8);
+        self.eci_result = None;
+        self.bytes.push(value as u8);
     }
 
     /**
@@ -69,7 +68,13 @@ impl ECIStringBuilder {
      * @param value byte to append
      */
     pub fn append_byte(&mut self, value: u8) {
-        self.current_bytes.push(value);
+        self.eci_result = None;
+        self.bytes.push(value)
+    }
+
+    pub fn append_bytes(&mut self, value: &[u8]) {
+        self.eci_result = None;
+        self.bytes.extend_from_slice(value)
     }
 
     /**
@@ -78,12 +83,11 @@ impl ECIStringBuilder {
      * @param value string to append
      */
     pub fn append_string(&mut self, value: &str) {
-        value
-            .as_bytes()
-            .iter()
-            .map(|b| self.current_bytes.push(*b))
-            .count();
-        // self.current_bytes.push(value.as_bytes());
+        if !value.is_ascii() {
+            self.append_eci(Eci::UTF8);
+        }
+        self.eci_result = None;
+        self.bytes.extend_from_slice(value.as_bytes());
     }
 
     /**
@@ -101,49 +105,78 @@ impl ECIStringBuilder {
      * @param value ECI value to append, as an int
      * @throws FormatException on invalid ECI value
      */
-    pub fn appendECI(&mut self, eci: Eci) -> Result<()> {
-        self.encodeCurrentBytesIfAny();
+    pub fn append_eci(&mut self, eci: Eci) {
+        self.eci_result = None;
+        if !self.is_eci && eci != Eci::ISO8859_1 {
+            self.is_eci = true;
+        }
 
-        self.current_charset = eci.into(); //CharacterSet::get_character_set_by_eci(value).ok();
+        if self.is_eci {
+            if let Some(last) = self.eci_positions.last_mut() {
+                last.2 = self.bytes.len()
+            }
 
-        // if let Ok(character_set_eci) = CharacterSetECI::getCharacterSetECIByValue(value) {
-        //     // dbg!(
-        //     //     character_set_eci,
-        //     //     CharacterSetECI::getCharset(&character_set_eci).name(),
-        //     //     CharacterSetECI::getCharset(&character_set_eci).whatwg_name()
-        //     // );
-        //     self.current_charset = Some(character_set_eci);
-        // } else {
-        //     self.current_charset = None
-        // }
-
-        // self.current_charset = CharacterSetECI::getCharset(&character_set_eci);
-        Ok(())
+            self.eci_positions.push((eci, self.bytes.len(), 0));
+        }
     }
 
     /// Finishes encoding anything in the buffer using the current ECI and resets.
     ///
     /// This function can panic
-    pub fn encodeCurrentBytesIfAny(&mut self) {
-        if ![CharacterSet::Binary, CharacterSet::Unknown].contains(&self.current_charset) {
-            if self.current_charset == CharacterSet::UTF8 {
-                if !self.current_bytes.is_empty() {
-                    self.result.push_str(
-                        &String::from_utf8(std::mem::take(&mut self.current_bytes)).unwrap(),
-                    );
-                    self.current_bytes.clear();
+    pub fn encodeCurrentBytesIfAny(&self) -> String {
+        let mut encoded_string = String::with_capacity(self.bytes.len());
+        // First encode the first set
+        let (_, end, _) =
+            *self
+                .eci_positions
+                .first()
+                .unwrap_or(&(Eci::ISO8859_1, self.bytes.len(), 0));
+
+        encoded_string.push_str(
+            &Self::encode_segment(&self.bytes[0..end], Eci::ISO8859_1).unwrap_or_default(),
+        );
+
+        // If there are more sets, encode each of them in turn
+        for (eci, eci_start, eci_end) in &self.eci_positions {
+            // let (_,end) = *self.eci_positions.first().unwrap_or(&(*eci, self.bytes.len()));
+            let end = if *eci_end == 0 {
+                self.bytes.len()
+            } else {
+                *eci_end
+            };
+            encoded_string.push_str(
+                &Self::encode_segment(&self.bytes[*eci_start..end], *eci).unwrap_or_default(),
+            );
+        }
+
+        // Return the result
+        encoded_string
+    }
+
+    fn encode_segment(bytes: &[u8], eci: Eci) -> Option<String> {
+        let mut encoded_string = String::with_capacity(bytes.len());
+        if ![Eci::Binary, Eci::Unknown].contains(&eci) {
+            if eci == Eci::UTF8 {
+                if !bytes.is_empty() {
+                    encoded_string.push_str(&CharacterSet::UTF8.decode(bytes).ok()?);
+                } else {
+                    return None;
                 }
-            } else if !self.current_bytes.is_empty() {
-                let bytes = std::mem::take(&mut self.current_bytes);
-                self.current_bytes.clear();
-                let encoded_value = self.current_charset.decode(&bytes).unwrap();
-                self.result.push_str(&encoded_value);
+            } else if !bytes.is_empty() {
+                encoded_string.push_str(&CharacterSet::from(eci).decode(bytes).ok()?);
+            } else {
+                return None;
             }
         } else {
-            for byte in &self.current_bytes {
-                self.result.push(char::from(*byte))
+            for byte in bytes {
+                encoded_string.push(char::from(*byte))
             }
-            self.current_bytes.clear();
+        }
+
+        if encoded_string.is_empty() {
+            None
+        } else {
+            Some(encoded_string)
         }
     }
 
@@ -153,8 +186,7 @@ impl ECIStringBuilder {
      * @param value characters to append
      */
     pub fn appendCharacters(&mut self, value: &str) {
-        self.encodeCurrentBytesIfAny();
-        self.result.push_str(value);
+        self.append_string(value);
     }
 
     /**
@@ -163,19 +195,18 @@ impl ECIStringBuilder {
      * @return length of string representation in characters
      */
     pub fn len(&mut self) -> usize {
-        self.encodeCurrentBytesIfAny(); //return toString().length();
-        self.result.chars().count()
+        self.bytes.len()
     }
 
     /**
      * @return true iff nothing has been appended
      */
     pub fn is_empty(&mut self) -> bool {
-        self.current_bytes.is_empty() && self.result.is_empty()
+        self.bytes.is_empty()
     }
 
     pub fn build_result(mut self) -> Self {
-        self.encodeCurrentBytesIfAny();
+        self.eci_result = Some(self.encodeCurrentBytesIfAny());
 
         self
     }
@@ -183,13 +214,10 @@ impl ECIStringBuilder {
 
 impl fmt::Display for ECIStringBuilder {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        //self.encodeCurrentBytesIfAny();
-        write!(f, "{}", self.result)
-    }
-}
-
-impl Default for ECIStringBuilder {
-    fn default() -> Self {
-        Self::new()
+        if let Some(res) = &self.eci_result {
+            write!(f, "{res}")
+        } else {
+            write!(f, "{}", self.encodeCurrentBytesIfAny())
+        }
     }
 }
