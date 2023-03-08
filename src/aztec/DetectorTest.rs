@@ -124,9 +124,9 @@ fn test_error_in_parameter_locator(data: &str) {
                     let r = r.expect("result already tested as ok");
                     assert_eq!(r.getNbLayers(), layers);
                     assert_eq!(r.isCompact(), compact);
-                    let res = decoder::decode(&r).expect(&format!(
-                        "decode should be ok: {isMirror}, {error1}, {error2}"
-                    ));
+                    let res = decoder::decode(&r).unwrap_or_else(|_| {
+                        panic!("decode should be ok: {isMirror}, {error1}, {error2}")
+                    });
                     assert_eq!(data, res.getText());
                 }
             }

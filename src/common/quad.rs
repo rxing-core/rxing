@@ -171,7 +171,7 @@ impl Quadrilateral {
 
         let mirror = if let Some(m) = mirror { m } else { false };
 
-        let mut res = self.clone();
+        let mut res = *self;
         res.0.rotate_left(((n + 4) % 4) as usize);
         // std::rotate_copy(q.begin(), q.begin() + ((n + 4) % 4), q.end(), res.begin());
         if mirror {

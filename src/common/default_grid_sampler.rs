@@ -45,9 +45,8 @@ impl GridSampler for DefaultGridSampler {
             // To deal with remaining examples (see #251 and #267) of "numercial instabilities" that have not been
             // prevented with the Quadrilateral.h:IsConvex() check, we check for all boundary points of the grid to
             // be inside.
-            let isInside = |p: Point| -> bool {
-                return image.is_in(transform.transform_point(p.centered()));
-            };
+            let isInside =
+                |p: Point| -> bool { image.is_in(transform.transform_point(p.centered())) };
             for y in (p0.y as i32)..(p1.y as i32) {
                 // for (int y = y0; y < y1; ++y)
                 if !isInside(point(p0.x, y as f32)) || !isInside(point(p1.x - 1.0, y as f32)) {
