@@ -95,7 +95,16 @@ pub trait GridSampler {
         dimensionY: u32,
         dst: Quadrilateral,
         src: Quadrilateral,
-    ) -> Result<BitMatrix>;
+    ) -> Result<BitMatrix> {
+        let transform = PerspectiveTransform::quadrilateralToQuadrilateral(dst, src)?;
+
+        self.sample_grid(
+            image,
+            dimensionX,
+            dimensionY,
+            &[SamplerControl::new(dimensionX, dimensionY, transform)],
+        )
+    }
 
     fn sample_grid(
         &self,
@@ -103,7 +112,68 @@ pub trait GridSampler {
         dimensionX: u32,
         dimensionY: u32,
         controls: &[SamplerControl],
-    ) -> Result<BitMatrix>;
+    ) -> Result<BitMatrix> {
+        if dimensionX == 0 || dimensionY == 0 {
+            return Err(Exceptions::NOT_FOUND);
+        }
+        let mut bits = BitMatrix::new(dimensionX, dimensionY)?;
+        let mut points = vec![Point::default(); dimensionX as usize];
+        for y in 0..dimensionY {
+            //   for (int y = 0; y < dimensionY; y++) {
+            let max = points.len();
+            let i_value = y as f32 + 0.5;
+            let mut x = 0;
+            while x < max {
+                // for (int x = 0; x < max; x += 2) {
+                points[x].x = (x as f32) + 0.5;
+                points[x].y = i_value;
+                x += 1;
+            }
+
+            controls
+                .first()
+                .unwrap()
+                .transform
+                .transform_points_single(&mut points);
+            // Quick check to see if points transformed to something inside the image;
+            // sufficient to check the endpoints
+            self.checkAndNudgePoints(image, &mut points)?;
+            // try {
+            let mut x = 0;
+            while x < max {
+                //   for (int x = 0; x < max; x += 2) {
+                // if points[x] as u32 >= image.getWidth() || points[x + 1] as u32 >= image.getHeight()
+                // {
+                //     return Err(Exceptions::notFound(
+                //         "index out of bounds, see documentation in file for explanation".to_owned(),
+                //     ));
+                // }
+                if image
+                    .try_get(points[x].x as u32, points[x].y as u32)
+                    .ok_or(Exceptions::not_found_with(
+                        "index out of bounds, see documentation in file for explanation",
+                    ))?
+                {
+                    // Black(-ish) pixel
+                    bits.set(x as u32, y);
+                }
+                x += 1;
+            }
+            // } catch (ArrayIndexOutOfBoundsException aioobe) {
+            //   // This feels wrong, but, sometimes if the finder patterns are misidentified, the resulting
+            //   // transform gets "twisted" such that it maps a straight line of points to a set of points
+            //   // whose endpoints are in bounds, but others are not. There is probably some mathematical
+            //   // way to detect this about the transformation that I don't know yet.
+            //   // This results in an ugly runtime exception despite our clever checks above -- can't have
+            //   // that. We could check each point's coordinates but that feels duplicative. We settle for
+            //   // catching and wrapping ArrayIndexOutOfBoundsException.
+            //   throw NotFoundException.getNotFoundInstance();
+            // }
+        }
+        // dbg!(bits.to_string());
+
+        Ok(bits)
+    }
 
     /**
      * <p>Checks a set of points that have been transformed to sample points on an image against

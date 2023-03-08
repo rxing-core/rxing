@@ -19,9 +19,9 @@
 // import com.google.zxing.NotFoundException;
 
 use crate::common::Result;
-use crate::{Exceptions, Point};
+use crate::{point, Exceptions, Point};
 
-use super::{BitMatrix, GridSampler, PerspectiveTransform, Quadrilateral, SamplerControl};
+use super::{BitMatrix, GridSampler, SamplerControl};
 
 /**
  * @author Sean Owen
@@ -30,24 +30,6 @@ use super::{BitMatrix, GridSampler, PerspectiveTransform, Quadrilateral, Sampler
 pub struct DefaultGridSampler;
 
 impl GridSampler for DefaultGridSampler {
-    fn sample_grid_detailed(
-        &self,
-        image: &BitMatrix,
-        dimensionX: u32,
-        dimensionY: u32,
-        dst: Quadrilateral,
-        src: Quadrilateral,
-    ) -> Result<BitMatrix> {
-        let transform = PerspectiveTransform::quadrilateralToQuadrilateral(dst, src)?;
-
-        self.sample_grid(
-            image,
-            dimensionX,
-            dimensionY,
-            &[SamplerControl::new(dimensionX, dimensionY, transform)],
-        )
-    }
-
     fn sample_grid(
         &self,
         image: &BitMatrix,
@@ -55,62 +37,64 @@ impl GridSampler for DefaultGridSampler {
         dimensionY: u32,
         controls: &[SamplerControl],
     ) -> Result<BitMatrix> {
-        if dimensionX == 0 || dimensionY == 0 {
+        if dimensionX <= 0 || dimensionY <= 0 {
             return Err(Exceptions::NOT_FOUND);
         }
-        let mut bits = BitMatrix::new(dimensionX, dimensionY)?;
-        let mut points = vec![Point::default(); dimensionX as usize];
-        for y in 0..dimensionY {
-            //   for (int y = 0; y < dimensionY; y++) {
-            let max = points.len();
-            let i_value = y as f32 + 0.5;
-            let mut x = 0;
-            while x < max {
-                // for (int x = 0; x < max; x += 2) {
-                points[x].x = (x as f32) + 0.5;
-                points[x].y = i_value;
-                x += 1;
-            }
-            controls
-                .first()
-                .unwrap()
-                .transform
-                .transform_points_single(&mut points);
-            // Quick check to see if points transformed to something inside the image;
-            // sufficient to check the endpoints
-            self.checkAndNudgePoints(image, &mut points)?;
-            // try {
-            let mut x = 0;
-            while x < max {
-                //   for (int x = 0; x < max; x += 2) {
-                // if points[x] as u32 >= image.getWidth() || points[x + 1] as u32 >= image.getHeight()
-                // {
-                //     return Err(Exceptions::notFound(
-                //         "index out of bounds, see documentation in file for explanation".to_owned(),
-                //     ));
-                // }
-                if image
-                    .try_get(points[x].x as u32, points[x].y as u32)
-                    .ok_or(Exceptions::not_found_with(
-                        "index out of bounds, see documentation in file for explanation",
-                    ))?
-                {
-                    // Black(-ish) pixel
-                    bits.set(x as u32, y);
+
+        for SamplerControl { p0, p1, transform } in controls {
+            // To deal with remaining examples (see #251 and #267) of "numercial instabilities" that have not been
+            // prevented with the Quadrilateral.h:IsConvex() check, we check for all boundary points of the grid to
+            // be inside.
+            let isInside = |p: Point| -> bool {
+                return image.is_in(transform.transform_point(p.centered()));
+            };
+            for y in (p0.y as i32)..(p1.y as i32) {
+                // for (int y = y0; y < y1; ++y)
+                if !isInside(point(p0.x, y as f32)) || !isInside(point(p1.x - 1.0, y as f32)) {
+                    return Err(Exceptions::NOT_FOUND);
                 }
-                x += 1;
             }
-            // } catch (ArrayIndexOutOfBoundsException aioobe) {
-            //   // This feels wrong, but, sometimes if the finder patterns are misidentified, the resulting
-            //   // transform gets "twisted" such that it maps a straight line of points to a set of points
-            //   // whose endpoints are in bounds, but others are not. There is probably some mathematical
-            //   // way to detect this about the transformation that I don't know yet.
-            //   // This results in an ugly runtime exception despite our clever checks above -- can't have
-            //   // that. We could check each point's coordinates but that feels duplicative. We settle for
-            //   // catching and wrapping ArrayIndexOutOfBoundsException.
-            //   throw NotFoundException.getNotFoundInstance();
-            // }
+            for x in (p0.x as i32)..(p1.x as i32) {
+                // for (int x = x0; x < x1; ++x)
+                if !isInside(point(x as f32, p0.y)) || !isInside(point(x as f32, p1.y - 1.0)) {
+                    return Err(Exceptions::NOT_FOUND);
+                }
+            }
         }
+
+        let mut bits = BitMatrix::new(dimensionX, dimensionY)?;
+        for SamplerControl { p0, p1, transform } in controls {
+            // for (auto&& [x0, x1, y0, y1, mod2Pix] : rois) {
+            for y in (p0.y as i32)..(p1.y as i32) {
+                // for (int y = y0; y < y1; ++y)
+                for x in (p0.x as i32)..(p1.x as i32) {
+                    // for (int x = x0; x < x1; ++x) {
+                    let p = transform.transform_point(Point::from((x, y)).centered()); //mod2Pix(centered(PointI{x, y}));
+
+                    if image.get_point(p) {
+                        bits.set(x as u32, y as u32);
+                    }
+                }
+            }
+        }
+
+        // dbg!(image.to_string());
+        // dbg!(bits.to_string());
+
+        let projectCorner = |p: Point| -> Point {
+            for SamplerControl { p0, p1, transform } in controls {
+                if p0.x <= p.x && p.x <= p1.x && p0.y <= p.y && p.y <= p1.y {
+                    return transform.transform_point(p) + point(0.5, 0.5);
+                }
+            }
+            Point::default()
+        };
+
+        let _tl = projectCorner(point(0.0, 0.0));
+        let _tr = projectCorner(Point::from((dimensionX, 0)));
+        let _bl = projectCorner(Point::from((dimensionX, dimensionY)));
+        let _br = projectCorner(Point::from((0, dimensionX)));
+
         Ok(bits)
     }
 }

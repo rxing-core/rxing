@@ -81,15 +81,28 @@ impl PerspectiveTransform {
         Ok(s_to_q * q_to_s)
     }
 
+    pub fn transform_point(&self, point: Point) -> Point {
+        let x = point.x;
+        let y = point.y;
+        let denominator = self.a13 * x + self.a23 * y + self.a33;
+        Point::new(
+            (self.a11 * x + self.a21 * y + self.a31) / denominator,
+            (self.a12 * x + self.a22 * y + self.a32) / denominator,
+        )
+    }
+
     pub fn transform_points_single(&self, points: &mut [Point]) {
         for point in points.iter_mut() {
-            // for (int i = 0; i < maxI; i += 2) {
-            let x = point.x;
-            let y = point.y;
-            let denominator = self.a13 * x + self.a23 * y + self.a33;
-            point.x = (self.a11 * x + self.a21 * y + self.a31) / denominator;
-            point.y = (self.a12 * x + self.a22 * y + self.a32) / denominator;
+            *point = self.transform_point(Point::new(point.x, point.y));
         }
+        // for point in points.iter_mut() {
+        //     // for (int i = 0; i < maxI; i += 2) {
+        //     let x = point.x;
+        //     let y = point.y;
+        //     let denominator = self.a13 * x + self.a23 * y + self.a33;
+        //     point.x = (self.a11 * x + self.a21 * y + self.a31) / denominator;
+        //     point.y = (self.a12 * x + self.a22 * y + self.a32) / denominator;
+        // }
     }
 
     pub fn transform_points_double(&self, x_values: &mut [f32], y_valuess: &mut [f32]) {

@@ -260,6 +260,12 @@ impl From<(i32, i32)> for Point {
     }
 }
 
+impl From<(u32, u32)> for Point {
+    fn from(value: (u32, u32)) -> Self {
+        Self::new(value.0 as f32, value.1 as f32)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Point;

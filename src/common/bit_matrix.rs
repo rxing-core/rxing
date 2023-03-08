@@ -695,6 +695,10 @@ impl BitMatrix {
         new_bm
     }
 
+    pub fn is_in(&self, p: Point) -> bool {
+        self.isIn(p, 0)
+    }
+
     pub fn isIn(&self, p: Point, b: i32) -> bool {
         b as f32 <= p.x
             && p.x < self.getWidth() as f32 - b as f32

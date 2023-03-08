@@ -115,12 +115,18 @@ fn test_error_in_parameter_locator(data: &str) {
                     // dbg!(copy.to_string());
                     // dbg!(make_larger(&copy, 3).to_string());
                     // The detector doesn't seem to work when matrix bits are only 1x1.  So magnify.
+                    // dbg!(isMirror, error1, error2);
                     let r = Detector::new(&make_larger(&copy, 3)).detect(isMirror);
-                    assert!(r.is_ok());
+                    assert!(
+                        r.is_ok(),
+                        "decode should be ok: {isMirror:?}, {error1}, {error2}"
+                    );
                     let r = r.expect("result already tested as ok");
                     assert_eq!(r.getNbLayers(), layers);
                     assert_eq!(r.isCompact(), compact);
-                    let res = decoder::decode(&r).expect("decode should be ok");
+                    let res = decoder::decode(&r).expect(&format!(
+                        "decode should be ok: {isMirror}, {error1}, {error2}"
+                    ));
                     assert_eq!(data, res.getText());
                 }
             }
