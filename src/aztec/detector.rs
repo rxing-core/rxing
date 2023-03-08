@@ -18,7 +18,7 @@ use crate::{
     common::{
         detector::WhiteRectangleDetector,
         reedsolomon::{self, ReedSolomonDecoder},
-        BitMatrix, DefaultGridSampler, GridSampler, Result, Quadrilateral,
+        BitMatrix, DefaultGridSampler, GridSampler, Quadrilateral, Result,
     },
     exceptions::Exceptions,
     point, Point,
@@ -89,16 +89,15 @@ impl<'a> Detector<'_> {
         // 3. Get the size of the matrix and other parameters from the bull's eye
         self.extractParameters(&bulls_eye_corners)?;
 
-let src_quad = Quadrilateral::new(bulls_eye_corners[self.shift as usize % 4],
-    bulls_eye_corners[(self.shift as usize + 1) % 4],
-    bulls_eye_corners[(self.shift as usize + 2) % 4],
-    bulls_eye_corners[(self.shift as usize + 3) % 4],);
+        let src_quad = Quadrilateral::new(
+            bulls_eye_corners[self.shift as usize % 4],
+            bulls_eye_corners[(self.shift as usize + 1) % 4],
+            bulls_eye_corners[(self.shift as usize + 2) % 4],
+            bulls_eye_corners[(self.shift as usize + 3) % 4],
+        );
 
         // 4. Sample the grid
-        let bits = self.sample_grid(
-            self.image,
-           src_quad
-        )?;
+        let bits = self.sample_grid(self.image, src_quad)?;
 
         // 5. Get the corners of the matrix.
         let corners = self.get_matrix_corner_points(&bulls_eye_corners);
@@ -456,25 +455,21 @@ let src_quad = Quadrilateral::new(bulls_eye_corners[self.shift as usize % 4],
      * topLeft, topRight, bottomRight, and bottomLeft are the centers of the squares on the
      * diagonal just outside the bull's eye.
      */
-    fn sample_grid(
-        &self,
-        image: &BitMatrix,
-        quad: Quadrilateral,
-    ) -> Result<BitMatrix> {
+    fn sample_grid(&self, image: &BitMatrix, quad: Quadrilateral) -> Result<BitMatrix> {
         let sampler = DefaultGridSampler::default();
         let dimension = self.get_dimension();
 
         let low = dimension as f32 / 2.0 - self.nb_center_layers as f32;
         let high = dimension as f32 / 2.0 + self.nb_center_layers as f32;
 
-        let dst = Quadrilateral::new(point(low,low), point(high,low), point(high,high), point(low,high));
+        let dst = Quadrilateral::new(
+            point(low, low),
+            point(high, low),
+            point(high, high),
+            point(low, high),
+        );
 
-        sampler.sample_grid_detailed(
-            image,
-            dimension,
-            dimension,
-            dst, quad
-        )
+        sampler.sample_grid_detailed(image, dimension, dimension, dst, quad)
     }
 
     /**

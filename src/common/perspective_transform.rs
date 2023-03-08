@@ -18,7 +18,7 @@
 
 use std::ops::Mul;
 
-use crate::point;
+use crate::{common::Result, point, Exceptions, Point};
 
 use super::Quadrilateral;
 
@@ -68,41 +68,27 @@ impl PerspectiveTransform {
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub fn quadrilateralToQuadrilateral(
-        dst: Quadrilateral,
-        src: Quadrilateral
-    ) -> Self {
-
+    pub fn quadrilateralToQuadrilateral(dst: Quadrilateral, src: Quadrilateral) -> Result<Self> {
+        if !src.is_convex() || !dst.is_convex() {
+            return Err(Exceptions::ILLEGAL_STATE);
+        }
         // let q_to_s = PerspectiveTransform::quadrilateralToSquare(x0, y0, x1, y1, x2, y2, x3, y3);
         // let s_to_q =
         //     PerspectiveTransform::squareToQuadrilateral(x0p, y0p, x1p, y1p, x2p, y2p, x3p, y3p);
 
         let q_to_s = PerspectiveTransform::quadrilateralToSquare(dst);
-        let s_to_q =
-            PerspectiveTransform::squareToQuadrilateral(src);
-        s_to_q * q_to_s
+        let s_to_q = PerspectiveTransform::squareToQuadrilateral(src);
+        Ok(s_to_q * q_to_s)
     }
 
-    pub fn transform_points_single(&self, points: &mut [f32]) {
-        let a11 = self.a11;
-        let a12 = self.a12;
-        let a13 = self.a13;
-        let a21 = self.a21;
-        let a22 = self.a22;
-        let a23 = self.a23;
-        let a31 = self.a31;
-        let a32 = self.a32;
-        let a33 = self.a33;
-        let maxI = points.len() - 1; // points.length must be even
-        let mut i = 0;
-        while i < maxI {
+    pub fn transform_points_single(&self, points: &mut [Point]) {
+        for point in points.iter_mut() {
             // for (int i = 0; i < maxI; i += 2) {
-            let x = points[i];
-            let y = points[i + 1];
-            let denominator = a13 * x + a23 * y + a33;
-            points[i] = (a11 * x + a21 * y + a31) / denominator;
-            points[i + 1] = (a12 * x + a22 * y + a32) / denominator;
-            i += 2;
+            let x = point.x;
+            let y = point.y;
+            let denominator = self.a13 * x + self.a23 * y + self.a33;
+            point.x = (self.a11 * x + self.a21 * y + self.a31) / denominator;
+            point.y = (self.a12 * x + self.a22 * y + self.a32) / denominator;
         }
     }
 
@@ -118,23 +104,30 @@ impl PerspectiveTransform {
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub fn squareToQuadrilateral(
-        square: Quadrilateral
-    ) -> Self {
-        let [p0, p1, p2, p3 ] = square.0;
-        
-        let d3 = p0 - p1 + p2 - p3;
-        if d3 == point(0.0,0.0) {
-            // Affine
-            PerspectiveTransform::new(p1.x - p0.x, p2.x - p1.x, p0.x, p1.y - p0.y, p2.y - p1.y, p0.y, 0.0, 0.0, 1.0)
-        } else {
+    pub fn squareToQuadrilateral(square: Quadrilateral) -> Self {
+        let [p0, p1, p2, p3] = square.0;
 
-let d1 = p1 - p2;
-let d2 = p3 - p2;
+        let d3 = p0 - p1 + p2 - p3;
+        if d3 == point(0.0, 0.0) {
+            // Affine
+            PerspectiveTransform::new(
+                p1.x - p0.x,
+                p2.x - p1.x,
+                p0.x,
+                p1.y - p0.y,
+                p2.y - p1.y,
+                p0.y,
+                0.0,
+                0.0,
+                1.0,
+            )
+        } else {
+            let d1 = p1 - p2;
+            let d2 = p3 - p2;
 
             let denominator = d1.cross(d2);
-            let a13 = (d3.x * d2.y - d2.x * d3.y) / denominator;
-            let a23 = (d1.x * d3.y - d3.x * d1.y) / denominator;
+            let a13 = d3.cross(d2) / denominator;
+            let a23 = d1.cross(d3) / denominator;
             PerspectiveTransform::new(
                 p1.x - p0.x + a13 * p1.x,
                 p3.x - p0.x + a23 * p3.x,
@@ -150,9 +143,7 @@ let d2 = p3 - p2;
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub fn quadrilateralToSquare(
-        quad: Quadrilateral
-    ) -> Self {
+    pub fn quadrilateralToSquare(quad: Quadrilateral) -> Self {
         // Here, the adjoint serves as the inverse
         PerspectiveTransform::squareToQuadrilateral(quad).buildAdjoint()
     }

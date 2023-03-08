@@ -18,8 +18,8 @@
 
 // import com.google.zxing.NotFoundException;
 
-use crate::{common::Result};
-use crate::Exceptions;
+use crate::common::Result;
+use crate::{Exceptions, Point};
 
 use super::{BitMatrix, GridSampler, PerspectiveTransform, Quadrilateral, SamplerControl};
 
@@ -36,13 +36,16 @@ impl GridSampler for DefaultGridSampler {
         dimensionX: u32,
         dimensionY: u32,
         dst: Quadrilateral,
-       src:Quadrilateral
+        src: Quadrilateral,
     ) -> Result<BitMatrix> {
-        let transform = PerspectiveTransform::quadrilateralToQuadrilateral(
-            dst, src,
-        );
+        let transform = PerspectiveTransform::quadrilateralToQuadrilateral(dst, src)?;
 
-        self.sample_grid(image, dimensionX, dimensionY, &[SamplerControl::new(dimensionX, dimensionY, transform)])
+        self.sample_grid(
+            image,
+            dimensionX,
+            dimensionY,
+            &[SamplerControl::new(dimensionX, dimensionY, transform)],
+        )
     }
 
     fn sample_grid(
@@ -50,13 +53,13 @@ impl GridSampler for DefaultGridSampler {
         image: &BitMatrix,
         dimensionX: u32,
         dimensionY: u32,
-        controls: &[SamplerControl]
+        controls: &[SamplerControl],
     ) -> Result<BitMatrix> {
         if dimensionX == 0 || dimensionY == 0 {
             return Err(Exceptions::NOT_FOUND);
         }
         let mut bits = BitMatrix::new(dimensionX, dimensionY)?;
-        let mut points = vec![0.0; 2 * dimensionX as usize];
+        let mut points = vec![Point::default(); dimensionX as usize];
         for y in 0..dimensionY {
             //   for (int y = 0; y < dimensionY; y++) {
             let max = points.len();
@@ -64,11 +67,15 @@ impl GridSampler for DefaultGridSampler {
             let mut x = 0;
             while x < max {
                 // for (int x = 0; x < max; x += 2) {
-                points[x] = (x as f32 / 2.0) + 0.5;
-                points[x + 1] = i_value;
-                x += 2;
+                points[x].x = (x as f32) + 0.5;
+                points[x].y = i_value;
+                x += 1;
             }
-            controls.first().unwrap().transform.transform_points_single(&mut points);
+            controls
+                .first()
+                .unwrap()
+                .transform
+                .transform_points_single(&mut points);
             // Quick check to see if points transformed to something inside the image;
             // sufficient to check the endpoints
             self.checkAndNudgePoints(image, &mut points)?;
@@ -83,15 +90,15 @@ impl GridSampler for DefaultGridSampler {
                 //     ));
                 // }
                 if image
-                    .try_get(points[x] as u32, points[x + 1] as u32)
+                    .try_get(points[x].x as u32, points[x].y as u32)
                     .ok_or(Exceptions::not_found_with(
                         "index out of bounds, see documentation in file for explanation",
                     ))?
                 {
                     // Black(-ish) pixel
-                    bits.set(x as u32 / 2, y);
+                    bits.set(x as u32, y);
                 }
-                x += 2;
+                x += 1;
             }
             // } catch (ArrayIndexOutOfBoundsException aioobe) {
             //   // This feels wrong, but, sometimes if the finder patterns are misidentified, the resulting

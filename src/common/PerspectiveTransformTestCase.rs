@@ -27,11 +27,16 @@ use crate::point;
 // public final class PerspectiveTransformTestCase extends Assert {
 use super::{PerspectiveTransform, Quadrilateral};
 
-static EPSILON: f32 = 1.0E-4f32;
+static EPSILON: f32 = 1.0E-4_f32;
 
 #[test]
 fn test_square_to_quadrilateral() {
-    let square = Quadrilateral::new(point(2.0, 3.0), point(10.0, 3.0), point(16.0, 15.0), point(4.0,9.0));
+    let square = Quadrilateral::new(
+        point(2.0, 3.0),
+        point(10.0, 3.0),
+        point(16.0, 15.0),
+        point(4.0, 9.0),
+    );
     let pt = PerspectiveTransform::squareToQuadrilateral(square);
     assert_point_equals(2.0, 3.0, 0.0, 0.0, &pt);
     assert_point_equals(10.0, 4.0, 1.0, 0.0, &pt);
@@ -43,10 +48,20 @@ fn test_square_to_quadrilateral() {
 
 #[test]
 fn test_quadrilateral_to_quadrilateral() {
-    let quad1 = Quadrilateral::new(point(2.0, 3.0), point(10.0, 4.0), point(16.0, 15.0), point(4.0, 9.0));
-    let quad2 = Quadrilateral::new(point(103.0, 110.0), point(300.0, 120.0), point(290.0, 270.0), point(150.0,280.0));
-    let pt = PerspectiveTransform::quadrilateralToQuadrilateral(quad1, quad2);
-    
+    let quad1 = Quadrilateral::new(
+        point(2.0, 3.0),
+        point(10.0, 4.0),
+        point(16.0, 15.0),
+        point(4.0, 9.0),
+    );
+    let quad2 = Quadrilateral::new(
+        point(103.0, 110.0),
+        point(300.0, 120.0),
+        point(290.0, 270.0),
+        point(150.0, 280.0),
+    );
+    let pt = PerspectiveTransform::quadrilateralToQuadrilateral(quad1, quad2).expect("transform");
+
     assert_point_equals(103.0, 110.0, 2.0, 3.0, &pt);
     assert_point_equals(300.0, 120.0, 10.0, 4.0, &pt);
     assert_point_equals(290.0, 270.0, 16.0, 15.0, &pt);
@@ -62,19 +77,19 @@ fn assert_point_equals(
     source_y: f32,
     pt: &PerspectiveTransform,
 ) {
-    let mut points = [source_x, source_y];
+    let mut points = [point(source_x, source_y)];
     pt.transform_points_single(&mut points);
     assert!(
-        (expected_x - points[0] < EPSILON || points[0] - expected_x < EPSILON),
+        (expected_x - points[0].x < EPSILON || points[0].x - expected_x < EPSILON),
         "{} - {}",
         expected_x,
-        points[0]
+        points[0].x
     );
     assert!(
-        (expected_y - points[1] < EPSILON || points[1] - expected_y < EPSILON),
+        (expected_y - points[0].y < EPSILON || points[0].y - expected_y < EPSILON),
         "{} - {}",
         expected_y,
-        points[1]
+        points[0].y
     );
 
     // assert_eq!( expectedX, points[0]);

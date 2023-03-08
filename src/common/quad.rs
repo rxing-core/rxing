@@ -10,8 +10,8 @@ impl Quadrilateral {
     // using Point = T;
 
     #[allow(dead_code)]
-    pub fn new(tl:Point, tr: Point, br: Point, bl: Point) -> Self {
-        Self([tl,tr,br,bl])
+    pub fn new(tl: Point, tr: Point, br: Point, bl: Point) -> Self {
+        Self([tl, tr, br, bl])
     }
     // pub fn with_f32( tl:f32,  tr:f32,  br:f32,  bl:f32) -> Self {
     //     Self([tl, tr,br, bl ])
@@ -124,11 +124,11 @@ impl Quadrilateral {
             let d2 = self.0[i] - self.0[(i + 1) % N];
             let cp = d1.cross(d2);
 
-            m = if m.abs() > cp { cp } else { m.abs() };
+            // m = if m.abs() > cp { cp } else { m.abs() };
 
-            M = if M.abs() > cp { M.abs() } else { cp };
-            // m = std::cmp::min((m).abs(), cp);
-            // M = std::cmp::max((M).abs(), cp);
+            // M = if M.abs() > cp { M.abs() } else { cp };
+            m = f32::min((m).abs(), cp);
+            M = f32::max((M).abs(), cp);
 
             if i == 0 {
                 sign = cp > 0.0;

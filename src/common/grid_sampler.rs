@@ -19,7 +19,7 @@
 // import com.google.zxing.NotFoundException;
 
 use crate::{common::Result, Point};
-use crate::{Exceptions, point};
+use crate::{point, Exceptions};
 
 use super::{BitMatrix, PerspectiveTransform, Quadrilateral};
 
@@ -94,7 +94,7 @@ pub trait GridSampler {
         dimensionX: u32,
         dimensionY: u32,
         dst: Quadrilateral,
-       src:Quadrilateral
+        src: Quadrilateral,
     ) -> Result<BitMatrix>;
 
     fn sample_grid(
@@ -102,7 +102,7 @@ pub trait GridSampler {
         image: &BitMatrix,
         dimensionX: u32,
         dimensionY: u32,
-        controls: &[SamplerControl]
+        controls: &[SamplerControl],
     ) -> Result<BitMatrix>;
 
     /**
@@ -120,7 +120,7 @@ pub trait GridSampler {
      * @param points actual points in x1,y1,...,xn,yn form
      * @throws NotFoundException if an endpoint is lies outside the image boundaries
      */
-    fn checkAndNudgePoints(&self, image: &BitMatrix, points: &mut [f32]) -> Result<()> {
+    fn checkAndNudgePoints(&self, image: &BitMatrix, points: &mut [Point]) -> Result<()> {
         let width = image.getWidth();
         let height = image.getHeight();
         // Check and nudge points from start until we see some that are OK:
@@ -129,54 +129,54 @@ pub trait GridSampler {
         let mut offset = 0;
         while offset < max_offset && nudged {
             // for (int offset = 0; offset < maxOffset && nudged; offset += 2) {
-            let x = points[offset] as i32;
-            let y = points[offset + 1] as i32;
+            let x = points[offset].x as i32;
+            let y = points[offset].y as i32;
             if x < -1 || x > width as i32 || y < -1 || y > height as i32 {
                 return Err(Exceptions::NOT_FOUND);
             }
             nudged = false;
             if x == -1 {
-                points[offset] = 0.0;
+                points[offset].x = 0.0;
                 nudged = true;
             } else if x == width as i32 {
-                points[offset] = width as f32 - 1.0;
+                points[offset].x = width as f32 - 1.0;
                 nudged = true;
             }
             if y == -1 {
-                points[offset + 1] = 0.0;
+                points[offset].y = 0.0;
                 nudged = true;
             } else if y == height as i32 {
-                points[offset + 1] = height as f32 - 1.0;
+                points[offset].y = height as f32 - 1.0;
                 nudged = true;
             }
-            offset += 2;
+            offset += 1;
         }
         // Check and nudge points from end:
         nudged = true;
-        let mut offset = points.len() as isize - 2;
+        let mut offset = points.len() as isize - 1;
         while offset >= 0 && nudged {
             // for (int offset = points.length - 2; offset >= 0 && nudged; offset -= 2) {
-            let x = points[offset as usize] as i32;
-            let y = points[offset as usize + 1] as i32;
+            let x = points[offset as usize].x as i32;
+            let y = points[offset as usize].y as i32;
             if x < -1 || x > width as i32 || y < -1 || y > height as i32 {
                 return Err(Exceptions::NOT_FOUND);
             }
             nudged = false;
             if x == -1 {
-                points[offset as usize] = 0.0;
+                points[offset as usize].x = 0.0;
                 nudged = true;
             } else if x == width as i32 {
-                points[offset as usize] = width as f32 - 1.0;
+                points[offset as usize].x = width as f32 - 1.0;
                 nudged = true;
             }
             if y == -1 {
-                points[offset as usize + 1] = 0.0;
+                points[offset as usize].y = 0.0;
                 nudged = true;
             } else if y == height as i32 {
-                points[offset as usize + 1] = height as f32 - 1.0;
+                points[offset as usize].y = height as f32 - 1.0;
                 nudged = true;
             }
-            offset += -2;
+            offset += -1;
         }
         Ok(())
     }
@@ -185,11 +185,15 @@ pub trait GridSampler {
 pub struct SamplerControl {
     pub p0: Point,
     pub p1: Point,
-    pub transform: PerspectiveTransform
+    pub transform: PerspectiveTransform,
 }
 
 impl SamplerControl {
-    pub fn new( width: u32, height: u32, transform: PerspectiveTransform ) -> Self {
-        Self{ p0: point(0.0, 0.0), p1: point(width as f32, height as f32), transform }
+    pub fn new(width: u32, height: u32, transform: PerspectiveTransform) -> Self {
+        Self {
+            p0: point(0.0, 0.0),
+            p1: point(width as f32, height as f32),
+            transform,
+        }
     }
 }

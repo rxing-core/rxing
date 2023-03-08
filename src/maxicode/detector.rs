@@ -2,7 +2,9 @@
 use num::integer::Roots;
 
 use crate::{
-    common::{BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler, Result, Quadrilateral},
+    common::{
+        BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler, Quadrilateral, Result,
+    },
     point, Exceptions, Point,
 };
 
@@ -346,9 +348,12 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         // let target_width = (tr.0 - tl.0).round().abs() as u32;
         // let target_height = (br.1 - tr.1).round().abs() as u32;
 
-        let dst = Quadrilateral::new(point(0.0,0.0), point(target_width,0.0), point(target_width,
-            target_height), point(0.0,
-                target_height));
+        let dst = Quadrilateral::new(
+            point(0.0, 0.0),
+            point(target_width, 0.0),
+            point(target_width, target_height),
+            point(0.0, target_height),
+        );
         let src = Quadrilateral::new(tl, tr, br, bl);
 
         let Ok(bits) = grid_sampler.sample_grid_detailed(

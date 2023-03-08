@@ -17,7 +17,10 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform, Result, Quadrilateral, SamplerControl},
+    common::{
+        BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform, Quadrilateral, Result,
+        SamplerControl,
+    },
     point,
     qrcode::decoder::Version,
     DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, Point, PointCallback,
@@ -193,16 +196,20 @@ impl<'a> Detector<'_> {
             sourceBottomRightY = dimMinusThree;
         }
 
-        let dst = Quadrilateral::new(point(3.5,
-            3.5), point(dimMinusThree,
-                3.5), point(sourceBottomRightX,
-                    sourceBottomRightY), point(3.5,
-                        dimMinusThree));
-        let src = Quadrilateral::new( topLeft, topRight, point(bottomRightX, bottomRightY), bottomLeft);
+        let dst = Quadrilateral::new(
+            point(3.5, 3.5),
+            point(dimMinusThree, 3.5),
+            point(sourceBottomRightX, sourceBottomRightY),
+            point(3.5, dimMinusThree),
+        );
+        let src = Quadrilateral::new(
+            topLeft,
+            topRight,
+            point(bottomRightX, bottomRightY),
+            bottomLeft,
+        );
 
-        Some(PerspectiveTransform::quadrilateralToQuadrilateral(
-            dst, src
-        ))
+        PerspectiveTransform::quadrilateralToQuadrilateral(dst, src).ok()
     }
 
     fn sampleGrid(
@@ -211,7 +218,12 @@ impl<'a> Detector<'_> {
         dimension: u32,
     ) -> Result<BitMatrix> {
         let sampler = DefaultGridSampler::default();
-        sampler.sample_grid(image, dimension, dimension, &[SamplerControl::new(dimension, dimension, transform)])
+        sampler.sample_grid(
+            image,
+            dimension,
+            dimension,
+            &[SamplerControl::new(dimension, dimension, transform)],
+        )
     }
 
     /**

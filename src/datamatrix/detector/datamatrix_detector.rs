@@ -16,7 +16,8 @@
 
 use crate::{
     common::{
-        detector::WhiteRectangleDetector, BitMatrix, DefaultGridSampler, GridSampler, Result, Quadrilateral,
+        detector::WhiteRectangleDetector, BitMatrix, DefaultGridSampler, GridSampler,
+        Quadrilateral, Result,
     },
     point, Exceptions, Point,
 };
@@ -334,15 +335,15 @@ impl<'a> Detector<'_> {
     ) -> Result<BitMatrix> {
         let sampler = DefaultGridSampler::default();
 
-        let dst = Quadrilateral::new(point(0.5, 0.5), point(dimensionX as f32 - 0.5, 0.5), point(dimensionX as f32 - 0.5,dimensionY as f32 - 0.5), point(0.5, dimensionY as f32 - 0.5));
-        let src = Quadrilateral::new(topRight, topLeft,bottomRight, bottomLeft);
+        let dst = Quadrilateral::new(
+            point(0.5, 0.5),
+            point(dimensionX as f32 - 0.5, 0.5),
+            point(dimensionX as f32 - 0.5, dimensionY as f32 - 0.5),
+            point(0.5, dimensionY as f32 - 0.5),
+        );
+        let src = Quadrilateral::new(topRight, topLeft, bottomRight, bottomLeft);
 
-        sampler.sample_grid_detailed(
-            image,
-            dimensionX,
-            dimensionY,
-            dst, src
-        )
+        sampler.sample_grid_detailed(image, dimensionX, dimensionY, dst, src)
     }
 
     /**
