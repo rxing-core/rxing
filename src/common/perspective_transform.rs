@@ -16,6 +16,12 @@
 
 // package com.google.zxing.common;
 
+use std::ops::Mul;
+
+use crate::point;
+
+use super::Quadrilateral;
+
 /**
  * <p>This class implements a perspective transform in two dimensions. Given four source and four
  * destination points, it will compute the transformation implied between them. The code is based
@@ -63,27 +69,18 @@ impl PerspectiveTransform {
 
     #[allow(clippy::too_many_arguments)]
     pub fn quadrilateralToQuadrilateral(
-        x0: f32,
-        y0: f32,
-        x1: f32,
-        y1: f32,
-        x2: f32,
-        y2: f32,
-        x3: f32,
-        y3: f32,
-        x0p: f32,
-        y0p: f32,
-        x1p: f32,
-        y1p: f32,
-        x2p: f32,
-        y2p: f32,
-        x3p: f32,
-        y3p: f32,
+        dst: Quadrilateral,
+        src: Quadrilateral
     ) -> Self {
-        let q_to_s = PerspectiveTransform::quadrilateralToSquare(x0, y0, x1, y1, x2, y2, x3, y3);
+
+        // let q_to_s = PerspectiveTransform::quadrilateralToSquare(x0, y0, x1, y1, x2, y2, x3, y3);
+        // let s_to_q =
+        //     PerspectiveTransform::squareToQuadrilateral(x0p, y0p, x1p, y1p, x2p, y2p, x3p, y3p);
+
+        let q_to_s = PerspectiveTransform::quadrilateralToSquare(dst);
         let s_to_q =
-            PerspectiveTransform::squareToQuadrilateral(x0p, y0p, x1p, y1p, x2p, y2p, x3p, y3p);
-        s_to_q.times(&q_to_s)
+            PerspectiveTransform::squareToQuadrilateral(src);
+        s_to_q * q_to_s
     }
 
     pub fn transform_points_single(&self, points: &mut [f32]) {
@@ -122,35 +119,29 @@ impl PerspectiveTransform {
 
     #[allow(clippy::too_many_arguments)]
     pub fn squareToQuadrilateral(
-        x0: f32,
-        y0: f32,
-        x1: f32,
-        y1: f32,
-        x2: f32,
-        y2: f32,
-        x3: f32,
-        y3: f32,
+        square: Quadrilateral
     ) -> Self {
-        let dx3 = x0 - x1 + x2 - x3;
-        let dy3 = y0 - y1 + y2 - y3;
-        if dx3 == 0.0 && dy3 == 0.0 {
+        let [p0, p1, p2, p3 ] = square.0;
+        
+        let d3 = p0 - p1 + p2 - p3;
+        if d3 == point(0.0,0.0) {
             // Affine
-            PerspectiveTransform::new(x1 - x0, x2 - x1, x0, y1 - y0, y2 - y1, y0, 0.0, 0.0, 1.0)
+            PerspectiveTransform::new(p1.x - p0.x, p2.x - p1.x, p0.x, p1.y - p0.y, p2.y - p1.y, p0.y, 0.0, 0.0, 1.0)
         } else {
-            let dx1 = x1 - x2;
-            let dx2 = x3 - x2;
-            let dy1 = y1 - y2;
-            let dy2 = y3 - y2;
-            let denominator = dx1 * dy2 - dx2 * dy1;
-            let a13 = (dx3 * dy2 - dx2 * dy3) / denominator;
-            let a23 = (dx1 * dy3 - dx3 * dy1) / denominator;
+
+let d1 = p1 - p2;
+let d2 = p3 - p2;
+
+            let denominator = d1.cross(d2);
+            let a13 = (d3.x * d2.y - d2.x * d3.y) / denominator;
+            let a23 = (d1.x * d3.y - d3.x * d1.y) / denominator;
             PerspectiveTransform::new(
-                x1 - x0 + a13 * x1,
-                x3 - x0 + a23 * x3,
-                x0,
-                y1 - y0 + a13 * y1,
-                y3 - y0 + a23 * y3,
-                y0,
+                p1.x - p0.x + a13 * p1.x,
+                p3.x - p0.x + a23 * p3.x,
+                p0.x,
+                p1.y - p0.y + a13 * p1.y,
+                p3.y - p0.y + a23 * p3.y,
+                p0.y,
                 a13,
                 a23,
                 1.0,
@@ -160,17 +151,10 @@ impl PerspectiveTransform {
 
     #[allow(clippy::too_many_arguments)]
     pub fn quadrilateralToSquare(
-        x0: f32,
-        y0: f32,
-        x1: f32,
-        y1: f32,
-        x2: f32,
-        y2: f32,
-        x3: f32,
-        y3: f32,
+        quad: Quadrilateral
     ) -> Self {
         // Here, the adjoint serves as the inverse
-        PerspectiveTransform::squareToQuadrilateral(x0, y0, x1, y1, x2, y2, x3, y3).buildAdjoint()
+        PerspectiveTransform::squareToQuadrilateral(quad).buildAdjoint()
     }
 
     fn buildAdjoint(&self) -> Self {
@@ -187,18 +171,22 @@ impl PerspectiveTransform {
             self.a11 * self.a22 - self.a12 * self.a21,
         )
     }
+}
 
-    fn times(&self, other: &Self) -> Self {
+impl Mul for PerspectiveTransform {
+    type Output = PerspectiveTransform;
+
+    fn mul(self, rhs: Self) -> Self::Output {
         PerspectiveTransform::new(
-            self.a11 * other.a11 + self.a21 * other.a12 + self.a31 * other.a13,
-            self.a11 * other.a21 + self.a21 * other.a22 + self.a31 * other.a23,
-            self.a11 * other.a31 + self.a21 * other.a32 + self.a31 * other.a33,
-            self.a12 * other.a11 + self.a22 * other.a12 + self.a32 * other.a13,
-            self.a12 * other.a21 + self.a22 * other.a22 + self.a32 * other.a23,
-            self.a12 * other.a31 + self.a22 * other.a32 + self.a32 * other.a33,
-            self.a13 * other.a11 + self.a23 * other.a12 + self.a33 * other.a13,
-            self.a13 * other.a21 + self.a23 * other.a22 + self.a33 * other.a23,
-            self.a13 * other.a31 + self.a23 * other.a32 + self.a33 * other.a33,
+            self.a11 * rhs.a11 + self.a21 * rhs.a12 + self.a31 * rhs.a13,
+            self.a11 * rhs.a21 + self.a21 * rhs.a22 + self.a31 * rhs.a23,
+            self.a11 * rhs.a31 + self.a21 * rhs.a32 + self.a31 * rhs.a33,
+            self.a12 * rhs.a11 + self.a22 * rhs.a12 + self.a32 * rhs.a13,
+            self.a12 * rhs.a21 + self.a22 * rhs.a22 + self.a32 * rhs.a23,
+            self.a12 * rhs.a31 + self.a22 * rhs.a32 + self.a32 * rhs.a33,
+            self.a13 * rhs.a11 + self.a23 * rhs.a12 + self.a33 * rhs.a13,
+            self.a13 * rhs.a21 + self.a23 * rhs.a22 + self.a33 * rhs.a23,
+            self.a13 * rhs.a31 + self.a23 * rhs.a32 + self.a33 * rhs.a33,
         )
     }
 }

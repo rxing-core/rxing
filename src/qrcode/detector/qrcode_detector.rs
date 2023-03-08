@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform, Result},
+    common::{BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform, Result, Quadrilateral, SamplerControl},
     point,
     qrcode::decoder::Version,
     DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, Point, PointCallback,
@@ -147,7 +147,7 @@ impl<'a> Detector<'_> {
         )
         .ok_or(Exceptions::NOT_FOUND)?;
 
-        let bits = Detector::sampleGrid(self.image, &transform, dimension)?;
+        let bits = Detector::sampleGrid(self.image, transform, dimension)?;
 
         let mut points = vec![
             Point::from(bottomLeft),
@@ -193,33 +193,25 @@ impl<'a> Detector<'_> {
             sourceBottomRightY = dimMinusThree;
         }
 
+        let dst = Quadrilateral::new(point(3.5,
+            3.5), point(dimMinusThree,
+                3.5), point(sourceBottomRightX,
+                    sourceBottomRightY), point(3.5,
+                        dimMinusThree));
+        let src = Quadrilateral::new( topLeft, topRight, point(bottomRightX, bottomRightY), bottomLeft);
+
         Some(PerspectiveTransform::quadrilateralToQuadrilateral(
-            3.5,
-            3.5,
-            dimMinusThree,
-            3.5,
-            sourceBottomRightX,
-            sourceBottomRightY,
-            3.5,
-            dimMinusThree,
-            topLeft.x,
-            topLeft.y,
-            topRight.x,
-            topRight.y,
-            bottomRightX,
-            bottomRightY,
-            bottomLeft.x,
-            bottomLeft.y,
+            dst, src
         ))
     }
 
     fn sampleGrid(
         image: &BitMatrix,
-        transform: &PerspectiveTransform,
+        transform: PerspectiveTransform,
         dimension: u32,
     ) -> Result<BitMatrix> {
         let sampler = DefaultGridSampler::default();
-        sampler.sample_grid(image, dimension, dimension, transform)
+        sampler.sample_grid(image, dimension, dimension, &[SamplerControl::new(dimension, dimension, transform)])
     }
 
     /**

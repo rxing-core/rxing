@@ -19,17 +19,20 @@
 // import org.junit.Assert;
 // import org.junit.Test;
 
+use crate::point;
+
 /**
  * @author Sean Owen
  */
 // public final class PerspectiveTransformTestCase extends Assert {
-use super::PerspectiveTransform;
+use super::{PerspectiveTransform, Quadrilateral};
 
 static EPSILON: f32 = 1.0E-4f32;
 
 #[test]
 fn test_square_to_quadrilateral() {
-    let pt = PerspectiveTransform::squareToQuadrilateral(2.0, 3.0, 10.0, 4.0, 16.0, 15.0, 4.0, 9.0);
+    let square = Quadrilateral::new(point(2.0, 3.0), point(10.0, 3.0), point(16.0, 15.0), point(4.0,9.0));
+    let pt = PerspectiveTransform::squareToQuadrilateral(square);
     assert_point_equals(2.0, 3.0, 0.0, 0.0, &pt);
     assert_point_equals(10.0, 4.0, 1.0, 0.0, &pt);
     assert_point_equals(4.0, 9.0, 0.0, 1.0, &pt);
@@ -40,10 +43,10 @@ fn test_square_to_quadrilateral() {
 
 #[test]
 fn test_quadrilateral_to_quadrilateral() {
-    let pt = PerspectiveTransform::quadrilateralToQuadrilateral(
-        2.0, 3.0, 10.0, 4.0, 16.0, 15.0, 4.0, 9.0, 103.0, 110.0, 300.0, 120.0, 290.0, 270.0, 150.0,
-        280.0,
-    );
+    let quad1 = Quadrilateral::new(point(2.0, 3.0), point(10.0, 4.0), point(16.0, 15.0), point(4.0, 9.0));
+    let quad2 = Quadrilateral::new(point(103.0, 110.0), point(300.0, 120.0), point(290.0, 270.0), point(150.0,280.0));
+    let pt = PerspectiveTransform::quadrilateralToQuadrilateral(quad1, quad2);
+    
     assert_point_equals(103.0, 110.0, 2.0, 3.0, &pt);
     assert_point_equals(300.0, 120.0, 10.0, 4.0, &pt);
     assert_point_equals(290.0, 270.0, 16.0, 15.0, &pt);

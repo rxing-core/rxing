@@ -18,10 +18,10 @@
 
 // import com.google.zxing.NotFoundException;
 
-use crate::common::Result;
-use crate::Exceptions;
+use crate::{common::Result, Point};
+use crate::{Exceptions, point};
 
-use super::{BitMatrix, PerspectiveTransform};
+use super::{BitMatrix, PerspectiveTransform, Quadrilateral};
 
 /**
  * Implementations of this class can, given locations of finder patterns for a QR code in an
@@ -93,22 +93,8 @@ pub trait GridSampler {
         image: &BitMatrix,
         dimensionX: u32,
         dimensionY: u32,
-        p1ToX: f32,
-        p1ToY: f32,
-        p2ToX: f32,
-        p2ToY: f32,
-        p3ToX: f32,
-        p3ToY: f32,
-        p4ToX: f32,
-        p4ToY: f32,
-        p1FromX: f32,
-        p1FromY: f32,
-        p2FromX: f32,
-        p2FromY: f32,
-        p3FromX: f32,
-        p3FromY: f32,
-        p4FromX: f32,
-        p4FromY: f32,
+        dst: Quadrilateral,
+       src:Quadrilateral
     ) -> Result<BitMatrix>;
 
     fn sample_grid(
@@ -116,7 +102,7 @@ pub trait GridSampler {
         image: &BitMatrix,
         dimensionX: u32,
         dimensionY: u32,
-        transform: &PerspectiveTransform,
+        controls: &[SamplerControl]
     ) -> Result<BitMatrix>;
 
     /**
@@ -193,5 +179,17 @@ pub trait GridSampler {
             offset += -2;
         }
         Ok(())
+    }
+}
+
+pub struct SamplerControl {
+    pub p0: Point,
+    pub p1: Point,
+    pub transform: PerspectiveTransform
+}
+
+impl SamplerControl {
+    pub fn new( width: u32, height: u32, transform: PerspectiveTransform ) -> Self {
+        Self{ p0: point(0.0, 0.0), p1: point(width as f32, height as f32), transform }
     }
 }

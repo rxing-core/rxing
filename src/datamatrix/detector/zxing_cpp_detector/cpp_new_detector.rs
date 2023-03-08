@@ -14,13 +14,13 @@ macro_rules! CHECK {
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    common::{BitMatrix, DefaultGridSampler, GridSampler, Result},
+    common::{BitMatrix, DefaultGridSampler, GridSampler, Result, Quadrilateral},
     datamatrix::detector::{
-        zxing_cpp_detector::{util::intersect, BitMatrixCursor, Quadrilateral, RegressionLine},
+        zxing_cpp_detector::{util::intersect, BitMatrixCursor, RegressionLine},
         DatamatrixDetectorResult,
     },
     qrcode::encoder::ByteMatrix,
-    Exceptions, Point,
+    Exceptions, Point, point,
 };
 
 use super::{DMRegressionLine, EdgeTracer};
@@ -212,27 +212,14 @@ fn Scan(
 
         let grid_sampler = DefaultGridSampler::default();
         // let transform = PerspectiveTransform::quadrilateralToQuadrilateral(x0, y0, x1, y1, x2, y2, x3, y3, x0p, y0p, x1p, y1p, x2p, y2p, x3p, y3p);
+let dst = Quadrilateral::new(point(0.0,0.0), point(dimT as f32, 0.0), point(dimT as f32, dimR as f32), point(0.0, dimR as f32));
+let src = sourcePoints;
 
         let res = grid_sampler.sample_grid_detailed(
             startTracer.img,
             dimT as u32,
             dimR as u32,
-            0.0,
-            0.0,
-            dimT as f32,
-            0.0,
-            dimT as f32,
-            dimR as f32,
-            0.0,
-            dimR as f32,
-            sourcePoints.topLeft().x,
-            sourcePoints.topLeft().y,
-            sourcePoints.topRight().x,
-            sourcePoints.topRight().y,
-            sourcePoints.bottomRight().x,
-            sourcePoints.bottomRight().y,
-            sourcePoints.bottomLeft().x,
-            sourcePoints.bottomLeft().y,
+            dst, src
         );
 
         // let res = grid_sampler.sample_grid(startTracer.img, dimT as u32, dimR as u32, &transform);

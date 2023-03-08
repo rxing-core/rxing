@@ -18,10 +18,10 @@
 
 // import com.google.zxing.NotFoundException;
 
-use crate::common::Result;
+use crate::{common::Result};
 use crate::Exceptions;
 
-use super::{BitMatrix, GridSampler, PerspectiveTransform};
+use super::{BitMatrix, GridSampler, PerspectiveTransform, Quadrilateral, SamplerControl};
 
 /**
  * @author Sean Owen
@@ -35,29 +35,14 @@ impl GridSampler for DefaultGridSampler {
         image: &BitMatrix,
         dimensionX: u32,
         dimensionY: u32,
-        p1ToX: f32,
-        p1ToY: f32,
-        p2ToX: f32,
-        p2ToY: f32,
-        p3ToX: f32,
-        p3ToY: f32,
-        p4ToX: f32,
-        p4ToY: f32,
-        p1FromX: f32,
-        p1FromY: f32,
-        p2FromX: f32,
-        p2FromY: f32,
-        p3FromX: f32,
-        p3FromY: f32,
-        p4FromX: f32,
-        p4FromY: f32,
+        dst: Quadrilateral,
+       src:Quadrilateral
     ) -> Result<BitMatrix> {
         let transform = PerspectiveTransform::quadrilateralToQuadrilateral(
-            p1ToX, p1ToY, p2ToX, p2ToY, p3ToX, p3ToY, p4ToX, p4ToY, p1FromX, p1FromY, p2FromX,
-            p2FromY, p3FromX, p3FromY, p4FromX, p4FromY,
+            dst, src,
         );
 
-        self.sample_grid(image, dimensionX, dimensionY, &transform)
+        self.sample_grid(image, dimensionX, dimensionY, &[SamplerControl::new(dimensionX, dimensionY, transform)])
     }
 
     fn sample_grid(
@@ -65,7 +50,7 @@ impl GridSampler for DefaultGridSampler {
         image: &BitMatrix,
         dimensionX: u32,
         dimensionY: u32,
-        transform: &PerspectiveTransform,
+        controls: &[SamplerControl]
     ) -> Result<BitMatrix> {
         if dimensionX == 0 || dimensionY == 0 {
             return Err(Exceptions::NOT_FOUND);
@@ -83,7 +68,7 @@ impl GridSampler for DefaultGridSampler {
                 points[x + 1] = i_value;
                 x += 2;
             }
-            transform.transform_points_single(&mut points);
+            controls.first().unwrap().transform.transform_points_single(&mut points);
             // Quick check to see if points transformed to something inside the image;
             // sufficient to check the endpoints
             self.checkAndNudgePoints(image, &mut points)?;

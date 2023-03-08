@@ -18,7 +18,7 @@ use crate::{
     common::{
         detector::WhiteRectangleDetector,
         reedsolomon::{self, ReedSolomonDecoder},
-        BitMatrix, DefaultGridSampler, GridSampler, Result,
+        BitMatrix, DefaultGridSampler, GridSampler, Result, Quadrilateral,
     },
     exceptions::Exceptions,
     point, Point,
@@ -89,13 +89,15 @@ impl<'a> Detector<'_> {
         // 3. Get the size of the matrix and other parameters from the bull's eye
         self.extractParameters(&bulls_eye_corners)?;
 
+let src_quad = Quadrilateral::new(bulls_eye_corners[self.shift as usize % 4],
+    bulls_eye_corners[(self.shift as usize + 1) % 4],
+    bulls_eye_corners[(self.shift as usize + 2) % 4],
+    bulls_eye_corners[(self.shift as usize + 3) % 4],);
+
         // 4. Sample the grid
         let bits = self.sample_grid(
             self.image,
-            bulls_eye_corners[self.shift as usize % 4],
-            bulls_eye_corners[(self.shift as usize + 1) % 4],
-            bulls_eye_corners[(self.shift as usize + 2) % 4],
-            bulls_eye_corners[(self.shift as usize + 3) % 4],
+           src_quad
         )?;
 
         // 5. Get the corners of the matrix.
@@ -457,10 +459,7 @@ impl<'a> Detector<'_> {
     fn sample_grid(
         &self,
         image: &BitMatrix,
-        top_left: Point,
-        top_right: Point,
-        bottom_right: Point,
-        bottom_left: Point,
+        quad: Quadrilateral,
     ) -> Result<BitMatrix> {
         let sampler = DefaultGridSampler::default();
         let dimension = self.get_dimension();
@@ -468,26 +467,13 @@ impl<'a> Detector<'_> {
         let low = dimension as f32 / 2.0 - self.nb_center_layers as f32;
         let high = dimension as f32 / 2.0 + self.nb_center_layers as f32;
 
+        let dst = Quadrilateral::new(point(low,low), point(high,low), point(high,high), point(low,high));
+
         sampler.sample_grid_detailed(
             image,
             dimension,
             dimension,
-            low,
-            low, // topleft
-            high,
-            low, // topright
-            high,
-            high, // bottomright
-            low,
-            high, // bottomleft
-            top_left.x,
-            top_left.y,
-            top_right.x,
-            top_right.y,
-            bottom_right.x,
-            bottom_right.y,
-            bottom_left.x,
-            bottom_left.y,
+            dst, quad
         )
     }
 
