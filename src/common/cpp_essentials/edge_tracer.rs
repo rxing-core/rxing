@@ -10,9 +10,9 @@ use super::{BitMatrixCursor, Direction, RegressionLine, StepResult, Value};
 
 #[derive(Clone)]
 pub struct EdgeTracer<'a> {
-    pub(super) img: &'a BitMatrix,
+    pub(crate) img: &'a BitMatrix,
 
-    pub(super) p: Point, // current position
+    pub(crate) p: Point, // current position
     d: Point,            // current direction
 
     // pub history: Option<&'a mut ByteMatrix>, // = nullptr;

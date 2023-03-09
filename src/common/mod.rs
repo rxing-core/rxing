@@ -112,6 +112,8 @@ pub use eci::*;
 mod quad;
 pub use quad::*;
 
+pub mod cpp_essentials;
+
 #[cfg(feature = "otsu_level")]
 mod otsu_level_binarizer;
 #[cfg(feature = "otsu_level")]
