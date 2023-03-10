@@ -27,7 +27,7 @@ impl<'a> Iterator for PatternView<'_> {
             return None;
         }
 
-        self.current = self.current + 1;
+        self.current += 1;
 
         Some(*self.data.0.get(self.current + self.start)?)
     }
@@ -57,7 +57,7 @@ impl<'a> PatternView<'_> {
         start: usize,
         size: usize,
         base: usize,
-        end: usize,
+        _end: usize,
     ) -> PatternView<'a> {
         PatternView {
             data: bars,
@@ -68,7 +68,7 @@ impl<'a> PatternView<'_> {
     }
 
     pub fn data(&self) -> &PatternRow {
-        &self.data
+        self.data
     }
     pub fn begin(&self) -> Option<PatternType> {
         Some(*self.data.0.get(self.start)?)
@@ -156,10 +156,10 @@ impl<'a> PatternView<'_> {
 
     pub fn subView(&'a self, offset: usize, size: Option<usize>) -> PatternView<'a> {
         let mut size = size.unwrap_or(0);
-        if (size == 0) {
+        if size == 0 {
             size = self.count - offset;
-        } else if (size < 0) {
-            size = self.count - offset + size;
+        } else if size < 0 {
+            size += self.count - offset;
         }
 
         PatternView {
@@ -234,7 +234,7 @@ impl<'a> std::ops::Index<usize> for PatternView<'_> {
         if index > self.data.0.len() {
             panic!("array index out of bounds")
         }
-        &self.data.0.get(self.start + self.current).unwrap()
+        self.data.0.get(self.start + self.current).unwrap()
     }
 }
 
@@ -353,7 +353,7 @@ pub fn IsPattern<const LEN: usize, const SUM: usize, const SPARSE: bool>(
     let module_size: f32 = (Into::<f32>::into(width)) / (SUM as f32);
 
     if min_quiet_zone != 0.0
-        && (space_in_pixel.unwrap_or(f32::MAX)) < min_quiet_zone as f32 * module_size as f32 - 1.0
+        && (space_in_pixel.unwrap_or(f32::MAX)) < min_quiet_zone * module_size - 1.0
     {
         return 0.0;
     }
@@ -403,17 +403,17 @@ pub fn FindLeftGuardBy<'a, const LEN: usize, Pred: Fn(&PatternView, Option<f32>)
 ) -> Result<PatternView<'a>> {
     const PREV_IDX: isize = -1;
 
-    if (view.size() < minSize) {
+    if view.size() < minSize {
         return Err(Exceptions::ILLEGAL_STATE);
     }
 
     let mut window = view.subView(0, Some(LEN));
-    if (window.isAtFirstBar() && isGuard(&window, None)) {
+    if window.isAtFirstBar() && isGuard(&window, None) {
         return Ok(window);
     }
     let end = Into::<usize>::into(view.end().unwrap()) - minSize;
     while window.start < end {
-        if (isGuard(&window, Some(Into::<f32>::into(window[PREV_IDX])))) {
+        if isGuard(&window, Some(Into::<f32>::into(window[PREV_IDX]))) {
             return Ok(window);
         }
 
@@ -434,7 +434,7 @@ pub fn FindLeftGuard<'a, const LEN: usize, const SUM: usize, const IS_SPARCE: bo
     minQuietZone: f32,
 ) -> Result<PatternView<'a>> {
     FindLeftGuardBy::<LEN, _>(view, std::cmp::max(minSize, LEN), |window, spaceInPixel| {
-        IsPattern(&window, pattern, spaceInPixel, minQuietZone, 0.0, None) != 0.0
+        IsPattern(window, pattern, spaceInPixel, minQuietZone, 0.0, None) != 0.0
     })
 }
 
@@ -450,7 +450,7 @@ pub fn NormalizedE2EPattern<'a, const LEN: usize, const LEN_MINUS_2: usize, cons
         e2e[i] = (v + 0.5) as PatternType;
     }
 
-    return e2e;
+    e2e
 }
 
 pub fn NormalizedPattern<'a, const LEN: usize, const SUM: usize>(
@@ -468,11 +468,11 @@ pub fn NormalizedPattern<'a, const LEN: usize, const SUM: usize>(
         err -= Into::<usize>::into(is[i]) as isize;
     }
 
-    if (err.abs() > 1) {
+    if err.abs() > 1 {
         return Err(Exceptions::NOT_FOUND);
     }
 
-    if (err != 0) {
+    if err != 0 {
         // let mi =if  err > 0 { std::max_element(std::begin(rs), std::end(rs)) - std::begin(rs)}
         // 				  else {std::min_element(std::begin(rs), std::end(rs)) - std::begin(rs)};
         let mi = if err > 0 {
@@ -490,30 +490,54 @@ pub fn NormalizedPattern<'a, const LEN: usize, const SUM: usize>(
     Ok(is)
 }
 
-fn GetPatternRow<T: Into<u16> + Copy>(b_row: &[T], p_row: &mut PatternRow) {
-    p_row.0.clear();
-    p_row.0.push(0); // first value is number of white pixels, here 0
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+enum Color {
+    White = 0,
+    Black = 1
+}
 
-    let mut bit_pos = 0u16;
+impl<T: Into<u16>> From<T> for Color {
+    fn from(value: T) -> Self {
+        match value.into() {
+            0 => Color::White,
+            _ => Color::Black,
+            _=>Color::Black
+        }
+    }
+}
+
+fn GetPatternRow<T: Into<u16> + Copy + Default + From<T>>(b_row: &[T], p_row: &mut PatternRow) {
+    p_row.0.clear();
+
+    if Color::from(p_row.0.first().copied().unwrap_or_default()) == Color::Black {
+        // first 
+        p_row.0.push(0);
+    }
+
+    let mut current_color = Color::from(p_row.0.first().copied().unwrap_or_default()); //if p_row.0.first().copied().unwrap_or_default() == 1 {Color::Black} else { Color::White};
     let mut count = 0;
 
-    for next_bit in b_row.iter().copied() {
-        count += 1;
+    for bit in b_row.iter() {
+        let this_color = Color::from(*bit);
 
-        if next_bit.into() != bit_pos {
+        if current_color != this_color {
             p_row.0.push(count);
             count = 0;
+
+            current_color = this_color;
         }
 
-        bit_pos = next_bit.into();
+        count +=1 ;
     }
 
-    count += 1;
-    p_row.0.push(count); // final value is number of white pixels after last black pixel
-
-    if bit_pos != 0 {
-        p_row.0.push(0); // add final black pixel
+    if count != 0 {
+        p_row.0.push(count);
     }
+
+    if current_color == Color::Black {
+        p_row.0.push(0);
+    }
+
 }
 
 #[cfg(test)]
