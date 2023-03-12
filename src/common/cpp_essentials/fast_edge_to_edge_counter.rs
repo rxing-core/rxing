@@ -7,7 +7,7 @@ pub struct FastEdgeToEdgeCounter {
 }
 
 impl FastEdgeToEdgeCounter {
-    pub fn new<T: BitMatrixCursor>(cur: &T) -> Self {
+    pub fn new<T: BitMatrixCursor>(_cur: &T) -> Self {
         todo!()
         // stride = cur.d.y * cur.img->width() + cur.d.x;
         // p = cur.img->row(cur.p.y).begin() + cur.p.x;
@@ -17,7 +17,7 @@ impl FastEdgeToEdgeCounter {
         // stepsToBorder = std::min(maxStepsX, maxStepsY);
     }
 
-    pub fn stepToNextEdge(&self, range: i32) -> i32 {
+    pub fn stepToNextEdge(&self, _range: i32) -> i32 {
         todo!()
         // int maxSteps = std::min(stepsToBorder, range);
         // int steps = 0;

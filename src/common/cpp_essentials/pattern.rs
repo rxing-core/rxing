@@ -343,7 +343,7 @@ impl<const N: usize, const SUM: usize, const IS_SPARCE: bool> FixedPattern<N, SU
     }
 
     pub fn with_reference(data: &[PatternType; N]) -> Self {
-        FixedPattern { data: data.clone() }
+        FixedPattern { data: *data }
     }
 
     fn as_slice(&self) -> &[PatternType] {
@@ -655,9 +655,7 @@ mod tests {
     fn basic_pattern_view() {
         let mut p_row = PatternRow::default();
         GetPatternRow(
-            &vec![
-                0_u16, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1,
-            ],
+            &[0_u16, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1],
             &mut p_row,
         );
 

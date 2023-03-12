@@ -17,7 +17,7 @@ pub fn CenterFromEnd<const N: usize, T: Into<f32> + std::iter::Sum<T> + Copy>(
     pattern: &[T; N],
     end: f32,
 ) -> f32 {
-    if (N == 5) {
+    if N == 5 {
         let a: f32 = pattern[4].into() + pattern[3].into() + pattern[2].into() / 2.0;
         let b: f32 =
             pattern[4].into() + (pattern[3].into() + pattern[2].into() + pattern[1].into()) / 2.0;
@@ -28,7 +28,7 @@ pub fn CenterFromEnd<const N: usize, T: Into<f32> + std::iter::Sum<T> + Copy>(
             + pattern[0].into())
             / 2.0;
         end - (2.0 * a + b + c) / 4.0
-    } else if (N == 3) {
+    } else if N == 3 {
         let a: f32 = pattern[2].into() + pattern[1].into() / 2.0;
         let b: f32 = (pattern[2].into() + pattern[1].into() + pattern[0].into()) / 2.0;
         end - (2.0 * a + b) / 3.0
@@ -59,7 +59,7 @@ pub fn ReadSymmetricPattern<const N: usize, Cursor: BitMatrixCursor>(
         let v = cur.stepToEdge(Some(1), Some(range), None);
         res[(s_2 + i) as usize] = (res[(s_2 + i) as usize] as i32 + v) as u16;
         // res[(s_2 + i) as usize] += v;
-        if (range != 0) {
+        if range != 0 {
             range -= v;
         }
 
@@ -68,7 +68,7 @@ pub fn ReadSymmetricPattern<const N: usize, Cursor: BitMatrixCursor>(
 
     for i in 0..=s_2 {
         // for (int i = 0; i <= s_2; ++i) {
-        if (!next(cur, i) != 0 || !next(&mut cuo, -i) != 0) {
+        if !next(cur, i) != 0 || !next(&mut cuo, -i) != 0 {
             return None;
         }
     }
@@ -95,11 +95,11 @@ pub fn CheckSymmetricPattern<
     let curBwd: FastEdgeToEdgeCounter = FastEdgeToEdgeCounter::new(&cur.turnedBack());
 
     let centerFwd = curFwd.stepToNextEdge(range);
-    if (!(centerFwd != 0)) {
+    if centerFwd == 0 {
         return 0;
     }
     let centerBwd = curBwd.stepToNextEdge(range);
-    if (!(centerBwd != 0)) {
+    if centerBwd == 0 {
         return 0;
     }
 
@@ -119,25 +119,25 @@ pub fn CheckSymmetricPattern<
 
     for i in 1..=s_2 {
         // for (int i = 1; i <= s_2; ++i) {
-        if (!(next(&curFwd, i as isize) != 0) || !(next(&curBwd, -(i as isize)) != 0)) {
+        if next(&curFwd, i as isize) == 0 || next(&curBwd, -(i as isize)) == 0 {
             return 0;
         }
     }
 
-    if (!(IsPattern(
+    if !(IsPattern(
         &PatternView::new(&res),
         &FixedPattern::<LEN, SUM, false>::with_reference(pattern),
         None,
         0.0,
         0.0,
         Some(RELAXED_THRESHOLD),
-    ) != 0.0))
+    ) != 0.0)
     {
         return 0;
     }
 
-    if (updatePosition) {
-        cur.step(Some((res[s_2] as i32 / 2 - (centerBwd as i32 - 1)) as f32));
+    if updatePosition {
+        cur.step(Some((res[s_2] as i32 / 2 - (centerBwd - 1)) as f32));
     }
 
     res.into_iter().sum::<PatternType>() as i32
@@ -150,9 +150,9 @@ pub fn AverageEdgePixels<T: BitMatrixCursor>(
 ) -> Option<Point> {
     let mut sum = Point::default();
 
-    for i in 0..numOfEdges {
+    for _i in 0..numOfEdges {
         // for (int i = 0; i < numOfEdges; ++i) {
-        if (!cur.isInSelf()) {
+        if !cur.isInSelf() {
             return None;
         }
         cur.stepToEdge(Some(1), Some(range), None);
@@ -200,7 +200,7 @@ pub fn CenterOfRing(
     let nth = nth.abs();
     // log(center, 3);
     let mut cur = EdgeTracer::new(image, center, point(0.0, 1.0));
-    if (!(cur.stepToEdge(Some(nth), Some(radius), Some(inner)) != 0)) {
+    if cur.stepToEdge(Some(nth), Some(radius), Some(inner)) == 0 {
         return None;
     }
     cur.turnRight(); // move clock wise and keep edge on the right/left depending on backup
@@ -220,18 +220,18 @@ pub fn CenterOfRing(
         n += 1;
 
         // find out if we come full circle around the center. 8 bits have to be set in the end.
-        neighbourMask |= (1
+        neighbourMask |= 1
             << (4.0 + Point::dot(Point::bresenhamDirection(cur.p() - center), point(1.0, 3.0)))
-                as u32);
+                as u32;
 
-        if (!cur.stepAlongEdge(edgeDir, None)) {
+        if !cur.stepAlongEdge(edgeDir, None) {
             return None;
         }
 
         // use L-inf norm, simply because it is a lot faster than L2-norm and sufficiently accurate
-        if (Point::maxAbsComponent(cur.p - center) > radius as f32
+        if Point::maxAbsComponent(cur.p - center) > radius as f32
             || center == cur.p
-            || n > 4 * 2 * range)
+            || n > 4 * 2 * range
         {
             return None;
         }
@@ -241,7 +241,7 @@ pub fn CenterOfRing(
         }
     } //while (cur.p != start);
 
-    if (requireCircle && neighbourMask != 0b111101111) {
+    if requireCircle && neighbourMask != 0b111101111 {
         return None;
     }
 
@@ -281,13 +281,13 @@ pub fn FinetuneConcentricPatternCenter(
 
     let mut res = CenterOfRings(image, center, range, finderPatternSize / 2);
 
-    if (res.is_none() || !image.get_point(res?)) {
-        res = CenterOfDoubleCross(image, (center), range, finderPatternSize / 2 + 1);
+    if res.is_none() || !image.get_point(res?) {
+        res = CenterOfDoubleCross(image, center, range, finderPatternSize / 2 + 1);
     }
-    if (res.is_none() || !image.get_point(res?)) {
+    if res.is_none() || !image.get_point(res?) {
         res = Some(center);
     }
-    if (res.is_none() || !image.get_point(res?)) {
+    if res.is_none() || !image.get_point(res?) {
         return None;
     }
 
@@ -304,7 +304,7 @@ pub fn CollectRingPoints(
     let centerI = center.round();
     let radius = range;
     let mut cur = EdgeTracer::new(image, centerI, point(0.0, 1.0));
-    if (!(cur.stepToEdge(Some(edgeIndex), Some(radius), Some(backup)) != 0)) {
+    if cur.stepToEdge(Some(edgeIndex), Some(radius), Some(backup)) == 0 {
         return Vec::default();
     }
     cur.turnRight(); // move clock wise and keep edge on the right/left depending on backup
@@ -320,21 +320,21 @@ pub fn CollectRingPoints(
 
     loop {
         // log(cur.p, 4);
-        points.push((cur.p().centered()));
+        points.push(cur.p().centered());
 
         // find out if we come full circle around the center. 8 bits have to be set in the end.
-        neighbourMask |= (1
+        neighbourMask |= 1
             << (4.0 + Point::dot(Point::bresenhamDirection(cur.p - centerI), point(1.0, 3.0)))
-                as u32);
+                as u32;
 
-        if (!cur.stepAlongEdge(edgeDir, None)) {
+        if !cur.stepAlongEdge(edgeDir, None) {
             return Vec::default();
         }
 
         // use L-inf norm, simply because it is a lot faster than L2-norm and sufficiently accurate
-        if (Point::maxAbsComponent(cur.p - centerI) > radius as f32
+        if Point::maxAbsComponent(cur.p - centerI) > radius as f32
             || centerI == cur.p
-            || (points).len() > 4 * 2 * range as usize)
+            || (points).len() > 4 * 2 * range as usize
         {
             return Vec::default();
         }
@@ -344,7 +344,7 @@ pub fn CollectRingPoints(
         }
     } //while (cur.p != start);
 
-    if (neighbourMask != 0b111101111) {
+    if neighbourMask != 0b111101111 {
         return Vec::default();
     }
 
@@ -389,7 +389,7 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
             std::cmp::Ordering::Less
         }
     };
-    corners[1] = points[(points.len() * 1 / 8)..=(points.len() * 3 / 8)]
+    corners[1] = points[(points.len() / 8)..=(points.len() * 3 / 8)]
         .iter()
         .copied()
         .max_by(diagonal_max_by_pred)?;
@@ -401,10 +401,10 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
     // corners[3] = std::max_element(&points[Size(points) * 5 / 8], &points[Size(points) * 7 / 8], dist2Diagonal);
 
     let lines = [
-        RegressionLine::with_two_points((corners[0] + 1.0), corners[1]),
-        RegressionLine::with_two_points((corners[1] + 1.0), corners[2]),
-        RegressionLine::with_two_points((corners[2] + 1.0), corners[3]),
-        RegressionLine::with_two_points((corners[3] + 1.0), (*points.last()? + 1.0)),
+        RegressionLine::with_two_points(corners[0] + 1.0, corners[1]),
+        RegressionLine::with_two_points(corners[1] + 1.0, corners[2]),
+        RegressionLine::with_two_points(corners[2] + 1.0, corners[3]),
+        RegressionLine::with_two_points(corners[3] + 1.0, *points.last()? + 1.0),
     ];
     // std::array lines{RegressionLine{corners[0] + 1, corners[1]}, RegressionLine{corners[1] + 1, corners[2]},
     // 				 RegressionLine{corners[2] + 1, corners[3]}, RegressionLine{corners[3] + 1, &points.back() + 1}};
@@ -445,12 +445,12 @@ pub fn FitSquareToPoints(
     backup: bool,
 ) -> Option<Quadrilateral> {
     let mut points = CollectRingPoints(image, center, range, lineIndex, backup);
-    if (points.is_empty()) {
+    if points.is_empty() {
         return None;
     }
 
     let res = FitQadrilateralToPoints(center, &mut points)?;
-    if (!QuadrilateralIsPlausibleSquare(&res, (lineIndex - i32::from(backup)) as usize)) {
+    if !QuadrilateralIsPlausibleSquare(&res, (lineIndex - i32::from(backup)) as usize) {
         return None;
     }
 
@@ -506,7 +506,7 @@ pub fn LocateConcentricPattern<
         cur.setDirection(d); // THIS COULD POSSIBLY BE WRONG, WE MIGHT MEAN TO CLONE cur EACH RUN?
         let spread =
             CheckSymmetricPattern::<RELAXED_THRESHOLD, LEN, SUM, _>(&mut cur, pattern, range, true);
-        if (!(spread != 0)) {
+        if spread == 0 {
             return None;
         }
         UpdateMinMax(&mut minSpread, &mut maxSpread, spread);
@@ -522,14 +522,14 @@ pub fn LocateConcentricPattern<
             range * 2,
             false,
         );
-        if (!(spread != 0)) {
+        if spread == 0 {
             return None;
         }
         UpdateMinMax(&mut minSpread, &mut maxSpread, spread);
     }
     //#endif
 
-    if (maxSpread > 5 * minSpread) {
+    if maxSpread > 5 * minSpread {
         return None;
     }
 
