@@ -8,6 +8,7 @@ pub mod regression_line;
 pub mod step_result;
 pub mod util;
 pub mod value;
+pub mod fast_edge_to_edge_counter;
 
 pub use bitmatrix_cursor::*;
 pub use concentric_finder::*;
@@ -19,3 +20,4 @@ pub use regression_line::*;
 pub use step_result::*;
 pub use util::*;
 pub use value::*;
+pub use fast_edge_to_edge_counter::*;

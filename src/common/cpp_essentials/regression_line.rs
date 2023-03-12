@@ -1,5 +1,5 @@
 use crate::common::Result;
-use crate::Point;
+use crate::{Point, point};
 
 pub trait RegressionLine {
     //     points: Vec<Point>,
@@ -11,8 +11,18 @@ pub trait RegressionLine {
     // PointF _directionInward;
     // PointF::value_t a = NAN, b = NAN, c = NAN;
 
-    // fn intersect<T: RegressionLine, T2: RegressionLine>(&self, l1: &T, l2: &T2)
-    //     -> Point;
+    fn intersect<T: RegressionLine, T2: RegressionLine>( l1: &T, l2: &T2)
+        -> Option<Point>{
+            if !(l1.isValid() && l2.isValid()) {
+                return None;
+            }
+            
+            let d = l1.a() * l2.b() - l1.b() * l2.a();
+            let x = (l1.c() * l2.b() - l1.b() * l2.c()) / d;
+            let y = (l1.a() * l2.c() - l1.c() * l2.a()) / d;
+            
+             Some(point(x, y))
+        }
 
     //  fn evaluate_begin_end(&self, begin: Point, end: Point) -> bool;// {
     // {
@@ -131,4 +141,7 @@ pub trait RegressionLine {
                                  // 	// due to aliasing we get bad extrapolations if the line is short and too close to vertical/horizontal
                                  // 	return steps > 2 || len > 50;
                                  // }
+                                 fn a(&self) -> f32;
+                                 fn b(&self) -> f32;
+                                 fn c(&self) -> f32;
 }

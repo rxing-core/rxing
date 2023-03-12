@@ -208,10 +208,46 @@ impl Quadrilateral {
 
         !(x || y)
     }
+
+    pub fn blend(a: &Quadrilateral, b:&Quadrilateral) -> Self {
+        let c = a[0];
+        let dist2First = | a,  b| {  Point::distance(a, c) < Point::distance(b, c) };
+	// rotate points such that the the two topLeft points are closest to each other
+    let min_element = b.0.iter().copied().min_by(|a,b| {
+        match dist2First(*a,*b) {
+            true => std::cmp::Ordering::Less,
+            false => std::cmp::Ordering::Greater,
+        }
+    }).unwrap_or_default();
+    let offset = b.0.iter().position(|v| *v == min_element).unwrap_or_default();
+	// let offset = std::min_element(b.begin(), b.end(), dist2First) - b.begin();
+
+	let mut res= Quadrilateral::default();
+    for i in 0..4 {
+	// for (int i = 0; i < 4; ++i){
+		res[i] = (a[i] + b[(i + offset) % 4]) / 2.0;
+    }
+
+	res
+    }
 }
 
 impl Default for Quadrilateral {
     fn default() -> Self {
         Self([Point { x: 0.0, y: 0.0 }; 4])
+    }
+}
+
+impl std::ops::Index<usize> for Quadrilateral {
+    type Output = Point;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
+impl std::ops::IndexMut<usize> for Quadrilateral {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.0[index]
     }
 }

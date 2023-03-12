@@ -78,6 +78,7 @@ pub trait BitMatrixCursor {
                                                 // }
 
     fn movedBy<T: BitMatrixCursor>(self, d: Point) -> Self;
+    fn turnedBack(&self) -> Self;// { return {*img, p, back()}; }
     // {
     // 	auto res = *this;
     // 	res.p += d;
@@ -159,6 +160,8 @@ pub trait BitMatrixCursor {
 
         res
     }
+
+    fn p(&self) -> Point;
 
     // template<typename ARRAY>
     // ARRAY readPattern(int range = 0)

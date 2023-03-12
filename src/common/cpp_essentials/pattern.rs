@@ -8,14 +8,46 @@ use crate::{common::Result, Exceptions};
 pub type PatternType = u16;
 pub type Pattern<const N: usize> = [PatternType; N];
 
-#[derive(Default)]
+#[derive(Default,Debug)]
 pub struct PatternRow(Vec<PatternType>);
 
 // pub struct PatternRow<T: std::iter::Sum + Into<f32> + Into<usize> + Copy>(Vec<T>);
 
 impl PatternRow {
+pub fn new( v: Vec<PatternType>) -> Self {
+    Self(v)
+}
+
+pub fn len(&self)  -> usize {
+    self.0.len()
+}
+
     pub fn into_pattern_view(&self) -> PatternView {
         PatternView::new(self)
+    }
+}
+
+impl IntoIterator for PatternRow {
+    type Item = PatternType;
+
+    type IntoIter = std::vec::IntoIter<PatternType>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl std::ops::Index<usize> for PatternRow {
+    type Output = PatternType;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
+impl std::ops::IndexMut<usize> for PatternRow {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.0[index]
     }
 }
 
@@ -33,6 +65,7 @@ impl<'a> Iterator for PatternView<'_> {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct PatternView<'a> {
     data: &'a PatternRow,
     start: usize,
@@ -96,7 +129,7 @@ impl<'a> PatternView<'_> {
 
     // index is the number of bars and spaces from the first bar to the current position
     pub fn index(&self) -> usize {
-        self.current - self.start - 1 /*return narrow_cast<int>(_data - _base) - 1;*/
+        self.current - self.start /*return narrow_cast<int>(_data - _base) - 1;*/
     }
     pub fn pixelsInFront(&self) -> PatternType {
         self.data
@@ -183,7 +216,7 @@ impl<'a> PatternView<'_> {
     // 	}
 
     pub fn shift(&mut self, n: usize) -> bool {
-        self.start += n;
+        self.current += n;
         !self.data.0.is_empty() && self.start + self.count <= (self.start + self.count)
     }
 
@@ -234,7 +267,15 @@ impl<'a> std::ops::Index<usize> for PatternView<'_> {
         if index > self.data.0.len() {
             panic!("array index out of bounds")
         }
-        self.data.0.get(self.start + self.current).unwrap()
+        self.data.0.get(self.start + self.current + index).unwrap()
+    }
+}
+
+impl<'a> std::ops::Index<i32> for PatternView<'_> {
+    type Output = PatternType;
+
+    fn index(&self, index: i32) -> &Self::Output {
+        std::ops::Index::<isize>::index(self, index as isize)
     }
 }
 
@@ -283,7 +324,7 @@ impl<T: Default + std::cmp::PartialEq> std::ops::IndexMut<usize> for BarAndSpace
 // 	bool isValid() const { return bar != T{} && space != T{}; }
 // };
 
-type BarAndSpaceI = BarAndSpace<u16>;
+type BarAndSpaceI = BarAndSpace<PatternType>;
 
 /**
  * @brief FixedPattern describes a compile-time constant (start/stop) pattern.
@@ -293,15 +334,19 @@ type BarAndSpaceI = BarAndSpace<u16>;
  * @param IS_SPARCE  whether or not the pattern contains '0's denoting 'wide' bars/spaces
  */
 pub struct FixedPattern<const N: usize, const SUM: usize, const IS_SPARCE: bool = false> {
-    data: [u16; N],
+    data: [PatternType; N],
 }
 
 impl<const N: usize, const SUM: usize, const IS_SPARCE: bool> FixedPattern<N, SUM, IS_SPARCE> {
-    fn new(data: [u16; N]) -> Self {
+    pub fn new(data: [PatternType; N]) -> Self {
         FixedPattern { data }
     }
 
-    fn as_slice(&self) -> &[u16] {
+    pub fn with_reference(data: &[PatternType; N]) -> Self {
+        FixedPattern { data: data.clone() }
+    }
+
+    fn as_slice(&self) -> &[PatternType] {
         &self.data
     }
 
@@ -313,7 +358,7 @@ impl<const N: usize, const SUM: usize, const IS_SPARCE: bool> FixedPattern<N, SU
 impl<const N: usize, const SUM: usize, const IS_SPARCE: bool> std::ops::Index<usize>
     for FixedPattern<N, SUM, IS_SPARCE>
 {
-    type Output = u16;
+    type Output = PatternType;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.data[index]
@@ -419,10 +464,6 @@ pub fn FindLeftGuardBy<'a, const LEN: usize, Pred: Fn(&PatternView, Option<f32>)
 
         window.skipPair();
     }
-    // for (auto end = view.end() - minSize; window.data() < end; window.skipPair())
-    // 	{
-
-    // 	}
 
     Err(Exceptions::ILLEGAL_STATE)
 }
@@ -483,7 +524,7 @@ pub fn NormalizedPattern<'a, const LEN: usize, const SUM: usize>(
                 .min_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
         };
         let mi = mi.ok_or(Exceptions::ILLEGAL_STATE)?;
-        is[*mi as usize] += err as u16;
+        is[*mi as usize] += err as PatternType;
         rs[*mi as usize] -= err as f32;
     }
 
@@ -496,17 +537,16 @@ enum Color {
     Black = 1
 }
 
-impl<T: Into<u16>> From<T> for Color {
+impl<T: Into<PatternType>> From<T> for Color {
     fn from(value: T) -> Self {
         match value.into() {
             0 => Color::White,
             _ => Color::Black,
-            _=>Color::Black
         }
     }
 }
 
-fn GetPatternRow<T: Into<u16> + Copy + Default + From<T>>(b_row: &[T], p_row: &mut PatternRow) {
+fn GetPatternRow<T: Into<PatternType> + Copy + Default + From<T>>(b_row: &[T], p_row: &mut PatternRow) {
     p_row.0.clear();
 
     if Color::from(p_row.0.first().copied().unwrap_or_default()) == Color::Black {
@@ -542,20 +582,22 @@ fn GetPatternRow<T: Into<u16> + Copy + Default + From<T>>(b_row: &[T], p_row: &m
 
 #[cfg(test)]
 mod tests {
-    use super::{GetPatternRow, PatternRow};
+    use crate::common::cpp_essentials::PatternType;
+
+    use super::{GetPatternRow, PatternRow, PatternView};
     const N: usize = 33;
 
     #[test]
     fn all_white() {
         for s in 1..=N {
             // for (int s = 1; s <= N; ++s) {
-            let t_in = vec![0_u16; s];
+            let t_in:Vec<PatternType> = vec![0; s];
             // std::vector<uint8_t> in(s, 0);
             let mut pr = PatternRow::default();
             GetPatternRow(&t_in, &mut pr);
 
             assert_eq!(pr.0.len(), 1);
-            assert_eq!(pr.0[0], s as u16);
+            assert_eq!(pr.0[0], s as PatternType);
         }
     }
 
@@ -563,13 +605,13 @@ mod tests {
     fn all_black() {
         for s in 1..=N {
             // for (int s = 1; s <= N; ++s) {
-            let t_in: Vec<u16> = vec![0xff; s];
+            let t_in: Vec<PatternType> = vec![0xff; s];
             let mut pr = PatternRow::default();
             GetPatternRow(&t_in, &mut pr);
 
             assert_eq!(pr.0.len(), 3);
             assert_eq!(pr.0[0], 0);
-            assert_eq!(pr.0[1], s as u16);
+            assert_eq!(pr.0[1], s as PatternType);
             assert_eq!(pr.0[2], 0);
         }
     }
@@ -578,7 +620,7 @@ mod tests {
     fn black_white() {
         for s in 1..=N {
             // for (int s = 1; s <= N; ++s) {
-            let mut t_in = vec![0_u16; N];
+            let mut t_in : Vec<PatternType> = vec![0; N];
             t_in[..s].copy_from_slice(&vec![1; s]);
             // std::fill_n(in.data(), s, 0xff);
             let mut pr = PatternRow::default();
@@ -586,8 +628,8 @@ mod tests {
 
             assert_eq!(pr.0.len(), 3);
             assert_eq!(pr.0[0], 0);
-            assert_eq!(pr.0[1], s as u16);
-            assert_eq!(pr.0[2], (N - s) as u16);
+            assert_eq!(pr.0[1], s as PatternType);
+            assert_eq!(pr.0[2], (N - s) as PatternType);
         }
     }
 
@@ -595,15 +637,36 @@ mod tests {
     fn white_black() {
         for s in 0..N {
             // for (int s = 0; s < N; ++s) {
-            let mut t_in: Vec<u16> = vec![0xff; N];
+            let mut t_in: Vec<PatternType> = vec![0xff; N];
             t_in[..s].copy_from_slice(&vec![0; s]);
             let mut pr = PatternRow::default();
             GetPatternRow(&t_in, &mut pr);
 
             assert_eq!(pr.0.len(), 3);
-            assert_eq!(pr.0[0], s as u16);
-            assert_eq!(pr.0[1], (N - s) as u16);
+            assert_eq!(pr.0[0], s as PatternType);
+            assert_eq!(pr.0[1], (N - s) as PatternType);
             assert_eq!(pr.0[2], 0);
         }
+    }
+
+    #[test]
+    fn basic_pattern_view() {
+        let mut p_row = PatternRow::default();
+        GetPatternRow(&vec![0_u16,1,0,1,0,0,1,1,1,0,0,1,1,1,1,1,1,0,0,0,0,1], &mut p_row);
+
+        let mut pv = PatternView::new(&p_row);
+
+        assert_eq!(pv.data().0,p_row.0);
+
+        assert_eq!(pv[0], 1_u16);
+        assert_eq!(pv[1], 1_u16);
+        assert_eq!(pv[4], 2_u16);
+        assert_eq!(pv[7], 6_u16);
+
+        assert_eq!(pv.index(), 0);
+        assert!(pv.shift(1));
+        assert_eq!(pv.index(), 1);
+        assert!(pv.skipPair());
+        assert_eq!(pv.index(),3);
     }
 }

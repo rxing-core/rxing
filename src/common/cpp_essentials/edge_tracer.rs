@@ -126,6 +126,13 @@ impl BitMatrixCursor for EdgeTracer<'_> {
         res
     }
 
+    fn turnedBack(&self) -> Self {
+        let mut res = self.clone();
+        res.d = res.back();
+
+        res
+    }
+
     /**
      * @brief stepToEdge advances cursor to one step behind the next (or n-th) edge.
      * @param nth number of edges to pass
@@ -134,9 +141,9 @@ impl BitMatrixCursor for EdgeTracer<'_> {
      * @return number of steps taken or 0 if moved outside of range/image
      */
     fn stepToEdge(&mut self, nth: Option<i32>, range: Option<i32>, backup: Option<bool>) -> i32 {
-        let mut nth = if let Some(nth) = nth { nth } else { 1 };
-        let range = if let Some(r) = range { r } else { 0 };
-        let backup = if let Some(b) = backup { b } else { false };
+        let mut nth = nth.unwrap_or(1); //if let Some(nth) = nth { nth } else { 1 };
+        let range = range.unwrap_or(0);//if let Some(r) = range { r } else { 0 };
+        let backup = backup.unwrap_or(false);//if let Some(b) = backup { b } else { false };
         // TODO: provide an alternative and faster out-of-bounds check than isIn() inside testAt()
         let mut steps = 0;
         let mut lv = self.testAt(self.p);
@@ -155,6 +162,11 @@ impl BitMatrixCursor for EdgeTracer<'_> {
         self.p += self.d * steps;
         steps * i32::from(nth == 0)
     }
+
+    fn p(&self) -> Point {
+        self.p
+    }
+
 }
 
 impl<'a> EdgeTracer<'_> {

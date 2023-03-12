@@ -117,6 +117,22 @@ impl std::ops::Add for Point {
     }
 }
 
+impl std::ops::Add<f32> for Point {
+    type Output = Self;
+
+    fn add(self, rhs: f32) -> Self::Output {
+        Self::new(self.x + rhs, self.y + rhs)
+    }
+}
+
+impl std::ops::Add<Point> for f32 {
+    type Output = Point;
+
+    fn add(self, rhs: Point) -> Self::Output {
+        Point::new(rhs.x + self, rhs.y + self)
+    }
+}
+
 impl std::ops::Mul for Point {
     type Output = Self;
 
@@ -137,6 +153,14 @@ impl std::ops::Mul<i32> for Point {
     type Output = Self;
 
     fn mul(self, rhs: i32) -> Self::Output {
+        Self::new(self.x * rhs as f32, self.y * rhs as f32)
+    }
+}
+
+impl std::ops::Mul<u32> for Point {
+    type Output = Self;
+
+    fn mul(self, rhs: u32) -> Self::Output {
         Self::new(self.x * rhs as f32, self.y * rhs as f32)
     }
 }
@@ -162,6 +186,14 @@ impl std::ops::Div<f32> for Point {
 
     fn div(self, rhs: f32) -> Self::Output {
         Self::Output::new(self.x / rhs, self.y / rhs)
+    }
+}
+
+impl std::ops::Mul<Point> for u32 {
+    type Output = Point;
+
+    fn mul(self, rhs: Point) -> Self::Output {
+        Self::Output::new(rhs.x * self as f32, rhs.y * self as f32)
     }
 }
 

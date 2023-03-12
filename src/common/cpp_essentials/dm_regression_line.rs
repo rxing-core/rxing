@@ -1,5 +1,5 @@
 use crate::common::Result;
-use crate::{Exceptions, Point};
+use crate::{Exceptions, Point, point};
 
 use super::{
     util::{float_max, float_min},
@@ -211,9 +211,27 @@ impl RegressionLine for DMRegressionLine {
         Point::dot(self.direction_inward, self.normal()) > 0.5
         // angle between original and new direction is at most 60 degree
     }
+
+    fn a(&self) -> f32 {
+        self.a
+    }
+
+    fn b(&self) -> f32 {
+        self.b
+    }
+
+    fn c(&self) -> f32 {
+        self.c
+    }
 }
 
 impl DMRegressionLine {
+    pub fn with_two_points(point1: Point, point2: Point) -> Self {
+        let mut new_rl = DMRegressionLine::default();
+        new_rl.evaluate(&[point1, point2]);
+        new_rl
+    }
+
     // template <typename Container, typename Filter>
     fn average<T>(c: &[f64], f: T) -> f64
     where
