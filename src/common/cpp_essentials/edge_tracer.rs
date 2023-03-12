@@ -6,7 +6,7 @@ use crate::{
     Exceptions, Point,
 };
 
-use super::{BitMatrixCursor, Direction, RegressionLine, StepResult, Value};
+use super::{BitMatrixCursor, Direction, RegressionLineTrait, StepResult, Value};
 
 #[derive(Clone)]
 pub struct EdgeTracer<'a> {
@@ -142,9 +142,9 @@ impl BitMatrixCursor for EdgeTracer<'_> {
      */
     fn stepToEdge(&mut self, nth: Option<i32>, range: Option<i32>, backup: Option<bool>) -> i32 {
         let mut nth = nth.unwrap_or(1); //if let Some(nth) = nth { nth } else { 1 };
-        let range = range.unwrap_or(0);//if let Some(r) = range { r } else { 0 };
-        let backup = backup.unwrap_or(false);//if let Some(b) = backup { b } else { false };
-        // TODO: provide an alternative and faster out-of-bounds check than isIn() inside testAt()
+        let range = range.unwrap_or(0); //if let Some(r) = range { r } else { 0 };
+        let backup = backup.unwrap_or(false); //if let Some(b) = backup { b } else { false };
+                                              // TODO: provide an alternative and faster out-of-bounds check than isIn() inside testAt()
         let mut steps = 0;
         let mut lv = self.testAt(self.p);
 
@@ -166,7 +166,6 @@ impl BitMatrixCursor for EdgeTracer<'_> {
     fn p(&self) -> Point {
         self.p
     }
-
 }
 
 impl<'a> EdgeTracer<'_> {
@@ -271,7 +270,11 @@ impl<'a> EdgeTracer<'_> {
         true
     }
 
-    pub fn traceLine<T: RegressionLine>(&mut self, dEdge: Point, line: &mut T) -> Result<bool> {
+    pub fn traceLine<T: RegressionLineTrait>(
+        &mut self,
+        dEdge: Point,
+        line: &mut T,
+    ) -> Result<bool> {
         line.setDirectionInward(dEdge);
         loop {
             // log(self.p);
@@ -298,7 +301,7 @@ impl<'a> EdgeTracer<'_> {
         } // while (true);
     }
 
-    pub fn traceGaps<T: RegressionLine>(
+    pub fn traceGaps<T: RegressionLineTrait>(
         &mut self,
         dEdge: Point,
         line: &mut T,

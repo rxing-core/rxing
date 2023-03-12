@@ -78,12 +78,12 @@ pub trait BitMatrixCursor {
                                                 // }
 
     fn movedBy<T: BitMatrixCursor>(self, d: Point) -> Self;
-    fn turnedBack(&self) -> Self;// { return {*img, p, back()}; }
-    // {
-    // 	auto res = *this;
-    // 	res.p += d;
-    // 	return res;
-    // }
+    fn turnedBack(&self) -> Self; // { return {*img, p, back()}; }
+                                  // {
+                                  // 	auto res = *this;
+                                  // 	res.p += d;
+                                  // 	return res;
+                                  // }
 
     /**
      * @brief stepToEdge advances cursor to one step behind the next (or n-th) edge.

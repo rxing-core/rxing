@@ -1,10 +1,7 @@
 use crate::common::Result;
-use crate::{Exceptions, Point, point};
+use crate::{Exceptions, Point};
 
-use super::{
-    util::{float_max, float_min},
-    RegressionLine,
-};
+use super::RegressionLineTrait;
 
 #[derive(Clone)]
 pub struct DMRegressionLine {
@@ -30,7 +27,7 @@ impl Default for DMRegressionLine {
     }
 }
 
-impl RegressionLine for DMRegressionLine {
+impl RegressionLineTrait for DMRegressionLine {
     fn points(&self) -> &[Point] {
         &self.points
     }
@@ -136,14 +133,14 @@ impl RegressionLine for DMRegressionLine {
         let Some(mut min) = self.points.first().copied() else { return false };
         let Some(mut max) = self.points.first().copied() else { return false };
         for p in &self.points {
-            min.x = float_min(min.x, p.x);
-            min.y = float_min(min.y, p.y);
-            max.x = float_max(max.x, p.x);
-            max.y = float_max(max.y, p.y);
+            min.x = f32::min(min.x, p.x);
+            min.y = f32::min(min.y, p.y);
+            max.x = f32::max(max.x, p.x);
+            max.y = f32::max(max.y, p.y);
         }
         let diff = max - min;
         let len = diff.maxAbsComponent();
-        let steps = float_min(diff.x.abs(), diff.y.abs());
+        let steps = f32::min(diff.x.abs(), diff.y.abs());
         // due to aliasing we get bad extrapolations if the line is short and too close to vertical/horizontal
         steps > 2.0 || len > 50.0
     }
@@ -226,12 +223,6 @@ impl RegressionLine for DMRegressionLine {
 }
 
 impl DMRegressionLine {
-    pub fn with_two_points(point1: Point, point2: Point) -> Self {
-        let mut new_rl = DMRegressionLine::default();
-        new_rl.evaluate(&[point1, point2]);
-        new_rl
-    }
-
     // template <typename Container, typename Filter>
     fn average<T>(c: &[f64], f: T) -> f64
     where

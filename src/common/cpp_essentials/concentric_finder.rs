@@ -9,7 +9,8 @@ use crate::{
 };
 
 use super::{
-    BitMatrixCursor, DMRegressionLine, EdgeTracer, FastEdgeToEdgeCounter, Pattern, RegressionLine,
+    BitMatrixCursor, EdgeTracer, FastEdgeToEdgeCounter, Pattern, RegressionLine,
+    RegressionLineTrait,
 };
 
 pub fn CenterFromEnd<const N: usize, T: Into<f32> + std::iter::Sum<T> + Copy>(
@@ -378,7 +379,7 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
         .max_by(max_by_pred)?;
     // corners[2] = std::max_element(&points[Size(points) * 3 / 8], &points[Size(points) * 5 / 8], dist2Center);
     // find the two in between corners by looking for the points farthest from the long diagonal
-    let l = DMRegressionLine::with_two_points(corners[0], corners[2]);
+    let l = RegressionLine::with_two_points(corners[0], corners[2]);
     let dist2Diagonal = /*[l = RegressionLine(*corners[0], *corners[2])]*/| a,  b| {  l.distance_single(a) < l.distance_single(b) };
 
     let diagonal_max_by_pred = |p1: &Point, p2: &Point| {
@@ -400,10 +401,10 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
     // corners[3] = std::max_element(&points[Size(points) * 5 / 8], &points[Size(points) * 7 / 8], dist2Diagonal);
 
     let lines = [
-        DMRegressionLine::with_two_points((corners[0] + 1.0), corners[1]),
-        DMRegressionLine::with_two_points((corners[1] + 1.0), corners[2]),
-        DMRegressionLine::with_two_points((corners[2] + 1.0), corners[3]),
-        DMRegressionLine::with_two_points((corners[3] + 1.0), (*points.last()? + 1.0)),
+        RegressionLine::with_two_points((corners[0] + 1.0), corners[1]),
+        RegressionLine::with_two_points((corners[1] + 1.0), corners[2]),
+        RegressionLine::with_two_points((corners[2] + 1.0), corners[3]),
+        RegressionLine::with_two_points((corners[3] + 1.0), (*points.last()? + 1.0)),
     ];
     // std::array lines{RegressionLine{corners[0] + 1, corners[1]}, RegressionLine{corners[1] + 1, corners[2]},
     // 				 RegressionLine{corners[2] + 1, corners[3]}, RegressionLine{corners[3] + 1, &points.back() + 1}};
@@ -414,7 +415,7 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
     let mut res = Quadrilateral::default();
     for i in 0..4 {
         // for (int i = 0; i < 4; ++i) {
-        res[i] = DMRegressionLine::intersect(&lines[i], &lines[(i + 1) % 4])?;
+        res[i] = RegressionLine::intersect(&lines[i], &lines[(i + 1) % 4])?;
     }
 
     Some(res)
@@ -483,42 +484,61 @@ pub fn FindConcentricPatternCorners(
 #[derive(Default)]
 pub struct ConcentricPattern {
     p: Point,
-    size: usize,
+    size: i32,
 }
 
- pub fn LocateConcentricPattern<const RELAXED_THRESHOLD:bool, const LEN: usize,
- const SUM: usize,
- T: BitMatrixCursor>(  image:&BitMatrix,  pattern:&Pattern<LEN>,  center:Point,  range:i32) -> Option<ConcentricPattern>
-{
-	let mut cur = EdgeTracer::new(image, center, Point::default());
-	let mut minSpread = image.getWidth() as i32;
+pub fn LocateConcentricPattern<
+    const RELAXED_THRESHOLD: bool,
+    const LEN: usize,
+    const SUM: usize,
+    T: BitMatrixCursor,
+>(
+    image: &BitMatrix,
+    pattern: &Pattern<LEN>,
+    center: Point,
+    range: i32,
+) -> Option<ConcentricPattern> {
+    let mut cur = EdgeTracer::new(image, center, Point::default());
+    let mut minSpread = image.getWidth() as i32;
     let mut maxSpread = 0_i32;
-    for d in [point(0.0,1.0), point(1.0,0.0)] {
-	// for (auto d : {PointI{0, 1}, {1, 0}}) {
+    for d in [point(0.0, 1.0), point(1.0, 0.0)] {
+        // for (auto d : {PointI{0, 1}, {1, 0}}) {
         cur.setDirection(d); // THIS COULD POSSIBLY BE WRONG, WE MIGHT MEAN TO CLONE cur EACH RUN?
-		let spread = CheckSymmetricPattern(&mut cur, pattern, range, true);
-		if (!(spread != 0))
-			{return None}
-		UpdateMinMax(&mut minSpread, &mut maxSpread, spread);
-	}
+        let spread =
+            CheckSymmetricPattern::<RELAXED_THRESHOLD, LEN, SUM, _>(&mut cur, pattern, range, true);
+        if (!(spread != 0)) {
+            return None;
+        }
+        UpdateMinMax(&mut minSpread, &mut maxSpread, spread);
+    }
 
-//#if 1
-for d in [point(1.0,1.0), point(1.0,-1.0)] {
-	// for (auto d : {PointI{1, 1}, {1, -1}}) {
-        cur.setDirection(d);// THIS COULD POSSIBLY BE WRONG, WE MIGHT MEAN TO CLONE cur EACH RUN?
-		let spread = CheckSymmetricPattern(&mut cur, pattern, range * 2, false);
-		if (!(spread != 0))
-			{return None}
-		UpdateMinMax(&mut minSpread, &mut maxSpread, spread);
-	}
-//#endif
+    //#if 1
+    for d in [point(1.0, 1.0), point(1.0, -1.0)] {
+        // for (auto d : {PointI{1, 1}, {1, -1}}) {
+        cur.setDirection(d); // THIS COULD POSSIBLY BE WRONG, WE MIGHT MEAN TO CLONE cur EACH RUN?
+        let spread = CheckSymmetricPattern::<RELAXED_THRESHOLD, LEN, SUM, _>(
+            &mut cur,
+            pattern,
+            range * 2,
+            false,
+        );
+        if (!(spread != 0)) {
+            return None;
+        }
+        UpdateMinMax(&mut minSpread, &mut maxSpread, spread);
+    }
+    //#endif
 
-	if (maxSpread > 5 * minSpread)
-		{return None}
+    if (maxSpread > 5 * minSpread) {
+        return None;
+    }
 
-	let newCenter = FinetuneConcentricPatternCenter(image, cur.p(), range, pattern.len() as u32)?;
+    let newCenter = FinetuneConcentricPatternCenter(image, cur.p(), range, pattern.len() as u32)?;
 
-	 Some(ConcentricPattern{*newCenter, (maxSpread + minSpread) / 2})
+    Some(ConcentricPattern {
+        p: newCenter,
+        size: (maxSpread + minSpread) / 2,
+    })
 }
 
 fn UpdateMinMax<T: Ord + Copy>(min: &mut T, max: &mut T, val: T) {

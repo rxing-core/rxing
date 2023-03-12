@@ -8,19 +8,19 @@ use crate::{common::Result, Exceptions};
 pub type PatternType = u16;
 pub type Pattern<const N: usize> = [PatternType; N];
 
-#[derive(Default,Debug)]
+#[derive(Default, Debug)]
 pub struct PatternRow(Vec<PatternType>);
 
 // pub struct PatternRow<T: std::iter::Sum + Into<f32> + Into<usize> + Copy>(Vec<T>);
 
 impl PatternRow {
-pub fn new( v: Vec<PatternType>) -> Self {
-    Self(v)
-}
+    pub fn new(v: Vec<PatternType>) -> Self {
+        Self(v)
+    }
 
-pub fn len(&self)  -> usize {
-    self.0.len()
-}
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
 
     pub fn into_pattern_view(&self) -> PatternView {
         PatternView::new(self)
@@ -534,7 +534,7 @@ pub fn NormalizedPattern<'a, const LEN: usize, const SUM: usize>(
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 enum Color {
     White = 0,
-    Black = 1
+    Black = 1,
 }
 
 impl<T: Into<PatternType>> From<T> for Color {
@@ -546,11 +546,14 @@ impl<T: Into<PatternType>> From<T> for Color {
     }
 }
 
-fn GetPatternRow<T: Into<PatternType> + Copy + Default + From<T>>(b_row: &[T], p_row: &mut PatternRow) {
+fn GetPatternRow<T: Into<PatternType> + Copy + Default + From<T>>(
+    b_row: &[T],
+    p_row: &mut PatternRow,
+) {
     p_row.0.clear();
 
     if Color::from(p_row.0.first().copied().unwrap_or_default()) == Color::Black {
-        // first 
+        // first
         p_row.0.push(0);
     }
 
@@ -567,7 +570,7 @@ fn GetPatternRow<T: Into<PatternType> + Copy + Default + From<T>>(b_row: &[T], p
             current_color = this_color;
         }
 
-        count +=1 ;
+        count += 1;
     }
 
     if count != 0 {
@@ -577,7 +580,6 @@ fn GetPatternRow<T: Into<PatternType> + Copy + Default + From<T>>(b_row: &[T], p
     if current_color == Color::Black {
         p_row.0.push(0);
     }
-
 }
 
 #[cfg(test)]
@@ -591,7 +593,7 @@ mod tests {
     fn all_white() {
         for s in 1..=N {
             // for (int s = 1; s <= N; ++s) {
-            let t_in:Vec<PatternType> = vec![0; s];
+            let t_in: Vec<PatternType> = vec![0; s];
             // std::vector<uint8_t> in(s, 0);
             let mut pr = PatternRow::default();
             GetPatternRow(&t_in, &mut pr);
@@ -620,7 +622,7 @@ mod tests {
     fn black_white() {
         for s in 1..=N {
             // for (int s = 1; s <= N; ++s) {
-            let mut t_in : Vec<PatternType> = vec![0; N];
+            let mut t_in: Vec<PatternType> = vec![0; N];
             t_in[..s].copy_from_slice(&vec![1; s]);
             // std::fill_n(in.data(), s, 0xff);
             let mut pr = PatternRow::default();
@@ -652,11 +654,16 @@ mod tests {
     #[test]
     fn basic_pattern_view() {
         let mut p_row = PatternRow::default();
-        GetPatternRow(&vec![0_u16,1,0,1,0,0,1,1,1,0,0,1,1,1,1,1,1,0,0,0,0,1], &mut p_row);
+        GetPatternRow(
+            &vec![
+                0_u16, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1,
+            ],
+            &mut p_row,
+        );
 
         let mut pv = PatternView::new(&p_row);
 
-        assert_eq!(pv.data().0,p_row.0);
+        assert_eq!(pv.data().0, p_row.0);
 
         assert_eq!(pv[0], 1_u16);
         assert_eq!(pv[1], 1_u16);
@@ -667,6 +674,6 @@ mod tests {
         assert!(pv.shift(1));
         assert_eq!(pv.index(), 1);
         assert!(pv.skipPair());
-        assert_eq!(pv.index(),3);
+        assert_eq!(pv.index(), 3);
     }
 }

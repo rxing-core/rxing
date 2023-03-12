@@ -14,9 +14,12 @@ macro_rules! CHECK {
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    common::{BitMatrix, DefaultGridSampler, GridSampler, Quadrilateral, Result},
+    common::{
+        cpp_essentials::RegressionLineTrait, BitMatrix, DefaultGridSampler, GridSampler,
+        Quadrilateral, Result,
+    },
     datamatrix::detector::{
-        zxing_cpp_detector::{util::intersect, BitMatrixCursor, RegressionLine},
+        zxing_cpp_detector::{util::intersect, BitMatrixCursor},
         DatamatrixDetectorResult,
     },
     point,
