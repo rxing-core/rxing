@@ -401,3 +401,15 @@ impl Default for BitArray {
         Self::new()
     }
 }
+
+impl Into<Vec<u8>> for BitArray {
+    fn into(self) -> Vec<u8> {
+        let mut arr = vec![0; self.get_size()];
+        for x in 0..self.get_size() {
+            if self.get(x) {
+                arr[x] = 1;
+            }
+        }
+        arr
+    }
+}

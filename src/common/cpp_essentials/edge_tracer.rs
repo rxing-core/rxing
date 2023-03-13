@@ -6,7 +6,7 @@ use crate::{
     Exceptions, Point,
 };
 
-use super::{BitMatrixCursor, Direction, RegressionLineTrait, StepResult, Value};
+use super::{BitMatrixCursorTrait, Direction, RegressionLineTrait, StepResult, Value};
 
 #[derive(Clone)]
 pub struct EdgeTracer<'a> {
@@ -34,7 +34,7 @@ pub struct EdgeTracer<'a> {
 //     }
 // }
 
-impl BitMatrixCursor for EdgeTracer<'_> {
+impl BitMatrixCursorTrait for EdgeTracer<'_> {
     fn testAt(&self, p: Point) -> Value {
         if self.img.isIn(p, 0) {
             Value::from(self.img.get_point(p))
@@ -119,7 +119,7 @@ impl BitMatrixCursor for EdgeTracer<'_> {
         self.isIn(self.p)
     }
 
-    fn movedBy<T: BitMatrixCursor>(self, d: Point) -> Self {
+    fn movedBy<T: BitMatrixCursorTrait>(self, d: Point) -> Self {
         let mut res = self;
         res.p += d;
 
@@ -165,6 +165,10 @@ impl BitMatrixCursor for EdgeTracer<'_> {
 
     fn p(&self) -> Point {
         self.p
+    }
+
+    fn d(&self) -> Point {
+        self.d
     }
 }
 

@@ -3,7 +3,10 @@
 */
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::{common::Result, Exceptions};
+use crate::{
+    common::{BitMatrix, Result},
+    Exceptions,
+};
 
 pub type PatternType = u16;
 pub type Pattern<const N: usize> = [PatternType; N];
@@ -337,8 +340,16 @@ pub struct FixedPattern<const N: usize, const SUM: usize, const IS_SPARCE: bool 
     data: [PatternType; N],
 }
 
+impl<const N: usize, const SUM: usize, const IS_SPARCE: bool> Into<Pattern<N>>
+    for FixedPattern<N, SUM, IS_SPARCE>
+{
+    fn into(self) -> Pattern<N> {
+        self.data
+    }
+}
+
 impl<const N: usize, const SUM: usize, const IS_SPARCE: bool> FixedPattern<N, SUM, IS_SPARCE> {
-    pub fn new(data: [PatternType; N]) -> Self {
+    pub const fn new(data: [PatternType; N]) -> Self {
         FixedPattern { data }
     }
 
@@ -546,7 +557,15 @@ impl<T: Into<PatternType>> From<T> for Color {
     }
 }
 
-fn GetPatternRow<T: Into<PatternType> + Copy + Default + From<T>>(
+pub fn GetPatternRowTP(matrix: &BitMatrix, r: u32, pr: &mut PatternRow, transpose: bool) {
+    if (transpose) {
+        GetPatternRow(&Into::<Vec<u8>>::into(matrix.getCol(r)), pr)
+    } else {
+        GetPatternRow(&Into::<Vec<u8>>::into(matrix.getRow(r)), pr)
+    }
+}
+
+pub fn GetPatternRow<T: Into<PatternType> + Copy + Default + From<T>>(
     b_row: &[T],
     p_row: &mut PatternRow,
 ) {
@@ -655,7 +674,9 @@ mod tests {
     fn basic_pattern_view() {
         let mut p_row = PatternRow::default();
         GetPatternRow(
-            &[0_u16, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1],
+            &[
+                0_u16, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1,
+            ],
             &mut p_row,
         );
 

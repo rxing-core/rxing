@@ -26,3 +26,15 @@ pub fn opposite(dir: Direction) -> Direction {
         Direction::Left
     }
 }
+
+#[inline(always)]
+pub fn UpdateMinMax<T: Ord + Copy>(min: &mut T, max: &mut T, val: T) {
+    *min = std::cmp::min(*min, val);
+    *max = std::cmp::max(*max, val);
+}
+
+#[inline(always)]
+pub fn UpdateMinMaxFloat(min: &mut f64, max: &mut f64, val: f64) {
+    *min = f64::min(*min, val);
+    *max = f64::max(*max, val);
+}

@@ -408,6 +408,21 @@ impl BitMatrix {
         rw
     }
 
+    /// This method returns a column of the bitmatrix.
+    ///
+    /// The current implementation may be very slow.
+    pub fn getCol(&self, x: u32) -> BitArray {
+        let mut cw = BitArray::with_size(self.height as usize);
+
+        for y in 0..self.height {
+            if self.get(x, y) {
+                cw.set(y as usize)
+            }
+        }
+
+        cw
+    }
+
     /**
      * @param y row to set
      * @param row {@link BitArray} to copy from
@@ -595,6 +610,10 @@ impl BitMatrix {
      * @return The width of the matrix
      */
     pub fn getWidth(&self) -> u32 {
+        self.width()
+    }
+
+    pub fn width(&self) -> u32 {
         self.width
     }
 
@@ -602,6 +621,10 @@ impl BitMatrix {
      * @return The height of the matrix
      */
     pub fn getHeight(&self) -> u32 {
+        self.height()
+    }
+
+    pub fn height(&self) -> u32 {
         self.height
     }
 

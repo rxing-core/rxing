@@ -19,7 +19,7 @@ use crate::{
         Quadrilateral, Result,
     },
     datamatrix::detector::{
-        zxing_cpp_detector::{util::intersect, BitMatrixCursor},
+        zxing_cpp_detector::{util::intersect, BitMatrixCursorTrait},
         DatamatrixDetectorResult,
     },
     point,

@@ -9,8 +9,8 @@ use crate::{
 };
 
 use super::{
-    BitMatrixCursor, EdgeTracer, FastEdgeToEdgeCounter, Pattern, RegressionLine,
-    RegressionLineTrait,
+    BitMatrixCursorTrait, EdgeTracer, FastEdgeToEdgeCounter, Pattern, RegressionLine,
+    RegressionLineTrait, UpdateMinMax, UpdateMinMaxFloat,
 };
 
 pub fn CenterFromEnd<const N: usize, T: Into<f32> + std::iter::Sum<T> + Copy>(
@@ -41,7 +41,7 @@ pub fn CenterFromEnd<const N: usize, T: Into<f32> + std::iter::Sum<T> + Copy>(
     }
 }
 
-pub fn ReadSymmetricPattern<const N: usize, Cursor: BitMatrixCursor>(
+pub fn ReadSymmetricPattern<const N: usize, Cursor: BitMatrixCursorTrait>(
     cur: &mut Cursor,
     range: i32,
 ) -> Option<Pattern<N>> {
@@ -82,7 +82,7 @@ pub fn CheckSymmetricPattern<
     const RELAXED_THRESHOLD: bool,
     const LEN: usize,
     const SUM: usize,
-    T: BitMatrixCursor,
+    T: BitMatrixCursorTrait,
 >(
     cur: &mut T,
     pattern: &Pattern<LEN>,
@@ -143,7 +143,7 @@ pub fn CheckSymmetricPattern<
     res.into_iter().sum::<PatternType>() as i32
 }
 
-pub fn AverageEdgePixels<T: BitMatrixCursor>(
+pub fn AverageEdgePixels<T: BitMatrixCursorTrait>(
     cur: &mut T,
     range: i32,
     numOfEdges: u32,
@@ -481,17 +481,42 @@ pub fn FindConcentricPatternCorners(
     Some(res)
 }
 
-#[derive(Default)]
+#[derive(Default, Copy, Clone, Eq, PartialEq, Debug)]
 pub struct ConcentricPattern {
-    p: Point,
-    size: i32,
+    pub p: Point,
+    pub size: i32,
+}
+
+impl std::ops::Sub for ConcentricPattern {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let new_p = self.p - rhs.p;
+        Self {
+            p: new_p,
+            size: self.size,
+        }
+    }
+}
+
+impl ConcentricPattern {
+    pub fn dot(self, other: ConcentricPattern) -> f32 {
+        Point::dot(self.p, other.p)
+    }
+
+    pub fn cross(self, other: ConcentricPattern) -> f32 {
+        Point::cross(self.p, other.p)
+    }
+
+    pub fn distance(self, other: ConcentricPattern) -> f32 {
+        Point::distance(self.p, other.p)
+    }
 }
 
 pub fn LocateConcentricPattern<
     const RELAXED_THRESHOLD: bool,
     const LEN: usize,
     const SUM: usize,
-    T: BitMatrixCursor,
 >(
     image: &BitMatrix,
     pattern: &Pattern<LEN>,
@@ -539,14 +564,4 @@ pub fn LocateConcentricPattern<
         p: newCenter,
         size: (maxSpread + minSpread) / 2,
     })
-}
-
-fn UpdateMinMax<T: Ord + Copy>(min: &mut T, max: &mut T, val: T) {
-    *min = std::cmp::min(*min, val);
-    *max = std::cmp::max(*max, val);
-}
-
-fn UpdateMinMaxFloat(min: &mut f64, max: &mut f64, val: f64) {
-    *min = f64::min(*min, val);
-    *max = f64::max(*max, val);
 }

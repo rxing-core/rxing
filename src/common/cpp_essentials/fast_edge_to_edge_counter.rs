@@ -1,4 +1,4 @@
-use super::BitMatrixCursor;
+use super::BitMatrixCursorTrait;
 
 pub struct FastEdgeToEdgeCounter {
     // const uint8_t* p = nullptr;
@@ -7,7 +7,7 @@ pub struct FastEdgeToEdgeCounter {
 }
 
 impl FastEdgeToEdgeCounter {
-    pub fn new<T: BitMatrixCursor>(_cur: &T) -> Self {
+    pub fn new<T: BitMatrixCursorTrait>(_cur: &T) -> Self {
         todo!()
         // stride = cur.d.y * cur.img->width() + cur.d.x;
         // p = cur.img->row(cur.p.y).begin() + cur.p.x;

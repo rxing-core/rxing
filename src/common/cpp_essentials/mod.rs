@@ -1,4 +1,5 @@
 pub mod bitmatrix_cursor;
+pub mod bitmatrix_cursor_trait;
 pub mod concentric_finder;
 pub mod direction;
 pub mod dm_regression_line;
@@ -12,6 +13,7 @@ pub mod util;
 pub mod value;
 
 pub use bitmatrix_cursor::*;
+pub use bitmatrix_cursor_trait::*;
 pub use concentric_finder::*;
 pub use direction::*;
 pub use dm_regression_line::*;
