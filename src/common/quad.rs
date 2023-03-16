@@ -51,8 +51,8 @@ impl Quadrilateral {
 
 impl Quadrilateral {
     #[allow(dead_code)]
-    pub fn rectangle(width: i32, height: i32, margin: Option<i32>) -> Quadrilateral {
-        let margin = margin.unwrap_or(0);
+    pub fn rectangle(width: i32, height: i32, margin: Option<f32>) -> Quadrilateral {
+        let margin = margin.unwrap_or(0.0);
 
         Quadrilateral([
             Point {

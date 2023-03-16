@@ -1,3 +1,4 @@
+use crate::common::{cpp_essentials::CenterOfRing, Result};
 use multimap::MultiMap;
 
 use crate::{
@@ -8,7 +9,7 @@ use crate::{
             PatternRow, PatternType, PatternView, ReadSymmetricPattern, RegressionLine,
             RegressionLineTrait,
         },
-        BitMatrix,
+        BitMatrix, PerspectiveTransform, Quadrilateral,
     },
     point, Point,
 };
@@ -324,4 +325,84 @@ pub fn TraceLine(image: &BitMatrix, p: Point, d: Point, edge: i32) -> impl Regre
     line.evaluate_max_distance(Some(1.0), Some(true));
 
     line
+}
+
+// estimate how tilted the symbol is (return value between 1 and 2, see also above)
+pub fn EstimateTilt(fp: &FinderPatternSet) -> f64 {
+    let min = [fp.bl.size, fp.tl.size, fp.tr.size]
+        .iter()
+        .min()
+        .copied()
+        .unwrap_or(i32::MAX);
+    let max = [fp.bl.size, fp.tl.size, fp.tr.size]
+        .iter()
+        .max()
+        .copied()
+        .unwrap_or(i32::MIN);
+
+    (max as f64) / (min as f64)
+}
+
+pub fn Mod2Pix(
+    dimension: i32,
+    brOffset: Point,
+    pix: Quadrilateral,
+) -> Result<PerspectiveTransform> {
+    let mut quad = Quadrilateral::rectangle(dimension, dimension, Some(3.5));
+    // let quad = Rectangle(dimension, dimension, 3.5);
+    quad[2] = quad[2] - brOffset;
+
+    PerspectiveTransform::quadrilateralToQuadrilateral(quad, pix)
+    // return {quad, pix};
+}
+
+pub fn LocateAlignmentPattern(
+    image: &BitMatrix,
+    moduleSize: i32,
+    estimate: Point,
+) -> Option<Point> {
+    // log(estimate, 2);
+
+    for d in [
+        point(0.0, 0.0),
+        point(0.0, -1.0),
+        point(0.0, 1.0),
+        point(-1.0, 0.0),
+        point(1.0, 0.0),
+        point(-1.0, -1.0),
+        point(1.0, -1.0),
+        point(1.0, 1.0),
+        point(-1.0, 1.0),
+    ] {
+        // 	for (auto d : {PointF{0, 0}, {0, -1}, {0, 1}, {-1, 0}, {1, 0}, {-1, -1}, {1, -1}, {1, 1}, {-1, 1},
+        // #if 1
+        // 				   }) {
+        // #else
+        // 				   {0, -2}, {0, 2}, {-2, 0}, {2, 0}, {-1, -2}, {1, -2}, {-1, 2}, {1, 2}, {-2, -1}, {-2, 1}, {2, -1}, {2, 1}}) {
+        // #endif
+        let cor = CenterOfRing(
+            image,
+            estimate + moduleSize as f32 * 2.25 * d,
+            moduleSize * 3,
+            1,
+            false,
+        );
+
+        // if we did not land on a black pixel the concentric pattern finder will fail
+        if (cor.is_none() || !image.get_point(cor.unwrap())) {
+            continue;
+        }
+
+        if let Some(cor1) = CenterOfRing(image, cor.unwrap(), moduleSize, 1, true) {
+            if let Some(cor2) = CenterOfRing(image, cor.unwrap(), moduleSize * 3, -2, true) {
+                if (Point::distance(cor1, cor2) < moduleSize as f32 / 2.0) {
+                    let res = (cor1 + cor2) / 2.0;
+                    // log(res, 3);
+                    return Some(res);
+                }
+            }
+        }
+    }
+
+    None
 }
