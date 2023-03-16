@@ -98,20 +98,22 @@ impl LuminanceSource for Luma8LuminanceSource {
 
 impl Luma8LuminanceSource {
     fn reverseColumns(&mut self) {
-        for i in 0..self.get_width() {
-            let mut j = 0;
-            let mut k = self.get_width() - 1;
-            while j < k {
-                let offset_a = (self.get_width() * i) + j;
-                let offset_b = (self.get_width() * i) + k;
+        for col in 0..(self.get_width()) {
+            let mut a = 0;
+            let mut b = self.get_height() - 1;
+            while a < b {
+                let offset_a = a * self.get_width() + col;
+                let offset_b = b * self.get_width() + col;
                 self.data.swap(offset_a, offset_b);
-                j += 1;
-                k -= 1;
+
+                a += 1;
+                b -= 1;
             }
         }
+        // print_matrix(&self.data, self.get_width(), self.get_height());
     }
 
-    fn transpose(&mut self) {
+    fn transpose_square(&mut self) {
         for i in 0..self.get_height() {
             for j in i..self.get_width() {
                 let offset_a = (self.get_width() * i) + j;
@@ -119,6 +121,29 @@ impl Luma8LuminanceSource {
                 self.data.swap(offset_a, offset_b);
             }
         }
+    }
+
+    fn transpose_rect(&mut self) {
+        let mut new_data = vec![0; self.data.len()];
+        let new_dim = (self.dimensions.1, self.dimensions.0);
+        for i in 0..self.get_height() {
+            for j in 0..self.get_width() {
+                let offset_a = (self.get_width() * i) + j;
+                let offset_b = (self.get_height() * j) + i;
+                new_data[offset_b] = self.data[offset_a];
+            }
+        }
+        self.data = new_data;
+        self.dimensions = new_dim
+    }
+
+    fn transpose(&mut self) {
+        if self.get_width() == self.get_height() {
+            self.transpose_square()
+        } else {
+            self.transpose_rect()
+        }
+        // print_matrix(&self.data, self.get_width(), self.get_height());
     }
 }
 
@@ -142,3 +167,57 @@ impl Luma8LuminanceSource {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{Luma8LuminanceSource, LuminanceSource};
+
+    #[test]
+    fn test_rotate() {
+        let src_square = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        let src_rect = vec![0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0];
+
+        let square = Luma8LuminanceSource::new(src_square, 3, 3);
+        let rect_tall = Luma8LuminanceSource::new(src_rect.clone(), 3, 4);
+        let rect_wide = Luma8LuminanceSource::new(src_rect.clone(), 4, 3);
+
+        let rotated_square = square.rotate_counter_clockwise().expect("rotate");
+        // print_matrix(&src_rect, 4, 3);
+        let rotated_wide_rect = rect_wide.rotate_counter_clockwise().expect("rotate");
+        // print_matrix(&src_rect, 3, 4);
+        let rotated_tall_rect = rect_tall.rotate_counter_clockwise().expect("rotate");
+
+        assert_eq!(rotated_square.dimensions, square.dimensions);
+        assert_eq!(
+            rotated_tall_rect.dimensions,
+            (rect_tall.dimensions.1, rect_tall.dimensions.0)
+        );
+        assert_eq!(
+            rotated_wide_rect.dimensions,
+            (rect_wide.dimensions.1, rect_wide.dimensions.0)
+        );
+
+        assert_eq!(rotated_square.data, vec![3, 6, 9, 2, 5, 8, 1, 4, 7]);
+
+        assert_eq!(
+            rotated_wide_rect.data,
+            vec![1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1]
+        );
+
+        assert_eq!(
+            rotated_tall_rect.data,
+            vec![0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0]
+        );
+    }
+}
+
+// fn print_matrix(matrix: &[u8], width: usize, height: usize) {
+//     for y in 0..height {
+//         for x in 0..width {
+//             print!("{}, ",matrix[y*width + x ]);
+//         }
+//         println!()
+//     }
+//     println!()
+// }
