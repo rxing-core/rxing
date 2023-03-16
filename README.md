@@ -76,6 +76,13 @@ fn main() {
 ```
 
 ## Latest Release Notes
+* *v0.4.0* -> Rewrite of the API to implement generics. This largely eliminates dynamic dispatch from the library.
+
+    This release has many under-the-hood changes: better Point class, better Error handling, improved API 
+    ergonomics with dynamics. For an understanding of how the new API works check out the `helper` functions.
+    This release was made possible with PRs from Asha20 and SteveCookTU. A big thanks to them. This release does
+    not have the improved QRCode support from the ZXing-CPP library, as that port is still in progress.
+
 * *v0.3.1* -> Support for closures in NEEDS_RESULT_CALLBACK. Numerous code cleanups were performed between *v0.3.0* and *v.0.3.1* rxing has moved to https://github.com/rxing-core/rxing.
 * *v0.2.21* -> Adds partial support for detecting and decoding rotated MaxiCode symbols. Adds support for basic serialization of many public facing datatypes using serde (gated behind `serde` feature).
 
