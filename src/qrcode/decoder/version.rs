@@ -89,6 +89,18 @@ impl Version {
         17 + 4 * self.versionNumber
     }
 
+    pub fn DimensionOfVersion(version: u32, is_micro: bool) -> u32 {
+        Self::DimensionOffset(is_micro) + Self::DimensionStep(is_micro) * version
+    }
+
+    pub fn DimensionOffset(is_micro: bool) -> u32 {
+        todo!()
+    }
+
+    pub fn DimensionStep(is_micro: bool) -> u32 {
+        todo!()
+    }
+
     pub fn getECBlocksForLevel(&self, ecLevel: ErrorCorrectionLevel) -> &ECBlocks {
         &self.ecBlocks[ecLevel.get_ordinal() as usize]
     }
@@ -100,21 +112,21 @@ impl Version {
      * @return Version for a QR Code of that dimension
      * @throws FormatException if dimension is not 1 mod 4
      */
-    pub fn getProvisionalVersionForDimension(dimension: u32) -> Result<&'static Version> {
+    pub fn getProvisionalVersionForDimension(dimension: u32) -> Result<VersionRef> {
         if dimension % 4 != 1 {
             return Err(Exceptions::format_with("dimension incorrect"));
         }
         Self::getVersionForNumber((dimension - 17) / 4)
     }
 
-    pub fn getVersionForNumber(versionNumber: u32) -> Result<&'static Version> {
+    pub fn getVersionForNumber(versionNumber: u32) -> Result<VersionRef> {
         if !(1..=40).contains(&versionNumber) {
             return Err(Exceptions::illegal_argument_with("version out of spec"));
         }
         Ok(&VERSIONS[versionNumber as usize - 1])
     }
 
-    pub fn decodeVersionInformation(versionBits: u32) -> Result<&'static Version> {
+    pub fn decodeVersionInformation(versionBits: u32) -> Result<VersionRef> {
         let mut bestDifference = u32::MAX;
         let mut bestVersion = 0;
         for i in 0..VERSION_DECODE_INFO.len() as u32 {
@@ -138,6 +150,37 @@ impl Version {
         }
         // If we didn't find a close enough match, fail
         Err(Exceptions::NOT_FOUND)
+    }
+
+    pub fn DecodeVersionInformation(versionBitsA: i32, versionBitsB: i32) -> Result<VersionRef> {
+        let mut bestDifference = u32::MAX;
+        let mut bestVersion = 0;
+        let mut i = 0;
+        for targetVersion in VERSION_DECODE_INFO {
+            // for (int targetVersion : VERSION_DECODE_INFO) {
+            // Do the version info bits match exactly? done.
+            if targetVersion == versionBitsA as u32 || targetVersion == versionBitsB as u32 {
+                return Self::getVersionForNumber(i + 7);
+            }
+            // Otherwise see if this is the closest to a real version info bit string
+            // we have seen so far
+            for bits in [versionBitsA, versionBitsB] {
+                // for (int bits : {versionBitsA, versionBitsB}) {
+                let bitsDifference = ((bits as u32) ^ targetVersion).count_ones(); //BitHacks::CountBitsSet(bits ^ targetVersion);
+                if bitsDifference < bestDifference {
+                    bestVersion = i + 7;
+                    bestDifference = bitsDifference;
+                }
+            }
+            i += 1;
+        }
+        // We can tolerate up to 3 bits of error since no two version info codewords will
+        // differ in less than 8 bits.
+        if bestDifference <= 3 {
+            return Self::getVersionForNumber(bestVersion);
+        }
+        // If we didn't find a close enough match, fail
+        return Err(Exceptions::ILLEGAL_STATE);
     }
 
     /**

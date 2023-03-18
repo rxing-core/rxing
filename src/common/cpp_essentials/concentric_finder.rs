@@ -499,6 +499,24 @@ impl std::ops::Sub for ConcentricPattern {
     }
 }
 
+impl std::ops::Add for ConcentricPattern {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let new_p = self.p - rhs.p;
+        Self {
+            p: new_p,
+            size: self.size,
+        }
+    }
+}
+
+impl From<Point> for ConcentricPattern {
+    fn from(value: Point) -> Self {
+        Self { p: value, size: 0 }
+    }
+}
+
 impl ConcentricPattern {
     pub fn dot(self, other: ConcentricPattern) -> f32 {
         Point::dot(self.p, other.p)

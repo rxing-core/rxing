@@ -1,4 +1,6 @@
-use crate::Point;
+use crate::{point, Point};
+
+use super::PerspectiveTransform;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Quadrilateral(pub [Point; 4]);
@@ -71,6 +73,16 @@ impl Quadrilateral {
                 x: margin as f32,
                 y: height as f32 - margin as f32,
             },
+        ])
+    }
+
+    pub fn rectangle_from_xy(x0: f32, x1: f32, y0: f32, y1: f32, o: Option<f32>) -> Self {
+        let o = o.unwrap_or(0.5);
+        Quadrilateral::from([
+            point(x0 + o, y0 + o),
+            point(x1 + o, y0 + o),
+            point(x1 + o, y1 + o),
+            point(x0 + o, y1 + o),
         ])
     }
 
@@ -254,5 +266,11 @@ impl std::ops::Index<usize> for Quadrilateral {
 impl std::ops::IndexMut<usize> for Quadrilateral {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.0[index]
+    }
+}
+
+impl From<[Point; 4]> for Quadrilateral {
+    fn from(value: [Point; 4]) -> Self {
+        Self(value)
     }
 }

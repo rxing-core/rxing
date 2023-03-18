@@ -1,4 +1,15 @@
-use crate::common::{cpp_essentials::CenterOfRing, Result};
+use crate::{
+    common::{
+        cpp_essentials::{CenterOfRing, DMRegressionLine, FindConcentricPatternCorners, Matrix},
+        DefaultGridSampler, GridSampler, Result, SamplerControl,
+    },
+    dimension, point_g, point_i,
+    qrcode::{
+        decoder::{Version, VersionRef},
+        detector::QRCodeDetectorResult,
+    },
+    Exceptions,
+};
 use multimap::MultiMap;
 
 use crate::{
@@ -405,4 +416,330 @@ pub fn LocateAlignmentPattern(
     }
 
     None
+}
+
+pub fn ReadVersion(
+    image: &BitMatrix,
+    dimension: u32,
+    mod2Pix: PerspectiveTransform,
+) -> Result<VersionRef> {
+    let mut bits = [0; 2]; //
+
+    for mirror in [false, true] {
+        // Read top-right/bottom-left version info: 3 wide by 6 tall (depending on mirrored)
+        let mut versionBits = 0;
+        for y in (0..5).rev() {
+            // for (int y = 5; y >= 0; --y)
+            for x in ((dimension - 11)..(dimension - 9)).rev() {
+                // for (int x = dimension - 9; x >= dimension - 11; --x) {
+                let mod_ = if mirror { point_i(y, x) } else { point_i(x, y) };
+                let pix = mod2Pix.transform_point((mod_).centered());
+                if (!image.is_in(pix)) {
+                    versionBits = -1;
+                } else {
+                    AppendBit(&mut versionBits, image.get_point(pix));
+                }
+                // log(pix, 3);
+            }
+            bits[usize::from(mirror)] = versionBits;
+        }
+    }
+
+    Version::DecodeVersionInformation(bits[0], bits[1])
+}
+
+fn AppendBit(val: &mut i32, bit: bool) {
+    *val <<= 1;
+
+    *val |= i32::from(bit)
+}
+
+pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetectorResult> {
+    let top = EstimateDimension(image, fp.tl, fp.tr);
+    let left = EstimateDimension(image, fp.tl, fp.bl);
+
+    if (!(top.dim != 0) && !(left.dim != 0)) {
+        return Err(Exceptions::NOT_FOUND);
+    }
+
+    let best = if top.err == left.err {
+        (if top.dim > left.dim { top } else { left })
+    } else {
+        (if top.err < left.err { top } else { left })
+    };
+    let mut dimension = best.dim;
+    let moduleSize = (best.ms + 1.0) as i32;
+
+    let mut br = ConcentricPattern {
+        p: point(-1.0, -1.0),
+        size: 0,
+    };
+    let mut brOffset = point_i(3, 3);
+
+    // Everything except version 1 (21 modules) has an alignment pattern. Estimate the center of that by intersecting
+    // line extensions of the 1 module wide square around the finder patterns. This could also help with detecting
+    // slanted symbols of version 1.
+
+    // generate 4 lines: outer and inner edge of the 1 module wide black line between the two outer and the inner
+    // (tl) finder pattern
+    let bl2 = TraceLine(image, fp.bl.p, fp.tl.p, 2);
+    let bl3 = TraceLine(image, fp.bl.p, fp.tl.p, 3);
+    let tr2 = TraceLine(image, fp.tr.p, fp.tl.p, 2);
+    let tr3 = TraceLine(image, fp.tr.p, fp.tl.p, 3);
+
+    if (bl2.isValid() && tr2.isValid() && bl3.isValid() && tr3.isValid()) {
+        // intersect both outer and inner line pairs and take the center point between the two intersection points
+        let brInter = (DMRegressionLine::intersect(&bl2, &tr2).ok_or(Exceptions::NOT_FOUND)?
+            + DMRegressionLine::intersect(&bl3, &tr3).ok_or(Exceptions::NOT_FOUND)?)
+            / 2.0;
+        // log(brInter, 3);
+
+        if (dimension > 21) {
+            if let Some(brCP) = LocateAlignmentPattern(image, moduleSize, brInter) {
+                br = brCP.into();
+            }
+        }
+
+        // if the symbol is tilted or the resolution of the RegressionLines is sufficient, use their intersection
+        // as the best estimate (see discussion in #199 and test image estimate-tilt.jpg )
+        if (!image.is_in(br.p)
+            && (EstimateTilt(fp) > 1.1
+                || (bl2.isHighRes() && bl3.isHighRes() && tr2.isHighRes() && tr3.isHighRes())))
+        {
+            br = brInter.into();
+        }
+    }
+
+    // otherwise the simple estimation used by upstream is used as a best guess fallback
+    if (!image.is_in(br.p)) {
+        br = fp.tr - fp.tl + fp.bl;
+        brOffset = point_i(0, 0);
+    }
+
+    // log(br, 3);
+    let mut mod2Pix = Mod2Pix(
+        dimension,
+        brOffset,
+        Quadrilateral::from([fp.tl.p, fp.tr.p, br.p, fp.bl.p]),
+    )?;
+
+    if (dimension >= Version::DimensionOfVersion(7, false) as i32) {
+        let version = ReadVersion(image, dimension as u32, mod2Pix.clone());
+
+        // if the version bits are garbage -> discard the detection
+        if (!version.is_ok()
+            || (version.as_ref().unwrap().getDimensionForVersion() as i32 - dimension).abs() > 8)
+        {
+            /*return DetectorResult();*/
+            return Err(Exceptions::NOT_FOUND);
+        }
+        if (version.as_ref().unwrap().getDimensionForVersion() as i32 != dimension) {
+            // printf("update dimension: %d -> %d\n", dimension, version.dimension());
+            dimension = version.as_ref().unwrap().getDimensionForVersion() as i32;
+            mod2Pix = Mod2Pix(
+                dimension,
+                brOffset,
+                Quadrilateral::from([fp.tl.p, fp.tr.p, br.p, fp.bl.p]),
+            )?;
+        }
+        // #if 1
+        let apM = version.as_ref().unwrap().getAlignmentPatternCenters(); // alignment pattern positions in modules
+        let mut apP = Matrix::new(apM.len(), apM.len())?; // found/guessed alignment pattern positions in pixels
+                                                          // let apP = Matrix<std::optional<PointF>>(Size(apM), Size(apM)); // found/guessed alignment pattern positions in pixels
+        let N = (apM.len()) - 1;
+
+        // project the alignment pattern at module coordinates x/y to pixel coordinate based on current mod2Pix
+        let projectM2P = /*[&mod2Pix, &apM]*/| x,  y, mod2Pix: &PerspectiveTransform| { return mod2Pix.transform_point(Point::centered(point_i(apM[x], apM[y]))); };
+
+        let mut findInnerCornerOfConcentricPattern = /*[&image, &apP, &projectM2P]*/| x,  y,   fp:ConcentricPattern| {
+			let pc = apP.set(x, y, projectM2P(x, y, &mod2Pix));
+            if let Some(fpQuad) = FindConcentricPatternCorners(image, fp.p, fp.size, 2)
+			// if (auto fpQuad = FindConcentricPatternCorners(image, fp, fp.size, 2))
+				{for  c in fpQuad .0
+					{if (Point::distance(c, pc) < (fp.size as f32) / 2.0)
+						{apP.set(x, y, c);}}}
+		};
+
+        findInnerCornerOfConcentricPattern(0, 0, fp.tl);
+        findInnerCornerOfConcentricPattern(0, N, fp.bl);
+        findInnerCornerOfConcentricPattern(N, 0, fp.tr);
+
+        let bestGuessAPP = |x, y, apP: &Matrix<Point>| {
+            if let Some(p) = apP.get(x, y)
+            // if (auto p = apP(x, y))
+            {
+                return p;
+            }
+            return projectM2P(x, y, &mod2Pix);
+        };
+
+        for y in 0..=N {
+            // for (int y = 0; y <= N; ++y)
+            for x in 0..=N {
+                // for (int x = 0; x <= N; ++x) {
+                if (apP.get(x, y).is_some()) {
+                    continue;
+                }
+
+                let guessed = if x * y == 0 {
+                    bestGuessAPP(x, y, &apP)
+                } else {
+                    bestGuessAPP(x - 1, y, &apP) + bestGuessAPP(x, y - 1, &apP)
+                        - bestGuessAPP(x - 1, y - 1, &apP)
+                };
+                if let Some(found) = LocateAlignmentPattern(image, moduleSize, guessed)
+                // if (auto found = LocateAlignmentPattern(image, moduleSize, guessed))
+                {
+                    apP.set(x, y, found);
+                }
+            }
+        }
+
+        // go over the whole set of alignment patters again and try to fill any remaining gap by using available neighbors as guides
+        for y in 0..=N {
+            // for (int y = 0; y <= N; ++y) {
+            for x in 0..=N {
+                // for (int x = 0; x <= N; ++x) {
+                if (apP.get(x, y).is_some()) {
+                    continue;
+                }
+
+                // find the two closest valid alignment pattern pixel positions both horizontally and vertically
+                let mut hori = Vec::new();
+                let mut verti = Vec::new();
+                let mut i = 2;
+                while i < 2 * N + 2 && hori.len() < 2 {
+                    let xi = x as isize + i as isize / 2 * (if i % 2 != 0 { 1 } else { -1 });
+                    if (0 <= xi && xi <= N as isize && apP.get(xi as usize, y).is_some()) {
+                        hori.push(
+                            apP.get(xi as usize, y)
+                                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                        );
+                    }
+                    i += 1;
+                }
+                // for (int i = 2; i < 2 * N + 2 && Size(hori) < 2; ++i) {
+                // 	let xi = x + i / 2 * (i%2 ? 1 : -1);
+                // 	if (0 <= xi && xi <= N && apP(xi, y))
+                // 		{hori.push_back(*apP(xi, y));}
+                // }
+                let mut i = 2;
+                while i < 2 * N + 2 && verti.len() < 2 {
+                    let yi = y as isize + i as isize / 2 * (if i % 2 != 0 { 1 } else { -1 });
+                    if (0 <= yi && yi <= N as isize && apP.get(x, yi as usize).is_some()) {
+                        verti.push(
+                            apP.get(x, yi as usize)
+                                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                        );
+                    }
+                    i += 1;
+                }
+                // for (int i = 2; i < 2 * N + 2 && Size(verti) < 2; ++i) {
+                // 	let yi = y + i / 2 * (i%2 ? 1 : -1);
+                // 	if (0 <= yi && yi <= N && apP(x, yi))
+                // 		{verti.push_back(*apP(x, yi));}
+                // }
+
+                // if we found 2 each, intersect the two lines that are formed by connecting the point pairs
+                if ((hori.len()) == 2 && (verti.len()) == 2) {
+                    let guessed = RegressionLine::intersect(
+                        &DMRegressionLine::new(hori[0], hori[1]),
+                        &DMRegressionLine::new(verti[0], verti[1]),
+                    )
+                    .ok_or(Exceptions::ILLEGAL_STATE)?;
+                    let found = LocateAlignmentPattern(image, moduleSize, guessed);
+                    // search again near that intersection and if the search fails, use the intersection
+                    // if (!found.is_some()) {printf("location guessed at %dx%d\n", x, y)};
+                    apP.set(
+                        x,
+                        y,
+                        if found.is_some() {
+                            found.unwrap()
+                        } else {
+                            guessed
+                        },
+                    );
+                }
+            }
+        }
+
+        if let Some(c) = apP.get(N, N)
+        // if (auto c = apP.get(N, N))
+        {
+            mod2Pix = Mod2Pix(
+                dimension,
+                point_i(3, 3),
+                Quadrilateral::from([fp.tl.p, fp.tr.p, c, fp.bl.p]),
+            )?;
+        }
+
+        // go over the whole set of alignment patters again and fill any remaining gaps by a projection based on an updated mod2Pix
+        // projection. This works if the symbol is flat, wich is a reasonable fall-back assumption.
+        for y in 0..=N {
+            // for (int y = 0; y <= N; ++y) {
+            for x in 0..=N {
+                // for (int x = 0; x <= N; ++x) {
+                if (apP.get(x, y).is_some()) {
+                    continue;
+                }
+
+                // printf("locate failed at %dx%d\n", x, y);
+                apP.set(x, y, projectM2P(x, y, &mod2Pix));
+            }
+        }
+
+        // assemble a list of region-of-interests based on the found alignment pattern pixel positions
+
+        let mut rois = Vec::new();
+        for y in 0..N {
+            // for (int y = 0; y < N; ++y){
+            for x in 0..N {
+                // for (int x = 0; x < N; ++x) {
+                let x0 = apM[x];
+                let x1 = apM[x + 1];
+                let y0 = apM[y];
+                let y1 = apM[y + 1];
+                rois.push(SamplerControl {
+                    p0: point_i(x0 - u32::from(x == 0) * 6, x1 + u32::from(x == N - 1) * 7),
+                    p1: point_i(y0 - u32::from(y == 0) * 6, y1 + u32::from(y == N - 1) * 7),
+                    transform: PerspectiveTransform::quadrilateralToQuadrilateral(
+                        Quadrilateral::rectangle_from_xy(
+                            x0 as f32, x1 as f32, y0 as f32, y1 as f32, None,
+                        ),
+                        Quadrilateral::from([
+                            apP.get(x, y).unwrap(),
+                            apP.get(x + 1, y).unwrap(),
+                            apP.get(x + 1, y + 1).unwrap(),
+                            apP.get(x, y + 1).unwrap(),
+                        ]),
+                    )?,
+                });
+            }
+        }
+        let grid_sampler = DefaultGridSampler::default();
+        let result = QRCodeDetectorResult::new(
+            grid_sampler.sample_grid(image, dimension as u32, dimension as u32, &rois)?,
+            Vec::default(),
+        );
+        return Ok(result);
+        //  grid_sampler.sample_grid(image, dimension, dimension, &rois);
+        // #endif
+    }
+
+    let grid_sampler = DefaultGridSampler::default();
+    let result = QRCodeDetectorResult::new(
+        grid_sampler.sample_grid(
+            image,
+            dimension as u32,
+            dimension as u32,
+            &[SamplerControl {
+                p0: point_i(0, dimension as u32),
+                p1: point_i(0, dimension as u32),
+                transform: mod2Pix,
+            }],
+        )?,
+        Vec::default(),
+    );
+    Ok(result)
+    // return SampleGrid(image, dimension, dimension, mod2Pix);
 }
