@@ -89,15 +89,15 @@ impl Version {
         17 + 4 * self.versionNumber
     }
 
-    pub fn DimensionOfVersion(version: u32, is_micro: bool) -> u32 {
+    pub const fn DimensionOfVersion(version: u32, is_micro: bool) -> u32 {
         Self::DimensionOffset(is_micro) + Self::DimensionStep(is_micro) * version
     }
 
-    pub fn DimensionOffset(is_micro: bool) -> u32 {
+    pub const fn DimensionOffset(is_micro: bool) -> u32 {
         todo!()
     }
 
-    pub fn DimensionStep(is_micro: bool) -> u32 {
+    pub const fn DimensionStep(is_micro: bool) -> u32 {
         todo!()
     }
 

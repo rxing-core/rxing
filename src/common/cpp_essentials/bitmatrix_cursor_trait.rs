@@ -165,20 +165,27 @@ pub trait BitMatrixCursorTrait {
 
     fn d(&self) -> Point;
 
-    // template<typename ARRAY>
-    // ARRAY readPattern(int range = 0)
-    // {
-    // 	ARRAY res;
-    // 	for (auto& i : res)
-    // 		i = stepToEdge(1, range);
-    // 	return res;
-    // }
+    
+    fn readPattern<T>(&self, range : Option<u32>) -> Option<T>
+    {
+        // let range = range.unwrap_or(0);
+    	// let mut res :T;
+        // for i in res.into_iter() {
+        //     i = self.stepToEdge(1, range);
+        // }
+    	// // for (auto& i : res)
+    	// 	// i = stepToEdge(1, range);
+    	// return res;
+        todo!()
+    }
 
-    // template<typename ARRAY>
-    // ARRAY readPatternFromBlack(int maxWhitePrefix, int range = 0)
-    // {
-    // 	if (maxWhitePrefix && isWhite() && !stepToEdge(1, maxWhitePrefix))
-    // 		return {};
-    // 	return readPattern<ARRAY>(range);
-    // }
+    
+    fn readPatternFromBlack<T>(&self, maxWhitePrefix:i32,  range: Option<u32>) -> Option<T>
+    {
+        let range = range.unwrap_or(0);
+    	if (maxWhitePrefix != 0 && self.isWhite() && !self.stepToEdge(Some(1), Some(maxWhitePrefix), None) > 0)
+    		{return None;}
+    	// return readPattern<ARRAY>(range);
+        self.readPattern(Some(range))
+    }
 }
