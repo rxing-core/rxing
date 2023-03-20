@@ -559,33 +559,6 @@ impl BitMatrix {
         Some([left, top, right - left + 1, bottom - top + 1])
     }
 
-    pub fn
-    findBoundingBox(&self,  left:&mut u32,  top:&mut u32,  width:&mut u32,  height:&mut u32,  minSize:u32) -> bool
-    {
-        todo!()
-        // let right;
-        // let bottom;
-        // if (!self.getTopLeftOnBitWithPosition(left, top) || !self.getBottomRightOnBitWithPosition(right, bottom) || bottom - top + 1 < minSize)
-        //     {return false;}
-    
-        // for (int y = top; y <= bottom; y++ ) {
-        //     for (int x = 0; x < left; ++x)
-        //         if (get(x, y)) {
-        //             left = x;
-        //             break;
-        //         }
-        //     for (int x = _width-1; x > right; x--)
-        //         if (get(x, y)) {
-        //             right = x;
-        //             break;
-        //         }
-        // }
-    
-        // width = right - left + 1;
-        // height = bottom - top + 1;
-        // return width >= minSize && height >= minSize;
-    }
-
     /**
      * This is useful in detecting a corner of a 'pure' barcode.
      *

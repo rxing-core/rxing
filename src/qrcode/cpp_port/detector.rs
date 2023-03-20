@@ -750,61 +750,102 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
 * around it. This is a specialized method that works exceptionally fast in this special
 * case.
 */
-pub fn DetectPureQR( image:&BitMatrix) -> Result<QRCodeDetectorResult>
-{
-	type Pattern = Vec<PatternType>;
+pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
+    type Pattern = Vec<PatternType>;
 
-// #ifdef PRINT_DEBUG
-// 	SaveAsPBM(image, "weg.pbm");
-// #endif
+    // #ifdef PRINT_DEBUG
+    // 	SaveAsPBM(image, "weg.pbm");
+    // #endif
 
-	const  MIN_MODULES: u32 = Version::DimensionOfVersion(1, false);
-	const  MAX_MODULES:u32 = Version::DimensionOfVersion(40, false);
+    const MIN_MODULES: u32 = Version::DimensionOfVersion(1, false);
+    const MAX_MODULES: u32 = Version::DimensionOfVersion(40, false);
 
-	let left;
+    let left;
     let top;
     let width;
     let height;
 
-	if (!image.findBoundingBox(left, top, width, height, MIN_MODULES) || std::abs(width - height) > 1)
-		{return Err(Exceptions::NOT_FOUND)}
-	let right  = left + width - 1;
-	let bottom = top + height - 1;
+    if (!image.findBoundingBox(left, top, width, height, MIN_MODULES)
+        || (*width as i32 - *height as i32).abs() > 1)
+    {
+        return Err(Exceptions::NOT_FOUND);
+    }
+    let right = *left + *width - 1;
+    let bottom = *top + *height - 1;
 
-	let tl = point_i(*left, *top);
-    let tr = point_i(*right, *top);
-    let bl = point_i(*left, *bottom);
-	let diagonal : Pattern;
-	// allow corners be moved one pixel inside to accommodate for possible aliasing artifacts
-    for [p,d] in [[tl, point_i(1,1)], [tr, point(-1.0,1.0)], [bl, point(1.0,-1.0)]] {
-	// for (auto [p, d] : {std::pair(tl, PointI{1, 1}), {tr, {-1, 1}}, {bl, {1, -1}}}) {
-        diagonal = EdgeTracer::new(image, p, d).readPatternFromBlack(1, width / 3 + 1).ok_or(Exceptions::NOT_FOUND)?;
-		// diagonal = BitMatrixCursorI(image, p, d).readPatternFromBlack<Pattern>(1, width / 3 + 1);
-		if (!IsPattern(diagonal, PATTERN) != 0.0)
-			{return Err(Exceptions::NOT_FOUND);}
-	}
+    let tl = point_i(*left, *top);
+    let tr = point_i(right, *top);
+    let bl = point_i(*left, bottom);
+    let diagonal: Pattern;
+    // allow corners be moved one pixel inside to accommodate for possible aliasing artifacts
+    for [p, d] in [
+        [tl, point_i(1, 1)],
+        [tr, point(-1.0, 1.0)],
+        [bl, point(1.0, -1.0)],
+    ] {
+        // for (auto [p, d] : {std::pair(tl, PointI{1, 1}), {tr, {-1, 1}}, {bl, {1, -1}}}) {
+        diagonal = EdgeTracer::new(image, p, d)
+            .readPatternFromBlack(1, Some(*width / 3 + 1))
+            .ok_or(Exceptions::NOT_FOUND)?;
+        // diagonal = BitMatrixCursorI(image, p, d).readPatternFromBlack<Pattern>(1, width / 3 + 1);
+        let view = PatternView::new(&diagonal.into());
+        if (!(IsPattern(&view, &PATTERN, None, 0.0, 0.0, None) != 0.0)) {
+            return Err(Exceptions::NOT_FOUND);
+        }
+    }
 
-	let fpWidth = Reduce(diagonal);
-	let dimension =
-		EstimateDimension(image, {tl + fpWidth / 2 * PointF(1, 1), fpWidth}, {tr + fpWidth / 2 * PointF(-1, 1), fpWidth}).dim;
+    let fpWidth = diagonal.iter().sum::<u16>() as i32; //Reduce(diagonal);
+    let dimension = EstimateDimension(
+        image,
+        ConcentricPattern {
+            p: tl + fpWidth as f32 / 2.0 * point_i(1, 1),
+            size: fpWidth,
+        },
+        ConcentricPattern {
+            p: tr + fpWidth as f32 / 2.0 * point(-1.0, 1.0),
+            size: fpWidth,
+        },
+    )
+    .dim;
 
-	let moduleSize:f32 = float(width) / dimension;
-	if (dimension < MIN_MODULES || dimension > MAX_MODULES ||
-		!image.isIn(PointF{left + moduleSize / 2 + (dimension - 1) * moduleSize,
-						   top + moduleSize / 2 + (dimension - 1) * moduleSize}))
-		{return Err(Exceptions::NOT_FOUND);}
+    let moduleSize: f32 = ((*width) as f32) / dimension as f32;
+    if (dimension < MIN_MODULES as i32
+        || dimension > MAX_MODULES as i32
+        || !image.is_in(point(
+            *left as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize as f32,
+            *top as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
+        )))
+    {
+        return Err(Exceptions::NOT_FOUND);
+    }
 
-// #ifdef PRINT_DEBUG
-// 	LogMatrix log;
-// 	LogMatrixWriter lmw(log, image, 5, "grid2.pnm");
-// 	for (int y = 0; y < dimension; y++)
-// 		for (int x = 0; x < dimension; x++)
-// 			log(PointF(left + (x + .5f) * moduleSize, top + (y + .5f) * moduleSize));
-// #endif
+    // #ifdef PRINT_DEBUG
+    // 	LogMatrix log;
+    // 	LogMatrixWriter lmw(log, image, 5, "grid2.pnm");
+    // 	for (int y = 0; y < dimension; y++)
+    // 		for (int x = 0; x < dimension; x++)
+    // 			log(PointF(left + (x + .5f) * moduleSize, top + (y + .5f) * moduleSize));
+    // #endif
 
-	// Now just read off the bits (this is a crop + subsample)
-	return {Deflate(image, dimension, dimension, top + moduleSize / 2, left + moduleSize / 2, moduleSize),
-			{{left, top}, {right, top}, {right, bottom}, {left, bottom}}};
+    // Now just read off the bits (this is a crop + subsample)
+    Ok(QRCodeDetectorResult {
+        bit_source: image.Deflate(
+            dimension as u32,
+            dimension as u32,
+            *top as f32 + moduleSize / 2.0,
+            *left as f32 + moduleSize / 2.0,
+            moduleSize,
+        )?,
+        result_points: vec![
+            point_i(*left, *top),
+            point_i(right, *top),
+            point_i(right, bottom),
+            point_i(*left, bottom),
+        ],
+    })
+
+    // return {Deflate(image, dimension, dimension, top + moduleSize / 2, left + moduleSize / 2, moduleSize),
+    // 		{{left, top}, {right, top}, {right, bottom}, {left, bottom}}};
 }
 
 pub fn DetectPureMQR( image:&BitMatrix) -> Result<QRCodeDetectorResult>

@@ -1,3 +1,4 @@
+mod bitmatrix;
 pub mod bitmatrix_cursor;
 pub mod bitmatrix_cursor_trait;
 pub mod concentric_finder;

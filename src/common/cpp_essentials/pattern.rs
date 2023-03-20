@@ -54,6 +54,12 @@ impl std::ops::IndexMut<usize> for PatternRow {
     }
 }
 
+impl From<Vec<PatternType>> for PatternRow {
+    fn from(value: Vec<PatternType>) -> Self {
+        Self(value)
+    }
+}
+
 impl<'a> Iterator for PatternView<'_> {
     type Item = PatternType;
 

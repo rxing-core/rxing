@@ -29,8 +29,8 @@ pub fn point_g<T: TryInto<f32>>(x: T, y: T) -> Option<Point> {
     Some(Point::new(x.try_into().ok()?, y.try_into().ok()?))
 }
 
-pub fn point_i(x: u32, y: u32) -> Point {
-    Point::new(x as f32, y as f32)
+pub fn point_i<T: Into<i64>>(x: T, y: T) -> Point {
+    Point::new(x.into() as f32, y.into() as f32)
 }
 
 /** Currently necessary because the external OneDReader proc macro uses it. */
