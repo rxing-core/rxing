@@ -8,11 +8,19 @@ impl Version {
     }
 
     pub fn DimensionOffset(is_micro: bool) -> u32 {
-        unimplemented!()
+        match is_micro {
+            true => 9,
+            false => 17,
+        }
+        // return std::array{17, 9}[isMicro];
     }
 
     pub fn DimensionStep(is_micro: bool) -> u32 {
-        unimplemented!()
+        match is_micro {
+            true => 2,
+            false => 4,
+        }
+        // return std::array{4, 2}[isMicro];
     }
     pub fn DecodeVersionInformation(versionBitsA: i32, versionBitsB: i32) -> Result<VersionRef> {
         let mut bestDifference = u32::MAX;
