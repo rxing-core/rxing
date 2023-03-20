@@ -136,6 +136,7 @@ impl Luma8LuminanceSource {
         self.data = new_data;
         self.dimensions = new_dim;
         self.original_dimension = (self.original_dimension.1, self.original_dimension.0);
+        self.origin = (self.origin.1, self.origin.0);
     }
 
     fn transpose(&mut self) {
