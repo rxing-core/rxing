@@ -33,7 +33,7 @@ static VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::buildVersions);
  * See ISO 18004:2006 Annex D.
  * Element i represents the raw version bits that specify version i + 7
  */
-const VERSION_DECODE_INFO: [u32; 34] = [
+pub const VERSION_DECODE_INFO: [u32; 34] = [
     0x07C94, 0x085BC, 0x09A99, 0x0A4D3, 0x0BBF6, 0x0C762, 0x0D847, 0x0E60D, 0x0F928, 0x10B78,
     0x1145D, 0x12A17, 0x13532, 0x149A6, 0x15683, 0x168C9, 0x177EC, 0x18EC4, 0x191E1, 0x1AFAB,
     0x1B08E, 0x1CC1A, 0x1D33F, 0x1ED75, 0x1F250, 0x209D5, 0x216F0, 0x228BA, 0x2379F, 0x24B0B,
@@ -89,18 +89,6 @@ impl Version {
         17 + 4 * self.versionNumber
     }
 
-    pub fn DimensionOfVersion(version: u32, is_micro: bool) -> u32 {
-        Self::DimensionOffset(is_micro) + Self::DimensionStep(is_micro) * version
-    }
-
-    pub fn DimensionOffset(is_micro: bool) -> u32 {
-        unimplemented!()
-    }
-
-    pub fn DimensionStep(is_micro: bool) -> u32 {
-        unimplemented!()
-    }
-
     pub fn getECBlocksForLevel(&self, ecLevel: ErrorCorrectionLevel) -> &ECBlocks {
         &self.ecBlocks[ecLevel.get_ordinal() as usize]
     }
@@ -150,37 +138,6 @@ impl Version {
         }
         // If we didn't find a close enough match, fail
         Err(Exceptions::NOT_FOUND)
-    }
-
-    pub fn DecodeVersionInformation(versionBitsA: i32, versionBitsB: i32) -> Result<VersionRef> {
-        let mut bestDifference = u32::MAX;
-        let mut bestVersion = 0;
-        let mut i = 0;
-        for targetVersion in VERSION_DECODE_INFO {
-            // for (int targetVersion : VERSION_DECODE_INFO) {
-            // Do the version info bits match exactly? done.
-            if targetVersion == versionBitsA as u32 || targetVersion == versionBitsB as u32 {
-                return Self::getVersionForNumber(i + 7);
-            }
-            // Otherwise see if this is the closest to a real version info bit string
-            // we have seen so far
-            for bits in [versionBitsA, versionBitsB] {
-                // for (int bits : {versionBitsA, versionBitsB}) {
-                let bitsDifference = ((bits as u32) ^ targetVersion).count_ones(); //BitHacks::CountBitsSet(bits ^ targetVersion);
-                if bitsDifference < bestDifference {
-                    bestVersion = i + 7;
-                    bestDifference = bitsDifference;
-                }
-            }
-            i += 1;
-        }
-        // We can tolerate up to 3 bits of error since no two version info codewords will
-        // differ in less than 8 bits.
-        if bestDifference <= 3 {
-            return Self::getVersionForNumber(bestVersion);
-        }
-        // If we didn't find a close enough match, fail
-        return Err(Exceptions::ILLEGAL_STATE);
     }
 
     /**
