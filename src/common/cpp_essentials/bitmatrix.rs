@@ -29,12 +29,12 @@ impl BitMatrix {
 
     pub fn findBoundingBox(
         &self,
-        left: &mut u32,
-        top: &mut u32,
-        width: &mut u32,
-        height: &mut u32,
+        left: u32,
+        top: u32,
+        width: u32,
+        height: u32,
         minSize: u32,
-    ) -> bool {
+    ) -> (bool, u32, u32, u32, u32) {
         todo!()
         // let right;
         // let bottom;

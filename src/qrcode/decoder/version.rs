@@ -89,16 +89,16 @@ impl Version {
         17 + 4 * self.versionNumber
     }
 
-    pub const fn DimensionOfVersion(version: u32, is_micro: bool) -> u32 {
+    pub fn DimensionOfVersion(version: u32, is_micro: bool) -> u32 {
         Self::DimensionOffset(is_micro) + Self::DimensionStep(is_micro) * version
     }
 
-    pub const fn DimensionOffset(is_micro: bool) -> u32 {
-        todo!()
+    pub fn DimensionOffset(is_micro: bool) -> u32 {
+        unimplemented!()
     }
 
-    pub const fn DimensionStep(is_micro: bool) -> u32 {
-        todo!()
+    pub fn DimensionStep(is_micro: bool) -> u32 {
+        unimplemented!()
     }
 
     pub fn getECBlocksForLevel(&self, ecLevel: ErrorCorrectionLevel) -> &ECBlocks {

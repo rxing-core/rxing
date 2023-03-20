@@ -177,7 +177,7 @@ pub trait BitMatrixCursorTrait {
         todo!()
     }
 
-    fn readPatternFromBlack<T>(&self, maxWhitePrefix: i32, range: Option<u32>) -> Option<T> {
+    fn readPatternFromBlack<T>(&mut self, maxWhitePrefix: i32, range: Option<u32>) -> Option<T> {
         let range = range.unwrap_or(0);
         if (maxWhitePrefix != 0
             && self.isWhite()

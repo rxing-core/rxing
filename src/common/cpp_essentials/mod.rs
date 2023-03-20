@@ -8,6 +8,7 @@ pub mod edge_tracer;
 pub mod fast_edge_to_edge_counter;
 pub mod matrix;
 pub mod pattern;
+mod qr_formatinformation;
 pub mod regression_line;
 pub mod regression_line_trait;
 pub mod step_result;

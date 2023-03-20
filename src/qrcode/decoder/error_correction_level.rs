@@ -35,6 +35,7 @@ pub enum ErrorCorrectionLevel {
     Q, //0x03
     /** H = ~30% correction */
     H, //0x02
+    Invalid,
 }
 
 impl ErrorCorrectionLevel {
@@ -60,6 +61,7 @@ impl ErrorCorrectionLevel {
             ErrorCorrectionLevel::M => 0x00,
             ErrorCorrectionLevel::Q => 0x03,
             ErrorCorrectionLevel::H => 0x02,
+            ErrorCorrectionLevel::Invalid => 0x00,
         }
     }
 
@@ -69,6 +71,7 @@ impl ErrorCorrectionLevel {
             ErrorCorrectionLevel::M => 1,
             ErrorCorrectionLevel::Q => 2,
             ErrorCorrectionLevel::H => 3,
+            ErrorCorrectionLevel::Invalid => 100,
         }
     }
 }

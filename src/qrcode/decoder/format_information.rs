@@ -68,8 +68,21 @@ const FORMAT_INFO_DECODE_LOOKUP: [[u32; 2]; 32] = [
  */
 #[derive(Hash, Eq, PartialEq, Debug)]
 pub struct FormatInformation {
-    error_correction_level: ErrorCorrectionLevel,
-    data_mask: u8,
+    pub hammingDistance: u32,
+    pub error_correction_level: ErrorCorrectionLevel,
+    pub data_mask: u8,
+    pub microVersion: u32,
+}
+
+impl Default for FormatInformation {
+    fn default() -> Self {
+        Self {
+            hammingDistance: 255,
+            error_correction_level: ErrorCorrectionLevel::Invalid,
+            data_mask: Default::default(),
+            microVersion: 0,
+        }
+    }
 }
 
 impl FormatInformation {
@@ -79,6 +92,8 @@ impl FormatInformation {
         // Bottom 3 bits
         let dataMask = format_info & 0x07;
         Ok(Self {
+            hammingDistance: 255,
+            microVersion: 0,
             error_correction_level: errorCorrectionLevel,
             data_mask: dataMask,
         })
