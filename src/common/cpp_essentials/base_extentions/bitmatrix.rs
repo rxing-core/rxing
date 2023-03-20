@@ -18,13 +18,21 @@ impl BitMatrix {
             let yOffset = top + y as f32 * subSampling;
             for x in 0..result.width() {
                 // for (int x = 0; x < result.width(); x++) {
-                if (self.get_point(point(left + x as f32 * subSampling, yOffset))) {
+                if self.get_point(point(left + x as f32 * subSampling, yOffset)) {
                     result.set(x, y);
                 }
             }
         }
 
         Ok(result)
+    }
+
+    pub fn getTopLeftOnBitWithPosition(&self, left: u32, top: u32) -> (bool, u32, u32) {
+        todo!()
+    }
+
+    pub fn getBottomRightOnBitWithPosition(&self, right: u32, bottom: u32) -> (bool, u32, u32) {
+        todo!()
     }
 
     pub fn findBoundingBox(
@@ -36,26 +44,5 @@ impl BitMatrix {
         minSize: u32,
     ) -> (bool, u32, u32, u32, u32) {
         todo!()
-        // let right;
-        // let bottom;
-        // if (!self.getTopLeftOnBitWithPosition(left, top) || !self.getBottomRightOnBitWithPosition(right, bottom) || bottom - top + 1 < minSize)
-        //     {return false;}
-
-        // for (int y = top; y <= bottom; y++ ) {
-        //     for (int x = 0; x < left; ++x)
-        //         if (get(x, y)) {
-        //             left = x;
-        //             break;
-        //         }
-        //     for (int x = _width-1; x > right; x--)
-        //         if (get(x, y)) {
-        //             right = x;
-        //             break;
-        //         }
-        // }
-
-        // width = right - left + 1;
-        // height = bottom - top + 1;
-        // return width >= minSize && height >= minSize;
     }
 }

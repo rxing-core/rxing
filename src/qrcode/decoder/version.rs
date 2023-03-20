@@ -930,7 +930,7 @@ impl ECBlocks {
         }
     }
 
-    pub fn getECCodewordsPerBlock(&self) -> u32 {
+    pub const fn getECCodewordsPerBlock(&self) -> u32 {
         self.ecCodewordsPerBlock
     }
 
@@ -970,11 +970,11 @@ impl ECB {
         }
     }
 
-    pub fn getCount(&self) -> u32 {
+    pub const fn getCount(&self) -> u32 {
         self.count
     }
 
-    pub fn getDataCodewords(&self) -> u32 {
+    pub const fn getDataCodewords(&self) -> u32 {
         self.dataCodewords
     }
 }
