@@ -27,6 +27,8 @@
 //  */
 // public final class BitMatrixTestCase extends Assert {
 
+use crate::point;
+
 use super::BitMatrix;
 
 static BIT_MATRIX_POINTS: [u32; 6] = [1, 2, 2, 0, 3, 1];
@@ -87,14 +89,14 @@ fn test_on_bit() {
     assert!(matrix.getTopLeftOnBit().is_none());
     assert!(matrix.getBottomRightOnBit().is_none());
     matrix.setRegion(1, 1, 1, 1).expect("must set");
-    assert_eq!(vec![1, 1], matrix.getTopLeftOnBit().unwrap());
-    assert_eq!(vec![1, 1], matrix.getBottomRightOnBit().unwrap());
+    assert_eq!(point(1.0, 1.0), matrix.getTopLeftOnBit().unwrap());
+    assert_eq!(point(1.0, 1.0), matrix.getBottomRightOnBit().unwrap());
     matrix.setRegion(1, 1, 3, 2).expect("must set");
-    assert_eq!(vec![1, 1], matrix.getTopLeftOnBit().unwrap());
-    assert_eq!(vec![3, 2], matrix.getBottomRightOnBit().unwrap());
+    assert_eq!(point(1.0, 1.0), matrix.getTopLeftOnBit().unwrap());
+    assert_eq!(point(3.0, 2.0), matrix.getBottomRightOnBit().unwrap());
     matrix.setRegion(0, 0, 5, 5).expect("must set");
-    assert_eq!(vec![0, 0], matrix.getTopLeftOnBit().unwrap());
-    assert_eq!(vec![4, 4], matrix.getBottomRightOnBit().unwrap());
+    assert_eq!(point(0.0, 0.0), matrix.getTopLeftOnBit().unwrap());
+    assert_eq!(point(4.0, 4.0), matrix.getBottomRightOnBit().unwrap());
 }
 
 #[test]

@@ -18,8 +18,8 @@ use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
-    BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, Point, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    point, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, Point,
+    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{
@@ -156,12 +156,12 @@ impl QRCodeReader {
         let leftTopBlack = leftTopBlack.ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
         let rightBottomBlack = rightBottomBlack.ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
 
-        let moduleSize = Self::moduleSize(&leftTopBlack, image)?;
+        let moduleSize = Self::moduleSize(leftTopBlack, image)?;
 
-        let mut top = leftTopBlack[1] as i32;
-        let bottom = rightBottomBlack[1] as i32;
-        let mut left = leftTopBlack[0] as i32;
-        let mut right = rightBottomBlack[0] as i32;
+        let mut top = leftTopBlack.y as i32;
+        let bottom = rightBottomBlack.y as i32;
+        let mut left = leftTopBlack.x as i32;
+        let mut right = rightBottomBlack.x as i32;
 
         // Sanity check!
         if left >= right || top >= bottom {
@@ -229,27 +229,27 @@ impl QRCodeReader {
         Ok(bits)
     }
 
-    fn moduleSize(leftTopBlack: &[u32], image: &BitMatrix) -> Result<f32> {
-        let height = image.getHeight();
-        let width = image.getWidth();
-        let mut x = leftTopBlack[0];
-        let mut y = leftTopBlack[1];
+    fn moduleSize(leftTopBlack: Point, image: &BitMatrix) -> Result<f32> {
+        let height = image.getHeight() as f32;
+        let width = image.getWidth() as f32;
+        let mut x = leftTopBlack.x;
+        let mut y = leftTopBlack.y;
         let mut inBlack = true;
         let mut transitions = 0;
         while x < width && y < height {
-            if inBlack != image.get(x, y) {
+            if inBlack != image.get_point(point(x, y)) {
                 transitions += 1;
                 if transitions == 5 {
                     break;
                 }
                 inBlack = !inBlack;
             }
-            x += 1;
-            y += 1;
+            x += 1.0;
+            y += 1.0;
         }
         if x == width || y == height {
             return Err(Exceptions::NOT_FOUND);
         }
-        Ok((x - leftTopBlack[0]) as f32 / 7.0)
+        Ok((x - leftTopBlack.x) as f32 / 7.0)
     }
 }
