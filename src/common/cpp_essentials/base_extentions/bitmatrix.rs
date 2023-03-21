@@ -27,12 +27,27 @@ impl BitMatrix {
         Ok(result)
     }
 
-    pub fn getTopLeftOnBitWithPosition(&self, left: u32, top: u32) -> (bool, u32, u32) {
+    pub fn getTopLeftOnBitWithPosition(&self, left: &mut u32, top: &mut u32) -> bool {
         todo!()
+    //     int bitsOffset = (int)std::distance(_bits.begin(), std::find_if(_bits.begin(), _bits.end(), isSet));
+	// if (bitsOffset == Size(_bits)) {
+	// 	return false;
+	// }
+	// top = bitsOffset / _width;
+	// left = (bitsOffset % _width);
+	// return true;
     }
 
-    pub fn getBottomRightOnBitWithPosition(&self, right: u32, bottom: u32) -> (bool, u32, u32) {
+    pub fn getBottomRightOnBitWithPosition(&self, right: &mut u32, bottom: &mut u32) -> bool {
         todo!()
+    //     int bitsOffset = Size(_bits) - 1 - (int)std::distance(_bits.rbegin(), std::find_if(_bits.rbegin(), _bits.rend(), isSet));
+	// if (bitsOffset < 0) {
+	// 	return false;
+	// }
+
+	// bottom = bitsOffset / _width;
+	// right = (bitsOffset % _width);
+	// return true;
     }
 
     pub fn findBoundingBox(
@@ -44,5 +59,25 @@ impl BitMatrix {
         minSize: u32,
     ) -> (bool, u32, u32, u32, u32) {
         todo!()
+    //     int right, bottom;
+	// if (!getTopLeftOnBit(left, top) || !getBottomRightOnBit(right, bottom) || bottom - top + 1 < minSize)
+	// 	return false;
+
+	// for (int y = top; y <= bottom; y++ ) {
+	// 	for (int x = 0; x < left; ++x)
+	// 		if (get(x, y)) {
+	// 			left = x;
+	// 			break;
+	// 		}
+	// 	for (int x = _width-1; x > right; x--)
+	// 		if (get(x, y)) {
+	// 			right = x;
+	// 			break;
+	// 		}
+	// }
+
+	// width = right - left + 1;
+	// height = bottom - top + 1;
+	// return width >= minSize && height >= minSize;
     }
 }
