@@ -265,6 +265,11 @@ impl BitMatrix {
         (self.get_offset(y, x)) >= self.bits.len()
     }
 
+    /// Confusingly returns true if the requested element is out of bounds
+    pub fn check_point_in_bounds(&self, point: Point) -> bool {
+        self.check_in_bounds(point.x as u32, point.y as u32)
+    }
+
     /**
      * <p>Sets the given bit to true.</p>
      *

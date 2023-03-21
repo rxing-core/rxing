@@ -281,9 +281,7 @@ impl Circle<'_> {
         // count left
         while {
             let point = get_point(self.center, (x, y), rotation);
-            !self.image.check_in_bounds(point.x as u32, point.y as u32)
-                && !self.image.get(point.x as u32, point.y as u32)
-                && x > 0
+            !self.image.check_point_in_bounds(point) && !self.image.get_point(point) && x > 0
         } {
             x -= 1;
             length += 1;
@@ -295,8 +293,7 @@ impl Circle<'_> {
         // count right
         while {
             let point = get_point(self.center, (x, y), rotation);
-            !self.image.check_in_bounds(point.x as u32, point.y as u32)
-                && !self.image.get(point.x as u32, point.y as u32)
+            !self.image.check_point_in_bounds(point) && !self.image.get_point(point)
         } {
             x += 1;
             length += 1;
