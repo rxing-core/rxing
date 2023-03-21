@@ -751,7 +751,7 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
 * case.
 */
 pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
-    type Pattern = Vec<PatternType>;
+    type Pattern = [PatternType; 5];
 
     // #ifdef PRINT_DEBUG
     // 	SaveAsPBM(image, "weg.pbm");
@@ -771,7 +771,7 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let tl = point_i(left, top);
     let tr = point_i(right, top);
     let bl = point_i(left, bottom);
-    let mut diagonal: Pattern = Vec::default();
+    let mut diagonal: Pattern = Default::default();
     // allow corners be moved one pixel inside to accommodate for possible aliasing artifacts
     for [p, d] in [
         [tl, point_i(1, 1)],
@@ -780,10 +780,10 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     ] {
         // for (auto [p, d] : {std::pair(tl, PointI{1, 1}), {tr, {-1, 1}}, {bl, {1, -1}}}) {
         diagonal = EdgeTracer::new(image, p, d)
-            .readPatternFromBlack(1, Some(width / 3 + 1))
+            .readPatternFromBlack(1, Some((width / 3 + 1) as i32))
             .ok_or(Exceptions::NOT_FOUND)?;
         // diagonal = BitMatrixCursorI(image, p, d).readPatternFromBlack<Pattern>(1, width / 3 + 1);
-        let diag_hld = diagonal.clone().into();
+        let diag_hld = diagonal.to_vec().into();
         let view = PatternView::new(&diag_hld);
         if (!(IsPattern(&view, &PATTERN, None, 0.0, 0.0, None) != 0.0)) {
             return Err(Exceptions::NOT_FOUND);
@@ -860,10 +860,12 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let bottom = top + height - 1;
 
     // allow corners be moved one pixel inside to accommodate for possible aliasing artifacts
-    let diagonal = EdgeTracer::new(&image, point_i(left, top), point_i(1, 1))
+    let diagonal: Pattern = EdgeTracer::new(&image, point_i(left, top), point_i(1, 1))
         .readPatternFromBlack(1, None)
         .ok_or(Exceptions::ILLEGAL_STATE)?;
-    if (!(IsPattern(diagonal, &PATTERN, None, 0.0, 0.0, None) != 0.0)) {
+    let diag_hld = diagonal.to_vec().into();
+    let view = PatternView::new(&diag_hld);
+    if (!(IsPattern(&view, &PATTERN, None, 0.0, 0.0, None) != 0.0)) {
         return Err(Exceptions::NOT_FOUND);
     }
 

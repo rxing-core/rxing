@@ -165,19 +165,26 @@ pub trait BitMatrixCursorTrait {
 
     fn d(&self) -> Point;
 
-    fn readPattern<T>(&self, range: Option<u32>) -> Option<T> {
-        // let range = range.unwrap_or(0);
-        // let mut res :T;
-        // for i in res.into_iter() {
-        //     i = self.stepToEdge(1, range);
-        // }
-        // // for (auto& i : res)
-        // 	// i = stepToEdge(1, range);
-        // return res;
-        todo!()
+    fn readPattern<const LEN: usize, T: TryFrom<i32> + Default + Copy + Clone>(
+        &mut self,
+        range: Option<i32>,
+    ) -> Option<[T; LEN]> {
+        let range = range.unwrap_or(0);
+        let mut res = [T::default(); LEN];
+        for i in res.iter_mut() {
+            *i = self
+                .stepToEdge(Some(1), Some(range), None)
+                .try_into()
+                .ok()?;
+        }
+        Some(res)
     }
 
-    fn readPatternFromBlack<T>(&mut self, maxWhitePrefix: i32, range: Option<u32>) -> Option<T> {
+    fn readPatternFromBlack<const LEN: usize, T: TryFrom<i32> + Default + Copy + Clone>(
+        &mut self,
+        maxWhitePrefix: i32,
+        range: Option<i32>,
+    ) -> Option<[T; LEN]> {
         let range = range.unwrap_or(0);
         if (maxWhitePrefix != 0
             && self.isWhite()
@@ -186,6 +193,6 @@ pub trait BitMatrixCursorTrait {
             return None;
         }
         // return readPattern<ARRAY>(range);
-        self.readPattern(Some(range))
+        self.readPattern::<LEN, _>(Some(range))
     }
 }
