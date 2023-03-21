@@ -2,6 +2,19 @@ use crate::common::Result;
 use crate::qrcode::decoder::{Version, VersionRef, VERSION_DECODE_INFO};
 use crate::Exceptions;
 
+// const Version* Version::AllMicroVersions()
+// {
+// 	/**
+// 	 * See ISO 18004:2006 6.5.1 Table 9
+// 	 */
+// 	static const Version allVersions[] = {
+// 		{1, {2, 1, 3, 0, 0}},
+// 		{2, {5, 1, 5, 0, 0, 6, 1, 4, 0, 0}},
+// 		{3, {6, 1, 11, 0, 0, 8, 1, 9, 0, 0}},
+// 		{4, {8, 1, 16, 0, 0, 10, 1, 14, 0, 0, 14, 1, 10, 0, 0}}};
+// 	return allVersions;
+// }
+
 impl Version {
     pub fn DimensionOfVersion(version: u32, is_micro: bool) -> u32 {
         Self::DimensionOffset(is_micro) + Self::DimensionStep(is_micro) * version
