@@ -1,6 +1,7 @@
 use crate::common::BitMatrix;
 use crate::common::Result;
 use crate::point;
+use crate::Point;
 
 impl BitMatrix {
     pub fn Deflate(
@@ -28,26 +29,23 @@ impl BitMatrix {
     }
 
     pub fn getTopLeftOnBitWithPosition(&self, left: &mut u32, top: &mut u32) -> bool {
-        todo!()
-    //     int bitsOffset = (int)std::distance(_bits.begin(), std::find_if(_bits.begin(), _bits.end(), isSet));
-	// if (bitsOffset == Size(_bits)) {
-	// 	return false;
-	// }
-	// top = bitsOffset / _width;
-	// left = (bitsOffset % _width);
-	// return true;
+        let Some(Point{x,y}) = self.getTopLeftOnBit() else {
+            return false;
+        };
+        *left = x as u32;
+        *top = y as u32;
+
+        true
     }
 
     pub fn getBottomRightOnBitWithPosition(&self, right: &mut u32, bottom: &mut u32) -> bool {
-        todo!()
-    //     int bitsOffset = Size(_bits) - 1 - (int)std::distance(_bits.rbegin(), std::find_if(_bits.rbegin(), _bits.rend(), isSet));
-	// if (bitsOffset < 0) {
-	// 	return false;
-	// }
+        let Some(Point{x,y}) = self.getBottomRightOnBit() else {
+            return false;
+        };
+        *right = x as u32;
+        *bottom = y as u32;
 
-	// bottom = bitsOffset / _width;
-	// right = (bitsOffset % _width);
-	// return true;
+        true
     }
 
     pub fn findBoundingBox(
@@ -58,26 +56,47 @@ impl BitMatrix {
         height: u32,
         minSize: u32,
     ) -> (bool, u32, u32, u32, u32) {
-        todo!()
-    //     int right, bottom;
-	// if (!getTopLeftOnBit(left, top) || !getBottomRightOnBit(right, bottom) || bottom - top + 1 < minSize)
-	// 	return false;
+        let mut left = left;
+        let mut top = top;
+        let mut width = width;
+        let mut height = height;
 
-	// for (int y = top; y <= bottom; y++ ) {
-	// 	for (int x = 0; x < left; ++x)
-	// 		if (get(x, y)) {
-	// 			left = x;
-	// 			break;
-	// 		}
-	// 	for (int x = _width-1; x > right; x--)
-	// 		if (get(x, y)) {
-	// 			right = x;
-	// 			break;
-	// 		}
-	// }
+        let mut right = 0;
+        let mut bottom = 0;
+        if (!self.getTopLeftOnBitWithPosition(&mut left, &mut top)
+            || !self.getBottomRightOnBitWithPosition(&mut right, &mut bottom)
+            || bottom - top + 1 < minSize)
+        {
+            return (false, left, top, width, height);
+        }
 
-	// width = right - left + 1;
-	// height = bottom - top + 1;
-	// return width >= minSize && height >= minSize;
+        for y in top..=bottom {
+            // for (int y = top; y <= bottom; y++ ) {
+            for x in 0..left {
+                // for (int x = 0; x < left; ++x){
+                if (self.get(x, y)) {
+                    left = x;
+                    break;
+                }
+            }
+            for x in (right..(self.width() - 1)).rev() {
+                // for (int x = _width-1; x > right; x--){
+                if (self.get(x, y)) {
+                    right = x;
+                    break;
+                }
+            }
+        }
+
+        width = right - left + 1;
+        height = bottom - top + 1;
+
+        (
+            width >= minSize && height >= minSize,
+            left,
+            top,
+            width,
+            height,
+        )
     }
 }
