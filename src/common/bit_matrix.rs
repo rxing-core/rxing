@@ -21,7 +21,7 @@
 use std::fmt;
 
 use crate::common::Result;
-use crate::{Exceptions, Point};
+use crate::{point, Exceptions, Point};
 
 use super::BitArray;
 
@@ -561,7 +561,7 @@ impl BitMatrix {
      *
      * @return {@code x,y} coordinate of top-left-most 1 bit, or null if it is all white
      */
-    pub fn getTopLeftOnBit(&self) -> Option<Vec<u32>> {
+    pub fn getTopLeftOnBit(&self) -> Option<Point> {
         let mut bitsOffset = 0;
         while bitsOffset < self.bits.len() && self.bits[bitsOffset] == 0 {
             bitsOffset += 1;
@@ -578,10 +578,10 @@ impl BitMatrix {
             bit += 1;
         }
         x += bit;
-        Some(vec![x as u32, y as u32])
+        Some(point(x as f32, y as f32))
     }
 
-    pub fn getBottomRightOnBit(&self) -> Option<[u32; 2]> {
+    pub fn getBottomRightOnBit(&self) -> Option<Point> {
         let mut bitsOffset = self.bits.len() as i64 - 1;
         while bitsOffset >= 0 && self.bits[bitsOffset as usize] == 0 {
             bitsOffset -= 1;
@@ -600,7 +600,7 @@ impl BitMatrix {
         }
         x += bit;
 
-        Some([x as u32, y as u32])
+        Some(point(x as f32, y as f32))
     }
 
     /**

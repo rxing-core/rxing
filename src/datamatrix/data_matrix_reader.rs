@@ -18,8 +18,8 @@ use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
-    BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    point, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, Point,
+    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{
@@ -187,12 +187,12 @@ impl DataMatrixReader {
       return Err(Exceptions::NOT_FOUND)
     };
 
-        let moduleSize = Self::moduleSize(&leftTopBlack, image)?;
+        let moduleSize = Self::moduleSize(leftTopBlack, image)?;
 
-        let mut top = leftTopBlack[1];
-        let bottom = rightBottomBlack[1];
-        let mut left = leftTopBlack[0];
-        let right = rightBottomBlack[0];
+        let mut top = leftTopBlack.y;
+        let bottom = rightBottomBlack.y;
+        let mut left = leftTopBlack.x;
+        let right = rightBottomBlack.x;
 
         let matrixWidth = (right as i32 - left as i32 + 1) / moduleSize as i32;
         let matrixHeight = (bottom as i32 - top as i32 + 1) / moduleSize as i32;
@@ -207,7 +207,7 @@ impl DataMatrixReader {
         // Push in the "border" by half the module width so that we start
         // sampling in the middle of the module. Just in case the image is a
         // little off, this will help recover.
-        let nudge = moduleSize / 2;
+        let nudge = moduleSize as f32 / 2.0;
         top += nudge;
         left += nudge;
 
@@ -215,10 +215,10 @@ impl DataMatrixReader {
         let mut bits = BitMatrix::new(matrixWidth, matrixHeight)?;
         for y in 0..matrixHeight {
             // for (int y = 0; y < matrixHeight; y++) {
-            let iOffset = top + y * moduleSize;
+            let iOffset = top + y as f32 * moduleSize as f32;
             for x in 0..matrixWidth {
                 // for (int x = 0; x < matrixWidth; x++) {
-                if image.get(left + x * moduleSize, iOffset) {
+                if image.get_point(point(left as f32 + x as f32 * moduleSize as f32, iOffset)) {
                     bits.set(x, y);
                 }
             }
@@ -226,10 +226,10 @@ impl DataMatrixReader {
         Ok(bits)
     }
 
-    fn moduleSize(leftTopBlack: &[u32], image: &BitMatrix) -> Result<u32> {
+    fn moduleSize(leftTopBlack: Point, image: &BitMatrix) -> Result<u32> {
         let width = image.getWidth();
-        let mut x = leftTopBlack[0];
-        let y = leftTopBlack[1];
+        let mut x = leftTopBlack.x as u32;
+        let y = leftTopBlack.y as u32;
         while x < width && image.get(x, y) {
             x += 1;
         }
@@ -237,7 +237,7 @@ impl DataMatrixReader {
             return Err(Exceptions::NOT_FOUND);
         }
 
-        let moduleSize = x - leftTopBlack[0];
+        let moduleSize = x - leftTopBlack.x as u32;
         if moduleSize == 0 {
             return Err(Exceptions::NOT_FOUND);
         }
