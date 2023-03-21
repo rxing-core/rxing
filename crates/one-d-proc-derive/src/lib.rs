@@ -28,7 +28,7 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
             fn decode(&mut self, image: &mut crate::BinaryBitmap) -> Result<crate::RXingResult, Exceptions> {
               self.decode_with_hints(image, &HashMap::new())
             }
-        
+
             // Note that we don't try rotation without the try harder flag, even if rotation was supported.
             fn decode_with_hints(
                 &mut self,
@@ -67,7 +67,7 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
                       points[i] =  RXingResultPoint::new(height as f32- points[i].getY() - 1.0, points[i].getX());
                     }
                   // }
-                  
+
                   Ok(result)
                 } else {
                   return Err(Exceptions::NotFoundException(None))
@@ -81,101 +81,101 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
 
 #[proc_macro_derive(EANReader)]
 pub fn ean_reader_derive(input: TokenStream) -> TokenStream {
-  // Construct a representation of Rust code as a syntax tree
-  // that we can manipulate
-  let ast = syn::parse(input).unwrap();
+    // Construct a representation of Rust code as a syntax tree
+    // that we can manipulate
+    let ast = syn::parse(input).unwrap();
 
-  // Build the trait implementation
-  impl_ean_reader_macro(&ast)
+    // Build the trait implementation
+    impl_ean_reader_macro(&ast)
 }
 
 fn impl_ean_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
-  let name = &ast.ident;
-  let gen = quote! {
-    impl super::OneDReader for #name {
-      fn decodeRow(
-        &mut self,
-        rowNumber: u32,
-        row: &crate::common::BitArray,
-        hints: &crate::DecodingHintDictionary,
-    ) -> Result<crate::RXingResult, crate::Exceptions> {
-      self.decodeRowWithGuardRange(rowNumber, row, &self.findStartGuardPattern(row)?, hints)
+    let name = &ast.ident;
+    let gen = quote! {
+      impl super::OneDReader for #name {
+        fn decodeRow(
+          &mut self,
+          rowNumber: u32,
+          row: &crate::common::BitArray,
+          hints: &crate::DecodingHintDictionary,
+      ) -> Result<crate::RXingResult, crate::Exceptions> {
+        self.decodeRowWithGuardRange(rowNumber, row, &self.findStartGuardPattern(row)?, hints)
+      }
     }
-  }
-  };
-  gen.into()
+    };
+    gen.into()
 }
 
 #[proc_macro_derive(OneDWriter)]
 pub fn one_d_writer_derive(input: TokenStream) -> TokenStream {
-  // Construct a representation of Rust code as a syntax tree
-  // that we can manipulate
-  let ast = syn::parse(input).unwrap();
+    // Construct a representation of Rust code as a syntax tree
+    // that we can manipulate
+    let ast = syn::parse(input).unwrap();
 
-  // Build the trait implementation
-  impl_one_d_writer_macro(&ast)
+    // Build the trait implementation
+    impl_one_d_writer_macro(&ast)
 }
 
 fn impl_one_d_writer_macro(ast: &syn::DeriveInput) -> TokenStream {
-  let name = &ast.ident;
-  let gen = quote! {
-    use crate::{
-      EncodeHintType, EncodeHintValue, Exceptions, Writer,
-   };
-   use std::collections::HashMap;
-    impl Writer for #name {
-      fn encode(
-          &self,
-          contents: &str,
-          format: &crate::BarcodeFormat,
-          width: i32,
-          height: i32,
-      ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
-          self.encode_with_hints(contents, format, width, height, &HashMap::new())
-      }
-  
-      fn encode_with_hints(
-          &self,
-          contents: &str,
-          format: &crate::BarcodeFormat,
-          width: i32,
-          height: i32,
-          hints: &crate::EncodingHintDictionary,
-      ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
-          if contents.is_empty() {
-              return Err(Exceptions::IllegalArgumentException(
-                  Some("Found empty contents".to_owned()),
-              ));
-          }
-  
-          if width < 0 || height < 0 {
-              return Err(Exceptions::IllegalArgumentException(Some(format!(
-                  "Negative size is not allowed. Input: {}x{}",
-                  width, height
-              ))));
-          }
-          if let Some(supportedFormats) = self.getSupportedWriteFormats() {
-              if !supportedFormats.contains(format) {
-                  return Err(Exceptions::IllegalArgumentException(Some(format!(
-                      "Can only encode {:?}, but got {:?}",
-                      supportedFormats, format
-                  ))));
-              }
-          }
-  
-          let mut sidesMargin = self.getDefaultMargin();
-          if let Some(EncodeHintValue::Margin(margin)) = hints.get(&EncodeHintType::MARGIN) {
-              sidesMargin = margin.parse::<u32>().unwrap();
-          }
-          // if  hints.contains_key(&EncodeHintType::MARGIN) {
-          //   sidesMargin = Integer.parseInt(hints.get(EncodeHintType.MARGIN).toString());
-          // }
-  
-          let code = self.encode_oned_with_hints(contents, hints)?;
-  
-          Self::renderRXingResult(&code, width, height, sidesMargin)
-      }
-  }
-  };
-  gen.into()
+    let name = &ast.ident;
+    let gen = quote! {
+      use crate::{
+        EncodeHintType, EncodeHintValue, Exceptions, Writer,
+     };
+     use std::collections::HashMap;
+      impl Writer for #name {
+        fn encode(
+            &self,
+            contents: &str,
+            format: &crate::BarcodeFormat,
+            width: i32,
+            height: i32,
+        ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+            self.encode_with_hints(contents, format, width, height, &HashMap::new())
+        }
+
+        fn encode_with_hints(
+            &self,
+            contents: &str,
+            format: &crate::BarcodeFormat,
+            width: i32,
+            height: i32,
+            hints: &crate::EncodingHintDictionary,
+        ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
+            if contents.is_empty() {
+                return Err(Exceptions::IllegalArgumentException(
+                    Some("Found empty contents".to_owned()),
+                ));
+            }
+
+            if width < 0 || height < 0 {
+                return Err(Exceptions::IllegalArgumentException(Some(format!(
+                    "Negative size is not allowed. Input: {}x{}",
+                    width, height
+                ))));
+            }
+            if let Some(supportedFormats) = self.getSupportedWriteFormats() {
+                if !supportedFormats.contains(format) {
+                    return Err(Exceptions::IllegalArgumentException(Some(format!(
+                        "Can only encode {:?}, but got {:?}",
+                        supportedFormats, format
+                    ))));
+                }
+            }
+
+            let mut sidesMargin = self.getDefaultMargin();
+            if let Some(EncodeHintValue::Margin(margin)) = hints.get(&EncodeHintType::MARGIN) {
+                sidesMargin = margin.parse::<u32>().unwrap();
+            }
+            // if  hints.contains_key(&EncodeHintType::MARGIN) {
+            //   sidesMargin = Integer.parseInt(hints.get(EncodeHintType.MARGIN).toString());
+            // }
+
+            let code = self.encode_oned_with_hints(contents, hints)?;
+
+            Self::renderRXingResult(&code, width, height, sidesMargin)
+        }
+    }
+    };
+    gen.into()
 }

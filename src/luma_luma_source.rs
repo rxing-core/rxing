@@ -196,14 +196,23 @@ mod tests {
         // print_matrix(&src_rect, 3, 4);
         let rotated_tall_rect = rect_tall.rotateCounterClockwise().expect("rotate");
 
-        assert_eq!((rotated_square.getWidth(),rotated_square.getHeight()), (3,3));
         assert_eq!(
-            (rotated_tall_rect.getWidth(),rotated_tall_rect.getHeight()),
-            (rect_tall.dimensions.1 as usize, rect_tall.dimensions.0 as usize)
+            (rotated_square.getWidth(), rotated_square.getHeight()),
+            (3, 3)
         );
         assert_eq!(
-            (rotated_wide_rect.getWidth(),rotated_wide_rect.getHeight()),
-            (rect_wide.dimensions.1 as usize, rect_wide.dimensions.0 as usize)
+            (rotated_tall_rect.getWidth(), rotated_tall_rect.getHeight()),
+            (
+                rect_tall.dimensions.1 as usize,
+                rect_tall.dimensions.0 as usize
+            )
+        );
+        assert_eq!(
+            (rotated_wide_rect.getWidth(), rotated_wide_rect.getHeight()),
+            (
+                rect_wide.dimensions.1 as usize,
+                rect_wide.dimensions.0 as usize
+            )
         );
 
         assert_eq!(rotated_square.getMatrix(), vec![3, 6, 9, 2, 5, 8, 1, 4, 7]);
