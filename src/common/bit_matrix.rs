@@ -202,14 +202,17 @@ impl BitMatrix {
     }
 
     /**
-     * <p>Gets the requested bit, where true means black.</p>
+     * Gets the requested bit, where true means black.
      *
-     * @param x The horizontal component (i.e. which column)
-     * @param y The vertical component (i.e. which row)
-     * @return value of given bit in matrix
+     * x The horizontal component (i.e. which column)
+     * y The vertical component (i.e. which row)
+     * returns the value of given bit in matrix, or false if the requested point is out of bounds of the image
      */
     pub fn get(&self, x: u32, y: u32) -> bool {
         let offset = self.get_offset(y, x);
+        if offset >= self.bits.len() {
+            return false;
+        }
         ((self.bits[offset] >> (x & 0x1f)) & 1) != 0
     }
 
@@ -230,6 +233,10 @@ impl BitMatrix {
             return None;
         }
         Some(((self.bits[offset] >> (x & 0x1f)) & 1) != 0)
+    }
+
+    pub fn try_get_point(&self, point: Point) -> Option<bool> {
+        self.try_get(point.x as u32, point.y as u32)
     }
 
     pub fn try_get_area(&self, x: u32, y: u32, box_size: u32) -> Option<bool> {
