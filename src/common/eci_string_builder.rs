@@ -30,12 +30,13 @@ use super::{CharacterSet, Eci};
  *
  * @author Alex Geller
  */
-#[derive(Default)]
+#[derive(Default, PartialEq, Eq, Debug, Clone)]
 pub struct ECIStringBuilder {
     is_eci: bool,
     eci_result: Option<String>,
     bytes: Vec<u8>,
     eci_positions: Vec<(Eci, usize, usize)>, // (Eci, start, end)
+    pub symbology: SymbologyIdentifier,
 }
 
 impl ECIStringBuilder {
@@ -45,6 +46,7 @@ impl ECIStringBuilder {
             bytes: Vec::with_capacity(initial_capacity),
             eci_positions: Vec::default(),
             is_eci: false,
+            symbology: SymbologyIdentifier::default(),
         }
     }
 
@@ -118,6 +120,11 @@ impl ECIStringBuilder {
 
             self.eci_positions.push((eci, self.bytes.len(), 0));
         }
+    }
+
+    /// Change the current encoding characterset, finding an eci to do so
+    pub fn switch_encoding(&mut self, charset: CharacterSet) {
+        self.append_eci(Eci::from(charset))
     }
 
     /// Finishes encoding anything in the buffer using the current ECI and resets.
@@ -198,6 +205,11 @@ impl ECIStringBuilder {
         self.bytes.len()
     }
 
+    /// Reserve an additional number of bytes for storage
+    pub fn reserve(&mut self, additional: usize) {
+        self.bytes.reserve(additional);
+    }
+
     /**
      * @return true iff nothing has been appended
      */
@@ -218,6 +230,60 @@ impl fmt::Display for ECIStringBuilder {
             write!(f, "{res}")
         } else {
             write!(f, "{}", self.encodeCurrentBytesIfAny())
+        }
+    }
+}
+
+impl std::ops::AddAssign<u8> for ECIStringBuilder {
+    fn add_assign(&mut self, rhs: u8) {
+        self.append_byte(rhs)
+    }
+}
+
+impl std::ops::AddAssign<String> for ECIStringBuilder {
+    fn add_assign(&mut self, rhs: String) {
+        self.append_string(&rhs)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum ContentType {
+    Text,
+    Binary,
+    Mixed,
+    GS1,
+    ISO15434,
+    UnknownECI,
+}
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum AIFlag {
+    None,
+    GS1,
+    AIM,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub struct SymbologyIdentifier {
+    //char code = 0, modifier = 0, eciModifierOffset = 0;
+    pub code: u8,
+    pub modifier: u8,
+    pub eciModifierOffset: u8,
+    pub aiFlag: AIFlag,
+    // AIFlag aiFlag = AIFlag::None;
+
+    // std::string toString(bool hasECI = false) const
+    // {
+    // 	return code ? ']' + std::string(1, code) + static_cast<char>(modifier + eciModifierOffset * hasECI) : std::string();
+    // }
+}
+
+impl Default for SymbologyIdentifier {
+    fn default() -> Self {
+        Self {
+            code: 0,
+            modifier: 0,
+            eciModifierOffset: 0,
+            aiFlag: AIFlag::None,
         }
     }
 }

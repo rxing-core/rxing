@@ -121,6 +121,32 @@ impl Mode {
             Mode::HANZI => 0x0D,
         }
     }
+
+    pub const fn get_terminator_bit_length(version: &Version) -> u8 {
+        todo!()
+    }
+    pub const fn get_codec_mode_bits_length(version: &Version) -> u8 {
+        todo!()
+    }
+    /**
+     * @param bits variable number of bits encoding a QR Code data mode
+     * @param isMicro is this a MicroQRCode
+     * @return Mode encoded by these bits
+     * @throws FormatError if bits do not correspond to a known mode
+     */
+    pub fn CodecModeForBits(bits: u32, isMicro: Option<bool>) -> Self {
+        let isMicro = isMicro.unwrap_or(false);
+        todo!()
+    }
+
+    /**
+     * @param version version in question
+     * @return number of bits used, in this QR Code symbol {@link Version}, to encode the
+     *         count of characters that will follow encoded in this Mode
+     */
+    pub fn CharacterCountBits(&self, version: &Version) -> u32 {
+        todo!()
+    }
 }
 
 impl From<Mode> for u8 {

@@ -65,4 +65,8 @@ impl Version {
         // If we didn't find a close enough match, fail
         return Err(Exceptions::ILLEGAL_STATE);
     }
+
+    pub fn isMicroQRCode(&self) -> bool {
+        todo!()
+    }
 }

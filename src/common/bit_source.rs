@@ -116,6 +116,10 @@ impl BitSource {
         Ok(result)
     }
 
+    pub fn peak_bits(&self, numBits: usize) -> Result<u32> {
+        todo!()
+    }
+
     /**
      * @return number of bits that can be read successfully
      */

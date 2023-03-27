@@ -4,357 +4,450 @@
 // */
 // // SPDX-License-Identifier: Apache-2.0
 
-// #include "QRDecoder.h"
+use crate::common::cpp_essentials::{DecoderResult, StructuredAppendInfo};
+use crate::common::reedsolomon::{
+    get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder,
+};
+use crate::common::{
+    AIFlag, BitMatrix, BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Eci, Result,
+    SymbologyIdentifier,
+};
+use crate::qrcode::cpp_port::bitmatrix_parser::{
+    ReadCodewords, ReadFormatInformation, ReadVersion,
+};
+use crate::qrcode::decoder::{DataBlock, ErrorCorrectionLevel, Mode, Version};
+use crate::Exceptions;
 
-// #include "BitMatrix.h"
-// #include "BitSource.h"
-// #include "CharacterSet.h"
-// #include "DecoderResult.h"
-// #include "GenericGF.h"
-// #include "QRBitMatrixParser.h"
-// #include "QRCodecMode.h"
-// #include "QRDataBlock.h"
-// #include "QRFormatInformation.h"
-// #include "QRVersion.h"
-// #include "ReedSolomonDecoder.h"
-// #include "StructuredAppend.h"
-// #include "ZXAlgorithms.h"
-// #include "ZXTestSupport.h"
+/**
+* <p>Given data and error-correction codewords received, possibly corrupted by errors, attempts to
+* correct the errors in-place using Reed-Solomon error correction.</p>
+*
+* @param codewordBytes data and error correction codewords
+* @param numDataCodewords number of codewords that are data bytes
+* @return false if error correction fails
+*/
+pub fn CorrectErrors(codewordBytes: &mut [u8], numDataCodewords: u32) -> Result<bool> {
+    // First read into an array of ints
+    // std::vector<int> codewordsInts(codewordBytes.begin(), codewordBytes.end());
+    let mut codewordsInts = codewordBytes.iter().copied().map(|b| b as i32).collect();
 
-// #include <algorithm>
-// #include <stdexcept>
-// #include <utility>
-// #include <vector>
+    let numECCodewords = ((codewordBytes.len() as u32) - numDataCodewords) as i32;
+    let rs = ReedSolomonDecoder::new(get_predefined_genericgf(
+        PredefinedGenericGF::QrCodeField256,
+    ));
+    if rs.decode(&mut codewordsInts, numECCodewords)? == 0
+    // if (!ReedSolomonDecode(GenericGF::QRCodeField256(), codewordsInts, numECCodewords))
+    {
+        return Ok(false);
+    }
 
-// namespace ZXing::QRCode {
+    // Copy back into array of bytes -- only need to worry about the bytes that were data
+    // We don't care about errors in the error-correction codewords
+    codewordBytes[..numDataCodewords as usize].copy_from_slice(
+        &codewordsInts[..numDataCodewords as usize]
+            .into_iter()
+            .copied()
+            .map(|i| i as u8)
+            .collect::<Vec<u8>>(),
+    );
+    // std::copy_n(codewordsInts.begin(), numDataCodewords, codewordBytes.begin());
 
-// /**
-// * <p>Given data and error-correction codewords received, possibly corrupted by errors, attempts to
-// * correct the errors in-place using Reed-Solomon error correction.</p>
-// *
-// * @param codewordBytes data and error correction codewords
-// * @param numDataCodewords number of codewords that are data bytes
-// * @return false if error correction fails
-// */
-// static bool CorrectErrors(ByteArray& codewordBytes, int numDataCodewords)
-// {
-// 	// First read into an array of ints
-// 	std::vector<int> codewordsInts(codewordBytes.begin(), codewordBytes.end());
+    Ok(true)
+}
 
-// 	int numECCodewords = Size(codewordBytes) - numDataCodewords;
-// 	if (!ReedSolomonDecode(GenericGF::QRCodeField256(), codewordsInts, numECCodewords))
-// 		return false;
+/**
+* See specification GBT 18284-2000
+*/
+pub fn DecodeHanziSegment(
+    bits: &mut BitSource,
+    count: u32,
+    result: &mut ECIStringBuilder,
+) -> Result<()> {
+    let mut count = count;
 
-// 	// Copy back into array of bytes -- only need to worry about the bytes that were data
-// 	// We don't care about errors in the error-correction codewords
-// 	std::copy_n(codewordsInts.begin(), numDataCodewords, codewordBytes.begin());
-// 	return true;
-// }
+    // Each character will require 2 bytes, decode as GB2312
+    // There is no ECI value for GB2312, use GB18030 which is a superset
+    result.switch_encoding(CharacterSet::GB18030);
+    result.reserve(2 * count as usize);
 
+    while (count > 0) {
+        // Each 13 bits encodes a 2-byte character
+        let twoBytes = bits.readBits(13)?;
+        let mut assembledTwoBytes = ((twoBytes / 0x060) << 8) | (twoBytes % 0x060);
+        if (assembledTwoBytes < 0x00A00) {
+            // In the 0xA1A1 to 0xAAFE range
+            assembledTwoBytes += 0x0A1A1;
+        } else {
+            // In the 0xB0A1 to 0xFAFE range
+            assembledTwoBytes += 0x0A6A1;
+        }
+        *result += ((assembledTwoBytes >> 8) & 0xFF) as u8;
+        *result += (assembledTwoBytes & 0xFF) as u8;
+        count -= 1;
+    }
+    Ok(())
+}
 
-// /**
-// * See specification GBT 18284-2000
-// */
-// static void DecodeHanziSegment(BitSource& bits, int count, Content& result)
-// {
-// 	// Each character will require 2 bytes, decode as GB2312
-// 	// There is no ECI value for GB2312, use GB18030 which is a superset
-// 	result.switchEncoding(CharacterSet::GB18030);
-// 	result.reserve(2 * count);
+pub fn DecodeKanjiSegment(
+    bits: &mut BitSource,
+    count: u32,
+    result: &mut ECIStringBuilder,
+) -> Result<()> {
+    let mut count = count;
+    // Each character will require 2 bytes. Read the characters as 2-byte pairs
+    // and decode as Shift_JIS afterwards
+    result.switch_encoding(CharacterSet::Shift_JIS);
+    result.reserve(2 * count as usize);
 
-// 	while (count > 0) {
-// 		// Each 13 bits encodes a 2-byte character
-// 		int twoBytes = bits.readBits(13);
-// 		int assembledTwoBytes = ((twoBytes / 0x060) << 8) | (twoBytes % 0x060);
-// 		if (assembledTwoBytes < 0x00A00) {
-// 			// In the 0xA1A1 to 0xAAFE range
-// 			assembledTwoBytes += 0x0A1A1;
-// 		} else {
-// 			// In the 0xB0A1 to 0xFAFE range
-// 			assembledTwoBytes += 0x0A6A1;
-// 		}
-// 		result += narrow_cast<uint8_t>((assembledTwoBytes >> 8) & 0xFF);
-// 		result += narrow_cast<uint8_t>(assembledTwoBytes & 0xFF);
-// 		count--;
-// 	}
-// }
+    while (count > 0) {
+        // Each 13 bits encodes a 2-byte character
+        let twoBytes = bits.readBits(13)?;
+        let mut assembledTwoBytes = ((twoBytes / 0x0C0) << 8) | (twoBytes % 0x0C0);
+        if (assembledTwoBytes < 0x01F00) {
+            // In the 0x8140 to 0x9FFC range
+            assembledTwoBytes += 0x08140;
+        } else {
+            // In the 0xE040 to 0xEBBF range
+            assembledTwoBytes += 0x0C140;
+        }
+        *result += (assembledTwoBytes >> 8) as u8;
+        *result += (assembledTwoBytes) as u8;
+        count -= 1;
+    }
+    Ok(())
+}
 
-// static void DecodeKanjiSegment(BitSource& bits, int count, Content& result)
-// {
-// 	// Each character will require 2 bytes. Read the characters as 2-byte pairs
-// 	// and decode as Shift_JIS afterwards
-// 	result.switchEncoding(CharacterSet::Shift_JIS);
-// 	result.reserve(2 * count);
+pub fn DecodeByteSegment(
+    bits: &mut BitSource,
+    count: u32,
+    result: &mut ECIStringBuilder,
+) -> Result<()> {
+    result.switch_encoding(CharacterSet::Unknown);
+    result.reserve(count as usize);
 
-// 	while (count > 0) {
-// 		// Each 13 bits encodes a 2-byte character
-// 		int twoBytes = bits.readBits(13);
-// 		int assembledTwoBytes = ((twoBytes / 0x0C0) << 8) | (twoBytes % 0x0C0);
-// 		if (assembledTwoBytes < 0x01F00) {
-// 			// In the 0x8140 to 0x9FFC range
-// 			assembledTwoBytes += 0x08140;
-// 		} else {
-// 			// In the 0xE040 to 0xEBBF range
-// 			assembledTwoBytes += 0x0C140;
-// 		}
-// 		result += narrow_cast<uint8_t>(assembledTwoBytes >> 8);
-// 		result += narrow_cast<uint8_t>(assembledTwoBytes);
-// 		count--;
-// 	}
-// }
+    for i in 0..count {
+        // for (int i = 0; i < count; i++)
+        *result += (bits.readBits(8)?) as u8;
+    }
+    Ok(())
+}
 
-// static void DecodeByteSegment(BitSource& bits, int count, Content& result)
-// {
-// 	result.switchEncoding(CharacterSet::Unknown);
-// 	result.reserve(count);
+pub fn ToAlphaNumericChar(value: u32) -> Result<char> {
+    let value = value as usize;
+    /**
+    	* See ISO 18004:2006, 6.4.4 Table 5
+    	*/
+    const ALPHANUMERIC_CHARS: [char; 45] = [
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+        'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        ' ', '$', '%', '*', '+', '-', '.', '/', ':',
+    ];
 
-// 	for (int i = 0; i < count; i++)
-// 		result += narrow_cast<uint8_t>(bits.readBits(8));
-// }
+    if (value < 0 || value >= (ALPHANUMERIC_CHARS.len())) {
+        return Err(Exceptions::index_out_of_bounds_with(
+            "oAlphaNumericChar: out of range",
+        ));
+    }
 
-// static char ToAlphaNumericChar(int value)
-// {
-// 	/**
-// 	* See ISO 18004:2006, 6.4.4 Table 5
-// 	*/
-// 	static const char ALPHANUMERIC_CHARS[] = {
-// 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B',
-// 		'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
-// 		'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-// 		' ', '$', '%', '*', '+', '-', '.', '/', ':'
-// 	};
+    Ok(ALPHANUMERIC_CHARS[value])
+}
 
-// 	if (value < 0 || value >= Size(ALPHANUMERIC_CHARS))
-// 		throw std::out_of_range("ToAlphaNumericChar: out of range");
+pub fn DecodeAlphanumericSegment(
+    bits: &mut BitSource,
+    count: u32,
+    result: &mut ECIStringBuilder,
+) -> Result<()> {
+    let mut count = count;
 
-// 	return ALPHANUMERIC_CHARS[value];
-// }
+    // Read two characters at a time
+    let mut buffer = String::new();
 
-// static void DecodeAlphanumericSegment(BitSource& bits, int count, Content& result)
-// {
-// 	// Read two characters at a time
-// 	std::string buffer;
-// 	while (count > 1) {
-// 		int nextTwoCharsBits = bits.readBits(11);
-// 		buffer += ToAlphaNumericChar(nextTwoCharsBits / 45);
-// 		buffer += ToAlphaNumericChar(nextTwoCharsBits % 45);
-// 		count -= 2;
-// 	}
-// 	if (count == 1) {
-// 		// special case: one character left
-// 		buffer += ToAlphaNumericChar(bits.readBits(6));
-// 	}
-// 	// See section 6.4.8.1, 6.4.8.2
-// 	if (result.symbology.aiFlag != AIFlag::None) {
-// 		// We need to massage the result a bit if in an FNC1 mode:
-// 		for (size_t i = 0; i < buffer.length(); i++) {
-// 			if (buffer[i] == '%') {
-// 				if (i < buffer.length() - 1 && buffer[i + 1] == '%') {
-// 					// %% is rendered as %
-// 					buffer.erase(i + 1);
-// 				} else {
-// 					// In alpha mode, % should be converted to FNC1 separator 0x1D
-// 					buffer[i] = static_cast<char>(0x1D);
-// 				}
-// 			}
-// 		}
-// 	}
+    while count > 1 {
+        let nextTwoCharsBits = bits.readBits(11)?;
+        buffer.push(ToAlphaNumericChar(nextTwoCharsBits / 45)?);
+        buffer.push(ToAlphaNumericChar(nextTwoCharsBits % 45)?);
+        count -= 2;
+    }
+    if (count == 1) {
+        // special case: one character left
+        buffer.push(ToAlphaNumericChar(bits.readBits(6)?)?);
+    }
+    // See section 6.4.8.1, 6.4.8.2
+    if (result.symbology.aiFlag != AIFlag::None) {
+        // We need to massage the result a bit if in an FNC1 mode:
+        for i in 0..buffer.len() {
+            // for (size_t i = 0; i < buffer.length(); i++) {
+            if (buffer
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                == '%')
+            {
+                if (i < buffer.len() - 1
+                    && buffer
+                        .chars()
+                        .nth(i + 1)
+                        .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                        == '%')
+                {
+                    // %% is rendered as %
+                    buffer.remove(i + 1);
+                // buffer.erase(i + 1);
+                } else {
+                    // In alpha mode, % should be converted to FNC1 separator 0x1D
+                    buffer.replace_range(i..i, &char::from(0x1D).to_string());
+                    // buffer[i] = static_cast<char>(0x1D);
+                }
+            }
+        }
+    }
 
-// 	result.switchEncoding(CharacterSet::ISO8859_1);
-// 	result += buffer;
-// }
+    result.switch_encoding(CharacterSet::ISO8859_1);
+    *result += buffer;
 
-// static void DecodeNumericSegment(BitSource& bits, int count, Content& result)
-// {
-// 	result.switchEncoding(CharacterSet::ISO8859_1);
-// 	result.reserve(count);
+    Ok(())
+}
 
-// 	while (count) {
-// 		int n = std::min(count, 3);
-// 		int nDigits = bits.readBits(1 + 3 * n); // read 4, 7 or 10 bits into 1, 2 or 3 digits
-// 		result.append(ZXing::ToString(nDigits, n));
-// 		count -= n;
-// 	}
-// }
+pub fn DecodeNumericSegment(
+    bits: &mut BitSource,
+    count: u32,
+    result: &mut ECIStringBuilder,
+) -> Result<()> {
+    let mut count = count;
 
-// static ECI ParseECIValue(BitSource& bits)
-// {
-// 	int firstByte = bits.readBits(8);
-// 	if ((firstByte & 0x80) == 0) {
-// 		// just one byte
-// 		return ECI(firstByte & 0x7F);
-// 	}
-// 	if ((firstByte & 0xC0) == 0x80) {
-// 		// two bytes
-// 		int secondByte = bits.readBits(8);
-// 		return ECI(((firstByte & 0x3F) << 8) | secondByte);
-// 	}
-// 	if ((firstByte & 0xE0) == 0xC0) {
-// 		// three bytes
-// 		int secondThirdBytes = bits.readBits(16);
-// 		return ECI(((firstByte & 0x1F) << 16) | secondThirdBytes);
-// 	}
-// 	throw FormatError("ParseECIValue: invalid value");
-// }
+    result.switch_encoding(CharacterSet::ISO8859_1);
+    result.reserve(count as usize);
 
-// /**
-//  * QR codes encode mode indicators and terminator codes into a constant bit length of 4.
-//  * Micro QR codes have terminator codes that vary in bit length but are always longer than
-//  * the mode indicators.
-//  * M1 - 0 length mode code, 3 bits terminator code
-//  * M2 - 1 bit mode code, 5 bits terminator code
-//  * M3 - 2 bit mode code, 7 bits terminator code
-//  * M4 - 3 bit mode code, 9 bits terminator code
-//  * IsTerminator peaks into the bit stream to see if the current position is at the start of
-//  * a terminator code.  If true, then the decoding can finish. If false, then the decoding
-//  * can read off the next mode code.
-//  *
-//  * See ISO 18004:2015, 7.4.1 Table 2
-//  *
-//  * @param bits the stream of bits that might have a terminator code
-//  * @param version the QR or micro QR code version
-//  */
-// bool IsEndOfStream(const BitSource& bits, const Version& version)
-// {
-// 	const int bitsRequired = TerminatorBitsLength(version);
-// 	const int bitsAvailable = std::min(bits.available(), bitsRequired);
-// 	return bitsAvailable == 0 || bits.peakBits(bitsAvailable) == 0;
-// }
+    while (count > 0) {
+        let n = std::cmp::min(count, 3);
+        let nDigits = bits.readBits(1 + 3 * n as usize)?; // read 4, 7 or 10 bits into 1, 2 or 3 digits
+        result.append_string(&crate::common::cpp_essentials::util::ToString(
+            nDigits as usize,
+            n as usize,
+        )?);
+        count -= n;
+    }
 
-// /**
-// * <p>QR Codes can encode text as bits in one of several modes, and can use multiple modes
-// * in one QR Code. This method decodes the bits back into text.</p>
-// *
-// * <p>See ISO 18004:2006, 6.4.3 - 6.4.7</p>
-// */
+    Ok(())
+}
+
+pub fn ParseECIValue(bits: &mut BitSource) -> Result<Eci> {
+    let firstByte = bits.readBits(8)?;
+    if ((firstByte & 0x80) == 0) {
+        // just one byte
+        return Ok(Eci::from(firstByte & 0x7F));
+    }
+    if ((firstByte & 0xC0) == 0x80) {
+        // two bytes
+        let secondByte = bits.readBits(8)?;
+        return Ok(Eci::from(((firstByte & 0x3F) << 8) | secondByte));
+    }
+    if ((firstByte & 0xE0) == 0xC0) {
+        // three bytes
+        let secondThirdBytes = bits.readBits(16)?;
+        return Ok(Eci::from(((firstByte & 0x1F) << 16) | secondThirdBytes));
+    }
+    Err(Exceptions::format_with("ParseECIValue: invalid value"))
+}
+
+/**
+ * QR codes encode mode indicators and terminator codes into a constant bit length of 4.
+ * Micro QR codes have terminator codes that vary in bit length but are always longer than
+ * the mode indicators.
+ * M1 - 0 length mode code, 3 bits terminator code
+ * M2 - 1 bit mode code, 5 bits terminator code
+ * M3 - 2 bit mode code, 7 bits terminator code
+ * M4 - 3 bit mode code, 9 bits terminator code
+ * IsTerminator peaks into the bit stream to see if the current position is at the start of
+ * a terminator code.  If true, then the decoding can finish. If false, then the decoding
+ * can read off the next mode code.
+ *
+ * See ISO 18004:2015, 7.4.1 Table 2
+ *
+ * @param bits the stream of bits that might have a terminator code
+ * @param version the QR or micro QR code version
+ */
+pub fn IsEndOfStream(bits: &mut BitSource, version: &Version) -> Result<bool> {
+    let bitsRequired = Mode::get_terminator_bit_length(version); //super::qr_codec_mode::TerminatorBitsLength(version);
+    let bitsAvailable = std::cmp::min(bits.available(), bitsRequired as usize);
+    Ok(bitsAvailable == 0 || bits.peak_bits(bitsAvailable)? == 0)
+}
+
+/**
+* <p>QR Codes can encode text as bits in one of several modes, and can use multiple modes
+* in one QR Code. This method decodes the bits back into text.</p>
+*
+* <p>See ISO 18004:2006, 6.4.3 - 6.4.7</p>
+*/
 // ZXING_EXPORT_TEST_ONLY
-// DecoderResult DecodeBitStream(ByteArray&& bytes, const Version& version, ErrorCorrectionLevel ecLevel)
-// {
-// 	BitSource bits(bytes);
-// 	Content result;
-// 	Error error;
-// 	result.symbology = {'Q', '1', 1};
-// 	StructuredAppendInfo structuredAppend;
-// 	const int modeBitLength = CodecModeBitsLength(version);
+pub fn DecodeBitStream(
+    bytes: &[u8],
+    version: &Version,
+    ecLevel: ErrorCorrectionLevel,
+) -> Result<DecoderResult<bool>> {
+    let mut bits = BitSource::new(bytes.to_vec());
+    let mut result = ECIStringBuilder::default();
+    // Error error;
+    result.symbology = SymbologyIdentifier {
+        code: b'Q',
+        modifier: b'1',
+        eciModifierOffset: 1,
+        aiFlag: AIFlag::None,
+    }; //{'Q', '1', 1};
+    let mut structuredAppend = StructuredAppendInfo::default();
+    let modeBitLength = Mode::get_codec_mode_bits_length(version);
 
-// 	try
-// 	{
-// 		while(!IsEndOfStream(bits, version)) {
-// 			CodecMode mode;
-// 			if (modeBitLength == 0)
-// 				mode = CodecMode::NUMERIC; // MicroQRCode version 1 is always NUMERIC and modeBitLength is 0
-// 			else
-// 				mode = CodecModeForBits(bits.readBits(modeBitLength), version.isMicroQRCode());
+    let res = (|| {
+        while (!IsEndOfStream(&mut bits, version)?) {
+            let mode: Mode;
+            if (modeBitLength == 0) {
+                mode = Mode::NUMERIC; // MicroQRCode version 1 is always NUMERIC and modeBitLength is 0
+            } else {
+                mode = Mode::CodecModeForBits(
+                    bits.readBits(modeBitLength as usize)?,
+                    Some(version.isMicroQRCode()),
+                );
+            }
 
-// 			switch (mode) {
-// 			case CodecMode::FNC1_FIRST_POSITION:
-// //				if (!result.empty()) // uncomment to enforce specification
-// //					throw FormatError("GS1 Indicator (FNC1 in first position) at illegal position");
-// 				result.symbology.modifier = '3';
-// 				result.symbology.aiFlag = AIFlag::GS1; // In Alphanumeric mode undouble doubled '%' and treat single '%' as <GS>
-// 				break;
-// 			case CodecMode::FNC1_SECOND_POSITION:
-// 				if (!result.empty())
-// 					throw FormatError("AIM Application Indicator (FNC1 in second position) at illegal position");
-// 				result.symbology.modifier = '5'; // As above
-// 				// ISO/IEC 18004:2015 7.4.8.3 AIM Application Indicator (FNC1 in second position), "00-99" or "A-Za-z"
-// 				if (int appInd = bits.readBits(8); appInd < 100) // "00-09"
-// 					result += ZXing::ToString(appInd, 2);
-// 				else if ((appInd >= 165 && appInd <= 190) || (appInd >= 197 && appInd <= 222)) // "A-Za-z"
-// 					result += narrow_cast<uint8_t>(appInd - 100);
-// 				else
-// 					throw FormatError("Invalid AIM Application Indicator");
-// 				result.symbology.aiFlag = AIFlag::AIM; // see also above
-// 				break;
-// 			case CodecMode::STRUCTURED_APPEND:
-// 				// sequence number and parity is added later to the result metadata
-// 				// Read next 4 bits of index, 4 bits of symbol count, and 8 bits of parity data, then continue
-// 				structuredAppend.index = bits.readBits(4);
-// 				structuredAppend.count = bits.readBits(4) + 1;
-// 				structuredAppend.id    = std::to_string(bits.readBits(8));
-// 				break;
-// 			case CodecMode::ECI:
-// 				// Count doesn't apply to ECI
-// 				result.switchEncoding(ParseECIValue(bits));
-// 				break;
-// 			case CodecMode::HANZI: {
-// 				// First handle Hanzi mode which does not start with character count
-// 				// chinese mode contains a sub set indicator right after mode indicator
-// 				if (int subset = bits.readBits(4); subset != 1) // GB2312_SUBSET is the only supported one right now
-// 					throw FormatError("Unsupported HANZI subset");
-// 				int count = bits.readBits(CharacterCountBits(mode, version));
-// 				DecodeHanziSegment(bits, count, result);
-// 				break;
-// 			}
-// 			default: {
-// 				// "Normal" QR code modes:
-// 				// How many characters will follow, encoded in this mode?
-// 				int count = bits.readBits(CharacterCountBits(mode, version));
-// 				switch (mode) {
-// 				case CodecMode::NUMERIC:      DecodeNumericSegment(bits, count, result); break;
-// 				case CodecMode::ALPHANUMERIC: DecodeAlphanumericSegment(bits, count, result); break;
-// 				case CodecMode::BYTE:         DecodeByteSegment(bits, count, result); break;
-// 				case CodecMode::KANJI:        DecodeKanjiSegment(bits, count, result); break;
-// 				default:                      throw FormatError("Invalid CodecMode");
-// 				}
-// 				break;
-// 			}
-// 			}
-// 		}
-// 	} catch (std::out_of_range& e) { // see BitSource::readBits
-// 		error = FormatError("Truncated bit stream");
-// 	} catch (Error e) {
-// 		error = std::move(e);
-// 	}
+            match (mode) {
+                Mode::FNC1_FIRST_POSITION => {
+                    //				if (!result.empty()) // uncomment to enforce specification
+                    //					throw FormatError("GS1 Indicator (FNC1 in first position) at illegal position");
+                    result.symbology.modifier = b'3';
+                    result.symbology.aiFlag = AIFlag::GS1; // In Alphanumeric mode undouble doubled '%' and treat single '%' as <GS>
+                }
+                Mode::FNC1_SECOND_POSITION => {
+                    if (!result.is_empty()) {
+                        return Err(Exceptions::format_with("AIM Application Indicator (FNC1 in second position) at illegal position"));
+                        // throw FormatError("AIM Application Indicator (FNC1 in second position) at illegal position");
+                    }
+                    result.symbology.modifier = b'5'; // As above
+                                                      // ISO/IEC 18004:2015 7.4.8.3 AIM Application Indicator (FNC1 in second position), "00-99" or "A-Za-z"
+                    let appInd = bits.readBits(8)?;
+                    if (appInd < 100)
+                    // "00-09"
+                    {
+                        result +=
+                            crate::common::cpp_essentials::util::ToString(appInd as usize, 2)?;
+                    } else if ((appInd >= 165 && appInd <= 190) || (appInd >= 197 && appInd <= 222))
+                    // "A-Za-z"
+                    {
+                        result += (appInd - 100) as u8;
+                    } else {
+                        return Err(Exceptions::format_with("Invalid AIM Application Indicator"));
+                        // throw FormatError("Invalid AIM Application Indicator");
+                    }
+                    result.symbology.aiFlag = AIFlag::AIM; // see also above
+                }
+                Mode::STRUCTURED_APPEND => {
+                    // sequence number and parity is added later to the result metadata
+                    // Read next 4 bits of index, 4 bits of symbol count, and 8 bits of parity data, then continue
+                    structuredAppend.index = bits.readBits(4)? as i32;
+                    structuredAppend.count = bits.readBits(4)? as i32 + 1;
+                    structuredAppend.id = (bits.readBits(8)?).to_string(); //std::to_string(bits.readBits(8));
+                }
+                Mode::ECI => {
+                    // Count doesn't apply to ECI
+                    result.switch_encoding(ParseECIValue(&mut bits)?.into());
+                }
+                Mode::HANZI => {
+                    // First handle Hanzi mode which does not start with character count
+                    // chinese mode contains a sub set indicator right after mode indicator
+                    let subset = bits.readBits(4)?;
+                    if (subset != 1)
+                    // GB2312_SUBSET is the only supported one right now
+                    {
+                        return Err(Exceptions::format_with("Unsupported HANZI subset"));
+                        // throw FormatError("Unsupported HANZI subset");
+                    }
+                    let count = bits.readBits(mode.CharacterCountBits(version) as usize)?;
+                    DecodeHanziSegment(&mut bits, count, &mut result);
+                }
+                _ => {
+                    // "Normal" QR code modes:
+                    // How many characters will follow, encoded in this mode?
+                    let count = bits.readBits(mode.CharacterCountBits(version) as usize)?;
+                    match (mode) {
+                        Mode::NUMERIC => DecodeNumericSegment(&mut bits, count, &mut result),
+                        Mode::ALPHANUMERIC => {
+                            DecodeAlphanumericSegment(&mut bits, count, &mut result)
+                        }
+                        Mode::BYTE => DecodeByteSegment(&mut bits, count, &mut result),
+                        Mode::KANJI => DecodeKanjiSegment(&mut bits, count, &mut result),
+                        _ => return Err(Exceptions::format_with("Invalid CodecMode")), //throw FormatError("Invalid CodecMode");
+                    };
+                }
+            }
+        }
+        Ok(())
+    })();
+    // } catch (std::out_of_range& e) { // see BitSource::readBits
+    // 	error = FormatError("Truncated bit stream");
+    // } catch (Error e) {
+    // 	error = std::move(e);
+    // }
 
-// 	return DecoderResult(std::move(result))
-// 		.setError(std::move(error))
-// 		.setEcLevel(ToString(ecLevel))
-// 		.setVersionNumber(version.versionNumber())
-// 		.setStructuredAppend(structuredAppend);
-// }
+    Ok(DecoderResult::with_eci_string_builder(result)
+        .withEcLevel(ecLevel.to_string())
+        .withVersionNumber(version.getVersionNumber())
+        .withStructuredAppend(structuredAppend))
 
-// DecoderResult Decode(const BitMatrix& bits)
-// {
-// 	const Version* pversion = ReadVersion(bits);
-// 	if (!pversion)
-// 		return FormatError("Invalid version");
-// 	const Version& version = *pversion;
+    // return DecoderResult(std::move(result))
+    // 	.setError(std::move(error))
+    // 	.setEcLevel(ToString(ecLevel))
+    // 	.setVersionNumber(version.versionNumber())
+    // 	.setStructuredAppend(structuredAppend);
+}
 
-// 	auto formatInfo = ReadFormatInformation(bits, version.isMicroQRCode());
-// 	if (!formatInfo.isValid())
-// 		return FormatError("Invalid format information");
+pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
+    let Ok(pversion) = ReadVersion(bits) else {
+        return Err(Exceptions::format_with("Invalid version"))
+    };
+    let version = pversion;
 
-// 	// Read codewords
-// 	ByteArray codewords = ReadCodewords(bits, version, formatInfo);
-// 	if (codewords.empty())
-// 		return FormatError("Failed to read codewords");
+    let Ok(formatInfo) = ReadFormatInformation(bits, version.isMicroQRCode()) else {
+        return Err(Exceptions::format_with("Invalid format information"))
+    };
 
-// 	// Separate into data blocks
-// 	std::vector<DataBlock> dataBlocks = DataBlock::GetDataBlocks(codewords, version, formatInfo.ecLevel);
-// 	if (dataBlocks.empty())
-// 		return FormatError("Failed to get data blocks");
+    // Read codewords
+    let codewords = ReadCodewords(bits, &version, &formatInfo)?;
+    if (codewords.is_empty()) {
+        return Err(Exceptions::format_with("Failed to read codewords"));
+    }
 
-// 	// Count total number of data bytes
-// 	const auto op = [](auto totalBytes, const auto& dataBlock){ return totalBytes + dataBlock.numDataCodewords();};
-// 	const auto totalBytes = std::accumulate(std::begin(dataBlocks), std::end(dataBlocks), int{}, op);
-// 	ByteArray resultBytes(totalBytes);
-// 	auto resultIterator = resultBytes.begin();
+    // Separate into data blocks
+    let dataBlocks: Vec<DataBlock> =
+        DataBlock::getDataBlocks(&codewords, &version, formatInfo.error_correction_level)?;
+    if (dataBlocks.is_empty()) {
+        return Err(Exceptions::format_with("Failed to get data blocks"));
+    }
 
-// 	// Error-correct and copy data blocks together into a stream of bytes
-// 	for (auto& dataBlock : dataBlocks)
-// 	{
-// 		ByteArray& codewordBytes = dataBlock.codewords();
-// 		int numDataCodewords = dataBlock.numDataCodewords();
+    // Count total number of data bytes
+    let op = |totalBytes, dataBlock: &DataBlock| totalBytes + dataBlock.getNumDataCodewords();
+    let totalBytes = dataBlocks.iter().fold(0, op); // std::accumulate(std::begin(dataBlocks), std::end(dataBlocks), int{}, op);
+    let mut resultBytes = vec![0u8; totalBytes as usize];
+    let mut resultIterator = 0; //resultBytes.begin();
 
-// 		if (!CorrectErrors(codewordBytes, numDataCodewords))
-// 			return ChecksumError();
+    // Error-correct and copy data blocks together into a stream of bytes
+    for dataBlock in dataBlocks.iter() {
+        let mut codewordBytes = dataBlock.getCodewords().to_vec();
+        let numDataCodewords = dataBlock.getNumDataCodewords() as usize;
 
-// 		resultIterator = std::copy_n(codewordBytes.begin(), numDataCodewords, resultIterator);
-// 	}
+        if (!CorrectErrors(&mut codewordBytes, numDataCodewords as u32)?) {
+            return Err(Exceptions::CHECKSUM);
+        }
 
-// 	// Decode the contents of that stream of bytes
-// 	return DecodeBitStream(std::move(resultBytes), version, formatInfo.ecLevel).setIsMirrored(formatInfo.isMirrored);
-// }
+        // resultIterator = std::copy_n(codewordBytes.begin(), numDataCodewords, resultIterator);
+        resultBytes[resultIterator..numDataCodewords]
+            .copy_from_slice(&codewordBytes[..numDataCodewords]);
+        resultIterator += numDataCodewords;
+    }
+
+    // Decode the contents of that stream of bytes
+    Ok(
+        DecodeBitStream(&resultBytes, &version, formatInfo.error_correction_level)?
+            .withIsMirrored(formatInfo.isMirrored),
+    )
+}
 
 // } // namespace ZXing::QRCode

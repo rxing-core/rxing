@@ -38,3 +38,29 @@ pub fn UpdateMinMaxFloat(min: &mut f64, max: &mut f64, val: f64) {
     *min = f64::min(*min, val);
     *max = f64::max(*max, val);
 }
+
+// template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
+pub fn ToString<T: Into<usize>>(val: T, len: usize) -> Result<String> {
+    let mut len = len;
+    let mut val = val.into();
+
+    let mut result: String = vec!['0'; len].iter().collect();
+    len -= 1;
+    // std::string result(len--, '0');
+    if (val < 0) {
+        return Err(Exceptions::format_with("Invalid value"));
+    }
+    while len >= 0 && val != 0 {
+        result.replace_range(len..len, &char::from(b'0' + (val % 10) as u8).to_string());
+
+        len -= 1;
+        val /= 10;
+    }
+    // for (; len >= 0 && val != 0; --len, val /= 10) {
+    // 	result[len] = '0' + val % 10;}
+    if (val != 0) {
+        return Err(Exceptions::format_with("Invalid value"));
+    }
+
+    Ok(result)
+}
