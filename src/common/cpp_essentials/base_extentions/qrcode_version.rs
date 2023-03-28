@@ -67,6 +67,6 @@ impl Version {
     }
 
     pub fn isMicroQRCode(&self) -> bool {
-        todo!()
+        self.is_micro
     }
 }

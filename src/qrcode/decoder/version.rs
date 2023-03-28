@@ -28,6 +28,7 @@ use once_cell::sync::Lazy;
 pub type VersionRef = &'static Version;
 
 static VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::buildVersions);
+static MICRO_VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::build_micro_versions);
 
 /**
  * See ISO 18004:2006 Annex D.
@@ -53,9 +54,10 @@ pub struct Version {
     alignmentPatternCenters: Vec<u32>,
     ecBlocks: Vec<ECBlocks>,
     totalCodewords: u32,
+    pub(crate) is_micro: bool,
 }
 impl Version {
-    fn new(versionNumber: u32, alignmentPatternCenters: Vec<u32>, ecBlocks: Vec<ECBlocks>) -> Self {
+    fn new(versionNumber: u32, alignmentPatternCenters: Vec<u32>, ecBlocks: [ECBlocks;4]) -> Self {
         let mut total = 0;
         let ecCodewords = ecBlocks[0].getECCodewordsPerBlock();
         let ecbArray = ecBlocks[0].getECBlocks();
@@ -68,8 +70,28 @@ impl Version {
         Self {
             versionNumber,
             alignmentPatternCenters,
+            ecBlocks: ecBlocks.to_vec(),
+            totalCodewords: total,
+            is_micro: false
+        }
+    }
+
+    fn new_micro(versionNumber: u32, ecBlocks: Vec<ECBlocks>) -> Self {
+        let mut total = 0;
+        let ecCodewords = ecBlocks[0].getECCodewordsPerBlock();
+        let ecbArray = ecBlocks[0].getECBlocks();
+        let mut i = 0;
+        while i < ecbArray.len() {
+            total += ecbArray[i].getCount() * (ecbArray[i].getDataCodewords() + ecCodewords);
+            i += 1;
+        }
+
+        Self {
+            versionNumber,
+            alignmentPatternCenters: Vec::default(),
             ecBlocks,
             totalCodewords: total,
+            is_micro: true
         }
     }
 
@@ -181,6 +203,20 @@ impl Version {
         Ok(bitMatrix)
     }
 
+pub fn build_micro_versions() -> Vec<Version> {
+    vec![
+        Version::new_micro(1, vec![ECBlocks::new(2, vec![ECB::new(1,3)])]),
+        Version::new_micro(2, vec![ECBlocks::new(5, vec![ECB::new(1,5)]), ECBlocks::new(6, vec![ECB::new(1,4)])]),
+        Version::new_micro(3, vec![ECBlocks::new(6, vec![ECB::new(1,11)]), ECBlocks::new(8, vec![ECB::new(1,9)])]),
+        Version::new_micro(4, vec![ECBlocks::new(8, vec![ECB::new(1,16)]), ECBlocks::new(10, vec![ECB::new(1,14)]), ECBlocks::new(14, vec![ECB::new(1,10)])]),
+    ]
+    // static const Version allVersions[] = {
+	// 	{1, {2, 1, 3, 0, 0}},
+	// 	{2, {5, 1, 5, 0, 0, 6, 1, 4, 0, 0}},
+	// 	{3, {6, 1, 11, 0, 0, 8, 1, 9, 0, 0}},
+	// 	{4, {8, 1, 16, 0, 0, 10, 1, 14, 0, 0, 14, 1, 10, 0, 0}}};
+}
+
     /**
      * See ISO 18004:2006 6.5.1 Table 9
      */
@@ -189,402 +225,402 @@ impl Version {
             Version::new(
                 1,
                 Vec::from([]),
-                Vec::from([
+                [
                     ECBlocks::new(7, Vec::from([ECB::new(1, 19)])),
                     ECBlocks::new(10, Vec::from([ECB::new(1, 16)])),
                     ECBlocks::new(13, Vec::from([ECB::new(1, 13)])),
                     ECBlocks::new(17, Vec::from([ECB::new(1, 9)])),
-                ]),
+                ],
             ),
             Version::new(
                 2,
                 Vec::from([6, 18]),
-                Vec::from([
+                [
                     ECBlocks::new(10, Vec::from([ECB::new(1, 34)])),
                     ECBlocks::new(16, Vec::from([ECB::new(1, 28)])),
                     ECBlocks::new(22, Vec::from([ECB::new(1, 22)])),
                     ECBlocks::new(28, Vec::from([ECB::new(1, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 3,
                 Vec::from([6, 22]),
-                Vec::from([
+                [
                     ECBlocks::new(15, Vec::from([ECB::new(1, 55)])),
                     ECBlocks::new(26, Vec::from([ECB::new(1, 44)])),
                     ECBlocks::new(18, Vec::from([ECB::new(2, 17)])),
                     ECBlocks::new(22, Vec::from([ECB::new(2, 13)])),
-                ]),
+                ],
             ),
             Version::new(
                 4,
                 Vec::from([6, 26]),
-                Vec::from([
+                [
                     ECBlocks::new(20, Vec::from([ECB::new(1, 80)])),
                     ECBlocks::new(18, Vec::from([ECB::new(2, 32)])),
                     ECBlocks::new(26, Vec::from([ECB::new(2, 24)])),
                     ECBlocks::new(16, Vec::from([ECB::new(4, 9)])),
-                ]),
+                ],
             ),
             Version::new(
                 5,
                 Vec::from([6, 30]),
-                Vec::from([
+                [
                     ECBlocks::new(26, Vec::from([ECB::new(1, 108)])),
                     ECBlocks::new(24, Vec::from([ECB::new(2, 43)])),
                     ECBlocks::new(18, Vec::from([ECB::new(2, 15), ECB::new(2, 16)])),
                     ECBlocks::new(22, Vec::from([ECB::new(2, 11), ECB::new(2, 12)])),
-                ]),
+                ],
             ),
             Version::new(
                 6,
                 Vec::from([6, 34]),
-                Vec::from([
+                [
                     ECBlocks::new(18, Vec::from([ECB::new(2, 68)])),
                     ECBlocks::new(16, Vec::from([ECB::new(4, 27)])),
                     ECBlocks::new(24, Vec::from([ECB::new(4, 19)])),
                     ECBlocks::new(28, Vec::from([ECB::new(4, 15)])),
-                ]),
+                ],
             ),
             Version::new(
                 7,
                 Vec::from([6, 22, 38]),
-                Vec::from([
+                [
                     ECBlocks::new(20, Vec::from([ECB::new(2, 78)])),
                     ECBlocks::new(18, Vec::from([ECB::new(4, 31)])),
                     ECBlocks::new(18, Vec::from([ECB::new(2, 14), ECB::new(4, 15)])),
                     ECBlocks::new(26, Vec::from([ECB::new(4, 13), ECB::new(1, 14)])),
-                ]),
+                ],
             ),
             Version::new(
                 8,
                 Vec::from([6, 24, 42]),
-                Vec::from([
+                [
                     ECBlocks::new(24, Vec::from([ECB::new(2, 97)])),
                     ECBlocks::new(22, Vec::from([ECB::new(2, 38), ECB::new(2, 39)])),
                     ECBlocks::new(22, Vec::from([ECB::new(4, 18), ECB::new(2, 19)])),
                     ECBlocks::new(26, Vec::from([ECB::new(4, 14), ECB::new(2, 15)])),
-                ]),
+                ],
             ),
             Version::new(
                 9,
                 Vec::from([6, 26, 46]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(2, 116)])),
                     ECBlocks::new(22, Vec::from([ECB::new(3, 36), ECB::new(2, 37)])),
                     ECBlocks::new(20, Vec::from([ECB::new(4, 16), ECB::new(4, 17)])),
                     ECBlocks::new(24, Vec::from([ECB::new(4, 12), ECB::new(4, 13)])),
-                ]),
+                ],
             ),
             Version::new(
                 10,
                 Vec::from([6, 28, 50]),
-                Vec::from([
+                [
                     ECBlocks::new(18, Vec::from([ECB::new(2, 68), ECB::new(2, 69)])),
                     ECBlocks::new(26, Vec::from([ECB::new(4, 43), ECB::new(1, 44)])),
                     ECBlocks::new(24, Vec::from([ECB::new(6, 19), ECB::new(2, 20)])),
                     ECBlocks::new(28, Vec::from([ECB::new(6, 15), ECB::new(2, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 11,
                 Vec::from([6, 30, 54]),
-                Vec::from([
+                [
                     ECBlocks::new(20, Vec::from([ECB::new(4, 81)])),
                     ECBlocks::new(30, Vec::from([ECB::new(1, 50), ECB::new(4, 51)])),
                     ECBlocks::new(28, Vec::from([ECB::new(4, 22), ECB::new(4, 23)])),
                     ECBlocks::new(24, Vec::from([ECB::new(3, 12), ECB::new(8, 13)])),
-                ]),
+                ],
             ),
             Version::new(
                 12,
                 Vec::from([6, 32, 58]),
-                Vec::from([
+                [
                     ECBlocks::new(24, Vec::from([ECB::new(2, 92), ECB::new(2, 93)])),
                     ECBlocks::new(22, Vec::from([ECB::new(6, 36), ECB::new(2, 37)])),
                     ECBlocks::new(26, Vec::from([ECB::new(4, 20), ECB::new(6, 21)])),
                     ECBlocks::new(28, Vec::from([ECB::new(7, 14), ECB::new(4, 15)])),
-                ]),
+                ],
             ),
             Version::new(
                 13,
                 Vec::from([6, 34, 62]),
-                Vec::from([
+                [
                     ECBlocks::new(26, Vec::from([ECB::new(4, 107)])),
                     ECBlocks::new(22, Vec::from([ECB::new(8, 37), ECB::new(1, 38)])),
                     ECBlocks::new(24, Vec::from([ECB::new(8, 20), ECB::new(4, 21)])),
                     ECBlocks::new(22, Vec::from([ECB::new(12, 11), ECB::new(4, 12)])),
-                ]),
+                ],
             ),
             Version::new(
                 14,
                 Vec::from([6, 26, 46, 66]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(3, 115), ECB::new(1, 116)])),
                     ECBlocks::new(24, Vec::from([ECB::new(4, 40), ECB::new(5, 41)])),
                     ECBlocks::new(20, Vec::from([ECB::new(11, 16), ECB::new(5, 17)])),
                     ECBlocks::new(24, Vec::from([ECB::new(11, 12), ECB::new(5, 13)])),
-                ]),
+                ],
             ),
             Version::new(
                 15,
                 Vec::from([6, 26, 48, 70]),
-                Vec::from([
+                [
                     ECBlocks::new(22, Vec::from([ECB::new(5, 87), ECB::new(1, 88)])),
                     ECBlocks::new(24, Vec::from([ECB::new(5, 41), ECB::new(5, 42)])),
                     ECBlocks::new(30, Vec::from([ECB::new(5, 24), ECB::new(7, 25)])),
                     ECBlocks::new(24, Vec::from([ECB::new(11, 12), ECB::new(7, 13)])),
-                ]),
+                ],
             ),
             Version::new(
                 16,
                 Vec::from([6, 26, 50, 74]),
-                Vec::from([
+                [
                     ECBlocks::new(24, Vec::from([ECB::new(5, 98), ECB::new(1, 99)])),
                     ECBlocks::new(28, Vec::from([ECB::new(7, 45), ECB::new(3, 46)])),
                     ECBlocks::new(24, Vec::from([ECB::new(15, 19), ECB::new(2, 20)])),
                     ECBlocks::new(30, Vec::from([ECB::new(3, 15), ECB::new(13, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 17,
                 Vec::from([6, 30, 54, 78]),
-                Vec::from([
+                [
                     ECBlocks::new(28, Vec::from([ECB::new(1, 107), ECB::new(5, 108)])),
                     ECBlocks::new(28, Vec::from([ECB::new(10, 46), ECB::new(1, 47)])),
                     ECBlocks::new(28, Vec::from([ECB::new(1, 22), ECB::new(15, 23)])),
                     ECBlocks::new(28, Vec::from([ECB::new(2, 14), ECB::new(17, 15)])),
-                ]),
+                ],
             ),
             Version::new(
                 18,
                 Vec::from([6, 30, 56, 82]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(5, 120), ECB::new(1, 121)])),
                     ECBlocks::new(26, Vec::from([ECB::new(9, 43), ECB::new(4, 44)])),
                     ECBlocks::new(28, Vec::from([ECB::new(17, 22), ECB::new(1, 23)])),
                     ECBlocks::new(28, Vec::from([ECB::new(2, 14), ECB::new(19, 15)])),
-                ]),
+                ],
             ),
             Version::new(
                 19,
                 Vec::from([6, 30, 58, 86]),
-                Vec::from([
+                [
                     ECBlocks::new(28, Vec::from([ECB::new(3, 113), ECB::new(4, 114)])),
                     ECBlocks::new(26, Vec::from([ECB::new(3, 44), ECB::new(11, 45)])),
                     ECBlocks::new(26, Vec::from([ECB::new(17, 21), ECB::new(4, 22)])),
                     ECBlocks::new(26, Vec::from([ECB::new(9, 13), ECB::new(16, 14)])),
-                ]),
+                ],
             ),
             Version::new(
                 20,
                 Vec::from([6, 34, 62, 90]),
-                Vec::from([
+                [
                     ECBlocks::new(28, Vec::from([ECB::new(3, 107), ECB::new(5, 108)])),
                     ECBlocks::new(26, Vec::from([ECB::new(3, 41), ECB::new(13, 42)])),
                     ECBlocks::new(30, Vec::from([ECB::new(15, 24), ECB::new(5, 25)])),
                     ECBlocks::new(28, Vec::from([ECB::new(15, 15), ECB::new(10, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 21,
                 Vec::from([6, 28, 50, 72, 94]),
-                Vec::from([
+                [
                     ECBlocks::new(28, Vec::from([ECB::new(4, 116), ECB::new(4, 117)])),
                     ECBlocks::new(26, Vec::from([ECB::new(17, 42)])),
                     ECBlocks::new(28, Vec::from([ECB::new(17, 22), ECB::new(6, 23)])),
                     ECBlocks::new(30, Vec::from([ECB::new(19, 16), ECB::new(6, 17)])),
-                ]),
+                ],
             ),
             Version::new(
                 22,
                 Vec::from([6, 26, 50, 74, 98]),
-                Vec::from([
+                [
                     ECBlocks::new(28, Vec::from([ECB::new(2, 111), ECB::new(7, 112)])),
                     ECBlocks::new(28, Vec::from([ECB::new(17, 46)])),
                     ECBlocks::new(30, Vec::from([ECB::new(7, 24), ECB::new(16, 25)])),
                     ECBlocks::new(24, Vec::from([ECB::new(34, 13)])),
-                ]),
+                ],
             ),
             Version::new(
                 23,
                 Vec::from([6, 30, 54, 78, 102]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(4, 121), ECB::new(5, 122)])),
                     ECBlocks::new(28, Vec::from([ECB::new(4, 47), ECB::new(14, 48)])),
                     ECBlocks::new(30, Vec::from([ECB::new(11, 24), ECB::new(14, 25)])),
                     ECBlocks::new(30, Vec::from([ECB::new(16, 15), ECB::new(14, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 24,
                 Vec::from([6, 28, 54, 80, 106]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(6, 117), ECB::new(4, 118)])),
                     ECBlocks::new(28, Vec::from([ECB::new(6, 45), ECB::new(14, 46)])),
                     ECBlocks::new(30, Vec::from([ECB::new(11, 24), ECB::new(16, 25)])),
                     ECBlocks::new(30, Vec::from([ECB::new(30, 16), ECB::new(2, 17)])),
-                ]),
+                ],
             ),
             Version::new(
                 25,
                 Vec::from([6, 32, 58, 84, 110]),
-                Vec::from([
+                [
                     ECBlocks::new(26, Vec::from([ECB::new(8, 106), ECB::new(4, 107)])),
                     ECBlocks::new(28, Vec::from([ECB::new(8, 47), ECB::new(13, 48)])),
                     ECBlocks::new(30, Vec::from([ECB::new(7, 24), ECB::new(22, 25)])),
                     ECBlocks::new(30, Vec::from([ECB::new(22, 15), ECB::new(13, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 26,
                 Vec::from([6, 30, 58, 86, 114]),
-                Vec::from([
+                [
                     ECBlocks::new(28, Vec::from([ECB::new(10, 114), ECB::new(2, 115)])),
                     ECBlocks::new(28, Vec::from([ECB::new(19, 46), ECB::new(4, 47)])),
                     ECBlocks::new(28, Vec::from([ECB::new(28, 22), ECB::new(6, 23)])),
                     ECBlocks::new(30, Vec::from([ECB::new(33, 16), ECB::new(4, 17)])),
-                ]),
+                ],
             ),
             Version::new(
                 27,
                 Vec::from([6, 34, 62, 90, 118]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(8, 122), ECB::new(4, 123)])),
                     ECBlocks::new(28, Vec::from([ECB::new(22, 45), ECB::new(3, 46)])),
                     ECBlocks::new(30, Vec::from([ECB::new(8, 23), ECB::new(26, 24)])),
                     ECBlocks::new(30, Vec::from([ECB::new(12, 15), ECB::new(28, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 28,
                 Vec::from([6, 26, 50, 74, 98, 122]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(3, 117), ECB::new(10, 118)])),
                     ECBlocks::new(28, Vec::from([ECB::new(3, 45), ECB::new(23, 46)])),
                     ECBlocks::new(30, Vec::from([ECB::new(4, 24), ECB::new(31, 25)])),
                     ECBlocks::new(30, Vec::from([ECB::new(11, 15), ECB::new(31, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 29,
                 Vec::from([6, 30, 54, 78, 102, 126]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(7, 116), ECB::new(7, 117)])),
                     ECBlocks::new(28, Vec::from([ECB::new(21, 45), ECB::new(7, 46)])),
                     ECBlocks::new(30, Vec::from([ECB::new(1, 23), ECB::new(37, 24)])),
                     ECBlocks::new(30, Vec::from([ECB::new(19, 15), ECB::new(26, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 30,
                 Vec::from([6, 26, 52, 78, 104, 130]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(5, 115), ECB::new(10, 116)])),
                     ECBlocks::new(28, Vec::from([ECB::new(19, 47), ECB::new(10, 48)])),
                     ECBlocks::new(30, Vec::from([ECB::new(15, 24), ECB::new(25, 25)])),
                     ECBlocks::new(30, Vec::from([ECB::new(23, 15), ECB::new(25, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 31,
                 Vec::from([6, 30, 56, 82, 108, 134]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(13, 115), ECB::new(3, 116)])),
                     ECBlocks::new(28, Vec::from([ECB::new(2, 46), ECB::new(29, 47)])),
                     ECBlocks::new(30, Vec::from([ECB::new(42, 24), ECB::new(1, 25)])),
                     ECBlocks::new(30, Vec::from([ECB::new(23, 15), ECB::new(28, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 32,
                 Vec::from([6, 34, 60, 86, 112, 138]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(17, 115)])),
                     ECBlocks::new(28, Vec::from([ECB::new(10, 46), ECB::new(23, 47)])),
                     ECBlocks::new(30, Vec::from([ECB::new(10, 24), ECB::new(35, 25)])),
                     ECBlocks::new(30, Vec::from([ECB::new(19, 15), ECB::new(35, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 33,
                 Vec::from([6, 30, 58, 86, 114, 142]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(17, 115), ECB::new(1, 116)])),
                     ECBlocks::new(28, Vec::from([ECB::new(14, 46), ECB::new(21, 47)])),
                     ECBlocks::new(30, Vec::from([ECB::new(29, 24), ECB::new(19, 25)])),
                     ECBlocks::new(30, Vec::from([ECB::new(11, 15), ECB::new(46, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 34,
                 Vec::from([6, 34, 62, 90, 118, 146]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(13, 115), ECB::new(6, 116)])),
                     ECBlocks::new(28, Vec::from([ECB::new(14, 46), ECB::new(23, 47)])),
                     ECBlocks::new(30, Vec::from([ECB::new(44, 24), ECB::new(7, 25)])),
                     ECBlocks::new(30, Vec::from([ECB::new(59, 16), ECB::new(1, 17)])),
-                ]),
+                ],
             ),
             Version::new(
                 35,
                 Vec::from([6, 30, 54, 78, 102, 126, 150]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(12, 121), ECB::new(7, 122)])),
                     ECBlocks::new(28, Vec::from([ECB::new(12, 47), ECB::new(26, 48)])),
                     ECBlocks::new(30, Vec::from([ECB::new(39, 24), ECB::new(14, 25)])),
                     ECBlocks::new(30, Vec::from([ECB::new(22, 15), ECB::new(41, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 36,
                 Vec::from([6, 24, 50, 76, 102, 128, 154]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(6, 121), ECB::new(14, 122)])),
                     ECBlocks::new(28, Vec::from([ECB::new(6, 47), ECB::new(34, 48)])),
                     ECBlocks::new(30, Vec::from([ECB::new(46, 24), ECB::new(10, 25)])),
                     ECBlocks::new(30, Vec::from([ECB::new(2, 15), ECB::new(64, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 37,
                 Vec::from([6, 28, 54, 80, 106, 132, 158]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(17, 122), ECB::new(4, 123)])),
                     ECBlocks::new(28, Vec::from([ECB::new(29, 46), ECB::new(14, 47)])),
                     ECBlocks::new(30, Vec::from([ECB::new(49, 24), ECB::new(10, 25)])),
                     ECBlocks::new(30, Vec::from([ECB::new(24, 15), ECB::new(46, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 38,
                 Vec::from([6, 32, 58, 84, 110, 136, 162]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(4, 122), ECB::new(18, 123)])),
                     ECBlocks::new(28, Vec::from([ECB::new(13, 46), ECB::new(32, 47)])),
                     ECBlocks::new(30, Vec::from([ECB::new(48, 24), ECB::new(14, 25)])),
                     ECBlocks::new(30, Vec::from([ECB::new(42, 15), ECB::new(32, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 39,
                 Vec::from([6, 26, 54, 82, 110, 138, 166]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(20, 117), ECB::new(4, 118)])),
                     ECBlocks::new(28, Vec::from([ECB::new(40, 47), ECB::new(7, 48)])),
                     ECBlocks::new(30, Vec::from([ECB::new(43, 24), ECB::new(22, 25)])),
                     ECBlocks::new(30, Vec::from([ECB::new(10, 15), ECB::new(67, 16)])),
-                ]),
+                ],
             ),
             Version::new(
                 40,
                 Vec::from([6, 30, 58, 86, 114, 142, 170]),
-                Vec::from([
+                [
                     ECBlocks::new(30, Vec::from([ECB::new(19, 118), ECB::new(6, 119)])),
                     ECBlocks::new(28, Vec::from([ECB::new(18, 47), ECB::new(31, 48)])),
                     ECBlocks::new(30, Vec::from([ECB::new(34, 24), ECB::new(34, 25)])),
                     ECBlocks::new(30, Vec::from([ECB::new(20, 15), ECB::new(61, 16)])),
-                ]),
+                ],
             ),
         ]) /*
                new Version(4, new int[]{6, 26},
@@ -916,7 +952,7 @@ impl fmt::Display for Version {
  * each set of blocks. It also holds the number of error-correction codewords per block since it
  * will be the same across all blocks within one version.</p>
  */
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ECBlocks {
     ecCodewordsPerBlock: u32,
     ecBlocks: Vec<ECB>,
@@ -956,7 +992,7 @@ impl ECBlocks {
  * This includes the number of data codewords, and the number of times a block with these
  * parameters is used consecutively in the QR code version's format.</p>
  */
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct ECB {
     count: u32,
     dataCodewords: u32,
