@@ -57,7 +57,7 @@ pub struct Version {
     pub(crate) is_micro: bool,
 }
 impl Version {
-    fn new(versionNumber: u32, alignmentPatternCenters: Vec<u32>, ecBlocks: [ECBlocks;4]) -> Self {
+    fn new(versionNumber: u32, alignmentPatternCenters: Vec<u32>, ecBlocks: [ECBlocks; 4]) -> Self {
         let mut total = 0;
         let ecCodewords = ecBlocks[0].getECCodewordsPerBlock();
         let ecbArray = ecBlocks[0].getECBlocks();
@@ -72,7 +72,7 @@ impl Version {
             alignmentPatternCenters,
             ecBlocks: ecBlocks.to_vec(),
             totalCodewords: total,
-            is_micro: false
+            is_micro: false,
         }
     }
 
@@ -91,11 +91,11 @@ impl Version {
             alignmentPatternCenters: Vec::default(),
             ecBlocks,
             totalCodewords: total,
-            is_micro: true
+            is_micro: true,
         }
     }
 
-    pub fn getVersionNumber(&self) -> u32 {
+    pub const fn getVersionNumber(&self) -> u32 {
         self.versionNumber
     }
 
@@ -203,19 +203,38 @@ impl Version {
         Ok(bitMatrix)
     }
 
-pub fn build_micro_versions() -> Vec<Version> {
-    vec![
-        Version::new_micro(1, vec![ECBlocks::new(2, vec![ECB::new(1,3)])]),
-        Version::new_micro(2, vec![ECBlocks::new(5, vec![ECB::new(1,5)]), ECBlocks::new(6, vec![ECB::new(1,4)])]),
-        Version::new_micro(3, vec![ECBlocks::new(6, vec![ECB::new(1,11)]), ECBlocks::new(8, vec![ECB::new(1,9)])]),
-        Version::new_micro(4, vec![ECBlocks::new(8, vec![ECB::new(1,16)]), ECBlocks::new(10, vec![ECB::new(1,14)]), ECBlocks::new(14, vec![ECB::new(1,10)])]),
-    ]
-    // static const Version allVersions[] = {
-	// 	{1, {2, 1, 3, 0, 0}},
-	// 	{2, {5, 1, 5, 0, 0, 6, 1, 4, 0, 0}},
-	// 	{3, {6, 1, 11, 0, 0, 8, 1, 9, 0, 0}},
-	// 	{4, {8, 1, 16, 0, 0, 10, 1, 14, 0, 0, 14, 1, 10, 0, 0}}};
-}
+    pub fn build_micro_versions() -> Vec<Version> {
+        vec![
+            Version::new_micro(1, vec![ECBlocks::new(2, vec![ECB::new(1, 3)])]),
+            Version::new_micro(
+                2,
+                vec![
+                    ECBlocks::new(5, vec![ECB::new(1, 5)]),
+                    ECBlocks::new(6, vec![ECB::new(1, 4)]),
+                ],
+            ),
+            Version::new_micro(
+                3,
+                vec![
+                    ECBlocks::new(6, vec![ECB::new(1, 11)]),
+                    ECBlocks::new(8, vec![ECB::new(1, 9)]),
+                ],
+            ),
+            Version::new_micro(
+                4,
+                vec![
+                    ECBlocks::new(8, vec![ECB::new(1, 16)]),
+                    ECBlocks::new(10, vec![ECB::new(1, 14)]),
+                    ECBlocks::new(14, vec![ECB::new(1, 10)]),
+                ],
+            ),
+        ]
+        // static const Version allVersions[] = {
+        // 	{1, {2, 1, 3, 0, 0}},
+        // 	{2, {5, 1, 5, 0, 0, 6, 1, 4, 0, 0}},
+        // 	{3, {6, 1, 11, 0, 0, 8, 1, 9, 0, 0}},
+        // 	{4, {8, 1, 16, 0, 0, 10, 1, 14, 0, 0, 14, 1, 10, 0, 0}}};
+    }
 
     /**
      * See ISO 18004:2006 6.5.1 Table 9

@@ -306,7 +306,7 @@ pub fn DecodeBitStream(
                 mode = Mode::CodecModeForBits(
                     bits.readBits(modeBitLength as usize)?,
                     Some(version.isMicroQRCode()),
-                );
+                )?;
             }
 
             match (mode) {

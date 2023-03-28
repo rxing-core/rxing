@@ -123,10 +123,18 @@ impl Mode {
     }
 
     pub const fn get_terminator_bit_length(version: &Version) -> u8 {
-        todo!()
+        (if version.isMicroQRCode() {
+            version.getVersionNumber() * 2 + 1
+        } else {
+            4
+        }) as u8
     }
     pub const fn get_codec_mode_bits_length(version: &Version) -> u8 {
-        todo!()
+        (if version.isMicroQRCode() {
+            version.getVersionNumber() - 1
+        } else {
+            4
+        }) as u8
     }
     /**
      * @param bits variable number of bits encoding a QR Code data mode
@@ -134,9 +142,23 @@ impl Mode {
      * @return Mode encoded by these bits
      * @throws FormatError if bits do not correspond to a known mode
      */
-    pub fn CodecModeForBits(bits: u32, isMicro: Option<bool>) -> Self {
+    pub fn CodecModeForBits(bits: u32, isMicro: Option<bool>) -> Result<Self> {
         let isMicro = isMicro.unwrap_or(false);
-        todo!()
+        const BITS_2_MODE_LEN: usize = 4;
+
+        if (!isMicro) {
+            if ((bits >= 0x00 && bits <= 0x05) || (bits >= 0x07 && bits <= 0x09) || bits == 0x0d) {
+                return Mode::try_from(bits);
+            }
+        } else {
+            const Bits2Mode: [Mode; BITS_2_MODE_LEN] =
+                [Mode::NUMERIC, Mode::ALPHANUMERIC, Mode::BYTE, Mode::KANJI];
+            if ((bits as usize) < BITS_2_MODE_LEN) {
+                return Ok(Bits2Mode[bits as usize]);
+            }
+        }
+
+        Err(Exceptions::format_with("Invalid codec mode"))
     }
 
     /**
@@ -160,5 +182,13 @@ impl TryFrom<u8> for Mode {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         Self::forBits(value)
+    }
+}
+
+impl TryFrom<u32> for Mode {
+    type Error = Exceptions;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        Self::forBits(value as u8)
     }
 }

@@ -47,12 +47,14 @@ where
         Self::default()
     }
     pub fn with_eci_string_builder(src: ECIStringBuilder) -> Self {
-        todo!()
+        let mut new_self = Self::default();
+        new_self.content = src;
+        new_self
     }
 
     pub fn isValid(&self) -> bool {
+        self.content.symbology.code != 0
         //return includeErrors || (_content.symbology.code != 0 && !_error);
-        todo!()
     }
 
     pub fn content(&self) -> &ECIStringBuilder {

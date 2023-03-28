@@ -66,7 +66,7 @@ impl Version {
         return Err(Exceptions::ILLEGAL_STATE);
     }
 
-    pub fn isMicroQRCode(&self) -> bool {
+    pub const fn isMicroQRCode(&self) -> bool {
         self.is_micro
     }
 }
