@@ -448,7 +448,7 @@ pub fn ReadVersion(
     Version::DecodeVersionInformation(bits[0], bits[1])
 }
 
-fn AppendBit(val: &mut i32, bit: bool) {
+pub fn AppendBit(val: &mut i32, bit: bool) {
     *val <<= 1;
 
     *val |= i32::from(bit)

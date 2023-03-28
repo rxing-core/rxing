@@ -10,6 +10,8 @@ use crate::{
     Exceptions,
 };
 
+use super::detector::AppendBit;
+
 pub fn getBit(bitMatrix: &BitMatrix, x: u32, y: u32, mirrored: Option<bool>) -> bool {
     let mirrored = mirrored.unwrap_or(false);
     if mirrored {
@@ -29,27 +31,33 @@ pub fn hasValidDimension(bitMatrix: &BitMatrix, isMicro: bool) -> bool {
 }
 
 pub fn ReadVersion(bitMatrix: &BitMatrix) -> Result<VersionRef> {
-    todo!()
-    // int dimension = bitMatrix.height();
+    let dimension = bitMatrix.height();
 
-    // const Version* version = Version::FromDimension(dimension);
+    let mut version = Version::FromDimension(dimension)?;
 
-    // if (!version || version->versionNumber() < 7)
-    // 	return version;
+    if (version.getVersionNumber() < 7) {
+        return Ok(version);
+    }
 
-    // for (bool mirror : {false, true}) {
-    // 	// Read top-right/bottom-left version info: 3 wide by 6 tall (depending on mirrored)
-    // 	int versionBits = 0;
-    // 	for (int y = 5; y >= 0; --y)
-    // 		for (int x = dimension - 9; x >= dimension - 11; --x)
-    // 			AppendBit(versionBits, getBit(bitMatrix, x, y, mirror));
+    for mirror in [false, true] {
+        // for (bool mirror : {false, true}) {
+        // Read top-right/bottom-left version info: 3 wide by 6 tall (depending on mirrored)
+        let mut versionBits = 0;
+        for y in (0..=5).rev() {
+            // for (int y = 5; y >= 0; --y) {
+            for x in ((dimension - 11)..=(dimension - 9)).rev() {
+                // for (int x = dimension - 9; x >= dimension - 11; --x) {
+                AppendBit(&mut versionBits, getBit(bitMatrix, x, y, Some(mirror)));
+            }
+        }
 
-    // 	version = Version::DecodeVersionInformation(versionBits);
-    // 	if (version && version->dimension() == dimension)
-    // 		return version;
-    // }
+        version = Version::DecodeVersionInformation(versionBits, 0)?; // THIS MIGHT BE WRONG todo!()
+        if (version.getDimensionForVersion() == dimension) {
+            return Ok(version);
+        }
+    }
 
-    // return nullptr;
+    return Err(Exceptions::FORMAT);
 }
 
 pub fn ReadFormatInformation(bitMatrix: &BitMatrix, isMicro: bool) -> Result<FormatInformation> {

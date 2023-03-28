@@ -167,7 +167,34 @@ impl Mode {
      *         count of characters that will follow encoded in this Mode
      */
     pub fn CharacterCountBits(&self, version: &Version) -> u32 {
-        todo!()
+        let number = version.getVersionNumber() as usize;
+        if (version.isMicroQRCode()) {
+            match (self) {
+		 Mode::NUMERIC=>      return [3, 4, 5, 6][number - 1],
+		 Mode::ALPHANUMERIC=> return [3, 4, 5][number - 2],
+		 Mode::BYTE=>         return [4, 5][number - 3],
+		 Mode::KANJI | //=>        [[fallthrough]],
+		 Mode::HANZI=>        return [3, 4][number - 3],
+		_=> return 0,
+		}
+        }
+
+        let i = if (number <= 9) {
+            0
+        } else if (number <= 26) {
+            1
+        } else {
+            2
+        };
+
+        match (self) {
+	 Mode::NUMERIC=>      return [10, 12, 14][i],
+	 Mode::ALPHANUMERIC=> return [9, 11, 13][i],
+	 Mode::BYTE=>         return [8, 16, 16][i],
+	 Mode::KANJI|    //    [[fallthrough]];
+	 Mode::HANZI=>        return [8, 10, 12][i],
+	_=>                     return 0,
+	}
     }
 }
 

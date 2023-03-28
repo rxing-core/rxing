@@ -16,6 +16,16 @@ use crate::Exceptions;
 // }
 
 impl Version {
+    pub fn FromDimension(dimension: u32) -> Result<VersionRef> {
+        todo!()
+        // bool isMicro = dimension < 21;
+        // if (dimension % DimensionStep(isMicro) != 1) {
+        // 	//throw std::invalid_argument("Unexpected dimension");
+        // 	return nullptr;
+        // }
+        // return FromNumber((dimension - DimensionOffset(isMicro)) / DimensionStep(isMicro), isMicro);
+    }
+
     pub fn DimensionOfVersion(version: u32, is_micro: bool) -> u32 {
         Self::DimensionOffset(is_micro) + Self::DimensionStep(is_micro) * version
     }
