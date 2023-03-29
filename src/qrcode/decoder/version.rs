@@ -27,8 +27,8 @@ use once_cell::sync::Lazy;
 
 pub type VersionRef = &'static Version;
 
-static VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::buildVersions);
-static MICRO_VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::build_micro_versions);
+pub static VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::buildVersions);
+pub static MICRO_VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::build_micro_versions);
 
 /**
  * See ISO 18004:2006 Annex D.

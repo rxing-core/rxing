@@ -2,9 +2,9 @@ use crate::qrcode::decoder::FormatInformation;
 
 impl FormatInformation {
     /**
-    * @param formatInfoBits1 format info indicator, with mask still applied
-    * @param formatInfoBits2 second copy of same info; both are checked at the same time to establish best match
-    */
+     * @param formatInfoBits1 format info indicator, with mask still applied
+     * @param formatInfoBits2 second copy of same info; both are checked at the same time to establish best match
+     */
     pub fn DecodeQR(formatInfoBits1: u32, formatInfoBits2: u32) -> Self {
         todo!()
         // // maks out the 'Dark Module' for mirrored and non-mirrored case (see Figure 25 in ISO/IEC 18004:2015)

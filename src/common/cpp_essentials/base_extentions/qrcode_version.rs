@@ -1,5 +1,5 @@
 use crate::common::Result;
-use crate::qrcode::decoder::{Version, VersionRef, VERSION_DECODE_INFO};
+use crate::qrcode::decoder::{Version, VersionRef, MICRO_VERSIONS, VERSIONS, VERSION_DECODE_INFO};
 use crate::Exceptions;
 
 // const Version* Version::AllMicroVersions()
@@ -17,13 +17,28 @@ use crate::Exceptions;
 
 impl Version {
     pub fn FromDimension(dimension: u32) -> Result<VersionRef> {
-        todo!()
-        // bool isMicro = dimension < 21;
-        // if (dimension % DimensionStep(isMicro) != 1) {
-        // 	//throw std::invalid_argument("Unexpected dimension");
-        // 	return nullptr;
-        // }
-        // return FromNumber((dimension - DimensionOffset(isMicro)) / DimensionStep(isMicro), isMicro);
+        let isMicro = dimension < 21;
+        if (dimension % Self::DimensionStep(isMicro) != 1) {
+            //throw std::invalid_argument("Unexpected dimension");
+            return Err(Exceptions::ILLEGAL_ARGUMENT);
+        }
+        return Self::FromNumber(
+            (dimension - Self::DimensionOffset(isMicro)) / Self::DimensionStep(isMicro),
+            isMicro,
+        );
+    }
+
+    pub fn FromNumber(versionNumber: u32, is_micro: bool) -> Result<VersionRef> {
+        if (versionNumber < 1 || versionNumber > (if is_micro { 4 } else { 40 })) {
+            //throw std::invalid_argument("Version should be in range [1-40].");
+            return Err(Exceptions::ILLEGAL_ARGUMENT);
+        }
+
+        Ok(if is_micro {
+            &MICRO_VERSIONS[versionNumber as usize - 1]
+        } else {
+            &VERSIONS[versionNumber as usize - 1]
+        })
     }
 
     pub fn DimensionOfVersion(version: u32, is_micro: bool) -> u32 {
