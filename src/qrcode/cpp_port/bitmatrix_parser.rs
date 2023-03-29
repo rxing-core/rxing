@@ -61,44 +61,59 @@ pub fn ReadVersion(bitMatrix: &BitMatrix) -> Result<VersionRef> {
 }
 
 pub fn ReadFormatInformation(bitMatrix: &BitMatrix, isMicro: bool) -> Result<FormatInformation> {
-    todo!()
-    // if (!hasValidDimension(bitMatrix, isMicro))
-    // 	return {};
+    if (!hasValidDimension(bitMatrix, isMicro)) {
+        return Err(Exceptions::FORMAT);
+    }
 
-    // if (isMicro) {
-    // 	// Read top-left format info bits
-    // 	int formatInfoBits = 0;
-    // 	for (int x = 1; x < 9; x++)
-    // 		AppendBit(formatInfoBits, getBit(bitMatrix, x, 8));
-    // 	for (int y = 7; y >= 1; y--)
-    // 		AppendBit(formatInfoBits, getBit(bitMatrix, 8, y));
+    if (isMicro) {
+        // Read top-left format info bits
+        let mut formatInfoBits = 0;
+        for x in 1..9 {
+            // for (int x = 1; x < 9; x++)
+            AppendBit(&mut formatInfoBits, getBit(bitMatrix, x, 8, None));
+        }
+        for y in (1..=7).rev() {
+            // for (int y = 7; y >= 1; y--)
+            AppendBit(&mut formatInfoBits, getBit(bitMatrix, 8, y, None));
+        }
 
-    // 	return FormatInformation::DecodeMQR(formatInfoBits);
-    // }
+        return Ok(FormatInformation::DecodeMQR(formatInfoBits as u32));
+    }
 
-    // // Read top-left format info bits
-    // int formatInfoBits1 = 0;
-    // for (int x = 0; x < 6; x++)
-    // 	AppendBit(formatInfoBits1, getBit(bitMatrix, x, 8));
-    // // .. and skip a bit in the timing pattern ...
-    // AppendBit(formatInfoBits1, getBit(bitMatrix, 7, 8));
-    // AppendBit(formatInfoBits1, getBit(bitMatrix, 8, 8));
-    // AppendBit(formatInfoBits1, getBit(bitMatrix, 8, 7));
-    // // .. and skip a bit in the timing pattern ...
-    // for (int y = 5; y >= 0; y--)
-    // 	AppendBit(formatInfoBits1, getBit(bitMatrix, 8, y));
+    // Read top-left format info bits
+    let mut formatInfoBits1 = 0;
+    for x in 0..6 {
+        // for (int x = 0; x < 6; x++)
+        AppendBit(&mut formatInfoBits1, getBit(bitMatrix, x, 8, None));
+    }
+    // .. and skip a bit in the timing pattern ...
+    AppendBit(&mut formatInfoBits1, getBit(bitMatrix, 7, 8, None));
+    AppendBit(&mut formatInfoBits1, getBit(bitMatrix, 8, 8, None));
+    AppendBit(&mut formatInfoBits1, getBit(bitMatrix, 8, 7, None));
+    // .. and skip a bit in the timing pattern ...
+    for y in (0..=6).rev() {
+        // for (int y = 5; y >= 0; y--)
+        AppendBit(&mut formatInfoBits1, getBit(bitMatrix, 8, y, None));
+    }
 
-    // // Read the top-right/bottom-left pattern including the 'Dark Module' from the bottom-left
-    // // part that has to be considered separately when looking for mirrored symbols.
-    // // See also FormatInformation::DecodeQR
-    // int dimension = bitMatrix.height();
-    // int formatInfoBits2 = 0;
-    // for (int y = dimension - 1; y >= dimension - 8; y--)
-    // 	AppendBit(formatInfoBits2, getBit(bitMatrix, 8, y));
-    // for (int x = dimension - 8; x < dimension; x++)
-    // 	AppendBit(formatInfoBits2, getBit(bitMatrix, x, 8));
+    // Read the top-right/bottom-left pattern including the 'Dark Module' from the bottom-left
+    // part that has to be considered separately when looking for mirrored symbols.
+    // See also FormatInformation::DecodeQR
+    let dimension = bitMatrix.height();
+    let mut formatInfoBits2 = 0;
+    for y in ((dimension - 8)..=(dimension - 1)).rev() {
+        // for (int y = dimension - 1; y >= dimension - 8; y--)
+        AppendBit(&mut formatInfoBits2, getBit(bitMatrix, 8, y, None));
+    }
+    for x in (dimension - 8)..dimension {
+        // for (int x = dimension - 8; x < dimension; x++)
+        AppendBit(&mut formatInfoBits2, getBit(bitMatrix, x, 8, None));
+    }
 
-    // return FormatInformation::DecodeQR(formatInfoBits1, formatInfoBits2);
+    return Ok(FormatInformation::DecodeQR(
+        formatInfoBits1 as u32,
+        formatInfoBits2 as u32,
+    ));
 }
 
 pub fn ReadQRCodewords(
