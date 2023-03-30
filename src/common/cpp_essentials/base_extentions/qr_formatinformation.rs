@@ -24,7 +24,7 @@ impl FormatInformation {
     pub fn DecodeMQR(formatInfoBits: u32) -> Self {
         todo!()
         // // We don't use the additional masking (with 0x4445) to work around potentially non complying MicroQRCode encoders
-        // auto fi = FindBestFormatInfo(0, FORMAT_INFO_DECODE_LOOKUP_MICRO, {formatInfoBits, MirrorBits(formatInfoBits)});
+        // let fi = FindBestFormatInfo(0, FORMAT_INFO_DECODE_LOOKUP_MICRO, {formatInfoBits, MirrorBits(formatInfoBits)});
 
         // constexpr uint8_t BITS_TO_VERSION[] = {1, 2, 2, 3, 3, 4, 4, 4};
 
@@ -33,6 +33,30 @@ impl FormatInformation {
         // fi.dataMask = static_cast<uint8_t>(fi.index & 0x03);
         // fi.microVersion = BITS_TO_VERSION[(fi.index >> 2) & 0x07];
         // fi.isMirrored = fi.bitsIndex == 1;
+
+        // return fi;
+    }
+
+    pub fn MirrorBits(bits: u32) -> u32 {
+        todo!()
+        // return BitHacks::Reverse(bits) >> 17;
+    }
+
+    pub fn FindBestFormatInfo(mask: u32, lookup: [(u32, u32); 32], bits: &[u32]) -> Self {
+        todo!()
+        // FormatInformation fi;
+
+        // // Some QR codes apparently do not apply the XOR mask. Try without and with additional masking.
+        // for (auto mask : {0, mask})
+        // 	for (int bitsIndex = 0; bitsIndex < Size(bits); ++bitsIndex)
+        // 		for (const auto& [pattern, index] : lookup) {
+        // 			// Find the int in lookup with fewest bits differing
+        // 			if (int hammingDist = BitHacks::CountBitsSet((bits[bitsIndex] ^ mask) ^ pattern); hammingDist < fi.hammingDistance) {
+        // 				fi.index = index;
+        // 				fi.hammingDistance = hammingDist;
+        // 				fi.bitsIndex = bitsIndex;
+        // 			}
+        // 		}
 
         // return fi;
     }

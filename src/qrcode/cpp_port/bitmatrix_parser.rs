@@ -10,7 +10,7 @@ use crate::{
     Exceptions,
 };
 
-use super::detector::AppendBit;
+use super::{data_mask::GetDataMaskBit, detector::AppendBit};
 
 pub fn getBit(bitMatrix: &BitMatrix, x: u32, y: u32, mirrored: Option<bool>) -> bool {
     let mirrored = mirrored.unwrap_or(false);
@@ -121,42 +121,54 @@ pub fn ReadQRCodewords(
     version: VersionRef,
     formatInfo: &FormatInformation,
 ) -> Result<Vec<u8>> {
-    todo!()
-    // BitMatrix functionPattern = version.buildFunctionPattern();
+    let functionPattern: BitMatrix = version.buildFunctionPattern()?;
 
-    // ByteArray result;
-    // result.reserve(version.totalCodewords());
-    // uint8_t currentByte = 0;
-    // bool readingUp = true;
-    // int bitsRead = 0;
-    // int dimension = bitMatrix.height();
-    // // Read columns in pairs, from right to left
-    // for (int x = dimension - 1; x > 0; x -= 2) {
-    // 	// Skip whole column with vertical timing pattern.
-    // 	if (x == 6)
-    // 		x--;
-    // 	// Read alternatingly from bottom to top then top to bottom
-    // 	for (int row = 0; row < dimension; row++) {
-    // 		int y = readingUp ? dimension - 1 - row : row;
-    // 		for (int col = 0; col < 2; col++) {
-    // 			int xx = x - col;
-    // 			// Ignore bits covered by the function pattern
-    // 			if (!functionPattern.get(xx, y)) {
-    // 				// Read a bit
-    // 				AppendBit(currentByte,
-    // 						  GetDataMaskBit(formatInfo.dataMask, xx, y) != getBit(bitMatrix, xx, y, formatInfo.isMirrored));
-    // 				// If we've made a whole byte, save it off
-    // 				if (++bitsRead % 8 == 0)
-    // 					result.push_back(std::exchange(currentByte, 0));
-    // 			}
-    // 		}
-    // 	}
-    // 	readingUp = !readingUp; // switch directions
-    // }
-    // if (Size(result) != version.totalCodewords())
-    // 	return {};
+    let mut result = Vec::new();
+    result.reserve(version.getTotalCodewords() as usize);
+    let mut currentByte = 0;
+    let mut readingUp = true;
+    let mut bitsRead = 0;
+    let dimension = bitMatrix.height();
+    // Read columns in pairs, from right to left
+    let mut x = dimension - 1;
+    while x > 0 {
+        // for (int x = dimension - 1; x > 0; x -= 2) {
+        // Skip whole column with vertical timing pattern.
+        if (x == 6) {
+            x -= 1;
+        }
+        // Read alternatingly from bottom to top then top to bottom
+        for row in 0..dimension {
+            // for (int row = 0; row < dimension; row++) {
+            let y = if readingUp { dimension - 1 - row } else { row };
+            for col in 0..2 {
+                // for (int col = 0; col < 2; col++) {
+                let xx = x - col;
+                // Ignore bits covered by the function pattern
+                if (!functionPattern.get(xx, y)) {
+                    // Read a bit
+                    AppendBit(
+                        &mut currentByte,
+                        GetDataMaskBit(formatInfo.data_mask as u32, xx, y, None)
+                            != getBit(bitMatrix, xx, y, Some(formatInfo.isMirrored)),
+                    );
+                    // If we've made a whole byte, save it off
+                    bitsRead += 1;
+                    if (bitsRead % 8 == 0) {
+                        result.push(std::mem::take(&mut currentByte));
+                    }
+                }
+            }
+        }
+        readingUp = !readingUp; // switch directions
 
-    // return result;
+        x -= 2;
+    }
+    if ((result.len()) != version.getTotalCodewords() as usize) {
+        return Err(Exceptions::FORMAT);
+    }
+
+    Ok(result.iter().copied().map(|x| x as u8).collect())
 }
 
 pub fn ReadMQRCodewords(
