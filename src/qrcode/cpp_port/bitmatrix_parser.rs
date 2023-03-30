@@ -149,7 +149,7 @@ pub fn ReadQRCodewords(
                     // Read a bit
                     AppendBit(
                         &mut currentByte,
-                        GetDataMaskBit(formatInfo.data_mask as u32, xx, y, None)
+                        GetDataMaskBit(formatInfo.data_mask as u32, xx, y, None)?
                             != getBit(bitMatrix, xx, y, Some(formatInfo.isMirrored)),
                     );
                     // If we've made a whole byte, save it off
@@ -214,7 +214,7 @@ pub fn ReadMQRCodewords(
                     // Read a bit
                     AppendBit(
                         &mut currentByte,
-                        GetDataMaskBit(formatInfo.data_mask as u32, xx, y, Some(true))
+                        GetDataMaskBit(formatInfo.data_mask as u32, xx, y, Some(true))?
                             != getBit(bitMatrix, xx, y, Some(formatInfo.isMirrored)),
                     );
                     bitsRead += 1;
