@@ -18,12 +18,12 @@ use crate::common::Result;
 
 use super::ErrorCorrectionLevel;
 
-const FORMAT_INFO_MASK_QR: u32 = 0x5412;
+pub const FORMAT_INFO_MASK_QR: u32 = 0x5412;
 
 /**
  * See ISO 18004:2006, Annex C, Table C.1
  */
-const FORMAT_INFO_DECODE_LOOKUP: [[u32; 2]; 32] = [
+pub const FORMAT_INFO_DECODE_LOOKUP: [[u32; 2]; 32] = [
     [0x5412, 0x00],
     [0x5125, 0x01],
     [0x5E7C, 0x02],
@@ -73,6 +73,9 @@ pub struct FormatInformation {
     pub data_mask: u8,
     pub microVersion: u32,
     pub isMirrored: bool,
+
+    pub index: u8,     // = 255;
+    pub bitsIndex: u8, // = 255;
 }
 
 impl Default for FormatInformation {
@@ -83,6 +86,8 @@ impl Default for FormatInformation {
             data_mask: Default::default(),
             microVersion: 0,
             isMirrored: false,
+            index: 255,
+            bitsIndex: 255,
         }
     }
 }
@@ -99,6 +104,8 @@ impl FormatInformation {
             error_correction_level: errorCorrectionLevel,
             data_mask: dataMask,
             isMirrored: false,
+            index: 255,
+            bitsIndex: 255,
         })
     }
 
