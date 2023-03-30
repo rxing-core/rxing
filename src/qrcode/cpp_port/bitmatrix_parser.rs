@@ -6,7 +6,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    qrcode::decoder::{FormatInformation, Version, VersionRef},
+    qrcode::decoder::{ErrorCorrectionLevel, FormatInformation, Version, VersionRef},
     Exceptions,
 };
 
@@ -176,49 +176,67 @@ pub fn ReadMQRCodewords(
     version: VersionRef,
     formatInfo: &FormatInformation,
 ) -> Result<Vec<u8>> {
-    todo!()
-    // BitMatrix functionPattern = version.buildFunctionPattern();
+    let functionPattern = version.buildFunctionPattern()?;
 
-    // // D3 in a Version M1 symbol, D11 in a Version M3-L symbol and D9
-    // // in a Version M3-M symbol is a 2x2 square 4-module block.
-    // // See ISO 18004:2006 6.7.3.
-    // bool hasD4mBlock = version.versionNumber() % 2 == 1;
-    // int d4mBlockIndex =
-    // 	version.versionNumber() == 1 ? 3 : (formatInfo.ecLevel == QRCode::ErrorCorrectionLevel::Low ? 11 : 9);
+    // D3 in a Version M1 symbol, D11 in a Version M3-L symbol and D9
+    // in a Version M3-M symbol is a 2x2 square 4-module block.
+    // See ISO 18004:2006 6.7.3.
+    let hasD4mBlock = version.getVersionNumber() % 2 == 1;
+    let d4mBlockIndex = if version.getVersionNumber() == 1 {
+        3
+    } else {
+        (if formatInfo.error_correction_level == ErrorCorrectionLevel::L {
+            11
+        } else {
+            9
+        })
+    };
 
-    // ByteArray result;
-    // result.reserve(version.totalCodewords());
-    // uint8_t currentByte = 0;
-    // bool readingUp = true;
-    // int bitsRead = 0;
-    // int dimension = bitMatrix.height();
-    // // Read columns in pairs, from right to left
-    // for (int x = dimension - 1; x > 0; x -= 2) {
-    // 	// Read alternatingly from bottom to top then top to bottom
-    // 	for (int row = 0; row < dimension; row++) {
-    // 		int y = readingUp ? dimension - 1 - row : row;
-    // 		for (int col = 0; col < 2; col++) {
-    // 			int xx = x - col;
-    // 			// Ignore bits covered by the function pattern
-    // 			if (!functionPattern.get(xx, y)) {
-    // 				// Read a bit
-    // 				AppendBit(currentByte,
-    // 						  GetDataMaskBit(formatInfo.dataMask, xx, y, true) != getBit(bitMatrix, xx, y, formatInfo.isMirrored));
-    // 				++bitsRead;
-    // 				// If we've made a whole byte, save it off; save early if 2x2 data block.
-    // 				if (bitsRead == 8 || (bitsRead == 4 && hasD4mBlock && Size(result) == d4mBlockIndex - 1)) {
-    // 					result.push_back(std::exchange(currentByte, 0));
-    // 					bitsRead = 0;
-    // 				}
-    // 			}
-    // 		}
-    // 	}
-    // 	readingUp = !readingUp; // switch directions
-    // }
-    // if (Size(result) != version.totalCodewords())
-    // 	return {};
+    let mut result = Vec::new();
+    result.reserve(version.getTotalCodewords() as usize);
+    let mut currentByte = 0;
+    let mut readingUp = true;
+    let mut bitsRead = 0;
+    let dimension = bitMatrix.height();
+    // Read columns in pairs, from right to left
+    let mut x = dimension - 1;
+    while x > 0 {
+        // for (int x = dimension - 1; x > 0; x -= 2) {
+        // Read alternatingly from bottom to top then top to bottom
+        for row in 0..dimension {
+            // for (int row = 0; row < dimension; row++) {
+            let y = if readingUp { dimension - 1 - row } else { row };
+            for col in 0..2 {
+                // for (int col = 0; col < 2; col++) {
+                let xx = x - col;
+                // Ignore bits covered by the function pattern
+                if (!functionPattern.get(xx, y)) {
+                    // Read a bit
+                    AppendBit(
+                        &mut currentByte,
+                        GetDataMaskBit(formatInfo.data_mask as u32, xx, y, Some(true))
+                            != getBit(bitMatrix, xx, y, Some(formatInfo.isMirrored)),
+                    );
+                    bitsRead += 1;
+                    // If we've made a whole byte, save it off; save early if 2x2 data block.
+                    if (bitsRead == 8
+                        || (bitsRead == 4 && hasD4mBlock && (result.len()) == d4mBlockIndex - 1))
+                    {
+                        result.push(std::mem::take(&mut currentByte));
+                        bitsRead = 0;
+                    }
+                }
+            }
+        }
+        readingUp = !readingUp; // switch directions
 
-    // return result;
+        x -= 2;
+    }
+    if ((result.len()) != version.getTotalCodewords() as usize) {
+        return Err(Exceptions::FORMAT);
+    }
+
+    Ok(result.iter().copied().map(|x| x as u8).collect())
 }
 
 pub fn ReadCodewords(
