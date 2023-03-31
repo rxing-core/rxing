@@ -4,6 +4,9 @@ pub struct FastEdgeToEdgeCounter {
     // const uint8_t* p = nullptr;
     // int stride = 0;
     // int stepsToBorder = 0;
+    p: usize,
+    stride: usize,        // = 0;
+    stepsToBorder: usize, // = 0;
 }
 
 impl FastEdgeToEdgeCounter {

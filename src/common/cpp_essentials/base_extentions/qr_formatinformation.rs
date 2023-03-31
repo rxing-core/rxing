@@ -92,8 +92,7 @@ impl FormatInformation {
     }
 
     pub fn MirrorBits(bits: u32) -> u32 {
-        todo!()
-        // return BitHacks::Reverse(bits) >> 17;
+        (bits.reverse_bits()) >> 17
     }
 
     pub fn FindBestFormatInfo(mask: u32, lookup: [[u32; 2]; 32], bits: &[u32]) -> Self {
@@ -115,7 +114,8 @@ impl FormatInformation {
         // return fi;
     }
 
+    // Hamming distance of the 32 masked codes is 7, by construction, so <= 3 bits differing means we found a match
     pub fn isValid(&self) -> bool {
-        todo!()
+        self.hammingDistance <= 3
     }
 }
