@@ -91,27 +91,34 @@ impl FormatInformation {
         fi
     }
 
+    #[inline(always)]
     pub fn MirrorBits(bits: u32) -> u32 {
         (bits.reverse_bits()) >> 17
     }
 
     pub fn FindBestFormatInfo(mask: u32, lookup: [[u32; 2]; 32], bits: &[u32]) -> Self {
-        todo!()
-        // FormatInformation fi;
+        let mut fi = FormatInformation::default();
 
-        // // Some QR codes apparently do not apply the XOR mask. Try without and with additional masking.
-        // for (auto mask : {0, mask})
-        // 	for (int bitsIndex = 0; bitsIndex < Size(bits); ++bitsIndex)
-        // 		for (const auto& [pattern, index] : lookup) {
-        // 			// Find the int in lookup with fewest bits differing
-        // 			if (int hammingDist = BitHacks::CountBitsSet((bits[bitsIndex] ^ mask) ^ pattern); hammingDist < fi.hammingDistance) {
-        // 				fi.index = index;
-        // 				fi.hammingDistance = hammingDist;
-        // 				fi.bitsIndex = bitsIndex;
-        // 			}
-        // 		}
+        // Some QR codes apparently do not apply the XOR mask. Try without and with additional masking.
+        for mask in [0, mask] {
+            // for (auto mask : {0, mask})
+            for bitsIndex in 0..bits.len() {
+                // for (int bitsIndex = 0; bitsIndex < Size(bits); ++bitsIndex)
+                for [pattern, index] in lookup {
+                    // for (const auto& [pattern, index] : lookup) {
+                    // Find the int in lookup with fewest bits differing
+                    let hammingDist = ((bits[bitsIndex] ^ mask) ^ pattern).count_ones();
+                    if hammingDist < fi.hammingDistance {
+                        // if (int hammingDist = BitHacks::CountBitsSet((bits[bitsIndex] ^ mask) ^ pattern); hammingDist < fi.hammingDistance) {
+                        fi.index = index as u8;
+                        fi.hammingDistance = hammingDist;
+                        fi.bitsIndex = bitsIndex as u8;
+                    }
+                }
+            }
+        }
 
-        // return fi;
+        fi
     }
 
     // Hamming distance of the 32 masked codes is 7, by construction, so <= 3 bits differing means we found a match
