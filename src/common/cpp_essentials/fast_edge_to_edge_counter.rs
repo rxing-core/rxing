@@ -45,22 +45,26 @@ impl FastEdgeToEdgeCounter {
         }
     }
 
-    pub fn stepToNextEdge(&self, _range: i32) -> i32 {
-        todo!()
-        // int maxSteps = std::min(stepsToBorder, range);
-        // int steps = 0;
-        // do {
-        // 	if (++steps > maxSteps) {
-        // 		if (maxSteps == stepsToBorder)
-        // 			break;
-        // 		else
-        // 			return 0;
-        // 	}
-        // } while (p[steps * stride] == p[0]);
+    pub fn stepToNextEdge(&self, range: u32) -> u32 {
+        let maxSteps = std::cmp::min(self.stepsToBorder, range);
+        let steps = 0;
+        loop {
+            steps += 1;
+            if (steps > maxSteps) {
+                if (maxSteps == self.stepsToBorder) {
+                    break;
+                } else {
+                    return 0;
+                }
+            }
+            if !(self.arr.get((steps * self.stride) as usize) == self.arr.get(0)) {
+                break;
+            }
+        } // while (p[steps * stride] == p[0]);
 
-        // p += steps * stride;
-        // stepsToBorder -= steps;
+        self.p += steps * self.stride;
+        self.stepsToBorder -= steps;
 
-        // return steps;
+        return steps;
     }
 }
