@@ -47,7 +47,7 @@ impl FastEdgeToEdgeCounter {
 
     pub fn stepToNextEdge(&mut self, range: u32) -> u32 {
         let maxSteps = std::cmp::min(self.stepsToBorder, range);
-        let steps = 0;
+        let mut steps = 0;
         loop {
             steps += 1;
             if (steps > maxSteps) {

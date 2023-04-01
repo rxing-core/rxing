@@ -91,14 +91,14 @@ pub fn CheckSymmetricPattern<
 ) -> i32 {
     let mut range = range;
 
-    let curFwd: FastEdgeToEdgeCounter = FastEdgeToEdgeCounter::new(cur);
-    let curBwd: FastEdgeToEdgeCounter = FastEdgeToEdgeCounter::new(&cur.turnedBack());
+    let mut curFwd: FastEdgeToEdgeCounter = FastEdgeToEdgeCounter::new(cur);
+    let mut curBwd: FastEdgeToEdgeCounter = FastEdgeToEdgeCounter::new(&cur.turnedBack());
 
-    let centerFwd = curFwd.stepToNextEdge(range);
+    let centerFwd = curFwd.stepToNextEdge(range as u32) as i32;
     if centerFwd == 0 {
         return 0;
     }
-    let centerBwd = curBwd.stepToNextEdge(range);
+    let centerBwd = curBwd.stepToNextEdge(range as u32) as i32;
     if centerBwd == 0 {
         return 0;
     }
@@ -109,8 +109,8 @@ pub fn CheckSymmetricPattern<
     res[s_2] = (centerFwd + centerBwd - 1) as u16; // -1 because the starting pixel is counted twice
     range -= res[s_2] as i32;
 
-    let mut next = |cur: &FastEdgeToEdgeCounter, i: isize| {
-        let v = cur.stepToNextEdge(range);
+    let mut next = |cur: &mut FastEdgeToEdgeCounter, i: isize| {
+        let v = cur.stepToNextEdge(range as u32) as i32;
         res[(s_2 as isize + i) as usize] = v as u16;
         range -= v;
 
@@ -119,7 +119,7 @@ pub fn CheckSymmetricPattern<
 
     for i in 1..=s_2 {
         // for (int i = 1; i <= s_2; ++i) {
-        if next(&curFwd, i as isize) == 0 || next(&curBwd, -(i as isize)) == 0 {
+        if next(&mut curFwd, i as isize) == 0 || next(&mut curBwd, -(i as isize)) == 0 {
             return 0;
         }
     }
