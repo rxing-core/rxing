@@ -45,7 +45,7 @@ impl FastEdgeToEdgeCounter {
         }
     }
 
-    pub fn stepToNextEdge(&self, range: u32) -> u32 {
+    pub fn stepToNextEdge(&mut self, range: u32) -> u32 {
         let maxSteps = std::cmp::min(self.stepsToBorder, range);
         let steps = 0;
         loop {
@@ -57,7 +57,9 @@ impl FastEdgeToEdgeCounter {
                     return 0;
                 }
             }
-            if !(self.arr.get((steps * self.stride) as usize) == self.arr.get(0)) {
+            if !(self.arr.get((self.p + steps * self.stride) as usize)
+                == self.arr.get((self.p + 0) as usize))
+            {
                 break;
             }
         } // while (p[steps * stride] == p[0]);
