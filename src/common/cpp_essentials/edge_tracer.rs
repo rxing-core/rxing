@@ -170,6 +170,10 @@ impl BitMatrixCursorTrait for EdgeTracer<'_> {
     fn d(&self) -> Point {
         self.d
     }
+
+    fn img(&self) -> &BitMatrix {
+        self.img
+    }
 }
 
 impl<'a> EdgeTracer<'_> {

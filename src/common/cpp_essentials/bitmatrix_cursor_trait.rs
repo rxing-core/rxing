@@ -1,4 +1,4 @@
-use crate::Point;
+use crate::{common::BitMatrix, Point};
 
 use super::{util::opposite, Direction, Value};
 
@@ -164,6 +164,8 @@ pub trait BitMatrixCursorTrait {
     fn p(&self) -> Point;
 
     fn d(&self) -> Point;
+
+    fn img(&self) -> &BitMatrix;
 
     fn readPattern<const LEN: usize, T: TryFrom<i32> + Default + Copy + Clone>(
         &mut self,
