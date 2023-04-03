@@ -116,7 +116,11 @@ impl<'a> PatternView<'_> {
         Some(*self.data.0.get(self.start)?)
     }
     pub fn end(&self) -> Option<PatternType> {
-        Some(self.data.0[self.start + self.count])
+        if self.start + self.count < self.data.0.len() {
+            Some(self.data.0[self.start + self.count])    
+        }else {
+            None
+        }
     }
 
     // int sum(int n = 0) const { return std::accumulate(_data, _data + (n == 0 ? _size : n), 0); }
@@ -473,7 +477,7 @@ pub fn FindLeftGuardBy<'a, const LEN: usize, Pred: Fn(&PatternView, Option<f32>)
     if window.isAtFirstBar() && isGuard(&window, None) {
         return Ok(window);
     }
-    let end = Into::<usize>::into(view.end().unwrap()) - minSize;
+    let end = Into::<usize>::into(view.end().ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?) - minSize;
     while window.start < end {
         if isGuard(&window, Some(Into::<f32>::into(window[PREV_IDX]))) {
             return Ok(window);

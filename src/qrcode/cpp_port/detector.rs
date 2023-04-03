@@ -61,8 +61,15 @@ pub fn FindFinderPatterns(image: &BitMatrix, tryHarder: bool) -> FinderPatterns 
         let mut next: PatternView = PatternView::new(&row);
 
         while {
-            let next = FindLeftGuard(&next, 0, &PATTERN, 0.5).unwrap();
-            next.isValid()
+            if let Ok(next) = FindLeftGuard(&next, 0, &PATTERN, 0.5) {
+                next.isValid()
+            }else {
+                false
+            }
+            // let Ok(next) = FindLeftGuard(&next, 0, &PATTERN, 0.5) else {
+            //     break;
+            // };
+            // next.isValid()
         } {
             let p = point(
                 next.pixelsInFront() as f32
