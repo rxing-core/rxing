@@ -8,7 +8,7 @@ pub use qr_code_reader::*;
 mod qr_code_writer;
 pub use qr_code_writer::*;
 
-mod cpp_port;
+pub mod cpp_port;
 
 #[cfg(test)]
 #[cfg(feature = "image")]

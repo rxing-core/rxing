@@ -27,9 +27,9 @@ use crate::{
 
 #[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
 pub struct FinderPatternSet {
-    bl: ConcentricPattern,
-    tl: ConcentricPattern,
-    tr: ConcentricPattern,
+    pub bl: ConcentricPattern,
+    pub tl: ConcentricPattern,
+    pub tr: ConcentricPattern,
 }
 
 pub type FinderPatterns = Vec<ConcentricPattern>;
