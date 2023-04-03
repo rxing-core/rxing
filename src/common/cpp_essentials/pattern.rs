@@ -117,8 +117,8 @@ impl<'a> PatternView<'_> {
     }
     pub fn end(&self) -> Option<PatternType> {
         if self.start + self.count < self.data.0.len() {
-            Some(self.data.0[self.start + self.count])    
-        }else {
+            Some(self.data.0[self.start + self.count])
+        } else {
             None
         }
     }

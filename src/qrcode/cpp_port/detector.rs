@@ -63,7 +63,7 @@ pub fn FindFinderPatterns(image: &BitMatrix, tryHarder: bool) -> FinderPatterns 
         while {
             if let Ok(next) = FindLeftGuard(&next, 0, &PATTERN, 0.5) {
                 next.isValid()
-            }else {
+            } else {
                 false
             }
             // let Ok(next) = FindLeftGuard(&next, 0, &PATTERN, 0.5) else {
@@ -134,6 +134,11 @@ pub fn GenerateFinderPatternSets(patterns: &mut FinderPatterns) -> FinderPattern
     let cosLower: f64 = (135.0_f64 / 180.0 * 3.1415).cos();
 
     let nbPatterns = (patterns).len();
+
+    if nbPatterns < 2 {
+        return FinderPatternSets::default();
+    }
+
     for i in 0..(nbPatterns - 2) {
         // for (int i = 0; i < nbPatterns - 2; i++) {
         for j in (i + 1)..(nbPatterns - 1) {
