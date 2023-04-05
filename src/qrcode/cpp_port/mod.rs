@@ -6,3 +6,6 @@ mod qr_cpp_reader;
 pub use qr_cpp_reader::QrReader;
 
 mod bitmatrix_parser;
+
+#[cfg(test)]
+mod test;

@@ -64,7 +64,7 @@ impl FormatInformation {
 
         // Use bits 3/4 for error correction, and 0-2 for mask.
         fi.error_correction_level =
-            ErrorCorrectionLevel::ECLevelFromBits((fi.index >> 3) & 0x03, true);
+            ErrorCorrectionLevel::ECLevelFromBits((fi.index >> 3) & 0x03, false);
         fi.data_mask = fi.index & 0x07;
         fi.isMirrored = fi.bitsIndex > 1;
 

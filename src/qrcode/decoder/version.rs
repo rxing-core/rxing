@@ -108,7 +108,8 @@ impl Version {
     }
 
     pub fn getDimensionForVersion(&self) -> u32 {
-        17 + 4 * self.versionNumber
+        Self::DimensionOfVersion(self.versionNumber, self.is_micro)
+        // 17 + 4 * self.versionNumber
     }
 
     pub fn getECBlocksForLevel(&self, ecLevel: ErrorCorrectionLevel) -> &ECBlocks {
@@ -171,33 +172,42 @@ impl Version {
 
         // Top left finder pattern + separator + format
         bitMatrix.setRegion(0, 0, 9, 9)?;
-        // Top right finder pattern + separator + format
-        bitMatrix.setRegion(dimension - 8, 0, 8, 9)?;
-        // Bottom left finder pattern + separator + format
-        bitMatrix.setRegion(0, dimension - 8, 9, 8)?;
 
-        // Alignment patterns
-        let max = self.alignmentPatternCenters.len();
-        for x in 0..max {
-            let i = self.alignmentPatternCenters[x] - 2;
-            for y in 0..max {
-                if (x != 0 || (y != 0 && y != max - 1)) && (x != max - 1 || y != 0) {
-                    bitMatrix.setRegion(self.alignmentPatternCenters[y] - 2, i, 5, 5)?;
+        if !self.is_micro {
+            // Top right finder pattern + separator + format
+            bitMatrix.setRegion(dimension - 8, 0, 8, 9)?;
+            // Bottom left finder pattern + separator + format
+            bitMatrix.setRegion(0, dimension - 8, 9, 8)?;
+
+            // Alignment patterns
+            let max = self.alignmentPatternCenters.len();
+            for x in 0..max {
+                let i = self.alignmentPatternCenters[x] - 2;
+                for y in 0..max {
+                    if (x != 0 || (y != 0 && y != max - 1)) && (x != max - 1 || y != 0) {
+                        bitMatrix.setRegion(self.alignmentPatternCenters[y] - 2, i, 5, 5)?;
+                    }
+                    // else no o alignment patterns near the three finder patterns
                 }
-                // else no o alignment patterns near the three finder patterns
             }
-        }
 
-        // Vertical timing pattern
-        bitMatrix.setRegion(6, 9, 1, dimension - 17)?;
-        // Horizontal timing pattern
-        bitMatrix.setRegion(9, 6, dimension - 17, 1)?;
+            // Vertical timing pattern
+            bitMatrix.setRegion(6, 9, 1, dimension - 17)?;
+            // Horizontal timing pattern
+            bitMatrix.setRegion(9, 6, dimension - 17, 1)?;
 
-        if self.versionNumber > 6 {
-            // Version info, top right
-            bitMatrix.setRegion(dimension - 11, 0, 3, 6)?;
-            // Version info, bottom left
-            bitMatrix.setRegion(0, dimension - 11, 6, 3)?;
+            if self.versionNumber > 6 {
+                // Version info, top right
+                bitMatrix.setRegion(dimension - 11, 0, 3, 6)?;
+                // Version info, bottom left
+                bitMatrix.setRegion(0, dimension - 11, 6, 3)?;
+            }
+        } else {
+            // Vertical timing pattern
+            bitMatrix.setRegion(9, 0, dimension - 9, 1)?;
+
+            // Horizontal timing pattern
+            bitMatrix.setRegion(0, 9, 1, dimension - 9)?;
         }
 
         Ok(bitMatrix)
