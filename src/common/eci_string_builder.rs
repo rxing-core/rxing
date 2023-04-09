@@ -32,7 +32,7 @@ use super::{CharacterSet, Eci};
  */
 #[derive(Default, PartialEq, Eq, Debug, Clone)]
 pub struct ECIStringBuilder {
-    is_eci: bool,
+    pub is_eci: bool,
     eci_result: Option<String>,
     bytes: Vec<u8>,
     eci_positions: Vec<(Eci, usize, usize)>, // (Eci, start, end)

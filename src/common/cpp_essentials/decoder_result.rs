@@ -200,3 +200,32 @@ where
 
     // }
 }
+
+impl<T> DecoderResult<T>
+where
+    T: Copy + Clone + Default + Eq + PartialEq,
+{
+    pub fn text(&self) -> String {
+        self.content.to_string()
+    }
+
+    pub fn symbologyIdentifier(&self) -> String {
+        let s = self.content.symbology;
+        if s.code > 0 {
+            format!(
+                "]{}{}",
+                vec!['1'; s.code as usize].into_iter().collect::<String>(),
+                char::from(
+                    s.modifier
+                        + if self.content.is_eci {
+                            s.eciModifierOffset
+                        } else {
+                            0
+                        }
+                )
+            )
+        } else {
+            String::default()
+        }
+    }
+}

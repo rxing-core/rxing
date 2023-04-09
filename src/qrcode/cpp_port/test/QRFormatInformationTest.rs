@@ -28,36 +28,40 @@ fn Decode() {
     assert_eq!(0x07, expected.data_mask);
     assert_eq!(ErrorCorrectionLevel::Q, expected.error_correction_level);
     // where the code forgot the mask!
-    assert_eq!(
-        expected,
-        FormatInformation::DecodeQR(UNMASKED_TEST_FORMAT_INFO, MASKED_TEST_FORMAT_INFO2)
-    );
+    // assert_eq!(
+    //     expected,
+    //     FormatInformation::DecodeQR(UNMASKED_TEST_FORMAT_INFO, MASKED_TEST_FORMAT_INFO2)
+    // );
+    cpp_eq(
+        &expected,
+        &FormatInformation::DecodeQR(UNMASKED_TEST_FORMAT_INFO, MASKED_TEST_FORMAT_INFO2),
+    )
 }
 
 #[test]
 fn DecodeWithBitDifference() {
     let expected = FormatInformation::DecodeQR(MASKED_TEST_FORMAT_INFO, MASKED_TEST_FORMAT_INFO2);
     // 1,2,3,4 bits difference
-    assert_eq!(
-        expected,
-        FormatInformation::DecodeQR(
+    cpp_eq(
+        &expected,
+        &FormatInformation::DecodeQR(
             MASKED_TEST_FORMAT_INFO ^ 0x01,
-            MASKED_TEST_FORMAT_INFO2 ^ 0x01
-        )
+            MASKED_TEST_FORMAT_INFO2 ^ 0x01,
+        ),
     );
-    assert_eq!(
-        expected,
-        FormatInformation::DecodeQR(
+    cpp_eq(
+        &expected,
+        &FormatInformation::DecodeQR(
             MASKED_TEST_FORMAT_INFO ^ 0x03,
-            MASKED_TEST_FORMAT_INFO2 ^ 0x03
-        )
+            MASKED_TEST_FORMAT_INFO2 ^ 0x03,
+        ),
     );
-    assert_eq!(
-        expected,
-        FormatInformation::DecodeQR(
+    cpp_eq(
+        &expected,
+        &FormatInformation::DecodeQR(
             MASKED_TEST_FORMAT_INFO ^ 0x07,
-            MASKED_TEST_FORMAT_INFO2 ^ 0x07
-        )
+            MASKED_TEST_FORMAT_INFO2 ^ 0x07,
+        ),
     );
     assert!(!FormatInformation::DecodeQR(
         MASKED_TEST_FORMAT_INFO ^ 0x0F,
@@ -69,12 +73,12 @@ fn DecodeWithBitDifference() {
 #[test]
 fn DecodeWithMisread() {
     let expected = FormatInformation::DecodeQR(MASKED_TEST_FORMAT_INFO, MASKED_TEST_FORMAT_INFO2);
-    assert_eq!(
-        expected,
-        FormatInformation::DecodeQR(
+    cpp_eq(
+        &expected,
+        &FormatInformation::DecodeQR(
             MASKED_TEST_FORMAT_INFO ^ 0x03,
-            MASKED_TEST_FORMAT_INFO2 ^ 0x0F
-        )
+            MASKED_TEST_FORMAT_INFO2 ^ 0x0F,
+        ),
     );
 }
 
@@ -102,17 +106,17 @@ fn DecodeMicroWithBitDifference() {
     let expected = FormatInformation::DecodeMQR(MICRO_MASKED_TEST_FORMAT_INFO);
 
     // 1,2,3 bits difference
-    assert_eq!(
-        expected,
-        FormatInformation::DecodeMQR(MICRO_MASKED_TEST_FORMAT_INFO ^ 0x01)
+    cpp_eq(
+        &expected,
+        &FormatInformation::DecodeMQR(MICRO_MASKED_TEST_FORMAT_INFO ^ 0x01),
     );
-    assert_eq!(
-        expected,
-        FormatInformation::DecodeMQR(MICRO_MASKED_TEST_FORMAT_INFO ^ 0x03)
+    cpp_eq(
+        &expected,
+        &FormatInformation::DecodeMQR(MICRO_MASKED_TEST_FORMAT_INFO ^ 0x03),
     );
-    assert_eq!(
-        expected,
-        FormatInformation::DecodeMQR(MICRO_MASKED_TEST_FORMAT_INFO ^ 0x07)
+    cpp_eq(
+        &expected,
+        &FormatInformation::DecodeMQR(MICRO_MASKED_TEST_FORMAT_INFO ^ 0x07),
     );
 
     // Bigger bit differences can return valid FormatInformation objects but the data mask and error
@@ -121,4 +125,8 @@ fn DecodeMicroWithBitDifference() {
     //	EXPECT_NE(expected.dataMask(), FormatInformation::DecodeFormatInformation(MICRO_MASKED_TEST_FORMAT_INFO ^ 0x3f).dataMask());
     //	EXPECT_NE(expected.errorCorrectionLevel(),
     //			  FormatInformation::DecodeFormatInformation(MICRO_MASKED_TEST_FORMAT_INFO ^ 0x3f).errorCorrectionLevel());
+}
+
+fn cpp_eq(rhs: &FormatInformation, lhs: &FormatInformation) {
+    assert!(rhs.cpp_eq(lhs))
 }

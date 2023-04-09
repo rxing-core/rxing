@@ -125,4 +125,9 @@ impl FormatInformation {
     pub fn isValid(&self) -> bool {
         self.hammingDistance <= 3
     }
+
+    pub fn cpp_eq(&self, other: &Self) -> bool {
+        self.data_mask == other.data_mask
+            && self.error_correction_level == other.error_correction_level
+    }
 }
