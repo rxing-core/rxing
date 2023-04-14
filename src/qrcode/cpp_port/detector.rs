@@ -308,6 +308,7 @@ pub fn EstimateDimension(
     }
 }
 
+/// This function can panic
 pub fn TraceLine(image: &BitMatrix, p: Point, d: Point, edge: i32) -> impl RegressionLineTrait {
     let mut cur = EdgeTracer::new(image, p, d - p);
     let mut line = RegressionLine::default();
@@ -337,7 +338,8 @@ pub fn TraceLine(image: &BitMatrix, p: Point, d: Point, edge: i32) -> impl Regre
         let mut c = EdgeTracer::new(image, curI.p, curI.direction(dir));
         let stepCount = (Point::maxAbsComponent(cur.p - p)) as i32;
         loop {
-            line.add(Point::centered(c.p));
+            line.add(Point::centered(c.p))
+                .expect("could not add point on line");
 
             if !(--stepCount > 0 && c.stepAlongEdge(dir, Some(true))) {
                 break;

@@ -297,7 +297,7 @@ pub fn DecodeBitStream(
     let mut structuredAppend = StructuredAppendInfo::default();
     let modeBitLength = Mode::get_codec_mode_bits_length(version);
 
-    let _res = (|| {
+    let res = (|| {
         while (!IsEndOfStream(&mut bits, version)?) {
             let mode: Mode;
             if (modeBitLength == 0) {
@@ -380,23 +380,13 @@ pub fn DecodeBitStream(
             }
         }
         Ok(())
-    })()?;
-    // } catch (std::out_of_range& e) { // see BitSource::readBits
-    // 	error = FormatError("Truncated bit stream");
-    // } catch (Error e) {
-    // 	error = std::move(e);
-    // }
+    })();
 
     Ok(DecoderResult::with_eci_string_builder(result)
+        .withError(res.err())
         .withEcLevel(ecLevel.to_string())
         .withVersionNumber(version.getVersionNumber())
         .withStructuredAppend(structuredAppend))
-
-    // return DecoderResult(std::move(result))
-    // 	.setError(std::move(error))
-    // 	.setEcLevel(ToString(ecLevel))
-    // 	.setVersionNumber(version.versionNumber())
-    // 	.setStructuredAppend(structuredAppend);
 }
 
 pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {

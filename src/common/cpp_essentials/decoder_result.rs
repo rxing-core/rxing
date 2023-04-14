@@ -1,6 +1,6 @@
 use std::{any::Any, rc::Rc};
 
-use crate::common::ECIStringBuilder;
+use crate::{common::ECIStringBuilder, Exceptions};
 
 use super::StructuredAppendInfo;
 
@@ -18,6 +18,7 @@ where
     readerInit: bool, // = false;
     //Error _error;
     //std::shared_ptr<CustomData> _extra;
+    error: Option<Exceptions>,
     extra: Rc<T>,
 }
 
@@ -34,6 +35,7 @@ where
             structuredAppend: Default::default(),
             isMirrored: false,
             readerInit: false,
+            error: None,
             extra: Default::default(),
         }
     }
@@ -53,7 +55,7 @@ where
     }
 
     pub fn isValid(&self) -> bool {
-        self.content.symbology.code != 0
+        self.content.symbology.code != 0 && self.error.is_none()
         //return includeErrors || (_content.symbology.code != 0 && !_error);
     }
 
@@ -196,6 +198,17 @@ where
         self
     }
 
+    pub fn error(&self) -> &Option<Exceptions> {
+        &self.error
+    }
+    pub fn setError(&mut self, error: Option<Exceptions>) {
+        self.error = error
+    }
+    pub fn withError(mut self, error: Option<Exceptions>) -> DecoderResult<T> {
+        self.setError(error);
+        self
+    }
+
     // pub fn build(self) -> DecoderResult<T> {
 
     // }
@@ -214,7 +227,7 @@ where
         if s.code > 0 {
             format!(
                 "]{}{}",
-                vec!['1'; s.code as usize].into_iter().collect::<String>(),
+                char::from(s.code),
                 char::from(
                     s.modifier
                         + if self.content.has_eci {
