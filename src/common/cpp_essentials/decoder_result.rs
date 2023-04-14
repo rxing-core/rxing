@@ -217,7 +217,7 @@ where
                 vec!['1'; s.code as usize].into_iter().collect::<String>(),
                 char::from(
                     s.modifier
-                        + if self.content.is_eci {
+                        + if self.content.has_eci {
                             s.eciModifierOffset
                         } else {
                             0

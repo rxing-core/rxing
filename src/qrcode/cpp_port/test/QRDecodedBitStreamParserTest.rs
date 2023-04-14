@@ -36,11 +36,11 @@ use crate::{
 #[test]
 fn SimpleByteMode() {
     let mut ba = BitArray::new();
-    ba.appendBits(0x04, 4); // Byte mode
-    ba.appendBits(0x03, 8); // 3 bytes
-    ba.appendBits(0xF1, 8);
-    ba.appendBits(0xF2, 8);
-    ba.appendBits(0xF3, 8);
+    ba.appendBits(0x04, 4).unwrap(); // Byte mode
+    ba.appendBits(0x03, 8).unwrap(); // 3 bytes
+    ba.appendBits(0xF1, 8).unwrap();
+    ba.appendBits(0xF2, 8).unwrap();
+    ba.appendBits(0xF3, 8).unwrap();
     let bytes: Vec<u8> = ba.into();
     let result = DecodeBitStream(
         &bytes,
@@ -57,12 +57,12 @@ fn SimpleByteMode() {
 #[test]
 fn SimpleSJIS() {
     let mut ba = BitArray::new();
-    ba.appendBits(0x04, 4); // Byte mode
-    ba.appendBits(0x04, 8); // 4 bytes
-    ba.appendBits(0xA1, 8);
-    ba.appendBits(0xA2, 8);
-    ba.appendBits(0xA3, 8);
-    ba.appendBits(0xD0, 8);
+    ba.appendBits(0x04, 4).expect("append"); // Byte mode
+    ba.appendBits(0x04, 8).expect("append"); // 4 bytes
+    ba.appendBits(0xA1, 8).expect("append");
+    ba.appendBits(0xA2, 8).expect("append");
+    ba.appendBits(0xA3, 8).expect("append");
+    ba.appendBits(0xD0, 8).expect("append");
     let bytes: Vec<u8> = ba.into();
     let result = DecodeBitStream(
         &bytes,
@@ -78,13 +78,13 @@ fn SimpleSJIS() {
 #[test]
 fn ECI() {
     let mut ba = BitArray::new();
-    ba.appendBits(0x07, 4); // ECI mode
-    ba.appendBits(0x02, 8); // ECI 2 = CP437 encoding
-    ba.appendBits(0x04, 4); // Byte mode
-    ba.appendBits(0x03, 8); // 3 bytes
-    ba.appendBits(0xA1, 8);
-    ba.appendBits(0xA2, 8);
-    ba.appendBits(0xA3, 8);
+    ba.appendBits(0x07, 4).expect("append"); // ECI mode
+    ba.appendBits(0x02, 8).expect("append"); // ECI 2 = CP437 encoding
+    ba.appendBits(0x04, 4).expect("append"); // Byte mode
+    ba.appendBits(0x03, 8).expect("append"); // 3 bytes
+    ba.appendBits(0xA1, 8).expect("append");
+    ba.appendBits(0xA2, 8).expect("append");
+    ba.appendBits(0xA3, 8).expect("append");
     let bytes: Vec<u8> = ba.into();
     let result = DecodeBitStream(
         &bytes,
@@ -100,10 +100,10 @@ fn ECI() {
 #[test]
 fn Hanzi() {
     let mut ba = BitArray::new();
-    ba.appendBits(0x0D, 4); // Hanzi mode
-    ba.appendBits(0x01, 4); // Subset 1 = GB2312 encoding
-    ba.appendBits(0x01, 8); // 1 characters
-    ba.appendBits(0x03C1, 13);
+    ba.appendBits(0x0D, 4).expect("append"); // Hanzi mode
+    ba.appendBits(0x01, 4).expect("append"); // Subset 1 = GB2312 encoding
+    ba.appendBits(0x01, 8).expect("append"); // 1 characters
+    ba.appendBits(0x03C1, 13).expect("append");
     let bytes: Vec<u8> = ba.into();
     let result = DecodeBitStream(
         &bytes,
@@ -119,11 +119,11 @@ fn Hanzi() {
 #[test]
 fn HanziLevel1() {
     let mut ba = BitArray::new();
-    ba.appendBits(0x0D, 4); // Hanzi mode
-    ba.appendBits(0x01, 4); // Subset 1 = GB2312 encoding
-    ba.appendBits(0x01, 8); // 1 characters
-                            // A5A2 (U+30A2) => A5A2 - A1A1 = 401, 4*60 + 01 = 0181
-    ba.appendBits(0x0181, 13);
+    ba.appendBits(0x0D, 4).expect("append"); // Hanzi mode
+    ba.appendBits(0x01, 4).expect("append"); // Subset 1 = GB2312 encoding
+    ba.appendBits(0x01, 8).expect("append"); // 1 characters
+                                             // A5A2 (U+30A2) => A5A2 - A1A1 = 401, 4*60 + 01 = 0181
+    ba.appendBits(0x0181, 13).expect("append");
 
     let bytes: Vec<u8> = ba.into();
 

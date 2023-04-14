@@ -405,12 +405,15 @@ impl Default for BitArray {
 
 impl Into<Vec<u8>> for BitArray {
     fn into(self) -> Vec<u8> {
-        let mut arr = vec![0; self.get_size()];
-        for x in 0..self.get_size() {
-            if self.get(x) {
-                arr[x] = 1;
-            }
-        }
-        arr
+        let mut array = vec![0; self.getSizeInBytes()];
+        self.toBytes(0, &mut array, 0, self.getSizeInBytes());
+        array
+        // let mut arr = vec![0; self.get_size()];
+        // for x in 0..self.get_size() {
+        //     if self.get(x) {
+        //         arr[x] = 1;
+        //     }
+        // }
+        // arr
     }
 }

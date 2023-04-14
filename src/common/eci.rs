@@ -1,6 +1,10 @@
 use std::fmt::Display;
 
+use crate::Exceptions;
+
 use super::CharacterSet;
+
+use crate::common::Result;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Eci {
@@ -43,6 +47,19 @@ pub enum Eci {
 impl Eci {
     pub fn can_encode(self) -> bool {
         (self as i32) >= 899
+    }
+
+    pub fn try_from_i32(value: i32) -> Result<Self> {
+        let v = Self::from(value);
+        if v == Eci::Unknown {
+            Err(Exceptions::ILLEGAL_ARGUMENT)
+        } else {
+            Ok(v)
+        }
+    }
+
+    pub fn try_from_u32(value: u32) -> Result<Self> {
+        Self::try_from_i32(value as i32)
     }
 }
 

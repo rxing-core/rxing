@@ -125,7 +125,7 @@ pub fn DecodeByteSegment(
     result.switch_encoding(CharacterSet::Unknown);
     result.reserve(count as usize);
 
-    for i in 0..count {
+    for _i in 0..count {
         // for (int i = 0; i < count; i++)
         *result += (bits.readBits(8)?) as u8;
     }
@@ -297,7 +297,7 @@ pub fn DecodeBitStream(
     let mut structuredAppend = StructuredAppendInfo::default();
     let modeBitLength = Mode::get_codec_mode_bits_length(version);
 
-    let res = (|| {
+    let _res = (|| {
         while (!IsEndOfStream(&mut bits, version)?) {
             let mode: Mode;
             if (modeBitLength == 0) {
@@ -361,26 +361,26 @@ pub fn DecodeBitStream(
                         // throw FormatError("Unsupported HANZI subset");
                     }
                     let count = bits.readBits(mode.CharacterCountBits(version) as usize)?;
-                    DecodeHanziSegment(&mut bits, count, &mut result);
+                    DecodeHanziSegment(&mut bits, count, &mut result)?;
                 }
                 _ => {
                     // "Normal" QR code modes:
                     // How many characters will follow, encoded in this mode?
                     let count = bits.readBits(mode.CharacterCountBits(version) as usize)?;
                     match (mode) {
-                        Mode::NUMERIC => DecodeNumericSegment(&mut bits, count, &mut result),
+                        Mode::NUMERIC => DecodeNumericSegment(&mut bits, count, &mut result)?,
                         Mode::ALPHANUMERIC => {
-                            DecodeAlphanumericSegment(&mut bits, count, &mut result)
+                            DecodeAlphanumericSegment(&mut bits, count, &mut result)?
                         }
-                        Mode::BYTE => DecodeByteSegment(&mut bits, count, &mut result),
-                        Mode::KANJI => DecodeKanjiSegment(&mut bits, count, &mut result),
+                        Mode::BYTE => DecodeByteSegment(&mut bits, count, &mut result)?,
+                        Mode::KANJI => DecodeKanjiSegment(&mut bits, count, &mut result)?,
                         _ => return Err(Exceptions::format_with("Invalid CodecMode")), //throw FormatError("Invalid CodecMode");
                     };
                 }
             }
         }
         Ok(())
-    })();
+    })()?;
     // } catch (std::out_of_range& e) { // see BitSource::readBits
     // 	error = FormatError("Truncated bit stream");
     // } catch (Error e) {

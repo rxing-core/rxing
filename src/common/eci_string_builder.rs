@@ -21,9 +21,9 @@
 // import java.nio.charset.Charset;
 // import java.nio.charset.StandardCharsets;
 
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
-use super::{CharacterSet, Eci};
+use super::{CharacterSet, Eci, StringUtils};
 
 /**
  * Class that converts a sequence of ECIs and bytes into a string
@@ -32,7 +32,7 @@ use super::{CharacterSet, Eci};
  */
 #[derive(Default, PartialEq, Eq, Debug, Clone)]
 pub struct ECIStringBuilder {
-    pub is_eci: bool,
+    pub has_eci: bool,
     eci_result: Option<String>,
     bytes: Vec<u8>,
     eci_positions: Vec<(Eci, usize, usize)>, // (Eci, start, end)
@@ -45,7 +45,7 @@ impl ECIStringBuilder {
             eci_result: None,
             bytes: Vec::with_capacity(initial_capacity),
             eci_positions: Vec::default(),
-            is_eci: false,
+            has_eci: false,
             symbology: SymbologyIdentifier::default(),
         }
     }
@@ -109,11 +109,12 @@ impl ECIStringBuilder {
      */
     pub fn append_eci(&mut self, eci: Eci) {
         self.eci_result = None;
-        if !self.is_eci && eci != Eci::ISO8859_1 {
-            self.is_eci = true;
+
+        if !self.has_eci && eci != Eci::ISO8859_1 {
+            self.has_eci = true;
         }
 
-        if self.is_eci {
+        if self.has_eci {
             if let Some(last) = self.eci_positions.last_mut() {
                 last.2 = self.bytes.len()
             }
@@ -124,7 +125,17 @@ impl ECIStringBuilder {
 
     /// Change the current encoding characterset, finding an eci to do so
     pub fn switch_encoding(&mut self, charset: CharacterSet) {
-        self.append_eci(Eci::from(charset))
+        //self.append_eci(Eci::from(charset))
+        if (false && !self.has_eci) {
+            self.eci_positions.clear();
+        }
+        if (false || !self.has_eci)
+        //{self.eci_positions.push_back({eci, Size(bytes)});}
+        {
+            self.append_eci(Eci::from(charset))
+        }
+
+        self.has_eci |= false;
     }
 
     /// Finishes encoding anything in the buffer using the current ECI and resets.
@@ -133,7 +144,7 @@ impl ECIStringBuilder {
     pub fn encodeCurrentBytesIfAny(&self) -> String {
         let mut encoded_string = String::with_capacity(self.bytes.len());
         // First encode the first set
-        let (_, end, _) =
+        let (_eci, end, _) =
             *self
                 .eci_positions
                 .first()
@@ -142,6 +153,10 @@ impl ECIStringBuilder {
         encoded_string.push_str(
             &Self::encode_segment(&self.bytes[0..end], Eci::ISO8859_1).unwrap_or_default(),
         );
+
+        if end == self.bytes.len() {
+            return encoded_string;
+        }
 
         // If there are more sets, encode each of them in turn
         for (eci, eci_start, eci_end) in &self.eci_positions {
@@ -161,20 +176,41 @@ impl ECIStringBuilder {
     }
 
     fn encode_segment(bytes: &[u8], eci: Eci) -> Option<String> {
+        let mut not_encoded_yet = true;
         let mut encoded_string = String::with_capacity(bytes.len());
         if ![Eci::Binary, Eci::Unknown].contains(&eci) {
             if eci == Eci::UTF8 {
                 if !bytes.is_empty() {
                     encoded_string.push_str(&CharacterSet::UTF8.decode(bytes).ok()?);
+                    not_encoded_yet = false;
                 } else {
                     return None;
                 }
             } else if !bytes.is_empty() {
                 encoded_string.push_str(&CharacterSet::from(eci).decode(bytes).ok()?);
+                not_encoded_yet = false;
             } else {
                 return None;
             }
-        } else {
+        } else if eci == Eci::Unknown {
+            /*  // This probably should never be used, it's here just in case I don't understand what's
+                // going on.
+            let cs = CharacterSet::from(Eci::ISO8859_1);
+            if let Ok(enc_str) = cs.decode(bytes) {
+                encoded_string.push_str(&enc_str);
+                    not_encoded_yet = false;
+            }
+
+            else */
+            if let Some(found_encoding) = StringUtils::guessCharset(bytes, &HashMap::default()) {
+                if let Ok(found_encoded_str) = found_encoding.decode(bytes) {
+                    encoded_string.push_str(&found_encoded_str);
+                    not_encoded_yet = false;
+                }
+            }
+        }
+
+        if not_encoded_yet {
             for byte in bytes {
                 encoded_string.push(char::from(*byte))
             }
