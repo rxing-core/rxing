@@ -6,3 +6,5 @@ mod QRFormatInformationTest;
 mod QRErrorCorrectionLevelTest;
 
 mod QRDecodedBitStreamParserTest;
+
+mod QRDataMaskTest;
