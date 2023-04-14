@@ -8,3 +8,5 @@ mod QRErrorCorrectionLevelTest;
 mod QRDecodedBitStreamParserTest;
 
 mod QRDataMaskTest;
+
+mod QRBitMatrixParserTest;
