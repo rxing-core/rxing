@@ -10,3 +10,5 @@ mod QRDecodedBitStreamParserTest;
 mod QRDataMaskTest;
 
 mod QRBitMatrixParserTest;
+
+mod MQRDecoderTest;

@@ -35,7 +35,7 @@ pub fn CorrectErrors(codewordBytes: &mut [u8], numDataCodewords: u32) -> Result<
     let rs = ReedSolomonDecoder::new(get_predefined_genericgf(
         PredefinedGenericGF::QrCodeField256,
     ));
-    if rs.decode(&mut codewordsInts, numECCodewords)? == 0
+    if rs.decode(&mut codewordsInts, numECCodewords)? != 0
     // if (!ReedSolomonDecode(GenericGF::QRCodeField256(), codewordsInts, numECCodewords))
     {
         return Ok(false);
@@ -423,7 +423,7 @@ pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
         let mut codewordBytes = dataBlock.getCodewords().to_vec();
         let numDataCodewords = dataBlock.getNumDataCodewords() as usize;
 
-        if (!CorrectErrors(&mut codewordBytes, numDataCodewords as u32)?) {
+        if !CorrectErrors(&mut codewordBytes, numDataCodewords as u32)? {
             return Err(Exceptions::CHECKSUM);
         }
 
