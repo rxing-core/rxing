@@ -417,3 +417,15 @@ impl Into<Vec<u8>> for BitArray {
         // arr
     }
 }
+
+impl Into<Vec<bool>> for BitArray {
+    fn into(self) -> Vec<bool> {
+        let mut array = vec![false; self.size];
+
+        for pixel in 0..self.size {
+            array[pixel] = bool::from(self.get(pixel));
+        }
+
+        array
+    }
+}

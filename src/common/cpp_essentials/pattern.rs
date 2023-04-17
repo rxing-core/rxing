@@ -88,7 +88,7 @@ impl<'a> PatternView<'_> {
     pub fn new(bars: &'a PatternRow) -> PatternView<'a> {
         PatternView {
             data: bars,
-            start: 0,
+            start: 1,
             count: bars.0.len(),
             current: 0,
         }
@@ -116,11 +116,12 @@ impl<'a> PatternView<'_> {
         Some(*self.data.0.get(self.start)?)
     }
     pub fn end(&self) -> Option<PatternType> {
-        if self.start + self.count < self.data.0.len() {
-            Some(self.data.0[self.start + self.count])
-        } else {
-            None
-        }
+        // if self.start + self.count < self.data.0.len() {
+        //     Some(self.data.0[self.start + self.count])
+        // } else {
+        //     None
+        // }
+        Some(self.data.0.len() as PatternType)
     }
 
     // int sum(int n = 0) const { return std::accumulate(_data, _data + (n == 0 ? _size : n), 0); }
@@ -130,7 +131,7 @@ impl<'a> PatternView<'_> {
         self.data
             .0
             .iter()
-            .skip(self.start)
+            .skip(self.start + self.current)
             .take(n)
             .copied()
             .sum::<PatternType>()
@@ -253,6 +254,21 @@ impl<'a> PatternView<'_> {
     pub fn extend(&mut self) {
         self.count = std::cmp::max(0, self.count - self.start)
     }
+
+    fn try_get_index(&self, index: isize) -> Option<PatternType> {
+        if index.abs() > self.data.0.len() as isize {
+            return None;
+        }
+        if index >= 0 {
+            let fetch_spot = ((self.start + self.current) as isize + index) as usize;
+        return Some(self.data.0[fetch_spot])
+        }
+        if index.abs() > (self.start + self.current) as isize {
+            return None;
+        }
+        let fetch_spot = ((self.start + self.current) as isize + index) as usize;
+        Some(self.data.0[fetch_spot])
+    }
 }
 
 impl<'a> std::ops::Index<isize> for PatternView<'_> {
@@ -263,12 +279,13 @@ impl<'a> std::ops::Index<isize> for PatternView<'_> {
             panic!("array index out of bounds")
         }
         if index >= 0 {
-            return &self[index as usize];
+            let fetch_spot = ((self.start + self.current) as isize + index) as usize;
+        return &self.data.0[fetch_spot]
         }
         if index.abs() > self.start as isize {
             panic!("array index out of bounds")
         }
-        let fetch_spot = (self.start as isize + index) as usize;
+        let fetch_spot = ((self.start + self.current) as isize + index) as usize;
         &self.data.0[fetch_spot]
     }
 }
@@ -410,6 +427,7 @@ pub fn IsPattern<const LEN: usize, const SUM: usize, const SPARSE: bool>(
     relaxed_threshold: Option<bool>,
 ) -> f32 {
     let relaxed_threshold = relaxed_threshold.unwrap_or(false);
+    let mut module_size_ref = module_size_ref;
 
     let width = view.sum(Some(LEN));
     if SUM > LEN && Into::<usize>::into(width) < SUM {
@@ -422,6 +440,10 @@ pub fn IsPattern<const LEN: usize, const SUM: usize, const SPARSE: bool>(
         && (space_in_pixel.unwrap_or(f32::MAX)) < min_quiet_zone * module_size - 1.0
     {
         return 0.0;
+    }
+
+    if (module_size_ref == 0.0) {
+        module_size_ref = module_size;
     }
 
     let threshold = module_size_ref * (0.5 + (relaxed_threshold as u8) as f32 * 0.25) + 0.5;
@@ -478,8 +500,13 @@ pub fn FindLeftGuardBy<'a, const LEN: usize, Pred: Fn(&PatternView, Option<f32>)
         return Ok(window);
     }
     let end = Into::<usize>::into(view.end().ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?) - minSize;
-    while window.start < end {
-        if isGuard(&window, Some(Into::<f32>::into(window[PREV_IDX]))) {
+    while (window.start + window.current) < end {
+        let prev = if let Some(v) = window.try_get_index(PREV_IDX) {
+            Some(v as f32)
+        } else {
+            None
+        };
+        if isGuard(&window, prev) {
             return Ok(window);
         }
 
@@ -496,7 +523,15 @@ pub fn FindLeftGuard<'a, const LEN: usize, const SUM: usize, const IS_SPARCE: bo
     minQuietZone: f32,
 ) -> Result<PatternView<'a>> {
     FindLeftGuardBy::<LEN, _>(view, std::cmp::max(minSize, LEN), |window, spaceInPixel| {
-        IsPattern(window, pattern, spaceInPixel, minQuietZone, 0.0, None) != 0.0
+        // perform a fast plausability test for 1:1:3:1:1 pattern
+        // dbg!(window[2], 2 as PatternType * std::cmp::max(window[0], window[4]));
+        // dbg!(window[2] < std::cmp::max(window[1], window[3]));
+        if (window[2] < 2 as PatternType * std::cmp::max(window[0], window[4])
+            || window[2] < std::cmp::max(window[1], window[3]))
+        {
+            return false;
+        }
+        return IsPattern(window, pattern, spaceInPixel, minQuietZone, 0.0, None) != 0.0;
     })
 }
 
@@ -568,11 +603,15 @@ impl<T: Into<PatternType>> From<T> for Color {
 }
 
 pub fn GetPatternRowTP(matrix: &BitMatrix, r: u32, pr: &mut PatternRow, transpose: bool) {
-    if (transpose) {
-        GetPatternRow(&Into::<Vec<u8>>::into(matrix.getCol(r)), pr)
+    let row = if transpose {
+        matrix.getCol(r)
     } else {
-        GetPatternRow(&Into::<Vec<u8>>::into(matrix.getRow(r)), pr)
-    }
+        matrix.getRow(r)
+    };
+
+    let pixel_states: Vec<bool> = row.into();
+
+    GetPatternRow(&pixel_states, pr)
 }
 
 pub fn GetPatternRow<T: Into<PatternType> + Copy + Default + From<T>>(
@@ -601,6 +640,8 @@ pub fn GetPatternRow<T: Into<PatternType> + Copy + Default + From<T>>(
 
         count += 1;
     }
+
+    // dbg!(&p_row.0);
 
     if count != 0 {
         p_row.0.push(count);

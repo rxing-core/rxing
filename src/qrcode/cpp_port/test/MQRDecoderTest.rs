@@ -4,13 +4,11 @@
 */
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::{qrcode::cpp_port::decoder::Decode, common::BitMatrix, Exceptions};
+use crate::{common::BitMatrix, qrcode::cpp_port::decoder::Decode, Exceptions};
 
 #[test]
-fn MQRCodeM3L()
-{
-	const CODE_STR : &str = 
-r"XXXXXXX X X X X
+fn MQRCodeM3L() {
+    const CODE_STR: &str = r"XXXXXXX X X X X
 X     X    X X 
 X XXX X XXXXXXX
 X XXX X X X  XX
@@ -26,18 +24,15 @@ X XXXXX XXX X X
  X    X  X XXX 
 XXX XX X X XXXX
 ";
-	let bitMatrix = BitMatrix::parse_strings(CODE_STR,
-										  "X", " ").unwrap();
+    let bitMatrix = BitMatrix::parse_strings(CODE_STR, "X", " ").unwrap();
 
-	let result = Decode(&bitMatrix).unwrap();
-	assert!(result.isValid());
+    let result = Decode(&bitMatrix).unwrap();
+    assert!(result.isValid());
 }
 
 #[test]
-fn  MQRCodeM3M()
-{
-	const CODE_STR : &str = 
-r"XXXXXXX X X X X
+fn MQRCodeM3M() {
+    const CODE_STR: &str = r"XXXXXXX X X X X
 X     X      XX
 X XXX X X XX XX
 X XXX X X X    
@@ -53,18 +48,15 @@ XX X X      X
    X X    X    
 X X XXXX    XXX
 ";
-	let bitMatrix = BitMatrix::parse_strings(CODE_STR,
-		"X", " ").unwrap();
+    let bitMatrix = BitMatrix::parse_strings(CODE_STR, "X", " ").unwrap();
 
-	let result = Decode(&bitMatrix).unwrap();
-	assert!(result.isValid());
+    let result = Decode(&bitMatrix).unwrap();
+    assert!(result.isValid());
 }
 
 #[test]
-fn  MQRCodeM1()
-{
-	const CODE_STR : &str = 
-r"XXXXXXX X X
+fn MQRCodeM1() {
+    const CODE_STR: &str = r"XXXXXXX X X
 X     X    
 X XXX X XXX
 X XXX X  XX
@@ -76,18 +68,15 @@ XX     X
  X  XXXXX X
 X  XXXXXX X
 ";
-	let bitMatrix = BitMatrix::parse_strings(CODE_STR,
-		"X", " ").unwrap();
-	let result = Decode(&bitMatrix).unwrap();
-	assert!(result.isValid());
-	assert_eq!("123", result.text());
+    let bitMatrix = BitMatrix::parse_strings(CODE_STR, "X", " ").unwrap();
+    let result = Decode(&bitMatrix).unwrap();
+    assert!(result.isValid());
+    assert_eq!("123", result.text());
 }
 
 #[test]
-fn  MQRCodeM1Error4Bits()
-{
-	const CODE_STR : &str = 
-r"XXXXXXX X X
+fn MQRCodeM1Error4Bits() {
+    const CODE_STR: &str = r"XXXXXXX X X
 X     X  XX
 X XXX X X  
 X XXX X  XX
@@ -99,20 +88,20 @@ XX     X
  X  XXXXXX 
 X  XXXXXXX 
 ";
-	let bitMatrix = BitMatrix::parse_strings(CODE_STR,
-		"X", " ").unwrap();
-	let result = Decode(&bitMatrix);
-	dbg!(&result);
-	assert!(matches!(result.err(), Some(Exceptions::ReedSolomonException(_))));
-	// assert_eq!(Error::Checksum, result.error());
-	// assert!(result.text().is_empty());
+    let bitMatrix = BitMatrix::parse_strings(CODE_STR, "X", " ").unwrap();
+    let result = Decode(&bitMatrix);
+    dbg!(&result);
+    assert!(matches!(
+        result.err(),
+        Some(Exceptions::ReedSolomonException(_))
+    ));
+    // assert_eq!(Error::Checksum, result.error());
+    // assert!(result.text().is_empty());
 }
 
 #[test]
-fn  MQRCodeM4()
-{
-	const CODE_STR : &str = 
-r"XXXXXXX X X X X X
+fn MQRCodeM4() {
+    const CODE_STR: &str = r"XXXXXXX X X X X X
 X     X XX X   XX
 X XXX X  X  X  XX
 X XXX X XX  XX XX
@@ -130,8 +119,7 @@ X X XX   XXXXX
   X X X X   X    
 X   XXXXXXX X X X
 ";
-	let bitMatrix = BitMatrix::parse_strings(CODE_STR,
-		"X", " ").unwrap();
-	let result = Decode(&bitMatrix).unwrap();
-	assert!(result.isValid());
+    let bitMatrix = BitMatrix::parse_strings(CODE_STR, "X", " ").unwrap();
+    let result = Decode(&bitMatrix).unwrap();
+    assert!(result.isValid());
 }

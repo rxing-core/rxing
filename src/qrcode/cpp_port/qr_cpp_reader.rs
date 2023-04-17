@@ -183,6 +183,15 @@ impl Reader for QrReader {
             }
         }
 
+        if detectorResult.is_err() {
+            for decode_function in [DetectPureQR, DetectPureMQR] {
+                detectorResult = decode_function(binImg);
+                if detectorResult.is_ok() {
+                    break;
+                }
+            }
+        }
+
         let detectorResult = detectorResult?;
 
         // let detectorResult: DetectorResult;
