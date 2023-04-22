@@ -2,7 +2,7 @@ use crate::common::BitMatrix;
 
 use super::BitMatrixCursorTrait;
 
-pub struct FastEdgeToEdgeCounter {
+pub struct FastEdgeToEdgeCounter<'a> {
     // const uint8_t* p = nullptr;
     // int stride = 0;
     // int stepsToBorder = 0;
@@ -11,10 +11,10 @@ pub struct FastEdgeToEdgeCounter {
     stepsToBorder: i32, // = 0;
     //arr: BitArray,
     _arr: isize,
-    under_arry: Vec<bool>//&'a BitMatrix//,
+    under_arry: &'a BitMatrix//,Vec<bool>
 }
 
-impl FastEdgeToEdgeCounter {
+impl<'a> FastEdgeToEdgeCounter<'a> {
     pub fn new<T: BitMatrixCursorTrait>(cur: &T) -> FastEdgeToEdgeCounter {
         let stride = cur.d().y as isize * cur.img().width() as isize + cur.d().x as isize;
         let p = ((cur.p().y as isize * cur.img().width() as isize).abs() as i32 + cur.p().x as i32) as u32; // P IS SET WRONG IN REVERSE
@@ -44,7 +44,7 @@ impl FastEdgeToEdgeCounter {
             stride,
             stepsToBorder,
             _arr: cur.p().y as isize * stride as isize, //cur.img().getRow(cur.p().y as u32),
-            under_arry: cur.img().into(),
+            under_arry: cur.img()//.into(),
         }
     }
 
@@ -63,9 +63,9 @@ impl FastEdgeToEdgeCounter {
 
             let idx_pt = self.get_array_check_index(steps);
 
-            if !(self.under_arry[idx_pt]
-                == self.under_arry[self.p as usize])
-            // if !(self.under_arry.get_index(idx_pt) == self.under_arry.get_index(self.p as usize))
+            // if !(self.under_arry[idx_pt]
+            //     == self.under_arry[self.p as usize])
+            if !(self.under_arry.get_index(idx_pt) == self.under_arry.get_index(self.p as usize))
             {
                 break true;
             }

@@ -92,7 +92,8 @@ pub fn CheckSymmetricPattern<
     let mut range = range;
 
     let mut curFwd: FastEdgeToEdgeCounter = FastEdgeToEdgeCounter::new(cur);
-    let mut curBwd: FastEdgeToEdgeCounter = FastEdgeToEdgeCounter::new(&cur.turnedBack());
+    let binding = cur.turnedBack();
+    let mut curBwd: FastEdgeToEdgeCounter = FastEdgeToEdgeCounter::new(&binding);
 
     let centerFwd = curFwd.stepToNextEdge(range as u32) as i32;
     if centerFwd == 0 {
