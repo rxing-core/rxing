@@ -89,7 +89,7 @@ impl GridSampler for DefaultGridSampler {
             Point::default()
         };
 
-        let tl = projectCorner(point(0.0, 0.0));
+        let tl = projectCorner(Point::default());
         let tr = projectCorner(Point::from((dimensionX, 0)));
         let bl = projectCorner(Point::from((dimensionX, dimensionY)));
         let br = projectCorner(Point::from((0, dimensionX)));

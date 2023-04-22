@@ -747,8 +747,8 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
         dimension as u32,
         dimension as u32,
         &[SamplerControl {
-            p0: point_i(0, dimension as u32),
-            p1: point_i(0, dimension as u32),
+            p1: point_i(dimension as u32, dimension as u32),
+            p0: point_i(0,0 ),
             transform: mod2Pix,
         }],
     )?;

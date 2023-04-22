@@ -218,12 +218,13 @@ impl<'a> Detector<'_> {
         dimension: u32,
     ) -> Result<BitMatrix> {
         let sampler = DefaultGridSampler::default();
-        sampler.sample_grid(
+        let (res, _) = sampler.sample_grid(
             image,
             dimension,
             dimension,
             &[SamplerControl::new(dimension, dimension, transform)],
-        )
+        )?;
+        Ok(res)
     }
 
     /**

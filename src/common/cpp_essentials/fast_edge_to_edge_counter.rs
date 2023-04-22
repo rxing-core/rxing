@@ -1,3 +1,5 @@
+use crate::common::BitMatrix;
+
 use super::BitMatrixCursorTrait;
 
 pub struct FastEdgeToEdgeCounter {
@@ -9,11 +11,11 @@ pub struct FastEdgeToEdgeCounter {
     stepsToBorder: i32, // = 0;
     //arr: BitArray,
     _arr: isize,
-    under_arry: Vec<bool>,
+    under_arry: Vec<bool>//&'a BitMatrix//,
 }
 
 impl FastEdgeToEdgeCounter {
-    pub fn new<T: BitMatrixCursorTrait>(cur: &T) -> Self {
+    pub fn new<T: BitMatrixCursorTrait>(cur: &T) -> FastEdgeToEdgeCounter {
         let stride = cur.d().y as isize * cur.img().width() as isize + cur.d().x as isize;
         let p = ((cur.p().y as isize * cur.img().width() as isize).abs() as i32 + cur.p().x as i32) as u32; // P IS SET WRONG IN REVERSE
 
@@ -37,7 +39,7 @@ impl FastEdgeToEdgeCounter {
         };
         let stepsToBorder = std::cmp::min(maxStepsX, maxStepsY) as i32;
 
-        Self {
+        FastEdgeToEdgeCounter {
             p,
             stride,
             stepsToBorder,
@@ -63,6 +65,7 @@ impl FastEdgeToEdgeCounter {
 
             if !(self.under_arry[idx_pt]
                 == self.under_arry[self.p as usize])
+            // if !(self.under_arry.get_index(idx_pt) == self.under_arry.get_index(self.p as usize))
             {
                 break true;
             }

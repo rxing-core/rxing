@@ -233,8 +233,10 @@ fn Scan(
 
         CHECK!(res.is_ok());
 
+        let (res, _) = res?;
+
         return Ok(DatamatrixDetectorResult::new(
-            res?,
+            res,
             sourcePoints.points().to_vec(),
         ));
     }

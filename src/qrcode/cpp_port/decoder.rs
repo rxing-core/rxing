@@ -428,7 +428,7 @@ pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
         }
 
         // resultIterator = std::copy_n(codewordBytes.begin(), numDataCodewords, resultIterator);
-        resultBytes[resultIterator..numDataCodewords]
+        resultBytes[resultIterator..(resultIterator+numDataCodewords)]
             .copy_from_slice(&codewordBytes[..numDataCodewords]);
         resultIterator += numDataCodewords;
     }

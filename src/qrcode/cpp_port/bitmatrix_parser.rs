@@ -91,7 +91,7 @@ pub fn ReadFormatInformation(bitMatrix: &BitMatrix, isMicro: bool) -> Result<For
     AppendBit(&mut formatInfoBits1, getBit(bitMatrix, 8, 8, None));
     AppendBit(&mut formatInfoBits1, getBit(bitMatrix, 8, 7, None));
     // .. and skip a bit in the timing pattern ...
-    for y in (0..=6).rev() {
+    for y in (0..=5).rev() {
         // for (int y = 5; y >= 0; y--)
         AppendBit(&mut formatInfoBits1, getBit(bitMatrix, 8, y, None));
     }
@@ -130,7 +130,7 @@ pub fn ReadQRCodewords(
     let mut bitsRead = 0;
     let dimension = bitMatrix.height();
     // Read columns in pairs, from right to left
-    let mut x = dimension - 1;
+    let mut x = (dimension as i32) - 1;
     while x > 0 {
         // for (int x = dimension - 1; x > 0; x -= 2) {
         // Skip whole column with vertical timing pattern.
@@ -143,7 +143,7 @@ pub fn ReadQRCodewords(
             let y = if readingUp { dimension - 1 - row } else { row };
             for col in 0..2 {
                 // for (int col = 0; col < 2; col++) {
-                let xx = x - col;
+                let xx = (x - col) as u32;
                 // Ignore bits covered by the function pattern
                 if (!functionPattern.get(xx, y)) {
                     // Read a bit
