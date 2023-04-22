@@ -37,6 +37,8 @@ pub type FinderPatternSets = Vec<FinderPatternSet>;
 
 const PATTERN: FixedPattern<5, 7, false> = FixedPattern::new([1, 1, 3, 1, 1]);
 
+/// Locate the finder patterns for the symbol.
+/// This function can panic
 pub fn FindFinderPatterns(image: &BitMatrix, tryHarder: bool) -> FinderPatterns {
     const MIN_SKIP: u32 = 3; // 1 pixel/module times 3 modules/center
     const MAX_MODULES_FAST: u32 = 20 * 4 + 17; // support up to version 20 for mobile clients
@@ -61,15 +63,12 @@ pub fn FindFinderPatterns(image: &BitMatrix, tryHarder: bool) -> FinderPatterns 
         let mut next: PatternView = PatternView::new(&row);
 
         while {
-            if let Ok(next) = FindLeftGuard(&next, 0, &PATTERN, 0.5) {
+            if let Ok(up_next) = FindLeftGuard(next, 0, &PATTERN, 0.5) {
+                next = up_next; 
                 next.isValid()
             } else {
                 false
             }
-            // let Ok(next) = FindLeftGuard(&next, 0, &PATTERN, 0.5) else {
-            //     break;
-            // };
-            // next.isValid()
         } {
             let p = point(
                 next.pixelsInFront() as f32
@@ -90,7 +89,7 @@ pub fn FindFinderPatterns(image: &BitMatrix, tryHarder: bool) -> FinderPatterns 
                     image,
                     &PATTERN.into(),
                     p,
-                    next.sum::<u16>() as i32 * 3,
+                    next.iter().sum::<u16>() as i32 * 3,
                 ); // 3 for very skewed samples
                    //    Reduce(next) * 3); // 3 for very skewed samples
                 if (pattern.is_some()) {
@@ -336,12 +335,13 @@ pub fn TraceLine(image: &BitMatrix, p: Point, d: Point, edge: i32) -> impl Regre
     for dir in [Direction::Left, Direction::Right] {
         // for (auto dir : {Direction::LEFT, Direction::RIGHT}) {
         let mut c = EdgeTracer::new(image, curI.p, curI.direction(dir));
-        let stepCount = (Point::maxAbsComponent(cur.p - p)) as i32;
+        let mut stepCount = (Point::maxAbsComponent(cur.p - p)) as i32;
         loop {
             line.add(Point::centered(c.p))
                 .expect("could not add point on line");
 
-            if !(--stepCount > 0 && c.stepAlongEdge(dir, Some(true))) {
+stepCount -= 1;
+            if !(stepCount > 0 && c.stepAlongEdge(dir, Some(true))) {
                 break;
             }
         } //while (--stepCount > 0 && c.stepAlongEdge(dir, true));
@@ -731,9 +731,10 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
             }
         }
         let grid_sampler = DefaultGridSampler::default();
+        let (sampled,rp) = grid_sampler.sample_grid(image, dimension as u32, dimension as u32, &rois)?;
         let result = QRCodeDetectorResult::new(
-            grid_sampler.sample_grid(image, dimension as u32, dimension as u32, &rois)?,
-            Vec::default(),
+            sampled,
+            rp.to_vec(),
         );
         return Ok(result);
         //  grid_sampler.sample_grid(image, dimension, dimension, &rois);
@@ -741,18 +742,19 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
     }
 
     let grid_sampler = DefaultGridSampler::default();
+    let (sampled,rps) = grid_sampler.sample_grid(
+        image,
+        dimension as u32,
+        dimension as u32,
+        &[SamplerControl {
+            p0: point_i(0, dimension as u32),
+            p1: point_i(0, dimension as u32),
+            transform: mod2Pix,
+        }],
+    )?;
     let result = QRCodeDetectorResult::new(
-        grid_sampler.sample_grid(
-            image,
-            dimension as u32,
-            dimension as u32,
-            &[SamplerControl {
-                p0: point_i(0, dimension as u32),
-                p1: point_i(0, dimension as u32),
-                transform: mod2Pix,
-            }],
-        )?,
-        Vec::default(),
+        sampled,
+        rps.to_vec(),
     );
     Ok(result)
     // return SampleGrid(image, dimension, dimension, mod2Pix);
@@ -1018,18 +1020,19 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
     }
 
     let grid_sampler = DefaultGridSampler::default();
+    let (sample, rps) =grid_sampler.sample_grid(
+        image,
+        dim,
+        dim,
+        &[SamplerControl {
+            p0: point_i(0, dim as u32),
+            p1: point_i(0, dim as u32),
+            transform: bestPT,
+        }],
+    )?;
     Ok(QRCodeDetectorResult::new(
-        grid_sampler.sample_grid(
-            image,
-            dim,
-            dim,
-            &[SamplerControl {
-                p0: point_i(0, dim as u32),
-                p1: point_i(0, dim as u32),
-                transform: bestPT,
-            }],
-        )?,
-        Vec::default(),
+        sample,
+        rps.to_vec(),
     ))
 
     //  SampleGrid(image, dim, dim, bestPT)

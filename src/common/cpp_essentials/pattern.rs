@@ -60,17 +60,22 @@ impl From<Vec<PatternType>> for PatternRow {
     }
 }
 
-impl<'a> Iterator for PatternView<'_> {
+pub struct PatternViewIterator<'a> {
+    pattern_view: &'a PatternView<'a>,
+    current_position: usize,
+}
+
+impl<'a> Iterator for PatternViewIterator<'_> {
     type Item = PatternType;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.current + 1 > self.count {
+        if self.current_position + 1 > self.pattern_view.count {
             return None;
         }
 
-        self.current += 1;
+        self.current_position += 1;
 
-        Some(*self.data.0.get(self.current + self.start)?)
+        Some(*self.pattern_view.data.0.get(self.current_position - 1 + self.pattern_view.start + self.pattern_view.current)?)
     }
 }
 
@@ -82,7 +87,7 @@ pub struct PatternView<'a> {
     current: usize,
 }
 
-impl<'a> PatternView<'_> {
+impl<'a> PatternView<'a> {
     // A PatternRow always starts with the width of whitespace in front of the first black bar.
     // The first element of the PatternView is the first bar.
     pub fn new(bars: &'a PatternRow) -> PatternView<'a> {
@@ -126,6 +131,10 @@ impl<'a> PatternView<'_> {
 
     // int sum(int n = 0) const { return std::accumulate(_data, _data + (n == 0 ? _size : n), 0); }
     pub fn sum(&self, n: Option<usize>) -> PatternType {
+        if self.count == self.data.len() {
+            return self.data.0.iter().sum::<PatternType>();
+        }
+
         let n = n.unwrap_or(self.count);
 
         self.data
@@ -135,6 +144,10 @@ impl<'a> PatternView<'_> {
             .take(n)
             .copied()
             .sum::<PatternType>()
+    }
+
+    pub fn iter(&'a self) -> PatternViewIterator<'a> {
+        PatternViewIterator { pattern_view: self, current_position: 0 }
     }
 
     pub fn size(&self) -> usize {
@@ -149,8 +162,7 @@ impl<'a> PatternView<'_> {
         self.data
             .0
             .iter()
-            .skip(self.start)
-            .take(self.current)
+            .take(self.start + self.current)
             .copied()
             .sum::<PatternType>() /*return std::accumulate(_base, _data, 0);*/
     }
@@ -170,8 +182,8 @@ impl<'a> PatternView<'_> {
     }
     pub fn isValidWithN(&self, n: usize) -> bool {
         !self.data.0.is_empty()
-            && self.start <= self.current
-            && self.start + n <= (self.start + self.count)
+            && self.start <= self.current + self.start
+            && self.current + n <= (self.data.0.len())
         /*return _data && _data >= _base && _data + n <= _end;*/
     }
     pub fn isValid(&self) -> bool {
@@ -201,7 +213,7 @@ impl<'a> PatternView<'_> {
     // 	return (acceptIfAtLastBar && isAtLastBar()) || _data[_size] >= sum() * scale;
     // }
 
-    pub fn subView(&'a self, offset: usize, size: Option<usize>) -> PatternView<'a> {
+    pub fn subView(&self, offset: usize, size: Option<usize>) -> PatternView<'a> {
         let mut size = size.unwrap_or(0);
         if size == 0 {
             size = self.count - offset;
@@ -252,7 +264,7 @@ impl<'a> PatternView<'_> {
     }
 
     pub fn extend(&mut self) {
-        self.count = std::cmp::max(0, self.count - self.start)
+        self.count = std::cmp::max(0, self.data.len() - (self.current + self.start))
     }
 
     fn try_get_index(&self, index: isize) -> Option<PatternType> {
@@ -275,6 +287,10 @@ impl<'a> std::ops::Index<isize> for PatternView<'_> {
     type Output = PatternType;
 
     fn index(&self, index: isize) -> &Self::Output {
+        if self.count == self.data.len() {
+            return &self.data[index.abs() as usize]
+        }
+
         if index > self.data.0.len() as isize {
             panic!("array index out of bounds")
         }
@@ -294,6 +310,10 @@ impl<'a> std::ops::Index<usize> for PatternView<'_> {
     type Output = PatternType;
 
     fn index(&self, index: usize) -> &Self::Output {
+        if self.count == self.data.len() {
+            return &self.data[index]
+        }
+
         if index > self.data.0.len() {
             panic!("array index out of bounds")
         }
@@ -442,7 +462,7 @@ pub fn IsPattern<const LEN: usize, const SUM: usize, const SPARSE: bool>(
         return 0.0;
     }
 
-    if (module_size_ref == 0.0) {
+    if module_size_ref == 0.0 {
         module_size_ref = module_size;
     }
 
@@ -485,7 +505,7 @@ pub fn IsRightGuard<const N: usize, const SUM: usize, const IS_SPARCE: bool>(
 }
 
 pub fn FindLeftGuardBy<'a, const LEN: usize, Pred: Fn(&PatternView, Option<f32>) -> bool>(
-    view: &'a PatternView,
+    view: PatternView<'a>,
     minSize: usize,
     isGuard: Pred,
 ) -> Result<PatternView<'a>> {
@@ -517,7 +537,7 @@ pub fn FindLeftGuardBy<'a, const LEN: usize, Pred: Fn(&PatternView, Option<f32>)
 }
 
 pub fn FindLeftGuard<'a, const LEN: usize, const SUM: usize, const IS_SPARCE: bool>(
-    view: &'a PatternView,
+    view: PatternView<'a>,
     minSize: usize,
     pattern: &FixedPattern<LEN, SUM, IS_SPARCE>,
     minQuietZone: f32,
@@ -526,8 +546,8 @@ pub fn FindLeftGuard<'a, const LEN: usize, const SUM: usize, const IS_SPARCE: bo
         // perform a fast plausability test for 1:1:3:1:1 pattern
         // dbg!(window[2], 2 as PatternType * std::cmp::max(window[0], window[4]));
         // dbg!(window[2] < std::cmp::max(window[1], window[3]));
-        if (window[2] < 2 as PatternType * std::cmp::max(window[0], window[4])
-            || window[2] < std::cmp::max(window[1], window[3]))
+        if window[2] < 2 as PatternType * std::cmp::max(window[0], window[4])
+            || window[2] < std::cmp::max(window[1], window[3])
         {
             return false;
         }

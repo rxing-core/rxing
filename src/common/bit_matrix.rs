@@ -222,6 +222,10 @@ impl BitMatrix {
         // ((self.bits[offset] >> (x & 0x1f)) & 1) != 0
     }
 
+    pub fn get_index<T: Into<usize>>(&self, index: T) -> bool {
+        todo!()
+    }
+
     #[inline(always)]
     fn get_offset(&self, y: u32, x: u32) -> usize {
         y as usize * self.row_size + (x as usize / 32)
@@ -745,6 +749,19 @@ impl BitMatrix {
 impl fmt::Display for BitMatrix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.toString("X ", "  "))
+    }
+}
+
+impl From<&BitMatrix> for Vec<bool> {
+    fn from(value: &BitMatrix) -> Self {
+        let mut arr = vec![false;(value.width * value.height) as usize];
+        for x in 0..value.width {
+            for y in 0..value.height {
+                let insert_pos = ((y * value.width) + x )as usize;
+                arr[insert_pos] = value.get(x, y);
+            }
+        }
+        arr
     }
 }
 

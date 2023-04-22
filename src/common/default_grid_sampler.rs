@@ -36,7 +36,7 @@ impl GridSampler for DefaultGridSampler {
         dimensionX: u32,
         dimensionY: u32,
         controls: &[SamplerControl],
-    ) -> Result<BitMatrix> {
+    ) -> Result<(BitMatrix,[Point;4])> {
         if dimensionX <= 0 || dimensionY <= 0 {
             return Err(Exceptions::NOT_FOUND);
         }
@@ -89,11 +89,11 @@ impl GridSampler for DefaultGridSampler {
             Point::default()
         };
 
-        let _tl = projectCorner(point(0.0, 0.0));
-        let _tr = projectCorner(Point::from((dimensionX, 0)));
-        let _bl = projectCorner(Point::from((dimensionX, dimensionY)));
-        let _br = projectCorner(Point::from((0, dimensionX)));
+        let tl = projectCorner(point(0.0, 0.0));
+        let tr = projectCorner(Point::from((dimensionX, 0)));
+        let bl = projectCorner(Point::from((dimensionX, dimensionY)));
+        let br = projectCorner(Point::from((0, dimensionX)));
 
-        Ok(bits)
+        Ok((bits, [tl,tr,bl,br]))
     }
 }

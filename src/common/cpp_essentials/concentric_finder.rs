@@ -68,7 +68,7 @@ pub fn ReadSymmetricPattern<const N: usize, Cursor: BitMatrixCursorTrait>(
 
     for i in 0..=s_2 {
         // for (int i = 0; i <= s_2; ++i) {
-        if !next(cur, i) != 0 || !next(&mut cuo, -i) != 0 {
+        if !next(cur, i) == 0 || !next(&mut cuo, -i) == 0 {
             return None;
         }
     }
@@ -124,14 +124,14 @@ pub fn CheckSymmetricPattern<
         }
     }
 
-    if !(IsPattern(
+    if IsPattern(
         &PatternView::new(&res),
         &FixedPattern::<LEN, SUM, false>::with_reference(pattern),
         None,
         0.0,
         0.0,
         Some(RELAXED_THRESHOLD),
-    ) != 0.0)
+    ) == 0.0
     {
         return 0;
     }
@@ -220,9 +220,9 @@ pub fn CenterOfRing(
         n += 1;
 
         // find out if we come full circle around the center. 8 bits have to be set in the end.
-        neighbourMask |= 1
-            << (4.0 + Point::dot(Point::bresenhamDirection(cur.p() - center), point(1.0, 3.0)))
-                as u32;
+        neighbourMask |= (1
+            << (4.0 + Point::dot(Point::round(Point::bresenhamDirection(cur.p() - center)), point(1.0, 3.0)))
+                as u32);
 
         if !cur.stepAlongEdge(edgeDir, None) {
             return None;

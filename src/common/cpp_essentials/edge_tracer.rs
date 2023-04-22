@@ -182,7 +182,7 @@ impl<'a> EdgeTracer<'_> {
         EdgeTracer {
             img: image,
             p,
-            d,
+            d: Point::bresenhamDirection(d), //d,
             history: None,
             state: 0,
         }

@@ -83,6 +83,14 @@ impl BitArray {
         (self.bits[i / 32] & (1 << (i & 0x1F))) != 0
     }
 
+    pub fn try_get(&self, i:usize) -> Option<bool> {
+        if (i / 32) >= self.bits.len() {
+             None
+        }else {
+Some(self.get(i))
+        }
+    }
+
     /**
      * Sets bit i.
      *
