@@ -95,7 +95,7 @@ pub trait GridSampler {
         dimensionY: u32,
         dst: Quadrilateral,
         src: Quadrilateral,
-    ) -> Result<(BitMatrix,[Point;4])> {
+    ) -> Result<(BitMatrix, [Point; 4])> {
         let transform = PerspectiveTransform::quadrilateralToQuadrilateral(dst, src)?;
 
         self.sample_grid(
@@ -112,7 +112,7 @@ pub trait GridSampler {
         dimensionX: u32,
         dimensionY: u32,
         controls: &[SamplerControl],
-    ) -> Result<(BitMatrix,[Point;4])> {
+    ) -> Result<(BitMatrix, [Point; 4])> {
         if dimensionX == 0 || dimensionY == 0 {
             return Err(Exceptions::NOT_FOUND);
         }
@@ -172,7 +172,15 @@ pub trait GridSampler {
         }
         // dbg!(bits.to_string());
 
-        Ok((bits, [Point::default(), Point::default(), Point::default(), Point::default()]))
+        Ok((
+            bits,
+            [
+                Point::default(),
+                Point::default(),
+                Point::default(),
+                Point::default(),
+            ],
+        ))
     }
 
     /**

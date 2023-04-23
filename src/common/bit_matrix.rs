@@ -21,7 +21,7 @@
 use std::fmt;
 
 use crate::common::Result;
-use crate::{point, Exceptions, Point, point_i};
+use crate::{point, point_i, Exceptions, Point};
 
 use super::BitArray;
 
@@ -761,10 +761,10 @@ impl fmt::Display for BitMatrix {
 
 impl From<&BitMatrix> for Vec<bool> {
     fn from(value: &BitMatrix) -> Self {
-        let mut arr = vec![false;(value.width * value.height) as usize];
+        let mut arr = vec![false; (value.width * value.height) as usize];
         for x in 0..value.width {
             for y in 0..value.height {
-                let insert_pos = ((y * value.width) + x )as usize;
+                let insert_pos = ((y * value.width) + x) as usize;
                 arr[insert_pos] = value.get(x, y);
             }
         }

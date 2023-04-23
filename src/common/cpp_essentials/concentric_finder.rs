@@ -221,9 +221,12 @@ pub fn CenterOfRing(
         n += 1;
 
         // find out if we come full circle around the center. 8 bits have to be set in the end.
-        neighbourMask |= (1
-            << (4.0 + Point::dot(Point::round(Point::bresenhamDirection(cur.p() - center)), point(1.0, 3.0)))
-                as u32);
+        neighbourMask |= 1
+            << (4.0
+                + Point::dot(
+                    Point::round(Point::bresenhamDirection(cur.p() - center)),
+                    point(1.0, 3.0),
+                )) as u32;
 
         if !cur.stepAlongEdge(edgeDir, None) {
             return None;
@@ -325,8 +328,11 @@ pub fn CollectRingPoints(
 
         // find out if we come full circle around the center. 8 bits have to be set in the end.
         neighbourMask |= 1
-            << (4.0 + Point::dot(Point::bresenhamDirection(cur.p - centerI), point(1.0, 3.0)))
-                as u32;
+            << (4.0
+                + Point::dot(
+                    Point::round(Point::bresenhamDirection(cur.p - centerI)),
+                    point(1.0, 3.0),
+                )) as u32;
 
         if !cur.stepAlongEdge(edgeDir, None) {
             return Vec::default();
@@ -423,8 +429,7 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
 }
 
 pub fn QuadrilateralIsPlausibleSquare(q: &Quadrilateral, lineIndex: usize) -> bool {
-    let mut m = f64::default();
-    // let mut M = f64::default();
+    let mut m;
 
     m = Point::distance(q[0], q[3]) as f64; //M = distance(q[0], q[3]);
     let mut M = m;

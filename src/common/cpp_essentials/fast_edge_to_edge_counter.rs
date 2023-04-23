@@ -11,13 +11,14 @@ pub struct FastEdgeToEdgeCounter<'a> {
     stepsToBorder: i32, // = 0;
     //arr: BitArray,
     _arr: isize,
-    under_arry: &'a BitMatrix//,Vec<bool>
+    under_arry: &'a BitMatrix, //,Vec<bool>
 }
 
 impl<'a> FastEdgeToEdgeCounter<'a> {
     pub fn new<T: BitMatrixCursorTrait>(cur: &T) -> FastEdgeToEdgeCounter {
         let stride = cur.d().y as isize * cur.img().width() as isize + cur.d().x as isize;
-        let p = ((cur.p().y as isize * cur.img().width() as isize).abs() as i32 + cur.p().x as i32) as u32; // P IS SET WRONG IN REVERSE
+        let p = ((cur.p().y as isize * cur.img().width() as isize).abs() as i32 + cur.p().x as i32)
+            as u32; // P IS SET WRONG IN REVERSE
 
         let maxStepsX = if cur.d().x != 0.0 {
             if cur.d().x > 0.0 {
@@ -44,7 +45,7 @@ impl<'a> FastEdgeToEdgeCounter<'a> {
             stride,
             stepsToBorder,
             _arr: cur.p().y as isize * stride as isize, //cur.img().getRow(cur.p().y as u32),
-            under_arry: cur.img()//.into(),
+            under_arry: cur.img(),                      //.into(),
         }
     }
 
@@ -65,11 +66,10 @@ impl<'a> FastEdgeToEdgeCounter<'a> {
 
             // if !(self.under_arry[idx_pt]
             //     == self.under_arry[self.p as usize])
-            if !(self.under_arry.get_index(idx_pt) == self.under_arry.get_index(self.p as usize))
-            {
+            if !(self.under_arry.get_index(idx_pt) == self.under_arry.get_index(self.p as usize)) {
                 break true;
             }
-        }; // while (p[steps * stride] == p[0]);
+        } // while (p[steps * stride] == p[0]);
 
         self.p = (self.p as isize + (steps as isize * self.stride)).abs() as u32;
         self.stepsToBorder -= steps;

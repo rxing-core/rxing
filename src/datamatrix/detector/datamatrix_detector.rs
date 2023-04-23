@@ -343,7 +343,7 @@ impl<'a> Detector<'_> {
         );
         let src = Quadrilateral::new(topRight, topLeft, bottomRight, bottomLeft);
 
-        let(res,_)=sampler.sample_grid_detailed(image, dimensionX, dimensionY, dst, src)?;
+        let (res, _) = sampler.sample_grid_detailed(image, dimensionX, dimensionY, dst, src)?;
         Ok(res)
     }
 

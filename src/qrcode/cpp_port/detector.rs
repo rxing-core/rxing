@@ -64,7 +64,7 @@ pub fn FindFinderPatterns(image: &BitMatrix, tryHarder: bool) -> FinderPatterns 
 
         while {
             if let Ok(up_next) = FindLeftGuard(next, 0, &PATTERN, 0.5) {
-                next = up_next; 
+                next = up_next;
                 next.isValid()
             } else {
                 false
@@ -340,7 +340,7 @@ pub fn TraceLine(image: &BitMatrix, p: Point, d: Point, edge: i32) -> impl Regre
             line.add(Point::centered(c.p))
                 .expect("could not add point on line");
 
-stepCount -= 1;
+            stepCount -= 1;
             if !(stepCount > 0 && c.stepAlongEdge(dir, Some(true))) {
                 break;
             }
@@ -414,13 +414,13 @@ pub fn LocateAlignmentPattern(
         );
 
         // if we did not land on a black pixel the concentric pattern finder will fail
-        if (cor.is_none() || !image.get_point(cor.unwrap())) {
+        if cor.is_none() || !image.get_point(cor.unwrap()) {
             continue;
         }
 
         if let Some(cor1) = CenterOfRing(image, cor.unwrap(), moduleSize, 1, true) {
             if let Some(cor2) = CenterOfRing(image, cor.unwrap(), moduleSize * 3, -2, true) {
-                if (Point::distance(cor1, cor2) < moduleSize as f32 / 2.0) {
+                if Point::distance(cor1, cor2) < moduleSize as f32 / 2.0 {
                     let res = (cor1 + cor2) / 2.0;
                     // log(res, 3);
                     return Some(res);
@@ -442,13 +442,13 @@ pub fn ReadVersion(
     for mirror in [false, true] {
         // Read top-right/bottom-left version info: 3 wide by 6 tall (depending on mirrored)
         let mut versionBits = 0;
-        for y in (0..5).rev() {
+        for y in (0..=5).rev() {
             // for (int y = 5; y >= 0; --y)
-            for x in ((dimension - 11)..(dimension - 9)).rev() {
+            for x in ((dimension - 11)..=(dimension - 9)).rev() {
                 // for (int x = dimension - 9; x >= dimension - 11; --x) {
                 let mod_ = if mirror { point_i(y, x) } else { point_i(x, y) };
                 let pix = mod2Pix.transform_point((mod_).centered());
-                if (!image.is_in(pix)) {
+                if !image.is_in(pix) {
                     versionBits = -1;
                 } else {
                     AppendBit(&mut versionBits, image.get_point(pix));
@@ -563,14 +563,14 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
         let N = (apM.len()) - 1;
 
         // project the alignment pattern at module coordinates x/y to pixel coordinate based on current mod2Pix
-        let projectM2P = /*[&mod2Pix, &apM]*/| x,  y, mod2Pix: &PerspectiveTransform| { return mod2Pix.transform_point(Point::centered(point_i(apM[x], apM[y]))); };
+        let projectM2P = /*[&mod2Pix, &apM]*/| x,  y, mod2Pix: &PerspectiveTransform| { mod2Pix.transform_point(Point::centered(point_i(apM[x], apM[y]))) };
 
         let mut findInnerCornerOfConcentricPattern = /*[&image, &apP, &projectM2P]*/| x,  y,   fp:ConcentricPattern| {
 			let pc = apP.set(x, y, projectM2P(x, y, &mod2Pix));
             if let Some(fpQuad) = FindConcentricPatternCorners(image, fp.p, fp.size, 2)
 			// if (auto fpQuad = FindConcentricPatternCorners(image, fp, fp.size, 2))
 				{for  c in fpQuad .0
-					{if (Point::distance(c, pc) < (fp.size as f32) / 2.0)
+					{if Point::distance(c, pc) < (fp.size as f32) / 2.0
 						{apP.set(x, y, c);}}}
 		};
 
@@ -731,31 +731,26 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
             }
         }
         let grid_sampler = DefaultGridSampler::default();
-        let (sampled,rp) = grid_sampler.sample_grid(image, dimension as u32, dimension as u32, &rois)?;
-        let result = QRCodeDetectorResult::new(
-            sampled,
-            rp.to_vec(),
-        );
+        let (sampled, rp) =
+            grid_sampler.sample_grid(image, dimension as u32, dimension as u32, &rois)?;
+        let result = QRCodeDetectorResult::new(sampled, rp.to_vec());
         return Ok(result);
         //  grid_sampler.sample_grid(image, dimension, dimension, &rois);
         // #endif
     }
 
     let grid_sampler = DefaultGridSampler::default();
-    let (sampled,rps) = grid_sampler.sample_grid(
+    let (sampled, rps) = grid_sampler.sample_grid(
         image,
         dimension as u32,
         dimension as u32,
         &[SamplerControl {
             p1: point_i(dimension as u32, dimension as u32),
-            p0: point_i(0,0 ),
+            p0: point_i(0, 0),
             transform: mod2Pix,
         }],
     )?;
-    let result = QRCodeDetectorResult::new(
-        sampled,
-        rps.to_vec(),
-    );
+    let result = QRCodeDetectorResult::new(sampled, rps.to_vec());
     Ok(result)
     // return SampleGrid(image, dimension, dimension, mod2Pix);
 }
@@ -1020,7 +1015,7 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
     }
 
     let grid_sampler = DefaultGridSampler::default();
-    let (sample, rps) =grid_sampler.sample_grid(
+    let (sample, rps) = grid_sampler.sample_grid(
         image,
         dim,
         dim,
@@ -1030,10 +1025,7 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
             transform: bestPT,
         }],
     )?;
-    Ok(QRCodeDetectorResult::new(
-        sample,
-        rps.to_vec(),
-    ))
+    Ok(QRCodeDetectorResult::new(sample, rps.to_vec()))
 
     //  SampleGrid(image, dim, dim, bestPT)
 }

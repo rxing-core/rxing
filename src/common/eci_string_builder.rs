@@ -21,7 +21,10 @@
 // import java.nio.charset.Charset;
 // import java.nio.charset.StandardCharsets;
 
-use std::{collections::HashMap, fmt::{self, Display}};
+use std::{
+    collections::HashMap,
+    fmt::{self, Display},
+};
 
 use crate::BarcodeFormat;
 

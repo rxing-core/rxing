@@ -23,7 +23,7 @@ impl<T: Default + Clone + Copy> Matrix<T> {
     }
 
     pub fn new(width: usize, height: usize) -> Result<Matrix<T>> {
-        if (width != 0 && height != 0) {
+        if (width != 0 && (width * height) / width as usize != height as usize) {
             return Err(Exceptions::illegal_argument_with(
                 "invalid size: width * height is too big",
             ));
@@ -64,7 +64,7 @@ impl<T: Default + Clone + Copy> Matrix<T> {
     }
 
     pub fn get(&self, x: usize, y: usize) -> Option<T> {
-        if x >= 0 && x < self.width && y >= 0 && y < self.height {
+        if x >= self.width || y >= self.height {
             None
         } else {
             Some(self.data[Self::get_offset(x, y, self.width)])

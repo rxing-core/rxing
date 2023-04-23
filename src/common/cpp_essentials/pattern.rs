@@ -75,7 +75,11 @@ impl<'a> Iterator for PatternViewIterator<'_> {
 
         self.current_position += 1;
 
-        Some(*self.pattern_view.data.0.get(self.current_position - 1 + self.pattern_view.start + self.pattern_view.current)?)
+        Some(
+            *self.pattern_view.data.0.get(
+                self.current_position - 1 + self.pattern_view.start + self.pattern_view.current,
+            )?,
+        )
     }
 }
 
@@ -147,7 +151,10 @@ impl<'a> PatternView<'a> {
     }
 
     pub fn iter(&'a self) -> PatternViewIterator<'a> {
-        PatternViewIterator { pattern_view: self, current_position: 0 }
+        PatternViewIterator {
+            pattern_view: self,
+            current_position: 0,
+        }
     }
 
     pub fn size(&self) -> usize {
@@ -273,7 +280,7 @@ impl<'a> PatternView<'a> {
         }
         if index >= 0 {
             let fetch_spot = ((self.start + self.current) as isize + index) as usize;
-        return Some(self.data.0[fetch_spot])
+            return Some(self.data.0[fetch_spot]);
         }
         if index.abs() > (self.start + self.current) as isize {
             return None;
@@ -288,7 +295,7 @@ impl<'a> std::ops::Index<isize> for PatternView<'_> {
 
     fn index(&self, index: isize) -> &Self::Output {
         if self.count == self.data.len() {
-            return &self.data[index.abs() as usize]
+            return &self.data[index.abs() as usize];
         }
 
         if index > self.data.0.len() as isize {
@@ -296,7 +303,7 @@ impl<'a> std::ops::Index<isize> for PatternView<'_> {
         }
         if index >= 0 {
             let fetch_spot = ((self.start + self.current) as isize + index) as usize;
-        return &self.data.0[fetch_spot]
+            return &self.data.0[fetch_spot];
         }
         if index.abs() > self.start as isize {
             panic!("array index out of bounds")
@@ -311,7 +318,7 @@ impl<'a> std::ops::Index<usize> for PatternView<'_> {
 
     fn index(&self, index: usize) -> &Self::Output {
         if self.count == self.data.len() {
-            return &self.data[index]
+            return &self.data[index];
         }
 
         if index > self.data.0.len() {
