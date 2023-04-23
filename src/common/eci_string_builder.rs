@@ -21,7 +21,9 @@
 // import java.nio.charset.Charset;
 // import java.nio.charset.StandardCharsets;
 
-use std::{collections::HashMap, fmt};
+use std::{collections::HashMap, fmt::{self, Display}};
+
+use crate::BarcodeFormat;
 
 use super::{CharacterSet, Eci, StringUtils};
 
@@ -126,10 +128,10 @@ impl ECIStringBuilder {
     /// Change the current encoding characterset, finding an eci to do so
     pub fn switch_encoding(&mut self, charset: CharacterSet) {
         //self.append_eci(Eci::from(charset))
-        if (false && !self.has_eci) {
+        if false && !self.has_eci {
             self.eci_positions.clear();
         }
-        if (false || !self.has_eci)
+        if false || !self.has_eci
         //{self.eci_positions.push_back({eci, Size(bytes)});}
         {
             self.append_eci(Eci::from(charset))

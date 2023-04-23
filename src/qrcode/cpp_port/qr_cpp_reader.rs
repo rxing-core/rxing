@@ -306,10 +306,15 @@ impl QrReader {
                         }
 
                         if (decoderResult.isValid()) {
-                            results.push(RXingResult::new(
-                                &decoderResult.content().to_string(),
-                                decoderResult.content().bytes().to_vec(),
-                                position.to_vec(),
+                            // results.push(RXingResult::new(
+                            //     &decoderResult.content().to_string(),
+                            //     decoderResult.content().bytes().to_vec(),
+                            //     position.to_vec(),
+                            //     BarcodeFormat::QR_CODE,
+                            // ));
+                            results.push(RXingResult::with_decoder_result(
+                                decoderResult,
+                                position,
                                 BarcodeFormat::QR_CODE,
                             ));
                             // results.emplace_back(std::move(decoderResult), std::move(position), BarcodeFormat::QR_CODE);
