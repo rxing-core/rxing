@@ -163,7 +163,7 @@ impl<'a> PatternView<'a> {
 
     // index is the number of bars and spaces from the first bar to the current position
     pub fn index(&self) -> usize {
-        self.current - self.start /*return narrow_cast<int>(_data - _base) - 1;*/
+        self.current /*return narrow_cast<int>(_data - _base) - 1;*/
     }
     pub fn pixelsInFront(&self) -> PatternType {
         self.data

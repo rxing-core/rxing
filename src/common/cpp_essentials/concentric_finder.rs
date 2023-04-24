@@ -412,7 +412,12 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
         .max_by(diagonal_max_by_pred)?;
     // corners[3] = std::max_element(&points[Size(points) * 5 / 8], &points[Size(points) * 7 / 8], dist2Diagonal);
 
-let corner_positions = [0, points.iter().position(|p| *p == corners[1])?, points.iter().position(|p| *p == corners[2])?, points.iter().position(|p| *p == corners[3])?];
+    let corner_positions = [
+        0,
+        points.iter().position(|p| *p == corners[1])?,
+        points.iter().position(|p| *p == corners[2])?,
+        points.iter().position(|p| *p == corners[3])?,
+    ];
 
     // let lines = [
     //     RegressionLine::with_two_points(corners[0] + 1.0, corners[1]),
@@ -421,10 +426,10 @@ let corner_positions = [0, points.iter().position(|p| *p == corners[1])?, points
     //     RegressionLine::with_two_points(corners[3] + 1.0, *points.last()? + 1.0),
     // ];
     let lines = [
-        RegressionLine::with_point_slice(&points[corner_positions[0] + 1.. corner_positions[1]]),
-        RegressionLine::with_point_slice(&points[corner_positions[1] + 1.. corner_positions[2]]),
-        RegressionLine::with_point_slice(&points[corner_positions[2] + 1.. corner_positions[3]]),
-        RegressionLine::with_point_slice(&points[corner_positions[3] + 1.. points.len()]),
+        RegressionLine::with_point_slice(&points[corner_positions[0] + 1..corner_positions[1]]),
+        RegressionLine::with_point_slice(&points[corner_positions[1] + 1..corner_positions[2]]),
+        RegressionLine::with_point_slice(&points[corner_positions[2] + 1..corner_positions[3]]),
+        RegressionLine::with_point_slice(&points[corner_positions[3] + 1..points.len()]),
     ];
     // std::array lines{RegressionLine{corners[0] + 1, corners[1]}, RegressionLine{corners[1] + 1, corners[2]},
     // 				 RegressionLine{corners[2] + 1, corners[3]}, RegressionLine{corners[3] + 1, &points.back() + 1}};

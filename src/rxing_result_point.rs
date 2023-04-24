@@ -284,7 +284,7 @@ impl Point {
     pub fn floor(self) -> Self {
         Self {
             x: self.x.floor(),
-            y: self.y.floor()
+            y: self.y.floor(),
         }
     }
 }

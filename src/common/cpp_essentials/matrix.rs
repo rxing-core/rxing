@@ -66,9 +66,9 @@ impl<T: Default + Clone + Copy> Matrix<T> {
     pub fn get(&self, x: usize, y: usize) -> Option<T> {
         if x >= self.width || y >= self.height {
             None
-        } else if let Some(Some(d)) = self.data.get(Self::get_offset(x, y, self.width)){
+        } else if let Some(Some(d)) = self.data.get(Self::get_offset(x, y, self.width)) {
             Some(*d)
-        }else {
+        } else {
             None
         }
     }
