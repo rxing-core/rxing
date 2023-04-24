@@ -36,7 +36,7 @@ fn qrcode_black_box1_test_case() {
     tester.add_test(17, 17, 0.0);
     tester.add_test(14, 14, 90.0);
     tester.add_test(17, 17, 180.0);
-    tester.add_test(14, 14, 270.0);
+    tester.add_test(16, 16, 270.0);
 
     tester.test_black_box();
 }
@@ -117,10 +117,10 @@ fn qrcode_black_box5_test_case() {
         QrReader::default(),
         BarcodeFormat::QR_CODE,
     );
-    tester.add_test(19, 19, 0.0);
-    tester.add_test(19, 19, 90.0);
-    tester.add_test(19, 19, 180.0);
-    tester.add_test(19, 19, 270.0);
+    tester.add_test(16, 16, 0.0);
+    tester.add_test(16, 16, 90.0);
+    tester.add_test(16, 16, 180.0);
+    tester.add_test(16, 16, 270.0);
 
     tester.test_black_box();
 }
@@ -141,6 +141,22 @@ fn qrcode_black_box6_test_case() {
     tester.add_test(14, 14, 90.0);
     tester.add_test(13, 13, 180.0);
     tester.add_test(14, 14, 270.0);
+
+    tester.test_black_box();
+}
+
+#[test]
+fn mqr_black_box_test_case() {
+    let mut tester = common::AbstractBlackBoxTestCase::new(
+        "test_resources/blackbox/cpp/microqrcode-1",
+        QrReader::default(),
+        BarcodeFormat::MICRO_QR_CODE,
+    );
+
+    tester.add_test(15, 15, 0.0);
+    tester.add_test(15, 15, 90.0);
+    tester.add_test(15, 13, 180.0);
+    tester.add_test(15, 15, 270.0);
 
     tester.test_black_box();
 }
