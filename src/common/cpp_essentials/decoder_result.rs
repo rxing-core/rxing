@@ -51,6 +51,9 @@ where
     pub fn with_eci_string_builder(src: ECIStringBuilder) -> Self {
         let mut new_self = Self::default();
         new_self.content = src;
+
+        
+
         new_self
     }
 

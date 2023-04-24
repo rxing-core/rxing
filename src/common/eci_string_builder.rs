@@ -22,11 +22,11 @@
 // import java.nio.charset.StandardCharsets;
 
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     fmt::{self, Display},
 };
 
-use crate::BarcodeFormat;
+use crate::{pdf417::decoder::ec, BarcodeFormat};
 
 use super::{CharacterSet, Eci, StringUtils};
 
@@ -125,6 +125,12 @@ impl ECIStringBuilder {
             }
 
             self.eci_positions.push((eci, self.bytes.len(), 0));
+
+            let ecis = self.list_ecis();
+
+            if ecis.len() <= 1 && (ecis.contains(&Eci::Unknown)) {
+                self.has_eci = false;
+            }
         }
     }
 
@@ -262,6 +268,14 @@ impl ECIStringBuilder {
         self.eci_result = Some(self.encodeCurrentBytesIfAny());
 
         self
+    }
+
+    pub fn list_ecis(&self) -> HashSet<Eci> {
+        let mut hs = HashSet::new();
+        self.eci_positions.iter().for_each(|pos| {
+            hs.insert(pos.0);
+        });
+        hs
     }
 }
 

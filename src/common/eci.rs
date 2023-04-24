@@ -6,7 +6,7 @@ use super::CharacterSet;
 
 use crate::common::Result;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Eci {
     Unknown = -1,
     Cp437 = 2, // obsolete
