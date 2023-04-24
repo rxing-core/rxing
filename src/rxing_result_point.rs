@@ -280,6 +280,13 @@ impl Point {
             y: self.y.round(),
         }
     }
+
+    pub fn floor(self) -> Self {
+        Self {
+            x: self.x.floor(),
+            y: self.y.floor()
+        }
+    }
 }
 
 impl From<&(f32, f32)> for Point {

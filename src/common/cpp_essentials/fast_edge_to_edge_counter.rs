@@ -56,7 +56,7 @@ impl<'a> FastEdgeToEdgeCounter<'a> {
             steps += 1;
             if steps > maxSteps {
                 if maxSteps == self.stepsToBorder {
-                    break false;
+                    break;
                 } else {
                     return 0;
                 }
@@ -67,7 +67,7 @@ impl<'a> FastEdgeToEdgeCounter<'a> {
             // if !(self.under_arry[idx_pt]
             //     == self.under_arry[self.p as usize])
             if !(self.under_arry.get_index(idx_pt) == self.under_arry.get_index(self.p as usize)) {
-                break true;
+                break;
             }
         } // while (p[steps * stride] == p[0]);
 

@@ -228,4 +228,9 @@ impl RegressionLine {
         new_rl.evaluate(&[point1, point2]);
         new_rl
     }
+    pub fn with_point_slice(points: &[Point]) -> Self {
+        let mut new_rl = RegressionLine::default();
+        new_rl.evaluate(points);
+        new_rl
+    }
 }

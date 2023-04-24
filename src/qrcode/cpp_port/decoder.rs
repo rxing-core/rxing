@@ -35,11 +35,14 @@ pub fn CorrectErrors(codewordBytes: &mut [u8], numDataCodewords: u32) -> Result<
     let rs = ReedSolomonDecoder::new(get_predefined_genericgf(
         PredefinedGenericGF::QrCodeField256,
     ));
-    if rs.decode(&mut codewordsInts, numECCodewords)? != 0
-    // if (!ReedSolomonDecode(GenericGF::QRCodeField256(), codewordsInts, numECCodewords))
-    {
-        return Ok(false);
-    }
+
+    rs.decode(&mut codewordsInts, numECCodewords)?;
+
+    // if rs.decode(&mut codewordsInts, numECCodewords)? != 0
+    // // if (!ReedSolomonDecode(GenericGF::QRCodeField256(), codewordsInts, numECCodewords))
+    // {
+    //     return Ok(false);
+    // }
 
     // Copy back into array of bytes -- only need to worry about the bytes that were data
     // We don't care about errors in the error-correction codewords
@@ -298,9 +301,9 @@ pub fn DecodeBitStream(
     let modeBitLength = Mode::get_codec_mode_bits_length(version);
 
     let res = (|| {
-        while (!IsEndOfStream(&mut bits, version)?) {
+        while !IsEndOfStream(&mut bits, version)? {
             let mode: Mode;
-            if (modeBitLength == 0) {
+            if modeBitLength == 0 {
                 mode = Mode::NUMERIC; // MicroQRCode version 1 is always NUMERIC and modeBitLength is 0
             } else {
                 mode = Mode::CodecModeForBits(
@@ -309,7 +312,7 @@ pub fn DecodeBitStream(
                 )?;
             }
 
-            match (mode) {
+            match mode {
                 Mode::FNC1_FIRST_POSITION => {
                     //				if (!result.empty()) // uncomment to enforce specification
                     //					throw FormatError("GS1 Indicator (FNC1 in first position) at illegal position");
@@ -317,14 +320,14 @@ pub fn DecodeBitStream(
                     result.symbology.aiFlag = AIFlag::GS1; // In Alphanumeric mode undouble doubled '%' and treat single '%' as <GS>
                 }
                 Mode::FNC1_SECOND_POSITION => {
-                    if (!result.is_empty()) {
+                    if !result.is_empty() {
                         return Err(Exceptions::format_with("AIM Application Indicator (FNC1 in second position) at illegal position"));
                         // throw FormatError("AIM Application Indicator (FNC1 in second position) at illegal position");
                     }
                     result.symbology.modifier = b'5'; // As above
                                                       // ISO/IEC 18004:2015 7.4.8.3 AIM Application Indicator (FNC1 in second position), "00-99" or "A-Za-z"
                     let appInd = bits.readBits(8)?;
-                    if (appInd < 100)
+                    if appInd < 100
                     // "00-09"
                     {
                         result +=
@@ -367,7 +370,7 @@ pub fn DecodeBitStream(
                     // "Normal" QR code modes:
                     // How many characters will follow, encoded in this mode?
                     let count = bits.readBits(mode.CharacterCountBits(version) as usize)?;
-                    match (mode) {
+                    match mode {
                         Mode::NUMERIC => DecodeNumericSegment(&mut bits, count, &mut result)?,
                         Mode::ALPHANUMERIC => {
                             DecodeAlphanumericSegment(&mut bits, count, &mut result)?

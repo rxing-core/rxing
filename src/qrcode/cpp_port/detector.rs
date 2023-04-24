@@ -714,8 +714,8 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
                 let y0 = apM[y];
                 let y1 = apM[y + 1];
                 rois.push(SamplerControl {
-                    p0: point_i(x0 - u32::from(x == 0) * 6, x1 + u32::from(x == N - 1) * 7),
-                    p1: point_i(y0 - u32::from(y == 0) * 6, y1 + u32::from(y == N - 1) * 7),
+                    p0: point_i(x0 - u32::from(x == 0) * 6, y0 - u32::from(y == 0) * 6),
+                    p1: point_i(x1 + u32::from(x == N - 1) * 7, y1 + u32::from(y == N - 1) * 7),
                     transform: PerspectiveTransform::quadrilateralToQuadrilateral(
                         Quadrilateral::rectangle_from_xy(
                             x0 as f32, x1 as f32, y0 as f32, y1 as f32, None,

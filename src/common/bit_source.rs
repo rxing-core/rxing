@@ -147,7 +147,7 @@ impl BitSource {
         // Next read whole bytes
         if num_bits > 0 {
             while num_bits >= 8 {
-                result = (result << 8) | self.bytes[self.byte_offset] as u32;
+                result = (result << 8) | self.bytes[byte_offset] as u32;
                 // result = ((result as u16) << 8) as u8 | (self.bytes[self.byte_offset]);
                 byte_offset += 1;
                 num_bits -= 8;
@@ -158,7 +158,7 @@ impl BitSource {
                 let bits_to_not_read = 8 - num_bits;
                 let mask = (0xFF >> bits_to_not_read) << bits_to_not_read;
                 result = (result << num_bits)
-                    | ((self.bytes[self.byte_offset] & mask) as u32 >> bits_to_not_read);
+                    | ((self.bytes[byte_offset] & mask) as u32 >> bits_to_not_read);
                 bit_offset += num_bits;
             }
         }

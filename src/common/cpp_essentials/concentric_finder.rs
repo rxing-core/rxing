@@ -305,7 +305,7 @@ pub fn CollectRingPoints(
     edgeIndex: i32,
     backup: bool,
 ) -> Vec<Point> {
-    let centerI = center.round();
+    let centerI = center.floor();
     let radius = range;
     let mut cur = EdgeTracer::new(image, centerI, point(0.0, 1.0));
     if cur.stepToEdge(Some(edgeIndex), Some(radius), Some(backup)) == 0 {
@@ -362,17 +362,20 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
     let dist2Center = |a, b| Point::distance(a, center) < Point::distance(b, center);
     // rotate points such that the first one is the furthest away from the center (hence, a corner)
 
-    let max_by_pred = |a: &Point, b: &Point| {
-        if dist2Center(*a, *b) {
-            std::cmp::Ordering::Greater
-        } else {
-            std::cmp::Ordering::Less
-        }
+    let max_by_pred = |a: &&Point, b: &&Point| {
+        let da = Point::distance(**a, center);
+        let db = Point::distance(**b, center);
+        da.partial_cmp(&db).unwrap()
+        // if dist2Center(**a, **b) {
+        //     std::cmp::Ordering::Greater
+        // } else {
+        //     std::cmp::Ordering::Less
+        // }
     };
 
-    let max = points.iter().copied().max_by(max_by_pred)?;
+    let max = points.iter().max_by(max_by_pred)?;
 
-    let pos = points.iter().position(|e| *e == max)?;
+    let pos = points.iter().position(|e| e == max)?;
 
     points.rotate_left(pos);
     // std::rotate(points.begin(), std::max_element(points.begin(), points.end(), dist2Center), points.end());
@@ -380,9 +383,8 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
     let mut corners = [Point::default(); 4];
     corners[0] = points[0];
     // find the oposite corner by looking for the farthest point near the oposite point
-    points[(points.len() * 3 / 8)..=(points.len() * 5 / 8)]
+    corners[2] = *points[(points.len() * 3 / 8)..=(points.len() * 5 / 8)]
         .iter()
-        .copied()
         .max_by(max_by_pred)?;
     // corners[2] = std::max_element(&points[Size(points) * 3 / 8], &points[Size(points) * 5 / 8], dist2Center);
     // find the two in between corners by looking for the points farthest from the long diagonal
@@ -390,11 +392,14 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
     let dist2Diagonal = /*[l = RegressionLine(*corners[0], *corners[2])]*/| a,  b| {  l.distance_single(a) < l.distance_single(b) };
 
     let diagonal_max_by_pred = |p1: &Point, p2: &Point| {
-        if dist2Diagonal(*p1, *p2) {
-            std::cmp::Ordering::Greater
-        } else {
-            std::cmp::Ordering::Less
-        }
+        let d1 = l.distance_single(*p1);
+        let d2 = l.distance_single(*p2);
+        d1.partial_cmp(&d2).unwrap()
+        // if dist2Diagonal(*p1, *p2) {
+        //     std::cmp::Ordering::Greater
+        // } else {
+        //     std::cmp::Ordering::Less
+        // }
     };
     corners[1] = points[(points.len() / 8)..=(points.len() * 3 / 8)]
         .iter()
@@ -407,11 +412,19 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
         .max_by(diagonal_max_by_pred)?;
     // corners[3] = std::max_element(&points[Size(points) * 5 / 8], &points[Size(points) * 7 / 8], dist2Diagonal);
 
+let corner_positions = [0, points.iter().position(|p| *p == corners[1])?, points.iter().position(|p| *p == corners[2])?, points.iter().position(|p| *p == corners[3])?];
+
+    // let lines = [
+    //     RegressionLine::with_two_points(corners[0] + 1.0, corners[1]),
+    //     RegressionLine::with_two_points(corners[1] + 1.0, corners[2]),
+    //     RegressionLine::with_two_points(corners[2] + 1.0, corners[3]),
+    //     RegressionLine::with_two_points(corners[3] + 1.0, *points.last()? + 1.0),
+    // ];
     let lines = [
-        RegressionLine::with_two_points(corners[0] + 1.0, corners[1]),
-        RegressionLine::with_two_points(corners[1] + 1.0, corners[2]),
-        RegressionLine::with_two_points(corners[2] + 1.0, corners[3]),
-        RegressionLine::with_two_points(corners[3] + 1.0, *points.last()? + 1.0),
+        RegressionLine::with_point_slice(&points[corner_positions[0] + 1.. corner_positions[1]]),
+        RegressionLine::with_point_slice(&points[corner_positions[1] + 1.. corner_positions[2]]),
+        RegressionLine::with_point_slice(&points[corner_positions[2] + 1.. corner_positions[3]]),
+        RegressionLine::with_point_slice(&points[corner_positions[3] + 1.. points.len()]),
     ];
     // std::array lines{RegressionLine{corners[0] + 1, corners[1]}, RegressionLine{corners[1] + 1, corners[2]},
     // 				 RegressionLine{corners[2] + 1, corners[3]}, RegressionLine{corners[3] + 1, &points.back() + 1}};
@@ -427,6 +440,44 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
 
     Some(res)
 }
+
+// fn fit_quadralateral_to_points(center: Point, points: Vec<Point>) -> Option<Quadrilateral> {
+//     let dist2center = |a, b| Point::distance(a, center) < Point::distance(b, center);
+
+//     // Rotate points such that the first one is the furthest away from the center (hence, a corner)
+//     let mut points = points;
+//     points.rotate_left(points.iter().position(|p| dist2center(p, center)).unwrap());
+
+//     let mut corners = [&points[0]; 4];
+//     corners[0] = &points[0];
+
+//     // Find the opposite corner by looking for the farthest point near the opposite point
+//     let opposite_corner = points.iter().take(points.len() / 2).max_by(|p| dist2center(p, corners[0]));
+//     corners[2] = opposite_corner;
+
+//     // Find the two in between corners by looking for the points farthest from the long diagonal
+//     let dist2diagonal = |l: &RegressionLine, a| l.distance(a);
+//     corners[1] = points.iter().take(points.len() / 2).max_by(|p| dist2diagonal(&RegressionLine(*corners[0], *corners[2]), *p));
+//     corners[3] = points.iter().skip(points.len() / 2).max_by(|p| dist2diagonal(&RegressionLine(*corners[0], *corners[2]), *p));
+
+//     let lines = [
+//         RegressionLine::new(corners[0], corners[1]),
+//         RegressionLine::new(corners[1], corners[2]),
+//         RegressionLine::new(corners[2], corners[3]),
+//         RegressionLine::new(corners[3], corners[0]),
+//     ];
+
+//     if lines.iter().any(|l| !l.is_valid()) {
+//         return None;
+//     }
+
+//     let mut res = QuadrilateralF::new();
+//     for i in 0..4 {
+//         res[i] = intersect(lines[i], lines[(i + 1) % 4]);
+//     }
+
+//     Some(res)
+// }
 
 pub fn QuadrilateralIsPlausibleSquare(q: &Quadrilateral, lineIndex: usize) -> bool {
     let mut m;
