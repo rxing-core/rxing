@@ -240,6 +240,7 @@ pub fn GenerateFinderPatternSets(patterns: &mut FinderPatterns) -> FinderPattern
 
 pub fn EstimateModuleSize(image: &BitMatrix, a: ConcentricPattern, b: ConcentricPattern) -> f64 {
     let mut cur = EdgeTracer::new(image, a.p, b.p - a.p);
+    if !cur.isBlack() { return  -1.0; }
     assert!(cur.isBlack());
 
     let pattern = ReadSymmetricPattern::<5, _>(&mut cur, a.size * 2);

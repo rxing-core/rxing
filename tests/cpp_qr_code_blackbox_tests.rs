@@ -15,9 +15,8 @@
  */
 
 use rxing::{
-    multi::MultipleBarcodeReader,
-    qrcode::{cpp_port::QrReader, QRCodeReader},
-    BarcodeFormat, MultiFormatReader,
+    qrcode::{cpp_port::QrReader},
+    BarcodeFormat,
 };
 
 mod common;
