@@ -79,7 +79,7 @@ pub fn ReadSymmetricPattern<const N: usize, Cursor: BitMatrixCursorTrait>(
 
 // default for RELAXED_THRESHOLD should be false
 pub fn CheckSymmetricPattern<
-    const RELAXED_THRESHOLD: bool,
+    const E2E: bool,
     const LEN: usize,
     const SUM: usize,
     T: BitMatrixCursorTrait,
@@ -125,13 +125,12 @@ pub fn CheckSymmetricPattern<
         }
     }
 
-    if IsPattern(
+    if IsPattern::<E2E, LEN, SUM, false>(
         &PatternView::new(&res),
         &FixedPattern::<LEN, SUM, false>::with_reference(pattern),
         None,
         0.0,
         0.0,
-        Some(RELAXED_THRESHOLD),
     ) == 0.0
     {
         return 0;
@@ -258,44 +257,26 @@ pub fn CenterOfRings(
     range: i32,
     numOfRings: u32,
 ) -> Option<Point> {
-    let mut n = numOfRings;
-    let mut sum = numOfRings * center;
-    for i in 1..numOfRings {
+    let mut n = 1;
+    let mut sum = center;
+    for i in 2..(numOfRings + 1) {
         // for (int i = 1; i < numOfRings; ++i) {
-        let c = CenterOfRing(image, center, range, i as i32 + 1, false)?;
+        let c = CenterOfRing(image, center.floor(), range, i as i32, false)?;
 
-        // TODO: decide whether this wheighting depending on distance to the center is worth it
-        let weight = numOfRings - i;
-        sum += weight * c;
-        n += weight;
+        if !(c == Point::default()) {
+            if n == 1 {
+                return None;
+            } else {
+                return Some(sum / n as f32);
+            }
+        } else if Point::distance(c, center) > range as f32 / numOfRings as f32 / 2.0 {
+            return None;
+        }
+
+        sum += c;
+        n += 1;
     }
     Some(sum / n as f32)
-}
-
-pub fn FinetuneConcentricPatternCenter(
-    image: &BitMatrix,
-    center: Point,
-    range: i32,
-    finderPatternSize: u32,
-) -> Option<Point> {
-    // make sure we have at least one path of white around the center
-    let res = CenterOfRing(image, center, range, 1, false)?;
-
-    let center = res;
-
-    let mut res = CenterOfRings(image, center, range, finderPatternSize / 2);
-
-    if res.is_none() || !image.get_point(res?) {
-        res = CenterOfDoubleCross(image, center, range, finderPatternSize / 2 + 1);
-    }
-    if res.is_none() || !image.get_point(res?) {
-        res = Some(center);
-    }
-    if res.is_none() || !image.get_point(res?) {
-        return None;
-    }
-
-    res
 }
 
 pub fn CollectRingPoints(
@@ -419,12 +400,6 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
         points.iter().position(|p| *p == corners[3])?,
     ];
 
-    // let lines = [
-    //     RegressionLine::with_two_points(corners[0] + 1.0, corners[1]),
-    //     RegressionLine::with_two_points(corners[1] + 1.0, corners[2]),
-    //     RegressionLine::with_two_points(corners[2] + 1.0, corners[3]),
-    //     RegressionLine::with_two_points(corners[3] + 1.0, *points.last()? + 1.0),
-    // ];
     let lines = [
         RegressionLine::with_point_slice(&points[corner_positions[0] + 1..corner_positions[1]]),
         RegressionLine::with_point_slice(&points[corner_positions[1] + 1..corner_positions[2]]),
@@ -437,6 +412,36 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
         return None;
     }
 
+    let beg: [usize; 4] = [
+        corner_positions[0] + 1,
+        corner_positions[1] + 1,
+        corner_positions[2] + 1,
+        corner_positions[3] + 1,
+    ];
+    let end: [usize; 4] = [
+        corner_positions[1],
+        corner_positions[2],
+        corner_positions[3],
+        points.len(),
+    ];
+
+    // check if all points belonging to each line segment are sufficiently close to that line
+    for i in 0..4 {
+        // for (int i = 0; i < 4; ++i){
+        for p in &points[beg[i]..end[i]] {
+            // for (const PointF* p = beg[i]; p != end[i]; ++p) {
+            let len = (end[i] - beg[i]) as f64; //std::distance(beg[i], end[i]);
+            if (len > 3.0
+                && (lines[i].distance_single(*p) as f64) > f64::max(1.0, f64::min(8.0, len / 8.0)))
+            {
+                // #ifdef PRINT_DEBUG
+                // 				printf("%d: %.2f > %.2f @ %.fx%.f\n", i, lines[i].distance(*p), std::distance(beg[i], end[i]) / 1., p->x, p->y);
+                // #endif
+                return None;
+            }
+        }
+    }
+
     let mut res = Quadrilateral::default();
     for i in 0..4 {
         // for (int i = 0; i < 4; ++i) {
@@ -445,44 +450,6 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
 
     Some(res)
 }
-
-// fn fit_quadralateral_to_points(center: Point, points: Vec<Point>) -> Option<Quadrilateral> {
-//     let dist2center = |a, b| Point::distance(a, center) < Point::distance(b, center);
-
-//     // Rotate points such that the first one is the furthest away from the center (hence, a corner)
-//     let mut points = points;
-//     points.rotate_left(points.iter().position(|p| dist2center(p, center)).unwrap());
-
-//     let mut corners = [&points[0]; 4];
-//     corners[0] = &points[0];
-
-//     // Find the opposite corner by looking for the farthest point near the opposite point
-//     let opposite_corner = points.iter().take(points.len() / 2).max_by(|p| dist2center(p, corners[0]));
-//     corners[2] = opposite_corner;
-
-//     // Find the two in between corners by looking for the points farthest from the long diagonal
-//     let dist2diagonal = |l: &RegressionLine, a| l.distance(a);
-//     corners[1] = points.iter().take(points.len() / 2).max_by(|p| dist2diagonal(&RegressionLine(*corners[0], *corners[2]), *p));
-//     corners[3] = points.iter().skip(points.len() / 2).max_by(|p| dist2diagonal(&RegressionLine(*corners[0], *corners[2]), *p));
-
-//     let lines = [
-//         RegressionLine::new(corners[0], corners[1]),
-//         RegressionLine::new(corners[1], corners[2]),
-//         RegressionLine::new(corners[2], corners[3]),
-//         RegressionLine::new(corners[3], corners[0]),
-//     ];
-
-//     if lines.iter().any(|l| !l.is_valid()) {
-//         return None;
-//     }
-
-//     let mut res = QuadrilateralF::new();
-//     for i in 0..4 {
-//         res[i] = intersect(lines[i], lines[(i + 1) % 4]);
-//     }
-
-//     Some(res)
-// }
 
 pub fn QuadrilateralIsPlausibleSquare(q: &Quadrilateral, lineIndex: usize) -> bool {
     let mut m;
@@ -593,11 +560,7 @@ impl ConcentricPattern {
     }
 }
 
-pub fn LocateConcentricPattern<
-    const RELAXED_THRESHOLD: bool,
-    const LEN: usize,
-    const SUM: usize,
->(
+pub fn LocateConcentricPattern<const E2E: bool, const LEN: usize, const SUM: usize>(
     image: &BitMatrix,
     pattern: &Pattern<LEN>,
     center: Point,
@@ -606,31 +569,38 @@ pub fn LocateConcentricPattern<
     let mut cur = EdgeTracer::new(image, center, Point::default());
     let mut minSpread = image.getWidth() as i32;
     let mut maxSpread = 0_i32;
+
+    // TODO: setting maxError to 1 can subtantially help with detecting symbols with low print quality resulting in damaged
+    // finder patterns, but it sutantially increases the runtime (approx. 20% slower for the falsepositive images).
+    let mut maxError = 0;
     for d in [point(0.0, 1.0), point(1.0, 0.0)] {
         // for (auto d : {PointI{0, 1}, {1, 0}}) {
         cur.setDirection(d); // THIS COULD POSSIBLY BE WRONG, WE MIGHT MEAN TO CLONE cur EACH RUN?
-        let spread =
-            CheckSymmetricPattern::<RELAXED_THRESHOLD, LEN, SUM, _>(&mut cur, pattern, range, true);
-        if spread == 0 {
-            return None;
+
+        let spread = CheckSymmetricPattern::<E2E, LEN, SUM, _>(&mut cur, pattern, range, true);
+        if spread != 0 {
+            UpdateMinMax(&mut minSpread, &mut maxSpread, spread);
+        } else {
+            maxError -= 1;
+            if maxError < 0 {
+                return None;
+            }
         }
-        UpdateMinMax(&mut minSpread, &mut maxSpread, spread);
     }
 
     //#if 1
     for d in [point(1.0, 1.0), point(1.0, -1.0)] {
         // for (auto d : {PointI{1, 1}, {1, -1}}) {
         cur.setDirection(d); // THIS COULD POSSIBLY BE WRONG, WE MIGHT MEAN TO CLONE cur EACH RUN?
-        let spread = CheckSymmetricPattern::<RELAXED_THRESHOLD, LEN, SUM, _>(
-            &mut cur,
-            pattern,
-            range * 2,
-            false,
-        );
-        if spread == 0 {
-            return None;
+        let spread = CheckSymmetricPattern::<E2E, LEN, SUM, _>(&mut cur, pattern, range * 2, false);
+        if spread != 0 {
+            UpdateMinMax(&mut minSpread, &mut maxSpread, spread);
+        } else {
+            maxError -= 1;
+            if maxError < 0 {
+                return None;
+            }
         }
-        UpdateMinMax(&mut minSpread, &mut maxSpread, spread);
     }
     //#endif
 
@@ -644,4 +614,52 @@ pub fn LocateConcentricPattern<
         p: newCenter,
         size: (maxSpread + minSpread) / 2,
     })
+}
+
+pub fn FinetuneConcentricPatternCenter(
+    image: &BitMatrix,
+    center: Point,
+    range: i32,
+    finderPatternSize: u32,
+) -> Option<Point> {
+    // make sure we have at least one path of white around the center
+    if let Some(res1) = CenterOfRing(image, center.floor(), range, 1, true) {
+        if !image.get_point(res1) {
+            return None;
+        }
+        // and then either at least one more ring around that
+        if let Some(res2) = CenterOfRings(image, res1, range, finderPatternSize / 2) {
+            return Some(res2);
+        }
+        // or the center can be approximated by a square
+        if (FitSquareToPoints(image, res1, range, 1, false).is_some()) {
+            return Some(res1);
+        }
+        // TODO: this is currently only keeping #258 alive, evaluate if still worth it
+        if let Some(res2) =
+            CenterOfDoubleCross(image, res1.floor(), range, finderPatternSize / 2 + 1)
+        {
+            return Some(res2);
+        }
+    }
+    None
+
+    // // make sure we have at least one path of white around the center
+    // let res = CenterOfRing(image, center, range, 1, false)?;
+
+    // let center = res;
+
+    // let mut res = CenterOfRings(image, center, range, finderPatternSize / 2);
+
+    // if res.is_none() || !image.get_point(res?) {
+    //     res = CenterOfDoubleCross(image, center, range, finderPatternSize / 2 + 1);
+    // }
+    // if res.is_none() || !image.get_point(res?) {
+    //     res = Some(center);
+    // }
+    // if res.is_none() || !image.get_point(res?) {
+    //     return None;
+    // }
+
+    // res
 }

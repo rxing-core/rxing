@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-use rxing::{
-    qrcode::{cpp_port::QrReader},
-    BarcodeFormat,
-};
+use rxing::{qrcode::cpp_port::QrReader, BarcodeFormat};
 
 mod common;
 

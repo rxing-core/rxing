@@ -11,6 +11,21 @@ use crate::{
 pub type PatternType = u16;
 pub type Pattern<const N: usize> = [PatternType; N];
 
+fn BarAndSpaceSum<
+    const LEN: usize,
+    T: Into<RT> + Copy,
+    RT: Default + std::cmp::PartialEq + std::ops::AddAssign,
+>(
+    view: &[T],
+) -> BarAndSpace<RT> {
+    let mut res = BarAndSpace::default();
+    for i in 0..LEN {
+        // for (int i = 0; i < LEN; ++i)
+        res[i] += view[i].into();
+    }
+    res
+}
+
 #[derive(Default, Debug)]
 pub struct PatternRow(Vec<PatternType>);
 
@@ -341,6 +356,7 @@ impl<'a> std::ops::Index<i32> for PatternView<'_> {
  *
  * The operator[](int) can be used in combination with a PatternView
  */
+#[derive(Default)]
 struct BarAndSpace<T: Default + std::cmp::PartialEq> {
     bar: T,
     space: T,
@@ -355,7 +371,7 @@ impl<T: Default + std::cmp::PartialEq> std::ops::Index<usize> for BarAndSpace<T>
     type Output = T;
 
     fn index(&self, index: usize) -> &Self::Output {
-        match index {
+        match index & 1 {
             0 => &self.bar,
             1 => &self.space,
             _ => panic!("Index out of range for BarAndSpace"),
@@ -365,7 +381,7 @@ impl<T: Default + std::cmp::PartialEq> std::ops::Index<usize> for BarAndSpace<T>
 
 impl<T: Default + std::cmp::PartialEq> std::ops::IndexMut<usize> for BarAndSpace<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        match index {
+        match index & 1 {
             0 => &mut self.bar,
             1 => &mut self.space,
             _ => panic!("Index out of range for BarAndSpace"),
@@ -418,6 +434,10 @@ impl<const N: usize, const SUM: usize, const IS_SPARCE: bool> FixedPattern<N, SU
     fn size(&self) -> usize {
         N
     }
+
+    fn sums(&self) -> BarAndSpace<PatternType> {
+        return BarAndSpaceSum::<N, PatternType, PatternType>(&self.data);
+    }
 }
 
 impl<const N: usize, const SUM: usize, const IS_SPARCE: bool> std::ops::Index<usize>
@@ -445,16 +465,57 @@ pub type FixedSparcePattern<const N: usize, const SUM: usize> = FixedPattern<N, 
 // template <int N, int SUM>
 // using FixedSparcePattern = FixedPattern<N, SUM, true>;
 
-pub fn IsPattern<const LEN: usize, const SUM: usize, const SPARSE: bool>(
+pub fn IsPattern<const E2E: bool, const LEN: usize, const SUM: usize, const SPARSE: bool>(
     view: &PatternView,
     pattern: &FixedPattern<LEN, SUM, SPARSE>,
     space_in_pixel: Option<f32>,
     min_quiet_zone: f32,
     module_size_ref: f32,
-    relaxed_threshold: Option<bool>,
+    // e2e: Option<bool>,
 ) -> f32 {
-    let relaxed_threshold = relaxed_threshold.unwrap_or(false);
+    let e2e = E2E; //e2e.unwrap_or(false);
     let mut module_size_ref = module_size_ref;
+
+    if (e2e) {
+        //using float_t = double;
+
+        let widths = BarAndSpaceSum::<LEN, PatternType, f64>(&view.data().0);
+        let sums = pattern.sums();
+        let modSize: BarAndSpace<f64> = BarAndSpace {
+            bar: widths[0] / sums[0] as f64,
+            space: widths[1] / sums[1] as f64,
+        };
+
+        let [m, M] = [
+            f64::min(modSize[0], modSize[1]),
+            f64::max(modSize[0], modSize[1]),
+        ];
+        if (M > 4.0 * m) {
+            // make sure module sizes of bars and spaces are not too far away from each other
+            return 0.0;
+        }
+
+        if (min_quiet_zone != 0.0
+            && (space_in_pixel.unwrap_or_default()) < min_quiet_zone * modSize.space as f32)
+        {
+            return 0.0;
+        }
+
+        let thr: BarAndSpace<f64> = BarAndSpace {
+            bar: modSize[0] * 0.75 + 0.5,
+            space: modSize[1] / (2.0 + f64::from(LEN < 6)) + 0.5,
+        };
+
+        for x in 0..LEN {
+            // for (int x = 0; x < LEN; ++x){
+            if (view[x] as f64 - pattern[x] as f64 * modSize[x]).abs() > thr[x] {
+                return 0.0;
+            }
+        }
+
+        let moduleSize: f64 = (modSize[0] + modSize[1]) / 2.0;
+        return moduleSize as f32;
+    }
 
     let width = view.sum(Some(LEN));
     if SUM > LEN && Into::<usize>::into(width) < SUM {
@@ -473,7 +534,7 @@ pub fn IsPattern<const LEN: usize, const SUM: usize, const SPARSE: bool>(
         module_size_ref = module_size;
     }
 
-    let threshold = module_size_ref * (0.5 + (relaxed_threshold as u8) as f32 * 0.25) + 0.5;
+    let threshold = module_size_ref * (0.5 + (e2e as u8) as f32 * 0.25) + 0.5;
 
     // the offset of 0.5 is to make the code less sensitive to quantization errors for small (near 1) module sizes.
     // TODO: review once we have upsampling in the binarizer in place.
@@ -501,13 +562,15 @@ pub fn IsRightGuard<const N: usize, const SUM: usize, const IS_SPARCE: bool>(
         Some(view.end().unwrap().into())
     };
 
-    IsPattern(
+    const E2E: bool = false;
+
+    IsPattern::<E2E, N, SUM, IS_SPARCE>(
         view,
         pattern,
         spaceInPixel,
         minQuietZone,
         moduleSizeRef,
-        None,
+        // None,
     ) != 0.0
 }
 
@@ -558,7 +621,13 @@ pub fn FindLeftGuard<'a, const LEN: usize, const SUM: usize, const IS_SPARCE: bo
         {
             return false;
         }
-        return IsPattern(window, pattern, spaceInPixel, minQuietZone, 0.0, None) != 0.0;
+        return IsPattern::<false, LEN, SUM, IS_SPARCE>(
+            window,
+            pattern,
+            spaceInPixel,
+            minQuietZone,
+            0.0,
+        ) != 0.0;
     })
 }
 

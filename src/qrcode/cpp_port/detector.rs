@@ -36,6 +36,17 @@ pub type FinderPatterns = Vec<ConcentricPattern>;
 pub type FinderPatternSets = Vec<FinderPatternSet>;
 
 const PATTERN: FixedPattern<5, 7, false> = FixedPattern::new([1, 1, 3, 1, 1]);
+const E2E: bool = true;
+
+// pub fn FindPattern( view: &PatternView) -> PatternView
+// {
+// 	return FindLeftGuard<PATTERN.size()>(view, PATTERN.size(), [](const PatternView& view, int spaceInPixel) {
+// 		// perform a fast plausability test for 1:1:3:1:1 pattern
+// 		if (view[2] < 2 * std::max(view[0], view[4]) || view[2] < std::max(view[1], view[3]))
+// 			return 0.f;
+// 		return IsPattern<E2E>(view, PATTERN, spaceInPixel, 0.5);
+// 	});
+// }
 
 /// Locate the finder patterns for the symbol.
 /// This function can panic
@@ -85,7 +96,7 @@ pub fn FindFinderPatterns(image: &BitMatrix, tryHarder: bool) -> FinderPatterns 
                 .is_none()
             {
                 // if (FindIf(res, [p](const auto& old) { return distance(p, old) < old.size / 2; }) == res.end()) {
-                let pattern = LocateConcentricPattern::<false, 5, 7>(
+                let pattern = LocateConcentricPattern::<E2E, 5, 7>(
                     image,
                     &PATTERN.into(),
                     p,
@@ -240,7 +251,9 @@ pub fn GenerateFinderPatternSets(patterns: &mut FinderPatterns) -> FinderPattern
 
 pub fn EstimateModuleSize(image: &BitMatrix, a: ConcentricPattern, b: ConcentricPattern) -> f64 {
     let mut cur = EdgeTracer::new(image, a.p, b.p - a.p);
-    if !cur.isBlack() { return  -1.0; }
+    if !cur.isBlack() {
+        return -1.0;
+    }
     assert!(cur.isBlack());
 
     let pattern = ReadSymmetricPattern::<5, _>(&mut cur, a.size * 2);
@@ -251,13 +264,12 @@ pub fn EstimateModuleSize(image: &BitMatrix, a: ConcentricPattern, b: Concentric
 
     let pattern = pattern.unwrap();
 
-    if (!(IsPattern(
+    if (!(IsPattern::<E2E, 5, 7, false>(
         &PatternView::new(&PatternRow::new(pattern.to_vec())),
         &PATTERN,
         None,
         0.0,
         0.0,
-        Some(true),
     ) != 0.0))
     {
         return -1.0;
@@ -800,7 +812,7 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         // diagonal = BitMatrixCursorI(image, p, d).readPatternFromBlack<Pattern>(1, width / 3 + 1);
         let diag_hld = diagonal.to_vec().into();
         let view = PatternView::new(&diag_hld);
-        if (!(IsPattern(&view, &PATTERN, None, 0.0, 0.0, None) != 0.0)) {
+        if (!(IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0) != 0.0)) {
             return Err(Exceptions::NOT_FOUND);
         }
     }
@@ -880,7 +892,7 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         .ok_or(Exceptions::ILLEGAL_STATE)?;
     let diag_hld = diagonal.to_vec().into();
     let view = PatternView::new(&diag_hld);
-    if (!(IsPattern(&view, &PATTERN, None, 0.0, 0.0, None) != 0.0)) {
+    if (!(IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0) != 0.0)) {
         return Err(Exceptions::NOT_FOUND);
     }
 
