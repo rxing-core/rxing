@@ -52,8 +52,6 @@ where
         let mut new_self = Self::default();
         new_self.content = src;
 
-        
-
         new_self
     }
 
