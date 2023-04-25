@@ -113,6 +113,9 @@ impl Version {
     }
 
     pub fn getECBlocksForLevel(&self, ecLevel: ErrorCorrectionLevel) -> &ECBlocks {
+        if ecLevel.get_ordinal() as usize >= self.ecBlocks.len() {
+            return &self.ecBlocks[ecLevel.get_ordinal() as usize % self.ecBlocks.len()];
+        }
         &self.ecBlocks[ecLevel.get_ordinal() as usize]
     }
 

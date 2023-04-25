@@ -197,7 +197,7 @@ impl<'a> PatternView<'a> {
         self.isValidWithN(self.size())
     }
 
-    fn has_quiet_zone_before(&self, scale: f32, acceptIfAtFirstBar: Option<bool>) -> bool {
+    pub fn has_quiet_zone_before(&self, scale: f32, acceptIfAtFirstBar: Option<bool>) -> bool {
         (acceptIfAtFirstBar.unwrap_or(false) && self.isAtLastBar())
             || Into::<f32>::into(self.data.0[self.count])
                 >= Into::<f32>::into(self.sum(None)) * scale

@@ -1023,8 +1023,8 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
         dim,
         dim,
         &[SamplerControl {
-            p0: point_i(0, dim as u32),
-            p1: point_i(0, dim as u32),
+            p1: point_i(dim as u32, dim as u32),
+            p0: point_i(0, 0),
             transform: bestPT,
         }],
     )?;
