@@ -1,6 +1,8 @@
 use crate::{
     common::{
-        cpp_essentials::{CenterOfRing, DMRegressionLine, FindConcentricPatternCorners, Matrix},
+        cpp_essentials::{
+            CenterOfRing, DMRegressionLine, FindConcentricPatternCorners, FindLeftGuardBy, Matrix,
+        },
         DefaultGridSampler, GridSampler, Result, SamplerControl,
     },
     dimension, point_g, point_i,
@@ -35,18 +37,26 @@ pub struct FinderPatternSet {
 pub type FinderPatterns = Vec<ConcentricPattern>;
 pub type FinderPatternSets = Vec<FinderPatternSet>;
 
-const PATTERN: FixedPattern<5, 7, false> = FixedPattern::new([1, 1, 3, 1, 1]);
+const LEN: usize = 5;
+const SUM: usize = 7;
+const PATTERN: FixedPattern<LEN, SUM, false> = FixedPattern::new([1, 1, 3, 1, 1]);
 const E2E: bool = true;
 
-// pub fn FindPattern( view: &PatternView) -> PatternView
-// {
-// 	return FindLeftGuard<PATTERN.size()>(view, PATTERN.size(), [](const PatternView& view, int spaceInPixel) {
-// 		// perform a fast plausability test for 1:1:3:1:1 pattern
-// 		if (view[2] < 2 * std::max(view[0], view[4]) || view[2] < std::max(view[1], view[3]))
-// 			return 0.f;
-// 		return IsPattern<E2E>(view, PATTERN, spaceInPixel, 0.5);
-// 	});
-// }
+fn FindPattern<'a>(view: PatternView<'a>) -> Result<PatternView<'a>> {
+    FindLeftGuardBy::<LEN, _>(
+        view,
+        LEN,
+        |view: &PatternView, spaceInPixel: Option<f32>| {
+            // perform a fast plausability test for 1:1:3:1:1 pattern
+            if (view[2] < 2 as PatternType * std::cmp::max(view[0], view[4])
+                || view[2] < std::cmp::max(view[1], view[3]))
+            {
+                return false;
+            }
+            IsPattern::<E2E, 5, 7, false>(view, &PATTERN, spaceInPixel, 0.5, 0.0) != 0.0
+        },
+    )
+}
 
 /// Locate the finder patterns for the symbol.
 /// This function can panic
@@ -74,7 +84,7 @@ pub fn FindFinderPatterns(image: &BitMatrix, tryHarder: bool) -> FinderPatterns 
         let mut next: PatternView = PatternView::new(&row);
 
         while {
-            if let Ok(up_next) = FindLeftGuard(next, 0, &PATTERN, 0.5) {
+            if let Ok(up_next) = FindPattern(next) {
                 next = up_next;
                 next.isValid()
             } else {
@@ -105,7 +115,7 @@ pub fn FindFinderPatterns(image: &BitMatrix, tryHarder: bool) -> FinderPatterns 
                    //    Reduce(next) * 3); // 3 for very skewed samples
                 if (pattern.is_some()) {
                     // log(*pattern, 3);
-                    assert!(image.get_point(pattern.as_ref().unwrap().p));
+                    // assert!(image.get_point(pattern.as_ref().unwrap().p));
                     res.push(pattern.unwrap());
                 }
             }
@@ -432,7 +442,8 @@ pub fn LocateAlignmentPattern(
         }
 
         if let Some(cor1) = CenterOfRing(image, cor.unwrap(), moduleSize, 1, true) {
-            if let Some(cor2) = CenterOfRing(image, cor.unwrap(), moduleSize * 3, -2, true) {
+            if let Some(cor2) = CenterOfRing(image, cor.unwrap().floor(), moduleSize * 3, -2, true)
+            {
                 if Point::distance(cor1, cor2) < moduleSize as f32 / 2.0 {
                     let res = (cor1 + cor2) / 2.0;
                     // log(res, 3);

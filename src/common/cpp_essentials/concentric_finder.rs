@@ -263,7 +263,7 @@ pub fn CenterOfRings(
         // for (int i = 1; i < numOfRings; ++i) {
         let c = CenterOfRing(image, center.floor(), range, i as i32, false)?;
 
-        if !(c == Point::default()) {
+        if (c == Point::default()) {
             if n == 1 {
                 return None;
             } else {
@@ -566,7 +566,7 @@ pub fn LocateConcentricPattern<const E2E: bool, const LEN: usize, const SUM: usi
     center: Point,
     range: i32,
 ) -> Option<ConcentricPattern> {
-    let mut cur = EdgeTracer::new(image, center, Point::default());
+    let mut cur = EdgeTracer::new(image, center.floor(), Point::default());
     let mut minSpread = image.getWidth() as i32;
     let mut maxSpread = 0_i32;
 

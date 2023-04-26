@@ -20,23 +20,23 @@ impl<'a> FastEdgeToEdgeCounter<'a> {
         let p = ((cur.p().y as isize * cur.img().width() as isize).abs() as i32 + cur.p().x as i32)
             as u32; // P IS SET WRONG IN REVERSE
 
-        let maxStepsX = if cur.d().x != 0.0 {
+        let maxStepsX: i32 = if cur.d().x != 0.0 {
             if cur.d().x > 0.0 {
-                cur.img().width() - 1 - cur.p().x as u32
+                cur.img().width() as i32 - 1 - cur.p().x as i32
             } else {
-                cur.p().x as u32
+                cur.p().x as i32
             }
         } else {
-            u32::MAX
+            i32::MAX
         };
-        let maxStepsY = if cur.d().y != 0.0 {
+        let maxStepsY: i32 = if cur.d().y != 0.0 {
             if cur.d().y > 0.0 {
-                cur.img().height() - 1 - cur.p().y as u32
+                cur.img().height() as i32 - 1 - cur.p().y as i32
             } else {
-                cur.p().y as u32
+                cur.p().y as i32
             }
         } else {
-            u32::MAX
+            i32::MAX
         };
         let stepsToBorder = std::cmp::min(maxStepsX, maxStepsY) as i32;
 

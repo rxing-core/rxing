@@ -209,6 +209,7 @@ fn cpp_qrcode_black_box3_test_case() {
         QrReader::default(),
         BarcodeFormat::QR_CODE,
     );
+
     tester.add_test(28, 28, 0.0);
     tester.add_test(28, 28, 90.0);
     tester.add_test(28, 28, 180.0);

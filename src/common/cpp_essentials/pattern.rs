@@ -351,6 +351,16 @@ impl<'a> std::ops::Index<i32> for PatternView<'_> {
     }
 }
 
+impl<'a> Into<Vec<PatternType>> for &PatternView<'a> {
+    fn into(self) -> Vec<PatternType> {
+        let mut v = vec![PatternType::default(); self.count as usize];
+        for i in 0..self.count {
+            v[i] = self[i];
+        }
+        v
+    }
+}
+
 /**
  * @brief The BarAndSpace struct is a simple 2 element data structure to hold information about bar(s) and space(s).
  *
@@ -473,13 +483,13 @@ pub fn IsPattern<const E2E: bool, const LEN: usize, const SUM: usize, const SPAR
     module_size_ref: f32,
     // e2e: Option<bool>,
 ) -> f32 {
-    let e2e = E2E; //e2e.unwrap_or(false);
+    //let e2e = E2E; //e2e.unwrap_or(false);
     let mut module_size_ref = module_size_ref;
 
-    if (e2e) {
+    if E2E {
         //using float_t = double;
-
-        let widths = BarAndSpaceSum::<LEN, PatternType, f64>(&view.data().0);
+        let v_src: Vec<PatternType> = view.into();
+        let widths = BarAndSpaceSum::<LEN, PatternType, f64>(&v_src);
         let sums = pattern.sums();
         let modSize: BarAndSpace<f64> = BarAndSpace {
             bar: widths[0] / sums[0] as f64,
@@ -534,7 +544,7 @@ pub fn IsPattern<const E2E: bool, const LEN: usize, const SUM: usize, const SPAR
         module_size_ref = module_size;
     }
 
-    let threshold = module_size_ref * (0.5 + (e2e as u8) as f32 * 0.25) + 0.5;
+    let threshold = module_size_ref * (0.5 + (E2E as u8) as f32 * 0.25) + 0.5;
 
     // the offset of 0.5 is to make the code less sensitive to quantization errors for small (near 1) module sizes.
     // TODO: review once we have upsampling in the binarizer in place.
@@ -586,7 +596,7 @@ pub fn FindLeftGuardBy<'a, const LEN: usize, Pred: Fn(&PatternView, Option<f32>)
     }
 
     let mut window = view.subView(0, Some(LEN));
-    if window.isAtFirstBar() && isGuard(&window, None) {
+    if window.isAtFirstBar() && isGuard(&window, Some(f32::MAX)) {
         return Ok(window);
     }
     let end = Into::<usize>::into(view.end().ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?) - minSize;
