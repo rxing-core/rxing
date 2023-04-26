@@ -261,7 +261,7 @@ pub fn CenterOfRings(
     let mut sum = center;
     for i in 2..(numOfRings + 1) {
         // for (int i = 1; i < numOfRings; ++i) {
-        let c = CenterOfRing(image, center.floor(), range, i as i32, false)?;
+        let c = CenterOfRing(image, center.floor(), range, i as i32, true)?;
 
         if (c == Point::default()) {
             if n == 1 {
@@ -532,7 +532,7 @@ impl std::ops::Add for ConcentricPattern {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let new_p = self.p - rhs.p;
+        let new_p = self.p + rhs.p;
         Self {
             p: new_p,
             size: self.size,
