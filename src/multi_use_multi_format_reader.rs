@@ -17,6 +17,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::common::Result;
+use crate::qrcode::cpp_port::QrReader;
 use crate::{
     aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
     oned::MultiFormatOneDReader, pdf417::PDF417Reader, qrcode::QRCodeReader, BarcodeFormat,
@@ -43,6 +44,7 @@ pub struct MultiUseMultiFormatReader {
     aztec_reader: AztecReader,
     pdf417_reader: PDF417Reader,
     maxicode_reader: MaxiCodeReader,
+    cpp_qrcode_reader: QrReader,
 }
 
 impl Reader for MultiUseMultiFormatReader {
@@ -84,6 +86,7 @@ impl Reader for MultiUseMultiFormatReader {
         self.aztec_reader.reset();
         self.pdf417_reader.reset();
         self.maxicode_reader.reset();
+        self.cpp_qrcode_reader.reset();
     }
 }
 
@@ -174,7 +177,15 @@ impl MultiUseMultiFormatReader {
             for possible_format in self.possible_formats.iter() {
                 let res = match possible_format {
                     BarcodeFormat::QR_CODE => {
-                        self.qr_code_reader.decode_with_hints(image, &self.hints)
+                        let a = self.qr_code_reader.decode_with_hints(image, &self.hints);
+                        if a.is_ok() {
+                            a
+                        }else {
+                            self.cpp_qrcode_reader.decode_with_hints(image, &self.hints)
+                        }
+                    }
+                    BarcodeFormat::MICRO_QR_CODE => {
+                        self.cpp_qrcode_reader.decode_with_hints(image, &self.hints)
                     }
                     BarcodeFormat::DATA_MATRIX => self
                         .data_matrix_reader

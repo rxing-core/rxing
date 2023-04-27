@@ -128,7 +128,7 @@ impl ECIStringBuilder {
 
             let ecis = self.list_ecis();
 
-            if ecis.len() <= 1 && (ecis.contains(&Eci::Unknown)) {
+            if ecis.len() == 1 && (ecis.contains(&Eci::Unknown)) {
                 self.has_eci = false;
             }
         }

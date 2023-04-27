@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use rxing::{qrcode::cpp_port::QrReader, BarcodeFormat};
+use rxing::{qrcode::cpp_port::QrReader, BarcodeFormat, MultiUseMultiFormatReader};
 
 mod common;
 
@@ -187,7 +187,7 @@ fn cpp_qrcode_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/cpp/qrcode-2",
         // MultiFormatReader::default(),
-        QrReader {},
+        QrReader::default(),
         BarcodeFormat::QR_CODE,
     );
     tester.add_test(45, 47, 0.0);

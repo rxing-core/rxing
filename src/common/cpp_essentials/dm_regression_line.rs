@@ -225,7 +225,7 @@ impl RegressionLineTrait for DMRegressionLine {
 impl DMRegressionLine {
     pub fn new(point_1: Point, point_2: Point) -> Self {
         let mut new = Self::default();
-        RegressionLineTrait::evaluate(&mut new, &[point_1, point_1]);
+        RegressionLineTrait::evaluate(&mut new, &[point_1, point_2]);
         new
     }
 

@@ -5,8 +5,10 @@ use crate::{
         },
         BitMatrix, Quadrilateral,
     },
-    point, Point,
+    point, Point, Exceptions,
 };
+
+use crate::common::Result;
 
 use super::{
     BitMatrixCursorTrait, EdgeTracer, FastEdgeToEdgeCounter, Pattern, RegressionLine,
@@ -223,7 +225,7 @@ pub fn CenterOfRing(
         neighbourMask |= 1
             << (4.0
                 + Point::dot(
-                    Point::round(Point::bresenhamDirection(cur.p() - center)),
+                    Point::floor(Point::bresenhamDirection(cur.p() - center)),
                     point(1.0, 3.0),
                 )) as u32;
 
@@ -400,12 +402,27 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
         points.iter().position(|p| *p == corners[3])?,
     ];
 
-    let lines = [
-        RegressionLine::with_point_slice(&points[corner_positions[0] + 1..corner_positions[1]]),
-        RegressionLine::with_point_slice(&points[corner_positions[1] + 1..corner_positions[2]]),
-        RegressionLine::with_point_slice(&points[corner_positions[2] + 1..corner_positions[3]]),
-        RegressionLine::with_point_slice(&points[corner_positions[3] + 1..points.len()]),
+    let try_get_range = |a:usize, b:usize| -> Option<&[Point]> {
+        if a > b {
+            None
+        }else{
+            Some(&points[a + 1..b])
+        }
+    };
+
+let lines = [
+        RegressionLine::with_point_slice(try_get_range(corner_positions[0],corner_positions[1])?),
+        RegressionLine::with_point_slice(try_get_range(corner_positions[1],corner_positions[2])?),
+        RegressionLine::with_point_slice(try_get_range(corner_positions[2],corner_positions[3])?),
+        RegressionLine::with_point_slice(try_get_range(corner_positions[3],points.len())?),
     ];
+
+    // let lines = [
+    //     RegressionLine::with_point_slice(&points[corner_positions[0] + 1..corner_positions[1]]),
+    //     RegressionLine::with_point_slice(&points[corner_positions[1] + 1..corner_positions[2]]),
+    //     RegressionLine::with_point_slice(&points[corner_positions[2] + 1..corner_positions[3]]),
+    //     RegressionLine::with_point_slice(&points[corner_positions[3] + 1..points.len()]),
+    // ];
     // std::array lines{RegressionLine{corners[0] + 1, corners[1]}, RegressionLine{corners[1] + 1, corners[2]},
     // 				 RegressionLine{corners[2] + 1, corners[3]}, RegressionLine{corners[3] + 1, &points.back() + 1}};
     if lines.iter().any(|line| !line.isValid()) {
