@@ -70,7 +70,7 @@ pub fn DecodeHanziSegment(
 
     // Each character will require 2 bytes, decode as GB2312
     // There is no ECI value for GB2312, use GB18030 which is a superset
-    result.switch_encoding(CharacterSet::GB18030);
+    result.switch_encoding(CharacterSet::GB18030, false);
     result.reserve(2 * count as usize);
 
     while (count > 0) {
@@ -99,7 +99,7 @@ pub fn DecodeKanjiSegment(
     let mut count = count;
     // Each character will require 2 bytes. Read the characters as 2-byte pairs
     // and decode as Shift_JIS afterwards
-    result.switch_encoding(CharacterSet::Shift_JIS);
+    result.switch_encoding(CharacterSet::Shift_JIS, false);
     result.reserve(2 * count as usize);
 
     while (count > 0) {
@@ -125,7 +125,7 @@ pub fn DecodeByteSegment(
     count: u32,
     result: &mut ECIStringBuilder,
 ) -> Result<()> {
-    result.switch_encoding(CharacterSet::Unknown);
+    result.switch_encoding(CharacterSet::Unknown, false);
     result.reserve(count as usize);
 
     for _i in 0..count {
@@ -205,7 +205,7 @@ pub fn DecodeAlphanumericSegment(
         }
     }
 
-    result.switch_encoding(CharacterSet::ISO8859_1);
+    result.switch_encoding(CharacterSet::ISO8859_1, false);
     *result += buffer;
 
     Ok(())
@@ -218,7 +218,7 @@ pub fn DecodeNumericSegment(
 ) -> Result<()> {
     let mut count = count;
 
-    result.switch_encoding(CharacterSet::ISO8859_1);
+    result.switch_encoding(CharacterSet::ISO8859_1, false);
     result.reserve(count as usize);
 
     while (count > 0) {
@@ -351,7 +351,7 @@ pub fn DecodeBitStream(
                 }
                 Mode::ECI => {
                     // Count doesn't apply to ECI
-                    result.switch_encoding(ParseECIValue(&mut bits)?.into());
+                    result.switch_encoding(ParseECIValue(&mut bits)?.into(), true);
                 }
                 Mode::HANZI => {
                     // First handle Hanzi mode which does not start with character count

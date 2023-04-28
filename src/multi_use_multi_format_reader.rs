@@ -180,7 +180,7 @@ impl MultiUseMultiFormatReader {
                         let a = self.qr_code_reader.decode_with_hints(image, &self.hints);
                         if a.is_ok() {
                             a
-                        }else {
+                        } else {
                             self.cpp_qrcode_reader.decode_with_hints(image, &self.hints)
                         }
                     }
@@ -214,8 +214,10 @@ impl MultiUseMultiFormatReader {
                     return Ok(res);
                 }
             }
-
             if let Ok(res) = self.qr_code_reader.decode_with_hints(image, &self.hints) {
+                return Ok(res);
+            }
+            if let Ok(res) = self.cpp_qrcode_reader.decode_with_hints(image, &self.hints) {
                 return Ok(res);
             }
             if let Ok(res) = self

@@ -160,6 +160,11 @@ fn mqr_black_box_test_case() {
 
 /**
  * @author Sean Owen
+ *
+ * 16.png seems to be an odd case where in both c++ and rs the result of a pure read
+ * is different than the result of a detect. there is an extra ' ' in the output of
+ * the pure read. I'm not sure how to fix this, as it occurs in both and seems to just
+ * be a function of the barcode.
  */
 
 #[test]
@@ -186,7 +191,7 @@ fn cpp_qrcode_black_box1_test_case() {
 fn cpp_qrcode_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/cpp/qrcode-2",
-        // MultiFormatReader::default(),
+        // MultiUseMultiFormatReader::default(),
         QrReader::default(),
         BarcodeFormat::QR_CODE,
     );

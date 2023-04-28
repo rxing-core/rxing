@@ -207,16 +207,26 @@ impl Reader for QrReader {
         let decoderResult = Decode(detectorResult.getBits())?;
         let position = detectorResult.getPoints();
 
-        Ok(RXingResult::new(
-            &decoderResult.content().to_string(),
-            decoderResult.content().bytes().to_vec(),
-            position.to_vec(),
+        Ok(RXingResult::with_decoder_result(
+            decoderResult,
+            position,
             if detectorResult.getBits().width() < 21 {
                 BarcodeFormat::MICRO_QR_CODE
             } else {
                 BarcodeFormat::QR_CODE
             },
         ))
+
+        // Ok(RXingResult::new(
+        //     &decoderResult.content().to_string(),
+        //     decoderResult.content().bytes().to_vec(),
+        //     position.to_vec(),
+        //     if detectorResult.getBits().width() < 21 {
+        //         BarcodeFormat::MICRO_QR_CODE
+        //     } else {
+        //         BarcodeFormat::QR_CODE
+        //     },
+        // ))
         // return Result(std::move(decoderResult), std::move(position),
         // 			  detectorResult.bits().width() < 21 ? BarcodeFormat::MICRO_QR_CODE : BarcodeFormat::QR_CODE);
     }
@@ -342,12 +352,17 @@ impl QrReader {
                     let position = detectorResult.getPoints();
                     if let Ok(decoderResult) = decoderResult {
                         if (decoderResult.isValid()) {
-                            results.push(RXingResult::new(
-                                &decoderResult.content().to_string(),
-                                decoderResult.content().bytes().to_vec(),
-                                position.to_vec(),
+                            results.push(RXingResult::with_decoder_result(
+                                decoderResult,
+                                position,
                                 BarcodeFormat::MICRO_QR_CODE,
                             ));
+                            // results.push(RXingResult::new(
+                            //     &decoderResult.content().to_string(),
+                            //     decoderResult.content().bytes().to_vec(),
+                            //     position.to_vec(),
+                            //     BarcodeFormat::MICRO_QR_CODE,
+                            // ));
                             // results.emplace_back(std::move(decoderResult), std::move(position), BarcodeFormat::MICRO_QR_CODE);
 
                             if (maxSymbols != 0 && (results.len() as u32) == maxSymbols) {

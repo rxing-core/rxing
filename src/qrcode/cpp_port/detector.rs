@@ -430,7 +430,7 @@ pub fn LocateAlignmentPattern(
         // #endif
         let cor = CenterOfRing(
             image,
-            estimate + moduleSize as f32 * 2.25 * d,
+            (estimate + moduleSize as f32 * 2.25 * d).floor(),
             moduleSize * 3,
             1,
             false,
@@ -441,7 +441,7 @@ pub fn LocateAlignmentPattern(
             continue;
         }
 
-        if let Some(cor1) = CenterOfRing(image, cor.unwrap(), moduleSize, 1, true) {
+        if let Some(cor1) = CenterOfRing(image, cor.unwrap().floor(), moduleSize, 1, true) {
             if let Some(cor2) = CenterOfRing(image, cor.unwrap().floor(), moduleSize * 3, -2, true)
             {
                 if Point::distance(cor1, cor2) < moduleSize as f32 / 2.0 {

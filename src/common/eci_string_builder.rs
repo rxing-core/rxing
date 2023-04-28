@@ -42,6 +42,7 @@ pub struct ECIStringBuilder {
     bytes: Vec<u8>,
     eci_positions: Vec<(Eci, usize, usize)>, // (Eci, start, end)
     pub symbology: SymbologyIdentifier,
+    eci_list: HashSet<Eci>,
 }
 
 impl ECIStringBuilder {
@@ -52,6 +53,7 @@ impl ECIStringBuilder {
             eci_positions: Vec::default(),
             has_eci: false,
             symbology: SymbologyIdentifier::default(),
+            eci_list: HashSet::default(),
         }
     }
 
@@ -126,27 +128,33 @@ impl ECIStringBuilder {
 
             self.eci_positions.push((eci, self.bytes.len(), 0));
 
-            let ecis = self.list_ecis();
+            self.eci_list.insert(eci);
 
-            if ecis.len() == 1 && (ecis.contains(&Eci::Unknown)) {
+            if self.eci_list.len() == 1 && (self.eci_list.contains(&Eci::Unknown)) {
                 self.has_eci = false;
             }
         }
     }
 
     /// Change the current encoding characterset, finding an eci to do so
-    pub fn switch_encoding(&mut self, charset: CharacterSet) {
+    pub fn switch_encoding(&mut self, charset: CharacterSet, is_eci: bool) {
         //self.append_eci(Eci::from(charset))
-        if false && !self.has_eci {
+        if is_eci && !self.has_eci {
             self.eci_positions.clear();
         }
-        if false || !self.has_eci
+        if is_eci || !self.has_eci
         //{self.eci_positions.push_back({eci, Size(bytes)});}
         {
-            self.append_eci(Eci::from(charset))
+            // self.append_eci(Eci::from(charset))
+            if let Some(last) = self.eci_positions.last_mut() {
+                last.2 = self.bytes.len()
+            }
+
+            self.eci_positions
+                .push((Eci::from(charset), self.bytes.len(), 0));
         }
 
-        self.has_eci |= false;
+        self.has_eci |= is_eci;
     }
 
     /// Finishes encoding anything in the buffer using the current ECI and resets.
@@ -270,13 +278,13 @@ impl ECIStringBuilder {
         self
     }
 
-    pub fn list_ecis(&self) -> HashSet<Eci> {
-        let mut hs = HashSet::new();
-        self.eci_positions.iter().for_each(|pos| {
-            hs.insert(pos.0);
-        });
-        hs
-    }
+    // pub fn list_ecis(&self) -> HashSet<Eci> {
+    //     let mut hs = HashSet::new();
+    //     self.eci_positions.iter().for_each(|pos| {
+    //         hs.insert(pos.0);
+    //     });
+    //     hs
+    // }
 }
 
 impl fmt::Display for ECIStringBuilder {

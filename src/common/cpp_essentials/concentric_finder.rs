@@ -5,7 +5,7 @@ use crate::{
         },
         BitMatrix, Quadrilateral,
     },
-    point, Point, Exceptions,
+    point, Exceptions, Point,
 };
 
 use crate::common::Result;
@@ -402,19 +402,19 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
         points.iter().position(|p| *p == corners[3])?,
     ];
 
-    let try_get_range = |a:usize, b:usize| -> Option<&[Point]> {
+    let try_get_range = |a: usize, b: usize| -> Option<&[Point]> {
         if a > b {
             None
-        }else{
+        } else {
             Some(&points[a + 1..b])
         }
     };
 
-let lines = [
-        RegressionLine::with_point_slice(try_get_range(corner_positions[0],corner_positions[1])?),
-        RegressionLine::with_point_slice(try_get_range(corner_positions[1],corner_positions[2])?),
-        RegressionLine::with_point_slice(try_get_range(corner_positions[2],corner_positions[3])?),
-        RegressionLine::with_point_slice(try_get_range(corner_positions[3],points.len())?),
+    let lines = [
+        RegressionLine::with_point_slice(try_get_range(corner_positions[0], corner_positions[1])?),
+        RegressionLine::with_point_slice(try_get_range(corner_positions[1], corner_positions[2])?),
+        RegressionLine::with_point_slice(try_get_range(corner_positions[2], corner_positions[3])?),
+        RegressionLine::with_point_slice(try_get_range(corner_positions[3], points.len())?),
     ];
 
     // let lines = [
