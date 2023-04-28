@@ -300,7 +300,7 @@ fn cpp_qrcode_black_box6_test_case() {
 
 #[test]
 fn cpp_qrcode_black_box7_test_case() {
-    let mut tester = common::PDF417MultiImageSpanAbstractBlackBoxTestCase::new(
+    let mut tester = common::MultiImageSpanAbstractBlackBoxTestCase::new(
         "test_resources/blackbox/cpp/qrcode-7",
         QrReader::default(),
         rxing::BarcodeFormat::QR_CODE,

@@ -37,7 +37,7 @@ use super::TestRXingResult;
  * @author Sean Owen
  * @author dswitkin@google.com (Daniel Switkin)
  */
-pub struct PDF417MultiImageSpanAbstractBlackBoxTestCase<T: MultipleBarcodeReader + Reader> {
+pub struct MultiImageSpanAbstractBlackBoxTestCase<T: MultipleBarcodeReader + Reader> {
     test_base: Box<Path>,
     barcode_reader: T,
     expected_format: BarcodeFormat,
@@ -45,7 +45,7 @@ pub struct PDF417MultiImageSpanAbstractBlackBoxTestCase<T: MultipleBarcodeReader
     hints: HashMap<DecodeHintType, DecodeHintValue>,
 }
 
-impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTestCase<T> {
+impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T> {
     pub fn build_test_base(test_base_path_suffix: &str) -> Box<Path> {
         // A little workaround to prevent aggravation in my IDE
         let test_base = Path::new(test_base_path_suffix);
@@ -198,19 +198,36 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
                 // results.sort();
                 let mut result_text = String::new(); //new StringBuilder();
                 let mut file_id: Option<String> = None;
-                for result in results {
-                    // for (RXingResult result : results) {
-                    let result_metadata = Self::get_meta(&result);
-                    assert!(result_metadata.is_some(), "resultMetadata");
-                    if file_id.is_none() {
-                        file_id = Some(result_metadata.as_ref().unwrap().getFileId().to_owned());
+                if self.expected_format == BarcodeFormat::PDF_417 {
+                    for result in results {
+                        // for (RXingResult result : results) {
+                        let result_metadata = Self::get_meta(&result);
+                        assert!(result_metadata.is_some(), "resultMetadata");
+                        if file_id.is_none() {
+                            file_id =
+                                Some(result_metadata.as_ref().unwrap().getFileId().to_owned());
+                        }
+                        assert_eq!(
+                            file_id,
+                            Some(result_metadata.as_ref().unwrap().getFileId().to_owned()),
+                            "FileId"
+                        );
+                        result_text.push_str(result.getText());
                     }
-                    assert_eq!(
-                        file_id,
-                        Some(result_metadata.as_ref().unwrap().getFileId().to_owned()),
-                        "FileId"
-                    );
-                    result_text.push_str(result.getText());
+                } else if self.expected_format != BarcodeFormat::PDF_417 {
+                    results.sort_by_key(|r| {
+                        if let Some(RXingResultMetadataValue::StructuredAppendSequence(md)) = r
+                            .getRXingResultMetadata()
+                            .get(&RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE)
+                        {
+                            *md
+                        } else {
+                            0
+                        }
+                    });
+                    for result in results {
+                        result_text.push_str(result.getText());
+                    }
                 }
                 assert_eq!(expected_text, result_text, "ExpectedText");
                 passed_counts[x] += 1;
