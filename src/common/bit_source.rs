@@ -116,6 +116,56 @@ impl BitSource {
         Ok(result)
     }
 
+    pub fn peak_bits(&self, numBits: usize) -> Result<u32> {
+        if !(1..=32).contains(&numBits) || numBits > self.available() {
+            return Err(Exceptions::illegal_argument_with(numBits.to_string()));
+        }
+
+        let mut bit_offset = self.bit_offset;
+        let mut byte_offset = self.byte_offset;
+
+        let mut result: u32 = 0;
+
+        let mut num_bits = numBits;
+
+        // First, read remainder from current byte
+        if self.bit_offset > 0 {
+            let bitsLeft = 8 - self.bit_offset;
+            let toRead = cmp::min(num_bits, bitsLeft);
+            let bitsToNotRead = bitsLeft - toRead;
+            let mask = (0xFF >> (8 - toRead)) << bitsToNotRead;
+
+            result = (self.bytes[self.byte_offset] & mask) as u32 >> bitsToNotRead;
+            num_bits -= toRead;
+            bit_offset += toRead;
+            if bit_offset == 8 {
+                bit_offset = 0;
+                byte_offset += 1;
+            }
+        }
+
+        // Next read whole bytes
+        if num_bits > 0 {
+            while num_bits >= 8 {
+                result = (result << 8) | self.bytes[byte_offset] as u32;
+                // result = ((result as u16) << 8) as u8 | (self.bytes[self.byte_offset]);
+                byte_offset += 1;
+                num_bits -= 8;
+            }
+
+            // Finally read a partial byte
+            if num_bits > 0 {
+                let bits_to_not_read = 8 - num_bits;
+                let mask = (0xFF >> bits_to_not_read) << bits_to_not_read;
+                result = (result << num_bits)
+                    | ((self.bytes[byte_offset] & mask) as u32 >> bits_to_not_read);
+                bit_offset += num_bits;
+            }
+        }
+
+        Ok(result)
+    }
+
     /**
      * @return number of bits that can be read successfully
      */

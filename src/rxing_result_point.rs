@@ -25,6 +25,14 @@ pub fn point(x: f32, y: f32) -> Point {
     Point::new(x, y)
 }
 
+pub fn point_g<T: TryInto<f32>>(x: T, y: T) -> Option<Point> {
+    Some(Point::new(x.try_into().ok()?, y.try_into().ok()?))
+}
+
+pub fn point_i<T: Into<i64>>(x: T, y: T) -> Point {
+    Point::new(x.into() as f32, y.into() as f32)
+}
+
 /** Currently necessary because the external OneDReader proc macro uses it. */
 pub type RXingResultPoint = Point;
 
@@ -117,6 +125,22 @@ impl std::ops::Add for Point {
     }
 }
 
+impl std::ops::Add<f32> for Point {
+    type Output = Self;
+
+    fn add(self, rhs: f32) -> Self::Output {
+        Self::new(self.x + rhs, self.y + rhs)
+    }
+}
+
+impl std::ops::Add<Point> for f32 {
+    type Output = Point;
+
+    fn add(self, rhs: Point) -> Self::Output {
+        Point::new(rhs.x + self, rhs.y + self)
+    }
+}
+
 impl std::ops::Mul for Point {
     type Output = Self;
 
@@ -137,6 +161,14 @@ impl std::ops::Mul<i32> for Point {
     type Output = Self;
 
     fn mul(self, rhs: i32) -> Self::Output {
+        Self::new(self.x * rhs as f32, self.y * rhs as f32)
+    }
+}
+
+impl std::ops::Mul<u32> for Point {
+    type Output = Self;
+
+    fn mul(self, rhs: u32) -> Self::Output {
         Self::new(self.x * rhs as f32, self.y * rhs as f32)
     }
 }
@@ -162,6 +194,14 @@ impl std::ops::Div<f32> for Point {
 
     fn div(self, rhs: f32) -> Self::Output {
         Self::Output::new(self.x / rhs, self.y / rhs)
+    }
+}
+
+impl std::ops::Mul<Point> for u32 {
+    type Output = Point;
+
+    fn mul(self, rhs: Point) -> Self::Output {
+        Self::Output::new(rhs.x * self as f32, rhs.y * self as f32)
     }
 }
 
@@ -240,6 +280,13 @@ impl Point {
             y: self.y.round(),
         }
     }
+
+    pub fn floor(self) -> Self {
+        Self {
+            x: self.x.floor(),
+            y: self.y.floor(),
+        }
+    }
 }
 
 impl From<&(f32, f32)> for Point {
@@ -256,6 +303,12 @@ impl From<(f32, f32)> for Point {
 
 impl From<(i32, i32)> for Point {
     fn from(value: (i32, i32)) -> Self {
+        Self::new(value.0 as f32, value.1 as f32)
+    }
+}
+
+impl From<(u32, u32)> for Point {
+    fn from(value: (u32, u32)) -> Self {
         Self::new(value.0 as f32, value.1 as f32)
     }
 }

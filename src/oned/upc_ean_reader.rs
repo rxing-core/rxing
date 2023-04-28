@@ -490,7 +490,7 @@ pub trait UPCEANReader: OneDReader {
 pub(crate) struct StandInStruct;
 impl UPCEANReader for StandInStruct {
     fn getBarcodeFormat(&self) -> BarcodeFormat {
-        todo!()
+        unimplemented!()
     }
 
     fn decodeMiddle(
@@ -499,7 +499,7 @@ impl UPCEANReader for StandInStruct {
         _startRange: &[usize; 2],
         _resultString: &mut String,
     ) -> Result<usize> {
-        todo!()
+        unimplemented!()
     }
 }
 impl OneDReader for StandInStruct {
@@ -509,13 +509,13 @@ impl OneDReader for StandInStruct {
         _row: &BitArray,
         _hints: &crate::DecodingHintDictionary,
     ) -> Result<RXingResult> {
-        todo!()
+        unimplemented!()
     }
 }
 
 impl Reader for StandInStruct {
     fn decode<B: Binarizer>(&mut self, _image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
-        todo!()
+        unimplemented!()
     }
 
     fn decode_with_hints<B: Binarizer>(
@@ -523,7 +523,7 @@ impl Reader for StandInStruct {
         _image: &mut crate::BinaryBitmap<B>,
         _hints: &crate::DecodingHintDictionary,
     ) -> Result<RXingResult> {
-        todo!()
+        unimplemented!()
     }
 }
 

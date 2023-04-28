@@ -469,7 +469,9 @@ impl<'a> Detector<'_> {
             point(low, high),
         );
 
-        sampler.sample_grid_detailed(image, dimension, dimension, dst, quad)
+        let (res, _) = sampler.sample_grid_detailed(image, dimension, dimension, dst, quad)?;
+
+        Ok(res)
     }
 
     /**

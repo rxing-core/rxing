@@ -21,7 +21,7 @@
 use std::fmt;
 
 use crate::common::Result;
-use crate::{point, Exceptions, Point};
+use crate::{point, point_i, Exceptions, Point};
 
 use super::BitArray;
 
@@ -222,6 +222,17 @@ impl BitMatrix {
         // ((self.bits[offset] >> (x & 0x1f)) & 1) != 0
     }
 
+    pub fn get_index<T: Into<usize>>(&self, index: T) -> bool {
+        self.get_point(self.calculate_point_from_index(index.into()))
+    }
+
+    #[inline(always)]
+    fn calculate_point_from_index(&self, index: usize) -> Point {
+        let row = index / (self.getWidth() as usize);
+        let column = index % (self.getWidth() as usize);
+        point_i(column as u32, row as u32)
+    }
+
     #[inline(always)]
     fn get_offset(&self, y: u32, x: u32) -> usize {
         y as usize * self.row_size + (x as usize / 32)
@@ -420,6 +431,21 @@ impl BitMatrix {
         rw
     }
 
+    /// This method returns a column of the bitmatrix.
+    ///
+    /// The current implementation may be very slow.
+    pub fn getCol(&self, x: u32) -> BitArray {
+        let mut cw = BitArray::with_size(self.height as usize);
+
+        for y in 0..self.height {
+            if self.get(x, y) {
+                cw.set(y as usize)
+            }
+        }
+
+        cw
+    }
+
     /**
      * @param y row to set
      * @param row {@link BitArray} to copy from
@@ -607,6 +633,10 @@ impl BitMatrix {
      * @return The width of the matrix
      */
     pub fn getWidth(&self) -> u32 {
+        self.width()
+    }
+
+    pub fn width(&self) -> u32 {
         self.width
     }
 
@@ -614,6 +644,10 @@ impl BitMatrix {
      * @return The height of the matrix
      */
     pub fn getHeight(&self) -> u32 {
+        self.height()
+    }
+
+    pub fn height(&self) -> u32 {
         self.height
     }
 
@@ -707,6 +741,10 @@ impl BitMatrix {
         new_bm
     }
 
+    pub fn is_in(&self, p: Point) -> bool {
+        self.isIn(p, 0)
+    }
+
     pub fn isIn(&self, p: Point, b: i32) -> bool {
         b as f32 <= p.x
             && p.x < self.getWidth() as f32 - b as f32
@@ -718,6 +756,19 @@ impl BitMatrix {
 impl fmt::Display for BitMatrix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.toString("X ", "  "))
+    }
+}
+
+impl From<&BitMatrix> for Vec<bool> {
+    fn from(value: &BitMatrix) -> Self {
+        let mut arr = vec![false; (value.width * value.height) as usize];
+        for x in 0..value.width {
+            for y in 0..value.height {
+                let insert_pos = ((y * value.width) + x) as usize;
+                arr[insert_pos] = value.get(x, y);
+            }
+        }
+        arr
     }
 }
 

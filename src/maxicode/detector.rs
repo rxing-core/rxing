@@ -356,7 +356,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         );
         let src = Quadrilateral::new(tl, tr, br, bl);
 
-        let Ok(bits) = grid_sampler.sample_grid_detailed(
+        let Ok((bits,_)) = grid_sampler.sample_grid_detailed(
             image,
             target_width.round() as u32,
             target_height.round() as u32,

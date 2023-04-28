@@ -112,6 +112,8 @@ pub enum RXingResultMetadataType {
     IS_MIRRORED,
 
     CONTENT_TYPE,
+
+    IS_INVERTED,
 }
 
 impl From<String> for RXingResultMetadataType {
@@ -120,7 +122,7 @@ impl From<String> for RXingResultMetadataType {
             "OTHER" => RXingResultMetadataType::OTHER,
             "ORIENTATION" => RXingResultMetadataType::ORIENTATION,
             "BYTE_SEGMENTS" | "BYTESEGMENTS" => RXingResultMetadataType::BYTE_SEGMENTS,
-            "ERROR_CORRECTION_LEVEL" | "ERRORCORRECTIONLEVEL" => {
+            "ERROR_CORRECTION_LEVEL" | "ERRORCORRECTIONLEVEL" | "ECLEVEL" => {
                 RXingResultMetadataType::ERROR_CORRECTION_LEVEL
             }
             "ISSUE_NUMBER" | "ISSUENUMBER" => RXingResultMetadataType::ISSUE_NUMBER,
@@ -141,6 +143,7 @@ impl From<String> for RXingResultMetadataType {
             }
             "IS_MIRRORED" | "ISMIRRORED" => RXingResultMetadataType::IS_MIRRORED,
             "CONTENT_TYPE" | "CONTENTTYPE" => RXingResultMetadataType::CONTENT_TYPE,
+            "ISINVERTED" => RXingResultMetadataType::IS_INVERTED,
             _ => RXingResultMetadataType::OTHER,
         }
     }
@@ -229,4 +232,6 @@ pub enum RXingResultMetadataValue {
     IsMirrored(bool),
 
     ContentType(String),
+
+    IsInverted(bool),
 }

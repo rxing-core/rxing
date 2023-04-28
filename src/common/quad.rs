@@ -1,4 +1,6 @@
-use crate::Point;
+use crate::{point, Point};
+
+use super::PerspectiveTransform;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Quadrilateral(pub [Point; 4]);
@@ -51,8 +53,8 @@ impl Quadrilateral {
 
 impl Quadrilateral {
     #[allow(dead_code)]
-    pub fn rectangle(width: i32, height: i32, margin: Option<i32>) -> Quadrilateral {
-        let margin = margin.unwrap_or(0);
+    pub fn rectangle(width: i32, height: i32, margin: Option<f32>) -> Quadrilateral {
+        let margin = margin.unwrap_or(0.0);
 
         Quadrilateral([
             Point {
@@ -71,6 +73,16 @@ impl Quadrilateral {
                 x: margin as f32,
                 y: height as f32 - margin as f32,
             },
+        ])
+    }
+
+    pub fn rectangle_from_xy(x0: f32, x1: f32, y0: f32, y1: f32, o: Option<f32>) -> Self {
+        let o = o.unwrap_or(0.5);
+        Quadrilateral::from([
+            point(x0 + o, y0 + o),
+            point(x1 + o, y0 + o),
+            point(x1 + o, y1 + o),
+            point(x0 + o, y1 + o),
         ])
     }
 
@@ -171,7 +183,7 @@ impl Quadrilateral {
 
         let mirror = if let Some(m) = mirror { m } else { false };
 
-        let mut res = self.clone();
+        let mut res = *self;
         res.0.rotate_left(((n + 4) % 4) as usize);
         // std::rotate_copy(q.begin(), q.begin() + ((n + 4) % 4), q.end(), res.begin());
         if mirror {
@@ -208,10 +220,57 @@ impl Quadrilateral {
 
         !(x || y)
     }
+
+    pub fn blend(a: &Quadrilateral, b: &Quadrilateral) -> Self {
+        let c = a[0];
+        let dist2First = |a, b| Point::distance(a, c) < Point::distance(b, c);
+        // rotate points such that the the two topLeft points are closest to each other
+        let min_element =
+            b.0.iter()
+                .copied()
+                .min_by(|a, b| match dist2First(*a, *b) {
+                    true => std::cmp::Ordering::Less,
+                    false => std::cmp::Ordering::Greater,
+                })
+                .unwrap_or_default();
+        let offset =
+            b.0.iter()
+                .position(|v| *v == min_element)
+                .unwrap_or_default();
+        // let offset = std::min_element(b.begin(), b.end(), dist2First) - b.begin();
+
+        let mut res = Quadrilateral::default();
+        for i in 0..4 {
+            // for (int i = 0; i < 4; ++i){
+            res[i] = (a[i] + b[(i + offset) % 4]) / 2.0;
+        }
+
+        res
+    }
 }
 
 impl Default for Quadrilateral {
     fn default() -> Self {
         Self([Point { x: 0.0, y: 0.0 }; 4])
+    }
+}
+
+impl std::ops::Index<usize> for Quadrilateral {
+    type Output = Point;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
+impl std::ops::IndexMut<usize> for Quadrilateral {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.0[index]
+    }
+}
+
+impl From<[Point; 4]> for Quadrilateral {
+    fn from(value: [Point; 4]) -> Self {
+        Self(value)
     }
 }

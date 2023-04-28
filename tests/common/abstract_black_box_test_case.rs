@@ -46,6 +46,7 @@ pub struct AbstractBlackBoxTestCase<T: Reader> {
     expected_format: BarcodeFormat,
     test_rxing_results: Vec<TestRXingResult>,
     hints: HashMap<DecodeHintType, DecodeHintValue>,
+    pub ignore_pure: bool,
 }
 
 impl<T: Reader> AbstractBlackBoxTestCase<T> {
@@ -70,6 +71,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
             expected_format,
             test_rxing_results: Vec::new(),
             hints: HashMap::new(),
+            ignore_pure: false,
         }
     }
 
@@ -241,6 +243,9 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                     }
                     RXingResultMetadataType::CONTENT_TYPE => {
                         RXingResultMetadataValue::ContentType(v)
+                    }
+                    RXingResultMetadataType::IS_INVERTED => {
+                        RXingResultMetadataValue::IsInverted(v.parse().unwrap())
                     }
                 };
                 expected_metadata.insert(new_k, new_v);
@@ -447,20 +452,25 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
             // hints.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
         }
 
-        // Try in 'pure' mode mostly to exercise PURE_BARCODE code paths for exceptions;
-        // not expected to pass, generally
+        let mut result = None;
+
+        if !self.ignore_pure {
+            // Try in 'pure' mode mostly to exercise PURE_BARCODE code paths for exceptions;
+            // not expected to pass, generally
+            let mut pure_hints = HashMap::new();
+            pure_hints.insert(
+                DecodeHintType::PURE_BARCODE,
+                DecodeHintValue::PureBarcode(true),
+            );
+
+            result = if let Ok(res) = self.barcode_reader.decode_with_hints(source, &pure_hints) {
+                Some(res)
+            } else {
+                None
+            };
+        }
+
         // let mut result = None;
-        let mut pure_hints = HashMap::new();
-        pure_hints.insert(
-            DecodeHintType::PURE_BARCODE,
-            DecodeHintValue::PureBarcode(true),
-        );
-        let mut result = if let Ok(res) = self.barcode_reader.decode_with_hints(source, &pure_hints)
-        {
-            Some(res)
-        } else {
-            None
-        };
 
         if result.is_none() {
             result = Some(self.barcode_reader.decode_with_hints(source, &hints)?)

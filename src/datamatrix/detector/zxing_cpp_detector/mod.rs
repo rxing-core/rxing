@@ -1,18 +1,11 @@
-mod bitmatrix_cursor;
 mod cpp_new_detector;
-mod direction;
-mod dm_regression_line;
-mod edge_tracer;
-mod regression_line;
-mod step_result;
-pub(self) mod util;
-mod value;
 
-pub(self) use bitmatrix_cursor::*;
+pub(self) use crate::common::cpp_essentials::bitmatrix_cursor_trait::*;
+pub(self) use crate::common::cpp_essentials::direction::*;
+pub(self) use crate::common::cpp_essentials::dm_regression_line::*;
+pub(self) use crate::common::cpp_essentials::edge_tracer::*;
+pub(self) use crate::common::cpp_essentials::regression_line::*;
+pub(self) use crate::common::cpp_essentials::step_result::*;
+pub(self) use crate::common::cpp_essentials::util;
+pub(self) use crate::common::cpp_essentials::value::*;
 pub use cpp_new_detector::detect;
-pub(self) use direction::*;
-pub(self) use dm_regression_line::*;
-pub(self) use edge_tracer::*;
-pub(self) use regression_line::*;
-pub(self) use step_result::*;
-pub(self) use value::*;

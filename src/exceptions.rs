@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Error, Debug, PartialEq, Eq)]
+#[derive(Error, Debug, PartialEq, Eq, Clone)]
 pub enum Exceptions {
     #[error("IllegalArgumentException{}", if .0.is_empty() { String::new() } else { format!(" - {}", .0) })]
     IllegalArgumentException(String),

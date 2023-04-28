@@ -121,6 +121,81 @@ impl Mode {
             Mode::HANZI => 0x0D,
         }
     }
+
+    pub const fn get_terminator_bit_length(version: &Version) -> u8 {
+        (if version.isMicroQRCode() {
+            version.getVersionNumber() * 2 + 1
+        } else {
+            4
+        }) as u8
+    }
+    pub const fn get_codec_mode_bits_length(version: &Version) -> u8 {
+        (if version.isMicroQRCode() {
+            version.getVersionNumber() - 1
+        } else {
+            4
+        }) as u8
+    }
+    /**
+     * @param bits variable number of bits encoding a QR Code data mode
+     * @param isMicro is this a MicroQRCode
+     * @return Mode encoded by these bits
+     * @throws FormatError if bits do not correspond to a known mode
+     */
+    pub fn CodecModeForBits(bits: u32, isMicro: Option<bool>) -> Result<Self> {
+        let isMicro = isMicro.unwrap_or(false);
+        const BITS_2_MODE_LEN: usize = 4;
+
+        if (!isMicro) {
+            if ((bits >= 0x00 && bits <= 0x05) || (bits >= 0x07 && bits <= 0x09) || bits == 0x0d) {
+                return Mode::try_from(bits);
+            }
+        } else {
+            const Bits2Mode: [Mode; BITS_2_MODE_LEN] =
+                [Mode::NUMERIC, Mode::ALPHANUMERIC, Mode::BYTE, Mode::KANJI];
+            if ((bits as usize) < BITS_2_MODE_LEN) {
+                return Ok(Bits2Mode[bits as usize]);
+            }
+        }
+
+        Err(Exceptions::format_with("Invalid codec mode"))
+    }
+
+    /**
+     * @param version version in question
+     * @return number of bits used, in this QR Code symbol {@link Version}, to encode the
+     *         count of characters that will follow encoded in this Mode
+     */
+    pub fn CharacterCountBits(&self, version: &Version) -> u32 {
+        let number = version.getVersionNumber() as usize;
+        if (version.isMicroQRCode()) {
+            match (self) {
+		 Mode::NUMERIC=>      return [3, 4, 5, 6][number - 1],
+		 Mode::ALPHANUMERIC=> return [3, 4, 5][number - 2],
+		 Mode::BYTE=>         return [4, 5][number - 3],
+		 Mode::KANJI | //=>        [[fallthrough]],
+		 Mode::HANZI=>        return [3, 4][number - 3],
+		_=> return 0,
+		}
+        }
+
+        let i = if (number <= 9) {
+            0
+        } else if (number <= 26) {
+            1
+        } else {
+            2
+        };
+
+        match (self) {
+	 Mode::NUMERIC=>      return [10, 12, 14][i],
+	 Mode::ALPHANUMERIC=> return [9, 11, 13][i],
+	 Mode::BYTE=>         return [8, 16, 16][i],
+	 Mode::KANJI|    //    [[fallthrough]];
+	 Mode::HANZI=>        return [8, 10, 12][i],
+	_=>                     return 0,
+	}
+    }
 }
 
 impl From<Mode> for u8 {
@@ -134,5 +209,13 @@ impl TryFrom<u8> for Mode {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         Self::forBits(value)
+    }
+}
+
+impl TryFrom<u32> for Mode {
+    type Error = Exceptions;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        Self::forBits(value as u8)
     }
 }

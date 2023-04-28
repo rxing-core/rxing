@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use std::fmt::{self, Display};
 use std::str::FromStr;
 
 use crate::common::Result;
@@ -35,6 +36,7 @@ pub enum ErrorCorrectionLevel {
     Q, //0x03
     /** H = ~30% correction */
     H, //0x02
+    Invalid,
 }
 
 impl ErrorCorrectionLevel {
@@ -60,6 +62,7 @@ impl ErrorCorrectionLevel {
             ErrorCorrectionLevel::M => 0x00,
             ErrorCorrectionLevel::Q => 0x03,
             ErrorCorrectionLevel::H => 0x02,
+            ErrorCorrectionLevel::Invalid => 0x00,
         }
     }
 
@@ -69,6 +72,7 @@ impl ErrorCorrectionLevel {
             ErrorCorrectionLevel::M => 1,
             ErrorCorrectionLevel::Q => 2,
             ErrorCorrectionLevel::H => 3,
+            ErrorCorrectionLevel::Invalid => 100,
         }
     }
 }
@@ -113,5 +117,17 @@ impl FromStr for ErrorCorrectionLevel {
         return Err(Exceptions::illegal_argument_with(format!(
             "could not parse {s} into an ec level"
         )));
+    }
+}
+
+impl Display for ErrorCorrectionLevel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            ErrorCorrectionLevel::L => "L",
+            ErrorCorrectionLevel::M => "M",
+            ErrorCorrectionLevel::Q => "Q",
+            ErrorCorrectionLevel::H => "H",
+            ErrorCorrectionLevel::Invalid => "_",
+        })
     }
 }

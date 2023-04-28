@@ -14,9 +14,12 @@ macro_rules! CHECK {
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    common::{BitMatrix, DefaultGridSampler, GridSampler, Quadrilateral, Result},
+    common::{
+        cpp_essentials::RegressionLineTrait, BitMatrix, DefaultGridSampler, GridSampler,
+        Quadrilateral, Result,
+    },
     datamatrix::detector::{
-        zxing_cpp_detector::{util::intersect, BitMatrixCursor, RegressionLine},
+        zxing_cpp_detector::{util::intersect, BitMatrixCursorTrait},
         DatamatrixDetectorResult,
     },
     point,
@@ -230,8 +233,10 @@ fn Scan(
 
         CHECK!(res.is_ok());
 
+        let (res, _) = res?;
+
         return Ok(DatamatrixDetectorResult::new(
-            res?,
+            res,
             sourcePoints.points().to_vec(),
         ));
     }

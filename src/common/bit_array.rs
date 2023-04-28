@@ -18,6 +18,7 @@
 
 // import java.util.Arrays;
 
+use std::ops::Index;
 use std::{cmp, fmt};
 
 use crate::common::Result;
@@ -80,6 +81,14 @@ impl BitArray {
      */
     pub fn get(&self, i: usize) -> bool {
         (self.bits[i / 32] & (1 << (i & 0x1F))) != 0
+    }
+
+    pub fn try_get(&self, i: usize) -> Option<bool> {
+        if (i / 32) >= self.bits.len() {
+            None
+        } else {
+            Some(self.get(i))
+        }
     }
 
     /**
@@ -399,5 +408,32 @@ impl fmt::Display for BitArray {
 impl Default for BitArray {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl Into<Vec<u8>> for BitArray {
+    fn into(self) -> Vec<u8> {
+        let mut array = vec![0; self.getSizeInBytes()];
+        self.toBytes(0, &mut array, 0, self.getSizeInBytes());
+        array
+        // let mut arr = vec![0; self.get_size()];
+        // for x in 0..self.get_size() {
+        //     if self.get(x) {
+        //         arr[x] = 1;
+        //     }
+        // }
+        // arr
+    }
+}
+
+impl Into<Vec<bool>> for BitArray {
+    fn into(self) -> Vec<bool> {
+        let mut array = vec![false; self.size];
+
+        for pixel in 0..self.size {
+            array[pixel] = bool::from(self.get(pixel));
+        }
+
+        array
     }
 }

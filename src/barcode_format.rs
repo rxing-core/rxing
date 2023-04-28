@@ -65,6 +65,8 @@ pub enum BarcodeFormat {
     /** QR Code 2D barcode format. */
     QR_CODE,
 
+    MICRO_QR_CODE,
+
     /** RSS 14 */
     RSS_14,
 
@@ -102,6 +104,7 @@ impl Display for BarcodeFormat {
                 BarcodeFormat::MAXICODE => "maxicode",
                 BarcodeFormat::PDF_417 => "pdf 417",
                 BarcodeFormat::QR_CODE => "qrcode",
+                BarcodeFormat::MICRO_QR_CODE => "mqr",
                 BarcodeFormat::RSS_14 => "rss 14",
                 BarcodeFormat::RSS_EXPANDED => "rss expanded",
                 BarcodeFormat::UPC_A => "upc a",
@@ -140,6 +143,9 @@ impl From<&str> for BarcodeFormat {
             "maxicode" | "maxi_code" => BarcodeFormat::MAXICODE,
             "pdf 417" | "pdf_417" | "pdf417" | "iso 15438" | "iso_15438" => BarcodeFormat::PDF_417,
             "qrcode" | "qr_code" | "qr code" => BarcodeFormat::QR_CODE,
+            "mqr" | "microqr" | "micro_qr" | "micro_qrcode" | "micro_qr_code" | "mqr_code" => {
+                BarcodeFormat::MICRO_QR_CODE
+            }
             "rss 14" | "rss_14" | "rss14" | "gs1 databar" | "gs1 databar coupon"
             | "gs1_databar_coupon" => BarcodeFormat::RSS_14,
             "rss expanded" | "expanded rss" | "rss_expanded" => BarcodeFormat::RSS_EXPANDED,
