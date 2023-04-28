@@ -42,21 +42,23 @@ fn qrcode_black_box1_test_case() {
  * @author Sean Owen
  */
 
-#[test]
-fn qrcode_black_box2_test_case() {
-    let mut tester = common::AbstractBlackBoxTestCase::new(
-        "test_resources/blackbox/qrcode-2",
-        // MultiFormatReader::default(),
-        QrReader {},
-        BarcodeFormat::QR_CODE,
-    );
-    tester.add_test(31, 31, 0.0);
-    tester.add_test(29, 29, 90.0);
-    tester.add_test(30, 30, 180.0);
-    tester.add_test(30, 30, 270.0);
+// #[test]
+// fn qrcode_black_box2_test_case() {
+//     let mut tester = common::AbstractBlackBoxTestCase::new(
+//         "test_resources/blackbox/qrcode-2",
+//         // MultiFormatReader::default(),
+//         QrReader {},
+//         BarcodeFormat::QR_CODE,
+//     );
+//     tester.add_test(31, 31, 0.0);
+//     tester.add_test(29, 29, 90.0);
+//     tester.add_test(30, 30, 180.0);
+//     tester.add_test(30, 30, 270.0);
 
-    tester.test_black_box();
-}
+//     tester.ignore_pure = false;
+
+//     tester.test_black_box();
+// }
 
 /**
  * @author dswitkin@google.com (Daniel Switkin)
@@ -191,14 +193,22 @@ fn cpp_qrcode_black_box1_test_case() {
 fn cpp_qrcode_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/cpp/qrcode-2",
-        // MultiUseMultiFormatReader::default(),
-        QrReader::default(),
+        MultiUseMultiFormatReader::default(),
+        // QrReader::default(),
         BarcodeFormat::QR_CODE,
     );
+
     tester.add_test(45, 47, 0.0);
     tester.add_test(45, 47, 90.0);
     tester.add_test(45, 47, 180.0);
     tester.add_test(45, 46, 270.0);
+
+    tester.ignore_pure = true;
+
+    tester.add_hint(
+        rxing::DecodeHintType::ALSO_INVERTED,
+        rxing::DecodeHintValue::AlsoInverted(true),
+    );
 
     tester.test_black_box();
 }

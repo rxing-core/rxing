@@ -384,6 +384,9 @@ impl<T: MultipleBarcodeReader + Reader> PDF417MultiImageSpanAbstractBlackBoxTest
                     RXingResultMetadataType::CONTENT_TYPE => {
                         RXingResultMetadataValue::ContentType(v)
                     }
+                    RXingResultMetadataType::IS_INVERTED => {
+                        RXingResultMetadataValue::IsInverted(v.parse().unwrap())
+                    }
                 };
                 expected_metadata.insert(new_k, new_v);
             }

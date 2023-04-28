@@ -137,9 +137,18 @@ impl MultiFormatReader {
             // Calling all readers again with inverted image
             image.get_black_matrix_mut().flip_self();
             let res = self.decode_formats(image);
+            // if let Ok(r) = res.as_mut() {
             if res.is_ok() {
-                return res;
+                let mut r = res.unwrap();
+                r.putMetadata(
+                    crate::RXingResultMetadataType::IS_INVERTED,
+                    crate::RXingResultMetadataValue::IsInverted(true),
+                );
+                return Ok(r);
             }
+            // if res.is_ok() {
+            //     return res;
+            // }
         }
         Err(Exceptions::NOT_FOUND)
     }
@@ -165,12 +174,11 @@ impl MultiFormatReader {
             for possible_format in self.possible_formats.iter() {
                 let res = match possible_format {
                     BarcodeFormat::QR_CODE => {
-                        let default_qr =
-                            QRCodeReader::default().decode_with_hints(image, &self.hints);
-                        if default_qr.is_ok() {
-                            default_qr
+                        let cpp = QrReader::default().decode_with_hints(image, &self.hints);
+                        if cpp.is_ok() {
+                            cpp
                         } else {
-                            QrReader::default().decode_with_hints(image, &self.hints)
+                            QRCodeReader::default().decode_with_hints(image, &self.hints)
                         }
                     }
                     BarcodeFormat::MICRO_QR_CODE => {
@@ -206,10 +214,10 @@ impl MultiFormatReader {
                 }
             }
 
-            if let Ok(res) = QRCodeReader::default().decode_with_hints(image, &self.hints) {
+            if let Ok(res) = QrReader::default().decode_with_hints(image, &self.hints) {
                 return Ok(res);
             }
-            if let Ok(res) = QrReader::default().decode_with_hints(image, &self.hints) {
+            if let Ok(res) = QRCodeReader::default().decode_with_hints(image, &self.hints) {
                 return Ok(res);
             }
             if let Ok(res) = DataMatrixReader::default().decode_with_hints(image, &self.hints) {

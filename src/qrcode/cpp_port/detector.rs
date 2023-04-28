@@ -251,10 +251,12 @@ pub fn GenerateFinderPatternSets(patterns: &mut FinderPatterns) -> FinderPattern
     // convert from multimap to vector
     let mut res: FinderPatternSets = Vec::with_capacity(sets.len());
 
-    for (k, v) in sets {
+    for (_, v) in sets {
         // for (auto& [d, s] : sets)
         res.extend(v);
     }
+
+    res.sort_by_key(|i| i.bl.size);
 
     res
 }
