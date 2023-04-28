@@ -132,6 +132,7 @@ impl ECIStringBuilder {
 
             if self.eci_list.len() == 1 && (self.eci_list.contains(&Eci::Unknown)) {
                 self.has_eci = false;
+                self.eci_positions.clear();
             }
         }
     }
