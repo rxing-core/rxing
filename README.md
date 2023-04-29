@@ -76,6 +76,12 @@ fn main() {
 ```
 
 ## Latest Release Notes
+* *v0.4.4* -> Major update of QRCode support.
+
+    The ZXing-Cpp QRCode library has been integrated. This brings large enhancements to the detection and decoding
+    of QRCodes. This also brings the ability to detect and decode MicroQRCodes. This release also brings updates to the
+    default Binarizer which should be slightly faster and more reliable. 
+    
 * *v0.4.0* -> Rewrite of the API to implement generics. This largely eliminates dynamic dispatch from the library.
 
     This release has many under-the-hood changes: better Point class, better Error handling, improved API 
