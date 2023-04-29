@@ -20,7 +20,7 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
         use crate::DecodingHintDictionary;
         use crate::RXingResultMetadataType;
         use crate::RXingResultMetadataValue;
-        use crate::RXingResultPoint;
+        use crate::Point;
         use crate::Reader;
         use crate::Binarizer;
 
@@ -64,7 +64,7 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
                       let points = result.getRXingResultPointsMut();
                       for i in 0..total_points{
                     // for (int i = 0; i < points.length; i++) {
-                      points[i] =  RXingResultPoint::new(height as f32- points[i].getY() - 1.0, points[i].getX());
+                      points[i] =  Point::new(height as f32- points[i].getY() - 1.0, points[i].getX());
                     }
                   // }
 

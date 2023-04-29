@@ -15,9 +15,37 @@ use crate::ResultPoint;
  */
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy, Default)]
-pub struct Point {
-    pub(crate) x: f32,
-    pub(crate) y: f32,
+pub struct PointT<T> {
+    pub x: T,
+    pub y: T,
+}
+// #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+// #[derive(Debug, Clone, Copy, Default)]
+// pub struct Point {
+//     pub(crate) x: f32,
+//     pub(crate) y: f32,
+// }
+
+pub type PointF = PointT<f32>;
+pub type PointI = PointT<u32>;
+pub type Point = PointF;
+
+impl Into<PointI> for Point {
+    fn into(self) -> PointI {
+        PointI{
+            x: self.x.floor() as u32,
+            y: self.y.floor() as u32,
+        }
+    }
+}
+
+impl Into<Point> for PointI {
+    fn into(self) -> Point {
+        Point {
+            x: self.x as f32,
+            y: self.y as f32,
+        }
+    }
 }
 
 /** An alias for `Point::new`. */
@@ -32,9 +60,6 @@ pub fn point_g<T: TryInto<f32>>(x: T, y: T) -> Option<Point> {
 pub fn point_i<T: Into<i64>>(x: T, y: T) -> Point {
     Point::new(x.into() as f32, y.into() as f32)
 }
-
-/** Currently necessary because the external OneDReader proc macro uses it. */
-pub type RXingResultPoint = Point;
 
 impl Hash for Point {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {

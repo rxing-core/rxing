@@ -145,7 +145,7 @@ pub fn ToAlphaNumericChar(value: u32) -> Result<char> {
         ' ', '$', '%', '*', '+', '-', '.', '/', ':',
     ];
 
-    if value < 0 || value >= (ALPHANUMERIC_CHARS.len()) {
+    if value >= (ALPHANUMERIC_CHARS.len()) {
         return Err(Exceptions::index_out_of_bounds_with(
             "oAlphaNumericChar: out of range",
         ));

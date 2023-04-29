@@ -159,7 +159,7 @@ impl BitSource {
                 let mask = (0xFF >> bits_to_not_read) << bits_to_not_read;
                 result = (result << num_bits)
                     | ((self.bytes[byte_offset] & mask) as u32 >> bits_to_not_read);
-                bit_offset += num_bits;
+                //bit_offset += num_bits; // Removed, this is a holdover from setting the actual values in c++
             }
         }
 

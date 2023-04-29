@@ -590,20 +590,23 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
         // #if 1
         let apM = version.as_ref().unwrap().getAlignmentPatternCenters(); // alignment pattern positions in modules
         let mut apP = Matrix::new(apM.len(), apM.len())?; // found/guessed alignment pattern positions in pixels
-                                                          // let apP = Matrix<std::optional<PointF>>(Size(apM), Size(apM)); // found/guessed alignment pattern positions in pixels
         let N = (apM.len()) - 1;
 
         // project the alignment pattern at module coordinates x/y to pixel coordinate based on current mod2Pix
-        let projectM2P = /*[&mod2Pix, &apM]*/| x,  y, mod2Pix: &PerspectiveTransform| { mod2Pix.transform_point(Point::centered(point_i(apM[x], apM[y]))) };
+        let projectM2P = |x, y, mod2Pix: &PerspectiveTransform| {
+            mod2Pix.transform_point(Point::centered(point_i(apM[x], apM[y])))
+        };
 
-        let mut findInnerCornerOfConcentricPattern = /*[&image, &apP, &projectM2P]*/| x,  y,   fp:ConcentricPattern| {
-			let pc = apP.set(x, y, projectM2P(x, y, &mod2Pix));
-            if let Some(fpQuad) = FindConcentricPatternCorners(image, fp.p, fp.size, 2)
-			// if (auto fpQuad = FindConcentricPatternCorners(image, fp, fp.size, 2))
-				{for  c in fpQuad .0
-					{if Point::distance(c, pc) < (fp.size as f32) / 2.0
-						{apP.set(x, y, c);}}}
-		};
+        let mut findInnerCornerOfConcentricPattern = |x, y, fp: ConcentricPattern| {
+            let pc = apP.set(x, y, projectM2P(x, y, &mod2Pix));
+            if let Some(fpQuad) = FindConcentricPatternCorners(image, fp.p, fp.size, 2) {
+                for c in fpQuad.0 {
+                    if Point::distance(c, pc) < (fp.size as f32) / 2.0 {
+                        apP.set(x, y, c);
+                    }
+                }
+            }
+        };
 
         findInnerCornerOfConcentricPattern(0, 0, fp.tl);
         findInnerCornerOfConcentricPattern(0, N, fp.bl);
@@ -823,11 +826,10 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         [tr, point(-1.0, 1.0)],
         [bl, point(1.0, -1.0)],
     ] {
-        // for (auto [p, d] : {std::pair(tl, PointI{1, 1}), {tr, {-1, 1}}, {bl, {1, -1}}}) {
         diagonal = EdgeTracer::new(image, p, d)
             .readPatternFromBlack(1, Some((width / 3 + 1) as i32))
             .ok_or(Exceptions::NOT_FOUND)?;
-        // diagonal = BitMatrixCursorI(image, p, d).readPatternFromBlack<Pattern>(1, width / 3 + 1);
+
         let diag_hld = diagonal.to_vec().into();
         let view = PatternView::new(&diag_hld);
         if !(IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0) != 0.0) {
