@@ -12,7 +12,7 @@ use crate::{
 fn CheckVersion(version: VersionRef, number: u32, dimension: u32) {
     // assert_ne!(version, nullptr);
     assert_eq!(number, version.getVersionNumber());
-    if (number > 1 && !version.isMicroQRCode()) {
+    if number > 1 && !version.isMicroQRCode() {
         assert!(!version.getAlignmentPatternCenters().is_empty());
     }
     assert_eq!(dimension, version.getDimensionForVersion());

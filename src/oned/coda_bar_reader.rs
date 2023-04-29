@@ -249,7 +249,7 @@ impl CodaBarReader {
                 // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
                 // long stripes, while 0 and 1 are for short stripes.
                 let category = (j & 1) + ((pattern as usize) & 1) * 2;
-                sizes[category] += self.counters[(pos + j)];
+                sizes[category] += self.counters[pos + j];
                 counts[category] += 1;
                 pattern >>= 1;
             }
@@ -288,7 +288,7 @@ impl CodaBarReader {
                 // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
                 // long stripes, while 0 and 1 are for short stripes.
                 let category = (j & 1) + ((pattern as usize) & 1) * 2;
-                let size = self.counters[(pos + j)];
+                let size = self.counters[pos + j];
                 if (size as f32) < mins[category] || (size as f32) > maxes[category] {
                     return Err(Exceptions::NOT_FOUND);
                 }

@@ -23,10 +23,10 @@
 // using namespace ZXing;
 // using namespace ZXing::QRCode;
 
-use crate::common::Result;
+
 
 use crate::{
-    common::{cpp_essentials::DecoderResult, BitArray},
+    common::{BitArray},
     qrcode::{
         cpp_port::decoder::DecodeBitStream,
         decoder::{ErrorCorrectionLevel, Version},

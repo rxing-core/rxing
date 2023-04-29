@@ -23,7 +23,7 @@ impl<T: Default + Clone + Copy> Matrix<T> {
     }
 
     pub fn new(width: usize, height: usize) -> Result<Matrix<T>> {
-        if (width != 0 && (width * height) / width as usize != height as usize) {
+        if width != 0 && (width * height) / width as usize != height as usize {
             return Err(Exceptions::illegal_argument_with(
                 "invalid size: width * height is too big",
             ));

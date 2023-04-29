@@ -146,14 +146,14 @@ impl Mode {
         let isMicro = isMicro.unwrap_or(false);
         const BITS_2_MODE_LEN: usize = 4;
 
-        if (!isMicro) {
-            if ((bits >= 0x00 && bits <= 0x05) || (bits >= 0x07 && bits <= 0x09) || bits == 0x0d) {
+        if !isMicro {
+            if (bits >= 0x00 && bits <= 0x05) || (bits >= 0x07 && bits <= 0x09) || bits == 0x0d {
                 return Mode::try_from(bits);
             }
         } else {
             const Bits2Mode: [Mode; BITS_2_MODE_LEN] =
                 [Mode::NUMERIC, Mode::ALPHANUMERIC, Mode::BYTE, Mode::KANJI];
-            if ((bits as usize) < BITS_2_MODE_LEN) {
+            if (bits as usize) < BITS_2_MODE_LEN {
                 return Ok(Bits2Mode[bits as usize]);
             }
         }
@@ -168,8 +168,8 @@ impl Mode {
      */
     pub fn CharacterCountBits(&self, version: &Version) -> u32 {
         let number = version.getVersionNumber() as usize;
-        if (version.isMicroQRCode()) {
-            match (self) {
+        if version.isMicroQRCode() {
+            match self {
 		 Mode::NUMERIC=>      return [3, 4, 5, 6][number - 1],
 		 Mode::ALPHANUMERIC=> return [3, 4, 5][number - 2],
 		 Mode::BYTE=>         return [4, 5][number - 3],
@@ -179,15 +179,15 @@ impl Mode {
 		}
         }
 
-        let i = if (number <= 9) {
+        let i = if number <= 9 {
             0
-        } else if (number <= 26) {
+        } else if number <= 26 {
             1
         } else {
             2
         };
 
-        match (self) {
+        match self {
 	 Mode::NUMERIC=>      return [10, 12, 14][i],
 	 Mode::ALPHANUMERIC=> return [9, 11, 13][i],
 	 Mode::BYTE=>         return [8, 16, 16][i],

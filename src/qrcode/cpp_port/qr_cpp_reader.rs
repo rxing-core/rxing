@@ -118,9 +118,9 @@
 // } // namespace ZXing::QRCode
 
 use crate::{
-    common::{cpp_essentials::ConcentricPattern, DetectorRXingResult, HybridBinarizer},
+    common::{cpp_essentials::ConcentricPattern, DetectorRXingResult},
     multi::MultipleBarcodeReader,
-    BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
+    BarcodeFormat, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
     Exceptions, RXingResult, Reader,
 };
 
@@ -132,7 +132,7 @@ use super::{
     },
 };
 
-use crate::qrcode::detector::QRCodeDetectorResult as DetectorResult;
+
 
 #[derive(Default)]
 pub struct QrReader;
@@ -294,9 +294,9 @@ impl QrReader {
             let allFPSets = GenerateFinderPatternSets(&mut allFPs);
             for fpSet in allFPSets {
                 // for (const auto& fpSet : allFPSets) {
-                if (usedFPs.contains(&fpSet.bl)
+                if usedFPs.contains(&fpSet.bl)
                     || usedFPs.contains(&fpSet.tl)
-                    || usedFPs.contains(&fpSet.tr))
+                    || usedFPs.contains(&fpSet.tr)
                 {
                     continue;
                 }
@@ -309,13 +309,13 @@ impl QrReader {
                     let decoderResult = Decode(detectorResult.getBits());
                     let position = detectorResult.getPoints();
                     if let Ok(decoderResult) = decoderResult {
-                        if (decoderResult.isValid()) {
+                        if decoderResult.isValid() {
                             usedFPs.push(fpSet.bl);
                             usedFPs.push(fpSet.tl);
                             usedFPs.push(fpSet.tr);
                         }
 
-                        if (decoderResult.isValid()) {
+                        if decoderResult.isValid() {
                             // results.push(RXingResult::new(
                             //     &decoderResult.content().to_string(),
                             //     decoderResult.content().bytes().to_vec(),
@@ -329,7 +329,7 @@ impl QrReader {
                             ));
                             // results.emplace_back(std::move(decoderResult), std::move(position), BarcodeFormat::QR_CODE);
 
-                            if (maxSymbols != 0 && (results.len() as u32) == maxSymbols) {
+                            if maxSymbols != 0 && (results.len() as u32) == maxSymbols {
                                 break;
                             }
                         }
@@ -337,11 +337,11 @@ impl QrReader {
                 }
             }
         }
-        if (check_mqr && !(maxSymbols != 0 && (results.len() as u32) == maxSymbols)) {
+        if check_mqr && !(maxSymbols != 0 && (results.len() as u32) == maxSymbols) {
             // if (_hints.hasFormat(BarcodeFormat::MicroQRCode) && !(maxSymbols && Size(results) == maxSymbols)) {
             for fp in allFPs {
                 // for (const auto& fp : allFPs) {
-                if (usedFPs.contains(&fp)) {
+                if usedFPs.contains(&fp) {
                     continue;
                 }
 
@@ -351,7 +351,7 @@ impl QrReader {
                     let decoderResult = Decode(detectorResult.getBits());
                     let position = detectorResult.getPoints();
                     if let Ok(decoderResult) = decoderResult {
-                        if (decoderResult.isValid()) {
+                        if decoderResult.isValid() {
                             results.push(RXingResult::with_decoder_result(
                                 decoderResult,
                                 position,
@@ -365,7 +365,7 @@ impl QrReader {
                             // ));
                             // results.emplace_back(std::move(decoderResult), std::move(position), BarcodeFormat::MICRO_QR_CODE);
 
-                            if (maxSymbols != 0 && (results.len() as u32) == maxSymbols) {
+                            if maxSymbols != 0 && (results.len() as u32) == maxSymbols {
                                 break;
                             }
                         }

@@ -18,8 +18,8 @@ use crate::Exceptions;
 pub fn GetDataMaskBit(maskIndex: u32, x: u32, y: u32, isMicro: Option<bool>) -> Result<bool> {
     let isMicro = isMicro.unwrap_or(false);
     let mut maskIndex = maskIndex;
-    if (isMicro) {
-        if (maskIndex < 0 || maskIndex >= 4) {
+    if isMicro {
+        if maskIndex < 0 || maskIndex >= 4 {
             return Err(Exceptions::illegal_argument_with(
                 "QRCode maskIndex out of range",
             ));
@@ -27,7 +27,7 @@ pub fn GetDataMaskBit(maskIndex: u32, x: u32, y: u32, isMicro: Option<bool>) -> 
         maskIndex = [1, 4, 6, 7][maskIndex as usize]; // map from MQR to QR indices
     }
 
-    match (maskIndex) {
+    match maskIndex {
         0 => return Ok((y + x) % 2 == 0),
         1 => return Ok(y % 2 == 0),
         2 => return Ok(x % 3 == 0),

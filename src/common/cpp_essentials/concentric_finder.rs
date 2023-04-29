@@ -5,10 +5,10 @@ use crate::{
         },
         BitMatrix, Quadrilateral,
     },
-    point, Exceptions, Point,
+    point, Point,
 };
 
-use crate::common::Result;
+
 
 use super::{
     BitMatrixCursorTrait, EdgeTracer, FastEdgeToEdgeCounter, Pattern, RegressionLine,
@@ -265,7 +265,7 @@ pub fn CenterOfRings(
         // for (int i = 1; i < numOfRings; ++i) {
         let c = CenterOfRing(image, center.floor(), range, i as i32, true)?;
 
-        if (c == Point::default()) {
+        if c == Point::default() {
             if n == 1 {
                 return None;
             } else {
@@ -342,7 +342,7 @@ pub fn CollectRingPoints(
 }
 
 pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Quadrilateral> {
-    let dist2Center = |a, b| Point::distance(a, center) < Point::distance(b, center);
+    let _dist2Center = |a, b| Point::distance(a, center) < Point::distance(b, center);
     // rotate points such that the first one is the furthest away from the center (hence, a corner)
 
     let max_by_pred = |a: &&Point, b: &&Point| {
@@ -372,7 +372,7 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
     // corners[2] = std::max_element(&points[Size(points) * 3 / 8], &points[Size(points) * 5 / 8], dist2Center);
     // find the two in between corners by looking for the points farthest from the long diagonal
     let l = RegressionLine::with_two_points(corners[0], corners[2]);
-    let dist2Diagonal = /*[l = RegressionLine(*corners[0], *corners[2])]*/| a,  b| {  l.distance_single(a) < l.distance_single(b) };
+    let _dist2Diagonal = /*[l = RegressionLine(*corners[0], *corners[2])]*/| a,  b| {  l.distance_single(a) < l.distance_single(b) };
 
     let diagonal_max_by_pred = |p1: &Point, p2: &Point| {
         let d1 = l.distance_single(*p1);
@@ -448,8 +448,8 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
         for p in &points[beg[i]..end[i]] {
             // for (const PointF* p = beg[i]; p != end[i]; ++p) {
             let len = (end[i] - beg[i]) as f64; //std::distance(beg[i], end[i]);
-            if (len > 3.0
-                && (lines[i].distance_single(*p) as f64) > f64::max(1.0, f64::min(8.0, len / 8.0)))
+            if len > 3.0
+                && (lines[i].distance_single(*p) as f64) > f64::max(1.0, f64::min(8.0, len / 8.0))
             {
                 // #ifdef PRINT_DEBUG
                 // 				printf("%d: %.2f > %.2f @ %.fx%.f\n", i, lines[i].distance(*p), std::distance(beg[i], end[i]) / 1., p->x, p->y);
@@ -649,7 +649,7 @@ pub fn FinetuneConcentricPatternCenter(
             return Some(res2);
         }
         // or the center can be approximated by a square
-        if (FitSquareToPoints(image, res1, range, 1, false).is_some()) {
+        if FitSquareToPoints(image, res1, range, 1, false).is_some() {
             return Some(res1);
         }
         // TODO: this is currently only keeping #258 alive, evaluate if still worth it

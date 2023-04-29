@@ -63,9 +63,9 @@ impl BitMatrix {
 
         let mut right = 0;
         let mut bottom = 0;
-        if (!self.getTopLeftOnBitWithPosition(&mut left, &mut top)
+        if !self.getTopLeftOnBitWithPosition(&mut left, &mut top)
             || !self.getBottomRightOnBitWithPosition(&mut right, &mut bottom)
-            || bottom - top + 1 < minSize)
+            || bottom - top + 1 < minSize
         {
             return (false, left, top, width, height);
         }
@@ -74,14 +74,14 @@ impl BitMatrix {
             // for (int y = top; y <= bottom; y++ ) {
             for x in 0..left {
                 // for (int x = 0; x < left; ++x){
-                if (self.get(x, y)) {
+                if self.get(x, y) {
                     left = x;
                     break;
                 }
             }
             for x in (right..(self.width() - 1)).rev() {
                 // for (int x = _width-1; x > right; x--){
-                if (self.get(x, y)) {
+                if self.get(x, y) {
                     right = x;
                     break;
                 }

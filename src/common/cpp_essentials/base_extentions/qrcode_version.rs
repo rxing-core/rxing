@@ -18,7 +18,7 @@ use crate::Exceptions;
 impl Version {
     pub fn FromDimension(dimension: u32) -> Result<VersionRef> {
         let isMicro = dimension < 21;
-        if (dimension % Self::DimensionStep(isMicro) != 1) {
+        if dimension % Self::DimensionStep(isMicro) != 1 {
             //throw std::invalid_argument("Unexpected dimension");
             return Err(Exceptions::ILLEGAL_ARGUMENT);
         }
@@ -29,7 +29,7 @@ impl Version {
     }
 
     pub fn FromNumber(versionNumber: u32, is_micro: bool) -> Result<VersionRef> {
-        if (versionNumber < 1 || versionNumber > (if is_micro { 4 } else { 40 })) {
+        if versionNumber < 1 || versionNumber > (if is_micro { 4 } else { 40 }) {
             //throw std::invalid_argument("Version should be in range [1-40].");
             return Err(Exceptions::ILLEGAL_ARGUMENT);
         }

@@ -1,4 +1,4 @@
-use crate::common::Result;
+
 
 use crate::qrcode::decoder::{
     ErrorCorrectionLevel, FormatInformation, FORMAT_INFO_DECODE_LOOKUP, FORMAT_INFO_MASK_QR,
@@ -84,7 +84,7 @@ impl FormatInformation {
         // Bits 2/3/4 contain both error correction level and version, 0/1 contain mask.
         fi.error_correction_level =
             ErrorCorrectionLevel::ECLevelFromBits((fi.index >> 2) & 0x07, true);
-        fi.data_mask = (fi.index & 0x03);
+        fi.data_mask = fi.index & 0x03;
         fi.microVersion = BITS_TO_VERSION[((fi.index >> 2) & 0x07) as usize] as u32;
         fi.isMirrored = fi.bitsIndex == 1;
 

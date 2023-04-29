@@ -500,13 +500,13 @@ pub fn IsPattern<const E2E: bool, const LEN: usize, const SUM: usize, const SPAR
             f64::min(modSize[0], modSize[1]),
             f64::max(modSize[0], modSize[1]),
         ];
-        if (M > 4.0 * m) {
+        if M > 4.0 * m {
             // make sure module sizes of bars and spaces are not too far away from each other
             return 0.0;
         }
 
-        if (min_quiet_zone != 0.0
-            && (space_in_pixel.unwrap_or_default()) < min_quiet_zone * modSize.space as f32)
+        if min_quiet_zone != 0.0
+            && (space_in_pixel.unwrap_or_default()) < min_quiet_zone * modSize.space as f32
         {
             return 0.0;
         }

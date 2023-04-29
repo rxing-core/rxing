@@ -23,10 +23,10 @@
 
 use std::{
     collections::{HashMap, HashSet},
-    fmt::{self, Display},
+    fmt::{self},
 };
 
-use crate::{pdf417::decoder::ec, BarcodeFormat};
+
 
 use super::{CharacterSet, Eci, StringUtils};
 

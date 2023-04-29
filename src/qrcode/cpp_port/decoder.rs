@@ -9,7 +9,7 @@ use crate::common::reedsolomon::{
     get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder,
 };
 use crate::common::{
-    AIFlag, BitMatrix, BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Eci, Result,
+    AIFlag, BitMatrix, BitSource, CharacterSet, ECIStringBuilder, Eci, Result,
     SymbologyIdentifier,
 };
 use crate::qrcode::cpp_port::bitmatrix_parser::{
@@ -73,11 +73,11 @@ pub fn DecodeHanziSegment(
     result.switch_encoding(CharacterSet::GB18030, false);
     result.reserve(2 * count as usize);
 
-    while (count > 0) {
+    while count > 0 {
         // Each 13 bits encodes a 2-byte character
         let twoBytes = bits.readBits(13)?;
         let mut assembledTwoBytes = ((twoBytes / 0x060) << 8) | (twoBytes % 0x060);
-        if (assembledTwoBytes < 0x00A00) {
+        if assembledTwoBytes < 0x00A00 {
             // In the 0xA1A1 to 0xAAFE range
             assembledTwoBytes += 0x0A1A1;
         } else {
@@ -102,11 +102,11 @@ pub fn DecodeKanjiSegment(
     result.switch_encoding(CharacterSet::Shift_JIS, false);
     result.reserve(2 * count as usize);
 
-    while (count > 0) {
+    while count > 0 {
         // Each 13 bits encodes a 2-byte character
         let twoBytes = bits.readBits(13)?;
         let mut assembledTwoBytes = ((twoBytes / 0x0C0) << 8) | (twoBytes % 0x0C0);
-        if (assembledTwoBytes < 0x01F00) {
+        if assembledTwoBytes < 0x01F00 {
             // In the 0x8140 to 0x9FFC range
             assembledTwoBytes += 0x08140;
         } else {
@@ -146,7 +146,7 @@ pub fn ToAlphaNumericChar(value: u32) -> Result<char> {
         ' ', '$', '%', '*', '+', '-', '.', '/', ':',
     ];
 
-    if (value < 0 || value >= (ALPHANUMERIC_CHARS.len())) {
+    if value < 0 || value >= (ALPHANUMERIC_CHARS.len()) {
         return Err(Exceptions::index_out_of_bounds_with(
             "oAlphaNumericChar: out of range",
         ));
@@ -171,27 +171,27 @@ pub fn DecodeAlphanumericSegment(
         buffer.push(ToAlphaNumericChar(nextTwoCharsBits % 45)?);
         count -= 2;
     }
-    if (count == 1) {
+    if count == 1 {
         // special case: one character left
         buffer.push(ToAlphaNumericChar(bits.readBits(6)?)?);
     }
     // See section 6.4.8.1, 6.4.8.2
-    if (result.symbology.aiFlag != AIFlag::None) {
+    if result.symbology.aiFlag != AIFlag::None {
         // We need to massage the result a bit if in an FNC1 mode:
         for i in 0..buffer.len() {
             // for (size_t i = 0; i < buffer.length(); i++) {
-            if (buffer
+            if buffer
                 .chars()
                 .nth(i)
                 .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
-                == '%')
+                == '%'
             {
-                if (i < buffer.len() - 1
+                if i < buffer.len() - 1
                     && buffer
                         .chars()
                         .nth(i + 1)
                         .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
-                        == '%')
+                        == '%'
                 {
                     // %% is rendered as %
                     buffer.remove(i + 1);
@@ -221,7 +221,7 @@ pub fn DecodeNumericSegment(
     result.switch_encoding(CharacterSet::ISO8859_1, false);
     result.reserve(count as usize);
 
-    while (count > 0) {
+    while count > 0 {
         let n = std::cmp::min(count, 3);
         let nDigits = bits.readBits(1 + 3 * n as usize)?; // read 4, 7 or 10 bits into 1, 2 or 3 digits
         result.append_string(&crate::common::cpp_essentials::util::ToString(
@@ -236,16 +236,16 @@ pub fn DecodeNumericSegment(
 
 pub fn ParseECIValue(bits: &mut BitSource) -> Result<Eci> {
     let firstByte = bits.readBits(8)?;
-    if ((firstByte & 0x80) == 0) {
+    if (firstByte & 0x80) == 0 {
         // just one byte
         return Ok(Eci::from(firstByte & 0x7F));
     }
-    if ((firstByte & 0xC0) == 0x80) {
+    if (firstByte & 0xC0) == 0x80 {
         // two bytes
         let secondByte = bits.readBits(8)?;
         return Ok(Eci::from(((firstByte & 0x3F) << 8) | secondByte));
     }
-    if ((firstByte & 0xE0) == 0xC0) {
+    if (firstByte & 0xE0) == 0xC0 {
         // three bytes
         let secondThirdBytes = bits.readBits(16)?;
         return Ok(Eci::from(((firstByte & 0x1F) << 16) | secondThirdBytes));
@@ -332,7 +332,7 @@ pub fn DecodeBitStream(
                     {
                         result +=
                             crate::common::cpp_essentials::util::ToString(appInd as usize, 2)?;
-                    } else if ((appInd >= 165 && appInd <= 190) || (appInd >= 197 && appInd <= 222))
+                    } else if (appInd >= 165 && appInd <= 190) || (appInd >= 197 && appInd <= 222)
                     // "A-Za-z"
                     {
                         result += (appInd - 100) as u8;
@@ -357,7 +357,7 @@ pub fn DecodeBitStream(
                     // First handle Hanzi mode which does not start with character count
                     // chinese mode contains a sub set indicator right after mode indicator
                     let subset = bits.readBits(4)?;
-                    if (subset != 1)
+                    if subset != 1
                     // GB2312_SUBSET is the only supported one right now
                     {
                         return Err(Exceptions::format_with("Unsupported HANZI subset"));
@@ -404,14 +404,14 @@ pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
 
     // Read codewords
     let codewords = ReadCodewords(bits, &version, &formatInfo)?;
-    if (codewords.is_empty()) {
+    if codewords.is_empty() {
         return Err(Exceptions::format_with("Failed to read codewords"));
     }
 
     // Separate into data blocks
     let dataBlocks: Vec<DataBlock> =
         DataBlock::getDataBlocks(&codewords, &version, formatInfo.error_correction_level)?;
-    if (dataBlocks.is_empty()) {
+    if dataBlocks.is_empty() {
         return Err(Exceptions::format_with("Failed to get data blocks"));
     }
 

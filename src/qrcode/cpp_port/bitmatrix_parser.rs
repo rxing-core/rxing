@@ -23,7 +23,7 @@ pub fn getBit(bitMatrix: &BitMatrix, x: u32, y: u32, mirrored: Option<bool>) -> 
 
 pub fn hasValidDimension(bitMatrix: &BitMatrix, isMicro: bool) -> bool {
     let dimension = bitMatrix.height();
-    if (isMicro) {
+    if isMicro {
         dimension >= 11 && dimension <= 17 && (dimension % 2) == 1
     } else {
         dimension >= 21 && dimension <= 177 && (dimension % 4) == 1
@@ -35,7 +35,7 @@ pub fn ReadVersion(bitMatrix: &BitMatrix) -> Result<VersionRef> {
 
     let mut version = Version::FromDimension(dimension)?;
 
-    if (version.getVersionNumber() < 7) {
+    if version.getVersionNumber() < 7 {
         return Ok(version);
     }
 
@@ -52,7 +52,7 @@ pub fn ReadVersion(bitMatrix: &BitMatrix) -> Result<VersionRef> {
         }
 
         version = Version::DecodeVersionInformation(versionBits, 0)?; // THIS MIGHT BE WRONG todo!()
-        if (version.getDimensionForVersion() == dimension) {
+        if version.getDimensionForVersion() == dimension {
             return Ok(version);
         }
     }
@@ -61,11 +61,11 @@ pub fn ReadVersion(bitMatrix: &BitMatrix) -> Result<VersionRef> {
 }
 
 pub fn ReadFormatInformation(bitMatrix: &BitMatrix, isMicro: bool) -> Result<FormatInformation> {
-    if (!hasValidDimension(bitMatrix, isMicro)) {
+    if !hasValidDimension(bitMatrix, isMicro) {
         return Err(Exceptions::FORMAT);
     }
 
-    if (isMicro) {
+    if isMicro {
         // Read top-left format info bits
         let mut formatInfoBits = 0;
         for x in 1..9 {
@@ -134,7 +134,7 @@ pub fn ReadQRCodewords(
     while x > 0 {
         // for (int x = dimension - 1; x > 0; x -= 2) {
         // Skip whole column with vertical timing pattern.
-        if (x == 6) {
+        if x == 6 {
             x -= 1;
         }
         // Read alternatingly from bottom to top then top to bottom
@@ -145,7 +145,7 @@ pub fn ReadQRCodewords(
                 // for (int col = 0; col < 2; col++) {
                 let xx = (x - col) as u32;
                 // Ignore bits covered by the function pattern
-                if (!functionPattern.get(xx, y)) {
+                if !functionPattern.get(xx, y) {
                     // Read a bit
                     AppendBit(
                         &mut currentByte,
@@ -154,7 +154,7 @@ pub fn ReadQRCodewords(
                     );
                     // If we've made a whole byte, save it off
                     bitsRead += 1;
-                    if (bitsRead % 8 == 0) {
+                    if bitsRead % 8 == 0 {
                         result.push(std::mem::take(&mut currentByte));
                     }
                 }
@@ -164,7 +164,7 @@ pub fn ReadQRCodewords(
 
         x -= 2;
     }
-    if ((result.len()) != version.getTotalCodewords() as usize) {
+    if (result.len()) != version.getTotalCodewords() as usize {
         return Err(Exceptions::FORMAT);
     }
 
@@ -185,11 +185,11 @@ pub fn ReadMQRCodewords(
     let d4mBlockIndex = if version.getVersionNumber() == 1 {
         3
     } else {
-        (if formatInfo.error_correction_level == ErrorCorrectionLevel::L {
+        if formatInfo.error_correction_level == ErrorCorrectionLevel::L {
             11
         } else {
             9
-        })
+        }
     };
 
     let mut result = Vec::new();
@@ -210,7 +210,7 @@ pub fn ReadMQRCodewords(
                 // for (int col = 0; col < 2; col++) {
                 let xx = x - col;
                 // Ignore bits covered by the function pattern
-                if (!functionPattern.get(xx, y)) {
+                if !functionPattern.get(xx, y) {
                     // Read a bit
                     AppendBit(
                         &mut currentByte,
@@ -219,8 +219,8 @@ pub fn ReadMQRCodewords(
                     );
                     bitsRead += 1;
                     // If we've made a whole byte, save it off; save early if 2x2 data block.
-                    if (bitsRead == 8
-                        || (bitsRead == 4 && hasD4mBlock && (result.len()) == d4mBlockIndex - 1))
+                    if bitsRead == 8
+                        || (bitsRead == 4 && hasD4mBlock && (result.len()) == d4mBlockIndex - 1)
                     {
                         result.push(std::mem::take(&mut currentByte));
                         bitsRead = 0;
@@ -232,7 +232,7 @@ pub fn ReadMQRCodewords(
 
         x -= 2;
     }
-    if ((result.len()) != version.getTotalCodewords() as usize) {
+    if (result.len()) != version.getTotalCodewords() as usize {
         return Err(Exceptions::FORMAT);
     }
 
@@ -244,7 +244,7 @@ pub fn ReadCodewords(
     version: VersionRef,
     formatInfo: &FormatInformation,
 ) -> Result<Vec<u8>> {
-    if (!hasValidDimension(bitMatrix, version.isMicroQRCode())) {
+    if !hasValidDimension(bitMatrix, version.isMicroQRCode()) {
         return Err(Exceptions::FORMAT);
     }
 

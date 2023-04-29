@@ -188,9 +188,9 @@ pub trait BitMatrixCursorTrait {
         range: Option<i32>,
     ) -> Option<[T; LEN]> {
         let range = range.unwrap_or(0);
-        if (maxWhitePrefix != 0
+        if maxWhitePrefix != 0
             && self.isWhite()
-            && !self.stepToEdge(Some(1), Some(maxWhitePrefix), None) > 0)
+            && !self.stepToEdge(Some(1), Some(maxWhitePrefix), None) > 0
         {
             return None;
         }

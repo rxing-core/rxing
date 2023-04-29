@@ -1,6 +1,6 @@
-use std::{any::Any, rc::Rc};
+use std::{rc::Rc};
 
-use crate::{common::ECIStringBuilder, Exceptions, RXingResult};
+use crate::{common::ECIStringBuilder, Exceptions};
 
 use super::StructuredAppendInfo;
 
