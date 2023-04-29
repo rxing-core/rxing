@@ -566,7 +566,7 @@ fn generateText(
         for j in 0..wordLength.ceil() as u32 {
             // for (int j = 0; j < wordLength; j++) {
             let mut c = chars[maxIndex];
-            if j == 0 && ('a'..='z').contains(&c) && random.next_bool() {
+            if j == 0 && c.is_ascii_lowercase() && random.next_bool() {
                 c = char::from_u32(c as u32 - 'a' as u32 + 'A' as u32).unwrap();
             }
             result.push(c);

@@ -58,20 +58,20 @@ impl Quadrilateral {
 
         Quadrilateral([
             Point {
-                x: margin as f32,
-                y: margin as f32,
+                x: margin,
+                y: margin,
             },
             Point {
-                x: width as f32 - margin as f32,
-                y: margin as f32,
+                x: width as f32 - margin,
+                y: margin,
             },
             Point {
-                x: width as f32 - margin as f32,
-                y: height as f32 - margin as f32,
+                x: width as f32 - margin,
+                y: height as f32 - margin,
             },
             Point {
-                x: margin as f32,
-                y: height as f32 - margin as f32,
+                x: margin,
+                y: height as f32 - margin,
             },
         ])
     }

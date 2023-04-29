@@ -22,7 +22,7 @@ impl ErrorCorrectionLevel {
             ErrorCorrectionLevel::H,
             ErrorCorrectionLevel::Q,
         ];
-        return LEVEL_FOR_BITS[bits as usize & 0x3];
+        LEVEL_FOR_BITS[bits as usize & 0x3]
     }
 
     pub fn ECLevelFromBits(bits: u8, isMicro: bool) -> Self {

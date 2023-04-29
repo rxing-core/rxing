@@ -48,7 +48,7 @@ pub fn CorrectErrors(codewordBytes: &mut [u8], numDataCodewords: u32) -> Result<
     // We don't care about errors in the error-correction codewords
     codewordBytes[..numDataCodewords as usize].copy_from_slice(
         &codewordsInts[..numDataCodewords as usize]
-            .into_iter()
+            .iter()
             .copied()
             .map(|i| i as u8)
             .collect::<Vec<u8>>(),
@@ -332,7 +332,7 @@ pub fn DecodeBitStream(
                     {
                         result +=
                             crate::common::cpp_essentials::util::ToString(appInd as usize, 2)?;
-                    } else if (appInd >= 165 && appInd <= 190) || (appInd >= 197 && appInd <= 222)
+                    } else if (165..=190).contains(&appInd) || (197..=222).contains(&appInd)
                     // "A-Za-z"
                     {
                         result += (appInd - 100) as u8;
@@ -403,14 +403,14 @@ pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
     };
 
     // Read codewords
-    let codewords = ReadCodewords(bits, &version, &formatInfo)?;
+    let codewords = ReadCodewords(bits, version, &formatInfo)?;
     if codewords.is_empty() {
         return Err(Exceptions::format_with("Failed to read codewords"));
     }
 
     // Separate into data blocks
     let dataBlocks: Vec<DataBlock> =
-        DataBlock::getDataBlocks(&codewords, &version, formatInfo.error_correction_level)?;
+        DataBlock::getDataBlocks(&codewords, version, formatInfo.error_correction_level)?;
     if dataBlocks.is_empty() {
         return Err(Exceptions::format_with("Failed to get data blocks"));
     }
@@ -438,7 +438,7 @@ pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
 
     // Decode the contents of that stream of bytes
     Ok(
-        DecodeBitStream(&resultBytes, &version, formatInfo.error_correction_level)?
+        DecodeBitStream(&resultBytes, version, formatInfo.error_correction_level)?
             .withIsMirrored(formatInfo.isMirrored),
     )
 }

@@ -114,9 +114,9 @@ impl FromStr for ErrorCorrectionLevel {
             return number_possible.try_into();
         }
 
-        return Err(Exceptions::illegal_argument_with(format!(
+        Err(Exceptions::illegal_argument_with(format!(
             "could not parse {s} into an ec level"
-        )));
+        )))
     }
 }
 

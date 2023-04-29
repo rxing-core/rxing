@@ -88,7 +88,7 @@ impl Version {
             return Self::getVersionForNumber(bestVersion);
         }
         // If we didn't find a close enough match, fail
-        return Err(Exceptions::ILLEGAL_STATE);
+        Err(Exceptions::ILLEGAL_STATE)
     }
 
     pub const fn isMicroQRCode(&self) -> bool {

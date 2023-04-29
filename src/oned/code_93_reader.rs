@@ -250,7 +250,7 @@ impl Code93Reader {
                 match c {
                     'd' => {
                         // +A to +Z map to a to z
-                        if ('A'..='Z').contains(&next) {
+                        if next.is_ascii_uppercase() {
                             decodedChar =
                                 char::from_u32(next as u32 + 32).ok_or(Exceptions::PARSE)?;
                         } else {
@@ -259,7 +259,7 @@ impl Code93Reader {
                     }
                     'a' => {
                         // $A to $Z map to control codes SH to SB
-                        if ('A'..='Z').contains(&next) {
+                        if next.is_ascii_uppercase() {
                             decodedChar =
                                 char::from_u32(next as u32 - 64).ok_or(Exceptions::PARSE)?;
                         } else {

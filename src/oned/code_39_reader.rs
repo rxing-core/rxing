@@ -335,7 +335,7 @@ impl Code39Reader {
                 match c {
                     '+' => {
                         // +A to +Z map to a to z
-                        if ('A'..='Z').contains(&next) {
+                        if next.is_ascii_uppercase() {
                             decodedChar = char::from_u32(next as u32 + 32)
                                 .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
                         } else {
@@ -344,7 +344,7 @@ impl Code39Reader {
                     }
                     '$' => {
                         // $A to $Z map to control codes SH to SB
-                        if ('A'..='Z').contains(&next) {
+                        if next.is_ascii_uppercase() {
                             decodedChar = char::from_u32(next as u32 - 64)
                                 .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
                         } else {

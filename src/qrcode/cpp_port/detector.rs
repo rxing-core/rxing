@@ -41,7 +41,7 @@ const SUM: usize = 7;
 const PATTERN: FixedPattern<LEN, SUM, false> = FixedPattern::new([1, 1, 3, 1, 1]);
 const E2E: bool = true;
 
-fn FindPattern<'a>(view: PatternView<'a>) -> Result<PatternView<'a>> {
+fn FindPattern(view: PatternView<'_>) -> Result<PatternView<'_>> {
     FindLeftGuardBy::<LEN, _>(
         view,
         LEN,
@@ -162,7 +162,7 @@ pub fn GenerateFinderPatternSets(patterns: &mut FinderPatterns) -> FinderPattern
         // for (int i = 0; i < nbPatterns - 2; i++) {
         for j in (i + 1)..(nbPatterns - 1) {
             // for (int j = i + 1; j < nbPatterns - 1; j++) {
-            for k in (j + 1)..(nbPatterns - 0) {
+            for k in (j + 1)..nbPatterns {
                 // for (int k = j + 1; k < nbPatterns - 0; k++) {
                 let mut a = &patterns[i];
                 let mut b = &patterns[j];
@@ -201,7 +201,7 @@ pub fn GenerateFinderPatternSets(patterns: &mut FinderPatterns) -> FinderPattern
                 let moduleCount = (distAB + distBC)
                     / (2.0 * (a.size + b.size + c.size) as f64 / (3.0 * 7.0))
                     + 7.0;
-                if moduleCount < 21.0 * 0.9 || moduleCount > 177.0 * 1.5
+                if !(21.0 * 0.9..=177.0 * 1.5).contains(&moduleCount)
                 // moduleCount may be overestimated, see above
                 {
                     continue;
@@ -399,7 +399,7 @@ pub fn Mod2Pix(
 ) -> Result<PerspectiveTransform> {
     let mut quad = Quadrilateral::rectangle(dimension, dimension, Some(3.5));
     // let quad = Rectangle(dimension, dimension, 3.5);
-    quad[2] = quad[2] - brOffset;
+    quad[2] -= brOffset;
 
     PerspectiveTransform::quadrilateralToQuadrilateral(quad, pix)
     // return {quad, pix};
@@ -497,15 +497,13 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
     let top = EstimateDimension(image, fp.tl, fp.tr);
     let left = EstimateDimension(image, fp.tl, fp.bl);
 
-    if !(top.dim != 0) && !(left.dim != 0) {
+    if top.dim == 0 && left.dim == 0 {
         return Err(Exceptions::NOT_FOUND);
     }
 
     let best = if top.err == left.err {
         if top.dim > left.dim { top } else { left }
-    } else {
-        if top.err < left.err { top } else { left }
-    };
+    } else if top.err < left.err { top } else { left };
     let mut dimension = best.dim;
     let moduleSize = (best.ms + 1.0) as i32;
 
@@ -563,10 +561,10 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
     )?;
 
     if dimension >= Version::DimensionOfVersion(7, false) as i32 {
-        let version = ReadVersion(image, dimension as u32, mod2Pix.clone());
+        let version = ReadVersion(image, dimension as u32, mod2Pix);
 
         // if the version bits are garbage -> discard the detection
-        if !version.is_ok()
+        if version.is_err()
             || (version.as_ref().unwrap().getDimensionForVersion() as i32 - dimension).abs() > 8
         {
             /*return DetectorResult();*/
@@ -609,7 +607,7 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
             {
                 return p;
             }
-            return projectM2P(x, y, &mod2Pix);
+            projectM2P(x, y, &mod2Pix)
         };
 
         for y in 0..=N {
@@ -847,7 +845,7 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     if dimension < MIN_MODULES as i32
         || dimension > MAX_MODULES as i32
         || !image.is_in(point(
-            left as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize as f32,
+            left as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
             top as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
         ))
     {
@@ -899,7 +897,7 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let bottom = top + height - 1;
 
     // allow corners be moved one pixel inside to accommodate for possible aliasing artifacts
-    let diagonal: Pattern = EdgeTracer::new(&image, point_i(left, top), point_i(1, 1))
+    let diagonal: Pattern = EdgeTracer::new(image, point_i(left, top), point_i(1, 1))
         .readPatternFromBlack(1, None)
         .ok_or(Exceptions::ILLEGAL_STATE)?;
     let diag_hld = diagonal.to_vec().into();
@@ -915,8 +913,8 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     if dimension < MIN_MODULES
         || dimension > MAX_MODULES
         || !image.is_in(point(
-            left as f32 + moduleSize as f32 / 2.0 + (dimension - 1) as f32 * moduleSize,
-            top as f32 + moduleSize as f32 / 2.0 + (dimension - 1) as f32 * moduleSize,
+            left as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
+            top as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
         ))
     {
         return Err(Exceptions::NOT_FOUND);
@@ -997,7 +995,7 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
 
         let check = |i, checkOne: bool| {
             let p = mod2Pix.transform_point(Point::centered(FORMAT_INFO_COORDS[i]));
-            return image.is_in(p) && (!checkOne || image.get_point(p));
+            image.is_in(p) && (!checkOne || image.get_point(p))
         };
 
         // check that we see both innermost timing pattern modules
@@ -1048,7 +1046,7 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
         dim,
         dim,
         &[SamplerControl {
-            p1: point_i(dim as u32, dim as u32),
+            p1: point_i(dim, dim),
             p0: point_i(0, 0),
             transform: bestPT,
         }],

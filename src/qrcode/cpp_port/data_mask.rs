@@ -19,7 +19,7 @@ pub fn GetDataMaskBit(maskIndex: u32, x: u32, y: u32, isMicro: Option<bool>) -> 
     let isMicro = isMicro.unwrap_or(false);
     let mut maskIndex = maskIndex;
     if isMicro {
-        if maskIndex < 0 || maskIndex >= 4 {
+        if !(0..4).contains(&maskIndex) {
             return Err(Exceptions::illegal_argument_with(
                 "QRCode maskIndex out of range",
             ));

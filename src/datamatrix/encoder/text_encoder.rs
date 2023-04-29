@@ -41,11 +41,11 @@ impl TextEncoder {
             sb.push('\u{3}');
             return 1;
         }
-        if ('0'..='9').contains(&c) {
+        if c.is_ascii_digit() {
             sb.push((c as u8 - 48 + 4) as char);
             return 1;
         }
-        if ('a'..='z').contains(&c) {
+        if c.is_ascii_lowercase() {
             sb.push((c as u8 - 97 + 14) as char);
             return 1;
         }

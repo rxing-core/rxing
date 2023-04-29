@@ -120,7 +120,6 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
 
         let mut paths = path_search
             .unwrap()
-            .into_iter()
             .filter(|r| r.is_ok()) // Get rid of Err variants for Result<DirEntry>
             .map(|r| r.unwrap().path()) // This is safe, since we only have the Ok variants
             .filter(|r| r.is_file()) // Filter out non-folders

@@ -431,7 +431,7 @@ impl Into<Vec<bool>> for BitArray {
         let mut array = vec![false; self.size];
 
         for pixel in 0..self.size {
-            array[pixel] = bool::from(self.get(pixel));
+            array[pixel] = self.get(pixel);
         }
 
         array

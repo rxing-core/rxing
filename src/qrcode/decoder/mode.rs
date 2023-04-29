@@ -147,7 +147,7 @@ impl Mode {
         const BITS_2_MODE_LEN: usize = 4;
 
         if !isMicro {
-            if (bits >= 0x00 && bits <= 0x05) || (bits >= 0x07 && bits <= 0x09) || bits == 0x0d {
+            if (0x00..=0x05).contains(&bits) || (0x07..=0x09).contains(&bits) || bits == 0x0d {
                 return Mode::try_from(bits);
             }
         } else {
@@ -188,12 +188,12 @@ impl Mode {
         };
 
         match self {
-	 Mode::NUMERIC=>      return [10, 12, 14][i],
-	 Mode::ALPHANUMERIC=> return [9, 11, 13][i],
-	 Mode::BYTE=>         return [8, 16, 16][i],
+	 Mode::NUMERIC=>      [10, 12, 14][i],
+	 Mode::ALPHANUMERIC=> [9, 11, 13][i],
+	 Mode::BYTE=>         [8, 16, 16][i],
 	 Mode::KANJI|    //    [[fallthrough]];
-	 Mode::HANZI=>        return [8, 10, 12][i],
-	_=>                     return 0,
+	 Mode::HANZI=>        [8, 10, 12][i],
+	_=>                     0,
 	}
     }
 }

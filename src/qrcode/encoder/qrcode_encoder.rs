@@ -310,7 +310,7 @@ fn chooseModeWithEncoding(content: &str, encoding: CharacterSet) -> Mode {
     let mut has_numeric = false;
     let mut has_alphanumeric = false;
     for c in content.chars() {
-        if ('0'..='9').contains(&c) {
+        if c.is_ascii_digit() {
             has_numeric = true;
         } else if getAlphanumericCode(c as u32) != -1 {
             has_alphanumeric = true;

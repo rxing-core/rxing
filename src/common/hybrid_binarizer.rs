@@ -113,7 +113,9 @@ impl<LS: LuminanceSource> HybridBinarizer<LS> {
         let source = ghb.get_luminance_source();
         let width = source.get_width();
         let height = source.get_height();
-        let matrix = if width >= MINIMUM_DIMENSION && height >= MINIMUM_DIMENSION {
+        
+        //  dbg!(matrix.to_string());
+        if width >= MINIMUM_DIMENSION && height >= MINIMUM_DIMENSION {
             let luminances = source.get_matrix();
             let mut sub_width = width >> BLOCK_SIZE_POWER;
             if (width & BLOCK_SIZE_MASK) != 0 {
@@ -146,9 +148,7 @@ impl<LS: LuminanceSource> HybridBinarizer<LS> {
             // If the image is too small, fall back to the global histogram approach.
             let m = ghb.get_black_matrix()?;
             Ok(m.clone())
-        };
-        //  dbg!(matrix.to_string());
-        matrix
+        }
     }
 
     /**

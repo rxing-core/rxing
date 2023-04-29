@@ -250,6 +250,6 @@ impl QRCodeReader {
         if x == width || y == height {
             return Err(Exceptions::NOT_FOUND);
         }
-        Ok((x - leftTopBlack.x) as f32 / 7.0)
+        Ok((x - leftTopBlack.x) / 7.0)
     }
 }

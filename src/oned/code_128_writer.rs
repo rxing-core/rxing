@@ -348,14 +348,14 @@ fn findCType(value: &str, start: usize) -> Option<CType> {
     if c == ESCAPE_FNC_1 {
         return Some(CType::Fnc1);
     }
-    if !('0'..='9').contains(&c) {
+    if !c.is_ascii_digit() {
         return Some(CType::Uncodable);
     }
     if start + 1 >= last {
         return Some(CType::OneDigit);
     }
     let c = value.chars().nth(start + 1)?;
-    if !('0'..='9').contains(&c) {
+    if !c.is_ascii_digit() {
         return Some(CType::OneDigit);
     }
     Some(CType::TwoDigits)
@@ -638,7 +638,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
     }
 
     fn isDigit(c: char) -> bool {
-        ('0'..='9').contains(&c)
+        c.is_ascii_digit()
     }
 
     fn canEncode(contents: &str, charset: Charset, position: usize) -> bool {

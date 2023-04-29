@@ -251,7 +251,7 @@ fn findAIvalue(i: usize, rawText: &str) -> Option<String> {
         if currentChar == ')' {
             return Some(buf);
         }
-        if !('0'..='9').contains(&currentChar) {
+        if !currentChar.is_ascii_digit() {
             return None;
         }
         buf.push(currentChar);

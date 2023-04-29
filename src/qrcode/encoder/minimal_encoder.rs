@@ -209,7 +209,7 @@ impl MinimalEncoder {
     pub fn isNumeric(c: &str) -> bool {
         if c.len() == 1 {
             if let Some(ch) = c.chars().next() {
-                return ('0'..='9').contains(&ch);
+                return ch.is_ascii_digit();
             }
         }
         false

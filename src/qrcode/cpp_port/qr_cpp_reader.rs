@@ -374,6 +374,6 @@ impl QrReader {
             }
         }
 
-        return Ok(results);
+        Ok(results)
     }
 }

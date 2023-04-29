@@ -227,7 +227,7 @@ pub fn unescapeBackslash(escaped: &str) -> String {
 }
 
 pub fn parseHexDigit(c: char) -> i32 {
-    if ('0'..='9').contains(&c) {
+    if c.is_ascii_digit() {
         return (c as u8 - b'0') as i32;
     }
     if ('a'..='f').contains(&c) {

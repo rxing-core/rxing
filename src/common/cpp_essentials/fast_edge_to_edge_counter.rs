@@ -38,13 +38,13 @@ impl<'a> FastEdgeToEdgeCounter<'a> {
         } else {
             i32::MAX
         };
-        let stepsToBorder = std::cmp::min(maxStepsX, maxStepsY) as i32;
+        let stepsToBorder = std::cmp::min(maxStepsX, maxStepsY);
 
         FastEdgeToEdgeCounter {
             p,
             stride,
             stepsToBorder,
-            _arr: cur.p().y as isize * stride as isize, //cur.img().getRow(cur.p().y as u32),
+            _arr: cur.p().y as isize * stride, //cur.img().getRow(cur.p().y as u32),
             under_arry: cur.img(),                      //.into(),
         }
     }
@@ -66,15 +66,15 @@ impl<'a> FastEdgeToEdgeCounter<'a> {
 
             // if !(self.under_arry[idx_pt]
             //     == self.under_arry[self.p as usize])
-            if !(self.under_arry.get_index(idx_pt) == self.under_arry.get_index(self.p as usize)) {
+            if self.under_arry.get_index(idx_pt) != self.under_arry.get_index(self.p as usize) {
                 break;
             }
         } // while (p[steps * stride] == p[0]);
 
-        self.p = (self.p as isize + (steps as isize * self.stride)).abs() as u32;
+        self.p = (self.p as isize + (steps as isize * self.stride)).unsigned_abs() as u32;
         self.stepsToBorder -= steps;
 
-        return steps as u32;
+        steps as u32
     }
 
     #[inline(always)]

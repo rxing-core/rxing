@@ -551,7 +551,7 @@ fn getMinimumCount(mins: &[u8]) -> u32 {
 }
 
 pub fn isDigit(ch: char) -> bool {
-    ('0'..='9').contains(&ch)
+    ch.is_ascii_digit()
 }
 
 pub fn isExtendedASCII(ch: char) -> bool {
@@ -559,15 +559,15 @@ pub fn isExtendedASCII(ch: char) -> bool {
 }
 
 pub fn isNativeC40(ch: char) -> bool {
-    (ch == ' ') || ('0'..='9').contains(&ch) || ('A'..='Z').contains(&ch)
+    (ch == ' ') || ch.is_ascii_digit() || ch.is_ascii_uppercase()
 }
 
 pub fn isNativeText(ch: char) -> bool {
-    (ch == ' ') || ('0'..='9').contains(&ch) || ('a'..='z').contains(&ch)
+    (ch == ' ') || ch.is_ascii_digit() || ch.is_ascii_lowercase()
 }
 
 pub fn isNativeX12(ch: char) -> bool {
-    isX12TermSep(ch) || (ch == ' ') || ('0'..='9').contains(&ch) || ('A'..='Z').contains(&ch)
+    isX12TermSep(ch) || (ch == ' ') || ch.is_ascii_digit() || ch.is_ascii_uppercase()
 }
 
 fn isX12TermSep(ch: char) -> bool {

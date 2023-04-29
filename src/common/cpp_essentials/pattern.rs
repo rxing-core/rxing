@@ -310,7 +310,7 @@ impl<'a> std::ops::Index<isize> for PatternView<'_> {
 
     fn index(&self, index: isize) -> &Self::Output {
         if self.count == self.data.len() {
-            return &self.data[index.abs() as usize];
+            return &self.data[index.unsigned_abs()];
         }
 
         if index > self.data.0.len() as isize {
@@ -353,7 +353,7 @@ impl<'a> std::ops::Index<i32> for PatternView<'_> {
 
 impl<'a> Into<Vec<PatternType>> for &PatternView<'a> {
     fn into(self) -> Vec<PatternType> {
-        let mut v = vec![PatternType::default(); self.count as usize];
+        let mut v = vec![PatternType::default(); self.count];
         for i in 0..self.count {
             v[i] = self[i];
         }
@@ -420,11 +420,11 @@ pub struct FixedPattern<const N: usize, const SUM: usize, const IS_SPARCE: bool 
     data: [PatternType; N],
 }
 
-impl<const N: usize, const SUM: usize, const IS_SPARCE: bool> Into<Pattern<N>>
-    for FixedPattern<N, SUM, IS_SPARCE>
+impl<const N: usize, const SUM: usize, const IS_SPARCE: bool> From<FixedPattern<N, SUM, IS_SPARCE>>
+    for Pattern<N>
 {
-    fn into(self) -> Pattern<N> {
-        self.data
+    fn from(val: FixedPattern<N, SUM, IS_SPARCE>) -> Self {
+        val.data
     }
 }
 
@@ -446,7 +446,7 @@ impl<const N: usize, const SUM: usize, const IS_SPARCE: bool> FixedPattern<N, SU
     }
 
     fn sums(&self) -> BarAndSpace<PatternType> {
-        return BarAndSpaceSum::<N, PatternType, PatternType>(&self.data);
+        BarAndSpaceSum::<N, PatternType, PatternType>(&self.data)
     }
 }
 
@@ -584,11 +584,11 @@ pub fn IsRightGuard<const N: usize, const SUM: usize, const IS_SPARCE: bool>(
     ) != 0.0
 }
 
-pub fn FindLeftGuardBy<'a, const LEN: usize, Pred: Fn(&PatternView, Option<f32>) -> bool>(
-    view: PatternView<'a>,
+pub fn FindLeftGuardBy<const LEN: usize, Pred: Fn(&PatternView, Option<f32>) -> bool>(
+    view: PatternView<'_>,
     minSize: usize,
     isGuard: Pred,
-) -> Result<PatternView<'a>> {
+) -> Result<PatternView<'_>> {
     const PREV_IDX: isize = -1;
 
     if view.size() < minSize {
@@ -601,11 +601,7 @@ pub fn FindLeftGuardBy<'a, const LEN: usize, Pred: Fn(&PatternView, Option<f32>)
     }
     let end = Into::<usize>::into(view.end().ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?) - minSize;
     while (window.start + window.current) < end {
-        let prev = if let Some(v) = window.try_get_index(PREV_IDX) {
-            Some(v as f32)
-        } else {
-            None
-        };
+        let prev = window.try_get_index(PREV_IDX).map(|v| v as f32);
         if isGuard(&window, prev) {
             return Ok(window);
         }
@@ -631,18 +627,18 @@ pub fn FindLeftGuard<'a, const LEN: usize, const SUM: usize, const IS_SPARCE: bo
         {
             return false;
         }
-        return IsPattern::<false, LEN, SUM, IS_SPARCE>(
+        IsPattern::<false, LEN, SUM, IS_SPARCE>(
             window,
             pattern,
             spaceInPixel,
             minQuietZone,
             0.0,
-        ) != 0.0;
+        ) != 0.0
     })
 }
 
-pub fn NormalizedE2EPattern<'a, const LEN: usize, const LEN_MINUS_2: usize, const SUM: usize>(
-    view: &'a PatternView,
+pub fn NormalizedE2EPattern<const LEN: usize, const LEN_MINUS_2: usize, const SUM: usize>(
+    view: &PatternView,
 ) -> [PatternType; LEN_MINUS_2] {
     let moduleSize: f32 = Into::<f32>::into(view.sum(Some(LEN))) / SUM as f32;
 
@@ -656,8 +652,8 @@ pub fn NormalizedE2EPattern<'a, const LEN: usize, const LEN_MINUS_2: usize, cons
     e2e
 }
 
-pub fn NormalizedPattern<'a, const LEN: usize, const SUM: usize>(
-    view: &'a PatternView,
+pub fn NormalizedPattern<const LEN: usize, const SUM: usize>(
+    view: &PatternView,
 ) -> Result<[PatternType; LEN]> {
     let moduleSize: f32 = (Into::<usize>::into(view.sum(Some(LEN))) / SUM) as f32;
     let mut err = SUM as isize;

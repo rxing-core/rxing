@@ -218,7 +218,7 @@ impl DataMatrixReader {
             let iOffset = top + y as f32 * moduleSize as f32;
             for x in 0..matrixWidth {
                 // for (int x = 0; x < matrixWidth; x++) {
-                if image.get_point(point(left as f32 + x as f32 * moduleSize as f32, iOffset)) {
+                if image.get_point(point(left + x as f32 * moduleSize as f32, iOffset)) {
                     bits.set(x, y);
                 }
             }

@@ -44,7 +44,7 @@ fn GetProvisionalVersionForDimension() {
     for i in 1..=40 {
         // for (int i = 1; i <= 40; i++) {
         let prov =
-            Version::FromDimension(4 * i + 17).expect(&format!("version should exist for {i}"));
+            Version::FromDimension(4 * i + 17).unwrap_or_else(|_| panic!("version should exist for {i}"));
         // assert_ne!(prov, nullptr);
         assert_eq!(i, prov.getVersionNumber());
     }
@@ -69,7 +69,7 @@ fn MicroVersionForNumber() {
     for i in 1..=4 {
         // for (int i = 1; i <= 4; i++) {
         CheckVersion(
-            Version::FromNumber(i, true).expect(&format!("version for {i} should exist")),
+            Version::FromNumber(i, true).unwrap_or_else(|_| panic!("version for {i} should exist")),
             i,
             2 * i + 9,
         );
@@ -81,7 +81,7 @@ fn GetProvisionalMicroVersionForDimension() {
     for i in 1..=4 {
         // for (int i = 1; i <= 4; i++) {
         let prov = Version::FromDimension(2 * i + 9)
-            .expect(&format!("version for micro {i} should exist"));
+            .unwrap_or_else(|_| panic!("version for micro {i} should exist"));
         // assert_ne!(prov, nullptr);
         assert_eq!(i, prov.getVersionNumber());
     }

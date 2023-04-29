@@ -24,9 +24,9 @@ pub fn getBit(bitMatrix: &BitMatrix, x: u32, y: u32, mirrored: Option<bool>) -> 
 pub fn hasValidDimension(bitMatrix: &BitMatrix, isMicro: bool) -> bool {
     let dimension = bitMatrix.height();
     if isMicro {
-        dimension >= 11 && dimension <= 17 && (dimension % 2) == 1
+        (11..=17).contains(&dimension) && (dimension % 2) == 1
     } else {
-        dimension >= 21 && dimension <= 177 && (dimension % 4) == 1
+        (21..=177).contains(&dimension) && (dimension % 4) == 1
     }
 }
 
@@ -57,7 +57,7 @@ pub fn ReadVersion(bitMatrix: &BitMatrix) -> Result<VersionRef> {
         }
     }
 
-    return Err(Exceptions::FORMAT);
+    Err(Exceptions::FORMAT)
 }
 
 pub fn ReadFormatInformation(bitMatrix: &BitMatrix, isMicro: bool) -> Result<FormatInformation> {
@@ -110,10 +110,10 @@ pub fn ReadFormatInformation(bitMatrix: &BitMatrix, isMicro: bool) -> Result<For
         AppendBit(&mut formatInfoBits2, getBit(bitMatrix, x, 8, None));
     }
 
-    return Ok(FormatInformation::DecodeQR(
+    Ok(FormatInformation::DecodeQR(
         formatInfoBits1 as u32,
         formatInfoBits2 as u32,
-    ));
+    ))
 }
 
 pub fn ReadQRCodewords(
@@ -184,12 +184,10 @@ pub fn ReadMQRCodewords(
     let hasD4mBlock = version.getVersionNumber() % 2 == 1;
     let d4mBlockIndex = if version.getVersionNumber() == 1 {
         3
+    } else if formatInfo.error_correction_level == ErrorCorrectionLevel::L {
+        11
     } else {
-        if formatInfo.error_correction_level == ErrorCorrectionLevel::L {
-            11
-        } else {
-            9
-        }
+        9
     };
 
     let mut result = Vec::new();

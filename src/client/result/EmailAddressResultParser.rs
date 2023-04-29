@@ -63,7 +63,6 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
         } else {
             COMMA
                 .split(hostEmail)
-                .into_iter()
                 .map(|s| s.to_owned())
                 .collect()
         };
@@ -81,7 +80,6 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
                 if let Some(tosString) = nv.get("to") {
                     tos = COMMA
                         .split(tosString)
-                        .into_iter()
                         .map(|s| s.to_owned())
                         .collect();
                 }
@@ -92,7 +90,6 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
             if let Some(ccString) = nv.get("cc") {
                 ccs = COMMA
                     .split(ccString)
-                    .into_iter()
                     .map(|s| s.to_owned())
                     .collect();
             }
@@ -102,7 +99,6 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
             if let Some(bccString) = nv.get("bcc") {
                 bccs = COMMA
                     .split(bccString)
-                    .into_iter()
                     .map(|s| s.to_owned())
                     .collect();
             }

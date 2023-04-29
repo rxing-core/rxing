@@ -66,9 +66,9 @@ impl X12Encoder {
             '>' => sb.push('\u{2}'),
             ' ' => sb.push('\u{3}'),
             _ => {
-                if ('0'..='9').contains(&c) {
+                if c.is_ascii_digit() {
                     sb.push((c as u8 - 48 + 4) as char);
-                } else if ('A'..='Z').contains(&c) {
+                } else if c.is_ascii_uppercase() {
                     sb.push((c as u8 - 65 + 14) as char);
                 } else {
                     high_level_encoder::illegalCharacter(c)?;

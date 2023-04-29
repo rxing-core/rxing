@@ -10,7 +10,7 @@ pub struct Matrix<T: Default + Clone + Copy> {
 
 impl<T: Default + Clone + Copy> Matrix<T> {
     pub fn with_data(width: usize, height: usize, data: Vec<Option<T>>) -> Result<Matrix<T>> {
-        if width != 0 && data.len() / width as usize != height as usize {
+        if width != 0 && data.len() / width != height {
             return Err(Exceptions::illegal_argument_with(
                 "invalid size: width * height is too big",
             ));
@@ -23,7 +23,7 @@ impl<T: Default + Clone + Copy> Matrix<T> {
     }
 
     pub fn new(width: usize, height: usize) -> Result<Matrix<T>> {
-        if width != 0 && (width * height) / width as usize != height as usize {
+        if width != 0 && (width * height) / width != height {
             return Err(Exceptions::illegal_argument_with(
                 "invalid size: width * height is too big",
             ));
@@ -60,7 +60,7 @@ impl<T: Default + Clone + Copy> Matrix<T> {
     // }
 
     fn get_offset(x: usize, y: usize, width: usize) -> usize {
-        (y * width + x) as usize
+        y * width + x
     }
 
     pub fn get(&self, x: usize, y: usize) -> Option<T> {

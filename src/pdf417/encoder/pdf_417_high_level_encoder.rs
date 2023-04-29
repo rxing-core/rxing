@@ -667,15 +667,15 @@ fn encodeNumeric<T: ECIInput + ?Sized>(
 }
 
 fn isDigit(ch: char) -> bool {
-    ('0'..='9').contains(&ch)
+    ch.is_ascii_digit()
 }
 
 fn isAlphaUpper(ch: char) -> bool {
-    ch == ' ' || ('A'..='Z').contains(&ch)
+    ch == ' ' || ch.is_ascii_uppercase()
 }
 
 fn isAlphaLower(ch: char) -> bool {
-    ch == ' ' || ('a'..='z').contains(&ch)
+    ch == ' ' || ch.is_ascii_lowercase()
 }
 
 fn isMixed(ch: char) -> bool {

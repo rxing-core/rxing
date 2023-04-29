@@ -34,7 +34,6 @@ impl LuminanceSource for Luma8LuminanceSource {
             .take((self.dimensions.1 * self.original_dimension.0) as usize)
             .collect::<Vec<&u8>>()
             .chunks_exact(self.original_dimension.0 as usize)
-            .into_iter()
             .flat_map(|f| {
                 f.iter()
                     .skip((self.origin.0) as usize)
@@ -182,7 +181,7 @@ mod tests {
 
         let square = Luma8LuminanceSource::new(src_square, 3, 3);
         let rect_tall = Luma8LuminanceSource::new(src_rect.clone(), 3, 4);
-        let rect_wide = Luma8LuminanceSource::new(src_rect.clone(), 4, 3);
+        let rect_wide = Luma8LuminanceSource::new(src_rect, 4, 3);
 
         let rotated_square = square.rotate_counter_clockwise().expect("rotate");
         // print_matrix(&src_rect, 4, 3);
