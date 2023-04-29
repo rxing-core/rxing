@@ -1,4 +1,3 @@
-
 use crate::qrcode::decoder::ErrorCorrectionLevel;
 
 impl ErrorCorrectionLevel {

@@ -8,8 +8,6 @@ use crate::{
     point, Point,
 };
 
-
-
 use super::{
     BitMatrixCursorTrait, EdgeTracer, FastEdgeToEdgeCounter, Pattern, RegressionLine,
     RegressionLineTrait, UpdateMinMax, UpdateMinMaxFloat,
@@ -342,18 +340,11 @@ pub fn CollectRingPoints(
 }
 
 pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Quadrilateral> {
-    let _dist2Center = |a, b| Point::distance(a, center) < Point::distance(b, center);
     // rotate points such that the first one is the furthest away from the center (hence, a corner)
-
     let max_by_pred = |a: &&Point, b: &&Point| {
         let da = Point::distance(**a, center);
         let db = Point::distance(**b, center);
         da.partial_cmp(&db).unwrap()
-        // if dist2Center(**a, **b) {
-        //     std::cmp::Ordering::Greater
-        // } else {
-        //     std::cmp::Ordering::Less
-        // }
     };
 
     let max = points.iter().max_by(max_by_pred)?;
@@ -361,7 +352,6 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
     let pos = points.iter().position(|e| e == max)?;
 
     points.rotate_left(pos);
-    // std::rotate(points.begin(), std::max_element(points.begin(), points.end(), dist2Center), points.end());
 
     let mut corners = [Point::default(); 4];
     corners[0] = points[0];
@@ -372,17 +362,11 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
     // corners[2] = std::max_element(&points[Size(points) * 3 / 8], &points[Size(points) * 5 / 8], dist2Center);
     // find the two in between corners by looking for the points farthest from the long diagonal
     let l = RegressionLine::with_two_points(corners[0], corners[2]);
-    let _dist2Diagonal = /*[l = RegressionLine(*corners[0], *corners[2])]*/| a,  b| {  l.distance_single(a) < l.distance_single(b) };
 
     let diagonal_max_by_pred = |p1: &Point, p2: &Point| {
         let d1 = l.distance_single(*p1);
         let d2 = l.distance_single(*p2);
         d1.partial_cmp(&d2).unwrap()
-        // if dist2Diagonal(*p1, *p2) {
-        //     std::cmp::Ordering::Greater
-        // } else {
-        //     std::cmp::Ordering::Less
-        // }
     };
     corners[1] = points[(points.len() / 8)..=(points.len() * 3 / 8)]
         .iter()
@@ -417,14 +401,6 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
         RegressionLine::with_point_slice(try_get_range(corner_positions[3], points.len())?),
     ];
 
-    // let lines = [
-    //     RegressionLine::with_point_slice(&points[corner_positions[0] + 1..corner_positions[1]]),
-    //     RegressionLine::with_point_slice(&points[corner_positions[1] + 1..corner_positions[2]]),
-    //     RegressionLine::with_point_slice(&points[corner_positions[2] + 1..corner_positions[3]]),
-    //     RegressionLine::with_point_slice(&points[corner_positions[3] + 1..points.len()]),
-    // ];
-    // std::array lines{RegressionLine{corners[0] + 1, corners[1]}, RegressionLine{corners[1] + 1, corners[2]},
-    // 				 RegressionLine{corners[2] + 1, corners[3]}, RegressionLine{corners[3] + 1, &points.back() + 1}};
     if lines.iter().any(|line| !line.isValid()) {
         return None;
     }
@@ -514,15 +490,6 @@ pub fn FindConcentricPatternCorners(
     let outerCorners = FitSquareToPoints(image, center, range, lineIndex + 1, true)?;
 
     let res = Quadrilateral::blend(&innerCorners, &outerCorners);
-
-    // for  p in innerCorners{
-    // 	log(p, 3);}
-
-    // for  p in outerCorners{
-    // 	log(p, 3);}
-
-    // for  p in res{
-    // 	log(p, 3);}
 
     Some(res)
 }

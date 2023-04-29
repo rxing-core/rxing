@@ -217,23 +217,12 @@ impl<'a> PatternView<'a> {
             || Into::<f32>::into(self.data.0[self.count])
                 >= Into::<f32>::into(self.sum(None)) * scale
     }
-    // template<bool acceptIfAtFirstBar = false>
-    // bool hasQuietZoneBefore(float scale) const
-    // {
-    // 	return (acceptIfAtFirstBar && isAtFirstBar()) || _data[-1] >= sum() * scale;
-    // }
 
     pub fn hasQuietZoneAfter(&self, scale: f32, acceptIfAtLastBar: Option<bool>) -> bool {
         (acceptIfAtLastBar.unwrap_or(true) && self.isAtLastBar())
             || Into::<f32>::into(self.data.0[self.count])
                 >= Into::<f32>::into(self.sum(None)) * scale
     }
-
-    // template<bool acceptIfAtLastBar = true>
-    // bool hasQuietZoneAfter(float scale) const
-    // {
-    // 	return (acceptIfAtLastBar && isAtLastBar()) || _data[_size] >= sum() * scale;
-    // }
 
     pub fn subView(&self, offset: usize, size: Option<usize>) -> PatternView<'a> {
         let mut size = size.unwrap_or(0);
@@ -251,27 +240,10 @@ impl<'a> PatternView<'a> {
         }
     }
 
-    // 	PatternView subView(int offset, int size = 0) const
-    // 	{
-    // //		if(std::abs(size) > count())
-    // //			printf("%d > %d\n", std::abs(size), _count);
-    // //		assert(std::abs(size) <= count());
-    // 		if (size == 0)
-    // 			size = _size - offset;
-    // 		else if (size < 0)
-    // 			size = _size - offset + size;
-    // 		return {begin() + offset, std::max(size, 0), _base, _end};
-    // 	}
-
     pub fn shift(&mut self, n: usize) -> bool {
         self.current += n;
         !self.data.0.is_empty() && self.start + self.count <= (self.start + self.count)
     }
-
-    // bool shift(int n)
-    // {
-    // 	return _data && ((_data += n) + _size <= _end);
-    // }
 
     pub fn skipPair(&mut self) -> bool {
         self.shift(2)
@@ -361,6 +333,16 @@ impl<'a> Into<Vec<PatternType>> for &PatternView<'a> {
     }
 }
 
+impl<'a, const LEN: usize> Into<[PatternType; LEN]> for &PatternView<'a> {
+    fn into(self) -> [PatternType; LEN] {
+        let mut result = [PatternType::default(); LEN];
+        for i in 0..self.count {
+            result[i] = self[i];
+        }
+        result
+    }
+}
+
 /**
  * @brief The BarAndSpace struct is a simple 2 element data structure to hold information about bar(s) and space(s).
  *
@@ -407,7 +389,7 @@ impl<T: Default + std::cmp::PartialEq> std::ops::IndexMut<usize> for BarAndSpace
 // 	bool isValid() const { return bar != T{} && space != T{}; }
 // };
 
-type BarAndSpaceI = BarAndSpace<PatternType>;
+// type BarAndSpaceI = BarAndSpace<PatternType>;
 
 /**
  * @brief FixedPattern describes a compile-time constant (start/stop) pattern.
@@ -488,7 +470,7 @@ pub fn IsPattern<const E2E: bool, const LEN: usize, const SUM: usize, const SPAR
 
     if E2E {
         //using float_t = double;
-        let v_src: Vec<PatternType> = view.into();
+        let v_src: [PatternType; LEN] = view.into();
         let widths = BarAndSpaceSum::<LEN, PatternType, f64>(&v_src);
         let sums = pattern.sums();
         let modSize: BarAndSpace<f64> = BarAndSpace {
@@ -627,13 +609,8 @@ pub fn FindLeftGuard<'a, const LEN: usize, const SUM: usize, const IS_SPARCE: bo
         {
             return false;
         }
-        IsPattern::<false, LEN, SUM, IS_SPARCE>(
-            window,
-            pattern,
-            spaceInPixel,
-            minQuietZone,
-            0.0,
-        ) != 0.0
+        IsPattern::<false, LEN, SUM, IS_SPARCE>(window, pattern, spaceInPixel, minQuietZone, 0.0)
+            != 0.0
     })
 }
 

@@ -43,8 +43,8 @@ fn VersionForNumber() {
 fn GetProvisionalVersionForDimension() {
     for i in 1..=40 {
         // for (int i = 1; i <= 40; i++) {
-        let prov =
-            Version::FromDimension(4 * i + 17).unwrap_or_else(|_| panic!("version should exist for {i}"));
+        let prov = Version::FromDimension(4 * i + 17)
+            .unwrap_or_else(|_| panic!("version should exist for {i}"));
         // assert_ne!(prov, nullptr);
         assert_eq!(i, prov.getVersionNumber());
     }

@@ -61,10 +61,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
         let mut tos = if hostEmail.is_empty() {
             Vec::new()
         } else {
-            COMMA
-                .split(hostEmail)
-                .map(|s| s.to_owned())
-                .collect()
+            COMMA.split(hostEmail).map(|s| s.to_owned()).collect()
         };
         // if (!hostEmail.isEmpty()) {
         //   tos = COMMA.split(hostEmail);
@@ -78,29 +75,20 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
             // if (nameValues != null) {
             if tos.is_empty() {
                 if let Some(tosString) = nv.get("to") {
-                    tos = COMMA
-                        .split(tosString)
-                        .map(|s| s.to_owned())
-                        .collect();
+                    tos = COMMA.split(tosString).map(|s| s.to_owned()).collect();
                 }
                 // if tosString != null {
                 //   tos = COMMA.split(tosString);
                 // }
             }
             if let Some(ccString) = nv.get("cc") {
-                ccs = COMMA
-                    .split(ccString)
-                    .map(|s| s.to_owned())
-                    .collect();
+                ccs = COMMA.split(ccString).map(|s| s.to_owned()).collect();
             }
             // if ccString != null {
             //   ccs = COMMA.split(ccString);
             // }
             if let Some(bccString) = nv.get("bcc") {
-                bccs = COMMA
-                    .split(bccString)
-                    .map(|s| s.to_owned())
-                    .collect();
+                bccs = COMMA.split(bccString).map(|s| s.to_owned()).collect();
             }
             // if bccString != null {
             //   bccs = COMMA.split(bccString);

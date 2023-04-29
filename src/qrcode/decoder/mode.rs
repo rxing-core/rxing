@@ -151,10 +151,10 @@ impl Mode {
                 return Mode::try_from(bits);
             }
         } else {
-            const Bits2Mode: [Mode; BITS_2_MODE_LEN] =
+            const BITS_2_MODE: [Mode; BITS_2_MODE_LEN] =
                 [Mode::NUMERIC, Mode::ALPHANUMERIC, Mode::BYTE, Mode::KANJI];
             if (bits as usize) < BITS_2_MODE_LEN {
-                return Ok(Bits2Mode[bits as usize]);
+                return Ok(BITS_2_MODE[bits as usize]);
             }
         }
 

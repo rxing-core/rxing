@@ -9,8 +9,7 @@ use crate::common::reedsolomon::{
     get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder,
 };
 use crate::common::{
-    AIFlag, BitMatrix, BitSource, CharacterSet, ECIStringBuilder, Eci, Result,
-    SymbologyIdentifier,
+    AIFlag, BitMatrix, BitSource, CharacterSet, ECIStringBuilder, Eci, Result, SymbologyIdentifier,
 };
 use crate::qrcode::cpp_port::bitmatrix_parser::{
     ReadCodewords, ReadFormatInformation, ReadVersion,

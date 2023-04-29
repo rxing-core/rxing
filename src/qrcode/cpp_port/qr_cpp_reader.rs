@@ -120,8 +120,8 @@
 use crate::{
     common::{cpp_essentials::ConcentricPattern, DetectorRXingResult},
     multi::MultipleBarcodeReader,
-    BarcodeFormat, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
-    Exceptions, RXingResult, Reader,
+    BarcodeFormat, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
+    RXingResult, Reader,
 };
 
 use super::{
@@ -131,8 +131,6 @@ use super::{
         SampleQR,
     },
 };
-
-
 
 #[derive(Default)]
 pub struct QrReader;

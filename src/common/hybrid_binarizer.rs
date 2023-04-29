@@ -113,7 +113,7 @@ impl<LS: LuminanceSource> HybridBinarizer<LS> {
         let source = ghb.get_luminance_source();
         let width = source.get_width();
         let height = source.get_height();
-        
+
         //  dbg!(matrix.to_string());
         if width >= MINIMUM_DIMENSION && height >= MINIMUM_DIMENSION {
             let luminances = source.get_matrix();

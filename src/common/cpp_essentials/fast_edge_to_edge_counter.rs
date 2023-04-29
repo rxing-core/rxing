@@ -45,7 +45,7 @@ impl<'a> FastEdgeToEdgeCounter<'a> {
             stride,
             stepsToBorder,
             _arr: cur.p().y as isize * stride, //cur.img().getRow(cur.p().y as u32),
-            under_arry: cur.img(),                      //.into(),
+            under_arry: cur.img(),             //.into(),
         }
     }
 

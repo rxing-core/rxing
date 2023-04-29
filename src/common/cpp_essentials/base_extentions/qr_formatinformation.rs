@@ -1,5 +1,3 @@
-
-
 use crate::qrcode::decoder::{
     ErrorCorrectionLevel, FormatInformation, FORMAT_INFO_DECODE_LOOKUP, FORMAT_INFO_MASK_QR,
 };

@@ -4,7 +4,8 @@ use crate::{
             CenterOfRing, DMRegressionLine, FindConcentricPatternCorners, FindLeftGuardBy, Matrix,
         },
         DefaultGridSampler, GridSampler, Result, SamplerControl,
-    }, point_i,
+    },
+    point_i,
     qrcode::{
         decoder::{FormatInformation, Version, VersionRef},
         detector::QRCodeDetectorResult,
@@ -16,10 +17,9 @@ use multimap::MultiMap;
 use crate::{
     common::{
         cpp_essentials::{
-            BitMatrixCursorTrait, ConcentricPattern, Direction, EdgeTracer,
-            FixedPattern, GetPatternRowTP, IsPattern, LocateConcentricPattern,
-            PatternRow, PatternType, PatternView, ReadSymmetricPattern, RegressionLine,
-            RegressionLineTrait,
+            BitMatrixCursorTrait, ConcentricPattern, Direction, EdgeTracer, FixedPattern,
+            GetPatternRowTP, IsPattern, LocateConcentricPattern, PatternRow, PatternType,
+            PatternView, ReadSymmetricPattern, RegressionLine, RegressionLineTrait,
         },
         BitMatrix, PerspectiveTransform, Quadrilateral,
     },
@@ -502,8 +502,16 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
     }
 
     let best = if top.err == left.err {
-        if top.dim > left.dim { top } else { left }
-    } else if top.err < left.err { top } else { left };
+        if top.dim > left.dim {
+            top
+        } else {
+            left
+        }
+    } else if top.err < left.err {
+        top
+    } else {
+        left
+    };
     let mut dimension = best.dim;
     let moduleSize = (best.ms + 1.0) as i32;
 

@@ -1,7 +1,5 @@
 use crate::{point, Point};
 
-
-
 #[derive(Clone, Copy, Debug)]
 pub struct Quadrilateral(pub [Point; 4]);
 

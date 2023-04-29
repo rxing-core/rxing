@@ -26,8 +26,6 @@ use std::{
     fmt::{self},
 };
 
-
-
 use super::{CharacterSet, Eci, StringUtils};
 
 /**
