@@ -268,11 +268,7 @@ fn decodeKanjiSegment(
     let encoder = if let Some(DecodeHintValue::QrAssumeSpecConformInput(true)) =
         hints.get(&DecodeHintType::QR_ASSUME_SPEC_CONFORM_INPUT)
     {
-        if let Some(ccse) = &currentCharacterSetECI {
-            CharacterSet::getCharacterSetECIByName(ccse)
-        } else {
-            CharacterSet::ISO8859_1
-        }
+        currentCharacterSetECI.unwrap_or(CharacterSet::ISO8859_1)
     } else {
         CharacterSet::Shift_JIS
     };
