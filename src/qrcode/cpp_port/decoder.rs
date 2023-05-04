@@ -137,8 +137,8 @@ pub fn DecodeByteSegment(
 pub fn ToAlphaNumericChar(value: u32) -> Result<char> {
     let value = value as usize;
     /**
-    	* See ISO 18004:2006, 6.4.4 Table 5
-    	*/
+     * See ISO 18004:2006, 6.4.4 Table 5
+     */
     const ALPHANUMERIC_CHARS: [char; 45] = [
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
         'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -301,15 +301,14 @@ pub fn DecodeBitStream(
 
     let res = (|| {
         while !IsEndOfStream(&mut bits, version)? {
-            let mode: Mode;
-            if modeBitLength == 0 {
-                mode = Mode::NUMERIC; // MicroQRCode version 1 is always NUMERIC and modeBitLength is 0
+            let mode: Mode = if modeBitLength == 0 {
+                Mode::NUMERIC // MicroQRCode version 1 is always NUMERIC and modeBitLength is 0
             } else {
-                mode = Mode::CodecModeForBits(
+                Mode::CodecModeForBits(
                     bits.readBits(modeBitLength as usize)?,
                     Some(version.isMicroQRCode()),
-                )?;
-            }
+                )?
+            };
 
             match mode {
                 Mode::FNC1_FIRST_POSITION => {

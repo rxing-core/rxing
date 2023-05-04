@@ -1,4 +1,3 @@
-
 use std::{fmt, iter::Sum};
 
 use std::hash::Hash;
@@ -31,20 +30,20 @@ pub type PointF = PointT<f32>;
 pub type PointI = PointT<u32>;
 pub type Point = PointF;
 
-impl Into<PointI> for Point {
-    fn into(self) -> PointI {
+impl From<Point> for PointI {
+    fn from(val: Point) -> Self {
         PointI {
-            x: self.x.floor() as u32,
-            y: self.y.floor() as u32,
+            x: val.x.floor() as u32,
+            y: val.y.floor() as u32,
         }
     }
 }
 
-impl Into<Point> for PointI {
-    fn into(self) -> Point {
+impl From<PointI> for Point {
+    fn from(val: PointI) -> Self {
         Point {
-            x: self.x as f32,
-            y: self.y as f32,
+            x: val.x as f32,
+            y: val.y as f32,
         }
     }
 }
@@ -81,7 +80,7 @@ where
     T: Copy,
 {
     pub const fn new(x: T, y: T) -> PointT<T> {
-        PointT { x: x, y: y }
+        PointT { x, y }
     }
     pub const fn with_single(x: T) -> Self {
         Self { x, y: x }

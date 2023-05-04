@@ -100,12 +100,12 @@ impl FormatInformation {
         // Some QR codes apparently do not apply the XOR mask. Try without and with additional masking.
         for mask in [0, mask] {
             // for (auto mask : {0, mask})
-            for bitsIndex in 0..bits.len() {
+            for (bitsIndex, bit_set) in bits.iter().enumerate() {
                 // for (int bitsIndex = 0; bitsIndex < Size(bits); ++bitsIndex)
                 for [pattern, index] in lookup {
                     // for (const auto& [pattern, index] : lookup) {
                     // Find the int in lookup with fewest bits differing
-                    let hammingDist = ((bits[bitsIndex] ^ mask) ^ pattern).count_ones();
+                    let hammingDist = ((bit_set ^ mask) ^ pattern).count_ones();
                     if hammingDist < fi.hammingDistance {
                         // if (int hammingDist = BitHacks::CountBitsSet((bits[bitsIndex] ^ mask) ^ pattern); hammingDist < fi.hammingDistance) {
                         fi.index = index as u8;

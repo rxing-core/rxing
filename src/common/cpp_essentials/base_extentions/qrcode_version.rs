@@ -63,12 +63,11 @@ impl Version {
     pub fn DecodeVersionInformation(versionBitsA: i32, versionBitsB: i32) -> Result<VersionRef> {
         let mut bestDifference = u32::MAX;
         let mut bestVersion = 0;
-        let mut i = 0;
-        for targetVersion in VERSION_DECODE_INFO {
+        for (i, targetVersion) in VERSION_DECODE_INFO.into_iter().enumerate() {
             // for (int targetVersion : VERSION_DECODE_INFO) {
             // Do the version info bits match exactly? done.
             if targetVersion == versionBitsA as u32 || targetVersion == versionBitsB as u32 {
-                return Self::getVersionForNumber(i + 7);
+                return Self::getVersionForNumber(i as u32 + 7);
             }
             // Otherwise see if this is the closest to a real version info bit string
             // we have seen so far
@@ -80,12 +79,11 @@ impl Version {
                     bestDifference = bitsDifference;
                 }
             }
-            i += 1;
         }
         // We can tolerate up to 3 bits of error since no two version info codewords will
         // differ in less than 8 bits.
         if bestDifference <= 3 {
-            return Self::getVersionForNumber(bestVersion);
+            return Self::getVersionForNumber(bestVersion as u32);
         }
         // If we didn't find a close enough match, fail
         Err(Exceptions::ILLEGAL_STATE)

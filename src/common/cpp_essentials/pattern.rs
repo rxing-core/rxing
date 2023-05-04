@@ -80,7 +80,7 @@ pub struct PatternViewIterator<'a> {
     current_position: usize,
 }
 
-impl<'a> Iterator for PatternViewIterator<'_> {
+impl Iterator for PatternViewIterator<'_> {
     type Item = PatternType;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -243,7 +243,7 @@ impl<'a> PatternView<'a> {
 
     pub fn shift(&mut self, n: usize) -> bool {
         self.current += n;
-        !self.data.0.is_empty() && self.start + self.count <= (self.start + self.count)
+        !self.data.0.is_empty() //&& self.start + self.count <= (self.start + self.count)
     }
 
     pub fn skipPair(&mut self) -> bool {
@@ -278,7 +278,7 @@ impl<'a> PatternView<'a> {
     }
 }
 
-impl<'a> std::ops::Index<isize> for PatternView<'_> {
+impl std::ops::Index<isize> for PatternView<'_> {
     type Output = PatternType;
 
     fn index(&self, index: isize) -> &Self::Output {
@@ -301,7 +301,7 @@ impl<'a> std::ops::Index<isize> for PatternView<'_> {
     }
 }
 
-impl<'a> std::ops::Index<usize> for PatternView<'_> {
+impl std::ops::Index<usize> for PatternView<'_> {
     type Output = PatternType;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -316,7 +316,7 @@ impl<'a> std::ops::Index<usize> for PatternView<'_> {
     }
 }
 
-impl<'a> std::ops::Index<i32> for PatternView<'_> {
+impl std::ops::Index<i32> for PatternView<'_> {
     type Output = PatternType;
 
     fn index(&self, index: i32) -> &Self::Output {

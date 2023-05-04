@@ -116,12 +116,12 @@ mod BitArrayBuilderTest {
         checkBinary(&pairValues, expected);
     }
 
-    fn checkBinary(pairValues: &Vec<Vec<u32>>, expected: &str) {
+    fn checkBinary(pairValues: &[Vec<u32>], expected: &str) {
         let binary = buildBitArray(pairValues);
         assert_eq!(expected, binary.to_string());
     }
 
-    fn buildBitArray(pairValues: &Vec<Vec<u32>>) -> BitArray {
+    fn buildBitArray(pairValues: &[Vec<u32>]) -> BitArray {
         let mut pairs = Vec::new(); //new ArrayList<>();
         for (i, pair) in pairValues.iter().enumerate() {
             // for (int i = 0; i < pairValues.length; ++i) {

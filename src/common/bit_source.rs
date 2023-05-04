@@ -139,7 +139,7 @@ impl BitSource {
             num_bits -= toRead;
             bit_offset += toRead;
             if bit_offset == 8 {
-                bit_offset = 0;
+                //bit_offset = 0;
                 byte_offset += 1;
             }
         }

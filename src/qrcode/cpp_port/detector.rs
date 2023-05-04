@@ -99,10 +99,9 @@ pub fn FindFinderPatterns(image: &BitMatrix, tryHarder: bool) -> FinderPatterns 
             );
 
             // make sure p is not 'inside' an already found pattern area
-            if res
+            if !res
                 .iter()
-                .find(|old| Point::distance(p, old.p) < (old.size as f32) / 2.0)
-                .is_none()
+                .any(|old| Point::distance(p, old.p) < (old.size as f32) / 2.0)
             {
                 // if (FindIf(res, [p](const auto& old) { return distance(p, old) < old.size / 2; }) == res.end()) {
                 let pattern = LocateConcentricPattern::<E2E, 5, 7>(
@@ -149,8 +148,8 @@ pub fn GenerateFinderPatternSets(patterns: &mut FinderPatterns) -> FinderPattern
             * (((b).size as f64) / ((a).size as f64)).powi(2) //std::pow(double(b.size) / a.size, 2)
     };
 
-    let cosUpper: f64 = (45.0_f64 / 180.0 * 3.1415).cos(); // TODO: use c++20 std::numbers::pi_v
-    let cosLower: f64 = (135.0_f64 / 180.0 * 3.1415).cos();
+    let cosUpper: f64 = (45.0_f64 / 180.0 * std::f64::consts::PI).cos(); // TODO: use c++20 std::numbers::pi_v
+    let cosLower: f64 = (135.0_f64 / 180.0 * std::f64::consts::PI).cos();
 
     let nbPatterns = (patterns).len();
 
@@ -1014,12 +1013,13 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
         }
 
         let mut formatInfoBits = 0;
-        for i in 1..=15
+        for info_coord in FORMAT_INFO_COORDS.iter().take(15 + 1).skip(1)
+        // for i in 1..=15
         // for (int i = 1; i <= 15; ++i)
         {
             AppendBit(
                 &mut formatInfoBits,
-                image.get_point(mod2Pix.transform_point(Point::centered(FORMAT_INFO_COORDS[i]))),
+                image.get_point(mod2Pix.transform_point(Point::centered(*info_coord))),
             );
         }
 

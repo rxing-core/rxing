@@ -429,8 +429,8 @@ impl Into<Vec<bool>> for BitArray {
     fn into(self) -> Vec<bool> {
         let mut array = vec![false; self.size];
 
-        for pixel in 0..self.size {
-            array[pixel] = self.get(pixel);
+        for (pixel, element) in array.iter_mut().enumerate().take(self.size) {
+            *element = self.get(pixel);
         }
 
         array

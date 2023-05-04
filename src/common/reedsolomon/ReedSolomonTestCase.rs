@@ -417,9 +417,10 @@ fn test_encode_decode_random(field: GenericGFRef, dataSize: usize, ecSize: usize
     for _i in 0..iterations {
         //for (int i = 0; i < iterations; i++) {
         // generate random data
-        for k in 0..dataSize {
+        for data in dataWords.iter_mut().take(dataSize) {
+            // for k in 0..dataSize {
             //for (int k = 0; k < dataSize; k++) {
-            dataWords[k] = random.gen_range(0..field.getSize().try_into().unwrap());
+            *data = random.gen_range(0..field.getSize().try_into().unwrap());
         }
         // generate ECC words
         message[0..dataWords.len()].clone_from_slice(&dataWords[..]);

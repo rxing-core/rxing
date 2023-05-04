@@ -197,6 +197,7 @@ fn doTestShort(
     );
 }
 
+#[allow(clippy::too_many_arguments)]
 fn doTest(
     contents: &str,
     description: &str,

@@ -334,6 +334,7 @@ fn testVCardTypes() {
     );
 }
 
+#[allow(clippy::too_many_arguments)]
 fn doTest(
     contents: &str,
     title: &str,

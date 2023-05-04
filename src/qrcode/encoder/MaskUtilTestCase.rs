@@ -185,7 +185,7 @@ fn testApplyMaskPenaltyRule4() {
     assert_eq!(30, mask_util::applyMaskPenaltyRule4(&matrix));
 }
 
-fn testGetDataMaskBitInternal(maskPattern: u32, expected: &Vec<Vec<u32>>) -> bool {
+fn testGetDataMaskBitInternal(maskPattern: u32, expected: &[Vec<u32>]) -> bool {
     for x in 0..6 {
         // for (int x = 0; x < 6; ++x) {
         for y in 0..6 {

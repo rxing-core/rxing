@@ -37,7 +37,7 @@ impl GridSampler for DefaultGridSampler {
         dimensionY: u32,
         controls: &[SamplerControl],
     ) -> Result<(BitMatrix, [Point; 4])> {
-        if dimensionX <= 0 || dimensionY <= 0 {
+        if dimensionX == 0 || dimensionY == 0 {
             return Err(Exceptions::NOT_FOUND);
         }
 

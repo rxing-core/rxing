@@ -82,6 +82,7 @@ fn test_vin() {
     );
 }
 
+#[allow(clippy::too_many_arguments)]
 fn do_test(
     contents: &str,
     wmi: &str,
