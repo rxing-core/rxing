@@ -44,6 +44,7 @@ pub fn GetDataMaskBit(maskIndex: u32, x: u32, y: u32, isMicro: Option<bool>) -> 
     ))
 }
 
+#[allow(dead_code)]
 pub fn GetMaskedBit(
     bits: &BitMatrix,
     x: u32,

@@ -40,6 +40,10 @@ impl PatternRow {
         self.0.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     pub fn into_pattern_view(&self) -> PatternView {
         PatternView::new(self)
     }
@@ -324,21 +328,21 @@ impl std::ops::Index<i32> for PatternView<'_> {
     }
 }
 
-impl<'a> Into<Vec<PatternType>> for &PatternView<'a> {
-    fn into(self) -> Vec<PatternType> {
-        let mut v = vec![PatternType::default(); self.count];
-        for i in 0..self.count {
-            v[i] = self[i];
+impl<'a> From<&PatternView<'a>> for Vec<PatternType> {
+    fn from(value: &PatternView<'a>) -> Self {
+        let mut v = vec![PatternType::default(); value.count];
+        for i in 0..value.count {
+            v[i] = value[i];
         }
         v
     }
 }
 
-impl<'a, const LEN: usize> Into<[PatternType; LEN]> for &PatternView<'a> {
-    fn into(self) -> [PatternType; LEN] {
+impl<'a, const LEN: usize> From<&PatternView<'a>> for [PatternType; LEN] {
+    fn from(value: &PatternView<'a>) -> Self {
         let mut result = [PatternType::default(); LEN];
-        for i in 0..self.count {
-            result[i] = self[i];
+        for i in 0..value.count {
+            result[i] = value[i];
         }
         result
     }
@@ -355,6 +359,7 @@ struct BarAndSpace<T: Default + std::cmp::PartialEq> {
     space: T,
 }
 impl<T: Default + std::cmp::PartialEq> BarAndSpace<T> {
+    #[allow(dead_code)]
     pub fn isValid(&self) -> bool {
         self.bar != T::default() && self.space != T::default()
     }
@@ -420,11 +425,11 @@ impl<const N: usize, const SUM: usize, const IS_SPARCE: bool> FixedPattern<N, SU
         FixedPattern { data: *data }
     }
 
-    fn as_slice(&self) -> &[PatternType] {
+    pub fn as_slice(&self) -> &[PatternType] {
         &self.data
     }
 
-    fn size(&self) -> usize {
+    pub fn size(&self) -> usize {
         N
     }
 

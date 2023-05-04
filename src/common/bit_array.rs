@@ -410,27 +410,20 @@ impl Default for BitArray {
     }
 }
 
-impl Into<Vec<u8>> for BitArray {
-    fn into(self) -> Vec<u8> {
-        let mut array = vec![0; self.getSizeInBytes()];
-        self.toBytes(0, &mut array, 0, self.getSizeInBytes());
+impl From<BitArray> for Vec<u8> {
+    fn from(value: BitArray) -> Self {
+        let mut array = vec![0; value.getSizeInBytes()];
+        value.toBytes(0, &mut array, 0, value.getSizeInBytes());
         array
-        // let mut arr = vec![0; self.get_size()];
-        // for x in 0..self.get_size() {
-        //     if self.get(x) {
-        //         arr[x] = 1;
-        //     }
-        // }
-        // arr
     }
 }
 
-impl Into<Vec<bool>> for BitArray {
-    fn into(self) -> Vec<bool> {
-        let mut array = vec![false; self.size];
+impl From<BitArray> for Vec<bool> {
+    fn from(value: BitArray) -> Self {
+        let mut array = vec![false; value.size];
 
-        for (pixel, element) in array.iter_mut().enumerate().take(self.size) {
-            *element = self.get(pixel);
+        for (pixel, element) in array.iter_mut().enumerate().take(value.size) {
+            *element = value.get(pixel);
         }
 
         array
