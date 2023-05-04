@@ -1,4 +1,4 @@
-use crate::{point, Point};
+use crate::{point_f, Point};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Quadrilateral(pub [Point; 4]);
@@ -77,10 +77,10 @@ impl Quadrilateral {
     pub fn rectangle_from_xy(x0: f32, x1: f32, y0: f32, y1: f32, o: Option<f32>) -> Self {
         let o = o.unwrap_or(0.5);
         Quadrilateral::from([
-            point(x0 + o, y0 + o),
-            point(x1 + o, y0 + o),
-            point(x1 + o, y1 + o),
-            point(x0 + o, y1 + o),
+            point_f(x0 + o, y0 + o),
+            point_f(x1 + o, y0 + o),
+            point_f(x1 + o, y1 + o),
+            point_f(x0 + o, y1 + o),
         ])
     }
 

@@ -21,7 +21,7 @@
 use std::fmt;
 
 use crate::common::Result;
-use crate::{point, point_i, Exceptions, Point};
+use crate::{point_f, point_i, Exceptions, Point};
 
 use super::BitArray;
 
@@ -604,7 +604,7 @@ impl BitMatrix {
             bit += 1;
         }
         x += bit;
-        Some(point(x as f32, y as f32))
+        Some(point_f(x as f32, y as f32))
     }
 
     pub fn getBottomRightOnBit(&self) -> Option<Point> {
@@ -626,7 +626,7 @@ impl BitMatrix {
         }
         x += bit;
 
-        Some(point(x as f32, y as f32))
+        Some(point_f(x as f32, y as f32))
     }
 
     /**

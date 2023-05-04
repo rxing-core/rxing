@@ -22,7 +22,7 @@ use crate::{
         zxing_cpp_detector::{util::intersect, BitMatrixCursorTrait},
         DatamatrixDetectorResult,
     },
-    point,
+    point_f,
     qrcode::encoder::ByteMatrix,
     Exceptions, Point,
 };
@@ -217,10 +217,10 @@ fn Scan(
         let grid_sampler = DefaultGridSampler::default();
         // let transform = PerspectiveTransform::quadrilateralToQuadrilateral(x0, y0, x1, y1, x2, y2, x3, y3, x0p, y0p, x1p, y1p, x2p, y2p, x3p, y3p);
         let dst = Quadrilateral::new(
-            point(0.0, 0.0),
-            point(dimT as f32, 0.0),
-            point(dimT as f32, dimR as f32),
-            point(0.0, dimR as f32),
+            point_f(0.0, 0.0),
+            point_f(dimT as f32, 0.0),
+            point_f(dimT as f32, dimR as f32),
+            point_f(0.0, dimR as f32),
         );
         let src = sourcePoints;
 

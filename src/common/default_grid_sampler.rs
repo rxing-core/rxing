@@ -19,7 +19,7 @@
 // import com.google.zxing.NotFoundException;
 
 use crate::common::Result;
-use crate::{point, Exceptions, Point};
+use crate::{point_f, Exceptions, Point};
 
 use super::{BitMatrix, GridSampler, SamplerControl};
 
@@ -49,13 +49,13 @@ impl GridSampler for DefaultGridSampler {
                 |p: Point| -> bool { image.is_in(transform.transform_point(p.centered())) };
             for y in (p0.y as i32)..(p1.y as i32) {
                 // for (int y = y0; y < y1; ++y)
-                if !isInside(point(p0.x, y as f32)) || !isInside(point(p1.x - 1.0, y as f32)) {
+                if !isInside(point_f(p0.x, y as f32)) || !isInside(point_f(p1.x - 1.0, y as f32)) {
                     return Err(Exceptions::NOT_FOUND);
                 }
             }
             for x in (p0.x as i32)..(p1.x as i32) {
                 // for (int x = x0; x < x1; ++x)
-                if !isInside(point(x as f32, p0.y)) || !isInside(point(x as f32, p1.y - 1.0)) {
+                if !isInside(point_f(x as f32, p0.y)) || !isInside(point_f(x as f32, p1.y - 1.0)) {
                     return Err(Exceptions::NOT_FOUND);
                 }
             }
@@ -83,7 +83,7 @@ impl GridSampler for DefaultGridSampler {
         let projectCorner = |p: Point| -> Point {
             for SamplerControl { p0, p1, transform } in controls {
                 if p0.x <= p.x && p.x <= p1.x && p0.y <= p.y && p.y <= p1.y {
-                    return transform.transform_point(p) + point(0.5, 0.5);
+                    return transform.transform_point(p) + point_f(0.5, 0.5);
                 }
             }
             Point::default()

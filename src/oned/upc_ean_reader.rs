@@ -16,7 +16,7 @@
 
 use crate::{
     common::{BitArray, Result},
-    point, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
+    point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
@@ -156,7 +156,7 @@ pub trait UPCEANReader: OneDReader {
         let mut symbologyIdentifier = 0;
 
         if let Some(DecodeHintValue::NeedResultPointCallback(cb)) = resultPointCallback {
-            cb(point(
+            cb(point_f(
                 (startGuardRange[0] + startGuardRange[1]) as f32 / 2.0,
                 rowNumber as f32,
             ));
@@ -166,13 +166,13 @@ pub trait UPCEANReader: OneDReader {
         let endStart = self.decodeMiddle(row, startGuardRange, &mut result)?;
 
         if let Some(DecodeHintValue::NeedResultPointCallback(cb)) = resultPointCallback {
-            cb(point(endStart as f32, rowNumber as f32));
+            cb(point_f(endStart as f32, rowNumber as f32));
         }
 
         let endRange = self.decodeEnd(row, endStart)?;
 
         if let Some(DecodeHintValue::NeedResultPointCallback(cb)) = resultPointCallback {
-            cb(point(
+            cb(point_f(
                 (endRange[0] + endRange[1]) as f32 / 2.0,
                 rowNumber as f32,
             ));
@@ -204,8 +204,8 @@ pub trait UPCEANReader: OneDReader {
             &resultString,
             Vec::new(), // no natural byte representation for these barcodes
             vec![
-                point(left, rowNumber as f32),
-                point(right, rowNumber as f32),
+                point_f(left, rowNumber as f32),
+                point_f(right, rowNumber as f32),
             ],
             format,
         );

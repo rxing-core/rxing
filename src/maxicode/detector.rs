@@ -5,7 +5,7 @@ use crate::{
     common::{
         BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler, Quadrilateral, Result,
     },
-    point, Exceptions, Point, PointU,
+    point, point_f, Exceptions, Point, PointU,
 };
 
 use super::MaxiCodeReader;
@@ -343,10 +343,10 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         // let target_height = (br.1 - tr.1).round().abs() as u32;
 
         let dst = Quadrilateral::new(
-            point(0.0, 0.0),
-            point(target_width, 0.0),
-            point(target_width, target_height),
-            point(0.0, target_height),
+            point_f(0.0, 0.0),
+            point_f(target_width, 0.0),
+            point_f(target_width, target_height),
+            point_f(0.0, target_height),
         );
         let src = Quadrilateral::new(tl, tr, br, bl);
 
@@ -693,10 +693,10 @@ fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<([Point; 4], f32
         calculate_simple_boundary(circle, Some(image), None, false);
 
     let naive_box = [
-        point(left_boundary as f32, bottom_boundary as f32),
-        point(left_boundary as f32, top_boundary as f32),
-        point(right_boundary as f32, bottom_boundary as f32),
-        point(right_boundary as f32, top_boundary as f32),
+        point_f(left_boundary as f32, bottom_boundary as f32),
+        point_f(left_boundary as f32, top_boundary as f32),
+        point_f(right_boundary as f32, bottom_boundary as f32),
+        point_f(right_boundary as f32, top_boundary as f32),
     ];
 
     #[allow(unused_mut)]
@@ -771,26 +771,16 @@ fn calculate_simple_boundary(
 }
 
 const TOP_LEFT_ORIENTATION_POS: (PointU, PointU, PointU) =
-    (PointU::new(10, 9), PointU::new(11, 9), PointU::new(11, 10));
+    (point(10, 9), point(11, 9), point(11, 10));
 const TOP_RIGHT_ORIENTATION_POS: (PointU, PointU, PointU) =
-    (PointU::new(17, 9), PointU::new(17, 10), PointU::new(18, 10));
-const LEFT_ORIENTATION_POS: (PointU, PointU, PointU) =
-    (PointU::new(7, 15), PointU::new(7, 16), PointU::new(8, 16));
-const RIGHT_ORIENTATION_POS: (PointU, PointU, PointU) = (
-    PointU::new(20, 16),
-    PointU::new(21, 16),
-    PointU::new(20, 17),
-);
-const BOTTOM_LEFT_ORIENTATION_POS: (PointU, PointU, PointU) = (
-    PointU::new(10, 22),
-    PointU::new(11, 22),
-    PointU::new(10, 23),
-);
-const BOTTOM_RIGHT_ORIENTATION_POS: (PointU, PointU, PointU) = (
-    PointU::new(17, 22),
-    PointU::new(16, 23),
-    PointU::new(17, 23),
-);
+    (point(17, 9), point(17, 10), point(18, 10));
+const LEFT_ORIENTATION_POS: (PointU, PointU, PointU) = (point(7, 15), point(7, 16), point(8, 16));
+const RIGHT_ORIENTATION_POS: (PointU, PointU, PointU) =
+    (point(20, 16), point(21, 16), point(20, 17));
+const BOTTOM_LEFT_ORIENTATION_POS: (PointU, PointU, PointU) =
+    (point(10, 22), point(11, 22), point(10, 23));
+const BOTTOM_RIGHT_ORIENTATION_POS: (PointU, PointU, PointU) =
+    (point(17, 22), point(16, 23), point(17, 23));
 
 fn attempt_rotation_box(
     image: &BitMatrix,
@@ -943,10 +933,10 @@ fn attempt_rotation_box(
 
         Some((
             [
-                point(new_1.x, new_1.y),
-                point(new_2.x, new_2.y),
-                point(new_3.x, new_3.y),
-                point(new_4.x, new_4.y),
+                point_f(new_1.x, new_1.y),
+                point_f(new_2.x, new_2.y),
+                point_f(new_3.x, new_3.y),
+                point_f(new_4.x, new_4.y),
             ],
             final_rotation,
         ))
@@ -997,7 +987,7 @@ fn adjust_point_alternate(point: PointU, circle: &Circle, center_scale: f64) -> 
         + ((x * width + width / 2 + (y & 0x01) * width / 2) / MaxiCodeReader::MATRIX_WIDTH)
             .min(width - 1);
 
-    PointU::new(ix, iy)
+    crate::point(ix, iy)
 }
 
 /// calculate a likely size for the barcode.

@@ -18,7 +18,7 @@ use std::rc::Rc;
 
 use crate::{
     common::{BitMatrix, Result},
-    point, Exceptions, Point,
+    point_f, Exceptions, Point,
 };
 
 /**
@@ -58,13 +58,13 @@ impl BoundingBox {
         if leftUnspecified {
             newTopRight = topRight.ok_or(Exceptions::ILLEGAL_STATE)?;
             newBottomRight = bottomRight.ok_or(Exceptions::ILLEGAL_STATE)?;
-            newTopLeft = point(0.0, newTopRight.y);
-            newBottomLeft = point(0.0, newBottomRight.y);
+            newTopLeft = point_f(0.0, newTopRight.y);
+            newBottomLeft = point_f(0.0, newBottomRight.y);
         } else if rightUnspecified {
             newTopLeft = topLeft.ok_or(Exceptions::ILLEGAL_STATE)?;
             newBottomLeft = bottomLeft.ok_or(Exceptions::ILLEGAL_STATE)?;
-            newTopRight = point(image.getWidth() as f32 - 1.0, newTopLeft.y);
-            newBottomRight = point(image.getWidth() as f32 - 1.0, newBottomLeft.y);
+            newTopRight = point_f(image.getWidth() as f32 - 1.0, newTopLeft.y);
+            newBottomRight = point_f(image.getWidth() as f32 - 1.0, newBottomLeft.y);
         } else {
             newTopLeft = topLeft.ok_or(Exceptions::ILLEGAL_STATE)?;
             newTopRight = topRight.ok_or(Exceptions::ILLEGAL_STATE)?;
@@ -138,7 +138,7 @@ impl BoundingBox {
             if newMinY < 0.0 {
                 newMinY = 0.0;
             }
-            let newTop = point(top.x, newMinY);
+            let newTop = point_f(top.x, newMinY);
             if isLeft {
                 newTopLeft = newTop;
             } else {
@@ -156,7 +156,7 @@ impl BoundingBox {
             if newMaxY >= self.image.getHeight() {
                 newMaxY = self.image.getHeight() - 1;
             }
-            let newBottom = point(bottom.x, newMaxY as f32);
+            let newBottom = point_f(bottom.x, newMaxY as f32);
             if isLeft {
                 newBottomLeft = newBottom;
             } else {

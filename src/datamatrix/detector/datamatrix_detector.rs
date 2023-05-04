@@ -19,7 +19,7 @@ use crate::{
         detector::WhiteRectangleDetector, BitMatrix, DefaultGridSampler, GridSampler,
         Quadrilateral, Result,
     },
-    point, Exceptions, Point,
+    point_f, Exceptions, Point,
 };
 
 use super::DatamatrixDetectorResult;
@@ -103,7 +103,7 @@ impl<'a> Detector<'_> {
     fn shiftPoint(p: Point, to: Point, div: u32) -> Point {
         let x = (to.x - p.x) / (div as f32 + 1.0);
         let y = (to.y - p.y) / (div as f32 + 1.0);
-        point(p.x + x, p.y + y)
+        point_f(p.x + x, p.y + y)
     }
 
     fn moveAway(p: Point, fromX: f32, fromY: f32) -> Point {
@@ -122,7 +122,7 @@ impl<'a> Detector<'_> {
             y += 1.0;
         }
 
-        point(x, y)
+        point_f(x, y)
     }
 
     /**
@@ -231,11 +231,11 @@ impl<'a> Detector<'_> {
         trTop = self.transitionsBetween(pointAs, pointD);
         trRight = self.transitionsBetween(pointCs, pointD);
 
-        let candidate1 = point(
+        let candidate1 = point_f(
             pointD.x + (pointC.x - pointB.x) / (trTop as f32 + 1.0),
             pointD.y + (pointC.y - pointB.y) / (trTop as f32 + 1.0),
         );
-        let candidate2 = point(
+        let candidate2 = point_f(
             pointD.x + (pointA.x - pointB.x) / (trRight as f32 + 1.0),
             pointD.y + (pointA.y - pointB.y) / (trRight as f32 + 1.0),
         );
@@ -336,10 +336,10 @@ impl<'a> Detector<'_> {
         let sampler = DefaultGridSampler::default();
 
         let dst = Quadrilateral::new(
-            point(0.5, 0.5),
-            point(dimensionX as f32 - 0.5, 0.5),
-            point(dimensionX as f32 - 0.5, dimensionY as f32 - 0.5),
-            point(0.5, dimensionY as f32 - 0.5),
+            point_f(0.5, 0.5),
+            point_f(dimensionX as f32 - 0.5, 0.5),
+            point_f(dimensionX as f32 - 0.5, dimensionY as f32 - 0.5),
+            point_f(0.5, dimensionY as f32 - 0.5),
         );
         let src = Quadrilateral::new(topRight, topLeft, bottomRight, bottomLeft);
 

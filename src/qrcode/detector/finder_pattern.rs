@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{point, Point};
+use crate::{point_f, Point};
 
 /**
  * <p>Encapsulates a finder pattern, which are the three square patterns found in
@@ -51,7 +51,7 @@ impl FinderPattern {
         Self {
             estimatedModuleSize,
             count,
-            point: point(posX, posY),
+            point: point_f(posX, posY),
         }
     }
 

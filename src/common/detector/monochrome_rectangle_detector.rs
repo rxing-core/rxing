@@ -19,7 +19,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    point, Exceptions, Point,
+    point_f, Exceptions, Point,
 };
 
 /**
@@ -178,27 +178,27 @@ impl<'a> MonochromeRectangleDetector<'_> {
                         if lastRange[0] < centerX {
                             if lastRange[1] > centerX {
                                 // straddle, choose one or the other based on direction
-                                return Ok(point(
+                                return Ok(point_f(
                                     lastRange[usize::from(deltaY <= 0)] as f32,
                                     lastY as f32,
                                 ));
                             }
-                            return Ok(point(lastRange[0] as f32, lastY as f32));
+                            return Ok(point_f(lastRange[0] as f32, lastY as f32));
                         } else {
-                            return Ok(point(lastRange[1] as f32, lastY as f32));
+                            return Ok(point_f(lastRange[1] as f32, lastY as f32));
                         }
                     } else {
                         let lastX = x - deltaX;
                         if lastRange[0] < centerY {
                             if lastRange[1] > centerY {
-                                return Ok(point(
+                                return Ok(point_f(
                                     lastX as f32,
                                     lastRange[usize::from(deltaX >= 0)] as f32,
                                 ));
                             }
-                            return Ok(point(lastX as f32, lastRange[0] as f32));
+                            return Ok(point_f(lastX as f32, lastRange[0] as f32));
                         } else {
-                            return Ok(point(lastX as f32, lastRange[1] as f32));
+                            return Ok(point_f(lastX as f32, lastRange[1] as f32));
                         }
                     }
                 }

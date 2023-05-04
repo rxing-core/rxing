@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::Result, point, Binarizer, BinaryBitmap, DecodingHintDictionary, Exceptions, Point,
+    common::Result, point_f, Binarizer, BinaryBitmap, DecodingHintDictionary, Exceptions, Point,
     RXingResult, Reader,
 };
 
@@ -185,7 +185,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
 
         let newPoints: Vec<Point> = oldPoints
             .iter()
-            .map(|oldPoint| point(oldPoint.x + xOffset as f32, oldPoint.y + yOffset as f32))
+            .map(|oldPoint| point_f(oldPoint.x + xOffset as f32, oldPoint.y + yOffset as f32))
             .collect();
 
         // let mut newPoints = Vec::with_capacity(oldPoints.len());

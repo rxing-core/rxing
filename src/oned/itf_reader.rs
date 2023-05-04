@@ -18,7 +18,7 @@ use rxing_one_d_proc_derive::OneDReader;
 
 use crate::{
     common::{BitArray, Result},
-    point, BarcodeFormat, DecodeHintValue, Exceptions, RXingResult,
+    point_f, BarcodeFormat, DecodeHintValue, Exceptions, RXingResult,
 };
 
 use super::{one_d_reader, OneDReader};
@@ -150,8 +150,8 @@ impl OneDReader for ITFReader {
             &resultString,
             Vec::new(), // no natural byte representation for these barcodes
             vec![
-                point(startRange[1] as f32, rowNumber as f32),
-                point(endRange[0] as f32, rowNumber as f32),
+                point_f(startRange[1] as f32, rowNumber as f32),
+                point_f(endRange[0] as f32, rowNumber as f32),
             ],
             BarcodeFormat::ITF,
         );

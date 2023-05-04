@@ -23,7 +23,7 @@ use crate::{
         },
         BitMatrix, PerspectiveTransform, Quadrilateral,
     },
-    point, Point,
+    point_f, Point,
 };
 
 #[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
@@ -90,7 +90,7 @@ pub fn FindFinderPatterns(image: &BitMatrix, tryHarder: bool) -> FinderPatterns 
                 false
             }
         } {
-            let p = point(
+            let p = point_f(
                 next.pixelsInFront() as f32
                     + next[0] as f32
                     + next[1] as f32
@@ -412,15 +412,15 @@ pub fn LocateAlignmentPattern(
     // log(estimate, 2);
 
     for d in [
-        point(0.0, 0.0),
-        point(0.0, -1.0),
-        point(0.0, 1.0),
-        point(-1.0, 0.0),
-        point(1.0, 0.0),
-        point(-1.0, -1.0),
-        point(1.0, -1.0),
-        point(1.0, 1.0),
-        point(-1.0, 1.0),
+        point_f(0.0, 0.0),
+        point_f(0.0, -1.0),
+        point_f(0.0, 1.0),
+        point_f(-1.0, 0.0),
+        point_f(1.0, 0.0),
+        point_f(-1.0, -1.0),
+        point_f(1.0, -1.0),
+        point_f(1.0, 1.0),
+        point_f(-1.0, 1.0),
     ] {
         // 	for (auto d : {PointF{0, 0}, {0, -1}, {0, 1}, {-1, 0}, {1, 0}, {-1, -1}, {1, -1}, {1, 1}, {-1, 1},
         // #if 1
@@ -515,7 +515,7 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
     let moduleSize = (best.ms + 1.0) as i32;
 
     let mut br = ConcentricPattern {
-        p: point(-1.0, -1.0),
+        p: point_f(-1.0, -1.0),
         size: 0,
     };
     let mut brOffset = point_i(3, 3);
@@ -822,8 +822,8 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     // allow corners be moved one pixel inside to accommodate for possible aliasing artifacts
     for [p, d] in [
         [tl, point_i(1, 1)],
-        [tr, point(-1.0, 1.0)],
-        [bl, point(1.0, -1.0)],
+        [tr, point_f(-1.0, 1.0)],
+        [bl, point_f(1.0, -1.0)],
     ] {
         diagonal = EdgeTracer::new(image, p, d)
             .readPatternFromBlack(1, Some((width / 3 + 1) as i32))
@@ -844,7 +844,7 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
             size: fpWidth,
         },
         ConcentricPattern {
-            p: tr + fpWidth as f32 / 2.0 * point(-1.0, 1.0),
+            p: tr + fpWidth as f32 / 2.0 * point_f(-1.0, 1.0),
             size: fpWidth,
         },
     )
@@ -853,7 +853,7 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let moduleSize: f32 = ((width) as f32) / dimension as f32;
     if dimension < MIN_MODULES as i32
         || dimension > MAX_MODULES as i32
-        || !image.is_in(point(
+        || !image.is_in(point_f(
             left as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
             top as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
         ))
@@ -921,7 +921,7 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
 
     if dimension < MIN_MODULES
         || dimension > MAX_MODULES
-        || !image.is_in(point(
+        || !image.is_in(point_f(
             left as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
             top as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
         ))

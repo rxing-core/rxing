@@ -19,7 +19,7 @@ use std::collections::HashMap;
 use crate::{
     common::{BitArray, Result},
     oned::{one_d_reader, OneDReader},
-    point, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
+    point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
     Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
@@ -259,7 +259,7 @@ impl RSS14Reader {
                     // row is actually reversed
                     center = row.get_size() as f32 - 1.0 - center;
                 }
-                cb(point(center, rowNumber as f32));
+                cb(point_f(center, rowNumber as f32));
             }
 
             let outside = self.decodeDataCharacter(row, &pattern, true)?;
