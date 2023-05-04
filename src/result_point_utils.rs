@@ -26,18 +26,11 @@ pub fn orderBestPatterns<T: Into<Point> + Copy>(patterns: &mut [T; 3]) {
     // This asks whether BC x BA has a positive z component, which is the arrangement
     // we want for A, B, C. If it's negative, then we've got it flipped around and
     // should swap A and C.
-    if crossProductZ(pointA.into(), pointB.into(), pointC.into()) < 0.0 {
+    if Point::crossProductZ(pointA.into(), pointB.into(), pointC.into()) < 0.0 {
         std::mem::swap(&mut pointA, &mut pointC);
     }
 
     patterns[0] = pointA;
     patterns[1] = pointB;
     patterns[2] = pointC;
-}
-
-/**
- * Returns the z component of the cross product between vectors BC and BA.
- */
-fn crossProductZ(a: Point, b: Point, c: Point) -> f32 {
-    ((c.x - b.x) * (a.y - b.y)) - ((c.y - b.y) * (a.x - b.x))
 }

@@ -365,6 +365,13 @@ where
             y: self.y.floor(),
         }
     }
+
+    /**
+     * Returns the z component of the cross product between vectors BC and BA.
+     */
+    pub fn crossProductZ(a: PointT<T>, b: PointT<T>, c: PointT<T>) -> T {
+        ((c.x - b.x) * (a.y - b.y)) - ((c.y - b.y) * (a.x - b.x))
+    }
 }
 
 impl From<(i32, i32)> for Point {
