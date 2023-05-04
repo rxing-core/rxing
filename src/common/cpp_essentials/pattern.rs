@@ -228,7 +228,7 @@ impl<'a> PatternView<'a> {
         let mut size = size.unwrap_or(0);
         if size == 0 {
             size = self.count - offset;
-        } 
+        }
         // else if size < 0 {
         //     size += self.count - offset;
         // }

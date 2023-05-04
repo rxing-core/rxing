@@ -1,3 +1,4 @@
+use std::process::Output;
 use std::{fmt, iter::Sum};
 
 use std::hash::Hash;
@@ -32,7 +33,7 @@ pub type Point = PointF;
 
 impl Into<PointI> for Point {
     fn into(self) -> PointI {
-        PointI{
+        PointI {
             x: self.x.floor() as u32,
             y: self.y.floor() as u32,
         }
@@ -75,58 +76,82 @@ impl PartialEq for Point {
 }
 impl Eq for Point {}
 
-impl Point {
-    pub const fn new(x: f32, y: f32) -> Self {
-        Self { x, y }
+impl<T> PointT<T>
+where
+    T: Copy,
+{
+    pub const fn new(x: T, y: T) -> PointT<T> {
+        PointT { x: x, y: y }
     }
-
-    pub const fn with_single(x: f32) -> Self {
+    pub const fn with_single(x: T) -> Self {
         Self { x, y: x }
     }
 }
 
-impl std::ops::AddAssign for Point {
+impl<T> std::ops::AddAssign for PointT<T>
+where
+    T: std::ops::Add<Output = T> + Copy,
+{
     fn add_assign(&mut self, rhs: Self) {
         self.x = self.x + rhs.x;
         self.y = self.y + rhs.y;
     }
 }
 
-impl std::ops::SubAssign for Point {
+impl<T> std::ops::SubAssign for PointT<T>
+where
+    T: std::ops::Sub<Output = T> + Copy,
+{
     fn sub_assign(&mut self, rhs: Self) {
         self.x = self.x - rhs.x;
         self.y = self.y - rhs.y;
     }
 }
 
-impl<'a> Sum<&'a Point> for Point {
+impl<'a, T> Sum<&'a PointT<T>> for PointT<T>
+where
+    T: std::ops::Add<Output = T> + 'a + Default,
+    PointT<T>: std::ops::Add<Output = PointT<T>> + Copy,
+{
     fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
         iter.fold(Self::default(), |acc, &p| acc + p)
     }
 }
 
 /** This impl is temporary and is there to ease refactoring. */
-impl ResultPoint for Point {
+impl<T> ResultPoint for PointT<T>
+where
+    T: Into<f32> + Copy,
+{
     fn getX(&self) -> f32 {
-        self.x
+        self.x.into()
     }
 
     fn getY(&self) -> f32 {
-        self.y
+        self.y.into()
     }
 
-    fn to_rxing_result_point(&self) -> Self {
-        *self
+    fn to_rxing_result_point(&self) -> PointT<f32> {
+        PointT {
+            x: self.x.into(),
+            y: self.y.into(),
+        }
     }
 }
 
-impl fmt::Display for Point {
+impl<T> fmt::Display for PointT<T>
+where
+    T: std::fmt::Display,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({},{})", self.x, self.y)
     }
 }
 
-impl std::ops::Sub for Point {
+impl<T> std::ops::Sub for PointT<T>
+where
+    T: std::ops::Sub<Output = T> + Copy,
+{
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -134,7 +159,10 @@ impl std::ops::Sub for Point {
     }
 }
 
-impl std::ops::Neg for Point {
+impl<T> std::ops::Neg for PointT<T>
+where
+    T: std::ops::Neg<Output = T> + Copy,
+{
     type Output = Self;
 
     fn neg(self) -> Self::Output {
@@ -142,7 +170,10 @@ impl std::ops::Neg for Point {
     }
 }
 
-impl std::ops::Add for Point {
+impl<T> std::ops::Add for PointT<T>
+where
+    T: std::ops::Add<Output = T> + Copy,
+{
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -150,7 +181,10 @@ impl std::ops::Add for Point {
     }
 }
 
-impl std::ops::Add<f32> for Point {
+impl<T> std::ops::Add<f32> for PointT<T>
+where
+    T: Into<f32> + std::ops::Add<f32, Output = T> + Copy,
+{
     type Output = Self;
 
     fn add(self, rhs: f32) -> Self::Output {
@@ -158,15 +192,21 @@ impl std::ops::Add<f32> for Point {
     }
 }
 
-impl std::ops::Add<Point> for f32 {
+impl<T> std::ops::Add<PointT<T>> for f32
+where
+    T: std::ops::Add<f32, Output = f32>,
+{
     type Output = Point;
 
-    fn add(self, rhs: Point) -> Self::Output {
+    fn add(self, rhs: PointT<T>) -> Self::Output {
         Point::new(rhs.x + self, rhs.y + self)
     }
 }
 
-impl std::ops::Mul for Point {
+impl<T> std::ops::Mul for PointT<T>
+where
+    T: std::ops::Mul<Output = T> + Copy,
+{
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
@@ -230,36 +270,41 @@ impl std::ops::Mul<Point> for u32 {
     }
 }
 
-impl Point {
-    pub fn dot(self, p: Self) -> f32 {
+impl<T> PointT<T>
+where
+    T: std::ops::Mul<Output = T> + std::ops::Sub<Output = T> + num::traits::real::Real,
+    PointT<T>: std::ops::Div<T, Output = PointT<T>>,
+{
+    pub fn dot(self, p: Self) -> T {
         self.x * p.x + self.y * p.y
     }
 
-    pub fn cross(self, p: Self) -> f32 {
+    pub fn cross(self, p: Self) -> T {
         self.x * p.y - p.x * self.y
     }
 
     /// L1 norm
-    pub fn sumAbsComponent(self) -> f32 {
+    pub fn sumAbsComponent(self) -> T {
         self.x.abs() + self.y.abs()
     }
 
     /// L2 norm
-    pub fn length(self) -> f32 {
+    pub fn length(self) -> T {
         self.x.hypot(self.y)
     }
 
     /// L-inf norm
-    pub fn maxAbsComponent(self) -> f32 {
-        f32::max(self.x.abs(), self.y.abs())
+    pub fn maxAbsComponent(self) -> T {
+        self.x.abs().max(self.y.abs())
+        // f32::max(self.x.abs(), self.y.abs())
     }
 
-    pub fn squaredDistance(self, p: Self) -> f32 {
+    pub fn squaredDistance(self, p: Self) -> T {
         let diff = self - p;
         diff.x * diff.x + diff.y * diff.y
     }
 
-    pub fn distance(self, p: Self) -> f32 {
+    pub fn distance(self, p: Self) -> T {
         (self - p).length()
     }
 
@@ -267,20 +312,15 @@ impl Point {
         Self::new(self.x.abs(), self.y.abs())
     }
 
-    pub fn fold<U, F: Fn(f32, f32) -> U>(self, f: F) -> U {
+    pub fn fold<U, F: Fn(T, T) -> U>(self, f: F) -> U {
         f(self.x, self.y)
     }
 
-    /// Calculate a floating point pixel coordinate representing the 'center' of the pixel.
-    /// This is sort of the inverse operation of the PointI(PointF) conversion constructor.
-    /// See also the documentation of the GridSampler API.
-    #[inline(always)]
-    pub fn centered(self) -> Self {
-        Self::new(self.x.floor() + 0.5, self.y.floor() + 0.5)
-    }
-
-    pub fn middle(self, p: Self) -> Self {
-        (self + p) / 2.0
+    pub fn middle(self, p: Self) -> Self
+    where
+        T: From<u8>,
+    {
+        (self + p) / 2.into()
     }
 
     pub fn normalized(self) -> Self {
@@ -291,11 +331,14 @@ impl Point {
         self / Self::maxAbsComponent(self)
     }
 
-    pub fn mainDirection(self) -> Self {
+    pub fn mainDirection(self) -> Self
+    where
+        T: From<u8>,
+    {
         if self.x.abs() > self.y.abs() {
-            Self::new(self.x, 0.0)
+            Self::new(self.x, 0.into())
         } else {
-            Self::new(0.0, self.y)
+            Self::new(0.into(), self.y)
         }
     }
 
@@ -306,6 +349,17 @@ impl Point {
         }
     }
 
+    /// Calculate a floating point pixel coordinate representing the 'center' of the pixel.
+    /// This is sort of the inverse operation of the PointI(PointF) conversion constructor.
+    /// See also the documentation of the GridSampler API.
+    #[inline(always)]
+    pub fn centered(self) -> PointT<f32>
+    where
+        T: Into<f32>,
+    {
+        PointT::new(self.x.floor().into() + 0.5, self.y.floor().into() + 0.5)
+    }
+
     pub fn floor(self) -> Self {
         Self {
             x: self.x.floor(),
@@ -314,27 +368,48 @@ impl Point {
     }
 }
 
-impl From<&(f32, f32)> for Point {
-    fn from(&(x, y): &(f32, f32)) -> Self {
-        Self::new(x, y)
-    }
-}
-
-impl From<(f32, f32)> for Point {
-    fn from((x, y): (f32, f32)) -> Self {
-        Self::new(x, y)
-    }
-}
-
 impl From<(i32, i32)> for Point {
-    fn from(value: (i32, i32)) -> Self {
-        Self::new(value.0 as f32, value.1 as f32)
+    fn from((x, y): (i32, i32)) -> Self {
+        Self::new(x as f32, y as f32)
     }
 }
 
 impl From<(u32, u32)> for Point {
-    fn from(value: (u32, u32)) -> Self {
-        Self::new(value.0 as f32, value.1 as f32)
+    fn from((x, y): (u32, u32)) -> Self {
+        Self::new(x as f32, y as f32)
+    }
+}
+
+impl From<(f32, f32)> for PointI {
+    fn from((x, y): (f32, f32)) -> Self {
+        PointI {
+            x: x.floor() as u32,
+            y: y.floor() as u32,
+        }
+    }
+}
+
+impl<T> From<(T, T)> for PointT<T> {
+    fn from((x, y): (T, T)) -> PointT<T> {
+        PointT { x, y }
+    }
+}
+
+impl<T> From<&(T, T)> for PointT<T>
+where
+    T: Copy,
+{
+    fn from(&(x, y): &(T, T)) -> PointT<T> {
+        PointT { x, y }
+    }
+}
+
+impl<T> From<T> for PointT<T>
+where
+    T: Copy,
+{
+    fn from(value: T) -> Self {
+        Self::with_single(value)
     }
 }
 
