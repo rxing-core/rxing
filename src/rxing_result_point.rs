@@ -27,14 +27,15 @@ pub struct PointT<T> {
 // }
 
 pub type PointF = PointT<f32>;
-pub type PointI = PointT<u32>;
+pub type PointI = PointT<i32>;
+pub type PointU = PointT<u32>;
 pub type Point = PointF;
 
 impl From<Point> for PointI {
     fn from(val: Point) -> Self {
         PointI {
-            x: val.x.floor() as u32,
-            y: val.y.floor() as u32,
+            x: val.x.floor() as i32,
+            y: val.y.floor() as i32,
         }
     }
 }
@@ -48,13 +49,31 @@ impl From<PointI> for Point {
     }
 }
 
+impl From<Point> for PointU {
+    fn from(val: Point) -> Self {
+        PointU {
+            x: val.x.floor() as u32,
+            y: val.y.floor() as u32,
+        }
+    }
+}
+
+impl From<PointU> for Point {
+    fn from(val: PointU) -> Self {
+        Point {
+            x: val.x as f32,
+            y: val.y as f32,
+        }
+    }
+}
+
 /** An alias for `Point::new`. */
-pub fn point(x: f32, y: f32) -> Point {
+pub const fn point(x: f32, y: f32) -> Point {
     Point::new(x, y)
 }
 
-pub fn point_g<T: TryInto<f32>>(x: T, y: T) -> Option<Point> {
-    Some(Point::new(x.try_into().ok()?, y.try_into().ok()?))
+pub const fn point_g<T>(x: T, y: T) -> PointT<T> {
+    PointT { x, y }
 }
 
 pub fn point_i<T: Into<i64>>(x: T, y: T) -> Point {
@@ -389,8 +408,8 @@ impl From<(u32, u32)> for Point {
 impl From<(f32, f32)> for PointI {
     fn from((x, y): (f32, f32)) -> Self {
         PointI {
-            x: x.floor() as u32,
-            y: y.floor() as u32,
+            x: x.floor() as i32,
+            y: y.floor() as i32,
         }
     }
 }
