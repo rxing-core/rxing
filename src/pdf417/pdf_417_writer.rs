@@ -152,10 +152,8 @@ impl PDF417Writer {
             .as_ref()
             .ok_or(Exceptions::ILLEGAL_STATE)?
             .getScaledMatrix(1, aspectRatio);
-        let mut rotated = false;
         if (height > width) != (originalScale[0].len() < originalScale.len()) {
             originalScale = Self::rotateArray(&originalScale);
-            rotated = true;
         }
 
         let scaleX = width as usize / originalScale[0].len();
@@ -163,14 +161,12 @@ impl PDF417Writer {
         let scale = scaleX.min(scaleY);
 
         if scale > 1 {
-            let mut scaledMatrix = encoder
+            let scaledMatrix = encoder
                 .getBarcodeMatrix()
                 .as_ref()
                 .ok_or(Exceptions::ILLEGAL_STATE)?
                 .getScaledMatrix(scale, scale * aspectRatio);
-            if rotated {
-                scaledMatrix = Self::rotateArray(&scaledMatrix);
-            }
+
             return Self::bitMatrixFromBitArray(&scaledMatrix, margin)
                 .ok_or(Exceptions::ILLEGAL_STATE);
         }
@@ -213,7 +209,7 @@ impl PDF417Writer {
      * Takes and rotates the it 90 degrees
      */
     fn rotateArray(bitarray: &Vec<Vec<u8>>) -> Vec<Vec<u8>> {
-        let mut temp = vec![vec![0; bitarray[0].len()]; bitarray.len()];
+        let mut temp = vec![vec![0; bitarray.len()]; bitarray[0].len()];
 
         for ii in 0..bitarray.len() {
             // This makes the direction consistent on screen when rotating the screen;
