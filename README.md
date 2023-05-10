@@ -79,6 +79,7 @@ fn main() {
 ```
 
 ## Latest Release Notes
+* *v0.4.6* -> Fixed an issue with pdf417 whitespace, rotation, and compaction. Fix courtesy of first time contribution from GitHub user agkyunromb.
 * *v0.4.4* -> Major update of QRCode support.
 
     The ZXing-Cpp QRCode library has been integrated. This brings large enhancements to the detection and decoding
