@@ -17,6 +17,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::common::Result;
+use crate::denoise::{DefaultDenoiser, Denoiser};
 use crate::qrcode::cpp_port::QrReader;
 use crate::{
     aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
@@ -117,7 +118,7 @@ impl MultiFormatReader {
         {
             formats.clone()
         } else {
-            HashSet::new()
+            HashSet::default()
         };
         self.one_d_reader = MultiFormatOneDReader::new(hints);
     }
@@ -126,6 +127,24 @@ impl MultiFormatReader {
         &mut self,
         image: &mut BinaryBitmap<B>,
     ) -> Result<RXingResult> {
+        let mut image = image;
+        let try_denoise = matches!(self.hints.get(&DecodeHintType::TRY_DENOISE),Some(DecodeHintValue::TryDenoise(true))) &&
+        matches!(self.hints.get(&DecodeHintType::TRY_HARDER),Some(DecodeHintValue::TryHarder(true)));
+        // let mut has_denoised = false;
+
+for denoise_run in [false,true] {
+    if denoise_run && !try_denoise {
+        continue;
+    }else if denoise_run && try_denoise {
+        let denoiser = DefaultDenoiser::default();
+        image = denoiser.denoise_bitmatrix(image);
+    }
+
+    // if denoise_run {
+    //     has_denoised = true;
+    // }
+}
+
         let res = self.decode_formats(image);
         if res.is_ok() {
             return res;
@@ -137,7 +156,6 @@ impl MultiFormatReader {
             // Calling all readers again with inverted image
             image.get_black_matrix_mut().flip_self();
             let res = self.decode_formats(image);
-            // if let Ok(r) = res.as_mut() {
             if res.is_ok() {
                 let mut r = res.unwrap();
                 r.putMetadata(
@@ -146,9 +164,6 @@ impl MultiFormatReader {
                 );
                 return Ok(r);
             }
-            // if res.is_ok() {
-            //     return res;
-            // }
         }
         Err(Exceptions::NOT_FOUND)
     }

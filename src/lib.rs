@@ -105,3 +105,5 @@ pub use luma_luma_source::*;
 mod svg_luminance_source;
 #[cfg(feature = "svg_read")]
 pub use svg_luminance_source::*;
+
+pub mod denoise;

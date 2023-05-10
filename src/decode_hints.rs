@@ -129,16 +129,11 @@ pub enum DecodeHintType {
      * {@link Boolean#TRUE}. Hint suppliers should probably use
      * {@link Boolean#TRUE} as directed by the actual hint documentation.
      */
-    /*
-    private final Class<?> valueType;
-
-    DecodeHintType(Class<?> valueType) {
-      this.valueType = valueType;
-    }
-
-    public Class<?> getValueType() {
-      return valueType;
-    }*/
+    
+    /// Attempt experimental denoise algorithm, due to the experimental
+    /// nature, this option has no effect if you do not also select
+    /// TRY_HARDER
+    TRY_DENOISE,
 }
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -231,4 +226,9 @@ pub enum DecodeHintValue {
      */
     #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
     QrAssumeSpecConformInput(bool),
+
+    /// Attempt experimental denoise algorithm, due to the experimental
+    /// nature, this option has no effect if you do not also select
+    /// TRY_HARDER
+    TryDenoise(bool),
 }
