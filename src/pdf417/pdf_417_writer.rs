@@ -213,7 +213,7 @@ impl PDF417Writer {
      * Takes and rotates the it 90 degrees
      */
     fn rotateArray(bitarray: &Vec<Vec<u8>>) -> Vec<Vec<u8>> {
-        let mut temp = vec![vec![0; bitarray[0].len()]; bitarray.len()];
+        let mut temp = vec![vec![0; bitarray.len()]; bitarray[0].len()];
 
         for ii in 0..bitarray.len() {
             // This makes the direction consistent on screen when rotating the screen;

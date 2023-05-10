@@ -31,13 +31,18 @@ impl BarcodeMatrix {
     /**
      * @param height the height of the matrix (Rows)
      * @param width  the width of the matrix (Cols)
+     * @param compact if true, enables compaction
      */
-    pub fn new(height: usize, width: usize) -> Self {
+    pub fn new(height: usize, width: usize, compact: bool) -> Self {
         //Initializes the array to the correct width
         let mut matrix = Vec::with_capacity(height);
 
         for _i in 0..height {
-            matrix.push(BarcodeRow::new((width + 4) * 17 + 1));
+            if !compact {
+                matrix.push(BarcodeRow::new((width + 4) * 17 + 1));
+            } else {
+                matrix.push(BarcodeRow::new((width + 2) * 17 + 1));
+            }
         }
         Self {
             matrix,
