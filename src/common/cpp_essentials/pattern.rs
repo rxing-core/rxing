@@ -348,6 +348,16 @@ impl<'a, const LEN: usize> From<&PatternView<'a>> for [PatternType; LEN] {
     }
 }
 
+impl<'a> From<&PatternView<'a>> for &'a [PatternType] {
+    fn from(value: &PatternView<'a>) -> Self {
+        if value.data.0.len() == value.count {
+            &value.data.0
+        } else {
+            &value.data.0[value.current + value.start..=value.current + value.start + value.count]
+        }
+    }
+}
+
 /**
  * @brief The BarAndSpace struct is a simple 2 element data structure to hold information about bar(s) and space(s).
  *
@@ -476,8 +486,8 @@ pub fn IsPattern<const E2E: bool, const LEN: usize, const SUM: usize, const SPAR
 
     if E2E {
         //using float_t = double;
-        let v_src: [PatternType; LEN] = view.into();
-        let widths = BarAndSpaceSum::<LEN, PatternType, f64>(&v_src);
+        // let v_src: [PatternType; LEN] = view.into();
+        let widths = BarAndSpaceSum::<LEN, PatternType, f64>(view.into());
         let sums = pattern.sums();
         let modSize: BarAndSpace<f64> = BarAndSpace {
             bar: widths[0] / sums[0] as f64,
