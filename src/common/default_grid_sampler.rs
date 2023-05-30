@@ -19,7 +19,7 @@
 // import com.google.zxing.NotFoundException;
 
 use crate::common::Result;
-use crate::{point_f, Exceptions, Point};
+use crate::{point, point_f, Exceptions, Point};
 
 use super::{BitMatrix, GridSampler, SamplerControl};
 
@@ -42,22 +42,17 @@ impl GridSampler for DefaultGridSampler {
         }
 
         for SamplerControl { p0, p1, transform } in controls {
-            // To deal with remaining examples (see #251 and #267) of "numercial instabilities" that have not been
-            // prevented with the Quadrilateral.h:IsConvex() check, we check for all boundary points of the grid to
-            // be inside.
-            let isInside =
-                |p: Point| -> bool { image.is_in(transform.transform_point(p.centered())) };
-            for y in (p0.y as i32)..(p1.y as i32) {
-                // for (int y = y0; y < y1; ++y)
-                if !isInside(point_f(p0.x, y as f32)) || !isInside(point_f(p1.x - 1.0, y as f32)) {
-                    return Err(Exceptions::NOT_FOUND);
-                }
-            }
-            for x in (p0.x as i32)..(p1.x as i32) {
-                // for (int x = x0; x < x1; ++x)
-                if !isInside(point_f(x as f32, p0.y)) || !isInside(point_f(x as f32, p1.y - 1.0)) {
-                    return Err(Exceptions::NOT_FOUND);
-                }
+            // Precheck the corners of every roi to bail out early if the grid is "obviously" not completely inside the image
+            let isInside = |x: f32, y: f32| {
+                image.is_in(transform.transform_point(Point::centered(point(x, y))))
+            };
+            if (!transform.isValid()
+                || !isInside(p0.x, p0.y)
+                || !isInside(p1.x - 1.0, p0.y)
+                || !isInside(p1.x - 1.0, p1.y - 1.0)
+                || !isInside(p0.x, p1.y - 1.0))
+            {
+                return Err(Exceptions::NOT_FOUND);
             }
         }
 
@@ -72,6 +67,15 @@ impl GridSampler for DefaultGridSampler {
 
                     if image.get_point(p) {
                         bits.set(x as u32, y as u32);
+                    }
+
+                    // Due to a "numerical instability" in the PerspectiveTransform generation/application it has been observed
+                    // that even though all boundary grid points get projected inside the image, it can still happen that an
+                    // inner grid points is not. See #563. A true perspective transformation cannot have this property.
+                    // The following check takes 100% care of the issue and turned out to be less of a performance impact than feared.
+                    // TODO: Check some mathematical/numercial property of mod2Pix to determine if it is a perspective transforation.
+                    if (!image.is_in(p)) {
+                        return Err(Exceptions::NOT_FOUND);
                     }
                 }
             }

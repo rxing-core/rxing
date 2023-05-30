@@ -176,6 +176,10 @@ impl PerspectiveTransform {
             self.a11 * self.a22 - self.a12 * self.a21,
         )
     }
+
+    pub fn isValid(&self) -> bool {
+        !self.a33.is_nan()
+    }
 }
 
 impl Mul for PerspectiveTransform {
