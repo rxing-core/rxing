@@ -613,7 +613,11 @@ pub fn FinetuneConcentricPatternCenter(
         }
         // and then either at least one more ring around that
         if let Some(res2) = CenterOfRings(image, res1, range, finderPatternSize / 2) {
-            return Some(res2);
+            return if image.get_point(res2) {
+                Some(res2)
+            } else {
+                None
+            };
         }
         // or the center can be approximated by a square
         if FitSquareToPoints(image, res1, range, 1, false).is_some() {
@@ -623,27 +627,12 @@ pub fn FinetuneConcentricPatternCenter(
         if let Some(res2) =
             CenterOfDoubleCross(image, res1.floor(), range, finderPatternSize / 2 + 1)
         {
-            return Some(res2);
+            return if image.get_point(res2) {
+                Some(res2)
+            } else {
+                None
+            };
         }
     }
     None
-
-    // // make sure we have at least one path of white around the center
-    // let res = CenterOfRing(image, center, range, 1, false)?;
-
-    // let center = res;
-
-    // let mut res = CenterOfRings(image, center, range, finderPatternSize / 2);
-
-    // if res.is_none() || !image.get_point(res?) {
-    //     res = CenterOfDoubleCross(image, center, range, finderPatternSize / 2 + 1);
-    // }
-    // if res.is_none() || !image.get_point(res?) {
-    //     res = Some(center);
-    // }
-    // if res.is_none() || !image.get_point(res?) {
-    //     return None;
-    // }
-
-    // res
 }
