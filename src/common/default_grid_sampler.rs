@@ -46,11 +46,11 @@ impl GridSampler for DefaultGridSampler {
             let isInside = |x: f32, y: f32| {
                 image.is_in(transform.transform_point(Point::centered(point(x, y))))
             };
-            if (!transform.isValid()
+            if !transform.isValid()
                 || !isInside(p0.x, p0.y)
                 || !isInside(p1.x - 1.0, p0.y)
                 || !isInside(p1.x - 1.0, p1.y - 1.0)
-                || !isInside(p0.x, p1.y - 1.0))
+                || !isInside(p0.x, p1.y - 1.0)
             {
                 return Err(Exceptions::NOT_FOUND);
             }
@@ -74,7 +74,7 @@ impl GridSampler for DefaultGridSampler {
                     // inner grid points is not. See #563. A true perspective transformation cannot have this property.
                     // The following check takes 100% care of the issue and turned out to be less of a performance impact than feared.
                     // TODO: Check some mathematical/numercial property of mod2Pix to determine if it is a perspective transforation.
-                    if (!image.is_in(p)) {
+                    if !image.is_in(p) {
                         return Err(Exceptions::NOT_FOUND);
                     }
                 }
