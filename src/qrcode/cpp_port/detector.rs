@@ -52,7 +52,7 @@ fn FindPattern(view: PatternView<'_>) -> Result<PatternView<'_>> {
             {
                 return false;
             }
-            IsPattern::<E2E, 5, 7, false>(view, &PATTERN, spaceInPixel, 0.5, 0.0) != 0.0
+            IsPattern::<E2E, 5, 7, false>(view, &PATTERN, spaceInPixel, 0.1, 0.0) != 0.0
         },
     )
 }
