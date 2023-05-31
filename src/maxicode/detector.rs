@@ -520,19 +520,7 @@ fn verify_bullseye_vertical(image: &BitMatrix, row: u32, column: u32) -> (bool, 
     // look down
     let down_vector = get_column_vector(image, column, row, false);
 
-    let potential_bullseye = [
-        down_vector[5],
-        down_vector[4],
-        down_vector[3],
-        down_vector[2],
-        down_vector[1],
-        down_vector[0] + up_vector[0],
-        up_vector[1],
-        up_vector[2],
-        up_vector[3],
-        up_vector[4],
-        up_vector[5],
-    ];
+    let potential_bullseye = build_potential_bullsey_array(&down_vector, &up_vector);
 
     if validate_bullseye_widths(&potential_bullseye) {
         (
@@ -547,19 +535,7 @@ fn verify_bullseye_vertical(image: &BitMatrix, row: u32, column: u32) -> (bool, 
         // look down
         let down_vector = get_column_vector(image, column + 1, row, false);
 
-        let potential_bullseye = [
-            down_vector[5],
-            down_vector[4],
-            down_vector[3],
-            down_vector[2],
-            down_vector[1],
-            down_vector[0] + up_vector[0],
-            up_vector[1],
-            up_vector[2],
-            up_vector[3],
-            up_vector[4],
-            up_vector[5],
-        ];
+        let potential_bullseye = build_potential_bullsey_array(&down_vector, &up_vector);
 
         if validate_bullseye_widths(&potential_bullseye) {
             (
@@ -573,19 +549,7 @@ fn verify_bullseye_vertical(image: &BitMatrix, row: u32, column: u32) -> (bool, 
             // look down
             let down_vector = get_column_vector(image, column - 1, row, false);
 
-            let potential_bullseye = [
-                down_vector[5],
-                down_vector[4],
-                down_vector[3],
-                down_vector[2],
-                down_vector[1],
-                down_vector[0] + up_vector[0],
-                up_vector[1],
-                up_vector[2],
-                up_vector[3],
-                up_vector[4],
-                up_vector[5],
-            ];
+            let potential_bullseye = build_potential_bullsey_array(&down_vector, &up_vector);
 
             if validate_bullseye_widths(&potential_bullseye) {
                 (
@@ -597,6 +561,25 @@ fn verify_bullseye_vertical(image: &BitMatrix, row: u32, column: u32) -> (bool, 
             }
         }
     }
+}
+
+fn build_potential_bullsey_array<T: std::ops::Add<Output = T> + Copy>(
+    vector_1: &[T; 6],
+    vector_2: &[T; 6],
+) -> [T; 11] {
+    [
+        vector_1[5],
+        vector_1[4],
+        vector_1[3],
+        vector_1[2],
+        vector_1[1],
+        vector_1[0] + vector_2[0],
+        vector_2[1],
+        vector_2[2],
+        vector_2[3],
+        vector_2[4],
+        vector_2[5],
+    ]
 }
 
 fn get_column_vector(image: &BitMatrix, column: u32, start_row: u32, looking_up: bool) -> [u32; 6] {
