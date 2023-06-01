@@ -1,6 +1,6 @@
 [package]
 name = "rxing"
-version = "0.4.6"
+version = "0.4.7"
 description="A rust port of the zxing barcode library."
 license="Apache-2.0"
 repository="https://github.com/rxing-core/rxing"
@@ -15,11 +15,11 @@ exclude = [
 [dependencies]
 regex = "1.8.0"
 fancy-regex = "0.11"
-once_cell = "1.17.1"
+once_cell = "1.17.2"
 encoding = "0.2"
 urlencoding = "2.1.2"
 uriparse = "0.6.4"
-chrono = "0.4.24"
+chrono = "0.4.26"
 chrono-tz = "0.8"
 image = {version = "0.24", optional = true}
 imageproc = {version = "0.23", optional = true}
@@ -34,10 +34,10 @@ thiserror = "1.0.38"
 multimap = "0.9"
 
 [dev-dependencies]
-java-properties = "1.4.1"
+java-properties = "2.0"
 java-rand = "0.2.0"
 rand = "0.8.5"
-criterion = "0.4.0"
+criterion = "0.5"
 
 [features]
 default = ["image"]
