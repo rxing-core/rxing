@@ -45,7 +45,7 @@ impl OneDimensionalCodeWriter for EAN8Writer {
      */
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
         let length = contents.chars().count();
-        let reader = EAN8Reader::default();
+        let reader = EAN8Reader;
         let mut contents = contents.to_owned();
         match length {
             7 => {
@@ -129,7 +129,7 @@ mod EAN8WriterTestCase {
     fn testEncode() {
         let testStr =
             "0000001010001011010111101111010110111010101001110111001010001001011100101000000";
-        let result = EAN8Writer::default()
+        let result = EAN8Writer
             .encode(
                 "96385074",
                 &BarcodeFormat::EAN_8,
@@ -144,7 +144,7 @@ mod EAN8WriterTestCase {
     fn testAddChecksumAndEncode() {
         let testStr =
             "0000001010001011010111101111010110111010101001110111001010001001011100101000000";
-        let result = EAN8Writer::default()
+        let result = EAN8Writer
             .encode(
                 "9638507",
                 &BarcodeFormat::EAN_8,
@@ -158,7 +158,7 @@ mod EAN8WriterTestCase {
     #[test]
     #[should_panic]
     fn testEncodeIllegalCharacters() {
-        EAN8Writer::default()
+        EAN8Writer
             .encode("96385abc", &BarcodeFormat::EAN_8, 0, 0)
             .expect("ok");
     }

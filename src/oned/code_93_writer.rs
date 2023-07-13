@@ -265,7 +265,7 @@ mod Code93WriterTestCase {
     }
 
     fn doTest(input: &str, expected: &str) {
-        let result = Code93Writer::default()
+        let result = Code93Writer
             .encode(input, &BarcodeFormat::CODE_93, 0, 0)
             .expect("encode");
         assert_eq!(expected, bit_matrix_test_case::matrix_to_string(&result));

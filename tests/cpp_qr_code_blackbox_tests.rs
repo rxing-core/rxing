@@ -26,7 +26,7 @@ mod common;
 fn qrcode_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/qrcode-1",
-        QrReader::default(),
+        QrReader,
         rxing::BarcodeFormat::QR_CODE,
     );
     // super("src/test/resources/blackbox/qrcode-1", new MultiFormatReader(), BarcodeFormat.QR_CODE);
@@ -68,7 +68,7 @@ fn qrcode_black_box1_test_case() {
 fn qrcode_black_box3_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/qrcode-3",
-        QrReader::default(),
+        QrReader,
         BarcodeFormat::QR_CODE,
     );
     tester.add_test(38, 38, 0.0);
@@ -89,7 +89,7 @@ fn qrcode_black_box3_test_case() {
 fn qrcode_black_box4_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/qrcode-4",
-        QrReader::default(),
+        QrReader,
         // QRCodeReader::new(),
         BarcodeFormat::QR_CODE,
     );
@@ -113,7 +113,7 @@ fn qrcode_black_box4_test_case() {
 fn qrcode_black_box5_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/qrcode-5",
-        QrReader::default(),
+        QrReader,
         BarcodeFormat::QR_CODE,
     );
     tester.add_test(16, 16, 0.0);
@@ -133,7 +133,7 @@ fn qrcode_black_box5_test_case() {
 fn qrcode_black_box6_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/qrcode-6",
-        QrReader::default(),
+        QrReader,
         BarcodeFormat::QR_CODE,
     );
     tester.add_test(15, 15, 0.0);
@@ -148,7 +148,7 @@ fn qrcode_black_box6_test_case() {
 fn mqr_black_box_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/cpp/microqrcode-1",
-        QrReader::default(),
+        QrReader,
         BarcodeFormat::MICRO_QR_CODE,
     );
 
@@ -173,7 +173,7 @@ fn mqr_black_box_test_case() {
 fn cpp_qrcode_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/cpp/qrcode-1",
-        QrReader::default(),
+        QrReader,
         rxing::BarcodeFormat::QR_CODE,
     );
     // super("src/test/resources/blackbox/qrcode-1", new MultiFormatReader(), BarcodeFormat.QR_CODE);
@@ -221,7 +221,7 @@ fn cpp_qrcode_black_box2_test_case() {
 fn cpp_qrcode_black_box3_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/cpp/qrcode-3",
-        QrReader::default(),
+        QrReader,
         BarcodeFormat::QR_CODE,
     );
 
@@ -243,7 +243,7 @@ fn cpp_qrcode_black_box3_test_case() {
 fn cpp_qrcode_black_box4_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/cpp/qrcode-4",
-        QrReader::default(),
+        QrReader,
         // QRCodeReader::new(),
         BarcodeFormat::QR_CODE,
     );
@@ -267,7 +267,7 @@ fn cpp_qrcode_black_box4_test_case() {
 fn cpp_qrcode_black_box5_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/cpp/qrcode-5",
-        QrReader::default(),
+        QrReader,
         BarcodeFormat::QR_CODE,
     );
     tester.add_test(16, 16, 0.0);
@@ -287,7 +287,7 @@ fn cpp_qrcode_black_box5_test_case() {
 fn cpp_qrcode_black_box6_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/cpp/qrcode-6",
-        QrReader::default(),
+        QrReader,
         BarcodeFormat::QR_CODE,
     );
     tester.add_test(15, 15, 0.0);
@@ -302,7 +302,7 @@ fn cpp_qrcode_black_box6_test_case() {
 fn cpp_qrcode_black_box7_test_case() {
     let mut tester = common::MultiImageSpanAbstractBlackBoxTestCase::new(
         "test_resources/blackbox/cpp/qrcode-7",
-        QrReader::default(),
+        QrReader,
         rxing::BarcodeFormat::QR_CODE,
     );
 

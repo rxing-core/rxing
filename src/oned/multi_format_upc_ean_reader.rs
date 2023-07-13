@@ -55,7 +55,7 @@ impl OneDReader for MultiFormatUPCEANReader {
         if !possible_formats.is_empty() {
             if possible_formats.contains(&BarcodeFormat::EAN_13) {
                 if let Ok(res) = self.try_decode_function(
-                    &EAN13Reader::default(),
+                    &EAN13Reader,
                     rowNumber,
                     row,
                     hints,
@@ -76,7 +76,7 @@ impl OneDReader for MultiFormatUPCEANReader {
             }
             if possible_formats.contains(&BarcodeFormat::EAN_8) {
                 if let Ok(res) = self.try_decode_function(
-                    &EAN8Reader::default(),
+                    &EAN8Reader,
                     rowNumber,
                     row,
                     hints,
@@ -87,7 +87,7 @@ impl OneDReader for MultiFormatUPCEANReader {
             }
             if possible_formats.contains(&BarcodeFormat::UPC_E) {
                 if let Ok(res) = self.try_decode_function(
-                    &UPCEReader::default(),
+                    &UPCEReader,
                     rowNumber,
                     row,
                     hints,
@@ -97,31 +97,19 @@ impl OneDReader for MultiFormatUPCEANReader {
                 }
             }
         } else {
-            if let Ok(res) = self.try_decode_function(
-                &EAN13Reader::default(),
-                rowNumber,
-                row,
-                hints,
-                &start_guard_pattern,
-            ) {
+            if let Ok(res) =
+                self.try_decode_function(&EAN13Reader, rowNumber, row, hints, &start_guard_pattern)
+            {
                 return Ok(res);
             }
-            if let Ok(res) = self.try_decode_function(
-                &EAN8Reader::default(),
-                rowNumber,
-                row,
-                hints,
-                &start_guard_pattern,
-            ) {
+            if let Ok(res) =
+                self.try_decode_function(&EAN8Reader, rowNumber, row, hints, &start_guard_pattern)
+            {
                 return Ok(res);
             }
-            if let Ok(res) = self.try_decode_function(
-                &UPCEReader::default(),
-                rowNumber,
-                row,
-                hints,
-                &start_guard_pattern,
-            ) {
+            if let Ok(res) =
+                self.try_decode_function(&UPCEReader, rowNumber, row, hints, &start_guard_pattern)
+            {
                 return Ok(res);
             }
         }

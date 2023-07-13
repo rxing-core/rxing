@@ -26,7 +26,7 @@ fn get_image(
 
 fn aztec_benchmark(c: &mut Criterion) {
     let mut image = get_image("test_resources/blackbox/aztec-1/abc-37x37.png");
-    let mut reader = AztecReader::default();
+    let mut reader = AztecReader;
 
     c.bench_function("aztec", |b| {
         b.iter(|| {
@@ -70,7 +70,7 @@ fn code93_benchmark(c: &mut Criterion) {
 
 fn datamatrix_benchmark(c: &mut Criterion) {
     let mut image = get_image("test_resources/blackbox/datamatrix-1/C40.png");
-    let mut reader = DataMatrixReader::default();
+    let mut reader = DataMatrixReader;
 
     c.bench_function("datamatrix", |b| {
         b.iter(|| {
@@ -81,7 +81,7 @@ fn datamatrix_benchmark(c: &mut Criterion) {
 
 fn ean8_benchmark(c: &mut Criterion) {
     let mut image = get_image("test_resources/blackbox/ean8-1/1.png");
-    let mut reader = EAN8Reader::default();
+    let mut reader = EAN8Reader;
 
     c.bench_function("ean8", |b| {
         b.iter(|| {
@@ -92,7 +92,7 @@ fn ean8_benchmark(c: &mut Criterion) {
 
 fn ean13_benchmark(c: &mut Criterion) {
     let mut image = get_image("test_resources/blackbox/ean13-1/1.png");
-    let mut reader = EAN13Reader::default();
+    let mut reader = EAN13Reader;
 
     c.bench_function("ean13", |b| {
         b.iter(|| {
@@ -125,7 +125,7 @@ fn maxicode_benchmark(c: &mut Criterion) {
 
 fn pdf417_benchmark(c: &mut Criterion) {
     let mut image = get_image("test_resources/blackbox/pdf417-1/01.png");
-    let mut reader = PDF417Reader::default();
+    let mut reader = PDF417Reader;
 
     c.bench_function("pdf417", |b| {
         b.iter(|| {
@@ -136,7 +136,7 @@ fn pdf417_benchmark(c: &mut Criterion) {
 
 fn qrcode_benchmark(c: &mut Criterion) {
     let mut image = get_image("test_resources/blackbox/qrcode-2/1.png");
-    let mut reader = QRCodeReader::default();
+    let mut reader = QRCodeReader;
 
     c.bench_function("qrcode", |b| {
         b.iter(|| {
@@ -179,7 +179,7 @@ fn upce_benchmark(c: &mut Criterion) {
     let mut image = get_image("test_resources/blackbox/upce-1/1.png");
     c.bench_function("upce", |b| {
         b.iter(|| {
-            let mut reader = UPCEReader::default();
+            let mut reader = UPCEReader;
             let _res = reader.decode(&mut image);
         });
     });

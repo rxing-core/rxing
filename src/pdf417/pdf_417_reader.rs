@@ -79,7 +79,7 @@ impl MultipleBarcodeReader for PDF417Reader {
 
 impl PDF417Reader {
     pub fn new() -> Self {
-        Self::default()
+        Self
     }
 
     fn decode<B: Binarizer>(

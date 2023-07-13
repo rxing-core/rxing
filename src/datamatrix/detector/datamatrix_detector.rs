@@ -333,7 +333,7 @@ impl<'a> Detector<'_> {
         dimensionX: u32,
         dimensionY: u32,
     ) -> Result<BitMatrix> {
-        let sampler = DefaultGridSampler::default();
+        let sampler = DefaultGridSampler;
 
         let dst = Quadrilateral::new(
             point_f(0.5, 0.5),

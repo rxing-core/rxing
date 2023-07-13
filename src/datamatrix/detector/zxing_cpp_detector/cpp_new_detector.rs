@@ -214,7 +214,7 @@ fn Scan(
             movedTowardsBy(bl, tl, br, 0.5),
         );
 
-        let grid_sampler = DefaultGridSampler::default();
+        let grid_sampler = DefaultGridSampler;
         // let transform = PerspectiveTransform::quadrilateralToQuadrilateral(x0, y0, x1, y1, x2, y2, x3, y3, x0p, y0p, x1p, y1p, x2p, y2p, x3p, y3p);
         let dst = Quadrilateral::new(
             point_f(0.0, 0.0),

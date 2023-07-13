@@ -470,7 +470,7 @@ fn testEncodeWithForcedCodeSetFailureCodeSetB() {
 }
 
 fn encode(toEncode: &str, compact: bool, expectedLoopback: &str) -> Result<BitMatrix> {
-    let mut reader = Code128Reader::default();
+    let mut reader = Code128Reader;
 
     let mut hints: EncodingHintDictionary = HashMap::new();
     if compact {

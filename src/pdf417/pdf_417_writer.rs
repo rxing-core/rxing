@@ -226,7 +226,7 @@ impl PDF417Writer {
         temp
     }
     pub fn new() -> Self {
-        Self::default()
+        Self
     }
 }
 

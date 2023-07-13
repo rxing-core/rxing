@@ -80,7 +80,7 @@ impl OneDReader for MultiFormatOneDReader {
                 }
             }
             if possible_formats.contains(&BarcodeFormat::CODE_128) {
-                if let Ok(res) = Code128Reader::default().decode_row(row_number, row, hints) {
+                if let Ok(res) = Code128Reader.decode_row(row_number, row, hints) {
                     return Ok(res);
                 }
             }
@@ -121,7 +121,7 @@ impl OneDReader for MultiFormatOneDReader {
             if let Ok(res) = Code93Reader::default().decode_row(row_number, row, hints) {
                 return Ok(res);
             }
-            if let Ok(res) = Code128Reader::default().decode_row(row_number, row, hints) {
+            if let Ok(res) = Code128Reader.decode_row(row_number, row, hints) {
                 return Ok(res);
             }
             if let Ok(res) = ITFReader::default().decode_row(row_number, row, hints) {

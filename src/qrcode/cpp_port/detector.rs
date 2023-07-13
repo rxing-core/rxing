@@ -766,7 +766,7 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
                 });
             }
         }
-        let grid_sampler = DefaultGridSampler::default();
+        let grid_sampler = DefaultGridSampler;
         let (sampled, rp) =
             grid_sampler.sample_grid(image, dimension as u32, dimension as u32, &rois)?;
         let result = QRCodeDetectorResult::new(sampled, rp.to_vec());
@@ -775,7 +775,7 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
         // #endif
     }
 
-    let grid_sampler = DefaultGridSampler::default();
+    let grid_sampler = DefaultGridSampler;
     let (sampled, rps) = grid_sampler.sample_grid(
         image,
         dimension as u32,
@@ -1050,7 +1050,7 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
         return Err(Exceptions::NOT_FOUND);
     }
 
-    let grid_sampler = DefaultGridSampler::default();
+    let grid_sampler = DefaultGridSampler;
     let (sample, rps) = grid_sampler.sample_grid(
         image,
         dim,

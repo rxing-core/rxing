@@ -174,25 +174,19 @@ impl MultiFormatReader {
             for possible_format in self.possible_formats.iter() {
                 let res = match possible_format {
                     BarcodeFormat::QR_CODE => {
-                        let cpp = QrReader::default().decode_with_hints(image, &self.hints);
+                        let cpp = QrReader.decode_with_hints(image, &self.hints);
                         if cpp.is_ok() {
                             cpp
                         } else {
-                            QRCodeReader::default().decode_with_hints(image, &self.hints)
+                            QRCodeReader.decode_with_hints(image, &self.hints)
                         }
                     }
-                    BarcodeFormat::MICRO_QR_CODE => {
-                        QrReader::default().decode_with_hints(image, &self.hints)
-                    }
+                    BarcodeFormat::MICRO_QR_CODE => QrReader.decode_with_hints(image, &self.hints),
                     BarcodeFormat::DATA_MATRIX => {
-                        DataMatrixReader::default().decode_with_hints(image, &self.hints)
+                        DataMatrixReader.decode_with_hints(image, &self.hints)
                     }
-                    BarcodeFormat::AZTEC => {
-                        AztecReader::default().decode_with_hints(image, &self.hints)
-                    }
-                    BarcodeFormat::PDF_417 => {
-                        PDF417Reader::default().decode_with_hints(image, &self.hints)
-                    }
+                    BarcodeFormat::AZTEC => AztecReader.decode_with_hints(image, &self.hints),
+                    BarcodeFormat::PDF_417 => PDF417Reader.decode_with_hints(image, &self.hints),
                     BarcodeFormat::MAXICODE => {
                         MaxiCodeReader::default().decode_with_hints(image, &self.hints)
                     }
@@ -214,19 +208,19 @@ impl MultiFormatReader {
                 }
             }
 
-            if let Ok(res) = QrReader::default().decode_with_hints(image, &self.hints) {
+            if let Ok(res) = QrReader.decode_with_hints(image, &self.hints) {
                 return Ok(res);
             }
-            if let Ok(res) = QRCodeReader::default().decode_with_hints(image, &self.hints) {
+            if let Ok(res) = QRCodeReader.decode_with_hints(image, &self.hints) {
                 return Ok(res);
             }
-            if let Ok(res) = DataMatrixReader::default().decode_with_hints(image, &self.hints) {
+            if let Ok(res) = DataMatrixReader.decode_with_hints(image, &self.hints) {
                 return Ok(res);
             }
-            if let Ok(res) = AztecReader::default().decode_with_hints(image, &self.hints) {
+            if let Ok(res) = AztecReader.decode_with_hints(image, &self.hints) {
                 return Ok(res);
             }
-            if let Ok(res) = PDF417Reader::default().decode_with_hints(image, &self.hints) {
+            if let Ok(res) = PDF417Reader.decode_with_hints(image, &self.hints) {
                 return Ok(res);
             }
             if let Ok(res) = MaxiCodeReader::default().decode_with_hints(image, &self.hints) {

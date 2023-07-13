@@ -27,7 +27,7 @@ use rxing::pdf417::PDF417Reader;
 fn pdf417_black_box4_test_case() {
     let mut tester = common::MultiImageSpanAbstractBlackBoxTestCase::new(
         "test_resources/blackbox/pdf417-4",
-        PDF417Reader::default(),
+        PDF417Reader,
         rxing::BarcodeFormat::PDF_417,
     );
 

@@ -41,7 +41,7 @@ impl OneDimensionalCodeWriter for UPCEWriter {
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
         let length = contents.chars().count();
         let mut contents = contents.to_owned();
-        let reader = UPCEReader::default();
+        let reader = UPCEReader;
         match length {
             7 => {
                 // No check digit present, calculate it and add it
@@ -161,7 +161,7 @@ mod UPCEWriterTestCase {
     }
 
     fn doTest(content: &str, encoding: &str) {
-        let result = UPCEWriter::default()
+        let result = UPCEWriter
             .encode(
                 content,
                 &BarcodeFormat::UPC_E,
@@ -175,7 +175,7 @@ mod UPCEWriterTestCase {
     #[test]
     #[should_panic]
     fn testEncodeIllegalCharacters() {
-        UPCEWriter::default()
+        UPCEWriter
             .encode("05096abc", &BarcodeFormat::UPC_E, 0, 0)
             .expect("ok");
     }

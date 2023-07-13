@@ -254,7 +254,7 @@ mod Code39WriterTestCase {
     }
 
     fn doTest(input: &str, expected: &str) {
-        let result = Code39Writer::default()
+        let result = Code39Writer
             .encode(input, &BarcodeFormat::CODE_39, 0, 0)
             .expect("must encode");
         assert_eq!(

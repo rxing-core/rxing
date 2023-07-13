@@ -35,7 +35,7 @@ impl UPCEANWriter for EAN13Writer {}
 
 impl OneDimensionalCodeWriter for EAN13Writer {
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
-        let reader: EAN13Reader = EAN13Reader::default();
+        let reader: EAN13Reader = EAN13Reader;
         let mut contents = contents.to_owned();
         let length = contents.chars().count();
         match length {
@@ -147,7 +147,7 @@ mod EAN13WriterTestCase {
     fn testEncode() {
         let testStr =
         "00001010001011010011101100110010011011110100111010101011001101101100100001010111001001110100010010100000";
-        let result = EAN13Writer::default()
+        let result = EAN13Writer
             .encode(
                 "5901234123457",
                 &BarcodeFormat::EAN_13,
@@ -162,7 +162,7 @@ mod EAN13WriterTestCase {
     fn testAddChecksumAndEncode() {
         let testStr =
         "00001010001011010011101100110010011011110100111010101011001101101100100001010111001001110100010010100000";
-        let result = EAN13Writer::default()
+        let result = EAN13Writer
             .encode(
                 "590123412345",
                 &BarcodeFormat::EAN_13,
@@ -176,7 +176,7 @@ mod EAN13WriterTestCase {
     #[test]
     #[should_panic]
     fn testEncodeIllegalCharacters() {
-        EAN13Writer::default()
+        EAN13Writer
             .encode("5901234123abc", &BarcodeFormat::EAN_13, 0, 0)
             .expect("encode");
     }

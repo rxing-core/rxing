@@ -456,7 +456,7 @@ impl<'a> Detector<'_> {
      * diagonal just outside the bull's eye.
      */
     fn sample_grid(&self, image: &BitMatrix, quad: Quadrilateral) -> Result<BitMatrix> {
-        let sampler = DefaultGridSampler::default();
+        let sampler = DefaultGridSampler;
         let dimension = self.get_dimension();
 
         let low = dimension as f32 / 2.0 - self.nb_center_layers as f32;

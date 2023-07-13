@@ -332,7 +332,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
                 return Err(Exceptions::NOT_FOUND)
             }
         };
-        let grid_sampler = DefaultGridSampler::default();
+        let grid_sampler = DefaultGridSampler;
 
         let [tl, bl, tr, br] = symbol_box.0;
 

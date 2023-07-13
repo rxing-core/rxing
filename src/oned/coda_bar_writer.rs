@@ -216,7 +216,7 @@ mod CodaBarWriterTestCase {
     }
 
     fn encode(input: &str) -> BitMatrix {
-        CodaBarWriter::default()
+        CodaBarWriter
             .encode(input, &BarcodeFormat::CODABAR, 0, 0)
             .expect("must encode")
     }

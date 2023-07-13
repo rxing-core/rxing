@@ -119,7 +119,7 @@ mod ITFWriterTestCase {
     }
 
     fn doTest(input: &str, expected: &str) {
-        let result = ITFWriter::default()
+        let result = ITFWriter
             .encode(input, &BarcodeFormat::ITF, 0, 0)
             .expect("encode");
         assert_eq!(expected, bit_matrix_test_case::matrix_to_string(&result));
@@ -129,7 +129,7 @@ mod ITFWriterTestCase {
     #[test]
     #[should_panic]
     fn testEncodeIllegalCharacters() {
-        ITFWriter::default()
+        ITFWriter
             .encode("00123456789abc", &BarcodeFormat::ITF, 0, 0)
             .expect("should fail");
     }
