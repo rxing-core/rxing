@@ -108,7 +108,11 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32> {
     // Check for forced code set hint.
     let mut forcedCodeSet = -1_i32;
     if hints.contains_key(&EncodeHintType::FORCE_CODE_SET) {
-        let Some(EncodeHintValue::ForceCodeSet(codeSetHint)) = hints.get(&EncodeHintType::FORCE_CODE_SET) else { return Err(Exceptions::ILLEGAL_STATE) };
+        let Some(EncodeHintValue::ForceCodeSet(codeSetHint)) =
+            hints.get(&EncodeHintType::FORCE_CODE_SET)
+        else {
+            return Err(Exceptions::ILLEGAL_STATE);
+        };
         match codeSetHint.as_str() {
             "A" => forcedCodeSet = CODE_CODE_A as i32,
             "B" => forcedCodeSet = CODE_CODE_B as i32,

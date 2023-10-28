@@ -181,11 +181,11 @@ impl DataMatrixReader {
      */
     fn extractPureBits(&self, image: &BitMatrix) -> Result<BitMatrix> {
         let Some(leftTopBlack) = image.getTopLeftOnBit() else {
-      return Err(Exceptions::NOT_FOUND)
-    };
-        let Some(rightBottomBlack) = image.getBottomRightOnBit()else {
-      return Err(Exceptions::NOT_FOUND)
-    };
+            return Err(Exceptions::NOT_FOUND);
+        };
+        let Some(rightBottomBlack) = image.getBottomRightOnBit() else {
+            return Err(Exceptions::NOT_FOUND);
+        };
 
         let moduleSize = Self::moduleSize(leftTopBlack, image)?;
 

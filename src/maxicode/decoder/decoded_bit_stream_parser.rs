@@ -183,7 +183,9 @@ fn getMessage(bytes: &[u8], start: u32, len: u32) -> String {
         // for i in start..(start+len) {
         // for (int i = start; i < start + len; i++) {
         let mut set_graphemes = SETS[set].graphemes(true);
-        let Some(c) = set_graphemes.nth(bytes[i as usize] as usize) else { break; };
+        let Some(c) = set_graphemes.nth(bytes[i as usize] as usize) else {
+            break;
+        };
         match c {
             LATCHA => {
                 set = 0;

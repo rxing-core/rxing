@@ -71,8 +71,13 @@ impl OneDimensionalCodeWriter for Code39Writer {
         pos += Self::appendPattern(&mut result, pos as usize, &narrowWhite, false);
         //append next character to byte matrix
         for i in 0..length {
-            let Some(indexInString) = Code39Reader::ALPHABET_STRING.find(contents.chars().nth(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?) else {
-              continue;
+            let Some(indexInString) = Code39Reader::ALPHABET_STRING.find(
+                contents
+                    .chars()
+                    .nth(i)
+                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+            ) else {
+                continue;
             };
             Self::toIntArray(
                 Code39Reader::CHARACTER_ENCODINGS[indexInString],

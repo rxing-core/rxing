@@ -359,9 +359,7 @@ fn lookAheadTestIntern(msg: &str, startpos: u32, currentMode: u32) -> usize {
             return C40_ENCODATION;
         }
 
-        let Some(c) = msg
-        .chars()
-        .nth((startpos + charsProcessed) as usize) else {
+        let Some(c) = msg.chars().nth((startpos + charsProcessed) as usize) else {
             break 0;
         };
         charsProcessed += 1;

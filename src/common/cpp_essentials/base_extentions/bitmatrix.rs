@@ -29,7 +29,7 @@ impl BitMatrix {
     }
 
     pub fn getTopLeftOnBitWithPosition(&self, left: &mut u32, top: &mut u32) -> bool {
-        let Some(Point{x,y}) = self.getTopLeftOnBit() else {
+        let Some(Point { x, y }) = self.getTopLeftOnBit() else {
             return false;
         };
         *left = x as u32;
@@ -39,7 +39,7 @@ impl BitMatrix {
     }
 
     pub fn getBottomRightOnBitWithPosition(&self, right: &mut u32, bottom: &mut u32) -> bool {
-        let Some(Point{x,y}) = self.getBottomRightOnBit() else {
+        let Some(Point { x, y }) = self.getBottomRightOnBit() else {
             return false;
         };
         *right = x as u32;

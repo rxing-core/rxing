@@ -116,7 +116,9 @@ pub fn detect_in_file_with_hints(
     hints: &mut DecodingHintDictionary,
 ) -> Result<RXingResult> {
     let Ok(img) = image::open(file_name) else {
-        return Err(Exceptions::illegal_argument_with(format!("file '{file_name}' not found or cannot be opened")));
+        return Err(Exceptions::illegal_argument_with(format!(
+            "file '{file_name}' not found or cannot be opened"
+        )));
     };
     let mut multi_format_reader = MultiFormatReader::default();
 

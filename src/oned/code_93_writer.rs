@@ -49,7 +49,14 @@ impl OneDimensionalCodeWriter for Code93Writer {
 
         for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            let Some(indexInString) = Code93Reader::ALPHABET_STRING.find(contents.chars().nth(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?) else {panic!("alphabet")};
+            let Some(indexInString) = Code93Reader::ALPHABET_STRING.find(
+                contents
+                    .chars()
+                    .nth(i)
+                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+            ) else {
+                panic!("alphabet")
+            };
             pos += Self::appendPattern(
                 &mut result,
                 pos,
@@ -132,7 +139,11 @@ impl Code93Writer {
 
         for i in (0..contents.chars().count()).rev() {
             // for (int i = contents.length() - 1; i >= 0; i--) {
-            let Some(indexInString) = Code93Reader::ALPHABET_STRING.find(contents.chars().nth(i).unwrap()) else {panic!("not in the alphabet");};
+            let Some(indexInString) =
+                Code93Reader::ALPHABET_STRING.find(contents.chars().nth(i).unwrap())
+            else {
+                panic!("not in the alphabet");
+            };
             total += indexInString as u32 * weight;
             weight += 1;
             if weight > maxWeight {

@@ -87,8 +87,10 @@ fn assertCorrectImage2result(fileName: &str, expected: ExpandedProductParsedRXin
         theRXingResult.getBarcodeFormat()
     );
 
-    let ParsedClientResult::ExpandedProductResult(result) = crate::client::result::parseRXingResult(&theRXingResult) else {
-      panic!("incorrect result type found");
+    let ParsedClientResult::ExpandedProductResult(result) =
+        crate::client::result::parseRXingResult(&theRXingResult)
+    else {
+        panic!("incorrect result type found");
     };
 
     assert_eq!(expected, result);

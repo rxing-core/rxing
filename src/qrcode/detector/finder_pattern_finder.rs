@@ -717,7 +717,7 @@ impl<'a> FinderPatternFinder<'_> {
             let minModuleSize = fpi.getEstimatedModuleSize();
 
             for j in (i + 1)..(self.possibleCenters.len() - 1) {
-                let Some(fpj) =  self.possibleCenters.get(j) else {
+                let Some(fpj) = self.possibleCenters.get(j) else {
                     return Err(Exceptions::NOT_FOUND);
                 };
                 let squares0 = Self::squaredDistance(fpi, fpj);

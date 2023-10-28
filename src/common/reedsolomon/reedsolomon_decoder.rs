@@ -78,7 +78,7 @@ impl ReedSolomonDecoder {
             return Ok(0);
         }
         let Ok(syndrome) = GenericGFPoly::new(self.field, &syndromeCoefficients) else {
-             return Err(Exceptions::REED_SOLOMON);
+            return Err(Exceptions::REED_SOLOMON);
         };
         let sigmaOmega = self.runEuclideanAlgorithm(
             &GenericGF::buildMonomial(self.field, twoS as usize, 1),

@@ -119,9 +119,10 @@ impl Writer for DataMatrixWriter {
             let hasEncodingHint = hints.contains_key(&EncodeHintType::CHARACTER_SET);
             if hasEncodingHint {
                 let Some(EncodeHintValue::CharacterSet(char_set_name)) =
-                    hints.get(&EncodeHintType::CHARACTER_SET) else {
-                      return Err(Exceptions::illegal_argument_with("charset does not exist"))
-                    };
+                    hints.get(&EncodeHintType::CHARACTER_SET)
+                else {
+                    return Err(Exceptions::illegal_argument_with("charset does not exist"));
+                };
                 charset = CharacterSet::get_character_set_by_name(char_set_name);
                 //encoding::label::encoding_from_whatwg_label(char_set_name);
                 // charset = Charset.forName(hints.get(EncodeHintType.CHARACTER_SET).toString());
@@ -154,9 +155,16 @@ impl Writer for DataMatrixWriter {
         }
 
         let symbol_lookup = SymbolInfoLookup::new();
-        let Some(symbolInfo) = symbol_lookup.lookup_with_codewords_shape_size_fail(encoded.chars().count() as u32, *shape, &minSize, &maxSize, true)? else {
-      return Err(Exceptions::not_found_with("symbol info is bad"))
-    };
+        let Some(symbolInfo) = symbol_lookup.lookup_with_codewords_shape_size_fail(
+            encoded.chars().count() as u32,
+            *shape,
+            &minSize,
+            &maxSize,
+            true,
+        )?
+        else {
+            return Err(Exceptions::not_found_with("symbol info is bad"));
+        };
 
         //2. step: ECC generation
         let codewords = error_correction::encodeECC200(&encoded, symbolInfo)?;

@@ -49,8 +49,10 @@ pub const WORD_SIZE: [u32; 33] = [
  * @return Aztec symbol matrix with metadata
  */
 pub fn encode_simple(data: &str) -> Result<AztecCode> {
-    let Ok(bytes) =CharacterSet::ISO8859_1.encode_replace(data) else {
-        return Err(Exceptions::illegal_argument_with(format!("'{data}' cannot be encoded as ISO_8859_1")));
+    let Ok(bytes) = CharacterSet::ISO8859_1.encode_replace(data) else {
+        return Err(Exceptions::illegal_argument_with(format!(
+            "'{data}' cannot be encoded as ISO_8859_1"
+        )));
     };
     encode_bytes_simple(&bytes)
 }

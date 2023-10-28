@@ -267,7 +267,7 @@ pub fn decodeMacroBlock(
                     MACRO_PDF417_OPTIONAL_FIELD_CHECKSUM => {
                         let mut checksum = ECIStringBuilder::default();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut checksum)?;
-                        let Ok(parsed_checksum ) = checksum.to_string().parse() else {
+                        let Ok(parsed_checksum) = checksum.to_string().parse() else {
                             return Err(Exceptions::FORMAT);
                         };
                         resultMetadata.setChecksum(parsed_checksum);
@@ -275,7 +275,7 @@ pub fn decodeMacroBlock(
                     MACRO_PDF417_OPTIONAL_FIELD_FILE_SIZE => {
                         let mut fileSize = ECIStringBuilder::default();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut fileSize)?;
-                        let Ok(parsed_file_size)= fileSize.to_string().parse() else {
+                        let Ok(parsed_file_size) = fileSize.to_string().parse() else {
                             return Err(Exceptions::FORMAT);
                         };
                         resultMetadata.setFileSize(parsed_file_size);

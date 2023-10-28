@@ -392,12 +392,12 @@ pub fn DecodeBitStream(
 
 pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
     let Ok(pversion) = ReadVersion(bits) else {
-        return Err(Exceptions::format_with("Invalid version"))
+        return Err(Exceptions::format_with("Invalid version"));
     };
     let version = pversion;
 
     let Ok(formatInfo) = ReadFormatInformation(bits, version.isMicroQRCode()) else {
-        return Err(Exceptions::format_with("Invalid format information"))
+        return Err(Exceptions::format_with("Invalid format information"));
     };
 
     // Read codewords

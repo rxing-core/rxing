@@ -19,8 +19,12 @@ pub struct OtsuLevelBinarizer<LS: LuminanceSource> {
 impl<LS: LuminanceSource> OtsuLevelBinarizer<LS> {
     fn generate_threshold_matrix<LS2: LuminanceSource>(source: &LS2) -> Result<BitMatrix> {
         let image_buffer = {
-            let Some(buff) : Option<ImageBuffer<Luma<u8>,Vec<u8>>> = ImageBuffer::from_vec(source.get_width() as u32, source.get_height() as u32, source.get_matrix()) else {
-                return Err(Exceptions::ILLEGAL_ARGUMENT)
+            let Some(buff): Option<ImageBuffer<Luma<u8>, Vec<u8>>> = ImageBuffer::from_vec(
+                source.get_width() as u32,
+                source.get_height() as u32,
+                source.get_matrix(),
+            ) else {
+                return Err(Exceptions::ILLEGAL_ARGUMENT);
             };
             buff
         };

@@ -152,8 +152,12 @@ impl Circle<'_> {
             *length_set = (length, rotation, points);
         }
         lengths.sort_by_key(|e| e.0);
-        let Some(major_axis) = lengths.last() else {return (false, PointU::default(),0,0,0)};
-        let Some(minor_axis) = lengths.first() else {return (false, PointU::default(),0,0,0)};
+        let Some(major_axis) = lengths.last() else {
+            return (false, PointU::default(), 0, 0, 0);
+        };
+        let Some(minor_axis) = lengths.first() else {
+            return (false, PointU::default(), 0, 0, 0);
+        };
 
         // // find foci
         let linear_eccentricity = ((major_axis.0 / 2).pow(2) - (minor_axis.0 / 2).pow(2)).sqrt();
@@ -305,7 +309,7 @@ impl Circle<'_> {
 
 pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionResult> {
     // find concentric circles
-    let Some( mut circles) = find_concentric_circles(image) else {
+    let Some(mut circles) = find_concentric_circles(image) else {
         return Err(Exceptions::NOT_FOUND);
     };
 
@@ -328,8 +332,8 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         let Ok(symbol_box) = box_symbol(image, circle) else {
             if try_harder {
                 continue;
-            }else {
-                return Err(Exceptions::NOT_FOUND)
+            } else {
+                return Err(Exceptions::NOT_FOUND);
             }
         };
         let grid_sampler = DefaultGridSampler;
@@ -350,16 +354,17 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         );
         let src = Quadrilateral::new(tl, tr, br, bl);
 
-        let Ok((bits,_)) = grid_sampler.sample_grid_detailed(
+        let Ok((bits, _)) = grid_sampler.sample_grid_detailed(
             image,
             target_width.round() as u32,
             target_height.round() as u32,
-            dst, src
+            dst,
+            src,
         ) else {
             if try_harder {
                 continue;
-            }else {
-                return Err(Exceptions::NOT_FOUND)
+            } else {
+                return Err(Exceptions::NOT_FOUND);
             }
         };
         return Ok(MaxicodeDetectionResult {

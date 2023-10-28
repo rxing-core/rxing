@@ -130,8 +130,12 @@ impl RegressionLineTrait for DMRegressionLine {
     }
 
     fn isHighRes(&self) -> bool {
-        let Some(mut min) = self.points.first().copied() else { return false };
-        let Some(mut max) = self.points.first().copied() else { return false };
+        let Some(mut min) = self.points.first().copied() else {
+            return false;
+        };
+        let Some(mut max) = self.points.first().copied() else {
+            return false;
+        };
         for p in &self.points {
             min.x = f32::min(min.x, p.x);
             min.y = f32::min(min.y, p.y);

@@ -152,7 +152,7 @@ impl<'a> MultiFinderPatternFinder<'_> {
 
                 for i3 in (i2 + 1)..size {
                     // for (int i3 = i2 + 1; i3 < size; i3++) {
-                    let Some( p3) = possibleCenters.get(i3) else {
+                    let Some(p3) = possibleCenters.get(i3) else {
                         continue;
                     };
 
