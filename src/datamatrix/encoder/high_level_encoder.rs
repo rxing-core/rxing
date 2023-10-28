@@ -594,7 +594,7 @@ pub fn determineConsecutiveDigitCount(msg: &str, startpos: u32) -> u32 {
     let len = msg.chars().count(); //len();
     let mut idx = startpos;
     // let graphemes = msg.graphemes(true);
-    while (idx as usize) < len && isDigit(msg.chars().nth(idx as usize).unwrap_or(char::default()))
+    while (idx as usize) < len && isDigit(msg.chars().nth(idx as usize).unwrap_or_default())
     {
         idx += 1;
     }

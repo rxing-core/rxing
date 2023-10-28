@@ -22,10 +22,10 @@ impl Version {
             //throw std::invalid_argument("Unexpected dimension");
             return Err(Exceptions::ILLEGAL_ARGUMENT);
         }
-        return Self::FromNumber(
+        Self::FromNumber(
             (dimension - Self::DimensionOffset(isMicro)) / Self::DimensionStep(isMicro),
             isMicro,
-        );
+        )
     }
 
     pub fn FromNumber(versionNumber: u32, is_micro: bool) -> Result<VersionRef> {
