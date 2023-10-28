@@ -617,7 +617,7 @@ fn encode_command(
 
     // println!("Encode: file_name: {}, barcode_type: {}, width: {:?}, height: {:?}, data: '{:?}', data_file: {:?}", file_name, barcode_type, width, height, data, data_file);
 
-    let writer = MultiFormatWriter::default();
+    let writer = MultiFormatWriter;
     match writer.encode_with_hints(
         &input_data,
         barcode_type,

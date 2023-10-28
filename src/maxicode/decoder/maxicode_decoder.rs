@@ -60,7 +60,7 @@ pub fn decode_with_hints(
     let mode = codewords[0] & 0x0F;
     let mut datawords;
     match mode {
-        2 | 3 | 4 => {
+        2..=4 => {
             correctErrors(&mut codewords, 20, 84, 40, EVEN)?;
             correctErrors(&mut codewords, 20, 84, 40, ODD)?;
             datawords = vec![0u8; 94];

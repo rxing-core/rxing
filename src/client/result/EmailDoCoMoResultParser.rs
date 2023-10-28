@@ -67,7 +67,7 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
  */
 pub fn isBasicallyValidEmailAddress(email: &str, regex: &Regex) -> bool {
     let email_exists = !email.is_empty();
-    let email_has_at = matches!(email.find('@'), Some(_));
+    let email_has_at = email.find('@').is_some();
     let email_alphamatcher = if let Some(mtch) = regex.find(email) {
         mtch.start() == 0 && mtch.end() == email.len()
     } else {

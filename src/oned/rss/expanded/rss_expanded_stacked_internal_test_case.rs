@@ -44,10 +44,10 @@ fn testDecodingRowByRow() {
 
     // let tester = ;
 
-    assert!(|| -> Result<Vec<ExpandedPair>> {
+    assert!({
         rssExpandedReader.decodeRow2pairs(firstRowNumber as u32, &firstRow)
         // fail(NotFoundException.class.getName() + " expected");
-    }()
+    }
     .is_err());
 
     assert_eq!(1, rssExpandedReader.getRows().len());

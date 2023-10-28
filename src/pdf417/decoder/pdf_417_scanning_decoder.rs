@@ -452,7 +452,7 @@ fn createDecoderRXingResult(
             }
         }
     }
-    let ambiguousIndexValues = Vec::from_iter(ambiguousIndexValuesList.into_iter());
+    let ambiguousIndexValues = Vec::from_iter(ambiguousIndexValuesList);
     // for value in ambiguousIndexValuesList {
     //     ambiguousIndexValues.push(value);
     // }
