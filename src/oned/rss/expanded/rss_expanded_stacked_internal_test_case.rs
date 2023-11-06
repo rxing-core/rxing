@@ -24,8 +24,7 @@
  *   http://www.piramidepse.com/
  */
 
-
-use crate::{Reader};
+use crate::Reader;
 
 use super::{test_case_util, RSSExpandedReader};
 

@@ -13,13 +13,13 @@ exclude = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-regex = "1.9.0"
+regex = "1.10"
 fancy-regex = "0.11"
 once_cell = "1.18"
 encoding = "0.2"
 urlencoding = "2.1.3"
 uriparse = "0.6.4"
-chrono = "0.4.26"
+chrono = "0.4.31"
 chrono-tz = "0.8"
 image = {version = "0.24", optional = true}
 imageproc = {version = "0.23", optional = true}
@@ -27,7 +27,7 @@ unicode-segmentation = "1.10"
 codepage-437 = "0.1.0"
 rxing-one-d-proc-derive = {version = "0.5", path ="./crates/one-d-proc-derive"}
 num = "0.4.0"
-svg = {version = "0.13", optional = true}
+svg = {version = "0.14", optional = true}
 resvg = {version = "0.35", optional = true, default-features=false}
 serde = { version = "1.0", features = ["derive", "rc"], optional = true }
 thiserror = "1.0.44"
@@ -40,7 +40,7 @@ rand = "0.8.5"
 criterion = "0.5"
 
 [features]
-default = ["image"]
+default = ["image", "svg_write", "svg_read"]
 #/// Enable features required for image manipulation and reading.
 image = ["dep:image", "dep:imageproc"]
 
