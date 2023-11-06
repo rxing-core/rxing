@@ -389,6 +389,18 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
     let try_get_range = |a: usize, b: usize| -> Option<&[Point]> {
         if a > b {
             None
+        }
+        // Added for Issue #36 where array is sometimes out of bounds
+        else if a + 1 >= points.len() || b >= points.len() {
+            if a + 1 >= points.len() {
+                None
+            } else {
+                Some(&points[a..])
+            }
+        }
+        // Added for Issue #36 where a sometimes equals b
+        else if a == b {
+            Some(&points[a..b])
         } else {
             Some(&points[a + 1..b])
         }
