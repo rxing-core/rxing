@@ -535,7 +535,7 @@ impl RSSExpandedReader {
         let resultingString = decoder.parseInformation()?;
 
         let firstPoints = pairs
-            .get(0)
+            .first()
             .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
             .getFinderPattern()
             .as_ref()
@@ -565,7 +565,7 @@ impl RSSExpandedReader {
     }
 
     fn checkChecksum(&self) -> bool {
-        let Some(firstPair) = self.pairs.get(0) else {
+        let Some(firstPair) = self.pairs.first() else {
             return false;
         };
         let checkCharacter = firstPair.getLeftChar();

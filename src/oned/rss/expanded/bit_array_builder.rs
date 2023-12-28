@@ -49,7 +49,7 @@ pub fn buildBitArray(pairs: &Vec<ExpandedPair>) -> Option<BitArray> {
     let mut binary = BitArray::with_size(size);
     let mut accPos = 0;
 
-    let firstPair = pairs.get(0)?;
+    let firstPair = pairs.first()?;
     let rp = firstPair.getRightChar().as_ref()?;
     let firstValue = rp.getValue();
     let mut i = 11;

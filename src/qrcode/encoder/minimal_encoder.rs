@@ -754,7 +754,7 @@ impl RXingResultList {
         // prepend FNC1 if needed. If the bits contain an ECI then the FNC1 must be preceeded by an ECI.
         // If there is no ECI at the beginning then we put an ECI to the default charset (ISO-8859-1)
         if isGS1 {
-            if let Some(first) = list.get(0) {
+            if let Some(first) = list.first() {
                 if first.mode != Mode::ECI && containsECI {
                     // prepend a default character set ECI
                     list.push(RXingResultNode::new(
@@ -769,7 +769,7 @@ impl RXingResultList {
                 }
             }
 
-            if let Some(first) = list.get(0) {
+            if let Some(first) = list.first() {
                 // prepend or insert a FNC1_FIRST_POSITION after the ECI (if any)
                 if first.mode != Mode::ECI {
                     //&& containsECI {

@@ -163,7 +163,7 @@ impl AlignmentPatternFinder {
         if !self.possibleCenters.is_empty() {
             Ok(*(self
                 .possibleCenters
-                .get(0)
+                .first()
                 .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS))?)
         } else {
             Err(Exceptions::NOT_FOUND)

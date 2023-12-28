@@ -149,7 +149,7 @@ impl OneDReader for Code39Reader {
     }
 }
 impl Code39Reader {
-    pub const ALPHABET_STRING: &str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%";
+    pub const ALPHABET_STRING: &'static str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%";
 
     /**
      * These represent the encodings of characters, as patterns of wide and narrow bars.

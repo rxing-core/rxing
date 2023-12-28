@@ -123,8 +123,7 @@ pub fn ReadQRCodewords(
 ) -> Result<Vec<u8>> {
     let functionPattern: BitMatrix = version.buildFunctionPattern()?;
 
-    let mut result = Vec::new();
-    result.reserve(version.getTotalCodewords() as usize);
+    let mut result = Vec::with_capacity(version.getTotalCodewords() as usize);
     let mut currentByte = 0;
     let mut readingUp = true;
     let mut bitsRead = 0;
@@ -190,8 +189,7 @@ pub fn ReadMQRCodewords(
         9
     };
 
-    let mut result = Vec::new();
-    result.reserve(version.getTotalCodewords() as usize);
+    let mut result = Vec::with_capacity(version.getTotalCodewords() as usize);
     let mut currentByte = 0;
     let mut readingUp = true;
     let mut bitsRead = 0;

@@ -404,7 +404,7 @@ struct InputEdge {
     cachedTotalSize: usize,
 }
 impl InputEdge {
-    const FNC1_UNICODE: &str = "\u{1000}";
+    const FNC1_UNICODE: &'static str = "\u{1000}";
 
     pub fn new(
         c: &str,

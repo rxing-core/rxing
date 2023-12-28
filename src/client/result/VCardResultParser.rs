@@ -428,7 +428,7 @@ pub fn matchSingleVCardPrefixedField(
     if values.is_empty() {
         return None;
     }
-    Some(values.get(0)?.clone())
+    Some(values.first()?.clone())
     // return values == null || values.isEmpty() ? null : values.get(0);
 }
 
@@ -437,7 +437,7 @@ fn toPrimaryValue(list: Option<Vec<String>>) -> String {
         if l.is_empty() {
             String::default()
         } else {
-            l.get(0).unwrap_or(&String::default()).clone()
+            l.first().unwrap_or(&String::default()).clone()
         }
     } else {
         String::default()
@@ -471,7 +471,7 @@ fn toTypes(lists: Option<Vec<Vec<String>>>) -> Vec<String> {
     let mut result = Vec::with_capacity(local_lists.len()); //new ArrayList<>(lists.size());
     for list in local_lists {
         // for (List<String> list : lists) {
-        if let Some(value) = list.get(0) {
+        if let Some(value) = list.first() {
             if !value.is_empty() {
                 let mut v_type = String::new();
                 let final_value = list.last().unwrap_or(&String::default()).clone();

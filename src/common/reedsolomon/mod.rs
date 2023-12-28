@@ -63,7 +63,7 @@ pub fn get_predefined_genericgf(request: PredefinedGenericGF) -> GenericGFRef {
         PredefinedGenericGF::DataMatrixField256 | PredefinedGenericGF::AztecData8 => {
             &DATA_MATRIX_FIELD_256
         } // x^8 + x^5 + x^3 + x^2 + 1
-        // PredefinedGenericGF::PDF417 => &PDF_417_FIELD,
+                                                          // PredefinedGenericGF::PDF417 => &PDF_417_FIELD,
     }
 }
 
