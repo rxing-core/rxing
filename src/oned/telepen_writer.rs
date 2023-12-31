@@ -18,6 +18,7 @@ use rxing_one_d_proc_derive::OneDWriter;
 use regex::Regex;
 use crate::common::Result;
 use crate::BarcodeFormat;
+use crate::oned::telepen_common::TelepenCommon;
 
 use super::OneDimensionalCodeWriter;
 
@@ -32,77 +33,30 @@ pub struct TelepenWriter;
 impl OneDimensionalCodeWriter for TelepenWriter {
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
         // Calculate the checksum character
-        let mut sum = 0;
-
-        for c in contents.chars() {
-            sum += c as u32;
-        }
-
-        let remainder = sum % 127;
-        let diff = 127 - remainder;
-        let checksum = if diff != 127 {
-            diff as u8 as char
-        }
-        else {
-            0 as char
-        };
+        let checksum = TelepenCommon::calculate_checksum(contents);
         
         // Build binary string
         let mut binary = String::new();
 
         // Opening character is always _
-        let mut byte = "_".as_bytes()[0];
-        let mut bits = self.get_bits(byte);
-        
-        for i in 0..8 {
-            binary.push(if bits[i] {
-                '1'
-            }
-            else {
-                '0'
-            });
-        }
+        binary = self.add_to_binary('_', binary);
 
         // Content
-        for index in 0..contents.chars().count() {
-            byte = contents.chars().nth(index).unwrap() as u8;
-            bits = self.get_bits(byte);
-            
-            for i in 0..8 {
-                binary.push(if bits[i] {
-                    '1'
-                }
-                else {
-                    '0'
-                });
+        for c in contents.chars() {
+            if c as u8 > 127 {
+                return Err(Exceptions::illegal_argument_with(format!(
+                    "Telepen only supports ASCII characters."
+                )));
             }
+
+            binary = self.add_to_binary(c, binary)
         }
 
         // Checksum
-        byte = checksum as u8;
-        bits = self.get_bits(byte);
-        
-        for i in 0..8 {
-            binary.push(if bits[i] {
-                '1'
-            }
-            else {
-                '0'
-            });
-        }
+        binary = self.add_to_binary(checksum, binary);
 
         // Closing character is always z.
-        byte = "z".as_bytes()[0];
-        bits = self.get_bits(byte);
-        
-        for i in 0..8 {
-            binary.push(if bits[i] {
-                '1'
-            }
-            else {
-                '0'
-            });
-        }
+        binary = self.add_to_binary('z', binary);
 
         let re = Regex::new(r"^01|10$|01*0|00|1").unwrap();
         let matches: Vec<&str> = re.find_iter(&binary).map(|m| m.as_str()).collect();
@@ -213,6 +167,22 @@ impl TelepenWriter {
         bits[7] = oneCount % 2 != 0;
 
         return bits;
+    }
+
+    fn add_to_binary(&self, c: char, mut binary: String) -> String {
+        let byte = c as u8;
+        let bits = self.get_bits(byte);
+        
+        for i in 0..8 {
+            binary.push(if bits[i] {
+                '1'
+            }
+            else {
+                '0'
+            });
+        }
+
+        return binary;
     }
 }
 

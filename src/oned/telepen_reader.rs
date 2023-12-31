@@ -20,6 +20,7 @@ use crate::common::{BitArray, Result};
 use crate::Exceptions;
 use crate::RXingResult;
 use crate::{point_f, BarcodeFormat};
+use crate::oned::telepen_common::TelepenCommon;
 use bit_reverse::ParallelReverse;
 
 use super::OneDReader;
@@ -48,7 +49,7 @@ impl Default for TelepenReader {
 impl OneDReader for TelepenReader {
     fn decode_row(
         &mut self,
-        _rowNumber: u32,
+        rowNumber: u32,
         row: &crate::common::BitArray,
         _hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult> {
@@ -218,34 +219,32 @@ impl OneDReader for TelepenReader {
         // Penultimate byte is a block check character.
         let check = bytes[byteLength - 2];
 
-        // Calculate the checksum character
-        let mut sum = 0;
-
-        for c in contentString.chars() {
-            sum += c as u32;
-        }
-
-        let remainder = sum % 127;
-        let diff = 127 - remainder;
-        let checksum = if diff != 127 {
-            diff as u8 as char
-        }
-        else {
-            0 as char
-        };
+        let checksum = TelepenCommon::calculate_checksum(&contentString);
         
         // Validate checksum
         if check != checksum as u8 {
             return Err(Exceptions::NOT_FOUND);
         }
 
+        let mut runningCount = 0;
+        runningCount += self.counters.iter().take(startOffset).sum::<u32>();
+        let left: f32 = runningCount as f32;
+
+        runningCount += self
+            .counters
+            .iter()
+            .skip(startOffset)
+            .take(self.counterLength - startOffset - end)
+            .sum::<u32>();
+
+        let right: f32 = runningCount as f32;
+
         let mut result = RXingResult::new(
             &contentString,
             bytes,
             vec![
-                // TODO: populate with real numbers
-                point_f(0 as f32, 0 as f32),
-                point_f(0 as f32, 0 as f32),
+                point_f(left, rowNumber as f32),
+                point_f(right, rowNumber as f32),
             ],
             BarcodeFormat::TELEPEN,
         );

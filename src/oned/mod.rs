@@ -91,3 +91,6 @@ pub use ean_8_writer::*;
 
 mod upc_e_writer;
 pub use upc_e_writer::*;
+
+mod telepen_common;
+pub use telepen_common::*;
