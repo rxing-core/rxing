@@ -40,7 +40,7 @@ rand = "0.8.5"
 criterion = "0.5"
 
 [features]
-default = ["image"]
+default = ["image", "client_support"]
 #/// Enable features required for image manipulation and reading.
 image = ["dep:image", "dep:imageproc"]
 
