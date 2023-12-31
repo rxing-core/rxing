@@ -165,7 +165,8 @@ impl MultiFormatReader {
                 || self.possible_formats.contains(&BarcodeFormat::CODE_128)
                 || self.possible_formats.contains(&BarcodeFormat::ITF)
                 || self.possible_formats.contains(&BarcodeFormat::RSS_14)
-                || self.possible_formats.contains(&BarcodeFormat::RSS_EXPANDED);
+                || self.possible_formats.contains(&BarcodeFormat::RSS_EXPANDED)
+                || self.possible_formats.contains(&BarcodeFormat::TELEPEN);
             if one_d && !self.try_harder {
                 if let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints) {
                     return Ok(res);

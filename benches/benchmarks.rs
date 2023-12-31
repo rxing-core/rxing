@@ -7,7 +7,7 @@ use rxing::multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader};
 use rxing::oned::rss::expanded::RSSExpandedReader;
 use rxing::oned::rss::RSS14Reader;
 use rxing::oned::{
-    CodaBarReader, Code39Reader, Code93Reader, EAN13Reader, EAN8Reader, ITFReader, UPCAReader,
+    CodaBarReader, Code39Reader, Code93Reader, EAN13Reader, EAN8Reader, TelepenReader, ITFReader, UPCAReader,
     UPCEReader,
 };
 use rxing::pdf417::PDF417Reader;
@@ -165,6 +165,17 @@ fn rss_expanded_benchmark(c: &mut Criterion) {
     });
 }
 
+fn telepen_benchmark(c: &mut Criterion) {
+    let mut image = get_image("test_resources/blackbox/telepen-1/02.png");
+    let mut reader = TelepenReader::default();
+
+    c.bench_function("telepen", |b| {
+        b.iter(|| {
+            let _res = reader.decode(&mut image);
+        });
+    });
+}
+
 fn upca_benchmark(c: &mut Criterion) {
     let mut image = get_image("test_resources/blackbox/upca-4/1.png");
     c.bench_function("upca", |b| {
@@ -210,6 +221,7 @@ criterion_group!(
     qrcode_benchmark,
     rss14_benchmark,
     rss_expanded_benchmark,
+    telepen_benchmark,
     upca_benchmark,
     upce_benchmark,
     multi_barcode_benchmark

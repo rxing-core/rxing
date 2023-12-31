@@ -73,6 +73,9 @@ pub enum BarcodeFormat {
     /** RSS EXPANDED */
     RSS_EXPANDED,
 
+    /** TELEPEN */
+    TELEPEN,
+
     /** UPC-A 1D format. */
     UPC_A,
 
@@ -107,6 +110,7 @@ impl Display for BarcodeFormat {
                 BarcodeFormat::MICRO_QR_CODE => "mqr",
                 BarcodeFormat::RSS_14 => "rss 14",
                 BarcodeFormat::RSS_EXPANDED => "rss expanded",
+                BarcodeFormat::TELEPEN => "telepen",
                 BarcodeFormat::UPC_A => "upc a",
                 BarcodeFormat::UPC_E => "upc e",
                 BarcodeFormat::UPC_EAN_EXTENSION => "upc/ean extension",
@@ -149,6 +153,7 @@ impl From<&str> for BarcodeFormat {
             "rss 14" | "rss_14" | "rss14" | "gs1 databar" | "gs1 databar coupon"
             | "gs1_databar_coupon" => BarcodeFormat::RSS_14,
             "rss expanded" | "expanded rss" | "rss_expanded" => BarcodeFormat::RSS_EXPANDED,
+            "telepen" => BarcodeFormat::TELEPEN,
             "upc a" | "upc_a" | "upca" => BarcodeFormat::UPC_A,
             "upc e" | "upc_e" | "upce" => BarcodeFormat::UPC_E,
             "upc ean extension" | "upc extension" | "ean extension" | "upc/ean extension"

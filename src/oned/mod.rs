@@ -24,6 +24,9 @@ pub use code_128_reader::*;
 mod itf_reader;
 pub use itf_reader::*;
 
+mod telepen_reader;
+pub use telepen_reader::*;
+
 mod upc_ean_reader;
 pub use upc_ean_reader::*;
 
@@ -76,6 +79,9 @@ pub use upc_a_writer::*;
 
 mod ean_13_writer;
 pub use ean_13_writer::*;
+
+mod telepen_writer;
+pub use telepen_writer::*;
 
 mod upc_ean_writer;
 pub use upc_ean_writer::*;
