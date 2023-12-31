@@ -18,7 +18,7 @@ use rxing_one_d_proc_derive::OneDWriter;
 use regex::Regex;
 use crate::common::Result;
 use crate::BarcodeFormat;
-use crate::oned::telepen_common::TelepenCommon;
+use crate::oned::TelepenCommon;
 
 use super::OneDimensionalCodeWriter;
 
@@ -43,7 +43,7 @@ impl OneDimensionalCodeWriter for TelepenWriter {
 
         // Content
         for c in contents.chars() {
-            if c as u8 > 127 {
+            if c as u32 > 127 {
                 return Err(Exceptions::illegal_argument_with(format!(
                     "Telepen only supports ASCII characters."
                 )));
@@ -197,6 +197,12 @@ mod TelepenWriterTestCase {
     };
 
     use super::TelepenWriter;
+
+    #[test]
+    #[should_panic]
+    fn testAsciiOnly() {
+        encode("АБВГДЕЁЖ");
+    }
 
     #[test]
     fn testEncode() {

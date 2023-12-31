@@ -19,8 +19,9 @@ use rxing_one_d_proc_derive::OneDReader;
 use crate::common::{BitArray, Result};
 use crate::Exceptions;
 use crate::RXingResult;
+use crate::DecodeHintValue;
 use crate::{point_f, BarcodeFormat};
-use crate::oned::telepen_common::TelepenCommon;
+use crate::oned::TelepenCommon;
 use bit_reverse::ParallelReverse;
 
 use super::OneDReader;
@@ -51,7 +52,7 @@ impl OneDReader for TelepenReader {
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
-        _hints: &crate::DecodingHintDictionary,
+        hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult> {
         self.counters.fill(0);
         self.setCounters(row, (row.get_size() as f32 * 0.001) as u32)?;
@@ -214,7 +215,7 @@ impl OneDReader for TelepenReader {
 
         // Content bytes
         let contentBytes = bytes[1 .. byteLength - 2].to_vec();
-        let contentString = String::from_utf8_lossy(&contentBytes);
+        let mut contentString = String::from_utf8_lossy(&contentBytes).to_string();
 
         // Penultimate byte is a block check character.
         let check = bytes[byteLength - 2];
@@ -224,6 +225,13 @@ impl OneDReader for TelepenReader {
         // Validate checksum
         if check != checksum as u8 {
             return Err(Exceptions::NOT_FOUND);
+        }
+
+        if matches!(
+            hints.get(&DecodeHintType::TELEPEN_AS_NUMERIC),
+            Some(DecodeHintValue::TelepenAsNumeric(true))
+        ) {
+            contentString = TelepenCommon::ascii_to_numeric(&contentString);
         }
 
         let mut runningCount = 0;
