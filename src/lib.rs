@@ -2,11 +2,14 @@
 #![allow(non_camel_case_types)]
 
 pub mod aztec;
-pub mod client;
+
 pub mod common;
 mod exceptions;
 pub mod maxicode;
 pub mod qrcode;
+
+#[cfg(feature = "client_support")]
+pub mod client;
 
 use std::{collections::HashMap, rc::Rc};
 

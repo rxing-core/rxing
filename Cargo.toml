@@ -66,6 +66,9 @@ serde = ["dep:serde"]
 #/// Adds otsu binarizer support using imageproc
 otsu_level = ["image"]
 
+#/// Adds "client" features do decode many common data formats found in barcodes
+client_support = []
+
 [workspace]
 members = [
     "crates/one-d-proc-derive",
