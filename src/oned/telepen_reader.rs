@@ -20,8 +20,8 @@ use crate::common::{BitArray, Result};
 use crate::Exceptions;
 use crate::RXingResult;
 use crate::DecodeHintValue;
+use crate::oned::telepen_common;
 use crate::{point_f, BarcodeFormat};
-use crate::oned::TelepenCommon;
 use bit_reverse::ParallelReverse;
 
 use super::OneDReader;
@@ -180,6 +180,12 @@ impl OneDReader for TelepenReader {
         }
 
         let byteLength = bits.getSizeInBytes();
+
+        // Any Telepen barcode will be longer than two bytes.
+        if byteLength < 3 {
+            return Err(Exceptions::NOT_FOUND);
+        }
+
         let mut bytes: Vec<u8> = vec![0; byteLength];
         bits.toBytes(0, bytes.as_mut_slice(), 0, byteLength);
 
@@ -220,7 +226,7 @@ impl OneDReader for TelepenReader {
         // Penultimate byte is a block check character.
         let check = bytes[byteLength - 2];
 
-        let checksum = TelepenCommon::calculate_checksum(&contentString);
+        let checksum = telepen_common::calculate_checksum(&contentString);
         
         // Validate checksum
         if check != checksum as u8 {
@@ -231,7 +237,7 @@ impl OneDReader for TelepenReader {
             hints.get(&DecodeHintType::TELEPEN_AS_NUMERIC),
             Some(DecodeHintValue::TelepenAsNumeric(true))
         ) {
-            contentString = TelepenCommon::ascii_to_numeric(&contentString);
+            contentString = telepen_common::ascii_to_numeric(&contentString);
         }
 
         let mut runningCount = 0;
@@ -426,9 +432,5 @@ impl TelepenReader {
             }
         }
         return Ok((self.counterLength - 1) as u32);
-    }
-
-    pub fn arrayContains(array: &[char], key: char) -> bool {
-        array.contains(&key)
     }
 }

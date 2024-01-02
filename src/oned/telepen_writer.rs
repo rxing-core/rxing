@@ -18,7 +18,7 @@ use rxing_one_d_proc_derive::OneDWriter;
 use regex::Regex;
 use crate::common::Result;
 use crate::BarcodeFormat;
-use crate::oned::TelepenCommon;
+use crate::oned::telepen_common;
 
 use super::OneDimensionalCodeWriter;
 
@@ -44,11 +44,11 @@ impl OneDimensionalCodeWriter for TelepenWriter {
             hints.get(&EncodeHintType::TELEPEN_AS_NUMERIC),
             Some(EncodeHintValue::TelepenAsNumeric(true))
         ) {
-            decodedContents = TelepenCommon::numeric_to_ascii(&contents).unwrap();
+            decodedContents = telepen_common::numeric_to_ascii(&contents)?;
         }
 
         // Calculate the checksum character
-        let checksum = TelepenCommon::calculate_checksum(&decodedContents);
+        let checksum = telepen_common::calculate_checksum(&decodedContents);
         
         // Build binary string
         let mut binary = String::new();
@@ -80,78 +80,80 @@ impl OneDimensionalCodeWriter for TelepenWriter {
         let mut resultPosition = 0;
 
         for b in matches {
-            if b == "010" {
-                // BBB...
-                result[resultPosition] = true;
-                result[resultPosition + 1] = true;
-                result[resultPosition + 2] = true;
-                result[resultPosition + 3] = false;
-                result[resultPosition + 4] = false;
-                result[resultPosition + 5] = false;
+            match b {
+                "010" => {
+                    // BBB...
+                    result[resultPosition] = true;
+                    result[resultPosition + 1] = true;
+                    result[resultPosition + 2] = true;
+                    result[resultPosition + 3] = false;
+                    result[resultPosition + 4] = false;
+                    result[resultPosition + 5] = false;
 
-                resultPosition += 6;
-            }
-            else if b == "00" {
-                // BBB.
-                result[resultPosition] = true;
-                result[resultPosition + 1] = true;
-                result[resultPosition + 2] = true;
-                result[resultPosition + 3] = false;
+                    resultPosition += 6;
+                },
+                "00" => {
+                    // BBB.
+                    result[resultPosition] = true;
+                    result[resultPosition + 1] = true;
+                    result[resultPosition + 2] = true;
+                    result[resultPosition + 3] = false;
 
-                resultPosition += 4;
-            }
-            else if b == "1" {
-                // B.
-                result[resultPosition] = true;
-                result[resultPosition + 1] = false;
-
-                resultPosition += 2;
-            }
-            else if b == "01" {
-                // B...
-                result[resultPosition] = true;
-                result[resultPosition + 1] = false;
-                result[resultPosition + 2] = false;
-                result[resultPosition + 3] = false;
-
-                resultPosition += 4;
-            }
-            else if b == "10" {
-                // B...
-                result[resultPosition] = true;
-                result[resultPosition + 1] = false;
-                result[resultPosition + 2] = false;
-                result[resultPosition + 3] = false;
-
-                resultPosition += 4;
-            }
-            else if b == "0" {
-                return Err(Exceptions::illegal_argument_with(format!(
-                    "Invalid bit combination!"
-                )));
-            }
-            else {
-                // B... (B.)* B...
-                result[resultPosition] = true;
-                result[resultPosition + 1] = false;
-                result[resultPosition + 2] = false;
-                result[resultPosition + 3] = false;
-
-                resultPosition += 4;
-
-                for _j in 2 .. b.len() - 2 {
+                    resultPosition += 4;
+                },
+                "1" => {
+                    // B.
                     result[resultPosition] = true;
                     result[resultPosition + 1] = false;
 
                     resultPosition += 2;
+                },
+                "01" => {
+                    // B...
+                    result[resultPosition] = true;
+                    result[resultPosition + 1] = false;
+                    result[resultPosition + 2] = false;
+                    result[resultPosition + 3] = false;
+
+                    resultPosition += 4;
+                },
+                "10" => {
+                    // B...
+                    result[resultPosition] = true;
+                    result[resultPosition + 1] = false;
+                    result[resultPosition + 2] = false;
+                    result[resultPosition + 3] = false;
+
+                    resultPosition += 4;
+                },
+                "0" => {
+                    return Err(Exceptions::illegal_argument_with(format!(
+                        "Invalid bit combination!"
+                    )));
+                },
+                _ => {
+                    // B... (B.)* B...
+                    result[resultPosition] = true;
+                    result[resultPosition + 1] = false;
+                    result[resultPosition + 2] = false;
+                    result[resultPosition + 3] = false;
+
+                    resultPosition += 4;
+
+                    for _j in 2 .. b.len() - 2 {
+                        result[resultPosition] = true;
+                        result[resultPosition + 1] = false;
+
+                        resultPosition += 2;
+                    }
+
+                    result[resultPosition] = true;
+                    result[resultPosition + 1] = false;
+                    result[resultPosition + 2] = false;
+                    result[resultPosition + 3] = false;
+
+                    resultPosition += 4;
                 }
-
-                result[resultPosition] = true;
-                result[resultPosition + 1] = false;
-                result[resultPosition + 2] = false;
-                result[resultPosition + 3] = false;
-
-                resultPosition += 4;
             }
         }
 

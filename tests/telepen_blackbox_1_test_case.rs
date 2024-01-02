@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use rxing::{oned::TelepenReader, BarcodeFormat, oned::TelepenCommon};
+use rxing::{oned::TelepenReader, BarcodeFormat};
 
 mod common;
 
@@ -50,40 +50,4 @@ fn telepen_numeric_test_case() {
     tester.ignore_pure = true;
 
     tester.test_black_box();
-}
-
-#[test]
-fn telepen_checksum_test1() {
-    let contents = "Hello world!";
-    let checksum = TelepenCommon::calculate_checksum(contents);
-    assert_eq!('\u{1a}', checksum);
-}
-
-#[test]
-fn telepen_checksum_test2() {
-    let contents = "ABC123456";
-    let checksum = TelepenCommon::calculate_checksum(contents);
-    assert_eq!('\u{1}', checksum);
-}
-
-#[test]
-fn telepen_alpha_to_numeric_test() {
-    let mut ascii = "'=Siu";
-    let mut result = TelepenCommon::ascii_to_numeric(ascii);
-    assert_eq!("1234567890", result);
-
-    ascii = "& oe";
-    result = TelepenCommon::ascii_to_numeric(ascii);
-    assert_eq!("11058474", result);
-}
-
-#[test]
-fn telepen_numeric_to_ascii_test() {
-    let mut numeric = "1234567890";
-    let mut result = TelepenCommon::numeric_to_ascii(numeric).unwrap();
-    assert_eq!("'=Siu", result);
-
-    numeric = "11058474";
-    result = TelepenCommon::numeric_to_ascii(numeric).unwrap();
-    assert_eq!("& oe", result);
 }
