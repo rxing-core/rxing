@@ -26,10 +26,10 @@ pub mod TelepenCommon {
             let temp = contents.chars().nth(i).unwrap() as u32;
 
             if temp >= 27 {
-                number.push_str(&(temp - 27).to_string());
+                number.push_str(&format!("{:0>2}", (temp - 27)));
             }
             else {
-                number.push_str(&(temp - 17).to_string());
+                number.push_str(&format!("{:0>2}", (temp - 17)));
             }
         }
         

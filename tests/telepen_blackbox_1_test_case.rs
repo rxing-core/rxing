@@ -45,7 +45,7 @@ fn telepen_numeric_test_case() {
         BarcodeFormat::TELEPEN,
     );
 
-    tester.add_test_complex(1, 1, 0, 0, 0.0);
+    tester.add_test_complex(7, 1, 0, 0, 0.0);
     tester.add_hint(rxing::DecodeHintType::TELEPEN_AS_NUMERIC, rxing::DecodeHintValue::TelepenAsNumeric(true));
     tester.ignore_pure = true;
 
@@ -68,14 +68,22 @@ fn telepen_checksum_test2() {
 
 #[test]
 fn telepen_alpha_to_numeric_test() {
-    let ascii = "'=Siu";
-    let result = TelepenCommon::ascii_to_numeric(ascii);
+    let mut ascii = "'=Siu";
+    let mut result = TelepenCommon::ascii_to_numeric(ascii);
     assert_eq!("1234567890", result);
+
+    ascii = "& oe";
+    result = TelepenCommon::ascii_to_numeric(ascii);
+    assert_eq!("11058474", result);
 }
 
 #[test]
 fn telepen_numeric_to_ascii_test() {
-    let numeric = "1234567890";
-    let result = TelepenCommon::numeric_to_ascii(numeric).unwrap();
+    let mut numeric = "1234567890";
+    let mut result = TelepenCommon::numeric_to_ascii(numeric).unwrap();
     assert_eq!("'=Siu", result);
+
+    numeric = "11058474";
+    result = TelepenCommon::numeric_to_ascii(numeric).unwrap();
+    assert_eq!("& oe", result);
 }
