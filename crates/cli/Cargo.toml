@@ -1,6 +1,6 @@
 [package]
 name = "rxing-cli"
-version = "0.1.16"
+version = "0.1.17"
 edition = "2021"
 description = "A command line interface for rxing supporting encoding and decoding of multiple barcode formats"
 license="Apache-2.0"
