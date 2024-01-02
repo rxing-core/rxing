@@ -32,8 +32,23 @@ pub struct TelepenWriter;
 
 impl OneDimensionalCodeWriter for TelepenWriter {
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
+        self.encode_oned_with_hints(contents, &HashMap::new())
+    }
+
+    fn encode_oned_with_hints(&self, contents: &str,
+        hints: &crate::EncodingHintDictionary) -> Result<Vec<bool>> {
+
+        let mut decodedContents = contents.to_string();
+
+        if matches!(
+            hints.get(&EncodeHintType::TELEPEN_AS_NUMERIC),
+            Some(EncodeHintValue::TelepenAsNumeric(true))
+        ) {
+            decodedContents = TelepenCommon::numeric_to_ascii(&contents).unwrap();
+        }
+
         // Calculate the checksum character
-        let checksum = TelepenCommon::calculate_checksum(contents);
+        let checksum = TelepenCommon::calculate_checksum(&decodedContents);
         
         // Build binary string
         let mut binary = String::new();
@@ -42,7 +57,7 @@ impl OneDimensionalCodeWriter for TelepenWriter {
         binary = self.add_to_binary('_', binary);
 
         // Content
-        for c in contents.chars() {
+        for c in decodedContents.chars() {
             if c as u32 > 127 {
                 return Err(Exceptions::illegal_argument_with(format!(
                     "Telepen only supports ASCII characters."
@@ -191,9 +206,11 @@ impl TelepenWriter {
  */
 #[cfg(test)]
 mod TelepenWriterTestCase {
+    use std::collections::HashMap;
+
     use crate::{
         common::{bit_matrix_test_case, BitMatrix},
-        BarcodeFormat, Writer,
+        BarcodeFormat, Writer, EncodeHintType, EncodeHintValue,
     };
 
     use super::TelepenWriter;
@@ -211,19 +228,47 @@ mod TelepenWriterTestCase {
             concat!(
                 "00000",
                 "10101010101110001110111000111000101110001000100011101010100010001110101010001000101010101000100011101110111000101010101000101000101010101000100011100010001010001110101010001000111010111010101010111011101011101110001010111010111000101010101",
-                "00000"
+                "00000",
             ),
+            false
+        );
+
+        doTest(
+            "11058474",
+            concat!(
+                "00000",
+                "101010101011100010001000111000101110111011100010101010101000100010111000100010001010111010001000111000101010101",
+                "00000",
+            ),
+            true
         );
     }
     
-    fn doTest(input: &str, expected: &str) {
-        let result = encode(input);
+    fn doTest(input: &str, expected: &str, numeric: bool) {
+        let result: BitMatrix;
+        
+        if numeric {
+            result = encode_with_hints(input);
+        }
+        else {
+            result = encode(input);
+        };
+
         assert_eq!(expected, bit_matrix_test_case::matrix_to_string(&result));
     }
 
     fn encode(input: &str) -> BitMatrix {
         TelepenWriter
             .encode(input, &BarcodeFormat::TELEPEN, 0, 0)
+            .expect("must encode")
+    }
+
+    fn encode_with_hints(input: &str) -> BitMatrix {
+        let mut hints = HashMap::new();
+        hints.insert(EncodeHintType::TELEPEN_AS_NUMERIC, EncodeHintValue::TelepenAsNumeric(true));
+
+        TelepenWriter
+            .encode_with_hints(input, &BarcodeFormat::TELEPEN, 0, 0, &hints)
             .expect("must encode")
     }
 }
