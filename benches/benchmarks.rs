@@ -7,8 +7,8 @@ use rxing::multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader};
 use rxing::oned::rss::expanded::RSSExpandedReader;
 use rxing::oned::rss::RSS14Reader;
 use rxing::oned::{
-    CodaBarReader, Code39Reader, Code93Reader, EAN13Reader, EAN8Reader, TelepenReader, ITFReader, UPCAReader,
-    UPCEReader,
+    CodaBarReader, Code39Reader, Code93Reader, EAN13Reader, EAN8Reader, ITFReader, TelepenReader,
+    UPCAReader, UPCEReader,
 };
 use rxing::pdf417::PDF417Reader;
 use rxing::qrcode::QRCodeReader;

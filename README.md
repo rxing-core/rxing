@@ -39,6 +39,7 @@ All barcode formats are tested and functioning in their current state against cu
 | upc e | complete | yes | yes |
 | rss-14 | complete | no | yes |
 | rss-expanded | complete | no | yes|
+| telepen | complete | yes | yes |
 
 Please note that currently UPC/EAN Extension 2/5 is supported.
 
@@ -81,6 +82,13 @@ fn main() {
 ```
 
 ## Latest Release Notes
+* *v0.5.0* -> Added support for [telepen](https://advanova.co.uk/wp-content/uploads/2022/05/Barcode-Symbology-information-and-History.pdf) thanks to the work of first time contributor [cpwood](https://github.com/cpwood).
+
+    This release also adds the ability to exclude building the "client" result parsing features. Currently part of the default
+    feature set, they can be disabled through the `client_support` feature.
+    This release fixes several build issues associated with the `chrono` crate and some deprecated function messages. This change
+    only impacts users building with the `client_support` feature.
+
 * *v0.4.6* -> Fixed an issue with pdf417 whitespace, rotation, and compaction. Fix courtesy of first time contribution from GitHub user agkyunromb.
 * *v0.4.4* -> Major update of QRCode support.
 

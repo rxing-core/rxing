@@ -46,7 +46,10 @@ fn telepen_numeric_test_case() {
     );
 
     tester.add_test_complex(7, 1, 0, 0, 0.0);
-    tester.add_hint(rxing::DecodeHintType::TELEPEN_AS_NUMERIC, rxing::DecodeHintValue::TelepenAsNumeric(true));
+    tester.add_hint(
+        rxing::DecodeHintType::TELEPEN_AS_NUMERIC,
+        rxing::DecodeHintValue::TelepenAsNumeric(true),
+    );
     tester.ignore_pure = true;
 
     tester.test_black_box();

@@ -1,5 +1,5 @@
-use crate::Exceptions;
 use crate::common::Result;
+use crate::Exceptions;
 
 pub fn calculate_checksum(contents: &str) -> char {
     let mut sum = 0;
@@ -12,8 +12,7 @@ pub fn calculate_checksum(contents: &str) -> char {
     let diff = 127 - remainder;
     return if diff != 127 {
         diff as u8 as char
-    }
-    else {
+    } else {
         0 as char
     };
 }
@@ -24,18 +23,19 @@ pub fn ascii_to_numeric(contents: &str) -> String {
     for c in contents.chars().map(|x| x as u32) {
         if c >= 27 {
             number.push_str(&format!("{:0>2}", (c - 27)));
-        }
-        else {
+        } else {
             number.push_str(&format!("{:0>2}", (c - 17)));
         }
     }
-    
+
     return number;
 }
 
 pub fn numeric_to_ascii(contents: &str) -> Result<String> {
     if contents.len() % 2 != 0 {
-        return Err(Exceptions::illegal_argument_with("Input must contain an even number of characters."));
+        return Err(Exceptions::illegal_argument_with(
+            "Input must contain an even number of characters.",
+        ));
     }
 
     let mut ascii = String::new();
@@ -47,12 +47,13 @@ pub fn numeric_to_ascii(contents: &str) -> Result<String> {
 
         if second == 88 && first >= 48 && first <= 57 {
             ascii.push((17 + first - 48) as char);
-        }
-        else if second >= 48 && second <= 57 && first >= 48 && first <= 57 {
+        } else if second >= 48 && second <= 57 && first >= 48 && first <= 57 {
             ascii.push((27 + (first - 48) * 10 + (second - 48)) as char);
-        }
-        else {
-            return Err(Exceptions::illegal_argument_with(format!("Input contains an invalid character around position {}.", i.to_string())));
+        } else {
+            return Err(Exceptions::illegal_argument_with(format!(
+                "Input contains an invalid character around position {}.",
+                i.to_string()
+            )));
         }
 
         i += 2;

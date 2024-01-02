@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-use rxing_one_d_proc_derive::OneDWriter;
-use regex::Regex;
 use crate::common::Result;
-use crate::BarcodeFormat;
 use crate::oned::telepen_common;
+use crate::BarcodeFormat;
+use regex::Regex;
+use rxing_one_d_proc_derive::OneDWriter;
 
 use super::OneDimensionalCodeWriter;
 
@@ -35,9 +35,11 @@ impl OneDimensionalCodeWriter for TelepenWriter {
         self.encode_oned_with_hints(contents, &HashMap::new())
     }
 
-    fn encode_oned_with_hints(&self, contents: &str,
-        hints: &crate::EncodingHintDictionary) -> Result<Vec<bool>> {
-
+    fn encode_oned_with_hints(
+        &self,
+        contents: &str,
+        hints: &crate::EncodingHintDictionary,
+    ) -> Result<Vec<bool>> {
         let mut decodedContents = contents.to_string();
 
         if matches!(
@@ -49,7 +51,7 @@ impl OneDimensionalCodeWriter for TelepenWriter {
 
         // Calculate the checksum character
         let checksum = telepen_common::calculate_checksum(&decodedContents);
-        
+
         // Build binary string
         let mut binary = String::new();
 
@@ -91,7 +93,7 @@ impl OneDimensionalCodeWriter for TelepenWriter {
                     result[resultPosition + 5] = false;
 
                     resultPosition += 6;
-                },
+                }
                 "00" => {
                     // BBB.
                     result[resultPosition] = true;
@@ -100,14 +102,14 @@ impl OneDimensionalCodeWriter for TelepenWriter {
                     result[resultPosition + 3] = false;
 
                     resultPosition += 4;
-                },
+                }
                 "1" => {
                     // B.
                     result[resultPosition] = true;
                     result[resultPosition + 1] = false;
 
                     resultPosition += 2;
-                },
+                }
                 "01" => {
                     // B...
                     result[resultPosition] = true;
@@ -116,7 +118,7 @@ impl OneDimensionalCodeWriter for TelepenWriter {
                     result[resultPosition + 3] = false;
 
                     resultPosition += 4;
-                },
+                }
                 "10" => {
                     // B...
                     result[resultPosition] = true;
@@ -125,12 +127,12 @@ impl OneDimensionalCodeWriter for TelepenWriter {
                     result[resultPosition + 3] = false;
 
                     resultPosition += 4;
-                },
+                }
                 "0" => {
                     return Err(Exceptions::illegal_argument_with(format!(
                         "Invalid bit combination!"
                     )));
-                },
+                }
                 _ => {
                     // B... (B.)* B...
                     result[resultPosition] = true;
@@ -140,7 +142,7 @@ impl OneDimensionalCodeWriter for TelepenWriter {
 
                     resultPosition += 4;
 
-                    for _j in 2 .. b.len() - 2 {
+                    for _j in 2..b.len() - 2 {
                         result[resultPosition] = true;
                         result[resultPosition + 1] = false;
 
@@ -157,7 +159,7 @@ impl OneDimensionalCodeWriter for TelepenWriter {
             }
         }
 
-        Ok(result[0 .. resultPosition - 1].to_vec())
+        Ok(result[0..resultPosition - 1].to_vec())
     }
 
     fn getSupportedWriteFormats(&self) -> Option<Vec<crate::BarcodeFormat>> {
@@ -189,14 +191,9 @@ impl TelepenWriter {
     fn add_to_binary(&self, c: char, mut binary: String) -> String {
         let byte = c as u8;
         let bits = self.get_bits(byte);
-        
+
         for i in 0..8 {
-            binary.push(if bits[i] {
-                '1'
-            }
-            else {
-                '0'
-            });
+            binary.push(if bits[i] { '1' } else { '0' });
         }
 
         return binary;
@@ -212,7 +209,7 @@ mod TelepenWriterTestCase {
 
     use crate::{
         common::{bit_matrix_test_case, BitMatrix},
-        BarcodeFormat, Writer, EncodeHintType, EncodeHintValue,
+        BarcodeFormat, EncodeHintType, EncodeHintValue, Writer,
     };
 
     use super::TelepenWriter;
@@ -245,14 +242,13 @@ mod TelepenWriterTestCase {
             true
         );
     }
-    
+
     fn doTest(input: &str, expected: &str, numeric: bool) {
         let result: BitMatrix;
-        
+
         if numeric {
             result = encode_with_hints(input);
-        }
-        else {
+        } else {
             result = encode(input);
         };
 
@@ -267,7 +263,10 @@ mod TelepenWriterTestCase {
 
     fn encode_with_hints(input: &str) -> BitMatrix {
         let mut hints = HashMap::new();
-        hints.insert(EncodeHintType::TELEPEN_AS_NUMERIC, EncodeHintValue::TelepenAsNumeric(true));
+        hints.insert(
+            EncodeHintType::TELEPEN_AS_NUMERIC,
+            EncodeHintValue::TelepenAsNumeric(true),
+        );
 
         TelepenWriter
             .encode_with_hints(input, &BarcodeFormat::TELEPEN, 0, 0, &hints)

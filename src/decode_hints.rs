@@ -126,7 +126,6 @@ pub enum DecodeHintType {
      * Will translate the ASCII values parsed by the Telepen reader into the Telepen Numeric form.
      */
     TELEPEN_AS_NUMERIC,
-
     /*
      * Data type the hint is expecting.
      * Among the possible values the {@link Void} stands out as being used for

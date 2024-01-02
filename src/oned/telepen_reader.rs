@@ -17,10 +17,10 @@
 use rxing_one_d_proc_derive::OneDReader;
 
 use crate::common::{BitArray, Result};
+use crate::oned::telepen_common;
+use crate::DecodeHintValue;
 use crate::Exceptions;
 use crate::RXingResult;
-use crate::DecodeHintValue;
-use crate::oned::telepen_common;
 use crate::{point_f, BarcodeFormat};
 use bit_reverse::ParallelReverse;
 
@@ -65,11 +65,11 @@ impl OneDReader for TelepenReader {
         let mut minBar = u32::MAX;
 
         // 0 position value will be whitespace prior to the barcode beginning
-        let mut j = startOffset; 
+        let mut j = startOffset;
 
         // Calculate a median bar / gap width by establishing the smallest and
         // largest gaps.
-        while j <= end { 
+        while j <= end {
             let currentCounter = theCounters[j];
             if currentCounter < minBar {
                 minBar = currentCounter;
@@ -118,19 +118,15 @@ impl OneDReader for TelepenReader {
                 if isBlack {
                     // Narrow black: B
                     pattern[patternLength] = 1;
-                }
-                else {
+                } else {
                     // Narrow white: .
                     pattern[patternLength] = 0;
                 }
-                
-            }
-            else {
+            } else {
                 if isBlack {
                     // Wide black: BBB
                     pattern[patternLength] = 3;
-                }
-                else {
+                } else {
                     // Wide white: ...
                     pattern[patternLength] = 2;
                 }
@@ -147,36 +143,31 @@ impl OneDReader for TelepenReader {
 
         // Convert narrow-wide sequence into bit array.
         while j < patternLength - 1 {
-            
             if pattern[j] == 3 && pattern[j + 1] == 2 {
                 // BBB... = 010
                 bits.appendBit(false);
                 bits.appendBit(true);
                 bits.appendBit(false);
-            }
-            else if pattern[j] == 3 && pattern[j + 1] == 0 {
+            } else if pattern[j] == 3 && pattern[j + 1] == 0 {
                 // BBB. = 00
                 bits.appendBit(false);
                 bits.appendBit(false);
-            }
-            else if pattern[j] == 1 && pattern[j + 1] == 2 && state == 0 {
+            } else if pattern[j] == 1 && pattern[j + 1] == 2 && state == 0 {
                 // B... = 01
                 bits.appendBit(false);
                 bits.appendBit(true);
                 state = 1;
-            }
-            else if pattern[j] == 1 && pattern[j + 1] == 2 && state == 1 {
+            } else if pattern[j] == 1 && pattern[j + 1] == 2 && state == 1 {
                 // B... = 10
                 bits.appendBit(true);
                 bits.appendBit(false);
                 state = 0;
-            }
-            else if pattern[j] == 1 && pattern[j + 1] == 0 {
+            } else if pattern[j] == 1 && pattern[j + 1] == 0 {
                 // B. = 1
                 bits.appendBit(true);
             }
 
-            j += 2; 
+            j += 2;
         }
 
         let byteLength = bits.getSizeInBytes();
@@ -192,8 +183,8 @@ impl OneDReader for TelepenReader {
         j = 0;
 
         // Tweak our byte array to clean things up a little.
-        while j <  byteLength {
-            // Telepen is little-endian, so need to swap the 
+        while j < byteLength {
+            // Telepen is little-endian, so need to swap the
             // bits around for each byte to be correct.
             bytes[j] = bytes[j].swap_bits();
 
@@ -220,14 +211,14 @@ impl OneDReader for TelepenReader {
         }
 
         // Content bytes
-        let contentBytes = bytes[1 .. byteLength - 2].to_vec();
+        let contentBytes = bytes[1..byteLength - 2].to_vec();
         let mut contentString = String::from_utf8_lossy(&contentBytes).to_string();
 
         // Penultimate byte is a block check character.
         let check = bytes[byteLength - 2];
 
         let checksum = telepen_common::calculate_checksum(&contentString);
-        
+
         // Validate checksum
         if check != checksum as u8 {
             return Err(Exceptions::NOT_FOUND);
@@ -272,7 +263,6 @@ impl OneDReader for TelepenReader {
     }
 }
 impl TelepenReader {
-    
     pub fn new() -> Self {
         Self {
             counters: vec![0; 80], //Vec::with_capacity(80),
@@ -302,15 +292,13 @@ impl TelepenReader {
         while i < end {
             if row.get(i) == currentColor {
                 count += 1;
-            }
-            else {
+            } else {
                 if count >= minToleratedWidth || self.counterLength == 0 {
                     self.counterAppend(count);
-                }
-                else {
-                    // Noise from previous bar. Treat it as the 
+                } else {
+                    // Noise from previous bar. Treat it as the
                     // previous colour.
-                    self.counters[self.counterLength - 1] += count; 
+                    self.counters[self.counterLength - 1] += count;
                 }
 
                 count = 1;
@@ -322,11 +310,10 @@ impl TelepenReader {
 
         if count >= minToleratedWidth {
             self.counterAppend(count);
-        }
-        else {
-            // Noise from previous bar. Treat it as the 
+        } else {
+            // Noise from previous bar. Treat it as the
             // previous colour.
-            self.counters[self.counterLength - 1] += count; 
+            self.counters[self.counterLength - 1] += count;
         }
 
         Ok(())
@@ -349,19 +336,19 @@ impl TelepenReader {
 
         let mut i = 0;
         while i < self.counterLength - 20 {
-            // Read next 20 in sequence. All 20 must be either between 28% and 38% 
+            // Read next 20 in sequence. All 20 must be either between 28% and 38%
             // of biggest, or between 90% to 100% of biggest.
             let mut j = 0;
             let mut maxBar: f32 = 0.0;
             let mut minBar: f32 = f32::MAX;
 
-            while  i + j < self.counterLength && j < 20 {
+            while i + j < self.counterLength && j < 20 {
                 if (self.counters[i + j] as f32) > maxBar {
                     maxBar = self.counters[i + j] as f32;
                 }
 
-                if (self.counters[ i + j] as f32) < minBar {
-                    minBar = self.counters[ i + j] as f32;
+                if (self.counters[i + j] as f32) < minBar {
+                    minBar = self.counters[i + j] as f32;
                 }
 
                 j += 1;
@@ -374,14 +361,13 @@ impl TelepenReader {
 
             // First 10 items must be:
             //    N-N-N-N-N-N-N-N-N-N-W
-            while  i + j < self.counterLength && j < 11 {
+            while i + j < self.counterLength && j < 11 {
                 if j < 10 {
                     // Narrow
                     if (self.counters[i + j] as f32) > median {
                         passed = false;
                         break;
-                    }
-                    else if j == 10 {
+                    } else if j == 10 {
                         // Wide
                         if (self.counters[i + j] as f32) < median {
                             passed = false;
@@ -408,12 +394,12 @@ impl TelepenReader {
 
         let mut i = start;
         while i < self.counterLength {
-            // Read next 20 in sequence. All 20 must be either between 28% and 38% 
+            // Read next 20 in sequence. All 20 must be either between 28% and 38%
             // of biggest, or between 90% to 100% of biggest.
             let mut j = 0;
             let mut maxBar: f32 = 0.0;
 
-            while  i + j < self.counterLength && j < 20 {
+            while i + j < self.counterLength && j < 20 {
                 if (self.counters[i + j] as f32) > maxBar {
                     maxBar = self.counters[i + j] as f32;
                 }
