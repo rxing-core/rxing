@@ -27,7 +27,7 @@
 // import java.util.regex.Matcher;
 // import java.util.regex.Pattern;
 
-use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
+use chrono::{DateTime, NaiveDateTime};
 use chrono_tz::Tz;
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -51,6 +51,9 @@ static DATE_TIME: Lazy<Regex> = Lazy::new(|| Regex::new("[0-9]{8}(T[0-9]{6}Z?)?"
 static RFC2445_DURATION: Lazy<Regex> = Lazy::new(|| {
     Regex::new("P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?").unwrap()
 });
+
+const YMD_THMS_FORMAT: &str = "%Y%m%dT%H%M%S";
+const YMD_THMSZ_FORMAT: &str = "%Y%m%dT%H%M%SZ";
 
 // const DATE_TIME: &'static str = "[0-9]{8}(T[0-9]{6}Z?)?";
 
@@ -123,23 +126,6 @@ impl CalendarParsedRXingResult {
             Self::parseDate(endString.clone())?
         };
 
-        // try {
-        //   this.start = parseDate(startString);
-        // } catch (ParseException pe) {
-        //   throw new IllegalArgumentException(pe.toString());
-        // }
-
-        // if (endString == null) {
-        //   long durationMS = parseDurationMS(durationString);
-        //   end = durationMS < 0L ? -1L : start + durationMS;
-        // } else {
-        //   try {
-        //     this.end = parseDate(endString);
-        //   } catch (ParseException pe) {
-        //     throw new IllegalArgumentException(pe.toString());
-        //   }
-        // }
-
         let startAllDay = startString.len() == 8;
         let endAllDay = !endString.is_empty() && endString.len() == 8;
 
@@ -171,12 +157,15 @@ impl CalendarParsedRXingResult {
         }
         if when.len() == 8 {
             // Show only year/month/day
-            let date_format_string = "%Y%m%dT%H%M%SZ";
+            let date_format_string = YMD_THMSZ_FORMAT;
             // DateFormat format = new SimpleDateFormat("yyyyMMdd", Locale.ENGLISH);
             // For dates without a time, for purposes of interacting with Android, the resulting timestamp
             // needs to be midnight of that day in GMT. See:
             // http://code.google.com/p/android/issues/detail?id=8330
-            return match Utc.datetime_from_str(&format!("{}T000000Z", &when,), date_format_string) {
+            return match NaiveDateTime::parse_from_str(
+                &format!("{}T000000Z", &when,),
+                date_format_string,
+            ) {
                 Ok(dtm) => Ok(dtm.timestamp()),
                 Err(e) => Err(Exceptions::parse_with(e.to_string())),
             };
@@ -189,8 +178,8 @@ impl CalendarParsedRXingResult {
                 .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
                 == 'Z'
         {
-            return match Utc.datetime_from_str(&when, "%Y%m%dT%H%M%SZ") {
-                Ok(dtm) => Ok(dtm.with_timezone(&Utc).timestamp()),
+            return match NaiveDateTime::parse_from_str(&when, YMD_THMSZ_FORMAT) {
+                Ok(dtm) => Ok(dtm.and_utc().timestamp()),
                 Err(e) => Err(Exceptions::parse_with(format!(
                     "couldn't parse string: {e}"
                 ))),
@@ -208,8 +197,9 @@ impl CalendarParsedRXingResult {
                     )))
                 }
             };
-            return match Utc.datetime_from_str(time_part, "%Y%m%dT%H%M%S") {
-                Ok(dtm) => Ok(dtm.with_timezone(&tz_parsed).timestamp()),
+
+            return match NaiveDateTime::parse_from_str(time_part, YMD_THMS_FORMAT) {
+                Ok(dtm) => Ok(dtm.and_utc().with_timezone(&tz_parsed).timestamp()),
                 Err(e) => Err(Exceptions::parse_with(format!(
                     "couldn't parse string: {e}"
                 ))),
@@ -218,7 +208,7 @@ impl CalendarParsedRXingResult {
 
         // Try a final time with an exact length
         if when.len() == 15 {
-            return match Utc.datetime_from_str(&when, "%Y%m%dT%H%M%S") {
+            return match NaiveDateTime::parse_from_str(&when, YMD_THMS_FORMAT) {
                 Ok(dtm) => Ok(dtm.timestamp()),
                 Err(e) => Err(Exceptions::parse_with(format!(
                     "couldn't parse local time: {e}"
@@ -267,21 +257,10 @@ impl CalendarParsedRXingResult {
         } else {
             Ok(-1)
         }
-        // if (!m.matches()) {
-        //   return -1L;
-        // }
-        // long durationMS = 0L;
-        // for (int i = 0; i < RFC2445_DURATION_FIELD_UNITS.length; i++) {
-        //   String fieldValue = m.group(i + 1);
-        //   if (fieldValue != null) {
-        //     durationMS += RFC2445_DURATION_FIELD_UNITS[i] * Integer.parseInt(fieldValue);
-        //   }
-        // }
-        // return durationMS;
     }
 
     fn parseDateTimeString(dateTimeString: &str) -> Result<i64> {
-        if let Ok(dtm) = DateTime::parse_from_str(dateTimeString, "%Y%m%dT%H%M%S") {
+        if let Ok(dtm) = DateTime::parse_from_str(dateTimeString, YMD_THMS_FORMAT) {
             Ok(dtm.timestamp())
         } else {
             Err(Exceptions::parse_with(format!(
