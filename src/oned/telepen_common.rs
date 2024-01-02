@@ -10,11 +10,11 @@ pub fn calculate_checksum(contents: &str) -> char {
 
     let remainder = sum % 127;
     let diff = 127 - remainder;
-    return if diff != 127 {
+    if diff != 127 {
         diff as u8 as char
     } else {
         0 as char
-    };
+    }
 }
 
 pub fn ascii_to_numeric(contents: &str) -> String {
@@ -28,7 +28,7 @@ pub fn ascii_to_numeric(contents: &str) -> String {
         }
     }
 
-    return number;
+    number
 }
 
 pub fn numeric_to_ascii(contents: &str) -> Result<String> {
@@ -45,21 +45,21 @@ pub fn numeric_to_ascii(contents: &str) -> Result<String> {
         let first = contents.chars().nth(i).unwrap() as u8;
         let second = contents.chars().nth(i + 1).unwrap() as u8;
 
-        if second == 88 && first >= 48 && first <= 57 {
+        if second == 88 && (48..=57).contains(&first) {
             ascii.push((17 + first - 48) as char);
-        } else if second >= 48 && second <= 57 && first >= 48 && first <= 57 {
+        } else if (48..=57).contains(&second) && (48..=57).contains(&first) {
             ascii.push((27 + (first - 48) * 10 + (second - 48)) as char);
         } else {
             return Err(Exceptions::illegal_argument_with(format!(
                 "Input contains an invalid character around position {}.",
-                i.to_string()
+                i
             )));
         }
 
         i += 2;
     }
 
-    return Ok(ascii);
+    Ok(ascii)
 }
 
 #[test]

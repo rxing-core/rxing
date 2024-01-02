@@ -46,7 +46,7 @@ impl OneDimensionalCodeWriter for TelepenWriter {
             hints.get(&EncodeHintType::TELEPEN_AS_NUMERIC),
             Some(EncodeHintValue::TelepenAsNumeric(true))
         ) {
-            decodedContents = telepen_common::numeric_to_ascii(&contents)?;
+            decodedContents = telepen_common::numeric_to_ascii(contents)?;
         }
 
         // Calculate the checksum character
@@ -61,9 +61,9 @@ impl OneDimensionalCodeWriter for TelepenWriter {
         // Content
         for c in decodedContents.chars() {
             if c as u32 > 127 {
-                return Err(Exceptions::illegal_argument_with(format!(
-                    "Telepen only supports ASCII characters."
-                )));
+                return Err(Exceptions::illegal_argument_with(
+                    "Telepen only supports ASCII characters.".to_string(),
+                ));
             }
 
             binary = self.add_to_binary(c, binary)
@@ -129,9 +129,9 @@ impl OneDimensionalCodeWriter for TelepenWriter {
                     resultPosition += 4;
                 }
                 "0" => {
-                    return Err(Exceptions::illegal_argument_with(format!(
-                        "Invalid bit combination!"
-                    )));
+                    return Err(Exceptions::illegal_argument_with(
+                        "Invalid bit combination!".to_string(),
+                    ));
                 }
                 _ => {
                     // B... (B.)* B...
@@ -185,7 +185,7 @@ impl TelepenWriter {
         // of 1s in the 8 bits.
         bits[7] = oneCount % 2 != 0;
 
-        return bits;
+        bits
     }
 
     fn add_to_binary(&self, c: char, mut binary: String) -> String {
@@ -196,7 +196,7 @@ impl TelepenWriter {
             binary.push(if bits[i] { '1' } else { '0' });
         }
 
-        return binary;
+        binary
     }
 }
 

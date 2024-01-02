@@ -122,14 +122,12 @@ impl OneDReader for TelepenReader {
                     // Narrow white: .
                     pattern[patternLength] = 0;
                 }
+            } else if isBlack {
+                // Wide black: BBB
+                pattern[patternLength] = 3;
             } else {
-                if isBlack {
-                    // Wide black: BBB
-                    pattern[patternLength] = 3;
-                } else {
-                    // Wide white: ...
-                    pattern[patternLength] = 2;
-                }
+                // Wide white: ...
+                pattern[patternLength] = 2;
             }
 
             patternLength += 1;
@@ -356,7 +354,7 @@ impl TelepenReader {
 
             j = 0;
 
-            let median = minBar as f32 + maxBar as f32 / 2.0;
+            let median = minBar + maxBar / 2.0;
             let mut passed = true;
 
             // First 10 items must be:
@@ -410,13 +408,13 @@ impl TelepenReader {
             i = start + 20;
 
             while i < self.counterLength {
-                if (self.counters[i] as f32) > (maxBar as f32 * (1.0 + TOLERANCE)) {
+                if (self.counters[i] as f32) > (maxBar * (1.0 + TOLERANCE)) {
                     return Ok((i - 1) as u32);
                 }
 
                 i += 1;
             }
         }
-        return Ok((self.counterLength - 1) as u32);
+        Ok((self.counterLength - 1) as u32)
     }
 }
