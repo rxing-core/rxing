@@ -32,6 +32,7 @@ resvg = {version = "0.35", optional = true, default-features=false}
 serde = { version = "1.0", features = ["derive", "rc"], optional = true }
 thiserror = "1.0.44"
 multimap = "0.9"
+bit_reverse = "0.1.8"
 
 [dev-dependencies]
 java-properties = "2.0"

@@ -23,6 +23,7 @@ use super::Code93Reader;
 use super::ITFReader;
 use super::MultiFormatUPCEANReader;
 use super::OneDReader;
+use super::TelepenReader;
 use crate::common::Result;
 use crate::DecodeHintValue;
 use crate::Exceptions;
@@ -104,6 +105,11 @@ impl OneDReader for MultiFormatOneDReader {
                     return Ok(res);
                 }
             }
+            if possible_formats.contains(&BarcodeFormat::TELEPEN) {
+                if let Ok(res) = TelepenReader::default().decode_row(row_number, row, hints) {
+                    return Ok(res);
+                }
+            }
         } else {
             if let Ok(res) =
                 MultiFormatUPCEANReader::new(internal_hints).decode_row(row_number, row, hints)
@@ -131,6 +137,9 @@ impl OneDReader for MultiFormatOneDReader {
                 return Ok(res);
             }
             if let Ok(res) = rss_expanded_reader.decode_row(row_number, row, hints) {
+                return Ok(res);
+            }
+            if let Ok(res) = TelepenReader::default().decode_row(row_number, row, hints) {
                 return Ok(res);
             }
         }

@@ -121,6 +121,12 @@ pub enum DecodeHintType {
      */
     #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
     QR_ASSUME_SPEC_CONFORM_INPUT,
+
+    /*
+     * Will translate the ASCII values parsed by the Telepen reader into the Telepen Numeric form.
+     */
+    TELEPEN_AS_NUMERIC,
+
     /*
      * Data type the hint is expecting.
      * Among the possible values the {@link Void} stands out as being used for
@@ -231,4 +237,9 @@ pub enum DecodeHintValue {
      */
     #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
     QrAssumeSpecConformInput(bool),
+
+    /**
+     * Translate the ASCII values parsed by the Telepen reader into the Telepen Numeric form; use {@link Boolean#TRUE}.
+     */
+    TelepenAsNumeric(bool),
 }

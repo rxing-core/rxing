@@ -22,7 +22,7 @@ use crate::{
     datamatrix::DataMatrixWriter,
     oned::{
         CodaBarWriter, Code128Writer, Code39Writer, Code93Writer, EAN13Writer, EAN8Writer,
-        ITFWriter, UPCAWriter, UPCEWriter,
+        ITFWriter, TelepenWriter, UPCAWriter, UPCEWriter,
     },
     pdf417::PDF417Writer,
     qrcode::QRCodeWriter,
@@ -70,6 +70,7 @@ impl Writer for MultiFormatWriter {
             BarcodeFormat::PDF_417 => Box::<PDF417Writer>::default(),
             BarcodeFormat::CODABAR => Box::<CodaBarWriter>::default(),
             BarcodeFormat::DATA_MATRIX => Box::<DataMatrixWriter>::default(),
+            BarcodeFormat::TELEPEN => Box::<TelepenWriter>::default(),
             BarcodeFormat::AZTEC => Box::<AztecWriter>::default(),
             _ => {
                 return Err(Exceptions::illegal_argument_with(format!(

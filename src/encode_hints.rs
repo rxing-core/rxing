@@ -180,6 +180,11 @@ pub enum EncodeHintType {
      * exclusive.
      */
     CODE128_COMPACT,
+
+    /*
+     * Will translate the numeric values received by the Telepen writer into the Telepen Alphanumeric form.
+     */
+    TELEPEN_AS_NUMERIC,
 }
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -333,4 +338,9 @@ pub enum EncodeHintValue {
      * exclusive.
      */
     Code128Compact(bool),
+
+    /**
+     * Translate the numeric values received by the Telepen reader into the Telepen Alphaumeric form; use {@link Boolean#TRUE}.
+     */
+    TelepenAsNumeric(bool),
 }
