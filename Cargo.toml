@@ -41,7 +41,7 @@ rand = "0.8.5"
 criterion = "0.5"
 
 [features]
-default = ["image"]
+default = ["image", "client_support"]
 #/// Enable features required for image manipulation and reading.
 image = ["dep:image", "dep:imageproc"]
 
@@ -66,6 +66,9 @@ serde = ["dep:serde"]
 
 #/// Adds otsu binarizer support using imageproc
 otsu_level = ["image"]
+
+#/// Adds "client" features do decode many common data formats found in barcodes
+client_support = []
 
 [workspace]
 members = [

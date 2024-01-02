@@ -31,6 +31,7 @@
 
 use std::collections::HashMap;
 
+#[cfg(feature = "client_support")]
 use crate::{
     client::result::{ExpandedProductParsedRXingResult, ParsedClientResult},
     common::GlobalHistogramBinarizer,
@@ -42,7 +43,7 @@ use crate::{
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
-
+#[cfg(feature = "client_support")]
 #[test]
 fn testDecodeRow2result2() {
     // (01)90012345678908(3103)001750
@@ -67,6 +68,7 @@ fn testDecodeRow2result2() {
     assertCorrectImage2result("2.png", expected);
 }
 
+#[cfg(feature = "client_support")]
 fn assertCorrectImage2result(fileName: &str, expected: ExpandedProductParsedRXingResult) {
     let path = format!("test_resources/blackbox/rssexpanded-1/{fileName}");
 
