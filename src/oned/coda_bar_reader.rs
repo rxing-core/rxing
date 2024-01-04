@@ -75,10 +75,7 @@ impl OneDReader for CodaBarReader {
             nextStart += 8;
             // Stop as soon as we see the end character.
             if self.decodeRowRXingResult.chars().count() > 1
-                && Self::arrayContains(
-                    &Self::STARTEND_ENCODING,
-                    Self::ALPHABET[charOffset as usize],
-                )
+                && Self::STARTEND_ENCODING.contains(&Self::ALPHABET[charOffset as usize])
             {
                 break;
             }
@@ -124,7 +121,7 @@ impl OneDReader for CodaBarReader {
             .chars()
             .next()
             .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
-        if !Self::arrayContains(&Self::STARTEND_ENCODING, startchar) {
+        if !Self::STARTEND_ENCODING.contains(&startchar) {
             return Err(Exceptions::NOT_FOUND);
         }
         let endchar = self
@@ -132,7 +129,7 @@ impl OneDReader for CodaBarReader {
             .chars()
             .nth(self.decodeRowRXingResult.chars().count() - 1)
             .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
-        if !Self::arrayContains(&Self::STARTEND_ENCODING, endchar) {
+        if !Self::STARTEND_ENCODING.contains(&endchar) {
             return Err(Exceptions::NOT_FOUND);
         }
 
@@ -345,10 +342,7 @@ impl CodaBarReader {
             // for (int i = 1; i < counterLength; i += 2) {
             let charOffset = self.toNarrowWidePattern(i);
             if charOffset != -1
-                && Self::arrayContains(
-                    &Self::STARTEND_ENCODING,
-                    Self::ALPHABET[charOffset as usize],
-                )
+                && Self::STARTEND_ENCODING.contains(&Self::ALPHABET[charOffset as usize])
             {
                 // Look for whitespace before start pattern, >= 50% of width of start pattern
                 // We make an exception if the whitespace is the first element.
@@ -364,10 +358,6 @@ impl CodaBarReader {
             i += 2;
         }
         Err(Exceptions::NOT_FOUND)
-    }
-
-    pub fn arrayContains(array: &[char], key: char) -> bool {
-        array.contains(&key)
     }
 
     // Assumes that counters[position] is a bar.

@@ -51,10 +51,10 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
                 .nth(contents.chars().count() - 1)
                 .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
                 .to_ascii_uppercase();
-            let startsNormal = CodaBarReader::arrayContains(&START_END_CHARS, firstChar);
-            let endsNormal = CodaBarReader::arrayContains(&START_END_CHARS, lastChar);
-            let startsAlt = CodaBarReader::arrayContains(&ALT_START_END_CHARS, firstChar);
-            let endsAlt = CodaBarReader::arrayContains(&ALT_START_END_CHARS, lastChar);
+            let startsNormal = START_END_CHARS.contains(&firstChar);
+            let endsNormal = START_END_CHARS.contains(&lastChar);
+            let startsAlt = ALT_START_END_CHARS.contains(&firstChar);
+            let endsAlt = ALT_START_END_CHARS.contains(&lastChar);
             if startsNormal {
                 if !endsNormal {
                     return Err(Exceptions::illegal_argument_with(format!(
@@ -88,10 +88,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
         for ch in contents[1..contents.chars().count() - 1].chars() {
             if ch.is_ascii_digit() || ch == '-' || ch == '$' {
                 resultLength += 9;
-            } else if CodaBarReader::arrayContains(
-                &CHARS_WHICH_ARE_TEN_LENGTH_EACH_AFTER_DECODED,
-                ch,
-            ) {
+            } else if CHARS_WHICH_ARE_TEN_LENGTH_EACH_AFTER_DECODED.contains(&ch) {
                 resultLength += 10;
             } else {
                 return Err(Exceptions::illegal_argument_with(format!(
