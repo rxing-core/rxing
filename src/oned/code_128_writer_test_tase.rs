@@ -337,8 +337,8 @@ fn testEncodeWithForcedCodeSetFailureCodeSetABadCharacter() {
 #[test]
 #[should_panic]
 fn testEncodeWithForcedCodeSetFailureCodeSetBBadCharacter() {
-    let toEncode = "ASdf\00123"; // \0 (ascii value 0)
-                                 // Characters with ASCII value below 32 should not be accepted when the code set is forced to B.
+    let toEncode = "ASdf\x000123"; // \0 (ascii value 0)
+                                   // Characters with ASCII value below 32 should not be accepted when the code set is forced to B.
 
     let mut hints = HashMap::new(); //new EnumMap<>(EncodeHintType.class);
     hints.insert(

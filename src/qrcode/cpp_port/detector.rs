@@ -111,10 +111,10 @@ pub fn FindFinderPatterns(image: &BitMatrix, tryHarder: bool) -> FinderPatterns 
                     next.iter().sum::<u16>() as i32 * 3,
                 ); // 3 for very skewed samples
                    //    Reduce(next) * 3); // 3 for very skewed samples
-                if pattern.is_some() {
+                if let Some(p) = pattern {
                     // log(*pattern, 3);
                     // assert!(image.get_point(pattern.as_ref().unwrap().p));
-                    res.push(pattern.unwrap());
+                    res.push(p);
                 }
             }
 
@@ -697,15 +697,7 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
                     let found = LocateAlignmentPattern(image, moduleSize, guessed);
                     // search again near that intersection and if the search fails, use the intersection
                     // if (!found.is_some()) {printf("location guessed at %dx%d\n", x, y)};
-                    apP.set(
-                        x,
-                        y,
-                        if found.is_some() {
-                            found.unwrap()
-                        } else {
-                            guessed
-                        },
-                    );
+                    apP.set(x, y, if let Some(f) = found { f } else { guessed });
                 }
             }
         }

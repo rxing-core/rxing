@@ -244,12 +244,10 @@ mod TelepenWriterTestCase {
     }
 
     fn doTest(input: &str, expected: &str, numeric: bool) {
-        let result: BitMatrix;
-
-        if numeric {
-            result = encode_with_hints(input);
+        let result: BitMatrix = if numeric {
+            encode_with_hints(input)
         } else {
-            result = encode(input);
+            encode(input)
         };
 
         assert_eq!(expected, bit_matrix_test_case::matrix_to_string(&result));
