@@ -56,17 +56,12 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
                   }
                   result.putMetadata(RXingResultMetadataType::ORIENTATION, RXingResultMetadataValue::Orientation(orientation));
                   // Update result points
-                  // let points = result.getRXingResultPoints();
-                  // if points != null {
                     let height = rotated_image.get_height();
-                    // for point in result.getRXingResultPointsMut().iter_mut() {
                       let total_points = result.getRXingResultPoints().len();
                       let points = result.getRXingResultPointsMut();
                       for i in 0..total_points{
-                    // for (int i = 0; i < points.length; i++) {
                       points[i] =  Point::new(height as f32- points[i].getY() - 1.0, points[i].getX());
                     }
-                  // }
 
                   Ok(result)
                 } else {
@@ -167,9 +162,6 @@ fn impl_one_d_writer_macro(ast: &syn::DeriveInput) -> TokenStream {
             if let Some(EncodeHintValue::Margin(margin)) = hints.get(&EncodeHintType::MARGIN) {
                 sidesMargin = margin.parse::<u32>().unwrap();
             }
-            // if  hints.contains_key(&EncodeHintType::MARGIN) {
-            //   sidesMargin = Integer.parseInt(hints.get(EncodeHintType.MARGIN).toString());
-            // }
 
             let code = self.encode_oned_with_hints(contents, hints)?;
 
