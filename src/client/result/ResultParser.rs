@@ -226,17 +226,23 @@ pub fn unescapeBackslash(escaped: &str) -> String {
     unescaped
 }
 
-pub fn parseHexDigit(c: char) -> i32 {
-    if c.is_ascii_digit() {
-        return (c as u8 - b'0') as i32;
-    }
-    if ('a'..='f').contains(&c) {
-        return 10 + (c as u8 - b'a') as i32;
-    }
-    if ('A'..='F').contains(&c) {
-        return 10 + (c as u8 - b'A') as i32;
-    }
-    -1
+#[inline(always)]
+pub fn parseHexDigit(c: char) -> Option<u32> {
+    c.to_digit(16)
+    // let Some(v) = c.to_digit(16) else {
+    //     return -1
+    // };
+    // v as i32
+    // if c.is_ascii_digit() {
+    //     return (c as u8 - b'0') as i32;
+    // }
+    // if ('a'..='f').contains(&c) {
+    //     return 10 + (c as u8 - b'a') as i32;
+    // }
+    // if ('A'..='F').contains(&c) {
+    //     return 10 + (c as u8 - b'A') as i32;
+    // }
+    // -1
 }
 
 #[inline(always)]

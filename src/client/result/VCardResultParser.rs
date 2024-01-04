@@ -337,8 +337,10 @@ fn decodeQuotedPrintable(value: &str, charset: &str) -> String {
             let nextChar = value.chars().nth(i + 1).unwrap();
             if nextChar != '\r' && nextChar != '\n' {
                 let nextNextChar = value.chars().nth(i + 2).unwrap();
-                let firstDigit = ResultParser::parseHexDigit(nextChar);
-                let secondDigit = ResultParser::parseHexDigit(nextNextChar);
+                let firstDigit =
+                    ResultParser::parseHexDigit(nextChar).map_or_else(|| -1, |d| d as i32);
+                let secondDigit =
+                    ResultParser::parseHexDigit(nextNextChar).map_or_else(|| -1, |d| d as i32);
                 if firstDigit >= 0 && secondDigit >= 0 {
                     fragmentBuffer.push(((firstDigit << 4) + secondDigit) as u8);
                 } // else ignore it, assume it was incorrectly encoded
