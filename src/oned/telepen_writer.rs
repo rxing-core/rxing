@@ -20,7 +20,11 @@ use crate::BarcodeFormat;
 use regex::Regex;
 use rxing_one_d_proc_derive::OneDWriter;
 
+use once_cell::sync::Lazy;
+
 use super::OneDimensionalCodeWriter;
+
+static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"^01|10$|01*0|00|1").unwrap());
 
 /**
  * This class renders Telepen as {@code boolean[]}.
@@ -75,8 +79,7 @@ impl OneDimensionalCodeWriter for TelepenWriter {
         // Closing character is always z.
         binary = self.add_to_binary('z', binary);
 
-        let re = Regex::new(r"^01|10$|01*0|00|1").unwrap();
-        let matches: Vec<&str> = re.find_iter(&binary).map(|m| m.as_str()).collect();
+        let matches: Vec<&str> = RE.find_iter(&binary).map(|m| m.as_str()).collect();
 
         let mut result = vec![false; 2000];
         let mut resultPosition = 0;
