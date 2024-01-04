@@ -172,11 +172,11 @@ impl TelepenWriter {
         let mut bits = vec![false; 8];
         let mut oneCount = 0;
 
-        for i in 0..8 {
+        for (i, bit) in bits.iter_mut().enumerate().take(8) {
             let mask = 1 << i;
-            bits[i] = (mask & byte) > 0;
+            *bit = (mask & byte) > 0;
 
-            if bits[i] {
+            if *bit {
                 oneCount += 1;
             }
         }
@@ -192,8 +192,8 @@ impl TelepenWriter {
         let byte = c as u8;
         let bits = self.get_bits(byte);
 
-        for i in 0..8 {
-            binary.push(if bits[i] { '1' } else { '0' });
+        for bit in bits.iter().take(8) {
+            binary.push(if *bit { '1' } else { '0' });
         }
 
         binary
