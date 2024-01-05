@@ -1,11 +1,12 @@
 use proc_macro::TokenStream;
 use quote::quote;
+use syn::{parse_macro_input, DeriveInput};
 
 #[proc_macro_derive(OneDReader)]
 pub fn one_d_reader_derive(input: TokenStream) -> TokenStream {
     // Construct a representation of Rust code as a syntax tree
     // that we can manipulate
-    let ast = syn::parse(input).unwrap();
+    let ast = parse_macro_input!(input as DeriveInput);
 
     // Build the trait implementation
     impl_one_d_reader_macro(&ast)
@@ -71,14 +72,15 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()
+
+    TokenStream::from(gen)
 }
 
 #[proc_macro_derive(EANReader)]
 pub fn ean_reader_derive(input: TokenStream) -> TokenStream {
     // Construct a representation of Rust code as a syntax tree
     // that we can manipulate
-    let ast = syn::parse(input).unwrap();
+    let ast = parse_macro_input!(input as DeriveInput);
 
     // Build the trait implementation
     impl_ean_reader_macro(&ast)
@@ -98,14 +100,15 @@ fn impl_ean_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
       }
     }
     };
-    gen.into()
+
+    TokenStream::from(gen)
 }
 
 #[proc_macro_derive(OneDWriter)]
 pub fn one_d_writer_derive(input: TokenStream) -> TokenStream {
     // Construct a representation of Rust code as a syntax tree
     // that we can manipulate
-    let ast = syn::parse(input).unwrap();
+    let ast = parse_macro_input!(input as DeriveInput);
 
     // Build the trait implementation
     impl_one_d_writer_macro(&ast)
@@ -169,5 +172,6 @@ fn impl_one_d_writer_macro(ast: &syn::DeriveInput) -> TokenStream {
         }
     }
     };
-    gen.into()
+
+    TokenStream::from(gen)
 }
