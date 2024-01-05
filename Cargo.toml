@@ -1,6 +1,6 @@
 [package]
 name = "rxing"
-version = "0.5.2"
+version = "0.5.3"
 description="A rust port of the zxing barcode library."
 license="Apache-2.0"
 repository="https://github.com/rxing-core/rxing"
@@ -14,8 +14,8 @@ exclude = [
 
 [dependencies]
 regex = "1.10"
-fancy-regex = "0.11"
-once_cell = "1.18"
+fancy-regex = "0.13"
+once_cell = "1.19"
 encoding = "0.2"
 urlencoding = "2.1.3"
 uriparse = "0.6.4"
@@ -25,12 +25,12 @@ image = {version = "0.24", optional = true}
 imageproc = {version = "0.23", optional = true}
 unicode-segmentation = "1.10"
 codepage-437 = "0.1.0"
-rxing-one-d-proc-derive = {version = "0.5.1", path ="./crates/one-d-proc-derive"}
-num = "0.4.0"
+rxing-one-d-proc-derive = {version = "0.5.3", path ="./crates/one-d-proc-derive"}
+num = "0.4.1"
 svg = {version = "0.14", optional = true}
-resvg = {version = "0.35", optional = true, default-features=false}
+resvg = {version = "0.37", optional = true, default-features=false}
 serde = { version = "1.0", features = ["derive", "rc"], optional = true }
-thiserror = "1.0.44"
+thiserror = "1.0.56"
 multimap = "0.9"
 bit_reverse = "0.1.8"
 

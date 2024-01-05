@@ -1,7 +1,7 @@
 [package]
 name = "rxing-one-d-proc-derive"
 repository = "https://github.com/rxing-core/rxing/tree/main/crates/one-d-proc-derive"
-version = "0.5.1"
+version = "0.5.3"
 edition = "2021"
 description = "proc macros to simplify the development of one-d barcode symbologies in rxing (https://github.com/rxing-core/rxing)"
 license = "Apache-2.0"
