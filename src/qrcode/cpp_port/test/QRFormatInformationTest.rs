@@ -4,7 +4,10 @@
 */
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::qrcode::decoder::{ErrorCorrectionLevel, FormatInformation};
+use crate::qrcode::{
+    cpp_port::Type,
+    decoder::{ErrorCorrectionLevel, FormatInformation},
+};
 
 const MASKED_TEST_FORMAT_INFO: u32 = 0x2BED;
 const MASKED_TEST_FORMAT_INFO2: u32 =
@@ -63,11 +66,12 @@ fn DecodeWithBitDifference() {
             MASKED_TEST_FORMAT_INFO2 ^ 0x07,
         ),
     );
-    assert!(FormatInformation::DecodeQR(
+    let unexpected = FormatInformation::DecodeQR(
         MASKED_TEST_FORMAT_INFO ^ 0x0F,
-        MASKED_TEST_FORMAT_INFO2 ^ 0x0F
-    )
-    .isValid());
+        MASKED_TEST_FORMAT_INFO2 ^ 0x0F,
+    );
+    assert!(!&expected.cpp_eq(&unexpected));
+    assert!(!(unexpected.isValid() && unexpected.qr_type() == Type::Model2));
 }
 
 #[test]

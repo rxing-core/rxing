@@ -1,60 +1,40 @@
-use crate::common::Result;
+/*
+* Copyright 2016 Nu-book Inc.
+* Copyright 2016 ZXing authors
+* Copyright 2023 Axel Waggershauser
+*/
+// SPDX-License-Identifier: Apache-2.0
+
+use crate::common::{BitMatrix, Result};
+use crate::qrcode::cpp_port::Type;
 use crate::qrcode::decoder::{
     Version, VersionRef, MICRO_VERSIONS, MODEL1_VERSIONS, VERSIONS, VERSION_DECODE_INFO,
 };
 use crate::Exceptions;
 
-// const Version* Version::AllMicroVersions()
-// {
-// 	/**
-// 	 * See ISO 18004:2006 6.5.1 Table 9
-// 	 */
-// 	static const Version allVersions[] = {
-// 		{1, {2, 1, 3, 0, 0}},
-// 		{2, {5, 1, 5, 0, 0, 6, 1, 4, 0, 0}},
-// 		{3, {6, 1, 11, 0, 0, 8, 1, 9, 0, 0}},
-// 		{4, {8, 1, 16, 0, 0, 10, 1, 14, 0, 0, 14, 1, 10, 0, 0}}};
-// 	return allVersions;
-// }
-
 impl Version {
-    pub fn FromDimension(dimension: u32, is_model1: bool) -> Result<VersionRef> {
-        let isMicro = dimension < 21;
-        if dimension % Self::DimensionStep(isMicro) != 1 {
-            //throw std::invalid_argument("Unexpected dimension");
-            return Err(Exceptions::ILLEGAL_ARGUMENT);
+    pub fn Model1(version_number: u32) -> Result<VersionRef> {
+        if version_number < 1 || version_number > 14 {
+            Err(Exceptions::ILLEGAL_ARGUMENT)
+        } else {
+            Ok(&MODEL1_VERSIONS[version_number as usize - 1])
         }
-        Self::FromNumber(
-            (dimension - Self::DimensionOffset(isMicro)) / Self::DimensionStep(isMicro),
-            isMicro,
-            is_model1,
-        )
     }
 
-    pub fn FromNumber(versionNumber: u32, is_micro: bool, is_model1: bool) -> Result<VersionRef> {
-        if versionNumber < 1
-            || versionNumber
-                > (if is_micro {
-                    4
-                } else {
-                    if is_model1 {
-                        14
-                    } else {
-                        40
-                    }
-                })
-        {
-            //throw std::invalid_argument("Version should be in range [1-40].");
-            return Err(Exceptions::ILLEGAL_ARGUMENT);
-        }
-
-        Ok(if is_micro {
-            &MICRO_VERSIONS[versionNumber as usize - 1]
-        } else if is_model1 {
-            &MODEL1_VERSIONS[versionNumber as usize - 1]
+    pub fn Model2(version_number: u32) -> Result<VersionRef> {
+        if version_number < 1 || version_number > 40 {
+            Err(Exceptions::ILLEGAL_ARGUMENT)
         } else {
-            &VERSIONS[versionNumber as usize - 1]
-        })
+            Ok(&VERSIONS[version_number as usize - 1])
+        }
+    }
+
+    pub fn Micro(version_number: u32) -> Result<VersionRef> {
+        if version_number < 1 || version_number > 4 {
+            Err(Exceptions::ILLEGAL_ARGUMENT)
+        } else {
+            Ok(&MICRO_VERSIONS[version_number as usize - 1])
+        }
     }
 
     pub fn DimensionOfVersion(version: u32, is_micro: bool) -> u32 {
@@ -80,13 +60,6 @@ impl Version {
         let mut bestDifference = u32::MAX;
         let mut bestVersion = 0;
         for (i, targetVersion) in VERSION_DECODE_INFO.into_iter().enumerate() {
-            // for (int targetVersion : VERSION_DECODE_INFO) {
-            // Do the version info bits match exactly? done.
-            if targetVersion == versionBitsA as u32 || targetVersion == versionBitsB as u32 {
-                return Self::getVersionForNumber(i as u32 + 7);
-            }
-            // Otherwise see if this is the closest to a real version info bit string
-            // we have seen so far
             for bits in [versionBitsA, versionBitsB] {
                 // for (int bits : {versionBitsA, versionBitsB}) {
                 let bitsDifference = ((bits as u32) ^ targetVersion).count_ones(); //BitHacks::CountBitsSet(bits ^ targetVersion);
@@ -94,6 +67,9 @@ impl Version {
                     bestVersion = i + 7;
                     bestDifference = bitsDifference;
                 }
+            }
+            if bestDifference == 0 {
+                break;
             }
         }
         // We can tolerate up to 3 bits of error since no two version info codewords will
@@ -105,11 +81,34 @@ impl Version {
         Err(Exceptions::ILLEGAL_STATE)
     }
 
-    pub const fn isMicroQRCode(&self) -> bool {
-        self.is_micro
+    pub const fn isMicro(&self) -> bool {
+        Type::const_eq(self.qr_type, Type::Micro)
     }
 
-    pub const fn isQRCodeModel1(&self) -> bool {
-        self.is_model1
+    pub const fn isModel1(&self) -> bool {
+        Type::const_eq(self.qr_type, Type::Model1)
+    }
+
+    pub const fn isModel2(&self) -> bool {
+        Type::const_eq(self.qr_type, Type::Model2)
+    }
+
+    pub fn HasMicroSize(bitMatrix: &BitMatrix) -> bool {
+        let size = bitMatrix.height();
+        size >= 11 && size <= 17 && (size % 2) == 1
+    }
+
+    pub fn HasValidSize(bitMatrix: &BitMatrix) -> bool {
+        let size = bitMatrix.height();
+        Self::HasMicroSize(bitMatrix) || (size >= 21 && size <= 177 && (size % 4) == 1)
+    }
+
+    pub fn Number(bitMatrix: &BitMatrix) -> u32 {
+        if !Self::HasValidSize(bitMatrix) {
+            0
+        } else {
+            let isMicro = Self::HasMicroSize(bitMatrix);
+            (bitMatrix.height() - Self::DimensionOffset(isMicro)) / Self::DimensionStep(isMicro)
+        }
     }
 }

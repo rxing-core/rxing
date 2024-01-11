@@ -1,43 +1,48 @@
-use crate::qrcode::decoder::{
-    ErrorCorrectionLevel, FormatInformation, FORMAT_INFO_DECODE_LOOKUP, FORMAT_INFO_MASK_QR,
+use crate::qrcode::{
+    cpp_port::Type,
+    decoder::{
+        ErrorCorrectionLevel, FormatInformation, FORMAT_INFO_DECODE_LOOKUP,
+        FORMAT_INFO_MASK_MODEL2, FORMAT_INFO_MASK_QR,
+    },
 };
 
 pub const FORMAT_INFO_MASK_QR_MODEL1: u32 = 0x2825;
+pub const FORMAT_INFO_MASK_MICRO: u32 = 0x4445;
 
-pub const FORMAT_INFO_DECODE_LOOKUP_MICRO: [[u32; 2]; 32] = [
-    [0x4445, 0x00],
-    [0x4172, 0x01],
-    [0x4E2B, 0x02],
-    [0x4B1C, 0x03],
-    [0x55AE, 0x04],
-    [0x5099, 0x05],
-    [0x5FC0, 0x06],
-    [0x5AF7, 0x07],
-    [0x6793, 0x08],
-    [0x62A4, 0x09],
-    [0x6DFD, 0x0A],
-    [0x68CA, 0x0B],
-    [0x7678, 0x0C],
-    [0x734F, 0x0D],
-    [0x7C16, 0x0E],
-    [0x7921, 0x0F],
-    [0x06DE, 0x10],
-    [0x03E9, 0x11],
-    [0x0CB0, 0x12],
-    [0x0987, 0x13],
-    [0x1735, 0x14],
-    [0x1202, 0x15],
-    [0x1D5B, 0x16],
-    [0x186C, 0x17],
-    [0x2508, 0x18],
-    [0x203F, 0x19],
-    [0x2F66, 0x1A],
-    [0x2A51, 0x1B],
-    [0x34E3, 0x1C],
-    [0x31D4, 0x1D],
-    [0x3E8D, 0x1E],
-    [0x3BBA, 0x1F],
-];
+// pub const FORMAT_INFO_DECODE_LOOKUP_MICRO: [u32 ;32] = [
+//     0x4445,
+//     0x4172,
+//     0x4E2B,
+//     0x4B1C,
+//     0x55AE,
+//     0x5099,
+//     0x5FC0,
+//     0x5AF7,
+//     0x6793,
+//     0x62A4,
+//     0x6DFD,
+//     0x68CA,
+//     0x7678,
+//     0x734F,
+//     0x7C16,
+//     0x7921,
+//     0x06DE,
+//     0x03E9,
+//     0x0CB0,
+//     0x0987,
+//     0x1735,
+//     0x1202,
+//     0x1D5B,
+//     0x186C,
+//     0x2508,
+//     0x203F,
+//     0x2F66,
+//     0x2A51,
+//     0x34E3,
+//     0x31D4,
+//     0x3E8D,
+//     0x3BBA,
+// ];
 
 impl FormatInformation {
     /**
@@ -51,9 +56,9 @@ impl FormatInformation {
         );
         let formatInfoBits2 =
             ((formatInfoBits2 >> 1) & 0b111111100000000) | (formatInfoBits2 & 0b11111111);
+        // Some (Model2) QR codes apparently do not apply the XOR mask. Try with (standard) and without (quirk) masking.
         let mut fi = Self::FindBestFormatInfo(
-            &[0, FORMAT_INFO_MASK_QR],
-            FORMAT_INFO_DECODE_LOOKUP,
+            &[FORMAT_INFO_MASK_QR, 0, FORMAT_INFO_MASK_QR_MODEL1],
             &[
                 formatInfoBits1,
                 formatInfoBits2,
@@ -61,27 +66,11 @@ impl FormatInformation {
                 mirroredFormatInfoBits2,
             ],
         );
-
-        let mut fi_model1 = Self::FindBestFormatInfo(
-            &[FORMAT_INFO_MASK_QR ^ FORMAT_INFO_MASK_QR_MODEL1],
-            FORMAT_INFO_DECODE_LOOKUP,
-            &[
-                formatInfoBits1,
-                formatInfoBits2,
-                Self::MirrorBits(formatInfoBits1),
-                mirroredFormatInfoBits2,
-            ],
-        );
-
-        if fi_model1.hammingDistance < fi.hammingDistance {
-            fi_model1.isModel1 = true;
-            fi = fi_model1;
-        }
 
         // Use bits 3/4 for error correction, and 0-2 for mask.
         fi.error_correction_level =
-            ErrorCorrectionLevel::ECLevelFromBits((fi.index >> 3) & 0x03, false);
-        fi.data_mask = fi.index & 0x07;
+            ErrorCorrectionLevel::ECLevelFromBits((fi.data >> 3) as u8 & 0x03, false);
+        fi.data_mask = fi.data as u8 & 0x07;
         fi.isMirrored = fi.bitsIndex > 1;
 
         fi
@@ -90,8 +79,7 @@ impl FormatInformation {
     pub fn DecodeMQR(formatInfoBits: u32) -> Self {
         // We don't use the additional masking (with 0x4445) to work around potentially non complying MicroQRCode encoders
         let mut fi = Self::FindBestFormatInfo(
-            &[0],
-            FORMAT_INFO_DECODE_LOOKUP_MICRO,
+            &[FORMAT_INFO_MASK_MICRO, 0],
             &[formatInfoBits, Self::MirrorBits(formatInfoBits)],
         );
 
@@ -99,9 +87,9 @@ impl FormatInformation {
 
         // Bits 2/3/4 contain both error correction level and version, 0/1 contain mask.
         fi.error_correction_level =
-            ErrorCorrectionLevel::ECLevelFromBits((fi.index >> 2) & 0x07, true);
-        fi.data_mask = fi.index & 0x03;
-        fi.microVersion = BITS_TO_VERSION[((fi.index >> 2) & 0x07) as usize] as u32;
+            ErrorCorrectionLevel::ECLevelFromBits((fi.data >> 2) as u8 & 0x07, true);
+        fi.data_mask = fi.data as u8 & 0x03;
+        fi.microVersion = BITS_TO_VERSION[((fi.data >> 2) as u8 & 0x07) as usize] as u32;
         fi.isMirrored = fi.bitsIndex == 1;
 
         fi
@@ -112,21 +100,30 @@ impl FormatInformation {
         (bits.reverse_bits()) >> 17
     }
 
-    pub fn FindBestFormatInfo(masks: &[u32], lookup: [[u32; 2]; 32], bits: &[u32]) -> Self {
+    pub fn FindBestFormatInfo(masks: &[u32], bits: &[u32]) -> Self {
         let mut fi = FormatInformation::default();
 
-        // Some QR codes apparently do not apply the XOR mask. Try without and with additional masking.
+        // See ISO 18004:2015, Annex C, Table C.1
+        const MODEL2_MASKED_PATTERNS: [u32; 32] = [
+            0x5412, 0x5125, 0x5E7C, 0x5B4B, 0x45F9, 0x40CE, 0x4F97, 0x4AA0, 0x77C4, 0x72F3, 0x7DAA,
+            0x789D, 0x662F, 0x6318, 0x6C41, 0x6976, 0x1689, 0x13BE, 0x1CE7, 0x19D0, 0x0762, 0x0255,
+            0x0D0C, 0x083B, 0x355F, 0x3068, 0x3F31, 0x3A06, 0x24B4, 0x2183, 0x2EDA, 0x2BED,
+        ];
+
         for mask in masks {
-            // for (auto mask : {0, mask})
-            for (bitsIndex, bit_set) in bits.iter().enumerate() {
+            // for (auto mask : masks)
+            for bitsIndex in 0..bits.len() {
                 // for (int bitsIndex = 0; bitsIndex < Size(bits); ++bitsIndex)
-                for [pattern, index] in lookup {
-                    // for (const auto& [pattern, index] : lookup) {
-                    // Find the int in lookup with fewest bits differing
-                    let hammingDist = ((bit_set ^ mask) ^ pattern).count_ones();
+                for ref_pattern in MODEL2_MASKED_PATTERNS {
+                    // for (uint32_t pattern : MODEL2_MASKED_PATTERNS) {
+                    // 'unmask' the pattern first to get the original 5-data bits + 10-ec bits back
+                    let pattern = ref_pattern ^ FORMAT_INFO_MASK_MODEL2;
+                    // Find the pattern with fewest bits differing
+                    let hammingDist = ((bits[bitsIndex] ^ mask) ^ pattern).count_ones();
+                    // if (int hammingDist = BitHacks::CountBitsSet((bits[bitsIndex] ^ mask) ^ pattern);
                     if hammingDist < fi.hammingDistance {
-                        // if (int hammingDist = BitHacks::CountBitsSet((bits[bitsIndex] ^ mask) ^ pattern); hammingDist < fi.hammingDistance) {
-                        fi.index = index as u8;
+                        fi.mask = *mask; // store the used mask to discriminate between types/models
+                        fi.data = pattern >> 10; // drop the 10 BCH error correction bits
                         fi.hammingDistance = hammingDist;
                         fi.bitsIndex = bitsIndex as u8;
                     }
@@ -134,7 +131,35 @@ impl FormatInformation {
             }
         }
 
+        // // Some QR codes apparently do not apply the XOR mask. Try without and with additional masking.
+        // for mask in masks {
+        //     // for (auto mask : {0, mask})
+        //     for (bitsIndex, bit_set) in bits.iter().enumerate() {
+        //         // for (int bitsIndex = 0; bitsIndex < Size(bits); ++bitsIndex)
+        //         for [pattern, _index] in FORMAT_INFO_DECODE_LOOKUP {
+        //             // for (const auto& [pattern, index] : lookup) {
+        //             // Find the int in lookup with fewest bits differing
+        //             let hammingDist = ((bit_set ^ mask) ^ pattern).count_ones();
+        //             if hammingDist < fi.hammingDistance {
+        //                 // if (int hammingDist = BitHacks::CountBitsSet((bits[bitsIndex] ^ mask) ^ pattern); hammingDist < fi.hammingDistance) {
+        //                     fi.mask = *mask; // store the used mask to discriminate between types/models
+        //                     fi.data = pattern >> 10; // drop the 10 BCH error correction bits
+        //                 fi.hammingDistance = hammingDist;
+        //                 fi.bitsIndex = bitsIndex as u8;
+        //             }
+        //         }
+        //     }
+        // }
+
         fi
+    }
+
+    pub fn qr_type(&self) -> Type {
+        match self.mask {
+            FORMAT_INFO_MASK_QR_MODEL1 => Type::Model1,
+            FORMAT_INFO_MASK_MICRO => Type::Micro,
+            _ => Type::Model2,
+        }
     }
 
     // Hamming distance of the 32 masked codes is 7, by construction, so <= 3 bits differing means we found a match
@@ -145,5 +170,6 @@ impl FormatInformation {
     pub fn cpp_eq(&self, other: &Self) -> bool {
         self.data_mask == other.data_mask
             && self.error_correction_level == other.error_correction_level
+            && self.qr_type() == other.qr_type()
     }
 }

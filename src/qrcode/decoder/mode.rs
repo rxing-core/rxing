@@ -123,14 +123,14 @@ impl Mode {
     }
 
     pub const fn get_terminator_bit_length(version: &Version) -> u8 {
-        (if version.isMicroQRCode() {
+        (if version.isMicro() {
             version.getVersionNumber() * 2 + 1
         } else {
             4
         }) as u8
     }
     pub const fn get_codec_mode_bits_length(version: &Version) -> u8 {
-        (if version.isMicroQRCode() {
+        (if version.isMicro() {
             version.getVersionNumber() - 1
         } else {
             4
@@ -168,7 +168,7 @@ impl Mode {
      */
     pub fn CharacterCountBits(&self, version: &Version) -> u32 {
         let number = version.getVersionNumber() as usize;
-        if version.isMicroQRCode() {
+        if version.isMicro() {
             match self {
 		 Mode::NUMERIC=>      return [3, 4, 5, 6][number - 1],
 		 Mode::ALPHANUMERIC=> return [3, 4, 5][number - 2],
