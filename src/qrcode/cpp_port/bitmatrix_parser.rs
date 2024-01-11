@@ -29,38 +29,10 @@ pub fn ReadVersion(bitMatrix: &BitMatrix, qr_type: Type) -> Result<VersionRef> {
     let number = Version::Number(bitMatrix);
 
     match qr_type {
-        Type::Model1 => return Version::Model1(number),
-
-        Type::Micro => return Version::Micro(number),
-        Type::Model2 => {}
+        Type::Model1 => Version::Model1(number),
+        Type::Micro => Version::Micro(number),
+        Type::Model2 => Version::Model2(number),
     }
-    let mut version = Version::Model2(number)?;
-
-    if version.getVersionNumber() < 7 {
-        return Ok(version);
-    }
-
-    let dimension = bitMatrix.height();
-
-    for mirror in [false, true] {
-        // for (bool mirror : {false, true}) {
-        // Read top-right/bottom-left version info: 3 wide by 6 tall (depending on mirrored)
-        let mut versionBits = 0;
-        for y in (0..=5).rev() {
-            // for (int y = 5; y >= 0; --y) {
-            for x in ((dimension - 11)..=(dimension - 9)).rev() {
-                // for (int x = dimension - 9; x >= dimension - 11; --x) {
-                AppendBit(&mut versionBits, getBit(bitMatrix, x, y, Some(mirror)));
-            }
-        }
-
-        version = Version::DecodeVersionInformation(versionBits, 0)?; // THIS MIGHT BE WRONG todo!()
-        if version.getDimensionForVersion() == dimension {
-            return Ok(version);
-        }
-    }
-
-    Err(Exceptions::FORMAT)
 }
 
 pub fn ReadFormatInformation(bitMatrix: &BitMatrix) -> Result<FormatInformation> {
