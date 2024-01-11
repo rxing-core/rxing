@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#![cfg(feature = "image")]
 
 use rxing::{qrcode::cpp_port::QrReader, BarcodeFormat, MultiUseMultiFormatReader};
 

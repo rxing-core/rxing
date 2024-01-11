@@ -23,6 +23,7 @@
  *
  *   http://www.piramidepse.com/
  */
+#![cfg(feature = "image")]
 
 use rxing::{BarcodeFormat, MultiFormatReader};
 

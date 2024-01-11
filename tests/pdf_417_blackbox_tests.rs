@@ -1,3 +1,5 @@
+#![cfg(feature = "image")]
+
 use rxing::MultiFormatReader;
 
 mod common;

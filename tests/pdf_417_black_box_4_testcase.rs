@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#![cfg(feature = "image")]
+
 mod common;
 
 use rxing::pdf417::PDF417Reader;
