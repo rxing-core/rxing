@@ -2,6 +2,8 @@ use crate::qrcode::decoder::{
     ErrorCorrectionLevel, FormatInformation, FORMAT_INFO_DECODE_LOOKUP, FORMAT_INFO_MASK_QR,
 };
 
+pub const FORMAT_INFO_MASK_QR_MODEL1: u32 = 0x2825;
+
 pub const FORMAT_INFO_DECODE_LOOKUP_MICRO: [[u32; 2]; 32] = [
     [0x4445, 0x00],
     [0x4172, 0x01],
@@ -50,7 +52,7 @@ impl FormatInformation {
         let formatInfoBits2 =
             ((formatInfoBits2 >> 1) & 0b111111100000000) | (formatInfoBits2 & 0b11111111);
         let mut fi = Self::FindBestFormatInfo(
-            FORMAT_INFO_MASK_QR,
+            &[0, FORMAT_INFO_MASK_QR],
             FORMAT_INFO_DECODE_LOOKUP,
             &[
                 formatInfoBits1,
@@ -59,6 +61,22 @@ impl FormatInformation {
                 mirroredFormatInfoBits2,
             ],
         );
+
+        let mut fi_model1 = Self::FindBestFormatInfo(
+            &[FORMAT_INFO_MASK_QR ^ FORMAT_INFO_MASK_QR_MODEL1],
+            FORMAT_INFO_DECODE_LOOKUP,
+            &[
+                formatInfoBits1,
+                formatInfoBits2,
+                Self::MirrorBits(formatInfoBits1),
+                mirroredFormatInfoBits2,
+            ],
+        );
+
+        if fi_model1.hammingDistance < fi.hammingDistance {
+            fi_model1.isModel1 = true;
+            fi = fi_model1;
+        }
 
         // Use bits 3/4 for error correction, and 0-2 for mask.
         fi.error_correction_level =
@@ -72,7 +90,7 @@ impl FormatInformation {
     pub fn DecodeMQR(formatInfoBits: u32) -> Self {
         // We don't use the additional masking (with 0x4445) to work around potentially non complying MicroQRCode encoders
         let mut fi = Self::FindBestFormatInfo(
-            0,
+            &[0],
             FORMAT_INFO_DECODE_LOOKUP_MICRO,
             &[formatInfoBits, Self::MirrorBits(formatInfoBits)],
         );
@@ -94,11 +112,11 @@ impl FormatInformation {
         (bits.reverse_bits()) >> 17
     }
 
-    pub fn FindBestFormatInfo(mask: u32, lookup: [[u32; 2]; 32], bits: &[u32]) -> Self {
+    pub fn FindBestFormatInfo(masks: &[u32], lookup: [[u32; 2]; 32], bits: &[u32]) -> Self {
         let mut fi = FormatInformation::default();
 
         // Some QR codes apparently do not apply the XOR mask. Try without and with additional masking.
-        for mask in [0, mask] {
+        for mask in masks {
             // for (auto mask : {0, mask})
             for (bitsIndex, bit_set) in bits.iter().enumerate() {
                 // for (int bitsIndex = 0; bitsIndex < Size(bits); ++bitsIndex)

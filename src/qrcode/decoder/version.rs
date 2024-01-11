@@ -29,6 +29,7 @@ pub type VersionRef = &'static Version;
 
 pub static VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::buildVersions);
 pub static MICRO_VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::build_micro_versions);
+pub static MODEL1_VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::build_model1_versions);
 
 /**
  * See ISO 18004:2006 Annex D.
@@ -55,6 +56,7 @@ pub struct Version {
     ecBlocks: Vec<ECBlocks>,
     totalCodewords: u32,
     pub(crate) is_micro: bool,
+    pub(crate) is_model1: bool,
 }
 impl Version {
     fn new(versionNumber: u32, alignmentPatternCenters: Vec<u32>, ecBlocks: [ECBlocks; 4]) -> Self {
@@ -73,6 +75,7 @@ impl Version {
             ecBlocks: ecBlocks.to_vec(),
             totalCodewords: total,
             is_micro: false,
+            is_model1: false,
         }
     }
 
@@ -92,8 +95,34 @@ impl Version {
             ecBlocks,
             totalCodewords: total,
             is_micro: true,
+            is_model1: false,
         }
     }
+
+    fn new_model1(versionNumber: u32, ecBlocks: Vec<ECBlocks>) -> Self {
+        let mut total = 0;
+        let ecCodewords = ecBlocks[0].getECCodewordsPerBlock();
+        let ecbArray = ecBlocks[0].getECBlocks();
+        let mut i = 0;
+        while i < ecbArray.len() {
+            total += ecbArray[i].getCount() * (ecbArray[i].getDataCodewords() + ecCodewords);
+            i += 1;
+        }
+
+        Self {
+            versionNumber,
+            alignmentPatternCenters: Vec::default(),
+            ecBlocks,
+            totalCodewords: total,
+            is_micro: false,
+            is_model1: true,
+        }
+    }
+
+    // #[inline(always)]
+    // pub(crate) const fn isMicro(ecBlocks: &[ECBlocks; 4]) -> bool {
+    //     ecBlocks[0].ecCodewordsPerBlock < 7 || ecBlocks[0].ecCodewordsPerBlock == 8
+    // }
 
     pub const fn getVersionNumber(&self) -> u32 {
         self.versionNumber
@@ -969,6 +998,224 @@ impl Version {
                    new ECBlocks(30, new ECB::new(20, 15),
                        new ECB::new(61, 16)))
            ]*/
+    }
+
+    /*
+     * 		{1, {
+            7 , 1, 19, 0, 0,
+            10, 1, 16, 0, 0,
+            13, 1, 13, 0, 0,
+            17, 1, 9 , 0, 0
+        }},
+        {2, {
+            10, 1, 36, 0, 0,
+            16, 1, 30, 0, 0,
+            22, 1, 24, 0, 0,
+            30, 1, 16, 0, 0,
+         }},
+        {3, {
+            15, 1, 57, 0, 0,
+            28, 1, 44, 0, 0,
+            36, 1, 36, 0, 0,
+            48, 1, 24, 0, 0,
+         }},
+        {4, {
+            20, 1, 80, 0, 0,
+            40, 1, 60, 0, 0,
+            50, 1, 50, 0, 0,
+            66, 1, 34, 0, 0,
+         }},
+        {5, {
+            26, 1, 108, 0, 0,
+            52, 1, 82 , 0, 0,
+            66, 1, 68 , 0, 0,
+            88, 2, 46 , 0, 0,
+            }},
+        {6, {
+            34 , 1, 136, 0, 0,
+            63 , 2, 106, 0, 0,
+            84 , 2, 86 , 0, 0,
+            112, 2, 58 , 0, 0,
+            }},
+        {7, {
+            42 , 1, 170, 0, 0,
+            80 , 2, 132, 0, 0,
+            104, 2, 108, 0, 0,
+            138, 3, 72 , 0, 0,
+            }},
+        {8, {
+            48 , 2, 208, 0, 0,
+            96 , 2, 160, 0, 0,
+            128, 2, 128, 0, 0,
+            168, 3, 87 , 0, 0,
+            }},
+        {9, {
+            60 , 2, 246, 0, 0,
+            120, 2, 186, 0, 0,
+            150, 3, 156, 0, 0,
+            204, 3, 102, 0, 0,
+            }},
+        {10, {
+            68 , 2, 290, 0, 0,
+            136, 2, 222, 0, 0,
+            174, 3, 183, 0, 0,
+            232, 4, 124, 0, 0,
+            }},
+        {11, {
+            80 , 2, 336, 0, 0,
+            160, 4, 256, 0, 0,
+            208, 4, 208, 0, 0,
+            270, 5, 145, 0, 0,
+            }},
+        {12, {
+            92 , 2, 384, 0, 0,
+            184, 4, 292, 0, 0,
+            232, 4, 244, 0, 0,
+            310, 5, 165, 0, 0,
+            }},
+        {13, {
+            108, 3, 432, 0, 0,
+            208, 4, 332, 0, 0,
+            264, 4, 276, 0, 0,
+            348, 6, 192, 0, 0,
+            }},
+        {14, {
+            120, 3, 489, 0, 0,
+            240, 4, 368, 0, 0,
+            300, 5, 310, 0, 0,
+            396, 6, 210, 0, 0,
+            }},
+    };
+     */
+    pub fn build_model1_versions() -> Vec<Version> {
+        Vec::from([
+            Version::new_model1(
+                1,
+                vec![
+                    ECBlocks::new(7, vec![ECB::new(1, 19)]),
+                    ECBlocks::new(10, vec![ECB::new(1, 16)]),
+                    ECBlocks::new(13, vec![ECB::new(1, 13)]),
+                    ECBlocks::new(17, vec![ECB::new(1, 9)]),
+                ],
+            ),
+            Version::new_model1(
+                2,
+                vec![
+                    ECBlocks::new(10, vec![ECB::new(1, 36)]),
+                    ECBlocks::new(16, vec![ECB::new(1, 30)]),
+                    ECBlocks::new(22, vec![ECB::new(1, 24)]),
+                    ECBlocks::new(30, vec![ECB::new(1, 16)]),
+                ],
+            ),
+            Version::new_model1(
+                3,
+                vec![
+                    ECBlocks::new(15, vec![ECB::new(1, 57)]),
+                    ECBlocks::new(28, vec![ECB::new(1, 44)]),
+                    ECBlocks::new(36, vec![ECB::new(1, 36)]),
+                    ECBlocks::new(48, vec![ECB::new(1, 24)]),
+                ],
+            ),
+            Version::new_model1(
+                4,
+                vec![
+                    ECBlocks::new(20, vec![ECB::new(1, 80)]),
+                    ECBlocks::new(40, vec![ECB::new(1, 60)]),
+                    ECBlocks::new(50, vec![ECB::new(1, 50)]),
+                    ECBlocks::new(66, vec![ECB::new(1, 34)]),
+                ],
+            ),
+            Version::new_model1(
+                5,
+                vec![
+                    ECBlocks::new(26, vec![ECB::new(1, 108)]),
+                    ECBlocks::new(52, vec![ECB::new(1, 82)]),
+                    ECBlocks::new(66, vec![ECB::new(1, 68)]),
+                    ECBlocks::new(88, vec![ECB::new(2, 46)]),
+                ],
+            ),
+            Version::new_model1(
+                6,
+                vec![
+                    ECBlocks::new(34, vec![ECB::new(1, 136)]),
+                    ECBlocks::new(63, vec![ECB::new(2, 106)]),
+                    ECBlocks::new(84, vec![ECB::new(2, 86)]),
+                    ECBlocks::new(112, vec![ECB::new(2, 58)]),
+                ],
+            ),
+            Version::new_model1(
+                7,
+                vec![
+                    ECBlocks::new(42, vec![ECB::new(1, 170)]),
+                    ECBlocks::new(80, vec![ECB::new(2, 132)]),
+                    ECBlocks::new(104, vec![ECB::new(2, 108)]),
+                    ECBlocks::new(138, vec![ECB::new(3, 72)]),
+                ],
+            ),
+            Version::new_model1(
+                8,
+                vec![
+                    ECBlocks::new(48, vec![ECB::new(2, 208)]),
+                    ECBlocks::new(96, vec![ECB::new(2, 160)]),
+                    ECBlocks::new(128, vec![ECB::new(2, 128)]),
+                    ECBlocks::new(168, vec![ECB::new(3, 87)]),
+                ],
+            ),
+            Version::new_model1(
+                9,
+                vec![
+                    ECBlocks::new(60, vec![ECB::new(2, 246)]),
+                    ECBlocks::new(120, vec![ECB::new(2, 186)]),
+                    ECBlocks::new(150, vec![ECB::new(3, 156)]),
+                    ECBlocks::new(204, vec![ECB::new(3, 102)]),
+                ],
+            ),
+            Version::new_model1(
+                10,
+                vec![
+                    ECBlocks::new(68, vec![ECB::new(2, 290)]),
+                    ECBlocks::new(136, vec![ECB::new(2, 222)]),
+                    ECBlocks::new(174, vec![ECB::new(3, 183)]),
+                    ECBlocks::new(232, vec![ECB::new(4, 124)]),
+                ],
+            ),
+            Version::new_model1(
+                11,
+                vec![
+                    ECBlocks::new(80, vec![ECB::new(2, 336)]),
+                    ECBlocks::new(160, vec![ECB::new(4, 256)]),
+                    ECBlocks::new(208, vec![ECB::new(4, 208)]),
+                    ECBlocks::new(270, vec![ECB::new(5, 145)]),
+                ],
+            ),
+            Version::new_model1(
+                12,
+                vec![
+                    ECBlocks::new(92, vec![ECB::new(2, 384)]),
+                    ECBlocks::new(184, vec![ECB::new(4, 292)]),
+                    ECBlocks::new(232, vec![ECB::new(4, 244)]),
+                    ECBlocks::new(310, vec![ECB::new(5, 165)]),
+                ],
+            ),
+            Version::new_model1(
+                13,
+                vec![
+                    ECBlocks::new(108, vec![ECB::new(3, 432)]),
+                    ECBlocks::new(208, vec![ECB::new(4, 332)]),
+                    ECBlocks::new(264, vec![ECB::new(4, 276)]),
+                    ECBlocks::new(348, vec![ECB::new(6, 192)]),
+                ],
+            ),
+            Version::new_model1(
+                14,
+                vec![
+                    ECBlocks::new(120, vec![ECB::new(3, 489)]),
+                    ECBlocks::new(240, vec![ECB::new(4, 368)]),
+                    ECBlocks::new(300, vec![ECB::new(5, 310)]),
+                    ECBlocks::new(396, vec![ECB::new(6, 210)]),
+                ],
+            ),
+        ])
     }
 }
 

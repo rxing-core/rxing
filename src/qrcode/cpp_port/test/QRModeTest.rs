@@ -27,27 +27,39 @@ fn CharacterCount() {
     // Spot check a few values
     assert_eq!(
         10,
-        Mode::CharacterCountBits(&Mode::NUMERIC, Version::FromNumber(5, false).unwrap())
+        Mode::CharacterCountBits(
+            &Mode::NUMERIC,
+            Version::FromNumber(5, false, false).unwrap()
+        )
     );
     assert_eq!(
         12,
-        Mode::CharacterCountBits(&Mode::NUMERIC, Version::FromNumber(26, false).unwrap())
+        Mode::CharacterCountBits(
+            &Mode::NUMERIC,
+            Version::FromNumber(26, false, false).unwrap()
+        )
     );
     assert_eq!(
         14,
-        Mode::CharacterCountBits(&Mode::NUMERIC, Version::FromNumber(40, false).unwrap())
+        Mode::CharacterCountBits(
+            &Mode::NUMERIC,
+            Version::FromNumber(40, false, false).unwrap()
+        )
     );
     assert_eq!(
         9,
-        Mode::CharacterCountBits(&Mode::ALPHANUMERIC, Version::FromNumber(6, false).unwrap())
+        Mode::CharacterCountBits(
+            &Mode::ALPHANUMERIC,
+            Version::FromNumber(6, false, false).unwrap()
+        )
     );
     assert_eq!(
         8,
-        Mode::CharacterCountBits(&Mode::BYTE, Version::FromNumber(7, false).unwrap())
+        Mode::CharacterCountBits(&Mode::BYTE, Version::FromNumber(7, false, false).unwrap())
     );
     assert_eq!(
         8,
-        Mode::CharacterCountBits(&Mode::KANJI, Version::FromNumber(8, false).unwrap())
+        Mode::CharacterCountBits(&Mode::KANJI, Version::FromNumber(8, false, false).unwrap())
     );
 }
 
@@ -110,26 +122,29 @@ fn MicroCharacterCount() {
     // Spot check a few values
     assert_eq!(
         3,
-        Mode::CharacterCountBits(&Mode::NUMERIC, Version::FromNumber(1, true).unwrap())
+        Mode::CharacterCountBits(&Mode::NUMERIC, Version::FromNumber(1, true, false).unwrap())
     );
     assert_eq!(
         4,
-        Mode::CharacterCountBits(&Mode::NUMERIC, Version::FromNumber(2, true).unwrap())
+        Mode::CharacterCountBits(&Mode::NUMERIC, Version::FromNumber(2, true, false).unwrap())
     );
     assert_eq!(
         6,
-        Mode::CharacterCountBits(&Mode::NUMERIC, Version::FromNumber(4, true).unwrap())
+        Mode::CharacterCountBits(&Mode::NUMERIC, Version::FromNumber(4, true, false).unwrap())
     );
     assert_eq!(
         3,
-        Mode::CharacterCountBits(&Mode::ALPHANUMERIC, Version::FromNumber(2, true).unwrap())
+        Mode::CharacterCountBits(
+            &Mode::ALPHANUMERIC,
+            Version::FromNumber(2, true, false).unwrap()
+        )
     );
     assert_eq!(
         4,
-        Mode::CharacterCountBits(&Mode::BYTE, Version::FromNumber(3, true).unwrap())
+        Mode::CharacterCountBits(&Mode::BYTE, Version::FromNumber(3, true, false).unwrap())
     );
     assert_eq!(
         4,
-        Mode::CharacterCountBits(&Mode::KANJI, Version::FromNumber(4, true).unwrap())
+        Mode::CharacterCountBits(&Mode::KANJI, Version::FromNumber(4, true, false).unwrap())
     );
 }

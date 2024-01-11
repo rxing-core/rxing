@@ -1,5 +1,7 @@
 use crate::common::Result;
-use crate::qrcode::decoder::{Version, VersionRef, MICRO_VERSIONS, VERSIONS, VERSION_DECODE_INFO};
+use crate::qrcode::decoder::{
+    Version, VersionRef, MICRO_VERSIONS, MODEL1_VERSIONS, VERSIONS, VERSION_DECODE_INFO,
+};
 use crate::Exceptions;
 
 // const Version* Version::AllMicroVersions()
@@ -16,7 +18,7 @@ use crate::Exceptions;
 // }
 
 impl Version {
-    pub fn FromDimension(dimension: u32) -> Result<VersionRef> {
+    pub fn FromDimension(dimension: u32, is_model1: bool) -> Result<VersionRef> {
         let isMicro = dimension < 21;
         if dimension % Self::DimensionStep(isMicro) != 1 {
             //throw std::invalid_argument("Unexpected dimension");
@@ -25,17 +27,31 @@ impl Version {
         Self::FromNumber(
             (dimension - Self::DimensionOffset(isMicro)) / Self::DimensionStep(isMicro),
             isMicro,
+            is_model1,
         )
     }
 
-    pub fn FromNumber(versionNumber: u32, is_micro: bool) -> Result<VersionRef> {
-        if versionNumber < 1 || versionNumber > (if is_micro { 4 } else { 40 }) {
+    pub fn FromNumber(versionNumber: u32, is_micro: bool, is_model1: bool) -> Result<VersionRef> {
+        if versionNumber < 1
+            || versionNumber
+                > (if is_micro {
+                    4
+                } else {
+                    if is_model1 {
+                        14
+                    } else {
+                        40
+                    }
+                })
+        {
             //throw std::invalid_argument("Version should be in range [1-40].");
             return Err(Exceptions::ILLEGAL_ARGUMENT);
         }
 
         Ok(if is_micro {
             &MICRO_VERSIONS[versionNumber as usize - 1]
+        } else if is_model1 {
+            &MODEL1_VERSIONS[versionNumber as usize - 1]
         } else {
             &VERSIONS[versionNumber as usize - 1]
         })
@@ -91,5 +107,9 @@ impl Version {
 
     pub const fn isMicroQRCode(&self) -> bool {
         self.is_micro
+    }
+
+    pub const fn isQRCodeModel1(&self) -> bool {
+        self.is_model1
     }
 }

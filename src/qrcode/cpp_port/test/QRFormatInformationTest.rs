@@ -63,7 +63,7 @@ fn DecodeWithBitDifference() {
             MASKED_TEST_FORMAT_INFO2 ^ 0x07,
         ),
     );
-    assert!(!FormatInformation::DecodeQR(
+    assert!(FormatInformation::DecodeQR(
         MASKED_TEST_FORMAT_INFO ^ 0x0F,
         MASKED_TEST_FORMAT_INFO2 ^ 0x0F
     )

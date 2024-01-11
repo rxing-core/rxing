@@ -299,6 +299,10 @@ pub fn DecodeBitStream(
     let mut structuredAppend = StructuredAppendInfo::default();
     let modeBitLength = Mode::get_codec_mode_bits_length(version);
 
+    if version.isQRCodeModel1() {
+        bits.readBits(4)?; /* Model 1 is leading with 4 0-bits -> drop them */
+    }
+
     let res = (|| {
         while !IsEndOfStream(&mut bits, version)? {
             let mode: Mode = if modeBitLength == 0 {
@@ -387,11 +391,21 @@ pub fn DecodeBitStream(
         .withError(res.err())
         .withEcLevel(ecLevel.to_string())
         .withVersionNumber(version.getVersionNumber())
-        .withStructuredAppend(structuredAppend))
+        .withStructuredAppend(structuredAppend)
+        .withIsModel1(version.isQRCodeModel1()))
 }
 
 pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
-    let Ok(pversion) = ReadVersion(bits) else {
+    let isMicroQRCode = bits.height() < 21;
+    let Ok(formatInfo) = ReadFormatInformation(bits, isMicroQRCode) else {
+        return Err(Exceptions::format_with("Invalid format information"));
+    };
+
+    let Ok(pversion) = (if formatInfo.isModel1 {
+        Version::FromDimension(bits.height(), true)
+    } else {
+        ReadVersion(bits)
+    }) else {
         return Err(Exceptions::format_with("Invalid version"));
     };
     let version = pversion;

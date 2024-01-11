@@ -183,6 +183,9 @@ impl MultiFormatReader {
                         }
                     }
                     BarcodeFormat::MICRO_QR_CODE => QrReader.decode_with_hints(image, &self.hints),
+                    BarcodeFormat::RECTANGULAR_MICRO_QR_CODE => {
+                        QrReader.decode_with_hints(image, &self.hints)
+                    }
                     BarcodeFormat::DATA_MATRIX => {
                         DataMatrixReader.decode_with_hints(image, &self.hints)
                     }

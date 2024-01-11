@@ -73,6 +73,7 @@ pub struct FormatInformation {
     pub data_mask: u8,
     pub microVersion: u32,
     pub isMirrored: bool,
+    pub isModel1: bool,
 
     pub index: u8,     // = 255;
     pub bitsIndex: u8, // = 255;
@@ -86,6 +87,7 @@ impl Default for FormatInformation {
             data_mask: Default::default(),
             microVersion: 0,
             isMirrored: false,
+            isModel1: false,
             index: 255,
             bitsIndex: 255,
         }
@@ -104,6 +106,7 @@ impl FormatInformation {
             error_correction_level: errorCorrectionLevel,
             data_mask: dataMask,
             isMirrored: false,
+            isModel1: false,
             index: 255,
             bitsIndex: 255,
         })

@@ -33,7 +33,7 @@ pub fn hasValidDimension(bitMatrix: &BitMatrix, isMicro: bool) -> bool {
 pub fn ReadVersion(bitMatrix: &BitMatrix) -> Result<VersionRef> {
     let dimension = bitMatrix.height();
 
-    let mut version = Version::FromDimension(dimension)?;
+    let mut version = Version::FromDimension(dimension, false)?;
 
     if version.getVersionNumber() < 7 {
         return Ok(version);
@@ -235,6 +235,111 @@ pub fn ReadMQRCodewords(
     Ok(result.iter().copied().map(|x| x as u8).collect())
 }
 
+pub fn ReadQRCodewordsModel1(
+    bitMatrix: &BitMatrix,
+    version: VersionRef,
+    formatInfo: &FormatInformation,
+) -> Result<Vec<u8>> {
+    let mut result = Vec::with_capacity(version.getTotalCodewords() as usize);
+    let dimension = bitMatrix.height();
+    let columns = dimension / 4 + 1 + 2;
+    for j in 0..columns {
+        // for (int j = 0; j < columns; j++) {
+        if j <= 1 {
+            // vertical symbols on the right side
+            let rows = (dimension - 8) / 4;
+            for i in 0..rows {
+                // for (int i = 0; i < rows; i++) {
+                if j == 0 && i % 2 == 0 && i > 0 && i < rows - 1
+                // extension
+                {
+                    continue;
+                }
+                let x = (dimension - 1) - (j * 2);
+                let y = (dimension - 1) - (i * 4);
+                let mut currentByte = 0;
+                for b in 0..8 {
+                    // for (int b = 0; b < 8; b++) {
+                    AppendBit(
+                        &mut currentByte,
+                        GetDataMaskBit(formatInfo.data_mask as u32, x - b % 2, y - (b / 2), None)?
+                            != getBit(
+                                bitMatrix,
+                                x - b % 2,
+                                y - (b / 2),
+                                Some(formatInfo.isMirrored),
+                            ),
+                    );
+                }
+                result.push(currentByte);
+            }
+        } else if columns - j <= 4 {
+            // vertical symbols on the left side
+            let rows = (dimension - 16) / 4;
+            for i in 0..rows {
+                // for (int i = 0; i < rows; i++) {
+                let x = (columns - j - 1) * 2 + 1 + (if columns - j == 4 { 1 } else { 0 }); // timing
+                let y = (dimension - 1) - 8 - (i * 4);
+                let mut currentByte = 0;
+                for b in 0..8 {
+                    // for (int b = 0; b < 8; b++) {
+                    AppendBit(
+                        &mut currentByte,
+                        GetDataMaskBit(formatInfo.data_mask as u32, x - b % 2, y - (b / 2), None)?
+                            != getBit(
+                                bitMatrix,
+                                x - b % 2,
+                                y - (b / 2),
+                                Some(formatInfo.isMirrored),
+                            ),
+                    );
+                }
+                result.push(currentByte);
+            }
+        } else {
+            // horizontal symbols
+            let rows = dimension / 2;
+            for i in 0..rows {
+                // for (int i = 0; i < rows; i++) {
+                if j == 2 && i >= rows - 4
+                // alignment & finder
+                {
+                    continue;
+                }
+                if i == 0 && j % 2 == 1 && j + 1 != columns - 4
+                // extension
+                {
+                    continue;
+                }
+                let x = (dimension - 1) - (2 * 2) - (j - 2) * 4;
+                let y = (dimension - 1) - (i * 2) - (if i >= rows - 3 { 1 } else { 0 }); // timing
+                let mut currentByte = 0;
+                for b in 0..8 {
+                    // for (int b = 0; b < 8; b++) {
+                    AppendBit(
+                        &mut currentByte,
+                        GetDataMaskBit(formatInfo.data_mask as u32, x - b % 4, y - (b / 4), None)?
+                            != getBit(
+                                bitMatrix,
+                                x - b % 4,
+                                y - (b / 4),
+                                Some(formatInfo.isMirrored),
+                            ),
+                    );
+                }
+                result.push(currentByte);
+            }
+        }
+    }
+
+    result[0] &= 0xf; // ignore corner
+    if (result.len()) != version.getTotalCodewords() as usize {
+        return Err(Exceptions::FORMAT);
+    }
+
+    Ok(result.iter().copied().map(|x| x as u8).collect())
+}
+
 pub fn ReadCodewords(
     bitMatrix: &BitMatrix,
     version: VersionRef,
@@ -246,6 +351,8 @@ pub fn ReadCodewords(
 
     if version.isMicroQRCode() {
         ReadMQRCodewords(bitMatrix, version, formatInfo)
+    } else if formatInfo.isModel1 {
+        ReadQRCodewordsModel1(bitMatrix, version, formatInfo)
     } else {
         ReadQRCodewords(bitMatrix, version, formatInfo)
     }
