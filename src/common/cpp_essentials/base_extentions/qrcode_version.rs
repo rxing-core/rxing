@@ -14,7 +14,7 @@ use crate::Exceptions;
 
 impl Version {
     pub fn Model1(version_number: u32) -> Result<VersionRef> {
-        if version_number < 1 || version_number > 14 {
+        if !(1..=14).contains(&version_number) {
             Err(Exceptions::ILLEGAL_ARGUMENT)
         } else {
             Ok(&MODEL1_VERSIONS[version_number as usize - 1])
@@ -22,7 +22,7 @@ impl Version {
     }
 
     pub fn Model2(version_number: u32) -> Result<VersionRef> {
-        if version_number < 1 || version_number > 40 {
+        if !(1..=40).contains(&version_number) {
             Err(Exceptions::ILLEGAL_ARGUMENT)
         } else {
             Ok(&VERSIONS[version_number as usize - 1])
@@ -30,7 +30,7 @@ impl Version {
     }
 
     pub fn Micro(version_number: u32) -> Result<VersionRef> {
-        if version_number < 1 || version_number > 4 {
+        if !(1..=4).contains(&version_number) {
             Err(Exceptions::ILLEGAL_ARGUMENT)
         } else {
             Ok(&MICRO_VERSIONS[version_number as usize - 1])
@@ -95,12 +95,12 @@ impl Version {
 
     pub fn HasMicroSize(bitMatrix: &BitMatrix) -> bool {
         let size = bitMatrix.height();
-        size >= 11 && size <= 17 && (size % 2) == 1
+        (11..=17).contains(&size) && (size % 2) == 1
     }
 
     pub fn HasValidSize(bitMatrix: &BitMatrix) -> bool {
         let size = bitMatrix.height();
-        Self::HasMicroSize(bitMatrix) || (size >= 21 && size <= 177 && (size % 4) == 1)
+        Self::HasMicroSize(bitMatrix) || ((21..=177).contains(&size) && (size % 4) == 1)
     }
 
     pub fn Number(bitMatrix: &BitMatrix) -> u32 {

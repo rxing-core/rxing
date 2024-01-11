@@ -17,8 +17,6 @@ use crate::qrcode::cpp_port::bitmatrix_parser::{
 use crate::qrcode::decoder::{DataBlock, ErrorCorrectionLevel, Mode, Version};
 use crate::Exceptions;
 
-use super::Type;
-
 /**
 * <p>Given data and error-correction codewords received, possibly corrupted by errors, attempts to
 * correct the errors in-place using Reed-Solomon error correction.</p>
