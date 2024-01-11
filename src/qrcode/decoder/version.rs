@@ -18,6 +18,7 @@ use std::fmt;
 
 use crate::{
     common::{BitMatrix, Result},
+    qrcode::cpp_port::Type,
     Exceptions,
 };
 
@@ -55,8 +56,7 @@ pub struct Version {
     alignmentPatternCenters: Vec<u32>,
     ecBlocks: Vec<ECBlocks>,
     totalCodewords: u32,
-    pub(crate) is_micro: bool,
-    pub(crate) is_model1: bool,
+    pub(crate) qr_type: Type,
 }
 impl Version {
     fn new(versionNumber: u32, alignmentPatternCenters: Vec<u32>, ecBlocks: [ECBlocks; 4]) -> Self {
@@ -74,8 +74,7 @@ impl Version {
             alignmentPatternCenters,
             ecBlocks: ecBlocks.to_vec(),
             totalCodewords: total,
-            is_micro: false,
-            is_model1: false,
+            qr_type: Type::Model2,
         }
     }
 
@@ -94,8 +93,7 @@ impl Version {
             alignmentPatternCenters: Vec::default(),
             ecBlocks,
             totalCodewords: total,
-            is_micro: true,
-            is_model1: false,
+            qr_type: Type::Micro,
         }
     }
 
@@ -114,8 +112,7 @@ impl Version {
             alignmentPatternCenters: Vec::default(),
             ecBlocks,
             totalCodewords: total,
-            is_micro: false,
-            is_model1: true,
+            qr_type: Type::Model1,
         }
     }
 
@@ -137,7 +134,7 @@ impl Version {
     }
 
     pub fn getDimensionForVersion(&self) -> u32 {
-        Self::DimensionOfVersion(self.versionNumber, self.is_micro)
+        Self::DimensionOfVersion(self.versionNumber, self.qr_type == Type::Micro)
         // 17 + 4 * self.versionNumber
     }
 
@@ -205,7 +202,7 @@ impl Version {
         // Top left finder pattern + separator + format
         bitMatrix.setRegion(0, 0, 9, 9)?;
 
-        if !self.is_micro {
+        if self.qr_type != Type::Micro {
             // Top right finder pattern + separator + format
             bitMatrix.setRegion(dimension - 8, 0, 8, 9)?;
             // Bottom left finder pattern + separator + format

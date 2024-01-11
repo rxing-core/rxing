@@ -12,7 +12,7 @@ use crate::{
 fn CheckVersion(version: VersionRef, number: u32, dimension: u32) {
     // assert_ne!(version, nullptr);
     assert_eq!(number, version.getVersionNumber());
-    if number > 1 && !version.isMicroQRCode() {
+    if number > 1 && version.isModel2() {
         assert!(!version.getAlignmentPatternCenters().is_empty());
     }
     assert_eq!(dimension, version.getDimensionForVersion());
@@ -26,13 +26,13 @@ fn DoTestVersion(expectedVersion: u32, mask: i32) {
 
 #[test]
 fn VersionForNumber() {
-    let version = Version::FromNumber(0, false, false);
+    let version = Version::Model2(0);
     assert!(version.is_err(), "There is version with number 0");
 
     for i in 1..=40 {
         // for (int i = 1; i <= 40; i++) {
         CheckVersion(
-            Version::FromNumber(i, false, false).expect("version number found"),
+            Version::Model2(i).expect("version number found"),
             i,
             4 * i + 17,
         );
@@ -43,10 +43,13 @@ fn VersionForNumber() {
 fn GetProvisionalVersionForDimension() {
     for i in 1..=40 {
         // for (int i = 1; i <= 40; i++) {
-        let prov = Version::FromDimension(4 * i + 17, false)
-            .unwrap_or_else(|_| panic!("version should exist for {i}"));
         // assert_ne!(prov, nullptr);
-        assert_eq!(i, prov.getVersionNumber());
+        assert_eq!(
+            i,
+            Version::Number(
+                &BitMatrix::with_single_dimension(4 * i + 17).expect("must create bitmatrix")
+            )
+        );
     }
 }
 
@@ -63,14 +66,13 @@ fn DecodeVersionInformation() {
 
 #[test]
 fn MicroVersionForNumber() {
-    let version = Version::FromNumber(0, true, false);
+    let version = Version::Micro(0);
     assert!(version.is_err(), "There is version with number 0");
 
     for i in 1..=4 {
         // for (int i = 1; i <= 4; i++) {
         CheckVersion(
-            Version::FromNumber(i, true, false)
-                .unwrap_or_else(|_| panic!("version for {i} should exist")),
+            Version::Micro(i).unwrap_or_else(|_| panic!("version for {i} should exist")),
             i,
             2 * i + 9,
         );
@@ -81,10 +83,12 @@ fn MicroVersionForNumber() {
 fn GetProvisionalMicroVersionForDimension() {
     for i in 1..=4 {
         // for (int i = 1; i <= 4; i++) {
-        let prov = Version::FromDimension(2 * i + 9, false)
-            .unwrap_or_else(|_| panic!("version for micro {i} should exist"));
-        // assert_ne!(prov, nullptr);
-        assert_eq!(i, prov.getVersionNumber());
+        assert_eq!(
+            i,
+            Version::Number(
+                &BitMatrix::with_single_dimension(2 * i + 9).expect("must create bitmatrix")
+            )
+        );
     }
 }
 
@@ -101,7 +105,7 @@ fn FunctionPattern() {
     };
     for i in 1..=4 {
         // for (int i = 1; i <= 4; i++) {
-        let version = Version::FromNumber(i, true, false).expect("version must be found");
+        let version = Version::Micro(i).expect("version must be found");
         let functionPattern = version
             .buildFunctionPattern()
             .expect("function pattern must be found");

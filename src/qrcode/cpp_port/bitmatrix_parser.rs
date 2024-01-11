@@ -10,7 +10,7 @@ use crate::{
     Exceptions,
 };
 
-use super::{data_mask::GetDataMaskBit, detector::AppendBit};
+use super::{data_mask::GetDataMaskBit, detector::AppendBit, Type};
 
 pub fn getBit(bitMatrix: &BitMatrix, x: u32, y: u32, mirrored: Option<bool>) -> bool {
     let mirrored = mirrored.unwrap_or(false);
@@ -21,23 +21,26 @@ pub fn getBit(bitMatrix: &BitMatrix, x: u32, y: u32, mirrored: Option<bool>) -> 
     }
 }
 
-pub fn hasValidDimension(bitMatrix: &BitMatrix, isMicro: bool) -> bool {
-    let dimension = bitMatrix.height();
-    if isMicro {
-        (11..=17).contains(&dimension) && (dimension % 2) == 1
-    } else {
-        (21..=177).contains(&dimension) && (dimension % 4) == 1
+pub fn ReadVersion(bitMatrix: &BitMatrix, qr_type: Type) -> Result<VersionRef> {
+    if !Version::HasValidSize(bitMatrix) {
+        return Err(Exceptions::FORMAT);
     }
-}
 
-pub fn ReadVersion(bitMatrix: &BitMatrix) -> Result<VersionRef> {
-    let dimension = bitMatrix.height();
+    let number = Version::Number(bitMatrix);
 
-    let mut version = Version::FromDimension(dimension, false)?;
+    match qr_type {
+        Type::Model1 => return Version::Model1(number),
+
+        Type::Micro => return Version::Micro(number),
+        Type::Model2 => {}
+    }
+    let mut version = Version::Model2(number)?;
 
     if version.getVersionNumber() < 7 {
         return Ok(version);
     }
+
+    let dimension = bitMatrix.height();
 
     for mirror in [false, true] {
         // for (bool mirror : {false, true}) {
@@ -60,12 +63,8 @@ pub fn ReadVersion(bitMatrix: &BitMatrix) -> Result<VersionRef> {
     Err(Exceptions::FORMAT)
 }
 
-pub fn ReadFormatInformation(bitMatrix: &BitMatrix, isMicro: bool) -> Result<FormatInformation> {
-    if !hasValidDimension(bitMatrix, isMicro) {
-        return Err(Exceptions::FORMAT);
-    }
-
-    if isMicro {
+pub fn ReadFormatInformation(bitMatrix: &BitMatrix) -> Result<FormatInformation> {
+    if Version::HasMicroSize(bitMatrix) {
         // Read top-left format info bits
         let mut formatInfoBits = 0;
         for x in 1..9 {
@@ -345,15 +344,9 @@ pub fn ReadCodewords(
     version: VersionRef,
     formatInfo: &FormatInformation,
 ) -> Result<Vec<u8>> {
-    if !hasValidDimension(bitMatrix, version.isMicroQRCode()) {
-        return Err(Exceptions::FORMAT);
-    }
-
-    if version.isMicroQRCode() {
-        ReadMQRCodewords(bitMatrix, version, formatInfo)
-    } else if formatInfo.isModel1 {
-        ReadQRCodewordsModel1(bitMatrix, version, formatInfo)
-    } else {
-        ReadQRCodewords(bitMatrix, version, formatInfo)
+    match version.qr_type {
+        Type::Model1 => ReadQRCodewordsModel1(bitMatrix, version, formatInfo),
+        Type::Model2 => ReadQRCodewords(bitMatrix, version, formatInfo),
+        Type::Micro => ReadMQRCodewords(bitMatrix, version, formatInfo),
     }
 }

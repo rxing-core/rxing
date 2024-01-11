@@ -17,6 +17,8 @@ use crate::qrcode::cpp_port::bitmatrix_parser::{
 use crate::qrcode::decoder::{DataBlock, ErrorCorrectionLevel, Mode, Version};
 use crate::Exceptions;
 
+use super::Type;
+
 /**
 * <p>Given data and error-correction codewords received, possibly corrupted by errors, attempts to
 * correct the errors in-place using Reed-Solomon error correction.</p>
@@ -299,7 +301,7 @@ pub fn DecodeBitStream(
     let mut structuredAppend = StructuredAppendInfo::default();
     let modeBitLength = Mode::get_codec_mode_bits_length(version);
 
-    if version.isQRCodeModel1() {
+    if version.isModel1() {
         bits.readBits(4)?; /* Model 1 is leading with 4 0-bits -> drop them */
     }
 
@@ -310,7 +312,7 @@ pub fn DecodeBitStream(
             } else {
                 Mode::CodecModeForBits(
                     bits.readBits(modeBitLength as usize)?,
-                    Some(version.isMicroQRCode()),
+                    Some(version.isMicro()),
                 )?
             };
 
@@ -392,25 +394,23 @@ pub fn DecodeBitStream(
         .withEcLevel(ecLevel.to_string())
         .withVersionNumber(version.getVersionNumber())
         .withStructuredAppend(structuredAppend)
-        .withIsModel1(version.isQRCodeModel1()))
+        .withIsModel1(version.isModel1()))
 }
 
 pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
-    let isMicroQRCode = bits.height() < 21;
-    let Ok(formatInfo) = ReadFormatInformation(bits, isMicroQRCode) else {
+    if !Version::HasValidSize(bits) {
+        return Err(Exceptions::format_with("Invalid symbol size"));
+    }
+    let Ok(formatInfo) = ReadFormatInformation(bits) else {
         return Err(Exceptions::format_with("Invalid format information"));
     };
 
-    let Ok(pversion) = (if formatInfo.isModel1 {
-        Version::FromDimension(bits.height(), true)
-    } else {
-        ReadVersion(bits)
-    }) else {
+    let Ok(pversion) = ReadVersion(bits, formatInfo.qr_type()) else {
         return Err(Exceptions::format_with("Invalid version"));
     };
     let version = pversion;
 
-    let Ok(formatInfo) = ReadFormatInformation(bits, version.isMicroQRCode()) else {
+    let Ok(formatInfo) = ReadFormatInformation(bits) else {
         return Err(Exceptions::format_with("Invalid format information"));
     };
 

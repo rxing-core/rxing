@@ -42,7 +42,7 @@ fn SimpleByteMode() {
     let bytes: Vec<u8> = ba.into();
     let result = DecodeBitStream(
         &bytes,
-        Version::FromNumber(1, false, false).expect("find_version"),
+        Version::Model2(1).expect("find_version"),
         ErrorCorrectionLevel::M,
     )
     .expect("Decode")
@@ -62,14 +62,10 @@ fn SimpleSJIS() {
     ba.appendBits(0xA3, 8).expect("append");
     ba.appendBits(0xD0, 8).expect("append");
     let bytes: Vec<u8> = ba.into();
-    let result = DecodeBitStream(
-        &bytes,
-        Version::FromNumber(1, false, false).unwrap(),
-        ErrorCorrectionLevel::M,
-    )
-    .unwrap()
-    .content()
-    .to_string();
+    let result = DecodeBitStream(&bytes, Version::Model2(1).unwrap(), ErrorCorrectionLevel::M)
+        .unwrap()
+        .content()
+        .to_string();
     assert_eq!("\u{ff61}\u{ff62}\u{ff63}\u{ff90}", result);
 }
 
@@ -84,14 +80,10 @@ fn ECI() {
     ba.appendBits(0xA2, 8).expect("append");
     ba.appendBits(0xA3, 8).expect("append");
     let bytes: Vec<u8> = ba.into();
-    let result = DecodeBitStream(
-        &bytes,
-        Version::FromNumber(1, false, false).unwrap(),
-        ErrorCorrectionLevel::M,
-    )
-    .unwrap()
-    .content()
-    .to_string();
+    let result = DecodeBitStream(&bytes, Version::Model2(1).unwrap(), ErrorCorrectionLevel::M)
+        .unwrap()
+        .content()
+        .to_string();
     assert_eq!("\u{ED}\u{F3}\u{FA}", result);
 }
 
@@ -103,14 +95,10 @@ fn Hanzi() {
     ba.appendBits(0x01, 8).expect("append"); // 1 characters
     ba.appendBits(0x03C1, 13).expect("append");
     let bytes: Vec<u8> = ba.into();
-    let result = DecodeBitStream(
-        &bytes,
-        Version::FromNumber(1, false, false).unwrap(),
-        ErrorCorrectionLevel::M,
-    )
-    .unwrap()
-    .content()
-    .to_string();
+    let result = DecodeBitStream(&bytes, Version::Model2(1).unwrap(), ErrorCorrectionLevel::M)
+        .unwrap()
+        .content()
+        .to_string();
     assert_eq!("\u{963f}", result);
 }
 
@@ -125,20 +113,16 @@ fn HanziLevel1() {
 
     let bytes: Vec<u8> = ba.into();
 
-    let result = DecodeBitStream(
-        &bytes,
-        Version::FromNumber(1, false, false).unwrap(),
-        ErrorCorrectionLevel::M,
-    )
-    .unwrap()
-    .content()
-    .to_string();
+    let result = DecodeBitStream(&bytes, Version::Model2(1).unwrap(), ErrorCorrectionLevel::M)
+        .unwrap()
+        .content()
+        .to_string();
     assert_eq!("\u{30a2}", result);
 }
 
 #[test]
 fn SymbologyIdentifier() {
-    let version = Version::FromNumber(1, false, false).unwrap();
+    let version = Version::Model2(1).unwrap();
     let ecLevel = ErrorCorrectionLevel::M;
 
     // Plain "ANUM(1) A"
