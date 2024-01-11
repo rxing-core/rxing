@@ -26,13 +26,13 @@ fn DoTestVersion(expectedVersion: u32, mask: i32) {
 
 #[test]
 fn VersionForNumber() {
-    let version = Version::FromNumber(0, false);
+    let version = Version::FromNumber(0, false, false);
     assert!(version.is_err(), "There is version with number 0");
 
     for i in 1..=40 {
         // for (int i = 1; i <= 40; i++) {
         CheckVersion(
-            Version::FromNumber(i, false).expect("version number found"),
+            Version::FromNumber(i, false, false).expect("version number found"),
             i,
             4 * i + 17,
         );
@@ -43,7 +43,7 @@ fn VersionForNumber() {
 fn GetProvisionalVersionForDimension() {
     for i in 1..=40 {
         // for (int i = 1; i <= 40; i++) {
-        let prov = Version::FromDimension(4 * i + 17)
+        let prov = Version::FromDimension(4 * i + 17, false)
             .unwrap_or_else(|_| panic!("version should exist for {i}"));
         // assert_ne!(prov, nullptr);
         assert_eq!(i, prov.getVersionNumber());
@@ -63,13 +63,14 @@ fn DecodeVersionInformation() {
 
 #[test]
 fn MicroVersionForNumber() {
-    let version = Version::FromNumber(0, true);
+    let version = Version::FromNumber(0, true, false);
     assert!(version.is_err(), "There is version with number 0");
 
     for i in 1..=4 {
         // for (int i = 1; i <= 4; i++) {
         CheckVersion(
-            Version::FromNumber(i, true).unwrap_or_else(|_| panic!("version for {i} should exist")),
+            Version::FromNumber(i, true, false)
+                .unwrap_or_else(|_| panic!("version for {i} should exist")),
             i,
             2 * i + 9,
         );
@@ -80,7 +81,7 @@ fn MicroVersionForNumber() {
 fn GetProvisionalMicroVersionForDimension() {
     for i in 1..=4 {
         // for (int i = 1; i <= 4; i++) {
-        let prov = Version::FromDimension(2 * i + 9)
+        let prov = Version::FromDimension(2 * i + 9, false)
             .unwrap_or_else(|_| panic!("version for micro {i} should exist"));
         // assert_ne!(prov, nullptr);
         assert_eq!(i, prov.getVersionNumber());
@@ -100,7 +101,7 @@ fn FunctionPattern() {
     };
     for i in 1..=4 {
         // for (int i = 1; i <= 4; i++) {
-        let version = Version::FromNumber(i, true).expect("version must be found");
+        let version = Version::FromNumber(i, true, false).expect("version must be found");
         let functionPattern = version
             .buildFunctionPattern()
             .expect("function pattern must be found");

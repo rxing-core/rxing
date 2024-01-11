@@ -207,10 +207,10 @@ fn cpp_qrcode_black_box2_test_case() {
         BarcodeFormat::QR_CODE,
     );
 
-    tester.add_test(45, 47, 0.0);
-    tester.add_test(45, 47, 90.0);
-    tester.add_test(45, 47, 180.0);
-    tester.add_test(45, 46, 270.0);
+    tester.add_test(46, 48, 0.0);
+    tester.add_test(46, 48, 90.0);
+    tester.add_test(46, 48, 180.0);
+    tester.add_test(46, 48, 270.0);
 
     tester.ignore_pure = true;
 

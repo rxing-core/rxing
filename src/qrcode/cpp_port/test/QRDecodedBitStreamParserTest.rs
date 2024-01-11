@@ -42,7 +42,7 @@ fn SimpleByteMode() {
     let bytes: Vec<u8> = ba.into();
     let result = DecodeBitStream(
         &bytes,
-        Version::FromNumber(1, false).expect("find_version"),
+        Version::FromNumber(1, false, false).expect("find_version"),
         ErrorCorrectionLevel::M,
     )
     .expect("Decode")
@@ -64,7 +64,7 @@ fn SimpleSJIS() {
     let bytes: Vec<u8> = ba.into();
     let result = DecodeBitStream(
         &bytes,
-        Version::FromNumber(1, false).unwrap(),
+        Version::FromNumber(1, false, false).unwrap(),
         ErrorCorrectionLevel::M,
     )
     .unwrap()
@@ -86,7 +86,7 @@ fn ECI() {
     let bytes: Vec<u8> = ba.into();
     let result = DecodeBitStream(
         &bytes,
-        Version::FromNumber(1, false).unwrap(),
+        Version::FromNumber(1, false, false).unwrap(),
         ErrorCorrectionLevel::M,
     )
     .unwrap()
@@ -105,7 +105,7 @@ fn Hanzi() {
     let bytes: Vec<u8> = ba.into();
     let result = DecodeBitStream(
         &bytes,
-        Version::FromNumber(1, false).unwrap(),
+        Version::FromNumber(1, false, false).unwrap(),
         ErrorCorrectionLevel::M,
     )
     .unwrap()
@@ -127,7 +127,7 @@ fn HanziLevel1() {
 
     let result = DecodeBitStream(
         &bytes,
-        Version::FromNumber(1, false).unwrap(),
+        Version::FromNumber(1, false, false).unwrap(),
         ErrorCorrectionLevel::M,
     )
     .unwrap()
@@ -138,7 +138,7 @@ fn HanziLevel1() {
 
 #[test]
 fn SymbologyIdentifier() {
-    let version = Version::FromNumber(1, false).unwrap();
+    let version = Version::FromNumber(1, false, false).unwrap();
     let ecLevel = ErrorCorrectionLevel::M;
 
     // Plain "ANUM(1) A"
