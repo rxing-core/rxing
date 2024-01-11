@@ -22,6 +22,7 @@ mod common;
 /**
  * @author Chris Wood
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn telepen_alpha_test_case() {
     const NUMTESTS: u32 = 5;
@@ -38,6 +39,7 @@ fn telepen_alpha_test_case() {
     tester.test_black_box();
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn telepen_numeric_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

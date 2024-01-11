@@ -22,6 +22,7 @@ mod common;
 /**
  * @author David Olivier
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn aztec_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -44,6 +45,7 @@ fn aztec_black_box1_test_case() {
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn aztec_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

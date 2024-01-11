@@ -32,6 +32,7 @@ use super::{test_case_util, RSSExpandedReader};
  * Tests {@link RSSExpandedReader} handling of stacked RSS barcodes.
  */
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodingRowByRow() {
     let mut rssExpandedReader = RSSExpandedReader::new();
@@ -87,6 +88,7 @@ fn testDecodingRowByRow() {
     assert_eq!("(01)98898765432106(3202)012345(15)991231", result.getText());
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testCompleteDecode() {
     let mut rssExpandedReader = RSSExpandedReader::new();

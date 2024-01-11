@@ -63,7 +63,7 @@ impl ExpandedPair {
         &self.finderPattern
     }
 
-    #[cfg(test)]
+    #[cfg(all(test, feature = "image"))]
     pub(crate) fn getFinderPatternMut(&mut self) -> &mut Option<FinderPattern> {
         &mut self.finderPattern
     }

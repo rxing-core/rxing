@@ -48,7 +48,7 @@ impl FinderPattern {
         &self.startEnd
     }
 
-    #[cfg(test)]
+    #[cfg(all(test, feature = "image"))]
     pub(crate) fn getStartEndMut(&mut self) -> &mut [usize] {
         &mut self.startEnd
     }

@@ -9,6 +9,7 @@ mod common;
  *
  * @author SITA Lab (kevin.osullivan@sita.aero)
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn pdf417_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -30,6 +31,7 @@ fn pdf417_black_box1_test_case() {
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn pdf417_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -46,6 +48,7 @@ fn pdf417_black_box2_test_case() {
 /**
  * Tests {@link PDF417Reader} against more sample images.
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn pdf417_black_box3_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

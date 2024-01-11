@@ -22,6 +22,7 @@ mod common;
 /**
  * Inverted barcodes
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn inverted_data_matrix_black_box_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

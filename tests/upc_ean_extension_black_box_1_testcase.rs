@@ -22,6 +22,7 @@ mod common;
 /**
  * @author Sean Owen
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn upceanextension_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

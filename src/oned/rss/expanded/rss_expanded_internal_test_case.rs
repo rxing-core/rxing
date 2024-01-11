@@ -37,6 +37,7 @@ use super::RSSExpandedReader;
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testFindFinderPatterns() {
     let image = readImage("2.png");
@@ -83,6 +84,7 @@ fn testFindFinderPatterns() {
     // }
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testRetrieveNextPairPatterns() {
     let image = readImage("3.png");
@@ -111,6 +113,7 @@ fn testRetrieveNextPairPatterns() {
     assert_eq!(0, finderPattern.getValue());
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeCheckCharacter() {
     let image = readImage("3.png");
@@ -139,6 +142,7 @@ fn testDecodeCheckCharacter() {
     assert_eq!(98, dataCharacter.getValue());
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeDataCharacter() {
     let image = readImage("3.png");
