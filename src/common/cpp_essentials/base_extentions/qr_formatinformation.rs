@@ -103,7 +103,7 @@ impl FormatInformation {
     pub fn DecodeRMQR(formatInfoBits1: u32, formatInfoBits2: u32) -> Self {
         //FormatInformation fi;
         let mirror18Bits = |bits: u32| bits.reverse_bits() >> 14;
-        let mut fi = if (formatInfoBits2 != 0) {
+        let mut fi = if formatInfoBits2 != 0 {
             Self::FindBestFormatInfoRMQR(
                 &[formatInfoBits1, mirror18Bits(formatInfoBits1)],
                 &[formatInfoBits2, mirror18Bits(formatInfoBits2)],
@@ -218,7 +218,7 @@ impl FormatInformation {
                     let pattern = l_pattern ^ mask;
                     // Find the pattern with fewest bits differing
                     let hammingDist = ((bits[bitsIndex] ^ mask) ^ pattern).count_ones();
-                    if (hammingDist < fi.hammingDistance) {
+                    if hammingDist < fi.hammingDistance {
                         fi.mask = mask; // store the used mask to discriminate between types/models
                         fi.data = pattern >> 12; // drop the 12 BCH error correction bits
                         fi.hammingDistance = hammingDist;
@@ -229,7 +229,7 @@ impl FormatInformation {
         };
 
         best(bits, &MASKED_PATTERNS, FORMAT_INFO_MASK_RMQR);
-        if (!subbits.is_empty())
+        if !subbits.is_empty()
         // TODO probably remove if `sampleRMQR()` done properly
         {
             best(subbits, &MASKED_PATTERNS_SUB, FORMAT_INFO_MASK_RMQR_SUB);

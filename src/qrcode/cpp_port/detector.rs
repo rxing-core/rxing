@@ -5,12 +5,12 @@ use crate::{
         },
         DefaultGridSampler, GridSampler, Result, SamplerControl,
     },
-    point, point_i,
+    point_i,
     qrcode::{
         decoder::{FormatInformation, Version, VersionRef},
         detector::QRCodeDetectorResult,
     },
-    Exceptions, PointF,
+    Exceptions,
 };
 use multimap::MultiMap;
 use num::Integer;
@@ -24,7 +24,7 @@ use crate::{
         },
         BitMatrix, PerspectiveTransform, Quadrilateral,
     },
-    point_f, Point, PointI,
+    point_f, Point,
 };
 
 #[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
@@ -914,8 +914,7 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let moduleSize: f32 = (fpWidth as f32) / 7.0;
     let dimension = (width as f32 / moduleSize).floor() as u32;
 
-    if dimension < MIN_MODULES
-        || dimension > MAX_MODULES
+    if !(MIN_MODULES..=MAX_MODULES).contains(&dimension)
         || !image.is_in(point_f(
             left as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
             top as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
@@ -969,7 +968,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
 
     let (found, left, top, width, height) = image.findBoundingBox(0, 0, 0, 0, MIN_MODULES);
 
-    if (!found) {
+    if !found {
         return Err(Exceptions::NOT_FOUND);
     }
     let right = left + width - 1;
@@ -994,7 +993,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let mut subdiagonal: SubPattern = EdgeTracer::new(image, br, point_i(-1, -1))
         .readPatternFromBlack(1, None)
         .ok_or(Exceptions::ILLEGAL_STATE)?;
-    if (subdiagonal.len() == 5 && subdiagonal[4] > subdiagonal[3]) {
+    if subdiagonal.len() == 5 && subdiagonal[4] > subdiagonal[3] {
         // Sub pattern has no separator so can run off along the diagonal
         subdiagonal[4] = subdiagonal[3]; // Hack it back to previous
     }
@@ -1024,23 +1023,21 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let dimW = (width as f32 / moduleSize as f32).floor() as u32;
     let dimH = (height as f32 / moduleSize as f32).floor() as u32;
 
-    if (dimW == dimH
+    if dimW == dimH
         || dimW.is_even()
         || dimH.is_even()
-        || dimW < MIN_MODULES_W
-        || dimW > MAX_MODULES_W
-        || dimH < MIN_MODULES_H
-        || dimH > MAX_MODULES_H
+        || !(MIN_MODULES_W..=MAX_MODULES_W).contains(&dimW)
+        || !(MIN_MODULES_H..=MAX_MODULES_H).contains(&dimH)
         || !image.is_in(point_f(
             left as f32 + moduleSize / 2.0 + (dimW as f32 - 1.0) * moduleSize,
             top as f32 + moduleSize / 2.0 + (dimH as f32 - 1.0) * moduleSize,
-        )))
+        ))
     {
         return Err(Exceptions::NOT_FOUND);
     }
 
     // Vertical corner finder patterns
-    if (dimH > 7) {
+    if dimH > 7 {
         // None for R7
         let corner: CornerEdgePattern = EdgeTracer::new(image, tr, point_i(0, 1))
             .readPatternFromBlack(1, None)
@@ -1050,7 +1047,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         if !(IsPattern::<E2E, 2, 4, false>(&view, &CORNER_EDGE_RMQR, None, 0.0, 0.0) != 0.0) {
             return Err(Exceptions::NOT_FOUND);
         }
-        if (dimH > 9) {
+        if dimH > 9 {
             // No bottom left for R9
             let corner: CornerEdgePattern = EdgeTracer::new(image, bl, point_i(0, -1))
                 .readPatternFromBlack(1, None)
@@ -1241,7 +1238,7 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
         };
 
         // check that we see top edge timing pattern modules
-        if (!check(0, true) || !check(1, false) || !check(2, true) || !check(3, false)) {
+        if !check(0, true) || !check(1, false) || !check(2, true) || !check(3, false) {
             continue;
         }
 
@@ -1255,13 +1252,13 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
         }
 
         let fi = FormatInformation::DecodeRMQR(formatInfoBits as u32, 0 /*formatInfoBits2*/);
-        if (fi.hammingDistance < bestFI.hammingDistance) {
+        if fi.hammingDistance < bestFI.hammingDistance {
             bestFI = fi;
             bestPT = mod2Pix;
         }
     }
 
-    if (!bestFI.isValid()) {
+    if !bestFI.isValid() {
         return Err(Exceptions::NOT_FOUND);
     }
 

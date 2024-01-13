@@ -52,7 +52,7 @@ pub fn ReadFormatInformation(bitMatrix: &BitMatrix) -> Result<FormatInformation>
         return Ok(FormatInformation::DecodeMQR(formatInfoBits as u32));
     }
 
-    if (Version::HasRMQRSize(bitMatrix)) {
+    if Version::HasRMQRSize(bitMatrix) {
         // Read top-left format info bits
         let mut formatInfoBits1 = 0;
         for y in (1..=3).rev() {
@@ -378,7 +378,7 @@ pub fn ReadRMQRCodewords(
                 // for (int col = 0; col < 2; col++) {
                 let xx = x - col;
                 // Ignore bits covered by the function pattern
-                if (!functionPattern.get(xx as u32, y)) {
+                if !functionPattern.get(xx as u32, y) {
                     // Read a bit
                     AppendBit(
                         &mut currentByte,
@@ -399,7 +399,7 @@ pub fn ReadRMQRCodewords(
 
         x -= 2
     }
-    if ((result.len()) != version.getTotalCodewords() as usize) {
+    if (result.len()) != version.getTotalCodewords() as usize {
         return Err(Exceptions::FORMAT);
     }
 

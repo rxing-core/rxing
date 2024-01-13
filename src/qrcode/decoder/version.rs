@@ -201,7 +201,7 @@ impl Version {
      * See ISO 18004:2006 Annex E
      */
     pub fn buildFunctionPattern(&self) -> Result<BitMatrix> {
-        if (self.isRMQR()) {
+        if self.isRMQR() {
             let dimension = Version::DimensionOfVersionRMQR(self.versionNumber);
             let mut bitMatrix = BitMatrix::new(dimension.x as u32, dimension.y as u32)?;
 
@@ -240,7 +240,7 @@ impl Version {
 
             // Top right corner finder
             bitMatrix.set((dimension.x - 2) as u32, 1);
-            if (dimension.y > 9) {
+            if dimension.y > 9 {
                 // Bottom left corner finder
                 bitMatrix.set(1, (dimension.y - 2) as u32);
             }
