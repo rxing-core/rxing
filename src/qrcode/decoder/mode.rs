@@ -149,13 +149,13 @@ impl Mode {
         let qr_type = qr_type.unwrap_or(Type::Model2);
         let bits = bits as usize;
 
-        if (qr_type == Type::Micro) {
+        if qr_type == Type::Micro {
             const Bits2Mode: [Mode; 4] =
                 [Mode::NUMERIC, Mode::ALPHANUMERIC, Mode::BYTE, Mode::KANJI];
-            if (bits < (Bits2Mode.len())) {
+            if bits < (Bits2Mode.len()) {
                 return Ok(Bits2Mode[bits]);
             }
-        } else if (qr_type == Type::RectMicro) {
+        } else if qr_type == Type::RectMicro {
             const Bits2Mode: [Mode; 8] = [
                 Mode::TERMINATOR,
                 Mode::NUMERIC,
@@ -166,13 +166,11 @@ impl Mode {
                 Mode::FNC1_SECOND_POSITION,
                 Mode::ECI,
             ];
-            if (bits < (Bits2Mode.len())) {
+            if bits < (Bits2Mode.len()) {
                 return Ok(Bits2Mode[bits]);
             }
-        } else {
-            if ((bits >= 0x00 && bits <= 0x05) || (bits >= 0x07 && bits <= 0x09) || bits == 0x0d) {
-                return Mode::try_from(bits as u32);
-            }
+        } else if (0x00..=0x05).contains(&bits) || (0x07..=0x09).contains(&bits) || bits == 0x0d {
+            return Mode::try_from(bits as u32);
         }
 
         Err(Exceptions::format_with("Invalid codec mode"))
@@ -196,7 +194,7 @@ impl Mode {
 		}
         }
 
-        if (version.isRMQR()) {
+        if version.isRMQR() {
             // See ISO/IEC 23941:2022 7.4.1, Table 3 - Number of bits of character count indicator
             const numeric: [u32; 32] = [
                 4, 5, 6, 7, 7, 5, 6, 7, 7, 8, 4, 6, 7, 7, 8, 8, 5, 6, 7, 7, 8, 8, 7, 7, 8, 8, 9, 7,
@@ -214,7 +212,7 @@ impl Mode {
                 2, 3, 4, 5, 5, 3, 4, 5, 5, 6, 2, 4, 5, 5, 6, 6, 3, 5, 5, 6, 6, 7, 5, 5, 6, 6, 7, 5,
                 6, 6, 6, 7,
             ];
-            match (self) {
+            match self {
                 Mode::NUMERIC => return numeric[number - 1],
                 Mode::ALPHANUMERIC => return alphanum[number - 1],
                 Mode::BYTE => return byte[number - 1],

@@ -215,12 +215,10 @@ impl Reader for QrReader {
             position,
             if detectorResult.getBits().width() != detectorResult.getBits().height() {
                 BarcodeFormat::RECTANGULAR_MICRO_QR_CODE
+            } else if detectorResult.getBits().width() < 21 {
+                BarcodeFormat::MICRO_QR_CODE
             } else {
-                if detectorResult.getBits().width() < 21 {
-                    BarcodeFormat::MICRO_QR_CODE
-                } else {
-                    BarcodeFormat::QR_CODE
-                }
+                BarcodeFormat::QR_CODE
             },
         ))
     }

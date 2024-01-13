@@ -204,7 +204,7 @@ XXX X X X X X X X XXX X X X X X X X X XXX X X X X X X XXXXX
     )
     .unwrap();
 
-    let result = Decode(&bitMatrix).unwrap();
+    let _result = Decode(&bitMatrix).unwrap();
     // assert!(result.isValid());
     // assert!(result.content().type() == ContentType::GS1);
     // assert_eq!(

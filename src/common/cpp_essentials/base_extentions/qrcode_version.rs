@@ -77,10 +77,10 @@ impl Version {
 
     pub fn rMQR(version_number: u32) -> Result<VersionRef> {
         let version_number = version_number as usize;
-        if (version_number < 1 || version_number > (RMQR_VERSIONS.len())) {
+        if version_number < 1 || version_number > (RMQR_VERSIONS.len()) {
             Err(Exceptions::ILLEGAL_ARGUMENT)
         } else {
-            Ok(&RMQR_VERSIONS[version_number as usize - 1])
+            Ok(&RMQR_VERSIONS[version_number - 1])
         }
     }
 
@@ -146,7 +146,7 @@ impl Version {
 
     pub fn HasMicroSize(bitMatrix: &BitMatrix) -> bool {
         let size = bitMatrix.height();
-        size == bitMatrix.width() && size >= 11 && size <= 17 && (size % 2) == 1
+        size == bitMatrix.width() && (11..=17).contains(&size) && (size % 2) == 1
     }
 
     pub fn HasRMQRSize(bitMatrix: &BitMatrix) -> bool {
@@ -187,10 +187,8 @@ impl Version {
         if width != height
             && width.is_odd()
             && height.is_odd()
-            && width >= 27
-            && width <= 139
-            && height >= 7
-            && height <= 17
+            && (27..=139).contains(&width)
+            && (7..=17).contains(&height)
         {
             for i in 0..dimsVersionRMQR.len() {
                 // for (int i = 0; i < Size(dimsVersionRMQR); i++){
@@ -199,6 +197,6 @@ impl Version {
                 }
             }
         }
-        return -1;
+        -1
     }
 }
