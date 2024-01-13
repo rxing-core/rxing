@@ -38,7 +38,7 @@ pub struct ECIStringBuilder {
     pub has_eci: bool,
     eci_result: Option<String>,
     bytes: Vec<u8>,
-    eci_positions: Vec<(Eci, usize, usize)>, // (Eci, start, end)
+    pub(crate) eci_positions: Vec<(Eci, usize, usize)>, // (Eci, start, end)
     pub symbology: SymbologyIdentifier,
     eci_list: HashSet<Eci>,
 }

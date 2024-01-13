@@ -8,6 +8,7 @@ mod mode;
 mod qr_code_decoder_meta_data;
 pub mod qrcode_decoder;
 mod version;
+mod version_build_versions_arrays;
 
 #[cfg(test)]
 mod DecodedBitStreamParserTestCase;

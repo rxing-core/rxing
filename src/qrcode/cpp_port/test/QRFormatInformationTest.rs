@@ -15,12 +15,40 @@ const MASKED_TEST_FORMAT_INFO2: u32 =
 const UNMASKED_TEST_FORMAT_INFO: u32 = MASKED_TEST_FORMAT_INFO ^ 0x5412;
 const MICRO_MASKED_TEST_FORMAT_INFO: u32 = 0x3BBA;
 // const MICRO_UNMASKED_TEST_FORMAT_INFO: u32 = MICRO_MASKED_TEST_FORMAT_INFO ^ 0x4445;
+const RMQR_MASKED_TEST_FORMAT_INFO: u32 = 0x20137;
+const RMQR_MASKED_TEST_FORMAT_INFO_SUB: u32 = 0x1F1FE;
+
+const FORMAT_INFO_MASK_QR_MODEL1: u32 = 0x2825;
+const FORMAT_INFO_MASK_MICRO: u32 = 0x4445;
+const FORMAT_INFO_MASK_RMQR: u32 = 0x1FAB2; // Finder pattern side
+const FORMAT_INFO_MASK_RMQR_SUB: u32 = 0x20A7B; // Finder sub pattern side
 
 fn DoFormatInformationTest(formatInfo: u32, expectedMask: u8, expectedECL: ErrorCorrectionLevel) {
     let parsedFormat = FormatInformation::DecodeMQR(formatInfo);
     assert!(parsedFormat.isValid());
     assert_eq!(expectedMask, parsedFormat.data_mask);
     assert_eq!(expectedECL, parsedFormat.error_correction_level);
+}
+
+// Helper for rMQR to unset `numBits` number of bits
+fn RMQRUnsetBits(formatInfoBits: u32, numBits: u32) -> u32 {
+    let mut formatInfoBits = formatInfoBits;
+    let mut numBits = numBits as i32;
+    for i in 0..18 {
+        // for (int i = 0; i < 18 && numBits; i++) {
+        if (formatInfoBits & (1 << i)) != 0 {
+            formatInfoBits ^= 1 << i;
+            numBits -= 1;
+        }
+        if numBits == 0 {
+            break;
+        }
+    }
+    formatInfoBits
+}
+
+fn cpp_eq(rhs: &FormatInformation, lhs: &FormatInformation) {
+    assert!(rhs.cpp_eq(lhs))
 }
 
 #[test]
@@ -131,6 +159,85 @@ fn DecodeMicroWithBitDifference() {
     //			  FormatInformation::DecodeFormatInformation(MICRO_MASKED_TEST_FORMAT_INFO ^ 0x3f).errorCorrectionLevel());
 }
 
-fn cpp_eq(rhs: &FormatInformation, lhs: &FormatInformation) {
-    assert!(rhs.cpp_eq(lhs))
+#[test]
+fn DecodeRMQR() {
+    // Normal case
+    let expected = FormatInformation::DecodeRMQR(
+        RMQR_MASKED_TEST_FORMAT_INFO,
+        RMQR_MASKED_TEST_FORMAT_INFO_SUB,
+    );
+    assert!(expected.isValid());
+    assert_eq!(4, expected.data_mask);
+    assert_eq!(ErrorCorrectionLevel::H, expected.error_correction_level);
+    assert_eq!(FORMAT_INFO_MASK_RMQR, expected.mask);
+    // Not catered for: where the code forgot the mask!
+}
+
+#[test]
+fn DecodeRMQRWithBitDifference() {
+    let expected = FormatInformation::DecodeRMQR(
+        RMQR_MASKED_TEST_FORMAT_INFO,
+        RMQR_MASKED_TEST_FORMAT_INFO_SUB,
+    );
+    assert_eq!(expected.error_correction_level, ErrorCorrectionLevel::H);
+    // 1,2,3,4,5 bits difference
+    cpp_eq(
+        &expected,
+        &FormatInformation::DecodeRMQR(
+            RMQRUnsetBits(RMQR_MASKED_TEST_FORMAT_INFO, 1),
+            RMQRUnsetBits(RMQR_MASKED_TEST_FORMAT_INFO_SUB, 1),
+        ),
+    );
+    cpp_eq(
+        &expected,
+        &FormatInformation::DecodeRMQR(
+            RMQRUnsetBits(RMQR_MASKED_TEST_FORMAT_INFO, 2),
+            RMQRUnsetBits(RMQR_MASKED_TEST_FORMAT_INFO_SUB, 2),
+        ),
+    );
+    cpp_eq(
+        &expected,
+        &FormatInformation::DecodeRMQR(
+            RMQRUnsetBits(RMQR_MASKED_TEST_FORMAT_INFO, 3),
+            RMQRUnsetBits(RMQR_MASKED_TEST_FORMAT_INFO_SUB, 3),
+        ),
+    );
+    cpp_eq(
+        &expected,
+        &FormatInformation::DecodeRMQR(
+            RMQRUnsetBits(RMQR_MASKED_TEST_FORMAT_INFO, 4),
+            RMQRUnsetBits(RMQR_MASKED_TEST_FORMAT_INFO_SUB, 4),
+        ),
+    );
+    let unexpected = FormatInformation::DecodeRMQR(
+        RMQRUnsetBits(RMQR_MASKED_TEST_FORMAT_INFO, 5),
+        RMQRUnsetBits(RMQR_MASKED_TEST_FORMAT_INFO_SUB, 5),
+    );
+    assert!(!(expected == unexpected));
+    assert!(!(unexpected.isValid()));
+    assert!(unexpected.qr_type() == Type::RectMicro); // Note `mask` (used to determine type) set regardless
+}
+
+#[test]
+fn DecodeRMQRWithMisread() {
+    let expected = FormatInformation::DecodeRMQR(
+        RMQR_MASKED_TEST_FORMAT_INFO,
+        RMQR_MASKED_TEST_FORMAT_INFO_SUB,
+    );
+    {
+        let actual = FormatInformation::DecodeRMQR(
+            RMQRUnsetBits(RMQR_MASKED_TEST_FORMAT_INFO, 2),
+            RMQRUnsetBits(RMQR_MASKED_TEST_FORMAT_INFO_SUB, 4),
+        );
+        cpp_eq(&expected, &actual);
+        assert_eq!(actual.mask, FORMAT_INFO_MASK_RMQR);
+    }
+    {
+        let actual = FormatInformation::DecodeRMQR(
+            RMQRUnsetBits(RMQR_MASKED_TEST_FORMAT_INFO, 5),
+            RMQRUnsetBits(RMQR_MASKED_TEST_FORMAT_INFO_SUB, 4),
+        );
+        cpp_eq(&expected, &actual);
+        assert_eq!(actual.mask, FORMAT_INFO_MASK_RMQR_SUB);
+    }
 }
