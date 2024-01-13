@@ -6,7 +6,7 @@
 
 use crate::{
     common::BitMatrix,
-    qrcode::decoder::{Version, VersionRef},
+    qrcode::{decoder::{Version, VersionRef}, cpp_port::Type},
 };
 
 fn CheckVersion(version: VersionRef, number: u32, dimension: u32) {
@@ -129,7 +129,7 @@ fn FunctionPattern() {
 fn CheckRMQRVersion(version: VersionRef, number: u32) {
     assert_eq!(number, version.getVersionNumber());
     assert_eq!(
-        Version::DimensionOfVersionRMQR(number).x == 27,
+        Version::SymbolSize(number, Type::RectMicro).x == 27,
         version.getAlignmentPatternCenters().is_empty()
     );
 }

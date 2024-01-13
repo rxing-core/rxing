@@ -10,7 +10,7 @@ use crate::{
         decoder::{FormatInformation, Version, VersionRef},
         detector::QRCodeDetectorResult,
     },
-    Exceptions,
+    Exceptions, point,
 };
 use multimap::MultiMap;
 use num::Integer;
@@ -27,6 +27,8 @@ use crate::{
     point_f, Point,
 };
 
+use super::Type;
+
 #[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
 pub struct FinderPatternSet {
     pub bl: ConcentricPattern,
@@ -40,8 +42,6 @@ pub type FinderPatternSets = Vec<FinderPatternSet>;
 const LEN: usize = 5;
 const SUM: usize = 7;
 const PATTERN: FixedPattern<LEN, SUM, false> = FixedPattern::new([1, 1, 3, 1, 1]);
-const SUBPATTERN_RMQR: FixedPattern<5, 5, false> = FixedPattern::new([1, 1, 1, 1, 1]);
-const CORNER_EDGE_RMQR: FixedPattern<2, 4, false> = FixedPattern::new([3, 1]);
 const E2E: bool = true;
 
 fn FindPattern(view: PatternView<'_>) -> Result<PatternView<'_>> {
@@ -570,7 +570,7 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
         Quadrilateral::from([fp.tl.p, fp.tr.p, br.p, fp.bl.p]),
     )?;
 
-    if dimension >= Version::DimensionOfVersion(7, false) as i32 {
+    if dimension >= Version::SymbolSize(7, Type::Model2).x as i32 {
         let version = ReadVersion(image, dimension as u32, mod2Pix);
 
         // if the version bits are garbage -> discard the detection
@@ -799,10 +799,9 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     // 	SaveAsPBM(image, "weg.pbm");
     // #endif
 
-    let MIN_MODULES: u32 = Version::DimensionOfVersion(1, false);
-    let MAX_MODULES: u32 = Version::DimensionOfVersion(40, false);
+    let MIN_MODULES : i32 = Version::SymbolSize(1, Type::Model2).x;
 
-    let (found, left, top, width, height) = image.findBoundingBox(0, 0, 0, 0, MIN_MODULES);
+    let (found, left, top, width, height) = image.findBoundingBox(0, 0, 0, 0, MIN_MODULES as u32);
 
     if !found || (width as i32 - height as i32).abs() > 1 {
         return Err(Exceptions::NOT_FOUND);
@@ -846,8 +845,7 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     .dim;
 
     let moduleSize: f32 = ((width) as f32) / dimension as f32;
-    if dimension < MIN_MODULES as i32
-        || dimension > MAX_MODULES as i32
+    if !Version::IsValidSize(point(dimension, dimension), Type::Model2)
         || !image.is_in(point_f(
             left as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
             top as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
@@ -888,10 +886,9 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
 pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     type Pattern = [PatternType; 5];
 
-    const MIN_MODULES: u32 = Version::DimensionOfVersion(1, true);
-    const MAX_MODULES: u32 = Version::DimensionOfVersion(4, true);
+    let MIN_MODULES : i32= Version::SymbolSize(1, Type::Micro).x;
 
-    let (found, left, top, width, height) = image.findBoundingBox(0, 0, 0, 0, MIN_MODULES);
+    let (found, left, top, width, height) = image.findBoundingBox(0, 0, 0, 0, MIN_MODULES as u32);
 
     // int left, top, width, height;
     if !found || (width as i32 - height as i32).abs() > 1 {
@@ -914,7 +911,7 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let moduleSize: f32 = (fpWidth as f32) / 7.0;
     let dimension = (width as f32 / moduleSize).floor() as u32;
 
-    if !(MIN_MODULES..=MAX_MODULES).contains(&dimension)
+    if !Version::IsValidSize(point(dimension as i32, dimension as i32), Type::Micro)
         || !image.is_in(point_f(
             left as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
             top as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
@@ -952,23 +949,25 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
 }
 
 pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
+    const SUBPATTERN : FixedPattern<4,4> = FixedPattern::new([1, 1, 1, 1]);
+	const TIMINGPATTERN : FixedPattern<10,10>= FixedPattern::new([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+
     type Pattern = [PatternType; 5]; //std::array<PatternView::value_type, PATTERN.size()>;
-    type SubPattern = [PatternType; 5]; //std::array<PatternView::value_type, SUBPATTERN_RMQR.size()>;
-    type CornerEdgePattern = [PatternType; 2]; //std::array<PatternView::value_type, CORNER_EDGE_RMQR.size()>;
+    // type SubPattern = [PatternType; 5]; //std::array<PatternView::value_type, SUBPATTERN_RMQR.size()>;
+    // type CornerEdgePattern = [PatternType; 2]; //std::array<PatternView::value_type, CORNER_EDGE_RMQR.size()>;
+
+    type SubPattern = [PatternType;4];
+	type TimingPattern = [PatternType;10];
 
     // #ifdef PRINT_DEBUG
     // 	SaveAsPBM(image, "weg.pbm");
     // #endif
 
-    const MIN_MODULES: u32 = 7;
-    const MIN_MODULES_W: u32 = 27;
-    const MIN_MODULES_H: u32 = 7;
-    const MAX_MODULES_W: u32 = 139;
-    const MAX_MODULES_H: u32 = 17;
+    let MIN_MODULES : i32 = Version::SymbolSize(1, Type::RectMicro).y;
 
-    let (found, left, top, width, height) = image.findBoundingBox(0, 0, 0, 0, MIN_MODULES);
+    let (found, left, top, width, height) = image.findBoundingBox(0, 0, 0, 0, MIN_MODULES as u32);
 
-    if !found {
+    if !found || height >= width{
         return Err(Exceptions::NOT_FOUND);
     }
     let right = left + width - 1;
@@ -989,76 +988,37 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         return Err(Exceptions::NOT_FOUND);
     }
 
-    // Finder sub pattern
-    let mut subdiagonal: SubPattern = EdgeTracer::new(image, br, point_i(-1, -1))
-        .readPatternFromBlack(1, None)
-        .ok_or(Exceptions::ILLEGAL_STATE)?;
-    if subdiagonal.len() == 5 && subdiagonal[4] > subdiagonal[3] {
-        // Sub pattern has no separator so can run off along the diagonal
-        subdiagonal[4] = subdiagonal[3]; // Hack it back to previous
-    }
-    let subdiagonal_hld = subdiagonal.to_vec().into();
-    let view = PatternView::new(&subdiagonal_hld);
-    if !(IsPattern::<E2E, 5, 5, false>(&view, &SUBPATTERN_RMQR, None, 0.0, 0.0) != 0.0) {
-        return Err(Exceptions::NOT_FOUND);
-    }
-
-    // Horizontal corner finder patterns (for vertical ones see below)
-    for (p, d) in [(tr, point_i(-1, 0)), (bl, point_i(1, 0))] {
-        // for (auto [p, d] : {std::pair(tr, PointI{-1, 0}), {bl, {1, 0}}}) {
-        let corner: CornerEdgePattern = EdgeTracer::new(image, p, d)
-            .readPatternFromBlack(1, None)
-            .ok_or(Exceptions::ILLEGAL_STATE)?;
-        let corner_hld = corner.to_vec().into();
-        let view = PatternView::new(&corner_hld);
-        if !(IsPattern::<E2E, 2, 4, false>(&view, &CORNER_EDGE_RMQR, None, 0.0, 0.0) != 0.0) {
-            {
-                return Err(Exceptions::NOT_FOUND);
-            }
-        }
-    }
+    
 
     let fpWidth = (diagonal).into_iter().sum::<u16>();
     let moduleSize = (fpWidth as f32) / 7.0;
     let dimW = (width as f32 / moduleSize as f32).floor() as u32;
     let dimH = (height as f32 / moduleSize as f32).floor() as u32;
 
-    if dimW == dimH
-        || dimW.is_even()
-        || dimH.is_even()
-        || !(MIN_MODULES_W..=MAX_MODULES_W).contains(&dimW)
-        || !(MIN_MODULES_H..=MAX_MODULES_H).contains(&dimH)
-        || !image.is_in(point_f(
-            left as f32 + moduleSize / 2.0 + (dimW as f32 - 1.0) * moduleSize,
-            top as f32 + moduleSize / 2.0 + (dimH as f32 - 1.0) * moduleSize,
-        ))
-    {
-        return Err(Exceptions::NOT_FOUND);
-    }
+    if (!Version::IsValidSize(point(dimW as i32, dimH as i32), Type::RectMicro))
+		{return Err(Exceptions::NOT_FOUND);}
+
+	// Finder sub pattern
+	let subdiagonal : SubPattern = EdgeTracer::new(image, br, point_i(-1, -1)).readPatternFromBlack(1,None).ok_or(Exceptions::ILLEGAL_STATE)?;
+    let subdiagonal_hld = diagonal.to_vec().into();
+    let view = PatternView::new(&subdiagonal_hld);
+	if IsPattern::<E2E, 4, 4, false>(&view, &SUBPATTERN, None, 0.0, 0.0) != 0.0
+    {return Err(Exceptions::NOT_FOUND);}
 
     // Vertical corner finder patterns
-    if dimH > 7 {
-        // None for R7
-        let corner: CornerEdgePattern = EdgeTracer::new(image, tr, point_i(0, 1))
-            .readPatternFromBlack(1, None)
-            .ok_or(Exceptions::ILLEGAL_STATE)?;
-        let corner_hld = corner.to_vec().into();
-        let view = PatternView::new(&corner_hld);
-        if !(IsPattern::<E2E, 2, 4, false>(&view, &CORNER_EDGE_RMQR, None, 0.0, 0.0) != 0.0) {
-            return Err(Exceptions::NOT_FOUND);
+    // Horizontal timing patterns
+	for  (p, d) in [(tr, point(-1, 0)), (bl, point(1, 0)), (tl, point(1, 0)), (br, point(-1, 0))] {
+		let  mut cur = EdgeTracer::new(image, p, d.into());
+		// skip corner / finder / sub pattern edge
+		cur.stepToEdge(Some(2 + i32::from(cur.isWhite())), None, None);
+		let timing : TimingPattern = cur.readPattern(None).ok_or(Exceptions::ILLEGAL_STATE)?;
+        let timing_hld = diagonal.to_vec().into();
+    let view = PatternView::new(&timing_hld);
+		if !(IsPattern::<E2E, 10,10, false>(&view, &TIMINGPATTERN, None, 0.0, 0.0) != 0.0)
+            {return Err(Exceptions::NOT_FOUND);}
         }
-        if dimH > 9 {
-            // No bottom left for R9
-            let corner: CornerEdgePattern = EdgeTracer::new(image, bl, point_i(0, -1))
-                .readPatternFromBlack(1, None)
-                .ok_or(Exceptions::ILLEGAL_STATE)?;
-            let corner_hld = corner.to_vec().into();
-            let view = PatternView::new(&corner_hld);
-            if !(IsPattern::<E2E, 2, 4, false>(&view, &CORNER_EDGE_RMQR, None, 0.0, 0.0) != 0.0) {
-                return Err(Exceptions::NOT_FOUND);
-            }
-        }
-    }
+        
+    
 
     // #ifdef PRINT_DEBUG
     // 	LogMatrix log;
@@ -1159,7 +1119,7 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
         return Err(Exceptions::NOT_FOUND);
     }
 
-    let dim: u32 = Version::DimensionOfVersion(bestFI.microVersion, true);
+    let dim: u32 = Version::SymbolSize(bestFI.microVersion, Type::Micro).x as u32;
 
     // check that we are in fact not looking at a corner of a non-micro QRCode symbol
     // we accept at most 1/3rd black pixels in the quite zone (in a QRCode symbol we expect about 1/2).
@@ -1202,24 +1162,10 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
     let FORMAT_INFO_EDGE_COORDS: [Point; 4] =
         [point_i(8, 0), point_i(9, 0), point_i(10, 0), point_i(11, 0)];
     let FORMAT_INFO_COORDS: [Point; 18] = [
-        point_i(8, 1),
-        point_i(8, 2),
-        point_i(8, 3),
-        point_i(8, 4),
-        point_i(8, 5),
-        point_i(9, 1),
-        point_i(9, 2),
-        point_i(9, 3),
-        point_i(9, 4),
-        point_i(9, 5),
-        point_i(10, 1),
-        point_i(10, 2),
-        point_i(10, 3),
-        point_i(10, 4),
-        point_i(10, 5),
-        point_i(11, 1),
-        point_i(11, 2),
-        point_i(11, 3),
+        point_i(11, 3), point_i(11, 2), point_i(11, 1),
+		point_i(10, 5), point_i(10, 4), point_i(10, 3), point_i(10, 2), point_i(10, 1),
+		point_i( 9, 5), point_i( 9, 4), point_i( 9, 3), point_i( 9, 2), point_i( 9, 1),
+		point_i( 8, 5), point_i( 8, 4), point_i( 8, 3), point_i( 8, 2), point_i( 8, 1),
     ];
 
     let mut bestFI: FormatInformation = FormatInformation::default();
@@ -1262,7 +1208,7 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
         return Err(Exceptions::NOT_FOUND);
     }
 
-    let dim = Version::DimensionOfVersionRMQR(bestFI.rMQRVersion as u32 + 1);
+    let dim = Version::SymbolSize(bestFI.microVersion, Type::RectMicro);
 
     let grid_sampler = DefaultGridSampler;
     let (sample, rps) = grid_sampler.sample_grid(

@@ -202,14 +202,14 @@ impl Version {
      */
     pub fn buildFunctionPattern(&self) -> Result<BitMatrix> {
         if self.isRMQR() {
-            let dimension = Version::DimensionOfVersionRMQR(self.versionNumber);
-            let mut bitMatrix = BitMatrix::new(dimension.x as u32, dimension.y as u32)?;
+            let size = Version::SymbolSize(self.versionNumber, Type::RectMicro);
+            let mut bitMatrix = BitMatrix::new(size.x as u32, size.y as u32)?;
 
             // Set edge timing patterns
-            bitMatrix.setRegion(0, 0, dimension.x as u32, 1)?; // Top
-            bitMatrix.setRegion(0, (dimension.y - 1) as u32, dimension.x as u32, 1)?; // Bottom
-            bitMatrix.setRegion(0, 1, 1, (dimension.y - 2) as u32)?; // Left
-            bitMatrix.setRegion((dimension.x - 1) as u32, 1, 1, (dimension.y - 2) as u32)?; // Right
+            bitMatrix.setRegion(0, 0, size.x as u32, 1)?; // Top
+            bitMatrix.setRegion(0, (size.y - 1) as u32, size.x as u32, 1)?; // Bottom
+            bitMatrix.setRegion(0, 1, 1, (size.y - 2) as u32)?; // Left
+            bitMatrix.setRegion((size.x - 1) as u32, 1, 1, (size.y - 2) as u32)?; // Right
 
             // Set vertical timing and alignment patterns
             let max = self.alignmentPatternCenters.len(); // Same as vertical timing column
@@ -217,32 +217,32 @@ impl Version {
                 // for (size_t x = 0; x < max; ++x) {
                 let cx = self.alignmentPatternCenters[x];
                 bitMatrix.setRegion(cx - 1, 1, 3, 2)?; // Top alignment pattern
-                bitMatrix.setRegion(cx - 1, (dimension.y - 3) as u32, 3, 2)?; // Bottom alignment pattern
-                bitMatrix.setRegion(cx, 3, 1, (dimension.y - 6) as u32)?; // Vertical timing pattern
+                bitMatrix.setRegion(cx - 1, (size.y - 3) as u32, 3, 2)?; // Bottom alignment pattern
+                bitMatrix.setRegion(cx, 3, 1, (size.y - 6) as u32)?; // Vertical timing pattern
             }
 
             // Top left finder pattern + separator
-            bitMatrix.setRegion(1, 1, 8 - 1, 8 - 1 - u32::from(dimension.y == 7))?; // R7 finder bottom flush with edge
+            bitMatrix.setRegion(1, 1, 8 - 1, 8 - 1 - u32::from(size.y == 7))?; // R7 finder bottom flush with edge
                                                                                     // Top left format
             bitMatrix.setRegion(8, 1, 3, 5)?;
             bitMatrix.setRegion(11, 1, 1, 3)?;
 
             // Bottom right finder subpattern
             bitMatrix.setRegion(
-                (dimension.x - 5) as u32,
-                (dimension.y - 5) as u32,
+                (size.x - 5) as u32,
+                (size.y - 5) as u32,
                 5 - 1,
                 5 - 1,
             )?;
             // Bottom right format
-            bitMatrix.setRegion((dimension.x - 8) as u32, (dimension.y - 6) as u32, 3, 5)?;
-            bitMatrix.setRegion((dimension.x - 5) as u32, (dimension.y - 6) as u32, 3, 1)?;
+            bitMatrix.setRegion((size.x - 8) as u32, (size.y - 6) as u32, 3, 5)?;
+            bitMatrix.setRegion((size.x - 5) as u32, (size.y - 6) as u32, 3, 1)?;
 
             // Top right corner finder
-            bitMatrix.set((dimension.x - 2) as u32, 1);
-            if dimension.y > 9 {
+            bitMatrix.set((size.x - 2) as u32, 1);
+            if size.y > 9 {
                 // Bottom left corner finder
-                bitMatrix.set(1, (dimension.y - 2) as u32);
+                bitMatrix.set(1, (size.y - 2) as u32);
             }
 
             return Ok(bitMatrix);

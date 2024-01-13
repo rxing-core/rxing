@@ -37,7 +37,7 @@ pub fn ReadVersion(bitMatrix: &BitMatrix, qr_type: Type) -> Result<VersionRef> {
 }
 
 pub fn ReadFormatInformation(bitMatrix: &BitMatrix) -> Result<FormatInformation> {
-    if Version::HasMicroSize(bitMatrix) {
+    if Version::HasValidSizeType(bitMatrix, Type::Micro) {
         // Read top-left format info bits
         let mut formatInfoBits = 0;
         for x in 1..9 {
@@ -52,7 +52,7 @@ pub fn ReadFormatInformation(bitMatrix: &BitMatrix) -> Result<FormatInformation>
         return Ok(FormatInformation::DecodeMQR(formatInfoBits as u32));
     }
 
-    if Version::HasRMQRSize(bitMatrix) {
+    if Version::HasValidSizeType(bitMatrix, Type::RectMicro) {
         // Read top-left format info bits
         let mut formatInfoBits1 = 0;
         for y in (1..=3).rev() {
