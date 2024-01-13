@@ -32,6 +32,7 @@ pub fn ReadVersion(bitMatrix: &BitMatrix, qr_type: Type) -> Result<VersionRef> {
         Type::Model1 => Version::Model1(number),
         Type::Micro => Version::Micro(number),
         Type::Model2 => Version::Model2(number),
+        Type::RectMicro => Version::rMQR(number),
     }
 }
 
@@ -49,6 +50,47 @@ pub fn ReadFormatInformation(bitMatrix: &BitMatrix) -> Result<FormatInformation>
         }
 
         return Ok(FormatInformation::DecodeMQR(formatInfoBits as u32));
+    }
+
+    if (Version::HasRMQRSize(bitMatrix)) {
+        // Read top-left format info bits
+        let mut formatInfoBits1 = 0;
+        for y in (1..=3).rev() {
+            // for (int y = 3; y >= 1; y--){
+            AppendBit(&mut formatInfoBits1, getBit(bitMatrix, 11, y, None));
+        }
+        for x in (8..=10).rev() {
+            // for (int x = 10; x >= 8; x--){
+            for y in (1..=5).rev() {
+                // for (int y = 5; y >= 1; y--){
+                AppendBit(&mut formatInfoBits1, getBit(bitMatrix, x, y, None));
+            }
+        }
+        // Read bottom-right format info bits
+        let mut formatInfoBits2 = 0;
+        let width = bitMatrix.width();
+        let height = bitMatrix.height();
+        for x in 3..=5 {
+            // for (int x = 3; x <= 5; x++){
+            AppendBit(
+                &mut formatInfoBits2,
+                getBit(bitMatrix, width - x, height - 6, None),
+            );
+        }
+        for x in 6..=8 {
+            // for (int x = 6; x <= 8; x++){
+            for y in 2..=6 {
+                // for (int y = 2; y <= 6; y++){
+                AppendBit(
+                    &mut formatInfoBits2,
+                    getBit(bitMatrix, width - x, height - y, None),
+                );
+            }
+        }
+        return Ok(FormatInformation::DecodeRMQR(
+            formatInfoBits1 as u32,
+            formatInfoBits2 as u32,
+        ));
     }
 
     // Read top-left format info bits
@@ -311,6 +353,59 @@ pub fn ReadQRCodewordsModel1(
     Ok(result.iter().copied().map(|x| x as u8).collect())
 }
 
+pub fn ReadRMQRCodewords(
+    bitMatrix: &BitMatrix,
+    version: VersionRef,
+    formatInfo: &FormatInformation,
+) -> Result<Vec<u8>> {
+    let functionPattern = version.buildFunctionPattern()?;
+
+    let mut result = Vec::with_capacity(version.getTotalCodewords() as usize);
+    let mut currentByte = 0;
+    let mut readingUp = true;
+    let mut bitsRead = 0;
+    let width = bitMatrix.width();
+    let height = bitMatrix.height();
+    // Read columns in pairs, from right to left
+    let mut x = width as i32 - 1 - 1;
+    while x > 0 {
+        // for (int x = width - 1 - 1; x > 0; x -= 2) { // Skip right edge alignment
+        // Read alternatingly from bottom to top then top to bottom
+        for row in 0..height {
+            // for (int row = 0; row < height; row++) {
+            let y = if readingUp { height - 1 - row } else { row };
+            for col in 0..2 {
+                // for (int col = 0; col < 2; col++) {
+                let xx = x - col;
+                // Ignore bits covered by the function pattern
+                if (!functionPattern.get(xx as u32, y)) {
+                    // Read a bit
+                    AppendBit(
+                        &mut currentByte,
+                        GetDataMaskBit(formatInfo.data_mask as u32, xx as u32, y, None)?
+                            != getBit(bitMatrix, xx as u32, y, Some(formatInfo.isMirrored)),
+                    );
+                    // If we've made a whole byte, save it off
+                    bitsRead += 1;
+                    if bitsRead % 8 == 0 {
+                        // if (++bitsRead % 8 == 0){
+                        result.push(currentByte);
+                        currentByte = 0;
+                    }
+                }
+            }
+        }
+        readingUp = !readingUp; // switch directions
+
+        x -= 2
+    }
+    if ((result.len()) != version.getTotalCodewords() as usize) {
+        return Err(Exceptions::FORMAT);
+    }
+
+    Ok(result.iter().copied().map(|x| x as u8).collect())
+}
+
 pub fn ReadCodewords(
     bitMatrix: &BitMatrix,
     version: VersionRef,
@@ -320,5 +415,6 @@ pub fn ReadCodewords(
         Type::Model1 => ReadQRCodewordsModel1(bitMatrix, version, formatInfo),
         Type::Model2 => ReadQRCodewords(bitMatrix, version, formatInfo),
         Type::Micro => ReadMQRCodewords(bitMatrix, version, formatInfo),
+        Type::RectMicro => ReadRMQRCodewords(bitMatrix, version, formatInfo),
     }
 }

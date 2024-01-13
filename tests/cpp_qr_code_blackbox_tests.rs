@@ -311,3 +311,18 @@ fn cpp_qrcode_black_box7_test_case() {
 
     tester.test_black_box();
 }
+
+#[test]
+fn cpp_rmqr_blackbox_test_case() {
+    let mut tester = common::AbstractBlackBoxTestCase::new(
+        "test_resources/blackbox/cpp/rmqrcode-1",
+        QrReader,
+        BarcodeFormat::RECTANGULAR_MICRO_QR_CODE,
+    );
+    tester.add_test(1, 1, 0.0);
+    tester.add_test(1, 1, 90.0);
+    tester.add_test(1, 1, 180.0);
+    tester.add_test(1, 1, 270.0);
+
+    tester.test_black_box();
+}

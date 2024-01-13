@@ -5,14 +5,15 @@ use crate::{
         },
         DefaultGridSampler, GridSampler, Result, SamplerControl,
     },
-    point_i,
+    point, point_i,
     qrcode::{
         decoder::{FormatInformation, Version, VersionRef},
         detector::QRCodeDetectorResult,
     },
-    Exceptions,
+    Exceptions, PointF,
 };
 use multimap::MultiMap;
+use num::Integer;
 
 use crate::{
     common::{
@@ -23,7 +24,7 @@ use crate::{
         },
         BitMatrix, PerspectiveTransform, Quadrilateral,
     },
-    point_f, Point,
+    point_f, Point, PointI,
 };
 
 #[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
@@ -39,6 +40,8 @@ pub type FinderPatternSets = Vec<FinderPatternSet>;
 const LEN: usize = 5;
 const SUM: usize = 7;
 const PATTERN: FixedPattern<LEN, SUM, false> = FixedPattern::new([1, 1, 3, 1, 1]);
+const SUBPATTERN_RMQR: FixedPattern<5, 5, false> = FixedPattern::new([1, 1, 1, 1, 1]);
+const CORNER_EDGE_RMQR: FixedPattern<2, 4, false> = FixedPattern::new([3, 1]);
 const E2E: bool = true;
 
 fn FindPattern(view: PatternView<'_>) -> Result<PatternView<'_>> {
@@ -885,8 +888,8 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
 pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     type Pattern = [PatternType; 5];
 
-    let MIN_MODULES = Version::DimensionOfVersion(1, true);
-    let MAX_MODULES = Version::DimensionOfVersion(4, true);
+    const MIN_MODULES: u32 = Version::DimensionOfVersion(1, true);
+    const MAX_MODULES: u32 = Version::DimensionOfVersion(4, true);
 
     let (found, left, top, width, height) = image.findBoundingBox(0, 0, 0, 0, MIN_MODULES);
 
@@ -947,6 +950,139 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     ))
     // return {Deflate(image, dimension, dimension, top + moduleSize / 2, left + moduleSize / 2, moduleSize),
     // 		{{left, top}, {right, top}, {right, bottom}, {left, bottom}}};
+}
+
+pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
+    type Pattern = [PatternType; 5]; //std::array<PatternView::value_type, PATTERN.size()>;
+    type SubPattern = [PatternType; 5]; //std::array<PatternView::value_type, SUBPATTERN_RMQR.size()>;
+    type CornerEdgePattern = [PatternType; 2]; //std::array<PatternView::value_type, CORNER_EDGE_RMQR.size()>;
+
+    // #ifdef PRINT_DEBUG
+    // 	SaveAsPBM(image, "weg.pbm");
+    // #endif
+
+    const MIN_MODULES: u32 = 7;
+    const MIN_MODULES_W: u32 = 27;
+    const MIN_MODULES_H: u32 = 7;
+    const MAX_MODULES_W: u32 = 139;
+    const MAX_MODULES_H: u32 = 17;
+
+    let (found, left, top, width, height) = image.findBoundingBox(0, 0, 0, 0, MIN_MODULES);
+
+    if (!found) {
+        return Err(Exceptions::NOT_FOUND);
+    }
+    let right = left + width - 1;
+    let bottom = top + height - 1;
+
+    let tl = point_i(left, top);
+    let tr = point_i(right, top);
+    let br = point_i(right, bottom);
+    let bl = point_i(left, bottom);
+
+    // allow corners be moved one pixel inside to accommodate for possible aliasing artifacts
+    let diagonal: Pattern = EdgeTracer::new(image, tl, point_i(1, 1))
+        .readPatternFromBlack(1, None)
+        .ok_or(Exceptions::ILLEGAL_STATE)?;
+    let diag_hld = diagonal.to_vec().into();
+    let view = PatternView::new(&diag_hld);
+    if !(IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0) != 0.0) {
+        return Err(Exceptions::NOT_FOUND);
+    }
+
+    // Finder sub pattern
+    let mut subdiagonal: SubPattern = EdgeTracer::new(image, br, point_i(-1, -1))
+        .readPatternFromBlack(1, None)
+        .ok_or(Exceptions::ILLEGAL_STATE)?;
+    if (subdiagonal.len() == 5 && subdiagonal[4] > subdiagonal[3]) {
+        // Sub pattern has no separator so can run off along the diagonal
+        subdiagonal[4] = subdiagonal[3]; // Hack it back to previous
+    }
+    let subdiagonal_hld = subdiagonal.to_vec().into();
+    let view = PatternView::new(&subdiagonal_hld);
+    if !(IsPattern::<E2E, 5, 5, false>(&view, &SUBPATTERN_RMQR, None, 0.0, 0.0) != 0.0) {
+        return Err(Exceptions::NOT_FOUND);
+    }
+
+    // Horizontal corner finder patterns (for vertical ones see below)
+    for (p, d) in [(tr, point_i(-1, 0)), (bl, point_i(1, 0))] {
+        // for (auto [p, d] : {std::pair(tr, PointI{-1, 0}), {bl, {1, 0}}}) {
+        let corner: CornerEdgePattern = EdgeTracer::new(image, p, d)
+            .readPatternFromBlack(1, None)
+            .ok_or(Exceptions::ILLEGAL_STATE)?;
+        let corner_hld = corner.to_vec().into();
+        let view = PatternView::new(&corner_hld);
+        if !(IsPattern::<E2E, 2, 4, false>(&view, &CORNER_EDGE_RMQR, None, 0.0, 0.0) != 0.0) {
+            {
+                return Err(Exceptions::NOT_FOUND);
+            }
+        }
+    }
+
+    let fpWidth = (diagonal).into_iter().sum::<u16>();
+    let moduleSize = (fpWidth as f32) / 7.0;
+    let dimW = (width as f32 / moduleSize as f32).floor() as u32;
+    let dimH = (height as f32 / moduleSize as f32).floor() as u32;
+
+    if (dimW == dimH
+        || dimW.is_even()
+        || dimH.is_even()
+        || dimW < MIN_MODULES_W
+        || dimW > MAX_MODULES_W
+        || dimH < MIN_MODULES_H
+        || dimH > MAX_MODULES_H
+        || !image.is_in(point_f(
+            left as f32 + moduleSize / 2.0 + (dimW as f32 - 1.0) * moduleSize,
+            top as f32 + moduleSize / 2.0 + (dimH as f32 - 1.0) * moduleSize,
+        )))
+    {
+        return Err(Exceptions::NOT_FOUND);
+    }
+
+    // Vertical corner finder patterns
+    if (dimH > 7) {
+        // None for R7
+        let corner: CornerEdgePattern = EdgeTracer::new(image, tr, point_i(0, 1))
+            .readPatternFromBlack(1, None)
+            .ok_or(Exceptions::ILLEGAL_STATE)?;
+        let corner_hld = corner.to_vec().into();
+        let view = PatternView::new(&corner_hld);
+        if !(IsPattern::<E2E, 2, 4, false>(&view, &CORNER_EDGE_RMQR, None, 0.0, 0.0) != 0.0) {
+            return Err(Exceptions::NOT_FOUND);
+        }
+        if (dimH > 9) {
+            // No bottom left for R9
+            let corner: CornerEdgePattern = EdgeTracer::new(image, bl, point_i(0, -1))
+                .readPatternFromBlack(1, None)
+                .ok_or(Exceptions::ILLEGAL_STATE)?;
+            let corner_hld = corner.to_vec().into();
+            let view = PatternView::new(&corner_hld);
+            if !(IsPattern::<E2E, 2, 4, false>(&view, &CORNER_EDGE_RMQR, None, 0.0, 0.0) != 0.0) {
+                return Err(Exceptions::NOT_FOUND);
+            }
+        }
+    }
+
+    // #ifdef PRINT_DEBUG
+    // 	LogMatrix log;
+    // 	LogMatrixWriter lmw(log, image, 5, "grid2.pnm");
+    // 	for (int y = 0; y < dimH; y++)
+    // 		for (int x = 0; x < dimW; x++)
+    // 			log(PointF(left + (x + .5f) * moduleSize, top + (y + .5f) * moduleSize));
+    // #endif
+
+    // Now just read off the bits (this is a crop + subsample)
+    Ok(QRCodeDetectorResult::new(
+        image.Deflate(
+            dimW,
+            dimH,
+            top as f32 + moduleSize / 2.0,
+            left as f32 + moduleSize / 2.0,
+            moduleSize,
+        )?,
+        vec![tl, tr, br, bl],
+    ))
+    // return {Deflate(image, dimW, dimH, top + moduleSize / 2, left + moduleSize / 2, moduleSize), {tl, tr, br, bl}};
 }
 
 pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetectorResult> {
@@ -1056,4 +1192,92 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
     Ok(QRCodeDetectorResult::new(sample, rps.to_vec()))
 
     //  SampleGrid(image, dim, dim, bestPT)
+}
+
+pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetectorResult> {
+    // TODO proper
+    let Some(fpQuad) = FindConcentricPatternCorners(image, fp.p, fp.size, 2) else {
+        return Err(Exceptions::NOT_FOUND);
+    };
+
+    let srcQuad = Quadrilateral::rectangle(7, 7, Some(0.5));
+
+    let FORMAT_INFO_EDGE_COORDS: [Point; 4] =
+        [point_i(8, 0), point_i(9, 0), point_i(10, 0), point_i(11, 0)];
+    let FORMAT_INFO_COORDS: [Point; 18] = [
+        point_i(8, 1),
+        point_i(8, 2),
+        point_i(8, 3),
+        point_i(8, 4),
+        point_i(8, 5),
+        point_i(9, 1),
+        point_i(9, 2),
+        point_i(9, 3),
+        point_i(9, 4),
+        point_i(9, 5),
+        point_i(10, 1),
+        point_i(10, 2),
+        point_i(10, 3),
+        point_i(10, 4),
+        point_i(10, 5),
+        point_i(11, 1),
+        point_i(11, 2),
+        point_i(11, 3),
+    ];
+
+    let mut bestFI: FormatInformation = FormatInformation::default();
+    let mut bestPT: PerspectiveTransform = PerspectiveTransform::default();
+
+    for i in 0..4 {
+        // for (int i = 0; i < 4; ++i) {
+        let mod2Pix = PerspectiveTransform::quadrilateralToQuadrilateral(
+            srcQuad,
+            fpQuad.rotated_corners(Some(i), None),
+        )?;
+
+        let check = |i: usize, on: bool| {
+            let p = mod2Pix.transform_point(Point::centered(FORMAT_INFO_EDGE_COORDS[i]));
+            image.is_in(p) && image.get_point(p) == on
+        };
+
+        // check that we see top edge timing pattern modules
+        if (!check(0, true) || !check(1, false) || !check(2, true) || !check(3, false)) {
+            continue;
+        }
+
+        let mut formatInfoBits = 0;
+        for i in 0..FORMAT_INFO_COORDS.len() {
+            // for (int i = 0; i < Size(FORMAT_INFO_COORDS); ++i)
+            AppendBit(
+                &mut formatInfoBits,
+                image.get_point(mod2Pix.transform_point(Point::centered(FORMAT_INFO_COORDS[i]))),
+            );
+        }
+
+        let fi = FormatInformation::DecodeRMQR(formatInfoBits as u32, 0 /*formatInfoBits2*/);
+        if (fi.hammingDistance < bestFI.hammingDistance) {
+            bestFI = fi;
+            bestPT = mod2Pix;
+        }
+    }
+
+    if (!bestFI.isValid()) {
+        return Err(Exceptions::NOT_FOUND);
+    }
+
+    let dim = Version::DimensionOfVersionRMQR(bestFI.rMQRVersion as u32 + 1);
+
+    let grid_sampler = DefaultGridSampler;
+    let (sample, rps) = grid_sampler.sample_grid(
+        image,
+        dim.x as u32,
+        dim.y as u32,
+        &[SamplerControl {
+            p1: point_i(dim.x, dim.y),
+            p0: point_i(0, 0),
+            transform: bestPT,
+        }],
+    )?;
+    Ok(QRCodeDetectorResult::new(sample, rps.to_vec()))
+    //  SampleGrid(image, dim.x, dim.y, bestPT)
 }

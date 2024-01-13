@@ -3,6 +3,7 @@ pub enum Type {
     Model1,
     Model2,
     Micro,
+    RectMicro,
 }
 
 impl Type {

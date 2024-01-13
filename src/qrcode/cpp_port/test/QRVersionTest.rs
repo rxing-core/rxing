@@ -125,3 +125,130 @@ fn FunctionPattern() {
         }
     }
 }
+
+fn CheckRMQRVersion(version: VersionRef, number: u32) {
+    assert_eq!(number, version.getVersionNumber());
+    assert_eq!(
+        Version::DimensionOfVersionRMQR(number).x == 27,
+        version.getAlignmentPatternCenters().is_empty()
+    );
+}
+
+#[test]
+fn RMQRVersionForNumber() {
+    let version = Version::rMQR(0);
+    assert!(version.is_err(), "There is version with number 0");
+
+    for i in 1..=32 {
+        // for (int i = 1; i <= 32; i++) {
+        CheckRMQRVersion(Version::rMQR(i).expect("version {i} should exist"), i);
+    }
+}
+
+#[test]
+fn RMQRFunctionPattern1() {
+    {
+        let expected = BitMatrix::parse_strings(
+            r"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXX        XXX            XXXXXXXX
+XXXXXXXXXXXX        XXX            XXXXXXXX
+XXXXXXXXXXXX         X             XXXXXXXX
+XXXXXXXXXXX         XXX            XXXXXXXX
+XXXXXXXXXXX         XXX            XXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+",
+            "X",
+            " ",
+        )
+        .unwrap();
+        let version = Version::rMQR(1).unwrap(); // R7x43
+        let functionPattern = version.buildFunctionPattern().unwrap();
+        assert_eq!(expected, functionPattern);
+    }
+    {
+        let expected = BitMatrix::parse_strings(
+            r"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXX        XXX                  XX
+XXXXXXXXXXXX        XXX                   X
+XXXXXXXXXXXX         X             XXXXXX X
+XXXXXXXXXXX          X             XXXXXXXX
+XXXXXXXXXXX          X             XXXXXXXX
+XXXXXXXX            XXX            XXXXXXXX
+XXXXXXXX            XXX            XXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+",
+            "X",
+            " ",
+        )
+        .unwrap();
+        let version = Version::rMQR(6).unwrap(); // R9x43
+        let functionPattern = version.buildFunctionPattern().unwrap();
+        assert_eq!(expected, functionPattern);
+    }
+    {
+        let expected = BitMatrix::parse_strings(
+            r"XXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXX             XX
+XXXXXXXXXXXX              X
+XXXXXXXXXXXX              X
+XXXXXXXXXXX               X
+XXXXXXXXXXX        XXXXXX X
+XXXXXXXX           XXXXXXXX
+XXXXXXXX           XXXXXXXX
+X                  XXXXXXXX
+XX                 XXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXX
+",
+            "X",
+            " ",
+        )
+        .unwrap();
+        let version = Version::rMQR(11).unwrap(); // R11x27
+        let functionPattern = version.buildFunctionPattern().unwrap();
+        assert_eq!(expected, functionPattern);
+    }
+    {
+        let expected = BitMatrix::parse_strings(
+            r"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXX        XXX                  XX
+XXXXXXXXXXXX        XXX                   X
+XXXXXXXXXXXX         X                    X
+XXXXXXXXXXX          X                    X
+XXXXXXXXXXX          X             XXXXXX X
+XXXXXXXX             X             XXXXXXXX
+XXXXXXXX             X             XXXXXXXX
+X                   XXX            XXXXXXXX
+XX                  XXX            XXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+",
+            "X",
+            " ",
+        )
+        .unwrap();
+        let version = Version::rMQR(12).unwrap(); // R11x43
+        let functionPattern = version.buildFunctionPattern().unwrap();
+        assert_eq!(expected, functionPattern);
+    }
+    {
+        let expected = BitMatrix::parse_strings(
+            "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXX      XXX                 XXX                XX
+XXXXXXXXXXXX      XXX                 XXX                 X
+XXXXXXXXXXXX       X                   X                  X
+XXXXXXXXXXX        X                   X                  X
+XXXXXXXXXXX        X                   X           XXXXXX X
+XXXXXXXX           X                   X           XXXXXXXX
+XXXXXXXX           X                   X           XXXXXXXX
+X                 XXX                 XXX          XXXXXXXX
+XX                XXX                 XXX          XXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+",
+            "X",
+            " ",
+        )
+        .unwrap();
+        let version = Version::rMQR(13).unwrap(); // R11x59
+        let functionPattern = version.buildFunctionPattern().unwrap();
+        assert_eq!(expected, functionPattern);
+    }
+}

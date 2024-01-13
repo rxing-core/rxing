@@ -310,7 +310,7 @@ pub fn DecodeBitStream(
             } else {
                 Mode::CodecModeForBits(
                     bits.readBits(modeBitLength as usize)?,
-                    Some(version.isMicro()),
+                    Some(version.qr_type),
                 )?
             };
 
