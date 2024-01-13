@@ -102,23 +102,23 @@ impl FormatInformation {
      */
     pub fn DecodeRMQR(formatInfoBits1: u32, formatInfoBits2: u32) -> Self {
         //FormatInformation fi;
-        let mirror18Bits = |bits: u32| bits.reverse_bits() >> 14;
+        
         let mut fi = if formatInfoBits2 != 0 {
             Self::FindBestFormatInfoRMQR(
-                &[formatInfoBits1, mirror18Bits(formatInfoBits1)],
-                &[formatInfoBits2, mirror18Bits(formatInfoBits2)],
+                &[formatInfoBits1],
+                &[formatInfoBits2],
             )
         } else {
             // TODO probably remove if `sampleRMQR()` done properly
-            Self::FindBestFormatInfoRMQR(&[formatInfoBits1, mirror18Bits(formatInfoBits1)], &[])
+            Self::FindBestFormatInfoRMQR(&[formatInfoBits1], &[])
         };
 
         // Bit 6 is error correction (M/H), and bits 0-5 version.
         fi.error_correction_level =
             ErrorCorrectionLevel::ECLevelFromBits(((fi.data >> 5) as u8 & 1) << 1, false); // Shift to match QRCode M/H
         fi.data_mask = 4; // ((y / 2) + (x / 3)) % 2 == 0
-        fi.rMQRVersion = fi.data as u8 & 0x1F;
-        fi.isMirrored = fi.bitsIndex > 1;
+        fi.microVersion = (fi.data & 0x1F) + 1;
+        fi.isMirrored = false; // TODO: implement mirrored format bit reading
 
         fi
     }

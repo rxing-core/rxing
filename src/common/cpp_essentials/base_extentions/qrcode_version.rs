@@ -15,7 +15,7 @@ use crate::qrcode::decoder::{
 };
 use crate::{point, Exceptions, PointI};
 
-const dimsVersionRMQR: [PointI; 32] = [
+const RMQR_SIZES: [PointI; 32] = [
     point(43, 7),
     point(59, 7),
     point(77, 7),
@@ -144,59 +144,96 @@ impl Version {
         Type::const_eq(self.qr_type, Type::RectMicro)
     }
 
-    pub fn HasMicroSize(bitMatrix: &BitMatrix) -> bool {
-        let size = bitMatrix.height();
-        size == bitMatrix.width() && (11..=17).contains(&size) && (size % 2) == 1
+    pub  fn SymbolSize(version: u32, qr_type: Type) -> PointI {
+        let version = version as i32;
+
+        let square = |s: i32| point(s, s);
+        let valid = |v: i32, max: i32| v >= 1 && v <= max;
+
+        match (qr_type) {
+            Type::Model1 => {
+                if valid(version, 32) {
+                    square(17 + 4 * version)
+                } else {
+                    PointI::default()
+                }
+            }
+            Type::Model2 => {
+                if valid(version, 40) {
+                    square(17 + 4 * version)
+                } else {
+                    PointI::default()
+                }
+            }
+            Type::Micro => {
+                if valid(version, 4) {
+                    square(9 + 2 * version)
+                } else {
+                    PointI::default()
+                }
+            }
+            Type::RectMicro => {
+                if valid(version, 32) {
+                    RMQR_SIZES[(version - 1) as usize]
+                } else {
+                    PointI::default()
+                }
+            }
+        }
     }
 
-    pub fn HasRMQRSize(bitMatrix: &BitMatrix) -> bool {
-        Self::getVersionRMQR(bitMatrix) != -1
+    pub fn IsValidSize(size: PointI, qr_type: Type) -> bool {
+        match (qr_type) {
+            Type::Model1 => size.x == size.y && size.x >= 21 && size.x <= 145 && (size.x % 4 == 1),
+            Type::Model2 => size.x == size.y && size.x >= 21 && size.x <= 177 && (size.x % 4 == 1),
+            Type::Micro => size.x == size.y && size.x >= 11 && size.x <= 17 && (size.x % 2 == 1),
+            Type::RectMicro => {
+                size.x != size.y
+                    && size.x.is_odd()
+                    && size.y.is_odd()
+                    && size.x >= 27
+                    && size.x <= 139
+                    && size.y >= 7
+                    && size.y <= 17
+                    && Self::IndexOf(&RMQR_SIZES, size) != -1
+            }
+        }
+    }
+    pub fn HasValidSizeType(bitMatrix: &BitMatrix, qr_type: Type) -> bool {
+        return Self::IsValidSize(
+            point(bitMatrix.width() as i32, bitMatrix.height() as i32),
+            qr_type,
+        );
     }
 
-    pub fn HasValidSize(bitMatrix: &BitMatrix) -> bool {
-        let size = bitMatrix.height();
-        if bitMatrix.width() != size {
-            Self::HasRMQRSize(bitMatrix)
+    pub fn HasValidSize(matrix: &BitMatrix) -> bool {
+        return Self::HasValidSizeType(matrix, Type::Model1)
+            || Self::HasValidSizeType(matrix, Type::Model2)
+            || Self::HasValidSizeType(matrix, Type::Micro)
+            || Self::HasValidSizeType(matrix, Type::RectMicro);
+    }
+
+    fn IndexOf(points: &[PointI], search: PointI) -> i32 {
+        RMQR_SIZES
+            .iter()
+            .position(|p| *p == search)
+            .and_then(|x| Some(x as i32))
+            .unwrap_or(-1)
+    }
+
+    pub fn NumberPoint(size: PointI) -> u32 {
+        if (size.x != size.y) {
+            return (Self::IndexOf(&RMQR_SIZES, size) + 1) as u32;
+        } else if (Self::IsValidSize(size, Type::Model2)) {
+            return ((size.x as i32 - 17) / 4) as u32;
+        } else if (Self::IsValidSize(size, Type::Micro)) {
+            return ((size.x as i32 - 9) / 2) as u32;
         } else {
-            Self::HasMicroSize(bitMatrix) || ((21..=177).contains(&size) && (size % 4) == 1)
+            return 0;
         }
     }
 
     pub fn Number(bitMatrix: &BitMatrix) -> u32 {
-        if bitMatrix.width() != bitMatrix.height() {
-            Self::getVersionRMQR(bitMatrix) as u32 + 1
-        } else if !Self::HasValidSize(bitMatrix) {
-            0
-        } else {
-            let isMicro = Self::HasMicroSize(bitMatrix);
-            (bitMatrix.height() - Self::DimensionOffset(isMicro)) / Self::DimensionStep(isMicro)
-        }
-    }
-
-    pub fn DimensionOfVersionRMQR(version_number: u32) -> PointI {
-        if version_number < 1 || version_number as usize > dimsVersionRMQR.len() {
-            point(0, 0)
-        } else {
-            dimsVersionRMQR[version_number as usize - 1]
-        }
-    }
-
-    fn getVersionRMQR(bitMatrix: &BitMatrix) -> i32 {
-        let width = bitMatrix.width() as i32;
-        let height = bitMatrix.height() as i32;
-        if width != height
-            && width.is_odd()
-            && height.is_odd()
-            && (27..=139).contains(&width)
-            && (7..=17).contains(&height)
-        {
-            for i in 0..dimsVersionRMQR.len() {
-                // for (int i = 0; i < Size(dimsVersionRMQR); i++){
-                if width == dimsVersionRMQR[i].x && height == dimsVersionRMQR[i].y {
-                    return i as i32;
-                }
-            }
-        }
-        -1
+        return Self::NumberPoint(point(bitMatrix.width() as i32, bitMatrix.height() as i32));
     }
 }

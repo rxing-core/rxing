@@ -78,7 +78,6 @@ pub struct FormatInformation {
     pub mask: u32,       // = 0
     pub data: u32,       // = 255
     pub bitsIndex: u8,   // = 255;
-    pub rMQRVersion: u8, //= 0;
 }
 
 impl Default for FormatInformation {
@@ -92,7 +91,6 @@ impl Default for FormatInformation {
             mask: 0,
             data: 255,
             bitsIndex: 255,
-            rMQRVersion: 0,
         }
     }
 }
@@ -112,7 +110,6 @@ impl FormatInformation {
             mask: 0,
             bitsIndex: 255,
             data: 255,
-            rMQRVersion: 0,
         })
     }
 
