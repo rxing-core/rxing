@@ -5,6 +5,8 @@
 */
 // SPDX-License-Identifier: Apache-2.0
 
+use num::Integer;
+
 use crate::common::{BitMatrix, Result};
 use crate::qrcode::cpp_port::Type;
 use crate::qrcode::decoder::{
@@ -183,8 +185,8 @@ impl Version {
         let width = bitMatrix.width() as i32;
         let height = bitMatrix.height() as i32;
         if width != height
-            && (width & 1 != 0)
-            && (height & 1 != 0)
+            && width.is_odd()
+            && height.is_odd()
             && width >= 27
             && width <= 139
             && height >= 7
