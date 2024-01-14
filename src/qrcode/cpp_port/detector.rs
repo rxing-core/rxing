@@ -5,15 +5,14 @@ use crate::{
         },
         DefaultGridSampler, GridSampler, Result, SamplerControl,
     },
-    point_i,
+    point, point_i,
     qrcode::{
         decoder::{FormatInformation, Version, VersionRef},
         detector::QRCodeDetectorResult,
     },
-    Exceptions, point,
+    Exceptions,
 };
 use multimap::MultiMap;
-
 
 use crate::{
     common::{
@@ -799,7 +798,7 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     // 	SaveAsPBM(image, "weg.pbm");
     // #endif
 
-    let MIN_MODULES : i32 = Version::SymbolSize(1, Type::Model2).x;
+    let MIN_MODULES: i32 = Version::SymbolSize(1, Type::Model2).x;
 
     let (found, left, top, width, height) = image.findBoundingBox(0, 0, 0, 0, MIN_MODULES as u32);
 
@@ -886,7 +885,7 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
 pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     type Pattern = [PatternType; 5];
 
-    let MIN_MODULES : i32= Version::SymbolSize(1, Type::Micro).x;
+    let MIN_MODULES: i32 = Version::SymbolSize(1, Type::Micro).x;
 
     let (found, left, top, width, height) = image.findBoundingBox(0, 0, 0, 0, MIN_MODULES as u32);
 
@@ -949,25 +948,25 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
 }
 
 pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
-    const SUBPATTERN : FixedPattern<4,4> = FixedPattern::new([1, 1, 1, 1]);
-	const TIMINGPATTERN : FixedPattern<10,10>= FixedPattern::new([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+    const SUBPATTERN: FixedPattern<4, 4> = FixedPattern::new([1, 1, 1, 1]);
+    const TIMINGPATTERN: FixedPattern<10, 10> = FixedPattern::new([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
 
     type Pattern = [PatternType; 5]; //std::array<PatternView::value_type, PATTERN.size()>;
-    // type SubPattern = [PatternType; 5]; //std::array<PatternView::value_type, SUBPATTERN_RMQR.size()>;
-    // type CornerEdgePattern = [PatternType; 2]; //std::array<PatternView::value_type, CORNER_EDGE_RMQR.size()>;
+                                     // type SubPattern = [PatternType; 5]; //std::array<PatternView::value_type, SUBPATTERN_RMQR.size()>;
+                                     // type CornerEdgePattern = [PatternType; 2]; //std::array<PatternView::value_type, CORNER_EDGE_RMQR.size()>;
 
-    type SubPattern = [PatternType;4];
-	type TimingPattern = [PatternType;10];
+    type SubPattern = [PatternType; 4];
+    type TimingPattern = [PatternType; 10];
 
     // #ifdef PRINT_DEBUG
     // 	SaveAsPBM(image, "weg.pbm");
     // #endif
 
-    let MIN_MODULES : i32 = Version::SymbolSize(1, Type::RectMicro).y;
+    let MIN_MODULES: i32 = Version::SymbolSize(1, Type::RectMicro).y;
 
     let (found, left, top, width, height) = image.findBoundingBox(0, 0, 0, 0, MIN_MODULES as u32);
 
-    if !found || height >= width{
+    if !found || height >= width {
         return Err(Exceptions::NOT_FOUND);
     }
     let right = left + width - 1;
@@ -988,37 +987,43 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         return Err(Exceptions::NOT_FOUND);
     }
 
-    
-
     let fpWidth = (diagonal).into_iter().sum::<u16>();
     let moduleSize = (fpWidth as f32) / 7.0;
     let dimW = (width as f32 / moduleSize as f32).floor() as u32;
     let dimH = (height as f32 / moduleSize as f32).floor() as u32;
 
-    if !Version::IsValidSize(point(dimW as i32, dimH as i32), Type::RectMicro)
-		{return Err(Exceptions::NOT_FOUND);}
+    if !Version::IsValidSize(point(dimW as i32, dimH as i32), Type::RectMicro) {
+        return Err(Exceptions::NOT_FOUND);
+    }
 
-	// Finder sub pattern
-	let subdiagonal : SubPattern = EdgeTracer::new(image, br, point_i(-1, -1)).readPatternFromBlack(1,None).ok_or(Exceptions::ILLEGAL_STATE)?;
+    // Finder sub pattern
+    let subdiagonal: SubPattern = EdgeTracer::new(image, br, point_i(-1, -1))
+        .readPatternFromBlack(1, None)
+        .ok_or(Exceptions::ILLEGAL_STATE)?;
     let subdiagonal_hld = subdiagonal.to_vec().into();
     let view = PatternView::new(&subdiagonal_hld);
-	if IsPattern::<E2E, 4, 4, false>(&view, &SUBPATTERN, None, 0.0, 0.0) != 0.0
-    {return Err(Exceptions::NOT_FOUND);}
+    if IsPattern::<E2E, 4, 4, false>(&view, &SUBPATTERN, None, 0.0, 0.0) != 0.0 {
+        return Err(Exceptions::NOT_FOUND);
+    }
 
     // Vertical corner finder patterns
     // Horizontal timing patterns
-	for  (p, d) in [(tr, point(-1, 0)), (bl, point(1, 0)), (tl, point(1, 0)), (br, point(-1, 0))] {
-		let  mut cur = EdgeTracer::new(image, p, d.into());
-		// skip corner / finder / sub pattern edge
-		cur.stepToEdge(Some(2 + i32::from(cur.isWhite())), None, None);
-		let timing : TimingPattern = cur.readPattern(None).ok_or(Exceptions::ILLEGAL_STATE)?;
+    for (p, d) in [
+        (tr, point(-1, 0)),
+        (bl, point(1, 0)),
+        (tl, point(1, 0)),
+        (br, point(-1, 0)),
+    ] {
+        let mut cur = EdgeTracer::new(image, p, d.into());
+        // skip corner / finder / sub pattern edge
+        cur.stepToEdge(Some(2 + i32::from(cur.isWhite())), None, None);
+        let timing: TimingPattern = cur.readPattern(None).ok_or(Exceptions::ILLEGAL_STATE)?;
         let timing_hld = timing.to_vec().into();
-    let view = PatternView::new(&timing_hld);
-		if !(IsPattern::<E2E, 10,10, false>(&view, &TIMINGPATTERN, None, 0.0, 0.0) != 0.0)
-            {return Err(Exceptions::NOT_FOUND);}
+        let view = PatternView::new(&timing_hld);
+        if !(IsPattern::<E2E, 10, 10, false>(&view, &TIMINGPATTERN, None, 0.0, 0.0) != 0.0) {
+            return Err(Exceptions::NOT_FOUND);
         }
-        
-    
+    }
 
     // #ifdef PRINT_DEBUG
     // 	LogMatrix log;
@@ -1162,10 +1167,24 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
     let FORMAT_INFO_EDGE_COORDS: [Point; 4] =
         [point_i(8, 0), point_i(9, 0), point_i(10, 0), point_i(11, 0)];
     let FORMAT_INFO_COORDS: [Point; 18] = [
-        point_i(11, 3), point_i(11, 2), point_i(11, 1),
-		point_i(10, 5), point_i(10, 4), point_i(10, 3), point_i(10, 2), point_i(10, 1),
-		point_i( 9, 5), point_i( 9, 4), point_i( 9, 3), point_i( 9, 2), point_i( 9, 1),
-		point_i( 8, 5), point_i( 8, 4), point_i( 8, 3), point_i( 8, 2), point_i( 8, 1),
+        point_i(11, 3),
+        point_i(11, 2),
+        point_i(11, 1),
+        point_i(10, 5),
+        point_i(10, 4),
+        point_i(10, 3),
+        point_i(10, 2),
+        point_i(10, 1),
+        point_i(9, 5),
+        point_i(9, 4),
+        point_i(9, 3),
+        point_i(9, 2),
+        point_i(9, 1),
+        point_i(8, 5),
+        point_i(8, 4),
+        point_i(8, 3),
+        point_i(8, 2),
+        point_i(8, 1),
     ];
 
     let mut bestFI: FormatInformation = FormatInformation::default();

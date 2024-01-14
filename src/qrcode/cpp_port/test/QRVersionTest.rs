@@ -6,7 +6,10 @@
 
 use crate::{
     common::BitMatrix,
-    qrcode::{decoder::{Version, VersionRef}, cpp_port::Type},
+    qrcode::{
+        cpp_port::Type,
+        decoder::{Version, VersionRef},
+    },
 };
 
 fn CheckVersion(version: VersionRef, number: u32, dimension: u32) {
