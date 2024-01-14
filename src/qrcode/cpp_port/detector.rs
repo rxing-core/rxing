@@ -1232,6 +1232,124 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
 
     let dim = Version::SymbolSize(bestFI.microVersion, Type::RectMicro);
 
+    // TODO: this is a WIP
+    let intersectQuads = |a: &Quadrilateral, b: &Quadrilateral| -> Result<Quadrilateral> {
+        let tl = a.center();
+        let br = b.center();
+        // rotate points such that topLeft of a is furthest away from b and topLeft of b is closest to a
+        // let dist2B = /*[c = br]*/| &a,  &b| {   Some(Point::distance(a, br).partial_cmp(&Point::distance(b, br))) };
+
+        let offsetATarget =
+            a.0.iter()
+                .max_by(|a, b| {
+                    Point::distance(**a, br)
+                        .partial_cmp(&Point::distance(**b, br))
+                        .unwrap_or(std::cmp::Ordering::Less)
+                })
+                .ok_or(Exceptions::FORMAT)?;
+        let offsetA =
+            a.0.iter()
+                .position(|x| x == offsetATarget)
+                .ok_or(Exceptions::FORMAT)? as i32;
+        // let offsetA = std::max_element(a.begin(), a.end(), dist2B) - a.begin();
+        // let dist2A = /*[c = tl]*/| a,  b| {  Point::distance(a, tl) < Point::distance(b, tl) };
+        let offsetBTarget =
+            b.0.iter()
+                .min_by(|a, b| {
+                    Point::distance(**a, tl)
+                        .partial_cmp(&Point::distance(**b, tl))
+                        .unwrap_or(std::cmp::Ordering::Less)
+                })
+                .ok_or(Exceptions::FORMAT)?;
+        let offsetB =
+            b.0.iter()
+                .position(|x| x == offsetBTarget)
+                .ok_or(Exceptions::FORMAT)? as i32;
+        // let offsetB = std::min_element(b.begin(), b.end(), dist2A) - b.begin();
+
+        let a = a.rotated_corners(Some(offsetA), None);
+        let b = b.rotated_corners(Some(offsetB), None);
+        // a = RotatedCorners(a, offsetA);
+        // b = RotatedCorners(b, offsetB);
+        let tr = (RegressionLine::intersect(
+            &RegressionLine::with_two_points(a[0], a[1]),
+            &RegressionLine::with_two_points(b[1], b[2]),
+        )
+        .ok_or(Exceptions::FORMAT)?
+            + RegressionLine::intersect(
+                &RegressionLine::with_two_points(a[3], a[2]),
+                &RegressionLine::with_two_points(b[0], b[3]),
+            )
+            .ok_or(Exceptions::FORMAT)?)
+            / 2.0;
+
+        // let tr = (intersect(RegressionLine(a[0], a[1]), RegressionLine(b[1], b[2]))
+        // 		   + intersect(RegressionLine(a[3], a[2]), RegressionLine(b[0], b[3])))
+        // 		  / 2;
+        let bl = (RegressionLine::intersect(
+            &RegressionLine::with_two_points(a[0], a[3]),
+            &RegressionLine::with_two_points(b[2], b[3]),
+        )
+        .ok_or(Exceptions::FORMAT)?
+            + RegressionLine::intersect(
+                &RegressionLine::with_two_points(a[1], a[2]),
+                &RegressionLine::with_two_points(b[0], b[1]),
+            )
+            .ok_or(Exceptions::FORMAT)?)
+            / 2.0;
+        // let bl = (intersect(RegressionLine(a[0], a[3]), RegressionLine(b[2], b[3]))
+        // 		   + intersect(RegressionLine(a[1], a[2]), RegressionLine(b[0], b[1])))
+        // 		  / 2;
+
+        // log(tr, 2);
+        // log(bl, 2);
+
+        Ok(Quadrilateral::from([tl, tr, br, bl]))
+    };
+
+    if let Some(found) = LocateAlignmentPattern(
+        image,
+        fp.size / 7,
+        bestPT.transform_point(Into::<Point>::into(dim) - point_f(3.0, 3.0)),
+    ) {
+        // if ( found  ) {
+        // log(*found, 2);
+        if let Some(spQuad) = FindConcentricPatternCorners(image, found, fp.size / 2, 1) {
+            // if (auto spQuad = FindConcentricPatternCorners(image, *found, fp.size / 2, 1)) {
+            let mut dest = intersectQuads(&fpQuad, &spQuad)?;
+            if (dim.y <= 9) {
+                bestPT = PerspectiveTransform::quadrilateralToQuadrilateral(
+                    Quadrilateral::from([
+                        point(6.5, 0.5),
+                        point(dim.x as f32 - 1.5, dim.y as f32 - 3.5),
+                        point(dim.x as f32 - 1.5, dim.y as f32 - 1.5),
+                        point(6.5, 6.5),
+                    ]),
+                    Quadrilateral::from([
+                        *fpQuad.top_right(),
+                        *spQuad.top_right(),
+                        *spQuad.bottom_right(),
+                        *fpQuad.bottom_right(),
+                    ]),
+                )?;
+            // bestPT = PerspectiveTransform({{6.5, 0.5}, {dim.x - 1.5, dim.y - 3.5}, {dim.x - 1.5, dim.y - 1.5}, {6.5, 6.5}},
+            // 							  {fpQuad->topRight(), spQuad->topRight(), spQuad->bottomRight(), fpQuad->bottomRight()});
+            } else {
+                dest[0] = fp.p;
+                dest[2] = found;
+                bestPT = PerspectiveTransform::quadrilateralToQuadrilateral(
+                    Quadrilateral::from([
+                        point(3.5, 3.5),
+                        point(dim.x as f32 - 2.5, 3.5),
+                        point(dim.x as f32 - 2.5, dim.y as f32 - 2.5),
+                        point(3.5, dim.y as f32 - 2.5),
+                    ]),
+                    dest,
+                )?;
+            }
+        }
+    }
+
     let grid_sampler = DefaultGridSampler;
     let (sample, rps) = grid_sampler.sample_grid(
         image,
