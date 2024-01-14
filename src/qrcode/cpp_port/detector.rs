@@ -13,7 +13,7 @@ use crate::{
     Exceptions, point,
 };
 use multimap::MultiMap;
-use num::Integer;
+
 
 use crate::{
     common::{
@@ -570,7 +570,7 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
         Quadrilateral::from([fp.tl.p, fp.tr.p, br.p, fp.bl.p]),
     )?;
 
-    if dimension >= Version::SymbolSize(7, Type::Model2).x as i32 {
+    if dimension >= Version::SymbolSize(7, Type::Model2).x {
         let version = ReadVersion(image, dimension as u32, mod2Pix);
 
         // if the version bits are garbage -> discard the detection
@@ -995,12 +995,12 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let dimW = (width as f32 / moduleSize as f32).floor() as u32;
     let dimH = (height as f32 / moduleSize as f32).floor() as u32;
 
-    if (!Version::IsValidSize(point(dimW as i32, dimH as i32), Type::RectMicro))
+    if !Version::IsValidSize(point(dimW as i32, dimH as i32), Type::RectMicro)
 		{return Err(Exceptions::NOT_FOUND);}
 
 	// Finder sub pattern
 	let subdiagonal : SubPattern = EdgeTracer::new(image, br, point_i(-1, -1)).readPatternFromBlack(1,None).ok_or(Exceptions::ILLEGAL_STATE)?;
-    let subdiagonal_hld = diagonal.to_vec().into();
+    let subdiagonal_hld = subdiagonal.to_vec().into();
     let view = PatternView::new(&subdiagonal_hld);
 	if IsPattern::<E2E, 4, 4, false>(&view, &SUBPATTERN, None, 0.0, 0.0) != 0.0
     {return Err(Exceptions::NOT_FOUND);}
@@ -1012,7 +1012,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
 		// skip corner / finder / sub pattern edge
 		cur.stepToEdge(Some(2 + i32::from(cur.isWhite())), None, None);
 		let timing : TimingPattern = cur.readPattern(None).ok_or(Exceptions::ILLEGAL_STATE)?;
-        let timing_hld = diagonal.to_vec().into();
+        let timing_hld = timing.to_vec().into();
     let view = PatternView::new(&timing_hld);
 		if !(IsPattern::<E2E, 10,10, false>(&view, &TIMINGPATTERN, None, 0.0, 0.0) != 0.0)
             {return Err(Exceptions::NOT_FOUND);}

@@ -150,7 +150,7 @@ impl Version {
         let square = |s: i32| point(s, s);
         let valid = |v: i32, max: i32| v >= 1 && v <= max;
 
-        match (qr_type) {
+        match qr_type {
             Type::Model1 => {
                 if valid(version, 32) {
                     square(17 + 4 * version)
@@ -183,7 +183,7 @@ impl Version {
     }
 
     pub fn IsValidSize(size: PointI, qr_type: Type) -> bool {
-        match (qr_type) {
+        match qr_type {
             Type::Model1 => size.x == size.y && size.x >= 21 && size.x <= 145 && (size.x % 4 == 1),
             Type::Model2 => size.x == size.y && size.x >= 21 && size.x <= 177 && (size.x % 4 == 1),
             Type::Micro => size.x == size.y && size.x >= 11 && size.x <= 17 && (size.x % 2 == 1),
@@ -200,40 +200,39 @@ impl Version {
         }
     }
     pub fn HasValidSizeType(bitMatrix: &BitMatrix, qr_type: Type) -> bool {
-        return Self::IsValidSize(
+        Self::IsValidSize(
             point(bitMatrix.width() as i32, bitMatrix.height() as i32),
             qr_type,
-        );
+        )
     }
 
     pub fn HasValidSize(matrix: &BitMatrix) -> bool {
-        return Self::HasValidSizeType(matrix, Type::Model1)
+        Self::HasValidSizeType(matrix, Type::Model1)
             || Self::HasValidSizeType(matrix, Type::Model2)
             || Self::HasValidSizeType(matrix, Type::Micro)
-            || Self::HasValidSizeType(matrix, Type::RectMicro);
+            || Self::HasValidSizeType(matrix, Type::RectMicro)
     }
 
-    fn IndexOf(points: &[PointI], search: PointI) -> i32 {
+    fn IndexOf(_points: &[PointI], search: PointI) -> i32 {
         RMQR_SIZES
             .iter()
-            .position(|p| *p == search)
-            .and_then(|x| Some(x as i32))
+            .position(|p| *p == search).map(|x| x as i32)
             .unwrap_or(-1)
     }
 
     pub fn NumberPoint(size: PointI) -> u32 {
-        if (size.x != size.y) {
-            return (Self::IndexOf(&RMQR_SIZES, size) + 1) as u32;
-        } else if (Self::IsValidSize(size, Type::Model2)) {
-            return ((size.x as i32 - 17) / 4) as u32;
-        } else if (Self::IsValidSize(size, Type::Micro)) {
-            return ((size.x as i32 - 9) / 2) as u32;
+        if size.x != size.y {
+            (Self::IndexOf(&RMQR_SIZES, size) + 1) as u32
+        } else if Self::IsValidSize(size, Type::Model2) {
+             ((size.x - 17) / 4) as u32
+        } else if Self::IsValidSize(size, Type::Micro) {
+             ((size.x - 9) / 2) as u32
         } else {
-            return 0;
+             0
         }
     }
 
     pub fn Number(bitMatrix: &BitMatrix) -> u32 {
-        return Self::NumberPoint(point(bitMatrix.width() as i32, bitMatrix.height() as i32));
+        Self::NumberPoint(point(bitMatrix.width() as i32, bitMatrix.height() as i32))
     }
 }
