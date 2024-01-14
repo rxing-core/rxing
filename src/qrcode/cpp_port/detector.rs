@@ -1317,7 +1317,7 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
         if let Some(spQuad) = FindConcentricPatternCorners(image, found, fp.size / 2, 1) {
             // if (auto spQuad = FindConcentricPatternCorners(image, *found, fp.size / 2, 1)) {
             let mut dest = intersectQuads(&fpQuad, &spQuad)?;
-            if (dim.y <= 9) {
+            if dim.y <= 9 {
                 bestPT = PerspectiveTransform::quadrilateralToQuadrilateral(
                     Quadrilateral::from([
                         point(6.5, 0.5),
