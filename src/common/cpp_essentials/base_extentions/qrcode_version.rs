@@ -144,7 +144,7 @@ impl Version {
         Type::const_eq(self.qr_type, Type::RectMicro)
     }
 
-    pub  fn SymbolSize(version: u32, qr_type: Type) -> PointI {
+    pub fn SymbolSize(version: u32, qr_type: Type) -> PointI {
         let version = version as i32;
 
         let square = |s: i32| point(s, s);
@@ -216,7 +216,8 @@ impl Version {
     fn IndexOf(_points: &[PointI], search: PointI) -> i32 {
         RMQR_SIZES
             .iter()
-            .position(|p| *p == search).map(|x| x as i32)
+            .position(|p| *p == search)
+            .map(|x| x as i32)
             .unwrap_or(-1)
     }
 
@@ -224,11 +225,11 @@ impl Version {
         if size.x != size.y {
             (Self::IndexOf(&RMQR_SIZES, size) + 1) as u32
         } else if Self::IsValidSize(size, Type::Model2) {
-             ((size.x - 17) / 4) as u32
+            ((size.x - 17) / 4) as u32
         } else if Self::IsValidSize(size, Type::Micro) {
-             ((size.x - 9) / 2) as u32
+            ((size.x - 9) / 2) as u32
         } else {
-             0
+            0
         }
     }
 

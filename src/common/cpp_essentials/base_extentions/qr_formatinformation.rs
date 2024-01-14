@@ -102,12 +102,9 @@ impl FormatInformation {
      */
     pub fn DecodeRMQR(formatInfoBits1: u32, formatInfoBits2: u32) -> Self {
         //FormatInformation fi;
-        
+
         let mut fi = if formatInfoBits2 != 0 {
-            Self::FindBestFormatInfoRMQR(
-                &[formatInfoBits1],
-                &[formatInfoBits2],
-            )
+            Self::FindBestFormatInfoRMQR(&[formatInfoBits1], &[formatInfoBits2])
         } else {
             // TODO probably remove if `sampleRMQR()` done properly
             Self::FindBestFormatInfoRMQR(&[formatInfoBits1], &[])

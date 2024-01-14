@@ -75,9 +75,9 @@ pub struct FormatInformation {
     pub microVersion: u32,
     pub isMirrored: bool,
 
-    pub mask: u32,       // = 0
-    pub data: u32,       // = 255
-    pub bitsIndex: u8,   // = 255;
+    pub mask: u32,     // = 0
+    pub data: u32,     // = 255
+    pub bitsIndex: u8, // = 255;
 }
 
 impl Default for FormatInformation {

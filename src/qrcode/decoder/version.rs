@@ -223,17 +223,12 @@ impl Version {
 
             // Top left finder pattern + separator
             bitMatrix.setRegion(1, 1, 8 - 1, 8 - 1 - u32::from(size.y == 7))?; // R7 finder bottom flush with edge
-                                                                                    // Top left format
+                                                                               // Top left format
             bitMatrix.setRegion(8, 1, 3, 5)?;
             bitMatrix.setRegion(11, 1, 1, 3)?;
 
             // Bottom right finder subpattern
-            bitMatrix.setRegion(
-                (size.x - 5) as u32,
-                (size.y - 5) as u32,
-                5 - 1,
-                5 - 1,
-            )?;
+            bitMatrix.setRegion((size.x - 5) as u32, (size.y - 5) as u32, 5 - 1, 5 - 1)?;
             // Bottom right format
             bitMatrix.setRegion((size.x - 8) as u32, (size.y - 6) as u32, 3, 5)?;
             bitMatrix.setRegion((size.x - 5) as u32, (size.y - 6) as u32, 3, 1)?;
