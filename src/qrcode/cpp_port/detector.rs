@@ -983,16 +983,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         .ok_or(Exceptions::ILLEGAL_STATE)?;
     let diag_hld = diagonal.to_vec().into();
     let view = PatternView::new(&diag_hld);
-    if !(IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0) != 0.0) {
-        return Err(Exceptions::NOT_FOUND);
-    }
-
-    let fpWidth = (diagonal).into_iter().sum::<u16>();
-    let moduleSize = (fpWidth as f32) / 7.0;
-    let dimW = (width as f32 / moduleSize as f32).floor() as u32;
-    let dimH = (height as f32 / moduleSize as f32).floor() as u32;
-
-    if !Version::IsValidSize(point(dimW as i32, dimH as i32), Type::RectMicro) {
+    if IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0) == 0.0 {
         return Err(Exceptions::NOT_FOUND);
     }
 
@@ -1002,9 +993,12 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         .ok_or(Exceptions::ILLEGAL_STATE)?;
     let subdiagonal_hld = subdiagonal.to_vec().into();
     let view = PatternView::new(&subdiagonal_hld);
-    if IsPattern::<E2E, 4, 4, false>(&view, &SUBPATTERN, None, 0.0, 0.0) != 0.0 {
+    if IsPattern::<false, 4, 4, false>(&view, &SUBPATTERN, None, 0.0, 0.0) == 0.0 {
         return Err(Exceptions::NOT_FOUND);
     }
+
+    let mut moduleSize: f32 =
+        (diagonal.iter().sum::<u16>() + subdiagonal.iter().sum::<u16>()) as f32;
 
     // Vertical corner finder patterns
     // Horizontal timing patterns
@@ -1020,9 +1014,18 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         let timing: TimingPattern = cur.readPattern(None).ok_or(Exceptions::ILLEGAL_STATE)?;
         let timing_hld = timing.to_vec().into();
         let view = PatternView::new(&timing_hld);
-        if !(IsPattern::<E2E, 10, 10, false>(&view, &TIMINGPATTERN, None, 0.0, 0.0) != 0.0) {
+        if IsPattern::<E2E, 10, 10, false>(&view, &TIMINGPATTERN, None, 0.0, 0.0) == 0.0 {
             return Err(Exceptions::NOT_FOUND);
         }
+        moduleSize += timing.iter().sum::<u16>() as f32;
+    }
+
+    moduleSize /= (7 + 4 + 4 * 10) as f32; // fp + sub + 4 x timing
+    let dimW = (width as f32 / moduleSize).round() as i32;
+    let dimH = (height as f32 / moduleSize).round() as i32;
+
+    if !Version::IsValidSize(point(dimW, dimH), Type::RectMicro) {
+        return Err(Exceptions::NOT_FOUND);
     }
 
     // #ifdef PRINT_DEBUG
@@ -1036,8 +1039,8 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     // Now just read off the bits (this is a crop + subsample)
     Ok(QRCodeDetectorResult::new(
         image.Deflate(
-            dimW,
-            dimH,
+            dimW as u32,
+            dimH as u32,
             top as f32 + moduleSize / 2.0,
             left as f32 + moduleSize / 2.0,
             moduleSize,
