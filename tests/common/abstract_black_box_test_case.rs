@@ -309,15 +309,6 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                         log::fine(format!("could not read at rotation {rotation} w/TH: {e:?}"));
                     }
                 }
-                // try {
-                //   if (decode(bitmap, rotation, expectedText, expectedMetadata, true)) {
-                //     tryHarderCounts[x]+=1;
-                //   } else {
-                //     tryHarderMisreadCounts[x]+=1;
-                //   }
-                // } catch (ReaderException ignored) {
-                //   log::fine(format!("could not read at rotation {} w/TH", rotation));
-                // }
             }
         }
 
