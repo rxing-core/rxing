@@ -1,7 +1,7 @@
 use crate::{
     common::{
         cpp_essentials::{
-            CenterOfRing, DMRegressionLine, FindConcentricPatternCorners, FindLeftGuardBy, Matrix,
+            CenterOfRing, DMRegressionLine, FindConcentricPatternCorners, FindLeftGuardBy, Matrix, Value,
         },
         DefaultGridSampler, GridSampler, Result, SamplerControl,
     },
@@ -1087,6 +1087,7 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
         srcQuad,
         fpQuad.rotated_corners(Some(0), None),
     )?;
+    let cur = EdgeTracer::new(image, Point::default(), Point::default());
 
     for i in 0..4 {
         // for (int i = 0; i < 4; ++i) {
@@ -1112,7 +1113,7 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
         {
             AppendBit(
                 &mut formatInfoBits,
-                image.get_point(mod2Pix.transform_point(Point::centered(*info_coord))),
+                cur.blackAt(mod2Pix.transform_point(Point::centered(*info_coord))),
             );
         }
 
@@ -1136,7 +1137,7 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
         // for (int i = 0; i < dim; ++i) {
         let px = bestPT.transform_point(Point::centered(point_i(i, dim)));
         let py = bestPT.transform_point(Point::centered(point_i(dim, i)));
-        blackPixels += u32::from(image.is_in(px) && image.get_point(px))
+        blackPixels += u32::from(cur.blackAt(px) && cur.blackAt(px))
             + u32::from(image.is_in(py) && image.get_point(py));
     }
     if blackPixels > 2 * dim / 3 {
@@ -1192,6 +1193,7 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
 
     let mut bestFI: FormatInformation = FormatInformation::default();
     let mut bestPT: PerspectiveTransform = PerspectiveTransform::default();
+    let  cur = EdgeTracer::new(image, Point::default(), Point::default());
 
     for i in 0..4 {
         // for (int i = 0; i < 4; ++i) {
@@ -1201,8 +1203,10 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
         )?;
 
         let check = |i: usize, on: bool| {
-            let p = mod2Pix.transform_point(Point::centered(FORMAT_INFO_EDGE_COORDS[i]));
-            image.is_in(p) && image.get_point(p) == on
+            // let p = mod2Pix.transform_point(Point::centered(FORMAT_INFO_EDGE_COORDS[i]));
+            // image.is_in(p) && image.get_point(p) == on
+            
+            cur.testAt(mod2Pix.transform_point(Point::centered(FORMAT_INFO_EDGE_COORDS[i]))) == Value::from(on)
         };
 
         // check that we see top edge timing pattern modules
@@ -1215,7 +1219,7 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
             // for (int i = 0; i < Size(FORMAT_INFO_COORDS); ++i)
             AppendBit(
                 &mut formatInfoBits,
-                image.get_point(mod2Pix.transform_point(Point::centered(FORMAT_INFO_COORDS[i]))),
+                cur.blackAt(mod2Pix.transform_point(Point::centered(FORMAT_INFO_COORDS[i]))),
             );
         }
 
