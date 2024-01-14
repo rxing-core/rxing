@@ -464,8 +464,10 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
             );
 
             result = if let Ok(res) = self.barcode_reader.decode_with_hints(source, &pure_hints) {
+                log::fine(format!("{suffix} - read pure barcode"));
                 Some(res)
             } else {
+                // log::fine(format!("{suffix} - could not read pure barcode"));
                 None
             };
         }

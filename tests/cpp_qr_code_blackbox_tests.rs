@@ -333,10 +333,12 @@ fn cpp_rmqr_blackbox_test_case() {
         QrReader,
         BarcodeFormat::RECTANGULAR_MICRO_QR_CODE,
     );
-    tester.add_test(1, 1, 0.0);
+    tester.add_test(2, 2, 0.0);
     tester.add_test(1, 1, 90.0);
     tester.add_test(1, 1, 180.0);
     tester.add_test(1, 1, 270.0);
 
     tester.test_black_box();
 }
+
+//
