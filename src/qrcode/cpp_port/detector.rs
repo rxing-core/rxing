@@ -1,7 +1,8 @@
 use crate::{
     common::{
         cpp_essentials::{
-            CenterOfRing, DMRegressionLine, FindConcentricPatternCorners, FindLeftGuardBy, Matrix, Value,
+            CenterOfRing, DMRegressionLine, FindConcentricPatternCorners, FindLeftGuardBy, Matrix,
+            Value,
         },
         DefaultGridSampler, GridSampler, Result, SamplerControl,
     },
@@ -1193,7 +1194,7 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
 
     let mut bestFI: FormatInformation = FormatInformation::default();
     let mut bestPT: PerspectiveTransform = PerspectiveTransform::default();
-    let  cur = EdgeTracer::new(image, Point::default(), Point::default());
+    let cur = EdgeTracer::new(image, Point::default(), Point::default());
 
     for i in 0..4 {
         // for (int i = 0; i < 4; ++i) {
@@ -1205,8 +1206,9 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
         let check = |i: usize, on: bool| {
             // let p = mod2Pix.transform_point(Point::centered(FORMAT_INFO_EDGE_COORDS[i]));
             // image.is_in(p) && image.get_point(p) == on
-            
-            cur.testAt(mod2Pix.transform_point(Point::centered(FORMAT_INFO_EDGE_COORDS[i]))) == Value::from(on)
+
+            cur.testAt(mod2Pix.transform_point(Point::centered(FORMAT_INFO_EDGE_COORDS[i])))
+                == Value::from(on)
         };
 
         // check that we see top edge timing pattern modules
@@ -1215,11 +1217,12 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
         }
 
         let mut formatInfoBits = 0;
-        for i in 0..FORMAT_INFO_COORDS.len() {
+        for coord in FORMAT_INFO_COORDS {
+            // for i in 0..FORMAT_INFO_COORDS.len() {
             // for (int i = 0; i < Size(FORMAT_INFO_COORDS); ++i)
             AppendBit(
                 &mut formatInfoBits,
-                cur.blackAt(mod2Pix.transform_point(Point::centered(FORMAT_INFO_COORDS[i]))),
+                cur.blackAt(mod2Pix.transform_point(Point::centered(coord))),
             );
         }
 
