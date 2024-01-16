@@ -21,7 +21,7 @@ urlencoding = "2.1.3"
 uriparse = "0.6.4"
 chrono = "0.4.31"
 chrono-tz = "0.8"
-image = {version = "0.24", optional = true}
+image = {version = "0.24", optional = true, default-features = false}
 imageproc = {version = "0.23", optional = true}
 unicode-segmentation = "1.10"
 codepage-437 = "0.1.0"
@@ -41,9 +41,28 @@ rand = "0.8.5"
 criterion = "0.5"
 
 [features]
-default = ["image", "client_support"]
+default = ["image", "client_support", "image-formats"]
 #/// Enable features required for image manipulation and reading.
 image = ["dep:image", "dep:imageproc"]
+image-formats = [
+    "image",
+    "image/gif",
+    "image/jpeg",
+    "image/ico",
+    "image/png",
+    "image/pnm",
+    "image/tga",
+    "image/tiff",
+    "image/webp",
+    "image/bmp",
+    "image/hdr",
+    "image/dxt",
+    "image/dds",
+    "image/farbfeld",
+    "image/jpeg_rayon",
+    "image/openexr",
+    "image/qoi"
+]
 
 #/// Allows the ability to force ISO/IED 18004 compliance.
 #/// Leave disabled unless specificially needed.

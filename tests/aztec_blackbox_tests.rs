@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#![cfg(feature = "image")]
 
 use rxing::{aztec::AztecReader, BarcodeFormat};
 
@@ -21,6 +22,7 @@ mod common;
 /**
  * @author David Olivier
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn aztec_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -43,6 +45,7 @@ fn aztec_black_box1_test_case() {
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn aztec_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

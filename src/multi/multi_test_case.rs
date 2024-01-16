@@ -27,6 +27,7 @@ use super::{GenericMultipleBarcodeReader, MultipleBarcodeReader};
  * Tests {@link MultipleBarcodeReader}.
  */
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testMulti() {
     // Very basic test for now
@@ -54,6 +55,7 @@ fn testMulti() {
     assert_eq!(&BarcodeFormat::QR_CODE, results[1].getBarcodeFormat());
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testMultiQR() {
     // Very basic test for now

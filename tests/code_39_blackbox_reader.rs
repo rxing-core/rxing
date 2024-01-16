@@ -1,3 +1,5 @@
+#![cfg(feature = "image")]
+
 /**
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,6 +14,7 @@ mod common;
 /**
  * @author Sean Owen
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn code39_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -32,6 +35,7 @@ fn code39_black_box1_test_case() {
 /**
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn code39_black_box3_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -50,6 +54,7 @@ fn code39_black_box3_test_case() {
 /**
  * @author Sean Owen
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn code39_extended_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

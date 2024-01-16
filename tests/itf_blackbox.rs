@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#![cfg(feature = "image")]
 
 use rxing::{BarcodeFormat, MultiFormatReader};
 
@@ -21,6 +22,7 @@ mod common;
 /**
  * @author kevin.osullivan@sita.aero
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn itfblack_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -39,6 +41,7 @@ fn itfblack_box1_test_case() {
 /**
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn itfblack_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

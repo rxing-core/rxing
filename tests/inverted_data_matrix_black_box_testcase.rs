@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#![cfg(feature = "image")]
 
 use rxing::{DecodeHintType, DecodeHintValue, MultiFormatReader};
 
@@ -21,6 +22,7 @@ mod common;
 /**
  * Inverted barcodes
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn inverted_data_matrix_black_box_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

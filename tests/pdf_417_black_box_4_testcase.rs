@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#![cfg(feature = "image")]
+
 mod common;
 
 use rxing::pdf417::PDF417Reader;
@@ -23,6 +25,7 @@ use rxing::pdf417::PDF417Reader;
  *
  * @author Guenther Grau
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn pdf417_black_box4_test_case() {
     let mut tester = common::MultiImageSpanAbstractBlackBoxTestCase::new(

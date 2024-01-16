@@ -159,6 +159,7 @@ fn compareToGoldenFile(
 // Golden images are generated with "qrcode_sample.cc". The images are checked with both eye balls
 // and cell phones. We expect pixel-perfect results, because the error correction level is known,
 // and the pixel dimensions matches exactly.
+#[cfg(feature = "image-formats")]
 #[test]
 fn testRegressionTest() {
     compareToGoldenFile(

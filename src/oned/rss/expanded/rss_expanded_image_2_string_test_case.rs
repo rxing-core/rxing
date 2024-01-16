@@ -37,36 +37,43 @@ use crate::{
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string1() {
     assertCorrectImage2string("1.png", "(11)100224(17)110224(3102)000100");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string2() {
     assertCorrectImage2string("2.png", "(01)90012345678908(3103)001750");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string3() {
     assertCorrectImage2string("3.png", "(10)12A");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string4() {
     assertCorrectImage2string("4.png", "(01)98898765432106(3202)012345(15)991231");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string5() {
     assertCorrectImage2string("5.png", "(01)90614141000015(3202)000150");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string7() {
     assertCorrectImage2string("7.png", "(10)567(11)010101");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string10() {
     let expected =
@@ -74,6 +81,7 @@ fn testDecodeRow2string10() {
     assertCorrectImage2string("10.png", expected);
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string11() {
     assertCorrectImage2string(
@@ -82,96 +90,115 @@ fn testDecodeRow2string11() {
     );
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string12() {
     assertCorrectImage2string("12.png", "(01)98898765432106(3103)001750");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string13() {
     assertCorrectImage2string("13.png", "(01)90012345678908(3922)795");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string14() {
     assertCorrectImage2string("14.png", "(01)90012345678908(3932)0401234");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string15() {
     assertCorrectImage2string("15.png", "(01)90012345678908(3102)001750(11)100312");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string16() {
     assertCorrectImage2string("16.png", "(01)90012345678908(3202)001750(11)100312");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string17() {
     assertCorrectImage2string("17.png", "(01)90012345678908(3102)001750(13)100312");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string18() {
     assertCorrectImage2string("18.png", "(01)90012345678908(3202)001750(13)100312");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string19() {
     assertCorrectImage2string("19.png", "(01)90012345678908(3102)001750(15)100312");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string20() {
     assertCorrectImage2string("20.png", "(01)90012345678908(3202)001750(15)100312");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string21() {
     assertCorrectImage2string("21.png", "(01)90012345678908(3102)001750(17)100312");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string22() {
     assertCorrectImage2string("22.png", "(01)90012345678908(3202)001750(17)100312");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string25() {
     assertCorrectImage2string("25.png", "(10)123");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string26() {
     assertCorrectImage2string("26.png", "(10)5678(11)010101");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string27() {
     assertCorrectImage2string("27.png", "(10)1098-1234");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string28() {
     assertCorrectImage2string("28.png", "(10)1098/1234");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string29() {
     assertCorrectImage2string("29.png", "(10)1098.1234");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string30() {
     assertCorrectImage2string("30.png", "(10)1098*1234");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string31() {
     assertCorrectImage2string("31.png", "(10)1098,1234");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2string32() {
     assertCorrectImage2string(

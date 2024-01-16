@@ -35,6 +35,7 @@ use crate::{
 
 use super::bit_array_builder;
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary1() {
     // (11)100224(17)110224(3102)000100
@@ -42,6 +43,7 @@ fn testDecodeRow2binary1() {
         " ...X...X .X....X. .XX...X. X..X...X ...XX.X. ..X.X... ..X.X..X ...X..X. X.X....X .X....X. .....X.. X...X...");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary2() {
     // (01)90012345678908(3103)001750
@@ -51,12 +53,14 @@ fn testDecodeRow2binary2() {
     );
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary3() {
     // (10)12A
     assertCorrectImage2binary("3.png", " .......X ..XX..X. X.X....X .......X ....");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary4() {
     // (01)98898765432106(3202)012345(15)991231
@@ -64,6 +68,7 @@ fn testDecodeRow2binary4() {
         "4.png", " ..XXXX.X XX.XXXX. .XXX.XX. XX..X... .XXXXX.. XX.X..X. ..XX..XX XX.X.XXX X..XX..X .X.XXXXX XXXX");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary5() {
     // (01)90614141000015(3202)000150
@@ -73,6 +78,7 @@ fn testDecodeRow2binary5() {
     );
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary10() {
     // (01)98898765432106(15)991231(3103)001750(10)12A(422)123(21)123456(423)0123456789012
@@ -80,6 +86,7 @@ fn testDecodeRow2binary10() {
         " .X.XX..X XX.XXXX. .XXX.XX. XX..X... .XXXXX.. XX.X..X. ..XX...X XX.X.... X.X.X.X. X.X..X.X .X....X. XX...X.. ...XX.X. .XXXXXX. .X..XX.. X.X.X... .X...... XXXX.... XX.XX... XXXXX.X. ...XXXXX .....X.X ...X.... X.XXX..X X.X.X... XX.XX..X .X..X..X .X.X.X.X X.XX...X .XX.XXX. XXX.X.XX ..X.");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary11() {
     // (01)98898765432106(15)991231(3103)001750(10)12A(422)123(21)123456
@@ -87,6 +94,7 @@ fn testDecodeRow2binary11() {
         " .X.XX..X XX.XXXX. .XXX.XX. XX..X... .XXXXX.. XX.X..X. ..XX...X XX.X.... X.X.X.X. X.X..X.X .X....X. XX...X.. ...XX.X. .XXXXXX. .X..XX.. X.X.X... .X...... XXXX.... XX.XX... XXXXX.X. ...XXXXX .....X.X ...X.... X.XXX..X X.X.X... ....");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary12() {
     // (01)98898765432106(3103)001750
@@ -96,6 +104,7 @@ fn testDecodeRow2binary12() {
     );
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary13() {
     // (01)90012345678908(3922)795
@@ -105,6 +114,7 @@ fn testDecodeRow2binary13() {
     );
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary14() {
     // (01)90012345678908(3932)0401234
@@ -112,6 +122,7 @@ fn testDecodeRow2binary14() {
         "14.png", " ..XX.X.. ........ .X..XXX. X.X.X... XX.XXXXX .XXXX.X. X.....X. X.....X. X.X.X.XX .X...... X...");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary15() {
     // (01)90012345678908(3102)001750(11)100312
@@ -119,6 +130,7 @@ fn testDecodeRow2binary15() {
         "15.png", " ..XXX... ........ .X..XXX. X.X.X... XX.XXXXX .XXXX.X. ..XX...X .X.....X .XX..... XXXX.X.. XX..");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary16() {
     // (01)90012345678908(3202)001750(11)100312
@@ -126,6 +138,7 @@ fn testDecodeRow2binary16() {
         "16.png", " ..XXX..X ........ .X..XXX. X.X.X... XX.XXXXX .XXXX.X. ..XX...X .X.....X .XX..... XXXX.X.. XX..");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary17() {
     // (01)90012345678908(3102)001750(13)100312
@@ -133,6 +146,7 @@ fn testDecodeRow2binary17() {
         "17.png", " ..XXX.X. ........ .X..XXX. X.X.X... XX.XXXXX .XXXX.X. ..XX...X .X.....X .XX..... XXXX.X.. XX..");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary18() {
     // (01)90012345678908(3202)001750(13)100312
@@ -140,6 +154,7 @@ fn testDecodeRow2binary18() {
         "18.png", " ..XXX.XX ........ .X..XXX. X.X.X... XX.XXXXX .XXXX.X. ..XX...X .X.....X .XX..... XXXX.X.. XX..");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary19() {
     // (01)90012345678908(3102)001750(15)100312
@@ -147,6 +162,7 @@ fn testDecodeRow2binary19() {
         "19.png", " ..XXXX.. ........ .X..XXX. X.X.X... XX.XXXXX .XXXX.X. ..XX...X .X.....X .XX..... XXXX.X.. XX..");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary20() {
     // (01)90012345678908(3202)001750(15)100312
@@ -154,6 +170,7 @@ fn testDecodeRow2binary20() {
         "20.png", " ..XXXX.X ........ .X..XXX. X.X.X... XX.XXXXX .XXXX.X. ..XX...X .X.....X .XX..... XXXX.X.. XX..");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary21() {
     // (01)90012345678908(3102)001750(17)100312
@@ -161,6 +178,7 @@ fn testDecodeRow2binary21() {
         "21.png", " ..XXXXX. ........ .X..XXX. X.X.X... XX.XXXXX .XXXX.X. ..XX...X .X.....X .XX..... XXXX.X.. XX..");
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn testDecodeRow2binary22() {
     // (01)90012345678908(3202)001750(17)100312

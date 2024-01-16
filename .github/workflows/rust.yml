@@ -20,5 +20,7 @@ jobs:
       run: cargo check --workspace --release --verbose
     - name: Build
       run: cargo build --workspace --release --verbose
-    - name: Run tests
+    - name: Run tests (defaults)
       run: cargo test --workspace --release --verbose
+    - name: Run tests (minimal)
+      run: cargo test --workspace --release --verbose --no-default-features

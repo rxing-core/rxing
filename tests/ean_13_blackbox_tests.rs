@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#![cfg(feature = "image")]
 
 use rxing::{BarcodeFormat, MultiFormatReader};
 
@@ -21,6 +22,7 @@ mod common;
 /**
  * @author Sean Owen
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn ean13_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -42,6 +44,7 @@ fn ean13_black_box1_test_case() {
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn ean13_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -61,6 +64,7 @@ fn ean13_black_box2_test_case() {
 /**
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn ean13_black_box3_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -81,6 +85,7 @@ fn ean13_black_box3_test_case() {
  * A very difficult set of images taken with extreme shadows and highlights.
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn ean13_black_box4_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -100,6 +105,7 @@ fn ean13_black_box4_test_case() {
  * A set of blurry images taken with a fixed-focus device.
  * @author dswitkin@google.com (Daniel Switkin)
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn ean13_black_box5_blurry_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

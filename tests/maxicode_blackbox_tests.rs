@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#![cfg(feature = "image")]
 
 use rxing::{BarcodeFormat, DecodeHintType, MultiFormatReader};
 
@@ -21,6 +22,7 @@ mod common;
 /**
  * Tests {@link MaxiCodeReader} against a fixed set of test images.
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn maxicode1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -42,6 +44,7 @@ fn maxicode1_test_case() {
  * @author Daniel Gredler
  * @see <a href="https://github.com/zxing/zxing/issues/1543">Defect 1543</a>
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn maxi_code_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

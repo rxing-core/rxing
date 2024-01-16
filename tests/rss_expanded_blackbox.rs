@@ -23,6 +23,7 @@
  *
  *   http://www.piramidepse.com/
  */
+#![cfg(feature = "image")]
 
 use rxing::{BarcodeFormat, MultiFormatReader};
 
@@ -31,6 +32,7 @@ mod common;
 /**
  * A test of {@link RSSExpandedReader} against a fixed test set of images.
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn rssexpanded_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -49,6 +51,7 @@ fn rssexpanded_black_box1_test_case() {
 /**
  * A test of {@link RSSExpandedReader} against a fixed test set of images.
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn rssexpanded_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -67,6 +70,7 @@ fn rssexpanded_black_box2_test_case() {
 /**
  * A test of {@link RSSExpandedReader} against a fixed test set of images.
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn rssexpanded_black_box3_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -86,6 +90,7 @@ fn rssexpanded_black_box3_test_case() {
  * A test of {@link RSSExpandedReader} against a fixed test set of images including
  * stacked RSS barcodes.
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn rssexpanded_stacked_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -105,6 +110,7 @@ fn rssexpanded_stacked_black_box1_test_case() {
  * A test of {@link RSSExpandedReader} against a fixed test set of images including
  * stacked RSS barcodes.
  */
+#[cfg(feature = "image-formats")]
 #[test]
 fn rssexpanded_stacked_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

@@ -35,7 +35,7 @@ impl ExpandedRow {
         &self.pairs
     }
 
-    #[cfg(test)]
+    #[cfg(all(test, feature = "image"))]
     pub(crate) fn getPairsMut(&mut self) -> &mut [ExpandedPair] {
         &mut self.pairs
     }

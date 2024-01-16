@@ -1,7 +1,5 @@
 use std::io::Read;
 
-use rxing::DecodingHintDictionary;
-
 #[test]
 fn issue_27_part_2() {
     let mut data = Vec::new();
@@ -13,8 +11,11 @@ fn issue_27_part_2() {
     rxing::helpers::detect_multiple_in_luma(data, 720, 618).unwrap_or_default();
 }
 
+#[cfg(feature = "image")]
 #[test]
 fn issue_28() {
+    use rxing::DecodingHintDictionary;
+
     let mut hints: DecodingHintDictionary = DecodingHintDictionary::new();
     hints.insert(
         rxing::DecodeHintType::TRY_HARDER,
