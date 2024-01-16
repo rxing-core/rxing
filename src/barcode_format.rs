@@ -87,6 +87,8 @@ pub enum BarcodeFormat {
     /** UPC/EAN extension format. Not a stand-alone format. */
     UPC_EAN_EXTENSION,
 
+    DXFilmEdge,
+
     ///
     UNSUPORTED_FORMAT,
 }
