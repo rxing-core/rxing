@@ -328,6 +328,7 @@ fn cpp_qrcode_black_box7_test_case() {
     tester.test_black_box();
 }
 
+#[cfg(feature = "image-formats")]
 #[test]
 fn cpp_rmqr_blackbox_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
