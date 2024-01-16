@@ -33,10 +33,10 @@ XXX XX X X XXXX
     )
     .expect("parse must parse");
 
-    let version = ReadVersion(&bitMatrix).unwrap();
+    let format = ReadFormatInformation(&bitMatrix).expect("could not read format information");
+    let version = ReadVersion(&bitMatrix, format.qr_type()).expect("version found");
     assert_eq!(3, version.getVersionNumber());
-    let format =
-        ReadFormatInformation(&bitMatrix, true).expect("could not read format information");
+
     let codewords = ReadCodewords(&bitMatrix, version, &format).expect("could not read codewords");
     assert_eq!(17, codewords.len());
     assert_eq!(0x0, codewords[10]);
@@ -67,10 +67,10 @@ X X XXXX    XXX
     )
     .unwrap();
 
-    let version = ReadVersion(&bitMatrix).unwrap();
+    let format = ReadFormatInformation(&bitMatrix).expect("could not read format information");
+    let version = ReadVersion(&bitMatrix, format.qr_type()).expect("could not read version");
     assert_eq!(3, version.getVersionNumber());
-    let format =
-        ReadFormatInformation(&bitMatrix, true).expect("could not read format information");
+
     let codewords = ReadCodewords(&bitMatrix, version, &format).expect("could not read codewords");
     assert_eq!(17, codewords.len());
     assert_eq!(0x0, codewords[8]);

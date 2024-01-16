@@ -636,7 +636,7 @@ impl BitMatrix {
         self.width()
     }
 
-    pub fn width(&self) -> u32 {
+    pub const fn width(&self) -> u32 {
         self.width
     }
 
@@ -647,7 +647,7 @@ impl BitMatrix {
         self.height()
     }
 
-    pub fn height(&self) -> u32 {
+    pub const fn height(&self) -> u32 {
         self.height
     }
 

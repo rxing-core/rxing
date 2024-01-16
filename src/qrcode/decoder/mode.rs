@@ -15,6 +15,7 @@
  */
 
 use crate::common::Result;
+use crate::qrcode::cpp_port::Type;
 use crate::Exceptions;
 
 use super::Version;
@@ -82,6 +83,7 @@ impl Mode {
      */
     pub fn getCharacterCountBits(&self, version: &Version) -> u8 {
         let number = version.getVersionNumber();
+
         let offset = if number <= 9 {
             0
         } else if number <= 26 {
@@ -122,18 +124,19 @@ impl Mode {
         }
     }
 
-    pub const fn get_terminator_bit_length(version: &Version) -> u8 {
-        (if version.isMicroQRCode() {
+    pub fn get_terminator_bit_length(version: &Version) -> u8 {
+        (if version.isMicro() {
             version.getVersionNumber() * 2 + 1
         } else {
-            4
+            4 - u32::from(version.isRMQR())
         }) as u8
     }
-    pub const fn get_codec_mode_bits_length(version: &Version) -> u8 {
-        (if version.isMicroQRCode() {
+
+    pub fn get_codec_mode_bits_length(version: &Version) -> u8 {
+        (if version.isMicro() {
             version.getVersionNumber() - 1
         } else {
-            4
+            4 - u32::from(version.isRMQR())
         }) as u8
     }
     /**
@@ -142,20 +145,32 @@ impl Mode {
      * @return Mode encoded by these bits
      * @throws FormatError if bits do not correspond to a known mode
      */
-    pub fn CodecModeForBits(bits: u32, isMicro: Option<bool>) -> Result<Self> {
-        let isMicro = isMicro.unwrap_or(false);
-        const BITS_2_MODE_LEN: usize = 4;
+    pub fn CodecModeForBits(bits: u32, qr_type: Option<Type>) -> Result<Self> {
+        let qr_type = qr_type.unwrap_or(Type::Model2);
+        let bits = bits as usize;
 
-        if !isMicro {
-            if (0x00..=0x05).contains(&bits) || (0x07..=0x09).contains(&bits) || bits == 0x0d {
-                return Mode::try_from(bits);
-            }
-        } else {
-            const BITS_2_MODE: [Mode; BITS_2_MODE_LEN] =
+        if qr_type == Type::Micro {
+            const Bits2Mode: [Mode; 4] =
                 [Mode::NUMERIC, Mode::ALPHANUMERIC, Mode::BYTE, Mode::KANJI];
-            if (bits as usize) < BITS_2_MODE_LEN {
-                return Ok(BITS_2_MODE[bits as usize]);
+            if bits < (Bits2Mode.len()) {
+                return Ok(Bits2Mode[bits]);
             }
+        } else if qr_type == Type::RectMicro {
+            const Bits2Mode: [Mode; 8] = [
+                Mode::TERMINATOR,
+                Mode::NUMERIC,
+                Mode::ALPHANUMERIC,
+                Mode::BYTE,
+                Mode::KANJI,
+                Mode::FNC1_FIRST_POSITION,
+                Mode::FNC1_SECOND_POSITION,
+                Mode::ECI,
+            ];
+            if bits < (Bits2Mode.len()) {
+                return Ok(Bits2Mode[bits]);
+            }
+        } else if (0x00..=0x05).contains(&bits) || (0x07..=0x09).contains(&bits) || bits == 0x0d {
+            return Mode::try_from(bits as u32);
         }
 
         Err(Exceptions::format_with("Invalid codec mode"))
@@ -168,7 +183,7 @@ impl Mode {
      */
     pub fn CharacterCountBits(&self, version: &Version) -> u32 {
         let number = version.getVersionNumber() as usize;
-        if version.isMicroQRCode() {
+        if version.isMicro() {
             match self {
 		 Mode::NUMERIC=>      return [3, 4, 5, 6][number - 1],
 		 Mode::ALPHANUMERIC=> return [3, 4, 5][number - 2],
@@ -177,6 +192,33 @@ impl Mode {
 		 Mode::HANZI=>        return [3, 4][number - 3],
 		_=> return 0,
 		}
+        }
+
+        if version.isRMQR() {
+            // See ISO/IEC 23941:2022 7.4.1, Table 3 - Number of bits of character count indicator
+            const numeric: [u32; 32] = [
+                4, 5, 6, 7, 7, 5, 6, 7, 7, 8, 4, 6, 7, 7, 8, 8, 5, 6, 7, 7, 8, 8, 7, 7, 8, 8, 9, 7,
+                8, 8, 8, 9,
+            ];
+            const alphanum: [u32; 32] = [
+                3, 5, 5, 6, 6, 5, 5, 6, 6, 7, 4, 5, 6, 6, 7, 7, 5, 6, 6, 7, 7, 8, 6, 7, 7, 7, 8, 6,
+                7, 7, 8, 8,
+            ];
+            const byte: [u32; 32] = [
+                3, 4, 5, 5, 6, 4, 5, 5, 6, 6, 3, 5, 5, 6, 6, 7, 4, 5, 6, 6, 7, 7, 6, 6, 7, 7, 7, 6,
+                6, 7, 7, 8,
+            ];
+            const kanji: [u32; 32] = [
+                2, 3, 4, 5, 5, 3, 4, 5, 5, 6, 2, 4, 5, 5, 6, 6, 3, 5, 5, 6, 6, 7, 5, 5, 6, 6, 7, 5,
+                6, 6, 6, 7,
+            ];
+            match self {
+                Mode::NUMERIC => return numeric[number - 1],
+                Mode::ALPHANUMERIC => return alphanum[number - 1],
+                Mode::BYTE => return byte[number - 1],
+                Mode::KANJI => return kanji[number - 1],
+                _ => return 0,
+            }
         }
 
         let i = if number <= 9 {

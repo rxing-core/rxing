@@ -18,6 +18,7 @@ use std::fmt;
 
 use crate::{
     common::{BitMatrix, Result},
+    qrcode::cpp_port::Type,
     Exceptions,
 };
 
@@ -29,6 +30,8 @@ pub type VersionRef = &'static Version;
 
 pub static VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::buildVersions);
 pub static MICRO_VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::build_micro_versions);
+pub static MODEL1_VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::build_model1_versions);
+pub static RMQR_VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::build_rmqr_versions);
 
 /**
  * See ISO 18004:2006 Annex D.
@@ -54,17 +57,22 @@ pub struct Version {
     alignmentPatternCenters: Vec<u32>,
     ecBlocks: Vec<ECBlocks>,
     totalCodewords: u32,
-    pub(crate) is_micro: bool,
+    pub(crate) qr_type: Type,
 }
 impl Version {
-    fn new(versionNumber: u32, alignmentPatternCenters: Vec<u32>, ecBlocks: [ECBlocks; 4]) -> Self {
+    pub(super) fn new(
+        versionNumber: u32,
+        alignmentPatternCenters: Vec<u32>,
+        ecBlocks: [ECBlocks; 4],
+    ) -> Self {
         let mut total = 0;
-        let ecCodewords = ecBlocks[0].getECCodewordsPerBlock();
-        let ecbArray = ecBlocks[0].getECBlocks();
-        let mut i = 0;
-        while i < ecbArray.len() {
-            total += ecbArray[i].getCount() * (ecbArray[i].getDataCodewords() + ecCodewords);
-            i += 1;
+        let ecCodewords = ecBlocks[1].getECCodewordsPerBlock();
+        let ecbArray = ecBlocks[1].getECBlocks();
+        // let mut i = 0;
+        for ecb in ecbArray {
+            // while i < ecbArray.len() {
+            total += ecb.getCount() * (ecb.getDataCodewords() + ecCodewords);
+            // i += 1;
         }
 
         Self {
@@ -72,11 +80,15 @@ impl Version {
             alignmentPatternCenters,
             ecBlocks: ecBlocks.to_vec(),
             totalCodewords: total,
-            is_micro: false,
+            qr_type: if ecBlocks[0].getECCodewordsPerBlock() != 0 {
+                Type::Model2
+            } else {
+                Type::RectMicro
+            },
         }
     }
 
-    fn new_micro(versionNumber: u32, ecBlocks: Vec<ECBlocks>) -> Self {
+    pub(super) fn new_micro(versionNumber: u32, ecBlocks: Vec<ECBlocks>) -> Self {
         let mut total = 0;
         let ecCodewords = ecBlocks[0].getECCodewordsPerBlock();
         let ecbArray = ecBlocks[0].getECBlocks();
@@ -91,7 +103,26 @@ impl Version {
             alignmentPatternCenters: Vec::default(),
             ecBlocks,
             totalCodewords: total,
-            is_micro: true,
+            qr_type: Type::Micro,
+        }
+    }
+
+    pub(super) fn new_model1(versionNumber: u32, ecBlocks: Vec<ECBlocks>) -> Self {
+        let mut total = 0;
+        let ecCodewords = ecBlocks[0].getECCodewordsPerBlock();
+        let ecbArray = ecBlocks[0].getECBlocks();
+        let mut i = 0;
+        while i < ecbArray.len() {
+            total += ecbArray[i].getCount() * (ecbArray[i].getDataCodewords() + ecCodewords);
+            i += 1;
+        }
+
+        Self {
+            versionNumber,
+            alignmentPatternCenters: Vec::default(),
+            ecBlocks,
+            totalCodewords: total,
+            qr_type: Type::Model1,
         }
     }
 
@@ -108,7 +139,7 @@ impl Version {
     }
 
     pub fn getDimensionForVersion(&self) -> u32 {
-        Self::DimensionOfVersion(self.versionNumber, self.is_micro)
+        Self::DimensionOfVersion(self.versionNumber, self.qr_type == Type::Micro)
         // 17 + 4 * self.versionNumber
     }
 
@@ -170,13 +201,55 @@ impl Version {
      * See ISO 18004:2006 Annex E
      */
     pub fn buildFunctionPattern(&self) -> Result<BitMatrix> {
+        if self.isRMQR() {
+            let size = Version::SymbolSize(self.versionNumber, Type::RectMicro);
+            let mut bitMatrix = BitMatrix::new(size.x as u32, size.y as u32)?;
+
+            // Set edge timing patterns
+            bitMatrix.setRegion(0, 0, size.x as u32, 1)?; // Top
+            bitMatrix.setRegion(0, (size.y - 1) as u32, size.x as u32, 1)?; // Bottom
+            bitMatrix.setRegion(0, 1, 1, (size.y - 2) as u32)?; // Left
+            bitMatrix.setRegion((size.x - 1) as u32, 1, 1, (size.y - 2) as u32)?; // Right
+
+            // Set vertical timing and alignment patterns
+            let max = self.alignmentPatternCenters.len(); // Same as vertical timing column
+            for x in 0..max {
+                // for (size_t x = 0; x < max; ++x) {
+                let cx = self.alignmentPatternCenters[x];
+                bitMatrix.setRegion(cx - 1, 1, 3, 2)?; // Top alignment pattern
+                bitMatrix.setRegion(cx - 1, (size.y - 3) as u32, 3, 2)?; // Bottom alignment pattern
+                bitMatrix.setRegion(cx, 3, 1, (size.y - 6) as u32)?; // Vertical timing pattern
+            }
+
+            // Top left finder pattern + separator
+            bitMatrix.setRegion(1, 1, 8 - 1, 8 - 1 - u32::from(size.y == 7))?; // R7 finder bottom flush with edge
+                                                                               // Top left format
+            bitMatrix.setRegion(8, 1, 3, 5)?;
+            bitMatrix.setRegion(11, 1, 1, 3)?;
+
+            // Bottom right finder subpattern
+            bitMatrix.setRegion((size.x - 5) as u32, (size.y - 5) as u32, 5 - 1, 5 - 1)?;
+            // Bottom right format
+            bitMatrix.setRegion((size.x - 8) as u32, (size.y - 6) as u32, 3, 5)?;
+            bitMatrix.setRegion((size.x - 5) as u32, (size.y - 6) as u32, 3, 1)?;
+
+            // Top right corner finder
+            bitMatrix.set((size.x - 2) as u32, 1);
+            if size.y > 9 {
+                // Bottom left corner finder
+                bitMatrix.set(1, (size.y - 2) as u32);
+            }
+
+            return Ok(bitMatrix);
+        }
+
         let dimension = self.getDimensionForVersion();
         let mut bitMatrix = BitMatrix::with_single_dimension(dimension)?;
 
         // Top left finder pattern + separator + format
         bitMatrix.setRegion(0, 0, 9, 9)?;
 
-        if !self.is_micro {
+        if self.qr_type != Type::Micro {
             // Top right finder pattern + separator + format
             bitMatrix.setRegion(dimension - 8, 0, 8, 9)?;
             // Bottom left finder pattern + separator + format
@@ -214,761 +287,6 @@ impl Version {
         }
 
         Ok(bitMatrix)
-    }
-
-    pub fn build_micro_versions() -> Vec<Version> {
-        vec![
-            Version::new_micro(1, vec![ECBlocks::new(2, vec![ECB::new(1, 3)])]),
-            Version::new_micro(
-                2,
-                vec![
-                    ECBlocks::new(5, vec![ECB::new(1, 5)]),
-                    ECBlocks::new(6, vec![ECB::new(1, 4)]),
-                ],
-            ),
-            Version::new_micro(
-                3,
-                vec![
-                    ECBlocks::new(6, vec![ECB::new(1, 11)]),
-                    ECBlocks::new(8, vec![ECB::new(1, 9)]),
-                ],
-            ),
-            Version::new_micro(
-                4,
-                vec![
-                    ECBlocks::new(8, vec![ECB::new(1, 16)]),
-                    ECBlocks::new(10, vec![ECB::new(1, 14)]),
-                    ECBlocks::new(14, vec![ECB::new(1, 10)]),
-                ],
-            ),
-        ]
-        // static const Version allVersions[] = {
-        // 	{1, {2, 1, 3, 0, 0}},
-        // 	{2, {5, 1, 5, 0, 0, 6, 1, 4, 0, 0}},
-        // 	{3, {6, 1, 11, 0, 0, 8, 1, 9, 0, 0}},
-        // 	{4, {8, 1, 16, 0, 0, 10, 1, 14, 0, 0, 14, 1, 10, 0, 0}}};
-    }
-
-    /**
-     * See ISO 18004:2006 6.5.1 Table 9
-     */
-    pub fn buildVersions() -> Vec<Version> {
-        Vec::from([
-            Version::new(
-                1,
-                Vec::from([]),
-                [
-                    ECBlocks::new(7, Vec::from([ECB::new(1, 19)])),
-                    ECBlocks::new(10, Vec::from([ECB::new(1, 16)])),
-                    ECBlocks::new(13, Vec::from([ECB::new(1, 13)])),
-                    ECBlocks::new(17, Vec::from([ECB::new(1, 9)])),
-                ],
-            ),
-            Version::new(
-                2,
-                Vec::from([6, 18]),
-                [
-                    ECBlocks::new(10, Vec::from([ECB::new(1, 34)])),
-                    ECBlocks::new(16, Vec::from([ECB::new(1, 28)])),
-                    ECBlocks::new(22, Vec::from([ECB::new(1, 22)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(1, 16)])),
-                ],
-            ),
-            Version::new(
-                3,
-                Vec::from([6, 22]),
-                [
-                    ECBlocks::new(15, Vec::from([ECB::new(1, 55)])),
-                    ECBlocks::new(26, Vec::from([ECB::new(1, 44)])),
-                    ECBlocks::new(18, Vec::from([ECB::new(2, 17)])),
-                    ECBlocks::new(22, Vec::from([ECB::new(2, 13)])),
-                ],
-            ),
-            Version::new(
-                4,
-                Vec::from([6, 26]),
-                [
-                    ECBlocks::new(20, Vec::from([ECB::new(1, 80)])),
-                    ECBlocks::new(18, Vec::from([ECB::new(2, 32)])),
-                    ECBlocks::new(26, Vec::from([ECB::new(2, 24)])),
-                    ECBlocks::new(16, Vec::from([ECB::new(4, 9)])),
-                ],
-            ),
-            Version::new(
-                5,
-                Vec::from([6, 30]),
-                [
-                    ECBlocks::new(26, Vec::from([ECB::new(1, 108)])),
-                    ECBlocks::new(24, Vec::from([ECB::new(2, 43)])),
-                    ECBlocks::new(18, Vec::from([ECB::new(2, 15), ECB::new(2, 16)])),
-                    ECBlocks::new(22, Vec::from([ECB::new(2, 11), ECB::new(2, 12)])),
-                ],
-            ),
-            Version::new(
-                6,
-                Vec::from([6, 34]),
-                [
-                    ECBlocks::new(18, Vec::from([ECB::new(2, 68)])),
-                    ECBlocks::new(16, Vec::from([ECB::new(4, 27)])),
-                    ECBlocks::new(24, Vec::from([ECB::new(4, 19)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(4, 15)])),
-                ],
-            ),
-            Version::new(
-                7,
-                Vec::from([6, 22, 38]),
-                [
-                    ECBlocks::new(20, Vec::from([ECB::new(2, 78)])),
-                    ECBlocks::new(18, Vec::from([ECB::new(4, 31)])),
-                    ECBlocks::new(18, Vec::from([ECB::new(2, 14), ECB::new(4, 15)])),
-                    ECBlocks::new(26, Vec::from([ECB::new(4, 13), ECB::new(1, 14)])),
-                ],
-            ),
-            Version::new(
-                8,
-                Vec::from([6, 24, 42]),
-                [
-                    ECBlocks::new(24, Vec::from([ECB::new(2, 97)])),
-                    ECBlocks::new(22, Vec::from([ECB::new(2, 38), ECB::new(2, 39)])),
-                    ECBlocks::new(22, Vec::from([ECB::new(4, 18), ECB::new(2, 19)])),
-                    ECBlocks::new(26, Vec::from([ECB::new(4, 14), ECB::new(2, 15)])),
-                ],
-            ),
-            Version::new(
-                9,
-                Vec::from([6, 26, 46]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(2, 116)])),
-                    ECBlocks::new(22, Vec::from([ECB::new(3, 36), ECB::new(2, 37)])),
-                    ECBlocks::new(20, Vec::from([ECB::new(4, 16), ECB::new(4, 17)])),
-                    ECBlocks::new(24, Vec::from([ECB::new(4, 12), ECB::new(4, 13)])),
-                ],
-            ),
-            Version::new(
-                10,
-                Vec::from([6, 28, 50]),
-                [
-                    ECBlocks::new(18, Vec::from([ECB::new(2, 68), ECB::new(2, 69)])),
-                    ECBlocks::new(26, Vec::from([ECB::new(4, 43), ECB::new(1, 44)])),
-                    ECBlocks::new(24, Vec::from([ECB::new(6, 19), ECB::new(2, 20)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(6, 15), ECB::new(2, 16)])),
-                ],
-            ),
-            Version::new(
-                11,
-                Vec::from([6, 30, 54]),
-                [
-                    ECBlocks::new(20, Vec::from([ECB::new(4, 81)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(1, 50), ECB::new(4, 51)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(4, 22), ECB::new(4, 23)])),
-                    ECBlocks::new(24, Vec::from([ECB::new(3, 12), ECB::new(8, 13)])),
-                ],
-            ),
-            Version::new(
-                12,
-                Vec::from([6, 32, 58]),
-                [
-                    ECBlocks::new(24, Vec::from([ECB::new(2, 92), ECB::new(2, 93)])),
-                    ECBlocks::new(22, Vec::from([ECB::new(6, 36), ECB::new(2, 37)])),
-                    ECBlocks::new(26, Vec::from([ECB::new(4, 20), ECB::new(6, 21)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(7, 14), ECB::new(4, 15)])),
-                ],
-            ),
-            Version::new(
-                13,
-                Vec::from([6, 34, 62]),
-                [
-                    ECBlocks::new(26, Vec::from([ECB::new(4, 107)])),
-                    ECBlocks::new(22, Vec::from([ECB::new(8, 37), ECB::new(1, 38)])),
-                    ECBlocks::new(24, Vec::from([ECB::new(8, 20), ECB::new(4, 21)])),
-                    ECBlocks::new(22, Vec::from([ECB::new(12, 11), ECB::new(4, 12)])),
-                ],
-            ),
-            Version::new(
-                14,
-                Vec::from([6, 26, 46, 66]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(3, 115), ECB::new(1, 116)])),
-                    ECBlocks::new(24, Vec::from([ECB::new(4, 40), ECB::new(5, 41)])),
-                    ECBlocks::new(20, Vec::from([ECB::new(11, 16), ECB::new(5, 17)])),
-                    ECBlocks::new(24, Vec::from([ECB::new(11, 12), ECB::new(5, 13)])),
-                ],
-            ),
-            Version::new(
-                15,
-                Vec::from([6, 26, 48, 70]),
-                [
-                    ECBlocks::new(22, Vec::from([ECB::new(5, 87), ECB::new(1, 88)])),
-                    ECBlocks::new(24, Vec::from([ECB::new(5, 41), ECB::new(5, 42)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(5, 24), ECB::new(7, 25)])),
-                    ECBlocks::new(24, Vec::from([ECB::new(11, 12), ECB::new(7, 13)])),
-                ],
-            ),
-            Version::new(
-                16,
-                Vec::from([6, 26, 50, 74]),
-                [
-                    ECBlocks::new(24, Vec::from([ECB::new(5, 98), ECB::new(1, 99)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(7, 45), ECB::new(3, 46)])),
-                    ECBlocks::new(24, Vec::from([ECB::new(15, 19), ECB::new(2, 20)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(3, 15), ECB::new(13, 16)])),
-                ],
-            ),
-            Version::new(
-                17,
-                Vec::from([6, 30, 54, 78]),
-                [
-                    ECBlocks::new(28, Vec::from([ECB::new(1, 107), ECB::new(5, 108)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(10, 46), ECB::new(1, 47)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(1, 22), ECB::new(15, 23)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(2, 14), ECB::new(17, 15)])),
-                ],
-            ),
-            Version::new(
-                18,
-                Vec::from([6, 30, 56, 82]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(5, 120), ECB::new(1, 121)])),
-                    ECBlocks::new(26, Vec::from([ECB::new(9, 43), ECB::new(4, 44)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(17, 22), ECB::new(1, 23)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(2, 14), ECB::new(19, 15)])),
-                ],
-            ),
-            Version::new(
-                19,
-                Vec::from([6, 30, 58, 86]),
-                [
-                    ECBlocks::new(28, Vec::from([ECB::new(3, 113), ECB::new(4, 114)])),
-                    ECBlocks::new(26, Vec::from([ECB::new(3, 44), ECB::new(11, 45)])),
-                    ECBlocks::new(26, Vec::from([ECB::new(17, 21), ECB::new(4, 22)])),
-                    ECBlocks::new(26, Vec::from([ECB::new(9, 13), ECB::new(16, 14)])),
-                ],
-            ),
-            Version::new(
-                20,
-                Vec::from([6, 34, 62, 90]),
-                [
-                    ECBlocks::new(28, Vec::from([ECB::new(3, 107), ECB::new(5, 108)])),
-                    ECBlocks::new(26, Vec::from([ECB::new(3, 41), ECB::new(13, 42)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(15, 24), ECB::new(5, 25)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(15, 15), ECB::new(10, 16)])),
-                ],
-            ),
-            Version::new(
-                21,
-                Vec::from([6, 28, 50, 72, 94]),
-                [
-                    ECBlocks::new(28, Vec::from([ECB::new(4, 116), ECB::new(4, 117)])),
-                    ECBlocks::new(26, Vec::from([ECB::new(17, 42)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(17, 22), ECB::new(6, 23)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(19, 16), ECB::new(6, 17)])),
-                ],
-            ),
-            Version::new(
-                22,
-                Vec::from([6, 26, 50, 74, 98]),
-                [
-                    ECBlocks::new(28, Vec::from([ECB::new(2, 111), ECB::new(7, 112)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(17, 46)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(7, 24), ECB::new(16, 25)])),
-                    ECBlocks::new(24, Vec::from([ECB::new(34, 13)])),
-                ],
-            ),
-            Version::new(
-                23,
-                Vec::from([6, 30, 54, 78, 102]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(4, 121), ECB::new(5, 122)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(4, 47), ECB::new(14, 48)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(11, 24), ECB::new(14, 25)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(16, 15), ECB::new(14, 16)])),
-                ],
-            ),
-            Version::new(
-                24,
-                Vec::from([6, 28, 54, 80, 106]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(6, 117), ECB::new(4, 118)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(6, 45), ECB::new(14, 46)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(11, 24), ECB::new(16, 25)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(30, 16), ECB::new(2, 17)])),
-                ],
-            ),
-            Version::new(
-                25,
-                Vec::from([6, 32, 58, 84, 110]),
-                [
-                    ECBlocks::new(26, Vec::from([ECB::new(8, 106), ECB::new(4, 107)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(8, 47), ECB::new(13, 48)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(7, 24), ECB::new(22, 25)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(22, 15), ECB::new(13, 16)])),
-                ],
-            ),
-            Version::new(
-                26,
-                Vec::from([6, 30, 58, 86, 114]),
-                [
-                    ECBlocks::new(28, Vec::from([ECB::new(10, 114), ECB::new(2, 115)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(19, 46), ECB::new(4, 47)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(28, 22), ECB::new(6, 23)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(33, 16), ECB::new(4, 17)])),
-                ],
-            ),
-            Version::new(
-                27,
-                Vec::from([6, 34, 62, 90, 118]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(8, 122), ECB::new(4, 123)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(22, 45), ECB::new(3, 46)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(8, 23), ECB::new(26, 24)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(12, 15), ECB::new(28, 16)])),
-                ],
-            ),
-            Version::new(
-                28,
-                Vec::from([6, 26, 50, 74, 98, 122]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(3, 117), ECB::new(10, 118)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(3, 45), ECB::new(23, 46)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(4, 24), ECB::new(31, 25)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(11, 15), ECB::new(31, 16)])),
-                ],
-            ),
-            Version::new(
-                29,
-                Vec::from([6, 30, 54, 78, 102, 126]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(7, 116), ECB::new(7, 117)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(21, 45), ECB::new(7, 46)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(1, 23), ECB::new(37, 24)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(19, 15), ECB::new(26, 16)])),
-                ],
-            ),
-            Version::new(
-                30,
-                Vec::from([6, 26, 52, 78, 104, 130]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(5, 115), ECB::new(10, 116)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(19, 47), ECB::new(10, 48)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(15, 24), ECB::new(25, 25)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(23, 15), ECB::new(25, 16)])),
-                ],
-            ),
-            Version::new(
-                31,
-                Vec::from([6, 30, 56, 82, 108, 134]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(13, 115), ECB::new(3, 116)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(2, 46), ECB::new(29, 47)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(42, 24), ECB::new(1, 25)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(23, 15), ECB::new(28, 16)])),
-                ],
-            ),
-            Version::new(
-                32,
-                Vec::from([6, 34, 60, 86, 112, 138]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(17, 115)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(10, 46), ECB::new(23, 47)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(10, 24), ECB::new(35, 25)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(19, 15), ECB::new(35, 16)])),
-                ],
-            ),
-            Version::new(
-                33,
-                Vec::from([6, 30, 58, 86, 114, 142]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(17, 115), ECB::new(1, 116)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(14, 46), ECB::new(21, 47)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(29, 24), ECB::new(19, 25)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(11, 15), ECB::new(46, 16)])),
-                ],
-            ),
-            Version::new(
-                34,
-                Vec::from([6, 34, 62, 90, 118, 146]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(13, 115), ECB::new(6, 116)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(14, 46), ECB::new(23, 47)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(44, 24), ECB::new(7, 25)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(59, 16), ECB::new(1, 17)])),
-                ],
-            ),
-            Version::new(
-                35,
-                Vec::from([6, 30, 54, 78, 102, 126, 150]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(12, 121), ECB::new(7, 122)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(12, 47), ECB::new(26, 48)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(39, 24), ECB::new(14, 25)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(22, 15), ECB::new(41, 16)])),
-                ],
-            ),
-            Version::new(
-                36,
-                Vec::from([6, 24, 50, 76, 102, 128, 154]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(6, 121), ECB::new(14, 122)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(6, 47), ECB::new(34, 48)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(46, 24), ECB::new(10, 25)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(2, 15), ECB::new(64, 16)])),
-                ],
-            ),
-            Version::new(
-                37,
-                Vec::from([6, 28, 54, 80, 106, 132, 158]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(17, 122), ECB::new(4, 123)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(29, 46), ECB::new(14, 47)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(49, 24), ECB::new(10, 25)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(24, 15), ECB::new(46, 16)])),
-                ],
-            ),
-            Version::new(
-                38,
-                Vec::from([6, 32, 58, 84, 110, 136, 162]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(4, 122), ECB::new(18, 123)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(13, 46), ECB::new(32, 47)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(48, 24), ECB::new(14, 25)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(42, 15), ECB::new(32, 16)])),
-                ],
-            ),
-            Version::new(
-                39,
-                Vec::from([6, 26, 54, 82, 110, 138, 166]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(20, 117), ECB::new(4, 118)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(40, 47), ECB::new(7, 48)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(43, 24), ECB::new(22, 25)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(10, 15), ECB::new(67, 16)])),
-                ],
-            ),
-            Version::new(
-                40,
-                Vec::from([6, 30, 58, 86, 114, 142, 170]),
-                [
-                    ECBlocks::new(30, Vec::from([ECB::new(19, 118), ECB::new(6, 119)])),
-                    ECBlocks::new(28, Vec::from([ECB::new(18, 47), ECB::new(31, 48)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(34, 24), ECB::new(34, 25)])),
-                    ECBlocks::new(30, Vec::from([ECB::new(20, 15), ECB::new(61, 16)])),
-                ],
-            ),
-        ]) /*
-               new Version(4, new int[]{6, 26},
-                   new ECBlocks(20, new ECB::new(1, 80)),
-                   new ECBlocks(18, new ECB::new(2, 32)),
-                   new ECBlocks(26, new ECB::new(2, 24)),
-                   new ECBlocks(16, new ECB::new(4, 9))),
-               new Version(5, new int[]{6, 30},
-                   new ECBlocks(26, new ECB::new(1, 108)),
-                   new ECBlocks(24, new ECB::new(2, 43)),
-                   new ECBlocks(18, new ECB::new(2, 15),
-                       new ECB::new(2, 16)),
-                   new ECBlocks(22, new ECB::new(2, 11),
-                       new ECB::new(2, 12))),
-               new Version(6, new int[]{6, 34},
-                   new ECBlocks(18, new ECB::new(2, 68)),
-                   new ECBlocks(16, new ECB::new(4, 27)),
-                   new ECBlocks(24, new ECB::new(4, 19)),
-                   new ECBlocks(28, new ECB::new(4, 15))),
-               new Version(7, new int[]{6, 22, 38},
-                   new ECBlocks(20, new ECB::new(2, 78)),
-                   new ECBlocks(18, new ECB::new(4, 31)),
-                   new ECBlocks(18, new ECB::new(2, 14),
-                       new ECB::new(4, 15)),
-                   new ECBlocks(26, new ECB::new(4, 13),
-                       new ECB::new(1, 14))),
-               new Version(8, new int[]{6, 24, 42},
-                   new ECBlocks(24, new ECB::new(2, 97)),
-                   new ECBlocks(22, new ECB::new(2, 38),
-                       new ECB::new(2, 39)),
-                   new ECBlocks(22, new ECB::new(4, 18),
-                       new ECB::new(2, 19)),
-                   new ECBlocks(26, new ECB::new(4, 14),
-                       new ECB::new(2, 15))),
-               new Version(9, new int[]{6, 26, 46},
-                   new ECBlocks(30, new ECB::new(2, 116)),
-                   new ECBlocks(22, new ECB::new(3, 36),
-                       new ECB::new(2, 37)),
-                   new ECBlocks(20, new ECB::new(4, 16),
-                       new ECB::new(4, 17)),
-                   new ECBlocks(24, new ECB::new(4, 12),
-                       new ECB::new(4, 13))),
-               new Version(10, new int[]{6, 28, 50},
-                   new ECBlocks(18, new ECB::new(2, 68),
-                       new ECB::new(2, 69)),
-                   new ECBlocks(26, new ECB::new(4, 43),
-                       new ECB::new(1, 44)),
-                   new ECBlocks(24, new ECB::new(6, 19),
-                       new ECB::new(2, 20)),
-                   new ECBlocks(28, new ECB::new(6, 15),
-                       new ECB::new(2, 16))),
-               new Version(11, new int[]{6, 30, 54},
-                   new ECBlocks(20, new ECB::new(4, 81)),
-                   new ECBlocks(30, new ECB::new(1, 50),
-                       new ECB::new(4, 51)),
-                   new ECBlocks(28, new ECB::new(4, 22),
-                       new ECB::new(4, 23)),
-                   new ECBlocks(24, new ECB::new(3, 12),
-                       new ECB::new(8, 13))),
-               new Version(12, new int[]{6, 32, 58},
-                   new ECBlocks(24, new ECB::new(2, 92),
-                       new ECB::new(2, 93)),
-                   new ECBlocks(22, new ECB::new(6, 36),
-                       new ECB::new(2, 37)),
-                   new ECBlocks(26, new ECB::new(4, 20),
-                       new ECB::new(6, 21)),
-                   new ECBlocks(28, new ECB::new(7, 14),
-                       new ECB::new(4, 15))),
-               new Version(13, new int[]{6, 34, 62},
-                   new ECBlocks(26, new ECB::new(4, 107)),
-                   new ECBlocks(22, new ECB::new(8, 37),
-                       new ECB::new(1, 38)),
-                   new ECBlocks(24, new ECB::new(8, 20),
-                       new ECB::new(4, 21)),
-                   new ECBlocks(22, new ECB::new(12, 11),
-                       new ECB::new(4, 12))),
-               new Version(14, new int[]{6, 26, 46, 66},
-                   new ECBlocks(30, new ECB::new(3, 115),
-                       new ECB::new(1, 116)),
-                   new ECBlocks(24, new ECB::new(4, 40),
-                       new ECB::new(5, 41)),
-                   new ECBlocks(20, new ECB::new(11, 16),
-                       new ECB::new(5, 17)),
-                   new ECBlocks(24, new ECB::new(11, 12),
-                       new ECB::new(5, 13))),
-               new Version(15, new int[]{6, 26, 48, 70},
-                   new ECBlocks(22, new ECB::new(5, 87),
-                       new ECB::new(1, 88)),
-                   new ECBlocks(24, new ECB::new(5, 41),
-                       new ECB::new(5, 42)),
-                   new ECBlocks(30, new ECB::new(5, 24),
-                       new ECB::new(7, 25)),
-                   new ECBlocks(24, new ECB::new(11, 12),
-                       new ECB::new(7, 13))),
-               new Version(16, new int[]{6, 26, 50, 74},
-                   new ECBlocks(24, new ECB::new(5, 98),
-                       new ECB::new(1, 99)),
-                   new ECBlocks(28, new ECB::new(7, 45),
-                       new ECB::new(3, 46)),
-                   new ECBlocks(24, new ECB::new(15, 19),
-                       new ECB::new(2, 20)),
-                   new ECBlocks(30, new ECB::new(3, 15),
-                       new ECB::new(13, 16))),
-               new Version(17, new int[]{6, 30, 54, 78},
-                   new ECBlocks(28, new ECB::new(1, 107),
-                       new ECB::new(5, 108)),
-                   new ECBlocks(28, new ECB::new(10, 46),
-                       new ECB::new(1, 47)),
-                   new ECBlocks(28, new ECB::new(1, 22),
-                       new ECB::new(15, 23)),
-                   new ECBlocks(28, new ECB::new(2, 14),
-                       new ECB::new(17, 15))),
-               new Version(18, new int[]{6, 30, 56, 82},
-                   new ECBlocks(30, new ECB::new(5, 120),
-                       new ECB::new(1, 121)),
-                   new ECBlocks(26, new ECB::new(9, 43),
-                       new ECB::new(4, 44)),
-                   new ECBlocks(28, new ECB::new(17, 22),
-                       new ECB::new(1, 23)),
-                   new ECBlocks(28, new ECB::new(2, 14),
-                       new ECB::new(19, 15))),
-               new Version(19, new int[]{6, 30, 58, 86},
-                   new ECBlocks(28, new ECB::new(3, 113),
-                       new ECB::new(4, 114)),
-                   new ECBlocks(26, new ECB::new(3, 44),
-                       new ECB::new(11, 45)),
-                   new ECBlocks(26, new ECB::new(17, 21),
-                       new ECB::new(4, 22)),
-                   new ECBlocks(26, new ECB::new(9, 13),
-                       new ECB::new(16, 14))),
-               new Version(20, new int[]{6, 34, 62, 90},
-                   new ECBlocks(28, new ECB::new(3, 107),
-                       new ECB::new(5, 108)),
-                   new ECBlocks(26, new ECB::new(3, 41),
-                       new ECB::new(13, 42)),
-                   new ECBlocks(30, new ECB::new(15, 24),
-                       new ECB::new(5, 25)),
-                   new ECBlocks(28, new ECB::new(15, 15),
-                       new ECB::new(10, 16))),
-               new Version(21, new int[]{6, 28, 50, 72, 94},
-                   new ECBlocks(28, new ECB::new(4, 116),
-                       new ECB::new(4, 117)),
-                   new ECBlocks(26, new ECB::new(17, 42)),
-                   new ECBlocks(28, new ECB::new(17, 22),
-                       new ECB::new(6, 23)),
-                   new ECBlocks(30, new ECB::new(19, 16),
-                       new ECB::new(6, 17))),
-               new Version(22, new int[]{6, 26, 50, 74, 98},
-                   new ECBlocks(28, new ECB::new(2, 111),
-                       new ECB::new(7, 112)),
-                   new ECBlocks(28, new ECB::new(17, 46)),
-                   new ECBlocks(30, new ECB::new(7, 24),
-                       new ECB::new(16, 25)),
-                   new ECBlocks(24, new ECB::new(34, 13))),
-               new Version(23, new int[]{6, 30, 54, 78, 102},
-                   new ECBlocks(30, new ECB::new(4, 121),
-                       new ECB::new(5, 122)),
-                   new ECBlocks(28, new ECB::new(4, 47),
-                       new ECB::new(14, 48)),
-                   new ECBlocks(30, new ECB::new(11, 24),
-                       new ECB::new(14, 25)),
-                   new ECBlocks(30, new ECB::new(16, 15),
-                       new ECB::new(14, 16))),
-               new Version(24, new int[]{6, 28, 54, 80, 106},
-                   new ECBlocks(30, new ECB::new(6, 117),
-                       new ECB::new(4, 118)),
-                   new ECBlocks(28, new ECB::new(6, 45),
-                       new ECB::new(14, 46)),
-                   new ECBlocks(30, new ECB::new(11, 24),
-                       new ECB::new(16, 25)),
-                   new ECBlocks(30, new ECB::new(30, 16),
-                       new ECB::new(2, 17))),
-               new Version(25, new int[]{6, 32, 58, 84, 110},
-                   new ECBlocks(26, new ECB::new(8, 106),
-                       new ECB::new(4, 107)),
-                   new ECBlocks(28, new ECB::new(8, 47),
-                       new ECB::new(13, 48)),
-                   new ECBlocks(30, new ECB::new(7, 24),
-                       new ECB::new(22, 25)),
-                   new ECBlocks(30, new ECB::new(22, 15),
-                       new ECB::new(13, 16))),
-               new Version(26, new int[]{6, 30, 58, 86, 114},
-                   new ECBlocks(28, new ECB::new(10, 114),
-                       new ECB::new(2, 115)),
-                   new ECBlocks(28, new ECB::new(19, 46),
-                       new ECB::new(4, 47)),
-                   new ECBlocks(28, new ECB::new(28, 22),
-                       new ECB::new(6, 23)),
-                   new ECBlocks(30, new ECB::new(33, 16),
-                       new ECB::new(4, 17))),
-               new Version(27, new int[]{6, 34, 62, 90, 118},
-                   new ECBlocks(30, new ECB::new(8, 122),
-                       new ECB::new(4, 123)),
-                   new ECBlocks(28, new ECB::new(22, 45),
-                       new ECB::new(3, 46)),
-                   new ECBlocks(30, new ECB::new(8, 23),
-                       new ECB::new(26, 24)),
-                   new ECBlocks(30, new ECB::new(12, 15),
-                       new ECB::new(28, 16))),
-               new Version(28, new int[]{6, 26, 50, 74, 98, 122},
-                   new ECBlocks(30, new ECB::new(3, 117),
-                       new ECB::new(10, 118)),
-                   new ECBlocks(28, new ECB::new(3, 45),
-                       new ECB::new(23, 46)),
-                   new ECBlocks(30, new ECB::new(4, 24),
-                       new ECB::new(31, 25)),
-                   new ECBlocks(30, new ECB::new(11, 15),
-                       new ECB::new(31, 16))),
-               new Version(29, new int[]{6, 30, 54, 78, 102, 126},
-                   new ECBlocks(30, new ECB::new(7, 116),
-                       new ECB::new(7, 117)),
-                   new ECBlocks(28, new ECB::new(21, 45),
-                       new ECB::new(7, 46)),
-                   new ECBlocks(30, new ECB::new(1, 23),
-                       new ECB::new(37, 24)),
-                   new ECBlocks(30, new ECB::new(19, 15),
-                       new ECB::new(26, 16))),
-               new Version(30, new int[]{6, 26, 52, 78, 104, 130},
-                   new ECBlocks(30, new ECB::new(5, 115),
-                       new ECB::new(10, 116)),
-                   new ECBlocks(28, new ECB::new(19, 47),
-                       new ECB::new(10, 48)),
-                   new ECBlocks(30, new ECB::new(15, 24),
-                       new ECB::new(25, 25)),
-                   new ECBlocks(30, new ECB::new(23, 15),
-                       new ECB::new(25, 16))),
-               new Version(31, new int[]{6, 30, 56, 82, 108, 134},
-                   new ECBlocks(30, new ECB::new(13, 115),
-                       new ECB::new(3, 116)),
-                   new ECBlocks(28, new ECB::new(2, 46),
-                       new ECB::new(29, 47)),
-                   new ECBlocks(30, new ECB::new(42, 24),
-                       new ECB::new(1, 25)),
-                   new ECBlocks(30, new ECB::new(23, 15),
-                       new ECB::new(28, 16))),
-               new Version(32, new int[]{6, 34, 60, 86, 112, 138},
-                   new ECBlocks(30, new ECB::new(17, 115)),
-                   new ECBlocks(28, new ECB::new(10, 46),
-                       new ECB::new(23, 47)),
-                   new ECBlocks(30, new ECB::new(10, 24),
-                       new ECB::new(35, 25)),
-                   new ECBlocks(30, new ECB::new(19, 15),
-                       new ECB::new(35, 16))),
-               new Version(33, new int[]{6, 30, 58, 86, 114, 142},
-                   new ECBlocks(30, new ECB::new(17, 115),
-                       new ECB::new(1, 116)),
-                   new ECBlocks(28, new ECB::new(14, 46),
-                       new ECB::new(21, 47)),
-                   new ECBlocks(30, new ECB::new(29, 24),
-                       new ECB::new(19, 25)),
-                   new ECBlocks(30, new ECB::new(11, 15),
-                       new ECB::new(46, 16))),
-               new Version(34, new int[]{6, 34, 62, 90, 118, 146},
-                   new ECBlocks(30, new ECB::new(13, 115),
-                       new ECB::new(6, 116)),
-                   new ECBlocks(28, new ECB::new(14, 46),
-                       new ECB::new(23, 47)),
-                   new ECBlocks(30, new ECB::new(44, 24),
-                       new ECB::new(7, 25)),
-                   new ECBlocks(30, new ECB::new(59, 16),
-                       new ECB::new(1, 17))),
-               new Version(35, new int[]{6, 30, 54, 78, 102, 126, 150},
-                   new ECBlocks(30, new ECB::new(12, 121),
-                       new ECB::new(7, 122)),
-                   new ECBlocks(28, new ECB::new(12, 47),
-                       new ECB::new(26, 48)),
-                   new ECBlocks(30, new ECB::new(39, 24),
-                       new ECB::new(14, 25)),
-                   new ECBlocks(30, new ECB::new(22, 15),
-                       new ECB::new(41, 16))),
-               new Version(36, new int[]{6, 24, 50, 76, 102, 128, 154},
-                   new ECBlocks(30, new ECB::new(6, 121),
-                       new ECB::new(14, 122)),
-                   new ECBlocks(28, new ECB::new(6, 47),
-                       new ECB::new(34, 48)),
-                   new ECBlocks(30, new ECB::new(46, 24),
-                       new ECB::new(10, 25)),
-                   new ECBlocks(30, new ECB::new(2, 15),
-                       new ECB::new(64, 16))),
-               new Version(37, new int[]{6, 28, 54, 80, 106, 132, 158},
-                   new ECBlocks(30, new ECB::new(17, 122),
-                       new ECB::new(4, 123)),
-                   new ECBlocks(28, new ECB::new(29, 46),
-                       new ECB::new(14, 47)),
-                   new ECBlocks(30, new ECB::new(49, 24),
-                       new ECB::new(10, 25)),
-                   new ECBlocks(30, new ECB::new(24, 15),
-                       new ECB::new(46, 16))),
-               new Version(38, new int[]{6, 32, 58, 84, 110, 136, 162},
-                   new ECBlocks(30, new ECB::new(4, 122),
-                       new ECB::new(18, 123)),
-                   new ECBlocks(28, new ECB::new(13, 46),
-                       new ECB::new(32, 47)),
-                   new ECBlocks(30, new ECB::new(48, 24),
-                       new ECB::new(14, 25)),
-                   new ECBlocks(30, new ECB::new(42, 15),
-                       new ECB::new(32, 16))),
-               new Version(39, new int[]{6, 26, 54, 82, 110, 138, 166},
-                   new ECBlocks(30, new ECB::new(20, 117),
-                       new ECB::new(4, 118)),
-                   new ECBlocks(28, new ECB::new(40, 47),
-                       new ECB::new(7, 48)),
-                   new ECBlocks(30, new ECB::new(43, 24),
-                       new ECB::new(22, 25)),
-                   new ECBlocks(30, new ECB::new(10, 15),
-                       new ECB::new(67, 16))),
-               new Version(40, new int[]{6, 30, 58, 86, 114, 142, 170},
-                   new ECBlocks(30, new ECB::new(19, 118),
-                       new ECB::new(6, 119)),
-                   new ECBlocks(28, new ECB::new(18, 47),
-                       new ECB::new(31, 48)),
-                   new ECBlocks(30, new ECB::new(34, 24),
-                       new ECB::new(34, 25)),
-                   new ECBlocks(30, new ECB::new(20, 15),
-                       new ECB::new(61, 16)))
-           ]*/
     }
 }
 

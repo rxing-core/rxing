@@ -15,7 +15,9 @@
  */
 #![cfg(feature = "image")]
 
-use rxing::{qrcode::cpp_port::QrReader, BarcodeFormat, MultiUseMultiFormatReader};
+use rxing::{
+    qrcode::cpp_port::QrReader, BarcodeFormat, MultiFormatReader, MultiUseMultiFormatReader,
+};
 
 mod common;
 
@@ -207,10 +209,10 @@ fn cpp_qrcode_black_box2_test_case() {
         BarcodeFormat::QR_CODE,
     );
 
-    tester.add_test(45, 47, 0.0);
-    tester.add_test(45, 47, 90.0);
-    tester.add_test(45, 47, 180.0);
-    tester.add_test(45, 46, 270.0);
+    tester.add_test(46, 48, 0.0);
+    tester.add_test(46, 48, 90.0);
+    tester.add_test(46, 48, 180.0);
+    tester.add_test(46, 48, 270.0);
 
     tester.ignore_pure = true;
 
@@ -325,3 +327,27 @@ fn cpp_qrcode_black_box7_test_case() {
 
     tester.test_black_box();
 }
+
+#[cfg(feature = "image-formats")]
+#[test]
+fn cpp_rmqr_blackbox_test_case() {
+    let mut tester = common::AbstractBlackBoxTestCase::new(
+        "test_resources/blackbox/cpp/rmqrcode-1",
+        MultiFormatReader::default(),
+        BarcodeFormat::RECTANGULAR_MICRO_QR_CODE,
+    );
+    // tester.ignore_pure = true;
+    tester.add_test(3, 3, 0.0);
+    tester.add_test(3, 3, 90.0);
+    tester.add_test(3, 3, 180.0);
+    tester.add_test(3, 3, 270.0);
+
+    tester.add_hint(
+        rxing::DecodeHintType::ALSO_INVERTED,
+        rxing::DecodeHintValue::AlsoInverted(true),
+    );
+
+    tester.test_black_box();
+}
+
+//

@@ -157,6 +157,13 @@ where
         self
     }
 
+    pub fn withIsModel1(mut self, is_model_1: bool) -> DecoderResult<T> {
+        if is_model_1 {
+            self.content.symbology.modifier = 48
+        }
+        self
+    }
+
     // pub fn build(self) -> DecoderResult<T> {
 
     // }

@@ -309,15 +309,6 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                         log::fine(format!("could not read at rotation {rotation} w/TH: {e:?}"));
                     }
                 }
-                // try {
-                //   if (decode(bitmap, rotation, expectedText, expectedMetadata, true)) {
-                //     tryHarderCounts[x]+=1;
-                //   } else {
-                //     tryHarderMisreadCounts[x]+=1;
-                //   }
-                // } catch (ReaderException ignored) {
-                //   log::fine(format!("could not read at rotation {} w/TH", rotation));
-                // }
             }
         }
 
@@ -464,8 +455,10 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
             );
 
             result = if let Ok(res) = self.barcode_reader.decode_with_hints(source, &pure_hints) {
+                log::fine(format!("{suffix} - read pure barcode"));
                 Some(res)
             } else {
+                // log::fine(format!("{suffix} - could not read pure barcode"));
                 None
             };
         }

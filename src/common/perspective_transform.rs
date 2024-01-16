@@ -29,7 +29,7 @@ use super::Quadrilateral;
  *
  * @author Sean Owen
  */
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Default)]
 pub struct PerspectiveTransform {
     a11: f32,
     a12: f32,

@@ -127,8 +127,8 @@ use crate::{
 use super::{
     decoder::Decode,
     detector::{
-        DetectPureMQR, DetectPureQR, FindFinderPatterns, GenerateFinderPatternSets, SampleMQR,
-        SampleQR,
+        DetectPureMQR, DetectPureQR, DetectPureRMQR, FindFinderPatterns, GenerateFinderPatternSets,
+        SampleMQR, SampleQR, SampleRMQR,
     },
 };
 
@@ -179,10 +179,15 @@ impl Reader for QrReader {
             if formats.contains(&BarcodeFormat::MICRO_QR_CODE) && detectorResult.is_err() {
                 detectorResult = DetectPureMQR(binImg);
             }
+            if formats.contains(&BarcodeFormat::RECTANGULAR_MICRO_QR_CODE)
+                && detectorResult.is_err()
+            {
+                detectorResult = DetectPureRMQR(binImg);
+            }
         }
 
         if detectorResult.is_err() {
-            for decode_function in [DetectPureQR, DetectPureMQR] {
+            for decode_function in [DetectPureQR, DetectPureMQR, DetectPureRMQR] {
                 detectorResult = decode_function(binImg);
                 if detectorResult.is_ok() {
                     break;
@@ -208,25 +213,14 @@ impl Reader for QrReader {
         Ok(RXingResult::with_decoder_result(
             decoderResult,
             position,
-            if detectorResult.getBits().width() < 21 {
+            if detectorResult.getBits().width() != detectorResult.getBits().height() {
+                BarcodeFormat::RECTANGULAR_MICRO_QR_CODE
+            } else if detectorResult.getBits().width() < 21 {
                 BarcodeFormat::MICRO_QR_CODE
             } else {
                 BarcodeFormat::QR_CODE
             },
         ))
-
-        // Ok(RXingResult::new(
-        //     &decoderResult.content().to_string(),
-        //     decoderResult.content().bytes().to_vec(),
-        //     position.to_vec(),
-        //     if detectorResult.getBits().width() < 21 {
-        //         BarcodeFormat::MICRO_QR_CODE
-        //     } else {
-        //         BarcodeFormat::QR_CODE
-        //     },
-        // ))
-        // return Result(std::move(decoderResult), std::move(position),
-        // 			  detectorResult.bits().width() < 21 ? BarcodeFormat::MICRO_QR_CODE : BarcodeFormat::QR_CODE);
     }
 }
 
@@ -276,16 +270,18 @@ impl QrReader {
         let mut usedFPs: Vec<ConcentricPattern> = Vec::new();
         let mut results: Vec<RXingResult> = Vec::new();
 
-        let (check_qr, check_mqr) = if let Some(DecodeHintValue::PossibleFormats(formats)) =
-            hints.get(&DecodeHintType::POSSIBLE_FORMATS)
-        {
-            (
-                formats.contains(&BarcodeFormat::QR_CODE),
-                formats.contains(&BarcodeFormat::MICRO_QR_CODE),
-            )
-        } else {
-            (true, true)
-        };
+        let (check_qr, check_mqr, check_rmqr) =
+            if let Some(DecodeHintValue::PossibleFormats(formats)) =
+                hints.get(&DecodeHintType::POSSIBLE_FORMATS)
+            {
+                (
+                    formats.contains(&BarcodeFormat::QR_CODE),
+                    formats.contains(&BarcodeFormat::MICRO_QR_CODE),
+                    formats.contains(&BarcodeFormat::RECTANGULAR_MICRO_QR_CODE),
+                )
+            } else {
+                (true, true, true)
+            };
 
         if check_qr {
             // if (_hints.hasFormat(BarcodeFormat::QRCode)) {
@@ -314,18 +310,11 @@ impl QrReader {
                         }
 
                         if decoderResult.isValid() {
-                            // results.push(RXingResult::new(
-                            //     &decoderResult.content().to_string(),
-                            //     decoderResult.content().bytes().to_vec(),
-                            //     position.to_vec(),
-                            //     BarcodeFormat::QR_CODE,
-                            // ));
                             results.push(RXingResult::with_decoder_result(
                                 decoderResult,
                                 position,
                                 BarcodeFormat::QR_CODE,
                             ));
-                            // results.emplace_back(std::move(decoderResult), std::move(position), BarcodeFormat::QR_CODE);
 
                             if maxSymbols != 0 && (results.len() as u32) == maxSymbols {
                                 break;
@@ -337,13 +326,13 @@ impl QrReader {
         }
         if check_mqr && !(maxSymbols != 0 && (results.len() as u32) == maxSymbols) {
             // if (_hints.hasFormat(BarcodeFormat::MicroQRCode) && !(maxSymbols && Size(results) == maxSymbols)) {
-            for fp in allFPs {
+            for fp in &allFPs {
                 // for (const auto& fp : allFPs) {
-                if usedFPs.contains(&fp) {
+                if usedFPs.contains(fp) {
                     continue;
                 }
 
-                let detectorResult = SampleMQR(binImg, fp);
+                let detectorResult = SampleMQR(binImg, *fp);
                 if let Ok(detectorResult) = detectorResult {
                     // if (detectorResult.is_ok()) {
                     let decoderResult = Decode(detectorResult.getBits());
@@ -355,13 +344,34 @@ impl QrReader {
                                 position,
                                 BarcodeFormat::MICRO_QR_CODE,
                             ));
-                            // results.push(RXingResult::new(
-                            //     &decoderResult.content().to_string(),
-                            //     decoderResult.content().bytes().to_vec(),
-                            //     position.to_vec(),
-                            //     BarcodeFormat::MICRO_QR_CODE,
-                            // ));
-                            // results.emplace_back(std::move(decoderResult), std::move(position), BarcodeFormat::MICRO_QR_CODE);
+
+                            if maxSymbols != 0 && (results.len() as u32) == maxSymbols {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if check_rmqr && !(maxSymbols != 0 && (results.len() as u32) == maxSymbols) {
+            for fp in &allFPs {
+                // for (const auto& fp : allFPs) {
+                if usedFPs.contains(fp) {
+                    continue;
+                }
+
+                let detectorResult = SampleRMQR(binImg, *fp);
+                if let Ok(detectorResult) = detectorResult {
+                    // if (detectorResult.is_ok()) {
+                    let decoderResult = Decode(detectorResult.getBits());
+                    let position = detectorResult.getPoints();
+                    if let Ok(decoderResult) = decoderResult {
+                        if decoderResult.isValid() {
+                            results.push(RXingResult::with_decoder_result(
+                                decoderResult,
+                                position,
+                                BarcodeFormat::RECTANGULAR_MICRO_QR_CODE,
+                            ));
 
                             if maxSymbols != 0 && (results.len() as u32) == maxSymbols {
                                 break;
