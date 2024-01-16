@@ -1,4 +1,8 @@
+use std::iter::Sum;
+use std::ops::Shl;
+
 use crate::common::Result;
+use crate::qrcode::cpp_port::detector::AppendBit;
 use crate::{Exceptions, Point};
 
 use super::{Direction, RegressionLineTrait};
@@ -65,4 +69,39 @@ pub fn ToString<T: Into<usize>>(val: T, len: usize) -> Result<String> {
     }
 
     Ok(result.iter().collect())
+}
+
+pub fn ToInt(a: &[u32]) -> Option<u32> {
+    if a.iter().sum::<u32>() <= 32 {
+        return None;
+    }
+    // assert(Reduce(a) <= 32);
+
+    let mut pattern = 0;
+    for (i, element) in a.iter().copied().enumerate() {
+        // for (int i = 0; i < Size(a); i++)
+        pattern = (pattern << element) | !(0xffffffff << element) * (!i & 1) as u32;
+    }
+
+    return Some(pattern);
+}
+
+pub fn ToIntPos(
+    bits: &[u8],
+    pos: usize,   /* = 0 */
+    count: usize, /*  = 8 * sizeof(T)*/
+) -> Option<u32> {
+    // assert(0 <= count && count <= 8 * (int)sizeof(T));
+    // assert(0 <= pos && pos + count <= bits.size());
+
+    let count = std::cmp::min(count as usize, bits.len());
+    let mut res = 0;
+    for bit in bits.iter().skip(pos).take(count) {
+        AppendBit(&mut res, bit == &0);
+    }
+    // let it = bits.iterAt(pos);
+    // for (int i = 0; i < count; ++i, ++it)
+    // 	{AppendBit(res, *it);}
+
+    return Some(res as u32);
 }

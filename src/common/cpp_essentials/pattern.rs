@@ -47,6 +47,10 @@ impl PatternRow {
     pub fn into_pattern_view(&self) -> PatternView {
         PatternView::new(self)
     }
+
+    pub fn sum(&self) -> PatternType {
+        self.0.iter().sum()
+    }
 }
 
 impl IntoIterator for PatternRow {
@@ -363,12 +367,16 @@ impl<'a> From<&PatternView<'a>> for &'a [PatternType] {
  *
  * The operator[](int) can be used in combination with a PatternView
  */
-#[derive(Default)]
-struct BarAndSpace<T: Default + std::cmp::PartialEq> {
+#[derive(Default, Clone)]
+pub struct BarAndSpace<T: Default + std::cmp::PartialEq> {
     bar: T,
     space: T,
 }
 impl<T: Default + std::cmp::PartialEq> BarAndSpace<T> {
+    pub fn new(bar: T, space: T) -> BarAndSpace<T> {
+        Self { bar, space }
+    }
+
     #[allow(dead_code)]
     pub fn isValid(&self) -> bool {
         self.bar != T::default() && self.space != T::default()
