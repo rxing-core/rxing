@@ -18,6 +18,7 @@
 
 // import java.util.Arrays;
 
+use std::ops::Index;
 use std::{cmp, fmt};
 
 use crate::common::Result;
@@ -420,6 +421,19 @@ impl From<BitArray> for Vec<u8> {
 
 impl From<BitArray> for Vec<bool> {
     fn from(value: BitArray) -> Self {
+        // let mut array = vec![false; value.size];
+
+        // for (pixel, element) in array.iter_mut().enumerate().take(value.size) {
+        //     *element = value.get(pixel);
+        // }
+
+        // array
+        Self::from(&value)
+    }
+}
+
+impl From<&BitArray> for Vec<bool> {
+    fn from(value: &BitArray) -> Self {
         let mut array = vec![false; value.size];
 
         for (pixel, element) in array.iter_mut().enumerate().take(value.size) {
@@ -427,5 +441,13 @@ impl From<BitArray> for Vec<bool> {
         }
 
         array
+    }
+}
+
+impl Index<usize> for BitArray {
+    type Output = bool;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.get(index)
     }
 }

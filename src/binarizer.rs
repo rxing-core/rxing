@@ -19,7 +19,7 @@
 use std::borrow::Cow;
 
 use crate::{
-    common::{BitArray, BitMatrix, Result},
+    common::{BitArray, BitMatrix, LineOrientation, Result},
     LuminanceSource,
 };
 
@@ -65,6 +65,9 @@ pub trait Binarizer {
      * @throws NotFoundException if image can't be binarized to make a matrix
      */
     fn get_black_matrix(&self) -> Result<&BitMatrix>;
+
+    /// Get a row or column of the image
+    fn get_black_line(&self, l: usize, lt: LineOrientation) -> Result<Cow<BitArray>>;
 
     /**
      * Creates a new object with the same type as this Binarizer implementation, but with pristine

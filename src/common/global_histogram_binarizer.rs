@@ -51,6 +51,7 @@ pub struct GlobalHistogramBinarizer<LS: LuminanceSource> {
     source: LS,
     black_matrix: OnceCell<BitMatrix>,
     black_row_cache: Vec<OnceCell<BitArray>>,
+    black_column_cache: Vec<OnceCell<BitArray>>,
 }
 
 impl<LS: LuminanceSource> Binarizer for GlobalHistogramBinarizer<LS> {
@@ -106,6 +107,10 @@ impl<LS: LuminanceSource> Binarizer for GlobalHistogramBinarizer<LS> {
         Ok(Cow::Borrowed(row))
     }
 
+    fn get_black_line(&self, l: usize, lt: super::LineOrientation) -> Result<Cow<BitArray>> {
+        unimplemented!()
+    }
+
     // Does not sharpen the data, as this call is intended to only be used by 2D Readers.
     fn get_black_matrix(&self) -> Result<&BitMatrix> {
         let matrix = self
@@ -137,6 +142,7 @@ impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {
             height: source.get_height(),
             black_matrix: OnceCell::new(),
             black_row_cache: vec![OnceCell::default(); source.get_height()],
+            black_column_cache: vec![OnceCell::default(); source.get_width()],
             source,
         }
     }

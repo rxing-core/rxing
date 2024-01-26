@@ -5,8 +5,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::{
-    common::cpp_essentials::{
-        FindLeftGuardBy, FixedPattern, IsRightGuard, PatternView, ToInt, ToIntPos,
+    common::{
+        cpp_essentials::{
+            FindLeftGuardBy, FixedPattern, IsRightGuard, PatternView, ToInt, ToIntPos,
+        },
+        BitArray,
     },
     point, point_i, BarcodeFormat, DecodeHintValue, DecodingHintDictionary, Exceptions, PointI,
     RXingResult,
@@ -251,13 +254,20 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
         next.skipSymbol();
 
         // Read the data bits
-        let mut dataBits: Vec<u8> = Vec::default();
-        while (next.isValidWithN(1) && dataBits.len() < clock.dataLength() as usize) {
+        let mut dataBits = BitArray::default();
+        while (next.isValidWithN(1) && dataBits.get_size() < clock.dataLength() as usize) {
             let modules = (next[0] as f32 / clock.moduleSize() + 0.5) as u32;
             // even index means we are at a bar, otherwise at a space
             // dataBits.appendBits(if next.index() % 2 == 0  {0xFFFFFFFF} else {0x0}, modules);
             for i in 0..modules {
-                dataBits.push((if next.index() % 2 == 0 { 0xFF } else { 0x0 } >> (i - 1)) & 1);
+                dataBits.appendBits(
+                    if next.index() % 2 == 0 {
+                        0xFFFFFFFF
+                    } else {
+                        0x0
+                    },
+                    modules as usize,
+                );
                 // should it be 0xFFFFFFFF
             }
 
@@ -265,7 +275,7 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
         }
 
         // Check the data track length
-        if (dataBits.len() != clock.dataLength() as usize) {
+        if (dataBits.get_size() != clock.dataLength() as usize) {
             return Err(Exceptions::NOT_FOUND);
         }
 
@@ -277,31 +287,36 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
         }
 
         // The following bits are always white (=false), they are separators.
-        if (dataBits[0] != 0
-            || dataBits[8] != 0
+        if (dataBits[0] != false //0
+            || dataBits[8] != false //0
             || (if clock.hasFrameNr {
-                (dataBits[20] != 0 || dataBits[22] != 0)
+                (dataBits[20] != false/*0*/ || dataBits[22] != false/*0*/)
             } else {
-                dataBits[14] != 0
+                dataBits[14] != false//0
             }))
         {
             return Err(Exceptions::NOT_FOUND);
         }
 
         // Check the parity bit
-        let signalSum = dataBits.iter().rev().skip(2).sum::<u8>(); //Reduce(dataBits.begin(), dataBits.end() - 2, 0);
-        let parityBit = *(dataBits.last().unwrap_or(&0));
+        let db_hld = Into::<Vec<bool>>::into(dataBits); //.iter().rev().skip(2).fold(0, |acc, e| acc + u8::from(*e));
+        let signalSum = db_hld
+            .iter()
+            .rev()
+            .skip(2)
+            .fold(0, |acc, e| acc + u8::from(*e)); //dataBits.iter().rev().skip(2).sum::<u8>(); //Reduce(dataBits.begin(), dataBits.end() - 2, 0);
+        let parityBit = u8::from(*(db_hld.last().unwrap_or(&false)));
         if (signalSum % 2 != parityBit) {
             return Err(Exceptions::NOT_FOUND);
         }
 
         // Compute the DX 1 number (product number)
-        let Some(productNumber) = ToIntPos(&dataBits, 1, 7) else {
+        let Some(productNumber) = ToIntPos(&Into::<Vec<u8>>::into(dataBits), 1, 7) else {
             return Err(Exceptions::NOT_FOUND);
         };
 
         // Compute the DX 2 number (generation number)
-        let Some(generationNumber) = ToIntPos(&dataBits, 9, 4) else {
+        let Some(generationNumber) = ToIntPos(&Into::<Vec<u8>>::into(dataBits), 9, 4) else {
             return Err(Exceptions::NOT_FOUND);
         };
 
@@ -311,9 +326,9 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
         // txt.reserve(10);
         txt = (productNumber.to_string()) + "-" + (&generationNumber.to_string());
         if (clock.hasFrameNr) {
-            let frameNr = ToIntPos(&dataBits, 13, 6).unwrap_or(0);
+            let frameNr = ToIntPos(&Into::<Vec<u8>>::into(dataBits), 13, 6).unwrap_or(0);
             txt += &("/".to_owned() + &(frameNr.to_string()));
-            if (dataBits[19] != 0) {
+            if (dataBits[19] != false/*0*/) {
                 txt += "A";
             }
         }
@@ -332,7 +347,7 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
 
         Ok(RXingResult::new(
             &txt,
-            dataBits,
+            dataBits.into(),
             Vec::new(),
             BarcodeFormat::DXFilmEdge,
         ))

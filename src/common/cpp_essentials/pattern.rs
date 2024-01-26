@@ -51,6 +51,10 @@ impl PatternRow {
     pub fn sum(&self) -> PatternType {
         self.0.iter().sum()
     }
+
+    pub fn rev(&mut self) {
+        self.0.reverse()
+    }
 }
 
 impl IntoIterator for PatternRow {

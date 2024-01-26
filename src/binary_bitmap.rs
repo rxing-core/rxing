@@ -19,7 +19,7 @@
 use std::{borrow::Cow, fmt};
 
 use crate::{
-    common::{BitArray, BitMatrix, Result},
+    common::{BitArray, BitMatrix, LineOrientation, Result},
     Binarizer, LuminanceSource,
 };
 
@@ -70,6 +70,11 @@ impl<B: Binarizer> BinaryBitmap<B> {
      */
     pub fn get_black_row(&self, y: usize) -> Result<Cow<BitArray>> {
         self.binarizer.get_black_row(y)
+    }
+
+    /// Get a row or column of the image
+    pub fn get_black_line(&self, l: usize, lt: LineOrientation) -> Result<Cow<BitArray>> {
+        self.binarizer.get_black_line(l, lt)
     }
 
     /**
