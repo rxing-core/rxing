@@ -217,7 +217,7 @@ impl<'a> ODReader<'_> {
                                     continue;
                                 };
                                 // for (auto& other : res) {
-                                if (result == &other) {
+                                if (result == other) {
                                     // merge the position information
                                     let dTop = PointT::maxAbsComponent(
                                         other.getPoints()[0] - result.getPoints()[0],

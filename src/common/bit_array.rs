@@ -449,11 +449,3 @@ impl From<&BitArray> for Vec<bool> {
         array
     }
 }
-
-impl Index<usize> for BitArray {
-    type Output = bool;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.get(index)
-    }
-}
