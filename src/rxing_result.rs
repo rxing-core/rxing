@@ -30,7 +30,7 @@ use serde::{Deserialize, Serialize};
  * @author Sean Owen
  */
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct RXingResult {
     text: String,
     rawBytes: Vec<u8>,
@@ -39,6 +39,7 @@ pub struct RXingResult {
     format: BarcodeFormat,
     resultMetadata: HashMap<RXingResultMetadataType, RXingResultMetadataValue>,
     timestamp: u128,
+    line_count: usize,
 }
 impl RXingResult {
     pub fn new(
@@ -83,6 +84,7 @@ impl RXingResult {
             format,
             resultMetadata: HashMap::new(),
             timestamp,
+            line_count: 0,
         }
     }
 
@@ -95,6 +97,7 @@ impl RXingResult {
             format: prev.format,
             resultMetadata: prev.resultMetadata,
             timestamp: prev.timestamp,
+            line_count: prev.line_count,
         }
     }
 
@@ -228,6 +231,18 @@ impl RXingResult {
 
     pub fn getTimestamp(&self) -> u128 {
         self.timestamp
+    }
+
+    pub fn line_count(&self) -> usize {
+        self.line_count
+    }
+
+    pub fn set_line_count(&mut self, lc: usize) {
+        self.line_count = lc
+    }
+
+    pub fn replace_points(&mut self, points: Vec<Point>) {
+        self.resultPoints = points
     }
 }
 

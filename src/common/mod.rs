@@ -114,6 +114,9 @@ pub use quad::*;
 
 pub mod cpp_essentials;
 
+mod line_orientation;
+pub use line_orientation::LineOrientation;
+
 #[cfg(feature = "otsu_level")]
 mod otsu_level_binarizer;
 #[cfg(feature = "otsu_level")]
