@@ -5,15 +5,14 @@
 */
 // SPDX-License-Identifier: Apache-2.0
 
-use std::any::Any;
 use std::collections::HashMap;
 
 use crate::common::cpp_essentials::{GetPatternRow, PatternRow, PatternView};
-use crate::Binarizer;
 use crate::{multi::MultipleBarcodeReader, RXingResult, Reader};
 use crate::{
     point, BarcodeFormat, BinaryBitmap, DecodingHintDictionary, Exceptions, PointT, ResultPoint,
 };
+use crate::{Binarizer, DecodeHintType, DecodeHintValue};
 
 use crate::common::{LineOrientation, Quadrilateral, Result};
 
@@ -87,14 +86,14 @@ impl<'a> ODReader<'_> {
         let mut checkRows = Vec::new();
 
         let mut bars: PatternRow = PatternRow::new(vec![0; 128]); // e.g. EAN-13 has 59 bars/spaces
-                                                              // bars.reserve(128); // e.g. EAN-13 has 59 bars/spaces
+                                                                  // bars.reserve(128); // e.g. EAN-13 has 59 bars/spaces
 
         // #ifdef PRINT_DEBUG
         // BitMatrix dbg(width, height);
         // #endif
 
         let mut i = 0;
-        'outer: while i  < maxLines {
+        'outer: while i < maxLines {
             // for (int i = 0; i < maxLines; i++) {
 
             // Scanning from the middle out. Determine which row we're looking at next:
@@ -185,7 +184,9 @@ impl<'a> ODReader<'_> {
                         let mut result_hld = readers[r]
                             .decodePattern(rowNumber as u32, &mut next, decodingState[r])
                             .ok();
-                        if result_hld.is_some() /*|| (returnErrors && result.is_none())*/ {
+                        if result_hld.is_some()
+                        /*|| (returnErrors && result.is_none())*/
+                        {
                             let mut result = result_hld.as_mut().unwrap();
                             IncrementLineCount(&mut result);
                             if (upsideDown) {
@@ -202,7 +203,7 @@ impl<'a> ODReader<'_> {
                                 let points = result.getPointsMut();
                                 for p in points {
                                     // for (auto& p : points) {
-                                    *p = point(p.getY(), width as f32- p.getX() - 1.0);
+                                    *p = point(p.getY(), width as f32 - p.getX() - 1.0);
                                 }
                                 // result.addPoints(points);
                                 // result.setPosition(std::move(points));
@@ -210,9 +211,11 @@ impl<'a> ODReader<'_> {
 
                             // check if we know this code already
                             for other_hld in res.iter_mut() {
-                                let Some(mut other) = other_hld else{ continue;};
+                                let Some(mut other) = other_hld.as_mut() else {
+                                    continue;
+                                };
                                 // for (auto& other : res) {
-                                if (result == &other) {
+                                if (result == other) {
                                     // merge the position information
                                     let dTop = PointT::maxAbsComponent(
                                         other.getPoints()[0] - result.getPoints()[0],
@@ -238,7 +241,7 @@ impl<'a> ODReader<'_> {
                                     other.replace_points(points);
                                     IncrementLineCount(&mut other);
                                     // clear the result, so we don't insert it again below
-                                    result_hld = None; //Result();
+                                    // result_hld = None; //Result();
                                     break;
                                 }
                             }
@@ -263,7 +266,7 @@ impl<'a> ODReader<'_> {
                                 && res.iter().fold(0, |acc, e| {
                                     if let Some(itm) = &res[r] {
                                         acc + i32::from((itm.line_count() >= minLineCount as usize))
-                                    }else {
+                                    } else {
                                         acc
                                     }
                                 }) == maxSymbols as i32)
@@ -285,34 +288,72 @@ impl<'a> ODReader<'_> {
 
         // out:
         // remove all symbols with insufficient line count
-        res.retain(|e| if let Some(itm) = e {itm.line_count() < minLineCount as usize} else {false});
+        res.retain(|e| {
+            if let Some(itm) = e {
+                itm.line_count() < minLineCount as usize
+            } else {
+                false
+            }
+        });
         // let it = std::remove_if(res.begin(), res.end(), [&](auto&& r) { return r.lineCount() < minLineCount; });
         // res.erase(it, res.end());
 
         // if symbols overlap, remove the one with a lower line count
-        for (i, a_hld) in res.iter().enumerate() {
-            let a = a_hld.as_ref().unwrap();
-            // for (auto a = res.begin(); a != res.end(); ++a){
-            for b_hld in res.iter().skip(i) {
-                let b = b_hld.as_ref().unwrap();
-                // for (auto b = std::next(a); b != res.end(); ++b){
-                    let Ok(q1) =Quadrilateral::try_from(a.getPoints()) else {continue;};
-                    let Ok(q2) = Quadrilateral::try_from(b.getPoints()) else {continue;};
-                if (Quadrilateral::have_intersecting_bounding_boxes(&q1, &q2)) {
-                    *(if a.line_count() < b.line_count() {
-                        a_hld
-                    } else {
-                        b_hld
-                    }) = None;
+        for i in 0..res.len() {
+            for j in i..res.len() {
+                if res[i].is_some() && res[j].is_some() {
+                    let Ok(q1) = Quadrilateral::try_from(res[i].as_ref().unwrap().getPoints())
+                    else {
+                        continue;
+                    };
+                    let Ok(q2) = Quadrilateral::try_from(res[j].as_ref().unwrap().getPoints())
+                    else {
+                        continue;
+                    };
+                    if (Quadrilateral::have_intersecting_bounding_boxes(&q1, &q2)) {
+                        let a_lc = res[i].as_ref().unwrap().line_count();
+                        let b_lc = res[j].as_ref().unwrap().line_count();
+                        if a_lc < b_lc {
+                            res[i] = None;
+                        } else {
+                            res[j] = None;
+                        }
+                    }
                 }
             }
         }
+        // // if symbols overlap, remove the one with a lower line count
+        // for (i, a_hld) in res.iter().enumerate() {
+        //     let a = a_hld.as_ref().unwrap();
+        //     // let a_lc = a_hld.as_ref().unwrap().line_count();
+        //     // let a_pts = a_hld.as_ref().unwrap().getPoints().clone();
+        //     // for (auto a = res.begin(); a != res.end(); ++a){
+        //     for (j, b_hld) in res.iter().skip(i).enumerate() {
+        //         let b = b_hld.as_ref().unwrap();
+        //         // for (auto b = std::next(a); b != res.end(); ++b){
+        //             let Ok(q1) =Quadrilateral::try_from(a.getPoints()) else {continue;};
+        //             let Ok(q2) = Quadrilateral::try_from(b.getPoints()) else {continue;};
+        //         if (Quadrilateral::have_intersecting_bounding_boxes(&q1, &q2)) {
+        //             if a.line_count() < b.line_count() {
+        //                 // delete_list.insert(i);
+        //                 // *a_hld = None;
+        //                 res.remove(i);
+        //             } else {
+        //                 // delete_list.insert(i+j);
+        //                 res.remove(i+j);
+        //             }
+        //         }
+        //     }
+        // }
 
         //TODO: C++20 res.erase_if()
-         res
-            
-            .retain(|r| if let Some(itm) = r {
-                itm.getBarcodeFormat() == &BarcodeFormat::UNSUPORTED_FORMAT } else { false });
+        res.retain(|r| {
+            if let Some(itm) = r {
+                itm.getBarcodeFormat() == &BarcodeFormat::UNSUPORTED_FORMAT
+            } else {
+                false
+            }
+        });
         // it = std::remove_if(res.begin(), res.end(), [](auto&& r) { return r.format() == BarcodeFormat::None; });
         // res.erase(it, res.end());
 
@@ -327,7 +368,7 @@ impl<'a> ODReader<'_> {
 impl<'a> ODReader<'_> {
     pub fn decode_single<B: crate::Binarizer>(
         &self,
-        hints: &DecodingHintDictionary,
+        _hints: &DecodingHintDictionary,
         image: &BinaryBitmap<B>,
     ) -> Result<RXingResult> {
         let mut result = Self::DoDecode(
@@ -360,7 +401,7 @@ impl<'a> ODReader<'_> {
 
     pub fn decode_with_max_symbols<B: crate::Binarizer>(
         &self,
-        hints: &DecodingHintDictionary,
+        _hints: &DecodingHintDictionary,
         image: &BinaryBitmap<B>,
         maxSymbols: u32,
     ) -> Result<Vec<RXingResult>> {
@@ -431,8 +472,24 @@ impl<'a> MultipleBarcodeReader for ODReader<'_> {
 }
 
 impl<'a> ODReader<'_> {
-    pub fn new(hints: &DecodingHintDictionary) -> Self {
-        unimplemented!()
+    pub fn new(hints: &DecodingHintDictionary) -> ODReader {
+        ODReader {
+            reader: DXFilmEdgeReader::new(hints),
+            try_harder: matches!(
+                hints.get(&DecodeHintType::TRY_HARDER),
+                Some(DecodeHintValue::TryHarder(true))
+            ),
+            is_pure: matches!(
+                hints.get(&DecodeHintType::PURE_BARCODE),
+                Some(DecodeHintValue::PureBarcode(true))
+            ),
+            min_line_count: 2,
+            return_errors: false,
+            try_rotate: matches!(
+                hints.get(&DecodeHintType::TRY_HARDER),
+                Some(DecodeHintValue::TryHarder(true))
+            ),
+        }
     }
 }
 

@@ -6,13 +6,10 @@
 
 use crate::{
     common::{
-        cpp_essentials::{
-            FindLeftGuardBy, FixedPattern, IsRightGuard, PatternView, ToInt, ToIntPos,
-        },
+        cpp_essentials::{FindLeftGuardBy, FixedPattern, IsRightGuard, PatternView, ToIntPos},
         BitArray,
     },
-    point, point_i, BarcodeFormat, DecodeHintValue, DecodingHintDictionary, Exceptions, PointI,
-    RXingResult,
+    point, BarcodeFormat, DecodeHintValue, DecodingHintDictionary, Exceptions, PointI, RXingResult,
 };
 
 use super::row_reader::{DecodingState, RowReader};
@@ -40,6 +37,12 @@ const DATA_STOP_PATTERN: FixedPattern<3, 3> = FixedPattern::new([1, 1, 1]);
 
 pub struct DXFilmEdgeReader<'a> {
     options: &'a DecodingHintDictionary,
+}
+
+impl<'a> DXFilmEdgeReader<'_> {
+    pub fn new(hints: &'a DecodingHintDictionary) -> DXFilmEdgeReader<'a> {
+        DXFilmEdgeReader { options: hints }
+    }
 }
 
 fn IsPattern<const N: usize, const SUM: usize>(
@@ -259,7 +262,7 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
             let modules = (next[0] as f32 / clock.moduleSize() + 0.5) as u32;
             // even index means we are at a bar, otherwise at a space
             // dataBits.appendBits(if next.index() % 2 == 0  {0xFFFFFFFF} else {0x0}, modules);
-            for i in 0..modules {
+            for _i in 0..modules {
                 dataBits.appendBits(
                     if next.index() % 2 == 0 {
                         0xFFFFFFFF
@@ -267,7 +270,7 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
                         0x0
                     },
                     modules as usize,
-                );
+                )?;
                 // should it be 0xFFFFFFFF
             }
 
@@ -287,19 +290,19 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
         }
 
         // The following bits are always white (=false), they are separators.
-        if (dataBits[0] != false //0
-            || dataBits[8] != false //0
+        if (dataBits.get(0) != false //0
+            || dataBits.get(8) != false //0
             || (if clock.hasFrameNr {
-                (dataBits[20] != false/*0*/ || dataBits[22] != false/*0*/)
+                (dataBits.get(20) != false/*0*/ || dataBits.get(22) != false/*0*/)
             } else {
-                dataBits[14] != false//0
+                dataBits.get(14) != false//0
             }))
         {
             return Err(Exceptions::NOT_FOUND);
         }
 
         // Check the parity bit
-        let db_hld = Into::<Vec<bool>>::into(dataBits); //.iter().rev().skip(2).fold(0, |acc, e| acc + u8::from(*e));
+        let db_hld = Into::<Vec<bool>>::into(&dataBits); //.iter().rev().skip(2).fold(0, |acc, e| acc + u8::from(*e));
         let signalSum = db_hld
             .iter()
             .rev()
@@ -311,12 +314,12 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
         }
 
         // Compute the DX 1 number (product number)
-        let Some(productNumber) = ToIntPos(&Into::<Vec<u8>>::into(dataBits), 1, 7) else {
+        let Some(productNumber) = ToIntPos(&Into::<Vec<u8>>::into(&dataBits), 1, 7) else {
             return Err(Exceptions::NOT_FOUND);
         };
 
         // Compute the DX 2 number (generation number)
-        let Some(generationNumber) = ToIntPos(&Into::<Vec<u8>>::into(dataBits), 9, 4) else {
+        let Some(generationNumber) = ToIntPos(&Into::<Vec<u8>>::into(&dataBits), 9, 4) else {
             return Err(Exceptions::NOT_FOUND);
         };
 
@@ -326,9 +329,9 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
         // txt.reserve(10);
         txt = (productNumber.to_string()) + "-" + (&generationNumber.to_string());
         if (clock.hasFrameNr) {
-            let frameNr = ToIntPos(&Into::<Vec<u8>>::into(dataBits), 13, 6).unwrap_or(0);
+            let frameNr = ToIntPos(&Into::<Vec<u8>>::into(&dataBits), 13, 6).unwrap_or(0);
             txt += &("/".to_owned() + &(frameNr.to_string()));
-            if (dataBits[19] != false/*0*/) {
+            if (dataBits.get(19) != false/*0*/) {
                 txt += "A";
             }
         }
