@@ -64,6 +64,10 @@ impl<LS: LuminanceSource> Binarizer for HybridBinarizer<LS> {
         self.ghb.get_black_row(y)
     }
 
+    fn get_black_line(&self, l: usize, lt: super::LineOrientation) -> Result<Cow<BitArray>> {
+        self.ghb.get_black_line(l, lt)
+    }
+
     /**
      * Calculates the final BitMatrix once for all requests. This could be called once from the
      * constructor instead, but there are some advantages to doing it lazily, such as making

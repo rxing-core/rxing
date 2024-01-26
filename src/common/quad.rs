@@ -1,4 +1,4 @@
-use crate::{point_f, Point};
+use crate::{point_f, Exceptions, Point};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Quadrilateral(pub [Point; 4]);
@@ -270,5 +270,21 @@ impl std::ops::IndexMut<usize> for Quadrilateral {
 impl From<[Point; 4]> for Quadrilateral {
     fn from(value: [Point; 4]) -> Self {
         Self(value)
+    }
+}
+
+impl TryFrom<&Vec<Point>> for Quadrilateral {
+    type Error = Exceptions;
+
+    fn try_from(value: &Vec<Point>) -> Result<Self, Self::Error> {
+        if value.len() == 4 {
+            Ok(
+                Self(
+                    [value[0], value[1], value[2], value[3]]
+                )
+            )
+        }else{
+            Err(Exceptions::INDEX_OUT_OF_BOUNDS)
+        }
     }
 }

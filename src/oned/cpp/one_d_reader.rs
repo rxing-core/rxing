@@ -8,14 +8,14 @@
 use std::any::Any;
 use std::collections::HashMap;
 
-use crate::common::cpp_essentials::{PatternRow, PatternView};
+use crate::common::cpp_essentials::{GetPatternRow, PatternRow, PatternView};
 use crate::Binarizer;
 use crate::{multi::MultipleBarcodeReader, RXingResult, Reader};
 use crate::{
     point, BarcodeFormat, BinaryBitmap, DecodingHintDictionary, Exceptions, PointT, ResultPoint,
 };
 
-use crate::common::Result;
+use crate::common::{LineOrientation, Quadrilateral, Result};
 
 use super::dxfilm_edge_reader::DXFilmEdgeReader;
 use super::row_reader::RowReader;
@@ -32,14 +32,14 @@ pub struct ODReader<'a> {
 
 impl<'a> ODReader<'_> {
     /**
-    * We're going to examine rows from the middle outward, searching alternately above and below the
-    * middle, and farther out each time. rowStep is the number of rows between each successive
-    * attempt above and below the middle. So we'd scan row middle, then middle - rowStep, then
-    * middle + rowStep, then middle - (2 * rowStep), etc.
-    * rowStep is bigger as the image is taller, but is always at least 1. We've somewhat arbitrarily
-    * decided that moving up and down by about 1/16 of the image is pretty good; we try more of the
-    * image if "trying harder".
-    */
+     * We're going to examine rows from the middle outward, searching alternately above and below the
+     * middle, and farther out each time. rowStep is the number of rows between each successive
+     * attempt above and below the middle. So we'd scan row middle, then middle - rowStep, then
+     * middle + rowStep, then middle - (2 * rowStep), etc.
+     * rowStep is bigger as the image is taller, but is always at least 1. We've somewhat arbitrarily
+     * decided that moving up and down by about 1/16 of the image is pretty good; we try more of the
+     * image if "trying harder".
+     */
     pub fn DoDecode<B: Binarizer>(
         reader: &DXFilmEdgeReader,
         image: &BinaryBitmap<B>,
@@ -50,13 +50,15 @@ impl<'a> ODReader<'_> {
         minLineCount: u32,
         returnErrors: bool,
     ) -> Vec<RXingResult> {
-        let res: Vec<RXingResult> = Vec::new();
+        let mut res: Vec<Option<RXingResult>> = Vec::new();
 
-        let decodingState = Vec::new();
+        let mut decodingState: Vec<&mut Option<super::row_reader::DecodingState>> = Vec::new();
         // std::vector<std::unique_ptr<RowReader::DecodingState>> decodingState(readers.size());
 
-        let width: i32 = image.get_width() as i32;
-        let height: i32 = image.get_height() as i32;
+        let mut minLineCount = minLineCount;
+
+        let mut width: i32 = image.get_width() as i32;
+        let mut height: i32 = image.get_height() as i32;
 
         if (rotate) {
             std::mem::swap(&mut width, &mut height);
@@ -73,36 +75,39 @@ impl<'a> ODReader<'_> {
                     32
                 }),
         );
-        let maxLines: i32 = if tryHarder 
-{height} else	// Look at the whole image, not just the center
-{15}; // 15 rows spaced 1/32 apart is roughly the middle half of the image
+        let maxLines: i32 = if tryHarder {
+            height // Look at the whole image, not just the center
+        } else {
+            15 // 15 rows spaced 1/32 apart is roughly the middle half of the image
+        };
 
         if (isPure) {
             minLineCount = 1;
         }
-        let checkRows = Vec::new();
+        let mut checkRows = Vec::new();
 
-        let bars: PatternRow = PatternRow::new(vec![0; 128]); // e.g. EAN-13 has 59 bars/spaces
+        let mut bars: PatternRow = PatternRow::new(vec![0; 128]); // e.g. EAN-13 has 59 bars/spaces
                                                               // bars.reserve(128); // e.g. EAN-13 has 59 bars/spaces
 
         // #ifdef PRINT_DEBUG
         // BitMatrix dbg(width, height);
         // #endif
 
-        'outer: for i in 0..maxLines {
+        let mut i = 0;
+        'outer: while i  < maxLines {
             // for (int i = 0; i < maxLines; i++) {
 
             // Scanning from the middle out. Determine which row we're looking at next:
             let rowStepsAboveOrBelow: i32 = (i + 1) / 2;
             let isAbove: bool = (i & 0x01) == 0; // i.e. is x even?
-            let rowNumber: i32 = middle
+            let mut rowNumber: i32 = middle
                 + rowStep
                     * (if isAbove {
                         rowStepsAboveOrBelow
                     } else {
                         -rowStepsAboveOrBelow
                     });
-            let isCheckRow: bool = false;
+            let mut isCheckRow: bool = false;
             if (rowNumber < 0 || rowNumber >= height) {
                 // Oops, if we run off the top or bottom, stop
                 break;
@@ -110,18 +115,36 @@ impl<'a> ODReader<'_> {
 
             // See if we have additional check rows (see below) to process
             if (!checkRows.is_empty()) {
-                --i;
-                rowNumber = checkRows.back();
-                checkRows.pop_back();
+                //--i;
+                i -= 1;
+                rowNumber = *checkRows.last().unwrap_or(&0);
+                checkRows.pop();
                 isCheckRow = true;
                 if (rowNumber < 0 || rowNumber >= height) {
                     continue;
                 }
             }
 
-            if (!image.getPatternRow(rowNumber, if rotate { 90 } else { 0 }, bars)) {
+            let br: Vec<bool> = if let Ok(r) = image.get_black_line(
+                rowNumber as usize,
+                if rotate {
+                    LineOrientation::Column
+                } else {
+                    LineOrientation::Row
+                },
+            ) {
+                r.as_ref().into()
+            } else {
                 continue;
-            }
+            };
+            // let img = if rotate {let a = image.rotate_counter_clockwise(); &a} else {image};
+            //  let Ok(black_row ) = img.get_black_row(rowNumber as usize) else {continue;};
+            //  let br : Vec<bool> = black_row.as_ref().into();
+            GetPatternRow(&br, &mut bars);
+
+            // if (!image.getPatternRow(rowNumber, if rotate { 90 } else { 0 }, bars)) {
+            //     continue;
+            // }
 
             // #ifdef PRINT_DEBUG
             // bool val = false;
@@ -145,7 +168,7 @@ impl<'a> ODReader<'_> {
                 if (upsideDown) {
                     // reverse the row and continue
                     // std::reverse(bars.begin(), bars.end());
-                    bars.reverse();
+                    bars.rev();
                 }
                 let readers = vec![reader];
                 // Look for a barcode
@@ -153,73 +176,75 @@ impl<'a> ODReader<'_> {
                     // for (size_t r = 0; r < readers.size(); ++r) {
                     // If this is a pure symbol, then checking a single non-empty line is sufficient for all but the stacked
                     // DataBar codes. They are the only ones using the decodingState, which we can use as a flag here.
-                    if (isPure && i && !decodingState[r]) {
+                    if (isPure && i > 0 && decodingState[r].is_none()) {
                         continue;
                     }
 
-                    let next = PatternView::from(bars);
+                    let mut next = PatternView::new(&bars);
                     loop {
-                        let result = readers[r]
-                            .decodePattern(rowNumber, &mut next, decodingState[r])
+                        let mut result_hld = readers[r]
+                            .decodePattern(rowNumber as u32, &mut next, decodingState[r])
                             .ok();
-                        if (result.isValid() || (returnErrors && result.error())) {
-                            IncrementLineCount(&result);
+                        if result_hld.is_some() /*|| (returnErrors && result.is_none())*/ {
+                            let mut result = result_hld.as_mut().unwrap();
+                            IncrementLineCount(&mut result);
                             if (upsideDown) {
                                 // update position (flip horizontally).
-                                let points = result.position();
+                                let points = result.getPointsMut();
                                 for p in points {
                                     // for (auto& p : points) {
-                                    p = point(width - p.getX() - 1, p.getY());
+                                    *p = point(width as f32 - p.getX() - 1.0, p.getY());
                                 }
-                                result.addPoints(points);
+                                // result.addPoints(points);
                                 // result.setPosition(std::move(points));
                             }
                             if (rotate) {
-                                let points = result.position();
+                                let points = result.getPointsMut();
                                 for p in points {
                                     // for (auto& p : points) {
-                                    p = point(p.getY(), width - p.getX() - 1);
+                                    *p = point(p.getY(), width as f32- p.getX() - 1.0);
                                 }
-                                result.addPoints(points);
+                                // result.addPoints(points);
                                 // result.setPosition(std::move(points));
                             }
 
                             // check if we know this code already
-                            for other in res {
+                            for other_hld in res.iter_mut() {
+                                let Some(mut other) = other_hld else{ continue;};
                                 // for (auto& other : res) {
-                                if (result == other) {
+                                if (result == &other) {
                                     // merge the position information
                                     let dTop = PointT::maxAbsComponent(
-                                        other.position().topLeft() - result.position().topLeft(),
+                                        other.getPoints()[0] - result.getPoints()[0],
                                     );
                                     let dBot = PointT::maxAbsComponent(
-                                        other.position().bottomLeft() - result.position().topLeft(),
+                                        other.getPoints()[2] - result.getPoints()[0],
                                     );
-                                    let points = other.position();
+                                    let mut points = other.getPoints().clone();
                                     if (dTop < dBot
                                         || (dTop == dBot
                                             && rotate
                                                 ^ (PointT::sumAbsComponent(points[0])
                                                     > PointT::sumAbsComponent(
-                                                        result.position()[0],
+                                                        result.getPoints()[0],
                                                     ))))
                                     {
-                                        points[0] = result.position()[0];
-                                        points[1] = result.position()[1];
+                                        points[0] = result.getPoints()[0];
+                                        points[1] = result.getPoints()[1];
                                     } else {
-                                        points[2] = result.position()[2];
-                                        points[3] = result.position()[3];
+                                        points[2] = result.getPoints()[2];
+                                        points[3] = result.getPoints()[3];
                                     }
-                                    other.setPosition(points);
-                                    IncrementLineCount(&other);
+                                    other.replace_points(points);
+                                    IncrementLineCount(&mut other);
                                     // clear the result, so we don't insert it again below
-                                    result = None; //Result();
+                                    result_hld = None; //Result();
                                     break;
                                 }
                             }
 
-                            if (result.format() != BarcodeFormat::UNSUPORTED_FORMAT) {
-                                res.push(result);
+                            if (result.getBarcodeFormat() != &BarcodeFormat::UNSUPORTED_FORMAT) {
+                                res.push(Some(result.clone()));
                                 // res.push_back(std::move(result));
 
                                 // if we found a valid code we have not seen before but a minLineCount > 1,
@@ -234,10 +259,14 @@ impl<'a> ODReader<'_> {
                                 }
                             }
 
-                            if (maxSymbols
+                            if (maxSymbols > 0
                                 && res.iter().fold(0, |acc, e| {
-                                    acc + i32::from((r.lineCount() >= minLineCount))
-                                }) == maxSymbols)
+                                    if let Some(itm) = &res[r] {
+                                        acc + i32::from((itm.line_count() >= minLineCount as usize))
+                                    }else {
+                                        acc
+                                    }
+                                }) == maxSymbols as i32)
                             {
                                 break 'outer;
                             }
@@ -245,43 +274,53 @@ impl<'a> ODReader<'_> {
                         // make sure we make progress and we start the next try on a bar
                         next.shift(2 - (next.index() % 2));
                         next.extend();
-                        if !(tryHarder && next.size()) {
+                        if !(tryHarder && next.size() > 0) {
                             break;
                         }
                     } //while (tryHarder && next.size());
                 }
             }
+            i += 1;
         }
 
         // out:
         // remove all symbols with insufficient line count
-        let it = res.iter().filter(|e| e.lineCount() < minLineCount);
+        res.retain(|e| if let Some(itm) = e {itm.line_count() < minLineCount as usize} else {false});
         // let it = std::remove_if(res.begin(), res.end(), [&](auto&& r) { return r.lineCount() < minLineCount; });
-        res.erase(it, res.end());
+        // res.erase(it, res.end());
 
         // if symbols overlap, remove the one with a lower line count
-        for (i, a) in res.iter().enumerate() {
+        for (i, a_hld) in res.iter().enumerate() {
+            let a = a_hld.as_ref().unwrap();
             // for (auto a = res.begin(); a != res.end(); ++a){
-            for b in res.iter().skip(i) {
+            for b_hld in res.iter().skip(i) {
+                let b = b_hld.as_ref().unwrap();
                 // for (auto b = std::next(a); b != res.end(); ++b){
-                if (PointT::HaveIntersectingBoundingBoxes(a.position(), b.position())) {
-                    *(if a.lineCount() < b.lineCount() { a } else { b }) = None;
+                    let Ok(q1) =Quadrilateral::try_from(a.getPoints()) else {continue;};
+                    let Ok(q2) = Quadrilateral::try_from(b.getPoints()) else {continue;};
+                if (Quadrilateral::have_intersecting_bounding_boxes(&q1, &q2)) {
+                    *(if a.line_count() < b.line_count() {
+                        a_hld
+                    } else {
+                        b_hld
+                    }) = None;
                 }
             }
         }
 
         //TODO: C++20 res.erase_if()
-        it = res
-            .iter()
-            .filter(|r| r.getBarcodeFormat() == BarcodeFormat::None);
+         res
+            
+            .retain(|r| if let Some(itm) = r {
+                itm.getBarcodeFormat() == &BarcodeFormat::UNSUPORTED_FORMAT } else { false });
         // it = std::remove_if(res.begin(), res.end(), [](auto&& r) { return r.format() == BarcodeFormat::None; });
-        res.erase(it, res.end());
+        // res.erase(it, res.end());
 
         // #ifdef PRINT_DEBUG
         // SaveAsPBM(dbg, rotate ? "od-log-r.pnm" : "od-log.pnm");
         // #endif
 
-        res
+        res.iter().cloned().filter_map(|e| e).collect()
     }
 }
 
@@ -291,7 +330,7 @@ impl<'a> ODReader<'_> {
         hints: &DecodingHintDictionary,
         image: &BinaryBitmap<B>,
     ) -> Result<RXingResult> {
-        let result = Self::DoDecode(
+        let mut result = Self::DoDecode(
             &self.reader,
             image,
             self.try_harder,
@@ -315,7 +354,7 @@ impl<'a> ODReader<'_> {
             );
         }
 
-        result.first().ok_or(Exceptions::NOT_FOUND)
+        result.first().cloned().ok_or(Exceptions::NOT_FOUND)
         // return FirstOrDefault(std::move(result));
     }
 
@@ -325,7 +364,7 @@ impl<'a> ODReader<'_> {
         image: &BinaryBitmap<B>,
         maxSymbols: u32,
     ) -> Result<Vec<RXingResult>> {
-        let resH = Self::DoDecode(
+        let mut resH = Self::DoDecode(
             &self.reader,
             image,
             self.try_harder,
@@ -335,8 +374,8 @@ impl<'a> ODReader<'_> {
             self.min_line_count,
             self.return_errors,
         );
-        if ((!maxSymbols || (resH) < maxSymbols) && self.try_rotate) {
-            let resV = Self::DoDecode(
+        if ((!(maxSymbols != 0) || (resH.len()) < maxSymbols as usize) && self.try_rotate) {
+            let mut resV = Self::DoDecode(
                 &self.reader,
                 image,
                 self.try_harder,
@@ -397,7 +436,6 @@ impl<'a> ODReader<'_> {
     }
 }
 
-fn IncrementLineCount(r: &RXingResult) {
-    unimplemented!()
-    // ++r._lineCount;
+fn IncrementLineCount(r: &mut RXingResult) {
+    r.set_line_count(r.line_count() + 1)
 }
