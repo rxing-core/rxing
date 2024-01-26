@@ -413,6 +413,12 @@ impl Default for BitArray {
 
 impl From<BitArray> for Vec<u8> {
     fn from(value: BitArray) -> Self {
+        (&value).into()
+    }
+}
+
+impl From<&BitArray> for Vec<u8> {
+    fn from(value: &BitArray) -> Self {
         let mut array = vec![0; value.getSizeInBytes()];
         value.toBytes(0, &mut array, 0, value.getSizeInBytes());
         array
@@ -441,13 +447,5 @@ impl From<&BitArray> for Vec<bool> {
         }
 
         array
-    }
-}
-
-impl Index<usize> for BitArray {
-    type Output = bool;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.get(index)
     }
 }
