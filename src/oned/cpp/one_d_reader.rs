@@ -17,7 +17,7 @@ use crate::{Binarizer, DecodeHintType, DecodeHintValue};
 use crate::common::{LineOrientation, Quadrilateral, Result};
 
 use super::dxfilm_edge_reader::DXFilmEdgeReader;
-use super::row_reader::RowReader;
+use super::row_reader::{DecodingState, RowReader};
 
 pub struct ODReader<'a> {
     reader: DXFilmEdgeReader<'a>, // THIS IS WRONG, SEE BELOW ONLY DOES ONE
@@ -47,11 +47,11 @@ impl<'a> ODReader<'_> {
         isPure: bool,
         maxSymbols: u32,
         minLineCount: u32,
-        returnErrors: bool,
+        _returnErrors: bool,
     ) -> Vec<RXingResult> {
         let mut res: Vec<Option<RXingResult>> = Vec::new();
 
-        let mut decodingState: Vec<&mut Option<super::row_reader::DecodingState>> = Vec::new();
+        let mut decodingState: Vec<Option<DecodingState>> = vec![Some(DecodingState::default()); 1];
         // std::vector<std::unique_ptr<RowReader::DecodingState>> decodingState(readers.size());
 
         let mut minLineCount = minLineCount;
@@ -120,6 +120,7 @@ impl<'a> ODReader<'_> {
                 checkRows.pop();
                 isCheckRow = true;
                 if (rowNumber < 0 || rowNumber >= height) {
+                    i += 1;
                     continue;
                 }
             }
@@ -134,6 +135,7 @@ impl<'a> ODReader<'_> {
             ) {
                 r.as_ref().into()
             } else {
+                i += 1;
                 continue;
             };
             // let img = if rotate {let a = image.rotate_counter_clockwise(); &a} else {image};
@@ -182,7 +184,7 @@ impl<'a> ODReader<'_> {
                     let mut next = PatternView::new(&bars);
                     loop {
                         let mut result_hld = readers[r]
-                            .decodePattern(rowNumber as u32, &mut next, decodingState[r])
+                            .decodePattern(rowNumber as u32, &mut next, &mut decodingState[r])
                             .ok();
                         if result_hld.is_some()
                         /*|| (returnErrors && result.is_none())*/
@@ -277,6 +279,7 @@ impl<'a> ODReader<'_> {
                         // make sure we make progress and we start the next try on a bar
                         next.shift(2 - (next.index() % 2));
                         next.extend();
+
                         if !(tryHarder && next.size() > 0) {
                             break;
                         }
@@ -371,29 +374,7 @@ impl<'a> ODReader<'_> {
         _hints: &DecodingHintDictionary,
         image: &BinaryBitmap<B>,
     ) -> Result<RXingResult> {
-        let mut result = Self::DoDecode(
-            &self.reader,
-            image,
-            self.try_harder,
-            false,
-            self.is_pure,
-            1,
-            self.min_line_count,
-            self.return_errors,
-        );
-
-        if (result.is_empty() && self.try_rotate) {
-            result = Self::DoDecode(
-                &self.reader,
-                image,
-                self.try_harder,
-                true,
-                self.is_pure,
-                1,
-                self.min_line_count,
-                self.return_errors,
-            );
-        }
+        let result = self.decode_with_max_symbols(_hints, image, u32::MAX)?;
 
         result.first().cloned().ok_or(Exceptions::NOT_FOUND)
         // return FirstOrDefault(std::move(result));

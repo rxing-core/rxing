@@ -11,6 +11,10 @@ impl LuminanceSource for SVGLuminanceSource {
         self.0.get_row(y)
     }
 
+    fn get_column(&self, x: usize) -> Vec<u8> {
+        self.0.get_column(x)
+    }
+
     fn get_matrix(&self) -> Vec<u8> {
         self.0.get_matrix()
     }
@@ -45,6 +49,10 @@ impl LuminanceSource for SVGLuminanceSource {
 
     fn rotate_counter_clockwise_45(&self) -> Result<Self> {
         self.0.rotate_counter_clockwise_45().map(Self)
+    }
+
+    fn get_luma8_point(&self, x: usize, y: usize) -> u8 {
+        self.0.get_luma8_point(x, y)
     }
 }
 

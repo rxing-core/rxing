@@ -71,7 +71,7 @@ fn DistIsBelowThreshold(a: PointI, b: PointI, threshold: PointI) -> bool {
 }
 
 // DX Film Edge clock track found on 35mm films.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(super) struct Clock {
     hasFrameNr: bool, // = false; // Clock track (thus data track) with frame number (longer version)
     rowNumber: u32,   // = 0,

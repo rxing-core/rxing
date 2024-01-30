@@ -104,6 +104,9 @@ pub mod helpers;
 mod luma_luma_source;
 pub use luma_luma_source::*;
 
+mod filtered_image_reader;
+pub use filtered_image_reader::*;
+
 #[cfg(feature = "svg_read")]
 mod svg_luminance_source;
 #[cfg(feature = "svg_read")]

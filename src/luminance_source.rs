@@ -48,6 +48,9 @@ pub trait LuminanceSource {
      */
     fn get_row(&self, y: usize) -> Vec<u8>;
 
+    /// Get a column of of the image
+    fn get_column(&self, x: usize) -> Vec<u8>;
+
     /**
      * Fetches luminance data for the underlying bitmap. Values should be fetched using:
      * {@code int luminance = array[y * width + x] & 0xff}
@@ -148,6 +151,8 @@ pub trait LuminanceSource {
         }
         iv
     }
+
+    fn get_luma8_point(&self, x: usize, y: usize) -> u8;
 
     /*
     @Override
