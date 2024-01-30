@@ -20,3 +20,5 @@ Cargo.lock
 .idea
 
 dbgfle*
+
+.vscode
