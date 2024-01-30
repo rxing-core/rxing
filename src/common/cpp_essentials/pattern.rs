@@ -217,7 +217,7 @@ impl<'a> PatternView<'a> {
     pub fn isValidWithN(&self, n: usize) -> bool {
         !self.data.0.is_empty()
             && self.start <= self.current + self.start
-            && self.current + n <= (self.data.0.len())
+            && self.current + n < (self.data.0.len())
         /*return _data && _data >= _base && _data + n <= _end;*/
     }
     pub fn isValid(&self) -> bool {
@@ -271,7 +271,10 @@ impl<'a> PatternView<'a> {
     }
 
     pub fn extend(&mut self) {
-        self.count = std::cmp::max(0, self.data.len() - (self.current + self.start))
+        self.count = std::cmp::max(
+            0,
+            self.data.len() as isize - (self.current + self.start) as isize,
+        ) as usize
     }
 
     fn try_get_index(&self, index: isize) -> Option<PatternType> {

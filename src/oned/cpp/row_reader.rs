@@ -41,7 +41,7 @@ type Alphabet = Vec<char>;
 //     // virtual ~DecodingState() = default;
 // }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct DecodingState {
     // DXO
     pub centerRow: u32,

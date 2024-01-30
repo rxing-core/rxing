@@ -17,6 +17,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::common::Result;
+use crate::oned::cpp::ODReader;
 use crate::qrcode::cpp_port::QrReader;
 use crate::{
     aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
@@ -194,6 +195,9 @@ impl MultiFormatReader {
                     BarcodeFormat::MAXICODE => {
                         MaxiCodeReader::default().decode_with_hints(image, &self.hints)
                     }
+                    BarcodeFormat::DXFilmEdge => {
+                        ODReader::new(&self.hints).decode_with_hints(image, &self.hints)
+                    }
                     _ => Err(Exceptions::UNSUPPORTED_OPERATION),
                 };
                 if res.is_ok() {
@@ -228,6 +232,9 @@ impl MultiFormatReader {
                 return Ok(res);
             }
             if let Ok(res) = MaxiCodeReader::default().decode_with_hints(image, &self.hints) {
+                return Ok(res);
+            }
+            if let Ok(res) = ODReader::new(&self.hints).decode_with_hints(image, &self.hints) {
                 return Ok(res);
             }
 

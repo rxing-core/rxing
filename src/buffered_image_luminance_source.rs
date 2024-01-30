@@ -16,7 +16,7 @@
 
 use std::rc::Rc;
 
-use image::{DynamicImage, ImageBuffer, Luma};
+use image::{DynamicImage, GenericImageView, ImageBuffer, Luma, Pixel};
 use imageproc::geometric_transformations::rotate_about_center;
 
 use crate::common::Result;
@@ -77,6 +77,33 @@ impl LuminanceSource for BufferedImageLuminanceSource {
                     .nth(y + self.top as usize)?
                     .skip(self.left as usize)
                     .take(width)
+                    .map(|&p| p.0[0])
+                    .collect(),
+            )
+        }()
+        .unwrap_or_default();
+
+        pixels
+    }
+
+    fn get_column(&self, x: usize) -> Vec<u8> {
+        let width = self.get_height(); // - self.left as usize;
+
+        let pixels: Vec<u8> = || -> Option<Vec<u8>> {
+            Some(
+                self.image
+                    .as_luma8()?
+                    .rows()
+                    .skip(self.top as usize)
+                    .fold(Vec::default(), |mut acc, e| {
+                        acc.push(
+                            e.into_iter()
+                                .nth(self.left as usize + x)
+                                .unwrap_or(&Luma([0_u8])),
+                        );
+                        acc
+                    })
+                    .iter()
                     .map(|&p| p.0[0])
                     .collect(),
             )
@@ -178,6 +205,10 @@ impl LuminanceSource for BufferedImageLuminanceSource {
             left: 0,
             top: 0,
         })
+    }
+
+    fn get_luma8_point(&self, x: usize, y: usize) -> u8 {
+        self.image.get_pixel(x as u32, y as u32).to_luma().0[0]
     }
 }
 

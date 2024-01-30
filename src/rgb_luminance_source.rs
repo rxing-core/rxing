@@ -58,6 +58,10 @@ impl LuminanceSource for RGBLuminanceSource {
         row
     }
 
+    fn get_column(&self, x: usize) -> Vec<u8> {
+        unimplemented!()
+    }
+
     fn get_matrix(&self) -> Vec<u8> {
         let width = self.get_width();
         let height = self.get_height();
@@ -126,6 +130,14 @@ impl LuminanceSource for RGBLuminanceSource {
 
     fn invert(&mut self) {
         self.invert = !self.invert;
+    }
+
+    fn get_luma8_point(&self, x: usize, y: usize) -> u8 {
+        let width = self.get_width();
+        let row_offset = (y + self.top) * self.dataWidth + self.left;
+        let col_offset = (x + self.left);
+
+        self.luminances[row_offset + col_offset]
     }
 }
 
