@@ -200,9 +200,9 @@ where
 {
     for row in 1..output.height() {
         for col in 0..output.width() - 1 {
-            let in0 = input.getRow(row); //.row(0).begin();
-            let in1 = input.getRow(row + 1); //.row(1).begin();
-            let in2 = input.getRow(row + 2); //.row(2).begin();
+            let in0 = input.getRow(row - 1); //.row(0).begin();
+            let in1 = input.getRow(row); //.row(1).begin();
+            let in2 = input.getRow(row + 1); //.row(2).begin();
 
             let mut sum = 0;
             for j in 0..3 {
