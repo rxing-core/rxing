@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{cpp_essentials::QuadrilateralIsPlausibleSquare, Quadrilateral, Result},
+    common::{Quadrilateral, Result},
     point_f, Binarizer, BinaryBitmap, DecodingHintDictionary, Exceptions, Point, RXingResult,
     Reader,
 };
