@@ -344,6 +344,7 @@ fn decode_command(
             rxing::DecodeHintValue::PureBarcode(*pure_barcode),
         );
     }
+
     if let Some(character_set) = character_set {
         hints.insert(
             rxing::DecodeHintType::CHARACTER_SET,

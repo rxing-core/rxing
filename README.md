@@ -40,13 +40,17 @@ All barcode formats are tested and functioning in their current state against cu
 | rss-14 | complete | no | yes |
 | rss-expanded | complete | no | yes|
 | telepen | complete | yes | yes |
+| micro qr | complete | no | yes |
+| rMQR | complete | no | yes |
 
 Please note that currently UPC/EAN Extension 2/5 is supported.
 
 ## Feature Flags
 The following feature flags are available:
 * `image`: Enable features required for image manipulation and reading.
+* `image_formats`: Enabled by default. Compile all `image` crate image format support options.
 * `allow_forced_iso_ied_18004_compliance`: Allows the ability to force ISO/IED 18004 compliance. Leave disabled unless specificially needed.
+* `client_support`: Enable the client library. This is used for parsing the result of barcodes.
 * `svg_write`: Enable support for writing SVG files
 * `svg_read`: Enable support for reading SVG files
 * `wasm_support`: Make certain changes to support building this module in WASM
@@ -56,7 +60,7 @@ The following feature flags are available:
 
     This is not used by any of the helper functions, you must specifically use it while setting up a new decoder. The `OtsuLevelBinarizer` is not well tested and it does *not* pass the current test suite. Consider this only if you know why you would want to use it. In many cases, the standard binarizer is likely better. If you have a very specific use case, and you know what your incoming data will resemble, you should consider implementing your own `Binarizer` and using that instead.
 
-The default feature set includes only the `image` feature mentioned above.
+The default feature set includes the `image`, `client_support`, and `image_formats` features mentioned above.
 
 ## Incomplete
 The library has only been thurougly tested with the `BufferedImageLuminanceSource` source format. Using any other
@@ -82,6 +86,13 @@ fn main() {
 ```
 
 ## Latest Release Notes
+* *v0.5.5* -> Add support for rMQR, allows building the library without image_formats, fixes an issue with multiple barcode detection.
+
+    New default feature flag `image_formats` enables all of the `image` crates image formats for use.
+    rMQR support is basic and is most effective on pure-barcodes.
+    The previous version of the `GenericMultipleBarcodeReader` used the contents of the barcode as they determination of uniquness.
+    This was incorrect and the new version attempts to elimate duplicates by detecting if they are within one another.
+
 * *v0.5.0* -> Added support for [telepen](https://advanova.co.uk/wp-content/uploads/2022/05/Barcode-Symbology-information-and-History.pdf) thanks to the work of first time contributor [cpwood](https://github.com/cpwood).
 
     This release also adds the ability to exclude building the "client" result parsing features. Currently part of the default

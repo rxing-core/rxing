@@ -22,7 +22,7 @@ mod common;
 /**
  * @author Sean Owen
  */
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn upcablack_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -42,7 +42,7 @@ fn upcablack_box1_test_case() {
 /**
  * @author dswitkin@google.com (Daniel Switkin)
  */
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn upcablack_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -62,7 +62,7 @@ fn upcablack_box2_test_case() {
 /**
  * @author dswitkin@google.com (Daniel Switkin)
  */
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn upcablack_box3_reflective_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -82,7 +82,7 @@ fn upcablack_box3_reflective_test_case() {
 /**
  * @author dswitkin@google.com (Daniel Switkin)
  */
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn upcablack_box4_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -102,7 +102,7 @@ fn upcablack_box4_test_case() {
 /**
  * @author dswitkin@google.com (Daniel Switkin)
  */
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn upcablack_box5_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -123,7 +123,7 @@ fn upcablack_box5_test_case() {
  * A set of blurry images taken with a fixed-focus device.
  * @author dswitkin@google.com (Daniel Switkin)
  */
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn upcablack_box6_blurry_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

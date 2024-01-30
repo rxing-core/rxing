@@ -25,7 +25,7 @@ use rxing::pdf417::PDF417Reader;
  *
  * @author Guenther Grau
  */
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn pdf417_black_box4_test_case() {
     let mut tester = common::MultiImageSpanAbstractBlackBoxTestCase::new(

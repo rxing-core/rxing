@@ -22,7 +22,7 @@ mod common;
 /**
  * @author kevin.osullivan@sita.aero
  */
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn itfblack_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -41,7 +41,7 @@ fn itfblack_box1_test_case() {
 /**
  * @author dswitkin@google.com (Daniel Switkin)
  */
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn itfblack_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

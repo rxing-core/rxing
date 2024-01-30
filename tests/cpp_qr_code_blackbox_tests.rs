@@ -25,7 +25,7 @@ mod common;
  * @author Sean Owen
  */
 
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn qrcode_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -68,7 +68,7 @@ fn qrcode_black_box1_test_case() {
  * @author dswitkin@google.com (Daniel Switkin)
  */
 
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn qrcode_black_box3_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -90,7 +90,7 @@ fn qrcode_black_box3_test_case() {
  * @author dswitkin@google.com (Daniel Switkin)
  */
 
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn qrcode_black_box4_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -115,7 +115,7 @@ fn qrcode_black_box4_test_case() {
  * @author dswitkin@google.com (Daniel Switkin)
  */
 
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn qrcode_black_box5_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -136,7 +136,7 @@ fn qrcode_black_box5_test_case() {
  * rotation, which was a weak spot.
  */
 
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn qrcode_black_box6_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -152,7 +152,7 @@ fn qrcode_black_box6_test_case() {
     tester.test_black_box();
 }
 
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn mqr_black_box_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -178,7 +178,7 @@ fn mqr_black_box_test_case() {
  * be a function of the barcode.
  */
 
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn cpp_qrcode_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -199,7 +199,7 @@ fn cpp_qrcode_black_box1_test_case() {
  * @author Sean Owen
  */
 
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn cpp_qrcode_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -228,7 +228,7 @@ fn cpp_qrcode_black_box2_test_case() {
  * @author dswitkin@google.com (Daniel Switkin)
  */
 
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn cpp_qrcode_black_box3_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -251,7 +251,7 @@ fn cpp_qrcode_black_box3_test_case() {
  * @author dswitkin@google.com (Daniel Switkin)
  */
 
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn cpp_qrcode_black_box4_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -276,7 +276,7 @@ fn cpp_qrcode_black_box4_test_case() {
  * @author dswitkin@google.com (Daniel Switkin)
  */
 
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn cpp_qrcode_black_box5_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -297,7 +297,7 @@ fn cpp_qrcode_black_box5_test_case() {
  * rotation, which was a weak spot.
  */
 
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn cpp_qrcode_black_box6_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -313,7 +313,7 @@ fn cpp_qrcode_black_box6_test_case() {
     tester.test_black_box();
 }
 
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn cpp_qrcode_black_box7_test_case() {
     let mut tester = common::MultiImageSpanAbstractBlackBoxTestCase::new(
@@ -328,7 +328,7 @@ fn cpp_qrcode_black_box7_test_case() {
     tester.test_black_box();
 }
 
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn cpp_rmqr_blackbox_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

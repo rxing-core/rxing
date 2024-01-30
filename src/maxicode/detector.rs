@@ -1054,7 +1054,7 @@ mod detector_test {
         Binarizer, BufferedImageLuminanceSource,
     };
 
-    #[cfg(feature = "image-formats")]
+    #[cfg(feature = "image_formats")]
     #[test]
     fn mode_1() {
         finder_test(
@@ -1063,7 +1063,7 @@ mod detector_test {
         )
     }
 
-    #[cfg(feature = "image-formats")]
+    #[cfg(feature = "image_formats")]
     #[test]
     fn mode_2() {
         finder_test(
@@ -1072,7 +1072,7 @@ mod detector_test {
         )
     }
 
-    #[cfg(feature = "image-formats")]
+    #[cfg(feature = "image_formats")]
     #[test]
     fn mode_2_rot90() {
         finder_test(
@@ -1081,7 +1081,7 @@ mod detector_test {
         )
     }
 
-    #[cfg(feature = "image-formats")]
+    #[cfg(feature = "image_formats")]
     #[test]
     fn mode3() {
         finder_test(
@@ -1090,7 +1090,7 @@ mod detector_test {
         )
     }
 
-    #[cfg(feature = "image-formats")]
+    #[cfg(feature = "image_formats")]
     #[test]
     fn mixed_sets() {
         finder_test(
@@ -1099,7 +1099,7 @@ mod detector_test {
         )
     }
 
-    #[cfg(feature = "image-formats")]
+    #[cfg(feature = "image_formats")]
     #[test]
     fn mode4() {
         finder_test(
@@ -1108,7 +1108,7 @@ mod detector_test {
         )
     }
 
-    #[cfg(feature = "image-formats")]
+    #[cfg(feature = "image_formats")]
     #[test]
     fn mode5() {
         finder_test(
@@ -1117,7 +1117,7 @@ mod detector_test {
         )
     }
 
-    #[cfg(feature = "image-formats")]
+    #[cfg(feature = "image_formats")]
     #[test]
     fn mode6() {
         finder_test(

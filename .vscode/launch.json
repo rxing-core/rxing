@@ -1,0 +1,520 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'rxing-cli'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=rxing-cli",
+                    "--package=rxing-cli"
+                ],
+                "filter": {
+                    "name": "rxing-cli",
+                    "kind": "bin"
+                }
+            },
+            "args": ["/Users/henry/Downloads/300908088-2b3ffe34-1067-48c9-8663-f841b5d0acf6.png", "decode", "--try-harder", "--decode-multi"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'rxing-cli'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=rxing-cli",
+                    "--package=rxing-cli"
+                ],
+                "filter": {
+                    "name": "rxing-cli",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'rxing'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "rxing",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'upc_e_blackbox_tests'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=upc_e_blackbox_tests",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "upc_e_blackbox_tests",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'aztec_blackbox_tests'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=aztec_blackbox_tests",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "aztec_blackbox_tests",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'rss_expanded_blackbox'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=rss_expanded_blackbox",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "rss_expanded_blackbox",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'itf_blackbox'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=itf_blackbox",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "itf_blackbox",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'qr_code_blackbox_tests'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=qr_code_blackbox_tests",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "qr_code_blackbox_tests",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'cropped_transposed_luma'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=cropped_transposed_luma",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "cropped_transposed_luma",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'inverted_data_matrix_black_box_testcase'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=inverted_data_matrix_black_box_testcase",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "inverted_data_matrix_black_box_testcase",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'code_39_blackbox_reader'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=code_39_blackbox_reader",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "code_39_blackbox_reader",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'upc_a_blackbox_tests'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=upc_a_blackbox_tests",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "upc_a_blackbox_tests",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'codabar_blackbox_1_test_case'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=codabar_blackbox_1_test_case",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "codabar_blackbox_1_test_case",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'datamatrix_black_box_test_cases'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=datamatrix_black_box_test_cases",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "datamatrix_black_box_test_cases",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'telepen_blackbox_1_test_case'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=telepen_blackbox_1_test_case",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "telepen_blackbox_1_test_case",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'rss_14_blackbox'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=rss_14_blackbox",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "rss_14_blackbox",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'code_93_blackbox_1_testcase'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=code_93_blackbox_1_testcase",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "code_93_blackbox_1_testcase",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'code_128_blackbox'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=code_128_blackbox",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "code_128_blackbox",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'ean_8_black_box_1_testcase'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=ean_8_black_box_1_testcase",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "ean_8_black_box_1_testcase",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'pdf_417_blackbox_tests'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=pdf_417_blackbox_tests",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "pdf_417_blackbox_tests",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'cpp_qr_code_blackbox_tests'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=cpp_qr_code_blackbox_tests",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "cpp_qr_code_blackbox_tests",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'upc_ean_extension_black_box_1_testcase'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=upc_ean_extension_black_box_1_testcase",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "upc_ean_extension_black_box_1_testcase",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'pdf_417_black_box_4_testcase'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=pdf_417_black_box_4_testcase",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "pdf_417_black_box_4_testcase",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'maxicode_blackbox_tests'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=maxicode_blackbox_tests",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "maxicode_blackbox_tests",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'ean_13_blackbox_tests'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=ean_13_blackbox_tests",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "ean_13_blackbox_tests",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'github_issues'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=github_issues",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "github_issues",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug benchmark 'benchmarks'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bench=benchmarks",
+                    "--package=rxing"
+                ],
+                "filter": {
+                    "name": "benchmarks",
+                    "kind": "bench"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

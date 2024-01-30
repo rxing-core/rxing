@@ -14,7 +14,7 @@ mod common;
 /**
  * @author Sean Owen
  */
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn code39_black_box1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -35,7 +35,7 @@ fn code39_black_box1_test_case() {
 /**
  * @author dswitkin@google.com (Daniel Switkin)
  */
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn code39_black_box3_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
@@ -54,7 +54,7 @@ fn code39_black_box3_test_case() {
 /**
  * @author Sean Owen
  */
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn code39_extended_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(

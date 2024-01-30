@@ -1,6 +1,6 @@
 [package]
 name = "rxing"
-version = "0.5.4"
+version = "0.5.5"
 description="A rust port of the zxing barcode library."
 license="Apache-2.0"
 repository="https://github.com/rxing-core/rxing"
@@ -41,10 +41,10 @@ rand = "0.8.5"
 criterion = "0.5"
 
 [features]
-default = ["image", "client_support", "image-formats"]
+default = ["image", "client_support", "image_formats"]
 #/// Enable features required for image manipulation and reading.
 image = ["dep:image", "dep:imageproc"]
-image-formats = [
+image_formats = [
     "image",
     "image/gif",
     "image/jpeg",

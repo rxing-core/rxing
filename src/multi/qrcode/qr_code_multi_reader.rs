@@ -237,7 +237,7 @@ mod multi_qr_code_test_case {
      * Tests {@link QRCodeMultiReader}.
      */
 
-    #[cfg(feature = "image-formats")]
+    #[cfg(feature = "image_formats")]
     #[test]
     fn testMultiQRCodes() {
         // Very basic test for now
