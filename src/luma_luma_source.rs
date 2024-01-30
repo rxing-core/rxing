@@ -2,6 +2,7 @@ use crate::common::Result;
 use crate::LuminanceSource;
 
 /// A simple luma8 source for bytes, supports cropping but not rotation
+#[derive(Debug, Clone)]
 pub struct Luma8LuminanceSource {
     /// image dimension in form (x,y)
     dimensions: (u32, u32),
@@ -23,6 +24,19 @@ impl LuminanceSource for Luma8LuminanceSource {
             .flatten()
             .skip(self.origin.0 as usize)
             .take(self.dimensions.0 as usize)
+            .map(|byte| Self::invert_if_should(*byte, self.inverted))
+            .collect()
+    }
+
+    fn get_column(&self, x: usize) -> Vec<u8> {
+        self.data
+            .chunks_exact(self.original_dimension.0 as usize)
+            .skip(self.origin.1 as usize)
+            .fold(Vec::default(), |mut acc, e| {
+                acc.push(e[self.origin.0 as usize + x as usize]);
+                acc
+            })
+            .iter()
             .map(|byte| Self::invert_if_should(*byte, self.inverted))
             .collect()
     }
@@ -93,6 +107,10 @@ impl LuminanceSource for Luma8LuminanceSource {
             "This luminance source does not support rotation by 45 degrees.",
         ))
     }
+
+    fn get_luma8_point(&self, x: usize, y: usize) -> u8 {
+        todo!()
+    }
 }
 
 impl Luma8LuminanceSource {
@@ -157,6 +175,20 @@ impl Luma8LuminanceSource {
             inverted: false,
             original_dimension: (width, height),
         }
+    }
+
+    pub fn with_empty_image(width: usize, height: usize) -> Self {
+        Self {
+            dimensions: (width as u32, height as u32),
+            origin: (0, 0),
+            data: vec![0u8; width * height],
+            inverted: false,
+            original_dimension: (width as u32, height as u32),
+        }
+    }
+
+    pub fn get_matrix_mut(&mut self) -> &mut Vec<u8> {
+        &mut self.data
     }
 
     #[inline(always)]

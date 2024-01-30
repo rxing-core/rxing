@@ -27,7 +27,7 @@ use once_cell::unsync::OnceCell;
 use crate::common::Result;
 use crate::{Binarizer, Exceptions, LuminanceSource};
 
-use super::{BitArray, BitMatrix};
+use super::{BitArray, BitMatrix, LineOrientation};
 
 const LUMINANCE_BITS: usize = 5;
 const LUMINANCE_SHIFT: usize = 8 - LUMINANCE_BITS;
@@ -107,8 +107,55 @@ impl<LS: LuminanceSource> Binarizer for GlobalHistogramBinarizer<LS> {
         Ok(Cow::Borrowed(row))
     }
 
-    fn get_black_line(&self, l: usize, lt: super::LineOrientation) -> Result<Cow<BitArray>> {
-        unimplemented!()
+    fn get_black_line(&self, l: usize, lt: LineOrientation) -> Result<Cow<BitArray>> {
+        if lt == LineOrientation::Row {
+            self.get_black_row(l)
+        } else {
+            let col = self.black_column_cache[l].get_or_try_init(|| {
+                let source = self.get_luminance_source();
+                let width = source.get_height();
+                let mut col = BitArray::with_size(width);
+
+                // self.initArrays(width);
+                let localLuminances = source.get_column(l);
+                let mut localBuckets = [0; LUMINANCE_BUCKETS]; //self.buckets.clone();
+                for x in 0..width {
+                    // for (int x = 0; x < width; x++) {
+                    localBuckets[((localLuminances[x]) >> LUMINANCE_SHIFT) as usize] += 1;
+                }
+                let blackPoint = Self::estimateBlackPoint(&localBuckets)?;
+
+                if width < 3 {
+                    // Special case for very small images
+                    for (x, lum) in localLuminances.iter().enumerate().take(width) {
+                        // for x in 0..width {
+                        //   for (int x = 0; x < width; x++) {
+                        if (*lum as u32) < blackPoint {
+                            col.set(x);
+                        }
+                    }
+                } else {
+                    let mut left = localLuminances[0]; // & 0xff;
+                    let mut center = localLuminances[1]; // & 0xff;
+                    for x in 1..width - 1 {
+                        //   for (int x = 1; x < width - 1; x++) {
+                        let right = localLuminances[x + 1];
+                        // A simple -1 4 -1 box filter with a weight of 2.
+                        if ((center as i64 * 4) - left as i64 - right as i64) / 2
+                            < blackPoint as i64
+                        {
+                            col.set(x);
+                        }
+                        left = center;
+                        center = right;
+                    }
+                }
+
+                Ok(col)
+            })?;
+
+            Ok(Cow::Borrowed(col))
+        }
     }
 
     // Does not sharpen the data, as this call is intended to only be used by 2D Readers.

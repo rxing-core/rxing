@@ -32,7 +32,7 @@ use crate::{
 
 pub struct BinaryBitmap<B: Binarizer> {
     binarizer: B,
-    matrix: Option<BitMatrix>,
+    pub(crate) matrix: Option<BitMatrix>,
 }
 
 impl<B: Binarizer> BinaryBitmap<B> {

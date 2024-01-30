@@ -119,6 +119,7 @@ impl Display for BarcodeFormat {
                 BarcodeFormat::UPC_A => "upc a",
                 BarcodeFormat::UPC_E => "upc e",
                 BarcodeFormat::UPC_EAN_EXTENSION => "upc/ean extension",
+                BarcodeFormat::DXFilmEdge => "DXFilmEdge",
                 _ => "unsuported",
             }
         )
@@ -166,6 +167,7 @@ impl From<&str> for BarcodeFormat {
             "upc e" | "upc_e" | "upce" => BarcodeFormat::UPC_E,
             "upc ean extension" | "upc extension" | "ean extension" | "upc/ean extension"
             | "upc_ean_extension" => BarcodeFormat::UPC_EAN_EXTENSION,
+            "DXFilmEdge" | "dxfilmedge" | "dx film edge" => BarcodeFormat::DXFilmEdge,
             _ => BarcodeFormat::UNSUPORTED_FORMAT,
         }
     }
