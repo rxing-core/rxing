@@ -17,8 +17,9 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::Result, point_f, Binarizer, BinaryBitmap, DecodingHintDictionary, Exceptions, Point,
-    RXingResult, Reader,
+    common::{cpp_essentials::QuadrilateralIsPlausibleSquare, Quadrilateral, Result},
+    point_f, Binarizer, BinaryBitmap, DecodingHintDictionary, Exceptions, Point, RXingResult,
+    Reader,
 };
 
 use super::MultipleBarcodeReader;
@@ -55,6 +56,7 @@ impl<T: Reader> MultipleBarcodeReader for GenericMultipleBarcodeReader<T> {
     ) -> Result<Vec<RXingResult>> {
         let mut results = Vec::new();
         self.do_decode_multiple(image, hints, &mut results, 0, 0, 0);
+
         if results.is_empty() {
             return Err(Exceptions::NOT_FOUND);
         }
@@ -62,8 +64,8 @@ impl<T: Reader> MultipleBarcodeReader for GenericMultipleBarcodeReader<T> {
     }
 }
 impl<T: Reader> GenericMultipleBarcodeReader<T> {
-    const MIN_DIMENSION_TO_RECUR: f32 = 100.0;
-    const MAX_DEPTH: u32 = 4;
+    const MIN_DIMENSION_TO_RECUR: f32 = 2.0;
+    const MAX_DEPTH: u32 = 8;
 
     pub fn new(delegate: T) -> Self {
         Self(delegate)
@@ -87,18 +89,51 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
             return;
         };
 
-        let mut alreadyFound = false;
-        for existingRXingResult in results.iter() {
-            if existingRXingResult.getText() == result.getText() {
-                alreadyFound = true;
-                break;
-            }
-        }
+        // let alreadyFound = results.iter().any(|r| r.getText() == result.getText() && r.getBarcodeFormat() == result.getBarcodeFormat());
 
         let resultPoints = result.getPoints().clone();
 
-        if !alreadyFound {
-            results.push(Self::translatePoints(result, xOffset, yOffset));
+        let possible_new_result = Self::translatePoints(result, xOffset, yOffset);
+
+        let already_found = if possible_new_result.getPoints().len() >= 4 {
+            let q1 = Quadrilateral::new(
+                possible_new_result.getPoints()[0],
+                possible_new_result.getPoints()[1],
+                possible_new_result.getPoints()[2],
+                possible_new_result.getPoints()[3],
+            );
+            results.iter().any(|e| {
+                if e.getPoints().len() >= 4 {
+                    let q2 = Quadrilateral::new(
+                        e.getPoints()[0],
+                        e.getPoints()[1],
+                        e.getPoints()[2],
+                        e.getPoints()[3],
+                    );
+                    Quadrilateral::have_intersecting_bounding_boxes(&q1, &q2)
+                } else {
+                    e.getPoints().iter().any(|p| q1.is_inside(*p))
+                }
+            })
+        } else {
+            results.iter().any(|e| {
+                if e.getPoints().len() >= 4 {
+                    let q2 = Quadrilateral::new(
+                        e.getPoints()[0],
+                        e.getPoints()[1],
+                        e.getPoints()[2],
+                        e.getPoints()[3],
+                    );
+                    e.getPoints().iter().any(|p| q2.is_inside(*p))
+                } else {
+                    e.getText() == possible_new_result.getText()
+                        && e.getBarcodeFormat() == possible_new_result.getBarcodeFormat()
+                }
+            })
+        };
+
+        if !already_found {
+            results.push(possible_new_result);
         }
 
         if resultPoints.is_empty() {
@@ -112,23 +147,13 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         let mut maxX: f32 = 0.0;
         let mut maxY: f32 = 0.0;
         for point in &resultPoints {
-            // if (point == null) {
-            //   continue;
-            // }
             let x = point.x;
             let y = point.y;
-            if x < minX {
-                minX = x;
-            }
-            if y < minY {
-                minY = y;
-            }
-            if x > maxX {
-                maxX = x;
-            }
-            if y > maxY {
-                maxY = y;
-            }
+
+            minX = f32::min(x, minX);
+            minY = f32::min(y, minY);
+            maxX = f32::max(x, maxX);
+            maxY = f32::max(y, maxY);
         }
 
         // Decode left of barcode
