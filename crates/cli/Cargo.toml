@@ -11,4 +11,4 @@ keywords = ["barcode", "2d_barcode", "1d_barcode", "barcode_reader", "barcode_wr
 
 [dependencies]
 clap = { version = "4.4.13", features = ["derive"] }
-rxing = {path = "../../", version = "~0.5.3", features = ["image", "svg_read", "svg_write"] }
+rxing = {path = "../../", version = "~0.5.5", features = ["image", "svg_read", "svg_write"] }
