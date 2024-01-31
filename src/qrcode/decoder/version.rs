@@ -88,41 +88,29 @@ impl Version {
         }
     }
 
-    pub(super) fn new_micro(versionNumber: u32, ecBlocks: Vec<ECBlocks>) -> Self {
+    pub(super) fn without_alignment_patterns(versionNumber: u32, ecBlocks: Vec<ECBlocks>) -> Self {
         let mut total = 0;
         let ecCodewords = ecBlocks[0].getECCodewordsPerBlock();
         let ecbArray = ecBlocks[0].getECBlocks();
-        let mut i = 0;
-        while i < ecbArray.len() {
-            total += ecbArray[i].getCount() * (ecbArray[i].getDataCodewords() + ecCodewords);
-            i += 1;
+        for ecb_array_element in ecbArray {
+            total +=
+                ecb_array_element.getCount() * (ecb_array_element.getDataCodewords() + ecCodewords);
         }
+
+        let symbol_type = if ecBlocks[0].getECCodewordsPerBlock() < 7
+            || ecBlocks[0].getECCodewordsPerBlock() == 8
+        {
+            Type::Micro
+        } else {
+            Type::Model1
+        };
 
         Self {
             versionNumber,
             alignmentPatternCenters: Vec::default(),
             ecBlocks,
             totalCodewords: total,
-            qr_type: Type::Micro,
-        }
-    }
-
-    pub(super) fn new_model1(versionNumber: u32, ecBlocks: Vec<ECBlocks>) -> Self {
-        let mut total = 0;
-        let ecCodewords = ecBlocks[0].getECCodewordsPerBlock();
-        let ecbArray = ecBlocks[0].getECBlocks();
-        let mut i = 0;
-        while i < ecbArray.len() {
-            total += ecbArray[i].getCount() * (ecbArray[i].getDataCodewords() + ecCodewords);
-            i += 1;
-        }
-
-        Self {
-            versionNumber,
-            alignmentPatternCenters: Vec::default(),
-            ecBlocks,
-            totalCodewords: total,
-            qr_type: Type::Model1,
+            qr_type: symbol_type,
         }
     }
 
