@@ -530,7 +530,7 @@ impl BitMatrix {
                 if theBits != 0 {
                     top = top.min(y);
                     bottom = bottom.max(y);
-                    
+
                     if x32 * 32 < left as usize {
                         let mut bit = 0;
                         while (theBits << (31 - bit)) == 0 {

@@ -170,11 +170,11 @@ impl<LS: LuminanceSource> HybridBinarizer<LS> {
         for y in 0..sub_height {
             // for (int y = 0; y < subHeight; y++) {
             let yoffset = u32::min(y << BLOCK_SIZE_POWER, maxYOffset);
-            
+
             let top = Self::cap(y, sub_height - 3);
             for x in 0..sub_width {
                 //   for (int x = 0; x < subWidth; x++) {
-                let  xoffset = u32::min(x << BLOCK_SIZE_POWER,maxXOffset);
+                let xoffset = u32::min(x << BLOCK_SIZE_POWER, maxXOffset);
 
                 let left = Self::cap(x, sub_width - 3);
                 let mut sum = 0;
@@ -240,12 +240,12 @@ impl<LS: LuminanceSource> HybridBinarizer<LS> {
         let mut blackPoints = vec![vec![0; subWidth as usize]; subHeight as usize];
         for y in 0..subHeight {
             // for (int y = 0; y < subHeight; y++) {
-            let  yoffset = u32::min(y << BLOCK_SIZE_POWER,maxYOffset as u32);
-            
+            let yoffset = u32::min(y << BLOCK_SIZE_POWER, maxYOffset as u32);
+
             for x in 0..subWidth {
                 //   for (int x = 0; x < subWidth; x++) {
-                let xoffset = u32::min(x << BLOCK_SIZE_POWER,maxXOffset as u32);
-                
+                let xoffset = u32::min(x << BLOCK_SIZE_POWER, maxXOffset as u32);
+
                 let mut sum: u32 = 0;
                 let mut min = 0xff;
                 let mut max = 0;

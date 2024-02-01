@@ -172,12 +172,7 @@ pub trait GridSampler {
         }
         // dbg!(bits.to_string());
 
-        Ok((
-            bits,
-            [
-                Point::default();4
-            ],
-        ))
+        Ok((bits, [Point::default(); 4]))
     }
 
     /**

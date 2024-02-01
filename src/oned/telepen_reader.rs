@@ -71,12 +71,8 @@ impl OneDReader for TelepenReader {
         // largest gaps.
         while j <= end {
             let currentCounter = theCounters[j];
-            if currentCounter < minBar {
-                minBar = currentCounter;
-            }
-            if currentCounter > maxBar {
-                maxBar = currentCounter;
-            }
+            minBar = u32::min(currentCounter, minBar);
+            maxBar = u32::max(currentCounter, maxBar);
 
             j += 1;
         }

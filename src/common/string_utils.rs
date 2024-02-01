@@ -92,11 +92,9 @@ impl StringUtils {
         }
 
         // First try UTF-16, assuming anything with its BOM is UTF-16
-        
-        if bytes.len() > 2
-            && ((bytes[0..=1] == [0xFE,0xFF]) || (bytes[0..=1] == [0xFF , 0xFE]))
-        {
-            if bytes[0..=1] == [0xFE , 0xFF] {
+
+        if bytes.len() > 2 && ((bytes[0..=1] == [0xFE, 0xFF]) || (bytes[0..=1] == [0xFF, 0xFE])) {
+            if bytes[0..=1] == [0xFE, 0xFF] {
                 return Some(CharacterSet::UTF16BE);
             } else {
                 return Some(CharacterSet::UTF16LE);
@@ -121,7 +119,7 @@ impl StringUtils {
         let mut sjis_max_double_bytes_word_length = 0;
         let mut iso_high_other = 0;
 
-        let utf8bom = bytes.len() > 3 && bytes[0..=2] == [ 0xEF , 0xBB , 0xBF];
+        let utf8bom = bytes.len() > 3 && bytes[0..=2] == [0xEF, 0xBB, 0xBF];
 
         // for i in 0..length {
         for value in bytes.iter().take(length).copied() {
