@@ -197,6 +197,14 @@ impl<B: Binarizer> BinaryBitmap<B> {
                 .create_binarizer(newSource.expect("new lum source expected")),
         )
     }
+
+    pub fn get_source(&self) -> &B::Source {
+        &self.binarizer.get_luminance_source()
+    }
+
+    pub fn get_binarizer(&self) -> &B {
+        &self.binarizer
+    }
 }
 
 impl<B: Binarizer> fmt::Display for BinaryBitmap<B> {

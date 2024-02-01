@@ -17,15 +17,29 @@ pub struct Luma8LuminanceSource {
 }
 impl LuminanceSource for Luma8LuminanceSource {
     fn get_row(&self, y: usize) -> Vec<u8> {
-        self.data
-            .chunks_exact(self.original_dimension.0 as usize)
-            .skip(y + self.origin.1 as usize)
-            .take(1)
-            .flatten()
-            .skip(self.origin.0 as usize)
-            .take(self.dimensions.0 as usize)
-            .map(|byte| Self::invert_if_should(*byte, self.inverted))
-            .collect()
+        let chunk_size = self.original_dimension.0 as usize;
+        let row_skip = y + self.origin.1 as usize;
+        let column_skip = self.origin.0 as usize;
+        let column_take = self.dimensions.0 as usize;
+
+        let data_start = (chunk_size * row_skip) + column_skip;
+        let data_end = (chunk_size * row_skip) + column_skip + column_take;
+
+        if self.inverted {
+            self.invert_block_of_bytes(Vec::from(&self.data[data_start..data_end]))
+        } else {
+            Vec::from(&self.data[data_start..data_end])
+        }
+
+        // self.data
+        //     .chunks_exact(chunk_size)
+        //     .skip(row_skip)
+        //     .take(1)
+        //     .flatten()
+        //     .skip(column_skip)
+        //     .take(column_take)
+        //     .map(|byte| Self::invert_if_should(*byte, self.inverted))
+        //     .collect()
     }
 
     fn get_column(&self, x: usize) -> Vec<u8> {
@@ -108,8 +122,8 @@ impl LuminanceSource for Luma8LuminanceSource {
         ))
     }
 
-    fn get_luma8_point(&self, x: usize, y: usize) -> u8 {
-        todo!()
+    fn get_luma8_point(&self, column: usize, row: usize) -> u8 {
+        self.get_row(row)[column]
     }
 }
 
@@ -127,7 +141,6 @@ impl Luma8LuminanceSource {
                 b -= 1;
             }
         }
-        // print_matrix(&self.data, self.get_width(), self.get_height());
     }
 
     fn transpose_square(&mut self) {

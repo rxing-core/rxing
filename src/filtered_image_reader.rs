@@ -2,62 +2,52 @@ use std::collections::HashMap;
 
 use crate::{Binarizer, BinaryBitmap, Exceptions, Luma8LuminanceSource, LuminanceSource, Reader};
 
-use crate::common::{BitMatrix, Result};
+use crate::common::{BitMatrix, HybridBinarizer, Result};
 
 pub const DEFAULT_DOWNSCALE_THRESHHOLD: usize = 500;
 pub const DEFAULT_DOWNSCALE_FACTOR: usize = 3;
 
 /// Passed image data is ignored, only the image data
-pub struct FilteredImageReader<R: Reader, B: Binarizer<Source = Luma8LuminanceSource>> {
-    reader: R,
-    source: Luma8LuminanceSource,
-    binarizer: B,
-}
+pub struct FilteredImageReader<R: Reader>(R);
 
-impl<R: Reader, B: Binarizer<Source = Luma8LuminanceSource>> FilteredImageReader<R, B> {
-    pub fn new<I: LuminanceSource + Clone + Into<Luma8LuminanceSource>>(
-        reader: R,
-        source: I,
-        binarizer: B,
-    ) -> Self {
-        Self {
-            reader,
-            source: source.into(),
-            binarizer,
-        }
+impl<R: Reader> FilteredImageReader<R> {
+    pub fn new(reader: R) -> Self {
+        Self(reader)
     }
 }
 
-impl<R: Reader, B1: Binarizer<Source = Luma8LuminanceSource>> Reader
-    for FilteredImageReader<R, B1>
-{
+impl<R: Reader> Reader for FilteredImageReader<R> {
     fn decode<B: crate::Binarizer>(
         &mut self,
-        _image: &mut crate::BinaryBitmap<B>,
+        image: &mut crate::BinaryBitmap<B>,
     ) -> crate::common::Result<crate::RXingResult> {
-        self.decode_with_hints(_image, &HashMap::default())
+        self.decode_with_hints(image, &HashMap::default())
     }
 
     fn decode_with_hints<B: crate::Binarizer>(
         &mut self,
-        _image: &mut crate::BinaryBitmap<B>,
+        image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
     ) -> crate::common::Result<crate::RXingResult> {
         let pyramids = LumImagePyramid::new(
-            self.source.clone(),
+            Luma8LuminanceSource::new(
+                image.get_source().get_matrix(),
+                image.get_source().get_width() as u32,
+                image.get_source().get_height() as u32,
+            ),
             DEFAULT_DOWNSCALE_THRESHHOLD,
             DEFAULT_DOWNSCALE_FACTOR,
         )
         .ok_or(Exceptions::ILLEGAL_ARGUMENT)?;
         for layer in pyramids.layers {
-            let mut b = BinaryBitmap::new(self.binarizer.create_binarizer(layer));
+            let mut b = BinaryBitmap::new(HybridBinarizer::new(layer));
             for close in [false, true] {
                 if close {
                     let Ok(_) = b.close() else {
                         continue;
                     };
                 }
-                if let Ok(res) = self.reader.decode_with_hints(&mut b, hints) {
+                if let Ok(res) = self.0.decode_with_hints(&mut b, hints) {
                     return Ok(res);
                 } else {
                     continue;
@@ -135,15 +125,15 @@ impl LumImagePyramid {
                 // for (int dy = 0; dy < div.height(); ++dy){
                 for dx in 0..div_width {
                     // for (int dx = 0; dx < div.width(); ++dx) {
-                    let mut sum = (N * N) as u8 / 2;
+                    let mut sum = (N * N) / 2;
                     for ty in 0..N {
                         // for (int ty = 0; ty < N; ++ty){
                         for tx in 0..N {
                             // for (int tx = 0; tx < N; ++tx) {
-                            sum += siv.get_luma8_point(dx * N + tx, dy * N + ty);
+                            sum += siv.get_luma8_point(dx * N + tx, dy * N + ty) as usize;
                         }
                     }
-                    *d = sum / (N * N) as u8;
+                    *d = (sum / (N * N)) as u8;
                 }
             }
         }
