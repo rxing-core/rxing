@@ -2,19 +2,19 @@
 
 #![cfg(feature = "image")]
 
-use rxing::{BarcodeFormat, MultiFormatReader};
+use rxing::{BarcodeFormat, FilteredImageReader, MultiFormatReader};
 
 mod common;
 
 /**
  * @author Sean Owen
  */
-#[cfg(feature = "image-formats")]
+#[cfg(feature = "image_formats")]
 #[test]
 fn dx_film_edge() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/dxfilmedge-1",
-        MultiFormatReader::default(),
+        FilteredImageReader::new(MultiFormatReader::default()),
         BarcodeFormat::DXFilmEdge,
     );
 
