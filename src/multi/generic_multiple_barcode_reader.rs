@@ -64,8 +64,8 @@ impl<T: Reader> MultipleBarcodeReader for GenericMultipleBarcodeReader<T> {
     }
 }
 impl<T: Reader> GenericMultipleBarcodeReader<T> {
-    const MIN_DIMENSION_TO_RECUR: f32 = 2.0;
-    const MAX_DEPTH: u32 = 8;
+    const MIN_DIMENSION_TO_RECUR: f32 = 10.0;
+    const MAX_DEPTH: u32 = 4;
 
     pub fn new(delegate: T) -> Self {
         Self(delegate)
