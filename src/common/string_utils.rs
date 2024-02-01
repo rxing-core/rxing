@@ -88,19 +88,15 @@ impl StringUtils {
         if let Some(DecodeHintValue::CharacterSet(cs_name)) =
             hints.get(&DecodeHintType::CHARACTER_SET)
         {
-            // if let DecodeHintValue::CharacterSet(cs_name) = hint {
             return CharacterSet::get_character_set_by_name(cs_name);
-            // }
         }
-        // if hints.contains_key(&DecodeHintType::CHARACTER_SET) {
-        //   return Charset.forName(hints.get(DecodeHintType.CHARACTER_SET).toString());
-        // }
 
         // First try UTF-16, assuming anything with its BOM is UTF-16
+        
         if bytes.len() > 2
-            && ((bytes[0] == 0xFE && bytes[1] == 0xFF) || (bytes[0] == 0xFF && bytes[1] == 0xFE))
+            && ((bytes[0..=1] == [0xFE,0xFF]) || (bytes[0..=1] == [0xFF , 0xFE]))
         {
-            if bytes[0] == 0xFE && bytes[1] == 0xFF {
+            if bytes[0..=1] == [0xFE , 0xFF] {
                 return Some(CharacterSet::UTF16BE);
             } else {
                 return Some(CharacterSet::UTF16LE);
@@ -125,7 +121,7 @@ impl StringUtils {
         let mut sjis_max_double_bytes_word_length = 0;
         let mut iso_high_other = 0;
 
-        let utf8bom = bytes.len() > 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF;
+        let utf8bom = bytes.len() > 3 && bytes[0..=2] == [ 0xEF , 0xBB , 0xBF];
 
         // for i in 0..length {
         for value in bytes.iter().take(length).copied() {

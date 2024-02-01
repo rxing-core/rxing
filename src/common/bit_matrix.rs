@@ -358,11 +358,6 @@ impl BitMatrix {
      * Clears all bits (sets to false).
      */
     pub fn clear(&mut self) {
-        // let max = self.bits.len();
-        // for i in 0..max {
-        //     //for (int i = 0; i < max; i++) {
-        //     self.bits[i] = 0;
-        // }
         self.bits.fill(0);
     }
 
@@ -375,11 +370,6 @@ impl BitMatrix {
      * @param height The height of the region
      */
     pub fn setRegion(&mut self, left: u32, top: u32, width: u32, height: u32) -> Result<()> {
-        // if top < 0 || left < 0 {
-        //     return Err(Exceptions::IllegalArgumentException(
-        //         "Left and top must be nonnegative".to_owned(),
-        //     ));
-        // }
         if height < 1 || width < 1 {
             return Err(Exceptions::illegal_argument_with(
                 "height and width must be at least 1",
@@ -412,15 +402,6 @@ impl BitMatrix {
      *         your own row
      */
     pub fn getRow(&self, y: u32) -> BitArray {
-        // let mut rw: BitArray = if row.getSize() < self.width as usize {
-        //     BitArray::with_size(self.width as usize)
-        // } else {
-        //     let mut z = row; //row.clone();
-        //     z.clear();
-        //     z
-        //     // row.clear();
-        //     // row.clone()
-        // };
         let mut rw = BitArray::with_size(self.width as usize);
 
         let offset = y as usize * self.row_size;
@@ -547,12 +528,9 @@ impl BitMatrix {
                 //for (int x32 = 0; x32 < rowSize; x32++) {
                 let theBits = self.bits[y as usize * self.row_size + x32];
                 if theBits != 0 {
-                    if y < top {
-                        top = y;
-                    }
-                    if y > bottom {
-                        bottom = y;
-                    }
+                    top = top.min(y);
+                    bottom = bottom.max(y);
+                    
                     if x32 * 32 < left as usize {
                         let mut bit = 0;
                         while (theBits << (31 - bit)) == 0 {
@@ -756,6 +734,14 @@ impl BitMatrix {
 impl fmt::Display for BitMatrix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.toString("X ", "  "))
+    }
+}
+
+impl TryFrom<&str> for BitMatrix {
+    type Error = Exceptions;
+
+    fn try_from(value: &str) -> std::prelude::v1::Result<Self, Self::Error> {
+        Self::parse_strings(value, "X", " ")
     }
 }
 

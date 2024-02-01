@@ -361,7 +361,7 @@ impl MinimalECIInput {
             } else {
                 let bytes: Vec<u16> = encoderSet
                     .encode_char(&c.c, c.encoderIndex)
-                    .unwrap()
+                    .unwrap_or_default()
                     .iter()
                     .map(|x| *x as u16)
                     .collect();

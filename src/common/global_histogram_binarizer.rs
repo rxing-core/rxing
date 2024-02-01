@@ -156,12 +156,9 @@ impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {
             let row = height * y / 5;
             let localLuminances = source.get_row(row);
             let right = (width * 4) / 5;
-            let mut x = width / 5;
-            while x < right {
-                //   for (int x = width / 5; x < right; x++) {
+            for x in (width/5)..right {
                 let pixel = localLuminances[x];
                 localBuckets[(pixel >> LUMINANCE_SHIFT) as usize] += 1;
-                x += 1;
             }
         }
         let blackPoint = Self::estimateBlackPoint(&localBuckets)?;
@@ -171,10 +168,8 @@ impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {
         // "fail quickly" which is necessary for continuous scanning.
         let localLuminances = source.get_matrix();
         for y in 0..height {
-            // for (int y = 0; y < height; y++) {
             let offset = y * width;
             for x in 0..width {
-                //   for (int x = 0; x < width; x++) {
                 let pixel = localLuminances[offset + x];
                 if (pixel as u32) < blackPoint {
                     matrix.set(x as u32, y as u32);
@@ -184,16 +179,6 @@ impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {
 
         Ok(matrix)
     }
-
-    // fn initArrays(&mut self, luminanceSize: usize) {
-    //     // if self.luminances.len() < luminanceSize {
-    //     //     self.luminances = ;
-    //     // }
-    //     // // for x in 0..GlobalHistogramBinarizer::LUMINANCE_BUCKETS {
-    //     //     // for (int x = 0; x < LUMINANCE_BUCKETS; x++) {
-    //     //     self.buckets[x] = 0;
-    //     // }
-    // }
 
     fn estimateBlackPoint(buckets: &[u32]) -> Result<u32> {
         // Find the tallest peak in the histogram.

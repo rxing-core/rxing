@@ -169,17 +169,13 @@ impl<LS: LuminanceSource> HybridBinarizer<LS> {
         let maxXOffset = width - BLOCK_SIZE as u32;
         for y in 0..sub_height {
             // for (int y = 0; y < subHeight; y++) {
-            let mut yoffset = y << BLOCK_SIZE_POWER;
-            if yoffset > maxYOffset {
-                yoffset = maxYOffset;
-            }
+            let yoffset = u32::min(y << BLOCK_SIZE_POWER, maxYOffset);
+            
             let top = Self::cap(y, sub_height - 3);
             for x in 0..sub_width {
                 //   for (int x = 0; x < subWidth; x++) {
-                let mut xoffset = x << BLOCK_SIZE_POWER;
-                if xoffset > maxXOffset {
-                    xoffset = maxXOffset;
-                }
+                let  xoffset = u32::min(x << BLOCK_SIZE_POWER,maxXOffset);
+
                 let left = Self::cap(x, sub_width - 3);
                 let mut sum = 0;
                 for z in -2..=2 {
@@ -199,11 +195,7 @@ impl<LS: LuminanceSource> HybridBinarizer<LS> {
 
     #[inline(always)]
     fn cap(value: u32, max: u32) -> u32 {
-        if value < 2 {
-            2
-        } else {
-            value.min(max)
-        }
+        u32::clamp(value, 2, max)
     }
 
     /**
@@ -248,16 +240,12 @@ impl<LS: LuminanceSource> HybridBinarizer<LS> {
         let mut blackPoints = vec![vec![0; subWidth as usize]; subHeight as usize];
         for y in 0..subHeight {
             // for (int y = 0; y < subHeight; y++) {
-            let mut yoffset = y << BLOCK_SIZE_POWER;
-            if yoffset > maxYOffset as u32 {
-                yoffset = maxYOffset as u32;
-            }
+            let  yoffset = u32::min(y << BLOCK_SIZE_POWER,maxYOffset as u32);
+            
             for x in 0..subWidth {
                 //   for (int x = 0; x < subWidth; x++) {
-                let mut xoffset = x << BLOCK_SIZE_POWER;
-                if xoffset > maxXOffset as u32 {
-                    xoffset = maxXOffset as u32;
-                }
+                let xoffset = u32::min(x << BLOCK_SIZE_POWER,maxXOffset as u32);
+                
                 let mut sum: u32 = 0;
                 let mut min = 0xff;
                 let mut max = 0;
@@ -271,12 +259,8 @@ impl<LS: LuminanceSource> HybridBinarizer<LS> {
                         let pixel = luminances[offset as usize + xx];
                         sum += pixel as u32;
                         // still looking for good contrast
-                        if pixel < min {
-                            min = pixel;
-                        }
-                        if pixel > max {
-                            max = pixel;
-                        }
+                        min = min.min(pixel);
+                        max = max.max(pixel);
                     }
                     // short-circuit min/max tests once dynamic range is met
                     if (max - min) as usize > MIN_DYNAMIC_RANGE {

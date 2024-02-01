@@ -175,10 +175,7 @@ pub trait GridSampler {
         Ok((
             bits,
             [
-                Point::default(),
-                Point::default(),
-                Point::default(),
-                Point::default(),
+                Point::default();4
             ],
         ))
     }
