@@ -30,7 +30,7 @@ use serde::{Deserialize, Serialize};
  * @author Sean Owen
  */
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RXingResult {
     text: String,
     rawBytes: Vec<u8>,

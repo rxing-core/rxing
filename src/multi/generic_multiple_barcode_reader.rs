@@ -57,15 +57,61 @@ impl<T: Reader> MultipleBarcodeReader for GenericMultipleBarcodeReader<T> {
         let mut results = Vec::new();
         self.do_decode_multiple(image, hints, &mut results, 0, 0, 0);
 
-        if results.is_empty() {
+        let unique_results: Vec<RXingResult> = results
+            .iter()
+            .enumerate()
+            .filter(|(i, r)| {
+                let already_found = if r.getPoints().len() >= 4 {
+                    let q1 = Quadrilateral::new(
+                        r.getPoints()[0],
+                        r.getPoints()[1],
+                        r.getPoints()[2],
+                        r.getPoints()[3],
+                    );
+                    results.iter().skip(*i + 1).any(|e| {
+                        if e.getPoints().len() >= 4 {
+                            let q2 = Quadrilateral::new(
+                                e.getPoints()[0],
+                                e.getPoints()[1],
+                                e.getPoints()[2],
+                                e.getPoints()[3],
+                            );
+                            Quadrilateral::have_intersecting_bounding_boxes(&q1, &q2)
+                        } else {
+                            e.getPoints().iter().any(|p| q1.is_inside(*p))
+                        }
+                    })
+                } else {
+                    results.iter().skip(*i + 1).any(|e| {
+                        if e.getPoints().len() >= 4 {
+                            let q2 = Quadrilateral::new(
+                                e.getPoints()[0],
+                                e.getPoints()[1],
+                                e.getPoints()[2],
+                                e.getPoints()[3],
+                            );
+                            e.getPoints().iter().any(|p| q2.is_inside(*p))
+                        } else {
+                            e.getText() == r.getText()
+                                && e.getBarcodeFormat() == r.getBarcodeFormat()
+                        }
+                    })
+                };
+                !already_found
+            })
+            .map(|(_, r)| r)
+            .cloned()
+            .collect();
+
+        if unique_results.is_empty() {
             return Err(Exceptions::NOT_FOUND);
         }
-        Ok(results)
+        Ok(unique_results)
     }
 }
 impl<T: Reader> GenericMultipleBarcodeReader<T> {
-    const MIN_DIMENSION_TO_RECUR: f32 = 2.0;
-    const MAX_DEPTH: u32 = 8;
+    const MIN_DIMENSION_TO_RECUR: f32 = 100.0;
+    const MAX_DEPTH: u32 = 4;
 
     pub fn new(delegate: T) -> Self {
         Self(delegate)
@@ -89,52 +135,11 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
             return;
         };
 
-        // let alreadyFound = results.iter().any(|r| r.getText() == result.getText() && r.getBarcodeFormat() == result.getBarcodeFormat());
-
         let resultPoints = result.getPoints().clone();
 
         let possible_new_result = Self::translatePoints(result, xOffset, yOffset);
 
-        let already_found = if possible_new_result.getPoints().len() >= 4 {
-            let q1 = Quadrilateral::new(
-                possible_new_result.getPoints()[0],
-                possible_new_result.getPoints()[1],
-                possible_new_result.getPoints()[2],
-                possible_new_result.getPoints()[3],
-            );
-            results.iter().any(|e| {
-                if e.getPoints().len() >= 4 {
-                    let q2 = Quadrilateral::new(
-                        e.getPoints()[0],
-                        e.getPoints()[1],
-                        e.getPoints()[2],
-                        e.getPoints()[3],
-                    );
-                    Quadrilateral::have_intersecting_bounding_boxes(&q1, &q2)
-                } else {
-                    e.getPoints().iter().any(|p| q1.is_inside(*p))
-                }
-            })
-        } else {
-            results.iter().any(|e| {
-                if e.getPoints().len() >= 4 {
-                    let q2 = Quadrilateral::new(
-                        e.getPoints()[0],
-                        e.getPoints()[1],
-                        e.getPoints()[2],
-                        e.getPoints()[3],
-                    );
-                    e.getPoints().iter().any(|p| q2.is_inside(*p))
-                } else {
-                    e.getText() == possible_new_result.getText()
-                        && e.getBarcodeFormat() == possible_new_result.getBarcodeFormat()
-                }
-            })
-        };
-
-        if !already_found {
-            results.push(possible_new_result);
-        }
+        results.push(possible_new_result);
 
         if resultPoints.is_empty() {
             return;
@@ -213,13 +218,6 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
             .map(|oldPoint| point_f(oldPoint.x + xOffset as f32, oldPoint.y + yOffset as f32))
             .collect();
 
-        // let mut newPoints = Vec::with_capacity(oldPoints.len());
-        // for oldPoint in oldPoints {
-        //     newPoints.push(point(
-        //         oldPoint.getX() + xOffset as f32,
-        //         oldPoint.getY() + yOffset as f32,
-        //     ));
-        // }
         let mut newRXingResult = RXingResult::new_complex(
             result.getText(),
             result.getRawBytes().clone(),

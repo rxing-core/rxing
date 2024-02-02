@@ -55,30 +55,8 @@ impl BufferedImageLuminanceSource {
         width: usize,
         height: usize,
     ) -> Self {
-        let img = image.to_rgba8();
-
-        let mut raster: ImageBuffer<_, Vec<_>> = ImageBuffer::new(image.width(), image.height());
-
-        for (x, y, new_pixel) in raster.enumerate_pixels_mut() {
-            let pixel = img.get_pixel(x, y);
-            let [red, green, blue, alpha] = pixel.0;
-            if alpha == 0 {
-                // white, so we know its luminance is 255
-                *new_pixel = Luma([0xFF])
-            } else {
-                // .299R + 0.587G + 0.114B (YUV/YIQ for PAL and NTSC),
-                // (306*R) >> 10 is approximately equal to R*0.299, and so on.
-                // 0x200 >> 10 is 0.5, it implements rounding.
-                *new_pixel = Luma([((306 * (red as u64)
-                    + 601 * (green as u64)
-                    + 117 * (blue as u64)
-                    + 0x200)
-                    >> 10) as u8])
-            }
-        }
-
         Self {
-            image: Rc::new(DynamicImage::from(raster)),
+            image: Rc::new(build_local_grey_image(image)),
             width,
             height,
             left,
@@ -232,4 +210,88 @@ impl LuminanceSource for BufferedImageLuminanceSource {
     fn get_luma8_point(&self, x: usize, y: usize) -> u8 {
         self.image.get_pixel(x as u32, y as u32).to_luma().0[0]
     }
+}
+
+fn build_local_grey_image(source: DynamicImage) -> DynamicImage {
+    let raster = match source {
+        DynamicImage::ImageLuma8(img) => img,
+        DynamicImage::ImageLumaA8(img) => {
+            let mut raster: ImageBuffer<_, Vec<_>> = ImageBuffer::new(img.width(), img.height());
+
+            for (x, y, new_pixel) in raster.enumerate_pixels_mut() {
+                let pixel = img.get_pixel(x, y);
+                let [luma, alpha] = pixel.0;
+                if alpha == 0 {
+                    // white, so we know its luminance is 255
+                    *new_pixel = Luma([0xFF])
+                } else {
+                    *new_pixel = Luma([luma.saturating_mul(alpha)])
+                }
+            }
+
+            raster
+        }
+        // DynamicImage::ImageRgb8(_) => todo!(),
+        // DynamicImage::ImageRgba8(_) => todo!(),
+        DynamicImage::ImageLuma16(img) => {
+            let mut raster: ImageBuffer<_, Vec<_>> = ImageBuffer::new(img.width(), img.height());
+
+            for (x, y, new_pixel) in raster.enumerate_pixels_mut() {
+                let pixel = img.get_pixel(x, y);
+                let [luma] = pixel.0;
+
+                *new_pixel = Luma([(luma / u8::max_value() as u16) as u8])
+            }
+
+            raster
+        }
+        DynamicImage::ImageLumaA16(img) => {
+            let mut raster: ImageBuffer<_, Vec<_>> = ImageBuffer::new(img.width(), img.height());
+
+            for (x, y, new_pixel) in raster.enumerate_pixels_mut() {
+                let pixel = img.get_pixel(x, y);
+                let [luma, alpha] = pixel.0;
+                if alpha == 0 {
+                    // white, so we know its luminance is 255
+                    *new_pixel = Luma([0xFF])
+                } else {
+                    *new_pixel =
+                        Luma([((luma.saturating_mul(alpha)) / u8::max_value() as u16) as u8])
+                }
+            }
+
+            raster
+        }
+        // DynamicImage::ImageRgb16(_) => todo!(),
+        // DynamicImage::ImageRgba16(_) => todo!(),
+        // DynamicImage::ImageRgb32F(_) => todo!(),
+        // DynamicImage::ImageRgba32F(_) => todo!(),
+        _ => {
+            let img = source.to_rgba8();
+
+            let mut raster: ImageBuffer<_, Vec<_>> =
+                ImageBuffer::new(source.width(), source.height());
+
+            for (x, y, new_pixel) in raster.enumerate_pixels_mut() {
+                let pixel = img.get_pixel(x, y);
+                let [red, green, blue, alpha] = pixel.0;
+                if alpha == 0 {
+                    // white, so we know its luminance is 255
+                    *new_pixel = Luma([0xFF])
+                } else {
+                    // .299R + 0.587G + 0.114B (YUV/YIQ for PAL and NTSC),
+                    // (306*R) >> 10 is approximately equal to R*0.299, and so on.
+                    // 0x200 >> 10 is 0.5, it implements rounding.
+                    *new_pixel = Luma([((306 * (red as u64)
+                        + 601 * (green as u64)
+                        + 117 * (blue as u64)
+                        + 0x200)
+                        >> 10) as u8])
+                }
+            }
+            raster
+        }
+    };
+
+    DynamicImage::from(raster)
 }

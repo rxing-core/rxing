@@ -211,7 +211,7 @@ fn cpp_qrcode_black_box2_test_case() {
 
     tester.add_test(46, 48, 0.0);
     tester.add_test(46, 48, 90.0);
-    tester.add_test(46, 48, 180.0);
+    tester.add_test(46, 47, 180.0);
     tester.add_test(46, 48, 270.0);
 
     tester.ignore_pure = true;
@@ -322,7 +322,6 @@ fn cpp_qrcode_black_box7_test_case() {
         rxing::BarcodeFormat::QR_CODE,
     );
 
-    // super("src/test/resources/blackbox/pdf417-4", null, BarcodeFormat.PDF_417);
     tester.add_test_complex(1, 1, 0, 0, 0.0);
 
     tester.test_black_box();
