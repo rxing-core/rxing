@@ -64,7 +64,7 @@ impl LuminanceSource for Luma8LuminanceSource {
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
         Ok(Self {
             dimensions: (width as u32, height as u32),
-            origin: (left as u32, top as u32),
+            origin: (self.origin.0 + left as u32, self.origin.1 + top as u32),
             data: self.data.clone(),
             inverted: self.inverted,
             original_dimension: self.original_dimension,
@@ -212,13 +212,3 @@ mod tests {
         );
     }
 }
-
-// fn print_matrix(matrix: &[u8], width: usize, height: usize) {
-//     for y in 0..height {
-//         for x in 0..width {
-//             print!("{}, ",matrix[y*width + x ]);
-//         }
-//         println!()
-//     }
-//     println!()
-// }
