@@ -176,7 +176,7 @@ fn zxing_bench_grey_image_issue_luma8_image() {
         DecodingHintDictionary, Exceptions, MultiUseMultiFormatReader,
     };
 
-    const FILE_NAME : &'static str = "test_resources/blackbox/github_issue_cases/170050507-1f10f0ef-82ca-4e14-a2d2-4b288ec54809.png";
+    const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/170050507-1f10f0ef-82ca-4e14-a2d2-4b288ec54809.png";
 
     let mut hints = DecodingHintDictionary::default();
 
@@ -268,7 +268,7 @@ fn zxing_bench_grey_image_issue_raw_luma8() {
         Exceptions, Luma8LuminanceSource, MultiUseMultiFormatReader,
     };
 
-    const FILE_NAME : &'static str = "test_resources/blackbox/github_issue_cases/170050507-1f10f0ef-82ca-4e14-a2d2-4b288ec54809.png";
+    const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/170050507-1f10f0ef-82ca-4e14-a2d2-4b288ec54809.png";
 
     let mut hints = DecodingHintDictionary::default();
 
