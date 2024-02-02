@@ -227,14 +227,16 @@ impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {
         }
 
         // Find a valley between them that is low and closer to the white peak.
-        let mut bestValley = secondPeak - 1;
+        let mut bestValley = secondPeak as isize - 1;
         let mut bestValleyScore = -1;
-        let mut x = secondPeak;
-        while x > firstPeak {
+        let mut x = secondPeak as isize;
+        while x > firstPeak as isize {
             // for (int x = secondPeak - 1; x > firstPeak; x--) {
-            let fromFirst = x - firstPeak;
-            let score =
-                fromFirst * fromFirst * (secondPeak - x) * (maxBucketCount - buckets[x]) as usize;
+            let fromFirst = x - firstPeak as isize;
+            let score = fromFirst
+                * fromFirst
+                * (secondPeak as isize - x)
+                * (maxBucketCount - buckets[x as usize]) as isize;
             if score as i32 > bestValleyScore {
                 bestValley = x;
                 bestValleyScore = score as i32;

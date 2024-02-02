@@ -113,7 +113,13 @@ impl<B: Binarizer> BinaryBitmap<B> {
         //    1D Reader finds a barcode before the 2D Readers run.
         // 2. This work will only be done once even if the caller installs multiple 2D Readers.
         if self.matrix.is_none() {
-            self.matrix = Some(self.binarizer.get_black_matrix().unwrap().clone())
+            self.matrix = Some(match self.binarizer.get_black_matrix() {
+                Ok(a) => a.clone(),
+                Err(_) => {
+                    BitMatrix::new(self.get_width() as u32, self.get_height() as u32).unwrap()
+                }
+            })
+            // self.binarizer.get_black_matrix().unwrap_or_else( |_| BitMatrix::new(self.get_width() as u32, self.get_height() as u32).unwrap()).clone())
         }
         self.matrix.as_ref().unwrap()
     }
