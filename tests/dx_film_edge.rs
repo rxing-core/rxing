@@ -6,9 +6,6 @@ use rxing::{BarcodeFormat, FilteredImageReader, MultiFormatReader};
 
 mod common;
 
-/**
- * @author Sean Owen
- */
 #[cfg(feature = "image_formats")]
 #[test]
 fn dx_film_edge() {
