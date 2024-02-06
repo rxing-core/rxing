@@ -118,22 +118,24 @@ impl LumImagePyramid {
         let div_height = div.get_height();
         let div_width = div.get_width();
 
-        let d_vec = div.get_matrix_mut();
+        let mut d_vec_it = div.get_matrix_mut().iter_mut();
 
-        for d in d_vec.iter_mut() {
-            for dy in 0..div_height {
-                // for (int dy = 0; dy < div.height(); ++dy){
-                for dx in 0..div_width {
-                    // for (int dx = 0; dx < div.width(); ++dx) {
-                    let mut sum = (N * N) / 2;
-                    for ty in 0..N {
-                        // for (int ty = 0; ty < N; ++ty){
-                        for tx in 0..N {
-                            // for (int tx = 0; tx < N; ++tx) {
-                            sum += siv.get_luma8_point(dx * N + tx, dy * N + ty) as usize;
-                        }
+        'main: for dy in 0..div_height {
+            // for (int dy = 0; dy < div.height(); ++dy)
+            for dx in 0..div_width {
+                // for (int dx = 0; dx < div.width(); ++dx) {
+                let mut sum = (N * N) / 2;
+                for ty in 0..N {
+                    // for (int ty = 0; ty < N; ++ty){
+                    for tx in 0..N {
+                        // for (int tx = 0; tx < N; ++tx){
+                        sum += siv.get_luma8_point(dx * N + tx, dy * N + ty) as usize;
                     }
+                }
+                if let Some(d) = d_vec_it.next() {
                     *d = (sum / (N * N)) as u8;
+                } else {
+                    break 'main;
                 }
             }
         }
@@ -188,7 +190,7 @@ fn SumFilter<F>(input: &BitMatrix, output: &mut BitMatrix, func: F)
 where
     F: Fn(u32) -> u32,
 {
-    for row in 1..output.height() {
+    for row in 1..output.height() - 1 {
         for col in 0..output.width() - 1 {
             let in0 = input.getRow(row - 1); //.row(0).begin();
             let in1 = input.getRow(row); //.row(1).begin();
@@ -200,7 +202,7 @@ where
                 sum += in0.get(j) as u32 + in1.get(j) as u32 + in2.get(j) as u32;
             }
 
-            output.set_bool(row, col, func(sum) != 0);
+            output.set_bool(col, row, func(sum) != 0);
         }
     }
 }
