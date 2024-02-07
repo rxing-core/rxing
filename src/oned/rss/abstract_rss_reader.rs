@@ -85,19 +85,12 @@ pub trait AbstractRSSReaderTrait: OneDReader {
         let ratio: f32 = (firstTwoSum as f32) / (sum as f32);
         if ratio >= Self::MIN_FINDER_PATTERN_RATIO && ratio <= Self::MAX_FINDER_PATTERN_RATIO {
             // passes ratio test in spec, but see if the counts are unreasonable
-            // let minCounter = counters.iter().min();
-            // let maxCounter = counters.iter().max();
             let mut minCounter = u32::MAX;
             let mut maxCounter = u32::MIN;
+
             for counter in counters {
                 maxCounter = std::cmp::max(*counter, maxCounter);
                 minCounter = std::cmp::min(*counter, minCounter);
-                // if *counter > maxCounter {
-                //     maxCounter = *counter;
-                // }
-                // if *counter < minCounter {
-                //     minCounter = *counter;
-                // }
             }
             return maxCounter < 10 * minCounter;
         }

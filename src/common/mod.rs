@@ -121,3 +121,11 @@ pub use line_orientation::LineOrientation;
 mod otsu_level_binarizer;
 #[cfg(feature = "otsu_level")]
 pub use otsu_level_binarizer::*;
+
+#[cfg(feature = "image")]
+mod adaptive_threshold_binarizer;
+#[cfg(feature = "image")]
+pub use adaptive_threshold_binarizer::*;
+
+pub type BitFieldBaseType = u32;
+pub const BIT_FIELD_BASE_BITS: usize = BitFieldBaseType::BITS as usize;

@@ -28,10 +28,10 @@ use once_cell::sync::Lazy;
 
 pub type VersionRef = &'static Version;
 
-pub static VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::buildVersions);
-pub static MICRO_VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::build_micro_versions);
-pub static MODEL1_VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::build_model1_versions);
-pub static RMQR_VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::build_rmqr_versions);
+pub static VERSIONS: Lazy<Box<[Version]>> = Lazy::new(Version::buildVersions);
+pub static MICRO_VERSIONS: Lazy<Box<[Version]>> = Lazy::new(Version::build_micro_versions);
+pub static MODEL1_VERSIONS: Lazy<Box<[Version]>> = Lazy::new(Version::build_model1_versions);
+pub static RMQR_VERSIONS: Lazy<Box<[Version]>> = Lazy::new(Version::build_rmqr_versions);
 
 /**
  * See ISO 18004:2006 Annex D.
@@ -54,15 +54,15 @@ pub const VERSION_DECODE_INFO: [u32; 34] = [
 pub struct Version {
     //   private static final Version[] VERSIONS = buildVersions();
     versionNumber: u32,
-    alignmentPatternCenters: Vec<u32>,
-    ecBlocks: Vec<ECBlocks>,
+    alignmentPatternCenters: Box<[u32]>,
+    ecBlocks: Box<[ECBlocks]>,
     totalCodewords: u32,
     pub(crate) qr_type: Type,
 }
 impl Version {
     pub(super) fn new(
         versionNumber: u32,
-        alignmentPatternCenters: Vec<u32>,
+        alignmentPatternCenters: Box<[u32]>,
         ecBlocks: [ECBlocks; 4],
     ) -> Self {
         let mut total = 0;
@@ -78,17 +78,20 @@ impl Version {
         Self {
             versionNumber,
             alignmentPatternCenters,
-            ecBlocks: ecBlocks.to_vec(),
-            totalCodewords: total,
             qr_type: if ecBlocks[0].getECCodewordsPerBlock() != 0 {
                 Type::Model2
             } else {
                 Type::RectMicro
             },
+            ecBlocks: Box::new(ecBlocks),
+            totalCodewords: total,
         }
     }
 
-    pub(super) fn without_alignment_patterns(versionNumber: u32, ecBlocks: Vec<ECBlocks>) -> Self {
+    pub(super) fn without_alignment_patterns(
+        versionNumber: u32,
+        ecBlocks: Box<[ECBlocks]>,
+    ) -> Self {
         let mut total = 0;
         let ecCodewords = ecBlocks[0].getECCodewordsPerBlock();
         let ecbArray = ecBlocks[0].getECBlocks();
@@ -107,7 +110,7 @@ impl Version {
 
         Self {
             versionNumber,
-            alignmentPatternCenters: Vec::default(),
+            alignmentPatternCenters: Box::default(),
             ecBlocks,
             totalCodewords: total,
             qr_type: symbol_type,
@@ -118,11 +121,11 @@ impl Version {
         self.versionNumber
     }
 
-    pub fn getAlignmentPatternCenters(&self) -> &[u32] {
+    pub const fn getAlignmentPatternCenters(&self) -> &[u32] {
         &self.alignmentPatternCenters
     }
 
-    pub fn getTotalCodewords(&self) -> u32 {
+    pub const fn getTotalCodewords(&self) -> u32 {
         self.totalCodewords
     }
 
@@ -131,7 +134,7 @@ impl Version {
         // 17 + 4 * self.versionNumber
     }
 
-    pub fn getECBlocksForLevel(&self, ecLevel: ErrorCorrectionLevel) -> &ECBlocks {
+    pub const fn getECBlocksForLevel(&self, ecLevel: ErrorCorrectionLevel) -> &ECBlocks {
         if ecLevel.get_ordinal() as usize >= self.ecBlocks.len() {
             return &self.ecBlocks[ecLevel.get_ordinal() as usize % self.ecBlocks.len()];
         }
@@ -293,11 +296,11 @@ impl fmt::Display for Version {
 #[derive(Debug, Clone)]
 pub struct ECBlocks {
     ecCodewordsPerBlock: u32,
-    ecBlocks: Vec<ECB>,
+    ecBlocks: Box<[ECB]>,
 }
 
 impl ECBlocks {
-    pub const fn new(ecCodewordsPerBlock: u32, ecBlocks: Vec<ECB>) -> Self {
+    pub const fn new(ecCodewordsPerBlock: u32, ecBlocks: Box<[ECB]>) -> Self {
         Self {
             ecCodewordsPerBlock,
             ecBlocks,
@@ -310,7 +313,7 @@ impl ECBlocks {
 
     pub fn getNumBlocks(&self) -> u32 {
         let mut total = 0;
-        for ecBlock in &self.ecBlocks {
+        for ecBlock in self.ecBlocks.iter() {
             total += ecBlock.getCount();
         }
         total

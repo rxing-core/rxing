@@ -237,6 +237,9 @@ impl PlanarYUVLuminanceSource {
 }
 
 impl LuminanceSource for PlanarYUVLuminanceSource {
+    const SUPPORTS_CROP: bool = true;
+    const SUPPORTS_ROTATION: bool = false;
+
     fn get_row(&self, y: usize) -> Vec<u8> {
         if y >= self.get_height() {
             // //throw new IllegalArgumentException("Requested row is outside the image: " + y);
@@ -310,10 +313,6 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         self.height
     }
 
-    fn is_crop_supported(&self) -> bool {
-        true
-    }
-
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
         PlanarYUVLuminanceSource::new_with_all(
             self.yuv_data.clone(),
@@ -327,10 +326,6 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
             self.invert,
         )
         .map_err(|_| Exceptions::UNSUPPORTED_OPERATION)
-    }
-
-    fn is_rotate_supported(&self) -> bool {
-        false
     }
 
     fn invert(&mut self) {

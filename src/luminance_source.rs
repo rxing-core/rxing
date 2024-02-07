@@ -29,8 +29,8 @@ use crate::Exceptions;
  * @author dswitkin@google.com (Daniel Switkin)
  */
 pub trait LuminanceSource {
-    //private final int width;
-    //private final int height;
+    const SUPPORTS_ROTATION: bool = false;
+    const SUPPORTS_CROP: bool = false;
 
     //fn new( width:usize,  height:usize) -> Self;
 
@@ -75,7 +75,14 @@ pub trait LuminanceSource {
      * @return Whether this subclass supports cropping.
      */
     fn is_crop_supported(&self) -> bool {
-        false
+        Self::SUPPORTS_CROP
+    }
+
+    /**
+     * @return Whether this subclass supports counter-clockwise rotation.
+     */
+    fn is_rotate_supported(&self) -> bool {
+        Self::SUPPORTS_ROTATION
     }
 
     /**
@@ -95,13 +102,6 @@ pub trait LuminanceSource {
         Err(Exceptions::unsupported_operation_with(
             "This luminance source does not support cropping.",
         ))
-    }
-
-    /**
-     * @return Whether this subclass supports counter-clockwise rotation.
-     */
-    fn is_rotate_supported(&self) -> bool {
-        false
     }
 
     /**

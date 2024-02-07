@@ -25,15 +25,15 @@
  */
 
 pub struct EANManufacturerOrgSupport {
-    ranges: Vec<Vec<u32>>,           //= new ArrayList<>();
-    countryIdentifiers: Vec<String>, // = new ArrayList<>();
+    ranges: Vec<[u32; 2]>,                 //= new ArrayList<>();
+    countryIdentifiers: Vec<&'static str>, // = new ArrayList<>();
 }
 
 impl Default for EANManufacturerOrgSupport {
     fn default() -> Self {
         let mut slf = Self {
-            ranges: Default::default(),
-            countryIdentifiers: Default::default(),
+            ranges: Vec::with_capacity(150),
+            countryIdentifiers: Vec::with_capacity(150),
         };
         slf.initIfNeeded();
         slf
@@ -42,14 +42,14 @@ impl Default for EANManufacturerOrgSupport {
 
 impl EANManufacturerOrgSupport {
     pub fn lookupCountryIdentifier(&self, productCode: &str) -> Option<&str> {
-        let prefix = productCode[0..3].parse::<u32>().expect("must parse prefix");
+        let prefix = productCode[0..3].parse::<u32>().ok()?;
         let max = self.ranges.len();
         for (i, range) in self.ranges.iter().enumerate().take(max) {
             let start = range[0];
             if prefix < start {
                 return None;
             }
-            let end = if range.len() == 1 { start } else { range[1] };
+            let end = if range[1] == 0 { start } else { range[1] };
             if prefix <= end {
                 return Some(self.countryIdentifiers.get(i)?);
             }
@@ -58,7 +58,7 @@ impl EANManufacturerOrgSupport {
         None
     }
 
-    fn add(&mut self, range: Vec<u32>, id: String) {
+    fn add(&mut self, range: [u32; 2], id: &'static str) {
         self.ranges.push(range);
         self.countryIdentifiers.push(id);
     }
@@ -67,112 +67,112 @@ impl EANManufacturerOrgSupport {
         if !self.ranges.is_empty() {
             return;
         }
-        self.add(vec![0, 19], "US/CA".to_owned());
-        self.add(vec![30, 39], "US".to_owned());
-        self.add(vec![60, 139], "US/CA".to_owned());
-        self.add(vec![300, 379], "FR".to_owned());
-        self.add(vec![380], "BG".to_owned());
-        self.add(vec![383], "SI".to_owned());
-        self.add(vec![385], "HR".to_owned());
-        self.add(vec![387], "BA".to_owned());
-        self.add(vec![400, 440], "DE".to_owned());
-        self.add(vec![450, 459], "JP".to_owned());
-        self.add(vec![460, 469], "RU".to_owned());
-        self.add(vec![471], "TW".to_owned());
-        self.add(vec![474], "EE".to_owned());
-        self.add(vec![475], "LV".to_owned());
-        self.add(vec![476], "AZ".to_owned());
-        self.add(vec![477], "LT".to_owned());
-        self.add(vec![478], "UZ".to_owned());
-        self.add(vec![479], "LK".to_owned());
-        self.add(vec![480], "PH".to_owned());
-        self.add(vec![481], "BY".to_owned());
-        self.add(vec![482], "UA".to_owned());
-        self.add(vec![484], "MD".to_owned());
-        self.add(vec![485], "AM".to_owned());
-        self.add(vec![486], "GE".to_owned());
-        self.add(vec![487], "KZ".to_owned());
-        self.add(vec![489], "HK".to_owned());
-        self.add(vec![490, 499], "JP".to_owned());
-        self.add(vec![500, 509], "GB".to_owned());
-        self.add(vec![520], "GR".to_owned());
-        self.add(vec![528], "LB".to_owned());
-        self.add(vec![529], "CY".to_owned());
-        self.add(vec![531], "MK".to_owned());
-        self.add(vec![535], "MT".to_owned());
-        self.add(vec![539], "IE".to_owned());
-        self.add(vec![540, 549], "BE/LU".to_owned());
-        self.add(vec![560], "PT".to_owned());
-        self.add(vec![569], "IS".to_owned());
-        self.add(vec![570, 579], "DK".to_owned());
-        self.add(vec![590], "PL".to_owned());
-        self.add(vec![594], "RO".to_owned());
-        self.add(vec![599], "HU".to_owned());
-        self.add(vec![600, 601], "ZA".to_owned());
-        self.add(vec![603], "GH".to_owned());
-        self.add(vec![608], "BH".to_owned());
-        self.add(vec![609], "MU".to_owned());
-        self.add(vec![611], "MA".to_owned());
-        self.add(vec![613], "DZ".to_owned());
-        self.add(vec![616], "KE".to_owned());
-        self.add(vec![618], "CI".to_owned());
-        self.add(vec![619], "TN".to_owned());
-        self.add(vec![621], "SY".to_owned());
-        self.add(vec![622], "EG".to_owned());
-        self.add(vec![624], "LY".to_owned());
-        self.add(vec![625], "JO".to_owned());
-        self.add(vec![626], "IR".to_owned());
-        self.add(vec![627], "KW".to_owned());
-        self.add(vec![628], "SA".to_owned());
-        self.add(vec![629], "AE".to_owned());
-        self.add(vec![640, 649], "FI".to_owned());
-        self.add(vec![690, 695], "CN".to_owned());
-        self.add(vec![700, 709], "NO".to_owned());
-        self.add(vec![729], "IL".to_owned());
-        self.add(vec![730, 739], "SE".to_owned());
-        self.add(vec![740], "GT".to_owned());
-        self.add(vec![741], "SV".to_owned());
-        self.add(vec![742], "HN".to_owned());
-        self.add(vec![743], "NI".to_owned());
-        self.add(vec![744], "CR".to_owned());
-        self.add(vec![745], "PA".to_owned());
-        self.add(vec![746], "DO".to_owned());
-        self.add(vec![750], "MX".to_owned());
-        self.add(vec![754, 755], "CA".to_owned());
-        self.add(vec![759], "VE".to_owned());
-        self.add(vec![760, 769], "CH".to_owned());
-        self.add(vec![770], "CO".to_owned());
-        self.add(vec![773], "UY".to_owned());
-        self.add(vec![775], "PE".to_owned());
-        self.add(vec![777], "BO".to_owned());
-        self.add(vec![779], "AR".to_owned());
-        self.add(vec![780], "CL".to_owned());
-        self.add(vec![784], "PY".to_owned());
-        self.add(vec![785], "PE".to_owned());
-        self.add(vec![786], "EC".to_owned());
-        self.add(vec![789, 790], "BR".to_owned());
-        self.add(vec![800, 839], "IT".to_owned());
-        self.add(vec![840, 849], "ES".to_owned());
-        self.add(vec![850], "CU".to_owned());
-        self.add(vec![858], "SK".to_owned());
-        self.add(vec![859], "CZ".to_owned());
-        self.add(vec![860], "YU".to_owned());
-        self.add(vec![865], "MN".to_owned());
-        self.add(vec![867], "KP".to_owned());
-        self.add(vec![868, 869], "TR".to_owned());
-        self.add(vec![870, 879], "NL".to_owned());
-        self.add(vec![880], "KR".to_owned());
-        self.add(vec![885], "TH".to_owned());
-        self.add(vec![888], "SG".to_owned());
-        self.add(vec![890], "IN".to_owned());
-        self.add(vec![893], "VN".to_owned());
-        self.add(vec![896], "PK".to_owned());
-        self.add(vec![899], "ID".to_owned());
-        self.add(vec![900, 919], "AT".to_owned());
-        self.add(vec![930, 939], "AU".to_owned());
-        self.add(vec![940, 949], "AZ".to_owned());
-        self.add(vec![955], "MY".to_owned());
-        self.add(vec![958], "MO".to_owned());
+        self.add([0, 19], "US/CA");
+        self.add([30, 39], "US");
+        self.add([60, 139], "US/CA");
+        self.add([300, 379], "FR");
+        self.add([380, 0], "BG");
+        self.add([383, 0], "SI");
+        self.add([385, 0], "HR");
+        self.add([387, 0], "BA");
+        self.add([400, 440], "DE");
+        self.add([450, 459], "JP");
+        self.add([460, 469], "RU");
+        self.add([471, 0], "TW");
+        self.add([474, 0], "EE");
+        self.add([475, 0], "LV");
+        self.add([476, 0], "AZ");
+        self.add([477, 0], "LT");
+        self.add([478, 0], "UZ");
+        self.add([479, 0], "LK");
+        self.add([480, 0], "PH");
+        self.add([481, 0], "BY");
+        self.add([482, 0], "UA");
+        self.add([484, 0], "MD");
+        self.add([485, 0], "AM");
+        self.add([486, 0], "GE");
+        self.add([487, 0], "KZ");
+        self.add([489, 0], "HK");
+        self.add([490, 499], "JP");
+        self.add([500, 509], "GB");
+        self.add([520, 0], "GR");
+        self.add([528, 0], "LB");
+        self.add([529, 0], "CY");
+        self.add([531, 0], "MK");
+        self.add([535, 0], "MT");
+        self.add([539, 0], "IE");
+        self.add([540, 549], "BE/LU");
+        self.add([560, 0], "PT");
+        self.add([569, 0], "IS");
+        self.add([570, 579], "DK");
+        self.add([590, 0], "PL");
+        self.add([594, 0], "RO");
+        self.add([599, 0], "HU");
+        self.add([600, 601], "ZA");
+        self.add([603, 0], "GH");
+        self.add([608, 0], "BH");
+        self.add([609, 0], "MU");
+        self.add([611, 0], "MA");
+        self.add([613, 0], "DZ");
+        self.add([616, 0], "KE");
+        self.add([618, 0], "CI");
+        self.add([619, 0], "TN");
+        self.add([621, 0], "SY");
+        self.add([622, 0], "EG");
+        self.add([624, 0], "LY");
+        self.add([625, 0], "JO");
+        self.add([626, 0], "IR");
+        self.add([627, 0], "KW");
+        self.add([628, 0], "SA");
+        self.add([629, 0], "AE");
+        self.add([640, 649], "FI");
+        self.add([690, 695], "CN");
+        self.add([700, 709], "NO");
+        self.add([729, 0], "IL");
+        self.add([730, 739], "SE");
+        self.add([740, 0], "GT");
+        self.add([741, 0], "SV");
+        self.add([742, 0], "HN");
+        self.add([743, 0], "NI");
+        self.add([744, 0], "CR");
+        self.add([745, 0], "PA");
+        self.add([746, 0], "DO");
+        self.add([750, 0], "MX");
+        self.add([754, 755], "CA");
+        self.add([759, 0], "VE");
+        self.add([760, 769], "CH");
+        self.add([770, 0], "CO");
+        self.add([773, 0], "UY");
+        self.add([775, 0], "PE");
+        self.add([777, 0], "BO");
+        self.add([779, 0], "AR");
+        self.add([780, 0], "CL");
+        self.add([784, 0], "PY");
+        self.add([785, 0], "PE");
+        self.add([786, 0], "EC");
+        self.add([789, 790], "BR");
+        self.add([800, 839], "IT");
+        self.add([840, 849], "ES");
+        self.add([850, 0], "CU");
+        self.add([858, 0], "SK");
+        self.add([859, 0], "CZ");
+        self.add([860, 0], "YU");
+        self.add([865, 0], "MN");
+        self.add([867, 0], "KP");
+        self.add([868, 869], "TR");
+        self.add([870, 879], "NL");
+        self.add([880, 0], "KR");
+        self.add([885, 0], "TH");
+        self.add([888, 0], "SG");
+        self.add([890, 0], "IN");
+        self.add([893, 0], "VN");
+        self.add([896, 0], "PK");
+        self.add([899, 0], "ID");
+        self.add([900, 919], "AT");
+        self.add([930, 939], "AU");
+        self.add([940, 949], "AZ");
+        self.add([955, 0], "MY");
+        self.add([958, 0], "MO");
     }
 }
 

@@ -57,7 +57,6 @@ impl OneDReader for RSS14Reader {
         row.reverse();
         let rightPair = self.decodePair(&row, true, rowNumber, hints);
         Self::addOrTally(&mut self.possibleRightPairs, rightPair);
-        row.reverse();
         for left in &self.possibleLeftPairs {
             if left.getCount() > 1 {
                 for right in &self.possibleRightPairs {
@@ -246,35 +245,33 @@ impl RSS14Reader {
         rowNumber: u32,
         hints: &DecodingHintDictionary,
     ) -> Option<Pair> {
-        let pos_pair = || -> Result<Pair> {
-            let startEnd = self.findFinderPattern(row, right)?;
-            let pattern = self.parseFoundFinderPattern(row, rowNumber, right, &startEnd)?;
+        let startEnd = self.findFinderPattern(row, right).ok()?;
+        let pattern = self
+            .parseFoundFinderPattern(row, rowNumber, right, &startEnd)
+            .ok()?;
 
-            if let Some(DecodeHintValue::NeedResultPointCallback(cb)) =
-                hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK)
-            {
-                let startEnd = pattern.getStartEnd();
-                let mut center: f32 = (startEnd[0] + startEnd[1] - 1) as f32 / 2.0;
-                if right {
-                    // row is actually reversed
-                    center = row.get_size() as f32 - 1.0 - center;
-                }
-                cb(point_f(center, rowNumber as f32));
+        if let Some(DecodeHintValue::NeedResultPointCallback(cb)) =
+            hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK)
+        {
+            let startEnd = pattern.getStartEnd();
+            let mut center: f32 = (startEnd[0] + startEnd[1] - 1) as f32 / 2.0;
+            if right {
+                // row is actually reversed
+                center = row.get_size() as f32 - 1.0 - center;
             }
+            cb(point_f(center, rowNumber as f32));
+        }
 
-            let outside = self.decodeDataCharacter(row, &pattern, true)?;
-            let inside = self.decodeDataCharacter(row, &pattern, false)?;
+        let outside = self.decodeDataCharacter(row, &pattern, true).ok()?;
+        let inside = self.decodeDataCharacter(row, &pattern, false).ok()?;
 
-            // todo!("must add callback");
+        // todo!("must add callback");
 
-            Ok(Pair::new(
-                1597 * outside.getValue() + inside.getValue(),
-                outside.getChecksumPortion() + 4 * inside.getChecksumPortion(),
-                pattern,
-            ))
-        }();
-
-        pos_pair.ok()
+        Some(Pair::new(
+            1597 * outside.getValue() + inside.getValue(),
+            outside.getChecksumPortion() + 4 * inside.getChecksumPortion(),
+            pattern,
+        ))
     }
 
     fn decodeDataCharacter(

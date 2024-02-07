@@ -17,6 +17,7 @@
 //package com.google.zxing.common;
 
 use std::cmp;
+use std::io::{ErrorKind, Read};
 
 use crate::common::Result;
 use crate::Exceptions;
@@ -171,5 +172,30 @@ impl BitSource {
      */
     pub fn available(&self) -> usize {
         8 * (self.bytes.len() - self.byte_offset) - self.bit_offset
+    }
+}
+
+impl Read for BitSource {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let requested_bytes = buf.len();
+        let available = self.available();
+
+        let to_read = if requested_bytes <= available {
+            requested_bytes
+        } else {
+            available
+        };
+
+        for byte in buf.iter_mut().take(to_read) {
+            let Ok(bits) = self.readBits(8) else {
+                return Err(std::io::Error::new(
+                    ErrorKind::Unsupported,
+                    "unable to read bits",
+                ));
+            };
+            *byte = bits as u8;
+        }
+
+        Ok(to_read)
     }
 }

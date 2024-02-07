@@ -136,7 +136,7 @@ fn test_get_next_set5() {
 #[test]
 fn test_set_bulk() {
     let mut array = BitArray::with_size(64);
-    array.setBulk(32, 0xFFFF0000);
+    array.setBulk(32, 0b11111111111111110000000000000000);
     for i in 0..48 {
         // for (int i = 0; i < 48; i++) {
         assert!(!array.get(i));
@@ -150,7 +150,7 @@ fn test_set_bulk() {
 #[test]
 fn test_append_bit() {
     let mut array = BitArray::new();
-    array.appendBits(0x000001E, 6).expect("must append)");
+    array.appendBits(0b11110, 6).expect("must append)");
     let mut array_2 = BitArray::new();
     array_2.appendBit(false);
     array_2.appendBit(true);
@@ -159,7 +159,9 @@ fn test_append_bit() {
     array_2.appendBit(true);
     array_2.appendBit(false);
 
-    assert_eq!(array, array_2)
+    assert_eq!(array.get_size(), array_2.get_size());
+
+    assert_eq!(array.getBitArray(), array_2.getBitArray())
 }
 
 #[test]
@@ -234,18 +236,37 @@ fn test_is_range() {
 
 #[test]
 fn reverse_algorithm_test() {
-    let oldBits: Vec<u32> = vec![128, 256, 512, 6453324, 50934953];
+    let oldBits: Vec<super::BitFieldBaseType> = vec![128, 256, 512, 6453324, 50934953];
     for size in 1..160 {
         // for (int size = 1; size < 160; size++) {
         let newBitsOriginal = reverse_original(&oldBits.clone(), size);
         let mut newBitArray = BitArray::with_initial_values(oldBits.clone(), size);
         newBitArray.reverse();
         let newBitsNew = newBitArray.getBitArray();
-        assert!(arrays_are_equal(
-            &newBitsOriginal,
-            newBitsNew,
-            size / 32 + 1
-        ));
+        assert!(
+            arrays_are_equal(&newBitsOriginal, newBitsNew, size / 32 + 1),
+            "size: ({}) : {:?}/{:?}",
+            size,
+            newBitsOriginal,
+            newBitsNew
+        );
+    }
+}
+
+#[test]
+fn reverse_test_2() {
+    let initial_data: super::BitFieldBaseType = 0b00_00_11_00_00_00_00_00_00_00_00_00_00_00_00_00;
+    // let expected_data = vec![0b00_00_00_00_00_00_00_00_00_00_00_00_00_11_00_00_u32];
+    // let mut array = BitArray::with_initial_values(initial_data.clone(), 4);
+    for x in 1..=32 {
+        let expected_data = reverse_original(&[initial_data], x);
+        let mut array = BitArray::with_size(x);
+        array.setBulk(0, initial_data);
+        // dbg!(&array);
+        assert_eq!(&[initial_data], array.getBitArray());
+        array.reverse();
+        // dbg!(&array);
+        assert_eq!(expected_data, array.getBitArray(), "for x = {x}");
     }
 }
 
@@ -271,7 +292,48 @@ fn test_equals() {
     // assert_eq!(a.hash(), b.hash());
 }
 
-fn reverse_original(oldBits: &[u32], size: usize) -> Vec<u32> {
+#[test]
+fn test_xor() {
+    let val_1: super::BitFieldBaseType = 0b01_00_11;
+    let val_2: super::BitFieldBaseType = 0b10_11_10;
+    let mut array_1 = BitArray::with_initial_values(vec![val_1], 32);
+    let array_2 = BitArray::with_initial_values(vec![val_2], 32);
+
+    array_1.xor(&array_2).expect("xor complete");
+
+    assert_eq!(array_1.getBitArray(), &[0b11_11_01]);
+}
+
+#[test]
+fn test_xor_2() {
+    for i in 1..33 {
+        let val_1: super::BitFieldBaseType = 0b01_00_11;
+        let val_2: super::BitFieldBaseType = 0b10_01_10;
+        let mut array_1 = BitArray::new(); //BitArray::with_initial_values(vec![val_1], i);
+        let mut array_2 = BitArray::new(); //BitArray::with_initial_values(vec![val_2], i);
+
+        array_1.appendBits(val_1, i).expect("append");
+        array_2.appendBits(val_2, i).expect("append");
+
+        array_1.xor(&array_2).expect("xor complete");
+
+        match i {
+            1 => assert_eq!(array_1.getBitArray(), &[0b1]),
+            2 => assert_eq!(array_1.getBitArray(), &[0b10]),
+            3 => assert_eq!(array_1.getBitArray(), &[0b10_1]),
+            4 => assert_eq!(array_1.getBitArray(), &[0b10_10]),
+            5 => assert_eq!(array_1.getBitArray(), &[0b10_10_1]),
+            6 => assert_eq!(array_1.getBitArray(), &[0b10_10_11]),
+            7..=24 => assert_eq!(array_1.getBitArray(), &[0b10_10_11 << (i - 6)], "{i}"),
+            _ => assert_eq!(array_1.getBitArray(), &[0b10_10_11 << i - 6, 0], "{i}"),
+        }
+    }
+}
+
+fn reverse_original(
+    oldBits: &[super::BitFieldBaseType],
+    size: usize,
+) -> Vec<super::BitFieldBaseType> {
     let mut newBits = vec![0; oldBits.len()];
     for i in 0..size {
         // for (int i = 0; i < size; i++) {
@@ -282,13 +344,12 @@ fn reverse_original(oldBits: &[u32], size: usize) -> Vec<u32> {
     newBits
 }
 
-fn bit_set(bits: &[u32], i: usize) -> bool {
+fn bit_set(bits: &[super::BitFieldBaseType], i: usize) -> bool {
     (bits[i / 32] & (1 << (i & 0x1F))) != 0
 }
 
-fn arrays_are_equal(left: &[u32], right: &[u32], size: usize) -> bool {
+fn arrays_are_equal<T: Eq + Default>(left: &[T], right: &[T], size: usize) -> bool {
     for i in 0..size {
-        // for (int i = 0; i < size; i++) {
         if left[i] != right[i] {
             return false;
         }

@@ -18,13 +18,15 @@
 
 // import java.util.Arrays;
 
-use std::ops::Index;
 use std::{cmp, fmt};
 
 use crate::common::Result;
 use crate::Exceptions;
 
-static LOAD_FACTOR: f32 = 0.75;
+const LOAD_FACTOR: f32 = 0.75;
+
+type BaseType = super::BitFieldBaseType;
+const BASE_BITS: usize = super::BIT_FIELD_BASE_BITS;
 
 /**
  * <p>A simple, fast array of bits, represented compactly by an array of ints internally.</p>
@@ -33,7 +35,7 @@ static LOAD_FACTOR: f32 = 0.75;
  */
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct BitArray {
-    bits: Vec<u32>,
+    bits: Vec<BaseType>,
     size: usize,
 }
 
@@ -47,14 +49,14 @@ impl BitArray {
 
     pub fn with_size(size: usize) -> Self {
         Self {
-            bits: BitArray::makeArray(size),
+            bits: makeArray(size),
             size,
         }
     }
 
     /// For testing only
     #[cfg(test)]
-    pub fn with_initial_values(bits: Vec<u32>, size: usize) -> Self {
+    pub fn with_initial_values(bits: Vec<BaseType>, size: usize) -> Self {
         Self { bits, size }
     }
 
@@ -66,12 +68,14 @@ impl BitArray {
         (self.size + 7) / 8
     }
 
+    #[inline]
     fn ensure_capacity(&mut self, newSize: usize) {
-        if newSize > self.bits.len() * 32 {
-            let mut newBits = BitArray::makeArray((newSize as f32 / LOAD_FACTOR).ceil() as usize);
-            //System.arraycopy(bits, 0, newBits, 0, bits.length);
-            newBits[0..self.bits.len()].clone_from_slice(&self.bits[0..self.bits.len()]);
-            self.bits = newBits;
+        let target_size = (newSize as f32 / LOAD_FACTOR).ceil() as usize;
+        let array_desired_length = (target_size + BASE_BITS - 1) / BASE_BITS;
+
+        if self.bits.len() < array_desired_length {
+            let additional_capacity = array_desired_length - self.bits.len();
+            self.bits.extend(vec![0; additional_capacity]);
         }
     }
 
@@ -80,11 +84,11 @@ impl BitArray {
      * @return true iff bit i is set
      */
     pub fn get(&self, i: usize) -> bool {
-        (self.bits[i / 32] & (1 << (i & 0x1F))) != 0
+        (self.bits[i / BASE_BITS] & (1 << (i & 0x1F))) != 0
     }
 
     pub fn try_get(&self, i: usize) -> Option<bool> {
-        if (i / 32) >= self.bits.len() {
+        if (i / BASE_BITS) >= self.bits.len() {
             None
         } else {
             Some(self.get(i))
@@ -97,7 +101,7 @@ impl BitArray {
      * @param i bit to set
      */
     pub fn set(&mut self, i: usize) {
-        self.bits[i / 32] |= 1 << (i & 0x1F);
+        self.bits[i / BASE_BITS] |= 1 << (i & 0x1F);
     }
 
     /**
@@ -106,7 +110,7 @@ impl BitArray {
      * @param i bit to set
      */
     pub fn flip(&mut self, i: usize) {
-        self.bits[i / 32] ^= 1 << (i & 0x1F);
+        self.bits[i / BASE_BITS] ^= 1 << (i & 0x1F);
     }
 
     /**
@@ -119,7 +123,7 @@ impl BitArray {
         if from >= self.size {
             return self.size;
         }
-        let mut bitsOffset = from / 32;
+        let mut bitsOffset = from / BASE_BITS;
         let mut currentBits = self.bits[bitsOffset] as i64;
         // mask off lesser bits first
         currentBits &= -(1 << (from & 0x1F));
@@ -130,7 +134,7 @@ impl BitArray {
             }
             currentBits = self.bits[bitsOffset] as i64;
         }
-        let result = (bitsOffset * 32) + currentBits.trailing_zeros() as usize;
+        let result = (bitsOffset * BASE_BITS) + currentBits.trailing_zeros() as usize;
         cmp::min(result, self.size)
     }
 
@@ -143,7 +147,7 @@ impl BitArray {
         if from >= self.size {
             return self.size;
         }
-        let mut bitsOffset = from / 32;
+        let mut bitsOffset = from / BASE_BITS;
         let mut currentBits = !self.bits[bitsOffset] as i64;
         // mask off lesser bits first
         currentBits &= -(1 << (from & 0x1F));
@@ -154,7 +158,7 @@ impl BitArray {
             }
             currentBits = !self.bits[bitsOffset] as i64;
         }
-        let result = (bitsOffset * 32) + currentBits.trailing_zeros() as usize;
+        let result = (bitsOffset * BASE_BITS) + currentBits.trailing_zeros() as usize;
         cmp::min(result, self.size)
     }
 
@@ -165,8 +169,8 @@ impl BitArray {
      * @param newBits the new value of the next 32 bits. Note again that the least-significant bit
      * corresponds to bit i, the next-least-significant to i+1, and so on.
      */
-    pub fn setBulk(&mut self, i: usize, newBits: u32) {
-        self.bits[i / 32] = newBits;
+    pub fn setBulk(&mut self, i: usize, newBits: BaseType) {
+        self.bits[i / BASE_BITS] = newBits;
     }
 
     /**
@@ -184,15 +188,15 @@ impl BitArray {
             return Ok(());
         }
         end -= 1; // will be easier to treat this as the last actually set bit -- inclusive
-        let firstInt = start / 32;
-        let lastInt = end / 32;
+        let firstInt = start / BASE_BITS;
+        let lastInt = end / BASE_BITS;
         for i in firstInt..=lastInt {
             //for (int i = firstInt; i <= lastInt; i++) {
             let firstBit = if i > firstInt { 0 } else { start & 0x1F };
             let lastBit = if i < lastInt { 31 } else { end & 0x1F };
             // Ones from firstBit to lastBit, inclusive
             let mask: u64 = (2 << lastBit) - (1 << firstBit);
-            self.bits[i] |= mask as u32;
+            self.bits[i] |= mask as BaseType;
         }
         Ok(())
     }
@@ -201,11 +205,6 @@ impl BitArray {
      * Clears all bits (sets to false).
      */
     pub fn clear(&mut self) {
-        // let max = self.bits.len();
-        // for i in 0..max {
-        //     //for (int i = 0; i < max; i++) {
-        //     self.bits[i] = 0;
-        // }
         self.bits.fill(0);
     }
 
@@ -227,8 +226,8 @@ impl BitArray {
             return Ok(true); // empty range matches
         }
         end -= 1; // will be easier to treat this as the last actually set bit -- inclusive
-        let firstInt = start / 32;
-        let lastInt = end / 32;
+        let firstInt = start / BASE_BITS;
+        let lastInt = end / BASE_BITS;
         for i in firstInt..=lastInt {
             //for (int i = firstInt; i <= lastInt; i++) {
             let firstBit = if i > firstInt { 0 } else { start & 0x1F };
@@ -238,7 +237,7 @@ impl BitArray {
 
             // Return false if we're looking for 1s and the masked bits[i] isn't all 1s (that is,
             // equals the mask, or we're looking for 0s and the masked portion is not all 0s
-            if (self.bits[i] & mask as u32) != (if value { mask as u32 } else { 0 }) {
+            if (self.bits[i] & mask as BaseType) != (if value { mask as BaseType } else { 0 }) {
                 return Ok(false);
             }
         }
@@ -248,7 +247,7 @@ impl BitArray {
     pub fn appendBit(&mut self, bit: bool) {
         self.ensure_capacity(self.size + 1);
         if bit {
-            self.bits[self.size / 32] |= 1 << (self.size & 0x1F);
+            self.bits[self.size / BASE_BITS] |= 1 << (self.size & 0x1F);
         }
         self.size += 1;
     }
@@ -261,11 +260,12 @@ impl BitArray {
      * @param value {@code int} containing bits to append
      * @param numBits bits from value to append
      */
-    pub fn appendBits(&mut self, value: u32, num_bits: usize) -> Result<()> {
-        if num_bits > 32 {
-            return Err(Exceptions::illegal_argument_with(
-                "num bits must be between 0 and 32",
-            ));
+    pub fn appendBits(&mut self, value: BaseType, num_bits: usize) -> Result<()> {
+        if num_bits > BASE_BITS {
+            return Err(Exceptions::illegal_argument_with(format!(
+                "num bits must be between 0 and {}",
+                BaseType::BITS
+            )));
         }
 
         if num_bits == 0 {
@@ -277,7 +277,7 @@ impl BitArray {
         for numBitsLeft in (0..num_bits).rev() {
             //for (int numBitsLeft = numBits - 1; numBitsLeft >= 0; numBitsLeft--) {
             if (value & (1 << numBitsLeft)) != 0 {
-                self.bits[next_size / 32] |= 1 << (next_size & 0x1F);
+                self.bits[next_size / BASE_BITS] |= 1 << (next_size & 0x1F);
             }
             next_size += 1;
         }
@@ -298,11 +298,11 @@ impl BitArray {
         if self.size != other.size {
             return Err(Exceptions::illegal_argument_with("Sizes don't match"));
         }
-        for i in 0..self.bits.len() {
+        for (lhs, rhs) in self.bits.iter_mut().zip(other.bits.iter()) {
             //for (int i = 0; i < bits.length; i++) {
             // The last int could be incomplete (i.e. not have 32 bits in
             // it) but there is no problem since 0 XOR 0 == 0.
-            self.bits[i] ^= other.bits[i];
+            *lhs ^= rhs;
         }
         Ok(())
     }
@@ -335,7 +335,7 @@ impl BitArray {
      * @return underlying array of ints. The first element holds the first 32 bits, and the least
      *         significant bit is bit 0.
      */
-    pub fn getBitArray(&self) -> &[u32] {
+    pub fn getBitArray(&self) -> &[BaseType] {
         &self.bits
     }
 
@@ -343,52 +343,35 @@ impl BitArray {
      * Reverses all bits in the array.
      */
     pub fn reverse(&mut self) {
-        let mut newBits = vec![0; self.bits.len()];
+        // let mut newBits = vec![0; self.bits.len()];
         // reverse all int's first
         let len = (self.size - 1) / 32;
         let oldBitsLen = len + 1;
-        for i in 0..oldBitsLen {
-            //for (int i = 0; i < oldBitsLen; i++) {
-            newBits[len - i] = self.bits[i].reverse_bits();
-        }
+        // let array_size = self.size.div_ceil(BASE_TYPE::BITS as usize);
+
+        // for (new_bits, old_bits) in newBits.iter_mut().take(oldBitsLen).zip(self.bits.iter().take(oldBitsLen).rev()) {
+        //     *new_bits = old_bits.reverse_bits();
+        // }
+        self.bits[..oldBitsLen].reverse();
+        self.bits[..oldBitsLen]
+            .iter_mut()
+            .for_each(|bit_store| *bit_store = bit_store.reverse_bits());
+        self.bits[oldBitsLen..].fill(0);
+
         // now correct the int's if the bit size isn't a multiple of 32
-        if self.size != oldBitsLen * 32 {
-            let leftOffset = oldBitsLen * 32 - self.size;
-            let mut currentInt = newBits[0] >> leftOffset;
+        if self.size != oldBitsLen * BASE_BITS {
+            let leftOffset = oldBitsLen * BASE_BITS - self.size;
+            let mut currentInt = self.bits[0] >> leftOffset;
             for i in 1..oldBitsLen {
                 //for (int i = 1; i < oldBitsLen; i++) {
-                let nextInt = newBits[i];
-                currentInt |= nextInt << (32 - leftOffset);
-                newBits[i - 1] = currentInt;
+                let nextInt = self.bits[i];
+                currentInt |= nextInt << (BASE_BITS - leftOffset);
+                self.bits[i - 1] = currentInt;
                 currentInt = nextInt >> leftOffset;
             }
-            newBits[oldBitsLen - 1] = currentInt;
+            self.bits[oldBitsLen - 1] = currentInt;
         }
-        self.bits = newBits;
     }
-
-    fn makeArray(size: usize) -> Vec<u32> {
-        vec![0; (size + 31) / 32]
-    }
-
-    //   @Override
-    //   public boolean equals(Object o) {
-    //     if (!(o instanceof BitArray)) {
-    //       return false;
-    //     }
-    //     BitArray other = (BitArray) o;
-    //     return size == other.size && Arrays.equals(bits, other.bits);
-    //   }
-
-    //   @Override
-    //   public int hashCode() {
-    //     return 31 * size + Arrays.hashCode(bits);
-    //   }
-
-    //   @Override
-    //   public BitArray clone() {
-    //     return new BitArray(bits.clone(), size);
-    //   }
 }
 
 impl fmt::Display for BitArray {
@@ -427,13 +410,6 @@ impl From<&BitArray> for Vec<u8> {
 
 impl From<BitArray> for Vec<bool> {
     fn from(value: BitArray) -> Self {
-        // let mut array = vec![false; value.size];
-
-        // for (pixel, element) in array.iter_mut().enumerate().take(value.size) {
-        //     *element = value.get(pixel);
-        // }
-
-        // array
         Self::from(&value)
     }
 }
@@ -448,4 +424,8 @@ impl From<&BitArray> for Vec<bool> {
 
         array
     }
+}
+
+fn makeArray(size: usize) -> Vec<BaseType> {
+    vec![0; (size + BASE_BITS - 1) / BASE_BITS]
 }

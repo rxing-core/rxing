@@ -18,6 +18,8 @@
 
 // import java.io.ByteArrayOutputStream;
 
+use std::io::Write;
+
 /**
  * Class that lets one easily build an array of bytes by appending bits at a time.
  *
@@ -69,5 +71,21 @@ impl BitSourceBuilder {
 impl Default for BitSourceBuilder {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl Write for BitSourceBuilder {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let mut written = 0;
+        for byte in buf.iter() {
+            self.write(*byte as u32, 8);
+            written += 1;
+        }
+
+        Ok(written)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
     }
 }

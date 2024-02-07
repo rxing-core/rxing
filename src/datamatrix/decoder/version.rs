@@ -20,7 +20,7 @@ use once_cell::sync::Lazy;
 use crate::common::Result;
 use crate::Exceptions;
 
-static VERSIONS: Lazy<Vec<Version>> = Lazy::new(Version::buildVersions);
+static VERSIONS: Lazy<Box<[Version]>> = Lazy::new(Version::buildVersions);
 
 pub type VersionRef = &'static Version;
 
@@ -118,8 +118,8 @@ impl Version {
     /**
      * See ISO 16022:2006 5.5.1 Table 7
      */
-    fn buildVersions() -> Vec<Version> {
-        vec![
+    fn buildVersions() -> Box<[Version]> {
+        Box::new([
             Version::new(1, 10, 10, 8, 8, ECBlocks::new(5, ECB::new(1, 3))),
             Version::new(2, 12, 12, 10, 10, ECBlocks::new(7, ECB::new(1, 5))),
             Version::new(3, 14, 14, 12, 12, ECBlocks::new(10, ECB::new(1, 8))),
@@ -177,7 +177,7 @@ impl Version {
             Version::new(46, 26, 40, 24, 18, ECBlocks::new(38, ECB::new(1, 70))),
             Version::new(47, 26, 48, 24, 22, ECBlocks::new(42, ECB::new(1, 90))),
             Version::new(48, 26, 64, 24, 14, ECBlocks::new(50, ECB::new(1, 118))),
-        ]
+        ])
     }
 }
 
@@ -195,20 +195,20 @@ impl fmt::Display for Version {
  */
 pub struct ECBlocks {
     ecCodewords: u32,
-    ecBlocks: Vec<ECB>,
+    ecBlocks: Box<[ECB]>,
 }
 impl ECBlocks {
     pub fn new(ecCodewords: u32, ecBlocks: ECB) -> Self {
         Self {
             ecCodewords,
-            ecBlocks: vec![ecBlocks],
+            ecBlocks: Box::new([ecBlocks]),
         }
     }
 
     pub fn new2(ecCodewords: u32, ecBlocks1: ECB, ecBlocks2: ECB) -> Self {
         Self {
             ecCodewords,
-            ecBlocks: vec![ecBlocks1, ecBlocks2],
+            ecBlocks: Box::new([ecBlocks1, ecBlocks2]),
         }
     }
 
@@ -231,18 +231,18 @@ pub struct ECB {
     dataCodewords: u32,
 }
 impl ECB {
-    pub fn new(count: u32, dataCodewords: u32) -> Self {
+    pub const fn new(count: u32, dataCodewords: u32) -> Self {
         Self {
             count,
             dataCodewords,
         }
     }
 
-    pub fn getCount(&self) -> u32 {
+    pub const fn getCount(&self) -> u32 {
         self.count
     }
 
-    pub fn getDataCodewords(&self) -> u32 {
+    pub const fn getDataCodewords(&self) -> u32 {
         self.dataCodewords
     }
 }

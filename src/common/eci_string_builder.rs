@@ -349,3 +349,18 @@ impl Default for SymbologyIdentifier {
         }
     }
 }
+
+impl std::io::Write for ECIStringBuilder {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        if buf.len() == 1 {
+            self.append_byte(buf[0]);
+        } else {
+            self.append_bytes(buf);
+        }
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}

@@ -56,7 +56,7 @@ impl ErrorCorrectionLevel {
         }
     }
 
-    pub fn get_value(&self) -> u8 {
+    pub const fn get_value(&self) -> u8 {
         match self {
             ErrorCorrectionLevel::L => 0x01,
             ErrorCorrectionLevel::M => 0x00,
@@ -66,7 +66,7 @@ impl ErrorCorrectionLevel {
         }
     }
 
-    pub fn get_ordinal(&self) -> u8 {
+    pub const fn get_ordinal(&self) -> u8 {
         match self {
             ErrorCorrectionLevel::L => 0,
             ErrorCorrectionLevel::M => 1,

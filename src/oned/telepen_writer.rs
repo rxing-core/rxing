@@ -66,7 +66,7 @@ impl OneDimensionalCodeWriter for TelepenWriter {
         for c in decodedContents.chars() {
             if c as u32 > 127 {
                 return Err(Exceptions::illegal_argument_with(
-                    "Telepen only supports ASCII characters.".to_string(),
+                    "Telepen only supports ASCII characters.",
                 ));
             }
 
@@ -133,7 +133,7 @@ impl OneDimensionalCodeWriter for TelepenWriter {
                 }
                 "0" => {
                     return Err(Exceptions::illegal_argument_with(
-                        "Invalid bit combination!".to_string(),
+                        "Invalid bit combination!",
                     ));
                 }
                 _ => {

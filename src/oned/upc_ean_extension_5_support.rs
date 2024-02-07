@@ -188,7 +188,7 @@ impl UPCEANExtension5Support {
                     "99991" =>
                     // Complementary
                     {
-                        return Some("0.00".to_string())
+                        return Some("0.00".to_owned())
                     }
                     "99990" => return Some("Used".to_owned()),
                     _ => {}

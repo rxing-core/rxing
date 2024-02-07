@@ -9,13 +9,16 @@ pub struct Luma8LuminanceSource {
     /// image origin in the form (x,y)
     origin: (u32, u32),
     /// raw data for luma 8
-    data: Vec<u8>,
+    data: Box<[u8]>,
     /// flag indicating if the underlying data needs to be inverted for use
     inverted: bool,
     /// original dimensions of the data, used to manage crop
     original_dimension: (u32, u32),
 }
 impl LuminanceSource for Luma8LuminanceSource {
+    const SUPPORTS_CROP: bool = true;
+    const SUPPORTS_ROTATION: bool = true;
+
     fn get_row(&self, y: usize) -> Vec<u8> {
         let chunk_size = self.original_dimension.0 as usize;
         let row_skip = y + self.origin.1 as usize;
@@ -30,16 +33,6 @@ impl LuminanceSource for Luma8LuminanceSource {
         } else {
             Vec::from(&self.data[data_start..data_end])
         }
-
-        // self.data
-        //     .chunks_exact(chunk_size)
-        //     .skip(row_skip)
-        //     .take(1)
-        //     .flatten()
-        //     .skip(column_skip)
-        //     .take(column_take)
-        //     .map(|byte| Self::invert_if_should(*byte, self.inverted))
-        //     .collect()
     }
 
     fn get_column(&self, x: usize) -> Vec<u8> {
@@ -85,10 +78,6 @@ impl LuminanceSource for Luma8LuminanceSource {
         self.inverted = !self.inverted;
     }
 
-    fn is_crop_supported(&self) -> bool {
-        true
-    }
-
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
         Ok(Self {
             dimensions: (width as u32, height as u32),
@@ -97,10 +86,6 @@ impl LuminanceSource for Luma8LuminanceSource {
             inverted: self.inverted,
             original_dimension: self.original_dimension,
         })
-    }
-
-    fn is_rotate_supported(&self) -> bool {
-        true
     }
 
     fn rotate_counter_clockwise(&self) -> Result<Self> {
@@ -123,7 +108,14 @@ impl LuminanceSource for Luma8LuminanceSource {
     }
 
     fn get_luma8_point(&self, column: usize, row: usize) -> u8 {
-        self.get_row(row)[column]
+        let chunk_size = self.original_dimension.0 as usize;
+        let row_skip = row + self.origin.1 as usize;
+        let column_skip = self.origin.0 as usize;
+
+        let data_start = (chunk_size * row_skip) + column_skip;
+        let data_point = data_start + column;
+
+        Self::invert_if_should(self.data[data_point], self.inverted)
     }
 }
 
@@ -163,7 +155,7 @@ impl Luma8LuminanceSource {
                 new_data[offset_b] = self.data[offset_a];
             }
         }
-        self.data = new_data;
+        self.data = new_data.into_boxed_slice();
         self.dimensions = new_dim;
         self.original_dimension = (self.original_dimension.1, self.original_dimension.0);
         self.origin = (self.origin.1, self.origin.0);
@@ -184,7 +176,7 @@ impl Luma8LuminanceSource {
         Self {
             dimensions: (width, height),
             origin: (0, 0),
-            data: source,
+            data: source.into_boxed_slice(),
             inverted: false,
             original_dimension: (width, height),
         }
@@ -194,13 +186,13 @@ impl Luma8LuminanceSource {
         Self {
             dimensions: (width as u32, height as u32),
             origin: (0, 0),
-            data: vec![0u8; width * height],
+            data: vec![0u8; width * height].into_boxed_slice(),
             inverted: false,
             original_dimension: (width as u32, height as u32),
         }
     }
 
-    pub fn get_matrix_mut(&mut self) -> &mut Vec<u8> {
+    pub fn get_matrix_mut(&mut self) -> &mut Box<[u8]> {
         &mut self.data
     }
 
@@ -244,16 +236,19 @@ mod tests {
             (rect_wide.dimensions.1, rect_wide.dimensions.0)
         );
 
-        assert_eq!(rotated_square.data, vec![3, 6, 9, 2, 5, 8, 1, 4, 7]);
+        assert_eq!(
+            rotated_square.data,
+            vec![3, 6, 9, 2, 5, 8, 1, 4, 7].into_boxed_slice()
+        );
 
         assert_eq!(
             rotated_wide_rect.data,
-            vec![1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1]
+            vec![1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1].into_boxed_slice()
         );
 
         assert_eq!(
             rotated_tall_rect.data,
-            vec![0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0]
+            vec![0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0].into_boxed_slice()
         );
     }
 }

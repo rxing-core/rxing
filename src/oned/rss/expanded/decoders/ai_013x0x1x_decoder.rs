@@ -35,8 +35,8 @@ use super::{AI01decoder, AI01weightDecoder, AbstractExpandedDecoder, GeneralAppI
 pub struct AI013x0x1xDecoder<'a> {
     information: &'a BitArray,
     decoder: GeneralAppIdDecoder<'a>,
-    dateCode: String,
-    firstAIdigits: String,
+    dateCode: &'static str,
+    firstAIdigits: &'static str,
 }
 
 impl AI01weightDecoder for AI013x0x1xDecoder<'_> {
@@ -88,8 +88,8 @@ impl<'a> AI013x0x1xDecoder<'_> {
 
     pub fn new(
         information: &'a BitArray,
-        firstAIdigits: String,
-        dateCode: String,
+        firstAIdigits: &'static str,
+        dateCode: &'static str,
     ) -> AI013x0x1xDecoder<'a> {
         AI013x0x1xDecoder {
             information,

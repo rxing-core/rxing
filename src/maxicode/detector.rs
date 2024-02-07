@@ -1143,7 +1143,7 @@ mod detector_test {
             .read_to_string(&mut expected_result)
             .unwrap();
 
-        let detection = super::detect(bitmatrix, true).unwrap();
+        let detection = super::detect(&bitmatrix, true).unwrap();
 
         // let i: image::DynamicImage = detection.getBits().into();
         // i.save("dbgfle-transformed.png")

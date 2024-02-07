@@ -66,6 +66,9 @@ impl BufferedImageLuminanceSource {
 }
 
 impl LuminanceSource for BufferedImageLuminanceSource {
+    const SUPPORTS_CROP: bool = true;
+    const SUPPORTS_ROTATION: bool = true;
+
     fn get_row(&self, y: usize) -> Vec<u8> {
         let width = self.get_width(); // - self.left as usize;
 
@@ -87,8 +90,6 @@ impl LuminanceSource for BufferedImageLuminanceSource {
     }
 
     fn get_column(&self, x: usize) -> Vec<u8> {
-        let width = self.get_height(); // - self.left as usize;
-
         let pixels: Vec<u8> = || -> Option<Vec<u8>> {
             Some(
                 self.image
@@ -153,10 +154,6 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         self.height
     }
 
-    fn is_crop_supported(&self) -> bool {
-        true
-    }
-
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
         Ok(Self {
             image: self.image.clone(),
@@ -165,10 +162,6 @@ impl LuminanceSource for BufferedImageLuminanceSource {
             left: self.left + left as u32,
             top: self.top + top as u32,
         })
-    }
-
-    fn is_rotate_supported(&self) -> bool {
-        true
     }
 
     fn invert(&mut self) {

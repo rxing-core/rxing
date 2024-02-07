@@ -104,7 +104,9 @@ pub mod helpers;
 mod luma_luma_source;
 pub use luma_luma_source::*;
 
+#[cfg(feature = "experimental_features")]
 mod filtered_image_reader;
+#[cfg(feature = "experimental_features")]
 pub use filtered_image_reader::*;
 
 #[cfg(feature = "svg_read")]

@@ -13,18 +13,18 @@ macro_rules! qr_version {
             ),+
         }
         ) => {
-            vec![
+            Box::new([
             $(
                 Version::without_alignment_patterns(
                     $version,
-                    vec![
+                    Box::new([
                         $(
-                            ECBlocks::new($ec_codewords_per_block, vec![ECB::new($count_1,$data_codewords_1),ECB::new($count_2,$data_codewords_2)])
+                            ECBlocks::new($ec_codewords_per_block, Box::new([ECB::new($count_1,$data_codewords_1),ECB::new($count_2,$data_codewords_2)]))
                         ),*
-                    ]
+                    ])
                 )
             ),*
-            ]
+            ])
         };
     // Model 2 & rMQR
     (
@@ -38,27 +38,27 @@ macro_rules! qr_version {
             ),+
         }
         ) => {
-            vec![
+            Box::new([
                 $(
                     Version::new($version,
-                    vec![
+                    Box::new([
                         $(
                             $alignment_pattern
                         ),*
-                    ],
+                    ]),
                     [
                         $(
-                            ECBlocks::new($ec_codewords_per_block, vec![ECB::new($count_1,$data_codewords_1),ECB::new($count_2,$data_codewords_2)])
+                            ECBlocks::new($ec_codewords_per_block, Box::new([ECB::new($count_1,$data_codewords_1),ECB::new($count_2,$data_codewords_2)]))
                         ),*
                     ]
                     )
                 ),*
-            ]
+            ])
         };
 }
 
 impl Version {
-    pub fn build_micro_versions() -> Vec<Version> {
+    pub fn build_micro_versions() -> Box<[Version]> {
         qr_version!(
             {
                 {1, {2, 1, 3, 0, 0}},
@@ -71,7 +71,7 @@ impl Version {
     /**
      * See ISO 18004:2006 6.5.1 Table 9
      */
-    pub fn buildVersions() -> Vec<Version> {
+    pub fn buildVersions() -> Box<[Version]> {
         qr_version!({
             {1, {}, {
                 7,  1, 19, 0, 0,
@@ -316,7 +316,7 @@ impl Version {
         })
     }
 
-    pub fn build_model1_versions() -> Vec<Version> {
+    pub fn build_model1_versions() -> Box<[Version]> {
         qr_version!(
             {
                 {1, {
@@ -407,7 +407,7 @@ impl Version {
         )
     }
 
-    pub fn build_rmqr_versions() -> Vec<Version> {
+    pub fn build_rmqr_versions() -> Box<[Version]> {
         qr_version!(
             {
                 // Version number, alignment pattern centres, `ECBlocks`

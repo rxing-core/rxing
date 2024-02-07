@@ -93,62 +93,14 @@ pub fn createDecoder<'a>(
     let sevenBitEncodationMethod =
         GeneralAppIdDecoder::extractNumericValueFromBitArrayWithInformation(information, 1, 7);
     match sevenBitEncodationMethod {
-        56 => {
-            return Ok(Box::new(AI013x0x1xDecoder::new(
-                information,
-                "310".to_owned(),
-                "11".to_owned(),
-            )))
-        }
-        57 => {
-            return Ok(Box::new(AI013x0x1xDecoder::new(
-                information,
-                "320".to_owned(),
-                "11".to_owned(),
-            )))
-        }
-        58 => {
-            return Ok(Box::new(AI013x0x1xDecoder::new(
-                information,
-                "310".to_owned(),
-                "13".to_owned(),
-            )))
-        }
-        59 => {
-            return Ok(Box::new(AI013x0x1xDecoder::new(
-                information,
-                "320".to_owned(),
-                "13".to_owned(),
-            )))
-        }
-        60 => {
-            return Ok(Box::new(AI013x0x1xDecoder::new(
-                information,
-                "310".to_owned(),
-                "15".to_owned(),
-            )))
-        }
-        61 => {
-            return Ok(Box::new(AI013x0x1xDecoder::new(
-                information,
-                "320".to_owned(),
-                "15".to_owned(),
-            )))
-        }
-        62 => {
-            return Ok(Box::new(AI013x0x1xDecoder::new(
-                information,
-                "310".to_owned(),
-                "17".to_owned(),
-            )))
-        }
-        63 => {
-            return Ok(Box::new(AI013x0x1xDecoder::new(
-                information,
-                "320".to_owned(),
-                "17".to_owned(),
-            )))
-        }
+        56 => return Ok(Box::new(AI013x0x1xDecoder::new(information, "310", "11"))),
+        57 => return Ok(Box::new(AI013x0x1xDecoder::new(information, "320", "11"))),
+        58 => return Ok(Box::new(AI013x0x1xDecoder::new(information, "310", "13"))),
+        59 => return Ok(Box::new(AI013x0x1xDecoder::new(information, "320", "13"))),
+        60 => return Ok(Box::new(AI013x0x1xDecoder::new(information, "310", "15"))),
+        61 => return Ok(Box::new(AI013x0x1xDecoder::new(information, "320", "15"))),
+        62 => return Ok(Box::new(AI013x0x1xDecoder::new(information, "310", "17"))),
+        63 => return Ok(Box::new(AI013x0x1xDecoder::new(information, "320", "17"))),
         _ => {}
     }
 

@@ -31,7 +31,7 @@ use crate::point_f;
 
 use super::BitMatrix;
 
-static BIT_MATRIX_POINTS: [u32; 6] = [1, 2, 2, 0, 3, 1];
+const BIT_MATRIX_POINTS: [u32; 6] = [1, 2, 2, 0, 3, 1];
 
 #[test]
 fn test_get_set() {

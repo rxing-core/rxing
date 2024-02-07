@@ -1,6 +1,6 @@
 // dxfilmedge-1
 
-#![cfg(feature = "image")]
+#![cfg(feature = "image, experimental_features")]
 
 use rxing::{BarcodeFormat, FilteredImageReader, MultiFormatReader};
 

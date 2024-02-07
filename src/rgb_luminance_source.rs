@@ -39,6 +39,8 @@ pub struct RGBLuminanceSource {
 }
 
 impl LuminanceSource for RGBLuminanceSource {
+    const SUPPORTS_CROP: bool = true;
+
     /// gets a row, returns an empty row if we are out of bounds.
     fn get_row(&self, y: usize) -> Vec<u8> {
         if y >= self.get_height() {
@@ -109,10 +111,6 @@ impl LuminanceSource for RGBLuminanceSource {
 
     fn get_height(&self) -> usize {
         self.height
-    }
-
-    fn is_crop_supported(&self) -> bool {
-        true
     }
 
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {

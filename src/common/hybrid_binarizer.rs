@@ -175,12 +175,12 @@ impl<LS: LuminanceSource> HybridBinarizer<LS> {
             // for (int y = 0; y < subHeight; y++) {
             let yoffset = u32::min(y << BLOCK_SIZE_POWER, maxYOffset);
 
-            let top = Self::cap(y, sub_height - 3);
+            let top = u32::clamp(y, 2, sub_height - 3); // Self::cap(y, sub_height - 3);
             for x in 0..sub_width {
                 //   for (int x = 0; x < subWidth; x++) {
                 let xoffset = u32::min(x << BLOCK_SIZE_POWER, maxXOffset);
 
-                let left = Self::cap(x, sub_width - 3);
+                let left = u32::clamp(x, 2, sub_width - 3); //Self::cap(x, sub_width - 3);
                 let mut sum = 0;
                 for z in -2..=2 {
                     // for (int z = -2; z <= 2; z++) {
@@ -195,11 +195,6 @@ impl<LS: LuminanceSource> HybridBinarizer<LS> {
                 Self::thresholdBlock(luminances, xoffset, yoffset, average, width, matrix);
             }
         }
-    }
-
-    #[inline(always)]
-    fn cap(value: u32, max: u32) -> u32 {
-        u32::clamp(value, 2, max)
     }
 
     /**

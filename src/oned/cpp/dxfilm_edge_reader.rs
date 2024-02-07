@@ -265,7 +265,7 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
             for _i in 0..modules {
                 dataBits.appendBits(
                     if next.index() % 2 == 0 {
-                        0xFFFFFFFF
+                        0xFFFFFFFF_u32
                     } else {
                         0x0
                     },
