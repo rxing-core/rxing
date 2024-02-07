@@ -1,5 +1,5 @@
 use std::iter::Sum;
-use std::ops::Shl;
+
 
 use crate::common::Result;
 use crate::qrcode::cpp_port::detector::AppendBit;
@@ -80,10 +80,10 @@ pub fn ToInt(a: &[u32]) -> Option<u32> {
     let mut pattern = 0;
     for (i, element) in a.iter().copied().enumerate() {
         // for (int i = 0; i < Size(a); i++)
-        pattern = (pattern << element) | !(0xffffffff << element) * (!i & 1) as u32;
+        pattern = (pattern << element) | (!(0xffffffff << element) * (!i & 1) as u32);
     }
 
-    return Some(pattern);
+    Some(pattern)
 }
 
 pub fn ToIntPos(
@@ -94,7 +94,7 @@ pub fn ToIntPos(
     // assert(0 <= count && count <= 8 * (int)sizeof(T));
     // assert(0 <= pos && pos + count <= bits.size());
 
-    let count = std::cmp::min(count as usize, bits.len());
+    let count = std::cmp::min(count, bits.len());
     let mut res = 0;
     for bit in bits.iter().skip(pos).take(count) {
         AppendBit(&mut res, bit == &0);
@@ -103,5 +103,5 @@ pub fn ToIntPos(
     // for (int i = 0; i < count; ++i, ++it)
     // 	{AppendBit(res, *it);}
 
-    return Some(res as u32);
+    Some(res as u32)
 }

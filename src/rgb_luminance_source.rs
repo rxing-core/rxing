@@ -60,7 +60,7 @@ impl LuminanceSource for RGBLuminanceSource {
         row
     }
 
-    fn get_column(&self, x: usize) -> Vec<u8> {
+    fn get_column(&self, _x: usize) -> Vec<u8> {
         unimplemented!()
     }
 
@@ -131,9 +131,9 @@ impl LuminanceSource for RGBLuminanceSource {
     }
 
     fn get_luma8_point(&self, x: usize, y: usize) -> u8 {
-        let width = self.get_width();
+        let _width = self.get_width();
         let row_offset = (y + self.top) * self.dataWidth + self.left;
-        let col_offset = (x + self.left);
+        let col_offset = x + self.left;
 
         self.luminances[row_offset + col_offset]
     }

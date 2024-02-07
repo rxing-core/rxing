@@ -320,12 +320,12 @@ fn test_xor_2() {
         match i {
             1 => assert_eq!(array_1.getBitArray(), &[0b1]),
             2 => assert_eq!(array_1.getBitArray(), &[0b10]),
-            3 => assert_eq!(array_1.getBitArray(), &[0b10_1]),
+            3 => assert_eq!(array_1.getBitArray(), &[0b101]),
             4 => assert_eq!(array_1.getBitArray(), &[0b10_10]),
-            5 => assert_eq!(array_1.getBitArray(), &[0b10_10_1]),
+            5 => assert_eq!(array_1.getBitArray(), &[0b1_0101]),
             6 => assert_eq!(array_1.getBitArray(), &[0b10_10_11]),
             7..=24 => assert_eq!(array_1.getBitArray(), &[0b10_10_11 << (i - 6)], "{i}"),
-            _ => assert_eq!(array_1.getBitArray(), &[0b10_10_11 << i - 6, 0], "{i}"),
+            _ => assert_eq!(array_1.getBitArray(), &[0b10_10_11 << (i - 6), 0], "{i}"),
         }
     }
 }

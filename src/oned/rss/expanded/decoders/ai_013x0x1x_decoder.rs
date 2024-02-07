@@ -42,7 +42,7 @@ pub struct AI013x0x1xDecoder<'a> {
 impl AI01weightDecoder for AI013x0x1xDecoder<'_> {
     fn addWeightCode(&self, buf: &mut String, weight: u32) {
         buf.push('(');
-        buf.push_str(&self.firstAIdigits);
+        buf.push_str(self.firstAIdigits);
         buf.push_str(&(weight / 100000).to_string());
         buf.push(')');
     }
@@ -108,7 +108,7 @@ impl<'a> AI013x0x1xDecoder<'_> {
         }
 
         buf.push('(');
-        buf.push_str(&self.dateCode);
+        buf.push_str(self.dateCode);
         buf.push(')');
 
         let day = numericDate % 32;

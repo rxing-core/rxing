@@ -76,10 +76,10 @@ impl BitMatrix {
         Ok(Self {
             width,
             height,
-            row_size: ((width as usize + BASE_BITS - 1) / BASE_BITS) as usize,
+            row_size: ((width as usize + BASE_BITS - 1) / BASE_BITS),
             bits: vec![
                 0;
-                (((width as usize + BASE_BITS - 1) / BASE_BITS) * height as usize) as usize
+                ((width as usize + BASE_BITS - 1) / BASE_BITS) * height as usize
             ],
         })
         // this.width = width;

@@ -1,4 +1,4 @@
-use crate::common::cpp_essentials::PatternRow;
+
 use crate::common::BitMatrix;
 use crate::common::Result;
 use crate::point_f;

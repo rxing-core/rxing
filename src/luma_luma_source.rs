@@ -40,7 +40,7 @@ impl LuminanceSource for Luma8LuminanceSource {
             .chunks_exact(self.original_dimension.0 as usize)
             .skip(self.origin.1 as usize)
             .fold(Vec::default(), |mut acc, e| {
-                acc.push(e[self.origin.0 as usize + x as usize]);
+                acc.push(e[self.origin.0 as usize + x]);
                 acc
             })
             .iter()

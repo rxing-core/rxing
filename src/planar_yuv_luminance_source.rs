@@ -259,7 +259,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         row
     }
 
-    fn get_column(&self, x: usize) -> Vec<u8> {
+    fn get_column(&self, _x: usize) -> Vec<u8> {
         unimplemented!()
     }
 
@@ -332,7 +332,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         self.invert = !self.invert;
     }
 
-    fn get_luma8_point(&self, x: usize, y: usize) -> u8 {
+    fn get_luma8_point(&self, _x: usize, _y: usize) -> u8 {
         unimplemented!()
     }
 }

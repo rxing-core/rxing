@@ -205,7 +205,7 @@ impl<B: Binarizer> BinaryBitmap<B> {
     }
 
     pub fn get_source(&self) -> &B::Source {
-        &self.binarizer.get_luminance_source()
+        self.binarizer.get_luminance_source()
     }
 
     pub fn get_binarizer(&self) -> &B {
