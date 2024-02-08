@@ -1,4 +1,3 @@
-
 use crate::common::BitMatrix;
 use crate::common::Result;
 use crate::point_f;

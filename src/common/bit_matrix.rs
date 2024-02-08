@@ -77,10 +77,7 @@ impl BitMatrix {
             width,
             height,
             row_size: ((width as usize + BASE_BITS - 1) / BASE_BITS),
-            bits: vec![
-                0;
-                ((width as usize + BASE_BITS - 1) / BASE_BITS) * height as usize
-            ],
+            bits: vec![0; ((width as usize + BASE_BITS - 1) / BASE_BITS) * height as usize],
         })
         // this.width = width;
         // this.height = height;

@@ -16,7 +16,7 @@
 
 use crate::{
     common::{
-        BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Eci, Result, StringUtils,
+        string_utils, BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Eci, Result,
     },
     DecodingHintDictionary, Exceptions,
 };
@@ -305,7 +305,7 @@ fn decodeByteSegment(
         // give a hint.
         {
             #[cfg(not(feature = "allow_forced_iso_ied_18004_compliance"))]
-            StringUtils::guessCharset(&readBytes, hints).ok_or(Exceptions::ILLEGAL_STATE)?
+            string_utils::guessCharset(&readBytes, hints).ok_or(Exceptions::ILLEGAL_STATE)?
         }
 
         #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]

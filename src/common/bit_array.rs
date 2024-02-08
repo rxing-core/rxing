@@ -37,27 +37,35 @@ const BASE_BITS: usize = super::BIT_FIELD_BASE_BITS;
 pub struct BitArray {
     bits: Vec<BaseType>,
     size: usize,
+    read_offset: usize,
 }
 
 impl BitArray {
     pub fn new() -> Self {
-        Self {
-            bits: Vec::new(),
-            size: 0,
-        }
+        // Self {
+        //     bits: Vec::new(),
+        //     size: 0,
+        //     read_offset: 0,
+        // }
+        Self::default()
     }
 
     pub fn with_size(size: usize) -> Self {
         Self {
             bits: makeArray(size),
             size,
+            read_offset: 0,
         }
     }
 
     /// For testing only
     #[cfg(test)]
     pub fn with_initial_values(bits: Vec<BaseType>, size: usize) -> Self {
-        Self { bits, size }
+        Self {
+            bits,
+            size,
+            read_offset: 0,
+        }
     }
 
     pub fn get_size(&self) -> usize {
@@ -428,4 +436,40 @@ impl From<&BitArray> for Vec<bool> {
 
 fn makeArray(size: usize) -> Vec<BaseType> {
     vec![0; (size + BASE_BITS - 1) / BASE_BITS]
+}
+
+impl std::io::Read for BitArray {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let size = self.size;
+        let desired = buf.len();
+        let current_offset = self.read_offset;
+
+        let available = size - current_offset;
+
+        let to_read = if desired <= available {
+            desired
+        } else {
+            available
+        };
+
+        self.toBytes(current_offset, buf, 0, to_read);
+
+        self.read_offset = current_offset + to_read;
+
+        Ok(to_read)
+    }
+}
+
+impl std::io::Write for BitArray {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        for byte in buf {
+            self.appendBits(*byte as BaseType, 8)
+                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
+        }
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
 }

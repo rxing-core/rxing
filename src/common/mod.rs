@@ -18,8 +18,7 @@ mod BitSourceTestCase;
 #[cfg(test)]
 mod PerspectiveTransformTestCase;
 
-mod string_utils;
-pub use string_utils::*;
+pub mod string_utils;
 
 mod bit_array;
 pub use bit_array::*;

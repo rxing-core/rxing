@@ -26,7 +26,7 @@ use std::{
     fmt::{self},
 };
 
-use super::{CharacterSet, Eci, StringUtils};
+use super::{string_utils, CharacterSet, Eci};
 
 /**
  * Class that converts a sequence of ECIs and bytes into a string
@@ -220,7 +220,7 @@ impl ECIStringBuilder {
             }
 
             else */
-            if let Some(found_encoding) = StringUtils::guessCharset(bytes, &HashMap::default()) {
+            if let Some(found_encoding) = string_utils::guessCharset(bytes, &HashMap::default()) {
                 if let Ok(found_encoded_str) = found_encoding.decode(bytes) {
                     encoded_string.push_str(&found_encoded_str);
                     not_encoded_yet = false;
