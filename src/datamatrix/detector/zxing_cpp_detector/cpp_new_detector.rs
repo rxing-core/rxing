@@ -54,9 +54,7 @@ fn Scan(
         let mut br = Point::default();
         let mut tr = Point::default();
 
-        for l in lines.iter_mut() {
-            l.reset();
-        }
+        lines.iter_mut().for_each(|l| l.reset());
 
         let [lineL, lineB, lineR, lineT] = lines;
 

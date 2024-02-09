@@ -42,12 +42,11 @@ pub struct BitArray {
 
 impl BitArray {
     pub fn new() -> Self {
-        // Self {
-        //     bits: Vec::new(),
-        //     size: 0,
-        //     read_offset: 0,
-        // }
-        Self::default()
+        Self {
+            bits: Vec::new(),
+            size: 0,
+            read_offset: 0,
+        }
     }
 
     pub fn with_size(size: usize) -> Self {

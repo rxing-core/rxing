@@ -206,9 +206,6 @@ impl MinimalECIInput {
                 .zip(&stringToEncode)
                 .take(stringToEncode.len())
             {
-                // for i in 0..stringToEncode.len() {
-                //   for (int i = 0; i < bytes.length; i++) {
-                // let c = stringToEncode.get(i).unwrap();
                 *byt = if fnc1.is_some() && c == fnc1.as_ref().unwrap() {
                     1000
                 } else {
@@ -332,17 +329,12 @@ impl MinimalECIInput {
                 }
             }
             //optimize memory by removing edges that have been passed.
-            for j in 0..encoderSet.len() {
-                //   for (int j = 0; j < encoderSet.length(); j++) {
-                edges[i - 1][j] = None;
-            }
+            edges[i - 1][..encoderSet.len()].fill(None);
         }
         let mut minimalJ: i32 = -1;
         let mut minimalSize: i32 = i32::MAX;
         for j in 0..encoderSet.len() {
-            // for (int j = 0; j < encoderSet.length(); j++) {
-            if edges[inputLength][j].is_some() {
-                let edge = edges[inputLength][j].clone().unwrap();
+            if let Some(edge) = edges[inputLength][j].clone() {
                 if (edge.cachedTotalSize as i32) < minimalSize {
                     minimalSize = edge.cachedTotalSize as i32;
                     minimalJ = j as i32;
@@ -379,20 +371,11 @@ impl MinimalECIInput {
                 c.previous.clone().unwrap().encoderIndex
             };
             if previousEncoderIndex != c.encoderIndex {
-                // intsAL.splice(
-                //     0..0,
-                //     [256 as u16 + encoderSet.getECIValue(c.encoderIndex) as u16],
-                // );
                 intsAL.insert(0, 256_u16 + encoderSet.get_eci(c.encoderIndex) as u16);
             }
             current = c.previous.clone();
         }
-        //let mut ints = vec![0; intsAL.len()];
-        // for i in 0..ints.len() {
-        //     // for (int i = 0; i < ints.length; i++) {
-        //     ints[i] = *intsAL.get(i).unwrap();
-        // }
-        //ints[..].copy_from_slice(&intsAL[..]);
+
         intsAL
     }
 }

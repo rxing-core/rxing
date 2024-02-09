@@ -20,42 +20,39 @@ use crate::common::Result;
 use crate::{Dimension, Exceptions};
 
 use super::SymbolShapeHint;
-use once_cell::sync::Lazy;
 
-pub(super) static PROD_SYMBOLS: Lazy<Vec<SymbolInfo>> = Lazy::new(|| {
-    vec![
-        SymbolInfo::new(false, 3, 5, 8, 8, 1),
-        SymbolInfo::new(false, 5, 7, 10, 10, 1),
-        /*rect*/ SymbolInfo::new(true, 5, 7, 16, 6, 1),
-        SymbolInfo::new(false, 8, 10, 12, 12, 1),
-        /*rect*/ SymbolInfo::new(true, 10, 11, 14, 6, 2),
-        SymbolInfo::new(false, 12, 12, 14, 14, 1),
-        /*rect*/ SymbolInfo::new(true, 16, 14, 24, 10, 1),
-        SymbolInfo::new(false, 18, 14, 16, 16, 1),
-        SymbolInfo::new(false, 22, 18, 18, 18, 1),
-        /*rect*/ SymbolInfo::new(true, 22, 18, 16, 10, 2),
-        SymbolInfo::new(false, 30, 20, 20, 20, 1),
-        /*rect*/ SymbolInfo::new(true, 32, 24, 16, 14, 2),
-        SymbolInfo::new(false, 36, 24, 22, 22, 1),
-        SymbolInfo::new(false, 44, 28, 24, 24, 1),
-        /*rect*/ SymbolInfo::new(true, 49, 28, 22, 14, 2),
-        SymbolInfo::new(false, 62, 36, 14, 14, 4),
-        SymbolInfo::new(false, 86, 42, 16, 16, 4),
-        SymbolInfo::new(false, 114, 48, 18, 18, 4),
-        SymbolInfo::new(false, 144, 56, 20, 20, 4),
-        SymbolInfo::new(false, 174, 68, 22, 22, 4),
-        SymbolInfo::with_details(false, 204, 84, 24, 24, 4, 102, 42),
-        SymbolInfo::with_details(false, 280, 112, 14, 14, 16, 140, 56),
-        SymbolInfo::with_details(false, 368, 144, 16, 16, 16, 92, 36),
-        SymbolInfo::with_details(false, 456, 192, 18, 18, 16, 114, 48),
-        SymbolInfo::with_details(false, 576, 224, 20, 20, 16, 144, 56),
-        SymbolInfo::with_details(false, 696, 272, 22, 22, 16, 174, 68),
-        SymbolInfo::with_details(false, 816, 336, 24, 24, 16, 136, 56),
-        SymbolInfo::with_details(false, 1050, 408, 18, 18, 36, 175, 68),
-        SymbolInfo::with_details(false, 1304, 496, 20, 20, 36, 163, 62),
-        SymbolInfo::new_symbol_info_144(),
-    ]
-});
+pub(super) const PROD_SYMBOLS: [SymbolInfo; 30] = [
+    SymbolInfo::new(false, 3, 5, 8, 8, 1),
+    SymbolInfo::new(false, 5, 7, 10, 10, 1),
+    /*rect*/ SymbolInfo::new(true, 5, 7, 16, 6, 1),
+    SymbolInfo::new(false, 8, 10, 12, 12, 1),
+    /*rect*/ SymbolInfo::new(true, 10, 11, 14, 6, 2),
+    SymbolInfo::new(false, 12, 12, 14, 14, 1),
+    /*rect*/ SymbolInfo::new(true, 16, 14, 24, 10, 1),
+    SymbolInfo::new(false, 18, 14, 16, 16, 1),
+    SymbolInfo::new(false, 22, 18, 18, 18, 1),
+    /*rect*/ SymbolInfo::new(true, 22, 18, 16, 10, 2),
+    SymbolInfo::new(false, 30, 20, 20, 20, 1),
+    /*rect*/ SymbolInfo::new(true, 32, 24, 16, 14, 2),
+    SymbolInfo::new(false, 36, 24, 22, 22, 1),
+    SymbolInfo::new(false, 44, 28, 24, 24, 1),
+    /*rect*/ SymbolInfo::new(true, 49, 28, 22, 14, 2),
+    SymbolInfo::new(false, 62, 36, 14, 14, 4),
+    SymbolInfo::new(false, 86, 42, 16, 16, 4),
+    SymbolInfo::new(false, 114, 48, 18, 18, 4),
+    SymbolInfo::new(false, 144, 56, 20, 20, 4),
+    SymbolInfo::new(false, 174, 68, 22, 22, 4),
+    SymbolInfo::with_details(false, 204, 84, 24, 24, 4, 102, 42),
+    SymbolInfo::with_details(false, 280, 112, 14, 14, 16, 140, 56),
+    SymbolInfo::with_details(false, 368, 144, 16, 16, 16, 92, 36),
+    SymbolInfo::with_details(false, 456, 192, 18, 18, 16, 114, 48),
+    SymbolInfo::with_details(false, 576, 224, 20, 20, 16, 144, 56),
+    SymbolInfo::with_details(false, 696, 272, 22, 22, 16, 174, 68),
+    SymbolInfo::with_details(false, 816, 336, 24, 24, 16, 136, 56),
+    SymbolInfo::with_details(false, 1050, 408, 18, 18, 36, 175, 68),
+    SymbolInfo::with_details(false, 1304, 496, 20, 20, 36, 163, 62),
+    SymbolInfo::new_symbol_info_144(),
+];
 
 /**
  * Symbol info table for DataMatrix.
@@ -74,7 +71,7 @@ pub struct SymbolInfo {
     isSymbolInfo144: bool,
 }
 impl SymbolInfo {
-    pub fn new(
+    pub const fn new(
         rectangular: bool,
         dataCapacity: u32,
         errorCodewords: u32,
@@ -95,7 +92,7 @@ impl SymbolInfo {
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub fn with_details(
+    pub const fn with_details(
         rectangular: bool,
         dataCapacity: u32,
         errorCodewords: u32,
@@ -117,7 +114,7 @@ impl SymbolInfo {
             isSymbolInfo144: false,
         }
     }
-    pub fn new_symbol_info_144() -> Self {
+    pub const fn new_symbol_info_144() -> Self {
         let mut new_symbol = Self::with_details(false, 1558, 620, 22, 22, 36, -1, 62);
         new_symbol.isSymbolInfo144 = true;
         new_symbol
@@ -223,7 +220,7 @@ impl fmt::Display for SymbolInfo {
 }
 
 #[derive(Clone, Copy)]
-pub struct SymbolInfoLookup<'a>(Option<&'a Vec<SymbolInfo>>);
+pub struct SymbolInfoLookup<'a>(Option<&'a [SymbolInfo]>);
 impl<'a> SymbolInfoLookup<'a> {
     pub const fn new() -> Self {
         Self(None)
@@ -233,7 +230,7 @@ impl<'a> SymbolInfoLookup<'a> {
      *
      * @param override the symbol info set to use
      */
-    pub fn overrideSymbolSet(&mut self, override_symbols: &'a Vec<SymbolInfo>) {
+    pub fn overrideSymbolSet(&mut self, override_symbols: &'a [SymbolInfo]) {
         self.0 = Some(override_symbols);
     }
 
@@ -281,7 +278,7 @@ impl<'a> SymbolInfoLookup<'a> {
         fail: bool,
         // alternate_symbols_chart: Option<&'a Vec<SymbolInfo>>,
     ) -> Result<Option<&'a SymbolInfo>> {
-        let symbol_search_chart: &Vec<SymbolInfo> = if self.0.is_none() {
+        let symbol_search_chart: &[SymbolInfo] = if self.0.is_none() {
             &PROD_SYMBOLS
         } else {
             self.0.as_ref().unwrap()

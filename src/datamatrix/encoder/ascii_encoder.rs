@@ -19,6 +19,7 @@ use crate::Exceptions;
 
 use super::{high_level_encoder, Encoder};
 
+#[derive(Debug, Default)]
 pub struct ASCIIEncoder;
 
 impl Encoder for ASCIIEncoder {
@@ -109,10 +110,5 @@ impl ASCIIEncoder {
                 "not digits: {digit1}{digit2}"
             )))
         }
-    }
-}
-impl Default for ASCIIEncoder {
-    fn default() -> Self {
-        Self::new()
     }
 }

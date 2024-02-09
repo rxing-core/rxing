@@ -26,6 +26,7 @@ use super::Version;
  *
  * @author bbrown@google.com (Brian Brown)
  */
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DataBlock {
     numDataCodewords: u32,
     codewords: Vec<u8>,
@@ -65,19 +66,18 @@ impl DataBlock {
 
         // Now establish DataBlocks of the appropriate size and number of data codewords
         let mut result = Vec::with_capacity(totalBlocks);
-        let mut numRXingResultBlocks = 0;
+        let mut numRXingResultBlocks: usize = 0;
         for ecBlock in ecBlockArray {
-            for _i in 0..ecBlock.getCount() {
-                // for (int i = 0; i < ecBlock.getCount(); i++) {
-                let numDataCodewords = ecBlock.getDataCodewords() as usize;
-                let numBlockCodewords = ecBlocks.getECCodewords() as usize + numDataCodewords;
-                // result[numRXingResultBlocks++] = new DataBlock(numDataCodewords, new byte[numBlockCodewords]);
-                result.push(DataBlock::new(
+            let numDataCodewords = ecBlock.getDataCodewords() as usize;
+            let numBlockCodewords = ecBlocks.getECCodewords() as usize + numDataCodewords;
+            result.extend(vec![
+                DataBlock::new(
                     numDataCodewords as u32,
-                    vec![0; numBlockCodewords],
-                ));
-                numRXingResultBlocks += 1;
-            }
+                    vec![0; numBlockCodewords]
+                );
+                ecBlock.getCount() as usize
+            ]);
+            numRXingResultBlocks += ecBlock.getCount() as usize;
         }
 
         // All blocks have the same amount of data, except that the last n

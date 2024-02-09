@@ -100,12 +100,14 @@ impl<'a> Detector<'_> {
         ))
     }
 
+    #[inline]
     fn shiftPoint(p: Point, to: Point, div: u32) -> Point {
         let x = (to.x - p.x) / (div as f32 + 1.0);
         let y = (to.y - p.y) / (div as f32 + 1.0);
         point_f(p.x + x, p.y + y)
     }
 
+    #[inline]
     fn moveAway(p: Point, fromX: f32, fromY: f32) -> Point {
         let mut x = p.x;
         let mut y = p.y;
@@ -177,10 +179,7 @@ impl<'a> Detector<'_> {
         // A..D
         // :  :
         // B--C
-        let pointA = points[0];
-        let pointB = points[1];
-        let pointC = points[2];
-        let pointD = points[3];
+        let [pointA, pointB, pointC, pointD] = points;
 
         // Transition detection on the edge is not stable.
         // To safely detect, shift the points to the module center.
@@ -269,10 +268,7 @@ impl<'a> Detector<'_> {
         // A..D
         // |  :
         // B--C
-        let mut pointA = points[0];
-        let mut pointB = points[1];
-        let mut pointC = points[2];
-        let mut pointD = points[3];
+        let [mut pointA, mut pointB, mut pointC, mut pointD] = points;
 
         // calculate pseudo dimensions
         let mut dimH = self.transitionsBetween(pointA, pointD) + 1;
@@ -317,6 +313,7 @@ impl<'a> Detector<'_> {
         [pointAs, pointBs, pointCs, pointDs]
     }
 
+    #[inline]
     fn isValid(&self, p: Point) -> bool {
         p.x >= 0.0
             && p.x <= self.image.getWidth() as f32 - 1.0

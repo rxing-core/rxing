@@ -18,8 +18,6 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use super::{CharacterSet, Eci};
 
-use once_cell::sync::Lazy;
-
 // static ENCODERS: Lazy<Vec<CharacterSet>> = Lazy::new(|| {
 //     let mut enc_vec = Vec::new();
 //     for name in NAMES {
@@ -53,30 +51,28 @@ use once_cell::sync::Lazy;
 //     "Shift_JIS",
 // ];
 
-static ENCODERS: Lazy<Vec<CharacterSet>> = Lazy::new(|| {
-    vec![
-        CharacterSet::Cp437,
-        CharacterSet::ISO8859_2,
-        CharacterSet::ISO8859_3,
-        CharacterSet::ISO8859_4,
-        CharacterSet::ISO8859_5,
-        // CharacterSet::ISO8859_6,
-        CharacterSet::ISO8859_7,
-        // CharacterSet::ISO8859_8,
-        CharacterSet::ISO8859_9,
-        // CharacterSet::ISO8859_10,
-        // CharacterSet::ISO8859_11,
-        // CharacterSet::ISO8859_13,
-        // CharacterSet::ISO8859_14,
-        CharacterSet::ISO8859_15,
-        CharacterSet::ISO8859_16,
-        CharacterSet::Shift_JIS,
-        CharacterSet::Cp1250,
-        CharacterSet::Cp1251,
-        CharacterSet::Cp1252,
-        CharacterSet::Cp1256,
-    ]
-});
+const ENCODERS: [CharacterSet; 14] = [
+    CharacterSet::Cp437,
+    CharacterSet::ISO8859_2,
+    CharacterSet::ISO8859_3,
+    CharacterSet::ISO8859_4,
+    CharacterSet::ISO8859_5,
+    // CharacterSet::ISO8859_6,
+    CharacterSet::ISO8859_7,
+    // CharacterSet::ISO8859_8,
+    CharacterSet::ISO8859_9,
+    // CharacterSet::ISO8859_10,
+    // CharacterSet::ISO8859_11,
+    // CharacterSet::ISO8859_13,
+    // CharacterSet::ISO8859_14,
+    CharacterSet::ISO8859_15,
+    CharacterSet::ISO8859_16,
+    CharacterSet::Shift_JIS,
+    CharacterSet::Cp1250,
+    CharacterSet::Cp1251,
+    CharacterSet::Cp1252,
+    CharacterSet::Cp1256,
+];
 
 /**
  * Set of CharsetEncoders for a given input string
@@ -144,10 +140,7 @@ impl ECIEncoderSet {
             }
             if !canEncode {
                 //for the character at position i we don't yet have an encoder in the list
-                for i_encoder in 0..ENCODERS.len() {
-                    // for encoder in ENCODERS {
-                    let encoder = ENCODERS.get(i_encoder).unwrap();
-                    // for (CharsetEncoder encoder : ENCODERS) {
+                for encoder in ENCODERS.iter() {
                     if encoder.encode(stringToEncode.get(i).unwrap()).is_ok() {
                         //Good, we found an encoder that can encode the character. We add him to the list and continue scanning
                         //the input
@@ -172,33 +165,18 @@ impl ECIEncoderSet {
             // we need more than one single byte encoder or we need a Unicode encoder.
             // In this case we append a UTF-8 and UTF-16 encoder to the list
             //   encoders = [] new CharsetEncoder[neededEncoders.size() + 2];
-            encoders = Vec::new();
-            // let index = 0;
+            encoders = Vec::with_capacity(neededEncoders.len() + 2);
 
-            for encoder in neededEncoders {
-                //   for (CharsetEncoder encoder : neededEncoders) {
-                //encoders[index++] = encoder;
-                encoders.push(encoder);
-            }
+            encoders.extend(neededEncoders);
 
             encoders.push(CharacterSet::UTF8);
             encoders.push(CharacterSet::UTF16BE);
         }
 
         //Compute priorityEncoderIndex by looking up priorityCharset in encoders
-        // if priorityCharset != null {
-        if priorityCharset.is_some() {
-            // for i in 0..encoders.len() {
-            for (i, encoder) in encoders.iter().enumerate() {
-                //   for (int i = 0; i < encoders.length; i++) {
-                // if priorityCharset.as_ref().unwrap().name() == encoder.name() {
-                if priorityCharset.as_ref().unwrap() == encoder {
-                    priorityEncoderIndexValue = Some(i);
-                    break;
-                }
-            }
+        if let Some(pc) = priorityCharset.as_ref() {
+            priorityEncoderIndexValue = encoders.iter().position(|enc| enc == pc);
         }
-        // }
         //invariants
         assert_eq!(encoders[0], CharacterSet::ISO8859_1);
         Self {

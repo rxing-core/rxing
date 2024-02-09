@@ -38,7 +38,7 @@ impl Quadrilateral {
     pub fn orientation(&self) -> f64 {
         let centerLine =
             (*self.top_right() + *self.bottom_right()) - (*self.top_left() + *self.bottom_left());
-        if (centerLine == Point { x: 0.0, y: 0.0 }) {
+        if centerLine == Point::default() {
             return 0.0;
         }
         let centerLineF = Point::normalized(centerLine);

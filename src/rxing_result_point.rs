@@ -68,17 +68,19 @@ impl From<PointU> for Point {
 }
 
 /** An alias for `Point::new`. */
+#[inline]
 pub const fn point_f(x: f32, y: f32) -> Point {
     Point::new(x, y)
 }
 
+#[inline]
 pub const fn point<T>(x: T, y: T) -> PointT<T>
 where
     T: Copy,
 {
     PointT::new(x, y)
 }
-
+#[inline]
 pub fn point_i<T: Into<i64>>(x: T, y: T) -> Point {
     Point::new(x.into() as f32, y.into() as f32)
 }

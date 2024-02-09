@@ -548,10 +548,12 @@ fn getMinimumCount(mins: &[u8]) -> u32 {
     mins.iter().take(6).sum::<u8>() as u32
 }
 
-pub fn isDigit(ch: char) -> bool {
+#[inline]
+pub const fn isDigit(ch: char) -> bool {
     ch.is_ascii_digit()
 }
 
+#[inline]
 pub fn isExtendedASCII(ch: char) -> bool {
     (ch as u8) >= 128 //&& (ch as u8) <= 255
 }

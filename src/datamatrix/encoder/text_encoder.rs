@@ -36,6 +36,7 @@ impl TextEncoder {
     pub fn new() -> Self {
         Self(C40Encoder::new())
     }
+
     fn encodeChar(c: char, sb: &mut String) -> u32 {
         if c == ' ' {
             sb.push('\u{3}');

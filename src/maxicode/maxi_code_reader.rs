@@ -108,10 +108,6 @@ impl Reader for MaxiCodeReader {
 
         Ok(result)
     }
-
-    fn reset(&mut self) {
-        // do nothing
-    }
 }
 impl MaxiCodeReader {
     pub const MATRIX_WIDTH: u32 = 30;

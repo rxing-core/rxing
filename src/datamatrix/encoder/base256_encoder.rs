@@ -22,7 +22,9 @@ use super::{
     Encoder,
 };
 
+#[derive(Debug, Default)]
 pub struct Base256Encoder;
+
 impl Encoder for Base256Encoder {
     fn getEncodingMode(&self) -> usize {
         BASE256_ENCODATION
@@ -109,7 +111,7 @@ impl Base256Encoder {
     pub fn new() -> Self {
         Self
     }
-    fn randomize255State(ch: char, codewordPosition: u32) -> Option<char> {
+    const fn randomize255State(ch: char, codewordPosition: u32) -> Option<char> {
         let pseudoRandom = ((149 * codewordPosition) % 255) + 1;
         let tempVariable = ch as u32 + pseudoRandom;
         if tempVariable <= 255 {
@@ -117,11 +119,5 @@ impl Base256Encoder {
         } else {
             char::from_u32(tempVariable - 256)
         }
-    }
-}
-
-impl Default for Base256Encoder {
-    fn default() -> Self {
-        Self::new()
     }
 }

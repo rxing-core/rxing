@@ -19,6 +19,7 @@ use crate::Exceptions;
 
 use super::{high_level_encoder, Encoder, EncoderContext};
 
+#[derive(Debug, Default)]
 pub struct EdifactEncoder;
 impl Encoder for EdifactEncoder {
     fn getEncodingMode(&self) -> usize {
@@ -183,11 +184,5 @@ impl EdifactEncoder {
         }
 
         Ok(res)
-    }
-}
-
-impl Default for EdifactEncoder {
-    fn default() -> Self {
-        Self::new()
     }
 }

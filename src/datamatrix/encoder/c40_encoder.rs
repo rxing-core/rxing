@@ -23,6 +23,7 @@ use super::high_level_encoder::{
 
 use super::{Encoder, EncoderContext};
 
+#[derive(Debug, Default)]
 pub struct C40Encoder;
 
 impl Encoder for C40Encoder {
@@ -299,11 +300,5 @@ impl C40Encoder {
                 .collect(),
         )
         // return new String(new char[] {cw1, cw2});
-    }
-}
-
-impl Default for C40Encoder {
-    fn default() -> Self {
-        Self::new()
     }
 }

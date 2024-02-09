@@ -108,14 +108,9 @@ pub fn guessCharset(bytes: &[u8], hints: &DecodingHintDictionary) -> Option<Char
 
     // for i in 0..length {
     for value in bytes.iter().take(length).copied() {
-        // for (int i = 0;
-        //      i < length && (canBeISO88591 || canBeShiftJIS || canBeUTF8);
-        //      i++) {
         if !(can_be_iso88591 || can_be_shift_jis || can_be_utf8) {
             break;
         }
-
-        // let value = bytes[i];
 
         // UTF-8 stuff
         if can_be_utf8 {

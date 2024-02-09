@@ -89,9 +89,10 @@ impl ReedSolomonDecoder {
         let omega = &sigmaOmega[1];
         let errorLocations = self.findErrorLocations(sigma)?;
         let errorMagnitudes = self.findErrorMagnitudes(omega, &errorLocations)?;
-        for i in 0..errorLocations.len() {
+        for (error_location, error_magnitude) in errorLocations.iter().zip(errorMagnitudes) {
+            // for i in 0..errorLocations.len() {
             //for (int i = 0; i < errorLocations.length; i++) {
-            let log_value = self.field.log(errorLocations[i] as i32)?;
+            let log_value = self.field.log(*error_location as i32)?;
             if log_value > received.len() as i32 - 1 {
                 return Err(Exceptions::reed_solomon_with("Bad error location"));
             }
@@ -100,7 +101,7 @@ impl ReedSolomonDecoder {
                 return Err(Exceptions::reed_solomon_with("Bad error location"));
             }
             received[position as usize] =
-                GenericGF::addOrSubtract(received[position as usize], errorMagnitudes[i]);
+                GenericGF::addOrSubtract(received[position as usize], error_magnitude);
         }
         Ok(errorLocations.len())
     }
@@ -164,9 +165,8 @@ impl ReedSolomonDecoder {
             return Err(Exceptions::reed_solomon_with("sigmaTilde(0) was zero"));
         }
 
-        let inverse = match self.field.inverse(sigmaTildeAtZero) {
-            Ok(res) => res,
-            Err(_err) => return Err(Exceptions::reed_solomon_with("ArithmetricException")),
+        let Ok(inverse) = self.field.inverse(sigmaTildeAtZero) else {
+            return Err(Exceptions::reed_solomon_with("ArithmetricException"));
         };
         let sigma = t.multiply_with_scalar(inverse);
         let omega = r.multiply_with_scalar(inverse);

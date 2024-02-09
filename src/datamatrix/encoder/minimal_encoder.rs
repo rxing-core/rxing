@@ -99,6 +99,7 @@ pub fn isExtendedASCII(ch: char, fnc1: Option<char>) -> bool {
                                // return ch != fnc1 && ch as u8 >= 128 && ch as u8 <= 255;
 }
 
+#[inline]
 fn isInC40Shift1Set(ch: char) -> bool {
     ch as u8 <= 31
 }
@@ -606,16 +607,15 @@ fn encodeMinimally(input: Rc<Input>) -> Result<RXingResult> {
             }
         }
         //optimize memory by removing edges that have been passed.
-        for j in 0..6 {
-            edges[i - 1][j] = None;
-        }
+        edges[i - 1][..6].fill(None);
     }
 
     let mut minimalJ: i32 = -1;
     let mut minimalSize = i32::MAX;
     for j in 0..6 {
-        if edges[inputLength][j].is_some() {
-            let edge = edges[inputLength][j].as_ref().unwrap();
+        if let Some(edge) = &edges[inputLength][j] {
+            // if edges[inputLength][j].is_some() {
+            // let edge = edges[inputLength][j].as_ref().unwrap();
             let size = if (1..=3).contains(&j) {
                 edge.cachedTotalSize + 1
             } else {
@@ -955,6 +955,7 @@ impl Edge {
         Self::getMinSymbolSize(self, minimum) - minimum
     }
 
+    #[inline]
     pub fn getBytes1(c: u32) -> Vec<u8> {
         // let result = vec![0u8;1];
         // result[0] =  c as u8;
@@ -962,6 +963,7 @@ impl Edge {
         vec![c as u8]
     }
 
+    #[inline]
     pub fn getBytes2(c1: u32, c2: u32) -> Vec<u8> {
         // byte[] result = new byte[2];
         // result[0] = (byte) c1;
@@ -1347,13 +1349,13 @@ impl RXingResult {
     }
 
     pub fn prepend(bytes: &[u8], into: &mut Vec<u8>) -> usize {
-        for i in (0..bytes.len()).rev() {
-            // for (int i = bytes.length - 1; i >= 0; i--) {
-            into.insert(0, bytes[i]);
+        for byte in bytes.iter().rev() {
+            into.insert(0, *byte);
         }
         bytes.len()
     }
 
+    #[inline]
     fn randomize253State(codewordPosition: u32) -> u32 {
         let pseudoRandom = ((149 * codewordPosition) % 253) + 1;
         let tempVariable = 129 + pseudoRandom;
