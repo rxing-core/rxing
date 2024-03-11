@@ -15,7 +15,7 @@
  */
 #![cfg(feature = "image")]
 
-use rxing::{qrcode::QRCodeReader, BarcodeFormat, MultiFormatReader};
+use rxing::{qrcode::QRCodeReader, BarcodeFormat, MultiFormatReader, FilteredImageReader};
 
 mod common;
 
@@ -50,7 +50,8 @@ fn qrcode_black_box2_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/qrcode-2",
         // MultiFormatReader::default(),
-        QRCodeReader {},
+        FilteredImageReader::new(QRCodeReader {}),
+        // QRCodeReader {},
         BarcodeFormat::QR_CODE,
     );
     tester.add_test(31, 31, 0.0);
