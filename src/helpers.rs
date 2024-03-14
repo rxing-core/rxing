@@ -8,8 +8,8 @@ use crate::{
     common::{BitMatrix, HybridBinarizer, Result},
     multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
     BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
-    Exceptions, Luma8LuminanceSource, MultiFormatReader, MultiUseMultiFormatReader, RXingResult,
-    Reader,
+    Exceptions, FilteredImageReader, Luma8LuminanceSource, MultiFormatReader,
+    MultiUseMultiFormatReader, RXingResult, Reader,
 };
 
 #[cfg(feature = "image")]
@@ -181,6 +181,49 @@ pub fn detect_in_luma_with_hints(
     hints: &mut DecodingHintDictionary,
 ) -> Result<RXingResult> {
     let mut multi_format_reader = MultiFormatReader::default();
+
+    if let Some(bc_type) = barcode_type {
+        hints.insert(
+            DecodeHintType::POSSIBLE_FORMATS,
+            DecodeHintValue::PossibleFormats(HashSet::from([bc_type])),
+        );
+    }
+
+    hints
+        .entry(DecodeHintType::TRY_HARDER)
+        .or_insert(DecodeHintValue::TryHarder(true));
+
+    multi_format_reader.decode_with_hints(
+        &mut BinaryBitmap::new(HybridBinarizer::new(Luma8LuminanceSource::new(
+            luma, width, height,
+        ))),
+        hints,
+    )
+}
+
+pub fn detect_in_luma_filtered(
+    luma: Vec<u8>,
+    width: u32,
+    height: u32,
+    barcode_type: Option<BarcodeFormat>,
+) -> Result<RXingResult> {
+    crate::helpers::detect_in_luma_filtered_with_hints(
+        luma,
+        height,
+        width,
+        barcode_type,
+        &mut HashMap::new(),
+    )
+}
+
+pub fn detect_in_luma_filtered_with_hints(
+    luma: Vec<u8>,
+    width: u32,
+    height: u32,
+    barcode_type: Option<BarcodeFormat>,
+    hints: &mut DecodingHintDictionary,
+) -> Result<RXingResult> {
+    let mut multi_format_reader = FilteredImageReader::new(MultiFormatReader::default());
 
     if let Some(bc_type) = barcode_type {
         hints.insert(
