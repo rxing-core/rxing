@@ -58,17 +58,12 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
 }
 
 #[derive(Debug, Clone)]
+#[derive(Default)]
 struct LumImagePyramid {
     pub layers: Vec<Luma8LuminanceSource>,
 }
 
-impl Default for LumImagePyramid {
-    fn default() -> Self {
-        Self {
-            layers: Default::default(),
-        }
-    }
-}
+
 
 impl LumImagePyramid {
     pub fn new(image: Luma8LuminanceSource, threshold: usize, factor: usize) -> Option<Self> {
@@ -149,12 +144,12 @@ impl LumImagePyramid {
 
 impl<B: Binarizer> BinaryBitmap<B> {
     pub fn close(&mut self) -> Result<()> {
-        if let Some(mut matrix) = self.matrix.as_mut() {
+        if let Some(matrix) = self.matrix.as_mut() {
             let mut tmp = BitMatrix::new(matrix.width(), matrix.height())?;
             // dilate
             SumFilter(matrix, &mut tmp, |sum| sum > 0);
             // erode
-            SumFilter(&tmp, &mut matrix, |sum| sum == 9);
+            SumFilter(&tmp, matrix, |sum| sum == 9);
         }
         Ok(())
     }
@@ -172,7 +167,7 @@ where
                     + input.try_get(col + j, row).unwrap_or_default() as u8
                     + input.try_get(col + j, row + 1).unwrap_or_default() as u8;
             }
-            output.set_bool(col as u32, row, func(sum));
+            output.set_bool(col, row, func(sum));
         }
     }
 }
