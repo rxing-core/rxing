@@ -15,7 +15,7 @@
  */
 #![cfg(feature = "image")]
 
-use rxing::{BarcodeFormat, DecodeHintType, MultiFormatReader};
+use rxing::{BarcodeFormat, DecodeHintType, FilteredImageReader, MultiFormatReader};
 
 mod common;
 
@@ -27,7 +27,7 @@ mod common;
 fn maxicode1_test_case() {
     let mut tester = common::AbstractBlackBoxTestCase::new(
         "test_resources/blackbox/maxicode-1",
-        MultiFormatReader::default(),
+        FilteredImageReader::new(MultiFormatReader::default()),
         BarcodeFormat::MAXICODE,
     );
     // super("src/test/resources/blackbox/maxicode-1", new MultiFormatReader(), BarcodeFormat.MAXICODE);

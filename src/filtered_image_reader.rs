@@ -28,30 +28,6 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
         image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
     ) -> crate::common::Result<crate::RXingResult> {
-        // let pyramid_base = Arc::new(RefCell::new(Luma8LuminanceSource::new(
-        //     image.get_source().get_matrix(),
-        //     image.get_source().get_width() as u32,
-        //     image.get_source().get_height() as u32,
-        // )));
-        // let mut count = 0_usize;
-        // let pyramid_iterator = std::iter::from_fn(move || {
-        //     if count == 0 {
-        //         Some(pyramid_base.clone())
-        //     } else if DEFAULT_DOWNSCALE_THRESHHOLD > 0
-        //         && std::cmp::max(
-        //         pyramid_base.borrow().get_width(),
-        //         pyramid_base.borrow().get_height(),
-        //     ) > DEFAULT_DOWNSCALE_THRESHHOLD
-        //         && std::cmp::min(
-        //         pyramid_base.borrow().get_width(),
-        //         pyramid_base.borrow().get_height(),
-        //     ) >= DEFAULT_DOWNSCALE_FACTOR {
-        //         count += 1;
-        //         todo!()
-        //     } else {
-        //         None
-        //     }
-        // });
         let pyramids = LumImagePyramid::new(
             Luma8LuminanceSource::new(
                 image.get_source().get_matrix(),
@@ -61,7 +37,7 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
             DEFAULT_DOWNSCALE_THRESHHOLD,
             DEFAULT_DOWNSCALE_FACTOR,
         )
-            .ok_or(Exceptions::ILLEGAL_ARGUMENT)?;
+        .ok_or(Exceptions::ILLEGAL_ARGUMENT)?;
         for layer in pyramids.layers {
             let mut b = BinaryBitmap::new(HybridBinarizer::new(layer));
             for close in [false, true] {
@@ -83,14 +59,12 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
 
 #[derive(Debug, Clone)]
 struct LumImagePyramid {
-    buffers: Vec<Luma8LuminanceSource>,
     pub layers: Vec<Luma8LuminanceSource>,
 }
 
 impl Default for LumImagePyramid {
     fn default() -> Self {
         Self {
-            buffers: Default::default(),
             layers: Default::default(),
         }
     }
@@ -104,23 +78,22 @@ impl LumImagePyramid {
         // TODO: if only matrix codes were considered, then using std::min would be sufficient (see #425)
         while threshold > 0
             && std::cmp::max(
-            new_self.layers.last()?.get_width(),
-            new_self.layers.last()?.get_height(),
-        ) > threshold
+                new_self.layers.last()?.get_width(),
+                new_self.layers.last()?.get_height(),
+            ) > threshold
             && std::cmp::min(
-            new_self.layers.last()?.get_width(),
-            new_self.layers.last()?.get_height(),
-        ) >= factor
+                new_self.layers.last()?.get_width(),
+                new_self.layers.last()?.get_height(),
+            ) >= factor
         {
             new_self.add_layer_with_factor(factor).ok()?;
         }
 
-        if false {
-            // Reversing the layers means we'd start with the smallest. that can make sense if we are only looking for a
-            // single symbol. If we start with the higher resolution, we get better (high res) position information.
-            // TODO: see if masking out higher res layers based on found symbols in lower res helps overall performance.
-            new_self.layers.reverse();
-        }
+        #[cfg(reverse_pyramid_layers)]
+        // Reversing the layers means we'd start with the smallest. that can make sense if we are only looking for a
+        // single symbol. If we start with the higher resolution, we get better (high res) position information.
+        // TODO: see if masking out higher res layers based on found symbols in lower res helps overall performance.
+        new_self.layers.reverse();
 
         Some(new_self)
     }
@@ -128,15 +101,8 @@ impl LumImagePyramid {
     fn add_layer<const N: usize>(&mut self) -> Result<()> {
         let siv = self.layers.last().ok_or(Exceptions::ILLEGAL_ARGUMENT)?;
 
-        self.buffers.push(Luma8LuminanceSource::with_empty_image(
-            siv.get_width() / N,
-            siv.get_height() / N,
-        ));
-
-        let div = self
-            .buffers
-            .last_mut()
-            .ok_or(Exceptions::ILLEGAL_ARGUMENT)?;
+        let mut div =
+            Luma8LuminanceSource::with_empty_image(siv.get_width() / N, siv.get_height() / N);
 
         let div_height = div.get_height();
         let div_width = div.get_width();
@@ -163,12 +129,7 @@ impl LumImagePyramid {
             }
         }
 
-        self.layers.push(
-            self.buffers
-                .last()
-                .ok_or(Exceptions::ILLEGAL_ARGUMENT)?
-                .clone(),
-        );
+        self.layers.push(div);
 
         Ok(())
     }
@@ -189,40 +150,28 @@ impl LumImagePyramid {
 impl<B: Binarizer> BinaryBitmap<B> {
     pub fn close(&mut self) -> Result<()> {
         if let Some(mut matrix) = self.matrix.as_mut() {
-            // if (_cache->matrix) {
-            // auto& matrix = *const_cast<BitMatrix*>(_cache->matrix.get());
             let mut tmp = BitMatrix::new(matrix.width(), matrix.height())?;
-
             // dilate
-            SumFilter(matrix, &mut tmp, |sum| {
-                sum > 0
-            });
+            SumFilter(matrix, &mut tmp, |sum| sum > 0);
             // erode
-            SumFilter(&tmp, &mut matrix, |sum| {
-                sum == 9
-            });
+            SumFilter(&tmp, &mut matrix, |sum| sum == 9);
         }
         Ok(())
-        // _closed = true;
     }
 }
 
 fn SumFilter<F>(input: &BitMatrix, output: &mut BitMatrix, func: F)
-    where
-        F: Fn(u32) -> bool,
+where
+    F: Fn(u8) -> bool,
 {
     for row in 1..output.height() - 1 {
-        for col in 0..output.width() as usize - 1 {
-            let in0 = input.getRow(row - 1); //.row(0).begin();
-            let in1 = input.getRow(row); //.row(1).begin();
-            let in2 = input.getRow(row + 1); //.row(2).begin();
-
+        for col in 0..output.width() - 1 {
             let mut sum = 0;
             for j in 0..3 {
-                // for (int j = 0; j < 3; ++j){
-                sum += in0.try_get(col+j).unwrap_or(false) as u32 + in1.try_get(col+j).unwrap_or(false) as u32 + in2.try_get(col+j).unwrap_or(false) as u32;
+                sum += input.try_get(col + j, row - 1).unwrap_or_default() as u8
+                    + input.try_get(col + j, row).unwrap_or_default() as u8
+                    + input.try_get(col + j, row + 1).unwrap_or_default() as u8;
             }
-
             output.set_bool(col as u32, row, func(sum));
         }
     }
