@@ -17,7 +17,6 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::common::Result;
-#[cfg(feature = "experimental_features")]
 use crate::oned::cpp::ODReader;
 use crate::qrcode::cpp_port::QrReader;
 use crate::{
@@ -236,7 +235,7 @@ impl MultiFormatReader {
             if let Ok(res) = MaxiCodeReader::default().decode_with_hints(image, &self.hints) {
                 return Ok(res);
             }
-            #[cfg(feature = "experimental_features")]
+
             if let Ok(res) = ODReader::new(&self.hints).decode_with_hints(image, &self.hints) {
                 return Ok(res);
             }
