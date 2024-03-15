@@ -1,8 +1,7 @@
 use crate::common::Result;
 use crate::{BufferedImageLuminanceSource, Exceptions, LuminanceSource};
 use image::{DynamicImage, RgbaImage};
-use resvg::usvg::TreeParsing;
-use resvg::{self, usvg::Options};
+use resvg::{self, usvg, usvg::Options};
 
 pub struct SVGLuminanceSource(BufferedImageLuminanceSource);
 
@@ -67,18 +66,16 @@ impl SVGLuminanceSource {
         };
 
         let Some(mut pixmap) =
-            resvg::tiny_skia::Pixmap::new(tree.size.width() as u32, tree.size.height() as u32)
+            resvg::tiny_skia::Pixmap::new(tree.size().width() as u32, tree.size().height() as u32)
         else {
             return Err(Exceptions::format_with("could not create pixmap"));
         };
 
-        let tree_resvg = resvg::Tree::from_usvg(&tree);
-
-        tree_resvg.render(resvg::tiny_skia::Transform::default(), &mut pixmap.as_mut());
+        resvg::render(&tree,resvg::tiny_skia::Transform::default(),&mut pixmap.as_mut() );
 
         let Some(buffer) = RgbaImage::from_raw(
-            tree.size.width() as u32,
-            tree.size.height() as u32,
+            tree.size().width() as u32,
+            tree.size().height() as u32,
             pixmap.data().to_vec(),
         ) else {
             return Err(Exceptions::format_with("could not create image buffer"));

@@ -86,6 +86,7 @@ fn main() {
 ```
 
 ## Latest Release Notes
+* *v0.5.8* -> Performance improvements. Memory Improvements. Added FilteredReader which performs a more complicated operation on images (resizes and closes binary bitmaps) at the expense of some performance.
 * *v0.5.5* -> Add support for rMQR, allows building the library without image_formats, fixes an issue with multiple barcode detection.
 
     New default feature flag `image_formats` enables all of the `image` crates image formats for use.

@@ -1,17 +1,17 @@
 [package]
 name = "rxing-cli"
-version = "0.1.20"
+version = "0.1.21"
 edition = "2021"
 description = "A command line interface for rxing supporting encoding and decoding of multiple barcode formats"
 license="Apache-2.0"
 repository="https://github.com/rxing-core/rxing/tree/main/crates/cli"
-keywords = ["barcode", "2d_barcode", "1d_barcode", "barcode_reader", "barcode_writer"]
+keywords = ["barcode", "barcode_1d", "barcode_2d", "barcode_reader", "barcode_writer"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "4.4.13", features = ["derive"] }
-rxing = {path = "../../", version = "~0.5.7", features = ["image", "svg_read", "svg_write"] }
+clap = { version = "4.5.3", features = ["derive"] }
+rxing = {path = "../../", version = "~0.5.8", features = ["image", "svg_read", "svg_write"] }
 
 #[profile.release]
 #debug = true
