@@ -25,6 +25,21 @@ use crate::{
     RXingResult, Reader,
 };
 
+pub(crate) const ONE_D_FORMATS: [BarcodeFormat; 12] = [
+    BarcodeFormat::UPC_A,
+    BarcodeFormat::UPC_E,
+    BarcodeFormat::EAN_13,
+    BarcodeFormat::EAN_8,
+    BarcodeFormat::CODABAR,
+    BarcodeFormat::CODE_39,
+    BarcodeFormat::CODE_93,
+    BarcodeFormat::CODE_128,
+    BarcodeFormat::ITF,
+    BarcodeFormat::RSS_14,
+    BarcodeFormat::RSS_EXPANDED,
+    BarcodeFormat::TELEPEN,
+];
+
 /**
  * MultiFormatReader is a convenience class and the main entry point into the library for most uses.
  * By default it attempts to decode all barcode formats that the library supports. Optionally, you
@@ -166,18 +181,21 @@ impl MultiUseMultiFormatReader {
 
     fn decode_formats<B: Binarizer>(&mut self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
         if !self.possible_formats.is_empty() {
-            let one_d = self.possible_formats.contains(&BarcodeFormat::UPC_A)
-                || self.possible_formats.contains(&BarcodeFormat::UPC_E)
-                || self.possible_formats.contains(&BarcodeFormat::EAN_13)
-                || self.possible_formats.contains(&BarcodeFormat::EAN_8)
-                || self.possible_formats.contains(&BarcodeFormat::CODABAR)
-                || self.possible_formats.contains(&BarcodeFormat::CODE_39)
-                || self.possible_formats.contains(&BarcodeFormat::CODE_93)
-                || self.possible_formats.contains(&BarcodeFormat::CODE_128)
-                || self.possible_formats.contains(&BarcodeFormat::ITF)
-                || self.possible_formats.contains(&BarcodeFormat::RSS_14)
-                || self.possible_formats.contains(&BarcodeFormat::RSS_EXPANDED)
-                || self.possible_formats.contains(&BarcodeFormat::TELEPEN);
+            let one_d = ONE_D_FORMATS
+                .iter()
+                .any(|e| self.possible_formats.contains(e));
+            // let one_d = self.possible_formats.contains(&BarcodeFormat::UPC_A)
+            //     || self.possible_formats.contains(&BarcodeFormat::UPC_E)
+            //     || self.possible_formats.contains()
+            //     || self.possible_formats.contains()
+            //     || self.possible_formats.contains()
+            //     || self.possible_formats.contains()
+            //     || self.possible_formats.contains()
+            //     || self.possible_formats.contains()
+            //     || self.possible_formats.contains()
+            //     || self.possible_formats.contains()
+            //     || self.possible_formats.contains()
+            //     || self.possible_formats.contains();
             if one_d && !self.try_harder {
                 if let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints) {
                     return Ok(res);

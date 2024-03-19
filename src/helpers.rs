@@ -313,13 +313,15 @@ pub fn save_file(file_name: &str, bit_matrix: &BitMatrix) -> Result<()> {
         return save_image(file_name, bit_matrix);
     }
 
-    match || -> std::io::Result<_> {
+    let result_tester = || -> std::io::Result<_> {
         let file = std::fs::File::create(path)?;
         let mut output = std::io::BufWriter::new(file);
         output.write_all(bit_matrix.to_string().as_bytes())?;
         output.flush()?;
         Ok(())
-    }() {
+    };
+
+    match result_tester() {
         Ok(_) => Ok(()),
         Err(_) => Err(Exceptions::illegal_argument_with(format!(
             "could not write to '{file_name}'"

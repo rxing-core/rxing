@@ -57,13 +57,10 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
     }
 }
 
-#[derive(Debug, Clone)]
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 struct LumImagePyramid {
     pub layers: Vec<Luma8LuminanceSource>,
 }
-
-
 
 impl LumImagePyramid {
     pub fn new(image: Luma8LuminanceSource, threshold: usize, factor: usize) -> Option<Self> {

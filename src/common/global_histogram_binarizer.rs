@@ -209,8 +209,9 @@ impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {
             let row = height * y / 5;
             let localLuminances = source.get_row(row);
             let right = (width * 4) / 5;
-            for x in (width / 5)..right {
-                let pixel = localLuminances[x];
+            for pixel in &localLuminances[(width / 5)..right] {
+                // for x in (width / 5)..right {
+                // let pixel = localLuminances[x];
                 localBuckets[(pixel >> LUMINANCE_SHIFT) as usize] += 1;
             }
         }

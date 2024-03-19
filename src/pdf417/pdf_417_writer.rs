@@ -185,7 +185,7 @@ impl PDF417Writer {
      * @param margin border around the barcode
      * @return BitMatrix of the input
      */
-    fn bitMatrixFromBitArray(input: &Vec<Vec<u8>>, margin: u32) -> Option<BitMatrix> {
+    fn bitMatrixFromBitArray(input: &[Vec<u8>], margin: u32) -> Option<BitMatrix> {
         // Creates the bit matrix with extra space for whitespace
         let mut output = BitMatrix::new(
             input[0].len() as u32 + 2 * margin,
@@ -212,7 +212,7 @@ impl PDF417Writer {
     /**
      * Takes and rotates the it 90 degrees
      */
-    fn rotateArray(bitarray: &Vec<Vec<u8>>) -> Vec<Vec<u8>> {
+    fn rotateArray(bitarray: &[Vec<u8>]) -> Vec<Vec<u8>> {
         let mut temp = vec![vec![0; bitarray.len()]; bitarray[0].len()];
 
         for ii in 0..bitarray.len() {

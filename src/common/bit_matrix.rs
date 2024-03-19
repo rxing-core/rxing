@@ -101,7 +101,7 @@ impl BitMatrix {
      * @param image bits of the image, as a row-major 2D array. Elements are arrays representing rows
      * @return {@code BitMatrix} representation of image
      */
-    pub fn parse_bools(image: &Vec<Vec<bool>>) -> Self {
+    pub fn parse_bools(image: &[Vec<bool>]) -> Self {
         let height: u32 = image.len().try_into().unwrap();
         let width: u32 = image[0].len().try_into().unwrap();
         let mut bits = BitMatrix::new(width, height).unwrap();

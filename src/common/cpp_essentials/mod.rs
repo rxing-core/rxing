@@ -17,7 +17,6 @@ pub mod structured_append;
 pub mod util;
 pub mod value;
 
-pub use bitmatrix_cursor::*;
 pub use bitmatrix_cursor_trait::*;
 pub use concentric_finder::*;
 pub use decoder_result::*;

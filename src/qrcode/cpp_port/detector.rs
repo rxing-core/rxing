@@ -503,17 +503,29 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
         return Err(Exceptions::NOT_FOUND);
     }
 
-    let best = if top.err == left.err {
-        if top.dim > left.dim {
-            top
-        } else {
-            left
+    let best = match top.err.cmp(&left.err) {
+        std::cmp::Ordering::Less => top,
+        std::cmp::Ordering::Equal => {
+            if top.dim > left.dim {
+                top
+            } else {
+                left
+            }
         }
-    } else if top.err < left.err {
-        top
-    } else {
-        left
+        std::cmp::Ordering::Greater => left,
     };
+
+    // let best = if top.err == left.err {
+    //     if top.dim > left.dim {
+    //         top
+    //     } else {
+    //         left
+    //     }
+    // } else if top.err < left.err {
+    //     top
+    // } else {
+    //     left
+    // };
     let mut dimension = best.dim;
     let moduleSize = (best.ms + 1.0) as i32;
 

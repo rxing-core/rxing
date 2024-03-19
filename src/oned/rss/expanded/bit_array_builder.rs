@@ -33,7 +33,7 @@ use super::ExpandedPair;
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
 
-pub fn buildBitArray(pairs: &Vec<ExpandedPair>) -> Option<BitArray> {
+pub fn buildBitArray(pairs: &[ExpandedPair]) -> Option<BitArray> {
     let mut charNumber = (pairs.len() * 2) - 1;
     if let Some(pair) = pairs.last() {
         if pair.getRightChar().is_none() {

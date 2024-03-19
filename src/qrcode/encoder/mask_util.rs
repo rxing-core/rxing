@@ -117,7 +117,7 @@ pub fn isWhiteHorizontal(rowArray: &[u8], from: i32, to: u32) -> bool {
     true
 }
 
-pub fn isWhiteVertical(array: &Vec<Vec<u8>>, col: u32, from: i32, to: u32) -> bool {
+pub fn isWhiteVertical(array: &[Vec<u8>], col: u32, from: i32, to: u32) -> bool {
     if from < 0 || array.len() < to as usize {
         return false;
     }

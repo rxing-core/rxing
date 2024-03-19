@@ -41,7 +41,7 @@ static RS_DECODER: Lazy<ReedSolomonDecoder> = Lazy::new(|| {
     ))
 });
 
-pub fn decode_bool_array(image: &Vec<Vec<bool>>) -> Result<DecoderRXingResult> {
+pub fn decode_bool_array(image: &[Vec<bool>]) -> Result<DecoderRXingResult> {
     decode_bool_array_with_hints(image, &HashMap::new())
 }
 
@@ -56,7 +56,7 @@ pub fn decode_bool_array(image: &Vec<Vec<bool>>) -> Result<DecoderRXingResult> {
  * @throws ChecksumException if error correction fails
  */
 pub fn decode_bool_array_with_hints(
-    image: &Vec<Vec<bool>>,
+    image: &[Vec<bool>],
     hints: &DecodingHintDictionary,
 ) -> Result<DecoderRXingResult> {
     decode_bitmatrix_with_hints(&BitMatrix::parse_bools(image), hints)

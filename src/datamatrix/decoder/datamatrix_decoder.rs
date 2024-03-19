@@ -81,7 +81,7 @@ impl Decoder {
      * @throws FormatException if the Data Matrix Code cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-    pub fn decode_bools(&self, image: &Vec<Vec<bool>>) -> Result<DecoderRXingResult> {
+    pub fn decode_bools(&self, image: &[Vec<bool>]) -> Result<DecoderRXingResult> {
         self.perform_decode(&BitMatrix::parse_bools(image), false, false)
     }
 

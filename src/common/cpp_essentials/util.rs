@@ -1,5 +1,3 @@
-use std::iter::Sum;
-
 use crate::common::Result;
 use crate::qrcode::cpp_port::detector::AppendBit;
 use crate::{Exceptions, Point};

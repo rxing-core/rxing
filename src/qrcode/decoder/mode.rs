@@ -150,13 +150,13 @@ impl Mode {
         let bits = bits as usize;
 
         if qr_type == Type::Micro {
-            const Bits2Mode: [Mode; 4] =
+            const BITS2MODE: [Mode; 4] =
                 [Mode::NUMERIC, Mode::ALPHANUMERIC, Mode::BYTE, Mode::KANJI];
-            if bits < (Bits2Mode.len()) {
-                return Ok(Bits2Mode[bits]);
+            if bits < (BITS2MODE.len()) {
+                return Ok(BITS2MODE[bits]);
             }
         } else if qr_type == Type::RectMicro {
-            const Bits2Mode: [Mode; 8] = [
+            const BITS2MODE: [Mode; 8] = [
                 Mode::TERMINATOR,
                 Mode::NUMERIC,
                 Mode::ALPHANUMERIC,
@@ -166,8 +166,8 @@ impl Mode {
                 Mode::FNC1_SECOND_POSITION,
                 Mode::ECI,
             ];
-            if bits < (Bits2Mode.len()) {
-                return Ok(Bits2Mode[bits]);
+            if bits < (BITS2MODE.len()) {
+                return Ok(BITS2MODE[bits]);
             }
         } else if (0x00..=0x05).contains(&bits) || (0x07..=0x09).contains(&bits) || bits == 0x0d {
             return Mode::try_from(bits as u32);
@@ -196,27 +196,27 @@ impl Mode {
 
         if version.isRMQR() {
             // See ISO/IEC 23941:2022 7.4.1, Table 3 - Number of bits of character count indicator
-            const numeric: [u32; 32] = [
+            const NUMERIC: [u32; 32] = [
                 4, 5, 6, 7, 7, 5, 6, 7, 7, 8, 4, 6, 7, 7, 8, 8, 5, 6, 7, 7, 8, 8, 7, 7, 8, 8, 9, 7,
                 8, 8, 8, 9,
             ];
-            const alphanum: [u32; 32] = [
+            const ALPHANUM: [u32; 32] = [
                 3, 5, 5, 6, 6, 5, 5, 6, 6, 7, 4, 5, 6, 6, 7, 7, 5, 6, 6, 7, 7, 8, 6, 7, 7, 7, 8, 6,
                 7, 7, 8, 8,
             ];
-            const byte: [u32; 32] = [
+            const BYTE: [u32; 32] = [
                 3, 4, 5, 5, 6, 4, 5, 5, 6, 6, 3, 5, 5, 6, 6, 7, 4, 5, 6, 6, 7, 7, 6, 6, 7, 7, 7, 6,
                 6, 7, 7, 8,
             ];
-            const kanji: [u32; 32] = [
+            const KANJI: [u32; 32] = [
                 2, 3, 4, 5, 5, 3, 4, 5, 5, 6, 2, 4, 5, 5, 6, 6, 3, 5, 5, 6, 6, 7, 5, 5, 6, 6, 7, 5,
                 6, 6, 6, 7,
             ];
             match self {
-                Mode::NUMERIC => return numeric[number - 1],
-                Mode::ALPHANUMERIC => return alphanum[number - 1],
-                Mode::BYTE => return byte[number - 1],
-                Mode::KANJI => return kanji[number - 1],
+                Mode::NUMERIC => return NUMERIC[number - 1],
+                Mode::ALPHANUMERIC => return ALPHANUM[number - 1],
+                Mode::BYTE => return BYTE[number - 1],
+                Mode::KANJI => return KANJI[number - 1],
                 _ => return 0,
             }
         }

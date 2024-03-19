@@ -28,7 +28,7 @@ use crate::Exceptions;
 pub fn CorrectErrors(codewordBytes: &mut [u8], numDataCodewords: u32) -> Result<bool> {
     // First read into an array of ints
     // std::vector<int> codewordsInts(codewordBytes.begin(), codewordBytes.end());
-    let mut codewordsInts = codewordBytes.iter().copied().map(|b| b as i32).collect();
+    let mut codewordsInts: Vec<i32> = codewordBytes.iter().copied().map(|b| b as i32).collect();
 
     let numECCodewords = ((codewordBytes.len() as u32) - numDataCodewords) as i32;
     let rs = ReedSolomonDecoder::new(get_predefined_genericgf(

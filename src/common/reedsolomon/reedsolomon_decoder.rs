@@ -61,7 +61,7 @@ impl ReedSolomonDecoder {
      * @param twoS number of error-correction codewords available
      * @throws ReedSolomonException if decoding fails for any reason
      */
-    pub fn decode(&self, received: &mut Vec<i32>, twoS: i32) -> Result<usize> {
+    pub fn decode(&self, received: &mut [i32], twoS: i32) -> Result<usize> {
         let poly = GenericGFPoly::new(self.field, received)?;
         let mut syndromeCoefficients = vec![0; twoS as usize];
         let mut noError = true;
@@ -204,7 +204,7 @@ impl ReedSolomonDecoder {
     fn findErrorMagnitudes(
         &self,
         errorEvaluator: &GenericGFPoly,
-        errorLocations: &Vec<usize>,
+        errorLocations: &[usize],
     ) -> Result<Vec<i32>> {
         // This is directly applying Forney's Formula
         let s = errorLocations.len();

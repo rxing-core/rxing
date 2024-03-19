@@ -412,22 +412,38 @@ impl RSSExpandedReader {
             // let sequence = FINDER_PATTERN_SEQUENCES.get(i).unwrap();
             // for (int[] sequence : FINDER_PATTERN_SEQUENCES) {
             if pairs.len() <= sequence.len() {
-                let mut stop = true;
-                for (j, seq) in sequence.iter().enumerate().take(pairs.len()) {
-                    // for (int j = 0; j < pairs.size(); j++) {
-                    if pairs
-                        .get(j)
-                        .unwrap()
-                        .getFinderPattern()
-                        .as_ref()
-                        .unwrap()
-                        .getValue()
-                        != *seq
-                    {
-                        stop = false;
-                        break;
-                    }
-                }
+                let stop = sequence
+                    .iter()
+                    .enumerate()
+                    .take(pairs.len())
+                    .all(|(j, seq)| {
+                        pairs
+                            .get(j)
+                            .unwrap()
+                            .getFinderPattern()
+                            .as_ref()
+                            .unwrap()
+                            .getValue()
+                            == *seq
+                    });
+
+                // let mut stop = true;
+                // for (j, seq) in sequence.iter().enumerate().take(pairs.len()) {
+                //     // for (int j = 0; j < pairs.size(); j++) {
+                //     if pairs
+                //         .get(j)
+                //         .unwrap()
+                //         .getFinderPattern()
+                //         .as_ref()
+                //         .unwrap()
+                //         .getValue()
+                //         != *seq
+                //     {
+                //         stop = false;
+                //         break;
+                //         // return true;
+                //     }
+                // }
                 if stop {
                     return true;
                 }
@@ -528,8 +544,7 @@ impl RSSExpandedReader {
 
     // Not private for unit testing
     pub(crate) fn constructRXingResult(pairs: &[ExpandedPair]) -> Result<RXingResult> {
-        let binary =
-            bit_array_builder::buildBitArray(&pairs.to_vec()).ok_or(Exceptions::ILLEGAL_STATE)?;
+        let binary = bit_array_builder::buildBitArray(pairs).ok_or(Exceptions::ILLEGAL_STATE)?;
 
         let mut decoder = abstract_expanded_decoder::createDecoder(&binary)?;
         let resultingString = decoder.parseInformation()?;

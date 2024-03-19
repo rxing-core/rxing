@@ -72,7 +72,7 @@ impl ReedSolomonEncoder {
         Some(rv)
     }
 
-    pub fn encode(&mut self, to_encode: &mut Vec<i32>, ec_bytes: usize) -> Result<()> {
+    pub fn encode(&mut self, to_encode: &mut [i32], ec_bytes: usize) -> Result<()> {
         if ec_bytes == 0 {
             return Err(Exceptions::illegal_argument_with(
                 "No error correction bytes",

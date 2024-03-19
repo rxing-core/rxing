@@ -52,7 +52,6 @@ pub use GeoParsedResult::*;
 // pub use GeoResultParser::*;
 pub use AddressBookParsedResult::*;
 pub use CalendarParsedResult::*;
-pub use CalendarParsedResult::*;
 pub use EmailAddressParsedResult::*;
 pub use ExpandedProductParsedResult::*;
 pub use ProductParsedResult::*;
