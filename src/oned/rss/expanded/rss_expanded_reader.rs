@@ -490,16 +490,17 @@ impl RSSExpandedReader {
     // Remove all the rows that contains only specified pairs
     fn removePartialRows(pairs: &[ExpandedPair], rows: &mut Vec<ExpandedRow>) {
         rows.retain(|row| {
-            let mut allFound = true;
+            // let mut allFound = true;
             if row.getPairs().len() != pairs.len() {
-                for p in row.getPairs() {
-                    // for (ExpandedPair p : r.getPairs()) {
-                    if !pairs.contains(p) {
-                        allFound = false;
-                        break;
-                    }
-                }
-                !allFound
+                ! row.getPairs().iter().all(|p| { pairs.contains(p) })
+                // for p in row.getPairs() {
+                //     // for (ExpandedPair p : r.getPairs()) {
+                //     if !pairs.contains(p) {
+                //         allFound = false;
+                //         break;
+                //     }
+                // }
+                
             } else {
                 true
             }
