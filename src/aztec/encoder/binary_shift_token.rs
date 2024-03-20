@@ -16,7 +16,7 @@
 
 use std::fmt;
 
-use crate::common::{BitArray, Result};
+use crate::common::{BitArray, BitFieldBaseType, Result};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct BinaryShiftToken {
@@ -41,13 +41,13 @@ impl BinaryShiftToken {
                 // character 31 when the total byte code is <= 62
                 bit_array.appendBits(31, 5)?; // BINARY_SHIFT
                 if bsbc > 62 {
-                    bit_array.appendBits(bsbc as u32 - 31, 16)?;
+                    bit_array.appendBits(bsbc as BitFieldBaseType - 31, 16)?;
                 } else if i == 0 {
                     // 1 <= binaryShiftByteCode <= 62
-                    bit_array.appendBits(bsbc.min(31) as u32, 5)?;
+                    bit_array.appendBits(bsbc.min(31) as BitFieldBaseType, 5)?;
                 } else {
                     // 32 <= binaryShiftCount <= 62 and i == 31
-                    bit_array.appendBits(bsbc as u32 - 31, 5)?;
+                    bit_array.appendBits(bsbc as BitFieldBaseType - 31, 5)?;
                 }
             }
             bit_array.appendBits(text[self.binary_shift_start as usize + i].into(), 8)?;

@@ -27,6 +27,7 @@ use super::BitArray;
 
 type BaseType = super::BitFieldBaseType;
 const BASE_BITS: usize = super::BIT_FIELD_BASE_BITS;
+const BASE_SHIFT: usize = super::BIT_FIELD_SHIFT_BITS;
 
 /**
  * <p>Represents a 2D matrix of bits. In function arguments below, and throughout the common
@@ -216,13 +217,13 @@ impl BitMatrix {
         if offset >= self.bits.len() {
             return false;
         }
-        ((self.bits[offset] >> (x & 0x1f)) & 1) != 0
+        ((self.bits[offset] >> (x as usize & BASE_SHIFT)) & 1) != 0
     }
 
     pub fn get_point(&self, point: Point) -> bool {
         self.get(point.x as u32, point.y as u32)
         // let offset = self.get_offset(point.y as u32, point.x as u32);
-        // ((self.bits[offset] >> (x & 0x1f)) & 1) != 0
+        // ((self.bits[offset] >> (x & BASE_SHIFT)) & 1) != 0
     }
 
     pub fn get_index<T: Into<usize>>(&self, index: T) -> bool {
@@ -246,7 +247,7 @@ impl BitMatrix {
         if offset >= self.bits.len() {
             return None;
         }
-        Some(((self.bits[offset] >> (x & 0x1f)) & 1) != 0)
+        Some(((self.bits[offset] >> (x as usize & BASE_SHIFT)) & 1) != 0)
     }
 
     pub fn try_get_point(&self, point: Point) -> Option<bool> {
@@ -292,7 +293,7 @@ impl BitMatrix {
      */
     pub fn set(&mut self, x: u32, y: u32) {
         let offset = self.get_offset(y, x);
-        self.bits[offset] |= 1 << (x & 0x1f);
+        self.bits[offset] |= 1 << (x as usize & BASE_SHIFT);
     }
 
     pub fn set_bool(&mut self, x: u32, y: u32, value: bool) {
@@ -305,7 +306,7 @@ impl BitMatrix {
 
     pub fn unset(&mut self, x: u32, y: u32) {
         let offset = self.get_offset(y, x);
-        self.bits[offset] &= !(1 << (x & 0x1f));
+        self.bits[offset] &= !(1 << (x as usize & BASE_SHIFT));
     }
 
     /**
@@ -316,7 +317,7 @@ impl BitMatrix {
      */
     pub fn flip_coords(&mut self, x: u32, y: u32) {
         let offset = self.get_offset(y, x);
-        self.bits[offset] ^= 1 << (x & 0x1f);
+        self.bits[offset] ^= 1 << (x as usize & BASE_SHIFT);
     }
 
     /**
@@ -390,7 +391,7 @@ impl BitMatrix {
             let offset = y as usize * self.row_size;
             for x in left..right {
                 //for (int x = left; x < right; x++) {
-                self.bits[offset + (x as usize / BASE_BITS)] |= 1 << (x & 0x1f);
+                self.bits[offset + (x as usize / BASE_BITS)] |= 1 << (x as usize & BASE_SHIFT);
             }
         }
         Ok(())
@@ -500,10 +501,10 @@ impl BitMatrix {
             for x in 0..self.width {
                 //for (int x = 0; x < width; x++) {
                 let offset = self.get_offset(y, x);
-                if ((self.bits[offset] >> (x & 0x1f)) & 1) != 0 {
+                if ((self.bits[offset] >> (x as usize & BASE_SHIFT)) & 1) != 0 {
                     let newOffset: usize =
                         ((newHeight - 1 - x) * newRowSize + (y / BASE_BITS as u32)) as usize;
-                    newBits[newOffset] |= 1 << (y & 0x1f);
+                    newBits[newOffset] |= 1 << (y as usize & BASE_SHIFT);
                 }
             }
         }
@@ -582,7 +583,7 @@ impl BitMatrix {
 
         let theBits = self.bits[bitsOffset];
         let mut bit = 0;
-        while (theBits << (31 - bit)) == 0 {
+        while (theBits << (BASE_SHIFT - bit)) == 0 {
             bit += 1;
         }
         x += bit;

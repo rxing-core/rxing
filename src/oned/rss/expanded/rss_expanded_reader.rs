@@ -492,7 +492,7 @@ impl RSSExpandedReader {
         rows.retain(|row| {
             // let mut allFound = true;
             if row.getPairs().len() != pairs.len() {
-                ! row.getPairs().iter().all(|p| { pairs.contains(p) })
+                !row.getPairs().iter().all(|p| pairs.contains(p))
                 // for p in row.getPairs() {
                 //     // for (ExpandedPair p : r.getPairs()) {
                 //     if !pairs.contains(p) {
@@ -500,7 +500,6 @@ impl RSSExpandedReader {
                 //         break;
                 //     }
                 // }
-                
             } else {
                 true
             }

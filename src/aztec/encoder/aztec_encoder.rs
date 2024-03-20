@@ -19,7 +19,7 @@ use crate::{
         reedsolomon::{
             get_predefined_genericgf, GenericGFRef, PredefinedGenericGF, ReedSolomonEncoder,
         },
-        BitArray, BitMatrix, CharacterSet, Result,
+        BitArray, BitFieldBaseType, BitMatrix, CharacterSet, Result,
     },
     exceptions::Exceptions,
 };
@@ -376,12 +376,12 @@ pub fn generateModeMessage(
 ) -> Result<BitArray> {
     let mut mode_message = BitArray::new();
     if compact {
-        mode_message.appendBits(layers - 1, 2)?;
-        mode_message.appendBits(messageSizeInWords - 1, 6)?;
+        mode_message.appendBits(layers as BitFieldBaseType - 1, 2)?;
+        mode_message.appendBits(messageSizeInWords as BitFieldBaseType - 1, 6)?;
         mode_message = generateCheckWords(&mode_message, 28, 4)?;
     } else {
-        mode_message.appendBits(layers - 1, 5)?;
-        mode_message.appendBits(messageSizeInWords - 1, 11)?;
+        mode_message.appendBits(layers as BitFieldBaseType - 1, 5)?;
+        mode_message.appendBits(messageSizeInWords as BitFieldBaseType - 1, 11)?;
         mode_message = generateCheckWords(&mode_message, 40, 4)?;
     }
     Ok(mode_message)
@@ -438,7 +438,7 @@ fn generateCheckWords(bitArray: &BitArray, totalBits: usize, wordSize: usize) ->
     message_bits.appendBits(0, start_pad)?;
     for message_word in message_words {
         // for (int messageWord : messageWords) {
-        message_bits.appendBits(message_word as u32, wordSize)?
+        message_bits.appendBits(message_word as BitFieldBaseType, wordSize)?
     }
     // dbg!(message_bits.to_string());
     Ok(message_bits)

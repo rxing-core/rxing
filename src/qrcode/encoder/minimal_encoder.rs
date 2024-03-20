@@ -17,7 +17,7 @@
 use std::{fmt, rc::Rc};
 
 use crate::{
-    common::{BitArray, CharacterSet, ECIEncoderSet, Result},
+    common::{BitArray, BitFieldBaseType, CharacterSet, ECIEncoderSet, Result},
     qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
     Exceptions,
 };
@@ -992,16 +992,19 @@ impl RXingResultNode {
      * appends the bits
      */
     fn getBits(&self, bits: &mut BitArray) -> Result<()> {
-        bits.appendBits(self.mode.getBits() as u32, 4)?;
+        bits.appendBits(self.mode.getBits() as BitFieldBaseType, 4)?;
         if self.characterLength > 0 {
             let length = self.getCharacterCountIndicator();
             bits.appendBits(
-                length,
+                length as BitFieldBaseType,
                 self.mode.getCharacterCountBits(self.version) as usize,
             )?;
         }
         if self.mode == Mode::ECI {
-            bits.appendBits(self.encoders.get_eci(self.charsetEncoderIndex) as u32, 8)?;
+            bits.appendBits(
+                self.encoders.get_eci(self.charsetEncoderIndex) as BitFieldBaseType,
+                8,
+            )?;
         } else if self.characterLength > 0 {
             // append data
             qrcode_encoder::appendBytes(

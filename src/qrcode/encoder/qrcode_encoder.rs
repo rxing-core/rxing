@@ -24,7 +24,7 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::{
     common::{
         reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonEncoder},
-        BitArray, CharacterSet, Eci, Result,
+        BitArray, BitFieldBaseType, CharacterSet, Eci, Result,
     },
     qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
     EncodeHintType, EncodeHintValue, EncodingHintDictionary, Exceptions,
@@ -551,7 +551,7 @@ pub fn interleaveWithECBytes(
         for block in &blocks {
             let data_bytes = block.getDataBytes();
             if i < data_bytes.len() {
-                result.appendBits(data_bytes[i] as u32, 8)?;
+                result.appendBits(data_bytes[i] as BitFieldBaseType, 8)?;
             }
         }
     }
@@ -560,7 +560,7 @@ pub fn interleaveWithECBytes(
         for block in &blocks {
             let ec_bytes = block.getErrorCorrectionBytes();
             if i < ec_bytes.len() {
-                result.appendBits(ec_bytes[i] as u32, 8)?;
+                result.appendBits(ec_bytes[i] as BitFieldBaseType, 8)?;
             }
         }
     }
@@ -599,7 +599,7 @@ pub fn generateECBytes(dataBytes: &[u8], num_ec_bytes_in_block: usize) -> Result
  * Append mode info. On success, store the result in "bits".
  */
 pub fn appendModeInfo(mode: Mode, bits: &mut BitArray) -> Result<()> {
-    bits.appendBits(mode.getBits() as u32, 4)
+    bits.appendBits(mode.getBits() as BitFieldBaseType, 4)
 }
 
 /**
@@ -619,7 +619,7 @@ pub fn appendLengthInfo(
             ((1 << numBits) - 1)
         )));
     }
-    bits.appendBits(num_letters, numBits as usize)
+    bits.appendBits(num_letters as BitFieldBaseType, numBits as usize)
 }
 
 /**
@@ -661,7 +661,12 @@ pub fn appendNumericBytes(content: &str, bits: &mut BitArray) -> Result<()> {
                 .nth(i + 2)
                 .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u8
                 - b'0';
-            bits.appendBits(num1 as u32 * 100 + num2 as u32 * 10 + num3 as u32, 10)?;
+            bits.appendBits(
+                num1 as BitFieldBaseType * 100
+                    + num2 as BitFieldBaseType * 10
+                    + num3 as BitFieldBaseType,
+                10,
+            )?;
             i += 3;
         } else if i + 1 < length {
             // Encode two numeric letters in seven bits.
@@ -670,11 +675,11 @@ pub fn appendNumericBytes(content: &str, bits: &mut BitArray) -> Result<()> {
                 .nth(i + 1)
                 .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u8
                 - b'0';
-            bits.appendBits(num1 as u32 * 10 + num2 as u32, 7)?;
+            bits.appendBits(num1 as BitFieldBaseType * 10 + num2 as BitFieldBaseType, 7)?;
             i += 2;
         } else {
             // Encode one numeric letter in four bits.
-            bits.appendBits(num1 as u32, 4)?;
+            bits.appendBits(num1 as BitFieldBaseType, 4)?;
             i += 1;
         }
     }
@@ -705,11 +710,11 @@ pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<()>
                 return Err(Exceptions::WRITER);
             }
             // Encode two alphanumeric letters in 11 bits.
-            bits.appendBits((code1 as i16 * 45 + code2 as i16) as u32, 11)?;
+            bits.appendBits((code1 as i16 * 45 + code2 as i16) as BitFieldBaseType, 11)?;
             i += 2;
         } else {
             // Encode one alphanumeric letter in six bits.
-            bits.appendBits(code1 as u32, 6)?;
+            bits.appendBits(code1 as BitFieldBaseType, 6)?;
             i += 1;
         }
     }
@@ -721,7 +726,7 @@ pub fn append8BitBytes(content: &str, bits: &mut BitArray, encoding: CharacterSe
         .encode(content)
         .map_err(|e| Exceptions::writer_with(format!("error {e}")))?;
     for b in bytes {
-        bits.appendBits(b as u32, 8)?;
+        bits.appendBits(b as BitFieldBaseType, 8)?;
     }
     Ok(())
 }
@@ -751,7 +756,7 @@ pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<()> {
             return Err(Exceptions::writer_with("Invalid byte sequence"));
         }
         let encoded = ((subtracted >> 8) * 0xc0) + (subtracted & 0xff);
-        bits.appendBits(encoded as u32, 13)?;
+        bits.appendBits(encoded as BitFieldBaseType, 13)?;
 
         i += 2;
     }
@@ -759,7 +764,7 @@ pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<()> {
 }
 
 fn appendECI(eci: Eci, bits: &mut BitArray) -> Result<()> {
-    bits.appendBits(Mode::ECI.getBits() as u32, 4)?;
+    bits.appendBits(Mode::ECI.getBits() as BitFieldBaseType, 4)?;
     // This is correct for values up to 127, which is all we need now.
-    bits.appendBits(eci as u32, 8)
+    bits.appendBits(eci as BitFieldBaseType, 8)
 }

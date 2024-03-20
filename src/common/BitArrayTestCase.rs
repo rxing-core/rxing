@@ -26,7 +26,9 @@
 //  */
 // public final class BitArrayTestCase extends Assert {
 
-use super::BitArray;
+use crate::common::BIT_FIELD_BASE_BITS;
+
+use super::{BitArray, BIT_FIELD_SHIFT_BITS};
 use rand::Rng;
 
 #[test]
@@ -206,8 +208,20 @@ fn test_get_array() {
     array.set(0);
     array.set(63);
     let ints = array.getBitArray();
-    assert_eq!(1, ints[0]);
-    assert_eq!(0b10_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00, ints[1]);
+    if BIT_FIELD_BASE_BITS == 64 {
+        assert_eq!(
+            ints,
+            &[9223372036854775809_usize.try_into().unwrap_or_default()]
+        )
+    } else if BIT_FIELD_BASE_BITS == 128 {
+        assert_eq!(
+            ints,
+            &[9223372036854775809_u128.try_into().unwrap_or_default()]
+        )
+    } else {
+        assert_eq!(1, ints[0]);
+        assert_eq!(0b10_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00, ints[1]);
+    }
 }
 
 #[test]
@@ -244,7 +258,7 @@ fn reverse_algorithm_test() {
         newBitArray.reverse();
         let newBitsNew = newBitArray.getBitArray();
         assert!(
-            arrays_are_equal(&newBitsOriginal, newBitsNew, size / 32 + 1),
+            arrays_are_equal(&newBitsOriginal, newBitsNew, size / BIT_FIELD_BASE_BITS + 1),
             "size: ({}) : {:?}/{:?}",
             size,
             newBitsOriginal,
@@ -325,7 +339,13 @@ fn test_xor_2() {
             5 => assert_eq!(array_1.getBitArray(), &[0b1_0101]),
             6 => assert_eq!(array_1.getBitArray(), &[0b10_10_11]),
             7..=24 => assert_eq!(array_1.getBitArray(), &[0b10_10_11 << (i - 6)], "{i}"),
-            _ => assert_eq!(array_1.getBitArray(), &[0b10_10_11 << (i - 6), 0], "{i}"),
+            _ => {
+                if BIT_FIELD_BASE_BITS == 32 {
+                    assert_eq!(array_1.getBitArray(), &[0b10_10_11 << (i - 6), 0], "{i}")
+                } else {
+                    assert_eq!(array_1.getBitArray(), &[0b10_10_11 << (i - 6)], "{i}")
+                }
+            }
         }
     }
 }
@@ -338,14 +358,14 @@ fn reverse_original(
     for i in 0..size {
         // for (int i = 0; i < size; i++) {
         if bit_set(oldBits, size - i - 1) {
-            newBits[i / 32_usize] |= 1 << (i & 0x1F);
+            newBits[i / BIT_FIELD_BASE_BITS] |= 1 << (i & BIT_FIELD_SHIFT_BITS);
         }
     }
     newBits
 }
 
 fn bit_set(bits: &[super::BitFieldBaseType], i: usize) -> bool {
-    (bits[i / 32] & (1 << (i & 0x1F))) != 0
+    (bits[i / BIT_FIELD_BASE_BITS] & (1 << (i & BIT_FIELD_SHIFT_BITS))) != 0
 }
 
 fn arrays_are_equal<T: Eq + Default>(left: &[T], right: &[T], size: usize) -> bool {

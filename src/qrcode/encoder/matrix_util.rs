@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    common::{BitArray, Result},
+    common::{BitArray, BitFieldBaseType, Result},
     qrcode::decoder::{ErrorCorrectionLevel, Version},
     Exceptions,
 };
@@ -113,7 +113,7 @@ const VERSION_INFO_POLY: u32 = 0x1f25; // 1 1111 0010 0101
 
 // From Appendix C in JISX0510:2004 (p.65).
 const TYPE_INFO_POLY: u32 = 0x537;
-const TYPE_INFO_MASK_PATTERN: u32 = 0x5412;
+const TYPE_INFO_MASK_PATTERN: BitFieldBaseType = 0x5412;
 
 // Set all cells to -1.  -1 means that the cell is empty (not set yet).
 //
@@ -346,10 +346,10 @@ pub fn makeTypeInfoBits(
         return Err(Exceptions::writer_with("Invalid mask pattern"));
     }
     let typeInfo = (ecLevel.get_value() << 3) as u32 | maskPattern;
-    bits.appendBits(typeInfo, 5)?;
+    bits.appendBits(typeInfo as BitFieldBaseType, 5)?;
 
     let bchCode = calculateBCHCode(typeInfo, TYPE_INFO_POLY)?;
-    bits.appendBits(bchCode, 10)?;
+    bits.appendBits(bchCode as BitFieldBaseType, 10)?;
 
     let mut maskBits = BitArray::new();
     maskBits.appendBits(TYPE_INFO_MASK_PATTERN, 15)?;
@@ -368,9 +368,9 @@ pub fn makeTypeInfoBits(
 // Make bit vector of version information. On success, store the result in "bits" and return true.
 // See 8.10 of JISX0510:2004 (p.45) for details.
 pub fn makeVersionInfoBits(version: &Version, bits: &mut BitArray) -> Result<()> {
-    bits.appendBits(version.getVersionNumber(), 6)?;
+    bits.appendBits(version.getVersionNumber() as BitFieldBaseType, 6)?;
     let bchCode = calculateBCHCode(version.getVersionNumber(), VERSION_INFO_POLY)?;
-    bits.appendBits(bchCode, 12)?;
+    bits.appendBits(bchCode as BitFieldBaseType, 12)?;
 
     if bits.get_size() != 18 {
         // Just in case.

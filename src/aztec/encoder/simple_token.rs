@@ -16,7 +16,7 @@
 
 use std::fmt;
 
-use crate::common::{BitArray, Result};
+use crate::common::{BitArray, BitFieldBaseType, Result};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct SimpleToken {
@@ -34,7 +34,7 @@ impl SimpleToken {
     }
 
     pub fn appendTo(&self, bit_array: &mut BitArray, _text: &[u8]) -> Result<()> {
-        bit_array.appendBits(self.value as u32, self.bit_count as usize)
+        bit_array.appendBits(self.value as BitFieldBaseType, self.bit_count as usize)
     }
 
     // @Override

@@ -604,7 +604,7 @@ fn testGetNumDataBytesAndNumECBytesForBlockID() {
 
 #[test]
 fn testInterleaveWithECBytes() {
-    let dataBytes = &[32u32, 65, 205, 69, 41, 220, 46, 128, 236];
+    let dataBytes = &[32, 65, 205, 69, 41, 220, 46, 128, 236];
     let mut in_ = BitArray::new();
     for dataByte in dataBytes {
         // for (byte dataByte: dataBytes) {
@@ -626,7 +626,7 @@ fn testInterleaveWithECBytes() {
     }
     // Numbers are from http://www.swetake.com/qr/qr8.html
     let dataBytes = &[
-        67u32, 70, 22, 38, 54, 70, 86, 102, 118, 134, 150, 166, 182, 198, 214, 230, 247, 7, 23, 39,
+        67, 70, 22, 38, 54, 70, 86, 102, 118, 134, 150, 166, 182, 198, 214, 230, 247, 7, 23, 39,
         55, 71, 87, 103, 119, 135, 151, 166, 22, 38, 54, 70, 86, 102, 118, 134, 150, 166, 182, 198,
         214, 230, 247, 7, 23, 39, 55, 71, 87, 103, 119, 135, 151, 160, 236, 17, 236, 17, 236, 17,
         236, 17,

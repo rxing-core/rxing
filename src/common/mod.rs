@@ -126,5 +126,6 @@ mod adaptive_threshold_binarizer;
 #[cfg(feature = "image")]
 pub use adaptive_threshold_binarizer::*;
 
-pub type BitFieldBaseType = u32;
+pub type BitFieldBaseType = usize;
 pub const BIT_FIELD_BASE_BITS: usize = BitFieldBaseType::BITS as usize;
+pub const BIT_FIELD_SHIFT_BITS: usize = BIT_FIELD_BASE_BITS - 1;
