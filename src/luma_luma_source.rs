@@ -6,23 +6,19 @@ use crate::LuminanceSource;
 pub struct Luma8LuminanceSource {
     /// image dimension in form (x,y)
     dimensions: (u32, u32),
-    /// image origin in the form (x,y)
-    origin: (u32, u32),
     /// raw data for luma 8
     data: Box<[u8]>,
     /// flag indicating if the underlying data needs to be inverted for use
     inverted: bool,
-    /// original dimensions of the data, used to manage crop
-    original_dimension: (u32, u32),
 }
 impl LuminanceSource for Luma8LuminanceSource {
     const SUPPORTS_CROP: bool = true;
     const SUPPORTS_ROTATION: bool = true;
 
     fn get_row(&self, y: usize) -> Vec<u8> {
-        let chunk_size = self.original_dimension.0 as usize;
-        let row_skip = y + self.origin.1 as usize;
-        let column_skip = self.origin.0 as usize;
+        let chunk_size = self.dimensions.0 as usize;
+        let row_skip = y; //self.origin.1 as usize;
+        let column_skip = 0; //self.origin.0 as usize;
         let column_take = self.dimensions.0 as usize;
 
         let data_start = (chunk_size * row_skip) + column_skip;
@@ -37,33 +33,17 @@ impl LuminanceSource for Luma8LuminanceSource {
 
     fn get_column(&self, x: usize) -> Vec<u8> {
         self.data
-            .chunks_exact(self.original_dimension.0 as usize)
-            .skip(self.origin.1 as usize)
-            .fold(Vec::default(), |mut acc, e| {
-                acc.push(e[self.origin.0 as usize + x]);
+            .chunks_exact(self.dimensions.0 as usize)
+            // .skip(self.origin.1 as usize)
+            .fold(Vec::with_capacity(self.get_height()), |mut acc, e| {
+                let byte = e[x];
+                acc.push(Self::invert_if_should(byte, self.inverted));
                 acc
             })
-            .iter()
-            .map(|byte| Self::invert_if_should(*byte, self.inverted))
-            .collect()
     }
 
     fn get_matrix(&self) -> Vec<u8> {
-        self.data
-            .iter()
-            .skip((self.original_dimension.0 * self.origin.1) as usize)
-            .take((self.dimensions.1 * self.original_dimension.0) as usize)
-            .collect::<Vec<&u8>>()
-            .chunks_exact(self.original_dimension.0 as usize)
-            .flat_map(|f| {
-                f.iter()
-                    .skip((self.origin.0) as usize)
-                    .take(self.get_width())
-                    .copied()
-            }) // flatten this all out
-            .copied() // copy it over so that it's u8
-            .map(|byte| Self::invert_if_should(byte, self.inverted))
-            .collect() // collect into a vec
+        self.data.clone().into()
     }
 
     fn get_width(&self) -> usize {
@@ -81,20 +61,35 @@ impl LuminanceSource for Luma8LuminanceSource {
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
         Ok(Self {
             dimensions: (width as u32, height as u32),
-            origin: (self.origin.0 + left as u32, self.origin.1 + top as u32),
-            data: self.data.clone(),
+            // origin: (self.origin.0 + left as u32, self.origin.1 + top as u32),
+            data: self
+                .data
+                .chunks_exact(self.dimensions.0 as usize)
+                .skip(top)
+                .flat_map(|f| f.iter().skip(left).take(width))
+                .map(|byte| Self::invert_if_should(*byte, self.inverted))
+                .collect(),
+            // data: self
+            //     .data
+            //     .iter()
+            //     .skip((self.dimensions.0 as usize * top) as usize) // Skip to the desired top
+            //     .take((height * self.dimensions.0 as usize) as usize) // take only the height desired
+            //     .collect::<Vec<&u8>>() // collect for chunks_exact
+            //     .chunks_exact(self.dimensions.0 as usize) // Chunk data by rows
+            //     .flat_map(|f| f.iter().skip((left) as usize).take(width).copied()) // flatten this all out
+            //     .copied() // copy it over so that it's u8
+            //     .map(|byte| Self::invert_if_should(byte, self.inverted))
+            //     .collect(), // collect into a vec
             inverted: self.inverted,
-            original_dimension: self.original_dimension,
+            // original_dimension: self.original_dimension,
         })
     }
 
     fn rotate_counter_clockwise(&self) -> Result<Self> {
         let mut new_matrix = Self {
             dimensions: self.dimensions,
-            origin: self.origin,
             data: self.data.clone(),
             inverted: self.inverted,
-            original_dimension: self.original_dimension,
         };
         new_matrix.transpose();
         new_matrix.reverseColumns();
@@ -108,9 +103,9 @@ impl LuminanceSource for Luma8LuminanceSource {
     }
 
     fn get_luma8_point(&self, column: usize, row: usize) -> u8 {
-        let chunk_size = self.original_dimension.0 as usize;
-        let row_skip = row + self.origin.1 as usize;
-        let column_skip = self.origin.0 as usize;
+        let chunk_size = self.dimensions.0 as usize;
+        let row_skip = row; //row + self.origin.1 as usize;
+        let column_skip = 0; //self.origin.0 as usize;
 
         let data_start = (chunk_size * row_skip) + column_skip;
         let data_point = data_start + column;
@@ -157,8 +152,6 @@ impl Luma8LuminanceSource {
         }
         self.data = new_data.into_boxed_slice();
         self.dimensions = new_dim;
-        self.original_dimension = (self.original_dimension.1, self.original_dimension.0);
-        self.origin = (self.origin.1, self.origin.0);
     }
 
     fn transpose(&mut self) {
@@ -175,20 +168,16 @@ impl Luma8LuminanceSource {
     pub fn new(source: Vec<u8>, width: u32, height: u32) -> Self {
         Self {
             dimensions: (width, height),
-            origin: (0, 0),
             data: source.into_boxed_slice(),
             inverted: false,
-            original_dimension: (width, height),
         }
     }
 
     pub fn with_empty_image(width: usize, height: usize) -> Self {
         Self {
             dimensions: (width as u32, height as u32),
-            origin: (0, 0),
             data: vec![0u8; width * height].into_boxed_slice(),
             inverted: false,
-            original_dimension: (width as u32, height as u32),
         }
     }
 

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-use std::rc::Rc;
-
 use image::{DynamicImage, GenericImageView, ImageBuffer, Luma, Pixel};
 use imageproc::geometric_transformations::rotate_about_center;
 
@@ -34,33 +32,20 @@ const MINUS_45_IN_RADIANS: f32 = std::f32::consts::FRAC_PI_4;
  */
 pub struct BufferedImageLuminanceSource {
     // extends LuminanceSource {
-    image: Rc<DynamicImage>,
+    image: DynamicImage,
     width: usize,
     height: usize,
-    left: u32,
-    top: u32,
 }
 
 impl BufferedImageLuminanceSource {
     pub fn new(image: DynamicImage) -> Self {
-        let w = image.width();
-        let h = image.height();
-        Self::with_details(image, 0, 0, w as usize, h as usize)
-    }
-
-    pub fn with_details(
-        image: DynamicImage,
-        left: u32,
-        top: u32,
-        width: usize,
-        height: usize,
-    ) -> Self {
+        let width = image.width() as usize;
+        let height = image.height() as usize;
+        // Self::with_details(image, 0, 0, w as usize, h as usize)
         Self {
-            image: Rc::new(build_local_grey_image(image)),
+            image: build_local_grey_image(image),
             width,
             height,
-            left,
-            top,
         }
     }
 }
@@ -77,8 +62,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
                 self.image
                     .as_luma8()?
                     .rows()
-                    .nth(y + self.top as usize)?
-                    .skip(self.left as usize)
+                    .nth(y)?
                     .take(width)
                     .map(|&p| p.0[0])
                     .collect(),
@@ -91,23 +75,14 @@ impl LuminanceSource for BufferedImageLuminanceSource {
 
     fn get_column(&self, x: usize) -> Vec<u8> {
         let pixels: Vec<u8> = || -> Option<Vec<u8>> {
-            Some(
-                self.image
-                    .as_luma8()?
-                    .rows()
-                    .skip(self.top as usize)
-                    .fold(Vec::default(), |mut acc, e| {
-                        acc.push(
-                            e.into_iter()
-                                .nth(self.left as usize + x)
-                                .unwrap_or(&Luma([0_u8])),
-                        );
-                        acc
-                    })
-                    .iter()
-                    .map(|&p| p.0[0])
-                    .collect(),
-            )
+            Some(self.image.as_luma8()?.rows().fold(
+                Vec::with_capacity(self.get_height()),
+                |mut acc, e| {
+                    let pix = e.into_iter().nth(x).unwrap_or(&Luma([0_u8]));
+                    acc.push(pix.0[0]);
+                    acc
+                },
+            ))
         }()
         .unwrap_or_default();
 
@@ -115,35 +90,35 @@ impl LuminanceSource for BufferedImageLuminanceSource {
     }
 
     fn get_matrix(&self) -> Vec<u8> {
-        if self.height == self.image.height() as usize && self.width == self.image.width() as usize
-        {
-            return self.image.as_bytes().to_vec();
-        }
-        let skip = self.top * self.image.width();
-        let row_skip = self.left;
-        let total_row_take = self.width;
-        let total_rows_to_take = self.image.width() * self.height as u32;
+        // if self.height == self.image.height() as usize && self.width == self.image.width() as usize
+        // {
+        self.image.as_bytes().to_vec()
+        // }
+        // let skip = self.image.width();
+        // let row_skip = 0;
+        // let total_row_take = self.width;
+        // let total_rows_to_take = self.image.width() * self.height as u32;
 
-        let unmanaged = self
-            .image
-            .as_bytes()
-            .iter()
-            .skip(skip as usize) // get to the row we want
-            .take(total_rows_to_take as usize)
-            .collect::<Vec<&u8>>(); // get all the rows we want to look at
+        // let unmanaged = self
+        //     .image
+        //     .as_bytes()
+        //     .iter()
+        //     .skip(skip as usize) // get to the row we want
+        //     .take(total_rows_to_take as usize)
+        //     .collect::<Vec<&u8>>(); // get all the rows we want to look at
 
-        let data = unmanaged
-            .chunks_exact(self.image.width() as usize) // Get rows
-            .flat_map(|f| {
-                f.iter()
-                    .skip(row_skip as usize)
-                    .take(total_row_take)
-                    .copied()
-            }) // flatten this all out
-            .copied() // copy it over so that it's u8
-            .collect(); // collect into a vec
+        // let data = unmanaged
+        //     .chunks_exact(self.image.width() as usize) // Get rows
+        //     .flat_map(|f| {
+        //         f.iter()
+        //             .skip(row_skip as usize)
+        //             .take(total_row_take)
+        //             .copied()
+        //     }) // flatten this all out
+        //     .copied() // copy it over so that it's u8
+        //     .collect(); // collect into a vec
 
-        data
+        // data
     }
 
     fn get_width(&self) -> usize {
@@ -156,18 +131,16 @@ impl LuminanceSource for BufferedImageLuminanceSource {
 
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
         Ok(Self {
-            image: self.image.clone(),
+            image: self
+                .image
+                .crop_imm(left as u32, top as u32, width as u32, height as u32),
             width,
             height,
-            left: self.left + left as u32,
-            top: self.top + top as u32,
         })
     }
 
     fn invert(&mut self) {
-        let mut img = (*self.image).clone();
-        img.invert();
-        self.image = Rc::new(img);
+        self.image.invert()
     }
 
     fn rotate_counter_clockwise(&self) -> Result<Self> {
@@ -175,9 +148,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         Ok(Self {
             width: img.width() as usize,
             height: img.height() as usize,
-            image: Rc::new(img),
-            left: 0,
-            top: 0,
+            image: img,
         })
     }
 
@@ -194,9 +165,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         Ok(Self {
             width: new_img.width() as usize,
             height: new_img.height() as usize,
-            image: Rc::new(new_img),
-            left: 0,
-            top: 0,
+            image: new_img,
         })
     }
 

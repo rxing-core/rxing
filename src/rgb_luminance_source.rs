@@ -28,11 +28,9 @@ use crate::{Exceptions, LuminanceSource};
  */
 #[derive(Debug, Clone)]
 pub struct RGBLuminanceSource {
-    luminances: Vec<u8>,
+    luminances: Box<[u8]>,
     dataWidth: usize,
     dataHeight: usize,
-    left: usize,
-    top: usize,
     width: usize,
     height: usize,
     invert: bool,
@@ -48,7 +46,7 @@ impl LuminanceSource for RGBLuminanceSource {
         }
         let width = self.get_width();
 
-        let offset = (y + self.top) * self.dataWidth + self.left;
+        let offset = (y) * self.dataWidth;
 
         let mut row = vec![0; width];
 
@@ -65,44 +63,11 @@ impl LuminanceSource for RGBLuminanceSource {
     }
 
     fn get_matrix(&self) -> Vec<u8> {
-        let width = self.get_width();
-        let height = self.get_height();
-
-        // If the caller asks for the entire underlying image, save the copy and give them the
-        // original data. The docs specifically warn that result.length must be ignored.
-        if width == self.dataWidth && height == self.dataHeight {
-            let mut z = self.luminances.clone();
-            if self.invert {
-                z = self.invert_block_of_bytes(z);
-            }
-            return z;
-        }
-
-        let area = width * height;
-        let mut matrix = vec![0; area];
-        let mut inputOffset = self.top * self.dataWidth + self.left;
-
-        // If the width matches the full width of the underlying data, perform a single copy.
-        if width == self.dataWidth {
-            matrix[..area].clone_from_slice(&self.luminances[inputOffset..area + inputOffset]);
-            if self.invert {
-                matrix = self.invert_block_of_bytes(matrix);
-            }
-            return matrix;
-        }
-
-        // Otherwise copy one cropped row at a time.
-        for y in 0..height {
-            let outputOffset = y * width;
-            matrix[outputOffset..width + outputOffset]
-                .clone_from_slice(&self.luminances[inputOffset..width + inputOffset]);
-            inputOffset += self.dataWidth;
-        }
-
         if self.invert {
-            matrix = self.invert_block_of_bytes(matrix);
+            self.invert_block_of_bytes(self.luminances.to_vec())
+        } else {
+            self.luminances.to_vec()
         }
-        matrix
     }
 
     fn get_width(&self) -> usize {
@@ -115,11 +80,15 @@ impl LuminanceSource for RGBLuminanceSource {
 
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
         RGBLuminanceSource::new_complex(
-            &self.luminances,
+            self.luminances
+                .chunks_exact(self.dataWidth)
+                .skip(top)
+                .take(height)
+                .flat_map(|row| row.iter().skip(left))
+                .copied()
+                .collect(),
             self.dataWidth,
             self.dataHeight,
-            self.left + left,
-            self.top + top,
             width,
             height,
         )
@@ -132,8 +101,8 @@ impl LuminanceSource for RGBLuminanceSource {
 
     fn get_luma8_point(&self, x: usize, y: usize) -> u8 {
         let _width = self.get_width();
-        let row_offset = (y + self.top) * self.dataWidth + self.left;
-        let col_offset = x + self.left;
+        let row_offset = (y) * self.dataWidth;
+        let col_offset = x;
 
         self.luminances[row_offset + col_offset]
     }
@@ -143,8 +112,6 @@ impl RGBLuminanceSource {
     pub fn new_with_width_height_pixels(width: usize, height: usize, pixels: &[u32]) -> Self {
         let dataWidth = width;
         let dataHeight = height;
-        let left = 0;
-        let top = 0;
 
         // In order to measure pure decoding speed, we convert the entire image to a greyscale array
         // up front, which is the same as the Y channel of the YUVLuminanceSource in the real app.
@@ -161,11 +128,9 @@ impl RGBLuminanceSource {
             luminances[offset] = ((r + g2 + b) / 4) as u8;
         }
         Self {
-            luminances,
+            luminances: luminances.into_boxed_slice(),
             dataWidth,
             dataHeight,
-            left,
-            top,
             width,
             height,
             invert: false,
@@ -173,25 +138,21 @@ impl RGBLuminanceSource {
     }
 
     fn new_complex(
-        pixels: &[u8],
+        pixels: Box<[u8]>,
         data_width: usize,
         data_height: usize,
-        left: usize,
-        top: usize,
         width: usize,
         height: usize,
     ) -> Result<Self> {
-        if left + width > data_width || top + height > data_height {
+        if width > data_width || height > data_height {
             return Err(Exceptions::illegal_argument_with(
                 "Crop rectangle does not fit within image data.",
             ));
         }
         Ok(Self {
-            luminances: pixels.to_owned(),
+            luminances: pixels,
             dataWidth: data_width,
             dataHeight: data_height,
-            left,
-            top,
             width,
             height,
             invert: false,

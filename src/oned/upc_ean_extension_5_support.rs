@@ -160,9 +160,7 @@ impl UPCEANExtension5Support {
         if raw.chars().count() != 5 {
             return None;
         }
-        let Some(value) = Self::parseExtension5String(raw) else {
-            return None;
-        };
+        let value = Self::parseExtension5String(raw)?;
 
         let mut result = HashMap::new();
         result.insert(

@@ -32,7 +32,7 @@ use super::{AI01decoder, AbstractExpandedDecoder, GeneralAppIdDecoder};
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
-pub struct AI01AndOtherAIs<'a>(&'a BitArray, GeneralAppIdDecoder<'a>);
+pub struct AI01AndOtherAIs<'a>((), GeneralAppIdDecoder<'a>);
 impl AI01decoder for AI01AndOtherAIs<'_> {}
 impl AbstractExpandedDecoder for AI01AndOtherAIs<'_> {
     fn parseInformation(&mut self) -> Result<String> {
@@ -56,7 +56,7 @@ impl AbstractExpandedDecoder for AI01AndOtherAIs<'_> {
 }
 impl<'a> AI01AndOtherAIs<'_> {
     pub fn new(information: &'a BitArray) -> AI01AndOtherAIs<'a> {
-        AI01AndOtherAIs(information, GeneralAppIdDecoder::new(information))
+        AI01AndOtherAIs((), GeneralAppIdDecoder::new(information))
     }
 
     //first bit encodes the linkage flag,

@@ -143,7 +143,7 @@ const THUMBNAIL_SCALE_FACTOR: usize = 2;
  */
 #[derive(Debug, Clone)]
 pub struct PlanarYUVLuminanceSource {
-    yuv_data: Vec<u8>,
+    yuv_data: Box<[u8]>,
     data_width: usize,
     data_height: usize,
     left: usize,
@@ -173,7 +173,7 @@ impl PlanarYUVLuminanceSource {
         }
 
         let mut new_s: Self = Self {
-            yuv_data,
+            yuv_data: yuv_data.into_boxed_slice(),
             data_width,
             data_height,
             left,
@@ -270,7 +270,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         // If the caller asks for the entire underlying image, save the copy and give them the
         // original data. The docs specifically warn that result.length must be ignored.
         if width == self.data_width && height == self.data_height {
-            let mut v = self.yuv_data.clone();
+            let mut v = self.yuv_data.to_vec();
             if self.invert {
                 v = self.invert_block_of_bytes(v);
             }
@@ -314,18 +314,16 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
     }
 
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
-        PlanarYUVLuminanceSource::new_with_all(
-            self.yuv_data.clone(),
-            self.data_width,
-            self.data_height,
-            self.left + left,
-            self.top + top,
+        Ok(Self {
+            yuv_data: self.yuv_data.clone(),
+            data_width: self.data_width,
+            data_height: self.data_height,
+            left: self.left + left,
+            top: self.top + top,
             width,
             height,
-            false,
-            self.invert,
-        )
-        .map_err(|_| Exceptions::UNSUPPORTED_OPERATION)
+            invert: self.invert,
+        })
     }
 
     fn invert(&mut self) {
