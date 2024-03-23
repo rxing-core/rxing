@@ -16,7 +16,12 @@
 
 //package com.google.zxing;
 
-use std::{borrow::Cow, fmt};
+use std::{
+    borrow::{Borrow, Cow},
+    fmt,
+};
+
+use once_cell::sync::OnceCell;
 
 use crate::{
     common::{BitArray, BitMatrix, LineOrientation, Result},
@@ -32,13 +37,13 @@ use crate::{
 
 pub struct BinaryBitmap<B: Binarizer> {
     binarizer: B,
-    pub(crate) matrix: Option<BitMatrix>,
+    pub(crate) matrix: OnceCell<BitMatrix>,
 }
 
 impl<B: Binarizer> BinaryBitmap<B> {
     pub fn new(binarizer: B) -> Self {
         Self {
-            matrix: None,
+            matrix: OnceCell::new(),
             binarizer,
         }
     }
@@ -94,10 +99,19 @@ impl<B: Binarizer> BinaryBitmap<B> {
         // 1. This work will never be done if the caller only installs 1D Reader objects, or if a
         //    1D Reader finds a barcode before the 2D Readers run.
         // 2. This work will only be done once even if the caller installs multiple 2D Readers.
-        if self.matrix.is_none() {
-            self.matrix = Some(self.binarizer.get_black_matrix().unwrap().clone());
-        }
-        self.matrix.as_mut().unwrap()
+        // if self.matrix.borrow().is_none() {
+        // _=self.matrix.replace(Some(self.binarizer.get_black_matrix().unwrap().clone()));
+        //     // self.matrix.get_mut() = ;
+        // }
+        // &mut self.matrix.get_mut().unwrap()
+        self.matrix
+            .get_or_init(|| match self.binarizer.get_black_matrix() {
+                Ok(a) => a.clone(),
+                Err(_) => {
+                    BitMatrix::new(self.get_width() as u32, self.get_height() as u32).unwrap()
+                }
+            });
+        self.matrix.get_mut().unwrap()
     }
 
     /**
@@ -111,22 +125,29 @@ impl<B: Binarizer> BinaryBitmap<B> {
      * @return The 2D array of bits for the image (true means black).
      * @throws NotFoundException if image can't be binarized to make a matrix
      */
-    pub fn get_black_matrix(&mut self) -> &BitMatrix {
+    pub fn get_black_matrix(&self) -> &BitMatrix {
         // The matrix is created on demand the first time it is requested, then cached. There are two
         // reasons for this:
         // 1. This work will never be done if the caller only installs 1D Reader objects, or if a
         //    1D Reader finds a barcode before the 2D Readers run.
         // 2. This work will only be done once even if the caller installs multiple 2D Readers.
-        if self.matrix.is_none() {
-            self.matrix = Some(match self.binarizer.get_black_matrix() {
+        // if self.matrix.borrow().is_none() {
+        // _= self.matrix.replace(Some(match self.binarizer.get_black_matrix() {
+        //         Ok(a) => a.clone(),
+        //         Err(_) => {
+        //             BitMatrix::new(self.get_width() as u32, self.get_height() as u32).unwrap()
+        //         }
+        //     }));
+        //     // self.binarizer.get_black_matrix().unwrap_or_else( |_| BitMatrix::new(self.get_width() as u32, self.get_height() as u32).unwrap()).clone())
+        // }
+        // &self.matrix.borrow().as_ref().unwrap()
+        self.matrix
+            .get_or_init(|| match self.binarizer.get_black_matrix() {
                 Ok(a) => a.clone(),
                 Err(_) => {
                     BitMatrix::new(self.get_width() as u32, self.get_height() as u32).unwrap()
                 }
             })
-            // self.binarizer.get_black_matrix().unwrap_or_else( |_| BitMatrix::new(self.get_width() as u32, self.get_height() as u32).unwrap()).clone())
-        }
-        self.matrix.as_ref().unwrap()
     }
 
     /**
@@ -215,6 +236,6 @@ impl<B: Binarizer> BinaryBitmap<B> {
 
 impl<B: Binarizer> fmt::Display for BinaryBitmap<B> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self.matrix)
+        write!(f, "{:?}", self.matrix.borrow())
     }
 }

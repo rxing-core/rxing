@@ -141,7 +141,7 @@ impl LumImagePyramid {
 
 impl<B: Binarizer> BinaryBitmap<B> {
     pub fn close(&mut self) -> Result<()> {
-        if let Some(matrix) = self.matrix.as_mut() {
+        if let Some(matrix) = self.matrix.get_mut() {
             let mut tmp = BitMatrix::new(matrix.width(), matrix.height())?;
             // dilate
             SumFilter(matrix, &mut tmp, |sum| sum > 0);
