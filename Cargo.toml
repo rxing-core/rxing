@@ -19,18 +19,18 @@ once_cell = "1.19"
 encoding = "0.2"
 urlencoding = "2.1.3"
 uriparse = "0.6.4"
-chrono = "0.4.31"
+chrono = "0.4.35"
 chrono-tz = "0.8"
-image = {version = "0.24.0", optional = true, default-features = false}
-imageproc = {version = "0.23", optional = true}
-unicode-segmentation = "1.10"
+image = {version = "0.25.0", optional = true, default-features = false}
+imageproc = {version = "0.24", optional = true}
+unicode-segmentation = "1.11"
 codepage-437 = "0.1.0"
 rxing-one-d-proc-derive = {version = "0.5.3", path ="./crates/one-d-proc-derive"}
 num = "0.4.1"
 svg = {version = "0.16.0", optional = true}
 resvg = {version = "0.40.0", optional = true, default-features=false}
 serde = { version = "1.0", features = ["derive", "rc"], optional = true }
-thiserror = "1.0.56"
+thiserror = "1.0.58"
 multimap = "0.10.0"
 bit_reverse = "0.1.8"
 
@@ -56,12 +56,11 @@ image_formats = [
     "image/webp",
     "image/bmp",
     "image/hdr",
-    "image/dxt",
     "image/dds",
-    "image/farbfeld",
-    "image/jpeg_rayon",
-    "image/openexr",
-    "image/qoi"
+    "image/qoi",
+    "image/avif",
+    "image/exr",
+    "image/ff",
 ]
 
 #/// Allows the ability to force ISO/IED 18004 compliance.

@@ -166,7 +166,7 @@ impl CalendarParsedRXingResult {
                 &format!("{}T000000Z", &when,),
                 date_format_string,
             ) {
-                Ok(dtm) => Ok(dtm.timestamp()),
+                Ok(dtm) => Ok(dtm.and_utc().timestamp()),
                 Err(e) => Err(Exceptions::parse_with(e.to_string())),
             };
         }
@@ -209,7 +209,7 @@ impl CalendarParsedRXingResult {
         // Try a final time with an exact length
         if when.len() == 15 {
             return match NaiveDateTime::parse_from_str(&when, YMD_THMS_FORMAT) {
-                Ok(dtm) => Ok(dtm.timestamp()),
+                Ok(dtm) => Ok(dtm.and_utc().timestamp()),
                 Err(e) => Err(Exceptions::parse_with(format!(
                     "couldn't parse local time: {e}"
                 ))),
@@ -227,7 +227,7 @@ impl CalendarParsedRXingResult {
         //     ? DateFormat.getDateInstance(DateFormat.MEDIUM)
         //     : DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM);
         // return format.format(date);
-        if let Some(dtm) = NaiveDateTime::from_timestamp_opt(date, 0) {
+        if let Some(dtm) = DateTime::from_timestamp(date, 0) {
             dtm.format(format_string).to_string()
         } else {
             String::default()

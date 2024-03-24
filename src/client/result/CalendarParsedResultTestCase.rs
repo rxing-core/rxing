@@ -34,7 +34,7 @@
 //  */
 // public final class CalendarParsedRXingResultTestCase extends Assert {
 
-use chrono::NaiveDateTime;
+use chrono::DateTime;
 
 use crate::{
     client::result::{ParsedClientResult, ParsedRXingResultType},
@@ -251,7 +251,7 @@ fn assertEqualOrNaN(expected: f64, actual: f64) {
 }
 
 fn format_date_string(timestamp: i64, format_string: &str) -> String {
-    if let Some(dtm) = NaiveDateTime::from_timestamp_opt(timestamp, 0) {
+    if let Some(dtm) = DateTime::from_timestamp(timestamp, 0) {
         dtm.format(format_string).to_string()
     } else {
         String::default()
