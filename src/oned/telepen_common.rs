@@ -2,11 +2,7 @@ use crate::common::Result;
 use crate::Exceptions;
 
 pub fn calculate_checksum(contents: &str) -> char {
-    let mut sum = 0;
-
-    for c in contents.chars() {
-        sum += c as u32;
-    }
+    let sum : u32 = contents.chars().map(|c| c as u32).sum();
 
     let remainder = sum % 127;
     let diff = 127 - remainder;
@@ -18,7 +14,7 @@ pub fn calculate_checksum(contents: &str) -> char {
 }
 
 pub fn ascii_to_numeric(contents: &str) -> String {
-    let mut number = String::new();
+    let mut number = String::with_capacity(contents.chars().count() * 2);
 
     for c in contents.chars().map(|x| x as u32) {
         if c >= 27 {
@@ -38,10 +34,10 @@ pub fn numeric_to_ascii(contents: &str) -> Result<String> {
         ));
     }
 
-    let mut ascii = String::new();
+    let mut ascii = String::with_capacity(contents.chars().count() / 2);
     let mut i = 0;
 
-    while i < contents.len() {
+    while i < contents.chars().count() {
         let first = contents.chars().nth(i).unwrap() as u8;
         let second = contents.chars().nth(i + 1).unwrap() as u8;
 
