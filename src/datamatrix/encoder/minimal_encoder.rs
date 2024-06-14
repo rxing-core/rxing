@@ -779,7 +779,7 @@ impl Edge {
         let mut current = previous;
         while current.is_some() && current.as_ref().unwrap().mode == Mode::B256 && cnt <= 250 {
             cnt += 1;
-            current = current.clone().as_ref().unwrap().previous.clone();
+            current.clone_from(&current.clone().as_ref().unwrap().previous);
         }
         // let cnt = 0;
         // Edge current = this;

@@ -11,7 +11,7 @@ keywords = ["barcode", "barcode_1d", "barcode_2d", "barcode_reader", "barcode_wr
 
 [dependencies]
 clap = { version = "4.5.3", features = ["derive"] }
-rxing = {path = "../../", version = "~0.5.9", features = ["image", "svg_read", "svg_write"] }
+rxing = {path = "../../", version = "~0.5.10", features = ["image", "svg_read", "svg_write"] }
 
 #[profile.release]
 #debug = true

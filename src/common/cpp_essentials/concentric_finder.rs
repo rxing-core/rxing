@@ -437,7 +437,7 @@ pub fn FitQadrilateralToPoints(center: Point, points: &mut [Point]) -> Option<Qu
             // for (const PointF* p = beg[i]; p != end[i]; ++p) {
             let len = (end[i] - beg[i]) as f64; //std::distance(beg[i], end[i]);
             if len > 3.0
-                && (lines[i].distance_single(*p) as f64) > f64::max(1.0, f64::min(8.0, len / 8.0))
+                && (lines[i].distance_single(*p) as f64) > (len / 8.0).clamp(1.0, 8.0)
             {
                 // #ifdef PRINT_DEBUG
                 // 				printf("%d: %.2f > %.2f @ %.fx%.f\n", i, lines[i].distance(*p), std::distance(beg[i], end[i]) / 1., p->x, p->y);

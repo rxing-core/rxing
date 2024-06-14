@@ -489,7 +489,7 @@ fn toTypes(lists: Option<Vec<Vec<String>>>) -> Vec<String> {
                         } else {
                             // if (equals < 0) {
                             // take the whole thing as a usable label
-                            v_type = metadatum.to_owned();
+                            metadatum.clone_into(&mut v_type);
                             break;
                         }
                     }
@@ -539,18 +539,18 @@ fn formatNames(names: &mut Vec<Vec<String>>) {
                 } else {
                     break;
                 };
-                components[componentIndex] = name[start..end].to_owned();
+                name[start..end].clone_into(&mut components[componentIndex]);
                 componentIndex += 1;
                 start = end + 1;
             }
-            components[componentIndex] = name[start..].to_owned();
+             name[start..].clone_into(&mut components[componentIndex]);
             let mut newName = String::with_capacity(100);
             maybeAppendComponent(&components, 3, &mut newName);
             maybeAppendComponent(&components, 1, &mut newName);
             maybeAppendComponent(&components, 2, &mut newName);
             maybeAppendComponent(&components, 0, &mut newName);
             maybeAppendComponent(&components, 4, &mut newName);
-            list[pos] = newName.trim().to_owned();
+             newName.trim().clone_into(&mut list[pos]);
         }
     }
 }

@@ -202,7 +202,7 @@ fn build_local_grey_image(source: DynamicImage) -> DynamicImage {
                 let pixel = img.get_pixel(x, y);
                 let [luma] = pixel.0;
 
-                *new_pixel = Luma([(luma / u8::max_value() as u16) as u8])
+                *new_pixel = Luma([(luma / u8::MAX as u16) as u8])
             }
 
             raster
@@ -218,7 +218,7 @@ fn build_local_grey_image(source: DynamicImage) -> DynamicImage {
                     *new_pixel = Luma([0xFF])
                 } else {
                     *new_pixel =
-                        Luma([((luma.saturating_mul(alpha)) / u8::max_value() as u16) as u8])
+                        Luma([((luma.saturating_mul(alpha)) / u8::MAX as u16) as u8])
                 }
             }
 

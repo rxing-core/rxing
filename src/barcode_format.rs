@@ -89,7 +89,7 @@ pub enum BarcodeFormat {
 
     DXFilmEdge,
 
-    ///
+    /// format not supported
     UNSUPORTED_FORMAT,
 }
 

@@ -221,6 +221,12 @@ impl fmt::Display for SymbolInfo {
 
 #[derive(Clone, Copy)]
 pub struct SymbolInfoLookup<'a>(Option<&'a [SymbolInfo]>);
+impl<'a> Default for SymbolInfoLookup<'a> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'a> SymbolInfoLookup<'a> {
     pub const fn new() -> Self {
         Self(None)

@@ -91,17 +91,17 @@ pub fn parse(result: &crate::RXingResult) -> Option<super::ParsedClientResult> {
             | "3109" => {
                 weight = value;
                 weightType = ExpandedProductParsedRXingResult::KILOGRAM.into();
-                weightIncrement = ai[3..].to_owned()
+                ai[3..].clone_into(&mut weightIncrement)
             }
             "3200" | "3201" | "3202" | "3203" | "3204" | "3205" | "3206" | "3207" | "3208"
             | "3209" => {
                 weight = value;
                 weightType = ExpandedProductParsedRXingResult::POUND.into();
-                weightIncrement = ai[3..].to_owned();
+                ai[3..].clone_into(&mut weightIncrement)
             }
             "3920" | "3921" | "3922" | "3923" => {
                 price = value;
-                priceIncrement = ai[3..].to_owned();
+                ai[3..].clone_into(&mut priceIncrement)
             }
             "3930" | "3931" | "3932" | "3933" => {
                 if value.len() < 4 {
@@ -110,9 +110,9 @@ pub fn parse(result: &crate::RXingResult) -> Option<super::ParsedClientResult> {
                     // ExtendedProductParsedRXingResult NOT created. Not match with RSS Expanded pattern
                     return None;
                 }
-                price = value[3..].to_owned();
-                priceCurrency = value[0..3].to_owned();
-                priceIncrement = ai[3..].to_owned();
+                value[3..].clone_into(&mut price);
+                value[0..3].clone_into(&mut priceCurrency);
+                ai[3..].clone_into(&mut priceIncrement);
             }
             _ => {
                 // No match with common AIs

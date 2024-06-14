@@ -116,7 +116,7 @@ pub trait BitMatrixCursorTrait {
     fn stepAlongEdge(&mut self, dir: Direction, skipCorner: Option<bool>) -> bool
 // fn stepAlongEdge(&self,  dir:Direction, skipCorner:Option<bool> = false) -> bool
     {
-        let skipCorner = if let Some(sc) = skipCorner { sc } else { false };
+        let skipCorner = skipCorner.unwrap_or_default();
 
         if !self.edgeAt_direction(dir).isValid() {
             self.turn(dir);

@@ -305,7 +305,7 @@ pub fn detect(
                 * tracer.right();
             if tryHarder {
                 // tracer.history = history.as_mut();
-                tracer.history = history.clone();
+                tracer.history.clone_from(&history);
                 // if let Some(history) = &history {
                 // 	tracer.history = history;
                 // }

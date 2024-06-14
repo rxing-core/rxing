@@ -341,7 +341,7 @@ fn test_aztec() {
 }
 
 pub(crate) fn corrupt(
-    received: &mut Vec<i32>,
+    received: &mut [i32],
     howMany: i32,
     random: &mut rand::rngs::ThreadRng,
     max: i32,
@@ -440,7 +440,7 @@ fn test_encode_decode(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i
     test_decoder(field, dataWords, ecWords);
 }
 
-fn test_encoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
+fn test_encoder(field: GenericGFRef, dataWords: &[i32], ecWords: &[i32]) {
     let mut encoder = ReedSolomonEncoder::new(field).expect("new");
     let mut messageExpected = vec![0; dataWords.len() + ecWords.len()];
     let mut message = vec![0; dataWords.len() + ecWords.len()];
@@ -466,7 +466,7 @@ fn test_encoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
     );
 }
 
-fn test_decoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
+fn test_decoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &[i32]) {
     let decoder = ReedSolomonDecoder::new(field);
     let mut message = vec![0; dataWords.len() + ecWords.len()];
     let maxErrors = ecWords.len() / 2;
@@ -498,23 +498,37 @@ fn test_decoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
                 field.getSize().try_into().unwrap(),
             );
 
-            match decoder.decode(&mut message, ecWords.len().try_into().unwrap()) {
-                Err(e) => {
-                    // fail only if maxErrors exceeded
-                    assert!(
-                        i > maxErrors as isize,
-                        "Decode in {} ({},{}) failed at {} errors: {:#?}",
-                        field,
-                        dataWords.len(),
-                        ecWords.len(),
-                        i,
-                        e
-                    );
-                    // else stop
-                    break;
-                }
-                Ok(_) => (),
-            };
+            // match decoder.decode(&mut message, ecWords.len().try_into().unwrap()) {
+            //     Err(e) => {
+            //         // fail only if maxErrors exceeded
+            //         assert!(
+            //             i > maxErrors as isize,
+            //             "Decode in {} ({},{}) failed at {} errors: {:#?}",
+            //             field,
+            //             dataWords.len(),
+            //             ecWords.len(),
+            //             i,
+            //             e
+            //         );
+            //         // else stop
+            //         break;
+            //     }
+            //     Ok(_) => (),
+            // };
+            if let Err(e) = decoder.decode(&mut message, ecWords.len().try_into().unwrap()) {
+                                // fail only if maxErrors exceeded
+                                assert!(
+                                    i > maxErrors as isize,
+                                    "Decode in {} ({},{}) failed at {} errors: {:#?}",
+                                    field,
+                                    dataWords.len(),
+                                    ecWords.len(),
+                                    i,
+                                    e
+                                );
+                                // else stop
+                                break;
+                            };
 
             // try {
             //   decoder.decode(message, ecWords.length);
@@ -544,7 +558,7 @@ fn test_decoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
     }
 }
 
-fn assert_data_equals(message: String, expected: &Vec<i32>, received: &[i32]) {
+fn assert_data_equals(message: String, expected: &[i32], received: &[i32]) {
     for i in 0..expected.len() {
         //for (int i = 0; i < expected.length; i++) {
         if expected[i] != received[i] {

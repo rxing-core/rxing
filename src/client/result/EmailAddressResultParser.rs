@@ -93,8 +93,8 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
             // if bccString != null {
             //   bccs = COMMA.split(bccString);
             // }
-            subject = nv.get("subject").unwrap_or(&String::default()).clone();
-            body = nv.get("body").unwrap_or(&String::default()).clone();
+            subject.clone_from(nv.get("subject").unwrap_or(&String::default()));
+            body.clone_from(nv.get("body").unwrap_or(&String::default()));
         }
         Some(ParsedClientResult::EmailResult(
             EmailAddressParsedRXingResult::with_details(tos, ccs, bccs, subject, body),

@@ -179,7 +179,7 @@ impl Quadrilateral {
     pub fn rotated_corners(&self, n: Option<i32>, mirror: Option<bool>) -> Quadrilateral {
         let n = if let Some(n) = n { n } else { 1 };
 
-        let mirror = if let Some(m) = mirror { m } else { false };
+        let mirror = mirror.unwrap_or_default();
 
         let mut res = *self;
         res.0.rotate_left(((n + 4) % 4) as usize);

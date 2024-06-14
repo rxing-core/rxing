@@ -152,7 +152,7 @@ fn matchVCardPrefixedField(prefix: &str, rawText: &str) -> Vec<String> {
             for (i, res) in result.iter_mut().enumerate().take(size) {
                 // for i in 0..size {
                 // for (int i = 0; i < size; i++) {
-                *res = values.get(i).unwrap().first().unwrap().clone();
+                res.clone_from( values.get(i).unwrap().first().unwrap() );
             }
             result
         }
