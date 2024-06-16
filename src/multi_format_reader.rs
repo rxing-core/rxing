@@ -109,7 +109,7 @@ impl MultiFormatReader {
      * @param hints The set of hints to use for subsequent calls to decode(image)
      */
     pub fn set_hints(&mut self, hints: &DecodingHintDictionary) {
-        self.hints .clone_from( &hints );
+        self.hints.clone_from(&hints);
 
         self.try_harder = matches!(
             self.hints.get(&DecodeHintType::TRY_HARDER),

@@ -2,7 +2,7 @@ use crate::common::Result;
 use crate::Exceptions;
 
 pub fn calculate_checksum(contents: &str) -> char {
-    let sum : u32 = contents.chars().map(|c| c as u32).sum();
+    let sum: u32 = contents.chars().map(|c| c as u32).sum();
 
     let remainder = sum % 127;
     let diff = 127 - remainder;

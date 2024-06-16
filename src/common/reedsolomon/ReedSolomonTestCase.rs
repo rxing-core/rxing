@@ -516,19 +516,19 @@ fn test_decoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &[i32]) {
             //     Ok(_) => (),
             // };
             if let Err(e) = decoder.decode(&mut message, ecWords.len().try_into().unwrap()) {
-                                // fail only if maxErrors exceeded
-                                assert!(
-                                    i > maxErrors as isize,
-                                    "Decode in {} ({},{}) failed at {} errors: {:#?}",
-                                    field,
-                                    dataWords.len(),
-                                    ecWords.len(),
-                                    i,
-                                    e
-                                );
-                                // else stop
-                                break;
-                            };
+                // fail only if maxErrors exceeded
+                assert!(
+                    i > maxErrors as isize,
+                    "Decode in {} ({},{}) failed at {} errors: {:#?}",
+                    field,
+                    dataWords.len(),
+                    ecWords.len(),
+                    i,
+                    e
+                );
+                // else stop
+                break;
+            };
 
             // try {
             //   decoder.decode(message, ecWords.length);

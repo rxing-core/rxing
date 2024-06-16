@@ -96,7 +96,7 @@ impl RegressionLineTrait for RegressionLine {
         updatePoints: Option<bool>,
     ) -> bool {
         // let maxSignedDist = if let Some(m) = maxSignedDist { m } else { -1.0 };
-        let maxSignedDist = maxSignedDist.unwrap_or( -1.0 );
+        let maxSignedDist = maxSignedDist.unwrap_or(-1.0);
         let updatePoints = updatePoints.unwrap_or_default();
 
         let mut ret = self.evaluateSelf();

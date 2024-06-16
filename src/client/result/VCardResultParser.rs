@@ -543,14 +543,14 @@ fn formatNames(names: &mut Vec<Vec<String>>) {
                 componentIndex += 1;
                 start = end + 1;
             }
-             name[start..].clone_into(&mut components[componentIndex]);
+            name[start..].clone_into(&mut components[componentIndex]);
             let mut newName = String::with_capacity(100);
             maybeAppendComponent(&components, 3, &mut newName);
             maybeAppendComponent(&components, 1, &mut newName);
             maybeAppendComponent(&components, 2, &mut newName);
             maybeAppendComponent(&components, 0, &mut newName);
             maybeAppendComponent(&components, 4, &mut newName);
-             newName.trim().clone_into(&mut list[pos]);
+            newName.trim().clone_into(&mut list[pos]);
         }
     }
 }

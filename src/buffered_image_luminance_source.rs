@@ -217,8 +217,7 @@ fn build_local_grey_image(source: DynamicImage) -> DynamicImage {
                     // white, so we know its luminance is 255
                     *new_pixel = Luma([0xFF])
                 } else {
-                    *new_pixel =
-                        Luma([((luma.saturating_mul(alpha)) / u8::MAX as u16) as u8])
+                    *new_pixel = Luma([((luma.saturating_mul(alpha)) / u8::MAX as u16) as u8])
                 }
             }
 

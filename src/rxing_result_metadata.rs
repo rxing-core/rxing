@@ -119,7 +119,7 @@ pub enum RXingResultMetadataType {
     FILTERED_CLOSED,
 
     // In a filtered context, what was the final read resolution
-    FILTERED_RESOLUTION
+    FILTERED_RESOLUTION,
 }
 
 impl From<String> for RXingResultMetadataType {
@@ -245,5 +245,5 @@ pub enum RXingResultMetadataValue {
 
     FilteredClosed(bool),
 
-    FilteredResolution((usize,usize)),
+    FilteredResolution((usize, usize)),
 }
