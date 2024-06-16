@@ -403,6 +403,18 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
                     RXingResultMetadataType::IS_INVERTED => {
                         RXingResultMetadataValue::IsInverted(v.parse().unwrap())
                     }
+                    RXingResultMetadataType::FILTERED_CLOSED => {
+                        RXingResultMetadataValue::FilteredClosed(v.parse().unwrap())
+                    }
+                    RXingResultMetadataType::FILTERED_RESOLUTION => {
+                        // RXingResultMetadataValue::FilteredResolution(v.parse().unwrap())
+                        let arr: Box<[usize]> = v
+                            .split(",")
+                            .map(|str_source| str_source.parse::<usize>().unwrap_or_default())
+                            .take(2)
+                            .collect();
+                        RXingResultMetadataValue::FilteredResolution((arr[0], arr[1]))
+                    }
                 };
                 expected_metadata.insert(new_k, new_v);
             }

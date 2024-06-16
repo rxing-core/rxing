@@ -46,7 +46,10 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
                         continue;
                     };
                 }
-                if let Ok(res) = self.0.decode_with_hints(&mut b, hints) {
+                if let Ok(mut res) = self.0.decode_with_hints(&mut b, hints) {
+                    res.putMetadata(crate::RXingResultMetadataType::FILTERED_CLOSED, crate::RXingResultMetadataValue::FilteredClosed(close));
+                    let resolution = (b.get_width(), b.get_height());
+                    res.putMetadata(crate::RXingResultMetadataType::FILTERED_RESOLUTION, crate::RXingResultMetadataValue::FilteredResolution(resolution));
                     return Ok(res);
                 } else {
                     continue;

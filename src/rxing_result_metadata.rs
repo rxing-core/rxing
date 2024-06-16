@@ -18,7 +18,7 @@
 
 use std::rc::Rc;
 
-use crate::pdf417::PDF417RXingResultMetadata;
+use crate::{pdf417::PDF417RXingResultMetadata, Point, PointI, PointU};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -114,6 +114,12 @@ pub enum RXingResultMetadataType {
     CONTENT_TYPE,
 
     IS_INVERTED,
+
+    // In a filtered context, was the image "closed"
+    FILTERED_CLOSED,
+
+    // In a filtered context, what was the final read resolution
+    FILTERED_RESOLUTION
 }
 
 impl From<String> for RXingResultMetadataType {
@@ -144,6 +150,8 @@ impl From<String> for RXingResultMetadataType {
             "IS_MIRRORED" | "ISMIRRORED" => RXingResultMetadataType::IS_MIRRORED,
             "CONTENT_TYPE" | "CONTENTTYPE" => RXingResultMetadataType::CONTENT_TYPE,
             "ISINVERTED" => RXingResultMetadataType::IS_INVERTED,
+            "FILTERED_CLOSED" => RXingResultMetadataType::FILTERED_CLOSED,
+            "FILTERED_RESOLUTION" => RXingResultMetadataType::FILTERED_RESOLUTION,
             _ => RXingResultMetadataType::OTHER,
         }
     }
@@ -234,4 +242,8 @@ pub enum RXingResultMetadataValue {
     ContentType(String),
 
     IsInverted(bool),
+
+    FilteredClosed(bool),
+
+    FilteredResolution((usize,usize)),
 }
