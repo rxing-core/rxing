@@ -350,3 +350,49 @@ fn zxing_bench_grey_image_issue_raw_luma8() {
 
     */
 }
+
+#[cfg(feature = "image")]
+#[test]
+fn test_issue_49() {
+    use rxing::{
+        common::HybridBinarizer,
+        multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
+        BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
+        Exceptions, Luma8LuminanceSource, MultiUseMultiFormatReader,
+    };
+
+    const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/345143005-4538852a-242a-4f77-87cc-fefb66856ecf.png";
+    let mut hints = DecodingHintDictionary::default();
+
+    let img = image::open(FILE_NAME)
+        .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+        .unwrap();
+    let multi_format_reader = MultiUseMultiFormatReader::default();
+    let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
+
+    hints
+        .entry(DecodeHintType::TRY_HARDER)
+        .or_insert(DecodeHintValue::TryHarder(true));
+
+    let results = scanner
+        .decode_multiple_with_hints(
+            &mut BinaryBitmap::new(HybridBinarizer::new(Luma8LuminanceSource::new(
+                img.to_luma8().into_raw(),
+                img.width(),
+                img.height(),
+            ))),
+            &hints,
+        )
+        .expect("must not fault during read");
+
+    assert_eq!(results.len(), 3);
+
+    let itf_result = results
+        .iter()
+        .find(|r| r.getBarcodeFormat() == &BarcodeFormat::ITF)
+        .expect("must find an ITF barcode");
+
+    const EXPECTED_ITF_TEXT: &str = "85680000000343202687700000014672192100000000";
+
+    assert_eq!(EXPECTED_ITF_TEXT, itf_result.getText());
+}
