@@ -18,7 +18,7 @@
 
 use std::rc::Rc;
 
-use crate::{pdf417::PDF417RXingResultMetadata, Point, PointI, PointU};
+use crate::pdf417::PDF417RXingResultMetadata;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
