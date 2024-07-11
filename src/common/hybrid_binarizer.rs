@@ -91,6 +91,14 @@ impl<LS: LuminanceSource> Binarizer for HybridBinarizer<LS> {
     fn get_height(&self) -> usize {
         self.ghb.get_height()
     }
+
+    fn get_black_row_from_matrix(&self, y: usize) -> Result<Cow<BitArray>> {
+        if let Some(matrix) = self.black_matrix.get() {
+            Ok(Cow::Owned(matrix.getRow(y as u32)))
+        } else {
+            self.get_black_row(y)
+        }
+    }
 }
 
 // This class uses 5x5 blocks to compute local luminance, where each block is 8x8 pixels.
