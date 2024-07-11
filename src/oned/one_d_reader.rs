@@ -187,7 +187,7 @@ fn pad_bitarray(bits: &[u8], quiet_zone: usize) -> BitArray {
 
     let mut new_row = BitArray::with_capacity(bits.len() + (quiet_zone * 2));
 
-    let value = !(bits[0] < PIXEL_COLOR_SPLIT_POINT);
+    let value = bits[0] >= PIXEL_COLOR_SPLIT_POINT;
 
     for _ in 0..quiet_zone {
         new_row.appendBit(value);

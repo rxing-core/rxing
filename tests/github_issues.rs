@@ -445,9 +445,9 @@ fn test_issue_50() {
 #[test]
 fn test_issue_50_2() {
     use rxing::{
-        common::{AdaptiveThresholdBinarizer, HybridBinarizer},
-        BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
-        Exceptions, Luma8LuminanceSource, MultiUseMultiFormatReader, Reader,
+        common::AdaptiveThresholdBinarizer, BarcodeFormat, BinaryBitmap, DecodeHintType,
+        DecodeHintValue, DecodingHintDictionary, Exceptions, Luma8LuminanceSource,
+        MultiUseMultiFormatReader, Reader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/346304318-16acfb7a-4a41-4b15-af78-7ccf061e72bd.png";

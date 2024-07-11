@@ -409,7 +409,7 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
                     RXingResultMetadataType::FILTERED_RESOLUTION => {
                         // RXingResultMetadataValue::FilteredResolution(v.parse().unwrap())
                         let arr: Box<[usize]> = v
-                            .split(",")
+                            .split(',')
                             .map(|str_source| str_source.parse::<usize>().unwrap_or_default())
                             .take(2)
                             .collect();
