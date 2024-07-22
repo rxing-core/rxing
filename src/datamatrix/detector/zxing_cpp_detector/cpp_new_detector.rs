@@ -15,8 +15,8 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     common::{
-        cpp_essentials::RegressionLineTrait, BitMatrix, DefaultGridSampler, GridSampler,
-        Quadrilateral, Result,
+        cpp_essentials::RegressionLineTrait, BitMatrix, DefaultGridSampler, DetectorRXingResult,
+        GridSampler, Quadrilateral, Result,
     },
     datamatrix::detector::{
         zxing_cpp_detector::{util::intersect, BitMatrixCursorTrait},
@@ -246,7 +246,7 @@ pub fn detect(
     image: &BitMatrix,
     tryHarder: bool,
     tryRotate: bool,
-) -> Result<DatamatrixDetectorResult> {
+) -> Result<Vec<DatamatrixDetectorResult>> {
     // #ifdef PRINT_DEBUG
     // 	LogMatrixWriter lmw(log, image, 1, "dm-log.pnm");
     // //	tryRotate = tryHarder = false;
@@ -256,6 +256,8 @@ pub fn detect(
     // #ifndef __cpp_impl_coroutine
     // 	tryHarder = false;
     // #endif
+
+    let mut found_symbols = Vec::new();
 
     // a history log to remember where the tracing already passed by to prevent a later trace from doing the same work twice
     let mut history = None;
@@ -323,7 +325,10 @@ pub fn detect(
             // #else
             if let Ok(res) = Scan(&mut tracer, &mut lines) {
                 // if res.isValid(){
-                return Ok(res);
+                //return Ok(res);
+                // i += res.getPoints()[2].distance( res.getPoints()[0] ) as i32;
+                i += MIN_SYMBOL_SIZE as i32;
+                found_symbols.push(res);
                 // }
             }
 
@@ -343,6 +348,10 @@ pub fn detect(
     }
 
     // #ifndef __cpp_impl_coroutine
-    Err(Exceptions::NOT_FOUND)
+    if found_symbols.is_empty() {
+        Err(Exceptions::NOT_FOUND)
+    } else {
+        Ok(found_symbols)
+    }
     // #endif
 }

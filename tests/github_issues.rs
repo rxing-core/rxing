@@ -396,3 +396,77 @@ fn test_issue_49() {
 
     assert_eq!(EXPECTED_ITF_TEXT, itf_result.getText());
 }
+
+#[cfg(feature = "image")]
+#[test]
+fn issue_51_multiple_detection() {
+    use image::DynamicImage;
+    use rxing::{
+        common::HybridBinarizer,
+        multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
+        BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue,
+        DecodingHintDictionary, Exceptions, MultiUseMultiFormatReader,
+    };
+
+    const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/349949736-8e3b9d66-d114-41ca-a8e0-f1332d111827.jpeg";
+
+    let mut hints = DecodingHintDictionary::default();
+
+    let img = DynamicImage::from(
+        image::open(FILE_NAME)
+            .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+            .unwrap()
+            .to_luma8(),
+    );
+    let multi_format_reader = MultiUseMultiFormatReader::default();
+    let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
+
+    hints
+        .entry(DecodeHintType::TRY_HARDER)
+        .or_insert(DecodeHintValue::TryHarder(true));
+
+    let results = scanner
+        .decode_multiple_with_hints(
+            &mut BinaryBitmap::new(HybridBinarizer::new(BufferedImageLuminanceSource::new(img))),
+            &hints,
+        )
+        .expect("must not fault during read image 1");
+
+    assert_eq!(
+        results.len(),
+        1,
+        "must detect 1 barcodes, found: {}",
+        results.len()
+    );
+
+    const FILE_NAME2 : &str = "test_resources/blackbox/github_issue_cases/349949791-1e8b67a7-0994-46fb-bd86-a5f3cd79f0e5.jpeg";
+
+    let mut hints = DecodingHintDictionary::default();
+
+    let img = DynamicImage::from(
+        image::open(FILE_NAME2)
+            .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME2}: {e}")))
+            .unwrap()
+            .to_luma8(),
+    );
+    let multi_format_reader = MultiUseMultiFormatReader::default();
+    let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
+
+    hints
+        .entry(DecodeHintType::TRY_HARDER)
+        .or_insert(DecodeHintValue::TryHarder(true));
+
+    let results = scanner
+        .decode_multiple_with_hints(
+            &mut BinaryBitmap::new(HybridBinarizer::new(BufferedImageLuminanceSource::new(img))),
+            &hints,
+        )
+        .expect("must not fault during read of image 2");
+
+    assert_eq!(
+        results.len(),
+        1,
+        "must detect 1 barcodes, found: {}",
+        results.len()
+    );
+}
