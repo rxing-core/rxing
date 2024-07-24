@@ -87,9 +87,16 @@ impl Reader for DataMatrixReader {
             decoderRXingResult = if let Ok(fnd) = || -> Result<DecoderRXingResult> {
                 let detectorRXingResult =
                     zxing_cpp_detector::detect(image.get_black_matrix(), try_harder, true)?;
-                let decoded = DECODER.decode(detectorRXingResult.getBits())?;
-                points = detectorRXingResult.getPoints().to_vec();
-                Ok(decoded)
+                for symbol in detectorRXingResult {
+                    let decoded = DECODER.decode(symbol.getBits());
+                    if decoded.is_ok() {
+                        points = symbol.getPoints().to_vec();
+                        return Ok(decoded?);
+                    } else {
+                        continue;
+                    }
+                }
+                Err(Exceptions::NOT_FOUND)
             }() {
                 fnd
             } else if try_harder {
