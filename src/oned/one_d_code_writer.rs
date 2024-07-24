@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, Result},
-    BarcodeFormat, EncodeHintType, EncodeHintValue, Exceptions, Writer,
+    BarcodeFormat, Exceptions, Writer,
 };
 
 use once_cell::sync::Lazy;
@@ -140,61 +139,5 @@ pub trait OneDimensionalCodeWriter: Writer {
         // CodaBar spec requires a side margin to be more than ten times wider than narrow space.
         // This seems like a decent idea for a default for all formats.
         10
-    }
-}
-
-struct L;
-impl Writer for L {
-    fn encode(
-        &self,
-        contents: &str,
-        format: &crate::BarcodeFormat,
-        width: i32,
-        height: i32,
-    ) -> Result<crate::common::BitMatrix> {
-        self.encode_with_hints(contents, format, width, height, &HashMap::new())
-    }
-
-    fn encode_with_hints(
-        &self,
-        contents: &str,
-        format: &crate::BarcodeFormat,
-        width: i32,
-        height: i32,
-        hints: &crate::EncodingHintDictionary,
-    ) -> Result<crate::common::BitMatrix> {
-        if contents.is_empty() {
-            return Err(Exceptions::illegal_argument_with("Found empty contents"));
-        }
-
-        if width < 0 || height < 0 {
-            return Err(Exceptions::illegal_argument_with(format!(
-                "Negative size is not allowed. Input: {width}x{height}"
-            )));
-        }
-        if let Some(supportedFormats) = self.getSupportedWriteFormats() {
-            if !supportedFormats.contains(format) {
-                return Err(Exceptions::illegal_argument_with(format!(
-                    "Can only encode {supportedFormats:?}, but got {format:?}"
-                )));
-            }
-        }
-
-        let mut sidesMargin = self.getDefaultMargin();
-        if let Some(EncodeHintValue::Margin(margin)) = hints.get(&EncodeHintType::MARGIN) {
-            sidesMargin = margin.parse::<u32>().map_err(|e| {
-                Exceptions::illegal_argument_with(format!("couldnt parse {margin}: {e}"))
-            })?;
-        }
-
-        let code = self.encode_oned_with_hints(contents, hints)?;
-
-        Self::renderRXingResult(&code, width, height, sidesMargin)
-    }
-}
-
-impl OneDimensionalCodeWriter for L {
-    fn encode_oned(&self, _contents: &str) -> Result<Vec<bool>> {
-        unimplemented!()
     }
 }

@@ -60,6 +60,14 @@ impl BitArray {
         }
     }
 
+    pub fn with_capacity(size: usize) -> Self {
+        Self {
+            bits: makeArray(size),
+            size: 0,
+            read_offset: 0,
+        }
+    }
+
     /// For testing only
     #[cfg(test)]
     pub fn with_initial_values(bits: Vec<BaseType>, size: usize) -> Self {
@@ -319,6 +327,10 @@ impl BitArray {
     }
 
     pub fn appendBitArray(&mut self, other: BitArray) {
+        self.appendBitArrayRef(&other)
+    }
+
+    pub fn appendBitArrayRef(&mut self, other: &BitArray) {
         let otherSize = other.size;
         self.ensure_capacity(self.size + otherSize);
         for i in 0..otherSize {

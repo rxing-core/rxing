@@ -91,4 +91,12 @@ impl<LS: LuminanceSource> Binarizer for AdaptiveThresholdBinarizer<LS> {
     fn get_height(&self) -> usize {
         self.source.get_height()
     }
+
+    fn get_black_row_from_matrix(&self, y: usize) -> Result<Cow<BitArray>> {
+        if let Some(matrix) = self.matrix.get() {
+            Ok(Cow::Owned(matrix.getRow(y as u32)))
+        } else {
+            self.get_black_row(y)
+        }
+    }
 }

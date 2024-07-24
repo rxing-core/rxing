@@ -177,6 +177,14 @@ impl<LS: LuminanceSource> Binarizer for GlobalHistogramBinarizer<LS> {
     fn get_height(&self) -> usize {
         self.height
     }
+
+    fn get_black_row_from_matrix(&self, y: usize) -> Result<Cow<BitArray>> {
+        if let Some(matrix) = self.black_matrix.get() {
+            Ok(Cow::Owned(matrix.getRow(y as u32)))
+        } else {
+            self.get_black_row(y)
+        }
+    }
 }
 
 impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {

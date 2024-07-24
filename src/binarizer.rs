@@ -55,6 +55,10 @@ pub trait Binarizer {
      */
     fn get_black_row(&self, y: usize) -> Result<Cow<BitArray>>;
 
+    // An alternate version of get_black_row that fetches the line from the matrix if
+    // it has already been generated, falling back to get_black_row if it hasn't.
+    fn get_black_row_from_matrix(&self, y: usize) -> Result<Cow<BitArray>>;
+
     /**
      * Converts a 2D array of luminance data to 1 bit data. As above, assume this method is expensive
      * and do not call it repeatedly. This method is intended for decoding 2D barcodes and may or

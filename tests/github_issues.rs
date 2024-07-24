@@ -397,6 +397,91 @@ fn test_issue_49() {
     assert_eq!(EXPECTED_ITF_TEXT, itf_result.getText());
 }
 
+
+#[cfg(feature = "image")]
+#[test]
+fn test_issue_50() {
+    use rxing::{
+        common::HybridBinarizer, BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue,
+        DecodingHintDictionary, Exceptions, Luma8LuminanceSource, MultiUseMultiFormatReader,
+        Reader,
+    };
+
+    const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/346304318-16acfb7a-4a41-4b15-af78-7ccf061e72bd.png";
+    let mut hints = DecodingHintDictionary::default();
+
+    let img = image::open(FILE_NAME)
+        .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+        .unwrap();
+    let mut scanner = MultiUseMultiFormatReader::default();
+
+    hints
+        .entry(DecodeHintType::TRY_HARDER)
+        .or_insert(DecodeHintValue::TryHarder(true));
+
+    hints
+        .entry(DecodeHintType::PURE_BARCODE)
+        .or_insert(DecodeHintValue::PureBarcode(true));
+
+    let result = scanner
+        .decode_with_hints(
+            &mut BinaryBitmap::new(HybridBinarizer::new(Luma8LuminanceSource::new(
+                img.to_luma8().into_raw(),
+                img.width(),
+                img.height(),
+            ))),
+            &hints,
+        )
+        .expect("must not fault during read");
+
+    const EXPECTED_FORMAT: &BarcodeFormat = &BarcodeFormat::ITF;
+    const EXPECTED_ITF_TEXT: &str = "85680000001403303242024070501202400002535294";
+
+    assert_eq!(EXPECTED_ITF_TEXT, result.getText());
+
+    assert_eq!(EXPECTED_FORMAT, result.getBarcodeFormat());
+}
+
+#[cfg(feature = "image")]
+#[test]
+fn test_issue_50_2() {
+    use rxing::{
+        common::AdaptiveThresholdBinarizer, BarcodeFormat, BinaryBitmap, DecodeHintType,
+        DecodeHintValue, DecodingHintDictionary, Exceptions, Luma8LuminanceSource,
+        MultiUseMultiFormatReader, Reader,
+    };
+
+    const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/346304318-16acfb7a-4a41-4b15-af78-7ccf061e72bd.png";
+    let mut hints = DecodingHintDictionary::default();
+
+    let img = image::open(FILE_NAME)
+        .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+        .unwrap();
+    let mut scanner = MultiUseMultiFormatReader::default();
+
+    hints
+        .entry(DecodeHintType::TRY_HARDER)
+        .or_insert(DecodeHintValue::TryHarder(true));
+
+    let result = scanner
+        .decode_with_hints(
+            &mut BinaryBitmap::new(AdaptiveThresholdBinarizer::new(
+                Luma8LuminanceSource::new(img.to_luma8().into_raw(), img.width(), img.height()),
+                1,
+            )),
+            &hints,
+        )
+        .expect("must not fault during read");
+
+    const EXPECTED_FORMAT: &BarcodeFormat = &BarcodeFormat::ITF;
+    const EXPECTED_ITF_TEXT: &str = "85680000001403303242024070501202400002535294";
+
+    assert_eq!(EXPECTED_ITF_TEXT, result.getText());
+
+    assert_eq!(EXPECTED_FORMAT, result.getBarcodeFormat());
+}
+
+
 #[cfg(feature = "image")]
 #[test]
 fn issue_51_multiple_detection() {
@@ -470,3 +555,4 @@ fn issue_51_multiple_detection() {
         results.len()
     );
 }
+
