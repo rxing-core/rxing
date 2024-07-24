@@ -17,7 +17,8 @@
 use crate::{
     common::{BitArray, Result},
     point_f, Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
-    Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    Exceptions, LuminanceSource, RXingResult, RXingResultMetadataType, RXingResultMetadataValue,
+    Reader,
 };
 
 /**
@@ -28,6 +29,7 @@ use crate::{
  * @author Sean Owen
  */
 pub trait OneDReader: Reader {
+    const QUIET_ZONE: usize = 15;
     /**
      * We're going to examine rows from the middle outward, searching alternately above and below the
      * middle, and farther out each time. rowStep is the number of rows between each successive
@@ -55,6 +57,26 @@ pub trait OneDReader: Reader {
             hints.get(&DecodeHintType::TRY_HARDER),
             Some(DecodeHintValue::TryHarder(true))
         );
+
+        let try_pure = matches!(
+            hints.get(&DecodeHintType::PURE_BARCODE),
+            Some(DecodeHintValue::PureBarcode(true))
+        );
+
+        // Attempt to decode the barcode as "pure". This method may be very inneficient and uses
+        // a very poor version of a binarizer.
+        // ToDo: Add a better binarizer for pure barcodes
+        if try_pure {
+            let mid_line = 1.max(image.get_height() / 2);
+
+            let rw = image.get_source().get_row(mid_line);
+
+            let decoded = self.decode_pure(mid_line as u32, &rw, &hints);
+            if decoded.is_ok() {
+                return decoded;
+            }
+        }
+
         let row_step = 1.max(height >> (if try_harder { 8 } else { 5 }));
         let max_lines = if try_harder {
             height // Look at the whole image, not just the center
@@ -146,6 +168,40 @@ pub trait OneDReader: Reader {
         row: &BitArray,
         hints: &DecodingHintDictionary,
     ) -> Result<RXingResult>;
+
+    fn decode_pure(
+        &mut self,
+        rowNumber: u32,
+        row: &[u8],
+        hints: &DecodingHintDictionary,
+    ) -> Result<RXingResult> {
+        let new_row = pad_bitarray(row, Self::QUIET_ZONE);
+
+        self.decode_row(rowNumber, &new_row, hints)
+    }
+}
+
+// Add a buffer on either side of the row to mimic a quiet zone. This may not exist in a "pure barcode"
+fn pad_bitarray(bits: &[u8], quiet_zone: usize) -> BitArray {
+    const PIXEL_COLOR_SPLIT_POINT: u8 = u8::MAX / 2;
+
+    let mut new_row = BitArray::with_capacity(bits.len() + (quiet_zone * 2));
+
+    let value = bits[0] >= PIXEL_COLOR_SPLIT_POINT;
+
+    for _ in 0..quiet_zone {
+        new_row.appendBit(value);
+    }
+
+    for bit in bits {
+        new_row.appendBit(bit < &PIXEL_COLOR_SPLIT_POINT)
+    }
+
+    for _ in 0..quiet_zone {
+        new_row.appendBit(value);
+    }
+
+    new_row
 }
 
 /**

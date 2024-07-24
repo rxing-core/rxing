@@ -483,7 +483,7 @@ fn toTypes(lists: Option<Vec<Vec<String>>>) -> Vec<String> {
                         let metadatum = list.get(i).unwrap_or(&String::default()).clone();
                         if let Some(equals) = metadatum.find('=') {
                             if "TYPE" == (metadatum[0..equals]).to_uppercase() {
-                                v_type = metadatum[equals + 1..].to_owned();
+                                metadatum[equals + 1..].clone_into(&mut v_type);
                                 break;
                             }
                         } else {
