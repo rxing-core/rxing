@@ -812,6 +812,7 @@ impl Edge {
      *  - Mode is EDIFACT and characterLength is less than 4 or the remaining characters can be encoded in at most 2
      *    ASCII bytes.
      *  - Mode is C40, TEXT or X12 and the remaining characters can be encoded in at most 1 ASCII byte.
+     * 
      *  Returns mode in all other cases.
      * */
     pub fn getEndMode(&self) -> Result<Mode> {

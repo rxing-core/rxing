@@ -15,7 +15,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     common::{
-        cpp_essentials::RegressionLineTrait, BitMatrix, DefaultGridSampler, DetectorRXingResult,
+        cpp_essentials::RegressionLineTrait, BitMatrix, DefaultGridSampler,
         GridSampler, Quadrilateral, Result,
     },
     datamatrix::detector::{

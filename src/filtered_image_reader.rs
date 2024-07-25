@@ -90,7 +90,7 @@ impl LumImagePyramid {
             new_self.add_layer_with_factor(factor).ok()?;
         }
 
-        #[cfg(reverse_pyramid_layers)]
+        #[cfg(feature = "reverse_pyramid_layers")]
         // Reversing the layers means we'd start with the smallest. that can make sense if we are only looking for a
         // single symbol. If we start with the higher resolution, we get better (high res) position information.
         // TODO: see if masking out higher res layers based on found symbols in lower res helps overall performance.

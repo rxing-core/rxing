@@ -88,6 +88,10 @@ otsu_level = ["image"]
 #/// Adds "client" features do decode many common data formats found in barcodes
 client_support = []
 
+#/// For the `FilteredImageReader` if this feature is enabled it
+#/// will always reverse the order of pyramid scans
+reverse_pyramid_layers = []
+
 [workspace]
 members = [
     "crates/one-d-proc-derive",

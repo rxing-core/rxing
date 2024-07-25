@@ -488,8 +488,7 @@ fn issue_51_multiple_detection() {
     use image::DynamicImage;
     use rxing::{
         common::HybridBinarizer,
-        multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-        BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue,
+        multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader}, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue,
         DecodingHintDictionary, Exceptions, MultiUseMultiFormatReader,
     };
 

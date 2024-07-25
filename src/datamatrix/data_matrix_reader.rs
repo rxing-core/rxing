@@ -91,7 +91,7 @@ impl Reader for DataMatrixReader {
                     let decoded = DECODER.decode(symbol.getBits());
                     if decoded.is_ok() {
                         points = symbol.getPoints().to_vec();
-                        return Ok(decoded?);
+                        return decoded;
                     } else {
                         continue;
                     }
