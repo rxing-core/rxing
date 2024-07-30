@@ -16,7 +16,7 @@
  */
 
 use num::{self, bigint::ToBigUint, BigUint};
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{
     common::{DecoderRXingResult, ECIStringBuilder, Eci, Result},
@@ -171,7 +171,7 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult> {
         Vec::new(),
         ecLevel.to_owned(),
     );
-    decoderRXingResult.setOther(Some(Rc::new(resultMetadata)));
+    decoderRXingResult.setOther(Some(Arc::new(resultMetadata)));
 
     Ok(decoderRXingResult)
 }

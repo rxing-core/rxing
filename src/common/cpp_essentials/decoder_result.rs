@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{common::ECIStringBuilder, Exceptions};
 
@@ -19,7 +19,7 @@ where
     //Error _error;
     //std::shared_ptr<CustomData> _extra;
     error: Option<Exceptions>,
-    extra: Rc<T>,
+    extra: Arc<T>,
 }
 
 impl<T> Default for DecoderResult<T>
@@ -135,13 +135,13 @@ where
         self
     }
 
-    pub fn extra(&self) -> Rc<T> {
+    pub fn extra(&self) -> Arc<T> {
         self.extra.clone()
     }
-    pub fn setExtra(&mut self, extra: Rc<T>) {
+    pub fn setExtra(&mut self, extra: Arc<T>) {
         self.extra = extra
     }
-    pub fn withExtra(mut self, extra: Rc<T>) -> DecoderResult<T> {
+    pub fn withExtra(mut self, extra: Arc<T>) -> DecoderResult<T> {
         self.setExtra(extra);
         self
     }

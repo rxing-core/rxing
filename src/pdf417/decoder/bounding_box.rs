@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{
     common::{BitMatrix, Result},
@@ -26,7 +26,7 @@ use crate::{
  */
 #[derive(Clone)]
 pub struct BoundingBox {
-    image: Rc<BitMatrix>,
+    image: Arc<BitMatrix>,
     topLeft: Point,
     bottomLeft: Point,
     topRight: Point,
@@ -38,7 +38,7 @@ pub struct BoundingBox {
 }
 impl BoundingBox {
     pub fn new(
-        image: Rc<BitMatrix>,
+        image: Arc<BitMatrix>,
         topLeft: Option<Point>,
         bottomLeft: Option<Point>,
         topRight: Option<Point>,
@@ -85,7 +85,7 @@ impl BoundingBox {
         })
     }
 
-    pub fn from_other(boundingBox: Rc<BoundingBox>) -> BoundingBox {
+    pub fn from_other(boundingBox: Arc<BoundingBox>) -> BoundingBox {
         BoundingBox {
             image: boundingBox.image.clone(),
             topLeft: boundingBox.topLeft,

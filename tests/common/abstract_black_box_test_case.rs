@@ -21,7 +21,7 @@ use std::{
     fs::{read_dir, read_to_string, File},
     io::Read,
     path::{Path, PathBuf},
-    rc::Rc,
+    sync::Arc,
 };
 
 use encoding::Encoding;
@@ -221,7 +221,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
                         RXingResultMetadataValue::UpcEanExtension(v)
                     }
                     RXingResultMetadataType::PDF417_EXTRA_METADATA => {
-                        RXingResultMetadataValue::Pdf417ExtraMetadata(Rc::new(
+                        RXingResultMetadataValue::Pdf417ExtraMetadata(Arc::new(
                             PDF417RXingResultMetadata::default(),
                         ))
                     }

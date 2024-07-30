@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::{fmt, rc::Rc};
+use std::{fmt, sync::Arc};
 
 use crate::{
     common::{BitArray, BitFieldBaseType, CharacterSet, ECIEncoderSet, Result},
@@ -253,9 +253,9 @@ impl MinimalEncoder {
 
     pub fn addEdge(
         &self,
-        edges: &mut [Vec<Vec<Option<Rc<Edge>>>>],
+        edges: &mut [Vec<Vec<Option<Arc<Edge>>>>],
         position: usize,
-        edge: Option<Rc<Edge>>,
+        edge: Option<Arc<Edge>>,
     ) -> Result<()> {
         let vertexIndex =
             position + edge.as_ref().ok_or(Exceptions::FORMAT)?.characterLength as usize;
@@ -280,9 +280,9 @@ impl MinimalEncoder {
     pub fn addEdges(
         &self,
         version: VersionRef,
-        edges: &mut [Vec<Vec<Option<Rc<Edge>>>>],
+        edges: &mut [Vec<Vec<Option<Arc<Edge>>>>],
         from: usize,
-        previous: Option<Rc<Edge>>,
+        previous: Option<Arc<Edge>>,
     ) -> Result<()> {
         let mut start = 0;
         let mut end = self.encoders.len();
@@ -314,7 +314,7 @@ impl MinimalEncoder {
                 self.addEdge(
                     edges,
                     from,
-                    Some(Rc::new(
+                    Some(Arc::new(
                         Edge::new(
                             Mode::BYTE,
                             from,
@@ -338,7 +338,7 @@ impl MinimalEncoder {
             self.addEdge(
                 edges,
                 from,
-                Some(Rc::new(
+                Some(Arc::new(
                     Edge::new(
                         Mode::KANJI,
                         from,
@@ -364,7 +364,7 @@ impl MinimalEncoder {
             self.addEdge(
                 edges,
                 from,
-                Some(Rc::new(
+                Some(Arc::new(
                     Edge::new(
                         Mode::ALPHANUMERIC,
                         from,
@@ -400,7 +400,7 @@ impl MinimalEncoder {
             self.addEdge(
                 edges,
                 from,
-                Some(Rc::new(
+                Some(Arc::new(
                     Edge::new(
                         Mode::NUMERIC,
                         from,
@@ -616,7 +616,7 @@ pub struct Edge {
     fromPosition: usize,
     charsetEncoderIndex: usize,
     characterLength: u32,
-    previous: Option<Rc<Edge>>,
+    previous: Option<Arc<Edge>>,
     cachedTotalSize: u32,
     _encoders: ECIEncoderSet,
     _stringToEncode: Vec<String>,
@@ -628,7 +628,7 @@ impl Edge {
         fromPosition: usize,
         charsetEncoderIndex: usize,
         characterLength: u32,
-        previous: Option<Rc<Edge>>,
+        previous: Option<Arc<Edge>>,
         version: VersionRef,
         encoders: ECIEncoderSet,
         stringToEncode: Vec<String>,
@@ -701,7 +701,7 @@ pub struct RXingResultList {
 impl RXingResultList {
     pub fn new(
         version: VersionRef,
-        solution: Rc<Edge>,
+        solution: Arc<Edge>,
         isGS1: bool,
         ecLevel: &ErrorCorrectionLevel,
         encoders: ECIEncoderSet,
