@@ -149,7 +149,7 @@ impl ModulusPoly {
                 .add(smallerCoefficients[i - lengthDiff], largerCoefficients[i]);
         }
 
-        Ok(ModulusPoly::new(self.field, sumDiff)?)
+        ModulusPoly::new(self.field, sumDiff)
     }
 
     pub fn subtract(&self, other: ModulusPoly) -> Result<ModulusPoly> {
@@ -190,7 +190,7 @@ impl ModulusPoly {
             }
         }
 
-        Ok(ModulusPoly::new(self.field, product)?)
+        ModulusPoly::new(self.field, product)
     }
 
     pub fn negative(&self) -> ModulusPoly {
