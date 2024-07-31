@@ -86,6 +86,7 @@ fn main() {
 ```
 
 ## Latest Release Notes
+* *v0.6.0* -> rxing is now thread safe. This is a breaking change if you are using `PointCallback`/`RXingResultPointCallback` or the `Pdf417ExtraMetadata` field of `RXingResultMetadataValue`. In addition there should be some small performance improvements associated with moving away from using `Rc` and `Arc` in many situations throughout the library.
 * *v0.5.8* -> Performance improvements. Memory Improvements. Added FilteredReader which performs a more complicated operation on images (resizes and closes binary bitmaps) at the expense of some performance.
 * *v0.5.5* -> Add support for rMQR, allows building the library without image_formats, fixes an issue with multiple barcode detection.
 
