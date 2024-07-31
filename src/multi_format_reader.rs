@@ -79,6 +79,14 @@ impl Reader for MultiFormatReader {
     fn reset(&mut self) {
         self.one_d_reader.reset();
     }
+    
+    fn immutable_decode_with_hints<B: Binarizer>(
+        &self,
+        image: &mut BinaryBitmap<B>,
+        hints: &DecodingHintDictionary,
+    ) -> Result<RXingResult> {
+        todo!()
+    }
 }
 
 impl MultiFormatReader {

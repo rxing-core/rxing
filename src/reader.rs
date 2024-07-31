@@ -79,7 +79,5 @@ pub trait Reader {
         &self,
         image: &mut BinaryBitmap<B>,
         hints: &DecodingHintDictionary,
-    ) -> Result<RXingResult> {
-        unimplemented!()
-    }
+    ) -> Result<RXingResult>;
 }

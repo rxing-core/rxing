@@ -57,6 +57,14 @@ impl Reader for QRCodeReader {
         image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<RXingResult> {
+        self.immutable_decode_with_hints(image, hints)
+    }
+    
+    fn immutable_decode_with_hints<B: Binarizer>(
+        &self,
+        image: &mut crate::BinaryBitmap<B>,
+        hints: &crate::DecodingHintDictionary,
+    ) -> Result<RXingResult> {
         let decoderRXingResult: DecoderRXingResult;
         let mut points: Vec<Point>;
         if matches!(

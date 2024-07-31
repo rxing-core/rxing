@@ -112,6 +112,81 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
     fn reset(&mut self) {
         self.0.reset()
     }
+    
+    fn immutable_decode_with_hints<B: Binarizer>(
+        &self,
+        image: &mut crate::BinaryBitmap<B>,
+        hints: &crate::DecodingHintDictionary,
+    ) -> Result<RXingResult> {
+        let width = image.get_width();
+        let height = image.get_height();
+        let halfWidth = width / 2;
+        let halfHeight = height / 2;
+
+        let attempt = self
+            .0
+            .immutable_decode_with_hints(&mut image.crop(0, 0, halfWidth, halfHeight), hints);
+        // No need to call makeAbsolute as results will be relative to original top left here
+        // This is a match because only NotFoundExceptions should be ignored
+        match attempt {
+            Err(Exceptions::NotFoundException(_)) => {}
+            _ => return attempt,
+        }
+
+        // try {
+        let result = self
+            .0
+            .immutable_decode_with_hints(&mut image.crop(halfWidth, 0, halfWidth, halfHeight), hints);
+        // This is a match because only NotFoundExceptions should be ignored
+        match result {
+            Ok(res) => {
+                let points = Self::makeAbsolute(res.getPoints(), halfWidth as f32, 0.0);
+                return Ok(RXingResult::new_from_existing_result(res, points));
+            }
+            Err(Exceptions::NotFoundException(_)) => {}
+            _ => return result,
+        }
+
+        let result = self
+            .0
+            .immutable_decode_with_hints(&mut image.crop(0, halfHeight, halfWidth, halfHeight), hints);
+        // This is a match because only NotFoundExceptions should be ignored
+        match result {
+            Ok(res) => {
+                let points = Self::makeAbsolute(res.getPoints(), 0.0, halfHeight as f32);
+                return Ok(RXingResult::new_from_existing_result(res, points));
+            }
+            Err(Exceptions::NotFoundException(_)) => {}
+            _ => return result,
+        }
+
+        let result = self.0.immutable_decode_with_hints(
+            &mut image.crop(halfWidth, halfHeight, halfWidth, halfHeight),
+            hints,
+        );
+        // This is a match because only NotFoundExceptions should be ignored
+        match result {
+            Ok(res) => {
+                let points =
+                    Self::makeAbsolute(res.getPoints(), halfWidth as f32, halfHeight as f32);
+                return Ok(RXingResult::new_from_existing_result(res, points));
+            }
+            Err(Exceptions::NotFoundException(_)) => {}
+            _ => return result,
+        }
+
+        let quarterWidth = halfWidth / 2;
+        let quarterHeight = halfHeight / 2;
+        let mut center = image.crop(quarterWidth, quarterHeight, halfWidth, halfHeight);
+        let result = self.0.immutable_decode_with_hints(&mut center, hints)?;
+
+        let points = Self::makeAbsolute(
+            result.getPoints(),
+            quarterWidth as f32,
+            quarterHeight as f32,
+        );
+        Ok(RXingResult::new_from_existing_result(result, points))
+    }
 }
 
 impl<T: Reader> ByQuadrantReader<T> {

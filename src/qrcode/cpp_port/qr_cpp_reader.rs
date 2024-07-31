@@ -148,6 +148,14 @@ impl Reader for QrReader {
         image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
     ) -> crate::common::Result<RXingResult> {
+        self.immutable_decode_with_hints(image, hints)
+    }
+    
+    fn immutable_decode_with_hints<B: crate::Binarizer>(
+        &self,
+        image: &mut crate::BinaryBitmap<B>,
+        hints: &DecodingHintDictionary,
+    ) -> crate::common::Result<RXingResult> {
         // #if 1
         if !matches!(
             hints.get(&DecodeHintType::PURE_BARCODE),
@@ -243,7 +251,7 @@ impl MultipleBarcodeReader for QrReader {
 
 impl QrReader {
     fn decode_set_number_with_hints<B: crate::Binarizer>(
-        &mut self,
+        & self,
         image: &mut crate::BinaryBitmap<B>,
         hints: &DecodingHintDictionary,
         count: u32,

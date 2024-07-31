@@ -61,6 +61,14 @@ impl Reader for MaxiCodeReader {
         image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult> {
+        self.immutable_decode_with_hints(image, hints)
+    }
+    
+    fn immutable_decode_with_hints<B: Binarizer>(
+        &self,
+        image: &mut crate::BinaryBitmap<B>,
+        hints: &crate::DecodingHintDictionary,
+    ) -> Result<RXingResult> {
         // Note that MaxiCode reader effectively always assumes PURE_BARCODE mode
         // and can't detect it in an image
         let try_harder = matches!(

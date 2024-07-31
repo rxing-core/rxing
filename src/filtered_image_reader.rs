@@ -64,6 +64,48 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
         }
         Err(Exceptions::NOT_FOUND)
     }
+    
+    fn immutable_decode_with_hints<B: Binarizer>(
+        &self,
+        image: &mut BinaryBitmap<B>,
+        hints: &crate::DecodingHintDictionary,
+    ) -> Result<crate::RXingResult> {
+        let pyramids = LumImagePyramid::new(
+            Luma8LuminanceSource::new(
+                image.get_source().get_matrix(),
+                image.get_source().get_width() as u32,
+                image.get_source().get_height() as u32,
+            ),
+            DEFAULT_DOWNSCALE_THRESHHOLD,
+            DEFAULT_DOWNSCALE_FACTOR,
+        )
+        .ok_or(Exceptions::ILLEGAL_ARGUMENT)?;
+        for layer in pyramids.layers {
+            let mut b = BinaryBitmap::new(HybridBinarizer::new(layer));
+            for close in [false, true] {
+                if close {
+                    let Ok(_) = b.close() else {
+                        continue;
+                    };
+                }
+                if let Ok(mut res) = self.0.immutable_decode_with_hints(&mut b, hints) {
+                    res.putMetadata(
+                        crate::RXingResultMetadataType::FILTERED_CLOSED,
+                        crate::RXingResultMetadataValue::FilteredClosed(close),
+                    );
+                    let resolution = (b.get_width(), b.get_height());
+                    res.putMetadata(
+                        crate::RXingResultMetadataType::FILTERED_RESOLUTION,
+                        crate::RXingResultMetadataValue::FilteredResolution(resolution),
+                    );
+                    return Ok(res);
+                } else {
+                    continue;
+                }
+            }
+        }
+        Err(Exceptions::NOT_FOUND)
+    }
 }
 
 #[derive(Debug, Clone, Default)]

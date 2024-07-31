@@ -50,6 +50,14 @@ impl Reader for AztecReader {
         image: &mut BinaryBitmap<B>,
         hints: &HashMap<DecodeHintType, DecodeHintValue>,
     ) -> Result<RXingResult> {
+        self.immutable_decode_with_hints(image, hints)
+    }
+    
+    fn immutable_decode_with_hints<B: Binarizer>(
+        &self,
+        image: &mut BinaryBitmap<B>,
+        hints: &crate::DecodingHintDictionary,
+    ) -> Result<RXingResult> {
         // let notFoundException = None;
         // let formatException = None;
         let mut detector = Detector::new(image.get_black_matrix());

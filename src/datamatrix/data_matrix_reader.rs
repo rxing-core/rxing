@@ -72,6 +72,14 @@ impl Reader for DataMatrixReader {
         image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult> {
+        self.immutable_decode_with_hints(image, hints)
+    }
+    
+    fn immutable_decode_with_hints<B: Binarizer>(
+        &self,
+        image: &mut crate::BinaryBitmap<B>,
+        hints: &crate::DecodingHintDictionary,
+    ) -> Result<RXingResult> {
         let try_harder = matches!(
             hints.get(&DecodeHintType::TRY_HARDER),
             Some(DecodeHintValue::TryHarder(true))
@@ -172,10 +180,6 @@ impl Reader for DataMatrixReader {
         );
 
         Ok(result)
-    }
-
-    fn reset(&mut self) {
-        // do nothing
     }
 }
 

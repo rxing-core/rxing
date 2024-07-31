@@ -58,6 +58,18 @@ impl Reader for PDF417Reader {
         }
         Ok(result[0].clone())
     }
+    
+    fn immutable_decode_with_hints<B: Binarizer>(
+        &self,
+        image: &mut BinaryBitmap<B>,
+        hints: &DecodingHintDictionary,
+    ) -> Result<RXingResult> {
+        let result = Self::decode(image, hints, false)?;
+        if result.is_empty() {
+            return Err(Exceptions::NOT_FOUND);
+        }
+        Ok(result[0].clone())
+    }
 }
 
 impl MultipleBarcodeReader for PDF417Reader {

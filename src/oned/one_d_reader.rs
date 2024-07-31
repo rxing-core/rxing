@@ -45,7 +45,7 @@ pub trait OneDReader: Reader {
      * @throws NotFoundException Any spontaneous errors which occur
      */
     fn _do_decode<B: Binarizer>(
-        &mut self,
+        &self,
         image: &mut BinaryBitmap<B>,
         hints: &DecodingHintDictionary,
     ) -> Result<RXingResult> {
@@ -163,14 +163,14 @@ pub trait OneDReader: Reader {
      * @throws FormatException if a potential barcode is found but format is invalid
      */
     fn decode_row(
-        &mut self,
+        & self,
         rowNumber: u32,
         row: &BitArray,
         hints: &DecodingHintDictionary,
     ) -> Result<RXingResult>;
 
     fn decode_pure(
-        &mut self,
+        & self,
         rowNumber: u32,
         row: &[u8],
         hints: &DecodingHintDictionary,
