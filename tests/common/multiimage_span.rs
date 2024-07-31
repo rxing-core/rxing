@@ -20,7 +20,7 @@ use std::{
     fs::{read_dir, read_to_string, File},
     io::Read,
     path::{Path, PathBuf},
-    rc::Rc,
+    sync::Arc,
 };
 
 use rxing::{
@@ -377,7 +377,7 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
                         RXingResultMetadataValue::UpcEanExtension(v)
                     }
                     RXingResultMetadataType::PDF417_EXTRA_METADATA => {
-                        RXingResultMetadataValue::Pdf417ExtraMetadata(Rc::new(
+                        RXingResultMetadataValue::Pdf417ExtraMetadata(Arc::new(
                             PDF417RXingResultMetadata::default(),
                         ))
                     }
@@ -771,7 +771,7 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
         // return op.filter(original, new BufferedImage(width, height, original.getType()));
     }
 
-    fn get_meta(result: &RXingResult) -> Option<Rc<PDF417RXingResultMetadata>> {
+    fn get_meta(result: &RXingResult) -> Option<Arc<PDF417RXingResultMetadata>> {
         if let Some(RXingResultMetadataValue::Pdf417ExtraMetadata(mtd)) = result
             .getRXingResultMetadata()
             .get(&RXingResultMetadataType::PDF417_EXTRA_METADATA)

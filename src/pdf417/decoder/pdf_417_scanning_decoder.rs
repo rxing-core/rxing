@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{
     common::{BitMatrix, DecoderRXingResult, Result},
@@ -53,8 +53,8 @@ pub fn decode(
 ) -> Result<DecoderRXingResult> {
     let mut minCodewordWidth = minCodewordWidth;
     let mut maxCodewordWidth = maxCodewordWidth;
-    let mut boundingBox = Rc::new(BoundingBox::new(
-        Rc::new(image.clone()),
+    let mut boundingBox = Arc::new(BoundingBox::new(
+        Arc::new(image.clone()),
         image_top_left,
         imageBottomLeft,
         image_top_right,
@@ -188,7 +188,7 @@ fn merge<'a, T: DetectionRXingResultRowIndicatorColumn>(
     if barcodeMetadata.is_none() {
         return Ok(None);
     }
-    let boundingBox = Rc::new(BoundingBox::merge(
+    let boundingBox = Arc::new(BoundingBox::merge(
         adjustBoundingBox(leftRowIndicatorColumn)?,
         adjustBoundingBox(rightRowIndicatorColumn)?,
     )?);
@@ -357,7 +357,7 @@ fn getBarcodeMetadata<T: DetectionRXingResultRowIndicatorColumn>(
 
 fn getRowIndicatorColumn<'a>(
     image: &BitMatrix,
-    boundingBox: Rc<BoundingBox>,
+    boundingBox: Arc<BoundingBox>,
     startPoint: Point,
     leftToRight: bool,
     minCodewordWidth: u32,

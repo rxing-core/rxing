@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::{fmt, rc::Rc};
+use std::{fmt, sync::Arc};
 
 use crate::{
     common::{CharacterSet, ECIInput, Eci, MinimalECIInput, Result},
@@ -198,7 +198,7 @@ fn encode(
     shape: SymbolShapeHint,
     macroId: i32,
 ) -> Result<Vec<u8>> {
-    Ok(encodeMinimally(Rc::new(Input::new(
+    Ok(encodeMinimally(Arc::new(Input::new(
         input,
         priorityCharset,
         fnc1,
@@ -209,7 +209,7 @@ fn encode(
     .to_vec())
 }
 
-fn addEdge(edges: &mut [Vec<Option<Rc<Edge>>>], edge: Rc<Edge>) -> Result<()> {
+fn addEdge(edges: &mut [Vec<Option<Arc<Edge>>>], edge: Arc<Edge>) -> Result<()> {
     let vertexIndex = (edge.fromPosition + edge.characterLength) as usize;
     if edges[vertexIndex][edge.getEndMode()?.ordinal()].is_none()
         || edges[vertexIndex][edge.getEndMode()?.ordinal()]
@@ -231,7 +231,7 @@ fn addEdge(edges: &mut [Vec<Option<Rc<Edge>>>], edge: Rc<Edge>) -> Result<()> {
  *  is filled  with 0 (Shift 1) in this case).
  */
 fn getNumberOfC40Words(
-    input: Rc<Input>,
+    input: Arc<Input>,
     from: u32,
     c40: bool,
     characterLength: &mut [u32],
@@ -274,15 +274,15 @@ fn getNumberOfC40Words(
 }
 
 fn addEdges(
-    input: Rc<Input>,
-    edges: &mut [Vec<Option<Rc<Edge>>>],
+    input: Arc<Input>,
+    edges: &mut [Vec<Option<Arc<Edge>>>],
     from: u32,
-    previous: Option<Rc<Edge>>,
+    previous: Option<Arc<Edge>>,
 ) -> Result<()> {
     if input.isECI(from)? {
         addEdge(
             edges,
-            Rc::new(Edge::new(input, Mode::Ascii, from, 1, previous)?),
+            Arc::new(Edge::new(input, Mode::Ascii, from, 1, previous)?),
         )?;
         return Ok(());
     }
@@ -298,7 +298,7 @@ fn addEdges(
             // two digits ASCII encoded
             addEdge(
                 edges,
-                Rc::new(Edge::new(
+                Arc::new(Edge::new(
                     input.clone(),
                     Mode::Ascii,
                     from,
@@ -310,7 +310,7 @@ fn addEdges(
             // one ASCII encoded character or an extended character via Upper Shift
             addEdge(
                 edges,
-                Rc::new(Edge::new(
+                Arc::new(Edge::new(
                     input.clone(),
                     Mode::Ascii,
                     from,
@@ -329,7 +329,7 @@ fn addEdges(
             {
                 addEdge(
                     edges,
-                    Rc::new(Edge::new(
+                    Arc::new(Edge::new(
                         input.clone(),
                         mode,
                         from,
@@ -347,7 +347,7 @@ fn addEdges(
         {
             addEdge(
                 edges,
-                Rc::new(Edge::new(
+                Arc::new(Edge::new(
                     input.clone(),
                     Mode::X12,
                     from,
@@ -359,7 +359,7 @@ fn addEdges(
 
         addEdge(
             edges,
-            Rc::new(Edge::new(
+            Arc::new(Edge::new(
                 input.clone(),
                 Mode::B256,
                 from,
@@ -380,7 +380,7 @@ fn addEdges(
         {
             addEdge(
                 edges,
-                Rc::new(Edge::new(
+                Arc::new(Edge::new(
                     input.clone(),
                     Mode::Edf,
                     from,
@@ -399,13 +399,13 @@ fn addEdges(
     {
         addEdge(
             edges,
-            Rc::new(Edge::new(input, Mode::Edf, from, 4, previous)?),
+            Arc::new(Edge::new(input, Mode::Edf, from, 4, previous)?),
         )?;
     }
     Ok(())
 }
 
-fn encodeMinimally(input: Rc<Input>) -> Result<RXingResult> {
+fn encodeMinimally(input: Arc<Input>) -> Result<RXingResult> {
     // @SuppressWarnings("checkstyle:lineLength")
     /* The minimal encoding is computed by Dijkstra. The acyclic graph is modeled as follows:
      * A vertex represents a combination of a position in the input and an encoding mode where position 0
@@ -648,20 +648,20 @@ const SQUARE_CODEWORD_CAPACITIES: [u32; 24] = [
 const RECTANGULAR_CODEWORD_CAPACITIES: [u32; 6] = [5, 10, 16, 33, 32, 49];
 
 struct Edge {
-    input: Rc<Input>,
+    input: Arc<Input>,
     mode: Mode, //the mode at the start of this edge.
     fromPosition: u32,
     characterLength: u32,
-    previous: Option<Rc<Edge>>,
+    previous: Option<Arc<Edge>>,
     cachedTotalSize: u32,
 }
 impl Edge {
     fn new(
-        input: Rc<Input>,
+        input: Arc<Input>,
         mode: Mode,
         fromPosition: u32,
         characterLength: u32,
-        previous: Option<Rc<Edge>>,
+        previous: Option<Arc<Edge>>,
     ) -> Result<Self> {
         if fromPosition + characterLength > input.length() as u32 {
             return Err(Exceptions::FORMAT);
@@ -771,7 +771,7 @@ impl Edge {
     }
 
     // does not count beyond 250
-    pub fn getB256Size(mode: Mode, previous: Option<Rc<Edge>>) -> u32 {
+    pub fn getB256Size(mode: Mode, previous: Option<Arc<Edge>>) -> u32 {
         if mode != Mode::B256 {
             return 0;
         }
@@ -790,7 +790,7 @@ impl Edge {
         cnt
     }
 
-    pub fn getPreviousStartMode(previous: Option<Rc<Edge>>) -> Mode {
+    pub fn getPreviousStartMode(previous: Option<Arc<Edge>>) -> Mode {
         if let Some(prev) = previous {
             prev.mode
         } else {
@@ -799,7 +799,7 @@ impl Edge {
         // if previous.is_none() { Mode::ASCII} else {previous.as_ref().unwrap().mode}
     }
 
-    pub fn getPreviousMode(previous: Option<Rc<Edge>>) -> Result<Mode> {
+    pub fn getPreviousMode(previous: Option<Arc<Edge>>) -> Result<Mode> {
         if let Some(prev) = previous {
             prev.getEndMode()
         } else {
@@ -812,7 +812,7 @@ impl Edge {
      *  - Mode is EDIFACT and characterLength is less than 4 or the remaining characters can be encoded in at most 2
      *    ASCII bytes.
      *  - Mode is C40, TEXT or X12 and the remaining characters can be encoded in at most 1 ASCII byte.
-     * 
+     *
      *  Returns mode in all other cases.
      * */
     pub fn getEndMode(&self) -> Result<Mode> {
@@ -1270,7 +1270,7 @@ struct RXingResult {
     bytes: Vec<u8>,
 }
 impl RXingResult {
-    pub fn new(solution: Option<Rc<Edge>>) -> Result<Self> {
+    pub fn new(solution: Option<Arc<Edge>>) -> Result<Self> {
         let solution = if let Some(edge) = solution {
             edge
         } else {

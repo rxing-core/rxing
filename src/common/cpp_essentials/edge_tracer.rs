@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::sync::{Arc, RwLock};
 
 use crate::{
     common::{BitMatrix, Result},
@@ -16,7 +16,7 @@ pub struct EdgeTracer<'a> {
     d: Point,            // current direction
 
     // pub history: Option<&'a mut ByteMatrix>, // = nullptr;
-    pub history: Option<Rc<RefCell<ByteMatrix>>>,
+    pub history: Option<Arc<RwLock<ByteMatrix>>>,
     pub state: i32,
     // const BitMatrix* img;
 
@@ -229,16 +229,22 @@ impl<'a> EdgeTracer<'_> {
                             // if (self.history && maxStepSize == 1) {
                             if let Some(history) = &self.history {
                                 if maxStepSize == 1 {
-                                    if history.borrow().get(self.p.x as u32, self.p.y as u32)
+                                    if history
+                                        .read()
+                                        .map_err(|_| {
+                                            Exceptions::illegal_state_with("Failed to acquire read lock")
+                                        })?
+                                        .get(self.p.x as u32, self.p.y as u32)
                                         == self.state as u8
                                     {
                                         return Ok(StepResult::ClosedEnd);
                                     }
-                                    history.borrow_mut().set(
-                                        self.p.x as u32,
-                                        self.p.y as u32,
-                                        self.state as u8,
-                                    );
+                                    history
+                                        .write()
+                                        .map_err(|_| {
+                                            Exceptions::illegal_state_with("Failed to acquire write lock")
+                                        })?
+                                        .set(self.p.x as u32, self.p.y as u32, self.state as u8);
                                 }
                             }
 

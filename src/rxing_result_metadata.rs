@@ -16,7 +16,7 @@
 
 //package com.google.zxing;
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::pdf417::PDF417RXingResultMetadata;
 
@@ -216,7 +216,7 @@ pub enum RXingResultMetadataValue {
     /**
      * PDF417-specific metadata
      */
-    Pdf417ExtraMetadata(Rc<PDF417RXingResultMetadata>),
+    Pdf417ExtraMetadata(Arc<PDF417RXingResultMetadata>),
 
     /**
      * If the code format supports structured append and the current scanned code is part of one then the

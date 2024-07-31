@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::common::{CharacterSet, Result};
 use crate::{Dimension, Exceptions};
@@ -146,7 +146,7 @@ pub fn encodeHighLevel(msg: &str) -> Result<String> {
  */
 pub fn encodeHighLevelSIL(
     msg: &str,
-    symbol_lookup: Option<Rc<SymbolInfoLookup>>,
+    symbol_lookup: Option<Arc<SymbolInfoLookup>>,
 ) -> Result<String> {
     encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
         msg,
@@ -184,17 +184,17 @@ pub fn encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
     minSize: Option<Dimension>,
     maxSize: Option<Dimension>,
     forceC40: bool,
-    symbol_lookup: Option<Rc<SymbolInfoLookup>>,
+    symbol_lookup: Option<Arc<SymbolInfoLookup>>,
 ) -> Result<String> {
     //the codewords 0..255 are encoded as Unicode characters
-    let c40Encoder = Rc::new(C40Encoder::new());
-    let encoders: [Rc<dyn Encoder>; 6] = [
-        Rc::new(ASCIIEncoder::new()),
+    let c40Encoder = Arc::new(C40Encoder::new());
+    let encoders: [Arc<dyn Encoder>; 6] = [
+        Arc::new(ASCIIEncoder::new()),
         c40Encoder.clone(),
-        Rc::new(TextEncoder::new()),
-        Rc::new(X12Encoder::new()),
-        Rc::new(EdifactEncoder::new()),
-        Rc::new(Base256Encoder::new()),
+        Arc::new(TextEncoder::new()),
+        Arc::new(X12Encoder::new()),
+        Arc::new(EdifactEncoder::new()),
+        Arc::new(Base256Encoder::new()),
     ];
 
     let mut context = if let Some(symbol_table) = symbol_lookup {

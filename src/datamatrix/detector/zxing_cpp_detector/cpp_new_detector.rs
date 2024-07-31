@@ -11,12 +11,12 @@ macro_rules! CHECK {
 */
 // SPDX-License-Identifier: Apache-2.0
 
-use std::{cell::RefCell, rc::Rc};
+use std::sync::{Arc, RwLock};
 
 use crate::{
     common::{
-        cpp_essentials::RegressionLineTrait, BitMatrix, DefaultGridSampler,
-        GridSampler, Quadrilateral, Result,
+        cpp_essentials::RegressionLineTrait, BitMatrix, DefaultGridSampler, GridSampler,
+        Quadrilateral, Result,
     },
     datamatrix::detector::{
         zxing_cpp_detector::{util::intersect, BitMatrixCursorTrait},
@@ -262,7 +262,7 @@ pub fn detect(
     // a history log to remember where the tracing already passed by to prevent a later trace from doing the same work twice
     let mut history = None;
     if tryHarder {
-        history = Some(Rc::new(RefCell::new(ByteMatrix::new(
+        history = Some(Arc::new(RwLock::new(ByteMatrix::new(
             image.getWidth(),
             image.getHeight(),
         ))));
@@ -292,7 +292,10 @@ pub fn detect(
         let startPos = Point::centered(center - center * dir + MIN_SYMBOL_SIZE as i32 / 2 * dir);
 
         if let Some(history) = &mut history {
-            history.borrow_mut().clear(0);
+            history
+                .write()
+                .map_err(|_| Exceptions::illegal_state_with("Failed to acquire write lock"))?
+                .clear(0);
             // history.clear(0);
         }
 

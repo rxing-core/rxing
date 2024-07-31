@@ -29,8 +29,8 @@ use crate::Exceptions;
 pub struct ModulusGF {
     expTable: Vec<u32>,
     logTable: Vec<u32>,
-    // zero: Option<Rc<ModulusPoly<'a>>>,
-    // one: Option<Rc<ModulusPoly<'a>>>,
+    // zero: Option<Arc<ModulusPoly<'a>>>,
+    // one: Option<Arc<ModulusPoly<'a>>>,
     modulus: u32,
     generator: u32,
 }

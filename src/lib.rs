@@ -11,7 +11,7 @@ pub mod qrcode;
 #[cfg(feature = "client_support")]
 pub mod client;
 
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, sync::Arc};
 
 pub use exceptions::Exceptions;
 
@@ -39,7 +39,7 @@ pub use encode_hints::*;
 
 /// Callback which is invoked when a possible result point (significant
 /// point in the barcode image such as a corner) is found.
-pub type PointCallback = Rc<dyn Fn(Point)>;
+pub type PointCallback = Arc<dyn Fn(Point)>;
 
 /** Temporary type to ease refactoring and keep backwards-compatibility */
 pub type RXingResultPointCallback = PointCallback;

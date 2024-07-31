@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::{fmt, rc::Rc};
+use std::{fmt, sync::Arc};
 
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -250,7 +250,7 @@ impl MinimalECIInput {
         Ok(self.bytes[index] == 1000)
     }
 
-    fn addEdge(edges: &mut [Vec<Option<Rc<InputEdge>>>], to: usize, edge: Rc<InputEdge>) {
+    fn addEdge(edges: &mut [Vec<Option<Arc<InputEdge>>>], to: usize, edge: Arc<InputEdge>) {
         if edges[to][edge.encoderIndex].is_none()
             || edges[to][edge.encoderIndex]
                 // .clone()
@@ -266,9 +266,9 @@ impl MinimalECIInput {
     fn addEdges(
         stringToEncode: &str,
         encoderSet: &ECIEncoderSet,
-        edges: &mut [Vec<Option<Rc<InputEdge>>>],
+        edges: &mut [Vec<Option<Arc<InputEdge>>>],
         from: usize,
-        previous: Option<Rc<InputEdge>>,
+        previous: Option<Arc<InputEdge>>,
         fnc1: Option<&str>,
     ) {
         // let ch = stringToEncode.chars().nth(from).unwrap() as i16;
@@ -298,7 +298,7 @@ impl MinimalECIInput {
                 Self::addEdge(
                     edges,
                     from + 1,
-                    Rc::new(InputEdge::new(ch, encoderSet, i, previous.clone(), fnc1)),
+                    Arc::new(InputEdge::new(ch, encoderSet, i, previous.clone(), fnc1)),
                 );
             }
         }
@@ -383,7 +383,7 @@ impl MinimalECIInput {
 struct InputEdge {
     c: String,
     encoderIndex: usize, //the encoding of this edge
-    previous: Option<Rc<InputEdge>>,
+    previous: Option<Arc<InputEdge>>,
     cachedTotalSize: usize,
 }
 impl InputEdge {
@@ -393,7 +393,7 @@ impl InputEdge {
         c: &str,
         encoderSet: &ECIEncoderSet,
         encoderIndex: usize,
-        previous: Option<Rc<InputEdge>>,
+        previous: Option<Arc<InputEdge>>,
         fnc1: Option<&str>,
     ) -> Self {
         let mut size = if c == Self::FNC1_UNICODE {

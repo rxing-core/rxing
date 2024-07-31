@@ -18,7 +18,7 @@
 
 // import java.util.List;
 
-use std::{any::Any, rc::Rc};
+use std::{any::Any, sync::Arc};
 
 /**
  * <p>Encapsulates the result of decoding a matrix of bits. This typically
@@ -35,7 +35,7 @@ pub struct DecoderRXingResult {
     ecLevel: String,
     errorsCorrected: usize,
     erasures: usize,
-    other: Option<Rc<dyn Any>>,
+    other: Option<Arc<dyn Any + Send + Sync>>,
     structuredAppendParity: i32,
     structuredAppendSequenceNumber: i32,
     symbologyModifier: u32,
@@ -203,11 +203,11 @@ impl DecoderRXingResult {
     /**
      * @return arbitrary additional metadata
      */
-    pub fn getOther(&self) -> Option<Rc<dyn Any>> {
+    pub fn getOther(&self) -> Option<Arc<dyn Any + Send + Sync>> {
         self.other.clone()
     }
 
-    pub fn setOther(&mut self, other: Option<Rc<dyn Any>>) {
+    pub fn setOther(&mut self, other: Option<Arc<dyn Any + Send + Sync>>) {
         self.other = other
     }
 

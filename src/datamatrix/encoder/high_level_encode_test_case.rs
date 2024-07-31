@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 use once_cell::sync::Lazy;
 
@@ -121,7 +121,7 @@ fn testC40EncodationSpecialCases1() {
     let substitute_symbols = SymbolInfoLookup::new();
     let substitute_symbols = useTestSymbols(substitute_symbols);
 
-    let sil = Rc::new(substitute_symbols);
+    let sil = Arc::new(substitute_symbols);
 
     let visualized = encodeHighLevelCompareSIL("AIMAIMAIMAIMAIMAIM", false, Some(sil.clone()));
     assert_eq!("230 91 11 91 11 91 11 91 11 91 11 91 11", visualized);
@@ -136,7 +136,7 @@ fn testC40EncodationSpecialCases1() {
     //case "c": Unlatch and write last character in ASCII
 
     let substitute_symbols = resetSymbols(substitute_symbols);
-    let sil = Rc::new(substitute_symbols);
+    let sil = Arc::new(substitute_symbols);
 
     let visualized = encodeHighLevelSIL("AIMAIMAIMAIMAIMAI", sil.clone());
     assert_eq!(
@@ -565,14 +565,14 @@ fn encodeHighLevel(msg: &str) -> String {
     encodeHighLevelCompare(msg, true)
 }
 
-fn encodeHighLevelSIL(msg: &str, sil: Rc<SymbolInfoLookup>) -> String {
+fn encodeHighLevelSIL(msg: &str, sil: Arc<SymbolInfoLookup>) -> String {
     encodeHighLevelCompareSIL(msg, true, Some(sil))
 }
 
 fn encodeHighLevelCompareSIL(
     msg: &str,
     compareSizeToMinimalEncoder: bool,
-    sil: Option<Rc<SymbolInfoLookup>>,
+    sil: Option<Arc<SymbolInfoLookup>>,
 ) -> String {
     let encoded = high_level_encoder::encodeHighLevelSIL(msg, sil).expect("encodes");
     let encoded2 = minimal_encoder::encodeHighLevel(msg).expect("encodes");

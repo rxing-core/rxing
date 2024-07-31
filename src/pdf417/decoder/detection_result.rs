@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::{fmt::Display, rc::Rc};
+use std::{fmt::Display, sync::Arc};
 
 use crate::pdf417::pdf_417_common;
 
@@ -31,14 +31,14 @@ const ADJUST_ROW_NUMBER_SKIP: u32 = 2;
 pub struct DetectionRXingResult {
     barcodeMetadata: BarcodeMetadata,
     detectionRXingResultColumns: Vec<Option<Box<dyn DetectionRXingResultColumnTrait>>>,
-    boundingBox: Rc<BoundingBox>,
+    boundingBox: Arc<BoundingBox>,
     barcodeColumnCount: usize,
 }
 
 impl DetectionRXingResult {
     pub fn new(
         barcodeMetadata: BarcodeMetadata,
-        boundingBox: Rc<BoundingBox>,
+        boundingBox: Arc<BoundingBox>,
     ) -> DetectionRXingResult {
         let mut columns = Vec::with_capacity(barcodeMetadata.getColumnCount() as usize + 2);
         for _i in 0..(barcodeMetadata.getColumnCount() as usize + 2) {
@@ -601,11 +601,11 @@ impl DetectionRXingResult {
         self.barcodeMetadata.getErrorCorrectionLevel()
     }
 
-    pub fn setBoundingBox(&mut self, boundingBox: Rc<BoundingBox>) {
+    pub fn setBoundingBox(&mut self, boundingBox: Arc<BoundingBox>) {
         self.boundingBox = boundingBox;
     }
 
-    pub fn getBoundingBox(&self) -> Rc<BoundingBox> {
+    pub fn getBoundingBox(&self) -> Arc<BoundingBox> {
         self.boundingBox.clone()
     }
 

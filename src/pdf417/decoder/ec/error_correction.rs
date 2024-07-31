@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{
     common::Result,
@@ -26,7 +26,7 @@ use super::ModulusPoly;
 
 use once_cell::sync::Lazy;
 
-// static ref PDF417_GF : Rc<&ModulusGF> =  Rc::new(&ModulusGF::new(NUMBER_OF_CODEWORDS, 3));
+// static ref PDF417_GF : Arc<&ModulusGF> =  Arc::new(&ModulusGF::new(NUMBER_OF_CODEWORDS, 3));
 static FLD_INTERIOR: Lazy<ModulusGF> = Lazy::new(|| ModulusGF::new(NUMBER_OF_CODEWORDS, 3));
 
 /**
@@ -64,10 +64,10 @@ pub fn decode(received: &mut [u32], numECCodewords: u32, erasures: &mut [u32]) -
         return Ok(0);
     }
 
-    let mut knownErrors: Rc<ModulusPoly> = ModulusPoly::getOne(field);
+    let mut knownErrors: Arc<ModulusPoly> = ModulusPoly::getOne(field);
     let mut b;
     let mut term;
-    let mut kE: Rc<ModulusPoly>;
+    let mut kE: Arc<ModulusPoly>;
     if !erasures.is_empty() {
         for erasure in erasures {
             // for (int erasure : erasures) {
@@ -75,11 +75,11 @@ pub fn decode(received: &mut [u32], numECCodewords: u32, erasures: &mut [u32]) -
             // Add (1 - bx) term:
             term = ModulusPoly::new(field, vec![field.subtract(0, b), 1])?;
             kE = knownErrors.clone();
-            knownErrors = kE.multiply(Rc::new(term))?;
+            knownErrors = kE.multiply(Arc::new(term))?;
         }
     }
 
-    let syndrome = Rc::new(ModulusPoly::new(field, S)?);
+    let syndrome = Arc::new(ModulusPoly::new(field, S)?);
     //syndrome = syndrome.multiply(knownErrors);
 
     let sigmaOmega = runEuclideanAlgorithm(
@@ -110,11 +110,11 @@ pub fn decode(received: &mut [u32], numECCodewords: u32, erasures: &mut [u32]) -
 }
 
 fn runEuclideanAlgorithm(
-    a: Rc<ModulusPoly>,
-    b: Rc<ModulusPoly>,
+    a: Arc<ModulusPoly>,
+    b: Arc<ModulusPoly>,
     R: u32,
     field: &'static ModulusGF,
-) -> Result<[Rc<ModulusPoly>; 2]> {
+) -> Result<[Arc<ModulusPoly>; 2]> {
     // Assume a's degree is >= b's
     let mut a = a;
     let mut b = b;
@@ -169,7 +169,7 @@ fn runEuclideanAlgorithm(
     Ok([sigma, omega])
 }
 
-fn findErrorLocations(errorLocator: Rc<ModulusPoly>, field: &ModulusGF) -> Result<Vec<u32>> {
+fn findErrorLocations(errorLocator: Arc<ModulusPoly>, field: &ModulusGF) -> Result<Vec<u32>> {
     // This is a direct application of Chien's search
     let numErrors = errorLocator.getDegree();
     let mut result = vec![0u32; numErrors as usize];
@@ -190,8 +190,8 @@ fn findErrorLocations(errorLocator: Rc<ModulusPoly>, field: &ModulusGF) -> Resul
 }
 
 fn findErrorMagnitudes(
-    errorEvaluator: Rc<ModulusPoly>,
-    errorLocator: Rc<ModulusPoly>,
+    errorEvaluator: Arc<ModulusPoly>,
+    errorLocator: Arc<ModulusPoly>,
     errorLocations: &mut [u32],
     field: &'static ModulusGF,
 ) -> Vec<u32> {
