@@ -371,30 +371,28 @@ impl RSSExpandedReader {
         for i in currentRow..self.rows.len() {
             // for (int i = currentRow; i < rows.size(); i++) {
             let row = self.rows.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
-            self.pairs.clear();
-            for collectedRow in &collectedRows.clone() {
-                // for (ExpandedRow collectedRow : collectedRows) {
 
-                self.pairs.append(&mut collectedRow.getPairs().to_vec());
-            }
-            self.pairs.append(&mut row.getPairs().to_vec());
+            self.pairs.extend_from_slice(row.getPairs());
+
+            let addSize = row.getPairs().len();
 
             if Self::isValidSequence(&self.pairs) {
                 if self.checkChecksum() {
                     return Ok(self.pairs.clone());
                 }
 
-                // let rs =  collectedRows;
                 collectedRows.push(row.clone());
-                // try {
+
                 // Recursion: try to add more rows
                 if let Ok(cr) = self.checkRowsDetails(collectedRows, i + 1) {
                     return Ok(cr);
+                } else {
+                    // collectedRows.remove(collectedRows.len() - 1);
+                    collectedRows.truncate(collectedRows.len() - 1);
+                    self.pairs.truncate(self.pairs.len() - addSize);
                 }
-                // return checkRows(rs, i + 1);
-                // } catch (NotFoundException e) {
-                // We failed, try the next candidate
-                // }
+            } else {
+                self.pairs.truncate(self.pairs.len() - addSize);
             }
         }
 
