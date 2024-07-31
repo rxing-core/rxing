@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::{fmt::Display, sync::Arc};
+use std::fmt::Display;
 
 use super::{BoundingBox, Codeword, DetectionRXingResultRowIndicatorColumn};
 

@@ -364,7 +364,7 @@ fn getRowIndicatorColumn<'a>(
     maxCodewordWidth: u32,
 ) -> impl DetectionRXingResultRowIndicatorColumn + 'a {
     let mut rowIndicatorColumn =
-        DetectionRXingResultColumn::new_with_is_left(&boundingBox, leftToRight);
+        DetectionRXingResultColumn::new_with_is_left(boundingBox, leftToRight);
     for i in 0..2 {
         // for (int i = 0; i < 2; i++) {
         let increment: i32 = if i == 0 { 1 } else { -1 };
