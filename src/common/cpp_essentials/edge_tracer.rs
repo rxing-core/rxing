@@ -232,7 +232,9 @@ impl<'a> EdgeTracer<'_> {
                                     if history
                                         .read()
                                         .map_err(|_| {
-                                            Exceptions::illegal_state_with("Failed to acquire read lock")
+                                            Exceptions::illegal_state_with(
+                                                "Failed to acquire read lock",
+                                            )
                                         })?
                                         .get(self.p.x as u32, self.p.y as u32)
                                         == self.state as u8
@@ -242,7 +244,9 @@ impl<'a> EdgeTracer<'_> {
                                     history
                                         .write()
                                         .map_err(|_| {
-                                            Exceptions::illegal_state_with("Failed to acquire write lock")
+                                            Exceptions::illegal_state_with(
+                                                "Failed to acquire write lock",
+                                            )
                                         })?
                                         .set(self.p.x as u32, self.p.y as u32, self.state as u8);
                                 }

@@ -12,8 +12,8 @@ use rxing::oned::{
 };
 use rxing::pdf417::PDF417Reader;
 use rxing::qrcode::QRCodeReader;
-use rxing::{FilteredImageReader, MultiFormatReader};
 use rxing::{BinaryBitmap, BufferedImageLuminanceSource, Reader};
+use rxing::{FilteredImageReader, MultiFormatReader};
 use std::path::Path;
 
 fn get_image(
@@ -210,8 +210,9 @@ fn multi_barcode_filtered_reader_benchmark(c: &mut Criterion) {
     let mut image = get_image("test_resources/blackbox/multi-1/1.png");
     c.bench_function("multi_barcode", |b| {
         b.iter(|| {
-            
-            let mut reader = GenericMultipleBarcodeReader::new(FilteredImageReader::new(MultiFormatReader::default()));
+            let mut reader = GenericMultipleBarcodeReader::new(FilteredImageReader::new(
+                MultiFormatReader::default(),
+            ));
             let _res = reader.decode_multiple(&mut image);
         });
     });

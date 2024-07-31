@@ -397,7 +397,6 @@ fn test_issue_49() {
     assert_eq!(EXPECTED_ITF_TEXT, itf_result.getText());
 }
 
-
 #[cfg(feature = "image")]
 #[test]
 fn test_issue_50() {
@@ -481,14 +480,14 @@ fn test_issue_50_2() {
     assert_eq!(EXPECTED_FORMAT, result.getBarcodeFormat());
 }
 
-
 #[cfg(feature = "image")]
 #[test]
 fn issue_51_multiple_detection() {
     use image::DynamicImage;
     use rxing::{
         common::HybridBinarizer,
-        multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader}, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue,
+        multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
+        BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue,
         DecodingHintDictionary, Exceptions, MultiUseMultiFormatReader,
     };
 
@@ -554,4 +553,3 @@ fn issue_51_multiple_detection() {
         results.len()
     );
 }
-
