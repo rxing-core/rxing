@@ -53,13 +53,13 @@ pub fn decode(
 ) -> Result<DecoderRXingResult> {
     let mut minCodewordWidth = minCodewordWidth;
     let mut maxCodewordWidth = maxCodewordWidth;
-    let mut boundingBox = Arc::new(BoundingBox::new(
+    let mut boundingBox = BoundingBox::new(
         Arc::new(image.clone()),
         image_top_left,
         imageBottomLeft,
         image_top_right,
         imageBottomRight,
-    )?);
+    )?;
     let mut leftRowIndicatorColumn = None;
     let mut rightRowIndicatorColumn = None;
     let mut detectionRXingResult = None;
@@ -67,7 +67,7 @@ pub fn decode(
         if let Some(image_top_left) = image_top_left {
             leftRowIndicatorColumn = Some(getRowIndicatorColumn(
                 image,
-                boundingBox.clone(),
+                &boundingBox,
                 image_top_left,
                 true,
                 minCodewordWidth,
@@ -77,7 +77,7 @@ pub fn decode(
         if let Some(image_top_right) = image_top_right {
             rightRowIndicatorColumn = Some(getRowIndicatorColumn(
                 image,
-                boundingBox.clone(),
+                &boundingBox,
                 image_top_right,
                 false,
                 minCodewordWidth,
@@ -127,9 +127,9 @@ pub fn decode(
         }
         let detectionRXingResultColumn = if barcodeColumn == 0 || barcodeColumn == maxBarcodeColumn
         {
-            DetectionRXingResultColumn::new_with_is_left(boundingBox.clone(), barcodeColumn == 0)
+            DetectionRXingResultColumn::new_with_is_left(&boundingBox, barcodeColumn == 0)
         } else {
-            DetectionRXingResultColumn::new_column(boundingBox.clone())
+            DetectionRXingResultColumn::new_column(&boundingBox)
         };
 
         detectionRXingResult
@@ -188,10 +188,10 @@ fn merge<'a, T: DetectionRXingResultRowIndicatorColumn>(
     if barcodeMetadata.is_none() {
         return Ok(None);
     }
-    let boundingBox = Arc::new(BoundingBox::merge(
+    let boundingBox = BoundingBox::merge(
         adjustBoundingBox(leftRowIndicatorColumn)?,
         adjustBoundingBox(rightRowIndicatorColumn)?,
-    )?);
+    )?;
 
     Ok(Some(DetectionRXingResult::new(
         barcodeMetadata.unwrap(),
@@ -357,14 +357,14 @@ fn getBarcodeMetadata<T: DetectionRXingResultRowIndicatorColumn>(
 
 fn getRowIndicatorColumn<'a>(
     image: &BitMatrix,
-    boundingBox: Arc<BoundingBox>,
+    boundingBox: &BoundingBox,
     startPoint: Point,
     leftToRight: bool,
     minCodewordWidth: u32,
     maxCodewordWidth: u32,
 ) -> impl DetectionRXingResultRowIndicatorColumn + 'a {
     let mut rowIndicatorColumn =
-        DetectionRXingResultColumn::new_with_is_left(boundingBox.clone(), leftToRight);
+        DetectionRXingResultColumn::new_with_is_left(&boundingBox, leftToRight);
     for i in 0..2 {
         // for (int i = 0; i < 2; i++) {
         let increment: i32 = if i == 0 { 1 } else { -1 };

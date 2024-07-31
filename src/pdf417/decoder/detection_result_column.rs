@@ -21,10 +21,10 @@ use super::{BoundingBox, Codeword, DetectionRXingResultRowIndicatorColumn};
 const MAX_NEARBY_DISTANCE: u32 = 5;
 
 pub trait DetectionRXingResultColumnTrait {
-    fn new_column(boundingBox: Arc<BoundingBox>) -> DetectionRXingResultColumn
+    fn new_column(boundingBox: &BoundingBox) -> DetectionRXingResultColumn
     where
         Self: Sized;
-    fn new_with_is_left(boundingBox: Arc<BoundingBox>, isLeft: bool) -> DetectionRXingResultColumn
+    fn new_with_is_left(boundingBox: &BoundingBox, isLeft: bool) -> DetectionRXingResultColumn
     where
         Self: Sized;
     fn getCodewordNearby(&self, imageRow: u32) -> &Option<Codeword>;
@@ -48,17 +48,17 @@ pub struct DetectionRXingResultColumn {
 }
 
 impl DetectionRXingResultColumnTrait for DetectionRXingResultColumn {
-    fn new_column(boundingBox: Arc<BoundingBox>) -> DetectionRXingResultColumn {
+    fn new_column(boundingBox: &BoundingBox) -> DetectionRXingResultColumn {
         DetectionRXingResultColumn {
-            boundingBox: BoundingBox::from_other(boundingBox.clone()),
+            boundingBox: BoundingBox::from_other(boundingBox),
             codewords: vec![None; (boundingBox.getMaxY() - boundingBox.getMinY() + 1) as usize],
             isLeft: None,
         }
     }
 
-    fn new_with_is_left(boundingBox: Arc<BoundingBox>, isLeft: bool) -> DetectionRXingResultColumn {
+    fn new_with_is_left(boundingBox: &BoundingBox, isLeft: bool) -> DetectionRXingResultColumn {
         DetectionRXingResultColumn {
-            boundingBox: BoundingBox::from_other(boundingBox.clone()),
+            boundingBox: BoundingBox::from_other(boundingBox),
             codewords: vec![None; (boundingBox.getMaxY() - boundingBox.getMinY() + 1) as usize],
             isLeft: Some(isLeft),
         }

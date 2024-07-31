@@ -85,7 +85,7 @@ impl BoundingBox {
         })
     }
 
-    pub fn from_other(boundingBox: Arc<BoundingBox>) -> BoundingBox {
+    pub fn from_other(boundingBox: &BoundingBox) -> BoundingBox {
         BoundingBox {
             image: boundingBox.image.clone(),
             topLeft: boundingBox.topLeft,

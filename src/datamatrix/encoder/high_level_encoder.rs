@@ -144,10 +144,7 @@ pub fn encodeHighLevel(msg: &str) -> Result<String> {
  * @param msg the message
  * @return the encoded message (the char values range from 0 to 255)
  */
-pub fn encodeHighLevelSIL(
-    msg: &str,
-    symbol_lookup: Option<Arc<SymbolInfoLookup>>,
-) -> Result<String> {
+pub fn encodeHighLevelSIL(msg: &str, symbol_lookup: Option<SymbolInfoLookup>) -> Result<String> {
     encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
         msg,
         SymbolShapeHint::FORCE_NONE,
@@ -184,7 +181,7 @@ pub fn encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
     minSize: Option<Dimension>,
     maxSize: Option<Dimension>,
     forceC40: bool,
-    symbol_lookup: Option<Arc<SymbolInfoLookup>>,
+    symbol_lookup: Option<SymbolInfoLookup>,
 ) -> Result<String> {
     //the codewords 0..255 are encoded as Unicode characters
     let c40Encoder = Arc::new(C40Encoder::new());

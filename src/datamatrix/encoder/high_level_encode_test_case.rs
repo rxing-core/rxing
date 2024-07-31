@@ -121,24 +121,24 @@ fn testC40EncodationSpecialCases1() {
     let substitute_symbols = SymbolInfoLookup::new();
     let substitute_symbols = useTestSymbols(substitute_symbols);
 
-    let sil = Arc::new(substitute_symbols);
+    let sil = substitute_symbols;
 
-    let visualized = encodeHighLevelCompareSIL("AIMAIMAIMAIMAIMAIM", false, Some(sil.clone()));
+    let visualized = encodeHighLevelCompareSIL("AIMAIMAIMAIMAIMAIM", false, Some(sil));
     assert_eq!("230 91 11 91 11 91 11 91 11 91 11 91 11", visualized);
     //case "a": Unlatch is not required
 
-    let visualized = encodeHighLevelCompareSIL("AIMAIMAIMAIMAIMAI", false, Some(sil.clone()));
+    let visualized = encodeHighLevelCompareSIL("AIMAIMAIMAIMAIMAI", false, Some(sil));
     assert_eq!("230 91 11 91 11 91 11 91 11 91 11 90 241", visualized);
     //case "b": Add trailing shift 0 and Unlatch is not required
 
-    let visualized = encodeHighLevelSIL("AIMAIMAIMAIMAIMA", sil.clone());
+    let visualized = encodeHighLevelSIL("AIMAIMAIMAIMAIMA", sil);
     assert_eq!("230 91 11 91 11 91 11 91 11 91 11 254 66", visualized);
     //case "c": Unlatch and write last character in ASCII
 
     let substitute_symbols = resetSymbols(substitute_symbols);
-    let sil = Arc::new(substitute_symbols);
+    let sil = substitute_symbols;
 
-    let visualized = encodeHighLevelSIL("AIMAIMAIMAIMAIMAI", sil.clone());
+    let visualized = encodeHighLevelSIL("AIMAIMAIMAIMAIMAI", sil);
     assert_eq!(
         "230 91 11 91 11 91 11 91 11 91 11 254 66 74 129 237",
         visualized
@@ -565,14 +565,14 @@ fn encodeHighLevel(msg: &str) -> String {
     encodeHighLevelCompare(msg, true)
 }
 
-fn encodeHighLevelSIL(msg: &str, sil: Arc<SymbolInfoLookup>) -> String {
+fn encodeHighLevelSIL(msg: &str, sil: SymbolInfoLookup) -> String {
     encodeHighLevelCompareSIL(msg, true, Some(sil))
 }
 
 fn encodeHighLevelCompareSIL(
     msg: &str,
     compareSizeToMinimalEncoder: bool,
-    sil: Option<Arc<SymbolInfoLookup>>,
+    sil: Option<SymbolInfoLookup>,
 ) -> String {
     let encoded = high_level_encoder::encodeHighLevelSIL(msg, sil).expect("encodes");
     let encoded2 = minimal_encoder::encodeHighLevel(msg).expect("encodes");

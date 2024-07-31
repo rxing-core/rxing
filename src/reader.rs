@@ -16,6 +16,8 @@
 
 //package com.google.zxing;
 
+use std::collections::HashMap;
+
 use crate::{common::Result, Binarizer, BinaryBitmap, DecodingHintDictionary, RXingResult};
 
 /**
@@ -67,5 +69,17 @@ pub trait Reader {
      * for reuse.
      */
     fn reset(&mut self) { /* do nothing */
+    }
+
+    fn immutable_decode<B: Binarizer>(&self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
+        self.immutable_decode_with_hints(image, &HashMap::default())
+    }
+
+    fn immutable_decode_with_hints<B: Binarizer>(
+        &self,
+        image: &mut BinaryBitmap<B>,
+        hints: &DecodingHintDictionary,
+    ) -> Result<RXingResult> {
+        unimplemented!()
     }
 }

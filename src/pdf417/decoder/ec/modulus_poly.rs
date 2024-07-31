@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-use std::sync::Arc;
-
 use crate::common::Result;
 use crate::Exceptions;
 
@@ -28,8 +26,6 @@ use super::ModulusGF;
 pub struct ModulusPoly {
     field: &'static ModulusGF,
     coefficients: Vec<u32>,
-    // zero: Option<Arc<ModulusPoly>>,
-    // one: Option<Arc<ModulusPoly>>,
 }
 impl ModulusPoly {
     pub fn new(field: &'static ModulusGF, coefficients: Vec<u32>) -> Result<ModulusPoly> {
@@ -122,7 +118,7 @@ impl ModulusPoly {
         result
     }
 
-    pub fn add(&self, other: Arc<ModulusPoly>) -> Result<Arc<ModulusPoly>> {
+    pub fn add(&self, other: ModulusPoly) -> Result<ModulusPoly> {
         if self.field != other.field {
             return Err(Exceptions::illegal_argument_with(
                 "ModulusPolys do not have same ModulusGF field",
@@ -132,7 +128,7 @@ impl ModulusPoly {
             return Ok(other);
         }
         if other.isZero() {
-            return Ok(Arc::new(self.clone()));
+            return Ok(self.clone());
         }
 
         let mut smallerCoefficients = &self.coefficients;
@@ -153,22 +149,22 @@ impl ModulusPoly {
                 .add(smallerCoefficients[i - lengthDiff], largerCoefficients[i]);
         }
 
-        Ok(Arc::new(ModulusPoly::new(self.field, sumDiff)?))
+        Ok(ModulusPoly::new(self.field, sumDiff)?)
     }
 
-    pub fn subtract(&self, other: Arc<ModulusPoly>) -> Result<Arc<ModulusPoly>> {
+    pub fn subtract(&self, other: ModulusPoly) -> Result<ModulusPoly> {
         if self.field != other.field {
             return Err(Exceptions::illegal_argument_with(
                 "ModulusPolys do not have same ModulusGF field",
             ));
         }
         if other.isZero() {
-            return Ok(Arc::new(self.clone()));
+            return Ok(self.clone());
         };
         self.add(other.negative())
     }
 
-    pub fn multiply(&self, other: Arc<ModulusPoly>) -> Result<Arc<ModulusPoly>> {
+    pub fn multiply(&self, other: ModulusPoly) -> Result<ModulusPoly> {
         if !(self.field == other.field) {
             return Err(Exceptions::illegal_argument_with(
                 "ModulusPolys do not have same ModulusGF field",
@@ -194,28 +190,27 @@ impl ModulusPoly {
             }
         }
 
-        Ok(Arc::new(ModulusPoly::new(self.field, product)?))
+        Ok(ModulusPoly::new(self.field, product)?)
     }
 
-    pub fn negative(&self) -> Arc<ModulusPoly> {
+    pub fn negative(&self) -> ModulusPoly {
         let size = self.coefficients.len();
         let mut negativeCoefficients = vec![0u32; size];
         for (i, neg_coef) in negativeCoefficients.iter_mut().enumerate().take(size) {
             // for (int i = 0; i < size; i++) {
             *neg_coef = self.field.subtract(0, self.coefficients[i]);
         }
-        Arc::new(
-            ModulusPoly::new(self.field, negativeCoefficients)
-                .expect("should always generate with known goods"),
-        )
+
+        ModulusPoly::new(self.field, negativeCoefficients)
+            .expect("should always generate with known goods")
     }
 
-    pub fn multiplyByScaler(&self, scalar: u32) -> Arc<ModulusPoly> {
+    pub fn multiplyByScaler(&self, scalar: u32) -> ModulusPoly {
         if scalar == 0 {
             return Self::getZero(self.field);
         }
         if scalar == 1 {
-            return Arc::new(self.clone());
+            return self.clone();
         }
         let size = self.coefficients.len();
         let mut product = vec![0u32; size];
@@ -224,12 +219,10 @@ impl ModulusPoly {
             *prod = self.field.multiply(self.coefficients[i], scalar);
         }
 
-        Arc::new(
-            ModulusPoly::new(self.field, product).expect("should always generate with known goods"),
-        )
+        ModulusPoly::new(self.field, product).expect("should always generate with known goods")
     }
 
-    pub fn multiplyByMonomial(&self, degree: usize, coefficient: u32) -> Arc<ModulusPoly> {
+    pub fn multiplyByMonomial(&self, degree: usize, coefficient: u32) -> ModulusPoly {
         if coefficient == 0 {
             return Self::getZero(self.field);
         }
@@ -240,24 +233,22 @@ impl ModulusPoly {
             *prod = self.field.multiply(self.coefficients[i], coefficient);
         }
 
-        Arc::new(
-            ModulusPoly::new(self.field, product).expect("should always generate with known goods"),
-        )
+        ModulusPoly::new(self.field, product).expect("should always generate with known goods")
     }
 
-    pub fn getZero(field: &'static ModulusGF) -> Arc<ModulusPoly> {
-        Arc::new(ModulusPoly::new(field, vec![0]).expect("should always generate with known goods"))
+    pub fn getZero(field: &'static ModulusGF) -> ModulusPoly {
+        ModulusPoly::new(field, vec![0]).expect("should always generate with known goods")
     }
 
-    pub fn getOne(field: &'static ModulusGF) -> Arc<ModulusPoly> {
-        Arc::new(ModulusPoly::new(field, vec![1]).expect("should always generate with known goods"))
+    pub fn getOne(field: &'static ModulusGF) -> ModulusPoly {
+        ModulusPoly::new(field, vec![1]).expect("should always generate with known goods")
     }
 
     pub fn buildMonomial(
         field: &'static ModulusGF,
         degree: usize,
         coefficient: u32,
-    ) -> Arc<ModulusPoly> {
+    ) -> ModulusPoly {
         // if degree < 0 {
         //   throw new IllegalArgumentException();
         // }
@@ -266,38 +257,7 @@ impl ModulusPoly {
         }
         let mut coefficients = vec![0_u32; degree + 1];
         coefficients[0] = coefficient;
-        Arc::new(
-            ModulusPoly::new(field, coefficients).expect("should always generate with known goods"),
-        )
-    }
 
-    // @Override
-    // public String toString() {
-    //   StringBuilder result = new StringBuilder(8 * getDegree());
-    //   for (int degree = getDegree(); degree >= 0; degree--) {
-    //     int coefficient = getCoefficient(degree);
-    //     if (coefficient != 0) {
-    //       if (coefficient < 0) {
-    //         result.append(" - ");
-    //         coefficient = -coefficient;
-    //       } else {
-    //         if (result.length() > 0) {
-    //           result.append(" + ");
-    //         }
-    //       }
-    //       if (degree == 0 || coefficient != 1) {
-    //         result.append(coefficient);
-    //       }
-    //       if (degree != 0) {
-    //         if (degree == 1) {
-    //           result.append('x');
-    //         } else {
-    //           result.append("x^");
-    //           result.append(degree);
-    //         }
-    //       }
-    //     }
-    //   }
-    //   return result.toString();
-    // }
+        ModulusPoly::new(field, coefficients).expect("should always generate with known goods")
+    }
 }

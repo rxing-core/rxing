@@ -24,7 +24,7 @@ use super::{SymbolInfo, SymbolInfoLookup, SymbolShapeHint};
 const ISO_8859_1_ENCODER: CharacterSet = CharacterSet::ISO8859_1;
 
 pub struct EncoderContext<'a> {
-    symbol_lookup: Arc<SymbolInfoLookup<'a>>,
+    symbol_lookup: SymbolInfoLookup<'a>,
     msg: String,
     shape: SymbolShapeHint,
     minSize: Option<Dimension>,
@@ -39,10 +39,10 @@ pub struct EncoderContext<'a> {
 impl<'a> EncoderContext<'_> {
     pub fn with_symbol_info_lookup(
         msg: &str,
-        symbol_lookup: Arc<SymbolInfoLookup<'a>>,
+        symbol_lookup: SymbolInfoLookup<'a>,
     ) -> Result<EncoderContext<'a>> {
         let mut new_self = EncoderContext::new(msg)?;
-        new_self.symbol_lookup = symbol_lookup.clone();
+        new_self.symbol_lookup = symbol_lookup;
         Ok(new_self)
     }
 
@@ -67,7 +67,7 @@ impl<'a> EncoderContext<'_> {
             ));
         };
         Ok(Self {
-            symbol_lookup: Arc::new(SymbolInfoLookup::new()),
+            symbol_lookup: SymbolInfoLookup::new(),
             msg: sb,
             shape: SymbolShapeHint::FORCE_NONE,
             codewords: String::with_capacity(msg.chars().count()),

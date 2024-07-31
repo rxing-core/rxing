@@ -31,15 +31,12 @@ const ADJUST_ROW_NUMBER_SKIP: u32 = 2;
 pub struct DetectionRXingResult {
     barcodeMetadata: BarcodeMetadata,
     detectionRXingResultColumns: Vec<Option<Box<dyn DetectionRXingResultColumnTrait>>>,
-    boundingBox: Arc<BoundingBox>,
+    boundingBox: BoundingBox,
     barcodeColumnCount: usize,
 }
 
 impl DetectionRXingResult {
-    pub fn new(
-        barcodeMetadata: BarcodeMetadata,
-        boundingBox: Arc<BoundingBox>,
-    ) -> DetectionRXingResult {
+    pub fn new(barcodeMetadata: BarcodeMetadata, boundingBox: BoundingBox) -> DetectionRXingResult {
         let mut columns = Vec::with_capacity(barcodeMetadata.getColumnCount() as usize + 2);
         for _i in 0..(barcodeMetadata.getColumnCount() as usize + 2) {
             columns.push(None);
@@ -601,12 +598,12 @@ impl DetectionRXingResult {
         self.barcodeMetadata.getErrorCorrectionLevel()
     }
 
-    pub fn setBoundingBox(&mut self, boundingBox: Arc<BoundingBox>) {
+    pub fn setBoundingBox(&mut self, boundingBox: BoundingBox) {
         self.boundingBox = boundingBox;
     }
 
-    pub fn getBoundingBox(&self) -> Arc<BoundingBox> {
-        self.boundingBox.clone()
+    pub fn getBoundingBox(&self) -> &BoundingBox {
+        &self.boundingBox
     }
 
     pub fn setDetectionRXingResultColumn(

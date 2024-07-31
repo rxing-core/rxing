@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-use std::sync::Arc;
-
 use crate::{
     common::Result,
     pdf417::{decoder::ec::ModulusGF, pdf_417_common::NUMBER_OF_CODEWORDS},
@@ -64,10 +62,10 @@ pub fn decode(received: &mut [u32], numECCodewords: u32, erasures: &mut [u32]) -
         return Ok(0);
     }
 
-    let mut knownErrors: Arc<ModulusPoly> = ModulusPoly::getOne(field);
+    let mut knownErrors: ModulusPoly = ModulusPoly::getOne(field);
     let mut b;
     let mut term;
-    let mut kE: Arc<ModulusPoly>;
+    let mut kE: ModulusPoly;
     if !erasures.is_empty() {
         for erasure in erasures {
             // for (int erasure : erasures) {
@@ -75,11 +73,11 @@ pub fn decode(received: &mut [u32], numECCodewords: u32, erasures: &mut [u32]) -
             // Add (1 - bx) term:
             term = ModulusPoly::new(field, vec![field.subtract(0, b), 1])?;
             kE = knownErrors.clone();
-            knownErrors = kE.multiply(Arc::new(term))?;
+            knownErrors = kE.multiply(term)?;
         }
     }
 
-    let syndrome = Arc::new(ModulusPoly::new(field, S)?);
+    let syndrome = ModulusPoly::new(field, S)?;
     //syndrome = syndrome.multiply(knownErrors);
 
     let sigmaOmega = runEuclideanAlgorithm(
@@ -110,11 +108,11 @@ pub fn decode(received: &mut [u32], numECCodewords: u32, erasures: &mut [u32]) -
 }
 
 fn runEuclideanAlgorithm(
-    a: Arc<ModulusPoly>,
-    b: Arc<ModulusPoly>,
+    a: ModulusPoly,
+    b: ModulusPoly,
     R: u32,
     field: &'static ModulusGF,
-) -> Result<[Arc<ModulusPoly>; 2]> {
+) -> Result<[ModulusPoly; 2]> {
     // Assume a's degree is >= b's
     let mut a = a;
     let mut b = b;
@@ -169,7 +167,7 @@ fn runEuclideanAlgorithm(
     Ok([sigma, omega])
 }
 
-fn findErrorLocations(errorLocator: Arc<ModulusPoly>, field: &ModulusGF) -> Result<Vec<u32>> {
+fn findErrorLocations(errorLocator: ModulusPoly, field: &ModulusGF) -> Result<Vec<u32>> {
     // This is a direct application of Chien's search
     let numErrors = errorLocator.getDegree();
     let mut result = vec![0u32; numErrors as usize];
@@ -190,8 +188,8 @@ fn findErrorLocations(errorLocator: Arc<ModulusPoly>, field: &ModulusGF) -> Resu
 }
 
 fn findErrorMagnitudes(
-    errorEvaluator: Arc<ModulusPoly>,
-    errorLocator: Arc<ModulusPoly>,
+    errorEvaluator: ModulusPoly,
+    errorLocator: ModulusPoly,
     errorLocations: &mut [u32],
     field: &'static ModulusGF,
 ) -> Vec<u32> {
