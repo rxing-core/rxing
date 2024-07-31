@@ -39,7 +39,7 @@ pub use encode_hints::*;
 
 /// Callback which is invoked when a possible result point (significant
 /// point in the barcode image such as a corner) is found.
-pub type PointCallback = Arc<dyn Fn(Point)>;
+pub type PointCallback = Arc<dyn Fn(Point) + Send + Sync>;
 
 /** Temporary type to ease refactoring and keep backwards-compatibility */
 pub type RXingResultPointCallback = PointCallback;
