@@ -86,6 +86,28 @@ fn main() {
 ```
 
 ## Latest Release Notes
+* *v0.6.1* -> Initial support for immutable symbol readers. Fixed an issue with the rss_expanded reader.
+
+    Immutable readers: Many 2d readers now implement the `ImmutableReader` trait. This allows them to be called using the
+    `immutable_decode` and `immutable_decode_with_hints` methods. The corresponding reader need not be declared `mut` in
+    order to operate correctly. Please note that not all readers support this trait. Most notably: `MultiFormatReader`,
+    `MultiUseMultiFormatReader`, `FilteredImageReader` and `MultiFormatOneDReader` do not implement `ImmutableReader`.
+    This is because these readers all require some state be stored. There is ongoing work to reduce this list.
+    This change also allows individual symbol readers to work in a `Lazy static` context without `unsafe`.
+
+    Example:
+    ```rust
+    static LAZY_STATIC_QR_READER: Lazy<QRCodeReader> = Lazy::new(QRCodeReader::default);
+    
+    fn main() {
+        let result = LAZY_STATIC_QR_READER.immutable_decode(
+            &mut BinaryBitmap::new(
+                HybridBinarizer::new(
+                    Luma8LuminanceSource::new(luma_data, width, height),
+        )));
+    }
+    ```
+
 * *v0.6.0* -> rxing is now thread safe. This is a breaking change if you are using `PointCallback`/`RXingResultPointCallback` or the `Pdf417ExtraMetadata` field of `RXingResultMetadataValue`. In addition there should be some small performance improvements associated with moving away from using `Rc` and `Arc` in many situations throughout the library.
 * *v0.5.8* -> Performance improvements. Memory Improvements. Added FilteredReader which performs a more complicated operation on images (resizes and closes binary bitmaps) at the expense of some performance.
 * *v0.5.5* -> Add support for rMQR, allows building the library without image_formats, fixes an issue with multiple barcode detection.

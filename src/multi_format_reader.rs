@@ -26,7 +26,7 @@ use crate::{
     Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
     RXingResult, Reader,
 };
-use crate::{ImmutableReader, ONE_D_FORMATS};
+use crate::ONE_D_FORMATS;
 
 /**
  * MultiFormatReader is a convenience class and the main entry point into the library for most uses.

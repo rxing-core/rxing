@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::common::{BitMatrix, HybridBinarizer, Result};
 use crate::{
-    Binarizer, BinaryBitmap, Exceptions, ImmutableReader, Luma8LuminanceSource, LuminanceSource,
+    Binarizer, BinaryBitmap, Exceptions, Luma8LuminanceSource, LuminanceSource,
     Reader,
 };
 

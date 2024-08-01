@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 
 use crate::common::Result;
-use crate::{point_f, Binarizer, Exceptions, ImmutableReader, Point, RXingResult, Reader};
+use crate::{point_f, Binarizer, Exceptions, Point, RXingResult, Reader};
 
 /**
  * This class attempts to decode a barcode from an image, not by scanning the whole image,
