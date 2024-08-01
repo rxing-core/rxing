@@ -218,6 +218,16 @@ fn multi_barcode_filtered_reader_benchmark(c: &mut Criterion) {
     });
 }
 
+fn multi_barcode_complex_benchmark(c: &mut Criterion) {
+    let mut image = get_image("test_resources/blackbox/github_issue_cases/170050507-1f10f0ef-82ca-4e14-a2d2-4b288ec54809.png");
+    c.bench_function("multi_barcode", |b| {
+        b.iter(|| {
+            let mut reader = GenericMultipleBarcodeReader::new(MultiFormatReader::default());
+            let _res = reader.decode_multiple(&mut image);
+        });
+    });
+}
+
 criterion_group!(
     benches,
     aztec_benchmark,
@@ -238,5 +248,6 @@ criterion_group!(
     upce_benchmark,
     multi_barcode_benchmark,
     multi_barcode_filtered_reader_benchmark,
+    multi_barcode_complex_benchmark,
 );
 criterion_main!(benches);
