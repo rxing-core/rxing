@@ -435,7 +435,7 @@ fn test_encode_decode_random(field: GenericGFRef, dataSize: usize, ecSize: usize
     }
 }
 
-fn test_encode_decode(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &Vec<i32>) {
+fn test_encode_decode(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &[i32]) {
     test_encoder(field, dataWords, ecWords);
     test_decoder(field, dataWords, ecWords);
 }
@@ -466,7 +466,7 @@ fn test_encoder(field: GenericGFRef, dataWords: &[i32], ecWords: &[i32]) {
     );
 }
 
-fn test_decoder(field: GenericGFRef, dataWords: &Vec<i32>, ecWords: &[i32]) {
+fn test_decoder(field: GenericGFRef, dataWords: &[i32], ecWords: &[i32]) {
     let decoder = ReedSolomonDecoder::new(field);
     let mut message = vec![0; dataWords.len() + ecWords.len()];
     let maxErrors = ecWords.len() / 2;
