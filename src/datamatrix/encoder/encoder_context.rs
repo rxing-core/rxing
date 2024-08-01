@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 use crate::common::{CharacterSet, Result};
 use crate::{Dimension, Exceptions};
 

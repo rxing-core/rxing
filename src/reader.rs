@@ -68,7 +68,7 @@ pub trait Reader {
     }
 }
 
-#[cfg( feature = "experimental_features")]
+#[cfg(feature = "experimental_features")]
 pub trait ImmutableReader {
     fn immutable_decode<B: Binarizer>(&self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
         self.immutable_decode_with_hints(image, &DecodingHintDictionary::default())
