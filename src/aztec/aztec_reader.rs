@@ -19,8 +19,8 @@ use std::collections::HashMap;
 use crate::{
     common::{DecoderRXingResult, DetectorRXingResult, Result},
     exceptions::Exceptions,
-    BarcodeFormat, Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    BarcodeFormat, Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, ImmutableReader,
+    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{decoder, detector::Detector};
@@ -50,10 +50,22 @@ impl Reader for AztecReader {
         image: &mut BinaryBitmap<B>,
         hints: &HashMap<DecodeHintType, DecodeHintValue>,
     ) -> Result<RXingResult> {
-        self.immutable_decode_with_hints(image, hints)
+        self.internal_decode_with_hints(image, hints)
     }
-    
+}
+
+impl ImmutableReader for AztecReader {
     fn immutable_decode_with_hints<B: Binarizer>(
+        &self,
+        image: &mut BinaryBitmap<B>,
+        hints: &crate::DecodingHintDictionary,
+    ) -> Result<RXingResult> {
+        self.internal_decode_with_hints(image, hints)
+    }
+}
+
+impl AztecReader {
+    fn internal_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,

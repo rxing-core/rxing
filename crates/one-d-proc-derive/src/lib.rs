@@ -36,49 +36,41 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
                 image: &mut crate::BinaryBitmap<B>,
                 hints: &DecodingHintDictionary,
             ) -> Result<crate::RXingResult, Exceptions> {
-              self.immutable_decode_with_hints(image,hints)
-            }
 
-            fn immutable_decode_with_hints<B: Binarizer>(
-              &self,
-              image: &mut crate::BinaryBitmap<B>,
-              hints: &crate::DecodingHintDictionary,
-          ) -> Result<RXingResult> {
-              
             if let Ok(res) = self._do_decode(image, hints) {
-              Ok(res)
-           }else {
-             let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
-             if tryHarder && image.is_rotate_supported() {
-               let mut rotated_image = image.rotate_counter_clockwise();
-               let mut result = self._do_decode(&mut rotated_image, hints)?;
-               // Record that we found it rotated 90 degrees CCW / 270 degrees CW
-               let metadata = result.getRXingResultMetadata();
-               let mut orientation = 270;
-               if metadata.contains_key(&RXingResultMetadataType::ORIENTATION) {
-                 // But if we found it reversed in doDecode(), add in that result here:
-                 orientation = (orientation +
-                      if let Some(crate::RXingResultMetadataValue::Orientation(or)) = metadata.get(&RXingResultMetadataType::ORIENTATION) {
-                       *or
-                      }else {
-                       0
-                      }) % 360;
-               }
-               result.putMetadata(RXingResultMetadataType::ORIENTATION, RXingResultMetadataValue::Orientation(orientation));
-               // Update result points
-                 let height = rotated_image.get_height();
-                   let total_points = result.getRXingResultPoints().len();
-                   let points = result.getRXingResultPointsMut();
-                   for i in 0..total_points{
-                   points[i] =  Point::new(height as f32- points[i].getY() - 1.0, points[i].getX());
+                Ok(res)
+             }else {
+               let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
+               if tryHarder && image.is_rotate_supported() {
+                 let mut rotated_image = image.rotate_counter_clockwise();
+                 let mut result = self._do_decode(&mut rotated_image, hints)?;
+                 // Record that we found it rotated 90 degrees CCW / 270 degrees CW
+                 let metadata = result.getRXingResultMetadata();
+                 let mut orientation = 270;
+                 if metadata.contains_key(&RXingResultMetadataType::ORIENTATION) {
+                   // But if we found it reversed in doDecode(), add in that result here:
+                   orientation = (orientation +
+                        if let Some(crate::RXingResultMetadataValue::Orientation(or)) = metadata.get(&RXingResultMetadataType::ORIENTATION) {
+                         *or
+                        }else {
+                         0
+                        }) % 360;
                  }
+                 result.putMetadata(RXingResultMetadataType::ORIENTATION, RXingResultMetadataValue::Orientation(orientation));
+                 // Update result points
+                   let height = rotated_image.get_height();
+                     let total_points = result.getRXingResultPoints().len();
+                     let points = result.getRXingResultPointsMut();
+                     for i in 0..total_points{
+                     points[i] =  Point::new(height as f32- points[i].getY() - 1.0, points[i].getX());
+                   }
 
-               Ok(result)
-             } else {
-               return Err(Exceptions::NOT_FOUND)
+                 Ok(result)
+               } else {
+                 return Err(Exceptions::NOT_FOUND)
+               }
              }
-           }
-          }
+            }
         }
     };
 

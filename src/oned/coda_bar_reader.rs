@@ -50,7 +50,7 @@ impl Default for CodaBarReader {
 
 impl OneDReader for CodaBarReader {
     fn decode_row(
-        & self,
+        &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
         hints: &crate::DecodingHintDictionary,

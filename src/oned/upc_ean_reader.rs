@@ -525,14 +525,6 @@ impl Reader for StandInStruct {
     ) -> Result<RXingResult> {
         unimplemented!()
     }
-    
-    fn immutable_decode_with_hints<B: Binarizer>(
-        &self,
-        _image: &mut crate::BinaryBitmap<B>,
-        _hints: &crate::DecodingHintDictionary,
-    ) -> Result<RXingResult> {
-        unimplemented!()
-    }
 }
 
 pub(crate) const STAND_IN: StandInStruct = StandInStruct {};

@@ -18,8 +18,8 @@ use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
-    point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, Point,
-    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions,
+    ImmutableReader, Point, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{
@@ -57,89 +57,17 @@ impl Reader for QRCodeReader {
         image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<RXingResult> {
-        self.immutable_decode_with_hints(image, hints)
+        self.internal_decode_with_hints(image, hints)
     }
-    
+}
+
+impl ImmutableReader for QRCodeReader {
     fn immutable_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<RXingResult> {
-        let decoderRXingResult: DecoderRXingResult;
-        let mut points: Vec<Point>;
-        if matches!(
-            hints.get(&DecodeHintType::PURE_BARCODE),
-            Some(DecodeHintValue::PureBarcode(true))
-        ) {
-            let bits = Self::extractPureBits(image.get_black_matrix())?;
-            decoderRXingResult = qrcode_decoder::decode_bitmatrix_with_hints(&bits, hints)?;
-            points = Vec::new();
-        } else {
-            let detectorRXingResult =
-                Detector::new(image.get_black_matrix()).detect_with_hints(hints)?;
-            decoderRXingResult =
-                qrcode_decoder::decode_bitmatrix_with_hints(detectorRXingResult.getBits(), hints)?;
-            points = detectorRXingResult.getPoints().to_vec();
-        }
-
-        // If the code was mirrored: swap the bottom-left and the top-right points.
-        if let Some(other) = decoderRXingResult.getOther() {
-            if other.is::<QRCodeDecoderMetaData>() {
-                // if (decoderRXingResult.getOther() instanceof QRCodeDecoderMetaData) {
-                other
-                    .downcast_ref::<QRCodeDecoderMetaData>()
-                    .ok_or(Exceptions::ILLEGAL_STATE)?
-                    .applyMirroredCorrection(&mut points);
-            }
-        }
-
-        let mut result = RXingResult::new(
-            decoderRXingResult.getText(),
-            decoderRXingResult.getRawBytes().clone(),
-            points,
-            BarcodeFormat::QR_CODE,
-        );
-
-        let byteSegments = decoderRXingResult.getByteSegments();
-        if !byteSegments.is_empty() {
-            result.putMetadata(
-                RXingResultMetadataType::BYTE_SEGMENTS,
-                RXingResultMetadataValue::ByteSegments(byteSegments.clone()),
-            );
-        }
-
-        let ecLevel = decoderRXingResult.getECLevel();
-        if !ecLevel.is_empty() {
-            result.putMetadata(
-                RXingResultMetadataType::ERROR_CORRECTION_LEVEL,
-                RXingResultMetadataValue::ErrorCorrectionLevel(ecLevel.to_owned()),
-            );
-        }
-
-        if decoderRXingResult.hasStructuredAppend() {
-            result.putMetadata(
-                RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE,
-                RXingResultMetadataValue::StructuredAppendSequence(
-                    decoderRXingResult.getStructuredAppendSequenceNumber(),
-                ),
-            );
-            result.putMetadata(
-                RXingResultMetadataType::STRUCTURED_APPEND_PARITY,
-                RXingResultMetadataValue::StructuredAppendParity(
-                    decoderRXingResult.getStructuredAppendParity(),
-                ),
-            );
-        }
-
-        result.putMetadata(
-            RXingResultMetadataType::SYMBOLOGY_IDENTIFIER,
-            RXingResultMetadataValue::SymbologyIdentifier(format!(
-                "]Q{}",
-                decoderRXingResult.getSymbologyModifier()
-            )),
-        );
-
-        Ok(result)
+        self.internal_decode_with_hints(image, hints)
     }
 }
 
@@ -259,5 +187,87 @@ impl QRCodeReader {
             return Err(Exceptions::NOT_FOUND);
         }
         Ok((x - leftTopBlack.x) / 7.0)
+    }
+
+    fn internal_decode_with_hints<B: Binarizer>(
+        &self,
+        image: &mut crate::BinaryBitmap<B>,
+        hints: &crate::DecodingHintDictionary,
+    ) -> Result<RXingResult> {
+        let decoderRXingResult: DecoderRXingResult;
+        let mut points: Vec<Point>;
+        if matches!(
+            hints.get(&DecodeHintType::PURE_BARCODE),
+            Some(DecodeHintValue::PureBarcode(true))
+        ) {
+            let bits = Self::extractPureBits(image.get_black_matrix())?;
+            decoderRXingResult = qrcode_decoder::decode_bitmatrix_with_hints(&bits, hints)?;
+            points = Vec::new();
+        } else {
+            let detectorRXingResult =
+                Detector::new(image.get_black_matrix()).detect_with_hints(hints)?;
+            decoderRXingResult =
+                qrcode_decoder::decode_bitmatrix_with_hints(detectorRXingResult.getBits(), hints)?;
+            points = detectorRXingResult.getPoints().to_vec();
+        }
+
+        // If the code was mirrored: swap the bottom-left and the top-right points.
+        if let Some(other) = decoderRXingResult.getOther() {
+            if other.is::<QRCodeDecoderMetaData>() {
+                // if (decoderRXingResult.getOther() instanceof QRCodeDecoderMetaData) {
+                other
+                    .downcast_ref::<QRCodeDecoderMetaData>()
+                    .ok_or(Exceptions::ILLEGAL_STATE)?
+                    .applyMirroredCorrection(&mut points);
+            }
+        }
+
+        let mut result = RXingResult::new(
+            decoderRXingResult.getText(),
+            decoderRXingResult.getRawBytes().clone(),
+            points,
+            BarcodeFormat::QR_CODE,
+        );
+
+        let byteSegments = decoderRXingResult.getByteSegments();
+        if !byteSegments.is_empty() {
+            result.putMetadata(
+                RXingResultMetadataType::BYTE_SEGMENTS,
+                RXingResultMetadataValue::ByteSegments(byteSegments.clone()),
+            );
+        }
+
+        let ecLevel = decoderRXingResult.getECLevel();
+        if !ecLevel.is_empty() {
+            result.putMetadata(
+                RXingResultMetadataType::ERROR_CORRECTION_LEVEL,
+                RXingResultMetadataValue::ErrorCorrectionLevel(ecLevel.to_owned()),
+            );
+        }
+
+        if decoderRXingResult.hasStructuredAppend() {
+            result.putMetadata(
+                RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE,
+                RXingResultMetadataValue::StructuredAppendSequence(
+                    decoderRXingResult.getStructuredAppendSequenceNumber(),
+                ),
+            );
+            result.putMetadata(
+                RXingResultMetadataType::STRUCTURED_APPEND_PARITY,
+                RXingResultMetadataValue::StructuredAppendParity(
+                    decoderRXingResult.getStructuredAppendParity(),
+                ),
+            );
+        }
+
+        result.putMetadata(
+            RXingResultMetadataType::SYMBOLOGY_IDENTIFIER,
+            RXingResultMetadataValue::SymbologyIdentifier(format!(
+                "]Q{}",
+                decoderRXingResult.getSymbologyModifier()
+            )),
+        );
+
+        Ok(result)
     }
 }

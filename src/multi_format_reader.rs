@@ -20,13 +20,13 @@ use crate::common::Result;
 #[cfg(feature = "experimental_features")]
 use crate::oned::cpp::ODReader;
 use crate::qrcode::cpp_port::QrReader;
-use crate::ONE_D_FORMATS;
 use crate::{
     aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
     oned::MultiFormatOneDReader, pdf417::PDF417Reader, qrcode::QRCodeReader, BarcodeFormat,
     Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
     RXingResult, Reader,
 };
+use crate::{ImmutableReader, ONE_D_FORMATS};
 
 /**
  * MultiFormatReader is a convenience class and the main entry point into the library for most uses.
@@ -78,14 +78,6 @@ impl Reader for MultiFormatReader {
 
     fn reset(&mut self) {
         self.one_d_reader.reset();
-    }
-    
-    fn immutable_decode_with_hints<B: Binarizer>(
-        &self,
-        image: &mut BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
-    ) -> Result<RXingResult> {
-        todo!()
     }
 }
 

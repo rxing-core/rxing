@@ -27,6 +27,7 @@ use super::TelepenReader;
 use crate::common::Result;
 use crate::DecodeHintValue;
 use crate::Exceptions;
+use crate::ImmutableReader;
 use crate::{BarcodeFormat, Binarizer, RXingResult};
 
 /**

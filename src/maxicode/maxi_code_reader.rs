@@ -18,8 +18,8 @@ use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, DetectorRXingResult, Result},
-    BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
-    RXingResultMetadataType, Reader,
+    BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, ImmutableReader,
+    RXingResult, RXingResultMetadataType, Reader,
 };
 
 use super::{decoder::maxicode_decoder, detector};
@@ -61,10 +61,64 @@ impl Reader for MaxiCodeReader {
         image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult> {
-        self.immutable_decode_with_hints(image, hints)
+        self.internal_decode_with_hints(image, hints)
     }
-    
+}
+
+impl ImmutableReader for MaxiCodeReader {
     fn immutable_decode_with_hints<B: Binarizer>(
+        &self,
+        image: &mut crate::BinaryBitmap<B>,
+        hints: &crate::DecodingHintDictionary,
+    ) -> Result<RXingResult> {
+        self.internal_decode_with_hints(image, hints)
+    }
+}
+
+impl MaxiCodeReader {
+    pub const MATRIX_WIDTH: u32 = 30;
+    pub const MATRIX_HEIGHT: u32 = 33;
+
+    /**
+     * This method detects a code in a "pure" image -- that is, pure monochrome image
+     * which contains only an unrotated, unskewed, image of a code, with some white border
+     * around it. This is a specialized method that works exceptionally fast in this special
+     * case.
+     */
+    fn extractPureBits(image: &BitMatrix) -> Result<BitMatrix> {
+        let enclosingRectangleOption = image.getEnclosingRectangle();
+        if enclosingRectangleOption.is_none() {
+            return Err(Exceptions::NOT_FOUND);
+        }
+
+        let enclosingRectangle = enclosingRectangleOption.ok_or(Exceptions::NOT_FOUND)?;
+
+        let left = enclosingRectangle[0];
+        let top = enclosingRectangle[1];
+        let width = enclosingRectangle[2];
+        let height = enclosingRectangle[3];
+
+        // Now just read off the bits
+        let mut bits = BitMatrix::new(Self::MATRIX_WIDTH, Self::MATRIX_HEIGHT)?;
+        for y in 0..Self::MATRIX_HEIGHT {
+            // for (int y = 0; y < MATRIX_HEIGHT; y++) {
+            let iy = (top + (y * height + height / 2) / Self::MATRIX_HEIGHT).min(height - 1);
+            for x in 0..Self::MATRIX_WIDTH {
+                // for (int x = 0; x < MATRIX_WIDTH; x++) {
+                // srowen: I don't quite understand why the formula below is necessary, but it
+                // can walk off the image if left + width = the right boundary. So cap it.
+                let ix = left
+                    + ((x * width + width / 2 + (y & 0x01) * width / 2) / Self::MATRIX_WIDTH)
+                        .min(width - 1);
+                if image.get(ix, iy) {
+                    bits.set(x, y);
+                }
+            }
+        }
+        Ok(bits)
+    }
+
+    fn internal_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
@@ -115,48 +169,5 @@ impl Reader for MaxiCodeReader {
         }
 
         Ok(result)
-    }
-}
-impl MaxiCodeReader {
-    pub const MATRIX_WIDTH: u32 = 30;
-    pub const MATRIX_HEIGHT: u32 = 33;
-
-    /**
-     * This method detects a code in a "pure" image -- that is, pure monochrome image
-     * which contains only an unrotated, unskewed, image of a code, with some white border
-     * around it. This is a specialized method that works exceptionally fast in this special
-     * case.
-     */
-    fn extractPureBits(image: &BitMatrix) -> Result<BitMatrix> {
-        let enclosingRectangleOption = image.getEnclosingRectangle();
-        if enclosingRectangleOption.is_none() {
-            return Err(Exceptions::NOT_FOUND);
-        }
-
-        let enclosingRectangle = enclosingRectangleOption.ok_or(Exceptions::NOT_FOUND)?;
-
-        let left = enclosingRectangle[0];
-        let top = enclosingRectangle[1];
-        let width = enclosingRectangle[2];
-        let height = enclosingRectangle[3];
-
-        // Now just read off the bits
-        let mut bits = BitMatrix::new(Self::MATRIX_WIDTH, Self::MATRIX_HEIGHT)?;
-        for y in 0..Self::MATRIX_HEIGHT {
-            // for (int y = 0; y < MATRIX_HEIGHT; y++) {
-            let iy = (top + (y * height + height / 2) / Self::MATRIX_HEIGHT).min(height - 1);
-            for x in 0..Self::MATRIX_WIDTH {
-                // for (int x = 0; x < MATRIX_WIDTH; x++) {
-                // srowen: I don't quite understand why the formula below is necessary, but it
-                // can walk off the image if left + width = the right boundary. So cap it.
-                let ix = left
-                    + ((x * width + width / 2 + (y & 0x01) * width / 2) / Self::MATRIX_WIDTH)
-                        .min(width - 1);
-                if image.get(ix, iy) {
-                    bits.set(x, y);
-                }
-            }
-        }
-        Ok(bits)
     }
 }

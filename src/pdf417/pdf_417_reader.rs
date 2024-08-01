@@ -18,8 +18,8 @@ use std::collections::HashMap;
 
 use crate::{
     common::Result, multi::MultipleBarcodeReader, BarcodeFormat, Binarizer, BinaryBitmap,
-    DecodingHintDictionary, Exceptions, Point, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, Reader,
+    DecodingHintDictionary, Exceptions, ImmutableReader, Point, RXingResult,
+    RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{
@@ -52,23 +52,17 @@ impl Reader for PDF417Reader {
         image: &mut BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult> {
-        let result = Self::decode(image, hints, false)?;
-        if result.is_empty() {
-            return Err(Exceptions::NOT_FOUND);
-        }
-        Ok(result[0].clone())
+        self.internal_decode_with_hints(image, hints)
     }
-    
+}
+
+impl ImmutableReader for PDF417Reader {
     fn immutable_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut BinaryBitmap<B>,
         hints: &DecodingHintDictionary,
     ) -> Result<RXingResult> {
-        let result = Self::decode(image, hints, false)?;
-        if result.is_empty() {
-            return Err(Exceptions::NOT_FOUND);
-        }
-        Ok(result[0].clone())
+        self.internal_decode_with_hints(image, hints)
     }
 }
 
@@ -201,5 +195,17 @@ impl PDF417Reader {
                 Self::getMinWidth(&p[7], &p[3]) * pdf_417_common::MODULES_IN_CODEWORD as u64
                     / pdf_417_common::MODULES_IN_STOP_PATTERN as u64,
             )) as u32
+    }
+
+    fn internal_decode_with_hints<B: Binarizer>(
+        &self,
+        image: &mut BinaryBitmap<B>,
+        hints: &DecodingHintDictionary,
+    ) -> Result<RXingResult> {
+        let result = Self::decode(image, hints, false)?;
+        if result.is_empty() {
+            return Err(Exceptions::NOT_FOUND);
+        }
+        Ok(result[0].clone())
     }
 }

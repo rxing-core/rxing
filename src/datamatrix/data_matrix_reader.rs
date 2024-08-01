@@ -18,8 +18,8 @@ use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
-    point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, Point,
-    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions,
+    ImmutableReader, Point, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{
@@ -72,10 +72,94 @@ impl Reader for DataMatrixReader {
         image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
     ) -> Result<crate::RXingResult> {
-        self.immutable_decode_with_hints(image, hints)
+        self.internal_decode_with_hints(image, hints)
     }
-    
+}
+
+impl ImmutableReader for DataMatrixReader {
     fn immutable_decode_with_hints<B: Binarizer>(
+        &self,
+        image: &mut crate::BinaryBitmap<B>,
+        hints: &crate::DecodingHintDictionary,
+    ) -> Result<RXingResult> {
+        self.internal_decode_with_hints(image, hints)
+    }
+}
+
+impl DataMatrixReader {
+    /**
+     * This method detects a code in a "pure" image -- that is, pure monochrome image
+     * which contains only an unrotated, unskewed, image of a code, with some white border
+     * around it. This is a specialized method that works exceptionally fast in this special
+     * case.
+     */
+    fn extractPureBits(&self, image: &BitMatrix) -> Result<BitMatrix> {
+        let Some(leftTopBlack) = image.getTopLeftOnBit() else {
+            return Err(Exceptions::NOT_FOUND);
+        };
+        let Some(rightBottomBlack) = image.getBottomRightOnBit() else {
+            return Err(Exceptions::NOT_FOUND);
+        };
+
+        let moduleSize = Self::moduleSize(leftTopBlack, image)?;
+
+        let mut top = leftTopBlack.y;
+        let bottom = rightBottomBlack.y;
+        let mut left = leftTopBlack.x;
+        let right = rightBottomBlack.x;
+
+        let matrixWidth = (right as i32 - left as i32 + 1) / moduleSize as i32;
+        let matrixHeight = (bottom as i32 - top as i32 + 1) / moduleSize as i32;
+        if matrixWidth <= 0 || matrixHeight <= 0 {
+            return Err(Exceptions::NOT_FOUND);
+            // throw NotFoundException.getNotFoundInstance();
+        }
+
+        let matrixWidth = matrixWidth as u32;
+        let matrixHeight = matrixHeight as u32;
+
+        // Push in the "border" by half the module width so that we start
+        // sampling in the middle of the module. Just in case the image is a
+        // little off, this will help recover.
+        let nudge = moduleSize as f32 / 2.0;
+        top += nudge;
+        left += nudge;
+
+        // Now just read off the bits
+        let mut bits = BitMatrix::new(matrixWidth, matrixHeight)?;
+        for y in 0..matrixHeight {
+            // for (int y = 0; y < matrixHeight; y++) {
+            let iOffset = top + y as f32 * moduleSize as f32;
+            for x in 0..matrixWidth {
+                // for (int x = 0; x < matrixWidth; x++) {
+                if image.get_point(point_f(left + x as f32 * moduleSize as f32, iOffset)) {
+                    bits.set(x, y);
+                }
+            }
+        }
+        Ok(bits)
+    }
+
+    fn moduleSize(leftTopBlack: Point, image: &BitMatrix) -> Result<u32> {
+        let width = image.getWidth();
+        let mut x = leftTopBlack.x as u32;
+        let y = leftTopBlack.y as u32;
+        while x < width && image.get(x, y) {
+            x += 1;
+        }
+        if x == width {
+            return Err(Exceptions::NOT_FOUND);
+        }
+
+        let moduleSize = x - leftTopBlack.x as u32;
+        if moduleSize == 0 {
+            return Err(Exceptions::NOT_FOUND);
+        }
+
+        Ok(moduleSize)
+    }
+
+    fn internal_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodingHintDictionary,
@@ -180,79 +264,5 @@ impl Reader for DataMatrixReader {
         );
 
         Ok(result)
-    }
-}
-
-impl DataMatrixReader {
-    /**
-     * This method detects a code in a "pure" image -- that is, pure monochrome image
-     * which contains only an unrotated, unskewed, image of a code, with some white border
-     * around it. This is a specialized method that works exceptionally fast in this special
-     * case.
-     */
-    fn extractPureBits(&self, image: &BitMatrix) -> Result<BitMatrix> {
-        let Some(leftTopBlack) = image.getTopLeftOnBit() else {
-            return Err(Exceptions::NOT_FOUND);
-        };
-        let Some(rightBottomBlack) = image.getBottomRightOnBit() else {
-            return Err(Exceptions::NOT_FOUND);
-        };
-
-        let moduleSize = Self::moduleSize(leftTopBlack, image)?;
-
-        let mut top = leftTopBlack.y;
-        let bottom = rightBottomBlack.y;
-        let mut left = leftTopBlack.x;
-        let right = rightBottomBlack.x;
-
-        let matrixWidth = (right as i32 - left as i32 + 1) / moduleSize as i32;
-        let matrixHeight = (bottom as i32 - top as i32 + 1) / moduleSize as i32;
-        if matrixWidth <= 0 || matrixHeight <= 0 {
-            return Err(Exceptions::NOT_FOUND);
-            // throw NotFoundException.getNotFoundInstance();
-        }
-
-        let matrixWidth = matrixWidth as u32;
-        let matrixHeight = matrixHeight as u32;
-
-        // Push in the "border" by half the module width so that we start
-        // sampling in the middle of the module. Just in case the image is a
-        // little off, this will help recover.
-        let nudge = moduleSize as f32 / 2.0;
-        top += nudge;
-        left += nudge;
-
-        // Now just read off the bits
-        let mut bits = BitMatrix::new(matrixWidth, matrixHeight)?;
-        for y in 0..matrixHeight {
-            // for (int y = 0; y < matrixHeight; y++) {
-            let iOffset = top + y as f32 * moduleSize as f32;
-            for x in 0..matrixWidth {
-                // for (int x = 0; x < matrixWidth; x++) {
-                if image.get_point(point_f(left + x as f32 * moduleSize as f32, iOffset)) {
-                    bits.set(x, y);
-                }
-            }
-        }
-        Ok(bits)
-    }
-
-    fn moduleSize(leftTopBlack: Point, image: &BitMatrix) -> Result<u32> {
-        let width = image.getWidth();
-        let mut x = leftTopBlack.x as u32;
-        let y = leftTopBlack.y as u32;
-        while x < width && image.get(x, y) {
-            x += 1;
-        }
-        if x == width {
-            return Err(Exceptions::NOT_FOUND);
-        }
-
-        let moduleSize = x - leftTopBlack.x as u32;
-        if moduleSize == 0 {
-            return Err(Exceptions::NOT_FOUND);
-        }
-
-        Ok(moduleSize)
     }
 }
