@@ -716,10 +716,10 @@ fn testWriter(
 ) {
     // Perform an encode-decode round-trip because it can be lossy.
     let mut hints = HashMap::new();
-    if charset.is_some() {
+    if let Some(cs) = charset {
         hints.insert(
             EncodeHintType::CHARACTER_SET,
-            EncodeHintValue::CharacterSet(charset.unwrap().get_charset_name().to_string()),
+            EncodeHintValue::CharacterSet(cs.get_charset_name().to_string()),
         );
     }
     // if (null != charset) {
