@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-use std::{cmp::Ordering, collections::HashMap};
+use std::cmp::Ordering;
 
 use crate::{
-    common::{DetectorRXingResult, Result}, multi::MultipleBarcodeReader, qrcode::{
+    common::{DetectorRXingResult, Result},
+    multi::MultipleBarcodeReader,
+    qrcode::{
         decoder::{self, QRCodeDecoderMetaData},
         QRCodeReader,
-    }, BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue
+    },
+    BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue,
 };
 
 use super::detector::MultiDetector;

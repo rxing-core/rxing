@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
-
 use crate::common::Result;
 use crate::{point_f, Binarizer, DecodeHints, Exceptions, Point, RXingResult, Reader};
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary};
+use crate::DecodeHints;
 
 use super::CharacterSet;
 
@@ -71,8 +71,7 @@ pub fn guessEncoding(bytes: &[u8], hints: &DecodeHints) -> Option<&'static str> 
  *  none of these can possibly be correct
  */
 pub fn guessCharset(bytes: &[u8], hints: &DecodeHints) -> Option<CharacterSet> {
-    if let Some(cs_name) = &hints.CharacterSet
-    {
+    if let Some(cs_name) = &hints.CharacterSet {
         return CharacterSet::get_character_set_by_name(cs_name);
     }
 

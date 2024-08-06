@@ -367,7 +367,6 @@ impl Code93Reader {
  */
 #[cfg(test)]
 mod Code93ReaderTestCase {
-    use std::collections::HashMap;
 
     use crate::{common::BitMatrix, oned::OneDReader, DecodeHints};
 

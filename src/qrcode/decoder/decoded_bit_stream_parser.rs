@@ -17,7 +17,8 @@
 use crate::{
     common::{
         string_utils, BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Eci, Result,
-    }, DecodeHints, DecodingHintDictionary, Exceptions
+    },
+    DecodeHints, Exceptions,
 };
 
 #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]

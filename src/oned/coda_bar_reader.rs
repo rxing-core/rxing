@@ -17,7 +17,6 @@
 use rxing_one_d_proc_derive::OneDReader;
 
 use crate::common::{BitArray, Result};
-use crate::DecodeHintValue;
 use crate::Exceptions;
 use crate::RXingResult;
 use crate::{point_f, BarcodeFormat};

@@ -25,7 +25,6 @@ use super::MultiFormatUPCEANReader;
 use super::OneDReader;
 use super::TelepenReader;
 use crate::common::Result;
-use crate::DecodeHintValue;
 use crate::DecodeHints;
 use crate::Exceptions;
 use crate::{BarcodeFormat, Binarizer, RXingResult};
@@ -151,9 +150,7 @@ impl OneDReader for MultiFormatOneDReader {
 impl MultiFormatOneDReader {
     pub fn new(hints: &DecodeHints) -> Self {
         let use_code_39_check_digit = hints.AssumeCode39CheckDigit.unwrap_or(false);
-        let possible_formats = if let Some(p) =
-            &hints.PossibleFormats
-        {
+        let possible_formats = if let Some(p) = &hints.PossibleFormats {
             p.clone()
         } else {
             HashSet::new()
@@ -169,12 +166,10 @@ impl MultiFormatOneDReader {
     }
 }
 
-use crate::DecodeHintType;
-use crate::DecodingHintDictionary;
 use crate::RXingResultMetadataType;
 use crate::RXingResultMetadataValue;
 use crate::Reader;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 impl Reader for MultiFormatOneDReader {
     fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
@@ -192,7 +187,7 @@ impl Reader for MultiFormatOneDReader {
             return first_try;
         }
 
-        let tryHarder =hints.TryHarder.unwrap_or(false);
+        let tryHarder = hints.TryHarder.unwrap_or(false);
         if tryHarder && image.is_rotate_supported() {
             let mut rotatedImage = image.rotate_counter_clockwise();
             let mut result = self._do_decode(&mut rotatedImage, hints)?;

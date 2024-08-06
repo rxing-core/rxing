@@ -370,9 +370,7 @@ fn decode_command(
         hints.TryHarder = Some(false);
     }
     if let Some(barcode_type) = barcode_types {
-        hints.PossibleFormats = Some(HashSet::from_iter(
-                barcode_type.iter().copied(),
-            ));
+        hints.PossibleFormats = Some(HashSet::from_iter(barcode_type.iter().copied()));
     }
 
     let path = PathBuf::from(file_name);

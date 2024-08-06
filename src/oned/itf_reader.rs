@@ -18,7 +18,7 @@ use rxing_one_d_proc_derive::OneDReader;
 
 use crate::{
     common::{BitArray, Result},
-    point_f, BarcodeFormat, DecodeHintValue, Exceptions, RXingResult,
+    point_f, BarcodeFormat, Exceptions, RXingResult,
 };
 
 use super::{one_d_reader, OneDReader};
@@ -119,9 +119,7 @@ impl OneDReader for ITFReader {
         self.decodeMiddle(&row, startRange[1], endRange[0], &mut result)?;
         let resultString = result; //.toString();
 
-        let allowedLengths = if let Some(al) =
-            &hints.AllowedLengths
-        {
+        let allowedLengths = if let Some(al) = &hints.AllowedLengths {
             al.clone()
         } else {
             DEFAULT_ALLOWED_LENGTHS.to_vec()

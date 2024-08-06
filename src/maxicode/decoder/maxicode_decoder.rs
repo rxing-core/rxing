@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
-
 use once_cell::sync::Lazy;
 
 use crate::{
     common::{
         reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder},
         BitMatrix, DecoderRXingResult, Result,
-    }, DecodeHints, DecodingHintDictionary, Exceptions
+    },
+    DecodeHints, Exceptions,
 };
 
 use super::{decoded_bit_stream_parser, BitMatrixParser};
@@ -48,10 +47,7 @@ pub fn decode(bits: &BitMatrix) -> Result<DecoderRXingResult> {
     decode_with_hints(bits, &DecodeHints::default())
 }
 
-pub fn decode_with_hints(
-    bits: &BitMatrix,
-    _hints: &DecodeHints,
-) -> Result<DecoderRXingResult> {
+pub fn decode_with_hints(bits: &BitMatrix, _hints: &DecodeHints) -> Result<DecoderRXingResult> {
     let parser = BitMatrixParser::new(bits);
     let mut codewords = parser.readCodewords();
 

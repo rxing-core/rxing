@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-use std::{collections::HashMap, path::PathBuf};
+use std::path::PathBuf;
 
 use image::DynamicImage;
 
-use crate::{
-    common::BitMatrix, qrcode::QRCodeWriter, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Writer
-};
+use crate::{common::BitMatrix, qrcode::QRCodeWriter, BarcodeFormat, EncodeHints, Writer};
 
 use super::decoder::ErrorCorrectionLevel;
 
@@ -135,8 +133,11 @@ fn compareToGoldenFile(
     let goldenRXingResult = createMatrixFromImage(image);
     // assertNotNull(goldenRXingResult);
 
-    let mut hints = EncodeHints::default();
-    hints.ErrorCorrection = Some(ecLevel.get_value().to_string());
+    let hints = EncodeHints {
+        ErrorCorrection: Some(ecLevel.get_value().to_string()),
+        ..Default::default()
+    };
+
     let writer = QRCodeWriter {};
     let generatedRXingResult = writer
         .encode_with_hints(

@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
-
 use crate::{
-    common::{BitMatrix, CharacterSet, Result}, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Exceptions, Writer
+    common::{BitMatrix, CharacterSet, Result},
+    BarcodeFormat, EncodeHints, Exceptions, Writer,
 };
 
 use super::encoder::PDF417;
@@ -69,54 +68,40 @@ impl Writer for PDF417Writer {
         let mut errorCorrectionLevel = DEFAULT_ERROR_CORRECTION_LEVEL;
         let mut autoECI = false;
 
-        
-            if let Some(compact) =
-                &hints.Pdf417Compact
-            {
-                if let Ok(res) = compact.parse::<bool>() {
-                    encoder.setCompact(res);
-                }
+        if let Some(compact) = &hints.Pdf417Compact {
+            if let Ok(res) = compact.parse::<bool>() {
+                encoder.setCompact(res);
             }
-            if let Some(compaction) =
-                &hints.Pdf417Compaction
-            {
-                encoder.setCompaction(compaction.try_into()?);
+        }
+        if let Some(compaction) = &hints.Pdf417Compaction {
+            encoder.setCompaction(compaction.try_into()?);
+        }
+        if let Some(dimensions) = hints.Pdf417Dimensions {
+            encoder.setDimensions(
+                dimensions.getMaxCols() as u32,
+                dimensions.getMinCols() as u32,
+                dimensions.getMaxRows() as u32,
+                dimensions.getMinRows() as u32,
+            );
+        }
+        if let Some(m1) = &hints.Margin {
+            if let Ok(m) = m1.parse::<u32>() {
+                margin = m;
             }
-            if let Some(dimensions) =
-                hints.Pdf417Dimensions
-            {
-                encoder.setDimensions(
-                    dimensions.getMaxCols() as u32,
-                    dimensions.getMinCols() as u32,
-                    dimensions.getMaxRows() as u32,
-                    dimensions.getMinRows() as u32,
-                );
+        }
+        if let Some(ec) = &hints.ErrorCorrection {
+            if let Ok(ec_parsed) = ec.parse::<u32>() {
+                errorCorrectionLevel = ec_parsed;
             }
-            if let Some(m1) = &hints.Margin {
-                if let Ok(m) = m1.parse::<u32>() {
-                    margin = m;
-                }
+        }
+        if let Some(cs) = &hints.CharacterSet {
+            encoder.setEncoding(CharacterSet::get_character_set_by_name(cs));
+        }
+        if let Some(auto_eci_str) = &hints.Pdf417AutoEci {
+            if let Ok(auto_eci_parsed) = auto_eci_str.parse::<bool>() {
+                autoECI = auto_eci_parsed;
             }
-            if let Some(ec) =
-                &hints.ErrorCorrection
-            {
-                if let Ok(ec_parsed) = ec.parse::<u32>() {
-                    errorCorrectionLevel = ec_parsed;
-                }
-            }
-            if let Some(cs) =
-                &hints.CharacterSet
-            {
-                encoder.setEncoding(CharacterSet::get_character_set_by_name(cs));
-            }
-            if let Some(auto_eci_str) =
-                &hints.Pdf417AutoEci
-            {
-                if let Ok(auto_eci_parsed) = auto_eci_str.parse::<bool>() {
-                    autoECI = auto_eci_parsed;
-                }
-            }
-        
+        }
 
         Self::bitMatrixFromEncoder(
             &mut encoder,
@@ -234,14 +219,16 @@ impl PDF417Writer {
  */
 #[cfg(test)]
 mod PDF417WriterTestCase {
-    use std::collections::HashMap;
 
-    use crate::{pdf417::PDF417Writer, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Writer};
+    use crate::{pdf417::PDF417Writer, BarcodeFormat, EncodeHints, Writer};
 
     #[test]
     fn testDataMatrixImageWriter() {
-        let mut hints = EncodeHints::default();
-        hints.Margin = Some(0.to_string());
+        let hints = EncodeHints {
+            Margin: Some(0.to_string()),
+            ..Default::default()
+        };
+
         let size = 64;
         let writer = PDF417Writer::new();
         let matrix = writer

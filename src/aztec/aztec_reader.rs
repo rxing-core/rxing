@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
-
 use crate::{
-    common::{DecoderRXingResult, DetectorRXingResult, Result}, exceptions::Exceptions, BarcodeFormat, Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodeHints, ImmutableReader, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader
+    common::{DecoderRXingResult, DetectorRXingResult, Result},
+    exceptions::Exceptions,
+    BarcodeFormat, Binarizer, BinaryBitmap, DecodeHints, ImmutableReader, RXingResult,
+    RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{decoder, detector::Detector};
@@ -104,9 +105,7 @@ impl AztecReader {
         // }
         // }
 
-        if let Some(cb) =
-            hints.NeedResultPointCallback.clone()
-        {
+        if let Some(cb) = hints.NeedResultPointCallback.clone() {
             // if let DecodeHintValue::NeedResultPointCallback(cb) = rpcb {
             for point in points {
                 cb(*point);

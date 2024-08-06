@@ -24,7 +24,12 @@ use std::{
 };
 
 use rxing::{
-    common::{CharacterSet, HybridBinarizer, Result}, multi::MultipleBarcodeReader, pdf417::PDF417RXingResultMetadata, BarcodeFormat, Binarizer, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue, DecodeHints, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader
+    common::{CharacterSet, HybridBinarizer, Result},
+    multi::MultipleBarcodeReader,
+    pdf417::PDF417RXingResultMetadata,
+    BarcodeFormat, Binarizer, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType,
+    DecodeHintValue, DecodeHints, RXingResult, RXingResultMetadataType, RXingResultMetadataValue,
+    Reader,
 };
 
 use super::TestRXingResult;
@@ -82,10 +87,14 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
             DecodeHintValue::TryHarder(v) => self.hints.TryHarder = Some(v),
             DecodeHintValue::CharacterSet(v) => self.hints.CharacterSet = Some(v),
             DecodeHintValue::AllowedLengths(v) => self.hints.AllowedLengths = Some(v),
-            DecodeHintValue::AssumeCode39CheckDigit(v) => self.hints.AssumeCode39CheckDigit = Some(v),
+            DecodeHintValue::AssumeCode39CheckDigit(v) => {
+                self.hints.AssumeCode39CheckDigit = Some(v)
+            }
             DecodeHintValue::AssumeGs1(v) => self.hints.AssumeGs1 = Some(v),
             DecodeHintValue::ReturnCodabarStartEnd(v) => self.hints.ReturnCodabarStartEnd = Some(v),
-            DecodeHintValue::NeedResultPointCallback(v) => self.hints.NeedResultPointCallback = Some(v),
+            DecodeHintValue::NeedResultPointCallback(v) => {
+                self.hints.NeedResultPointCallback = Some(v)
+            }
             DecodeHintValue::AllowedEanExtensions(v) => self.hints.AllowedEanExtensions = Some(v),
             DecodeHintValue::AlsoInverted(v) => self.hints.AlsoInverted = Some(v),
             DecodeHintValue::TelepenAsNumeric(v) => self.hints.TelepenAsNumeric = Some(v),
@@ -628,8 +637,11 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
         // Try in 'pure' mode mostly to exercise PURE_BARCODE code paths for exceptions;
         // not expected to pass, generally
         // let mut result = None;
-        let mut pure_hints = DecodeHints::default();
-        pure_hints.PureBarcode = Some(true);
+        let pure_hints = DecodeHints {
+            PureBarcode: Some(true),
+            ..Default::default()
+        };
+
         let mut result = if let Ok(res) = self.barcode_reader.decode_with_hints(source, &pure_hints)
         {
             Some(res)
@@ -795,7 +807,7 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
         try_harder: bool,
         barcode_reader: &mut T,
     ) -> Result<Vec<RXingResult>> {
-        let mut hints =DecodeHints::default(); //new EnumMap<>(DecodeHintType.class);
+        let mut hints = DecodeHints::default(); //new EnumMap<>(DecodeHintType.class);
         if try_harder {
             hints.TryHarder = Some(true);
         }

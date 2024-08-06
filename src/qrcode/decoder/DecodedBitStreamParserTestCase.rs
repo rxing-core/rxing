@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
-
 use crate::{
     common::BitSourceBuilder,
-    qrcode::decoder::{decoded_bit_stream_parser, ErrorCorrectionLevel, Version}, DecodeHints,
+    qrcode::decoder::{decoded_bit_stream_parser, ErrorCorrectionLevel, Version},
+    DecodeHints,
 };
 
 /**

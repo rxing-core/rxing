@@ -1,11 +1,11 @@
-use std::collections::HashMap;
-
 use crate::{
     common::{BitMatrix, DetectorRXingResult},
     qrcode::{
-        decoder::{qrcode_decoder, ErrorCorrectionLevel}, detector::Detector,
+        decoder::{qrcode_decoder, ErrorCorrectionLevel},
+        detector::Detector,
         encoder::qrcode_encoder,
-    }, DecodeHints, EncodeHints,
+    },
+    EncodeHints,
 };
 
 #[test]

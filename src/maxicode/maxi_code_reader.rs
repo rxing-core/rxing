@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
-
 use crate::{
-    common::{BitMatrix, DetectorRXingResult, Result}, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, DecodeHints, Exceptions, ImmutableReader, RXingResult, RXingResultMetadataType, Reader
+    common::{BitMatrix, DetectorRXingResult, Result},
+    BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, RXingResult,
+    RXingResultMetadataType, Reader,
 };
 
 use super::{decoder::maxicode_decoder, detector};

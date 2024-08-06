@@ -16,7 +16,7 @@
 
 use rxing_one_d_proc_derive::OneDWriter;
 
-use crate::{common::Result};
+use crate::common::Result;
 use crate::BarcodeFormat;
 
 use super::{code_128_reader, OneDimensionalCodeWriter};
@@ -75,18 +75,18 @@ impl OneDimensionalCodeWriter for Code128Writer {
         let forcedCodeSet = check(contents, hints)?;
 
         let hasCompactionHint = hints.Code128Compact.unwrap_or(false); //matches!(
-        //     hints.get(&EncodeHintType::CODE128_COMPACT),
-        //     Some(EncodeHintValue::Code128Compact(true))
-        // );
-        // let hasCompactionHint = if let Some(EncodeHintValue::Code128Compact(compat)) =
-        //     hints.get(&EncodeHintType::CODE128_COMPACT)
-        // {
-        //     *compat
-        // } else {
-        //     false
-        // };
-        // let hasCompactionHint = hints != null && hints.containsKey(EncodeHintType::CODE128_COMPACT) &&
-        //     Boolean.parseBoolean(hints.get(EncodeHintType::CODE128_COMPACT).toString());
+                                                                       //     hints.get(&EncodeHintType::CODE128_COMPACT),
+                                                                       //     Some(EncodeHintValue::Code128Compact(true))
+                                                                       // );
+                                                                       // let hasCompactionHint = if let Some(EncodeHintValue::Code128Compact(compat)) =
+                                                                       //     hints.get(&EncodeHintType::CODE128_COMPACT)
+                                                                       // {
+                                                                       //     *compat
+                                                                       // } else {
+                                                                       //     false
+                                                                       // };
+                                                                       // let hasCompactionHint = hints != null && hints.containsKey(EncodeHintType::CODE128_COMPACT) &&
+                                                                       //     Boolean.parseBoolean(hints.get(EncodeHintType::CODE128_COMPACT).toString());
 
         if hasCompactionHint {
             MinimalEncoder::encode(contents)
@@ -108,9 +108,7 @@ fn check(contents: &str, hints: &crate::EncodeHints) -> Result<i32> {
     // Check for forced code set hint.
     let mut forcedCodeSet = -1_i32;
     if hints.ForceCodeSet.is_some() {
-        let Some(codeSetHint) =
-            &hints.ForceCodeSet
-        else {
+        let Some(codeSetHint) = &hints.ForceCodeSet else {
             return Err(Exceptions::ILLEGAL_STATE);
         };
         match codeSetHint.as_str() {

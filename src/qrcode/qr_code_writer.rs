@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
-
 use crate::{
-    common::{BitMatrix, Result}, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Exceptions, Writer
+    common::{BitMatrix, Result},
+    BarcodeFormat, EncodeHints, Exceptions, Writer,
 };
 
 use super::{
@@ -74,22 +73,19 @@ impl Writer for QRCodeWriter {
             )));
         }
 
-        let errorCorrectionLevel = if let Some(ec_level) =
-            &hints.ErrorCorrection
-        {
+        let errorCorrectionLevel = if let Some(ec_level) = &hints.ErrorCorrection {
             ec_level.parse()?
         } else {
             ErrorCorrectionLevel::L
         };
 
-        let quietZone =
-            if let Some(margin) = &hints.Margin {
-                margin
-                    .parse::<i32>()
-                    .map_err(|e| Exceptions::parse_with(format!("could not parse {margin}: {e}")))?
-            } else {
-                QUIET_ZONE_SIZE
-            };
+        let quietZone = if let Some(margin) = &hints.Margin {
+            margin
+                .parse::<i32>()
+                .map_err(|e| Exceptions::parse_with(format!("could not parse {margin}: {e}")))?
+        } else {
+            QUIET_ZONE_SIZE
+        };
 
         let code = qrcode_encoder::encode_with_hints(contents, errorCorrectionLevel, hints)?;
 

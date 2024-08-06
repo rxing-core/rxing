@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
-
 use crate::{
     aztec::{
         aztec_detector_result::AztecDetectorRXingResult,
         decoder,
         encoder::HighLevelEncoder,
         shared_test_methods::{stripSpace, toBitArray, toBooleanArray},
-    }, common::CharacterSet, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Point
+    },
+    common::CharacterSet,
+    BarcodeFormat, EncodeHints, Point,
 };
 
 use super::{encoder::aztec_encoder, AztecWriter};
@@ -721,7 +721,7 @@ fn testWriter(
     //   hints.put(EncodeHintType.CHARACTER_SET, charset.name());
     // }
     hints.ErrorCorrection = Some(ecc_percent.to_string());
-    
+
     let mut matrix = AztecWriter {}
         .encode_with_hints(data, &BarcodeFormat::AZTEC, 0, 0, &hints)
         .expect("encoder created");

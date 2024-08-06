@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use crate::common::Result;
 #[cfg(feature = "experimental_features")]
 use crate::oned::cpp::ODReader;
 use crate::qrcode::cpp_port::QrReader;
-use crate::{DecodeHints, ONE_D_FORMATS};
 use crate::{
     aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
     oned::MultiFormatOneDReader, pdf417::PDF417Reader, qrcode::QRCodeReader, BarcodeFormat,
-    Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
-    RXingResult, Reader,
+    Binarizer, BinaryBitmap, Exceptions, RXingResult, Reader,
 };
+use crate::{DecodeHints, ONE_D_FORMATS};
 
 /**
  * MultiFormatReader is a convenience class and the main entry point into the library for most uses.
@@ -112,9 +111,7 @@ impl MultiFormatReader {
         self.hints.clone_from(hints);
 
         self.try_harder = self.hints.TryHarder.unwrap_or(false);
-        self.possible_formats = if let Some(formats) =
-            &hints.PossibleFormats
-        {
+        self.possible_formats = if let Some(formats) = &hints.PossibleFormats {
             formats.clone()
         } else {
             HashSet::new()
@@ -130,8 +127,7 @@ impl MultiFormatReader {
         if res.is_ok() {
             return res;
         }
-        if self.hints.AlsoInverted.unwrap_or(false)
-         {
+        if self.hints.AlsoInverted.unwrap_or(false) {
             // Calling all readers again with inverted image
             image.get_black_matrix_mut().flip_self();
             let res = self.decode_formats(image);

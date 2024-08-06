@@ -118,7 +118,9 @@
 // } // namespace ZXing::QRCode
 
 use crate::{
-    common::{cpp_essentials::ConcentricPattern, DetectorRXingResult}, multi::MultipleBarcodeReader, BarcodeFormat, DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary, Exceptions, ImmutableReader, RXingResult, Reader
+    common::{cpp_essentials::ConcentricPattern, DetectorRXingResult},
+    multi::MultipleBarcodeReader,
+    BarcodeFormat, DecodeHints, Exceptions, ImmutableReader, RXingResult, Reader,
 };
 
 use super::{
@@ -202,18 +204,15 @@ impl QrReader {
         let mut usedFPs: Vec<ConcentricPattern> = Vec::new();
         let mut results: Vec<RXingResult> = Vec::new();
 
-        let (check_qr, check_mqr, check_rmqr) =
-            if let Some(formats) =
-                &hints.PossibleFormats
-            {
-                (
-                    formats.contains(&BarcodeFormat::QR_CODE),
-                    formats.contains(&BarcodeFormat::MICRO_QR_CODE),
-                    formats.contains(&BarcodeFormat::RECTANGULAR_MICRO_QR_CODE),
-                )
-            } else {
-                (true, true, true)
-            };
+        let (check_qr, check_mqr, check_rmqr) = if let Some(formats) = &hints.PossibleFormats {
+            (
+                formats.contains(&BarcodeFormat::QR_CODE),
+                formats.contains(&BarcodeFormat::MICRO_QR_CODE),
+                formats.contains(&BarcodeFormat::RECTANGULAR_MICRO_QR_CODE),
+            )
+        } else {
+            (true, true, true)
+        };
 
         if check_qr {
             // if (_hints.hasFormat(BarcodeFormat::QRCode)) {
@@ -341,9 +340,7 @@ impl QrReader {
                                                // 	{return {};}
 
         let mut detectorResult = Err(Exceptions::NOT_FOUND);
-        if let Some(formats) =
-            &hints.PossibleFormats
-        {
+        if let Some(formats) = &hints.PossibleFormats {
             if formats.contains(&BarcodeFormat::QR_CODE) {
                 detectorResult = DetectPureQR(binImg);
             }

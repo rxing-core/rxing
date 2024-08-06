@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
-
 use crate::{
-    common::{BitMatrix, CharacterSet, Result}, exceptions::Exceptions, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Writer
+    common::{BitMatrix, CharacterSet, Result},
+    exceptions::Exceptions,
+    BarcodeFormat, EncodeHints, Writer,
 };
 
 use super::encoder::{aztec_encoder, AztecCode};
@@ -50,21 +50,15 @@ impl Writer for AztecWriter {
         let mut charset = None; // Do not add any ECI code by default
         let mut ecc_percent = aztec_encoder::DEFAULT_EC_PERCENT;
         let mut layers = aztec_encoder::DEFAULT_AZTEC_LAYERS;
-        if let Some(cset_name) =
-            &hints.CharacterSet
-        {
+        if let Some(cset_name) = &hints.CharacterSet {
             if cset_name.to_lowercase() != "iso-8859-1" {
                 charset = CharacterSet::get_character_set_by_name(cset_name);
             }
         }
-        if let Some(ecc_level) =
-            &hints.ErrorCorrection
-        {
+        if let Some(ecc_level) = &hints.ErrorCorrection {
             ecc_percent = ecc_level.parse().unwrap_or(23);
         }
-        if let Some(az_layers) =
-            hints.AztecLayers
-        {
+        if let Some(az_layers) = hints.AztecLayers {
             layers = az_layers;
         }
         encode(

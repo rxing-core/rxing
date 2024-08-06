@@ -16,8 +16,8 @@
 
 use crate::{
     common::{BitArray, Result},
-    point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    point_f, BarcodeFormat, Binarizer, Exceptions, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue, Reader,
 };
 
 use super::{one_d_reader, EANManufacturerOrgSupport, OneDReader, UPCEANExtensionSupport};
@@ -230,9 +230,7 @@ pub trait UPCEANReader: OneDReader {
 
         let _try_result = attempt();
 
-        if let Some(allowedExtensions) =
-            &hints.AllowedEanExtensions
-        {
+        if let Some(allowedExtensions) = &hints.AllowedEanExtensions {
             let mut valid = false;
             for length in allowedExtensions {
                 if extensionLength == *length as usize {

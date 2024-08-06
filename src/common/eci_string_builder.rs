@@ -22,7 +22,7 @@
 // import java.nio.charset.StandardCharsets;
 
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     fmt::{self},
 };
 
@@ -222,7 +222,8 @@ impl ECIStringBuilder {
             }
 
             else */
-            if let Some(found_encoding) = string_utils::guessCharset(bytes, &DecodeHints::default()) {
+            if let Some(found_encoding) = string_utils::guessCharset(bytes, &DecodeHints::default())
+            {
                 if let Ok(found_encoded_str) = found_encoding.decode(bytes) {
                     encoded_string.push_str(&found_encoded_str);
                     not_encoded_yet = false;

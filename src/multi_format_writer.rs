@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
-
 use crate::{
-    aztec::AztecWriter, common::Result, datamatrix::DataMatrixWriter, oned::{
+    aztec::AztecWriter,
+    common::Result,
+    datamatrix::DataMatrixWriter,
+    oned::{
         CodaBarWriter, Code128Writer, Code39Writer, Code93Writer, EAN13Writer, EAN8Writer,
         ITFWriter, TelepenWriter, UPCAWriter, UPCEWriter,
-    }, pdf417::PDF417Writer, qrcode::QRCodeWriter, BarcodeFormat, EncodeHints, Exceptions, Writer
+    },
+    pdf417::PDF417Writer,
+    qrcode::QRCodeWriter,
+    BarcodeFormat, EncodeHints, Exceptions, Writer,
 };
 
 /**

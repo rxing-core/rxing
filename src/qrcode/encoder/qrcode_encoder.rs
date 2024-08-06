@@ -13,11 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * @author satorux@google.com (Satoru Takabayashi) - creator
- * @author dswitkin@google.com (Daniel Switkin) - ported from C++
- */
-use std::collections::HashMap;
 
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -25,7 +20,9 @@ use crate::{
     common::{
         reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonEncoder},
         BitArray, BitFieldBaseType, CharacterSet, Eci, Result,
-    }, qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef}, EncodeHintType, EncodeHintValue, EncodeHints, Exceptions
+    },
+    qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
+    EncodeHints, Exceptions,
 };
 
 use super::{mask_util, matrix_util, BlockPair, ByteMatrix, MinimalEncoder, QRCode};
@@ -75,16 +72,15 @@ pub fn encode_with_hints(
 
     let has_gs1_format_hint = hints.Gs1Format.unwrap_or(false);
 
-    let has_compaction_hint =
-        if let Some(vb) = &hints.QrCompact {
-            if let Ok(v) = vb.parse::<bool>() {
-                v
-            } else {
-                false
-            }
+    let has_compaction_hint = if let Some(vb) = &hints.QrCompact {
+        if let Ok(v) = vb.parse::<bool>() {
+            v
         } else {
             false
-        };
+        }
+    } else {
+        false
+    };
 
     // Determine what character encoding has been specified by the caller, if any
     let mut encoding = None; //DEFAULT_BYTE_MODE_ENCODING;
@@ -150,9 +146,7 @@ pub fn encode_with_hints(
         appendBytes(content, mode, &mut data_bits, encoding)?;
 
         if hints.QrVersion.is_some() {
-            let versionNumber = if let Some(v) =
-                &hints.QrVersion
-            {
+            let versionNumber = if let Some(v) = &hints.QrVersion {
                 if let Ok(vb) = v.parse::<u32>() {
                     vb
                 } else {

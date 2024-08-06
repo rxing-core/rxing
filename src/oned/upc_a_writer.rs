@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
-
 use crate::{common::Result, BarcodeFormat, EncodeHints, Exceptions, Writer};
 
 use super::EAN13Writer;

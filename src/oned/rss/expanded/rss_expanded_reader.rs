@@ -24,17 +24,18 @@
  *   http://www.piramidepse.com/
  */
 
-use std::collections::HashMap;
-
 use crate::{
-    common::{BitArray, Result}, oned::{
+    common::{BitArray, Result},
+    oned::{
         record_pattern, record_pattern_in_reverse,
         rss::{
             rss_utils, AbstractRSSReaderTrait, DataCharacter, DataCharacterTrait, FinderPattern,
             Pair,
         },
         OneDReader,
-    }, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader
+    },
+    BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue, Reader,
 };
 
 use once_cell::sync::Lazy;

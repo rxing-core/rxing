@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
-
 use crate::{
-    common::{BitArray, Result}, oned::{one_d_reader, OneDReader}, point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader
+    common::{BitArray, Result},
+    oned::{one_d_reader, OneDReader},
+    point_f, BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult,
+    RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{
@@ -244,9 +245,7 @@ impl RSS14Reader {
             .parseFoundFinderPattern(row, rowNumber, right, &startEnd)
             .ok()?;
 
-        if let Some(cb) =
-            hints.NeedResultPointCallback.clone()
-        {
+        if let Some(cb) = hints.NeedResultPointCallback.clone() {
             let startEnd = pattern.getStartEnd();
             let mut center: f32 = (startEnd[0] + startEnd[1] - 1) as f32 / 2.0;
             if right {

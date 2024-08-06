@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
-
 use crate::{
     common::{
         BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform, Quadrilateral, Result,
         SamplerControl,
-    }, point_f, qrcode::decoder::Version, DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary, Exceptions, Point, PointCallback
+    },
+    point_f,
+    qrcode::decoder::Version,
+    DecodeHints, Exceptions, Point, PointCallback,
 };
 
 use super::{
@@ -74,13 +75,8 @@ impl<'a> Detector<'_> {
      * @throws NotFoundException if QR Code cannot be found
      * @throws FormatException if a QR Code cannot be decoded
      */
-    pub fn detect_with_hints(
-        &mut self,
-        hints: &DecodeHints,
-    ) -> Result<QRCodeDetectorResult> {
-        self.resultPointCallback = if let Some(cb) =
-            hints.NeedResultPointCallback.clone()
-        {
+    pub fn detect_with_hints(&mut self, hints: &DecodeHints) -> Result<QRCodeDetectorResult> {
+        self.resultPointCallback = if let Some(cb) = hints.NeedResultPointCallback.clone() {
             Some(cb.clone())
         } else {
             None

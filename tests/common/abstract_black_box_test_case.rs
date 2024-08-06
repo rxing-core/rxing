@@ -26,7 +26,10 @@ use std::{
 
 use encoding::Encoding;
 use rxing::{
-    common::{HybridBinarizer, Result}, pdf417::PDF417RXingResultMetadata, BarcodeFormat, Binarizer, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue, DecodeHints, RXingResultMetadataType, RXingResultMetadataValue, Reader
+    common::{HybridBinarizer, Result},
+    pdf417::PDF417RXingResultMetadata,
+    BarcodeFormat, Binarizer, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType,
+    DecodeHintValue, DecodeHints, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::TestRXingResult;
@@ -88,10 +91,14 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
             DecodeHintValue::TryHarder(v) => self.hints.TryHarder = Some(v),
             DecodeHintValue::CharacterSet(v) => self.hints.CharacterSet = Some(v),
             DecodeHintValue::AllowedLengths(v) => self.hints.AllowedLengths = Some(v),
-            DecodeHintValue::AssumeCode39CheckDigit(v) => self.hints.AssumeCode39CheckDigit = Some(v),
+            DecodeHintValue::AssumeCode39CheckDigit(v) => {
+                self.hints.AssumeCode39CheckDigit = Some(v)
+            }
             DecodeHintValue::AssumeGs1(v) => self.hints.AssumeGs1 = Some(v),
             DecodeHintValue::ReturnCodabarStartEnd(v) => self.hints.ReturnCodabarStartEnd = Some(v),
-            DecodeHintValue::NeedResultPointCallback(v) => self.hints.NeedResultPointCallback = Some(v),
+            DecodeHintValue::NeedResultPointCallback(v) => {
+                self.hints.NeedResultPointCallback = Some(v)
+            }
             DecodeHintValue::AllowedEanExtensions(v) => self.hints.AllowedEanExtensions = Some(v),
             DecodeHintValue::AlsoInverted(v) => self.hints.AlsoInverted = Some(v),
             DecodeHintValue::TelepenAsNumeric(v) => self.hints.TelepenAsNumeric = Some(v),

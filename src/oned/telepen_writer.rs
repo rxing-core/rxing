@@ -16,7 +16,7 @@
 
 use crate::common::Result;
 use crate::oned::telepen_common;
-use crate::{BarcodeFormat};
+use crate::BarcodeFormat;
 use regex::Regex;
 use rxing_one_d_proc_derive::OneDWriter;
 
@@ -205,10 +205,10 @@ impl TelepenWriter {
  */
 #[cfg(test)]
 mod TelepenWriterTestCase {
-    use std::collections::HashMap;
 
     use crate::{
-        common::{bit_matrix_test_case, BitMatrix}, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Writer
+        common::{bit_matrix_test_case, BitMatrix},
+        BarcodeFormat, EncodeHints, Writer,
     };
 
     use super::TelepenWriter;
@@ -259,8 +259,10 @@ mod TelepenWriterTestCase {
     }
 
     fn encode_with_hints(input: &str) -> BitMatrix {
-        let mut hints = EncodeHints::default();
-        hints.TelepenAsNumeric = Some(true);
+        let hints = EncodeHints {
+            TelepenAsNumeric: Some(true),
+            ..Default::default()
+        };
 
         TelepenWriter
             .encode_with_hints(input, &BarcodeFormat::TELEPEN, 0, 0, &hints)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use crate::common::Result;
 use crate::qrcode::cpp_port::QrReader;
@@ -22,8 +22,7 @@ use crate::DecodeHints;
 use crate::{
     aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
     oned::MultiFormatOneDReader, pdf417::PDF417Reader, qrcode::QRCodeReader, BarcodeFormat,
-    Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
-    RXingResult, Reader,
+    Binarizer, BinaryBitmap, Exceptions, RXingResult, Reader,
 };
 
 pub(crate) const ONE_D_FORMATS: [BarcodeFormat; 12] = [
@@ -136,10 +135,8 @@ impl MultiUseMultiFormatReader {
     pub fn set_hints(&mut self, hints: &DecodeHints) {
         self.hints.clone_from(hints);
 
-        self.try_harder =self.hints.TryHarder.unwrap_or(false);
-        self.possible_formats = if let Some(formats) =
-            &hints.PossibleFormats
-        {
+        self.try_harder = self.hints.TryHarder.unwrap_or(false);
+        self.possible_formats = if let Some(formats) = &hints.PossibleFormats {
             formats.clone()
         } else {
             HashSet::new()

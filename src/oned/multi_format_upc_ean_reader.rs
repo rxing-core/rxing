@@ -15,7 +15,6 @@
  */
 
 use crate::common::Result;
-use crate::DecodeHintValue;
 use crate::DecodeHints;
 use crate::Exceptions;
 use crate::RXingResult;
@@ -121,9 +120,7 @@ impl OneDReader for MultiFormatUPCEANReader {
 
 impl MultiFormatUPCEANReader {
     pub fn new(hints: &DecodeHints) -> Self {
-        let possible_formats = if let Some(p) =
-            &hints.PossibleFormats
-        {
+        let possible_formats = if let Some(p) = &hints.PossibleFormats {
             p.clone()
         } else {
             HashSet::default()
@@ -156,9 +153,7 @@ impl MultiFormatUPCEANReader {
         let ean13MayBeUPCA = result.getBarcodeFormat() == &BarcodeFormat::EAN_13
             && result.getText().starts_with('0');
 
-        let canReturnUPCA = if let Some(possibleFormats) =
-            &hints.PossibleFormats
-        {
+        let canReturnUPCA = if let Some(possibleFormats) = &hints.PossibleFormats {
             possibleFormats.contains(&BarcodeFormat::UPC_A)
         } else {
             true
@@ -181,11 +176,9 @@ impl MultiFormatUPCEANReader {
     }
 }
 
-use crate::DecodeHintType;
-use crate::DecodingHintDictionary;
 use crate::RXingResultMetadataType;
 use crate::RXingResultMetadataValue;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 impl Reader for MultiFormatUPCEANReader {
     fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {

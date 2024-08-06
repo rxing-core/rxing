@@ -15,7 +15,9 @@
  */
 
 use crate::{
-    common::{BitArray, Result}, point_f, Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary, Exceptions, LuminanceSource, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader
+    common::{BitArray, Result},
+    point_f, Binarizer, BinaryBitmap, DecodeHints, Exceptions, LuminanceSource, RXingResult,
+    RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 /**

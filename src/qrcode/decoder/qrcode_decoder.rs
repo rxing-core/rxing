@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 /**
  * <p>The main class which implements QR Code decoding -- as opposed to locating and extracting
@@ -26,8 +26,10 @@ use once_cell::sync::Lazy;
 
 use crate::{
     common::{
-        reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder}, BitMatrix, DecoderRXingResult, Result,
-    }, DecodeHints, DecodingHintDictionary, Exceptions
+        reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder},
+        BitMatrix, DecoderRXingResult, Result,
+    },
+    DecodeHints, Exceptions,
 };
 
 use super::{decoded_bit_stream_parser, BitMatrixParser, DataBlock, QRCodeDecoderMetaData};
