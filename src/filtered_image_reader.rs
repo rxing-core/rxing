@@ -1,10 +1,7 @@
 use std::collections::HashMap;
 
 use crate::common::{BitMatrix, HybridBinarizer, Result};
-use crate::{
-    Binarizer, BinaryBitmap, Exceptions, Luma8LuminanceSource, LuminanceSource,
-    Reader,
-};
+use crate::{Binarizer, BinaryBitmap, Exceptions, Luma8LuminanceSource, LuminanceSource, Reader};
 
 pub const DEFAULT_DOWNSCALE_THRESHHOLD: usize = 500;
 pub const DEFAULT_DOWNSCALE_FACTOR: usize = 3;

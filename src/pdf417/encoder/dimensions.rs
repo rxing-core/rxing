@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
  * @author qwandor@google.com (Andrew Walbran)
  */
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Dimensions {
     minCols: usize,
     maxCols: usize,
