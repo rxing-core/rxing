@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use crate::{
     common::{BitMatrix, DetectorRXingResult},
     qrcode::{
-        decoder::qrcode_decoder, decoder::ErrorCorrectionLevel, detector::Detector,
+        decoder::{qrcode_decoder, ErrorCorrectionLevel}, detector::Detector,
         encoder::qrcode_encoder,
-    },
+    }, DecodeHints, EncodeHints,
 };
 
 #[test]
@@ -27,7 +27,7 @@ fn test_encode_decode(value: &str) {
     for ec_level_v in 0..4 {
         let ec_level: ErrorCorrectionLevel =
             ErrorCorrectionLevel::forBits(ec_level_v).expect("must get level");
-        let qr_code = qrcode_encoder::encode_with_hints(value, ec_level, &HashMap::new())
+        let qr_code = qrcode_encoder::encode_with_hints(value, ec_level, &EncodeHints::default())
             .expect("must encode");
         // dbg!(&qr_code.to_string());
         let byt_matrix = qr_code.getMatrix().as_ref().unwrap().clone();

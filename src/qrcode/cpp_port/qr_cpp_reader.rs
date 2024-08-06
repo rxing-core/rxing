@@ -118,10 +118,7 @@
 // } // namespace ZXing::QRCode
 
 use crate::{
-    common::{cpp_essentials::ConcentricPattern, DetectorRXingResult},
-    multi::MultipleBarcodeReader,
-    BarcodeFormat, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
-    ImmutableReader, RXingResult, Reader,
+    common::{cpp_essentials::ConcentricPattern, DetectorRXingResult}, multi::MultipleBarcodeReader, BarcodeFormat, DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary, Exceptions, ImmutableReader, RXingResult, Reader
 };
 
 use super::{
@@ -140,13 +137,13 @@ impl Reader for QrReader {
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
     ) -> crate::common::Result<crate::RXingResult> {
-        self.decode_with_hints(image, &DecodingHintDictionary::new())
+        self.decode_with_hints(image, &DecodeHints::default())
     }
 
     fn decode_with_hints<B: crate::Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &crate::DecodeHints,
     ) -> crate::common::Result<RXingResult> {
         self.internal_decode_with_hints(image, hints)
     }
@@ -156,7 +153,7 @@ impl ImmutableReader for QrReader {
     fn immutable_decode_with_hints<B: crate::Binarizer>(
         &self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> crate::common::Result<RXingResult> {
         self.internal_decode_with_hints(image, hints)
     }
@@ -167,13 +164,13 @@ impl MultipleBarcodeReader for QrReader {
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
     ) -> crate::common::Result<Vec<crate::RXingResult>> {
-        self.decode_multiple_with_hints(image, &DecodingHintDictionary::new())
+        self.decode_multiple_with_hints(image, &DecodeHints::default())
     }
 
     fn decode_multiple_with_hints<B: crate::Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> crate::common::Result<Vec<crate::RXingResult>> {
         self.decode_set_number_with_hints(image, hints, u32::MAX)
     }
@@ -183,7 +180,7 @@ impl QrReader {
     fn decode_set_number_with_hints<B: crate::Binarizer>(
         &self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
         count: u32,
     ) -> crate::common::Result<Vec<RXingResult>> {
         let binImg = image.get_black_matrix(); //image.getBitMatrix();
@@ -194,10 +191,7 @@ impl QrReader {
         // #ifdef PRINT_DEBUG
         // 	LogMatrixWriter lmw(log, *binImg, 5, "qr-log.pnm");
         // #endif
-        let try_harder = matches!(
-            hints.get(&DecodeHintType::TRY_HARDER),
-            Some(DecodeHintValue::TryHarder(true))
-        );
+        let try_harder = hints.TryHarder.unwrap_or(false);
 
         let mut allFPs = FindFinderPatterns(binImg, try_harder);
 
@@ -209,8 +203,8 @@ impl QrReader {
         let mut results: Vec<RXingResult> = Vec::new();
 
         let (check_qr, check_mqr, check_rmqr) =
-            if let Some(DecodeHintValue::PossibleFormats(formats)) =
-                hints.get(&DecodeHintType::POSSIBLE_FORMATS)
+            if let Some(formats) =
+                &hints.PossibleFormats
             {
                 (
                     formats.contains(&BarcodeFormat::QR_CODE),
@@ -326,13 +320,10 @@ impl QrReader {
     fn internal_decode_with_hints<B: crate::Binarizer>(
         &self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> crate::common::Result<RXingResult> {
         // #if 1
-        if !matches!(
-            hints.get(&DecodeHintType::PURE_BARCODE),
-            Some(DecodeHintValue::PureBarcode(true))
-        )
+        if !hints.PureBarcode.unwrap_or(false)
         // if !matches!(Some(hints.get(&DecodeHintType::PURE_BARCODE)))
         // if (!_hints.isPure())
         {
@@ -350,8 +341,8 @@ impl QrReader {
                                                // 	{return {};}
 
         let mut detectorResult = Err(Exceptions::NOT_FOUND);
-        if let Some(DecodeHintValue::PossibleFormats(formats)) =
-            hints.get(&DecodeHintType::POSSIBLE_FORMATS)
+        if let Some(formats) =
+            &hints.PossibleFormats
         {
             if formats.contains(&BarcodeFormat::QR_CODE) {
                 detectorResult = DetectPureQR(binImg);

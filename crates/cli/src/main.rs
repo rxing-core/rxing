@@ -4,7 +4,7 @@ use std::{
 };
 
 use clap::{ArgGroup, Parser, Subcommand};
-use rxing::{BarcodeFormat, MultiFormatWriter, Writer};
+use rxing::{BarcodeFormat, DecodeHints, EncodeHints, MultiFormatWriter, Writer};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -331,61 +331,34 @@ fn decode_command(
     parsed_bytes: &bool,
     raw_bytes: &bool,
 ) {
-    let mut hints: rxing::DecodingHintDictionary = HashMap::new();
+    let mut hints: rxing::DecodeHints = DecodeHints::default();
     if let Some(other) = other {
-        hints.insert(
-            rxing::DecodeHintType::OTHER,
-            rxing::DecodeHintValue::Other(other.to_owned()),
-        );
+        hints.Other = Some(other.to_owned());
     }
     if let Some(pure_barcode) = pure_barcode {
-        hints.insert(
-            rxing::DecodeHintType::PURE_BARCODE,
-            rxing::DecodeHintValue::PureBarcode(*pure_barcode),
-        );
+        hints.PureBarcode = Some(*pure_barcode);
     }
 
     if let Some(character_set) = character_set {
-        hints.insert(
-            rxing::DecodeHintType::CHARACTER_SET,
-            rxing::DecodeHintValue::CharacterSet(character_set.to_owned()),
-        );
+        hints.CharacterSet = Some(character_set.to_owned());
     }
     if let Some(allowed_lengths) = allowed_lengths {
-        hints.insert(
-            rxing::DecodeHintType::ALLOWED_LENGTHS,
-            rxing::DecodeHintValue::AllowedLengths(allowed_lengths.to_vec()),
-        );
+        hints.AllowedLengths = Some(allowed_lengths.to_vec());
     }
     if let Some(assume_code_39_check_digit) = assume_code_39_check_digit {
-        hints.insert(
-            rxing::DecodeHintType::ASSUME_CODE_39_CHECK_DIGIT,
-            rxing::DecodeHintValue::AssumeCode39CheckDigit(*assume_code_39_check_digit),
-        );
+        hints.AssumeCode39CheckDigit = Some(*assume_code_39_check_digit);
     }
     if let Some(assume_gs1) = assume_gs1 {
-        hints.insert(
-            rxing::DecodeHintType::ASSUME_GS1,
-            rxing::DecodeHintValue::AssumeGs1(*assume_gs1),
-        );
+        hints.AssumeGs1 = Some(*assume_gs1);
     }
     if let Some(return_codabar_start_end) = return_codabar_start_end {
-        hints.insert(
-            rxing::DecodeHintType::RETURN_CODABAR_START_END,
-            rxing::DecodeHintValue::ReturnCodabarStartEnd(*return_codabar_start_end),
-        );
+        hints.ReturnCodabarStartEnd = Some(*return_codabar_start_end);
     }
     if let Some(allowed_ean_extensions) = allowed_ean_extensions {
-        hints.insert(
-            rxing::DecodeHintType::ALLOWED_EAN_EXTENSIONS,
-            rxing::DecodeHintValue::AllowedEanExtensions(allowed_ean_extensions.to_vec()),
-        );
+        hints.AllowedEanExtensions = Some(allowed_ean_extensions.to_vec());
     }
     if let Some(also_inverted) = also_inverted {
-        hints.insert(
-            rxing::DecodeHintType::ALSO_INVERTED,
-            rxing::DecodeHintValue::AlsoInverted(*also_inverted),
-        );
+        hints.AlsoInverted = Some(*also_inverted);
     }
 
     // println!(
@@ -394,18 +367,12 @@ fn decode_command(
     // );
 
     if !try_harder {
-        hints.insert(
-            rxing::DecodeHintType::TRY_HARDER,
-            rxing::DecodeHintValue::TryHarder(false),
-        );
+        hints.TryHarder = Some(false);
     }
     if let Some(barcode_type) = barcode_types {
-        hints.insert(
-            rxing::DecodeHintType::POSSIBLE_FORMATS,
-            rxing::DecodeHintValue::PossibleFormats(HashSet::from_iter(
+        hints.PossibleFormats = Some(HashSet::from_iter(
                 barcode_type.iter().copied(),
-            )),
-        );
+            ));
     }
 
     let path = PathBuf::from(file_name);
@@ -508,112 +475,67 @@ fn encode_command(
         return;
     };
 
-    let mut hints: rxing::EncodingHintDictionary = HashMap::new();
+    let mut hints: rxing::EncodeHints = EncodeHints::default();
 
     if let Some(ec) = error_correction {
-        hints.insert(
-            rxing::EncodeHintType::ERROR_CORRECTION,
-            rxing::EncodeHintValue::ErrorCorrection(ec.to_owned()),
-        );
+        hints.ErrorCorrection = Some(ec.to_owned());
     }
 
     if let Some(character_set) = character_set {
-        hints.insert(
-            rxing::EncodeHintType::CHARACTER_SET,
-            rxing::EncodeHintValue::CharacterSet(character_set.to_owned()),
-        );
+        hints.CharacterSet = Some(character_set.to_owned());
     }
 
     if let Some(data_matrix_compact) = data_matrix_compact {
-        hints.insert(
-            rxing::EncodeHintType::DATA_MATRIX_COMPACT,
-            rxing::EncodeHintValue::DataMatrixCompact(*data_matrix_compact),
-        );
+        hints.DataMatrixCompact = Some(*data_matrix_compact);
     }
 
     if let Some(margin) = margin {
-        hints.insert(
-            rxing::EncodeHintType::MARGIN,
-            rxing::EncodeHintValue::Margin(margin.to_owned()),
-        );
+        hints.Margin = Some(margin.to_owned());
     }
 
     if let Some(pdf_417_compact) = pdf_417_compact {
-        hints.insert(
-            rxing::EncodeHintType::PDF417_COMPACT,
-            rxing::EncodeHintValue::Pdf417Compact(pdf_417_compact.to_string()),
-        );
+        hints.Pdf417Compact = Some(pdf_417_compact.to_string());
     }
 
     if let Some(pdf_417_compaction) = pdf_417_compaction {
-        hints.insert(
-            rxing::EncodeHintType::PDF417_COMPACTION,
-            rxing::EncodeHintValue::Pdf417Compaction(pdf_417_compaction.to_owned()),
-        );
+        hints.Pdf417Compaction = Some(pdf_417_compaction.to_owned());
     }
 
     if let Some(pdf_417_auto_eci) = pdf_417_auto_eci {
-        hints.insert(
-            rxing::EncodeHintType::PDF417_AUTO_ECI,
-            rxing::EncodeHintValue::Pdf417AutoEci(pdf_417_auto_eci.to_string()),
-        );
+        hints.Pdf417AutoEci = Some(pdf_417_auto_eci.to_string());
     }
 
     if let Some(aztec_layers) = aztec_layers {
-        hints.insert(
-            rxing::EncodeHintType::AZTEC_LAYERS,
-            rxing::EncodeHintValue::AztecLayers(*aztec_layers),
-        );
+        hints.AztecLayers = Some(*aztec_layers);
     }
 
     if let Some(qr_version) = qr_version {
-        hints.insert(
-            rxing::EncodeHintType::QR_VERSION,
-            rxing::EncodeHintValue::QrVersion(qr_version.to_owned()),
-        );
+        hints.QrVersion = Some(qr_version.to_owned());
     }
 
     if let Some(qr_mask_pattern) = qr_mask_pattern {
-        hints.insert(
-            rxing::EncodeHintType::QR_MASK_PATTERN,
-            rxing::EncodeHintValue::QrMaskPattern(qr_mask_pattern.to_owned()),
-        );
+        hints.QrMaskPattern = Some(qr_mask_pattern.to_owned());
     }
 
     if let Some(qr_compact) = qr_compact {
         println!("Warning, QRCompact can generate unreadable barcodes");
-        hints.insert(
-            rxing::EncodeHintType::QR_COMPACT,
-            rxing::EncodeHintValue::QrCompact(qr_compact.to_string()),
-        );
+        hints.QrCompact = Some(qr_compact.to_string());
     }
 
     if let Some(gs1_format) = gs1_format {
-        hints.insert(
-            rxing::EncodeHintType::GS1_FORMAT,
-            rxing::EncodeHintValue::Gs1Format(*gs1_format),
-        );
+        hints.Gs1Format = Some(*gs1_format);
     }
 
     if let Some(force_code_set) = force_code_set {
-        hints.insert(
-            rxing::EncodeHintType::FORCE_CODE_SET,
-            rxing::EncodeHintValue::ForceCodeSet(force_code_set.to_owned()),
-        );
+        hints.ForceCodeSet = Some(force_code_set.to_owned());
     }
 
     if let Some(force_c40) = force_c40 {
-        hints.insert(
-            rxing::EncodeHintType::FORCE_C40,
-            rxing::EncodeHintValue::ForceC40(*force_c40),
-        );
+        hints.ForceC40 = Some(*force_c40);
     }
 
     if let Some(code_128_compact) = code_128_compact {
-        hints.insert(
-            rxing::EncodeHintType::CODE128_COMPACT,
-            rxing::EncodeHintValue::Code128Compact(*code_128_compact),
-        );
+        hints.Code128Compact = Some(*code_128_compact);
     }
 
     // println!("Encode: file_name: {}, barcode_type: {}, width: {:?}, height: {:?}, data: '{:?}', data_file: {:?}", file_name, barcode_type, width, height, data, data_file);

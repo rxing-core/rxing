@@ -20,10 +20,7 @@ use crate::{
     common::{
         BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform, Quadrilateral, Result,
         SamplerControl,
-    },
-    point_f,
-    qrcode::decoder::Version,
-    DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, Point, PointCallback,
+    }, point_f, qrcode::decoder::Version, DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary, Exceptions, Point, PointCallback
 };
 
 use super::{
@@ -66,7 +63,7 @@ impl<'a> Detector<'_> {
      * @throws FormatException if a QR Code cannot be decoded
      */
     pub fn detect(&mut self) -> Result<QRCodeDetectorResult> {
-        self.detect_with_hints(&HashMap::new())
+        self.detect_with_hints(&DecodeHints::default())
     }
 
     /**
@@ -79,10 +76,10 @@ impl<'a> Detector<'_> {
      */
     pub fn detect_with_hints(
         &mut self,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<QRCodeDetectorResult> {
-        self.resultPointCallback = if let Some(DecodeHintValue::NeedResultPointCallback(cb)) =
-            hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK)
+        self.resultPointCallback = if let Some(cb) =
+            hints.NeedResultPointCallback.clone()
         {
             Some(cb.clone())
         } else {

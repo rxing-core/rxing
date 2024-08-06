@@ -26,6 +26,8 @@ use std::{
     fmt::{self},
 };
 
+use crate::DecodeHints;
+
 use super::{string_utils, CharacterSet, Eci};
 
 /**
@@ -220,7 +222,7 @@ impl ECIStringBuilder {
             }
 
             else */
-            if let Some(found_encoding) = string_utils::guessCharset(bytes, &HashMap::default()) {
+            if let Some(found_encoding) = string_utils::guessCharset(bytes, &DecodeHints::default()) {
                 if let Ok(found_encoded_str) = found_encoding.decode(bytes) {
                     encoded_string.push_str(&found_encoded_str);
                     not_encoded_yet = false;

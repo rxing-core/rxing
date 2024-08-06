@@ -27,17 +27,14 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitArray, Result},
-    oned::{
+    common::{BitArray, Result}, oned::{
         record_pattern, record_pattern_in_reverse,
         rss::{
             rss_utils, AbstractRSSReaderTrait, DataCharacter, DataCharacterTrait, FinderPattern,
             Pair,
         },
         OneDReader,
-    },
-    BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
-    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    }, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader
 };
 
 use once_cell::sync::Lazy;
@@ -155,7 +152,7 @@ impl OneDReader for RSSExpandedReader {
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
-        _hints: &crate::DecodingHintDictionary,
+        _hints: &DecodeHints,
     ) -> Result<crate::RXingResult> {
         // Rows can start with even pattern in case in prev rows there where odd number of patters.
         // So lets try twice
@@ -174,22 +171,19 @@ impl OneDReader for RSSExpandedReader {
 }
 impl Reader for RSSExpandedReader {
     fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
-        self.decode_with_hints(image, &HashMap::new())
+        self.decode_with_hints(image, &DecodeHints::default())
     }
 
     // Note that we don't try rotation without the try harder flag, even if rotation was supported.
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<crate::RXingResult> {
         if let Ok(res) = self._do_decode(image, hints) {
             Ok(res)
         } else {
-            let tryHarder = matches!(
-                hints.get(&DecodeHintType::TRY_HARDER),
-                Some(DecodeHintValue::TryHarder(true))
-            );
+            let tryHarder = hints.TryHarder.unwrap_or(false);
             if tryHarder && image.is_rotate_supported() {
                 let mut rotatedImage = image.rotate_counter_clockwise();
                 let mut result = self._do_decode(&mut rotatedImage, hints)?;

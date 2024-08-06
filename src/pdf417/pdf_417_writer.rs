@@ -17,8 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitMatrix, CharacterSet, Result},
-    BarcodeFormat, EncodeHintType, EncodeHintValue, Exceptions, Writer,
+    common::{BitMatrix, CharacterSet, Result}, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Exceptions, Writer
 };
 
 use super::encoder::PDF417;
@@ -48,7 +47,7 @@ impl Writer for PDF417Writer {
         width: i32,
         height: i32,
     ) -> Result<crate::common::BitMatrix> {
-        self.encode_with_hints(contents, format, width, height, &HashMap::new())
+        self.encode_with_hints(contents, format, width, height, &EncodeHints::default())
     }
 
     fn encode_with_hints(
@@ -57,7 +56,7 @@ impl Writer for PDF417Writer {
         format: &crate::BarcodeFormat,
         width: i32,
         height: i32,
-        hints: &crate::EncodingHintDictionary,
+        hints: &crate::EncodeHints,
     ) -> Result<crate::common::BitMatrix> {
         if format != &BarcodeFormat::PDF_417 {
             return Err(Exceptions::illegal_argument_with(format!(
@@ -70,21 +69,21 @@ impl Writer for PDF417Writer {
         let mut errorCorrectionLevel = DEFAULT_ERROR_CORRECTION_LEVEL;
         let mut autoECI = false;
 
-        if !hints.is_empty() {
-            if let Some(EncodeHintValue::Pdf417Compact(compact)) =
-                hints.get(&EncodeHintType::PDF417_COMPACT)
+        
+            if let Some(compact) =
+                &hints.Pdf417Compact
             {
                 if let Ok(res) = compact.parse::<bool>() {
                     encoder.setCompact(res);
                 }
             }
-            if let Some(EncodeHintValue::Pdf417Compaction(compaction)) =
-                hints.get(&EncodeHintType::PDF417_COMPACTION)
+            if let Some(compaction) =
+                &hints.Pdf417Compaction
             {
                 encoder.setCompaction(compaction.try_into()?);
             }
-            if let Some(EncodeHintValue::Pdf417Dimensions(dimensions)) =
-                hints.get(&EncodeHintType::PDF417_DIMENSIONS)
+            if let Some(dimensions) =
+                hints.Pdf417Dimensions
             {
                 encoder.setDimensions(
                     dimensions.getMaxCols() as u32,
@@ -93,31 +92,31 @@ impl Writer for PDF417Writer {
                     dimensions.getMinRows() as u32,
                 );
             }
-            if let Some(EncodeHintValue::Margin(m1)) = hints.get(&EncodeHintType::MARGIN) {
+            if let Some(m1) = &hints.Margin {
                 if let Ok(m) = m1.parse::<u32>() {
                     margin = m;
                 }
             }
-            if let Some(EncodeHintValue::ErrorCorrection(ec)) =
-                hints.get(&EncodeHintType::ERROR_CORRECTION)
+            if let Some(ec) =
+                &hints.ErrorCorrection
             {
                 if let Ok(ec_parsed) = ec.parse::<u32>() {
                     errorCorrectionLevel = ec_parsed;
                 }
             }
-            if let Some(EncodeHintValue::CharacterSet(cs)) =
-                hints.get(&EncodeHintType::CHARACTER_SET)
+            if let Some(cs) =
+                &hints.CharacterSet
             {
                 encoder.setEncoding(CharacterSet::get_character_set_by_name(cs));
             }
-            if let Some(EncodeHintValue::Pdf417AutoEci(auto_eci_str)) =
-                hints.get(&EncodeHintType::PDF417_AUTO_ECI)
+            if let Some(auto_eci_str) =
+                &hints.Pdf417AutoEci
             {
                 if let Ok(auto_eci_parsed) = auto_eci_str.parse::<bool>() {
                     autoECI = auto_eci_parsed;
                 }
             }
-        }
+        
 
         Self::bitMatrixFromEncoder(
             &mut encoder,
@@ -237,15 +236,12 @@ impl PDF417Writer {
 mod PDF417WriterTestCase {
     use std::collections::HashMap;
 
-    use crate::{pdf417::PDF417Writer, BarcodeFormat, EncodeHintType, EncodeHintValue, Writer};
+    use crate::{pdf417::PDF417Writer, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Writer};
 
     #[test]
     fn testDataMatrixImageWriter() {
-        let mut hints = HashMap::new();
-        hints.insert(
-            EncodeHintType::MARGIN,
-            EncodeHintValue::Margin(0.to_string()),
-        );
+        let mut hints = EncodeHints::default();
+        hints.Margin = Some(0.to_string());
         let size = 64;
         let writer = PDF417Writer::new();
         let matrix = writer

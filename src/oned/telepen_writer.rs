@@ -16,7 +16,7 @@
 
 use crate::common::Result;
 use crate::oned::telepen_common;
-use crate::BarcodeFormat;
+use crate::{BarcodeFormat};
 use regex::Regex;
 use rxing_one_d_proc_derive::OneDWriter;
 
@@ -36,20 +36,17 @@ pub struct TelepenWriter;
 
 impl OneDimensionalCodeWriter for TelepenWriter {
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
-        self.encode_oned_with_hints(contents, &HashMap::new())
+        self.encode_oned_with_hints(contents, &crate::EncodeHints::default())
     }
 
     fn encode_oned_with_hints(
         &self,
         contents: &str,
-        hints: &crate::EncodingHintDictionary,
+        hints: &crate::EncodeHints,
     ) -> Result<Vec<bool>> {
         let mut decodedContents = contents.to_string();
 
-        if matches!(
-            hints.get(&EncodeHintType::TELEPEN_AS_NUMERIC),
-            Some(EncodeHintValue::TelepenAsNumeric(true))
-        ) {
+        if hints.TelepenAsNumeric.unwrap_or(false) {
             decodedContents = telepen_common::numeric_to_ascii(contents)?;
         }
 
@@ -211,8 +208,7 @@ mod TelepenWriterTestCase {
     use std::collections::HashMap;
 
     use crate::{
-        common::{bit_matrix_test_case, BitMatrix},
-        BarcodeFormat, EncodeHintType, EncodeHintValue, Writer,
+        common::{bit_matrix_test_case, BitMatrix}, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Writer
     };
 
     use super::TelepenWriter;
@@ -263,11 +259,8 @@ mod TelepenWriterTestCase {
     }
 
     fn encode_with_hints(input: &str) -> BitMatrix {
-        let mut hints = HashMap::new();
-        hints.insert(
-            EncodeHintType::TELEPEN_AS_NUMERIC,
-            EncodeHintValue::TelepenAsNumeric(true),
-        );
+        let mut hints = EncodeHints::default();
+        hints.TelepenAsNumeric = Some(true);
 
         TelepenWriter
             .encode_with_hints(input, &BarcodeFormat::TELEPEN, 0, 0, &hints)

@@ -17,10 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{DecoderRXingResult, DetectorRXingResult, Result},
-    exceptions::Exceptions,
-    BarcodeFormat, Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, ImmutableReader,
-    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    common::{DecoderRXingResult, DetectorRXingResult, Result}, exceptions::Exceptions, BarcodeFormat, Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodeHints, ImmutableReader, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader
 };
 
 use super::{decoder, detector::Detector};
@@ -42,13 +39,13 @@ impl Reader for AztecReader {
      * @throws FormatException if a Data Matrix code cannot be decoded
      */
     fn decode<B: Binarizer>(&mut self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
-        self.decode_with_hints(image, &HashMap::new())
+        self.decode_with_hints(image, &DecodeHints::default())
     }
 
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut BinaryBitmap<B>,
-        hints: &HashMap<DecodeHintType, DecodeHintValue>,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         self.internal_decode_with_hints(image, hints)
     }
@@ -58,7 +55,7 @@ impl ImmutableReader for AztecReader {
     fn immutable_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         self.internal_decode_with_hints(image, hints)
     }
@@ -68,7 +65,7 @@ impl AztecReader {
     fn internal_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         // let notFoundException = None;
         // let formatException = None;
@@ -107,8 +104,8 @@ impl AztecReader {
         // }
         // }
 
-        if let Some(DecodeHintValue::NeedResultPointCallback(cb)) =
-            hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK)
+        if let Some(cb) =
+            hints.NeedResultPointCallback.clone()
         {
             // if let DecodeHintValue::NeedResultPointCallback(cb) = rpcb {
             for point in points {

@@ -15,8 +15,7 @@
  */
 
 use crate::{
-    common::{BitMatrix, Result},
-    point_f, Binarizer, BinaryBitmap, DecodingHintDictionary, Exceptions, Point,
+    common::{BitMatrix, Result}, point_f, Binarizer, BinaryBitmap, DecodeHints, DecodingHintDictionary, Exceptions, Point
 };
 
 use std::borrow::Cow;
@@ -66,7 +65,7 @@ const ROTATIONS: [u32; 4] = [0, 180, 270, 90];
  */
 pub fn detect_with_hints<B: Binarizer>(
     image: &mut BinaryBitmap<B>,
-    _hints: &DecodingHintDictionary,
+    _hints: &DecodeHints,
     multiple: bool,
 ) -> Result<PDF417DetectorRXingResult> {
     // TODO detection improvement, tryHarder could try several different luminance thresholds/blackpoints or even

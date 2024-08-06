@@ -26,6 +26,7 @@ use super::OneDReader;
 use super::TelepenReader;
 use crate::common::Result;
 use crate::DecodeHintValue;
+use crate::DecodeHints;
 use crate::Exceptions;
 use crate::{BarcodeFormat, Binarizer, RXingResult};
 
@@ -35,7 +36,7 @@ use crate::{BarcodeFormat, Binarizer, RXingResult};
  */
 #[derive(Default)]
 pub struct MultiFormatOneDReader {
-    internal_hints: DecodingHintDictionary,
+    internal_hints: DecodeHints,
     possible_formats: HashSet<BarcodeFormat>,
     use_code_39_check_digit: bool,
     rss_14_reader: RSS14Reader,
@@ -46,7 +47,7 @@ impl OneDReader for MultiFormatOneDReader {
         &mut self,
         row_number: u32,
         row: &crate::common::BitArray,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         let Self {
             possible_formats,
@@ -148,13 +149,10 @@ impl OneDReader for MultiFormatOneDReader {
     }
 }
 impl MultiFormatOneDReader {
-    pub fn new(hints: &DecodingHintDictionary) -> Self {
-        let use_code_39_check_digit = matches!(
-            hints.get(&DecodeHintType::ASSUME_CODE_39_CHECK_DIGIT),
-            Some(DecodeHintValue::AssumeCode39CheckDigit(true))
-        );
-        let possible_formats = if let Some(DecodeHintValue::PossibleFormats(p)) =
-            hints.get(&DecodeHintType::POSSIBLE_FORMATS)
+    pub fn new(hints: &DecodeHints) -> Self {
+        let use_code_39_check_digit = hints.AssumeCode39CheckDigit.unwrap_or(false);
+        let possible_formats = if let Some(p) =
+            &hints.PossibleFormats
         {
             p.clone()
         } else {
@@ -180,24 +178,21 @@ use std::collections::{HashMap, HashSet};
 
 impl Reader for MultiFormatOneDReader {
     fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
-        self.decode_with_hints(image, &HashMap::new())
+        self.decode_with_hints(image, &DecodeHints::default())
     }
 
     // Note that we don't try rotation without the try harder flag, even if rotation was supported.
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         let first_try = self._do_decode(image, hints);
         if first_try.is_ok() {
             return first_try;
         }
 
-        let tryHarder = matches!(
-            hints.get(&DecodeHintType::TRY_HARDER),
-            Some(DecodeHintValue::TryHarder(true))
-        );
+        let tryHarder =hints.TryHarder.unwrap_or(false);
         if tryHarder && image.is_rotate_supported() {
             let mut rotatedImage = image.rotate_counter_clockwise();
             let mut result = self._do_decode(&mut rotatedImage, hints)?;

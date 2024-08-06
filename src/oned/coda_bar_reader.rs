@@ -53,7 +53,7 @@ impl OneDReader for CodaBarReader {
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
-        hints: &crate::DecodingHintDictionary,
+        hints: &crate::DecodeHints,
     ) -> Result<crate::RXingResult> {
         self.counters.fill(0);
         // Arrays.fill(counters, 0);
@@ -139,10 +139,7 @@ impl OneDReader for CodaBarReader {
             return Err(Exceptions::NOT_FOUND);
         }
 
-        if !matches!(
-            hints.get(&DecodeHintType::RETURN_CODABAR_START_END),
-            Some(DecodeHintValue::ReturnCodabarStartEnd(true))
-        ) {
+        if !hints.ReturnCodabarStartEnd.unwrap_or(false) {
             self.decodeRowRXingResult =
                 self.decodeRowRXingResult[1..self.decodeRowRXingResult.len() - 1].to_owned();
         }

@@ -14,26 +14,20 @@ fn issue_27_part_2() {
 #[cfg(feature = "image")]
 #[test]
 fn issue_28() {
-    use rxing::DecodingHintDictionary;
+    use rxing::DecodeHints;
 
-    let mut hints: DecodingHintDictionary = DecodingHintDictionary::new();
-    hints.insert(
-        rxing::DecodeHintType::TRY_HARDER,
-        rxing::DecodeHintValue::TryHarder(true),
-    );
+    let mut hints: DecodeHints = DecodeHints::default();
+    hints.TryHarder = Some(true);
     rxing::helpers::detect_multiple_in_file_with_hints("test_resources/blackbox/github_issue_cases/226611447-be6041dc-5b21-42fe-827b-068ccc59082c.png", &mut hints).unwrap_or_default();
 }
 
 #[cfg(feature = "image")]
 #[test]
 fn dynamsoft_all_supported_formats_image_fault() {
-    use rxing::DecodingHintDictionary;
+    use rxing::DecodeHints;
 
-    let mut hints: DecodingHintDictionary = DecodingHintDictionary::new();
-    hints.insert(
-        rxing::DecodeHintType::TRY_HARDER,
-        rxing::DecodeHintValue::TryHarder(true),
-    );
+    let mut hints: DecodeHints = DecodeHints::default();
+    hints.TryHarder = Some(true);
     let results = rxing::helpers::detect_multiple_in_file_with_hints(
         "test_resources/blackbox/multi-1/AllSupportedBarcodeTypes.png",
         &mut hints,
@@ -51,13 +45,10 @@ fn dynamsoft_all_supported_formats_image_fault() {
 #[cfg(feature = "image")]
 #[test]
 fn zxing_bench_issue_1() {
-    use rxing::{BarcodeFormat, DecodingHintDictionary};
+    use rxing::{BarcodeFormat, DecodeHints};
 
-    let mut hints: DecodingHintDictionary = DecodingHintDictionary::new();
-    hints.insert(
-        rxing::DecodeHintType::TRY_HARDER,
-        rxing::DecodeHintValue::TryHarder(true),
-    );
+    let mut hints: DecodeHints = DecodeHints::default();
+    hints.TryHarder = Some(true);
     let results = rxing::helpers::detect_multiple_in_file_with_hints(
         "test_resources/blackbox/github_issue_cases/170050507-1f10f0ef-82ca-4e14-a2d2-4b288ec54809.png",
         &mut hints,
@@ -125,13 +116,10 @@ fn zxing_bench_issue_1() {
 #[cfg(feature = "image")]
 #[test]
 fn issue_48() {
-    use rxing::{BarcodeFormat, DecodingHintDictionary};
+    use rxing::{BarcodeFormat, DecodeHints};
 
-    let mut hints: DecodingHintDictionary = DecodingHintDictionary::new();
-    hints.insert(
-        rxing::DecodeHintType::TRY_HARDER,
-        rxing::DecodeHintValue::TryHarder(true),
-    );
+    let mut hints: DecodeHints = DecodeHints::default();
+    hints.TryHarder = Some(true);
     let results = rxing::helpers::detect_multiple_in_file_with_hints(
         "test_resources/blackbox/github_issue_cases/300908088-2b3ffe34-1067-48c9-8663-f841b5d0acf6.png",
         &mut hints,
@@ -173,12 +161,12 @@ fn zxing_bench_grey_image_issue_luma8_image() {
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
         BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue,
-        DecodingHintDictionary, Exceptions, MultiUseMultiFormatReader,
+        DecodeHints, Exceptions, MultiUseMultiFormatReader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/170050507-1f10f0ef-82ca-4e14-a2d2-4b288ec54809.png";
 
-    let mut hints = DecodingHintDictionary::default();
+    let mut hints = DecodeHints::default();
 
     let img = DynamicImage::from(
         image::open(FILE_NAME)
@@ -189,9 +177,7 @@ fn zxing_bench_grey_image_issue_luma8_image() {
     let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
-    hints
-        .entry(DecodeHintType::TRY_HARDER)
-        .or_insert(DecodeHintValue::TryHarder(true));
+    hints.TryHarder = Some(true);
 
     let results = scanner
         .decode_multiple_with_hints(
@@ -264,13 +250,13 @@ fn zxing_bench_grey_image_issue_raw_luma8() {
     use rxing::{
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-        BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
+        BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodeHints,
         Exceptions, Luma8LuminanceSource, MultiUseMultiFormatReader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/170050507-1f10f0ef-82ca-4e14-a2d2-4b288ec54809.png";
 
-    let mut hints = DecodingHintDictionary::default();
+    let mut hints = DecodeHints::default();
 
     let img = image::open(FILE_NAME)
         .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
@@ -278,9 +264,7 @@ fn zxing_bench_grey_image_issue_raw_luma8() {
     let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
-    hints
-        .entry(DecodeHintType::TRY_HARDER)
-        .or_insert(DecodeHintValue::TryHarder(true));
+    hints.TryHarder = Some(true);
 
     let results = scanner
         .decode_multiple_with_hints(
@@ -357,12 +341,12 @@ fn test_issue_49() {
     use rxing::{
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-        BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
+        BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodeHints,
         Exceptions, Luma8LuminanceSource, MultiUseMultiFormatReader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/345143005-4538852a-242a-4f77-87cc-fefb66856ecf.png";
-    let mut hints = DecodingHintDictionary::default();
+    let mut hints = DecodeHints::default();
 
     let img = image::open(FILE_NAME)
         .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
@@ -370,9 +354,7 @@ fn test_issue_49() {
     let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
-    hints
-        .entry(DecodeHintType::TRY_HARDER)
-        .or_insert(DecodeHintValue::TryHarder(true));
+    hints.TryHarder = Some(true);
 
     let results = scanner
         .decode_multiple_with_hints(
@@ -402,25 +384,21 @@ fn test_issue_49() {
 fn test_issue_50() {
     use rxing::{
         common::HybridBinarizer, BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue,
-        DecodingHintDictionary, Exceptions, Luma8LuminanceSource, MultiUseMultiFormatReader,
+        DecodeHints, Exceptions, Luma8LuminanceSource, MultiUseMultiFormatReader,
         Reader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/346304318-16acfb7a-4a41-4b15-af78-7ccf061e72bd.png";
-    let mut hints = DecodingHintDictionary::default();
+    let mut hints = DecodeHints::default();
 
     let img = image::open(FILE_NAME)
         .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
         .unwrap();
     let mut scanner = MultiUseMultiFormatReader::default();
 
-    hints
-        .entry(DecodeHintType::TRY_HARDER)
-        .or_insert(DecodeHintValue::TryHarder(true));
+    hints.TryHarder = Some(true);
 
-    hints
-        .entry(DecodeHintType::PURE_BARCODE)
-        .or_insert(DecodeHintValue::PureBarcode(true));
+    hints.PureBarcode = Some(true);
 
     let result = scanner
         .decode_with_hints(
@@ -446,21 +424,19 @@ fn test_issue_50() {
 fn test_issue_50_2() {
     use rxing::{
         common::AdaptiveThresholdBinarizer, BarcodeFormat, BinaryBitmap, DecodeHintType,
-        DecodeHintValue, DecodingHintDictionary, Exceptions, Luma8LuminanceSource,
+        DecodeHintValue, DecodeHints, Exceptions, Luma8LuminanceSource,
         MultiUseMultiFormatReader, Reader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/346304318-16acfb7a-4a41-4b15-af78-7ccf061e72bd.png";
-    let mut hints = DecodingHintDictionary::default();
+    let mut hints = DecodeHints::default();
 
     let img = image::open(FILE_NAME)
         .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
         .unwrap();
     let mut scanner = MultiUseMultiFormatReader::default();
 
-    hints
-        .entry(DecodeHintType::TRY_HARDER)
-        .or_insert(DecodeHintValue::TryHarder(true));
+    hints.TryHarder=Some(true);
 
     let result = scanner
         .decode_with_hints(
@@ -488,12 +464,12 @@ fn issue_51_multiple_detection() {
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
         BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue,
-        DecodingHintDictionary, Exceptions, MultiUseMultiFormatReader,
+        DecodeHints, Exceptions, MultiUseMultiFormatReader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/349949736-8e3b9d66-d114-41ca-a8e0-f1332d111827.jpeg";
 
-    let mut hints = DecodingHintDictionary::default();
+    let mut hints = DecodeHints::default();
 
     let img = DynamicImage::from(
         image::open(FILE_NAME)
@@ -504,9 +480,7 @@ fn issue_51_multiple_detection() {
     let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
-    hints
-        .entry(DecodeHintType::TRY_HARDER)
-        .or_insert(DecodeHintValue::TryHarder(true));
+    hints.TryHarder = Some(true);
 
     let results = scanner
         .decode_multiple_with_hints(
@@ -524,7 +498,7 @@ fn issue_51_multiple_detection() {
 
     const FILE_NAME2 : &str = "test_resources/blackbox/github_issue_cases/349949791-1e8b67a7-0994-46fb-bd86-a5f3cd79f0e5.jpeg";
 
-    let mut hints = DecodingHintDictionary::default();
+    let mut hints = DecodeHints::default();
 
     let img = DynamicImage::from(
         image::open(FILE_NAME2)
@@ -535,9 +509,7 @@ fn issue_51_multiple_detection() {
     let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
-    hints
-        .entry(DecodeHintType::TRY_HARDER)
-        .or_insert(DecodeHintValue::TryHarder(true));
+    hints.TryHarder = Some(true);
 
     let results = scanner
         .decode_multiple_with_hints(

@@ -17,9 +17,7 @@
 use std::ops::Div;
 
 use crate::{
-    common::{BitMatrix, Result},
-    result_point_utils, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, Point,
-    PointCallback,
+    common::{BitMatrix, Result}, result_point_utils, DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary, Exceptions, Point, PointCallback
 };
 
 use super::{FinderPattern, FinderPatternInfo};
@@ -74,11 +72,8 @@ impl<'a> FinderPatternFinder<'_> {
         &self.possibleCenters
     }
 
-    pub fn find(&mut self, hints: &DecodingHintDictionary) -> Result<FinderPatternInfo> {
-        let tryHarder = matches!(
-            hints.get(&DecodeHintType::TRY_HARDER),
-            Some(DecodeHintValue::TryHarder(true))
-        );
+    pub fn find(&mut self, hints: &DecodeHints) -> Result<FinderPatternInfo> {
+        let tryHarder =hints.TryHarder.unwrap_or(false);
         let maxI = self.image.getHeight();
         let maxJ = self.image.getWidth();
         // We are looking for black/white/black/white/black modules in

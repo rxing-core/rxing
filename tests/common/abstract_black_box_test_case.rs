@@ -26,10 +26,7 @@ use std::{
 
 use encoding::Encoding;
 use rxing::{
-    common::{HybridBinarizer, Result},
-    pdf417::PDF417RXingResultMetadata,
-    BarcodeFormat, Binarizer, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType,
-    DecodeHintValue, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    common::{HybridBinarizer, Result}, pdf417::PDF417RXingResultMetadata, BarcodeFormat, Binarizer, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue, DecodeHints, RXingResultMetadataType, RXingResultMetadataValue, Reader
 };
 
 use super::TestRXingResult;
@@ -45,7 +42,7 @@ pub struct AbstractBlackBoxTestCase<T: Reader> {
     barcode_reader: T,
     expected_format: BarcodeFormat,
     test_rxing_results: Vec<TestRXingResult>,
-    hints: HashMap<DecodeHintType, DecodeHintValue>,
+    hints: DecodeHints,
     pub ignore_pure: bool,
 }
 
@@ -70,7 +67,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
             barcode_reader,
             expected_format,
             test_rxing_results: Vec::new(),
-            hints: HashMap::new(),
+            hints: DecodeHints::default(),
             ignore_pure: false,
         }
     }
@@ -83,8 +80,22 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
         self.add_test_complex(must_pass_count, try_harder_count, 0, 0, rotation);
     }
 
-    pub fn add_hint(&mut self, hint: DecodeHintType, value: DecodeHintValue) {
-        self.hints.insert(hint, value);
+    pub fn add_hint(&mut self, _hint: DecodeHintType, value: DecodeHintValue) {
+        match value {
+            DecodeHintValue::Other(v) => self.hints.Other = Some(v),
+            DecodeHintValue::PureBarcode(v) => self.hints.PureBarcode = Some(v),
+            DecodeHintValue::PossibleFormats(v) => self.hints.PossibleFormats = Some(v),
+            DecodeHintValue::TryHarder(v) => self.hints.TryHarder = Some(v),
+            DecodeHintValue::CharacterSet(v) => self.hints.CharacterSet = Some(v),
+            DecodeHintValue::AllowedLengths(v) => self.hints.AllowedLengths = Some(v),
+            DecodeHintValue::AssumeCode39CheckDigit(v) => self.hints.AssumeCode39CheckDigit = Some(v),
+            DecodeHintValue::AssumeGs1(v) => self.hints.AssumeGs1 = Some(v),
+            DecodeHintValue::ReturnCodabarStartEnd(v) => self.hints.ReturnCodabarStartEnd = Some(v),
+            DecodeHintValue::NeedResultPointCallback(v) => self.hints.NeedResultPointCallback = Some(v),
+            DecodeHintValue::AllowedEanExtensions(v) => self.hints.AllowedEanExtensions = Some(v),
+            DecodeHintValue::AlsoInverted(v) => self.hints.AlsoInverted = Some(v),
+            DecodeHintValue::TelepenAsNumeric(v) => self.hints.TelepenAsNumeric = Some(v),
+        }
     }
 
     /**
@@ -451,7 +462,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
 
         let mut hints = self.hints.clone();
         if try_harder {
-            hints.insert(DecodeHintType::TRY_HARDER, DecodeHintValue::TryHarder(true));
+            hints.TryHarder = Some(true);
             // hints.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
         }
 
@@ -460,11 +471,8 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
         if !self.ignore_pure {
             // Try in 'pure' mode mostly to exercise PURE_BARCODE code paths for exceptions;
             // not expected to pass, generally
-            let mut pure_hints = HashMap::new();
-            pure_hints.insert(
-                DecodeHintType::PURE_BARCODE,
-                DecodeHintValue::PureBarcode(true),
-            );
+            let mut pure_hints = DecodeHints::default();
+            pure_hints.PureBarcode = Some(true);
 
             result = if let Ok(res) = self.barcode_reader.decode_with_hints(source, &pure_hints) {
                 log::fine(format!("{suffix} - read pure barcode"));

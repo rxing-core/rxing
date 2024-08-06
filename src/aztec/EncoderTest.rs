@@ -22,9 +22,7 @@ use crate::{
         decoder,
         encoder::HighLevelEncoder,
         shared_test_methods::{stripSpace, toBitArray, toBooleanArray},
-    },
-    common::CharacterSet,
-    BarcodeFormat, EncodeHintType, EncodeHintValue, Point,
+    }, common::CharacterSet, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Point
 };
 
 use super::{encoder::aztec_encoder, AztecWriter};
@@ -715,20 +713,15 @@ fn testWriter(
     layers: u32,
 ) {
     // Perform an encode-decode round-trip because it can be lossy.
-    let mut hints = HashMap::new();
+    let mut hints = EncodeHints::default();
     if let Some(cs) = charset {
-        hints.insert(
-            EncodeHintType::CHARACTER_SET,
-            EncodeHintValue::CharacterSet(cs.get_charset_name().to_string()),
-        );
+        hints.CharacterSet = Some(cs.get_charset_name().to_string());
     }
     // if (null != charset) {
     //   hints.put(EncodeHintType.CHARACTER_SET, charset.name());
     // }
-    hints.insert(
-        EncodeHintType::ERROR_CORRECTION,
-        EncodeHintValue::ErrorCorrection(ecc_percent.to_string()),
-    );
+    hints.ErrorCorrection = Some(ecc_percent.to_string());
+    
     let mut matrix = AztecWriter {}
         .encode_with_hints(data, &BarcodeFormat::AZTEC, 0, 0, &hints)
         .expect("encoder created");

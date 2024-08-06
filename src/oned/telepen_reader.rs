@@ -52,7 +52,7 @@ impl OneDReader for TelepenReader {
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
-        hints: &crate::DecodingHintDictionary,
+        hints: &crate::DecodeHints,
     ) -> Result<crate::RXingResult> {
         self.counters.fill(0);
         self.setCounters(row, (row.get_size() as f32 * 0.001) as u32)?;
@@ -218,10 +218,7 @@ impl OneDReader for TelepenReader {
             return Err(Exceptions::NOT_FOUND);
         }
 
-        if matches!(
-            hints.get(&DecodeHintType::TELEPEN_AS_NUMERIC),
-            Some(DecodeHintValue::TelepenAsNumeric(true))
-        ) {
+        if hints.TelepenAsNumeric.unwrap_or(false) {
             contentString = telepen_common::ascii_to_numeric(&contentString);
         }
 

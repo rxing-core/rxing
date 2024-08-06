@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{common::Result, Binarizer, BinaryBitmap, DecodingHintDictionary, RXingResult};
+use crate::{common::Result, Binarizer, BinaryBitmap, DecodeHints, DecodingHintDictionary, RXingResult};
 
 /**
  * Implementation of this interface attempt to read several barcodes from one image.
@@ -31,6 +31,6 @@ pub trait MultipleBarcodeReader {
     fn decode_multiple_with_hints<B: Binarizer>(
         &mut self,
         image: &mut BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<Vec<RXingResult>>;
 }

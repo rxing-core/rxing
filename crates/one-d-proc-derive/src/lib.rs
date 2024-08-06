@@ -17,8 +17,7 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
     let gen = quote! {
         use std::collections::HashMap;
         use crate::result_point::ResultPoint;
-        use crate::DecodeHintType;
-        use crate::DecodingHintDictionary;
+        use crate::DecodeHints;
         use crate::RXingResultMetadataType;
         use crate::RXingResultMetadataValue;
         use crate::Point;
@@ -27,20 +26,20 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
 
         impl Reader for #name {
             fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<crate::RXingResult, Exceptions> {
-              self.decode_with_hints(image, &HashMap::new())
+              self.decode_with_hints(image, &DecodeHints::default())
             }
 
             // Note that we don't try rotation without the try harder flag, even if rotation was supported.
             fn decode_with_hints<B: Binarizer>(
                 &mut self,
                 image: &mut crate::BinaryBitmap<B>,
-                hints: &DecodingHintDictionary,
+                hints: &DecodeHints,
             ) -> Result<crate::RXingResult, Exceptions> {
 
             if let Ok(res) = self._do_decode(image, hints) {
                 Ok(res)
              }else {
-               let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
+               let tryHarder = hints.TryHarder.unwrap_or(false);
                if tryHarder && image.is_rotate_supported() {
                  let mut rotated_image = image.rotate_counter_clockwise();
                  let mut result = self._do_decode(&mut rotated_image, hints)?;
@@ -95,7 +94,7 @@ fn impl_ean_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
           &mut self,
           rowNumber: u32,
           row: &crate::common::BitArray,
-          hints: &crate::DecodingHintDictionary,
+          hints: &crate::DecodeHints,
       ) -> Result<crate::RXingResult, crate::Exceptions> {
         self.decodeRowWithGuardRange(rowNumber, row, &self.find_start_guard_pattern(row)?, hints)
       }
@@ -119,7 +118,7 @@ fn impl_one_d_writer_macro(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
       use crate::{
-        EncodeHintType, EncodeHintValue, Exceptions, Writer,
+        EncodeHintType, EncodeHintValue, Exceptions, Writer, EncodeHints
      };
      use std::collections::HashMap;
       impl Writer for #name {
@@ -130,7 +129,7 @@ fn impl_one_d_writer_macro(ast: &syn::DeriveInput) -> TokenStream {
             width: i32,
             height: i32,
         ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
-            self.encode_with_hints(contents, format, width, height, &HashMap::new())
+            self.encode_with_hints(contents, format, width, height, &EncodeHints::default())
         }
 
         fn encode_with_hints(
@@ -139,7 +138,7 @@ fn impl_one_d_writer_macro(ast: &syn::DeriveInput) -> TokenStream {
             format: &crate::BarcodeFormat,
             width: i32,
             height: i32,
-            hints: &crate::EncodingHintDictionary,
+            hints: &crate::EncodeHints,
         ) -> Result<crate::common::BitMatrix, crate::Exceptions> {
             if contents.is_empty() {
                 return Err(Exceptions::illegal_argument_with(
@@ -163,7 +162,7 @@ fn impl_one_d_writer_macro(ast: &syn::DeriveInput) -> TokenStream {
             }
 
             let mut sidesMargin = self.getDefaultMargin();
-            if let Some(EncodeHintValue::Margin(margin)) = hints.get(&EncodeHintType::MARGIN) {
+            if let Some(margin) = &hints.Margin {
                 sidesMargin = margin.parse::<u32>().unwrap();
             }
 

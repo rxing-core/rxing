@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::common::{BitMatrix, HybridBinarizer, Result};
-use crate::{Binarizer, BinaryBitmap, Exceptions, Luma8LuminanceSource, LuminanceSource, Reader};
+use crate::{Binarizer, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource, LuminanceSource, Reader};
 
 pub const DEFAULT_DOWNSCALE_THRESHHOLD: usize = 500;
 pub const DEFAULT_DOWNSCALE_FACTOR: usize = 3;
@@ -20,13 +20,13 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
     ) -> crate::common::Result<crate::RXingResult> {
-        self.decode_with_hints(image, &HashMap::default())
+        self.decode_with_hints(image, &DecodeHints::default())
     }
 
     fn decode_with_hints<B: crate::Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &crate::DecodeHints,
     ) -> crate::common::Result<crate::RXingResult> {
         let pyramids = LumImagePyramid::new(
             Luma8LuminanceSource::new(

@@ -17,8 +17,7 @@
 use crate::{
     common::{
         string_utils, BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Eci, Result,
-    },
-    DecodingHintDictionary, Exceptions,
+    }, DecodeHints, DecodingHintDictionary, Exceptions
 };
 
 #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
@@ -45,7 +44,7 @@ pub fn decode(
     bytes: &[u8],
     version: VersionRef,
     ecLevel: ErrorCorrectionLevel,
-    hints: &DecodingHintDictionary,
+    hints: &DecodeHints,
 ) -> Result<DecoderRXingResult> {
     let mut bits = BitSource::new(bytes.to_owned());
     let mut result = ECIStringBuilder::with_capacity(50); //String::with_capacity(50);
@@ -228,7 +227,7 @@ fn decodeKanjiSegment(
     result: &mut ECIStringBuilder,
     count: usize,
     currentCharacterSetECI: Option<CharacterSet>,
-    hints: &DecodingHintDictionary,
+    hints: &DecodeHints,
 ) -> Result<()> {
     // Don't crash trying to read more bits than we have available.
     if count * 13 > bits.available() {
@@ -285,7 +284,7 @@ fn decodeByteSegment(
     count: usize,
     currentCharacterSetECI: Option<CharacterSet>,
     byteSegments: &mut Vec<Vec<u8>>,
-    hints: &DecodingHintDictionary,
+    hints: &DecodeHints,
 ) -> Result<()> {
     // Don't crash trying to read more bits than we have available.
     if 8 * count > bits.available() {

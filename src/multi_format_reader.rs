@@ -20,7 +20,7 @@ use crate::common::Result;
 #[cfg(feature = "experimental_features")]
 use crate::oned::cpp::ODReader;
 use crate::qrcode::cpp_port::QrReader;
-use crate::ONE_D_FORMATS;
+use crate::{DecodeHints, ONE_D_FORMATS};
 use crate::{
     aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
     oned::MultiFormatOneDReader, pdf417::PDF417Reader, qrcode::QRCodeReader, BarcodeFormat,
@@ -38,7 +38,7 @@ use crate::{
  */
 #[derive(Default)]
 pub struct MultiFormatReader {
-    hints: DecodingHintDictionary,
+    hints: DecodeHints,
     possible_formats: HashSet<BarcodeFormat>,
     try_harder: bool,
     one_d_reader: MultiFormatOneDReader,
@@ -55,7 +55,7 @@ impl Reader for MultiFormatReader {
      * @throws NotFoundException Any errors which occurred
      */
     fn decode<B: Binarizer>(&mut self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
-        self.set_hints(&HashMap::new());
+        self.set_hints(&DecodeHints::default());
         self.decode_internal(image)
     }
 
@@ -70,7 +70,7 @@ impl Reader for MultiFormatReader {
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         self.set_hints(hints);
         self.decode_internal(image)
@@ -96,7 +96,7 @@ impl MultiFormatReader {
     ) -> Result<RXingResult> {
         // Make sure to set up the default state so we don't crash
         if self.possible_formats.is_empty() {
-            self.set_hints(&HashMap::new());
+            self.set_hints(&DecodeHints::default());
         }
         self.decode_internal(image)
     }
@@ -108,15 +108,12 @@ impl MultiFormatReader {
      *
      * @param hints The set of hints to use for subsequent calls to decode(image)
      */
-    pub fn set_hints(&mut self, hints: &DecodingHintDictionary) {
+    pub fn set_hints(&mut self, hints: &DecodeHints) {
         self.hints.clone_from(hints);
 
-        self.try_harder = matches!(
-            self.hints.get(&DecodeHintType::TRY_HARDER),
-            Some(DecodeHintValue::TryHarder(true))
-        );
-        self.possible_formats = if let Some(DecodeHintValue::PossibleFormats(formats)) =
-            hints.get(&DecodeHintType::POSSIBLE_FORMATS)
+        self.try_harder = self.hints.TryHarder.unwrap_or(false);
+        self.possible_formats = if let Some(formats) =
+            &hints.PossibleFormats
         {
             formats.clone()
         } else {
@@ -133,10 +130,8 @@ impl MultiFormatReader {
         if res.is_ok() {
             return res;
         }
-        if matches!(
-            self.hints.get(&DecodeHintType::ALSO_INVERTED),
-            Some(DecodeHintValue::AlsoInverted(true))
-        ) {
+        if self.hints.AlsoInverted.unwrap_or(false)
+         {
             // Calling all readers again with inverted image
             image.get_black_matrix_mut().flip_self();
             let res = self.decode_formats(image);

@@ -44,7 +44,7 @@ impl OneDReader for Code39Reader {
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
-        _hints: &DecodingHintDictionary,
+        _hints: &DecodeHints,
     ) -> Result<crate::RXingResult> {
         let mut counters = [0_u32; 9];
         self.decodeRowRXingResult.clear();
@@ -408,7 +408,7 @@ mod code_39_extended_mode_test_case {
 
     use crate::{
         common::BitMatrix,
-        oned::{Code39Reader, OneDReader},
+        oned::{Code39Reader, OneDReader}, DecodeHints,
     };
     #[test]
     fn testDecodeExtendedMode() {
@@ -430,7 +430,7 @@ mod code_39_extended_mode_test_case {
         // let row = BitArray::with_size(matrix.getWidth() as usize);
         let row = matrix.getRow(0);
         let result = sut
-            .decode_row(0, &row, &HashMap::new())
+            .decode_row(0, &row, &DecodeHints::default())
             .expect("decode row");
         assert_eq!(expectedRXingResult, result.getText());
     }

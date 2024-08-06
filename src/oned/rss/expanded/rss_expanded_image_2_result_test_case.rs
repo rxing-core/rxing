@@ -70,6 +70,8 @@ fn testDecodeRow2result2() {
 
 #[cfg(feature = "client_support")]
 fn assertCorrectImage2result(fileName: &str, expected: ExpandedProductParsedRXingResult) {
+    use crate::DecodeHints;
+
     let path = format!("test_resources/blackbox/rssexpanded-1/{fileName}");
 
     let image = image::open(path).expect("image must exist");
@@ -81,7 +83,7 @@ fn assertCorrectImage2result(fileName: &str, expected: ExpandedProductParsedRXin
 
     let mut rssExpandedReader = RSSExpandedReader::new();
     let theRXingResult = rssExpandedReader
-        .decode_row(rowNumber as u32, &row, &HashMap::new())
+        .decode_row(rowNumber as u32, &row, &DecodeHints::default())
         .expect("must decode");
 
     assert_eq!(

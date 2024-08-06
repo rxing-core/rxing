@@ -150,12 +150,12 @@ pub trait UPCEANReader: OneDReader {
         rowNumber: u32,
         row: &BitArray,
         startGuardRange: &[usize; 2],
-        hints: &crate::DecodingHintDictionary,
+        hints: &crate::DecodeHints,
     ) -> Result<RXingResult> {
-        let resultPointCallback = hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK);
+        let resultPointCallback = hints.NeedResultPointCallback.clone();
         let mut symbologyIdentifier = 0;
 
-        if let Some(DecodeHintValue::NeedResultPointCallback(cb)) = resultPointCallback {
+        if let Some(cb) = resultPointCallback.clone() {
             cb(point_f(
                 (startGuardRange[0] + startGuardRange[1]) as f32 / 2.0,
                 rowNumber as f32,
@@ -165,13 +165,13 @@ pub trait UPCEANReader: OneDReader {
         let mut result = String::new();
         let endStart = self.decodeMiddle(row, startGuardRange, &mut result)?;
 
-        if let Some(DecodeHintValue::NeedResultPointCallback(cb)) = resultPointCallback {
+        if let Some(cb) = resultPointCallback.clone() {
             cb(point_f(endStart as f32, rowNumber as f32));
         }
 
         let endRange = self.decodeEnd(row, endStart)?;
 
-        if let Some(DecodeHintValue::NeedResultPointCallback(cb)) = resultPointCallback {
+        if let Some(cb) = resultPointCallback.clone() {
             cb(point_f(
                 (endRange[0] + endRange[1]) as f32 / 2.0,
                 rowNumber as f32,
@@ -230,8 +230,8 @@ pub trait UPCEANReader: OneDReader {
 
         let _try_result = attempt();
 
-        if let Some(DecodeHintValue::AllowedEanExtensions(allowedExtensions)) =
-            hints.get(&DecodeHintType::ALLOWED_EAN_EXTENSIONS)
+        if let Some(allowedExtensions) =
+            &hints.AllowedEanExtensions
         {
             let mut valid = false;
             for length in allowedExtensions {
@@ -507,7 +507,7 @@ impl OneDReader for StandInStruct {
         &mut self,
         _rowNumber: u32,
         _row: &BitArray,
-        _hints: &crate::DecodingHintDictionary,
+        _hints: &crate::DecodeHints,
     ) -> Result<RXingResult> {
         unimplemented!()
     }
@@ -521,7 +521,7 @@ impl Reader for StandInStruct {
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         _image: &mut crate::BinaryBitmap<B>,
-        _hints: &crate::DecodingHintDictionary,
+        _hints: &crate::DecodeHints,
     ) -> Result<RXingResult> {
         unimplemented!()
     }

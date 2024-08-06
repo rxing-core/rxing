@@ -15,9 +15,7 @@
  */
 
 use crate::{
-    common::{BitMatrix, Result},
-    qrcode::detector::{Detector, QRCodeDetectorResult},
-    DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
+    common::{BitMatrix, Result}, qrcode::detector::{Detector, QRCodeDetectorResult}, DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary, Exceptions
 };
 
 use super::MultiFinderPatternFinder;
@@ -37,10 +35,10 @@ impl<'a> MultiDetector<'_> {
 
     // private static final DetectorRXingResult[] EMPTY_DETECTOR_RESULTS = new DetectorRXingResult[0];
 
-    pub fn detectMulti(&self, hints: &DecodingHintDictionary) -> Result<Vec<QRCodeDetectorResult>> {
+    pub fn detectMulti(&self, hints: &DecodeHints) -> Result<Vec<QRCodeDetectorResult>> {
         let image = self.0.getImage();
-        let resultPointCallback = if let Some(DecodeHintValue::NeedResultPointCallback(cb)) =
-            hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK)
+        let resultPointCallback = if let Some(cb) =
+            hints.NeedResultPointCallback.clone()
         {
             Some(cb.clone())
         } else {

@@ -17,8 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitMatrix, Result},
-    BarcodeFormat, EncodeHintType, EncodeHintValue, Exceptions, Writer,
+    common::{BitMatrix, Result}, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Exceptions, Writer
 };
 
 use super::{
@@ -47,7 +46,7 @@ impl Writer for QRCodeWriter {
         width: i32,
         height: i32,
     ) -> Result<crate::common::BitMatrix> {
-        self.encode_with_hints(contents, format, width, height, &HashMap::new())
+        self.encode_with_hints(contents, format, width, height, &EncodeHints::default())
     }
 
     fn encode_with_hints(
@@ -56,7 +55,7 @@ impl Writer for QRCodeWriter {
         format: &crate::BarcodeFormat,
         width: i32,
         height: i32,
-        hints: &crate::EncodingHintDictionary,
+        hints: &crate::EncodeHints,
     ) -> Result<crate::common::BitMatrix> {
         if contents.is_empty() {
             return Err(Exceptions::illegal_argument_with("found empty contents"));
@@ -75,8 +74,8 @@ impl Writer for QRCodeWriter {
             )));
         }
 
-        let errorCorrectionLevel = if let Some(EncodeHintValue::ErrorCorrection(ec_level)) =
-            hints.get(&EncodeHintType::ERROR_CORRECTION)
+        let errorCorrectionLevel = if let Some(ec_level) =
+            &hints.ErrorCorrection
         {
             ec_level.parse()?
         } else {
@@ -84,7 +83,7 @@ impl Writer for QRCodeWriter {
         };
 
         let quietZone =
-            if let Some(EncodeHintValue::Margin(margin)) = hints.get(&EncodeHintType::MARGIN) {
+            if let Some(margin) = &hints.Margin {
                 margin
                     .parse::<i32>()
                     .map_err(|e| Exceptions::parse_with(format!("could not parse {margin}: {e}")))?

@@ -50,7 +50,7 @@ pub trait OneDimensionalCodeWriter: Writer {
     fn encode_oned_with_hints(
         &self,
         contents: &str,
-        _hints: &crate::EncodingHintDictionary,
+        _hints: &crate::EncodeHints,
     ) -> Result<Vec<bool>> {
         self.encode_oned(contents)
     }

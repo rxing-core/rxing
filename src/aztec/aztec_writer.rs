@@ -17,9 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitMatrix, CharacterSet, Result},
-    exceptions::Exceptions,
-    BarcodeFormat, EncodeHintType, EncodeHintValue, Writer,
+    common::{BitMatrix, CharacterSet, Result}, exceptions::Exceptions, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Writer
 };
 
 use super::encoder::{aztec_encoder, AztecCode};
@@ -38,7 +36,7 @@ impl Writer for AztecWriter {
         width: i32,
         height: i32,
     ) -> Result<crate::common::BitMatrix> {
-        self.encode_with_hints(contents, format, width, height, &HashMap::new())
+        self.encode_with_hints(contents, format, width, height, &EncodeHints::default())
     }
 
     fn encode_with_hints(
@@ -47,27 +45,27 @@ impl Writer for AztecWriter {
         format: &crate::BarcodeFormat,
         width: i32,
         height: i32,
-        hints: &std::collections::HashMap<crate::EncodeHintType, crate::EncodeHintValue>,
+        hints: &EncodeHints,
     ) -> Result<crate::common::BitMatrix> {
         let mut charset = None; // Do not add any ECI code by default
         let mut ecc_percent = aztec_encoder::DEFAULT_EC_PERCENT;
         let mut layers = aztec_encoder::DEFAULT_AZTEC_LAYERS;
-        if let Some(EncodeHintValue::CharacterSet(cset_name)) =
-            hints.get(&EncodeHintType::CHARACTER_SET)
+        if let Some(cset_name) =
+            &hints.CharacterSet
         {
             if cset_name.to_lowercase() != "iso-8859-1" {
                 charset = CharacterSet::get_character_set_by_name(cset_name);
             }
         }
-        if let Some(EncodeHintValue::ErrorCorrection(ecc_level)) =
-            hints.get(&EncodeHintType::ERROR_CORRECTION)
+        if let Some(ecc_level) =
+            &hints.ErrorCorrection
         {
             ecc_percent = ecc_level.parse().unwrap_or(23);
         }
-        if let Some(EncodeHintValue::AztecLayers(az_layers)) =
-            hints.get(&EncodeHintType::AZTEC_LAYERS)
+        if let Some(az_layers) =
+            hints.AztecLayers
         {
-            layers = *az_layers;
+            layers = az_layers;
         }
         encode(
             contents,

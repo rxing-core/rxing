@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{DecodeHintType, DecodeHintValue, DecodingHintDictionary};
+use crate::{DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary};
 
 use super::CharacterSet;
 
@@ -48,7 +48,7 @@ pub const SHIFT_JIS_CHARSET: CharacterSet = CharacterSet::Shift_JIS;
  *  "SJIS", "UTF8", "ISO8859_1", or the platform default encoding if none
  *  of these can possibly be correct
  */
-pub fn guessEncoding(bytes: &[u8], hints: &DecodingHintDictionary) -> Option<&'static str> {
+pub fn guessEncoding(bytes: &[u8], hints: &DecodeHints) -> Option<&'static str> {
     let c = guessCharset(bytes, hints)?;
     if c == CharacterSet::Shift_JIS {
         Some("SJIS")
@@ -70,8 +70,8 @@ pub fn guessEncoding(bytes: &[u8], hints: &DecodingHintDictionary) -> Option<&'s
  *  or the platform default encoding if
  *  none of these can possibly be correct
  */
-pub fn guessCharset(bytes: &[u8], hints: &DecodingHintDictionary) -> Option<CharacterSet> {
-    if let Some(DecodeHintValue::CharacterSet(cs_name)) = hints.get(&DecodeHintType::CHARACTER_SET)
+pub fn guessCharset(bytes: &[u8], hints: &DecodeHints) -> Option<CharacterSet> {
+    if let Some(cs_name) = &hints.CharacterSet
     {
         return CharacterSet::get_character_set_by_name(cs_name);
     }

@@ -17,14 +17,10 @@
 use std::{cmp::Ordering, collections::HashMap};
 
 use crate::{
-    common::{DetectorRXingResult, Result},
-    multi::MultipleBarcodeReader,
-    qrcode::{
+    common::{DetectorRXingResult, Result}, multi::MultipleBarcodeReader, qrcode::{
         decoder::{self, QRCodeDecoderMetaData},
         QRCodeReader,
-    },
-    BarcodeFormat, Binarizer, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue,
+    }, BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue
 };
 
 use super::detector::MultiDetector;
@@ -42,13 +38,13 @@ impl MultipleBarcodeReader for QRCodeMultiReader {
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
     ) -> Result<Vec<RXingResult>> {
-        self.decode_multiple_with_hints(image, &HashMap::new())
+        self.decode_multiple_with_hints(image, &DecodeHints::default())
     }
 
     fn decode_multiple_with_hints<B: Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &crate::DecodeHints,
     ) -> Result<Vec<RXingResult>> {
         let mut results = Vec::new();
         let detectorRXingResults =

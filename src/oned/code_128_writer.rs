@@ -16,7 +16,7 @@
 
 use rxing_one_d_proc_derive::OneDWriter;
 
-use crate::common::Result;
+use crate::{common::Result};
 use crate::BarcodeFormat;
 
 use super::{code_128_reader, OneDimensionalCodeWriter};
@@ -60,7 +60,7 @@ pub struct Code128Writer;
 
 impl OneDimensionalCodeWriter for Code128Writer {
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
-        self.encode_oned_with_hints(contents, &HashMap::new())
+        self.encode_oned_with_hints(contents, &EncodeHints::default())
     }
 
     fn getSupportedWriteFormats(&self) -> Option<Vec<crate::BarcodeFormat>> {
@@ -70,14 +70,14 @@ impl OneDimensionalCodeWriter for Code128Writer {
     fn encode_oned_with_hints(
         &self,
         contents: &str,
-        hints: &crate::EncodingHintDictionary,
+        hints: &crate::EncodeHints,
     ) -> Result<Vec<bool>> {
         let forcedCodeSet = check(contents, hints)?;
 
-        let hasCompactionHint = matches!(
-            hints.get(&EncodeHintType::CODE128_COMPACT),
-            Some(EncodeHintValue::Code128Compact(true))
-        );
+        let hasCompactionHint = hints.Code128Compact.unwrap_or(false); //matches!(
+        //     hints.get(&EncodeHintType::CODE128_COMPACT),
+        //     Some(EncodeHintValue::Code128Compact(true))
+        // );
         // let hasCompactionHint = if let Some(EncodeHintValue::Code128Compact(compat)) =
         //     hints.get(&EncodeHintType::CODE128_COMPACT)
         // {
@@ -96,7 +96,7 @@ impl OneDimensionalCodeWriter for Code128Writer {
     }
 }
 
-fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32> {
+fn check(contents: &str, hints: &crate::EncodeHints) -> Result<i32> {
     let length = contents.chars().count();
     // Check length
     if !(1..=80).contains(&length) {
@@ -107,9 +107,9 @@ fn check(contents: &str, hints: &crate::EncodingHintDictionary) -> Result<i32> {
 
     // Check for forced code set hint.
     let mut forcedCodeSet = -1_i32;
-    if hints.contains_key(&EncodeHintType::FORCE_CODE_SET) {
-        let Some(EncodeHintValue::ForceCodeSet(codeSetHint)) =
-            hints.get(&EncodeHintType::FORCE_CODE_SET)
+    if hints.ForceCodeSet.is_some() {
+        let Some(codeSetHint) =
+            &hints.ForceCodeSet
         else {
             return Err(Exceptions::ILLEGAL_STATE);
         };

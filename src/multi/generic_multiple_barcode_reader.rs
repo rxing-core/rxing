@@ -17,9 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{Quadrilateral, Result},
-    point_f, Binarizer, BinaryBitmap, DecodingHintDictionary, Exceptions, Point, RXingResult,
-    Reader,
+    common::{Quadrilateral, Result}, point_f, Binarizer, BinaryBitmap, DecodeHints, DecodingHintDictionary, Exceptions, Point, RXingResult, Reader
 };
 
 use super::MultipleBarcodeReader;
@@ -46,13 +44,13 @@ impl<T: Reader> MultipleBarcodeReader for GenericMultipleBarcodeReader<T> {
         &mut self,
         image: &mut BinaryBitmap<B>,
     ) -> Result<Vec<RXingResult>> {
-        self.decode_multiple_with_hints(image, &HashMap::new())
+        self.decode_multiple_with_hints(image, &DecodeHints::default())
     }
 
     fn decode_multiple_with_hints<B: Binarizer>(
         &mut self,
         image: &mut BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<Vec<RXingResult>> {
         let mut results = Vec::new();
         self.do_decode_multiple(image, hints, &mut results, 0, 0, 0);
@@ -120,7 +118,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
     fn do_decode_multiple<B: Binarizer>(
         &mut self,
         image: &mut BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
         results: &mut Vec<RXingResult>,
         xOffset: u32,
         yOffset: u32,

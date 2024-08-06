@@ -18,9 +18,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitMatrix, CharacterSet, Result},
-    qrcode::encoder::ByteMatrix,
-    BarcodeFormat, EncodeHintType, EncodeHintValue, Exceptions, Writer,
+    common::{BitMatrix, CharacterSet, Result}, qrcode::encoder::ByteMatrix, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Exceptions, Writer
 };
 
 use super::encoder::{
@@ -47,7 +45,7 @@ impl Writer for DataMatrixWriter {
         width: i32,
         height: i32,
     ) -> Result<crate::common::BitMatrix> {
-        self.encode_with_hints(contents, format, width, height, &HashMap::new())
+        self.encode_with_hints(contents, format, width, height, &EncodeHints::default())
     }
 
     fn encode_with_hints(
@@ -56,7 +54,7 @@ impl Writer for DataMatrixWriter {
         format: &crate::BarcodeFormat,
         width: i32,
         height: i32,
-        hints: &crate::EncodingHintDictionary,
+        hints: &EncodeHints,
     ) -> Result<crate::common::BitMatrix> {
         if contents.is_empty() {
             return Err(Exceptions::illegal_argument_with("Found empty contents"));
@@ -78,48 +76,47 @@ impl Writer for DataMatrixWriter {
         let mut shape = &SymbolShapeHint::FORCE_NONE;
         let mut minSize = None;
         let mut maxSize = None;
-        if !hints.is_empty() {
-            if let Some(EncodeHintValue::DataMatrixShape(rq)) =
-                hints.get(&EncodeHintType::DATA_MATRIX_SHAPE)
+
+            if let Some(rq) =
+                &hints.DataMatrixShape
             {
                 shape = rq;
             }
             // @SuppressWarnings("deprecation")
-            let requestedMinSize = hints.get(&EncodeHintType::MIN_SIZE);
-            if let Some(EncodeHintValue::MinSize(rq)) = requestedMinSize {
-                minSize = Some(*rq);
+            let requestedMinSize = hints.MinSize;
+            if let Some(rq) = requestedMinSize {
+                minSize = Some(rq);
             }
             // @SuppressWarnings("deprecation")
-            let requestedMaxSize = hints.get(&EncodeHintType::MAX_SIZE);
-            if let Some(EncodeHintValue::MinSize(rq)) = requestedMaxSize {
-                maxSize = Some(*rq);
+            let requestedMaxSize = hints.MaxSize;
+            if let Some(rq) = requestedMaxSize {
+                maxSize = Some(rq);
             }
-        }
 
         //1. step: Data encodation
         let encoded;
 
-        let hasCompactionHint = if let Some(EncodeHintValue::DataMatrixCompact(res)) =
-            hints.get(&EncodeHintType::DATA_MATRIX_COMPACT)
+        let hasCompactionHint = if let Some(res) =
+            hints.DataMatrixCompact
         {
-            *res
+            res
         } else {
             false
         };
         if hasCompactionHint {
-            let hasGS1FormatHint = if let Some(EncodeHintValue::Gs1Format(res)) =
-                hints.get(&EncodeHintType::GS1_FORMAT)
+            let hasGS1FormatHint = if let Some(res) =
+                hints.Gs1Format
             {
-                *res
+                res
             } else {
                 false
             };
 
             let mut charset: Option<CharacterSet> = None;
-            let hasEncodingHint = hints.contains_key(&EncodeHintType::CHARACTER_SET);
+            let hasEncodingHint = hints.CharacterSet.is_some();
             if hasEncodingHint {
-                let Some(EncodeHintValue::CharacterSet(char_set_name)) =
-                    hints.get(&EncodeHintType::CHARACTER_SET)
+                let Some(char_set_name) =
+                    &hints.CharacterSet
                 else {
                     return Err(Exceptions::illegal_argument_with("charset does not exist"));
                 };
@@ -138,10 +135,10 @@ impl Writer for DataMatrixWriter {
                 *shape,
             )?;
         } else {
-            let hasForceC40Hint = if let Some(EncodeHintValue::ForceC40(hint)) =
-                hints.get(&EncodeHintType::FORCE_C40)
+            let hasForceC40Hint = if let Some(hint) =
+                hints.ForceC40
             {
-                *hint
+                hint
             } else {
                 false
             };
@@ -313,17 +310,13 @@ mod tests {
     use std::collections::HashMap;
 
     use crate::{
-        datamatrix::{encoder::SymbolShapeHint, DataMatrixWriter},
-        BarcodeFormat, EncodeHintType, EncodeHintValue, Writer,
+        datamatrix::{encoder::SymbolShapeHint, DataMatrixWriter}, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Writer
     };
 
     #[test]
     fn testDataMatrixImageWriter() {
-        let mut hints = HashMap::new();
-        hints.insert(
-            EncodeHintType::DATA_MATRIX_SHAPE,
-            EncodeHintValue::DataMatrixShape(SymbolShapeHint::FORCE_SQUARE),
-        );
+        let mut hints = EncodeHints::default();
+        hints.DataMatrixShape = Some(SymbolShapeHint::FORCE_SQUARE);
 
         let bigEnough = 64;
         let writer = DataMatrixWriter {};
@@ -342,11 +335,8 @@ mod tests {
 
     #[test]
     fn testDataMatrixWriter() {
-        let mut hints = HashMap::new();
-        hints.insert(
-            EncodeHintType::DATA_MATRIX_SHAPE,
-            EncodeHintValue::DataMatrixShape(SymbolShapeHint::FORCE_SQUARE),
-        );
+        let mut hints = EncodeHints::default();
+        hints.DataMatrixShape = Some(SymbolShapeHint::FORCE_SQUARE);
 
         let bigEnough = 14;
         let writer = DataMatrixWriter {};
@@ -374,7 +364,7 @@ mod tests {
                 &BarcodeFormat::DATA_MATRIX,
                 tooSmall,
                 tooSmall,
-                &HashMap::new(),
+                &EncodeHints::default(),
             )
             .expect("must encode");
 

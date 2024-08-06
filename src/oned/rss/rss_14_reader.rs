@@ -17,10 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitArray, Result},
-    oned::{one_d_reader, OneDReader},
-    point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
-    Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    common::{BitArray, Result}, oned::{one_d_reader, OneDReader}, point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader
 };
 
 use super::{
@@ -49,7 +46,7 @@ impl OneDReader for RSS14Reader {
         &mut self,
         rowNumber: u32,
         row: &BitArray,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         let mut row = row.clone();
         let leftPair = self.decodePair(&row, false, rowNumber, hints);
@@ -73,22 +70,19 @@ impl OneDReader for RSS14Reader {
 }
 impl Reader for RSS14Reader {
     fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
-        self.decode_with_hints(image, &HashMap::new())
+        self.decode_with_hints(image, &DecodeHints::default())
     }
 
     // Note that we don't try rotation without the try harder flag, even if rotation was supported.
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<crate::RXingResult> {
         if let Ok(res) = self._do_decode(image, hints) {
             Ok(res)
         } else {
-            let tryHarder = matches!(
-                hints.get(&DecodeHintType::TRY_HARDER),
-                Some(DecodeHintValue::TryHarder(true))
-            );
+            let tryHarder = hints.TryHarder.unwrap_or(false);
             if tryHarder && image.is_rotate_supported() {
                 let mut rotatedImage = image.rotate_counter_clockwise();
                 let mut result = self._do_decode(&mut rotatedImage, hints)?;
@@ -243,15 +237,15 @@ impl RSS14Reader {
         row: &BitArray,
         right: bool,
         rowNumber: u32,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Option<Pair> {
         let startEnd = self.findFinderPattern(row, right).ok()?;
         let pattern = self
             .parseFoundFinderPattern(row, rowNumber, right, &startEnd)
             .ok()?;
 
-        if let Some(DecodeHintValue::NeedResultPointCallback(cb)) =
-            hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK)
+        if let Some(cb) =
+            hints.NeedResultPointCallback.clone()
         {
             let startEnd = pattern.getStartEnd();
             let mut center: f32 = (startEnd[0] + startEnd[1] - 1) as f32 / 2.0;

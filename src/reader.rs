@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{common::Result, Binarizer, BinaryBitmap, DecodingHintDictionary, RXingResult};
+use crate::{common::Result, Binarizer, BinaryBitmap, DecodeHints, RXingResult};
 
 /**
  * Implementations of this interface can decode an image of a barcode in some format into
@@ -57,7 +57,7 @@ pub trait Reader {
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult>;
 
     /**
@@ -69,12 +69,12 @@ pub trait Reader {
 }
 pub trait ImmutableReader {
     fn immutable_decode<B: Binarizer>(&self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
-        self.immutable_decode_with_hints(image, &DecodingHintDictionary::default())
+        self.immutable_decode_with_hints(image, &DecodeHints::default())
     }
 
     fn immutable_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult>;
 }

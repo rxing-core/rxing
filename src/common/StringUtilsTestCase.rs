@@ -26,7 +26,7 @@
 use rand::Rng;
 use std::collections::HashMap;
 
-use crate::common::string_utils;
+use crate::{common::string_utils, DecodeHints};
 
 use super::CharacterSet;
 
@@ -40,7 +40,7 @@ fn test_random() {
     // }
     assert_eq!(
         CharacterSet::UTF8,
-        string_utils::guessCharset(&bytes, &HashMap::new()).unwrap()
+        string_utils::guessCharset(&bytes, &DecodeHints::default()).unwrap()
     );
 }
 
@@ -97,8 +97,8 @@ fn test_utf16_le() {
 }
 
 fn do_test(bytes: &[u8], charset: CharacterSet, encoding: &str) {
-    let guessedCharset = string_utils::guessCharset(bytes, &HashMap::new()).unwrap();
-    let guessedEncoding = string_utils::guessEncoding(bytes, &HashMap::new()).unwrap();
+    let guessedCharset = string_utils::guessCharset(bytes, &DecodeHints::default()).unwrap();
+    let guessedEncoding = string_utils::guessEncoding(bytes, &DecodeHints::default()).unwrap();
     assert_eq!(charset, guessedCharset);
     assert_eq!(encoding, guessedEncoding);
 }

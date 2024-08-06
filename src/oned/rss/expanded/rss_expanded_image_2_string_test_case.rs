@@ -29,7 +29,7 @@ use std::collections::HashMap;
 use crate::{
     common::GlobalHistogramBinarizer,
     oned::{rss::expanded::RSSExpandedReader, OneDReader},
-    BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
+    BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHints,
 };
 
 /**
@@ -219,7 +219,7 @@ fn assertCorrectImage2string(fileName: &str, expected: &str) {
 
     let mut rssExpandedReader = RSSExpandedReader::new();
     let result = rssExpandedReader
-        .decode_row(rowNumber as u32, &row, &HashMap::new())
+        .decode_row(rowNumber as u32, &row, &DecodeHints::default())
         .expect("should decode");
 
     assert_eq!(&BarcodeFormat::RSS_EXPANDED, result.getBarcodeFormat());

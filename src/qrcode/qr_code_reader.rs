@@ -17,9 +17,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
-    point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions,
-    ImmutableReader, Point, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result}, point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, DecodeHints, Exceptions, ImmutableReader, Point, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader
 };
 
 use super::{
@@ -49,13 +47,13 @@ impl Reader for QRCodeReader {
      * @throws ChecksumException if error correction fails
      */
     fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
-        self.decode_with_hints(image, &HashMap::new())
+        self.decode_with_hints(image, &DecodeHints::default())
     }
 
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &crate::DecodeHints,
     ) -> Result<RXingResult> {
         self.internal_decode_with_hints(image, hints)
     }
@@ -65,7 +63,7 @@ impl ImmutableReader for QRCodeReader {
     fn immutable_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &crate::DecodeHints,
     ) -> Result<RXingResult> {
         self.internal_decode_with_hints(image, hints)
     }
@@ -192,14 +190,11 @@ impl QRCodeReader {
     fn internal_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &crate::DecodeHints,
     ) -> Result<RXingResult> {
         let decoderRXingResult: DecoderRXingResult;
         let mut points: Vec<Point>;
-        if matches!(
-            hints.get(&DecodeHintType::PURE_BARCODE),
-            Some(DecodeHintValue::PureBarcode(true))
-        ) {
+        if hints.TryHarder.unwrap_or(false) {
             let bits = Self::extractPureBits(image.get_black_matrix())?;
             decoderRXingResult = qrcode_decoder::decode_bitmatrix_with_hints(&bits, hints)?;
             points = Vec::new();
