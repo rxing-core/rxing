@@ -65,7 +65,7 @@ const ROTATIONS: [u32; 4] = [0, 180, 270, 90];
  * @throws NotFoundException if no PDF417 Code can be found
  */
 pub fn detect_with_hints<B: Binarizer>(
-    image: &mut BinaryBitmap<B>,
+    image: &BinaryBitmap<B>,
     _hints: &DecodeHints,
     multiple: bool,
 ) -> Result<PDF417DetectorRXingResult> {

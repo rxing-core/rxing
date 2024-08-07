@@ -68,13 +68,13 @@ pub trait Reader {
     }
 }
 pub trait ImmutableReader {
-    fn immutable_decode<B: Binarizer>(&self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
+    fn immutable_decode<B: Binarizer>(&self, image: &BinaryBitmap<B>) -> Result<RXingResult> {
         self.immutable_decode_with_hints(image, &DecodeHints::default())
     }
 
     fn immutable_decode_with_hints<B: Binarizer>(
         &self,
-        image: &mut BinaryBitmap<B>,
+        image: &BinaryBitmap<B>,
         hints: &DecodeHints,
     ) -> Result<RXingResult>;
 }

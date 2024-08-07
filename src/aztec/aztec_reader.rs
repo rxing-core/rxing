@@ -55,7 +55,7 @@ impl Reader for AztecReader {
 impl ImmutableReader for AztecReader {
     fn immutable_decode_with_hints<B: Binarizer>(
         &self,
-        image: &mut BinaryBitmap<B>,
+        image: &BinaryBitmap<B>,
         hints: &DecodeHints,
     ) -> Result<RXingResult> {
         self.internal_decode_with_hints(image, hints)
@@ -65,7 +65,7 @@ impl ImmutableReader for AztecReader {
 impl AztecReader {
     fn internal_decode_with_hints<B: Binarizer>(
         &self,
-        image: &mut BinaryBitmap<B>,
+        image: &BinaryBitmap<B>,
         hints: &DecodeHints,
     ) -> Result<RXingResult> {
         // let notFoundException = None;

@@ -57,7 +57,7 @@ impl Reader for PDF417Reader {
 impl ImmutableReader for PDF417Reader {
     fn immutable_decode_with_hints<B: Binarizer>(
         &self,
-        image: &mut BinaryBitmap<B>,
+        image: &BinaryBitmap<B>,
         hints: &DecodeHints,
     ) -> Result<RXingResult> {
         self.internal_decode_with_hints(image, hints)
@@ -87,7 +87,7 @@ impl PDF417Reader {
     }
 
     fn decode<B: Binarizer>(
-        image: &mut BinaryBitmap<B>,
+        image: &BinaryBitmap<B>,
         hints: &DecodeHints,
         multiple: bool,
     ) -> Result<Vec<RXingResult>> {
@@ -197,7 +197,7 @@ impl PDF417Reader {
 
     fn internal_decode_with_hints<B: Binarizer>(
         &self,
-        image: &mut BinaryBitmap<B>,
+        image: &BinaryBitmap<B>,
         hints: &DecodeHints,
     ) -> Result<RXingResult> {
         let result = Self::decode(image, hints, false)?;

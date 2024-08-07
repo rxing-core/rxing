@@ -62,7 +62,7 @@ impl Reader for QRCodeReader {
 impl ImmutableReader for QRCodeReader {
     fn immutable_decode_with_hints<B: Binarizer>(
         &self,
-        image: &mut crate::BinaryBitmap<B>,
+        image: &crate::BinaryBitmap<B>,
         hints: &crate::DecodeHints,
     ) -> Result<RXingResult> {
         self.internal_decode_with_hints(image, hints)
@@ -189,7 +189,7 @@ impl QRCodeReader {
 
     fn internal_decode_with_hints<B: Binarizer>(
         &self,
-        image: &mut crate::BinaryBitmap<B>,
+        image: &crate::BinaryBitmap<B>,
         hints: &crate::DecodeHints,
     ) -> Result<RXingResult> {
         let decoderRXingResult: DecoderRXingResult;

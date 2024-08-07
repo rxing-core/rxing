@@ -66,7 +66,7 @@ impl Reader for MaxiCodeReader {
 impl ImmutableReader for MaxiCodeReader {
     fn immutable_decode_with_hints<B: Binarizer>(
         &self,
-        image: &mut crate::BinaryBitmap<B>,
+        image: &crate::BinaryBitmap<B>,
         hints: &DecodeHints,
     ) -> Result<RXingResult> {
         self.internal_decode_with_hints(image, hints)
@@ -118,7 +118,7 @@ impl MaxiCodeReader {
 
     fn internal_decode_with_hints<B: Binarizer>(
         &self,
-        image: &mut crate::BinaryBitmap<B>,
+        image: &crate::BinaryBitmap<B>,
         hints: &DecodeHints,
     ) -> Result<RXingResult> {
         // Note that MaxiCode reader effectively always assumes PURE_BARCODE mode
@@ -128,7 +128,7 @@ impl MaxiCodeReader {
         let mut rotation = None;
 
         let decoderRXingResult = if try_harder {
-            let result = detector::detect(image.get_black_matrix_mut(), try_harder)?;
+            let result = detector::detect(image.get_black_matrix(), try_harder)?;
             rotation = Some(result.rotation());
             let parsed_result = detector::read_bits(result.getBits())?;
             maxicode_decoder::decode_with_hints(&parsed_result, hints)?
