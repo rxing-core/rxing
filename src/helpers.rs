@@ -12,7 +12,7 @@ use crate::BufferedImageLuminanceSource;
 
 #[cfg(feature = "svg_read")]
 pub fn detect_in_svg(file_name: &str, barcode_type: Option<BarcodeFormat>) -> Result<RXingResult> {
-    detect_in_svg_with_hints(file_name, barcode_type, &mut DecodeHints::default())
+    detect_in_svg_with_hints(file_name, barcode_type, &DecodeHints::default())
 }
 
 #[cfg(feature = "svg_read")]
@@ -24,8 +24,6 @@ pub fn detect_in_svg_with_hints(
     use std::{fs::File, io::Read};
 
     use crate::SVGLuminanceSource;
-
-    let mut hints = hints.clone();
 
     let path = PathBuf::from(file_name);
     if !path.exists() {
@@ -43,6 +41,8 @@ pub fn detect_in_svg_with_hints(
 
     let mut multi_format_reader = MultiFormatReader::default();
 
+    let mut hints = hints.clone();
+
     if let Some(bc_type) = barcode_type {
         hints.PossibleFormats = Some(HashSet::from([bc_type]));
     }
@@ -59,7 +59,7 @@ pub fn detect_in_svg_with_hints(
 
 #[cfg(feature = "svg_read")]
 pub fn detect_multiple_in_svg(file_name: &str) -> Result<Vec<RXingResult>> {
-    detect_multiple_in_svg_with_hints(file_name, &mut DecodeHints::default())
+    detect_multiple_in_svg_with_hints(file_name,  &DecodeHints::default())
 }
 
 #[cfg(feature = "svg_read")]
@@ -102,7 +102,7 @@ pub fn detect_multiple_in_svg_with_hints(
 
 #[cfg(feature = "image")]
 pub fn detect_in_file(file_name: &str, barcode_type: Option<BarcodeFormat>) -> Result<RXingResult> {
-    detect_in_file_with_hints(file_name, barcode_type, &mut DecodeHints::default())
+    detect_in_file_with_hints(file_name, barcode_type, &DecodeHints::default())
 }
 
 #[cfg(feature = "image")]
@@ -135,7 +135,7 @@ pub fn detect_in_file_with_hints(
 
 #[cfg(feature = "image")]
 pub fn detect_multiple_in_file(file_name: &str) -> Result<Vec<RXingResult>> {
-    detect_multiple_in_file_with_hints(file_name, &mut DecodeHints::default())
+    detect_multiple_in_file_with_hints(file_name, &DecodeHints::default())
 }
 
 #[cfg(feature = "image")]
@@ -170,7 +170,7 @@ pub fn detect_in_luma(
         height,
         width,
         barcode_type,
-        &mut DecodeHints::default(),
+        &DecodeHints::default(),
     )
 }
 
@@ -211,7 +211,7 @@ pub fn detect_in_luma_filtered(
         height,
         width,
         barcode_type,
-        &mut DecodeHints::default(),
+        &DecodeHints::default(),
     )
 }
 
@@ -242,7 +242,7 @@ pub fn detect_in_luma_filtered_with_hints(
 }
 
 pub fn detect_multiple_in_luma(luma: Vec<u8>, width: u32, height: u32) -> Result<Vec<RXingResult>> {
-    detect_multiple_in_luma_with_hints(luma, width, height, &mut DecodeHints::default())
+    detect_multiple_in_luma_with_hints(luma, width, height, &DecodeHints::default())
 }
 
 pub fn detect_multiple_in_luma_with_hints(
