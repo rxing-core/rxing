@@ -141,7 +141,7 @@ impl From<&str> for BarcodeFormat {
                 BarcodeFormat::CODE_39
             }
             "code 93" | "code_93" | "code93" => BarcodeFormat::CODE_93,
-            "code 128" | "code_129" | "code128" | "iso/ied 15417:2007" | "iso/_15417:2007" => {
+            "code 128" | "code_128" | "code128" | "iso/ied 15417:2007" | "iso/_15417:2007" => {
                 BarcodeFormat::CODE_128
             }
             "datamatrix" | "data matrix" | "data_matrix" => BarcodeFormat::DATA_MATRIX,
