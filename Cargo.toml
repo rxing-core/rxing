@@ -19,7 +19,7 @@ once_cell = "1.19"
 encoding = "0.2"
 urlencoding = "2.1.3"
 uriparse = "0.6.4"
-chrono = "0.4.38"
+chrono = { version = "0.4.38", default-features = false, features = ["clock", "std", "oldtime"] }
 chrono-tz = "0.9"
 image = {version = "0.25.2", optional = true, default-features = false}
 imageproc = {version = "0.25", optional = true}
