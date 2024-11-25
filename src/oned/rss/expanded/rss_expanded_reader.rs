@@ -40,8 +40,6 @@ use crate::{
     RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
-use once_cell::sync::Lazy;
-
 use super::{bit_array_builder, decoders::abstract_expanded_decoder, ExpandedPair, ExpandedRow};
 
 const FINDER_PAT_A: u32 = 0;
@@ -51,83 +49,81 @@ const FINDER_PAT_D: u32 = 3;
 const FINDER_PAT_E: u32 = 4;
 const FINDER_PAT_F: u32 = 5;
 
-static FINDER_PATTERN_SEQUENCES: Lazy<Vec<Vec<u32>>> = Lazy::new(|| {
-    vec![
-        vec![FINDER_PAT_A, FINDER_PAT_A],
-        vec![FINDER_PAT_A, FINDER_PAT_B, FINDER_PAT_B],
-        vec![FINDER_PAT_A, FINDER_PAT_C, FINDER_PAT_B, FINDER_PAT_D],
-        vec![
-            FINDER_PAT_A,
-            FINDER_PAT_E,
-            FINDER_PAT_B,
-            FINDER_PAT_D,
-            FINDER_PAT_C,
-        ],
-        vec![
-            FINDER_PAT_A,
-            FINDER_PAT_E,
-            FINDER_PAT_B,
-            FINDER_PAT_D,
-            FINDER_PAT_D,
-            FINDER_PAT_F,
-        ],
-        vec![
-            FINDER_PAT_A,
-            FINDER_PAT_E,
-            FINDER_PAT_B,
-            FINDER_PAT_D,
-            FINDER_PAT_E,
-            FINDER_PAT_F,
-            FINDER_PAT_F,
-        ],
-        vec![
-            FINDER_PAT_A,
-            FINDER_PAT_A,
-            FINDER_PAT_B,
-            FINDER_PAT_B,
-            FINDER_PAT_C,
-            FINDER_PAT_C,
-            FINDER_PAT_D,
-            FINDER_PAT_D,
-        ],
-        vec![
-            FINDER_PAT_A,
-            FINDER_PAT_A,
-            FINDER_PAT_B,
-            FINDER_PAT_B,
-            FINDER_PAT_C,
-            FINDER_PAT_C,
-            FINDER_PAT_D,
-            FINDER_PAT_E,
-            FINDER_PAT_E,
-        ],
-        vec![
-            FINDER_PAT_A,
-            FINDER_PAT_A,
-            FINDER_PAT_B,
-            FINDER_PAT_B,
-            FINDER_PAT_C,
-            FINDER_PAT_C,
-            FINDER_PAT_D,
-            FINDER_PAT_E,
-            FINDER_PAT_F,
-            FINDER_PAT_F,
-        ],
-        vec![
-            FINDER_PAT_A,
-            FINDER_PAT_A,
-            FINDER_PAT_B,
-            FINDER_PAT_B,
-            FINDER_PAT_C,
-            FINDER_PAT_D,
-            FINDER_PAT_D,
-            FINDER_PAT_E,
-            FINDER_PAT_E,
-            FINDER_PAT_F,
-            FINDER_PAT_F,
-        ],
-    ]
-});
+const FINDER_PATTERN_SEQUENCES: [&[u32]; 10] = [
+    &[FINDER_PAT_A, FINDER_PAT_A],
+    &[FINDER_PAT_A, FINDER_PAT_B, FINDER_PAT_B],
+    &[FINDER_PAT_A, FINDER_PAT_C, FINDER_PAT_B, FINDER_PAT_D],
+    &[
+        FINDER_PAT_A,
+        FINDER_PAT_E,
+        FINDER_PAT_B,
+        FINDER_PAT_D,
+        FINDER_PAT_C,
+    ],
+    &[
+        FINDER_PAT_A,
+        FINDER_PAT_E,
+        FINDER_PAT_B,
+        FINDER_PAT_D,
+        FINDER_PAT_D,
+        FINDER_PAT_F,
+    ],
+    &[
+        FINDER_PAT_A,
+        FINDER_PAT_E,
+        FINDER_PAT_B,
+        FINDER_PAT_D,
+        FINDER_PAT_E,
+        FINDER_PAT_F,
+        FINDER_PAT_F,
+    ],
+    &[
+        FINDER_PAT_A,
+        FINDER_PAT_A,
+        FINDER_PAT_B,
+        FINDER_PAT_B,
+        FINDER_PAT_C,
+        FINDER_PAT_C,
+        FINDER_PAT_D,
+        FINDER_PAT_D,
+    ],
+    &[
+        FINDER_PAT_A,
+        FINDER_PAT_A,
+        FINDER_PAT_B,
+        FINDER_PAT_B,
+        FINDER_PAT_C,
+        FINDER_PAT_C,
+        FINDER_PAT_D,
+        FINDER_PAT_E,
+        FINDER_PAT_E,
+    ],
+    &[
+        FINDER_PAT_A,
+        FINDER_PAT_A,
+        FINDER_PAT_B,
+        FINDER_PAT_B,
+        FINDER_PAT_C,
+        FINDER_PAT_C,
+        FINDER_PAT_D,
+        FINDER_PAT_E,
+        FINDER_PAT_F,
+        FINDER_PAT_F,
+    ],
+    &[
+        FINDER_PAT_A,
+        FINDER_PAT_A,
+        FINDER_PAT_B,
+        FINDER_PAT_B,
+        FINDER_PAT_C,
+        FINDER_PAT_D,
+        FINDER_PAT_D,
+        FINDER_PAT_E,
+        FINDER_PAT_E,
+        FINDER_PAT_F,
+        FINDER_PAT_F,
+    ],
+];
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
@@ -135,8 +131,6 @@ static FINDER_PATTERN_SEQUENCES: Lazy<Vec<Vec<u32>>> = Lazy::new(|| {
  */
 #[derive(Default)]
 pub struct RSSExpandedReader {
-    _possibleLeftPairs: Vec<Pair>,
-    _possibleRightPairs: Vec<Pair>,
     decodeFinderCounters: [u32; 4],
     dataCharacterCounters: [u32; 8],
     oddRoundingErrors: [f32; 4],
@@ -506,27 +500,31 @@ impl RSSExpandedReader {
 
     // Returns true when one of the rows already contains all the pairs
     fn isPartialRow(pairs: &[ExpandedPair], rows: &[ExpandedRow]) -> bool {
-        for r in rows {
-            let mut allFound = true;
-            for p in pairs {
-                let mut found = false;
-                for pp in r.getPairs() {
-                    if p == pp {
-                        found = true;
-                        break;
-                    }
-                }
-                if !found {
-                    allFound = false;
-                    break;
-                }
-            }
-            if allFound {
-                // the row 'r' contain all the pairs from 'pairs'
-                return true;
-            }
-        }
-        false
+        rows.iter()
+            .any(|r| !pairs.iter().any(|p| !r.getPairs().contains(p)))
+        // for r in rows {
+        //     let allFound = !pairs.iter().any(|p| !r.getPairs().contains(p));
+        //     // let mut allFound = true;
+        //     // for p in pairs {
+        //     //     // let mut found = false;
+        //     //     let found = r.getPairs().contains(p);
+        //     //     // for pp in r.getPairs() {
+        //     //     //     if p == pp {
+        //     //     //         found = true;
+        //     //     //         break;
+        //     //     //     }
+        //     //     // }
+        //     //     if !found {
+        //     //         allFound = false;
+        //     //         break;
+        //     //     }
+        //     // }
+        //     if allFound {
+        //         // the row 'r' contain all the pairs from 'pairs'
+        //         return true;
+        //     }
+        // }
+        // false
     }
 
     // Only used for unit testing

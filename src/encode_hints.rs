@@ -407,7 +407,7 @@ pub struct EncodeHints {
      * by format; for example it controls margin before and after the barcode horizontally for
      * most 1D formats. (Type {@link Integer}, or {@link String} representation of the integer value).
      */
-    pub  Margin: Option<String>,
+    pub Margin: Option<String>,
 
     /**
      * Specifies whether to use compact mode for PDF417 (type {@link Boolean}, or "true" or "false"

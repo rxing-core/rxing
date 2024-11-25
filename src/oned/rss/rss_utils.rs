@@ -16,12 +16,12 @@
 
 /** Adapted from listings in ISO/IEC 24724 Appendix B and Appendix G. */
 
-pub fn getRSSvalue(widths: &[u32], maxWidth: u32, noNarrow: bool) -> u32 {
+pub fn getRSSvalue<const S: usize>(widths: &[u32; S], maxWidth: u32, noNarrow: bool) -> u32 {
+    let elements = S as u32;
     let mut n = widths.iter().sum::<u32>();
 
     let mut val = 0;
     let mut narrowMask = 0;
-    let elements = widths.len() as u32;
     for bar in 0..(elements - 1) {
         let mut elmWidth = 1;
         narrowMask |= 1 << bar;
@@ -55,7 +55,7 @@ pub fn getRSSvalue(widths: &[u32], maxWidth: u32, noNarrow: bool) -> u32 {
     val
 }
 
-fn combins(n: u32, r: u32) -> u32 {
+const fn combins(n: u32, r: u32) -> u32 {
     let maxDenom;
     let minDenom;
 
