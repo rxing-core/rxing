@@ -89,7 +89,7 @@ impl BitArray {
     #[inline]
     fn ensure_capacity(&mut self, newSize: usize) {
         let target_size = (newSize as f32 / LOAD_FACTOR).ceil() as usize;
-        let array_desired_length = (target_size + BASE_BITS - 1) / BASE_BITS;
+        let array_desired_length = target_size.div_ceil(BASE_BITS);
 
         if self.bits.len() < array_desired_length {
             let additional_capacity = array_desired_length - self.bits.len();
@@ -472,7 +472,7 @@ impl From<&BitArray> for Vec<bool> {
 }
 
 fn makeArray(size: usize) -> Vec<BaseType> {
-    vec![0; (size + BASE_BITS - 1) / BASE_BITS]
+    vec![0; size.div_ceil(BASE_BITS)]
 }
 
 impl std::io::Read for BitArray {

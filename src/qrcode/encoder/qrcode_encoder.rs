@@ -82,11 +82,7 @@ pub fn encode_with_hints(
 
     let has_compaction_hint =
         if let Some(EncodeHintValue::QrCompact(vb)) = hints.get(&EncodeHintType::QR_COMPACT) {
-            if let Ok(v) = vb.parse::<bool>() {
-                v
-            } else {
-                false
-            }
+            vb.parse::<bool>().unwrap_or_default()
         } else {
             false
         };
@@ -158,11 +154,7 @@ pub fn encode_with_hints(
             let versionNumber = if let Some(EncodeHintValue::QrVersion(v)) =
                 hints.get(&EncodeHintType::QR_VERSION)
             {
-                if let Ok(vb) = v.parse::<u32>() {
-                    vb
-                } else {
-                    0
-                }
+                v.parse::<u32>().unwrap_or_default()
             } else {
                 0
             };
@@ -218,11 +210,7 @@ pub fn encode_with_hints(
     // Enable manual selection of the pattern to be used via hint
     let mut mask_pattern = -1;
     if let Some(EncodeHintValue::QrMaskPattern(v)) = hints.get(&EncodeHintType::QR_MASK_PATTERN) {
-        let hint_mask_pattern = if let Ok(vb) = v.parse::<i32>() {
-            vb
-        } else {
-            -1
-        };
+        let hint_mask_pattern = v.parse::<i32>().unwrap_or(-1);
 
         mask_pattern = if QRCode::isValidMaskPattern(hint_mask_pattern) {
             hint_mask_pattern

@@ -53,7 +53,7 @@ pub trait BitMatrixCursorTrait {
     // }
 
     fn edgeAtFront(&self) -> Value {
-        return self.edgeAt_point(*self.front());
+        self.edgeAt_point(*self.front())
     }
     fn edgeAtBack(&self) -> Value {
         self.edgeAt_point(self.back())

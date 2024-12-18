@@ -184,7 +184,7 @@ impl<B: Binarizer> BinaryBitmap<B> {
      * @return Whether this bitmap supports counter-clockwise rotation.
      */
     pub fn is_rotate_supported(&self) -> bool {
-        return self.binarizer.get_luminance_source().is_rotate_supported();
+        self.binarizer.get_luminance_source().is_rotate_supported()
     }
 
     /**

@@ -77,8 +77,8 @@ impl BitMatrix {
         Ok(Self {
             width,
             height,
-            row_size: ((width as usize + BASE_BITS - 1) / BASE_BITS),
-            bits: vec![0; ((width as usize + BASE_BITS - 1) / BASE_BITS) * height as usize],
+            row_size: (width as usize).div_ceil(BASE_BITS),
+            bits: vec![0; (width as usize).div_ceil(BASE_BITS) * height as usize],
         })
         // this.width = width;
         // this.height = height;
@@ -493,7 +493,7 @@ impl BitMatrix {
     pub fn rotate90(&mut self) {
         let newWidth = self.height;
         let newHeight = self.width;
-        let newRowSize = (newWidth + BASE_BITS as u32 - 1) / BASE_BITS as u32;
+        let newRowSize = newWidth.div_ceil(BASE_BITS as u32);
         let mut newBits = vec![0; (newRowSize * newHeight) as usize];
 
         for y in 0..self.height {

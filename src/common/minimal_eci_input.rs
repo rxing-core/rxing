@@ -113,7 +113,7 @@ impl ECIInput for MinimalECIInput {
                     "value at {i} is not a character but an ECI"
                 )));
             }
-            result.push_str(&self.charAt(i)?.to_string());
+            result.push(self.charAt(i)?);
         }
         Ok(result.chars().collect())
     }

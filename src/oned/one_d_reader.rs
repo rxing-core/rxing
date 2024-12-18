@@ -175,7 +175,7 @@ pub trait OneDReader: Reader {
         row: &[u8],
         hints: &DecodingHintDictionary,
     ) -> Result<RXingResult> {
-        if row.len() == 0 {
+        if row.is_empty() {
             return Err(Exceptions::NOT_FOUND);
         }
 

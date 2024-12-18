@@ -114,7 +114,7 @@ impl BitMatrixCursorTrait for EdgeTracer<'_> {
     }
 
     fn step(&mut self, s: Option<f32>) -> bool {
-        let s = if let Some(s) = s { s } else { 1.0 };
+        let s = s.unwrap_or(1.0);
         self.p += self.d * s;
         self.isIn(self.p)
     }

@@ -256,7 +256,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
                     true,
                 ));
             }
-            self.buffer.push_str(&iso.getValue().to_string());
+            self.buffer.push(iso.getValue());
         }
 
         if self.isAlphaOr646ToNumericLatch(self.current.getPosition()) {
@@ -288,7 +288,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
                 )); //end of the char block
             }
 
-            self.buffer.push_str(&alpha.getValue().to_string());
+            self.buffer.push(alpha.getValue());
         }
 
         if self.isAlphaOr646ToNumericLatch(self.current.getPosition()) {

@@ -177,7 +177,7 @@ impl Quadrilateral {
 
     #[allow(dead_code)]
     pub fn rotated_corners(&self, n: Option<i32>, mirror: Option<bool>) -> Quadrilateral {
-        let n = if let Some(n) = n { n } else { 1 };
+        let n = n.unwrap_or(1);
 
         let mirror = mirror.unwrap_or_default();
 
