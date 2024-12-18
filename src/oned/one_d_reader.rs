@@ -175,6 +175,10 @@ pub trait OneDReader: Reader {
         row: &[u8],
         hints: &DecodingHintDictionary,
     ) -> Result<RXingResult> {
+        if row.len() == 0 {
+            return Err(Exceptions::NOT_FOUND);
+        }
+
         let new_row = pad_bitarray(row, Self::QUIET_ZONE);
 
         self.decode_row(rowNumber, &new_row, hints)

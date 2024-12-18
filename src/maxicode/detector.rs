@@ -395,7 +395,7 @@ fn find_concentric_circles(image: &BitMatrix) -> Option<Vec<Circle>> {
 
     // find things that might be bullseye patterns, we start 6 in because a bullseye is at least six pixels in diameter
     let mut row = 6;
-    while row < image.getHeight() - 6 {
+    while image.getHeight() >= 6 && row < image.getHeight() - 6 {
         let mut current_column = 6;
         while current_column < image.getWidth() - 6 {
             // check if we can find something that looks like a bullseye

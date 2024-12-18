@@ -31,7 +31,7 @@ use crate::{
     oned::{
         record_pattern, record_pattern_in_reverse,
         rss::{
-            rss_utils, AbstractRSSReaderTrait, DataCharacter, DataCharacterTrait, FinderPattern
+            rss_utils, AbstractRSSReaderTrait, DataCharacter, DataCharacterTrait, FinderPattern,
         },
         OneDReader,
     },

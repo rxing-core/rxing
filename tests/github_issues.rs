@@ -553,3 +553,31 @@ fn issue_51_multiple_detection() {
         results.len()
     );
 }
+
+#[cfg(feature = "image")]
+#[test]
+fn issue_58() {
+    use rxing::{DecodingHintDictionary, Exceptions};
+
+    let mut hints: DecodingHintDictionary = DecodingHintDictionary::new();
+    hints.insert(
+        rxing::DecodeHintType::TRY_HARDER,
+        rxing::DecodeHintValue::TryHarder(true),
+    );
+    assert!(rxing::helpers::detect_multiple_in_file_with_hints(
+        "test_resources/blackbox/github_issue_cases/empty_issue_58.png",
+        &mut hints
+    )
+    .is_err_and(|e| { e == Exceptions::NOT_FOUND }));
+
+    hints.insert(
+        rxing::DecodeHintType::PURE_BARCODE,
+        rxing::DecodeHintValue::PureBarcode(true),
+    );
+
+    assert!(rxing::helpers::detect_multiple_in_file_with_hints(
+        "test_resources/blackbox/github_issue_cases/empty_issue_58.png",
+        &mut hints
+    )
+    .is_err_and(|e| { e == Exceptions::NOT_FOUND }));
+}
