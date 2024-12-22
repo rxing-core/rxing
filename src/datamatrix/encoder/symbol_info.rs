@@ -119,11 +119,11 @@ impl SymbolInfo {
             rectangular: false,
             dataCapacity: 1558,
             errorCodewords: 620,
-            matrixWidth:22,
-            matrixHeight:22,
-            dataRegions:36,
-            rsBlockData:-1,
-            rsBlockError:62,
+            matrixWidth: 22,
+            matrixHeight: 22,
+            dataRegions: 36,
+            rsBlockData: -1,
+            rsBlockError: 62,
             isSymbolInfo144: true,
         }
         // let mut new_symbol = Self::with_details(false, 1558, 620, 22, 22, 36, -1, 62);
