@@ -24,6 +24,9 @@ use crate::{
 
 use super::encoder::{aztec_encoder, AztecCode};
 
+// make default 0 to match previous behavior
+const MARGINS_SIZE: u32 = 0;
+
 /**
  * Renders an Aztec code as a {@link BitMatrix}.
  */
@@ -69,11 +72,22 @@ impl Writer for AztecWriter {
         {
             layers = *az_layers;
         }
+
+        let margins =
+            if let Some(EncodeHintValue::Margin(margin)) = hints.get(&EncodeHintType::MARGIN) {
+                margin
+                    .parse::<u32>()
+                    .map_err(|e| Exceptions::parse_with(format!("could not parse {margin}: {e}")))?
+            } else {
+                MARGINS_SIZE
+            };
+
         encode(
             contents,
             *format,
             width as u32,
             height as u32,
+            margins,
             charset,
             ecc_percent,
             layers,
@@ -81,11 +95,13 @@ impl Writer for AztecWriter {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn encode(
     contents: &str,
     format: BarcodeFormat,
     width: u32,
     height: u32,
+    margins: u32,
     charset: Option<CharacterSet>,
     ecc_percent: u32,
     layers: i32,
@@ -101,18 +117,20 @@ fn encode(
     } else {
         aztec_encoder::encode(contents, ecc_percent, layers)?
     };
-    renderRXingResult(&aztec, width, height)
+    renderRXingResult(&aztec, width, height, margins)
 }
 
-fn renderRXingResult(code: &AztecCode, width: u32, height: u32) -> Result<BitMatrix> {
+fn renderRXingResult(code: &AztecCode, width: u32, height: u32, margins: u32) -> Result<BitMatrix> {
     let input = code.getMatrix();
 
     let input_width = input.getWidth();
     let input_height = input.getHeight();
-    let output_width = width.max(input_width);
-    let output_height = height.max(input_height);
+    let padded_width = input_width + (margins * 2);
+    let padded_height = input_height + (margins * 2);
+    let output_width = width.max(padded_width);
+    let output_height = height.max(padded_height);
 
-    let multiple = (output_width / input_width).min(output_height / input_height);
+    let multiple = (output_width / padded_width).min(output_height / padded_height);
     let left_padding = (output_width - (input_width * multiple)) / 2;
     let top_padding = (output_height - (input_height * multiple)) / 2;
 
