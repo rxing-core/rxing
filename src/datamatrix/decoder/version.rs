@@ -65,31 +65,31 @@ impl Version {
         }
     }
 
-    pub fn getVersionNumber(&self) -> u32 {
+    pub const fn getVersionNumber(&self) -> u32 {
         self.versionNumber
     }
 
-    pub fn getSymbolSizeRows(&self) -> u32 {
+    pub const fn getSymbolSizeRows(&self) -> u32 {
         self.symbolSizeRows
     }
 
-    pub fn getSymbolSizeColumns(&self) -> u32 {
+    pub const fn getSymbolSizeColumns(&self) -> u32 {
         self.symbolSizeColumns
     }
 
-    pub fn getDataRegionSizeRows(&self) -> u32 {
+    pub const fn getDataRegionSizeRows(&self) -> u32 {
         self.dataRegionSizeRows
     }
 
-    pub fn getDataRegionSizeColumns(&self) -> u32 {
+    pub const fn getDataRegionSizeColumns(&self) -> u32 {
         self.dataRegionSizeColumns
     }
 
-    pub fn getTotalCodewords(&self) -> u32 {
+    pub const fn getTotalCodewords(&self) -> u32 {
         self.totalCodewords
     }
 
-    pub fn getECBlocks(&self) -> &ECBlocks {
+    pub const fn getECBlocks(&self) -> &ECBlocks {
         &self.ecBlocks
     }
 
@@ -212,11 +212,11 @@ impl ECBlocks {
         }
     }
 
-    pub fn getECCodewords(&self) -> u32 {
+    pub const fn getECCodewords(&self) -> u32 {
         self.ecCodewords
     }
 
-    pub fn getECBlocks(&self) -> &[ECB] {
+    pub const fn getECBlocks(&self) -> &[ECB] {
         &self.ecBlocks
     }
 }

@@ -115,9 +115,20 @@ impl SymbolInfo {
         }
     }
     pub const fn new_symbol_info_144() -> Self {
-        let mut new_symbol = Self::with_details(false, 1558, 620, 22, 22, 36, -1, 62);
-        new_symbol.isSymbolInfo144 = true;
-        new_symbol
+        Self {
+            rectangular: false,
+            dataCapacity: 1558,
+            errorCodewords: 620,
+            matrixWidth:22,
+            matrixHeight:22,
+            dataRegions:36,
+            rsBlockData:-1,
+            rsBlockError:62,
+            isSymbolInfo144: true,
+        }
+        // let mut new_symbol = Self::with_details(false, 1558, 620, 22, 22, 36, -1, 62);
+        // new_symbol.isSymbolInfo144 = true;
+        // new_symbol
     }
 
     fn getHorizontalDataRegions(&self) -> Result<u32> {

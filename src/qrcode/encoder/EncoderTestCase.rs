@@ -24,11 +24,10 @@ use crate::{
     },
     EncodeHintType, EncodeHintValue,
 };
-use once_cell::sync::Lazy;
 
 use super::QRCode;
 
-static SHIFT_JIS_CHARSET: Lazy<CharacterSet> = Lazy::new(|| CharacterSet::Shift_JIS);
+const SHIFT_JIS_CHARSET: CharacterSet = CharacterSet::Shift_JIS;
 
 /**
  * @author satorux@google.com (Satoru Takabayashi) - creator
