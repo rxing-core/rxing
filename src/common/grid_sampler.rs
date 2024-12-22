@@ -36,7 +36,6 @@ use super::{BitMatrix, PerspectiveTransform, Quadrilateral};
  *
  * @author Sean Owen
  */
-
 pub trait GridSampler {
     //   /**
     //    * Sets the implementation of GridSampler used by the library. One global

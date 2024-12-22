@@ -413,8 +413,8 @@ impl Code128Reader {
         one_d_reader::record_pattern(row, rowOffset, counters)?;
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
-        for d in 0..CODE_PATTERNS.len() {
-            let pattern = &CODE_PATTERNS[d];
+        for (d, pattern) in CODE_PATTERNS.iter().enumerate() {
+            // for d in 0..CODE_PATTERNS.len() {
             let variance =
                 one_d_reader::pattern_match_variance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {

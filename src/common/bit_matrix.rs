@@ -677,11 +677,6 @@ impl BitMatrix {
      * @return string representation of entire matrix utilizing given strings and line separator
      * @deprecated call {@link #toString(String,String)} only, which uses \n line separator always
      */
-    // @Deprecated
-    // public String toString(String setString, String unsetString, String lineSeparator) {
-    //   return buildToString(setString, unsetString, lineSeparator);
-    // }
-
     fn buildToString(&self, setString: &str, unsetString: &str, lineSeparator: &str) -> String {
         let mut result =
             String::with_capacity((self.height * (self.width + 1)).try_into().unwrap());
