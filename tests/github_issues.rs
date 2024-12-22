@@ -1,4 +1,10 @@
-use std::io::Read;
+use std::{io::Read, u8};
+
+use image::DynamicImage;
+use rxing::{
+    datamatrix::DataMatrixReader, DecodingHintDictionary, Dimension, EncodingHintDictionary,
+    Reader, Writer,
+};
 
 #[test]
 fn issue_27_part_2() {
@@ -580,4 +586,58 @@ fn issue_58() {
         &mut hints
     )
     .is_err_and(|e| { e == Exceptions::NOT_FOUND }));
+}
+
+#[cfg(feature = "image")]
+#[test]
+fn issue_59() {
+    use rand::prelude::*;
+    use rxing::{BufferedImageLuminanceSource, Luma8LuminanceSource};
+
+    const TEST_SIZE: usize = 1556;
+    const TEST_2_SIZE: usize = 100;
+
+    let mut rnd_data = [0; TEST_SIZE];
+    rand::thread_rng().fill_bytes(&mut rnd_data);
+    let data = rnd_data.iter().map(|c| *c as char).collect::<String>();
+
+    let writer = rxing::datamatrix::DataMatrixWriter::default();
+    let data_matrix = writer
+        .encode(&data, &rxing::BarcodeFormat::DATA_MATRIX, 0, 0)
+        .expect("must encode with size of 500");
+
+    let mut rnd_data_2 = [0; TEST_2_SIZE];
+    rand::thread_rng().fill_bytes(&mut rnd_data_2);
+    let data2 = rnd_data_2.iter().map(|c| *c as char).collect::<String>();
+
+    let mut hints = EncodingHintDictionary::default();
+    hints.insert(
+        rxing::EncodeHintType::MIN_SIZE,
+        rxing::EncodeHintValue::MinSize(Dimension::new(48, 48)),
+    );
+    let data_matrix_2 = writer
+        .encode_with_hints(&data2, &rxing::BarcodeFormat::DATA_MATRIX, 0, 0, &hints)
+        .expect("must encode with minimum size of 48x48");
+
+    let mut decode_hints = DecodingHintDictionary::default();
+    decode_hints.insert(
+        rxing::DecodeHintType::TRY_HARDER,
+        rxing::DecodeHintValue::TryHarder(true),
+    );
+
+    let img: DynamicImage = data_matrix.into();
+    let ls = BufferedImageLuminanceSource::new(img);
+    let mut bb = rxing::BinaryBitmap::new(rxing::common::HybridBinarizer::new(ls));
+    let detection = rxing::MultiFormatReader::default()
+        .decode_with_hints(&mut bb, &decode_hints)
+        .expect("must decode first image");
+    assert_eq!(detection.getText(), data);
+
+    let img: DynamicImage = data_matrix_2.into();
+    let ls = BufferedImageLuminanceSource::new(img);
+    let mut bb = rxing::BinaryBitmap::new(rxing::common::HybridBinarizer::new(ls));
+    let detection = rxing::MultiFormatReader::default()
+        .decode_with_hints(&mut bb, &decode_hints)
+        .expect("must decode first image");
+    assert_eq!(detection.getText(), data2);
 }
