@@ -1,10 +1,7 @@
 use std::io::Read;
 
 use image::DynamicImage;
-use rxing::{
-    DecodingHintDictionary, Dimension, EncodingHintDictionary,
-    Reader, Writer,
-};
+use rxing::{DecodingHintDictionary, Dimension, EncodingHintDictionary, Reader, Writer};
 
 #[test]
 fn issue_27_part_2() {

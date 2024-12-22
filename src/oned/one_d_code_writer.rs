@@ -19,11 +19,6 @@ use crate::{
     BarcodeFormat, Exceptions, Writer,
 };
 
-use once_cell::sync::Lazy;
-use regex::Regex;
-
-pub static NUMERIC: Lazy<Regex> = Lazy::new(|| Regex::new("[0-9]+").unwrap());
-
 /**
  * <p>Encapsulates functionality and implementation that is common to one-dimensional barcodes.</p>
  *
@@ -98,7 +93,8 @@ pub trait OneDimensionalCodeWriter: Writer {
      * @throws IllegalArgumentException if input contains characters other than digits 0-9.
      */
     fn checkNumeric(contents: &str) -> Result<()> {
-        if !NUMERIC.is_match(contents) {
+        let is_numeric = contents.chars().all(|c| c.is_numeric());
+        if !is_numeric {
             Err(Exceptions::illegal_argument_with(
                 "Input should only contain digits 0-9",
             ))

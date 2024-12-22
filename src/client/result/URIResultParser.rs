@@ -35,10 +35,10 @@ use crate::RXingResult;
 use super::{ParsedClientResult, ResultParser, URIParsedRXingResult};
 
 static ALLOWED_URI_CHARS: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(ALLOWED_URI_CHARS_PATTERN).expect("Regex patterns should always copile")
+    Regex::new(ALLOWED_URI_CHARS_PATTERN).expect("Regex patterns should always compile")
 });
 static USER_IN_HOST: Lazy<Regex> =
-    Lazy::new(|| Regex::new(":/*([^/@]+)@[^/]+").expect("Regex patterns should always copile"));
+    Lazy::new(|| Regex::new(":/*([^/@]+)@[^/]+").expect("Regex patterns should always compile"));
 
 /// See http://www.ietf.org/rfc/rfc2396.txt
 static URL_WITH_PROTOCOL_PATTERN: Lazy<Regex> =

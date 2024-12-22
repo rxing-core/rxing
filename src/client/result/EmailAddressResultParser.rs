@@ -26,7 +26,7 @@ use regex::Regex;
 use crate::RXingResult;
 use once_cell::sync::Lazy;
 
-static COMMA: Lazy<Regex> = Lazy::new(|| Regex::new(",").unwrap());
+// static COMMA: Lazy<Regex> = Lazy::new(|| Regex::new(",").unwrap());
 static ATEXT_ALPHANUMERIC: Lazy<Regex> =
     Lazy::new(|| Regex::new("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+").unwrap());
 
@@ -61,7 +61,8 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
         let mut tos = if hostEmail.is_empty() {
             Vec::new()
         } else {
-            COMMA.split(hostEmail).map(|s| s.to_owned()).collect()
+            hostEmail.split(",").map(|s| s.to_owned()).collect()
+            // COMMA.split(hostEmail).map(|s| s.to_owned()).collect()
         };
         // if (!hostEmail.isEmpty()) {
         //   tos = COMMA.split(hostEmail);
@@ -75,20 +76,23 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
             // if (nameValues != null) {
             if tos.is_empty() {
                 if let Some(tosString) = nv.get("to") {
-                    tos = COMMA.split(tosString).map(|s| s.to_owned()).collect();
+                    tos = tosString.split(",").map(|s| s.to_owned()).collect();
+                    // tos = COMMA.split(tosString).map(|s| s.to_owned()).collect();
                 }
                 // if tosString != null {
                 //   tos = COMMA.split(tosString);
                 // }
             }
             if let Some(ccString) = nv.get("cc") {
-                ccs = COMMA.split(ccString).map(|s| s.to_owned()).collect();
+                ccs = ccString.split(",").map(|s| s.to_owned()).collect();
+                // ccs = COMMA.split(ccString).map(|s| s.to_owned()).collect();
             }
             // if ccString != null {
             //   ccs = COMMA.split(ccString);
             // }
             if let Some(bccString) = nv.get("bcc") {
-                bccs = COMMA.split(bccString).map(|s| s.to_owned()).collect();
+                bccs = bccString.split(",").map(|s| s.to_owned()).collect();
+                // bccs = COMMA.split(bccString).map(|s| s.to_owned()).collect();
             }
             // if bccString != null {
             //   bccs = COMMA.split(bccString);

@@ -27,26 +27,20 @@
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  */
-use once_cell::sync::Lazy;
-use regex::Regex;
-
 use crate::{
     common::{BitArray, Result},
     Exceptions,
 };
 
-static ONE: Lazy<Regex> = Lazy::new(|| Regex::new("1").unwrap());
-static ZERO: Lazy<Regex> = Lazy::new(|| Regex::new("0").unwrap());
-static SPACE: Lazy<Regex> = Lazy::new(|| Regex::new(" ").unwrap());
-
 /*
  * Constructs a BitArray from a String like the one returned from BitArray.toString()
  */
 pub fn buildBitArrayFromString(data: &str) -> Result<BitArray> {
-    let dotsAndXs = ZERO
-        .replace_all(&ONE.replace_all(data, "X"), ".")
-        .to_string();
-    let mut binary = BitArray::with_size(SPACE.replace_all(&dotsAndXs, "").chars().count());
+    let dotsAndXs = data.replace("1", "X").replace("0", ".");
+    // let dotsAndXs = ZERO
+    //     .replace_all(&ONE.replace_all(data, "X"), ".")
+    //     .to_string();
+    let mut binary = BitArray::with_size(dotsAndXs.replace(" ", "").chars().count());
     let mut counter = 0;
 
     for i in 0..dotsAndXs.chars().count() {
@@ -72,9 +66,10 @@ pub fn buildBitArrayFromStringWithoutSpaces(data: &str) -> Result<BitArray> {
     let mut sb = String::new();
 
     // let dotsAndXs = ZERO.matcher(ONE.matcher(data).replaceAll("X")).replaceAll(".");
-    let dotsAndXs = ZERO
-        .replace_all(&ONE.replace_all(data, "X"), ".")
-        .to_string();
+    let dotsAndXs = data.replace("1", "X").replace("0", ".");
+    // let dotsAndXs = ZERO
+    //     .replace_all(&ONE.replace_all(data, "X"), ".")
+    //     .to_string();
     let mut current = 0;
     let dotsAndXs_length = dotsAndXs.chars().count();
     while current < dotsAndXs_length {
@@ -139,7 +134,7 @@ mod BinaryUtilTest {
     }
 
     fn checkWithoutSpaces(data: &str) {
-        let dataWithoutSpaces = super::SPACE.replace_all(data, "");
+        let dataWithoutSpaces = data.replace(" ", ""); // super::SPACE.replace_all(data, "");
         let binary =
             super::buildBitArrayFromStringWithoutSpaces(&dataWithoutSpaces).expect("success");
         assert_eq!(data, binary.to_string());
