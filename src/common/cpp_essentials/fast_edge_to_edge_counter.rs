@@ -14,7 +14,7 @@ pub struct FastEdgeToEdgeCounter<'a> {
     under_arry: &'a BitMatrix, //,Vec<bool>
 }
 
-impl<'a> FastEdgeToEdgeCounter<'a> {
+impl FastEdgeToEdgeCounter<'_> {
     pub fn new<T: BitMatrixCursorTrait>(cur: &T) -> FastEdgeToEdgeCounter {
         let stride = cur.d().y as isize * cur.img().width() as isize + cur.d().x as isize;
         let p = ((cur.p().y as isize * cur.img().width() as isize).abs() as i32 + cur.p().x as i32)

@@ -1,8 +1,8 @@
-use std::{io::Read, u8};
+use std::io::Read;
 
 use image::DynamicImage;
 use rxing::{
-    datamatrix::DataMatrixReader, DecodingHintDictionary, Dimension, EncodingHintDictionary,
+    DecodingHintDictionary, Dimension, EncodingHintDictionary,
     Reader, Writer,
 };
 
@@ -592,7 +592,7 @@ fn issue_58() {
 #[test]
 fn issue_59() {
     use rand::prelude::*;
-    use rxing::{BufferedImageLuminanceSource, Luma8LuminanceSource};
+    use rxing::BufferedImageLuminanceSource;
 
     const TEST_SIZE: usize = 1556;
     const TEST_2_SIZE: usize = 100;
@@ -601,7 +601,7 @@ fn issue_59() {
     rand::thread_rng().fill_bytes(&mut rnd_data);
     let data = rnd_data.iter().map(|c| *c as char).collect::<String>();
 
-    let writer = rxing::datamatrix::DataMatrixWriter::default();
+    let writer = rxing::datamatrix::DataMatrixWriter;
     let data_matrix = writer
         .encode(&data, &rxing::BarcodeFormat::DATA_MATRIX, 0, 0)
         .expect("must encode with size of 500");

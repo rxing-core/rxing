@@ -373,7 +373,7 @@ impl Code128Reader {
                     for startCode in CODE_START_A..=CODE_START_C {
                         let variance = one_d_reader::pattern_match_variance(
                             &counters,
-                            &CODE_PATTERNS[startCode as usize],
+                            CODE_PATTERNS[startCode as usize],
                             MAX_INDIVIDUAL_VARIANCE,
                         );
                         if variance < bestVariance {
