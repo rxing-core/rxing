@@ -16,7 +16,6 @@
 
 //package com.google.zxing.common;
 
-use std::borrow::Cow;
 use std::cmp;
 use std::io::{ErrorKind, Read};
 
@@ -176,7 +175,7 @@ impl<'a> BitSource<'a> {
     }
 }
 
-impl<'a> Read for BitSource<'a> {
+impl Read for BitSource<'_> {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let requested_bytes = buf.len();
         let available = self.available();
