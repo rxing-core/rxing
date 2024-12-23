@@ -109,10 +109,10 @@ const VALUE_236: &str = "[)>\u{001E}05\u{001D}";
 const VALUE_237: &str = "[)>\u{001E}06\u{001D}";
 
 pub fn decode(bytes: &[u8], is_flipped: bool) -> Result<DecoderRXingResult> {
-    let mut bits = BitSource::new(bytes.to_vec());
+    let mut bits = BitSource::new(bytes);
     let mut result = ECIStringBuilder::with_capacity(100);
     let mut resultTrailer = String::new();
-    let mut byteSegments = Vec::new(); //new ArrayList<>(1);
+    let mut byteSegments = Vec::new();
     let mut mode = Mode::ASCII_ENCODE;
     // Could look directly at 'bytes', if we're sure of not having to account for multi byte values
     let mut fnc1Positions = Vec::new();

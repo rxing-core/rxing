@@ -287,7 +287,7 @@ pub fn DecodeBitStream(
     version: &Version,
     ecLevel: ErrorCorrectionLevel,
 ) -> Result<DecoderResult<bool>> {
-    let mut bits = BitSource::new(bytes.to_vec());
+    let mut bits = BitSource::new(bytes);
     let mut result = ECIStringBuilder::default();
     // Error error;
     result.symbology = SymbologyIdentifier {
