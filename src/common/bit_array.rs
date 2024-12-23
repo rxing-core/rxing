@@ -471,14 +471,11 @@ impl From<&BitArray> for Vec<bool> {
     }
 }
 
-impl Into<BitArray> for Vec<u8> {
-    fn into(self) -> BitArray {
-        let mut new_array = BitArray::with_capacity(self.len());
-        for (pos, byte) in self.into_iter().enumerate() {
-            match byte {
-                0 => new_array.set(pos),
-                _ => {}
-            }
+impl From<Vec<u8>> for BitArray {
+    fn from(val: Vec<u8>) -> Self {
+        let mut new_array = BitArray::with_capacity(val.len());
+        for (pos, byte) in val.into_iter().enumerate() {
+            if byte == 0 { new_array.set(pos) }
         }
         new_array
     }

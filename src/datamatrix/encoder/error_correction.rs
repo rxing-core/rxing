@@ -206,7 +206,7 @@ fn createECCBlock(codewords: &[u8], numECWords: usize) -> Result<Vec<u8>> {
             ))
         })?;
 
-    let poly = FACTORS[table as usize];
+    let poly = FACTORS[table];
     let mut ecc = vec![0u8; numECWords];
     for codeword in codewords {
         let m = ecc[numECWords - 1] as usize ^ *codeword as usize;
