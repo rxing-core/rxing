@@ -357,6 +357,7 @@ impl MinimalECIInput {
                     .iter()
                     .map(|x| *x as u16)
                     .collect();
+
                 let mut i = bytes.len() as isize - 1;
                 while i >= 0 {
                     // for (int i = bytes.length - 1; i >= 0; i--) {

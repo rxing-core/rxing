@@ -60,11 +60,18 @@ impl BitSourceBuilder {
         }
     }
 
-    pub fn toByteArray(&mut self) -> &Vec<u8> {
+    pub fn asByteArray(&mut self) -> &Vec<u8> {
         if self.bitsLeftInNextByte < 8 {
             self.write(0, self.bitsLeftInNextByte);
         }
         &self.output
+    }
+
+    pub fn toByteArray(mut self) -> Vec<u8> {
+        if self.bitsLeftInNextByte < 8 {
+            self.write(0, self.bitsLeftInNextByte);
+        }
+        self.output
     }
 }
 

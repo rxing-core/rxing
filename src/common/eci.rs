@@ -49,18 +49,18 @@ impl Eci {
         (self as i32) >= 899
     }
 
-    pub fn try_from_i32(value: i32) -> Result<Self> {
-        let v = Self::from(value);
-        if v == Eci::Unknown {
-            Err(Exceptions::ILLEGAL_ARGUMENT)
-        } else {
-            Ok(v)
-        }
-    }
+    // pub fn try_from_i32(value: i32) -> Result<Self> {
+    //     let v = Self::from(value);
+    //     if v == Eci::Unknown {
+    //         Err(Exceptions::ILLEGAL_ARGUMENT)
+    //     } else {
+    //         Ok(v)
+    //     }
+    // }
 
-    pub fn try_from_u32(value: u32) -> Result<Self> {
-        Self::try_from_i32(value as i32)
-    }
+    // pub fn try_from_u32(value: u32) -> Result<Self> {
+    //     Self::try_from_i32(value as i32)
+    // }
 }
 
 impl From<u32> for Eci {
