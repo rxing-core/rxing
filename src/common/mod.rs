@@ -129,3 +129,6 @@ pub use adaptive_threshold_binarizer::*;
 pub type BitFieldBaseType = usize;
 pub const BIT_FIELD_BASE_BITS: usize = BitFieldBaseType::BITS as usize;
 pub const BIT_FIELD_SHIFT_BITS: usize = BIT_FIELD_BASE_BITS - 1;
+
+#[cfg(feature = "experimental_features")]
+mod bitmatrix_sources;

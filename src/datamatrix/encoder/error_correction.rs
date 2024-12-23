@@ -151,30 +151,22 @@ const ALOG: [u32; 255] = {
  * @return the codewords with interleaved error correction.
  */
 pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String> {
-    if codewords.chars().count() != symbolInfo.getDataCapacity() as usize {
+    let codewords: Vec<u8> = codewords.chars().map(|c| c as u8).collect();
+
+    if codewords.len() != symbolInfo.getDataCapacity() as usize {
         return Err(Exceptions::illegal_argument_with(
             "The number of codewords does not match the selected symbol",
         ));
     }
-    let mut sb = String::with_capacity(
-        (symbolInfo.getDataCapacity() + symbolInfo.getErrorCodewords()) as usize,
-    );
-    sb.push_str(codewords);
+
+    let mut sb = vec![0; (symbolInfo.getDataCapacity() + symbolInfo.getErrorCodewords()) as usize];
+    sb[..codewords.len()].copy_from_slice(&codewords);
+
     let blockCount = symbolInfo.getInterleavedBlockCount() as usize;
     if blockCount == 1 {
-        let ecc = createECCBlock(codewords, symbolInfo.getErrorCodewords() as usize)?;
-        sb.push_str(&ecc);
+        let ecc = createECCBlock(&codewords, symbolInfo.getErrorCodewords() as usize)?;
+        sb[codewords.len()..ecc.len() + codewords.len()].copy_from_slice(ecc.as_slice());
     } else {
-        //sb.setLength(sb.capacity());
-        sb.push_str(
-            &vec![
-                char::default();
-                (symbolInfo.getDataCapacity() + symbolInfo.getErrorCodewords()) as usize
-                    - sb.chars().count()
-            ]
-            .into_iter()
-            .collect::<String>(),
-        );
         let mut dataSizes = vec![0u32; blockCount];
         let mut errorSizes = vec![0u32; blockCount];
         for i in 0..blockCount {
@@ -182,15 +174,10 @@ pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String> 
             errorSizes[i] = symbolInfo.getErrorLengthForInterleavedBlock(i as u32 + 1);
         }
         for block in 0..blockCount {
-            let mut temp = String::with_capacity(dataSizes[block] as usize);
+            let mut temp = Vec::with_capacity(dataSizes[block] as usize);
             let mut d = block;
             while d < symbolInfo.getDataCapacity() as usize {
-                temp.push(
-                    codewords
-                        .chars()
-                        .nth(d)
-                        .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
-                );
+                temp.push(codewords[d]);
 
                 d += blockCount;
             }
@@ -198,17 +185,7 @@ pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String> 
             let mut pos = 0;
             let mut e = block;
             while e < errorSizes[block] as usize * blockCount {
-                let (char_index, _) = sb
-                    .char_indices()
-                    .nth(symbolInfo.getDataCapacity() as usize + e)
-                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
-                sb.replace_range(
-                    char_index..(char_index + 1),
-                    &ecc.chars()
-                        .nth(pos)
-                        .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
-                        .to_string(),
-                );
+                sb[symbolInfo.getDataCapacity() as usize + e] = ecc[pos];
                 pos += 1;
 
                 e += blockCount;
@@ -216,60 +193,36 @@ pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String> 
         }
     }
 
-    Ok(sb)
+    Ok(sb.into_iter().map(|c| c as char).collect())
 }
 
-fn createECCBlock(codewords: &str, numECWords: usize) -> Result<String> {
-    let mut table = -1_isize;
-    for (i, set) in FACTOR_SETS.iter().enumerate() {
-        // for i in 0..FACTOR_SETS.len() {
-        // for (int i = 0; i < FACTOR_SETS.length; i++) {
-        if set == &(numECWords as u32) {
-            table = i as isize;
-            break;
-        }
-    }
-    if table < 0 {
-        return Err(Exceptions::illegal_argument_with(format!(
-            "Illegal number of error correction codewords specified: {numECWords}"
-        )));
-    }
+fn createECCBlock(codewords: &[u8], numECWords: usize) -> Result<Vec<u8>> {
+    let table = FACTOR_SETS
+        .iter()
+        .position(|&set| set == numECWords as u32)
+        .ok_or_else(|| {
+            Exceptions::illegal_argument_with(format!(
+                "Illegal number of error correction codewords specified: {numECWords}"
+            ))
+        })?;
+
     let poly = FACTORS[table as usize];
-    let mut ecc = vec![0 as char; numECWords];
-    // for i in 0..numECWords {
-    // // for (int i = 0; i < numECWords; i++) {
-    //   ecc[i] = 0;
-    // }
-    for i in 0..codewords.chars().count() {
-        // for (int i = 0; i < codewords.length(); i++) {
-        let m = ecc[numECWords - 1] as usize
-            ^ codewords
-                .chars()
-                .nth(i)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as usize;
+    let mut ecc = vec![0u8; numECWords];
+    for codeword in codewords {
+        let m = ecc[numECWords - 1] as usize ^ *codeword as usize;
         for k in (1..numECWords).rev() {
-            // for (int k = numECWords - 1; k > 0; k--) {
             if m != 0 && poly[k] != 0 {
-                ecc[k] = char::from_u32(
-                    ecc[k - 1] as u32 ^ ALOG[(LOG[m] + LOG[poly[k] as usize]) as usize % 255],
-                )
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+                ecc[k] = ecc[k - 1] ^ ALOG[(LOG[m] + LOG[poly[k] as usize]) as usize % 255] as u8;
             } else {
                 ecc[k] = ecc[k - 1];
             }
         }
         if m != 0 && poly[0] != 0 {
-            ecc[0] = char::from_u32(ALOG[(LOG[m] + LOG[poly[0] as usize]) as usize % 255])
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+            ecc[0] = ALOG[(LOG[m] + LOG[poly[0] as usize]) as usize % 255] as u8;
         } else {
-            ecc[0] = 0 as char;
+            ecc[0] = 0;
         }
     }
-    // let eccReversed = new char[numECWords];
-    // for (int i = 0; i < numECWords; i++) {
-    //   eccReversed[i] = ecc[numECWords - i - 1];
-    // }
-    // return String.valueOf(eccReversed);
     Ok(ecc.into_iter().rev().collect())
 }
 

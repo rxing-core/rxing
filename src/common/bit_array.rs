@@ -471,6 +471,19 @@ impl From<&BitArray> for Vec<bool> {
     }
 }
 
+impl Into<BitArray> for Vec<u8> {
+    fn into(self) -> BitArray {
+        let mut new_array = BitArray::with_capacity(self.len());
+        for (pos, byte) in self.into_iter().enumerate() {
+            match byte {
+                0 => new_array.set(pos),
+                _ => {}
+            }
+        }
+        new_array
+    }
+}
+
 fn makeArray(size: usize) -> Vec<BaseType> {
     vec![0; size.div_ceil(BASE_BITS)]
 }
