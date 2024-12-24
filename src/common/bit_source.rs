@@ -31,19 +31,19 @@ use crate::Exceptions;
  *
  * @author Sean Owen
  */
-pub struct BitSource {
-    bytes: Vec<u8>,
+pub struct BitSource<'a> {
+    bytes: &'a [u8],
     byte_offset: usize,
     bit_offset: usize,
 }
 
-impl BitSource {
+impl<'a> BitSource<'a> {
     /**
      * @param bytes bytes from which this will read bits. Bits will be read from the first byte first.
      * Bits are read within a byte from most-significant to least-significant bit.
      */
-    pub fn new(bytes: Vec<u8>) -> Self {
-        Self {
+    pub fn new(bytes: &'a [u8]) -> Self {
+        BitSource {
             bytes,
             byte_offset: 0,
             bit_offset: 0,
@@ -175,7 +175,7 @@ impl BitSource {
     }
 }
 
-impl Read for BitSource {
+impl Read for BitSource<'_> {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let requested_bytes = buf.len();
         let available = self.available();

@@ -29,7 +29,7 @@ use super::BitSource;
 #[test]
 fn test_source() {
     let bytes: Vec<u8> = vec![1, 2, 3, 4, 5];
-    let mut source = BitSource::new(bytes);
+    let mut source = BitSource::new(&bytes);
     assert_eq!(40, source.available());
     assert_eq!(0, source.readBits(1).unwrap());
     assert_eq!(39, source.available());

@@ -47,7 +47,7 @@ pub fn decode(
     ecLevel: ErrorCorrectionLevel,
     hints: &DecodingHintDictionary,
 ) -> Result<DecoderRXingResult> {
-    let mut bits = BitSource::new(bytes.to_owned());
+    let mut bits = BitSource::new(bytes);
     let mut result = ECIStringBuilder::with_capacity(50); //String::with_capacity(50);
     let mut byteSegments: std::vec::Vec<std::vec::Vec<u8>> = vec![];
     let mut symbolSequence = -1;
