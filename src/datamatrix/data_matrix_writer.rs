@@ -30,6 +30,9 @@ use super::encoder::{
 
 use super::encoder::error_correction;
 
+// make default 0 to match previous behavior
+const MARGINS_SIZE: u32 = 0;
+
 /**
  * This object renders a Data Matrix code as a BitMatrix 2D array of greyscale values.
  *
@@ -177,8 +180,17 @@ impl Writer for DataMatrixWriter {
         );
         placement.place()?;
 
+        let margins =
+            if let Some(EncodeHintValue::Margin(margin)) = hints.get(&EncodeHintType::MARGIN) {
+                margin
+                    .parse::<u32>()
+                    .map_err(|e| Exceptions::parse_with(format!("could not parse {margin}: {e}")))?
+            } else {
+                MARGINS_SIZE
+            };
+
         //4. step: low-level encoding
-        Self::encodeLowLevel(&placement, symbolInfo, width as u32, height as u32)
+        Self::encodeLowLevel(&placement, symbolInfo, width as u32, height as u32, margins)
     }
 }
 
@@ -195,6 +207,7 @@ impl DataMatrixWriter {
         symbolInfo: &SymbolInfo,
         width: u32,
         height: u32,
+        margins: u32,
     ) -> Result<BitMatrix> {
         let symbolWidth = symbolInfo.getSymbolDataWidth()?;
         let symbolHeight = symbolInfo.getSymbolDataHeight()?;
@@ -246,7 +259,7 @@ impl DataMatrixWriter {
             }
         }
 
-        Self::convertByteMatrixToBitMatrix(&matrix, width, height)
+        Self::convertByteMatrixToBitMatrix(&matrix, width, height, margins)
     }
 
     /**
@@ -261,13 +274,16 @@ impl DataMatrixWriter {
         matrix: &ByteMatrix,
         reqWidth: u32,
         reqHeight: u32,
+        margins: u32,
     ) -> Result<BitMatrix> {
         let matrixWidth = matrix.getWidth();
         let matrixHeight = matrix.getHeight();
-        let outputWidth = reqWidth.max(matrixWidth);
-        let outputHeight = reqHeight.max(matrixHeight);
+        let paddedWidth = matrixWidth + (margins * 2);
+        let paddedHeight = matrixHeight + (margins * 2);
+        let outputWidth = reqWidth.max(paddedWidth);
+        let outputHeight = reqHeight.max(paddedHeight);
 
-        let multiple = (outputWidth / matrixWidth).min(outputHeight / matrixHeight);
+        let multiple = (outputWidth / paddedWidth).min(outputHeight / paddedHeight);
 
         let mut leftPadding = (outputWidth - (matrixWidth * multiple)) / 2;
         let mut topPadding = (outputHeight - (matrixHeight * multiple)) / 2;
