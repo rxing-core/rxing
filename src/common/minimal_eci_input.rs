@@ -105,7 +105,7 @@ impl ECIInput for MinimalECIInput {
         if start > end || end > self.length() {
             return Err(Exceptions::INDEX_OUT_OF_BOUNDS);
         }
-        let mut result = String::new();
+        let mut result = Vec::with_capacity(end - start);
         for i in start..end {
             //   for (int i = start; i < end; i++) {
             if self.isECI(i as u32)? {
@@ -115,7 +115,7 @@ impl ECIInput for MinimalECIInput {
             }
             result.push(self.charAt(i)?);
         }
-        Ok(result.chars().collect())
+        Ok(result)
     }
 
     /**
@@ -199,20 +199,17 @@ impl MinimalECIInput {
         let stringToEncode = stringToEncodeInput.graphemes(true).collect::<Vec<&str>>();
         let encoderSet = ECIEncoderSet::new(stringToEncodeInput, priorityCharset, fnc1);
         let bytes = if encoderSet.len() == 1 {
-            //optimization for the case when all can be encoded without ECI in ISO-8859-1
-            let mut bytes_hld = vec![0; stringToEncode.len()];
-            for (byt, c) in bytes_hld
-                .iter_mut()
-                .zip(&stringToEncode)
-                .take(stringToEncode.len())
-            {
-                *byt = if fnc1.is_some() && c == fnc1.as_ref().unwrap() {
-                    1000
-                } else {
-                    c.chars().next().unwrap() as u16
-                };
-            }
-            bytes_hld
+            //optimization for the case when all can be encoded without ECI in ISO-8859-1)
+            stringToEncode
+                .iter()
+                .map(|c| {
+                    if fnc1.is_some() && c == fnc1.as_ref().unwrap() {
+                        1000
+                    } else {
+                        c.chars().next().unwrap() as u16
+                    }
+                })
+                .collect()
         } else {
             Self::encodeMinimally(stringToEncodeInput, &encoderSet, fnc1)
         };
@@ -277,15 +274,14 @@ impl MinimalECIInput {
         let mut start = 0;
         let mut end = encoderSet.len();
         //if let Some(fnc1) = fnc1 {
-        if encoderSet.getPriorityEncoderIndex().is_some()
-            && ((fnc1.is_some()
+        if let Some(pei) = encoderSet.getPriorityEncoderIndex() {
+            if (fnc1.is_some()
                 && ch.chars().next().unwrap() == fnc1.as_ref().unwrap().chars().next().unwrap())
-                || encoderSet
-                    .canEncode(ch, encoderSet.getPriorityEncoderIndex().unwrap())
-                    .unwrap())
-        {
-            start = encoderSet.getPriorityEncoderIndex().unwrap();
-            end = start + 1;
+                || encoderSet.canEncode(ch, pei).unwrap()
+            {
+                start = pei;
+                end = start + 1;
+            }
         }
         //}
 
@@ -334,7 +330,7 @@ impl MinimalECIInput {
         let mut minimalJ: i32 = -1;
         let mut minimalSize: i32 = i32::MAX;
         for j in 0..encoderSet.len() {
-            if let Some(edge) = edges[inputLength][j].clone() {
+            if let Some(edge) = &edges[inputLength][j] {
                 if (edge.cachedTotalSize as i32) < minimalSize {
                     minimalSize = edge.cachedTotalSize as i32;
                     minimalJ = j as i32;
@@ -351,26 +347,21 @@ impl MinimalECIInput {
             if c.isFNC1() {
                 intsAL.splice(0..0, [1000]);
             } else {
-                let bytes: Vec<u16> = encoderSet
+                encoderSet
                     .encode_char(&c.c, c.encoderIndex)
                     .unwrap_or_default()
                     .iter()
-                    .map(|x| *x as u16)
-                    .collect();
-
-                let mut i = bytes.len() as isize - 1;
-                while i >= 0 {
-                    // for (int i = bytes.length - 1; i >= 0; i--) {
-                    // intsAL.splice(0..0, [bytes[i as usize]]);
-                    intsAL.insert(0, bytes[i as usize]);
-                    i -= 1;
-                }
+                    .rev()
+                    .for_each(|&byte| {
+                        intsAL.insert(0, byte as u16);
+                    });
             }
-            let previousEncoderIndex = if c.previous.is_none() {
-                0
+            let previousEncoderIndex = if let Some(prev) = &c.previous {
+                prev.encoderIndex
             } else {
-                c.previous.clone().unwrap().encoderIndex
+                0
             };
+
             if previousEncoderIndex != c.encoderIndex {
                 intsAL.insert(0, 256_u16 + encoderSet.get_eci(c.encoderIndex) as u16);
             }
