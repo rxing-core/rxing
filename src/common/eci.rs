@@ -1,10 +1,8 @@
 use std::fmt::Display;
 
-use crate::Exceptions;
 
 use super::CharacterSet;
 
-use crate::common::Result;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Eci {
