@@ -79,10 +79,10 @@ impl<LS: LuminanceSource> Binarizer for GlobalHistogramBinarizer<LS> {
 
             if width < 3 {
                 // Special case for very small images
-                for (x, lum) in localLuminances.iter().enumerate().take(width) {
+                for (x, &lum) in localLuminances.iter().enumerate().take(width) {
                     // for x in 0..width {
                     //   for (int x = 0; x < width; x++) {
-                    if (*lum as u32) < blackPoint {
+                    if (lum as u32) < blackPoint {
                         row.set(x);
                     }
                 }
@@ -242,30 +242,25 @@ impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {
         Ok(matrix)
     }
 
-    fn estimateBlackPoint(buckets: &[u32]) -> Result<u32> {
+    fn estimateBlackPoint<const BUCKET_COUNT: usize>(buckets: &[u32; BUCKET_COUNT]) -> Result<u32> {
         // Find the tallest peak in the histogram.
-        let numBuckets = buckets.len();
         let mut maxBucketCount = 0;
         let mut firstPeak = 0;
         let mut firstPeakSize = 0;
-        for (x, bucket) in buckets.iter().enumerate().take(numBuckets) {
-            // for x in 0..numBuckets {
-            // for (int x = 0; x < numBuckets; x++) {
-            if *bucket > firstPeakSize {
+        for (x, &bucket) in buckets.iter().enumerate() {
+            if bucket > firstPeakSize {
                 firstPeak = x;
-                firstPeakSize = *bucket;
+                firstPeakSize = bucket;
             }
-            if *bucket > maxBucketCount {
-                maxBucketCount = *bucket;
+            if bucket > maxBucketCount {
+                maxBucketCount = bucket;
             }
         }
 
         // Find the second-tallest peak which is somewhat far from the tallest peak.
         let mut secondPeak = 0;
         let mut secondPeakScore = 0;
-        for (x, bucket) in buckets.iter().enumerate().take(numBuckets) {
-            // for x in 0..numBuckets {
-            // for (int x = 0; x < numBuckets; x++) {
+        for (x, bucket) in buckets.iter().enumerate() {
             let distanceToBiggest = (x as i32 - firstPeak as i32).unsigned_abs();
             // Encourage more distant second peaks by multiplying by square of distance.
             let score = *bucket * distanceToBiggest * distanceToBiggest;
@@ -282,7 +277,7 @@ impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {
 
         // If there is too little contrast in the image to pick a meaningful black point, throw rather
         // than waste time trying to decode the image, and risk false positives.
-        if secondPeak - firstPeak <= numBuckets / 16 {
+        if secondPeak - firstPeak <= BUCKET_COUNT / 16 {
             return Err(Exceptions::not_found_with(
                 "secondPeak - firstPeak <= numBuckets / 16 ",
             ));
@@ -291,9 +286,9 @@ impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {
         // Find a valley between them that is low and closer to the white peak.
         let mut bestValley = secondPeak as isize - 1;
         let mut bestValleyScore = -1;
+
         let mut x = secondPeak as isize;
         while x > firstPeak as isize {
-            // for (int x = secondPeak - 1; x > firstPeak; x--) {
             let fromFirst = x - firstPeak as isize;
             let score = fromFirst
                 * fromFirst

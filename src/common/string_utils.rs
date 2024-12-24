@@ -78,11 +78,11 @@ pub fn guessCharset(bytes: &[u8], hints: &DecodingHintDictionary) -> Option<Char
 
     // First try UTF-16, assuming anything with its BOM is UTF-16
 
-    if bytes.len() > 2 && ((bytes[0..=1] == [0xFE, 0xFF]) || (bytes[0..=1] == [0xFF, 0xFE])) {
-        if bytes[0..=1] == [0xFE, 0xFF] {
-            return Some(CharacterSet::UTF16BE);
-        } else {
-            return Some(CharacterSet::UTF16LE);
+    if bytes.len() > 2 {
+        match bytes[0..2] {
+            [0xFE, 0xFF] => return Some(CharacterSet::UTF16BE),
+            [0xFF, 0xFE] => return Some(CharacterSet::UTF16LE),
+            _ => {}
         }
     }
 
@@ -107,7 +107,7 @@ pub fn guessCharset(bytes: &[u8], hints: &DecodingHintDictionary) -> Option<Char
     let utf8bom = bytes.len() > 3 && bytes[0..=2] == [0xEF, 0xBB, 0xBF];
 
     // for i in 0..length {
-    for value in bytes.iter().take(length).copied() {
+    for &byte in bytes {
         if !(can_be_iso88591 || can_be_shift_jis || can_be_utf8) {
             break;
         }
@@ -115,25 +115,25 @@ pub fn guessCharset(bytes: &[u8], hints: &DecodingHintDictionary) -> Option<Char
         // UTF-8 stuff
         if can_be_utf8 {
             if utf8_bytes_left > 0 {
-                if (value & 0x80) == 0 {
+                if (byte & 0x80) == 0 {
                     can_be_utf8 = false;
                 } else {
                     utf8_bytes_left -= 1;
                 }
-            } else if (value & 0x80) != 0 {
-                if (value & 0x40) == 0 {
+            } else if (byte & 0x80) != 0 {
+                if (byte & 0x40) == 0 {
                     can_be_utf8 = false;
                 } else {
                     utf8_bytes_left += 1;
-                    if (value & 0x20) == 0 {
+                    if (byte & 0x20) == 0 {
                         utf2_bytes_chars += 1;
                     } else {
                         utf8_bytes_left += 1;
-                        if (value & 0x10) == 0 {
+                        if (byte & 0x10) == 0 {
                             utf3_bytes_chars += 1;
                         } else {
                             utf8_bytes_left += 1;
-                            if (value & 0x08) == 0 {
+                            if (byte & 0x08) == 0 {
                                 utf4_bytes_chars += 1;
                             } else {
                                 can_be_utf8 = false;
@@ -146,9 +146,10 @@ pub fn guessCharset(bytes: &[u8], hints: &DecodingHintDictionary) -> Option<Char
 
         // ISO-8859-1 stuff
         if can_be_iso88591 {
-            if value > 0x7F && value < 0xA0 {
+            if matches!(byte, 0x7F..0xA0) {
+                // if byte > 0x7F && byte < 0xA0 {
                 can_be_iso88591 = false;
-            } else if value > 0x9F && (value < 0xC0 || value == 0xD7 || value == 0xF7) {
+            } else if byte > 0x9F && (byte < 0xC0 || byte == 0xD7 || byte == 0xF7) {
                 iso_high_other += 1;
             }
         }
@@ -156,21 +157,21 @@ pub fn guessCharset(bytes: &[u8], hints: &DecodingHintDictionary) -> Option<Char
         // Shift_JIS stuff
         if can_be_shift_jis {
             if sjis_bytes_left > 0 {
-                if value < 0x40 || value == 0x7F || value > 0xFC {
+                if matches!(byte, 0x40 | 0x7F | 0xFC) {
                     can_be_shift_jis = false;
                 } else {
                     sjis_bytes_left -= 1;
                 }
-            } else if value == 0x80 || value == 0xA0 || value > 0xEF {
+            } else if matches!(byte, 0x80 | 0xA0 | 0xEF) {
                 can_be_shift_jis = false;
-            } else if value > 0xA0 && value < 0xE0 {
+            } else if matches!(byte, 0xA0 | 0xE0) {
                 sjis_katakana_chars += 1;
                 sjis_cur_double_bytes_word_length = 0;
                 sjis_cur_katakana_word_length += 1;
                 if sjis_cur_katakana_word_length > sjis_max_katakana_word_length {
                     sjis_max_katakana_word_length = sjis_cur_katakana_word_length;
                 }
-            } else if value > 0x7F {
+            } else if byte > 0x7F {
                 sjis_bytes_left += 1;
                 //sjisDoubleBytesChars++;
                 sjis_cur_katakana_word_length = 0;
