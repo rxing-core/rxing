@@ -119,14 +119,11 @@ pub trait GridSampler {
         let mut points = vec![Point::default(); dimensionX as usize];
         for y in 0..dimensionY {
             //   for (int y = 0; y < dimensionY; y++) {
-            let max = points.len();
             let i_value = y as f32 + 0.5;
-            let mut x = 0;
-            while x < max {
-                // for (int x = 0; x < max; x += 2) {
-                points[x].x = (x as f32) + 0.5;
-                points[x].y = i_value;
-                x += 1;
+
+            for (x, point) in points.iter_mut().enumerate() {
+                point.x = (x as f32) + 0.5;
+                point.y = i_value;
             }
 
             controls
@@ -138,15 +135,7 @@ pub trait GridSampler {
             // sufficient to check the endpoints
             self.checkAndNudgePoints(image, &mut points)?;
             // try {
-            let mut x = 0;
-            while x < max {
-                //   for (int x = 0; x < max; x += 2) {
-                // if points[x] as u32 >= image.getWidth() || points[x + 1] as u32 >= image.getHeight()
-                // {
-                //     return Err(Exceptions::notFound(
-                //         "index out of bounds, see documentation in file for explanation".to_owned(),
-                //     ));
-                // }
+            for x in 0..points.len() {
                 if image
                     .try_get(points[x].x as u32, points[x].y as u32)
                     .ok_or(Exceptions::not_found_with(
@@ -156,7 +145,6 @@ pub trait GridSampler {
                     // Black(-ish) pixel
                     bits.set(x as u32, y);
                 }
-                x += 1;
             }
             // } catch (ArrayIndexOutOfBoundsException aioobe) {
             //   // This feels wrong, but, sometimes if the finder patterns are misidentified, the resulting
@@ -193,59 +181,56 @@ pub trait GridSampler {
         let width = image.getWidth();
         let height = image.getHeight();
         // Check and nudge points from start until we see some that are OK:
-        let mut nudged = true;
+        let mut nudged;
         let max_offset = points.len() - 1; // points.length must be even
-        let mut offset = 0;
-        while offset < max_offset && nudged {
-            // for (int offset = 0; offset < maxOffset && nudged; offset += 2) {
-            let x = points[offset].x as i32;
-            let y = points[offset].y as i32;
+        for point in points.iter_mut().take(max_offset) {
+            let (x, y) = (point.x as i32, point.y as i32);
             if x < -1 || x > width as i32 || y < -1 || y > height as i32 {
                 return Err(Exceptions::NOT_FOUND);
             }
             nudged = false;
             if x == -1 {
-                points[offset].x = 0.0;
+                point.x = 0.0;
                 nudged = true;
             } else if x == width as i32 {
-                points[offset].x = width as f32 - 1.0;
+                point.x = width as f32 - 1.0;
                 nudged = true;
             }
             if y == -1 {
-                points[offset].y = 0.0;
+                point.y = 0.0;
                 nudged = true;
             } else if y == height as i32 {
-                points[offset].y = height as f32 - 1.0;
+                point.y = height as f32 - 1.0;
                 nudged = true;
             }
-            offset += 1;
+            if !nudged {
+                break;
+            }
         }
         // Check and nudge points from end:
-        nudged = true;
-        let mut offset = points.len() as isize - 1;
-        while offset >= 0 && nudged {
-            // for (int offset = points.length - 2; offset >= 0 && nudged; offset -= 2) {
-            let x = points[offset as usize].x as i32;
-            let y = points[offset as usize].y as i32;
+        for point in points.iter_mut().rev().take(max_offset).rev() {
+            let (x, y) = (point.x as i32, point.y as i32);
             if x < -1 || x > width as i32 || y < -1 || y > height as i32 {
                 return Err(Exceptions::NOT_FOUND);
             }
             nudged = false;
             if x == -1 {
-                points[offset as usize].x = 0.0;
+                point.x = 0.0;
                 nudged = true;
             } else if x == width as i32 {
-                points[offset as usize].x = width as f32 - 1.0;
+                point.x = width as f32 - 1.0;
                 nudged = true;
             }
             if y == -1 {
-                points[offset as usize].y = 0.0;
+                point.y = 0.0;
                 nudged = true;
             } else if y == height as i32 {
-                points[offset as usize].y = height as f32 - 1.0;
+                point.y = height as f32 - 1.0;
                 nudged = true;
             }
-            offset += -1;
+            if !nudged {
+                break;
+            }
         }
         Ok(())
     }

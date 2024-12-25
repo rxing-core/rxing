@@ -1,8 +1,6 @@
 use std::fmt::Display;
 
-
 use super::CharacterSet;
-
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Eci {

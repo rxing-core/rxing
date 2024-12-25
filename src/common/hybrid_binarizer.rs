@@ -21,6 +21,7 @@
 // import com.google.zxing.NotFoundException;
 
 use std::borrow::Cow;
+use std::u8;
 
 use once_cell::unsync::OnceCell;
 
@@ -254,16 +255,13 @@ impl<LS: LuminanceSource> HybridBinarizer<LS> {
                 let xoffset = u32::min(x << BLOCK_SIZE_POWER, maxXOffset as u32);
 
                 let mut sum: u32 = 0;
-                let mut min = 0xff;
-                let mut max = 0;
+                let mut min = u8::MAX;
+                let mut max = u8::MIN;
 
                 let mut offset = yoffset * width + xoffset;
                 let mut yy = 0;
                 while yy < BLOCK_SIZE {
-                    // for (int yy = 0, offset = yoffset * width + xoffset; yy < HybridBinarizer::BLOCK_SIZE; yy++, offset += width) {
-                    for xx in 0..BLOCK_SIZE {
-                        //   for (int xx = 0; xx < HybridBinarizer::BLOCK_SIZE; xx++) {
-                        let pixel = luminances[offset as usize + xx];
+                    for &pixel in &luminances[offset as usize..offset as usize + BLOCK_SIZE] {
                         sum += pixel as u32;
                         // still looking for good contrast
                         min = min.min(pixel);
@@ -275,11 +273,10 @@ impl<LS: LuminanceSource> HybridBinarizer<LS> {
                         offset += width;
                         yy += 1;
                         while yy < BLOCK_SIZE {
-                            // for (yy++, offset += width; yy < HybridBinarizer::BLOCK_SIZE; yy++, offset += width) {
-                            for xx in 0..BLOCK_SIZE {
-                                //   for (int xx = 0; xx < BLOCK_SIZE; xx++) {
-                                sum += luminances[offset as usize + xx] as u32;
-                            }
+                            sum += luminances[offset as usize..offset as usize + BLOCK_SIZE]
+                                .iter()
+                                .map(|&b| b as u32)
+                                .sum::<u32>();
                             yy += 1;
                             offset += width;
                         }

@@ -22,7 +22,6 @@ use crate::DecodeHintValue;
 use crate::Exceptions;
 use crate::RXingResult;
 use crate::{point_f, BarcodeFormat};
-use bit_reverse::ParallelReverse;
 
 use super::OneDReader;
 
@@ -180,7 +179,7 @@ impl OneDReader for TelepenReader {
         while j < byteLength {
             // Telepen is little-endian, so need to swap the
             // bits around for each byte to be correct.
-            bytes[j] = bytes[j].swap_bits();
+            bytes[j] = bytes[j].reverse_bits();
 
             // The first bit in the byte can always be disregarded
             // as the highest ASCII decimal value is 127. It might be
