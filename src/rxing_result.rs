@@ -21,6 +21,8 @@ use crate::{
     RXingResultMetadataType, RXingResultMetadataValue,
 };
 
+pub type RXingResultMetaDataDictionary = HashMap<RXingResultMetadataType, RXingResultMetadataValue>;
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -37,7 +39,7 @@ pub struct RXingResult {
     numBits: usize,
     resultPoints: Vec<Point>,
     format: BarcodeFormat,
-    resultMetadata: HashMap<RXingResultMetadataType, RXingResultMetadataValue>,
+    resultMetadata: RXingResultMetaDataDictionary,
     timestamp: u128,
     line_count: usize,
 }
@@ -88,16 +90,16 @@ impl RXingResult {
         }
     }
 
-    pub fn new_from_existing_result(prev: Self, points: Vec<Point>) -> Self {
+    pub fn with_point(self, points: Vec<Point>) -> Self {
         Self {
-            text: prev.text,
-            rawBytes: prev.rawBytes,
-            numBits: prev.numBits,
+            text: self.text,
+            rawBytes: self.rawBytes,
+            numBits: self.numBits,
             resultPoints: points,
-            format: prev.format,
-            resultMetadata: prev.resultMetadata,
-            timestamp: prev.timestamp,
-            line_count: prev.line_count,
+            format: self.format,
+            resultMetadata: self.resultMetadata,
+            timestamp: self.timestamp,
+            line_count: self.line_count,
         }
     }
 
@@ -149,7 +151,7 @@ impl RXingResult {
     /**
      * @return raw bytes encoded by the barcode, if applicable, otherwise {@code null}
      */
-    pub fn getRawBytes(&self) -> &Vec<u8> {
+    pub fn getRawBytes(&self) -> &[u8] {
         &self.rawBytes
     }
 
@@ -166,21 +168,21 @@ impl RXingResult {
      *         identifying finder patterns or the corners of the barcode. The exact meaning is
      *         specific to the type of barcode that was decoded.
      */
-    pub fn getPoints(&self) -> &Vec<Point> {
+    pub fn getPoints(&self) -> &[Point] {
         &self.resultPoints
     }
 
-    pub fn getPointsMut(&mut self) -> &mut Vec<Point> {
+    pub fn getPointsMut(&mut self) -> &mut [Point] {
         &mut self.resultPoints
     }
 
     /** Currently necessary because the external OneDReader proc macro uses it. */
-    pub fn getRXingResultPoints(&self) -> &Vec<Point> {
+    pub fn getRXingResultPoints(&self) -> &[Point] {
         &self.resultPoints
     }
 
     /** Currently necessary because the external OneDReader proc macro uses it. */
-    pub fn getRXingResultPointsMut(&mut self) -> &mut Vec<Point> {
+    pub fn getRXingResultPointsMut(&mut self) -> &mut [Point] {
         &mut self.resultPoints
     }
 
@@ -196,9 +198,7 @@ impl RXingResult {
      *   {@code null}. This contains optional metadata about what was detected about the barcode,
      *   like orientation.
      */
-    pub fn getRXingResultMetadata(
-        &self,
-    ) -> &HashMap<RXingResultMetadataType, RXingResultMetadataValue> {
+    pub fn getRXingResultMetadata(&self) -> &RXingResultMetaDataDictionary {
         &self.resultMetadata
     }
 
@@ -210,12 +210,9 @@ impl RXingResult {
         self.resultMetadata.insert(md_type, value);
     }
 
-    pub fn putAllMetadata(
-        &mut self,
-        metadata: HashMap<RXingResultMetadataType, RXingResultMetadataValue>,
-    ) {
+    pub fn putAllMetadata(&mut self, metadata: RXingResultMetaDataDictionary) {
         if self.resultMetadata.is_empty() {
-            self.resultMetadata = metadata;
+            let _ = std::mem::replace(&mut self.resultMetadata, metadata);
         } else {
             for (key, value) in metadata.into_iter() {
                 self.resultMetadata.insert(key, value);

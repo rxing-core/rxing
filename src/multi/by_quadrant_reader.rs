@@ -62,7 +62,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
         match result {
             Ok(res) => {
                 let points = Self::makeAbsolute(res.getPoints(), halfWidth as f32, 0.0);
-                return Ok(RXingResult::new_from_existing_result(res, points));
+                return Ok(res.with_point(points));
             }
             Err(Exceptions::NotFoundException(_)) => {}
             _ => return result,
@@ -75,7 +75,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
         match result {
             Ok(res) => {
                 let points = Self::makeAbsolute(res.getPoints(), 0.0, halfHeight as f32);
-                return Ok(RXingResult::new_from_existing_result(res, points));
+                return Ok(res.with_point(points));
             }
             Err(Exceptions::NotFoundException(_)) => {}
             _ => return result,
@@ -90,7 +90,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
             Ok(res) => {
                 let points =
                     Self::makeAbsolute(res.getPoints(), halfWidth as f32, halfHeight as f32);
-                return Ok(RXingResult::new_from_existing_result(res, points));
+                return Ok(res.with_point(points));
             }
             Err(Exceptions::NotFoundException(_)) => {}
             _ => return result,
@@ -106,7 +106,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
             quarterWidth as f32,
             quarterHeight as f32,
         );
-        Ok(RXingResult::new_from_existing_result(result, points))
+        Ok(result.with_point(points))
     }
 
     fn reset(&mut self) {

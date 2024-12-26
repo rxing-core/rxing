@@ -135,7 +135,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
             return;
         };
 
-        let resultPoints = result.getPoints().clone();
+        let resultPoints = result.getPoints().to_vec();
 
         let possible_new_result = Self::translatePoints(result, xOffset, yOffset);
 
@@ -151,7 +151,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         let mut minY: f32 = height as f32;
         let mut maxX: f32 = 0.0;
         let mut maxY: f32 = 0.0;
-        for point in &resultPoints {
+        for point in resultPoints.into_iter() {
             let x = point.x;
             let y = point.y;
 
@@ -220,7 +220,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
 
         let mut newRXingResult = RXingResult::new_complex(
             result.getText(),
-            result.getRawBytes().clone(),
+            result.getRawBytes().to_vec(),
             result.getNumBits(),
             newPoints,
             *result.getBarcodeFormat(),

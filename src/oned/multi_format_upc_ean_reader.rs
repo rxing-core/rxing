@@ -167,8 +167,8 @@ impl MultiFormatUPCEANReader {
             // Transfer the metadata across
             let mut resultUPCA = RXingResult::new(
                 &result.getText()[1..],
-                result.getRawBytes().clone(),
-                result.getPoints().clone(),
+                result.getRawBytes().to_vec(),
+                result.getPoints().to_vec(),
                 BarcodeFormat::UPC_A,
             );
             resultUPCA.putAllMetadata(result.getRXingResultMetadata().clone());

@@ -30,7 +30,5 @@ pub fn orderBestPatterns<T: Into<Point> + Copy>(patterns: &mut [T; 3]) {
         std::mem::swap(&mut pointA, &mut pointC);
     }
 
-    patterns[0] = pointA;
-    patterns[1] = pointB;
-    patterns[2] = pointC;
+    *patterns = [pointA, pointB, pointC];
 }

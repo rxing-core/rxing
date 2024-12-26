@@ -240,6 +240,7 @@ impl BitArray {
     /**
      * Clears all bits (sets to false).
      */
+    #[inline]
     pub fn clear(&mut self) {
         self.bits.fill(0);
     }
@@ -520,5 +521,16 @@ impl std::io::Write for BitArray {
 
     fn flush(&mut self) -> std::io::Result<()> {
         Ok(())
+    }
+}
+
+impl std::io::Seek for BitArray {
+    fn seek(&mut self, pos: std::io::SeekFrom) -> std::io::Result<u64> {
+        self.read_offset = match pos {
+            std::io::SeekFrom::Start(s) => s as usize,
+            std::io::SeekFrom::End(e) => self.size - e as usize,
+            std::io::SeekFrom::Current(c) => self.read_offset + c as usize,
+        };
+        Ok(self.read_offset as u64)
     }
 }

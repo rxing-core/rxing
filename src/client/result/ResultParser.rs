@@ -464,7 +464,7 @@ mod tests {
         );
         let p_res = parse_result_with_parser(&result, |v| {
             Some(ParsedClientResult::Other(OtherParsedResult::new(Box::new(
-                v.getRawBytes().clone(),
+                v.getRawBytes().to_vec(),
             ))))
         })
         .unwrap();

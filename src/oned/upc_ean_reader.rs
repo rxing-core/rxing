@@ -223,7 +223,7 @@ pub trait UPCEANReader: OneDReader {
                 ),
             );
             decodeRXingResult.putAllMetadata(extensionRXingResult.getRXingResultMetadata().clone());
-            decodeRXingResult.addPoints(&mut extensionRXingResult.getPoints().clone());
+            decodeRXingResult.addPoints(&mut extensionRXingResult.getPoints().to_vec());
             extensionLength = extensionRXingResult.getText().chars().count();
             Ok(())
         };

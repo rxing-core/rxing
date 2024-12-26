@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use std::io::Read;
+
 use rxing_one_d_proc_derive::OneDReader;
 
 use crate::common::{BitArray, Result};
@@ -33,14 +35,14 @@ use super::OneDReader;
 #[derive(OneDReader)]
 pub struct TelepenReader {
     // Keep some instance variables to avoid reallocations
-    counters: Vec<u32>,
+    counters: Box<[u32]>,
     counterLength: usize,
 }
 
 impl Default for TelepenReader {
     fn default() -> Self {
         Self {
-            counters: vec![0; 80],
+            counters: Box::new([0; 80]),
             counterLength: 0,
         }
     }
@@ -171,7 +173,9 @@ impl OneDReader for TelepenReader {
         }
 
         let mut bytes: Vec<u8> = vec![0; byteLength];
-        bits.toBytes(0, bytes.as_mut_slice(), 0, byteLength);
+        // bits.toBytes(0, bytes.as_mut_slice(), 0, byteLength);
+        bits.read_exact(&mut bytes)
+            .map_err(|_| Exceptions::ILLEGAL_STATE)?;
 
         j = 0;
 
@@ -258,7 +262,7 @@ impl OneDReader for TelepenReader {
 impl TelepenReader {
     pub fn new() -> Self {
         Self {
-            counters: vec![0; 80], //Vec::with_capacity(80),
+            counters: Box::new([0; 80]), //Vec::with_capacity(80),
             counterLength: 0,
         }
     }
@@ -318,7 +322,7 @@ impl TelepenReader {
         if self.counterLength >= self.counters.len() {
             let mut temp = vec![0; self.counterLength * 2];
             temp[0..self.counterLength].clone_from_slice(&self.counters[..]);
-            self.counters = temp;
+            self.counters = temp.into_boxed_slice();
         }
     }
 

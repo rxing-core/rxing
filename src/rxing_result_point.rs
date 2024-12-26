@@ -92,13 +92,6 @@ impl Hash for Point {
     }
 }
 
-// impl PartialEq for Point {
-//     fn eq(&self, other: &Self) -> bool {
-//         self.x == other.x && self.y == other.y
-//     }
-// }
-// impl Eq for Point {}
-
 impl<T> PartialEq for PointT<T>
 where
     T: PartialEq,

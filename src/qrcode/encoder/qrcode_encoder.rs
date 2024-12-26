@@ -17,7 +17,7 @@
  * @author satorux@google.com (Satoru Takabayashi) - creator
  * @author dswitkin@google.com (Daniel Switkin) - ported from C++
  */
-use std::collections::HashMap;
+use std::{collections::HashMap, io::Seek};
 
 use unicode_segmentation::UnicodeSegmentation;
 
