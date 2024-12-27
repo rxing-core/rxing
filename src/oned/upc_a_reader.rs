@@ -35,7 +35,7 @@ impl Reader for UPCAReader {
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &crate::DecodeHints,
     ) -> Result<RXingResult> {
         Self::maybeReturnRXingResult(self.0.decode_with_hints(image, hints)?)
     }
@@ -46,7 +46,7 @@ impl OneDReader for UPCAReader {
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
-        hints: &crate::DecodingHintDictionary,
+        hints: &crate::DecodeHints,
     ) -> Result<RXingResult> {
         Self::maybeReturnRXingResult(self.0.decode_row(rowNumber, row, hints)?)
     }
@@ -58,7 +58,7 @@ impl UPCEANReader for UPCAReader {
         rowNumber: u32,
         row: &crate::common::BitArray,
         startGuardRange: &[usize; 2],
-        hints: &crate::DecodingHintDictionary,
+        hints: &crate::DecodeHints,
     ) -> Result<RXingResult>
     where
         Self: Sized,

@@ -23,7 +23,7 @@ use crate::{
         reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder},
         BitMatrix, DecoderRXingResult, Result,
     },
-    DecodingHintDictionary, Exceptions,
+    DecodeHints, DecodingHintDictionary, Exceptions,
 };
 
 use super::{decoded_bit_stream_parser, BitMatrixParser};
@@ -46,13 +46,10 @@ static RS_DECODER: Lazy<ReedSolomonDecoder> = Lazy::new(|| {
 });
 
 pub fn decode(bits: &BitMatrix) -> Result<DecoderRXingResult> {
-    decode_with_hints(bits, &HashMap::new())
+    decode_with_hints(bits, &DecodeHints::default())
 }
 
-pub fn decode_with_hints(
-    bits: &BitMatrix,
-    _hints: &DecodingHintDictionary,
-) -> Result<DecoderRXingResult> {
+pub fn decode_with_hints(bits: &BitMatrix, _hints: &DecodeHints) -> Result<DecoderRXingResult> {
     let parser = BitMatrixParser::new(bits);
     let mut codewords = parser.readCodewords();
 

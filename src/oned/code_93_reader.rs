@@ -49,7 +49,7 @@ impl OneDReader for Code93Reader {
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
-        _hints: &crate::DecodingHintDictionary,
+        _hints: &crate::DecodeHints,
     ) -> Result<crate::RXingResult> {
         let start = self.findAsteriskPattern(row)?;
         // Read off white space
@@ -369,7 +369,7 @@ impl Code93Reader {
 mod Code93ReaderTestCase {
     use std::collections::HashMap;
 
-    use crate::{common::BitMatrix, oned::OneDReader};
+    use crate::{common::BitMatrix, oned::OneDReader, DecodeHints};
 
     use super::Code93Reader;
 
@@ -385,7 +385,7 @@ mod Code93ReaderTestCase {
         // let mut row = BitArray::with_size(matrix.getWidth() as usize);
         let row = matrix.getRow(0);
         let result = sut
-            .decode_row(0, &row, &HashMap::new())
+            .decode_row(0, &row, &DecodeHints::default())
             .expect("must decode");
         assert_eq!(expectedRXingResult, result.getText());
     }

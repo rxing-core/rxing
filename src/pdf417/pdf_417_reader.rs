@@ -18,7 +18,7 @@ use std::collections::HashMap;
 
 use crate::{
     common::Result, multi::MultipleBarcodeReader, BarcodeFormat, Binarizer, BinaryBitmap,
-    DecodingHintDictionary, Exceptions, ImmutableReader, Point, RXingResult,
+    DecodeHints, DecodingHintDictionary, Exceptions, ImmutableReader, Point, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
@@ -44,13 +44,13 @@ impl Reader for PDF417Reader {
      * @throws FormatException if a PDF417 cannot be decoded
      */
     fn decode<B: Binarizer>(&mut self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
-        self.decode_with_hints(image, &HashMap::new())
+        self.decode_with_hints(image, &DecodeHints::default())
     }
 
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<crate::RXingResult> {
         self.internal_decode_with_hints(image, hints)
     }
@@ -60,7 +60,7 @@ impl ImmutableReader for PDF417Reader {
     fn immutable_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         self.internal_decode_with_hints(image, hints)
     }
@@ -71,13 +71,13 @@ impl MultipleBarcodeReader for PDF417Reader {
         &mut self,
         image: &mut BinaryBitmap<B>,
     ) -> Result<Vec<RXingResult>> {
-        self.decode_multiple_with_hints(image, &HashMap::new())
+        self.decode_multiple_with_hints(image, &DecodeHints::default())
     }
 
     fn decode_multiple_with_hints<B: Binarizer>(
         &mut self,
         image: &mut BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<Vec<RXingResult>> {
         Self::decode(image, hints, true)
     }
@@ -90,7 +90,7 @@ impl PDF417Reader {
 
     fn decode<B: Binarizer>(
         image: &mut BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
         multiple: bool,
     ) -> Result<Vec<RXingResult>> {
         let mut results = Vec::new();
@@ -200,7 +200,7 @@ impl PDF417Reader {
     fn internal_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         let result = Self::decode(image, hints, false)?;
         if result.is_empty() {

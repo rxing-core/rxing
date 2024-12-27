@@ -108,7 +108,7 @@ impl OneDReader for ITFReader {
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
-        hints: &crate::DecodingHintDictionary,
+        hints: &crate::DecodeHints,
     ) -> Result<crate::RXingResult> {
         // Find out where the Middle section (payload) starts & ends
         let mut row = row.clone();
@@ -119,9 +119,7 @@ impl OneDReader for ITFReader {
         self.decodeMiddle(&row, startRange[1], endRange[0], &mut result)?;
         let resultString = result; //.toString();
 
-        let allowedLengths = if let Some(DecodeHintValue::AllowedLengths(al)) =
-            hints.get(&DecodeHintType::ALLOWED_LENGTHS)
-        {
+        let allowedLengths = if let Some(al) = &hints.AllowedLengths {
             al.clone()
         } else {
             DEFAULT_ALLOWED_LENGTHS.to_vec()

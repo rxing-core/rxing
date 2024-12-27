@@ -16,6 +16,7 @@
 
 use crate::common::Result;
 use crate::DecodeHintValue;
+use crate::DecodeHints;
 use crate::Exceptions;
 use crate::RXingResult;
 use crate::Reader;
@@ -44,7 +45,7 @@ impl OneDReader for MultiFormatUPCEANReader {
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         let Self {
             ref possible_formats,
@@ -119,10 +120,8 @@ impl OneDReader for MultiFormatUPCEANReader {
 }
 
 impl MultiFormatUPCEANReader {
-    pub fn new(hints: &DecodingHintDictionary) -> Self {
-        let possible_formats = if let Some(DecodeHintValue::PossibleFormats(p)) =
-            hints.get(&DecodeHintType::POSSIBLE_FORMATS)
-        {
+    pub fn new(hints: &DecodeHints) -> Self {
+        let possible_formats = if let Some(p) = &hints.PossibleFormats {
             p.clone()
         } else {
             HashSet::default()
@@ -136,7 +135,7 @@ impl MultiFormatUPCEANReader {
         reader: &R,
         rowNumber: u32,
         row: &crate::common::BitArray,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
         startGuardPattern: &[usize; 2],
     ) -> Result<RXingResult> {
         let result = reader.decodeRowWithGuardRange(rowNumber, row, startGuardPattern, hints)?;
@@ -155,9 +154,7 @@ impl MultiFormatUPCEANReader {
         let ean13MayBeUPCA = result.getBarcodeFormat() == &BarcodeFormat::EAN_13
             && result.getText().starts_with('0');
 
-        let canReturnUPCA = if let Some(DecodeHintValue::PossibleFormats(possibleFormats)) =
-            hints.get(&DecodeHintType::POSSIBLE_FORMATS)
-        {
+        let canReturnUPCA = if let Some(possibleFormats) = &hints.PossibleFormats {
             possibleFormats.contains(&BarcodeFormat::UPC_A)
         } else {
             true
@@ -188,24 +185,21 @@ use std::collections::{HashMap, HashSet};
 
 impl Reader for MultiFormatUPCEANReader {
     fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
-        self.decode_with_hints(image, &HashMap::new())
+        self.decode_with_hints(image, &DecodeHints::default())
     }
 
     // Note that we don't try rotation without the try harder flag, even if rotation was supported.
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         let first_try = self._do_decode(image, hints);
         if first_try.is_ok() {
             return first_try;
         }
 
-        let tryHarder = matches!(
-            hints.get(&DecodeHintType::TRY_HARDER),
-            Some(DecodeHintValue::TryHarder(true))
-        );
+        let tryHarder = hints.TryHarder.unwrap_or(false);
         if tryHarder && image.is_rotate_supported() {
             let mut rotatedImage = image.rotate_counter_clockwise();
             let mut result = self._do_decode(&mut rotatedImage, hints)?;

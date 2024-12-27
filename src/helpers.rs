@@ -7,9 +7,9 @@ use std::{
 use crate::{
     common::{BitMatrix, HybridBinarizer, Result},
     multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-    BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
-    Exceptions, FilteredImageReader, Luma8LuminanceSource, MultiFormatReader,
-    MultiUseMultiFormatReader, RXingResult, Reader,
+    BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodeHints,
+    DecodingHintDictionary, Exceptions, FilteredImageReader, Luma8LuminanceSource,
+    MultiFormatReader, MultiUseMultiFormatReader, RXingResult, Reader,
 };
 
 #[cfg(feature = "image")]
@@ -17,14 +17,14 @@ use crate::BufferedImageLuminanceSource;
 
 #[cfg(feature = "svg_read")]
 pub fn detect_in_svg(file_name: &str, barcode_type: Option<BarcodeFormat>) -> Result<RXingResult> {
-    detect_in_svg_with_hints(file_name, barcode_type, &mut HashMap::new())
+    detect_in_svg_with_hints(file_name, barcode_type, &mut DecodeHints::default())
 }
 
 #[cfg(feature = "svg_read")]
 pub fn detect_in_svg_with_hints(
     file_name: &str,
     barcode_type: Option<BarcodeFormat>,
-    hints: &mut DecodingHintDictionary,
+    hints: &mut DecodeHints,
 ) -> Result<RXingResult> {
     use std::{fs::File, io::Read};
 
@@ -47,15 +47,10 @@ pub fn detect_in_svg_with_hints(
     let mut multi_format_reader = MultiFormatReader::default();
 
     if let Some(bc_type) = barcode_type {
-        hints.insert(
-            DecodeHintType::POSSIBLE_FORMATS,
-            DecodeHintValue::PossibleFormats(HashSet::from([bc_type])),
-        );
+        hints.PossibleFormats = Some(HashSet::from([bc_type]));
     }
 
-    hints
-        .entry(DecodeHintType::TRY_HARDER)
-        .or_insert(DecodeHintValue::TryHarder(true));
+    hints.TryHarder = hints.TryHarder.or(Some(true));
 
     multi_format_reader.decode_with_hints(
         &mut BinaryBitmap::new(HybridBinarizer::new(SVGLuminanceSource::new(&svg_data)?)),
@@ -65,13 +60,13 @@ pub fn detect_in_svg_with_hints(
 
 #[cfg(feature = "svg_read")]
 pub fn detect_multiple_in_svg(file_name: &str) -> Result<Vec<RXingResult>> {
-    detect_multiple_in_svg_with_hints(file_name, &mut HashMap::new())
+    detect_multiple_in_svg_with_hints(file_name, &mut DecodeHints::default())
 }
 
 #[cfg(feature = "svg_read")]
 pub fn detect_multiple_in_svg_with_hints(
     file_name: &str,
-    hints: &mut DecodingHintDictionary,
+    hints: &mut DecodeHints,
 ) -> Result<Vec<RXingResult>> {
     use std::{fs::File, io::Read};
 
@@ -94,9 +89,7 @@ pub fn detect_multiple_in_svg_with_hints(
     let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
-    hints
-        .entry(DecodeHintType::TRY_HARDER)
-        .or_insert(DecodeHintValue::TryHarder(true));
+    hints.TryHarder = hints.TryHarder.or(Some(true));
 
     scanner.decode_multiple_with_hints(
         &mut BinaryBitmap::new(HybridBinarizer::new(SVGLuminanceSource::new(&svg_data)?)),
@@ -106,14 +99,14 @@ pub fn detect_multiple_in_svg_with_hints(
 
 #[cfg(feature = "image")]
 pub fn detect_in_file(file_name: &str, barcode_type: Option<BarcodeFormat>) -> Result<RXingResult> {
-    detect_in_file_with_hints(file_name, barcode_type, &mut HashMap::new())
+    detect_in_file_with_hints(file_name, barcode_type, &mut DecodeHints::default())
 }
 
 #[cfg(feature = "image")]
 pub fn detect_in_file_with_hints(
     file_name: &str,
     barcode_type: Option<BarcodeFormat>,
-    hints: &mut DecodingHintDictionary,
+    hints: &mut DecodeHints,
 ) -> Result<RXingResult> {
     let Ok(img) = image::open(file_name) else {
         return Err(Exceptions::illegal_argument_with(format!(
@@ -123,15 +116,10 @@ pub fn detect_in_file_with_hints(
     let mut multi_format_reader = MultiFormatReader::default();
 
     if let Some(bc_type) = barcode_type {
-        hints.insert(
-            DecodeHintType::POSSIBLE_FORMATS,
-            DecodeHintValue::PossibleFormats(HashSet::from([bc_type])),
-        );
+        hints.PossibleFormats = Some(HashSet::from([bc_type]));
     }
 
-    hints
-        .entry(DecodeHintType::TRY_HARDER)
-        .or_insert(DecodeHintValue::TryHarder(true));
+    hints.TryHarder = hints.TryHarder.or(Some(true));
 
     multi_format_reader.decode_with_hints(
         &mut BinaryBitmap::new(HybridBinarizer::new(BufferedImageLuminanceSource::new(img))),
@@ -141,22 +129,20 @@ pub fn detect_in_file_with_hints(
 
 #[cfg(feature = "image")]
 pub fn detect_multiple_in_file(file_name: &str) -> Result<Vec<RXingResult>> {
-    detect_multiple_in_file_with_hints(file_name, &mut HashMap::new())
+    detect_multiple_in_file_with_hints(file_name, &mut DecodeHints::default())
 }
 
 #[cfg(feature = "image")]
 pub fn detect_multiple_in_file_with_hints(
     file_name: &str,
-    hints: &mut DecodingHintDictionary,
+    hints: &mut DecodeHints,
 ) -> Result<Vec<RXingResult>> {
     let img = image::open(file_name)
         .map_err(|e| Exceptions::runtime_with(format!("couldn't read {file_name}: {e}")))?;
     let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
-    hints
-        .entry(DecodeHintType::TRY_HARDER)
-        .or_insert(DecodeHintValue::TryHarder(true));
+    hints.TryHarder = hints.TryHarder.or(Some(true));
 
     scanner.decode_multiple_with_hints(
         &mut BinaryBitmap::new(HybridBinarizer::new(BufferedImageLuminanceSource::new(img))),
@@ -170,7 +156,13 @@ pub fn detect_in_luma(
     height: u32,
     barcode_type: Option<BarcodeFormat>,
 ) -> Result<RXingResult> {
-    detect_in_luma_with_hints(luma, height, width, barcode_type, &mut HashMap::new())
+    detect_in_luma_with_hints(
+        luma,
+        height,
+        width,
+        barcode_type,
+        &mut DecodeHints::default(),
+    )
 }
 
 pub fn detect_in_luma_with_hints(
@@ -178,20 +170,15 @@ pub fn detect_in_luma_with_hints(
     width: u32,
     height: u32,
     barcode_type: Option<BarcodeFormat>,
-    hints: &mut DecodingHintDictionary,
+    hints: &mut DecodeHints,
 ) -> Result<RXingResult> {
     let mut multi_format_reader = MultiFormatReader::default();
 
     if let Some(bc_type) = barcode_type {
-        hints.insert(
-            DecodeHintType::POSSIBLE_FORMATS,
-            DecodeHintValue::PossibleFormats(HashSet::from([bc_type])),
-        );
+        hints.PossibleFormats = Some(HashSet::from([bc_type]));
     }
 
-    hints
-        .entry(DecodeHintType::TRY_HARDER)
-        .or_insert(DecodeHintValue::TryHarder(true));
+    hints.TryHarder = hints.TryHarder.or(Some(true));
 
     multi_format_reader.decode_with_hints(
         &mut BinaryBitmap::new(HybridBinarizer::new(Luma8LuminanceSource::new(
@@ -212,7 +199,7 @@ pub fn detect_in_luma_filtered(
         height,
         width,
         barcode_type,
-        &mut HashMap::new(),
+        &mut DecodeHints::default(),
     )
 }
 
@@ -221,20 +208,15 @@ pub fn detect_in_luma_filtered_with_hints(
     width: u32,
     height: u32,
     barcode_type: Option<BarcodeFormat>,
-    hints: &mut DecodingHintDictionary,
+    hints: &mut DecodeHints,
 ) -> Result<RXingResult> {
     let mut multi_format_reader = FilteredImageReader::new(MultiFormatReader::default());
 
     if let Some(bc_type) = barcode_type {
-        hints.insert(
-            DecodeHintType::POSSIBLE_FORMATS,
-            DecodeHintValue::PossibleFormats(HashSet::from([bc_type])),
-        );
+        hints.PossibleFormats = Some(HashSet::from([bc_type]));
     }
 
-    hints
-        .entry(DecodeHintType::TRY_HARDER)
-        .or_insert(DecodeHintValue::TryHarder(true));
+    hints.TryHarder = hints.TryHarder.or(Some(true));
 
     multi_format_reader.decode_with_hints(
         &mut BinaryBitmap::new(HybridBinarizer::new(Luma8LuminanceSource::new(
@@ -245,21 +227,19 @@ pub fn detect_in_luma_filtered_with_hints(
 }
 
 pub fn detect_multiple_in_luma(luma: Vec<u8>, width: u32, height: u32) -> Result<Vec<RXingResult>> {
-    detect_multiple_in_luma_with_hints(luma, width, height, &mut HashMap::new())
+    detect_multiple_in_luma_with_hints(luma, width, height, &mut DecodeHints::default())
 }
 
 pub fn detect_multiple_in_luma_with_hints(
     luma: Vec<u8>,
     width: u32,
     height: u32,
-    hints: &mut DecodingHintDictionary,
+    hints: &mut DecodeHints,
 ) -> Result<Vec<RXingResult>> {
     let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
-    hints
-        .entry(DecodeHintType::TRY_HARDER)
-        .or_insert(DecodeHintValue::TryHarder(true));
+    hints.TryHarder = hints.TryHarder.or(Some(true));
 
     scanner.decode_multiple_with_hints(
         &mut BinaryBitmap::new(HybridBinarizer::new(Luma8LuminanceSource::new(

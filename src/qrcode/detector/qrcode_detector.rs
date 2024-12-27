@@ -23,7 +23,8 @@ use crate::{
     },
     point_f,
     qrcode::decoder::Version,
-    DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions, Point, PointCallback,
+    DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary, Exceptions, Point,
+    PointCallback,
 };
 
 use super::{
@@ -66,7 +67,7 @@ impl<'a> Detector<'_> {
      * @throws FormatException if a QR Code cannot be decoded
      */
     pub fn detect(&mut self) -> Result<QRCodeDetectorResult> {
-        self.detect_with_hints(&HashMap::new())
+        self.detect_with_hints(&DecodeHints::default())
     }
 
     /**
@@ -77,17 +78,8 @@ impl<'a> Detector<'_> {
      * @throws NotFoundException if QR Code cannot be found
      * @throws FormatException if a QR Code cannot be decoded
      */
-    pub fn detect_with_hints(
-        &mut self,
-        hints: &DecodingHintDictionary,
-    ) -> Result<QRCodeDetectorResult> {
-        self.resultPointCallback = if let Some(DecodeHintValue::NeedResultPointCallback(cb)) =
-            hints.get(&DecodeHintType::NEED_RESULT_POINT_CALLBACK)
-        {
-            Some(cb.clone())
-        } else {
-            None
-        };
+    pub fn detect_with_hints(&mut self, hints: &DecodeHints) -> Result<QRCodeDetectorResult> {
+        self.resultPointCallback = hints.NeedResultPointCallback.clone();
 
         let mut finder =
             FinderPatternFinder::with_callback(self.image, self.resultPointCallback.clone());

@@ -36,9 +36,9 @@ impl OneDReader for Code128Reader {
         &mut self,
         rowNumber: u32,
         row: &crate::common::BitArray,
-        hints: &crate::DecodingHintDictionary,
+        hints: &crate::DecodeHints,
     ) -> Result<crate::RXingResult> {
-        let convertFNC1 = hints.contains_key(&DecodeHintType::ASSUME_GS1);
+        let convertFNC1 = hints.AssumeGs1.unwrap_or(false);
 
         let mut symbologyModifier = 0;
 

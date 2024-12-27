@@ -16,9 +16,9 @@
 
 use crate::{
     common::{BitArray, Result},
-    point_f, Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary,
-    Exceptions, LuminanceSource, RXingResult, RXingResultMetadataType, RXingResultMetadataValue,
-    Reader,
+    point_f, Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodeHints,
+    DecodingHintDictionary, Exceptions, LuminanceSource, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue, Reader,
 };
 
 /**
@@ -47,21 +47,15 @@ pub trait OneDReader: Reader {
     fn _do_decode<B: Binarizer>(
         &mut self,
         image: &mut BinaryBitmap<B>,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         let mut hints = hints.clone();
         let width = image.get_width();
         let height = image.get_height();
 
-        let try_harder = matches!(
-            hints.get(&DecodeHintType::TRY_HARDER),
-            Some(DecodeHintValue::TryHarder(true))
-        );
+        let try_harder = hints.TryHarder.unwrap_or(false);
 
-        let try_pure = matches!(
-            hints.get(&DecodeHintType::PURE_BARCODE),
-            Some(DecodeHintValue::PureBarcode(true))
-        );
+        let try_pure = hints.PureBarcode.unwrap_or(false);
 
         // Attempt to decode the barcode as "pure". This method may be very inneficient and uses
         // a very poor version of a binarizer.
@@ -122,9 +116,7 @@ pub trait OneDReader: Reader {
                     // that start on the center line.
                     row.to_mut().reverse();
 
-                    if hints.contains_key(&DecodeHintType::NEED_RESULT_POINT_CALLBACK) {
-                        hints.remove(&DecodeHintType::NEED_RESULT_POINT_CALLBACK);
-                    }
+                    hints.NeedResultPointCallback = None;
                 }
                 let Ok(mut result) = self.decode_row(row_number as u32, &row, &hints) else {
                     continue;
@@ -166,14 +158,14 @@ pub trait OneDReader: Reader {
         &mut self,
         rowNumber: u32,
         row: &BitArray,
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult>;
 
     fn decode_pure(
         &mut self,
         rowNumber: u32,
         row: &[u8],
-        hints: &DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         if row.is_empty() {
             return Err(Exceptions::NOT_FOUND);

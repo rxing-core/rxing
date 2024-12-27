@@ -19,6 +19,7 @@ use std::collections::HashMap;
 use crate::{
     common::BitSourceBuilder,
     qrcode::decoder::{decoded_bit_stream_parser, ErrorCorrectionLevel, Version},
+    DecodeHints,
 };
 
 /**
@@ -39,7 +40,7 @@ fn testSimpleByteMode() {
         builder.asByteArray(),
         Version::getVersionForNumber(1).expect("unwrap"),
         ErrorCorrectionLevel::H,
-        &HashMap::new(),
+        &DecodeHints::default(),
     )
     .expect("unwrap")
     .getText()
@@ -60,7 +61,7 @@ fn testSimpleSJIS() {
         builder.asByteArray(),
         Version::getVersionForNumber(1).expect("unwrap"),
         ErrorCorrectionLevel::H,
-        &HashMap::new(),
+        &DecodeHints::default(),
     )
     .expect("unwrap")
     .getText()
@@ -83,7 +84,7 @@ fn testECI() {
         builder.asByteArray(),
         Version::getVersionForNumber(1).expect("unwrap"),
         ErrorCorrectionLevel::H,
-        &HashMap::new(),
+        &DecodeHints::default(),
     )
     .expect("unwrap")
     .getText()
@@ -103,7 +104,7 @@ fn testHanzi() {
         builder.asByteArray(),
         Version::getVersionForNumber(1).expect("unwrap"),
         ErrorCorrectionLevel::H,
-        &HashMap::new(),
+        &DecodeHints::default(),
     )
     .expect("unwrap")
     .getText()
@@ -124,7 +125,7 @@ fn testHanziLevel1() {
         builder.asByteArray(),
         Version::getVersionForNumber(1).expect("unwrap"),
         ErrorCorrectionLevel::H,
-        &HashMap::new(),
+        &DecodeHints::default(),
     )
     .expect("unwrap")
     .getText()

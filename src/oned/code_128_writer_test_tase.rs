@@ -39,7 +39,8 @@ use once_cell::sync::Lazy;
 use crate::{
     common::{bit_matrix_test_case, BitMatrix, Result},
     oned::{Code128Reader, OneDReader},
-    BarcodeFormat, EncodeHintType, EncodeHintValue, EncodingHintDictionary, Writer,
+    BarcodeFormat, DecodeHints, EncodeHintType, EncodeHintValue, EncodeHints,
+    EncodingHintDictionary, Writer,
 };
 
 use super::Code128Writer;
@@ -324,11 +325,7 @@ fn testEncodeWithForcedCodeSetFailureCodeSetABadCharacter() {
     // Lower case characters should not be accepted when the code set is forced to A.
     let toEncode = "ASDFx0123";
 
-    let mut hints = HashMap::new(); //new EnumMap<>(EncodeHintType.class);
-    hints.insert(
-        EncodeHintType::FORCE_CODE_SET,
-        EncodeHintValue::ForceCodeSet("A".to_string()),
-    );
+    let hints = EncodeHints::default().with(EncodeHintValue::ForceCodeSet("A".to_string()));
     WRITER
         .encode_with_hints(toEncode, &BarcodeFormat::CODE_128, 0, 0, &hints)
         .expect("encode");
@@ -340,11 +337,7 @@ fn testEncodeWithForcedCodeSetFailureCodeSetBBadCharacter() {
     let toEncode = "ASdf\x000123"; // \0 (ascii value 0)
                                    // Characters with ASCII value below 32 should not be accepted when the code set is forced to B.
 
-    let mut hints = HashMap::new(); //new EnumMap<>(EncodeHintType.class);
-    hints.insert(
-        EncodeHintType::FORCE_CODE_SET,
-        EncodeHintValue::ForceCodeSet("B".to_string()),
-    );
+    let mut hints = EncodeHints::default().with(EncodeHintValue::ForceCodeSet("B".to_string()));
     // let  hints = new EnumMap<>(EncodeHintType.class);
     // hints.put(EncodeHintType.FORCE_CODE_SET, "B");
     WRITER
@@ -358,11 +351,7 @@ fn testEncodeWithForcedCodeSetFailureCodeSetCBadCharactersNonNum() {
     let toEncode = "123a5678";
     // Non-digit characters should not be accepted when the code set is forced to C.
 
-    let mut hints = HashMap::new(); //new EnumMap<>(EncodeHintType.class);
-    hints.insert(
-        EncodeHintType::FORCE_CODE_SET,
-        EncodeHintValue::ForceCodeSet("C".to_string()),
-    );
+    let mut hints = EncodeHints::default().with(EncodeHintValue::ForceCodeSet("C".to_string()));
     // let  hints = new EnumMap<>(EncodeHintType.class);
     // hints.put(EncodeHintType.FORCE_CODE_SET, "C");
     WRITER
@@ -376,11 +365,7 @@ fn testEncodeWithForcedCodeSetFailureCodeSetCBadCharactersFncCode() {
     let toEncode = "123\u{00f2}a678";
     // Function codes other than 1 should not be accepted when the code set is forced to C.
 
-    let mut hints = HashMap::new(); //new EnumMap<>(EncodeHintType.class);
-    hints.insert(
-        EncodeHintType::FORCE_CODE_SET,
-        EncodeHintValue::ForceCodeSet("C".to_string()),
-    );
+    let mut hints = EncodeHints::default().with(EncodeHintValue::ForceCodeSet("C".to_string()));
     WRITER
         .encode_with_hints(toEncode, &BarcodeFormat::CODE_128, 0, 0, &hints)
         .expect("encode");
@@ -392,11 +377,7 @@ fn testEncodeWithForcedCodeSetFailureCodeSetCWrongAmountOfDigits() {
     let toEncode = "123456789";
     // An uneven amount of digits should not be accepted when the code set is forced to C.
 
-    let mut hints = HashMap::new(); //new EnumMap<>(EncodeHintType.class);
-    hints.insert(
-        EncodeHintType::FORCE_CODE_SET,
-        EncodeHintValue::ForceCodeSet("C".to_string()),
-    );
+    let mut hints = EncodeHints::default().with(EncodeHintValue::ForceCodeSet("C".to_string()));
     WRITER
         .encode_with_hints(toEncode, &BarcodeFormat::CODE_128, 0, 0, &hints)
         .expect("encode");
@@ -423,11 +404,7 @@ fn testEncodeWithForcedCodeSetFailureCodeSetA() {
 
     //     let  hints = new EnumMap<>(EncodeHintType.class);
     // hints.put(EncodeHintType.FORCE_CODE_SET, "A");
-    let mut hints = HashMap::new(); //new EnumMap<>(EncodeHintType.class);
-    hints.insert(
-        EncodeHintType::FORCE_CODE_SET,
-        EncodeHintValue::ForceCodeSet("A".to_string()),
-    );
+    let mut hints = EncodeHints::default().with(EncodeHintValue::ForceCodeSet("A".to_string()));
     let result = WRITER
         .encode_with_hints(toEncode, &BarcodeFormat::CODE_128, 0, 0, &hints)
         .expect("encode");
@@ -456,11 +433,7 @@ fn testEncodeWithForcedCodeSetFailureCodeSetB() {
 
     //     let  hints = new EnumMap<>(EncodeHintType.class);
     // hints.put(EncodeHintType.FORCE_CODE_SET, "B");
-    let mut hints = HashMap::new(); //new EnumMap<>(EncodeHintType.class);
-    hints.insert(
-        EncodeHintType::FORCE_CODE_SET,
-        EncodeHintValue::ForceCodeSet("B".to_string()),
-    );
+    let mut hints = EncodeHints::default().with(EncodeHintValue::ForceCodeSet("B".to_string()));
     let result = WRITER
         .encode_with_hints(toEncode, &BarcodeFormat::CODE_128, 0, 0, &hints)
         .expect("encode");
@@ -472,29 +445,26 @@ fn testEncodeWithForcedCodeSetFailureCodeSetB() {
 fn encode(toEncode: &str, compact: bool, expectedLoopback: &str) -> Result<BitMatrix> {
     let mut reader = Code128Reader;
 
-    let mut hints: EncodingHintDictionary = HashMap::new();
+    let mut hints = EncodeHints::default();
     if compact {
-        hints.insert(
-            EncodeHintType::CODE128_COMPACT,
-            EncodeHintValue::Code128Compact(true),
-        );
+        hints.Code128Compact = Some(true);
     }
     let encRXingResult =
         WRITER.encode_with_hints(toEncode, &BarcodeFormat::CODE_128, 0, 0, &hints)?;
     if !expectedLoopback.is_empty() {
         let row = encRXingResult.getRow(0);
-        let rtRXingResult = reader.decode_row(0, &row, &HashMap::new())?;
+        let rtRXingResult = reader.decode_row(0, &row, &DecodeHints::default())?;
         let actual = rtRXingResult.getText();
         assert_eq!(expectedLoopback, actual);
     }
     if compact {
         //check that what is encoded compactly yields the same on loopback as what was encoded fast.
         let row = encRXingResult.getRow(0);
-        let rtRXingResult = reader.decode_row(0, &row, &HashMap::new())?;
+        let rtRXingResult = reader.decode_row(0, &row, &DecodeHints::default())?;
         let actual = rtRXingResult.getText();
         let encRXingResultFast = WRITER.encode(toEncode, &BarcodeFormat::CODE_128, 0, 0)?;
         let row = encRXingResultFast.getRow(0);
-        let rtRXingResult = reader.decode_row(0, &row, &HashMap::new())?;
+        let rtRXingResult = reader.decode_row(0, &row, &DecodeHints::default())?;
         assert_eq!(rtRXingResult.getText(), actual);
     }
     Ok(encRXingResult)

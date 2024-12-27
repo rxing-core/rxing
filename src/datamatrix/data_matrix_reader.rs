@@ -18,7 +18,7 @@ use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
-    point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions,
+    point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, DecodeHints, Exceptions,
     ImmutableReader, Point, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
@@ -56,7 +56,7 @@ impl Reader for DataMatrixReader {
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
     ) -> Result<crate::RXingResult> {
-        self.decode_with_hints(image, &HashMap::new())
+        self.decode_with_hints(image, &DecodeHints::default())
     }
 
     /**
@@ -70,7 +70,7 @@ impl Reader for DataMatrixReader {
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<crate::RXingResult> {
         self.internal_decode_with_hints(image, hints)
     }
@@ -80,7 +80,7 @@ impl ImmutableReader for DataMatrixReader {
     fn immutable_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         self.internal_decode_with_hints(image, hints)
     }
@@ -162,15 +162,12 @@ impl DataMatrixReader {
     fn internal_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
-        let try_harder = matches!(
-            hints.get(&DecodeHintType::TRY_HARDER),
-            Some(DecodeHintValue::TryHarder(true))
-        );
+        let try_harder = hints.TryHarder.unwrap_or(false);
         let decoderRXingResult;
         let mut points = Vec::new();
-        if hints.contains_key(&DecodeHintType::PURE_BARCODE) {
+        if matches!(hints.PureBarcode, Some(true)) {
             let bits = self.extractPureBits(image.get_black_matrix())?;
             decoderRXingResult = DECODER.decode(&bits)?;
             points.clear();

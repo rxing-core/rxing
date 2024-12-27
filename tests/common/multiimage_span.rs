@@ -28,7 +28,8 @@ use rxing::{
     multi::MultipleBarcodeReader,
     pdf417::PDF417RXingResultMetadata,
     BarcodeFormat, Binarizer, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType,
-    DecodeHintValue, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    DecodeHintValue, DecodeHints, RXingResult, RXingResultMetadataType, RXingResultMetadataValue,
+    Reader,
 };
 
 use super::TestRXingResult;
@@ -42,7 +43,7 @@ pub struct MultiImageSpanAbstractBlackBoxTestCase<T: MultipleBarcodeReader + Rea
     barcode_reader: T,
     expected_format: BarcodeFormat,
     test_rxing_results: Vec<TestRXingResult>,
-    hints: HashMap<DecodeHintType, DecodeHintValue>,
+    hints: DecodeHints,
 }
 
 impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T> {
@@ -66,7 +67,7 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
             barcode_reader,
             expected_format,
             test_rxing_results: Vec::new(),
-            hints: HashMap::new(),
+            hints: DecodeHints::default(),
         }
     }
 
@@ -78,8 +79,30 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
         self.add_test_complex(must_pass_count, try_harder_count, 0, 0, rotation);
     }
 
-    pub fn add_hint(&mut self, hint: DecodeHintType, value: DecodeHintValue) {
-        self.hints.insert(hint, value);
+    pub fn add_hint(&mut self, _hint: DecodeHintType, value: DecodeHintValue) {
+        match value {
+            DecodeHintValue::Other(v) => self.hints.Other = Some(v),
+            DecodeHintValue::PureBarcode(v) => self.hints.PureBarcode = Some(v),
+            DecodeHintValue::PossibleFormats(v) => self.hints.PossibleFormats = Some(v),
+            DecodeHintValue::TryHarder(v) => self.hints.TryHarder = Some(v),
+            DecodeHintValue::CharacterSet(v) => self.hints.CharacterSet = Some(v),
+            DecodeHintValue::AllowedLengths(v) => self.hints.AllowedLengths = Some(v),
+            DecodeHintValue::AssumeCode39CheckDigit(v) => {
+                self.hints.AssumeCode39CheckDigit = Some(v)
+            }
+            DecodeHintValue::AssumeGs1(v) => self.hints.AssumeGs1 = Some(v),
+            DecodeHintValue::ReturnCodabarStartEnd(v) => self.hints.ReturnCodabarStartEnd = Some(v),
+            DecodeHintValue::NeedResultPointCallback(v) => {
+                self.hints.NeedResultPointCallback = Some(v)
+            }
+            DecodeHintValue::AllowedEanExtensions(v) => self.hints.AllowedEanExtensions = Some(v),
+            DecodeHintValue::AlsoInverted(v) => self.hints.AlsoInverted = Some(v),
+            DecodeHintValue::TelepenAsNumeric(v) => self.hints.TelepenAsNumeric = Some(v),
+            #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
+            DecodeHintValue::QrAssumeSpecConformInput(v) => {
+                self.hints.QrAssumeSpecConformInput = Some(v)
+            }
+        }
     }
 
     /**
@@ -611,18 +634,14 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
 
         let mut hints = self.hints.clone();
         if try_harder {
-            hints.insert(DecodeHintType::TRY_HARDER, DecodeHintValue::TryHarder(true));
+            hints.TryHarder = Some(true);
             // hints.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
         }
 
         // Try in 'pure' mode mostly to exercise PURE_BARCODE code paths for exceptions;
         // not expected to pass, generally
         // let mut result = None;
-        let mut pure_hints = HashMap::new();
-        pure_hints.insert(
-            DecodeHintType::PURE_BARCODE,
-            DecodeHintValue::PureBarcode(true),
-        );
+        let pure_hints = DecodeHints::default().with(DecodeHintValue::PureBarcode(true));
         let mut result = if let Ok(res) = self.barcode_reader.decode_with_hints(source, &pure_hints)
         {
             Some(res)
@@ -788,10 +807,7 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
         try_harder: bool,
         barcode_reader: &mut T,
     ) -> Result<Vec<RXingResult>> {
-        let mut hints = HashMap::new(); //new EnumMap<>(DecodeHintType.class);
-        if try_harder {
-            hints.insert(DecodeHintType::TRY_HARDER, DecodeHintValue::TryHarder(true));
-        }
+        let hints = DecodeHints::default().with(DecodeHintValue::TryHarder(true));
 
         barcode_reader.decode_multiple_with_hints(source, &hints)
     }

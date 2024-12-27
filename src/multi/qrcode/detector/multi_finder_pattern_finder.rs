@@ -19,7 +19,8 @@ use std::cmp::Ordering;
 use crate::{
     common::{BitMatrix, Result},
     qrcode::detector::{FinderPattern, FinderPatternFinder, FinderPatternInfo},
-    result_point_utils, DecodeHintType, DecodingHintDictionary, Exceptions, Point, PointCallback,
+    result_point_utils, DecodeHintType, DecodeHints, DecodingHintDictionary, Exceptions, Point,
+    PointCallback,
 };
 
 // max. legal count of modules per QR code edge (177)
@@ -216,8 +217,8 @@ impl<'a> MultiFinderPatternFinder<'_> {
         }
     }
 
-    pub fn findMulti(&mut self, hints: &DecodingHintDictionary) -> Result<Vec<FinderPatternInfo>> {
-        let tryHarder = hints.contains_key(&DecodeHintType::TRY_HARDER);
+    pub fn findMulti(&mut self, hints: &DecodeHints) -> Result<Vec<FinderPatternInfo>> {
+        let tryHarder = hints.TryHarder.unwrap_or(false);
         let image = self.0.getImage().clone();
         let maxI = image.getHeight();
         let maxJ = image.getWidth();

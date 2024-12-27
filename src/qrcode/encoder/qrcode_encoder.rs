@@ -27,7 +27,7 @@ use crate::{
         BitArray, BitFieldBaseType, CharacterSet, Eci, Result,
     },
     qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
-    EncodeHintType, EncodeHintValue, EncodingHintDictionary, Exceptions,
+    EncodeHintType, EncodeHintValue, EncodeHints, EncodingHintDictionary, Exceptions,
 };
 
 use super::{mask_util, matrix_util, BlockPair, ByteMatrix, MinimalEncoder, QRCode};
@@ -63,35 +63,31 @@ pub fn calculateMaskPenalty(matrix: &ByteMatrix) -> u32 {
  *   or configuration
  */
 pub fn encode(content: &str, ecLevel: ErrorCorrectionLevel) -> Result<QRCode> {
-    encode_with_hints(content, ecLevel, &HashMap::new())
+    encode_with_hints(content, ecLevel, &EncodeHints::default())
 }
 
 pub fn encode_with_hints(
     content: &str,
     ec_level: ErrorCorrectionLevel,
-    hints: &EncodingHintDictionary,
+    hints: &EncodeHints,
 ) -> Result<QRCode> {
     let version;
     let mut header_and_data_bits;
     let mode;
 
-    let has_gs1_format_hint = matches!(
-        hints.get(&EncodeHintType::GS1_FORMAT),
-        Some(EncodeHintValue::Gs1Format(true))
-    );
+    let has_gs1_format_hint = matches!(hints.Gs1Format, Some(true));
 
-    let has_compaction_hint =
-        if let Some(EncodeHintValue::QrCompact(vb)) = hints.get(&EncodeHintType::QR_COMPACT) {
-            vb.parse::<bool>().unwrap_or_default()
-        } else {
-            false
-        };
+    let has_compaction_hint = if let Some(vb) = &hints.QrCompact {
+        vb.parse::<bool>().unwrap_or_default()
+    } else {
+        false
+    };
 
     // Determine what character encoding has been specified by the caller, if any
     let mut encoding = None; //DEFAULT_BYTE_MODE_ENCODING;
-    let mut has_encoding_hint = hints.contains_key(&EncodeHintType::CHARACTER_SET);
+    let mut has_encoding_hint = hints.CharacterSet.is_some();
     if has_encoding_hint {
-        if let Some(EncodeHintValue::CharacterSet(v)) = hints.get(&EncodeHintType::CHARACTER_SET) {
+        if let Some(v) = &hints.CharacterSet {
             encoding = Some(CharacterSet::get_character_set_by_name(v).ok_or(Exceptions::WRITER)?)
         }
     }
@@ -150,10 +146,8 @@ pub fn encode_with_hints(
         let mut data_bits = BitArray::new();
         appendBytes(content, mode, &mut data_bits, encoding)?;
 
-        if hints.contains_key(&EncodeHintType::QR_VERSION) {
-            let versionNumber = if let Some(EncodeHintValue::QrVersion(v)) =
-                hints.get(&EncodeHintType::QR_VERSION)
-            {
+        if hints.QrVersion.is_some() {
+            let versionNumber = if let Some(v) = &hints.QrVersion {
                 v.parse::<u32>().unwrap_or_default()
             } else {
                 0
@@ -209,7 +203,7 @@ pub fn encode_with_hints(
 
     // Enable manual selection of the pattern to be used via hint
     let mut mask_pattern = -1;
-    if let Some(EncodeHintValue::QrMaskPattern(v)) = hints.get(&EncodeHintType::QR_MASK_PATTERN) {
+    if let Some(v) = &hints.QrMaskPattern {
         let hint_mask_pattern = v.parse::<i32>().unwrap_or(-1);
 
         mask_pattern = if QRCode::isValidMaskPattern(hint_mask_pattern) {

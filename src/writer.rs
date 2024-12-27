@@ -18,7 +18,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    BarcodeFormat, EncodingHintDictionary,
+    BarcodeFormat, EncodeHints, EncodingHintDictionary,
 };
 
 /**
@@ -60,6 +60,6 @@ pub trait Writer {
         format: &BarcodeFormat,
         width: i32,
         height: i32,
-        hints: &EncodingHintDictionary,
+        hints: &EncodeHints,
     ) -> Result<BitMatrix>;
 }

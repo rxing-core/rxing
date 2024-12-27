@@ -471,3 +471,26 @@ impl From<DecodeHints> for super::DecodingHintDictionary {
         new_self
     }
 }
+
+impl DecodeHints {
+    pub fn with(mut self, value: DecodeHintValue) -> Self {
+        match value {
+            DecodeHintValue::Other(v) => self.Other = Some(v),
+            DecodeHintValue::PureBarcode(v) => self.PureBarcode = Some(v),
+            DecodeHintValue::PossibleFormats(v) => self.PossibleFormats = Some(v),
+            DecodeHintValue::TryHarder(v) => self.TryHarder = Some(v),
+            DecodeHintValue::CharacterSet(v) => self.CharacterSet = Some(v),
+            DecodeHintValue::AllowedLengths(v) => self.AllowedLengths = Some(v),
+            DecodeHintValue::AssumeCode39CheckDigit(v) => self.AssumeCode39CheckDigit = Some(v),
+            DecodeHintValue::AssumeGs1(v) => self.AssumeGs1 = Some(v),
+            DecodeHintValue::ReturnCodabarStartEnd(v) => self.ReturnCodabarStartEnd = Some(v),
+            DecodeHintValue::NeedResultPointCallback(v) => self.NeedResultPointCallback = Some(v),
+            DecodeHintValue::AllowedEanExtensions(v) => self.AllowedEanExtensions = Some(v),
+            DecodeHintValue::AlsoInverted(v) => self.AlsoInverted = Some(v),
+            DecodeHintValue::TelepenAsNumeric(v) => self.TelepenAsNumeric = Some(v),
+            #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
+            DecodeHintValue::QrAssumeSpecConformInput(v) => self.QrAssumeSpecConformInput = Some(v),
+        }
+        self
+    }
+}

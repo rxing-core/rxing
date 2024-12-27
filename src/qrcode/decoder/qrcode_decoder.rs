@@ -26,10 +26,10 @@ use once_cell::sync::Lazy;
 
 use crate::{
     common::{
-        reedsolomon::get_predefined_genericgf, reedsolomon::PredefinedGenericGF,
-        reedsolomon::ReedSolomonDecoder, BitMatrix, DecoderRXingResult, Result,
+        reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder},
+        BitMatrix, DecoderRXingResult, Result,
     },
-    DecodingHintDictionary, Exceptions,
+    DecodeHints, DecodingHintDictionary, Exceptions,
 };
 
 use super::{decoded_bit_stream_parser, BitMatrixParser, DataBlock, QRCodeDecoderMetaData};
@@ -42,7 +42,7 @@ static RS_DECODER: Lazy<ReedSolomonDecoder> = Lazy::new(|| {
 });
 
 pub fn decode_bool_array(image: &[Vec<bool>]) -> Result<DecoderRXingResult> {
-    decode_bool_array_with_hints(image, &HashMap::new())
+    decode_bool_array_with_hints(image, &DecodeHints::default())
 }
 
 /**
@@ -57,13 +57,13 @@ pub fn decode_bool_array(image: &[Vec<bool>]) -> Result<DecoderRXingResult> {
  */
 pub fn decode_bool_array_with_hints(
     image: &[Vec<bool>],
-    hints: &DecodingHintDictionary,
+    hints: &DecodeHints,
 ) -> Result<DecoderRXingResult> {
     decode_bitmatrix_with_hints(&BitMatrix::parse_bools(image), hints)
 }
 
 pub fn decode_bitmatrix(bits: &BitMatrix) -> Result<DecoderRXingResult> {
-    decode_bitmatrix_with_hints(bits, &HashMap::new())
+    decode_bitmatrix_with_hints(bits, &DecodeHints::default())
 }
 
 /**
@@ -77,7 +77,7 @@ pub fn decode_bitmatrix(bits: &BitMatrix) -> Result<DecoderRXingResult> {
  */
 pub fn decode_bitmatrix_with_hints(
     bits: &BitMatrix,
-    hints: &DecodingHintDictionary,
+    hints: &DecodeHints,
 ) -> Result<DecoderRXingResult> {
     // Construct a parser and read version, error-correction level
     let mut parser = BitMatrixParser::new(bits.clone())?;
@@ -139,7 +139,7 @@ pub fn decode_bitmatrix_with_hints(
 
 fn decode_bitmatrix_parser_with_hints(
     parser: &mut BitMatrixParser,
-    hints: &DecodingHintDictionary,
+    hints: &DecodeHints,
 ) -> Result<DecoderRXingResult> {
     let version = parser.readVersion()?;
     let ecLevel = parser.readFormatInformation()?.getErrorCorrectionLevel();

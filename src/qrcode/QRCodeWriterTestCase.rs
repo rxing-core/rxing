@@ -19,7 +19,8 @@ use std::{collections::HashMap, path::PathBuf};
 use image::DynamicImage;
 
 use crate::{
-    common::BitMatrix, qrcode::QRCodeWriter, BarcodeFormat, EncodeHintType, EncodeHintValue, Writer,
+    common::BitMatrix, qrcode::QRCodeWriter, BarcodeFormat, EncodeHintType, EncodeHintValue,
+    EncodeHints, Writer,
 };
 
 use super::decoder::ErrorCorrectionLevel;
@@ -85,7 +86,7 @@ fn testQRCodeWriter() {
         &BarcodeFormat::QR_CODE,
         bigEnough,
         bigEnough,
-        &HashMap::new(),
+        &EncodeHints::default(),
     );
     assert!(matrix.is_ok());
     let mut matrix = matrix.unwrap();
@@ -100,7 +101,7 @@ fn testQRCodeWriter() {
             &BarcodeFormat::QR_CODE,
             tooSmall,
             tooSmall,
-            &HashMap::new(),
+            &EncodeHints::default(),
         )
         .expect("should encode");
     // assertNotNull(matrix);
@@ -116,7 +117,7 @@ fn testQRCodeWriter() {
             &BarcodeFormat::QR_CODE,
             strangeWidth,
             strangeHeight,
-            &HashMap::new(),
+            &EncodeHints::default(),
         )
         .expect("should encode");
     // assertNotNull(matrix);
@@ -135,11 +136,9 @@ fn compareToGoldenFile(
     let goldenRXingResult = createMatrixFromImage(image);
     // assertNotNull(goldenRXingResult);
 
-    let mut hints = HashMap::new();
-    hints.insert(
-        EncodeHintType::ERROR_CORRECTION,
-        EncodeHintValue::ErrorCorrection(ecLevel.get_value().to_string()),
-    );
+    let hints = EncodeHints::default().with(EncodeHintValue::ErrorCorrection(
+        ecLevel.get_value().to_string(),
+    ));
     let writer = QRCodeWriter {};
     let generatedRXingResult = writer
         .encode_with_hints(

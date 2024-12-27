@@ -18,8 +18,8 @@ use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, DetectorRXingResult, Result},
-    BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, ImmutableReader,
-    RXingResult, RXingResultMetadataType, Reader,
+    BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, DecodeHints, Exceptions,
+    ImmutableReader, RXingResult, RXingResultMetadataType, Reader,
 };
 
 use super::{decoder::maxicode_decoder, detector};
@@ -45,7 +45,7 @@ impl Reader for MaxiCodeReader {
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
     ) -> Result<crate::RXingResult> {
-        self.decode_with_hints(image, &HashMap::new())
+        self.decode_with_hints(image, &DecodeHints::default())
     }
 
     /**
@@ -59,7 +59,7 @@ impl Reader for MaxiCodeReader {
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<crate::RXingResult> {
         self.internal_decode_with_hints(image, hints)
     }
@@ -69,7 +69,7 @@ impl ImmutableReader for MaxiCodeReader {
     fn immutable_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         self.internal_decode_with_hints(image, hints)
     }
@@ -121,14 +121,11 @@ impl MaxiCodeReader {
     fn internal_decode_with_hints<B: Binarizer>(
         &self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> Result<RXingResult> {
         // Note that MaxiCode reader effectively always assumes PURE_BARCODE mode
         // and can't detect it in an image
-        let try_harder = matches!(
-            hints.get(&DecodeHintType::TRY_HARDER),
-            Some(DecodeHintValue::TryHarder(true))
-        );
+        let try_harder = hints.TryHarder.unwrap_or(false);
 
         let mut rotation = None;
 

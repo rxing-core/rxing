@@ -417,9 +417,9 @@ fn decode_command(
 
     if *decode_multi {
         let results = if extension == "svg" {
-            rxing::helpers::detect_multiple_in_svg_with_hints(file_name, &mut hints)
+            rxing::helpers::detect_multiple_in_svg_with_hints(file_name, &mut hints.into())
         } else {
-            rxing::helpers::detect_multiple_in_file_with_hints(file_name, &mut hints)
+            rxing::helpers::detect_multiple_in_file_with_hints(file_name, &mut hints.into())
         };
         match results {
             Ok(result_array) => {
@@ -440,9 +440,9 @@ fn decode_command(
         }
     } else {
         let result = if extension == "svg" {
-            rxing::helpers::detect_in_svg_with_hints(file_name, None, &mut hints)
+            rxing::helpers::detect_in_svg_with_hints(file_name, None, &mut hints.into())
         } else {
-            rxing::helpers::detect_in_file_with_hints(file_name, None, &mut hints)
+            rxing::helpers::detect_in_file_with_hints(file_name, None, &mut hints.into())
         };
         match result {
             Ok(result) => {
@@ -624,7 +624,7 @@ fn encode_command(
         barcode_type,
         *width as i32,
         *height as i32,
-        &hints,
+        &hints.into(),
     ) {
         Ok(result) => {
             println!("Encode successful, saving...");

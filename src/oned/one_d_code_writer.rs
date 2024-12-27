@@ -16,7 +16,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    BarcodeFormat, Exceptions, Writer,
+    BarcodeFormat, EncodeHints, Exceptions, Writer,
 };
 
 /**
@@ -42,11 +42,7 @@ pub trait OneDimensionalCodeWriter: Writer {
      * @param hints encoding hints
      * @return a {@code boolean[]} of horizontal pixels (false = white, true = black)
      */
-    fn encode_oned_with_hints(
-        &self,
-        contents: &str,
-        _hints: &crate::EncodingHintDictionary,
-    ) -> Result<Vec<bool>> {
+    fn encode_oned_with_hints(&self, contents: &str, _hints: &EncodeHints) -> Result<Vec<bool>> {
         self.encode_oned(contents)
     }
 

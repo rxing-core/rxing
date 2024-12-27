@@ -536,3 +536,31 @@ impl From<super::EncodingHintDictionary> for EncodeHints {
         new_self
     }
 }
+
+impl EncodeHints {
+    pub fn with(mut self, hint: EncodeHintValue) -> Self {
+        match hint {
+            EncodeHintValue::ErrorCorrection(v) => self.ErrorCorrection = Some(v),
+            EncodeHintValue::CharacterSet(v) => self.CharacterSet = Some(v),
+            EncodeHintValue::DataMatrixShape(v) => self.DataMatrixShape = Some(v),
+            EncodeHintValue::DataMatrixCompact(v) => self.DataMatrixCompact = Some(v),
+            EncodeHintValue::MinSize(v) => self.MinSize = Some(v),
+            EncodeHintValue::MaxSize(v) => self.MaxSize = Some(v),
+            EncodeHintValue::Margin(v) => self.Margin = Some(v),
+            EncodeHintValue::Pdf417Compact(v) => self.Pdf417Compact = Some(v),
+            EncodeHintValue::Pdf417Compaction(v) => self.Pdf417Compaction = Some(v),
+            EncodeHintValue::Pdf417Dimensions(v) => self.Pdf417Dimensions = Some(v),
+            EncodeHintValue::Pdf417AutoEci(v) => self.Pdf417AutoEci = Some(v),
+            EncodeHintValue::AztecLayers(v) => self.AztecLayers = Some(v),
+            EncodeHintValue::QrVersion(v) => self.QrVersion = Some(v),
+            EncodeHintValue::QrMaskPattern(v) => self.QrMaskPattern = Some(v),
+            EncodeHintValue::QrCompact(v) => self.QrCompact = Some(v),
+            EncodeHintValue::Gs1Format(v) => self.Gs1Format = Some(v),
+            EncodeHintValue::ForceCodeSet(v) => self.ForceCodeSet = Some(v),
+            EncodeHintValue::ForceC40(v) => self.ForceC40 = Some(v),
+            EncodeHintValue::Code128Compact(v) => self.Code128Compact = Some(v),
+            EncodeHintValue::TelepenAsNumeric(v) => self.TelepenAsNumeric = Some(v),
+        };
+        self
+    }
+}
