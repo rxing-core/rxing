@@ -25,7 +25,6 @@ use super::MultiFormatUPCEANReader;
 use super::OneDReader;
 use super::TelepenReader;
 use crate::common::Result;
-use crate::DecodeHintValue;
 use crate::DecodeHints;
 use crate::Exceptions;
 use crate::{BarcodeFormat, Binarizer, RXingResult};
@@ -167,12 +166,10 @@ impl MultiFormatOneDReader {
     }
 }
 
-use crate::DecodeHintType;
-use crate::DecodingHintDictionary;
 use crate::RXingResultMetadataType;
 use crate::RXingResultMetadataValue;
 use crate::Reader;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 impl Reader for MultiFormatOneDReader {
     fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {

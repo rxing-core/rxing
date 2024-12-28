@@ -16,8 +16,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    qrcode::detector::{Detector, QRCodeDetectorResult},
-    DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary, Exceptions,
+    qrcode::detector::{Detector, QRCodeDetectorResult}, DecodeHints, Exceptions,
 };
 
 use super::MultiFinderPatternFinder;

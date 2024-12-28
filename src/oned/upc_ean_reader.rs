@@ -16,7 +16,7 @@
 
 use crate::{
     common::{BitArray, Result},
-    point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, Exceptions, RXingResult,
+    point_f, BarcodeFormat, Binarizer, Exceptions, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 

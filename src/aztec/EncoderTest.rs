@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
 
 use crate::{
     aztec::{
@@ -24,7 +23,7 @@ use crate::{
         shared_test_methods::{stripSpace, toBitArray, toBooleanArray},
     },
     common::CharacterSet,
-    BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Point,
+    BarcodeFormat, EncodeHints, Point,
 };
 
 use super::{encoder::aztec_encoder, AztecWriter};

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
 
 use crate::{
     common::{
@@ -22,8 +21,7 @@ use crate::{
         SamplerControl,
     },
     point_f,
-    qrcode::decoder::Version,
-    DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary, Exceptions, Point,
+    qrcode::decoder::Version, DecodeHints, Exceptions, Point,
     PointCallback,
 };
 

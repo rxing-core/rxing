@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 
 use crate::common::{BitMatrix, HybridBinarizer, Result};
 use crate::{

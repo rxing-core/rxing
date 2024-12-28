@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, Result},
-    BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Exceptions, Writer,
+    BarcodeFormat, EncodeHints, Exceptions, Writer,
 };
 
 use super::{

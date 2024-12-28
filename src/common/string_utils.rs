@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary};
+use crate::DecodeHints;
 
 use super::CharacterSet;
 

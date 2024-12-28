@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
 
 use crate::{
     common::{BitArray, CharacterSet},
     qrcode::{
         decoder::{ErrorCorrectionLevel, Mode, Version},
         encoder::{qrcode_encoder, MinimalEncoder},
-    },
-    EncodeHintType, EncodeHintValue, EncodeHints,
+    }, EncodeHintValue, EncodeHints,
 };
 
 use super::QRCode;
@@ -163,7 +161,7 @@ fn testEncode() {
 
 #[test]
 fn testEncodeWithVersion() {
-    let mut hints = EncodeHints::default().with(EncodeHintValue::QrVersion("7".to_owned()));
+    let hints = EncodeHints::default().with(EncodeHintValue::QrVersion("7".to_owned()));
     let qrCode = qrcode_encoder::encode_with_hints("ABCDEF", ErrorCorrectionLevel::H, &hints)
         .expect("encode");
     assert!(qrCode.to_string().contains(" version: 7\n"));
@@ -172,7 +170,7 @@ fn testEncodeWithVersion() {
 #[test]
 #[should_panic]
 fn testEncodeWithVersionTooSmall() {
-    let mut hints = EncodeHints::default().with(EncodeHintValue::QrVersion("3".to_owned()));
+    let hints = EncodeHints::default().with(EncodeHintValue::QrVersion("3".to_owned()));
     qrcode_encoder::encode_with_hints(
         "THISMESSAGEISTOOLONGFORAQRCODEVERSION3",
         ErrorCorrectionLevel::H,
@@ -183,7 +181,7 @@ fn testEncodeWithVersionTooSmall() {
 
 #[test]
 fn testSimpleutf8ECI() {
-    let mut hints = EncodeHints::default().with(EncodeHintValue::CharacterSet("utf8".to_owned()));
+    let hints = EncodeHints::default().with(EncodeHintValue::CharacterSet("utf8".to_owned()));
     let qrCode = qrcode_encoder::encode_with_hints("hello", ErrorCorrectionLevel::H, &hints)
         .expect("encode");
     let expected = r"<<
@@ -220,7 +218,7 @@ fn testSimpleutf8ECI() {
 
 #[test]
 fn testEncodeKanjiMode() {
-    let mut hints =
+    let hints =
         EncodeHints::default().with(EncodeHintValue::CharacterSet("Shift_JIS".to_owned()));
     // Nihon in Kanji
     let qrCode =
@@ -260,7 +258,7 @@ fn testEncodeKanjiMode() {
 
 #[test]
 fn testEncodeShiftjisNumeric() {
-    let mut hints =
+    let hints =
         EncodeHints::default().with(EncodeHintValue::CharacterSet("Shift_JIS".to_owned()));
 
     let qrCode =
@@ -299,7 +297,7 @@ fn testEncodeShiftjisNumeric() {
 
 #[test]
 fn testEncodeGS1WithStringTypeHint() {
-    let mut hints = EncodeHints::default().with(EncodeHintValue::Gs1Format(true));
+    let hints = EncodeHints::default().with(EncodeHintValue::Gs1Format(true));
     let qrCode =
         qrcode_encoder::encode_with_hints("100001%11171218", ErrorCorrectionLevel::H, &hints)
             .expect("encode");
@@ -308,7 +306,7 @@ fn testEncodeGS1WithStringTypeHint() {
 
 #[test]
 fn testEncodeGS1WithBooleanTypeHint() {
-    let mut hints = EncodeHints::default().with(EncodeHintValue::Gs1Format(true));
+    let hints = EncodeHints::default().with(EncodeHintValue::Gs1Format(true));
     let qrCode =
         qrcode_encoder::encode_with_hints("100001%11171218", ErrorCorrectionLevel::H, &hints)
             .expect("encode");
@@ -317,7 +315,7 @@ fn testEncodeGS1WithBooleanTypeHint() {
 
 #[test]
 fn testDoesNotEncodeGS1WhenBooleanTypeHintExplicitlyFalse() {
-    let mut hints = EncodeHints::default().with(EncodeHintValue::Gs1Format(false));
+    let hints = EncodeHints::default().with(EncodeHintValue::Gs1Format(false));
 
     let qrCode = qrcode_encoder::encode_with_hints("ABCDEF", ErrorCorrectionLevel::H, &hints)
         .expect("encode");
@@ -326,7 +324,7 @@ fn testDoesNotEncodeGS1WhenBooleanTypeHintExplicitlyFalse() {
 
 #[test]
 fn testDoesNotEncodeGS1WhenStringTypeHintExplicitlyFalse() {
-    let mut hints = EncodeHints::default().with(EncodeHintValue::Gs1Format(false));
+    let hints = EncodeHints::default().with(EncodeHintValue::Gs1Format(false));
     let qrCode = qrcode_encoder::encode_with_hints("ABCDEF", ErrorCorrectionLevel::H, &hints)
         .expect("encode");
     verifyNotGS1EncodedData(&qrCode);
@@ -334,7 +332,7 @@ fn testDoesNotEncodeGS1WhenStringTypeHintExplicitlyFalse() {
 
 #[test]
 fn testGS1ModeHeaderWithECI() {
-    let mut hints = EncodeHints::default()
+    let hints = EncodeHints::default()
         .with(EncodeHintValue::CharacterSet("utf8".to_owned()))
         .with(EncodeHintValue::Gs1Format(true));
     let qrCode = qrcode_encoder::encode_with_hints("hello", ErrorCorrectionLevel::H, &hints)

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, CharacterSet, Result},
-    BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Exceptions, Writer,
+    BarcodeFormat, EncodeHints, Exceptions, Writer,
 };
 
 use super::encoder::PDF417;
@@ -223,10 +222,10 @@ impl PDF417Writer {
  */
 #[cfg(test)]
 mod PDF417WriterTestCase {
-    use std::collections::HashMap;
+    
 
     use crate::{
-        pdf417::PDF417Writer, BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Writer,
+        pdf417::PDF417Writer, BarcodeFormat, EncodeHintValue, EncodeHints, Writer,
     };
 
     #[test]

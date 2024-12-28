@@ -404,7 +404,7 @@ impl Code39Reader {
 
 #[cfg(test)]
 mod code_39_extended_mode_test_case {
-    use std::collections::HashMap;
+    
 
     use crate::{
         common::BitMatrix,

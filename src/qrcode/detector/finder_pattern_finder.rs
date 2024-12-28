@@ -18,7 +18,7 @@ use std::ops::Div;
 
 use crate::{
     common::{BitMatrix, Result},
-    result_point_utils, DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary,
+    result_point_utils, DecodeHints,
     Exceptions, Point, PointCallback,
 };
 

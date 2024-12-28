@@ -205,11 +205,11 @@ impl TelepenWriter {
  */
 #[cfg(test)]
 mod TelepenWriterTestCase {
-    use std::collections::HashMap;
+    
 
     use crate::{
         common::{bit_matrix_test_case, BitMatrix},
-        BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Writer,
+        BarcodeFormat, EncodeHintValue, EncodeHints, Writer,
     };
 
     use super::TelepenWriter;
@@ -260,7 +260,7 @@ mod TelepenWriterTestCase {
     }
 
     fn encode_with_hints(input: &str) -> BitMatrix {
-        let mut hints = EncodeHints::default().with(EncodeHintValue::TelepenAsNumeric(true));
+        let hints = EncodeHints::default().with(EncodeHintValue::TelepenAsNumeric(true));
 
         TelepenWriter
             .encode_with_hints(input, &BarcodeFormat::TELEPEN, 0, 0, &hints)

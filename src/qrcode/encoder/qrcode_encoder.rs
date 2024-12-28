@@ -13,11 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * @author satorux@google.com (Satoru Takabayashi) - creator
- * @author dswitkin@google.com (Daniel Switkin) - ported from C++
- */
-use std::collections::HashMap;
 
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -26,8 +21,7 @@ use crate::{
         reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonEncoder},
         BitArray, BitFieldBaseType, CharacterSet, Eci, Result,
     },
-    qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
-    EncodeHintType, EncodeHintValue, EncodeHints, EncodingHintDictionary, Exceptions,
+    qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef}, EncodeHints, Exceptions,
 };
 
 use super::{mask_util, matrix_util, BlockPair, ByteMatrix, MinimalEncoder, QRCode};

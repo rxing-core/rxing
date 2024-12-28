@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
 
 use crate::{
     common::{Quadrilateral, Result},
-    point_f, Binarizer, BinaryBitmap, DecodeHints, DecodingHintDictionary, Exceptions, Point,
+    point_f, Binarizer, BinaryBitmap, DecodeHints, Exceptions, Point,
     RXingResult, Reader,
 };
 

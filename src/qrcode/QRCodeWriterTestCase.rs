@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-use std::{collections::HashMap, path::PathBuf};
+use std::path::PathBuf;
 
 use image::DynamicImage;
 
 use crate::{
-    common::BitMatrix, qrcode::QRCodeWriter, BarcodeFormat, EncodeHintType, EncodeHintValue,
+    common::BitMatrix, qrcode::QRCodeWriter, BarcodeFormat, EncodeHintValue,
     EncodeHints, Writer,
 };
 

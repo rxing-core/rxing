@@ -15,12 +15,11 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, CharacterSet, Result},
     qrcode::encoder::ByteMatrix,
-    BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Exceptions, Writer,
+    BarcodeFormat, EncodeHints, Exceptions, Writer,
 };
 
 use super::encoder::{
@@ -282,16 +281,16 @@ impl DataMatrixWriter {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
+    
 
     use crate::{
         datamatrix::{encoder::SymbolShapeHint, DataMatrixWriter},
-        BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Writer,
+        BarcodeFormat, EncodeHintValue, EncodeHints, Writer,
     };
 
     #[test]
     fn testDataMatrixImageWriter() {
-        let mut hints = EncodeHints::default().with(EncodeHintValue::DataMatrixShape(
+        let hints = EncodeHints::default().with(EncodeHintValue::DataMatrixShape(
             SymbolShapeHint::FORCE_SQUARE,
         ));
 
@@ -312,7 +311,7 @@ mod tests {
 
     #[test]
     fn testDataMatrixWriter() {
-        let mut hints = EncodeHints::default().with(EncodeHintValue::DataMatrixShape(
+        let hints = EncodeHints::default().with(EncodeHintValue::DataMatrixShape(
             SymbolShapeHint::FORCE_SQUARE,
         ));
 

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
 
 use once_cell::sync::Lazy;
 
@@ -23,7 +22,7 @@ use crate::{
         reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder},
         BitMatrix, DecoderRXingResult, Result,
     },
-    DecodeHints, DecodingHintDictionary, Exceptions,
+    DecodeHints, Exceptions,
 };
 
 use super::{decoded_bit_stream_parser, BitMatrixParser};

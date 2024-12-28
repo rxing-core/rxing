@@ -18,7 +18,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    BarcodeFormat, EncodeHints, EncodingHintDictionary,
+    BarcodeFormat, EncodeHints,
 };
 
 /**

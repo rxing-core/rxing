@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use crate::common::Result;
 #[cfg(feature = "experimental_features")]
@@ -23,7 +23,7 @@ use crate::qrcode::cpp_port::QrReader;
 use crate::{
     aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
     oned::MultiFormatOneDReader, pdf417::PDF417Reader, qrcode::QRCodeReader, BarcodeFormat,
-    Binarizer, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodingHintDictionary, Exceptions,
+    Binarizer, BinaryBitmap, Exceptions,
     RXingResult, Reader,
 };
 use crate::{DecodeHints, ONE_D_FORMATS};

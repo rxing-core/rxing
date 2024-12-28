@@ -24,7 +24,6 @@
  *   http://www.piramidepse.com/
  */
 
-use std::collections::HashMap;
 
 use crate::{
     common::{BitArray, Result},
@@ -35,7 +34,7 @@ use crate::{
         },
         OneDReader,
     },
-    BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, DecodeHints, DecodingHintDictionary,
+    BarcodeFormat, Binarizer, DecodeHints,
     Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 

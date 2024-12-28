@@ -16,7 +16,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    point_f, Binarizer, BinaryBitmap, DecodeHints, DecodingHintDictionary, Exceptions, Point,
+    point_f, Binarizer, BinaryBitmap, DecodeHints, Exceptions, Point,
 };
 
 use std::borrow::Cow;

@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
 
 use crate::{
     common::{BitArray, Result},
     oned::{one_d_reader, OneDReader},
-    point_f, BarcodeFormat, Binarizer, DecodeHintType, DecodeHintValue, DecodeHints,
-    DecodingHintDictionary, Exceptions, RXingResult, RXingResultMetadataType,
+    point_f, BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
     RXingResultMetadataValue, Reader,
 };
 

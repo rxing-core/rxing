@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     io::Write,
     path::PathBuf,
 };
@@ -7,8 +7,7 @@ use std::{
 use crate::{
     common::{BitMatrix, HybridBinarizer, Result},
     multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-    BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodeHints,
-    DecodingHintDictionary, Exceptions, FilteredImageReader, Luma8LuminanceSource,
+    BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, FilteredImageReader, Luma8LuminanceSource,
     MultiFormatReader, MultiUseMultiFormatReader, RXingResult, Reader,
 };
 

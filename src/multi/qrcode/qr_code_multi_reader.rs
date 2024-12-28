@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::{cmp::Ordering, collections::HashMap};
+use std::cmp::Ordering;
 
 use crate::{
     common::{DetectorRXingResult, Result},

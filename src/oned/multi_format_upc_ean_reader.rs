@@ -15,7 +15,6 @@
  */
 
 use crate::common::Result;
-use crate::DecodeHintValue;
 use crate::DecodeHints;
 use crate::Exceptions;
 use crate::RXingResult;
@@ -177,11 +176,9 @@ impl MultiFormatUPCEANReader {
     }
 }
 
-use crate::DecodeHintType;
-use crate::DecodingHintDictionary;
 use crate::RXingResultMetadataType;
 use crate::RXingResultMetadataValue;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 impl Reader for MultiFormatUPCEANReader {
     fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {

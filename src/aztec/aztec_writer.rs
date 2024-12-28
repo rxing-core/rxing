@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
 
 use crate::{
     common::{BitMatrix, CharacterSet, Result},
     exceptions::Exceptions,
-    BarcodeFormat, EncodeHintType, EncodeHintValue, EncodeHints, Writer,
+    BarcodeFormat, EncodeHints, Writer,
 };
 
 use super::encoder::{aztec_encoder, AztecCode};

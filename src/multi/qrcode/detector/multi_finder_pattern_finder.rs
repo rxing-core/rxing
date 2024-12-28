@@ -19,7 +19,7 @@ use std::cmp::Ordering;
 use crate::{
     common::{BitMatrix, Result},
     qrcode::detector::{FinderPattern, FinderPatternFinder, FinderPatternInfo},
-    result_point_utils, DecodeHintType, DecodeHints, DecodingHintDictionary, Exceptions, Point,
+    result_point_utils, DecodeHints, Exceptions, Point,
     PointCallback,
 };
 

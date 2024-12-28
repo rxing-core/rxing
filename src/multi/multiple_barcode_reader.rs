@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    common::Result, Binarizer, BinaryBitmap, DecodeHints, DecodingHintDictionary, RXingResult,
+    common::Result, Binarizer, BinaryBitmap, DecodeHints, RXingResult,
 };
 
 /**

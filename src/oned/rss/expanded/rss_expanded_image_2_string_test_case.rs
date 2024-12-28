@@ -24,7 +24,6 @@
  *   http://www.piramidepse.com/
  */
 
-use std::collections::HashMap;
 
 use crate::{
     common::GlobalHistogramBinarizer,
