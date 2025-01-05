@@ -577,13 +577,13 @@ fn issue_59() {
         .map(|c| c as char)
         .collect::<String>();
 
-    let mut hints =
+    let hints =
         EncodeHints::default().with(rxing::EncodeHintValue::MinSize(Dimension::new(48, 48)));
     let data_matrix_2 = writer
         .encode_with_hints(&data2, &rxing::BarcodeFormat::DATA_MATRIX, 0, 0, &hints)
         .expect("must encode with minimum size of 48x48");
 
-    let mut decode_hints = DecodeHints::default().with(rxing::DecodeHintValue::TryHarder(true));
+    let decode_hints = DecodeHints::default().with(rxing::DecodeHintValue::TryHarder(true));
 
     let img: DynamicImage = data_matrix.into();
     let ls = BufferedImageLuminanceSource::new(img);

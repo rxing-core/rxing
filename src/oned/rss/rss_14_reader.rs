@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
+use image::buffer;
 
 use crate::{
     common::{BitArray, Result},
     oned::{one_d_reader, OneDReader},
-    point_f, BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, Reader,
+    point_f, BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult,
+    RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{
@@ -109,9 +110,9 @@ impl Reader for RSS14Reader {
                 );
                 // Update result points
                 let height = rotatedImage.get_height();
-                let total_points = result.getPoints().len();
-                let points = result.getPointsMut();
-                for point in points.iter_mut().take(total_points) {
+                // let total_points = result.getPoints().len();
+                // let points = result.getPointsMut();
+                for point in result.getPointsMut() {
                     std::mem::swap(&mut point.x, &mut point.y);
                     point.x = height as f32 - point.x - 1.0
                 }
@@ -185,24 +186,22 @@ impl RSS14Reader {
         let text = symbolValue.to_string();
 
         let mut buffer = String::with_capacity(14);
-        let mut i = 13 - text.chars().count() as isize;
-        while i > 0 {
-            buffer.push('0');
-
-            i -= 1;
-        }
+        buffer.push_str(&std::iter::repeat_n('0', 13 - text.chars().count()).collect::<String>());
         buffer.push_str(&text);
 
         let mut checkDigit = 0;
-        for i in 0..13 {
-            let digit = buffer.chars().nth(i)? as u32 - '0' as u32;
+        for (i, digit) in buffer
+            .chars()
+            .map(|c| c.to_digit(10).unwrap_or(0))
+            .enumerate()
+        {
             checkDigit += if (i & 0x01) == 0 { 3 * digit } else { digit };
         }
         checkDigit = 10 - (checkDigit % 10);
         if checkDigit == 10 {
             checkDigit = 0;
         }
-        buffer.push_str(&checkDigit.to_string());
+        buffer.push(char::from_digit(checkDigit, 10).unwrap());
 
         let leftPoints = leftPair.getFinderPattern().getPoints();
         let rightPoints = rightPair.getFinderPattern().getPoints();
@@ -302,6 +301,7 @@ impl RSS14Reader {
             let count = ((value + 0.5) as u32).clamp(1, 8);
 
             let offset = i / 2;
+
             if (i & 0x01) == 0 {
                 self.oddCounts[offset] = count;
                 self.oddRoundingErrors[offset] = value - count as f32;
@@ -315,17 +315,19 @@ impl RSS14Reader {
 
         let mut oddSum = 0;
         let mut oddChecksumPortion = 0;
-        for i in (0..self.oddCounts.len()).rev() {
+        for oc in self.oddCounts.iter().rev() {
+            // for i in (0..self.oddCounts.len()).rev() {
             oddChecksumPortion *= 9;
-            oddChecksumPortion += &self.oddCounts[i];
-            oddSum += &self.oddCounts[i];
+            oddChecksumPortion += oc; //&self.oddCounts[i];
+            oddSum += oc; //&self.oddCounts[i];
         }
         let mut evenChecksumPortion = 0;
         let mut evenSum = 0;
-        for i in (0..self.evenCounts.len()).rev() {
+        for ec in self.evenCounts.iter().rev() {
+            // for i in (0..self.evenCounts.len()).rev() {
             evenChecksumPortion *= 9;
-            evenChecksumPortion += self.evenCounts[i];
-            evenSum += self.evenCounts[i];
+            evenChecksumPortion += ec; //self.evenCounts[i];
+            evenSum += ec; //self.evenCounts[i];
         }
         let checksumPortion = oddChecksumPortion + 3 * evenChecksumPortion;
 
@@ -393,10 +395,12 @@ impl RSS14Reader {
                         return Ok([patternStart, x]);
                     }
                     patternStart += (counters[0] + counters[1]) as usize;
-                    counters[0] = counters[2];
-                    counters[1] = counters[3];
-                    counters[2] = 0;
-                    counters[3] = 0;
+                    counters.rotate_left(2);
+                    counters[2..3].fill(0);
+                    // counters[0] = counters[2];
+                    // counters[1] = counters[3];
+                    // counters[2] = 0;
+                    // counters[3] = 0;
                     counterPosition -= 1;
                 } else {
                     counterPosition += 1;

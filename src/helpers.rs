@@ -1,14 +1,10 @@
-use std::{
-    collections::HashSet,
-    io::Write,
-    path::PathBuf,
-};
+use std::{collections::HashSet, io::Write, path::PathBuf};
 
 use crate::{
     common::{BitMatrix, HybridBinarizer, Result},
     multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-    BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, FilteredImageReader, Luma8LuminanceSource,
-    MultiFormatReader, MultiUseMultiFormatReader, RXingResult, Reader,
+    BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, FilteredImageReader,
+    Luma8LuminanceSource, MultiFormatReader, MultiUseMultiFormatReader, RXingResult, Reader,
 };
 
 #[cfg(feature = "image")]

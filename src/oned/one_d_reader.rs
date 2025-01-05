@@ -16,8 +16,8 @@
 
 use crate::{
     common::{BitArray, Result},
-    point_f, Binarizer, BinaryBitmap, DecodeHints, Exceptions, LuminanceSource, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, Reader,
+    point_f, Binarizer, BinaryBitmap, DecodeHints, Exceptions, LuminanceSource, RXingResult,
+    RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 /**
@@ -70,7 +70,7 @@ pub trait OneDReader: Reader {
             }
         }
 
-        let row_step = 1.max(height >> (if try_harder { 8 } else { 5 }));
+        let row_step = usize::max(1, height >> (if try_harder { 8 } else { 5 }));
         let max_lines = if try_harder {
             height // Look at the whole image, not just the center
         } else {
@@ -215,12 +215,9 @@ pub fn pattern_match_variance(
     mut max_individual_variance: f32,
 ) -> f32 {
     let num_counters = counters.len();
-    let mut total = 0.0;
-    let mut pattern_length = 0;
-    for i in 0..num_counters {
-        total += counters[i] as f32;
-        pattern_length += pattern[i];
-    }
+
+    let total: f32 = counters.iter().sum::<u32>() as f32;
+    let pattern_length: u32 = pattern.iter().take(num_counters).sum();
     if total < pattern_length as f32 {
         // If we don't even have one pixel per unit of bar width, assume this is too small
         // to reliably match, so fail:
@@ -231,9 +228,15 @@ pub fn pattern_match_variance(
     max_individual_variance *= unit_bar_width;
 
     let mut total_variance = 0.0;
-    for x in 0..num_counters {
-        let counter = counters[x];
-        let scaled_pattern = (pattern[x] as f32) * unit_bar_width;
+    for (&counter, scaled_pattern) in counters.iter().zip(
+        pattern
+            .iter()
+            .take(num_counters)
+            .map(|&p| (p as f32) * unit_bar_width),
+    ) {
+        // for x in 0..num_counters {
+        // let counter = counters[x];
+        // let scaled_pattern = (pattern as f32) * unit_bar_width;
         let variance = if (counter as f32) > scaled_pattern {
             counter as f32 - scaled_pattern
         } else {

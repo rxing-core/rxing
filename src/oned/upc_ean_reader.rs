@@ -16,8 +16,8 @@
 
 use crate::{
     common::{BitArray, Result},
-    point_f, BarcodeFormat, Binarizer, Exceptions, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    point_f, BarcodeFormat, Binarizer, Exceptions, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue, Reader,
 };
 
 use super::{one_d_reader, EANManufacturerOrgSupport, OneDReader, UPCEANExtensionSupport};

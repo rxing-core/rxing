@@ -1,4 +1,3 @@
-
 use crate::{
     common::{BitMatrix, DetectorRXingResult},
     qrcode::{

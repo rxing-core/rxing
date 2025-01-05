@@ -24,7 +24,6 @@
  *   http://www.piramidepse.com/
  */
 
-
 use crate::{
     common::{BitArray, Result},
     oned::{
@@ -34,8 +33,8 @@ use crate::{
         },
         OneDReader,
     },
-    BarcodeFormat, Binarizer, DecodeHints,
-    Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue, Reader,
 };
 
 use super::{bit_array_builder, decoders::abstract_expanded_decoder, ExpandedPair, ExpandedRow};

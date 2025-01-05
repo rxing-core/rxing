@@ -367,7 +367,6 @@ impl Code93Reader {
  */
 #[cfg(test)]
 mod Code93ReaderTestCase {
-    
 
     use crate::{common::BitMatrix, oned::OneDReader, DecodeHints};
 

@@ -21,7 +21,8 @@ use crate::{
         reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonEncoder},
         BitArray, BitFieldBaseType, CharacterSet, Eci, Result,
     },
-    qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef}, EncodeHints, Exceptions,
+    qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
+    EncodeHints, Exceptions,
 };
 
 use super::{mask_util, matrix_util, BlockPair, ByteMatrix, MinimalEncoder, QRCode};

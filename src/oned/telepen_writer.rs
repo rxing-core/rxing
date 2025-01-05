@@ -205,7 +205,6 @@ impl TelepenWriter {
  */
 #[cfg(test)]
 mod TelepenWriterTestCase {
-    
 
     use crate::{
         common::{bit_matrix_test_case, BitMatrix},

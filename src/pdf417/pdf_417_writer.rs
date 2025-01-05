@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 use crate::{
     common::{BitMatrix, CharacterSet, Result},
     BarcodeFormat, EncodeHints, Exceptions, Writer,
@@ -222,11 +221,8 @@ impl PDF417Writer {
  */
 #[cfg(test)]
 mod PDF417WriterTestCase {
-    
 
-    use crate::{
-        pdf417::PDF417Writer, BarcodeFormat, EncodeHintValue, EncodeHints, Writer,
-    };
+    use crate::{pdf417::PDF417Writer, BarcodeFormat, EncodeHintValue, EncodeHints, Writer};
 
     #[test]
     fn testDataMatrixImageWriter() {

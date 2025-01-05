@@ -807,7 +807,7 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
         try_harder: bool,
         barcode_reader: &mut T,
     ) -> Result<Vec<RXingResult>> {
-        let hints = DecodeHints::default().with(DecodeHintValue::TryHarder(true));
+        let hints = DecodeHints::default().with(DecodeHintValue::TryHarder(try_harder));
 
         barcode_reader.decode_multiple_with_hints(source, &hints)
     }

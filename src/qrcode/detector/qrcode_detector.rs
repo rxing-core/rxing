@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-
 use crate::{
     common::{
         BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform, Quadrilateral, Result,
         SamplerControl,
     },
     point_f,
-    qrcode::decoder::Version, DecodeHints, Exceptions, Point,
-    PointCallback,
+    qrcode::decoder::Version,
+    DecodeHints, Exceptions, Point, PointCallback,
 };
 
 use super::{

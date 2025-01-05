@@ -143,9 +143,9 @@ impl EAN13Reader {
      * @throws NotFoundException if first digit cannot be determined
      */
     fn determineFirstDigit(resultString: &mut String, lgPatternFound: usize) -> Result<()> {
-        for d in 0..10 {
+        for (d, &fde) in Self::FIRST_DIGIT_ENCODINGS.iter().enumerate() {
             // for (int d = 0; d < 10; d++) {
-            if lgPatternFound == Self::FIRST_DIGIT_ENCODINGS[d] {
+            if lgPatternFound == fde {
                 resultString.insert(
                     0,
                     char::from_u32('0' as u32 + d as u32).ok_or(Exceptions::PARSE)?,

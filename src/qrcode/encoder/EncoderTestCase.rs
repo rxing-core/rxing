@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-
 use crate::{
     common::{BitArray, CharacterSet},
     qrcode::{
         decoder::{ErrorCorrectionLevel, Mode, Version},
         encoder::{qrcode_encoder, MinimalEncoder},
-    }, EncodeHintValue, EncodeHints,
+    },
+    EncodeHintValue, EncodeHints,
 };
 
 use super::QRCode;
@@ -218,8 +218,7 @@ fn testSimpleutf8ECI() {
 
 #[test]
 fn testEncodeKanjiMode() {
-    let hints =
-        EncodeHints::default().with(EncodeHintValue::CharacterSet("Shift_JIS".to_owned()));
+    let hints = EncodeHints::default().with(EncodeHintValue::CharacterSet("Shift_JIS".to_owned()));
     // Nihon in Kanji
     let qrCode =
         qrcode_encoder::encode_with_hints("\u{65e5}\u{672c}", ErrorCorrectionLevel::M, &hints)
@@ -258,8 +257,7 @@ fn testEncodeKanjiMode() {
 
 #[test]
 fn testEncodeShiftjisNumeric() {
-    let hints =
-        EncodeHints::default().with(EncodeHintValue::CharacterSet("Shift_JIS".to_owned()));
+    let hints = EncodeHints::default().with(EncodeHintValue::CharacterSet("Shift_JIS".to_owned()));
 
     let qrCode =
         qrcode_encoder::encode_with_hints("0123", ErrorCorrectionLevel::M, &hints).expect("encode");

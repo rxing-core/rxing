@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 use crate::{
     common::{BitMatrix, CharacterSet, Result},
     exceptions::Exceptions,

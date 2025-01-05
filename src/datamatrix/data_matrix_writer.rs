@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 use crate::{
     common::{BitMatrix, CharacterSet, Result},
     qrcode::encoder::ByteMatrix,
@@ -281,7 +280,6 @@ impl DataMatrixWriter {
 
 #[cfg(test)]
 mod tests {
-    
 
     use crate::{
         datamatrix::{encoder::SymbolShapeHint, DataMatrixWriter},

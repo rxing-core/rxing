@@ -32,7 +32,6 @@ const QUIET_SPACE: &str = "00000";
 const STOP: &str = "1100011101011";
 const LF: &str = "10000110010";
 
-
 use once_cell::sync::Lazy;
 
 use crate::{

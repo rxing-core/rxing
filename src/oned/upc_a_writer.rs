@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 use crate::{common::Result, BarcodeFormat, EncodeHints, Exceptions, Writer};
 
 use super::EAN13Writer;

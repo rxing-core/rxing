@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-
 use crate::{
     common::{BitMatrix, DetectorRXingResult, Result},
-    BarcodeFormat, Binarizer, DecodeHints, Exceptions,
-    ImmutableReader, RXingResult, RXingResultMetadataType, Reader,
+    BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, RXingResult,
+    RXingResultMetadataType, Reader,
 };
 
 use super::{decoder::maxicode_decoder, detector};

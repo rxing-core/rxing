@@ -120,8 +120,7 @@
 use crate::{
     common::{cpp_essentials::ConcentricPattern, DetectorRXingResult},
     multi::MultipleBarcodeReader,
-    BarcodeFormat, DecodeHints,
-    Exceptions, ImmutableReader, RXingResult, Reader,
+    BarcodeFormat, DecodeHints, Exceptions, ImmutableReader, RXingResult, Reader,
 };
 
 use super::{

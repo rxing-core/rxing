@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 use crate::{
     aztec::AztecWriter,
     common::Result,

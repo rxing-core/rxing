@@ -1,4 +1,3 @@
-
 use crate::common::{BitMatrix, HybridBinarizer, Result};
 use crate::{
     Binarizer, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource, LuminanceSource, Reader,

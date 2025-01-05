@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-
 use crate::{
     common::{Quadrilateral, Result},
-    point_f, Binarizer, BinaryBitmap, DecodeHints, Exceptions, Point,
-    RXingResult, Reader,
+    point_f, Binarizer, BinaryBitmap, DecodeHints, Exceptions, Point, RXingResult, Reader,
 };
 
 use super::MultipleBarcodeReader;

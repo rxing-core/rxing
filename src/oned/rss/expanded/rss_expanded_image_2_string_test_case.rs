@@ -24,7 +24,6 @@
  *   http://www.piramidepse.com/
  */
 
-
 use crate::{
     common::GlobalHistogramBinarizer,
     oned::{rss::expanded::RSSExpandedReader, OneDReader},

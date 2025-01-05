@@ -103,16 +103,13 @@ impl OneDReader for CodaBarReader {
         // Translate character table offsets to actual characters.
         for i in 0..self.decodeRowRXingResult.chars().count() {
             // for (int i = 0; i < decodeRowRXingResult.length(); i++) {
-            self.decodeRowRXingResult.replace_range(
-                i..=i,
-                &Self::ALPHABET[self
-                    .decodeRowRXingResult
-                    .chars()
-                    .nth(i)
-                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
-                    as usize]
-                    .to_string(),
-            );
+            let ch = self
+                .decodeRowRXingResult
+                .chars()
+                .nth(i)
+                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as usize;
+            self.decodeRowRXingResult
+                .replace_range(i..=i, &Self::ALPHABET[ch].to_string());
         }
         // Ensure a valid start and end character
         let startchar = self

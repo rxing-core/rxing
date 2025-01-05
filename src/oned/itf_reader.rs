@@ -385,8 +385,7 @@ impl ITFReader {
     fn decodeDigit(&self, counters: &[u32]) -> Result<u32> {
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
-        let max = PATTERNS.len();
-        for (i, pattern) in PATTERNS.iter().enumerate().take(max) {
+        for (i, pattern) in PATTERNS.iter().enumerate() {
             let variance =
                 one_d_reader::pattern_match_variance(counters, pattern, MAX_INDIVIDUAL_VARIANCE);
             if variance < bestVariance {
@@ -395,6 +394,7 @@ impl ITFReader {
             } else if variance == bestVariance {
                 // if we find a second 'best match' with the same variance, we can not reliably report to have a suitable match
                 bestMatch = -1;
+                continue;
             }
         }
         if bestMatch >= 0 {

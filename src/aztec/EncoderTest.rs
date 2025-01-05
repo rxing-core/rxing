@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 use crate::{
     aztec::{
         aztec_detector_result::AztecDetectorRXingResult,

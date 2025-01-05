@@ -404,7 +404,6 @@ impl Code39Reader {
 
 #[cfg(test)]
 mod code_39_extended_mode_test_case {
-    
 
     use crate::{
         common::BitMatrix,

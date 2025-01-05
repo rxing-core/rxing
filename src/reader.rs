@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{
-    common::Result, Binarizer, BinaryBitmap, DecodeHints, RXingResult,
-};
+use crate::{common::Result, Binarizer, BinaryBitmap, DecodeHints, RXingResult};
 
 /**
  * Implementations of this interface can decode an image of a barcode in some format into
