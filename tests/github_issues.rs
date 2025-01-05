@@ -1,7 +1,7 @@
 use std::io::Read;
 
 use image::DynamicImage;
-use rxing::{DecodingHintDictionary, Dimension, EncodingHintDictionary, Reader, Writer};
+use rxing::{Dimension, Reader, Writer};
 
 #[test]
 fn issue_27_part_2() {
@@ -49,7 +49,7 @@ fn dynamsoft_all_supported_formats_image_fault() {
 #[test]
 fn zxing_bench_issue_1() {
     use rxing::DecodeHints;
-    use rxing::{BarcodeFormat, DecodingHintDictionary};
+    use rxing::BarcodeFormat;
 
     let mut hints: DecodeHints =
         DecodeHints::default().with(rxing::DecodeHintValue::TryHarder(true));
@@ -121,7 +121,7 @@ fn zxing_bench_issue_1() {
 #[test]
 fn issue_48() {
     use rxing::DecodeHints;
-    use rxing::{BarcodeFormat, DecodingHintDictionary};
+    use rxing::BarcodeFormat;
 
     let mut hints: DecodeHints =
         DecodeHints::default().with(rxing::DecodeHintValue::TryHarder(true));
@@ -165,8 +165,8 @@ fn zxing_bench_grey_image_issue_luma8_image() {
     use rxing::{
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-        BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue,
-        DecodeHints, DecodingHintDictionary, Exceptions, MultiUseMultiFormatReader,
+        BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
+        DecodeHints, Exceptions, MultiUseMultiFormatReader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/170050507-1f10f0ef-82ca-4e14-a2d2-4b288ec54809.png";
@@ -255,8 +255,7 @@ fn zxing_bench_grey_image_issue_raw_luma8() {
     use rxing::{
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-        BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodeHints,
-        DecodingHintDictionary, Exceptions, Luma8LuminanceSource, MultiUseMultiFormatReader,
+        BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource, MultiUseMultiFormatReader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/170050507-1f10f0ef-82ca-4e14-a2d2-4b288ec54809.png";
@@ -346,8 +345,7 @@ fn test_issue_49() {
     use rxing::{
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-        BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue, DecodeHints,
-        DecodingHintDictionary, Exceptions, Luma8LuminanceSource, MultiUseMultiFormatReader,
+        BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource, MultiUseMultiFormatReader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/345143005-4538852a-242a-4f77-87cc-fefb66856ecf.png";
@@ -388,8 +386,8 @@ fn test_issue_49() {
 #[test]
 fn test_issue_50() {
     use rxing::{
-        common::HybridBinarizer, BarcodeFormat, BinaryBitmap, DecodeHintType, DecodeHintValue,
-        DecodeHints, DecodingHintDictionary, Exceptions, Luma8LuminanceSource,
+        common::HybridBinarizer, BarcodeFormat, BinaryBitmap,
+        DecodeHints, Exceptions, Luma8LuminanceSource,
         MultiUseMultiFormatReader, Reader,
     };
 
@@ -427,8 +425,7 @@ fn test_issue_50() {
 #[test]
 fn test_issue_50_2() {
     use rxing::{
-        common::AdaptiveThresholdBinarizer, BarcodeFormat, BinaryBitmap, DecodeHintType,
-        DecodeHintValue, DecodeHints, DecodingHintDictionary, Exceptions, Luma8LuminanceSource,
+        common::AdaptiveThresholdBinarizer, BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource,
         MultiUseMultiFormatReader, Reader,
     };
 
@@ -467,8 +464,7 @@ fn issue_51_multiple_detection() {
     use rxing::{
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-        BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType, DecodeHintValue, DecodeHints,
-        DecodingHintDictionary, Exceptions, MultiUseMultiFormatReader,
+        BinaryBitmap, BufferedImageLuminanceSource, DecodeHints, Exceptions, MultiUseMultiFormatReader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/349949736-8e3b9d66-d114-41ca-a8e0-f1332d111827.jpeg";
@@ -533,7 +529,7 @@ fn issue_51_multiple_detection() {
 #[cfg(feature = "image")]
 #[test]
 fn issue_58() {
-    use rxing::{DecodeHints, DecodingHintDictionary, Exceptions};
+    use rxing::{DecodeHints, Exceptions};
 
     let mut hints: DecodeHints =
         DecodeHints::default().with(rxing::DecodeHintValue::TryHarder(true));

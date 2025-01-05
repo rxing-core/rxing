@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-use image::buffer;
 
 use crate::{
     common::{BitArray, Result},
