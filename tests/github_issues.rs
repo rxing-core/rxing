@@ -48,8 +48,8 @@ fn dynamsoft_all_supported_formats_image_fault() {
 #[cfg(feature = "image")]
 #[test]
 fn zxing_bench_issue_1() {
-    use rxing::DecodeHints;
     use rxing::BarcodeFormat;
+    use rxing::DecodeHints;
 
     let mut hints: DecodeHints =
         DecodeHints::default().with(rxing::DecodeHintValue::TryHarder(true));
@@ -120,8 +120,8 @@ fn zxing_bench_issue_1() {
 #[cfg(feature = "image")]
 #[test]
 fn issue_48() {
-    use rxing::DecodeHints;
     use rxing::BarcodeFormat;
+    use rxing::DecodeHints;
 
     let mut hints: DecodeHints =
         DecodeHints::default().with(rxing::DecodeHintValue::TryHarder(true));
@@ -165,8 +165,8 @@ fn zxing_bench_grey_image_issue_luma8_image() {
     use rxing::{
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-        BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
-        DecodeHints, Exceptions, MultiUseMultiFormatReader,
+        BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHints, Exceptions,
+        MultiUseMultiFormatReader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/170050507-1f10f0ef-82ca-4e14-a2d2-4b288ec54809.png";
@@ -255,7 +255,8 @@ fn zxing_bench_grey_image_issue_raw_luma8() {
     use rxing::{
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-        BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource, MultiUseMultiFormatReader,
+        BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource,
+        MultiUseMultiFormatReader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/170050507-1f10f0ef-82ca-4e14-a2d2-4b288ec54809.png";
@@ -345,7 +346,8 @@ fn test_issue_49() {
     use rxing::{
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-        BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource, MultiUseMultiFormatReader,
+        BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource,
+        MultiUseMultiFormatReader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/345143005-4538852a-242a-4f77-87cc-fefb66856ecf.png";
@@ -386,9 +388,8 @@ fn test_issue_49() {
 #[test]
 fn test_issue_50() {
     use rxing::{
-        common::HybridBinarizer, BarcodeFormat, BinaryBitmap,
-        DecodeHints, Exceptions, Luma8LuminanceSource,
-        MultiUseMultiFormatReader, Reader,
+        common::HybridBinarizer, BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions,
+        Luma8LuminanceSource, MultiUseMultiFormatReader, Reader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/346304318-16acfb7a-4a41-4b15-af78-7ccf061e72bd.png";
@@ -425,8 +426,8 @@ fn test_issue_50() {
 #[test]
 fn test_issue_50_2() {
     use rxing::{
-        common::AdaptiveThresholdBinarizer, BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource,
-        MultiUseMultiFormatReader, Reader,
+        common::AdaptiveThresholdBinarizer, BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions,
+        Luma8LuminanceSource, MultiUseMultiFormatReader, Reader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/346304318-16acfb7a-4a41-4b15-af78-7ccf061e72bd.png";
@@ -464,7 +465,8 @@ fn issue_51_multiple_detection() {
     use rxing::{
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
-        BinaryBitmap, BufferedImageLuminanceSource, DecodeHints, Exceptions, MultiUseMultiFormatReader,
+        BinaryBitmap, BufferedImageLuminanceSource, DecodeHints, Exceptions,
+        MultiUseMultiFormatReader,
     };
 
     const FILE_NAME : &str = "test_resources/blackbox/github_issue_cases/349949736-8e3b9d66-d114-41ca-a8e0-f1332d111827.jpeg";

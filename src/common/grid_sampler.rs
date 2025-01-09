@@ -135,13 +135,13 @@ pub trait GridSampler {
             // sufficient to check the endpoints
             self.checkAndNudgePoints(image, &mut points)?;
             // try {
-            for x in 0..points.len() {
-                if image
-                    .try_get(points[x].x as u32, points[x].y as u32)
-                    .ok_or(Exceptions::not_found_with(
+            for (x, point) in points.iter().enumerate() {
+                // for x in 0..points.len() {
+                if image.try_get(point.x as u32, point.y as u32).ok_or(
+                    Exceptions::not_found_with(
                         "index out of bounds, see documentation in file for explanation",
-                    ))?
-                {
+                    ),
+                )? {
                     // Black(-ish) pixel
                     bits.set(x as u32, y);
                 }

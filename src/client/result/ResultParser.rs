@@ -44,7 +44,7 @@ use super::{
     VEventResultParser, VINResultParser, WifiResultParser,
 };
 
-/**
+/*
  * <p>Abstract class representing the result of decoding a barcode, as more than
  * a String -- as some type of structured data. This might be a subclass which represents
  * a URL, or an e-mail address. {@link #parseRXingResult(RXingResult)} will turn a raw

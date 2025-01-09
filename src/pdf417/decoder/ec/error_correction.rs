@@ -27,7 +27,7 @@ use once_cell::sync::Lazy;
 // static ref PDF417_GF : Arc<&ModulusGF> =  Arc::new(&ModulusGF::new(NUMBER_OF_CODEWORDS, 3));
 static FLD_INTERIOR: Lazy<ModulusGF> = Lazy::new(|| ModulusGF::new(NUMBER_OF_CODEWORDS, 3));
 
-/**
+/*
  * <p>PDF417 error correction implementation.</p>
  *
  * <p>This <a href="http://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction#Example">example</a>

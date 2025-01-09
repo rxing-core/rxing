@@ -34,7 +34,6 @@ use crate::{
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
-
 pub struct BinaryBitmap<B: Binarizer> {
     binarizer: B,
     pub(crate) matrix: OnceCell<BitMatrix>,

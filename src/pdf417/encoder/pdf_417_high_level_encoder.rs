@@ -27,7 +27,7 @@ use crate::{
 
 use super::Compaction;
 
-/**
+/*
  * PDF417 high-level encoder following the algorithm described in ISO/IEC 15438:2001(E) in
  * annex P.
  */

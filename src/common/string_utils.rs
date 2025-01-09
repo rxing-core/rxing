@@ -18,7 +18,7 @@ use crate::DecodeHints;
 
 use super::CharacterSet;
 
-/**
+/*
  * Common string-related functions.
  *
  * @author Sean Owen

@@ -28,12 +28,6 @@ use super::{ISBNParsedRXingResult, ParsedClientResult, ResultParser};
  *
  * @author jbreiden@google.com (Jeff Breidenbach)
  */
-// pub struct ISBNRXingResultParser  {}
-
-// impl RXingResultParser for ISBNRXingResultParser {
-/**
- * See <a href="http://www.bisg.org/isbn-13/for.dummies.html">ISBN-13 For Dummies</a>
- */
 pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientResult> {
     let format = theRXingResult.getBarcodeFormat();
     if *format != BarcodeFormat::EAN_13 {

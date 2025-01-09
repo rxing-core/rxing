@@ -19,7 +19,7 @@ use crate::Exceptions;
 
 use super::ByteMatrix;
 
-/**
+/*
  * @author Satoru Takabayashi
  * @author Daniel Switkin
  * @author Sean Owen

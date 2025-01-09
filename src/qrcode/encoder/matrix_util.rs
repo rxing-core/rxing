@@ -22,7 +22,7 @@ use crate::{
 
 use super::{mask_util, ByteMatrix, QRCode};
 
-/**
+/*
  * @author satorux@google.com (Satoru Takabayashi) - creator
  * @author dswitkin@google.com (Daniel Switkin) - ported from C++
  */

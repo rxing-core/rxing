@@ -25,10 +25,6 @@ use super::{ParsedClientResult, ResultParser, TelParsedRXingResult};
  *
  * @author Sean Owen
  */
-// pub struct TelRXingResultParser  {}
-
-// impl RXingResultParser for TelRXingResultParser {
-
 pub fn parse(theRXingResult: &crate::RXingResult) -> Option<ParsedClientResult> {
     let rawText = ResultParser::getMassagedText(theRXingResult);
     if !rawText.starts_with("tel:") && !rawText.starts_with("TEL:") {

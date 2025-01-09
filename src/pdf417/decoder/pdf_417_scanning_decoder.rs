@@ -28,7 +28,7 @@ use super::{
     DetectionRXingResultColumnTrait, DetectionRXingResultRowIndicatorColumn,
 };
 
-/**
+/*
  * @author Guenther Grau
  */
 

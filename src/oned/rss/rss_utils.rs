@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/** Adapted from listings in ISO/IEC 24724 Appendix B and Appendix G. */
+/* Adapted from listings in ISO/IEC 24724 Appendix B and Appendix G. */
 
 pub fn getRSSvalue<const S: usize>(widths: &[u32; S], maxWidth: u32, noNarrow: bool) -> u32 {
     let elements = S as u32;

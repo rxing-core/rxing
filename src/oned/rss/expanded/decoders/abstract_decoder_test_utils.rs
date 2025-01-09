@@ -26,7 +26,7 @@
 
 use crate::oned::rss::expanded::{binary_util, decoders::abstract_expanded_decoder::createDecoder};
 
-/**
+/*
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  */
 

@@ -26,7 +26,7 @@ use crate::{
 
 use super::{AztecCode, HighLevelEncoder};
 
-/**
+/*
  * Generates Aztec 2D barcodes.
  *
  * @author Rustam Abdullaev

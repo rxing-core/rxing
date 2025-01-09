@@ -78,7 +78,7 @@ pub const LATCH_TO_TEXT: u8 = 239;
  * mode latch to EDIFACT encodation mode
  */
 pub const LATCH_TO_EDIFACT: u8 = 240;
-/**
+/*
  * ECI character (Extended Channel Interpretation)
  */
 //private static final char ECI = 241;

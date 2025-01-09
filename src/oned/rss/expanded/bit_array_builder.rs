@@ -28,7 +28,7 @@ use crate::{common::BitArray, oned::rss::DataCharacterTrait};
 
 use super::ExpandedPair;
 
-/**
+/*
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */

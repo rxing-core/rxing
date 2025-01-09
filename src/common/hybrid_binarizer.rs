@@ -21,7 +21,6 @@
 // import com.google.zxing.NotFoundException;
 
 use std::borrow::Cow;
-use std::u8;
 
 use once_cell::unsync::OnceCell;
 

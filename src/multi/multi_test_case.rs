@@ -34,7 +34,7 @@ fn testMulti() {
     let mut testBase = PathBuf::from("test_resources/blackbox/multi-1");
 
     testBase.push("1.png");
-    let image = image::io::Reader::open(testBase)
+    let image = image::ImageReader::open(testBase)
         .expect("image must open")
         .decode()
         .expect("must decode");
@@ -62,7 +62,7 @@ fn testMultiQR() {
     let mut testBase = PathBuf::from("test_resources/blackbox/multi-qrcode-1");
 
     testBase.push("1.png");
-    let image = image::io::Reader::open(testBase)
+    let image = image::ImageReader::open(testBase)
         .expect("image must open")
         .decode()
         .expect("must decode");

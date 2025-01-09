@@ -29,7 +29,7 @@ use crate::{
 
 use super::{DMRegressionLine, EdgeTracer};
 
-/**
+/*
 * The following code is the 'new' one implemented by Axel Waggershauser and is working completely different.
 * It is performing something like a (back) trace search along edges through the bit matrix, first looking for
 * the 'L'-pattern, then tracing the black/white borders at the top/right. Advantages over the old code are:

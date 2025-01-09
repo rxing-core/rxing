@@ -16,15 +16,12 @@
 
 use crate::pdf417::pdf_417_common;
 
-/**
+/*
  * @author Guenther Grau
  * @author creatale GmbH (christoph.schulz@creatale.de)
  */
 
-// const RATIOS_TABLE :[[f32]] =
-//   [[0.0;pdf_417_common::SYMBOL_TABLE.len()];pdf_417_common::BARS_IN_MODULE];
-
-const RATIOS_TABLE: [[f32; pdf_417_common::BARS_IN_MODULE as usize]; 2787] = {
+static RATIOS_TABLE: [[f32; pdf_417_common::BARS_IN_MODULE as usize]; 2787] = {
     let mut table =
         [[0.0; pdf_417_common::BARS_IN_MODULE as usize]; pdf_417_common::SYMBOL_TABLE.len()];
     // Pre-computes the symbol ratio table.

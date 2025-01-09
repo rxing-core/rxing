@@ -44,7 +44,7 @@ fn loadImage(fileName: &str) -> DynamicImage {
         file.exists(),
         "Please download and install test images, and run from the 'core' directory"
     );
-    image::io::Reader::open(file)
+    image::ImageReader::open(file)
         .expect("image should load")
         .decode()
         .expect("decode")

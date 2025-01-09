@@ -245,7 +245,7 @@ mod multi_qr_code_test_case {
 
         testBase.push("1.png");
 
-        let image = image::io::Reader::open(testBase)
+        let image = image::ImageReader::open(testBase)
             .expect("image must open")
             .decode()
             .expect("must decode");

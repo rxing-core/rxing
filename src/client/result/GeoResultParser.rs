@@ -37,9 +37,6 @@ const GEO_URL_PATTERN: &str = "geo:([\\-0-9.]+),([\\-0-9.]+)(?:,([\\-0-9.]+))?(?
  *
  * @author Sean Owen
  */
-// pub struct GeoRXingResultParser {}
-
-// impl RXingResultParser for GeoRXingResultParser {
 pub fn parse(theRXingResult: &crate::RXingResult) -> Option<super::ParsedClientResult> {
     let rawText = ResultParser::getMassagedText(theRXingResult);
 

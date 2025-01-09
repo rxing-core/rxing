@@ -14,7 +14,6 @@ use crate::Exceptions;
 * <p>Note that the diagram in section 6.8.1 is misleading since it indicates that i is column position
 * and j is row position. In fact, as the text says, i is row position and j is column position.</p>
 */
-
 pub fn GetDataMaskBit(maskIndex: u32, x: u32, y: u32, isMicro: Option<bool>) -> Result<bool> {
     let isMicro = isMicro.unwrap_or(false);
     let mut maskIndex = maskIndex;

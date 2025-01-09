@@ -26,7 +26,7 @@ use crate::{
 
 use super::{decoded_bit_stream_parser, BitMatrixParser};
 
-/**
+/*
  * <p>The main class which implements MaxiCode decoding -- as opposed to locating and extracting
  * the MaxiCode from an image.</p>
  *

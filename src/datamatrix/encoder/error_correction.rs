@@ -19,7 +19,7 @@ use crate::Exceptions;
 
 use super::SymbolInfo;
 
-/**
+/*
  * Error Correction Code for ECC200.
  */
 

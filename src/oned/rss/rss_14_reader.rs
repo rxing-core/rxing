@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 use crate::{
     common::{BitArray, Result},
     oned::{one_d_reader, OneDReader},
