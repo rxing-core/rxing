@@ -132,3 +132,5 @@ pub const BIT_FIELD_SHIFT_BITS: usize = BIT_FIELD_BASE_BITS - 1;
 
 #[cfg(feature = "experimental_features")]
 mod bitmatrix_sources;
+
+mod pattern_reader;

@@ -36,11 +36,12 @@ const SHIFT_BITS: usize = super::BIT_FIELD_SHIFT_BITS;
  *
  * @author Sean Owen
  */
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct BitArray {
     bits: Vec<BaseType>,
     size: usize,
     read_offset: usize,
+    reversed: Option<Vec<BaseType>>,
 }
 
 impl BitArray {
@@ -49,6 +50,7 @@ impl BitArray {
             bits: Vec::new(),
             size: 0,
             read_offset: 0,
+            reversed: None,
         }
     }
 
@@ -57,6 +59,7 @@ impl BitArray {
             bits: makeArray(size),
             size,
             read_offset: 0,
+            reversed: None,
         }
     }
 
@@ -65,6 +68,7 @@ impl BitArray {
             bits: makeArray(size),
             size: 0,
             read_offset: 0,
+            reversed: None,
         }
     }
 
@@ -75,6 +79,7 @@ impl BitArray {
             bits,
             size,
             read_offset: 0,
+            reversed: None,
         }
     }
 
@@ -151,15 +156,15 @@ impl BitArray {
             return self.size;
         }
         let mut bitsOffset = from / BASE_BITS;
-        let mut currentBits = self.bits[bitsOffset] as i128;
+        let mut currentBits = self.bits[bitsOffset];
         // mask off lesser bits first
-        currentBits &= -(1 << (from & SHIFT_BITS));
+        currentBits &= !((1 << (from % BASE_BITS)) - 1);
         while currentBits == 0 {
             bitsOffset += 1;
             if bitsOffset == self.bits.len() {
                 return self.size;
             }
-            currentBits = self.bits[bitsOffset] as i128;
+            currentBits = self.bits[bitsOffset];
         }
         let result = (bitsOffset * BASE_BITS) + currentBits.trailing_zeros() as usize;
         cmp::min(result, self.size)
@@ -175,15 +180,15 @@ impl BitArray {
             return self.size;
         }
         let mut bitsOffset = from / BASE_BITS;
-        let mut currentBits = !self.bits[bitsOffset] as i128;
+        let mut currentBits = !self.bits[bitsOffset];
         // mask off lesser bits first
-        currentBits &= -(1 << (from & SHIFT_BITS));
+        currentBits &= !((1 << (from % BASE_BITS)) - 1);
         while currentBits == 0 {
             bitsOffset += 1;
             if bitsOffset == self.bits.len() {
                 return self.size;
             }
-            currentBits = !self.bits[bitsOffset] as i128;
+            currentBits = !self.bits[bitsOffset];
         }
         let result = (bitsOffset * BASE_BITS) + currentBits.trailing_zeros() as usize;
         cmp::min(result, self.size)
@@ -317,7 +322,6 @@ impl BitArray {
         let mut next_size = self.size;
         self.ensure_capacity(next_size + num_bits);
         for numBitsLeft in (0..num_bits).rev() {
-            //for (int numBitsLeft = numBits - 1; numBitsLeft >= 0; numBitsLeft--) {
             if (value & (1 << numBitsLeft)) != 0 {
                 self.bits[next_size / BASE_BITS] |= 1 << (next_size & SHIFT_BITS);
             }
@@ -334,8 +338,8 @@ impl BitArray {
     pub fn appendBitArrayRef(&mut self, other: &BitArray) {
         let otherSize = other.size;
         self.ensure_capacity(self.size + otherSize);
+
         for i in 0..otherSize {
-            //for (int i = 0; i < otherSize; i++) {
             self.appendBit(other.get(i));
         }
     }
@@ -389,15 +393,19 @@ impl BitArray {
      * Reverses all bits in the array.
      */
     pub fn reverse(&mut self) {
-        // let mut newBits = vec![0; self.bits.len()];
+        // check if we've already done the rever operation once
+        if self.reversed.is_some() {
+            self.bits = self.reversed.replace(self.bits.clone()).unwrap();
+            return;
+        }
+
+        // first we save off the current version as the reversed version
+        self.reversed = Some(self.bits.clone());
+
         // reverse all int's first
         let len = (self.size - 1) / BASE_BITS;
         let oldBitsLen = len + 1;
-        // let array_size = self.size.div_ceil(BASE_TYPE::BITS as usize);
 
-        // for (new_bits, old_bits) in newBits.iter_mut().take(oldBitsLen).zip(self.bits.iter().take(oldBitsLen).rev()) {
-        //     *new_bits = old_bits.reverse_bits();
-        // }
         self.bits[..oldBitsLen].reverse();
         self.bits[..oldBitsLen]
             .iter_mut()
