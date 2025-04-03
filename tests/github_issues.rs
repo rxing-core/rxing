@@ -560,7 +560,7 @@ fn issue_59() {
     const TEST_2_SIZE: usize = 100;
 
     let mut rnd_data = [0; TEST_SIZE];
-    rand::thread_rng().fill_bytes(&mut rnd_data);
+    rand::rng().fill_bytes(&mut rnd_data);
     let data = rnd_data.into_iter().map(|c| c as char).collect::<String>();
 
     let writer = rxing::datamatrix::DataMatrixWriter;
@@ -569,7 +569,7 @@ fn issue_59() {
         .expect("must encode with size of 500");
 
     let mut rnd_data_2 = [0; TEST_2_SIZE];
-    rand::thread_rng().fill_bytes(&mut rnd_data_2);
+    rand::rng().fill_bytes(&mut rnd_data_2);
     let data2 = rnd_data_2
         .into_iter()
         .map(|c| c as char)
