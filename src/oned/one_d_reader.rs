@@ -80,7 +80,7 @@ pub trait OneDReader: Reader {
         let middle = height / 2;
         for x in 0..max_lines {
             // Scanning from the middle out. Determine which row we're looking at next:
-            let row_steps_above_or_below = (x + 1) / 2;
+            let row_steps_above_or_below = x.div_ceil(2);
             let is_above = (x & 0x01) == 0; // i.e. is x even?
             let row_number: isize = middle as isize
                 + row_step as isize

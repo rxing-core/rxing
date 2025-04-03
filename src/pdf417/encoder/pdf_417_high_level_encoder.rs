@@ -289,15 +289,11 @@ pub fn encodeHighLevel(
                                 .subSequence(p as usize, (p + b) as usize)?
                                 .iter()
                                 .collect::<String>();
-                            if let Ok(enc_str) = encoding
+                            encoding
                                 .as_ref()
                                 .ok_or(Exceptions::ILLEGAL_STATE)?
                                 .encode(&str)
-                            {
-                                Some(enc_str)
-                            } else {
-                                None
-                            }
+                                .ok()
                         };
 
                         let bytes_ok = bytes.is_some();

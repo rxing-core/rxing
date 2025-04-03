@@ -88,7 +88,7 @@ impl BitArray {
     }
 
     pub fn getSizeInBytes(&self) -> usize {
-        (self.size + 7) / 8
+        self.size.div_ceil(8)
     }
 
     #[inline]

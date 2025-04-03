@@ -372,7 +372,7 @@ pub fn willFit(numInputBits: u32, version: VersionRef, ecLevel: &ErrorCorrection
     let num_ec_bytes = ec_blocks.getTotalECCodewords();
     // getNumDataBytes = 196 - 130 = 66
     let num_data_bytes = num_bytes - num_ec_bytes;
-    let total_input_bytes = (numInputBits + 7) / 8;
+    let total_input_bytes = numInputBits.div_ceil(8);
     num_data_bytes >= total_input_bytes
 }
 

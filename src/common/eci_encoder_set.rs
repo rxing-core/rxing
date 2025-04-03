@@ -82,7 +82,7 @@ const ENCODERS: [CharacterSet; 14] = [
  *   the platform for which ECI values are defined).
  * - The list contains encoders at least one encoder for every character in the input.
  * - The first encoder in the list is always the ISO-8859-1 encoder even of no character in the input can be encoded
- *       by it.
+ *   by it.
  * - If the input contains a character that is not in ISO-8859-1 then the last two entries in the list will be the
  *   UTF-8 encoder and the UTF-16BE encoder.
  *

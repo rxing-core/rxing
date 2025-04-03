@@ -474,7 +474,7 @@ impl BitMatrix {
     pub fn rotate180(&mut self) {
         // let mut topRow = BitArray::with_size(self.width as usize);
         // let mut bottomRow = BitArray::with_size(self.width as usize);
-        let maxHeight = (self.height + 1) / 2;
+        let maxHeight = self.height.div_ceil(2);
         for i in 0..maxHeight {
             //for (int i = 0; i < maxHeight; i++) {
             let mut topRow = self.getRow(i);

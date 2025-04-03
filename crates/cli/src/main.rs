@@ -313,6 +313,7 @@ fn main() {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn decode_command(
     file_name: &str,
     try_harder: &bool,
@@ -458,6 +459,7 @@ fn decode_command(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn encode_command(
     file_name: &str,
     barcode_type: &BarcodeFormat,

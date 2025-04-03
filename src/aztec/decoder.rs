@@ -502,7 +502,7 @@ fn read_byte(rawbits: &[bool], start_index: usize) -> u8 {
  * Packs a bit array into bytes, most significant bit first
  */
 pub fn convertBoolArrayToByteArray(bool_arr: &[bool]) -> Vec<u8> {
-    let mut byte_arr = vec![0u8; (bool_arr.len() + 7) / 8];
+    let mut byte_arr = vec![0u8; bool_arr.len().div_ceil(8)];
     // for i in 0..byte_arr.len() {
     for (i, byte) in byte_arr.iter_mut().enumerate() {
         // for (int i = 0; i < byteArr.length; i++) {
