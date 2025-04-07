@@ -37,7 +37,7 @@ pub fn erase(received: &mut [u32], howMany: u32, random: &mut rand::rngs::Thread
     let mut erasureOffset = 0;
     let mut j = 0;
     while j < howMany {
-        let location = random.gen_range(0..received.len());
+        let location = random.random_range(0..received.len());
         if *erased.get(location).unwrap_or(&false) {
             j -= 1;
         } else {
@@ -52,5 +52,5 @@ pub fn erase(received: &mut [u32], howMany: u32, random: &mut rand::rngs::Thread
 }
 
 pub fn getRandom() -> rand::rngs::ThreadRng {
-    rand::thread_rng()
+    rand::rng()
 }

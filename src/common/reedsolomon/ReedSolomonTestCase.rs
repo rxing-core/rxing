@@ -351,8 +351,8 @@ pub(crate) fn corrupt(
     let mut j: isize = 0;
     while j < howMany as isize {
         // for (int j = 0; j < howMany; j++) {
-        let location: usize = random.gen_range(0..received.len());
-        let value = random.gen_range(0..max);
+        let location: usize = random.random_range(0..received.len());
+        let value = random.random_range(0..max);
         if corrupted[location] || received[location] == value {
             j -= 1;
         } else {
@@ -367,8 +367,8 @@ pub(crate) fn corrupt(
     //         skip = false;
     //         continue;
     //     }
-    //     let location: usize = random.gen_range(0..received.len());
-    //     let value = random.gen_range(0..max);
+    //     let location: usize = random.random_range(0..received.len());
+    //     let value = random.random_range(0..max);
     //     if corrupted[location] || received[location] == value {
     //         skip = true;
     //     } else {
@@ -420,7 +420,7 @@ fn test_encode_decode_random(field: GenericGFRef, dataSize: usize, ecSize: usize
         for data in dataWords.iter_mut().take(dataSize) {
             // for k in 0..dataSize {
             //for (int k = 0; k < dataSize; k++) {
-            *data = random.gen_range(0..field.getSize().try_into().unwrap());
+            *data = random.random_range(0..field.getSize().try_into().unwrap());
         }
         // generate ECC words
         message[0..dataWords.len()].clone_from_slice(&dataWords[..]);
@@ -587,7 +587,7 @@ fn array_to_string(data: &[i32]) -> String {
 }
 
 fn get_pseudo_random() -> rand::rngs::ThreadRng {
-    rand::thread_rng()
+    rand::rng()
     //return new Random(0xDEADBEEF);
 }
 

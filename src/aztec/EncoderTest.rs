@@ -679,20 +679,20 @@ fn testEncodeDecode(data: &str, compact: bool, layers: u32) {
     // Check error correction by introducing a few minor errors
     let mut random = getPseudoRandom();
     matrix.flip_coords(
-        random.gen_range(0..matrix.getWidth()),
-        random.gen_range(0..=2),
+        random.random_range(0..matrix.getWidth()),
+        random.random_range(0..=2),
     );
     matrix.flip_coords(
-        random.gen_range(0..matrix.getWidth()),
-        matrix.getHeight() - 2 + random.gen_range(0..2),
+        random.random_range(0..matrix.getWidth()),
+        matrix.getHeight() - 2 + random.random_range(0..2),
     );
     matrix.flip_coords(
-        random.gen_range(0..=2),
-        random.gen_range(0..matrix.getHeight()),
+        random.random_range(0..=2),
+        random.random_range(0..matrix.getHeight()),
     );
     matrix.flip_coords(
-        matrix.getWidth() - 2 + random.gen_range(0..2),
-        random.gen_range(0..matrix.getHeight()),
+        matrix.getWidth() - 2 + random.random_range(0..2),
+        random.random_range(0..matrix.getHeight()),
     );
     r = AztecDetectorRXingResult::new(
         matrix,
@@ -763,15 +763,15 @@ fn testWriter(
     for _i in 0..ec_words {
         // for (int i = 0; i < ecWords; i++) {
         // don't touch the core
-        let x = if random.gen_bool(0.50) {
-            random.gen_range(0..=aztec.getLayers() * 2)
+        let x = if random.random_bool(0.50) {
+            random.random_range(0..=aztec.getLayers() * 2)
         } else {
-            matrix.getWidth() - 1 - random.gen_range(0..=aztec.getLayers() * 2)
+            matrix.getWidth() - 1 - random.random_range(0..=aztec.getLayers() * 2)
         };
-        let y = if random.gen_bool(0.50) {
-            random.gen_range(0..=aztec.getLayers() * 2)
+        let y = if random.random_bool(0.50) {
+            random.random_range(0..=aztec.getLayers() * 2)
         } else {
-            matrix.getHeight() - 1 - random.gen_range(0..=aztec.getLayers() * 2)
+            matrix.getHeight() - 1 - random.random_range(0..=aztec.getLayers() * 2)
         };
         matrix.flip_coords(x, y);
     }
@@ -787,7 +787,7 @@ fn testWriter(
 }
 
 fn getPseudoRandom() -> rand::rngs::ThreadRng {
-    rand::thread_rng()
+    rand::rng()
 }
 
 fn testModeMessageComplex(compact: bool, layers: u32, words: u32, expected: &str) {

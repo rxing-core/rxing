@@ -59,7 +59,7 @@ fn testExplicitError() {
     for i in 0..PDF417_TEST_WITH_EC.len() {
         // for (int i = 0; i < PDF417_TEST_WITH_EC.length; i++) {
         let mut received = PDF417_TEST_WITH_EC;
-        received[i] = 610; //random.gen_range(0..256);// random.nextInt(256);
+        received[i] = 610; //random.random_range(0..256);// random.nextInt(256);
         checkDecode(&mut received).expect("ok");
     }
 }
@@ -70,7 +70,7 @@ fn testOneError() {
     for i in 0..PDF417_TEST_WITH_EC.len() {
         // for (int i = 0; i < PDF417_TEST_WITH_EC.length; i++) {
         let mut received = PDF417_TEST_WITH_EC;
-        received[i] = random.gen_range(0..256); //random.gen_range(0..256);// random.nextInt(256);
+        received[i] = random.random_range(0..256); //random.random_range(0..256);// random.nextInt(256);
         checkDecode(&mut received).expect("ok");
     }
 }

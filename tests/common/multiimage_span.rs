@@ -642,7 +642,10 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
         // not expected to pass, generally
         // let mut result = None;
         let pure_hints = DecodeHints::default().with(DecodeHintValue::PureBarcode(true));
-        let mut result = self.barcode_reader.decode_with_hints(source, &pure_hints).ok();
+        let mut result = self
+            .barcode_reader
+            .decode_with_hints(source, &pure_hints)
+            .ok();
 
         if result.is_none() {
             result = Some(self.barcode_reader.decode_with_hints(source, &hints)?)

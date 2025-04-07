@@ -31,9 +31,9 @@ use super::CharacterSet;
 
 #[test]
 fn test_random() {
-    let mut r = rand::thread_rng();
+    let mut r = rand::rng();
     let mut bytes: Vec<u8> = vec![0; 1000];
-    bytes.fill_with(|| r.gen());
+    bytes.fill_with(|| r.random());
     // for byte in &mut bytes {
     //     *byte = r.gen();
     // }

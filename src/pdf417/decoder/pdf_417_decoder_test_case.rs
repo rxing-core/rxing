@@ -298,7 +298,7 @@ fn testUppercaseLowercaseNumericPunctuationMix() {
 #[test]
 fn testBinaryData() {
     let mut bytes = [0_u8; 500];
-    // let random = rand::thread_rng();
+    // let random = rand::rng();
     let mut random = java_rand::Random::new(0);
     let mut total = 0;
     for _i in 0..10000 {
@@ -317,7 +317,7 @@ fn testBinaryData() {
 
 // fn gen_500_random_bytes() -> [u8;500] {
 //   let mut bytes = [0_u8;500];
-//   let mut random = rand::thread_rng();
+//   let mut random = rand::rng();
 //   for i in 0..500 {
 //     bytes[i] = random.gen();
 //   }

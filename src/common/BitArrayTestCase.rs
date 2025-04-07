@@ -112,19 +112,19 @@ fn test_get_next_set4() {
 
 #[test]
 fn test_get_next_set5() {
-    let mut r = rand::thread_rng();
+    let mut r = rand::rng();
     for _i in 0..10 {
         // for (int i = 0; i < 10; i++) {
-        let mut array = BitArray::with_size(1 + r.gen_range(0..100));
-        let numSet = r.gen_range(0..20);
+        let mut array = BitArray::with_size(1 + r.random_range(0..100));
+        let numSet = r.random_range(0..20);
         for _j in 0..numSet {
             // for (int j = 0; j < numSet; j++) {
-            array.set(r.gen_range(0..array.get_size()));
+            array.set(r.random_range(0..array.get_size()));
         }
-        let numQueries = r.gen_range(0..20);
+        let numQueries = r.random_range(0..20);
         for _j in 0..numQueries {
             // for (int j = 0; j < numQueries; j++) {
-            let query = r.gen_range(0..array.get_size());
+            let query = r.random_range(0..array.get_size());
             let mut expected = query;
             while expected < array.get_size() && !array.get(expected) {
                 expected += 1;

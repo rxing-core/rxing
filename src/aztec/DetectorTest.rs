@@ -83,7 +83,7 @@ fn test_error_in_parameter_locator(data: &str) {
         encoder::aztec_encoder::encode(data, 25, encoder::aztec_encoder::DEFAULT_AZTEC_LAYERS)
             .expect("encode should create");
     // dbg!(aztec.getMatrix().to_string());
-    let mut random = rand::thread_rng(); //Random(aztec.getMatrix().hashCode());   // pseudo-random, but deterministic
+    let mut random = rand::rng(); //Random(aztec.getMatrix().hashCode());   // pseudo-random, but deterministic
     let layers = aztec.getLayers();
     let compact = aztec.isCompact();
     let orientation_points = get_orientation_points(&aztec);
@@ -137,7 +137,7 @@ fn test_error_in_parameter_locator(data: &str) {
                 let mut errors = Vec::new();
                 while errors.len() < 3 {
                     // Quick and dirty way of getting three distinct integers between 1 and n.
-                    errors.push(random.gen_range(0..orientation_points.len()));
+                    errors.push(random.random_range(0..orientation_points.len()));
                 }
                 for error in errors {
                     // for (int error : errors) {

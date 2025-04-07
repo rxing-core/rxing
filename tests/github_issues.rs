@@ -575,6 +575,7 @@ fn issue_59() {
         .map(|c| c as char)
         .collect::<String>();
 
+    #[allow(deprecated)]
     let hints =
         EncodeHints::default().with(rxing::EncodeHintValue::MinSize(Dimension::new(48, 48)));
     let data_matrix_2 = writer
