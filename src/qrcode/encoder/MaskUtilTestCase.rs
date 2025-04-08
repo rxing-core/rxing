@@ -188,9 +188,9 @@ fn testApplyMaskPenaltyRule4() {
 fn testGetDataMaskBitInternal(maskPattern: u32, expected: &[Vec<u32>]) -> bool {
     for x in 0..6 {
         // for (int x = 0; x < 6; ++x) {
-        for y in 0..6 {
+        for (y, expectation) in expected.iter().enumerate().take(6) {
             // for (int y = 0; y < 6; ++y) {
-            if (expected[y][x] == 1)
+            if (expectation[x] == 1)
                 != mask_util::getDataMaskBit(maskPattern, x as u32, y as u32)
                     .expect("should never fail")
             {

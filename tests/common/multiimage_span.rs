@@ -294,16 +294,17 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
             total_found * 100 / total_tests,
             total_must_pass
         ));
-        if total_found > total_must_pass as usize {
-            log::warning(format!(
-                "+++ Test too lax by {} images",
-                total_found - total_must_pass as usize
-            ));
-        } else if total_found < total_must_pass as usize {
-            log::warning(format!(
+
+        match total_found.cmp(&(total_must_pass as usize)) {
+            std::cmp::Ordering::Less => log::warning(format!(
                 "--- Test failed by {} images",
                 total_must_pass as usize - total_found
-            ));
+            )),
+            std::cmp::Ordering::Equal => { /* totally fine */ }
+            std::cmp::Ordering::Greater => log::warning(format!(
+                "+++ Test too lax by {} images",
+                total_found - total_must_pass as usize
+            )),
         }
 
         // Then run through again and assert if any failed
@@ -513,9 +514,10 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
         let mut total_misread = 0;
         let mut total_max_misread = 0;
 
-        for x in 0..self.test_rxing_results.len() {
+        for (x, test_rxing_result) in self.test_rxing_results.iter().enumerate() {
+            //0..self.test_rxing_results.len() {
             // for (int x = 0; x < testRXingResults.size(); x++) {
-            let test_rxing_result = self.test_rxing_results.get(x).unwrap();
+            // let test_rxing_result = self.test_rxing_results.get(x).unwrap();
             log::info(format!(
                 "Rotation {} degrees:",
                 test_rxing_result.get_rotation()
@@ -560,28 +562,29 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
             total_found * 100 / total_tests,
             total_must_pass
         ));
-        if total_found > total_must_pass as usize {
-            log::warning(format!(
-                "+++ Test too lax by {} images",
-                total_found - total_must_pass as usize
-            ));
-        } else if total_found < total_must_pass as usize {
-            log::warning(format!(
+
+        match total_found.cmp(&(total_must_pass as usize)) {
+            std::cmp::Ordering::Less => log::warning(format!(
                 "--- Test failed by {} images",
                 total_must_pass as usize - total_found
-            ));
+            )),
+            std::cmp::Ordering::Equal => { /* totally ok */ }
+            std::cmp::Ordering::Greater => log::warning(format!(
+                "+++ Test too lax by {} images",
+                total_found - total_must_pass as usize
+            )),
         }
 
-        if total_misread < total_max_misread as usize {
-            log::warning(format!(
+        match total_misread.cmp(&(total_max_misread as usize)) {
+            std::cmp::Ordering::Less => log::warning(format!(
                 "+++ Test expects too many misreads by {} images",
                 total_max_misread as usize - total_misread
-            ));
-        } else if total_misread > total_max_misread as usize {
-            log::warning(format!(
+            )),
+            std::cmp::Ordering::Equal => { /* this is fine */ }
+            std::cmp::Ordering::Greater => log::warning(format!(
                 "--- Test had too many misreads by {} images",
                 total_misread - total_max_misread as usize
-            ));
+            )),
         }
 
         // Then run through again and assert if any failed
