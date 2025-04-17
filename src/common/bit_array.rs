@@ -133,7 +133,8 @@ impl BitArray {
      * @param i bit to set
      */
     pub fn unset(&mut self, i: usize) {
-        self.bits[i / BASE_BITS] |= 0 << (i & SHIFT_BITS);
+        // self.bits[i / BASE_BITS] |= 0 << (i & SHIFT_BITS);
+        self.bits[i / BASE_BITS] &= !(1 << (i & SHIFT_BITS));
     }
 
     /**

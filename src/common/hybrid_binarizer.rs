@@ -22,7 +22,7 @@
 
 use std::borrow::Cow;
 
-use once_cell::unsync::OnceCell;
+use once_cell::sync::OnceCell;
 
 use crate::common::Result;
 use crate::{Binarizer, LuminanceSource};

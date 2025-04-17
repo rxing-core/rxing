@@ -211,7 +211,7 @@ impl MinimalECIInput {
                 })
                 .collect()
         } else {
-            Self::encodeMinimally(stringToEncodeInput, &encoderSet, fnc1)
+            Self::encodeMinimally(&stringToEncode, &encoderSet, fnc1)
         };
 
         Self {
@@ -261,7 +261,7 @@ impl MinimalECIInput {
     }
 
     fn addEdges(
-        stringToEncode: &str,
+        stringToEncode: &[&str],
         encoderSet: &ECIEncoderSet,
         edges: &mut [Vec<Option<Arc<InputEdge>>>],
         from: usize,
@@ -269,7 +269,7 @@ impl MinimalECIInput {
         fnc1: Option<&str>,
     ) {
         // let ch = stringToEncode.chars().nth(from).unwrap() as i16;
-        let ch = stringToEncode.graphemes(true).nth(from).unwrap();
+        let ch = stringToEncode[from]; //stringToEncode.graphemes(true).nth(from).unwrap();
 
         let mut start = 0;
         let mut end = encoderSet.len();
@@ -304,12 +304,12 @@ impl MinimalECIInput {
     ///
     /// Function can panic if the string cannot be encoded.
     pub fn encodeMinimally(
-        stringToEncode: &str,
+        stringToEncode: &[&str],
         encoderSet: &ECIEncoderSet,
         fnc1: Option<&str>,
     ) -> Vec<u16> {
         // let inputLength = stringToEncode.chars().count();
-        let inputLength = stringToEncode.graphemes(true).count();
+        let inputLength = stringToEncode.len(); //stringToEncode.graphemes(true).count();
 
         // Array that represents vertices. There is a vertex for every character and encoding.
         let mut edges = vec![vec![None; encoderSet.len()]; inputLength + 1]; //InputEdge[inputLength + 1][encoderSet.length()];
@@ -338,14 +338,18 @@ impl MinimalECIInput {
             }
         }
         if minimalJ < 0 {
-            panic!("internal error: failed to encode \"{stringToEncode}\"");
+            panic!(
+                "internal error: failed to encode \"{}\"",
+                stringToEncode.join("")
+            );
         }
         let mut intsAL: Vec<u16> = Vec::new();
         let mut current = edges[inputLength][minimalJ as usize].clone();
         while let Some(c) = current {
             //let c = current.unwrap().clone();
             if c.isFNC1() {
-                intsAL.splice(0..0, [1000]);
+                intsAL.push(1000);
+                // intsAL.splice(0..0, [1000]);
             } else {
                 encoderSet
                     .encode_char(&c.c, c.encoderIndex)
@@ -353,7 +357,7 @@ impl MinimalECIInput {
                     .iter()
                     .rev()
                     .for_each(|&byte| {
-                        intsAL.insert(0, byte as u16);
+                        intsAL.push(byte as u16);
                     });
             }
             let previousEncoderIndex = if let Some(prev) = &c.previous {
@@ -363,11 +367,12 @@ impl MinimalECIInput {
             };
 
             if previousEncoderIndex != c.encoderIndex {
-                intsAL.insert(0, 256_u16 + encoderSet.get_eci(c.encoderIndex) as u16);
+                intsAL.push(256_u16 + encoderSet.get_eci(c.encoderIndex) as u16);
             }
             current = c.previous.clone();
         }
 
+        intsAL.reverse();
         intsAL
     }
 }

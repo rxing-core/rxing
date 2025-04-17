@@ -138,17 +138,10 @@ impl BitMatrix {
         let mut first_run = true;
         let mut nRows = 0;
         let mut pos = 0;
-        while pos < string_representation.chars().count() {
-            if string_representation
-                .chars()
-                .nth(pos)
-                .ok_or(Exceptions::ILLEGAL_STATE)?
-                == '\n'
-                || string_representation
-                    .chars()
-                    .nth(pos)
-                    .ok_or(Exceptions::ILLEGAL_STATE)?
-                    == '\r'
+        let chars: Vec<char> = string_representation.chars().collect();
+        while pos < chars.len() {
+            if chars.get(pos).ok_or(Exceptions::ILLEGAL_STATE)? == &'\n'
+                || chars.get(pos).ok_or(Exceptions::ILLEGAL_STATE)? == &'\r'
             {
                 if bitsPos > rowStartPos {
                     //if rowLength == -1 {

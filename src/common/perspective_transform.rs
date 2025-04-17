@@ -103,9 +103,11 @@ impl PerspectiveTransform {
         // for i in 0..n {
         for (x, y) in x_values.iter_mut().zip(y_valuess.iter_mut()).take(n) {
             // for (int i = 0; i < n; i++) {
-            let denominator = self.a13 * *x + self.a23 * *y + self.a33;
-            *x = (self.a11 * *x + self.a21 * *y + self.a31) / denominator;
-            *y = (self.a12 * *x + self.a22 * *y + self.a32) / denominator;
+            let ox = *x;
+            let oy = *y;
+            let d = self.a13 * ox + self.a23 * oy + self.a33;
+            *x = (self.a11 * ox + self.a21 * oy + self.a31) / d;
+            *y = (self.a12 * ox + self.a22 * oy + self.a32) / d;
         }
     }
 
