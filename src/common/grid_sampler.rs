@@ -126,11 +126,12 @@ pub trait GridSampler {
                 point.y = i_value;
             }
 
-            controls
-                .first()
-                .unwrap()
-                .transform
-                .transform_points_single(&mut points);
+            controls.iter().for_each(|control| control.transform.transform_points_single(&mut points));
+            // controls
+            //     .first()
+            //     .unwrap()
+            //     .transform
+            //     .transform_points_single(&mut points);
             // Quick check to see if points transformed to something inside the image;
             // sufficient to check the endpoints
             self.checkAndNudgePoints(image, &mut points)?;
