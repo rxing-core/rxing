@@ -92,15 +92,11 @@ impl Reader for RSS14Reader {
                 let mut orientation = 270;
                 if metadata.contains_key(&RXingResultMetadataType::ORIENTATION) {
                     // But if we found it reversed in doDecode(), add in that result here:
-                    orientation = (orientation
-                        + if let Some(crate::RXingResultMetadataValue::Orientation(or)) =
-                            metadata.get(&RXingResultMetadataType::ORIENTATION)
-                        {
-                            *or
-                        } else {
-                            0
-                        })
-                        % 360;
+                    if let Some(RXingResultMetadataValue::Orientation(or)) =
+                        metadata.get(&RXingResultMetadataType::ORIENTATION)
+                    {
+                        orientation = 270 + or;
+                    }
                 }
                 result.putMetadata(
                     RXingResultMetadataType::ORIENTATION,

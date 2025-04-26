@@ -329,10 +329,11 @@ impl HighLevelEncoder {
     // non-optimal states.
     fn update_state_list_for_char(&self, states: Vec<State>, index: u32) -> Vec<State> {
         let mut result = Vec::new();
-        for state in states {
-            // for (State state : states) {
-            self.update_state_for_char(state, index, &mut result);
-        }
+
+        states
+            .into_iter()
+            .for_each(|state| self.update_state_for_char(state, index, &mut result));
+
         Self::simplify_states(result)
     }
 
@@ -435,18 +436,25 @@ impl HighLevelEncoder {
     }
 
     fn simplify_states(states: Vec<State>) -> Vec<State> {
-        let mut result: Vec<State> = Vec::new();
-        for newState in states {
-            let add = result
+        let mut result = Vec::with_capacity(states.len());
+        // Reserve up front if you have a rough idea of how many you'll keep.
+        // result.reserve(states.into_iter().size_hint().0);
+
+        for new_state in states {
+            // 1) If any existing state already dominates-or-equals `new_state`, skip it.
+            if result
                 .iter()
-                .fold(true, |acc, s| !s.isBetterThanOrEqualTo(&newState) && acc);
-            if add {
-                result.retain(|s| !newState.isBetterThanOrEqualTo(s));
+                .any(|s: &State| s.isBetterThanOrEqualTo(&new_state))
+            {
+                continue;
             }
-            if add {
-                result.push(newState);
-            }
+
+            // 2) Otherwise, remove any states that the new one dominates-or-equals,
+            //    then push `new_state` onto the frontier.
+            result.retain(|s| !new_state.isBetterThanOrEqualTo(s));
+            result.push(new_state);
         }
+
         result
     }
 }

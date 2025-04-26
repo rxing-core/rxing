@@ -66,7 +66,7 @@ impl AztecDetectorRXingResult {
         }
     }
 
-    pub fn getNbLayers(&self) -> u32 {
+    pub const fn getNbLayers(&self) -> u32 {
         self.nbLayers
     }
 
@@ -74,7 +74,7 @@ impl AztecDetectorRXingResult {
         self.nbDatablocks
     }
 
-    pub fn isCompact(&self) -> bool {
+    pub const fn isCompact(&self) -> bool {
         self.compact
     }
 }

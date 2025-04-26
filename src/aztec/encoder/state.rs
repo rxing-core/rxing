@@ -191,7 +191,7 @@ impl State {
 
     // Returns true if "this" state is better (or equal) to be in than "that"
     // state under all possible circumstances.
-    pub fn isBetterThanOrEqualTo(&self, other: &State) -> bool {
+    pub const fn isBetterThanOrEqualTo(&self, other: &State) -> bool {
         let mut new_mode_bit_count = self.bit_count
             + (HighLevelEncoder::LATCH_TABLE[self.mode as usize][other.mode as usize] >> 16);
         if self.binary_shift_byte_count < other.binary_shift_byte_count {
@@ -207,18 +207,10 @@ impl State {
     }
 
     pub fn toBitArray(self, text: &[u8]) -> Result<BitArray> {
-        let mut symbols = Vec::new();
         let tok = self.endBinaryShift(text.len() as u32).token;
-        for tkn in tok.into_iter() {
-            // for (Token token = endBinaryShift(text.length).token; token != null; token = token.getPrevious()) {
-            symbols.push(tkn);
-        }
-        // let mut tkn = tok.getPrevious();
-        // while tkn != &TokenType::Empty {
-        //     // for (Token token = endBinaryShift(text.length).token; token != null; token = token.getPrevious()) {
-        //     symbols.push(tkn);
-        //     tkn = tok.getPrevious();
-        // }
+
+        let symbols = tok.into_iter().collect::<Vec<_>>();
+
         let mut bit_array = BitArray::new();
         // Add each token to the result in forward order
         for symbol in symbols.into_iter().rev() {
@@ -230,7 +222,7 @@ impl State {
     }
 
     #[inline(always)]
-    fn calculate_binary_shift_cost(binary_shift_byte_count: u32) -> u32 {
+    const fn calculate_binary_shift_cost(binary_shift_byte_count: u32) -> u32 {
         if binary_shift_byte_count > 62 {
             21 // B/S with extended length
         } else if binary_shift_byte_count > 31 {

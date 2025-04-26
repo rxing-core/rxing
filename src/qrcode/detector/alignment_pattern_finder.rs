@@ -214,7 +214,7 @@ impl<'a> AlignmentPatternFinder<'a> {
         let image = &self.image;
 
         let maxI = image.getHeight();
-        let mut crossCheckStateCount= [0u32; 3];
+        let mut crossCheckStateCount = [0u32; 3];
 
         // Start counting up from center
         let mut i = startI as i32;
@@ -236,9 +236,7 @@ impl<'a> AlignmentPatternFinder<'a> {
 
         // Now also count down from center
         i = startI as i32 + 1;
-        while i < maxI as i32
-            && image.get(centerJ, i as u32)
-            && crossCheckStateCount[1] <= maxCount
+        while i < maxI as i32 && image.get(centerJ, i as u32) && crossCheckStateCount[1] <= maxCount
         {
             crossCheckStateCount[1] += 1;
             i += 1;
@@ -257,9 +255,8 @@ impl<'a> AlignmentPatternFinder<'a> {
             return f32::NAN;
         }
 
-        let stateCountTotal = crossCheckStateCount[0]
-            + crossCheckStateCount[1]
-            + crossCheckStateCount[2];
+        let stateCountTotal =
+            crossCheckStateCount[0] + crossCheckStateCount[1] + crossCheckStateCount[2];
         if 5 * (stateCountTotal as i64 - originalStateCountTotal as i64).unsigned_abs() as u32
             >= 2 * originalStateCountTotal
         {

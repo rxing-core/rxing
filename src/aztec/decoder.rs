@@ -294,7 +294,7 @@ struct CorrectedBitsRXingResult {
     ec_level: u32,
 }
 impl CorrectedBitsRXingResult {
-    pub fn new(correct_bits: Vec<bool>, ec_level: u32) -> Self {
+    pub const fn new(correct_bits: Vec<bool>, ec_level: u32) -> Self {
         Self {
             correct_bits,
             ec_level,
@@ -488,30 +488,21 @@ fn read_code(rawbits: &[bool], start_index: usize, length: usize) -> u32 {
 }
 
 /**
- * Reads a code of length 8 in an array of bits, padding with zeros
- */
-fn read_byte(rawbits: &[bool], start_index: usize) -> u8 {
-    let n = rawbits.len() - start_index;
-    if n >= 8 {
-        return read_code(rawbits, start_index, 8) as u8;
-    }
-    (read_code(rawbits, start_index, n) << (8 - n)) as u8
-}
-
-/**
  * Packs a bit array into bytes, most significant bit first
  */
 pub fn convertBoolArrayToByteArray(bool_arr: &[bool]) -> Vec<u8> {
-    let mut byte_arr = vec![0u8; bool_arr.len().div_ceil(8)];
-    // for i in 0..byte_arr.len() {
-    for (i, byte) in byte_arr.iter_mut().enumerate() {
-        // for (int i = 0; i < byteArr.length; i++) {
-        *byte = read_byte(bool_arr, 8 * i);
-    }
-    byte_arr
+    bool_arr
+        .chunks(8)
+        .map(|chunk| {
+            chunk
+                .iter()
+                .enumerate()
+                .fold(0u8, |acc, (j, &b)| acc | ((b as u8) << (7 - j)))
+        })
+        .collect()
 }
 
-fn total_bits_in_layer(layers: usize, compact: bool) -> usize {
+const fn total_bits_in_layer(layers: usize, compact: bool) -> usize {
     (if compact { 88 } else { 112 } + 16 * layers) * layers
     // return ((compact ? 88 : 112) + 16 * layers) * layers;
 }

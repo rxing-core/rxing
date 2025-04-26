@@ -45,16 +45,6 @@ pub trait AbstractRSSReaderTrait: OneDReader {
         Err(Exceptions::NOT_FOUND)
     }
 
-    /**
-     * @param array values to sum
-     * @return sum of values
-     * @deprecated call {@link MathUtils#sum(int[])}
-     */
-    #[deprecated]
-    fn count(array: &[u32]) -> u32 {
-        array.iter().sum::<u32>()
-    }
-
     fn increment(array: &mut [u32], errors: &[f32]) {
         let mut index = 0;
         let mut biggestError = errors[0];
