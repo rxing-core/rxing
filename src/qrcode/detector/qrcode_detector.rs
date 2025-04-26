@@ -440,7 +440,7 @@ impl<'a> Detector<'_> {
         }
 
         let mut alignmentFinder = AlignmentPatternFinder::new(
-            self.image.clone(),
+            self.image,
             alignmentAreaLeftX,
             alignmentAreaTopY,
             alignmentAreaRightX - alignmentAreaLeftX,

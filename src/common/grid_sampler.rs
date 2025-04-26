@@ -126,7 +126,9 @@ pub trait GridSampler {
                 point.y = i_value;
             }
 
-            controls.iter().for_each(|control| control.transform.transform_points_single(&mut points));
+            controls
+                .iter()
+                .for_each(|control| control.transform.transform_points_single(&mut points));
             // controls
             //     .first()
             //     .unwrap()

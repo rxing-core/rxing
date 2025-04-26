@@ -35,19 +35,18 @@ use super::AlignmentPattern;
  *
  * @author Sean Owen
  */
-pub struct AlignmentPatternFinder {
-    image: BitMatrix,
+pub struct AlignmentPatternFinder<'a> {
+    image: &'a BitMatrix,
     possibleCenters: Vec<AlignmentPattern>,
     startX: u32,
     startY: u32,
     width: u32,
     height: u32,
     moduleSize: f32,
-    crossCheckStateCount: [u32; 3],
     resultPointCallback: Option<PointCallback>,
 }
 
-impl AlignmentPatternFinder {
+impl<'a> AlignmentPatternFinder<'a> {
     /**
      * <p>Creates a finder that will look in a portion of the whole image.</p>
      *
@@ -59,7 +58,7 @@ impl AlignmentPatternFinder {
      * @param moduleSize estimated module size so far
      */
     pub fn new(
-        image: BitMatrix,
+        image: &'a BitMatrix,
         startX: u32,
         startY: u32,
         width: u32,
@@ -75,7 +74,6 @@ impl AlignmentPatternFinder {
             width,
             height,
             moduleSize,
-            crossCheckStateCount: [0u32; 3],
             resultPointCallback,
         }
     }
@@ -174,6 +172,7 @@ impl AlignmentPatternFinder {
      * Given a count of black/white/black pixels just seen and an end position,
      * figures the location of the center of this black/white/black run.
      */
+    #[inline]
     fn centerFromEnd(stateCount: &[u32], end: u32) -> f32 {
         (end as f32 - stateCount[2] as f32) - stateCount[1] as f32 / 2.0
     }
@@ -206,7 +205,7 @@ impl AlignmentPatternFinder {
      * @return vertical center of alignment pattern, or {@link Float#NaN} if not found
      */
     fn crossCheckVertical(
-        &mut self,
+        &self,
         startI: u32,
         centerJ: u32,
         maxCount: u32,
@@ -215,23 +214,23 @@ impl AlignmentPatternFinder {
         let image = &self.image;
 
         let maxI = image.getHeight();
-        self.crossCheckStateCount.fill(0);
+        let mut crossCheckStateCount= [0u32; 3];
 
         // Start counting up from center
         let mut i = startI as i32;
-        while i >= 0 && image.get(centerJ, i as u32) && self.crossCheckStateCount[1] <= maxCount {
-            self.crossCheckStateCount[1] += 1;
+        while i >= 0 && image.get(centerJ, i as u32) && crossCheckStateCount[1] <= maxCount {
+            crossCheckStateCount[1] += 1;
             i -= 1;
         }
         // If already too many modules in this state or ran off the edge:
-        if i < 0 || self.crossCheckStateCount[1] > maxCount {
+        if i < 0 || crossCheckStateCount[1] > maxCount {
             return f32::NAN;
         }
-        while i >= 0 && !image.get(centerJ, i as u32) && self.crossCheckStateCount[0] <= maxCount {
-            self.crossCheckStateCount[0] += 1;
+        while i >= 0 && !image.get(centerJ, i as u32) && crossCheckStateCount[0] <= maxCount {
+            crossCheckStateCount[0] += 1;
             i -= 1;
         }
-        if self.crossCheckStateCount[0] > maxCount {
+        if crossCheckStateCount[0] > maxCount {
             return f32::NAN;
         }
 
@@ -239,36 +238,36 @@ impl AlignmentPatternFinder {
         i = startI as i32 + 1;
         while i < maxI as i32
             && image.get(centerJ, i as u32)
-            && self.crossCheckStateCount[1] <= maxCount
+            && crossCheckStateCount[1] <= maxCount
         {
-            self.crossCheckStateCount[1] += 1;
+            crossCheckStateCount[1] += 1;
             i += 1;
         }
-        if i == maxI as i32 || self.crossCheckStateCount[1] > maxCount {
+        if i == maxI as i32 || crossCheckStateCount[1] > maxCount {
             return f32::NAN;
         }
         while i < maxI as i32
             && !image.get(centerJ, i as u32)
-            && self.crossCheckStateCount[2] <= maxCount
+            && crossCheckStateCount[2] <= maxCount
         {
-            self.crossCheckStateCount[2] += 1;
+            crossCheckStateCount[2] += 1;
             i += 1;
         }
-        if self.crossCheckStateCount[2] > maxCount {
+        if crossCheckStateCount[2] > maxCount {
             return f32::NAN;
         }
 
-        let stateCountTotal = self.crossCheckStateCount[0]
-            + self.crossCheckStateCount[1]
-            + self.crossCheckStateCount[2];
+        let stateCountTotal = crossCheckStateCount[0]
+            + crossCheckStateCount[1]
+            + crossCheckStateCount[2];
         if 5 * (stateCountTotal as i64 - originalStateCountTotal as i64).unsigned_abs() as u32
             >= 2 * originalStateCountTotal
         {
             return f32::NAN;
         }
 
-        if self.foundPatternCross(&self.crossCheckStateCount) {
-            Self::centerFromEnd(&self.crossCheckStateCount, i as u32)
+        if self.foundPatternCross(&crossCheckStateCount) {
+            Self::centerFromEnd(&crossCheckStateCount, i as u32)
         } else {
             f32::NAN
         }
