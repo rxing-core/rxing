@@ -31,16 +31,6 @@ pub const BARS_IN_MODULE: u32 = 8;
 pub const EMPTY_INT_ARRAY: [u32; 0] = [];
 
 /**
- * @param moduleBitCount values to sum
- * @return sum of values
- * @deprecated call {@link MathUtils#sum(int[])}
- */
-#[deprecated]
-pub fn getBitCountSum(moduleBitCount: &[u32]) -> u32 {
-    moduleBitCount.iter().sum::<u32>()
-}
-
-/**
  * @param symbol encoded symbol to translate to a codeword
  * @return the codeword corresponding to the symbol.
  */

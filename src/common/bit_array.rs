@@ -25,11 +25,13 @@ use num::traits::ops::overflowing::OverflowingSub;
 use crate::common::Result;
 use crate::Exceptions;
 
-const LOAD_FACTOR: f32 = 0.75;
-
 type BaseType = super::BitFieldBaseType;
 const BASE_BITS: usize = super::BIT_FIELD_BASE_BITS;
 const SHIFT_BITS: usize = super::BIT_FIELD_SHIFT_BITS;
+
+// replace your f32 LOAD_FACTOR with two integers:
+const LF_NUM: usize = 3; // numerator of load‐factor
+const LF_DEN: usize = 4; // denominator
 
 /**
  * <p>A simple, fast array of bits, represented compactly by an array of ints internally.</p>
@@ -92,13 +94,20 @@ impl BitArray {
     }
 
     #[inline]
-    fn ensure_capacity(&mut self, newSize: usize) {
-        let target_size = (newSize as f32 / LOAD_FACTOR).ceil() as usize;
+    fn ensure_capacity(&mut self, new_size: usize) {
+        // 1) compute target_size = ceil(new_size / (LF_NUM/LF_DEN))
+        //    = ceil(new_size * LF_DEN / LF_NUM)
+        let target_size = (new_size * LF_DEN).div_ceil(LF_NUM);
+
+        // 2) compute how many BASE_BITS blocks we need, rounding up
         let array_desired_length = target_size.div_ceil(BASE_BITS);
 
+        // 3) grow if necessary
         if self.bits.len() < array_desired_length {
-            let additional_capacity = array_desired_length - self.bits.len();
-            self.bits.extend(vec![0; additional_capacity]);
+            // either of these work; `resize` is a bit more direct:
+            // let additional = array_desired_length - self.bits.len();
+            // self.bits.extend(std::iter::repeat(0).take(additional));
+            self.bits.resize(array_desired_length, 0);
         }
     }
 
