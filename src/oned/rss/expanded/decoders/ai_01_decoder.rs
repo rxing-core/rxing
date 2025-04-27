@@ -70,8 +70,10 @@ pub trait AI01decoder: AbstractExpandedDecoder {
 /// Panics is buf is less than 13 characters in length
 pub(super) fn appendCheckDigit(buf: &mut String, currentPos: usize) {
     let mut checkDigit = 0;
+    let cached_chars = buf.chars().map(|c| c as u32).collect::<Vec<_>>();
+    const ZERO: u32 = '0' as u32;
     for i in 0..13 {
-        let digit = buf.chars().nth(i + currentPos).unwrap() as u32 - '0' as u32;
+        let digit = cached_chars[i + currentPos] - ZERO;
         checkDigit += if (i & 0x01) == 0 { 3 * digit } else { digit };
     }
 

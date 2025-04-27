@@ -90,18 +90,10 @@ impl Encoder for Base256Encoder {
                 )));
             }
         }
-        let c = buffer.chars().count();
-        for i in 0..c {
-            // for (int i = 0, c = buffer.length(); i < c; i++) {
+        for buffer_char in buffer.chars() {
             context.writeCodeword(
-                Self::randomize255State(
-                    buffer
-                        .chars()
-                        .nth(i)
-                        .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
-                    context.getCodewordCount() as u32 + 1,
-                )
-                .ok_or(Exceptions::PARSE)? as u8,
+                Self::randomize255State(buffer_char, context.getCodewordCount() as u32 + 1)
+                    .ok_or(Exceptions::PARSE)? as u8,
             );
         }
         Ok(())

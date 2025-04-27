@@ -197,8 +197,17 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                 // That's including when that mode is a shift.
                 // Our test case dlusbs.png for issue #642 exercises that.
                 latch_table = shift_table; // Latch the current mode, so as to return to Upper after U/S B/S
-                shift_table = getTable(str.chars().nth(5).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?);
-                if str.chars().nth(6).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == 'L' {
+
+                let mut chars = str.chars();
+
+                // Advance to index 5 and pull that char out:
+                let c5 = chars.nth(5).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+
+                // The iterator is now positioned at index 6, so the very next call is your index 6:
+                let c6 = chars.next().ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+
+                shift_table = getTable(c5);
+                if c6 == 'L' {
                     latch_table = shift_table;
                 }
             } else {

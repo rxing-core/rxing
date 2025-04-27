@@ -449,11 +449,12 @@ fn encodeDecodeWithAll(
     )
     .expect("encode");
     if decode {
-        let mut codewords = vec![0_u32; s.chars().count() + 1];
+        let cached_s = s.chars().collect::<Vec<_>>();
+        let mut codewords = vec![0_u32; cached_s.len() + 1];
         codewords[0] = codewords.len() as u32;
         for (i, codeword) in codewords.iter_mut().enumerate().skip(1) {
             // for (int i = 1; i < codewords.length; i++) {
-            *codeword = s.chars().nth(i - 1).unwrap() as u32;
+            *codeword = *cached_s.get(i - 1).unwrap() as u32;
         }
         performDecodeTest(&codewords, input);
     }

@@ -14,27 +14,22 @@ pub fn one_d_reader_derive(input: TokenStream) -> TokenStream {
 
 fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
-        use std::collections::HashMap;
-        use crate::result_point::ResultPoint;
-        use crate::RXingResultMetadataType;
-        use crate::RXingResultMetadataValue;
-        use crate::Point;
-        use crate::Reader;
-        use crate::Binarizer;
-        use crate::DecodeHints;
+    let generics = &ast.generics;
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-        impl Reader for #name {
-            fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<crate::RXingResult, Exceptions> {
-              self.decode_with_hints(image, &DecodeHints::default())
+    let gen = quote! {
+        impl #impl_generics crate::Reader for #name #ty_generics #where_clause {
+            fn decode<B: crate::Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<crate::RXingResult, Exceptions> {
+              self.decode_with_hints(image, &crate::DecodeHints::default())
             }
 
             // Note that we don't try rotation without the try harder flag, even if rotation was supported.
-            fn decode_with_hints<B: Binarizer>(
+            fn decode_with_hints<B: crate::Binarizer>(
                 &mut self,
                 image: &mut crate::BinaryBitmap<B>,
-                hints: &DecodeHints,
+                hints: &crate::DecodeHints,
             ) -> Result<crate::RXingResult, Exceptions> {
+                use crate::result_point::ResultPoint;
 
             if let Ok(res) = self._do_decode(image, hints) {
                 Ok(res)
@@ -46,21 +41,21 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
                  // Record that we found it rotated 90 degrees CCW / 270 degrees CW
                  let metadata = result.getRXingResultMetadata();
                  let mut orientation = 270;
-                 if metadata.contains_key(&RXingResultMetadataType::ORIENTATION) {
+                 if metadata.contains_key(&crate::RXingResultMetadataType::ORIENTATION) {
                    // But if we found it reversed in doDecode(), add in that result here:
                    orientation = (orientation +
-                        if let Some(crate::RXingResultMetadataValue::Orientation(or)) = metadata.get(&RXingResultMetadataType::ORIENTATION) {
+                        if let Some(crate::RXingResultMetadataValue::Orientation(or)) = metadata.get(&crate::RXingResultMetadataType::ORIENTATION) {
                          *or
                         }else {
                          0
                         }) % 360;
                  }
-                 result.putMetadata(RXingResultMetadataType::ORIENTATION, RXingResultMetadataValue::Orientation(orientation));
+                 result.putMetadata(crate::RXingResultMetadataType::ORIENTATION, crate::RXingResultMetadataValue::Orientation(orientation));
                  // Update result points
                    let height = rotated_image.get_height();
                      let total_points = result.getRXingResultPoints().len();
                      for point in result.getRXingResultPointsMut()[..total_points].iter_mut() {
-                       *point = Point::new(height as f32- point.getY() - 1.0, point.getX());
+                       *point = crate::Point::new(height as f32- point.getY() - 1.0, point.getX());
                      }
 
 

@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
+use once_cell::sync::Lazy;
 use rxing_one_d_proc_derive::OneDReader;
 
 use crate::common::{BitArray, Result};
 use crate::{point_f, BarcodeFormat, Exceptions, RXingResult};
 
 use super::{one_d_reader, OneDReader};
+
+use crate::DecodeHints;
+
+use crate::{RXingResultMetadataType, RXingResultMetadataValue};
 
 /**
  * <p>Decodes Code 39 barcodes. Supports "Full ASCII Code 39" if USE_CODE_39_EXTENDED_MODE is set.</p>
@@ -88,27 +93,25 @@ impl OneDReader for Code39Reader {
             return Err(Exceptions::NOT_FOUND);
         }
 
+        let cached_row_result = self.decodeRowRXingResult.chars().collect::<Vec<_>>();
+
         if self.usingCheckDigit {
-            let max = self.decodeRowRXingResult.chars().count() - 1;
+            let max = cached_row_result.len() - 1;
             let mut total = 0;
             for i in 0..max {
                 if let Some(pos) = Self::ALPHABET_STRING.find(
-                    self.decodeRowRXingResult
-                        .chars()
-                        .nth(i)
+                    *cached_row_result
+                        .get(i)
                         .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
                 ) {
                     total += pos;
                 }
             }
-            if self
-                .decodeRowRXingResult
-                .chars()
-                .nth(max)
+            if cached_row_result
+                .get(max)
                 .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
-                != Self::ALPHABET_STRING
-                    .chars()
-                    .nth(total % 43)
+                != C39R_CACHED_ALPHABET_STRING
+                    .get(total % 43)
                     .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
             {
                 return Err(Exceptions::NOT_FOUND);
@@ -148,6 +151,10 @@ impl OneDReader for Code39Reader {
         Ok(resultObject)
     }
 }
+
+pub static C39R_CACHED_ALPHABET_STRING: Lazy<Vec<char>> =
+    Lazy::new(|| Code39Reader::ALPHABET_STRING.chars().collect());
+
 impl Code39Reader {
     pub const ALPHABET_STRING: &'static str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%";
 
@@ -303,9 +310,9 @@ impl Code39Reader {
     fn patternToChar(pattern: u32) -> Result<char> {
         for i in 0..Self::CHARACTER_ENCODINGS.len() {
             if Self::CHARACTER_ENCODINGS[i] == pattern {
-                return Self::ALPHABET_STRING
-                    .chars()
-                    .nth(i)
+                return C39R_CACHED_ALPHABET_STRING
+                    .get(i)
+                    .copied()
                     .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS);
             }
         }
@@ -319,17 +326,16 @@ impl Code39Reader {
         let length = encoded.chars().count();
         let mut decoded = String::with_capacity(length); //new StringBuilder(length);
         let mut i = 0;
+        let cached_encoded = encoded.chars().collect::<Vec<_>>();
         while i < length {
             // for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            let c = encoded
-                .chars()
-                .nth(i)
+            let c = *cached_encoded
+                .get(i)
                 .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
             if c == '+' || c == '$' || c == '%' || c == '/' {
-                let next = encoded
-                    .chars()
-                    .nth(i + 1)
+                let next = *cached_encoded
+                    .get(i + 1)
                     .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
                 let mut decodedChar = '\0';
                 match c {

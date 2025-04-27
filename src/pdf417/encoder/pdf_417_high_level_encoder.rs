@@ -366,7 +366,7 @@ fn encodeText<T: ECIInput + ?Sized>(
     sb: &mut String,
     initialSubmode: u32,
 ) -> Result<u32> {
-    let mut tmp = String::with_capacity(count as usize);
+    let mut tmp = Vec::with_capacity(count as usize);
     let mut submode = initialSubmode;
     let mut idx = 0;
     loop {
@@ -475,17 +475,17 @@ fn encodeText<T: ECIInput + ?Sized>(
         }
     }
     let mut h = 0 as char;
-    let len = tmp.chars().count();
+    let len = tmp.len();
     for i in 0..len {
         let odd = (i % 2) != 0;
         if odd {
             h = char::from_u32(
-                (h as u32 * 30) + tmp.chars().nth(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u32,
+                (h as u32 * 30) + *tmp.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u32,
             )
             .ok_or(Exceptions::PARSE)?;
             sb.push(h);
         } else {
-            h = tmp.chars().nth(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+            h = *tmp.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
         }
     }
     if (len % 2) != 0 {
@@ -813,21 +813,27 @@ fn encodingECI(eci: Eci, sb: &mut String) -> Result<()> {
     Ok(())
 }
 
-struct NoECIInput(String);
+struct NoECIInput(Vec<char>);
 impl ECIInput for NoECIInput {
     fn length(&self) -> usize {
-        self.0.chars().count()
+        self.0.len()
     }
 
     fn charAt(&self, index: usize) -> Result<char> {
         self.0
-            .chars()
-            .nth(index)
+            .get(index)
+            .copied()
             .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)
     }
 
     fn subSequence(&self, start: usize, end: usize) -> Result<Vec<char>> {
-        let res: Vec<char> = self.0.chars().skip(start).take(end - start).collect();
+        let res: Vec<char> = self
+            .0
+            .iter()
+            .skip(start)
+            .take(end - start)
+            .copied()
+            .collect();
         Ok(res)
     }
 
@@ -845,12 +851,12 @@ impl ECIInput for NoECIInput {
 }
 impl NoECIInput {
     pub fn new(input: String) -> Self {
-        Self(input)
+        Self(input.chars().collect())
     }
 }
 impl Display for NoECIInput {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", String::from_iter(self.0.iter()))
     }
 }
 

@@ -16,6 +16,8 @@
 
 use std::io::Read;
 
+use crate::{RXingResultMetadataType, RXingResultMetadataValue};
+
 use rxing_one_d_proc_derive::OneDReader;
 
 use crate::common::{BitArray, Result};

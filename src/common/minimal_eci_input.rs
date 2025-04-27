@@ -217,7 +217,6 @@ impl MinimalECIInput {
         Self {
             bytes,
             fnc1: if let Some(fnc1_exists) = fnc1 {
-                //}.as_ref().unwrap().chars().nth(0).unwrap() as u16,
                 fnc1_exists.chars().next().unwrap() as u16
             } else {
                 1000
@@ -268,8 +267,7 @@ impl MinimalECIInput {
         previous: Option<Arc<InputEdge>>,
         fnc1: Option<&str>,
     ) {
-        // let ch = stringToEncode.chars().nth(from).unwrap() as i16;
-        let ch = stringToEncode[from]; //stringToEncode.graphemes(true).nth(from).unwrap();
+        let ch = stringToEncode[from];
 
         let mut start = 0;
         let mut end = encoderSet.len();

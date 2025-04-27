@@ -34,12 +34,14 @@ pub fn numeric_to_ascii(contents: &str) -> Result<String> {
         ));
     }
 
-    let mut ascii = String::with_capacity(contents.chars().count() / 2);
+    let mut ascii = Vec::with_capacity(contents.chars().count() / 2);
     let mut i = 0;
 
-    while i < contents.chars().count() {
-        let first = contents.chars().nth(i).unwrap() as u8;
-        let second = contents.chars().nth(i + 1).unwrap() as u8;
+    let cached_contents = contents.chars().map(|c| c as u8).collect::<Vec<_>>();
+
+    while i < cached_contents.len() {
+        let first = *cached_contents.get(i).unwrap();
+        let second = *cached_contents.get(i + 1).unwrap();
 
         if second == 88 && (48..=57).contains(&first) {
             ascii.push((17 + first - 48) as char);
@@ -55,7 +57,7 @@ pub fn numeric_to_ascii(contents: &str) -> Result<String> {
         i += 2;
     }
 
-    Ok(ascii)
+    Ok(ascii.iter().collect())
 }
 
 #[test]

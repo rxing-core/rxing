@@ -118,12 +118,13 @@ impl UPCEANExtension5Support {
     }
 
     fn extensionChecksum(s: &str) -> Option<u32> {
-        let length = s.chars().count();
+        let s = s.chars().collect::<Vec<_>>();
+        let length = s.len();
         let mut sum = 0;
         let mut i = length as isize - 2;
         while i >= 0 {
             // for (int i = length - 2; i >= 0; i -= 2) {
-            sum += s.chars().nth(i as usize)? as u32 - '0' as u32;
+            sum += *s.get(i as usize)? as u32 - '0' as u32;
 
             i -= 2;
         }
@@ -132,7 +133,7 @@ impl UPCEANExtension5Support {
         let mut i = length as isize - 1;
         while i >= 0 {
             // for (int i = length - 1; i >= 0; i -= 2) {
-            sum += s.chars().nth(i as usize)? as u32 - '0' as u32;
+            sum += *s.get(i as usize)? as u32 - '0' as u32;
 
             i -= 2;
         }

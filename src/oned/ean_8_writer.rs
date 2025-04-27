@@ -50,7 +50,8 @@ impl OneDimensionalCodeWriter for EAN8Writer {
         match length {
             7 => {
                 // No check digit present, calculate it and add it
-                let check = reader.getStandardUPCEANChecksum(&contents)?;
+                let check =
+                    reader.getStandardUPCEANChecksum(&contents.chars().collect::<Vec<_>>())?;
 
                 contents.push_str(&check.to_string());
             }

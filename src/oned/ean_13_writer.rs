@@ -41,7 +41,8 @@ impl OneDimensionalCodeWriter for EAN13Writer {
         match length {
             12 => {
                 // No check digit present, calculate it and add it
-                let check = reader.getStandardUPCEANChecksum(&contents)?;
+                let check =
+                    reader.getStandardUPCEANChecksum(&contents.chars().collect::<Vec<_>>())?;
                 contents.push_str(&check.to_string());
             }
             13 => {

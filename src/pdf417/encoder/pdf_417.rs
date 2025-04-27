@@ -134,6 +134,9 @@ impl PDF417 {
         logic: &mut BarcodeMatrix,
     ) -> Result<()> {
         let mut idx = 0;
+
+        let cached_full_codewords: Vec<usize> = fullCodewords.chars().map(|c| c as usize).collect();
+
         for y in 0..r {
             let cluster = y as usize % 3;
             logic.startRow();
@@ -157,11 +160,7 @@ impl PDF417 {
             Self::encodeChar(pattern, 17, logic.getCurrentRowMut());
 
             for _x in 0..c {
-                pattern = CODEWORD_TABLE[cluster][fullCodewords
-                    .chars()
-                    .nth(idx)
-                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
-                    as usize];
+                pattern = CODEWORD_TABLE[cluster][cached_full_codewords[idx]];
                 Self::encodeChar(pattern, 17, logic.getCurrentRowMut());
                 idx += 1;
             }

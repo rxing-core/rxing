@@ -21,6 +21,8 @@ use crate::{
     point_f, BarcodeFormat, Exceptions, RXingResult,
 };
 
+use crate::{RXingResultMetadataType, RXingResultMetadataValue};
+
 use super::{one_d_reader, OneDReader};
 
 /**

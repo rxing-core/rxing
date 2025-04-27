@@ -391,9 +391,10 @@ pub fn matchPrefixedField(
 
 pub fn countPrecedingBackslashes(s: &str, pos: usize) -> u32 {
     let mut count = 0;
+    let cached_s = s.chars().collect::<Vec<_>>();
     for i in (0..pos).rev() {
         // for (int i = pos - 1; i >= 0; i--) {
-        if s.chars().nth(i).unwrap() == '\\' {
+        if cached_s[i] == '\\' {
             count += 1;
         } else {
             break;

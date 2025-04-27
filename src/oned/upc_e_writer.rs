@@ -47,7 +47,9 @@ impl OneDimensionalCodeWriter for UPCEWriter {
                 // No check digit present, calculate it and add it
                 let check = reader.getStandardUPCEANChecksum(
                     &upc_e_reader::convertUPCEtoUPCA(&contents)
-                        .ok_or(Exceptions::ILLEGAL_ARGUMENT)?,
+                        .ok_or(Exceptions::ILLEGAL_ARGUMENT)?
+                        .chars()
+                        .collect::<Vec<_>>(),
                 )?;
                 contents.push_str(&check.to_string());
             }

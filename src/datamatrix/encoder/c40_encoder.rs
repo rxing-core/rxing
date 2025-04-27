@@ -288,10 +288,8 @@ impl C40Encoder {
     }
 
     fn encodeToCodewords(sb: &str) -> Option<String> {
-        let v = (1600 * sb.chars().next()? as u32)
-            + (40 * sb.chars().nth(1)? as u32)
-            + sb.chars().nth(2)? as u32
-            + 1;
+        let cached_sb = sb.chars().take(3).map(|c| c as u32).collect::<Vec<_>>();
+        let v = (1600 * *cached_sb.first()?) + (40 * *cached_sb.get(1)?) + *cached_sb.get(2)? + 1;
         let cw1 = v / 256;
         let cw2 = v % 256;
         Some(

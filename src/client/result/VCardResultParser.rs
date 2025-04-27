@@ -160,6 +160,8 @@ pub fn matchVCardPrefixedField(
     let mut i = 0_isize;
     let max = rawText.len() as isize;
 
+    let cahced_raw_text = rawText.chars().collect::<Vec<_>>();
+
     // let equals_regex = Regex::new(EQUALS).unwrap();
     // let unescaped_semis = fancy_regex::Regex::new(UNESCAPED_SEMICOLONS).unwrap();
     // let cr_lf_space_tab = Regex::new(CR_LF_SPACE_TAB).unwrap();
@@ -225,13 +227,13 @@ pub fn matchVCardPrefixedField(
             i += pos as isize; // + i;
                                // while (i = rawText.indexOf('\n', i)) >= 0 { // Really, end in \r\n
             if i < rawText.len() as isize- 1 &&           // But if followed by tab or space,
-            (rawText.chars().nth(i as usize+ 1)? == ' ' ||        // this is only a continuation
-             rawText.chars().nth(i as usize+ 1)? == '\t')
+            (*cahced_raw_text.get(i as usize+ 1)? == ' ' ||        // this is only a continuation
+            *cahced_raw_text.get(i as usize+ 1)? == '\t')
             {
                 i += 2; // Skip \n and continutation whitespace
             } else if quotedPrintable &&             // If preceded by = in quoted printable
-                   ((i >= 1 && rawText.chars().nth(i as usize- 1)? == '=') || // this is a continuation
-                    (i >= 2 && rawText.chars().nth(i as usize - 2)? == '='))
+                   ((i >= 1 && *cahced_raw_text.get(i as usize- 1)? == '=') || // this is a continuation
+                    (i >= 2 && *cahced_raw_text.get(i as usize - 2)? == '='))
             {
                 i += 1; // Skip \n
             } else {
@@ -247,7 +249,7 @@ pub fn matchVCardPrefixedField(
             // if matches == null {
             //   matches = new ArrayList<>(1); // lazy init
             // }
-            if i >= 1 && rawText.chars().nth(i as usize - 1)? == '\r' {
+            if i >= 1 && *cahced_raw_text.get(i as usize - 1)? == '\r' {
                 i -= 1; // Back up over \r, which really should be there
             }
             let mut element = rawText[matchStart as usize..i as usize].to_owned();
@@ -325,18 +327,20 @@ fn decodeQuotedPrintable(value: &str, charset: &str) -> String {
     let mut result = String::with_capacity(length);
     let mut fragmentBuffer: Vec<u8> = Vec::new(); //new ByteArrayOutputStream();
     let mut i = 0;
-    // for i in 0..length {
+
+    let cached_value = value.chars().collect::<Vec<_>>();
+
     while i < length {
         // for (int i = 0; i < length; i++) {
-        let c = value.chars().nth(i).unwrap_or_default();
+        let c = cached_value.get(i).copied().unwrap_or_default();
         if c == '\r' || c == '\n' {
             i += 1;
             continue;
         }
         if c == '=' && i < length - 2 {
-            let nextChar = value.chars().nth(i + 1).unwrap();
+            let nextChar = cached_value.get(i + 1).copied().unwrap();
             if nextChar != '\r' && nextChar != '\n' {
-                let nextNextChar = value.chars().nth(i + 2).unwrap();
+                let nextNextChar = cached_value.get(i + 2).copied().unwrap();
                 let firstDigit =
                     ResultParser::parseHexDigit(nextChar).map_or_else(|| -1, |d| d as i32);
                 let secondDigit =
@@ -352,47 +356,6 @@ fn decodeQuotedPrintable(value: &str, charset: &str) -> String {
         maybeAppendFragment(&mut fragmentBuffer, charset, &mut result);
         result.push(c);
         i += 1;
-        // match c {
-        //     '\r' | '\n' => break,
-        //     '=' if i < length - 2 => {
-        //         let nextChar = value.chars().nth(i + 1).unwrap();
-        //         if nextChar != '\r' && nextChar != '\n' {
-        //             let nextNextChar = value.chars().nth(i + 2).unwrap();
-        //             let firstDigit = ResultParser::parseHexDigit(nextChar);
-        //             let secondDigit = ResultParser::parseHexDigit(nextNextChar);
-        //             if firstDigit >= 0 && secondDigit >= 0 {
-        //                 fragmentBuffer.push(((firstDigit << 4) + secondDigit) as u8);
-        //             } // else ignore it, assume it was incorrectly encoded
-        //             i += 2;
-        //         }
-        //     }
-        //     _ => {
-        //         maybeAppendFragment(&mut fragmentBuffer, charset, &mut result);
-        //         result.push(c);
-        //     }
-        // }
-        // switch (c) {
-        //   case '\r':
-        //   case '\n':
-        //     break;
-        //   case '=':
-        //     if (i < length - 2) {
-        //       char nextChar = value.charAt(i + 1);
-        //       if (nextChar != '\r' && nextChar != '\n') {
-        //         char nextNextChar = value.charAt(i + 2);
-        //         int firstDigit = parseHexDigit(nextChar);
-        //         int secondDigit = parseHexDigit(nextNextChar);
-        //         if (firstDigit >= 0 && secondDigit >= 0) {
-        //           fragmentBuffer.write((firstDigit << 4) + secondDigit);
-        //         } // else ignore it, assume it was incorrectly encoded
-        //         i += 2;
-        //       }
-        //     }
-        //     break;
-        //   default:
-        //     maybeAppendFragment(fragmentBuffer, charset, result);
-        //     result.append(c);
-        // }
     }
     maybeAppendFragment(&mut fragmentBuffer, charset, &mut result);
 

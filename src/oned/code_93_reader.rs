@@ -23,6 +23,8 @@ use crate::{
 
 use super::{one_d_reader, OneDReader};
 
+use crate::{RXingResultMetadataType, RXingResultMetadataValue};
+
 /**
  * <p>Decodes Code 93 barcodes.</p>
  *
@@ -228,24 +230,19 @@ impl Code93Reader {
     }
 
     fn decodeExtended(encoded: &str) -> Result<String> {
-        let length = encoded.chars().count();
-        let mut decoded = String::with_capacity(length);
+        let encoded = encoded.chars().collect::<Vec<_>>();
+        let length = encoded.len();
+        let mut decoded = Vec::with_capacity(length);
         let mut i = 0;
         while i < length {
             // for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            let c = encoded
-                .chars()
-                .nth(i)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+            let c = *encoded.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
             if ('a'..='d').contains(&c) {
                 if i >= length - 1 {
                     return Err(Exceptions::FORMAT);
                 }
-                let next = encoded
-                    .chars()
-                    .nth(i + 1)
-                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+                let next = *encoded.get(i + 1).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
                 let mut decodedChar = '\0';
                 match c {
                     'd' => {
@@ -321,37 +318,32 @@ impl Code93Reader {
 
             i += 1;
         }
-        Ok(decoded)
+        Ok(decoded.iter().collect())
     }
 
     fn checkChecksums(result: &str) -> Result<()> {
-        let length = result.chars().count();
-        Self::checkOneChecksum(result, length - 2, 20)?;
-        Self::checkOneChecksum(result, length - 1, 15)?;
+        let result = result.chars().collect::<Vec<_>>();
+        let length = result.len();
+        Self::checkOneChecksum(&result, length - 2, 20)?;
+        Self::checkOneChecksum(&result, length - 1, 15)?;
         Ok(())
     }
 
-    fn checkOneChecksum(result: &str, checkPosition: usize, weightMax: u32) -> Result<()> {
+    fn checkOneChecksum(result: &[char], checkPosition: usize, weightMax: u32) -> Result<()> {
         let mut weight = 1;
         let mut total = 0;
         for i in (0..checkPosition).rev() {
             total += weight
                 * Self::ALPHABET_STRING
-                    .find(
-                        result
-                            .chars()
-                            .nth(i)
-                            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
-                    )
+                    .find(*result.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?)
                     .map_or_else(|| -1_i32, |v| v as i32);
             weight += 1;
             if weight > weightMax as i32 {
                 weight = 1;
             }
         }
-        if result
-            .chars()
-            .nth(checkPosition)
+        if *result
+            .get(checkPosition)
             .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
             != Self::ALPHABET[(total as usize) % 47]
         {

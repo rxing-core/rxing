@@ -69,15 +69,17 @@ pub fn parse(result: &crate::RXingResult) -> Option<super::ParsedClientResult> {
 
     let mut i = 0;
 
+    let cached_raw_text = rawText.chars().collect::<Vec<_>>();
+
     while i < rawText.len() {
-        let ai = findAIvalue(i, &rawText)?;
+        let ai = findAIvalue(i, &cached_raw_text)?;
         // if ai == null {
         // Error. Code doesn't match with RSS expanded pattern
         // ExtendedProductParsedRXingResult NOT created. Not match with RSS Expanded pattern
         // return None;
         // }
         i += ai.len() + 2;
-        let value = findValue(i, &rawText)?;
+        let value = findValue(i, &cached_raw_text)?;
         i += value.len();
         match ai.as_str() {
             "00" => sscc = value,
@@ -235,10 +237,10 @@ pub fn parse(result: &crate::RXingResult) -> Option<super::ParsedClientResult> {
     //                                        uncommonAIs);
 }
 
-fn findAIvalue(i: usize, rawText: &str) -> Option<String> {
-    let c = rawText.chars().nth(i)?;
+fn findAIvalue(i: usize, rawText: &[char]) -> Option<String> {
+    let c = rawText.get(i)?;
     // First character must be a open parenthesis.If not, ERROR
-    if c != '(' {
+    if *c != '(' {
         return None;
     }
 
@@ -247,7 +249,7 @@ fn findAIvalue(i: usize, rawText: &str) -> Option<String> {
     let mut buf = String::new();
     for index in 0..rawTextAux.len() {
         // for (int index = 0; index < rawTextAux.length(); index++) {
-        let currentChar = rawTextAux.chars().nth(index)?;
+        let currentChar = *rawTextAux.get(index)?;
         if currentChar == ')' {
             return Some(buf);
         }
@@ -260,13 +262,13 @@ fn findAIvalue(i: usize, rawText: &str) -> Option<String> {
     Some(buf)
 }
 
-fn findValue(i: usize, rawText: &str) -> Option<String> {
+fn findValue(i: usize, rawText: &[char]) -> Option<String> {
     let mut buf = String::new();
     let rawTextAux = &rawText[i..];
 
     for index in 0..rawTextAux.len() {
         // for (int index = 0; index < rawTextAux.length(); index++) {
-        let c = rawTextAux.chars().nth(index)?;
+        let c = *rawTextAux.get(index)?;
         if c == '(' {
             // We look for a new AI. If it doesn't exist (ERROR), we continue
             // with the iteration

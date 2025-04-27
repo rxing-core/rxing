@@ -25,7 +25,7 @@ image = {version = "0.25", optional = true, default-features = false}
 imageproc = {version = "0.25", optional = true}
 unicode-segmentation = "1.12"
 codepage-437 = "0.1"
-rxing-one-d-proc-derive = {version = "0.6", path ="./crates/one-d-proc-derive"}
+rxing-one-d-proc-derive = {version = "0.7", path ="./crates/one-d-proc-derive"}
 num = "0.4"
 svg = {version = "0.18", optional = true}
 resvg = {version = "0.45", optional = true, default-features=false}

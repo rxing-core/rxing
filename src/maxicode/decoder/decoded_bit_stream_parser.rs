@@ -81,6 +81,16 @@ static SETS: Lazy<[String; 5]> = Lazy::new(|| {
    ]
 });
 
+static GRAPHEME_SETS: Lazy<[Vec<&str>; 5]> = Lazy::new(|| {
+    [
+        SETS[0].graphemes(true).collect(),
+        SETS[1].graphemes(true).collect(),
+        SETS[2].graphemes(true).collect(),
+        SETS[3].graphemes(true).collect(),
+        SETS[4].graphemes(true).collect(),
+    ]
+});
+
 pub fn decode(bytes: &[u8], mode: u8) -> Result<DecoderRXingResult> {
     let mut result = String::with_capacity(144);
     match mode {
@@ -162,10 +172,9 @@ fn getPostCode2(bytes: &[u8]) -> u32 {
 
 fn getPostCode3(bytes: &[u8]) -> String {
     let mut sb = String::with_capacity(POSTCODE_3_BYTES.len());
-    let mut graphemes = SETS[0].graphemes(true);
+    let graphemes = SETS[0].graphemes(true).collect::<Vec<_>>();
     for p3bytes in &POSTCODE_3_BYTES {
-        // for (byte[] p3bytes : POSTCODE_3_BYTES) {
-        if let Some(c) = graphemes.nth(getInt(bytes, p3bytes) as usize) {
+        if let Some(c) = graphemes.get(getInt(bytes, p3bytes) as usize) {
             sb.push_str(c);
         }
     }
@@ -180,10 +189,7 @@ fn getMessage(bytes: &[u8], start: u32, len: u32) -> String {
 
     let mut i = start;
     while i < start + len {
-        // for i in start..(start+len) {
-        // for (int i = start; i < start + len; i++) {
-        let mut set_graphemes = SETS[set].graphemes(true);
-        let Some(c) = set_graphemes.nth(bytes[i as usize] as usize) else {
+        let Some(c) = GRAPHEME_SETS[set].get(bytes[i as usize] as usize).copied() else {
             break;
         };
         match c {

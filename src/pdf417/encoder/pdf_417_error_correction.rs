@@ -153,10 +153,11 @@ pub fn generateErrorCorrection(dataCodewords: &str, errorCorrectionLevel: u32) -
     let k = getErrorCorrectionCodewordCount(errorCorrectionLevel)?;
     let mut e = vec![0 as char; k as usize]; //new char[k];
     let sld = dataCodewords.chars().count();
+    let cached_data_codewords = dataCodewords.chars().collect::<Vec<_>>();
     for i in 0..sld {
-        let t1 = (dataCodewords
-            .chars()
-            .nth(i)
+        let t1 = (cached_data_codewords
+            .get(i)
+            .copied()
             .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u32
             + e[e.len() - 1] as u32)
             % 929;

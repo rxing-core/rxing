@@ -143,40 +143,41 @@ impl UPCEReader {
  * @return equivalent UPC-A code as string of digits
  */
 pub fn convertUPCEtoUPCA(upce: &str) -> Option<String> {
+    let upce = upce.chars().collect::<Vec<_>>();
     let upceChars = &upce[1..7];
 
-    let mut result = String::with_capacity(12);
+    let mut result = Vec::with_capacity(12);
 
-    result.push(upce.chars().next()?);
-    let lastChar = upceChars.chars().nth(5)?;
+    result.push(*upce.first()?);
+    let lastChar = *upceChars.get(5)?;
     match lastChar {
         '0' | '1' | '2' => {
-            result.push_str(&upceChars[0..2]);
+            result.extend_from_slice(&upceChars[0..2]);
             // result.push(upceChars, 0, 2);
             result.push(lastChar);
-            result.push_str("0000");
-            result.push_str(&upceChars[2..3 + 2]);
+            result.extend("0000".chars());
+            result.extend_from_slice(&upceChars[2..3 + 2]);
         }
         '3' => {
-            result.push_str(&upceChars[0..3]);
-            result.push_str("00000");
-            result.push_str(&upceChars[3..2 + 3]);
+            result.extend_from_slice(&upceChars[0..3]);
+            result.extend("00000".chars());
+            result.extend_from_slice(&upceChars[3..2 + 3]);
         }
         '4' => {
-            result.push_str(&upceChars[0..4]);
-            result.push_str("00000");
-            result.push(upceChars.chars().nth(4)?);
+            result.extend_from_slice(&upceChars[0..4]);
+            result.extend("00000".chars());
+            result.push(upceChars.get(4).copied()?);
         }
         _ => {
-            result.push_str(&upceChars[0..5]);
-            result.push_str("0000");
+            result.extend_from_slice(&upceChars[0..5]);
+            result.extend("0000".chars());
             result.push(lastChar);
         }
     }
     // Only append check digit in conversion if supplied
-    if upce.chars().count() >= 8 {
-        result.push(upce.chars().nth(7)?);
+    if upce.len() >= 8 {
+        result.push(*upce.get(7)?);
     }
 
-    Some(result)
+    Some(String::from_iter(result))
 }

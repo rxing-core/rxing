@@ -283,14 +283,12 @@ pub trait UPCEANReader: OneDReader {
      * @throws FormatException if the string does not contain only digits
      */
     fn checkStandardUPCEANChecksum(&self, s: &str) -> Result<bool> {
+        let s = s.chars().collect::<Vec<_>>();
         let length = s.len();
         if length == 0 {
             return Ok(false);
         }
-        let char_in_question = s
-            .chars()
-            .nth(length - 1)
-            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+        let char_in_question = *s.get(length - 1).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
         let check = char_in_question.is_ascii_digit();
 
         let check_against = &s[..length - 1]; //s.subSequence(0, length - 1);
@@ -304,17 +302,14 @@ pub trait UPCEANReader: OneDReader {
             })
     }
 
-    fn getStandardUPCEANChecksum(&self, s: &str) -> Result<u32> {
-        let length = s.chars().count();
+    fn getStandardUPCEANChecksum(&self, s: &[char]) -> Result<u32> {
+        let length = s.len();
         let mut sum = 0;
         let mut i = length as isize - 1;
         while i >= 0 {
             // for (int i = length - 1; i >= 0; i -= 2) {
-            let digit = (s
-                .chars()
-                .nth(i as usize)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as i32)
-                - ('0' as i32);
+            let digit =
+                (*s.get(i as usize).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as i32) - ('0' as i32);
             if !(0..=9).contains(&digit) {
                 return Err(Exceptions::FORMAT);
             }
@@ -326,11 +321,8 @@ pub trait UPCEANReader: OneDReader {
         let mut i = length as isize - 2;
         while i >= 0 {
             // for (int i = length - 2; i >= 0; i -= 2) {
-            let digit = (s
-                .chars()
-                .nth(i as usize)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as i32)
-                - ('0' as i32);
+            let digit =
+                (*s.get(i as usize).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as i32) - ('0' as i32);
             if !(0..=9).contains(&digit) {
                 return Err(Exceptions::FORMAT);
             }
