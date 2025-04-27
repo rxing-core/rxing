@@ -126,6 +126,8 @@
 
 //package com.google.zxing;
 
+use std::borrow::Cow;
+
 use crate::common::Result;
 use crate::{Exceptions, LuminanceSource};
 
@@ -240,23 +242,23 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
     const SUPPORTS_CROP: bool = true;
     const SUPPORTS_ROTATION: bool = false;
 
-    fn get_row(&self, y: usize) -> Vec<u8> {
+    fn get_row(&self, y: usize) -> Option<Cow<[u8]>> {
         if y >= self.get_height() {
             // //throw new IllegalArgumentException("Requested row is outside the image: " + y);
             // panic!("Requested row is outside the image: {y}");
-            return Vec::new();
+            return None;
         }
         let width = self.get_width();
 
         let offset = (y + self.top) * self.data_width + self.left;
 
-        let mut row = vec![0; width];
-
-        row[..width].clone_from_slice(&self.yuv_data[offset..width + offset]);
         if self.invert {
-            row = self.invert_block_of_bytes(row);
+            Some(Cow::Owned(self.invert_block_of_bytes(
+                self.yuv_data[offset..width + offset].to_vec(),
+            )))
+        } else {
+            Some(Cow::Borrowed(&self.yuv_data[offset..width + offset]))
         }
-        row
     }
 
     fn get_column(&self, _x: usize) -> Vec<u8> {

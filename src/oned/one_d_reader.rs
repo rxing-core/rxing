@@ -62,7 +62,10 @@ pub trait OneDReader: Reader {
         if try_pure {
             let mid_line = 1.max(image.get_height() / 2);
 
-            let rw = image.get_source().get_row(mid_line);
+            let rw = image
+                .get_source()
+                .get_row(mid_line)
+                .ok_or(Exceptions::index_out_of_bounds_with("row out of bounds"))?;
 
             let decoded = self.decode_pure(mid_line as u32, &rw, &hints);
             if decoded.is_ok() {

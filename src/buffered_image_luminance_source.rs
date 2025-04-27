@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use std::borrow::Cow;
+
 use image::{DynamicImage, GenericImageView, ImageBuffer, Luma, Pixel};
 use imageproc::geometric_transformations::rotate_about_center;
 
@@ -54,23 +56,23 @@ impl LuminanceSource for BufferedImageLuminanceSource {
     const SUPPORTS_CROP: bool = true;
     const SUPPORTS_ROTATION: bool = true;
 
-    fn get_row(&self, y: usize) -> Vec<u8> {
-        let width = self.get_width(); // - self.left as usize;
+    fn get_row(&self, y: usize) -> Option<Cow<[u8]>> {
+        let buf = self.image.as_luma8()?;
 
-        let pixels: Vec<u8> = || -> Option<Vec<u8>> {
-            Some(
-                self.image
-                    .as_luma8()?
-                    .rows()
-                    .nth(y)?
-                    .take(width)
-                    .map(|&p| p.0[0])
-                    .collect(),
-            )
-        }()
-        .unwrap_or_default();
+        let width = self.get_width();
+        let stride = buf.width() as usize; // full row length in pixels
+        let start = y
+            .checked_mul(stride) // guard against overflow
+            .and_then(|off| off.checked_add(0))
+            .unwrap_or(0);
 
-        pixels
+        // Make sure we don’t go past the end
+        if start + width > buf.as_raw().len() {
+            return None;
+        }
+
+        // Copy the exact sub-slice in one memcpy
+        Some(Cow::Borrowed(&buf.as_raw()[start..start + width]))
     }
 
     fn get_column(&self, x: usize) -> Vec<u8> {

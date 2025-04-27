@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::common::Result;
 use crate::LuminanceSource;
 
@@ -15,7 +17,7 @@ impl LuminanceSource for Luma8LuminanceSource {
     const SUPPORTS_CROP: bool = true;
     const SUPPORTS_ROTATION: bool = true;
 
-    fn get_row(&self, y: usize) -> Vec<u8> {
+    fn get_row(&self, y: usize) -> Option<Cow<[u8]>> {
         let chunk_size = self.dimensions.0 as usize;
         let row_skip = y; //self.origin.1 as usize;
         let column_skip = 0; //self.origin.0 as usize;
@@ -25,9 +27,11 @@ impl LuminanceSource for Luma8LuminanceSource {
         let data_end = (chunk_size * row_skip) + column_skip + column_take;
 
         if self.inverted {
-            self.invert_block_of_bytes(Vec::from(&self.data[data_start..data_end]))
+            Some(Cow::Owned(self.invert_block_of_bytes(Vec::from(
+                &self.data[data_start..data_end],
+            ))))
         } else {
-            Vec::from(&self.data[data_start..data_end])
+            Some(Cow::Borrowed(&self.data[data_start..data_end]))
         }
     }
 

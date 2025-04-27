@@ -162,7 +162,7 @@ pub fn DecodeAlphanumericSegment(
     let mut count = count;
 
     // Read two characters at a time
-    let mut buffer = String::new();
+    let mut buffer = Vec::new();
 
     while count > 1 {
         let nextTwoCharsBits = bits.readBits(11)?;
@@ -179,25 +179,17 @@ pub fn DecodeAlphanumericSegment(
         // We need to massage the result a bit if in an FNC1 mode:
         for i in 0..buffer.len() {
             // for (size_t i = 0; i < buffer.length(); i++) {
-            if buffer
-                .chars()
-                .nth(i)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
-                == '%'
-            {
+            if buffer.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == &'%' {
                 if i < buffer.len() - 1
-                    && buffer
-                        .chars()
-                        .nth(i + 1)
-                        .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
-                        == '%'
+                    && buffer.get(i + 1).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == &'%'
                 {
                     // %% is rendered as %
                     buffer.remove(i + 1);
                 // buffer.erase(i + 1);
                 } else {
                     // In alpha mode, % should be converted to FNC1 separator 0x1D
-                    buffer.replace_range(i..i, &char::from(0x1D).to_string());
+                    buffer[i] = char::from(0x1D);
+                    // buffer.replace_range(i..i, &char::from(0x1D).to_string());
                     // buffer[i] = static_cast<char>(0x1D);
                 }
             }
@@ -205,7 +197,7 @@ pub fn DecodeAlphanumericSegment(
     }
 
     result.switch_encoding(CharacterSet::ISO8859_1, false);
-    *result += buffer;
+    *result += buffer.iter().collect::<String>();
 
     Ok(())
 }

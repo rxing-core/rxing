@@ -24,6 +24,8 @@
 //  */
 // public final class RGBLuminanceSourceTestCase extends Assert {
 
+use std::borrow::Cow;
+
 use crate::{LuminanceSource, RGBLuminanceSource};
 
 const SRC_DATA: [u32; 9] = [
@@ -38,7 +40,7 @@ fn testCrop() {
     let cropped = SOURCE.crop(1, 1, 1, 1).unwrap();
     assert_eq!(1, cropped.get_height());
     assert_eq!(1, cropped.get_width());
-    assert_eq!(vec![0x7F], cropped.get_row(0));
+    assert_eq!(Some(Cow::Owned(vec![0x7F])), cropped.get_row(0));
 }
 
 #[test]
@@ -62,7 +64,7 @@ fn testMatrix() {
 fn testGetRow() {
     let SOURCE = RGBLuminanceSource::new_with_width_height_pixels(3, 3, SRC_DATA.as_ref());
 
-    assert_eq!(vec![0x3F, 0x7F, 0x3F], SOURCE.get_row(2));
+    assert_eq!(Some(Cow::Owned(vec![0x3F, 0x7F, 0x3F])), SOURCE.get_row(2));
 }
 
 // #[test]

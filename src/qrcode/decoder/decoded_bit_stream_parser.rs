@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use once_cell::sync::Lazy;
+
 use crate::{
     common::{
         string_utils, BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Eci, Result,
@@ -40,6 +42,9 @@ use super::{ErrorCorrectionLevel, Mode, VersionRef};
  */
 const ALPHANUMERIC_CHARS: &str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:";
 const GB2312_SUBSET: u32 = 1;
+
+static CACHED_ALPHANUMERIC_CHARS: Lazy<Vec<char>> =
+    Lazy::new(|| ALPHANUMERIC_CHARS.chars().collect());
 
 pub fn decode(
     bytes: &[u8],
@@ -338,10 +343,7 @@ fn toAlphaNumericChar(value: u32) -> Result<char> {
         return Err(Exceptions::FORMAT);
     }
 
-    ALPHANUMERIC_CHARS
-        .chars()
-        .nth(value as usize)
-        .ok_or(Exceptions::FORMAT)
+    Ok(CACHED_ALPHANUMERIC_CHARS[value as usize])
 }
 
 fn decodeAlphanumericSegment(
@@ -350,7 +352,7 @@ fn decodeAlphanumericSegment(
     count: usize,
     fc1InEffect: bool,
 ) -> Result<()> {
-    let mut r_hld = String::with_capacity(count);
+    let mut r_hld = Vec::with_capacity(count);
     // Read two characters at a time
     let start = 0;
     let mut count = count;
@@ -374,31 +376,23 @@ fn decodeAlphanumericSegment(
     if fc1InEffect {
         // We need to massage the result a bit if in an FNC1 mode:
         for i in start..r_hld.len() {
-            if r_hld
-                .chars()
-                .nth(i)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
-                == '%'
-            {
+            if r_hld.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == &'%' {
                 if i < result.len() - 1
-                    && r_hld
-                        .chars()
-                        .nth(i + 1)
-                        .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
-                        == '%'
+                    && r_hld.get(i + 1).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == &'%'
                 {
                     // %% is rendered as %
                     r_hld.remove(i + 1);
                 } else {
                     // In alpha mode, % should be converted to FNC1 separator 0x1D
-                    r_hld.replace_range(i..i + 1, "\u{1D}");
+                    r_hld[i..i + 1].copy_from_slice(&[0x1D as char]);
+                    // r_hld.replace_range(i..i + 1, "\u{1D}");
                 }
             }
         }
     }
 
     result.append_eci(Eci::ISO8859_1);
-    result.append_string(&r_hld);
+    result.append_string(&r_hld.iter().collect::<String>());
 
     Ok(())
 }

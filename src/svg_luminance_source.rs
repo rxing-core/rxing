@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::common::Result;
 use crate::{BufferedImageLuminanceSource, Exceptions, LuminanceSource};
 use image::{DynamicImage, RgbaImage};
@@ -6,7 +8,7 @@ use resvg::{self, usvg::Options};
 pub struct SVGLuminanceSource(BufferedImageLuminanceSource);
 
 impl LuminanceSource for SVGLuminanceSource {
-    fn get_row(&self, y: usize) -> Vec<u8> {
+    fn get_row(&self, y: usize) -> Option<Cow<[u8]>> {
         self.0.get_row(y)
     }
 

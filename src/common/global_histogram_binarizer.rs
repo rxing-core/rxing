@@ -69,7 +69,9 @@ impl<LS: LuminanceSource> Binarizer for GlobalHistogramBinarizer<LS> {
             let mut row = BitArray::with_size(width);
 
             // self.initArrays(width);
-            let localLuminances = source.get_row(y);
+            let localLuminances = source
+                .get_row(y)
+                .ok_or(Exceptions::index_out_of_bounds_with("row out of bounds"))?;
             let mut localBuckets = [0; LUMINANCE_BUCKETS]; //self.buckets.clone();
             for x in 0..width {
                 // for (int x = 0; x < width; x++) {
@@ -215,7 +217,9 @@ impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {
         for y in 1..5 {
             // for (int y = 1; y < 5; y++) {
             let row = height * y / 5;
-            let localLuminances = source.get_row(row);
+            let localLuminances = source
+                .get_row(row)
+                .ok_or(Exceptions::index_out_of_bounds_with("row out of bounds"))?;
             let right = (width * 4) / 5;
             for pixel in &localLuminances[(width / 5)..right] {
                 // for x in (width / 5)..right {
