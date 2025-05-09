@@ -1026,7 +1026,7 @@ impl RXingResultNode {
     }
 
     fn makePrintable(s: &str) -> String {
-        let mut result = String::new();
+        let mut result = Vec::new();
         for ch in s.chars() {
             if (ch as u32) < 32 || (ch as u32) > 126 {
                 result.push('.');
@@ -1034,7 +1034,7 @@ impl RXingResultNode {
                 result.push(ch);
             }
         }
-        result
+        result.iter().collect()
     }
 }
 

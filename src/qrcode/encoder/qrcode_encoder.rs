@@ -620,24 +620,13 @@ pub fn appendBytes(
 pub fn appendNumericBytes(content: &str, bits: &mut BitArray) -> Result<()> {
     let length = content.len();
     let mut i = 0;
+    let content_byte_cache: Vec<u8> = content.chars().map(|c| c as u8).collect();
     while i < length {
-        let num1 = content
-            .chars()
-            .nth(i)
-            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u8
-            - b'0';
+        let num1 = content_byte_cache[i] - b'0';
         if i + 2 < length {
             // Encode three numeric letters in ten bits.
-            let num2 = content
-                .chars()
-                .nth(i + 1)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u8
-                - b'0';
-            let num3 = content
-                .chars()
-                .nth(i + 2)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u8
-                - b'0';
+            let num2 = content_byte_cache[i + 1] - b'0';
+            let num3 = content_byte_cache[i + 2] - b'0';
             bits.appendBits(
                 num1 as BitFieldBaseType * 100
                     + num2 as BitFieldBaseType * 10
@@ -647,11 +636,7 @@ pub fn appendNumericBytes(content: &str, bits: &mut BitArray) -> Result<()> {
             i += 3;
         } else if i + 1 < length {
             // Encode two numeric letters in seven bits.
-            let num2 = content
-                .chars()
-                .nth(i + 1)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u8
-                - b'0';
+            let num2 = content_byte_cache[i + 1] - b'0';
             bits.appendBits(num1 as BitFieldBaseType * 10 + num2 as BitFieldBaseType, 7)?;
             i += 2;
         } else {
@@ -665,24 +650,15 @@ pub fn appendNumericBytes(content: &str, bits: &mut BitArray) -> Result<()> {
 
 pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<()> {
     let length = content.len();
+    let content_byte_cache: Vec<u32> = content.chars().map(|c| c as u32).collect();
     let mut i = 0;
     while i < length {
-        let code1 = getAlphanumericCode(
-            content
-                .chars()
-                .nth(i)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u32,
-        );
+        let code1 = getAlphanumericCode(content_byte_cache[i]);
         if code1 == -1 {
             return Err(Exceptions::WRITER);
         }
         if i + 1 < length {
-            let code2 = getAlphanumericCode(
-                content
-                    .chars()
-                    .nth(i + 1)
-                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u32,
-            );
+            let code2 = getAlphanumericCode(content_byte_cache[i + 1]);
             if code2 == -1 {
                 return Err(Exceptions::WRITER);
             }
