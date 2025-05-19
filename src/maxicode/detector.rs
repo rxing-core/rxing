@@ -5,7 +5,7 @@ use crate::{
     common::{
         BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler, Quadrilateral, Result,
     },
-    point, point_f, Exceptions, Point, PointU,
+    point, Exceptions, Point, PointU,
 };
 
 use super::MaxiCodeReader;
@@ -347,10 +347,10 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
         // let target_height = (br.1 - tr.1).round().abs() as u32;
 
         let dst = Quadrilateral::new(
-            point_f(0.0, 0.0),
-            point_f(target_width, 0.0),
-            point_f(target_width, target_height),
-            point_f(0.0, target_height),
+            point(0.0, 0.0),
+            point(target_width, 0.0),
+            point(target_width, target_height),
+            point(0.0, target_height),
         );
         let src = Quadrilateral::new(tl, tr, br, bl);
 
@@ -681,10 +681,10 @@ fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<([Point; 4], f32
         calculate_simple_boundary(circle, Some(image), None, false);
 
     let naive_box = [
-        point_f(left_boundary as f32, bottom_boundary as f32),
-        point_f(left_boundary as f32, top_boundary as f32),
-        point_f(right_boundary as f32, bottom_boundary as f32),
-        point_f(right_boundary as f32, top_boundary as f32),
+        point(left_boundary as f32, bottom_boundary as f32),
+        point(left_boundary as f32, top_boundary as f32),
+        point(right_boundary as f32, bottom_boundary as f32),
+        point(right_boundary as f32, top_boundary as f32),
     ];
 
     #[allow(unused_mut)]
@@ -921,10 +921,10 @@ fn attempt_rotation_box(
 
         Some((
             [
-                point_f(new_1.x, new_1.y),
-                point_f(new_2.x, new_2.y),
-                point_f(new_3.x, new_3.y),
-                point_f(new_4.x, new_4.y),
+                point(new_1.x, new_1.y),
+                point(new_2.x, new_2.y),
+                point(new_3.x, new_3.y),
+                point(new_4.x, new_4.y),
             ],
             final_rotation,
         ))

@@ -18,7 +18,7 @@
 
 use std::ops::Mul;
 
-use crate::{common::Result, point_f, Exceptions, Point};
+use crate::{common::Result, point, Exceptions, Point};
 
 use super::Quadrilateral;
 
@@ -116,7 +116,7 @@ impl PerspectiveTransform {
         let [p0, p1, p2, p3] = square.0;
 
         let d3 = p0 - p1 + p2 - p3;
-        if d3 == point_f(0.0, 0.0) {
+        if d3 == point(0.0, 0.0) {
             // Affine
             PerspectiveTransform::new(
                 p1.x - p0.x,

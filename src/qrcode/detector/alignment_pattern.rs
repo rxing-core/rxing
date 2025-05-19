@@ -16,7 +16,7 @@
 
 //Point
 
-use crate::{point_f, Point};
+use crate::{point, Point};
 
 /**
  * <p>Encapsulates an alignment pattern, which are the smaller square patterns found in
@@ -46,7 +46,7 @@ impl AlignmentPattern {
     pub fn new(posX: f32, posY: f32, estimatedModuleSize: f32) -> Self {
         Self {
             estimatedModuleSize,
-            point: point_f(posX, posY),
+            point: point(posX, posY),
         }
     }
 

@@ -55,7 +55,7 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
                    let height = rotated_image.get_height();
                      let total_points = result.getRXingResultPoints().len();
                      for point in result.getRXingResultPointsMut()[..total_points].iter_mut() {
-                       *point = crate::Point::new(height as f32- point.getY() - 1.0, point.getX());
+                       *point = crate::Point::new(height as f32- point.get_y() - 1.0, point.get_x());
                      }
 
 

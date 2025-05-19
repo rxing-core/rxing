@@ -24,7 +24,7 @@ use crate::common::{BitArray, Result};
 use crate::oned::telepen_common;
 use crate::Exceptions;
 use crate::RXingResult;
-use crate::{point_f, BarcodeFormat};
+use crate::{point, BarcodeFormat};
 
 use super::OneDReader;
 
@@ -243,8 +243,8 @@ impl OneDReader for TelepenReader {
             &contentString,
             bytes,
             vec![
-                point_f(left, rowNumber as f32),
-                point_f(right, rowNumber as f32),
+                point(left, rowNumber as f32),
+                point(right, rowNumber as f32),
             ],
             BarcodeFormat::TELEPEN,
         );

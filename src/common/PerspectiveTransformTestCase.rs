@@ -19,7 +19,7 @@
 // import org.junit.Assert;
 // import org.junit.Test;
 
-use crate::point_f;
+use crate::point;
 
 /**
  * @author Sean Owen
@@ -32,10 +32,10 @@ static EPSILON: f32 = 1.0E-4_f32;
 #[test]
 fn test_square_to_quadrilateral() {
     let square = Quadrilateral::new(
-        point_f(2.0, 3.0),
-        point_f(10.0, 3.0),
-        point_f(16.0, 15.0),
-        point_f(4.0, 9.0),
+        point(2.0, 3.0),
+        point(10.0, 3.0),
+        point(16.0, 15.0),
+        point(4.0, 9.0),
     );
     let pt = PerspectiveTransform::squareToQuadrilateral(square);
     assert_point_equals(2.0, 3.0, 0.0, 0.0, &pt);
@@ -49,16 +49,16 @@ fn test_square_to_quadrilateral() {
 #[test]
 fn test_quadrilateral_to_quadrilateral() {
     let quad1 = Quadrilateral::new(
-        point_f(2.0, 3.0),
-        point_f(10.0, 4.0),
-        point_f(16.0, 15.0),
-        point_f(4.0, 9.0),
+        point(2.0, 3.0),
+        point(10.0, 4.0),
+        point(16.0, 15.0),
+        point(4.0, 9.0),
     );
     let quad2 = Quadrilateral::new(
-        point_f(103.0, 110.0),
-        point_f(300.0, 120.0),
-        point_f(290.0, 270.0),
-        point_f(150.0, 280.0),
+        point(103.0, 110.0),
+        point(300.0, 120.0),
+        point(290.0, 270.0),
+        point(150.0, 280.0),
     );
     let pt = PerspectiveTransform::quadrilateralToQuadrilateral(quad1, quad2).expect("transform");
 
@@ -77,7 +77,7 @@ fn assert_point_equals(
     source_y: f32,
     pt: &PerspectiveTransform,
 ) {
-    let mut points = [point_f(source_x, source_y)];
+    let mut points = [point(source_x, source_y)];
     pt.transform_points_single(&mut points);
     assert!(
         (expected_x - points[0].x < EPSILON || points[0].x - expected_x < EPSILON),

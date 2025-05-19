@@ -19,7 +19,7 @@
 // import com.google.zxing.NotFoundException;
 
 use crate::common::Result;
-use crate::{point, point_f, Exceptions, Point};
+use crate::{point, Exceptions, Point};
 
 use super::{BitMatrix, GridSampler, SamplerControl};
 
@@ -87,7 +87,7 @@ impl GridSampler for DefaultGridSampler {
         let projectCorner = |p: Point| -> Point {
             for SamplerControl { p0, p1, transform } in controls {
                 if p0.x <= p.x && p.x <= p1.x && p0.y <= p.y && p.y <= p1.y {
-                    return transform.transform_point(p) + point_f(0.5, 0.5);
+                    return transform.transform_point(p) + point(0.5, 0.5);
                 }
             }
             Point::default()

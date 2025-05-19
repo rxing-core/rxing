@@ -24,7 +24,7 @@ use crate::{
         },
         BitMatrix, PerspectiveTransform, Quadrilateral,
     },
-    point_f, Point,
+     Point,
 };
 
 use super::Type;
@@ -93,7 +93,7 @@ pub fn FindFinderPatterns(image: &BitMatrix, tryHarder: bool) -> FinderPatterns 
                 false
             }
         } {
-            let p = point_f(
+            let p = point(
                 next.pixelsInFront() as f32
                     + next[0] as f32
                     + next[1] as f32
@@ -415,15 +415,15 @@ pub fn LocateAlignmentPattern(
     // log(estimate, 2);
 
     for d in [
-        point_f(0.0, 0.0),
-        point_f(0.0, -1.0),
-        point_f(0.0, 1.0),
-        point_f(-1.0, 0.0),
-        point_f(1.0, 0.0),
-        point_f(-1.0, -1.0),
-        point_f(1.0, -1.0),
-        point_f(1.0, 1.0),
-        point_f(-1.0, 1.0),
+        point(0.0, 0.0),
+        point(0.0, -1.0),
+        point(0.0, 1.0),
+        point(-1.0, 0.0),
+        point(1.0, 0.0),
+        point(-1.0, -1.0),
+        point(1.0, -1.0),
+        point(1.0, 1.0),
+        point(-1.0, 1.0),
     ] {
         // 	for (auto d : {PointF{0, 0}, {0, -1}, {0, 1}, {-1, 0}, {1, 0}, {-1, -1}, {1, -1}, {1, 1}, {-1, 1},
         // #if 1
@@ -530,7 +530,7 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
     let moduleSize = (best.ms + 1.0) as i32;
 
     let mut br = ConcentricPattern {
-        p: point_f(-1.0, -1.0),
+        p: point(-1.0, -1.0),
         size: 0,
     };
     let mut brOffset = point_i(3, 3);
@@ -828,8 +828,8 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     // allow corners be moved one pixel inside to accommodate for possible aliasing artifacts
     for [p, d] in [
         [tl, point_i(1, 1)],
-        [tr, point_f(-1.0, 1.0)],
-        [bl, point_f(1.0, -1.0)],
+        [tr, point(-1.0, 1.0)],
+        [bl, point(1.0, -1.0)],
     ] {
         diagonal = EdgeTracer::new(image, p, d)
             .readPatternFromBlack(1, Some((width / 3 + 1) as i32))
@@ -850,7 +850,7 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
             size: fpWidth,
         },
         ConcentricPattern {
-            p: tr + fpWidth as f32 / 2.0 * point_f(-1.0, 1.0),
+            p: tr + fpWidth as f32 / 2.0 * point(-1.0, 1.0),
             size: fpWidth,
         },
     )
@@ -858,7 +858,7 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
 
     let moduleSize: f32 = ((width) as f32) / dimension as f32;
     if !Version::IsValidSize(point(dimension, dimension), Type::Model2)
-        || !image.is_in(point_f(
+        || !image.is_in(point(
             left as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
             top as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
         ))
@@ -924,7 +924,7 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let dimension = (width as f32 / moduleSize).floor() as u32;
 
     if !Version::IsValidSize(point(dimension as i32, dimension as i32), Type::Micro)
-        || !image.is_in(point_f(
+        || !image.is_in(point(
             left as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
             top as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
         ))
@@ -1329,7 +1329,7 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
     if let Some(found) = LocateAlignmentPattern(
         image,
         fp.size / 7,
-        bestPT.transform_point(Into::<Point>::into(dim) - point_f(3.0, 3.0)),
+        bestPT.transform_point(Into::<Point>::into(dim) - point(3.0, 3.0)),
     ) {
         // if ( found  ) {
         // log(*found, 2);

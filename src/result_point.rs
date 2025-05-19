@@ -19,7 +19,7 @@
 use crate::Point;
 
 pub trait ResultPoint {
-    fn getX(&self) -> f32;
-    fn getY(&self) -> f32;
+    fn get_x(&self) -> f32;
+    fn get_y(&self) -> f32;
     fn to_rxing_result_point(&self) -> Point;
 }

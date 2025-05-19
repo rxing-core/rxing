@@ -19,7 +19,7 @@ use crate::{
         BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform, Quadrilateral, Result,
         SamplerControl,
     },
-    point_f,
+    point,
     qrcode::decoder::Version,
     DecodeHints, Exceptions, Point, PointCallback,
 };
@@ -186,15 +186,15 @@ impl<'a> Detector<'_> {
         }
 
         let dst = Quadrilateral::new(
-            point_f(3.5, 3.5),
-            point_f(dimMinusThree, 3.5),
-            point_f(sourceBottomRightX, sourceBottomRightY),
-            point_f(3.5, dimMinusThree),
+            point(3.5, 3.5),
+            point(dimMinusThree, 3.5),
+            point(sourceBottomRightX, sourceBottomRightY),
+            point(3.5, dimMinusThree),
         );
         let src = Quadrilateral::new(
             topLeft,
             topRight,
-            point_f(bottomRightX, bottomRightY),
+            point(bottomRightX, bottomRightY),
             bottomLeft,
         );
 
@@ -375,8 +375,8 @@ impl<'a> Detector<'_> {
             if (state == 1) == self.image.get(realX as u32, realY as u32) {
                 if state == 2 {
                     return Point::distance(
-                        point_f(x as f32, y as f32),
-                        point_f(fromX as f32, fromY as f32),
+                        point(x as f32, y as f32),
+                        point(fromX as f32, fromY as f32),
                     );
                 }
                 state += 1;
@@ -398,8 +398,8 @@ impl<'a> Detector<'_> {
         // small approximation; (toX+xStep,toY+yStep) might be really correct. Ignore this.
         if state == 2 {
             return Point::distance(
-                point_f((toX as i32 + xstep) as f32, toY as f32),
-                point_f(fromX as f32, fromY as f32),
+                point((toX as i32 + xstep) as f32, toY as f32),
+                point(fromX as f32, fromY as f32),
             );
         }
         // else we didn't find even black-white-black; no estimate is really possible

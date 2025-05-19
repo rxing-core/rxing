@@ -18,7 +18,7 @@
 
 use crate::{
     common::{BitMatrix, Result},
-    point_f, Exceptions, Point,
+    point, Exceptions, Point,
 };
 
 /**
@@ -112,29 +112,29 @@ impl<'a> WhiteRectangleDetector<'_> {
         let mut up: i32 = self.upInit;
         let mut down: i32 = self.downInit;
         let mut size_exceeded = false;
-        let mut a_black_point_found_on_border = true;
+        let mut a_black_pointound_on_border = true;
 
-        let mut at_least_one_black_point_found_on_right = false;
-        let mut at_least_one_black_point_found_on_bottom = false;
-        let mut at_least_one_black_point_found_on_left = false;
-        let mut at_least_one_black_point_found_on_top = false;
+        let mut at_least_one_black_pointound_on_right = false;
+        let mut at_least_one_black_pointound_on_bottom = false;
+        let mut at_least_one_black_pointound_on_left = false;
+        let mut at_least_one_black_pointound_on_top = false;
 
-        while a_black_point_found_on_border {
-            a_black_point_found_on_border = false;
+        while a_black_pointound_on_border {
+            a_black_pointound_on_border = false;
 
             // .....
             // .   |
             // .....
             let mut right_border_not_white = true;
-            while (right_border_not_white || !at_least_one_black_point_found_on_right)
+            while (right_border_not_white || !at_least_one_black_pointound_on_right)
                 && right < self.width
             {
                 right_border_not_white = self.contains_black_point(up, down, right, false);
                 if right_border_not_white {
                     right += 1;
-                    a_black_point_found_on_border = true;
-                    at_least_one_black_point_found_on_right = true;
-                } else if !at_least_one_black_point_found_on_right {
+                    a_black_pointound_on_border = true;
+                    at_least_one_black_pointound_on_right = true;
+                } else if !at_least_one_black_pointound_on_right {
                     right += 1;
                 }
             }
@@ -148,15 +148,15 @@ impl<'a> WhiteRectangleDetector<'_> {
             // .   .
             // .___.
             let mut bottom_border_not_white = true;
-            while (bottom_border_not_white || !at_least_one_black_point_found_on_bottom)
+            while (bottom_border_not_white || !at_least_one_black_pointound_on_bottom)
                 && down < self.height
             {
                 bottom_border_not_white = self.contains_black_point(left, right, down, true);
                 if bottom_border_not_white {
                     down += 1;
-                    a_black_point_found_on_border = true;
-                    at_least_one_black_point_found_on_bottom = true;
-                } else if !at_least_one_black_point_found_on_bottom {
+                    a_black_pointound_on_border = true;
+                    at_least_one_black_pointound_on_bottom = true;
+                } else if !at_least_one_black_pointound_on_bottom {
                     down += 1;
                 }
             }
@@ -170,13 +170,13 @@ impl<'a> WhiteRectangleDetector<'_> {
             // |   .
             // .....
             let mut left_border_not_white = true;
-            while (left_border_not_white || !at_least_one_black_point_found_on_left) && left >= 0 {
+            while (left_border_not_white || !at_least_one_black_pointound_on_left) && left >= 0 {
                 left_border_not_white = self.contains_black_point(up, down, left, false);
                 if left_border_not_white {
                     left -= 1;
-                    a_black_point_found_on_border = true;
-                    at_least_one_black_point_found_on_left = true;
-                } else if !at_least_one_black_point_found_on_left {
+                    a_black_pointound_on_border = true;
+                    at_least_one_black_pointound_on_left = true;
+                } else if !at_least_one_black_pointound_on_left {
                     left -= 1;
                 }
             }
@@ -190,13 +190,13 @@ impl<'a> WhiteRectangleDetector<'_> {
             // .   .
             // .....
             let mut top_border_not_white = true;
-            while (top_border_not_white || !at_least_one_black_point_found_on_top) && up >= 0 {
+            while (top_border_not_white || !at_least_one_black_pointound_on_top) && up >= 0 {
                 top_border_not_white = self.contains_black_point(left, right, up, true);
                 if top_border_not_white {
                     up -= 1;
-                    a_black_point_found_on_border = true;
-                    at_least_one_black_point_found_on_top = true;
-                } else if !at_least_one_black_point_found_on_top {
+                    a_black_pointound_on_border = true;
+                    at_least_one_black_pointound_on_top = true;
+                } else if !at_least_one_black_pointound_on_top {
                     up -= 1;
                 }
             }
@@ -288,8 +288,8 @@ impl<'a> WhiteRectangleDetector<'_> {
     }
 
     fn get_black_point_on_segment(&self, a_x: f32, a_y: f32, b_x: f32, b_y: f32) -> Option<Point> {
-        let a = point_f(a_x, a_y);
-        let b = point_f(b_x, b_y);
+        let a = point(a_x, a_y);
+        let b = point(b_x, b_y);
 
         let dist = a.distance(b).round() as i32;
         let x_step: f32 = (b_x - a_x) / dist as f32;
@@ -299,7 +299,7 @@ impl<'a> WhiteRectangleDetector<'_> {
             let x = (a_x + i as f32 * x_step).round() as i32;
             let y = (a_y + i as f32 * y_step).round() as i32;
             if self.image.get(x as u32, y as u32) {
-                return Some(point_f(x as f32, y as f32));
+                return Some(point(x as f32, y as f32));
             }
         }
         None
@@ -337,17 +337,17 @@ impl<'a> WhiteRectangleDetector<'_> {
 
         if yi < self.width as f32 / 2.0 {
             [
-                point_f(ti - CORR as f32, tj + CORR as f32),
-                point_f(zi + CORR as f32, zj + CORR as f32),
-                point_f(xi - CORR as f32, xj - CORR as f32),
-                point_f(yi + CORR as f32, yj - CORR as f32),
+                point(ti - CORR as f32, tj + CORR as f32),
+                point(zi + CORR as f32, zj + CORR as f32),
+                point(xi - CORR as f32, xj - CORR as f32),
+                point(yi + CORR as f32, yj - CORR as f32),
             ]
         } else {
             [
-                point_f(ti + CORR as f32, tj + CORR as f32),
-                point_f(zi + CORR as f32, zj - CORR as f32),
-                point_f(xi - CORR as f32, xj + CORR as f32),
-                point_f(yi - CORR as f32, yj - CORR as f32),
+                point(ti + CORR as f32, tj + CORR as f32),
+                point(zi + CORR as f32, zj - CORR as f32),
+                point(xi - CORR as f32, xj + CORR as f32),
+                point(yi - CORR as f32, yj - CORR as f32),
             ]
         }
     }

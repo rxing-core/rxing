@@ -19,7 +19,7 @@
 // import com.google.zxing.NotFoundException;
 
 use crate::{common::Result, Point};
-use crate::{point_f, Exceptions};
+use crate::{point, Exceptions};
 
 use super::{BitMatrix, PerspectiveTransform, Quadrilateral};
 
@@ -248,8 +248,8 @@ pub struct SamplerControl {
 impl SamplerControl {
     pub fn new(width: u32, height: u32, transform: PerspectiveTransform) -> Self {
         Self {
-            p0: point_f(0.0, 0.0),
-            p1: point_f(width as f32, height as f32),
+            p0: point(0.0, 0.0),
+            p1: point(width as f32, height as f32),
             transform,
         }
     }

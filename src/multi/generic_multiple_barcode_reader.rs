@@ -16,7 +16,7 @@
 
 use crate::{
     common::{Quadrilateral, Result},
-    point_f, Binarizer, BinaryBitmap, DecodeHints, Exceptions, Point, RXingResult, Reader,
+    point, Binarizer, BinaryBitmap, DecodeHints, Exceptions, Point, RXingResult, Reader,
 };
 
 use super::MultipleBarcodeReader;
@@ -212,7 +212,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
 
         let newPoints: Vec<Point> = oldPoints
             .iter()
-            .map(|oldPoint| point_f(oldPoint.x + xOffset as f32, oldPoint.y + yOffset as f32))
+            .map(|oldPoint| point(oldPoint.x + xOffset as f32, oldPoint.y + yOffset as f32))
             .collect();
 
         let mut newRXingResult = RXingResult::new_complex(

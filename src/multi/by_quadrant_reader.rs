@@ -15,7 +15,7 @@
  */
 
 use crate::common::Result;
-use crate::{point_f, Binarizer, DecodeHints, Exceptions, Point, RXingResult, Reader};
+use crate::{point, Binarizer, DecodeHints, Exceptions, Point, RXingResult, Reader};
 
 /**
  * This class attempts to decode a barcode from an image, not by scanning the whole image,
@@ -131,7 +131,7 @@ impl<T: Reader> ByQuadrantReader<T> {
         // result
         points
             .iter()
-            .map(|relative| point_f(relative.x + leftOffset, relative.y + topOffset))
+            .map(|relative| point(relative.x + leftOffset, relative.y + topOffset))
             .collect()
     }
 }

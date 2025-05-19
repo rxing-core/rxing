@@ -21,7 +21,7 @@ use crate::{
         BitMatrix, DefaultGridSampler, GridSampler, Quadrilateral, Result,
     },
     exceptions::Exceptions,
-    point_f, Point,
+    point, Point,
 };
 
 use super::aztec_detector_result::AztecDetectorRXingResult;
@@ -320,10 +320,10 @@ impl<'a> Detector<'_> {
 
         // Expand the square by .5 pixel in each direction so that we're on the border
         // between the white square and the black square
-        let pinax = point_f(pina.x + 0.5, pina.y - 0.5);
-        let pinbx = point_f(pinb.x + 0.5, pinb.y + 0.5);
-        let pincx = point_f(pinc.x - 0.5, pinc.y + 0.5);
-        let pindx = point_f(pind.x - 0.5, pind.y - 0.5);
+        let pinax = point(pina.x + 0.5, pina.y - 0.5);
+        let pinbx = point(pinb.x + 0.5, pinb.y + 0.5);
+        let pincx = point(pinc.x - 0.5, pinc.y + 0.5);
+        let pindx = point(pind.x - 0.5, pind.y - 0.5);
 
         // Expand the square so that its corners are the centers of the points
         // just outside the bull's eye.
@@ -463,10 +463,10 @@ impl<'a> Detector<'_> {
         let high = dimension as f32 / 2.0 + self.nb_center_layers as f32;
 
         let dst = Quadrilateral::new(
-            point_f(low, low),
-            point_f(high, low),
-            point_f(high, high),
-            point_f(low, high),
+            point(low, low),
+            point(high, low),
+            point(high, high),
+            point(low, high),
         );
 
         let (res, _) = sampler.sample_grid_detailed(image, dimension, dimension, dst, quad)?;

@@ -16,7 +16,7 @@
 
 use crate::{
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
-    point_f, BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, Point,
+    point, BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, Point,
     RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
@@ -130,7 +130,7 @@ impl DataMatrixReader {
             let iOffset = top + y as f32 * moduleSize as f32;
             for x in 0..matrixWidth {
                 // for (int x = 0; x < matrixWidth; x++) {
-                if image.get_point(point_f(left + x as f32 * moduleSize as f32, iOffset)) {
+                if image.get_point(point(left + x as f32 * moduleSize as f32, iOffset)) {
                     bits.set(x, y);
                 }
             }

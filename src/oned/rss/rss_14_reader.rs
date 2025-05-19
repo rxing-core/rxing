@@ -17,7 +17,7 @@
 use crate::{
     common::{BitArray, Result},
     oned::{one_d_reader, OneDReader},
-    point_f, BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult,
+    point, BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
@@ -246,7 +246,7 @@ impl RSS14Reader {
                 // row is actually reversed
                 center = row.get_size() as f32 - 1.0 - center;
             }
-            cb(point_f(center, rowNumber as f32));
+            cb(point(center, rowNumber as f32));
         }
 
         let outside = self.decodeDataCharacter(row, &pattern, true).ok()?;

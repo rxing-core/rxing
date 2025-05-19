@@ -16,7 +16,7 @@
 
 use crate::{
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
-    point_f, BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, Point,
+    point, BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, Point,
     RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
@@ -171,7 +171,7 @@ impl QRCodeReader {
         let mut inBlack = true;
         let mut transitions = 0;
         while x < width && y < height {
-            if inBlack != image.get_point(point_f(x, y)) {
+            if inBlack != image.get_point(point(x, y)) {
                 transitions += 1;
                 if transitions == 5 {
                     break;

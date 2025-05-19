@@ -5,7 +5,7 @@ use crate::{
         },
         BitMatrix, Quadrilateral,
     },
-    point_f, Point,
+    point, Point,
 };
 
 use super::{
@@ -172,10 +172,10 @@ pub fn CenterOfDoubleCross(
     let mut sum = Point::default();
 
     for d in [
-        point_f(0.0, 1.0),
-        point_f(1.0, 0.0),
-        point_f(1.0, 1.0),
-        point_f(1.0, -1.0),
+        point(0.0, 1.0),
+        point(1.0, 0.0),
+        point(1.0, 1.0),
+        point(1.0, -1.0),
     ] {
         // for (auto d : {PointI{0, 1}, {1, 0}, {1, 1}, {1, -1}}) {
         let avr1 = AverageEdgePixels(&mut EdgeTracer::new(image, center, d), range, numOfEdges)?;
@@ -199,7 +199,7 @@ pub fn CenterOfRing(
     let inner = nth < 0;
     let nth = nth.abs();
     // log(center, 3);
-    let mut cur = EdgeTracer::new(image, center, point_f(0.0, 1.0));
+    let mut cur = EdgeTracer::new(image, center, point(0.0, 1.0));
     if cur.stepToEdge(Some(nth), Some(radius), Some(inner)) == 0 {
         return None;
     }
@@ -224,7 +224,7 @@ pub fn CenterOfRing(
             << (4.0
                 + Point::dot(
                     Point::floor(Point::bresenhamDirection(cur.p() - center)),
-                    point_f(1.0, 3.0),
+                    point(1.0, 3.0),
                 )) as u32;
 
         if !cur.stepAlongEdge(edgeDir, None) {
@@ -288,7 +288,7 @@ pub fn CollectRingPoints(
 ) -> Vec<Point> {
     let centerI = center.floor();
     let radius = range;
-    let mut cur = EdgeTracer::new(image, centerI, point_f(0.0, 1.0));
+    let mut cur = EdgeTracer::new(image, centerI, point(0.0, 1.0));
     if cur.stepToEdge(Some(edgeIndex), Some(radius), Some(backup)) == 0 {
         return Vec::default();
     }
@@ -312,7 +312,7 @@ pub fn CollectRingPoints(
             << (4.0
                 + Point::dot(
                     Point::round(Point::bresenhamDirection(cur.p - centerI)),
-                    point_f(1.0, 3.0),
+                    point(1.0, 3.0),
                 )) as u32;
 
         if !cur.stepAlongEdge(edgeDir, None) {
@@ -567,7 +567,7 @@ pub fn LocateConcentricPattern<const E2E: bool, const LEN: usize, const SUM: usi
     // TODO: setting maxError to 1 can subtantially help with detecting symbols with low print quality resulting in damaged
     // finder patterns, but it sutantially increases the runtime (approx. 20% slower for the falsepositive images).
     let mut maxError = 0;
-    for d in [point_f(0.0, 1.0), point_f(1.0, 0.0)] {
+    for d in [point(0.0, 1.0), point(1.0, 0.0)] {
         // for (auto d : {PointI{0, 1}, {1, 0}}) {
         cur.setDirection(d); // THIS COULD POSSIBLY BE WRONG, WE MIGHT MEAN TO CLONE cur EACH RUN?
 
@@ -583,7 +583,7 @@ pub fn LocateConcentricPattern<const E2E: bool, const LEN: usize, const SUM: usi
     }
 
     //#if 1
-    for d in [point_f(1.0, 1.0), point_f(1.0, -1.0)] {
+    for d in [point(1.0, 1.0), point(1.0, -1.0)] {
         // for (auto d : {PointI{1, 1}, {1, -1}}) {
         cur.setDirection(d); // THIS COULD POSSIBLY BE WRONG, WE MIGHT MEAN TO CLONE cur EACH RUN?
         let spread = CheckSymmetricPattern::<E2E, LEN, SUM, _>(&mut cur, pattern, range * 2, false);

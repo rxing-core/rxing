@@ -1,6 +1,6 @@
 use crate::common::BitMatrix;
 use crate::common::Result;
-use crate::point_f;
+use crate::point;
 use crate::Point;
 
 impl BitMatrix {
@@ -19,7 +19,7 @@ impl BitMatrix {
             let yOffset = top + y as f32 * subSampling;
             for x in 0..result.width() {
                 // for (int x = 0; x < result.width(); x++) {
-                if self.get_point(point_f(left + x as f32 * subSampling, yOffset)) {
+                if self.get_point(point(left + x as f32 * subSampling, yOffset)) {
                     result.set(x, y);
                 }
             }

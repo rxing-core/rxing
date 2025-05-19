@@ -21,7 +21,7 @@
 use std::fmt;
 
 use crate::common::Result;
-use crate::{point_f, point_i, Exceptions, Point};
+use crate::{point, point_i, Exceptions, Point};
 
 use super::BitArray;
 
@@ -223,11 +223,11 @@ impl BitMatrix {
 
     #[inline(always)]
     pub fn get_index<T: Into<usize>>(&self, index: T) -> bool {
-        self.get_point(self.calculate_point_from_index(index.into()))
+        self.get_point(self.calculate_pointrom_index(index.into()))
     }
 
     #[inline(always)]
-    fn calculate_point_from_index(&self, index: usize) -> Point {
+    fn calculate_pointrom_index(&self, index: usize) -> Point {
         let row = index / (self.getWidth() as usize);
         let column = index % (self.getWidth() as usize);
         point_i(column as u32, row as u32)
@@ -578,7 +578,7 @@ impl BitMatrix {
             bit += 1;
         }
         x += bit;
-        Some(point_f(x as f32, y as f32))
+        Some(point(x as f32, y as f32))
     }
 
     pub fn getBottomRightOnBit(&self) -> Option<Point> {
@@ -600,7 +600,7 @@ impl BitMatrix {
         }
         x += bit;
 
-        Some(point_f(x as f32, y as f32))
+        Some(point(x as f32, y as f32))
     }
 
     /**

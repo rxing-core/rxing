@@ -1,5 +1,5 @@
 use crate::common::Result;
-use crate::{point_f, Point};
+use crate::{point, Point};
 
 pub trait RegressionLineTrait {
     //     points: Vec<Point>,
@@ -23,7 +23,7 @@ pub trait RegressionLineTrait {
         let x = (l1.c() * l2.b() - l1.b() * l2.c()) / d;
         let y = (l1.a() * l2.c() - l1.c() * l2.a()) / d;
 
-        Some(point_f(x, y))
+        Some(point(x, y))
     }
 
     //  fn evaluate_begin_end(&self, begin: Point, end: Point) -> bool;// {

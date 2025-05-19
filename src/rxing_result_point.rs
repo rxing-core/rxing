@@ -19,12 +19,6 @@ pub struct PointT<T> {
     pub x: T,
     pub y: T,
 }
-// #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-// #[derive(Debug, Clone, Copy, Default)]
-// pub struct Point {
-//     pub(crate) x: f32,
-//     pub(crate) y: f32,
-// }
 
 pub type PointF = PointT<f32>;
 pub type PointI = PointT<i32>;
@@ -129,11 +123,11 @@ impl<T> ResultPoint for PointT<T>
 where
     T: Into<f32> + Copy,
 {
-    fn getX(&self) -> f32 {
+    fn get_x(&self) -> f32 {
         self.x.into()
     }
 
-    fn getY(&self) -> f32 {
+    fn get_y(&self) -> f32 {
         self.y.into()
     }
 
