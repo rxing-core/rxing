@@ -78,7 +78,7 @@ fn do_test(contents: &str, number: &str, subject: &str, body: &str, via: &str, p
     let fake_rxing_result =
         RXingResult::new(contents, Vec::new(), Vec::new(), BarcodeFormat::QR_CODE);
     let result = ResultParser::parseRXingResult(&fake_rxing_result);
-    assert_eq!(ParsedRXingResultType::SMS, result.getType());
+    assert_eq!(ParsedRXingResultType::Sms, result.getType());
 
     if let ParsedClientResult::SMSResult(smsRXingResult) = result {
         assert_eq!(&vec![number], smsRXingResult.getNumbers());

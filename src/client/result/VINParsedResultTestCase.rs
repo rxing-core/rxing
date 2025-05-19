@@ -34,7 +34,7 @@ fn testNotVIN() {
         BarcodeFormat::CODE_39,
     );
     let result = ResultParser::parseRXingResult(&fakeRXingResult);
-    assert_eq!(ParsedRXingResultType::TEXT, result.getType());
+    assert_eq!(ParsedRXingResultType::Text, result.getType());
     let fakeRXingResult = RXingResult::new(
         "1M8GDM9AXKP042788",
         Vec::new(),
@@ -42,7 +42,7 @@ fn testNotVIN() {
         BarcodeFormat::CODE_128,
     );
     let result = ResultParser::parseRXingResult(&fakeRXingResult);
-    assert_eq!(ParsedRXingResultType::TEXT, result.getType());
+    assert_eq!(ParsedRXingResultType::Text, result.getType());
 }
 
 #[test]
@@ -97,7 +97,7 @@ fn do_test(
     let fake_rxing_result =
         RXingResult::new(contents, Vec::new(), Vec::new(), BarcodeFormat::CODE_39);
     let result = ResultParser::parseRXingResult(&fake_rxing_result);
-    assert_eq!(ParsedRXingResultType::VIN, result.getType());
+    assert_eq!(ParsedRXingResultType::Vin, result.getType());
     if let ParsedClientResult::VINResult(vinRXingResult) = result {
         // let vinRXingResult = (VINParsedRXingResult) result;
         assert_eq!(wmi, vinRXingResult.getWorldManufacturerID());

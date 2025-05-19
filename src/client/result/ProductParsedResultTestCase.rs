@@ -45,7 +45,7 @@ fn test_product() {
 fn do_test(contents: &str, normalized: &str, format: BarcodeFormat) {
     let fake_rxing_result = RXingResult::new(contents, Vec::new(), Vec::new(), format);
     let result = ResultParser::parseRXingResult(&fake_rxing_result);
-    assert_eq!(ParsedRXingResultType::PRODUCT, result.getType());
+    assert_eq!(ParsedRXingResultType::Product, result.getType());
 
     if let ParsedClientResult::ProductResult(product_rxing_result) = result {
         assert_eq!(contents, product_rxing_result.getProductID());

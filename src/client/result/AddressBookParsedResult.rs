@@ -48,7 +48,7 @@ pub struct AddressBookParsedRXingResult {
 }
 impl ParsedRXingResult for AddressBookParsedRXingResult {
     fn getType(&self) -> super::ParsedRXingResultType {
-        ParsedRXingResultType::ADDRESSBOOK
+        ParsedRXingResultType::Addressbook
     }
 
     fn getDisplayRXingResult(&self) -> String {

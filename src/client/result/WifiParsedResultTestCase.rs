@@ -152,7 +152,7 @@ fn doTest(contents: &str, ssid: &str, password: &str, n_type: &str) {
     let result = ResultParser::parseRXingResult(&fakeRXingResult);
 
     // Ensure it is a wifi code
-    assert_eq!(ParsedRXingResultType::WIFI, result.getType());
+    assert_eq!(ParsedRXingResultType::Wifi, result.getType());
 
     if let ParsedClientResult::WiFiResult(wifiRXingResult) = result {
         assert_eq!(ssid, wifiRXingResult.getSsid());

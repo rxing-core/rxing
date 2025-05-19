@@ -32,7 +32,7 @@ pub struct TelParsedRXingResult {
 
 impl ParsedRXingResult for TelParsedRXingResult {
     fn getType(&self) -> super::ParsedRXingResultType {
-        ParsedRXingResultType::TEL
+        ParsedRXingResultType::Tel
     }
 
     fn getDisplayRXingResult(&self) -> String {

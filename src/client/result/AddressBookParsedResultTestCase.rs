@@ -352,7 +352,7 @@ fn doTest(
     let fakeRXingResult =
         RXingResult::new(contents, Vec::new(), Vec::new(), BarcodeFormat::QR_CODE);
     let result = ResultParser::parseRXingResult(&fakeRXingResult);
-    assert_eq!(ParsedRXingResultType::ADDRESSBOOK, result.getType());
+    assert_eq!(ParsedRXingResultType::Addressbook, result.getType());
     if let ParsedClientResult::AddressBookResult(addressRXingResult) = result {
         assert_eq!(title, addressRXingResult.getTitle());
         assert_eq!(names, addressRXingResult.getNames());

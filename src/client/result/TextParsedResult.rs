@@ -32,7 +32,7 @@ pub struct TextParsedRXingResult {
 
 impl ParsedRXingResult for TextParsedRXingResult {
     fn getType(&self) -> ParsedRXingResultType {
-        ParsedRXingResultType::TEXT
+        ParsedRXingResultType::Text
     }
 
     fn getDisplayRXingResult(&self) -> String {

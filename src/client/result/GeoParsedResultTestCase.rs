@@ -78,7 +78,7 @@ fn doTest(contents: &str, latitude: f64, longitude: f64, altitude: f64, query: &
         RXingResult::new(contents, Vec::new(), Vec::new(), BarcodeFormat::QR_CODE);
     let result = ResultParser::parseRXingResult(&fakeRXingResult);
 
-    assert_eq!(ParsedRXingResultType::GEO, result.getType());
+    assert_eq!(ParsedRXingResultType::Geo, result.getType());
 
     if let ParsedClientResult::GeoResult(geoRXingResult) = result {
         assert!(within_range(

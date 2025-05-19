@@ -135,7 +135,7 @@ fn do_test(contents: &str, uri: &str, title: &str) {
     let fake_rxing_result =
         RXingResult::new(contents, Vec::new(), Vec::new(), BarcodeFormat::QR_CODE);
     let result = ResultParser::parseRXingResult(&fake_rxing_result);
-    assert_eq!(ParsedRXingResultType::URI, result.getType());
+    assert_eq!(ParsedRXingResultType::Uri, result.getType());
     if let ParsedClientResult::URIResult(uriRXingResult) = result {
         assert_eq!(uri, uriRXingResult.getURI());
         assert_eq!(title, uriRXingResult.getTitle());
@@ -147,7 +147,7 @@ fn do_test(contents: &str, uri: &str, title: &str) {
 fn do_test_not_uri(text: &str) {
     let fake_rxing_result = RXingResult::new(text, Vec::new(), Vec::new(), BarcodeFormat::QR_CODE);
     let result = ResultParser::parseRXingResult(&fake_rxing_result);
-    assert_eq!(ParsedRXingResultType::TEXT, result.getType());
+    assert_eq!(ParsedRXingResultType::Text, result.getType());
     assert_eq!(text, result.getDisplayRXingResult());
 }
 
@@ -156,9 +156,9 @@ fn do_test_is_possibly_malicious(uri: &str, malicious: bool) {
     let result = ResultParser::parseRXingResult(&fake_rxing_result);
     assert_eq!(
         if malicious {
-            ParsedRXingResultType::TEXT
+            ParsedRXingResultType::Text
         } else {
-            ParsedRXingResultType::URI
+            ParsedRXingResultType::Uri
         },
         result.getType()
     );

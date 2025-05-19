@@ -9,7 +9,7 @@ pub struct OtherParsedResult {
 
 impl ParsedRXingResult for OtherParsedResult {
     fn getType(&self) -> super::ParsedRXingResultType {
-        super::ParsedRXingResultType::OTHER
+        super::ParsedRXingResultType::Other
     }
 
     fn getDisplayRXingResult(&self) -> String {

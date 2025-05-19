@@ -30,7 +30,7 @@ pub struct ProductParsedRXingResult {
 }
 impl ParsedRXingResult for ProductParsedRXingResult {
     fn getType(&self) -> super::ParsedRXingResultType {
-        ParsedRXingResultType::PRODUCT
+        ParsedRXingResultType::Product
     }
 
     fn getDisplayRXingResult(&self) -> String {

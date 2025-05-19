@@ -42,7 +42,7 @@ fn testISBN() {
 fn doTest(contents: &str) {
     let fakeRXingResult = RXingResult::new(contents, vec![0; 0], vec![], BarcodeFormat::EAN_13);
     let result = ResultParser::parseRXingResult(&fakeRXingResult);
-    assert_eq!(ParsedRXingResultType::ISBN, result.getType());
+    assert_eq!(ParsedRXingResultType::Isbn, result.getType());
     if let ParsedClientResult::ISBNResult(res) = result {
         assert_eq!(contents, res.getISBN());
     } else {

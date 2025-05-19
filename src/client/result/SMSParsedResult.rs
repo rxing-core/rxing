@@ -34,7 +34,7 @@ pub struct SMSParsedRXingResult {
 
 impl ParsedRXingResult for SMSParsedRXingResult {
     fn getType(&self) -> super::ParsedRXingResultType {
-        ParsedRXingResultType::SMS
+        ParsedRXingResultType::Sms
     }
 
     fn getDisplayRXingResult(&self) -> String {

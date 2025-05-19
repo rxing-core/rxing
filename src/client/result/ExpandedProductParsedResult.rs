@@ -61,7 +61,7 @@ pub struct ExpandedProductParsedRXingResult {
 }
 impl ParsedRXingResult for ExpandedProductParsedRXingResult {
     fn getType(&self) -> super::ParsedRXingResultType {
-        ParsedRXingResultType::PRODUCT
+        ParsedRXingResultType::Product
     }
 
     fn getDisplayRXingResult(&self) -> String {

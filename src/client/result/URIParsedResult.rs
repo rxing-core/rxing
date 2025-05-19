@@ -30,7 +30,7 @@ pub struct URIParsedRXingResult {
 }
 impl ParsedRXingResult for URIParsedRXingResult {
     fn getType(&self) -> super::ParsedRXingResultType {
-        ParsedRXingResultType::URI
+        ParsedRXingResultType::Uri
     }
 
     fn getDisplayRXingResult(&self) -> String {

@@ -44,7 +44,7 @@ fn doTest(contents: &str, number: &str, title: &str) {
     let fakeRXingResult =
         RXingResult::new(contents, Vec::new(), Vec::new(), BarcodeFormat::QR_CODE);
     let result = ResultParser::parseRXingResult(&fakeRXingResult);
-    assert_eq!(ParsedRXingResultType::TEL, result.getType());
+    assert_eq!(ParsedRXingResultType::Tel, result.getType());
 
     if let ParsedClientResult::TelResult(telRXingResult) = result {
         assert_eq!(number, telRXingResult.getNumber());

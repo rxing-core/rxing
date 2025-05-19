@@ -34,7 +34,7 @@ pub struct EmailAddressParsedRXingResult {
 }
 impl ParsedRXingResult for EmailAddressParsedRXingResult {
     fn getType(&self) -> super::ParsedRXingResultType {
-        ParsedRXingResultType::EMAIL_ADDRESS
+        ParsedRXingResultType::EmailAddress
     }
 
     fn getDisplayRXingResult(&self) -> String {

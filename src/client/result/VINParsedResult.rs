@@ -36,7 +36,7 @@ pub struct VINParsedRXingResult {
 
 impl ParsedRXingResult for VINParsedRXingResult {
     fn getType(&self) -> super::ParsedRXingResultType {
-        ParsedRXingResultType::VIN
+        ParsedRXingResultType::Vin
     }
 
     fn getDisplayRXingResult(&self) -> String {

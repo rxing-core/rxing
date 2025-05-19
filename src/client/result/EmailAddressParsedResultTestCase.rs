@@ -158,7 +158,7 @@ fn do_test(contents: &str, tos: &[&str], ccs: &[&str], bccs: &[&str], subject: &
     let fakeRXingResult =
         RXingResult::new(contents, Vec::new(), Vec::new(), BarcodeFormat::QR_CODE);
     let result = ResultParser::parseRXingResult(&fakeRXingResult);
-    assert_eq!(ParsedRXingResultType::EMAIL_ADDRESS, result.getType());
+    assert_eq!(ParsedRXingResultType::EmailAddress, result.getType());
     if let ParsedClientResult::EmailResult(emailRXingResult) = result {
         assert_eq!(tos, emailRXingResult.getTos());
         assert_eq!(ccs, emailRXingResult.getCCs());

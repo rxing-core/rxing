@@ -29,7 +29,7 @@ pub struct ISBNParsedRXingResult {
 }
 impl ParsedRXingResult for ISBNParsedRXingResult {
     fn getType(&self) -> super::ParsedRXingResultType {
-        super::ParsedRXingResultType::ISBN
+        super::ParsedRXingResultType::Isbn
     }
 
     fn getDisplayRXingResult(&self) -> String {

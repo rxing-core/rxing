@@ -37,7 +37,7 @@ pub struct WifiParsedRXingResult {
 
 impl ParsedRXingResult for WifiParsedRXingResult {
     fn getType(&self) -> super::ParsedRXingResultType {
-        ParsedRXingResultType::WIFI
+        ParsedRXingResultType::Wifi
     }
 
     fn getDisplayRXingResult(&self) -> String {

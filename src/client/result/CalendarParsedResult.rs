@@ -80,7 +80,7 @@ pub struct CalendarParsedRXingResult {
 
 impl ParsedRXingResult for CalendarParsedRXingResult {
     fn getType(&self) -> super::ParsedRXingResultType {
-        ParsedRXingResultType::CALENDAR
+        ParsedRXingResultType::Calendar
     }
 
     fn getDisplayRXingResult(&self) -> String {

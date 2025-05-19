@@ -135,7 +135,7 @@ fn testBadGeo() {
         BarcodeFormat::QR_CODE,
     );
     let result = ResultParser::parseRXingResult(&fakeRXingResult);
-    assert_eq!(ParsedRXingResultType::TEXT, result.getType());
+    assert_eq!(ParsedRXingResultType::Text, result.getType());
 }
 
 #[test]
@@ -213,7 +213,7 @@ fn doTest(
     let fakeRXingResult =
         RXingResult::new(contents, Vec::new(), Vec::new(), BarcodeFormat::QR_CODE);
     let result = ResultParser::parseRXingResult(&fakeRXingResult);
-    assert_eq!(ParsedRXingResultType::CALENDAR, result.getType());
+    assert_eq!(ParsedRXingResultType::Calendar, result.getType());
     if let ParsedClientResult::CalendarEventResult(calRXingResult) = result {
         assert_eq!(description, calRXingResult.getDescription());
         assert_eq!(summary, calRXingResult.getSummary());

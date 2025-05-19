@@ -34,7 +34,7 @@ pub struct GeoParsedRXingResult {
 
 impl ParsedRXingResult for GeoParsedRXingResult {
     fn getType(&self) -> super::ParsedRXingResultType {
-        ParsedRXingResultType::GEO
+        ParsedRXingResultType::Geo
     }
 
     fn getDisplayRXingResult(&self) -> String {
