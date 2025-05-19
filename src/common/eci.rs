@@ -41,7 +41,7 @@ pub enum Eci {
 }
 
 impl Eci {
-    pub fn can_encode(self) -> bool {
+    pub const fn can_encode(self) -> bool {
         (self as i32) >= 899
     }
 

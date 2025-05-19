@@ -40,7 +40,7 @@ impl FinderPattern {
         }
     }
 
-    pub fn getValue(&self) -> u32 {
+    pub const fn getValue(&self) -> u32 {
         self.value
     }
 

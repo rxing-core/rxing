@@ -27,7 +27,7 @@ pub struct ExpandedRow {
     rowNumber: u32,
 }
 impl ExpandedRow {
-    pub fn new(pairs: Vec<ExpandedPair>, rowNumber: u32) -> Self {
+    pub const fn new(pairs: Vec<ExpandedPair>, rowNumber: u32) -> Self {
         Self { pairs, rowNumber }
     }
 

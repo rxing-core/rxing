@@ -144,7 +144,7 @@ impl RSS14Reader {
         [1, 3, 9, 1],
     ];
 
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             possibleLeftPairs: Vec::new(),
             possibleRightPairs: Vec::new(),

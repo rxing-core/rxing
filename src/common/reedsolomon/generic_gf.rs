@@ -117,7 +117,7 @@ impl GenericGF {
      *
      * @return sum/difference of a and b
      */
-    pub fn addOrSubtract(a: i32, b: i32) -> i32 {
+    pub const fn addOrSubtract(a: i32, b: i32) -> i32 {
         a ^ b
     }
 
@@ -165,11 +165,11 @@ impl GenericGF {
         self.expTable[comb_loc % (self.size - 1)]
     }
 
-    pub fn getSize(&self) -> usize {
+    pub const fn getSize(&self) -> usize {
         self.size
     }
 
-    pub fn getGeneratorBase(&self) -> i32 {
+    pub const fn getGeneratorBase(&self) -> i32 {
         self.generatorBase
     }
 }

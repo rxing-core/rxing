@@ -44,7 +44,7 @@ pub struct DecoderRXingResult {
 }
 
 impl DecoderRXingResult {
-    pub fn new(
+    pub const fn new(
         rawBytes: Vec<u8>,
         text: String,
         byteSegments: Vec<Vec<u8>>,
@@ -58,12 +58,12 @@ impl DecoderRXingResult {
             -2,
             -2,
             0,
-            String::default(),
+            String::new(),
             false,
         )
     }
 
-    pub fn with_symbology(
+    pub const fn with_symbology(
         rawBytes: Vec<u8>,
         text: String,
         byteSegments: Vec<Vec<u8>>,
@@ -78,12 +78,12 @@ impl DecoderRXingResult {
             -1,
             -1,
             symbologyModifier,
-            String::default(),
+            String::new(),
             false,
         )
     }
 
-    pub fn with_sa(
+    pub const fn with_sa(
         rawBytes: Vec<u8>,
         text: String,
         byteSegments: Vec<Vec<u8>>,
@@ -99,13 +99,13 @@ impl DecoderRXingResult {
             saSequence,
             saParity,
             0,
-            String::default(),
+            String::new(),
             false,
         )
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub fn with_all(
+    pub const fn with_all(
         rawBytes: Vec<u8>,
         text: String,
         byteSegments: Vec<Vec<u8>>,
@@ -137,7 +137,7 @@ impl DecoderRXingResult {
     /**
      * @return raw bytes representing the result, or {@code null} if not applicable
      */
-    pub fn getRawBytes(&self) -> &Vec<u8> {
+    pub const fn getRawBytes(&self) -> &Vec<u8> {
         &self.rawBytes
     }
 
@@ -145,7 +145,7 @@ impl DecoderRXingResult {
      * @return how many bits of {@link #getRawBytes()} are valid; typically 8 times its length
      * @since 3.3.0
      */
-    pub fn getNumBits(&self) -> usize {
+    pub const fn getNumBits(&self) -> usize {
         self.numBits
     }
 
@@ -153,7 +153,7 @@ impl DecoderRXingResult {
      * @param numBits overrides the number of bits that are valid in {@link #getRawBytes()}
      * @since 3.3.0
      */
-    pub fn setNumBits(&mut self, numBits: usize) {
+    pub const fn setNumBits(&mut self, numBits: usize) {
         self.numBits = numBits;
     }
 
@@ -167,7 +167,7 @@ impl DecoderRXingResult {
     /**
      * @return list of byte segments in the result, or {@code null} if not applicable
      */
-    pub fn getByteSegments(&self) -> &Vec<Vec<u8>> {
+    pub const fn getByteSegments(&self) -> &Vec<Vec<u8>> {
         &self.byteSegments
     }
 
@@ -181,22 +181,22 @@ impl DecoderRXingResult {
     /**
      * @return number of errors corrected, or {@code null} if not applicable
      */
-    pub fn getErrorsCorrected(&self) -> usize {
+    pub const fn getErrorsCorrected(&self) -> usize {
         self.errorsCorrected
     }
 
-    pub fn setErrorsCorrected(&mut self, errorsCorrected: usize) {
+    pub const fn setErrorsCorrected(&mut self, errorsCorrected: usize) {
         self.errorsCorrected = errorsCorrected;
     }
 
     /**
      * @return number of erasures corrected, or {@code null} if not applicable
      */
-    pub fn getErasures(&self) -> usize {
+    pub const fn getErasures(&self) -> usize {
         self.erasures
     }
 
-    pub fn setErasures(&mut self, erasures: usize) {
+    pub const fn setErasures(&mut self, erasures: usize) {
         self.erasures = erasures
     }
 
@@ -211,23 +211,23 @@ impl DecoderRXingResult {
         self.other = other
     }
 
-    pub fn hasStructuredAppend(&self) -> bool {
+    pub const fn hasStructuredAppend(&self) -> bool {
         self.structuredAppendParity >= 0 && self.structuredAppendSequenceNumber >= 0
     }
 
-    pub fn getStructuredAppendParity(&self) -> i32 {
+    pub const fn getStructuredAppendParity(&self) -> i32 {
         self.structuredAppendParity
     }
 
-    pub fn getStructuredAppendSequenceNumber(&self) -> i32 {
+    pub const fn getStructuredAppendSequenceNumber(&self) -> i32 {
         self.structuredAppendSequenceNumber
     }
 
-    pub fn getSymbologyModifier(&self) -> u32 {
+    pub const fn getSymbologyModifier(&self) -> u32 {
         self.symbologyModifier
     }
 
-    pub fn getContentType(&self) -> &str {
+    pub  fn getContentType(&self) -> &str {
         &self.contentType
     }
 
@@ -235,11 +235,11 @@ impl DecoderRXingResult {
         self.contentType = content_type
     }
 
-    pub fn getIsMirrored(&self) -> bool {
+    pub const fn getIsMirrored(&self) -> bool {
         self.isMirrored
     }
 
-    pub fn setIsMirrored(&mut self, is_mirrored: bool) {
+    pub const fn setIsMirrored(&mut self, is_mirrored: bool) {
         self.isMirrored = is_mirrored
     }
 }

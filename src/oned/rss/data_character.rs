@@ -40,7 +40,7 @@ impl DataCharacterTrait for DataCharacter {
     }
 }
 impl DataCharacter {
-    pub fn new(value: u32, checksumPortion: u32) -> Self {
+    pub const fn new(value: u32, checksumPortion: u32) -> Self {
         Self {
             value,
             checksumPortion,

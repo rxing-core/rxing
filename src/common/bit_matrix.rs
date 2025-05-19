@@ -87,7 +87,7 @@ impl BitMatrix {
     }
 
     #[allow(dead_code)]
-    fn with_all_data(&self, width: u32, height: u32, rowSize: usize, bits: Vec<BaseType>) -> Self {
+    const fn with_all_data(&self, width: u32, height: u32, rowSize: usize, bits: Vec<BaseType>) -> Self {
         Self {
             width,
             height,
@@ -205,6 +205,7 @@ impl BitMatrix {
      * y The vertical component (i.e. which row)
      * returns the value of given bit in matrix, or false if the requested point is out of bounds of the image
      */
+    #[inline(always)]
     pub fn get(&self, x: u32, y: u32) -> bool {
         let offset = self.get_offset(y, x);
         if offset >= self.bits.len() {
@@ -213,12 +214,14 @@ impl BitMatrix {
         ((self.bits[offset] >> (x as usize & BASE_SHIFT)) & 1) != 0
     }
 
+    #[inline(always)]
     pub fn get_point(&self, point: Point) -> bool {
         self.get(point.x as u32, point.y as u32)
         // let offset = self.get_offset(point.y as u32, point.x as u32);
         // ((self.bits[offset] >> (x & BASE_SHIFT)) & 1) != 0
     }
 
+    #[inline(always)]
     pub fn get_index<T: Into<usize>>(&self, index: T) -> bool {
         self.get_point(self.calculate_point_from_index(index.into()))
     }
@@ -243,6 +246,7 @@ impl BitMatrix {
         Some(((self.bits[offset] >> (x as usize & BASE_SHIFT)) & 1) != 0)
     }
 
+    #[inline(always)]
     pub fn try_get_point(&self, point: Point) -> Option<bool> {
         self.try_get(point.x as u32, point.y as u32)
     }
@@ -269,11 +273,13 @@ impl BitMatrix {
     }
 
     /// Confusingly returns true if the requested element is out of bounds
+    #[inline(always)]
     pub fn check_in_bounds(&self, x: u32, y: u32) -> bool {
         (self.get_offset(y, x)) >= self.bits.len()
     }
 
     /// Confusingly returns true if the requested element is out of bounds
+    #[inline(always)]
     pub fn check_point_in_bounds(&self, point: Point) -> bool {
         self.check_in_bounds(point.x as u32, point.y as u32)
     }
@@ -284,11 +290,13 @@ impl BitMatrix {
      * @param x The horizontal component (i.e. which column)
      * @param y The vertical component (i.e. which row)
      */
+    #[inline(always)]
     pub fn set(&mut self, x: u32, y: u32) {
         let offset = self.get_offset(y, x);
         self.bits[offset] |= 1 << (x as usize & BASE_SHIFT);
     }
 
+    #[inline(always)]
     pub fn set_bool(&mut self, x: u32, y: u32, value: bool) {
         if value {
             self.set(x, y)
@@ -297,6 +305,7 @@ impl BitMatrix {
         }
     }
 
+    #[inline(always)]
     pub fn unset(&mut self, x: u32, y: u32) {
         let offset = self.get_offset(y, x);
         self.bits[offset] &= !(1 << (x as usize & BASE_SHIFT));
@@ -308,6 +317,7 @@ impl BitMatrix {
      * @param x The horizontal component (i.e. which column)
      * @param y The vertical component (i.e. which row)
      */
+    #[inline(always)]
     pub fn flip_coords(&mut self, x: u32, y: u32) {
         let offset = self.get_offset(y, x);
         self.bits[offset] ^= 1 << (x as usize & BASE_SHIFT);
@@ -354,6 +364,7 @@ impl BitMatrix {
     /**
      * Clears all bits (sets to false).
      */
+    #[inline(always)]
     pub fn clear(&mut self) {
         self.bits.fill(0);
     }
@@ -529,24 +540,11 @@ impl BitMatrix {
                     top = top.min(y);
                     bottom = bottom.max(y);
 
-                    if x32 * BASE_BITS < left as usize {
-                        let mut bit = 0;
-                        while (theBits << (BASE_BITS - 1 - bit)) == 0 {
-                            bit += 1;
-                        }
-                        if (x32 * BASE_BITS + bit) < left as usize {
-                            left = (x32 * BASE_BITS + bit) as u32;
-                        }
-                    }
-                    if x32 * BASE_BITS + BASE_BITS - 1 > right as usize {
-                        let mut bit = BASE_BITS - 1;
-                        while (theBits >> bit) == 0 {
-                            bit -= 1;
-                        }
-                        if (x32 * BASE_BITS + bit) > right as usize {
-                            right = (x32 * BASE_BITS + bit) as u32;
-                        }
-                    }
+                    let bit_lo: usize = theBits.trailing_zeros() as usize;
+                    left = left.min(((x32 * BASE_BITS) + bit_lo) as u32);
+
+                    let bit_hi: usize = (BASE_BITS - 1) - (theBits.leading_zeros() as usize);
+                    right = right.max(((x32 * BASE_BITS) + bit_hi) as u32);
                 }
             }
         }
@@ -608,10 +606,12 @@ impl BitMatrix {
     /**
      * @return The width of the matrix
      */
-    pub fn getWidth(&self) -> u32 {
+    #[inline(always)]
+    pub const fn getWidth(&self) -> u32 {
         self.width()
     }
 
+    #[inline(always)]
     pub const fn width(&self) -> u32 {
         self.width
     }
@@ -619,10 +619,12 @@ impl BitMatrix {
     /**
      * @return The height of the matrix
      */
-    pub fn getHeight(&self) -> u32 {
+    #[inline(always)]
+    pub const fn getHeight(&self) -> u32 {
         self.height()
     }
 
+    #[inline(always)]
     pub const fn height(&self) -> u32 {
         self.height
     }
@@ -630,6 +632,7 @@ impl BitMatrix {
     /**
      * @return The row size of the matrix
      */
+    #[inline(always)]
     pub fn getRowSize(&self) -> usize {
         self.row_size
     }
@@ -712,10 +715,12 @@ impl BitMatrix {
         new_bm
     }
 
+    #[inline(always)]
     pub fn is_in(&self, p: Point) -> bool {
         self.isIn(p, 0)
     }
 
+    #[inline(always)]
     pub fn isIn(&self, p: Point, b: i32) -> bool {
         b as f32 <= p.x
             && p.x < self.getWidth() as f32 - b as f32

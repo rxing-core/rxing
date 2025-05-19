@@ -17,7 +17,7 @@ pub struct AdaptiveThresholdBinarizer<LS: LuminanceSource> {
 }
 
 impl<LS: LuminanceSource> AdaptiveThresholdBinarizer<LS> {
-    pub fn new(source: LS, radius: u32) -> Self {
+    pub const fn new(source: LS, radius: u32) -> Self {
         Self {
             source,
             radius,

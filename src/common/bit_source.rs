@@ -42,7 +42,7 @@ impl<'a> BitSource<'a> {
      * @param bytes bytes from which this will read bits. Bits will be read from the first byte first.
      * Bits are read within a byte from most-significant to least-significant bit.
      */
-    pub fn new(bytes: &'a [u8]) -> Self {
+    pub const fn new(bytes: &'a [u8]) -> Self {
         BitSource {
             bytes,
             byte_offset: 0,
@@ -53,14 +53,14 @@ impl<'a> BitSource<'a> {
     /**
      * @return index of next bit in current byte which would be read by the next call to {@link #readBits(int)}.
      */
-    pub fn getBitOffset(&self) -> usize {
+    pub const fn getBitOffset(&self) -> usize {
         self.bit_offset
     }
 
     /**
      * @return index of next byte in input byte array which would be read by the next call to {@link #readBits(int)}.
      */
-    pub fn getByteOffset(&self) -> usize {
+    pub const fn getByteOffset(&self) -> usize {
         self.byte_offset
     }
 

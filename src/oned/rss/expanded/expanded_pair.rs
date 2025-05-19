@@ -39,7 +39,7 @@ pub struct ExpandedPair {
 }
 
 impl ExpandedPair {
-    pub fn new(
+    pub const fn new(
         leftChar: Option<DataCharacter>,
         rightChar: Option<DataCharacter>,
         finderPattern: Option<FinderPattern>,

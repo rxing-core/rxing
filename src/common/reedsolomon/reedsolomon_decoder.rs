@@ -48,7 +48,7 @@ pub struct ReedSolomonDecoder {
 }
 
 impl ReedSolomonDecoder {
-    pub fn new(field: GenericGFRef) -> Self {
+    pub const fn new(field: GenericGFRef) -> Self {
         Self { field }
     }
 

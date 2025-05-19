@@ -44,7 +44,7 @@ pub struct PerspectiveTransform {
 
 impl PerspectiveTransform {
     #[allow(clippy::too_many_arguments)]
-    fn new(
+    const fn new(
         a11: f32,
         a21: f32,
         a31: f32,
@@ -156,7 +156,7 @@ impl PerspectiveTransform {
         PerspectiveTransform::squareToQuadrilateral(quad).buildAdjoint()
     }
 
-    fn buildAdjoint(&self) -> Self {
+    const fn buildAdjoint(&self) -> Self {
         // Adjoint is the transpose of the cofactor matrix:
         PerspectiveTransform::new(
             self.a22 * self.a33 - self.a23 * self.a32,
@@ -171,7 +171,7 @@ impl PerspectiveTransform {
         )
     }
 
-    pub fn isValid(&self) -> bool {
+    pub const fn isValid(&self) -> bool {
         !self.a33.is_nan()
     }
 }

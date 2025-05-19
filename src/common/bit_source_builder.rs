@@ -32,7 +32,7 @@ pub struct BitSourceBuilder {
 }
 
 impl BitSourceBuilder {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             output: Vec::new(),
             nextByte: 0,

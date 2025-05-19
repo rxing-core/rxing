@@ -140,7 +140,7 @@ impl CharacterSet {
         encoding::label::encoding_from_whatwg_label(name).unwrap()
     }
 
-    pub fn get_charset_name(&self) -> &'static str {
+    pub const fn get_charset_name(&self) -> &'static str {
         match self {
             CharacterSet::Cp437 => "cp437",
             CharacterSet::ISO8859_1 => "iso-8859-1",

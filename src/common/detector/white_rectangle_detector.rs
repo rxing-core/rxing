@@ -44,7 +44,7 @@ pub struct WhiteRectangleDetector<'a> {
 }
 
 impl<'a> WhiteRectangleDetector<'_> {
-    pub fn new_from_image(image: &'a BitMatrix) -> Result<WhiteRectangleDetector<'a>> {
+    pub const fn new_from_image(image: &'a BitMatrix) -> Result<WhiteRectangleDetector<'a>> {
         WhiteRectangleDetector::new(
             image,
             INIT_SIZE,
@@ -60,7 +60,7 @@ impl<'a> WhiteRectangleDetector<'_> {
      * @param y y position of search center
      * @throws NotFoundException if image is too small to accommodate {@code initSize}
      */
-    pub fn new(
+    pub const fn new(
         image: &'a BitMatrix,
         initSize: i32,
         x: i32,

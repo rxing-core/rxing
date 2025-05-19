@@ -47,7 +47,7 @@ pub struct BitArray {
 }
 
 impl BitArray {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             bits: Vec::new(),
             size: 0,
@@ -76,7 +76,7 @@ impl BitArray {
 
     /// For testing only
     #[cfg(test)]
-    pub fn with_initial_values(bits: Vec<BaseType>, size: usize) -> Self {
+    pub const fn with_initial_values(bits: Vec<BaseType>, size: usize) -> Self {
         Self {
             bits,
             size,
@@ -85,11 +85,11 @@ impl BitArray {
         }
     }
 
-    pub fn get_size(&self) -> usize {
+    pub const fn get_size(&self) -> usize {
         self.size
     }
 
-    pub fn getSizeInBytes(&self) -> usize {
+    pub const fn getSizeInBytes(&self) -> usize {
         self.size.div_ceil(8)
     }
 

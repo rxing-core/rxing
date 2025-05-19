@@ -14,7 +14,7 @@ use crate::ResultPoint;
  * @author Sean Owen
  */
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, Hash, PartialEq, PartialOrd)]
 pub struct PointT<T> {
     pub x: T,
     pub y: T,
@@ -69,11 +69,6 @@ impl From<PointU> for Point {
 
 /** An alias for `Point::new`. */
 #[inline]
-pub const fn point_f(x: f32, y: f32) -> Point {
-    Point::new(x, y)
-}
-
-#[inline]
 pub const fn point<T>(x: T, y: T) -> PointT<T>
 where
     T: Copy,
@@ -85,21 +80,6 @@ pub fn point_i<T: Into<i64>>(x: T, y: T) -> Point {
     Point::new(x.into() as f32, y.into() as f32)
 }
 
-impl Hash for Point {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.x.to_string().hash(state);
-        self.y.to_string().hash(state);
-    }
-}
-
-impl<T> PartialEq for PointT<T>
-where
-    T: PartialEq,
-{
-    fn eq(&self, other: &Self) -> bool {
-        self.x == other.x && self.y == other.y
-    }
-}
 impl<T> Eq for PointT<T> where T: PartialEq {}
 
 impl<T> PointT<T>

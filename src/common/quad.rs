@@ -10,27 +10,27 @@ impl Quadrilateral {
     // using Point = T;
 
     #[allow(dead_code)]
-    pub fn new(tl: Point, tr: Point, br: Point, bl: Point) -> Self {
+    pub const fn new(tl: Point, tr: Point, br: Point, bl: Point) -> Self {
         Self([tl, tr, br, bl])
     }
     // pub fn with_f32( tl:f32,  tr:f32,  br:f32,  bl:f32) -> Self {
     //     Self([tl, tr,br, bl ])
     // }
 
-    pub fn with_points(tl: Point, tr: Point, br: Point, bl: Point) -> Self {
+    pub const fn with_points(tl: Point, tr: Point, br: Point, bl: Point) -> Self {
         Self([tl, tr, br, bl])
     }
 
-    pub fn top_left(&self) -> &Point {
+    pub const fn top_left(&self) -> &Point {
         &self.0[0]
     } //const noexcept { return at(0); }
-    pub fn top_right(&self) -> &Point {
+    pub const fn top_right(&self) -> &Point {
         &self.0[1]
     } //const noexcept { return at(1); }
-    pub fn bottom_right(&self) -> &Point {
+    pub const fn bottom_right(&self) -> &Point {
         &self.0[2]
     } //const noexcept { return at(2); }
-    pub fn bottom_left(&self) -> &Point {
+    pub const fn bottom_left(&self) -> &Point {
         &self.0[3]
     } //const noexcept { return at(3); }
 
@@ -44,7 +44,7 @@ impl Quadrilateral {
         let centerLineF = Point::normalized(centerLine);
         f32::atan2(centerLineF.y, centerLineF.x).into()
     }
-    pub fn points(&self) -> &[Point] {
+    pub const fn points(&self) -> &[Point] {
         &self.0
     }
 }
@@ -211,7 +211,7 @@ impl Quadrilateral {
     }
 
     #[allow(dead_code)]
-    pub fn have_intersecting_bounding_boxes(&self, b: &Quadrilateral) -> bool {
+    pub const fn have_intersecting_bounding_boxes(&self, b: &Quadrilateral) -> bool {
         // TODO: this is only a quick and dirty approximation that works for the trivial standard cases
         let x = b.top_right().x < self.top_left().x || b.top_left().x > self.top_right().x;
         let y = b.bottom_left().y < self.top_left().y || b.top_left().y > self.bottom_left().y;

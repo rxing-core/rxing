@@ -185,11 +185,11 @@ impl ECIEncoderSet {
         }
     }
 
-    pub fn len(&self) -> usize {
+    pub const fn len(&self) -> usize {
         self.encoders.len()
     }
 
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         self.encoders.is_empty()
     }
 
@@ -219,7 +219,7 @@ impl ECIEncoderSet {
     /*
      *  returns -1 if no priority charset was defined
      */
-    pub fn getPriorityEncoderIndex(&self) -> Option<usize> {
+    pub const fn getPriorityEncoderIndex(&self) -> Option<usize> {
         self.priorityEncoderIndex
     }
 
