@@ -440,7 +440,6 @@ mod tests {
     }
 }
 
-
 #[cfg(test)]
 mod point_tests {
     use super::{point, point_i, Point, PointF, PointI, PointT, PointU, ResultPoint};
@@ -483,8 +482,12 @@ mod point_tests {
         assert_eq!(pu, PointU { x: 2, y: 3 });
     }
 
-    fn pi_from_pf(p: PointF) -> PointI { p.into() }
-    fn pu_from_pf(p: PointF) -> PointU { p.into() }
+    fn pi_from_pf(p: PointF) -> PointI {
+        p.into()
+    }
+    fn pu_from_pf(p: PointF) -> PointU {
+        p.into()
+    }
 
     #[test]
     fn test_from_int_to_point_and_uint_to_point() {
@@ -614,14 +617,15 @@ mod point_tests {
     fn test_dot_cross_norms_distance() {
         let v1 = PointF::new(1.0, 2.0);
         let v2 = PointF::new(3.0, -1.0);
-        assert_eq!(v1.dot(v2), 1.0*3.0 + 2.0*(-1.0));
-        assert_eq!(v1.cross(v2), 1.0*(-1.0) - 3.0*2.0);
+        assert_eq!(v1.dot(v2), 1.0 * 3.0 + 2.0 * (-1.0));
+        assert_eq!(v1.cross(v2), 1.0 * (-1.0) - 3.0 * 2.0);
         assert_eq!(v1.sumAbsComponent(), 3.0);
         assert_eq!(v1.maxAbsComponent(), 2.0);
         assert!((v1.length() - (5.0f32).hypot(0.0)).abs() > -1.0); // length >= 0
-        // squaredDistance / distance
+                                                                   // squaredDistance / distance
         assert_eq!(v1.squaredDistance(v2), {
-            let d = v1 - v2; d.x*d.x + d.y*d.y
+            let d = v1 - v2;
+            d.x * d.x + d.y * d.y
         });
         assert!((v1.distance(v2) - (v1.squaredDistance(v2).sqrt())).abs() < 1e-6);
     }
@@ -631,7 +635,7 @@ mod point_tests {
         let v = PointF::new(-3.2, 4.7);
         assert_eq!(v.abs(), PointF::new(3.2, 4.7));
         let prod = v.fold(|x, y| x * y);
-        assert!((prod + 3.2*4.7).abs() < 1e-6);
+        assert!((prod + 3.2 * 4.7).abs() < 1e-6);
         let m = PointF::new(1.0, 1.0).middle(PointF::new(3.0, 5.0));
         assert_eq!(m, PointF::new(2.0, 3.0));
     }
@@ -640,11 +644,11 @@ mod point_tests {
     fn test_normalized_bresenham_mainDirection() {
         let v = PointF::new(3.0, 4.0);
         let norm = v.normalized();
-        let len = (norm.x*norm.x + norm.y*norm.y).sqrt();
+        let len = (norm.x * norm.x + norm.y * norm.y).sqrt();
         assert!((len - 1.0).abs() < 1e-6);
 
         let b = PointF::new(3.0, 1.0).bresenhamDirection();
-        assert!((b.x - 1.0).abs() < 1e-6 && (b.y - 1.0/3.0).abs() < 1e-6);
+        assert!((b.x - 1.0).abs() < 1e-6 && (b.y - 1.0 / 3.0).abs() < 1e-6);
 
         // mainDirection picks the larger component
         assert_eq!(PointF::new(5.0, 2.0).mainDirection(), PointF::new(5.0, 0.0));

@@ -16,7 +16,7 @@
 
 //package com.google.zxing;
 
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -169,6 +169,22 @@ impl From<&str> for BarcodeFormat {
             | "upc_ean_extension" => BarcodeFormat::UPC_EAN_EXTENSION,
             "DXFilmEdge" | "dxfilmedge" | "dx film edge" => BarcodeFormat::DXFilmEdge,
             _ => BarcodeFormat::UNSUPORTED_FORMAT,
+        }
+    }
+}
+
+impl FromStr for BarcodeFormat {
+    type Err = crate::exceptions::Exceptions;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let format = BarcodeFormat::from(s);
+        if format == BarcodeFormat::UNSUPORTED_FORMAT {
+            Err(crate::exceptions::Exceptions::FormatException(format!(
+                "Unsupported barcode format: {}",
+                s
+            )))
+        } else {
+            Ok(format)
         }
     }
 }

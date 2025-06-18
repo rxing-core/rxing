@@ -17,8 +17,8 @@
 use crate::{
     common::{BitArray, Result},
     oned::{one_d_reader, OneDReader},
-    point, BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    point, BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue, Reader,
 };
 
 use super::{

@@ -227,7 +227,7 @@ impl DecoderRXingResult {
         self.symbologyModifier
     }
 
-    pub  fn getContentType(&self) -> &str {
+    pub fn getContentType(&self) -> &str {
         &self.contentType
     }
 

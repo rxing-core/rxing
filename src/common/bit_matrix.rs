@@ -87,7 +87,13 @@ impl BitMatrix {
     }
 
     #[allow(dead_code)]
-    const fn with_all_data(&self, width: u32, height: u32, rowSize: usize, bits: Vec<BaseType>) -> Self {
+    const fn with_all_data(
+        &self,
+        width: u32,
+        height: u32,
+        rowSize: usize,
+        bits: Vec<BaseType>,
+    ) -> Self {
         Self {
             width,
             height,

@@ -24,7 +24,7 @@ use crate::{
         },
         BitMatrix, PerspectiveTransform, Quadrilateral,
     },
-     Point,
+    Point,
 };
 
 use super::Type;

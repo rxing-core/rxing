@@ -189,7 +189,7 @@ mod test {
 
 #[cfg(test)]
 mod more_tests {
-        use super::{Pattern, PatternReader};
+    use super::{Pattern, PatternReader};
     use crate::common::BitArray;
 
     /// calculate_variance: identical patterns → zero variance
@@ -249,9 +249,7 @@ mod more_tests {
         let mut bits = BitArray::with_capacity(8);
         bits.appendBits(data as usize, 8).unwrap();
 
-        let patterns: Vec<_> = PatternReader::<3>::new(&bits)
-            .map(|p| p.0)
-            .collect();
+        let patterns: Vec<_> = PatternReader::<3>::new(&bits).map(|p| p.0).collect();
 
         // Each run is length 1; with 7 transitions + initial we get 6 patterns
         let expected = vec![[1, 1, 1]; 6];
@@ -269,19 +267,16 @@ mod noisy_data_tests {
     #[test]
     fn calc_variance_one_pixel_noise_allowed() {
         let reference = Pattern([4, 4, 4, 4]);
-        let noisy     = Pattern([3, 5, 4, 4]); // diffs = [1,1,0,0]
-        // total_variance = 2, normalized = 2/16 = 0.125
-        assert_eq!(
-            noisy.calculate_variance(&reference, 1.0),
-            Some(2.0 / 16.0)
-        );
+        let noisy = Pattern([3, 5, 4, 4]); // diffs = [1,1,0,0]
+                                           // total_variance = 2, normalized = 2/16 = 0.125
+        assert_eq!(noisy.calculate_variance(&reference, 1.0), Some(2.0 / 16.0));
     }
 
     /// That same ±1 noise is rejected if the threshold is set below 1.0
     #[test]
     fn calc_variance_one_pixel_noise_rejected_if_threshold_too_strict() {
         let reference = Pattern([4, 4, 4, 4]);
-        let noisy     = Pattern([3, 5, 4, 4]);
+        let noisy = Pattern([3, 5, 4, 4]);
         // max_individual_variance = 0.9*1.0 = 0.9 < 1 → reject on first diff
         assert_eq!(noisy.calculate_variance(&reference, 0.9), None);
     }
@@ -290,8 +285,8 @@ mod noisy_data_tests {
     #[test]
     fn calc_variance_two_pixel_noise_rejected() {
         let reference = Pattern([4, 4, 4, 4]);
-        let noisy     = Pattern([2, 6, 4, 4]); // diffs = [2,2,0,0]
-        // first variance = 2 > max_individual_variance (1.0*1.0) → reject
+        let noisy = Pattern([2, 6, 4, 4]); // diffs = [2,2,0,0]
+                                           // first variance = 2 > max_individual_variance (1.0*1.0) → reject
         assert_eq!(noisy.calculate_variance(&reference, 1.0), None);
     }
 
@@ -302,10 +297,10 @@ mod noisy_data_tests {
     #[test]
     fn reader_initial_pattern_noise_allowed() {
         let mut bits = BitArray::with_capacity(12);
-        bits.appendBits(0b111, 3).unwrap();   // 3 ones
-        bits.appendBits(0b0,   1).unwrap();   // stray zero
-        bits.appendBits(0b1111,4).unwrap();   // 4 ones
-        bits.appendBits(0,      4).unwrap();  // 4 zeros
+        bits.appendBits(0b111, 3).unwrap(); // 3 ones
+        bits.appendBits(0b0, 1).unwrap(); // stray zero
+        bits.appendBits(0b1111, 4).unwrap(); // 4 ones
+        bits.appendBits(0, 4).unwrap(); // 4 zeros
 
         let reader = PatternReader::<4>::new(&bits);
         let observed = Pattern(reader.stored_pattern);
@@ -323,9 +318,9 @@ mod noisy_data_tests {
     fn reader_initial_pattern_noise_rejected_if_threshold_strict() {
         let mut bits = BitArray::with_capacity(12);
         bits.appendBits(0b111, 3).unwrap();
-        bits.appendBits(0b0,   1).unwrap();
-        bits.appendBits(0b1111,4).unwrap();
-        bits.appendBits(0,      4).unwrap();
+        bits.appendBits(0b0, 1).unwrap();
+        bits.appendBits(0b1111, 4).unwrap();
+        bits.appendBits(0, 4).unwrap();
 
         let reader = PatternReader::<4>::new(&bits);
         let observed = Pattern(reader.stored_pattern);

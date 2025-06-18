@@ -16,8 +16,8 @@
 
 use crate::{
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
-    point, BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, Point,
-    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    point, BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, Point, RXingResult,
+    RXingResultMetadataType, RXingResultMetadataValue, Reader,
 };
 
 use super::{
