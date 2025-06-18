@@ -107,9 +107,9 @@ enum Commands {
     ))]
     Encode {
         barcode_type: BarcodeFormat,
-        #[arg(long)]
+        #[arg(long, default_value_t = 500)]
         width: u32,
-        #[arg(long)]
+        #[arg(long, default_value_t = 500)]
         height: u32,
 
         /// String input for the encoder.
