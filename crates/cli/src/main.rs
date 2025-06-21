@@ -19,7 +19,7 @@ enum Commands {
     #[command(group(
         ArgGroup::new("advanced_display_group")
         .required(false)
-        .args(["detailed_results","detailed_results_json","parsed_results","raw_bytes"]),
+        .args(["detailed_results","detailed_result_json","parsed_results","raw_bytes"]),
     ))]
     Decode {
         /// Try much harder to detect barcodes.
@@ -40,7 +40,7 @@ enum Commands {
 
         /// Print detailed results data in JSON format
         #[arg(long)]
-        detailed_results_json: bool,
+        detailed_result_json: bool,
 
         /// Print parsed results (exclusive with --detailed-results and --raw-bytes)
         #[arg(long)]
@@ -250,7 +250,7 @@ fn main() {
             allowed_ean_extensions,
             also_inverted,
             detailed_results,
-            detailed_results_json,
+            detailed_result_json,
             parsed_results,
             raw_bytes,
         } => decode_command(
@@ -268,7 +268,7 @@ fn main() {
             allowed_ean_extensions,
             also_inverted,
             detailed_results,
-            detailed_results_json,
+            detailed_result_json,
             parsed_results,
             raw_bytes,
         ),
@@ -335,7 +335,7 @@ fn decode_command(
     allowed_ean_extensions: &Option<Vec<u32>>,
     also_inverted: &Option<bool>,
     detailed_result: &bool,
-    detailed_results_json: &bool,
+    detailed_result_json: &bool,
     parsed_bytes: &bool,
     raw_bytes: &bool,
 ) {
@@ -439,7 +439,7 @@ fn decode_command(
                         print_result(
                             &result,
                             *detailed_result,
-                            *detailed_results_json,
+                            *detailed_result_json,
                             *raw_bytes,
                             *parsed_bytes
                         )
@@ -462,7 +462,7 @@ fn decode_command(
             Ok(result) => {
                 // For JSON (and other machine readable format) don't print anything else to the
                 // stdout.
-                let prefix = if !*detailed_results_json {
+                let prefix = if !*detailed_result_json {
                     "Detection result: \n"
                 } else {
                     ""
@@ -472,7 +472,7 @@ fn decode_command(
                     print_result(
                         &result,
                         *detailed_result,
-                        *detailed_results_json,
+                        *detailed_result_json,
                         *raw_bytes,
                         *parsed_bytes
                     )
