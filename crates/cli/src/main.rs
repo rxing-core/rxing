@@ -19,7 +19,7 @@ enum Commands {
     #[command(group(
         ArgGroup::new("advanced_display_group")
         .required(false)
-        .args(["detailed_results","parsed_results","raw_bytes"]),
+        .args(["detailed_results","detailed_results_json","parsed_results","raw_bytes"]),
     ))]
     Decode {
         /// Try much harder to detect barcodes.
@@ -37,6 +37,10 @@ enum Commands {
         /// Print detailed results data
         #[arg(long)]
         detailed_results: bool,
+
+        /// Print detailed results data in JSON format
+        #[arg(long)]
+        detailed_results_json: bool,
 
         /// Print parsed results (exclusive with --detailed-results and --raw-bytes)
         #[arg(long)]
@@ -246,6 +250,7 @@ fn main() {
             allowed_ean_extensions,
             also_inverted,
             detailed_results,
+            detailed_results_json,
             parsed_results,
             raw_bytes,
         } => decode_command(
@@ -263,6 +268,7 @@ fn main() {
             allowed_ean_extensions,
             also_inverted,
             detailed_results,
+            detailed_results_json,
             parsed_results,
             raw_bytes,
         ),
@@ -329,6 +335,7 @@ fn decode_command(
     allowed_ean_extensions: &Option<Vec<u32>>,
     also_inverted: &Option<bool>,
     detailed_result: &bool,
+    detailed_results_json: &bool,
     parsed_bytes: &bool,
     raw_bytes: &bool,
 ) {
@@ -429,7 +436,13 @@ fn decode_command(
                     println!(
                         "Result {}:\n{}",
                         i,
-                        print_result(&result, *detailed_result, *raw_bytes, *parsed_bytes)
+                        print_result(
+                            &result,
+                            *detailed_result,
+                            *detailed_results_json,
+                            *raw_bytes,
+                            *parsed_bytes
+                        )
                     );
                 }
             }
@@ -447,9 +460,22 @@ fn decode_command(
         };
         match result {
             Ok(result) => {
+                // For JSON (and other machine readable format) don't print anything else to the
+                // stdout.
+                let prefix = if !*detailed_results_json {
+                    "Detection result: \n"
+                } else {
+                    ""
+                };
                 println!(
-                    "Detection result: \n{}",
-                    print_result(&result, *detailed_result, *raw_bytes, *parsed_bytes)
+                    "{prefix}{}",
+                    print_result(
+                        &result,
+                        *detailed_result,
+                        *detailed_results_json,
+                        *raw_bytes,
+                        *parsed_bytes
+                    )
                 );
             }
             Err(search_err) => {
@@ -639,9 +665,17 @@ fn encode_command(
     }
 }
 
-fn print_result(result: &rxing::RXingResult, detailed: bool, raw: bool, parsed: bool) -> String {
+fn print_result(
+    result: &rxing::RXingResult,
+    detailed: bool,
+    detailed_json: bool,
+    raw: bool,
+    parsed: bool,
+) -> String {
     let result_data = result.getText().escape_default().collect::<String>();
-    if detailed {
+    if detailed_json {
+        serde_json::to_string_pretty(&result).expect("could not convert to JSON")
+    } else if detailed {
         format!("[Barcode Format] {}\n[Metadata] {:?}\n[Points] {:?}\n[Number of Bits] {}\n[Timestamp] {}\n[Data] {}", result.getBarcodeFormat(),result.getRXingResultMetadata(), result.getRXingResultPoints(), result.getNumBits(), result.getTimestamp(), result_data)
     } else if raw {
         result
