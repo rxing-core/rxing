@@ -180,8 +180,7 @@ impl FromStr for BarcodeFormat {
         let format = BarcodeFormat::from(s);
         if format == BarcodeFormat::UNSUPORTED_FORMAT {
             Err(crate::exceptions::Exceptions::FormatException(format!(
-                "Unsupported barcode format: {}",
-                s
+                "Unsupported barcode format: {s}"
             )))
         } else {
             Ok(format)

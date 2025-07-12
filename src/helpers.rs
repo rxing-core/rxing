@@ -262,8 +262,7 @@ pub fn save_svg(file_name: &str, bit_matrix: &BitMatrix) -> Result<()> {
     match svg::save(file_name, &svg) {
         Ok(_) => Ok(()),
         Err(err) => Err(Exceptions::illegal_argument_with(format!(
-            "could not save file '{}': {}",
-            file_name, err
+            "could not save file '{file_name}': {err}"
         ))),
     }
 }

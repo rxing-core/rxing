@@ -532,7 +532,7 @@ impl std::io::Write for BitArray {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         for byte in buf {
             self.appendBits(*byte as BaseType, 8)
-                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
+                .map_err(|e| std::io::Error::other(e.to_string()))?
         }
         Ok(buf.len())
     }

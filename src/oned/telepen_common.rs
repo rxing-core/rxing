@@ -49,8 +49,7 @@ pub fn numeric_to_ascii(contents: &str) -> Result<String> {
             ascii.push((27 + (first - 48) * 10 + (second - 48)) as char);
         } else {
             return Err(Exceptions::illegal_argument_with(format!(
-                "Input contains an invalid character around position {}.",
-                i
+                "Input contains an invalid character around position {i}."
             )));
         }
 

@@ -129,7 +129,7 @@ impl<const PATTERN_SIZE: usize> Iterator for PatternReader<'_, PATTERN_SIZE> {
     type Item = Pattern<PATTERN_SIZE>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let ok = if self.position != false {
+        let ok = if self.position {
             self.read_next_pattern()
         } else {
             self.position = true;
