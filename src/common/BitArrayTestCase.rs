@@ -259,10 +259,7 @@ fn reverse_algorithm_test() {
         let newBitsNew = newBitArray.getBitArray();
         assert!(
             arrays_are_equal(&newBitsOriginal, newBitsNew, size / BIT_FIELD_BASE_BITS + 1),
-            "size: ({}) : {:?}/{:?}",
-            size,
-            newBitsOriginal,
-            newBitsNew
+            "size: ({size}) : {newBitsOriginal:?}/{newBitsNew:?}"
         );
     }
 }
