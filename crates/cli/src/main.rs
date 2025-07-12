@@ -1,6 +1,7 @@
 use std::{
     collections::{HashMap, HashSet},
     path::PathBuf,
+    process::ExitCode,
 };
 
 use clap::{ArgGroup, Parser, Subcommand};
@@ -233,7 +234,7 @@ enum Commands {
     },
 }
 
-fn main() {
+fn main() -> ExitCode {
     let cli = Args::parse();
     match &cli.command {
         Commands::Decode {
@@ -338,7 +339,7 @@ fn decode_command(
     detailed_results_json: &bool,
     parsed_bytes: &bool,
     raw_bytes: &bool,
-) {
+) -> ExitCode {
     let mut hints: rxing::DecodingHintDictionary = HashMap::new();
     if let Some(other) = other {
         hints.insert(
@@ -445,11 +446,13 @@ fn decode_command(
                         )
                     );
                 }
+                ExitCode::SUCCESS
             }
             Err(search_err) => {
                 println!(
                     "Error while attempting to locate multiple barcodes in '{file_name}': {search_err}"
                 );
+                ExitCode::FAILURE
             }
         }
     } else {
@@ -477,9 +480,11 @@ fn decode_command(
                         *parsed_bytes
                     )
                 );
+                ExitCode::SUCCESS
             }
             Err(search_err) => {
                 println!("Error while attempting to locate barcode in '{file_name}': {search_err}");
+                ExitCode::FAILURE
             }
         }
     }
@@ -508,7 +513,7 @@ fn encode_command(
     force_code_set: &Option<String>,
     force_c40: &Option<bool>,
     code_128_compact: &Option<bool>,
-) {
+) -> ExitCode {
     // if data.is_none() && data_file.is_none() {
     //     println!("must provide either data string or data file");
     //     return;
@@ -522,18 +527,18 @@ fn encode_command(
         if path_from.exists() {
             let Ok(fl) = std::fs::File::open(path_from) else {
                 println!("file cannot be opened");
-                return;
+                return ExitCode::FAILURE;
             };
             std::io::read_to_string(fl).expect("file should read")
         } else {
             println!("{} does not exist", path_from.to_string_lossy());
-            return;
+            return ExitCode::FAILURE;
         }
     } else if let Some(ds) = data {
         ds.to_owned()
     } else {
         println!("Unknown error getting data");
-        return;
+        return ExitCode::FAILURE;
     };
 
     let mut hints: rxing::EncodingHintDictionary = HashMap::new();
@@ -657,11 +662,20 @@ fn encode_command(
         Ok(result) => {
             println!("Encode successful, saving...");
             match rxing::helpers::save_file(file_name, &result) {
-                Ok(_) => println!("Saved to '{file_name}'"),
-                Err(error) => println!("Could not save '{file_name}': {error}"),
+                Ok(_) => {
+                    println!("Saved to '{file_name}'");
+                    ExitCode::SUCCESS
+                }
+                Err(error) => {
+                    println!("Could not save '{file_name}': {error}");
+                    ExitCode::FAILURE
+                }
             }
         }
-        Err(encode_error) => println!("Couldn't encode: {encode_error}"),
+        Err(encode_error) => {
+            println!("Couldn't encode: {encode_error}");
+            ExitCode::FAILURE
+        }
     }
 }
 
