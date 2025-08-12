@@ -54,7 +54,7 @@ impl<LS: LuminanceSource> Binarizer for AdaptiveThresholdBinarizer<LS> {
         &self.source
     }
 
-    fn get_black_row(&self, y: usize) -> Result<Cow<BitArray>> {
+    fn get_black_row(&self, y: usize) -> Result<Cow<'_, BitArray>> {
         let matrix = self.matrix.get_or_try_init(|| self.buildMatrix())?;
         Ok(Cow::Owned(matrix.getRow(y as u32)))
     }
@@ -63,7 +63,7 @@ impl<LS: LuminanceSource> Binarizer for AdaptiveThresholdBinarizer<LS> {
         self.matrix.get_or_try_init(|| self.buildMatrix())
     }
 
-    fn get_black_line(&self, l: usize, lt: super::LineOrientation) -> Result<Cow<BitArray>> {
+    fn get_black_line(&self, l: usize, lt: super::LineOrientation) -> Result<Cow<'_, BitArray>> {
         match lt {
             super::LineOrientation::Row => self.get_black_row(l),
             super::LineOrientation::Column => {
@@ -92,7 +92,7 @@ impl<LS: LuminanceSource> Binarizer for AdaptiveThresholdBinarizer<LS> {
         self.source.get_height()
     }
 
-    fn get_black_row_from_matrix(&self, y: usize) -> Result<Cow<BitArray>> {
+    fn get_black_row_from_matrix(&self, y: usize) -> Result<Cow<'_, BitArray>> {
         if let Some(matrix) = self.matrix.get() {
             Ok(Cow::Owned(matrix.getRow(y as u32)))
         } else {

@@ -47,7 +47,7 @@ impl AbstractExpandedDecoder for AI013103decoder<'_> {
         self.0.parseInformation()
     }
 
-    fn getGeneralDecoder(&self) -> &super::GeneralAppIdDecoder {
+    fn getGeneralDecoder(&'_ self) -> &'_ super::GeneralAppIdDecoder<'_> {
         self.0.getGeneralDecoder()
     }
 }

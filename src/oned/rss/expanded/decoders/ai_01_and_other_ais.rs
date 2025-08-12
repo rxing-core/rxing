@@ -50,7 +50,7 @@ impl AbstractExpandedDecoder for AI01AndOtherAIs<'_> {
         self.1.decodeAllCodes(buff, Self::HEADER_SIZE + 44)
     }
 
-    fn getGeneralDecoder(&self) -> &super::GeneralAppIdDecoder {
+    fn getGeneralDecoder(&self) -> &super::GeneralAppIdDecoder<'_> {
         &self.1
     }
 }

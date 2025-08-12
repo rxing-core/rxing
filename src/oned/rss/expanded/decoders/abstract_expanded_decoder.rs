@@ -57,7 +57,7 @@ pub trait AbstractExpandedDecoder {
     // }
 
     fn parseInformation(&mut self) -> Result<String>;
-    fn getGeneralDecoder(&self) -> &GeneralAppIdDecoder;
+    fn getGeneralDecoder(&self) -> &GeneralAppIdDecoder<'_>;
     // fn new(information:&BitArray) -> Self where Self:Sized;
 }
 

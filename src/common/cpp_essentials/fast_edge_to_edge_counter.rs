@@ -15,7 +15,7 @@ pub struct FastEdgeToEdgeCounter<'a> {
 }
 
 impl FastEdgeToEdgeCounter<'_> {
-    pub fn new<T: BitMatrixCursorTrait>(cur: &T) -> FastEdgeToEdgeCounter {
+    pub fn new<T: BitMatrixCursorTrait>(cur: &'_ T) -> FastEdgeToEdgeCounter<'_> {
         let stride = cur.d().y as isize * cur.img().width() as isize + cur.d().x as isize;
         let p = ((cur.p().y as isize * cur.img().width() as isize).abs() as i32 + cur.p().x as i32)
             as u32; // P IS SET WRONG IN REVERSE

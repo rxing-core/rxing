@@ -62,7 +62,7 @@ impl<LS: LuminanceSource> Binarizer for GlobalHistogramBinarizer<LS> {
     }
 
     // Applies simple sharpening to the row data to improve performance of the 1D Readers.
-    fn get_black_row(&self, y: usize) -> Result<Cow<BitArray>> {
+    fn get_black_row(&'_ self, y: usize) -> Result<Cow<'_, BitArray>> {
         let row = self.black_row_cache[y].get_or_try_init(|| {
             let source = self.get_luminance_source();
             let width = source.get_width();
@@ -109,7 +109,7 @@ impl<LS: LuminanceSource> Binarizer for GlobalHistogramBinarizer<LS> {
         Ok(Cow::Borrowed(row))
     }
 
-    fn get_black_line(&self, l: usize, lt: LineOrientation) -> Result<Cow<BitArray>> {
+    fn get_black_line(&'_ self, l: usize, lt: LineOrientation) -> Result<Cow<'_, BitArray>> {
         if lt == LineOrientation::Row {
             self.get_black_row(l)
         } else {
@@ -180,7 +180,7 @@ impl<LS: LuminanceSource> Binarizer for GlobalHistogramBinarizer<LS> {
         self.height
     }
 
-    fn get_black_row_from_matrix(&self, y: usize) -> Result<Cow<BitArray>> {
+    fn get_black_row_from_matrix(&'_ self, y: usize) -> Result<Cow<'_, BitArray>> {
         if let Some(matrix) = self.black_matrix.get() {
             Ok(Cow::Owned(matrix.getRow(y as u32)))
         } else {

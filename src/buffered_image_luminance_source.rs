@@ -56,7 +56,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
     const SUPPORTS_CROP: bool = true;
     const SUPPORTS_ROTATION: bool = true;
 
-    fn get_row(&self, y: usize) -> Option<Cow<[u8]>> {
+    fn get_row(&'_ self, y: usize) -> Option<Cow<'_, [u8]>> {
         let buf = self.image.as_luma8()?;
 
         let width = self.get_width();

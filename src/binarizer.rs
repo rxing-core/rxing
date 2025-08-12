@@ -53,11 +53,11 @@ pub trait Binarizer {
      * @return The array of bits for this row (true means black).
      * @throws NotFoundException if row can't be binarized
      */
-    fn get_black_row(&self, y: usize) -> Result<Cow<BitArray>>;
+    fn get_black_row(&self, y: usize) -> Result<Cow<'_, BitArray>>;
 
     // An alternate version of get_black_row that fetches the line from the matrix if
     // it has already been generated, falling back to get_black_row if it hasn't.
-    fn get_black_row_from_matrix(&self, y: usize) -> Result<Cow<BitArray>>;
+    fn get_black_row_from_matrix(&self, y: usize) -> Result<Cow<'_, BitArray>>;
 
     /**
      * Converts a 2D array of luminance data to 1 bit data. As above, assume this method is expensive
@@ -71,7 +71,7 @@ pub trait Binarizer {
     fn get_black_matrix(&self) -> Result<&BitMatrix>;
 
     /// Get a row or column of the image
-    fn get_black_line(&self, l: usize, lt: LineOrientation) -> Result<Cow<BitArray>>;
+    fn get_black_line(&self, l: usize, lt: LineOrientation) -> Result<Cow<'_, BitArray>>;
 
     /**
      * Creates a new object with the same type as this Binarizer implementation, but with pristine

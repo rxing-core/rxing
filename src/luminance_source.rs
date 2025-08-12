@@ -48,7 +48,7 @@ pub trait LuminanceSource {
      *            Always use the returned object, and ignore the .length of the array.
      * @return An array containing the luminance data.
      */
-    fn get_row(&self, y: usize) -> Option<Cow<[u8]>>;
+    fn get_row(&self, y: usize) -> Option<Cow<'_, [u8]>>;
 
     /// Get a column of of the image
     fn get_column(&self, x: usize) -> Vec<u8>;

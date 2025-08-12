@@ -60,11 +60,11 @@ impl<LS: LuminanceSource> Binarizer for HybridBinarizer<LS> {
         self.ghb.get_luminance_source()
     }
 
-    fn get_black_row(&self, y: usize) -> Result<Cow<BitArray>> {
+    fn get_black_row(&self, y: usize) -> Result<Cow<'_, BitArray>> {
         self.ghb.get_black_row(y)
     }
 
-    fn get_black_line(&self, l: usize, lt: super::LineOrientation) -> Result<Cow<BitArray>> {
+    fn get_black_line(&self, l: usize, lt: super::LineOrientation) -> Result<Cow<'_, BitArray>> {
         self.ghb.get_black_line(l, lt)
     }
 
@@ -92,7 +92,7 @@ impl<LS: LuminanceSource> Binarizer for HybridBinarizer<LS> {
         self.ghb.get_height()
     }
 
-    fn get_black_row_from_matrix(&self, y: usize) -> Result<Cow<BitArray>> {
+    fn get_black_row_from_matrix(&self, y: usize) -> Result<Cow<'_, BitArray>> {
         if let Some(matrix) = self.black_matrix.get() {
             Ok(Cow::Owned(matrix.getRow(y as u32)))
         } else {

@@ -242,7 +242,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
     const SUPPORTS_CROP: bool = true;
     const SUPPORTS_ROTATION: bool = false;
 
-    fn get_row(&self, y: usize) -> Option<Cow<[u8]>> {
+    fn get_row(&self, y: usize) -> Option<Cow<'_, [u8]>> {
         if y >= self.get_height() {
             // //throw new IllegalArgumentException("Requested row is outside the image: " + y);
             // panic!("Requested row is outside the image: {y}");

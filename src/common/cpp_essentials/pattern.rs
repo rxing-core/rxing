@@ -44,7 +44,7 @@ impl PatternRow {
         self.0.is_empty()
     }
 
-    pub fn into_pattern_view(&self) -> PatternView {
+    pub fn into_pattern_view(&'_ self) -> PatternView<'_> {
         PatternView::new(self)
     }
 

@@ -42,7 +42,7 @@ impl LuminanceSource for RGBLuminanceSource {
     const SUPPORTS_CROP: bool = true;
 
     /// gets a row, returns an empty row if we are out of bounds.
-    fn get_row(&self, y: usize) -> Option<Cow<[u8]>> {
+    fn get_row(&self, y: usize) -> Option<Cow<'_, [u8]>> {
         if y >= self.get_height() {
             return None;
         }

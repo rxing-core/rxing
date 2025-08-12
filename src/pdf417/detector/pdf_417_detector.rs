@@ -100,7 +100,7 @@ pub fn detect_with_hints<B: Binarizer>(
  * @param rotation the degrees of rotation to apply
  * @return BitMatrix with applied rotation
  */
-fn applyRotation(matrix: &BitMatrix, rotation: u32) -> Result<Cow<BitMatrix>> {
+fn applyRotation(matrix: &'_ BitMatrix, rotation: u32) -> Result<Cow<'_, BitMatrix>> {
     if rotation % 360 == 0 {
         Ok(Cow::Borrowed(matrix))
     } else {

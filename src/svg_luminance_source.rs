@@ -8,7 +8,7 @@ use resvg::{self, usvg::Options};
 pub struct SVGLuminanceSource(BufferedImageLuminanceSource);
 
 impl LuminanceSource for SVGLuminanceSource {
-    fn get_row(&self, y: usize) -> Option<Cow<[u8]>> {
+    fn get_row(&'_ self, y: usize) -> Option<Cow<'_, [u8]>> {
         self.0.get_row(y)
     }
 

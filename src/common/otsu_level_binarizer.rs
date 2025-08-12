@@ -60,7 +60,7 @@ impl<LS: LuminanceSource> Binarizer for OtsuLevelBinarizer<LS> {
         &self.source
     }
 
-    fn get_black_row(&self, y: usize) -> Result<Cow<BitArray>> {
+    fn get_black_row(&'_ self, y: usize) -> Result<Cow<'_, BitArray>> {
         let row = self.black_row_cache[y].get_or_try_init(|| {
             let matrix = self.get_black_matrix()?;
             Ok(matrix.getRow(y as u32))
@@ -88,13 +88,17 @@ impl<LS: LuminanceSource> Binarizer for OtsuLevelBinarizer<LS> {
         self.height
     }
 
-    fn get_black_row_from_matrix(&self, y: usize) -> Result<Cow<BitArray>> {
+    fn get_black_row_from_matrix(&self, y: usize) -> Result<Cow<'_, BitArray>> {
         let matrix = self.get_black_matrix()?;
         let row = matrix.getRow(y as u32);
         Ok(Cow::Owned(row))
     }
 
-    fn get_black_line(&self, l: usize, lt: super::LineOrientation) -> Result<Cow<BitArray>> {
+    fn get_black_line(
+        &'_ self,
+        _l: usize,
+        _lt: super::LineOrientation,
+    ) -> Result<Cow<'_, BitArray>> {
         unimplemented!("get_black_line is not implemented for OtsuLevelBinarizer");
     }
 }

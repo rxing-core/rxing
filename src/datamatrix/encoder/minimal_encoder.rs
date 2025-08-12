@@ -1234,23 +1234,23 @@ impl Edge {
                     self.input.charAt(self.fromPosition as usize)?,
                     self.input.getFNC1Character(),
                 ) {
-                    return Ok(Self::getBytes2(
+                    Ok(Self::getBytes2(
                         235,
                         self.input.charAt(self.fromPosition as usize)? as u32 - 127,
-                    ));
+                    ))
                 } else if self.characterLength == 2 {
-                    return Ok(Self::getBytes1(
+                    Ok(Self::getBytes1(
                         (self.input.charAt(self.fromPosition as usize)? as u32 - b'0' as u32) * 10
                             + self.input.charAt(self.fromPosition as usize + 1)? as u32
                             - b'0' as u32
                             + 130,
-                    ));
+                    ))
                 } else if self.input.isFNC1(self.fromPosition as usize)? {
-                    return Ok(Self::getBytes1(232));
+                    Ok(Self::getBytes1(232))
                 } else {
-                    return Ok(Self::getBytes1(
+                    Ok(Self::getBytes1(
                         self.input.charAt(self.fromPosition as usize)? as u32 + 1,
-                    ));
+                    ))
                 }
             }
             Mode::B256 => Ok(Self::getBytes1(

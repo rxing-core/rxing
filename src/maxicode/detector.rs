@@ -390,7 +390,7 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
 ///       +
 ///       -
 ///       +
-fn find_concentric_circles(image: &BitMatrix) -> Option<Vec<Circle>> {
+fn find_concentric_circles(image: &BitMatrix) -> Option<Vec<Circle<'_>>> {
     let mut bullseyes = Vec::new();
 
     // find things that might be bullseye patterns, we start 6 in because a bullseye is at least six pixels in diameter

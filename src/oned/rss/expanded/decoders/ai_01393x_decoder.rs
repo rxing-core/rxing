@@ -79,7 +79,7 @@ impl AbstractExpandedDecoder for AI01393xDecoder<'_> {
         Ok(buf)
     }
 
-    fn getGeneralDecoder(&self) -> &GeneralAppIdDecoder {
+    fn getGeneralDecoder(&'_ self) -> &'_ GeneralAppIdDecoder<'_> {
         &self.general_decoder
     }
 }

@@ -72,12 +72,12 @@ impl<B: Binarizer> BinaryBitmap<B> {
      * @return The array of bits for this row (true means black).
      * @throws NotFoundException if row can't be binarized
      */
-    pub fn get_black_row(&self, y: usize) -> Result<Cow<BitArray>> {
+    pub fn get_black_row(&self, y: usize) -> Result<Cow<'_, BitArray>> {
         self.binarizer.get_black_row(y)
     }
 
     /// Get a row or column of the image
-    pub fn get_black_line(&self, l: usize, lt: LineOrientation) -> Result<Cow<BitArray>> {
+    pub fn get_black_line(&self, l: usize, lt: LineOrientation) -> Result<Cow<'_, BitArray>> {
         self.binarizer.get_black_line(l, lt)
     }
 
