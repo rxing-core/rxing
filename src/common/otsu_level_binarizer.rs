@@ -31,7 +31,11 @@ impl<LS: LuminanceSource> OtsuLevelBinarizer<LS> {
 
         let otsu_level = imageproc::contrast::otsu_level(&image_buffer);
 
-        let filtered_iamge = imageproc::contrast::threshold(&image_buffer, otsu_level);
+        let filtered_iamge = imageproc::contrast::threshold(
+            &image_buffer,
+            otsu_level,
+            imageproc::contrast::ThresholdType::Binary,
+        );
 
         let dynamic_filtered = DynamicImage::from(filtered_iamge);
 
@@ -82,5 +86,15 @@ impl<LS: LuminanceSource> Binarizer for OtsuLevelBinarizer<LS> {
 
     fn get_height(&self) -> usize {
         self.height
+    }
+
+    fn get_black_row_from_matrix(&self, y: usize) -> Result<Cow<BitArray>> {
+        let matrix = self.get_black_matrix()?;
+        let row = matrix.getRow(y as u32);
+        Ok(Cow::Owned(row))
+    }
+
+    fn get_black_line(&self, l: usize, lt: super::LineOrientation) -> Result<Cow<BitArray>> {
+        unimplemented!("get_black_line is not implemented for OtsuLevelBinarizer");
     }
 }
