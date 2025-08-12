@@ -133,8 +133,8 @@ impl MultiFormatReader {
             image.get_black_matrix_mut().flip_self();
             let res = self.decode_formats(image);
             // if let Ok(r) = res.as_mut() {
-            if res.is_ok() {
-                let mut r = res.unwrap();
+            if let Ok(mut r) = res {
+                //let mut r = res.unwrap();
                 r.putMetadata(
                     crate::RXingResultMetadataType::IS_INVERTED,
                     crate::RXingResultMetadataValue::IsInverted(true),
