@@ -49,6 +49,8 @@ fn Scan(
             continue;
         }
 
+        // dbg!(&startTracer.p);
+
         let mut tl = Point::default();
         let mut bl = Point::default();
         let mut br = Point::default();
@@ -299,6 +301,8 @@ pub fn detect(
             // history.clear(0);
         }
 
+        // dbg!(format!("startPos: {}, dir: {}", startPos, dir));
+
         let mut i = 1;
         loop {
             // for (int i = 1;; ++i) {
@@ -334,12 +338,13 @@ pub fn detect(
                 found_symbols.push(res);
                 // }
             }
+            // dbg!(format!("i={} OK", i));
 
             // if (auto res = Scan(tracer, lines); res.isValid())
             // 	{return res;}
             // #endif
 
-            if !tryHarder {
+            if !tryHarder || (tryHarder && i > image.getWidth().max(image.getHeight()) as i32) {
                 break;
             } // only test center lines
             i += 1;

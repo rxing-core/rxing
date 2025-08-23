@@ -8,7 +8,7 @@ use crate::{
 
 use super::{BitMatrixCursorTrait, Direction, RegressionLineTrait, StepResult, Value};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct EdgeTracer<'a> {
     pub(crate) img: &'a BitMatrix,
 
@@ -327,20 +327,33 @@ impl<'a> EdgeTracer<'_> {
         finishLine: &mut T,
     ) -> Result<bool> {
         let mut maxStepSize = maxStepSize;
+        let maxStepsPerGap = maxStepSize;
+        let mut steps = 0;
         line.setDirectionInward(dEdge);
         let mut gaps = 0;
+        let mut lastP = Point { x: 0.0, y: 0.0 };
         loop {
             // detect an endless loop (lack of progress). if encountered, please report.
-            if !(line.points().is_empty()
-                || &&self.p
-                    != line
-                        .points()
-                        .last()
-                        .as_ref()
-                        .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?)
+            // this fixes a deadlock in falsepositives-1/#570.png and the regression in #574
+            steps += 1;
+            if self.p == std::mem::replace(&mut lastP, self.p)
+                || steps > (if gaps == 0 { 2 } else { gaps + 1 }) * maxStepsPerGap
             {
-                return Err(Exceptions::ILLEGAL_STATE);
+                return Ok(false);
             }
+
+            // // detect an endless loop (lack of progress). if encountered, please report.
+            // if !(line.points().is_empty()
+            //     || &&self.p
+            //         != line
+            //             .points()
+            //             .last()
+            //             .as_ref()
+            //             .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?)
+            // {
+            //     return Err(Exceptions::ILLEGAL_STATE);
+            // }
+
             if !line.points().is_empty()
                 && &&self.p
                     == line
