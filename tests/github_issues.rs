@@ -600,3 +600,67 @@ fn issue_59() {
         .expect("must decode first image");
     assert_eq!(detection.getText(), data2);
 }
+
+#[cfg(feature = "image")]
+#[test]
+fn issue_69_timed() {
+    use std::{sync::mpsc, thread, time::Duration};
+
+    use rxing::DecodeHints;
+
+    let (tx, rx) = mpsc::channel();
+
+    thread::spawn(move || {
+        // Capture panic so the test can surface it
+        let mut hints: DecodeHints =
+            DecodeHints::default().with(rxing::DecodeHintValue::TryHarder(true));
+
+        use std::panic::{catch_unwind, AssertUnwindSafe};
+        let r = catch_unwind(AssertUnwindSafe(|| {
+            assert!(rxing::helpers::detect_multiple_in_file_with_hints(
+        "test_resources/blackbox/github_issue_cases/481273207-b43215de-7369-4a04-a695-984f27fd1225.jpg",
+        &mut hints
+    ).is_ok())
+        }));
+        let _ = tx.send(r);
+    });
+
+    match rx.recv_timeout(Duration::from_secs(5)) {
+        Ok(Ok(())) => {} // finished in time
+        Ok(Err(e)) => panic!("search panicked with: {e:?}"),
+        Err(_) => panic!("search timed out"), // did not finish in time
+    }
+}
+
+#[cfg(feature = "image")]
+#[test]
+fn issue_69() {
+    use rxing::DecodeHints;
+
+    let mut hints: DecodeHints =
+        DecodeHints::default().with(rxing::DecodeHintValue::TryHarder(true));
+    let results = rxing::helpers::detect_multiple_in_file_with_hints(
+        "test_resources/blackbox/github_issue_cases/481273207-b43215de-7369-4a04-a695-984f27fd1225.jpg",
+        &mut hints
+    ).expect("should return results from decoding");
+
+    assert!(
+        results.len() >= 5,
+        "Search should return at least 5 results"
+    );
+
+    /*
+
+    Found 5 results
+    Result 0:
+    (datamatrix) 011060329549205420151734113010D24121203
+    Result 1:
+    (datamatrix) 01106032951299431726113010M8190P
+    Result 2:
+    (code 128) 01106032954920542015
+    Result 3:
+    (datamatrix) 0110603295041283202217350131104559233
+    Result 4:
+    (code 128) 1734113010D24121203
+     */
+}
