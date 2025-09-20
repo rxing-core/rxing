@@ -344,7 +344,7 @@ pub fn detect(
             // 	{return res;}
             // #endif
 
-            if !tryHarder || (tryHarder && i > image.getWidth().max(image.getHeight()) as i32) {
+            if !tryHarder || i > image.getWidth().max(image.getHeight()) as i32 {
                 break;
             } // only test center lines
             i += 1;
