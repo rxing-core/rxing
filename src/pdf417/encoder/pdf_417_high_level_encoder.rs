@@ -578,7 +578,7 @@ fn encodeBinary(
 ) -> Result<()> {
     if count == 1 && startmode == TEXT_COMPACTION {
         sb.push(char::from_u32(SHIFT_TO_BYTE).ok_or(Exceptions::PARSE)?);
-    } else if (count % 6) == 0 {
+    } else if count.is_multiple_of(6) {
         sb.push(char::from_u32(LATCH_TO_BYTE).ok_or(Exceptions::PARSE)?);
     } else {
         sb.push(char::from_u32(LATCH_TO_BYTE_PADDED).ok_or(Exceptions::PARSE)?);

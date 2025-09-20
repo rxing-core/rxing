@@ -96,7 +96,7 @@ impl C40Encoder {
             }
 
             let count = buffer.chars().count();
-            if (count % 3) == 0 {
+            if count.is_multiple_of(3) {
                 let newMode = high_level_encoder::lookAheadTest(
                     context.getMessage(),
                     context.pos,
@@ -130,7 +130,7 @@ impl C40Encoder {
             let c = context.getCurrentChar();
             context.pos += 1;
             lastCharSize = encodeChar(c, &mut buffer);
-            if buffer.chars().count() % 3 == 0 {
+            if buffer.chars().count().is_multiple_of(3) {
                 backtrackStartPosition = context.pos;
                 backtrackBufferLength = buffer.chars().count();
             }

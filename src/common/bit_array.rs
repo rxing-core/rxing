@@ -212,7 +212,7 @@ impl BitArray {
      * corresponds to bit i, the next-least-significant to i+1, and so on.
      */
     pub fn setBulk(&mut self, i: usize, newBits: BaseType) {
-        let bits = if i % BASE_BITS != 0 {
+        let bits = if !i.is_multiple_of(BASE_BITS) {
             newBits << i
         } else {
             newBits

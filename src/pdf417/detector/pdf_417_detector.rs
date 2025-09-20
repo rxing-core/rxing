@@ -101,7 +101,7 @@ pub fn detect_with_hints<B: Binarizer>(
  * @return BitMatrix with applied rotation
  */
 fn applyRotation(matrix: &'_ BitMatrix, rotation: u32) -> Result<Cow<'_, BitMatrix>> {
-    if rotation % 360 == 0 {
+    if rotation.is_multiple_of(360) {
         Ok(Cow::Borrowed(matrix))
     } else {
         let mut newMatrix = matrix.clone();

@@ -344,7 +344,7 @@ pub fn matchPrefixedField(
                 continue;
             }
 
-            if countPrecedingBackslashes(rawText, i) % 2 != 0 {
+            if !countPrecedingBackslashes(rawText, i).is_multiple_of(2) {
                 // semicolon was escaped (odd count of preceding backslashes) so continue
                 i += 1;
             } else {
