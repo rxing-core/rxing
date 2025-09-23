@@ -625,7 +625,7 @@ fn issue_69_timed() {
         let _ = tx.send(r);
     });
 
-    match rx.recv_timeout(Duration::from_secs(30)) {
+    match rx.recv_timeout(Duration::from_secs(5)) {
         Ok(Ok(())) => {} // finished in time
         Ok(Err(e)) => panic!("search panicked with: {e:?}"),
         Err(_) => panic!("search timed out"), // did not finish in time
