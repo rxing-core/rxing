@@ -28,7 +28,7 @@ pub fn ascii_to_numeric(contents: &str) -> String {
 }
 
 pub fn numeric_to_ascii(contents: &str) -> Result<String> {
-    if !contents.len().is_multiple_of(2) {
+    if contents.len() % 2 != 0 {
         return Err(Exceptions::illegal_argument_with(
             "Input must contain an even number of characters.",
         ));

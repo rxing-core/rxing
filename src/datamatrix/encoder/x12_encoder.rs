@@ -35,7 +35,7 @@ impl Encoder for X12Encoder {
             Self::encodeChar(c, &mut buffer)?;
 
             let count = buffer.chars().count();
-            if count.is_multiple_of(3) {
+            if (count % 3) == 0 {
                 C40Encoder::writeNextTriplet(context, &mut buffer)?;
 
                 let newMode = high_level_encoder::lookAheadTest(

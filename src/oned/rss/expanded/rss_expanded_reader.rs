@@ -623,7 +623,7 @@ impl RSSExpandedReader {
         previousPairs: &[ExpandedPair],
         rowNumber: u32,
     ) -> Result<ExpandedPair> {
-        let mut isOddPattern = previousPairs.len().is_multiple_of(2);
+        let mut isOddPattern = previousPairs.len() % 2 == 0;
         if self.startFromEven {
             isOddPattern = !isOddPattern;
         }
@@ -706,7 +706,7 @@ impl RSSExpandedReader {
                 .ok_or(Exceptions::ILLEGAL_STATE)?
                 .getStartEnd()[1] as i32;
         }
-        let mut searchingEvenPair = !previousPairs.len().is_multiple_of(2);
+        let mut searchingEvenPair = previousPairs.len() % 2 != 0;
         if self.startFromEven {
             searchingEvenPair = !searchingEvenPair;
         }
