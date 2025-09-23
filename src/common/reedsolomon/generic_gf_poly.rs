@@ -85,14 +85,14 @@ impl GenericGFPoly {
         })
     }
 
-    pub const fn getCoefficients(&self) -> &Vec<i32> {
+    pub fn getCoefficients(&self) -> &Vec<i32> {
         &self.coefficients
     }
 
     /**
      * @return degree of this polynomial
      */
-    pub const fn getDegree(&self) -> usize {
+    pub fn getDegree(&self) -> usize {
         self.coefficients.len() - 1
     }
 

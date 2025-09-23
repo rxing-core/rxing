@@ -185,11 +185,11 @@ impl ECIEncoderSet {
         }
     }
 
-    pub const fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.encoders.len()
     }
 
-    pub const fn is_empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.encoders.is_empty()
     }
 

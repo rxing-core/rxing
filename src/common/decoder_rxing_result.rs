@@ -44,7 +44,7 @@ pub struct DecoderRXingResult {
 }
 
 impl DecoderRXingResult {
-    pub const fn new(
+    pub fn new(
         rawBytes: Vec<u8>,
         text: String,
         byteSegments: Vec<Vec<u8>>,
@@ -63,7 +63,7 @@ impl DecoderRXingResult {
         )
     }
 
-    pub const fn with_symbology(
+    pub fn with_symbology(
         rawBytes: Vec<u8>,
         text: String,
         byteSegments: Vec<Vec<u8>>,
@@ -83,7 +83,7 @@ impl DecoderRXingResult {
         )
     }
 
-    pub const fn with_sa(
+    pub fn with_sa(
         rawBytes: Vec<u8>,
         text: String,
         byteSegments: Vec<Vec<u8>>,
@@ -105,7 +105,7 @@ impl DecoderRXingResult {
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub const fn with_all(
+    pub fn with_all(
         rawBytes: Vec<u8>,
         text: String,
         byteSegments: Vec<Vec<u8>>,

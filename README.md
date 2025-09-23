@@ -16,7 +16,7 @@ An online demo is available at [scan.rxing.org](https://scan.rxing.org).
 If you're looking for a WASM version of this library, check out [rxing-wasm](https://github.com/rxing-core/rxing-wasm), or on [NPM](https://www.npmjs.com/package/rxing-wasm).
 
 ## Minimum Rust Version
-Currently building with a minimum rust version of 1.89. Versions below that are not tested and may not compile or run as expected.
+Currently building with a minimum rust version of 1.85. Versions below that are not tested and may not compile or run as expected.
 
 ## Status
 All barcode formats are tested and functioning in their current state against current tests.
