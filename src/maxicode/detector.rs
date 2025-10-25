@@ -3,7 +3,8 @@ use num::integer::Roots;
 
 use crate::{
     common::{
-        BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler, Quadrilateral, Result,
+        BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler, PerspectiveTransform,
+        Quadrilateral, Result,
     },
     point, Exceptions, Point, PointU,
 };
@@ -41,6 +42,17 @@ struct Circle<'a> {
     horizontal_buckets: [u32; 11],
     vertical_buckets: [u32; 11],
     image: &'a BitMatrix,
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+struct EllipseDetection {
+    is_ellipse: bool,
+    center: PointU,
+    semi_major_axis: u32,
+    semi_minor_axis: u32,
+    major_axis_rotation: f32,
+    major_axis_points: [Point; 2],
+    minor_axis_points: [Point; 2],
 }
 
 impl Circle<'_> {
@@ -139,89 +151,100 @@ impl Circle<'_> {
     }
 
     /// detect an ellipse, and try to find defining points of it.
-    /// returns (ellipse, center, semi_major, semi_minor, linear_eccentricity)
-    pub fn detect_ellipse(&self) -> (bool, PointU, u32, u32, u32) {
-        // find semi-major and semi-minor axi
-        let mut lengths = [(0, 0.0, [Point::default(); 2]); 72];
+    pub fn detect_ellipse(&self) -> EllipseDetection {
+        let mut measurements = [(0, 0.0, [Point::default(); 2]); 72];
         let mut circle_points = Vec::new();
-        // for i_rotation in 0..72 {
-        for (i_rotation, length_set) in lengths.iter_mut().enumerate() {
+
+        for (i_rotation, measurement) in measurements.iter_mut().enumerate() {
             let rotation = i_rotation as f32 * 5.0;
             let (length, points) = self.find_width_at_degree(rotation);
             circle_points.extend_from_slice(&points);
-            *length_set = (length, rotation, points);
+            *measurement = (length, rotation, points);
         }
-        lengths.sort_by_key(|e| e.0);
-        let Some(major_axis) = lengths.last() else {
-            return (false, PointU::default(), 0, 0, 0);
+
+        let mut sorted_measurements = measurements;
+        sorted_measurements.sort_by_key(|entry| entry.0);
+
+        let Some(&major_axis) = sorted_measurements.last() else {
+            return EllipseDetection {
+                center: self.center,
+                semi_major_axis: self.radius,
+                semi_minor_axis: self.radius,
+                ..EllipseDetection::default()
+            };
         };
-        let Some(minor_axis) = lengths.first() else {
-            return (false, PointU::default(), 0, 0, 0);
+        let Some(&minor_axis) = sorted_measurements.first() else {
+            return EllipseDetection {
+                center: self.center,
+                semi_major_axis: self.radius,
+                semi_minor_axis: self.radius,
+                ..EllipseDetection::default()
+            };
         };
 
-        // // find foci
-        let linear_eccentricity = ((major_axis.0 / 2).pow(2) - (minor_axis.0 / 2).pow(2)).sqrt();
+        let mut detection = EllipseDetection {
+            center: self.center,
+            semi_major_axis: (major_axis.0 / 2).max(1),
+            semi_minor_axis: (minor_axis.0 / 2).max(1),
+            major_axis_rotation: major_axis.1,
+            major_axis_points: major_axis.2,
+            minor_axis_points: minor_axis.2,
+            ..EllipseDetection::default()
+        };
+
+        let linear_eccentricity = if detection.semi_major_axis > detection.semi_minor_axis {
+            (detection.semi_major_axis.pow(2) - detection.semi_minor_axis.pow(2)).sqrt()
+        } else {
+            0
+        };
 
         if linear_eccentricity == 0 {
-            // it's a circle afterall, and we're probably at the center of it
-            (false, self.center, self.radius, self.radius, 0)
-        } else {
-            //it's an elipse, or we're off center, so we need to fix that problem
-            let mut good_points = 0;
-            let mut bad_points = 0;
-            let mut found_all_on_ellipse = true;
-            for point in circle_points {
-                let check_result = Self::check_ellipse_point(
-                    self.center,
-                    point,
-                    major_axis.0 / 2,
-                    minor_axis.0 / 2,
-                );
-                if check_result > 1.0 {
-                    // a point is off the ellipse
-                    bad_points += 1;
-                    found_all_on_ellipse = false;
-                    // break;
-                } else {
-                    good_points += 1;
-                }
-            }
-            if !found_all_on_ellipse
-                && (good_points as f32 / (good_points + bad_points) as f32) < 0.8
-            {
-                // probably a circle that we wrongly accused of being an ellipse,
-                // try to find the center of that circle given three points on circumference
-                let [point_1, point_2] = self.find_width_at_degree(0.0).1;
-                let point_3 = self.find_width_at_degree(90.0).1[0];
-                let guessed_center_point = Self::find_center(point_1, point_2, point_3);
-                (
-                    false,
-                    (guessed_center_point.x as u32, guessed_center_point.y as u32).into(),
-                    self.radius,
-                    self.radius,
-                    0,
-                )
-            } else {
-                // this is a real ellipse
+            return detection;
+        }
 
-                // find ellipse center
-                let [point_1, point_2] = self.find_width_at_degree(0.0).1;
-                let point_3 = self.find_width_at_degree(90.0).1[0];
-                let ellipse_center = Self::calculate_ellipse_center(
-                    major_axis.0 as f32,
-                    minor_axis.0 as f32,
-                    point_1,
-                    point_2,
-                    point_3,
-                );
-                (
-                    true,
-                    (ellipse_center.x as u32, ellipse_center.y as u32).into(),
-                    major_axis.0 / 2,
-                    minor_axis.0 / 2,
-                    linear_eccentricity,
-                )
+        let mut good_points = 0;
+        let mut bad_points = 0;
+        let mut found_all_on_ellipse = true;
+
+        for point in circle_points {
+            let check_result = Self::check_ellipse_point(
+                self.center,
+                point,
+                detection.semi_major_axis,
+                detection.semi_minor_axis,
+            );
+            if check_result > 1.0 {
+                bad_points += 1;
+                found_all_on_ellipse = false;
+            } else {
+                good_points += 1;
             }
+        }
+
+        if !found_all_on_ellipse
+            && (good_points as f32 / (good_points + bad_points) as f32) < 0.8
+        {
+            let [point_1, point_2] = self.find_width_at_degree(0.0).1;
+            let point_3 = self.find_width_at_degree(90.0).1[0];
+            let guessed_center_point = Self::find_center(point_1, point_2, point_3);
+            detection.center =
+                (guessed_center_point.x as u32, guessed_center_point.y as u32).into();
+            detection.semi_major_axis = self.radius;
+            detection.semi_minor_axis = self.radius;
+            detection
+        } else {
+            detection.is_ellipse = true;
+            let [point_1, point_2] = self.find_width_at_degree(0.0).1;
+            let point_3 = self.find_width_at_degree(90.0).1[0];
+            let ellipse_center = Self::calculate_ellipse_center(
+                detection.semi_major_axis as f32 * 2.0,
+                detection.semi_minor_axis as f32 * 2.0,
+                point_1,
+                point_2,
+                point_3,
+            );
+            detection.center = (ellipse_center.x as u32, ellipse_center.y as u32).into();
+            detection
         }
     }
 
@@ -677,6 +700,21 @@ const RIGHT_SHIFT_PERCENT_ADJUST: f32 = 0.03;
 const ACCEPTED_SCALES: [f64; 5] = [0.065, 0.069, 0.07, 0.075, 0.08];
 
 fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<([Point; 4], f32)> {
+    let ellipse_detection = circle.detect_ellipse();
+
+    if ellipse_detection.center != PointU::default() {
+        circle.center = ellipse_detection.center;
+    }
+
+    if ellipse_detection.semi_major_axis != 0 && ellipse_detection.semi_minor_axis != 0 {
+        let average_radius = ((ellipse_detection.semi_major_axis as f32
+            + ellipse_detection.semi_minor_axis as f32)
+            / 2.0)
+            .max(1.0)
+            .round() as u32;
+        circle.radius = average_radius.max(1);
+    }
+
     let (left_boundary, right_boundary, top_boundary, bottom_boundary) =
         calculate_simple_boundary(circle, Some(image), None, false);
 
@@ -687,24 +725,30 @@ fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<([Point; 4], f32
         point(right_boundary as f32, top_boundary as f32),
     ];
 
-    #[allow(unused_mut)]
     let mut result_box = naive_box;
 
-    // check and see if we're dealing with an ellipse
-    #[cfg(feature = "experimental_features")]
-    let (is_ellipse, _, _, _, _) = circle.detect_ellipse();
-    #[cfg(feature = "experimental_features")]
-    if is_ellipse {
-        // we don't deal with ellipses yet
-        return Err(Exceptions::NOT_FOUND);
+    let mut final_rotation = 0.0;
+    let mut skip_rotation = false;
+
+    if ellipse_detection.is_ellipse {
+        if let Some(transformed_box) = perspective_adjust_box(
+            circle,
+            &ellipse_detection,
+            &naive_box,
+            (left_boundary, right_boundary, top_boundary, bottom_boundary),
+        ) {
+            result_box = transformed_box;
+            final_rotation = ellipse_detection.major_axis_rotation;
+            skip_rotation = true;
+        }
     }
 
-    let mut final_rotation = 0.0;
-
-    for scale in ACCEPTED_SCALES {
-        if let Some(found_rotation) = attempt_rotation_box(image, circle, &naive_box, scale) {
-            (result_box, final_rotation) = found_rotation;
-            break;
+    if !skip_rotation {
+        for scale in ACCEPTED_SCALES {
+            if let Some(found_rotation) = attempt_rotation_box(image, circle, &naive_box, scale) {
+                (result_box, final_rotation) = found_rotation;
+                break;
+            }
         }
     }
 
@@ -717,6 +761,116 @@ fn box_symbol(image: &BitMatrix, circle: &mut Circle) -> Result<([Point; 4], f32
         ],
         final_rotation,
     ))
+}
+
+fn perspective_adjust_box(
+    circle: &Circle,
+    ellipse: &EllipseDetection,
+    naive_box: &[Point; 4],
+    boundaries: (u32, u32, u32, u32),
+) -> Option<[Point; 4]> {
+    let (left_boundary, right_boundary, top_boundary, bottom_boundary) = boundaries;
+    let center_point = Point::from(circle.center);
+    let angle = ellipse.major_axis_rotation;
+
+    let rotated_box = naive_box.map(|p| rotate_point(center_point, p, angle));
+
+    let cross_points = [
+        point(center_point.x, top_boundary as f32),
+        point(right_boundary as f32, center_point.y),
+        point(center_point.x, bottom_boundary as f32),
+        point(left_boundary as f32, center_point.y),
+    ];
+    let rotated_cross = cross_points.map(|p| rotate_point(center_point, p, angle));
+
+    let rotated_quad = Quadrilateral::new(
+        rotated_cross[0],
+        rotated_cross[1],
+        rotated_cross[2],
+        rotated_cross[3],
+    );
+    if !rotated_quad.is_convex() {
+        return None;
+    }
+
+    let mut unique_points: Vec<Point> = Vec::new();
+    for point in ellipse
+        .major_axis_points
+        .iter()
+        .chain(ellipse.minor_axis_points.iter())
+    {
+        if unique_points.iter().all(|existing| !points_close(*existing, *point)) {
+            unique_points.push(*point);
+        }
+    }
+
+    if unique_points.len() < 4 {
+        return None;
+    }
+
+    unique_points.sort_by(|a, b| {
+        let angle_a = (a.y - center_point.y).atan2(a.x - center_point.x);
+        let angle_b = (b.y - center_point.y).atan2(b.x - center_point.x);
+        angle_a
+            .partial_cmp(&angle_b)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    unique_points.dedup_by(|a, b| points_close(*a, *b));
+
+    if unique_points.len() != 4 {
+        return None;
+    }
+
+    let top_index = unique_points
+        .iter()
+        .enumerate()
+        .min_by(|a, b| a.1.y.partial_cmp(&b.1.y).unwrap_or(std::cmp::Ordering::Equal))?
+        .0;
+    unique_points.rotate_left(top_index);
+
+    let actual_quad = Quadrilateral::new(
+        unique_points[0],
+        unique_points[1],
+        unique_points[2],
+        unique_points[3],
+    );
+    if !actual_quad.is_convex() {
+        return None;
+    }
+
+    let transform =
+        PerspectiveTransform::quadrilateralToQuadrilateral(rotated_quad, actual_quad).ok()?;
+    if !transform.isValid() {
+        return None;
+    }
+
+    let mut transformed_box = rotated_box;
+    transform.transform_points_single(&mut transformed_box);
+
+    if !Quadrilateral(transformed_box).is_convex() {
+        return None;
+    }
+
+    Some(transformed_box)
+}
+
+fn rotate_point(center: Point, target: Point, angle_deg: f32) -> Point {
+    if angle_deg == 0.0 {
+        return target;
+    }
+    let radians = angle_deg.to_radians();
+    let cos_theta = radians.cos();
+    let sin_theta = radians.sin();
+    let translated_x = target.x - center.x;
+    let translated_y = target.y - center.y;
+    point(
+        translated_x * cos_theta - translated_y * sin_theta + center.x,
+        translated_x * sin_theta + translated_y * cos_theta + center.y,
+    )
+}
+
+fn points_close(a: Point, b: Point) -> bool {
+    (a.x - b.x).abs() < 0.5 && (a.y - b.y).abs() < 0.5
 }
 
 fn calculate_simple_boundary(
