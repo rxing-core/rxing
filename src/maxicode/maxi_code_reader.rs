@@ -17,7 +17,7 @@
 use crate::{
     common::{BitMatrix, DetectorRXingResult, Result},
     BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, RXingResult,
-    RXingResultMetadataType, Reader,
+    RXingResultMetadataType, Reader, WitnessData,
 };
 
 use super::{decoder::maxicode_decoder, detector};
@@ -42,8 +42,9 @@ impl Reader for MaxiCodeReader {
     fn decode<B: Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
+        witness_data: Option<&mut WitnessData>,
     ) -> Result<crate::RXingResult> {
-        self.decode_with_hints(image, &DecodeHints::default())
+        self.decode_with_hints(image, &DecodeHints::default(), witness_data)
     }
 
     /**
@@ -58,7 +59,13 @@ impl Reader for MaxiCodeReader {
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
         hints: &DecodeHints,
+        witness_data: Option<&mut WitnessData>,
     ) -> Result<crate::RXingResult> {
+        if witness_data.is_some() {
+            return Err(Exceptions::IllegalArgumentException(
+                "witness data extraction is not supported for this barcode type".to_string(),
+            ));
+        }
         self.internal_decode_with_hints(image, hints)
     }
 }

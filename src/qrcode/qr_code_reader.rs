@@ -17,7 +17,7 @@
 use crate::{
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
     point, BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, Point, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    RXingResultMetadataType, RXingResultMetadataValue, Reader, WitnessData,
 };
 
 use super::{
@@ -46,15 +46,25 @@ impl Reader for QRCodeReader {
      * @throws FormatException if a QR code cannot be decoded
      * @throws ChecksumException if error correction fails
      */
-    fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
-        self.decode_with_hints(image, &DecodeHints::default())
+    fn decode<B: Binarizer>(
+        &mut self,
+        image: &mut crate::BinaryBitmap<B>,
+        witness_data: Option<&mut WitnessData>,
+    ) -> Result<RXingResult> {
+        self.decode_with_hints(image, &DecodeHints::default(), witness_data)
     }
 
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
         hints: &DecodeHints,
+        witness_data: Option<&mut WitnessData>,
     ) -> Result<RXingResult> {
+        if witness_data.is_some() {
+            return Err(Exceptions::IllegalArgumentException(
+                "witness data extraction is not supported for this barcode type".to_string(),
+            ));
+        }
         self.internal_decode_with_hints(image, hints)
     }
 }

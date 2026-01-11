@@ -503,7 +503,9 @@ fn decode_command(
                     ExitCode::SUCCESS
                 }
                 Err(search_err) => {
-                    println!("Error while attempting to locate barcode in '{file_name}': {search_err}");
+                    println!(
+                        "Error while attempting to locate barcode in '{file_name}': {search_err}"
+                    );
                     ExitCode::FAILURE
                 }
             }
@@ -523,7 +525,8 @@ fn decode_with_witness_extraction(
     parsed_bytes: &bool,
 ) -> ExitCode {
     use rxing::{
-        BinaryBitmap, MultiFormatReader, Reader,
+        BinaryBitmap, FinalizedWitnessData, LuminanceSource, MultiFormatReader, Reader,
+        WitnessData,
         common::{FixedThresholdBinarizer, Result},
     };
 
@@ -531,16 +534,16 @@ fn decode_with_witness_extraction(
     fn decode_and_extract<B: rxing::Binarizer>(
         bitmap: &mut BinaryBitmap<B>,
         hints: &mut rxing::DecodeHints,
+        witness_data: &mut WitnessData,
     ) -> Result<(rxing::RXingResult, rxing::WitnessData)> {
         let mut reader = MultiFormatReader::default();
-        let result = reader.decode_with_hints(bitmap, hints)?;
-        let witness = rxing::helpers::extract_witness_data(bitmap)?;
-        Ok((result, witness))
+        let result = reader.decode_with_hints(bitmap, hints, Some(witness_data))?;
+        Ok((result, witness_data.clone()))
     }
 
     let decode_result: Result<(rxing::RXingResult, rxing::WitnessData)> = if extension == "svg" {
-        use std::{fs::File, io::Read};
         use rxing::{SVGLuminanceSource, common::FixedThresholdBinarizer};
+        use std::{fs::File, io::Read};
 
         let mut file = match File::open(file_name) {
             Ok(f) => f,
@@ -564,10 +567,16 @@ fn decode_with_witness_extraction(
             }
         };
 
+        // Extract values before moving source into binarizer
+        let width = source.get_width();
+        let height = source.get_height();
+        let luminance_data = source.get_matrix().to_vec();
+
         let binarizer = FixedThresholdBinarizer::new(source);
         let mut bitmap = BinaryBitmap::new(binarizer);
+        let mut witness_data = WitnessData::new(width, height, luminance_data);
 
-        decode_and_extract(&mut bitmap, hints)
+        decode_and_extract(&mut bitmap, hints, &mut witness_data)
     } else {
         use rxing::BufferedImageLuminanceSource;
 
@@ -580,16 +589,30 @@ fn decode_with_witness_extraction(
         };
 
         let source = BufferedImageLuminanceSource::new(img);
+
+        // Extract values before moving source into binarizer
+        let width = source.get_width();
+        let height = source.get_height();
+        let luminance_data = source.get_matrix().to_vec();
+
         let binarizer = FixedThresholdBinarizer::new(source);
         let mut bitmap = BinaryBitmap::new(binarizer);
+        let mut witness_data = WitnessData::new(width, height, luminance_data);
 
-        decode_and_extract(&mut bitmap, hints)
+        decode_and_extract(&mut bitmap, hints, &mut witness_data)
     };
 
     match decode_result {
         Ok((result, witness)) => {
             // Save witness data to JSON
-            if let Err(e) = witness.save_to_json(witness_path) {
+            let finalized_witness = match FinalizedWitnessData::from_witness_data(&witness) {
+                Ok(fw) => fw,
+                Err(e) => {
+                    println!("Error finalizing witness data: {:?}", e);
+                    return ExitCode::FAILURE;
+                }
+            };
+            if let Err(e) = finalized_witness.save_to_json(witness_path) {
                 println!("Error saving witness data to '{}': {}", witness_path, e);
                 return ExitCode::FAILURE;
             }
@@ -820,7 +843,15 @@ fn print_result(
     if detailed_json {
         serde_json::to_string_pretty(&result).expect("could not convert to JSON")
     } else if detailed {
-        format!("[Barcode Format] {}\n[Metadata] {:?}\n[Points] {:?}\n[Number of Bits] {}\n[Timestamp] {}\n[Data] {}", result.getBarcodeFormat(),result.getRXingResultMetadata(), result.getRXingResultPoints(), result.getNumBits(), result.getTimestamp(), result_data)
+        format!(
+            "[Barcode Format] {}\n[Metadata] {:?}\n[Points] {:?}\n[Number of Bits] {}\n[Timestamp] {}\n[Data] {}",
+            result.getBarcodeFormat(),
+            result.getRXingResultMetadata(),
+            result.getRXingResultPoints(),
+            result.getNumBits(),
+            result.getTimestamp(),
+            result_data
+        )
     } else if raw {
         result
             .getRawBytes()

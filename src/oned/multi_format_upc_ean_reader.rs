@@ -178,11 +178,16 @@ impl MultiFormatUPCEANReader {
 
 use crate::RXingResultMetadataType;
 use crate::RXingResultMetadataValue;
+use crate::WitnessData;
 use std::collections::HashSet;
 
 impl Reader for MultiFormatUPCEANReader {
-    fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
-        self.decode_with_hints(image, &DecodeHints::default())
+    fn decode<B: Binarizer>(
+        &mut self,
+        image: &mut crate::BinaryBitmap<B>,
+        witness_data: Option<&mut WitnessData>,
+    ) -> Result<RXingResult> {
+        self.decode_with_hints(image, &DecodeHints::default(), witness_data)
     }
 
     // Note that we don't try rotation without the try harder flag, even if rotation was supported.
@@ -190,7 +195,13 @@ impl Reader for MultiFormatUPCEANReader {
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
         hints: &DecodeHints,
+        witness_data: Option<&mut WitnessData>,
     ) -> Result<RXingResult> {
+        if witness_data.is_some() {
+            return Err(Exceptions::IllegalArgumentException(
+                "witness data extraction is not supported for this barcode type".to_string(),
+            ));
+        }
         let first_try = self._do_decode(image, hints);
         if first_try.is_ok() {
             return first_try;

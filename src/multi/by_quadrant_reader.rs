@@ -15,7 +15,7 @@
  */
 
 use crate::common::Result;
-use crate::{point, Binarizer, DecodeHints, Exceptions, Point, RXingResult, Reader};
+use crate::{point, Binarizer, DecodeHints, Exceptions, Point, RXingResult, Reader, WitnessData};
 
 /**
  * This class attempts to decode a barcode from an image, not by scanning the whole image,
@@ -28,15 +28,25 @@ use crate::{point, Binarizer, DecodeHints, Exceptions, Point, RXingResult, Reade
  */
 pub struct ByQuadrantReader<T: Reader>(T);
 impl<T: Reader> Reader for ByQuadrantReader<T> {
-    fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
-        self.decode_with_hints(image, &DecodeHints::default())
+    fn decode<B: Binarizer>(
+        &mut self,
+        image: &mut crate::BinaryBitmap<B>,
+        witness_data: Option<&mut WitnessData>,
+    ) -> Result<RXingResult> {
+        self.decode_with_hints(image, &DecodeHints::default(), witness_data)
     }
 
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
         hints: &DecodeHints,
+        witness_data: Option<&mut WitnessData>,
     ) -> Result<crate::RXingResult> {
+        if witness_data.is_some() {
+            return Err(Exceptions::IllegalArgumentException(
+                "witness data extraction is not supported for this barcode type".to_string(),
+            ));
+        }
         let width = image.get_width();
         let height = image.get_height();
         let halfWidth = width / 2;
@@ -44,7 +54,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
 
         let attempt = self
             .0
-            .decode_with_hints(&mut image.crop(0, 0, halfWidth, halfHeight), hints);
+            .decode_with_hints(&mut image.crop(0, 0, halfWidth, halfHeight), hints, None);
         // No need to call makeAbsolute as results will be relative to original top left here
         // This is a match because only NotFoundExceptions should be ignored
         match attempt {
@@ -55,7 +65,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
         // try {
         let result = self
             .0
-            .decode_with_hints(&mut image.crop(halfWidth, 0, halfWidth, halfHeight), hints);
+            .decode_with_hints(&mut image.crop(halfWidth, 0, halfWidth, halfHeight), hints, None);
         // This is a match because only NotFoundExceptions should be ignored
         match result {
             Ok(res) => {
@@ -68,7 +78,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
 
         let result = self
             .0
-            .decode_with_hints(&mut image.crop(0, halfHeight, halfWidth, halfHeight), hints);
+            .decode_with_hints(&mut image.crop(0, halfHeight, halfWidth, halfHeight), hints, None);
         // This is a match because only NotFoundExceptions should be ignored
         match result {
             Ok(res) => {
@@ -82,6 +92,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
         let result = self.0.decode_with_hints(
             &mut image.crop(halfWidth, halfHeight, halfWidth, halfHeight),
             hints,
+            None,
         );
         // This is a match because only NotFoundExceptions should be ignored
         match result {
@@ -97,7 +108,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
         let quarterWidth = halfWidth / 2;
         let quarterHeight = halfHeight / 2;
         let mut center = image.crop(quarterWidth, quarterHeight, halfWidth, halfHeight);
-        let result = self.0.decode_with_hints(&mut center, hints)?;
+        let result = self.0.decode_with_hints(&mut center, hints, None)?;
 
         let points = Self::makeAbsolute(
             result.getPoints(),

@@ -34,7 +34,7 @@ use crate::{
         OneDReader,
     },
     BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, Reader,
+    RXingResultMetadataValue, Reader, WitnessData,
 };
 
 use super::{bit_array_builder, decoders::abstract_expanded_decoder, ExpandedPair, ExpandedRow};
@@ -164,8 +164,12 @@ impl OneDReader for RSSExpandedReader {
     }
 }
 impl Reader for RSSExpandedReader {
-    fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
-        self.decode_with_hints(image, &DecodeHints::default())
+    fn decode<B: Binarizer>(
+        &mut self,
+        image: &mut crate::BinaryBitmap<B>,
+        witness_data: Option<&mut WitnessData>,
+    ) -> Result<RXingResult> {
+        self.decode_with_hints(image, &DecodeHints::default(), witness_data)
     }
 
     // Note that we don't try rotation without the try harder flag, even if rotation was supported.
@@ -173,7 +177,13 @@ impl Reader for RSSExpandedReader {
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
         hints: &DecodeHints,
+        witness_data: Option<&mut WitnessData>,
     ) -> Result<crate::RXingResult> {
+        if witness_data.is_some() {
+            return Err(Exceptions::IllegalArgumentException(
+                "witness data extraction is not supported for this barcode type".to_string(),
+            ));
+        }
         if let Ok(res) = self._do_decode(image, hints) {
             Ok(res)
         } else {

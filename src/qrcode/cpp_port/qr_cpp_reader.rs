@@ -120,7 +120,7 @@
 use crate::{
     common::{cpp_essentials::ConcentricPattern, DetectorRXingResult},
     multi::MultipleBarcodeReader,
-    BarcodeFormat, DecodeHints, Exceptions, ImmutableReader, RXingResult, Reader,
+    BarcodeFormat, DecodeHints, Exceptions, ImmutableReader, RXingResult, Reader, WitnessData,
 };
 
 use super::{
@@ -138,15 +138,22 @@ impl Reader for QrReader {
     fn decode<B: crate::Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
+        witness_data: Option<&mut WitnessData>,
     ) -> crate::common::Result<crate::RXingResult> {
-        self.decode_with_hints(image, &DecodeHints::default())
+        self.decode_with_hints(image, &DecodeHints::default(), witness_data)
     }
 
     fn decode_with_hints<B: crate::Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
         hints: &DecodeHints,
+        witness_data: Option<&mut WitnessData>,
     ) -> crate::common::Result<RXingResult> {
+        if witness_data.is_some() {
+            return Err(Exceptions::IllegalArgumentException(
+                "witness data extraction is not supported for this barcode type".to_string(),
+            ));
+        }
         self.internal_decode_with_hints(image, hints)
     }
 }

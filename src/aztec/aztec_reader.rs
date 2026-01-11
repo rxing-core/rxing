@@ -18,7 +18,7 @@ use crate::{
     common::{DecoderRXingResult, DetectorRXingResult, Result},
     exceptions::Exceptions,
     BarcodeFormat, Binarizer, BinaryBitmap, DecodeHints, ImmutableReader, RXingResult,
-    RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    RXingResultMetadataType, RXingResultMetadataValue, Reader, WitnessData,
 };
 
 use super::{decoder, detector::Detector};
@@ -39,15 +39,25 @@ impl Reader for AztecReader {
      * @throws NotFoundException if a Data Matrix code cannot be found
      * @throws FormatException if a Data Matrix code cannot be decoded
      */
-    fn decode<B: Binarizer>(&mut self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
-        self.decode_with_hints(image, &DecodeHints::default())
+    fn decode<B: Binarizer>(
+        &mut self,
+        image: &mut BinaryBitmap<B>,
+        witness_data: Option<&mut WitnessData>,
+    ) -> Result<RXingResult> {
+        self.decode_with_hints(image, &DecodeHints::default(), witness_data)
     }
 
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut BinaryBitmap<B>,
         hints: &DecodeHints,
+        witness_data: Option<&mut WitnessData>,
     ) -> Result<RXingResult> {
+        if witness_data.is_some() {
+            return Err(Exceptions::IllegalArgumentException(
+                "witness data extraction is not supported for this barcode type".to_string(),
+            ));
+        }
         self.internal_decode_with_hints(image, hints)
     }
 }

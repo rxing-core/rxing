@@ -128,7 +128,7 @@ impl<T: Reader> GenericMultipleBarcodeReader<T> {
         }
 
         // let result;
-        let Ok(result) = self.0.decode_with_hints(image, hints) else {
+        let Ok(result) = self.0.decode_with_hints(image, hints, None) else {
             return;
         };
 

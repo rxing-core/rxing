@@ -19,8 +19,12 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
 
     let gen = quote! {
         impl #impl_generics crate::Reader for #name #ty_generics #where_clause {
-            fn decode<B: crate::Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<crate::RXingResult, Exceptions> {
-              self.decode_with_hints(image, &crate::DecodeHints::default())
+            fn decode<B: crate::Binarizer>(
+                &mut self,
+                image: &mut crate::BinaryBitmap<B>,
+                witness_data: Option<&mut crate::WitnessData>,
+            ) -> Result<crate::RXingResult, Exceptions> {
+              self.decode_with_hints(image, &crate::DecodeHints::default(), witness_data)
             }
 
             // Note that we don't try rotation without the try harder flag, even if rotation was supported.
@@ -28,8 +32,15 @@ fn impl_one_d_reader_macro(ast: &syn::DeriveInput) -> TokenStream {
                 &mut self,
                 image: &mut crate::BinaryBitmap<B>,
                 hints: &crate::DecodeHints,
+                witness_data: Option<&mut crate::WitnessData>,
             ) -> Result<crate::RXingResult, Exceptions> {
                 use crate::result_point::ResultPoint;
+
+                if witness_data.is_some() {
+                    return Err(Exceptions::IllegalArgumentException(
+                        "witness data extraction is not supported for this barcode type".to_string(),
+                    ));
+                }
 
             if let Ok(res) = self._do_decode(image, hints) {
                 Ok(res)

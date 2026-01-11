@@ -22,7 +22,7 @@ use crate::DecodeHints;
 use crate::{
     aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
     oned::MultiFormatOneDReader, pdf417::PDF417Reader, qrcode::QRCodeReader, BarcodeFormat,
-    Binarizer, BinaryBitmap, Exceptions, RXingResult, Reader,
+    Binarizer, BinaryBitmap, Exceptions, RXingResult, Reader, WitnessData,
 };
 
 pub(crate) const ONE_D_FORMATS: [BarcodeFormat; 12] = [
@@ -72,9 +72,13 @@ impl Reader for MultiUseMultiFormatReader {
      * @return The contents of the image
      * @throws NotFoundException Any errors which occurred
      */
-    fn decode<B: Binarizer>(&mut self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
+    fn decode<B: Binarizer>(
+        &mut self,
+        image: &mut BinaryBitmap<B>,
+        witness_data: Option<&mut WitnessData>,
+    ) -> Result<RXingResult> {
         self.set_hints(&DecodeHints::default());
-        self.decode_internal(image)
+        self.decode_internal(image, witness_data)
     }
 
     /**
@@ -89,9 +93,10 @@ impl Reader for MultiUseMultiFormatReader {
         &mut self,
         image: &mut BinaryBitmap<B>,
         hints: &DecodeHints,
+        witness_data: Option<&mut WitnessData>,
     ) -> Result<RXingResult> {
         self.set_hints(hints);
-        self.decode_internal(image)
+        self.decode_internal(image, witness_data)
     }
 
     fn reset(&mut self) {
@@ -122,7 +127,7 @@ impl MultiUseMultiFormatReader {
         if self.possible_formats.is_empty() {
             self.set_hints(&DecodeHints::default());
         }
-        self.decode_internal(image)
+        self.decode_internal(image, None)
     }
 
     /**
@@ -147,15 +152,16 @@ impl MultiUseMultiFormatReader {
     pub fn decode_internal<B: Binarizer>(
         &mut self,
         image: &mut BinaryBitmap<B>,
+        mut witness_data: Option<&mut WitnessData>,
     ) -> Result<RXingResult> {
-        let res = self.decode_formats(image);
+        let res = self.decode_formats(image, witness_data.as_deref_mut());
         if res.is_ok() {
             return res;
         }
         if matches!(self.hints.AlsoInverted, Some(true)) {
             // Calling all readers again with inverted image
             image.get_black_matrix_mut().flip_self();
-            let res = self.decode_formats(image);
+            let res = self.decode_formats(image, witness_data.as_deref_mut());
             if let Ok(mut r) = res {
                 // let mut r = res.unwrap();
                 r.putMetadata(
@@ -171,50 +177,42 @@ impl MultiUseMultiFormatReader {
         Err(Exceptions::NOT_FOUND)
     }
 
-    fn decode_formats<B: Binarizer>(&mut self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
+    fn decode_formats<B: Binarizer>(
+        &mut self,
+        image: &mut BinaryBitmap<B>,
+        mut witness_data: Option<&mut WitnessData>,
+    ) -> Result<RXingResult> {
         if !self.possible_formats.is_empty() {
             let one_d = ONE_D_FORMATS
                 .iter()
                 .any(|e| self.possible_formats.contains(e));
-            // let one_d = self.possible_formats.contains(&BarcodeFormat::UPC_A)
-            //     || self.possible_formats.contains(&BarcodeFormat::UPC_E)
-            //     || self.possible_formats.contains()
-            //     || self.possible_formats.contains()
-            //     || self.possible_formats.contains()
-            //     || self.possible_formats.contains()
-            //     || self.possible_formats.contains()
-            //     || self.possible_formats.contains()
-            //     || self.possible_formats.contains()
-            //     || self.possible_formats.contains()
-            //     || self.possible_formats.contains()
-            //     || self.possible_formats.contains();
             if one_d && !self.try_harder {
-                if let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints) {
+                if let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints, witness_data.as_deref_mut()) {
                     return Ok(res);
                 }
             }
             for possible_format in self.possible_formats.iter() {
                 let res = match possible_format {
                     BarcodeFormat::QR_CODE => {
-                        let a = self.cpp_qrcode_reader.decode_with_hints(image, &self.hints);
+                        let a = self.cpp_qrcode_reader.decode_with_hints(image, &self.hints, witness_data.as_deref_mut());
                         if a.is_ok() {
                             a
                         } else {
-                            self.qr_code_reader.decode_with_hints(image, &self.hints)
+                            self.qr_code_reader.decode_with_hints(image, &self.hints, witness_data.as_deref_mut())
                         }
                     }
                     BarcodeFormat::MICRO_QR_CODE => {
-                        self.cpp_qrcode_reader.decode_with_hints(image, &self.hints)
+                        self.cpp_qrcode_reader.decode_with_hints(image, &self.hints, witness_data.as_deref_mut())
                     }
                     BarcodeFormat::DATA_MATRIX => self
                         .data_matrix_reader
-                        .decode_with_hints(image, &self.hints),
-                    BarcodeFormat::AZTEC => self.aztec_reader.decode_with_hints(image, &self.hints),
+                        .decode_with_hints(image, &self.hints, witness_data.as_deref_mut()),
+                    BarcodeFormat::AZTEC => self.aztec_reader.decode_with_hints(image, &self.hints, witness_data.as_deref_mut()),
                     BarcodeFormat::PDF_417 => {
-                        self.pdf417_reader.decode_with_hints(image, &self.hints)
+                        self.pdf417_reader.decode_with_hints(image, &self.hints, witness_data.as_deref_mut())
                     }
                     BarcodeFormat::MAXICODE => {
-                        self.maxicode_reader.decode_with_hints(image, &self.hints)
+                        self.maxicode_reader.decode_with_hints(image, &self.hints, witness_data.as_deref_mut())
                     }
                     _ => Err(Exceptions::UNSUPPORTED_OPERATION),
                 };
@@ -223,40 +221,40 @@ impl MultiUseMultiFormatReader {
                 }
             }
             if one_d && self.try_harder {
-                if let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints) {
+                if let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints, witness_data.as_deref_mut()) {
                     return Ok(res);
                 }
             }
         } else {
             if !self.try_harder {
-                if let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints) {
+                if let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints, witness_data.as_deref_mut()) {
                     return Ok(res);
                 }
             }
-            if let Ok(res) = self.cpp_qrcode_reader.decode_with_hints(image, &self.hints) {
+            if let Ok(res) = self.cpp_qrcode_reader.decode_with_hints(image, &self.hints, witness_data.as_deref_mut()) {
                 return Ok(res);
             }
-            if let Ok(res) = self.qr_code_reader.decode_with_hints(image, &self.hints) {
+            if let Ok(res) = self.qr_code_reader.decode_with_hints(image, &self.hints, witness_data.as_deref_mut()) {
                 return Ok(res);
             }
             if let Ok(res) = self
                 .data_matrix_reader
-                .decode_with_hints(image, &self.hints)
+                .decode_with_hints(image, &self.hints, witness_data.as_deref_mut())
             {
                 return Ok(res);
             }
-            if let Ok(res) = self.aztec_reader.decode_with_hints(image, &self.hints) {
+            if let Ok(res) = self.aztec_reader.decode_with_hints(image, &self.hints, witness_data.as_deref_mut()) {
                 return Ok(res);
             }
-            if let Ok(res) = self.pdf417_reader.decode_with_hints(image, &self.hints) {
+            if let Ok(res) = self.pdf417_reader.decode_with_hints(image, &self.hints, witness_data.as_deref_mut()) {
                 return Ok(res);
             }
-            if let Ok(res) = self.maxicode_reader.decode_with_hints(image, &self.hints) {
+            if let Ok(res) = self.maxicode_reader.decode_with_hints(image, &self.hints, witness_data.as_deref_mut()) {
                 return Ok(res);
             }
 
             if self.try_harder {
-                if let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints) {
+                if let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints, witness_data.as_deref_mut()) {
                     return Ok(res);
                 }
             }

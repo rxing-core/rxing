@@ -15,14 +15,14 @@
  */
 
 use crate::{
-    common::Result, multi::MultipleBarcodeReader, BarcodeFormat, Binarizer, BinaryBitmap,
-    DecodeHints, Exceptions, ImmutableReader, Point, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, Reader,
+    BarcodeFormat, Binarizer, BinaryBitmap, DecodeHints, Exceptions, ImmutableReader, Point,
+    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader, WitnessData,
+    common::Result, multi::MultipleBarcodeReader,
 };
 
 use super::{
-    decoder::pdf_417_scanning_decoder, detector::pdf_417_detector, pdf_417_common,
-    PDF417RXingResultMetadata,
+    PDF417RXingResultMetadata, decoder::pdf_417_scanning_decoder, detector::pdf_417_detector,
+    pdf_417_common,
 };
 
 /**
@@ -41,16 +41,21 @@ impl Reader for PDF417Reader {
      * @throws NotFoundException if a PDF417 code cannot be found,
      * @throws FormatException if a PDF417 cannot be decoded
      */
-    fn decode<B: Binarizer>(&mut self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
-        self.decode_with_hints(image, &DecodeHints::default())
+    fn decode<B: Binarizer>(
+        &mut self,
+        image: &mut BinaryBitmap<B>,
+        witness_data: Option<&mut WitnessData>,
+    ) -> Result<RXingResult> {
+        self.decode_with_hints(image, &DecodeHints::default(), witness_data)
     }
 
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut BinaryBitmap<B>,
         hints: &DecodeHints,
+        witness_data: Option<&mut WitnessData>,
     ) -> Result<crate::RXingResult> {
-        self.internal_decode_with_hints(image, hints)
+        self.internal_decode_with_hints(image, hints, witness_data)
     }
 }
 
@@ -60,7 +65,7 @@ impl ImmutableReader for PDF417Reader {
         image: &mut BinaryBitmap<B>,
         hints: &DecodeHints,
     ) -> Result<RXingResult> {
-        self.internal_decode_with_hints(image, hints)
+        self.internal_decode_with_hints(image, hints, None)
     }
 }
 
@@ -77,7 +82,7 @@ impl MultipleBarcodeReader for PDF417Reader {
         image: &mut BinaryBitmap<B>,
         hints: &DecodeHints,
     ) -> Result<Vec<RXingResult>> {
-        Self::decode(image, hints, true)
+        Self::decode(image, hints, None, true)
     }
 }
 
@@ -89,8 +94,15 @@ impl PDF417Reader {
     fn decode<B: Binarizer>(
         image: &mut BinaryBitmap<B>,
         hints: &DecodeHints,
+        witness_data: Option<&mut WitnessData>,
         multiple: bool,
     ) -> Result<Vec<RXingResult>> {
+        if multiple && Option::is_some(&witness_data) {
+            return Err(Exceptions::IllegalArgumentException(
+                "can only get witness data for one barcode".to_string(),
+            ));
+        }
+
         let mut results = Vec::new();
         let detectorRXingResult = pdf_417_detector::detect_with_hints(image, hints, multiple)?;
 
@@ -133,11 +145,6 @@ impl PDF417Reader {
                     result.putMetadata(RXingResultMetadataType::PDF417_EXTRA_METADATA, data);
                 }
             }
-            // PDF417RXingResultMetadata pdf417RXingResultMetadata = (PDF417RXingResultMetadata) decoderRXingResult.getOther();
-
-            // if (pdf417RXingResultMetadata != null) {
-            //   result.putMetadata(RXingResultMetadataType.PDF417_EXTRA_METADATA, pdf417RXingResultMetadata);
-            // }
 
             result.putMetadata(
                 RXingResultMetadataType::ORIENTATION,
@@ -199,8 +206,10 @@ impl PDF417Reader {
         &self,
         image: &mut BinaryBitmap<B>,
         hints: &DecodeHints,
+        witness_data: Option<&mut WitnessData>,
     ) -> Result<RXingResult> {
-        let result = Self::decode(image, hints, false)?;
+        // TODO: come back and pass in some WitnessData here
+        let result = Self::decode(image, hints, witness_data, false)?;
         if result.is_empty() {
             return Err(Exceptions::NOT_FOUND);
         }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{common::Result, BarcodeFormat, Binarizer, Exceptions, RXingResult, Reader};
+use crate::{common::Result, BarcodeFormat, Binarizer, Exceptions, RXingResult, Reader, WitnessData};
 
 use super::{EAN13Reader, OneDReader, UPCEANReader};
 
@@ -28,16 +28,31 @@ use super::{EAN13Reader, OneDReader, UPCEANReader};
 pub struct UPCAReader(EAN13Reader);
 
 impl Reader for UPCAReader {
-    fn decode<B: Binarizer>(&mut self, image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
-        Self::maybeReturnRXingResult(self.0.decode(image)?)
+    fn decode<B: Binarizer>(
+        &mut self,
+        image: &mut crate::BinaryBitmap<B>,
+        witness_data: Option<&mut WitnessData>,
+    ) -> Result<RXingResult> {
+        if witness_data.is_some() {
+            return Err(Exceptions::IllegalArgumentException(
+                "witness data extraction is not supported for this barcode type".to_string(),
+            ));
+        }
+        Self::maybeReturnRXingResult(self.0.decode(image, None)?)
     }
 
     fn decode_with_hints<B: Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
         hints: &crate::DecodeHints,
+        witness_data: Option<&mut WitnessData>,
     ) -> Result<RXingResult> {
-        Self::maybeReturnRXingResult(self.0.decode_with_hints(image, hints)?)
+        if witness_data.is_some() {
+            return Err(Exceptions::IllegalArgumentException(
+                "witness data extraction is not supported for this barcode type".to_string(),
+            ));
+        }
+        Self::maybeReturnRXingResult(self.0.decode_with_hints(image, hints, None)?)
     }
 }
 

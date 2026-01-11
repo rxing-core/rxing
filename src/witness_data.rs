@@ -19,9 +19,31 @@ use serde::Serialize;
  * * `image` - The original grayscale luminance values (0-255 per pixel), stored row-major
  * * `binarized_image` - The binarized black/white BitMatrix after threshold application
  */
-#[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(Clone, Debug)]
 pub struct WitnessData {
+    /// The width of the image in pixels
+    pub width: usize,
+
+    /// The height of the image in pixels
+    pub height: usize,
+
+    /// The original grayscale luminance values (0-255 per pixel)
+    /// Stored in row-major order: pixels are stored row by row, left to right, top to bottom
+    /// Total size: width * height bytes
+    pub image: Vec<u8>,
+
+    /// The binarized image after applying the threshold
+    /// Pixels are represented as bits: true/1 = black, false/0 = white
+    pub binarized_image: Option<BitMatrix>,
+}
+
+/**
+ * WitnessData with no optional fields
+ */
+
+#[cfg_attr(feature = "serde", derive(Serialize))]
+#[derive(Clone, Debug)]
+pub struct FinalizedWitnessData {
     /// The width of the image in pixels
     pub width: usize,
 
@@ -40,19 +62,7 @@ pub struct WitnessData {
     pub binarized_image: BitMatrix,
 }
 
-impl WitnessData {
-    /**
-     * Creates a new WitnessData instance.
-     *
-     * # Arguments
-     * * `width` - The width of the image in pixels
-     * * `height` - The height of the image in pixels
-     * * `image` - The grayscale luminance data (must be width * height bytes)
-     * * `binarized_image` - The binarized BitMatrix
-     *
-     * # Panics
-     * Panics if `image.len()` does not equal `width * height`
-     */
+impl FinalizedWitnessData {
     pub fn new(width: usize, height: usize, image: Vec<u8>, binarized_image: BitMatrix) -> Self {
         assert_eq!(
             image.len(),
@@ -67,6 +77,77 @@ impl WitnessData {
             height,
             image,
             binarized_image,
+        }
+    }
+
+    pub fn from_witness_data(witness_data: &WitnessData) -> Result<Self, String> {
+        let binarized_image = Option::ok_or(
+            witness_data.binarized_image.clone(),
+            "no binarized image data",
+        )?;
+
+        Ok(Self {
+            width: witness_data.width,
+            height: witness_data.height,
+            image: witness_data.image.clone(),
+            binarized_image,
+        })
+    }
+
+    /**
+     * Saves this WitnessData to a JSON file.
+     *
+     * # Arguments
+     * * `path` - The file path to write to
+     *
+     * # Returns
+     * Result indicating success or error
+     */
+    #[cfg(feature = "serde")]
+    pub fn save_to_json(&self, path: &str) -> Result<(), String> {
+        use std::fs::File;
+        use std::io::Write;
+
+        let json = serde_json::to_string_pretty(self)
+            .map_err(|e| format!("Failed to serialize to JSON: {}", e))?;
+
+        let mut file =
+            File::create(path).map_err(|e| format!("Failed to create file '{}': {}", path, e))?;
+
+        file.write_all(json.as_bytes())
+            .map_err(|e| format!("Failed to write to file '{}': {}", path, e))?;
+
+        Ok(())
+    }
+}
+
+impl WitnessData {
+    /**
+     * Creates a new WitnessData instance.
+     *
+     * # Arguments
+     * * `width` - The width of the image in pixels
+     * * `height` - The height of the image in pixels
+     * * `image` - The grayscale luminance data (must be width * height bytes)
+     * * `binarized_image` - The binarized BitMatrix
+     *
+     * # Panics
+     * Panics if `image.len()` does not equal `width * height`
+     */
+    pub fn new(width: usize, height: usize, image: Vec<u8>) -> Self {
+        assert_eq!(
+            image.len(),
+            width * height,
+            "Image size mismatch: expected {} bytes, got {}",
+            width * height,
+            image.len()
+        );
+
+        Self {
+            width,
+            height,
+            image,
+            binarized_image: None,
         }
     }
 
@@ -94,8 +175,19 @@ impl WitnessData {
     /**
      * Returns a reference to the binarized image.
      */
-    pub fn binarized_image(&self) -> &BitMatrix {
+    pub fn binarized_image(&self) -> &Option<BitMatrix> {
         &self.binarized_image
+    }
+
+    pub fn set_binarized_image(&mut self, binarized_image: BitMatrix) {
+        self.binarized_image = Some(binarized_image)
+    }
+
+    /**
+     * Makes sure that all optional fields have data in them.
+     */
+    pub fn finalize(&self) -> Result<FinalizedWitnessData, String> {
+        FinalizedWitnessData::from_witness_data(self)
     }
 
     /**
@@ -109,7 +201,10 @@ impl WitnessData {
      * Panics if x >= width or y >= height
      */
     pub fn get_pixel(&self, x: usize, y: usize) -> u8 {
-        assert!(x < self.width && y < self.height, "Pixel coordinates out of bounds");
+        assert!(
+            x < self.width && y < self.height,
+            "Pixel coordinates out of bounds"
+        );
         self.image[y * self.width + x]
     }
 
@@ -123,34 +218,11 @@ impl WitnessData {
      * # Returns
      * `true` if the pixel is black, `false` if white
      */
-    pub fn get_binarized_pixel(&self, x: usize, y: usize) -> bool {
-        self.binarized_image.get(x as u32, y as u32)
-    }
-
-    /**
-     * Saves this WitnessData to a JSON file.
-     *
-     * # Arguments
-     * * `path` - The file path to write to
-     *
-     * # Returns
-     * Result indicating success or error
-     */
-    #[cfg(feature = "serde")]
-    pub fn save_to_json(&self, path: &str) -> Result<(), String> {
-        use std::fs::File;
-        use std::io::Write;
-
-        let json = serde_json::to_string_pretty(self)
-            .map_err(|e| format!("Failed to serialize to JSON: {}", e))?;
-
-        let mut file = File::create(path)
-            .map_err(|e| format!("Failed to create file '{}': {}", path, e))?;
-
-        file.write_all(json.as_bytes())
-            .map_err(|e| format!("Failed to write to file '{}': {}", path, e))?;
-
-        Ok(())
+    pub fn get_binarized_pixel(&self, x: usize, y: usize) -> Option<bool> {
+        match &self.binarized_image {
+            Some(binarized_image) => Some(binarized_image.get(x as u32, y as u32)),
+            None => None,
+        }
     }
 }
 
@@ -184,10 +256,7 @@ mod tests {
     fn test_witness_data_creation() {
         // Create a simple 4x4 test image
         let image = vec![
-            0, 64, 127, 128,
-            129, 192, 200, 255,
-            50, 100, 150, 200,
-            127, 128, 129, 130,
+            0, 64, 127, 128, 129, 192, 200, 255, 50, 100, 150, 200, 127, 128, 129, 130,
         ];
 
         let mut binarized = BitMatrix::new(4, 4).unwrap();

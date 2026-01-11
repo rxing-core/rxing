@@ -1,6 +1,7 @@
 use crate::common::{BitMatrix, HybridBinarizer, Result};
 use crate::{
     Binarizer, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource, LuminanceSource, Reader,
+    WitnessData,
 };
 
 pub const DEFAULT_DOWNSCALE_THRESHHOLD: usize = 500;
@@ -19,15 +20,22 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
     fn decode<B: crate::Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
+        witness_data: Option<&mut WitnessData>,
     ) -> crate::common::Result<crate::RXingResult> {
-        self.decode_with_hints(image, &DecodeHints::default())
+        self.decode_with_hints(image, &DecodeHints::default(), witness_data)
     }
 
     fn decode_with_hints<B: crate::Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
         hints: &DecodeHints,
+        witness_data: Option<&mut WitnessData>,
     ) -> crate::common::Result<crate::RXingResult> {
+        if witness_data.is_some() {
+            return Err(Exceptions::IllegalArgumentException(
+                "witness data extraction is not supported for this barcode type".to_string(),
+            ));
+        }
         let pyramids = LumImagePyramid::new(
             Luma8LuminanceSource::new(
                 image.get_source().get_matrix(),
@@ -46,7 +54,7 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
                         continue;
                     };
                 }
-                if let Ok(mut res) = self.0.decode_with_hints(&mut b, hints) {
+                if let Ok(mut res) = self.0.decode_with_hints(&mut b, hints, None) {
                     res.putMetadata(
                         crate::RXingResultMetadataType::FILTERED_CLOSED,
                         crate::RXingResultMetadataValue::FilteredClosed(close),

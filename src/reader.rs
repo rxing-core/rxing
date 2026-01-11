@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{common::Result, Binarizer, BinaryBitmap, DecodeHints, RXingResult};
+use crate::{Binarizer, BinaryBitmap, DecodeHints, RXingResult, WitnessData, common::Result};
 
 /**
  * Implementations of this interface can decode an image of a barcode in some format into
@@ -38,7 +38,11 @@ pub trait Reader {
      * @throws ChecksumException if a potential barcode is found but does not pass its checksum
      * @throws FormatException if a potential barcode is found but format is invalid
      */
-    fn decode<B: Binarizer>(&mut self, image: &mut BinaryBitmap<B>) -> Result<RXingResult>;
+    fn decode<B: Binarizer>(
+        &mut self,
+        image: &mut BinaryBitmap<B>,
+        witness_data: Option<&mut WitnessData>,
+    ) -> Result<RXingResult>;
 
     /**
      * Locates and decodes a barcode in some format within an image. This method also accepts
@@ -58,6 +62,7 @@ pub trait Reader {
         &mut self,
         image: &mut BinaryBitmap<B>,
         hints: &DecodeHints,
+        witness_data: Option<&mut WitnessData>,
     ) -> Result<RXingResult>;
 
     /**

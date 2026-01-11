@@ -504,7 +504,11 @@ impl OneDReader for StandInStruct {
 }
 
 impl Reader for StandInStruct {
-    fn decode<B: Binarizer>(&mut self, _image: &mut crate::BinaryBitmap<B>) -> Result<RXingResult> {
+    fn decode<B: Binarizer>(
+        &mut self,
+        _image: &mut crate::BinaryBitmap<B>,
+        _witness_data: Option<&mut crate::WitnessData>,
+    ) -> Result<RXingResult> {
         unimplemented!()
     }
 
@@ -512,6 +516,7 @@ impl Reader for StandInStruct {
         &mut self,
         _image: &mut crate::BinaryBitmap<B>,
         _hints: &crate::DecodeHints,
+        _witness_data: Option<&mut crate::WitnessData>,
     ) -> Result<RXingResult> {
         unimplemented!()
     }
