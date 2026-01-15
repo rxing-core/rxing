@@ -56,18 +56,21 @@ pub fn decode(
     let mut S = vec![0u32; numECCodewords as usize];
     let mut error = false;
     let mut polynomial_results = Vec::new();
-    for i in (1..=numECCodewords).rev() {
-        // for (int i = numECCodewords; i > 0; i--) {
+    // compute polynomials for the max EC level to get the witness data,
+    // but ignore it if its not applicable to this EC level.
+    for i in (1..=512).rev() {
         let eval_result = poly.evaluateAt(field.exp(i));
         let eval = eval_result.in_field;
         assert!(eval_result.over_integers % 929 == eval);
         polynomial_results.push(PolynomialResult {
             result: eval_result.in_field,
-            result_quotient: eval_result.over_integers,
+            result_quotient: eval_result.over_integers / 929,
         });
-        S[(numECCodewords - i) as usize] = eval;
-        if eval != 0 {
-            error = true;
+        if i <= numECCodewords {
+            S[(numECCodewords - i) as usize] = eval;
+            if eval != 0 {
+                error = true;
+            }
         }
     }
 
