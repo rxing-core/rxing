@@ -50,7 +50,7 @@ pub fn decode(
     imageBottomRight: Option<Point>,
     minCodewordWidth: u32,
     maxCodewordWidth: u32,
-    witness_data: Option<&mut WitnessData>,
+    mut witness_data: Option<&mut WitnessData>,
 ) -> Result<DecoderRXingResult> {
     let mut minCodewordWidth = minCodewordWidth;
     let mut maxCodewordWidth = maxCodewordWidth;
@@ -85,7 +85,11 @@ pub fn decode(
                 maxCodewordWidth,
             ));
         }
-        detectionRXingResult = merge(&mut leftRowIndicatorColumn, &mut rightRowIndicatorColumn)?;
+        detectionRXingResult = merge(
+            &mut leftRowIndicatorColumn,
+            &mut rightRowIndicatorColumn,
+            witness_data.as_deref_mut(),
+        )?;
         if detectionRXingResult.is_none() {
             return Err(Exceptions::NOT_FOUND);
         }
@@ -190,11 +194,13 @@ pub fn decode(
 fn merge<'a, T: DetectionRXingResultRowIndicatorColumn>(
     leftRowIndicatorColumn: &'a mut Option<T>,
     rightRowIndicatorColumn: &'a mut Option<T>,
+    witness_data: Option<&mut WitnessData>,
 ) -> Result<Option<DetectionRXingResult>> {
     if leftRowIndicatorColumn.is_none() && rightRowIndicatorColumn.is_none() {
         return Ok(None);
     }
-    let barcodeMetadata = getBarcodeMetadata(leftRowIndicatorColumn, rightRowIndicatorColumn);
+    let barcodeMetadata =
+        getBarcodeMetadata(leftRowIndicatorColumn, rightRowIndicatorColumn, witness_data);
     if barcodeMetadata.is_none() {
         return Ok(None);
     }
@@ -273,13 +279,14 @@ fn getMax(values: &[u32]) -> u32 {
 fn getBarcodeMetadata<T: DetectionRXingResultRowIndicatorColumn>(
     leftRowIndicatorColumn: &mut Option<T>,
     rightRowIndicatorColumn: &mut Option<T>,
+    witness_data: Option<&mut WitnessData>,
 ) -> Option<BarcodeMetadata> {
     let left_ri_md = leftRowIndicatorColumn
         .as_mut()
-        .map_or_else(|| None, |col| col.getBarcodeMetadata());
+        .map_or_else(|| None, |col| col.getBarcodeMetadata(witness_data));
     let right_ri_md = rightRowIndicatorColumn
         .as_mut()
-        .map_or_else(|| None, |col| col.getBarcodeMetadata());
+        .map_or_else(|| None, |col| col.getBarcodeMetadata(None));
 
     if leftRowIndicatorColumn.is_none() && rightRowIndicatorColumn.is_none() {
         return None;

@@ -15,6 +15,7 @@
  */
 
 use crate::pdf417::pdf_417_common;
+use crate::{RowIndicatorVars, WitnessData};
 
 use super::{
     BarcodeMetadata, BarcodeValue, Codeword, DetectionRXingResultColumn,
@@ -32,7 +33,10 @@ pub trait DetectionRXingResultRowIndicatorColumn: DetectionRXingResultColumnTrai
     fn adjustCompleteIndicatorColumnRowNumbers(&mut self, barcodeMetadata: &BarcodeMetadata)
         -> u32;
     fn getRowHeights(&mut self) -> Option<Vec<u32>>;
-    fn getBarcodeMetadata(&mut self) -> Option<BarcodeMetadata>;
+    fn getBarcodeMetadata(
+        &mut self,
+        witness_data: Option<&mut WitnessData>,
+    ) -> Option<BarcodeMetadata>;
     fn isLeft(&self) -> bool;
 }
 
@@ -120,7 +124,7 @@ impl DetectionRXingResultRowIndicatorColumn for DetectionRXingResultColumn {
     }
 
     fn getRowHeights(&mut self) -> Option<Vec<u32>> {
-        if let Some(barcodeMetadata) = self.getBarcodeMetadata() {
+        if let Some(barcodeMetadata) = self.getBarcodeMetadata(None) {
             adjustIncompleteIndicatorColumnRowNumbers(self, &barcodeMetadata);
             let mut result = vec![0; barcodeMetadata.getRowCount() as usize];
             for codeword in self.getCodewords().iter().flatten() {
@@ -143,29 +147,70 @@ impl DetectionRXingResultRowIndicatorColumn for DetectionRXingResultColumn {
         }
     }
 
-    fn getBarcodeMetadata(&mut self) -> Option<BarcodeMetadata> {
+    fn getBarcodeMetadata(
+        &mut self,
+        witness_data: Option<&mut WitnessData>,
+    ) -> Option<BarcodeMetadata> {
         let isLeft = matches!(self.isLeft, Some(true));
         let codewords = self.getCodewordsMut();
         let mut barcodeColumnCount = BarcodeValue::new();
         let mut barcodeRowCountUpperPart = BarcodeValue::new();
         let mut barcodeRowCountLowerPart = BarcodeValue::new();
         let mut barcodeECLevel = BarcodeValue::new();
+
+        // Track row indicator values for witness data (only for left indicators)
+        let mut have_cluster_0 = false;
+        let mut have_cluster_1 = false;
+        let mut have_cluster_2 = false;
+        let mut l0: u32 = 0;
+        let mut l3: u32 = 0;
+        let mut l6: u32 = 0;
+        let mut q0: u32 = 0;
+        let mut q3: u32 = 0;
+        let mut q6: u32 = 0;
+        let mut r0: u32 = 0;
+        let mut r3: u32 = 0;
+
         for codeword in codewords.iter_mut().flatten() {
             // for (Codeword codeword : codewords) {
             // if let Some(codeword) = codeword_opt {
             codeword.setRowNumberAsRowIndicatorColumn();
-            let rowIndicatorValue = codeword.getValue() % 30;
+            let fullValue = codeword.getValue();
+            let rowIndicatorValue = fullValue % 30;
+            let quotient = fullValue / 30;
             let mut codewordRowNumber = codeword.getRowNumber();
             if !isLeft {
                 codewordRowNumber += 2;
             }
             match codewordRowNumber % 3 {
-                0 => barcodeRowCountUpperPart.setValue(rowIndicatorValue * 3 + 1),
+                0 => {
+                    barcodeRowCountUpperPart.setValue(rowIndicatorValue * 3 + 1);
+                    if isLeft && !have_cluster_0 {
+                        l0 = fullValue;
+                        q0 = quotient;
+                        r0 = rowIndicatorValue;
+                        have_cluster_0 = true;
+                    }
+                }
                 1 => {
                     barcodeECLevel.setValue(rowIndicatorValue / 3);
                     barcodeRowCountLowerPart.setValue(rowIndicatorValue % 3);
+                    if isLeft && !have_cluster_1 {
+                        l3 = fullValue;
+                        q3 = quotient;
+                        r3 = rowIndicatorValue;
+                        have_cluster_1 = true;
+                    }
                 }
-                2 => barcodeColumnCount.setValue(rowIndicatorValue + 1),
+                2 => {
+                    barcodeColumnCount.setValue(rowIndicatorValue + 1);
+                    if isLeft && !have_cluster_2 {
+                        l6 = fullValue;
+                        q6 = quotient;
+                        // r6 is not stored - it equals num_cols - 1
+                        have_cluster_2 = true;
+                    }
+                }
                 _ => {}
             }
             // } else {
@@ -185,6 +230,23 @@ impl DetectionRXingResultRowIndicatorColumn for DetectionRXingResultColumn {
         {
             return None;
         }
+
+        // Write row indicator values to witness data if provided and this is the left column
+        if let Some(wd) = witness_data {
+            if isLeft && have_cluster_0 && have_cluster_1 && have_cluster_2 {
+                wd.set_row_indicators(RowIndicatorVars {
+                    l0,
+                    l3,
+                    l6,
+                    q0,
+                    q3,
+                    q6,
+                    r0,
+                    r3,
+                });
+            }
+        }
+
         let barcodeMetadata = BarcodeMetadata::new(
             barcodeColumnCount.getValue()[0],
             barcodeRowCountUpperPart.getValue()[0],

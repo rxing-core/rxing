@@ -10,6 +10,21 @@ use crate::common::BitMatrix;
 #[cfg(feature = "serde")]
 use serde::Serialize;
 
+#[cfg_attr(feature = "serde", derive(Serialize))]
+#[derive(Clone, Debug)]
+pub struct RowIndicatorVars {
+    pub l0: u32,
+    pub l3: u32,
+    pub l6: u32,
+
+    pub q0: u32,
+    pub q3: u32,
+    pub q6: u32,
+
+    pub r0: u32,
+    pub r3: u32,
+}
+
 /**
  * Holds witness data for zero-knowledge proof generation during barcode processing.
  *
@@ -40,6 +55,8 @@ pub struct WitnessData {
     pub row_count: Option<u32>,
     pub column_count: Option<u32>,
     pub ec_level: Option<u32>,
+
+    pub row_indicators: Option<RowIndicatorVars>,
 }
 
 /**
@@ -69,6 +86,8 @@ pub struct FinalizedWitnessData {
     pub row_count: u32,
     pub column_count: u32,
     pub ec_level: u32,
+
+    pub row_indicators: RowIndicatorVars,
 }
 
 impl FinalizedWitnessData {
@@ -80,6 +99,7 @@ impl FinalizedWitnessData {
         row_count: u32,
         column_count: u32,
         ec_level: u32,
+        row_indicators: RowIndicatorVars,
     ) -> Self {
         assert_eq!(
             image.len(),
@@ -107,6 +127,7 @@ impl FinalizedWitnessData {
             row_count,
             column_count,
             ec_level,
+            row_indicators,
         }
     }
 
@@ -126,6 +147,9 @@ impl FinalizedWitnessData {
             "no error correction level data",
         )?;
 
+        let row_indicators =
+            Option::ok_or(witness_data.row_indicators.clone(), "no row indicator data")?;
+
         Ok(Self {
             width: witness_data.width,
             height: witness_data.height,
@@ -134,6 +158,7 @@ impl FinalizedWitnessData {
             row_count,
             column_count,
             ec_level,
+            row_indicators,
         })
     }
 
@@ -203,6 +228,7 @@ impl WitnessData {
             row_count: None,
             column_count: None,
             ec_level: None,
+            row_indicators: None,
         }
     }
 
@@ -242,6 +268,10 @@ impl WitnessData {
         self.row_count = Some(row_count);
         self.column_count = Some(column_count);
         self.ec_level = Some(ec_level);
+    }
+
+    pub fn set_row_indicators(&mut self, row_indicators: RowIndicatorVars) {
+        self.row_indicators = Some(row_indicators);
     }
 
     /**
