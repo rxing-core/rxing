@@ -25,6 +25,13 @@ pub struct RowIndicatorVars {
     pub r3: u32,
 }
 
+#[cfg_attr(feature = "serde", derive(Serialize))]
+#[derive(Clone, Debug)]
+pub struct PolynomialResult {
+    pub result: u32,
+    pub result_quotient: u32,
+}
+
 /**
  * Holds witness data for zero-knowledge proof generation during barcode processing.
  *
@@ -63,6 +70,9 @@ pub struct WitnessData {
 
     /// Codewords after error correction
     pub corrected_codewords: Option<Vec<u32>>,
+
+    /// Results from error correction polynomial evaluations
+    pub polynomial_results: Option<Vec<PolynomialResult>>,
 }
 
 /**
@@ -100,6 +110,9 @@ pub struct FinalizedWitnessData {
 
     /// Codewords after error correction
     pub corrected_codewords: Vec<u32>,
+
+    /// Results from error correction polynomial evaluations
+    pub polynomial_results: Vec<PolynomialResult>,
 }
 
 impl FinalizedWitnessData {
@@ -114,6 +127,7 @@ impl FinalizedWitnessData {
         row_indicators: RowIndicatorVars,
         codewords: Vec<u32>,
         corrected_codewords: Vec<u32>,
+        polynomial_results: Vec<PolynomialResult>,
     ) -> Self {
         assert_eq!(
             image.len(),
@@ -144,6 +158,7 @@ impl FinalizedWitnessData {
             row_indicators,
             codewords,
             corrected_codewords,
+            polynomial_results,
         }
     }
 
@@ -173,6 +188,11 @@ impl FinalizedWitnessData {
             "no corrected codewords data",
         )?;
 
+        let polynomial_results = Option::ok_or(
+            witness_data.polynomial_results.clone(),
+            "no polynomial results data",
+        )?;
+
         Ok(Self {
             width: witness_data.width,
             height: witness_data.height,
@@ -184,6 +204,7 @@ impl FinalizedWitnessData {
             row_indicators,
             codewords,
             corrected_codewords,
+            polynomial_results,
         })
     }
 
@@ -256,6 +277,7 @@ impl WitnessData {
             row_indicators: None,
             codewords: None,
             corrected_codewords: None,
+            polynomial_results: None,
         }
     }
 
@@ -304,6 +326,10 @@ impl WitnessData {
     pub fn set_codewords(&mut self, codewords: Vec<u32>, corrected_codewords: Vec<u32>) {
         self.codewords = Some(codewords);
         self.corrected_codewords = Some(corrected_codewords);
+    }
+
+    pub fn set_polynomial_results(&mut self, polynomial_results: Vec<PolynomialResult>) {
+        self.polynomial_results = Some(polynomial_results);
     }
 
     /**

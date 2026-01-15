@@ -15,9 +15,9 @@
  */
 
 use crate::{
+    Exceptions, PolynomialResult, WitnessData,
     common::Result,
     pdf417::{decoder::ec::ModulusGF, pdf_417_common::NUMBER_OF_CODEWORDS},
-    Exceptions,
 };
 
 use super::ModulusPoly;
@@ -41,21 +41,39 @@ static FLD_INTERIOR: Lazy<ModulusGF> = Lazy::new(|| ModulusGF::new(NUMBER_OF_COD
  * @param received received codewords
  * @param numECCodewords number of those codewords used for EC
  * @param erasures location of erasures
+ * @param witness_data optional witness data to capture polynomial evaluations
  * @return number of errors
  * @throws ChecksumException if errors cannot be corrected, maybe because of too many errors
  */
-pub fn decode(received: &mut [u32], numECCodewords: u32, erasures: &mut [u32]) -> Result<usize> {
+pub fn decode(
+    received: &mut [u32],
+    numECCodewords: u32,
+    erasures: &mut [u32],
+    witness_data: Option<&mut WitnessData>,
+) -> Result<usize> {
     let field: &'static ModulusGF = &FLD_INTERIOR;
     let poly = ModulusPoly::new(field, received.to_vec())?;
     let mut S = vec![0u32; numECCodewords as usize];
     let mut error = false;
+    let mut polynomial_results = Vec::new();
     for i in (1..=numECCodewords).rev() {
         // for (int i = numECCodewords; i > 0; i--) {
-        let eval = poly.evaluateAt(field.exp(i));
+        let eval_result = poly.evaluateAt(field.exp(i));
+        let eval = eval_result.in_field;
+        assert!(eval_result.over_integers % 929 == eval);
+        polynomial_results.push(PolynomialResult {
+            result: eval_result.in_field,
+            result_quotient: eval_result.over_integers,
+        });
         S[(numECCodewords - i) as usize] = eval;
         if eval != 0 {
             error = true;
         }
+    }
+
+    // Write polynomial results to witness data if provided
+    if let Some(wd) = witness_data {
+        wd.set_polynomial_results(polynomial_results);
     }
 
     if !error {
@@ -175,7 +193,7 @@ fn findErrorLocations(errorLocator: ModulusPoly, field: &ModulusGF) -> Result<Ve
     let mut i = 1;
     while i < field.getSize() && e < numErrors {
         // for (int i = 1; i < PDF417_GF.getSize() && e < numErrors; i++) {
-        if errorLocator.evaluateAt(i) == 0 {
+        if errorLocator.evaluateAt(i).in_field == 0 {
             result[e as usize] = field.inverse(i)?;
             e += 1;
         }
@@ -212,9 +230,9 @@ fn findErrorMagnitudes(
     for i in 0..s {
         // for (int i = 0; i < s; i++) {
         let xiInverse = field.inverse(errorLocations[i]).expect("must invert");
-        let numerator = field.subtract(0, errorEvaluator.evaluateAt(xiInverse));
+        let numerator = field.subtract(0, errorEvaluator.evaluateAt(xiInverse).in_field);
         let denominator = field
-            .inverse(formalDerivative.evaluateAt(xiInverse))
+            .inverse(formalDerivative.evaluateAt(xiInverse).in_field)
             .expect("must invert");
         result[i] = field.multiply(numerator, denominator);
     }

@@ -524,7 +524,7 @@ fn createDecoderRXingResultFromAmbiguousValues(
         // Capture codewords before error correction
         let pre_correction_codewords: Vec<u32> = codewords.to_vec();
 
-        let attempted_decode = decodeCodewords(codewords, ecLevel, erasureArray);
+        let attempted_decode = decodeCodewords(codewords, ecLevel, erasureArray, witness_data.as_deref_mut());
         if attempted_decode.is_ok() {
             // Capture codewords after error correction and write to witness data
             if let Some(wd) = witness_data.as_deref_mut() {
@@ -867,13 +867,14 @@ fn decodeCodewords(
     codewords: &mut [u32],
     ecLevel: u32,
     erasures: &mut [u32],
+    witness_data: Option<&mut WitnessData>,
 ) -> Result<DecoderRXingResult> {
     if codewords.is_empty() {
         return Err(Exceptions::FORMAT);
     }
 
     let numECCodewords = 1 << (ecLevel + 1);
-    let correctedErrorsCount = correctErrors(codewords, erasures, numECCodewords)?;
+    let correctedErrorsCount = correctErrors(codewords, erasures, numECCodewords, witness_data)?;
     verifyCodewordCount(codewords, numECCodewords)?;
 
     // Decode the codewords
@@ -898,6 +899,7 @@ fn correctErrors(
     codewords: &mut [u32],
     erasures: &mut [u32],
     numECCodewords: u32,
+    witness_data: Option<&mut WitnessData>,
 ) -> Result<usize> {
     if !erasures.is_empty() && erasures.len() as u32 > numECCodewords / 2 + MAX_ERRORS
         /*|| numECCodewords < 0*/
@@ -906,7 +908,7 @@ fn correctErrors(
         // Too many errors or EC Codewords is corrupted
         return Err(Exceptions::CHECKSUM);
     }
-    ec::error_correction::decode(codewords, numECCodewords, erasures)
+    ec::error_correction::decode(codewords, numECCodewords, erasures, witness_data)
 }
 
 /**

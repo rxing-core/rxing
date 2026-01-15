@@ -14,14 +14,21 @@
  * limitations under the License.
  */
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 use super::ModulusGF;
 
 /**
  * @author Sean Owen
  */
+
+#[derive(Clone, Debug)]
+pub struct EvalResult {
+    pub in_field: u32,
+    pub over_integers: u32,
+}
+
 #[derive(Clone, Debug)]
 pub struct ModulusPoly {
     field: &'static ModulusGF,
@@ -92,30 +99,39 @@ impl ModulusPoly {
 
     /**
      * @return evaluation of this polynomial at a given point
+     *
+     * Returns two values:
+     * - in_field: the polynomial evaluated entirely in the field (all operations mod 929)
+     * - over_integers: sum of coeff[i] * (a^i in field), where powers are computed
+     *   in the field but the products and sum are computed as regular integers
      */
-    pub fn evaluateAt(&self, a: u32) -> u32 {
-        if a == 0 {
-            // Just return the x^0 coefficient
-            return self.getCoefficient(0);
-        }
-        if a == 1 {
-            // Just the sum of the coefficients
-            let mut result = 0;
-            for coefficient in self.coefficients.iter() {
-                // for (int coefficient : coefficients) {
-                result = self.field.add(result, *coefficient);
-            }
-            return result;
-        }
-        let mut result = self.coefficients[0];
+    pub fn evaluateAt(&self, a: u32) -> EvalResult {
+        // Compute in_field using Horner's method
         let size = self.coefficients.len();
+        let mut result = self.coefficients[0];
         for i in 1..size {
-            // for (int i = 1; i < size; i++) {
             result = self
                 .field
                 .add(self.field.multiply(a, result), self.coefficients[i]);
         }
-        result
+
+        // Compute over_integers: sum of coeff[i] * (a^i in field)
+        // Powers are computed in the field, but products and sum are not modded
+        let degree = self.getDegree() as usize;
+        let mut power = 1u32; // a^0 = 1
+        let mut over_integers = 0u32;
+        for i in 0..=degree {
+            let coeff = self.getCoefficient(i);
+            over_integers += coeff * power;
+            if i < degree {
+                power = self.field.multiply(power, a);
+            }
+        }
+
+        EvalResult {
+            in_field: result,
+            over_integers,
+        }
     }
 
     pub fn add(&self, other: ModulusPoly) -> Result<ModulusPoly> {

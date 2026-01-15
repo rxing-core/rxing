@@ -104,7 +104,7 @@ fn checkDecode(received: &mut [u32]) -> Result<()> {
 }
 
 fn checkDecodeErasures(received: &mut [u32], erasures: &mut [u32]) -> Result<()> {
-    decode(received, ECC_BYTES as u32, erasures)?;
+    decode(received, ECC_BYTES as u32, erasures, None)?;
     // ec.decode(received, ECC_BYTES, erasures);
     for i in 0..PDF417_TEST.len() {
         // for (int i = 0; i < PDF417_TEST.length; i++) {
