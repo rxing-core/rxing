@@ -95,6 +95,6 @@ fn testCompleteDecode() {
 
     let mut binaryMap = test_case_util::getBinaryBitmap("1000.png");
 
-    let result = rssExpandedReader.decode(&mut binaryMap).expect("decode");
+    let result = rssExpandedReader.decode(&mut binaryMap, None).expect("decode");
     assert_eq!("(01)98898765432106(3202)012345(15)991231", result.getText());
 }

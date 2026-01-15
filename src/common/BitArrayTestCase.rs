@@ -211,12 +211,12 @@ fn test_get_array() {
     if BIT_FIELD_BASE_BITS == 64 {
         assert_eq!(
             ints,
-            &[9223372036854775809_usize.try_into().unwrap_or_default()]
+            &[9223372036854775809_usize]
         )
     } else if BIT_FIELD_BASE_BITS == 128 {
         assert_eq!(
             ints,
-            &[9223372036854775809_u128.try_into().unwrap_or_default()]
+            &[9223372036854775809_u128 as usize]
         )
     } else {
         assert_eq!(1, ints[0]);

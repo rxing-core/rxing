@@ -570,7 +570,12 @@ fn decode_with_witness_extraction(
         // Extract values before moving source into binarizer
         let width = source.get_width();
         let height = source.get_height();
-        let luminance_data = source.get_matrix().to_vec();
+        let luminance_flat = source.get_matrix().to_vec();
+        // Convert flat array to 2D array (row-major order)
+        let luminance_data: Vec<Vec<u8>> = luminance_flat
+            .chunks(width)
+            .map(|row| row.to_vec())
+            .collect();
 
         let binarizer = FixedThresholdBinarizer::new(source);
         let mut bitmap = BinaryBitmap::new(binarizer);
@@ -593,7 +598,12 @@ fn decode_with_witness_extraction(
         // Extract values before moving source into binarizer
         let width = source.get_width();
         let height = source.get_height();
-        let luminance_data = source.get_matrix().to_vec();
+        let luminance_flat = source.get_matrix().to_vec();
+        // Convert flat array to 2D array (row-major order)
+        let luminance_data: Vec<Vec<u8>> = luminance_flat
+            .chunks(width)
+            .map(|row| row.to_vec())
+            .collect();
 
         let binarizer = FixedThresholdBinarizer::new(source);
         let mut bitmap = BinaryBitmap::new(binarizer);

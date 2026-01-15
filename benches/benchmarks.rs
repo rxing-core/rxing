@@ -30,7 +30,7 @@ fn aztec_benchmark(c: &mut Criterion) {
 
     c.bench_function("aztec", |b| {
         b.iter(|| {
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }
@@ -41,7 +41,7 @@ fn codabar_benchmark(c: &mut Criterion) {
 
     c.bench_function("codabar", |b| {
         b.iter(|| {
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }
@@ -52,7 +52,7 @@ fn code39_benchmark(c: &mut Criterion) {
 
     c.bench_function("code39", |b| {
         b.iter(|| {
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }
@@ -63,7 +63,7 @@ fn code93_benchmark(c: &mut Criterion) {
 
     c.bench_function("code93", |b| {
         b.iter(|| {
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }
@@ -74,7 +74,7 @@ fn datamatrix_benchmark(c: &mut Criterion) {
 
     c.bench_function("datamatrix", |b| {
         b.iter(|| {
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }
@@ -85,7 +85,7 @@ fn ean8_benchmark(c: &mut Criterion) {
 
     c.bench_function("ean8", |b| {
         b.iter(|| {
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }
@@ -96,7 +96,7 @@ fn ean13_benchmark(c: &mut Criterion) {
 
     c.bench_function("ean13", |b| {
         b.iter(|| {
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }
@@ -107,7 +107,7 @@ fn itf_benchmark(c: &mut Criterion) {
 
     c.bench_function("itf", |b| {
         b.iter(|| {
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }
@@ -118,7 +118,7 @@ fn maxicode_benchmark(c: &mut Criterion) {
 
     c.bench_function("maxicode", |b| {
         b.iter(|| {
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }
@@ -129,7 +129,7 @@ fn pdf417_benchmark(c: &mut Criterion) {
 
     c.bench_function("pdf417", |b| {
         b.iter(|| {
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }
@@ -140,7 +140,7 @@ fn qrcode_benchmark(c: &mut Criterion) {
 
     c.bench_function("qrcode", |b| {
         b.iter(|| {
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }
@@ -150,7 +150,7 @@ fn rss14_benchmark(c: &mut Criterion) {
     c.bench_function("rss14", |b| {
         b.iter(|| {
             let mut reader = RSS14Reader::default();
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }
@@ -160,7 +160,7 @@ fn rss_expanded_benchmark(c: &mut Criterion) {
     c.bench_function("rss_expanded", |b| {
         b.iter(|| {
             let mut reader = RSSExpandedReader::default();
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }
@@ -171,7 +171,7 @@ fn telepen_benchmark(c: &mut Criterion) {
 
     c.bench_function("telepen", |b| {
         b.iter(|| {
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }
@@ -181,7 +181,7 @@ fn upca_benchmark(c: &mut Criterion) {
     c.bench_function("upca", |b| {
         b.iter(|| {
             let mut reader = UPCAReader::default();
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }
@@ -191,7 +191,7 @@ fn upce_benchmark(c: &mut Criterion) {
     c.bench_function("upce", |b| {
         b.iter(|| {
             let mut reader = UPCEReader;
-            let _res = reader.decode(&mut image);
+            let _res = reader.decode(&mut image, None);
         });
     });
 }

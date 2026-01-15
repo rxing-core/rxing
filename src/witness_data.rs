@@ -16,7 +16,7 @@ use serde::Serialize;
  * # Fields
  * * `width` - The width of the image in pixels
  * * `height` - The height of the image in pixels
- * * `image` - The original grayscale luminance values (0-255 per pixel), stored row-major
+ * * `image` - The original grayscale luminance values (0-255 per pixel), stored as 2D array [row][col]
  * * `binarized_image` - The binarized black/white BitMatrix after threshold application
  */
 #[derive(Clone, Debug)]
@@ -28,9 +28,9 @@ pub struct WitnessData {
     pub height: usize,
 
     /// The original grayscale luminance values (0-255 per pixel)
-    /// Stored in row-major order: pixels are stored row by row, left to right, top to bottom
-    /// Total size: width * height bytes
-    pub image: Vec<u8>,
+    /// Stored as a 2D array: image[row][col] where row is y-coordinate and col is x-coordinate
+    /// Outer vector has `height` elements, each inner vector has `width` elements
+    pub image: Vec<Vec<u8>>,
 
     /// The binarized image after applying the threshold
     /// Pixels are represented as bits: true/1 = black, false/0 = white
@@ -51,26 +51,36 @@ pub struct FinalizedWitnessData {
     pub height: usize,
 
     /// The original grayscale luminance values (0-255 per pixel)
-    /// Stored in row-major order: pixels are stored row by row, left to right, top to bottom
-    /// Total size: width * height bytes
-    pub image: Vec<u8>,
+    /// Stored as a 2D array: image[row][col] where row is y-coordinate and col is x-coordinate
+    /// Outer vector has `height` elements, each inner vector has `width` elements
+    pub image: Vec<Vec<u8>>,
 
     /// The binarized image after applying the threshold
-    /// Pixels are represented as bits: true/1 = black, false/0 = white
-    /// Serialized as a flattened 1D array of booleans in row-major order
+    /// Pixels are represented as bits: 1 = black, 0 = white
+    /// Serialized as a 2D array of 0s and 1s: binarized_image[row][col]
     #[cfg_attr(feature = "serde", serde(serialize_with = "serialize_bitmatrix"))]
     pub binarized_image: BitMatrix,
 }
 
 impl FinalizedWitnessData {
-    pub fn new(width: usize, height: usize, image: Vec<u8>, binarized_image: BitMatrix) -> Self {
+    pub fn new(width: usize, height: usize, image: Vec<Vec<u8>>, binarized_image: BitMatrix) -> Self {
         assert_eq!(
             image.len(),
-            width * height,
-            "Image size mismatch: expected {} bytes, got {}",
-            width * height,
+            height,
+            "Image height mismatch: expected {} rows, got {}",
+            height,
             image.len()
         );
+        for (row_idx, row) in image.iter().enumerate() {
+            assert_eq!(
+                row.len(),
+                width,
+                "Image width mismatch at row {}: expected {} columns, got {}",
+                row_idx,
+                width,
+                row.len()
+            );
+        }
 
         Self {
             width,
@@ -128,20 +138,29 @@ impl WitnessData {
      * # Arguments
      * * `width` - The width of the image in pixels
      * * `height` - The height of the image in pixels
-     * * `image` - The grayscale luminance data (must be width * height bytes)
-     * * `binarized_image` - The binarized BitMatrix
+     * * `image` - The grayscale luminance data as a 2D array [row][col]
      *
      * # Panics
-     * Panics if `image.len()` does not equal `width * height`
+     * Panics if the image dimensions don't match width and height
      */
-    pub fn new(width: usize, height: usize, image: Vec<u8>) -> Self {
+    pub fn new(width: usize, height: usize, image: Vec<Vec<u8>>) -> Self {
         assert_eq!(
             image.len(),
-            width * height,
-            "Image size mismatch: expected {} bytes, got {}",
-            width * height,
+            height,
+            "Image height mismatch: expected {} rows, got {}",
+            height,
             image.len()
         );
+        for (row_idx, row) in image.iter().enumerate() {
+            assert_eq!(
+                row.len(),
+                width,
+                "Image width mismatch at row {}: expected {} columns, got {}",
+                row_idx,
+                width,
+                row.len()
+            );
+        }
 
         Self {
             width,
@@ -166,9 +185,9 @@ impl WitnessData {
     }
 
     /**
-     * Returns a reference to the grayscale image data.
+     * Returns a reference to the grayscale image data as a 2D array.
      */
-    pub fn image(&self) -> &[u8] {
+    pub fn image(&self) -> &[Vec<u8>] {
         &self.image
     }
 
@@ -205,7 +224,7 @@ impl WitnessData {
             x < self.width && y < self.height,
             "Pixel coordinates out of bounds"
         );
-        self.image[y * self.width + x]
+        self.image[y][x]
     }
 
     /**
@@ -226,8 +245,8 @@ impl WitnessData {
     }
 }
 
-// Custom serialization for BitMatrix - convert to flattened 1D array of booleans
-// Stored in row-major order: row 0 from left to right, then row 1, etc.
+// Custom serialization for BitMatrix - convert to 2D array of 0s and 1s
+// Stored as rows[y][x] where each value is 0 (white) or 1 (black)
 #[cfg(feature = "serde")]
 fn serialize_bitmatrix<S>(matrix: &BitMatrix, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -237,15 +256,17 @@ where
 
     let width = matrix.getWidth();
     let height = matrix.getHeight();
-    let total_pixels = (width * height) as usize;
 
-    let mut seq = serializer.serialize_seq(Some(total_pixels))?;
+    // Create outer sequence for rows
+    let mut rows = serializer.serialize_seq(Some(height as usize))?;
     for y in 0..height {
-        for x in 0..width {
-            seq.serialize_element(&matrix.get(x, y))?;
-        }
+        // Build each row as a Vec<u8> of 0s and 1s
+        let row: Vec<u8> = (0..width)
+            .map(|x| if matrix.get(x, y) { 1 } else { 0 })
+            .collect();
+        rows.serialize_element(&row)?;
     }
-    seq.end()
+    rows.end()
 }
 
 #[cfg(test)]
@@ -254,9 +275,12 @@ mod tests {
 
     #[test]
     fn test_witness_data_creation() {
-        // Create a simple 4x4 test image
+        // Create a simple 4x4 test image as 2D array
         let image = vec![
-            0, 64, 127, 128, 129, 192, 200, 255, 50, 100, 150, 200, 127, 128, 129, 130,
+            vec![0, 64, 127, 128],
+            vec![129, 192, 200, 255],
+            vec![50, 100, 150, 200],
+            vec![127, 128, 129, 130],
         ];
 
         let mut binarized = BitMatrix::new(4, 4).unwrap();
@@ -266,22 +290,23 @@ mod tests {
         binarized.set(2, 0); // 127
         // 128+ stay white
 
-        let witness = WitnessData::new(4, 4, image.clone(), binarized);
+        let mut witness = WitnessData::new(4, 4, image.clone());
+        witness.set_binarized_image(binarized);
 
         assert_eq!(witness.width(), 4);
         assert_eq!(witness.height(), 4);
-        assert_eq!(witness.image().len(), 16);
+        assert_eq!(witness.image().len(), 4); // 4 rows
+        assert_eq!(witness.image()[0].len(), 4); // 4 columns per row
         assert_eq!(witness.get_pixel(0, 0), 0);
         assert_eq!(witness.get_pixel(3, 1), 255);
-        assert_eq!(witness.get_binarized_pixel(0, 0), true); // black
-        assert_eq!(witness.get_binarized_pixel(3, 0), false); // white
+        assert_eq!(witness.get_binarized_pixel(0, 0), Some(true)); // black
+        assert_eq!(witness.get_binarized_pixel(3, 0), Some(false)); // white
     }
 
     #[test]
-    #[should_panic(expected = "Image size mismatch")]
+    #[should_panic(expected = "Image height mismatch")]
     fn test_witness_data_size_mismatch() {
-        let image = vec![1, 2, 3]; // Wrong size
-        let binarized = BitMatrix::new(4, 4).unwrap();
-        let _witness = WitnessData::new(4, 4, image, binarized);
+        let image = vec![vec![1, 2, 3]]; // Wrong number of rows
+        let _witness = WitnessData::new(3, 4, image);
     }
 }

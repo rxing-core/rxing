@@ -411,6 +411,7 @@ fn test_issue_50() {
                 img.height(),
             ))),
             &hints,
+            None,
         )
         .expect("must not fault during read");
 
@@ -447,6 +448,7 @@ fn test_issue_50_2() {
                 1,
             )),
             &hints,
+            None,
         )
         .expect("must not fault during read");
 
@@ -588,7 +590,7 @@ fn issue_59() {
     let ls = BufferedImageLuminanceSource::new(img);
     let mut bb = rxing::BinaryBitmap::new(rxing::common::HybridBinarizer::new(ls));
     let detection = rxing::MultiFormatReader::default()
-        .decode_with_hints(&mut bb, &decode_hints)
+        .decode_with_hints(&mut bb, &decode_hints, None)
         .expect("must decode first image");
     assert_eq!(detection.getText(), data);
 
@@ -596,7 +598,7 @@ fn issue_59() {
     let ls = BufferedImageLuminanceSource::new(img);
     let mut bb = rxing::BinaryBitmap::new(rxing::common::HybridBinarizer::new(ls));
     let detection = rxing::MultiFormatReader::default()
-        .decode_with_hints(&mut bb, &decode_hints)
+        .decode_with_hints(&mut bb, &decode_hints, None)
         .expect("must decode first image");
     assert_eq!(detection.getText(), data2);
 }

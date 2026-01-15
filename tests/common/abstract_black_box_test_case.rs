@@ -484,7 +484,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
             // not expected to pass, generally
             let pure_hints = DecodeHints::default().with(DecodeHintValue::PureBarcode(true));
 
-            result = if let Ok(res) = self.barcode_reader.decode_with_hints(source, &pure_hints) {
+            result = if let Ok(res) = self.barcode_reader.decode_with_hints(source, &pure_hints, None) {
                 log::fine(format!("{suffix} - read pure barcode"));
                 Some(res)
             } else {
@@ -496,7 +496,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
         // let mut result = None;
 
         if result.is_none() {
-            result = Some(self.barcode_reader.decode_with_hints(source, &hints)?)
+            result = Some(self.barcode_reader.decode_with_hints(source, &hints, None)?)
         }
 
         let result = result.unwrap();
