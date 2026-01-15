@@ -17,15 +17,16 @@
 use std::sync::Arc;
 
 use crate::{
+    Exceptions, Point, WitnessData,
     common::{BitMatrix, DecoderRXingResult, Result},
     pdf417::pdf_417_common,
-    Exceptions, Point, WitnessData,
 };
 
 use super::{
-    decoded_bit_stream_parser, ec, pdf_417_codeword_decoder, BarcodeMetadata, BarcodeValue,
-    BoundingBox, Codeword, DetectionRXingResult, DetectionRXingResultColumn,
-    DetectionRXingResultColumnTrait, DetectionRXingResultRowIndicatorColumn,
+    BarcodeMetadata, BarcodeValue, BoundingBox, Codeword, DetectionRXingResult,
+    DetectionRXingResultColumn, DetectionRXingResultColumnTrait,
+    DetectionRXingResultRowIndicatorColumn, decoded_bit_stream_parser, ec,
+    pdf_417_codeword_decoder,
 };
 
 /*
@@ -109,7 +110,7 @@ pub fn decode(
     let mut detectionRXingResult = detectionRXingResult.unwrap();
 
     // Write barcode metadata to witness data if provided
-    if let Some(wd) = witness_data {
+    if let Some(wd) = witness_data.as_deref_mut() {
         wd.set_barcode_metadata(
             detectionRXingResult.getBarcodeRowCount(),
             detectionRXingResult.getBarcodeColumnCount() as u32,
@@ -188,7 +189,7 @@ pub fn decode(
         }
     }
 
-    createDecoderRXingResult(&mut detectionRXingResult)
+    createDecoderRXingResult(&mut detectionRXingResult, witness_data)
 }
 
 fn merge<'a, T: DetectionRXingResultRowIndicatorColumn>(
@@ -199,8 +200,11 @@ fn merge<'a, T: DetectionRXingResultRowIndicatorColumn>(
     if leftRowIndicatorColumn.is_none() && rightRowIndicatorColumn.is_none() {
         return Ok(None);
     }
-    let barcodeMetadata =
-        getBarcodeMetadata(leftRowIndicatorColumn, rightRowIndicatorColumn, witness_data);
+    let barcodeMetadata = getBarcodeMetadata(
+        leftRowIndicatorColumn,
+        rightRowIndicatorColumn,
+        witness_data,
+    );
     if barcodeMetadata.is_none() {
         return Ok(None);
     }
@@ -443,6 +447,7 @@ fn adjustCodewordCount(
 
 fn createDecoderRXingResult(
     detectionRXingResult: &mut DetectionRXingResult,
+    witness_data: Option<&mut WitnessData>,
 ) -> Result<DecoderRXingResult> {
     let mut barcodeMatrix = createBarcodeMatrix(detectionRXingResult);
     adjustCodewordCount(detectionRXingResult, &mut barcodeMatrix)?;
@@ -483,6 +488,7 @@ fn createDecoderRXingResult(
         &mut erasures,
         &mut ambiguousIndexesList,
         &ambiguousIndexValues,
+        witness_data,
     )
 }
 
@@ -505,30 +511,31 @@ fn createDecoderRXingResultFromAmbiguousValues(
     erasureArray: &mut [u32],
     ambiguousIndexes: &mut [u32],
     ambiguousIndexValues: &[Vec<u32>],
+    mut witness_data: Option<&mut WitnessData>,
 ) -> Result<DecoderRXingResult> {
     let mut ambiguousIndexCount = vec![0; ambiguousIndexes.len()];
 
     let mut tries = 100;
     while tries > 0 {
         for i in 0..ambiguousIndexCount.len() {
-            // for (int i = 0; i < ambiguousIndexCount.length; i++) {
             codewords[ambiguousIndexes[i] as usize] =
                 ambiguousIndexValues[i][ambiguousIndexCount[i]];
         }
+        // Capture codewords before error correction
+        let pre_correction_codewords: Vec<u32> = codewords.to_vec();
+
         let attempted_decode = decodeCodewords(codewords, ecLevel, erasureArray);
         if attempted_decode.is_ok() {
+            // Capture codewords after error correction and write to witness data
+            if let Some(wd) = witness_data.as_deref_mut() {
+                wd.set_codewords(pre_correction_codewords, codewords.to_vec());
+            }
             return attempted_decode;
         }
-        // try {
-        //   return decodeCodewords(codewords, ecLevel, erasureArray);
-        // } catch (ChecksumException ignored) {
-        //   //
-        // }
         if ambiguousIndexCount.is_empty() {
             return Err(Exceptions::CHECKSUM);
         }
         for i in 0..ambiguousIndexCount.len() {
-            // for (int i = 0; i < ambiguousIndexCount.length; i++) {
             if ambiguousIndexCount[i] < ambiguousIndexValues[i].len() - 1 {
                 ambiguousIndexCount[i] += 1;
                 break;

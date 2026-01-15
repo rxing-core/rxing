@@ -57,6 +57,12 @@ pub struct WitnessData {
     pub ec_level: Option<u32>,
 
     pub row_indicators: Option<RowIndicatorVars>,
+
+    /// Codewords before error correction
+    pub codewords: Option<Vec<u32>>,
+
+    /// Codewords after error correction
+    pub corrected_codewords: Option<Vec<u32>>,
 }
 
 /**
@@ -88,6 +94,12 @@ pub struct FinalizedWitnessData {
     pub ec_level: u32,
 
     pub row_indicators: RowIndicatorVars,
+
+    /// Codewords before error correction
+    pub codewords: Vec<u32>,
+
+    /// Codewords after error correction
+    pub corrected_codewords: Vec<u32>,
 }
 
 impl FinalizedWitnessData {
@@ -100,6 +112,8 @@ impl FinalizedWitnessData {
         column_count: u32,
         ec_level: u32,
         row_indicators: RowIndicatorVars,
+        codewords: Vec<u32>,
+        corrected_codewords: Vec<u32>,
     ) -> Self {
         assert_eq!(
             image.len(),
@@ -128,6 +142,8 @@ impl FinalizedWitnessData {
             column_count,
             ec_level,
             row_indicators,
+            codewords,
+            corrected_codewords,
         }
     }
 
@@ -150,6 +166,13 @@ impl FinalizedWitnessData {
         let row_indicators =
             Option::ok_or(witness_data.row_indicators.clone(), "no row indicator data")?;
 
+        let codewords = Option::ok_or(witness_data.codewords.clone(), "no codewords data")?;
+
+        let corrected_codewords = Option::ok_or(
+            witness_data.corrected_codewords.clone(),
+            "no corrected codewords data",
+        )?;
+
         Ok(Self {
             width: witness_data.width,
             height: witness_data.height,
@@ -159,6 +182,8 @@ impl FinalizedWitnessData {
             column_count,
             ec_level,
             row_indicators,
+            codewords,
+            corrected_codewords,
         })
     }
 
@@ -229,6 +254,8 @@ impl WitnessData {
             column_count: None,
             ec_level: None,
             row_indicators: None,
+            codewords: None,
+            corrected_codewords: None,
         }
     }
 
@@ -272,6 +299,11 @@ impl WitnessData {
 
     pub fn set_row_indicators(&mut self, row_indicators: RowIndicatorVars) {
         self.row_indicators = Some(row_indicators);
+    }
+
+    pub fn set_codewords(&mut self, codewords: Vec<u32>, corrected_codewords: Vec<u32>) {
+        self.codewords = Some(codewords);
+        self.corrected_codewords = Some(corrected_codewords);
     }
 
     /**
