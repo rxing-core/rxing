@@ -94,7 +94,7 @@ impl PDF417Reader {
     fn decode<B: Binarizer>(
         image: &mut BinaryBitmap<B>,
         hints: &DecodeHints,
-        witness_data: Option<&mut WitnessData>,
+        mut witness_data: Option<&mut WitnessData>,
         multiple: bool,
     ) -> Result<Vec<RXingResult>> {
         if multiple && Option::is_some(&witness_data) {
@@ -118,6 +118,7 @@ impl PDF417Reader {
                 points[7],
                 Self::getMinCodewordWidth(points),
                 Self::getMaxCodewordWidth(points),
+                witness_data.take(),
             )?;
 
             let mut result = RXingResult::new(

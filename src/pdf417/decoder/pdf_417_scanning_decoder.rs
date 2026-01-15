@@ -19,7 +19,7 @@ use std::sync::Arc;
 use crate::{
     common::{BitMatrix, DecoderRXingResult, Result},
     pdf417::pdf_417_common,
-    Exceptions, Point,
+    Exceptions, Point, WitnessData,
 };
 
 use super::{
@@ -50,6 +50,7 @@ pub fn decode(
     imageBottomRight: Option<Point>,
     minCodewordWidth: u32,
     maxCodewordWidth: u32,
+    witness_data: Option<&mut WitnessData>,
 ) -> Result<DecoderRXingResult> {
     let mut minCodewordWidth = minCodewordWidth;
     let mut maxCodewordWidth = maxCodewordWidth;
@@ -102,6 +103,15 @@ pub fn decode(
         }
     }
     let mut detectionRXingResult = detectionRXingResult.unwrap();
+
+    // Write barcode metadata to witness data if provided
+    if let Some(wd) = witness_data {
+        wd.set_barcode_metadata(
+            detectionRXingResult.getBarcodeRowCount(),
+            detectionRXingResult.getBarcodeColumnCount() as u32,
+            detectionRXingResult.getBarcodeECLevel(),
+        );
+    }
 
     let leftToRight = leftRowIndicatorColumn.is_some();
 

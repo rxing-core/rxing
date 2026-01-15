@@ -35,6 +35,11 @@ pub struct WitnessData {
     /// The binarized image after applying the threshold
     /// Pixels are represented as bits: true/1 = black, false/0 = white
     pub binarized_image: Option<BitMatrix>,
+
+    /// Barcode metadata values: how many rows and columns it has, and its error correction level
+    pub row_count: Option<u32>,
+    pub column_count: Option<u32>,
+    pub ec_level: Option<u32>,
 }
 
 /**
@@ -60,10 +65,22 @@ pub struct FinalizedWitnessData {
     /// Serialized as a 2D array of 0s and 1s: binarized_image[row][col]
     #[cfg_attr(feature = "serde", serde(serialize_with = "serialize_bitmatrix"))]
     pub binarized_image: BitMatrix,
+
+    pub row_count: u32,
+    pub column_count: u32,
+    pub ec_level: u32,
 }
 
 impl FinalizedWitnessData {
-    pub fn new(width: usize, height: usize, image: Vec<Vec<u8>>, binarized_image: BitMatrix) -> Self {
+    pub fn new(
+        width: usize,
+        height: usize,
+        image: Vec<Vec<u8>>,
+        binarized_image: BitMatrix,
+        row_count: u32,
+        column_count: u32,
+        ec_level: u32,
+    ) -> Self {
         assert_eq!(
             image.len(),
             height,
@@ -87,6 +104,9 @@ impl FinalizedWitnessData {
             height,
             image,
             binarized_image,
+            row_count,
+            column_count,
+            ec_level,
         }
     }
 
@@ -96,11 +116,24 @@ impl FinalizedWitnessData {
             "no binarized image data",
         )?;
 
+        let row_count = Option::ok_or(witness_data.row_count.clone(), "no row count data")?;
+
+        let column_count =
+            Option::ok_or(witness_data.column_count.clone(), "no column count data")?;
+
+        let ec_level = Option::ok_or(
+            witness_data.ec_level.clone(),
+            "no error correction level data",
+        )?;
+
         Ok(Self {
             width: witness_data.width,
             height: witness_data.height,
             image: witness_data.image.clone(),
             binarized_image,
+            row_count,
+            column_count,
+            ec_level,
         })
     }
 
@@ -167,6 +200,9 @@ impl WitnessData {
             height,
             image,
             binarized_image: None,
+            row_count: None,
+            column_count: None,
+            ec_level: None,
         }
     }
 
@@ -200,6 +236,12 @@ impl WitnessData {
 
     pub fn set_binarized_image(&mut self, binarized_image: BitMatrix) {
         self.binarized_image = Some(binarized_image)
+    }
+
+    pub fn set_barcode_metadata(&mut self, row_count: u32, column_count: u32, ec_level: u32) {
+        self.row_count = Some(row_count);
+        self.column_count = Some(column_count);
+        self.ec_level = Some(ec_level);
     }
 
     /**
