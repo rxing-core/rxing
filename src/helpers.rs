@@ -1,5 +1,8 @@
 use std::{collections::HashSet, io::Write, path::PathBuf};
 
+#[cfg(feature = "image")]
+use image::DynamicImage;
+
 use crate::{
     common::{BitMatrix, HybridBinarizer, Result},
     multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
@@ -108,6 +111,42 @@ pub fn detect_in_file_with_hints(
             "file '{file_name}' not found or cannot be opened"
         )));
     };
+    detect_in_image_with_hints(img, barcode_type, hints)
+}
+
+#[cfg(feature = "image")]
+pub fn detect_in_buffer(buffer: &[u8], barcode_type: Option<BarcodeFormat>) -> Result<RXingResult> {
+    detect_in_buffer_with_hints(buffer, barcode_type, &mut DecodeHints::default())
+}
+
+#[cfg(feature = "image")]
+pub fn detect_in_buffer_with_hints(
+    buffer: &[u8],
+    barcode_type: Option<BarcodeFormat>,
+    hints: &mut DecodeHints,
+) -> Result<RXingResult> {
+    let Ok(img) = image::load_from_memory(buffer) else {
+        return Err(Exceptions::illegal_argument_with(
+            "buffer cannot be loaded as image",
+        ));
+    };
+    detect_in_image_with_hints(img, barcode_type, hints)
+}
+
+#[cfg(feature = "image")]
+pub fn detect_in_image(
+    img: DynamicImage,
+    barcode_type: Option<BarcodeFormat>,
+) -> Result<RXingResult> {
+    detect_in_image_with_hints(img, barcode_type, &mut DecodeHints::default())
+}
+
+#[cfg(feature = "image")]
+pub fn detect_in_image_with_hints(
+    img: DynamicImage,
+    barcode_type: Option<BarcodeFormat>,
+    hints: &mut DecodeHints,
+) -> Result<RXingResult> {
     let mut multi_format_reader = MultiFormatReader::default();
 
     if let Some(bc_type) = barcode_type {
@@ -134,6 +173,34 @@ pub fn detect_multiple_in_file_with_hints(
 ) -> Result<Vec<RXingResult>> {
     let img = image::open(file_name)
         .map_err(|e| Exceptions::runtime_with(format!("couldn't read {file_name}: {e}")))?;
+    detect_multiple_in_image_with_hints(img, hints)
+}
+
+#[cfg(feature = "image")]
+pub fn detect_multiple_in_buffer(buffer: &[u8]) -> Result<Vec<RXingResult>> {
+    detect_multiple_in_buffer_with_hints(buffer, &mut DecodeHints::default())
+}
+
+#[cfg(feature = "image")]
+pub fn detect_multiple_in_buffer_with_hints(
+    buffer: &[u8],
+    hints: &mut DecodeHints,
+) -> Result<Vec<RXingResult>> {
+    let img = image::load_from_memory(buffer)
+        .map_err(|e| Exceptions::runtime_with(format!("couldn't read buffer: {e}")))?;
+    detect_multiple_in_image_with_hints(img, hints)
+}
+
+#[cfg(feature = "image")]
+pub fn detect_multiple_in_image(img: DynamicImage) -> Result<Vec<RXingResult>> {
+    detect_multiple_in_image_with_hints(img, &mut DecodeHints::default())
+}
+
+#[cfg(feature = "image")]
+pub fn detect_multiple_in_image_with_hints(
+    img: DynamicImage,
+    hints: &mut DecodeHints,
+) -> Result<Vec<RXingResult>> {
     let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
 
