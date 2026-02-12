@@ -19,7 +19,9 @@ use num::{self, bigint::ToBigUint, BigUint};
 use std::sync::Arc;
 
 use crate::{
-    Exceptions, WitnessData, common::{DecoderRXingResult, ECIStringBuilder, Eci, Result}, pdf417::PDF417RXingResultMetadata
+    common::{DecoderRXingResult, ECIStringBuilder, Eci, Result},
+    pdf417::PDF417RXingResultMetadata,
+    Exceptions,
 };
 
 /**
@@ -177,7 +179,7 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult> {
 pub fn decodeMacroBlock(
     codewords: &[u32],
     codeIndex: usize,
-    resultMetadata: &mut PDF417RXingResultMetadata
+    resultMetadata: &mut PDF417RXingResultMetadata,
 ) -> Result<usize> {
     let mut codeIndex = codeIndex;
     if codeIndex + NUMBER_OF_SEQUENCE_CODEWORDS > codewords[0] as usize {
