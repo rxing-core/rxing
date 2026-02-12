@@ -158,7 +158,22 @@ impl DetectionRXingResultRowIndicatorColumn for DetectionRXingResultColumn {
         let mut barcodeRowCountLowerPart = BarcodeValue::new();
         let mut barcodeECLevel = BarcodeValue::new();
 
+        // Keeps track of current triplets to store
+        let mut all_indicators = Vec::new();
+
+        let mut current_l0: u32 = 0;
+        let mut current_l3: u32 = 0;
+        let mut current_l6: u32 = 0;
+        let mut current_q0: u32 = 0;
+        let mut current_q3: u32 = 0;
+        let mut current_q6: u32 = 0;
+        let mut current_r0: u32 = 0;
+        let mut current_r3: u32 = 0;
+        let mut has_0 = false;
+        let mut has_1 = false;
+
         // Track row indicator values for witness data (only for left indicators)
+        // These track the first 3 rows
         let mut have_cluster_0 = false;
         let mut have_cluster_1 = false;
         let mut have_cluster_2 = false;
@@ -191,6 +206,12 @@ impl DetectionRXingResultRowIndicatorColumn for DetectionRXingResultColumn {
                         r0 = rowIndicatorValue;
                         have_cluster_0 = true;
                     }
+                    if isLeft {
+                        current_l0 = fullValue;
+                        current_q0 = quotient;
+                        current_r0 = rowIndicatorValue;
+                        has_0 = true;
+                    }
                 }
                 1 => {
                     barcodeECLevel.setValue(rowIndicatorValue / 3);
@@ -201,6 +222,12 @@ impl DetectionRXingResultRowIndicatorColumn for DetectionRXingResultColumn {
                         r3 = rowIndicatorValue;
                         have_cluster_1 = true;
                     }
+                    if isLeft {
+                        current_l3 = fullValue;
+                        current_q3 = quotient;
+                        current_r3 = rowIndicatorValue;
+                        has_1 = true;
+                    }
                 }
                 2 => {
                     barcodeColumnCount.setValue(rowIndicatorValue + 1);
@@ -210,6 +237,22 @@ impl DetectionRXingResultRowIndicatorColumn for DetectionRXingResultColumn {
                         // r6 is not stored - it equals num_cols - 1
                         have_cluster_2 = true;
                     }
+                    if isLeft && has_0 && has_1 {
+                        current_l6 = fullValue;
+                        current_q6 = quotient;
+                        all_indicators.push(RowIndicatorVars {
+                            l0: current_l0,
+                            l3: current_l3,
+                            l6: current_l6,
+                            q0: current_q0,
+                            q3: current_q3,
+                            q6: current_q6,
+                            r0: current_r0,
+                            r3: current_r3,
+                        });
+                    }
+                    has_0 = false;
+                    has_1 = false;
                 }
                 _ => {}
             }
@@ -244,6 +287,9 @@ impl DetectionRXingResultRowIndicatorColumn for DetectionRXingResultColumn {
                     r0,
                     r3,
                 });
+            }
+            if isLeft && !all_indicators.is_empty() {
+                wd.set_all_left_row_indicators(all_indicators);
             }
         }
 
