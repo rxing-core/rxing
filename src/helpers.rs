@@ -220,8 +220,8 @@ pub fn detect_in_luma(
 ) -> Result<RXingResult> {
     detect_in_luma_with_hints(
         luma,
-        height,
         width,
+        height,
         barcode_type,
         &mut DecodeHints::default(),
     )
@@ -258,8 +258,8 @@ pub fn detect_in_luma_filtered(
 ) -> Result<RXingResult> {
     crate::helpers::detect_in_luma_filtered_with_hints(
         luma,
-        height,
         width,
+        height,
         barcode_type,
         &mut DecodeHints::default(),
     )
