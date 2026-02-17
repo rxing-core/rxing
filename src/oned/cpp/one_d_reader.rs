@@ -25,7 +25,7 @@ pub struct ODReader<'a> {
     try_rotate: bool,
 }
 
-impl<'a> ODReader<'_> {
+impl ODReader<'_> {
     /**
      * We're going to examine rows from the middle outward, searching alternately above and below the
      * middle, and farther out each time. rowStep is the number of rows between each successive
@@ -35,6 +35,7 @@ impl<'a> ODReader<'_> {
      * decided that moving up and down by about 1/16 of the image is pretty good; we try more of the
      * image if "trying harder".
      */
+    #[allow(clippy::too_many_arguments)]
     pub fn DoDecode<B: Binarizer>(
         reader: &DXFilmEdgeReader,
         image: &BinaryBitmap<B>,
@@ -55,7 +56,7 @@ impl<'a> ODReader<'_> {
         let mut width: i32 = image.get_width() as i32;
         let mut height: i32 = image.get_height() as i32;
 
-        if (rotate) {
+        if rotate {
             std::mem::swap(&mut width, &mut height);
         }
 
@@ -64,8 +65,12 @@ impl<'a> ODReader<'_> {
         let rowStep: i32 = std::cmp::max(
             1,
             height
-                / (if (tryHarder && !isPure) {
-                    (if maxSymbols == 1 { 256 } else { 512 })
+                / (if tryHarder && !isPure {
+                    if maxSymbols == 1 {
+                        256
+                    } else {
+                        512
+                    }
                 } else {
                     32
                 }),
@@ -76,7 +81,7 @@ impl<'a> ODReader<'_> {
             15 // 15 rows spaced 1/32 apart is roughly the middle half of the image
         };
 
-        if (isPure) {
+        if isPure {
             minLineCount = 1;
         }
         let mut checkRows = Vec::new();
@@ -103,19 +108,19 @@ impl<'a> ODReader<'_> {
                         -rowStepsAboveOrBelow
                     });
             let mut isCheckRow: bool = false;
-            if (rowNumber < 0 || rowNumber >= height) {
+            if rowNumber < 0 || rowNumber >= height {
                 // Oops, if we run off the top or bottom, stop
                 break;
             }
 
             // See if we have additional check rows (see below) to process
-            if (!checkRows.is_empty()) {
+            if !checkRows.is_empty() {
                 //--i;
                 i -= 1;
                 rowNumber = *checkRows.last().unwrap_or(&0);
                 checkRows.pop();
                 isCheckRow = true;
-                if (rowNumber < 0 || rowNumber >= height) {
+                if rowNumber < 0 || rowNumber >= height {
                     i += 1;
                     continue;
                 }
@@ -162,36 +167,36 @@ impl<'a> ODReader<'_> {
             for upsideDown in [false, true] {
                 // for (bool upsideDown : {false, true}) {
                 // trying again?
-                if (upsideDown) {
+                if upsideDown {
                     // reverse the row and continue
                     // std::reverse(bars.begin(), bars.end());
                     bars.rev();
                 }
-                let readers = vec![reader];
+                let readers = [reader];
                 // Look for a barcode
                 for r in 0..readers.len() {
                     // for (size_t r = 0; r < readers.size(); ++r) {
                     // If this is a pure symbol, then checking a single non-empty line is sufficient for all but the stacked
                     // DataBar codes. They are the only ones using the decodingState, which we can use as a flag here.
-                    if (isPure && i > 0 && decodingState[r].is_none()) {
+                    if isPure && i > 0 && decodingState[r].is_none() {
                         continue;
                     }
 
                     let mut next = PatternView::new(&bars);
                     loop {
-                        let mut result_hld = readers[r]
+                        let result_hld = readers[r]
                             .decodePattern(rowNumber as u32, &mut next, &mut decodingState[r])
                             .ok();
                         if let Some(mut result) = result_hld {
                             IncrementLineCount(&mut result);
-                            if (upsideDown) {
+                            if upsideDown {
                                 // update position (flip horizontally).
                                 let points = result.getPointsMut();
                                 for p in points {
                                     *p = point(width as f32 - p.x - 1.0, p.y);
                                 }
                             }
-                            if (rotate) {
+                            if rotate {
                                 let points = result.getPointsMut();
                                 for p in points {
                                     *p = point(p.y, width as f32 - p.x - 1.0);
@@ -204,8 +209,8 @@ impl<'a> ODReader<'_> {
                                 let Some(ref mut other) = other_hld else {
                                     continue;
                                 };
-                                if (result.getText() == other.getText()
-                                    && result.getBarcodeFormat() == other.getBarcodeFormat())
+                                if result.getText() == other.getText()
+                                    && result.getBarcodeFormat() == other.getBarcodeFormat()
                                 {
                                     // merge the position information
                                     let dTop = PointT::maxAbsComponent(
@@ -215,13 +220,13 @@ impl<'a> ODReader<'_> {
                                         other.getPoints()[2] - result.getPoints()[0],
                                     );
                                     let mut points = other.getPoints().to_vec();
-                                    if (dTop < dBot
+                                    if dTop < dBot
                                         || (dTop == dBot
                                             && rotate
                                                 ^ (PointT::sumAbsComponent(points[0])
                                                     > PointT::sumAbsComponent(
                                                         result.getPoints()[0],
-                                                    ))))
+                                                    )))
                                     {
                                         points[0] = result.getPoints()[0];
                                         points[1] = result.getPoints()[1];
@@ -244,23 +249,23 @@ impl<'a> ODReader<'_> {
 
                                 // if we found a valid code we have not seen before but a minLineCount > 1,
                                 // add additional check rows above and below the current one
-                                if (!isCheckRow && minLineCount > 1 && rowStep > 1) {
+                                if !isCheckRow && minLineCount > 1 && rowStep > 1 {
                                     checkRows = vec![rowNumber - 1, rowNumber + 1];
-                                    if (rowStep > 2) {
+                                    if rowStep > 2 {
                                         checkRows.push(rowNumber - 2);
                                         checkRows.push(rowNumber + 2);
                                     }
                                 }
                             }
 
-                            if (maxSymbols > 0
+                            if maxSymbols > 0
                                 && res.iter().fold(0, |acc, _e| {
                                     if let Some(itm) = &res[r] {
                                         acc + i32::from(itm.line_count() >= minLineCount as usize)
                                     } else {
                                         acc
                                     }
-                                }) == maxSymbols as i32)
+                                }) == maxSymbols as i32
                             {
                                 break 'outer;
                             }
@@ -304,7 +309,7 @@ impl<'a> ODReader<'_> {
                     else {
                         continue;
                     };
-                    if (Quadrilateral::have_intersecting_bounding_boxes(&q1, &q2)) {
+                    if Quadrilateral::have_intersecting_bounding_boxes(&q1, &q2) {
                         let a_lc = res[i].as_ref().unwrap().line_count();
                         let b_lc = res[j].as_ref().unwrap().line_count();
                         if a_lc < b_lc {
@@ -355,11 +360,11 @@ impl<'a> ODReader<'_> {
         // SaveAsPBM(dbg, rotate ? "od-log-r.pnm" : "od-log.pnm");
         // #endif
 
-        res.iter().cloned().filter_map(|e| e).collect()
+        res.iter().flatten().cloned().collect()
     }
 }
 
-impl<'a> ODReader<'_> {
+impl ODReader<'_> {
     pub fn decode_single<B: crate::Binarizer>(
         &self,
         _hints: &DecodeHints,
@@ -387,7 +392,7 @@ impl<'a> ODReader<'_> {
             self.min_line_count,
             self.return_errors,
         );
-        if ((!(maxSymbols != 0) || (resH.len()) < maxSymbols as usize) && self.try_rotate) {
+        if ((maxSymbols == 0) || (resH.len()) < maxSymbols as usize) && self.try_rotate {
             let mut resV = Self::DoDecode(
                 &self.reader,
                 image,
@@ -409,7 +414,7 @@ impl<'a> ODReader<'_> {
     }
 }
 
-impl<'a> Reader for ODReader<'_> {
+impl Reader for ODReader<'_> {
     fn decode<B: crate::Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
@@ -426,7 +431,7 @@ impl<'a> Reader for ODReader<'_> {
     }
 }
 
-impl<'a> MultipleBarcodeReader for ODReader<'_> {
+impl MultipleBarcodeReader for ODReader<'_> {
     fn decode_multiple<B: crate::Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
@@ -443,7 +448,7 @@ impl<'a> MultipleBarcodeReader for ODReader<'_> {
     }
 }
 
-impl<'a> ODReader<'_> {
+impl ODReader<'_> {
     pub fn new(hints: &DecodeHints) -> ODReader {
         ODReader {
             reader: DXFilmEdgeReader::new(hints),

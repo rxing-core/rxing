@@ -104,7 +104,7 @@ impl OneDimensionalCodeWriter for UPCEWriter {
                 .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
                 .to_digit(10)
                 .ok_or(Exceptions::PARSE)? as usize; //Character.digit(contents.charAt(i), 10);
-            if (parities >> (6 - i) & 1) == 1 {
+            if ((parities >> (6 - i)) & 1) == 1 {
                 digit += 10;
             }
             pos += Self::appendPattern(

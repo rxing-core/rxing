@@ -6,6 +6,7 @@ use std::{
 
 use clap::{ArgGroup, Parser, Subcommand};
 use rxing::{BarcodeFormat, MultiFormatWriter, Writer};
+#[allow(unused_imports)]
 use serde_json::de;
 
 #[derive(Parser)]
