@@ -4,10 +4,19 @@ pub mod reedsolomon;
 use crate::Point;
 
 #[cfg(test)]
+pub mod test_utils;
+
+#[cfg(test)]
 mod StringUtilsTestCase;
 
 #[cfg(test)]
 mod BitArrayTestCase;
+
+#[cfg(test)]
+mod hybrid_binarizer_test_case;
+
+#[cfg(test)]
+mod adaptive_threshold_binarizer_test_case;
 
 #[cfg(test)]
 pub(crate) mod bit_matrix_test_case;

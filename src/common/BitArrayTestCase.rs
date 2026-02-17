@@ -29,6 +29,7 @@
 use crate::common::BIT_FIELD_BASE_BITS;
 
 use super::{BitArray, BIT_FIELD_SHIFT_BITS};
+use crate::common::test_utils::arrays_are_equal;
 use rand::Rng;
 
 #[test]
@@ -304,6 +305,23 @@ fn test_equals() {
 }
 
 #[test]
+fn test_reverse_with_modification() {
+    let mut ba = BitArray::with_size(10);
+    ba.set(0);
+    ba.reverse();
+    // Bit 0 was set, now bit 9 should be set (if it reverses 0..9)
+    assert!(ba.get(9));
+    assert!(!ba.get(0));
+
+    ba.set(8); // Now bits 8 and 9 are set
+    ba.reverse();
+    // If it correctly reverses the CURRENT bits, bit 0 and 1 should be set.
+    // If it uses the stale cache, only bit 0 will be set.
+    assert!(ba.get(0), "Bit 0 should be set");
+    assert!(ba.get(1), "Bit 1 should be set (reverse of bit 8)");
+}
+
+#[test]
 fn test_xor() {
     let val_1: super::BitFieldBaseType = 0b01_00_11;
     let val_2: super::BitFieldBaseType = 0b10_11_10;
@@ -363,15 +381,6 @@ fn reverse_original(
 
 fn bit_set(bits: &[super::BitFieldBaseType], i: usize) -> bool {
     (bits[i / BIT_FIELD_BASE_BITS] & (1 << (i & BIT_FIELD_SHIFT_BITS))) != 0
-}
-
-fn arrays_are_equal<T: Eq + Default>(left: &[T], right: &[T], size: usize) -> bool {
-    for i in 0..size {
-        if left[i] != right[i] {
-            return false;
-        }
-    }
-    true
 }
 
 // }

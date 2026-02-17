@@ -27,7 +27,7 @@
 // import org.junit.Assert;
 
 use crate::{
-    aztec::shared_test_methods::{stripSpace, toBitArray, toBooleanArray},
+    common::test_utils::{strip_space, to_bit_array, to_boolean_array},
     common::BitMatrix,
     Point,
 };
@@ -73,10 +73,10 @@ fn test_high_level_decode() {
 }
 
 fn test_high_level_decode_string(expectedString: &str, b: &str) {
-    let bits = toBitArray(&stripSpace(b));
+    let bits = to_bit_array(&strip_space(b));
     assert_eq!(
         expectedString,
-        decoder::highLevelDecode(&toBooleanArray(&bits)).expect("highLevelDecode Failed"),
+        decoder::highLevelDecode(&to_boolean_array(&bits)).expect("highLevelDecode Failed"),
         "highLevelDecode() failed for input bits: {b}"
     );
 }

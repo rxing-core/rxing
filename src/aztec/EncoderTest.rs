@@ -15,13 +15,11 @@
  */
 
 use crate::{
-    aztec::{
-        aztec_detector_result::AztecDetectorRXingResult,
-        decoder,
-        encoder::HighLevelEncoder,
-        shared_test_methods::{stripSpace, toBitArray, toBooleanArray},
+    aztec::{aztec_detector_result::AztecDetectorRXingResult, decoder, encoder::HighLevelEncoder},
+    common::{
+        test_utils::{strip_space, to_bit_array, to_boolean_array},
+        CharacterSet,
     },
-    common::CharacterSet,
     BarcodeFormat, EncodeHints, Point,
 };
 
@@ -793,18 +791,18 @@ fn getPseudoRandom() -> rand::rngs::ThreadRng {
 fn testModeMessageComplex(compact: bool, layers: u32, words: u32, expected: &str) {
     let indata = aztec_encoder::generateModeMessage(compact, layers, words).expect("generate mode");
     assert_eq!(
-        stripSpace(expected),
-        stripSpace(&indata.to_string()),
+        strip_space(expected),
+        strip_space(&indata.to_string()),
         "generateModeMessage() failed"
     );
 }
 
 fn testStuffBits(wordSize: usize, bits: &str, expected: &str) {
-    let indata = toBitArray(bits);
+    let indata = to_bit_array(bits);
     let stuffed = aztec_encoder::stuffBits(&indata, wordSize).unwrap();
     assert_eq!(
-        stripSpace(expected),
-        stripSpace(&stuffed.to_string()),
+        strip_space(expected),
+        strip_space(&stuffed.to_string()),
         "stuffBits() failed for input string: {bits}"
     );
 }
@@ -819,14 +817,14 @@ fn testHighLevelEncodeStringUtf8(s: &str, expectedBits: &str) {
     .encode()
     .expect("high level ok");
     // let bits =  HighLevelEncoder::new(s.getBytes(StandardCharsets.ISO_8859_1)).encode();
-    let receivedBits = stripSpace(&bits.to_string());
+    let receivedBits = strip_space(&bits.to_string());
     assert_eq!(
         s,
-        decoder::highLevelDecode(&toBooleanArray(&bits)).expect("must decode")
+        decoder::highLevelDecode(&to_boolean_array(&bits)).expect("must decode")
     );
     // dbg!(s, decoder::highLevelDecode(&toBooleanArray(&bits)).expect("must decode"));
     assert_eq!(
-        stripSpace(expectedBits),
+        strip_space(expectedBits),
         receivedBits,
         "highLevelEncode() failed for input string: {s}"
     );
@@ -841,15 +839,15 @@ fn testHighLevelEncodeString(s: &str, expectedBits: &str) {
     .encode()
     .expect("high level ok");
     // let bits =  HighLevelEncoder::new(s.getBytes(StandardCharsets.ISO_8859_1)).encode();
-    let receivedBits = stripSpace(&bits.to_string());
+    let receivedBits = strip_space(&bits.to_string());
     assert_eq!(
-        stripSpace(expectedBits),
+        strip_space(expectedBits),
         receivedBits,
         "highLevelEncode() failed for input string: {s}"
     );
     assert_eq!(
         s,
-        decoder::highLevelDecode(&toBooleanArray(&bits)).expect("must decode")
+        decoder::highLevelDecode(&to_boolean_array(&bits)).expect("must decode")
     );
 }
 
@@ -862,11 +860,11 @@ fn testHighLevelEncodeStringCount(s: &str, expectedReceivedBits: u32) {
     .encode()
     .expect("high level ok");
     //let bits =  HighLevelEncoder::new(s.getBytes(StandardCharsets.ISO_8859_1)).encode().unwrap();
-    let receivedBitCount = stripSpace(&bits.to_string()).len();
+    let receivedBitCount = strip_space(&bits.to_string()).len();
     // dbg!(s, decoder::highLevelDecode(&toBooleanArray(&bits)).expect("should decode"));
     assert_eq!(
         s,
-        decoder::highLevelDecode(&toBooleanArray(&bits)).expect("should decode")
+        decoder::highLevelDecode(&to_boolean_array(&bits)).expect("should decode")
     );
     // assert!(
     //     expectedReceivedBits as usize >= receivedBitCount,

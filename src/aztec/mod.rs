@@ -14,5 +14,3 @@ mod DecoderTest;
 mod DetectorTest;
 #[cfg(test)]
 mod EncoderTest;
-
-mod shared_test_methods;
