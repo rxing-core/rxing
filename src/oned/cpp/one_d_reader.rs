@@ -259,13 +259,15 @@ impl ODReader<'_> {
                             }
 
                             if maxSymbols > 0
-                                && res.iter().fold(0, |acc, _e| {
-                                    if let Some(itm) = &res[r] {
-                                        acc + i32::from(itm.line_count() >= minLineCount as usize)
-                                    } else {
-                                        acc
-                                    }
-                                }) == maxSymbols as i32
+                                && res
+                                    .iter()
+                                    .filter(|e| {
+                                        e.as_ref().is_some_and(|itm| {
+                                            itm.line_count() >= minLineCount as usize
+                                        })
+                                    })
+                                    .count()
+                                    == maxSymbols as usize
                             {
                                 break 'outer;
                             }
