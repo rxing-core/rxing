@@ -435,7 +435,7 @@ fn decode_command(
             Ok(result_array) => {
                 if !*detailed_results_json {
                     println!("Found {} results", result_array.len());
-                }else {
+                } else {
                     println!("[");
                 }
                 for (i, result) in result_array.into_iter().enumerate() {
@@ -708,7 +708,15 @@ fn print_result(
     if detailed_json {
         serde_json::to_string_pretty(&result).expect("could not convert to JSON")
     } else if detailed {
-        format!("[Barcode Format] {}\n[Metadata] {:?}\n[Points] {:?}\n[Number of Bits] {}\n[Timestamp] {}\n[Data] {}", result.getBarcodeFormat(),result.getRXingResultMetadata(), result.getRXingResultPoints(), result.getNumBits(), result.getTimestamp(), result_data)
+        format!(
+            "[Barcode Format] {}\n[Metadata] {:?}\n[Points] {:?}\n[Number of Bits] {}\n[Timestamp] {}\n[Data] {}",
+            result.getBarcodeFormat(),
+            result.getRXingResultMetadata(),
+            result.getRXingResultPoints(),
+            result.getNumBits(),
+            result.getTimestamp(),
+            result_data
+        )
     } else if raw {
         result
             .getRawBytes()

@@ -26,8 +26,9 @@ impl BitMatrixSource {
 }
 
 impl LuminanceSource for BitMatrixSource {
-    fn get_row(&self, y: usize) -> Vec<u8> {
-        self.base_bitmatrix.getRow(y as u32).into()
+    fn get_row(&self, y: usize) -> Option<Cow<'_, [u8]>> {
+        let row: Vec<u8> = self.base_bitmatrix.getRow(y as u32).into();
+        Some(Cow::Owned(row))
     }
 
     fn get_column(&self, x: usize) -> Vec<u8> {
@@ -74,7 +75,7 @@ impl Binarizer for BitMatrixBinarizer {
     }
 
     fn get_black_row(&self, y: usize) -> super::Result<std::borrow::Cow<BitArray>> {
-        Ok(Cow::Owned(self.0.get_row(y).into()))
+        Ok(Cow::Owned(self.0.get_row(y).unwrap_or().to_vec().into()))
     }
 
     fn get_black_row_from_matrix(

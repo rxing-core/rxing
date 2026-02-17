@@ -5,14 +5,10 @@
 */
 // SPDX-License-Identifier: Apache-2.0
 
-use std::collections::HashMap;
-
 use crate::common::cpp_essentials::{GetPatternRow, PatternRow, PatternView};
+use crate::Binarizer;
 use crate::{multi::MultipleBarcodeReader, RXingResult, Reader};
-use crate::{
-    point, BarcodeFormat, BinaryBitmap, DecodingHintDictionary, Exceptions, PointT, ResultPoint,
-};
-use crate::{Binarizer, DecodeHintType, DecodeHintValue};
+use crate::{point, BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, PointT};
 
 use crate::common::{LineOrientation, Quadrilateral, Result};
 
@@ -186,38 +182,31 @@ impl<'a> ODReader<'_> {
                         let mut result_hld = readers[r]
                             .decodePattern(rowNumber as u32, &mut next, &mut decodingState[r])
                             .ok();
-                        if result_hld.is_some()
-                        /*|| (returnErrors && result.is_none())*/
-                        {
-                            let mut result = result_hld.as_mut().unwrap();
+                        if let Some(mut result) = result_hld {
                             IncrementLineCount(&mut result);
                             if (upsideDown) {
                                 // update position (flip horizontally).
                                 let points = result.getPointsMut();
                                 for p in points {
-                                    // for (auto& p : points) {
-                                    *p = point(width as f32 - p.getX() - 1.0, p.getY());
+                                    *p = point(width as f32 - p.x - 1.0, p.y);
                                 }
-                                // result.addPoints(points);
-                                // result.setPosition(std::move(points));
                             }
                             if (rotate) {
                                 let points = result.getPointsMut();
                                 for p in points {
-                                    // for (auto& p : points) {
-                                    *p = point(p.getY(), width as f32 - p.getX() - 1.0);
+                                    *p = point(p.y, width as f32 - p.x - 1.0);
                                 }
-                                // result.addPoints(points);
-                                // result.setPosition(std::move(points));
                             }
 
                             // check if we know this code already
+                            let mut found_existing = false;
                             for other_hld in res.iter_mut() {
-                                let Some(mut other) = other_hld.as_mut() else {
+                                let Some(ref mut other) = other_hld else {
                                     continue;
                                 };
-                                // for (auto& other : res) {
-                                if (result == other) {
+                                if (result.getText() == other.getText()
+                                    && result.getBarcodeFormat() == other.getBarcodeFormat())
+                                {
                                     // merge the position information
                                     let dTop = PointT::maxAbsComponent(
                                         other.getPoints()[0] - result.getPoints()[0],
@@ -225,7 +214,7 @@ impl<'a> ODReader<'_> {
                                     let dBot = PointT::maxAbsComponent(
                                         other.getPoints()[2] - result.getPoints()[0],
                                     );
-                                    let mut points = other.getPoints().clone();
+                                    let mut points = other.getPoints().to_vec();
                                     if (dTop < dBot
                                         || (dTop == dBot
                                             && rotate
@@ -241,16 +230,17 @@ impl<'a> ODReader<'_> {
                                         points[3] = result.getPoints()[3];
                                     }
                                     other.replace_points(points);
-                                    IncrementLineCount(&mut other);
+                                    IncrementLineCount(other);
                                     // clear the result, so we don't insert it again below
-                                    // result_hld = None; //Result();
+                                    found_existing = true;
                                     break;
                                 }
                             }
 
-                            if (result.getBarcodeFormat() != &BarcodeFormat::UNSUPORTED_FORMAT) {
+                            if !found_existing
+                                && (result.getBarcodeFormat() != &BarcodeFormat::UNSUPORTED_FORMAT)
+                            {
                                 res.push(Some(result.clone()));
-                                // res.push_back(std::move(result));
 
                                 // if we found a valid code we have not seen before but a minLineCount > 1,
                                 // add additional check rows above and below the current one
@@ -259,15 +249,14 @@ impl<'a> ODReader<'_> {
                                     if (rowStep > 2) {
                                         checkRows.push(rowNumber - 2);
                                         checkRows.push(rowNumber + 2);
-                                        // checkRows.insert(checkRows.end(), {rowNumber - 2, rowNumber + 2});
                                     }
                                 }
                             }
 
                             if (maxSymbols > 0
-                                && res.iter().fold(0, |acc, e| {
+                                && res.iter().fold(0, |acc, _e| {
                                     if let Some(itm) = &res[r] {
-                                        acc + i32::from((itm.line_count() >= minLineCount as usize))
+                                        acc + i32::from(itm.line_count() >= minLineCount as usize)
                                     } else {
                                         acc
                                     }
@@ -293,7 +282,7 @@ impl<'a> ODReader<'_> {
         // remove all symbols with insufficient line count
         res.retain(|e| {
             if let Some(itm) = e {
-                itm.line_count() < minLineCount as usize
+                itm.line_count() >= minLineCount as usize
             } else {
                 false
             }
@@ -303,13 +292,15 @@ impl<'a> ODReader<'_> {
 
         // if symbols overlap, remove the one with a lower line count
         for i in 0..res.len() {
-            for j in i..res.len() {
+            for j in (i + 1)..res.len() {
                 if res[i].is_some() && res[j].is_some() {
-                    let Ok(q1) = Quadrilateral::try_from(res[i].as_ref().unwrap().getPoints())
+                    let Ok(q1) =
+                        Quadrilateral::try_from(&res[i].as_ref().unwrap().getPoints().to_vec())
                     else {
                         continue;
                     };
-                    let Ok(q2) = Quadrilateral::try_from(res[j].as_ref().unwrap().getPoints())
+                    let Ok(q2) =
+                        Quadrilateral::try_from(&res[j].as_ref().unwrap().getPoints().to_vec())
                     else {
                         continue;
                     };
@@ -352,7 +343,7 @@ impl<'a> ODReader<'_> {
         //TODO: C++20 res.erase_if()
         res.retain(|r| {
             if let Some(itm) = r {
-                itm.getBarcodeFormat() == &BarcodeFormat::UNSUPORTED_FORMAT
+                itm.getBarcodeFormat() != &BarcodeFormat::UNSUPORTED_FORMAT
             } else {
                 false
             }
@@ -371,7 +362,7 @@ impl<'a> ODReader<'_> {
 impl<'a> ODReader<'_> {
     pub fn decode_single<B: crate::Binarizer>(
         &self,
-        _hints: &DecodingHintDictionary,
+        _hints: &DecodeHints,
         image: &BinaryBitmap<B>,
     ) -> Result<RXingResult> {
         let result = self.decode_with_max_symbols(_hints, image, u32::MAX)?;
@@ -382,7 +373,7 @@ impl<'a> ODReader<'_> {
 
     pub fn decode_with_max_symbols<B: crate::Binarizer>(
         &self,
-        _hints: &DecodingHintDictionary,
+        _hints: &DecodeHints,
         image: &BinaryBitmap<B>,
         maxSymbols: u32,
     ) -> Result<Vec<RXingResult>> {
@@ -423,13 +414,13 @@ impl<'a> Reader for ODReader<'_> {
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
     ) -> crate::common::Result<crate::RXingResult> {
-        self.decode_with_hints(image, &HashMap::new())
+        self.decode_with_hints(image, &DecodeHints::default())
     }
 
     fn decode_with_hints<B: crate::Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> crate::common::Result<crate::RXingResult> {
         self.decode_single(hints, image)
     }
@@ -440,36 +431,27 @@ impl<'a> MultipleBarcodeReader for ODReader<'_> {
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
     ) -> crate::common::Result<Vec<crate::RXingResult>> {
-        self.decode_multiple_with_hints(image, &HashMap::new())
+        self.decode_multiple_with_hints(image, &DecodeHints::default())
     }
 
     fn decode_multiple_with_hints<B: crate::Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> crate::common::Result<Vec<crate::RXingResult>> {
         self.decode_with_max_symbols(hints, image, u32::MAX)
     }
 }
 
 impl<'a> ODReader<'_> {
-    pub fn new(hints: &DecodingHintDictionary) -> ODReader {
+    pub fn new(hints: &DecodeHints) -> ODReader {
         ODReader {
             reader: DXFilmEdgeReader::new(hints),
-            try_harder: matches!(
-                hints.get(&DecodeHintType::TRY_HARDER),
-                Some(DecodeHintValue::TryHarder(true))
-            ),
-            is_pure: matches!(
-                hints.get(&DecodeHintType::PURE_BARCODE),
-                Some(DecodeHintValue::PureBarcode(true))
-            ),
+            try_harder: hints.TryHarder == Some(true),
+            is_pure: hints.PureBarcode == Some(true),
             min_line_count: 2,
             return_errors: false,
-            try_rotate: matches!(
-                hints.get(&DecodeHintType::TRY_HARDER),
-                Some(DecodeHintValue::TryHarder(true))
-            ),
+            try_rotate: hints.TryHarder == Some(true),
         }
     }
 }

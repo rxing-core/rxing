@@ -1,6 +1,6 @@
 // dxfilmedge-1
 
-#![cfg(all(feature = "image", feature = "experimental_features"))]
+#![cfg(feature = "image")]
 
 use rxing::{BarcodeFormat, FilteredImageReader, MultiFormatReader};
 
@@ -15,10 +15,10 @@ fn dx_film_edge() {
         BarcodeFormat::DXFilmEdge,
     );
 
-    tester.add_test(1, 2, 0.0);
-    tester.add_test(1, 2, 90.0);
-    tester.add_test(1, 2, 180.0);
-    tester.add_test(1, 2, 320.0);
+    tester.add_test(1, 3, 0.0);
+    tester.add_test(0, 3, 90.0);
+    tester.add_test(1, 3, 180.0);
+    tester.add_test(0, 0, 320.0);
 
     tester.test_black_box()
 }

@@ -9,7 +9,7 @@ use crate::{
         cpp_essentials::{FindLeftGuardBy, FixedPattern, IsRightGuard, PatternView, ToIntPos},
         BitArray,
     },
-    point, BarcodeFormat, DecodeHintValue, DecodingHintDictionary, Exceptions, PointI, RXingResult,
+    point, BarcodeFormat, DecodeHints, Exceptions, PointI, RXingResult,
 };
 
 use super::row_reader::{DecodingState, RowReader};
@@ -36,25 +36,25 @@ const DATA_START_PATTERN: FixedPattern<5, 5> = FixedPattern::new([1, 1, 1, 1, 1]
 const DATA_STOP_PATTERN: FixedPattern<3, 3> = FixedPattern::new([1, 1, 1]);
 
 pub struct DXFilmEdgeReader<'a> {
-    options: &'a DecodingHintDictionary,
+    options: &'a DecodeHints,
 }
 
 impl<'a> DXFilmEdgeReader<'_> {
-    pub fn new(hints: &'a DecodingHintDictionary) -> DXFilmEdgeReader<'a> {
+    pub fn new(hints: &'a DecodeHints) -> DXFilmEdgeReader<'a> {
         DXFilmEdgeReader { options: hints }
     }
 }
 
 fn IsPattern<const N: usize, const SUM: usize>(
-    view: &PatternView,
+    view: &mut PatternView,
     pattern: &FixedPattern<N, SUM>,
     minQuietZone: f32,
 ) -> bool {
     const E2E: bool = false;
-    let view = view.subView(0, Some(N));
+    *view = view.subView(0, Some(N));
     view.isValid()
         && crate::common::cpp_essentials::pattern::IsPattern::<E2E, N, SUM, false>(
-            &view,
+            view,
             pattern,
             Some(if view.isAtFirstBar() {
                 u32::MAX as f32
@@ -67,7 +67,7 @@ fn IsPattern<const N: usize, const SUM: usize>(
 }
 
 fn DistIsBelowThreshold(a: PointI, b: PointI, threshold: PointI) -> bool {
-    (a.x - b.x).abs() < threshold.x && (a.y - b.y).abs() < threshold.y
+    (a.x - b.x).abs() <= threshold.x && (a.y - b.y).abs() <= threshold.y
 }
 
 // DX Film Edge clock track found on 35mm films.
@@ -100,7 +100,7 @@ impl Clock {
     }
 
     pub fn moduleSize(&self) -> f32 {
-        (self.xStop as f32 - self.xStart as f32)
+        (self.xStop as f32 + 1.0 - self.xStart as f32)
             / (if self.hasFrameNr {
                 CLOCK_LENGTH_FN
             } else {
@@ -131,7 +131,7 @@ impl DecodingState {
         if let Some(i) = self
             .clocks
             .iter()
-            .position(|c| c.isCloseToStart(start.x, start.y))
+            .position(|c| c.rowNumber != start.y && c.isCloseToStart(start.x, start.y))
         {
             self.clocks.get_mut(i) //self.clocks[i]
         } else {
@@ -155,7 +155,7 @@ impl DecodingState {
     }
 }
 
-fn CheckForClock(rowNumber: u32, view: &PatternView) -> Option<Clock> {
+fn CheckForClock(rowNumber: u32, view: &mut PatternView) -> Option<Clock> {
     let mut clock = Clock::default();
 
     if (IsPattern(view, &CLOCK_PATTERN_FN, 0.5))
@@ -179,7 +179,7 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
     fn decodePattern(
         &self,
         rowNumber: u32,
-        next: &mut PatternView,
+        mut next: &mut PatternView,
         state: &mut Option<DecodingState>,
     ) -> Result<RXingResult> {
         // if (!state) {
@@ -195,11 +195,7 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
 
         // Only consider rows below the center row of the image
 
-        if (!matches!(
-            self.options.get(&crate::DecodeHintType::TRY_HARDER),
-            Some(DecodeHintValue::TryHarder(true))
-        ) && rowNumber < dxState.centerRow)
-        {
+        if (self.options.TryHarder != Some(true) && rowNumber < dxState.centerRow) {
             return Err(Exceptions::NOT_FOUND);
         }
 
@@ -215,14 +211,14 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
         };
 
         // 12 is the minimum size of the data track (at least one product class bit + one parity bit)
-        *next = FindLeftGuardBy::<12, _>(*next, 10, Is4x1)?; // THIS IS WRONG WRONG WRONG ISSUE
-                                                             // next = FindLeftGuard<4>(next, 10, Is4x1);
+        *next = FindLeftGuardBy::<4, _>(*next, 10, Is4x1)?;
+        // next = FindLeftGuard<4>(next, 10, Is4x1);
         if (!next.isValid()) {
             return Err(Exceptions::NOT_FOUND);
         }
 
         // Check if the 4x1 pattern is part of a clock track
-        if let Some(clock) = CheckForClock(rowNumber, &next) {
+        if let Some(clock) = CheckForClock(rowNumber, &mut next) {
             dxState.addClock(clock);
             next.skipSymbol();
             return Err(Exceptions::NOT_FOUND);
@@ -240,7 +236,7 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
 
         let minDataQuietZone: f32 = 0.5;
 
-        if (!IsPattern(&next, &DATA_START_PATTERN, minDataQuietZone)) {
+        if (!IsPattern(&mut next, &DATA_START_PATTERN, minDataQuietZone)) {
             return Err(Exceptions::NOT_FOUND);
         }
 
@@ -259,19 +255,19 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
         // Read the data bits
         let mut dataBits = BitArray::default();
         while (next.isValidWithN(1) && dataBits.get_size() < clock.dataLength() as usize) {
-            let modules = (next[0] as f32 / clock.moduleSize() + 0.5) as u32;
-            // even index means we are at a bar, otherwise at a space
-            // dataBits.appendBits(if next.index() % 2 == 0  {0xFFFFFFFF} else {0x0}, modules);
-            for _i in 0..modules {
+            let modules = (next[0] as f32 / clock.moduleSize() + 0.5) as i32;
+            if modules >= 1 && modules <= 20 {
+                // even index means we are at a bar, otherwise at a space
                 dataBits.appendBits(
                     if next.index() % 2 == 0 {
-                        0xFFFFFFFF_u32
+                        0xFFFFFFFF_usize
                     } else {
                         0x0
                     },
                     modules as usize,
                 )?;
-                // should it be 0xFFFFFFFF
+            } else {
+                return Err(Exceptions::NOT_FOUND);
             }
 
             next.shift(1);
@@ -308,18 +304,24 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
             .rev()
             .skip(2)
             .fold(0, |acc, e| acc + u8::from(*e)); //dataBits.iter().rev().skip(2).sum::<u8>(); //Reduce(dataBits.begin(), dataBits.end() - 2, 0);
-        let parityBit = u8::from(*(db_hld.last().unwrap_or(&false)));
+        let parityBit = u8::from(db_hld[db_hld.len() - 2]);
         if (signalSum % 2 != parityBit) {
             return Err(Exceptions::NOT_FOUND);
         }
 
+        // Convert dataBits to individual bit values for ToIntPos
+        let dataBitsU8: Vec<u8> = Into::<Vec<bool>>::into(&dataBits)
+            .iter()
+            .map(|b| u8::from(*b))
+            .collect();
+
         // Compute the DX 1 number (product number)
-        let Some(productNumber) = ToIntPos(&Into::<Vec<u8>>::into(&dataBits), 1, 7) else {
+        let Some(productNumber) = ToIntPos(&dataBitsU8, 1, 7) else {
             return Err(Exceptions::NOT_FOUND);
         };
 
         // Compute the DX 2 number (generation number)
-        let Some(generationNumber) = ToIntPos(&Into::<Vec<u8>>::into(&dataBits), 9, 4) else {
+        let Some(generationNumber) = ToIntPos(&dataBitsU8, 9, 4) else {
             return Err(Exceptions::NOT_FOUND);
         };
 
@@ -329,7 +331,7 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
         // txt.reserve(10);
         txt = (productNumber.to_string()) + "-" + (&generationNumber.to_string());
         if (clock.hasFrameNr) {
-            let frameNr = ToIntPos(&Into::<Vec<u8>>::into(&dataBits), 13, 6).unwrap_or(0);
+            let frameNr = ToIntPos(&dataBitsU8, 13, 6).unwrap_or(0);
             txt += &("/".to_owned() + &(frameNr.to_string()));
             if (dataBits.get(19) != false/*0*/) {
                 txt += "A";
@@ -351,9 +353,13 @@ impl<'a> RowReader for DXFilmEdgeReader<'_> {
         Ok(RXingResult::new(
             &txt,
             dataBits.into(),
-            Vec::new(),
+            vec![
+                point(xStart as f32, rowNumber as f32),
+                point(xStop as f32, rowNumber as f32),
+                point(xStart as f32, rowNumber as f32),
+                point(xStop as f32, rowNumber as f32),
+            ],
             BarcodeFormat::DXFilmEdge,
         ))
-        // return RXingResult(txt, rowNumber, xStart, xStop, BarcodeFormat::DXFilmEdge, {});
     }
 }
