@@ -133,6 +133,7 @@ impl BitArray {
      * @param i bit to set
      */
     pub fn set(&mut self, i: usize) {
+        self.reversed = None;
         self.bits[i / BASE_BITS] |= 1 << (i & SHIFT_BITS);
     }
 
@@ -142,6 +143,7 @@ impl BitArray {
      * @param i bit to set
      */
     pub fn unset(&mut self, i: usize) {
+        self.reversed = None;
         // self.bits[i / BASE_BITS] |= 0 << (i & SHIFT_BITS);
         self.bits[i / BASE_BITS] &= !(1 << (i & SHIFT_BITS));
     }
@@ -152,6 +154,7 @@ impl BitArray {
      * @param i bit to set
      */
     pub fn flip(&mut self, i: usize) {
+        self.reversed = None;
         self.bits[i / BASE_BITS] ^= 1 << (i & SHIFT_BITS);
     }
 
@@ -212,6 +215,7 @@ impl BitArray {
      * corresponds to bit i, the next-least-significant to i+1, and so on.
      */
     pub fn setBulk(&mut self, i: usize, newBits: BaseType) {
+        self.reversed = None;
         let bits = if i % BASE_BITS != 0 {
             newBits << i
         } else {
@@ -227,6 +231,7 @@ impl BitArray {
      * @param end end of range, exclusive
      */
     pub fn setRange(&mut self, start: usize, end: usize) -> Result<()> {
+        self.reversed = None;
         let mut end = end;
         if end < start || end > self.size {
             return Err(Exceptions::ILLEGAL_ARGUMENT);
@@ -257,6 +262,7 @@ impl BitArray {
      */
     #[inline]
     pub fn clear(&mut self) {
+        self.reversed = None;
         self.bits.fill(0);
     }
 
@@ -302,6 +308,7 @@ impl BitArray {
     }
 
     pub fn appendBit(&mut self, bit: bool) {
+        self.reversed = None;
         self.ensure_capacity(self.size + 1);
         if bit {
             self.bits[self.size / BASE_BITS] |= 1 << (self.size & SHIFT_BITS);
@@ -318,6 +325,7 @@ impl BitArray {
      * @param numBits bits from value to append
      */
     pub fn appendBits(&mut self, value: BaseType, num_bits: usize) -> Result<()> {
+        self.reversed = None;
         if num_bits > BASE_BITS {
             return Err(Exceptions::illegal_argument_with(format!(
                 "num bits must be between 0 and {}",
@@ -355,6 +363,7 @@ impl BitArray {
     }
 
     pub fn xor(&mut self, other: &BitArray) -> Result<()> {
+        self.reversed = None;
         if self.size != other.size {
             return Err(Exceptions::illegal_argument_with("Sizes don't match"));
         }
