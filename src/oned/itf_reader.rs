@@ -333,14 +333,14 @@ impl ITFReader {
      *         ints
      * @throws NotFoundException if pattern is not found
      */
-    fn findGuardPattern(
+    fn findGuardPattern<const N: usize>(
         &self,
         row: &BitArray,
         rowOffset: usize,
-        pattern: &[u32],
+        pattern: &[u32; N],
     ) -> Result<[usize; 2]> {
-        let patternLength = pattern.len();
-        let mut counters = vec![0u32; patternLength]; //new int[patternLength];
+        let patternLength = N;
+        let mut counters = [0u32; N]; //new int[patternLength];
         let width = row.get_size();
         let mut isWhite = false;
 
@@ -384,7 +384,7 @@ impl ITFReader {
      * @return The decoded digit
      * @throws NotFoundException if digit cannot be decoded
      */
-    fn decodeDigit(&self, counters: &[u32]) -> Result<u32> {
+    fn decodeDigit(&self, counters: &[u32; 5]) -> Result<u32> {
         let mut bestVariance = MAX_AVG_VARIANCE; // worst variance we'll accept
         let mut bestMatch = -1_isize;
         for (i, pattern) in PATTERNS.iter().enumerate() {

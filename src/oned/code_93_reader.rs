@@ -169,7 +169,7 @@ impl Code93Reader {
         let rowOffset = row.getNextSet(0);
 
         self.counters.fill(0);
-        let mut theCounters = self.counters;
+        let theCounters = &mut self.counters;
         let mut patternStart = rowOffset;
         let mut isWhite = false;
         let patternLength = theCounters.len();
@@ -180,7 +180,7 @@ impl Code93Reader {
                 theCounters[counterPosition] += 1;
             } else {
                 if counterPosition == patternLength - 1 {
-                    if Self::toPattern(&theCounters) == Self::ASTERISK_ENCODING {
+                    if Self::toPattern(theCounters) == Self::ASTERISK_ENCODING {
                         return Ok([patternStart, i]);
                     }
                     patternStart += (theCounters[0] + theCounters[1]) as usize;
@@ -199,11 +199,11 @@ impl Code93Reader {
         Err(Exceptions::NOT_FOUND)
     }
 
-    fn toPattern(counters: &[u32; 6]) -> i32 {
+    fn toPattern<const N: usize>(counters: &[u32; N]) -> i32 {
         let sum = counters.iter().sum::<u32>();
 
         let mut pattern = 0;
-        let max = counters.len();
+        let max = N;
         for (i, counter) in counters.iter().enumerate().take(max) {
             let scaled = (*counter as f32 * 9.0 / sum as f32).round() as u32;
             if !(1..=4).contains(&scaled) {

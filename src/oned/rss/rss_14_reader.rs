@@ -276,14 +276,6 @@ impl RSS14Reader {
             one_d_reader::record_pattern(row, pattern.getStartEnd()[1], counters)?;
             // reverse it
             counters.reverse();
-            // let mut i = 0;
-            // let mut j = counters.len() - 1;
-            // while i < j {
-            //     counters.swap(i, j);
-
-            //     i += 1;
-            //     j -= 1;
-            // }
         }
 
         let numModules = if outsideChar { 16 } else { 15 };

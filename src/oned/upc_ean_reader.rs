@@ -337,20 +337,14 @@ pub trait UPCEANReader: OneDReader {
         self.findGuardPattern(row, endStart, false, &START_END_PATTERN)
     }
 
-    fn findGuardPattern(
+    fn findGuardPattern<const N: usize>(
         &self,
         row: &BitArray,
         rowOffset: usize,
         whiteFirst: bool,
-        pattern: &[u32],
+        pattern: &[u32; N],
     ) -> Result<[usize; 2]> {
-        self.findGuardPatternWithCounters(
-            row,
-            rowOffset,
-            whiteFirst,
-            pattern,
-            &mut vec![0u32; pattern.len()],
-        )
+        self.findGuardPatternWithCounters(row, rowOffset, whiteFirst, pattern, &mut [0u32; N])
     }
 
     /**
@@ -364,13 +358,13 @@ pub trait UPCEANReader: OneDReader {
      * @return start/end horizontal offset of guard pattern, as an array of two ints
      * @throws NotFoundException if pattern is not found
      */
-    fn findGuardPatternWithCounters(
+    fn findGuardPatternWithCounters<const N: usize>(
         &self,
         row: &BitArray,
         rowOffset: usize,
         whiteFirst: bool,
-        pattern: &[u32],
-        counters: &mut [u32],
+        pattern: &[u32; N],
+        counters: &mut [u32; N],
     ) -> Result<[usize; 2]> {
         let width = row.get_size();
         let rowOffset = if whiteFirst {
@@ -380,7 +374,7 @@ pub trait UPCEANReader: OneDReader {
         };
         let mut counterPosition = 0;
         let mut patternStart = rowOffset;
-        let patternLength = pattern.len();
+        let patternLength = N;
         let mut isWhite = whiteFirst;
         for x in rowOffset..width {
             // for (int x = rowOffset; x < width; x++) {

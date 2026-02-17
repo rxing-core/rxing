@@ -758,12 +758,8 @@ impl RSSExpandedReader {
         Err(Exceptions::NOT_FOUND)
     }
 
-    fn reverseCounters(counters: &mut [u32]) {
+    fn reverseCounters<const N: usize>(counters: &mut [u32; N]) {
         counters.reverse();
-        // let length = counters.len();
-        // for i in 0..length / 2 {
-        //     counters.swap(i, length - i - 1);
-        // }
     }
 
     fn parseFoundFinderPattern(
@@ -833,14 +829,6 @@ impl RSSExpandedReader {
             record_pattern(row, pattern.getStartEnd()[1], counters)?;
             // reverse it
             counters.reverse();
-            // let mut i = 0;
-            // let mut j = counters.len() - 1;
-            // while i < j {
-            //     counters.swap(i, j);
-
-            //     i += 1;
-            //     j -= 1;
-            // }
         } //counters[] has the pixels of the module
 
         //left and right data characters have all the same length

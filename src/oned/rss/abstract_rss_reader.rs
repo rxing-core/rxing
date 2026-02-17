@@ -31,7 +31,10 @@ pub trait AbstractRSSReaderTrait: OneDReader {
     const MIN_FINDER_PATTERN_RATIO: f32 = 9.5 / 12.0;
     const MAX_FINDER_PATTERN_RATIO: f32 = 12.5 / 14.0;
 
-    fn parseFinderValue(counters: &[u32], finderPatterns: &[[u32; 4]]) -> Result<u32> {
+    fn parseFinderValue<const N: usize>(
+        counters: &[u32; N],
+        finderPatterns: &[[u32; N]],
+    ) -> Result<u32> {
         for (value, pattern) in finderPatterns.iter().enumerate() {
             if one_d_reader::pattern_match_variance(
                 counters,
@@ -69,7 +72,10 @@ pub trait AbstractRSSReaderTrait: OneDReader {
         array[index] -= 1;
     }
 
-    fn isFinderPattern(counters: &[u32]) -> bool {
+    fn isFinderPattern<const N: usize>(counters: &[u32; N]) -> bool {
+        if N < 4 {
+            return false;
+        }
         let firstTwoSum = counters[0] + counters[1];
         let sum = firstTwoSum + counters[2] + counters[3];
         let ratio: f32 = (firstTwoSum as f32) / (sum as f32);

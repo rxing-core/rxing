@@ -211,14 +211,17 @@ impl Code39Reader {
         }
     }
 
-    fn findAsteriskPattern(row: &BitArray, counters: &mut [u32]) -> Result<Vec<u32>> {
+    fn findAsteriskPattern<const N: usize>(
+        row: &BitArray,
+        counters: &mut [u32; N],
+    ) -> Result<[u32; 2]> {
         let width = row.get_size();
         let rowOffset = row.getNextSet(0);
 
         let mut counterPosition = 0;
         let mut patternStart = rowOffset;
         let mut isWhite = false;
-        let patternLength = counters.len();
+        let patternLength = N;
 
         for i in rowOffset..width {
             // for (int i = rowOffset; i < width; i++) {
@@ -236,7 +239,7 @@ impl Code39Reader {
                             false,
                         )?
                     {
-                        return Ok(vec![patternStart as u32, i as u32]);
+                        return Ok([patternStart as u32, i as u32]);
                         // return new int[]{patternStart, i};
                     }
                     patternStart += (counters[0] + counters[1]) as usize;
@@ -258,8 +261,8 @@ impl Code39Reader {
 
     // For efficiency, returns -1 on failure. Not throwing here saved as many as 700 exceptions
     // per image when using some of our blackbox images.
-    fn toNarrowWidePattern(counters: &[u32]) -> i32 {
-        let numCounters = counters.len();
+    fn toNarrowWidePattern<const N: usize>(counters: &[u32; N]) -> i32 {
+        let numCounters = N;
         let mut maxNarrowCounter = 0;
         let mut wideCounters;
         loop {
