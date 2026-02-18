@@ -180,7 +180,10 @@ impl RSS14Reader {
         let text = symbolValue.to_string();
 
         let mut buffer = String::with_capacity(14);
-        buffer.push_str(&std::iter::repeat_n('0', 13 - text.chars().count()).collect::<String>());
+        let padding = 13 - text.len();
+        for _ in 0..padding {
+            buffer.push('0');
+        }
         buffer.push_str(&text);
 
         let mut checkDigit = 0;

@@ -25,7 +25,7 @@ use crate::{point, Point};
 pub struct FinderPattern {
     value: u32,
     startEnd: [usize; 2],
-    resultPoints: Vec<Point>,
+    resultPoints: [Point; 2],
 }
 
 impl FinderPattern {
@@ -33,7 +33,7 @@ impl FinderPattern {
         Self {
             value,
             startEnd,
-            resultPoints: vec![
+            resultPoints: [
                 point(start as f32, rowNumber as f32),
                 point(end as f32, rowNumber as f32),
             ],
