@@ -65,7 +65,7 @@ pub struct WitnessData {
 
     pub row_indicators: Option<RowIndicatorVars>,
 
-    pub all_left_row_indicators: Option<Vec<RowIndicatorVars>>,
+    pub all_left_row_indicators: Option<Vec<u32>>,
 
 
     /// Codewords before error correction
@@ -108,7 +108,7 @@ pub struct FinalizedWitnessData {
 
     pub row_indicators: RowIndicatorVars,
 
-    pub all_left_row_indicators: Vec<RowIndicatorVars>,
+    pub all_left_row_indicators: Vec<u32>,
 
     /// Codewords before error correction
     pub codewords: Vec<u32>,
@@ -130,7 +130,7 @@ impl FinalizedWitnessData {
         column_count: u32,
         ec_level: u32,
         row_indicators: RowIndicatorVars,
-        all_left_row_indicators: Vec<RowIndicatorVars>,
+        all_left_row_indicators: Vec<u32>,
         codewords: Vec<u32>,
         corrected_codewords: Vec<u32>,
         polynomial_results: Vec<PolynomialResult>,
@@ -334,7 +334,7 @@ impl WitnessData {
         self.row_indicators = Some(row_indicators);
     }
 
-    pub fn set_all_left_row_indicators(&mut self, all_left_row_indicators: Vec<RowIndicatorVars>) {
+    pub fn set_all_left_row_indicators(&mut self, all_left_row_indicators: Vec<u32>) {
         self.all_left_row_indicators = Some(all_left_row_indicators);
     }
 
