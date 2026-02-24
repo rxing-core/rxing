@@ -685,14 +685,15 @@ pub fn NormalizedPattern<const LEN: usize, const SUM: usize>(
         // 				  else {std::min_element(std::begin(rs), std::end(rs)) - std::begin(rs)};
         let mi = if err > 0 {
             rs.iter()
-                .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+                .enumerate()
+                .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
         } else {
             rs.iter()
-                .min_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+                .enumerate()
+                .min_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
         };
-        let mi = mi.ok_or(Exceptions::ILLEGAL_STATE)?;
-        is[*mi as usize] += err as PatternType;
-        rs[*mi as usize] -= err as f32;
+        let (mi, _) = mi.ok_or(Exceptions::ILLEGAL_STATE)?;
+        is[mi] += err as PatternType;
     }
 
     Ok(is)
