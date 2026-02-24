@@ -26,8 +26,8 @@ type MaskCondition = fn(u32, u32) -> bool;
 
 #[test]
 fn testMask0() {
-    testMaskAcrossDimensions(DataMask::DATA_MASK_000, |i, j| ((i + j) % 2 == 0));
-    testMaskAcrossDimensionsU8(0, |i, j| ((i + j) % 2 == 0));
+    testMaskAcrossDimensions(DataMask::DATA_MASK_000, |i, j| (i + j) % 2 == 0);
+    testMaskAcrossDimensionsU8(0, |i, j| (i + j) % 2 == 0);
 }
 
 #[test]

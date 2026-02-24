@@ -447,7 +447,7 @@ impl MultipleBarcodeReader for ODReader<'_> {
 }
 
 impl ODReader<'_> {
-    pub fn new(hints: &DecodeHints) -> ODReader {
+    pub fn new(hints: &DecodeHints) -> ODReader<'_> {
         ODReader {
             reader: DXFilmEdgeReader::new(hints),
             try_harder: hints.TryHarder == Some(true),
