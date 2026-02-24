@@ -1,4 +1,5 @@
 use rand::Rng;
+use rand::RngExt;
 
 use super::{GenericGFRef, ReedSolomonDecoder, ReedSolomonEncoder};
 /*
@@ -341,6 +342,7 @@ fn test_aztec() {
 }
 
 pub(crate) fn corrupt(
+    
     received: &mut [i32],
     howMany: i32,
     random: &mut rand::rngs::ThreadRng,

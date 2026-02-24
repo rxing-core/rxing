@@ -28,6 +28,7 @@ use super::{encoder::aztec_encoder, AztecWriter};
 use crate::Writer;
 
 use rand::Rng;
+use rand::RngExt;
 
 /**
  * Aztec 2D generator unit tests.

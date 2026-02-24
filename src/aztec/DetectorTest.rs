@@ -34,7 +34,7 @@
 // import java.util.Random;
 // import java.util.TreeSet;
 
-use rand::Rng;
+use rand::{Rng, RngExt};
 
 use crate::{aztec::decoder, common::BitMatrix, exceptions::Exceptions, Point};
 
