@@ -46,7 +46,7 @@ impl OneDReader for MultiFormatUPCEANReader {
         row: &crate::common::BitArray,
         hints: &DecodeHints,
     ) -> Result<RXingResult> {
-        let Self {
+        let &mut Self {
             ref possible_formats,
         } = self;
         // Compute this location once and reuse it on multiple implementations

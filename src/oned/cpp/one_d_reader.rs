@@ -206,7 +206,7 @@ impl ODReader<'_> {
                             // check if we know this code already
                             let mut found_existing = false;
                             for other_hld in res.iter_mut() {
-                                let Some(ref mut other) = other_hld else {
+                                let Some(other) = other_hld else {
                                     continue;
                                 };
                                 if result.getText() == other.getText()

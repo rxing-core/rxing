@@ -5,7 +5,7 @@ description="A rust port of the zxing barcode library."
 license="Apache-2.0"
 repository="https://github.com/rxing-core/rxing"
 keywords = ["barcode", "barcode_2d", "barcode_1d", "barcode_reader", "barcode_writer"]
-edition = "2021"
+edition = "2024"
 exclude = [
     "test_resources/*",
 ]
