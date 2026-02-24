@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-use rand::Rng;
 use rand::RngExt;
 
 use crate::common::reedsolomon::ReedSolomonTestCase;

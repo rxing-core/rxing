@@ -27,7 +27,6 @@ use super::{AztecWriter, encoder::aztec_encoder};
 
 use crate::Writer;
 
-use rand::Rng;
 use rand::RngExt;
 
 /**
