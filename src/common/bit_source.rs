@@ -19,8 +19,8 @@
 use std::cmp;
 use std::io::{ErrorKind, Read};
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 /**
  * <p>This provides an easy abstraction to read bits at a time from a sequence of bytes, where the

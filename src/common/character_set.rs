@@ -16,8 +16,8 @@
 
 use encoding::EncodingRef;
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 /**
  * Encapsulates a Character Set ECI, according to "Extended Channel Interpretations" 5.3.1.1
@@ -310,8 +310,8 @@ impl CharacterSet {
 
     pub fn encode(&self, input: &str) -> Result<Vec<u8>> {
         if self == &CharacterSet::Cp437 {
-            use codepage_437::ToCp437;
             use codepage_437::CP437_CONTROL;
+            use codepage_437::ToCp437;
 
             input
                 .to_cp437(&CP437_CONTROL)

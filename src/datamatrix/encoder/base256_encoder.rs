@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 use super::{
-    high_level_encoder::{self, ASCII_ENCODATION, BASE256_ENCODATION},
     Encoder,
+    high_level_encoder::{self, ASCII_ENCODATION, BASE256_ENCODATION},
 };
 
 #[derive(Debug, Default)]

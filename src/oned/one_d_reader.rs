@@ -15,9 +15,10 @@
  */
 
 use crate::{
-    common::{BitArray, Result},
-    point, Binarizer, BinaryBitmap, DecodeHints, Exceptions, LuminanceSource, RXingResult,
+    Binarizer, BinaryBitmap, DecodeHints, Exceptions, LuminanceSource, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    common::{BitArray, Result},
+    point,
 };
 
 /**

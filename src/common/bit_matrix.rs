@@ -21,7 +21,7 @@
 use std::fmt;
 
 use crate::common::Result;
-use crate::{point, point_i, Exceptions, Point};
+use crate::{Exceptions, Point, point, point_i};
 
 use super::BitArray;
 

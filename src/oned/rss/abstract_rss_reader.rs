@@ -15,9 +15,9 @@
  */
 
 use crate::{
-    common::Result,
-    oned::{one_d_reader, OneDReader},
     Exceptions,
+    common::Result,
+    oned::{OneDReader, one_d_reader},
 };
 
 /**

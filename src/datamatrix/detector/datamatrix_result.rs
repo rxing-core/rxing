@@ -1,6 +1,6 @@
 use crate::{
-    common::{BitMatrix, DetectorRXingResult},
     Point,
+    common::{BitMatrix, DetectorRXingResult},
 };
 
 pub struct DatamatrixDetectorResult(BitMatrix, Vec<Point>);

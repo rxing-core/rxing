@@ -25,13 +25,13 @@
  */
 
 use crate::{
-    common::{BitArray, Result},
     Exceptions,
+    common::{BitArray, Result},
 };
 
 use super::{
-    AI013103decoder, AI01320xDecoder, AI01392xDecoder, AI01393xDecoder, AI013x0x1xDecoder,
-    AI01AndOtherAIs, AnyAIDecoder, GeneralAppIdDecoder,
+    AI01AndOtherAIs, AI013x0x1xDecoder, AI01320xDecoder, AI01392xDecoder, AI01393xDecoder,
+    AI013103decoder, AnyAIDecoder, GeneralAppIdDecoder,
 };
 
 /*

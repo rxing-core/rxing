@@ -5,10 +5,10 @@
 */
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::common::cpp_essentials::{GetPatternRow, PatternRow, PatternView};
 use crate::Binarizer;
-use crate::{multi::MultipleBarcodeReader, RXingResult, Reader};
-use crate::{point, BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, PointT};
+use crate::common::cpp_essentials::{GetPatternRow, PatternRow, PatternView};
+use crate::{BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, PointT, point};
+use crate::{RXingResult, Reader, multi::MultipleBarcodeReader};
 
 use crate::common::{LineOrientation, Quadrilateral, Result};
 
@@ -66,11 +66,7 @@ impl ODReader<'_> {
             1,
             height
                 / (if tryHarder && !isPure {
-                    if maxSymbols == 1 {
-                        256
-                    } else {
-                        512
-                    }
+                    if maxSymbols == 1 { 256 } else { 512 }
                 } else {
                     32
                 }),
@@ -87,7 +83,7 @@ impl ODReader<'_> {
         let mut checkRows = Vec::new();
 
         let mut bars: PatternRow = PatternRow::new(vec![0; 128]); // e.g. EAN-13 has 59 bars/spaces
-                                                                  // bars.reserve(128); // e.g. EAN-13 has 59 bars/spaces
+        // bars.reserve(128); // e.g. EAN-13 has 59 bars/spaces
 
         // #ifdef PRINT_DEBUG
         // BitMatrix dbg(width, height);

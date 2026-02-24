@@ -22,8 +22,8 @@ use std::{cmp, fmt};
 
 use num::traits::ops::overflowing::OverflowingSub;
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 type BaseType = super::BitFieldBaseType;
 const BASE_BITS: usize = super::BIT_FIELD_BASE_BITS;

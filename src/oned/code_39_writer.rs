@@ -16,8 +16,8 @@
 
 use rxing_one_d_proc_derive::OneDWriter;
 
-use crate::common::Result;
 use crate::BarcodeFormat;
+use crate::common::Result;
 
 use super::{Code39Reader, OneDimensionalCodeWriter};
 
@@ -55,7 +55,9 @@ impl OneDimensionalCodeWriter for Code39Writer {
                 contents = Self::tryToConvertToExtendedMode(&contents)?;
                 length = contents.chars().count();
                 if length > 80 {
-                    return Err(Exceptions::illegal_argument_with(format!("Requested contents should be less than 80 digits long, but got {length} (extended full ASCII mode)")));
+                    return Err(Exceptions::illegal_argument_with(format!(
+                        "Requested contents should be less than 80 digits long, but got {length} (extended full ASCII mode)"
+                    )));
                 }
                 break;
             }
@@ -190,7 +192,7 @@ impl Code39Writer {
  * Tests {@link Code39Writer}.
  */
 mod Code39WriterTestCase {
-    use crate::{common::bit_matrix_test_case, oned::Code39Writer, BarcodeFormat, Writer};
+    use crate::{BarcodeFormat, Writer, common::bit_matrix_test_case, oned::Code39Writer};
 
     #[test]
     fn testEncode() {
@@ -205,8 +207,9 @@ mod Code39WriterTestCase {
         );
 
         // extended mode blocks
-        doTest("\u{0000}\u{0001}\u{0002}\u{0003}\u{0004}\u{0005}\u{0006}\u{0007}\u{008}\t\n\u{000b}\u{000c}\r\u{000e}\u{000f}\u{0010}\u{0011}\u{0012}\u{0013}\u{0014}\u{0015}\u{0016}\u{0017}\u{0018}\u{0019}\u{001a}\u{001b}\u{001c}\u{001d}\u{001e}\u{001f}",
-           "000001001011011010101001001001011001010101101001001001010110101001011010010010010101\
+        doTest(
+            "\u{0000}\u{0001}\u{0002}\u{0003}\u{0004}\u{0005}\u{0006}\u{0007}\u{008}\t\n\u{000b}\u{000c}\r\u{000e}\u{000f}\u{0010}\u{0011}\u{0012}\u{0013}\u{0014}\u{0015}\u{0016}\u{0017}\u{0018}\u{0019}\u{001a}\u{001b}\u{001c}\u{001d}\u{001e}\u{001f}",
+            "000001001011011010101001001001011001010101101001001001010110101001011010010010010101\
 011010010110100100100101011011010010101001001001010101011001011010010010010101101011\
 001010100100100101010110110010101001001001010101010011011010010010010101101010011010\
 100100100101010110100110101001001001010101011001101010010010010101101010100110100100\
@@ -216,7 +219,8 @@ mod Code39WriterTestCase {
 101001001001010100110101011010010010010101100110101010100100100101010010110101101001\
 001001010110010110101010010010010101001101101010101001001001011010100101101010010010\
 010101101001011010100100100101101101001010101001001001010101100101101010010010010110\
-101100101010010110110100000");
+101100101010010110110100000",
+        );
 
         doTest(
             " !\"#$%&'()*+,-./0123456789:;<=>?",

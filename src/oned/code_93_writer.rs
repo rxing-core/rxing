@@ -16,8 +16,8 @@
 
 use rxing_one_d_proc_derive::OneDWriter;
 
-use crate::common::Result;
 use crate::BarcodeFormat;
+use crate::common::Result;
 
 use super::{Code93Reader, OneDimensionalCodeWriter};
 
@@ -36,7 +36,9 @@ impl OneDimensionalCodeWriter for Code93Writer {
         let mut contents = Self::convertToExtended(contents)?;
         let length = contents.chars().count();
         if length > 80 {
-            return Err(Exceptions::illegal_argument_with(format!("Requested contents should be less than 80 digits long after converting to extended encoding, but got {length}" )));
+            return Err(Exceptions::illegal_argument_with(format!(
+                "Requested contents should be less than 80 digits long after converting to extended encoding, but got {length}"
+            )));
         }
 
         //length of code + 2 start/stop characters + 2 checksums, each of 9 bits, plus a termination bar
@@ -244,7 +246,7 @@ impl Code93Writer {
  */
 #[cfg(test)]
 mod Code93WriterTestCase {
-    use crate::{common::bit_matrix_test_case, oned::Code93Writer, BarcodeFormat, Writer};
+    use crate::{BarcodeFormat, Writer, common::bit_matrix_test_case, oned::Code93Writer};
 
     #[test]
     fn testEncode() {
@@ -257,22 +259,60 @@ mod Code93WriterTestCase {
 10100111010101000010101011110100000",
         );
 
-        doTest("\u{0000}\u{0001}\u{001a}\u{001b}\u{001f} $%+!,09:;@AZ[_`az{\u{007f}",
-           &format!("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", 
-           "00000" , "101011110" ,
-           "111011010" , "110010110" , "100100110" , "110101000" ,  // bU aA
-           "100100110" , "100111010" , "111011010" , "110101000" ,  // aZ bA
-           "111011010" , "110010010" , "111010010" , "111001010" ,  // bE space $
-           "110101110" , "101110110" , "111010110" , "110101000" ,  // % + cA
-           "111010110" , "101011000" , "100010100" , "100001010" ,  // cL 0 9
-           "111010110" , "100111010" , "111011010" , "110001010" ,  // cZ bF
-           "111011010" , "110011010" , "110101000" , "100111010" ,  // bV A Z
-           "111011010" , "100011010" , "111011010" , "100101100" ,  // bK bO
-           "111011010" , "101101100" , "100110010" , "110101000" ,  // bW dA
-           "100110010" , "100111010" , "111011010" , "100010110" ,  // dZ bP
-           "111011010" , "110100110" ,  // bT
-           "110100010" , "110101100" ,  // checksum: 12 28
-           "101011110" , "100000"));
+        doTest(
+            "\u{0000}\u{0001}\u{001a}\u{001b}\u{001f} $%+!,09:;@AZ[_`az{\u{007f}",
+            &format!(
+                "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+                "00000",
+                "101011110",
+                "111011010",
+                "110010110",
+                "100100110",
+                "110101000", // bU aA
+                "100100110",
+                "100111010",
+                "111011010",
+                "110101000", // aZ bA
+                "111011010",
+                "110010010",
+                "111010010",
+                "111001010", // bE space $
+                "110101110",
+                "101110110",
+                "111010110",
+                "110101000", // % + cA
+                "111010110",
+                "101011000",
+                "100010100",
+                "100001010", // cL 0 9
+                "111010110",
+                "100111010",
+                "111011010",
+                "110001010", // cZ bF
+                "111011010",
+                "110011010",
+                "110101000",
+                "100111010", // bV A Z
+                "111011010",
+                "100011010",
+                "111011010",
+                "100101100", // bK bO
+                "111011010",
+                "101101100",
+                "100110010",
+                "110101000", // bW dA
+                "100110010",
+                "100111010",
+                "111011010",
+                "100010110", // dZ bP
+                "111011010",
+                "110100110", // bT
+                "110100010",
+                "110101100", // checksum: 12 28
+                "101011110",
+                "100000"
+            ),
+        );
     }
 
     fn doTest(input: &str, expected: &str) {

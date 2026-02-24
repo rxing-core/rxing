@@ -20,11 +20,11 @@ use crate::{RXingResultMetadataType, RXingResultMetadataValue};
 
 use rxing_one_d_proc_derive::OneDReader;
 
-use crate::common::{BitArray, Result};
-use crate::oned::telepen_common;
 use crate::Exceptions;
 use crate::RXingResult;
-use crate::{point, BarcodeFormat};
+use crate::common::{BitArray, Result};
+use crate::oned::telepen_common;
+use crate::{BarcodeFormat, point};
 
 use super::OneDReader;
 

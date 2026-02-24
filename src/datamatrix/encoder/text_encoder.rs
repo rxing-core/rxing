@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use super::{high_level_encoder, C40Encoder, Encoder};
+use super::{C40Encoder, Encoder, high_level_encoder};
 use crate::common::Result;
 
 pub struct TextEncoder(C40Encoder);

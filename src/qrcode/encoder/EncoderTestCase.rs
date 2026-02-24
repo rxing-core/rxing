@@ -15,12 +15,12 @@
  */
 
 use crate::{
+    EncodeHintValue, EncodeHints,
     common::{BitArray, CharacterSet},
     qrcode::{
         decoder::{ErrorCorrectionLevel, Mode, Version},
-        encoder::{qrcode_encoder, MinimalEncoder},
+        encoder::{MinimalEncoder, qrcode_encoder},
     },
-    EncodeHintValue, EncodeHints,
 };
 
 use super::QRCode;

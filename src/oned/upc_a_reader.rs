@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{common::Result, BarcodeFormat, Binarizer, Exceptions, RXingResult, Reader};
+use crate::{BarcodeFormat, Binarizer, Exceptions, RXingResult, Reader, common::Result};
 
 use super::{EAN13Reader, OneDReader, UPCEANReader};
 

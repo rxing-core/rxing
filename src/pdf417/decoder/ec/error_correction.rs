@@ -15,9 +15,9 @@
  */
 
 use crate::{
+    Exceptions,
     common::Result,
     pdf417::{decoder::ec::ModulusGF, pdf_417_common::NUMBER_OF_CODEWORDS},
-    Exceptions,
 };
 
 use super::ModulusPoly;

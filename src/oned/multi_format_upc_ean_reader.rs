@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-use crate::common::Result;
 use crate::DecodeHints;
 use crate::Exceptions;
 use crate::RXingResult;
 use crate::Reader;
+use crate::common::Result;
 use crate::{BarcodeFormat, Binarizer};
 
-use super::EAN13Reader;
 use super::EAN8Reader;
+use super::EAN13Reader;
+use super::STAND_IN;
 use super::UPCAReader;
 use super::UPCEReader;
-use super::STAND_IN;
 use super::{OneDReader, UPCEANReader};
 
 /**

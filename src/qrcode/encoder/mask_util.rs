@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 use super::ByteMatrix;
 
@@ -177,7 +177,7 @@ pub fn getDataMaskBit(maskPattern: u32, x: u32, y: u32) -> Result<bool> {
         _ => {
             return Err(Exceptions::illegal_argument_with(format!(
                 "Invalid mask pattern: {maskPattern}"
-            )))
+            )));
         }
     };
     // switch (maskPattern) {

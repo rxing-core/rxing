@@ -15,12 +15,12 @@
  */
 
 use crate::{
+    BarcodeFormat, EncodeHints, Writer,
     common::{BitMatrix, CharacterSet, Result},
     exceptions::Exceptions,
-    BarcodeFormat, EncodeHints, Writer,
 };
 
-use super::encoder::{aztec_encoder, AztecCode};
+use super::encoder::{AztecCode, aztec_encoder};
 
 // make default 0 to match previous behavior
 const MARGINS_SIZE: u32 = 0;

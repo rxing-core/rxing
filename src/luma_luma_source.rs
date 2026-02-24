@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
-use crate::common::Result;
 use crate::LuminanceSource;
+use crate::common::Result;
 
 /// A simple luma8 source for bytes, supports cropping but not rotation
 #[derive(Debug, Clone)]
@@ -191,11 +191,7 @@ impl Luma8LuminanceSource {
 
     #[inline(always)]
     fn invert_if_should(byte: u8, invert: bool) -> u8 {
-        if invert {
-            255 - byte
-        } else {
-            byte
-        }
+        if invert { 255 - byte } else { byte }
     }
 }
 

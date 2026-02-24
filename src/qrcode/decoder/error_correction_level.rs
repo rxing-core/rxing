@@ -17,8 +17,8 @@
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 /**
  * <p>See ISO 18004:2006, 6.5.1. This enum encapsulates the four error correction levels

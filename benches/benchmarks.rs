@@ -1,13 +1,13 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use rxing::aztec::AztecReader;
 use rxing::common::HybridBinarizer;
 use rxing::datamatrix::DataMatrixReader;
 use rxing::maxicode::MaxiCodeReader;
 use rxing::multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader};
-use rxing::oned::rss::expanded::RSSExpandedReader;
 use rxing::oned::rss::RSS14Reader;
+use rxing::oned::rss::expanded::RSSExpandedReader;
 use rxing::oned::{
-    CodaBarReader, Code39Reader, Code93Reader, EAN13Reader, EAN8Reader, ITFReader, TelepenReader,
+    CodaBarReader, Code39Reader, Code93Reader, EAN8Reader, EAN13Reader, ITFReader, TelepenReader,
     UPCAReader, UPCEReader,
 };
 use rxing::pdf417::PDF417Reader;
@@ -219,7 +219,9 @@ fn multi_barcode_filtered_reader_benchmark(c: &mut Criterion) {
 }
 
 fn multi_barcode_complex_benchmark(c: &mut Criterion) {
-    let mut image = get_image("test_resources/blackbox/github_issue_cases/170050507-1f10f0ef-82ca-4e14-a2d2-4b288ec54809.png");
+    let mut image = get_image(
+        "test_resources/blackbox/github_issue_cases/170050507-1f10f0ef-82ca-4e14-a2d2-4b288ec54809.png",
+    );
     c.bench_function("multi_barcode", |b| {
         b.iter(|| {
             let mut reader = GenericMultipleBarcodeReader::new(MultiFormatReader::default());

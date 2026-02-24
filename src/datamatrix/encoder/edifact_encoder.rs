@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
-use super::{high_level_encoder, Encoder, EncoderContext};
+use super::{Encoder, EncoderContext, high_level_encoder};
 
 #[derive(Debug, Default)]
 pub struct EdifactEncoder;

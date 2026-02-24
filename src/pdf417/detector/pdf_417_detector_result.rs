@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{common::BitMatrix, Point};
+use crate::{Point, common::BitMatrix};
 
 /**
  * @author Guenther Grau

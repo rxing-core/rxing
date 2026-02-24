@@ -17,14 +17,14 @@
 use std::cmp::Ordering;
 
 use crate::{
+    BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue,
     common::{DetectorRXingResult, Result},
     multi::MultipleBarcodeReader,
     qrcode::{
-        decoder::{self, QRCodeDecoderMetaData},
         QRCodeReader,
+        decoder::{self, QRCodeDecoderMetaData},
     },
-    BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue,
 };
 
 use super::detector::MultiDetector;
@@ -226,9 +226,9 @@ mod multi_qr_code_test_case {
     use image;
 
     use crate::{
-        common::HybridBinarizer, multi::MultipleBarcodeReader, BarcodeFormat, BinaryBitmap,
-        BufferedImageLuminanceSource, RXingResult, RXingResultMetadataType,
-        RXingResultMetadataValue,
+        BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, RXingResult,
+        RXingResultMetadataType, RXingResultMetadataValue, common::HybridBinarizer,
+        multi::MultipleBarcodeReader,
     };
 
     use super::QRCodeMultiReader;

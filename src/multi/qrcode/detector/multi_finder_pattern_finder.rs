@@ -17,9 +17,10 @@
 use std::cmp::Ordering;
 
 use crate::{
+    DecodeHints, Exceptions, Point, PointCallback,
     common::{BitMatrix, Result},
     qrcode::detector::{FinderPattern, FinderPatternFinder, FinderPatternInfo},
-    result_point_utils, DecodeHints, Exceptions, Point, PointCallback,
+    result_point_utils,
 };
 
 // max. legal count of modules per QR code edge (177)

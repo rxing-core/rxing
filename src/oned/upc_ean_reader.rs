@@ -15,12 +15,13 @@
  */
 
 use crate::{
-    common::{BitArray, Result},
-    point, BarcodeFormat, Binarizer, Exceptions, RXingResult, RXingResultMetadataType,
+    BarcodeFormat, Binarizer, Exceptions, RXingResult, RXingResultMetadataType,
     RXingResultMetadataValue, Reader,
+    common::{BitArray, Result},
+    point,
 };
 
-use super::{one_d_reader, EANManufacturerOrgSupport, OneDReader, UPCEANExtensionSupport};
+use super::{EANManufacturerOrgSupport, OneDReader, UPCEANExtensionSupport, one_d_reader};
 
 use once_cell::sync::Lazy;
 

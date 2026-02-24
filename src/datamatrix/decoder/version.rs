@@ -17,8 +17,8 @@
 use core::fmt;
 use once_cell::sync::Lazy;
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 static VERSIONS: Lazy<Box<[Version]>> = Lazy::new(Version::buildVersions);
 

@@ -240,7 +240,7 @@ pub fn encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
         && encodingMode != EDIFACT_ENCODATION
     {
         context.writeCodeword(0xfe); //Unlatch (254)
-                                     // context.writeCodeword("\u{00fe}"); //Unlatch (254)
+        // context.writeCodeword("\u{00fe}"); //Unlatch (254)
     }
     //Padding
     // let codewords = context.getCodewords();

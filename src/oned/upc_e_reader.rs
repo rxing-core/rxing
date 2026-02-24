@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-use super::{OneDReader, UPCEANReader, L_AND_G_PATTERNS};
-use crate::{common::Result, BarcodeFormat, Exceptions};
+use super::{L_AND_G_PATTERNS, OneDReader, UPCEANReader};
+use crate::{BarcodeFormat, Exceptions, common::Result};
 use rxing_one_d_proc_derive::{EANReader, OneDReader};
 
 /**

@@ -29,8 +29,8 @@
  */
 use std::collections::HashMap;
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 use once_cell::sync::Lazy;
 

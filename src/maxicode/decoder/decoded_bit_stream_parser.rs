@@ -17,8 +17,8 @@
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{
-    common::{DecoderRXingResult, Result},
     Exceptions,
+    common::{DecoderRXingResult, Result},
 };
 use once_cell::sync::Lazy;
 
@@ -64,21 +64,61 @@ const POSTCODE_3_BYTES: [[u8; 6]; 6] = [
 
 static SETS: Lazy<[String; 5]> = Lazy::new(|| {
     [
-    format!("\rABCDEFGHIJKLMNOPQRSTUVWXYZ{ECI}{FS}{GS}{RS}{NS} {PAD}\"#$%&'()*+,-./0123456789:{SHIFTB}{SHIFTC}{SHIFTD}{SHIFTE}{LATCHB}"           ),
-    format!("`abcdefghijklmnopqrstuvwxyz{ECI}{FS}{GS}{RS}{NS}{{{PAD}}}~\u{007F};<=>?[\\]^_ ,./:@!|{PAD}{TWOSHIFTA}{THREESHIFTA}{PAD}{SHIFTA}{SHIFTC}{SHIFTD}{SHIFTE}{LATCHA}"               ),
-        format!("\u{00C0}\u{00C1}\u{00C2}\u{00C3}\u{00C4}\u{00C5}\u{00C6}\u{00C7}\u{00C8}\u{00C9}\u{00CA}\u{00CB}\u{00CC}\u{00CD}\u{00CE}\u{00CF}\u{00D0}\u{00D1}\u{00D2}\u{00D3}\u{00D4}\u{00D5}\u{00D6}\u{00D7}\u{00D8}\u{00D9}\u{00DA}{}{}{}{}{}{}{}{}{}{}{}{}" ,
-        ECI , FS , GS , RS , NS ,
-        "\u{00DB}\u{00DC}\u{00DD}\u{00DE}\u{00DF}\u{00AA}\u{00AC}\u{00B1}\u{00B2}\u{00B3}\u{00B5}\u{00B9}\u{00BA}\u{00BC}\u{00BD}\u{00BE}\u{0080}\u{0081}\u{0082}\u{0083}\u{0084}\u{0085}\u{0086}\u{0087}\u{0088}\u{0089}" ,
-        LATCHA , ' ' , LOCK , SHIFTD , SHIFTE , LATCHB),
-    format!("\u{00E0}\u{00E1}\u{00E2}\u{00E3}\u{00E4}\u{00E5}\u{00E6}\u{00E7}\u{00E8}\u{00E9}\u{00EA}\u{00EB}\u{00EC}\u{00ED}\u{00EE}\u{00EF}\u{00F0}\u{00F1}\u{00F2}\u{00F3}\u{00F4}\u{00F5}\u{00F6}\u{00F7}\u{00F8}\u{00F9}\u{00FA}{}{}{}{}{}{}{}{}{}{}{}{}" ,
-        ECI , FS , GS , RS , NS ,
-        "\u{00FB}\u{00FC}\u{00FD}\u{00FE}\u{00FF}\u{00A1}\u{00A8}\u{00AB}\u{00AF}\u{00B0}\u{00B4}\u{00B7}\u{00B8}\u{00BB}\u{00BF}\u{008A}\u{008B}\u{008C}\u{008D}\u{008E}\u{008F}\u{0090}\u{0091}\u{0092}\u{0093}\u{0094}" ,
-        LATCHA , ' ' , SHIFTC , LOCK , SHIFTE , LATCHB),
-    format!("\u{0000}\u{0001}\u{0002}\u{0003}\u{0004}\u{0005}\u{0006}\u{0007}\u{0008}\u{0009}\n\u{000B}\u{000C}\r\u{000E}\u{000F}\u{0010}\u{0011}\u{0012}\u{0013}\u{0014}\u{0015}\u{0016}\u{0017}\u{0018}\u{0019}\u{001A}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}" ,
-        ECI , PAD , PAD , '\u{001B}' , NS , FS , GS , RS ,
-        "\u{001F}\u{009F}\u{00A0}\u{00A2}\u{00A3}\u{00A4}\u{00A5}\u{00A6}\u{00A7}\u{00A9}\u{00AD}\u{00AE}\u{00B6}\u{0095}\u{0096}\u{0097}\u{0098}\u{0099}\u{009A}\u{009B}\u{009C}\u{009D}\u{009E}" ,
-        LATCHA , ' ' , SHIFTC , SHIFTD , LOCK , LATCHB),
-   ]
+        format!(
+            "\rABCDEFGHIJKLMNOPQRSTUVWXYZ{ECI}{FS}{GS}{RS}{NS} {PAD}\"#$%&'()*+,-./0123456789:{SHIFTB}{SHIFTC}{SHIFTD}{SHIFTE}{LATCHB}"
+        ),
+        format!(
+            "`abcdefghijklmnopqrstuvwxyz{ECI}{FS}{GS}{RS}{NS}{{{PAD}}}~\u{007F};<=>?[\\]^_ ,./:@!|{PAD}{TWOSHIFTA}{THREESHIFTA}{PAD}{SHIFTA}{SHIFTC}{SHIFTD}{SHIFTE}{LATCHA}"
+        ),
+        format!(
+            "\u{00C0}\u{00C1}\u{00C2}\u{00C3}\u{00C4}\u{00C5}\u{00C6}\u{00C7}\u{00C8}\u{00C9}\u{00CA}\u{00CB}\u{00CC}\u{00CD}\u{00CE}\u{00CF}\u{00D0}\u{00D1}\u{00D2}\u{00D3}\u{00D4}\u{00D5}\u{00D6}\u{00D7}\u{00D8}\u{00D9}\u{00DA}{}{}{}{}{}{}{}{}{}{}{}{}",
+            ECI,
+            FS,
+            GS,
+            RS,
+            NS,
+            "\u{00DB}\u{00DC}\u{00DD}\u{00DE}\u{00DF}\u{00AA}\u{00AC}\u{00B1}\u{00B2}\u{00B3}\u{00B5}\u{00B9}\u{00BA}\u{00BC}\u{00BD}\u{00BE}\u{0080}\u{0081}\u{0082}\u{0083}\u{0084}\u{0085}\u{0086}\u{0087}\u{0088}\u{0089}",
+            LATCHA,
+            ' ',
+            LOCK,
+            SHIFTD,
+            SHIFTE,
+            LATCHB
+        ),
+        format!(
+            "\u{00E0}\u{00E1}\u{00E2}\u{00E3}\u{00E4}\u{00E5}\u{00E6}\u{00E7}\u{00E8}\u{00E9}\u{00EA}\u{00EB}\u{00EC}\u{00ED}\u{00EE}\u{00EF}\u{00F0}\u{00F1}\u{00F2}\u{00F3}\u{00F4}\u{00F5}\u{00F6}\u{00F7}\u{00F8}\u{00F9}\u{00FA}{}{}{}{}{}{}{}{}{}{}{}{}",
+            ECI,
+            FS,
+            GS,
+            RS,
+            NS,
+            "\u{00FB}\u{00FC}\u{00FD}\u{00FE}\u{00FF}\u{00A1}\u{00A8}\u{00AB}\u{00AF}\u{00B0}\u{00B4}\u{00B7}\u{00B8}\u{00BB}\u{00BF}\u{008A}\u{008B}\u{008C}\u{008D}\u{008E}\u{008F}\u{0090}\u{0091}\u{0092}\u{0093}\u{0094}",
+            LATCHA,
+            ' ',
+            SHIFTC,
+            LOCK,
+            SHIFTE,
+            LATCHB
+        ),
+        format!(
+            "\u{0000}\u{0001}\u{0002}\u{0003}\u{0004}\u{0005}\u{0006}\u{0007}\u{0008}\u{0009}\n\u{000B}\u{000C}\r\u{000E}\u{000F}\u{0010}\u{0011}\u{0012}\u{0013}\u{0014}\u{0015}\u{0016}\u{0017}\u{0018}\u{0019}\u{001A}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+            ECI,
+            PAD,
+            PAD,
+            '\u{001B}',
+            NS,
+            FS,
+            GS,
+            RS,
+            "\u{001F}\u{009F}\u{00A0}\u{00A2}\u{00A3}\u{00A4}\u{00A5}\u{00A6}\u{00A7}\u{00A9}\u{00AD}\u{00AE}\u{00B6}\u{0095}\u{0096}\u{0097}\u{0098}\u{0099}\u{009A}\u{009B}\u{009C}\u{009D}\u{009E}",
+            LATCHA,
+            ' ',
+            SHIFTC,
+            SHIFTD,
+            LOCK,
+            LATCHB
+        ),
+    ]
 });
 
 static GRAPHEME_SETS: Lazy<[Vec<&str>; 5]> = Lazy::new(|| {

@@ -33,7 +33,7 @@ use urlencoding::decode;
 
 use once_cell::sync::Lazy;
 
-use crate::{common::Result, exceptions::Exceptions, RXingResult};
+use crate::{RXingResult, common::Result, exceptions::Exceptions};
 
 use super::{
     AddressBookAUResultParser, AddressBookDoCoMoResultParser, BizcardResultParser,
@@ -429,10 +429,10 @@ pub fn match_single_docomo_prefixed_field(
 #[cfg(test)]
 mod tests {
     use crate::{
+        RXingResult,
         client::result::{
             OtherParsedResult, ParsedClientResult, ParsedRXingResult, TextParsedRXingResult,
         },
-        RXingResult,
     };
 
     use super::parse_result_with_parser;

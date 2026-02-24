@@ -28,8 +28,8 @@
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  */
 use crate::{
-    common::{BitArray, Result},
     Exceptions,
+    common::{BitArray, Result},
 };
 
 /*

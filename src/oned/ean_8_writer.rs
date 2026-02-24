@@ -17,12 +17,12 @@
 use rxing_one_d_proc_derive::OneDWriter;
 
 use crate::{
+    BarcodeFormat,
     common::Result,
     oned::{EAN8Reader, UPCEANReader},
-    BarcodeFormat,
 };
 
-use super::{upc_ean_reader, OneDimensionalCodeWriter, UPCEANWriter};
+use super::{OneDimensionalCodeWriter, UPCEANWriter, upc_ean_reader};
 
 /**
  * This object renders an EAN8 code as a {@link BitMatrix}.
@@ -65,7 +65,7 @@ impl OneDimensionalCodeWriter for EAN8Writer {
             _ => {
                 return Err(Exceptions::illegal_argument_with(format!(
                     "Requested contents should be 7 or 8 digits long, but got {length}"
-                )))
+                )));
             }
         }
 
@@ -122,7 +122,7 @@ impl OneDimensionalCodeWriter for EAN8Writer {
  */
 #[cfg(test)]
 mod EAN8WriterTestCase {
-    use crate::{common::bit_matrix_test_case, BarcodeFormat, Writer};
+    use crate::{BarcodeFormat, Writer, common::bit_matrix_test_case};
 
     use super::EAN8Writer;
 

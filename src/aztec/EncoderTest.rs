@@ -15,15 +15,15 @@
  */
 
 use crate::{
+    BarcodeFormat, EncodeHints, Point,
     aztec::{aztec_detector_result::AztecDetectorRXingResult, decoder, encoder::HighLevelEncoder},
     common::{
-        test_utils::{strip_space, to_bit_array, to_boolean_array},
         CharacterSet,
+        test_utils::{strip_space, to_bit_array, to_boolean_array},
     },
-    BarcodeFormat, EncodeHints, Point,
 };
 
-use super::{encoder::aztec_encoder, AztecWriter};
+use super::{AztecWriter, encoder::aztec_encoder};
 
 use crate::Writer;
 
@@ -343,9 +343,11 @@ fn testStuffBitsTest() {
         ".X.X.. XXXXXX ...... ..X.XX",
         ".X.X.. XXXXX. X..... ...X.X XXXXX.",
     );
-    testStuffBits(6,
+    testStuffBits(
+        6,
         "...... ..XXXX X..XX. .X.... .X.X.X .....X .X.... ...X.X .....X ....XX ..X... ....X. X..XXX X.XX.X",
-        ".....X ...XXX XX..XX ..X... ..X.X. X..... X.X... ....X. X..... X....X X..X.. .....X X.X..X XXX.XX .XXXXX");
+        ".....X ...XXX XX..XX ..X... ..X.X. X..... X.X... ....X. X..... X....X X..X.. .....X X.X..X XXX.XX .XXXXX",
+    );
 }
 
 #[test]
@@ -360,17 +362,21 @@ fn testHighLevelEncode() {
         // 'L'  L/L   'o'   'r'   'e'   'm'   ' '   'i'   'p'   's'   'u'   'm'   D/L   '.'
         ".XX.X XXX.. X.... X..XX ..XX. .XXX. ....X .X.X. X...X X.X.. X.XX. .XXX. XXXX. XX.X",
     );
-    testHighLevelEncodeString("Lo. Test 123.",
+    testHighLevelEncodeString(
+        "Lo. Test 123.",
         // 'L'  L/L   'o'   P/S   '. '  U/S   'T'   'e'   's'   't'    D/L   ' '  '1'  '2'  '3'  '.'
-        ".XX.X XXX.. X.... ..... ...XX XXX.. X.X.X ..XX. X.X.. X.X.X  XXXX. ...X ..XX .X.. .X.X XX.X");
+        ".XX.X XXX.. X.... ..... ...XX XXX.. X.X.X ..XX. X.X.. X.X.X  XXXX. ...X ..XX .X.. .X.X XX.X",
+    );
     testHighLevelEncodeString(
         "Lo...x",
         // 'L'  L/L   'o'   D/L   '.'  '.'  '.'  U/L  L/L   'x'
         ".XX.X XXX.. X.... XXXX. XX.X XX.X XX.X XXX. XXX.. XX..X",
     );
-    testHighLevelEncodeString(". x://abc/.",
+    testHighLevelEncodeString(
+        ". x://abc/.",
         //P/S   '. '  L/L   'x'   P/S   ':'   P/S   '/'   P/S   '/'   'a'   'b'   'c'   P/S   '/'   D/L   '.'
-        "..... ...XX XXX.. XX..X ..... X.X.X ..... X.X.. ..... X.X.. ...X. ...XX ..X.. ..... X.X.. XXXX. XX.X");
+        "..... ...XX XXX.. XX..X ..... X.X.X ..... X.X.. ..... X.X.. ...X. ...XX ..X.. ..... X.X.. XXXX. XX.X",
+    );
     // Uses Binary/Shift rather than Lower/Shift to save two bits.
     testHighLevelEncodeString(
         "ABCdEFG",
@@ -382,7 +388,8 @@ fn testHighLevelEncode() {
         // Found on an airline boarding pass.  Several stretches of Binary shift are
         // necessary to keep the bitcount so low.
         "09  UAG    ^160MEUCIQC0sYS/HpKxnBELR1uB85R20OoqqwFGa0q2uEiYgh6utAIgLl1aBVM4EOTQtMQQYH9M2Z3Dp4qnA/fwWuQ+M8L3V8U=",
-        823);
+        823,
+    );
 }
 
 #[test]
@@ -421,8 +428,10 @@ fn testHighLevelEncodeBinary() {
         "XXXX. ..XX .X.. .X.X .XX. XXX. XXXXX ....X ........",
     );
 
-    testHighLevelEncodeStringUtf8("\u{20AC} 1 sample data.", 
-    "...........X..X..X...XXXXX...XXXXX...X.X.....X.X.X.XX..XXXX....X..XX...XXXX.XXX..X.X.....X..XXX.X...X.XX.X..XX.....X..X.X...X.X.X.X...X.XXXX.XX.X");
+    testHighLevelEncodeStringUtf8(
+        "\u{20AC} 1 sample data.",
+        "...........X..X..X...XXXXX...XXXXX...X.X.....X.X.X.XX..XXXX....X..XX...XXXX.XXX..X.X.....X..XXX.X...X.XX.X..XX.....X..X.X...X.X.X.X...X.XXXX.XX.X",
+    );
 
     // Create a string in which every character requires binary
     let mut sb = String::new();

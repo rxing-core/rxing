@@ -36,7 +36,7 @@
 
 use rand::{Rng, RngExt};
 
-use crate::{aztec::decoder, common::BitMatrix, exceptions::Exceptions, Point};
+use crate::{Point, aztec::decoder, common::BitMatrix, exceptions::Exceptions};
 
 use super::{
     detector::{self, Detector},

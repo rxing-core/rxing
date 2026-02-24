@@ -18,7 +18,7 @@
 
 #![allow(deprecated)]
 
-use crate::{pdf417::encoder::Dimensions, Dimension};
+use crate::{Dimension, pdf417::encoder::Dimensions};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};

@@ -20,7 +20,7 @@ use regex::Regex;
 
 use once_cell::sync::Lazy;
 
-use crate::{common::CharacterSet, RXingResult};
+use crate::{RXingResult, common::CharacterSet};
 
 use uriparse::URI;
 
@@ -225,7 +225,7 @@ pub fn matchVCardPrefixedField(
         while let Some(pos) = rawText[i as usize..].find('\n') {
             // Really, end in \r\n
             i += pos as isize; // + i;
-                               // while (i = rawText.indexOf('\n', i)) >= 0 { // Really, end in \r\n
+            // while (i = rawText.indexOf('\n', i)) >= 0 { // Really, end in \r\n
             if i < rawText.len() as isize- 1 &&           // But if followed by tab or space,
             (*cahced_raw_text.get(i as usize+ 1)? == ' ' ||        // this is only a continuation
             *cahced_raw_text.get(i as usize+ 1)? == '\t')

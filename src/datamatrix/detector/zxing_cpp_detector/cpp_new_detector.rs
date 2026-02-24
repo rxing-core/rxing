@@ -14,17 +14,17 @@ macro_rules! CHECK {
 use std::sync::{Arc, RwLock};
 
 use crate::{
+    Exceptions, Point,
     common::{
-        cpp_essentials::RegressionLineTrait, BitMatrix, DefaultGridSampler, GridSampler,
-        Quadrilateral, Result,
+        BitMatrix, DefaultGridSampler, GridSampler, Quadrilateral, Result,
+        cpp_essentials::RegressionLineTrait,
     },
     datamatrix::detector::{
-        zxing_cpp_detector::{util::intersect, BitMatrixCursorTrait},
         DatamatrixDetectorResult,
+        zxing_cpp_detector::{BitMatrixCursorTrait, util::intersect},
     },
     point,
     qrcode::encoder::ByteMatrix,
-    Exceptions, Point,
 };
 
 use super::{DMRegressionLine, EdgeTracer};

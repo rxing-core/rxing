@@ -16,8 +16,8 @@
 
 //public static final ModulusGF PDF417_GF = new ModulusGF(PDF417Common.NUMBER_OF_CODEWORDS, 3);
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 /**
  * <p>A field based on powers of a generator integer, modulo some modulus.</p>

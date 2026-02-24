@@ -19,8 +19,8 @@
 use std::borrow::Cow;
 
 use crate::{
-    common::{BitArray, BitMatrix, LineOrientation, Result},
     LuminanceSource,
+    common::{BitArray, BitMatrix, LineOrientation, Result},
 };
 
 /**

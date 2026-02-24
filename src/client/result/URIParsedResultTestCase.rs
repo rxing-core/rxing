@@ -28,8 +28,8 @@
  */
 // public final class URIParsedRXingResultTestCase extends Assert {
 use crate::{
-    client::result::{ParsedClientResult, ParsedRXingResult, ParsedRXingResultType, ResultParser},
     BarcodeFormat, RXingResult,
+    client::result::{ParsedClientResult, ParsedRXingResult, ParsedRXingResultType, ResultParser},
 };
 
 #[test]
@@ -50,9 +50,11 @@ fn test_uri() {
     do_test("http://google.com", "http://google.com", "");
     do_test("https://google.com", "https://google.com", "");
     do_test("google.com:443", "http://google.com:443", "");
-    do_test("https://www.google.com/calendar/hosted/google.com/embed?mode=AGENDA&force_login=true&src=google.com_726f6f6d5f6265707075@resource.calendar.google.com",
-           "https://www.google.com/calendar/hosted/google.com/embed?mode=AGENDA&force_login=true&src=google.com_726f6f6d5f6265707075@resource.calendar.google.com",
-           "");
+    do_test(
+        "https://www.google.com/calendar/hosted/google.com/embed?mode=AGENDA&force_login=true&src=google.com_726f6f6d5f6265707075@resource.calendar.google.com",
+        "https://www.google.com/calendar/hosted/google.com/embed?mode=AGENDA&force_login=true&src=google.com_726f6f6d5f6265707075@resource.calendar.google.com",
+        "",
+    );
     do_test(
         "otpauth://remoteaccess?devaddr=00%a1b2%c3d4&devname=foo&key=bar",
         "otpauth://remoteaccess?devaddr=00%a1b2%c3d4&devname=foo&key=bar",
@@ -89,10 +91,12 @@ fn test_urlto() {
 fn test_garbage() {
     do_test_not_uri("Da65cV1g^>%^f0bAbPn1CJB6lV7ZY8hs0Sm:DXU0cd]GyEeWBz8]bUHLB");
     // used \u{0008} as java \b
-    do_test_not_uri("DEA\u{0003}\u{0019}M\u{0006}\u{0000}\u{0008}√•\u{0000}¬áHO\u{0000}X$\u{0001}\u{0000}\u{001F}wfc\u{0007}!√æ¬ì¬ò\
+    do_test_not_uri(
+        "DEA\u{0003}\u{0019}M\u{0006}\u{0000}\u{0008}√•\u{0000}¬áHO\u{0000}X$\u{0001}\u{0000}\u{001F}wfc\u{0007}!√æ¬ì¬ò\
                  \u{0013}\u{0013}¬æZ{√π√é√ù√ö¬óZ¬ß¬®+y_zb√±k\u{0011}7¬∏\u{000E}¬Ü√ú\u{0000}\u{0000}\u{0000}\u{0000}\
                  \u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\
-                 \u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\u{0000}¬£.ux");
+                 \u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\u{0000}\u{0000}¬£.ux",
+    );
 }
 
 #[test]
@@ -121,9 +125,11 @@ fn test_exotic() {
         "bitcoin:mySD89iqpmptrK3PhHFW9fa7BXiP7ANy3Y",
         "",
     );
-    do_test("BTCTX:-TC4TO3$ZYZTC5NC83/SYOV+YGUGK:$BSF0P8/STNTKTKS.V84+JSA$LB+EHCG+8A725.2AZ-NAVX3VBV5K4MH7UL2.2M:F*M9HSL*$2P7T*FX.ZT80GWDRV0QZBPQ+O37WDCNZBRM3EQ0S9SZP+3BPYZG02U/LA*89C2U.V1TS.CT1VF3DIN*HN3W-O-0ZAKOAB32/.8:J501GJJTTWOA+5/6$MIYBERPZ41NJ6-WSG/*Z48ZH*LSAOEM*IXP81L:$F*W08Z60CR*C*P.JEEVI1F02J07L6+W4L1G$/IC*$16GK6A+:I1-:LJ:Z-P3NW6Z6ADFB-F2AKE$2DWN23GYCYEWX9S8L+LF$VXEKH7/R48E32PU+A:9H:8O5",
-           "BTCTX:-TC4TO3$ZYZTC5NC83/SYOV+YGUGK:$BSF0P8/STNTKTKS.V84+JSA$LB+EHCG+8A725.2AZ-NAVX3VBV5K4MH7UL2.2M:F*M9HSL*$2P7T*FX.ZT80GWDRV0QZBPQ+O37WDCNZBRM3EQ0S9SZP+3BPYZG02U/LA*89C2U.V1TS.CT1VF3DIN*HN3W-O-0ZAKOAB32/.8:J501GJJTTWOA+5/6$MIYBERPZ41NJ6-WSG/*Z48ZH*LSAOEM*IXP81L:$F*W08Z60CR*C*P.JEEVI1F02J07L6+W4L1G$/IC*$16GK6A+:I1-:LJ:Z-P3NW6Z6ADFB-F2AKE$2DWN23GYCYEWX9S8L+LF$VXEKH7/R48E32PU+A:9H:8O5",
-               "");
+    do_test(
+        "BTCTX:-TC4TO3$ZYZTC5NC83/SYOV+YGUGK:$BSF0P8/STNTKTKS.V84+JSA$LB+EHCG+8A725.2AZ-NAVX3VBV5K4MH7UL2.2M:F*M9HSL*$2P7T*FX.ZT80GWDRV0QZBPQ+O37WDCNZBRM3EQ0S9SZP+3BPYZG02U/LA*89C2U.V1TS.CT1VF3DIN*HN3W-O-0ZAKOAB32/.8:J501GJJTTWOA+5/6$MIYBERPZ41NJ6-WSG/*Z48ZH*LSAOEM*IXP81L:$F*W08Z60CR*C*P.JEEVI1F02J07L6+W4L1G$/IC*$16GK6A+:I1-:LJ:Z-P3NW6Z6ADFB-F2AKE$2DWN23GYCYEWX9S8L+LF$VXEKH7/R48E32PU+A:9H:8O5",
+        "BTCTX:-TC4TO3$ZYZTC5NC83/SYOV+YGUGK:$BSF0P8/STNTKTKS.V84+JSA$LB+EHCG+8A725.2AZ-NAVX3VBV5K4MH7UL2.2M:F*M9HSL*$2P7T*FX.ZT80GWDRV0QZBPQ+O37WDCNZBRM3EQ0S9SZP+3BPYZG02U/LA*89C2U.V1TS.CT1VF3DIN*HN3W-O-0ZAKOAB32/.8:J501GJJTTWOA+5/6$MIYBERPZ41NJ6-WSG/*Z48ZH*LSAOEM*IXP81L:$F*W08Z60CR*C*P.JEEVI1F02J07L6+W4L1G$/IC*$16GK6A+:I1-:LJ:Z-P3NW6Z6ADFB-F2AKE$2DWN23GYCYEWX9S8L+LF$VXEKH7/R48E32PU+A:9H:8O5",
+        "",
+    );
     do_test(
         "opc.tcp://test.samplehost.com:4841",
         "opc.tcp://test.samplehost.com:4841",

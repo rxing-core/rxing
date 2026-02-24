@@ -29,7 +29,7 @@
 
 use chrono::{LocalResult, TimeZone, Utc};
 
-use crate::{client::result::ParsedRXingResult, BarcodeFormat, RXingResult};
+use crate::{BarcodeFormat, RXingResult, client::result::ParsedRXingResult};
 
 use super::{ParsedRXingResultType, ResultParser};
 
@@ -449,16 +449,34 @@ fn test_vcard() {
 #[test]
 fn test_vevent() {
     // UTC times
-    do_test_rxing_result("BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nSUMMARY:foo\r\nDTSTART:20080504T123456Z\r\nDTEND:20080505T234555Z\r\nEND:VEVENT\r\nEND:VCALENDAR",
-        &format!("foo\n{}\n{}",format_time(2008, 5, 4, 12, 34, 56),format_time(2008, 5, 5, 23, 45, 55)),
-        ParsedRXingResultType::Calendar);
-    do_test_rxing_result("BEGIN:VEVENT\r\nSUMMARY:foo\r\nDTSTART:20080504T123456Z\r\nDTEND:20080505T234555Z\r\nEND:VEVENT", &format!("foo\n{}\n{}" ,
-    format_time(2008, 5, 4, 12, 34, 56),format_time(2008, 5, 5, 23, 45, 55)),
-        ParsedRXingResultType::Calendar);
+    do_test_rxing_result(
+        "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nSUMMARY:foo\r\nDTSTART:20080504T123456Z\r\nDTEND:20080505T234555Z\r\nEND:VEVENT\r\nEND:VCALENDAR",
+        &format!(
+            "foo\n{}\n{}",
+            format_time(2008, 5, 4, 12, 34, 56),
+            format_time(2008, 5, 5, 23, 45, 55)
+        ),
+        ParsedRXingResultType::Calendar,
+    );
+    do_test_rxing_result(
+        "BEGIN:VEVENT\r\nSUMMARY:foo\r\nDTSTART:20080504T123456Z\r\nDTEND:20080505T234555Z\r\nEND:VEVENT",
+        &format!(
+            "foo\n{}\n{}",
+            format_time(2008, 5, 4, 12, 34, 56),
+            format_time(2008, 5, 5, 23, 45, 55)
+        ),
+        ParsedRXingResultType::Calendar,
+    );
     // Local times
-    do_test_rxing_result("BEGIN:VEVENT\r\nSUMMARY:foo\r\nDTSTART:20080504T123456\r\nDTEND:20080505T234555\r\nEND:VEVENT", &format!("foo\n{}\n{}" ,
-    format_time(2008, 5, 4, 12, 34, 56),format_time(2008, 5, 5, 23, 45, 55)),
-        ParsedRXingResultType::Calendar);
+    do_test_rxing_result(
+        "BEGIN:VEVENT\r\nSUMMARY:foo\r\nDTSTART:20080504T123456\r\nDTEND:20080505T234555\r\nEND:VEVENT",
+        &format!(
+            "foo\n{}\n{}",
+            format_time(2008, 5, 4, 12, 34, 56),
+            format_time(2008, 5, 5, 23, 45, 55)
+        ),
+        ParsedRXingResultType::Calendar,
+    );
     // Date only (all day event)
     do_test_rxing_result(
         "BEGIN:VEVENT\r\nSUMMARY:foo\r\nDTSTART:20080504\r\nDTEND:20080505\r\nEND:VEVENT",

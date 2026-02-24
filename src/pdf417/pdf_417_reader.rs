@@ -15,14 +15,14 @@
  */
 
 use crate::{
-    common::Result, multi::MultipleBarcodeReader, BarcodeFormat, Binarizer, BinaryBitmap,
-    DecodeHints, Exceptions, ImmutableReader, Point, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, Reader,
+    BarcodeFormat, Binarizer, BinaryBitmap, DecodeHints, Exceptions, ImmutableReader, Point,
+    RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader, common::Result,
+    multi::MultipleBarcodeReader,
 };
 
 use super::{
-    decoder::pdf_417_scanning_decoder, detector::pdf_417_detector, pdf_417_common,
-    PDF417RXingResultMetadata,
+    PDF417RXingResultMetadata, decoder::pdf_417_scanning_decoder, detector::pdf_417_detector,
+    pdf_417_common,
 };
 
 /**

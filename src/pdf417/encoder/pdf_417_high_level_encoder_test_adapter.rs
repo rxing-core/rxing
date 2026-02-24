@@ -16,7 +16,7 @@
 
 use crate::common::{CharacterSet, Result};
 
-use super::{pdf_417_high_level_encoder, Compaction};
+use super::{Compaction, pdf_417_high_level_encoder};
 
 /**
  * Test adapter for PDF417HighLevelEncoder to be called solely from unit tests.

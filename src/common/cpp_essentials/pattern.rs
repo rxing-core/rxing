@@ -4,8 +4,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::{
-    common::{BitMatrix, Result},
     Exceptions,
+    common::{BitMatrix, Result},
 };
 
 pub type PatternType = u16;

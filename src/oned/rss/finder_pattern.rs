@@ -16,7 +16,7 @@
 
 use std::hash::Hash;
 
-use crate::{point, Point};
+use crate::{Point, point};
 
 /**
  * Encapsulates an RSS barcode finder pattern, including its start/end position and row.

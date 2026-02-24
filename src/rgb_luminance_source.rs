@@ -125,7 +125,7 @@ impl RGBLuminanceSource {
             let r = (pixel >> 16) & 0xff; // red
             let g2 = (pixel >> 7) & 0x1fe; // 2 * green
             let b = pixel & 0xff; // blue
-                                  // Calculate green-favouring average cheaply
+            // Calculate green-favouring average cheaply
             luminances[offset] = ((r + g2 + b) / 4) as u8;
         }
         Self {

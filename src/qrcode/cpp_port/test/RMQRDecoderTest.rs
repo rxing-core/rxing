@@ -4,9 +4,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::{
+    Exceptions,
     common::{BitMatrix, Eci},
     qrcode::cpp_port::decoder::Decode,
-    Exceptions,
 };
 
 #[test]

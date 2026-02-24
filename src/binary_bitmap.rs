@@ -24,8 +24,8 @@ use std::{
 use once_cell::sync::OnceCell;
 
 use crate::{
-    common::{BitArray, BitMatrix, LineOrientation, Result},
     Binarizer, LuminanceSource,
+    common::{BitArray, BitMatrix, LineOrientation, Result},
 };
 
 /**

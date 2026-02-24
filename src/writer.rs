@@ -17,8 +17,8 @@
 //package com.google.zxing;
 
 use crate::{
-    common::{BitMatrix, Result},
     BarcodeFormat, EncodeHints,
+    common::{BitMatrix, Result},
 };
 
 /**

@@ -17,19 +17,19 @@
 
 use std::{
     collections::HashMap,
-    fs::{read_dir, read_to_string, File},
+    fs::{File, read_dir, read_to_string},
     io::Read,
     path::{Path, PathBuf},
     sync::Arc,
 };
 
 use rxing::{
-    common::{CharacterSet, HybridBinarizer, Result},
-    multi::MultipleBarcodeReader,
-    pdf417::PDF417RXingResultMetadata,
     BarcodeFormat, Binarizer, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType,
     DecodeHintValue, DecodeHints, RXingResult, RXingResultMetadataType, RXingResultMetadataValue,
     Reader,
+    common::{CharacterSet, HybridBinarizer, Result},
+    multi::MultipleBarcodeReader,
+    pdf417::PDF417RXingResultMetadata,
 };
 
 use super::TestRXingResult;
@@ -175,7 +175,7 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
             log::fine(format!("Starting Image Group {name}"));
 
             let file_base_name = name; //testImageGroup.getKey();
-                                       //   let expectedText : String;
+            //   let expectedText : String;
             let mut expected_text_file = test_base.clone().to_path_buf();
             expected_text_file.push(file_base_name);
             expected_text_file.set_extension("txt");
@@ -706,7 +706,10 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
         };
         // let string_contents = read_to_string(&file)?; //new String(Files.readAllBytes(file), charset);
         if string_contents.ends_with('\n') {
-            log::info(format!("String contents of file {} end with a newline. This may not be intended and cause a test failure",file.to_string_lossy()));
+            log::info(format!(
+                "String contents of file {} end with a newline. This may not be intended and cause a test failure",
+                file.to_string_lossy()
+            ));
         }
         Ok(string_contents)
     }

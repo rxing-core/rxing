@@ -15,9 +15,9 @@
  */
 
 use crate::{
-    common::BitSourceBuilder,
-    qrcode::decoder::{decoded_bit_stream_parser, ErrorCorrectionLevel, Version},
     DecodeHints,
+    common::BitSourceBuilder,
+    qrcode::decoder::{ErrorCorrectionLevel, Version, decoded_bit_stream_parser},
 };
 
 /**
@@ -117,7 +117,7 @@ fn testHanziLevel1() {
     builder.write(0x0D, 4); // Hanzi mode
     builder.write(0x01, 4); // Subset 1 = GB2312 encoding
     builder.write(0x01, 8); // 1 characters
-                            // A5A2 (U+30A2) => A5A2 - A1A1 = 401, 4*60 + 01 = 0181
+    // A5A2 (U+30A2) => A5A2 - A1A1 = 401, 4*60 + 01 = 0181
     builder.write(0x0181, 13);
     let result = decoded_bit_stream_parser::decode(
         builder.asByteArray(),

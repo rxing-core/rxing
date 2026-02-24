@@ -20,9 +20,9 @@ use crate::common::Result;
 use crate::oned::cpp::ODReader;
 use crate::qrcode::cpp_port::QrReader;
 use crate::{
-    aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
-    oned::MultiFormatOneDReader, pdf417::PDF417Reader, qrcode::QRCodeReader, BarcodeFormat,
-    Binarizer, BinaryBitmap, Exceptions, RXingResult, Reader,
+    BarcodeFormat, Binarizer, BinaryBitmap, Exceptions, RXingResult, Reader, aztec::AztecReader,
+    datamatrix::DataMatrixReader, maxicode::MaxiCodeReader, oned::MultiFormatOneDReader,
+    pdf417::PDF417Reader, qrcode::QRCodeReader,
 };
 use crate::{DecodeHints, ONE_D_FORMATS};
 

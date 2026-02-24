@@ -18,9 +18,9 @@
 use java_rand;
 
 use crate::common::CharacterSet;
-use crate::pdf417::decoder::decoded_bit_stream_parser;
-use crate::pdf417::encoder::{pdf_417_high_level_encoder_test_adapter, Compaction};
 use crate::pdf417::PDF417RXingResultMetadata;
+use crate::pdf417::decoder::decoded_bit_stream_parser;
+use crate::pdf417::encoder::{Compaction, pdf_417_high_level_encoder_test_adapter};
 
 /**
  * Tests {@link DecodedBitStreamParser}.
@@ -423,8 +423,12 @@ fn testBinaryMultiECI() {
         &[14, 927, 4, 901, 200, 927, 7, 207, 927, 4, 200, 927, 7, 207],
         "\u{010c}\u{042f}\u{010c}\u{042f}",
     );
-    performDecodeTest(&[16, 927, 4, 924, 336, 432, 197, 51, 300, 927, 7, 348, 231, 311, 858, 567],
-        "\u{010c}\u{010c}\u{010c}\u{010c}\u{010c}\u{010c}\u{042f}\u{042f}\u{042f}\u{042f}\u{042f}\u{042f}");
+    performDecodeTest(
+        &[
+            16, 927, 4, 924, 336, 432, 197, 51, 300, 927, 7, 348, 231, 311, 858, 567,
+        ],
+        "\u{010c}\u{010c}\u{010c}\u{010c}\u{010c}\u{010c}\u{042f}\u{042f}\u{042f}\u{042f}\u{042f}\u{042f}",
+    );
 }
 
 fn encodeDecodeWithLength(input: &str, expectedLength: u32) {

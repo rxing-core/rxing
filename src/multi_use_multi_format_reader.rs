@@ -16,13 +16,13 @@
 
 use std::collections::HashSet;
 
+use crate::DecodeHints;
 use crate::common::Result;
 use crate::qrcode::cpp_port::QrReader;
-use crate::DecodeHints;
 use crate::{
-    aztec::AztecReader, datamatrix::DataMatrixReader, maxicode::MaxiCodeReader,
-    oned::MultiFormatOneDReader, pdf417::PDF417Reader, qrcode::QRCodeReader, BarcodeFormat,
-    Binarizer, BinaryBitmap, Exceptions, RXingResult, Reader,
+    BarcodeFormat, Binarizer, BinaryBitmap, Exceptions, RXingResult, Reader, aztec::AztecReader,
+    datamatrix::DataMatrixReader, maxicode::MaxiCodeReader, oned::MultiFormatOneDReader,
+    pdf417::PDF417Reader, qrcode::QRCodeReader,
 };
 
 pub(crate) const ONE_D_FORMATS: [BarcodeFormat; 12] = [

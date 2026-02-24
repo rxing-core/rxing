@@ -118,9 +118,9 @@
 // } // namespace ZXing::QRCode
 
 use crate::{
-    common::{cpp_essentials::ConcentricPattern, DetectorRXingResult},
-    multi::MultipleBarcodeReader,
     BarcodeFormat, DecodeHints, Exceptions, ImmutableReader, RXingResult, Reader,
+    common::{DetectorRXingResult, cpp_essentials::ConcentricPattern},
+    multi::MultipleBarcodeReader,
 };
 
 use super::{
@@ -336,8 +336,8 @@ impl QrReader {
         // #endif
 
         let binImg = image.get_black_matrix(); //image.getBitMatrix();
-                                               // if (binImg == nullptr)
-                                               // 	{return {};}
+        // if (binImg == nullptr)
+        // 	{return {};}
 
         let mut detectorResult = Err(Exceptions::NOT_FOUND);
         if let Some(formats) = &hints.PossibleFormats {

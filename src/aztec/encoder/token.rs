@@ -15,8 +15,8 @@
  */
 
 use crate::{
-    common::{BitArray, Result},
     Exceptions,
+    common::{BitArray, Result},
 };
 
 use super::{BinaryShiftToken, SimpleToken};

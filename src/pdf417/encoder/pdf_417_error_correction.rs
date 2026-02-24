@@ -18,12 +18,12 @@
  * This file has been modified from its original form in Barcode4J.
  */
 
+use crate::Exceptions;
 /**
  * PDF417 error correction code following the algorithm described in ISO/IEC 15438:2001(E) in
  * chapter 4.10.
  */
 use crate::common::Result;
-use crate::Exceptions;
 
 /**
  * Tables of coefficients for calculating error correction words

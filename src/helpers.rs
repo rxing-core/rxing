@@ -4,10 +4,10 @@ use std::{collections::HashSet, io::Write, path::PathBuf};
 use image::DynamicImage;
 
 use crate::{
-    common::{BitMatrix, HybridBinarizer, Result},
-    multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
     BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, FilteredImageReader,
     Luma8LuminanceSource, MultiFormatReader, MultiUseMultiFormatReader, RXingResult, Reader,
+    common::{BitMatrix, HybridBinarizer, Result},
+    multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
 };
 
 #[cfg(feature = "image")]

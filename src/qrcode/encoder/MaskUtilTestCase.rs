@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::qrcode::encoder::{mask_util, ByteMatrix};
+use crate::qrcode::encoder::{ByteMatrix, mask_util};
 
 /**
  * @author satorux@google.com (Satoru Takabayashi) - creator

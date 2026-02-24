@@ -18,8 +18,8 @@
 
 use std::fmt;
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 use super::{GenericGF, GenericGFRef};
 

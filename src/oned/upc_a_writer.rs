@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{common::Result, BarcodeFormat, EncodeHints, Exceptions, Writer};
+use crate::{BarcodeFormat, EncodeHints, Exceptions, Writer, common::Result};
 
 use super::EAN13Writer;
 
@@ -68,14 +68,13 @@ impl Writer for UPCAWriter {
  */
 #[cfg(test)]
 mod UPCAWriterTestCase {
-    use crate::{common::bit_matrix_test_case, BarcodeFormat, Writer};
+    use crate::{BarcodeFormat, Writer, common::bit_matrix_test_case};
 
     use super::UPCAWriter;
 
     #[test]
     fn testEncode() {
-        let testStr =
-        "00001010100011011011101100010001011010111101111010101011100101110100100111011001101101100101110010100000";
+        let testStr = "00001010100011011011101100010001011010111101111010101011100101110100100111011001101101100101110010100000";
         let result = UPCAWriter::default()
             .encode(
                 "485963095124",
@@ -89,8 +88,7 @@ mod UPCAWriterTestCase {
 
     #[test]
     fn testAddChecksumAndEncode() {
-        let testStr =
-        "00001010011001001001101111010100011011000101011110101010001001001000111010011100101100110110110010100000";
+        let testStr = "00001010011001001001101111010100011011000101011110101010001001001000111010011100101100110110110010100000";
         let result = UPCAWriter::default()
             .encode(
                 "12345678901",

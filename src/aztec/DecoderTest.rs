@@ -27,9 +27,9 @@
 // import org.junit.Assert;
 
 use crate::{
-    common::test_utils::{strip_space, to_bit_array, to_boolean_array},
-    common::BitMatrix,
     Point,
+    common::BitMatrix,
+    common::test_utils::{strip_space, to_bit_array, to_boolean_array},
 };
 
 use super::{aztec_detector_result::AztecDetectorRXingResult, decoder};

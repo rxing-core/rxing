@@ -19,11 +19,12 @@ use rxing_one_d_proc_derive::OneDReader;
 use crate::{RXingResultMetadataType, RXingResultMetadataValue};
 
 use crate::{
+    BarcodeFormat, Exceptions, RXingResult,
     common::{BitArray, Result},
-    point, BarcodeFormat, Exceptions, RXingResult,
+    point,
 };
 
-use super::{one_d_reader, OneDReader};
+use super::{OneDReader, one_d_reader};
 
 const MAX_AVG_VARIANCE: f32 = 0.38;
 const MAX_INDIVIDUAL_VARIANCE: f32 = 0.5;

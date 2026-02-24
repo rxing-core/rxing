@@ -16,10 +16,10 @@
 
 use crate::{
     common::{
-        reedsolomon::{
-            get_predefined_genericgf, GenericGFRef, PredefinedGenericGF, ReedSolomonEncoder,
-        },
         BitArray, BitFieldBaseType, BitMatrix, CharacterSet, Result,
+        reedsolomon::{
+            GenericGFRef, PredefinedGenericGF, ReedSolomonEncoder, get_predefined_genericgf,
+        },
     },
     exceptions::Exceptions,
 };

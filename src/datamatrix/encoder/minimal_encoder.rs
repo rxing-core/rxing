@@ -17,11 +17,11 @@
 use std::{fmt, sync::Arc};
 
 use crate::{
-    common::{CharacterSet, ECIInput, Eci, MinimalECIInput, Result},
     Exceptions,
+    common::{CharacterSet, ECIInput, Eci, MinimalECIInput, Result},
 };
 
-use super::{high_level_encoder, SymbolShapeHint};
+use super::{SymbolShapeHint, high_level_encoder};
 
 const ISO_8859_1_ENCODER: CharacterSet = CharacterSet::ISO8859_1;
 
@@ -96,7 +96,7 @@ pub fn isExtendedASCII(ch: char, fnc1: Option<char>) -> bool {
         true
     };
     is_fnc1 && ch as u8 >= 128 //&& ch as u8 <= 255
-                               // return ch != fnc1 && ch as u8 >= 128 && ch as u8 <= 255;
+    // return ch != fnc1 && ch as u8 >= 128 && ch as u8 <= 255;
 }
 
 #[inline]
@@ -621,7 +621,7 @@ fn encodeMinimally(input: Arc<Input>) -> Result<RXingResult> {
             } else {
                 edge.cachedTotalSize
             }; //C40, TEXT and X12 need an
-               // extra unlatch at the end
+            // extra unlatch at the end
             if (size as i32) < minimalSize {
                 minimalSize = size as i32;
                 minimalJ = j as i32;

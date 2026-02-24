@@ -17,13 +17,14 @@
 use rxing_one_d_proc_derive::OneDReader;
 
 use crate::{
+    BarcodeFormat, Exceptions, RXingResult,
     common::{BitArray, Result},
-    point, BarcodeFormat, Exceptions, RXingResult,
+    point,
 };
 
 use crate::{RXingResultMetadataType, RXingResultMetadataValue};
 
-use super::{one_d_reader, OneDReader};
+use super::{OneDReader, one_d_reader};
 
 /**
  * <p>Decodes Code 128 barcodes.</p>

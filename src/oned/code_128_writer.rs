@@ -16,10 +16,10 @@
 
 use rxing_one_d_proc_derive::OneDWriter;
 
-use crate::common::Result;
 use crate::BarcodeFormat;
+use crate::common::Result;
 
-use super::{code_128_reader, OneDimensionalCodeWriter};
+use super::{OneDimensionalCodeWriter, code_128_reader};
 
 const CODE_START_A: usize = 103;
 const CODE_START_B: usize = 104;
@@ -112,7 +112,7 @@ fn check(contents: &str, hints: &crate::EncodeHints) -> Result<i32> {
             _ => {
                 return Err(Exceptions::illegal_argument_with(format!(
                     "Unsupported code set hint: {codeSetHint}"
-                )))
+                )));
             }
         }
     }
@@ -438,12 +438,12 @@ fn chooseCode(value: &str, start: usize, oldCode: usize) -> Option<usize> {
 //    minPath:Vec<Vec<Latch>>,
 // }
 mod MinimalEncoder {
-    use crate::{common::Result, oned::code_128_reader, Exceptions};
+    use crate::{Exceptions, common::Result, oned::code_128_reader};
 
     use super::{
-        produceRXingResult, CODE_CODE_A, CODE_CODE_B, CODE_CODE_C, CODE_FNC_1, CODE_FNC_2,
-        CODE_FNC_3, CODE_FNC_4_A, CODE_FNC_4_B, CODE_START_A, CODE_START_B, CODE_START_C,
-        ESCAPE_FNC_1, ESCAPE_FNC_2, ESCAPE_FNC_3, ESCAPE_FNC_4,
+        CODE_CODE_A, CODE_CODE_B, CODE_CODE_C, CODE_FNC_1, CODE_FNC_2, CODE_FNC_3, CODE_FNC_4_A,
+        CODE_FNC_4_B, CODE_START_A, CODE_START_B, CODE_START_C, ESCAPE_FNC_1, ESCAPE_FNC_2,
+        ESCAPE_FNC_3, ESCAPE_FNC_4, produceRXingResult,
     };
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -466,8 +466,7 @@ mod MinimalEncoder {
 \u{0003}\u{0004}\u{0005}\u{0006}\u{0007}\u{0008}\u{0009}\n\u{000B}\u{000C}\r\u{000E}\u{000F}\u{0010}\u{0011}/
 \u{0012}\u{0013}\u{0014}\u{0015}\u{0016}\u{0017}\u{0018}\u{0019}\u{001A}\u{001B}\u{001C}\u{001D}\u{001E}\u{001F}/
 \u{00FF}";
-    const B: &str =
-        " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqr\
+    const B: &str = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqr\
 stuvwxyz{|}~\u{007F}\u{00FF}";
 
     const CODE_SHIFT: usize = 98;

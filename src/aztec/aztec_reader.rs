@@ -15,10 +15,10 @@
  */
 
 use crate::{
-    common::{DecoderRXingResult, DetectorRXingResult, Result},
-    exceptions::Exceptions,
     BarcodeFormat, Binarizer, BinaryBitmap, DecodeHints, ImmutableReader, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    common::{DecoderRXingResult, DetectorRXingResult, Result},
+    exceptions::Exceptions,
 };
 
 use super::{decoder, detector::Detector};

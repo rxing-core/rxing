@@ -26,7 +26,7 @@
 
 use image::DynamicImage;
 
-use crate::{common::GlobalHistogramBinarizer, BinaryBitmap, BufferedImageLuminanceSource};
+use crate::{BinaryBitmap, BufferedImageLuminanceSource, common::GlobalHistogramBinarizer};
 
 fn getBufferedImage(fileName: &str) -> DynamicImage {
     let path = format!("test_resources/blackbox/rssexpandedstacked-2/{fileName}");

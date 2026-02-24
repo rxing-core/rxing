@@ -5,11 +5,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::{
+    BarcodeFormat, DecodeHints, Exceptions, PointI, RXingResult,
     common::{
-        cpp_essentials::{FindLeftGuardBy, FixedPattern, IsRightGuard, PatternView, ToIntPos},
         BitArray,
+        cpp_essentials::{FindLeftGuardBy, FixedPattern, IsRightGuard, PatternView, ToIntPos},
     },
-    point, BarcodeFormat, DecodeHints, Exceptions, PointI, RXingResult,
+    point,
 };
 
 use super::row_reader::{DecodingState, RowReader};
@@ -317,7 +318,7 @@ impl RowReader for DXFilmEdgeReader<'_> {
         // Generate the textual representation.
         // Eg: 115-10/11A means: DX1 = 115, DX2 = 10, Frame number = 11A
         let mut txt; //= String::with_capacity(10);
-                     // txt.reserve(10);
+        // txt.reserve(10);
         txt = (productNumber.to_string()) + "-" + (&generationNumber.to_string());
         if clock.hasFrameNr {
             let frameNr = ToIntPos(&dataBitsU8, 13, 6).unwrap_or(0);

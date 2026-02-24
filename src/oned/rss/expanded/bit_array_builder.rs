@@ -104,7 +104,7 @@ pub fn buildBitArray(pairs: &[ExpandedPair]) -> Option<BitArray> {
 mod BitArrayBuilderTest {
     use crate::{
         common::BitArray,
-        oned::rss::{expanded::ExpandedPair, DataCharacter},
+        oned::rss::{DataCharacter, expanded::ExpandedPair},
     };
 
     #[test]

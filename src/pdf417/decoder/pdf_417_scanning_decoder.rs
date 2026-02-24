@@ -17,15 +17,16 @@
 use std::sync::Arc;
 
 use crate::{
+    Exceptions, Point,
     common::{BitMatrix, DecoderRXingResult, Result},
     pdf417::pdf_417_common,
-    Exceptions, Point,
 };
 
 use super::{
-    decoded_bit_stream_parser, ec, pdf_417_codeword_decoder, BarcodeMetadata, BarcodeValue,
-    BoundingBox, Codeword, DetectionRXingResult, DetectionRXingResultColumn,
-    DetectionRXingResultColumnTrait, DetectionRXingResultRowIndicatorColumn,
+    BarcodeMetadata, BarcodeValue, BoundingBox, Codeword, DetectionRXingResult,
+    DetectionRXingResultColumn, DetectionRXingResultColumnTrait,
+    DetectionRXingResultRowIndicatorColumn, decoded_bit_stream_parser, ec,
+    pdf_417_codeword_decoder,
 };
 
 /*

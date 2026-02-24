@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-use super::test_utils::MockLuminanceSource;
 use super::HybridBinarizer;
+use super::test_utils::MockLuminanceSource;
 use crate::Binarizer;
 
 #[test]

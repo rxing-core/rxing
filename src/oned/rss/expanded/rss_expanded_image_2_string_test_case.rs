@@ -25,9 +25,9 @@
  */
 
 use crate::{
-    common::GlobalHistogramBinarizer,
-    oned::{rss::expanded::RSSExpandedReader, OneDReader},
     BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHints,
+    common::GlobalHistogramBinarizer,
+    oned::{OneDReader, rss::expanded::RSSExpandedReader},
 };
 
 /**

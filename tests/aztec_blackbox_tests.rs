@@ -15,7 +15,7 @@
  */
 #![cfg(feature = "image")]
 
-use rxing::{aztec::AztecReader, BarcodeFormat};
+use rxing::{BarcodeFormat, aztec::AztecReader};
 
 mod common;
 

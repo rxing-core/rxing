@@ -25,19 +25,18 @@
  */
 
 use crate::{
-    common::{BitArray, Result},
-    oned::{
-        record_pattern, record_pattern_in_reverse,
-        rss::{
-            rss_utils, AbstractRSSReaderTrait, DataCharacter, DataCharacterTrait, FinderPattern,
-        },
-        OneDReader,
-    },
     BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
     RXingResultMetadataValue, Reader,
+    common::{BitArray, Result},
+    oned::{
+        OneDReader, record_pattern, record_pattern_in_reverse,
+        rss::{
+            AbstractRSSReaderTrait, DataCharacter, DataCharacterTrait, FinderPattern, rss_utils,
+        },
+    },
 };
 
-use super::{bit_array_builder, decoders::abstract_expanded_decoder, ExpandedPair, ExpandedRow};
+use super::{ExpandedPair, ExpandedRow, bit_array_builder, decoders::abstract_expanded_decoder};
 
 const FINDER_PAT_A: u32 = 0;
 const FINDER_PAT_B: u32 = 1;

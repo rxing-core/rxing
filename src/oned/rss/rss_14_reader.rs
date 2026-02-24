@@ -15,14 +15,15 @@
  */
 
 use crate::{
-    common::{BitArray, Result},
-    oned::{one_d_reader, OneDReader},
-    point, BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
+    BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
     RXingResultMetadataValue, Reader,
+    common::{BitArray, Result},
+    oned::{OneDReader, one_d_reader},
+    point,
 };
 
 use super::{
-    rss_utils, AbstractRSSReaderTrait, DataCharacter, DataCharacterTrait, FinderPattern, Pair,
+    AbstractRSSReaderTrait, DataCharacter, DataCharacterTrait, FinderPattern, Pair, rss_utils,
 };
 
 /**

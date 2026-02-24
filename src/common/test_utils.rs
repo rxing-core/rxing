@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-use crate::common::BitArray;
 use crate::LuminanceSource;
+use crate::common::BitArray;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::borrow::Cow;

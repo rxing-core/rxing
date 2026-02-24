@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 use super::high_level_encoder::{
     self, ASCII_ENCODATION, C40_ENCODATION, C40_UNLATCH, LATCH_TO_C40,

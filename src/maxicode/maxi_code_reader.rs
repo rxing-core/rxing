@@ -15,9 +15,9 @@
  */
 
 use crate::{
-    common::{BitMatrix, DetectorRXingResult, Result},
     BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, RXingResult,
     RXingResultMetadataType, Reader,
+    common::{BitMatrix, DetectorRXingResult, Result},
 };
 
 use super::{decoder::maxicode_decoder, detector};

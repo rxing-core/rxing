@@ -28,7 +28,7 @@
 
 use crate::common::BIT_FIELD_BASE_BITS;
 
-use super::{BitArray, BIT_FIELD_SHIFT_BITS};
+use super::{BIT_FIELD_SHIFT_BITS, BitArray};
 use crate::common::test_utils::arrays_are_equal;
 use rand::Rng;
 use rand::RngExt;

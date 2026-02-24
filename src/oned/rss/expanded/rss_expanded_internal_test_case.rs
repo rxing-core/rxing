@@ -25,9 +25,9 @@
  */
 
 use crate::{
+    BinaryBitmap, BufferedImageLuminanceSource,
     common::GlobalHistogramBinarizer,
     oned::rss::{DataCharacterTrait, FinderPattern},
-    BinaryBitmap, BufferedImageLuminanceSource,
 };
 
 use super::RSSExpandedReader;
@@ -74,9 +74,11 @@ fn testFindFinderPatterns() {
     assert_eq!(1, finderPattern.getValue());
 
     // try {
-    assert!(rssExpandedReader
-        .retrieveNextPair(&row, &previousPairs, rowNumber)
-        .is_err());
+    assert!(
+        rssExpandedReader
+            .retrieveNextPair(&row, &previousPairs, rowNumber)
+            .is_err()
+    );
     //   the previous was the last pair
     // fail(NotFoundException.class.getName() + " expected");
     // } catch (NotFoundException nfe) {

@@ -30,7 +30,7 @@ pub trait DetectionRXingResultRowIndicatorColumn: DetectionRXingResultColumnTrai
     // finding row numbers for other columns easier
     // use row height count to make detection of invalid row numbers more reliable
     fn adjustCompleteIndicatorColumnRowNumbers(&mut self, barcodeMetadata: &BarcodeMetadata)
-        -> u32;
+    -> u32;
     fn getRowHeights(&mut self) -> Option<Vec<u32>>;
     fn getBarcodeMetadata(&mut self) -> Option<BarcodeMetadata>;
     fn isLeft(&self) -> bool;

@@ -17,8 +17,8 @@
 use std::{collections::HashMap, fmt};
 
 use crate::{
-    common::cpp_essentials::DecoderResult, BarcodeFormat, MetadataDictionary, Point,
-    RXingResultMetadataType, RXingResultMetadataValue,
+    BarcodeFormat, MetadataDictionary, Point, RXingResultMetadataType, RXingResultMetadataValue,
+    common::cpp_essentials::DecoderResult,
 };
 
 pub type RXingResultMetaDataDictionary = HashMap<RXingResultMetadataType, RXingResultMetadataValue>;

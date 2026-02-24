@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
-use super::{high_level_encoder, Encoder};
+use super::{Encoder, high_level_encoder};
 
 #[derive(Debug, Default)]
 pub struct ASCIIEncoder;

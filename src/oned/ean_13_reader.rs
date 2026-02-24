@@ -18,12 +18,12 @@ use rxing_one_d_proc_derive::{EANReader, OneDReader};
 
 use super::UPCEANReader;
 
-use super::upc_ean_reader;
 use super::OneDReader;
+use super::upc_ean_reader;
 
-use crate::common::Result;
 use crate::BarcodeFormat;
 use crate::Exceptions;
+use crate::common::Result;
 
 /**
  * <p>Implements decoding of the EAN-13 format.</p>
@@ -46,10 +46,10 @@ impl UPCEANReader for EAN13Reader {
         resultString: &mut String,
     ) -> Result<usize> {
         let mut counters = [0_u32; 4]; //decodeMiddleCounters;
-                                       // counters[0] = 0;
-                                       // counters[1] = 0;
-                                       // counters[2] = 0;
-                                       // counters[3] = 0;
+        // counters[0] = 0;
+        // counters[1] = 0;
+        // counters[2] = 0;
+        // counters[3] = 0;
         let end = row.get_size();
         let mut rowOffset = startRange[1];
 

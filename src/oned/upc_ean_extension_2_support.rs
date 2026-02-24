@@ -17,12 +17,12 @@
 use std::collections::HashMap;
 
 use crate::{
+    BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue,
     common::{BitArray, Result},
-    point, BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue,
+    point,
 };
 
-use super::{upc_ean_reader, UPCEANReader, STAND_IN};
+use super::{STAND_IN, UPCEANReader, upc_ean_reader};
 
 /**
  * @see UPCEANExtension5Support

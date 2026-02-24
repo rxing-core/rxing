@@ -30,8 +30,8 @@
  */
 // public final class GeoParsedRXingResultTestCase extends Assert {
 use crate::{
-    client::result::{ParsedClientResult, ParsedRXingResult, ParsedRXingResultType, ResultParser},
     BarcodeFormat, RXingResult,
+    client::result::{ParsedClientResult, ParsedRXingResult, ParsedRXingResultType, ResultParser},
 };
 
 const EPSILON: f64 = 1.0E-10;

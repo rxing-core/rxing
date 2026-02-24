@@ -15,14 +15,15 @@
  */
 
 use crate::{
-    common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
-    point, BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, Point, RXingResult,
+    BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, Point, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
+    point,
 };
 
 use super::{
     decoder::Decoder,
-    detector::{zxing_cpp_detector, Detector},
+    detector::{Detector, zxing_cpp_detector},
 };
 
 use once_cell::sync::Lazy;

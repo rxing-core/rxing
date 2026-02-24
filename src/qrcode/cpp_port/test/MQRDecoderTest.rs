@@ -4,7 +4,7 @@
 */
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::{common::BitMatrix, qrcode::cpp_port::decoder::Decode, Exceptions};
+use crate::{Exceptions, common::BitMatrix, qrcode::cpp_port::decoder::Decode};
 
 #[test]
 fn MQRCodeM3L() {

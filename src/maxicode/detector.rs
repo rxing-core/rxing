@@ -2,10 +2,11 @@
 use num::integer::Roots;
 
 use crate::{
+    Exceptions, Point, PointU,
     common::{
         BitMatrix, DefaultGridSampler, DetectorRXingResult, GridSampler, Quadrilateral, Result,
     },
-    point, Exceptions, Point, PointU,
+    point,
 };
 
 use super::MaxiCodeReader;
@@ -52,7 +53,7 @@ impl Circle<'_> {
             .enumerate()
             .filter_map(|e| {
                 if e.0 != 5 && (e.0 == 0 || e.0 % 2 == 0) {
-                    Some(*e.1 .0 + *e.1 .1)
+                    Some(*e.1.0 + *e.1.1)
                 } else {
                     None
                 }
@@ -65,7 +66,7 @@ impl Circle<'_> {
             .enumerate()
             .filter_map(|e| {
                 if e.0 != 5 && (e.0 != 0 && e.0 % 2 != 0) {
-                    Some(*e.1 .0 + *e.1 .1)
+                    Some(*e.1.0 + *e.1.1)
                 } else {
                     None
                 }
@@ -318,10 +319,10 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
     // from what we have otherwise found.
     let center_point_std_dev = Circle::calculate_center_point_std_dev(&circles);
     circles.retain(|c| {
-        (c.center.x as i32 - center_point_std_dev.1 .0 as i32).unsigned_abs()
-            <= center_point_std_dev.0 .0
-            && (c.center.y as i32 - center_point_std_dev.1 .1 as i32).unsigned_abs()
-                <= center_point_std_dev.0 .1
+        (c.center.x as i32 - center_point_std_dev.1.0 as i32).unsigned_abs()
+            <= center_point_std_dev.0.0
+            && (c.center.y as i32 - center_point_std_dev.1.1 as i32).unsigned_abs()
+                <= center_point_std_dev.0.1
     });
 
     // Sort the points based on variance
@@ -1049,9 +1050,9 @@ mod detector_test {
     use std::io::Read;
 
     use crate::{
+        Binarizer, BufferedImageLuminanceSource,
         common::{DetectorRXingResult, HybridBinarizer},
         maxicode::detector::read_bits,
-        Binarizer, BufferedImageLuminanceSource,
     };
 
     #[cfg(feature = "image_formats")]

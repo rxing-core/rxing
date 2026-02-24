@@ -10,10 +10,10 @@ use num::Integer;
 use crate::common::{BitMatrix, Result};
 use crate::qrcode::cpp_port::Type;
 use crate::qrcode::decoder::{
-    Version, VersionRef, MICRO_VERSIONS, MODEL1_VERSIONS, RMQR_VERSIONS, VERSIONS,
-    VERSION_DECODE_INFO,
+    MICRO_VERSIONS, MODEL1_VERSIONS, RMQR_VERSIONS, VERSION_DECODE_INFO, VERSIONS, Version,
+    VersionRef,
 };
-use crate::{point, Exceptions, PointI};
+use crate::{Exceptions, PointI, point};
 
 const RMQR_SIZES: [PointI; 32] = [
     point(43, 7),

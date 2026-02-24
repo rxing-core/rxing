@@ -18,8 +18,8 @@ use std::{fmt, sync::Arc};
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 use super::{CharacterSet, ECIEncoderSet, ECIInput, Eci};
 

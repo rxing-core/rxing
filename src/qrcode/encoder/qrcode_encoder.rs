@@ -17,15 +17,15 @@
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{
+    EncodeHints, Exceptions,
     common::{
-        reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonEncoder},
         BitArray, BitFieldBaseType, CharacterSet, Eci, Result,
+        reedsolomon::{PredefinedGenericGF, ReedSolomonEncoder, get_predefined_genericgf},
     },
     qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
-    EncodeHints, Exceptions,
 };
 
-use super::{mask_util, matrix_util, BlockPair, ByteMatrix, MinimalEncoder, QRCode};
+use super::{BlockPair, ByteMatrix, MinimalEncoder, QRCode, mask_util, matrix_util};
 
 static SHIFT_JIS_CHARSET: CharacterSet = CharacterSet::Shift_JIS;
 

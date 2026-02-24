@@ -37,8 +37,8 @@
 use chrono::DateTime;
 
 use crate::{
-    client::result::{ParsedClientResult, ParsedRXingResultType},
     BarcodeFormat, RXingResult,
+    client::result::{ParsedClientResult, ParsedRXingResultType},
 };
 
 use super::{ParsedRXingResult, ResultParser};
@@ -62,7 +62,12 @@ const EPSILON: f64 = 1.0E-10;
 fn testStartEnd() {
     doTestShort(
         "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nDTSTART:20080504T123456Z\r\nDTEND:20080505T234555Z\r\nEND:VEVENT\r\nEND:VCALENDAR",
-        "", "", "", "20080504T123456Z", "20080505T234555Z");
+        "",
+        "",
+        "",
+        "20080504T123456Z",
+        "20080505T234555Z",
+    );
 }
 
 #[test]
@@ -81,48 +86,92 @@ fn testNoVCalendar() {
 fn testStart() {
     doTestShort(
         "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nDTSTART:20080504T123456Z\r\nEND:VEVENT\r\nEND:VCALENDAR",
-        "", "", "", "20080504T123456Z", "");
+        "",
+        "",
+        "",
+        "20080504T123456Z",
+        "",
+    );
 }
 
 #[test]
 fn testDuration() {
     doTestShort(
         "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nDTSTART:20080504T123456Z\r\nDURATION:P1D\r\nEND:VEVENT\r\nEND:VCALENDAR",
-        "", "", "", "20080504T123456Z", "20080505T123456Z");
+        "",
+        "",
+        "",
+        "20080504T123456Z",
+        "20080505T123456Z",
+    );
     doTestShort(
         "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nDTSTART:20080504T123456Z\r\nDURATION:P1DT2H3M4S\r\nEND:VEVENT\r\nEND:VCALENDAR",
-        "", "", "", "20080504T123456Z", "20080505T143800Z");
+        "",
+        "",
+        "",
+        "20080504T123456Z",
+        "20080505T143800Z",
+    );
 }
 
 #[test]
 fn testSummary() {
     doTestShort(
         "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nSUMMARY:foo\r\nDTSTART:20080504T123456Z\r\nEND:VEVENT\r\nEND:VCALENDAR",
-        "", "foo", "", "20080504T123456Z", "");
+        "",
+        "foo",
+        "",
+        "20080504T123456Z",
+        "",
+    );
 }
 
 #[test]
 fn testLocation() {
     doTestShort(
         "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nLOCATION:Miami\r\nDTSTART:20080504T123456Z\r\nEND:VEVENT\r\nEND:VCALENDAR",
-        "", "", "Miami", "20080504T123456Z", "");
+        "",
+        "",
+        "Miami",
+        "20080504T123456Z",
+        "",
+    );
 }
 
 #[test]
 fn testDescription() {
     doTestShort(
         "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nDTSTART:20080504T123456Z\r\nDESCRIPTION:This is a test\r\nEND:VEVENT\r\nEND:VCALENDAR",
-        "This is a test", "", "", "20080504T123456Z", "");
+        "This is a test",
+        "",
+        "",
+        "20080504T123456Z",
+        "",
+    );
     doTestShort(
         "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nDTSTART:20080504T123456Z\r\nDESCRIPTION:This is a test\r\n\t with a continuation\r\nEND:VEVENT\r\nEND:VCALENDAR",
-        "This is a test with a continuation", "", "", "20080504T123456Z", "");
+        "This is a test with a continuation",
+        "",
+        "",
+        "20080504T123456Z",
+        "",
+    );
 }
 
 #[test]
 fn testGeo() {
     doTest(
         "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nDTSTART:20080504T123456Z\r\nGEO:-12.345;-45.678\r\nEND:VEVENT\r\nEND:VCALENDAR",
-        "", "", "", "20080504T123456Z", "", "", &Vec::new(), -12.345, -45.678);
+        "",
+        "",
+        "",
+        "20080504T123456Z",
+        "",
+        "",
+        &Vec::new(),
+        -12.345,
+        -45.678,
+    );
 }
 
 #[test]
@@ -142,25 +191,44 @@ fn testBadGeo() {
 fn testOrganizer() {
     doTest(
         "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nDTSTART:20080504T123456Z\r\nORGANIZER:mailto:bob@example.org\r\nEND:VEVENT\r\nEND:VCALENDAR",
-        "", "", "", "20080504T123456Z", "", "bob@example.org", &Vec::new(), f64::NAN, f64::NAN);
+        "",
+        "",
+        "",
+        "20080504T123456Z",
+        "",
+        "bob@example.org",
+        &Vec::new(),
+        f64::NAN,
+        f64::NAN,
+    );
 }
 
 #[test]
 fn testAttendees() {
     doTest(
         "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nDTSTART:20080504T123456Z\r\nATTENDEE:mailto:bob@example.org\r\nATTENDEE:mailto:alice@example.org\r\nEND:VEVENT\r\nEND:VCALENDAR",
-        "", "", "", "20080504T123456Z", "", "",
-        &["bob@example.org", "alice@example.org"], f64::NAN, f64::NAN);
+        "",
+        "",
+        "",
+        "20080504T123456Z",
+        "",
+        "",
+        &["bob@example.org", "alice@example.org"],
+        f64::NAN,
+        f64::NAN,
+    );
 }
 
 #[test]
 fn testVEventEscapes() {
-    doTestShort("BEGIN:VEVENT\nCREATED:20111109T110351Z\nLAST-MODIFIED:20111109T170034Z\nDTSTAMP:20111109T170034Z\nUID:0f6d14ef-6cb7-4484-9080-61447ccdf9c2\nSUMMARY:Summary line\nCATEGORIES:Private\nDTSTART;TZID=Europe/Vienna:20111110T110000\nDTEND;TZID=Europe/Vienna:20111110T120000\nLOCATION:Location\\, with\\, escaped\\, commas\nDESCRIPTION:Meeting with a friend\\nlook at homepage first\\n\\n\n  \\n\nSEQUENCE:1\nX-MOZ-GENERATION:1\nEND:VEVENT",
-           "Meeting with a friend\nlook at homepage first\n\n\n  \n",
-           "Summary line",
-           "Location, with, escaped, commas",
-           "20111110T110000Z",
-           "20111110T120000Z");
+    doTestShort(
+        "BEGIN:VEVENT\nCREATED:20111109T110351Z\nLAST-MODIFIED:20111109T170034Z\nDTSTAMP:20111109T170034Z\nUID:0f6d14ef-6cb7-4484-9080-61447ccdf9c2\nSUMMARY:Summary line\nCATEGORIES:Private\nDTSTART;TZID=Europe/Vienna:20111110T110000\nDTEND;TZID=Europe/Vienna:20111110T120000\nLOCATION:Location\\, with\\, escaped\\, commas\nDESCRIPTION:Meeting with a friend\\nlook at homepage first\\n\\n\n  \\n\nSEQUENCE:1\nX-MOZ-GENERATION:1\nEND:VEVENT",
+        "Meeting with a friend\nlook at homepage first\n\n\n  \n",
+        "Summary line",
+        "Location, with, escaped, commas",
+        "20111110T110000Z",
+        "20111110T120000Z",
+    );
 }
 
 #[test]
