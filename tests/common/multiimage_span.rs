@@ -71,7 +71,7 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
         }
     }
 
-    pub fn get_test_base(&self) -> &Box<Path> {
+    pub fn get_test_base(&self) -> &Path {
         &self.test_base
     }
 
@@ -168,7 +168,7 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
         let mut passed_counts = vec![0; test_count];
         let mut try_harder_counts = vec![0; test_count];
 
-        let test_base = self.get_test_base().clone();
+        let test_base = self.get_test_base().to_path_buf();
 
         for (name, files) in &image_files {
             // for (Entry<String,List<Path>> testImageGroup : imageFiles.entrySet()) {

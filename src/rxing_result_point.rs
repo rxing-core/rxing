@@ -508,7 +508,7 @@ mod point_tests {
         let p2: PointF = (7u32, 2u32).into();
         assert_eq!(p2, PointF::new(7.0, 2.0));
 
-        let pi: PointI = ((2.9f32, 3.1f32)).into();
+        let pi: PointI = (2.9f32, 3.1f32).into();
         assert_eq!(pi, PointI::new(2, 3));
 
         let src = (8i32, 9i32);
