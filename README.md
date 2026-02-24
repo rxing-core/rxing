@@ -42,6 +42,7 @@ All barcode formats are tested and functioning in their current state against cu
 | telepen | complete | yes | yes |
 | micro qr | complete | no | yes |
 | rMQR | complete | no | yes |
+| dxFilm | complete | no | yes |
 
 Please note that currently UPC/EAN Extension 2/5 is supported.
 
@@ -60,7 +61,10 @@ The following feature flags are available:
 
     This is not used by any of the helper functions, you must specifically use it while setting up a new decoder. The `OtsuLevelBinarizer` is not well tested and it does *not* pass the current test suite. Consider this only if you know why you would want to use it. In many cases, the standard binarizer is likely better. If you have a very specific use case, and you know what your incoming data will resemble, you should consider implementing your own `Binarizer` and using that instead.
 
-The default feature set includes the `image`, `client_support`, and `image_formats` features mentioned above.
+* `encoding_rs`: Enabled by default. Uses the modern `encoding_rs` crate for high-performance, WHATWG-compliant character encoding support.
+* `legacy_encoding`: Provides the original encoding behavior using the legacy `encoding` crate. Use this if you require exact compatibility with older versions or specific non-standard character mappings.
+
+The default feature set includes the `image`, `client_support`, `image_formats`, and `encoding_rs` features mentioned above.
 
 ## Incomplete
 The library has only been thurougly tested with the `BufferedImageLuminanceSource` source format. Using any other
@@ -86,6 +90,13 @@ fn main() {
 ```
 
 ## Latest Release Notes
+* *v0.8.5* -> DX Film Edge Support added (decode only). Also adds several enhancements to performance and memory.
+
+    The default character encoding backend has changed to the more modern `encoding_rs`. This should bring some slight
+    performance improvements and better tracking of modern fixes and new encodings. All test currently pass without 
+    issue using the new backend, but if you encounter any issues please change back to the legacy backend using the
+    `legacy_encoding` feature flag.
+
 * *v0.6.1* -> Initial support for immutable symbol readers. Fixed an issue with the rss_expanded reader.
 
     Immutable readers: Many 2d readers now implement the `ImmutableReader` trait. This allows them to be called using the
