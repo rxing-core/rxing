@@ -109,21 +109,15 @@ pub fn decode(
     }
     let mut detectionRXingResult = detectionRXingResult.unwrap();
 
-    // Write barcode metadata to witness data if provided
-    if let Some(wd) = witness_data.as_deref_mut() {
-        wd.set_barcode_metadata(
-            detectionRXingResult.getBarcodeRowCount(),
-            detectionRXingResult.getBarcodeColumnCount() as u32,
-            detectionRXingResult.getBarcodeECLevel(),
-        );
-    }
-
     let leftToRight = leftRowIndicatorColumn.is_some();
 
     detectionRXingResult.setBoundingBox(boundingBox.clone());
     let maxBarcodeColumn = detectionRXingResult.getBarcodeColumnCount() + 1;
     detectionRXingResult.setDetectionRXingResultColumn(0, leftRowIndicatorColumn);
     detectionRXingResult.setDetectionRXingResultColumn(maxBarcodeColumn, rightRowIndicatorColumn);
+
+    // to collect all blocks
+    let mut all_module_bit_counts: Vec<Vec<[u32; 8]>> = Vec::new();
 
     // let leftToRight = leftRowIndicatorColumn.is_some();
     for barcodeColumnCount in 1..=maxBarcodeColumn {
@@ -152,6 +146,7 @@ pub fn decode(
 
         let mut startColumn: i32 = -1;
         let mut previousStartColumn = startColumn;
+        let mut row_bit_counts: Vec<[u32; 8]> = Vec::new();
         // TODO start at a row for which we know the start position, then detect upwards and downwards from there.
         for imageRow in boundingBox.getMinY()..=boundingBox.getMaxY() {
             // for (int imageRow = boundingBox.getMinY(); imageRow <= boundingBox.getMaxY(); imageRow++) {
@@ -164,7 +159,7 @@ pub fn decode(
                 }
                 startColumn = previousStartColumn;
             }
-            let codeword = detectCodeword(
+            if let Some((codeword, Some(moduleBits))) = detectCodeword(
                 image,
                 boundingBox.getMinX(),
                 boundingBox.getMaxX(),
@@ -173,8 +168,8 @@ pub fn decode(
                 imageRow,
                 minCodewordWidth,
                 maxCodewordWidth,
-            );
-            if let Some(codeword) = codeword {
+                true,
+            ) {
                 // let codeword = codeword.unwrap();
                 //detectionRXingResultColumn.setCodeword(imageRow, codeword);
                 detectionRXingResult
@@ -185,8 +180,20 @@ pub fn decode(
                 previousStartColumn = startColumn;
                 minCodewordWidth = minCodewordWidth.min(codeword.getWidth());
                 maxCodewordWidth = maxCodewordWidth.max(codeword.getWidth());
+                row_bit_counts.push(moduleBits);
             }
         }
+        all_module_bit_counts.push(row_bit_counts);
+    }
+
+    // Write barcode metadata to witness data if provided
+    if let Some(wd) = witness_data.as_deref_mut() {
+        wd.set_barcode_metadata(
+            detectionRXingResult.getBarcodeRowCount(),
+            detectionRXingResult.getBarcodeColumnCount() as u32,
+            detectionRXingResult.getBarcodeECLevel(),
+        );
+        wd.set_blocks(all_module_bit_counts);
     }
 
     createDecoderRXingResult(&mut detectionRXingResult, witness_data)
@@ -394,7 +401,7 @@ fn getRowIndicatorColumn<'a>(
         while imageRow <= boundingBox.getMaxY() as i32 && imageRow >= boundingBox.getMinY() as i32 {
             // for (int imageRow = (int) startPoint.getY(); imageRow <= boundingBox.getMaxY() &&
             //     imageRow >= boundingBox.getMinY(); imageRow += increment) {
-            let codeword = detectCodeword(
+            if let Some((codeword, _)) = detectCodeword(
                 image,
                 0,
                 image.getWidth(),
@@ -403,8 +410,8 @@ fn getRowIndicatorColumn<'a>(
                 imageRow as u32,
                 minCodewordWidth,
                 maxCodewordWidth,
-            );
-            if let Some(codeword) = codeword {
+                false,
+            ) {
                 // if codeword.is_some() {
                 rowIndicatorColumn.setCodeword(imageRow as u32, codeword);
                 if leftToRight {
@@ -703,7 +710,8 @@ fn detectCodeword(
     imageRow: u32,
     minCodewordWidth: u32,
     maxCodewordWidth: u32,
-) -> Option<Codeword> {
+    collectModuleBits: bool,
+) -> Option<(Codeword, Option<[u32; 8]>)> {
     let mut startColumn = adjustCodewordStartColumn(
         image,
         minColumn,
@@ -769,11 +777,14 @@ fn detectCodeword(
         return None;
     }
 
-    Some(Codeword::new(
+    Some((
+        Codeword::new(
         startColumn,
         endColumn,
         getCodewordBucketNumber(decodedValue),
         codeword as u32,
+        ),
+        if collectModuleBits { Some(moduleBitCount) } else { None },
     ))
 }
 
