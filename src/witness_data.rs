@@ -61,6 +61,8 @@ pub struct WitnessData {
     /// Lengths of blocks of contiguous pixels of the same color
     pub blocks: Option<Vec<Vec<u32>>>,
 
+    pub normalized_blocks: Option<Vec<Vec<[u32; 8]>>>,
+
     /// Barcode metadata values: how many rows and columns it has, and its error correction level
     pub row_count: Option<u32>,
     pub column_count: Option<u32>,
@@ -108,6 +110,8 @@ pub struct FinalizedWitnessData {
     /// Lengths of blocks of contiguous pixels of the same color
     pub blocks: Vec<Vec<u32>>,
 
+    pub normalized_blocks: Vec<Vec<[u32; 8]>>,
+
     pub row_count: u32,
     pub column_count: u32,
     pub ec_level: u32,
@@ -133,6 +137,7 @@ impl FinalizedWitnessData {
         image: Vec<Vec<u8>>,
         binarized_image: BitMatrix,
         blocks: Vec<Vec<u32>>,
+        normalized_blocks: Vec<Vec<[u32; 8]>>,
         row_count: u32,
         column_count: u32,
         ec_level: u32,
@@ -166,6 +171,7 @@ impl FinalizedWitnessData {
             image,
             binarized_image,
             blocks,
+            normalized_blocks,
             row_count,
             column_count,
             ec_level,
@@ -184,6 +190,8 @@ impl FinalizedWitnessData {
         )?;
 
         let blocks = Option::ok_or(witness_data.blocks.clone(), "no blocks data")?;
+
+        let normalized_blocks = Option::ok_or(witness_data.normalized_blocks.clone(), "no normalized blocks data")?;
 
         let row_count = Option::ok_or(witness_data.row_count.clone(), "no row count data")?;
 
@@ -218,6 +226,7 @@ impl FinalizedWitnessData {
             image: witness_data.image.clone(),
             binarized_image,
             blocks,
+            normalized_blocks,
             row_count,
             column_count,
             ec_level,
@@ -293,6 +302,7 @@ impl WitnessData {
             image,
             binarized_image: None,
             blocks: None,
+            normalized_blocks: None,
             row_count: None,
             column_count: None,
             ec_level: None,
@@ -349,6 +359,10 @@ impl WitnessData {
             .collect();
         
         self.blocks = Some(flat);
+    }
+
+    pub fn set_normalized_blocks(&mut self, normalized_blocks: Vec<Vec<[u32; 8]>>) {
+        self.normalized_blocks = Some(normalized_blocks);
     }
 
     pub fn set_barcode_metadata(&mut self, row_count: u32, column_count: u32, ec_level: u32) {

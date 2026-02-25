@@ -118,6 +118,7 @@ pub fn decode(
 
     // to collect all blocks
     let mut all_module_bit_counts: Vec<Vec<[u32; 8]>> = Vec::new();
+    let mut all_normalized_blocks: Vec<Vec<[u32; 8]>> = Vec::new();
 
     // let leftToRight = leftRowIndicatorColumn.is_some();
     for barcodeColumnCount in 1..=maxBarcodeColumn {
@@ -147,6 +148,7 @@ pub fn decode(
         let mut startColumn: i32 = -1;
         let mut previousStartColumn = startColumn;
         let mut row_bit_counts: Vec<[u32; 8]> = Vec::new();
+        let mut row_normalized_blocks: Vec<[u32; 8]> = Vec::new();
         // TODO start at a row for which we know the start position, then detect upwards and downwards from there.
         for imageRow in boundingBox.getMinY()..=boundingBox.getMaxY() {
             // for (int imageRow = boundingBox.getMinY(); imageRow <= boundingBox.getMaxY(); imageRow++) {
@@ -159,7 +161,7 @@ pub fn decode(
                 }
                 startColumn = previousStartColumn;
             }
-            if let Some((codeword, Some(moduleBits))) = detectCodeword(
+            if let Some((codeword, Some(moduleBits), Some(normalizedBlocks))) = detectCodeword(
                 image,
                 boundingBox.getMinX(),
                 boundingBox.getMaxX(),
@@ -181,9 +183,11 @@ pub fn decode(
                 minCodewordWidth = minCodewordWidth.min(codeword.getWidth());
                 maxCodewordWidth = maxCodewordWidth.max(codeword.getWidth());
                 row_bit_counts.push(moduleBits);
+                row_normalized_blocks.push(normalizedBlocks);
             }
         }
         all_module_bit_counts.push(row_bit_counts);
+        all_normalized_blocks.push(row_normalized_blocks);
     }
 
     // Write barcode metadata to witness data if provided
@@ -194,6 +198,7 @@ pub fn decode(
             detectionRXingResult.getBarcodeECLevel(),
         );
         wd.set_blocks(all_module_bit_counts);
+        wd.set_normalized_blocks(all_normalized_blocks);
     }
 
     createDecoderRXingResult(&mut detectionRXingResult, witness_data)
@@ -401,7 +406,7 @@ fn getRowIndicatorColumn<'a>(
         while imageRow <= boundingBox.getMaxY() as i32 && imageRow >= boundingBox.getMinY() as i32 {
             // for (int imageRow = (int) startPoint.getY(); imageRow <= boundingBox.getMaxY() &&
             //     imageRow >= boundingBox.getMinY(); imageRow += increment) {
-            if let Some((codeword, _)) = detectCodeword(
+            if let Some((codeword, _, _)) = detectCodeword(
                 image,
                 0,
                 image.getWidth(),
@@ -710,8 +715,8 @@ fn detectCodeword(
     imageRow: u32,
     minCodewordWidth: u32,
     maxCodewordWidth: u32,
-    collectModuleBits: bool,
-) -> Option<(Codeword, Option<[u32; 8]>)> {
+    collectWitnessData: bool,
+) -> Option<(Codeword, Option<[u32; 8]>, Option<[u32; 8]>)> {
     let mut startColumn = adjustCodewordStartColumn(
         image,
         minColumn,
@@ -771,7 +776,7 @@ fn detectCodeword(
         return None;
     }
 
-    let decodedValue = pdf_417_codeword_decoder::getDecodedValue(&moduleBitCount);
+    let (decodedValue, normalizedBlocks) = pdf_417_codeword_decoder::getDecodedValueAndNormalizedBlocks(&moduleBitCount);
     let codeword = pdf_417_common::getCodeword(decodedValue);
     if codeword == -1 {
         return None;
@@ -784,7 +789,8 @@ fn detectCodeword(
         getCodewordBucketNumber(decodedValue),
         codeword as u32,
         ),
-        if collectModuleBits { Some(moduleBitCount) } else { None },
+        if collectWitnessData { Some(moduleBitCount) } else { None },
+        if collectWitnessData { Some(normalizedBlocks) } else { None },
     ))
 }
 
