@@ -59,7 +59,7 @@ pub struct WitnessData {
     pub binarized_image: Option<BitMatrix>,
 
     /// Lengths of blocks of contiguous pixels of the same color
-    pub blocks: Option<Vec<Vec<[u32; 8]>>>,
+    pub blocks: Option<Vec<Vec<u32>>>,
 
     /// Barcode metadata values: how many rows and columns it has, and its error correction level
     pub row_count: Option<u32>,
@@ -106,7 +106,7 @@ pub struct FinalizedWitnessData {
     pub binarized_image: BitMatrix,
 
     /// Lengths of blocks of contiguous pixels of the same color
-    pub blocks: Vec<Vec<[u32; 8]>>,
+    pub blocks: Vec<Vec<u32>>,
 
     pub row_count: u32,
     pub column_count: u32,
@@ -132,7 +132,7 @@ impl FinalizedWitnessData {
         height: usize,
         image: Vec<Vec<u8>>,
         binarized_image: BitMatrix,
-        blocks: Vec<Vec<[u32; 8]>>,
+        blocks: Vec<Vec<u32>>,
         row_count: u32,
         column_count: u32,
         ec_level: u32,
@@ -336,8 +336,19 @@ impl WitnessData {
         self.binarized_image = Some(binarized_image)
     }
 
+    /// does the flattening here
     pub fn set_blocks(&mut self, blocks: Vec<Vec<[u32; 8]>>) {
-        self.blocks = Some(blocks);
+        let flat: Vec<Vec<u32>> = blocks
+            .iter()
+            .map(|column| {
+                column
+                    .iter()
+                    .flat_map(|bits| *bits)
+                    .collect()
+            })
+            .collect();
+        
+        self.blocks = Some(flat);
     }
 
     pub fn set_barcode_metadata(&mut self, row_count: u32, column_count: u32, ec_level: u32) {
