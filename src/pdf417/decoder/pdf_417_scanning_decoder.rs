@@ -117,8 +117,8 @@ pub fn decode(
     detectionRXingResult.setDetectionRXingResultColumn(maxBarcodeColumn, rightRowIndicatorColumn);
 
     // to collect all blocks
-    let mut all_module_bit_counts: Vec<Vec<[u32; 8]>> = Vec::new();
-    let mut all_normalized_blocks: Vec<Vec<[u32; 8]>> = Vec::new();
+    let mut allBlockBitCounts: Vec<Vec<[u32; 8]>> = Vec::new();
+    let mut allNormalizedBlocks: Vec<Vec<[u32; 8]>> = Vec::new();
 
     // let leftToRight = leftRowIndicatorColumn.is_some();
     for barcodeColumnCount in 1..=maxBarcodeColumn {
@@ -147,8 +147,8 @@ pub fn decode(
 
         let mut startColumn: i32 = -1;
         let mut previousStartColumn = startColumn;
-        let mut row_bit_counts: Vec<[u32; 8]> = Vec::new();
-        let mut row_normalized_blocks: Vec<[u32; 8]> = Vec::new();
+        let mut rowBlockBitCounts: Vec<[u32; 8]> = Vec::new();
+        let mut rowNormalizedBlocks: Vec<[u32; 8]> = Vec::new();
         // TODO start at a row for which we know the start position, then detect upwards and downwards from there.
         for imageRow in boundingBox.getMinY()..=boundingBox.getMaxY() {
             // for (int imageRow = boundingBox.getMinY(); imageRow <= boundingBox.getMaxY(); imageRow++) {
@@ -182,12 +182,12 @@ pub fn decode(
                 previousStartColumn = startColumn;
                 minCodewordWidth = minCodewordWidth.min(codeword.getWidth());
                 maxCodewordWidth = maxCodewordWidth.max(codeword.getWidth());
-                row_bit_counts.push(moduleBits);
-                row_normalized_blocks.push(normalizedBlocks);
+                rowBlockBitCounts.push(moduleBits);
+                rowNormalizedBlocks.push(normalizedBlocks);
             }
         }
-        all_module_bit_counts.push(row_bit_counts);
-        all_normalized_blocks.push(row_normalized_blocks);
+        allBlockBitCounts.push(rowBlockBitCounts);
+        allNormalizedBlocks.push(rowNormalizedBlocks);
     }
 
     // Write barcode metadata to witness data if provided
@@ -197,8 +197,8 @@ pub fn decode(
             detectionRXingResult.getBarcodeColumnCount() as u32,
             detectionRXingResult.getBarcodeECLevel(),
         );
-        wd.set_blocks(all_module_bit_counts);
-        wd.set_normalized_blocks(all_normalized_blocks);
+        wd.set_blocks(allBlockBitCounts);
+        wd.set_normalized_blocks(allNormalizedBlocks);
     }
 
     createDecoderRXingResult(&mut detectionRXingResult, witness_data)
