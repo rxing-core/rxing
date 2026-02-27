@@ -15,13 +15,14 @@
  */
 
 use crate::{
-    common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
-    point, BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, Point, RXingResult,
+    BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, Point, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader, WitnessData,
+    common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
+    point,
 };
 
 use super::{
-    decoder::{qrcode_decoder, QRCodeDecoderMetaData},
+    decoder::{QRCodeDecoderMetaData, qrcode_decoder},
     detector::Detector,
 };
 

@@ -15,7 +15,7 @@
  */
 
 use crate::common::Result;
-use crate::{point, Binarizer, DecodeHints, Exceptions, Point, RXingResult, Reader, WitnessData};
+use crate::{Binarizer, DecodeHints, Exceptions, Point, RXingResult, Reader, point, WitnessData};
 
 /**
  * This class attempts to decode a barcode from an image, not by scanning the whole image,

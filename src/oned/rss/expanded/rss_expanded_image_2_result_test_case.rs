@@ -33,10 +33,10 @@ use std::collections::HashMap;
 
 #[cfg(feature = "client_support")]
 use crate::{
+    BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
     client::result::{ExpandedProductParsedRXingResult, ParsedClientResult},
     common::GlobalHistogramBinarizer,
-    oned::{rss::expanded::RSSExpandedReader, OneDReader},
-    BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource,
+    oned::{OneDReader, rss::expanded::RSSExpandedReader},
 };
 
 /**

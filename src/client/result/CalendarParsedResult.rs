@@ -35,7 +35,7 @@ use regex::Regex;
 use crate::common::Result;
 use crate::exceptions::Exceptions;
 
-use super::{maybe_append_multiple, maybe_append_string, ParsedRXingResult, ParsedRXingResultType};
+use super::{ParsedRXingResult, ParsedRXingResultType, maybe_append_multiple, maybe_append_string};
 
 // const RFC2445_DURATION: &'static str =
 //     "P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?";
@@ -194,7 +194,7 @@ impl CalendarParsedRXingResult {
                 Err(e) => {
                     return Err(Exceptions::parse_with(format!(
                         "couldn't parse timezone '{tz_part}': {e}"
-                    )))
+                    )));
                 }
             };
 

@@ -4,8 +4,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::{
-    common::{BitMatrix, Result},
     Exceptions,
+    common::{BitMatrix, Result},
 };
 
 pub type PatternType = u16;
@@ -204,9 +204,10 @@ impl<'a> PatternView<'a> {
         self.data
             .0
             .iter()
-            .skip(self.start + self.current)
+            .take(self.start + self.current + self.count)
             .copied()
-            .sum::<PatternType>() /*return std::accumulate(_base, _data + _size, 0) - 1;*/
+            .sum::<PatternType>()
+            .saturating_sub(1) /*return std::accumulate(_base, _data + _size, 0) - 1;*/
     }
     pub fn isAtFirstBar(&self) -> bool {
         self.start == (self.current + 1) /*return _data == _base + 1;*/

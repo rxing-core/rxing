@@ -108,7 +108,7 @@ fn HanziLevel1() {
     ba.appendBits(0x0D, 4).expect("append"); // Hanzi mode
     ba.appendBits(0x01, 4).expect("append"); // Subset 1 = GB2312 encoding
     ba.appendBits(0x01, 8).expect("append"); // 1 characters
-                                             // A5A2 (U+30A2) => A5A2 - A1A1 = 401, 4*60 + 01 = 0181
+    // A5A2 (U+30A2) => A5A2 - A1A1 = 401, 4*60 + 01 = 0181
     ba.appendBits(0x0181, 13).expect("append");
 
     let bytes: Vec<u8> = ba.into();

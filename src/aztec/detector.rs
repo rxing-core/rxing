@@ -15,13 +15,14 @@
  */
 
 use crate::{
+    Point,
     common::{
+        BitMatrix, DefaultGridSampler, GridSampler, Quadrilateral, Result,
         detector::WhiteRectangleDetector,
         reedsolomon::{self, ReedSolomonDecoder},
-        BitMatrix, DefaultGridSampler, GridSampler, Quadrilateral, Result,
     },
     exceptions::Exceptions,
-    point, Point,
+    point,
 };
 
 use super::aztec_detector_result::AztecDetectorRXingResult;

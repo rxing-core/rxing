@@ -15,11 +15,12 @@
  */
 
 use crate::{
+    Exceptions, Point,
     common::{
-        detector::WhiteRectangleDetector, BitMatrix, DefaultGridSampler, GridSampler,
-        Quadrilateral, Result,
+        BitMatrix, DefaultGridSampler, GridSampler, Quadrilateral, Result,
+        detector::WhiteRectangleDetector,
     },
-    point, Exceptions, Point,
+    point,
 };
 
 use super::DatamatrixDetectorResult;

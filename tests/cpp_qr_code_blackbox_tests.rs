@@ -16,7 +16,7 @@
 #![cfg(feature = "image")]
 
 use rxing::{
-    qrcode::cpp_port::QrReader, BarcodeFormat, MultiFormatReader, MultiUseMultiFormatReader,
+    BarcodeFormat, MultiFormatReader, MultiUseMultiFormatReader, qrcode::cpp_port::QrReader,
 };
 
 mod common;

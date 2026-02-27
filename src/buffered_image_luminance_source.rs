@@ -19,8 +19,8 @@ use std::borrow::Cow;
 use image::{DynamicImage, GenericImageView, ImageBuffer, Luma, Pixel};
 use imageproc::geometric_transformations::rotate_about_center;
 
-use crate::common::Result;
 use crate::LuminanceSource;
+use crate::common::Result;
 
 // const MINUS_45_IN_RADIANS: f32 = -0.7853981633974483; // Math.toRadians(-45.0)
 const MINUS_45_IN_RADIANS: f32 = std::f32::consts::FRAC_PI_4;

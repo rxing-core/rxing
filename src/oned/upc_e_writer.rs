@@ -16,11 +16,11 @@
 
 use rxing_one_d_proc_derive::OneDWriter;
 
-use crate::common::Result;
 use crate::BarcodeFormat;
+use crate::common::Result;
 
 use super::{
-    upc_e_reader, upc_ean_reader, OneDimensionalCodeWriter, UPCEANReader, UPCEANWriter, UPCEReader,
+    OneDimensionalCodeWriter, UPCEANReader, UPCEANWriter, UPCEReader, upc_e_reader, upc_ean_reader,
 };
 
 const CODE_WIDTH: usize = 3 + // start guard
@@ -66,7 +66,7 @@ impl OneDimensionalCodeWriter for UPCEWriter {
             _ => {
                 return Err(Exceptions::illegal_argument_with(format!(
                     "Requested contents should be 7 or 8 digits long, but got {length}"
-                )))
+                )));
             }
         }
 
@@ -104,7 +104,7 @@ impl OneDimensionalCodeWriter for UPCEWriter {
                 .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
                 .to_digit(10)
                 .ok_or(Exceptions::PARSE)? as usize; //Character.digit(contents.charAt(i), 10);
-            if (parities >> (6 - i) & 1) == 1 {
+            if ((parities >> (6 - i)) & 1) == 1 {
                 digit += 10;
             }
             pos += Self::appendPattern(
@@ -134,7 +134,7 @@ impl OneDimensionalCodeWriter for UPCEWriter {
  */
 #[cfg(test)]
 mod UPCEWriterTestCase {
-    use crate::{common::bit_matrix_test_case, BarcodeFormat, Writer};
+    use crate::{BarcodeFormat, Writer, common::bit_matrix_test_case};
 
     use super::UPCEWriter;
 

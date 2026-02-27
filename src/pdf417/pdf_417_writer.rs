@@ -15,8 +15,8 @@
  */
 
 use crate::{
-    common::{BitMatrix, CharacterSet, Result},
     BarcodeFormat, EncodeHints, Exceptions, Writer,
+    common::{BitMatrix, CharacterSet, Result},
 };
 
 use super::encoder::PDF417;
@@ -222,7 +222,7 @@ impl PDF417Writer {
 #[cfg(test)]
 mod PDF417WriterTestCase {
 
-    use crate::{pdf417::PDF417Writer, BarcodeFormat, EncodeHintValue, EncodeHints, Writer};
+    use crate::{BarcodeFormat, EncodeHintValue, EncodeHints, Writer, pdf417::PDF417Writer};
 
     #[test]
     fn testDataMatrixImageWriter() {

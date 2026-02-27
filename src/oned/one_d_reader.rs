@@ -15,9 +15,10 @@
  */
 
 use crate::{
-    common::{BitArray, Result},
-    point, Binarizer, BinaryBitmap, DecodeHints, Exceptions, LuminanceSource, RXingResult,
+    Binarizer, BinaryBitmap, DecodeHints, Exceptions, LuminanceSource, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    common::{BitArray, Result},
+    point,
 };
 
 /**
@@ -212,12 +213,12 @@ fn pad_bitarray(bits: &[u8], quiet_zone: usize) -> BitArray {
  * @param maxIndividualVariance The most any counter can differ before we give up
  * @return ratio of total variance between counters and pattern compared to total pattern size
  */
-pub fn pattern_match_variance(
-    counters: &[u32],
+pub fn pattern_match_variance<const N: usize>(
+    counters: &[u32; N],
     pattern: &[u32],
     mut max_individual_variance: f32,
 ) -> f32 {
-    let num_counters = counters.len();
+    let num_counters = N;
 
     let total: f32 = counters.iter().sum::<u32>() as f32;
     let pattern_length: u32 = pattern.iter().take(num_counters).sum();
@@ -266,8 +267,12 @@ pub fn pattern_match_variance(
  * @throws NotFoundException if counters cannot be filled entirely from row before running out
  *  of pixels
  */
-pub fn record_pattern(row: &BitArray, start: usize, counters: &mut [u32]) -> Result<()> {
-    let num_counters = counters.len();
+pub fn record_pattern<const N: usize>(
+    row: &BitArray,
+    start: usize,
+    counters: &mut [u32; N],
+) -> Result<()> {
+    let num_counters = N;
     counters.fill(0);
 
     let end = row.get_size();
@@ -300,10 +305,14 @@ pub fn record_pattern(row: &BitArray, start: usize, counters: &mut [u32]) -> Res
     Ok(())
 }
 
-pub fn record_pattern_in_reverse(row: &BitArray, start: usize, counters: &mut [u32]) -> Result<()> {
+pub fn record_pattern_in_reverse<const N: usize>(
+    row: &BitArray,
+    start: usize,
+    counters: &mut [u32; N],
+) -> Result<()> {
     let mut start = start;
     // This could be more efficient I guess
-    let mut num_transitions_left = counters.len() as isize;
+    let mut num_transitions_left = N as isize;
     let mut last = row.get(start);
     while start > 0 && num_transitions_left >= 0 {
         start -= 1;

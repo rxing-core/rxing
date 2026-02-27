@@ -15,8 +15,8 @@
  */
 
 use crate::{
-    common::{BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Eci, Result},
     Exceptions,
+    common::{BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Eci, Result},
 };
 
 /**
@@ -246,12 +246,12 @@ fn decodeAsciiSegment(
             230 =>
             // Latch to C40 encodation
             {
-                return Ok(Mode::C40_ENCODE)
+                return Ok(Mode::C40_ENCODE);
             }
             231 =>
             // Latch to Base 256 encodation
             {
-                return Ok(Mode::BASE256_ENCODE)
+                return Ok(Mode::BASE256_ENCODE);
             }
             232 => {
                 // FNC1
@@ -308,22 +308,22 @@ fn decodeAsciiSegment(
             238 =>
             // Latch to ANSI X12 encodation
             {
-                return Ok(Mode::ANSIX12_ENCODE)
+                return Ok(Mode::ANSIX12_ENCODE);
             }
             239 =>
             // Latch to Text encodation
             {
-                return Ok(Mode::TEXT_ENCODE)
+                return Ok(Mode::TEXT_ENCODE);
             }
             240 =>
             // Latch to EDIFACT encodation
             {
-                return Ok(Mode::EDIFACT_ENCODE)
+                return Ok(Mode::EDIFACT_ENCODE);
             }
             241 =>
             // ECI Character
             {
-                return Ok(Mode::ECI_ENCODE)
+                return Ok(Mode::ECI_ENCODE);
             }
             _ => {
                 // Not to be used in ASCII encodation

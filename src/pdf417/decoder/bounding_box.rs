@@ -17,8 +17,9 @@
 use std::sync::Arc;
 
 use crate::{
+    Exceptions, Point,
     common::{BitMatrix, Result},
-    point, Exceptions, Point,
+    point,
 };
 
 /**

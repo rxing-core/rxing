@@ -28,8 +28,8 @@
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  */
 use crate::{
-    common::{BitArray, Result},
     Exceptions,
+    common::{BitArray, Result},
 };
 
 /*
@@ -40,21 +40,19 @@ pub fn buildBitArrayFromString(data: &str) -> Result<BitArray> {
     // let dotsAndXs = ZERO
     //     .replace_all(&ONE.replace_all(data, "X"), ".")
     //     .to_string();
-    let mut binary = BitArray::with_size(dotsAndXs.replace(" ", "").chars().count());
+    let mut binary = BitArray::with_size(dotsAndXs.replace(" ", "").len());
     let mut counter = 0;
 
-    for i in 0..dotsAndXs.chars().count() {
-        // for (int i = 0; i < dotsAndXs.length(); ++i) {
+    for (i, ch) in dotsAndXs.chars().enumerate() {
         if i % 9 == 0 {
             // spaces
-            if dotsAndXs.chars().nth(i).ok_or(Exceptions::PARSE)? != ' ' {
+            if ch != ' ' {
                 return Err(Exceptions::illegal_state_with("space expected"));
             }
             continue;
         }
 
-        let currentChar = dotsAndXs.chars().nth(i).ok_or(Exceptions::PARSE)?;
-        if currentChar == 'X' || currentChar == 'x' {
+        if ch == 'X' || ch == 'x' {
             binary.set(counter);
         }
         counter += 1;
@@ -71,14 +69,14 @@ pub fn buildBitArrayFromStringWithoutSpaces(data: &str) -> Result<BitArray> {
     //     .replace_all(&ONE.replace_all(data, "X"), ".")
     //     .to_string();
     let mut current = 0;
-    let dotsAndXs_length = dotsAndXs.chars().count();
+    let dotsAndXs_length = dotsAndXs.len();
+    let dotsAndXs_bytes = dotsAndXs.as_bytes();
     while current < dotsAndXs_length {
         sb.push(' ');
         let mut i = 0;
         while i < 8 && current < dotsAndXs_length {
-            sb.push(dotsAndXs.chars().nth(current).ok_or(Exceptions::PARSE)?);
+            sb.push(dotsAndXs_bytes[current] as char);
             current += 1;
-
             i += 1;
         }
     }

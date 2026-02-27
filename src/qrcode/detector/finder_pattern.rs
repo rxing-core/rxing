@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{point, Point};
+use crate::{Point, point};
 
 /**
  * <p>Encapsulates a finder pattern, which are the three square patterns found in

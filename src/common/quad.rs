@@ -1,4 +1,4 @@
-use crate::{point, Exceptions, Point};
+use crate::{Exceptions, Point, point};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Quadrilateral(pub [Point; 4]);

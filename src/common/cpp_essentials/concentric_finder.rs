@@ -1,11 +1,12 @@
 use crate::{
+    Point,
     common::{
+        BitMatrix, Quadrilateral,
         cpp_essentials::{
             Direction, FixedPattern, IsPattern, PatternRow, PatternType, PatternView,
         },
-        BitMatrix, Quadrilateral,
     },
-    point, Point,
+    point,
 };
 
 use super::{

@@ -442,7 +442,7 @@ mod tests {
 
 #[cfg(test)]
 mod point_tests {
-    use super::{point, point_i, Point, PointF, PointI, PointT, PointU, ResultPoint};
+    use super::{Point, PointF, PointI, PointT, PointU, ResultPoint, point, point_i};
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
 
@@ -508,7 +508,7 @@ mod point_tests {
         let p2: PointF = (7u32, 2u32).into();
         assert_eq!(p2, PointF::new(7.0, 2.0));
 
-        let pi: PointI = ((2.9f32, 3.1f32)).into();
+        let pi: PointI = (2.9f32, 3.1f32).into();
         assert_eq!(pi, PointI::new(2, 3));
 
         let src = (8i32, 9i32);
@@ -622,7 +622,7 @@ mod point_tests {
         assert_eq!(v1.sumAbsComponent(), 3.0);
         assert_eq!(v1.maxAbsComponent(), 2.0);
         assert!((v1.length() - (5.0f32).hypot(0.0)).abs() > -1.0); // length >= 0
-                                                                   // squaredDistance / distance
+        // squaredDistance / distance
         assert_eq!(v1.squaredDistance(v2), {
             let d = v1 - v2;
             d.x * d.x + d.y * d.y

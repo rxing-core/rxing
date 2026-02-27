@@ -21,7 +21,7 @@ use crate::{
     datamatrix::encoder::{SymbolInfo, SymbolShapeHint},
 };
 
-use super::{high_level_encoder, minimal_encoder, symbol_info, SymbolInfoLookup};
+use super::{SymbolInfoLookup, high_level_encoder, minimal_encoder, symbol_info};
 
 /**
  * Tests for {@link HighLevelEncoder} and {@link MinimalEncoder}
@@ -80,10 +80,10 @@ fn testC40EncodationBasic2() {
 
     visualized = encodeHighLevel("AIMAIAb");
     assert_eq!("66 74 78 66 74 66 99 129", visualized); //Encoded as ASCII
-                                                        //Alternative solution:
-                                                        //assert_eq!("230 91 11 90 255 254 99 129", visualized);
-                                                        //"b" is normally encoded as "Shift 3, 2" (two C40 values)
-                                                        //"else" case: "b" is encoded as ASCII
+    //Alternative solution:
+    //assert_eq!("230 91 11 90 255 254 99 129", visualized);
+    //"b" is normally encoded as "Shift 3, 2" (two C40 values)
+    //"else" case: "b" is encoded as ASCII
 
     visualized = encodeHighLevel("AIMAIMAIMË");
     assert_eq!("230 91 11 91 11 91 11 254 235 76", visualized);
@@ -95,11 +95,11 @@ fn testC40EncodationBasic2() {
 
     visualized = encodeHighLevel("AIMAIMAIMë");
     assert_eq!("230 91 11 91 11 91 11 254 235 108", visualized); //Activate when additional rectangulars are available
-                                                                 //Expl: 230 = shift to C40, "91 11" = "AIM",
-                                                                 //"�" in C40 encodes to: 1 30 2 11 which doesn't fit into a triplet
-                                                                 //"10 243" =
-                                                                 //254 = unlatch, 235 = Upper Shift, 108 = � = 0xEB/235 - 128 + 1
-                                                                 //"else" case
+    //Expl: 230 = shift to C40, "91 11" = "AIM",
+    //"�" in C40 encodes to: 1 30 2 11 which doesn't fit into a triplet
+    //"10 243" =
+    //254 = unlatch, 235 = Upper Shift, 108 = � = 0xEB/235 - 128 + 1
+    //"else" case
 }
 
 #[test]
@@ -236,7 +236,7 @@ fn testEDIFACTEncodation() {
     visualized = encodeHighLevel(".XXX.XXX.XXX.XXX.XXX.XXX.üXX.XXX.XXX.XXX.XXX.XXX.XXX");
     assert_eq!(
         "240 185 134 24 185 134 24 185 134 24 185 134 24 185 134 24 185 134 24 124 47 235 125 240 97 139 152 97 139 152 97 139 152 97 139 152 97 139 152 97 139 152 89 89",
-                  //   + " 124 47 235 125 240" //<-- this is the temporary unlatch
+        //   + " 124 47 235 125 240" //<-- this is the temporary unlatch
         visualized
     );
 }
@@ -259,7 +259,10 @@ fn testBase256Encodation() {
     assert_eq!("231 50 108 59 226 126 1 104 33 153 53 129", visualized);
 
     visualized = encodeHighLevel("\u{00AB}äöüé\u{00BB} 23£ 1234567890123456789");
-    assert_eq!("231 54 108 59 226 126 1 104 99 10 161 167 33 142 164 186 208 220 142 164 186 208 58 129 59 209 104 254 150 45", visualized);
+    assert_eq!(
+        "231 54 108 59 226 126 1 104 99 10 161 167 33 142 164 186 208 220 142 164 186 208 58 129 59 209 104 254 150 45",
+        visualized
+    );
 
     visualized = encodeHighLevel(&createBinaryMessage(20));
     assert_eq!(
@@ -402,20 +405,38 @@ fn testEncodingWithStartAsX12AndLatchToEDIFACTInTheMiddle() {
 fn testX12AndEDIFACTSpecErrors() {
     //X12 encoding error with spec conform float point comparisons in lookAheadTest()
     let mut visualized = encodeHighLevel("AAAAAAAAAAA**\u{00FC}AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-    assert_eq!("230 89 191 89 191 89 191 89 178 56 114 10 243 177 63 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 254 66 129", visualized);
+    assert_eq!(
+        "230 89 191 89 191 89 191 89 178 56 114 10 243 177 63 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 254 66 129",
+        visualized
+    );
     //X12 encoding error with integer comparisons in lookAheadTest()
     visualized = encodeHighLevel("AAAAAAAAAAAA0+****AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-    assert_eq!("238 89 191 89 191 89 191 89 191 254 240 194 186 170 170 160 65 4 16 65 4 16 65 4 16 65 4 16 65 4 16 65 4 16 65 4 16 65 124 129 167 62 212 107", visualized);
+    assert_eq!(
+        "238 89 191 89 191 89 191 89 191 254 240 194 186 170 170 160 65 4 16 65 4 16 65 4 16 65 4 16 65 4 16 65 4 16 65 4 16 65 124 129 167 62 212 107",
+        visualized
+    );
     //EDIFACT encoding error with spec conform float point comparisons in lookAheadTest()
     visualized = encodeHighLevel("AAAAAAAAAAA++++\u{00FC}AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-    assert_eq!("230 89 191 89 191 89 191 254 66 66 44 44 44 44 235 125 230 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 254 129 17 167 62 212 107", visualized);
+    assert_eq!(
+        "230 89 191 89 191 89 191 254 66 66 44 44 44 44 235 125 230 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 254 129 17 167 62 212 107",
+        visualized
+    );
     //EDIFACT encoding error with integer comparisons in lookAheadTest()
     visualized = encodeHighLevel("++++++++++AAa0 0++++++++++++++++++++++++++++++");
-    assert_eq!("240 174 186 235 174 186 235 174 176 65 124 98 240 194 12 43 174 186 235 174 186 235 174 186 235 174 186 235 174 186 235 174 186 235 174 186 235 173 240 129 167 62 212 107", visualized);
+    assert_eq!(
+        "240 174 186 235 174 186 235 174 176 65 124 98 240 194 12 43 174 186 235 174 186 235 174 186 235 174 186 235 174 186 235 174 186 235 174 186 235 173 240 129 167 62 212 107",
+        visualized
+    );
     visualized = encodeHighLevel("AAAAAAAAAAAA*+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-    assert_eq!("230 89 191 89 191 89 191 89 191 7 170 64 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 66", visualized);
+    assert_eq!(
+        "230 89 191 89 191 89 191 89 191 7 170 64 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 66",
+        visualized
+    );
     visualized = encodeHighLevel("AAAAAAAAAAA*0a0 *AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-    assert_eq!("230 89 191 89 191 89 191 89 178 56 227 6 228 7 183 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 254 66 66", visualized);
+    assert_eq!(
+        "230 89 191 89 191 89 191 89 178 56 227 6 228 7 183 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 89 191 254 66 66",
+        visualized
+    );
 }
 #[test]
 fn testSizes() {
@@ -524,7 +545,10 @@ fn testSizes() {
     assert_eq!(8, sizes[0]);
     assert_eq!(8, sizes[1]);
 
-    encodeHighLevelWithSizes("\u{00F0}\u{00F0}ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEF", &mut sizes);
+    encodeHighLevelWithSizes(
+        "\u{00F0}\u{00F0}ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEF",
+        &mut sizes,
+    );
     assert_eq!(114, sizes[0]);
     assert_eq!(62, sizes[1]);
 }
@@ -532,18 +556,25 @@ fn testSizes() {
 #[test]
 fn testECIs() {
     let visualized = visualize(&minimal_encoder::encodeHighLevel("that particularly stands out to me is \u{0625}\u{0650}\u{062C}\u{064E}\u{0651}\u{0627}\u{0635} (\u{02BE}\u{0101}\u{1E63}) \"pear\", suggested to have originated from Hebrew \u{05D0}\u{05B7}\u{05D2}\u{05B8}\u{05BC}\u{05E1} (ag\u{00E1}s)").expect("encode"));
-    assert_eq!("239 209 151 206 214 92 122 140 35 158 144 162 52 205 55 171 137 23 67 206 218 175 147 113 15 254 116 33 241 25 231 186 14 212 64 253 151 252 159 33 41 241 27 231 83 171 53 209 35 25 134 6 42 33 35 239 184 31 193 234 7 252 205 101 127 241 209 34 24 5 22 23 221 148 179 239 128 140 92 187 106 204 198 59 19 25 114 248 118 36 254 231 106 196 19 239 101 27 107 69 189 112 236 156 252 16 174 125 24 10 125 116 42 129",
-        visualized);
+    assert_eq!(
+        "239 209 151 206 214 92 122 140 35 158 144 162 52 205 55 171 137 23 67 206 218 175 147 113 15 254 116 33 241 25 231 186 14 212 64 253 151 252 159 33 41 241 27 231 83 171 53 209 35 25 134 6 42 33 35 239 184 31 193 234 7 252 205 101 127 241 209 34 24 5 22 23 221 148 179 239 128 140 92 187 106 204 198 59 19 25 114 248 118 36 254 231 106 196 19 239 101 27 107 69 189 112 236 156 252 16 174 125 24 10 125 116 42 129",
+        visualized
+    );
 
     let visualized = visualize(&minimal_encoder::encodeHighLevelWithDetails("that particularly stands out to me is \u{0625}\u{0650}\u{062C}\u{064E}\u{0651}\u{0627}\u{0635} (\u{02BE}\u{0101}\u{1E63}) \"pear\", suggested to have originated from Hebrew \u{05D0}\u{05B7}\u{05D2}\u{05B8}\u{05BC}\u{05E1} (ag\u{00E1}s)", Some(CharacterSet::UTF8), None , SymbolShapeHint::FORCE_NONE).expect("encode"));
-    assert_eq!("241 27 239 209 151 206 214 92 122 140 35 158 144 162 52 205 55 171 137 23 67 206 218 175 147 113 15 254 116 33 231 202 33 131 77 154 119 225 163 238 206 28 249 93 36 150 151 53 108 246 145 228 217 71 199 42 33 35 239 184 31 193 234 7 252 205 101 127 241 209 34 24 5 22 23 221 148 179 239 128 140 92 187 106 204 198 59 19 25 114 248 118 36 254 231 43 133 212 175 38 220 44 6 125 49 172 93 189 209 111 61 217 203 62 116 42 129 1 151 46 196 91 241 137 32 182 77 227 122 18 168 63 213 108 4 154 49 199 94 244 140 35 185 80",
-         visualized);
+    assert_eq!(
+        "241 27 239 209 151 206 214 92 122 140 35 158 144 162 52 205 55 171 137 23 67 206 218 175 147 113 15 254 116 33 231 202 33 131 77 154 119 225 163 238 206 28 249 93 36 150 151 53 108 246 145 228 217 71 199 42 33 35 239 184 31 193 234 7 252 205 101 127 241 209 34 24 5 22 23 221 148 179 239 128 140 92 187 106 204 198 59 19 25 114 248 118 36 254 231 43 133 212 175 38 220 44 6 125 49 172 93 189 209 111 61 217 203 62 116 42 129 1 151 46 196 91 241 137 32 182 77 227 122 18 168 63 213 108 4 154 49 199 94 244 140 35 185 80",
+        visualized
+    );
 }
 
 #[test]
 fn testPadding() {
     let mut sizes = [0usize; 2];
-    encodeHighLevelWithSizes("IS010000000000000000000000S1118058599124123S21.2.250.1.213.1.4.8 S3FIRST NAMETEST S5MS618-06-1985S713201S4LASTNAMETEST", &mut sizes);
+    encodeHighLevelWithSizes(
+        "IS010000000000000000000000S1118058599124123S21.2.250.1.213.1.4.8 S3FIRST NAMETEST S5MS618-06-1985S713201S4LASTNAMETEST",
+        &mut sizes,
+    );
     assert_eq!(86, sizes[0]);
     assert_eq!(86, sizes[1]);
 }

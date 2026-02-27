@@ -1,6 +1,6 @@
-use crate::{common::BitMatrix, Point};
+use crate::{Point, common::BitMatrix};
 
-use super::{util::opposite, Direction, Value};
+use super::{Direction, Value, util::opposite};
 
 /**
  * @brief The BitMatrixCursor represents a current position inside an image and current direction it can advance towards.
@@ -17,9 +17,9 @@ pub trait BitMatrixCursorTrait {
     // BitMatrixCursor(const BitMatrix& image, POINT p, POINT d) : img(&image), p(p) { setDirection(d); }
 
     fn testAt(&self, p: Point) -> Value; //const
-                                         // {
-                                         // 	return img->isIn(p) ? Value{img->get(p)} : Value{};
-                                         // }
+    // {
+    // 	return img->isIn(p) ? Value{img->get(p)} : Value{};
+    // }
 
     fn blackAt(&self, pos: Point) -> bool {
         self.testAt(pos).isBlack()
@@ -69,21 +69,21 @@ pub trait BitMatrixCursorTrait {
     }
 
     fn setDirection(&mut self, dir: Point); // { d = bresenhamDirection(dir); }
-                                            // fn setDirection(&self, dir: Point);// { d = dir; }
+    // fn setDirection(&self, dir: Point);// { d = dir; }
 
     fn step(&mut self, s: Option<f32>) -> bool; // DEF to 1
-                                                // {
-                                                // 	p += s * d;
-                                                // 	return isIn(p);
-                                                // }
+    // {
+    // 	p += s * d;
+    // 	return isIn(p);
+    // }
 
     fn movedBy<T: BitMatrixCursorTrait>(self, d: Point) -> Self;
     fn turnedBack(&self) -> Self; // { return {*img, p, back()}; }
-                                  // {
-                                  // 	auto res = *this;
-                                  // 	res.p += d;
-                                  // 	return res;
-                                  // }
+    // {
+    // 	auto res = *this;
+    // 	res.p += d;
+    // 	return res;
+    // }
 
     /**
      * @brief stepToEdge advances cursor to one step behind the next (or n-th) edge.

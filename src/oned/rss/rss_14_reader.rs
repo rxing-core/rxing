@@ -15,14 +15,15 @@
  */
 
 use crate::{
+    BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue, Reader,
     common::{BitArray, Result},
-    oned::{one_d_reader, OneDReader},
-    point, BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue, Reader, WitnessData,
+    oned::{OneDReader, one_d_reader},
+    point, WitnessData,
 };
 
 use super::{
-    rss_utils, AbstractRSSReaderTrait, DataCharacter, DataCharacterTrait, FinderPattern, Pair,
+    AbstractRSSReaderTrait, DataCharacter, DataCharacterTrait, FinderPattern, Pair, rss_utils,
 };
 
 /**
@@ -190,7 +191,10 @@ impl RSS14Reader {
         let text = symbolValue.to_string();
 
         let mut buffer = String::with_capacity(14);
-        buffer.push_str(&std::iter::repeat_n('0', 13 - text.chars().count()).collect::<String>());
+        let padding = 13 - text.len();
+        for _ in 0..padding {
+            buffer.push('0');
+        }
         buffer.push_str(&text);
 
         let mut checkDigit = 0;
@@ -286,14 +290,6 @@ impl RSS14Reader {
             one_d_reader::record_pattern(row, pattern.getStartEnd()[1], counters)?;
             // reverse it
             counters.reverse();
-            // let mut i = 0;
-            // let mut j = counters.len() - 1;
-            // while i < j {
-            //     counters.swap(i, j);
-
-            //     i += 1;
-            //     j -= 1;
-            // }
         }
 
         let numModules = if outsideChar { 16 } else { 15 };

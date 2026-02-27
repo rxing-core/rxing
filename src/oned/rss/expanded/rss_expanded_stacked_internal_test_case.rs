@@ -26,7 +26,7 @@
 
 use crate::Reader;
 
-use super::{test_case_util, RSSExpandedReader};
+use super::{RSSExpandedReader, test_case_util};
 
 /**
  * Tests {@link RSSExpandedReader} handling of stacked RSS barcodes.
@@ -44,11 +44,13 @@ fn testDecodingRowByRow() {
 
     // let tester = ;
 
-    assert!({
-        rssExpandedReader.decodeRow2pairs(firstRowNumber as u32, &firstRow)
-        // fail(NotFoundException.class.getName() + " expected");
-    }
-    .is_err());
+    assert!(
+        {
+            rssExpandedReader.decodeRow2pairs(firstRowNumber as u32, &firstRow)
+            // fail(NotFoundException.class.getName() + " expected");
+        }
+        .is_err()
+    );
 
     assert_eq!(1, rssExpandedReader.getRows().len());
     let firstExpandedRow = &mut rssExpandedReader.rows[0]; //&mut rssExpandedReader.getRowsMut()[0];//.expect("not None");

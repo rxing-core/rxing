@@ -28,8 +28,8 @@
  */
 // public final class AddressBookParsedRXingResultTestCase extends Assert {
 use crate::{
-    client::result::{ParsedClientResult, ParsedRXingResult, ParsedRXingResultType, ResultParser},
     BarcodeFormat, RXingResult,
+    client::result::{ParsedClientResult, ParsedRXingResult, ParsedRXingResultType, ResultParser},
 };
 
 #[test]
@@ -174,9 +174,20 @@ fn testVCardCaseInsensitive() {
 
 #[test]
 fn testEscapedVCard() {
-    doTest("BEGIN:VCARD\r\nADR;HOME:123\\;\\\\ Main\\, St\\nHome\r\nVERSION:2.1\r\nN:Owen;Sean\r\nEND:VCARD",
-           "", &["Sean Owen"], "", &["123;\\ Main, St\nHome"],
-           &Vec::new(), &Vec::new(), &Vec::new(), "", &Vec::new(), "", "");
+    doTest(
+        "BEGIN:VCARD\r\nADR;HOME:123\\;\\\\ Main\\, St\\nHome\r\nVERSION:2.1\r\nN:Owen;Sean\r\nEND:VCARD",
+        "",
+        &["Sean Owen"],
+        "",
+        &["123;\\ Main, St\nHome"],
+        &Vec::new(),
+        &Vec::new(),
+        &Vec::new(),
+        "",
+        &Vec::new(),
+        "",
+        "",
+    );
 }
 
 #[test]
@@ -199,10 +210,20 @@ fn testBizcard() {
 
 #[test]
 fn testSeveralAddresses() {
-    doTest("MECARD:N:Foo Bar;ORG:Company;TEL:5555555555;EMAIL:foo.bar@xyz.com;ADR:City, 10001;ADR:City, 10001;NOTE:This is the memo.;;",
-           "", &["Foo Bar"], "", &["City, 10001", "City, 10001"],
-           &["foo.bar@xyz.com"],
-           &["5555555555"], &Vec::new(), "Company", &Vec::new(), "", "This is the memo.");
+    doTest(
+        "MECARD:N:Foo Bar;ORG:Company;TEL:5555555555;EMAIL:foo.bar@xyz.com;ADR:City, 10001;ADR:City, 10001;NOTE:This is the memo.;;",
+        "",
+        &["Foo Bar"],
+        "",
+        &["City, 10001", "City, 10001"],
+        &["foo.bar@xyz.com"],
+        &["5555555555"],
+        &Vec::new(),
+        "Company",
+        &Vec::new(),
+        "",
+        "This is the memo.",
+    );
 }
 
 #[test]

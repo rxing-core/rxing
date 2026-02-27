@@ -19,7 +19,7 @@
 // import com.google.zxing.NotFoundException;
 
 use crate::common::Result;
-use crate::{point, Exceptions, Point};
+use crate::{Exceptions, Point, point};
 
 use super::{BitMatrix, GridSampler, SamplerControl};
 

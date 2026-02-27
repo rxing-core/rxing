@@ -15,7 +15,7 @@
  */
 #![cfg(feature = "image")]
 
-use rxing::{oned::CodaBarReader, BarcodeFormat};
+use rxing::{BarcodeFormat, oned::CodaBarReader};
 
 mod common;
 

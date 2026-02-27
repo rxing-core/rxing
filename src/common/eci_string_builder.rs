@@ -28,7 +28,7 @@ use std::{
 
 use crate::DecodeHints;
 
-use super::{string_utils, CharacterSet, Eci};
+use super::{CharacterSet, Eci, string_utils};
 
 /**
  * Class that converts a sequence of ECIs and bytes into a string

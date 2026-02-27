@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 use super::SymbolInfo;
 
@@ -228,7 +228,7 @@ fn createECCBlock(codewords: &[u8], numECWords: usize) -> Result<Vec<u8>> {
 
 #[cfg(test)]
 mod test_case {
-    use crate::datamatrix::encoder::{high_level_encode_test_case::visualize, SymbolInfoLookup};
+    use crate::datamatrix::encoder::{SymbolInfoLookup, high_level_encode_test_case::visualize};
 
     use super::encodeECC200;
 

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
-use super::{high_level_encoder, C40Encoder, Encoder, EncoderContext};
+use super::{C40Encoder, Encoder, EncoderContext, high_level_encoder};
 
 pub struct X12Encoder(C40Encoder);
 impl Encoder for X12Encoder {

@@ -5,12 +5,12 @@
 // // SPDX-License-Identifier: Apache-2.0
 
 use crate::{
+    Exceptions,
     common::{BitMatrix, Result},
     qrcode::decoder::{ErrorCorrectionLevel, FormatInformation, Version, VersionRef},
-    Exceptions,
 };
 
-use super::{data_mask::GetDataMaskBit, detector::AppendBit, Type};
+use super::{Type, data_mask::GetDataMaskBit, detector::AppendBit};
 
 pub fn getBit(bitMatrix: &BitMatrix, x: u32, y: u32, mirrored: Option<bool>) -> bool {
     let mirrored = mirrored.unwrap_or(false);

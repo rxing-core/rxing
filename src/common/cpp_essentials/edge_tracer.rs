@@ -1,9 +1,9 @@
 use std::sync::{Arc, RwLock};
 
 use crate::{
+    Exceptions, Point,
     common::{BitMatrix, Result},
     qrcode::encoder::ByteMatrix,
-    Exceptions, Point,
 };
 
 use super::{BitMatrixCursorTrait, Direction, RegressionLineTrait, StepResult, Value};
@@ -144,7 +144,7 @@ impl BitMatrixCursorTrait for EdgeTracer<'_> {
         let mut nth = nth.unwrap_or(1); //if let Some(nth) = nth { nth } else { 1 };
         let range = range.unwrap_or(0); //if let Some(r) = range { r } else { 0 };
         let backup = backup.unwrap_or(false); //if let Some(b) = backup { b } else { false };
-                                              // TODO: provide an alternative and faster out-of-bounds check than isIn() inside testAt()
+        // TODO: provide an alternative and faster out-of-bounds check than isIn() inside testAt()
         let mut steps = 0;
         let mut lv = self.testAt(self.p);
 

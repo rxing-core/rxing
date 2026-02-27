@@ -15,16 +15,16 @@
  */
 
 use crate::{
+    BarcodeFormat, EncodeHints, Exceptions, Writer,
     aztec::AztecWriter,
     common::Result,
     datamatrix::DataMatrixWriter,
     oned::{
-        CodaBarWriter, Code128Writer, Code39Writer, Code93Writer, EAN13Writer, EAN8Writer,
+        CodaBarWriter, Code39Writer, Code93Writer, Code128Writer, EAN8Writer, EAN13Writer,
         ITFWriter, TelepenWriter, UPCAWriter, UPCEWriter,
     },
     pdf417::PDF417Writer,
     qrcode::QRCodeWriter,
-    BarcodeFormat, EncodeHints, Exceptions, Writer,
 };
 
 /**
@@ -73,7 +73,7 @@ impl Writer for MultiFormatWriter {
             _ => {
                 return Err(Exceptions::illegal_argument_with(format!(
                     "No encoder available for format {format:?}"
-                )))
+                )));
             }
         };
 

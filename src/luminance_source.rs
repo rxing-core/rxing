@@ -18,8 +18,8 @@
 
 use std::borrow::Cow;
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 /**
  * The purpose of this class hierarchy is to abstract different bitmap implementations across
@@ -111,8 +111,8 @@ pub trait LuminanceSource {
      *  white and vice versa, and each value becomes (255-value).
      */
     fn invert(&mut self); /* {
-                            return InvertedLuminanceSource::new_with_delegate(self);
-                          }*/
+    return InvertedLuminanceSource::new_with_delegate(self);
+    }*/
 
     /**
      * Returns a new object with rotated image data by 90 degrees counterclockwise.

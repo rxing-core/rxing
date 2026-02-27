@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{common::Result, Binarizer, BinaryBitmap, DecodeHints, RXingResult};
+use crate::{Binarizer, BinaryBitmap, DecodeHints, RXingResult, common::Result};
 
 /**
  * Implementation of this interface attempt to read several barcodes from one image.

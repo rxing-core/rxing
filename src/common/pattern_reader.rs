@@ -268,7 +268,7 @@ mod noisy_data_tests {
     fn calc_variance_one_pixel_noise_allowed() {
         let reference = Pattern([4, 4, 4, 4]);
         let noisy = Pattern([3, 5, 4, 4]); // diffs = [1,1,0,0]
-                                           // total_variance = 2, normalized = 2/16 = 0.125
+        // total_variance = 2, normalized = 2/16 = 0.125
         assert_eq!(noisy.calculate_variance(&reference, 1.0), Some(2.0 / 16.0));
     }
 
@@ -286,7 +286,7 @@ mod noisy_data_tests {
     fn calc_variance_two_pixel_noise_rejected() {
         let reference = Pattern([4, 4, 4, 4]);
         let noisy = Pattern([2, 6, 4, 4]); // diffs = [2,2,0,0]
-                                           // first variance = 2 > max_individual_variance (1.0*1.0) → reject
+        // first variance = 2 > max_individual_variance (1.0*1.0) → reject
         assert_eq!(noisy.calculate_variance(&reference, 1.0), None);
     }
 

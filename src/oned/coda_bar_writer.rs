@@ -16,8 +16,8 @@
 
 use rxing_one_d_proc_derive::OneDWriter;
 
-use crate::common::Result;
 use crate::BarcodeFormat;
+use crate::common::Result;
 
 use super::{CodaBarReader, OneDimensionalCodeWriter};
 
@@ -161,8 +161,8 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
 #[cfg(test)]
 mod CodaBarWriterTestCase {
     use crate::{
-        common::{bit_matrix_test_case, BitMatrix},
         BarcodeFormat, Writer,
+        common::{BitMatrix, bit_matrix_test_case},
     };
 
     use super::CodaBarWriter;

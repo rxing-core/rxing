@@ -17,9 +17,9 @@
 use std::fmt;
 
 use crate::{
+    Exceptions,
     common::{BitMatrix, Result},
     qrcode::cpp_port::Type,
-    Exceptions,
 };
 
 use super::{ErrorCorrectionLevel, FormatInformation};
@@ -214,7 +214,7 @@ impl Version {
 
             // Top left finder pattern + separator
             bitMatrix.setRegion(1, 1, 8 - 1, 8 - 1 - u32::from(size.y == 7))?; // R7 finder bottom flush with edge
-                                                                               // Top left format
+            // Top left format
             bitMatrix.setRegion(8, 1, 3, 5)?;
             bitMatrix.setRegion(11, 1, 1, 3)?;
 

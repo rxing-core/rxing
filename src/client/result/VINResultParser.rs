@@ -17,8 +17,8 @@
 use regex::Regex;
 
 use crate::{
-    client::result::VINParsedRXingResult, common::Result, exceptions::Exceptions, BarcodeFormat,
-    RXingResult,
+    BarcodeFormat, RXingResult, client::result::VINParsedRXingResult, common::Result,
+    exceptions::Exceptions,
 };
 
 use super::ParsedClientResult;

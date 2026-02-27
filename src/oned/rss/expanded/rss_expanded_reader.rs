@@ -25,19 +25,20 @@
  */
 
 use crate::{
+    BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
+    RXingResultMetadataValue, Reader,
     common::{BitArray, Result},
     oned::{
-        record_pattern, record_pattern_in_reverse,
+        OneDReader, record_pattern, record_pattern_in_reverse,
         rss::{
-            rss_utils, AbstractRSSReaderTrait, DataCharacter, DataCharacterTrait, FinderPattern,
+            AbstractRSSReaderTrait, DataCharacter, DataCharacterTrait, FinderPattern, rss_utils,
         },
-        OneDReader,
     },
     BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
     RXingResultMetadataValue, Reader, WitnessData,
 };
 
-use super::{bit_array_builder, decoders::abstract_expanded_decoder, ExpandedPair, ExpandedRow};
+use super::{ExpandedPair, ExpandedRow, bit_array_builder, decoders::abstract_expanded_decoder};
 
 const FINDER_PAT_A: u32 = 0;
 const FINDER_PAT_B: u32 = 1;
@@ -768,12 +769,8 @@ impl RSSExpandedReader {
         Err(Exceptions::NOT_FOUND)
     }
 
-    fn reverseCounters(counters: &mut [u32]) {
+    fn reverseCounters<const N: usize>(counters: &mut [u32; N]) {
         counters.reverse();
-        // let length = counters.len();
-        // for i in 0..length / 2 {
-        //     counters.swap(i, length - i - 1);
-        // }
     }
 
     fn parseFoundFinderPattern(
@@ -843,14 +840,6 @@ impl RSSExpandedReader {
             record_pattern(row, pattern.getStartEnd()[1], counters)?;
             // reverse it
             counters.reverse();
-            // let mut i = 0;
-            // let mut j = counters.len() - 1;
-            // while i < j {
-            //     counters.swap(i, j);
-
-            //     i += 1;
-            //     j -= 1;
-            // }
         } //counters[] has the pixels of the module
 
         //left and right data characters have all the same length

@@ -25,13 +25,13 @@
  */
 
 use crate::{
-    common::{BitArray, Result},
     Exceptions,
+    common::{BitArray, Result},
 };
 
 use super::{
-    field_parser, BlockParsedRXingResult, CurrentParsingState, DecodedChar, DecodedInformation,
-    DecodedNumeric, DecodedObject,
+    BlockParsedRXingResult, CurrentParsingState, DecodedChar, DecodedInformation, DecodedNumeric,
+    DecodedObject, field_parser,
 };
 
 /**
@@ -444,7 +444,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
             _ => {
                 return Err(Exceptions::illegal_state_with(format!(
                     "Decoding invalid alphanumeric value: {sixBitValue}"
-                )))
+                )));
             }
         };
 

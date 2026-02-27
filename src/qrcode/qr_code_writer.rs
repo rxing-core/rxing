@@ -15,13 +15,13 @@
  */
 
 use crate::{
-    common::{BitMatrix, Result},
     BarcodeFormat, EncodeHints, Exceptions, Writer,
+    common::{BitMatrix, Result},
 };
 
 use super::{
     decoder::ErrorCorrectionLevel,
-    encoder::{qrcode_encoder, QRCode},
+    encoder::{QRCode, qrcode_encoder},
 };
 
 const QUIET_ZONE_SIZE: i32 = 4;

@@ -17,13 +17,14 @@
 use rxing_one_d_proc_derive::OneDReader;
 
 use crate::{
+    BarcodeFormat, Exceptions, RXingResult,
     common::{BitArray, Result},
-    point, BarcodeFormat, Exceptions, RXingResult,
+    point,
 };
 
 use crate::{RXingResultMetadataType, RXingResultMetadataValue};
 
-use super::{one_d_reader, OneDReader};
+use super::{OneDReader, one_d_reader};
 
 /**
  * <p>Decodes Code 128 barcodes.</p>
@@ -363,7 +364,7 @@ impl Code128Reader {
         let mut counters = [0_u32; 6];
         let mut patternStart = rowOffset;
         let mut isWhite = false;
-        let patternLength = counters.len();
+        let patternLength = 6;
 
         for i in rowOffset..width {
             if row.get(i) != isWhite {
@@ -371,7 +372,7 @@ impl Code128Reader {
             } else {
                 if counterPosition == patternLength - 1 {
                     let mut bestVariance = MAX_AVG_VARIANCE;
-                    let mut bestMatch = -1_isize;
+                    let mut bestMatch = -1_i32;
                     for startCode in CODE_START_A..=CODE_START_C {
                         let variance = one_d_reader::pattern_match_variance(
                             &counters,
@@ -380,7 +381,7 @@ impl Code128Reader {
                         );
                         if variance < bestVariance {
                             bestVariance = variance;
-                            bestMatch = startCode as isize;
+                            bestMatch = startCode as i32;
                         }
                     }
                     // Look for whitespace before start pattern, >= 50% of width of start pattern

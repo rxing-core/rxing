@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+use crate::BarcodeFormat;
 use crate::common::Result;
 use crate::oned::telepen_common;
-use crate::BarcodeFormat;
 use regex::Regex;
 use rxing_one_d_proc_derive::OneDWriter;
 
@@ -207,8 +207,8 @@ impl TelepenWriter {
 mod TelepenWriterTestCase {
 
     use crate::{
-        common::{bit_matrix_test_case, BitMatrix},
         BarcodeFormat, EncodeHintValue, EncodeHints, Writer,
+        common::{BitMatrix, bit_matrix_test_case},
     };
 
     use super::TelepenWriter;
@@ -228,7 +228,7 @@ mod TelepenWriterTestCase {
                 "10101010101110001110111000111000101110001000100011101010100010001110101010001000101010101000100011101110111000101010101000101000101010101000100011100010001010001110101010001000111010111010101010111011101011101110001010111010111000101010101",
                 "00000",
             ),
-            false
+            false,
         );
 
         doTest(
@@ -238,7 +238,7 @@ mod TelepenWriterTestCase {
                 "101010101011100010001000111000101110111011100010101010101000100010111000100010001010111010001000111000101010101",
                 "00000",
             ),
-            true
+            true,
         );
     }
 

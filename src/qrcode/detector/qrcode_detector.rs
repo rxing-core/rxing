@@ -15,13 +15,13 @@
  */
 
 use crate::{
+    DecodeHints, Exceptions, Point, PointCallback,
     common::{
         BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform, Quadrilateral, Result,
         SamplerControl,
     },
     point,
     qrcode::decoder::Version,
-    DecodeHints, Exceptions, Point, PointCallback,
 };
 
 use super::{

@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-use super::rss::expanded::RSSExpandedReader;
-use super::rss::RSS14Reader;
 use super::CodaBarReader;
-use super::Code128Reader;
 use super::Code39Reader;
 use super::Code93Reader;
+use super::Code128Reader;
 use super::ITFReader;
 use super::MultiFormatUPCEANReader;
 use super::OneDReader;
 use super::TelepenReader;
-use crate::common::Result;
+use super::rss::RSS14Reader;
+use super::rss::expanded::RSSExpandedReader;
 use crate::DecodeHints;
 use crate::Exceptions;
+use crate::common::Result;
 use crate::{BarcodeFormat, Binarizer, RXingResult};
 
 /**

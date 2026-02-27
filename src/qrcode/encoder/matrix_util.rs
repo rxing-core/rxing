@@ -15,12 +15,12 @@
  */
 
 use crate::{
+    Exceptions,
     common::{BitArray, BitFieldBaseType, Result},
     qrcode::decoder::{ErrorCorrectionLevel, Version},
-    Exceptions,
 };
 
-use super::{mask_util, ByteMatrix, QRCode};
+use super::{ByteMatrix, QRCode, mask_util};
 
 /*
  * @author satorux@google.com (Satoru Takabayashi) - creator

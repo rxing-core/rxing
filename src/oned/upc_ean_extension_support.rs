@@ -15,11 +15,11 @@
  */
 
 use crate::{
-    common::{BitArray, Result},
     RXingResult,
+    common::{BitArray, Result},
 };
 
-use super::{UPCEANExtension2Support, UPCEANExtension5Support, UPCEANReader, STAND_IN};
+use super::{STAND_IN, UPCEANExtension2Support, UPCEANExtension5Support, UPCEANReader};
 
 #[derive(Default)]
 pub struct UPCEANExtensionSupport {

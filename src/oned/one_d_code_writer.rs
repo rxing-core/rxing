@@ -15,8 +15,8 @@
  */
 
 use crate::{
-    common::{BitMatrix, Result},
     BarcodeFormat, EncodeHints, Exceptions, Writer,
+    common::{BitMatrix, Result},
 };
 
 /**

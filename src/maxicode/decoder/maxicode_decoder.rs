@@ -17,14 +17,14 @@
 use once_cell::sync::Lazy;
 
 use crate::{
-    common::{
-        reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder},
-        BitMatrix, DecoderRXingResult, Result,
-    },
     DecodeHints, Exceptions,
+    common::{
+        BitMatrix, DecoderRXingResult, Result,
+        reedsolomon::{PredefinedGenericGF, ReedSolomonDecoder, get_predefined_genericgf},
+    },
 };
 
-use super::{decoded_bit_stream_parser, BitMatrixParser};
+use super::{BitMatrixParser, decoded_bit_stream_parser};
 
 /*
  * <p>The main class which implements MaxiCode decoding -- as opposed to locating and extracting

@@ -18,18 +18,20 @@
 
 use std::{
     collections::HashMap,
-    fs::{read_dir, read_to_string, File},
+    fs::{File, read_dir, read_to_string},
     io::Read,
     path::{Path, PathBuf},
     sync::Arc,
 };
 
+#[cfg(all(not(feature = "encoding_rs"), feature = "legacy_encoding"))]
 use encoding::Encoding;
+
 use rxing::{
-    common::{HybridBinarizer, Result},
-    pdf417::PDF417RXingResultMetadata,
     BarcodeFormat, Binarizer, BinaryBitmap, BufferedImageLuminanceSource, DecodeHintType,
     DecodeHintValue, DecodeHints, RXingResultMetadataType, RXingResultMetadataValue, Reader,
+    common::{HybridBinarizer, Result},
+    pdf417::PDF417RXingResultMetadata,
 };
 
 use super::TestRXingResult;
@@ -401,7 +403,7 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
         ));
         if total_found > total_must_pass as usize {
             log::warning(format!(
-                "+++ Test too lax by {} images",
+                "+++ Test lax by {} images",
                 total_found - total_must_pass as usize
             ));
         } else if total_found < total_must_pass as usize {
@@ -542,18 +544,33 @@ impl<T: Reader> AbstractBlackBoxTestCase<T> {
             if ext == "bin" {
                 let mut buffer: Vec<u8> = Vec::new();
                 File::open(&file)?.read_to_end(&mut buffer)?;
-                encoding::all::ISO_8859_1
-                    .decode(&buffer, encoding::DecoderTrap::Replace)
-                    .expect("decode")
+
+                #[cfg(feature = "encoding_rs")]
+                {
+                    Ok(buffer.iter().map(|&b| char::from(b)).collect())
+                }
+                #[cfg(all(not(feature = "encoding_rs"), feature = "legacy_encoding"))]
+                {
+                    Ok(encoding::all::ISO_8859_1
+                        .decode(&buffer, encoding::DecoderTrap::Replace)
+                        .expect("decode"))
+                }
+                #[cfg(all(not(feature = "encoding_rs"), not(feature = "legacy_encoding")))]
+                {
+                    panic!("No encoding feature enabled")
+                }
             } else {
-                read_to_string(&file).expect("ok")
+                read_to_string(&file)
             }
         } else {
-            String::default()
-        };
+            Ok(String::default())
+        }?;
         // let string_contents = read_to_string(&file)?; //new String(Files.readAllBytes(file), charset);
         if string_contents.ends_with('\n') {
-            log::info(format!("String contents of file {} end with a newline. This may not be intended and cause a test failure",file.to_string_lossy()));
+            log::info(format!(
+                "String contents of file {} end with a newline. This may not be intended and cause a test failure",
+                file.to_string_lossy()
+            ));
         }
         Ok(string_contents)
     }

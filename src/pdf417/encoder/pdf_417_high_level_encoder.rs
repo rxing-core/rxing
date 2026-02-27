@@ -21,8 +21,8 @@
 use std::{any::TypeId, fmt::Display, str::FromStr};
 
 use crate::{
-    common::{CharacterSet, ECIInput, Eci, MinimalECIInput, Result},
     Exceptions,
+    common::{CharacterSet, ECIInput, Eci, MinimalECIInput, Result},
 };
 
 use super::Compaction;
@@ -183,7 +183,10 @@ pub fn encodeHighLevel(
     if encoding.is_none() && !autoECI {
         for ch in msg.chars() {
             if ch as u32 > 255 {
-                return Err(Exceptions::writer_with(format!("Non-encodable character detected: {} (Unicode: {}). Consider specifying EncodeHintType.PDF417_AUTO_ECI and/or EncodeTypeHint.CHARACTER_SET.", ch as u32, ch)));
+                return Err(Exceptions::writer_with(format!(
+                    "Non-encodable character detected: {} (Unicode: {}). Consider specifying EncodeHintType.PDF417_AUTO_ECI and/or EncodeTypeHint.CHARACTER_SET.",
+                    ch as u32, ch
+                )));
             }
         }
     }
@@ -621,8 +624,8 @@ fn encodeNumeric<T: ECIInput + ?Sized>(
     let mut tmp = String::with_capacity(count as usize / 3 + 1);
     let NUM900: num::BigUint = num::BigUint::from(900_u16); //.ok_or(Exceptions::parseEmpty())?;
     let NUM0: num::BigUint = num::BigUint::from(0_u8); //.ok_or(Exceptions::parseEmpty())?;
-                                                       // let num900: u128 = 900;
-                                                       // const NUM0: u128 = 0;
+    // let num900: u128 = 900;
+    // const NUM0: u128 = 0;
 
     while idx < count {
         tmp.clear();
@@ -867,7 +870,7 @@ impl Display for NoECIInput {
 mod PDF417EncoderTestCase {
     use crate::{
         common::CharacterSet,
-        pdf417::encoder::{pdf_417_high_level_encoder::encodeHighLevel, Compaction},
+        pdf417::encoder::{Compaction, pdf_417_high_level_encoder::encodeHighLevel},
     };
 
     #[test]

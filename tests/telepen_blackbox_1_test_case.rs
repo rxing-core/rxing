@@ -15,7 +15,7 @@
  */
 #![cfg(feature = "image")]
 
-use rxing::{oned::TelepenReader, BarcodeFormat};
+use rxing::{BarcodeFormat, oned::TelepenReader};
 
 mod common;
 

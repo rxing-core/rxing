@@ -17,12 +17,12 @@
 use std::collections::HashMap;
 
 use crate::{
+    BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType, RXingResultMetadataValue,
     common::{BitArray, Result},
-    point, BarcodeFormat, Exceptions, RXingResult, RXingResultMetadataType,
-    RXingResultMetadataValue,
+    point,
 };
 
-use super::{upc_ean_reader, UPCEANReader, STAND_IN};
+use super::{STAND_IN, UPCEANReader, upc_ean_reader};
 
 /**
  * @see UPCEANExtension2Support
@@ -182,12 +182,12 @@ impl UPCEANExtension5Support {
                     "90000" =>
                     // No suggested retail price
                     {
-                        return None
+                        return None;
                     }
                     "99991" =>
                     // Complementary
                     {
-                        return Some("0.00".to_owned())
+                        return Some("0.00".to_owned());
                     }
                     "99990" => return Some("Used".to_owned()),
                     _ => {}

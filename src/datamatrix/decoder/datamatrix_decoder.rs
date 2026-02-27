@@ -15,11 +15,11 @@
  */
 
 use crate::common::{
-    reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder},
     BitMatrix, DecoderRXingResult, Result,
+    reedsolomon::{PredefinedGenericGF, ReedSolomonDecoder, get_predefined_genericgf},
 };
 
-use super::{decoded_bit_stream_parser, BitMatrixParser, DataBlock};
+use super::{BitMatrixParser, DataBlock, decoded_bit_stream_parser};
 
 /**
  * <p>The main class which implements Data Matrix Code decoding -- as opposed to locating and extracting

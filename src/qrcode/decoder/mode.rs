@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+use crate::Exceptions;
 use crate::common::Result;
 use crate::qrcode::cpp_port::Type;
-use crate::Exceptions;
 
 use super::Version;
 

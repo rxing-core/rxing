@@ -17,9 +17,9 @@
 use rxing_one_d_proc_derive::OneDWriter;
 
 use crate::{
-    common::Result,
-    oned::{upc_ean_reader, EAN13Reader},
     BarcodeFormat,
+    common::Result,
+    oned::{EAN13Reader, upc_ean_reader},
 };
 
 use super::{OneDimensionalCodeWriter, UPCEANReader, UPCEANWriter};
@@ -55,7 +55,7 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             _ => {
                 return Err(Exceptions::illegal_argument_with(format!(
                     "Requested contents should be 12 or 13 digits long, but got {length}"
-                )))
+                )));
             }
         }
 
@@ -84,7 +84,7 @@ impl OneDimensionalCodeWriter for EAN13Writer {
                 .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
                 .to_digit(10)
                 .ok_or(Exceptions::PARSE)? as usize;
-            if (parities >> (6 - i) & 1) == 1 {
+            if ((parities >> (6 - i)) & 1) == 1 {
                 digit += 10;
             }
             pos += EAN13Writer::appendPattern(
@@ -140,14 +140,13 @@ const CODE_WIDTH: usize = 3 + // start guard
  */
 #[cfg(test)]
 mod EAN13WriterTestCase {
-    use crate::{common::bit_matrix_test_case, BarcodeFormat, Writer};
+    use crate::{BarcodeFormat, Writer, common::bit_matrix_test_case};
 
     use super::EAN13Writer;
 
     #[test]
     fn testEncode() {
-        let testStr =
-        "00001010001011010011101100110010011011110100111010101011001101101100100001010111001001110100010010100000";
+        let testStr = "00001010001011010011101100110010011011110100111010101011001101101100100001010111001001110100010010100000";
         let result = EAN13Writer
             .encode(
                 "5901234123457",
@@ -161,8 +160,7 @@ mod EAN13WriterTestCase {
 
     #[test]
     fn testAddChecksumAndEncode() {
-        let testStr =
-        "00001010001011010011101100110010011011110100111010101011001101101100100001010111001001110100010010100000";
+        let testStr = "00001010001011010011101100110010011011110100111010101011001101101100100001010111001001110100010010100000";
         let result = EAN13Writer
             .encode(
                 "590123412345",

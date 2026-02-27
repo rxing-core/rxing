@@ -25,14 +25,14 @@ use std::sync::Arc;
 use once_cell::sync::Lazy;
 
 use crate::{
-    common::{
-        reedsolomon::{get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder},
-        BitMatrix, DecoderRXingResult, Result,
-    },
     DecodeHints, Exceptions,
+    common::{
+        BitMatrix, DecoderRXingResult, Result,
+        reedsolomon::{PredefinedGenericGF, ReedSolomonDecoder, get_predefined_genericgf},
+    },
 };
 
-use super::{decoded_bit_stream_parser, BitMatrixParser, DataBlock, QRCodeDecoderMetaData};
+use super::{BitMatrixParser, DataBlock, QRCodeDecoderMetaData, decoded_bit_stream_parser};
 
 //rsDecoder = new ReedSolomonDecoder(GenericGF.QR_CODE_FIELD_256);
 static RS_DECODER: Lazy<ReedSolomonDecoder> = Lazy::new(|| {

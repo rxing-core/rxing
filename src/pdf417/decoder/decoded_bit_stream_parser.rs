@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-use num::{self, bigint::ToBigUint, BigUint};
+use num::{self, BigUint, bigint::ToBigUint};
 use std::sync::Arc;
 
 use crate::{
+    Exceptions,
     common::{DecoderRXingResult, ECIStringBuilder, Eci, Result},
     pdf417::PDF417RXingResultMetadata,
-    Exceptions,
 };
 
 /**
@@ -147,7 +147,7 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult> {
             BEGIN_MACRO_PDF417_OPTIONAL_FIELD | MACRO_PDF417_TERMINATOR =>
             // Should not see these outside a macro block
             {
-                return Err(Exceptions::FORMAT)
+                return Err(Exceptions::FORMAT);
             }
             _ => {
                 // Default to text compaction. During testing numerous barcodes

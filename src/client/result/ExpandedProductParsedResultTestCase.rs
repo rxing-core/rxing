@@ -32,7 +32,7 @@
 
 use std::collections::HashMap;
 
-use crate::{client::result::ParsedClientResult, BarcodeFormat, RXingResult};
+use crate::{BarcodeFormat, RXingResult, client::result::ParsedClientResult};
 
 use super::ExpandedProductResultParser;
 

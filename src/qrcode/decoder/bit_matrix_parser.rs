@@ -15,8 +15,8 @@
  */
 
 use crate::{
-    common::{BitMatrix, Result},
     Exceptions,
+    common::{BitMatrix, Result},
 };
 
 use super::{DataMask, FormatInformation, Version, VersionRef};

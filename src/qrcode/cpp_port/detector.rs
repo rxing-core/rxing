@@ -1,30 +1,30 @@
 use crate::{
+    Exceptions,
     common::{
+        DefaultGridSampler, GridSampler, Result, SamplerControl,
         cpp_essentials::{
             CenterOfRing, DMRegressionLine, FindConcentricPatternCorners, FindLeftGuardBy, Matrix,
             Value,
         },
-        DefaultGridSampler, GridSampler, Result, SamplerControl,
     },
     point, point_i,
     qrcode::{
         decoder::{FormatInformation, Version, VersionRef},
         detector::QRCodeDetectorResult,
     },
-    Exceptions,
 };
 use multimap::MultiMap;
 
 use crate::{
+    Point,
     common::{
+        BitMatrix, PerspectiveTransform, Quadrilateral,
         cpp_essentials::{
             BitMatrixCursorTrait, ConcentricPattern, Direction, EdgeTracer, FixedPattern,
             GetPatternRowTP, IsPattern, LocateConcentricPattern, PatternRow, PatternType,
             PatternView, ReadSymmetricPattern, RegressionLine, RegressionLineTrait,
         },
-        BitMatrix, PerspectiveTransform, Quadrilateral,
     },
-    Point,
 };
 
 use super::Type;
@@ -113,7 +113,7 @@ pub fn FindFinderPatterns(image: &BitMatrix, tryHarder: bool) -> FinderPatterns 
                     p,
                     next.iter().sum::<u16>() as i32 * 3,
                 ); // 3 for very skewed samples
-                   //    Reduce(next) * 3); // 3 for very skewed samples
+                //    Reduce(next) * 3); // 3 for very skewed samples
                 if let Some(p) = pattern {
                     // log(*pattern, 3);
                     // assert!(image.get_point(pattern.as_ref().unwrap().p));
@@ -965,8 +965,8 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     const TIMINGPATTERN: FixedPattern<10, 10> = FixedPattern::new([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
 
     type Pattern = [PatternType; 5]; //std::array<PatternView::value_type, PATTERN.size()>;
-                                     // type SubPattern = [PatternType; 5]; //std::array<PatternView::value_type, SUBPATTERN_RMQR.size()>;
-                                     // type CornerEdgePattern = [PatternType; 2]; //std::array<PatternView::value_type, CORNER_EDGE_RMQR.size()>;
+    // type SubPattern = [PatternType; 5]; //std::array<PatternView::value_type, SUBPATTERN_RMQR.size()>;
+    // type CornerEdgePattern = [PatternType; 2]; //std::array<PatternView::value_type, CORNER_EDGE_RMQR.size()>;
 
     type SubPattern = [PatternType; 4];
     type TimingPattern = [PatternType; 10];

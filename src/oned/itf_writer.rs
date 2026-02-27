@@ -16,8 +16,8 @@
 
 use rxing_one_d_proc_derive::OneDWriter;
 
-use crate::common::Result;
 use crate::BarcodeFormat;
+use crate::common::Result;
 
 use super::OneDimensionalCodeWriter;
 
@@ -105,7 +105,7 @@ const PATTERNS: [[usize; 5]; 10] = [
  */
 #[cfg(test)]
 mod ITFWriterTestCase {
-    use crate::{common::bit_matrix_test_case, BarcodeFormat, Writer};
+    use crate::{BarcodeFormat, Writer, common::bit_matrix_test_case};
 
     use super::ITFWriter;
 

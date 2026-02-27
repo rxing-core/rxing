@@ -15,8 +15,9 @@
  */
 
 use crate::{
+    Binarizer, BinaryBitmap, DecodeHints, Exceptions, Point, RXingResult, Reader,
     common::{Quadrilateral, Result},
-    point, Binarizer, BinaryBitmap, DecodeHints, Exceptions, Point, RXingResult, Reader,
+    point,
 };
 
 use super::MultipleBarcodeReader;

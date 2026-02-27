@@ -1,5 +1,5 @@
 use crate::common::Result;
-use crate::{point, Point};
+use crate::{Point, point};
 
 pub trait RegressionLineTrait {
     //     points: Vec<Point>,
@@ -86,11 +86,11 @@ pub trait RegressionLineTrait {
     // }
 
     fn add(&mut self, p: Point) -> Result<()>; //{
-                                               // 	assert(_directionInward != PointF());
-                                               // 	_points.push_back(p);
-                                               // 	if (_points.size() == 1)
-                                               // 		c = dot(normal(), p);
-                                               // }
+    // 	assert(_directionInward != PointF());
+    // 	_points.push_back(p);
+    // 	if (_points.size() == 1)
+    // 		c = dot(normal(), p);
+    // }
 
     fn pop_back(&mut self); // { _points.pop_back(); }
 
@@ -129,20 +129,20 @@ pub trait RegressionLineTrait {
     // 	}
 
     fn isHighRes(&self) -> bool; //const
-                                 // {
-                                 // 	PointF min = _points.front(), max = _points.front();
-                                 // 	for (auto p : _points) {
-                                 // 		min.x = std::min(min.x, p.x);
-                                 // 		min.y = std::min(min.y, p.y);
-                                 // 		max.x = std::max(max.x, p.x);
-                                 // 		max.y = std::max(max.y, p.y);
-                                 // 	}
-                                 // 	auto diff  = max - min;
-                                 // 	auto len   = maxAbsComponent(diff);
-                                 // 	auto steps = std::min(std::abs(diff.x), std::abs(diff.y));
-                                 // 	// due to aliasing we get bad extrapolations if the line is short and too close to vertical/horizontal
-                                 // 	return steps > 2 || len > 50;
-                                 // }
+    // {
+    // 	PointF min = _points.front(), max = _points.front();
+    // 	for (auto p : _points) {
+    // 		min.x = std::min(min.x, p.x);
+    // 		min.y = std::min(min.y, p.y);
+    // 		max.x = std::max(max.x, p.x);
+    // 		max.y = std::max(max.y, p.y);
+    // 	}
+    // 	auto diff  = max - min;
+    // 	auto len   = maxAbsComponent(diff);
+    // 	auto steps = std::min(std::abs(diff.x), std::abs(diff.y));
+    // 	// due to aliasing we get bad extrapolations if the line is short and too close to vertical/horizontal
+    // 	return steps > 2 || len > 50;
+    // }
     fn a(&self) -> f32;
     fn b(&self) -> f32;
     fn c(&self) -> f32;

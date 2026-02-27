@@ -4,9 +4,9 @@
 */
 // SPDX-License-Identifier: Apache-2.0
 
+use crate::Exceptions;
 use crate::common::BitMatrix;
 use crate::common::Result;
-use crate::Exceptions;
 
 /**
 * <p>Encapsulates data masks for the data bits in a QR  and micro QR code, per ISO 18004:2006 6.8.</p>

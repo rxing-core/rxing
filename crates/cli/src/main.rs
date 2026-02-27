@@ -6,6 +6,8 @@ use std::{
 
 use clap::{ArgGroup, Parser, Subcommand};
 use rxing::{BarcodeFormat, MultiFormatWriter, Writer};
+#[allow(unused_imports)]
+use serde_json::de;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -439,11 +441,25 @@ fn decode_command(
         };
         match results {
             Ok(result_array) => {
-                println!("Found {} results", result_array.len());
+                if !*detailed_results_json {
+                    println!("Found {} results", result_array.len());
+                } else {
+                    println!("[");
+                }
                 for (i, result) in result_array.into_iter().enumerate() {
+                    let json_prefix = if *detailed_results_json && i > 0 {
+                        ","
+                    } else {
+                        ""
+                    };
+                    let prefix = if *detailed_results_json {
+                        json_prefix.to_string()
+                    } else {
+                        format!("\nResult {}:", i)
+                    };
                     println!(
-                        "Result {}:\n{}",
-                        i,
+                        "{}\n{}",
+                        prefix,
                         print_result(
                             &result,
                             *detailed_result,
@@ -452,6 +468,9 @@ fn decode_command(
                             *parsed_bytes
                         )
                     );
+                }
+                if *detailed_results_json {
+                    println!("]");
                 }
                 ExitCode::SUCCESS
             }

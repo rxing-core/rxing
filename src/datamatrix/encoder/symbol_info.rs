@@ -193,11 +193,7 @@ impl SymbolInfo {
 
     pub fn getDataLengthForInterleavedBlock(&self, index: u32) -> i32 {
         if self.isSymbolInfo144 {
-            if index <= 8 {
-                156
-            } else {
-                155
-            }
+            if index <= 8 { 156 } else { 155 }
         } else {
             self.rsBlockData
         }
@@ -336,7 +332,7 @@ impl<'a> SymbolInfoLookup<'a> {
 #[cfg(test)]
 mod tests {
 
-    use crate::{datamatrix::encoder::SymbolShapeHint, Dimension};
+    use crate::{Dimension, datamatrix::encoder::SymbolShapeHint};
 
     use super::SymbolInfoLookup;
 
@@ -390,9 +386,11 @@ mod tests {
         //  } catch (IllegalArgumentException iae) {
         //    //expected
         //  }
-        assert!(LOOKUP
-            .lookup_with_shape(50, SymbolShapeHint::FORCE_RECTANGLE)
-            .is_err());
+        assert!(
+            LOOKUP
+                .lookup_with_shape(50, SymbolShapeHint::FORCE_RECTANGLE)
+                .is_err()
+        );
         //  try {
         //    SymbolInfo.lookup(50, SymbolShapeHint.FORCE_RECTANGLE);
         //    fail("There's no rectangular symbol for 50 data codewords");

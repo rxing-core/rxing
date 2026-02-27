@@ -16,10 +16,10 @@
 
 use rxing_one_d_proc_derive::OneDReader;
 
-use crate::common::{BitArray, Result};
 use crate::Exceptions;
 use crate::RXingResult;
-use crate::{point, BarcodeFormat};
+use crate::common::{BitArray, Result};
+use crate::{BarcodeFormat, point};
 use crate::{RXingResultMetadataType, RXingResultMetadataValue};
 
 use super::OneDReader;
@@ -237,9 +237,9 @@ impl CodaBarReader {
         // Calculate our allowable size thresholds using fixed-point math.
         let mut maxes = [0.0; 4]; //new float[4];
         let mut mins = [0.0; 4]; //new float[4];
-                                 // Define the threshold of acceptability to be the midpoint between the
-                                 // average small stripe and the average large stripe. No stripe lengths
-                                 // should be on the "wrong" side of that line.
+        // Define the threshold of acceptability to be the midpoint between the
+        // average small stripe and the average large stripe. No stripe lengths
+        // should be on the "wrong" side of that line.
         for i in 0..2 {
             // for (int i = 0; i < 2; i++) {
             mins[i] = 0.0; // Accept arbitrarily small "short" stripes.

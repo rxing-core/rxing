@@ -18,11 +18,11 @@
  * This file has been modified from its original form in Barcode4J.
  */
 
-use crate::common::{CharacterSet, Result};
 use crate::Exceptions;
+use crate::common::{CharacterSet, Result};
 
 use super::{
-    pdf_417_error_correction, pdf_417_high_level_encoder, BarcodeMatrix, BarcodeRow, Compaction,
+    BarcodeMatrix, BarcodeRow, Compaction, pdf_417_error_correction, pdf_417_high_level_encoder,
 };
 
 /**
@@ -99,11 +99,7 @@ impl PDF417 {
      */
     fn getNumberOfPadCodewords(m: u32, k: u32, c: u32, r: u32) -> u32 {
         let n = c * r - k;
-        if n > m + 1 {
-            n - m - 1
-        } else {
-            0
-        }
+        if n > m + 1 { n - m - 1 } else { 0 }
     }
 
     fn encodeChar(pattern: u32, len: u32, logic: &mut BarcodeRow) {

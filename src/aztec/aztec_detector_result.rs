@@ -21,8 +21,8 @@
 // import com.google.zxing.common.DetectorRXingResult;
 
 use crate::{
-    common::{BitMatrix, DetectorRXingResult},
     Point,
+    common::{BitMatrix, DetectorRXingResult},
 };
 
 /**

@@ -18,8 +18,8 @@
 
 // import com.google.zxing.NotFoundException;
 
-use crate::{common::Result, Point};
-use crate::{point, Exceptions};
+use crate::{Exceptions, point};
+use crate::{Point, common::Result};
 
 use super::{BitMatrix, PerspectiveTransform, Quadrilateral};
 

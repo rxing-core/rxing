@@ -17,9 +17,9 @@
 use std::{fmt, sync::Arc};
 
 use crate::{
+    Exceptions,
     common::{BitArray, BitFieldBaseType, CharacterSet, ECIEncoderSet, Result},
     qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, VersionRef},
-    Exceptions,
 };
 
 use unicode_segmentation::UnicodeSegmentation;

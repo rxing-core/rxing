@@ -29,8 +29,8 @@
  */
 use std::collections::HashMap;
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 use once_cell::sync::Lazy;
 
@@ -145,12 +145,11 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String> {
 
     // Processing 2-digit AIs
 
-    if rawInformation.chars().count() < 2 {
+    if rawInformation.len() < 2 {
         return Err(Exceptions::NOT_FOUND);
     }
 
-    let lookup: String = rawInformation.chars().take(2).collect();
-    let twoDigitDataLength = TWO_DIGIT_DATA_LENGTH.get(&lookup);
+    let twoDigitDataLength = TWO_DIGIT_DATA_LENGTH.get(&rawInformation[..2]);
     if let Some(tddl) = twoDigitDataLength {
         if tddl.variable {
             return processVariableAI(2, tddl.length, rawInformation);
@@ -158,12 +157,12 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String> {
         return processFixedAI(2, tddl.length, rawInformation);
     }
 
-    if rawInformation.chars().count() < 3 {
+    if rawInformation.len() < 3 {
         return Err(Exceptions::NOT_FOUND);
     }
 
-    let firstThreeDigits: String = rawInformation.chars().take(3).collect();
-    let threeDigitDataLength = THREE_DIGIT_DATA_LENGTH.get(&firstThreeDigits);
+    let firstThreeDigits = &rawInformation[..3];
+    let threeDigitDataLength = THREE_DIGIT_DATA_LENGTH.get(firstThreeDigits);
     if let Some(tddl) = threeDigitDataLength {
         if tddl.variable {
             return processVariableAI(3, tddl.length, rawInformation);
@@ -171,11 +170,11 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String> {
         return processFixedAI(3, tddl.length, rawInformation);
     }
 
-    if rawInformation.chars().count() < 4 {
+    if rawInformation.len() < 4 {
         return Err(Exceptions::NOT_FOUND);
     }
 
-    let threeDigitPlusDigitDataLength = THREE_DIGIT_PLUS_DIGIT_DATA_LENGTH.get(&firstThreeDigits);
+    let threeDigitPlusDigitDataLength = THREE_DIGIT_PLUS_DIGIT_DATA_LENGTH.get(firstThreeDigits);
     if let Some(tdpddl) = threeDigitPlusDigitDataLength {
         if tdpddl.variable {
             return processVariableAI(4, tdpddl.length, rawInformation);
@@ -183,8 +182,7 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String> {
         return processFixedAI(4, tdpddl.length, rawInformation);
     }
 
-    let lookup: String = rawInformation.chars().take(4).collect();
-    let firstFourDigitLength = FOUR_DIGIT_DATA_LENGTH.get(&lookup /*(0, 4)*/);
+    let firstFourDigitLength = FOUR_DIGIT_DATA_LENGTH.get(&rawInformation[..4]);
     if let Some(ffdl) = firstFourDigitLength {
         if ffdl.variable {
             return processVariableAI(4, ffdl.length, rawInformation);
@@ -196,24 +194,20 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String> {
 }
 
 fn processFixedAI(aiSize: usize, fieldSize: usize, rawInformation: &str) -> Result<String> {
-    if rawInformation.chars().count() < aiSize {
+    if rawInformation.len() < aiSize {
         return Err(Exceptions::NOT_FOUND);
     }
 
-    let ai: String = rawInformation.chars().take(aiSize).collect();
+    let ai = &rawInformation[..aiSize];
 
-    if rawInformation.chars().count() < aiSize + fieldSize {
+    if rawInformation.len() < aiSize + fieldSize {
         return Err(Exceptions::NOT_FOUND);
     }
 
-    let field: String = rawInformation
-        .chars()
-        .skip(aiSize)
-        .take(fieldSize)
-        .collect(); //rawInformation.substring(aiSize, aiSize + fieldSize);
-    let remaining: String = rawInformation.chars().skip(aiSize + fieldSize).collect(); // rawInformation.substring(aiSize + fieldSize);
+    let field = &rawInformation[aiSize..aiSize + fieldSize];
+    let remaining = &rawInformation[aiSize + fieldSize..];
     let result = format!("({ai}){field}");
-    let parsedAI = parseFieldsInGeneralPurpose(&remaining)?;
+    let parsedAI = parseFieldsInGeneralPurpose(remaining)?;
 
     Ok(if parsedAI.is_empty() {
         result
@@ -227,15 +221,12 @@ fn processVariableAI(
     variableFieldSize: usize,
     rawInformation: &str,
 ) -> Result<String> {
-    let ai: String = rawInformation.chars().take(aiSize).collect();
-    let maxSize = rawInformation
-        .chars()
-        .count()
-        .min(aiSize + variableFieldSize);
-    let field: String = rawInformation.chars().skip(aiSize).take(maxSize).collect(); // (aiSize, maxSize);
-    let remaining: String = rawInformation.chars().skip(maxSize).collect();
+    let ai = &rawInformation[..aiSize];
+    let maxSize = rawInformation.len().min(aiSize + variableFieldSize);
+    let field = &rawInformation[aiSize..maxSize];
+    let remaining = &rawInformation[maxSize..];
     let result = format!("({ai}){field}"); //'(' + ai + ')' + field;
-    let parsedAI = parseFieldsInGeneralPurpose(&remaining)?;
+    let parsedAI = parseFieldsInGeneralPurpose(remaining)?;
 
     Ok(if parsedAI.is_empty() {
         result

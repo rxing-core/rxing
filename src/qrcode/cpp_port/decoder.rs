@@ -4,9 +4,10 @@
 // */
 // // SPDX-License-Identifier: Apache-2.0
 
+use crate::Exceptions;
 use crate::common::cpp_essentials::{DecoderResult, StructuredAppendInfo};
 use crate::common::reedsolomon::{
-    get_predefined_genericgf, PredefinedGenericGF, ReedSolomonDecoder,
+    PredefinedGenericGF, ReedSolomonDecoder, get_predefined_genericgf,
 };
 use crate::common::{
     AIFlag, BitMatrix, BitSource, CharacterSet, ECIStringBuilder, Eci, Result, SymbologyIdentifier,
@@ -15,7 +16,6 @@ use crate::qrcode::cpp_port::bitmatrix_parser::{
     ReadCodewords, ReadFormatInformation, ReadVersion,
 };
 use crate::qrcode::decoder::{DataBlock, ErrorCorrectionLevel, Mode, Version};
-use crate::Exceptions;
 
 /**
 * <p>Given data and error-correction codewords received, possibly corrupted by errors, attempts to
@@ -315,11 +315,13 @@ pub fn DecodeBitStream(
                 }
                 Mode::FNC1_SECOND_POSITION => {
                     if !result.is_empty() {
-                        return Err(Exceptions::format_with("AIM Application Indicator (FNC1 in second position) at illegal position"));
+                        return Err(Exceptions::format_with(
+                            "AIM Application Indicator (FNC1 in second position) at illegal position",
+                        ));
                         // throw FormatError("AIM Application Indicator (FNC1 in second position) at illegal position");
                     }
                     result.symbology.modifier = b'5'; // As above
-                                                      // ISO/IEC 18004:2015 7.4.8.3 AIM Application Indicator (FNC1 in second position), "00-99" or "A-Za-z"
+                    // ISO/IEC 18004:2015 7.4.8.3 AIM Application Indicator (FNC1 in second position), "00-99" or "A-Za-z"
                     let appInd = bits.readBits(8)?;
                     if appInd < 100
                     // "00-09"

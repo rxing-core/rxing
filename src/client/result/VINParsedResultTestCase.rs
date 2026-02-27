@@ -19,8 +19,8 @@
  */
 // public final class VINParsedRXingResultTestCase extends Assert {
 use crate::{
-    client::result::{ParsedClientResult, ParsedRXingResult, ParsedRXingResultType},
     BarcodeFormat, RXingResult,
+    client::result::{ParsedClientResult, ParsedRXingResult, ParsedRXingResultType},
 };
 
 use super::ResultParser;

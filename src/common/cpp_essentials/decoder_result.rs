@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{common::ECIStringBuilder, Exceptions};
+use crate::{Exceptions, common::ECIStringBuilder};
 
 use super::StructuredAppendInfo;
 

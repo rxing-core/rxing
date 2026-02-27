@@ -16,7 +16,7 @@
 
 use std::fmt;
 
-use crate::{common::BitMatrix, Exceptions};
+use crate::{Exceptions, common::BitMatrix};
 
 /**
  * JAVAPORT: The original code was a 2D array of ints, but since it only ever gets assigned

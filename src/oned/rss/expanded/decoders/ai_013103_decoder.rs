@@ -26,7 +26,7 @@
 
 use crate::common::{BitArray, Result};
 
-use super::{AI013x0xDecoder, AI01decoder, AI01weightDecoder, AbstractExpandedDecoder};
+use super::{AI01decoder, AI01weightDecoder, AI013x0xDecoder, AbstractExpandedDecoder};
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)

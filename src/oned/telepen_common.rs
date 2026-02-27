@@ -1,5 +1,5 @@
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 pub fn calculate_checksum(contents: &str) -> char {
     let sum: u32 = contents.chars().map(|c| c as u32).sum();

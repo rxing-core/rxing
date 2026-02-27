@@ -19,7 +19,7 @@ use std::path::PathBuf;
 use image::DynamicImage;
 
 use crate::{
-    common::BitMatrix, qrcode::QRCodeWriter, BarcodeFormat, EncodeHintValue, EncodeHints, Writer,
+    BarcodeFormat, EncodeHintValue, EncodeHints, Writer, common::BitMatrix, qrcode::QRCodeWriter,
 };
 
 use super::decoder::ErrorCorrectionLevel;
@@ -57,7 +57,7 @@ fn createMatrixFromImage(image: DynamicImage) -> BitMatrix {
     // let pixels = vec![0u32; width * height]; //new int[width * height];
     // image.getRGB(0, 0, width, height, pixels, 0, width);
     let img_src = image.into_rgb8(); //image.as_rgb8().unwrap().as_bytes();
-                                     // let pixels = img_src.as_bytes();
+    // let pixels = img_src.as_bytes();
 
     let mut matrix = BitMatrix::new(width as u32, height as u32).expect("create new bitmatrix");
     for y in 0..height as u32 {

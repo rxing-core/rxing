@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-use crate::common::Result;
 use crate::Exceptions;
+use crate::common::Result;
 
 const EMPTY_BIT_VAL: u8 = 13;
 

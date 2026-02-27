@@ -1,11 +1,11 @@
 use crate::{
+    EncodeHints,
     common::{BitMatrix, DetectorRXingResult},
     qrcode::{
-        decoder::{qrcode_decoder, ErrorCorrectionLevel},
+        decoder::{ErrorCorrectionLevel, qrcode_decoder},
         detector::Detector,
         encoder::qrcode_encoder,
     },
-    EncodeHints,
 };
 
 #[test]
@@ -43,20 +43,4 @@ fn test_encode_decode(value: &str) {
 }
 
 // Zooms a bit matrix so that each bit is factor x factor
-#[allow(dead_code)]
-fn make_larger(input: &BitMatrix, factor: u32) -> BitMatrix {
-    let width = input.getWidth();
-    let mut output = BitMatrix::with_single_dimension(width * factor).expect("new");
-    for inputY in 0..width {
-        // for (int inputY = 0; inputY < width; inputY++) {
-        for inputX in 0..width {
-            // for (int inputX = 0; inputX < width; inputX++) {
-            if input.get(inputX, inputY) {
-                output
-                    .setRegion(inputX * factor, inputY * factor, factor, factor)
-                    .expect("region set should be ok");
-            }
-        }
-    }
-    output
-}
+// Use crate::common::test_utils::make_larger instead

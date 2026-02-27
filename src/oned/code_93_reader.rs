@@ -17,11 +17,12 @@
 use rxing_one_d_proc_derive::OneDReader;
 
 use crate::{
+    BarcodeFormat, Exceptions, RXingResult,
     common::{BitArray, Result},
-    point, BarcodeFormat, Exceptions, RXingResult,
+    point,
 };
 
-use super::{one_d_reader, OneDReader};
+use super::{OneDReader, one_d_reader};
 
 use crate::{RXingResultMetadataType, RXingResultMetadataValue};
 
@@ -169,7 +170,7 @@ impl Code93Reader {
         let rowOffset = row.getNextSet(0);
 
         self.counters.fill(0);
-        let mut theCounters = self.counters;
+        let theCounters = &mut self.counters;
         let mut patternStart = rowOffset;
         let mut isWhite = false;
         let patternLength = theCounters.len();
@@ -180,7 +181,7 @@ impl Code93Reader {
                 theCounters[counterPosition] += 1;
             } else {
                 if counterPosition == patternLength - 1 {
-                    if Self::toPattern(&theCounters) == Self::ASTERISK_ENCODING {
+                    if Self::toPattern(theCounters) == Self::ASTERISK_ENCODING {
                         return Ok([patternStart, i]);
                     }
                     patternStart += (theCounters[0] + theCounters[1]) as usize;
@@ -199,11 +200,11 @@ impl Code93Reader {
         Err(Exceptions::NOT_FOUND)
     }
 
-    fn toPattern(counters: &[u32; 6]) -> i32 {
+    fn toPattern<const N: usize>(counters: &[u32; N]) -> i32 {
         let sum = counters.iter().sum::<u32>();
 
         let mut pattern = 0;
-        let max = counters.len();
+        let max = N;
         for (i, counter) in counters.iter().enumerate().take(max) {
             let scaled = (*counter as f32 * 9.0 / sum as f32).round() as u32;
             if !(1..=4).contains(&scaled) {
@@ -360,14 +361,16 @@ impl Code93Reader {
 #[cfg(test)]
 mod Code93ReaderTestCase {
 
-    use crate::{common::BitMatrix, oned::OneDReader, DecodeHints};
+    use crate::{DecodeHints, common::BitMatrix, oned::OneDReader};
 
     use super::Code93Reader;
 
     #[test]
     fn testDecode() {
-        doTest("Code93!\n$%/+ :\u{001b};[{\u{007f}\u{0000}@`\u{007f}\u{007f}\u{007f}",
-             "0000001010111101101000101001100101001011001001100101100101001001100101100100101000010101010000101110101101101010001001001101001101001110010101101011101011011101011101101110100101110101101001110101110110101101010001110110101100010101110110101000110101110110101000101101110110101101001101110110101100101101110110101100110101110110101011011001110110101011001101110110101001101101110110101001110101001100101101010001010111101111");
+        doTest(
+            "Code93!\n$%/+ :\u{001b};[{\u{007f}\u{0000}@`\u{007f}\u{007f}\u{007f}",
+            "0000001010111101101000101001100101001011001001100101100101001001100101100100101000010101010000101110101101101010001001001101001101001110010101101011101011011101011101101110100101110101101001110101110110101101010001110110101100010101110110101000110101110110101000101101110110101101001101110110101100101101110110101100110101110110101011011001110110101011001101110110101001101101110110101001110101001100101101010001010111101111",
+        );
     }
 
     fn doTest(expectedRXingResult: &str, encodedRXingResult: &str) {

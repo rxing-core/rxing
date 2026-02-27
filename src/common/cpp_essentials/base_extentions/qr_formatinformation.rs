@@ -1,7 +1,7 @@
 use crate::qrcode::{
     cpp_port::Type,
     decoder::{
-        ErrorCorrectionLevel, FormatInformation, FORMAT_INFO_MASK_MODEL2, FORMAT_INFO_MASK_QR,
+        ErrorCorrectionLevel, FORMAT_INFO_MASK_MODEL2, FORMAT_INFO_MASK_QR, FormatInformation,
     },
 };
 

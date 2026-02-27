@@ -5,14 +5,10 @@
 */
 // SPDX-License-Identifier: Apache-2.0
 
-use std::collections::HashMap;
-
+use crate::Binarizer;
 use crate::common::cpp_essentials::{GetPatternRow, PatternRow, PatternView};
-use crate::{multi::MultipleBarcodeReader, RXingResult, Reader};
-use crate::{
-    point, BarcodeFormat, BinaryBitmap, DecodingHintDictionary, Exceptions, PointT, ResultPoint,
-};
-use crate::{Binarizer, DecodeHintType, DecodeHintValue};
+use crate::{BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, PointT, point};
+use crate::{RXingResult, Reader, multi::MultipleBarcodeReader};
 
 use crate::common::{LineOrientation, Quadrilateral, Result};
 
@@ -29,7 +25,7 @@ pub struct ODReader<'a> {
     try_rotate: bool,
 }
 
-impl<'a> ODReader<'_> {
+impl ODReader<'_> {
     /**
      * We're going to examine rows from the middle outward, searching alternately above and below the
      * middle, and farther out each time. rowStep is the number of rows between each successive
@@ -39,6 +35,7 @@ impl<'a> ODReader<'_> {
      * decided that moving up and down by about 1/16 of the image is pretty good; we try more of the
      * image if "trying harder".
      */
+    #[allow(clippy::too_many_arguments)]
     pub fn DoDecode<B: Binarizer>(
         reader: &DXFilmEdgeReader,
         image: &BinaryBitmap<B>,
@@ -59,7 +56,7 @@ impl<'a> ODReader<'_> {
         let mut width: i32 = image.get_width() as i32;
         let mut height: i32 = image.get_height() as i32;
 
-        if (rotate) {
+        if rotate {
             std::mem::swap(&mut width, &mut height);
         }
 
@@ -68,8 +65,8 @@ impl<'a> ODReader<'_> {
         let rowStep: i32 = std::cmp::max(
             1,
             height
-                / (if (tryHarder && !isPure) {
-                    (if maxSymbols == 1 { 256 } else { 512 })
+                / (if tryHarder && !isPure {
+                    if maxSymbols == 1 { 256 } else { 512 }
                 } else {
                     32
                 }),
@@ -80,13 +77,13 @@ impl<'a> ODReader<'_> {
             15 // 15 rows spaced 1/32 apart is roughly the middle half of the image
         };
 
-        if (isPure) {
+        if isPure {
             minLineCount = 1;
         }
         let mut checkRows = Vec::new();
 
         let mut bars: PatternRow = PatternRow::new(vec![0; 128]); // e.g. EAN-13 has 59 bars/spaces
-                                                                  // bars.reserve(128); // e.g. EAN-13 has 59 bars/spaces
+        // bars.reserve(128); // e.g. EAN-13 has 59 bars/spaces
 
         // #ifdef PRINT_DEBUG
         // BitMatrix dbg(width, height);
@@ -107,19 +104,19 @@ impl<'a> ODReader<'_> {
                         -rowStepsAboveOrBelow
                     });
             let mut isCheckRow: bool = false;
-            if (rowNumber < 0 || rowNumber >= height) {
+            if rowNumber < 0 || rowNumber >= height {
                 // Oops, if we run off the top or bottom, stop
                 break;
             }
 
             // See if we have additional check rows (see below) to process
-            if (!checkRows.is_empty()) {
+            if !checkRows.is_empty() {
                 //--i;
                 i -= 1;
                 rowNumber = *checkRows.last().unwrap_or(&0);
                 checkRows.pop();
                 isCheckRow = true;
-                if (rowNumber < 0 || rowNumber >= height) {
+                if rowNumber < 0 || rowNumber >= height {
                     i += 1;
                     continue;
                 }
@@ -166,58 +163,51 @@ impl<'a> ODReader<'_> {
             for upsideDown in [false, true] {
                 // for (bool upsideDown : {false, true}) {
                 // trying again?
-                if (upsideDown) {
+                if upsideDown {
                     // reverse the row and continue
                     // std::reverse(bars.begin(), bars.end());
                     bars.rev();
                 }
-                let readers = vec![reader];
+                let readers = [reader];
                 // Look for a barcode
                 for r in 0..readers.len() {
                     // for (size_t r = 0; r < readers.size(); ++r) {
                     // If this is a pure symbol, then checking a single non-empty line is sufficient for all but the stacked
                     // DataBar codes. They are the only ones using the decodingState, which we can use as a flag here.
-                    if (isPure && i > 0 && decodingState[r].is_none()) {
+                    if isPure && i > 0 && decodingState[r].is_none() {
                         continue;
                     }
 
                     let mut next = PatternView::new(&bars);
                     loop {
-                        let mut result_hld = readers[r]
+                        let result_hld = readers[r]
                             .decodePattern(rowNumber as u32, &mut next, &mut decodingState[r])
                             .ok();
-                        if result_hld.is_some()
-                        /*|| (returnErrors && result.is_none())*/
-                        {
-                            let mut result = result_hld.as_mut().unwrap();
+                        if let Some(mut result) = result_hld {
                             IncrementLineCount(&mut result);
-                            if (upsideDown) {
+                            if upsideDown {
                                 // update position (flip horizontally).
                                 let points = result.getPointsMut();
                                 for p in points {
-                                    // for (auto& p : points) {
-                                    *p = point(width as f32 - p.getX() - 1.0, p.getY());
+                                    *p = point(width as f32 - p.x - 1.0, p.y);
                                 }
-                                // result.addPoints(points);
-                                // result.setPosition(std::move(points));
                             }
-                            if (rotate) {
+                            if rotate {
                                 let points = result.getPointsMut();
                                 for p in points {
-                                    // for (auto& p : points) {
-                                    *p = point(p.getY(), width as f32 - p.getX() - 1.0);
+                                    *p = point(p.y, width as f32 - p.x - 1.0);
                                 }
-                                // result.addPoints(points);
-                                // result.setPosition(std::move(points));
                             }
 
                             // check if we know this code already
+                            let mut found_existing = false;
                             for other_hld in res.iter_mut() {
-                                let Some(mut other) = other_hld.as_mut() else {
+                                let Some(other) = other_hld else {
                                     continue;
                                 };
-                                // for (auto& other : res) {
-                                if (result == other) {
+                                if result.getText() == other.getText()
+                                    && result.getBarcodeFormat() == other.getBarcodeFormat()
+                                {
                                     // merge the position information
                                     let dTop = PointT::maxAbsComponent(
                                         other.getPoints()[0] - result.getPoints()[0],
@@ -225,14 +215,14 @@ impl<'a> ODReader<'_> {
                                     let dBot = PointT::maxAbsComponent(
                                         other.getPoints()[2] - result.getPoints()[0],
                                     );
-                                    let mut points = other.getPoints().clone();
-                                    if (dTop < dBot
+                                    let mut points = other.getPoints().to_vec();
+                                    if dTop < dBot
                                         || (dTop == dBot
                                             && rotate
                                                 ^ (PointT::sumAbsComponent(points[0])
                                                     > PointT::sumAbsComponent(
                                                         result.getPoints()[0],
-                                                    ))))
+                                                    )))
                                     {
                                         points[0] = result.getPoints()[0];
                                         points[1] = result.getPoints()[1];
@@ -241,37 +231,39 @@ impl<'a> ODReader<'_> {
                                         points[3] = result.getPoints()[3];
                                     }
                                     other.replace_points(points);
-                                    IncrementLineCount(&mut other);
+                                    IncrementLineCount(other);
                                     // clear the result, so we don't insert it again below
-                                    // result_hld = None; //Result();
+                                    found_existing = true;
                                     break;
                                 }
                             }
 
-                            if (result.getBarcodeFormat() != &BarcodeFormat::UNSUPORTED_FORMAT) {
+                            if !found_existing
+                                && (result.getBarcodeFormat() != &BarcodeFormat::UNSUPORTED_FORMAT)
+                            {
                                 res.push(Some(result.clone()));
-                                // res.push_back(std::move(result));
 
                                 // if we found a valid code we have not seen before but a minLineCount > 1,
                                 // add additional check rows above and below the current one
-                                if (!isCheckRow && minLineCount > 1 && rowStep > 1) {
+                                if !isCheckRow && minLineCount > 1 && rowStep > 1 {
                                     checkRows = vec![rowNumber - 1, rowNumber + 1];
-                                    if (rowStep > 2) {
+                                    if rowStep > 2 {
                                         checkRows.push(rowNumber - 2);
                                         checkRows.push(rowNumber + 2);
-                                        // checkRows.insert(checkRows.end(), {rowNumber - 2, rowNumber + 2});
                                     }
                                 }
                             }
 
-                            if (maxSymbols > 0
-                                && res.iter().fold(0, |acc, e| {
-                                    if let Some(itm) = &res[r] {
-                                        acc + i32::from((itm.line_count() >= minLineCount as usize))
-                                    } else {
-                                        acc
-                                    }
-                                }) == maxSymbols as i32)
+                            if maxSymbols > 0
+                                && res
+                                    .iter()
+                                    .filter(|e| {
+                                        e.as_ref().is_some_and(|itm| {
+                                            itm.line_count() >= minLineCount as usize
+                                        })
+                                    })
+                                    .count()
+                                    == maxSymbols as usize
                             {
                                 break 'outer;
                             }
@@ -293,7 +285,7 @@ impl<'a> ODReader<'_> {
         // remove all symbols with insufficient line count
         res.retain(|e| {
             if let Some(itm) = e {
-                itm.line_count() < minLineCount as usize
+                itm.line_count() >= minLineCount as usize
             } else {
                 false
             }
@@ -303,17 +295,19 @@ impl<'a> ODReader<'_> {
 
         // if symbols overlap, remove the one with a lower line count
         for i in 0..res.len() {
-            for j in i..res.len() {
+            for j in (i + 1)..res.len() {
                 if res[i].is_some() && res[j].is_some() {
-                    let Ok(q1) = Quadrilateral::try_from(res[i].as_ref().unwrap().getPoints())
+                    let Ok(q1) =
+                        Quadrilateral::try_from(&res[i].as_ref().unwrap().getPoints().to_vec())
                     else {
                         continue;
                     };
-                    let Ok(q2) = Quadrilateral::try_from(res[j].as_ref().unwrap().getPoints())
+                    let Ok(q2) =
+                        Quadrilateral::try_from(&res[j].as_ref().unwrap().getPoints().to_vec())
                     else {
                         continue;
                     };
-                    if (Quadrilateral::have_intersecting_bounding_boxes(&q1, &q2)) {
+                    if Quadrilateral::have_intersecting_bounding_boxes(&q1, &q2) {
                         let a_lc = res[i].as_ref().unwrap().line_count();
                         let b_lc = res[j].as_ref().unwrap().line_count();
                         if a_lc < b_lc {
@@ -352,7 +346,7 @@ impl<'a> ODReader<'_> {
         //TODO: C++20 res.erase_if()
         res.retain(|r| {
             if let Some(itm) = r {
-                itm.getBarcodeFormat() == &BarcodeFormat::UNSUPORTED_FORMAT
+                itm.getBarcodeFormat() != &BarcodeFormat::UNSUPORTED_FORMAT
             } else {
                 false
             }
@@ -364,14 +358,14 @@ impl<'a> ODReader<'_> {
         // SaveAsPBM(dbg, rotate ? "od-log-r.pnm" : "od-log.pnm");
         // #endif
 
-        res.iter().cloned().filter_map(|e| e).collect()
+        res.iter().flatten().cloned().collect()
     }
 }
 
-impl<'a> ODReader<'_> {
+impl ODReader<'_> {
     pub fn decode_single<B: crate::Binarizer>(
         &self,
-        _hints: &DecodingHintDictionary,
+        _hints: &DecodeHints,
         image: &BinaryBitmap<B>,
     ) -> Result<RXingResult> {
         let result = self.decode_with_max_symbols(_hints, image, u32::MAX)?;
@@ -382,7 +376,7 @@ impl<'a> ODReader<'_> {
 
     pub fn decode_with_max_symbols<B: crate::Binarizer>(
         &self,
-        _hints: &DecodingHintDictionary,
+        _hints: &DecodeHints,
         image: &BinaryBitmap<B>,
         maxSymbols: u32,
     ) -> Result<Vec<RXingResult>> {
@@ -396,7 +390,7 @@ impl<'a> ODReader<'_> {
             self.min_line_count,
             self.return_errors,
         );
-        if ((!(maxSymbols != 0) || (resH.len()) < maxSymbols as usize) && self.try_rotate) {
+        if ((maxSymbols == 0) || (resH.len()) < maxSymbols as usize) && self.try_rotate {
             let mut resV = Self::DoDecode(
                 &self.reader,
                 image,
@@ -418,58 +412,49 @@ impl<'a> ODReader<'_> {
     }
 }
 
-impl<'a> Reader for ODReader<'_> {
+impl Reader for ODReader<'_> {
     fn decode<B: crate::Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
     ) -> crate::common::Result<crate::RXingResult> {
-        self.decode_with_hints(image, &HashMap::new())
+        self.decode_with_hints(image, &DecodeHints::default())
     }
 
     fn decode_with_hints<B: crate::Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> crate::common::Result<crate::RXingResult> {
         self.decode_single(hints, image)
     }
 }
 
-impl<'a> MultipleBarcodeReader for ODReader<'_> {
+impl MultipleBarcodeReader for ODReader<'_> {
     fn decode_multiple<B: crate::Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
     ) -> crate::common::Result<Vec<crate::RXingResult>> {
-        self.decode_multiple_with_hints(image, &HashMap::new())
+        self.decode_multiple_with_hints(image, &DecodeHints::default())
     }
 
     fn decode_multiple_with_hints<B: crate::Binarizer>(
         &mut self,
         image: &mut crate::BinaryBitmap<B>,
-        hints: &crate::DecodingHintDictionary,
+        hints: &DecodeHints,
     ) -> crate::common::Result<Vec<crate::RXingResult>> {
         self.decode_with_max_symbols(hints, image, u32::MAX)
     }
 }
 
-impl<'a> ODReader<'_> {
-    pub fn new(hints: &DecodingHintDictionary) -> ODReader {
+impl ODReader<'_> {
+    pub fn new(hints: &DecodeHints) -> ODReader {
         ODReader {
             reader: DXFilmEdgeReader::new(hints),
-            try_harder: matches!(
-                hints.get(&DecodeHintType::TRY_HARDER),
-                Some(DecodeHintValue::TryHarder(true))
-            ),
-            is_pure: matches!(
-                hints.get(&DecodeHintType::PURE_BARCODE),
-                Some(DecodeHintValue::PureBarcode(true))
-            ),
+            try_harder: hints.TryHarder == Some(true),
+            is_pure: hints.PureBarcode == Some(true),
             min_line_count: 2,
             return_errors: false,
-            try_rotate: matches!(
-                hints.get(&DecodeHintType::TRY_HARDER),
-                Some(DecodeHintValue::TryHarder(true))
-            ),
+            try_rotate: hints.TryHarder == Some(true),
         }
     }
 }

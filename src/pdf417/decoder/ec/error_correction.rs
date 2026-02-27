@@ -15,8 +15,9 @@
  */
 
 use crate::{
-    Exceptions, PolynomialResult, WitnessData,
+    Exceptions,
     common::Result,
+    WitnessData,
     pdf417::{decoder::ec::ModulusGF, pdf_417_common::NUMBER_OF_CODEWORDS},
 };
 

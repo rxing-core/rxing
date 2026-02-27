@@ -23,9 +23,9 @@
 // import java.nio.charset.StandardCharsets;
 // import java.util.Random;
 
-use rand::Rng;
+use rand::RngExt;
 
-use crate::{common::string_utils, DecodeHints};
+use crate::{DecodeHints, common::string_utils};
 
 use super::CharacterSet;
 

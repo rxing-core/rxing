@@ -16,14 +16,14 @@
  */
 
 use crate::{
+    BarcodeFormat, EncodeHints, Exceptions, Writer,
     common::{BitMatrix, CharacterSet, Result},
     qrcode::encoder::ByteMatrix,
-    BarcodeFormat, EncodeHints, Exceptions, Writer,
 };
 
 use super::encoder::{
-    high_level_encoder, minimal_encoder, DefaultPlacement, SymbolInfo, SymbolInfoLookup,
-    SymbolShapeHint,
+    DefaultPlacement, SymbolInfo, SymbolInfoLookup, SymbolShapeHint, high_level_encoder,
+    minimal_encoder,
 };
 
 use super::encoder::error_correction;
@@ -282,8 +282,8 @@ impl DataMatrixWriter {
 mod tests {
 
     use crate::{
-        datamatrix::{encoder::SymbolShapeHint, DataMatrixWriter},
         BarcodeFormat, EncodeHintValue, EncodeHints, Writer,
+        datamatrix::{DataMatrixWriter, encoder::SymbolShapeHint},
     };
 
     #[test]

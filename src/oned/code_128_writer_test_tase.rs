@@ -35,9 +35,9 @@ const LF: &str = "10000110010";
 use once_cell::sync::Lazy;
 
 use crate::{
-    common::{bit_matrix_test_case, BitMatrix, Result},
-    oned::{Code128Reader, OneDReader},
     BarcodeFormat, DecodeHints, EncodeHintValue, EncodeHints, Writer,
+    common::{BitMatrix, Result, bit_matrix_test_case},
+    oned::{Code128Reader, OneDReader},
 };
 
 use super::Code128Writer;
@@ -332,7 +332,7 @@ fn testEncodeWithForcedCodeSetFailureCodeSetABadCharacter() {
 #[should_panic]
 fn testEncodeWithForcedCodeSetFailureCodeSetBBadCharacter() {
     let toEncode = "ASdf\x000123"; // \0 (ascii value 0)
-                                   // Characters with ASCII value below 32 should not be accepted when the code set is forced to B.
+    // Characters with ASCII value below 32 should not be accepted when the code set is forced to B.
 
     let hints = EncodeHints::default().with(EncodeHintValue::ForceCodeSet("B".to_string()));
     // let  hints = new EnumMap<>(EncodeHintType.class);

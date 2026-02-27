@@ -18,7 +18,7 @@
 
 use std::ops::Mul;
 
-use crate::{common::Result, point, Exceptions, Point};
+use crate::{Exceptions, Point, common::Result, point};
 
 use super::Quadrilateral;
 

@@ -17,10 +17,10 @@
 use once_cell::sync::Lazy;
 
 use crate::{
-    common::{
-        string_utils, BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Eci, Result,
-    },
     DecodeHints, Exceptions,
+    common::{
+        BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Eci, Result, string_utils,
+    },
 };
 
 #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
@@ -75,12 +75,12 @@ pub fn decode(
             Mode::TERMINATOR => {}
             Mode::FNC1_FIRST_POSITION => {
                 hasFNC1first = true; // symbology detection
-                                     // We do little with FNC1 except alter the parsed result a bit according to the spec
+                // We do little with FNC1 except alter the parsed result a bit according to the spec
                 fc1InEffect = true;
             }
             Mode::FNC1_SECOND_POSITION => {
                 hasFNC1second = true; // symbology detection
-                                      // We do little with FNC1 except alter the parsed result a bit according to the spec
+                // We do little with FNC1 except alter the parsed result a bit according to the spec
                 fc1InEffect = true;
             }
             Mode::STRUCTURED_APPEND => {

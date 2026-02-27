@@ -85,11 +85,13 @@ fn testDecodeWithBitDifference() {
         )
         .expect("return")
     );
-    assert!(FormatInformation::decodeFormatInformation(
-        MASKED_TEST_FORMAT_INFO ^ 0x0F,
-        MASKED_TEST_FORMAT_INFO ^ 0x0F
-    )
-    .is_none());
+    assert!(
+        FormatInformation::decodeFormatInformation(
+            MASKED_TEST_FORMAT_INFO ^ 0x0F,
+            MASKED_TEST_FORMAT_INFO ^ 0x0F
+        )
+        .is_none()
+    );
 }
 
 #[test]

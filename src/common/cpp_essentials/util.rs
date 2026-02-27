@@ -94,7 +94,7 @@ pub fn ToIntPos(
     let count = std::cmp::min(count, bits.len());
     let mut res = 0;
     for bit in bits.iter().skip(pos).take(count) {
-        AppendBit(&mut res, bit == &0);
+        AppendBit(&mut res, *bit != 0);
     }
     // let it = bits.iterAt(pos);
     // for (int i = 0; i < count; ++i, ++it)
