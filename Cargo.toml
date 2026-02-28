@@ -23,7 +23,7 @@ urlencoding = "2.1"
 uriparse = "0.6"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std", "oldtime"] }
 chrono-tz = "0.10"
-image = {version = "=0.25.8", optional = true, default-features = false}
+image = {version = "=0.25.9", optional = true, default-features = false}
 imageproc = {version = "0.25", optional = true}
 unicode-segmentation = "1.12"
 codepage-437 = "0.1"
