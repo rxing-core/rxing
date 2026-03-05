@@ -671,21 +671,21 @@ fn issue_69() {
 
 #[cfg(feature = "image")]
 #[test]
-fn issue_77_subtract_with_overflow() {
+fn issue_78_subtract_with_overflow() {
     use rxing::DecodeHints;
 
     let mut hints: DecodeHints =
         DecodeHints::default().with(rxing::DecodeHintValue::TryHarder(true));
 
     let mut data_1 = Vec::new();
-    std::fs::File::open("test_resources/blackbox/github_issue_cases/subtract-with-overflow-qrcode-detector-1-issue-77.bin")
+    std::fs::File::open("test_resources/blackbox/github_issue_cases/subtract-with-overflow-qrcode-detector-1-issue-78.bin")
         .unwrap()
         .read_to_end(&mut data_1)
         .unwrap();
     rxing::helpers::detect_multiple_in_luma_with_hints(data_1, 682, 504, &mut hints).unwrap_or_default();
 
     let mut data_2 = Vec::new();
-    std::fs::File::open("test_resources/blackbox/github_issue_cases/subtract-with-overflow-qrcode-detector-2-issue-77.bin")
+    std::fs::File::open("test_resources/blackbox/github_issue_cases/subtract-with-overflow-qrcode-detector-2-issue-78.bin")
         .unwrap()
         .read_to_end(&mut data_2)
         .unwrap();
@@ -693,7 +693,7 @@ fn issue_77_subtract_with_overflow() {
     rxing::helpers::detect_multiple_in_luma_with_hints(data_2, 678, 504, &mut hints).unwrap_or_default();
 
     let mut data_3 = Vec::new();
-    std::fs::File::open("test_resources/blackbox/github_issue_cases/subtract-with-overflow-version-issue-77.bin")
+    std::fs::File::open("test_resources/blackbox/github_issue_cases/subtract-with-overflow-version-issue-78.bin")
         .unwrap()
         .read_to_end(&mut data_3)
         .unwrap();
