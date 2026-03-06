@@ -439,8 +439,8 @@ impl<'a> Detector<'_> {
 
         let alignmentAreaTopY = 0.max(estAlignmentY as i32 - allowance as i32) as u32;
         let alignmentAreaBottomY = (self.image.getHeight() - 1).min(estAlignmentY + allowance);
-        let alignmentAreaHeight = alignmentAreaTopY
-            .checked_sub(alignmentAreaBottomY)
+        let alignmentAreaHeight = alignmentAreaBottomY
+            .checked_sub(alignmentAreaTopY)
             .ok_or(Exceptions::NOT_FOUND)?;
 
         if alignmentAreaHeight < overallEstModuleSize as u32 * 3 {
