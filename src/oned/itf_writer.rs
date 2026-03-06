@@ -47,28 +47,22 @@ impl OneDimensionalCodeWriter for ITFWriter {
 
         let mut result = vec![false; 9 + 9 * length];
         let mut pos = Self::appendPattern(&mut result, 0, &START_PATTERN, true) as usize;
-        let mut i = 0;
-        while i < length {
-            let one = contents
-                .chars()
-                .nth(i)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+
+        let cached_contents: Vec<char> = contents.chars().collect();
+        for chunk in cached_contents.chunks_exact(2) {
+            let one = chunk[0]
                 .to_digit(10)
                 .ok_or(Exceptions::PARSE)? as usize;
-            let two = contents
-                .chars()
-                .nth(i + 1)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+            let two = chunk[1]
                 .to_digit(10)
                 .ok_or(Exceptions::PARSE)? as usize;
+
             let mut encoding = [0; 10];
             for j in 0..5 {
                 encoding[2 * j] = PATTERNS[one][j];
                 encoding[2 * j + 1] = PATTERNS[two][j];
             }
             pos += Self::appendPattern(&mut result, pos, &encoding, true) as usize;
-
-            i += 2;
         }
         Self::appendPattern(&mut result, pos, &END_PATTERN, true);
 

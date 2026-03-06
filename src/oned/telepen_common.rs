@@ -35,13 +35,12 @@ pub fn numeric_to_ascii(contents: &str) -> Result<String> {
     }
 
     let mut ascii = Vec::with_capacity(contents.chars().count() / 2);
-    let mut i = 0;
 
-    let cached_contents = contents.chars().map(|c| c as u8).collect::<Vec<_>>();
+    let cached_contents: Vec<u8> = contents.chars().map(|c| c as u8).collect();
 
-    while i < cached_contents.len() {
-        let first = *cached_contents.get(i).unwrap();
-        let second = *cached_contents.get(i + 1).unwrap();
+    for (i, chunk) in cached_contents.chunks_exact(2).enumerate() {
+        let first = chunk[0];
+        let second = chunk[1];
 
         if second == 88 && (48..=57).contains(&first) {
             ascii.push((17 + first - 48) as char);
@@ -49,11 +48,10 @@ pub fn numeric_to_ascii(contents: &str) -> Result<String> {
             ascii.push((27 + (first - 48) * 10 + (second - 48)) as char);
         } else {
             return Err(Exceptions::illegal_argument_with(format!(
-                "Input contains an invalid character around position {i}."
+                "Input contains an invalid character around position {}.",
+                i * 2
             )));
         }
-
-        i += 2;
     }
 
     Ok(ascii.iter().collect())
