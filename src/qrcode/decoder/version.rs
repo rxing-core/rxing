@@ -146,10 +146,10 @@ impl Version {
      *
      * @param dimension dimension in modules
      * @return Version for a QR Code of that dimension
-     * @throws FormatException if dimension is not 1 mod 4
+     * @throws FormatException if dimension is not 1 mod 4 or dimension less than 17
      */
     pub fn getProvisionalVersionForDimension(dimension: u32) -> Result<VersionRef> {
-        if dimension % 4 != 1 {
+        if dimension % 4 != 1 || dimension < 17 {
             return Err(Exceptions::format_with("dimension incorrect"));
         }
         Self::getVersionForNumber((dimension - 17) / 4)

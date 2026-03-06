@@ -429,13 +429,21 @@ impl<'a> Detector<'_> {
         let allowance = (allowanceFactor * overallEstModuleSize) as u32;
         let alignmentAreaLeftX = 0.max(estAlignmentX as i32 - allowance as i32) as u32;
         let alignmentAreaRightX = (self.image.getWidth() - 1).min(estAlignmentX + allowance);
-        if ((alignmentAreaRightX - alignmentAreaLeftX) as f32) < overallEstModuleSize * 3.0 {
+        let alignmentAreaWidth = alignmentAreaRightX
+            .checked_sub(alignmentAreaLeftX)
+            .ok_or(Exceptions::NOT_FOUND)?;
+
+        if (alignmentAreaWidth as f32) < overallEstModuleSize * 3.0 {
             return Err(Exceptions::NOT_FOUND);
         }
 
         let alignmentAreaTopY = 0.max(estAlignmentY as i32 - allowance as i32) as u32;
         let alignmentAreaBottomY = (self.image.getHeight() - 1).min(estAlignmentY + allowance);
-        if alignmentAreaBottomY - alignmentAreaTopY < overallEstModuleSize as u32 * 3 {
+        let alignmentAreaHeight = alignmentAreaBottomY
+            .checked_sub(alignmentAreaTopY)
+            .ok_or(Exceptions::NOT_FOUND)?;
+
+        if alignmentAreaHeight < overallEstModuleSize as u32 * 3 {
             return Err(Exceptions::NOT_FOUND);
         }
 
@@ -443,8 +451,8 @@ impl<'a> Detector<'_> {
             self.image,
             alignmentAreaLeftX,
             alignmentAreaTopY,
-            alignmentAreaRightX - alignmentAreaLeftX,
-            alignmentAreaBottomY - alignmentAreaTopY,
+            alignmentAreaWidth,
+            alignmentAreaHeight,
             overallEstModuleSize,
             self.resultPointCallback.clone(),
         );
