@@ -17,11 +17,6 @@
 use crate::Exceptions;
 use crate::common::Result;
 
-#[cfg(all(not(feature = "encoding_rs"), not(feature = "legacy_encoding")))]
-compile_error!(
-    "Either feature 'encoding_rs' or 'legacy_encoding' must be enabled for CharacterSet support."
-);
-
 /**
  * Encapsulates a Character Set ECI, according to "Extended Channel Interpretations" 5.3.1.1
  * of ISO 18004.
@@ -141,6 +136,21 @@ impl CharacterSet {
             "unknown" => Some(CharacterSet::Unknown),
             _ => None,
         }
+    }
+}
+
+#[cfg(all(not(feature = "encoding_rs"), not(feature = "legacy_encoding")))]
+impl CharacterSet {
+    pub fn encode(&self, _input: &str) -> Result<Vec<u8>> {
+        unimplemented!()
+    }
+
+    pub fn encode_replace(&self, _input: &str) -> Result<Vec<u8>> {
+        unimplemented!()
+    }
+
+    pub fn decode(&self, _input: &[u8]) -> Result<String> {
+        unimplemented!()
     }
 }
 
