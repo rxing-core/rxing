@@ -45,6 +45,7 @@ default = [
     "image",
     "client_support",
     "image_formats",
+    "rayon",
     "serde",
     "encoding_rs",
     "encoders",
@@ -73,6 +74,10 @@ image_formats = [
     "image/exr",
     "image/ff",
 ]
+
+#/// Enable rayon-based parallelism inside imageproc operations (binarizers, filters).
+#/// Off by default; correctness is unaffected, this only speeds up image processing.
+rayon = ["image", "imageproc/rayon"]
 
 #/// Enable barcode encoders
 encoders = []
