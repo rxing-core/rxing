@@ -73,6 +73,7 @@ The following feature flags are available:
 ### Core & Engine
 * `image` (default): Enable features required for image manipulation and reading.
 * `image_formats` (default): Enabled by default. Compile all `image` crate image format support options.
+* `rayon` (default): Enabled by default. Turns on `rayon`-based parallelism inside the `imageproc` operations rxing uses (binarizers, filters).
 * `encoders` (default): Enable barcode encoders.
 * `decoders` (default): Enable barcode decoders.
 * `multi_barcode_readers` (default): Enable support for reading multiple barcodes in a single image.
@@ -106,6 +107,7 @@ default = [
     "image",
     "client_support",
     "image_formats",
+    "rayon",
     "serde",
     "encoding_rs",
     "encoders",
