@@ -740,11 +740,10 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
                 let mut i = 2;
                 while i < 2 * N + 2 && hori.len() < 2 {
                     let xi = x as isize + i as isize / 2 * (if i % 2 != 0 { 1 } else { -1 });
-                    if 0 <= xi && xi <= N as isize && apP.get(xi as usize, y).is_some() {
-                        hori.push(
-                            apP.get(xi as usize, y)
-                                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
-                        );
+                    if 0 <= xi && xi <= N as isize {
+                        if let Some(p) = apP.get(xi as usize, y) {
+                            hori.push(p);
+                        }
                     }
                     i += 1;
                 }
@@ -756,11 +755,10 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
                 let mut i = 2;
                 while i < 2 * N + 2 && verti.len() < 2 {
                     let yi = y as isize + i as isize / 2 * (if i % 2 != 0 { 1 } else { -1 });
-                    if 0 <= yi && yi <= N as isize && apP.get(x, yi as usize).is_some() {
-                        verti.push(
-                            apP.get(x, yi as usize)
-                                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
-                        );
+                    if 0 <= yi && yi <= N as isize {
+                        if let Some(p) = apP.get(x, yi as usize) {
+                            verti.push(p);
+                        }
                     }
                     i += 1;
                 }
