@@ -402,10 +402,6 @@ pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
     };
     let version = pversion;
 
-    let Ok(formatInfo) = ReadFormatInformation(bits) else {
-        return Err(Exceptions::format_with("Invalid format information"));
-    };
-
     // Read codewords
     let codewords = ReadCodewords(bits, version, &formatInfo)?;
     if codewords.is_empty() {
