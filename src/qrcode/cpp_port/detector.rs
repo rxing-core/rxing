@@ -347,7 +347,7 @@ pub fn EstimateModuleSize(image: &BitMatrix, a: ConcentricPattern, b: Concentric
     let pattern = pattern.unwrap();
 
     if !(IsPattern::<E2E, 5, 7, false>(
-        &PatternView::new(&PatternRow::new(pattern.to_vec())),
+        &PatternView::from_slice(&pattern),
         &PATTERN,
         None,
         0.0,
@@ -903,8 +903,7 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
             .readPatternFromBlack(1, Some((width / 3 + 1) as i32))
             .ok_or(Exceptions::NOT_FOUND)?;
 
-        let diag_hld = diagonal.to_vec().into();
-        let view = PatternView::new(&diag_hld);
+        let view = PatternView::from_slice(&diagonal);
         if !(IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0, 0.0) != 0.0) {
             return Err(Exceptions::NOT_FOUND);
         }
@@ -981,8 +980,7 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let diagonal: Pattern = EdgeTracer::new(image, point_i(left, top), point_i(1, 1))
         .readPatternFromBlack(1, None)
         .ok_or(Exceptions::ILLEGAL_STATE)?;
-    let diag_hld = diagonal.to_vec().into();
-    let view = PatternView::new(&diag_hld);
+    let view = PatternView::from_slice(&diagonal);
     if !(IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0, 0.0) != 0.0) {
         return Err(Exceptions::NOT_FOUND);
     }
@@ -1062,8 +1060,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let diagonal: Pattern = EdgeTracer::new(image, tl, point_i(1, 1))
         .readPatternFromBlack(1, None)
         .ok_or(Exceptions::ILLEGAL_STATE)?;
-    let diag_hld = diagonal.to_vec().into();
-    let view = PatternView::new(&diag_hld);
+    let view = PatternView::from_slice(&diagonal);
     if IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0, 0.0) == 0.0 {
         return Err(Exceptions::NOT_FOUND);
     }
@@ -1072,8 +1069,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let subdiagonal: SubPattern = EdgeTracer::new(image, br, point_i(-1, -1))
         .readPatternFromBlack(1, None)
         .ok_or(Exceptions::ILLEGAL_STATE)?;
-    let subdiagonal_hld = subdiagonal.to_vec().into();
-    let view = PatternView::new(&subdiagonal_hld);
+    let view = PatternView::from_slice(&subdiagonal);
     if IsPattern::<false, 4, 4, false>(&view, &SUBPATTERN, None, 0.0, 0.0, 0.0) == 0.0 {
         return Err(Exceptions::NOT_FOUND);
     }
@@ -1093,8 +1089,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         // skip corner / finder / sub pattern edge
         cur.stepToEdge(Some(2 + i32::from(cur.isWhite())), None, None);
         let timing: TimingPattern = cur.readPattern(None).ok_or(Exceptions::ILLEGAL_STATE)?;
-        let timing_hld = timing.to_vec().into();
-        let view = PatternView::new(&timing_hld);
+        let view = PatternView::from_slice(&timing);
         if IsPattern::<E2E, 10, 10, false>(&view, &TIMINGPATTERN, None, 0.0, 0.0, 0.0) == 0.0 {
             return Err(Exceptions::NOT_FOUND);
         }

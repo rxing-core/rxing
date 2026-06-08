@@ -103,7 +103,7 @@ impl Iterator for PatternViewIterator<'_> {
         self.current_position += 1;
 
         Some(
-            *self.pattern_view.data.0.get(
+            *self.pattern_view.data.get(
                 self.current_position - 1 + self.pattern_view.start + self.pattern_view.current,
             )?,
         )
@@ -112,7 +112,7 @@ impl Iterator for PatternViewIterator<'_> {
 
 #[derive(Debug, Clone, Copy)]
 pub struct PatternView<'a> {
-    data: &'a PatternRow,
+    data: &'a [PatternType],
     start: usize,
     count: usize,
     current: usize,
@@ -122,10 +122,15 @@ impl<'a> PatternView<'a> {
     // A PatternRow always starts with the width of whitespace in front of the first black bar.
     // The first element of the PatternView is the first bar.
     pub fn new(bars: &'a PatternRow) -> PatternView<'a> {
+        Self::from_slice(&bars.0)
+    }
+
+    /// Build a view directly over a slice of bars, avoiding an owning `PatternRow` allocation.
+    pub fn from_slice(bars: &'a [PatternType]) -> PatternView<'a> {
         PatternView {
             data: bars,
             start: 1,
-            count: bars.0.len(),
+            count: bars.len(),
             current: 0,
         }
     }
@@ -138,38 +143,37 @@ impl<'a> PatternView<'a> {
         _end: usize,
     ) -> PatternView<'a> {
         PatternView {
-            data: bars,
+            data: &bars.0,
             start,
             count: size,
             current: base,
         }
     }
 
-    pub fn data(&self) -> &PatternRow {
+    pub fn data(&self) -> &[PatternType] {
         self.data
     }
     pub fn begin(&self) -> Option<PatternType> {
-        Some(*self.data.0.get(self.start)?)
+        Some(*self.data.get(self.start)?)
     }
     pub fn end(&self) -> Option<PatternType> {
-        // if self.start + self.count < self.data.0.len() {
-        //     Some(self.data.0[self.start + self.count])
+        // if self.start + self.count < self.data.len() {
+        //     Some(self.data[self.start + self.count])
         // } else {
         //     None
         // }
-        Some(self.data.0.len() as PatternType)
+        Some(self.data.len() as PatternType)
     }
 
     // int sum(int n = 0) const { return std::accumulate(_data, _data + (n == 0 ? _size : n), 0); }
     pub fn sum(&self, n: Option<usize>) -> PatternType {
         if self.count == self.data.len() {
-            return self.data.0.iter().sum::<PatternType>();
+            return self.data.iter().sum::<PatternType>();
         }
 
         let n = n.unwrap_or(self.count);
 
         self.data
-            .0
             .iter()
             .skip(self.start + self.current)
             .take(n)
@@ -194,7 +198,6 @@ impl<'a> PatternView<'a> {
     }
     pub fn pixelsInFront(&self) -> PatternType {
         self.data
-            .0
             .iter()
             .take(self.start + self.current)
             .copied()
@@ -202,7 +205,6 @@ impl<'a> PatternView<'a> {
     }
     pub fn pixelsTillEnd(&self) -> PatternType {
         self.data
-            .0
             .iter()
             .take(self.start + self.current + self.count)
             .copied()
@@ -216,9 +218,9 @@ impl<'a> PatternView<'a> {
         self.current == self.start + self.count - 1 /*return _data + _size == _end - 1;*/
     }
     pub fn isValidWithN(&self, n: usize) -> bool {
-        !self.data.0.is_empty()
+        !self.data.is_empty()
             && self.start <= self.current + self.start
-            && self.current + n < (self.data.0.len())
+            && self.current + n < (self.data.len())
         /*return _data && _data >= _base && _data + n <= _end;*/
     }
     pub fn isValid(&self) -> bool {
@@ -227,14 +229,12 @@ impl<'a> PatternView<'a> {
 
     pub fn has_quiet_zone_before(&self, scale: f32, acceptIfAtFirstBar: Option<bool>) -> bool {
         (acceptIfAtFirstBar.unwrap_or(false) && self.isAtLastBar())
-            || Into::<f32>::into(self.data.0[self.count])
-                >= Into::<f32>::into(self.sum(None)) * scale
+            || Into::<f32>::into(self.data[self.count]) >= Into::<f32>::into(self.sum(None)) * scale
     }
 
     pub fn hasQuietZoneAfter(&self, scale: f32, acceptIfAtLastBar: Option<bool>) -> bool {
         (acceptIfAtLastBar.unwrap_or(true) && self.isAtLastBar())
-            || Into::<f32>::into(self.data.0[self.count])
-                >= Into::<f32>::into(self.sum(None)) * scale
+            || Into::<f32>::into(self.data[self.count]) >= Into::<f32>::into(self.sum(None)) * scale
     }
 
     pub fn subView(&self, offset: usize, size: Option<usize>) -> PatternView<'a> {
@@ -256,7 +256,7 @@ impl<'a> PatternView<'a> {
 
     pub fn shift(&mut self, n: usize) -> bool {
         self.current += n;
-        !self.data.0.is_empty() //&& self.start + self.count <= (self.start + self.count)
+        !self.data.is_empty() //&& self.start + self.count <= (self.start + self.count)
     }
 
     pub fn skipPair(&mut self) -> bool {
@@ -279,18 +279,18 @@ impl<'a> PatternView<'a> {
     }
 
     fn try_get_index(&self, index: isize) -> Option<PatternType> {
-        if index.abs() > self.data.0.len() as isize {
+        if index.abs() > self.data.len() as isize {
             return None;
         }
         if index >= 0 {
             let fetch_spot = ((self.start + self.current) as isize + index) as usize;
-            return Some(self.data.0[fetch_spot]);
+            return Some(self.data[fetch_spot]);
         }
         if index.abs() > (self.start + self.current) as isize {
             return None;
         }
         let fetch_spot = ((self.start + self.current) as isize + index) as usize;
-        Some(self.data.0[fetch_spot])
+        Some(self.data[fetch_spot])
     }
 }
 
@@ -302,18 +302,18 @@ impl std::ops::Index<isize> for PatternView<'_> {
             return &self.data[index.unsigned_abs()];
         }
 
-        if index > self.data.0.len() as isize {
+        if index > self.data.len() as isize {
             panic!("array index out of bounds")
         }
         if index >= 0 {
             let fetch_spot = ((self.start + self.current) as isize + index) as usize;
-            return &self.data.0[fetch_spot];
+            return &self.data[fetch_spot];
         }
         if index.abs() > self.start as isize {
             panic!("array index out of bounds")
         }
         let fetch_spot = ((self.start + self.current) as isize + index) as usize;
-        &self.data.0[fetch_spot]
+        &self.data[fetch_spot]
     }
 }
 
@@ -325,10 +325,10 @@ impl std::ops::Index<usize> for PatternView<'_> {
             return &self.data[index];
         }
 
-        if index > self.data.0.len() {
+        if index > self.data.len() {
             panic!("array index out of bounds")
         }
-        self.data.0.get(self.start + self.current + index).unwrap()
+        self.data.get(self.start + self.current + index).unwrap()
     }
 }
 
@@ -362,10 +362,10 @@ impl<'a, const LEN: usize> From<&PatternView<'a>> for [PatternType; LEN] {
 
 impl<'a> From<&PatternView<'a>> for &'a [PatternType] {
     fn from(value: &PatternView<'a>) -> Self {
-        if value.data.0.len() == value.count {
-            &value.data.0
+        if value.data.len() == value.count {
+            value.data
         } else {
-            &value.data.0[value.current + value.start..=value.current + value.start + value.count]
+            &value.data[value.current + value.start..=value.current + value.start + value.count]
         }
     }
 }
@@ -849,7 +849,7 @@ mod tests {
 
         let mut pv = PatternView::new(&p_row);
 
-        assert_eq!(pv.data().0, p_row.0);
+        assert_eq!(pv.data(), p_row.0.as_slice());
 
         assert_eq!(pv[0], 1_u16);
         assert_eq!(pv[1], 1_u16);
