@@ -26,17 +26,22 @@ use crate::qrcode::decoder::DataBlock;
 * @param numDataCodewords number of codewords that are data bytes
 * @return false if error correction fails
 */
-pub fn CorrectErrors(codewordBytes: &mut [u8], numDataCodewords: u32) -> Result<bool> {
-    // First read into an array of ints
+pub fn CorrectErrors(
+    codewordBytes: &mut [u8],
+    numDataCodewords: u32,
+    codewordsInts: &mut Vec<i32>,
+) -> Result<bool> {
+    // First read into an array of ints (reused scratch buffer)
     // std::vector<int> codewordsInts(codewordBytes.begin(), codewordBytes.end());
-    let mut codewordsInts: Vec<i32> = codewordBytes.iter().copied().map(|b| b as i32).collect();
+    codewordsInts.clear();
+    codewordsInts.extend(codewordBytes.iter().map(|&b| b as i32));
 
     let numECCodewords = ((codewordBytes.len() as u32) - numDataCodewords) as i32;
     let rs = ReedSolomonDecoder::new(get_predefined_genericgf(
         PredefinedGenericGF::QrCodeField256,
     ));
 
-    rs.decode(&mut codewordsInts, numECCodewords)?;
+    rs.decode(codewordsInts, numECCodewords)?;
 
     // if rs.decode(&mut codewordsInts, numECCodewords)? != 0
     // // if (!ReedSolomonDecode(GenericGF::QRCodeField256(), codewordsInts, numECCodewords))
@@ -422,11 +427,14 @@ pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
     let mut resultIterator = 0; //resultBytes.begin();
 
     // Error-correct and copy data blocks together into a stream of bytes
+    let mut codewordBytes: Vec<u8> = Vec::new();
+    let mut codewordsInts: Vec<i32> = Vec::new();
     for dataBlock in dataBlocks.iter() {
-        let mut codewordBytes = dataBlock.getCodewords().to_vec();
+        codewordBytes.clear();
+        codewordBytes.extend_from_slice(dataBlock.getCodewords());
         let numDataCodewords = dataBlock.getNumDataCodewords() as usize;
 
-        if !CorrectErrors(&mut codewordBytes, numDataCodewords as u32)? {
+        if !CorrectErrors(&mut codewordBytes, numDataCodewords as u32, &mut codewordsInts)? {
             return Err(Exceptions::CHECKSUM);
         }
 

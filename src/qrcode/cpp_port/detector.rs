@@ -98,9 +98,9 @@ pub fn FindFinderPatterns(
     let mut res: Vec<ConcentricPattern> = Vec::new();
     let mut y = skip - 1;
 
+    let mut row = PatternRow::default();
     while y < height {
         // for (int y = skip - 1; y < height; y += skip) {
-        let mut row = PatternRow::default();
         GetPatternRowTP(image, y, &mut row, false);
         let mut next: PatternView = PatternView::new(&row);
 
@@ -154,25 +154,18 @@ pub fn FindFinderPatterns(
 // Yields (dx, dy) offsets forming the square ring at exactly the given radius.
 // Calling for r in 0..=max_r covers every cell in the square exactly once with no duplicates.
 fn spiral(radius: i32) -> impl Iterator<Item = (i32, i32)> {
-    let mut pts = Vec::new();
-    if radius == 0 {
-        pts.push((0i32, 0i32));
-    } else {
-        let r = radius;
-        for x in -r..r {
-            pts.push((x, -r));
-        }
-        for y in -r..r {
-            pts.push((r, y));
-        }
-        for x in (-r + 1..=r).rev() {
-            pts.push((x, r));
-        }
-        for y in (-r + 1..=r).rev() {
-            pts.push((-r, y));
-        }
-    }
-    pts.into_iter()
+    let r = radius;
+    let center = (r == 0).then_some((0, 0));
+    let top = (-r..r).map(move |x| (x, -r));
+    let right = (-r..r).map(move |y| (r, y));
+    let bottom = (-r + 1..=r).rev().map(move |x| (x, r));
+    let left = (-r + 1..=r).rev().map(move |y| (-r, y));
+    center
+        .into_iter()
+        .chain(top)
+        .chain(right)
+        .chain(bottom)
+        .chain(left)
 }
 
 /**
@@ -236,13 +229,14 @@ pub fn GenerateFinderPatternSets(patterns: &mut FinderPatterns) -> FinderPattern
     const MAX_MODULE_COUNT: f64 = 177.0 * 1.5;
     const MAX_CANDIDATES: usize = 15;
 
+    let mut candidates: Vec<usize> = Vec::with_capacity(MAX_CANDIDATES * 2);
     for i in 0..nb_patterns.saturating_sub(2) {
         let c0 = &patterns[i];
         let max_dist = c0.size as f64 / 7.0 * MAX_MODULE_COUNT;
         let (cx, cy) = bin_idx(c0.p);
         let bin_radius = (max_dist / bin_size as f64).ceil() as i32;
 
-        let mut candidates: Vec<usize> = Vec::with_capacity(MAX_CANDIDATES * 2);
+        candidates.clear();
 
         'outer: for r in 0..=bin_radius {
             for (dx, dy) in spiral(r) {
@@ -726,6 +720,8 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
         }
 
         // go over the whole set of alignment patters again and try to fill any remaining gap by using available neighbors as guides
+        let mut hori = Vec::new();
+        let mut verti = Vec::new();
         for y in 0..=N {
             // for (int y = 0; y <= N; ++y) {
             for x in 0..=N {
@@ -735,8 +731,8 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
                 }
 
                 // find the two closest valid alignment pattern pixel positions both horizontally and vertically
-                let mut hori = Vec::new();
-                let mut verti = Vec::new();
+                hori.clear();
+                verti.clear();
                 let mut i = 2;
                 while i < 2 * N + 2 && hori.len() < 2 {
                     let xi = x as isize + i as isize / 2 * (if i % 2 != 0 { 1 } else { -1 });
