@@ -67,6 +67,25 @@ impl ReedSolomonDecoder {
         T: TryFrom<i32>,
     {
         let poly = GenericGFPoly::new(self.field, received)?;
+        // The error-location/magnitude search is `i32`-only; keep it monomorphization-free.
+        let corrections = self.computeCorrections(&poly, received.len(), twoS)?;
+        for &(position, error_magnitude) in &corrections {
+            let updated = GenericGF::addOrSubtract(i32::from(received[position]), error_magnitude);
+            received[position] = T::try_from(updated)
+                .map_err(|_| Exceptions::reed_solomon_with("error magnitude out of range"))?;
+        }
+        Ok(corrections.len())
+    }
+
+    /// Detect errors in `poly` and return the `(position, magnitude)` corrections to apply to the
+    /// received codewords. Returns an empty list when no errors are present. Non-generic so it is
+    /// compiled once regardless of the codeword type passed to [`decode`].
+    fn computeCorrections(
+        &self,
+        poly: &GenericGFPoly,
+        received_len: usize,
+        twoS: i32,
+    ) -> Result<Vec<(usize, i32)>> {
         let mut syndromeCoefficients = vec![0; twoS as usize];
         let mut noError = true;
         for i in 0..twoS {
@@ -79,7 +98,7 @@ impl ReedSolomonDecoder {
             }
         }
         if noError {
-            return Ok(0);
+            return Ok(Vec::new());
         }
         let Ok(syndrome) = GenericGFPoly::new::<i32>(self.field, &syndromeCoefficients) else {
             return Err(Exceptions::REED_SOLOMON);
@@ -93,23 +112,21 @@ impl ReedSolomonDecoder {
         let omega = &sigmaOmega[1];
         let errorLocations = self.findErrorLocations(sigma)?;
         let errorMagnitudes = self.findErrorMagnitudes(omega, &errorLocations)?;
+        let mut corrections = Vec::with_capacity(errorLocations.len());
         for (error_location, error_magnitude) in errorLocations.iter().zip(errorMagnitudes) {
             // for i in 0..errorLocations.len() {
             //for (int i = 0; i < errorLocations.length; i++) {
             let log_value = self.field.log(*error_location as i32)?;
-            if log_value > received.len() as i32 - 1 {
+            if log_value > received_len as i32 - 1 {
                 return Err(Exceptions::reed_solomon_with("Bad error location"));
             }
-            let position: isize = received.len() as isize - 1 - log_value as isize;
+            let position: isize = received_len as isize - 1 - log_value as isize;
             if position < 0 {
                 return Err(Exceptions::reed_solomon_with("Bad error location"));
             }
-            let updated =
-                GenericGF::addOrSubtract(i32::from(received[position as usize]), error_magnitude);
-            received[position as usize] = T::try_from(updated)
-                .map_err(|_| Exceptions::reed_solomon_with("error magnitude out of range"))?;
+            corrections.push((position as usize, error_magnitude));
         }
-        Ok(errorLocations.len())
+        Ok(corrections)
     }
 
     fn runEuclideanAlgorithm(

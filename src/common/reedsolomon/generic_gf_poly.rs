@@ -57,30 +57,27 @@ impl GenericGFPoly {
                 "coefficients cannot be empty",
             ));
         }
+        // The only generic work is widening to `i32`; trimming is done once in `from_coefficients`.
+        Self::from_coefficients(field, coefficients.iter().map(|&c| i32::from(c)).collect())
+    }
+
+    /// Build a polynomial from owned `i32` coefficients (most-significant first), stripping any
+    /// leading zeros. Non-generic so it is compiled once regardless of the input codeword type.
+    fn from_coefficients(field: GenericGFRef, mut coefficients: Vec<i32>) -> Result<Self> {
+        debug_assert!(!coefficients.is_empty());
+        if coefficients.len() > 1 && coefficients[0] == 0 {
+            // Leading term must be non-zero for anything except the constant polynomial "0"
+            match coefficients.iter().position(|&c| c != 0) {
+                // All zero: collapse to the monomial "0".
+                None => coefficients.truncate(1),
+                Some(first_non_zero) => {
+                    coefficients.drain(..first_non_zero);
+                }
+            }
+        }
         Ok(Self {
             field,
-            coefficients: {
-                let coefficients_length = coefficients.len();
-                if coefficients_length > 1 && i32::from(coefficients[0]) == 0 {
-                    // Leading term must be non-zero for anything except the constant polynomial "0"
-                    let mut first_non_zero = 1;
-                    while first_non_zero < coefficients_length
-                        && i32::from(coefficients[first_non_zero]) == 0
-                    {
-                        first_non_zero += 1;
-                    }
-                    if first_non_zero == coefficients_length {
-                        vec![0]
-                    } else {
-                        coefficients[first_non_zero..]
-                            .iter()
-                            .map(|&c| i32::from(c))
-                            .collect()
-                    }
-                } else {
-                    coefficients.iter().map(|&c| i32::from(c)).collect()
-                }
-            },
+            coefficients,
         })
     }
 
