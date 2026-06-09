@@ -5,7 +5,7 @@
 
 use crate::{
     Exceptions,
-    common::{BitMatrix, Result},
+    common::{BitArray, BitMatrix, Result},
 };
 
 pub type PatternType = u16;
@@ -725,9 +725,39 @@ pub fn GetPatternRowTP(matrix: &BitMatrix, r: u32, pr: &mut PatternRow, transpos
         matrix.getRow(r)
     };
 
-    let pixel_states: Vec<bool> = row.into();
+    // Compute the run-length pattern directly from the bit array, avoiding an
+    // intermediate Vec<bool> allocation (this runs for every scanned image row).
+    GetPatternRowFromBits(&row, pr)
+}
 
-    GetPatternRow(&pixel_states, pr)
+/// Run-length-encode a BitArray row into `p_row` (white run first, per `PatternRow` convention).
+fn GetPatternRowFromBits(b_row: &BitArray, p_row: &mut PatternRow) {
+    p_row.0.clear();
+
+    let mut current_color = Color::White;
+    let mut count: PatternType = 0;
+
+    for i in 0..b_row.get_size() {
+        let this_color = if b_row.get(i) {
+            Color::Black
+        } else {
+            Color::White
+        };
+        if current_color != this_color {
+            p_row.0.push(count);
+            count = 0;
+            current_color = this_color;
+        }
+        count += 1;
+    }
+
+    if count != 0 {
+        p_row.0.push(count);
+    }
+
+    if current_color == Color::Black {
+        p_row.0.push(0);
+    }
 }
 
 pub fn GetPatternRow<T: Into<PatternType> + Copy + Default + From<T>>(
