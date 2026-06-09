@@ -61,7 +61,11 @@ impl ReedSolomonDecoder {
      * @param twoS number of error-correction codewords available
      * @throws ReedSolomonException if decoding fails for any reason
      */
-    pub fn decode(&self, received: &mut [i32], twoS: i32) -> Result<usize> {
+    pub fn decode<T: Copy>(&self, received: &mut [T], twoS: i32) -> Result<usize>
+    where
+        i32: From<T>,
+        T: TryFrom<i32>,
+    {
         let poly = GenericGFPoly::new(self.field, received)?;
         let mut syndromeCoefficients = vec![0; twoS as usize];
         let mut noError = true;
@@ -77,7 +81,7 @@ impl ReedSolomonDecoder {
         if noError {
             return Ok(0);
         }
-        let Ok(syndrome) = GenericGFPoly::new(self.field, &syndromeCoefficients) else {
+        let Ok(syndrome) = GenericGFPoly::new::<i32>(self.field, &syndromeCoefficients) else {
             return Err(Exceptions::REED_SOLOMON);
         };
         let sigmaOmega = self.runEuclideanAlgorithm(
@@ -100,8 +104,10 @@ impl ReedSolomonDecoder {
             if position < 0 {
                 return Err(Exceptions::reed_solomon_with("Bad error location"));
             }
-            received[position as usize] =
-                GenericGF::addOrSubtract(received[position as usize], error_magnitude);
+            let updated =
+                GenericGF::addOrSubtract(i32::from(received[position as usize]), error_magnitude);
+            received[position as usize] = T::try_from(updated)
+                .map_err(|_| Exceptions::reed_solomon_with("error magnitude out of range"))?;
         }
         Ok(errorLocations.len())
     }

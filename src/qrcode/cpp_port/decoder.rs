@@ -26,38 +26,13 @@ use crate::qrcode::decoder::DataBlock;
 * @param numDataCodewords number of codewords that are data bytes
 * @return false if error correction fails
 */
-pub fn CorrectErrors(
-    codewordBytes: &mut [u8],
-    numDataCodewords: u32,
-    codewordsInts: &mut Vec<i32>,
-) -> Result<bool> {
-    // First read into an array of ints (reused scratch buffer)
-    // std::vector<int> codewordsInts(codewordBytes.begin(), codewordBytes.end());
-    codewordsInts.clear();
-    codewordsInts.extend(codewordBytes.iter().map(|&b| b as i32));
-
+pub fn CorrectErrors(codewordBytes: &mut [u8], numDataCodewords: u32) -> Result<bool> {
     let numECCodewords = ((codewordBytes.len() as u32) - numDataCodewords) as i32;
     let rs = ReedSolomonDecoder::new(get_predefined_genericgf(
         PredefinedGenericGF::QrCodeField256,
     ));
 
-    rs.decode(codewordsInts, numECCodewords)?;
-
-    // if rs.decode(&mut codewordsInts, numECCodewords)? != 0
-    // // if (!ReedSolomonDecode(GenericGF::QRCodeField256(), codewordsInts, numECCodewords))
-    // {
-    //     return Ok(false);
-    // }
-
-    // Copy back into array of bytes -- only need to worry about the bytes that were data
-    // We don't care about errors in the error-correction codewords
-    for (dst, &src) in codewordBytes[..numDataCodewords as usize]
-        .iter_mut()
-        .zip(&codewordsInts[..numDataCodewords as usize])
-    {
-        *dst = src as u8;
-    }
-    // std::copy_n(codewordsInts.begin(), numDataCodewords, codewordBytes.begin());
+    rs.decode(codewordBytes, numECCodewords)?;
 
     Ok(true)
 }
@@ -428,13 +403,12 @@ pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
 
     // Error-correct and copy data blocks together into a stream of bytes
     let mut codewordBytes: Vec<u8> = Vec::new();
-    let mut codewordsInts: Vec<i32> = Vec::new();
     for dataBlock in dataBlocks.iter() {
         codewordBytes.clear();
         codewordBytes.extend_from_slice(dataBlock.getCodewords());
         let numDataCodewords = dataBlock.getNumDataCodewords() as usize;
 
-        if !CorrectErrors(&mut codewordBytes, numDataCodewords as u32, &mut codewordsInts)? {
+        if !CorrectErrors(&mut codewordBytes, numDataCodewords as u32)? {
             return Err(Exceptions::CHECKSUM);
         }
 

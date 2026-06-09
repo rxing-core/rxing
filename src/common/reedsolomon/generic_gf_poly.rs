@@ -48,7 +48,10 @@ impl GenericGFPoly {
      * or if leading coefficient is 0 and this is not a
      * constant polynomial (that is, it is not the monomial "0")
      */
-    pub fn new(field: GenericGFRef, coefficients: &[i32]) -> Result<Self> {
+    pub fn new<T: Copy>(field: GenericGFRef, coefficients: &[T]) -> Result<Self>
+    where
+        i32: From<T>,
+    {
         if coefficients.is_empty() {
             return Err(Exceptions::illegal_argument_with(
                 "coefficients cannot be empty",
@@ -58,28 +61,24 @@ impl GenericGFPoly {
             field,
             coefficients: {
                 let coefficients_length = coefficients.len();
-                if coefficients_length > 1 && coefficients[0] == 0 {
+                if coefficients_length > 1 && i32::from(coefficients[0]) == 0 {
                     // Leading term must be non-zero for anything except the constant polynomial "0"
                     let mut first_non_zero = 1;
-                    while first_non_zero < coefficients_length && coefficients[first_non_zero] == 0
+                    while first_non_zero < coefficients_length
+                        && i32::from(coefficients[first_non_zero]) == 0
                     {
                         first_non_zero += 1;
                     }
                     if first_non_zero == coefficients_length {
                         vec![0]
                     } else {
-                        let mut new_coefficients = vec![0; coefficients_length - first_non_zero];
-                        let l = new_coefficients.len() - 1;
-                        new_coefficients[0..=l].clone_from_slice(&coefficients[first_non_zero..]);
-                        // System.arraycopy(coefficients,
-                        //     firstNonZero,
-                        //     this.coefficients,
-                        //     0,
-                        //     this.coefficients.length);
-                        new_coefficients
+                        coefficients[first_non_zero..]
+                            .iter()
+                            .map(|&c| i32::from(c))
+                            .collect()
                     }
                 } else {
-                    coefficients.to_vec()
+                    coefficients.iter().map(|&c| i32::from(c)).collect()
                 }
             },
         })
