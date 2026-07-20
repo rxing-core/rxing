@@ -181,7 +181,7 @@ impl RSS14Reader {
         let text = symbolValue.to_string();
 
         let mut buffer = String::with_capacity(14);
-        let padding = 13 - text.len();
+        let padding = 13_usize.saturating_sub(text.len());
         for _ in 0..padding {
             buffer.push('0');
         }
