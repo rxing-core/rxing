@@ -25,7 +25,9 @@ use crate::{
     point,
 };
 
-use super::aztec_detector_result::AztecDetectorRXingResult;
+use crate::aztec::{aztec_detector_result::AztecDetectorRXingResult, decoder};
+
+use super::zxing_cpp_detector;
 
 const EXPECTED_CORNER_BITS: [u32; 4] = [
     0xee0, // 07340  XXX .XX X.. ...
@@ -75,21 +77,52 @@ impl<'a> Detector<'_> {
      * @throws NotFoundException if no Aztec Code can be found
      */
     pub fn detect(&mut self, is_mirror: bool) -> Result<AztecDetectorRXingResult> {
-        // dbg!(self.image.to_string());
         // 1. Get the center of the aztec matrix
         let p_center = self.get_matrix_center();
 
-        // 2. Get the center points of the four diagonal points just outside the bull's eye
-        //  [topRight, bottomRight, bottomLeft, topLeft]
-        let mut bulls_eye_corners = self.get_bulls_eye_corners(p_center)?;
+        // 2. Get the center points of the four diagonal points just outside the bull's eye,
+        //  [topRight, bottomRight, bottomLeft, topLeft], and
+        // 3. get the size of the matrix and other parameters from the bull's eye.
+        //
+        // Try the zxing-cpp-derived concentric-pattern locator first (tolerant of the kind of
+        // single-ring imperfections that make the classic diagonal-walk search below fail on
+        // otherwise-valid symbols). A match from that locator isn't necessarily correct (it
+        // could, e.g., mistake a full symbol's bullseye for a compact one, or land close enough
+        // to pass the mode message's own small Reed-Solomon check by chance without actually
+        // being right), so it's only trusted if the *data* it leads to actually decodes;
+        // otherwise this falls back to the classic algorithm, so nothing that currently detects
+        // can regress.
+        if let Some(m) = zxing_cpp_detector::locate_bullseye(self.image, p_center) {
+            self.compact = m.compact;
+            self.nb_center_layers = m.nb_center_layers;
 
+            let mut corners = m.corners.0;
+            if is_mirror {
+                corners.swap(0, 2);
+            }
+
+            if self.extractParameters(&corners).is_ok() {
+                if let Ok(result) = self.build_result(&corners) {
+                    if decoder::decode(&result).is_ok() {
+                        return Ok(result);
+                    }
+                }
+            }
+        }
+
+        let mut bulls_eye_corners = self.get_bulls_eye_corners(p_center)?;
         if is_mirror {
             bulls_eye_corners.swap(0, 2);
         }
-
-        // 3. Get the size of the matrix and other parameters from the bull's eye
         self.extractParameters(&bulls_eye_corners)?;
+        self.build_result(&bulls_eye_corners)
+    }
 
+    /// Samples the grid (step 4) and gets the corners of the matrix (step 5), given
+    /// already-validated bull's eye corners (`self.shift`/`self.compact`/`self.nb_layers`/
+    /// `self.nb_data_blocks` must already be set, i.e. `extractParameters` must have already
+    /// succeeded).
+    fn build_result(&self, bulls_eye_corners: &[Point; 4]) -> Result<AztecDetectorRXingResult> {
         let src_quad = Quadrilateral::new(
             bulls_eye_corners[self.shift as usize % 4],
             bulls_eye_corners[(self.shift as usize + 1) % 4],
@@ -97,11 +130,8 @@ impl<'a> Detector<'_> {
             bulls_eye_corners[(self.shift as usize + 3) % 4],
         );
 
-        // 4. Sample the grid
         let bits = self.sample_grid(self.image, src_quad)?;
-
-        // 5. Get the corners of the matrix.
-        let corners = self.get_matrix_corner_points(&bulls_eye_corners);
+        let corners = self.get_matrix_corner_points(bulls_eye_corners);
 
         Ok(AztecDetectorRXingResult::new(
             bits,
@@ -236,14 +266,10 @@ impl<'a> Detector<'_> {
             parameterWords[i as usize] = (parameter_data & 0xF) as i32;
             parameter_data >>= 4;
         }
-        //try {
         let field =
             reedsolomon::get_predefined_genericgf(reedsolomon::PredefinedGenericGF::AztecParam);
         let rs_decoder = ReedSolomonDecoder::new(field);
         rs_decoder.decode(&mut parameterWords, num_eccodewords)?;
-        //} catch (ReedSolomonException ignored) {
-        //throw NotFoundException.getNotFoundInstance();
-        //}
         // Toss the error correction.  Just return the data as an integer
         let mut result: u32 = 0;
         for i in 0..num_data_codewords {

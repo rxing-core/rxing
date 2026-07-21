@@ -776,3 +776,50 @@ fn test_zero_size_image_issue_86() {
     let res = rxing::helpers::detect_multiple_in_luma_with_hints(data, 0, 0, &mut hints);
     assert!(res.is_err());
 }
+
+#[cfg(all(feature = "image", feature = "aztec"))]
+#[test]
+fn issue_92() {
+    use std::{sync::mpsc, thread, time::Duration};
+
+    use rxing::BarcodeFormat;
+
+    const IMAGE_1: &str = "test_resources/blackbox/github_issue_cases/issue_92_1.png";
+    const IMAGE_2: &str = "test_resources/blackbox/github_issue_cases/issue_92_2.jpg";
+
+    // Guard against a hang/deadlock regression, matching the original bug report, by running the
+    // unrestricted (no format hint) decode on a background
+    // thread with a timeout.
+    for file_name in [IMAGE_1, IMAGE_2] {
+        let (tx, rx) = mpsc::channel();
+        thread::spawn(move || {
+            use std::panic::{AssertUnwindSafe, catch_unwind};
+            let r = catch_unwind(AssertUnwindSafe(|| {
+                let _ = rxing::helpers::detect_in_file(file_name, None);
+            }));
+            let _ = tx.send(r);
+        });
+
+        match rx.recv_timeout(Duration::from_secs(10)) {
+            Ok(Ok(())) => {} // finished in time
+            Ok(Err(e)) => panic!("{file_name}: decode panicked with: {e:?}"),
+            Err(_) => panic!("{file_name}: decode timed out (hang regression)"),
+        }
+    }
+
+    // Forcing Aztec specifically (bypassing the unrelated 1D false-positive risk above)
+    // exercises the actual detector fix: image 1 should now decode.
+    let result_1 = rxing::helpers::detect_in_file(IMAGE_1, Some(BarcodeFormat::AZTEC));
+    assert!(
+        result_1.is_ok(),
+        "image 1 should now decode as Aztec: {result_1:?}"
+    );
+    assert_eq!(
+        result_1.unwrap().getBarcodeFormat(),
+        &BarcodeFormat::AZTEC
+    );
+
+    // Image 2 is a real photograph with distinct, more severe imaging noise not expected to
+    // decode yet, just to fail cleanly rather than hang or panic (already covered above).
+    let _ = rxing::helpers::detect_in_file(IMAGE_2, Some(BarcodeFormat::AZTEC));
+}

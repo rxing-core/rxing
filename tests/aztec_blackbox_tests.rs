@@ -61,3 +61,22 @@ fn aztec_black_box2_test_case() {
 
     tester.test_black_box();
 }
+
+/**
+ * Regression test for rxing-core/rxing#92 / zxing/zxing#1662: a compact Aztec symbol whose
+ * bullseye's classic diagonal-corner-walk detector (`get_bulls_eye_corners`) fails on, because
+ * one ring desyncs by a module between its four independently-walked corners. Covered by the
+ * zxing-cpp-derived concentric-pattern detector added in `aztec/detector/zxing_cpp_detector.rs`.
+ */
+#[cfg(feature = "image_formats")]
+#[test]
+fn aztec_black_box3_test_case() {
+    let mut tester = common::AbstractBlackBoxTestCase::new(
+        "test_resources/blackbox/aztec-3",
+        AztecReader {},
+        BarcodeFormat::AZTEC,
+    );
+    tester.add_test(1, 1, 0.0);
+
+    tester.test_black_box();
+}
