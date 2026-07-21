@@ -73,16 +73,16 @@ impl LuminanceSource for Luma8LuminanceSource {
         let dimensions = (width as u32, height as u32);
         // origin: (self.origin.0 + left as u32, self.origin.1 + top as u32),
         let data: Box<[u8]> = self
-                .data
-                .chunks_exact(self.dimensions.0 as usize)
-                .skip(top)
-                .take(height)
-                .flat_map(|f| f.iter().skip(left).take(width))
-                .copied()
-                .collect();
-           let inverted= self.inverted;
+            .data
+            .chunks_exact(self.dimensions.0 as usize)
+            .skip(top)
+            .take(height)
+            .flat_map(|f| f.iter().skip(left).take(width))
+            .copied()
+            .collect();
+        let inverted = self.inverted;
 
-           if width * height != data.len() {
+        if width * height != data.len() {
             // print!("Crop dimensions do not match the data length. width: {}, height: {}, data.len(): {}", width, height, data.len());
             return Err(crate::Exceptions::illegal_argument_with(
                 "Crop dimensions do not match the data length.",
@@ -90,8 +90,8 @@ impl LuminanceSource for Luma8LuminanceSource {
         }
 
         Ok(Self {
-            dimensions ,
-             data,
+            dimensions,
+            data,
             inverted,
         })
     }
@@ -182,7 +182,7 @@ impl Luma8LuminanceSource {
                 "Dimensions do not match the data length.",
             ));
         }
-       Ok(Self {
+        Ok(Self {
             dimensions: (width, height),
             data: source.into_boxed_slice(),
             inverted: false,

@@ -290,11 +290,10 @@ fn zxing_bench_grey_image_issue_raw_luma8() {
 
     let results = scanner
         .decode_multiple_with_hints(
-            &mut BinaryBitmap::new(HybridBinarizer::new(Luma8LuminanceSource::new(
-                img.to_luma8().into_raw(),
-                img.width(),
-                img.height(),
-            ).expect("must not fault during Luma8LuminanceSource creation"))),
+            &mut BinaryBitmap::new(HybridBinarizer::new(
+                Luma8LuminanceSource::new(img.to_luma8().into_raw(), img.width(), img.height())
+                    .expect("must not fault during Luma8LuminanceSource creation"),
+            )),
             &hints,
         )
         .expect("must not fault during read");
@@ -385,11 +384,10 @@ fn test_issue_49() {
 
     let results = scanner
         .decode_multiple_with_hints(
-            &mut BinaryBitmap::new(HybridBinarizer::new(Luma8LuminanceSource::new(
-                img.to_luma8().into_raw(),
-                img.width(),
-                img.height(),
-            ).expect("must not fault during Luma8LuminanceSource creation"))),
+            &mut BinaryBitmap::new(HybridBinarizer::new(
+                Luma8LuminanceSource::new(img.to_luma8().into_raw(), img.width(), img.height())
+                    .expect("must not fault during Luma8LuminanceSource creation"),
+            )),
             &hints,
         )
         .expect("must not fault during read");
@@ -427,11 +425,10 @@ fn test_issue_50() {
 
     let result = scanner
         .decode_with_hints(
-            &mut BinaryBitmap::new(HybridBinarizer::new(Luma8LuminanceSource::new(
-                img.to_luma8().into_raw(),
-                img.width(),
-                img.height(),
-            ).expect("must not fault during Luma8LuminanceSource creation"))),
+            &mut BinaryBitmap::new(HybridBinarizer::new(
+                Luma8LuminanceSource::new(img.to_luma8().into_raw(), img.width(), img.height())
+                    .expect("must not fault during Luma8LuminanceSource creation"),
+            )),
             &hints,
         )
         .expect("must not fault during read");
@@ -465,7 +462,8 @@ fn test_issue_50_2() {
     let result = scanner
         .decode_with_hints(
             &mut BinaryBitmap::new(AdaptiveThresholdBinarizer::new(
-                Luma8LuminanceSource::new(img.to_luma8().into_raw(), img.width(), img.height()).expect("must not fault during Luma8LuminanceSource creation")   ,
+                Luma8LuminanceSource::new(img.to_luma8().into_raw(), img.width(), img.height())
+                    .expect("must not fault during Luma8LuminanceSource creation"),
                 1,
             )),
             &hints,

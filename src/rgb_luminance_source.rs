@@ -110,7 +110,11 @@ impl LuminanceSource for RGBLuminanceSource {
 }
 
 impl RGBLuminanceSource {
-    pub fn new_with_width_height_pixels(width: usize, height: usize, pixels: &[u32]) -> Result<Self> {
+    pub fn new_with_width_height_pixels(
+        width: usize,
+        height: usize,
+        pixels: &[u32],
+    ) -> Result<Self> {
         let dataWidth = width;
         let dataHeight = height;
 

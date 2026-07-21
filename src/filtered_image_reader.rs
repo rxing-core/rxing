@@ -259,9 +259,5 @@ fn upscale_layer(source: &Luma8LuminanceSource, factor: u32) -> Option<Luma8Lumi
         }
     }
 
-    Luma8LuminanceSource::new(
-        resized_raw,
-        target_width as u32,
-        target_height as u32,
-    ).ok()
+    Luma8LuminanceSource::new(resized_raw, target_width as u32, target_height as u32).ok()
 }

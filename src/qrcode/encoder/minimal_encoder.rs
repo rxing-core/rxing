@@ -837,15 +837,12 @@ impl RXingResultList {
     }
 
     fn getSizeLocal(&self, version: VersionRef) -> u32 {
-        
-        self
-            .list
+        self.list
             .iter()
             .fold(0, |acc, node| acc + node.getSize(version))
     }
 
     fn internal_static_get_size(version: VersionRef, list: &[RXingResultNode]) -> u32 {
-        
         list.iter().fold(0, |acc, node| acc + node.getSize(version))
     }
 

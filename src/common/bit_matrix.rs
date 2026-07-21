@@ -215,12 +215,12 @@ impl BitMatrix {
     pub fn get(&self, x: u32, y: u32) -> bool {
         let offset = self.get_offset(y, x);
         if offset >= self.bits.len() {
-             false
+            false
+        } else if x >= self.width && y >= self.height {
+            false
+        } else {
+            ((self.bits[offset] >> (x as usize & BASE_SHIFT)) & 1) != 0
         }
-        else if x >= self.width && y >= self.height {
-             false
-        } else 
-        {((self.bits[offset] >> (x as usize & BASE_SHIFT)) & 1) != 0}
     }
 
     #[inline(always)]
@@ -251,11 +251,11 @@ impl BitMatrix {
         let offset = self.get_offset(y, x);
         if x >= self.width || y >= self.height {
             None
+        } else if offset >= self.bits.len() {
+            None
+        } else {
+            Some(((self.bits[offset] >> (x as usize & BASE_SHIFT)) & 1) != 0)
         }
-        else if offset >= self.bits.len() {
-             None
-        }
-        else {Some(((self.bits[offset] >> (x as usize & BASE_SHIFT)) & 1) != 0)}
     }
 
     #[inline(always)]
