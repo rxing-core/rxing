@@ -296,16 +296,31 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
             total_must_pass
         ));
 
+        let mut is_lax = false;
+        let mut lax_reasons = Vec::new();
+
         match total_found.cmp(&(total_must_pass as usize)) {
             std::cmp::Ordering::Less => log::warning(format!(
                 "--- Test failed by {} images",
                 total_must_pass as usize - total_found
             )),
             std::cmp::Ordering::Equal => { /* totally fine */ }
-            std::cmp::Ordering::Greater => log::warning(format!(
-                "+++ Test too lax by {} images",
-                total_found - total_must_pass as usize
-            )),
+            std::cmp::Ordering::Greater => {
+                let diff = total_found - total_must_pass as usize;
+                let msg = format!(
+                    "+++ Test too lax by {} images",
+                    diff
+                );
+                log::warning(msg.clone());
+                if diff > 6 {
+                    is_lax = true;
+                    lax_reasons.push(msg);
+                }
+            }
+        }
+
+        if is_lax && std::env::var("FAIL_ON_LAX").is_ok() {
+            panic!("Test is too lenient: {}", lax_reasons.join("; "));
         }
 
         // Then run through again and assert if any failed
@@ -565,28 +580,51 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
             total_must_pass
         ));
 
+        let mut is_lax = false;
+        let mut lax_reasons = Vec::new();
+
         match total_found.cmp(&(total_must_pass as usize)) {
             std::cmp::Ordering::Less => log::warning(format!(
                 "--- Test failed by {} images",
                 total_must_pass as usize - total_found
             )),
             std::cmp::Ordering::Equal => { /* totally ok */ }
-            std::cmp::Ordering::Greater => log::warning(format!(
-                "+++ Test too lax by {} images",
-                total_found - total_must_pass as usize
-            )),
+            std::cmp::Ordering::Greater => {
+                let diff = total_found - total_must_pass as usize;
+                let msg = format!(
+                    "+++ Test too lax by {} images",
+                    diff
+                );
+                log::warning(msg.clone());
+                if diff > 6 {
+                    is_lax = true;
+                    lax_reasons.push(msg);
+                }
+            }
         }
 
         match total_misread.cmp(&(total_max_misread as usize)) {
-            std::cmp::Ordering::Less => log::warning(format!(
-                "+++ Test expects too many misreads by {} images",
-                total_max_misread as usize - total_misread
-            )),
+            std::cmp::Ordering::Less => {
+                let diff = total_max_misread as usize - total_misread;
+                let msg = format!(
+                    "+++ Test expects too many misreads by {} images",
+                    diff
+                );
+                log::warning(msg.clone());
+                if diff > 6 {
+                    is_lax = true;
+                    lax_reasons.push(msg);
+                }
+            }
             std::cmp::Ordering::Equal => { /* this is fine */ }
             std::cmp::Ordering::Greater => log::warning(format!(
                 "--- Test had too many misreads by {} images",
                 total_misread - total_max_misread as usize
             )),
+        }
+
+        if is_lax && std::env::var("FAIL_ON_LAX").is_ok() {
+            panic!("Test is too lenient: {}", lax_reasons.join("; "));
         }
 
         // Then run through again and assert if any failed
@@ -847,12 +885,28 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
 }
 
 mod log {
+    fn get_log_level() -> u8 {
+        // 0 = WARN/ERROR, 1 = INFO, 2 = FINE/DEBUG
+        // default to 0 to keep tests clean and let warnings stand out
+        std::env::var("TEST_LOG").map(|val| {
+            match val.to_lowercase().as_str() {
+                "fine" | "debug" | "2" => 2,
+                "info" | "1" => 1,
+                _ => 0,
+            }
+        }).unwrap_or(0)
+    }
+
     pub fn info(data: String) {
-        prn("INFO", data)
+        if get_log_level() >= 1 {
+            prn("INFO", data)
+        }
     }
 
     pub fn fine(data: String) {
-        prn("FINE", data)
+        if get_log_level() >= 2 {
+            prn("FINE", data)
+        }
     }
 
     pub fn warning(data: String) {

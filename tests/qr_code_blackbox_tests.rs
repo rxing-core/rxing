@@ -31,11 +31,10 @@ fn qrcode_black_box1_test_case() {
         MultiFormatReader::default(),
         rxing::BarcodeFormat::QR_CODE,
     );
-    // super("src/test/resources/blackbox/qrcode-1", new MultiFormatReader(), BarcodeFormat.QR_CODE);
-    tester.add_test(17, 17, 0.0);
-    tester.add_test(14, 14, 90.0);
-    tester.add_test(17, 17, 180.0);
-    tester.add_test(14, 14, 270.0);
+    tester.add_test(20, 20, 0.0);
+    tester.add_test(20, 20, 90.0);
+    tester.add_test(20, 20, 180.0);
+    tester.add_test(20, 20, 270.0);
 
     tester.test_black_box();
 }
@@ -54,10 +53,10 @@ fn qrcode_black_box2_test_case() {
         // QRCodeReader {},
         BarcodeFormat::QR_CODE,
     );
-    tester.add_test(31, 31, 0.0);
-    tester.add_test(29, 29, 90.0);
-    tester.add_test(30, 30, 180.0);
-    tester.add_test(30, 30, 270.0);
+    tester.add_test(33, 33, 0.0);
+    tester.add_test(32, 32, 90.0);
+    tester.add_test(31, 31, 180.0);
+    tester.add_test(31, 31, 270.0);
 
     tester.test_black_box();
 }
@@ -74,9 +73,9 @@ fn qrcode_black_box3_test_case() {
         MultiFormatReader::default(),
         BarcodeFormat::QR_CODE,
     );
-    tester.add_test(38, 38, 0.0);
-    tester.add_test(39, 39, 90.0);
-    tester.add_test(36, 36, 180.0);
+    tester.add_test(42, 42, 0.0);
+    tester.add_test(42, 42, 90.0);
+    tester.add_test(42, 42, 180.0);
     tester.add_test(39, 39, 270.0);
 
     tester.test_black_box();
@@ -97,10 +96,10 @@ fn qrcode_black_box4_test_case() {
         // QRCodeReader::new(),
         BarcodeFormat::QR_CODE,
     );
-    tester.add_test(36, 36, 0.0);
-    tester.add_test(35, 35, 90.0);
-    tester.add_test(35, 35, 180.0);
-    tester.add_test(35, 35, 270.0);
+    tester.add_test(37, 37, 0.0);
+    tester.add_test(37, 37, 90.0);
+    tester.add_test(36, 36, 180.0);
+    tester.add_test(36, 36, 270.0);
 
     tester.test_black_box();
 }
@@ -143,9 +142,9 @@ fn qrcode_black_box6_test_case() {
         BarcodeFormat::QR_CODE,
     );
     tester.add_test(15, 15, 0.0);
-    tester.add_test(14, 14, 90.0);
-    tester.add_test(13, 13, 180.0);
-    tester.add_test(14, 14, 270.0);
+    tester.add_test(15, 15, 90.0);
+    tester.add_test(15, 15, 180.0);
+    tester.add_test(15, 15, 270.0);
 
     tester.test_black_box();
 }

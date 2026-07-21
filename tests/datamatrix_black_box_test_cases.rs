@@ -31,10 +31,10 @@ fn data_matrix_black_box1_test_case() {
         rxing::BarcodeFormat::DATA_MATRIX,
     );
     // super("src/test/resources/blackbox/datamatrix-1", new MultiFormatReader(), BarcodeFormat.DATA_MATRIX);
-    tester.add_test(27, 27, 0.0);
-    tester.add_test(21, 25, 90.0);
-    tester.add_test(21, 25, 180.0);
-    tester.add_test(21, 25, 270.0);
+    tester.add_test(29, 29, 0.0);
+    tester.add_test(27, 27, 90.0);
+    tester.add_test(27, 27, 180.0);
+    tester.add_test(27, 27, 270.0);
 
     tester.test_black_box();
 }
@@ -52,10 +52,10 @@ fn data_matrix_black_box2_test_case() {
     );
 
     // super("src/test/resources/blackbox/datamatrix-2", new MultiFormatReader(), BarcodeFormat.DATA_MATRIX);
-    tester.add_test_complex(13, 13, 0, 1, 0.0);
-    tester.add_test_complex(15, 15, 0, 1, 90.0);
-    tester.add_test_complex(17, 16, 0, 1, 180.0);
-    tester.add_test_complex(15, 15, 0, 1, 270.0);
+    tester.add_test_complex(18, 18, 0, 0, 0.0);
+    tester.add_test_complex(18, 18, 0, 0, 90.0);
+    tester.add_test_complex(18, 18, 0, 0, 180.0);
+    tester.add_test_complex(18, 18, 0, 0, 270.0);
     tester.test_black_box();
 }
 
@@ -73,7 +73,7 @@ fn data_matrix_black_box3_test_case() {
 
     // super("src/test/resources/blackbox/datamatrix-3", new MultiFormatReader(), BarcodeFormat.DATA_MATRIX);
     tester.add_test(18, 18, 0.0);
-    tester.add_test(17, 17, 90.0);
+    tester.add_test(18, 18, 90.0);
     tester.add_test(18, 18, 180.0);
     tester.add_test(18, 18, 270.0);
     tester.test_black_box();

@@ -34,7 +34,7 @@ fn upcablack_box1_test_case() {
 
     //  super("src/test/resources/blackbox/upca-1", new MultiFormatReader(), BarcodeFormat.UPC_A);
     tester.add_test_complex(14, 18, 0, 1, 0.0);
-    tester.add_test_complex(16, 18, 0, 1, 180.0);
+    tester.add_test_complex(16, 19, 0, 1, 180.0);
 
     tester.test_black_box()
 }
@@ -53,7 +53,7 @@ fn upcablack_box2_test_case() {
     );
 
     //   super("src/test/resources/blackbox/upca-2", new MultiFormatReader(), BarcodeFormat.UPC_A);
-    tester.add_test_complex(28, 36, 0, 2, 0.0);
+    tester.add_test_complex(29, 36, 0, 2, 0.0);
     tester.add_test_complex(29, 36, 0, 2, 180.0);
 
     tester.test_black_box()
@@ -93,8 +93,8 @@ fn upcablack_box4_test_case() {
     );
 
     //   super("src/test/resources/blackbox/upca-4", new MultiFormatReader(), BarcodeFormat.UPC_A);
-    tester.add_test_complex(9, 11, 0, 1, 0.0);
-    tester.add_test_complex(9, 11, 0, 1, 180.0);
+    tester.add_test_complex(9, 12, 0, 1, 0.0);
+    tester.add_test_complex(9, 12, 0, 1, 180.0);
 
     tester.test_black_box()
 }
@@ -113,7 +113,7 @@ fn upcablack_box5_test_case() {
     );
 
     //   super("src/test/resources/blackbox/upca-5", new MultiFormatReader(), BarcodeFormat.UPC_A);
-    tester.add_test_complex(20, 23, 0, 0, 0.0);
+    tester.add_test_complex(21, 23, 0, 0, 0.0);
     tester.add_test_complex(22, 23, 0, 0, 180.0);
 
     tester.test_black_box()

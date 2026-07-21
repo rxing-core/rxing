@@ -34,7 +34,7 @@ fn ean13_black_box1_test_case() {
 
     //  super("src/test/resources/blackbox/ean13-1", new MultiFormatReader(), BarcodeFormat.EAN_13);
     tester.add_test(30, 32, 0.0);
-    tester.add_test(27, 32, 180.0);
+    tester.add_test(28, 32, 180.0);
 
     tester.test_black_box()
 }

@@ -33,8 +33,8 @@ fn telepen_alpha_test_case() {
         BarcodeFormat::TELEPEN,
     );
     // super("src/test/resources/blackbox/Telepen-1", new MultiFormatReader(), BarcodeFormat.Telepen);
-    tester.add_test(NUMTESTS, 2, 0.0);
-    tester.add_test(NUMTESTS, 2, 180.0);
+    tester.add_test(NUMTESTS, NUMTESTS, 0.0);
+    tester.add_test(NUMTESTS, NUMTESTS, 180.0);
 
     tester.test_black_box();
 }
@@ -48,7 +48,7 @@ fn telepen_numeric_test_case() {
         BarcodeFormat::TELEPEN,
     );
 
-    tester.add_test_complex(7, 1, 0, 0, 0.0);
+    tester.add_test_complex(7, 7, 0, 0, 0.0);
     tester.add_hint(
         rxing::DecodeHintType::TELEPEN_AS_NUMERIC,
         rxing::DecodeHintValue::TelepenAsNumeric(true),
