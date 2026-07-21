@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::print;
 
 use crate::LuminanceSource;
 use crate::common::Result;
