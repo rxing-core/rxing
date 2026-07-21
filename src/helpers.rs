@@ -346,7 +346,7 @@ pub fn detect_in_luma_with_hints(
     multi_format_reader.decode_with_hints(
         &mut BinaryBitmap::new(HybridBinarizer::new(Luma8LuminanceSource::new(
             luma, width, height,
-        ))),
+        )?)),
         hints,
     )
 }
@@ -391,7 +391,7 @@ pub fn detect_in_luma_filtered_with_hints(
     multi_format_reader.decode_with_hints(
         &mut BinaryBitmap::new(HybridBinarizer::new(Luma8LuminanceSource::new(
             luma, width, height,
-        ))),
+        )?)),
         hints,
     )
 }
@@ -421,7 +421,7 @@ pub fn detect_multiple_in_luma_with_hints(
     scanner.decode_multiple_with_hints(
         &mut BinaryBitmap::new(HybridBinarizer::new(Luma8LuminanceSource::new(
             luma, width, height,
-        ))),
+        )?)),
         hints,
     )
 }

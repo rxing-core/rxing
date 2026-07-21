@@ -85,7 +85,7 @@ impl LuminanceSource for RGBLuminanceSource {
                 .chunks_exact(self.dataWidth)
                 .skip(top)
                 .take(height)
-                .flat_map(|row| row.iter().skip(left))
+                .flat_map(|row| row.iter().skip(left).take(width))
                 .copied()
                 .collect(),
             self.dataWidth,
@@ -110,7 +110,7 @@ impl LuminanceSource for RGBLuminanceSource {
 }
 
 impl RGBLuminanceSource {
-    pub fn new_with_width_height_pixels(width: usize, height: usize, pixels: &[u32]) -> Self {
+    pub fn new_with_width_height_pixels(width: usize, height: usize, pixels: &[u32]) -> Result<Self> {
         let dataWidth = width;
         let dataHeight = height;
 
@@ -119,6 +119,13 @@ impl RGBLuminanceSource {
         //
         // Total number of pixels suffices, can ignore shape
         let size = width * height;
+
+        if size != pixels.len() {
+            return Err(Exceptions::illegal_argument_with(
+                "Dimensions do not match the data length.",
+            ));
+        }
+
         let mut luminances: Vec<u8> = vec![0; size];
         for offset in 0..size {
             let pixel = pixels[offset];
@@ -128,14 +135,14 @@ impl RGBLuminanceSource {
             // Calculate green-favouring average cheaply
             luminances[offset] = ((r + g2 + b) / 4) as u8;
         }
-        Self {
+        Ok(Self {
             luminances: luminances.into_boxed_slice(),
             dataWidth,
             dataHeight,
             width,
             height,
             invert: false,
-        }
+        })
     }
 
     fn new_complex(

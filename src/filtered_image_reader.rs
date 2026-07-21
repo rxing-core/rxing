@@ -37,7 +37,7 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
             image.get_source().get_matrix().into_owned(),
             orig_w as u32,
             orig_h as u32,
-        );
+        )?;
         let orig_min_dim = std::cmp::min(orig_w, orig_h);
 
         // Build upscale pyramid from the original before moving it into LumImagePyramid.
@@ -259,9 +259,9 @@ fn upscale_layer(source: &Luma8LuminanceSource, factor: u32) -> Option<Luma8Lumi
         }
     }
 
-    Some(Luma8LuminanceSource::new(
+    Luma8LuminanceSource::new(
         resized_raw,
         target_width as u32,
         target_height as u32,
-    ))
+    ).ok()
 }

@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::print;
 
 use crate::LuminanceSource;
 use crate::common::Result;
@@ -63,29 +64,35 @@ impl LuminanceSource for Luma8LuminanceSource {
     }
 
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
-        Ok(Self {
-            dimensions: (width as u32, height as u32),
-            // origin: (self.origin.0 + left as u32, self.origin.1 + top as u32),
-            data: self
+        if left + width > self.get_width() || top + height > self.get_height() {
+            return Err(crate::Exceptions::illegal_argument_with(
+                "Crop rectangle does not fit within image data.",
+            ));
+        }
+
+        let dimensions = (width as u32, height as u32);
+        // origin: (self.origin.0 + left as u32, self.origin.1 + top as u32),
+        let data: Box<[u8]> = self
                 .data
                 .chunks_exact(self.dimensions.0 as usize)
                 .skip(top)
+                .take(height)
                 .flat_map(|f| f.iter().skip(left).take(width))
-                .map(|byte| Self::invert_if_should(*byte, self.inverted))
-                .collect(),
-            // data: self
-            //     .data
-            //     .iter()
-            //     .skip((self.dimensions.0 as usize * top) as usize) // Skip to the desired top
-            //     .take((height * self.dimensions.0 as usize) as usize) // take only the height desired
-            //     .collect::<Vec<&u8>>() // collect for chunks_exact
-            //     .chunks_exact(self.dimensions.0 as usize) // Chunk data by rows
-            //     .flat_map(|f| f.iter().skip((left) as usize).take(width).copied()) // flatten this all out
-            //     .copied() // copy it over so that it's u8
-            //     .map(|byte| Self::invert_if_should(byte, self.inverted))
-            //     .collect(), // collect into a vec
-            inverted: self.inverted,
-            // original_dimension: self.original_dimension,
+                .copied()
+                .collect();
+           let inverted= self.inverted;
+
+           if width * height != data.len() {
+            // print!("Crop dimensions do not match the data length. width: {}, height: {}, data.len(): {}", width, height, data.len());
+            return Err(crate::Exceptions::illegal_argument_with(
+                "Crop dimensions do not match the data length.",
+            ));
+        }
+
+        Ok(Self {
+            dimensions ,
+             data,
+            inverted,
         })
     }
 
@@ -169,12 +176,17 @@ impl Luma8LuminanceSource {
 }
 
 impl Luma8LuminanceSource {
-    pub fn new(source: Vec<u8>, width: u32, height: u32) -> Self {
-        Self {
+    pub fn new(source: Vec<u8>, width: u32, height: u32) -> Result<Self> {
+        if width * height != source.len() as u32 {
+            return Err(crate::Exceptions::illegal_argument_with(
+                "Dimensions do not match the data length.",
+            ));
+        }
+       Ok(Self {
             dimensions: (width, height),
             data: source.into_boxed_slice(),
             inverted: false,
-        }
+        })
     }
 
     pub fn with_empty_image(width: usize, height: usize) -> Self {
@@ -205,9 +217,9 @@ mod tests {
 
         let src_rect = vec![0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0];
 
-        let square = Luma8LuminanceSource::new(src_square, 3, 3);
-        let rect_tall = Luma8LuminanceSource::new(src_rect.clone(), 3, 4);
-        let rect_wide = Luma8LuminanceSource::new(src_rect, 4, 3);
+        let square = Luma8LuminanceSource::new(src_square, 3, 3).unwrap();
+        let rect_tall = Luma8LuminanceSource::new(src_rect.clone(), 3, 4).unwrap();
+        let rect_wide = Luma8LuminanceSource::new(src_rect, 4, 3).unwrap();
 
         let rotated_square = square.rotate_counter_clockwise().expect("rotate");
         // print_matrix(&src_rect, 4, 3);

@@ -215,9 +215,12 @@ impl BitMatrix {
     pub fn get(&self, x: u32, y: u32) -> bool {
         let offset = self.get_offset(y, x);
         if offset >= self.bits.len() {
-            return false;
+             false
         }
-        ((self.bits[offset] >> (x as usize & BASE_SHIFT)) & 1) != 0
+        else if x >= self.width && y >= self.height {
+             false
+        } else 
+        {((self.bits[offset] >> (x as usize & BASE_SHIFT)) & 1) != 0}
     }
 
     #[inline(always)]
@@ -246,14 +249,20 @@ impl BitMatrix {
 
     pub fn try_get(&self, x: u32, y: u32) -> Option<bool> {
         let offset = self.get_offset(y, x);
-        if offset >= self.bits.len() {
-            return None;
+        if x >= self.width || y >= self.height {
+            None
         }
-        Some(((self.bits[offset] >> (x as usize & BASE_SHIFT)) & 1) != 0)
+        else if offset >= self.bits.len() {
+             None
+        }
+        else {Some(((self.bits[offset] >> (x as usize & BASE_SHIFT)) & 1) != 0)}
     }
 
     #[inline(always)]
     pub fn try_get_point(&self, point: Point) -> Option<bool> {
+        if point.isNAN() || point.isNegative() {
+            return None;
+        }
         self.try_get(point.x as u32, point.y as u32)
     }
 

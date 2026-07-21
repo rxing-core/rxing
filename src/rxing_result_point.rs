@@ -61,6 +61,16 @@ impl From<PointU> for Point {
     }
 }
 
+impl PointF {
+    pub fn isNegative(&self) -> bool {
+        self.x < 0.0 || self.y < 0.0
+    }
+
+    pub fn isNAN(&self) -> bool {
+        self.x.is_nan() || self.y.is_nan()
+    }
+}
+
 /** An alias for `Point::new`. */
 #[inline]
 pub const fn point<T>(x: T, y: T) -> PointT<T>

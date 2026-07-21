@@ -144,7 +144,7 @@ impl DetectionRXingResult {
 
     fn adjustRowNumbersFromBothRI(&mut self) {
         if self.detectionRXingResultColumns[0].is_none()
-            && self.detectionRXingResultColumns[self.barcodeColumnCount + 1].is_none()
+            || self.detectionRXingResultColumns[self.barcodeColumnCount + 1].is_none()
         {
             return;
         }

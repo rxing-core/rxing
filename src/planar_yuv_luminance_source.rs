@@ -285,7 +285,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
 
         // If the width matches the full width of the underlying data, perform a single copy.
         if width == self.data_width {
-            matrix[0..area].clone_from_slice(&self.yuv_data[inputOffset..area]);
+            matrix[0..area].clone_from_slice(&self.yuv_data[inputOffset..inputOffset + area]);
             if self.invert {
                 matrix = self.invert_block_of_bytes(matrix);
             }
@@ -316,6 +316,11 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
     }
 
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
+        if left + width > self.get_width() || top + height > self.get_height() {
+            return Err(crate::Exceptions::illegal_argument_with(
+                "Crop rectangle does not fit within image data.",
+            ));
+        }
         Ok(Self {
             yuv_data: self.yuv_data.clone(),
             data_width: self.data_width,

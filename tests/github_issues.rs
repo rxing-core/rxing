@@ -294,7 +294,7 @@ fn zxing_bench_grey_image_issue_raw_luma8() {
                 img.to_luma8().into_raw(),
                 img.width(),
                 img.height(),
-            ))),
+            ).expect("must not fault during Luma8LuminanceSource creation"))),
             &hints,
         )
         .expect("must not fault during read");
@@ -389,7 +389,7 @@ fn test_issue_49() {
                 img.to_luma8().into_raw(),
                 img.width(),
                 img.height(),
-            ))),
+            ).expect("must not fault during Luma8LuminanceSource creation"))),
             &hints,
         )
         .expect("must not fault during read");
@@ -431,7 +431,7 @@ fn test_issue_50() {
                 img.to_luma8().into_raw(),
                 img.width(),
                 img.height(),
-            ))),
+            ).expect("must not fault during Luma8LuminanceSource creation"))),
             &hints,
         )
         .expect("must not fault during read");
@@ -465,7 +465,7 @@ fn test_issue_50_2() {
     let result = scanner
         .decode_with_hints(
             &mut BinaryBitmap::new(AdaptiveThresholdBinarizer::new(
-                Luma8LuminanceSource::new(img.to_luma8().into_raw(), img.width(), img.height()),
+                Luma8LuminanceSource::new(img.to_luma8().into_raw(), img.width(), img.height()).expect("must not fault during Luma8LuminanceSource creation")   ,
                 1,
             )),
             &hints,
@@ -814,10 +814,7 @@ fn issue_92() {
         result_1.is_ok(),
         "image 1 should now decode as Aztec: {result_1:?}"
     );
-    assert_eq!(
-        result_1.unwrap().getBarcodeFormat(),
-        &BarcodeFormat::AZTEC
-    );
+    assert_eq!(result_1.unwrap().getBarcodeFormat(), &BarcodeFormat::AZTEC);
 
     // Image 2 is a real photograph with distinct, more severe imaging noise not expected to
     // decode yet, just to fail cleanly rather than hang or panic (already covered above).
