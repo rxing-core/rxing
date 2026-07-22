@@ -52,6 +52,7 @@ Please note that currently UPC/EAN Extension 2/5 is supported.
 The following feature flags are available:
 * `image`: Enable features required for image manipulation and reading.
 * `image_formats`: Enabled by default. Compile all `image` crate image format support options.
+* `rayon`: Enabled by default. Turns on `rayon`-based parallelism inside the `imageproc` operations rxing uses (binarizers, filters).
 * `allow_forced_iso_ied_18004_compliance`: Allows the ability to force ISO/IED 18004 compliance. Leave disabled unless specificially needed.
 * `client_support`: Enable the client library. This is used for parsing the result of barcodes.
 * `svg_write`: Enable support for writing SVG files
@@ -66,7 +67,7 @@ The following feature flags are available:
 * `encoding_rs`: Enabled by default. Uses the modern `encoding_rs` crate for high-performance, WHATWG-compliant character encoding support.
 * `legacy_encoding`: Provides the original encoding behavior using the legacy `encoding` crate. Use this if you require exact compatibility with older versions or specific non-standard character mappings.
 
-The default feature set includes the `image`, `client_support`, `image_formats`, and `encoding_rs` features mentioned above.
+The default feature set includes the `image`, `client_support`, `image_formats`, `rayon`, and `encoding_rs` features mentioned above.
 
 ## Incomplete
 The library has only been thurougly tested with the `BufferedImageLuminanceSource` source format. Using any other

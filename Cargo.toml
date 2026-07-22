@@ -24,7 +24,7 @@ uriparse = {version = "0.6", optional = true}
 chrono = { version = "0.4", default-features = false, features = ["clock", "std", "oldtime"] }
 chrono-tz = {version = "0.10", optional = true}
 image = {version = "=0.25.8", optional = true, default-features = false}
-imageproc = {version = "0.25", optional = true}
+imageproc = {version = "0.25", optional = true, default-features = false}
 unicode-segmentation = "1.13"
 codepage-437 = {version = "0.1", optional = true}
 rxing-one-d-proc-derive = {version = "0.9", path ="./crates/one-d-proc-derive", optional = true}
@@ -45,6 +45,7 @@ default = [
     "image",
     "client_support",
     "image_formats",
+    "rayon",
     "serde",
     "encoding_rs",
     "encoders",
@@ -73,6 +74,10 @@ image_formats = [
     "image/exr",
     "image/ff",
 ]
+
+#/// Enable rayon-based parallelism inside imageproc operations (binarizers, filters).
+#/// Off by default; correctness is unaffected, this only speeds up image processing.
+rayon = ["image", "imageproc/rayon"]
 
 #/// Enable barcode encoders
 encoders = []
