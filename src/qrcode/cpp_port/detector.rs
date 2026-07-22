@@ -98,9 +98,9 @@ pub fn FindFinderPatterns(
     let mut res: Vec<ConcentricPattern> = Vec::new();
     let mut y = skip - 1;
 
+    let mut row = PatternRow::default();
     while y < height {
         // for (int y = skip - 1; y < height; y += skip) {
-        let mut row = PatternRow::default();
         GetPatternRowTP(image, y, &mut row, false);
         let mut next: PatternView = PatternView::new(&row);
 
@@ -154,25 +154,18 @@ pub fn FindFinderPatterns(
 // Yields (dx, dy) offsets forming the square ring at exactly the given radius.
 // Calling for r in 0..=max_r covers every cell in the square exactly once with no duplicates.
 fn spiral(radius: i32) -> impl Iterator<Item = (i32, i32)> {
-    let mut pts = Vec::new();
-    if radius == 0 {
-        pts.push((0i32, 0i32));
-    } else {
-        let r = radius;
-        for x in -r..r {
-            pts.push((x, -r));
-        }
-        for y in -r..r {
-            pts.push((r, y));
-        }
-        for x in (-r + 1..=r).rev() {
-            pts.push((x, r));
-        }
-        for y in (-r + 1..=r).rev() {
-            pts.push((-r, y));
-        }
-    }
-    pts.into_iter()
+    let r = radius;
+    let center = (r == 0).then_some((0, 0));
+    let top = (-r..r).map(move |x| (x, -r));
+    let right = (-r..r).map(move |y| (r, y));
+    let bottom = (-r + 1..=r).rev().map(move |x| (x, r));
+    let left = (-r + 1..=r).rev().map(move |y| (-r, y));
+    center
+        .into_iter()
+        .chain(top)
+        .chain(right)
+        .chain(bottom)
+        .chain(left)
 }
 
 /**
@@ -236,13 +229,14 @@ pub fn GenerateFinderPatternSets(patterns: &mut FinderPatterns) -> FinderPattern
     const MAX_MODULE_COUNT: f64 = 177.0 * 1.5;
     const MAX_CANDIDATES: usize = 15;
 
+    let mut candidates: Vec<usize> = Vec::with_capacity(MAX_CANDIDATES * 2);
     for i in 0..nb_patterns.saturating_sub(2) {
         let c0 = &patterns[i];
         let max_dist = c0.size as f64 / 7.0 * MAX_MODULE_COUNT;
         let (cx, cy) = bin_idx(c0.p);
         let bin_radius = (max_dist / bin_size as f64).ceil() as i32;
 
-        let mut candidates: Vec<usize> = Vec::with_capacity(MAX_CANDIDATES * 2);
+        candidates.clear();
 
         'outer: for r in 0..=bin_radius {
             for (dx, dy) in spiral(r) {
@@ -347,7 +341,7 @@ pub fn EstimateModuleSize(image: &BitMatrix, a: ConcentricPattern, b: Concentric
     let pattern = pattern.unwrap();
 
     if !(IsPattern::<E2E, 5, 7, false>(
-        &PatternView::new(&PatternRow::new(pattern.to_vec())),
+        &PatternView::from_slice(&pattern),
         &PATTERN,
         None,
         0.0,
@@ -726,6 +720,8 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
         }
 
         // go over the whole set of alignment patters again and try to fill any remaining gap by using available neighbors as guides
+        let mut hori = Vec::new();
+        let mut verti = Vec::new();
         for y in 0..=N {
             // for (int y = 0; y <= N; ++y) {
             for x in 0..=N {
@@ -735,16 +731,15 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
                 }
 
                 // find the two closest valid alignment pattern pixel positions both horizontally and vertically
-                let mut hori = Vec::new();
-                let mut verti = Vec::new();
+                hori.clear();
+                verti.clear();
                 let mut i = 2;
                 while i < 2 * N + 2 && hori.len() < 2 {
                     let xi = x as isize + i as isize / 2 * (if i % 2 != 0 { 1 } else { -1 });
-                    if 0 <= xi && xi <= N as isize && apP.get(xi as usize, y).is_some() {
-                        hori.push(
-                            apP.get(xi as usize, y)
-                                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
-                        );
+                    if 0 <= xi && xi <= N as isize {
+                        if let Some(p) = apP.get(xi as usize, y) {
+                            hori.push(p);
+                        }
                     }
                     i += 1;
                 }
@@ -756,11 +751,10 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
                 let mut i = 2;
                 while i < 2 * N + 2 && verti.len() < 2 {
                     let yi = y as isize + i as isize / 2 * (if i % 2 != 0 { 1 } else { -1 });
-                    if 0 <= yi && yi <= N as isize && apP.get(x, yi as usize).is_some() {
-                        verti.push(
-                            apP.get(x, yi as usize)
-                                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
-                        );
+                    if 0 <= yi && yi <= N as isize {
+                        if let Some(p) = apP.get(x, yi as usize) {
+                            verti.push(p);
+                        }
                     }
                     i += 1;
                 }
@@ -903,8 +897,7 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
             .readPatternFromBlack(1, Some((width / 3 + 1) as i32))
             .ok_or(Exceptions::NOT_FOUND)?;
 
-        let diag_hld = diagonal.to_vec().into();
-        let view = PatternView::new(&diag_hld);
+        let view = PatternView::from_slice(&diagonal);
         if !(IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0, 0.0) != 0.0) {
             return Err(Exceptions::NOT_FOUND);
         }
@@ -981,8 +974,7 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let diagonal: Pattern = EdgeTracer::new(image, point_i(left, top), point_i(1, 1))
         .readPatternFromBlack(1, None)
         .ok_or(Exceptions::ILLEGAL_STATE)?;
-    let diag_hld = diagonal.to_vec().into();
-    let view = PatternView::new(&diag_hld);
+    let view = PatternView::from_slice(&diagonal);
     if !(IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0, 0.0) != 0.0) {
         return Err(Exceptions::NOT_FOUND);
     }
@@ -1062,8 +1054,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let diagonal: Pattern = EdgeTracer::new(image, tl, point_i(1, 1))
         .readPatternFromBlack(1, None)
         .ok_or(Exceptions::ILLEGAL_STATE)?;
-    let diag_hld = diagonal.to_vec().into();
-    let view = PatternView::new(&diag_hld);
+    let view = PatternView::from_slice(&diagonal);
     if IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0, 0.0) == 0.0 {
         return Err(Exceptions::NOT_FOUND);
     }
@@ -1072,8 +1063,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let subdiagonal: SubPattern = EdgeTracer::new(image, br, point_i(-1, -1))
         .readPatternFromBlack(1, None)
         .ok_or(Exceptions::ILLEGAL_STATE)?;
-    let subdiagonal_hld = subdiagonal.to_vec().into();
-    let view = PatternView::new(&subdiagonal_hld);
+    let view = PatternView::from_slice(&subdiagonal);
     if IsPattern::<false, 4, 4, false>(&view, &SUBPATTERN, None, 0.0, 0.0, 0.0) == 0.0 {
         return Err(Exceptions::NOT_FOUND);
     }
@@ -1093,8 +1083,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         // skip corner / finder / sub pattern edge
         cur.stepToEdge(Some(2 + i32::from(cur.isWhite())), None, None);
         let timing: TimingPattern = cur.readPattern(None).ok_or(Exceptions::ILLEGAL_STATE)?;
-        let timing_hld = timing.to_vec().into();
-        let view = PatternView::new(&timing_hld);
+        let view = PatternView::from_slice(&timing);
         if IsPattern::<E2E, 10, 10, false>(&view, &TIMINGPATTERN, None, 0.0, 0.0, 0.0) == 0.0 {
             return Err(Exceptions::NOT_FOUND);
         }

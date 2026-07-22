@@ -6,9 +6,7 @@ use crate::{
     Point,
     common::{
         BitMatrix, Quadrilateral,
-        cpp_essentials::{
-            Direction, FixedPattern, IsPattern, PatternRow, PatternType, PatternView,
-        },
+        cpp_essentials::{Direction, FixedPattern, IsPattern, PatternType, PatternView},
     },
     point,
 };
@@ -110,7 +108,7 @@ pub fn CheckSymmetricPattern<
     }
 
     assert!(range > 0);
-    let mut res: PatternRow = PatternRow::new(vec![0; LEN]);
+    let mut res: [PatternType; LEN] = [0; LEN];
     let s_2 = (res.len()) / 2;
     res[s_2] = (centerFwd + centerBwd - 1) as u16; // -1 because the starting pixel is counted twice
     range -= res[s_2] as i32;
@@ -131,7 +129,7 @@ pub fn CheckSymmetricPattern<
     }
 
     if IsPattern::<E2E, LEN, SUM, false>(
-        &PatternView::new(&res),
+        &PatternView::from_slice(&res),
         &FixedPattern::<LEN, SUM, false>::with_reference(pattern),
         None,
         0.0,
