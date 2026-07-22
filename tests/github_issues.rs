@@ -818,3 +818,27 @@ fn issue_92() {
     // decode yet, just to fail cleanly rather than hang or panic (already covered above).
     let _ = rxing::helpers::detect_in_file(IMAGE_2, Some(BarcodeFormat::AZTEC));
 }
+
+/// <https://github.com/rxing-core/rxing/issues/62>
+///
+/// R7 (one-module-line-high) rMQR symbols failed to decode: `SampleRMQR`'s
+/// `intersectQuads` must rotate the finder/sub pattern quads into canonical
+/// orientation in place (as the C++ version does via pass-by-reference) because
+/// the `dim.y <= 9` transform is built directly from their corner accessors.
+#[cfg(feature = "image")]
+#[test]
+fn issue_62_rmqr_r7() {
+    use rxing::{BarcodeFormat, DecodeHintValue, DecodeHints};
+
+    const FILE_NAME: &str = "test_resources/blackbox/github_issue_cases/rmqr_R7x59_issue_62.png";
+
+    let mut hints = DecodeHints::default().with(DecodeHintValue::TryHarder(true));
+    let result = rxing::helpers::detect_in_file_with_hints(FILE_NAME, None, &mut hints)
+        .expect("R7x59 rMQR symbol must decode");
+
+    assert_eq!(
+        result.getBarcodeFormat(),
+        &BarcodeFormat::RECTANGULAR_MICRO_QR_CODE
+    );
+    assert_eq!(result.getText(), "This is ");
+}

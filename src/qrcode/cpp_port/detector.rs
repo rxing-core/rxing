@@ -1231,7 +1231,7 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
 
 pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetectorResult> {
     // TODO proper
-    let Some(fpQuad) = FindConcentricPatternCorners(image, fp.p, fp.size, 2) else {
+    let Some(mut fpQuad) = FindConcentricPatternCorners(image, fp.p, fp.size, 2) else {
         return Err(Exceptions::NOT_FOUND);
     };
 
@@ -1308,7 +1308,9 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
     let dim = Version::SymbolSize(bestFI.microVersion, Type::RectMicro);
 
     // TODO: this is a WIP
-    let intersectQuads = |a: &Quadrilateral, b: &Quadrilateral| -> Result<Quadrilateral> {
+    // NOTE: like the C++ version, this rotates `a` and `b` into canonical orientation in place;
+    // the `dim.y <= 9` branch below depends on that side effect.
+    let intersectQuads = |a: &mut Quadrilateral, b: &mut Quadrilateral| -> Result<Quadrilateral> {
         let tl = a.center();
         let br = b.center();
         // rotate points such that topLeft of a is furthest away from b and topLeft of b is closest to a
@@ -1342,8 +1344,9 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
                 .ok_or(Exceptions::FORMAT)? as i32;
         // let offsetB = std::min_element(b.begin(), b.end(), dist2A) - b.begin();
 
-        let a = a.rotated_corners(Some(offsetA), None);
-        let b = b.rotated_corners(Some(offsetB), None);
+        *a = a.rotated_corners(Some(offsetA), None);
+        *b = b.rotated_corners(Some(offsetB), None);
+        let (a, b) = (*a, *b);
         // a = RotatedCorners(a, offsetA);
         // b = RotatedCorners(b, offsetB);
         let tr = (RegressionLine::intersect(
@@ -1389,9 +1392,9 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
     ) {
         // if ( found  ) {
         // log(*found, 2);
-        if let Some(spQuad) = FindConcentricPatternCorners(image, found, fp.size / 2, 1) {
+        if let Some(mut spQuad) = FindConcentricPatternCorners(image, found, fp.size / 2, 1) {
             // if (auto spQuad = FindConcentricPatternCorners(image, *found, fp.size / 2, 1)) {
-            let mut dest = intersectQuads(&fpQuad, &spQuad)?;
+            let mut dest = intersectQuads(&mut fpQuad, &mut spQuad)?;
             if dim.y <= 9 {
                 bestPT = PerspectiveTransform::quadrilateralToQuadrilateral(
                     Quadrilateral::from([
