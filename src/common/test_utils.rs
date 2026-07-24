@@ -49,12 +49,12 @@ impl LuminanceSource for MockLuminanceSource {
         Some(Cow::Borrowed(&self.luminances[offset..offset + self.width]))
     }
 
-    fn get_column(&self, x: usize) -> Vec<u8> {
+    fn get_column(&self, x: usize) -> Cow<'_, [u8]> {
         let mut column = Vec::with_capacity(self.height);
         for y in 0..self.height {
             column.push(self.luminances[y * self.width + x]);
         }
-        column
+        Cow::Owned(column)
     }
 
     fn get_matrix(&self) -> Cow<'_, [u8]> {

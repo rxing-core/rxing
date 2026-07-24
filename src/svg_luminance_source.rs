@@ -12,7 +12,7 @@ impl LuminanceSource for SVGLuminanceSource {
         self.0.get_row(y)
     }
 
-    fn get_column(&self, x: usize) -> Vec<u8> {
+    fn get_column(&self, x: usize) -> Cow<'_, [u8]> {
         self.0.get_column(x)
     }
 

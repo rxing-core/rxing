@@ -1,6 +1,7 @@
 use crate::common::{BitMatrix, HybridBinarizer, Result};
 use crate::{
-    Binarizer, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource, LuminanceSource, Reader,
+    Binarizer, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource, Luma8Source,
+    LuminanceSource, Reader,
 };
 
 pub const DEFAULT_DOWNSCALE_THRESHHOLD: usize = 500;
@@ -33,11 +34,10 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
     ) -> crate::common::Result<crate::RXingResult> {
         let orig_w = image.get_source().get_width();
         let orig_h = image.get_source().get_height();
-        let original_luma = Luma8LuminanceSource::new(
-            image.get_source().get_matrix().into_owned(),
-            orig_w as u32,
-            orig_h as u32,
-        )?;
+        // Borrow the source's matrix instead of copying it; the pyramid's base
+        // layer is then a zero-copy view for sources whose matrix is borrowable.
+        let matrix = image.get_source().get_matrix();
+        let original_luma = Luma8Source::new_with_slice(&matrix, orig_w as u32, orig_h as u32)?;
         let orig_min_dim = std::cmp::min(orig_w, orig_h);
 
         // Build upscale pyramid from the original before moving it into LumImagePyramid.
@@ -104,12 +104,12 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
 }
 
 #[derive(Debug, Clone, Default)]
-struct LumImagePyramid {
-    pub layers: Vec<Luma8LuminanceSource>,
+struct LumImagePyramid<'a> {
+    pub layers: Vec<Luma8Source<'a>>,
 }
 
-impl LumImagePyramid {
-    pub fn new(image: Luma8LuminanceSource, threshold: usize, factor: usize) -> Option<Self> {
+impl<'a> LumImagePyramid<'a> {
+    pub fn new(image: Luma8Source<'a>, threshold: usize, factor: usize) -> Option<Self> {
         let mut new_self = Self::default();
 
         new_self.layers.push(image);
@@ -187,13 +187,12 @@ impl LumImagePyramid {
 
 impl<B: Binarizer> BinaryBitmap<B> {
     pub fn close(&mut self) -> Result<()> {
-        if let Some(matrix) = self.matrix.get_mut() {
-            let mut tmp = BitMatrix::new(matrix.width(), matrix.height())?;
-            // dilate
-            SumFilter(matrix, &mut tmp, |sum| sum > 0);
-            // erode
-            SumFilter(&tmp, matrix, |sum| sum == 9);
-        }
+        let matrix = self.get_black_matrix_mut();
+        let mut tmp = BitMatrix::new(matrix.width(), matrix.height())?;
+        // dilate
+        SumFilter(matrix, &mut tmp, |sum| sum > 0);
+        // erode
+        SumFilter(&tmp, matrix, |sum| sum == 9);
         Ok(())
     }
 }
@@ -217,7 +216,7 @@ where
     }
 }
 
-fn upscale_layer(source: &Luma8LuminanceSource, factor: u32) -> Option<Luma8LuminanceSource> {
+fn upscale_layer(source: &Luma8Source<'_>, factor: u32) -> Option<Luma8LuminanceSource> {
     let width = source.get_width();
     let height = source.get_height();
     if width == 0 || height == 0 {

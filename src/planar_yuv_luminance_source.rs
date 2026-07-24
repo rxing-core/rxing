@@ -261,7 +261,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
         }
     }
 
-    fn get_column(&self, _x: usize) -> Vec<u8> {
+    fn get_column(&self, _x: usize) -> Cow<'_, [u8]> {
         unimplemented!()
     }
 

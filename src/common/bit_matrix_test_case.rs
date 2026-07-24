@@ -398,3 +398,32 @@ fn get_input(width: u32, height: u32) -> BitMatrix {
     }
     result
 }
+
+#[test]
+fn flip_self_keeps_padding_bits_clear() {
+    // width 10 leaves 54 padding bits in each row's single backing word
+    let mut m = BitMatrix::new(10, 10).unwrap();
+    m.set(3, 4);
+    m.set(6, 7);
+    m.flip_self();
+    assert_eq!(
+        m.getEnclosingRectangle(),
+        Some([0, 0, 10, 10]),
+        "flipped-empty area must span exactly the matrix, not the padding"
+    );
+    assert!(!m.get(3, 4));
+    assert!(m.get(0, 0));
+
+    // widths at, just past, and at multiples of the word boundary
+    for w in [64u32, 65, 128] {
+        let mut m = BitMatrix::new(w, 3).unwrap();
+        m.flip_self();
+        assert_eq!(m.getEnclosingRectangle(), Some([0, 0, w, 3]), "width {w}");
+        m.flip_self();
+        assert_eq!(
+            m.getEnclosingRectangle(),
+            None,
+            "double flip restores empty, width {w}"
+        );
+    }
+}

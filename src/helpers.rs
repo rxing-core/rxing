@@ -351,6 +351,55 @@ pub fn detect_in_luma_with_hints(
     )
 }
 
+/// Decode a barcode from a borrowed luma8 buffer without copying it.
+/// Zero-copy counterpart of [`detect_in_luma`].
+#[cfg(feature = "decoders")]
+pub fn detect_in_luma_slice(
+    luma: &[u8],
+    width: u32,
+    height: u32,
+    barcode_type: Option<BarcodeFormat>,
+) -> Result<RXingResult> {
+    detect_in_luma_slice_with_hints(
+        luma,
+        width,
+        height,
+        barcode_type,
+        &mut DecodeHints::default(),
+    )
+}
+
+/// Decode a barcode from a borrowed luma8 buffer without copying it.
+/// Zero-copy counterpart of [`detect_in_luma_with_hints`].
+#[cfg(feature = "decoders")]
+pub fn detect_in_luma_slice_with_hints(
+    luma: &[u8],
+    width: u32,
+    height: u32,
+    barcode_type: Option<BarcodeFormat>,
+    hints: &mut DecodeHints,
+) -> Result<RXingResult> {
+    if width == 0 || height == 0 {
+        return Err(Exceptions::illegal_argument_with(
+            "Both dimensions must be greater than 0",
+        ));
+    }
+    let mut multi_format_reader = MultiFormatReader::default();
+
+    if let Some(bc_type) = barcode_type {
+        hints.PossibleFormats = Some(HashSet::from([bc_type]));
+    }
+
+    hints.TryHarder = hints.TryHarder.or(Some(true));
+
+    multi_format_reader.decode_with_hints(
+        &mut BinaryBitmap::new(HybridBinarizer::new(crate::Luma8Source::new_with_slice(
+            luma, width, height,
+        )?)),
+        hints,
+    )
+}
+
 #[cfg(feature = "decoders")]
 pub fn detect_in_luma_filtered(
     luma: Vec<u8>,

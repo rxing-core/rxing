@@ -22,7 +22,7 @@ impl<LS: LuminanceSource> OtsuLevelBinarizer<LS> {
             let Some(buff): Option<ImageBuffer<Luma<u8>, Vec<u8>>> = ImageBuffer::from_vec(
                 source.get_width() as u32,
                 source.get_height() as u32,
-                source.get_matrix(),
+                source.get_matrix().into_owned(),
             ) else {
                 return Err(Exceptions::ILLEGAL_ARGUMENT);
             };

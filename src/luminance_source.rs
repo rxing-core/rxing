@@ -50,8 +50,9 @@ pub trait LuminanceSource {
      */
     fn get_row(&self, y: usize) -> Option<Cow<'_, [u8]>>;
 
-    /// Get a column of of the image
-    fn get_column(&self, x: usize) -> Vec<u8>;
+    /// Get a column of the image. Borrowed only when the underlying storage
+    /// makes a column contiguous; otherwise an owned copy.
+    fn get_column(&self, x: usize) -> Cow<'_, [u8]>;
 
     /**
      * Fetches luminance data for the underlying bitmap. Values should be fetched using:

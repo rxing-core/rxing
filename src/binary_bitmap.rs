@@ -37,6 +37,7 @@ use crate::{
 pub struct BinaryBitmap<B: Binarizer> {
     binarizer: B,
     pub(crate) matrix: OnceCell<BitMatrix>,
+    inverted: bool,
 }
 
 impl<B: Binarizer> BinaryBitmap<B> {
@@ -44,6 +45,7 @@ impl<B: Binarizer> BinaryBitmap<B> {
         Self {
             matrix: OnceCell::new(),
             binarizer,
+            inverted: false,
         }
     }
 
@@ -73,12 +75,38 @@ impl<B: Binarizer> BinaryBitmap<B> {
      * @throws NotFoundException if row can't be binarized
      */
     pub fn get_black_row(&self, y: usize) -> Result<Cow<'_, BitArray>> {
-        self.binarizer.get_black_row(y)
+        if self.inverted {
+            let matrix = self.matrix.get().expect("invert() builds the matrix");
+            // Match the binarizer path's contract: an out-of-range row is an
+            // error, not a panic from indexing the flipped matrix.
+            if y >= matrix.height() as usize {
+                return Err(crate::Exceptions::INDEX_OUT_OF_BOUNDS);
+            }
+            Ok(Cow::Owned(matrix.getRow(y as u32)))
+        } else {
+            self.binarizer.get_black_row(y)
+        }
     }
 
     /// Get a row or column of the image
     pub fn get_black_line(&self, l: usize, lt: LineOrientation) -> Result<Cow<'_, BitArray>> {
-        self.binarizer.get_black_line(l, lt)
+        if self.inverted {
+            let matrix = self.matrix.get().expect("invert() builds the matrix");
+            let bound = match lt {
+                LineOrientation::Row => matrix.height(),
+                LineOrientation::Column => matrix.width(),
+            };
+            if l >= bound as usize {
+                return Err(crate::Exceptions::INDEX_OUT_OF_BOUNDS);
+            }
+            let line = match lt {
+                LineOrientation::Row => matrix.getRow(l as u32),
+                LineOrientation::Column => matrix.getCol(l as u32),
+            };
+            Ok(Cow::Owned(line))
+        } else {
+            self.binarizer.get_black_line(l, lt)
+        }
     }
 
     /**
@@ -91,74 +119,59 @@ impl<B: Binarizer> BinaryBitmap<B> {
      *
      * @return The 2D array of bits for the image (true means black).
      * @throws NotFoundException if image can't be binarized to make a matrix
+     */
+    /// Fallback used when the binarizer cannot produce a matrix at all.
+    fn empty_matrix(width: usize, height: usize) -> BitMatrix {
+        if width == 0 || height == 0 {
+            BitMatrix::new(1, 1).unwrap()
+        } else {
+            BitMatrix::new(width as u32, height as u32).unwrap()
+        }
+    }
+
+    /**
+     * Mutable access to the black matrix. Copy-on-write: the first call copies
+     * the binarizer's cached matrix into this bitmap so that local mutations
+     * (inversion, morphological closing) never corrupt the binarizer's cache.
      */
     pub fn get_black_matrix_mut(&mut self) -> &mut BitMatrix {
-        // The matrix is created on demand the first time it is requested, then cached. There are two
-        // reasons for this:
-        // 1. This work will never be done if the caller only installs 1D Reader objects, or if a
-        //    1D Reader finds a barcode before the 2D Readers run.
-        // 2. This work will only be done once even if the caller installs multiple 2D Readers.
-        // if self.matrix.borrow().is_none() {
-        // _=self.matrix.replace(Some(self.binarizer.get_black_matrix().unwrap().clone()));
-        //     // self.matrix.get_mut() = ;
-        // }
-        // &mut self.matrix.get_mut().unwrap()
-        self.matrix
-            .get_or_init(|| match self.binarizer.get_black_matrix() {
-                Ok(a) => a.clone(),
-                Err(_) => {
-                    let w = self.get_width() as u32;
-                    let h = self.get_height() as u32;
-                    if w == 0 || h == 0 {
-                        BitMatrix::new(1, 1).unwrap()
-                    } else {
-                        BitMatrix::new(w, h).unwrap()
-                    }
-                }
-            });
-        self.matrix.get_mut().unwrap()
+        if self.matrix.get().is_none() {
+            let built = match self.binarizer.get_black_matrix() {
+                Ok(matrix) => matrix.clone(),
+                Err(_) => Self::empty_matrix(self.get_width(), self.get_height()),
+            };
+            let _ = self.matrix.set(built);
+        }
+        self.matrix.get_mut().expect("populated above")
     }
 
     /**
-     * Converts a 2D array of luminance data to 1 bit. As above, assume this method is expensive
-     * and do not call it repeatedly. This method is intended for decoding 2D barcodes and may or
-     * may not apply sharpening. Therefore, a row from this matrix may not be identical to one
-     * fetched using getBlackRow(), so don't mix and match between them.
-     *
-     * Panics if the binarizer cannot be created.
-     *
-     * @return The 2D array of bits for the image (true means black).
-     * @throws NotFoundException if image can't be binarized to make a matrix
+     * Converts a 2D array of luminance data to 1 bit. The matrix is computed
+     * lazily by the binarizer and cached there; this method borrows that cache
+     * directly (no copy) unless this bitmap holds a locally-modified copy
+     * (after `invert()` or `close()`), which then takes precedence.
      */
     pub fn get_black_matrix(&self) -> &BitMatrix {
-        // The matrix is created on demand the first time it is requested, then cached. There are two
-        // reasons for this:
-        // 1. This work will never be done if the caller only installs 1D Reader objects, or if a
-        //    1D Reader finds a barcode before the 2D Readers run.
-        // 2. This work will only be done once even if the caller installs multiple 2D Readers.
-        // if self.matrix.borrow().is_none() {
-        // _= self.matrix.replace(Some(match self.binarizer.get_black_matrix() {
-        //         Ok(a) => a.clone(),
-        //         Err(_) => {
-        //             BitMatrix::new(self.get_width() as u32, self.get_height() as u32).unwrap()
-        //         }
-        //     }));
-        //     // self.binarizer.get_black_matrix().unwrap_or_else( |_| BitMatrix::new(self.get_width() as u32, self.get_height() as u32).unwrap()).clone())
-        // }
-        // &self.matrix.borrow().as_ref().unwrap()
-        self.matrix
-            .get_or_init(|| match self.binarizer.get_black_matrix() {
-                Ok(a) => a.clone(),
-                Err(_) => {
-                    let w = self.get_width() as u32;
-                    let h = self.get_height() as u32;
-                    if w == 0 || h == 0 {
-                        BitMatrix::new(1, 1).unwrap()
-                    } else {
-                        BitMatrix::new(w, h).unwrap()
-                    }
-                }
-            })
+        if let Some(matrix) = self.matrix.get() {
+            return matrix;
+        }
+        match self.binarizer.get_black_matrix() {
+            Ok(matrix) => matrix,
+            Err(_) => self
+                .matrix
+                .get_or_init(|| Self::empty_matrix(self.get_width(), self.get_height())),
+        }
+    }
+
+    /// Switch between the normal and the inverted view of the image.
+    ///
+    /// Flips the cached black matrix (building it first if necessary) and
+    /// routes `get_black_row` / `get_black_line` through the flipped matrix,
+    /// so 1D readers see the inverted image too. Calling it again restores
+    /// the original view.
+    pub fn invert(&mut self) {
+        self.get_black_matrix_mut().flip_self();
+        self.inverted = !self.inverted;
     }
 
     /**
@@ -185,10 +198,17 @@ impl<B: Binarizer> BinaryBitmap<B> {
             .binarizer
             .get_luminance_source()
             .crop(left, top, width, height);
-        BinaryBitmap::new(
+        let mut cropped = BinaryBitmap::new(
             self.binarizer
                 .create_binarizer(newSource.expect("new lum source expected")),
-        )
+        );
+        // The binarizer works on the (un-inverted) luminance source, so a derived
+        // bitmap starts un-inverted; carry over our inverted view so a decoder
+        // that crops during an AlsoInverted retry still sees the inverted image.
+        if self.inverted {
+            cropped.invert();
+        }
+        cropped
     }
 
     /**
@@ -211,10 +231,17 @@ impl<B: Binarizer> BinaryBitmap<B> {
             .binarizer
             .get_luminance_source()
             .rotate_counter_clockwise();
-        BinaryBitmap::new(
+        let mut rotated = BinaryBitmap::new(
             self.binarizer
                 .create_binarizer(newSource.expect("new lum source expected")),
-        )
+        );
+        // Carry over our inverted view (see `crop`): the 1D TryHarder path
+        // rotates the bitmap during an AlsoInverted retry and must keep scanning
+        // the inverted image.
+        if self.inverted {
+            rotated.invert();
+        }
+        rotated
     }
 
     /**
@@ -230,10 +257,15 @@ impl<B: Binarizer> BinaryBitmap<B> {
             .binarizer
             .get_luminance_source()
             .rotate_counter_clockwise_45();
-        BinaryBitmap::new(
+        let mut rotated = BinaryBitmap::new(
             self.binarizer
                 .create_binarizer(newSource.expect("new lum source expected")),
-        )
+        );
+        // Carry over our inverted view (see `crop`).
+        if self.inverted {
+            rotated.invert();
+        }
+        rotated
     }
 
     pub fn get_source(&self) -> &B::Source {

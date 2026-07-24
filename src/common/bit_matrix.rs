@@ -342,9 +342,19 @@ impl BitMatrix {
      * <p>Flips every bit in the matrix.</p>
      */
     pub fn flip_self(&mut self) {
-        let max = self.bits.len();
-        for bit_set in self.bits.iter_mut().take(max) {
+        for bit_set in self.bits.iter_mut() {
             *bit_set = !*bit_set;
+        }
+        // The negation above also set the unused padding bits beyond `width`
+        // in each row's last word. Word-level scans (getTopLeftOnBit,
+        // getEnclosingRectangle) rely on padding staying zero, so clear it.
+        let used = self.width as usize % BASE_BITS;
+        if used != 0 {
+            let mask: BaseType = ((1 as BaseType) << used) - 1;
+            for y in 0..self.height as usize {
+                let last = y * self.row_size + self.row_size - 1;
+                self.bits[last] &= mask;
+            }
         }
     }
 

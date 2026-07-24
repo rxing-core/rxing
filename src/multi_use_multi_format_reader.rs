@@ -185,20 +185,18 @@ impl MultiUseMultiFormatReader {
             return res;
         }
         if matches!(self.hints.AlsoInverted, Some(true)) {
-            // Calling all readers again with inverted image
-            image.get_black_matrix_mut().flip_self();
+            // Try again with the inverted image; restore afterwards so the
+            // caller's bitmap is unchanged whatever the outcome.
+            image.invert();
             let res = self.decode_formats(image);
+            image.invert();
             if let Ok(mut r) = res {
-                // let mut r = res.unwrap();
                 r.putMetadata(
                     crate::RXingResultMetadataType::IS_INVERTED,
                     crate::RXingResultMetadataValue::IsInverted(true),
                 );
                 return Ok(r);
             }
-            // if res.is_ok() {
-            //     return res;
-            // }
         }
         Err(Exceptions::NOT_FOUND)
     }

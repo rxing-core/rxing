@@ -16,11 +16,11 @@
 
 use std::borrow::Cow;
 
-use image::{DynamicImage, GenericImageView, ImageBuffer, Luma, Pixel};
-use imageproc::geometric_transformations::rotate_about_center;
+use image::{DynamicImage, ImageBuffer, Luma};
+use imageproc::geometric_transformations::{Interpolation, rotate_about_center};
 
-use crate::LuminanceSource;
 use crate::common::Result;
+use crate::{Luma8LuminanceSource, LuminanceSource};
 
 // const MINUS_45_IN_RADIANS: f32 = -0.7853981633974483; // Math.toRadians(-45.0)
 const MINUS_45_IN_RADIANS: f32 = std::f32::consts::FRAC_PI_4;
@@ -28,27 +28,26 @@ const MINUS_45_IN_RADIANS: f32 = std::f32::consts::FRAC_PI_4;
 /**
  * This LuminanceSource implementation is meant for J2SE clients and our blackbox unit tests.
  *
+ * The image is converted to greyscale once at construction; everything else
+ * delegates to [`Luma8LuminanceSource`], inheriting its zero-copy cropping and
+ * shared buffers.
+ *
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Sean Owen
  * @author code@elektrowolle.de (Wolfgang Jung)
  */
+#[derive(Debug, Clone)]
 pub struct BufferedImageLuminanceSource {
-    // extends LuminanceSource {
-    image: DynamicImage,
-    width: usize,
-    height: usize,
+    source: Luma8LuminanceSource,
 }
 
 impl BufferedImageLuminanceSource {
     pub fn new(image: DynamicImage) -> Self {
-        let width = image.width() as usize;
-        let height = image.height() as usize;
-        // Self::with_details(image, 0, 0, w as usize, h as usize)
-        Self {
-            image: build_local_grey_image(image),
-            width,
-            height,
-        }
+        let grey = build_local_grey_image(image);
+        let (width, height) = grey.dimensions();
+        let source = Luma8LuminanceSource::new(grey.into_raw(), width, height)
+            .expect("image dimensions match its buffer by construction");
+        Self { source }
     }
 }
 
@@ -57,127 +56,66 @@ impl LuminanceSource for BufferedImageLuminanceSource {
     const SUPPORTS_ROTATION: bool = true;
 
     fn get_row(&'_ self, y: usize) -> Option<Cow<'_, [u8]>> {
-        let buf = self.image.as_luma8()?;
-
-        let width = self.get_width();
-        let stride = buf.width() as usize; // full row length in pixels
-        let start = y
-            .checked_mul(stride) // guard against overflow
-            .and_then(|off| off.checked_add(0))
-            .unwrap_or(0);
-
-        // Make sure we don’t go past the end
-        if start + width > buf.as_raw().len() {
-            return None;
-        }
-
-        // Copy the exact sub-slice in one memcpy
-        Some(Cow::Borrowed(&buf.as_raw()[start..start + width]))
+        self.source.get_row(y)
     }
 
-    fn get_column(&self, x: usize) -> Vec<u8> {
-        let pixels: Vec<u8> = || -> Option<Vec<u8>> {
-            Some(self.image.as_luma8()?.rows().fold(
-                Vec::with_capacity(self.get_height()),
-                |mut acc, e| {
-                    let pix = e.into_iter().nth(x).unwrap_or(&Luma([0_u8]));
-                    acc.push(pix.0[0]);
-                    acc
-                },
-            ))
-        }()
-        .unwrap_or_default();
-
-        pixels
+    fn get_column(&self, x: usize) -> Cow<'_, [u8]> {
+        self.source.get_column(x)
     }
 
     fn get_matrix(&self) -> Cow<'_, [u8]> {
-        // if self.height == self.image.height() as usize && self.width == self.image.width() as usize
-        // {
-        Cow::Borrowed(self.image.as_bytes())
-        // }
-        // let skip = self.image.width();
-        // let row_skip = 0;
-        // let total_row_take = self.width;
-        // let total_rows_to_take = self.image.width() * self.height as u32;
-
-        // let unmanaged = self
-        //     .image
-        //     .as_bytes()
-        //     .iter()
-        //     .skip(skip as usize) // get to the row we want
-        //     .take(total_rows_to_take as usize)
-        //     .collect::<Vec<&u8>>(); // get all the rows we want to look at
-
-        // let data = unmanaged
-        //     .chunks_exact(self.image.width() as usize) // Get rows
-        //     .flat_map(|f| {
-        //         f.iter()
-        //             .skip(row_skip as usize)
-        //             .take(total_row_take)
-        //             .copied()
-        //     }) // flatten this all out
-        //     .copied() // copy it over so that it's u8
-        //     .collect(); // collect into a vec
-
-        // data
+        self.source.get_matrix()
     }
 
     fn get_width(&self) -> usize {
-        self.width
+        self.source.get_width()
     }
 
     fn get_height(&self) -> usize {
-        self.height
+        self.source.get_height()
     }
 
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
         Ok(Self {
-            image: self
-                .image
-                .crop_imm(left as u32, top as u32, width as u32, height as u32),
-            width,
-            height,
+            source: self.source.crop(left, top, width, height)?,
         })
     }
 
     fn invert(&mut self) {
-        self.image.invert()
+        self.source.invert()
     }
 
     fn rotate_counter_clockwise(&self) -> Result<Self> {
-        let img = self.image.rotate270();
         Ok(Self {
-            width: img.width() as usize,
-            height: img.height() as usize,
-            image: img,
+            source: self.source.rotate_counter_clockwise()?,
         })
     }
 
     fn rotate_counter_clockwise_45(&self) -> Result<Self> {
-        let img = rotate_about_center(
-            &self.image.to_luma8(),
+        // A raster resampling operation, so this one genuinely materializes.
+        let (width, height) = (self.get_width() as u32, self.get_height() as u32);
+        let buffer = ImageBuffer::from_raw(width, height, self.source.get_matrix().into_owned())
+            .ok_or_else(|| {
+                crate::Exceptions::illegal_argument_with("matrix does not match its dimensions")
+            })?;
+        let rotated = rotate_about_center(
+            &buffer,
             MINUS_45_IN_RADIANS,
-            imageproc::geometric_transformations::Interpolation::Nearest,
+            Interpolation::Nearest,
             Luma([u8::MAX / 2; 1]),
         );
-
-        let new_img = DynamicImage::from(img);
-
         Ok(Self {
-            width: new_img.width() as usize,
-            height: new_img.height() as usize,
-            image: new_img,
+            source: Luma8LuminanceSource::new(rotated.into_raw(), width, height)?,
         })
     }
 
     fn get_luma8_point(&self, x: usize, y: usize) -> u8 {
-        self.image.get_pixel(x as u32, y as u32).to_luma().0[0]
+        self.source.get_luma8_point(x, y)
     }
 }
 
-fn build_local_grey_image(source: DynamicImage) -> DynamicImage {
-    let raster = match source {
+fn build_local_grey_image(source: DynamicImage) -> ImageBuffer<Luma<u8>, Vec<u8>> {
+    match source {
         DynamicImage::ImageLuma8(img) => img,
         DynamicImage::ImageLumaA8(img) => {
             let mut raster: ImageBuffer<_, Vec<_>> = ImageBuffer::new(img.width(), img.height());
@@ -189,7 +127,8 @@ fn build_local_grey_image(source: DynamicImage) -> DynamicImage {
                     // white, so we know its luminance is 255
                     *new_pixel = Luma([0xFF])
                 } else {
-                    *new_pixel = Luma([luma.saturating_mul(alpha)])
+                    // ZXing reference: alpha is otherwise ignored
+                    *new_pixel = Luma([luma])
                 }
             }
 
@@ -204,7 +143,7 @@ fn build_local_grey_image(source: DynamicImage) -> DynamicImage {
                 let pixel = img.get_pixel(x, y);
                 let [luma] = pixel.0;
 
-                *new_pixel = Luma([(luma / u8::MAX as u16) as u8])
+                *new_pixel = Luma([(luma >> 8) as u8])
             }
 
             raster
@@ -219,7 +158,8 @@ fn build_local_grey_image(source: DynamicImage) -> DynamicImage {
                     // white, so we know its luminance is 255
                     *new_pixel = Luma([0xFF])
                 } else {
-                    *new_pixel = Luma([((luma.saturating_mul(alpha)) / u8::MAX as u16) as u8])
+                    // ZXing reference: alpha is otherwise ignored
+                    *new_pixel = Luma([(luma >> 8) as u8])
                 }
             }
 
@@ -254,7 +194,182 @@ fn build_local_grey_image(source: DynamicImage) -> DynamicImage {
             }
             raster
         }
-    };
+    }
+}
 
-    DynamicImage::from(raster)
+#[cfg(test)]
+mod tests {
+    use std::borrow::Cow;
+
+    use image::{DynamicImage, ImageBuffer};
+
+    use crate::{BufferedImageLuminanceSource, LuminanceSource};
+
+    fn luma_4x4() -> BufferedImageLuminanceSource {
+        let img = DynamicImage::ImageLuma8(ImageBuffer::from_raw(4, 4, (0..16).collect()).unwrap());
+        BufferedImageLuminanceSource::new(img)
+    }
+
+    #[test]
+    fn conversion_passes_luma8_through() {
+        let src = luma_4x4();
+        assert_eq!(src.get_width(), 4);
+        assert_eq!(src.get_height(), 4);
+        assert_eq!(&*src.get_matrix(), &(0..16).collect::<Vec<u8>>()[..]);
+    }
+
+    /// ZXing reference semantics (BufferedImageLuminanceSource.java, 3.5.1):
+    /// alpha == 0 → white, otherwise alpha is ignored and the luma passes
+    /// through unchanged — consistent with the RGBA arm below.
+    #[test]
+    fn conversion_luma_a8_matches_zxing_reference() {
+        let img = DynamicImage::ImageLumaA8(
+            ImageBuffer::from_raw(4, 1, vec![50, 0, 50, 255, 0, 255, 2, 3]).unwrap(),
+        );
+        let src = BufferedImageLuminanceSource::new(img);
+        assert_eq!(&*src.get_matrix(), &[255, 50, 0, 2]);
+    }
+
+    /// ZXing reference semantics: 16-bit luma scales to 8-bit with `>> 8`
+    /// (Java's TYPE_USHORT_GRAY → getRGB conversion).
+    #[test]
+    fn conversion_luma16_matches_zxing_reference() {
+        let img = DynamicImage::ImageLuma16(
+            ImageBuffer::from_raw(3, 1, vec![0xFFFFu16, 0x0000, 0x7F00]).unwrap(),
+        );
+        let src = BufferedImageLuminanceSource::new(img);
+        assert_eq!(&*src.get_matrix(), &[255, 0, 127]);
+    }
+
+    /// ZXing reference semantics for 16-bit grey+alpha: alpha == 0 → white,
+    /// otherwise `luma >> 8`.
+    #[test]
+    fn conversion_luma_a16_matches_zxing_reference() {
+        #[rustfmt::skip]
+        let pixels = vec![
+            0xFFFFu16, 0x0000, // transparent → white
+            0xFFFF, 0xFFFF,    // opaque white
+            0x0000, 0xFFFF,    // opaque black
+            0x7F00, 0x0101,    // semi-transparent mid-grey → 127
+        ];
+        let img = DynamicImage::ImageLumaA16(ImageBuffer::from_raw(4, 1, pixels).unwrap());
+        let src = BufferedImageLuminanceSource::new(img);
+        assert_eq!(&*src.get_matrix(), &[255, 255, 0, 127]);
+    }
+
+    /// End-to-end guard for the LumaA8 fix: a grey-toned (60/200), fully
+    /// opaque QR code must survive the greyscale conversion and decode. Under
+    /// the old `saturating_mul` conversion every pixel ≥ 1 saturated to white
+    /// and this failed.
+    #[test]
+    #[cfg(all(feature = "encoders", feature = "decoders", feature = "qrcode"))]
+    fn grey_toned_opaque_luma_a8_decodes() {
+        use crate::common::HybridBinarizer;
+        use crate::{
+            BarcodeFormat, BinaryBitmap, DecodeHints, MultiFormatReader, MultiFormatWriter, Reader,
+            Writer,
+        };
+
+        let content = "grey on grey";
+        let bits = MultiFormatWriter
+            .encode(content, &BarcodeFormat::QR_CODE, 128, 128)
+            .expect("encode succeeds");
+        let (w, h) = (bits.width(), bits.height());
+        let mut pixels = Vec::with_capacity((w * h * 2) as usize);
+        for y in 0..h {
+            for x in 0..w {
+                pixels.extend([if bits.get(x, y) { 60u8 } else { 200 }, 255]);
+            }
+        }
+        let img = DynamicImage::ImageLumaA8(ImageBuffer::from_raw(w, h, pixels).unwrap());
+
+        let mut bitmap =
+            BinaryBitmap::new(HybridBinarizer::new(BufferedImageLuminanceSource::new(img)));
+        let result = MultiFormatReader::default()
+            .decode_with_hints(&mut bitmap, &DecodeHints::default())
+            .expect("grey-toned opaque QR must decode");
+        assert_eq!(result.getText(), content);
+    }
+
+    /// Pins current RGBA semantics: alpha == 0 → white, else the fixed-point
+    /// YUV weights `(306R + 601G + 117B + 0x200) >> 10`.
+    #[test]
+    fn conversion_pins_rgba_semantics() {
+        #[rustfmt::skip]
+        let pixels = vec![
+            0, 0, 0, 0,         // transparent → white
+            255, 255, 255, 255, // white
+            0, 0, 0, 255,       // black
+            255, 0, 0, 255,     // red → (306*255 + 0x200) >> 10 == 76
+        ];
+        let img = DynamicImage::ImageRgba8(ImageBuffer::from_raw(4, 1, pixels).unwrap());
+        let src = BufferedImageLuminanceSource::new(img);
+        assert_eq!(&*src.get_matrix(), &[255, 255, 0, 76]);
+    }
+
+    #[test]
+    fn row_column_and_point_accessors_agree() {
+        let src = luma_4x4();
+        assert_eq!(&*src.get_row(1).expect("row in bounds"), &[4, 5, 6, 7]);
+        assert_eq!(&*src.get_column(2), &[2, 6, 10, 14]);
+        assert_eq!(src.get_luma8_point(3, 2), 11);
+    }
+
+    #[test]
+    fn invert_inverts_all_accessors() {
+        let img =
+            DynamicImage::ImageLuma8(ImageBuffer::from_raw(2, 2, vec![0, 10, 100, 255]).unwrap());
+        let mut src = BufferedImageLuminanceSource::new(img);
+        src.invert();
+        assert_eq!(&*src.get_matrix(), &[255, 245, 155, 0]);
+        assert_eq!(src.get_luma8_point(0, 0), 255);
+        assert_eq!(&*src.get_column(1), &[245, 0]);
+    }
+
+    #[test]
+    fn crop_and_rotate_have_correct_values() {
+        let src = luma_4x4();
+        let cropped = src.crop(1, 1, 2, 2).expect("crop");
+        assert_eq!(&*cropped.get_matrix(), &[5, 6, 9, 10]);
+
+        let rotated = src.rotate_counter_clockwise().expect("rotate");
+        // CCW: first row of the rotated image is the last column, top to bottom
+        assert_eq!(
+            &*rotated.get_row(0).expect("row in bounds"),
+            &[3, 7, 11, 15]
+        );
+    }
+
+    /// Pins the exact output of the current 45° rotation (imageproc
+    /// `rotate_about_center`, nearest-neighbour, grey fill) on a small
+    /// asymmetric input, so the refactor can be verified byte-identical.
+    #[test]
+    fn rotate_45_pins_current_output() {
+        let img = DynamicImage::ImageLuma8(ImageBuffer::from_raw(3, 3, (0..9).collect()).unwrap());
+        let src = BufferedImageLuminanceSource::new(img);
+        let rotated = src.rotate_counter_clockwise_45().expect("rotate 45");
+        assert_eq!(rotated.get_width(), 3);
+        assert_eq!(rotated.get_height(), 3);
+        assert_eq!(&*rotated.get_matrix(), &[127, 3, 1, 6, 7, 5, 127, 8, 8]);
+    }
+
+    #[test]
+    fn crop_is_zero_copy() {
+        let src = luma_4x4();
+        let cropped = src.crop(1, 1, 2, 2).expect("crop");
+
+        let Cow::Borrowed(parent) = src.get_matrix() else {
+            panic!("full-view matrix must be Cow::Borrowed");
+        };
+        let Some(Cow::Borrowed(row)) = cropped.get_row(0) else {
+            panic!("cropped row must be Cow::Borrowed");
+        };
+
+        let base = parent.as_ptr() as usize;
+        let p = row.as_ptr() as usize;
+        assert!(
+            p >= base && p < base + parent.len(),
+            "crop must share the parent's buffer, not copy the region"
+        );
+    }
 }

@@ -1,12 +1,31 @@
 # rxing - cRustacean Crossing
 
+[![Crate](https://img.shields.io/crates/v/rxing.svg)](https://crates.io/crates/rxing)
+[![Documentation](https://docs.rs/rxing/badge.svg)](https://docs.rs/rxing)
+[![License](https://img.shields.io/crates/l/rxing.svg)](https://github.com/rxing-core/rxing#copyright-notes)
+
 This is a port of the [ZXing](https://github.com/zxing/zxing) Java barcode library to pure Rust, converted by hand. ZXing is licensed under the Apache License 2.0; copyright remains with the original ZXing authors.
 
 Additional features were ported from [zxing-cpp](https://github.com/zxing-cpp/zxing-cpp), specifically enhancements to the QR Code, Datamatrix, and DX Film reader components. zxing-cpp is also licensed under the Apache License 2.0; copyright remains with the zxing-cpp contributors.
 
-Porting of the testing library is incomplete. Currently all positive tests are implemented. Negative verfication tests are not implemented.
+Porting of the testing library is incomplete. Currently all positive tests are implemented. Negative verification tests are not implemented.
 
 Porting was done with the rust language in mind, though some parts may resemble java more directly than a proper clean-sheet rust implementation. The process of "rustifying" the code is ongoing.
+
+## Installation
+
+Add `rxing` to your `Cargo.toml`:
+
+```toml
+[dependencies]
+rxing = "0.9.2"
+```
+
+Or run:
+
+```bash
+cargo add rxing
+```
 
 ## CLI
 If you're looking for a CLI interface into the library, please see [rxing-cli](https://crates.io/crates/rxing-cli).
@@ -50,26 +69,54 @@ Please note that currently UPC/EAN Extension 2/5 is supported.
 
 ## Feature Flags
 The following feature flags are available:
-* `image`: Enable features required for image manipulation and reading.
-* `image_formats`: Enabled by default. Compile all `image` crate image format support options.
-* `allow_forced_iso_ied_18004_compliance`: Allows the ability to force ISO/IED 18004 compliance. Leave disabled unless specificially needed.
-* `client_support`: Enable the client library. This is used for parsing the result of barcodes.
-* `svg_write`: Enable support for writing SVG files
-* `svg_read`: Enable support for reading SVG files
-* `wasm_support`: Make certain changes to support building this module in WASM
-* `experimental_features`: Enable experimental features, risky.
-* `serde`: Adds support for serde Serialize and Deserialize for outward facing structs
-* `otsu_level`: Adds the otsu level binarizer.
 
-    This is not used by any of the helper functions, you must specifically use it while setting up a new decoder. The `OtsuLevelBinarizer` is not well tested and it does *not* pass the current test suite. Consider this only if you know why you would want to use it. In many cases, the standard binarizer is likely better. If you have a very specific use case, and you know what your incoming data will resemble, you should consider implementing your own `Binarizer` and using that instead.
+### Core & Engine
+* `image` (default): Enable features required for image manipulation and reading.
+* `image_formats` (default): Enabled by default. Compile all `image` crate image format support options.
+* `encoders` (default): Enable barcode encoders.
+* `decoders` (default): Enable barcode decoders.
+* `multi_barcode_readers` (default): Enable support for reading multiple barcodes in a single image.
+* `client_support` (default): Enable the client library. Used for parsing barcode result types (e.g. URLs, contacts, wifi).
+* `serde` (default): Adds support for `serde::Serialize` and `serde::Deserialize` for outward facing structs.
+* `encoding_rs` (default): Enabled by default. Uses the modern `encoding_rs` crate for high-performance, WHATWG-compliant character encoding support.
 
-* `encoding_rs`: Enabled by default. Uses the modern `encoding_rs` crate for high-performance, WHATWG-compliant character encoding support.
-* `legacy_encoding`: Provides the original encoding behavior using the legacy `encoding` crate. Use this if you require exact compatibility with older versions or specific non-standard character mappings.
+### Symbology Granular Support
+* `full_barcode_format_support` (default): Enables support for all barcode format modules listed below.
+* `aztec`: Enable support for Aztec barcodes.
+* `datamatrix`: Enable support for Data Matrix barcodes.
+* `maxicode`: Enable support for MaxiCode barcodes.
+* `oned`: Enable support for 1D barcodes.
+* `pdf417`: Enable support for PDF417 barcodes.
+* `qrcode`: Enable support for QR Code barcodes.
 
-The default feature set includes the `image`, `client_support`, `image_formats`, and `encoding_rs` features mentioned above.
+### Advanced & Optional
+* `allow_forced_iso_ied_18004_compliance`: Allows the ability to force ISO/IED 18004 compliance. Leave disabled unless specifically needed.
+* `legacy_encoding`: Provides original encoding behavior using the legacy `encoding` crate. Use this if you require exact compatibility with older versions or specific non-standard character mappings.
+* `no_character_set_support`: Disable all CharacterSet support.
+* `otsu_level`: Adds the Otsu level binarizer (`OtsuLevelBinarizer`). Not well tested and does *not* pass the current test suite.
+* `reverse_pyramid_layers`: For `FilteredImageReader`, reverses the order of pyramid scans.
+* `svg_read`: Enable support for reading SVG files.
+* `svg_write`: Enable support for writing SVG files.
+* `wasm_support`: Make certain changes to support building this module in WASM.
+* `experimental_features`: Enable experimental features (risky).
+
+The default feature set is:
+```toml
+default = [
+    "image",
+    "client_support",
+    "image_formats",
+    "serde",
+    "encoding_rs",
+    "encoders",
+    "decoders",
+    "full_barcode_format_support",
+    "multi_barcode_readers"
+]
+```
 
 ## Incomplete
-The library has only been thurougly tested with the `BufferedImageLuminanceSource` source format. Using any other
+The library has only been thoroughly tested with the `BufferedImageLuminanceSource` source format. Using any other
 source is currently experimental and may result in unexpected or undefined outputs. This means that the feature flag
 used to enable the use of the `image` crate is currently on by default. The `Luma8LuminanceSource` is the second best
 tested library, and is the underpinning for the wasm based wrapper for the library. Consider `Luma8LuminanceSource` as
@@ -78,8 +125,6 @@ a reasonable option if building the crate with the `image` feature turned off is
 ## Example with helpers
 
 ```rust
-use rxing;
-
 fn main() {
     let file_name = "test_image.jpg";
 
@@ -92,14 +137,16 @@ fn main() {
 ```
 
 ## Latest Release Notes
-* *v0.9.0* -> Refactor crate features. This is a  **breaking change**.
+* *v0.9.2* -> Dependency updates and edition fixes.
+* *v0.9.1* -> Maintenance release with performance and stability improvements.
+* *v0.9.0* -> Refactor crate features. This is a **breaking change**.
 
-    This version allows buiding the crate with much more granularity, only including features, symbologies, and 
+    This version allows building the crate with much more granularity, only including features, symbologies, and 
     capabilities necessary for the task. Consumers who do not use `default-features = false` will likely not need
     to make any changes to their build or configuration.
 
     The new default features list for 0.9.0 is:
-    ```yaml
+    ```toml
     default = [
         "image",
         "client_support",
@@ -113,7 +160,7 @@ fn main() {
     ]
     ```
 
-    For instance, a program that needs only the ability to decode qr_codes could select the following features.
+    For instance, a program that needs only the ability to decode qr_codes could select the following features:
     `image, image_formats, encoding_rs, decoders, qrcode`. Similarly, a use case where encoding Aztec codes was
     all that was required would likely want to use: `image, image_formats, encoding_rs, encoders, aztec`. This
     change has been tested against the full test suite, which has required some modification of the test suite.
@@ -123,7 +170,7 @@ fn main() {
 * *v0.8.5* -> DX Film Edge Support added (decode only). Also adds several enhancements to performance and memory.
 
     The default character encoding backend has changed to the more modern `encoding_rs`. This should bring some slight
-    performance improvements and better tracking of modern fixes and new encodings. All test currently pass without 
+    performance improvements and better tracking of modern fixes and new encodings. All tests currently pass without 
     issue using the new backend, but if you encounter any issues please change back to the legacy backend using the
     `legacy_encoding` feature flag.
 
@@ -149,15 +196,15 @@ fn main() {
     }
     ```
 
-* *v0.7.0* -> Migration away from the previous HashMap based Encode/Decde hints method. The new method uses a configuration struct. You can construct these structs support `From` and `Into` the old HashMap implementation.
+* *v0.7.0* -> Migration away from the previous HashMap based Encode/Decode hints method. The new method uses a configuration struct. You can construct these structs support `From` and `Into` the old HashMap implementation.
 * *v0.6.0* -> rxing is now thread safe. This is a breaking change if you are using `PointCallback`/`RXingResultPointCallback` or the `Pdf417ExtraMetadata` field of `RXingResultMetadataValue`. In addition there should be some small performance improvements associated with moving away from using `Rc` and `Arc` in many situations throughout the library.
 * *v0.5.8* -> Performance improvements. Memory Improvements. Added FilteredReader which performs a more complicated operation on images (resizes and closes binary bitmaps) at the expense of some performance.
 * *v0.5.5* -> Add support for rMQR, allows building the library without image_formats, fixes an issue with multiple barcode detection.
 
     New default feature flag `image_formats` enables all of the `image` crates image formats for use.
     rMQR support is basic and is most effective on pure-barcodes.
-    The previous version of the `GenericMultipleBarcodeReader` used the contents of the barcode as they determination of uniquness.
-    This was incorrect and the new version attempts to elimate duplicates by detecting if they are within one another.
+    The previous version of the `GenericMultipleBarcodeReader` used the contents of the barcode as the determination of uniqueness.
+    This was incorrect and the new version attempts to eliminate duplicates by detecting if they are within one another.
 
 * *v0.5.0* -> Added support for [telepen](https://advanova.co.uk/wp-content/uploads/2022/05/Barcode-Symbology-information-and-History.pdf) thanks to the work of first time contributor [cpwood](https://github.com/cpwood).
 
@@ -205,12 +252,14 @@ fn main() {
 
 ## Known Issues
 * Performance is slow for GenericMultipleBarcodeReader.
-* ~~Datamatrix codes are sometimes not correctly decoded, especially when they are _actually_ pure barcodes. This appears to be an issue with zxing 3.5.1 as well.~~ This issue has been resolved with the porting of the ZXing-C++ datamatrix module in *v0.2.19*.
+
+## Generative AI Policy
+Some generative AI has been used since v0.9.1. The uses are primarily limited to code-review and PR review. The library does not feature "vibe code" and all changes suggested by AI are either fully implemented by a human or are driven by human-authored specifications and test-driven-development plans. All code is fully reviewed by a human. 
 
 ## ZXing Track
 Currently tracking zxing 3.5.1
 
-## Copyright notes
+## Copyright Notes
 rxing is licensed under the Apache License 2.0.
 
 The ZXing library is licensed under the Apache License 2.0; copyright remains with the ZXing authors. Portions of this crate are ported from zxing-cpp, which is also licensed under the Apache License 2.0; copyright remains with the zxing-cpp contributors.
