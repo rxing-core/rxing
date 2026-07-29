@@ -266,8 +266,7 @@ impl<'a> Detector<'_> {
             parameterWords[i as usize] = (parameter_data & 0xF) as i32;
             parameter_data >>= 4;
         }
-        let field =
-            reedsolomon::get_predefined_genericgf(reedsolomon::PredefinedGenericGF::AztecParam);
+        let field = reedsolomon::PredefinedGenericGF::AztecParam.into();
         let rs_decoder = ReedSolomonDecoder::new(field);
         rs_decoder.decode(&mut parameterWords, num_eccodewords)?;
         // Toss the error correction.  Just return the data as an integer

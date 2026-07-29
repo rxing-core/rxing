@@ -17,9 +17,7 @@
 use crate::{
     common::{
         BitMatrix, CharacterSet, DecoderRXingResult, DetectorRXingResult, Eci, Result,
-        reedsolomon::{
-            GenericGFRef, PredefinedGenericGF, ReedSolomonDecoder, get_predefined_genericgf,
-        },
+        reedsolomon::{GenericGFRef, PredefinedGenericGF, ReedSolomonDecoder},
     },
     exceptions::Exceptions,
 };
@@ -326,16 +324,16 @@ fn correct_bits(
 
     if ddata.getNbLayers() <= 2 {
         codeword_size = 6;
-        gf = get_predefined_genericgf(PredefinedGenericGF::AztecData6); //GenericGF.AZTEC_DATA_6;
+        gf = PredefinedGenericGF::AztecData6.into(); //GenericGF.AZTEC_DATA_6;
     } else if ddata.getNbLayers() <= 8 {
         codeword_size = 8;
-        gf = get_predefined_genericgf(PredefinedGenericGF::AztecData8); //GenericGF.AZTEC_DATA_8;
+        gf = PredefinedGenericGF::AztecData8.into(); //GenericGF.AZTEC_DATA_8;
     } else if ddata.getNbLayers() <= 22 {
         codeword_size = 10;
-        gf = get_predefined_genericgf(PredefinedGenericGF::AztecData10); //GenericGF.AZTEC_DATA_10;
+        gf = PredefinedGenericGF::AztecData10.into(); //GenericGF.AZTEC_DATA_10;
     } else {
         codeword_size = 12;
-        gf = get_predefined_genericgf(PredefinedGenericGF::AztecData12); //GenericGF.AZTEC_DATA_12;
+        gf = PredefinedGenericGF::AztecData12.into(); //GenericGF.AZTEC_DATA_12;
     }
 
     let num_data_codewords = ddata.getNbDatablocks();

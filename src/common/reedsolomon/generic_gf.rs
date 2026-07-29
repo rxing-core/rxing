@@ -18,8 +18,8 @@ use super::{GenericGFPoly, GenericGFRef};
  */
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GenericGF {
-    expTable: Vec<i32>,
-    logTable: Vec<i32>,
+    expTable: [i32; 4096],
+    logTable: [i32; 4096],
     // zero: Box<GenericGFPoly>,
     // one: Box<GenericGFPoly>,
     size: usize,
@@ -39,44 +39,31 @@ impl GenericGF {
      *  (g(x) = (x+a^b)(x+a^(b+1))...(x+a^(b+2t-1))).
      *  In most cases it should be 1, but for QR code it is 0.
      */
-    pub fn new(primitive: i32, size: usize, b: i32) -> Self {
-        let mut expTable = vec![0; size];
-        let mut logTable = vec![0; size];
+    pub const fn new(primitive: i32, size: usize, b: i32) -> Self {
+        let mut expTable = [0; 4096];
+        let mut logTable = [0; 4096];
         let mut x = 1;
-        for expTableEntry in expTable.iter_mut().take(size) {
-            // for i in 0..size {
-            //for (int i = 0; i < size; i++) {
-            //expTable.push(x);
-            *expTableEntry = x;
+
+        let mut i = 0;
+        while i < size {
+            expTable[i] = x;
             x *= 2; // we're assuming the generator alpha is 2
             if x >= size as i32 {
                 x ^= primitive;
                 let sz_m_1: i32 = size as i32 - 1;
                 x &= sz_m_1;
             }
+            i += 1;
         }
-        for (i, loc) in expTable.iter().enumerate().take(size - 1) {
-            // for i in 0..size - 1 {
-            //for (int i = 0; i < size - 1; i++) {
-            // let loc: usize = expTable[i] as usize;
-            logTable[*loc as usize] = i as i32;
+        let mut i = 0;
+        while i < size - 1 {
+            let loc = expTable[i] as usize;
+            logTable[loc as usize] = i as i32;
+
+            i += 1;
         }
         logTable[0] = 0;
 
-        //     let mut p:u32;
-        // //int i;
-        // /*Initialize the table of powers of a primtive root, alpha=0x02.*/
-        // p = 1;
-        // for i in 0..size {
-        // // for (i = 0; i < 256; i++) {
-        //     expTable[i] = expTable[i + size - 1] = p;
-        // p = ((p << 1) ^ (-(p as i32 >> 7) & primitive) as u32) & 0xFF;
-        // }
-        // /*Invert the table to recover the logs.*/
-        // for i in 0..size-1 {
-        // // for (i = 0; i < 255; i++)
-        // logTable[expTable[i].try_into().unwrap()] = i;
-        // /*Note that we rely on the fact that _gf->log[0]=0 below.*/
         Self {
             expTable,
             logTable,
@@ -84,21 +71,7 @@ impl GenericGF {
             primitive,
             generatorBase: b,
         }
-
-        // logTable[0] == 0 but this should never be used
-        // new_ggf.zero = Box::new(GenericGFPoly::new(Box::new(new_ggf), &vec![0]).unwrap());
-        // new_ggf.one = Box::new(GenericGFPoly::new(Box::new(new_ggf), &vec![1]).unwrap());
-
-        //new_ggf
     }
-
-    // pub fn getZero(&self) -> Box<GenericGFPoly> {
-    //     return self.zero;
-    // }
-
-    // pub fn getOne(&self) -> Box<GenericGFPoly> {
-    //     return self.one;
-    // }
 
     /**
      * @return the monomial representing coefficient * x^degree
@@ -124,7 +97,7 @@ impl GenericGF {
     /**
      * @return 2 to the power of a in GF(size)
      */
-    pub fn exp(&self, a: i32) -> i32 {
+    pub const fn exp(&self, a: i32) -> i32 {
         // let pos: usize = a.try_into().unwrap();
         self.expTable[a as usize]
     }
@@ -132,7 +105,7 @@ impl GenericGF {
     /**
      * @return base 2 log of a in GF(size)
      */
-    pub fn log(&self, a: i32) -> Result<i32> {
+    pub const fn log(&self, a: i32) -> Result<i32> {
         if a == 0 {
             return Err(Exceptions::ILLEGAL_ARGUMENT);
         }
@@ -143,7 +116,7 @@ impl GenericGF {
     /**
      * @return multiplicative inverse of a
      */
-    pub fn inverse(&self, a: i32) -> Result<i32> {
+    pub const fn inverse(&self, a: i32) -> Result<i32> {
         if a == 0 {
             return Err(Exceptions::ARITHMETIC);
         }
@@ -155,12 +128,12 @@ impl GenericGF {
     /**
      * @return product of a and b in GF(size)
      */
-    pub fn multiply(&self, a: i32, b: i32) -> i32 {
+    pub const fn multiply(&self, a: i32, b: i32) -> i32 {
         if a == 0 || b == 0 {
             return 0;
         }
-        let a_loc: usize = a as usize; //.try_into().unwrap();
-        let b_loc: usize = b as usize; //.try_into().unwrap();
+        let a_loc: usize = a as usize;
+        let b_loc: usize = b as usize;
         let comb_loc: usize = (self.logTable[a_loc] + self.logTable[b_loc]) as usize;
         self.expTable[comb_loc % (self.size - 1)]
     }

@@ -28,18 +28,15 @@ use crate::{
     DecodeHints, Exceptions,
     common::{
         BitMatrix, DecoderRXingResult, Result,
-        reedsolomon::{PredefinedGenericGF, ReedSolomonDecoder, get_predefined_genericgf},
+        reedsolomon::{PredefinedGenericGF, ReedSolomonDecoder},
     },
 };
 
 use super::{BitMatrixParser, DataBlock, QRCodeDecoderMetaData, decoded_bit_stream_parser};
 
 //rsDecoder = new ReedSolomonDecoder(GenericGF.QR_CODE_FIELD_256);
-static RS_DECODER: Lazy<ReedSolomonDecoder> = Lazy::new(|| {
-    ReedSolomonDecoder::new(get_predefined_genericgf(
-        PredefinedGenericGF::QrCodeField256,
-    ))
-});
+static RS_DECODER: Lazy<ReedSolomonDecoder> =
+    Lazy::new(|| ReedSolomonDecoder::new(PredefinedGenericGF::QrCodeField256.into()));
 
 pub fn decode_bool_array(image: &[Vec<bool>]) -> Result<DecoderRXingResult> {
     decode_bool_array_with_hints(image, &DecodeHints::default())

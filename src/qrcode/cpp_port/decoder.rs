@@ -6,9 +6,7 @@
 
 use crate::Exceptions;
 use crate::common::cpp_essentials::{DecoderResult, StructuredAppendInfo};
-use crate::common::reedsolomon::{
-    PredefinedGenericGF, ReedSolomonDecoder, get_predefined_genericgf,
-};
+use crate::common::reedsolomon::{PredefinedGenericGF, ReedSolomonDecoder};
 use crate::common::{
     AIFlag, BitMatrix, BitSource, CharacterSet, ECIStringBuilder, Eci, Result, SymbologyIdentifier,
 };
@@ -28,9 +26,7 @@ use crate::qrcode::decoder::DataBlock;
 */
 pub fn CorrectErrors(codewordBytes: &mut [u8], numDataCodewords: u32) -> Result<bool> {
     let numECCodewords = ((codewordBytes.len() as u32) - numDataCodewords) as i32;
-    let rs = ReedSolomonDecoder::new(get_predefined_genericgf(
-        PredefinedGenericGF::QrCodeField256,
-    ));
+    let rs = ReedSolomonDecoder::new(PredefinedGenericGF::QrCodeField256.into());
 
     rs.decode(codewordBytes, numECCodewords)?;
 

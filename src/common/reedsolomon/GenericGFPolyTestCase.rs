@@ -29,7 +29,7 @@ use super::{GenericGF, GenericGFPoly};
 
 #[test]
 fn testPolynomialString() {
-    let FIELD = super::get_predefined_genericgf(super::PredefinedGenericGF::QrCodeField256);
+    let FIELD = super::PredefinedGenericGF::QrCodeField256.into();
     let fz = super::GenericGFPoly::new(FIELD, &[0; 1]).unwrap();
 
     assert_eq!("0", fz.getZero().to_string());
@@ -43,7 +43,7 @@ fn testPolynomialString() {
 
 #[test]
 fn testZero() {
-    let FIELD = super::get_predefined_genericgf(super::PredefinedGenericGF::QrCodeField256);
+    let FIELD = super::PredefinedGenericGF::QrCodeField256.into();
     let fz = super::GenericGFPoly::new(FIELD, &[0; 1]).unwrap();
 
     assert_eq!(fz.getZero(), GenericGF::buildMonomial(FIELD, 1, 0));
@@ -55,7 +55,7 @@ fn testZero() {
 
 #[test]
 fn testEvaluate() {
-    let FIELD = super::get_predefined_genericgf(super::PredefinedGenericGF::QrCodeField256);
+    let FIELD = super::PredefinedGenericGF::QrCodeField256.into();
 
     assert_eq!(3, GenericGF::buildMonomial(FIELD, 0, 3).evaluateAt(0));
 }

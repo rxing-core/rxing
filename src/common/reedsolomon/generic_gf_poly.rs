@@ -81,7 +81,7 @@ impl GenericGFPoly {
         })
     }
 
-    pub fn getCoefficients(&self) -> &Vec<i32> {
+    pub const fn getCoefficients(&self) -> &Vec<i32> {
         &self.coefficients
     }
 

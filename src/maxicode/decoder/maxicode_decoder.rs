@@ -20,7 +20,7 @@ use crate::{
     DecodeHints, Exceptions,
     common::{
         BitMatrix, DecoderRXingResult, Result,
-        reedsolomon::{PredefinedGenericGF, ReedSolomonDecoder, get_predefined_genericgf},
+        reedsolomon::{PredefinedGenericGF, ReedSolomonDecoder},
     },
 };
 
@@ -37,11 +37,8 @@ const ALL: u32 = 0;
 const EVEN: u32 = 1;
 const ODD: u32 = 2;
 
-static RS_DECODER: Lazy<ReedSolomonDecoder> = Lazy::new(|| {
-    ReedSolomonDecoder::new(get_predefined_genericgf(
-        PredefinedGenericGF::MaxicodeField64,
-    ))
-});
+static RS_DECODER: Lazy<ReedSolomonDecoder> =
+    Lazy::new(|| ReedSolomonDecoder::new(PredefinedGenericGF::MaxicodeField64.into()));
 
 pub fn decode(bits: &BitMatrix) -> Result<DecoderRXingResult> {
     decode_with_hints(bits, &DecodeHints::default())

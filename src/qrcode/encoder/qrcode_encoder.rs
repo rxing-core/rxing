@@ -20,7 +20,7 @@ use crate::{
     EncodeHints, Exceptions,
     common::{
         BitArray, BitFieldBaseType, CharacterSet, Eci, Result,
-        reedsolomon::{PredefinedGenericGF, ReedSolomonEncoder, get_predefined_genericgf},
+        reedsolomon::{PredefinedGenericGF, ReedSolomonEncoder},
     },
     qrcode::common::{ErrorCorrectionLevel, Mode, Version, VersionRef},
 };
@@ -561,10 +561,8 @@ pub fn generateECBytes(dataBytes: &[u8], num_ec_bytes_in_block: usize) -> Result
         to_encode[i] = dataBytes[i] as i32;
     }
 
-    ReedSolomonEncoder::new(get_predefined_genericgf(
-        PredefinedGenericGF::QrCodeField256,
-    ))?
-    .encode(&mut to_encode, num_ec_bytes_in_block)?;
+    ReedSolomonEncoder::new(PredefinedGenericGF::QrCodeField256.into())?
+        .encode(&mut to_encode, num_ec_bytes_in_block)?;
 
     let mut ecBytes = vec![0u8; num_ec_bytes_in_block];
     for i in 0..num_ec_bytes_in_block {

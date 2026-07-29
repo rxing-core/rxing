@@ -17,9 +17,7 @@
 use crate::{
     common::{
         BitArray, BitFieldBaseType, BitMatrix, CharacterSet, Result,
-        reedsolomon::{
-            GenericGFRef, PredefinedGenericGF, ReedSolomonEncoder, get_predefined_genericgf,
-        },
+        reedsolomon::{GenericGFRef, PredefinedGenericGF, ReedSolomonEncoder},
     },
     exceptions::Exceptions,
 };
@@ -468,11 +466,11 @@ fn bitsToWords(stuffedBits: &BitArray, wordSize: usize, totalWords: usize) -> Ve
 
 fn getGF(wordSize: usize) -> Result<GenericGFRef> {
     match wordSize {
-        4 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecParam)),
-        6 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecData6)),
-        8 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecData8)),
-        10 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecData10)),
-        12 => Ok(get_predefined_genericgf(PredefinedGenericGF::AztecData12)),
+        4 => Ok(PredefinedGenericGF::AztecParam.into()),
+        6 => Ok(PredefinedGenericGF::AztecData6.into()),
+        8 => Ok(PredefinedGenericGF::AztecData8.into()),
+        10 => Ok(PredefinedGenericGF::AztecData10.into()),
+        12 => Ok(PredefinedGenericGF::AztecData12.into()),
         _ => Err(Exceptions::illegal_argument_with(format!(
             "Unsupported word size {wordSize}"
         ))),

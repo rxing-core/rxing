@@ -36,7 +36,7 @@ const DECODER_TEST_ITERATIONS: i32 = 10;
 
 #[test]
 fn test_data_matrix() {
-    let dm256 = super::get_predefined_genericgf(super::PredefinedGenericGF::DataMatrixField256);
+    let dm256 = super::PredefinedGenericGF::DataMatrixField256.into();
     // real life test cases
     test_encode_decode(dm256, &[142, 164, 186], &[114, 25, 5, 88, 102]);
     test_encode_decode(
@@ -59,7 +59,7 @@ fn test_data_matrix() {
 
 #[test]
 fn test_qr_code() {
-    let qrcf256 = super::get_predefined_genericgf(super::PredefinedGenericGF::QrCodeField256);
+    let qrcf256 = super::PredefinedGenericGF::QrCodeField256.into();
     // Test case from example given in ISO 18004, Annex I
     test_encode_decode(
         qrcf256,
@@ -92,28 +92,28 @@ fn test_qr_code() {
 fn test_aztec() {
     // real life test cases
     test_encode_decode(
-        super::get_predefined_genericgf(super::PredefinedGenericGF::AztecParam),
+        super::PredefinedGenericGF::AztecParam.into(),
         &[0x5, 0x6],
         &[0x3, 0x2, 0xB, 0xB, 0x7],
     );
     test_encode_decode(
-        super::get_predefined_genericgf(super::PredefinedGenericGF::AztecParam),
+        super::PredefinedGenericGF::AztecParam.into(),
         &[0x0, 0x0, 0x0, 0x9],
         &[0xA, 0xD, 0x8, 0x6, 0x5, 0x6],
     );
     test_encode_decode(
-        super::get_predefined_genericgf(super::PredefinedGenericGF::AztecParam),
+        super::PredefinedGenericGF::AztecParam.into(),
         &[0x2, 0x8, 0x8, 0x7],
         &[0xE, 0xC, 0xA, 0x9, 0x6, 0x8],
     );
     test_encode_decode(
-        super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData6),
+        super::PredefinedGenericGF::AztecData6.into(),
         &[0x9, 0x32, 0x1, 0x29, 0x2F, 0x2, 0x27, 0x25, 0x1, 0x1B],
         &[0x2C, 0x2, 0xD, 0xD, 0xA, 0x16, 0x28, 0x9, 0x22, 0xA, 0x14],
     );
 
     test_encode_decode(
-        super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData8),
+        super::PredefinedGenericGF::AztecData8.into(),
         &vec![
             0xE0, 0x86, 0x42, 0x98, 0xE8, 0x4A, 0x96, 0xC6, 0xB9, 0xF0, 0x8C, 0xA7, 0x4A, 0xDA,
             0xF8, 0xCE, 0xB7, 0xDE, 0x88, 0x64, 0x29, 0x8E, 0x84, 0xA9, 0x6C, 0x6B, 0x9F, 0x08,
@@ -129,7 +129,7 @@ fn test_aztec() {
         ],
     );
     test_encode_decode(
-        super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData10),
+        super::PredefinedGenericGF::AztecData10.into(),
         &vec![
             0x15C, 0x1E1, 0x2D5, 0x02E, 0x048, 0x1E2, 0x037, 0x0CD, 0x02E, 0x056, 0x26A, 0x281,
             0x1C2, 0x1A6, 0x296, 0x045, 0x041, 0x0AA, 0x095, 0x2CE, 0x003, 0x38F, 0x2CD, 0x1A2,
@@ -176,7 +176,7 @@ fn test_aztec() {
         ],
     );
     test_encode_decode(
-        super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData12),
+        super::PredefinedGenericGF::AztecData12.into(),
         &vec![
             0x571, 0xE1B, 0x542, 0xE12, 0x1E2, 0x0DC, 0xCD0, 0xB85, 0x69A, 0xA81, 0x709, 0xA6A,
             0x584, 0x510, 0x4AA, 0x256, 0xCE0, 0x0F8, 0xFB3, 0x5A2, 0x0D9, 0xAD1, 0x389, 0x09C,
@@ -323,11 +323,11 @@ fn test_aztec() {
         ],
     );
     // synthetic test cases
-    let azp = super::get_predefined_genericgf(super::PredefinedGenericGF::AztecParam);
-    let azd6 = super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData6);
-    let azd8 = super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData8);
-    let azd10 = super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData10);
-    let azd12 = super::get_predefined_genericgf(super::PredefinedGenericGF::AztecData12);
+    let azp = super::PredefinedGenericGF::AztecParam.into();
+    let azd6 = super::PredefinedGenericGF::AztecData6.into();
+    let azd8 = super::PredefinedGenericGF::AztecData8.into();
+    let azd10 = super::PredefinedGenericGF::AztecData10.into();
+    let azd12 = super::PredefinedGenericGF::AztecData12.into();
 
     test_encode_decode_random(azp, 2, 5); // compact mode message
     test_encode_decode_random(azp, 4, 6); // full mode message

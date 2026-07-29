@@ -16,7 +16,7 @@
 
 use crate::common::{
     BitMatrix, DecoderRXingResult, Result,
-    reedsolomon::{PredefinedGenericGF, ReedSolomonDecoder, get_predefined_genericgf},
+    reedsolomon::{PredefinedGenericGF, ReedSolomonDecoder},
 };
 
 use super::{BitMatrixParser, DataBlock, decoded_bit_stream_parser};
@@ -31,9 +31,9 @@ pub struct Decoder(ReedSolomonDecoder);
 
 impl Decoder {
     pub fn new() -> Self {
-        Self(ReedSolomonDecoder::new(get_predefined_genericgf(
-            PredefinedGenericGF::DataMatrixField256,
-        )))
+        Self(ReedSolomonDecoder::new(
+            PredefinedGenericGF::DataMatrixField256.into(),
+        ))
         // rsDecoder = new ReedSolomonDecoder(GenericGF.DATA_MATRIX_FIELD_256);
     }
 
