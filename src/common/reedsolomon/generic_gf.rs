@@ -23,10 +23,15 @@ use super::{GenericGFPoly, GenericGFRef};
 /// larger size is ever added.
 pub(crate) const MAX_GF_SIZE: usize = 4096;
 
+/// `u16` is sufficient for all predefined fields (max size 4096) and halves the footprint of the tables versus `i32`
+type InternalTableType = u16;
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct GenericGF {
-    expTable: [i32; MAX_GF_SIZE],
-    logTable: [i32; MAX_GF_SIZE],
+    // Values are always in `0..size` (size <= MAX_GF_SIZE = 4096), so `u16` holds them with room
+    // to spare while halving the footprint of these fixed-size tables versus `i32`.
+    expTable: [InternalTableType; MAX_GF_SIZE],
+    logTable: [InternalTableType; MAX_GF_SIZE],
     // zero: Box<GenericGFPoly>,
     // one: Box<GenericGFPoly>,
     size: usize,
@@ -53,11 +58,11 @@ impl GenericGF {
         );
         let mut expTable = [0; MAX_GF_SIZE];
         let mut logTable = [0; MAX_GF_SIZE];
-        let mut x = 1;
+        let mut x: i32 = 1;
 
         let mut i = 0;
         while i < size {
-            expTable[i] = x;
+            expTable[i] = x as InternalTableType;
             x *= 2; // we're assuming the generator alpha is 2
             if x >= size as i32 {
                 x ^= primitive;
@@ -69,7 +74,7 @@ impl GenericGF {
         let mut i = 0;
         while i < size - 1 {
             let loc = expTable[i] as usize;
-            logTable[loc] = i as i32;
+            logTable[loc] = i as InternalTableType;
 
             i += 1;
         }
@@ -110,7 +115,7 @@ impl GenericGF {
      */
     pub const fn exp(&self, a: i32) -> i32 {
         debug_assert!((a as usize) < self.size, "GF element out of range");
-        self.expTable[a as usize]
+        self.expTable[a as usize] as i32
     }
 
     /**
@@ -123,7 +128,7 @@ impl GenericGF {
         if (a as usize) >= self.size {
             return Err(Exceptions::ILLEGAL_ARGUMENT);
         }
-        Ok(self.logTable[a as usize])
+        Ok(self.logTable[a as usize] as i32)
     }
 
     /**
@@ -137,8 +142,8 @@ impl GenericGF {
         if log_t_loc >= self.size {
             return Err(Exceptions::ILLEGAL_ARGUMENT);
         }
-        let loc: usize = ((self.size as i32) - self.logTable[log_t_loc] - 1) as usize;
-        Ok(self.expTable[loc])
+        let loc: usize = ((self.size as i32) - self.logTable[log_t_loc] as i32 - 1) as usize;
+        Ok(self.expTable[loc] as i32)
     }
 
     /**
@@ -154,8 +159,8 @@ impl GenericGF {
             a_loc < self.size && b_loc < self.size,
             "GF element out of range"
         );
-        let comb_loc: usize = (self.logTable[a_loc] + self.logTable[b_loc]) as usize;
-        self.expTable[comb_loc % (self.size - 1)]
+        let comb_loc: usize = self.logTable[a_loc] as usize + self.logTable[b_loc] as usize;
+        self.expTable[comb_loc % (self.size - 1)] as i32
     }
 
     pub const fn getSize(&self) -> usize {
