@@ -20,12 +20,11 @@ use crate::{
     pdf417::{decoder::ec::ModulusGF, pdf_417_common::NUMBER_OF_CODEWORDS},
 };
 
+const MODULUS: usize = NUMBER_OF_CODEWORDS as usize;
+
 use super::ModulusPoly;
 
-use once_cell::sync::Lazy;
-
-// static ref PDF417_GF : Arc<&ModulusGF> =  Arc::new(&ModulusGF::new(NUMBER_OF_CODEWORDS, 3));
-static FLD_INTERIOR: Lazy<ModulusGF> = Lazy::new(|| ModulusGF::new(NUMBER_OF_CODEWORDS, 3));
+const FLD_INTERIOR: ModulusGF<MODULUS> = ModulusGF::new(3);
 
 /*
  * <p>PDF417 error correction implementation.</p>
@@ -45,13 +44,13 @@ static FLD_INTERIOR: Lazy<ModulusGF> = Lazy::new(|| ModulusGF::new(NUMBER_OF_COD
  * @throws ChecksumException if errors cannot be corrected, maybe because of too many errors
  */
 pub fn decode(received: &mut [u32], numECCodewords: u32, erasures: &mut [u32]) -> Result<usize> {
-    let field: &'static ModulusGF = &FLD_INTERIOR;
-    let poly = ModulusPoly::new(field, received.to_vec())?;
+    const FIELD: &ModulusGF<MODULUS> = &FLD_INTERIOR;
+    let poly = ModulusPoly::new(FIELD, received.to_vec())?;
     let mut S = vec![0u32; numECCodewords as usize];
     let mut error = false;
     for i in (1..=numECCodewords).rev() {
         // for (int i = numECCodewords; i > 0; i--) {
-        let eval = poly.evaluateAt(field.exp(i));
+        let eval = poly.evaluateAt(FIELD.exp(i));
         S[(numECCodewords - i) as usize] = eval;
         if eval != 0 {
             error = true;
@@ -62,57 +61,57 @@ pub fn decode(received: &mut [u32], numECCodewords: u32, erasures: &mut [u32]) -
         return Ok(0);
     }
 
-    let mut knownErrors: ModulusPoly = ModulusPoly::getOne(field);
+    let mut knownErrors: ModulusPoly<MODULUS> = ModulusPoly::getOne(FIELD);
     let mut b;
     let mut term;
-    let mut kE: ModulusPoly;
+    let mut kE: ModulusPoly<MODULUS>;
     if !erasures.is_empty() {
         for erasure in erasures {
             // for (int erasure : erasures) {
-            b = field.exp(received.len() as u32 - 1 - *erasure);
+            b = FIELD.exp(received.len() as u32 - 1 - *erasure);
             // Add (1 - bx) term:
-            term = ModulusPoly::new(field, vec![field.subtract(0, b), 1])?;
+            term = ModulusPoly::new(FIELD, vec![FIELD.subtract(0, b), 1])?;
             kE = knownErrors.clone();
             knownErrors = kE.multiply(term)?;
         }
     }
 
-    let syndrome = ModulusPoly::new(field, S)?;
+    let syndrome = ModulusPoly::new(FIELD, S)?;
     //syndrome = syndrome.multiply(knownErrors);
 
     let sigmaOmega = runEuclideanAlgorithm(
-        ModulusPoly::buildMonomial(field, numECCodewords as usize, 1),
+        ModulusPoly::buildMonomial(FIELD, numECCodewords as usize, 1),
         syndrome,
         numECCodewords,
-        field,
+        FIELD,
     )?;
     let sigma = sigmaOmega[0].clone();
     let omega = sigmaOmega[1].clone();
 
     //sigma = sigma.multiply(knownErrors);
 
-    let mut errorLocations = findErrorLocations(sigma.clone(), field)?;
-    let errorMagnitudes = findErrorMagnitudes(omega, sigma, &mut errorLocations, field);
+    let mut errorLocations = findErrorLocations(sigma.clone(), FIELD)?;
+    let errorMagnitudes = findErrorMagnitudes(omega, sigma, &mut errorLocations, FIELD);
 
     for i in 0..errorLocations.len() {
         // for (int i = 0; i < errorLocations.length; i++) {
-        let position = received.len() as isize - 1 - field.log(errorLocations[i])? as isize;
+        let position = received.len() as isize - 1 - FIELD.log(errorLocations[i])? as isize;
         if position < 0 {
             return Err(Exceptions::checksum_with(file!()));
         }
         received[position as usize] =
-            field.subtract(received[position as usize], errorMagnitudes[i]);
+            FIELD.subtract(received[position as usize], errorMagnitudes[i]);
     }
 
     Ok(errorLocations.len())
 }
 
 fn runEuclideanAlgorithm(
-    a: ModulusPoly,
-    b: ModulusPoly,
+    a: ModulusPoly<MODULUS>,
+    b: ModulusPoly<MODULUS>,
     R: u32,
-    field: &'static ModulusGF,
-) -> Result<[ModulusPoly; 2]> {
+    field: &'static ModulusGF<MODULUS>,
+) -> Result<[ModulusPoly<MODULUS>; 2]> {
     // Assume a's degree is >= b's
     let mut a = a;
     let mut b = b;
@@ -167,7 +166,10 @@ fn runEuclideanAlgorithm(
     Ok([sigma, omega])
 }
 
-fn findErrorLocations(errorLocator: ModulusPoly, field: &ModulusGF) -> Result<Vec<u32>> {
+fn findErrorLocations(
+    errorLocator: ModulusPoly<MODULUS>,
+    field: &ModulusGF<MODULUS>,
+) -> Result<Vec<u32>> {
     // This is a direct application of Chien's search
     let numErrors = errorLocator.getDegree();
     let mut result = vec![0u32; numErrors as usize];
@@ -188,10 +190,10 @@ fn findErrorLocations(errorLocator: ModulusPoly, field: &ModulusGF) -> Result<Ve
 }
 
 fn findErrorMagnitudes(
-    errorEvaluator: ModulusPoly,
-    errorLocator: ModulusPoly,
+    errorEvaluator: ModulusPoly<MODULUS>,
+    errorLocator: ModulusPoly<MODULUS>,
     errorLocations: &mut [u32],
-    field: &'static ModulusGF,
+    field: &'static ModulusGF<MODULUS>,
 ) -> Vec<u32> {
     let errorLocatorDegree = errorLocator.getDegree();
     if errorLocatorDegree < 1 {

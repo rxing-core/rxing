@@ -26,57 +26,54 @@ use crate::common::Result;
  * @see com.google.zxing.common.reedsolomon.GenericGF
  */
 #[derive(Debug, Clone)]
-pub struct ModulusGF {
-    expTable: Vec<u32>,
-    logTable: Vec<u32>,
+pub struct ModulusGF<const MODULUS: usize> {
+    expTable: [u32; MODULUS],
+    logTable: [u32; MODULUS],
     // zero: Option<Arc<ModulusPoly<'a>>>,
     // one: Option<Arc<ModulusPoly<'a>>>,
     modulus: u32,
     generator: u32,
 }
-impl ModulusGF {
-    pub fn new(modulus: u32, generator: u32) -> Self {
-        let mut expTable = vec![0u32; modulus as usize]; //new int[modulus];
-        let mut logTable = vec![0u32; modulus as usize]; //new int[modulus];
+impl<const MODULUS: usize> ModulusGF<MODULUS> {
+    pub const fn new(generator: u32) -> Self {
+        let mut expTable = [0u32; MODULUS];
+        let mut logTable = [0u32; MODULUS];
         let mut x = 1;
-        for table_entry in expTable.iter_mut().take(modulus as usize) {
-            // for i in 0..modulus as usize {
-            // for (int i = 0; i < modulus; i++) {
-            *table_entry = x;
-            x = (x * generator) % modulus;
-        }
-        for i in 0..modulus as usize - 1 {
-            // for (int i = 0; i < modulus - 1; i++) {
-            logTable[expTable[i] as usize] = i as u32;
-        }
-        // logTable[0] == 0 but this should never be used
 
-        // zero = new ModulusPoly(this, new int[]{0});
-        // one = new ModulusPoly(this, new int[]{1});
+        let mut i = 0;
+        while i < MODULUS {
+            expTable[i] = x;
+            x = (x * generator) % MODULUS as u32;
+            i += 1;
+        }
+        let mut i = 0;
+        while i < MODULUS - 1 {
+            logTable[expTable[i] as usize] = i as u32;
+
+            i += 1;
+        }
 
         Self {
             expTable,
             logTable,
-            // zero: None,
-            // one: None,
-            modulus,
+            modulus: MODULUS as u32,
             generator,
         }
     }
 
-    pub fn add(&self, a: u32, b: u32) -> u32 {
+    pub const fn add(&self, a: u32, b: u32) -> u32 {
         (a + b) % self.modulus
     }
 
-    pub fn subtract(&self, a: u32, b: u32) -> u32 {
+    pub const fn subtract(&self, a: u32, b: u32) -> u32 {
         (self.modulus + a - b) % self.modulus
     }
 
-    pub fn exp(&self, a: u32) -> u32 {
+    pub const fn exp(&self, a: u32) -> u32 {
         self.expTable[a as usize]
     }
 
-    pub fn log(&self, a: u32) -> Result<u32> {
+    pub const fn log(&self, a: u32) -> Result<u32> {
         if a == 0 {
             Err(Exceptions::ARITHMETIC)
         } else {
@@ -84,7 +81,7 @@ impl ModulusGF {
         }
     }
 
-    pub fn inverse(&self, a: u32) -> Result<u32> {
+    pub const fn inverse(&self, a: u32) -> Result<u32> {
         if a == 0 {
             Err(Exceptions::ARITHMETIC)
         } else {
@@ -92,7 +89,7 @@ impl ModulusGF {
         }
     }
 
-    pub fn multiply(&self, a: u32, b: u32) -> u32 {
+    pub const fn multiply(&self, a: u32, b: u32) -> u32 {
         if a == 0 || b == 0 {
             0
         } else {
@@ -101,14 +98,14 @@ impl ModulusGF {
         }
     }
 
-    pub fn getSize(&self) -> u32 {
+    pub const fn getSize(&self) -> u32 {
         self.modulus
     }
 }
 
-impl PartialEq for ModulusGF {
+impl<const MODULUS: usize> PartialEq for ModulusGF<MODULUS> {
     fn eq(&self, other: &Self) -> bool {
         self.modulus == other.modulus && self.generator == other.generator
     }
 }
-impl Eq for ModulusGF {}
+impl<const MODULUS: usize> Eq for ModulusGF<MODULUS> {}

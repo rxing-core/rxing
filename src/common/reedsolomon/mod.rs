@@ -41,9 +41,9 @@ pub enum PredefinedGenericGF {
     MaxicodeField64,
 }
 
-impl Into<GenericGFRef> for PredefinedGenericGF {
-    fn into(self) -> GenericGFRef {
-        match self {
+impl From<PredefinedGenericGF> for GenericGFRef {
+    fn from(value: PredefinedGenericGF) -> Self {
+        match value {
             PredefinedGenericGF::AztecData12 => &AZTEC_DATA_12, // x^12 + x^6 + x^5 + x^3 + 1,
             PredefinedGenericGF::AztecData10 => &AZTEC_DATA_10, // x^10 + x^3 + 1
             PredefinedGenericGF::AztecData6 | PredefinedGenericGF::MaxicodeField64 => &AZTEC_DATA_6, // x^6 + x + 1
@@ -53,7 +53,7 @@ impl Into<GenericGFRef> for PredefinedGenericGF {
                 &DATA_MATRIX_FIELD_256
             } // x^8 + x^5 + x^3 + x^2 + 1
         }
-    }
+    }   
 }
 
 mod generic_gf;

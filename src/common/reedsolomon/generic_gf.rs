@@ -16,7 +16,7 @@ use super::{GenericGFPoly, GenericGFRef};
  * @author Sean Owen
  * @author David Olivier
  */
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct GenericGF {
     expTable: [i32; 4096],
     logTable: [i32; 4096],
@@ -58,7 +58,7 @@ impl GenericGF {
         let mut i = 0;
         while i < size - 1 {
             let loc = expTable[i] as usize;
-            logTable[loc as usize] = i as i32;
+            logTable[loc] = i as i32;
 
             i += 1;
         }

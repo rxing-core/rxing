@@ -23,12 +23,15 @@ use super::ModulusGF;
  * @author Sean Owen
  */
 #[derive(Clone, Debug)]
-pub struct ModulusPoly {
-    field: &'static ModulusGF,
+pub struct ModulusPoly<const MODULUS: usize> {
+    field: &'static ModulusGF<MODULUS>,
     coefficients: Vec<u32>,
 }
-impl ModulusPoly {
-    pub fn new(field: &'static ModulusGF, coefficients: Vec<u32>) -> Result<ModulusPoly> {
+impl<const MODULUS: usize> ModulusPoly<MODULUS> {
+    pub fn new(
+        field: &'static ModulusGF<MODULUS>,
+        coefficients: Vec<u32>,
+    ) -> Result<ModulusPoly<MODULUS>> {
         if coefficients.is_empty() {
             return Err(Exceptions::ILLEGAL_ARGUMENT);
         }
@@ -46,22 +49,12 @@ impl ModulusPoly {
             } else {
                 coefficients = vec![0u32; coefficientsLength - firstNonZero];
                 coefficients[..].copy_from_slice(&orig_coefs[firstNonZero..]);
-                // System.arraycopy(coefficients,
-                //     firstNonZero,
-                //     this.coefficients,
-                //     0,
-                //     this.coefficients.length);
             }
         }
-        // } else {
-        //     coefficients = coefficients;
-        // }
 
         Ok(ModulusPoly {
             field,
             coefficients,
-            // zero: Some(Self::getZero(field.clone())),
-            // one: Some(Self::getOne(field.clone())),
         })
     }
 
@@ -118,7 +111,7 @@ impl ModulusPoly {
         result
     }
 
-    pub fn add(&self, other: ModulusPoly) -> Result<ModulusPoly> {
+    pub fn add(&self, other: ModulusPoly<MODULUS>) -> Result<ModulusPoly<MODULUS>> {
         if self.field != other.field {
             return Err(Exceptions::illegal_argument_with(
                 "ModulusPolys do not have same ModulusGF field",
@@ -152,7 +145,7 @@ impl ModulusPoly {
         ModulusPoly::new(self.field, sumDiff)
     }
 
-    pub fn subtract(&self, other: ModulusPoly) -> Result<ModulusPoly> {
+    pub fn subtract(&self, other: ModulusPoly<MODULUS>) -> Result<ModulusPoly<MODULUS>> {
         if self.field != other.field {
             return Err(Exceptions::illegal_argument_with(
                 "ModulusPolys do not have same ModulusGF field",
@@ -164,7 +157,7 @@ impl ModulusPoly {
         self.add(other.negative())
     }
 
-    pub fn multiply(&self, other: ModulusPoly) -> Result<ModulusPoly> {
+    pub fn multiply(&self, other: ModulusPoly<MODULUS>) -> Result<ModulusPoly<MODULUS>> {
         if !(self.field == other.field) {
             return Err(Exceptions::illegal_argument_with(
                 "ModulusPolys do not have same ModulusGF field",
@@ -193,7 +186,7 @@ impl ModulusPoly {
         ModulusPoly::new(self.field, product)
     }
 
-    pub fn negative(&self) -> ModulusPoly {
+    pub fn negative(&self) -> ModulusPoly<MODULUS> {
         let size = self.coefficients.len();
         let mut negativeCoefficients = vec![0u32; size];
         for (i, neg_coef) in negativeCoefficients.iter_mut().enumerate().take(size) {
@@ -205,7 +198,7 @@ impl ModulusPoly {
             .expect("should always generate with known goods")
     }
 
-    pub fn multiplyByScaler(&self, scalar: u32) -> ModulusPoly {
+    pub fn multiplyByScaler(&self, scalar: u32) -> ModulusPoly<MODULUS> {
         if scalar == 0 {
             return Self::getZero(self.field);
         }
@@ -222,7 +215,7 @@ impl ModulusPoly {
         ModulusPoly::new(self.field, product).expect("should always generate with known goods")
     }
 
-    pub fn multiplyByMonomial(&self, degree: usize, coefficient: u32) -> ModulusPoly {
+    pub fn multiplyByMonomial(&self, degree: usize, coefficient: u32) -> ModulusPoly<MODULUS> {
         if coefficient == 0 {
             return Self::getZero(self.field);
         }
@@ -236,19 +229,19 @@ impl ModulusPoly {
         ModulusPoly::new(self.field, product).expect("should always generate with known goods")
     }
 
-    pub fn getZero(field: &'static ModulusGF) -> ModulusPoly {
+    pub fn getZero(field: &'static ModulusGF<MODULUS>) -> ModulusPoly<MODULUS> {
         ModulusPoly::new(field, vec![0]).expect("should always generate with known goods")
     }
 
-    pub fn getOne(field: &'static ModulusGF) -> ModulusPoly {
+    pub fn getOne(field: &'static ModulusGF<MODULUS>) -> ModulusPoly<MODULUS> {
         ModulusPoly::new(field, vec![1]).expect("should always generate with known goods")
     }
 
     pub fn buildMonomial(
-        field: &'static ModulusGF,
+        field: &'static ModulusGF<MODULUS>,
         degree: usize,
         coefficient: u32,
-    ) -> ModulusPoly {
+    ) -> ModulusPoly<MODULUS> {
         // if degree < 0 {
         //   throw new IllegalArgumentException();
         // }
