@@ -53,7 +53,7 @@ impl From<PredefinedGenericGF> for GenericGFRef {
                 &DATA_MATRIX_FIELD_256
             } // x^8 + x^5 + x^3 + x^2 + 1
         }
-    }   
+    }
 }
 
 mod generic_gf;

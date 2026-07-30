@@ -16,10 +16,17 @@ use super::{GenericGFPoly, GenericGFRef};
  * @author Sean Owen
  * @author David Olivier
  */
+/// Largest field size among the predefined [`super::PredefinedGenericGF`] variants
+/// (`AztecData12`, GF(4096)). `expTable`/`logTable` are allocated at this fixed size so
+/// `GenericGF::new` can be a `const fn`; fields smaller than this (e.g. `AztecParam`,
+/// GF(16)) leave the tail of each table unused. Raise this if a predefined field with a
+/// larger size is ever added.
+pub(crate) const MAX_GF_SIZE: usize = 4096;
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct GenericGF {
-    expTable: [i32; 4096],
-    logTable: [i32; 4096],
+    expTable: [i32; MAX_GF_SIZE],
+    logTable: [i32; MAX_GF_SIZE],
     // zero: Box<GenericGFPoly>,
     // one: Box<GenericGFPoly>,
     size: usize,
@@ -40,8 +47,12 @@ impl GenericGF {
      *  In most cases it should be 1, but for QR code it is 0.
      */
     pub const fn new(primitive: i32, size: usize, b: i32) -> Self {
-        let mut expTable = [0; 4096];
-        let mut logTable = [0; 4096];
+        debug_assert!(
+            size <= MAX_GF_SIZE,
+            "GenericGF field size exceeds MAX_GF_SIZE"
+        );
+        let mut expTable = [0; MAX_GF_SIZE];
+        let mut logTable = [0; MAX_GF_SIZE];
         let mut x = 1;
 
         let mut i = 0;
@@ -98,7 +109,7 @@ impl GenericGF {
      * @return 2 to the power of a in GF(size)
      */
     pub const fn exp(&self, a: i32) -> i32 {
-        // let pos: usize = a.try_into().unwrap();
+        debug_assert!((a as usize) < self.size, "GF element out of range");
         self.expTable[a as usize]
     }
 
@@ -109,7 +120,9 @@ impl GenericGF {
         if a == 0 {
             return Err(Exceptions::ILLEGAL_ARGUMENT);
         }
-        // let pos: usize = a.try_into().unwrap();
+        if (a as usize) >= self.size {
+            return Err(Exceptions::ILLEGAL_ARGUMENT);
+        }
         Ok(self.logTable[a as usize])
     }
 
@@ -121,6 +134,9 @@ impl GenericGF {
             return Err(Exceptions::ARITHMETIC);
         }
         let log_t_loc: usize = a as usize;
+        if log_t_loc >= self.size {
+            return Err(Exceptions::ILLEGAL_ARGUMENT);
+        }
         let loc: usize = ((self.size as i32) - self.logTable[log_t_loc] - 1) as usize;
         Ok(self.expTable[loc])
     }
@@ -134,6 +150,10 @@ impl GenericGF {
         }
         let a_loc: usize = a as usize;
         let b_loc: usize = b as usize;
+        debug_assert!(
+            a_loc < self.size && b_loc < self.size,
+            "GF element out of range"
+        );
         let comb_loc: usize = (self.logTable[a_loc] + self.logTable[b_loc]) as usize;
         self.expTable[comb_loc % (self.size - 1)]
     }
