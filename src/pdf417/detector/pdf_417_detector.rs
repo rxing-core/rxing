@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    Binarizer, BinaryBitmap, DecodeHints, Exceptions, Point,
+    Binarizer, BinaryBitmap, DecodeHints, Error, Point,
     common::{BitMatrix, Result},
     point,
 };
@@ -79,7 +79,7 @@ pub fn detect_with_hints<B: Binarizer>(
     for rotation in ROTATIONS {
         // for (int rotation : ROTATIONS) {
         let bitMatrix = applyRotation(originalMatrix, rotation)?;
-        let barcodeCoordinates = detect(multiple, &bitMatrix).ok_or(Exceptions::NOT_FOUND)?;
+        let barcodeCoordinates = detect(multiple, &bitMatrix).ok_or(Error::NOT_FOUND)?;
         if !barcodeCoordinates.is_empty() {
             return Ok(PDF417DetectorRXingResult::with_rotation(
                 bitMatrix.into_owned(),

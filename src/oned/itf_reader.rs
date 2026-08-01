@@ -19,7 +19,7 @@ use rxing_one_d_proc_derive::OneDReader;
 use crate::{RXingResultMetadataType, RXingResultMetadataValue};
 
 use crate::{
-    BarcodeFormat, Exceptions, RXingResult,
+    BarcodeFormat, Error, RXingResult,
     common::{BitArray, Result},
     point,
 };
@@ -144,7 +144,7 @@ impl OneDReader for ITFReader {
             lengthOK = true;
         }
         if !lengthOK {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
 
         let mut resultObject = RXingResult::new(
@@ -199,9 +199,9 @@ impl ITFReader {
             }
 
             let mut bestMatch = self.decodeDigit(&counterBlack)?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch).ok_or(Exceptions::PARSE)?);
+            resultString.push(char::from_u32('0' as u32 + bestMatch).ok_or(Error::PARSE)?);
             bestMatch = self.decodeDigit(&counterWhite)?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch).ok_or(Exceptions::PARSE)?);
+            resultString.push(char::from_u32('0' as u32 + bestMatch).ok_or(Error::PARSE)?);
 
             payloadStart += counterDigitPair.iter().sum::<u32>() as usize;
         }
@@ -262,7 +262,7 @@ impl ITFReader {
 
         if quietCount != 0 {
             // Unable to find the necessary number of quiet zone pixels.
-            Err(Exceptions::NOT_FOUND)
+            Err(Error::NOT_FOUND)
         } else {
             Ok(())
         }
@@ -279,7 +279,7 @@ impl ITFReader {
         let width = row.get_size();
         let endStart = row.getNextSet(0);
         if endStart == width {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         Ok(endStart)
@@ -374,7 +374,7 @@ impl ITFReader {
                 isWhite = !isWhite;
             }
         }
-        Err(Exceptions::NOT_FOUND)
+        Err(Error::NOT_FOUND)
     }
 
     /**
@@ -403,7 +403,7 @@ impl ITFReader {
         if bestMatch >= 0 {
             Ok(bestMatch as u32 % 10)
         } else {
-            Err(Exceptions::NOT_FOUND)
+            Err(Error::NOT_FOUND)
         }
     }
 }

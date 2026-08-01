@@ -17,7 +17,7 @@
 use rxing_one_d_proc_derive::OneDWriter;
 
 use crate::common::Result;
-use crate::{BarcodeFormat, Exceptions};
+use crate::{BarcodeFormat, Error};
 
 use super::{OneDimensionalCodeWriter, oned_constants::coda_bar};
 
@@ -44,12 +44,12 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             let firstChar = contents
                 .chars()
                 .next()
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
                 .to_ascii_uppercase();
             let lastChar = contents
                 .chars()
                 .nth(contents.chars().count() - 1)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
                 .to_ascii_uppercase();
             let startsNormal = START_END_CHARS.contains(&firstChar);
             let endsNormal = START_END_CHARS.contains(&lastChar);
@@ -57,7 +57,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             let endsAlt = ALT_START_END_CHARS.contains(&lastChar);
             if startsNormal {
                 if !endsNormal {
-                    return Err(Exceptions::illegal_argument_with(format!(
+                    return Err(Error::illegal_argument_with(format!(
                         "Invalid start/end guards: {contents}"
                     )));
                 }
@@ -65,7 +65,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
                 contents.to_owned()
             } else if startsAlt {
                 if !endsAlt {
-                    return Err(Exceptions::illegal_argument_with(format!(
+                    return Err(Error::illegal_argument_with(format!(
                         "Invalid start/end guards: {contents}"
                     )));
                 }
@@ -74,7 +74,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             } else {
                 // Doesn't start with a guard
                 if endsNormal || endsAlt {
-                    return Err(Exceptions::illegal_argument_with(format!(
+                    return Err(Error::illegal_argument_with(format!(
                         "Invalid start/end guards: {contents}"
                     )));
                 }
@@ -91,7 +91,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             } else if CHARS_WHICH_ARE_TEN_LENGTH_EACH_AFTER_DECODED.contains(&ch) {
                 resultLength += 10;
             } else {
-                return Err(Exceptions::illegal_argument_with(format!(
+                return Err(Error::illegal_argument_with(format!(
                     "Cannot encode : '{ch}'"
                 )));
             }
@@ -106,7 +106,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             let mut c = contents
                 .chars()
                 .nth(index)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
                 .to_ascii_uppercase();
             if index == 0 || index == contents.chars().count() - 1 {
                 // The start/end chars are not in the CodaBarReader.ALPHABET.

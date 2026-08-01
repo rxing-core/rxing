@@ -18,7 +18,7 @@ use std::fmt;
 
 use crate::{
     common::{BitArray, CharacterSet, Eci, Result},
-    exceptions::Exceptions,
+    exceptions::Error,
 };
 
 use super::{HighLevelEncoder, Token};
@@ -81,13 +81,13 @@ impl State {
             token.add(0, 3); // 0: FNC1
         } else */
         if eci as u32 > 999999 {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "ECI code must be between 0 and 999999",
             ));
             // throw new IllegalArgumentException("ECI code must be between 0 and 999999");
         } else {
             let Ok(eci_digits) = CharacterSet::ISO8859_1.encode(&format!("{eci}")) else {
-                return Err(Exceptions::ILLEGAL_ARGUMENT);
+                return Err(Error::ILLEGAL_ARGUMENT);
             };
             // let eciDigits = Integer.toString(eci).getBytes(StandardCharsets.ISO_8859_1);
             token.add(eci_digits.len() as i32, 3); // 1-6: number of ECI digits

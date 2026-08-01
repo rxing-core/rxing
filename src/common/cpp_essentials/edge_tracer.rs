@@ -8,7 +8,7 @@
 use std::sync::{Arc, RwLock};
 
 use crate::{
-    Exceptions, Point,
+    Error, Point,
     common::{BitMatrix, Result},
 };
 
@@ -230,7 +230,7 @@ impl<'a> EdgeTracer<'_> {
                         if self.whiteAt(pEdge) {
                             // if we are not making any progress, we still have another endless loop bug
                             if self.p == pEdge.centered() {
-                                return Err(Exceptions::ILLEGAL_STATE);
+                                return Err(Error::ILLEGAL_STATE);
                             }
                             self.p = pEdge.centered();
 
@@ -240,7 +240,7 @@ impl<'a> EdgeTracer<'_> {
                                     if history
                                         .read()
                                         .map_err(|_| {
-                                            Exceptions::illegal_state_with(
+                                            Error::illegal_state_with(
                                                 "Failed to acquire read lock",
                                             )
                                         })?
@@ -252,7 +252,7 @@ impl<'a> EdgeTracer<'_> {
                                     history
                                         .write()
                                         .map_err(|_| {
-                                            Exceptions::illegal_state_with(
+                                            Error::illegal_state_with(
                                                 "Failed to acquire write lock",
                                             )
                                         })?
@@ -315,7 +315,7 @@ impl<'a> EdgeTracer<'_> {
                             .points()
                             .first()
                             .as_ref()
-                            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                            .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
                 ) {
                     return Ok(false);
                 }
@@ -368,7 +368,7 @@ impl<'a> EdgeTracer<'_> {
                         .points()
                         .last()
                         .as_ref()
-                        .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                        .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
             {
                 return Ok(false);
             }
@@ -412,7 +412,7 @@ impl<'a> EdgeTracer<'_> {
                         line.points()
                             .last()
                             .copied()
-                            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                            .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
                     ),
                 ) < 1.0
                 {
@@ -430,7 +430,7 @@ impl<'a> EdgeTracer<'_> {
                                 .points()
                                 .last()
                                 .copied()
-                                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
                     )
                 };
                 line.add(self.p)?;
@@ -447,7 +447,7 @@ impl<'a> EdgeTracer<'_> {
                                     .points()
                                     .first()
                                     .copied()
-                                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
                         ) {
                             return Ok(false);
                         }

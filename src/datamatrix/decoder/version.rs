@@ -17,7 +17,7 @@
 use core::fmt;
 use once_cell::sync::Lazy;
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 static VERSIONS: Lazy<Box<[Version]>> = Lazy::new(Version::buildVersions);
@@ -103,7 +103,7 @@ impl Version {
      */
     pub fn getVersionForDimensions(numRows: u32, numColumns: u32) -> Result<&'static Version> {
         if (numRows & 0x01) != 0 || (numColumns & 0x01) != 0 {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
 
         for version in VERSIONS.iter() {
@@ -112,7 +112,7 @@ impl Version {
             }
         }
 
-        Err(Exceptions::FORMAT)
+        Err(Error::FORMAT)
     }
 
     /**

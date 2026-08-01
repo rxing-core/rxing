@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 use super::high_level_encoder::{
@@ -67,7 +67,7 @@ impl C40Encoder {
             context.updateSymbolInfoWithLength(curCodewordCount);
             let available = context
                 .getSymbolInfo()
-                .ok_or(Exceptions::ILLEGAL_STATE)?
+                .ok_or(Error::ILLEGAL_STATE)?
                 .getDataCapacity() as usize
                 - curCodewordCount;
 
@@ -142,7 +142,7 @@ impl C40Encoder {
             context.updateSymbolInfoWithLength(curCodewordCount);
             let available = context
                 .getSymbolInfo()
-                .ok_or(Exceptions::ILLEGAL_STATE)?
+                .ok_or(Error::ILLEGAL_STATE)?
                 .getDataCapacity() as usize
                 - curCodewordCount;
             let rest = buffer.chars().count() % 3;
@@ -184,7 +184,7 @@ impl C40Encoder {
         context: &mut EncoderContext,
         buffer: &mut String,
     ) -> Result<()> {
-        context.writeCodewords(&Self::encodeToCodewords(buffer).ok_or(Exceptions::FORMAT)?);
+        context.writeCodewords(&Self::encodeToCodewords(buffer).ok_or(Error::FORMAT)?);
         buffer.replace_range(0..3, "");
         // buffer.delete(0, 3);
         Ok(())
@@ -204,7 +204,7 @@ impl C40Encoder {
         context.updateSymbolInfoWithLength(curCodewordCount);
         let available = context
             .getSymbolInfo()
-            .ok_or(Exceptions::ILLEGAL_STATE)?
+            .ok_or(Error::ILLEGAL_STATE)?
             .getDataCapacity() as usize
             - curCodewordCount;
 
@@ -233,7 +233,7 @@ impl C40Encoder {
                 context.writeCodeword(C40_UNLATCH);
             }
         } else {
-            return Err(Exceptions::illegal_state_with(
+            return Err(Error::illegal_state_with(
                 "Unexpected case. Please report!",
             ));
         }

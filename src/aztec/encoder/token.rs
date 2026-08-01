@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    Exceptions,
+    Error,
     common::{BitArray, Result},
 };
 
@@ -34,7 +34,7 @@ impl TokenType {
         match self {
             TokenType::Simple(a) => a.appendTo(bit_array, text),
             TokenType::BinaryShift(a) => a.appendTo(bit_array, text),
-            TokenType::Empty => Err(Exceptions::illegal_state_with(
+            TokenType::Empty => Err(Error::illegal_state_with(
                 "cannot appendTo on Empty final item",
             )),
         }

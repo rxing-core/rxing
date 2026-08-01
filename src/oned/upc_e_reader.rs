@@ -16,7 +16,7 @@
 
 use super::{OneDReader, UPCEANReader};
 use crate::{
-    BarcodeFormat, Exceptions,
+    BarcodeFormat, Error,
     common::Result,
     oned::upcean_common::{checkStandardUPCEANChecksum, convertUPCEtoUPCA},
 };
@@ -57,7 +57,7 @@ impl UPCEANReader for UPCEReader {
         while x < 6 && rowOffset < end {
             let bestMatch = self.decodeDigit(row, &mut counters, rowOffset, &L_AND_G_PATTERNS)?;
             resultString
-                .push(char::from_u32('0' as u32 + bestMatch as u32 % 10).ok_or(Exceptions::PARSE)?);
+                .push(char::from_u32('0' as u32 + bestMatch as u32 % 10).ok_or(Error::PARSE)?);
             rowOffset += counters.iter().sum::<u32>() as usize;
 
             if bestMatch >= 10 {
@@ -73,7 +73,7 @@ impl UPCEANReader for UPCEReader {
     }
 
     fn checkChecksum(&self, s: &str) -> Result<bool> {
-        checkStandardUPCEANChecksum(&convertUPCEtoUPCA(s).ok_or(Exceptions::ILLEGAL_ARGUMENT)?)
+        checkStandardUPCEANChecksum(&convertUPCEtoUPCA(s).ok_or(Error::ILLEGAL_ARGUMENT)?)
     }
 
     fn decodeEnd(&self, row: &crate::common::BitArray, endStart: usize) -> Result<[usize; 2]> {
@@ -91,14 +91,14 @@ impl UPCEReader {
                 if lgPatternFound == NUMSYS_AND_CHECK_DIGIT_PATTERNS[numSys][d] {
                     resultString.insert(
                         0,
-                        char::from_u32('0' as u32 + numSys as u32).ok_or(Exceptions::PARSE)?,
+                        char::from_u32('0' as u32 + numSys as u32).ok_or(Error::PARSE)?,
                     );
                     resultString
-                        .push(char::from_u32('0' as u32 + d as u32).ok_or(Exceptions::PARSE)?);
+                        .push(char::from_u32('0' as u32 + d as u32).ok_or(Error::PARSE)?);
                     return Ok(());
                 }
             }
         }
-        Err(Exceptions::NOT_FOUND)
+        Err(Error::NOT_FOUND)
     }
 }

@@ -18,7 +18,7 @@
 
 // import com.google.zxing.NotFoundException;
 
-use crate::{Exceptions, point};
+use crate::{Error, point};
 use crate::{Point, common::Result};
 
 use super::{BitMatrix, PerspectiveTransform, Quadrilateral};
@@ -113,7 +113,7 @@ pub trait GridSampler {
         controls: &[SamplerControl],
     ) -> Result<(BitMatrix, [Point; 4])> {
         if dimensionX == 0 || dimensionY == 0 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
         let mut bits = BitMatrix::new(dimensionX, dimensionY)?;
         let mut points = vec![Point::default(); dimensionX as usize];
@@ -141,7 +141,7 @@ pub trait GridSampler {
             for (x, point) in points.iter().enumerate() {
                 // for x in 0..points.len() {
                 if image.try_get(point.x as u32, point.y as u32).ok_or(
-                    Exceptions::not_found_with(
+                    Error::not_found_with(
                         "index out of bounds, see documentation in file for explanation",
                     ),
                 )? {
@@ -189,7 +189,7 @@ pub trait GridSampler {
         for point in points.iter_mut().take(max_offset) {
             let (x, y) = (point.x as i32, point.y as i32);
             if x < -1 || x > width as i32 || y < -1 || y > height as i32 {
-                return Err(Exceptions::NOT_FOUND);
+                return Err(Error::NOT_FOUND);
             }
             nudged = false;
             if x == -1 {
@@ -214,7 +214,7 @@ pub trait GridSampler {
         for point in points.iter_mut().rev().take(max_offset).rev() {
             let (x, y) = (point.x as i32, point.y as i32);
             if x < -1 || x > width as i32 || y < -1 || y > height as i32 {
-                return Err(Exceptions::NOT_FOUND);
+                return Err(Error::NOT_FOUND);
             }
             nudged = false;
             if x == -1 {

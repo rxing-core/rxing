@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{BarcodeFormat, Binarizer, Exceptions, RXingResult, Reader, common::Result};
+use crate::{BarcodeFormat, Binarizer, Error, RXingResult, Reader, common::Result};
 
 use super::{EAN13Reader, OneDReader, UPCEANReader};
 
@@ -101,7 +101,7 @@ impl UPCAReader {
 
             Ok(upcaRXingResult)
         } else {
-            Err(Exceptions::NOT_FOUND)
+            Err(Error::NOT_FOUND)
         }
     }
 }

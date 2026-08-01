@@ -20,7 +20,7 @@ use crate::DecodeHints;
 use crate::common::Result;
 #[cfg(feature = "qrcode")]
 use crate::qrcode::cpp_port::QrReader;
-use crate::{BarcodeFormat, Binarizer, BinaryBitmap, Exceptions, RXingResult, Reader};
+use crate::{BarcodeFormat, Binarizer, BinaryBitmap, Error, RXingResult, Reader};
 
 #[cfg(feature = "aztec")]
 use crate::aztec::AztecReader;
@@ -198,7 +198,7 @@ impl MultiUseMultiFormatReader {
                 return Ok(r);
             }
         }
-        Err(Exceptions::NOT_FOUND)
+        Err(Error::NOT_FOUND)
     }
 
     fn decode_formats<B: Binarizer>(&mut self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
@@ -253,7 +253,7 @@ impl MultiUseMultiFormatReader {
                     BarcodeFormat::MAXICODE => {
                         self.maxicode_reader.decode_with_hints(image, &self.hints)
                     }
-                    _ => Err(Exceptions::UNSUPPORTED_OPERATION),
+                    _ => Err(Error::UNSUPPORTED_OPERATION),
                 };
                 if res.is_ok() {
                     return res;
@@ -308,6 +308,6 @@ impl MultiUseMultiFormatReader {
             }
         }
 
-        Err(Exceptions::UNSUPPORTED_OPERATION)
+        Err(Error::UNSUPPORTED_OPERATION)
     }
 }

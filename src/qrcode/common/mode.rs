@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 use crate::qrcode::cpp_port::Type;
 
@@ -70,7 +70,7 @@ impl Mode {
             {
                 Ok(Self::HANZI)
             }
-            _ => Err(Exceptions::illegal_argument_with(format!(
+            _ => Err(Error::illegal_argument_with(format!(
                 "{bits} is not valid"
             ))),
         }
@@ -173,7 +173,7 @@ impl Mode {
             return Mode::try_from(bits as u32);
         }
 
-        Err(Exceptions::format_with("Invalid codec mode"))
+        Err(Error::format_with("Invalid codec mode"))
     }
 
     /**
@@ -247,7 +247,7 @@ impl From<Mode> for u8 {
 }
 
 impl TryFrom<u8> for Mode {
-    type Error = Exceptions;
+    type Error = Error;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         Self::forBits(value)
@@ -255,7 +255,7 @@ impl TryFrom<u8> for Mode {
 }
 
 impl TryFrom<u32> for Mode {
-    type Error = Exceptions;
+    type Error = Error;
 
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         Self::forBits(value as u8)

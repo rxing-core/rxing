@@ -9,7 +9,8 @@ pub mod client;
 
 use std::{collections::HashMap, sync::Arc};
 
-pub use exceptions::Exceptions;
+pub use exceptions::Error;
+pub type Exceptions = exceptions::Error;
 
 #[cfg(all(feature = "image", feature = "decoders"))]
 mod buffered_image_luminance_source;

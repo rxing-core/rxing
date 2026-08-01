@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    Exceptions,
+    Error,
     common::Result,
     oned::{OneDReader, one_d_reader},
 };
@@ -45,7 +45,7 @@ pub trait AbstractRSSReaderTrait: OneDReader {
                 return Ok(value as u32);
             }
         }
-        Err(Exceptions::NOT_FOUND)
+        Err(Error::NOT_FOUND)
     }
 
     fn increment(array: &mut [u32], errors: &[f32]) {

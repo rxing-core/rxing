@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    BarcodeFormat, Binarizer, Exceptions, RXingResult, RXingResultMetadataType,
+    BarcodeFormat, Binarizer, Error, RXingResult, RXingResultMetadataType,
     RXingResultMetadataValue, Reader,
     common::{BitArray, Result},
     oned::{
@@ -131,18 +131,18 @@ pub trait UPCEANReader: OneDReader {
         let end = endRange[1];
         let quietEnd = end + (end - endRange[0]);
         if quietEnd >= row.get_size() || !row.isRange(end, quietEnd, false)? {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         let resultString = result;
 
         // UPC/EAN should never be less than 8 chars anyway
         if resultString.chars().count() < 8 {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
 
         if !self.checkChecksum(&resultString)? {
-            return Err(Exceptions::CHECKSUM);
+            return Err(Error::CHECKSUM);
         }
 
         let left = (startGuardRange[1] + startGuardRange[0]) as f32 / 2.0;
@@ -187,7 +187,7 @@ pub trait UPCEANReader: OneDReader {
                 }
             }
             if !valid {
-                return Err(Exceptions::NOT_FOUND);
+                return Err(Error::NOT_FOUND);
             }
         }
 
@@ -294,7 +294,7 @@ pub trait UPCEANReader: OneDReader {
             }
         }
 
-        Err(Exceptions::NOT_FOUND)
+        Err(Error::NOT_FOUND)
     }
 
     /**
@@ -331,7 +331,7 @@ pub trait UPCEANReader: OneDReader {
         if bestMatch >= 0 {
             Ok(bestMatch as usize)
         } else {
-            Err(Exceptions::NOT_FOUND)
+            Err(Error::NOT_FOUND)
         }
     }
 

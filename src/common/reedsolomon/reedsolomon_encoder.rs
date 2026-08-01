@@ -19,7 +19,7 @@
 //import java.util.ArrayList;
 //import java.util.List;
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 use super::{GenericGFPoly, GenericGFRef};
@@ -74,13 +74,13 @@ impl ReedSolomonEncoder {
 
     pub fn encode(&mut self, to_encode: &mut [i32], ec_bytes: usize) -> Result<()> {
         if ec_bytes == 0 {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "No error correction bytes",
             ));
         }
         let data_bytes = to_encode.len() - ec_bytes;
         if data_bytes == 0 {
-            return Err(Exceptions::illegal_argument_with("No data bytes provided"));
+            return Err(Error::illegal_argument_with("No data bytes provided"));
         }
         let fld = self.field;
         let generator = self.buildGenerator(ec_bytes);
@@ -89,7 +89,7 @@ impl ReedSolomonEncoder {
         //System.arraycopy(toEncode, 0, infoCoefficients, 0, dataBytes);
         let mut info = GenericGFPoly::new(fld, &info_coefficients)?;
         info = info.multiply_by_monomial(ec_bytes, 1)?;
-        let remainder = &info.divide(generator.ok_or(Exceptions::REED_SOLOMON)?)?.1;
+        let remainder = &info.divide(generator.ok_or(Error::REED_SOLOMON)?)?.1;
         let coefficients = remainder.getCoefficients();
         let num_zero_coefficients = ec_bytes - coefficients.len();
         for i in 0..num_zero_coefficients {

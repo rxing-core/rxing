@@ -25,7 +25,7 @@ use std::sync::Arc;
 use once_cell::sync::Lazy;
 
 use crate::{
-    DecodeHints, Exceptions,
+    DecodeHints, Error,
     common::{
         BitMatrix, DecoderRXingResult, Result,
         reedsolomon::{PredefinedGenericGF, ReedSolomonDecoder},
@@ -83,8 +83,8 @@ pub fn decode_bitmatrix_with_hints(
     match decode_bitmatrix_parser_with_hints(&mut parser, hints) {
         Ok(ok) => return Ok(ok),
         Err(er) => match er {
-            Exceptions::FormatException(_) => fe = Some(er),
-            Exceptions::ChecksumException(_) => ce = Some(er),
+            Error::Format(_) => fe = Some(er),
+            Error::Checksum(_) => ce = Some(er),
             _ => return Err(er),
         },
     }
@@ -122,11 +122,11 @@ pub fn decode_bitmatrix_with_hints(
     match trying() {
         Ok(res) => Ok(res),
         Err(er) => match er {
-            Exceptions::FormatException(_) | Exceptions::ChecksumException(_) => {
+            Error::Format(_) | Error::Checksum(_) => {
                 if let Some(fe) = fe {
                     Err(fe)
                 } else {
-                    Err(ce.unwrap_or(Exceptions::CHECKSUM))
+                    Err(ce.unwrap_or(Error::CHECKSUM))
                 }
             }
             _ => Err(er),
@@ -178,13 +178,8 @@ fn decode_bitmatrix_parser_with_hints(
  * @throws ChecksumException if error correction fails
  */
 fn correctErrors(codewordBytes: &mut [u8], numDataCodewords: usize) -> Result<()> {
-    // Decode in place. We don't care about errors in the error-correction codewords.
-    if let Err(Exceptions::ReedSolomonException(error_str)) = RS_DECODER.decode(
-        codewordBytes,
-        (codewordBytes.len() - numDataCodewords) as i32,
-    ) {
-        return Err(Exceptions::ChecksumException(error_str));
-    }
-
-    Ok(())
+    RS_DECODER
+        .decode(codewordBytes, (codewordBytes.len() - numDataCodewords) as i32)
+        .map_err(|e| Error::Checksum(e.to_string())).map(|_| ())
 }
+

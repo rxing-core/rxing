@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    Exceptions, PointCallback,
+    Error, PointCallback,
     common::{BitMatrix, Result},
 };
 
@@ -162,9 +162,9 @@ impl<'a> AlignmentPatternFinder<'a> {
             Ok(*(self
                 .possibleCenters
                 .first()
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS))?)
+                .ok_or(Error::INDEX_OUT_OF_BOUNDS))?)
         } else {
-            Err(Exceptions::NOT_FOUND)
+            Err(Error::NOT_FOUND)
         }
     }
 

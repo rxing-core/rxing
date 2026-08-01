@@ -4,7 +4,7 @@
 */
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::cpp_essentials::{DecoderResult, StructuredAppendInfo};
 use crate::common::reedsolomon::{PredefinedGenericGF, ReedSolomonDecoder};
 use crate::common::{
@@ -122,7 +122,7 @@ pub fn ToAlphaNumericChar(value: u32) -> Result<char> {
     ];
 
     if value >= (ALPHANUMERIC_CHARS.len()) {
-        return Err(Exceptions::index_out_of_bounds_with(
+        return Err(Error::index_out_of_bounds_with(
             "oAlphaNumericChar: out of range",
         ));
     }
@@ -155,9 +155,9 @@ pub fn DecodeAlphanumericSegment(
         // We need to massage the result a bit if in an FNC1 mode:
         for i in 0..buffer.len() {
             // for (size_t i = 0; i < buffer.length(); i++) {
-            if buffer.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == &'%' {
+            if buffer.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? == &'%' {
                 if i < buffer.len() - 1
-                    && buffer.get(i + 1).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == &'%'
+                    && buffer.get(i + 1).ok_or(Error::INDEX_OUT_OF_BOUNDS)? == &'%'
                 {
                     // %% is rendered as %
                     buffer.remove(i + 1);
@@ -217,7 +217,7 @@ pub fn ParseECIValue(bits: &mut BitSource) -> Result<Eci> {
         let secondThirdBytes = bits.readBits(16)?;
         return Ok(Eci::from(((firstByte & 0x1F) << 16) | secondThirdBytes));
     }
-    Err(Exceptions::format_with("ParseECIValue: invalid value"))
+    Err(Error::format_with("ParseECIValue: invalid value"))
 }
 
 /**
@@ -291,7 +291,7 @@ pub fn DecodeBitStream(
                 }
                 Mode::FNC1_SECOND_POSITION => {
                     if !result.is_empty() {
-                        return Err(Exceptions::format_with(
+                        return Err(Error::format_with(
                             "AIM Application Indicator (FNC1 in second position) at illegal position",
                         ));
                         // throw FormatError("AIM Application Indicator (FNC1 in second position) at illegal position");
@@ -309,7 +309,7 @@ pub fn DecodeBitStream(
                     {
                         result += (appInd - 100) as u8;
                     } else {
-                        return Err(Exceptions::format_with("Invalid AIM Application Indicator"));
+                        return Err(Error::format_with("Invalid AIM Application Indicator"));
                         // throw FormatError("Invalid AIM Application Indicator");
                     }
                     result.symbology.aiFlag = AIFlag::AIM; // see also above
@@ -332,7 +332,7 @@ pub fn DecodeBitStream(
                     if subset != 1
                     // GB2312_SUBSET is the only supported one right now
                     {
-                        return Err(Exceptions::format_with("Unsupported HANZI subset"));
+                        return Err(Error::format_with("Unsupported HANZI subset"));
                         // throw FormatError("Unsupported HANZI subset");
                     }
                     let count = bits.readBits(mode.CharacterCountBits(version) as usize)?;
@@ -349,7 +349,7 @@ pub fn DecodeBitStream(
                         }
                         Mode::BYTE => DecodeByteSegment(&mut bits, count, &mut result)?,
                         Mode::KANJI => DecodeKanjiSegment(&mut bits, count, &mut result)?,
-                        _ => return Err(Exceptions::format_with("Invalid CodecMode")), //throw FormatError("Invalid CodecMode");
+                        _ => return Err(Error::format_with("Invalid CodecMode")), //throw FormatError("Invalid CodecMode");
                     };
                 }
             }
@@ -367,28 +367,28 @@ pub fn DecodeBitStream(
 
 pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
     if !Version::HasValidSize(bits) {
-        return Err(Exceptions::format_with("Invalid symbol size"));
+        return Err(Error::format_with("Invalid symbol size"));
     }
     let Ok(formatInfo) = ReadFormatInformation(bits) else {
-        return Err(Exceptions::format_with("Invalid format information"));
+        return Err(Error::format_with("Invalid format information"));
     };
 
     let Ok(pversion) = ReadVersion(bits, formatInfo.qr_type()) else {
-        return Err(Exceptions::format_with("Invalid version"));
+        return Err(Error::format_with("Invalid version"));
     };
     let version = pversion;
 
     // Read codewords
     let codewords = ReadCodewords(bits, version, &formatInfo)?;
     if codewords.is_empty() {
-        return Err(Exceptions::format_with("Failed to read codewords"));
+        return Err(Error::format_with("Failed to read codewords"));
     }
 
     // Separate into data blocks
     let dataBlocks: Vec<DataBlock> =
         DataBlock::getDataBlocks(&codewords, version, formatInfo.error_correction_level)?;
     if dataBlocks.is_empty() {
-        return Err(Exceptions::format_with("Failed to get data blocks"));
+        return Err(Error::format_with("Failed to get data blocks"));
     }
 
     // Count total number of data bytes
@@ -405,7 +405,7 @@ pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
         let numDataCodewords = dataBlock.getNumDataCodewords() as usize;
 
         if !CorrectErrors(&mut codewordBytes, numDataCodewords as u32)? {
-            return Err(Exceptions::CHECKSUM);
+            return Err(Error::CHECKSUM);
         }
 
         // resultIterator = std::copy_n(codewordBytes.begin(), numDataCodewords, resultIterator);

@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    DecodeHints, Exceptions,
+    DecodeHints, Error,
     common::{BitMatrix, Result},
     qrcode::detector::{Detector, QRCodeDetectorResult},
 };
@@ -44,7 +44,7 @@ impl<'a> MultiDetector<'_> {
         let infos = finder.findMulti(hints)?;
 
         if infos.is_empty() {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         let mut result = Vec::new();

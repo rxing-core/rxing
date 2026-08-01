@@ -23,7 +23,7 @@ use super::oned_constants::ean_13::FIRST_DIGIT_ENCODINGS;
 use super::oned_constants::upc_ean_shared::*;
 
 use crate::BarcodeFormat;
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 /**
@@ -62,7 +62,7 @@ impl UPCEANReader for EAN13Reader {
             // for (int x = 0; x < 6 && rowOffset < end; x++) {
             let bestMatch = self.decodeDigit(row, &mut counters, rowOffset, &L_AND_G_PATTERNS)?;
             resultString
-                .push(char::from_u32('0' as u32 + bestMatch as u32 % 10).ok_or(Exceptions::PARSE)?);
+                .push(char::from_u32('0' as u32 + bestMatch as u32 % 10).ok_or(Error::PARSE)?);
 
             rowOffset += counters.iter().sum::<u32>() as usize;
 
@@ -83,7 +83,7 @@ impl UPCEANReader for EAN13Reader {
         while x < 6 && rowOffset < end {
             let bestMatch = self.decodeDigit(row, &mut counters, rowOffset, &L_PATTERNS)?;
             resultString
-                .push(char::from_u32('0' as u32 + bestMatch as u32).ok_or(Exceptions::PARSE)?);
+                .push(char::from_u32('0' as u32 + bestMatch as u32).ok_or(Error::PARSE)?);
 
             rowOffset += counters.iter().sum::<u32>() as usize;
 
@@ -110,11 +110,11 @@ impl EAN13Reader {
             if lgPatternFound == fde {
                 resultString.insert(
                     0,
-                    char::from_u32('0' as u32 + d as u32).ok_or(Exceptions::PARSE)?,
+                    char::from_u32('0' as u32 + d as u32).ok_or(Error::PARSE)?,
                 );
                 return Ok(());
             }
         }
-        Err(Exceptions::NOT_FOUND)
+        Err(Error::NOT_FOUND)
     }
 }

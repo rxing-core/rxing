@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 const EMPTY_BIT_VAL: u8 = 13;
@@ -165,7 +165,7 @@ impl DefaultPlacement {
             .codewords
             .chars()
             .nth(pos)
-            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as u32;
+            .ok_or(Error::INDEX_OUT_OF_BOUNDS)? as u32;
         v &= 1 << (8 - bit);
         self.setBit(col as usize, row as usize, v != 0);
 

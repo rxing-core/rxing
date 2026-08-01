@@ -24,7 +24,7 @@
  *   http://www.piramidepse.com/
  */
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 use super::DecodedObject;
@@ -52,7 +52,7 @@ impl DecodedNumeric {
         if
         /*firstDigit < 0 ||*/
         firstDigit > 10 || /*secondDigit < 0 ||*/ secondDigit > 10 {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
 
         Ok(Self {

@@ -21,7 +21,7 @@ use crate::common::Result;
 use crate::oned::cpp::ODReader;
 #[cfg(feature = "qrcode")]
 use crate::qrcode::cpp_port::QrReader;
-use crate::{BarcodeFormat, Binarizer, BinaryBitmap, Exceptions, RXingResult, Reader};
+use crate::{BarcodeFormat, Binarizer, BinaryBitmap, Error, RXingResult, Reader};
 use crate::{DecodeHints, ONE_D_FORMATS};
 
 #[cfg(feature = "aztec")]
@@ -163,7 +163,7 @@ impl MultiFormatReader {
                 return Ok(r);
             }
         }
-        Err(Exceptions::NOT_FOUND)
+        Err(Error::NOT_FOUND)
     }
 
     fn decode_formats<B: Binarizer>(&mut self, image: &mut BinaryBitmap<B>) -> Result<RXingResult> {
@@ -210,7 +210,7 @@ impl MultiFormatReader {
                     BarcodeFormat::DXFilmEdge => {
                         ODReader::new(&self.hints).decode_with_hints(image, &self.hints)
                     }
-                    _ => Err(Exceptions::UNSUPPORTED_OPERATION),
+                    _ => Err(Error::UNSUPPORTED_OPERATION),
                 };
                 if res.is_ok() {
                     return res;
@@ -268,6 +268,6 @@ impl MultiFormatReader {
             }
         }
 
-        Err(Exceptions::UNSUPPORTED_OPERATION)
+        Err(Error::UNSUPPORTED_OPERATION)
     }
 }

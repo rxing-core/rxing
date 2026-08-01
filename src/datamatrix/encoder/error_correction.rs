@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 use super::SymbolInfo;
@@ -154,7 +154,7 @@ pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String> 
     let codewords: Vec<u8> = codewords.chars().map(|c| c as u8).collect();
 
     if codewords.len() != symbolInfo.getDataCapacity() as usize {
-        return Err(Exceptions::illegal_argument_with(
+        return Err(Error::illegal_argument_with(
             "The number of codewords does not match the selected symbol",
         ));
     }
@@ -201,7 +201,7 @@ fn createECCBlock(codewords: &[u8], numECWords: usize) -> Result<Vec<u8>> {
         .iter()
         .position(|&set| set == numECWords as u32)
         .ok_or_else(|| {
-            Exceptions::illegal_argument_with(format!(
+            Error::illegal_argument_with(format!(
                 "Illegal number of error correction codewords specified: {numECWords}"
             ))
         })?;

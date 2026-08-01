@@ -28,7 +28,7 @@
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
  */
 use crate::{
-    Exceptions,
+    Error,
     common::{BitArray, Result},
 };
 
@@ -47,7 +47,7 @@ pub fn buildBitArrayFromString(data: &str) -> Result<BitArray> {
         if i % 9 == 0 {
             // spaces
             if ch != ' ' {
-                return Err(Exceptions::illegal_state_with("space expected"));
+                return Err(Error::illegal_state_with("space expected"));
             }
             continue;
         }

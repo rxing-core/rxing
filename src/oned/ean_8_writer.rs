@@ -16,7 +16,7 @@
 
 use rxing_one_d_proc_derive::OneDWriter;
 
-use crate::{BarcodeFormat, Exceptions, common::Result, oned::upcean_common};
+use crate::{BarcodeFormat, Error, common::Result, oned::upcean_common};
 
 use super::{OneDimensionalCodeWriter, UPCEANWriter, oned_constants::upc_ean_shared};
 
@@ -53,13 +53,13 @@ impl OneDimensionalCodeWriter for EAN8Writer {
             }
             8 => {
                 if !upcean_common::checkStandardUPCEANChecksum(&contents)? {
-                    return Err(Exceptions::illegal_argument_with(
+                    return Err(Error::illegal_argument_with(
                         "Contents do not pass checksum",
                     ));
                 }
             }
             _ => {
-                return Err(Exceptions::illegal_argument_with(format!(
+                return Err(Error::illegal_argument_with(format!(
                     "Requested contents should be 7 or 8 digits long, but got {length}"
                 )));
             }
@@ -78,9 +78,9 @@ impl OneDimensionalCodeWriter for EAN8Writer {
             let digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
                 .to_digit(10)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as usize;
+                .ok_or(Error::INDEX_OUT_OF_BOUNDS)? as usize;
             pos += Self::appendPattern(&mut result, pos, &upc_ean_shared::L_PATTERNS[digit], false)
                 as usize;
         }
@@ -93,9 +93,9 @@ impl OneDimensionalCodeWriter for EAN8Writer {
             let digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
                 .to_digit(10)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as usize;
+                .ok_or(Error::INDEX_OUT_OF_BOUNDS)? as usize;
             pos += Self::appendPattern(&mut result, pos, &upc_ean_shared::L_PATTERNS[digit], true)
                 as usize;
         }

@@ -16,7 +16,7 @@
 
 use super::OneDReader;
 use crate::common::Result;
-use crate::{BarcodeFormat, Exceptions};
+use crate::{BarcodeFormat, Error};
 use rxing_one_d_proc_derive::{EANReader, OneDReader};
 
 use super::UPCEANReader;
@@ -53,7 +53,7 @@ impl UPCEANReader for EAN8Reader {
         while x < 4 && rowOffset < end {
             let bestMatch = self.decodeDigit(row, &mut counters, rowOffset, &L_PATTERNS)?;
             resultString
-                .push(char::from_u32('0' as u32 + bestMatch as u32).ok_or(Exceptions::PARSE)?);
+                .push(char::from_u32('0' as u32 + bestMatch as u32).ok_or(Error::PARSE)?);
 
             rowOffset += counters.iter().sum::<u32>() as usize;
 
@@ -67,7 +67,7 @@ impl UPCEANReader for EAN8Reader {
         while x < 4 && rowOffset < end {
             let bestMatch = self.decodeDigit(row, &mut counters, rowOffset, &L_PATTERNS)?;
             resultString
-                .push(char::from_u32('0' as u32 + bestMatch as u32).ok_or(Exceptions::PARSE)?);
+                .push(char::from_u32('0' as u32 + bestMatch as u32).ok_or(Error::PARSE)?);
 
             rowOffset += counters.iter().sum::<u32>() as usize;
             x += 1;

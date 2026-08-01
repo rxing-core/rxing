@@ -17,7 +17,7 @@
 use std::{fmt, sync::Arc};
 
 use crate::{
-    Exceptions,
+    Error,
     common::{CharacterSet, ECIInput, Eci, MinimalECIInput, Result},
 };
 
@@ -214,7 +214,7 @@ fn addEdge(edges: &mut [Vec<Option<Arc<Edge>>>], edge: Arc<Edge>) -> Result<()> 
     if edges[vertexIndex][edge.getEndMode()?.ordinal()].is_none()
         || edges[vertexIndex][edge.getEndMode()?.ordinal()]
             .as_ref()
-            .ok_or(Exceptions::ILLEGAL_STATE)?
+            .ok_or(Error::ILLEGAL_STATE)?
             .cachedTotalSize
             > edge.cachedTotalSize
     {
@@ -630,7 +630,7 @@ fn encodeMinimally(input: Arc<Input>) -> Result<RXingResult> {
     }
 
     if minimalJ < 0 {
-        return Err(Exceptions::illegal_state_with(format!(
+        return Err(Error::illegal_state_with(format!(
             "Internal error: failed to encode \"{input}\""
         )));
     }
@@ -664,7 +664,7 @@ impl Edge {
         previous: Option<Arc<Edge>>,
     ) -> Result<Self> {
         if fromPosition + characterLength > input.length() as u32 {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
 
         let mut size = if let Some(previous) = previous.clone() {
@@ -1274,7 +1274,7 @@ impl RXingResult {
         let solution = if let Some(edge) = solution {
             edge
         } else {
-            return Err(Exceptions::ILLEGAL_ARGUMENT);
+            return Err(Error::ILLEGAL_ARGUMENT);
         };
         let input = solution.input.clone();
         let mut size = 0;

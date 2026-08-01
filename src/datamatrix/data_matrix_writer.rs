@@ -16,7 +16,7 @@
  */
 
 use crate::{
-    BarcodeFormat, EncodeHints, Exceptions, Writer,
+    BarcodeFormat, EncodeHints, Error, Writer,
     common::cpp_essentials::ByteMatrix,
     common::{BitMatrix, CharacterSet, Result},
 };
@@ -60,17 +60,17 @@ impl Writer for DataMatrixWriter {
         hints: &EncodeHints,
     ) -> Result<crate::common::BitMatrix> {
         if contents.is_empty() {
-            return Err(Exceptions::illegal_argument_with("Found empty contents"));
+            return Err(Error::illegal_argument_with("Found empty contents"));
         }
 
         if format != &BarcodeFormat::DATA_MATRIX {
-            return Err(Exceptions::illegal_argument_with(format!(
+            return Err(Error::illegal_argument_with(format!(
                 "Can only encode DATA_MATRIX, but got {format:?}"
             )));
         }
 
         if width < 0 || height < 0 {
-            return Err(Exceptions::illegal_argument_with(format!(
+            return Err(Error::illegal_argument_with(format!(
                 "Requested dimensions can't be negative: {width}x{height}"
             )));
         }
@@ -121,7 +121,7 @@ impl Writer for DataMatrixWriter {
             true,
         )?
         else {
-            return Err(Exceptions::not_found_with("symbol info is bad"));
+            return Err(Error::not_found_with("symbol info is bad"));
         };
 
         //2. step: ECC generation
@@ -138,7 +138,7 @@ impl Writer for DataMatrixWriter {
         let margins = if let Some(margin) = &hints.Margin {
             margin
                 .parse::<u32>()
-                .map_err(|e| Exceptions::parse_with(format!("could not parse {margin}: {e}")))?
+                .map_err(|e| Error::parse_with(format!("could not parse {margin}: {e}")))?
         } else {
             MARGINS_SIZE
         };

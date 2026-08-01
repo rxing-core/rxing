@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use image::{DynamicImage, ImageBuffer, Luma};
 use once_cell::sync::OnceCell;
 
-use crate::{Binarizer, Exceptions, LuminanceSource};
+use crate::{Binarizer, Error, LuminanceSource};
 
 use super::{BitArray, BitMatrix, Result};
 
@@ -34,7 +34,7 @@ impl<LS: LuminanceSource> AdaptiveThresholdBinarizer<LS> {
                 self.source.get_height() as u32,
                 self.source.get_matrix().into_owned(),
             ) else {
-                return Err(Exceptions::ILLEGAL_ARGUMENT);
+                return Err(Error::ILLEGAL_ARGUMENT);
             };
             buff
         };

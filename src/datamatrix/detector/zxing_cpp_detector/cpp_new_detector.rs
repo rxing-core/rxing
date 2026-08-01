@@ -14,7 +14,7 @@ macro_rules! CHECK {
 use std::sync::{Arc, RwLock};
 
 use crate::{
-    Exceptions, Point,
+    Error, Point,
     common::cpp_essentials::ByteMatrix,
     common::{
         BitMatrix, DefaultGridSampler, GridSampler, Quadrilateral, Result,
@@ -241,7 +241,7 @@ fn Scan(
         ));
     }
 
-    Err(Exceptions::NOT_FOUND)
+    Err(Error::NOT_FOUND)
 }
 
 pub fn detect(
@@ -296,7 +296,7 @@ pub fn detect(
         if let Some(history) = &mut history {
             history
                 .write()
-                .map_err(|_| Exceptions::illegal_state_with("Failed to acquire write lock"))?
+                .map_err(|_| Error::illegal_state_with("Failed to acquire write lock"))?
                 .clear(0);
             // history.clear(0);
         }
@@ -357,7 +357,7 @@ pub fn detect(
 
     // #ifndef __cpp_impl_coroutine
     if found_symbols.is_empty() {
-        Err(Exceptions::NOT_FOUND)
+        Err(Error::NOT_FOUND)
     } else {
         Ok(found_symbols)
     }

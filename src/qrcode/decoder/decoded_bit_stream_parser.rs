@@ -17,7 +17,7 @@
 use once_cell::sync::Lazy;
 
 use crate::{
-    DecodeHints, Exceptions,
+    DecodeHints, Error,
     common::{
         BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Eci, Result, string_utils,
     },
@@ -82,7 +82,7 @@ pub fn decode(
             }
             Mode::STRUCTURED_APPEND => {
                 if bits.available() < 16 {
-                    return Err(Exceptions::format_with(format!(
+                    return Err(Error::format_with(format!(
                         "Mode::Structured append expected bits.available() < 16, found bits of {}",
                         bits.available()
                     )));
@@ -97,7 +97,7 @@ pub fn decode(
                 let value = parseECIValue(&mut bits)?;
                 currentCharacterSetECI = CharacterSet::from(value).into(); //CharacterSet::get_character_set_by_eci(value).ok();
                 if currentCharacterSetECI.is_none() {
-                    return Err(Exceptions::format_with(format!(
+                    return Err(Error::format_with(format!(
                         "Value of {value} not valid"
                     )));
                 }
@@ -136,7 +136,7 @@ pub fn decode(
                         currentCharacterSetECI,
                         hints,
                     )?,
-                    _ => return Err(Exceptions::FORMAT),
+                    _ => return Err(Error::FORMAT),
                 }
             }
         }
@@ -193,7 +193,7 @@ fn decodeHanziSegment(
 ) -> Result<()> {
     // Don't crash trying to read more bits than we have available.
     if count * 13 > bits.available() {
-        return Err(Exceptions::FORMAT);
+        return Err(Error::FORMAT);
     }
 
     // Each character will require 2 bytes. Read the characters as 2-byte pairs
@@ -234,7 +234,7 @@ fn decodeKanjiSegment(
 ) -> Result<()> {
     // Don't crash trying to read more bits than we have available.
     if count * 13 > bits.available() {
-        return Err(Exceptions::FORMAT);
+        return Err(Error::FORMAT);
     }
 
     // Each character will require 2 bytes. Read the characters as 2-byte pairs
@@ -289,7 +289,7 @@ fn decodeByteSegment(
 ) -> Result<()> {
     // Don't crash trying to read more bits than we have available.
     if 8 * count > bits.available() {
-        return Err(Exceptions::FORMAT);
+        return Err(Error::FORMAT);
     }
 
     let mut readBytes = vec![0u8; count];
@@ -305,17 +305,17 @@ fn decodeByteSegment(
         // give a hint.
         {
             #[cfg(not(feature = "allow_forced_iso_ied_18004_compliance"))]
-            string_utils::guessCharset(&readBytes, hints).ok_or(Exceptions::ILLEGAL_STATE)?
+            string_utils::guessCharset(&readBytes, hints).ok_or(Error::ILLEGAL_STATE)?
         }
 
         #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
         if let Some(true) = hints.QrAssumeSpecConformInput.as_ref() {
             CharacterSet::ISO8859_1
         } else {
-            string_utils::guessCharset(&readBytes, hints).ok_or(Exceptions::ILLEGAL_STATE)?
+            string_utils::guessCharset(&readBytes, hints).ok_or(Error::ILLEGAL_STATE)?
         }
     } else {
-        currentCharacterSetECI.ok_or(Exceptions::ILLEGAL_STATE)?
+        currentCharacterSetECI.ok_or(Error::ILLEGAL_STATE)?
         // CharacterSetECI::getCharset(
         //     currentCharacterSetECI
         //         .as_ref()
@@ -333,7 +333,7 @@ fn decodeByteSegment(
 
 fn toAlphaNumericChar(value: u32) -> Result<char> {
     if value as usize >= ALPHANUMERIC_CHARS.len() {
-        return Err(Exceptions::FORMAT);
+        return Err(Error::FORMAT);
     }
 
     Ok(CACHED_ALPHANUMERIC_CHARS[value as usize])
@@ -351,7 +351,7 @@ fn decodeAlphanumericSegment(
     let mut count = count;
     while count > 1 {
         if bits.available() < 11 {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
         let nextTwoCharsBits = bits.readBits(11)?;
         r_hld.push(toAlphaNumericChar(nextTwoCharsBits / 45)?);
@@ -361,7 +361,7 @@ fn decodeAlphanumericSegment(
     if count == 1 {
         // special case: one character left
         if bits.available() < 6 {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
         r_hld.push(toAlphaNumericChar(bits.readBits(6)?)?);
     }
@@ -369,9 +369,9 @@ fn decodeAlphanumericSegment(
     if fc1InEffect {
         // We need to massage the result a bit if in an FNC1 mode:
         for i in start..r_hld.len() {
-            if r_hld.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == &'%' {
+            if r_hld.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? == &'%' {
                 if i < result.len() - 1
-                    && r_hld.get(i + 1).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == &'%'
+                    && r_hld.get(i + 1).ok_or(Error::INDEX_OUT_OF_BOUNDS)? == &'%'
                 {
                     // %% is rendered as %
                     r_hld.remove(i + 1);
@@ -401,11 +401,11 @@ fn decodeNumericSegment(
     while count >= 3 {
         // Each 10 bits encodes three digits
         if bits.available() < 10 {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
         let threeDigitsBits = bits.readBits(10)?;
         if threeDigitsBits >= 1000 {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
         result.append_char(toAlphaNumericChar(threeDigitsBits / 100)?);
         result.append_char(toAlphaNumericChar((threeDigitsBits / 10) % 10)?);
@@ -415,22 +415,22 @@ fn decodeNumericSegment(
     if count == 2 {
         // Two digits left over to read, encoded in 7 bits
         if bits.available() < 7 {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
         let twoDigitsBits = bits.readBits(7)?;
         if twoDigitsBits >= 100 {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
         result.append_char(toAlphaNumericChar(twoDigitsBits / 10)?);
         result.append_char(toAlphaNumericChar(twoDigitsBits % 10)?);
     } else if count == 1 {
         // One digit left over to read
         if bits.available() < 4 {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
         let digitBits = bits.readBits(4)?;
         if digitBits >= 10 {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
         result.append_char(toAlphaNumericChar(digitBits)?);
     }
@@ -455,5 +455,5 @@ fn parseECIValue(bits: &mut BitSource) -> Result<Eci> {
         return Ok(Eci::from(((firstByte & 0x1F) << 16) | secondThirdBytes));
     }
 
-    Err(Exceptions::FORMAT)
+    Err(Error::FORMAT)
 }

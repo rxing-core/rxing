@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 use super::ModulusGF;
@@ -33,7 +33,7 @@ impl<const MODULUS: usize> ModulusPoly<MODULUS> {
         coefficients: Vec<u32>,
     ) -> Result<ModulusPoly<MODULUS>> {
         if coefficients.is_empty() {
-            return Err(Exceptions::ILLEGAL_ARGUMENT);
+            return Err(Error::ILLEGAL_ARGUMENT);
         }
         let orig_coefs = coefficients.clone();
         let mut coefficients = coefficients;
@@ -113,7 +113,7 @@ impl<const MODULUS: usize> ModulusPoly<MODULUS> {
 
     pub fn add(&self, other: ModulusPoly<MODULUS>) -> Result<ModulusPoly<MODULUS>> {
         if self.field != other.field {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "ModulusPolys do not have same ModulusGF field",
             ));
         }
@@ -147,7 +147,7 @@ impl<const MODULUS: usize> ModulusPoly<MODULUS> {
 
     pub fn subtract(&self, other: ModulusPoly<MODULUS>) -> Result<ModulusPoly<MODULUS>> {
         if self.field != other.field {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "ModulusPolys do not have same ModulusGF field",
             ));
         }
@@ -159,7 +159,7 @@ impl<const MODULUS: usize> ModulusPoly<MODULUS> {
 
     pub fn multiply(&self, other: ModulusPoly<MODULUS>) -> Result<ModulusPoly<MODULUS>> {
         if !(self.field == other.field) {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "ModulusPolys do not have same ModulusGF field",
             ));
         }

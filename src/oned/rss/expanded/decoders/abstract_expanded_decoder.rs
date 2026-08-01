@@ -25,7 +25,7 @@
  */
 
 use crate::{
-    Exceptions,
+    Error,
     common::{BitArray, Result},
 };
 
@@ -104,7 +104,7 @@ pub fn createDecoder<'a>(
         _ => {}
     }
 
-    Err(Exceptions::illegal_state_with(format!(
+    Err(Error::illegal_state_with(format!(
         "unknown decoder: {information}"
     )))
 }

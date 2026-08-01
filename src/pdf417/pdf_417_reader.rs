@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    BarcodeFormat, Binarizer, BinaryBitmap, DecodeHints, Exceptions, ImmutableReader, Point,
+    BarcodeFormat, Binarizer, BinaryBitmap, DecodeHints, Error, ImmutableReader, Point,
     RXingResult, RXingResultMetadataType, RXingResultMetadataValue, Reader, common::Result,
 };
 
@@ -131,7 +131,7 @@ impl PDF417Reader {
                         pdf417RXingResultMetadata
                             .clone()
                             .downcast::<PDF417RXingResultMetadata>()
-                            .map_err(|_| Exceptions::ILLEGAL_STATE)?,
+                            .map_err(|_| Error::ILLEGAL_STATE)?,
                     );
                     result.putMetadata(RXingResultMetadataType::PDF417_EXTRA_METADATA, data);
                 }
@@ -205,7 +205,7 @@ impl PDF417Reader {
     ) -> Result<RXingResult> {
         let result = Self::decode(image, hints, false)?;
         if result.is_empty() {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
         Ok(result[0].clone())
     }

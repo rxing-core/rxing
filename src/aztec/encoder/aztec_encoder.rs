@@ -19,7 +19,7 @@ use crate::{
         BitArray, BitFieldBaseType, BitMatrix, CharacterSet, Result,
         reedsolomon::{GenericGFRef, PredefinedGenericGF, ReedSolomonEncoder},
     },
-    exceptions::Exceptions,
+    exceptions::Error,
 };
 
 use super::{AztecCode, HighLevelEncoder};
@@ -48,7 +48,7 @@ pub const WORD_SIZE: [u32; 33] = [
  */
 pub fn encode_simple(data: &str) -> Result<AztecCode> {
     let Ok(bytes) = CharacterSet::ISO8859_1.encode_replace(data) else {
-        return Err(Exceptions::illegal_argument_with(format!(
+        return Err(Error::illegal_argument_with(format!(
             "'{data}' cannot be encoded as ISO_8859_1"
         )));
     };
@@ -68,7 +68,7 @@ pub fn encode(data: &str, minECCPercent: u32, userSpecifiedLayers: i32) -> Resul
     if let Ok(bytes) = CharacterSet::ISO8859_1.encode(data) {
         encode_bytes(&bytes, minECCPercent, userSpecifiedLayers)
     } else {
-        Err(Exceptions::illegal_argument_with(format!(
+        Err(Error::illegal_argument_with(format!(
             "'{data}' cannot be encoded as ISO_8859_1"
         )))
     }
@@ -95,7 +95,7 @@ pub fn encode_with_charset(
     if let Ok(bytes) = charset.encode(data) {
         encode_bytes_with_charset(&bytes, minECCPercent, userSpecifiedLayers, charset)
     } else {
-        Err(Exceptions::illegal_argument_with(format!(
+        Err(Error::illegal_argument_with(format!(
             "'{data}' cannot be encoded as ISO_8859_1"
         )))
     }
@@ -171,7 +171,7 @@ pub fn encode_bytes_with_charset(
                 MAX_NB_BITS
             })
         {
-            return Err(Exceptions::illegal_argument_with(format!(
+            return Err(Error::illegal_argument_with(format!(
                 "Illegal value {user_specified_layers} for layers"
             )));
         }
@@ -180,13 +180,13 @@ pub fn encode_bytes_with_charset(
         let usable_bits_in_layers = total_bits_in_layer_var - (total_bits_in_layer_var % word_size);
         stuffed_bits = stuffBits(&bits, word_size as usize)?;
         if stuffed_bits.get_size() as u32 + ecc_bits > usable_bits_in_layers {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "Data to large for user specified layer",
             ));
         }
         if compact && stuffed_bits.get_size() as u32 > word_size * 64 {
             // Compact format only allows 64 data words, though C4 can hold more words than that
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "Data to large for user specified layer",
             ));
         }
@@ -200,7 +200,7 @@ pub fn encode_bytes_with_charset(
         loop {
             // for (int i = 0; ; i++) {
             if i > MAX_NB_BITS {
-                return Err(Exceptions::illegal_argument_with(
+                return Err(Error::illegal_argument_with(
                     "Data too large for an Aztec code",
                 ));
             }
@@ -471,7 +471,7 @@ fn getGF(wordSize: usize) -> Result<GenericGFRef> {
         8 => Ok(PredefinedGenericGF::AztecData8.into()),
         10 => Ok(PredefinedGenericGF::AztecData10.into()),
         12 => Ok(PredefinedGenericGF::AztecData12.into()),
-        _ => Err(Exceptions::illegal_argument_with(format!(
+        _ => Err(Error::illegal_argument_with(format!(
             "Unsupported word size {wordSize}"
         ))),
     }

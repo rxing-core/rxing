@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 #[cfg(all(
@@ -193,7 +193,7 @@ impl CharacterSet {
                 input
                     .to_cp437(&CP437_CONTROL)
                     .map(|data| data.to_vec())
-                    .map_err(|e| Exceptions::format_with(format!("{e:?}")))
+                    .map_err(|e| Error::format_with(format!("{e:?}")))
             }
             CharacterSet::UTF16BE => {
                 Ok(input.encode_utf16().flat_map(|u| u.to_be_bytes()).collect())
@@ -213,7 +213,7 @@ impl CharacterSet {
                 let mut bytes = Vec::with_capacity(input.len());
                 for c in input.chars() {
                     if c as u32 > 0xFF {
-                        return Err(Exceptions::format_with(
+                        return Err(Error::format_with(
                             "Binary/ISO-8859-1 encoding only supports characters up to U+00FF",
                         ));
                     }
@@ -225,7 +225,7 @@ impl CharacterSet {
                 let mut bytes = Vec::with_capacity(input.len());
                 for c in input.chars() {
                     if c as u32 > 0x7F {
-                        return Err(Exceptions::format_with(
+                        return Err(Error::format_with(
                             "ASCII encoding only supports characters up to U+007F",
                         ));
                     }
@@ -237,11 +237,11 @@ impl CharacterSet {
                 if let Some(enc) = self.get_encoding() {
                     let (res, _, had_errors) = enc.encode(input);
                     if had_errors {
-                        return Err(Exceptions::format_with("Could not encode character"));
+                        return Err(Error::format_with("Could not encode character"));
                     }
                     Ok(res.into_owned())
                 } else {
-                    Err(Exceptions::format_with("Unsupported encoding"))
+                    Err(Error::format_with("Unsupported encoding"))
                 }
             }
         }
@@ -273,7 +273,7 @@ impl CharacterSet {
                     let (res, _, _) = enc.encode(input);
                     Ok(res.into_owned())
                 } else {
-                    Err(Exceptions::format_with("Unsupported encoding"))
+                    Err(Error::format_with("Unsupported encoding"))
                 }
             }
         }
@@ -299,7 +299,7 @@ impl CharacterSet {
                         }
                     })
                     .collect();
-                let u32s = u32s.map_err(|_| Exceptions::format_with("Invalid UTF-32BE"))?;
+                let u32s = u32s.map_err(|_| Error::format_with("Invalid UTF-32BE"))?;
                 Ok(u32s
                     .into_iter()
                     .map(|u| char::from_u32(u).unwrap())
@@ -317,7 +317,7 @@ impl CharacterSet {
                         }
                     })
                     .collect();
-                let u32s = u32s.map_err(|_| Exceptions::format_with("Invalid UTF-32LE"))?;
+                let u32s = u32s.map_err(|_| Error::format_with("Invalid UTF-32LE"))?;
                 Ok(u32s
                     .into_iter()
                     .map(|u| char::from_u32(u).unwrap())
@@ -330,7 +330,7 @@ impl CharacterSet {
                 let mut s = String::with_capacity(input.len());
                 for &b in input {
                     if b > 0x7F {
-                        return Err(Exceptions::format_with("Invalid ASCII"));
+                        return Err(Error::format_with("Invalid ASCII"));
                     }
                     s.push(char::from(b));
                 }
@@ -340,11 +340,11 @@ impl CharacterSet {
                 if let Some(enc) = self.get_encoding() {
                     let (res, _, had_errors) = enc.decode(input);
                     if had_errors {
-                        return Err(Exceptions::format_with("Could not decode character"));
+                        return Err(Error::format_with("Could not decode character"));
                     }
                     Ok(res.into_owned())
                 } else {
-                    Err(Exceptions::format_with("Unsupported encoding"))
+                    Err(Error::format_with("Unsupported encoding"))
                 }
             }
         }
@@ -384,7 +384,7 @@ impl CharacterSet {
                     let (res, _, _) = enc.decode(input);
                     Ok(res.into_owned())
                 } else {
-                    Err(Exceptions::format_with("Unsupported encoding"))
+                    Err(Error::format_with("Unsupported encoding"))
                 }
             }
         }
@@ -445,18 +445,18 @@ impl CharacterSet {
             input
                 .to_cp437(&CP437_CONTROL)
                 .map(|data| data.to_vec())
-                .map_err(|e| Exceptions::format_with(format!("{e:?}")))
+                .map_err(|e| Error::format_with(format!("{e:?}")))
         } else {
             self.get_base_encoder()
                 .encode(input, encoding::EncoderTrap::Strict)
-                .map_err(|e| Exceptions::format_with(e.to_string()))
+                .map_err(|e| Error::format_with(e.to_string()))
         }
     }
 
     pub fn encode_replace(&self, input: &str) -> Result<Vec<u8>> {
         self.get_base_encoder()
             .encode(input, encoding::EncoderTrap::Replace)
-            .map_err(|e| Exceptions::format_with(e.to_string()))
+            .map_err(|e| Error::format_with(e.to_string()))
     }
 
     pub fn decode(&self, input: &[u8]) -> Result<String> {
@@ -468,14 +468,14 @@ impl CharacterSet {
         } else {
             self.get_base_encoder()
                 .decode(input, encoding::DecoderTrap::Strict)
-                .map_err(|e| Exceptions::format_with(e.to_string()))
+                .map_err(|e| Error::format_with(e.to_string()))
         }
     }
 
     pub fn decode_replace(&self, input: &[u8]) -> Result<String> {
         self.get_base_encoder()
             .decode(input, encoding::DecoderTrap::Replace)
-            .map_err(|e| Exceptions::format_with(e.to_string()))
+            .map_err(|e| Error::format_with(e.to_string()))
     }
 }
 

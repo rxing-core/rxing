@@ -25,7 +25,7 @@ use super::TelepenReader;
 use super::rss::RSS14Reader;
 use super::rss::expanded::RSSExpandedReader;
 use crate::DecodeHints;
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 use crate::{BarcodeFormat, Binarizer, RXingResult};
 
@@ -144,7 +144,7 @@ impl OneDReader for MultiFormatOneDReader {
             }
         }
 
-        Err(Exceptions::NOT_FOUND)
+        Err(Error::NOT_FOUND)
     }
 }
 impl MultiFormatOneDReader {
@@ -221,7 +221,7 @@ impl Reader for MultiFormatOneDReader {
 
             Ok(result)
         } else {
-            Err(Exceptions::NOT_FOUND)
+            Err(Error::NOT_FOUND)
         }
     }
 

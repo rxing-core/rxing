@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::{
-    Exceptions,
+    Error,
     common::{BitArray, BitMatrix, Result},
 };
 
@@ -604,14 +604,14 @@ pub fn FindLeftGuardBy<const LEN: usize, Pred: Fn(&PatternView, Option<f32>) -> 
     const PREV_IDX: isize = -1;
 
     if view.size() < minSize {
-        return Err(Exceptions::ILLEGAL_STATE);
+        return Err(Error::ILLEGAL_STATE);
     }
 
     let mut window = view.subView(0, Some(LEN));
     if window.isAtFirstBar() && isGuard(&window, Some(f32::MAX)) {
         return Ok(window);
     }
-    let end = Into::<usize>::into(view.end().ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?) - minSize;
+    let end = Into::<usize>::into(view.end().ok_or(Error::INDEX_OUT_OF_BOUNDS)?) - minSize;
     while (window.start + window.current) < end {
         let prev = window.try_get_index(PREV_IDX).map(|v| v as f32);
         if isGuard(&window, prev) {
@@ -621,7 +621,7 @@ pub fn FindLeftGuardBy<const LEN: usize, Pred: Fn(&PatternView, Option<f32>) -> 
         window.skipPair();
     }
 
-    Err(Exceptions::ILLEGAL_STATE)
+    Err(Error::ILLEGAL_STATE)
 }
 
 pub fn FindLeftGuard<'a, const LEN: usize, const SUM: usize, const IS_SPARCE: bool>(
@@ -681,7 +681,7 @@ pub fn NormalizedPattern<const LEN: usize, const SUM: usize>(
     }
 
     if err.abs() > 1 {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     if err != 0 {
@@ -696,7 +696,7 @@ pub fn NormalizedPattern<const LEN: usize, const SUM: usize>(
                 .enumerate()
                 .min_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
         };
-        let (mi, _) = mi.ok_or(Exceptions::ILLEGAL_STATE)?;
+        let (mi, _) = mi.ok_or(Error::ILLEGAL_STATE)?;
         is[mi] += err as PatternType;
     }
 

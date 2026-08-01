@@ -1,6 +1,6 @@
 use crate::common::{BitMatrix, HybridBinarizer, Result};
 use crate::{
-    Binarizer, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource, Luma8Source,
+    Binarizer, BinaryBitmap, DecodeHints, Error, Luma8LuminanceSource, Luma8Source,
     LuminanceSource, Reader,
 };
 
@@ -70,7 +70,7 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
             DEFAULT_DOWNSCALE_THRESHHOLD,
             DEFAULT_DOWNSCALE_FACTOR,
         )
-        .ok_or(Exceptions::ILLEGAL_ARGUMENT)?;
+        .ok_or(Error::ILLEGAL_ARGUMENT)?;
 
         for layer in upscale_layers {
             pyramids.layers.push(layer);
@@ -99,7 +99,7 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
                 }
             }
         }
-        Err(Exceptions::NOT_FOUND)
+        Err(Error::NOT_FOUND)
     }
 }
 
@@ -137,7 +137,7 @@ impl<'a> LumImagePyramid<'a> {
     }
 
     fn add_layer<const N: usize>(&mut self) -> Result<()> {
-        let siv = self.layers.last().ok_or(Exceptions::ILLEGAL_ARGUMENT)?;
+        let siv = self.layers.last().ok_or(Error::ILLEGAL_ARGUMENT)?;
 
         let mut div =
             Luma8LuminanceSource::with_empty_image(siv.get_width() / N, siv.get_height() / N);
@@ -178,7 +178,7 @@ impl<'a> LumImagePyramid<'a> {
             2 => self.add_layer::<2>(),
             3 => self.add_layer::<3>(),
             4 => self.add_layer::<4>(),
-            _ => Err(Exceptions::illegal_argument_with(
+            _ => Err(Error::illegal_argument_with(
                 "Invalid ReaderOptions::downscaleFactor",
             )),
         }

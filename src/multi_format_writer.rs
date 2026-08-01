@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{BarcodeFormat, EncodeHints, Exceptions, Writer, common::Result};
+use crate::{BarcodeFormat, EncodeHints, Error, Writer, common::Result};
 
 #[cfg(feature = "oned")]
 use crate::oned::{
@@ -92,7 +92,7 @@ impl Writer for MultiFormatWriter {
             #[cfg(feature = "aztec")]
             BarcodeFormat::AZTEC => Box::<AztecWriter>::default(),
             _ => {
-                return Err(Exceptions::illegal_argument_with(format!(
+                return Err(Error::illegal_argument_with(format!(
                     "No encoder available for format {format:?}"
                 )));
             }

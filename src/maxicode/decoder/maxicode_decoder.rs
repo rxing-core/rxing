@@ -17,7 +17,7 @@
 use once_cell::sync::Lazy;
 
 use crate::{
-    DecodeHints, Exceptions,
+    DecodeHints, Error,
     common::{
         BitMatrix, DecoderRXingResult, Result,
         reedsolomon::{PredefinedGenericGF, ReedSolomonDecoder},
@@ -62,7 +62,7 @@ pub fn decode_with_hints(bits: &BitMatrix, _hints: &DecodeHints) -> Result<Decod
             correctErrors(&mut codewords, 20, 68, 56, ODD)?;
             datawords = vec![0u8; 78];
         }
-        _ => return Err(Exceptions::NOT_FOUND),
+        _ => return Err(Error::NOT_FOUND),
     }
 
     datawords[0..10].clone_from_slice(&codewords[0..10]);

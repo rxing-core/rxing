@@ -4,7 +4,7 @@
 */
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::BitMatrix;
 use crate::common::Result;
 
@@ -19,7 +19,7 @@ pub fn GetDataMaskBit(maskIndex: u32, x: u32, y: u32, isMicro: Option<bool>) -> 
     let mut maskIndex = maskIndex;
     if isMicro {
         if !(0..4).contains(&maskIndex) {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "QRCode maskIndex out of range",
             ));
         }
@@ -38,7 +38,7 @@ pub fn GetDataMaskBit(maskIndex: u32, x: u32, y: u32, isMicro: Option<bool>) -> 
         _ => {}
     }
 
-    Err(Exceptions::illegal_argument_with(
+    Err(Error::illegal_argument_with(
         "QRCode maskIndex out of range",
     ))
 }

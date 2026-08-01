@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::{
-    Exceptions,
+    Error,
     common::{BitMatrix, Eci},
     qrcode::cpp_port::decoder::Decode,
 };
@@ -51,7 +51,7 @@ XXXXXXX X X X X X X XXX X X X X X X X XXXXX
 
     assert!(matches!(
         result.err(),
-        Some(Exceptions::ReedSolomonException(_))
+        Some(Error::ReedSolomon(_))
     ));
     // assert_eq!(Error::Checksum, result.error());
     // assert!(result.text().empty());

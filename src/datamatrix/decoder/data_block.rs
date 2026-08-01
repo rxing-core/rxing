@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 use super::Version;
@@ -139,7 +139,7 @@ impl DataBlock {
         }
 
         if rawCodewordsOffset != rawCodewords.len() {
-            return Err(Exceptions::ILLEGAL_ARGUMENT);
+            return Err(Error::ILLEGAL_ARGUMENT);
         }
 
         Ok(result)

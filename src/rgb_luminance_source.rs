@@ -19,7 +19,7 @@
 use std::borrow::Cow;
 
 use crate::common::Result;
-use crate::{Exceptions, LuminanceSource};
+use crate::{Error, LuminanceSource};
 
 /**
  * This class is used to help decode images from files which arrive as RGB data from
@@ -93,7 +93,7 @@ impl LuminanceSource for RGBLuminanceSource {
             width,
             height,
         )
-        .map_err(|_| Exceptions::UNSUPPORTED_OPERATION)
+        .map_err(|_| Error::UNSUPPORTED_OPERATION)
     }
 
     fn invert(&mut self) {
@@ -125,7 +125,7 @@ impl RGBLuminanceSource {
         let size = width * height;
 
         if size != pixels.len() {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "Dimensions do not match the data length.",
             ));
         }
@@ -157,7 +157,7 @@ impl RGBLuminanceSource {
         height: usize,
     ) -> Result<Self> {
         if width > data_width || height > data_height {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "Crop rectangle does not fit within image data.",
             ));
         }

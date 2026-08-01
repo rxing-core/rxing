@@ -1,4 +1,4 @@
-use crate::{Exceptions, Point, point};
+use crate::{Error, Point, point};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Quadrilateral(pub [Point; 4]);
@@ -274,13 +274,13 @@ impl From<[Point; 4]> for Quadrilateral {
 }
 
 impl TryFrom<&Vec<Point>> for Quadrilateral {
-    type Error = Exceptions;
+    type Error = Error;
 
     fn try_from(value: &Vec<Point>) -> Result<Self, Self::Error> {
         if value.len() == 4 {
             Ok(Self([value[0], value[1], value[2], value[3]]))
         } else {
-            Err(Exceptions::INDEX_OUT_OF_BOUNDS)
+            Err(Error::INDEX_OUT_OF_BOUNDS)
         }
     }
 }

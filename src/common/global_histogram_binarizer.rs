@@ -25,7 +25,7 @@ use std::borrow::Cow;
 use once_cell::sync::OnceCell;
 
 use crate::common::Result;
-use crate::{Binarizer, Exceptions, LuminanceSource};
+use crate::{Binarizer, Error, LuminanceSource};
 
 use super::{BitArray, BitMatrix, LineOrientation};
 
@@ -71,7 +71,7 @@ impl<LS: LuminanceSource> Binarizer for GlobalHistogramBinarizer<LS> {
             // self.initArrays(width);
             let localLuminances = source
                 .get_row(y)
-                .ok_or(Exceptions::index_out_of_bounds_with("row out of bounds"))?;
+                .ok_or(Error::index_out_of_bounds_with("row out of bounds"))?;
             let mut localBuckets = [0; LUMINANCE_BUCKETS]; //self.buckets.clone();
             for x in 0..width {
                 // for (int x = 0; x < width; x++) {
@@ -219,7 +219,7 @@ impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {
             let row = height * y / 5;
             let localLuminances = source
                 .get_row(row)
-                .ok_or(Exceptions::index_out_of_bounds_with("row out of bounds"))?;
+                .ok_or(Error::index_out_of_bounds_with("row out of bounds"))?;
             let right = (width * 4) / 5;
             for pixel in &localLuminances[(width / 5)..right] {
                 // for x in (width / 5)..right {
@@ -282,7 +282,7 @@ impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {
         // If there is too little contrast in the image to pick a meaningful black point, throw rather
         // than waste time trying to decode the image, and risk false positives.
         if secondPeak - firstPeak <= BUCKET_COUNT / 16 {
-            return Err(Exceptions::not_found_with(
+            return Err(Error::not_found_with(
                 "secondPeak - firstPeak <= numBuckets / 16 ",
             ));
         }

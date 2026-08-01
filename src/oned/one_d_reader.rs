@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    Binarizer, BinaryBitmap, DecodeHints, Exceptions, LuminanceSource, RXingResult,
+    Binarizer, BinaryBitmap, DecodeHints, Error, LuminanceSource, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
     common::{BitArray, Result},
     point,
@@ -66,7 +66,7 @@ pub trait OneDReader: Reader {
             let rw = image
                 .get_source()
                 .get_row(mid_line)
-                .ok_or(Exceptions::index_out_of_bounds_with("row out of bounds"))?;
+                .ok_or(Error::index_out_of_bounds_with("row out of bounds"))?;
 
             let decoded = self.decode_pure(mid_line as u32, &rw, &hints);
             if decoded.is_ok() {
@@ -142,7 +142,7 @@ pub trait OneDReader: Reader {
             }
         }
 
-        Err(Exceptions::NOT_FOUND)
+        Err(Error::NOT_FOUND)
     }
 
     /**
@@ -171,7 +171,7 @@ pub trait OneDReader: Reader {
         hints: &DecodeHints,
     ) -> Result<RXingResult> {
         if row.is_empty() {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         let new_row = pad_bitarray(row, Self::QUIET_ZONE);
@@ -277,7 +277,7 @@ pub fn record_pattern<const N: usize>(
 
     let end = row.get_size();
     if start >= end {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     let mut is_white = !row.get(start);
@@ -300,7 +300,7 @@ pub fn record_pattern<const N: usize>(
     // If we read fully the last section of pixels and filled up our counters -- or filled
     // the last counter but ran off the side of the image, OK. Otherwise, a problem.
     if !(counter_position == num_counters || (counter_position == num_counters - 1 && i == end)) {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
     Ok(())
 }
@@ -322,7 +322,7 @@ pub fn record_pattern_in_reverse<const N: usize>(
         }
     }
     if num_transitions_left >= 0 {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
     record_pattern(row, start + 1, counters)?;
 

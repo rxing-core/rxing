@@ -180,7 +180,7 @@ fn issue_48() {
 fn zxing_bench_grey_image_issue_luma8_image() {
     use image::DynamicImage;
     use rxing::{
-        BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHints, Exceptions,
+        BarcodeFormat, BinaryBitmap, BufferedImageLuminanceSource, DecodeHints, Error,
         MultiUseMultiFormatReader,
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
@@ -192,7 +192,7 @@ fn zxing_bench_grey_image_issue_luma8_image() {
 
     let img = DynamicImage::from(
         image::open(FILE_NAME)
-            .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+            .map_err(|e| Error::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
             .unwrap()
             .to_luma8(),
     );
@@ -270,7 +270,7 @@ fn zxing_bench_grey_image_issue_luma8_image() {
 #[test]
 fn zxing_bench_grey_image_issue_raw_luma8() {
     use rxing::{
-        BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource,
+        BarcodeFormat, BinaryBitmap, DecodeHints, Error, Luma8LuminanceSource,
         MultiUseMultiFormatReader,
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
@@ -281,7 +281,7 @@ fn zxing_bench_grey_image_issue_raw_luma8() {
     let mut hints = DecodeHints::default();
 
     let img = image::open(FILE_NAME)
-        .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+        .map_err(|e| Error::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
         .unwrap();
     let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
@@ -365,7 +365,7 @@ fn zxing_bench_grey_image_issue_raw_luma8() {
 #[test]
 fn test_issue_49() {
     use rxing::{
-        BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource,
+        BarcodeFormat, BinaryBitmap, DecodeHints, Error, Luma8LuminanceSource,
         MultiUseMultiFormatReader,
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
@@ -375,7 +375,7 @@ fn test_issue_49() {
     let mut hints = DecodeHints::default();
 
     let img = image::open(FILE_NAME)
-        .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+        .map_err(|e| Error::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
         .unwrap();
     let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
@@ -408,7 +408,7 @@ fn test_issue_49() {
 #[test]
 fn test_issue_50() {
     use rxing::{
-        BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource,
+        BarcodeFormat, BinaryBitmap, DecodeHints, Error, Luma8LuminanceSource,
         MultiUseMultiFormatReader, Reader, common::HybridBinarizer,
     };
 
@@ -416,7 +416,7 @@ fn test_issue_50() {
     let mut hints = DecodeHints::default();
 
     let img = image::open(FILE_NAME)
-        .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+        .map_err(|e| Error::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
         .unwrap();
     let mut scanner = MultiUseMultiFormatReader::default();
 
@@ -445,7 +445,7 @@ fn test_issue_50() {
 #[test]
 fn test_issue_50_2() {
     use rxing::{
-        BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, Luma8LuminanceSource,
+        BarcodeFormat, BinaryBitmap, DecodeHints, Error, Luma8LuminanceSource,
         MultiUseMultiFormatReader, Reader, common::AdaptiveThresholdBinarizer,
     };
 
@@ -453,7 +453,7 @@ fn test_issue_50_2() {
     let mut hints = DecodeHints::default();
 
     let img = image::open(FILE_NAME)
-        .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+        .map_err(|e| Error::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
         .unwrap();
     let mut scanner = MultiUseMultiFormatReader::default();
 
@@ -487,7 +487,7 @@ fn test_issue_50_2() {
 fn issue_51_multiple_detection() {
     use image::DynamicImage;
     use rxing::{
-        BinaryBitmap, BufferedImageLuminanceSource, DecodeHints, Exceptions,
+        BinaryBitmap, BufferedImageLuminanceSource, DecodeHints, Error,
         MultiUseMultiFormatReader,
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
@@ -499,7 +499,7 @@ fn issue_51_multiple_detection() {
 
     let img = DynamicImage::from(
         image::open(FILE_NAME)
-            .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+            .map_err(|e| Error::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
             .unwrap()
             .to_luma8(),
     );
@@ -528,7 +528,7 @@ fn issue_51_multiple_detection() {
 
     let img = DynamicImage::from(
         image::open(FILE_NAME2)
-            .map_err(|e| Exceptions::runtime_with(format!("couldn't read {FILE_NAME2}: {e}")))
+            .map_err(|e| Error::runtime_with(format!("couldn't read {FILE_NAME2}: {e}")))
             .unwrap()
             .to_luma8(),
     );
@@ -555,27 +555,39 @@ fn issue_51_multiple_detection() {
 #[cfg(all(feature = "image", feature = "multi_barcode_readers"))]
 #[test]
 fn issue_58() {
-    use rxing::{DecodeHints, Exceptions};
+    use rxing::{DecodeHints, Error};
 
     let mut hints: DecodeHints =
         DecodeHints::default().with(rxing::DecodeHintValue::TryHarder(true));
-    assert!(
-        rxing::helpers::detect_multiple_in_file_with_hints(
+        assert!(
+matches!(rxing::helpers::detect_multiple_in_file_with_hints(
             "test_resources/blackbox/github_issue_cases/empty_issue_58.png",
             &mut hints
-        )
-        .is_err_and(|e| { e == Exceptions::NOT_FOUND })
-    );
+        ),
+    Err(Error::NotFound(_)))
+        );
+    // assert!(
+    //     rxing::helpers::detect_multiple_in_file_with_hints(
+    //         "test_resources/blackbox/github_issue_cases/empty_issue_58.png",
+    //         &mut hints
+    //     )
+    //     .is_err_and(|e| { e == Exceptions::NOT_FOUND })
+    // );
 
     hints.PureBarcode = Some(true);
 
-    assert!(
-        rxing::helpers::detect_multiple_in_file_with_hints(
+assert!(matches!(rxing::helpers::detect_multiple_in_file_with_hints(
             "test_resources/blackbox/github_issue_cases/empty_issue_58.png",
             &mut hints
-        )
-        .is_err_and(|e| { e == Exceptions::NOT_FOUND })
-    );
+        ), Err(Error::NotFound(_))));
+
+    // assert!(
+    //     rxing::helpers::detect_multiple_in_file_with_hints(
+    //         "test_resources/blackbox/github_issue_cases/empty_issue_58.png",
+    //         &mut hints
+    //     )
+    //     .is_err_and(|e| { e == Exceptions::NOT_FOUND })
+    // );
 }
 
 #[cfg(all(

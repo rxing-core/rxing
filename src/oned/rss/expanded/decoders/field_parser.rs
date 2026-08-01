@@ -29,7 +29,7 @@
  */
 use std::collections::HashMap;
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 use once_cell::sync::Lazy;
@@ -146,7 +146,7 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String> {
     // Processing 2-digit AIs
 
     if rawInformation.len() < 2 {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     let twoDigitDataLength = TWO_DIGIT_DATA_LENGTH.get(&rawInformation[..2]);
@@ -158,7 +158,7 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String> {
     }
 
     if rawInformation.len() < 3 {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     let firstThreeDigits = &rawInformation[..3];
@@ -171,7 +171,7 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String> {
     }
 
     if rawInformation.len() < 4 {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     let threeDigitPlusDigitDataLength = THREE_DIGIT_PLUS_DIGIT_DATA_LENGTH.get(firstThreeDigits);
@@ -190,18 +190,18 @@ pub fn parseFieldsInGeneralPurpose(rawInformation: &str) -> Result<String> {
         return processFixedAI(4, ffdl.length, rawInformation);
     }
 
-    Err(Exceptions::NOT_FOUND)
+    Err(Error::NOT_FOUND)
 }
 
 fn processFixedAI(aiSize: usize, fieldSize: usize, rawInformation: &str) -> Result<String> {
     if rawInformation.len() < aiSize {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     let ai = &rawInformation[..aiSize];
 
     if rawInformation.len() < aiSize + fieldSize {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     let field = &rawInformation[aiSize..aiSize + fieldSize];

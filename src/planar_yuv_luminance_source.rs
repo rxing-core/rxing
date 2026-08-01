@@ -129,7 +129,7 @@
 use std::borrow::Cow;
 
 use crate::common::Result;
-use crate::{Exceptions, LuminanceSource};
+use crate::{Error, LuminanceSource};
 
 const THUMBNAIL_SCALE_FACTOR: usize = 2;
 
@@ -169,7 +169,7 @@ impl PlanarYUVLuminanceSource {
         inverted: bool,
     ) -> Result<Self> {
         if left + width > data_width || top + height > data_height {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "Crop rectangle does not fit within image data.",
             ));
         }
@@ -317,7 +317,7 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
 
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
         if left + width > self.get_width() || top + height > self.get_height() {
-            return Err(crate::Exceptions::illegal_argument_with(
+            return Err(crate::Error::illegal_argument_with(
                 "Crop rectangle does not fit within image data.",
             ));
         }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 use super::{Encoder, high_level_encoder};
@@ -33,12 +33,12 @@ impl Encoder for ASCIIEncoder {
                     .getMessage()
                     .chars()
                     .nth(context.pos as usize)
-                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
                 context
                     .getMessage()
                     .chars()
                     .nth(context.pos as usize + 1)
-                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
             )? as u8);
             context.pos += 2;
         } else {
@@ -75,7 +75,7 @@ impl Encoder for ASCIIEncoder {
                     }
 
                     _ => {
-                        return Err(Exceptions::illegal_state_with(format!(
+                        return Err(Error::illegal_state_with(format!(
                             "Illegal mode: {newMode}"
                         )));
                     }
@@ -106,7 +106,7 @@ impl ASCIIEncoder {
             let num = (digit1 as u8 - 48) * 10 + (digit2 as u8 - 48);
             Ok((num + 130) as char)
         } else {
-            Err(Exceptions::illegal_argument_with(format!(
+            Err(Error::illegal_argument_with(format!(
                 "not digits: {digit1}{digit2}"
             )))
         }

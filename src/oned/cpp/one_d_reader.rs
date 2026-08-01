@@ -7,7 +7,7 @@
 
 use crate::Binarizer;
 use crate::common::cpp_essentials::{GetPatternRow, PatternRow, PatternView};
-use crate::{BarcodeFormat, BinaryBitmap, DecodeHints, Exceptions, PointT, point};
+use crate::{BarcodeFormat, BinaryBitmap, DecodeHints, Error, PointT, point};
 use crate::{RXingResult, Reader};
 
 #[cfg(feature = "multi_barcode_readers")]
@@ -373,7 +373,7 @@ impl ODReader<'_> {
     ) -> Result<RXingResult> {
         let result = self.decode_with_max_symbols(_hints, image, u32::MAX)?;
 
-        result.first().cloned().ok_or(Exceptions::NOT_FOUND)
+        result.first().cloned().ok_or(Error::NOT_FOUND)
         // return FirstOrDefault(std::move(result));
     }
 
@@ -408,7 +408,7 @@ impl ODReader<'_> {
             resH.append(&mut resV);
         }
         if resH.is_empty() {
-            Err(Exceptions::NOT_FOUND)
+            Err(Error::NOT_FOUND)
         } else {
             Ok(resH)
         }

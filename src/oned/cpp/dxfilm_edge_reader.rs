@@ -5,7 +5,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::{
-    BarcodeFormat, DecodeHints, Exceptions, PointI, RXingResult, RXingResultMetadataType,
+    BarcodeFormat, DecodeHints, Error, PointI, RXingResult, RXingResultMetadataType,
     RXingResultMetadataValue,
     common::{
         BitArray,
@@ -188,7 +188,7 @@ impl RowReader for DXFilmEdgeReader<'_> {
         // Only consider rows below the center row of the image
 
         if self.options.TryHarder != Some(true) && rowNumber < dxState.centerRow.saturating_sub(1) {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         // Look for a pattern that is part of both the clock as well as the data track (ommitting the first bar)
@@ -206,14 +206,14 @@ impl RowReader for DXFilmEdgeReader<'_> {
         *next = FindLeftGuardBy::<4, _>(*next, 10, Is4x1)?;
         // next = FindLeftGuard<4>(next, 10, Is4x1);
         if !next.isValid() {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         // Check if the 4x1 pattern is part of a clock track
         if let Some(clock) = CheckForClock(rowNumber, next) {
             dxState.addClock(clock);
             next.skipSymbol();
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
         // if (auto clock = CheckForClock(rowNumber, next)) {
         //     dxState->addClock(*clock);
@@ -223,26 +223,26 @@ impl RowReader for DXFilmEdgeReader<'_> {
 
         // Without at least one clock track, we stop here
         if dxState.clocks.is_empty() {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         let minDataQuietZone: f32 = 0.5;
 
         if !IsPattern(next, &DATA_START_PATTERN, minDataQuietZone) {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         let xStart = next.pixelsInFront();
 
         // Only consider data tracks that are next to a clock track
         let Some(clock) = dxState.findClock(xStart as u32, rowNumber) else {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         };
 
         // Verify start pattern spans approximately 5 modules (prevents false positives)
         let start_width: f32 = next.sum(Some(DATA_START_PATTERN.size())) as f32;
         if (start_width / clock.moduleSize() - 5.0).abs() > 1.0 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         // Skip the data start pattern (black, white, black, white, black)
@@ -265,7 +265,7 @@ impl RowReader for DXFilmEdgeReader<'_> {
                     modules as usize,
                 )?;
             } else {
-                return Err(Exceptions::NOT_FOUND);
+                return Err(Error::NOT_FOUND);
             }
 
             next.shift(1);
@@ -273,14 +273,14 @@ impl RowReader for DXFilmEdgeReader<'_> {
 
         // Check the data track length
         if dataBits.get_size() != clock.dataLength() as usize {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         *next = next.subView(0, Some(DATA_STOP_PATTERN.size()));
 
         // Check there is the Stop pattern at the end of the data track
         if !next.isValid() || !IsRightGuard(next, &DATA_STOP_PATTERN, minDataQuietZone, 0.0) {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         // The following bits are always white (=false), they are separators.
@@ -292,7 +292,7 @@ impl RowReader for DXFilmEdgeReader<'_> {
                 dataBits.get(14)//0
             })
         {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         // Check the parity bit
@@ -304,7 +304,7 @@ impl RowReader for DXFilmEdgeReader<'_> {
             .fold(0, |acc, e| acc + u8::from(*e)); //dataBits.iter().rev().skip(2).sum::<u8>(); //Reduce(dataBits.begin(), dataBits.end() - 2, 0);
         let parityBit = u8::from(db_hld[db_hld.len() - 2]);
         if signalSum % 2 != parityBit {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         // Convert dataBits to individual bit values for ToIntPos
@@ -315,12 +315,12 @@ impl RowReader for DXFilmEdgeReader<'_> {
 
         // Compute the DX 1 number (product number)
         let Some(productNumber) = ToIntPos(&dataBitsU8, 1, 7) else {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         };
 
         // Compute the DX 2 number (generation number)
         let Some(generationNumber) = ToIntPos(&dataBitsU8, 9, 4) else {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         };
 
         // Generate the textual representation.
@@ -340,7 +340,7 @@ impl RowReader for DXFilmEdgeReader<'_> {
 
         // The found data track must end near the clock track
         if !clock.isCloseToStop(xStop as u32, rowNumber) {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         // Update the clock coordinates with the latest corresponding data track

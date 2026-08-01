@@ -1,4 +1,4 @@
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 pub fn calculate_checksum(contents: &str) -> char {
@@ -29,7 +29,7 @@ pub fn ascii_to_numeric(contents: &str) -> String {
 
 pub fn numeric_to_ascii(contents: &str) -> Result<String> {
     if contents.len() % 2 != 0 {
-        return Err(Exceptions::illegal_argument_with(
+        return Err(Error::illegal_argument_with(
             "Input must contain an even number of characters.",
         ));
     }
@@ -47,7 +47,7 @@ pub fn numeric_to_ascii(contents: &str) -> Result<String> {
         } else if (48..=57).contains(&second) && (48..=57).contains(&first) {
             ascii.push((27 + (first - 48) * 10 + (second - 48)) as char);
         } else {
-            return Err(Exceptions::illegal_argument_with(format!(
+            return Err(Error::illegal_argument_with(format!(
                 "Input contains an invalid character around position {}.",
                 i * 2
             )));

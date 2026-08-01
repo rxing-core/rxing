@@ -17,7 +17,7 @@
 use crate::{
     BarcodeFormat, EncodeHints, Writer,
     common::{BitMatrix, CharacterSet, Result},
-    exceptions::Exceptions,
+    exceptions::Error,
 };
 
 use super::encoder::{AztecCode, aztec_encoder};
@@ -68,7 +68,7 @@ impl Writer for AztecWriter {
         let margins = if let Some(margin) = &hints.Margin {
             margin
                 .parse::<u32>()
-                .map_err(|e| Exceptions::parse_with(format!("could not parse {margin}: {e}")))?
+                .map_err(|e| Error::parse_with(format!("could not parse {margin}: {e}")))?
         } else {
             MARGINS_SIZE
         };
@@ -98,7 +98,7 @@ fn encode(
     layers: i32,
 ) -> Result<BitMatrix> {
     if format != BarcodeFormat::AZTEC {
-        return Err(Exceptions::illegal_argument_with(format!(
+        return Err(Error::illegal_argument_with(format!(
             "can only encode AZTEC, but got {format:?}"
         )));
     }

@@ -19,7 +19,7 @@
 // import com.google.zxing.NotFoundException;
 
 use crate::common::Result;
-use crate::{Exceptions, Point, point};
+use crate::{Error, Point, point};
 
 use super::{BitMatrix, GridSampler, SamplerControl};
 
@@ -38,7 +38,7 @@ impl GridSampler for DefaultGridSampler {
         controls: &[SamplerControl],
     ) -> Result<(BitMatrix, [Point; 4])> {
         if dimensionX == 0 || dimensionY == 0 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         for SamplerControl { p0, p1, transform } in controls {
@@ -52,7 +52,7 @@ impl GridSampler for DefaultGridSampler {
                 || !isInside(p1.x - 1.0, p1.y - 1.0)
                 || !isInside(p0.x, p1.y - 1.0)
             {
-                return Err(Exceptions::NOT_FOUND);
+                return Err(Error::NOT_FOUND);
             }
         }
 
@@ -75,7 +75,7 @@ impl GridSampler for DefaultGridSampler {
                     // The following check takes 100% care of the issue and turned out to be less of a performance impact than feared.
                     // TODO: Check some mathematical/numercial property of mod2Pix to determine if it is a perspective transforation.
                     if !image.is_in(p) {
-                        return Err(Exceptions::NOT_FOUND);
+                        return Err(Error::NOT_FOUND);
                     }
                 }
             }

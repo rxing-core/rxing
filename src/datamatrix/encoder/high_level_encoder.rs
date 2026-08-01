@@ -17,7 +17,7 @@
 use std::sync::Arc;
 
 use crate::common::{CharacterSet, Result};
-use crate::{Dimension, Exceptions};
+use crate::{Dimension, Error};
 
 use super::{
     ASCIIEncoder, Base256Encoder, C40Encoder, EdifactEncoder, Encoder, EncoderContext,
@@ -217,14 +217,14 @@ pub fn encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
 
     if forceC40 {
         c40Encoder.encodeMaximalC40(&mut context)?;
-        encodingMode = context.getNewEncoding().ok_or(Exceptions::ILLEGAL_STATE)?;
+        encodingMode = context.getNewEncoding().ok_or(Error::ILLEGAL_STATE)?;
         context.resetEncoderSignal();
     }
 
     while context.hasMoreCharacters() {
         encoders[encodingMode].encode(&mut context)?;
         if context.getNewEncoding().is_some() {
-            encodingMode = context.getNewEncoding().ok_or(Exceptions::ILLEGAL_STATE)?;
+            encodingMode = context.getNewEncoding().ok_or(Error::ILLEGAL_STATE)?;
             context.resetEncoderSignal();
         }
     }
@@ -232,7 +232,7 @@ pub fn encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
     context.updateSymbolInfo();
     let capacity = context
         .getSymbolInfo()
-        .ok_or(Exceptions::ILLEGAL_STATE)?
+        .ok_or(Error::ILLEGAL_STATE)?
         .getDataCapacity();
     if len < capacity as usize
         && encodingMode != ASCII_ENCODATION
@@ -602,7 +602,7 @@ pub fn determineConsecutiveDigitCount(msg: &str, startpos: u32) -> u32 {
 pub fn illegalCharacter(c: char) -> Result<()> {
     // let hex = Integer.toHexString(c);
     // hex = "0000".substring(0, 4 - hex.length()) + hex;
-    Err(Exceptions::illegal_argument_with(format!(
+    Err(Error::illegal_argument_with(format!(
         "Illegal character: {c} (0x{c})"
     )))
 }

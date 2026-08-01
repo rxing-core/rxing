@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 use super::{GenericGFPoly, GenericGFRef};
@@ -123,10 +123,10 @@ impl GenericGF {
      */
     pub const fn log(&self, a: i32) -> Result<i32> {
         if a == 0 {
-            return Err(Exceptions::ILLEGAL_ARGUMENT);
+            return Err(Error::ILLEGAL_ARGUMENT);
         }
         if (a as usize) >= self.size {
-            return Err(Exceptions::ILLEGAL_ARGUMENT);
+            return Err(Error::ILLEGAL_ARGUMENT);
         }
         Ok(self.logTable[a as usize] as i32)
     }
@@ -136,11 +136,11 @@ impl GenericGF {
      */
     pub const fn inverse(&self, a: i32) -> Result<i32> {
         if a == 0 {
-            return Err(Exceptions::ARITHMETIC);
+            return Err(Error::ARITHMETIC);
         }
         let log_t_loc: usize = a as usize;
         if log_t_loc >= self.size {
-            return Err(Exceptions::ILLEGAL_ARGUMENT);
+            return Err(Error::ILLEGAL_ARGUMENT);
         }
         let loc: usize = ((self.size as i32) - self.logTable[log_t_loc] as i32 - 1) as usize;
         Ok(self.expTable[loc] as i32)

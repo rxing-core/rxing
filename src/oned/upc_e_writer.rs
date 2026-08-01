@@ -17,7 +17,7 @@
 use rxing_one_d_proc_derive::OneDWriter;
 
 use crate::common::Result;
-use crate::{BarcodeFormat, Exceptions};
+use crate::{BarcodeFormat, Error};
 
 use super::{
     OneDimensionalCodeWriter, UPCEANWriter, oned_constants::upc_e, oned_constants::upc_ean_shared,
@@ -47,7 +47,7 @@ impl OneDimensionalCodeWriter for UPCEWriter {
                 // No check digit present, calculate it and add it
                 let check = upcean_common::getStandardUPCEANChecksum(
                     &upcean_common::convertUPCEtoUPCA(&contents)
-                        .ok_or(Exceptions::ILLEGAL_ARGUMENT)?
+                        .ok_or(Error::ILLEGAL_ARGUMENT)?
                         .chars()
                         .collect::<Vec<_>>(),
                 )?;
@@ -56,15 +56,15 @@ impl OneDimensionalCodeWriter for UPCEWriter {
             8 => {
                 if !upcean_common::checkStandardUPCEANChecksum(
                     &upcean_common::convertUPCEtoUPCA(&contents)
-                        .ok_or(Exceptions::ILLEGAL_ARGUMENT)?,
+                        .ok_or(Error::ILLEGAL_ARGUMENT)?,
                 )? {
-                    return Err(Exceptions::illegal_argument_with(
+                    return Err(Error::illegal_argument_with(
                         "Contents do not pass checksum",
                     ));
                 }
             }
             _ => {
-                return Err(Exceptions::illegal_argument_with(format!(
+                return Err(Error::illegal_argument_with(format!(
                     "Requested contents should be 7 or 8 digits long, but got {length}"
                 )));
             }
@@ -75,11 +75,11 @@ impl OneDimensionalCodeWriter for UPCEWriter {
         let firstDigit = contents
             .chars()
             .next()
-            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+            .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
             .to_digit(10)
-            .ok_or(Exceptions::PARSE)? as usize; //Character.digit(contents.charAt(0), 10);
+            .ok_or(Error::PARSE)? as usize; //Character.digit(contents.charAt(0), 10);
         if firstDigit != 0 && firstDigit != 1 {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "Number system must be 0 or 1",
             ));
         }
@@ -87,9 +87,9 @@ impl OneDimensionalCodeWriter for UPCEWriter {
         let checkDigit = contents
             .chars()
             .nth(7)
-            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+            .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
             .to_digit(10)
-            .ok_or(Exceptions::PARSE)? as usize; //Character.digit(contents.charAt(7), 10);
+            .ok_or(Error::PARSE)? as usize; //Character.digit(contents.charAt(7), 10);
         let parities = upc_e::NUMSYS_AND_CHECK_DIGIT_PATTERNS[firstDigit][checkDigit];
         let mut result = [false; CODE_WIDTH];
 
@@ -101,9 +101,9 @@ impl OneDimensionalCodeWriter for UPCEWriter {
             let mut digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
                 .to_digit(10)
-                .ok_or(Exceptions::PARSE)? as usize; //Character.digit(contents.charAt(i), 10);
+                .ok_or(Error::PARSE)? as usize; //Character.digit(contents.charAt(i), 10);
             if ((parities >> (6 - i)) & 1) == 1 {
                 digit += 10;
             }

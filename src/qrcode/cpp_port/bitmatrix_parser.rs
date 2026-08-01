@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::{
-    Exceptions,
+    Error,
     common::{BitMatrix, Result},
     qrcode::common::{ErrorCorrectionLevel, FormatInformation, Version, VersionRef},
 };
@@ -25,7 +25,7 @@ pub fn getBit(bitMatrix: &BitMatrix, x: u32, y: u32, mirrored: Option<bool>) -> 
 
 pub fn ReadVersion(bitMatrix: &BitMatrix, qr_type: Type) -> Result<VersionRef> {
     if !Version::HasValidSize(bitMatrix) {
-        return Err(Exceptions::FORMAT);
+        return Err(Error::FORMAT);
     }
 
     let number = Version::Number(bitMatrix);
@@ -179,7 +179,7 @@ pub fn ReadQRCodewords(
         x -= 2;
     }
     if (result.len()) != version.getTotalCodewords() as usize {
-        return Err(Exceptions::FORMAT);
+        return Err(Error::FORMAT);
     }
 
     Ok(result)
@@ -244,7 +244,7 @@ pub fn ReadMQRCodewords(
         x -= 2;
     }
     if (result.len()) != version.getTotalCodewords() as usize {
-        return Err(Exceptions::FORMAT);
+        return Err(Error::FORMAT);
     }
 
     Ok(result)
@@ -349,7 +349,7 @@ pub fn ReadQRCodewordsModel1(
 
     result[0] &= 0xf; // ignore corner
     if (result.len()) != version.getTotalCodewords() as usize {
-        return Err(Exceptions::FORMAT);
+        return Err(Error::FORMAT);
     }
 
     Ok(result)
@@ -402,7 +402,7 @@ pub fn ReadRMQRCodewords(
         x -= 2
     }
     if (result.len()) != version.getTotalCodewords() as usize {
-        return Err(Exceptions::FORMAT);
+        return Err(Error::FORMAT);
     }
 
     Ok(result)

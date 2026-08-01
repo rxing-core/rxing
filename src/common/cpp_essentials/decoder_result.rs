@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
-use crate::{Exceptions, common::ECIStringBuilder};
+use crate::{Error, common::ECIStringBuilder};
 
 use super::StructuredAppendInfo;
 
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive( Debug, Clone)]
 pub struct DecoderResult<T>
 where
-    T: Copy + Clone + Default + Eq + PartialEq,
+    T: Copy + Clone + Default ,
 {
     content: ECIStringBuilder,
     ecLevel: String,
@@ -18,7 +18,7 @@ where
     readerInit: bool, // = false;
     //Error _error;
     //std::shared_ptr<CustomData> _extra;
-    error: Option<Exceptions>,
+    error: Arc<Option<Error>>,
     extra: Arc<T>,
 }
 
@@ -35,7 +35,7 @@ where
             structuredAppend: Default::default(),
             isMirrored: false,
             readerInit: false,
-            error: None,
+            error: Arc::new(None),
             extra: Default::default(),
         }
     }
@@ -146,13 +146,13 @@ where
         self
     }
 
-    pub fn error(&self) -> &Option<Exceptions> {
+    pub fn error(&self) -> &Option<Error> {
         &self.error
     }
-    pub fn setError(&mut self, error: Option<Exceptions>) {
-        self.error = error
+    pub fn setError(&mut self, error: Option<Error>) {
+        self.error = Arc::new(error)
     }
-    pub fn withError(mut self, error: Option<Exceptions>) -> DecoderResult<T> {
+    pub fn withError(mut self, error: Option<Error>) -> DecoderResult<T> {
         self.setError(error);
         self
     }

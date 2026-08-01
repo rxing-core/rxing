@@ -17,7 +17,7 @@
 use rxing_one_d_proc_derive::OneDWriter;
 
 use crate::common::Result;
-use crate::{BarcodeFormat, Exceptions};
+use crate::{BarcodeFormat, Error};
 
 use super::{OneDimensionalCodeWriter, oned_constants::code_93};
 
@@ -36,7 +36,7 @@ impl OneDimensionalCodeWriter for Code93Writer {
         let mut contents = Self::convertToExtended(contents)?;
         let length = contents.chars().count();
         if length > 80 {
-            return Err(Exceptions::illegal_argument_with(format!(
+            return Err(Error::illegal_argument_with(format!(
                 "Requested contents should be less than 80 digits long after converting to extended encoding, but got {length}"
             )));
         }
@@ -55,7 +55,7 @@ impl OneDimensionalCodeWriter for Code93Writer {
                 contents
                     .chars()
                     .nth(i)
-                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
             ) else {
                 panic!("alphabet")
             };
@@ -75,7 +75,7 @@ impl OneDimensionalCodeWriter for Code93Writer {
             code_93::ALPHABET_STRING
                 .chars()
                 .nth(check1)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
         );
 
         let check2 = Self::computeChecksumIndex(&contents, 15);
@@ -170,13 +170,13 @@ impl Code93Writer {
                 // SOH - SUB: ($)A - ($)Z
                 extendedContent.push('a');
                 extendedContent.push(
-                    char::from_u32('A' as u32 + character as u32 - 1).ok_or(Exceptions::PARSE)?,
+                    char::from_u32('A' as u32 + character as u32 - 1).ok_or(Error::PARSE)?,
                 );
             } else if character as u32 <= 31 {
                 // ESC - US: (%)A - (%)E
                 extendedContent.push('b');
                 extendedContent.push(
-                    char::from_u32('A' as u32 + character as u32 - 27).ok_or(Exceptions::PARSE)?,
+                    char::from_u32('A' as u32 + character as u32 - 27).ok_or(Error::PARSE)?,
                 );
             } else if character == ' ' || character == '$' || character == '%' || character == '+' {
                 // space $ % +
@@ -186,7 +186,7 @@ impl Code93Writer {
                 extendedContent.push('c');
                 extendedContent.push(
                     char::from_u32('A' as u32 + character as u32 - '!' as u32)
-                        .ok_or(Exceptions::PARSE)?,
+                        .ok_or(Error::PARSE)?,
                 );
             } else if character <= '9' {
                 extendedContent.push(character);
@@ -198,7 +198,7 @@ impl Code93Writer {
                 extendedContent.push('b');
                 extendedContent.push(
                     char::from_u32('F' as u32 + character as u32 - ';' as u32)
-                        .ok_or(Exceptions::PARSE)?,
+                        .ok_or(Error::PARSE)?,
                 );
             } else if character == '@' {
                 // @: (%)V
@@ -211,7 +211,7 @@ impl Code93Writer {
                 extendedContent.push('b');
                 extendedContent.push(
                     char::from_u32('K' as u32 + character as u32 - '[' as u32)
-                        .ok_or(Exceptions::PARSE)?,
+                        .ok_or(Error::PARSE)?,
                 );
             } else if character == '`' {
                 // `: (%)W
@@ -221,17 +221,17 @@ impl Code93Writer {
                 extendedContent.push('d');
                 extendedContent.push(
                     char::from_u32('A' as u32 + character as u32 - 'a' as u32)
-                        .ok_or(Exceptions::PARSE)?,
+                        .ok_or(Error::PARSE)?,
                 );
             } else if character as u32 <= 127 {
                 // { - DEL: (%)P - (%)T
                 extendedContent.push('b');
                 extendedContent.push(
                     char::from_u32('P' as u32 + character as u32 - '{' as u32)
-                        .ok_or(Exceptions::PARSE)?,
+                        .ok_or(Error::PARSE)?,
                 );
             } else {
-                return Err(Exceptions::illegal_argument_with(format!(
+                return Err(Error::illegal_argument_with(format!(
                     "Requested content contains a non-encodable character: '{character}'"
                 )));
             }

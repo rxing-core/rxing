@@ -15,7 +15,7 @@
  */
 
 use crate::common::Result;
-use crate::{Binarizer, DecodeHints, Exceptions, Point, RXingResult, Reader, point};
+use crate::{Binarizer, DecodeHints, Error, Point, RXingResult, Reader, point};
 
 /**
  * This class attempts to decode a barcode from an image, not by scanning the whole image,
@@ -48,7 +48,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
         // No need to call makeAbsolute as results will be relative to original top left here
         // This is a match because only NotFoundExceptions should be ignored
         match attempt {
-            Err(Exceptions::NotFoundException(_)) => {}
+            Err(Error::NotFound(_)) => {}
             _ => return attempt,
         }
 
@@ -62,7 +62,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
                 let points = Self::makeAbsolute(res.getPoints(), halfWidth as f32, 0.0);
                 return Ok(res.with_point(points));
             }
-            Err(Exceptions::NotFoundException(_)) => {}
+            Err(Error::NotFound(_)) => {}
             _ => return result,
         }
 
@@ -75,7 +75,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
                 let points = Self::makeAbsolute(res.getPoints(), 0.0, halfHeight as f32);
                 return Ok(res.with_point(points));
             }
-            Err(Exceptions::NotFoundException(_)) => {}
+            Err(Error::NotFound(_)) => {}
             _ => return result,
         }
 
@@ -90,7 +90,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
                     Self::makeAbsolute(res.getPoints(), halfWidth as f32, halfHeight as f32);
                 return Ok(res.with_point(points));
             }
-            Err(Exceptions::NotFoundException(_)) => {}
+            Err(Error::NotFound(_)) => {}
             _ => return result,
         }
 

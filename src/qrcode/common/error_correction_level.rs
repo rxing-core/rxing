@@ -17,7 +17,7 @@
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 /**
@@ -50,7 +50,7 @@ impl ErrorCorrectionLevel {
             1 => Ok(Self::L),
             2 => Ok(Self::H),
             3 => Ok(Self::Q),
-            _ => Err(Exceptions::illegal_argument_with(format!(
+            _ => Err(Error::illegal_argument_with(format!(
                 "{bits} is not a valid bit selection"
             ))),
         }
@@ -78,7 +78,7 @@ impl ErrorCorrectionLevel {
 }
 
 impl TryFrom<u8> for ErrorCorrectionLevel {
-    type Error = Exceptions;
+    type Error = Error;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         ErrorCorrectionLevel::forBits(value)
@@ -92,7 +92,7 @@ impl From<ErrorCorrectionLevel> for u8 {
 }
 
 impl FromStr for ErrorCorrectionLevel {
-    type Err = Exceptions;
+    type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // First try to see if the string is just the name of the value
@@ -114,7 +114,7 @@ impl FromStr for ErrorCorrectionLevel {
             return number_possible.try_into();
         }
 
-        Err(Exceptions::illegal_argument_with(format!(
+        Err(Error::illegal_argument_with(format!(
             "could not parse {s} into an ec level"
         )))
     }

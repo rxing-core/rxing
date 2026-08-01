@@ -7,7 +7,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::{
-    Exceptions,
+    Error,
     common::{
         DefaultGridSampler, GridSampler, Result, SamplerControl,
         cpp_essentials::{
@@ -556,7 +556,7 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
     let left = EstimateDimension(image, fp.tl, fp.bl);
 
     if top.dim == 0 && left.dim == 0 {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     let top_dim = top.dim;
@@ -607,8 +607,8 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
 
     if bl2.isValid() && tr2.isValid() && bl3.isValid() && tr3.isValid() {
         // intersect both outer and inner line pairs and take the center point between the two intersection points
-        let brInter = (DMRegressionLine::intersect(&bl2, &tr2).ok_or(Exceptions::NOT_FOUND)?
-            + DMRegressionLine::intersect(&bl3, &tr3).ok_or(Exceptions::NOT_FOUND)?)
+        let brInter = (DMRegressionLine::intersect(&bl2, &tr2).ok_or(Error::NOT_FOUND)?
+            + DMRegressionLine::intersect(&bl3, &tr3).ok_or(Error::NOT_FOUND)?)
             / 2.0;
         // log(brInter, 3);
 
@@ -652,7 +652,7 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
             ) > 8
         {
             /*return DetectorResult();*/
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
         if version.as_ref().unwrap().getDimensionForVersion() as i32 != dimension {
             // printf("update dimension: %d -> %d\n", dimension, version.dimension());
@@ -770,7 +770,7 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
                         &DMRegressionLine::new(hori[0], hori[1]),
                         &DMRegressionLine::new(verti[0], verti[1]),
                     )
-                    .ok_or(Exceptions::ILLEGAL_STATE)?;
+                    .ok_or(Error::ILLEGAL_STATE)?;
                     let found = LocateAlignmentPattern(image, moduleSize, guessed);
                     // search again near that intersection and if the search fails, use the intersection
                     // if (!found.is_some()) {printf("location guessed at %dx%d\n", x, y)};
@@ -878,7 +878,7 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let (found, left, top, width, height) = image.findBoundingBox(0, 0, 0, 0, MIN_MODULES as u32);
 
     if !found || (width as i32 - height as i32).abs() > 1 {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
     let right = left + width - 1;
     let bottom = top + height - 1;
@@ -895,11 +895,11 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     ] {
         diagonal = EdgeTracer::new(image, p, d)
             .readPatternFromBlack(1, Some((width / 3 + 1) as i32))
-            .ok_or(Exceptions::NOT_FOUND)?;
+            .ok_or(Error::NOT_FOUND)?;
 
         let view = PatternView::from_slice(&diagonal);
         if !(IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0, 0.0) != 0.0) {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
     }
 
@@ -924,7 +924,7 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
             top as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
         ))
     {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     // #ifdef PRINT_DEBUG
@@ -965,7 +965,7 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
 
     // int left, top, width, height;
     if !found || (width as i32 - height as i32).abs() > 1 {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
     let right = left + width - 1;
     let bottom = top + height - 1;
@@ -973,10 +973,10 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     // allow corners be moved one pixel inside to accommodate for possible aliasing artifacts
     let diagonal: Pattern = EdgeTracer::new(image, point_i(left, top), point_i(1, 1))
         .readPatternFromBlack(1, None)
-        .ok_or(Exceptions::ILLEGAL_STATE)?;
+        .ok_or(Error::ILLEGAL_STATE)?;
     let view = PatternView::from_slice(&diagonal);
     if !(IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0, 0.0) != 0.0) {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     let fpWidth = diagonal.into_iter().sum::<u16>();
@@ -989,7 +989,7 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
             top as f32 + moduleSize / 2.0 + (dimension - 1) as f32 * moduleSize,
         ))
     {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     // #ifdef PRINT_DEBUG
@@ -1040,7 +1040,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let (found, left, top, width, height) = image.findBoundingBox(0, 0, 0, 0, MIN_MODULES as u32);
 
     if !found || height >= width {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
     let right = left + width - 1;
     let bottom = top + height - 1;
@@ -1053,19 +1053,19 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     // allow corners be moved one pixel inside to accommodate for possible aliasing artifacts
     let diagonal: Pattern = EdgeTracer::new(image, tl, point_i(1, 1))
         .readPatternFromBlack(1, None)
-        .ok_or(Exceptions::ILLEGAL_STATE)?;
+        .ok_or(Error::ILLEGAL_STATE)?;
     let view = PatternView::from_slice(&diagonal);
     if IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0, 0.0) == 0.0 {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     // Finder sub pattern
     let subdiagonal: SubPattern = EdgeTracer::new(image, br, point_i(-1, -1))
         .readPatternFromBlack(1, None)
-        .ok_or(Exceptions::ILLEGAL_STATE)?;
+        .ok_or(Error::ILLEGAL_STATE)?;
     let view = PatternView::from_slice(&subdiagonal);
     if IsPattern::<false, 4, 4, false>(&view, &SUBPATTERN, None, 0.0, 0.0, 0.0) == 0.0 {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     let mut moduleSize: f32 =
@@ -1082,10 +1082,10 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         let mut cur = EdgeTracer::new(image, p, d.into());
         // skip corner / finder / sub pattern edge
         cur.stepToEdge(Some(2 + i32::from(cur.isWhite())), None, None);
-        let timing: TimingPattern = cur.readPattern(None).ok_or(Exceptions::ILLEGAL_STATE)?;
+        let timing: TimingPattern = cur.readPattern(None).ok_or(Error::ILLEGAL_STATE)?;
         let view = PatternView::from_slice(&timing);
         if IsPattern::<E2E, 10, 10, false>(&view, &TIMINGPATTERN, None, 0.0, 0.0, 0.0) == 0.0 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
         moduleSize += timing.iter().sum::<u16>() as f32;
     }
@@ -1095,7 +1095,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     let dimH = (height as f32 / moduleSize).round() as i32;
 
     if !Version::IsValidSize(point(dimW, dimH), Type::RectMicro) {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     // #ifdef PRINT_DEBUG
@@ -1122,7 +1122,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
 
 pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetectorResult> {
     let Some(fpQuad) = FindConcentricPatternCorners(image, fp.p, fp.size, 2) else {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     };
 
     let srcQuad = Quadrilateral::rectangle(7, 7, Some(0.5));
@@ -1195,7 +1195,7 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
     }
 
     if !bestFI.isValid() {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     let dim: u32 = Version::SymbolSize(bestFI.microVersion, Type::Micro).x as u32;
@@ -1210,7 +1210,7 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
         blackPixels += u32::from(cur.blackAt(px)) + u32::from(cur.blackAt(py));
     }
     if blackPixels > 2 * dim / 3 {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     let grid_sampler = DefaultGridSampler;
@@ -1232,7 +1232,7 @@ pub fn SampleMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetec
 pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDetectorResult> {
     // TODO proper
     let Some(mut fpQuad) = FindConcentricPatternCorners(image, fp.p, fp.size, 2) else {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     };
 
     let srcQuad = Quadrilateral::rectangle(7, 7, Some(0.5));
@@ -1302,7 +1302,7 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
     }
 
     if !bestFI.isValid() {
-        return Err(Exceptions::NOT_FOUND);
+        return Err(Error::NOT_FOUND);
     }
 
     let dim = Version::SymbolSize(bestFI.microVersion, Type::RectMicro);
@@ -1323,11 +1323,11 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
                         .partial_cmp(&Point::distance(**b, br))
                         .unwrap_or(std::cmp::Ordering::Less)
                 })
-                .ok_or(Exceptions::FORMAT)?;
+                .ok_or(Error::FORMAT)?;
         let offsetA =
             a.0.iter()
                 .position(|x| x == offsetATarget)
-                .ok_or(Exceptions::FORMAT)? as i32;
+                .ok_or(Error::FORMAT)? as i32;
         // let offsetA = std::max_element(a.begin(), a.end(), dist2B) - a.begin();
         // let dist2A = /*[c = tl]*/| a,  b| {  Point::distance(a, tl) < Point::distance(b, tl) };
         let offsetBTarget =
@@ -1337,11 +1337,11 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
                         .partial_cmp(&Point::distance(**b, tl))
                         .unwrap_or(std::cmp::Ordering::Less)
                 })
-                .ok_or(Exceptions::FORMAT)?;
+                .ok_or(Error::FORMAT)?;
         let offsetB =
             b.0.iter()
                 .position(|x| x == offsetBTarget)
-                .ok_or(Exceptions::FORMAT)? as i32;
+                .ok_or(Error::FORMAT)? as i32;
         // let offsetB = std::min_element(b.begin(), b.end(), dist2A) - b.begin();
 
         *a = a.rotated_corners(Some(offsetA), None);
@@ -1353,12 +1353,12 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
             &RegressionLine::with_two_points(a[0], a[1]),
             &RegressionLine::with_two_points(b[1], b[2]),
         )
-        .ok_or(Exceptions::FORMAT)?
+        .ok_or(Error::FORMAT)?
             + RegressionLine::intersect(
                 &RegressionLine::with_two_points(a[3], a[2]),
                 &RegressionLine::with_two_points(b[0], b[3]),
             )
-            .ok_or(Exceptions::FORMAT)?)
+            .ok_or(Error::FORMAT)?)
             / 2.0;
 
         // let tr = (intersect(RegressionLine(a[0], a[1]), RegressionLine(b[1], b[2]))
@@ -1368,12 +1368,12 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
             &RegressionLine::with_two_points(a[0], a[3]),
             &RegressionLine::with_two_points(b[2], b[3]),
         )
-        .ok_or(Exceptions::FORMAT)?
+        .ok_or(Error::FORMAT)?
             + RegressionLine::intersect(
                 &RegressionLine::with_two_points(a[1], a[2]),
                 &RegressionLine::with_two_points(b[0], b[1]),
             )
-            .ok_or(Exceptions::FORMAT)?)
+            .ok_or(Error::FORMAT)?)
             / 2.0;
         // let bl = (intersect(RegressionLine(a[0], a[3]), RegressionLine(b[2], b[3]))
         // 		   + intersect(RegressionLine(a[1], a[2]), RegressionLine(b[0], b[1])))

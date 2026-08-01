@@ -17,7 +17,7 @@
 use std::cmp::Ordering;
 
 use crate::{
-    BarcodeFormat, Binarizer, DecodeHints, Exceptions, RXingResult, RXingResultMetadataType,
+    BarcodeFormat, Binarizer, DecodeHints, Error, RXingResult, RXingResultMetadataType,
     RXingResultMetadataValue,
     common::{DetectorRXingResult, Result},
     multi::MultipleBarcodeReader,
@@ -107,13 +107,10 @@ impl MultipleBarcodeReader for QRCodeMultiReader {
                 Ok(())
             };
             let output = proc();
-            if output.is_ok() {
-                continue;
-            } else if let Err(Exceptions::ReaderException(_)) = output {
-                // ignore and continue
-                continue;
-            } else {
-                return Err(output.err().unwrap_or(Exceptions::NOT_FOUND));
+            match output {
+                Ok(()) => continue,
+                Err(Error::NotFound(_) | Error::Format(_) | Error::Checksum(_)) => continue,
+                Err(e) => return Err(e),
             }
         }
 

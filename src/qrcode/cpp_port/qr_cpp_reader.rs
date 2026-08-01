@@ -118,7 +118,7 @@
 // } // namespace ZXing::QRCode
 
 use crate::{
-    BarcodeFormat, DecodeHints, Exceptions, ImmutableReader, RXingResult, Reader,
+    BarcodeFormat, DecodeHints, Error, ImmutableReader, RXingResult, Reader,
     common::{DetectorRXingResult, cpp_essentials::ConcentricPattern},
 };
 
@@ -333,7 +333,7 @@ impl QrReader {
             return Ok(self
                 .decode_set_number_with_hints(image, hints, 1)?
                 .first()
-                .ok_or(Exceptions::NOT_FOUND)?
+                .ok_or(Error::NOT_FOUND)?
                 .clone());
             // return FirstOrDefault(decode(image, 1));
         }
@@ -343,7 +343,7 @@ impl QrReader {
         // if (binImg == nullptr)
         // 	{return {};}
 
-        let mut detectorResult = Err(Exceptions::NOT_FOUND);
+        let mut detectorResult = Err(Error::NOT_FOUND);
         if let Some(formats) = &hints.PossibleFormats {
             if formats.contains(&BarcodeFormat::QR_CODE) {
                 detectorResult = DetectPureQR(binImg);

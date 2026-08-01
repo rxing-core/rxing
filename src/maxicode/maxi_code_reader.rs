@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, RXingResult,
+    BarcodeFormat, Binarizer, DecodeHints, Error, ImmutableReader, RXingResult,
     RXingResultMetadataType, Reader,
     common::{BitMatrix, DetectorRXingResult, Result},
 };
@@ -86,10 +86,10 @@ impl MaxiCodeReader {
     fn extractPureBits(image: &BitMatrix) -> Result<BitMatrix> {
         let enclosingRectangleOption = image.getEnclosingRectangle();
         if enclosingRectangleOption.is_none() {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
-        let enclosingRectangle = enclosingRectangleOption.ok_or(Exceptions::NOT_FOUND)?;
+        let enclosingRectangle = enclosingRectangleOption.ok_or(Error::NOT_FOUND)?;
 
         let left = enclosingRectangle[0];
         let top = enclosingRectangle[1];

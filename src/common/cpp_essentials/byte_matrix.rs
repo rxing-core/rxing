@@ -16,7 +16,7 @@
 
 use std::fmt;
 
-use crate::{Exceptions, common::BitMatrix};
+use crate::{Error, common::BitMatrix};
 
 /**
  * JAVAPORT: The original code was a 2D array of ints, but since it only ever gets assigned
@@ -93,7 +93,7 @@ impl fmt::Display for ByteMatrix {
 }
 
 impl TryFrom<ByteMatrix> for BitMatrix {
-    type Error = Exceptions;
+    type Error = Error;
 
     fn try_from(value: ByteMatrix) -> Result<Self, Self::Error> {
         let mut bit_matrix = BitMatrix::new(value.getWidth(), value.getHeight())?;

@@ -1,5 +1,5 @@
 use crate::common::Result;
-use crate::{Exceptions, Point};
+use crate::{Error, Point};
 
 #[derive(Default, Clone, PartialEq, Eq)]
 pub struct Matrix<T: Default + Clone + Copy> {
@@ -11,7 +11,7 @@ pub struct Matrix<T: Default + Clone + Copy> {
 impl<T: Default + Clone + Copy> Matrix<T> {
     pub fn with_data(width: usize, height: usize, data: Vec<Option<T>>) -> Result<Matrix<T>> {
         if width != 0 && data.len() / width != height {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "invalid size: width * height is too big",
             ));
         }
@@ -24,7 +24,7 @@ impl<T: Default + Clone + Copy> Matrix<T> {
 
     pub fn new(width: usize, height: usize) -> Result<Matrix<T>> {
         if width != 0 && (width * height) / width != height {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "invalid size: width * height is too big",
             ));
         }

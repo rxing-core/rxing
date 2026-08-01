@@ -16,7 +16,7 @@
 
 use crate::common::Result;
 use crate::oned::telepen_common;
-use crate::{BarcodeFormat, EncodeHints, Exceptions};
+use crate::{BarcodeFormat, EncodeHints, Error};
 use regex::Regex;
 use rxing_one_d_proc_derive::OneDWriter;
 
@@ -62,7 +62,7 @@ impl OneDimensionalCodeWriter for TelepenWriter {
         // Content
         for c in decodedContents.chars() {
             if c as u32 > 127 {
-                return Err(Exceptions::illegal_argument_with(
+                return Err(Error::illegal_argument_with(
                     "Telepen only supports ASCII characters.",
                 ));
             }
@@ -129,7 +129,7 @@ impl OneDimensionalCodeWriter for TelepenWriter {
                     resultPosition += 4;
                 }
                 "0" => {
-                    return Err(Exceptions::illegal_argument_with(
+                    return Err(Error::illegal_argument_with(
                         "Invalid bit combination!",
                     ));
                 }

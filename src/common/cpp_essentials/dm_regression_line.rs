@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::common::Result;
-use crate::{Exceptions, Point};
+use crate::{Error, Point};
 
 use super::RegressionLineTrait;
 
@@ -80,7 +80,7 @@ impl RegressionLineTrait for DMRegressionLine {
 
     fn add(&mut self, p: Point) -> Result<()> {
         if self.direction_inward == Point::default() {
-            return Err(Exceptions::ILLEGAL_STATE);
+            return Err(Error::ILLEGAL_STATE);
         }
         self.points.push(p);
         if self.points.len() == 1 {
@@ -264,7 +264,7 @@ impl DMRegressionLine {
 
     pub fn modules(&mut self, beg: Point, end: Point) -> Result<f64> {
         if self.points.len() <= 3 {
-            return Err(Exceptions::ILLEGAL_STATE);
+            return Err(Error::ILLEGAL_STATE);
         }
 
         // re-evaluate and filter out all points too far away. required for the gapSizes calculation.
@@ -290,12 +290,12 @@ impl DMRegressionLine {
             self.points
                 .last()
                 .copied()
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
                 - self
                     .points
                     .first()
                     .copied()
-                    .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
         )) as f64;
 
         // calculate the width of 2 modules (first black pixel to first black pixel)
@@ -322,7 +322,7 @@ impl DMRegressionLine {
                         self.points
                             .last()
                             .copied()
-                            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?,
+                            .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
                     ),
                 ) as f64,
         );

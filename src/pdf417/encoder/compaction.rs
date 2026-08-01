@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::Exceptions;
+use crate::Error;
 
 /**
  * Represents possible PDF417 barcode compaction types.
@@ -28,7 +28,7 @@ pub enum Compaction {
 }
 
 impl TryFrom<&String> for Compaction {
-    type Error = Exceptions;
+    type Error = Error;
 
     fn try_from(value: &String) -> Result<Self, Self::Error> {
         if let Ok(num_val) = value.parse::<u8>() {
@@ -40,7 +40,7 @@ impl TryFrom<&String> for Compaction {
                 _ => {}
             }
         }
-        Err(Exceptions::format_with(format!(
+        Err(Error::format_with(format!(
             "Compaction must be 0-3 (inclusivie). Found: {value}"
         )))
     }

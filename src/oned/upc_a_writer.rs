@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{BarcodeFormat, EncodeHints, Exceptions, Writer, common::Result};
+use crate::{BarcodeFormat, EncodeHints, Error, Writer, common::Result};
 
 use super::EAN13Writer;
 
@@ -46,7 +46,7 @@ impl Writer for UPCAWriter {
         hints: &crate::EncodeHints,
     ) -> Result<crate::common::BitMatrix> {
         if format != &BarcodeFormat::UPC_A {
-            return Err(Exceptions::illegal_argument_with(format!(
+            return Err(Error::illegal_argument_with(format!(
                 "Can only encode UPC-A, but got {format:?}"
             )));
         }

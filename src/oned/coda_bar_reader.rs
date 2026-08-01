@@ -17,7 +17,7 @@
 use rxing_one_d_proc_derive::OneDReader;
 
 use super::oned_constants::coda_bar::*;
-use crate::Exceptions;
+use crate::Error;
 use crate::RXingResult;
 use crate::common::{BitArray, Result};
 use crate::{BarcodeFormat, point};
@@ -66,13 +66,13 @@ impl OneDReader for CodaBarReader {
         loop {
             let charOffset = self.toNarrowWidePattern(nextStart);
             if charOffset == -1 {
-                return Err(Exceptions::NOT_FOUND);
+                return Err(Error::NOT_FOUND);
             }
             // Hack: We store the position in the alphabet table into a
             // StringBuilder, so that we can access the decoded patterns in
             // validatePattern. We'll translate to the actual characters later.
             self.decodeRowRXingResult
-                .push(char::from_u32(charOffset as u32).ok_or(Exceptions::PARSE)?);
+                .push(char::from_u32(charOffset as u32).ok_or(Error::PARSE)?);
             nextStart += 8;
             // Stop as soon as we see the end character.
             if self.decodeRowRXingResult.chars().count() > 1
@@ -97,7 +97,7 @@ impl OneDReader for CodaBarReader {
         // otherwise this is probably a false positive. The exception is if we are
         // at the end of the row. (I.e. the barcode barely fits.)
         if nextStart < self.counterLength && trailingWhitespace < lastPatternSize / 2 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         let mut cached_drrr = self.decodeRowRXingResult.chars().collect::<Vec<_>>();
@@ -107,25 +107,25 @@ impl OneDReader for CodaBarReader {
         // Translate character table offsets to actual characters.
         for i in 0..cached_drrr.len() {
             // for (int i = 0; i < decodeRowRXingResult.length(); i++) {
-            let ch = *cached_drrr.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as usize;
+            let ch = *cached_drrr.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as usize;
             // self.decodeRowRXingResult
             //     .replace_range(i..=i, &Self::ALPHABET[ch].to_string());
             cached_drrr[i] = ALPHABET[ch];
         }
         // Ensure a valid start and end character
-        let startchar = cached_drrr.first().ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+        let startchar = cached_drrr.first().ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
         if !STARTEND_ENCODING.contains(startchar) {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
-        let endchar = cached_drrr.last().ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+        let endchar = cached_drrr.last().ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
         if !STARTEND_ENCODING.contains(endchar) {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         // remove stop/start characters character and check if a long enough string is contained
         if (cached_drrr.len()) <= MIN_CHARACTER_LENGTH as usize {
             // Almost surely a false positive ( start + stop + at least 1 character)
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         if !hints.ReturnCodabarStartEnd.unwrap_or(false) {
@@ -194,7 +194,7 @@ impl CodaBarReader {
         for i in 0..=end {
             // for (int i = 0; i <= end; i++) {
             let mut pattern = CHARACTER_ENCODINGS
-                [*cached.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as usize];
+                [*cached.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as usize];
             for j in (0_usize..=6).rev() {
                 // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
                 // long stripes, while 0 and 1 are for short stripes.
@@ -229,14 +229,14 @@ impl CodaBarReader {
         for i in 0..=end {
             // for (int i = 0; i <= end; i++) {
             let mut pattern = CHARACTER_ENCODINGS
-                [*cached.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as usize];
+                [*cached.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as usize];
             for j in (0..=6).rev() {
                 // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
                 // long stripes, while 0 and 1 are for short stripes.
                 let category = (j & 1) + ((pattern as usize) & 1) * 2;
                 let size = self.counters[pos + j];
                 if (size as f32) < mins[category] || (size as f32) > maxes[category] {
-                    return Err(Exceptions::NOT_FOUND);
+                    return Err(Error::NOT_FOUND);
                 }
                 pattern >>= 1;
             }
@@ -257,7 +257,7 @@ impl CodaBarReader {
         let mut i = row.getNextUnset(0);
         let end = row.get_size();
         if i >= end {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
         let mut isWhite = true;
         let mut count = 0;
@@ -304,7 +304,7 @@ impl CodaBarReader {
 
             i += 2;
         }
-        Err(Exceptions::NOT_FOUND)
+        Err(Error::NOT_FOUND)
     }
 
     // Assumes that counters[position] is a bar.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::{Exceptions, common::BitMatrix};
+use crate::{Error, common::BitMatrix};
 
 /**
  * <p>Encapsulates data masks for the data bits in a QR code, per ISO 18004:2006 6.8. Implementations
@@ -216,7 +216,7 @@ impl DataMask {
 */
 
 impl TryFrom<u8> for DataMask {
-    type Error = Exceptions;
+    type Error = Error;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
@@ -228,7 +228,7 @@ impl TryFrom<u8> for DataMask {
             5 => Ok(DataMask::DATA_MASK_101),
             6 => Ok(DataMask::DATA_MASK_110),
             7 => Ok(DataMask::DATA_MASK_111),
-            _ => Err(Exceptions::illegal_argument_with(format!(
+            _ => Err(Error::illegal_argument_with(format!(
                 "{value} is not between 0 and 7"
             ))),
         }

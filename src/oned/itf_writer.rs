@@ -17,7 +17,7 @@
 use rxing_one_d_proc_derive::OneDWriter;
 
 use crate::common::Result;
-use crate::{BarcodeFormat, Exceptions};
+use crate::{BarcodeFormat, Error};
 
 use super::OneDimensionalCodeWriter;
 
@@ -33,12 +33,12 @@ impl OneDimensionalCodeWriter for ITFWriter {
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
         let length = contents.chars().count();
         if length % 2 != 0 {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "The length of the input should be even",
             ));
         }
         if length > 80 {
-            return Err(Exceptions::illegal_argument_with(format!(
+            return Err(Error::illegal_argument_with(format!(
                 "Requested contents should be less than 80 digits long, but got {length}"
             )));
         }
@@ -50,8 +50,8 @@ impl OneDimensionalCodeWriter for ITFWriter {
 
         let cached_contents: Vec<char> = contents.chars().collect();
         for chunk in cached_contents.chunks_exact(2) {
-            let one = chunk[0].to_digit(10).ok_or(Exceptions::PARSE)? as usize;
-            let two = chunk[1].to_digit(10).ok_or(Exceptions::PARSE)? as usize;
+            let one = chunk[0].to_digit(10).ok_or(Error::PARSE)? as usize;
+            let two = chunk[1].to_digit(10).ok_or(Error::PARSE)? as usize;
 
             let mut encoding = [0; 10];
             for j in 0..5 {

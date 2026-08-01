@@ -4,7 +4,7 @@
 */
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::{Exceptions, common::BitMatrix, qrcode::cpp_port::decoder::Decode};
+use crate::{Error, common::BitMatrix, qrcode::cpp_port::decoder::Decode};
 
 #[test]
 fn MQRCodeM3L() {
@@ -93,7 +93,7 @@ X  XXXXXXX
     dbg!(&result);
     assert!(matches!(
         result.err(),
-        Some(Exceptions::ReedSolomonException(_))
+        Some(Error::ReedSolomon(_))
     ));
     // assert_eq!(Error::Checksum, result.error());
     // assert!(result.text().is_empty());

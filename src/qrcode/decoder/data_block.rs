@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 use crate::qrcode::common::{ErrorCorrectionLevel, VersionRef};
@@ -56,7 +56,7 @@ impl DataBlock {
         ecLevel: ErrorCorrectionLevel,
     ) -> Result<Vec<Self>> {
         if rawCodewords.len() as u32 != version.getTotalCodewords() {
-            return Err(Exceptions::ILLEGAL_ARGUMENT);
+            return Err(Error::ILLEGAL_ARGUMENT);
         }
 
         // Figure out the number and size of data blocks used by this version and

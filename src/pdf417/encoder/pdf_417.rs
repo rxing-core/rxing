@@ -18,7 +18,7 @@
  * This file has been modified from its original form in Barcode4J.
  */
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::{CharacterSet, Result};
 
 use super::{
@@ -216,17 +216,17 @@ impl PDF417 {
         //2. step: construct data codewords
         if sourceCodeWords + errorCorrectionCodeWords + 1 > 929 {
             // +1 for symbol length CW
-            return Err(Exceptions::writer_with(format!(
+            return Err(Error::writer_with(format!(
                 "Encoded message contains too many code words, message too big ({} bytes)",
                 msg.chars().count()
             )));
         }
         let n = sourceCodeWords + pad + 1;
         let mut sb = String::with_capacity(n as usize);
-        sb.push(char::from_u32(n).ok_or(Exceptions::PARSE)?);
+        sb.push(char::from_u32(n).ok_or(Error::PARSE)?);
         sb.push_str(&highLevel);
         for _i in 0..pad {
-            sb.push(char::from_u32(900).ok_or(Exceptions::PARSE)?);
+            sb.push(char::from_u32(900).ok_or(Error::PARSE)?);
             //PAD characters
         }
         let dataCodewords = sb;
@@ -305,7 +305,7 @@ impl PDF417 {
             }
         }
 
-        dimension.ok_or(Exceptions::writer_with("Unable to fit message in columns"))
+        dimension.ok_or(Error::writer_with("Unable to fit message in columns"))
     }
 
     /**

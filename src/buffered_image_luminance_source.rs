@@ -96,7 +96,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         let (width, height) = (self.get_width() as u32, self.get_height() as u32);
         let buffer = ImageBuffer::from_raw(width, height, self.source.get_matrix().into_owned())
             .ok_or_else(|| {
-                crate::Exceptions::illegal_argument_with("matrix does not match its dimensions")
+                crate::Error::illegal_argument_with("matrix does not match its dimensions")
             })?;
         let rotated = rotate_about_center(
             &buffer,

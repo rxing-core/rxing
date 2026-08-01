@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, Point, RXingResult,
+    BarcodeFormat, Binarizer, DecodeHints, Error, ImmutableReader, Point, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
     point,
@@ -85,11 +85,11 @@ impl QRCodeReader {
         let leftTopBlack = image.getTopLeftOnBit();
         let rightBottomBlack = image.getBottomRightOnBit();
         if leftTopBlack.is_none() || rightBottomBlack.is_none() {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
-        let leftTopBlack = leftTopBlack.ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
-        let rightBottomBlack = rightBottomBlack.ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+        let leftTopBlack = leftTopBlack.ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+        let rightBottomBlack = rightBottomBlack.ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
 
         let moduleSize = Self::moduleSize(leftTopBlack, image)?;
 
@@ -100,7 +100,7 @@ impl QRCodeReader {
 
         // Sanity check!
         if left >= right || top >= bottom {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         if bottom - top != right - left {
@@ -109,17 +109,17 @@ impl QRCodeReader {
             right = left + (bottom - top);
             if right >= image.getWidth() as i32 {
                 // Abort if that would not make sense -- off image
-                return Err(Exceptions::NOT_FOUND);
+                return Err(Error::NOT_FOUND);
             }
         }
         let matrixWidth = ((right as f32 - left as f32 + 1.0) / moduleSize).round() as u32;
         let matrixHeight = ((bottom as f32 - top as f32 + 1.0) / moduleSize).round() as u32;
         if matrixWidth == 0 || matrixHeight == 0 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
         if matrixHeight != matrixWidth {
             // Only possibly decode square regions
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         // Push in the "border" by half the module width so that we start
@@ -137,7 +137,7 @@ impl QRCodeReader {
         if nudgedTooFarRight > 0 {
             if nudgedTooFarRight > nudge as i32 {
                 // Neither way fits; abort
-                return Err(Exceptions::NOT_FOUND);
+                return Err(Error::NOT_FOUND);
             }
             left -= nudgedTooFarRight;
         }
@@ -146,7 +146,7 @@ impl QRCodeReader {
         if nudgedTooFarDown > 0 {
             if nudgedTooFarDown > nudge as i32 {
                 // Neither way fits; abort
-                return Err(Exceptions::NOT_FOUND);
+                return Err(Error::NOT_FOUND);
             }
             top -= nudgedTooFarDown;
         }
@@ -183,7 +183,7 @@ impl QRCodeReader {
             y += 1.0;
         }
         if x == width || y == height {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
         Ok((x - leftTopBlack.x) / 7.0)
     }
@@ -213,7 +213,7 @@ impl QRCodeReader {
                 // if (decoderRXingResult.getOther() instanceof QRCodeDecoderMetaData) {
                 other
                     .downcast_ref::<QRCodeDecoderMetaData>()
-                    .ok_or(Exceptions::ILLEGAL_STATE)?
+                    .ok_or(Error::ILLEGAL_STATE)?
                     .applyMirroredCorrection(&mut points);
             }
         }

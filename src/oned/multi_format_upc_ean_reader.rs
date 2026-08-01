@@ -15,7 +15,7 @@
  */
 
 use crate::DecodeHints;
-use crate::Exceptions;
+use crate::Error;
 use crate::RXingResult;
 use crate::Reader;
 use crate::common::Result;
@@ -114,7 +114,7 @@ impl OneDReader for MultiFormatUPCEANReader {
             }
         }
 
-        Err(Exceptions::NOT_FOUND)
+        Err(Error::NOT_FOUND)
     }
 }
 
@@ -230,7 +230,7 @@ impl Reader for MultiFormatUPCEANReader {
 
             Ok(result)
         } else {
-            Err(Exceptions::NOT_FOUND)
+            Err(Error::NOT_FOUND)
         }
     }
 }

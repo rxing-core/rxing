@@ -19,7 +19,7 @@
 use std::cmp;
 use std::io::{ErrorKind, Read};
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 /**
@@ -72,7 +72,7 @@ impl<'a> BitSource<'a> {
      */
     pub fn readBits(&mut self, numBits: usize) -> Result<u32> {
         if !(1..=32).contains(&numBits) || numBits > self.available() {
-            return Err(Exceptions::illegal_argument_with(numBits.to_string()));
+            return Err(Error::illegal_argument_with(numBits.to_string()));
         }
 
         let mut result: u32 = 0;
@@ -119,7 +119,7 @@ impl<'a> BitSource<'a> {
 
     pub fn peak_bits(&self, numBits: usize) -> Result<u32> {
         if !(1..=32).contains(&numBits) || numBits > self.available() {
-            return Err(Exceptions::illegal_argument_with(numBits.to_string()));
+            return Err(Error::illegal_argument_with(numBits.to_string()));
         }
 
         let mut bit_offset = self.bit_offset;

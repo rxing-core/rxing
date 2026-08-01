@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    BarcodeFormat, Binarizer, DecodeHints, Exceptions, ImmutableReader, Point, RXingResult,
+    BarcodeFormat, Binarizer, DecodeHints, Error, ImmutableReader, Point, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
     common::{BitMatrix, DecoderRXingResult, DetectorRXingResult, Result},
     point,
@@ -94,10 +94,10 @@ impl DataMatrixReader {
      */
     fn extractPureBits(&self, image: &BitMatrix) -> Result<BitMatrix> {
         let Some(leftTopBlack) = image.getTopLeftOnBit() else {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         };
         let Some(rightBottomBlack) = image.getBottomRightOnBit() else {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         };
 
         let moduleSize = Self::moduleSize(leftTopBlack, image)?;
@@ -110,7 +110,7 @@ impl DataMatrixReader {
         let matrixWidth = (right as i32 - left as i32 + 1) / moduleSize as i32;
         let matrixHeight = (bottom as i32 - top as i32 + 1) / moduleSize as i32;
         if matrixWidth <= 0 || matrixHeight <= 0 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
             // throw NotFoundException.getNotFoundInstance();
         }
 
@@ -147,12 +147,12 @@ impl DataMatrixReader {
             x += 1;
         }
         if x == width {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         let moduleSize = x - leftTopBlack.x as u32;
         if moduleSize == 0 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         Ok(moduleSize)
@@ -184,7 +184,7 @@ impl DataMatrixReader {
                         continue;
                     }
                 }
-                Err(Exceptions::NOT_FOUND)
+                Err(Error::NOT_FOUND)
             }() {
                 fnd
             } else if try_harder {
@@ -200,7 +200,7 @@ impl DataMatrixReader {
                     DECODER.decode(&bits)?
                 }
             } else {
-                return Err(Exceptions::NOT_FOUND);
+                return Err(Error::NOT_FOUND);
             };
 
             // decoderRXingResult = DECODER.decode(detectorRXingResult.getBits())?;

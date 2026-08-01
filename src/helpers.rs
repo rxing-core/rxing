@@ -4,7 +4,7 @@ use std::{collections::HashSet, io::Write, path::PathBuf};
 use image::DynamicImage;
 
 use crate::{
-    BarcodeFormat, Exceptions,
+    BarcodeFormat, Error,
     common::{BitMatrix, Result},
 };
 
@@ -42,16 +42,16 @@ pub fn detect_in_svg_with_hints(
 
     let path = PathBuf::from(file_name);
     if !path.exists() {
-        return Err(Exceptions::illegal_argument_with("file does not exist"));
+        return Err(Error::illegal_argument_with("file does not exist"));
     }
 
     let Ok(mut file) = File::open(path) else {
-        return Err(Exceptions::illegal_argument_with("file cannot be opened"));
+        return Err(Error::illegal_argument_with("file cannot be opened"));
     };
 
     let mut svg_data = Vec::new();
     if file.read_to_end(&mut svg_data).is_err() {
-        return Err(Exceptions::illegal_argument_with("file cannot be read"));
+        return Err(Error::illegal_argument_with("file cannot be read"));
     }
 
     let mut multi_format_reader = MultiFormatReader::default();
@@ -92,16 +92,16 @@ pub fn detect_multiple_in_svg_with_hints(
 
     let path = PathBuf::from(file_name);
     if !path.exists() {
-        return Err(Exceptions::illegal_argument_with("file does not exist"));
+        return Err(Error::illegal_argument_with("file does not exist"));
     }
 
     let Ok(mut file) = File::open(path) else {
-        return Err(Exceptions::illegal_argument_with("file cannot be opened"));
+        return Err(Error::illegal_argument_with("file cannot be opened"));
     };
 
     let mut svg_data = Vec::new();
     if file.read_to_end(&mut svg_data).is_err() {
-        return Err(Exceptions::illegal_argument_with("file cannot be read"));
+        return Err(Error::illegal_argument_with("file cannot be read"));
     }
 
     let multi_format_reader = MultiUseMultiFormatReader::default();
@@ -127,7 +127,7 @@ pub fn detect_in_file_with_hints(
     hints: &mut DecodeHints,
 ) -> Result<RXingResult> {
     let Ok(img) = image::open(file_name) else {
-        return Err(Exceptions::illegal_argument_with(format!(
+        return Err(Error::illegal_argument_with(format!(
             "file '{file_name}' not found or cannot be opened"
         )));
     };
@@ -146,7 +146,7 @@ pub fn detect_in_buffer_with_hints(
     hints: &mut DecodeHints,
 ) -> Result<RXingResult> {
     let Ok(img) = image::load_from_memory(buffer) else {
-        return Err(Exceptions::illegal_argument_with(
+        return Err(Error::illegal_argument_with(
             "buffer cannot be loaded as image",
         ));
     };
@@ -196,7 +196,7 @@ pub fn detect_in_file_filtered_with_hints(
     hints: &mut DecodeHints,
 ) -> Result<RXingResult> {
     let Ok(img) = image::open(file_name) else {
-        return Err(Exceptions::illegal_argument_with(format!(
+        return Err(Error::illegal_argument_with(format!(
             "file '{file_name}' not found or cannot be opened"
         )));
     };
@@ -250,7 +250,7 @@ pub fn detect_multiple_in_file_with_hints(
     hints: &mut DecodeHints,
 ) -> Result<Vec<RXingResult>> {
     let img = image::open(file_name)
-        .map_err(|e| Exceptions::runtime_with(format!("couldn't read {file_name}: {e}")))?;
+        .map_err(|e| Error::runtime_with(format!("couldn't read {file_name}: {e}")))?;
     detect_multiple_in_image_with_hints(img, hints)
 }
 
@@ -273,7 +273,7 @@ pub fn detect_multiple_in_buffer_with_hints(
     hints: &mut DecodeHints,
 ) -> Result<Vec<RXingResult>> {
     let img = image::load_from_memory(buffer)
-        .map_err(|e| Exceptions::runtime_with(format!("couldn't read buffer: {e}")))?;
+        .map_err(|e| Error::runtime_with(format!("couldn't read buffer: {e}")))?;
     detect_multiple_in_image_with_hints(img, hints)
 }
 
@@ -331,7 +331,7 @@ pub fn detect_in_luma_with_hints(
     hints: &mut DecodeHints,
 ) -> Result<RXingResult> {
     if width == 0 || height == 0 {
-        return Err(Exceptions::illegal_argument_with(
+        return Err(Error::illegal_argument_with(
             "Both dimensions must be greater than 0",
         ));
     }
@@ -380,7 +380,7 @@ pub fn detect_in_luma_slice_with_hints(
     hints: &mut DecodeHints,
 ) -> Result<RXingResult> {
     if width == 0 || height == 0 {
-        return Err(Exceptions::illegal_argument_with(
+        return Err(Error::illegal_argument_with(
             "Both dimensions must be greater than 0",
         ));
     }
@@ -425,7 +425,7 @@ pub fn detect_in_luma_filtered_with_hints(
     hints: &mut DecodeHints,
 ) -> Result<RXingResult> {
     if width == 0 || height == 0 {
-        return Err(Exceptions::illegal_argument_with(
+        return Err(Error::illegal_argument_with(
             "Both dimensions must be greater than 0",
         ));
     }
@@ -458,7 +458,7 @@ pub fn detect_multiple_in_luma_with_hints(
     hints: &mut DecodeHints,
 ) -> Result<Vec<RXingResult>> {
     if width == 0 || height == 0 {
-        return Err(Exceptions::illegal_argument_with(
+        return Err(Error::illegal_argument_with(
             "Both dimensions must be greater than 0",
         ));
     }
@@ -480,7 +480,7 @@ pub fn save_image(file_name: &str, bit_matrix: &BitMatrix) -> Result<()> {
     let image: image::DynamicImage = bit_matrix.into();
     match image.save(file_name) {
         Ok(_) => Ok(()),
-        Err(err) => Err(Exceptions::illegal_argument_with(format!(
+        Err(err) => Err(Error::illegal_argument_with(format!(
             "could not save file '{file_name}': {err}"
         ))),
     }
@@ -492,7 +492,7 @@ pub fn save_svg(file_name: &str, bit_matrix: &BitMatrix) -> Result<()> {
 
     match svg::save(file_name, &svg) {
         Ok(_) => Ok(()),
-        Err(err) => Err(Exceptions::illegal_argument_with(format!(
+        Err(err) => Err(Error::illegal_argument_with(format!(
             "could not save file '{file_name}': {err}"
         ))),
     }
@@ -528,7 +528,7 @@ pub fn save_file(file_name: &str, bit_matrix: &BitMatrix) -> Result<()> {
 
     match result_tester() {
         Ok(_) => Ok(()),
-        Err(_) => Err(Exceptions::illegal_argument_with(format!(
+        Err(_) => Err(Error::illegal_argument_with(format!(
             "could not write to '{file_name}'"
         ))),
     }

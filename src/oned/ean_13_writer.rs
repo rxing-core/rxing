@@ -17,7 +17,7 @@
 use rxing_one_d_proc_derive::OneDWriter;
 
 use crate::{
-    BarcodeFormat, Exceptions,
+    BarcodeFormat, Error,
     common::Result,
     oned::{
         oned_constants::{ean_13, upc_ean_shared},
@@ -50,13 +50,13 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             }
             13 => {
                 if !upcean_common::checkStandardUPCEANChecksum(&contents)? {
-                    return Err(Exceptions::illegal_argument_with(
+                    return Err(Error::illegal_argument_with(
                         "Contents do not pass checksum",
                     ));
                 }
             }
             _ => {
-                return Err(Exceptions::illegal_argument_with(format!(
+                return Err(Error::illegal_argument_with(format!(
                     "Requested contents should be 12 or 13 digits long, but got {length}"
                 )));
             }
@@ -67,9 +67,9 @@ impl OneDimensionalCodeWriter for EAN13Writer {
         let firstDigit = contents
             .chars()
             .next()
-            .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+            .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
             .to_digit(10)
-            .ok_or(Exceptions::PARSE)? as usize;
+            .ok_or(Error::PARSE)? as usize;
         let parities = ean_13::FIRST_DIGIT_ENCODINGS[firstDigit];
         let mut result = [false; CODE_WIDTH];
         let mut pos = 0;
@@ -84,9 +84,9 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             let mut digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
                 .to_digit(10)
-                .ok_or(Exceptions::PARSE)? as usize;
+                .ok_or(Error::PARSE)? as usize;
             if ((parities >> (6 - i)) & 1) == 1 {
                 digit += 10;
             }
@@ -105,9 +105,9 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             let digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
                 .to_digit(10)
-                .ok_or(Exceptions::PARSE)? as usize;
+                .ok_or(Error::PARSE)? as usize;
 
             pos += EAN13Writer::appendPattern(
                 &mut result,

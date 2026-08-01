@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    DecodeHints, Exceptions, Point, PointCallback,
+    DecodeHints, Error, Point, PointCallback,
     common::{
         BitMatrix, DefaultGridSampler, GridSampler, PerspectiveTransform, Quadrilateral, Result,
         SamplerControl,
@@ -95,7 +95,7 @@ impl<'a> Detector<'_> {
 
         let moduleSize = self.calculateModuleSize(topLeft, topRight, bottomLeft);
         if moduleSize < 1.0 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
         let dimension = Self::computeDimension(topLeft, topRight, bottomLeft, moduleSize)?;
         let provisionalVersion = Version::getProvisionalVersionForDimension(dimension)?;
@@ -137,7 +137,7 @@ impl<'a> Detector<'_> {
             alignmentPattern.as_ref(),
             dimension,
         )
-        .ok_or(Exceptions::NOT_FOUND)?;
+        .ok_or(Error::NOT_FOUND)?;
 
         let bits = Detector::sampleGrid(self.image, transform, dimension)?;
 
@@ -148,7 +148,7 @@ impl<'a> Detector<'_> {
         ];
 
         if alignmentPattern.is_some() {
-            points.push(alignmentPattern.ok_or(Exceptions::NOT_FOUND)?.into())
+            points.push(alignmentPattern.ok_or(Error::NOT_FOUND)?.into())
         }
 
         Ok(QRCodeDetectorResult::new(bits, points))
@@ -234,7 +234,7 @@ impl<'a> Detector<'_> {
         match dimension & 0x03 {
             0 => dimension += 1,
             2 => dimension -= 1,
-            3 => return Err(Exceptions::NOT_FOUND),
+            3 => return Err(Error::NOT_FOUND),
             _ => {}
         }
         Ok(dimension as u32)
@@ -431,20 +431,20 @@ impl<'a> Detector<'_> {
         let alignmentAreaRightX = (self.image.getWidth() - 1).min(estAlignmentX + allowance);
         let alignmentAreaWidth = alignmentAreaRightX
             .checked_sub(alignmentAreaLeftX)
-            .ok_or(Exceptions::NOT_FOUND)?;
+            .ok_or(Error::NOT_FOUND)?;
 
         if (alignmentAreaWidth as f32) < overallEstModuleSize * 3.0 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         let alignmentAreaTopY = 0.max(estAlignmentY as i32 - allowance as i32) as u32;
         let alignmentAreaBottomY = (self.image.getHeight() - 1).min(estAlignmentY + allowance);
         let alignmentAreaHeight = alignmentAreaBottomY
             .checked_sub(alignmentAreaTopY)
-            .ok_or(Exceptions::NOT_FOUND)?;
+            .ok_or(Error::NOT_FOUND)?;
 
         if alignmentAreaHeight < overallEstModuleSize as u32 * 3 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         let mut alignmentFinder = AlignmentPatternFinder::new(

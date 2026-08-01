@@ -17,7 +17,7 @@
 //package com.google.zxing.common.detector;
 
 use crate::{
-    Exceptions, Point,
+    Error, Point,
     common::{BitMatrix, Result},
     point,
 };
@@ -79,7 +79,7 @@ impl<'a> WhiteRectangleDetector<'_> {
             || downInit >= image.getHeight() as i32
             || rightInit >= image.getWidth() as i32
         {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         Ok(WhiteRectangleDetector {
@@ -225,7 +225,7 @@ impl<'a> WhiteRectangleDetector<'_> {
             }
 
             if z.is_none() {
-                return Err(Exceptions::NOT_FOUND);
+                return Err(Error::NOT_FOUND);
             }
 
             let mut t: Option<Point> = None;
@@ -243,7 +243,7 @@ impl<'a> WhiteRectangleDetector<'_> {
             }
 
             if t.is_none() {
-                return Err(Exceptions::NOT_FOUND);
+                return Err(Error::NOT_FOUND);
             }
 
             let mut x: Option<Point> = None;
@@ -261,7 +261,7 @@ impl<'a> WhiteRectangleDetector<'_> {
             }
 
             if x.is_none() {
-                return Err(Exceptions::NOT_FOUND);
+                return Err(Error::NOT_FOUND);
             }
 
             let mut y: Option<Point> = None;
@@ -279,12 +279,12 @@ impl<'a> WhiteRectangleDetector<'_> {
             }
 
             if y.is_none() {
-                return Err(Exceptions::NOT_FOUND);
+                return Err(Error::NOT_FOUND);
             }
 
             Ok(self.center_edges(y.unwrap(), z.unwrap(), x.unwrap(), t.unwrap()))
         } else {
-            Err(Exceptions::NOT_FOUND)
+            Err(Error::NOT_FOUND)
         }
     }
 

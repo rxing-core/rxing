@@ -18,7 +18,7 @@
 //package com.google.zxing.common.detector;
 
 use crate::{
-    Exceptions, Point,
+    Error, Point,
     common::{BitMatrix, Result},
     point,
 };
@@ -204,13 +204,13 @@ impl<'a> MonochromeRectangleDetector<'_> {
                     }
                 }
             } else {
-                return Err(Exceptions::NOT_FOUND);
+                return Err(Error::NOT_FOUND);
             }
             lastRange_z = range;
             y += deltaY;
             x += deltaX
         }
-        Err(Exceptions::NOT_FOUND)
+        Err(Error::NOT_FOUND)
     }
 
     /**

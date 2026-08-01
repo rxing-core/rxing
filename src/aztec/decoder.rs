@@ -19,7 +19,7 @@ use crate::{
         BitMatrix, CharacterSet, DecoderRXingResult, DetectorRXingResult, Eci, Result,
         reedsolomon::{GenericGFRef, PredefinedGenericGF, ReedSolomonDecoder},
     },
-    exceptions::Exceptions,
+    exceptions::Error,
 };
 
 use super::aztec_detector_result::AztecDetectorRXingResult;
@@ -162,7 +162,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                 decoded_bytes.clear();
                 match n {
                     0 => result.push(29 as char), // translate FNC1 as ASCII 29
-                    7 => return Err(Exceptions::format_with("FLG(7) is reserved and illegal")), // FLG(7) is reserved and illegal
+                    7 => return Err(Error::format_with("FLG(7) is reserved and illegal")), // FLG(7) is reserved and illegal
                     _ => {
                         // ECI is decimal integer encoded as 1-6 codes in DIGIT mode
                         let mut eci = 0;
@@ -174,7 +174,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                             let next_digit = read_code(corrected_bits, index, 4);
                             index += 4;
                             if !(2..=11).contains(&next_digit) {
-                                return Err(Exceptions::format_with("Not a decimal digit"));
+                                return Err(Error::format_with("Not a decimal digit"));
                                 // Not a decimal digit
                             }
                             eci = eci * 10 + (next_digit - 2);
@@ -182,7 +182,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                         }
                         let charset_eci: Eci = eci.into();
                         if charset_eci == Eci::Unknown {
-                            return Err(Exceptions::format_with("Charset must exist"));
+                            return Err(Error::format_with("Charset must exist"));
                         }
                         encdr = charset_eci.into();
                     }
@@ -199,10 +199,10 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                 let mut chars = str.chars();
 
                 // Advance to index 5 and pull that char out:
-                let c5 = chars.nth(5).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+                let c5 = chars.nth(5).ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
 
                 // The iterator is now positioned at index 6, so the very next call is your index 6:
-                let c6 = chars.next().ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+                let c6 = chars.next().ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
 
                 shift_table = getTable(c5);
                 if c6 == 'L' {
@@ -226,7 +226,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
     if let Ok(str) = encdr.decode(&decoded_bytes) {
         result.push_str(&str);
     } else {
-        return Err(Exceptions::illegal_state_with("bad encoding"));
+        return Err(Error::illegal_state_with("bad encoding"));
     }
     //   result.push_str(decodedBytes.toString(encoding.name()));
     //} catch (UnsupportedEncodingException uee) {
@@ -278,7 +278,7 @@ fn get_character(table: Table, code: u32) -> Result<&'static str> {
         Table::Mixed => Ok(MIXED_TABLE[code as usize]),
         Table::Digit => Ok(DIGIT_TABLE[code as usize]),
         Table::Punct => Ok(PUNCT_TABLE[code as usize]),
-        _ => Err(Exceptions::illegal_state_with("Bad table")),
+        _ => Err(Error::illegal_state_with("Bad table")),
     }
     // switch (table) {
     //   case UPPER:
@@ -339,7 +339,7 @@ fn correct_bits(
     let num_data_codewords = ddata.getNbDatablocks();
     let num_codewords = rawbits.len() / codeword_size;
     if num_codewords < num_data_codewords as usize {
-        return Err(Exceptions::format_with(format!(
+        return Err(Error::format_with(format!(
             "numCodewords {num_codewords}< numDataCodewords{num_data_codewords}"
         )));
     }
@@ -372,7 +372,7 @@ fn correct_bits(
         // for (int i = 0; i < numDataCodewords; i++) {
         // let data_word = data_words[i];
         if data_word == &0 || data_word == &mask {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
             //throw FormatException.getFormatInstance();
         } else if data_word == &1 || data_word == &(mask - 1) {
             stuffed_bits += 1;

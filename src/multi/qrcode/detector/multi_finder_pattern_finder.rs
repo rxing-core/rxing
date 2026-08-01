@@ -17,7 +17,7 @@
 use std::cmp::Ordering;
 
 use crate::{
-    DecodeHints, Exceptions, Point, PointCallback,
+    DecodeHints, Error, Point, PointCallback,
     common::{BitMatrix, Result},
     qrcode::detector::{FinderPattern, FinderPatternFinder, FinderPatternInfo},
     result_point_utils,
@@ -93,7 +93,7 @@ impl<'a> MultiFinderPatternFinder<'_> {
 
         if size < 3 {
             // Couldn't find enough finder patterns
-            return Err(Exceptions::not_found_with(
+            return Err(Error::not_found_with(
                 "Couldn't find enough finder patterns",
             ));
         }
@@ -213,7 +213,7 @@ impl<'a> MultiFinderPatternFinder<'_> {
         if !results.is_empty() {
             Ok(results)
         } else {
-            Err(Exceptions::NOT_FOUND)
+            Err(Error::NOT_FOUND)
         }
     }
 

@@ -17,7 +17,7 @@
 // package com.google.zxing.client.result;
 
 use crate::common::Result;
-use crate::exceptions::Exceptions;
+use crate::exceptions::Error;
 
 use super::{ParsedRXingResult, ParsedRXingResultType, ResultParser};
 
@@ -121,17 +121,17 @@ impl AddressBookParsedRXingResult {
         geo: Vec<String>,
     ) -> Result<Self> {
         if phone_numbers.len() != phone_types.len() && !phone_types.is_empty() {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "Phone numbers and types lengths differ",
             ));
         }
         if emails.len() != email_types.len() && !email_types.is_empty() {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "Emails and types lengths differ",
             ));
         }
         if addresses.len() != address_types.len() && !address_types.is_empty() {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "Addresses and types lengths differ",
             ));
         }

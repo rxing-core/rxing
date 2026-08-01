@@ -36,7 +36,7 @@
 
 use rand::RngExt;
 
-use crate::{Point, aztec::decoder, common::BitMatrix, exceptions::Exceptions};
+use crate::{Point, aztec::decoder, common::BitMatrix, exceptions::Error};
 
 use super::{
     detector::{self, Detector},
@@ -152,7 +152,7 @@ fn test_error_in_parameter_locator(data: &str) {
                 }
                 // try {
                 if let Err(res) = detector::Detector::new(&make_larger(&copy, 3)).detect(false) {
-                    if let Exceptions::NotFoundException(_msg) = res {
+                    if let Error::NotFound(_msg) = res {
                         // all ok
                     } else {
                         panic!("Only Exceptions::NotFoundException allowed, got {res}");

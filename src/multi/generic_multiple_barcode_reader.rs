@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    Binarizer, BinaryBitmap, DecodeHints, Exceptions, Point, RXingResult, Reader,
+    Binarizer, BinaryBitmap, DecodeHints, Error, Point, RXingResult, Reader,
     common::{Quadrilateral, Result},
     point,
 };
@@ -102,7 +102,7 @@ impl<T: Reader> MultipleBarcodeReader for GenericMultipleBarcodeReader<T> {
             .collect();
 
         if unique_results.is_empty() {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
         Ok(unique_results)
     }

@@ -18,7 +18,7 @@
 
 use std::borrow::Cow;
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 /**
@@ -102,7 +102,7 @@ pub trait LuminanceSource {
     where
         Self: Sized,
     {
-        Err(Exceptions::unsupported_operation_with(
+        Err(Error::unsupported_operation_with(
             "This luminance source does not support cropping.",
         ))
     }
@@ -125,7 +125,7 @@ pub trait LuminanceSource {
     where
         Self: Sized,
     {
-        Err(Exceptions::unsupported_operation_with(
+        Err(Error::unsupported_operation_with(
             "This luminance source does not support rotation by 90 degrees.",
         ))
     }
@@ -140,7 +140,7 @@ pub trait LuminanceSource {
     where
         Self: Sized,
     {
-        Err(Exceptions::unsupported_operation_with(
+        Err(Error::unsupported_operation_with(
             "This luminance source does not support rotation by 45 degrees.",
         ))
     }

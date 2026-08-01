@@ -17,7 +17,7 @@
 use std::sync::Arc;
 
 use crate::{
-    Exceptions, Point,
+    Error, Point,
     common::{BitMatrix, DecoderRXingResult, Result},
     pdf417::pdf_417_common,
 };
@@ -87,7 +87,7 @@ pub fn decode(
         }
         detectionRXingResult = merge(&mut leftRowIndicatorColumn, &mut rightRowIndicatorColumn)?;
         if detectionRXingResult.is_none() {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
         // detectionRXingResult = detectionRXingResult;
 
@@ -143,7 +143,7 @@ pub fn decode(
             // for (int imageRow = boundingBox.getMinY(); imageRow <= boundingBox.getMaxY(); imageRow++) {
             startColumn =
                 getStartColumn(&detectionRXingResult, barcodeColumn, imageRow, leftToRight)
-                    .ok_or(Exceptions::ILLEGAL_STATE)? as i32;
+                    .ok_or(Error::ILLEGAL_STATE)? as i32;
             if startColumn < 0 || startColumn > boundingBox.getMaxX() as i32 {
                 if previousStartColumn == -1 {
                     continue;
@@ -413,7 +413,7 @@ fn adjustCodewordCount(
         as u32;
     if numberOfCodewords.is_empty() {
         if !(1..=pdf_417_common::MAX_CODEWORDS_IN_BARCODE).contains(&calculatedNumberOfCodewords) {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
         barcodeMatrix01.setValue(calculatedNumberOfCodewords);
     } else if numberOfCodewords[0] != calculatedNumberOfCodewords
@@ -509,7 +509,7 @@ fn createDecoderRXingResultFromAmbiguousValues(
         //   //
         // }
         if ambiguousIndexCount.is_empty() {
-            return Err(Exceptions::CHECKSUM);
+            return Err(Error::CHECKSUM);
         }
         for i in 0..ambiguousIndexCount.len() {
             // for (int i = 0; i < ambiguousIndexCount.length; i++) {
@@ -519,14 +519,14 @@ fn createDecoderRXingResultFromAmbiguousValues(
             } else {
                 ambiguousIndexCount[i] = 0;
                 if i == ambiguousIndexCount.len() - 1 {
-                    return Err(Exceptions::CHECKSUM);
+                    return Err(Error::CHECKSUM);
                 }
             }
         }
 
         tries -= 1;
     }
-    Err(Exceptions::CHECKSUM)
+    Err(Error::CHECKSUM)
 }
 
 fn createBarcodeMatrix(detectionRXingResult: &mut DetectionRXingResult) -> Vec<Vec<BarcodeValue>> {
@@ -846,7 +846,7 @@ fn decodeCodewords(
     erasures: &mut [u32],
 ) -> Result<DecoderRXingResult> {
     if codewords.is_empty() {
-        return Err(Exceptions::FORMAT);
+        return Err(Error::FORMAT);
     }
 
     let numECCodewords = 1 << (ecLevel + 1);
@@ -881,7 +881,7 @@ fn correctErrors(
         || numECCodewords > MAX_EC_CODEWORDS
     {
         // Too many errors or EC Codewords is corrupted
-        return Err(Exceptions::CHECKSUM);
+        return Err(Error::CHECKSUM);
     }
     ec::error_correction::decode(codewords, numECCodewords, erasures)
 }
@@ -893,21 +893,21 @@ fn verifyCodewordCount(codewords: &mut [u32], numECCodewords: u32) -> Result<()>
     if codewords.len() < 4 {
         // Codeword array size should be at least 4 allowing for
         // Count CW, At least one Data CW, Error Correction CW, Error Correction CW
-        return Err(Exceptions::FORMAT);
+        return Err(Error::FORMAT);
     }
     // The first codeword, the Symbol Length Descriptor, shall always encode the total number of data
     // codewords in the symbol, including the Symbol Length Descriptor itself, data codewords and pad
     // codewords, but excluding the number of error correction codewords.
     let numberOfCodewords = codewords[0];
     if numberOfCodewords > codewords.len() as u32 {
-        return Err(Exceptions::FORMAT);
+        return Err(Error::FORMAT);
     }
     if numberOfCodewords == 0 {
         // Reset to the length of the array - 8 (Allow for at least level 3 Error Correction (8 Error Codewords)
         if numECCodewords < codewords.len() as u32 {
             codewords[0] = codewords.len() as u32 - numECCodewords;
         } else {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
     }
     Ok(())

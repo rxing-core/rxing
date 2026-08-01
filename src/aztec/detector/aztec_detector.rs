@@ -21,7 +21,7 @@ use crate::{
         detector::WhiteRectangleDetector,
         reedsolomon::{self, ReedSolomonDecoder},
     },
-    exceptions::Exceptions,
+    exceptions::Error,
     point,
 };
 
@@ -154,7 +154,7 @@ impl<'a> Detector<'_> {
             || !self.is_valid(bulls_eye_corners[2])
             || !self.is_valid(bulls_eye_corners[3])
         {
-            return Err(Exceptions::not_found_with("no valid points"));
+            return Err(Error::not_found_with("no valid points"));
         }
         let length = 2 * self.nb_center_layers;
         // Get the bits around the bull's eye
@@ -235,7 +235,7 @@ impl<'a> Detector<'_> {
                 return Ok(shift);
             }
         }
-        Err(Exceptions::not_found_with("rotation failure"))
+        Err(Error::not_found_with("rotation failure"))
     }
 
     /**
@@ -339,7 +339,7 @@ impl<'a> Detector<'_> {
         }
 
         if self.nb_center_layers != 5 && self.nb_center_layers != 7 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         self.compact = self.nb_center_layers == 5;

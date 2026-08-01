@@ -33,7 +33,7 @@ use urlencoding::decode;
 
 use once_cell::sync::Lazy;
 
-use crate::{RXingResult, common::Result, exceptions::Exceptions};
+use crate::{RXingResult, common::Result, exceptions::Error};
 
 use super::{
     AddressBookAUResultParser, AddressBookDoCoMoResultParser, BizcardResultParser,
@@ -310,7 +310,7 @@ pub fn urlDecode(encoded: &str) -> Result<String> {
     if let Ok(decoded) = decode(encoded) {
         Ok(decoded.to_string())
     } else {
-        Err(Exceptions::illegal_state_with(
+        Err(Error::illegal_state_with(
             "UnsupportedEncodingException",
         ))
     }

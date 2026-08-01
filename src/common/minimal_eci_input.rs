@@ -18,7 +18,7 @@ use std::{fmt, sync::Arc};
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 use super::{CharacterSet, ECIEncoderSet, ECIInput, Eci};
@@ -67,10 +67,10 @@ impl ECIInput for MinimalECIInput {
      */
     fn charAt(&self, index: usize) -> Result<char> {
         if index >= self.length() {
-            return Err(Exceptions::index_out_of_bounds_with(index.to_string()));
+            return Err(Error::index_out_of_bounds_with(index.to_string()));
         }
         if self.isECI(index as u32)? {
-            return Err(Exceptions::illegal_argument_with(format!(
+            return Err(Error::illegal_argument_with(format!(
                 "value at {index} is not a character but an ECI"
             )));
         }
@@ -103,13 +103,13 @@ impl ECIInput for MinimalECIInput {
      */
     fn subSequence(&self, start: usize, end: usize) -> Result<Vec<char>> {
         if start > end || end > self.length() {
-            return Err(Exceptions::INDEX_OUT_OF_BOUNDS);
+            return Err(Error::INDEX_OUT_OF_BOUNDS);
         }
         let mut result = Vec::with_capacity(end - start);
         for i in start..end {
             //   for (int i = start; i < end; i++) {
             if self.isECI(i as u32)? {
-                return Err(Exceptions::illegal_argument_with(format!(
+                return Err(Error::illegal_argument_with(format!(
                     "value at {i} is not a character but an ECI"
                 )));
             }
@@ -131,7 +131,7 @@ impl ECIInput for MinimalECIInput {
      */
     fn isECI(&self, index: u32) -> Result<bool> {
         if index >= self.length() as u32 {
-            return Err(Exceptions::INDEX_OUT_OF_BOUNDS);
+            return Err(Error::INDEX_OUT_OF_BOUNDS);
         }
         Ok(self.bytes[index as usize] > 255) // && self.bytes[index as usize] <= u16::MAX)
     }
@@ -156,10 +156,10 @@ impl ECIInput for MinimalECIInput {
      */
     fn getECIValue(&self, index: usize) -> Result<Eci> {
         if index >= self.length() {
-            return Err(Exceptions::INDEX_OUT_OF_BOUNDS);
+            return Err(Error::INDEX_OUT_OF_BOUNDS);
         }
         if !self.isECI(index as u32)? {
-            return Err(Exceptions::illegal_argument_with(format!(
+            return Err(Error::illegal_argument_with(format!(
                 "value at {index} is not an ECI but a character"
             )));
         }
@@ -241,7 +241,7 @@ impl MinimalECIInput {
      */
     pub fn isFNC1(&self, index: usize) -> Result<bool> {
         if index >= self.length() {
-            return Err(Exceptions::INDEX_OUT_OF_BOUNDS);
+            return Err(Error::INDEX_OUT_OF_BOUNDS);
         }
         Ok(self.bytes[index] == 1000)
     }

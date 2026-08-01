@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::Exceptions;
+use crate::Error;
 use crate::common::Result;
 
 use super::{C40Encoder, Encoder, EncoderContext, high_level_encoder};
@@ -82,7 +82,7 @@ impl X12Encoder {
         context.updateSymbolInfo();
         let available = context
             .getSymbolInfo()
-            .ok_or(Exceptions::ILLEGAL_STATE)?
+            .ok_or(Error::ILLEGAL_STATE)?
             .getDataCapacity()
             - context.getCodewordCount() as u32;
         let count = buffer.chars().count();

@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    Exceptions,
+    Error,
     common::{BitMatrix, Result},
 };
 
@@ -37,7 +37,7 @@ impl BitMatrixParser {
     pub fn new(bitMatrix: &BitMatrix) -> Result<Self> {
         let dimension = bitMatrix.getHeight();
         if !(8..=144).contains(&dimension) || (dimension & 0x01) != 0 {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
 
         let version = Self::readVersion(bitMatrix)?;
@@ -181,7 +181,7 @@ impl BitMatrixParser {
         }
 
         if resultOffset != self.version.getTotalCodewords() as usize {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
 
         Ok(result)
@@ -456,7 +456,7 @@ impl BitMatrixParser {
         let symbolSizeColumns = version.getSymbolSizeColumns();
 
         if bitMatrix.getHeight() != symbolSizeRows {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "Dimension of bitMatrix must match the version size",
             ));
         }

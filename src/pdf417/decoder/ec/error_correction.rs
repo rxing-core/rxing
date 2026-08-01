@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    Exceptions,
+    Error,
     common::Result,
     pdf417::{decoder::ec::ModulusGF, pdf_417_common::NUMBER_OF_CODEWORDS},
 };
@@ -97,7 +97,7 @@ pub fn decode(received: &mut [u32], numECCodewords: u32, erasures: &mut [u32]) -
         // for (int i = 0; i < errorLocations.length; i++) {
         let position = received.len() as isize - 1 - FIELD.log(errorLocations[i])? as isize;
         if position < 0 {
-            return Err(Exceptions::checksum_with(file!()));
+            return Err(Error::checksum_with(file!()));
         }
         received[position as usize] =
             FIELD.subtract(received[position as usize], errorMagnitudes[i]);
@@ -134,7 +134,7 @@ fn runEuclideanAlgorithm(
         // Divide rLastLast by rLast, with quotient in q and remainder in r
         if rLast.isZero() {
             // Oops, Euclidean algorithm already terminated?
-            return Err(Exceptions::checksum_with(file!()));
+            return Err(Error::checksum_with(file!()));
         }
         r = rLastLast;
         let mut q = ModulusPoly::getZero(field); //field.getZero();
@@ -156,7 +156,7 @@ fn runEuclideanAlgorithm(
 
     let sigmaTildeAtZero = t.getCoefficient(0);
     if sigmaTildeAtZero == 0 {
-        return Err(Exceptions::checksum_with(file!()));
+        return Err(Error::checksum_with(file!()));
     }
 
     let inverse = field.inverse(sigmaTildeAtZero)?;
@@ -184,7 +184,7 @@ fn findErrorLocations(
         i += 1;
     }
     if e != numErrors {
-        return Err(Exceptions::checksum_with(file!()));
+        return Err(Error::checksum_with(file!()));
     }
     Ok(result)
 }

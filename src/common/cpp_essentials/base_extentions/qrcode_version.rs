@@ -13,7 +13,7 @@ use crate::qrcode::common::{
     VersionRef,
 };
 use crate::qrcode::cpp_port::Type;
-use crate::{Exceptions, PointI, point};
+use crate::{Error, PointI, point};
 
 const RMQR_SIZES: [PointI; 32] = [
     point(43, 7),
@@ -53,7 +53,7 @@ const RMQR_SIZES: [PointI; 32] = [
 impl Version {
     pub fn Model1(version_number: u32) -> Result<VersionRef> {
         if !(1..=14).contains(&version_number) {
-            Err(Exceptions::ILLEGAL_ARGUMENT)
+            Err(Error::ILLEGAL_ARGUMENT)
         } else {
             Ok(&MODEL1_VERSIONS[version_number as usize - 1])
         }
@@ -61,7 +61,7 @@ impl Version {
 
     pub fn Model2(version_number: u32) -> Result<VersionRef> {
         if !(1..=40).contains(&version_number) {
-            Err(Exceptions::ILLEGAL_ARGUMENT)
+            Err(Error::ILLEGAL_ARGUMENT)
         } else {
             Ok(&VERSIONS[version_number as usize - 1])
         }
@@ -69,7 +69,7 @@ impl Version {
 
     pub fn Micro(version_number: u32) -> Result<VersionRef> {
         if !(1..=4).contains(&version_number) {
-            Err(Exceptions::ILLEGAL_ARGUMENT)
+            Err(Error::ILLEGAL_ARGUMENT)
         } else {
             Ok(&MICRO_VERSIONS[version_number as usize - 1])
         }
@@ -78,7 +78,7 @@ impl Version {
     pub fn rMQR(version_number: u32) -> Result<VersionRef> {
         let version_number = version_number as usize;
         if version_number < 1 || version_number > (RMQR_VERSIONS.len()) {
-            Err(Exceptions::ILLEGAL_ARGUMENT)
+            Err(Error::ILLEGAL_ARGUMENT)
         } else {
             Ok(&RMQR_VERSIONS[version_number - 1])
         }
@@ -125,7 +125,7 @@ impl Version {
             return Self::getVersionForNumber(bestVersion as u32);
         }
         // If we didn't find a close enough match, fail
-        Err(Exceptions::ILLEGAL_STATE)
+        Err(Error::ILLEGAL_STATE)
     }
 
     pub const fn isMicro(&self) -> bool {

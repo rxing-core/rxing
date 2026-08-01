@@ -17,7 +17,7 @@
 use std::fmt;
 
 use crate::common::Result;
-use crate::{Dimension, Exceptions};
+use crate::{Dimension, Error};
 
 use super::SymbolShapeHint;
 
@@ -137,7 +137,7 @@ impl SymbolInfo {
             2 | 4 => Ok(2),
             16 => Ok(4),
             36 => Ok(6),
-            _ => Err(Exceptions::illegal_state_with(
+            _ => Err(Error::illegal_state_with(
                 "Cannot handle this number of data regions",
             )),
         }
@@ -149,7 +149,7 @@ impl SymbolInfo {
             4 => Ok(2),
             16 => Ok(4),
             36 => Ok(6),
-            _ => Err(Exceptions::illegal_state_with(
+            _ => Err(Error::illegal_state_with(
                 "Cannot handle this number of data regions",
             )),
         }
@@ -321,7 +321,7 @@ impl<'a> SymbolInfoLookup<'a> {
             }
         }
         if fail {
-            return Err(Exceptions::illegal_argument_with(format!(
+            return Err(Error::illegal_argument_with(format!(
                 "Can't find a symbol arrangement that matches the message. Data codewords: {dataCodewords}"
             )));
         }

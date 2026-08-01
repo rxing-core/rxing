@@ -33,7 +33,7 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::common::Result;
-use crate::exceptions::Exceptions;
+use crate::exceptions::Error;
 
 use super::{ParsedRXingResult, ParsedRXingResultType, maybe_append_multiple, maybe_append_string};
 
@@ -153,7 +153,7 @@ impl CalendarParsedRXingResult {
      */
     fn parseDate(when: String) -> Result<i64> {
         if !DATE_TIME.is_match(&when) {
-            return Err(Exceptions::parse_with(when));
+            return Err(Error::parse_with(when));
         }
         if when.len() == 8 {
             // Show only year/month/day
@@ -167,7 +167,7 @@ impl CalendarParsedRXingResult {
                 date_format_string,
             ) {
                 Ok(dtm) => Ok(dtm.and_utc().timestamp()),
-                Err(e) => Err(Exceptions::parse_with(e.to_string())),
+                Err(e) => Err(Error::parse_with(e.to_string())),
             };
         }
         // The when string can be local time, or UTC if it ends with a Z
@@ -175,12 +175,12 @@ impl CalendarParsedRXingResult {
             && when
                 .chars()
                 .nth(15)
-                .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
                 == 'Z'
         {
             return match NaiveDateTime::parse_from_str(&when, YMD_THMSZ_FORMAT) {
                 Ok(dtm) => Ok(dtm.and_utc().timestamp()),
-                Err(e) => Err(Exceptions::parse_with(format!(
+                Err(e) => Err(Error::parse_with(format!(
                     "couldn't parse string: {e}"
                 ))),
             };
@@ -192,7 +192,7 @@ impl CalendarParsedRXingResult {
             let tz_parsed: Tz = match tz_part.parse() {
                 Ok(time_zone) => time_zone,
                 Err(e) => {
-                    return Err(Exceptions::parse_with(format!(
+                    return Err(Error::parse_with(format!(
                         "couldn't parse timezone '{tz_part}': {e}"
                     )));
                 }
@@ -200,7 +200,7 @@ impl CalendarParsedRXingResult {
 
             return match NaiveDateTime::parse_from_str(time_part, YMD_THMS_FORMAT) {
                 Ok(dtm) => Ok(dtm.and_utc().with_timezone(&tz_parsed).timestamp()),
-                Err(e) => Err(Exceptions::parse_with(format!(
+                Err(e) => Err(Error::parse_with(format!(
                     "couldn't parse string: {e}"
                 ))),
             };
@@ -210,7 +210,7 @@ impl CalendarParsedRXingResult {
         if when.len() == 15 {
             return match NaiveDateTime::parse_from_str(&when, YMD_THMS_FORMAT) {
                 Ok(dtm) => Ok(dtm.and_utc().timestamp()),
-                Err(e) => Err(Exceptions::parse_with(format!(
+                Err(e) => Err(Error::parse_with(format!(
                     "couldn't parse local time: {e}"
                 ))),
             };
@@ -249,7 +249,7 @@ impl CalendarParsedRXingResult {
                     let z = parseable
                         .as_str()
                         .parse::<i64>()
-                        .map_err(|e| Exceptions::parse_with(e.to_string()))?;
+                        .map_err(|e| Error::parse_with(e.to_string()))?;
                     durationMS += unit * z;
                 }
             }
@@ -263,7 +263,7 @@ impl CalendarParsedRXingResult {
         if let Ok(dtm) = DateTime::parse_from_str(dateTimeString, YMD_THMS_FORMAT) {
             Ok(dtm.timestamp())
         } else {
-            Err(Exceptions::parse_with(format!(
+            Err(Error::parse_with(format!(
                 "Couldn't parse {dateTimeString}"
             )))
         }

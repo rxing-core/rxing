@@ -21,7 +21,7 @@
 use std::fmt;
 
 use crate::common::Result;
-use crate::{Exceptions, Point, point, point_i};
+use crate::{Error, Point, point, point_i};
 
 use super::BitArray;
 
@@ -70,7 +70,7 @@ impl BitMatrix {
      */
     pub fn new(width: u32, height: u32) -> Result<Self> {
         if width < 1 || height < 1 {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "Both dimensions must be greater than 0",
             ));
         }
@@ -146,8 +146,8 @@ impl BitMatrix {
         let mut pos = 0;
         let chars: Vec<char> = string_representation.chars().collect();
         while pos < chars.len() {
-            if chars.get(pos).ok_or(Exceptions::ILLEGAL_STATE)? == &'\n'
-                || chars.get(pos).ok_or(Exceptions::ILLEGAL_STATE)? == &'\r'
+            if chars.get(pos).ok_or(Error::ILLEGAL_STATE)? == &'\n'
+                || chars.get(pos).ok_or(Error::ILLEGAL_STATE)? == &'\r'
             {
                 if bitsPos > rowStartPos {
                     //if rowLength == -1 {
@@ -155,7 +155,7 @@ impl BitMatrix {
                         first_run = false;
                         rowLength = bitsPos - rowStartPos;
                     } else if bitsPos - rowStartPos != rowLength {
-                        return Err(Exceptions::illegal_argument_with(
+                        return Err(Error::illegal_argument_with(
                             "row lengths do not match",
                         ));
                     }
@@ -172,7 +172,7 @@ impl BitMatrix {
                 bits[bitsPos] = false;
                 bitsPos += 1;
             } else {
-                return Err(Exceptions::illegal_argument_with(format!(
+                return Err(Error::illegal_argument_with(format!(
                     "illegal character encountered: {}",
                     string_representation[pos..].to_owned()
                 )));
@@ -186,7 +186,7 @@ impl BitMatrix {
                 // first_run = false;
                 rowLength = bitsPos - rowStartPos;
             } else if bitsPos - rowStartPos != rowLength {
-                return Err(Exceptions::illegal_argument_with(
+                return Err(Error::illegal_argument_with(
                     "row lengths do not match",
                 ));
             }
@@ -367,7 +367,7 @@ impl BitMatrix {
     pub fn xor(&mut self, mask: &BitMatrix) -> Result<()> {
         if self.width != mask.width || self.height != mask.height || self.row_size != mask.row_size
         {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "input matrix dimensions do not match",
             ));
         }
@@ -404,14 +404,14 @@ impl BitMatrix {
      */
     pub fn setRegion(&mut self, left: u32, top: u32, width: u32, height: u32) -> Result<()> {
         if height < 1 || width < 1 {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "height and width must be at least 1",
             ));
         }
         let right = left + width;
         let bottom = top + height;
         if bottom > self.height || right > self.width {
-            return Err(Exceptions::illegal_argument_with(
+            return Err(Error::illegal_argument_with(
                 "the region must fit inside the matrix",
             ));
         }
@@ -491,7 +491,7 @@ impl BitMatrix {
                 self.rotate180();
                 Ok(())
             }
-            _ => Err(Exceptions::illegal_argument_with(
+            _ => Err(Error::illegal_argument_with(
                 "degrees must be a multiple of 0, 90, 180, or 270",
             )),
         }
@@ -761,7 +761,7 @@ impl fmt::Display for BitMatrix {
 }
 
 impl TryFrom<&str> for BitMatrix {
-    type Error = Exceptions;
+    type Error = Error;
 
     fn try_from(value: &str) -> std::prelude::v1::Result<Self, Self::Error> {
         Self::parse_strings(value, "X", " ")
@@ -784,7 +784,7 @@ impl From<&BitMatrix> for Vec<bool> {
 #[cfg(feature = "image")]
 /// This should only be used if you *know* that the `DynamicImage` is binary.
 impl TryFrom<image::DynamicImage> for BitMatrix {
-    type Error = Exceptions;
+    type Error = Error;
 
     fn try_from(value: image::DynamicImage) -> Result<Self, Self::Error> {
         let mut new_bitmatrix = BitMatrix::new(value.width(), value.height())?;

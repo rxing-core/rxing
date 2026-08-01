@@ -1,4 +1,4 @@
-use crate::{Exceptions, common::Result};
+use crate::{Error, common::Result};
 /**
  * Computes the UPC/EAN checksum on a string of digits, and reports
  * whether the checksum is correct or not.
@@ -13,7 +13,7 @@ pub fn checkStandardUPCEANChecksum(s: &str) -> Result<bool> {
     if length == 0 {
         return Ok(false);
     }
-    let char_in_question = *s.get(length - 1).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
+    let char_in_question = *s.get(length - 1).ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
     let check = char_in_question.is_ascii_digit();
 
     let check_against = &s[..length - 1]; //s.subSequence(0, length - 1);
@@ -21,7 +21,7 @@ pub fn checkStandardUPCEANChecksum(s: &str) -> Result<bool> {
 
     Ok(calculated_checksum
         == if check {
-            char_in_question.to_digit(10).ok_or(Exceptions::PARSE)?
+            char_in_question.to_digit(10).ok_or(Error::PARSE)?
         } else {
             u32::MAX
         })
@@ -34,9 +34,9 @@ pub fn getStandardUPCEANChecksum(s: &[char]) -> Result<u32> {
     while i >= 0 {
         // for (int i = length - 1; i >= 0; i -= 2) {
         let digit =
-            (*s.get(i as usize).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as i32) - ('0' as i32);
+            (*s.get(i as usize).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as i32) - ('0' as i32);
         if !(0..=9).contains(&digit) {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
         sum += digit;
 
@@ -47,9 +47,9 @@ pub fn getStandardUPCEANChecksum(s: &[char]) -> Result<u32> {
     while i >= 0 {
         // for (int i = length - 2; i >= 0; i -= 2) {
         let digit =
-            (*s.get(i as usize).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? as i32) - ('0' as i32);
+            (*s.get(i as usize).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as i32) - ('0' as i32);
         if !(0..=9).contains(&digit) {
-            return Err(Exceptions::FORMAT);
+            return Err(Error::FORMAT);
         }
         sum += digit;
 

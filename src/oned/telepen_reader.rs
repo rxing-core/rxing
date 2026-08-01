@@ -20,7 +20,7 @@ use crate::{RXingResultMetadataType, RXingResultMetadataValue};
 
 use rxing_one_d_proc_derive::OneDReader;
 
-use crate::Exceptions;
+use crate::Error;
 use crate::RXingResult;
 use crate::common::{BitArray, Result};
 use crate::oned::telepen_common;
@@ -170,13 +170,13 @@ impl OneDReader for TelepenReader {
 
         // Any Telepen barcode will be longer than two bytes.
         if byteLength < 3 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         let mut bytes: Vec<u8> = vec![0; byteLength];
         // bits.toBytes(0, bytes.as_mut_slice(), 0, byteLength);
         bits.read_exact(&mut bytes)
-            .map_err(|_| Exceptions::ILLEGAL_STATE)?;
+            .map_err(|_| Error::ILLEGAL_STATE)?;
 
         j = 0;
 
@@ -200,12 +200,12 @@ impl OneDReader for TelepenReader {
 
         // First character should be _ which is decimal 95.
         if bytes[0] != 95 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         // Last character should be z which is decimal 122.
         if bytes[byteLength - 1] != 122 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         // Content bytes
@@ -219,7 +219,7 @@ impl OneDReader for TelepenReader {
 
         // Validate checksum
         if check != checksum as u8 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         if matches!(hints.TelepenAsNumeric, Some(true)) {
@@ -326,7 +326,7 @@ impl TelepenReader {
 
     fn findStartPattern(&mut self) -> Result<u32> {
         if self.counterLength <= 20 {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         }
 
         let mut i = 0;
@@ -381,7 +381,7 @@ impl TelepenReader {
 
             return Ok(i as u32);
         }
-        Err(Exceptions::NOT_FOUND)
+        Err(Error::NOT_FOUND)
     }
 
     fn findEndPattern(&mut self, start: usize) -> Result<u32> {

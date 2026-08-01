@@ -18,7 +18,7 @@ use crate::{
     BarcodeFormat, Binarizer, BinaryBitmap, DecodeHints, ImmutableReader, RXingResult,
     RXingResultMetadataType, RXingResultMetadataValue, Reader,
     common::{DecoderRXingResult, DetectorRXingResult, Result},
-    exceptions::Exceptions,
+    exceptions::Error,
 };
 
 use super::{decoder, detector::Detector};
@@ -79,7 +79,7 @@ impl AztecReader {
         } else if let Ok(det) = detector.detect(true) {
             det
         } else {
-            return Err(Exceptions::NOT_FOUND);
+            return Err(Error::NOT_FOUND);
         };
 
         let points = detectorRXingResult.getPoints();
