@@ -63,7 +63,7 @@ impl<LS: LuminanceSource> Binarizer for OtsuLevelBinarizer<LS> {
     fn get_black_row(&'_ self, y: usize) -> Result<Cow<'_, BitArray>> {
         let row = self.black_row_cache[y].get_or_try_init(|| {
             let matrix = self.get_black_matrix()?;
-            Ok(matrix.getRow(y as u32))
+            Ok::<BitArray, Exceptions>(matrix.getRow(y as u32))
         })?;
 
         Ok(Cow::Borrowed(row))

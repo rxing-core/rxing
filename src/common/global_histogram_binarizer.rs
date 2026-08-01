@@ -103,7 +103,7 @@ impl<LS: LuminanceSource> Binarizer for GlobalHistogramBinarizer<LS> {
                 }
             }
 
-            Ok(row)
+            Ok::<BitArray, Error>(row)
         })?;
 
         Ok(Cow::Borrowed(row))
@@ -153,7 +153,7 @@ impl<LS: LuminanceSource> Binarizer for GlobalHistogramBinarizer<LS> {
                     }
                 }
 
-                Ok(col)
+                Ok::<BitArray, Error>(col)
             })?;
 
             Ok(Cow::Borrowed(col))
@@ -282,8 +282,8 @@ impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {
         // If there is too little contrast in the image to pick a meaningful black point, throw rather
         // than waste time trying to decode the image, and risk false positives.
         if secondPeak - firstPeak <= BUCKET_COUNT / 16 {
-            return Err(Error::not_found_with(
-                "secondPeak - firstPeak <= numBuckets / 16 ",
+            return Err(Error::format_with(
+                "too little contrast in the image to pick a meaningful black point :: secondPeak - firstPeak <= numBuckets / 16 ",
             ));
         }
 

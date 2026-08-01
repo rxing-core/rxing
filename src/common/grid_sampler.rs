@@ -141,7 +141,7 @@ pub trait GridSampler {
             for (x, point) in points.iter().enumerate() {
                 // for x in 0..points.len() {
                 if image.try_get(point.x as u32, point.y as u32).ok_or(
-                    Error::not_found_with(
+                    Error::index_out_of_bounds_with(
                         "index out of bounds, see documentation in file for explanation",
                     ),
                 )? {

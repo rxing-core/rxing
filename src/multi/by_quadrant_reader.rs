@@ -48,7 +48,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
         // No need to call makeAbsolute as results will be relative to original top left here
         // This is a match because only NotFoundExceptions should be ignored
         match attempt {
-            Err(Error::NotFound(_)) => {}
+            Err(Error::NotFound) => {}
             _ => return attempt,
         }
 
@@ -62,7 +62,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
                 let points = Self::makeAbsolute(res.getPoints(), halfWidth as f32, 0.0);
                 return Ok(res.with_point(points));
             }
-            Err(Error::NotFound(_)) => {}
+            Err(Error::NotFound) => {}
             _ => return result,
         }
 
@@ -75,7 +75,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
                 let points = Self::makeAbsolute(res.getPoints(), 0.0, halfHeight as f32);
                 return Ok(res.with_point(points));
             }
-            Err(Error::NotFound(_)) => {}
+            Err(Error::NotFound) => {}
             _ => return result,
         }
 
@@ -90,7 +90,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
                     Self::makeAbsolute(res.getPoints(), halfWidth as f32, halfHeight as f32);
                 return Ok(res.with_point(points));
             }
-            Err(Error::NotFound(_)) => {}
+            Err(Error::NotFound) => {}
             _ => return result,
         }
 

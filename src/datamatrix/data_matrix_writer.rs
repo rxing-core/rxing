@@ -121,7 +121,7 @@ impl Writer for DataMatrixWriter {
             true,
         )?
         else {
-            return Err(Error::not_found_with("symbol info is bad"));
+            return Err(Error::format_with("symbol info is bad"));
         };
 
         //2. step: ECC generation

@@ -109,7 +109,7 @@ impl MultipleBarcodeReader for QRCodeMultiReader {
             let output = proc();
             match output {
                 Ok(()) => continue,
-                Err(Error::NotFound(_) | Error::Format(_) | Error::Checksum(_)) => continue,
+                Err(Error::NotFound | Error::Format(_) | Error::Checksum(_)) => continue,
                 Err(e) => return Err(e),
             }
         }

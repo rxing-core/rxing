@@ -564,7 +564,7 @@ matches!(rxing::helpers::detect_multiple_in_file_with_hints(
             "test_resources/blackbox/github_issue_cases/empty_issue_58.png",
             &mut hints
         ),
-    Err(Error::NotFound(_)))
+    Err(Error::NotFound))
         );
     // assert!(
     //     rxing::helpers::detect_multiple_in_file_with_hints(
@@ -579,7 +579,7 @@ matches!(rxing::helpers::detect_multiple_in_file_with_hints(
 assert!(matches!(rxing::helpers::detect_multiple_in_file_with_hints(
             "test_resources/blackbox/github_issue_cases/empty_issue_58.png",
             &mut hints
-        ), Err(Error::NotFound(_))));
+        ), Err(Error::NotFound)));
 
     // assert!(
     //     rxing::helpers::detect_multiple_in_file_with_hints(

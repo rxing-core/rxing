@@ -13,8 +13,6 @@ pub enum Error {
     IllegalState(String),
     #[error("ArithmeticException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     Arithmetic(String),
-    #[error("NotFoundException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
-    NotFound(String),
     #[error("FormatException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     Format(String),
     #[error("ChecksumException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
@@ -29,6 +27,23 @@ pub enum Error {
     Runtime(String),
     #[error("ParseException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     Parse(String),
+
+    /// No barcode present. Expected during scanning — try another
+    /// reader, orientation, or region.
+    #[error("not found")]
+    NotFound,
+
+    /// General IO errors, found exclusivly in the helpers module
+    #[cfg(feature = "image")]
+    #[cfg_attr(feature = "serde", serde(skip))]
+    #[error("could not read image")]
+    ImageIo(#[from] image::ImageError),
+
+    /// General file IO errors, found exclusivly in the helpers module
+    #[cfg(feature = "image")]
+    #[cfg_attr(feature = "serde", serde(skip))]
+    #[error("could not read file")]
+    Io(#[from] std::io::Error),
 }
 
 impl Error {
@@ -52,10 +67,7 @@ impl Error {
         Self::Arithmetic(x.into())
     }
 
-    pub const NOT_FOUND: Self = Self::NotFound(String::new());
-    pub fn not_found_with<I: Into<String>>(x: I) -> Self {
-        Self::NotFound(x.into())
-    }
+    pub const NOT_FOUND: Self = Self::NotFound;
 
     pub const FORMAT: Self = Self::Format(String::new());
     pub fn format_with<I: Into<String>>(x: I) -> Self {
