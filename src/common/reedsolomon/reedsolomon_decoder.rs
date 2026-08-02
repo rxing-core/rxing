@@ -71,8 +71,11 @@ impl ReedSolomonDecoder {
         let corrections = self.computeCorrections(&poly, received.len(), twoS)?;
         for &(position, error_magnitude) in &corrections {
             let updated = GenericGF::addOrSubtract(i32::from(received[position]), error_magnitude);
-            received[position] = T::try_from(updated)
-                .map_err(|_| Error::checksum_with("error magnitude out of range"))?;
+            received[position] = T::try_from(updated).map_err(|_| {
+                Error::checksum_with(format!(
+                    "Reed-Solomon corrected codeword value {updated} out of range"
+                ))
+            })?;
         }
         Ok(corrections.len())
     }
@@ -118,11 +121,15 @@ impl ReedSolomonDecoder {
             //for (int i = 0; i < errorLocations.length; i++) {
             let log_value = self.field.log(*error_location as i32)?;
             if log_value > received_len as i32 - 1 {
-                return Err(Error::checksum_with("Bad error location"));
+                return Err(Error::checksum_with(format!(
+                    "Reed-Solomon error location log value {log_value} exceeds received length {received_len}"
+                )));
             }
             let position: isize = received_len as isize - 1 - log_value as isize;
             if position < 0 {
-                return Err(Error::checksum_with("Bad error location"));
+                return Err(Error::checksum_with(format!(
+                    "Reed-Solomon error position {position} is negative"
+                )));
             }
             corrections.push((position as usize, error_magnitude));
         }
@@ -185,11 +192,15 @@ impl ReedSolomonDecoder {
 
         let sigmaTildeAtZero = t.getCoefficient(0);
         if sigmaTildeAtZero == 0 {
-            return Err(Error::checksum_with("sigmaTilde(0) was zero"));
+            return Err(Error::checksum_with(
+                "Reed-Solomon error locator polynomial evaluated to zero at origin (sigmaTilde(0) == 0)",
+            ));
         }
 
         let Ok(inverse) = self.field.inverse(sigmaTildeAtZero) else {
-            return Err(Error::checksum_with("ArithmetricException"));
+            return Err(Error::checksum_with(format!(
+                "Reed-Solomon Galois field inverse of sigmaTildeAtZero ({sigmaTildeAtZero}) failed"
+            )));
         };
         let sigma = t.multiply_with_scalar(inverse);
         let omega = r.multiply_with_scalar(inverse);

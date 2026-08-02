@@ -135,7 +135,9 @@ pub fn decode(
                         hints,
                     )?,
                     _ => {
-                        return Err(Error::format_with("invalid mode"));
+                        return Err(Error::format_with(format!(
+                            "unsupported or invalid QR mode {mode:?}"
+                        )));
                     }
                 }
             }

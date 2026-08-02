@@ -72,8 +72,9 @@ impl OneDReader for CodaBarReader {
             // StringBuilder, so that we can access the decoded patterns in
             // validatePattern. We'll translate to the actual characters later.
             self.decodeRowRXingResult.push(
-                char::from_u32(charOffset as u32)
-                    .ok_or(Error::format_with("could not convert charOffset to char"))?,
+                char::from_u32(charOffset as u32).ok_or(Error::format_with(format!(
+                    "could not convert Codabar charOffset {charOffset} to char"
+                )))?,
             );
             nextStart += 8;
             // Stop as soon as we see the end character.
@@ -111,7 +112,10 @@ impl OneDReader for CodaBarReader {
             // for (int i = 0; i < decodeRowRXingResult.length(); i++) {
             let ch = *cached_drrr
                 .get(i)
-                .ok_or(Error::internal_with("index out of bounds"))? as usize;
+                .ok_or(Error::internal_with(format!(
+                    "index {i} out of bounds for Codabar pattern length {}",
+                    cached_drrr.len()
+                )))? as usize;
             // self.decodeRowRXingResult
             //     .replace_range(i..=i, &Self::ALPHABET[ch].to_string());
             cached_drrr[i] = ALPHABET[ch];
@@ -119,13 +123,13 @@ impl OneDReader for CodaBarReader {
         // Ensure a valid start and end character
         let startchar = cached_drrr
             .first()
-            .ok_or(Error::format_with("barcode missing start/end character"))?;
+            .ok_or(Error::format_with("Codabar barcode missing start character"))?;
         if !STARTEND_ENCODING.contains(startchar) {
             return Err(Error::NOT_FOUND);
         }
         let endchar = cached_drrr
             .last()
-            .ok_or(Error::format_with("barcode missing start/end character"))?;
+            .ok_or(Error::format_with("Codabar barcode missing end character"))?;
         if !STARTEND_ENCODING.contains(endchar) {
             return Err(Error::NOT_FOUND);
         }

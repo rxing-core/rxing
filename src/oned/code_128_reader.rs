@@ -57,7 +57,9 @@ impl OneDReader for Code128Reader {
             CODE_START_B => CODE_CODE_B,
             CODE_START_C => CODE_CODE_C,
             _ => {
-                return Err(Error::format_with("could not find codeset for symbol"));
+                return Err(Error::format_with(format!(
+                    "could not determine Code 128 codeset for symbol start pattern {startCode}"
+                )));
             }
         };
 
@@ -109,7 +111,9 @@ impl OneDReader for Code128Reader {
             // Take care of illegal start codes
             match code {
                 CODE_START_A | CODE_START_B | CODE_START_C => {
-                    return Err(Error::format_with("illegal start code"));
+                    return Err(Error::format_with(format!(
+                        "illegal Code 128 start code pattern {code} in data position"
+                    )));
                 }
                 _ => {}
             }

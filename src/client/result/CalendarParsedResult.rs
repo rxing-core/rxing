@@ -194,9 +194,10 @@ impl CalendarParsedRXingResult {
             let tz_parsed: Tz = match tz_part.parse() {
                 Ok(time_zone) => time_zone,
                 Err(e) => {
-                    return Err(Error::format_with(format!(
-                        "couldn't parse timezone '{tz_part}': {e}"
-                    )));
+                    return Err(Error::format_with_source(
+                        format!("couldn't parse timezone '{tz_part}': {e}"),
+                        e,
+                    ));
                 }
             };
 

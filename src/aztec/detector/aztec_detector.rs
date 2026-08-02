@@ -235,7 +235,9 @@ impl<'a> Detector<'_> {
                 return Ok(shift);
             }
         }
-        Err(Error::format_with("could not find symbol rotation state"))
+        Err(Error::format_with(format!(
+            "could not find symbol rotation state for corner bits {corner_bits:#b}"
+        )))
     }
 
     /**

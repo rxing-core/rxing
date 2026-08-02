@@ -103,7 +103,9 @@ impl Version {
      */
     pub fn getVersionForDimensions(numRows: u32, numColumns: u32) -> Result<&'static Version> {
         if (numRows & 0x01) != 0 || (numColumns & 0x01) != 0 {
-            return Err(Error::format_with("could not get version for dimension"));
+            return Err(Error::format_with(format!(
+                "invalid odd Data Matrix dimensions: {numRows}x{numColumns}"
+            )));
         }
 
         for version in VERSIONS.iter() {
@@ -112,9 +114,9 @@ impl Version {
             }
         }
 
-        Err(Error::format_with(
-            "could not find a valid version given symbol shape",
-        ))
+        Err(Error::format_with(format!(
+            "no matching Data Matrix version found for dimensions {numRows}x{numColumns}"
+        )))
     }
 
     /**

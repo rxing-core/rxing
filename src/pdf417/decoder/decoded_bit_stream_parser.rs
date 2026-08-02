@@ -267,7 +267,10 @@ pub fn decodeMacroBlock(
                         let mut timestamp = ECIStringBuilder::default();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut timestamp)?;
                         let Ok(parsed_timestamp) = timestamp.to_string().parse() else {
-                            return Err(Error::format_with("invalid timestamp found"));
+                            return Err(Error::format_with(format!(
+                                "invalid PDF417 Macro metadata timestamp: '{}'",
+                                timestamp.to_string()
+                            )));
                         };
                         resultMetadata.setTimestamp(parsed_timestamp);
                     }
@@ -275,9 +278,10 @@ pub fn decodeMacroBlock(
                         let mut checksum = ECIStringBuilder::default();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut checksum)?;
                         let Ok(parsed_checksum) = checksum.to_string().parse() else {
-                            return Err(Error::checksum_with(
-                                "invalid MACRO_PDF417_OPTIONAL_FIELD_CHECKSUM found",
-                            ));
+                            return Err(Error::checksum_with(format!(
+                                "invalid MACRO_PDF417_OPTIONAL_FIELD_CHECKSUM value: '{}'",
+                                checksum.to_string()
+                            )));
                         };
                         resultMetadata.setChecksum(parsed_checksum);
                     }

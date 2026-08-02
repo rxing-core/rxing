@@ -31,7 +31,7 @@ use super::aztec_detector_result::AztecDetectorRXingResult;
  * @author David Olivier
  */
 
-#[derive(PartialEq, Eq, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 enum Table {
     Upper,
     Lower,
@@ -176,15 +176,18 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                             let next_digit = read_code(corrected_bits, index, 4);
                             index += 4;
                             if !(2..=11).contains(&next_digit) {
-                                return Err(Error::format_with("Not a decimal digit"));
-                                // Not a decimal digit
+                                return Err(Error::format_with(format!(
+                                    "invalid ECI digit code: {next_digit}, expected 2..=11"
+                                )));
                             }
                             eci = eci * 10 + (next_digit - 2);
                             n -= 1;
                         }
                         let charset_eci: Eci = eci.into();
                         if charset_eci == Eci::Unknown {
-                            return Err(Error::format_with("Charset must exist"));
+                            return Err(Error::format_with(format!(
+                                "unknown or unsupported ECI assignment value: {eci}"
+                            )));
                         }
                         encdr = charset_eci.into();
                     }
@@ -278,7 +281,9 @@ fn get_character(table: Table, code: u32) -> Result<&'static str> {
         Table::Mixed => Ok(MIXED_TABLE[code as usize]),
         Table::Digit => Ok(DIGIT_TABLE[code as usize]),
         Table::Punct => Ok(PUNCT_TABLE[code as usize]),
-        _ => Err(Error::format_with("Bad table")),
+        _ => Err(Error::format_with(format!(
+            "invalid Aztec decoding table: {table:?}"
+        ))),
     }
     // switch (table) {
     //   case UPPER:
@@ -372,7 +377,9 @@ fn correct_bits(
         // for (int i = 0; i < numDataCodewords; i++) {
         // let data_word = data_words[i];
         if data_word == &0 || data_word == &mask {
-            return Err(Error::format_with("Invalid data word"));
+            return Err(Error::format_with(format!(
+                "invalid Aztec data word {data_word} (mask: {mask})"
+            )));
             //throw FormatException.getFormatInstance();
         } else if data_word == &1 || data_word == &(mask - 1) {
             stuffed_bits += 1;

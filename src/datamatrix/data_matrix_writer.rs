@@ -120,7 +120,10 @@ impl Writer for DataMatrixWriter {
             true,
         )?
         else {
-            return Err(Error::format_with("symbol info is bad"));
+            return Err(Error::format_with(format!(
+                "could not find valid Data Matrix symbol info for shape {shape:?} and codeword count {}",
+                encoded.chars().count()
+            )));
         };
 
         //2. step: ECC generation
