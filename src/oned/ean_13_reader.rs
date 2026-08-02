@@ -62,7 +62,10 @@ impl UPCEANReader for EAN13Reader {
             // for (int x = 0; x < 6 && rowOffset < end; x++) {
             let bestMatch = self.decodeDigit(row, &mut counters, rowOffset, &L_AND_G_PATTERNS)?;
             resultString
-                .push(char::from_u32('0' as u32 + bestMatch as u32 % 10).ok_or(Error::PARSE)?);
+                .push(char::from_u32('0' as u32 + bestMatch as u32 % 10).ok_or(Error::Format {
+                    message: "could not convert digit to char".into(),
+                    source: None,
+                })?);
 
             rowOffset += counters.iter().sum::<u32>() as usize;
 
@@ -82,7 +85,10 @@ impl UPCEANReader for EAN13Reader {
 
         while x < 6 && rowOffset < end {
             let bestMatch = self.decodeDigit(row, &mut counters, rowOffset, &L_PATTERNS)?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch as u32).ok_or(Error::PARSE)?);
+            resultString.push(char::from_u32('0' as u32 + bestMatch as u32).ok_or(Error::Format {
+                message: "could not convert digit to char".into(),
+                source: None,
+            })?);
 
             rowOffset += counters.iter().sum::<u32>() as usize;
 
@@ -109,7 +115,10 @@ impl EAN13Reader {
             if lgPatternFound == fde {
                 resultString.insert(
                     0,
-                    char::from_u32('0' as u32 + d as u32).ok_or(Error::PARSE)?,
+                    char::from_u32('0' as u32 + d as u32).ok_or(Error::Format {
+                        message: "could not convert first digit to char".into(),
+                        source: None,
+                    })?,
                 );
                 return Ok(());
             }

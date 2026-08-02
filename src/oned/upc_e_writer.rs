@@ -90,7 +90,10 @@ impl OneDimensionalCodeWriter for UPCEWriter {
             .next()
             .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
             .to_digit(10)
-            .ok_or(Error::PARSE)? as usize; //Character.digit(contents.charAt(0), 10);
+            .ok_or(Error::Format {
+                message: "failed to parse digit".into(),
+                source: None,
+            })? as usize; //Character.digit(contents.charAt(0), 10);
         if firstDigit != 0 && firstDigit != 1 {
             return Err(Error::InvalidInput {
                 field: "contents".into(),
@@ -104,7 +107,10 @@ impl OneDimensionalCodeWriter for UPCEWriter {
             .nth(7)
             .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
             .to_digit(10)
-            .ok_or(Error::PARSE)? as usize; //Character.digit(contents.charAt(7), 10);
+            .ok_or(Error::Format {
+                message: "failed to parse digit".into(),
+                source: None,
+            })? as usize; //Character.digit(contents.charAt(7), 10);
         let parities = upc_e::NUMSYS_AND_CHECK_DIGIT_PATTERNS[firstDigit][checkDigit];
         let mut result = [false; CODE_WIDTH];
 
@@ -118,7 +124,10 @@ impl OneDimensionalCodeWriter for UPCEWriter {
                 .nth(i)
                 .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
                 .to_digit(10)
-                .ok_or(Error::PARSE)? as usize; //Character.digit(contents.charAt(i), 10);
+                .ok_or(Error::Format {
+                    message: "failed to parse digit".into(),
+                    source: None,
+                })? as usize; //Character.digit(contents.charAt(i), 10);
             if ((parities >> (6 - i)) & 1) == 1 {
                 digit += 10;
             }

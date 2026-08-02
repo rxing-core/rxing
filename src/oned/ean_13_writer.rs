@@ -73,7 +73,10 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             .next()
             .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
             .to_digit(10)
-            .ok_or(Error::PARSE)? as usize;
+            .ok_or(Error::Format {
+                message: "failed to parse digit".into(),
+                source: None,
+            })? as usize;
         let parities = ean_13::FIRST_DIGIT_ENCODINGS[firstDigit];
         let mut result = [false; CODE_WIDTH];
         let mut pos = 0;
@@ -90,7 +93,10 @@ impl OneDimensionalCodeWriter for EAN13Writer {
                 .nth(i)
                 .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
                 .to_digit(10)
-                .ok_or(Error::PARSE)? as usize;
+                .ok_or(Error::Format {
+                    message: "failed to parse digit".into(),
+                    source: None,
+                })? as usize;
             if ((parities >> (6 - i)) & 1) == 1 {
                 digit += 10;
             }
@@ -111,7 +117,10 @@ impl OneDimensionalCodeWriter for EAN13Writer {
                 .nth(i)
                 .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
                 .to_digit(10)
-                .ok_or(Error::PARSE)? as usize;
+                .ok_or(Error::Format {
+                    message: "failed to parse digit".into(),
+                    source: None,
+                })? as usize;
 
             pos += EAN13Writer::appendPattern(
                 &mut result,

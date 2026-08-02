@@ -177,18 +177,24 @@ pub fn generateErrorCorrection(dataCodewords: &str, errorCorrectionLevel: u32) -
         while j >= 1 {
             t2 = (t1 * EC_COEFFICIENTS[errorCorrectionLevel as usize][j]) % 929;
             t3 = 929 - t2;
-            e[j] = char::from_u32((e[j - 1] as u32 + t3) % 929).ok_or(Error::PARSE)?;
+            e[j] = char::from_u32((e[j - 1] as u32 + t3) % 929).ok_or(Error::Internal(
+                "failed to convert EC coefficient modulo 929 to char".into(),
+            ))?;
             j -= 1;
         }
         t2 = (t1 * EC_COEFFICIENTS[errorCorrectionLevel as usize][0]) % 929;
         t3 = 929 - t2;
-        e[0] = char::from_u32(t3 % 929).ok_or(Error::PARSE)?;
+        e[0] = char::from_u32(t3 % 929).ok_or(Error::Internal(
+            "failed to convert EC coefficient modulo 929 to char".into(),
+        ))?;
     }
     let mut sb = String::with_capacity(k as usize);
     let mut j = k as isize - 1;
     while j >= 0 {
         if e[j as usize] as u32 != 0 {
-            e[j as usize] = char::from_u32(929 - e[j as usize] as u32).ok_or(Error::PARSE)?;
+            e[j as usize] = char::from_u32(929 - e[j as usize] as u32).ok_or(Error::Internal(
+                "failed to convert EC coefficient modulo 929 to char".into(),
+            ))?;
         }
         sb.push(e[j as usize]);
 

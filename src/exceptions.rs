@@ -19,8 +19,6 @@ pub enum Error {
     IndexOutOfBounds(String),
     #[error("RuntimeException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     Runtime(String),
-    #[error("ParseException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
-    Parse(String),
 
     /// The caller supplied invalid input — bad hint, unsupported
     /// format, out-of-range dimension.
@@ -103,8 +101,6 @@ impl Error {
     pub fn runtime_with<I: Into<String>>(x: I) -> Self {
         Self::Runtime(x.into())
     }
-
-    pub const PARSE: Self = Self::Parse(String::new());
 }
 
 // 1. Create a tiny helper module to stringify non-serializable fields

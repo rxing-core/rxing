@@ -251,7 +251,7 @@ pub fn encodeHighLevel(
             )?;
         }
         Compaction::NUMERIC => {
-            sb.push(char::from_u32(LATCH_TO_NUMERIC).ok_or(Error::PARSE)?);
+            sb.push(char::from_u32(LATCH_TO_NUMERIC).ok_or(Error::Internal("invalid char conversion".into()))?);
             encodeNumeric(input.as_ref(), p, len as u32, &mut sb)?;
         }
         _ => {
@@ -266,7 +266,7 @@ pub fn encodeHighLevel(
                 }
                 let n = determineConsecutiveDigitCount(input.as_ref(), p)?;
                 if n >= 13 {
-                    sb.push(char::from_u32(LATCH_TO_NUMERIC).ok_or(Error::PARSE)?);
+                    sb.push(char::from_u32(LATCH_TO_NUMERIC).ok_or(Error::Internal("invalid char conversion".into()))?);
                     encodingMode = NUMERIC_COMPACTION;
                     textSubMode = SUBMODE_ALPHA; //Reset after latch
                     encodeNumeric(input.as_ref(), p, n, &mut sb)?;
@@ -275,7 +275,7 @@ pub fn encodeHighLevel(
                     let t = determineConsecutiveTextCount(input.as_ref(), p)?;
                     if t >= 5 || n == len as u32 {
                         if encodingMode != TEXT_COMPACTION {
-                            sb.push(char::from_u32(LATCH_TO_TEXT).ok_or(Error::PARSE)?);
+                            sb.push(char::from_u32(LATCH_TO_TEXT).ok_or(Error::Internal("invalid char conversion".into()))?);
                             encodingMode = TEXT_COMPACTION;
                             textSubMode = SUBMODE_ALPHA; //start with submode alpha after latch
                         }
@@ -389,7 +389,7 @@ fn encodeText<T: ECIInput + ?Sized>(
                         if ch == ' ' {
                             tmp.push(26 as char); //space
                         } else {
-                            tmp.push(char::from_u32(ch as u32 - 65).ok_or(Error::PARSE)?);
+                            tmp.push(char::from_u32(ch as u32 - 65).ok_or(Error::Internal("invalid char conversion".into()))?);
                         }
                     } else if isAlphaLower(ch) {
                         submode = SUBMODE_LOWER;
@@ -402,7 +402,7 @@ fn encodeText<T: ECIInput + ?Sized>(
                     } else {
                         tmp.push(29 as char); //ps
                         tmp.push(
-                            char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Error::PARSE)?,
+                            char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Error::Internal("invalid char conversion".into()))?,
                         );
                     }
                 }
@@ -412,11 +412,11 @@ fn encodeText<T: ECIInput + ?Sized>(
                         if ch == ' ' {
                             tmp.push(26 as char); //space
                         } else {
-                            tmp.push(char::from_u32(ch as u32 - 97).ok_or(Error::PARSE)?);
+                            tmp.push(char::from_u32(ch as u32 - 97).ok_or(Error::Internal("invalid char conversion".into()))?);
                         }
                     } else if isAlphaUpper(ch) {
                         tmp.push(27 as char); //as
-                        tmp.push(char::from_u32(ch as u32 - 65).ok_or(Error::PARSE)?);
+                        tmp.push(char::from_u32(ch as u32 - 65).ok_or(Error::Internal("invalid char conversion".into()))?);
                         //space cannot happen here, it is also in "Lower"
                     } else if isMixed(ch) {
                         submode = SUBMODE_MIXED;
@@ -425,14 +425,14 @@ fn encodeText<T: ECIInput + ?Sized>(
                     } else {
                         tmp.push(29 as char); //ps
                         tmp.push(
-                            char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Error::PARSE)?,
+                            char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Error::Internal("invalid char conversion".into()))?,
                         );
                     }
                 }
                 // break;
                 SUBMODE_MIXED => {
                     if isMixed(ch) {
-                        tmp.push(char::from_u32(MIXED[ch as usize] as u32).ok_or(Error::PARSE)?);
+                        tmp.push(char::from_u32(MIXED[ch as usize] as u32).ok_or(Error::Internal("invalid char conversion".into()))?);
                     } else if isAlphaUpper(ch) {
                         submode = SUBMODE_ALPHA;
                         tmp.push(28 as char); //al
@@ -452,7 +452,7 @@ fn encodeText<T: ECIInput + ?Sized>(
                         }
                         tmp.push(29 as char); //ps
                         tmp.push(
-                            char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Error::PARSE)?,
+                            char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Error::Internal("invalid char conversion".into()))?,
                         );
                     }
                 }
@@ -461,7 +461,7 @@ fn encodeText<T: ECIInput + ?Sized>(
                 {
                     if isPunctuation(ch) {
                         tmp.push(
-                            char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Error::PARSE)?,
+                            char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Error::Internal("invalid char conversion".into()))?,
                         );
                     } else {
                         submode = SUBMODE_ALPHA;
@@ -484,14 +484,14 @@ fn encodeText<T: ECIInput + ?Sized>(
             h = char::from_u32(
                 (h as u32 * 30) + *tmp.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as u32,
             )
-            .ok_or(Error::PARSE)?;
+            .ok_or(Error::Internal("invalid char conversion".into()))?;
             sb.push(h);
         } else {
             h = *tmp.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
         }
     }
     if (len % 2) != 0 {
-        sb.push(char::from_u32((h as u32 * 30) + 29).ok_or(Error::PARSE)?);
+        sb.push(char::from_u32((h as u32 * 30) + 29).ok_or(Error::Internal("invalid char conversion".into()))?);
         //ps
     }
     Ok(submode)
@@ -579,11 +579,11 @@ fn encodeBinary(
     sb: &mut String,
 ) -> Result<()> {
     if count == 1 && startmode == TEXT_COMPACTION {
-        sb.push(char::from_u32(SHIFT_TO_BYTE).ok_or(Error::PARSE)?);
+        sb.push(char::from_u32(SHIFT_TO_BYTE).ok_or(Error::Internal("invalid char conversion".into()))?);
     } else if (count % 6) == 0 {
-        sb.push(char::from_u32(LATCH_TO_BYTE).ok_or(Error::PARSE)?);
+        sb.push(char::from_u32(LATCH_TO_BYTE).ok_or(Error::Internal("invalid char conversion".into()))?);
     } else {
-        sb.push(char::from_u32(LATCH_TO_BYTE_PADDED).ok_or(Error::PARSE)?);
+        sb.push(char::from_u32(LATCH_TO_BYTE_PADDED).ok_or(Error::Internal("invalid char conversion".into()))?);
     }
 
     let mut idx = startpos;
@@ -597,7 +597,7 @@ fn encodeBinary(
                 t += bytes[idx as usize + i as usize] as i64;
             }
             for ch in &mut chars {
-                *ch = char::from_u32((t % 900) as u32).ok_or(Error::PARSE)?;
+                *ch = char::from_u32((t % 900) as u32).ok_or(Error::Internal("invalid char conversion".into()))?;
                 t /= 900;
             }
             sb.push_str(&chars.into_iter().rev().collect::<String>());
@@ -652,7 +652,7 @@ fn encodeNumeric<T: ECIInput + ?Sized>(
                         source: Some(e.into()),
                     },
                 )?)
-                .ok_or(Error::PARSE)?,
+                .ok_or(Error::Internal("invalid char conversion".into()))?,
             );
             bigint /= &NUM900;
 
@@ -804,15 +804,15 @@ fn determineConsecutiveBinaryCount<T: ECIInput + ?Sized + 'static>(
 
 fn encodingECI(eci: Eci, sb: &mut String) -> Result<()> {
     if (0..900).contains(&(eci as i32)) {
-        sb.push(char::from_u32(ECI_CHARSET).ok_or(Error::PARSE)?);
-        sb.push(char::from_u32(eci as u32).ok_or(Error::PARSE)?);
+        sb.push(char::from_u32(ECI_CHARSET).ok_or(Error::Internal("invalid char conversion".into()))?);
+        sb.push(char::from_u32(eci as u32).ok_or(Error::Internal("invalid char conversion".into()))?);
     } else if (eci as i32) < 810900 {
-        sb.push(char::from_u32(ECI_GENERAL_PURPOSE).ok_or(Error::PARSE)?);
-        sb.push(char::from_u32(((eci as i32) / 900 - 1) as u32).ok_or(Error::PARSE)?);
-        sb.push(char::from_u32(((eci as i32) % 900) as u32).ok_or(Error::PARSE)?);
+        sb.push(char::from_u32(ECI_GENERAL_PURPOSE).ok_or(Error::Internal("invalid char conversion".into()))?);
+        sb.push(char::from_u32(((eci as i32) / 900 - 1) as u32).ok_or(Error::Internal("invalid char conversion".into()))?);
+        sb.push(char::from_u32(((eci as i32) % 900) as u32).ok_or(Error::Internal("invalid char conversion".into()))?);
     } else if (eci as i32) < 811800 {
-        sb.push(char::from_u32(ECI_USER_DEFINED).ok_or(Error::PARSE)?);
-        sb.push(char::from_u32((810900 - (eci as i32)) as u32).ok_or(Error::PARSE)?);
+        sb.push(char::from_u32(ECI_USER_DEFINED).ok_or(Error::Internal("invalid char conversion".into()))?);
+        sb.push(char::from_u32((810900 - (eci as i32)) as u32).ok_or(Error::Internal("invalid char conversion".into()))?);
     } else {
         return Err(Error::InvalidInput {
             field: "eci number (not in valid range (0..811799))",

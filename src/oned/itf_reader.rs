@@ -202,9 +202,15 @@ impl ITFReader {
             }
 
             let mut bestMatch = self.decodeDigit(&counterBlack)?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch).ok_or(Error::PARSE)?);
+            resultString.push(char::from_u32('0' as u32 + bestMatch).ok_or(Error::Format {
+                message: "could not convert digit to char".into(),
+                source: None,
+            })?);
             bestMatch = self.decodeDigit(&counterWhite)?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch).ok_or(Error::PARSE)?);
+            resultString.push(char::from_u32('0' as u32 + bestMatch).ok_or(Error::Format {
+                message: "could not convert digit to char".into(),
+                source: None,
+            })?);
 
             payloadStart += counterDigitPair.iter().sum::<u32>() as usize;
         }

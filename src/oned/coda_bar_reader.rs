@@ -72,7 +72,10 @@ impl OneDReader for CodaBarReader {
             // StringBuilder, so that we can access the decoded patterns in
             // validatePattern. We'll translate to the actual characters later.
             self.decodeRowRXingResult
-                .push(char::from_u32(charOffset as u32).ok_or(Error::PARSE)?);
+                .push(char::from_u32(charOffset as u32).ok_or(Error::Format {
+                    message: "could not convert charOffset to char".into(),
+                    source: None,
+                })?);
             nextStart += 8;
             // Stop as soon as we see the end character.
             if self.decodeRowRXingResult.chars().count() > 1

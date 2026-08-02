@@ -122,53 +122,53 @@ impl Code39Writer {
                         extendedContent.push('$');
                         extendedContent.push(
                             char::from_u32('A' as u32 + (character as u32 - 1))
-                                .ok_or(Error::PARSE)?,
+                                .ok_or(Error::Internal("invalid char conversion".into()))?,
                         );
                     } else if character < ' ' {
                         extendedContent.push('%');
                         extendedContent.push(
                             char::from_u32('A' as u32 + (character as u32 - 27))
-                                .ok_or(Error::PARSE)?,
+                                .ok_or(Error::Internal("invalid char conversion".into()))?,
                         );
                     } else if character <= ',' || character == '/' || character == ':' {
                         extendedContent.push('/');
                         extendedContent.push(
                             char::from_u32('A' as u32 + (character as u32 - 33))
-                                .ok_or(Error::PARSE)?,
+                                .ok_or(Error::Internal("invalid char conversion".into()))?,
                         );
                     } else if character <= '9' {
                         extendedContent.push(
                             char::from_u32('0' as u32 + (character as u32 - 48))
-                                .ok_or(Error::PARSE)?,
+                                .ok_or(Error::Internal("invalid char conversion".into()))?,
                         );
                     } else if character <= '?' {
                         extendedContent.push('%');
                         extendedContent.push(
                             char::from_u32('F' as u32 + (character as u32 - 59))
-                                .ok_or(Error::PARSE)?,
+                                .ok_or(Error::Internal("invalid char conversion".into()))?,
                         );
                     } else if character <= 'Z' {
                         extendedContent.push(
                             char::from_u32('A' as u32 + (character as u32 - 65))
-                                .ok_or(Error::PARSE)?,
+                                .ok_or(Error::Internal("invalid char conversion".into()))?,
                         );
                     } else if character <= '_' {
                         extendedContent.push('%');
                         extendedContent.push(
                             char::from_u32('K' as u32 + (character as u32 - 91))
-                                .ok_or(Error::PARSE)?,
+                                .ok_or(Error::Internal("invalid char conversion".into()))?,
                         );
                     } else if character <= 'z' {
                         extendedContent.push('+');
                         extendedContent.push(
                             char::from_u32('A' as u32 + (character as u32 - 97))
-                                .ok_or(Error::PARSE)?,
+                                .ok_or(Error::Internal("invalid char conversion".into()))?,
                         );
                     } else if character as u32 <= 127 {
                         extendedContent.push('%');
                         extendedContent.push(
                             char::from_u32('P' as u32 + (character as u32 - 123))
-                                .ok_or(Error::PARSE)?,
+                                .ok_or(Error::Internal("invalid char conversion".into()))?,
                         );
                     } else {
                         return Err(Error::InvalidInput {

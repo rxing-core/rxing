@@ -168,13 +168,17 @@ impl Code93Writer {
             } else if character as u32 <= 26 {
                 // SOH - SUB: ($)A - ($)Z
                 extendedContent.push('a');
-                extendedContent
-                    .push(char::from_u32('A' as u32 + character as u32 - 1).ok_or(Error::PARSE)?);
+                extendedContent.push(
+                    char::from_u32('A' as u32 + character as u32 - 1)
+                        .ok_or(Error::Internal("invalid char conversion".into()))?,
+                );
             } else if character as u32 <= 31 {
                 // ESC - US: (%)A - (%)E
                 extendedContent.push('b');
-                extendedContent
-                    .push(char::from_u32('A' as u32 + character as u32 - 27).ok_or(Error::PARSE)?);
+                extendedContent.push(
+                    char::from_u32('A' as u32 + character as u32 - 27)
+                        .ok_or(Error::Internal("invalid char conversion".into()))?,
+                );
             } else if character == ' ' || character == '$' || character == '%' || character == '+' {
                 // space $ % +
                 extendedContent.push(character);
@@ -183,7 +187,7 @@ impl Code93Writer {
                 extendedContent.push('c');
                 extendedContent.push(
                     char::from_u32('A' as u32 + character as u32 - '!' as u32)
-                        .ok_or(Error::PARSE)?,
+                        .ok_or(Error::Internal("invalid char conversion".into()))?,
                 );
             } else if character <= '9' {
                 extendedContent.push(character);
@@ -195,7 +199,7 @@ impl Code93Writer {
                 extendedContent.push('b');
                 extendedContent.push(
                     char::from_u32('F' as u32 + character as u32 - ';' as u32)
-                        .ok_or(Error::PARSE)?,
+                        .ok_or(Error::Internal("invalid char conversion".into()))?,
                 );
             } else if character == '@' {
                 // @: (%)V
@@ -208,7 +212,7 @@ impl Code93Writer {
                 extendedContent.push('b');
                 extendedContent.push(
                     char::from_u32('K' as u32 + character as u32 - '[' as u32)
-                        .ok_or(Error::PARSE)?,
+                        .ok_or(Error::Internal("invalid char conversion".into()))?,
                 );
             } else if character == '`' {
                 // `: (%)W
@@ -218,14 +222,14 @@ impl Code93Writer {
                 extendedContent.push('d');
                 extendedContent.push(
                     char::from_u32('A' as u32 + character as u32 - 'a' as u32)
-                        .ok_or(Error::PARSE)?,
+                        .ok_or(Error::Internal("invalid char conversion".into()))?,
                 );
             } else if character as u32 <= 127 {
                 // { - DEL: (%)P - (%)T
                 extendedContent.push('b');
                 extendedContent.push(
                     char::from_u32('P' as u32 + character as u32 - '{' as u32)
-                        .ok_or(Error::PARSE)?,
+                        .ok_or(Error::Internal("invalid char conversion".into()))?,
                 );
             } else {
                 return Err(Error::InvalidInput {
