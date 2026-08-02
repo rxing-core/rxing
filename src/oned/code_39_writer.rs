@@ -34,9 +34,13 @@ impl OneDimensionalCodeWriter for Code39Writer {
         let mut contents = contents.to_owned();
         let mut length = contents.chars().count();
         if length > 80 {
-            return Err(Error::illegal_argument_with(format!(
-                "Requested contents should be less than 80 digits long, but got {length}"
-            )));
+            return Err(Error::InvalidInput {
+                field: "contents".into(),
+                value: format!(
+                    "Requested contents should be less than 80 digits long, but got {length}"
+                ),
+                cause: None,
+            });
         }
 
         let mut i = 0;
@@ -44,20 +48,19 @@ impl OneDimensionalCodeWriter for Code39Writer {
             // for i in 0..length {
             // for (int i = 0; i < length; i++) {
             if code_39::ALPHABET_STRING
-                .find(
-                    contents
-                        .chars()
-                        .nth(i)
-                        .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
-                )
+                .find(contents.chars().nth(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?)
                 .is_none()
             {
                 contents = Self::tryToConvertToExtendedMode(&contents)?;
                 length = contents.chars().count();
                 if length > 80 {
-                    return Err(Error::illegal_argument_with(format!(
-                        "Requested contents should be less than 80 digits long, but got {length} (extended full ASCII mode)"
-                    )));
+                    return Err(Error::InvalidInput {
+                        field: "contents".into(),
+                        value: format!(
+                            "Requested contents should be less than 80 digits long, but got {length} (extended full ASCII mode)"
+                        ),
+                        cause: None,
+                    });
                 }
                 break;
             }
@@ -73,12 +76,9 @@ impl OneDimensionalCodeWriter for Code39Writer {
         pos += Self::appendPattern(&mut result, pos as usize, &narrowWhite, false);
         //append next character to byte matrix
         for i in 0..length {
-            let Some(indexInString) = code_39::ALPHABET_STRING.find(
-                contents
-                    .chars()
-                    .nth(i)
-                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
-            ) else {
+            let Some(indexInString) = code_39::ALPHABET_STRING
+                .find(contents.chars().nth(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?)
+            else {
                 continue;
             };
             Self::toIntArray(code_39::CHARACTER_ENCODINGS[indexInString], &mut widths);
@@ -171,9 +171,13 @@ impl Code39Writer {
                                 .ok_or(Error::PARSE)?,
                         );
                     } else {
-                        return Err(Error::illegal_argument_with(format!(
-                            "Requested content contains a non-encodable character: '{character}'"
-                        )));
+                        return Err(Error::InvalidInput {
+                            field: "contents".into(),
+                            value: format!(
+                                "Requested content contains a non-encodable character: '{character}'"
+                            ),
+                            cause: None,
+                        });
                     }
                 }
             }

@@ -50,9 +50,11 @@ impl ErrorCorrectionLevel {
             1 => Ok(Self::L),
             2 => Ok(Self::H),
             3 => Ok(Self::Q),
-            _ => Err(Error::illegal_argument_with(format!(
-                "{bits} is not a valid bit selection"
-            ))),
+            _ => Err(Error::InvalidInput {
+                field: "error correction level",
+                value: bits.to_string(),
+                cause: None,
+            }),
         }
     }
 
@@ -114,9 +116,11 @@ impl FromStr for ErrorCorrectionLevel {
             return number_possible.try_into();
         }
 
-        Err(Error::illegal_argument_with(format!(
-            "could not parse {s} into an ec level"
-        )))
+        Err(Error::InvalidInput {
+            field: "ed level",
+            value: s.into(),
+            cause: None,
+        })
     }
 }
 

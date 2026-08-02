@@ -47,7 +47,11 @@ impl OneDimensionalCodeWriter for UPCEWriter {
                 // No check digit present, calculate it and add it
                 let check = upcean_common::getStandardUPCEANChecksum(
                     &upcean_common::convertUPCEtoUPCA(&contents)
-                        .ok_or(Error::ILLEGAL_ARGUMENT)?
+                        .ok_or(Error::InvalidInput {
+                            field: "calculated check",
+                            value: "Failed to calculate check digit".into(),
+                            cause: None,
+                        })?
                         .chars()
                         .collect::<Vec<_>>(),
                 )?;
@@ -55,18 +59,27 @@ impl OneDimensionalCodeWriter for UPCEWriter {
             }
             8 => {
                 if !upcean_common::checkStandardUPCEANChecksum(
-                    &upcean_common::convertUPCEtoUPCA(&contents)
-                        .ok_or(Error::ILLEGAL_ARGUMENT)?,
+                    &upcean_common::convertUPCEtoUPCA(&contents).ok_or(Error::InvalidInput {
+                        field: "contents",
+                        value: "Failed to convert UPC-E to UPC-A".into(),
+                        cause: None,
+                    })?,
                 )? {
-                    return Err(Error::illegal_argument_with(
-                        "Contents do not pass checksum",
-                    ));
+                    return Err(Error::InvalidInput {
+                        field: "contents".into(),
+                        value: "Contents do not pass checksum".into(),
+                        cause: None,
+                    });
                 }
             }
             _ => {
-                return Err(Error::illegal_argument_with(format!(
-                    "Requested contents should be 7 or 8 digits long, but got {length}"
-                )));
+                return Err(Error::InvalidInput {
+                    field: "contents".into(),
+                    value: format!(
+                        "Requested contents should be 7 or 8 digits long, but got {length}"
+                    ),
+                    cause: None,
+                });
             }
         }
 
@@ -79,9 +92,11 @@ impl OneDimensionalCodeWriter for UPCEWriter {
             .to_digit(10)
             .ok_or(Error::PARSE)? as usize; //Character.digit(contents.charAt(0), 10);
         if firstDigit != 0 && firstDigit != 1 {
-            return Err(Error::illegal_argument_with(
-                "Number system must be 0 or 1",
-            ));
+            return Err(Error::InvalidInput {
+                field: "contents".into(),
+                value: "Number system must be 0 or 1".into(),
+                cause: None,
+            });
         }
 
         let checkDigit = contents

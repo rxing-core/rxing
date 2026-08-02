@@ -193,8 +193,8 @@ impl CodaBarReader {
         let mut pos = start;
         for i in 0..=end {
             // for (int i = 0; i <= end; i++) {
-            let mut pattern = CHARACTER_ENCODINGS
-                [*cached.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as usize];
+            let mut pattern =
+                CHARACTER_ENCODINGS[*cached.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as usize];
             for j in (0_usize..=6).rev() {
                 // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
                 // long stripes, while 0 and 1 are for short stripes.
@@ -228,8 +228,8 @@ impl CodaBarReader {
         pos = start;
         for i in 0..=end {
             // for (int i = 0; i <= end; i++) {
-            let mut pattern = CHARACTER_ENCODINGS
-                [*cached.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as usize];
+            let mut pattern =
+                CHARACTER_ENCODINGS[*cached.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as usize];
             for j in (0..=6).rev() {
                 // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
                 // long stripes, while 0 and 1 are for short stripes.

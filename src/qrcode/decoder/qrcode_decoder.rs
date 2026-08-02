@@ -179,7 +179,10 @@ fn decode_bitmatrix_parser_with_hints(
  */
 fn correctErrors(codewordBytes: &mut [u8], numDataCodewords: usize) -> Result<()> {
     RS_DECODER
-        .decode(codewordBytes, (codewordBytes.len() - numDataCodewords) as i32)
-        .map_err(|e| Error::Checksum(e.to_string())).map(|_| ())
+        .decode(
+            codewordBytes,
+            (codewordBytes.len() - numDataCodewords) as i32,
+        )
+        .map_err(|e| Error::Checksum(e.to_string()))
+        .map(|_| ())
 }
-

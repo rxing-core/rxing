@@ -121,19 +121,25 @@ impl AddressBookParsedRXingResult {
         geo: Vec<String>,
     ) -> Result<Self> {
         if phone_numbers.len() != phone_types.len() && !phone_types.is_empty() {
-            return Err(Error::illegal_argument_with(
-                "Phone numbers and types lengths differ",
-            ));
+            return Err(Error::InvalidInput {
+                field: "phone numbers",
+                value: "Phone numbers and types lengths differ".into(),
+                cause: None,
+            });
         }
         if emails.len() != email_types.len() && !email_types.is_empty() {
-            return Err(Error::illegal_argument_with(
-                "Emails and types lengths differ",
-            ));
+            return Err(Error::InvalidInput {
+                field: "emails",
+                value: "Emails and types lengths differ".into(),
+                cause: None,
+            });
         }
         if addresses.len() != address_types.len() && !address_types.is_empty() {
-            return Err(Error::illegal_argument_with(
-                "Addresses and types lengths differ",
-            ));
+            return Err(Error::InvalidInput {
+                field: "addresses",
+                value: "Addresses and types lengths differ".into(),
+                cause: None,
+            });
         }
         Ok(Self {
             names,

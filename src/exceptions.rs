@@ -1,12 +1,12 @@
+use std::borrow::Cow;
+
 #[cfg(feature = "serde")]
-use serde::{Serialize};
+use serde::Serialize;
 
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(thiserror::Error, Debug)]
 #[non_exhaustive]
 pub enum Error {
-    #[error("IllegalArgumentException{}", if .0.is_empty() { String::new() } else { format!(" - {}", .0) })]
-    IllegalArgument(String),
     #[error("UnsupportedOperationException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     UnsupportedOperation(String),
     #[error("IllegalStateException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
@@ -18,8 +18,6 @@ pub enum Error {
     #[error("ChecksumException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     Checksum(String),
     #[error("WriterException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
-    Writer(String),
-    #[error("ReedSolomonException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     ReedSolomon(String),
     #[error("IndexOutOfBoundsException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     IndexOutOfBounds(String),
@@ -28,6 +26,22 @@ pub enum Error {
     #[error("ParseException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     Parse(String),
 
+    /// The caller supplied invalid input — bad hint, unsupported
+    /// format, out-of-range dimension.
+    /// Absorbs: IllegalArgument (caller-facing), Writer, UnsupportedOperation.
+    #[error("invalid input for {field}: {value}")]
+    InvalidInput {
+        field: &'static str,
+        value: String,
+
+        #[cfg_attr(
+            feature = "serde",
+            serde(serialize_with = "serde_helpers::opt_as_string")
+        )]
+        #[source]
+        cause: Option<Box<dyn std::error::Error + Send + Sync>>,
+    },
+
     /// No barcode present. Expected during scanning — try another
     /// reader, orientation, or region.
     #[error("not found")]
@@ -35,28 +49,21 @@ pub enum Error {
 
     /// General IO errors, found exclusivly in the helpers module
     #[cfg(feature = "image")]
-    #[cfg_attr(feature = "serde", serde(skip))]
     #[error("could not read image")]
+    #[cfg_attr(feature = "serde", serde(serialize_with = "serde_helpers::as_string"))]
     ImageIo(#[from] image::ImageError),
 
     /// General file IO errors, found exclusivly in the helpers module
-    #[cfg(feature = "image")]
-    #[cfg_attr(feature = "serde", serde(skip))]
     #[error("could not read file")]
+    #[cfg_attr(feature = "serde", serde(serialize_with = "serde_helpers::as_string"))]
     Io(#[from] std::io::Error),
+
+    /// An internal invariant was violated. Always an rxing bug.
+    #[error("internal error: {0}")]
+    Internal(Cow<'static, str>),
 }
 
 impl Error {
-    pub const ILLEGAL_ARGUMENT: Self = Self::IllegalArgument(String::new());
-    pub fn illegal_argument_with<I: Into<String>>(x: I) -> Self {
-        Self::IllegalArgument(x.into())
-    }
-
-    pub const UNSUPPORTED_OPERATION: Self = Self::UnsupportedOperation(String::new());
-    pub fn unsupported_operation_with<I: Into<String>>(x: I) -> Self {
-        Self::UnsupportedOperation(x.into())
-    }
-
     pub const ILLEGAL_STATE: Self = Self::IllegalState(String::new());
     pub fn illegal_state_with<I: Into<String>>(x: I) -> Self {
         Self::IllegalState(x.into())
@@ -79,11 +86,6 @@ impl Error {
         Self::Checksum(x.into())
     }
 
-    pub const WRITER: Self = Self::Writer(String::new());
-    pub fn writer_with<I: Into<String>>(x: I) -> Self {
-        Self::Writer(x.into())
-    }
-
     pub const REED_SOLOMON: Self = Self::ReedSolomon(String::new());
     pub fn reed_solomon_with<I: Into<String>>(x: I) -> Self {
         Self::ReedSolomon(x.into())
@@ -102,5 +104,31 @@ impl Error {
     pub const PARSE: Self = Self::Parse(String::new());
     pub fn parse_with<I: Into<String>>(x: I) -> Self {
         Self::Parse(x.into())
+    }
+}
+
+// 1. Create a tiny helper module to stringify non-serializable fields
+#[cfg(feature = "serde")]
+mod serde_helpers {
+    use serde::Serializer;
+    use std::fmt::Display;
+
+    // Serializes any type that implements Display (like std::io::Error) as a string
+    pub fn as_string<T: Display, S: Serializer>(
+        value: &T,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&value.to_string())
+    }
+
+    // Serializes an Option containing a dynamic Error as a string (or null)
+    pub fn opt_as_string<T: Display + ?Sized, S: Serializer>(
+        value: &Option<Box<T>>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        match value {
+            Some(err) => serializer.serialize_str(&err.to_string()),
+            None => serializer.serialize_none(),
+        }
     }
 }

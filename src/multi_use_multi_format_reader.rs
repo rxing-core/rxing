@@ -253,7 +253,11 @@ impl MultiUseMultiFormatReader {
                     BarcodeFormat::MAXICODE => {
                         self.maxicode_reader.decode_with_hints(image, &self.hints)
                     }
-                    _ => Err(Error::UNSUPPORTED_OPERATION),
+                    _ => Err(Error::InvalidInput {
+                        field: "barcode format",
+                        value: possible_format.to_string(),
+                        cause: None,
+                    }),
                 };
                 if res.is_ok() {
                     return res;
@@ -308,6 +312,6 @@ impl MultiUseMultiFormatReader {
             }
         }
 
-        Err(Error::UNSUPPORTED_OPERATION)
+        Err(Error::NotFound)
     }
 }

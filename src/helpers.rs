@@ -42,7 +42,11 @@ pub fn detect_in_svg_with_hints(
 
     let path = PathBuf::from(file_name);
     if !path.exists() {
-        return Err(Error::illegal_argument_with("file does not exist"));
+        return Err(Error::InvalidInput {
+            field: "file does not exist",
+            value: file_name.to_string(),
+            cause: None,
+        });
     }
 
     let mut file = File::open(path)?;
@@ -88,7 +92,11 @@ pub fn detect_multiple_in_svg_with_hints(
 
     let path = PathBuf::from(file_name);
     if !path.exists() {
-        return Err(Error::illegal_argument_with("file does not exist"));
+        return Err(Error::InvalidInput {
+            field: "file does not exist",
+            value: file_name.to_string(),
+            cause: None,
+        });
     }
 
     let mut file = File::open(path)?;
@@ -119,7 +127,7 @@ pub fn detect_in_file_with_hints(
     hints: &mut DecodeHints,
 ) -> Result<RXingResult> {
     let img = image::open(file_name)?;
-    
+
     detect_in_image_with_hints(img, barcode_type, hints)
 }
 
@@ -310,9 +318,11 @@ pub fn detect_in_luma_with_hints(
     hints: &mut DecodeHints,
 ) -> Result<RXingResult> {
     if width == 0 || height == 0 {
-        return Err(Error::illegal_argument_with(
-            "Both dimensions must be greater than 0",
-        ));
+        return Err(Error::InvalidInput {
+            field: "both dimensions must be greater than 0",
+            cause: None,
+            value: format!("width: {width} / height: {height}"),
+        });
     }
     let mut multi_format_reader = MultiFormatReader::default();
 
@@ -359,9 +369,11 @@ pub fn detect_in_luma_slice_with_hints(
     hints: &mut DecodeHints,
 ) -> Result<RXingResult> {
     if width == 0 || height == 0 {
-        return Err(Error::illegal_argument_with(
-            "Both dimensions must be greater than 0",
-        ));
+        return Err(Error::InvalidInput {
+            field: "both dimensions must be greater than 0",
+            cause: None,
+            value: format!("width: {width} / height: {height}"),
+        });
     }
     let mut multi_format_reader = MultiFormatReader::default();
 
@@ -404,9 +416,11 @@ pub fn detect_in_luma_filtered_with_hints(
     hints: &mut DecodeHints,
 ) -> Result<RXingResult> {
     if width == 0 || height == 0 {
-        return Err(Error::illegal_argument_with(
-            "Both dimensions must be greater than 0",
-        ));
+        return Err(Error::InvalidInput {
+            field: "both dimensions must be greater than 0",
+            cause: None,
+            value: format!("width: {width} / height: {height}"),
+        });
     }
     let mut multi_format_reader = FilteredImageReader::new(MultiFormatReader::default());
 
@@ -437,9 +451,11 @@ pub fn detect_multiple_in_luma_with_hints(
     hints: &mut DecodeHints,
 ) -> Result<Vec<RXingResult>> {
     if width == 0 || height == 0 {
-        return Err(Error::illegal_argument_with(
-            "Both dimensions must be greater than 0",
-        ));
+        return Err(Error::InvalidInput {
+            field: "both dimensions must be greater than 0",
+            cause: None,
+            value: format!("width: {width} / height: {height}"),
+        });
     }
     let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);

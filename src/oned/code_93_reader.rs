@@ -229,8 +229,7 @@ impl Code93Reader {
                     'd' => {
                         // +A to +Z map to a to z
                         if next.is_ascii_uppercase() {
-                            decodedChar =
-                                char::from_u32(next as u32 + 32).ok_or(Error::PARSE)?;
+                            decodedChar = char::from_u32(next as u32 + 32).ok_or(Error::PARSE)?;
                         } else {
                             return Err(Error::FORMAT);
                         }
@@ -238,8 +237,7 @@ impl Code93Reader {
                     'a' => {
                         // $A to $Z map to control codes SH to SB
                         if next.is_ascii_uppercase() {
-                            decodedChar =
-                                char::from_u32(next as u32 - 64).ok_or(Error::PARSE)?;
+                            decodedChar = char::from_u32(next as u32 - 64).ok_or(Error::PARSE)?;
                         } else {
                             return Err(Error::FORMAT);
                         }
@@ -247,20 +245,16 @@ impl Code93Reader {
                     'b' => {
                         if ('A'..='E').contains(&next) {
                             // %A to %E map to control codes ESC to USep
-                            decodedChar =
-                                char::from_u32(next as u32 - 38).ok_or(Error::PARSE)?;
+                            decodedChar = char::from_u32(next as u32 - 38).ok_or(Error::PARSE)?;
                         } else if ('F'..='J').contains(&next) {
                             // %F to %J map to ; < = > ?
-                            decodedChar =
-                                char::from_u32(next as u32 - 11).ok_or(Error::PARSE)?;
+                            decodedChar = char::from_u32(next as u32 - 11).ok_or(Error::PARSE)?;
                         } else if ('K'..='O').contains(&next) {
                             // %K to %O map to [ \ ] ^ _
-                            decodedChar =
-                                char::from_u32(next as u32 + 16).ok_or(Error::PARSE)?;
+                            decodedChar = char::from_u32(next as u32 + 16).ok_or(Error::PARSE)?;
                         } else if ('P'..='T').contains(&next) {
                             // %P to %T map to { | } ~ DEL
-                            decodedChar =
-                                char::from_u32(next as u32 + 43).ok_or(Error::PARSE)?;
+                            decodedChar = char::from_u32(next as u32 + 43).ok_or(Error::PARSE)?;
                         } else if next == 'U' {
                             // %U map to NUL
                             decodedChar = '\0';
@@ -280,8 +274,7 @@ impl Code93Reader {
                     'c' => {
                         // /A to /O map to ! to , and /Z maps to :
                         if ('A'..='O').contains(&next) {
-                            decodedChar =
-                                char::from_u32(next as u32 - 32).ok_or(Error::PARSE)?;
+                            decodedChar = char::from_u32(next as u32 - 32).ok_or(Error::PARSE)?;
                         } else if next == 'Z' {
                             decodedChar = ':';
                         } else {

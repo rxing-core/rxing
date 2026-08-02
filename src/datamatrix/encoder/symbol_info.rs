@@ -321,9 +321,9 @@ impl<'a> SymbolInfoLookup<'a> {
             }
         }
         if fail {
-            return Err(Error::illegal_argument_with(format!(
+            return Err(Error::Internal(format!(
                 "Can't find a symbol arrangement that matches the message. Data codewords: {dataCodewords}"
-            )));
+            ).into()));
         }
         Ok(None)
     }

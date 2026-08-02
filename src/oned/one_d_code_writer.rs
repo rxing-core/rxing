@@ -91,9 +91,11 @@ pub trait OneDimensionalCodeWriter: Writer {
     fn checkNumeric(contents: &str) -> Result<()> {
         let is_numeric = contents.chars().all(|c| c.is_numeric());
         if !is_numeric {
-            Err(Error::illegal_argument_with(
-                "Input should only contain digits 0-9",
-            ))
+            Err(Error::InvalidInput {
+                field: "contents [numeric]".into(),
+                value: contents.into(),
+                cause: None,
+            })
         } else {
             Ok(())
         }

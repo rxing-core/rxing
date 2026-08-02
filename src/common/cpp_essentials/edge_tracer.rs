@@ -240,9 +240,7 @@ impl<'a> EdgeTracer<'_> {
                                     if history
                                         .read()
                                         .map_err(|_| {
-                                            Error::illegal_state_with(
-                                                "Failed to acquire read lock",
-                                            )
+                                            Error::illegal_state_with("Failed to acquire read lock")
                                         })?
                                         .get(self.p.x as u32, self.p.y as u32)
                                         == self.state as u8

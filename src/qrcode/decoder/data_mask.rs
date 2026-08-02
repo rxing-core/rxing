@@ -228,9 +228,9 @@ impl TryFrom<u8> for DataMask {
             5 => Ok(DataMask::DATA_MASK_101),
             6 => Ok(DataMask::DATA_MASK_110),
             7 => Ok(DataMask::DATA_MASK_111),
-            _ => Err(Error::illegal_argument_with(format!(
-                "{value} is not between 0 and 7"
-            ))),
+            _ => Err(Error::Internal(
+                format!("{value} is not between 0 and 7").into(),
+            )),
         }
     }
 }

@@ -73,7 +73,9 @@ impl UPCEANReader for UPCEReader {
     }
 
     fn checkChecksum(&self, s: &str) -> Result<bool> {
-        checkStandardUPCEANChecksum(&convertUPCEtoUPCA(s).ok_or(Error::ILLEGAL_ARGUMENT)?)
+        checkStandardUPCEANChecksum(
+            &convertUPCEtoUPCA(s).ok_or(Error::Checksum("upc_e checksum error".into()))?,
+        )
     }
 
     fn decodeEnd(&self, row: &crate::common::BitArray, endStart: usize) -> Result<[usize; 2]> {
@@ -93,8 +95,7 @@ impl UPCEReader {
                         0,
                         char::from_u32('0' as u32 + numSys as u32).ok_or(Error::PARSE)?,
                     );
-                    resultString
-                        .push(char::from_u32('0' as u32 + d as u32).ok_or(Error::PARSE)?);
+                    resultString.push(char::from_u32('0' as u32 + d as u32).ok_or(Error::PARSE)?);
                     return Ok(());
                 }
             }

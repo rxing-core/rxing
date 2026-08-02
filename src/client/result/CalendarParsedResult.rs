@@ -171,18 +171,10 @@ impl CalendarParsedRXingResult {
             };
         }
         // The when string can be local time, or UTC if it ends with a Z
-        if when.len() == 16
-            && when
-                .chars()
-                .nth(15)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
-                == 'Z'
-        {
+        if when.len() == 16 && when.chars().nth(15).ok_or(Error::INDEX_OUT_OF_BOUNDS)? == 'Z' {
             return match NaiveDateTime::parse_from_str(&when, YMD_THMSZ_FORMAT) {
                 Ok(dtm) => Ok(dtm.and_utc().timestamp()),
-                Err(e) => Err(Error::parse_with(format!(
-                    "couldn't parse string: {e}"
-                ))),
+                Err(e) => Err(Error::parse_with(format!("couldn't parse string: {e}"))),
             };
         }
         // Try once more, with weird tz formatting
@@ -200,9 +192,7 @@ impl CalendarParsedRXingResult {
 
             return match NaiveDateTime::parse_from_str(time_part, YMD_THMS_FORMAT) {
                 Ok(dtm) => Ok(dtm.and_utc().with_timezone(&tz_parsed).timestamp()),
-                Err(e) => Err(Error::parse_with(format!(
-                    "couldn't parse string: {e}"
-                ))),
+                Err(e) => Err(Error::parse_with(format!("couldn't parse string: {e}"))),
             };
         }
 
@@ -210,9 +200,7 @@ impl CalendarParsedRXingResult {
         if when.len() == 15 {
             return match NaiveDateTime::parse_from_str(&when, YMD_THMS_FORMAT) {
                 Ok(dtm) => Ok(dtm.and_utc().timestamp()),
-                Err(e) => Err(Error::parse_with(format!(
-                    "couldn't parse local time: {e}"
-                ))),
+                Err(e) => Err(Error::parse_with(format!("couldn't parse local time: {e}"))),
             };
         }
         Self::parseDateTimeString(&when)

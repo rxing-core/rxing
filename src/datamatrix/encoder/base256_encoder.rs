@@ -81,8 +81,7 @@ impl Encoder for Base256Encoder {
                     .ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
                 buffer.insert(
                     ci_pos,
-                    char::from_u32(dataCount as u32 % 250)
-                        .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
+                    char::from_u32(dataCount as u32 % 250).ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
                 );
             } else {
                 return Err(Error::illegal_state_with(format!(

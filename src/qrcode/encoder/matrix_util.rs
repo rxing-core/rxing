@@ -274,11 +274,14 @@ pub fn embedDataBits(dataBits: &BitArray, maskPattern: i32, matrix: &mut ByteMat
     }
     // All bits should be consumed.
     if bitIndex != dataBits.get_size() {
-        return Err(Error::writer_with(format!(
-            "Not all bits consumed: {}/{}",
-            bitIndex,
-            dataBits.get_size()
-        )));
+        return Err(Error::Internal(
+            format!(
+                "Not all bits consumed: {}/{}",
+                bitIndex,
+                dataBits.get_size()
+            )
+            .into(),
+        ));
     }
     Ok(())
 }
@@ -319,7 +322,7 @@ pub fn findMSBSet(value: u32) -> u32 {
 // operations. We don't care if coefficients are positive or negative.
 pub fn calculateBCHCode(value: u32, poly: u32) -> Result<u32> {
     if poly == 0 {
-        return Err(Error::illegal_argument_with("0 polynomial"));
+        return Err(Error::Internal("calculateBCHCode: 0 polynomial".into()));
     }
     let mut value = value;
     // If poly is "1 1111 0010 0101" (version info poly), msbSetInPoly is 13. We'll subtract 1
@@ -343,7 +346,7 @@ pub fn makeTypeInfoBits(
     bits: &mut BitArray,
 ) -> Result<()> {
     if !QRCode::isValidMaskPattern(maskPattern as i32) {
-        return Err(Error::writer_with("Invalid mask pattern"));
+        return Err(Error::Internal("invalid mask pattern".into()));
     }
     let typeInfo = (ecLevel.get_value() << 3) as u32 | maskPattern;
     bits.appendBits(typeInfo as BitFieldBaseType, 5)?;
@@ -357,10 +360,13 @@ pub fn makeTypeInfoBits(
 
     if bits.get_size() != 15 {
         // Just in case.
-        return Err(Error::writer_with(format!(
-            "should not happen but we got: {}",
-            bits.get_size()
-        )));
+        return Err(Error::Internal(
+            format!(
+                "type info bits should always equal 15, got: {}",
+                bits.get_size()
+            )
+            .into(),
+        ));
     }
     Ok(())
 }
@@ -374,10 +380,13 @@ pub fn makeVersionInfoBits(version: &Version, bits: &mut BitArray) -> Result<()>
 
     if bits.get_size() != 18 {
         // Just in case.
-        return Err(Error::writer_with(format!(
-            "should not happen but we got: {}",
-            bits.get_size()
-        )));
+        return Err(Error::Internal(
+            format!(
+                "version bits should always equal 18, we got {}",
+                bits.get_size()
+            )
+            .into(),
+        ));
     }
     Ok(())
 }
@@ -407,7 +416,9 @@ pub fn embedTimingPatterns(matrix: &mut ByteMatrix) {
 // Embed the lonely dark dot at left bottom corner. JISX0510:2004 (p.46)
 pub fn embedDarkDotAtLeftBottomCorner(matrix: &mut ByteMatrix) -> Result<()> {
     if matrix.get(8, matrix.getHeight() - 8) == 0 {
-        return Err(Error::WRITER);
+        return Err(Error::Internal(
+            "matrix lonely dark dot JISX0510:2004 (p.46) already zero".into(),
+        ));
     }
     matrix.set(8, matrix.getHeight() - 8, 1);
     Ok(())
@@ -420,7 +431,14 @@ pub fn embedHorizontalSeparationPattern(
 ) -> Result<()> {
     for x in 0..8 {
         if !isEmpty(matrix.get(xStart + x, yStart)) {
-            return Err(Error::WRITER);
+            return Err(Error::Internal(
+                format!(
+                    "horizontal separation pattern bit could not be set: ({},{}) not empty",
+                    xStart + x,
+                    yStart
+                )
+                .into(),
+            ));
         }
         matrix.set(xStart + x, yStart, 0);
     }
@@ -434,7 +452,14 @@ pub fn embedVerticalSeparationPattern(
 ) -> Result<()> {
     for y in 0..7 {
         if !isEmpty(matrix.get(xStart, yStart + y)) {
-            return Err(Error::WRITER);
+            return Err(Error::Internal(
+                format!(
+                    "vertical separation pattern bit could not be set: ({},{}) not empty",
+                    xStart,
+                    yStart + y
+                )
+                .into(),
+            ));
         }
         matrix.set(xStart, yStart + y, 0);
     }

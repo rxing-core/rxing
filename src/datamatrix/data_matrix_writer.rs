@@ -60,19 +60,27 @@ impl Writer for DataMatrixWriter {
         hints: &EncodeHints,
     ) -> Result<crate::common::BitMatrix> {
         if contents.is_empty() {
-            return Err(Error::illegal_argument_with("Found empty contents"));
+            return Err(Error::InvalidInput {
+                field: "contents",
+                value: "[empty]".into(),
+                cause: None,
+            });
         }
 
         if format != &BarcodeFormat::DATA_MATRIX {
-            return Err(Error::illegal_argument_with(format!(
-                "Can only encode DATA_MATRIX, but got {format:?}"
-            )));
+            return Err(Error::InvalidInput {
+                field: "format",
+                value: format.to_string(),
+                cause: None,
+            });
         }
 
         if width < 0 || height < 0 {
-            return Err(Error::illegal_argument_with(format!(
-                "Requested dimensions can't be negative: {width}x{height}"
-            )));
+            return Err(Error::InvalidInput {
+                field: "dimensions",
+                value: format!("{}x{}", width, height),
+                cause: None,
+            });
         }
 
         // Try to get force shape & min / max size
@@ -121,7 +129,7 @@ impl Writer for DataMatrixWriter {
             true,
         )?
         else {
-            return Err(Error::format_with("symbol info is bad"));
+            return Err(Error::Format("symbol info is bad".into()));
         };
 
         //2. step: ECC generation

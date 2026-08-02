@@ -487,8 +487,7 @@ fn test_issue_50_2() {
 fn issue_51_multiple_detection() {
     use image::DynamicImage;
     use rxing::{
-        BinaryBitmap, BufferedImageLuminanceSource, DecodeHints, Error,
-        MultiUseMultiFormatReader,
+        BinaryBitmap, BufferedImageLuminanceSource, DecodeHints, Error, MultiUseMultiFormatReader,
         common::HybridBinarizer,
         multi::{GenericMultipleBarcodeReader, MultipleBarcodeReader},
     };
@@ -559,13 +558,13 @@ fn issue_58() {
 
     let mut hints: DecodeHints =
         DecodeHints::default().with(rxing::DecodeHintValue::TryHarder(true));
-        assert!(
-matches!(rxing::helpers::detect_multiple_in_file_with_hints(
+    assert!(matches!(
+        rxing::helpers::detect_multiple_in_file_with_hints(
             "test_resources/blackbox/github_issue_cases/empty_issue_58.png",
             &mut hints
         ),
-    Err(Error::NotFound))
-        );
+        Err(Error::NotFound)
+    ));
     // assert!(
     //     rxing::helpers::detect_multiple_in_file_with_hints(
     //         "test_resources/blackbox/github_issue_cases/empty_issue_58.png",
@@ -576,10 +575,13 @@ matches!(rxing::helpers::detect_multiple_in_file_with_hints(
 
     hints.PureBarcode = Some(true);
 
-assert!(matches!(rxing::helpers::detect_multiple_in_file_with_hints(
+    assert!(matches!(
+        rxing::helpers::detect_multiple_in_file_with_hints(
             "test_resources/blackbox/github_issue_cases/empty_issue_58.png",
             &mut hints
-        ), Err(Error::NotFound)));
+        ),
+        Err(Error::NotFound)
+    ));
 
     // assert!(
     //     rxing::helpers::detect_multiple_in_file_with_hints(

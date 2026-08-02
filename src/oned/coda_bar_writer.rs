@@ -57,26 +57,32 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             let endsAlt = ALT_START_END_CHARS.contains(&lastChar);
             if startsNormal {
                 if !endsNormal {
-                    return Err(Error::illegal_argument_with(format!(
-                        "Invalid start/end guards: {contents}"
-                    )));
+                    return Err(Error::InvalidInput {
+                        field: "contents".into(),
+                        value: format!("Invalid start/end guards: {contents}"),
+                        cause: None,
+                    });
                 }
                 // else already has valid start/end
                 contents.to_owned()
             } else if startsAlt {
                 if !endsAlt {
-                    return Err(Error::illegal_argument_with(format!(
-                        "Invalid start/end guards: {contents}"
-                    )));
+                    return Err(Error::InvalidInput {
+                        field: "contents".into(),
+                        value: format!("Invalid start/end guards: {contents}"),
+                        cause: None,
+                    });
                 }
                 // else already has valid start/end
                 contents.to_owned()
             } else {
                 // Doesn't start with a guard
                 if endsNormal || endsAlt {
-                    return Err(Error::illegal_argument_with(format!(
-                        "Invalid start/end guards: {contents}"
-                    )));
+                    return Err(Error::InvalidInput {
+                        field: "contents".into(),
+                        value: format!("Invalid start/end guards: {contents}"),
+                        cause: None,
+                    });
                 }
                 // else doesn't end with guard either, so add a default
                 format!("{DEFAULT_GUARD}{contents}{DEFAULT_GUARD}")
@@ -91,9 +97,11 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             } else if CHARS_WHICH_ARE_TEN_LENGTH_EACH_AFTER_DECODED.contains(&ch) {
                 resultLength += 10;
             } else {
-                return Err(Error::illegal_argument_with(format!(
-                    "Cannot encode : '{ch}'"
-                )));
+                return Err(Error::InvalidInput {
+                    field: "contents".into(),
+                    value: format!("Cannot encode : '{ch}'"),
+                    cause: None,
+                });
             }
         }
         // A blank is placed between each character.

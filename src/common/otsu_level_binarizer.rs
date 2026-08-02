@@ -24,7 +24,9 @@ impl<LS: LuminanceSource> OtsuLevelBinarizer<LS> {
                 source.get_height() as u32,
                 source.get_matrix().into_owned(),
             ) else {
-                return Err(Exceptions::ILLEGAL_ARGUMENT);
+                return Err(Exceptions::Internal(
+                    "could not build build image from buffer".into(),
+                ));
             };
             buff
         };

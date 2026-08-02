@@ -106,9 +106,9 @@ impl ASCIIEncoder {
             let num = (digit1 as u8 - 48) * 10 + (digit2 as u8 - 48);
             Ok((num + 130) as char)
         } else {
-            Err(Error::illegal_argument_with(format!(
-                "not digits: {digit1}{digit2}"
-            )))
+            Err(Error::Internal(
+                format!("not digits: {digit1}{digit2}").into(),
+            ))
         }
     }
 }

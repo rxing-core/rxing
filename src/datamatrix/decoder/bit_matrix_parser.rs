@@ -456,8 +456,8 @@ impl BitMatrixParser {
         let symbolSizeColumns = version.getSymbolSizeColumns();
 
         if bitMatrix.getHeight() != symbolSizeRows {
-            return Err(Error::illegal_argument_with(
-                "Dimension of bitMatrix must match the version size",
+            return Err(Error::Internal(
+                "dimension of bitMatrix must match the version size".into(),
             ));
         }
 

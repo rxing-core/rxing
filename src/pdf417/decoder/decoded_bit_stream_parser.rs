@@ -763,8 +763,7 @@ fn numericCompaction(
 fn decodeBase900toBase10(codewords: &[u32], count: usize) -> Result<String> {
     let mut result = 0.to_biguint().ok_or(Error::ARITHMETIC)?;
     for i in 0..count {
-        result +=
-            &EXP900[count - i - 1] * (codewords[i].to_biguint().ok_or(Error::ARITHMETIC)?);
+        result += &EXP900[count - i - 1] * (codewords[i].to_biguint().ok_or(Error::ARITHMETIC)?);
     }
     let resultString = result.to_string();
     if !resultString.starts_with('1') {

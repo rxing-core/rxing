@@ -53,9 +53,7 @@ impl GenericGFPoly {
         i32: From<T>,
     {
         if coefficients.is_empty() {
-            return Err(Error::illegal_argument_with(
-                "coefficients cannot be empty",
-            ));
+            return Err(Error::Internal("coefficients cannot be empty".into()));
         }
         // The only generic work is widening to `i32`; trimming is done once in `from_coefficients`.
         Self::from_coefficients(field, coefficients.iter().map(|&c| i32::from(c)).collect())
@@ -137,8 +135,8 @@ impl GenericGFPoly {
 
     pub fn addOrSubtract(&self, other: &GenericGFPoly) -> Result<GenericGFPoly> {
         if self.field != other.field {
-            return Err(Error::illegal_argument_with(
-                "GenericGFPolys do not have same GenericGF field",
+            return Err(Error::Internal(
+                "GenericGFPolys do not have same GenericGF field".into(),
             ));
         }
         if self.isZero() {
@@ -174,8 +172,8 @@ impl GenericGFPoly {
     pub fn multiply(&self, other: &GenericGFPoly) -> Result<GenericGFPoly> {
         if self.field != other.field {
             //if (!field.equals(other.field)) {
-            return Err(Error::illegal_argument_with(
-                "GenericGFPolys do not have same GenericGF field",
+            return Err(Error::Internal(
+                "GenericGFPolys do not have same GenericGF field".into(),
             ));
         }
         if self.isZero() || other.isZero() {
@@ -242,12 +240,12 @@ impl GenericGFPoly {
 
     pub fn divide(&self, other: &GenericGFPoly) -> Result<(GenericGFPoly, GenericGFPoly)> {
         if self.field != other.field {
-            return Err(Error::illegal_argument_with(
-                "GenericGFPolys do not have same GenericGF field",
+            return Err(Error::Internal(
+                "GenericGFPolys do not have same GenericGF field".into(),
             ));
         }
         if other.isZero() {
-            return Err(Error::illegal_argument_with("Divide by 0"));
+            return Err(Error::Internal("Divide by 0".into()));
         }
 
         let mut quotient = self.getZero();
@@ -256,7 +254,11 @@ impl GenericGFPoly {
         let denominator_leading_term = other.getCoefficient(other.getDegree());
         let inverse_denominator_leading_term = match self.field.inverse(denominator_leading_term) {
             Ok(val) => val,
-            Err(_issue) => return Err(Error::illegal_argument_with("arithmetic issue")),
+            Err(_issue) => {
+                return Err(Error::Checksum(
+                    "inverse_denominator_leading_term could not be inversed".into(),
+                ));
+            }
         };
 
         while remainder.getDegree() >= other.getDegree() && !remainder.isZero() {

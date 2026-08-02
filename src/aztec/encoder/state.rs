@@ -81,14 +81,14 @@ impl State {
             token.add(0, 3); // 0: FNC1
         } else */
         if eci as u32 > 999999 {
-            return Err(Error::illegal_argument_with(
-                "ECI code must be between 0 and 999999",
-            ));
+            return Err(Error::InvalidInput {
+                field: "ECI code",
+                value: "ECI code must be between 0 and 999999".into(),
+                cause: None,
+            });
             // throw new IllegalArgumentException("ECI code must be between 0 and 999999");
         } else {
-            let Ok(eci_digits) = CharacterSet::ISO8859_1.encode(&format!("{eci}")) else {
-                return Err(Error::ILLEGAL_ARGUMENT);
-            };
+            let eci_digits = CharacterSet::ISO8859_1.encode(&format!("{eci}"))?;
             // let eciDigits = Integer.toString(eci).getBytes(StandardCharsets.ISO_8859_1);
             token.add(eci_digits.len() as i32, 3); // 1-6: number of ECI digits
             for eci_digit in &eci_digits {

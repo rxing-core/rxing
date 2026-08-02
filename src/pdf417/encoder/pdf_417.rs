@@ -216,10 +216,11 @@ impl PDF417 {
         //2. step: construct data codewords
         if sourceCodeWords + errorCorrectionCodeWords + 1 > 929 {
             // +1 for symbol length CW
-            return Err(Error::writer_with(format!(
-                "Encoded message contains too many code words, message too big ({} bytes)",
-                msg.chars().count()
-            )));
+            return Err(Error::InvalidInput {
+                field: "message-length (must be less than 929 bytes)",
+                value: msg.chars().count().to_string(),
+                cause: None,
+            });
         }
         let n = sourceCodeWords + pad + 1;
         let mut sb = String::with_capacity(n as usize);
@@ -305,7 +306,14 @@ impl PDF417 {
             }
         }
 
-        dimension.ok_or(Error::writer_with("Unable to fit message in columns"))
+        dimension.ok_or(Error::InvalidInput {
+            field: "message-length",
+            value: format!(
+                "code word count: {}, ec codewords count: {}",
+                sourceCodeWords, errorCorrectionCodeWords
+            ),
+            cause: None,
+        })
     }
 
     /**

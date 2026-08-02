@@ -123,10 +123,14 @@ impl GenericGF {
      */
     pub const fn log(&self, a: i32) -> Result<i32> {
         if a == 0 {
-            return Err(Error::ILLEGAL_ARGUMENT);
+            return Err(Error::Internal(std::borrow::Cow::Borrowed(
+                "log of 0 impossible",
+            )));
         }
         if (a as usize) >= self.size {
-            return Err(Error::ILLEGAL_ARGUMENT);
+            return Err(Error::Internal(std::borrow::Cow::Borrowed(
+                "log argument out of range",
+            )));
         }
         Ok(self.logTable[a as usize] as i32)
     }
@@ -140,7 +144,9 @@ impl GenericGF {
         }
         let log_t_loc: usize = a as usize;
         if log_t_loc >= self.size {
-            return Err(Error::ILLEGAL_ARGUMENT);
+            return Err(Error::Internal(std::borrow::Cow::Borrowed(
+                "location out of bounds",
+            )));
         }
         let loc: usize = ((self.size as i32) - self.logTable[log_t_loc] as i32 - 1) as usize;
         Ok(self.expTable[loc] as i32)

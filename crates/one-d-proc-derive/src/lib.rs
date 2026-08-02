@@ -122,30 +122,38 @@ fn impl_one_d_writer_macro(ast: &syn::DeriveInput) -> TokenStream {
             hints: &crate::EncodeHints,
         ) -> Result<crate::common::BitMatrix, crate::Error> {
             if contents.is_empty() {
-                return Err(crate::Error::illegal_argument_with(
-                    "Found empty contents"
-                ));
+                return Err(crate::Error::InvalidInput {
+                    field: "contents".into(),
+                    value: "Found empty contents".into(),
+                    cause: None,
+                });
             }
 
             if width < 0 || height < 0 {
-                return Err(crate::Error::illegal_argument_with(format!(
-                    "Negative size is not allowed. Input: {}x{}",
-                    width, height
-                )));
+                return Err(crate::Error::InvalidInput {
+                    field: "size".into(),
+                    value: "Negative size is not allowed".into(),
+                    cause: None,
+                });
             }
             if let Some(supported_formats) = self.getSupportedWriteFormats() {
                 if !supported_formats.contains(format) {
-                    return Err(crate::Error::illegal_argument_with(format!(
-                        "Can only encode {:?}, but got {:?}",
-                        supported_formats, format
-                    )));
+                    return Err(crate::Error::InvalidInput {
+                        field: "format".into(),
+                        value: format!("Can only encode {:?}, but got {:?}", supported_formats, format),
+                        cause: None,
+                    });
                 }
             }
 
             let mut sides_margin = self.getDefaultMargin();
             if let Some(margin) = &hints.Margin {
                 sides_margin = margin.parse::<u32>().map_err(|_| {
-                    crate::Error::illegal_argument_with(format!("Invalid margin value: '{}'", margin))
+                    crate::Error::InvalidInput {
+                        field: "margin".into(),
+                        value: format!("Invalid margin value: '{}'", margin),
+                        cause: None,
+                    }
                 })?;
             }
 

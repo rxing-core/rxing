@@ -58,9 +58,11 @@ impl Writer for PDF417Writer {
         hints: &EncodeHints,
     ) -> Result<crate::common::BitMatrix> {
         if format != &BarcodeFormat::PDF_417 {
-            return Err(Error::illegal_argument_with(format!(
-                "Can only encode PDF_417, but got {format}"
-            )));
+            return Err(Error::InvalidInput {
+                field: "format",
+                value: format!("{format:?}"),
+                cause: None,
+            });
         }
 
         let mut encoder = PDF417::new();
@@ -157,8 +159,7 @@ impl PDF417Writer {
             if rotated {
                 scaledMatrix = Self::rotateArray(&scaledMatrix);
             }
-            return Self::bitMatrixFromBitArray(&scaledMatrix, margin)
-                .ok_or(Error::ILLEGAL_STATE);
+            return Self::bitMatrixFromBitArray(&scaledMatrix, margin).ok_or(Error::ILLEGAL_STATE);
         }
 
         Self::bitMatrixFromBitArray(&originalScale, margin).ok_or(Error::ILLEGAL_STATE)

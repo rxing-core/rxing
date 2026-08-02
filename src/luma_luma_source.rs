@@ -120,8 +120,8 @@ impl LuminanceSource for Luma8Source<'_> {
 
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
         if left + width > self.get_width() || top + height > self.get_height() {
-            return Err(crate::Error::illegal_argument_with(
-                "Crop rectangle does not fit within image data.",
+            return Err(crate::Error::Internal(
+                "crop rectangle does not fit within image data".into(),
             ));
         }
 
@@ -156,8 +156,8 @@ impl LuminanceSource for Luma8Source<'_> {
     }
 
     fn rotate_counter_clockwise_45(&self) -> Result<Self> {
-        Err(crate::Error::unsupported_operation_with(
-            "This luminance source does not support rotation by 45 degrees.",
+        Err(crate::Error::Internal(
+            "this luminance source does not support rotation by 45 degrees".into(),
         ))
     }
 
@@ -171,8 +171,8 @@ impl<'a> Luma8Source<'a> {
         // checked_mul so the product can't silently wrap on 32-bit/wasm targets
         // (where usize is 32-bit) and accept a mismatched buffer.
         if (width as usize).checked_mul(height as usize) != Some(source.len()) {
-            return Err(crate::Error::illegal_argument_with(
-                "Dimensions do not match the data length.",
+            return Err(crate::Error::Internal(
+                "dimensions do not match the data length".into(),
             ));
         }
         Ok(Self {
@@ -188,8 +188,8 @@ impl<'a> Luma8Source<'a> {
     /// entry point: crops of the result stay views into `source`.
     pub fn new_with_slice(source: &'a [u8], width: u32, height: u32) -> Result<Self> {
         if (width as usize).checked_mul(height as usize) != Some(source.len()) {
-            return Err(crate::Error::illegal_argument_with(
-                "Dimensions do not match the data length.",
+            return Err(crate::Error::Internal(
+                "dimensions do not match the data length".into(),
             ));
         }
         Ok(Self {

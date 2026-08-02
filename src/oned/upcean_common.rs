@@ -33,8 +33,7 @@ pub fn getStandardUPCEANChecksum(s: &[char]) -> Result<u32> {
     let mut i = length as isize - 1;
     while i >= 0 {
         // for (int i = length - 1; i >= 0; i -= 2) {
-        let digit =
-            (*s.get(i as usize).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as i32) - ('0' as i32);
+        let digit = (*s.get(i as usize).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as i32) - ('0' as i32);
         if !(0..=9).contains(&digit) {
             return Err(Error::FORMAT);
         }
@@ -46,8 +45,7 @@ pub fn getStandardUPCEANChecksum(s: &[char]) -> Result<u32> {
     let mut i = length as isize - 2;
     while i >= 0 {
         // for (int i = length - 2; i >= 0; i -= 2) {
-        let digit =
-            (*s.get(i as usize).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as i32) - ('0' as i32);
+        let digit = (*s.get(i as usize).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as i32) - ('0' as i32);
         if !(0..=9).contains(&digit) {
             return Err(Error::FORMAT);
         }

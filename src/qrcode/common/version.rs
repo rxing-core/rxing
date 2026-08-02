@@ -157,7 +157,7 @@ impl Version {
 
     pub fn getVersionForNumber(versionNumber: u32) -> Result<VersionRef> {
         if !(1..=40).contains(&versionNumber) {
-            return Err(Error::illegal_argument_with("version out of spec"));
+            return Err(Error::Internal("version out of spec".into()));
         }
         Ok(&VERSIONS[versionNumber as usize - 1])
     }

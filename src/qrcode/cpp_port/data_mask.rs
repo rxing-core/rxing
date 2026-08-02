@@ -19,9 +19,7 @@ pub fn GetDataMaskBit(maskIndex: u32, x: u32, y: u32, isMicro: Option<bool>) -> 
     let mut maskIndex = maskIndex;
     if isMicro {
         if !(0..4).contains(&maskIndex) {
-            return Err(Error::illegal_argument_with(
-                "QRCode maskIndex out of range",
-            ));
+            return Err(Error::Internal("QRCode maskIndex out of range".into()));
         }
         maskIndex = [1, 4, 6, 7][maskIndex as usize]; // map from MQR to QR indices
     }
@@ -38,9 +36,7 @@ pub fn GetDataMaskBit(maskIndex: u32, x: u32, y: u32, isMicro: Option<bool>) -> 
         _ => {}
     }
 
-    Err(Error::illegal_argument_with(
-        "QRCode maskIndex out of range",
-    ))
+    Err(Error::Internal("QRCode maskIndex out of range".into()))
 }
 
 #[allow(dead_code)]

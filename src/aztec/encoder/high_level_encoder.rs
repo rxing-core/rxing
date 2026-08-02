@@ -244,18 +244,7 @@ impl HighLevelEncoder {
             //} && eci != CharacterSetECI::Cp1252 {
             initial_state = initial_state.appendFLGn(self.charset.into())?;
         }
-        // } else {
-        //     return Err(Exceptions::illegal_argument_with(
-        //         "No ECI code for character set",
-        //     ));
-        // }
-        // if self.charset != null {
-        //   CharacterSetECI eci = CharacterSetECI.getCharacterSetECI(charset);
-        //   if (null == eci) {
-        //     throw new IllegalArgumentException("No ECI code for character set " + charset);
-        //   }
-        //   initialState = initialState.appendFLGn(eci.getValue());
-        // }
+
         let mut states = vec![initial_state];
         let mut index = 0;
         while index < self.text.len() {

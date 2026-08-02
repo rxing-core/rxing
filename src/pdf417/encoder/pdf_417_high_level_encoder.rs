@@ -177,16 +177,21 @@ pub fn encodeHighLevel(
 ) -> Result<String> {
     let mut encoding = encoding;
     if msg.is_empty() {
-        return Err(Error::writer_with("Empty message not allowed"));
+        return Err(Error::InvalidInput {
+            field: "encode content",
+            value: "[empty]".into(),
+            cause: None,
+        });
     }
 
     if encoding.is_none() && !autoECI {
         for ch in msg.chars() {
             if ch as u32 > 255 {
-                return Err(Error::writer_with(format!(
-                    "Non-encodable character detected: {} (Unicode: {}). Consider specifying EncodeHintType.PDF417_AUTO_ECI and/or EncodeTypeHint.CHARACTER_SET.",
-                    ch as u32, ch
-                )));
+                return Err(Error::InvalidInput {
+                    field: "non-encodable character detected Consider specifying EncodeHintType.PDF417_AUTO_ECI and/or EncodeTypeHint.CHARACTER_SET",
+                    value: ch.into(),
+                    cause: None,
+                });
             }
         }
     }
@@ -397,8 +402,7 @@ fn encodeText<T: ECIInput + ?Sized>(
                     } else {
                         tmp.push(29 as char); //ps
                         tmp.push(
-                            char::from_u32(PUNCTUATION[ch as usize] as u32)
-                                .ok_or(Error::PARSE)?,
+                            char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Error::PARSE)?,
                         );
                     }
                 }
@@ -421,17 +425,14 @@ fn encodeText<T: ECIInput + ?Sized>(
                     } else {
                         tmp.push(29 as char); //ps
                         tmp.push(
-                            char::from_u32(PUNCTUATION[ch as usize] as u32)
-                                .ok_or(Error::PARSE)?,
+                            char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Error::PARSE)?,
                         );
                     }
                 }
                 // break;
                 SUBMODE_MIXED => {
                     if isMixed(ch) {
-                        tmp.push(
-                            char::from_u32(MIXED[ch as usize] as u32).ok_or(Error::PARSE)?,
-                        );
+                        tmp.push(char::from_u32(MIXED[ch as usize] as u32).ok_or(Error::PARSE)?);
                     } else if isAlphaUpper(ch) {
                         submode = SUBMODE_ALPHA;
                         tmp.push(28 as char); //al
@@ -451,8 +452,7 @@ fn encodeText<T: ECIInput + ?Sized>(
                         }
                         tmp.push(29 as char); //ps
                         tmp.push(
-                            char::from_u32(PUNCTUATION[ch as usize] as u32)
-                                .ok_or(Error::PARSE)?,
+                            char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Error::PARSE)?,
                         );
                     }
                 }
@@ -461,8 +461,7 @@ fn encodeText<T: ECIInput + ?Sized>(
                 {
                     if isPunctuation(ch) {
                         tmp.push(
-                            char::from_u32(PUNCTUATION[ch as usize] as u32)
-                                .ok_or(Error::PARSE)?,
+                            char::from_u32(PUNCTUATION[ch as usize] as u32).ok_or(Error::PARSE)?,
                         );
                     } else {
                         submode = SUBMODE_ALPHA;
@@ -786,10 +785,11 @@ fn determineConsecutiveBinaryCount<T: ECIInput + ?Sized + 'static>(
                     return Err(Error::illegal_state_with("expected NoECIInput type"));
                 }
                 let ch = input.charAt(idx)?;
-                return Err(Error::writer_with(format!(
-                    "Non-encodable character detected: {} (Unicode: {})",
-                    ch, ch as u32
-                )));
+                return Err(Error::InvalidInput {
+                    field: "non-encodable character detected",
+                    value: format!("{} (Unicode: {})", ch, ch as u32),
+                    cause: None,
+                });
             }
         }
         idx += 1;
@@ -809,9 +809,11 @@ fn encodingECI(eci: Eci, sb: &mut String) -> Result<()> {
         sb.push(char::from_u32(ECI_USER_DEFINED).ok_or(Error::PARSE)?);
         sb.push(char::from_u32((810900 - (eci as i32)) as u32).ok_or(Error::PARSE)?);
     } else {
-        return Err(Error::writer_with(format!(
-            "ECI number not in valid range from 0..811799, but was {eci}"
-        )));
+        return Err(Error::InvalidInput {
+            field: "eci number (not in valid range (0..811799))",
+            value: eci.to_string(),
+            cause: None,
+        });
     }
     Ok(())
 }
@@ -823,10 +825,7 @@ impl ECIInput for NoECIInput {
     }
 
     fn charAt(&self, index: usize) -> Result<char> {
-        self.0
-            .get(index)
-            .copied()
-            .ok_or(Error::INDEX_OUT_OF_BOUNDS)
+        self.0.get(index).copied().ok_or(Error::INDEX_OUT_OF_BOUNDS)
     }
 
     fn subSequence(&self, start: usize, end: usize) -> Result<Vec<char>> {

@@ -92,9 +92,11 @@ impl Writer for MultiFormatWriter {
             #[cfg(feature = "aztec")]
             BarcodeFormat::AZTEC => Box::<AztecWriter>::default(),
             _ => {
-                return Err(Error::illegal_argument_with(format!(
-                    "No encoder available for format {format:?}"
-                )));
+                return Err(Error::InvalidInput {
+                    field: "format",
+                    value: format.to_string(),
+                    cause: None,
+                });
             }
         };
 

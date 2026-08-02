@@ -33,14 +33,20 @@ impl OneDimensionalCodeWriter for ITFWriter {
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
         let length = contents.chars().count();
         if length % 2 != 0 {
-            return Err(Error::illegal_argument_with(
-                "The length of the input should be even",
-            ));
+            return Err(Error::InvalidInput {
+                field: "contents".into(),
+                value: "The length of the input should be even".into(),
+                cause: None,
+            });
         }
         if length > 80 {
-            return Err(Error::illegal_argument_with(format!(
-                "Requested contents should be less than 80 digits long, but got {length}"
-            )));
+            return Err(Error::InvalidInput {
+                field: "contents".into(),
+                value: format!(
+                    "Requested contents should be less than 80 digits long, but got {length}"
+                ),
+                cause: None,
+            });
         }
 
         Self::checkNumeric(contents)?;

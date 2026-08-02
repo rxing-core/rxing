@@ -36,9 +36,11 @@ impl OneDimensionalCodeWriter for Code93Writer {
         let mut contents = Self::convertToExtended(contents)?;
         let length = contents.chars().count();
         if length > 80 {
-            return Err(Error::illegal_argument_with(format!(
-                "Requested contents should be less than 80 digits long after converting to extended encoding, but got {length}"
-            )));
+            return Err(Error::InvalidInput {
+                field: "contents (encoded < 80)".into(),
+                value: contents.len().to_string(),
+                cause: None,
+            });
         }
 
         //length of code + 2 start/stop characters + 2 checksums, each of 9 bits, plus a termination bar
@@ -51,12 +53,9 @@ impl OneDimensionalCodeWriter for Code93Writer {
 
         for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            let Some(indexInString) = code_93::ALPHABET_STRING.find(
-                contents
-                    .chars()
-                    .nth(i)
-                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
-            ) else {
+            let Some(indexInString) = code_93::ALPHABET_STRING
+                .find(contents.chars().nth(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?)
+            else {
                 panic!("alphabet")
             };
             pos += Self::appendPattern(
@@ -169,15 +168,13 @@ impl Code93Writer {
             } else if character as u32 <= 26 {
                 // SOH - SUB: ($)A - ($)Z
                 extendedContent.push('a');
-                extendedContent.push(
-                    char::from_u32('A' as u32 + character as u32 - 1).ok_or(Error::PARSE)?,
-                );
+                extendedContent
+                    .push(char::from_u32('A' as u32 + character as u32 - 1).ok_or(Error::PARSE)?);
             } else if character as u32 <= 31 {
                 // ESC - US: (%)A - (%)E
                 extendedContent.push('b');
-                extendedContent.push(
-                    char::from_u32('A' as u32 + character as u32 - 27).ok_or(Error::PARSE)?,
-                );
+                extendedContent
+                    .push(char::from_u32('A' as u32 + character as u32 - 27).ok_or(Error::PARSE)?);
             } else if character == ' ' || character == '$' || character == '%' || character == '+' {
                 // space $ % +
                 extendedContent.push(character);
@@ -231,9 +228,11 @@ impl Code93Writer {
                         .ok_or(Error::PARSE)?,
                 );
             } else {
-                return Err(Error::illegal_argument_with(format!(
-                    "Requested content contains a non-encodable character: '{character}'"
-                )));
+                return Err(Error::InvalidInput {
+                    field: "content".into(),
+                    value: format!("contains a non-encodable character: '{character}'"),
+                    cause: None,
+                });
             }
         }
 

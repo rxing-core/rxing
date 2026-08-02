@@ -53,15 +53,19 @@ impl OneDimensionalCodeWriter for EAN8Writer {
             }
             8 => {
                 if !upcean_common::checkStandardUPCEANChecksum(&contents)? {
-                    return Err(Error::illegal_argument_with(
-                        "Contents do not pass checksum",
-                    ));
+                    return Err(Error::InvalidInput {
+                        field: "contents",
+                        value: "do not pass checksum".into(),
+                        cause: None,
+                    });
                 }
             }
             _ => {
-                return Err(Error::illegal_argument_with(format!(
-                    "Requested contents should be 7 or 8 digits long, but got {length}"
-                )));
+                return Err(Error::InvalidInput {
+                    field: "contents",
+                    value: format!("should be 7 or 8 digits long, but got {length}"),
+                    cause: None,
+                });
             }
         }
 

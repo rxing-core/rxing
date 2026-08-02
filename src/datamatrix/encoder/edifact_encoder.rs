@@ -149,9 +149,7 @@ impl EdifactEncoder {
     fn encodeToCodewords(sb: &str) -> Result<String> {
         let len = sb.chars().count();
         if len == 0 {
-            return Err(Error::illegal_state_with(
-                "StringBuilder must not be empty",
-            ));
+            return Err(Error::illegal_state_with("StringBuilder must not be empty"));
         }
         let c1 = sb.chars().next().ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
         let c2 = if len >= 2 {

@@ -60,9 +60,11 @@ impl<'a> EncoderContext<'_> {
                 Error::parse_with(format!("round trip decode should always work: {e}"))
             })?
         } else {
-            return Err(Error::illegal_argument_with(
-                "Message contains characters outside ISO-8859-1 encoding.",
-            ));
+            return Err(Error::InvalidInput {
+                field: "message (outside ISO-8859-1)".into(),
+                value: msg.into(),
+                cause: None,
+            });
         };
         Ok(Self {
             symbol_lookup: SymbolInfoLookup::new(),

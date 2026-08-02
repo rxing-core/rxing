@@ -84,7 +84,13 @@ pub fn encode_with_hints(
     let mut has_encoding_hint = hints.CharacterSet.is_some();
     if has_encoding_hint {
         if let Some(v) = &hints.CharacterSet {
-            encoding = Some(CharacterSet::get_character_set_by_name(v).ok_or(Error::WRITER)?)
+            encoding = Some(CharacterSet::get_character_set_by_name(v).ok_or(
+                Error::InvalidInput {
+                    field: "character set hint",
+                    value: v.clone(),
+                    cause: None,
+                },
+            )?)
         }
     }
 
@@ -152,9 +158,11 @@ pub fn encode_with_hints(
             version = Version::getVersionForNumber(versionNumber)?;
             let bitsNeeded = calculateBitsNeeded(mode, &header_bits, &data_bits, version);
             if !willFit(bitsNeeded, version, &ec_level) {
-                return Err(Error::writer_with(
-                    "Data too big for requested version",
-                ));
+                return Err(Error::InvalidInput {
+                    field: "data too big for requested version",
+                    value: bitsNeeded.to_string(),
+                    cause: None,
+                });
             }
         } else {
             version = recommendVersion(&ec_level, mode, &header_bits, &data_bits)?;
@@ -355,9 +363,11 @@ fn chooseVersion(numInputBits: u32, ecLevel: &ErrorCorrectionLevel) -> Result<Ve
             return Ok(version);
         }
     }
-    Err(Error::writer_with(format!(
-        "data too big {numInputBits}/{ecLevel:?}"
-    )))
+    Err(Error::InvalidInput {
+        field: "data size",
+        value: format!("data too big {numInputBits}/{ecLevel:?}"),
+        cause: None,
+    })
 }
 
 /**
@@ -383,9 +393,11 @@ pub fn willFit(numInputBits: u32, version: VersionRef, ecLevel: &ErrorCorrection
 pub fn terminateBits(num_data_bytes: u32, bits: &mut BitArray) -> Result<()> {
     let capacity = num_data_bytes * 8;
     if bits.get_size() > capacity as usize {
-        return Err(Error::writer_with(format!(
-            "data bits cannot fit in the QR Code{capacity} > "
-        )));
+        return Err(Error::InvalidInput {
+            field: "data size",
+            value: format!("data bits {num_data_bytes} cannot fit in the QR Code {capacity} > "),
+            cause: None,
+        });
     }
     // Append Mode.TERMINATE if there is enough space (value is 0000)
     for _i in 0..4 {
@@ -411,7 +423,7 @@ pub fn terminateBits(num_data_bytes: u32, bits: &mut BitArray) -> Result<()> {
         bits.appendBits(if (i & 0x01) == 0 { 0xEC } else { 0x11 }, 8)?;
     }
     if bits.get_size() != capacity as usize {
-        return Err(Error::writer_with("Bits size does not equal capacity"));
+        return Err(Error::Internal("bits size does not equal capacity".into()));
     }
     Ok(())
 }
@@ -430,7 +442,7 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
     // numECBytesInBlock: &mut [u32],
 ) -> Result<(u32, u32)> {
     if block_id >= num_rsblocks {
-        return Err(Error::writer_with("Block ID too large"));
+        return Err(Error::Internal("block ID too large".into()));
     }
     // numRsBlocksInGroup2 = 196 % 5 = 1
     let num_rs_blocks_in_group2 = num_total_bytes % num_rsblocks;
@@ -451,18 +463,18 @@ pub fn getNumDataBytesAndNumECBytesForBlockID(
     // Sanity checks.
     // 26 = 26
     if num_ec_bytes_in_group1 != numEcBytesInGroup2 {
-        return Err(Error::writer_with("EC bytes mismatch"));
+        return Err(Error::Internal("EC bytes mismatch".into()));
     }
     // 5 = 4 + 1.
     if num_rsblocks != num_rs_blocks_in_group1 + num_rs_blocks_in_group2 {
-        return Err(Error::writer_with("RS blocks mismatch"));
+        return Err(Error::Internal("RS blocks mismatch".into()));
     }
     // 196 = (13 + 26) * 4 + (14 + 26) * 1
     if num_total_bytes
         != ((num_data_bytes_in_group1 + num_ec_bytes_in_group1) * num_rs_blocks_in_group1)
             + ((num_data_bytes_in_group2 + numEcBytesInGroup2) * num_rs_blocks_in_group2)
     {
-        return Err(Error::writer_with("total bytes mismatch"));
+        return Err(Error::Internal("total bytes mismatch".into()));
     }
 
     Ok(if block_id < num_rs_blocks_in_group1 {
@@ -484,8 +496,8 @@ pub fn interleaveWithECBytes(
 ) -> Result<BitArray> {
     // "bits" must have "getNumDataBytes" bytes of data.
     if bits.getSizeInBytes() as u32 != num_data_bytes {
-        return Err(Error::writer_with(
-            "Number of bits and data bytes does not match",
+        return Err(Error::Internal(
+            "number of bits and data bytes does not match".into(),
         ));
     }
 
@@ -519,7 +531,7 @@ pub fn interleaveWithECBytes(
         data_bytes_offset += numDataBytesInBlock as usize;
     }
     if num_data_bytes != data_bytes_offset as u32 {
-        return Err(Error::writer_with("Data bytes does not match offset"));
+        return Err(Error::Internal("data bytes does not match offset".into()));
     }
 
     let mut result = BitArray::new();
@@ -544,11 +556,14 @@ pub fn interleaveWithECBytes(
     }
     if num_total_bytes != result.getSizeInBytes() as u32 {
         // Should be same.
-        return Err(Error::writer_with(format!(
-            "Interleaving error: {} and {} differ.",
-            num_total_bytes,
-            result.getSizeInBytes()
-        )));
+        return Err(Error::Internal(
+            format!(
+                "Interleaving error: {} and {} differ.",
+                num_total_bytes,
+                result.getSizeInBytes()
+            )
+            .into(),
+        ));
     }
 
     Ok(result)
@@ -589,11 +604,9 @@ pub fn appendLengthInfo(
 ) -> Result<()> {
     let numBits = mode.getCharacterCountBits(version);
     if num_letters >= (1 << numBits) {
-        return Err(Error::writer_with(format!(
-            "{} is bigger than {}",
-            num_letters,
-            ((1 << numBits) - 1)
-        )));
+        return Err(Error::Internal(
+            format!("{} is bigger than {}", num_letters, ((1 << numBits) - 1)).into(),
+        ));
     }
     bits.appendBits(num_letters as BitFieldBaseType, numBits as usize)
 }
@@ -612,7 +625,7 @@ pub fn appendBytes(
         Mode::ALPHANUMERIC => appendAlphanumericBytes(content, bits),
         Mode::BYTE => append8BitBytes(content, bits, encoding),
         Mode::KANJI => appendKanjiBytes(content, bits),
-        _ => Err(Error::writer_with(format!("Invalid mode: {mode:?}"))),
+        _ => Err(Error::Internal(format!("Invalid mode: {mode:?}").into())),
     }
 }
 
@@ -654,12 +667,12 @@ pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<()>
     while i < length {
         let code1 = getAlphanumericCode(content_byte_cache[i]);
         if code1 == -1 {
-            return Err(Error::WRITER);
+            return Err(Error::Internal("invalid alphanumeric code".into()));
         }
         if i + 1 < length {
             let code2 = getAlphanumericCode(content_byte_cache[i + 1]);
             if code2 == -1 {
-                return Err(Error::WRITER);
+                return Err(Error::Internal("invalid alphanumeric code".into()));
             }
             // Encode two alphanumeric letters in 11 bits.
             bits.appendBits((code1 as i16 * 45 + code2 as i16) as BitFieldBaseType, 11)?;
@@ -674,9 +687,7 @@ pub fn appendAlphanumericBytes(content: &str, bits: &mut BitArray) -> Result<()>
 }
 
 pub fn append8BitBytes(content: &str, bits: &mut BitArray, encoding: CharacterSet) -> Result<()> {
-    let bytes = encoding
-        .encode(content)
-        .map_err(|e| Error::writer_with(format!("error {e}")))?;
+    let bytes = encoding.encode(content)?;
     for b in bytes {
         bits.appendBits(b as BitFieldBaseType, 8)?;
     }
@@ -686,11 +697,9 @@ pub fn append8BitBytes(content: &str, bits: &mut BitArray, encoding: CharacterSe
 pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<()> {
     let sjis = &SHIFT_JIS_CHARSET;
 
-    let bytes = sjis
-        .encode(content)
-        .map_err(|e| Error::writer_with(format!("error {e}")))?;
+    let bytes = sjis.encode(content)?;
     if bytes.len() % 2 != 0 {
-        return Err(Error::writer_with("Kanji byte size not even"));
+        return Err(Error::Internal("Kanji byte size not even".into()));
     }
     let max_i = bytes.len() - 1; // bytes.length must be even
     let mut i = 0;
@@ -705,7 +714,7 @@ pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<()> {
             subtracted = code as i32 - 0xc140;
         }
         if subtracted == -1 {
-            return Err(Error::writer_with("Invalid byte sequence"));
+            return Err(Error::Internal("Invalid byte sequence".into()));
         }
         let encoded = ((subtracted >> 8) * 0xc0) + (subtracted & 0xff);
         bits.appendBits(encoded as BitFieldBaseType, 13)?;

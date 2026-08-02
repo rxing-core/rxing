@@ -101,11 +101,9 @@ impl OneDReader for Code39Reader {
             let max = cached_row_result.len() - 1;
             let mut total = 0;
             for i in 0..max {
-                if let Some(pos) = ALPHABET_STRING.find(
-                    *cached_row_result
-                        .get(i)
-                        .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
-                ) {
+                if let Some(pos) = ALPHABET_STRING
+                    .find(*cached_row_result.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?)
+                {
                     total += pos;
                 }
             }
@@ -318,9 +316,7 @@ impl Code39Reader {
         while i < length {
             // for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            let c = *cached_encoded
-                .get(i)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+            let c = *cached_encoded.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
             if c == '+' || c == '$' || c == '%' || c == '/' {
                 let next = *cached_encoded
                     .get(i + 1)

@@ -70,7 +70,9 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
             DEFAULT_DOWNSCALE_THRESHHOLD,
             DEFAULT_DOWNSCALE_FACTOR,
         )
-        .ok_or(Error::ILLEGAL_ARGUMENT)?;
+        .ok_or(Error::Internal(
+            "luma image pyramid construction failed".into(),
+        ))?;
 
         for layer in upscale_layers {
             pyramids.layers.push(layer);
@@ -137,7 +139,10 @@ impl<'a> LumImagePyramid<'a> {
     }
 
     fn add_layer<const N: usize>(&mut self) -> Result<()> {
-        let siv = self.layers.last().ok_or(Error::ILLEGAL_ARGUMENT)?;
+        let siv = self
+            .layers
+            .last()
+            .ok_or(Error::Internal("last layer doesn't exist?".into()))?;
 
         let mut div =
             Luma8LuminanceSource::with_empty_image(siv.get_width() / N, siv.get_height() / N);
@@ -178,9 +183,11 @@ impl<'a> LumImagePyramid<'a> {
             2 => self.add_layer::<2>(),
             3 => self.add_layer::<3>(),
             4 => self.add_layer::<4>(),
-            _ => Err(Error::illegal_argument_with(
-                "Invalid ReaderOptions::downscaleFactor",
-            )),
+            _ => Err(Error::InvalidInput {
+                field: "ReaderOptions::downscaleFactor",
+                value: factor.to_string(),
+                cause: None,
+            }),
         }
     }
 }

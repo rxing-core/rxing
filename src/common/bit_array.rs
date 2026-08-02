@@ -234,7 +234,7 @@ impl BitArray {
         self.reversed = None;
         let mut end = end;
         if end < start || end > self.size {
-            return Err(Error::ILLEGAL_ARGUMENT);
+            return Err(Error::Internal("range is invalid".into()));
         }
         if end == start {
             return Ok(());
@@ -278,7 +278,7 @@ impl BitArray {
     pub fn isRange(&self, start: usize, end: usize, value: bool) -> Result<bool> {
         let mut end = end;
         if end < start || end > self.size {
-            return Err(Error::ILLEGAL_ARGUMENT);
+            return Err(Error::Internal("range is invalid".into()));
         }
         if end == start {
             return Ok(true); // empty range matches
@@ -327,10 +327,9 @@ impl BitArray {
     pub fn appendBits(&mut self, value: BaseType, num_bits: usize) -> Result<()> {
         self.reversed = None;
         if num_bits > BASE_BITS {
-            return Err(Error::illegal_argument_with(format!(
-                "num bits must be between 0 and {}",
-                BaseType::BITS
-            )));
+            return Err(Error::Internal(
+                format!("num bits must be between 0 and {}", BaseType::BITS).into(),
+            ));
         }
 
         if num_bits == 0 {
@@ -365,7 +364,7 @@ impl BitArray {
     pub fn xor(&mut self, other: &BitArray) -> Result<()> {
         self.reversed = None;
         if self.size != other.size {
-            return Err(Error::illegal_argument_with("Sizes don't match"));
+            return Err(Error::Internal("Sizes don't match".into()));
         }
         for (lhs, rhs) in self.bits.iter_mut().zip(other.bits.iter()) {
             //for (int i = 0; i < bits.length; i++) {

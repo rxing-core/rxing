@@ -70,9 +70,9 @@ impl Mode {
             {
                 Ok(Self::HANZI)
             }
-            _ => Err(Error::illegal_argument_with(format!(
-                "{bits} is not valid"
-            ))),
+            _ => Err(Error::Internal(
+                format!("{bits} is not a valid Mode").into(),
+            )),
         }
     }
 

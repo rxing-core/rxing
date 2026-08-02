@@ -62,9 +62,11 @@ impl OneDimensionalCodeWriter for TelepenWriter {
         // Content
         for c in decodedContents.chars() {
             if c as u32 > 127 {
-                return Err(Error::illegal_argument_with(
-                    "Telepen only supports ASCII characters.",
-                ));
+                return Err(Error::InvalidInput {
+                    field: "contents".into(),
+                    value: format!("found: '{}', Telepen only supports ASCII characters", c),
+                    cause: None,
+                });
             }
 
             binary = self.add_to_binary(c, binary)
@@ -129,9 +131,7 @@ impl OneDimensionalCodeWriter for TelepenWriter {
                     resultPosition += 4;
                 }
                 "0" => {
-                    return Err(Error::illegal_argument_with(
-                        "Invalid bit combination!",
-                    ));
+                    return Err(Error::Internal("invalid bit combination!".into()));
                 }
                 _ => {
                     // B... (B.)* B...

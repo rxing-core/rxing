@@ -654,12 +654,7 @@ impl RSSExpandedReader {
             true,
         )?;
 
-        if !previousPairs.is_empty()
-            && previousPairs
-                .last()
-                .ok_or(Error::NOT_FOUND)?
-                .mustBeLast()
-        {
+        if !previousPairs.is_empty() && previousPairs.last().ok_or(Error::NOT_FOUND)?.mustBeLast() {
             return Err(Error::NOT_FOUND);
         }
 
@@ -696,9 +691,7 @@ impl RSSExpandedReader {
         } else if previousPairs.is_empty() {
             rowOffset = 0;
         } else {
-            let lastPair = previousPairs
-                .last()
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+            let lastPair = previousPairs.last().ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
             rowOffset = lastPair
                 .getFinderPattern()
                 .as_ref()

@@ -154,8 +154,10 @@ fn test_error_in_parameter_locator(data: &str) {
                 if let Err(res) = detector::Detector::new(&make_larger(&copy, 3)).detect(false) {
                     if let Error::Format(_msg) = res {
                         // all ok
+                    } else if let Error::NotFound = res {
+                        // all ok
                     } else {
-                        panic!("Only Exceptions::NotFoundException allowed, got {res}");
+                        panic!("Only Exceptions::Format allowed, got {res}");
                     }
                 } else {
                     let r = Detector::new(&make_larger(&copy, 3)).detect(false);

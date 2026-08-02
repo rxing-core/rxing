@@ -127,22 +127,6 @@ const ALOG: [u32; 255] = {
     alog_array
 };
 
-// static {
-//   //Create log and antilog table
-//   LOG = new int[256];
-//   ALOG = new int[255];
-
-//   int p = 1;
-//   for (int i = 0; i < 255; i++) {
-//     ALOG[i] = p;
-//     LOG[p] = i;
-//     p *= 2;
-//     if (p >= 256) {
-//       p ^= MODULO_VALUE;
-//     }
-//   }
-// }
-
 /**
  * Creates the ECC200 error correction for an encoded message.
  *
@@ -154,8 +138,8 @@ pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String> 
     let codewords: Vec<u8> = codewords.chars().map(|c| c as u8).collect();
 
     if codewords.len() != symbolInfo.getDataCapacity() as usize {
-        return Err(Error::illegal_argument_with(
-            "The number of codewords does not match the selected symbol",
+        return Err(Error::Internal(
+            "The number of codewords does not match the selected symbol".into(),
         ));
     }
 
@@ -201,9 +185,10 @@ fn createECCBlock(codewords: &[u8], numECWords: usize) -> Result<Vec<u8>> {
         .iter()
         .position(|&set| set == numECWords as u32)
         .ok_or_else(|| {
-            Error::illegal_argument_with(format!(
-                "Illegal number of error correction codewords specified: {numECWords}"
-            ))
+            Error::Internal(
+                format!("Illegal number of error correction codewords specified: {numECWords}")
+                    .into(),
+            )
         })?;
 
     let poly = FACTORS[table];

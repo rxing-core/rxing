@@ -97,9 +97,13 @@ fn check(contents: &str, hints: &crate::EncodeHints) -> Result<i32> {
     let length = contents.chars().count();
     // Check length
     if !(1..=80).contains(&length) {
-        return Err(Error::illegal_argument_with(format!(
-            "Contents length should be between 1 and 80 characters, but got {length}"
-        )));
+        return Err(Error::InvalidInput {
+            field: "contents".into(),
+            value: format!(
+                "Contents length should be between 1 and 80 characters, but got {length}"
+            ),
+            cause: None,
+        });
     }
 
     // Check for forced code set hint.
@@ -110,9 +114,11 @@ fn check(contents: &str, hints: &crate::EncodeHints) -> Result<i32> {
             "B" => forcedCodeSet = CODE_CODE_B as i32,
             "C" => forcedCodeSet = CODE_CODE_C as i32,
             _ => {
-                return Err(Error::illegal_argument_with(format!(
-                    "Unsupported code set hint: {codeSetHint}"
-                )));
+                return Err(Error::InvalidInput {
+                    field: "hints".into(),
+                    value: format!("Unsupported code set hint: {codeSetHint}"),
+                    cause: None,
+                });
             }
         }
     }
@@ -131,9 +137,11 @@ fn check(contents: &str, hints: &crate::EncodeHints) -> Result<i32> {
                 if c > 127 {
                     // no full Latin-1 character set available at the moment
                     // shift and manual code change are not supported
-                    return Err(Error::illegal_argument_with(format!(
-                        "Bad character in input: ASCII value={c}"
-                    )));
+                    return Err(Error::InvalidInput {
+                        field: "contents".into(),
+                        value: format!("Bad character in input: ASCII value={c}"),
+                        cause: None,
+                    });
                 }
             }
         }
@@ -146,18 +154,26 @@ fn check(contents: &str, hints: &crate::EncodeHints) -> Result<i32> {
             // allows no ascii above 95 (no lower caps, no special symbols)
             {
                 if c > 95 && c <= 127 {
-                    return Err(Error::illegal_argument_with(format!(
-                        "Bad character in input for forced code set A: ASCII value={c}"
-                    )));
+                    return Err(Error::InvalidInput {
+                        field: "contents".into(),
+                        value: format!(
+                            "Bad character in input for forced code set A: ASCII value={c}"
+                        ),
+                        cause: None,
+                    });
                 }
             }
             CODE_CODE_B_I32 =>
             // allows no ascii below 32 (terminal symbols)
             {
                 if c <= 32 {
-                    return Err(Error::illegal_argument_with(format!(
-                        "Bad character in input for forced code set B: ASCII value={c}"
-                    )));
+                    return Err(Error::InvalidInput {
+                        field: "contents".into(),
+                        value: format!(
+                            "Bad character in input for forced code set B: ASCII value={c}"
+                        ),
+                        cause: None,
+                    });
                 }
             }
             // allows only numbers and no FNC 2/3/4
@@ -168,9 +184,11 @@ fn check(contents: &str, hints: &crate::EncodeHints) -> Result<i32> {
                     || ch == ESCAPE_FNC_3
                     || ch == ESCAPE_FNC_4) =>
             {
-                return Err(Error::illegal_argument_with(format!(
-                    "Bad character in input for forced code set C: ASCII value={c}"
-                )));
+                return Err(Error::InvalidInput {
+                    field: "contents".into(),
+                    value: format!("Bad character in input for forced code set C: ASCII value={c}"),
+                    cause: None,
+                });
             }
             _ => {}
         }
@@ -243,9 +261,12 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>> {
                             // CODE_CODE_C
                             if position + 1 == length {
                                 // this is the last character, but the encoding is C, which always encodes two characers
-                                return Err(Error::illegal_argument_with(
-                                    "Bad number of characters for digit only encoding.",
-                                ));
+                                return Err(Error::InvalidInput {
+                                    field: "contents".into(),
+                                    value: "Bad number of characters for digit only encoding."
+                                        .into(),
+                                    cause: None,
+                                });
                             }
                             let s: String = contents
                                 .char_indices()
@@ -253,8 +274,10 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>> {
                                 .take(2)
                                 .map(|(_u, c)| c)
                                 .collect();
-                            patternIndex = s.parse::<isize>().map_err(|e| {
-                                Error::parse_with(format!("issue parsing {s}: {e}"))
+                            patternIndex = s.parse::<isize>().map_err(|e| Error::InvalidInput {
+                                field: "contents".into(),
+                                value: format!("issue parsing {s}: {e}"),
+                                cause: None,
                             })?;
                             position += 1;
                         } // Also incremented below
@@ -526,12 +549,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                 Latch::None => { /* skip */ }
             }
             if charset == Charset::C {
-                if contents
-                    .chars()
-                    .nth(i)
-                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
-                    == ESCAPE_FNC_1
-                {
+                if contents.chars().nth(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? == ESCAPE_FNC_1 {
                     addPattern(
                         &mut patterns,
                         CODE_FNC_1,
@@ -548,9 +566,8 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                         .collect();
                     addPattern(
                         &mut patterns,
-                        s.parse::<usize>().map_err(|e| {
-                            Error::parse_with(format!("unable to parse {s} {e}"))
-                        })?,
+                        s.parse::<usize>()
+                            .map_err(|e| Error::parse_with(format!("unable to parse {s} {e}")))?,
                         &mut checkSum,
                         &mut checkWeight,
                         i,
@@ -562,32 +579,25 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                 }
             } else {
                 // charset A or B
-                let mut patternIndex = match contents
-                    .chars()
-                    .nth(i)
-                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
-                {
-                    ESCAPE_FNC_1 => CODE_FNC_1 as isize,
-                    ESCAPE_FNC_2 => CODE_FNC_2 as isize,
-                    ESCAPE_FNC_3 => CODE_FNC_3 as isize,
-                    ESCAPE_FNC_4 => {
-                        if (charset == Charset::A && latch != Latch::Shift)
-                            || (charset == Charset::B && latch == Latch::Shift)
-                        {
-                            CODE_FNC_4_A as isize
-                        } else {
-                            CODE_FNC_4_B as isize
+                let mut patternIndex =
+                    match contents.chars().nth(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? {
+                        ESCAPE_FNC_1 => CODE_FNC_1 as isize,
+                        ESCAPE_FNC_2 => CODE_FNC_2 as isize,
+                        ESCAPE_FNC_3 => CODE_FNC_3 as isize,
+                        ESCAPE_FNC_4 => {
+                            if (charset == Charset::A && latch != Latch::Shift)
+                                || (charset == Charset::B && latch == Latch::Shift)
+                            {
+                                CODE_FNC_4_A as isize
+                            } else {
+                                CODE_FNC_4_B as isize
+                            }
                         }
-                    }
-                    _ => {
-                        contents
-                            .chars()
-                            .nth(i)
-                            .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
-                            as isize
-                            - ' ' as isize
-                    }
-                };
+                        _ => {
+                            contents.chars().nth(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as isize
+                                - ' ' as isize
+                        }
+                    };
                 if ((charset == Charset::A && latch != Latch::Shift)
                     || (charset == Charset::B && latch == Latch::Shift))
                     && patternIndex < 0
@@ -756,10 +766,14 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
             }
         }
         if minCost == u32::MAX {
-            return Err(Error::illegal_argument_with(format!(
-                "Bad character in input: ASCII value={}",
-                contents.chars().nth(position).unwrap_or('x')
-            )));
+            return Err(Error::InvalidInput {
+                field: "contents".into(),
+                value: format!(
+                    "Bad character in input: ASCII value={}",
+                    contents.chars().nth(position).unwrap_or('x')
+                ),
+                cause: None,
+            });
             // throw new IllegalArgumentException("Bad character in input: ASCII value=" + (int) contents.charAt(position));
         }
         memoizedCost[charset.ordinal()][position] = minCost;

@@ -156,9 +156,11 @@ impl MinimalEncoder {
                 Self::getVersion(Self::getVersionSize(result.getVersion()))?,
                 &self.ecLevel,
             ) {
-                return Err(Error::writer_with(format!(
-                    "Data too big for version {version}"
-                )));
+                return Err(Error::InvalidInput {
+                    field: "data too big for version",
+                    value: version.to_string(),
+                    cause: None,
+                });
             }
             Ok(result)
         } else {
@@ -184,7 +186,11 @@ impl MinimalEncoder {
                 }
             }
             if smallestRXingResult < 0 {
-                return Err(Error::writer_with("Data too big for any version"));
+                return Err(Error::InvalidInput {
+                    field: "data too big for any version",
+                    value: self.stringToEncode.len().to_string(),
+                    cause: None,
+                });
             }
             Ok(results[smallestRXingResult as usize].clone())
         }
@@ -245,9 +251,11 @@ impl MinimalEncoder {
             Some(Mode::ALPHANUMERIC) => Ok(1),
             Some(Mode::BYTE) => Ok(3),
             Some(Mode::KANJI) | None => Ok(0),
-            _ => Err(Error::illegal_argument_with(format!(
-                "Illegal mode {mode:?}"
-            ))),
+            _ => Err(Error::InvalidInput {
+                field: "illegal mode",
+                value: format!("{mode:?}"),
+                cause: None,
+            }),
         }
     }
 
@@ -257,13 +265,11 @@ impl MinimalEncoder {
         position: usize,
         edge: Option<Arc<Edge>>,
     ) -> Result<()> {
-        let vertexIndex =
-            position + edge.as_ref().ok_or(Error::FORMAT)?.characterLength as usize;
+        let vertexIndex = position + edge.as_ref().ok_or(Error::FORMAT)?.characterLength as usize;
         let modeEdges =
             &mut edges[vertexIndex][edge.as_ref().ok_or(Error::FORMAT)?.charsetEncoderIndex];
         let modeOrdinal =
-            Self::getCompactedOrdinal(Some(edge.as_ref().ok_or(Error::FORMAT)?.mode))?
-                as usize;
+            Self::getCompactedOrdinal(Some(edge.as_ref().ok_or(Error::FORMAT)?.mode))? as usize;
         if modeEdges[modeOrdinal].is_none()
             || modeEdges[modeOrdinal]
                 .as_ref()
@@ -325,7 +331,9 @@ impl MinimalEncoder {
                             self.encoders.clone(),
                             self.stringToEncode.clone(),
                         )
-                        .ok_or(Error::WRITER)?,
+                        .ok_or(Error::Internal(
+                            "edge could not be constructed (MODE:BYTE)".into(),
+                        ))?,
                     )),
                 )?;
             }
@@ -349,7 +357,9 @@ impl MinimalEncoder {
                         self.encoders.clone(),
                         self.stringToEncode.clone(),
                     )
-                    .ok_or(Error::WRITER)?,
+                    .ok_or(Error::Internal(
+                        "edge could not be constructed (MODE:KANJI)".into(),
+                    ))?,
                 )),
             )?;
         }
@@ -386,7 +396,9 @@ impl MinimalEncoder {
                         self.encoders.clone(),
                         self.stringToEncode.clone(),
                     )
-                    .ok_or(Error::WRITER)?,
+                    .ok_or(Error::Internal(
+                        "edge could not be constructed (MODE:ALPHANUMERIC)".into(),
+                    ))?,
                 )),
             )?;
         }
@@ -431,7 +443,9 @@ impl MinimalEncoder {
                         self.encoders.clone(),
                         self.stringToEncode.clone(),
                     )
-                    .ok_or(Error::WRITER)?,
+                    .ok_or(Error::Internal(
+                        "edge could not be constructed (MODE:NUMERIC)".into(),
+                    ))?,
                 )),
             )?;
         }
@@ -591,22 +605,29 @@ impl MinimalEncoder {
                 version,
                 edges[inputLength][minJ][minK]
                     .as_ref()
-                    .ok_or(Error::WRITER)?
+                    .ok_or(Error::Internal(
+                        format!("edge not found: [{inputLength}][{minJ}][{minK}]").into(),
+                    ))?
                     .clone(),
                 self.isGS1,
                 &self.ecLevel,
                 self.encoders.clone(),
                 self.stringToEncode.clone(),
             )
-            .ok_or(Error::WRITER)?)
+            .ok_or(Error::Internal(
+                "RXingResultList could not be constructed".into(),
+            ))?)
         } else {
-            Err(Error::writer_with(format!(
-                r#"Internal error: failed to encode "{}"#,
-                self.stringToEncode
-                    .iter()
-                    .map(String::from)
-                    .collect::<String>()
-            )))
+            Err(Error::Internal(
+                format!(
+                    r#"Internal error: failed to encode "{}"#,
+                    self.stringToEncode
+                        .iter()
+                        .map(String::from)
+                        .collect::<String>()
+                )
+                .into(),
+            ))
         }
     }
 }
@@ -1016,7 +1037,9 @@ impl RXingResultNode {
                 bits,
                 self.encoders
                     .getCharset(self.charsetEncoderIndex)
-                    .ok_or(Error::WRITER)?,
+                    .ok_or(Error::Internal(
+                        format!("charset index {} not found", self.charsetEncoderIndex).into(),
+                    ))?,
             )?;
         }
         Ok(())

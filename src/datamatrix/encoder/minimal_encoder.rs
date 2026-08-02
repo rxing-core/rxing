@@ -1274,7 +1274,7 @@ impl RXingResult {
         let solution = if let Some(edge) = solution {
             edge
         } else {
-            return Err(Error::ILLEGAL_ARGUMENT);
+            return Err(Error::Internal("no edges found".into()));
         };
         let input = solution.input.clone();
         let mut size = 0;

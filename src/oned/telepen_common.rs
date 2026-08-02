@@ -29,9 +29,11 @@ pub fn ascii_to_numeric(contents: &str) -> String {
 
 pub fn numeric_to_ascii(contents: &str) -> Result<String> {
     if contents.len() % 2 != 0 {
-        return Err(Error::illegal_argument_with(
-            "Input must contain an even number of characters.",
-        ));
+        return Err(Error::InvalidInput {
+            field: "numeric input must be even".into(),
+            value: contents.len().to_string(),
+            cause: None,
+        });
     }
 
     let mut ascii = Vec::with_capacity(contents.chars().count() / 2);
@@ -47,10 +49,11 @@ pub fn numeric_to_ascii(contents: &str) -> Result<String> {
         } else if (48..=57).contains(&second) && (48..=57).contains(&first) {
             ascii.push((27 + (first - 48) * 10 + (second - 48)) as char);
         } else {
-            return Err(Error::illegal_argument_with(format!(
-                "Input contains an invalid character around position {}.",
-                i * 2
-            )));
+            return Err(Error::InvalidInput {
+                field: "input".into(),
+                value: format!("invalid character at position {}", i * 2),
+                cause: None,
+            });
         }
     }
 

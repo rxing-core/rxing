@@ -98,9 +98,11 @@ fn encode(
     layers: i32,
 ) -> Result<BitMatrix> {
     if format != BarcodeFormat::AZTEC {
-        return Err(Error::illegal_argument_with(format!(
-            "can only encode AZTEC, but got {format:?}"
-        )));
+        return Err(Error::InvalidInput {
+            field: "format",
+            value: format.to_string(),
+            cause: None,
+        });
     }
     let aztec = if let Some(cset) = charset {
         // dbg!(cset.name(), cset.whatwg_name());

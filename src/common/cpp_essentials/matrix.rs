@@ -11,9 +11,11 @@ pub struct Matrix<T: Default + Clone + Copy> {
 impl<T: Default + Clone + Copy> Matrix<T> {
     pub fn with_data(width: usize, height: usize, data: Vec<Option<T>>) -> Result<Matrix<T>> {
         if width != 0 && data.len() / width != height {
-            return Err(Error::illegal_argument_with(
-                "invalid size: width * height is too big",
-            ));
+            return Err(Error::InvalidInput {
+                field: "width * height",
+                value: format!("{width} * {height} = {}", width * height),
+                cause: None,
+            });
         }
         Ok(Self {
             width,
@@ -24,9 +26,11 @@ impl<T: Default + Clone + Copy> Matrix<T> {
 
     pub fn new(width: usize, height: usize) -> Result<Matrix<T>> {
         if width != 0 && (width * height) / width != height {
-            return Err(Error::illegal_argument_with(
-                "invalid size: width * height is too big",
-            ));
+            return Err(Error::InvalidInput {
+                field: "width * height",
+                value: format!("{width} * {height} = {}", width * height),
+                cause: None,
+            });
         }
         Ok(Self {
             width,

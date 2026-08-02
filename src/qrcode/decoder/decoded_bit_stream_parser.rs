@@ -97,9 +97,7 @@ pub fn decode(
                 let value = parseECIValue(&mut bits)?;
                 currentCharacterSetECI = CharacterSet::from(value).into(); //CharacterSet::get_character_set_by_eci(value).ok();
                 if currentCharacterSetECI.is_none() {
-                    return Err(Error::format_with(format!(
-                        "Value of {value} not valid"
-                    )));
+                    return Err(Error::format_with(format!("Value of {value} not valid")));
                 }
             }
             Mode::HANZI => {

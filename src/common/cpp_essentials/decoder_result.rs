@@ -4,10 +4,10 @@ use crate::{Error, common::ECIStringBuilder};
 
 use super::StructuredAppendInfo;
 
-#[derive( Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct DecoderResult<T>
 where
-    T: Copy + Clone + Default ,
+    T: Copy + Clone + Default,
 {
     content: ECIStringBuilder,
     ecLevel: String,

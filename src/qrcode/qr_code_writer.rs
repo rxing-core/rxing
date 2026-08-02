@@ -57,20 +57,28 @@ impl Writer for QRCodeWriter {
         hints: &EncodeHints,
     ) -> Result<crate::common::BitMatrix> {
         if contents.is_empty() {
-            return Err(Error::illegal_argument_with("found empty contents"));
+            return Err(Error::InvalidInput {
+                field: "contents",
+                value: "found empty contents".into(),
+                cause: None,
+            });
         }
 
         if format != &BarcodeFormat::QR_CODE {
-            return Err(Error::illegal_argument_with(format!(
-                "can only encode QR_CODE, but got {format:?}"
-            )));
+            return Err(Error::InvalidInput {
+                field: "format",
+                value: format!("{format:?}"),
+                cause: None,
+            });
             // throw new IllegalArgumentException("Can only encode QR_CODE, but got " + format);
         }
 
         if width < 0 || height < 0 {
-            return Err(Error::illegal_argument_with(format!(
-                "requested dimensions are too small: {width}x{height}"
-            )));
+            return Err(Error::InvalidInput {
+                field: "dimensions (too small)",
+                value: format!("{width}x{height}"),
+                cause: None,
+            });
         }
 
         let errorCorrectionLevel = if let Some(ec_level) = &hints.ErrorCorrection {

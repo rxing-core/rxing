@@ -10,6 +10,8 @@ pub mod client;
 use std::{collections::HashMap, sync::Arc};
 
 pub use exceptions::Error;
+
+#[deprecated(since = "0.10.0", note = "Use `Error` instead")]
 pub type Exceptions = exceptions::Error;
 
 #[cfg(all(feature = "image", feature = "decoders"))]

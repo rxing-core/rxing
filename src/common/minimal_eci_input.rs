@@ -70,9 +70,9 @@ impl ECIInput for MinimalECIInput {
             return Err(Error::index_out_of_bounds_with(index.to_string()));
         }
         if self.isECI(index as u32)? {
-            return Err(Error::illegal_argument_with(format!(
-                "value at {index} is not a character but an ECI"
-            )));
+            return Err(Error::Internal(
+                format!("value at {index} is not a character but an ECI").into(),
+            ));
         }
         if self.isFNC1(index)? {
             Ok(self.fnc1 as u8 as char)
@@ -103,15 +103,21 @@ impl ECIInput for MinimalECIInput {
      */
     fn subSequence(&self, start: usize, end: usize) -> Result<Vec<char>> {
         if start > end || end > self.length() {
-            return Err(Error::INDEX_OUT_OF_BOUNDS);
+            return Err(Error::Internal(
+                format!(
+                    "start {start} > end {end} || end {end} > self.length() {}",
+                    self.length()
+                )
+                .into(),
+            ));
         }
         let mut result = Vec::with_capacity(end - start);
         for i in start..end {
             //   for (int i = start; i < end; i++) {
             if self.isECI(i as u32)? {
-                return Err(Error::illegal_argument_with(format!(
-                    "value at {i} is not a character but an ECI"
-                )));
+                return Err(Error::Internal(
+                    format!("value at {i} is not a character but an ECI").into(),
+                ));
             }
             result.push(self.charAt(i)?);
         }
@@ -131,7 +137,13 @@ impl ECIInput for MinimalECIInput {
      */
     fn isECI(&self, index: u32) -> Result<bool> {
         if index >= self.length() as u32 {
-            return Err(Error::INDEX_OUT_OF_BOUNDS);
+            return Err(Error::Internal(
+                format!(
+                    "index {index} is out of bounds for length {}",
+                    self.length()
+                )
+                .into(),
+            ));
         }
         Ok(self.bytes[index as usize] > 255) // && self.bytes[index as usize] <= u16::MAX)
     }
@@ -156,12 +168,18 @@ impl ECIInput for MinimalECIInput {
      */
     fn getECIValue(&self, index: usize) -> Result<Eci> {
         if index >= self.length() {
-            return Err(Error::INDEX_OUT_OF_BOUNDS);
+            return Err(Error::Internal(
+                format!(
+                    "index {index} is out of bounds for length {}",
+                    self.length()
+                )
+                .into(),
+            ));
         }
         if !self.isECI(index as u32)? {
-            return Err(Error::illegal_argument_with(format!(
-                "value at {index} is not an ECI but a character"
-            )));
+            return Err(Error::Internal(
+                format!("value at {index} is not an ECI but a character").into(),
+            ));
         }
         Ok(Eci::from(self.bytes[index] as u32 - 256))
     }
@@ -241,7 +259,13 @@ impl MinimalECIInput {
      */
     pub fn isFNC1(&self, index: usize) -> Result<bool> {
         if index >= self.length() {
-            return Err(Error::INDEX_OUT_OF_BOUNDS);
+            return Err(Error::Internal(
+                format!(
+                    "index {index} is out of bounds for length {}",
+                    self.length()
+                )
+                .into(),
+            ));
         }
         Ok(self.bytes[index] == 1000)
     }

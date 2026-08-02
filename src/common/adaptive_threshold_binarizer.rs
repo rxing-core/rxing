@@ -34,7 +34,9 @@ impl<LS: LuminanceSource> AdaptiveThresholdBinarizer<LS> {
                 self.source.get_height() as u32,
                 self.source.get_matrix().into_owned(),
             ) else {
-                return Err(Error::ILLEGAL_ARGUMENT);
+                return Err(Error::Internal(
+                    "could not build build image from buffer".into(),
+                ));
             };
             buff
         };

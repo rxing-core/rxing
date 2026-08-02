@@ -112,9 +112,11 @@ const EC_COEFFICIENTS: [&[u32]; 9] = [
  */
 pub fn getErrorCorrectionCodewordCount(errorCorrectionLevel: u32) -> Result<u32> {
     if errorCorrectionLevel > 8 {
-        return Err(Error::illegal_argument_with(
-            "Error correction level must be between 0 and 8!",
-        ));
+        return Err(Error::InvalidInput {
+            field: "errorCorrectionLevel (0-8)".into(),
+            value: errorCorrectionLevel.to_string(),
+            cause: None,
+        });
     }
     Ok(1 << (errorCorrectionLevel + 1))
 }
@@ -128,7 +130,11 @@ pub fn getErrorCorrectionCodewordCount(errorCorrectionLevel: u32) -> Result<u32>
  */
 pub fn getRecommendedMinimumErrorCorrectionLevel(n: u32) -> Result<u32> {
     if n == 0 {
-        Err(Error::illegal_argument_with("n must be > 0"))
+        Err(Error::InvalidInput {
+            field: "content length".into(),
+            value: n.to_string(),
+            cause: None,
+        })
     } else if n <= 40 {
         Ok(2)
     } else if n <= 160 {
@@ -138,7 +144,11 @@ pub fn getRecommendedMinimumErrorCorrectionLevel(n: u32) -> Result<u32> {
     } else if n <= 863 {
         Ok(5)
     } else {
-        Err(Error::writer_with("No recommendation possible"))
+        Err(Error::InvalidInput {
+            field: "no min EC level, maximum data codewords is 863",
+            value: n.to_string(),
+            cause: None,
+        })
     }
 }
 
