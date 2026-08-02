@@ -151,19 +151,28 @@ impl EdifactEncoder {
         if len == 0 {
             return Err(Error::illegal_state_with("StringBuilder must not be empty"));
         }
-        let c1 = sb.chars().next().ok_or(Error::Internal("index out of bounds".into()))?;
+        let c1 = sb
+            .chars()
+            .next()
+            .ok_or(Error::internal_with("index out of bounds"))?;
         let c2 = if len >= 2 {
-            sb.chars().nth(1).ok_or(Error::Internal("index out of bounds".into()))?
+            sb.chars()
+                .nth(1)
+                .ok_or(Error::internal_with("index out of bounds"))?
         } else {
             0 as char
         };
         let c3 = if len >= 3 {
-            sb.chars().nth(2).ok_or(Error::Internal("index out of bounds".into()))?
+            sb.chars()
+                .nth(2)
+                .ok_or(Error::internal_with("index out of bounds"))?
         } else {
             0 as char
         };
         let c4 = if len >= 4 {
-            sb.chars().nth(3).ok_or(Error::Internal("index out of bounds".into()))?
+            sb.chars()
+                .nth(3)
+                .ok_or(Error::internal_with("index out of bounds"))?
         } else {
             0 as char
         };
@@ -173,12 +182,12 @@ impl EdifactEncoder {
         let cw2 = (v >> 8) & 255;
         let cw3 = v & 255;
         let mut res = String::with_capacity(3);
-        res.push(char::from_u32(cw1).ok_or(Error::Internal("index out of bounds".into()))?);
+        res.push(char::from_u32(cw1).ok_or(Error::internal_with("index out of bounds"))?);
         if len >= 2 {
-            res.push(char::from_u32(cw2).ok_or(Error::Internal("index out of bounds".into()))?);
+            res.push(char::from_u32(cw2).ok_or(Error::internal_with("index out of bounds"))?);
         }
         if len >= 3 {
-            res.push(char::from_u32(cw3).ok_or(Error::Internal("index out of bounds".into()))?);
+            res.push(char::from_u32(cw3).ok_or(Error::internal_with("index out of bounds"))?);
         }
 
         Ok(res)

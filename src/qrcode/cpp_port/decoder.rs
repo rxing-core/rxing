@@ -122,10 +122,7 @@ pub fn ToAlphaNumericChar(value: u32) -> Result<char> {
     ];
 
     if value >= (ALPHANUMERIC_CHARS.len()) {
-        return Err(Error::Format {
-            message: "cannot match to an alphanumeric value".into(),
-            source: None,
-        });
+        return Err(Error::format_with("cannot match to an alphanumeric value"));
     }
 
     Ok(ALPHANUMERIC_CHARS[value])
@@ -156,9 +153,16 @@ pub fn DecodeAlphanumericSegment(
         // We need to massage the result a bit if in an FNC1 mode:
         for i in 0..buffer.len() {
             // for (size_t i = 0; i < buffer.length(); i++) {
-            if buffer.get(i).ok_or(Error::Internal("index out of bounds".into()))? == &'%' {
+            if buffer
+                .get(i)
+                .ok_or(Error::internal_with("index out of bounds"))?
+                == &'%'
+            {
                 if i < buffer.len() - 1
-                    && buffer.get(i + 1).ok_or(Error::Internal("index out of bounds".into()))? == &'%'
+                    && buffer
+                        .get(i + 1)
+                        .ok_or(Error::internal_with("index out of bounds"))?
+                        == &'%'
                 {
                     // %% is rendered as %
                     buffer.remove(i + 1);
@@ -218,10 +222,7 @@ pub fn ParseECIValue(bits: &mut BitSource) -> Result<Eci> {
         let secondThirdBytes = bits.readBits(16)?;
         return Ok(Eci::from(((firstByte & 0x1F) << 16) | secondThirdBytes));
     }
-    Err(Error::Format {
-        message: "ParseECIValue: invalid value".into(),
-        source: None,
-    })
+    Err(Error::format_with("ParseECIValue: invalid value"))
 }
 
 /**
@@ -295,10 +296,9 @@ pub fn DecodeBitStream(
                 }
                 Mode::FNC1_SECOND_POSITION => {
                     if !result.is_empty() {
-                        return Err(Error::Format{
-                            message: "AIM Application Indicator (FNC1 in second position) at illegal position".into(),
-                            source: None
-                        });
+                        return Err(Error::format_with(
+                            "AIM Application Indicator (FNC1 in second position) at illegal position",
+                        ));
                         // throw FormatError("AIM Application Indicator (FNC1 in second position) at illegal position");
                     }
                     result.symbology.modifier = b'5'; // As above
@@ -314,10 +314,7 @@ pub fn DecodeBitStream(
                     {
                         result += (appInd - 100) as u8;
                     } else {
-                        return Err(Error::Format {
-                            message: "Invalid AIM Application Indicator".into(),
-                            source: None,
-                        });
+                        return Err(Error::format_with("Invalid AIM Application Indicator"));
                         // throw FormatError("Invalid AIM Application Indicator");
                     }
                     result.symbology.aiFlag = AIFlag::AIM; // see also above
@@ -340,10 +337,7 @@ pub fn DecodeBitStream(
                     if subset != 1
                     // GB2312_SUBSET is the only supported one right now
                     {
-                        return Err(Error::Format {
-                            message: "Unsupported HANZI subset".into(),
-                            source: None,
-                        });
+                        return Err(Error::format_with("Unsupported HANZI subset"));
                         // throw FormatError("Unsupported HANZI subset");
                     }
                     let count = bits.readBits(mode.CharacterCountBits(version) as usize)?;
@@ -361,10 +355,7 @@ pub fn DecodeBitStream(
                         Mode::BYTE => DecodeByteSegment(&mut bits, count, &mut result)?,
                         Mode::KANJI => DecodeKanjiSegment(&mut bits, count, &mut result)?,
                         _ => {
-                            return Err(Error::Format {
-                                message: "Invalid CodecMode".into(),
-                                source: None,
-                            });
+                            return Err(Error::format_with("Invalid CodecMode"));
                         } //throw FormatError("Invalid CodecMode");
                     };
                 }
@@ -383,43 +374,28 @@ pub fn DecodeBitStream(
 
 pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
     if !Version::HasValidSize(bits) {
-        return Err(Error::Format {
-            message: "Invalid symbol size".into(),
-            source: None,
-        });
+        return Err(Error::format_with("Invalid symbol size"));
     }
     let Ok(formatInfo) = ReadFormatInformation(bits) else {
-        return Err(Error::Format {
-            message: "Invalid format information".into(),
-            source: None,
-        });
+        return Err(Error::format_with("Invalid format information"));
     };
 
     let Ok(pversion) = ReadVersion(bits, formatInfo.qr_type()) else {
-        return Err(Error::Format {
-            message: "Invalid version".into(),
-            source: None,
-        });
+        return Err(Error::format_with("Invalid version"));
     };
     let version = pversion;
 
     // Read codewords
     let codewords = ReadCodewords(bits, version, &formatInfo)?;
     if codewords.is_empty() {
-        return Err(Error::Format {
-            message: "Failed to read codewords".into(),
-            source: None,
-        });
+        return Err(Error::format_with("Failed to read codewords"));
     }
 
     // Separate into data blocks
     let dataBlocks: Vec<DataBlock> =
         DataBlock::getDataBlocks(&codewords, version, formatInfo.error_correction_level)?;
     if dataBlocks.is_empty() {
-        return Err(Error::Format {
-            message: "Failed to get data blocks".into(),
-            source: None,
-        });
+        return Err(Error::format_with("Failed to get data blocks"));
     }
 
     // Count total number of data bytes

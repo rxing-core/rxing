@@ -169,8 +169,8 @@ impl PlanarYUVLuminanceSource {
         inverted: bool,
     ) -> Result<Self> {
         if left + width > data_width || top + height > data_height {
-            return Err(Error::Internal(
-                "crop rectangle does not fit within image data".into(),
+            return Err(Error::internal_with(
+                "crop rectangle does not fit within image data",
             ));
         }
 
@@ -317,8 +317,8 @@ impl LuminanceSource for PlanarYUVLuminanceSource {
 
     fn crop(&self, left: usize, top: usize, width: usize, height: usize) -> Result<Self> {
         if left + width > self.get_width() || top + height > self.get_height() {
-            return Err(crate::Error::Internal(
-                "crop rectangle does not fit within image data".into(),
+            return Err(crate::Error::internal_with(
+                "crop rectangle does not fit within image data",
             ));
         }
         Ok(Self {

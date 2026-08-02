@@ -58,11 +58,7 @@ impl Writer for PDF417Writer {
         hints: &EncodeHints,
     ) -> Result<crate::common::BitMatrix> {
         if format != &BarcodeFormat::PDF_417 {
-            return Err(Error::InvalidInput {
-                field: "format",
-                value: format!("{format:?}"),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with("format", format!("{format:?}")));
         }
 
         let mut encoder = PDF417::new();

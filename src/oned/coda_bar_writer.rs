@@ -44,12 +44,12 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             let firstChar = contents
                 .chars()
                 .next()
-                .ok_or(Error::Internal("index out of bounds".into()))?
+                .ok_or(Error::internal_with("index out of bounds"))?
                 .to_ascii_uppercase();
             let lastChar = contents
                 .chars()
                 .nth(contents.chars().count() - 1)
-                .ok_or(Error::Internal("index out of bounds".into()))?
+                .ok_or(Error::internal_with("index out of bounds"))?
                 .to_ascii_uppercase();
             let startsNormal = START_END_CHARS.contains(&firstChar);
             let endsNormal = START_END_CHARS.contains(&lastChar);
@@ -57,32 +57,29 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             let endsAlt = ALT_START_END_CHARS.contains(&lastChar);
             if startsNormal {
                 if !endsNormal {
-                    return Err(Error::InvalidInput {
-                        field: "contents".into(),
-                        value: format!("Invalid start/end guards: {contents}"),
-                        cause: None,
-                    });
+                    return Err(Error::invalid_input_with(
+                        "contents",
+                        format!("Invalid start/end guards: {contents}"),
+                    ));
                 }
                 // else already has valid start/end
                 contents.to_owned()
             } else if startsAlt {
                 if !endsAlt {
-                    return Err(Error::InvalidInput {
-                        field: "contents".into(),
-                        value: format!("Invalid start/end guards: {contents}"),
-                        cause: None,
-                    });
+                    return Err(Error::invalid_input_with(
+                        "contents",
+                        format!("Invalid start/end guards: {contents}"),
+                    ));
                 }
                 // else already has valid start/end
                 contents.to_owned()
             } else {
                 // Doesn't start with a guard
                 if endsNormal || endsAlt {
-                    return Err(Error::InvalidInput {
-                        field: "contents".into(),
-                        value: format!("Invalid start/end guards: {contents}"),
-                        cause: None,
-                    });
+                    return Err(Error::invalid_input_with(
+                        "contents",
+                        format!("Invalid start/end guards: {contents}"),
+                    ));
                 }
                 // else doesn't end with guard either, so add a default
                 format!("{DEFAULT_GUARD}{contents}{DEFAULT_GUARD}")
@@ -97,11 +94,10 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             } else if CHARS_WHICH_ARE_TEN_LENGTH_EACH_AFTER_DECODED.contains(&ch) {
                 resultLength += 10;
             } else {
-                return Err(Error::InvalidInput {
-                    field: "contents".into(),
-                    value: format!("Cannot encode : '{ch}'"),
-                    cause: None,
-                });
+                return Err(Error::invalid_input_with(
+                    "contents",
+                    format!("Cannot encode : '{ch}'"),
+                ));
             }
         }
         // A blank is placed between each character.
@@ -114,7 +110,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             let mut c = contents
                 .chars()
                 .nth(index)
-                .ok_or(Error::Internal("index out of bounds".into()))?
+                .ok_or(Error::internal_with("index out of bounds"))?
                 .to_ascii_uppercase();
             if index == 0 || index == contents.chars().count() - 1 {
                 // The start/end chars are not in the CodaBarReader.ALPHABET.

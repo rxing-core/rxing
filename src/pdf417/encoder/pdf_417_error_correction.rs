@@ -112,11 +112,10 @@ const EC_COEFFICIENTS: [&[u32]; 9] = [
  */
 pub fn getErrorCorrectionCodewordCount(errorCorrectionLevel: u32) -> Result<u32> {
     if errorCorrectionLevel > 8 {
-        return Err(Error::InvalidInput {
-            field: "errorCorrectionLevel (0-8)".into(),
-            value: errorCorrectionLevel.to_string(),
-            cause: None,
-        });
+        return Err(Error::invalid_input_with(
+            "errorCorrectionLevel (0-8)",
+            errorCorrectionLevel.to_string(),
+        ));
     }
     Ok(1 << (errorCorrectionLevel + 1))
 }
@@ -130,11 +129,7 @@ pub fn getErrorCorrectionCodewordCount(errorCorrectionLevel: u32) -> Result<u32>
  */
 pub fn getRecommendedMinimumErrorCorrectionLevel(n: u32) -> Result<u32> {
     if n == 0 {
-        Err(Error::InvalidInput {
-            field: "content length".into(),
-            value: n.to_string(),
-            cause: None,
-        })
+        Err(Error::invalid_input_with("content length", n.to_string()))
     } else if n <= 40 {
         Ok(2)
     } else if n <= 160 {
@@ -144,11 +139,10 @@ pub fn getRecommendedMinimumErrorCorrectionLevel(n: u32) -> Result<u32> {
     } else if n <= 863 {
         Ok(5)
     } else {
-        Err(Error::InvalidInput {
-            field: "no min EC level, maximum data codewords is 863",
-            value: n.to_string(),
-            cause: None,
-        })
+        Err(Error::invalid_input_with(
+            "no min EC level, maximum data codewords is 863",
+            n.to_string(),
+        ))
     }
 }
 
@@ -168,7 +162,7 @@ pub fn generateErrorCorrection(dataCodewords: &str, errorCorrectionLevel: u32) -
         let t1 = (cached_data_codewords
             .get(i)
             .copied()
-            .ok_or(Error::Internal("index out of bounds".into()))? as u32
+            .ok_or(Error::internal_with("index out of bounds"))? as u32
             + e[e.len() - 1] as u32)
             % 929;
         let mut t2;
@@ -177,24 +171,24 @@ pub fn generateErrorCorrection(dataCodewords: &str, errorCorrectionLevel: u32) -
         while j >= 1 {
             t2 = (t1 * EC_COEFFICIENTS[errorCorrectionLevel as usize][j]) % 929;
             t3 = 929 - t2;
-            e[j] = char::from_u32((e[j - 1] as u32 + t3) % 929).ok_or(Error::Internal(
-                "failed to convert EC coefficient modulo 929 to char".into(),
+            e[j] = char::from_u32((e[j - 1] as u32 + t3) % 929).ok_or(Error::internal_with(
+                "failed to convert EC coefficient modulo 929 to char",
             ))?;
             j -= 1;
         }
         t2 = (t1 * EC_COEFFICIENTS[errorCorrectionLevel as usize][0]) % 929;
         t3 = 929 - t2;
-        e[0] = char::from_u32(t3 % 929).ok_or(Error::Internal(
-            "failed to convert EC coefficient modulo 929 to char".into(),
+        e[0] = char::from_u32(t3 % 929).ok_or(Error::internal_with(
+            "failed to convert EC coefficient modulo 929 to char",
         ))?;
     }
     let mut sb = String::with_capacity(k as usize);
     let mut j = k as isize - 1;
     while j >= 0 {
         if e[j as usize] as u32 != 0 {
-            e[j as usize] = char::from_u32(929 - e[j as usize] as u32).ok_or(Error::Internal(
-                "failed to convert EC coefficient modulo 929 to char".into(),
-            ))?;
+            e[j as usize] = char::from_u32(929 - e[j as usize] as u32).ok_or(
+                Error::internal_with("failed to convert EC coefficient modulo 929 to char"),
+            )?;
         }
         sb.push(e[j as usize]);
 

@@ -163,10 +163,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                 match n {
                     0 => result.push(29 as char), // translate FNC1 as ASCII 29
                     7 => {
-                        return Err(Error::Format {
-                            message: "FLG(7) is reserved and illegal".into(),
-                            source: None,
-                        });
+                        return Err(Error::format_with("FLG(7) is reserved and illegal"));
                     } // FLG(7) is reserved and illegal
                     _ => {
                         // ECI is decimal integer encoded as 1-6 codes in DIGIT mode
@@ -179,10 +176,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                             let next_digit = read_code(corrected_bits, index, 4);
                             index += 4;
                             if !(2..=11).contains(&next_digit) {
-                                return Err(Error::Format {
-                                    message: "Not a decimal digit".into(),
-                                    source: None,
-                                });
+                                return Err(Error::format_with("Not a decimal digit"));
                                 // Not a decimal digit
                             }
                             eci = eci * 10 + (next_digit - 2);
@@ -190,10 +184,7 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                         }
                         let charset_eci: Eci = eci.into();
                         if charset_eci == Eci::Unknown {
-                            return Err(Error::Format {
-                                message: "Charset must exist".into(),
-                                source: None,
-                            });
+                            return Err(Error::format_with("Charset must exist"));
                         }
                         encdr = charset_eci.into();
                     }
@@ -210,14 +201,14 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                 let mut chars = str.chars();
 
                 // Advance to index 5 and pull that char out:
-                let c5 = chars
-                    .nth(5)
-                    .ok_or(Error::Internal("short table string shorter than expected".into()))?;
+                let c5 = chars.nth(5).ok_or(Error::internal_with(
+                    "short table string shorter than expected",
+                ))?;
 
                 // The iterator is now positioned at index 6, so the very next call is your index 6:
-                let c6 = chars
-                    .next()
-                    .ok_or(Error::Internal("short table string missing mode character".into()))?;
+                let c6 = chars.next().ok_or(Error::internal_with(
+                    "short table string missing mode character",
+                ))?;
 
                 shift_table = getTable(c5);
                 if c6 == 'L' {
@@ -237,10 +228,9 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
             }
         }
     }
-    let str = encdr.decode(&decoded_bytes).map_err(|err| Error::Format {
-        message: "bad encoding".into(),
-        source: Some(err.into()),
-    })?;
+    let str = encdr
+        .decode(&decoded_bytes)
+        .map_err(|err| Error::format_with_source("bad encoding", err))?;
     result.push_str(&str);
 
     Ok(result)
@@ -349,11 +339,9 @@ fn correct_bits(
     let num_data_codewords = ddata.getNbDatablocks();
     let num_codewords = rawbits.len() / codeword_size;
     if num_codewords < num_data_codewords as usize {
-        return Err(Error::Format {
-            message: format!("numCodewords {num_codewords}< numDataCodewords{num_data_codewords}")
-                .into(),
-            source: None,
-        });
+        return Err(Error::format_with(format!(
+            "numCodewords {num_codewords}< numDataCodewords{num_data_codewords}"
+        )));
     }
     let mut offset = rawbits.len() % codeword_size;
 
@@ -384,10 +372,7 @@ fn correct_bits(
         // for (int i = 0; i < numDataCodewords; i++) {
         // let data_word = data_words[i];
         if data_word == &0 || data_word == &mask {
-            return Err(Error::Format {
-                message: "Invalid data word".into(),
-                source: None,
-            });
+            return Err(Error::format_with("Invalid data word"));
             //throw FormatException.getFormatInstance();
         } else if data_word == &1 || data_word == &(mask - 1) {
             stuffed_bits += 1;

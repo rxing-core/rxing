@@ -218,70 +218,59 @@ impl Code93Reader {
         while i < length {
             // for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            let c = *encoded.get(i).ok_or(Error::Internal("index out of bounds".into()))?;
+            let c = *encoded
+                .get(i)
+                .ok_or(Error::internal_with("index out of bounds"))?;
             if ('a'..='d').contains(&c) {
                 if i >= length - 1 {
-                    return Err(Error::Format {
-                        message: "unexpected end of extended character sequence".into(),
-                        source: None,
-                    });
+                    return Err(Error::format_with(
+                        "unexpected end of extended character sequence",
+                    ));
                 }
-                let next = *encoded.get(i + 1).ok_or(Error::Internal("index out of bounds".into()))?;
+                let next = *encoded
+                    .get(i + 1)
+                    .ok_or(Error::internal_with("index out of bounds"))?;
                 let mut decodedChar = '\0';
                 match c {
                     'd' => {
                         // +A to +Z map to a to z
                         if next.is_ascii_uppercase() {
-                            decodedChar = char::from_u32(next as u32 + 32).ok_or(Error::Format {
-                                message: "unexpected character found".into(),
-                                source: None,
-                            })?;
+                            decodedChar = char::from_u32(next as u32 + 32)
+                                .ok_or(Error::format_with("unexpected character found"))?;
                         } else {
-                            return Err(Error::Format {
-                                message: "unexpected character found (uppercase expected)".into(),
-                                source: None,
-                            });
+                            return Err(Error::format_with(
+                                "unexpected character found (uppercase expected)",
+                            ));
                         }
                     }
                     'a' => {
                         // $A to $Z map to control codes SH to SB
                         if next.is_ascii_uppercase() {
-                            decodedChar = char::from_u32(next as u32 - 64).ok_or(Error::Format {
-                                message: "unexpected character found".into(),
-                                source: None,
-                            })?;
+                            decodedChar = char::from_u32(next as u32 - 64)
+                                .ok_or(Error::format_with("unexpected character found"))?;
                         } else {
-                            return Err(Error::Format {
-                                message: "unexpected character found (uppercase expected)".into(),
-                                source: None,
-                            });
+                            return Err(Error::format_with(
+                                "unexpected character found (uppercase expected)",
+                            ));
                         }
                     }
                     'b' => {
                         if ('A'..='E').contains(&next) {
                             // %A to %E map to control codes ESC to USep
-                            decodedChar = char::from_u32(next as u32 - 38).ok_or(Error::Format {
-                                message: "unexpected character found".into(),
-                                source: None,
-                            })?;
+                            decodedChar = char::from_u32(next as u32 - 38)
+                                .ok_or(Error::format_with("unexpected character found"))?;
                         } else if ('F'..='J').contains(&next) {
                             // %F to %J map to ; < = > ?
-                            decodedChar = char::from_u32(next as u32 - 11).ok_or(Error::Format {
-                                message: "unexpected character found".into(),
-                                source: None,
-                            })?;
+                            decodedChar = char::from_u32(next as u32 - 11)
+                                .ok_or(Error::format_with("unexpected character found"))?;
                         } else if ('K'..='O').contains(&next) {
                             // %K to %O map to [ \ ] ^ _
-                            decodedChar = char::from_u32(next as u32 + 16).ok_or(Error::Format {
-                                message: "unexpected character found".into(),
-                                source: None,
-                            })?;
+                            decodedChar = char::from_u32(next as u32 + 16)
+                                .ok_or(Error::format_with("unexpected character found"))?;
                         } else if ('P'..='T').contains(&next) {
                             // %P to %T map to { | } ~ DEL
-                            decodedChar = char::from_u32(next as u32 + 43).ok_or(Error::Format {
-                                message: "unexpected character found".into(),
-                                source: None,
-                            })?;
+                            decodedChar = char::from_u32(next as u32 + 43)
+                                .ok_or(Error::format_with("unexpected character found"))?;
                         } else if next == 'U' {
                             // %U map to NUL
                             decodedChar = '\0';
@@ -295,26 +284,18 @@ impl Code93Reader {
                             // %X to %Z all map to DEL (127)
                             decodedChar = 127 as char;
                         } else {
-                            return Err(Error::Format {
-                                message: "unexpected character found".into(),
-                                source: None,
-                            });
+                            return Err(Error::format_with("unexpected character found"));
                         }
                     }
                     'c' => {
                         // /A to /O map to ! to , and /Z maps to :
                         if ('A'..='O').contains(&next) {
-                            decodedChar = char::from_u32(next as u32 - 32).ok_or(Error::Format {
-                                message: "unexpected character found".into(),
-                                source: None,
-                            })?;
+                            decodedChar = char::from_u32(next as u32 - 32)
+                                .ok_or(Error::format_with("unexpected character found"))?;
                         } else if next == 'Z' {
                             decodedChar = ':';
                         } else {
-                            return Err(Error::Format {
-                                message: "unexpected character found".into(),
-                                source: None,
-                            });
+                            return Err(Error::format_with("unexpected character found"));
                         }
                     }
                     _ => {}
@@ -345,7 +326,11 @@ impl Code93Reader {
         for i in (0..checkPosition).rev() {
             total += weight
                 * ALPHABET_STRING
-                    .find(*result.get(i).ok_or(Error::Internal("index out of bounds".into()))?)
+                    .find(
+                        *result
+                            .get(i)
+                            .ok_or(Error::internal_with("index out of bounds"))?,
+                    )
                     .map_or_else(|| -1_i32, |v| v as i32);
             weight += 1;
             if weight > weightMax as i32 {
@@ -354,7 +339,7 @@ impl Code93Reader {
         }
         if *result
             .get(checkPosition)
-            .ok_or(Error::Internal("index out of bounds".into()))?
+            .ok_or(Error::internal_with("index out of bounds"))?
             != ALPHABET[(total as usize) % 47]
         {
             Err(Error::CHECKSUM)

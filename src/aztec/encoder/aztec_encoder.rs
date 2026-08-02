@@ -49,10 +49,12 @@ pub const WORD_SIZE: [u32; 33] = [
 pub fn encode_simple(data: &str) -> Result<AztecCode> {
     let bytes = CharacterSet::ISO8859_1
         .encode_replace(data)
-        .map_err(|err| Error::InvalidInput {
-            field: "data",
-            value: format!("'{}' cannot be encoded as ISO_8859_1", data),
-            cause: Some(err.into()),
+        .map_err(|err| {
+            Error::invalid_input_with_cause(
+                "data",
+                format!("'{}' cannot be encoded as ISO_8859_1", data),
+                err,
+            )
         })?;
     encode_bytes_simple(&bytes)
 }
@@ -67,13 +69,13 @@ pub fn encode_simple(data: &str) -> Result<AztecCode> {
  * @return Aztec symbol matrix with metadata
  */
 pub fn encode(data: &str, minECCPercent: u32, userSpecifiedLayers: i32) -> Result<AztecCode> {
-    let bytes = CharacterSet::ISO8859_1
-        .encode(data)
-        .map_err(|err| Error::InvalidInput {
-            field: "data",
-            value: format!("'{}' cannot be encoded as ISO_8859_1", data),
-            cause: Some(err.into()),
-        })?;
+    let bytes = CharacterSet::ISO8859_1.encode(data).map_err(|err| {
+        Error::invalid_input_with_cause(
+            "data",
+            format!("'{}' cannot be encoded as ISO_8859_1", data),
+            err,
+        )
+    })?;
     encode_bytes(&bytes, minECCPercent, userSpecifiedLayers)
 }
 
@@ -95,10 +97,12 @@ pub fn encode_with_charset(
     userSpecifiedLayers: i32,
     charset: CharacterSet,
 ) -> Result<AztecCode> {
-    let bytes = charset.encode(data).map_err(|err| Error::InvalidInput {
-        field: "data",
-        value: format!("'{}' cannot be encoded as {:?}", data, charset),
-        cause: Some(err.into()),
+    let bytes = charset.encode(data).map_err(|err| {
+        Error::invalid_input_with_cause(
+            "data",
+            format!("'{}' cannot be encoded as {:?}", data, charset),
+            err,
+        )
     })?;
     encode_bytes_with_charset(&bytes, minECCPercent, userSpecifiedLayers, charset)
 }
@@ -173,30 +177,27 @@ pub fn encode_bytes_with_charset(
                 MAX_NB_BITS
             })
         {
-            return Err(Error::InvalidInput {
-                field: "layers hint",
-                value: format!("illegal value {user_specified_layers} for layers"),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "layers hint",
+                format!("illegal value {user_specified_layers} for layers"),
+            ));
         }
         total_bits_in_layer_var = total_bits_in_layer(layers, compact);
         word_size = WORD_SIZE[layers as usize];
         let usable_bits_in_layers = total_bits_in_layer_var - (total_bits_in_layer_var % word_size);
         stuffed_bits = stuffBits(&bits, word_size as usize)?;
         if stuffed_bits.get_size() as u32 + ecc_bits > usable_bits_in_layers {
-            return Err(Error::InvalidInput {
-                field: "data",
-                value: "Data too large for user specified layer".into(),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "data",
+                "Data too large for user specified layer",
+            ));
         }
         if compact && stuffed_bits.get_size() as u32 > word_size * 64 {
             // Compact format only allows 64 data words, though C4 can hold more words than that
-            return Err(Error::InvalidInput {
-                field: "data",
-                value: "Data too large for user specified layer".into(),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "data",
+                "Data too large for user specified layer",
+            ));
         }
     } else {
         word_size = 0;
@@ -208,11 +209,10 @@ pub fn encode_bytes_with_charset(
         loop {
             // for (int i = 0; ; i++) {
             if i > MAX_NB_BITS {
-                return Err(Error::InvalidInput {
-                    field: "data",
-                    value: "Data too large for an Aztec code".into(),
-                    cause: None,
-                });
+                return Err(Error::invalid_input_with(
+                    "data",
+                    "Data too large for an Aztec code",
+                ));
             }
             compact = i <= 3;
             layers = if compact { i + 1 } else { i };
@@ -481,9 +481,9 @@ fn getGF(wordSize: usize) -> Result<GenericGFRef> {
         8 => Ok(PredefinedGenericGF::AztecData8.into()),
         10 => Ok(PredefinedGenericGF::AztecData10.into()),
         12 => Ok(PredefinedGenericGF::AztecData12.into()),
-        _ => Err(Error::Internal(
-            format!("Unsupported word size {wordSize}").into(),
-        )),
+        _ => Err(Error::internal_with(format!(
+            "Unsupported word size {wordSize}"
+        ))),
     }
 }
 

@@ -53,8 +53,8 @@ const RMQR_SIZES: [PointI; 32] = [
 impl Version {
     pub fn Model1(version_number: u32) -> Result<VersionRef> {
         if !(1..=14).contains(&version_number) {
-            Err(Error::Internal(
-                "version number must be between 1 and 14".into(),
+            Err(Error::internal_with(
+                "version number must be between 1 and 14",
             ))
         } else {
             Ok(&MODEL1_VERSIONS[version_number as usize - 1])
@@ -63,8 +63,8 @@ impl Version {
 
     pub fn Model2(version_number: u32) -> Result<VersionRef> {
         if !(1..=40).contains(&version_number) {
-            Err(Error::Internal(
-                "version number must be between 1 and 40".into(),
+            Err(Error::internal_with(
+                "version number must be between 1 and 40",
             ))
         } else {
             Ok(&VERSIONS[version_number as usize - 1])
@@ -73,8 +73,8 @@ impl Version {
 
     pub fn Micro(version_number: u32) -> Result<VersionRef> {
         if !(1..=4).contains(&version_number) {
-            Err(Error::Internal(
-                "version number must be between 1 and 4".into(),
+            Err(Error::internal_with(
+                "version number must be between 1 and 4",
             ))
         } else {
             Ok(&MICRO_VERSIONS[version_number as usize - 1])
@@ -84,8 +84,8 @@ impl Version {
     pub fn rMQR(version_number: u32) -> Result<VersionRef> {
         let version_number = version_number as usize;
         if version_number < 1 || version_number > (RMQR_VERSIONS.len()) {
-            Err(Error::Internal(
-                "version number must be between 1 and 32".into(),
+            Err(Error::internal_with(
+                "version number must be between 1 and 32",
             ))
         } else {
             Ok(&RMQR_VERSIONS[version_number - 1])

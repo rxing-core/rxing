@@ -57,10 +57,7 @@ impl OneDReader for Code128Reader {
             CODE_START_B => CODE_CODE_B,
             CODE_START_C => CODE_CODE_C,
             _ => {
-                return Err(Error::Format {
-                    message: "could not find codeset for symbol".into(),
-                    source: None,
-                });
+                return Err(Error::format_with("could not find codeset for symbol"));
             }
         };
 
@@ -112,10 +109,7 @@ impl OneDReader for Code128Reader {
             // Take care of illegal start codes
             match code {
                 CODE_START_A | CODE_START_B | CODE_START_C => {
-                    return Err(Error::Format {
-                        message: "illegal start code".into(),
-                        source: None,
-                    });
+                    return Err(Error::format_with("illegal start code"));
                 }
                 _ => {}
             }
@@ -345,7 +339,9 @@ impl OneDReader for Code128Reader {
         let rawCodesSize = rawCodes.len();
         let mut rawBytes = vec![0u8; rawCodesSize];
         for (i, rawByte) in rawBytes.iter_mut().enumerate().take(rawCodesSize) {
-            *rawByte = *rawCodes.get(i).ok_or(Error::Internal("index out of bounds".into()))?;
+            *rawByte = *rawCodes
+                .get(i)
+                .ok_or(Error::internal_with("index out of bounds"))?;
         }
         let mut resultObject = RXingResult::new(
             &result,

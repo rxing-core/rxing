@@ -56,18 +56,14 @@ impl<'a> EncoderContext<'_> {
         //   sb.append(ch);
         // }
         let sb = if let Ok(encoded_bytes) = ISO_8859_1_ENCODER.encode(msg) {
-            ISO_8859_1_ENCODER
-                .decode(&encoded_bytes)
-                .map_err(|e| Error::Format {
-                    message: format!("round trip decode should always work: {e}").into(),
-                    source: Some(e.into()),
-                })?
+            ISO_8859_1_ENCODER.decode(&encoded_bytes).map_err(|e| {
+                Error::format_with_source(format!("round trip decode should always work: {e}"), e)
+            })?
         } else {
-            return Err(Error::InvalidInput {
-                field: "message (outside ISO-8859-1)".into(),
-                value: msg.into(),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "message (outside ISO-8859-1)",
+                msg,
+            ));
         };
         Ok(Self {
             symbol_lookup: SymbolInfoLookup::new(),

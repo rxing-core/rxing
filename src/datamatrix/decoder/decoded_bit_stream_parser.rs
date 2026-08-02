@@ -157,10 +157,10 @@ pub fn decode(bytes: &[u8], is_flipped: bool) -> Result<DecoderRXingResult> {
                 mode = Mode::ASCII_ENCODE;
             }
             _ => {
-                return Err(Error::Format {
-                    message: format!("invalid mode found during parsing: {:?}", mode).into(),
-                    source: None,
-                });
+                return Err(Error::format_with(format!(
+                    "invalid mode found during parsing: {:?}",
+                    mode
+                )));
             }
         }
 
@@ -229,10 +229,7 @@ fn decodeAsciiSegment(
         let mut oneByte = bits.readBits(8)?;
         match oneByte {
             0 => {
-                return Err(Error::Format {
-                    message: "invalid ASCII value".into(),
-                    source: None,
-                });
+                return Err(Error::format_with("invalid ASCII value"));
             }
             1..=128 => {
                 // ASCII data (ASCII value + 1)
@@ -240,10 +237,10 @@ fn decodeAsciiSegment(
                     oneByte += 128;
                     //upperShift = false;
                 }
-                result.append_char(char::from_u32(oneByte - 1).ok_or(Error::Format {
-                    message: "invalid ASCII character".into(),
-                    source: None,
-                })?);
+                result.append_char(
+                    char::from_u32(oneByte - 1)
+                        .ok_or(Error::format_with("invalid ASCII character"))?,
+                );
                 return Ok(Mode::ASCII_ENCODE);
             }
             129 => return Ok(Mode::PAD_ENCODE), // Pad
@@ -289,10 +286,9 @@ fn decodeAsciiSegment(
                 if !firstCodeword
                 // Must be first ISO 16022:2006 5.6.1
                 {
-                    return Err(Error::Format {
-                        message: "structured append tag must be first code word".into(),
-                        source: None,
-                    });
+                    return Err(Error::format_with(
+                        "structured append tag must be first code word",
+                    ));
                 }
                 parse_structured_append(bits, &mut sai)?;
                 firstFNC1Position = 5;
@@ -343,10 +339,9 @@ fn decodeAsciiSegment(
                 // Not to be used in ASCII encodation
                 // but work around encoders that end with 254, latch back to ASCII
                 if oneByte != 254 || bits.available() != 0 {
-                    return Err(Error::Format {
-                        message: "invalid ascii data found and not a latch back to ASCII".into(),
-                        source: None,
-                    });
+                    return Err(Error::format_with(
+                        "invalid ascii data found and not a latch back to ASCII",
+                    ));
                 }
             }
         }
@@ -400,34 +395,29 @@ fn decodeC40Segment(
                         let c40char = C40_BASIC_SET_CHARS[cValue as usize];
                         if upperShift {
                             result.append_char(
-                                char::from_u32(c40char as u32 + 128).ok_or(Error::Format {
-                                    message: "invalid C40 character".into(),
-                                    source: None,
-                                })?,
+                                char::from_u32(c40char as u32 + 128)
+                                    .ok_or(Error::format_with("invalid C40 character"))?,
                             );
                             upperShift = false;
                         } else {
                             result.append_char(c40char);
                         }
                     } else {
-                        return Err(Error::Format {
-                            message: "invalid C40 value found".into(),
-                            source: None,
-                        });
+                        return Err(Error::format_with("invalid C40 value found"));
                     }
                 }
                 1 => {
                     if upperShift {
-                        result.append_char(char::from_u32(cValue + 128).ok_or(Error::Format {
-                            message: "invalid C40 character".into(),
-                            source: None,
-                        })?);
+                        result.append_char(
+                            char::from_u32(cValue + 128)
+                                .ok_or(Error::format_with("invalid C40 character"))?,
+                        );
                         upperShift = false;
                     } else {
-                        result.append_char(char::from_u32(cValue).ok_or(Error::Format {
-                            message: "invalid C40 character".into(),
-                            source: None,
-                        })?);
+                        result.append_char(
+                            char::from_u32(cValue)
+                                .ok_or(Error::format_with("invalid C40 character"))?,
+                        );
                     }
                     shift = 0;
                 }
@@ -436,10 +426,8 @@ fn decodeC40Segment(
                         let c40char = C40_SHIFT2_SET_CHARS[cValue as usize];
                         if upperShift {
                             result.append_char(
-                                char::from_u32(c40char as u32 + 128).ok_or(Error::Format {
-                                    message: "invalid C40 character".into(),
-                                    source: None,
-                                })?,
+                                char::from_u32(c40char as u32 + 128)
+                                    .ok_or(Error::format_with("invalid C40 character"))?,
                             );
                             upperShift = false;
                         } else {
@@ -459,10 +447,7 @@ fn decodeC40Segment(
                             }
 
                             _ => {
-                                return Err(Error::Format {
-                                    message: "invalid C40 value found".into(),
-                                    source: None,
-                                });
+                                return Err(Error::format_with("invalid C40 value found"));
                             }
                         }
                     }
@@ -470,25 +455,22 @@ fn decodeC40Segment(
                 }
                 3 => {
                     if upperShift {
-                        result.append_char(char::from_u32(cValue + 224).ok_or(Error::Format {
-                            message: "invalid C40 character".into(),
-                            source: None,
-                        })?);
+                        result.append_char(
+                            char::from_u32(cValue + 224)
+                                .ok_or(Error::format_with("invalid C40 character"))?,
+                        );
                         upperShift = false;
                     } else {
-                        result.append_char(char::from_u32(cValue + 96).ok_or(Error::Format {
-                            message: "invalid C40 character".into(),
-                            source: None,
-                        })?);
+                        result.append_char(
+                            char::from_u32(cValue + 96)
+                                .ok_or(Error::format_with("invalid C40 character"))?,
+                        );
                     }
                     shift = 0;
                 }
 
                 _ => {
-                    return Err(Error::Format {
-                        message: "invalid shift value found".into(),
-                        source: None,
-                    });
+                    return Err(Error::format_with("invalid shift value found"));
                 }
             }
         }
@@ -538,34 +520,29 @@ fn decodeTextSegment(
                         let textChar = TEXT_BASIC_SET_CHARS[cValue as usize];
                         if upperShift {
                             result.append_char(
-                                char::from_u32(textChar as u32 + 128).ok_or(Error::Format {
-                                    message: "invalid Text character".into(),
-                                    source: None,
-                                })?,
+                                char::from_u32(textChar as u32 + 128)
+                                    .ok_or(Error::format_with("invalid Text character"))?,
                             );
                             upperShift = false;
                         } else {
                             result.append_char(textChar);
                         }
                     } else {
-                        return Err(Error::Format {
-                            message: "invalid text value found".into(),
-                            source: None,
-                        });
+                        return Err(Error::format_with("invalid text value found"));
                     }
                 }
                 1 => {
                     if upperShift {
-                        result.append_char(char::from_u32(cValue + 128).ok_or(Error::Format {
-                            message: "invalid Text character".into(),
-                            source: None,
-                        })?);
+                        result.append_char(
+                            char::from_u32(cValue + 128)
+                                .ok_or(Error::format_with("invalid Text character"))?,
+                        );
                         upperShift = false;
                     } else {
-                        result.append_char(char::from_u32(cValue).ok_or(Error::Format {
-                            message: "invalid Text character".into(),
-                            source: None,
-                        })?);
+                        result.append_char(
+                            char::from_u32(cValue)
+                                .ok_or(Error::format_with("invalid Text character"))?,
+                        );
                     }
                     shift = 0;
                 }
@@ -576,10 +553,8 @@ fn decodeTextSegment(
                         let textChar = TEXT_SHIFT2_SET_CHARS[cValue as usize];
                         if upperShift {
                             result.append_char(
-                                char::from_u32(textChar as u32 + 128).ok_or(Error::Format {
-                                    message: "invalid Text character".into(),
-                                    source: None,
-                                })?,
+                                char::from_u32(textChar as u32 + 128)
+                                    .ok_or(Error::format_with("invalid Text character"))?,
                             );
                             upperShift = false;
                         } else {
@@ -599,10 +574,7 @@ fn decodeTextSegment(
                             }
 
                             _ => {
-                                return Err(Error::Format {
-                                    message: "invalid shift value found".into(),
-                                    source: None,
-                                });
+                                return Err(Error::format_with("invalid shift value found"));
                             }
                         }
                     }
@@ -612,10 +584,8 @@ fn decodeTextSegment(
                     let textChar = TEXT_SHIFT3_SET_CHARS[cValue as usize];
                     if upperShift {
                         result.append_char(
-                            char::from_u32(textChar as u32 + 128).ok_or(Error::Format {
-                                message: "invalid Text character".into(),
-                                source: None,
-                            })?,
+                            char::from_u32(textChar as u32 + 128)
+                                .ok_or(Error::format_with("invalid Text character"))?,
                         );
                         upperShift = false;
                     } else {
@@ -625,10 +595,7 @@ fn decodeTextSegment(
                 }
 
                 _ => {
-                    return Err(Error::Format {
-                        message: "invalid text value found".into(),
-                        source: None,
-                    });
+                    return Err(Error::format_with("invalid text value found"));
                 }
             }
         }
@@ -692,21 +659,18 @@ fn decodeAnsiX12Segment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> 
                 _ => {
                     if cValue < 14 {
                         // 0 - 9
-                        result.append_char(char::from_u32(cValue + 44).ok_or(Error::Format {
-                            message: "invalid ANSI X12 character".into(),
-                            source: None,
-                        })?);
+                        result.append_char(
+                            char::from_u32(cValue + 44)
+                                .ok_or(Error::format_with("invalid ANSI X12 character"))?,
+                        );
                     } else if cValue < 40 {
                         // A - Z
-                        result.append_char(char::from_u32(cValue + 51).ok_or(Error::Format {
-                            message: "invalid ANSI X12 character".into(),
-                            source: None,
-                        })?);
+                        result.append_char(
+                            char::from_u32(cValue + 51)
+                                .ok_or(Error::format_with("invalid ANSI X12 character"))?,
+                        );
                     } else {
-                        return Err(Error::Format {
-                            message: "invalid ANSI X12 value found".into(),
-                            source: None,
-                        });
+                        return Err(Error::format_with("invalid ANSI X12 value found"));
                     }
                 }
             }
@@ -758,10 +722,10 @@ fn decodeEdifactSegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> 
                 // no 1 in the leading (6th) bit
                 edifactValue |= 0x40; // Add a leading 01 to the 6 bit binary value
             }
-            result.append_char(char::from_u32(edifactValue).ok_or(Error::Format {
-                message: "invalid EDIFACT character".into(),
-                source: None,
-            })?);
+            result.append_char(
+                char::from_u32(edifactValue)
+                    .ok_or(Error::format_with("invalid EDIFACT character"))?,
+            );
         }
 
         if bits.available() == 0 {
@@ -806,10 +770,7 @@ fn decodeBase256Segment(
         // Have seen this particular error in the wild, such as at
         // http://www.bcgen.com/demo/IDAutomationStreamingDataMatrix.aspx?MODE=3&D=Fred&PFMT=3&PT=F&X=0.3&O=0&LM=0.2
         if bits.available() < 8 {
-            return Err(Error::Format {
-                message: "not enough bits available".into(),
-                source: None,
-            });
+            return Err(Error::format_with("not enough bits available"));
         }
         *byte = unrandomize255State(bits.readBits(8)?, codewordPosition) as u8;
         codewordPosition += 1;

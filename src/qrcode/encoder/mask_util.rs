@@ -175,9 +175,9 @@ pub fn getDataMaskBit(maskPattern: u32, x: u32, y: u32) -> Result<bool> {
             ((temp % 3) + ((y + x) & 0x1)) & 0x1
         }
         _ => {
-            return Err(Error::Internal(
-                format!("invalid mask pattern: {maskPattern}").into(),
-            ));
+            return Err(Error::internal_with(format!(
+                "invalid mask pattern: {maskPattern}"
+            )));
         }
     };
     // switch (maskPattern) {

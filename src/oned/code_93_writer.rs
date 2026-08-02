@@ -36,11 +36,10 @@ impl OneDimensionalCodeWriter for Code93Writer {
         let mut contents = Self::convertToExtended(contents)?;
         let length = contents.chars().count();
         if length > 80 {
-            return Err(Error::InvalidInput {
-                field: "contents (encoded < 80)".into(),
-                value: contents.len().to_string(),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "contents (encoded < 80)",
+                contents.len().to_string(),
+            ));
         }
 
         //length of code + 2 start/stop characters + 2 checksums, each of 9 bits, plus a termination bar
@@ -53,9 +52,12 @@ impl OneDimensionalCodeWriter for Code93Writer {
 
         for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            let Some(indexInString) = code_93::ALPHABET_STRING
-                .find(contents.chars().nth(i).ok_or(Error::Internal("index out of bounds".into()))?)
-            else {
+            let Some(indexInString) = code_93::ALPHABET_STRING.find(
+                contents
+                    .chars()
+                    .nth(i)
+                    .ok_or(Error::internal_with("index out of bounds"))?,
+            ) else {
                 panic!("alphabet")
             };
             pos += Self::appendPattern(
@@ -74,7 +76,7 @@ impl OneDimensionalCodeWriter for Code93Writer {
             code_93::ALPHABET_STRING
                 .chars()
                 .nth(check1)
-                .ok_or(Error::Internal("index out of bounds".into()))?,
+                .ok_or(Error::internal_with("index out of bounds"))?,
         );
 
         let check2 = Self::computeChecksumIndex(&contents, 15);
@@ -170,14 +172,14 @@ impl Code93Writer {
                 extendedContent.push('a');
                 extendedContent.push(
                     char::from_u32('A' as u32 + character as u32 - 1)
-                        .ok_or(Error::Internal("invalid char conversion".into()))?,
+                        .ok_or(Error::internal_with("invalid char conversion"))?,
                 );
             } else if character as u32 <= 31 {
                 // ESC - US: (%)A - (%)E
                 extendedContent.push('b');
                 extendedContent.push(
                     char::from_u32('A' as u32 + character as u32 - 27)
-                        .ok_or(Error::Internal("invalid char conversion".into()))?,
+                        .ok_or(Error::internal_with("invalid char conversion"))?,
                 );
             } else if character == ' ' || character == '$' || character == '%' || character == '+' {
                 // space $ % +
@@ -187,7 +189,7 @@ impl Code93Writer {
                 extendedContent.push('c');
                 extendedContent.push(
                     char::from_u32('A' as u32 + character as u32 - '!' as u32)
-                        .ok_or(Error::Internal("invalid char conversion".into()))?,
+                        .ok_or(Error::internal_with("invalid char conversion"))?,
                 );
             } else if character <= '9' {
                 extendedContent.push(character);
@@ -199,7 +201,7 @@ impl Code93Writer {
                 extendedContent.push('b');
                 extendedContent.push(
                     char::from_u32('F' as u32 + character as u32 - ';' as u32)
-                        .ok_or(Error::Internal("invalid char conversion".into()))?,
+                        .ok_or(Error::internal_with("invalid char conversion"))?,
                 );
             } else if character == '@' {
                 // @: (%)V
@@ -212,7 +214,7 @@ impl Code93Writer {
                 extendedContent.push('b');
                 extendedContent.push(
                     char::from_u32('K' as u32 + character as u32 - '[' as u32)
-                        .ok_or(Error::Internal("invalid char conversion".into()))?,
+                        .ok_or(Error::internal_with("invalid char conversion"))?,
                 );
             } else if character == '`' {
                 // `: (%)W
@@ -222,21 +224,20 @@ impl Code93Writer {
                 extendedContent.push('d');
                 extendedContent.push(
                     char::from_u32('A' as u32 + character as u32 - 'a' as u32)
-                        .ok_or(Error::Internal("invalid char conversion".into()))?,
+                        .ok_or(Error::internal_with("invalid char conversion"))?,
                 );
             } else if character as u32 <= 127 {
                 // { - DEL: (%)P - (%)T
                 extendedContent.push('b');
                 extendedContent.push(
                     char::from_u32('P' as u32 + character as u32 - '{' as u32)
-                        .ok_or(Error::Internal("invalid char conversion".into()))?,
+                        .ok_or(Error::internal_with("invalid char conversion"))?,
                 );
             } else {
-                return Err(Error::InvalidInput {
-                    field: "content".into(),
-                    value: format!("contains a non-encodable character: '{character}'"),
-                    cause: None,
-                });
+                return Err(Error::invalid_input_with(
+                    "content",
+                    format!("contains a non-encodable character: '{character}'"),
+                ));
             }
         }
 

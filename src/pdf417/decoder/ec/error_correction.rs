@@ -134,7 +134,9 @@ fn runEuclideanAlgorithm(
         // Divide rLastLast by rLast, with quotient in q and remainder in r
         if rLast.isZero() {
             // Oops, Euclidean algorithm already terminated?
-            return Err(Error::checksum_with("PDF417 Euclidean algorithm terminated early"));
+            return Err(Error::checksum_with(
+                "PDF417 Euclidean algorithm terminated early",
+            ));
         }
         r = rLastLast;
         let mut q = ModulusPoly::getZero(field); //field.getZero();

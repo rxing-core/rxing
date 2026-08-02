@@ -95,7 +95,7 @@ impl LuminanceSource for BufferedImageLuminanceSource {
         // A raster resampling operation, so this one genuinely materializes.
         let (width, height) = (self.get_width() as u32, self.get_height() as u32);
         let buffer = ImageBuffer::from_raw(width, height, self.source.get_matrix().into_owned())
-            .ok_or_else(|| crate::Error::Internal("matrix does not match its dimensions".into()))?;
+            .ok_or_else(|| crate::Error::internal_with("matrix does not match its dimensions"))?;
         let rotated = rotate_about_center(
             &buffer,
             MINUS_45_IN_RADIANS,

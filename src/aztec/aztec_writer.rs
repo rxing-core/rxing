@@ -66,11 +66,9 @@ impl Writer for AztecWriter {
         }
 
         let margins = if let Some(margin) = &hints.Margin {
-            margin.parse::<u32>().map_err(|e| Error::InvalidInput {
-                field: "Margin",
-                value: margin.clone(),
-                cause: Some(Box::new(e)),
-            })?
+            margin
+                .parse::<u32>()
+                .map_err(|e| Error::invalid_input_with_cause("Margin", margin.clone(), e))?
         } else {
             MARGINS_SIZE
         };
@@ -100,11 +98,7 @@ fn encode(
     layers: i32,
 ) -> Result<BitMatrix> {
     if format != BarcodeFormat::AZTEC {
-        return Err(Error::InvalidInput {
-            field: "format",
-            value: format.to_string(),
-            cause: None,
-        });
+        return Err(Error::invalid_input_with("format", format.to_string()));
     }
     let aztec = if let Some(cset) = charset {
         // dbg!(cset.name(), cset.whatwg_name());

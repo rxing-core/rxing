@@ -140,12 +140,10 @@ pub trait GridSampler {
             // try {
             for (x, point) in points.iter().enumerate() {
                 // for x in 0..points.len() {
-                if image.try_get(point.x as u32, point.y as u32).ok_or(
-                    Error::Format {
-                        message: "transformed point out of bounds".into(),
-                        source: None,
-                    },
-                )? {
+                if image
+                    .try_get(point.x as u32, point.y as u32)
+                    .ok_or(Error::format_with("transformed point out of bounds"))?
+                {
                     // Black(-ish) pixel
                     bits.set(x as u32, y);
                 }

@@ -83,8 +83,12 @@ impl UPCEANExtension5Support {
         while x < 5 && rowOffset < end {
             let bestMatch =
                 STAND_IN.decodeDigit(row, &mut counters, rowOffset, &L_AND_G_PATTERNS)?;
-            resultString
-                .push(char::from_u32('0' as u32 + bestMatch as u32 % 10).ok_or(Error::Format { message: format!("could not parse {} to character.", '0' as u32 + bestMatch as u32 % 10).into(), source: None })?);
+            resultString.push(char::from_u32('0' as u32 + bestMatch as u32 % 10).ok_or(
+                Error::format_with(format!(
+                    "could not parse {} to character.",
+                    '0' as u32 + bestMatch as u32 % 10
+                )),
+            )?);
 
             rowOffset += counters.iter().sum::<u32>() as usize;
 

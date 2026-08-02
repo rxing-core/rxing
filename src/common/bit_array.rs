@@ -234,13 +234,10 @@ impl BitArray {
         self.reversed = None;
         let mut end = end;
         if end < start || end > self.size {
-            return Err(Error::Internal(
-                format!(
-                    "bit range [{start}..{end}] is invalid for BitArray of size {}",
-                    self.size
-                )
-                .into(),
-            ));
+            return Err(Error::internal_with(format!(
+                "bit range [{start}..{end}] is invalid for BitArray of size {}",
+                self.size
+            )));
         }
         if end == start {
             return Ok(());
@@ -284,13 +281,10 @@ impl BitArray {
     pub fn isRange(&self, start: usize, end: usize, value: bool) -> Result<bool> {
         let mut end = end;
         if end < start || end > self.size {
-            return Err(Error::Internal(
-                format!(
-                    "bit range [{start}..{end}] is invalid for BitArray of size {}",
-                    self.size
-                )
-                .into(),
-            ));
+            return Err(Error::internal_with(format!(
+                "bit range [{start}..{end}] is invalid for BitArray of size {}",
+                self.size
+            )));
         }
         if end == start {
             return Ok(true); // empty range matches
@@ -339,9 +333,10 @@ impl BitArray {
     pub fn appendBits(&mut self, value: BaseType, num_bits: usize) -> Result<()> {
         self.reversed = None;
         if num_bits > BASE_BITS {
-            return Err(Error::Internal(
-                format!("num bits must be between 0 and {}", BaseType::BITS).into(),
-            ));
+            return Err(Error::internal_with(format!(
+                "num bits must be between 0 and {}",
+                BaseType::BITS
+            )));
         }
 
         if num_bits == 0 {
@@ -376,7 +371,7 @@ impl BitArray {
     pub fn xor(&mut self, other: &BitArray) -> Result<()> {
         self.reversed = None;
         if self.size != other.size {
-            return Err(Error::Internal("Sizes don't match".into()));
+            return Err(Error::internal_with("Sizes don't match"));
         }
         for (lhs, rhs) in self.bits.iter_mut().zip(other.bits.iter()) {
             //for (int i = 0; i < bits.length; i++) {

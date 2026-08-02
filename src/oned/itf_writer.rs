@@ -33,20 +33,16 @@ impl OneDimensionalCodeWriter for ITFWriter {
     fn encode_oned(&self, contents: &str) -> Result<Vec<bool>> {
         let length = contents.chars().count();
         if length % 2 != 0 {
-            return Err(Error::InvalidInput {
-                field: "contents".into(),
-                value: "The length of the input should be even".into(),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "contents",
+                "The length of the input should be even",
+            ));
         }
         if length > 80 {
-            return Err(Error::InvalidInput {
-                field: "contents".into(),
-                value: format!(
-                    "Requested contents should be less than 80 digits long, but got {length}"
-                ),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "contents",
+                format!("Requested contents should be less than 80 digits long, but got {length}"),
+            ));
         }
 
         Self::checkNumeric(contents)?;
@@ -56,16 +52,14 @@ impl OneDimensionalCodeWriter for ITFWriter {
 
         let cached_contents: Vec<char> = contents.chars().collect();
         for chunk in cached_contents.chunks_exact(2) {
-            let one = chunk[0].to_digit(10).ok_or(Error::InvalidInput {
-                field: "contents",
-                value: format!("character {} is not a digit", chunk[0]),
-                cause: None,
-            })? as usize;
-            let two = chunk[1].to_digit(10).ok_or(Error::InvalidInput {
-                field: "contents",
-                value: format!("character {} is not a digit", chunk[1]),
-                cause: None,
-            })? as usize;
+            let one = chunk[0].to_digit(10).ok_or(Error::invalid_input_with(
+                "contents",
+                format!("character {} is not a digit", chunk[0]),
+            ))? as usize;
+            let two = chunk[1].to_digit(10).ok_or(Error::invalid_input_with(
+                "contents",
+                format!("character {} is not a digit", chunk[1]),
+            ))? as usize;
 
             let mut encoding = [0; 10];
             for j in 0..5 {

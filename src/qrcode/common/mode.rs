@@ -70,9 +70,7 @@ impl Mode {
             {
                 Ok(Self::HANZI)
             }
-            _ => Err(Error::Internal(
-                format!("{bits} is not a valid Mode").into(),
-            )),
+            _ => Err(Error::internal_with(format!("{bits} is not a valid Mode"))),
         }
     }
 
@@ -173,10 +171,7 @@ impl Mode {
             return Mode::try_from(bits as u32);
         }
 
-        Err(Error::Format {
-            message: "Invalid codec mode".into(),
-            source: None,
-        })
+        Err(Error::format_with("Invalid codec mode"))
     }
 
     /**

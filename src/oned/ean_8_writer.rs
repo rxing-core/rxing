@@ -53,19 +53,17 @@ impl OneDimensionalCodeWriter for EAN8Writer {
             }
             8 => {
                 if !upcean_common::checkStandardUPCEANChecksum(&contents)? {
-                    return Err(Error::InvalidInput {
-                        field: "contents",
-                        value: "do not pass checksum".into(),
-                        cause: None,
-                    });
+                    return Err(Error::invalid_input_with(
+                        "contents",
+                        "do not pass checksum",
+                    ));
                 }
             }
             _ => {
-                return Err(Error::InvalidInput {
-                    field: "contents",
-                    value: format!("should be 7 or 8 digits long, but got {length}"),
-                    cause: None,
-                });
+                return Err(Error::invalid_input_with(
+                    "contents",
+                    format!("should be 7 or 8 digits long, but got {length}"),
+                ));
             }
         }
 
@@ -82,17 +80,15 @@ impl OneDimensionalCodeWriter for EAN8Writer {
             let digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Error::InvalidInput {
-                    field: "contents",
-                    value: format!("missing character at position {i}"),
-                    cause: None,
-                })?
+                .ok_or(Error::invalid_input_with(
+                    "contents",
+                    format!("missing character at position {i}"),
+                ))?
                 .to_digit(10)
-                .ok_or(Error::InvalidInput {
-                    field: "contents",
-                    value: format!("character at position {i} is not a digit"),
-                    cause: None,
-                })? as usize;
+                .ok_or(Error::invalid_input_with(
+                    "contents",
+                    format!("character at position {i} is not a digit"),
+                ))? as usize;
             pos += Self::appendPattern(&mut result, pos, &upc_ean_shared::L_PATTERNS[digit], false)
                 as usize;
         }
@@ -105,17 +101,15 @@ impl OneDimensionalCodeWriter for EAN8Writer {
             let digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Error::InvalidInput {
-                    field: "contents",
-                    value: format!("missing character at position {i}"),
-                    cause: None,
-                })?
+                .ok_or(Error::invalid_input_with(
+                    "contents",
+                    format!("missing character at position {i}"),
+                ))?
                 .to_digit(10)
-                .ok_or(Error::InvalidInput {
-                    field: "contents",
-                    value: format!("character at position {i} is not a digit"),
-                    cause: None,
-                })? as usize;
+                .ok_or(Error::invalid_input_with(
+                    "contents",
+                    format!("character at position {i} is not a digit"),
+                ))? as usize;
             pos += Self::appendPattern(&mut result, pos, &upc_ean_shared::L_PATTERNS[digit], true)
                 as usize;
         }

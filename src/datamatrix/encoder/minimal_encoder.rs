@@ -664,7 +664,7 @@ impl Edge {
         previous: Option<Arc<Edge>>,
     ) -> Result<Self> {
         if fromPosition + characterLength > input.length() as u32 {
-            return Err(Error::Internal("invalid position information".into()));
+            return Err(Error::internal_with("invalid position information"));
         }
 
         let mut size = if let Some(previous) = previous.clone() {
@@ -1274,7 +1274,7 @@ impl RXingResult {
         let solution = if let Some(edge) = solution {
             edge
         } else {
-            return Err(Error::Internal("no edges found".into()));
+            return Err(Error::internal_with("no edges found"));
         };
         let input = solution.input.clone();
         let mut size = 0;

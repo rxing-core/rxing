@@ -138,8 +138,8 @@ pub fn encodeECC200(codewords: &str, symbolInfo: &SymbolInfo) -> Result<String> 
     let codewords: Vec<u8> = codewords.chars().map(|c| c as u8).collect();
 
     if codewords.len() != symbolInfo.getDataCapacity() as usize {
-        return Err(Error::Internal(
-            "The number of codewords does not match the selected symbol".into(),
+        return Err(Error::internal_with(
+            "The number of codewords does not match the selected symbol",
         ));
     }
 
@@ -185,10 +185,9 @@ fn createECCBlock(codewords: &[u8], numECWords: usize) -> Result<Vec<u8>> {
         .iter()
         .position(|&set| set == numECWords as u32)
         .ok_or_else(|| {
-            Error::Internal(
-                format!("Illegal number of error correction codewords specified: {numECWords}")
-                    .into(),
-            )
+            Error::internal_with(format!(
+                "Illegal number of error correction codewords specified: {numECWords}"
+            ))
         })?;
 
     let poly = FACTORS[table];

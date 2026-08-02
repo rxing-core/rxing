@@ -1323,17 +1323,11 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
                         .partial_cmp(&Point::distance(**b, br))
                         .unwrap_or(std::cmp::Ordering::Less)
                 })
-                .ok_or(Error::Format {
-                    message: "could not find offset target".into(),
-                    source: None,
-                })?;
+                .ok_or(Error::format_with("could not find offset target"))?;
         let offsetA =
             a.0.iter()
                 .position(|x| x == offsetATarget)
-                .ok_or(Error::Format {
-                    message: "could not find offset".into(),
-                    source: None,
-                })? as i32;
+                .ok_or(Error::format_with("could not find offset"))? as i32;
         // let offsetA = std::max_element(a.begin(), a.end(), dist2B) - a.begin();
         // let dist2A = /*[c = tl]*/| a,  b| {  Point::distance(a, tl) < Point::distance(b, tl) };
         let offsetBTarget =
@@ -1343,17 +1337,11 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
                         .partial_cmp(&Point::distance(**b, tl))
                         .unwrap_or(std::cmp::Ordering::Less)
                 })
-                .ok_or(Error::Format {
-                    message: "could not find offset target".into(),
-                    source: None,
-                })?;
+                .ok_or(Error::format_with("could not find offset target"))?;
         let offsetB =
             b.0.iter()
                 .position(|x| x == offsetBTarget)
-                .ok_or(Error::Format {
-                    message: "could not find offset".into(),
-                    source: None,
-                })? as i32;
+                .ok_or(Error::format_with("could not find offset"))? as i32;
         // let offsetB = std::min_element(b.begin(), b.end(), dist2A) - b.begin();
 
         *a = a.rotated_corners(Some(offsetA), None);
@@ -1365,17 +1353,13 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
             &RegressionLine::with_two_points(a[0], a[1]),
             &RegressionLine::with_two_points(b[1], b[2]),
         )
-        .ok_or(Error::Format {
-            message: "could not find intersection".into(),
-            source: None,
-        })? + RegressionLine::intersect(
-            &RegressionLine::with_two_points(a[3], a[2]),
-            &RegressionLine::with_two_points(b[0], b[3]),
-        )
-        .ok_or(Error::Format {
-            message: "could not find intersection".into(),
-            source: None,
-        })?) / 2.0;
+        .ok_or(Error::format_with("could not find intersection"))?
+            + RegressionLine::intersect(
+                &RegressionLine::with_two_points(a[3], a[2]),
+                &RegressionLine::with_two_points(b[0], b[3]),
+            )
+            .ok_or(Error::format_with("could not find intersection"))?)
+            / 2.0;
 
         // let tr = (intersect(RegressionLine(a[0], a[1]), RegressionLine(b[1], b[2]))
         // 		   + intersect(RegressionLine(a[3], a[2]), RegressionLine(b[0], b[3])))
@@ -1384,17 +1368,13 @@ pub fn SampleRMQR(image: &BitMatrix, fp: ConcentricPattern) -> Result<QRCodeDete
             &RegressionLine::with_two_points(a[0], a[3]),
             &RegressionLine::with_two_points(b[2], b[3]),
         )
-        .ok_or(Error::Format {
-            message: "could not find intersection".into(),
-            source: None,
-        })? + RegressionLine::intersect(
-            &RegressionLine::with_two_points(a[1], a[2]),
-            &RegressionLine::with_two_points(b[0], b[1]),
-        )
-        .ok_or(Error::Format {
-            message: "could not find intersection".into(),
-            source: None,
-        })?) / 2.0;
+        .ok_or(Error::format_with("could not find intersection"))?
+            + RegressionLine::intersect(
+                &RegressionLine::with_two_points(a[1], a[2]),
+                &RegressionLine::with_two_points(b[0], b[1]),
+            )
+            .ok_or(Error::format_with("could not find intersection"))?)
+            / 2.0;
         // let bl = (intersect(RegressionLine(a[0], a[3]), RegressionLine(b[2], b[3]))
         // 		   + intersect(RegressionLine(a[1], a[2]), RegressionLine(b[0], b[1])))
         // 		  / 2;

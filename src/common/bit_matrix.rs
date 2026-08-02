@@ -70,11 +70,10 @@ impl BitMatrix {
      */
     pub fn new(width: u32, height: u32) -> Result<Self> {
         if width < 1 || height < 1 {
-            return Err(Error::InvalidInput {
-                field: "dimensions".into(),
-                value: "Both dimensions must be greater than 0".into(),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "dimensions",
+                "Both dimensions must be greater than 0",
+            ));
         }
         Ok(Self {
             width,
@@ -157,11 +156,10 @@ impl BitMatrix {
                         first_run = false;
                         rowLength = bitsPos - rowStartPos;
                     } else if bitsPos - rowStartPos != rowLength {
-                        return Err(Error::InvalidInput {
-                            field: "string_representation".into(),
-                            value: "row lengths do not match".into(),
-                            cause: None,
-                        });
+                        return Err(Error::invalid_input_with(
+                            "string_representation",
+                            "row lengths do not match",
+                        ));
                     }
                     rowStartPos = bitsPos;
                     nRows += 1;
@@ -176,14 +174,13 @@ impl BitMatrix {
                 bits[bitsPos] = false;
                 bitsPos += 1;
             } else {
-                return Err(Error::InvalidInput {
-                    field: "string_representation".into(),
-                    value: format!(
+                return Err(Error::invalid_input_with(
+                    "string_representation",
+                    format!(
                         "illegal character encountered: {}",
                         string_representation[pos..].to_owned()
                     ),
-                    cause: None,
-                });
+                ));
             }
         }
 
@@ -194,11 +191,10 @@ impl BitMatrix {
                 // first_run = false;
                 rowLength = bitsPos - rowStartPos;
             } else if bitsPos - rowStartPos != rowLength {
-                return Err(Error::InvalidInput {
-                    field: "string_representation".into(),
-                    value: "row lengths do not match".into(),
-                    cause: None,
-                });
+                return Err(Error::invalid_input_with(
+                    "string_representation",
+                    "row lengths do not match",
+                ));
             }
             nRows += 1;
         }
@@ -377,11 +373,10 @@ impl BitMatrix {
     pub fn xor(&mut self, mask: &BitMatrix) -> Result<()> {
         if self.width != mask.width || self.height != mask.height || self.row_size != mask.row_size
         {
-            return Err(Error::InvalidInput {
-                field: "input_matrix".into(),
-                value: "input matrix dimensions do not match".into(),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "input_matrix",
+                "input matrix dimensions do not match",
+            ));
         }
         // let mut rowArray = BitArray::with_size(self.width as usize);
         for y in 0..self.height {
@@ -416,15 +411,13 @@ impl BitMatrix {
      */
     pub fn setRegion(&mut self, left: u32, top: u32, width: u32, height: u32) -> Result<()> {
         if height < 1 || width < 1 {
-            return Err(Error::Internal(
-                "height and width must be at least 1".into(),
-            ));
+            return Err(Error::internal_with("height and width must be at least 1"));
         }
         let right = left + width;
         let bottom = top + height;
         if bottom > self.height || right > self.width {
-            return Err(Error::Internal(
-                "the region must fit inside the matrix".into(),
+            return Err(Error::internal_with(
+                "the region must fit inside the matrix",
             ));
         }
         for y in top..bottom {
@@ -503,8 +496,8 @@ impl BitMatrix {
                 self.rotate180();
                 Ok(())
             }
-            _ => Err(Error::Internal(
-                "degrees must be a multiple of 0, 90, 180, or 270".into(),
+            _ => Err(Error::internal_with(
+                "degrees must be a multiple of 0, 90, 180, or 270",
             )),
         }
     }

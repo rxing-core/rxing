@@ -72,15 +72,13 @@ fn check_checksum(vin: &str) -> Result<bool> {
     let mut sum = 0;
     for i in 0..vin.len() {
         sum += vin_position_weight(i + 1)? as u32
-            * vin_char_value(vin.chars().nth(i).ok_or(Error::Format {
-                message: "insufficient characters in VIN barcode data".into(),
-                source: None,
-            })?)?;
+            * vin_char_value(vin.chars().nth(i).ok_or(Error::format_with(
+                "insufficient characters in VIN barcode data",
+            ))?)?;
     }
-    let check_to_char = vin.chars().nth(8).ok_or(Error::Format {
-        message: "insufficient characters in VIN barcode data".into(),
-        source: None,
-    })?;
+    let check_to_char = vin.chars().nth(8).ok_or(Error::format_with(
+        "insufficient characters in VIN barcode data",
+    ))?;
     let expected_check_char = check_char((sum % 11) as u8)?;
     Ok(check_to_char == expected_check_char)
 }
@@ -91,10 +89,7 @@ fn vin_char_value(c: char) -> Result<u32> {
         'J'..='R' => Ok((c as u8 as u32 - b'J' as u32) + 1),
         'S'..='Z' => Ok((c as u8 as u32 - b'S' as u32) + 2),
         '0'..='9' => Ok(c as u8 as u32 - b'0' as u32),
-        _ => Err(Error::Format {
-            message: format!("invalid VIN character '{c}'").into(),
-            source: None,
-        }),
+        _ => Err(Error::format_with(format!("invalid VIN character '{c}'"))),
     }
 }
 
@@ -104,10 +99,9 @@ fn vin_position_weight(position: usize) -> Result<usize> {
         8 => Ok(10),
         9 => Ok(0),
         10..=17 => Ok(19 - position),
-        _ => Err(Error::Format {
-            message: format!("VIN position {position} out of bounds").into(),
-            source: None,
-        }),
+        _ => Err(Error::format_with(format!(
+            "VIN position {position} out of bounds"
+        ))),
     }
 }
 
@@ -115,7 +109,7 @@ fn check_char(remainder: u8) -> Result<char> {
     match remainder {
         0..=9 => Ok((b'0' + remainder) as char),
         10 => Ok('X'),
-        _ => Err(Error::Internal("remainder too high".into())),
+        _ => Err(Error::internal_with("remainder too high")),
     }
 }
 
@@ -128,10 +122,9 @@ fn model_year(c: char) -> Result<u32> {
         'V'..='Y' => Ok((c as u8 as u32 - b'V' as u32) + 1997),
         '1'..='9' => Ok((c as u8 as u32 - b'1' as u32) + 2001),
         'A'..='D' => Ok((c as u8 as u32 - b'A' as u32) + 2010),
-        _ => Err(Error::Format {
-            message: format!("invalid model year character '{c}' in VIN").into(),
-            source: None,
-        }),
+        _ => Err(Error::format_with(format!(
+            "invalid model year character '{c}' in VIN"
+        ))),
     }
 }
 

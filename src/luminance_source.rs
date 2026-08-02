@@ -102,8 +102,8 @@ pub trait LuminanceSource {
     where
         Self: Sized,
     {
-        Err(Error::Internal(
-            "this luminance source does not support cropping".into(),
+        Err(Error::internal_with(
+            "this luminance source does not support cropping",
         ))
     }
 
@@ -125,8 +125,8 @@ pub trait LuminanceSource {
     where
         Self: Sized,
     {
-        Err(Error::Internal(
-            "this luminance source does not support rotation by 90 degrees".into(),
+        Err(Error::internal_with(
+            "this luminance source does not support rotation by 90 degrees",
         ))
     }
 
@@ -140,8 +140,8 @@ pub trait LuminanceSource {
     where
         Self: Sized,
     {
-        Err(Error::Internal(
-            "this luminance source does not support rotation by 45 degrees".into(),
+        Err(Error::internal_with(
+            "this luminance source does not support rotation by 45 degrees",
         ))
     }
 

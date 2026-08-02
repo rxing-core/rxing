@@ -139,9 +139,7 @@ impl DataBlock {
         }
 
         if rawCodewordsOffset != rawCodewords.len() {
-            return Err(Error::Internal(
-                "raw code word offset length mismatch".into(),
-            ));
+            return Err(Error::internal_with("raw code word offset length mismatch"));
         }
 
         Ok(result)

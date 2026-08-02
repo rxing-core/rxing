@@ -46,11 +46,7 @@ impl Writer for UPCAWriter {
         hints: &crate::EncodeHints,
     ) -> Result<crate::common::BitMatrix> {
         if format != &BarcodeFormat::UPC_A {
-            return Err(Error::InvalidInput {
-                field: "format",
-                value: format!("{format:?}"),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with("format", format!("{format:?}")));
         }
         // Transform a UPC-A code into the equivalent EAN-13 code and write it that way
         self.0.encode_with_hints(

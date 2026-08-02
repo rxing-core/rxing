@@ -53,7 +53,7 @@ impl GenericGFPoly {
         i32: From<T>,
     {
         if coefficients.is_empty() {
-            return Err(Error::Internal("coefficients cannot be empty".into()));
+            return Err(Error::internal_with("coefficients cannot be empty"));
         }
         // The only generic work is widening to `i32`; trimming is done once in `from_coefficients`.
         Self::from_coefficients(field, coefficients.iter().map(|&c| i32::from(c)).collect())
@@ -135,8 +135,8 @@ impl GenericGFPoly {
 
     pub fn addOrSubtract(&self, other: &GenericGFPoly) -> Result<GenericGFPoly> {
         if self.field != other.field {
-            return Err(Error::Internal(
-                "GenericGFPolys do not have same GenericGF field".into(),
+            return Err(Error::internal_with(
+                "GenericGFPolys do not have same GenericGF field",
             ));
         }
         if self.isZero() {
@@ -172,8 +172,8 @@ impl GenericGFPoly {
     pub fn multiply(&self, other: &GenericGFPoly) -> Result<GenericGFPoly> {
         if self.field != other.field {
             //if (!field.equals(other.field)) {
-            return Err(Error::Internal(
-                "GenericGFPolys do not have same GenericGF field".into(),
+            return Err(Error::internal_with(
+                "GenericGFPolys do not have same GenericGF field",
             ));
         }
         if self.isZero() || other.isZero() {
@@ -240,12 +240,12 @@ impl GenericGFPoly {
 
     pub fn divide(&self, other: &GenericGFPoly) -> Result<(GenericGFPoly, GenericGFPoly)> {
         if self.field != other.field {
-            return Err(Error::Internal(
-                "GenericGFPolys do not have same GenericGF field".into(),
+            return Err(Error::internal_with(
+                "GenericGFPolys do not have same GenericGF field",
             ));
         }
         if other.isZero() {
-            return Err(Error::Internal("Divide by 0".into()));
+            return Err(Error::internal_with("Divide by 0"));
         }
 
         let mut quotient = self.getZero();

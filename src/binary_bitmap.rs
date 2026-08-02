@@ -80,11 +80,10 @@ impl<B: Binarizer> BinaryBitmap<B> {
             // Match the binarizer path's contract: an out-of-range row is an
             // error, not a panic from indexing the flipped matrix.
             if y >= matrix.height() as usize {
-                return Err(crate::Error::InvalidInput {
-                    field: "y",
-                    value: format!("{y} is out of image bounds"),
-                    cause: None,
-                });
+                return Err(crate::Error::invalid_input_with(
+                    "y",
+                    format!("{y} is out of image bounds"),
+                ));
             }
             Ok(Cow::Owned(matrix.getRow(y as u32)))
         } else {
@@ -101,11 +100,10 @@ impl<B: Binarizer> BinaryBitmap<B> {
                 LineOrientation::Column => matrix.width(),
             };
             if l >= bound as usize {
-                return Err(crate::Error::InvalidInput {
-                    field: "line",
-                    value: format!("{l} is out of image bounds"),
-                    cause: None,
-                });
+                return Err(crate::Error::invalid_input_with(
+                    "line",
+                    format!("{l} is out of image bounds"),
+                ));
             }
             let line = match lt {
                 LineOrientation::Row => matrix.getRow(l as u32),

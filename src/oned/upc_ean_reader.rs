@@ -138,10 +138,9 @@ pub trait UPCEANReader: OneDReader {
 
         // UPC/EAN should never be less than 8 chars anyway
         if resultString.chars().count() < 8 {
-            return Err(Error::Format {
-                message: "UPC/EAN should never be less than 8 chars anyway".into(),
-                source: None,
-            });
+            return Err(Error::format_with(
+                "UPC/EAN should never be less than 8 chars anyway",
+            ));
         }
 
         if !self.checkChecksum(&resultString)? {

@@ -121,7 +121,12 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult> {
                 codeIndex = byteCompaction(code, codewords, codeIndex, &mut result)?
             }
             MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
-                result.append_char(char::from_u32(codewords[codeIndex]).ok_or(Error::Format { message: format!("could not parse {} to character.", codewords[codeIndex]).into(), source: None })?);
+                result.append_char(char::from_u32(codewords[codeIndex]).ok_or(
+                    Error::format_with(format!(
+                        "could not parse {} to character.",
+                        codewords[codeIndex]
+                    )),
+                )?);
                 codeIndex += 1;
             }
             NUMERIC_COMPACTION_MODE_LATCH => {
@@ -147,7 +152,9 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult> {
             BEGIN_MACRO_PDF417_OPTIONAL_FIELD | MACRO_PDF417_TERMINATOR =>
             // Should not see these outside a macro block
             {
-                return Err(Error::Format { message: "BEGIN_MACRO_PDF417_OPTIONAL_FIELD | MACRO_PDF417_TERMINATOR cannot be within macro block".into()   , source: None });
+                return Err(Error::format_with(
+                    "BEGIN_MACRO_PDF417_OPTIONAL_FIELD | MACRO_PDF417_TERMINATOR cannot be within macro block",
+                ));
             }
             _ => {
                 // Default to text compaction. During testing numerous barcodes
@@ -162,10 +169,7 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult> {
     result = result.build_result();
 
     if result.is_empty() && resultMetadata.getFileId().is_empty() {
-        return Err(Error::Format {
-            message: "decoded result is empty".into(),
-            source: None,
-        });
+        return Err(Error::format_with("decoded result is empty"));
     }
 
     let mut decoderRXingResult = DecoderRXingResult::new(
@@ -187,10 +191,7 @@ pub fn decodeMacroBlock(
     let mut codeIndex = codeIndex;
     if codeIndex + NUMBER_OF_SEQUENCE_CODEWORDS > codewords[0] as usize {
         // we must have at least two bytes left for the segment index
-        return Err(Error::Format {
-            message: "not enough codewords available".into(),
-            source: None,
-        });
+        return Err(Error::format_with("not enough codewords available"));
     }
     let mut segmentIndexArray = [0; NUMBER_OF_SEQUENCE_CODEWORDS];
     for seq in segmentIndexArray
@@ -208,10 +209,7 @@ pub fn decodeMacroBlock(
         resultMetadata.setSegmentIndex(parsed_int);
     } else {
         // too large; bad input?
-        return Err(Error::Format {
-            message: "invalid segment index found".into(),
-            source: None,
-        });
+        return Err(Error::format_with("invalid segment index found"));
     }
 
     // Decoding the fileId codewords as 0-899 numbers, each 0-filled to width 3. This follows the spec
@@ -228,10 +226,7 @@ pub fn decodeMacroBlock(
     }
     if fileId.chars().count() == 0 {
         // at least one fileId codeword is required (Annex H.2)
-        return Err(Error::Format {
-            message: "decoded fileId is empty".into(),
-            source: None,
-        });
+        return Err(Error::format_with("decoded fileId is empty"));
     }
     resultMetadata.setFileId(fileId);
 
@@ -264,10 +259,7 @@ pub fn decodeMacroBlock(
                         let mut segmentCount = ECIStringBuilder::default();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut segmentCount)?;
                         let Ok(parsed_segment_count) = segmentCount.to_string().parse() else {
-                            return Err(Error::Format {
-                                message: "invalid segment count found".into(),
-                                source: None,
-                            });
+                            return Err(Error::format_with("invalid segment count found"));
                         };
                         resultMetadata.setSegmentCount(parsed_segment_count);
                     }
@@ -275,10 +267,7 @@ pub fn decodeMacroBlock(
                         let mut timestamp = ECIStringBuilder::default();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut timestamp)?;
                         let Ok(parsed_timestamp) = timestamp.to_string().parse() else {
-                            return Err(Error::Format {
-                                message: "invalid timestamp found".into(),
-                                source: None,
-                            });
+                            return Err(Error::format_with("invalid timestamp found"));
                         };
                         resultMetadata.setTimestamp(parsed_timestamp);
                     }
@@ -296,18 +285,12 @@ pub fn decodeMacroBlock(
                         let mut fileSize = ECIStringBuilder::default();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut fileSize)?;
                         let Ok(parsed_file_size) = fileSize.to_string().parse() else {
-                            return Err(Error::Format {
-                                message: "invalid file size found".into(),
-                                source: None,
-                            });
+                            return Err(Error::format_with("invalid file size found"));
                         };
                         resultMetadata.setFileSize(parsed_file_size);
                     }
                     _ => {
-                        return Err(Error::Format {
-                            message: "invalid macro field found".into(),
-                            source: None,
-                        });
+                        return Err(Error::format_with("invalid macro field found"));
                     }
                 }
             }
@@ -316,10 +299,7 @@ pub fn decodeMacroBlock(
                 resultMetadata.setLastSegment(true);
             }
             _ => {
-                return Err(Error::Format {
-                    message: "invalid macro field found".into(),
-                    source: None,
-                });
+                return Err(Error::format_with("invalid macro field found"));
             }
         }
     }
@@ -800,10 +780,7 @@ fn decodeBase900toBase10(codewords: &[u32], count: usize) -> Result<String> {
     }
     let resultString = result.to_string();
     if !resultString.starts_with('1') {
-        return Err(Error::Format {
-            message: "invalid base 900 to base 10 conversion".into(),
-            source: None,
-        });
+        return Err(Error::format_with("invalid base 900 to base 10 conversion"));
     }
     Ok(resultString[1..].to_owned())
 }

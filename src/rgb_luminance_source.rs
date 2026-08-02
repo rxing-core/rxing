@@ -124,11 +124,10 @@ impl RGBLuminanceSource {
         let size = width * height;
 
         if size != pixels.len() {
-            return Err(Error::InvalidInput {
-                field: "dimensions do not match the data length",
-                value: pixels.len().to_string(),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "dimensions do not match the data length",
+                pixels.len().to_string(),
+            ));
         }
 
         let mut luminances: Vec<u8> = vec![0; size];
@@ -158,11 +157,10 @@ impl RGBLuminanceSource {
         height: usize,
     ) -> Result<Self> {
         if width > data_width || height > data_height {
-            return Err(Error::InvalidInput {
-                field: "crop rectangle",
-                value: "does not fit within image data".into(),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "crop rectangle",
+                "does not fit within image data",
+            ));
         }
         Ok(Self {
             luminances: pixels,

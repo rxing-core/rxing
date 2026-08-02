@@ -50,19 +50,17 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             }
             13 => {
                 if !upcean_common::checkStandardUPCEANChecksum(&contents)? {
-                    return Err(Error::InvalidInput {
-                        field: "contents".into(),
-                        value: "do not pass checksum".into(),
-                        cause: None,
-                    });
+                    return Err(Error::invalid_input_with(
+                        "contents",
+                        "do not pass checksum",
+                    ));
                 }
             }
             _ => {
-                return Err(Error::InvalidInput {
-                    field: "contents".into(),
-                    value: format!("should be 12 or 13 digits long, but got {length}"),
-                    cause: None,
-                });
+                return Err(Error::invalid_input_with(
+                    "contents",
+                    format!("should be 12 or 13 digits long, but got {length}"),
+                ));
             }
         }
 
@@ -71,17 +69,12 @@ impl OneDimensionalCodeWriter for EAN13Writer {
         let firstDigit = contents
             .chars()
             .next()
-            .ok_or(Error::InvalidInput {
-                field: "contents",
-                value: "missing first digit".into(),
-                cause: None,
-            })?
+            .ok_or(Error::invalid_input_with("contents", "missing first digit"))?
             .to_digit(10)
-            .ok_or(Error::InvalidInput {
-                field: "contents",
-                value: "first character is not a digit".into(),
-                cause: None,
-            })? as usize;
+            .ok_or(Error::invalid_input_with(
+                "contents",
+                "first character is not a digit",
+            ))? as usize;
         let parities = ean_13::FIRST_DIGIT_ENCODINGS[firstDigit];
         let mut result = [false; CODE_WIDTH];
         let mut pos = 0;
@@ -96,17 +89,15 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             let mut digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Error::InvalidInput {
-                    field: "contents",
-                    value: format!("missing character at index {i}"),
-                    cause: None,
-                })?
+                .ok_or(Error::invalid_input_with(
+                    "contents",
+                    format!("missing character at index {i}"),
+                ))?
                 .to_digit(10)
-                .ok_or(Error::InvalidInput {
-                    field: "contents",
-                    value: format!("character at index {i} is not a digit"),
-                    cause: None,
-                })? as usize;
+                .ok_or(Error::invalid_input_with(
+                    "contents",
+                    format!("character at index {i} is not a digit"),
+                ))? as usize;
             if ((parities >> (6 - i)) & 1) == 1 {
                 digit += 10;
             }
@@ -125,17 +116,15 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             let digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Error::InvalidInput {
-                    field: "contents",
-                    value: format!("missing character at index {i}"),
-                    cause: None,
-                })?
+                .ok_or(Error::invalid_input_with(
+                    "contents",
+                    format!("missing character at index {i}"),
+                ))?
                 .to_digit(10)
-                .ok_or(Error::InvalidInput {
-                    field: "contents",
-                    value: format!("character at index {i} is not a digit"),
-                    cause: None,
-                })? as usize;
+                .ok_or(Error::invalid_input_with(
+                    "contents",
+                    format!("character at index {i} is not a digit"),
+                ))? as usize;
 
             pos += EAN13Writer::appendPattern(
                 &mut result,

@@ -216,18 +216,23 @@ impl PDF417 {
         //2. step: construct data codewords
         if sourceCodeWords + errorCorrectionCodeWords + 1 > 929 {
             // +1 for symbol length CW
-            return Err(Error::InvalidInput {
-                field: "message-length (must be less than 929 bytes)",
-                value: msg.chars().count().to_string(),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "message-length (must be less than 929 bytes)",
+                msg.chars().count().to_string(),
+            ));
         }
         let n = sourceCodeWords + pad + 1;
         let mut sb = String::with_capacity(n as usize);
-        sb.push(char::from_u32(n).ok_or(Error::Format { message: format!("cannot create character from u32: {}", n).into(), source: None })?);
+        sb.push(char::from_u32(n).ok_or(Error::format_with(format!(
+            "cannot create character from u32: {}",
+            n
+        )))?);
         sb.push_str(&highLevel);
         for _i in 0..pad {
-            sb.push(char::from_u32(900).ok_or(Error::Format { message: "cannot create character from u32: 900".into(), source: None })?);
+            sb.push(
+                char::from_u32(900)
+                    .ok_or(Error::format_with("cannot create character from u32: 900"))?,
+            );
             //PAD characters
         }
         let dataCodewords = sb;
@@ -306,14 +311,13 @@ impl PDF417 {
             }
         }
 
-        dimension.ok_or(Error::InvalidInput {
-            field: "message-length",
-            value: format!(
+        dimension.ok_or(Error::invalid_input_with(
+            "message-length",
+            format!(
                 "code word count: {}, ec codewords count: {}",
                 sourceCodeWords, errorCorrectionCodeWords
             ),
-            cause: None,
-        })
+        ))
     }
 
     /**

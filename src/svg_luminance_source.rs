@@ -61,11 +61,7 @@ impl SVGLuminanceSource {
     pub fn new(svg_data: &[u8]) -> Result<Self> {
         // Load the SVG file
         let tree = resvg::usvg::Tree::from_data(svg_data, &Options::default()).map_err(|err| {
-            Error::InvalidInput {
-                field: "svg",
-                value: "svg data could not be parsed".into(),
-                cause: err.into(),
-            }
+            Error::invalid_input_with_cause("svg", "svg data could not be parsed", err)
         })?;
 
         let Some(mut pixmap) =

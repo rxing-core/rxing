@@ -309,13 +309,9 @@ impl<'a> EdgeTracer<'_> {
                 }
                 if !self.updateDirectionFromOrigin(
                     self.p - line.project(self.p)
-                        + **line
-                            .points()
-                            .first()
-                            .as_ref()
-                            .ok_or(Error::Internal(
-                                "edge tracer: regression line has no points".into(),
-                            ))?,
+                        + **line.points().first().as_ref().ok_or(Error::internal_with(
+                            "edge tracer: regression line has no points",
+                        ))?,
                 ) {
                     return Ok(false);
                 }
@@ -364,13 +360,9 @@ impl<'a> EdgeTracer<'_> {
 
             if !line.points().is_empty()
                 && &&self.p
-                    == line
-                        .points()
-                        .last()
-                        .as_ref()
-                        .ok_or(Error::Internal(
-                            "edge tracer: regression line has no points".into(),
-                        ))?
+                    == line.points().last().as_ref().ok_or(Error::internal_with(
+                        "edge tracer: regression line has no points",
+                    ))?
             {
                 return Ok(false);
             }
@@ -410,14 +402,9 @@ impl<'a> EdgeTracer<'_> {
                 // to prevent a dead lock. see #245.png
                 while Point::distance(
                     np,
-                    line.project(
-                        line.points()
-                            .last()
-                            .copied()
-                            .ok_or(Error::Internal(
-                                "edge tracer: regression line has no points".into(),
-                            ))?,
-                    ),
+                    line.project(line.points().last().copied().ok_or(Error::internal_with(
+                        "edge tracer: regression line has no points",
+                    ))?),
                 ) < 1.0
                 {
                     np += self.d;
@@ -430,13 +417,9 @@ impl<'a> EdgeTracer<'_> {
                     Point::dot(
                         Point::mainDirection(self.d),
                         self.p
-                            - line
-                                .points()
-                                .last()
-                                .copied()
-                                .ok_or(Error::Internal(
-                                    "edge tracer: regression line has no points".into(),
-                                ))?,
+                            - line.points().last().copied().ok_or(Error::internal_with(
+                                "edge tracer: regression line has no points",
+                            ))?,
                     )
                 };
                 line.add(self.p)?;
@@ -449,13 +432,9 @@ impl<'a> EdgeTracer<'_> {
                         }
                         if !self.updateDirectionFromOrigin(
                             self.p - line.project(self.p)
-                                + line
-                                    .points()
-                                    .first()
-                                    .copied()
-                                    .ok_or(Error::Internal(
-                                        "edge tracer: regression line has no points".into(),
-                                    ))?,
+                                + line.points().first().copied().ok_or(Error::internal_with(
+                                    "edge tracer: regression line has no points",
+                                ))?,
                         ) {
                             return Ok(false);
                         }

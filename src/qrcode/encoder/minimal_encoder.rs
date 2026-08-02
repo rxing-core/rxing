@@ -156,11 +156,10 @@ impl MinimalEncoder {
                 Self::getVersion(Self::getVersionSize(result.getVersion()))?,
                 &self.ecLevel,
             ) {
-                return Err(Error::InvalidInput {
-                    field: "data too big for version",
-                    value: version.to_string(),
-                    cause: None,
-                });
+                return Err(Error::invalid_input_with(
+                    "data too big for version",
+                    version.to_string(),
+                ));
             }
             Ok(result)
         } else {
@@ -186,11 +185,10 @@ impl MinimalEncoder {
                 }
             }
             if smallestRXingResult < 0 {
-                return Err(Error::InvalidInput {
-                    field: "data too big for any version",
-                    value: self.stringToEncode.len().to_string(),
-                    cause: None,
-                });
+                return Err(Error::invalid_input_with(
+                    "data too big for any version",
+                    self.stringToEncode.len().to_string(),
+                ));
             }
             Ok(results[smallestRXingResult as usize].clone())
         }
@@ -251,11 +249,10 @@ impl MinimalEncoder {
             Some(Mode::ALPHANUMERIC) => Ok(1),
             Some(Mode::BYTE) => Ok(3),
             Some(Mode::KANJI) | None => Ok(0),
-            _ => Err(Error::InvalidInput {
-                field: "illegal mode",
-                value: format!("{mode:?}"),
-                cause: None,
-            }),
+            _ => Err(Error::invalid_input_with(
+                "illegal mode",
+                format!("{mode:?}"),
+            )),
         }
     }
 
@@ -268,25 +265,25 @@ impl MinimalEncoder {
         let vertexIndex = position
             + edge
                 .as_ref()
-                .ok_or(Error::Internal("edge does not exist".into()))?
+                .ok_or(Error::internal_with("edge does not exist"))?
                 .characterLength as usize;
         let modeEdges = &mut edges[vertexIndex][edge
             .as_ref()
-            .ok_or(Error::Internal("vertex missing".into()))?
+            .ok_or(Error::internal_with("vertex missing"))?
             .charsetEncoderIndex];
         let modeOrdinal = Self::getCompactedOrdinal(Some(
             edge.as_ref()
-                .ok_or(Error::Internal("edge missing".into()))?
+                .ok_or(Error::internal_with("edge missing"))?
                 .mode,
         ))? as usize;
         if modeEdges[modeOrdinal].is_none()
             || modeEdges[modeOrdinal]
                 .as_ref()
-                .ok_or(Error::Internal("edge missing".into()))?
+                .ok_or(Error::internal_with("edge missing"))?
                 .cachedTotalSize
                 > edge
                     .as_ref()
-                    .ok_or(Error::Internal("edge missing".into()))?
+                    .ok_or(Error::internal_with("edge missing"))?
                     .cachedTotalSize
         {
             modeEdges[modeOrdinal] = edge;
@@ -310,15 +307,12 @@ impl MinimalEncoder {
                 .encoders
                 .canEncode(
                     &self.stringToEncode[from],
-                    priorityEncoderIndex.ok_or(Error::Internal("cannot encode".into()))?,
+                    priorityEncoderIndex.ok_or(Error::internal_with("cannot encode"))?,
                 )
-                .ok_or(Error::Format {
-                    message: "cannot encode".into(),
-                    source: None,
-                })?
+                .ok_or(Error::format_with("cannot encode"))?
         {
-            start = priorityEncoderIndex.ok_or(Error::Internal("cannot encode".into()))?;
-            end = priorityEncoderIndex.ok_or(Error::Internal("cannot encode".into()))? + 1;
+            start = priorityEncoderIndex.ok_or(Error::internal_with("cannot encode"))?;
+            end = priorityEncoderIndex.ok_or(Error::internal_with("cannot encode"))? + 1;
         }
 
         for i in start..end {
@@ -327,13 +321,10 @@ impl MinimalEncoder {
                 .canEncode(
                     self.stringToEncode
                         .get(from)
-                        .ok_or(Error::Internal("index out of bounds".into()))?,
+                        .ok_or(Error::internal_with("index out of bounds"))?,
                     i,
                 )
-                .ok_or(Error::Format {
-                    message: "cannot encode".into(),
-                    source: None,
-                })?
+                .ok_or(Error::format_with("cannot encode"))?
             {
                 self.addEdge(
                     edges,
@@ -349,8 +340,8 @@ impl MinimalEncoder {
                             self.encoders.clone(),
                             self.stringToEncode.clone(),
                         )
-                        .ok_or(Error::Internal(
-                            "edge could not be constructed (MODE:BYTE)".into(),
+                        .ok_or(Error::internal_with(
+                            "edge could not be constructed (MODE:BYTE)",
                         ))?,
                     )),
                 )?;
@@ -359,10 +350,9 @@ impl MinimalEncoder {
 
         if self.canEncode(
             &Mode::KANJI,
-            self.stringToEncode.get(from).ok_or(Error::Format {
-                message: "cannot encode kanji".into(),
-                source: None,
-            })?,
+            self.stringToEncode
+                .get(from)
+                .ok_or(Error::format_with("cannot encode kanji"))?,
         ) {
             self.addEdge(
                 edges,
@@ -378,8 +368,8 @@ impl MinimalEncoder {
                         self.encoders.clone(),
                         self.stringToEncode.clone(),
                     )
-                    .ok_or(Error::Internal(
-                        "edge could not be constructed (MODE:KANJI)".into(),
+                    .ok_or(Error::internal_with(
+                        "edge could not be constructed (MODE:KANJI)",
                     ))?,
                 )),
             )?;
@@ -390,7 +380,7 @@ impl MinimalEncoder {
             &Mode::ALPHANUMERIC,
             self.stringToEncode
                 .get(from)
-                .ok_or(Error::Internal("index out of bounds".into()))?,
+                .ok_or(Error::internal_with("index out of bounds"))?,
         ) {
             self.addEdge(
                 edges,
@@ -405,7 +395,7 @@ impl MinimalEncoder {
                                 &Mode::ALPHANUMERIC,
                                 self.stringToEncode
                                     .get(from + 1)
-                                    .ok_or(Error::Internal("index out of bounds".into()))?,
+                                    .ok_or(Error::internal_with("index out of bounds"))?,
                             )
                         {
                             1
@@ -417,8 +407,8 @@ impl MinimalEncoder {
                         self.encoders.clone(),
                         self.stringToEncode.clone(),
                     )
-                    .ok_or(Error::Internal(
-                        "edge could not be constructed (MODE:ALPHANUMERIC)".into(),
+                    .ok_or(Error::internal_with(
+                        "edge could not be constructed (MODE:ALPHANUMERIC)",
                     ))?,
                 )),
             )?;
@@ -428,7 +418,7 @@ impl MinimalEncoder {
             &Mode::NUMERIC,
             self.stringToEncode
                 .get(from)
-                .ok_or(Error::Internal("index out of bounds".into()))?,
+                .ok_or(Error::internal_with("index out of bounds"))?,
         ) {
             self.addEdge(
                 edges,
@@ -443,7 +433,7 @@ impl MinimalEncoder {
                                 &Mode::NUMERIC,
                                 self.stringToEncode
                                     .get(from + 1)
-                                    .ok_or(Error::Internal("index out of bounds".into()))?,
+                                    .ok_or(Error::internal_with("index out of bounds"))?,
                             )
                         {
                             1
@@ -452,7 +442,7 @@ impl MinimalEncoder {
                                 &Mode::NUMERIC,
                                 self.stringToEncode
                                     .get(from + 2)
-                                    .ok_or(Error::Internal("index out of bounds".into()))?,
+                                    .ok_or(Error::internal_with("index out of bounds"))?,
                             )
                         {
                             2
@@ -464,8 +454,8 @@ impl MinimalEncoder {
                         self.encoders.clone(),
                         self.stringToEncode.clone(),
                     )
-                    .ok_or(Error::Internal(
-                        "edge could not be constructed (MODE:NUMERIC)".into(),
+                    .ok_or(Error::internal_with(
+                        "edge could not be constructed (MODE:NUMERIC)",
                     ))?,
                 )),
             )?;
@@ -626,17 +616,17 @@ impl MinimalEncoder {
                 version,
                 edges[inputLength][minJ][minK]
                     .as_ref()
-                    .ok_or(Error::Internal(
-                        format!("edge not found: [{inputLength}][{minJ}][{minK}]").into(),
-                    ))?
+                    .ok_or(Error::internal_with(format!(
+                        "edge not found: [{inputLength}][{minJ}][{minK}]"
+                    )))?
                     .clone(),
                 self.isGS1,
                 &self.ecLevel,
                 self.encoders.clone(),
                 self.stringToEncode.clone(),
             )
-            .ok_or(Error::Internal(
-                "RXingResultList could not be constructed".into(),
+            .ok_or(Error::internal_with(
+                "RXingResultList could not be constructed",
             ))?)
         } else {
             Err(Error::Internal(
@@ -1058,9 +1048,10 @@ impl RXingResultNode {
                 bits,
                 self.encoders
                     .getCharset(self.charsetEncoderIndex)
-                    .ok_or(Error::Internal(
-                        format!("charset index {} not found", self.charsetEncoderIndex).into(),
-                    ))?,
+                    .ok_or(Error::internal_with(format!(
+                        "charset index {} not found",
+                        self.charsetEncoderIndex
+                    )))?,
             )?;
         }
         Ok(())

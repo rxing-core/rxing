@@ -280,11 +280,10 @@ impl TryFrom<&Vec<Point>> for Quadrilateral {
         if value.len() == 4 {
             Ok(Self([value[0], value[1], value[2], value[3]]))
         } else {
-            Err(Error::InvalidInput {
-                field: "points",
-                value: format!("expected 4 points, got {}", value.len()),
-                cause: None,
-            })
+            Err(Error::invalid_input_with(
+                "points",
+                format!("expected 4 points, got {}", value.len()),
+            ))
         }
     }
 }

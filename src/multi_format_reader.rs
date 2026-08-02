@@ -210,11 +210,10 @@ impl MultiFormatReader {
                     BarcodeFormat::DXFilmEdge => {
                         ODReader::new(&self.hints).decode_with_hints(image, &self.hints)
                     }
-                    _ => Err(Error::InvalidInput {
-                        field: "barcode format",
-                        value: possible_format.to_string(),
-                        cause: None,
-                    }),
+                    _ => Err(Error::invalid_input_with(
+                        "barcode format",
+                        possible_format.to_string(),
+                    )),
                 };
                 if res.is_ok() {
                     return res;

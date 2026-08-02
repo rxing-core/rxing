@@ -290,12 +290,12 @@ impl DMRegressionLine {
             self.points
                 .last()
                 .copied()
-                .ok_or(Error::Internal("index out of bounds".into()))?
+                .ok_or(Error::internal_with("index out of bounds"))?
                 - self
                     .points
                     .first()
                     .copied()
-                    .ok_or(Error::Internal("index out of bounds".into()))?,
+                    .ok_or(Error::internal_with("index out of bounds"))?,
         )) as f64;
 
         // calculate the width of 2 modules (first black pixel to first black pixel)
@@ -322,7 +322,7 @@ impl DMRegressionLine {
                         self.points
                             .last()
                             .copied()
-                            .ok_or(Error::Internal("index out of bounds".into()))?,
+                            .ok_or(Error::internal_with("index out of bounds"))?,
                     ),
                 ) as f64,
         );

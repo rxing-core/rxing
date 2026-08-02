@@ -56,8 +56,8 @@ impl DataBlock {
         ecLevel: ErrorCorrectionLevel,
     ) -> Result<Vec<Self>> {
         if rawCodewords.len() as u32 != version.getTotalCodewords() {
-            return Err(Error::Internal(
-                "getDataBlocks: total codewords mismatch".into(),
+            return Err(Error::internal_with(
+                "getDataBlocks: total codewords mismatch",
             ));
         }
 

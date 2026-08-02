@@ -78,11 +78,10 @@ impl Binarizer for BitMatrixBinarizer {
         Ok(Cow::Owned(
             self.0
                 .get_row(y)
-                .ok_or(crate::Error::InvalidInput {
-                    field: "y",
-                    value: format!("{y} is out of image bounds"),
-                    cause: None,
-                })?
+                .ok_or(crate::Error::invalid_input_with(
+                    "y",
+                    format!("{y} is out of image bounds"),
+                ))?
                 .to_vec()
                 .into(),
         ))

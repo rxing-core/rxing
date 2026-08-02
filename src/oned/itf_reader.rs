@@ -144,10 +144,7 @@ impl OneDReader for ITFReader {
             lengthOK = true;
         }
         if !lengthOK {
-            return Err(Error::Format {
-                message: "invalid length".into(),
-                source: None,
-            });
+            return Err(Error::format_with("invalid length"));
         }
 
         let mut resultObject = RXingResult::new(
@@ -202,15 +199,15 @@ impl ITFReader {
             }
 
             let mut bestMatch = self.decodeDigit(&counterBlack)?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch).ok_or(Error::Format {
-                message: "could not convert digit to char".into(),
-                source: None,
-            })?);
+            resultString.push(
+                char::from_u32('0' as u32 + bestMatch)
+                    .ok_or(Error::format_with("could not convert digit to char"))?,
+            );
             bestMatch = self.decodeDigit(&counterWhite)?;
-            resultString.push(char::from_u32('0' as u32 + bestMatch).ok_or(Error::Format {
-                message: "could not convert digit to char".into(),
-                source: None,
-            })?);
+            resultString.push(
+                char::from_u32('0' as u32 + bestMatch)
+                    .ok_or(Error::format_with("could not convert digit to char"))?,
+            );
 
             payloadStart += counterDigitPair.iter().sum::<u32>() as usize;
         }

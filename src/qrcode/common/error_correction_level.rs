@@ -50,11 +50,10 @@ impl ErrorCorrectionLevel {
             1 => Ok(Self::L),
             2 => Ok(Self::H),
             3 => Ok(Self::Q),
-            _ => Err(Error::InvalidInput {
-                field: "error correction level",
-                value: bits.to_string(),
-                cause: None,
-            }),
+            _ => Err(Error::invalid_input_with(
+                "error correction level",
+                bits.to_string(),
+            )),
         }
     }
 
@@ -116,11 +115,7 @@ impl FromStr for ErrorCorrectionLevel {
             return number_possible.try_into();
         }
 
-        Err(Error::InvalidInput {
-            field: "ed level",
-            value: s.into(),
-            cause: None,
-        })
+        Err(Error::invalid_input_with("ed level", s))
     }
 }
 

@@ -72,7 +72,10 @@ impl<'a> BitSource<'a> {
      */
     pub fn readBits(&mut self, numBits: usize) -> Result<u32> {
         if !(1..=32).contains(&numBits) || numBits > self.available() {
-            return Err(Error::Internal(format!("readBits: numBits must be between 1 and 32, and less than available bits. numBits: {numBits}, available: {}", self.available()).into()));
+            return Err(Error::internal_with(format!(
+                "readBits: numBits must be between 1 and 32, and less than available bits. numBits: {numBits}, available: {}",
+                self.available()
+            )));
         }
 
         let mut result: u32 = 0;
@@ -119,7 +122,10 @@ impl<'a> BitSource<'a> {
 
     pub fn peak_bits(&self, numBits: usize) -> Result<u32> {
         if !(1..=32).contains(&numBits) || numBits > self.available() {
-            return Err(Error::Internal(format!("peak_bits: numBits must be between 1 and 32, and less than available bits. numBits: {numBits}, available: {}", self.available()).into()));
+            return Err(Error::internal_with(format!(
+                "peak_bits: numBits must be between 1 and 32, and less than available bits. numBits: {numBits}, available: {}",
+                self.available()
+            )));
         }
 
         let mut bit_offset = self.bit_offset;

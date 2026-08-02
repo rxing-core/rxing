@@ -60,27 +60,18 @@ impl Writer for DataMatrixWriter {
         hints: &EncodeHints,
     ) -> Result<crate::common::BitMatrix> {
         if contents.is_empty() {
-            return Err(Error::InvalidInput {
-                field: "contents",
-                value: "[empty]".into(),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with("contents", "[empty]"));
         }
 
         if format != &BarcodeFormat::DATA_MATRIX {
-            return Err(Error::InvalidInput {
-                field: "format",
-                value: format.to_string(),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with("format", format.to_string()));
         }
 
         if width < 0 || height < 0 {
-            return Err(Error::InvalidInput {
-                field: "dimensions",
-                value: format!("{}x{}", width, height),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "dimensions",
+                format!("{}x{}", width, height),
+            ));
         }
 
         // Try to get force shape & min / max size
@@ -129,10 +120,7 @@ impl Writer for DataMatrixWriter {
             true,
         )?
         else {
-            return Err(Error::Format {
-                message: "symbol info is bad".into(),
-                source: None,
-            });
+            return Err(Error::format_with("symbol info is bad"));
         };
 
         //2. step: ECC generation
@@ -147,11 +135,9 @@ impl Writer for DataMatrixWriter {
         placement.place()?;
 
         let margins = if let Some(margin) = &hints.Margin {
-            margin.parse::<u32>().map_err(|e| Error::InvalidInput {
-                field: "Margin",
-                value: margin.clone(),
-                cause: Some(Box::new(e)),
-            })?
+            margin
+                .parse::<u32>()
+                .map_err(|e| Error::invalid_input_with_cause("Margin", margin.clone(), e))?
         } else {
             MARGINS_SIZE
         };

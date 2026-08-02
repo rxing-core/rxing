@@ -602,7 +602,7 @@ pub fn determineConsecutiveDigitCount(msg: &str, startpos: u32) -> u32 {
 pub fn illegalCharacter(c: char) -> Result<()> {
     // let hex = Integer.toHexString(c);
     // hex = "0000".substring(0, 4 - hex.length()) + hex;
-    Err(Error::Internal(
-        format!("Illegal character: {c} (0x{c})").into(),
-    ))
+    Err(Error::internal_with(format!(
+        "Illegal character: {c} (0x{c})"
+    )))
 }

@@ -57,28 +57,22 @@ impl Writer for QRCodeWriter {
         hints: &EncodeHints,
     ) -> Result<crate::common::BitMatrix> {
         if contents.is_empty() {
-            return Err(Error::InvalidInput {
-                field: "contents",
-                value: "found empty contents".into(),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "contents",
+                "found empty contents",
+            ));
         }
 
         if format != &BarcodeFormat::QR_CODE {
-            return Err(Error::InvalidInput {
-                field: "format",
-                value: format!("{format:?}"),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with("format", format!("{format:?}")));
             // throw new IllegalArgumentException("Can only encode QR_CODE, but got " + format);
         }
 
         if width < 0 || height < 0 {
-            return Err(Error::InvalidInput {
-                field: "dimensions (too small)",
-                value: format!("{width}x{height}"),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "dimensions (too small)",
+                format!("{width}x{height}"),
+            ));
         }
 
         let errorCorrectionLevel = if let Some(ec_level) = &hints.ErrorCorrection {
@@ -88,11 +82,9 @@ impl Writer for QRCodeWriter {
         };
 
         let quietZone = if let Some(margin) = &hints.Margin {
-            margin.parse::<i32>().map_err(|e| Error::InvalidInput {
-                field: "margin".into(),
-                value: format!("could not parse {margin}: {e}"),
-                cause: None,
-            })?
+            margin
+                .parse::<i32>()
+                .map_err(|e| Error::invalid_input_with_cause("margin", margin.clone(), e))?
         } else {
             QUIET_ZONE_SIZE
         };

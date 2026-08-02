@@ -33,12 +33,12 @@ impl Encoder for ASCIIEncoder {
                     .getMessage()
                     .chars()
                     .nth(context.pos as usize)
-                    .ok_or(Error::Internal("index out of bounds".into()))?,
+                    .ok_or(Error::internal_with("index out of bounds"))?,
                 context
                     .getMessage()
                     .chars()
                     .nth(context.pos as usize + 1)
-                    .ok_or(Error::Internal("index out of bounds".into()))?,
+                    .ok_or(Error::internal_with("index out of bounds"))?,
             )? as u8);
             context.pos += 2;
         } else {
@@ -106,9 +106,9 @@ impl ASCIIEncoder {
             let num = (digit1 as u8 - 48) * 10 + (digit2 as u8 - 48);
             Ok((num + 130) as char)
         } else {
-            Err(Error::Internal(
-                format!("not digits: {digit1}{digit2}").into(),
-            ))
+            Err(Error::internal_with(format!(
+                "not digits: {digit1}{digit2}"
+            )))
         }
     }
 }

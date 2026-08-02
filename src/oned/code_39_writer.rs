@@ -34,13 +34,10 @@ impl OneDimensionalCodeWriter for Code39Writer {
         let mut contents = contents.to_owned();
         let mut length = contents.chars().count();
         if length > 80 {
-            return Err(Error::InvalidInput {
-                field: "contents".into(),
-                value: format!(
-                    "Requested contents should be less than 80 digits long, but got {length}"
-                ),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "contents",
+                format!("Requested contents should be less than 80 digits long, but got {length}"),
+            ));
         }
 
         let mut i = 0;
@@ -48,19 +45,23 @@ impl OneDimensionalCodeWriter for Code39Writer {
             // for i in 0..length {
             // for (int i = 0; i < length; i++) {
             if code_39::ALPHABET_STRING
-                .find(contents.chars().nth(i).ok_or(Error::Internal("index out of bounds".into()))?)
+                .find(
+                    contents
+                        .chars()
+                        .nth(i)
+                        .ok_or(Error::internal_with("index out of bounds"))?,
+                )
                 .is_none()
             {
                 contents = Self::tryToConvertToExtendedMode(&contents)?;
                 length = contents.chars().count();
                 if length > 80 {
-                    return Err(Error::InvalidInput {
-                        field: "contents".into(),
-                        value: format!(
+                    return Err(Error::invalid_input_with(
+                        "contents",
+                        format!(
                             "Requested contents should be less than 80 digits long, but got {length} (extended full ASCII mode)"
                         ),
-                        cause: None,
-                    });
+                    ));
                 }
                 break;
             }
@@ -76,9 +77,12 @@ impl OneDimensionalCodeWriter for Code39Writer {
         pos += Self::appendPattern(&mut result, pos as usize, &narrowWhite, false);
         //append next character to byte matrix
         for i in 0..length {
-            let Some(indexInString) = code_39::ALPHABET_STRING
-                .find(contents.chars().nth(i).ok_or(Error::Internal("index out of bounds".into()))?)
-            else {
+            let Some(indexInString) = code_39::ALPHABET_STRING.find(
+                contents
+                    .chars()
+                    .nth(i)
+                    .ok_or(Error::internal_with("index out of bounds"))?,
+            ) else {
                 continue;
             };
             Self::toIntArray(code_39::CHARACTER_ENCODINGS[indexInString], &mut widths);
@@ -122,62 +126,61 @@ impl Code39Writer {
                         extendedContent.push('$');
                         extendedContent.push(
                             char::from_u32('A' as u32 + (character as u32 - 1))
-                                .ok_or(Error::Internal("invalid char conversion".into()))?,
+                                .ok_or(Error::internal_with("invalid char conversion"))?,
                         );
                     } else if character < ' ' {
                         extendedContent.push('%');
                         extendedContent.push(
                             char::from_u32('A' as u32 + (character as u32 - 27))
-                                .ok_or(Error::Internal("invalid char conversion".into()))?,
+                                .ok_or(Error::internal_with("invalid char conversion"))?,
                         );
                     } else if character <= ',' || character == '/' || character == ':' {
                         extendedContent.push('/');
                         extendedContent.push(
                             char::from_u32('A' as u32 + (character as u32 - 33))
-                                .ok_or(Error::Internal("invalid char conversion".into()))?,
+                                .ok_or(Error::internal_with("invalid char conversion"))?,
                         );
                     } else if character <= '9' {
                         extendedContent.push(
                             char::from_u32('0' as u32 + (character as u32 - 48))
-                                .ok_or(Error::Internal("invalid char conversion".into()))?,
+                                .ok_or(Error::internal_with("invalid char conversion"))?,
                         );
                     } else if character <= '?' {
                         extendedContent.push('%');
                         extendedContent.push(
                             char::from_u32('F' as u32 + (character as u32 - 59))
-                                .ok_or(Error::Internal("invalid char conversion".into()))?,
+                                .ok_or(Error::internal_with("invalid char conversion"))?,
                         );
                     } else if character <= 'Z' {
                         extendedContent.push(
                             char::from_u32('A' as u32 + (character as u32 - 65))
-                                .ok_or(Error::Internal("invalid char conversion".into()))?,
+                                .ok_or(Error::internal_with("invalid char conversion"))?,
                         );
                     } else if character <= '_' {
                         extendedContent.push('%');
                         extendedContent.push(
                             char::from_u32('K' as u32 + (character as u32 - 91))
-                                .ok_or(Error::Internal("invalid char conversion".into()))?,
+                                .ok_or(Error::internal_with("invalid char conversion"))?,
                         );
                     } else if character <= 'z' {
                         extendedContent.push('+');
                         extendedContent.push(
                             char::from_u32('A' as u32 + (character as u32 - 97))
-                                .ok_or(Error::Internal("invalid char conversion".into()))?,
+                                .ok_or(Error::internal_with("invalid char conversion"))?,
                         );
                     } else if character as u32 <= 127 {
                         extendedContent.push('%');
                         extendedContent.push(
                             char::from_u32('P' as u32 + (character as u32 - 123))
-                                .ok_or(Error::Internal("invalid char conversion".into()))?,
+                                .ok_or(Error::internal_with("invalid char conversion"))?,
                         );
                     } else {
-                        return Err(Error::InvalidInput {
-                            field: "contents".into(),
-                            value: format!(
+                        return Err(Error::invalid_input_with(
+                            "contents",
+                            format!(
                                 "Requested content contains a non-encodable character: '{character}'"
                             ),
-                            cause: None,
-                        });
+                        ));
                     }
                 }
             }

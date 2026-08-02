@@ -33,7 +33,7 @@ impl<const MODULUS: usize> ModulusPoly<MODULUS> {
         coefficients: Vec<u32>,
     ) -> Result<ModulusPoly<MODULUS>> {
         if coefficients.is_empty() {
-            return Err(Error::Internal("empty coefficients".into()));
+            return Err(Error::internal_with("empty coefficients"));
         }
         let orig_coefs = coefficients.clone();
         let mut coefficients = coefficients;
@@ -113,8 +113,8 @@ impl<const MODULUS: usize> ModulusPoly<MODULUS> {
 
     pub fn add(&self, other: ModulusPoly<MODULUS>) -> Result<ModulusPoly<MODULUS>> {
         if self.field != other.field {
-            return Err(Error::Internal(
-                "ModulusPolys do not have same ModulusGF field".into(),
+            return Err(Error::internal_with(
+                "ModulusPolys do not have same ModulusGF field",
             ));
         }
         if self.isZero() {
@@ -147,8 +147,8 @@ impl<const MODULUS: usize> ModulusPoly<MODULUS> {
 
     pub fn subtract(&self, other: ModulusPoly<MODULUS>) -> Result<ModulusPoly<MODULUS>> {
         if self.field != other.field {
-            return Err(Error::Internal(
-                "ModulusPolys do not have same ModulusGF field".into(),
+            return Err(Error::internal_with(
+                "ModulusPolys do not have same ModulusGF field",
             ));
         }
         if other.isZero() {
@@ -159,8 +159,8 @@ impl<const MODULUS: usize> ModulusPoly<MODULUS> {
 
     pub fn multiply(&self, other: ModulusPoly<MODULUS>) -> Result<ModulusPoly<MODULUS>> {
         if !(self.field == other.field) {
-            return Err(Error::Internal(
-                "ModulusPolys do not have same ModulusGF field".into(),
+            return Err(Error::internal_with(
+                "ModulusPolys do not have same ModulusGF field",
             ));
         }
         if self.isZero() || other.isZero() {

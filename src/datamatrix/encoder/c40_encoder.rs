@@ -185,7 +185,7 @@ impl C40Encoder {
         buffer: &mut String,
     ) -> Result<()> {
         context.writeCodewords(
-            &Self::encodeToCodewords(buffer).ok_or(Error::Internal("Failed to encode".into()))?,
+            &Self::encodeToCodewords(buffer).ok_or(Error::internal_with("Failed to encode"))?,
         );
         buffer.replace_range(0..3, "");
         // buffer.delete(0, 3);

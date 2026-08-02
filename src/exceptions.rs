@@ -112,6 +112,56 @@ impl Error {
         }
     }
 
+    pub const FORMAT: Self = Self::Format {
+        message: Cow::Borrowed("malformed barcode"),
+        source: None,
+    };
+    pub fn format_with<I: Into<Cow<'static, str>>>(x: I) -> Self {
+        Self::Format {
+            message: x.into(),
+            source: None,
+        }
+    }
+    pub fn format_with_source<
+        I: Into<Cow<'static, str>>,
+        E: std::error::Error + Send + Sync + 'static,
+    >(
+        msg: I,
+        source: E,
+    ) -> Self {
+        Self::Format {
+            message: msg.into(),
+            source: Some(Box::new(source)),
+        }
+    }
+
+    pub fn invalid_input_with<V: Into<String>>(field: &'static str, value: V) -> Self {
+        Self::InvalidInput {
+            field,
+            value: value.into(),
+            cause: None,
+        }
+    }
+    pub fn invalid_input_with_cause<
+        V: Into<String>,
+        E: std::error::Error + Send + Sync + 'static,
+    >(
+        field: &'static str,
+        value: V,
+        cause: E,
+    ) -> Self {
+        Self::InvalidInput {
+            field,
+            value: value.into(),
+            cause: Some(Box::new(cause)),
+        }
+    }
+
+    pub const INTERNAL: Self = Self::Internal(Cow::Borrowed("internal error"));
+    pub fn internal_with<I: Into<Cow<'static, str>>>(x: I) -> Self {
+        Self::Internal(x.into())
+    }
+
     pub const RUNTIME: Self = Self::Runtime(String::new());
     pub fn runtime_with<I: Into<String>>(x: I) -> Self {
         Self::Runtime(x.into())

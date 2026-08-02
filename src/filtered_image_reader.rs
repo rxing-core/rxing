@@ -70,8 +70,8 @@ impl<R: Reader> Reader for FilteredImageReader<R> {
             DEFAULT_DOWNSCALE_THRESHHOLD,
             DEFAULT_DOWNSCALE_FACTOR,
         )
-        .ok_or(Error::Internal(
-            "luma image pyramid construction failed".into(),
+        .ok_or(Error::internal_with(
+            "luma image pyramid construction failed",
         ))?;
 
         for layer in upscale_layers {
@@ -142,7 +142,7 @@ impl<'a> LumImagePyramid<'a> {
         let siv = self
             .layers
             .last()
-            .ok_or(Error::Internal("last layer doesn't exist?".into()))?;
+            .ok_or(Error::internal_with("last layer doesn't exist?"))?;
 
         let mut div =
             Luma8LuminanceSource::with_empty_image(siv.get_width() / N, siv.get_height() / N);
@@ -183,11 +183,10 @@ impl<'a> LumImagePyramid<'a> {
             2 => self.add_layer::<2>(),
             3 => self.add_layer::<3>(),
             4 => self.add_layer::<4>(),
-            _ => Err(Error::InvalidInput {
-                field: "ReaderOptions::downscaleFactor",
-                value: factor.to_string(),
-                cause: None,
-            }),
+            _ => Err(Error::invalid_input_with(
+                "ReaderOptions::downscaleFactor",
+                factor.to_string(),
+            )),
         }
     }
 }

@@ -47,11 +47,10 @@ impl OneDimensionalCodeWriter for UPCEWriter {
                 // No check digit present, calculate it and add it
                 let check = upcean_common::getStandardUPCEANChecksum(
                     &upcean_common::convertUPCEtoUPCA(&contents)
-                        .ok_or(Error::InvalidInput {
-                            field: "calculated check",
-                            value: "Failed to calculate check digit".into(),
-                            cause: None,
-                        })?
+                        .ok_or(Error::invalid_input_with(
+                            "calculated check",
+                            "Failed to calculate check digit",
+                        ))?
                         .chars()
                         .collect::<Vec<_>>(),
                 )?;
@@ -59,27 +58,21 @@ impl OneDimensionalCodeWriter for UPCEWriter {
             }
             8 => {
                 if !upcean_common::checkStandardUPCEANChecksum(
-                    &upcean_common::convertUPCEtoUPCA(&contents).ok_or(Error::InvalidInput {
-                        field: "contents",
-                        value: "Failed to convert UPC-E to UPC-A".into(),
-                        cause: None,
-                    })?,
+                    &upcean_common::convertUPCEtoUPCA(&contents).ok_or(
+                        Error::invalid_input_with("contents", "Failed to convert UPC-E to UPC-A"),
+                    )?,
                 )? {
-                    return Err(Error::InvalidInput {
-                        field: "contents".into(),
-                        value: "Contents do not pass checksum".into(),
-                        cause: None,
-                    });
+                    return Err(Error::invalid_input_with(
+                        "contents",
+                        "Contents do not pass checksum",
+                    ));
                 }
             }
             _ => {
-                return Err(Error::InvalidInput {
-                    field: "contents".into(),
-                    value: format!(
-                        "Requested contents should be 7 or 8 digits long, but got {length}"
-                    ),
-                    cause: None,
-                });
+                return Err(Error::invalid_input_with(
+                    "contents",
+                    format!("Requested contents should be 7 or 8 digits long, but got {length}"),
+                ));
             }
         }
 
@@ -88,39 +81,31 @@ impl OneDimensionalCodeWriter for UPCEWriter {
         let firstDigit = contents
             .chars()
             .next()
-            .ok_or(Error::InvalidInput {
-                field: "contents",
-                value: "missing first digit".into(),
-                cause: None,
-            })?
+            .ok_or(Error::invalid_input_with("contents", "missing first digit"))?
             .to_digit(10)
-            .ok_or(Error::InvalidInput {
-                field: "contents",
-                value: "first character is not a digit".into(),
-                cause: None,
-            })? as usize; //Character.digit(contents.charAt(0), 10);
+            .ok_or(Error::invalid_input_with(
+                "contents",
+                "first character is not a digit",
+            ))? as usize; //Character.digit(contents.charAt(0), 10);
         if firstDigit != 0 && firstDigit != 1 {
-            return Err(Error::InvalidInput {
-                field: "contents".into(),
-                value: "Number system must be 0 or 1".into(),
-                cause: None,
-            });
+            return Err(Error::invalid_input_with(
+                "contents",
+                "Number system must be 0 or 1",
+            ));
         }
 
         let checkDigit = contents
             .chars()
             .nth(7)
-            .ok_or(Error::InvalidInput {
-                field: "contents",
-                value: "missing check digit at index 7".into(),
-                cause: None,
-            })?
+            .ok_or(Error::invalid_input_with(
+                "contents",
+                "missing check digit at index 7",
+            ))?
             .to_digit(10)
-            .ok_or(Error::InvalidInput {
-                field: "contents",
-                value: "character at index 7 is not a digit".into(),
-                cause: None,
-            })? as usize; //Character.digit(contents.charAt(7), 10);
+            .ok_or(Error::invalid_input_with(
+                "contents",
+                "character at index 7 is not a digit",
+            ))? as usize; //Character.digit(contents.charAt(7), 10);
         let parities = upc_e::NUMSYS_AND_CHECK_DIGIT_PATTERNS[firstDigit][checkDigit];
         let mut result = [false; CODE_WIDTH];
 
@@ -132,17 +117,15 @@ impl OneDimensionalCodeWriter for UPCEWriter {
             let mut digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Error::InvalidInput {
-                    field: "contents",
-                    value: format!("missing character at index {i}"),
-                    cause: None,
-                })?
+                .ok_or(Error::invalid_input_with(
+                    "contents",
+                    format!("missing character at index {i}"),
+                ))?
                 .to_digit(10)
-                .ok_or(Error::InvalidInput {
-                    field: "contents",
-                    value: format!("character at index {i} is not a digit"),
-                    cause: None,
-                })? as usize; //Character.digit(contents.charAt(i), 10);
+                .ok_or(Error::invalid_input_with(
+                    "contents",
+                    format!("character at index {i} is not a digit"),
+                ))? as usize; //Character.digit(contents.charAt(i), 10);
             if ((parities >> (6 - i)) & 1) == 1 {
                 digit += 10;
             }
