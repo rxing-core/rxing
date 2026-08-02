@@ -173,7 +173,10 @@ impl Mode {
             return Mode::try_from(bits as u32);
         }
 
-        Err(Error::format_with("Invalid codec mode"))
+        Err(Error::Format {
+            message: "Invalid codec mode".into(),
+            source: None,
+        })
     }
 
     /**

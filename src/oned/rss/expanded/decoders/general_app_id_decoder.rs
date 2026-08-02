@@ -387,7 +387,12 @@ impl<'a> GeneralAppIdDecoder<'_> {
             250 => '?',
             251 => '_',
             252 => ' ',
-            _ => return Err(Error::FORMAT),
+            _ => {
+                return Err(Error::Format {
+                    message: "could not match 8 bit value to character".into(),
+                    source: None,
+                });
+            }
         };
 
         Ok(DecodedChar::new(pos + 8, c))

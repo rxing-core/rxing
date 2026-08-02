@@ -566,8 +566,10 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                         .collect();
                     addPattern(
                         &mut patterns,
-                        s.parse::<usize>()
-                            .map_err(|e| Error::parse_with(format!("unable to parse {s} {e}")))?,
+                        s.parse::<usize>().map_err(|e| Error::Format {
+                            message: format!("unable to parse {s} {e}").into(),
+                            source: Some(e.into()),
+                        })?,
                         &mut checkSum,
                         &mut checkWeight,
                         i,

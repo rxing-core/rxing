@@ -37,7 +37,11 @@ impl BitMatrixParser {
     pub fn new(bitMatrix: &BitMatrix) -> Result<Self> {
         let dimension = bitMatrix.getHeight();
         if !(8..=144).contains(&dimension) || (dimension & 0x01) != 0 {
-            return Err(Error::FORMAT);
+            return Err(Error::InvalidInput {
+                field: "dimension",
+                value: dimension.to_string(),
+                cause: None,
+            });
         }
 
         let version = Self::readVersion(bitMatrix)?;
@@ -181,7 +185,10 @@ impl BitMatrixParser {
         }
 
         if resultOffset != self.version.getTotalCodewords() as usize {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "result offset does not match total codewords".into(),
+                source: None,
+            });
         }
 
         Ok(result)

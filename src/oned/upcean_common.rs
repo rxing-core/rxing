@@ -21,7 +21,7 @@ pub fn checkStandardUPCEANChecksum(s: &str) -> Result<bool> {
 
     Ok(calculated_checksum
         == if check {
-            char_in_question.to_digit(10).ok_or(Error::PARSE)?
+            char_in_question.to_digit(10).ok_or(Error::Checksum("checksum could not be verified".into()))?
         } else {
             u32::MAX
         })
@@ -35,7 +35,10 @@ pub fn getStandardUPCEANChecksum(s: &[char]) -> Result<u32> {
         // for (int i = length - 1; i >= 0; i -= 2) {
         let digit = (*s.get(i as usize).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as i32) - ('0' as i32);
         if !(0..=9).contains(&digit) {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "digit is not between 0 and 9".into(),
+                source: None,
+            });
         }
         sum += digit;
 
@@ -47,7 +50,10 @@ pub fn getStandardUPCEANChecksum(s: &[char]) -> Result<u32> {
         // for (int i = length - 2; i >= 0; i -= 2) {
         let digit = (*s.get(i as usize).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as i32) - ('0' as i32);
         if !(0..=9).contains(&digit) {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "digit is not between 0 and 9".into(),
+                source: None,
+            });
         }
         sum += digit;
 

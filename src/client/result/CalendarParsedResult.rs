@@ -153,7 +153,10 @@ impl CalendarParsedRXingResult {
      */
     fn parseDate(when: String) -> Result<i64> {
         if !DATE_TIME.is_match(&when) {
-            return Err(Error::parse_with(when));
+            return Err(Error::Format {
+                message: format!("invalid date format: {when}").into(),
+                source: None,
+            });
         }
         if when.len() == 8 {
             // Show only year/month/day
@@ -167,14 +170,20 @@ impl CalendarParsedRXingResult {
                 date_format_string,
             ) {
                 Ok(dtm) => Ok(dtm.and_utc().timestamp()),
-                Err(e) => Err(Error::parse_with(e.to_string())),
+                Err(e) => Err(Error::Format {
+                    message: format!("couldn't parse string: {e}").into(),
+                    source: None,
+                }),
             };
         }
         // The when string can be local time, or UTC if it ends with a Z
         if when.len() == 16 && when.chars().nth(15).ok_or(Error::INDEX_OUT_OF_BOUNDS)? == 'Z' {
             return match NaiveDateTime::parse_from_str(&when, YMD_THMSZ_FORMAT) {
                 Ok(dtm) => Ok(dtm.and_utc().timestamp()),
-                Err(e) => Err(Error::parse_with(format!("couldn't parse string: {e}"))),
+                Err(e) => Err(Error::Format {
+                    message: format!("couldn't parse string: {e}").into(),
+                    source: None,
+                }),
             };
         }
         // Try once more, with weird tz formatting
@@ -184,15 +193,19 @@ impl CalendarParsedRXingResult {
             let tz_parsed: Tz = match tz_part.parse() {
                 Ok(time_zone) => time_zone,
                 Err(e) => {
-                    return Err(Error::parse_with(format!(
-                        "couldn't parse timezone '{tz_part}': {e}"
-                    )));
+                    return Err(Error::Format {
+                        message: format!("couldn't parse timezone '{tz_part}': {e}").into(),
+                        source: None,
+                    });
                 }
             };
 
             return match NaiveDateTime::parse_from_str(time_part, YMD_THMS_FORMAT) {
                 Ok(dtm) => Ok(dtm.and_utc().with_timezone(&tz_parsed).timestamp()),
-                Err(e) => Err(Error::parse_with(format!("couldn't parse string: {e}"))),
+                Err(e) => Err(Error::Format {
+                    message: format!("couldn't parse string: {e}").into(),
+                    source: None,
+                }),
             };
         }
 
@@ -200,7 +213,10 @@ impl CalendarParsedRXingResult {
         if when.len() == 15 {
             return match NaiveDateTime::parse_from_str(&when, YMD_THMS_FORMAT) {
                 Ok(dtm) => Ok(dtm.and_utc().timestamp()),
-                Err(e) => Err(Error::parse_with(format!("couldn't parse local time: {e}"))),
+                Err(e) => Err(Error::Format {
+                    message: format!("couldn't parse local time: {e}").into(),
+                    source: None,
+                }),
             };
         }
         Self::parseDateTimeString(&when)
@@ -237,7 +253,10 @@ impl CalendarParsedRXingResult {
                     let z = parseable
                         .as_str()
                         .parse::<i64>()
-                        .map_err(|e| Error::parse_with(e.to_string()))?;
+                        .map_err(|e| Error::Format {
+                            message: e.to_string().into(),
+                            source: Some(e.into()),
+                        })?;
                     durationMS += unit * z;
                 }
             }
@@ -248,13 +267,13 @@ impl CalendarParsedRXingResult {
     }
 
     fn parseDateTimeString(dateTimeString: &str) -> Result<i64> {
-        if let Ok(dtm) = DateTime::parse_from_str(dateTimeString, YMD_THMS_FORMAT) {
-            Ok(dtm.timestamp())
-        } else {
-            Err(Error::parse_with(format!(
-                "Couldn't parse {dateTimeString}"
-            )))
-        }
+        let dtm = DateTime::parse_from_str(dateTimeString, YMD_THMS_FORMAT).map_err(|e| {
+            Error::Format {
+                message: format!("couldn't parse string: {e}").into(),
+                source: Some(e.into()),
+            }
+        })?;
+        Ok(dtm.timestamp())
         // DateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.ENGLISH);
         // return format.parse(dateTimeString).getTime();
     }

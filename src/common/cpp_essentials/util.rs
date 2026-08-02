@@ -49,7 +49,7 @@ pub fn ToString<T: Into<usize>>(val: T, len: usize) -> Result<String> {
     len -= 1;
     // std::string result(len--, '0');
     if val < 0 {
-        return Err(Error::format_with("Invalid value"));
+        return Err(Error::Internal("Invalid value".into()));
     }
     while len >= 0 && val != 0 {
         result[len as usize] = char::from(b'0' + (val % 10) as u8);
@@ -61,7 +61,7 @@ pub fn ToString<T: Into<usize>>(val: T, len: usize) -> Result<String> {
     // for (; len >= 0 && val != 0; --len, val /= 10) {
     // 	result[len] = '0' + val % 10;}
     if val != 0 {
-        return Err(Error::format_with("Invalid value"));
+        return Err(Error::Internal("Invalid value".into()));
     }
 
     Ok(result.iter().collect())

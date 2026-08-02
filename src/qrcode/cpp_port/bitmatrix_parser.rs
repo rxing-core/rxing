@@ -25,7 +25,10 @@ pub fn getBit(bitMatrix: &BitMatrix, x: u32, y: u32, mirrored: Option<bool>) -> 
 
 pub fn ReadVersion(bitMatrix: &BitMatrix, qr_type: Type) -> Result<VersionRef> {
     if !Version::HasValidSize(bitMatrix) {
-        return Err(Error::FORMAT);
+        return Err(Error::Format {
+            message: "version could not be read: provided data does not have a valid size".into(),
+            source: None,
+        });
     }
 
     let number = Version::Number(bitMatrix);
@@ -179,7 +182,11 @@ pub fn ReadQRCodewords(
         x -= 2;
     }
     if (result.len()) != version.getTotalCodewords() as usize {
-        return Err(Error::FORMAT);
+        return Err(Error::Format {
+            message: "codewords could not be read: provided data does not have a valid length"
+                .into(),
+            source: None,
+        });
     }
 
     Ok(result)
@@ -244,7 +251,11 @@ pub fn ReadMQRCodewords(
         x -= 2;
     }
     if (result.len()) != version.getTotalCodewords() as usize {
-        return Err(Error::FORMAT);
+        return Err(Error::Format {
+            message: "codewords could not be read: provided data does not have a valid length"
+                .into(),
+            source: None,
+        });
     }
 
     Ok(result)
@@ -349,7 +360,11 @@ pub fn ReadQRCodewordsModel1(
 
     result[0] &= 0xf; // ignore corner
     if (result.len()) != version.getTotalCodewords() as usize {
-        return Err(Error::FORMAT);
+        return Err(Error::Format {
+            message: "codewords could not be read: provided data does not have a valid length"
+                .into(),
+            source: None,
+        });
     }
 
     Ok(result)
@@ -402,7 +417,11 @@ pub fn ReadRMQRCodewords(
         x -= 2
     }
     if (result.len()) != version.getTotalCodewords() as usize {
-        return Err(Error::FORMAT);
+        return Err(Error::Format {
+            message: "codewords could not be read: provided data does not have a valid length"
+                .into(),
+            source: None,
+        });
     }
 
     Ok(result)

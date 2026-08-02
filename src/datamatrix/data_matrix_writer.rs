@@ -129,7 +129,10 @@ impl Writer for DataMatrixWriter {
             true,
         )?
         else {
-            return Err(Error::Format("symbol info is bad".into()));
+            return Err(Error::Format {
+                message: "symbol info is bad".into(),
+                source: None,
+            });
         };
 
         //2. step: ECC generation
@@ -144,9 +147,10 @@ impl Writer for DataMatrixWriter {
         placement.place()?;
 
         let margins = if let Some(margin) = &hints.Margin {
-            margin
-                .parse::<u32>()
-                .map_err(|e| Error::parse_with(format!("could not parse {margin}: {e}")))?
+            margin.parse::<u32>().map_err(|e| Error::Format {
+                message: format!("could not parse {margin}: {e}").into(),
+                source: Some(e.into()),
+            })?
         } else {
             MARGINS_SIZE
         };

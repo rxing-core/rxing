@@ -217,7 +217,10 @@ pub fn ParseECIValue(bits: &mut BitSource) -> Result<Eci> {
         let secondThirdBytes = bits.readBits(16)?;
         return Ok(Eci::from(((firstByte & 0x1F) << 16) | secondThirdBytes));
     }
-    Err(Error::format_with("ParseECIValue: invalid value"))
+    Err(Error::Format {
+        message: "ParseECIValue: invalid value".into(),
+        source: None,
+    })
 }
 
 /**
@@ -291,9 +294,10 @@ pub fn DecodeBitStream(
                 }
                 Mode::FNC1_SECOND_POSITION => {
                     if !result.is_empty() {
-                        return Err(Error::format_with(
-                            "AIM Application Indicator (FNC1 in second position) at illegal position",
-                        ));
+                        return Err(Error::Format{
+                            message: "AIM Application Indicator (FNC1 in second position) at illegal position".into(),
+                            source: None
+                        });
                         // throw FormatError("AIM Application Indicator (FNC1 in second position) at illegal position");
                     }
                     result.symbology.modifier = b'5'; // As above
@@ -309,7 +313,10 @@ pub fn DecodeBitStream(
                     {
                         result += (appInd - 100) as u8;
                     } else {
-                        return Err(Error::format_with("Invalid AIM Application Indicator"));
+                        return Err(Error::Format {
+                            message: "Invalid AIM Application Indicator".into(),
+                            source: None,
+                        });
                         // throw FormatError("Invalid AIM Application Indicator");
                     }
                     result.symbology.aiFlag = AIFlag::AIM; // see also above
@@ -332,7 +339,10 @@ pub fn DecodeBitStream(
                     if subset != 1
                     // GB2312_SUBSET is the only supported one right now
                     {
-                        return Err(Error::format_with("Unsupported HANZI subset"));
+                        return Err(Error::Format {
+                            message: "Unsupported HANZI subset".into(),
+                            source: None,
+                        });
                         // throw FormatError("Unsupported HANZI subset");
                     }
                     let count = bits.readBits(mode.CharacterCountBits(version) as usize)?;
@@ -349,7 +359,12 @@ pub fn DecodeBitStream(
                         }
                         Mode::BYTE => DecodeByteSegment(&mut bits, count, &mut result)?,
                         Mode::KANJI => DecodeKanjiSegment(&mut bits, count, &mut result)?,
-                        _ => return Err(Error::format_with("Invalid CodecMode")), //throw FormatError("Invalid CodecMode");
+                        _ => {
+                            return Err(Error::Format {
+                                message: "Invalid CodecMode".into(),
+                                source: None,
+                            });
+                        } //throw FormatError("Invalid CodecMode");
                     };
                 }
             }
@@ -367,28 +382,43 @@ pub fn DecodeBitStream(
 
 pub fn Decode(bits: &BitMatrix) -> Result<DecoderResult<bool>> {
     if !Version::HasValidSize(bits) {
-        return Err(Error::format_with("Invalid symbol size"));
+        return Err(Error::Format {
+            message: "Invalid symbol size".into(),
+            source: None,
+        });
     }
     let Ok(formatInfo) = ReadFormatInformation(bits) else {
-        return Err(Error::format_with("Invalid format information"));
+        return Err(Error::Format {
+            message: "Invalid format information".into(),
+            source: None,
+        });
     };
 
     let Ok(pversion) = ReadVersion(bits, formatInfo.qr_type()) else {
-        return Err(Error::format_with("Invalid version"));
+        return Err(Error::Format {
+            message: "Invalid version".into(),
+            source: None,
+        });
     };
     let version = pversion;
 
     // Read codewords
     let codewords = ReadCodewords(bits, version, &formatInfo)?;
     if codewords.is_empty() {
-        return Err(Error::format_with("Failed to read codewords"));
+        return Err(Error::Format {
+            message: "Failed to read codewords".into(),
+            source: None,
+        });
     }
 
     // Separate into data blocks
     let dataBlocks: Vec<DataBlock> =
         DataBlock::getDataBlocks(&codewords, version, formatInfo.error_correction_level)?;
     if dataBlocks.is_empty() {
-        return Err(Error::format_with("Failed to get data blocks"));
+        return Err(Error::Format {
+            message: "Failed to get data blocks".into(),
+            source: None,
+        });
     }
 
     // Count total number of data bytes

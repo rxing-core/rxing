@@ -57,7 +57,10 @@ impl<'a> Detector<'_> {
         if let Some(point) = self.correctTopRight(&points) {
             points[3] = point;
         } else {
-            return Err(Error::format_with("point 4 unfound"));
+            return Err(Error::Format {
+                message: "point 4 unfound".into(),
+                source: None,
+            });
         }
         // points[3] = self.correctTopRight(&points);
         // if points[3] == null {

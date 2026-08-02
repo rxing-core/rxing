@@ -450,9 +450,7 @@ fn testAppendBytes() {
     {
         panic!("should never be ok");
     }
-    //} catch (WriterException we) {
-    // good
-    //}
+
     // Should use append8BitBytes.
     // 0x61, 0x62, 0x63
     let mut bits = BitArray::new();
@@ -670,9 +668,6 @@ fn testAppendAlphanumericBytes() {
     if qrcode_encoder::appendAlphanumericBytes("abc", &mut BitArray::new()).is_ok() {
         panic!("should not be ok");
     }
-    // } catch (WriterException we) {
-    // good
-    // }
 }
 
 #[test]

@@ -282,9 +282,7 @@ impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {
         // If there is too little contrast in the image to pick a meaningful black point, throw rather
         // than waste time trying to decode the image, and risk false positives.
         if secondPeak - firstPeak <= BUCKET_COUNT / 16 {
-            return Err(Error::format_with(
-                "too little contrast in the image to pick a meaningful black point :: secondPeak - firstPeak <= numBuckets / 16 ",
-            ));
+            return Err(Error::Format{message: "too little contrast in the image to pick a meaningful black point :: secondPeak - firstPeak <= numBuckets / 16 ".into(),source: None });
         }
 
         // Find a valley between them that is low and closer to the white peak.

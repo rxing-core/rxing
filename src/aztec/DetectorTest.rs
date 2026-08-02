@@ -34,6 +34,8 @@
 // import java.util.Random;
 // import java.util.TreeSet;
 
+use std::matches;
+
 use rand::RngExt;
 
 use crate::{Point, aztec::decoder, common::BitMatrix, exceptions::Error};
@@ -152,9 +154,7 @@ fn test_error_in_parameter_locator(data: &str) {
                 }
                 // try {
                 if let Err(res) = detector::Detector::new(&make_larger(&copy, 3)).detect(false) {
-                    if let Error::Format(_msg) = res {
-                        // all ok
-                    } else if let Error::NotFound = res {
+                    if matches!(res, Error::Format { .. } | Error::NotFound) {
                         // all ok
                     } else {
                         panic!("Only Exceptions::Format allowed, got {res}");

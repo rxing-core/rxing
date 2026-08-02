@@ -65,34 +65,32 @@ impl Encoder for Base256Encoder {
                 buffer.replace_range(
                     0..1,
                     &char::from_u32(dataCount as u32)
-                        .ok_or(Error::PARSE)?
+                        .ok_or(Error::Internal(format!("could not parse dataCount as u32: {dataCount}").into()))?
                         .to_string(),
                 );
             } else if dataCount <= 1555 {
                 buffer.replace_range(
                     0..1,
                     &char::from_u32((dataCount as u32 / 250) + 249)
-                        .ok_or(Error::PARSE)?
+                        .ok_or(Error::Internal(format!("could not parse (dataCount as u32 / 250) + 249 as u32: {}", (dataCount as u32 / 250) + 249).into()))?
                         .to_string(),
                 );
                 let (ci_pos, _) = buffer
                     .char_indices()
                     .nth(1)
-                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+                    .ok_or(Error::Internal(format!("could not find character at index 1 in buffer").into()))?;
                 buffer.insert(
                     ci_pos,
-                    char::from_u32(dataCount as u32 % 250).ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
+                    char::from_u32(dataCount as u32 % 250).ok_or(Error::Internal(format!("could not parse dataCount as u32 % 250 as u32: {}", dataCount as u32 % 250).into()))?,
                 );
             } else {
-                return Err(Error::illegal_state_with(format!(
-                    "Message length not in valid ranges: {dataCount}"
-                )));
+                return Err(Error::Internal(format!("Message length not in valid ranges: {dataCount}").into()));
             }
         }
         for buffer_char in buffer.chars() {
             context.writeCodeword(
                 Self::randomize255State(buffer_char, context.getCodewordCount() as u32 + 1)
-                    .ok_or(Error::PARSE)? as u8,
+                    .ok_or(Error::Internal(format!("could not randomize255State for character: {}", buffer_char).into()))? as u8,
             );
         }
         Ok(())

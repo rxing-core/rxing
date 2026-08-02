@@ -7,14 +7,10 @@ use serde::Serialize;
 #[derive(thiserror::Error, Debug)]
 #[non_exhaustive]
 pub enum Error {
-    #[error("UnsupportedOperationException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
-    UnsupportedOperation(String),
     #[error("IllegalStateException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     IllegalState(String),
     #[error("ArithmeticException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     Arithmetic(String),
-    #[error("FormatException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
-    Format(String),
     #[error("ChecksumException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     Checksum(String),
     #[error("WriterException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
@@ -28,7 +24,6 @@ pub enum Error {
 
     /// The caller supplied invalid input — bad hint, unsupported
     /// format, out-of-range dimension.
-    /// Absorbs: IllegalArgument (caller-facing), Writer, UnsupportedOperation.
     #[error("invalid input for {field}: {value}")]
     InvalidInput {
         field: &'static str,
@@ -46,6 +41,19 @@ pub enum Error {
     /// reader, orientation, or region.
     #[error("not found")]
     NotFound,
+
+    /// A barcode was located but its structure is invalid.
+    #[error("malformed barcode: {message}")]
+    Format {
+        message: Cow<'static, str>,
+
+        #[cfg_attr(
+            feature = "serde",
+            serde(serialize_with = "serde_helpers::opt_as_string")
+        )]
+        #[source]
+        source: Option<Box<dyn std::error::Error + Send + Sync>>,
+    },
 
     /// General IO errors, found exclusivly in the helpers module
     #[cfg(feature = "image")]
@@ -76,11 +84,6 @@ impl Error {
 
     pub const NOT_FOUND: Self = Self::NotFound;
 
-    pub const FORMAT: Self = Self::Format(String::new());
-    pub fn format_with<I: Into<String>>(x: I) -> Self {
-        Self::Format(x.into())
-    }
-
     pub const CHECKSUM: Self = Self::Checksum(String::new());
     pub fn checksum_with<I: Into<String>>(x: I) -> Self {
         Self::Checksum(x.into())
@@ -102,9 +105,6 @@ impl Error {
     }
 
     pub const PARSE: Self = Self::Parse(String::new());
-    pub fn parse_with<I: Into<String>>(x: I) -> Self {
-        Self::Parse(x.into())
-    }
 }
 
 // 1. Create a tiny helper module to stringify non-serializable fields

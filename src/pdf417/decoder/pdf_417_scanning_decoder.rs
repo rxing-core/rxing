@@ -846,7 +846,10 @@ fn decodeCodewords(
     erasures: &mut [u32],
 ) -> Result<DecoderRXingResult> {
     if codewords.is_empty() {
-        return Err(Error::FORMAT);
+        return Err(Error::Format {
+            message: "codewords cannot be empty".into(),
+            source: None,
+        });
     }
 
     let numECCodewords = 1 << (ecLevel + 1);
@@ -893,21 +896,30 @@ fn verifyCodewordCount(codewords: &mut [u32], numECCodewords: u32) -> Result<()>
     if codewords.len() < 4 {
         // Codeword array size should be at least 4 allowing for
         // Count CW, At least one Data CW, Error Correction CW, Error Correction CW
-        return Err(Error::FORMAT);
+        return Err(Error::Format {
+            message: "invalid codeword array size".into(),
+            source: None,
+        });
     }
     // The first codeword, the Symbol Length Descriptor, shall always encode the total number of data
     // codewords in the symbol, including the Symbol Length Descriptor itself, data codewords and pad
     // codewords, but excluding the number of error correction codewords.
     let numberOfCodewords = codewords[0];
     if numberOfCodewords > codewords.len() as u32 {
-        return Err(Error::FORMAT);
+        return Err(Error::Format {
+            message: "invalid codeword array size".into(),
+            source: None,
+        });
     }
     if numberOfCodewords == 0 {
         // Reset to the length of the array - 8 (Allow for at least level 3 Error Correction (8 Error Codewords)
         if numECCodewords < codewords.len() as u32 {
             codewords[0] = codewords.len() as u32 - numECCodewords;
         } else {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "invalid codeword / ecc array size".into(),
+                source: None,
+            });
         }
     }
     Ok(())

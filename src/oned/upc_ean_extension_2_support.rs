@@ -85,7 +85,7 @@ impl UPCEANExtension2Support {
             let bestMatch =
                 STAND_IN.decodeDigit(row, &mut counters, rowOffset, &L_AND_G_PATTERNS)?;
             resultString
-                .push(char::from_u32('0' as u32 + bestMatch as u32 % 10).ok_or(Error::PARSE)?);
+                .push(char::from_u32('0' as u32 + bestMatch as u32 % 10).ok_or(Error::Format { message: format!("could not add character: ('0' as u32 + bestMatch as u32 % 10): {}", '0' as u32 + bestMatch as u32 % 10).into(), source: None })?);
 
             rowOffset += counters.iter().sum::<u32>() as usize;
 
@@ -104,10 +104,10 @@ impl UPCEANExtension2Support {
             return Err(Error::NOT_FOUND);
         }
 
-        if resultString
-            .parse::<u32>()
-            .map_err(|e| Error::parse_with(format!("could not parse {resultString}: {e}")))?
-            % 4
+        if resultString.parse::<u32>().map_err(|e| Error::Format {
+            message: format!("could not parse {resultString}: {e}").into(),
+            source: Some(e.into()),
+        })? % 4
             != checkParity
         {
             return Err(Error::NOT_FOUND);

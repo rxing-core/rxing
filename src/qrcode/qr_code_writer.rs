@@ -88,9 +88,11 @@ impl Writer for QRCodeWriter {
         };
 
         let quietZone = if let Some(margin) = &hints.Margin {
-            margin
-                .parse::<i32>()
-                .map_err(|e| Error::parse_with(format!("could not parse {margin}: {e}")))?
+            margin.parse::<i32>().map_err(|e| Error::InvalidInput {
+                field: "margin".into(),
+                value: format!("could not parse {margin}: {e}"),
+                cause: None,
+            })?
         } else {
             QUIET_ZONE_SIZE
         };

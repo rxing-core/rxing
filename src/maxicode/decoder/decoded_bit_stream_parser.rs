@@ -139,7 +139,10 @@ pub fn decode(bytes: &[u8], mode: u8) -> Result<DecoderRXingResult> {
                 let pc = getPostCode2(bytes);
                 let ps2Length = getPostCode2Length(bytes) as usize;
                 if ps2Length > 10 {
-                    return Err(Error::FORMAT);
+                    return Err(Error::Format {
+                        message: "invalid postcode length".into(),
+                        source: None,
+                    });
                 }
                 // NumberFormat df = new DecimalFormat("0000000000".substring(0, ps2Length));
                 // postcode = df.format(pc);

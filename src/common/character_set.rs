@@ -193,7 +193,16 @@ impl CharacterSet {
                 input
                     .to_cp437(&CP437_CONTROL)
                     .map(|data| data.to_vec())
-                    .map_err(|e| Error::format_with(format!("{e:?}")))
+                    .map_err(|e| Error::Format {
+                        message: "cp437 encoding error".into(),
+                        source: Some(
+                            format!(
+                                "cp437 error, data is representable up to: {}",
+                                e.representable_up_to
+                            )
+                            .into(),
+                        ),
+                    })
             }
             CharacterSet::UTF16BE => {
                 Ok(input.encode_utf16().flat_map(|u| u.to_be_bytes()).collect())
@@ -213,9 +222,12 @@ impl CharacterSet {
                 let mut bytes = Vec::with_capacity(input.len());
                 for c in input.chars() {
                     if c as u32 > 0xFF {
-                        return Err(Error::format_with(
-                            "Binary/ISO-8859-1 encoding only supports characters up to U+00FF",
-                        ));
+                        return Err(Error::Format {
+                            message:
+                                "Binary/ISO-8859-1 encoding only supports characters up to U+00FF"
+                                    .into(),
+                            source: None,
+                        });
                     }
                     bytes.push(c as u8);
                 }
@@ -225,9 +237,10 @@ impl CharacterSet {
                 let mut bytes = Vec::with_capacity(input.len());
                 for c in input.chars() {
                     if c as u32 > 0x7F {
-                        return Err(Error::format_with(
-                            "ASCII encoding only supports characters up to U+007F",
-                        ));
+                        return Err(Error::Format {
+                            message: "ASCII encoding only supports characters up to U+007F".into(),
+                            source: None,
+                        });
                     }
                     bytes.push(c as u8);
                 }
@@ -237,11 +250,17 @@ impl CharacterSet {
                 if let Some(enc) = self.get_encoding() {
                     let (res, _, had_errors) = enc.encode(input);
                     if had_errors {
-                        return Err(Error::format_with("Could not encode character"));
+                        return Err(Error::Format {
+                            message: "Could not encode character".into(),
+                            source: None,
+                        });
                     }
                     Ok(res.into_owned())
                 } else {
-                    Err(Error::format_with("Unsupported encoding"))
+                    Err(Error::Format {
+                        message: "Unsupported encoding".into(),
+                        source: None,
+                    })
                 }
             }
         }
@@ -273,7 +292,10 @@ impl CharacterSet {
                     let (res, _, _) = enc.encode(input);
                     Ok(res.into_owned())
                 } else {
-                    Err(Error::format_with("Unsupported encoding"))
+                    Err(Error::Format {
+                        message: "Unsupported encoding".into(),
+                        source: None,
+                    })
                 }
             }
         }
@@ -295,11 +317,14 @@ impl CharacterSet {
                         if char::from_u32(val).is_some() {
                             Ok(val)
                         } else {
-                            Err(())
+                            Err(format!("Invalid UTF-32BE: {val}"))
                         }
                     })
                     .collect();
-                let u32s = u32s.map_err(|_| Error::format_with("Invalid UTF-32BE"))?;
+                let u32s = u32s.map_err(|e| Error::Format {
+                    message: "Invalid UTF-32BE".into(),
+                    source: Some(e.into()),
+                })?;
                 Ok(u32s
                     .into_iter()
                     .map(|u| char::from_u32(u).unwrap())
@@ -313,11 +338,14 @@ impl CharacterSet {
                         if char::from_u32(val).is_some() {
                             Ok(val)
                         } else {
-                            Err(())
+                            Err(format!("Invalid UTF-32LE: {val}"))
                         }
                     })
                     .collect();
-                let u32s = u32s.map_err(|_| Error::format_with("Invalid UTF-32LE"))?;
+                let u32s = u32s.map_err(|e| Error::Format {
+                    message: "Invalid UTF-32LE".into(),
+                    source: Some(e.into()),
+                })?;
                 Ok(u32s
                     .into_iter()
                     .map(|u| char::from_u32(u).unwrap())
@@ -330,7 +358,10 @@ impl CharacterSet {
                 let mut s = String::with_capacity(input.len());
                 for &b in input {
                     if b > 0x7F {
-                        return Err(Error::format_with("Invalid ASCII"));
+                        return Err(Error::Format {
+                            message: "Invalid ASCII".into(),
+                            source: None,
+                        });
                     }
                     s.push(char::from(b));
                 }
@@ -340,11 +371,17 @@ impl CharacterSet {
                 if let Some(enc) = self.get_encoding() {
                     let (res, _, had_errors) = enc.decode(input);
                     if had_errors {
-                        return Err(Error::format_with("Could not decode character"));
+                        return Err(Error::Format {
+                            message: "Could not decode character".into(),
+                            source: None,
+                        });
                     }
                     Ok(res.into_owned())
                 } else {
-                    Err(Error::format_with("Unsupported encoding"))
+                    Err(Error::Format {
+                        message: "Unsupported encoding".into(),
+                        source: None,
+                    })
                 }
             }
         }
@@ -384,7 +421,10 @@ impl CharacterSet {
                     let (res, _, _) = enc.decode(input);
                     Ok(res.into_owned())
                 } else {
-                    Err(Error::format_with("Unsupported encoding"))
+                    Err(Error::Format {
+                        message: "Unsupported encoding".into(),
+                        source: None,
+                    })
                 }
             }
         }
@@ -445,18 +485,27 @@ impl CharacterSet {
             input
                 .to_cp437(&CP437_CONTROL)
                 .map(|data| data.to_vec())
-                .map_err(|e| Error::format_with(format!("{e:?}")))
+                .map_err(|e| Error::Format {
+                    message: format!("{e:?}"),
+                    source: None,
+                })
         } else {
             self.get_base_encoder()
                 .encode(input, encoding::EncoderTrap::Strict)
-                .map_err(|e| Error::format_with(e.to_string()))
+                .map_err(|e| Error::Format {
+                    message: format!("{e:?}"),
+                    source: Some(e.into()),
+                })
         }
     }
 
     pub fn encode_replace(&self, input: &str) -> Result<Vec<u8>> {
         self.get_base_encoder()
             .encode(input, encoding::EncoderTrap::Replace)
-            .map_err(|e| Error::format_with(e.to_string()))
+            .map_err(|e| Error::Format {
+                message: format!("{e:?}"),
+                source: Some(e.into()),
+            })
     }
 
     pub fn decode(&self, input: &[u8]) -> Result<String> {
@@ -468,14 +517,20 @@ impl CharacterSet {
         } else {
             self.get_base_encoder()
                 .decode(input, encoding::DecoderTrap::Strict)
-                .map_err(|e| Error::format_with(e.to_string()))
+                .map_err(|e| Error::Format {
+                    message: format!("{e:?}"),
+                    source: Some(e.into()),
+                })
         }
     }
 
     pub fn decode_replace(&self, input: &[u8]) -> Result<String> {
         self.get_base_encoder()
             .decode(input, encoding::DecoderTrap::Replace)
-            .map_err(|e| Error::format_with(e.to_string()))
+            .map_err(|e| Error::Format {
+                message: format!("{e:?}"),
+                source: Some(e.into()),
+            })
     }
 }
 

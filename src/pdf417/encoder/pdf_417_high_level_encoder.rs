@@ -640,13 +640,18 @@ fn encodeNumeric<T: ECIInput + ?Sized>(
                 .collect::<String>()
         );
         // let mut bigint: u128 = part.parse().map_err(|_| Exceptions::parseEmpty())?;
-        let mut bigint = num::BigUint::from_str(&part)
-            .map_err(|e| Error::parse_with(format!("issue parsing {part}: {e}")))?; // part.parse().map_err(|_| Exceptions::parseEmpty())?;
+        let mut bigint = num::BigUint::from_str(&part).map_err(|e| Error::Format {
+            message: format!("issue parsing {part}: {e}").into(),
+            source: Some(e.into()),
+        })?; // part.parse().map_err(|_| Exceptions::parseEmpty())?;
         loop {
             tmp.push(
-                char::from_u32((&bigint % &NUM900).try_into().map_err(|e| {
-                    Error::parse_with(format!("erorr converting {bigint} to u32: {e}"))
-                })?)
+                char::from_u32((&bigint % &NUM900).try_into().map_err(
+                    |e: num::bigint::TryFromBigIntError<num::BigUint>| Error::Format {
+                        message: format!("error converting {bigint} to u32: {e}").into(),
+                        source: Some(e.into()),
+                    },
+                )?)
                 .ok_or(Error::PARSE)?,
             );
             bigint /= &NUM900;

@@ -664,7 +664,7 @@ impl Edge {
         previous: Option<Arc<Edge>>,
     ) -> Result<Self> {
         if fromPosition + characterLength > input.length() as u32 {
-            return Err(Error::FORMAT);
+            return Err(Error::Internal("invalid position information".into()));
         }
 
         let mut size = if let Some(previous) = previous.clone() {

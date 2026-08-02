@@ -52,7 +52,10 @@ impl DecodedNumeric {
         if
         /*firstDigit < 0 ||*/
         firstDigit > 10 || /*secondDigit < 0 ||*/ secondDigit > 10 {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "first or second digit greater than 10".into(),
+                source: None,
+            });
         }
 
         Ok(Self {

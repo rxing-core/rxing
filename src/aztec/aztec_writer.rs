@@ -66,9 +66,10 @@ impl Writer for AztecWriter {
         }
 
         let margins = if let Some(margin) = &hints.Margin {
-            margin
-                .parse::<u32>()
-                .map_err(|e| Error::parse_with(format!("could not parse {margin}: {e}")))?
+            margin.parse::<u32>().map_err(|e| Error::Format {
+                message: format!("could not parse {margin}").into(),
+                source: Some(e.into()),
+            })?
         } else {
             MARGINS_SIZE
         };

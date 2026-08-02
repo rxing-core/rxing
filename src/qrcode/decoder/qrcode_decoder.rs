@@ -83,8 +83,8 @@ pub fn decode_bitmatrix_with_hints(
     match decode_bitmatrix_parser_with_hints(&mut parser, hints) {
         Ok(ok) => return Ok(ok),
         Err(er) => match er {
-            Error::Format(_) => fe = Some(er),
-            Error::Checksum(_) => ce = Some(er),
+            Error::Format { .. } => fe = Some(er),
+            Error::Checksum { .. } => ce = Some(er),
             _ => return Err(er),
         },
     }
@@ -122,7 +122,7 @@ pub fn decode_bitmatrix_with_hints(
     match trying() {
         Ok(res) => Ok(res),
         Err(er) => match er {
-            Error::Format(_) | Error::Checksum(_) => {
+            Error::Format { .. } | Error::Checksum { .. } => {
                 if let Some(fe) = fe {
                     Err(fe)
                 } else {

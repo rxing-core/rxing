@@ -144,7 +144,10 @@ impl OneDReader for ITFReader {
             lengthOK = true;
         }
         if !lengthOK {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "invalid length".into(),
+                source: None,
+            });
         }
 
         let mut resultObject = RXingResult::new(
@@ -262,7 +265,7 @@ impl ITFReader {
 
         if quietCount != 0 {
             // Unable to find the necessary number of quiet zone pixels.
-            Err(Error::NOT_FOUND)
+            Err(Error::NotFound)
         } else {
             Ok(())
         }

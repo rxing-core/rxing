@@ -154,7 +154,10 @@ impl<'a> Detector<'_> {
             || !self.is_valid(bulls_eye_corners[2])
             || !self.is_valid(bulls_eye_corners[3])
         {
-            return Err(Error::format_with("no valid points"));
+            return Err(Error::Format {
+                message: "no valid points".into(),
+                source: None,
+            });
         }
         let length = 2 * self.nb_center_layers;
         // Get the bits around the bull's eye
@@ -235,7 +238,10 @@ impl<'a> Detector<'_> {
                 return Ok(shift);
             }
         }
-        Err(Error::format_with("could not find symbol rotation state"))
+        Err(Error::Format {
+            message: "could not find symbol rotation state".into(),
+            source: None,
+        })
     }
 
     /**

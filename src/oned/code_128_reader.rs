@@ -56,7 +56,12 @@ impl OneDReader for Code128Reader {
             CODE_START_A => CODE_CODE_A,
             CODE_START_B => CODE_CODE_B,
             CODE_START_C => CODE_CODE_C,
-            _ => return Err(Error::FORMAT),
+            _ => {
+                return Err(Error::Format {
+                    message: "could not find codeset for symbol".into(),
+                    source: None,
+                });
+            }
         };
 
         let mut done = false;
@@ -106,7 +111,12 @@ impl OneDReader for Code128Reader {
 
             // Take care of illegal start codes
             match code {
-                CODE_START_A | CODE_START_B | CODE_START_C => return Err(Error::FORMAT),
+                CODE_START_A | CODE_START_B | CODE_START_C => {
+                    return Err(Error::Format {
+                        message: "illegal start code".into(),
+                        source: None,
+                    });
+                }
                 _ => {}
             }
 

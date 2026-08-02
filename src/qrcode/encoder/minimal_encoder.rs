@@ -265,17 +265,29 @@ impl MinimalEncoder {
         position: usize,
         edge: Option<Arc<Edge>>,
     ) -> Result<()> {
-        let vertexIndex = position + edge.as_ref().ok_or(Error::FORMAT)?.characterLength as usize;
-        let modeEdges =
-            &mut edges[vertexIndex][edge.as_ref().ok_or(Error::FORMAT)?.charsetEncoderIndex];
-        let modeOrdinal =
-            Self::getCompactedOrdinal(Some(edge.as_ref().ok_or(Error::FORMAT)?.mode))? as usize;
+        let vertexIndex = position
+            + edge
+                .as_ref()
+                .ok_or(Error::Internal("edge does not exist".into()))?
+                .characterLength as usize;
+        let modeEdges = &mut edges[vertexIndex][edge
+            .as_ref()
+            .ok_or(Error::Internal("vertex missing".into()))?
+            .charsetEncoderIndex];
+        let modeOrdinal = Self::getCompactedOrdinal(Some(
+            edge.as_ref()
+                .ok_or(Error::Internal("edge missing".into()))?
+                .mode,
+        ))? as usize;
         if modeEdges[modeOrdinal].is_none()
             || modeEdges[modeOrdinal]
                 .as_ref()
-                .ok_or(Error::FORMAT)?
+                .ok_or(Error::Internal("edge missing".into()))?
                 .cachedTotalSize
-                > edge.as_ref().ok_or(Error::FORMAT)?.cachedTotalSize
+                > edge
+                    .as_ref()
+                    .ok_or(Error::Internal("edge missing".into()))?
+                    .cachedTotalSize
         {
             modeEdges[modeOrdinal] = edge;
         }
@@ -298,12 +310,15 @@ impl MinimalEncoder {
                 .encoders
                 .canEncode(
                     &self.stringToEncode[from],
-                    priorityEncoderIndex.ok_or(Error::FORMAT)?,
+                    priorityEncoderIndex.ok_or(Error::Internal("cannot encode".into()))?,
                 )
-                .ok_or(Error::FORMAT)?
+                .ok_or(Error::Format {
+                    message: "cannot encode".into(),
+                    source: None,
+                })?
         {
-            start = priorityEncoderIndex.ok_or(Error::FORMAT)?;
-            end = priorityEncoderIndex.ok_or(Error::FORMAT)? + 1;
+            start = priorityEncoderIndex.ok_or(Error::Internal("cannot encode".into()))?;
+            end = priorityEncoderIndex.ok_or(Error::Internal("cannot encode".into()))? + 1;
         }
 
         for i in start..end {
@@ -312,10 +327,13 @@ impl MinimalEncoder {
                 .canEncode(
                     self.stringToEncode
                         .get(from)
-                        .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
+                        .ok_or(Error::Internal("index out of bounds".into()))?,
                     i,
                 )
-                .ok_or(Error::FORMAT)?
+                .ok_or(Error::Format {
+                    message: "cannot encode".into(),
+                    source: None,
+                })?
             {
                 self.addEdge(
                     edges,
@@ -341,7 +359,10 @@ impl MinimalEncoder {
 
         if self.canEncode(
             &Mode::KANJI,
-            self.stringToEncode.get(from).ok_or(Error::FORMAT)?,
+            self.stringToEncode.get(from).ok_or(Error::Format {
+                message: "cannot encode kanji".into(),
+                source: None,
+            })?,
         ) {
             self.addEdge(
                 edges,

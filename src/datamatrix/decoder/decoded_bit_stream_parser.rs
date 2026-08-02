@@ -156,7 +156,12 @@ pub fn decode(bytes: &[u8], is_flipped: bool) -> Result<DecoderRXingResult> {
                 isECIencoded = true; // ECI detection only, atm continue decoding as ASCII
                 mode = Mode::ASCII_ENCODE;
             }
-            _ => return Err(Error::FORMAT),
+            _ => {
+                return Err(Error::Format {
+                    message: format!("invalid mode found during parsing: {:?}", mode).into(),
+                    source: None,
+                });
+            }
         }
 
         if !(mode != Mode::PAD_ENCODE && bits.available() > 0) {
@@ -223,7 +228,12 @@ fn decodeAsciiSegment(
     loop {
         let mut oneByte = bits.readBits(8)?;
         match oneByte {
-            0 => return Err(Error::FORMAT),
+            0 => {
+                return Err(Error::Format {
+                    message: "invalid ASCII value".into(),
+                    source: None,
+                });
+            }
             1..=128 => {
                 // ASCII data (ASCII value + 1)
                 if upperShift {
@@ -276,9 +286,10 @@ fn decodeAsciiSegment(
                 if !firstCodeword
                 // Must be first ISO 16022:2006 5.6.1
                 {
-                    return Err(Error::format_with(
-                        "structured append tag must be first code word",
-                    ));
+                    return Err(Error::Format {
+                        message: "structured append tag must be first code word".into(),
+                        source: None,
+                    });
                 }
                 parse_structured_append(bits, &mut sai)?;
                 firstFNC1Position = 5;
@@ -329,7 +340,10 @@ fn decodeAsciiSegment(
                 // Not to be used in ASCII encodation
                 // but work around encoders that end with 254, latch back to ASCII
                 if oneByte != 254 || bits.available() != 0 {
-                    return Err(Error::FORMAT);
+                    return Err(Error::Format {
+                        message: "invalid ascii data found and not a latch back to ASCII".into(),
+                        source: None,
+                    });
                 }
             }
         }
@@ -390,7 +404,10 @@ fn decodeC40Segment(
                             result.append_char(c40char);
                         }
                     } else {
-                        return Err(Error::FORMAT);
+                        return Err(Error::Format {
+                            message: "invalid C40 value found".into(),
+                            source: None,
+                        });
                     }
                 }
                 1 => {
@@ -426,7 +443,12 @@ fn decodeC40Segment(
                                 upperShift = true
                             }
 
-                            _ => return Err(Error::FORMAT),
+                            _ => {
+                                return Err(Error::Format {
+                                    message: "invalid C40 value found".into(),
+                                    source: None,
+                                });
+                            }
                         }
                     }
                     shift = 0;
@@ -441,7 +463,12 @@ fn decodeC40Segment(
                     shift = 0;
                 }
 
-                _ => return Err(Error::FORMAT),
+                _ => {
+                    return Err(Error::Format {
+                        message: "invalid shift value found".into(),
+                        source: None,
+                    });
+                }
             }
         }
         if bits.available() == 0 {
@@ -497,7 +524,10 @@ fn decodeTextSegment(
                             result.append_char(textChar);
                         }
                     } else {
-                        return Err(Error::FORMAT);
+                        return Err(Error::Format {
+                            message: "invalid text value found".into(),
+                            source: None,
+                        });
                     }
                 }
                 1 => {
@@ -535,7 +565,12 @@ fn decodeTextSegment(
                                 upperShift = true
                             }
 
-                            _ => return Err(Error::FORMAT),
+                            _ => {
+                                return Err(Error::Format {
+                                    message: "invalid shift value found".into(),
+                                    source: None,
+                                });
+                            }
                         }
                     }
                     shift = 0;
@@ -553,7 +588,12 @@ fn decodeTextSegment(
                     shift = 0;
                 }
 
-                _ => return Err(Error::FORMAT),
+                _ => {
+                    return Err(Error::Format {
+                        message: "invalid text value found".into(),
+                        source: None,
+                    });
+                }
             }
         }
         if bits.available() == 0 {
@@ -621,7 +661,10 @@ fn decodeAnsiX12Segment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> 
                         // A - Z
                         result.append_char(char::from_u32(cValue + 51).ok_or(Error::PARSE)?);
                     } else {
-                        return Err(Error::FORMAT);
+                        return Err(Error::Format {
+                            message: "invalid ANSI X12 value found".into(),
+                            source: None,
+                        });
                     }
                 }
             }
@@ -718,7 +761,10 @@ fn decodeBase256Segment(
         // Have seen this particular error in the wild, such as at
         // http://www.bcgen.com/demo/IDAutomationStreamingDataMatrix.aspx?MODE=3&D=Fred&PFMT=3&PT=F&X=0.3&O=0&LM=0.2
         if bits.available() < 8 {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "not enough bits available".into(),
+                source: None,
+            });
         }
         *byte = unrandomize255State(bits.readBits(8)?, codewordPosition) as u8;
         codewordPosition += 1;

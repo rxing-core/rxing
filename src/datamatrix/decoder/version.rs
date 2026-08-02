@@ -103,7 +103,10 @@ impl Version {
      */
     pub fn getVersionForDimensions(numRows: u32, numColumns: u32) -> Result<&'static Version> {
         if (numRows & 0x01) != 0 || (numColumns & 0x01) != 0 {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "could not get version for dimension".into(),
+                source: None,
+            });
         }
 
         for version in VERSIONS.iter() {
@@ -112,7 +115,10 @@ impl Version {
             }
         }
 
-        Err(Error::FORMAT)
+        Err(Error::Format {
+            message: "could not find a valid version given symbol shape".into(),
+            source: None,
+        })
     }
 
     /**

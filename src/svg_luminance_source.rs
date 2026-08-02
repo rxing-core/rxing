@@ -60,17 +60,18 @@ impl LuminanceSource for SVGLuminanceSource {
 impl SVGLuminanceSource {
     pub fn new(svg_data: &[u8]) -> Result<Self> {
         // Load the SVG file
-        let Ok(tree) = resvg::usvg::Tree::from_data(svg_data, &Options::default()) else {
-            return Err(Error::format_with(format!(
-                "could not parse svg data: {}",
-                "err"
-            )));
-        };
+        let tree = resvg::usvg::Tree::from_data(svg_data, &Options::default()).map_err(|err| {
+            Error::InvalidInput {
+                field: "svg",
+                value: "svg data could not be parsed".into(),
+                cause: err.into(),
+            }
+        })?;
 
         let Some(mut pixmap) =
             resvg::tiny_skia::Pixmap::new(tree.size().width() as u32, tree.size().height() as u32)
         else {
-            return Err(Error::format_with("could not create pixmap"));
+            return Err(Error::Format("could not create pixmap".into()));
         };
 
         resvg::render(
@@ -84,7 +85,7 @@ impl SVGLuminanceSource {
             tree.size().height() as u32,
             pixmap.data().to_vec(),
         ) else {
-            return Err(Error::format_with("could not create image buffer"));
+            return Err(Error::Format("could not create image buffer".into()));
         };
 
         // let Ok(image) = image::load_from_memory_with_format(pixmap.data(), image::ImageFormat::Bmp)  else {

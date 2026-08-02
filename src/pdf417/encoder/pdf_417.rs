@@ -224,10 +224,10 @@ impl PDF417 {
         }
         let n = sourceCodeWords + pad + 1;
         let mut sb = String::with_capacity(n as usize);
-        sb.push(char::from_u32(n).ok_or(Error::PARSE)?);
+        sb.push(char::from_u32(n).ok_or(Error::Format { message: format!("cannot create character from u32: {}", n).into(), source: None })?);
         sb.push_str(&highLevel);
         for _i in 0..pad {
-            sb.push(char::from_u32(900).ok_or(Error::PARSE)?);
+            sb.push(char::from_u32(900).ok_or(Error::Format { message: "cannot create character from u32: 900".into(), source: None })?);
             //PAD characters
         }
         let dataCodewords = sb;

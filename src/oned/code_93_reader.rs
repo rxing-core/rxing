@@ -221,7 +221,10 @@ impl Code93Reader {
             let c = *encoded.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
             if ('a'..='d').contains(&c) {
                 if i >= length - 1 {
-                    return Err(Error::FORMAT);
+                    return Err(Error::Format {
+                        message: "unexpected character found".into(),
+                        source: None,
+                    });
                 }
                 let next = *encoded.get(i + 1).ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
                 let mut decodedChar = '\0';
@@ -231,7 +234,10 @@ impl Code93Reader {
                         if next.is_ascii_uppercase() {
                             decodedChar = char::from_u32(next as u32 + 32).ok_or(Error::PARSE)?;
                         } else {
-                            return Err(Error::FORMAT);
+                            return Err(Error::Format {
+                                message: "unexpected character found (uppercase expected)".into(),
+                                source: None,
+                            });
                         }
                     }
                     'a' => {
@@ -239,7 +245,10 @@ impl Code93Reader {
                         if next.is_ascii_uppercase() {
                             decodedChar = char::from_u32(next as u32 - 64).ok_or(Error::PARSE)?;
                         } else {
-                            return Err(Error::FORMAT);
+                            return Err(Error::Format {
+                                message: "unexpected character found (uppercase expected)".into(),
+                                source: None,
+                            });
                         }
                     }
                     'b' => {
@@ -268,7 +277,10 @@ impl Code93Reader {
                             // %X to %Z all map to DEL (127)
                             decodedChar = 127 as char;
                         } else {
-                            return Err(Error::FORMAT);
+                            return Err(Error::Format {
+                                message: "unexpected character found".into(),
+                                source: None,
+                            });
                         }
                     }
                     'c' => {
@@ -278,7 +290,10 @@ impl Code93Reader {
                         } else if next == 'Z' {
                             decodedChar = ':';
                         } else {
-                            return Err(Error::FORMAT);
+                            return Err(Error::Format {
+                                message: "unexpected character found".into(),
+                                source: None,
+                            });
                         }
                     }
                     _ => {}

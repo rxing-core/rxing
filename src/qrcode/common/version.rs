@@ -150,7 +150,10 @@ impl Version {
      */
     pub fn getProvisionalVersionForDimension(dimension: u32) -> Result<VersionRef> {
         if dimension % 4 != 1 || dimension < 17 {
-            return Err(Error::format_with("dimension incorrect"));
+            return Err(Error::Format {
+                message: "dimension incorrect".into(),
+                source: None,
+            });
         }
         Self::getVersionForNumber((dimension - 17) / 4)
     }

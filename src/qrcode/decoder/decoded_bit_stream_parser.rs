@@ -82,10 +82,10 @@ pub fn decode(
             }
             Mode::STRUCTURED_APPEND => {
                 if bits.available() < 16 {
-                    return Err(Error::format_with(format!(
+                    return Err(Error::Format{message: format!(
                         "Mode::Structured append expected bits.available() < 16, found bits of {}",
                         bits.available()
-                    )));
+                    ).into(), source: None});
                 }
                 // sequence number and parity is added later to the result metadata
                 // Read next 8 bits (symbol sequence #) and 8 bits (parity data), then continue
@@ -97,7 +97,10 @@ pub fn decode(
                 let value = parseECIValue(&mut bits)?;
                 currentCharacterSetECI = CharacterSet::from(value).into(); //CharacterSet::get_character_set_by_eci(value).ok();
                 if currentCharacterSetECI.is_none() {
-                    return Err(Error::format_with(format!("Value of {value} not valid")));
+                    return Err(Error::Format {
+                        message: format!("Value of {value} not valid").into(),
+                        source: None,
+                    });
                 }
             }
             Mode::HANZI => {
@@ -134,7 +137,12 @@ pub fn decode(
                         currentCharacterSetECI,
                         hints,
                     )?,
-                    _ => return Err(Error::FORMAT),
+                    _ => {
+                        return Err(Error::Format {
+                            message: "invalid mode".into(),
+                            source: None,
+                        });
+                    }
                 }
             }
         }
@@ -191,7 +199,10 @@ fn decodeHanziSegment(
 ) -> Result<()> {
     // Don't crash trying to read more bits than we have available.
     if count * 13 > bits.available() {
-        return Err(Error::FORMAT);
+        return Err(Error::Format {
+            message: "not enough bits available".into(),
+            source: None,
+        });
     }
 
     // Each character will require 2 bytes. Read the characters as 2-byte pairs
@@ -232,7 +243,10 @@ fn decodeKanjiSegment(
 ) -> Result<()> {
     // Don't crash trying to read more bits than we have available.
     if count * 13 > bits.available() {
-        return Err(Error::FORMAT);
+        return Err(Error::Format {
+            message: "not enough bits available".into(),
+            source: None,
+        });
     }
 
     // Each character will require 2 bytes. Read the characters as 2-byte pairs
@@ -287,7 +301,10 @@ fn decodeByteSegment(
 ) -> Result<()> {
     // Don't crash trying to read more bits than we have available.
     if 8 * count > bits.available() {
-        return Err(Error::FORMAT);
+        return Err(Error::Format {
+            message: "not enough bits available".into(),
+            source: None,
+        });
     }
 
     let mut readBytes = vec![0u8; count];
@@ -331,7 +348,10 @@ fn decodeByteSegment(
 
 fn toAlphaNumericChar(value: u32) -> Result<char> {
     if value as usize >= ALPHANUMERIC_CHARS.len() {
-        return Err(Error::FORMAT);
+        return Err(Error::Format {
+            message: "cannot match to an alphanumeric value".into(),
+            source: None,
+        });
     }
 
     Ok(CACHED_ALPHANUMERIC_CHARS[value as usize])
@@ -349,7 +369,10 @@ fn decodeAlphanumericSegment(
     let mut count = count;
     while count > 1 {
         if bits.available() < 11 {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "not enough bits available".into(),
+                source: None,
+            });
         }
         let nextTwoCharsBits = bits.readBits(11)?;
         r_hld.push(toAlphaNumericChar(nextTwoCharsBits / 45)?);
@@ -359,7 +382,10 @@ fn decodeAlphanumericSegment(
     if count == 1 {
         // special case: one character left
         if bits.available() < 6 {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "not enough bits available".into(),
+                source: None,
+            });
         }
         r_hld.push(toAlphaNumericChar(bits.readBits(6)?)?);
     }
@@ -399,11 +425,17 @@ fn decodeNumericSegment(
     while count >= 3 {
         // Each 10 bits encodes three digits
         if bits.available() < 10 {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "not enough bits available".into(),
+                source: None,
+            });
         }
         let threeDigitsBits = bits.readBits(10)?;
         if threeDigitsBits >= 1000 {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "invalid numeric value found".into(),
+                source: None,
+            });
         }
         result.append_char(toAlphaNumericChar(threeDigitsBits / 100)?);
         result.append_char(toAlphaNumericChar((threeDigitsBits / 10) % 10)?);
@@ -413,22 +445,34 @@ fn decodeNumericSegment(
     if count == 2 {
         // Two digits left over to read, encoded in 7 bits
         if bits.available() < 7 {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "not enough bits available".into(),
+                source: None,
+            });
         }
         let twoDigitsBits = bits.readBits(7)?;
         if twoDigitsBits >= 100 {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "invalid numeric value found".into(),
+                source: None,
+            });
         }
         result.append_char(toAlphaNumericChar(twoDigitsBits / 10)?);
         result.append_char(toAlphaNumericChar(twoDigitsBits % 10)?);
     } else if count == 1 {
         // One digit left over to read
         if bits.available() < 4 {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "not enough bits available".into(),
+                source: None,
+            });
         }
         let digitBits = bits.readBits(4)?;
         if digitBits >= 10 {
-            return Err(Error::FORMAT);
+            return Err(Error::Format {
+                message: "invalid numeric value found".into(),
+                source: None,
+            });
         }
         result.append_char(toAlphaNumericChar(digitBits)?);
     }
@@ -453,5 +497,8 @@ fn parseECIValue(bits: &mut BitSource) -> Result<Eci> {
         return Ok(Eci::from(((firstByte & 0x1F) << 16) | secondThirdBytes));
     }
 
-    Err(Error::FORMAT)
+    Err(Error::Format {
+        message: "invalid ECI value found".into(),
+        source: None,
+    })
 }
