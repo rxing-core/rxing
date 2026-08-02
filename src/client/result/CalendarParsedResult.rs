@@ -171,21 +171,23 @@ impl CalendarParsedRXingResult {
             ) {
                 Ok(dtm) => Ok(dtm.and_utc().timestamp()),
                 Err(e) => Err(Error::Format {
-                    message: format!("couldn't parse string: {e}").into(),
-                    source: None,
+                    message: format!("couldn't parse date string '{when}': {e}").into(),
+                    source: Some(Box::new(e)),
                 }),
             };
         }
         // The when string can be local time, or UTC if it ends with a Z
-        if when.len() == 16 && when.chars().nth(15).ok_or(Error::Format {
-            message: "could not parse date string".into(),
-            source: None,
-        })? == 'Z' {
+        if when.len() == 16
+            && when.chars().nth(15).ok_or(Error::Format {
+                message: format!("could not parse date string '{when}'").into(),
+                source: None,
+            })? == 'Z'
+        {
             return match NaiveDateTime::parse_from_str(&when, YMD_THMSZ_FORMAT) {
                 Ok(dtm) => Ok(dtm.and_utc().timestamp()),
                 Err(e) => Err(Error::Format {
-                    message: format!("couldn't parse string: {e}").into(),
-                    source: None,
+                    message: format!("couldn't parse date string '{when}': {e}").into(),
+                    source: Some(Box::new(e)),
                 }),
             };
         }
@@ -206,8 +208,8 @@ impl CalendarParsedRXingResult {
             return match NaiveDateTime::parse_from_str(time_part, YMD_THMS_FORMAT) {
                 Ok(dtm) => Ok(dtm.and_utc().with_timezone(&tz_parsed).timestamp()),
                 Err(e) => Err(Error::Format {
-                    message: format!("couldn't parse string: {e}").into(),
-                    source: None,
+                    message: format!("couldn't parse date string '{time_part}': {e}").into(),
+                    source: Some(Box::new(e)),
                 }),
             };
         }
@@ -217,8 +219,8 @@ impl CalendarParsedRXingResult {
             return match NaiveDateTime::parse_from_str(&when, YMD_THMS_FORMAT) {
                 Ok(dtm) => Ok(dtm.and_utc().timestamp()),
                 Err(e) => Err(Error::Format {
-                    message: format!("couldn't parse local time: {e}").into(),
-                    source: None,
+                    message: format!("couldn't parse local time string '{when}': {e}").into(),
+                    source: Some(Box::new(e)),
                 }),
             };
         }

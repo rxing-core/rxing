@@ -147,9 +147,10 @@ impl Writer for DataMatrixWriter {
         placement.place()?;
 
         let margins = if let Some(margin) = &hints.Margin {
-            margin.parse::<u32>().map_err(|e| Error::Format {
-                message: format!("could not parse {margin}: {e}").into(),
-                source: Some(e.into()),
+            margin.parse::<u32>().map_err(|e| Error::InvalidInput {
+                field: "Margin",
+                value: margin.clone(),
+                cause: Some(Box::new(e)),
             })?
         } else {
             MARGINS_SIZE

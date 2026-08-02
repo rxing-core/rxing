@@ -234,7 +234,13 @@ impl BitArray {
         self.reversed = None;
         let mut end = end;
         if end < start || end > self.size {
-            return Err(Error::Internal("range is invalid".into()));
+            return Err(Error::Internal(
+                format!(
+                    "bit range [{start}..{end}] is invalid for BitArray of size {}",
+                    self.size
+                )
+                .into(),
+            ));
         }
         if end == start {
             return Ok(());
@@ -278,7 +284,13 @@ impl BitArray {
     pub fn isRange(&self, start: usize, end: usize, value: bool) -> Result<bool> {
         let mut end = end;
         if end < start || end > self.size {
-            return Err(Error::Internal("range is invalid".into()));
+            return Err(Error::Internal(
+                format!(
+                    "bit range [{start}..{end}] is invalid for BitArray of size {}",
+                    self.size
+                )
+                .into(),
+            ));
         }
         if end == start {
             return Ok(true); // empty range matches
