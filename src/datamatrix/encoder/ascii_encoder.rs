@@ -75,9 +75,7 @@ impl Encoder for ASCIIEncoder {
                     }
 
                     _ => {
-                        return Err(Error::illegal_state_with(format!(
-                            "Illegal mode: {newMode}"
-                        )));
+                        return Err(Error::internal_with(format!("Illegal mode: {newMode}")));
                     }
                 }
             } else if high_level_encoder::isExtendedASCII(c) {

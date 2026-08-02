@@ -67,7 +67,7 @@ impl C40Encoder {
             context.updateSymbolInfoWithLength(curCodewordCount);
             let available = context
                 .getSymbolInfo()
-                .ok_or(Error::ILLEGAL_STATE)?
+                .ok_or(Error::INTERNAL)?
                 .getDataCapacity() as usize
                 - curCodewordCount;
 
@@ -142,7 +142,7 @@ impl C40Encoder {
             context.updateSymbolInfoWithLength(curCodewordCount);
             let available = context
                 .getSymbolInfo()
-                .ok_or(Error::ILLEGAL_STATE)?
+                .ok_or(Error::INTERNAL)?
                 .getDataCapacity() as usize
                 - curCodewordCount;
             let rest = buffer.chars().count() % 3;
@@ -206,7 +206,7 @@ impl C40Encoder {
         context.updateSymbolInfoWithLength(curCodewordCount);
         let available = context
             .getSymbolInfo()
-            .ok_or(Error::ILLEGAL_STATE)?
+            .ok_or(Error::INTERNAL)?
             .getDataCapacity() as usize
             - curCodewordCount;
 
@@ -235,7 +235,7 @@ impl C40Encoder {
                 context.writeCodeword(C40_UNLATCH);
             }
         } else {
-            return Err(Error::illegal_state_with("Unexpected case. Please report!"));
+            return Err(Error::internal_with("Unexpected case. Please report!"));
         }
         context.signalEncoderChange(ASCII_ENCODATION);
 

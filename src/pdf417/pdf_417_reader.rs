@@ -131,7 +131,7 @@ impl PDF417Reader {
                         pdf417RXingResultMetadata
                             .clone()
                             .downcast::<PDF417RXingResultMetadata>()
-                            .map_err(|_| Error::ILLEGAL_STATE)?,
+                            .map_err(|_| Error::INTERNAL)?,
                     );
                     result.putMetadata(RXingResultMetadataType::PDF417_EXTRA_METADATA, data);
                 }

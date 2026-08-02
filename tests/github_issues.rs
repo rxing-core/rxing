@@ -192,7 +192,7 @@ fn zxing_bench_grey_image_issue_luma8_image() {
 
     let img = DynamicImage::from(
         image::open(FILE_NAME)
-            .map_err(|e| Error::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+            .map_err(|e| Error::internal_with(format!("couldn't read {FILE_NAME}: {e}")))
             .unwrap()
             .to_luma8(),
     );
@@ -281,7 +281,7 @@ fn zxing_bench_grey_image_issue_raw_luma8() {
     let mut hints = DecodeHints::default();
 
     let img = image::open(FILE_NAME)
-        .map_err(|e| Error::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+        .map_err(|e| Error::internal_with(format!("couldn't read {FILE_NAME}: {e}")))
         .unwrap();
     let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
@@ -375,7 +375,7 @@ fn test_issue_49() {
     let mut hints = DecodeHints::default();
 
     let img = image::open(FILE_NAME)
-        .map_err(|e| Error::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+        .map_err(|e| Error::internal_with(format!("couldn't read {FILE_NAME}: {e}")))
         .unwrap();
     let multi_format_reader = MultiUseMultiFormatReader::default();
     let mut scanner = GenericMultipleBarcodeReader::new(multi_format_reader);
@@ -416,7 +416,7 @@ fn test_issue_50() {
     let mut hints = DecodeHints::default();
 
     let img = image::open(FILE_NAME)
-        .map_err(|e| Error::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+        .map_err(|e| Error::internal_with(format!("couldn't read {FILE_NAME}: {e}")))
         .unwrap();
     let mut scanner = MultiUseMultiFormatReader::default();
 
@@ -453,7 +453,7 @@ fn test_issue_50_2() {
     let mut hints = DecodeHints::default();
 
     let img = image::open(FILE_NAME)
-        .map_err(|e| Error::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+        .map_err(|e| Error::internal_with(format!("couldn't read {FILE_NAME}: {e}")))
         .unwrap();
     let mut scanner = MultiUseMultiFormatReader::default();
 
@@ -498,7 +498,7 @@ fn issue_51_multiple_detection() {
 
     let img = DynamicImage::from(
         image::open(FILE_NAME)
-            .map_err(|e| Error::runtime_with(format!("couldn't read {FILE_NAME}: {e}")))
+            .map_err(|e| Error::internal_with(format!("couldn't read {FILE_NAME}: {e}")))
             .unwrap()
             .to_luma8(),
     );
@@ -527,7 +527,7 @@ fn issue_51_multiple_detection() {
 
     let img = DynamicImage::from(
         image::open(FILE_NAME2)
-            .map_err(|e| Error::runtime_with(format!("couldn't read {FILE_NAME2}: {e}")))
+            .map_err(|e| Error::internal_with(format!("couldn't read {FILE_NAME2}: {e}")))
             .unwrap()
             .to_luma8(),
     );

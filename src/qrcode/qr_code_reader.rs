@@ -216,7 +216,7 @@ impl QRCodeReader {
                 // if (decoderRXingResult.getOther() instanceof QRCodeDecoderMetaData) {
                 other
                     .downcast_ref::<QRCodeDecoderMetaData>()
-                    .ok_or(Error::ILLEGAL_STATE)?
+                    .ok_or(Error::INTERNAL)?
                     .applyMirroredCorrection(&mut points);
             }
         }

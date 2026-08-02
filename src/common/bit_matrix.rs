@@ -147,8 +147,8 @@ impl BitMatrix {
         let mut pos = 0;
         let chars: Vec<char> = string_representation.chars().collect();
         while pos < chars.len() {
-            if chars.get(pos).ok_or(Error::ILLEGAL_STATE)? == &'\n'
-                || chars.get(pos).ok_or(Error::ILLEGAL_STATE)? == &'\r'
+            if chars.get(pos).ok_or(Error::INTERNAL)? == &'\n'
+                || chars.get(pos).ok_or(Error::INTERNAL)? == &'\r'
             {
                 if bitsPos > rowStartPos {
                     //if rowLength == -1 {

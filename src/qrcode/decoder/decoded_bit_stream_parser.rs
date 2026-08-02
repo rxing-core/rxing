@@ -305,17 +305,17 @@ fn decodeByteSegment(
         // give a hint.
         {
             #[cfg(not(feature = "allow_forced_iso_ied_18004_compliance"))]
-            string_utils::guessCharset(&readBytes, hints).ok_or(Error::ILLEGAL_STATE)?
+            string_utils::guessCharset(&readBytes, hints).ok_or(Error::FORMAT)?
         }
 
         #[cfg(feature = "allow_forced_iso_ied_18004_compliance")]
         if let Some(true) = hints.QrAssumeSpecConformInput.as_ref() {
             CharacterSet::ISO8859_1
         } else {
-            string_utils::guessCharset(&readBytes, hints).ok_or(Error::ILLEGAL_STATE)?
+            string_utils::guessCharset(&readBytes, hints).ok_or(Error::FORMAT)?
         }
     } else {
-        currentCharacterSetECI.ok_or(Error::ILLEGAL_STATE)?
+        currentCharacterSetECI.ok_or(Error::FORMAT)?
         // CharacterSetECI::getCharset(
         //     currentCharacterSetECI
         //         .as_ref()

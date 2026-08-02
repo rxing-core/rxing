@@ -106,10 +106,10 @@ impl QRCodeWriter {
     ) -> Result<BitMatrix> {
         let input = code.getMatrix();
         if input.is_none() {
-            return Err(Error::illegal_state_with("matrix is empty"));
+            return Err(Error::internal_with("matrix is empty"));
         }
 
-        let input = input.as_ref().ok_or(Error::ILLEGAL_STATE)?;
+        let input = input.as_ref().ok_or(Error::INTERNAL)?;
 
         let inputWidth = input.getWidth() as i32;
         let inputHeight = input.getHeight() as i32;

@@ -214,7 +214,7 @@ fn addEdge(edges: &mut [Vec<Option<Arc<Edge>>>], edge: Arc<Edge>) -> Result<()> 
     if edges[vertexIndex][edge.getEndMode()?.ordinal()].is_none()
         || edges[vertexIndex][edge.getEndMode()?.ordinal()]
             .as_ref()
-            .ok_or(Error::ILLEGAL_STATE)?
+            .ok_or(Error::INTERNAL)?
             .cachedTotalSize
             > edge.cachedTotalSize
     {
@@ -630,7 +630,7 @@ fn encodeMinimally(input: Arc<Input>) -> Result<RXingResult> {
     }
 
     if minimalJ < 0 {
-        return Err(Error::illegal_state_with(format!(
+        return Err(Error::internal_with(format!(
             "Internal error: failed to encode \"{input}\""
         )));
     }

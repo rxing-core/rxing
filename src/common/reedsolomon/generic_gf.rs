@@ -140,7 +140,7 @@ impl GenericGF {
      */
     pub const fn inverse(&self, a: i32) -> Result<i32> {
         if a == 0 {
-            return Err(Error::ARITHMETIC);
+            return Err(Error::CHECKSUM);
         }
         let log_t_loc: usize = a as usize;
         if log_t_loc >= self.size {

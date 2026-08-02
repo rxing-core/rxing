@@ -200,7 +200,7 @@ pub fn encodeHighLevel(
         input = Box::new(NoECIInput::new(msg.to_owned()));
         if encoding.is_none() {
             encoding = Some(DEFAULT_ENCODING);
-        } else if &DEFAULT_ENCODING != encoding.as_ref().ok_or(Error::ILLEGAL_STATE)? {
+        } else if &DEFAULT_ENCODING != encoding.as_ref().ok_or(Error::INTERNAL)? {
             // if let Some(eci) =
             //     CharacterSetECI::getCharacterSetECI(encoding.ok_or(Exceptions::ILLEGAL_STATE)?)
             // {
@@ -208,7 +208,7 @@ pub fn encodeHighLevel(
             // }
 
             encodingECI(
-                Eci::from(encoding.ok_or(Error::ILLEGAL_STATE)?),
+                Eci::from(encoding.ok_or(Error::INTERNAL)?),
                 //CharacterSet::get_eci_value(&encoding.ok_or(Exceptions::ILLEGAL_STATE)?) as i32,
                 &mut sb,
             )?;
@@ -234,7 +234,7 @@ pub fn encodeHighLevel(
         Compaction::BYTE => {
             let msgBytes = encoding
                 .as_ref()
-                .ok_or(Error::ILLEGAL_STATE)?
+                .ok_or(Error::INTERNAL)?
                 .encode(&input.to_string())
                 .unwrap_or_default(); //input.to_string().getBytes(encoding);
             encodeBinary(
@@ -301,11 +301,7 @@ pub fn encodeHighLevel(
                                 .subSequence(p as usize, (p + b) as usize)?
                                 .iter()
                                 .collect::<String>();
-                            encoding
-                                .as_ref()
-                                .ok_or(Error::ILLEGAL_STATE)?
-                                .encode(&str)
-                                .ok()
+                            encoding.as_ref().ok_or(Error::INTERNAL)?.encode(&str).ok()
                         };
 
                         let bytes_ok = bytes.is_some();
@@ -321,7 +317,7 @@ pub fn encodeHighLevel(
                                 )?;
                             } else {
                                 encodeBinary(
-                                    bytes.as_ref().ok_or(Error::ILLEGAL_STATE)?,
+                                    bytes.as_ref().ok_or(Error::INTERNAL)?,
                                     0,
                                     1,
                                     TEXT_COMPACTION,
@@ -340,9 +336,9 @@ pub fn encodeHighLevel(
                                 )?;
                             } else {
                                 encodeBinary(
-                                    bytes.as_ref().ok_or(Error::ILLEGAL_STATE)?,
+                                    bytes.as_ref().ok_or(Error::INTERNAL)?,
                                     0,
-                                    bytes.as_ref().ok_or(Error::ILLEGAL_STATE)?.len() as u32,
+                                    bytes.as_ref().ok_or(Error::INTERNAL)?.len() as u32,
                                     encodingMode,
                                     &mut sb,
                                 )?;
@@ -824,7 +820,7 @@ fn determineConsecutiveBinaryCount<T: ECIInput + ?Sized + 'static>(
 
             if !can_encode {
                 if TypeId::of::<T>() != TypeId::of::<NoECIInput>() {
-                    return Err(Error::illegal_state_with("expected NoECIInput type"));
+                    return Err(Error::internal_with("expected NoECIInput type"));
                 }
                 let ch = input.charAt(idx)?;
                 return Err(Error::invalid_input_with(

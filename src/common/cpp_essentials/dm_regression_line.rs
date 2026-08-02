@@ -80,7 +80,7 @@ impl RegressionLineTrait for DMRegressionLine {
 
     fn add(&mut self, p: Point) -> Result<()> {
         if self.direction_inward == Point::default() {
-            return Err(Error::ILLEGAL_STATE);
+            return Err(Error::INTERNAL);
         }
         self.points.push(p);
         if self.points.len() == 1 {
@@ -264,7 +264,7 @@ impl DMRegressionLine {
 
     pub fn modules(&mut self, beg: Point, end: Point) -> Result<f64> {
         if self.points.len() <= 3 {
-            return Err(Error::ILLEGAL_STATE);
+            return Err(Error::NOT_FOUND);
         }
 
         // re-evaluate and filter out all points too far away. required for the gapSizes calculation.

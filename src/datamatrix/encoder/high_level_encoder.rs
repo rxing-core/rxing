@@ -217,14 +217,14 @@ pub fn encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
 
     if forceC40 {
         c40Encoder.encodeMaximalC40(&mut context)?;
-        encodingMode = context.getNewEncoding().ok_or(Error::ILLEGAL_STATE)?;
+        encodingMode = context.getNewEncoding().ok_or(Error::INTERNAL)?;
         context.resetEncoderSignal();
     }
 
     while context.hasMoreCharacters() {
         encoders[encodingMode].encode(&mut context)?;
         if context.getNewEncoding().is_some() {
-            encodingMode = context.getNewEncoding().ok_or(Error::ILLEGAL_STATE)?;
+            encodingMode = context.getNewEncoding().ok_or(Error::INTERNAL)?;
             context.resetEncoderSignal();
         }
     }
@@ -232,7 +232,7 @@ pub fn encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
     context.updateSymbolInfo();
     let capacity = context
         .getSymbolInfo()
-        .ok_or(Error::ILLEGAL_STATE)?
+        .ok_or(Error::INTERNAL)?
         .getDataCapacity();
     if len < capacity as usize
         && encodingMode != ASCII_ENCODATION

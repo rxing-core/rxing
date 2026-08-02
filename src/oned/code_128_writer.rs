@@ -196,7 +196,8 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>> {
     while position < length {
         //Select code to use
         let newCodeSet = if forcedCodeSet == -1 {
-            chooseCode(contents, position, codeSet).ok_or(Error::ILLEGAL_STATE)?
+            chooseCode(contents, position, codeSet)
+                .ok_or(Error::internal_with("Could not choose code set"))?
         } else {
             forcedCodeSet as usize // THIS IS RISKY
         };
@@ -686,7 +687,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
         minPath: &mut Vec<Vec<Latch>>,
     ) -> Result<u32> {
         if position >= contents.chars().count() {
-            return Err(Error::ILLEGAL_STATE);
+            return Err(Error::INTERNAL);
         }
         let mCost = memoizedCost[charset.ordinal()][position];
         if mCost > 0 {

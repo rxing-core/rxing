@@ -7,13 +7,6 @@ use serde::Serialize;
 #[derive(thiserror::Error, Debug)]
 #[non_exhaustive]
 pub enum Error {
-    #[error("IllegalStateException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
-    IllegalState(String),
-    #[error("ArithmeticException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
-    Arithmetic(String),
-    #[error("RuntimeException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
-    Runtime(String),
-
     /// A barcode checksum verification or error-correction (e.g. Reed-Solomon) failed.
     #[error("checksum error: {message}")]
     Checksum {
@@ -77,16 +70,6 @@ pub enum Error {
 }
 
 impl Error {
-    pub const ILLEGAL_STATE: Self = Self::IllegalState(String::new());
-    pub fn illegal_state_with<I: Into<String>>(x: I) -> Self {
-        Self::IllegalState(x.into())
-    }
-
-    pub const ARITHMETIC: Self = Self::Arithmetic(String::new());
-    pub fn arithmetic_with<I: Into<String>>(x: I) -> Self {
-        Self::Arithmetic(x.into())
-    }
-
     pub const NOT_FOUND: Self = Self::NotFound;
 
     pub const CHECKSUM: Self = Self::Checksum {
@@ -160,11 +143,6 @@ impl Error {
     pub const INTERNAL: Self = Self::Internal(Cow::Borrowed("internal error"));
     pub fn internal_with<I: Into<Cow<'static, str>>>(x: I) -> Self {
         Self::Internal(x.into())
-    }
-
-    pub const RUNTIME: Self = Self::Runtime(String::new());
-    pub fn runtime_with<I: Into<String>>(x: I) -> Self {
-        Self::Runtime(x.into())
     }
 }
 

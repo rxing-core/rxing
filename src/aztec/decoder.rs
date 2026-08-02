@@ -278,7 +278,7 @@ fn get_character(table: Table, code: u32) -> Result<&'static str> {
         Table::Mixed => Ok(MIXED_TABLE[code as usize]),
         Table::Digit => Ok(DIGIT_TABLE[code as usize]),
         Table::Punct => Ok(PUNCT_TABLE[code as usize]),
-        _ => Err(Error::illegal_state_with("Bad table")),
+        _ => Err(Error::format_with("Bad table")),
     }
     // switch (table) {
     //   case UPPER:

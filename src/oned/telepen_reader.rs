@@ -176,7 +176,7 @@ impl OneDReader for TelepenReader {
         let mut bytes: Vec<u8> = vec![0; byteLength];
         // bits.toBytes(0, bytes.as_mut_slice(), 0, byteLength);
         bits.read_exact(&mut bytes)
-            .map_err(|_| Error::ILLEGAL_STATE)?;
+            .map_err(|_| Error::format_with("Could not read bytes"))?;
 
         j = 0;
 

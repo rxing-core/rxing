@@ -770,7 +770,7 @@ pub fn SampleQR(image: &BitMatrix, fp: &FinderPatternSet) -> Result<QRCodeDetect
                         &DMRegressionLine::new(hori[0], hori[1]),
                         &DMRegressionLine::new(verti[0], verti[1]),
                     )
-                    .ok_or(Error::ILLEGAL_STATE)?;
+                    .ok_or(Error::NOT_FOUND)?;
                     let found = LocateAlignmentPattern(image, moduleSize, guessed);
                     // search again near that intersection and if the search fails, use the intersection
                     // if (!found.is_some()) {printf("location guessed at %dx%d\n", x, y)};
@@ -973,7 +973,7 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     // allow corners be moved one pixel inside to accommodate for possible aliasing artifacts
     let diagonal: Pattern = EdgeTracer::new(image, point_i(left, top), point_i(1, 1))
         .readPatternFromBlack(1, None)
-        .ok_or(Error::ILLEGAL_STATE)?;
+        .ok_or(Error::NOT_FOUND)?;
     let view = PatternView::from_slice(&diagonal);
     if !(IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0, 0.0) != 0.0) {
         return Err(Error::NOT_FOUND);
@@ -1053,7 +1053,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     // allow corners be moved one pixel inside to accommodate for possible aliasing artifacts
     let diagonal: Pattern = EdgeTracer::new(image, tl, point_i(1, 1))
         .readPatternFromBlack(1, None)
-        .ok_or(Error::ILLEGAL_STATE)?;
+        .ok_or(Error::NOT_FOUND)?;
     let view = PatternView::from_slice(&diagonal);
     if IsPattern::<E2E, 5, 7, false>(&view, &PATTERN, None, 0.0, 0.0, 0.0) == 0.0 {
         return Err(Error::NOT_FOUND);
@@ -1062,7 +1062,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     // Finder sub pattern
     let subdiagonal: SubPattern = EdgeTracer::new(image, br, point_i(-1, -1))
         .readPatternFromBlack(1, None)
-        .ok_or(Error::ILLEGAL_STATE)?;
+        .ok_or(Error::NOT_FOUND)?;
     let view = PatternView::from_slice(&subdiagonal);
     if IsPattern::<false, 4, 4, false>(&view, &SUBPATTERN, None, 0.0, 0.0, 0.0) == 0.0 {
         return Err(Error::NOT_FOUND);
@@ -1082,7 +1082,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         let mut cur = EdgeTracer::new(image, p, d.into());
         // skip corner / finder / sub pattern edge
         cur.stepToEdge(Some(2 + i32::from(cur.isWhite())), None, None);
-        let timing: TimingPattern = cur.readPattern(None).ok_or(Error::ILLEGAL_STATE)?;
+        let timing: TimingPattern = cur.readPattern(None).ok_or(Error::NOT_FOUND)?;
         let view = PatternView::from_slice(&timing);
         if IsPattern::<E2E, 10, 10, false>(&view, &TIMINGPATTERN, None, 0.0, 0.0, 0.0) == 0.0 {
             return Err(Error::NOT_FOUND);

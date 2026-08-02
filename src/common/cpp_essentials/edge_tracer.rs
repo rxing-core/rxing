@@ -230,7 +230,7 @@ impl<'a> EdgeTracer<'_> {
                         if self.whiteAt(pEdge) {
                             // if we are not making any progress, we still have another endless loop bug
                             if self.p == pEdge.centered() {
-                                return Err(Error::ILLEGAL_STATE);
+                                return Err(Error::NOT_FOUND);
                             }
                             self.p = pEdge.centered();
 
@@ -240,7 +240,7 @@ impl<'a> EdgeTracer<'_> {
                                     if history
                                         .read()
                                         .map_err(|_| {
-                                            Error::illegal_state_with("Failed to acquire read lock")
+                                            Error::internal_with("Failed to acquire read lock")
                                         })?
                                         .get(self.p.x as u32, self.p.y as u32)
                                         == self.state as u8
@@ -250,9 +250,7 @@ impl<'a> EdgeTracer<'_> {
                                     history
                                         .write()
                                         .map_err(|_| {
-                                            Error::illegal_state_with(
-                                                "Failed to acquire write lock",
-                                            )
+                                            Error::internal_with("Failed to acquire write lock")
                                         })?
                                         .set(self.p.x as u32, self.p.y as u32, self.state as u8);
                                 }

@@ -137,7 +137,7 @@ impl SymbolInfo {
             2 | 4 => Ok(2),
             16 => Ok(4),
             36 => Ok(6),
-            _ => Err(Error::illegal_state_with(
+            _ => Err(Error::internal_with(
                 "Cannot handle this number of data regions",
             )),
         }
@@ -149,7 +149,7 @@ impl SymbolInfo {
             4 => Ok(2),
             16 => Ok(4),
             36 => Ok(6),
-            _ => Err(Error::illegal_state_with(
+            _ => Err(Error::internal_with(
                 "Cannot handle this number of data regions",
             )),
         }

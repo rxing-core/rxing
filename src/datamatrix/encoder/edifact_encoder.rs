@@ -78,7 +78,7 @@ impl EdifactEncoder {
                 context.updateSymbolInfo();
                 let mut available = context
                     .getSymbolInfo()
-                    .ok_or(Error::ILLEGAL_STATE)?
+                    .ok_or(Error::INTERNAL)?
                     .getDataCapacity()
                     - context.getCodewordCount() as u32;
                 let remaining = context.getRemainingCharacters();
@@ -87,7 +87,7 @@ impl EdifactEncoder {
                     context.updateSymbolInfoWithLength(context.getCodewordCount() + 1);
                     available = context
                         .getSymbolInfo()
-                        .ok_or(Error::ILLEGAL_STATE)?
+                        .ok_or(Error::INTERNAL)?
                         .getDataCapacity()
                         - context.getCodewordCount() as u32;
                 }
@@ -97,7 +97,7 @@ impl EdifactEncoder {
             }
 
             if count > 4 {
-                return Err(Error::illegal_state_with("Count must not exceed 4"));
+                return Err(Error::internal_with("Count must not exceed 4"));
             }
             let restChars = count - 1;
             let encoded = Self::encodeToCodewords(buffer)?;
@@ -108,7 +108,7 @@ impl EdifactEncoder {
                 context.updateSymbolInfoWithLength(context.getCodewordCount() + restChars);
                 let available = context
                     .getSymbolInfo()
-                    .ok_or(Error::ILLEGAL_STATE)?
+                    .ok_or(Error::INTERNAL)?
                     .getDataCapacity()
                     - context.getCodewordCount() as u32;
                 if available >= 3 {
@@ -149,7 +149,7 @@ impl EdifactEncoder {
     fn encodeToCodewords(sb: &str) -> Result<String> {
         let len = sb.chars().count();
         if len == 0 {
-            return Err(Error::illegal_state_with("StringBuilder must not be empty"));
+            return Err(Error::internal_with("StringBuilder must not be empty"));
         }
         let c1 = sb
             .chars()

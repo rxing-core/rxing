@@ -47,7 +47,7 @@ pub fn buildBitArrayFromString(data: &str) -> Result<BitArray> {
         if i % 9 == 0 {
             // spaces
             if ch != ' ' {
-                return Err(Error::illegal_state_with("space expected"));
+                return Err(Error::format_with("space expected"));
             }
             continue;
         }

@@ -296,7 +296,7 @@ pub fn detect(
         if let Some(history) = &mut history {
             history
                 .write()
-                .map_err(|_| Error::illegal_state_with("Failed to acquire write lock"))?
+                .map_err(|_| Error::internal_with("Failed to acquire write lock"))?
                 .clear(0);
             // history.clear(0);
         }

@@ -451,7 +451,7 @@ impl<'a> GeneralAppIdDecoder<'_> {
             61 => '.',
             62 => '/',
             _ => {
-                return Err(Error::illegal_state_with(format!(
+                return Err(Error::format_with(format!(
                     "Decoding invalid alphanumeric value: {sixBitValue}"
                 )));
             }

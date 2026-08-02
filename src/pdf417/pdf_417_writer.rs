@@ -134,7 +134,7 @@ impl PDF417Writer {
         let mut originalScale = encoder
             .getBarcodeMatrix()
             .as_ref()
-            .ok_or(Error::ILLEGAL_STATE)?
+            .ok_or(Error::INTERNAL)?
             .getScaledMatrix(1, aspectRatio);
         let mut rotated = false;
         if (height > width) != (originalScale[0].len() < originalScale.len()) {
@@ -150,15 +150,15 @@ impl PDF417Writer {
             let mut scaledMatrix = encoder
                 .getBarcodeMatrix()
                 .as_ref()
-                .ok_or(Error::ILLEGAL_STATE)?
+                .ok_or(Error::INTERNAL)?
                 .getScaledMatrix(scale, scale * aspectRatio);
             if rotated {
                 scaledMatrix = Self::rotateArray(&scaledMatrix);
             }
-            return Self::bitMatrixFromBitArray(&scaledMatrix, margin).ok_or(Error::ILLEGAL_STATE);
+            return Self::bitMatrixFromBitArray(&scaledMatrix, margin).ok_or(Error::INTERNAL);
         }
 
-        Self::bitMatrixFromBitArray(&originalScale, margin).ok_or(Error::ILLEGAL_STATE)
+        Self::bitMatrixFromBitArray(&originalScale, margin).ok_or(Error::INTERNAL)
     }
 
     /**

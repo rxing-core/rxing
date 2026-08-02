@@ -133,7 +133,7 @@ impl Version {
             return Self::getVersionForNumber(bestVersion as u32);
         }
         // If we didn't find a close enough match, fail
-        Err(Error::ILLEGAL_STATE)
+        Err(Error::NOT_FOUND)
     }
 
     pub const fn isMicro(&self) -> bool {

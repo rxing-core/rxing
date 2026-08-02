@@ -71,7 +71,7 @@ impl PerspectiveTransform {
     #[allow(clippy::too_many_arguments)]
     pub fn quadrilateralToQuadrilateral(dst: Quadrilateral, src: Quadrilateral) -> Result<Self> {
         if !src.is_convex() || !dst.is_convex() {
-            return Err(Error::ILLEGAL_STATE);
+            return Err(Error::NOT_FOUND);
         }
         // let q_to_s = PerspectiveTransform::quadrilateralToSquare(x0, y0, x1, y1, x2, y2, x3, y3);
         // let s_to_q =

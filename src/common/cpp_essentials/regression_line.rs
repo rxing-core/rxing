@@ -78,7 +78,7 @@ impl RegressionLineTrait for RegressionLine {
 
     fn add(&mut self, p: Point) -> Result<()> {
         if self.direction_inward == Point::default() {
-            return Err(Error::ILLEGAL_STATE);
+            return Err(Error::INTERNAL);
         }
         self.points.push(p);
         if self.points.len() == 1 {

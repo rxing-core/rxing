@@ -9,7 +9,7 @@ pub fn intersect<T: RegressionLineTrait, T2: RegressionLineTrait>(
     l2: &T2,
 ) -> Result<Point> {
     if !(l1.isValid() && l2.isValid()) {
-        return Err(Error::ILLEGAL_STATE);
+        return Err(Error::NOT_FOUND);
     }
     let d = l1.a() * l2.b() - l1.b() * l2.a();
     let x = (l1.c() * l2.b() - l1.b() * l2.c()) / d;

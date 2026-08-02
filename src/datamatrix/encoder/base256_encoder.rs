@@ -56,7 +56,7 @@ impl Encoder for Base256Encoder {
         context.updateSymbolInfoWithLength(currentSize);
         let mustPad = (context
             .getSymbolInfo()
-            .ok_or(Error::ILLEGAL_STATE)?
+            .ok_or(Error::INTERNAL)?
             .getDataCapacity()
             - currentSize as u32)
             > 0;

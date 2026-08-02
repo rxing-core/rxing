@@ -82,7 +82,7 @@ impl X12Encoder {
         context.updateSymbolInfo();
         let available = context
             .getSymbolInfo()
-            .ok_or(Error::ILLEGAL_STATE)?
+            .ok_or(Error::INTERNAL)?
             .getDataCapacity()
             - context.getCodewordCount() as u32;
         let count = buffer.chars().count();

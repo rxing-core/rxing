@@ -143,7 +143,7 @@ pub fn decode(
             // for (int imageRow = boundingBox.getMinY(); imageRow <= boundingBox.getMaxY(); imageRow++) {
             startColumn =
                 getStartColumn(&detectionRXingResult, barcodeColumn, imageRow, leftToRight)
-                    .ok_or(Error::ILLEGAL_STATE)? as i32;
+                    .ok_or(Error::NOT_FOUND)? as i32;
             if startColumn < 0 || startColumn > boundingBox.getMaxX() as i32 {
                 if previousStartColumn == -1 {
                     continue;

@@ -281,7 +281,7 @@ impl RSSExpandedReader {
             if let Ok(to_add) = to_add_res {
                 self.pairs.push(to_add);
             } else if self.pairs.is_empty() {
-                return Err(to_add_res.err().unwrap_or(Error::ILLEGAL_STATE));
+                return Err(to_add_res.err().unwrap_or(Error::NOT_FOUND));
             } else {
                 // exit this loop when retrieveNextPair() fails and throws
                 done = true;
@@ -536,7 +536,7 @@ impl RSSExpandedReader {
 
     // Not private for unit testing
     pub(crate) fn constructRXingResult(pairs: &[ExpandedPair]) -> Result<RXingResult> {
-        let binary = bit_array_builder::buildBitArray(pairs).ok_or(Error::ILLEGAL_STATE)?;
+        let binary = bit_array_builder::buildBitArray(pairs).ok_or(Error::FORMAT)?;
 
         let mut decoder = abstract_expanded_decoder::createDecoder(&binary)?;
         let resultingString = decoder.parseInformation()?;
@@ -546,14 +546,14 @@ impl RSSExpandedReader {
             .ok_or(Error::format_with("no pairs decoded"))?
             .getFinderPattern()
             .as_ref()
-            .ok_or(Error::ILLEGAL_STATE)?
+            .ok_or(Error::FORMAT)?
             .getPoints();
         let lastPoints = pairs
             .last()
             .ok_or(Error::format_with("no pairs decoded"))?
             .getFinderPattern()
             .as_ref()
-            .ok_or(Error::ILLEGAL_STATE)?
+            .ok_or(Error::FORMAT)?
             .getPoints();
 
         let mut result = RXingResult::new(
@@ -700,7 +700,7 @@ impl RSSExpandedReader {
             rowOffset = lastPair
                 .getFinderPattern()
                 .as_ref()
-                .ok_or(Error::ILLEGAL_STATE)?
+                .ok_or(Error::NOT_FOUND)?
                 .getStartEnd()[1] as i32;
         }
         let mut searchingEvenPair = previousPairs.len() % 2 != 0;
