@@ -48,7 +48,7 @@ impl OneDimensionalCodeWriter for Code39Writer {
             // for i in 0..length {
             // for (int i = 0; i < length; i++) {
             if code_39::ALPHABET_STRING
-                .find(contents.chars().nth(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?)
+                .find(contents.chars().nth(i).ok_or(Error::Internal("index out of bounds".into()))?)
                 .is_none()
             {
                 contents = Self::tryToConvertToExtendedMode(&contents)?;
@@ -77,7 +77,7 @@ impl OneDimensionalCodeWriter for Code39Writer {
         //append next character to byte matrix
         for i in 0..length {
             let Some(indexInString) = code_39::ALPHABET_STRING
-                .find(contents.chars().nth(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?)
+                .find(contents.chars().nth(i).ok_or(Error::Internal("index out of bounds".into()))?)
             else {
                 continue;
             };

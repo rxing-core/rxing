@@ -611,7 +611,7 @@ pub fn FindLeftGuardBy<const LEN: usize, Pred: Fn(&PatternView, Option<f32>) -> 
     if window.isAtFirstBar() && isGuard(&window, Some(f32::MAX)) {
         return Ok(window);
     }
-    let end = Into::<usize>::into(view.end().ok_or(Error::INDEX_OUT_OF_BOUNDS)?) - minSize;
+    let end = Into::<usize>::into(view.end().ok_or(Error::Internal("index out of bounds".into()))?) - minSize;
     while (window.start + window.current) < end {
         let prev = window.try_get_index(PREV_IDX).map(|v| v as f32);
         if isGuard(&window, prev) {

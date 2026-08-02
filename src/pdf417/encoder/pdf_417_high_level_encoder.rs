@@ -482,12 +482,12 @@ fn encodeText<T: ECIInput + ?Sized>(
         let odd = (i % 2) != 0;
         if odd {
             h = char::from_u32(
-                (h as u32 * 30) + *tmp.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as u32,
+                (h as u32 * 30) + *tmp.get(i).ok_or(Error::Internal("index out of bounds".into()))? as u32,
             )
             .ok_or(Error::Internal("invalid char conversion".into()))?;
             sb.push(h);
         } else {
-            h = *tmp.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+            h = *tmp.get(i).ok_or(Error::Internal("index out of bounds".into()))?;
         }
     }
     if (len % 2) != 0 {
@@ -830,7 +830,10 @@ impl ECIInput for NoECIInput {
     }
 
     fn charAt(&self, index: usize) -> Result<char> {
-        self.0.get(index).copied().ok_or(Error::INDEX_OUT_OF_BOUNDS)
+        self.0
+            .get(index)
+            .copied()
+            .ok_or(Error::Internal("index out of bounds".into()))
     }
 
     fn subSequence(&self, start: usize, end: usize) -> Result<Vec<char>> {

@@ -110,17 +110,23 @@ impl OneDReader for CodaBarReader {
         // Translate character table offsets to actual characters.
         for i in 0..cached_drrr.len() {
             // for (int i = 0; i < decodeRowRXingResult.length(); i++) {
-            let ch = *cached_drrr.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as usize;
+            let ch = *cached_drrr.get(i).ok_or(Error::Internal("index out of bounds".into()))? as usize;
             // self.decodeRowRXingResult
             //     .replace_range(i..=i, &Self::ALPHABET[ch].to_string());
             cached_drrr[i] = ALPHABET[ch];
         }
         // Ensure a valid start and end character
-        let startchar = cached_drrr.first().ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+        let startchar = cached_drrr.first().ok_or(Error::Format {
+            message: "barcode missing start/end character".into(),
+            source: None,
+        })?;
         if !STARTEND_ENCODING.contains(startchar) {
             return Err(Error::NOT_FOUND);
         }
-        let endchar = cached_drrr.last().ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+        let endchar = cached_drrr.last().ok_or(Error::Format {
+            message: "barcode missing start/end character".into(),
+            source: None,
+        })?;
         if !STARTEND_ENCODING.contains(endchar) {
             return Err(Error::NOT_FOUND);
         }
@@ -197,7 +203,7 @@ impl CodaBarReader {
         for i in 0..=end {
             // for (int i = 0; i <= end; i++) {
             let mut pattern =
-                CHARACTER_ENCODINGS[*cached.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as usize];
+                CHARACTER_ENCODINGS[*cached.get(i).ok_or(Error::Internal("index out of bounds".into()))? as usize];
             for j in (0_usize..=6).rev() {
                 // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
                 // long stripes, while 0 and 1 are for short stripes.
@@ -232,7 +238,7 @@ impl CodaBarReader {
         for i in 0..=end {
             // for (int i = 0; i <= end; i++) {
             let mut pattern =
-                CHARACTER_ENCODINGS[*cached.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as usize];
+                CHARACTER_ENCODINGS[*cached.get(i).ok_or(Error::Internal("index out of bounds".into()))? as usize];
             for j in (0..=6).rev() {
                 // Even j = bars, while odd j = spaces. Categories 2 and 3 are for
                 // long stripes, while 0 and 1 are for short stripes.

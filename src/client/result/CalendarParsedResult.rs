@@ -177,7 +177,10 @@ impl CalendarParsedRXingResult {
             };
         }
         // The when string can be local time, or UTC if it ends with a Z
-        if when.len() == 16 && when.chars().nth(15).ok_or(Error::INDEX_OUT_OF_BOUNDS)? == 'Z' {
+        if when.len() == 16 && when.chars().nth(15).ok_or(Error::Format {
+            message: "could not parse date string".into(),
+            source: None,
+        })? == 'Z' {
             return match NaiveDateTime::parse_from_str(&when, YMD_THMSZ_FORMAT) {
                 Ok(dtm) => Ok(dtm.and_utc().timestamp()),
                 Err(e) => Err(Error::Format {

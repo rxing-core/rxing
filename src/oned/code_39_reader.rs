@@ -102,17 +102,17 @@ impl OneDReader for Code39Reader {
             let mut total = 0;
             for i in 0..max {
                 if let Some(pos) = ALPHABET_STRING
-                    .find(*cached_row_result.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?)
+                    .find(*cached_row_result.get(i).ok_or(Error::Internal("index out of bounds".into()))?)
                 {
                     total += pos;
                 }
             }
             if cached_row_result
                 .get(max)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::Internal("index out of bounds".into()))?
                 != C39R_CACHED_ALPHABET_STRING
                     .get(total % 43)
-                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+                    .ok_or(Error::Internal("index out of bounds".into()))?
             {
                 return Err(Error::NOT_FOUND);
             }
@@ -299,7 +299,7 @@ impl Code39Reader {
                 return C39R_CACHED_ALPHABET_STRING
                     .get(i)
                     .copied()
-                    .ok_or(Error::INDEX_OUT_OF_BOUNDS);
+                    .ok_or(Error::Internal("index out of bounds".into()));
             }
         }
         if pattern == ASTERISK_ENCODING {
@@ -316,18 +316,24 @@ impl Code39Reader {
         while i < length {
             // for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            let c = *cached_encoded.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+            let c = *cached_encoded.get(i).ok_or(Error::Internal("index out of bounds".into()))?;
             if c == '+' || c == '$' || c == '%' || c == '/' {
                 let next = *cached_encoded
                     .get(i + 1)
-                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+                    .ok_or(Error::Format {
+                        message: "unexpected end of extended character sequence".into(),
+                        source: None,
+                    })?;
                 let mut decodedChar = '\0';
                 match c {
                     '+' => {
                         // +A to +Z map to a to z
                         if next.is_ascii_uppercase() {
                             decodedChar = char::from_u32(next as u32 + 32)
-                                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+                                .ok_or(Error::Format {
+                                    message: "unexpected character found".into(),
+                                    source: None,
+                                })?;
                         } else {
                             return Err(Error::NOT_FOUND);
                         }
@@ -336,7 +342,10 @@ impl Code39Reader {
                         // $A to $Z map to control codes SH to SB
                         if next.is_ascii_uppercase() {
                             decodedChar = char::from_u32(next as u32 - 64)
-                                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+                                .ok_or(Error::Format {
+                                    message: "unexpected character found".into(),
+                                    source: None,
+                                })?;
                         } else {
                             return Err(Error::NOT_FOUND);
                         }
@@ -345,16 +354,28 @@ impl Code39Reader {
                         // %A to %E map to control codes ESC to US
                         if ('A'..='E').contains(&next) {
                             decodedChar = char::from_u32(next as u32 - 38)
-                                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+                                .ok_or(Error::Format {
+                                    message: "unexpected character found".into(),
+                                    source: None,
+                                })?;
                         } else if ('F'..='J').contains(&next) {
                             decodedChar = char::from_u32(next as u32 - 11)
-                                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+                                .ok_or(Error::Format {
+                                    message: "unexpected character found".into(),
+                                    source: None,
+                                })?;
                         } else if ('K'..='O').contains(&next) {
                             decodedChar = char::from_u32(next as u32 + 16)
-                                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+                                .ok_or(Error::Format {
+                                    message: "unexpected character found".into(),
+                                    source: None,
+                                })?;
                         } else if ('P'..='T').contains(&next) {
                             decodedChar = char::from_u32(next as u32 + 43)
-                                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+                                .ok_or(Error::Format {
+                                    message: "unexpected character found".into(),
+                                    source: None,
+                                })?;
                         } else if next == 'U' {
                             decodedChar = 0 as char;
                         } else if next == 'V' {
@@ -371,7 +392,10 @@ impl Code39Reader {
                         // /A to /O map to ! to , and /Z maps to :
                         if ('A'..='O').contains(&next) {
                             decodedChar = char::from_u32(next as u32 - 32)
-                                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+                                .ok_or(Error::Format {
+                                    message: "unexpected character found".into(),
+                                    source: None,
+                                })?;
                         } else if next == 'Z' {
                             decodedChar = ':';
                         } else {

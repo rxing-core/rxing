@@ -159,10 +159,9 @@ impl<'a> AlignmentPatternFinder<'a> {
         // Hmm, nothing we saw was observed and confirmed twice. If we had
         // any guess at all, return it.
         if !self.possibleCenters.is_empty() {
-            Ok(*(self
-                .possibleCenters
-                .first()
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS))?)
+            Ok(*(self.possibleCenters.first().ok_or(Error::Internal(
+                "alignment pattern centers vector unexpectedly empty".into(),
+            )))?)
         } else {
             Err(Error::NOT_FOUND)
         }

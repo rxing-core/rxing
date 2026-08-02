@@ -82,9 +82,17 @@ impl OneDimensionalCodeWriter for EAN8Writer {
             let digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::InvalidInput {
+                    field: "contents",
+                    value: format!("missing character at position {i}"),
+                    cause: None,
+                })?
                 .to_digit(10)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)? as usize;
+                .ok_or(Error::InvalidInput {
+                    field: "contents",
+                    value: format!("character at position {i} is not a digit"),
+                    cause: None,
+                })? as usize;
             pos += Self::appendPattern(&mut result, pos, &upc_ean_shared::L_PATTERNS[digit], false)
                 as usize;
         }
@@ -97,9 +105,17 @@ impl OneDimensionalCodeWriter for EAN8Writer {
             let digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::InvalidInput {
+                    field: "contents",
+                    value: format!("missing character at position {i}"),
+                    cause: None,
+                })?
                 .to_digit(10)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)? as usize;
+                .ok_or(Error::InvalidInput {
+                    field: "contents",
+                    value: format!("character at position {i} is not a digit"),
+                    cause: None,
+                })? as usize;
             pos += Self::appendPattern(&mut result, pos, &upc_ean_shared::L_PATTERNS[digit], true)
                 as usize;
         }

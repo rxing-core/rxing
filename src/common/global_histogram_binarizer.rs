@@ -71,7 +71,11 @@ impl<LS: LuminanceSource> Binarizer for GlobalHistogramBinarizer<LS> {
             // self.initArrays(width);
             let localLuminances = source
                 .get_row(y)
-                .ok_or(Error::index_out_of_bounds_with("row out of bounds"))?;
+                .ok_or(Error::InvalidInput {
+                    field: "y",
+                    value: format!("{y} is out of image bounds"),
+                    cause: None,
+                })?;
             let mut localBuckets = [0; LUMINANCE_BUCKETS]; //self.buckets.clone();
             for x in 0..width {
                 // for (int x = 0; x < width; x++) {
@@ -219,7 +223,11 @@ impl<LS: LuminanceSource> GlobalHistogramBinarizer<LS> {
             let row = height * y / 5;
             let localLuminances = source
                 .get_row(row)
-                .ok_or(Error::index_out_of_bounds_with("row out of bounds"))?;
+                .ok_or(Error::InvalidInput {
+                    field: "row",
+                    value: format!("{row} is out of image bounds"),
+                    cause: None,
+                })?;
             let right = (width * 4) / 5;
             for pixel in &localLuminances[(width / 5)..right] {
                 // for x in (width / 5)..right {

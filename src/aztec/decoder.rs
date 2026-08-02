@@ -210,10 +210,14 @@ fn get_encoded_data(corrected_bits: &[bool]) -> Result<String> {
                 let mut chars = str.chars();
 
                 // Advance to index 5 and pull that char out:
-                let c5 = chars.nth(5).ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+                let c5 = chars
+                    .nth(5)
+                    .ok_or(Error::Internal("short table string shorter than expected".into()))?;
 
                 // The iterator is now positioned at index 6, so the very next call is your index 6:
-                let c6 = chars.next().ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+                let c6 = chars
+                    .next()
+                    .ok_or(Error::Internal("short table string missing mode character".into()))?;
 
                 shift_table = getTable(c5);
                 if c6 == 'L' {

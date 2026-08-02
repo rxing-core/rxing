@@ -66,7 +66,11 @@ pub trait OneDReader: Reader {
             let rw = image
                 .get_source()
                 .get_row(mid_line)
-                .ok_or(Error::index_out_of_bounds_with("row out of bounds"))?;
+                .ok_or(Error::InvalidInput {
+                    field: "mid_line",
+                    value: format!("{mid_line} is out of image bounds"),
+                    cause: None,
+                })?;
 
             let decoded = self.decode_pure(mid_line as u32, &rw, &hints);
             if decoded.is_ok() {

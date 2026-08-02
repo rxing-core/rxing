@@ -33,12 +33,12 @@ impl Encoder for ASCIIEncoder {
                     .getMessage()
                     .chars()
                     .nth(context.pos as usize)
-                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
+                    .ok_or(Error::Internal("index out of bounds".into()))?,
                 context
                     .getMessage()
                     .chars()
                     .nth(context.pos as usize + 1)
-                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
+                    .ok_or(Error::Internal("index out of bounds".into()))?,
             )? as u8);
             context.pos += 2;
         } else {

@@ -88,11 +88,16 @@ impl OneDimensionalCodeWriter for UPCEWriter {
         let firstDigit = contents
             .chars()
             .next()
-            .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+            .ok_or(Error::InvalidInput {
+                field: "contents",
+                value: "missing first digit".into(),
+                cause: None,
+            })?
             .to_digit(10)
-            .ok_or(Error::Format {
-                message: "failed to parse digit".into(),
-                source: None,
+            .ok_or(Error::InvalidInput {
+                field: "contents",
+                value: "first character is not a digit".into(),
+                cause: None,
             })? as usize; //Character.digit(contents.charAt(0), 10);
         if firstDigit != 0 && firstDigit != 1 {
             return Err(Error::InvalidInput {
@@ -105,11 +110,16 @@ impl OneDimensionalCodeWriter for UPCEWriter {
         let checkDigit = contents
             .chars()
             .nth(7)
-            .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+            .ok_or(Error::InvalidInput {
+                field: "contents",
+                value: "missing check digit at index 7".into(),
+                cause: None,
+            })?
             .to_digit(10)
-            .ok_or(Error::Format {
-                message: "failed to parse digit".into(),
-                source: None,
+            .ok_or(Error::InvalidInput {
+                field: "contents",
+                value: "character at index 7 is not a digit".into(),
+                cause: None,
             })? as usize; //Character.digit(contents.charAt(7), 10);
         let parities = upc_e::NUMSYS_AND_CHECK_DIGIT_PATTERNS[firstDigit][checkDigit];
         let mut result = [false; CODE_WIDTH];
@@ -122,11 +132,16 @@ impl OneDimensionalCodeWriter for UPCEWriter {
             let mut digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::InvalidInput {
+                    field: "contents",
+                    value: format!("missing character at index {i}"),
+                    cause: None,
+                })?
                 .to_digit(10)
-                .ok_or(Error::Format {
-                    message: "failed to parse digit".into(),
-                    source: None,
+                .ok_or(Error::InvalidInput {
+                    field: "contents",
+                    value: format!("character at index {i} is not a digit"),
+                    cause: None,
                 })? as usize; //Character.digit(contents.charAt(i), 10);
             if ((parities >> (6 - i)) & 1) == 1 {
                 digit += 10;

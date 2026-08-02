@@ -168,7 +168,7 @@ pub fn generateErrorCorrection(dataCodewords: &str, errorCorrectionLevel: u32) -
         let t1 = (cached_data_codewords
             .get(i)
             .copied()
-            .ok_or(Error::INDEX_OUT_OF_BOUNDS)? as u32
+            .ok_or(Error::Internal("index out of bounds".into()))? as u32
             + e[e.len() - 1] as u32)
             % 929;
         let mut t2;

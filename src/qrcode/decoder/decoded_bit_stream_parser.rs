@@ -393,9 +393,9 @@ fn decodeAlphanumericSegment(
     if fc1InEffect {
         // We need to massage the result a bit if in an FNC1 mode:
         for i in start..r_hld.len() {
-            if r_hld.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? == &'%' {
+            if r_hld.get(i).ok_or(Error::Internal("index out of bounds".into()))? == &'%' {
                 if i < result.len() - 1
-                    && r_hld.get(i + 1).ok_or(Error::INDEX_OUT_OF_BOUNDS)? == &'%'
+                    && r_hld.get(i + 1).ok_or(Error::Internal("index out of bounds".into()))? == &'%'
                 {
                     // %% is rendered as %
                     r_hld.remove(i + 1);

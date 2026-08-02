@@ -122,9 +122,10 @@ pub fn ToAlphaNumericChar(value: u32) -> Result<char> {
     ];
 
     if value >= (ALPHANUMERIC_CHARS.len()) {
-        return Err(Error::index_out_of_bounds_with(
-            "oAlphaNumericChar: out of range",
-        ));
+        return Err(Error::Format {
+            message: "cannot match to an alphanumeric value".into(),
+            source: None,
+        });
     }
 
     Ok(ALPHANUMERIC_CHARS[value])
@@ -155,9 +156,9 @@ pub fn DecodeAlphanumericSegment(
         // We need to massage the result a bit if in an FNC1 mode:
         for i in 0..buffer.len() {
             // for (size_t i = 0; i < buffer.length(); i++) {
-            if buffer.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? == &'%' {
+            if buffer.get(i).ok_or(Error::Internal("index out of bounds".into()))? == &'%' {
                 if i < buffer.len() - 1
-                    && buffer.get(i + 1).ok_or(Error::INDEX_OUT_OF_BOUNDS)? == &'%'
+                    && buffer.get(i + 1).ok_or(Error::Internal("index out of bounds".into()))? == &'%'
                 {
                     // %% is rendered as %
                     buffer.remove(i + 1);

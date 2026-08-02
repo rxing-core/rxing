@@ -88,8 +88,8 @@ impl QRCodeReader {
             return Err(Error::NOT_FOUND);
         }
 
-        let leftTopBlack = leftTopBlack.ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
-        let rightBottomBlack = rightBottomBlack.ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+        let leftTopBlack = leftTopBlack.ok_or(Error::Internal("top-left corner unexpectedly empty".into()))?;
+        let rightBottomBlack = rightBottomBlack.ok_or(Error::Internal("bottom-right corner unexpectedly empty".into()))?;
 
         let moduleSize = Self::moduleSize(leftTopBlack, image)?;
 

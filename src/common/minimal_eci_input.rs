@@ -67,7 +67,7 @@ impl ECIInput for MinimalECIInput {
      */
     fn charAt(&self, index: usize) -> Result<char> {
         if index >= self.length() {
-            return Err(Error::index_out_of_bounds_with(index.to_string()));
+            return Err(Error::Internal(format!("index {index} out of bounds").into()));
         }
         if self.isECI(index as u32)? {
             return Err(Error::Internal(

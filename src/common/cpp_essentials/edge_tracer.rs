@@ -313,7 +313,7 @@ impl<'a> EdgeTracer<'_> {
                             .points()
                             .first()
                             .as_ref()
-                            .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
+                            .ok_or(Error::Internal("index out of bounds".into()))?,
                 ) {
                     return Ok(false);
                 }
@@ -366,7 +366,7 @@ impl<'a> EdgeTracer<'_> {
                         .points()
                         .last()
                         .as_ref()
-                        .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+                        .ok_or(Error::Internal("index out of bounds".into()))?
             {
                 return Ok(false);
             }
@@ -410,7 +410,7 @@ impl<'a> EdgeTracer<'_> {
                         line.points()
                             .last()
                             .copied()
-                            .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
+                            .ok_or(Error::Internal("index out of bounds".into()))?,
                     ),
                 ) < 1.0
                 {
@@ -428,7 +428,7 @@ impl<'a> EdgeTracer<'_> {
                                 .points()
                                 .last()
                                 .copied()
-                                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
+                                .ok_or(Error::Internal("index out of bounds".into()))?,
                     )
                 };
                 line.add(self.p)?;
@@ -445,7 +445,7 @@ impl<'a> EdgeTracer<'_> {
                                     .points()
                                     .first()
                                     .copied()
-                                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
+                                    .ok_or(Error::Internal("index out of bounds".into()))?,
                         ) {
                             return Ok(false);
                         }

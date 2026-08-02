@@ -357,7 +357,7 @@ impl RSSExpandedReader {
     ) -> Result<Vec<ExpandedPair>> {
         for i in currentRow..self.rows.len() {
             // for (int i = currentRow; i < rows.size(); i++) {
-            let row = self.rows.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+            let row = self.rows.get(i).ok_or(Error::Internal("index out of bounds".into()))?;
 
             self.pairs.extend_from_slice(row.getPairs());
 
@@ -540,14 +540,20 @@ impl RSSExpandedReader {
 
         let firstPoints = pairs
             .first()
-            .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+            .ok_or(Error::Format {
+                message: "no pairs decoded".into(),
+                source: None,
+            })?
             .getFinderPattern()
             .as_ref()
             .ok_or(Error::ILLEGAL_STATE)?
             .getPoints();
         let lastPoints = pairs
             .last()
-            .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+            .ok_or(Error::Format {
+                message: "no pairs decoded".into(),
+                source: None,
+            })?
             .getFinderPattern()
             .as_ref()
             .ok_or(Error::ILLEGAL_STATE)?
@@ -691,7 +697,7 @@ impl RSSExpandedReader {
         } else if previousPairs.is_empty() {
             rowOffset = 0;
         } else {
-            let lastPair = previousPairs.last().ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+            let lastPair = previousPairs.last().ok_or(Error::Internal("index out of bounds".into()))?;
             rowOffset = lastPair
                 .getFinderPattern()
                 .as_ref()

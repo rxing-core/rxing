@@ -44,12 +44,12 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             let firstChar = contents
                 .chars()
                 .next()
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::Internal("index out of bounds".into()))?
                 .to_ascii_uppercase();
             let lastChar = contents
                 .chars()
                 .nth(contents.chars().count() - 1)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::Internal("index out of bounds".into()))?
                 .to_ascii_uppercase();
             let startsNormal = START_END_CHARS.contains(&firstChar);
             let endsNormal = START_END_CHARS.contains(&lastChar);
@@ -114,7 +114,7 @@ impl OneDimensionalCodeWriter for CodaBarWriter {
             let mut c = contents
                 .chars()
                 .nth(index)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::Internal("index out of bounds".into()))?
                 .to_ascii_uppercase();
             if index == 0 || index == contents.chars().count() - 1 {
                 // The start/end chars are not in the CodaBarReader.ALPHABET.

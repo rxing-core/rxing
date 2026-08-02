@@ -54,7 +54,7 @@ impl OneDimensionalCodeWriter for Code93Writer {
         for i in 0..length {
             // for (int i = 0; i < length; i++) {
             let Some(indexInString) = code_93::ALPHABET_STRING
-                .find(contents.chars().nth(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?)
+                .find(contents.chars().nth(i).ok_or(Error::Internal("index out of bounds".into()))?)
             else {
                 panic!("alphabet")
             };
@@ -74,7 +74,7 @@ impl OneDimensionalCodeWriter for Code93Writer {
             code_93::ALPHABET_STRING
                 .chars()
                 .nth(check1)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
+                .ok_or(Error::Internal("index out of bounds".into()))?,
         );
 
         let check2 = Self::computeChecksumIndex(&contents, 15);

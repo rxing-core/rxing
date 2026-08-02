@@ -15,8 +15,6 @@ pub enum Error {
     Checksum(String),
     #[error("WriterException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     ReedSolomon(String),
-    #[error("IndexOutOfBoundsException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
-    IndexOutOfBounds(String),
     #[error("RuntimeException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     Runtime(String),
 
@@ -90,11 +88,6 @@ impl Error {
     pub const REED_SOLOMON: Self = Self::ReedSolomon(String::new());
     pub fn reed_solomon_with<I: Into<String>>(x: I) -> Self {
         Self::ReedSolomon(x.into())
-    }
-
-    pub const INDEX_OUT_OF_BOUNDS: Self = Self::IndexOutOfBounds(String::new());
-    pub fn index_out_of_bounds_with<I: Into<String>>(x: I) -> Self {
-        Self::IndexOutOfBounds(x.into())
     }
 
     pub const RUNTIME: Self = Self::Runtime(String::new());

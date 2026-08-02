@@ -218,15 +218,15 @@ impl Code93Reader {
         while i < length {
             // for i in 0..length {
             // for (int i = 0; i < length; i++) {
-            let c = *encoded.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+            let c = *encoded.get(i).ok_or(Error::Internal("index out of bounds".into()))?;
             if ('a'..='d').contains(&c) {
                 if i >= length - 1 {
                     return Err(Error::Format {
-                        message: "unexpected character found".into(),
+                        message: "unexpected end of extended character sequence".into(),
                         source: None,
                     });
                 }
-                let next = *encoded.get(i + 1).ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+                let next = *encoded.get(i + 1).ok_or(Error::Internal("index out of bounds".into()))?;
                 let mut decodedChar = '\0';
                 match c {
                     'd' => {
@@ -345,7 +345,7 @@ impl Code93Reader {
         for i in (0..checkPosition).rev() {
             total += weight
                 * ALPHABET_STRING
-                    .find(*result.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?)
+                    .find(*result.get(i).ok_or(Error::Internal("index out of bounds".into()))?)
                     .map_or_else(|| -1_i32, |v| v as i32);
             weight += 1;
             if weight > weightMax as i32 {
@@ -354,7 +354,7 @@ impl Code93Reader {
         }
         if *result
             .get(checkPosition)
-            .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+            .ok_or(Error::Internal("index out of bounds".into()))?
             != ALPHABET[(total as usize) % 47]
         {
             Err(Error::CHECKSUM)

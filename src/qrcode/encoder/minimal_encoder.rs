@@ -390,7 +390,7 @@ impl MinimalEncoder {
             &Mode::ALPHANUMERIC,
             self.stringToEncode
                 .get(from)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
+                .ok_or(Error::Internal("index out of bounds".into()))?,
         ) {
             self.addEdge(
                 edges,
@@ -405,7 +405,7 @@ impl MinimalEncoder {
                                 &Mode::ALPHANUMERIC,
                                 self.stringToEncode
                                     .get(from + 1)
-                                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
+                                    .ok_or(Error::Internal("index out of bounds".into()))?,
                             )
                         {
                             1
@@ -428,7 +428,7 @@ impl MinimalEncoder {
             &Mode::NUMERIC,
             self.stringToEncode
                 .get(from)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
+                .ok_or(Error::Internal("index out of bounds".into()))?,
         ) {
             self.addEdge(
                 edges,
@@ -443,7 +443,7 @@ impl MinimalEncoder {
                                 &Mode::NUMERIC,
                                 self.stringToEncode
                                     .get(from + 1)
-                                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
+                                    .ok_or(Error::Internal("index out of bounds".into()))?,
                             )
                         {
                             1
@@ -452,7 +452,7 @@ impl MinimalEncoder {
                                 &Mode::NUMERIC,
                                 self.stringToEncode
                                     .get(from + 2)
-                                    .ok_or(Error::INDEX_OUT_OF_BOUNDS)?,
+                                    .ok_or(Error::Internal("index out of bounds".into()))?,
                             )
                         {
                             2

@@ -221,7 +221,7 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>> {
             match contents
                 .chars()
                 .nth(position)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::Internal("index out of bounds".into()))?
             {
                 ESCAPE_FNC_1 => patternIndex = CODE_FNC_1 as isize,
                 ESCAPE_FNC_2 => patternIndex = CODE_FNC_2 as isize,
@@ -241,7 +241,7 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>> {
                             patternIndex = contents
                                 .chars()
                                 .nth(position)
-                                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+                                .ok_or(Error::Internal("index out of bounds".into()))?
                                 as isize
                                 - ' ' as isize;
                             if patternIndex < 0 {
@@ -253,7 +253,7 @@ fn encodeFast(contents: &str, forcedCodeSet: i32) -> Result<Vec<bool>> {
                             patternIndex = contents
                                 .chars()
                                 .nth(position)
-                                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+                                .ok_or(Error::Internal("index out of bounds".into()))?
                                 as isize
                                 - ' ' as isize
                         }
@@ -549,7 +549,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                 Latch::None => { /* skip */ }
             }
             if charset == Charset::C {
-                if contents.chars().nth(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? == ESCAPE_FNC_1 {
+                if contents.chars().nth(i).ok_or(Error::Internal("index out of bounds".into()))? == ESCAPE_FNC_1 {
                     addPattern(
                         &mut patterns,
                         CODE_FNC_1,
@@ -582,7 +582,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
             } else {
                 // charset A or B
                 let mut patternIndex =
-                    match contents.chars().nth(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? {
+                    match contents.chars().nth(i).ok_or(Error::Internal("index out of bounds".into()))? {
                         ESCAPE_FNC_1 => CODE_FNC_1 as isize,
                         ESCAPE_FNC_2 => CODE_FNC_2 as isize,
                         ESCAPE_FNC_3 => CODE_FNC_3 as isize,
@@ -596,7 +596,7 @@ stuvwxyz{|}~\u{007F}\u{00FF}";
                             }
                         }
                         _ => {
-                            contents.chars().nth(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as isize
+                            contents.chars().nth(i).ok_or(Error::Internal("index out of bounds".into()))? as isize
                                 - ' ' as isize
                         }
                     };

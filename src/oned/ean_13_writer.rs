@@ -71,11 +71,16 @@ impl OneDimensionalCodeWriter for EAN13Writer {
         let firstDigit = contents
             .chars()
             .next()
-            .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+            .ok_or(Error::InvalidInput {
+                field: "contents",
+                value: "missing first digit".into(),
+                cause: None,
+            })?
             .to_digit(10)
-            .ok_or(Error::Format {
-                message: "failed to parse digit".into(),
-                source: None,
+            .ok_or(Error::InvalidInput {
+                field: "contents",
+                value: "first character is not a digit".into(),
+                cause: None,
             })? as usize;
         let parities = ean_13::FIRST_DIGIT_ENCODINGS[firstDigit];
         let mut result = [false; CODE_WIDTH];
@@ -91,11 +96,16 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             let mut digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::InvalidInput {
+                    field: "contents",
+                    value: format!("missing character at index {i}"),
+                    cause: None,
+                })?
                 .to_digit(10)
-                .ok_or(Error::Format {
-                    message: "failed to parse digit".into(),
-                    source: None,
+                .ok_or(Error::InvalidInput {
+                    field: "contents",
+                    value: format!("character at index {i} is not a digit"),
+                    cause: None,
                 })? as usize;
             if ((parities >> (6 - i)) & 1) == 1 {
                 digit += 10;
@@ -115,11 +125,16 @@ impl OneDimensionalCodeWriter for EAN13Writer {
             let digit = contents
                 .chars()
                 .nth(i)
-                .ok_or(Error::INDEX_OUT_OF_BOUNDS)?
+                .ok_or(Error::InvalidInput {
+                    field: "contents",
+                    value: format!("missing character at index {i}"),
+                    cause: None,
+                })?
                 .to_digit(10)
-                .ok_or(Error::Format {
-                    message: "failed to parse digit".into(),
-                    source: None,
+                .ok_or(Error::InvalidInput {
+                    field: "contents",
+                    value: format!("character at index {i} is not a digit"),
+                    cause: None,
                 })? as usize;
 
             pos += EAN13Writer::appendPattern(

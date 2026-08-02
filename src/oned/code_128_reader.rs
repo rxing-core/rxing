@@ -345,7 +345,7 @@ impl OneDReader for Code128Reader {
         let rawCodesSize = rawCodes.len();
         let mut rawBytes = vec![0u8; rawCodesSize];
         for (i, rawByte) in rawBytes.iter_mut().enumerate().take(rawCodesSize) {
-            *rawByte = *rawCodes.get(i).ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+            *rawByte = *rawCodes.get(i).ok_or(Error::Internal("index out of bounds".into()))?;
         }
         let mut resultObject = RXingResult::new(
             &result,

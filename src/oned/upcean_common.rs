@@ -13,7 +13,7 @@ pub fn checkStandardUPCEANChecksum(s: &str) -> Result<bool> {
     if length == 0 {
         return Ok(false);
     }
-    let char_in_question = *s.get(length - 1).ok_or(Error::INDEX_OUT_OF_BOUNDS)?;
+    let char_in_question = *s.get(length - 1).ok_or(Error::Internal("index out of bounds".into()))?;
     let check = char_in_question.is_ascii_digit();
 
     let check_against = &s[..length - 1]; //s.subSequence(0, length - 1);
@@ -33,7 +33,7 @@ pub fn getStandardUPCEANChecksum(s: &[char]) -> Result<u32> {
     let mut i = length as isize - 1;
     while i >= 0 {
         // for (int i = length - 1; i >= 0; i -= 2) {
-        let digit = (*s.get(i as usize).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as i32) - ('0' as i32);
+        let digit = (*s.get(i as usize).ok_or(Error::Internal("index out of bounds".into()))? as i32) - ('0' as i32);
         if !(0..=9).contains(&digit) {
             return Err(Error::Format {
                 message: "digit is not between 0 and 9".into(),
@@ -48,7 +48,7 @@ pub fn getStandardUPCEANChecksum(s: &[char]) -> Result<u32> {
     let mut i = length as isize - 2;
     while i >= 0 {
         // for (int i = length - 2; i >= 0; i -= 2) {
-        let digit = (*s.get(i as usize).ok_or(Error::INDEX_OUT_OF_BOUNDS)? as i32) - ('0' as i32);
+        let digit = (*s.get(i as usize).ok_or(Error::Internal("index out of bounds".into()))? as i32) - ('0' as i32);
         if !(0..=9).contains(&digit) {
             return Err(Error::Format {
                 message: "digit is not between 0 and 9".into(),
