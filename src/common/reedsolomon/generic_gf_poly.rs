@@ -254,9 +254,10 @@ impl GenericGFPoly {
         let denominator_leading_term = other.getCoefficient(other.getDegree());
         let inverse_denominator_leading_term = match self.field.inverse(denominator_leading_term) {
             Ok(val) => val,
-            Err(_issue) => {
-                return Err(Error::Checksum(
-                    "inverse_denominator_leading_term could not be inversed".into(),
+            Err(issue) => {
+                return Err(Error::checksum_with_source(
+                    "inverse_denominator_leading_term could not be inversed",
+                    issue,
                 ));
             }
         };

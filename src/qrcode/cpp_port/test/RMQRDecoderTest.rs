@@ -49,7 +49,7 @@ XXXXXXX X X X X X X XXX X X X X X X X XXXXX
 
     let result = Decode(&bitMatrix);
 
-    assert!(matches!(result.err(), Some(Error::ReedSolomon(_))));
+    assert!(matches!(result.err(), Some(Error::Checksum { .. })));
     // assert_eq!(Error::Checksum, result.error());
     // assert!(result.text().empty());
     // assert!(result.content().text(TextMode::Plain).empty());

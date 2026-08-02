@@ -286,8 +286,8 @@ pub fn decodeMacroBlock(
                         let mut checksum = ECIStringBuilder::default();
                         codeIndex = numericCompaction(codewords, codeIndex + 1, &mut checksum)?;
                         let Ok(parsed_checksum) = checksum.to_string().parse() else {
-                            return Err(Error::Checksum(
-                                "invalid MACRO_PDF417_OPTIONAL_FIELD_CHECKSUM found".into(),
+                            return Err(Error::checksum_with(
+                                "invalid MACRO_PDF417_OPTIONAL_FIELD_CHECKSUM found",
                             ));
                         };
                         resultMetadata.setChecksum(parsed_checksum);

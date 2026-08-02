@@ -21,7 +21,7 @@ pub fn checkStandardUPCEANChecksum(s: &str) -> Result<bool> {
 
     Ok(calculated_checksum
         == if check {
-            char_in_question.to_digit(10).ok_or(Error::Checksum("checksum could not be verified".into()))?
+            char_in_question.to_digit(10).ok_or(Error::checksum_with("checksum could not be verified"))?
         } else {
             u32::MAX
         })

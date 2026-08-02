@@ -77,7 +77,7 @@ impl UPCEANReader for UPCEReader {
 
     fn checkChecksum(&self, s: &str) -> Result<bool> {
         checkStandardUPCEANChecksum(
-            &convertUPCEtoUPCA(s).ok_or(Error::Checksum("upc_e checksum error".into()))?,
+            &convertUPCEtoUPCA(s).ok_or(Error::checksum_with("upc_e checksum error"))?,
         )
     }
 

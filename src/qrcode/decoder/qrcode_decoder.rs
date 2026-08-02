@@ -183,6 +183,5 @@ fn correctErrors(codewordBytes: &mut [u8], numDataCodewords: usize) -> Result<()
             codewordBytes,
             (codewordBytes.len() - numDataCodewords) as i32,
         )
-        .map_err(|e| Error::Checksum(e.to_string()))
         .map(|_| ())
 }

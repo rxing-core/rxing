@@ -91,7 +91,7 @@ X  XXXXXXX
     let bitMatrix = BitMatrix::parse_strings(CODE_STR, "X", " ").unwrap();
     let result = Decode(&bitMatrix);
     dbg!(&result);
-    assert!(matches!(result.err(), Some(Error::ReedSolomon(_))));
+    assert!(matches!(result.err(), Some(Error::Checksum { .. })));
     // assert_eq!(Error::Checksum, result.error());
     // assert!(result.text().is_empty());
 }

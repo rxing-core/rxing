@@ -106,7 +106,7 @@ impl UPCEANExtension5Support {
 
         let checkDigit = Self::determineCheckDigit(lgPatternFound)?;
         if Self::extensionChecksum(resultString)
-            .ok_or(Error::Checksum("extension checksum error".into()))?
+            .ok_or(Error::checksum_with("extension checksum error"))?
             != checkDigit as u32
         {
             return Err(Error::NOT_FOUND);

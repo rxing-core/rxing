@@ -11,12 +11,21 @@ pub enum Error {
     IllegalState(String),
     #[error("ArithmeticException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     Arithmetic(String),
-    #[error("ChecksumException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
-    Checksum(String),
-    #[error("WriterException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
-    ReedSolomon(String),
     #[error("RuntimeException{}", if .0.is_empty() { String::new()  } else { format!(" - {}", .0) })]
     Runtime(String),
+
+    /// A barcode checksum verification or error-correction (e.g. Reed-Solomon) failed.
+    #[error("checksum error: {message}")]
+    Checksum {
+        message: Cow<'static, str>,
+
+        #[cfg_attr(
+            feature = "serde",
+            serde(serialize_with = "serde_helpers::opt_as_string")
+        )]
+        #[source]
+        source: Option<Box<dyn std::error::Error + Send + Sync>>,
+    },
 
     /// The caller supplied invalid input — bad hint, unsupported
     /// format, out-of-range dimension.
@@ -80,14 +89,27 @@ impl Error {
 
     pub const NOT_FOUND: Self = Self::NotFound;
 
-    pub const CHECKSUM: Self = Self::Checksum(String::new());
-    pub fn checksum_with<I: Into<String>>(x: I) -> Self {
-        Self::Checksum(x.into())
+    pub const CHECKSUM: Self = Self::Checksum {
+        message: Cow::Borrowed("checksum verification failed"),
+        source: None,
+    };
+    pub fn checksum_with<I: Into<Cow<'static, str>>>(x: I) -> Self {
+        Self::Checksum {
+            message: x.into(),
+            source: None,
+        }
     }
-
-    pub const REED_SOLOMON: Self = Self::ReedSolomon(String::new());
-    pub fn reed_solomon_with<I: Into<String>>(x: I) -> Self {
-        Self::ReedSolomon(x.into())
+    pub fn checksum_with_source<
+        I: Into<Cow<'static, str>>,
+        E: std::error::Error + Send + Sync + 'static,
+    >(
+        msg: I,
+        source: E,
+    ) -> Self {
+        Self::Checksum {
+            message: msg.into(),
+            source: Some(Box::new(source)),
+        }
     }
 
     pub const RUNTIME: Self = Self::Runtime(String::new());
