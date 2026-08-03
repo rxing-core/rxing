@@ -4,7 +4,7 @@ use image::{DynamicImage, ImageBuffer, Luma};
 use once_cell::sync::OnceCell;
 
 use crate::common::Result;
-use crate::{Binarizer, Exceptions, LuminanceSource};
+use crate::{Binarizer, Error, LuminanceSource};
 
 use super::{BitArray, BitMatrix};
 
@@ -24,7 +24,7 @@ impl<LS: LuminanceSource> OtsuLevelBinarizer<LS> {
                 source.get_height() as u32,
                 source.get_matrix().into_owned(),
             ) else {
-                return Err(Exceptions::Internal(
+                return Err(Error::Internal(
                     "could not build build image from buffer".into(),
                 ));
             };
@@ -65,7 +65,7 @@ impl<LS: LuminanceSource> Binarizer for OtsuLevelBinarizer<LS> {
     fn get_black_row(&'_ self, y: usize) -> Result<Cow<'_, BitArray>> {
         let row = self.black_row_cache[y].get_or_try_init(|| {
             let matrix = self.get_black_matrix()?;
-            Ok::<BitArray, Exceptions>(matrix.getRow(y as u32))
+            Ok::<BitArray, Error>(matrix.getRow(y as u32))
         })?;
 
         Ok(Cow::Borrowed(row))

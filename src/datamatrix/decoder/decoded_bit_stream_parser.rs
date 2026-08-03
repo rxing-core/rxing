@@ -762,7 +762,7 @@ fn decodeBase256Segment(
     // We're seeing NegativeArraySizeException errors from users.
     // but we shouldn't in rust because it's unsigned
     // if count < 0 {
-    //     return Err(Exceptions::formatEmpty());
+    //     return Err(Error::FORMAT);
     // }
 
     let mut bytes = vec![0u8; count as usize];

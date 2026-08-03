@@ -46,7 +46,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
             .0
             .decode_with_hints(&mut image.crop(0, 0, halfWidth, halfHeight), hints);
         // No need to call makeAbsolute as results will be relative to original top left here
-        // This is a match because only NotFoundExceptions should be ignored
+        // This is a match because only NotFound errors should be ignored
         match attempt {
             Err(Error::NotFound) => {}
             _ => return attempt,
@@ -56,7 +56,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
         let result = self
             .0
             .decode_with_hints(&mut image.crop(halfWidth, 0, halfWidth, halfHeight), hints);
-        // This is a match because only NotFoundExceptions should be ignored
+        // This is a match because only NotFound errors should be ignored
         match result {
             Ok(res) => {
                 let points = Self::makeAbsolute(res.getPoints(), halfWidth as f32, 0.0);
@@ -69,7 +69,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
         let result = self
             .0
             .decode_with_hints(&mut image.crop(0, halfHeight, halfWidth, halfHeight), hints);
-        // This is a match because only NotFoundExceptions should be ignored
+        // This is a match because only NotFound errors should be ignored
         match result {
             Ok(res) => {
                 let points = Self::makeAbsolute(res.getPoints(), 0.0, halfHeight as f32);
@@ -83,7 +83,7 @@ impl<T: Reader> Reader for ByQuadrantReader<T> {
             &mut image.crop(halfWidth, halfHeight, halfWidth, halfHeight),
             hints,
         );
-        // This is a match because only NotFoundExceptions should be ignored
+        // This is a match because only NotFound errors should be ignored
         match result {
             Ok(res) => {
                 let points =

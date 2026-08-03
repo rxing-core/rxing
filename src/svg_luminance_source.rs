@@ -84,10 +84,6 @@ impl SVGLuminanceSource {
             return Err(Error::Format("could not create image buffer".into()));
         };
 
-        // let Ok(image) = image::load_from_memory_with_format(pixmap.data(), image::ImageFormat::Bmp)  else {
-        //     return Err(Exceptions::format("could not generate image"));
-        // };
-
         Ok(Self(BufferedImageLuminanceSource::new(DynamicImage::from(
             buffer,
         ))))

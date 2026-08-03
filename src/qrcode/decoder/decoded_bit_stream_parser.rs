@@ -318,11 +318,6 @@ fn decodeByteSegment(
         }
     } else {
         currentCharacterSetECI.ok_or(Error::FORMAT)?
-        // CharacterSetECI::getCharset(
-        //     currentCharacterSetECI
-        //         .as_ref()
-        //         .ok_or(Exceptions::ILLEGAL_STATE)?,
-        // )
     };
 
     result.append_eci(Eci::from(encoding));

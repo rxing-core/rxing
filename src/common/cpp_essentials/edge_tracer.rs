@@ -344,18 +344,6 @@ impl<'a> EdgeTracer<'_> {
                 return Ok(false);
             }
 
-            // // detect an endless loop (lack of progress). if encountered, please report.
-            // if !(line.points().is_empty()
-            //     || &&self.p
-            //         != line
-            //             .points()
-            //             .last()
-            //             .as_ref()
-            //             .ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?)
-            // {
-            //     return Err(Exceptions::ILLEGAL_STATE);
-            // }
-
             if !line.points().is_empty()
                 && &&self.p
                     == line.points().last().as_ref().ok_or(Error::internal_with(

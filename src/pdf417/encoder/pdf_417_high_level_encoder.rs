@@ -201,15 +201,8 @@ pub fn encodeHighLevel(
         if encoding.is_none() {
             encoding = Some(DEFAULT_ENCODING);
         } else if &DEFAULT_ENCODING != encoding.as_ref().ok_or(Error::INTERNAL)? {
-            // if let Some(eci) =
-            //     CharacterSetECI::getCharacterSetECI(encoding.ok_or(Exceptions::ILLEGAL_STATE)?)
-            // {
-            //     encodingECI(CharacterSetECI::getValue(&eci) as i32, &mut sb)?;
-            // }
-
             encodingECI(
                 Eci::from(encoding.ok_or(Error::INTERNAL)?),
-                //CharacterSet::get_eci_value(&encoding.ok_or(Exceptions::ILLEGAL_STATE)?) as i32,
                 &mut sb,
             )?;
         }
@@ -654,10 +647,8 @@ fn encodeNumeric<T: ECIInput + ?Sized>(
 ) -> Result<()> {
     let mut idx = 0;
     let mut tmp = String::with_capacity(count as usize / 3 + 1);
-    let NUM900: num::BigUint = num::BigUint::from(900_u16); //.ok_or(Exceptions::parseEmpty())?;
-    let NUM0: num::BigUint = num::BigUint::from(0_u8); //.ok_or(Exceptions::parseEmpty())?;
-    // let num900: u128 = 900;
-    // const NUM0: u128 = 0;
+    let NUM900: num::BigUint = num::BigUint::from(900_u16);
+    let NUM0: num::BigUint = num::BigUint::from(0_u8);
 
     while idx < count {
         tmp.clear();
@@ -672,9 +663,8 @@ fn encodeNumeric<T: ECIInput + ?Sized>(
                 .iter()
                 .collect::<String>()
         );
-        // let mut bigint: u128 = part.parse().map_err(|_| Exceptions::parseEmpty())?;
         let mut bigint = num::BigUint::from_str(&part)
-            .map_err(|e| Error::format_with_source(format!("issue parsing {part}: {e}"), e))?; // part.parse().map_err(|_| Exceptions::parseEmpty())?;
+            .map_err(|e| Error::format_with_source(format!("issue parsing {part}: {e}"), e))?;
         loop {
             tmp.push(
                 char::from_u32((&bigint % &NUM900).try_into().map_err(

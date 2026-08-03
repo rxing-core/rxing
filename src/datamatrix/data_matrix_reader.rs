@@ -171,7 +171,7 @@ impl DataMatrixReader {
             decoderRXingResult = DECODER.decode(&bits)?;
             points.clear();
         } else {
-            //Result<DatamatrixDetectorResult, Exceptions>
+            //Result<DatamatrixDetectorResult, Error>
             decoderRXingResult = if let Ok(fnd) = || -> Result<DecoderRXingResult> {
                 let detectorRXingResult =
                     zxing_cpp_detector::detect(image.get_black_matrix(), try_harder, true)?;
