@@ -106,11 +106,71 @@ static EXP900: Lazy<Vec<BigUint>> = Lazy::new(|| {
 
 const NUMBER_OF_SEQUENCE_CODEWORDS: usize = 2;
 
+/// Returns the number of data codewords declared by the Symbol Length Descriptor.
+///
+/// `codewords[0]` declares how many entries of the recovered array are data,
+/// counting the descriptor itself and excluding the error correction codewords
+/// that follow the data in the same array. Every bound in this parser is
+/// expressed against this value, so a control sequence can never read an error
+/// correction codeword as payload and no length arithmetic can underflow when a
+/// stream is truncated.
+fn dataCodewordCount(codewords: &[u32]) -> Result<usize> {
+    let Some(declaredCount) = codewords.first().map(|count| *count as usize) else {
+        return Err(Exceptions::FORMAT);
+    };
+    if declaredCount == 0 || declaredCount > codewords.len() {
+        // The descriptor counts itself, so zero is not a legal declaration, and a
+        // declaration reaching past the recovered array cannot be trusted.
+        return Err(Exceptions::FORMAT);
+    }
+
+    Ok(declaredCount)
+}
+
+/// Reads the operand that a control sequence consumes at `codeIndex`.
+///
+/// The operand has to lie inside the declared data codewords, so a truncated
+/// control sequence becomes a format error instead of an out of range index or a
+/// silent read of the error correction tail.
+fn operandAt(codewords: &[u32], dataCodewords: usize, codeIndex: usize) -> Result<u32> {
+    if codeIndex >= dataCodewords {
+        return Err(Exceptions::FORMAT);
+    }
+
+    codewords.get(codeIndex).copied().ok_or(Exceptions::FORMAT)
+}
+
+/// Skips the `operands` codewords a control sequence consumes without
+/// interpreting them, after proving they lie inside the declared data codewords.
+fn skipOperands(dataCodewords: usize, codeIndex: usize, operands: usize) -> Result<usize> {
+    let next = codeIndex + operands;
+    if next > dataCodewords {
+        return Err(Exceptions::FORMAT);
+    }
+
+    Ok(next)
+}
+
+/// Number of decoded values a text compaction run starting at `codeIndex` can
+/// produce, which is two per remaining data codeword.
+///
+/// A start index already past the declared data codewords means the control
+/// sequence that produced it was truncated, so it is a format error rather than
+/// an underflowing subtraction and an allocation sized from the result.
+fn textCompactionCapacity(dataCodewords: usize, codeIndex: usize) -> Result<usize> {
+    let Some(remaining) = dataCodewords.checked_sub(codeIndex) else {
+        return Err(Exceptions::FORMAT);
+    };
+
+    Ok(remaining * 2)
+}
+
 pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult> {
+    let dataCodewords = dataCodewordCount(codewords)?;
     let mut result = ECIStringBuilder::with_capacity(codewords.len() * 2);
     let mut codeIndex = textCompaction(codewords, 1, &mut result)?;
     let mut resultMetadata = PDF417RXingResultMetadata::default();
-    while codeIndex < codewords[0] as usize {
+    while codeIndex < dataCodewords {
         let code = codewords[codeIndex];
         codeIndex += 1;
         match code {
@@ -121,25 +181,26 @@ pub fn decode(codewords: &[u32], ecLevel: &str) -> Result<DecoderRXingResult> {
                 codeIndex = byteCompaction(code, codewords, codeIndex, &mut result)?
             }
             MODE_SHIFT_TO_BYTE_COMPACTION_MODE => {
-                result.append_char(char::from_u32(codewords[codeIndex]).ok_or(Exceptions::PARSE)?);
+                let shifted = operandAt(codewords, dataCodewords, codeIndex)?;
+                result.append_char(char::from_u32(shifted).ok_or(Exceptions::PARSE)?);
                 codeIndex += 1;
             }
             NUMERIC_COMPACTION_MODE_LATCH => {
                 codeIndex = numericCompaction(codewords, codeIndex, &mut result)?
             }
             ECI_CHARSET => {
-                result.append_eci(Eci::from(codewords[codeIndex]));
+                result.append_eci(Eci::from(operandAt(codewords, dataCodewords, codeIndex)?));
                 codeIndex += 1;
             }
             ECI_GENERAL_PURPOSE =>
             // Can't do anything with generic ECI; skip its 2 characters
             {
-                codeIndex += 2
+                codeIndex = skipOperands(dataCodewords, codeIndex, 2)?
             }
             ECI_USER_DEFINED =>
             // Can't do anything with user ECI; skip its 1 character
             {
-                codeIndex += 1
+                codeIndex = skipOperands(dataCodewords, codeIndex, 1)?
             }
             BEGIN_MACRO_PDF417_CONTROL_BLOCK => {
                 codeIndex = decodeMacroBlock(codewords, codeIndex, &mut resultMetadata)?
@@ -181,8 +242,9 @@ pub fn decodeMacroBlock(
     codeIndex: usize,
     resultMetadata: &mut PDF417RXingResultMetadata,
 ) -> Result<usize> {
+    let dataCodewords = dataCodewordCount(codewords)?;
     let mut codeIndex = codeIndex;
-    if codeIndex + NUMBER_OF_SEQUENCE_CODEWORDS > codewords[0] as usize {
+    if codeIndex + NUMBER_OF_SEQUENCE_CODEWORDS > dataCodewords {
         // we must have at least two bytes left for the segment index
         return Err(Exceptions::FORMAT);
     }
@@ -191,7 +253,7 @@ pub fn decodeMacroBlock(
         .iter_mut()
         .take(NUMBER_OF_SEQUENCE_CODEWORDS)
     {
-        *seq = codewords[codeIndex];
+        *seq = operandAt(codewords, dataCodewords, codeIndex)?;
         codeIndex += 1;
     }
     let segmentIndexString =
@@ -209,8 +271,7 @@ pub fn decodeMacroBlock(
     // (See ISO/IEC 15438:2015 Annex H.6) and preserves all info, but some generators (e.g. TEC-IT) write
     // the fileId using text compaction, so in those cases the fileId will appear mangled.
     let mut fileId = String::new();
-    while codeIndex < codewords[0] as usize
-        && codeIndex < codewords.len()
+    while codeIndex < dataCodewords
         && codewords[codeIndex] != MACRO_PDF417_TERMINATOR
         && codewords[codeIndex] != BEGIN_MACRO_PDF417_OPTIONAL_FIELD
     {
@@ -224,15 +285,18 @@ pub fn decodeMacroBlock(
     resultMetadata.setFileId(fileId);
 
     let mut optionalFieldsStart = -1_isize;
-    if codewords[codeIndex] == BEGIN_MACRO_PDF417_OPTIONAL_FIELD {
+    // A file ID that ends exactly at the declared data boundary is not followed
+    // by an optional field latch, whatever the error correction tail happens to
+    // hold there.
+    if codeIndex < dataCodewords && codewords[codeIndex] == BEGIN_MACRO_PDF417_OPTIONAL_FIELD {
         optionalFieldsStart = codeIndex as isize + 1;
     }
 
-    while codeIndex < codewords[0] as usize {
+    while codeIndex < dataCodewords {
         match codewords[codeIndex] {
             BEGIN_MACRO_PDF417_OPTIONAL_FIELD => {
                 codeIndex += 1;
-                match codewords[codeIndex] {
+                match operandAt(codewords, dataCodewords, codeIndex)? {
                     MACRO_PDF417_OPTIONAL_FIELD_FILE_NAME => {
                         let mut fileName = ECIStringBuilder::default();
                         codeIndex = textCompaction(codewords, codeIndex + 1, &mut fileName)?;
@@ -293,16 +357,22 @@ pub fn decodeMacroBlock(
 
     // copy optional fields to additional options
     if optionalFieldsStart != -1 {
-        let mut optionalFieldsLength = codeIndex - optionalFieldsStart as usize;
+        let optionalFieldsStart = optionalFieldsStart as usize;
+        let Some(mut optionalFieldsLength) = codeIndex.checked_sub(optionalFieldsStart) else {
+            return Err(Exceptions::FORMAT);
+        };
         if resultMetadata.isLastSegment() {
             // do not include terminator
-            optionalFieldsLength -= 1;
+            let Some(withoutTerminator) = optionalFieldsLength.checked_sub(1) else {
+                return Err(Exceptions::FORMAT);
+            };
+            optionalFieldsLength = withoutTerminator;
         }
 
+        // `codeIndex` never passed the declared data boundary, so this range
+        // holds data codewords only.
         resultMetadata.setOptionalData(
-            codewords[optionalFieldsStart as usize
-                ..(optionalFieldsStart + optionalFieldsLength as isize) as usize]
-                .to_vec(),
+            codewords[optionalFieldsStart..optionalFieldsStart + optionalFieldsLength].to_vec(),
         );
     }
 
@@ -324,17 +394,19 @@ fn textCompaction(
     codeIndex: usize,
     result: &mut ECIStringBuilder,
 ) -> Result<usize> {
+    let dataCodewords = dataCodewordCount(codewords)?;
     let mut codeIndex = codeIndex;
     // 2 character per codeword
-    let mut textCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
+    let capacity = textCompactionCapacity(dataCodewords, codeIndex)?;
+    let mut textCompactionData = vec![0; capacity];
     // Used to hold the byte compaction value if there is a mode shift
-    let mut byteCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
+    let mut byteCompactionData = vec![0; capacity];
 
     let mut index = 0;
     let mut end = false;
     let mut subMode = Mode::Alpha;
 
-    while (codeIndex < codewords[0] as usize) && !end {
+    while (codeIndex < dataCodewords) && !end {
         let mut code = codewords[codeIndex];
         codeIndex += 1;
 
@@ -366,12 +438,15 @@ fn textCompaction(
                 // of the Text Compaction Mode:: Codeword 913 is only available
                 // in Text Compaction mode; its use is described in 5.4.2.4.
                 textCompactionData[index] = MODE_SHIFT_TO_BYTE_COMPACTION_MODE;
-                code = codewords[codeIndex];
+                code = operandAt(codewords, dataCodewords, codeIndex)?;
                 codeIndex += 1;
                 byteCompactionData[index] = code;
                 index += 1;
             }
             ECI_CHARSET => {
+                // Read the charset operand before flushing, so a truncated
+                // sequence fails without having appended anything.
+                let charset = operandAt(codewords, dataCodewords, codeIndex)?;
                 subMode = decodeTextCompaction(
                     &textCompactionData,
                     &byteCompactionData,
@@ -380,10 +455,11 @@ fn textCompaction(
                     subMode,
                 )
                 .ok_or(Exceptions::ILLEGAL_STATE)?;
-                result.append_eci(Eci::from(codewords[codeIndex]));
+                result.append_eci(Eci::from(charset));
                 codeIndex += 1;
-                textCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
-                byteCompactionData = vec![0; (codewords[0] as usize - codeIndex) * 2];
+                let capacity = textCompactionCapacity(dataCodewords, codeIndex)?;
+                textCompactionData = vec![0; capacity];
+                byteCompactionData = vec![0; capacity];
                 index = 0;
             }
             _ => {}
@@ -602,19 +678,19 @@ fn byteCompaction(
     codeIndex: usize,
     result: &mut ECIStringBuilder,
 ) -> Result<usize> {
+    let dataCodewords = dataCodewordCount(codewords)?;
     let mut end = false;
     let mut codeIndex = codeIndex;
 
-    while codeIndex < codewords[0] as usize && !end {
+    while codeIndex < dataCodewords && !end {
         //handle leading ECIs
-        while codeIndex < codewords[0] as usize && codewords[codeIndex] == ECI_CHARSET {
-            codeIndex += 1;
-            result.append_eci(Eci::from(codewords[codeIndex]));
-            codeIndex += 1;
+        while codeIndex < dataCodewords && codewords[codeIndex] == ECI_CHARSET {
+            let charset = operandAt(codewords, dataCodewords, codeIndex + 1)?;
+            codeIndex += 2;
+            result.append_eci(Eci::from(charset));
         }
 
-        if codeIndex >= codewords[0] as usize || codewords[codeIndex] >= TEXT_COMPACTION_MODE_LATCH
-        {
+        if codeIndex >= dataCodewords || codewords[codeIndex] >= TEXT_COMPACTION_MODE_LATCH {
             end = true;
         } else {
             //decode one block of 5 codewords to 6 bytes
@@ -625,7 +701,7 @@ fn byteCompaction(
                 codeIndex += 1;
                 count += 1;
                 if !(count < 5
-                    && codeIndex < codewords[0] as usize
+                    && codeIndex < dataCodewords
                     && codewords[codeIndex] < TEXT_COMPACTION_MODE_LATCH)
                 {
                     break;
@@ -633,7 +709,7 @@ fn byteCompaction(
             }
             if count == 5
                 && (mode == BYTE_COMPACTION_MODE_LATCH_6
-                    || codeIndex < codewords[0] as usize
+                    || codeIndex < dataCodewords
                         && codewords[codeIndex] < TEXT_COMPACTION_MODE_LATCH)
             {
                 for i in 0..6 {
@@ -641,13 +717,17 @@ fn byteCompaction(
                 }
             } else {
                 codeIndex -= count;
-                while (codeIndex < codewords[0] as usize) && !end {
+                while (codeIndex < dataCodewords) && !end {
                     let code = codewords[codeIndex];
                     codeIndex += 1;
                     if code < TEXT_COMPACTION_MODE_LATCH {
                         result.append_byte(code as u8);
                     } else if code == ECI_CHARSET {
-                        result.append_eci(Eci::from(codewords[codeIndex]));
+                        result.append_eci(Eci::from(operandAt(
+                            codewords,
+                            dataCodewords,
+                            codeIndex,
+                        )?));
                         codeIndex += 1;
                     } else {
                         codeIndex -= 1;
@@ -673,16 +753,17 @@ fn numericCompaction(
     codeIndex: usize,
     result: &mut ECIStringBuilder,
 ) -> Result<usize> {
+    let dataCodewords = dataCodewordCount(codewords)?;
     let mut count = 0;
     let mut end = false;
     let mut codeIndex = codeIndex;
 
     let mut numericCodewords = [0; MAX_NUMERIC_CODEWORDS];
 
-    while codeIndex < codewords[0] as usize && !end {
+    while codeIndex < dataCodewords && !end {
         let code = codewords[codeIndex];
         codeIndex += 1;
-        if codeIndex == codewords[0] as usize {
+        if codeIndex == dataCodewords {
             end = true;
         }
         match code {
