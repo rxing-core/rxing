@@ -303,7 +303,7 @@ impl TelepenReader {
             i += 1;
         }
 
-        if count >= minToleratedWidth {
+        if count >= minToleratedWidth || self.counterLength == 0 {
             self.counterAppend(count);
         } else {
             // Noise from previous bar. Treat it as the
@@ -413,5 +413,31 @@ impl TelepenReader {
             }
         }
         Ok((self.counterLength - 1) as u32)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::DecodeHints;
+
+    /// Regression test: an entirely-black row makes the "move to first white
+    /// pixel" scan consume the whole row, so `setCounters` never records a
+    /// transition and `counterLength` stays 0. The final noise-merge then
+    /// evaluated `self.counters[self.counterLength - 1]`, underflowing to
+    /// `usize::MAX` and panicking with "index out of bounds". The row must be
+    /// at least 2000 wide so `minToleratedWidth` (0.1% of the width) is >= 2,
+    /// making the trailing `count` of 1 fall into the noise branch.
+    #[test]
+    fn all_black_row_returns_not_found_instead_of_panicking() {
+        let mut row = BitArray::with_size(2048);
+        for i in 0..row.get_size() {
+            row.set(i);
+        }
+
+        let mut reader = TelepenReader::new();
+        let result = reader.decode_row(0, &row, &DecodeHints::default());
+
+        assert!(matches!(result, Err(Exceptions::NotFoundException(_))));
     }
 }
