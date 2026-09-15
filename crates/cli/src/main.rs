@@ -5,7 +5,7 @@ use std::{
 };
 
 use clap::{ArgGroup, Parser, Subcommand};
-use rxing::{BarcodeFormat, MultiFormatWriter, Writer};
+use rxing::{BarcodeFormat, MultiFormatWriter, Writer, datamatrix::encoder::SymbolShapeHint};
 #[allow(unused_imports)]
 use serde_json::de;
 
@@ -15,6 +15,15 @@ struct Args {
     file_name: String,
     #[command(subcommand)]
     command: Commands,
+}
+
+fn shape_parser(s: &str) -> Result<SymbolShapeHint, String> {
+    match &s.to_ascii_lowercase()[..] {
+        "auto" => Ok(SymbolShapeHint::FORCE_NONE),
+        "square" => Ok(SymbolShapeHint::FORCE_SQUARE),
+        "rectangle" => Ok(SymbolShapeHint::FORCE_RECTANGLE),
+        _ => Err("expected one of `auto`, `square`, `rectangle`".to_owned()),
+    }
 }
 
 #[derive(Subcommand)]
@@ -156,6 +165,11 @@ enum Commands {
         #[arg(long, verbatim_doc_comment)]
         data_matrix_compact: Option<bool>,
 
+        /// Specifies the shape to use for Data Matrix.
+        /// Must be `auto`, `square`, or `rectangle`.
+        #[arg(long, value_parser = shape_parser, verbatim_doc_comment)]
+        data_matrix_shape: Option<SymbolShapeHint>,
+
         /// Specifies margin, in pixels, to use when generating the barcode.
         /// The meaning can vary
         /// by format; for example it controls margin before and after the barcode horizontally for
@@ -290,6 +304,7 @@ fn main() -> ExitCode {
             error_correction,
             character_set,
             data_matrix_compact,
+            data_matrix_shape,
             margin,
             pdf_417_compact,
             pdf_417_compaction,
@@ -312,6 +327,7 @@ fn main() -> ExitCode {
             error_correction,
             character_set,
             data_matrix_compact,
+            data_matrix_shape,
             margin,
             pdf_417_compact,
             pdf_417_compaction,
@@ -534,6 +550,7 @@ fn encode_command(
     error_correction: &Option<String>,
     character_set: &Option<String>,
     data_matrix_compact: &Option<bool>,
+    data_matrix_shape: &Option<SymbolShapeHint>,
     margin: &Option<String>,
     pdf_417_compact: &Option<bool>,
     pdf_417_compaction: &Option<String>,
@@ -594,6 +611,13 @@ fn encode_command(
         hints.insert(
             rxing::EncodeHintType::DATA_MATRIX_COMPACT,
             rxing::EncodeHintValue::DataMatrixCompact(*data_matrix_compact),
+        );
+    }
+
+    if let Some(shape) = data_matrix_shape {
+        hints.insert(
+            rxing::EncodeHintType::DATA_MATRIX_SHAPE,
+            rxing::EncodeHintValue::DataMatrixShape(*shape),
         );
     }
 
