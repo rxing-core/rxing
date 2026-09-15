@@ -17,6 +17,9 @@
 
 use java_rand;
 
+use std::sync::Arc;
+
+use crate::Exceptions;
 use crate::common::CharacterSet;
 use crate::pdf417::PDF417RXingResultMetadata;
 use crate::pdf417::decoder::decoded_bit_stream_parser;
@@ -175,28 +178,242 @@ fn testSampleWithMacroTerminatorOnly() {
 }
 
 #[test]
-#[should_panic]
 fn testSampleWithBadSequenceIndexMacro() {
     let sampleCodes = [3_u32, 928, 222, 0];
     let mut resultMetadata = PDF417RXingResultMetadata::default();
-    decoded_bit_stream_parser::decodeMacroBlock(&sampleCodes, 2, &mut resultMetadata)
-        .expect("decode");
+    assert_eq!(
+        Err(Exceptions::FORMAT),
+        decoded_bit_stream_parser::decodeMacroBlock(&sampleCodes, 2, &mut resultMetadata),
+        "a macro block truncated before its two segment index codewords is a format error"
+    );
 }
 
 #[test]
-#[should_panic]
 fn testSampleWithNoFileIdMacro() {
     let sampleCodes = [4_u32, 928, 222, 198, 0];
     let mut resultMetadata = PDF417RXingResultMetadata::default();
-    decoded_bit_stream_parser::decodeMacroBlock(&sampleCodes, 2, &mut resultMetadata)
-        .expect("decode");
+    assert_eq!(
+        Err(Exceptions::FORMAT),
+        decoded_bit_stream_parser::decodeMacroBlock(&sampleCodes, 2, &mut resultMetadata),
+        "at least one file ID codeword is required (Annex H.2)"
+    );
 }
 
 #[test]
-#[should_panic]
 fn testSampleWithNoDataNoMacro() {
     let sampleCodes = [3_u32, 899, 899, 0];
-    decoded_bit_stream_parser::decode(&sampleCodes, "0").expect("decode");
+    assert_eq!(
+        Err(Exceptions::FORMAT),
+        decodeOutcome(&sampleCodes),
+        "a symbol carrying neither data nor a macro block is a format error"
+    );
+}
+
+/// Everything a decoded symbol carries, in a comparable form. `DecoderRXingResult`
+/// has neither `Debug` nor `PartialEq`, and its error correction level and
+/// erasure counts are not set by the bitstream parser.
+type DecodedOutcome = (String, Option<Arc<PDF417RXingResultMetadata>>);
+
+fn decodeOutcome(codewords: &[u32]) -> Result<DecodedOutcome, Exceptions> {
+    decoded_bit_stream_parser::decode(codewords, "0").map(|result| {
+        let metadata = result
+            .getOther()
+            .and_then(|other| other.downcast::<PDF417RXingResultMetadata>().ok());
+
+        (result.getText().to_owned(), metadata)
+    })
+}
+
+/// The Symbol Length Descriptor, not the length of the recovered array, is the
+/// data boundary: the codewords after it are error correction codewords. Decoding
+/// a symbol together with that tail therefore has to give the same answer as
+/// decoding the declared data codewords on their own. Any difference means a
+/// control sequence read an error correction codeword as payload.
+fn assertErrorCorrectionTailIsNotPayload(codewords: &[u32]) {
+    let declaredCount = codewords[0] as usize;
+    assert!(
+        declaredCount <= codewords.len(),
+        "test vector declares more data codewords than it has"
+    );
+
+    assert_eq!(
+        decodeOutcome(&codewords[..declaredCount]),
+        decodeOutcome(codewords),
+        "the error correction tail changed the outcome of {codewords:?}"
+    );
+}
+
+/// A Symbol Length Descriptor that is absent, zero, or larger than the recovered
+/// array cannot be used as a bound, so it has to be rejected before any length
+/// arithmetic. Zero in particular used to underflow the text compaction buffer
+/// length and size an allocation from the result.
+#[test]
+fn testUnusableSymbolLengthDescriptor() {
+    for sampleCodes in [vec![], vec![0_u32, 477, 477], vec![9_u32, 477]] {
+        assert_eq!(
+            Err(Exceptions::FORMAT),
+            decodeOutcome(&sampleCodes),
+            "{sampleCodes:?} declares an unusable data codeword count"
+        );
+    }
+}
+
+/// Annex H.6's example ends its file ID on the last data codeword. That used to
+/// need a trailing dummy codeword because the optional field check read one past
+/// the boundary; the check is now bounded, so the symbol decodes on its own.
+#[test]
+fn testMacroFileIdEndingAtDataBoundary() {
+    let sampleCodes = [7_u32, 928, 111, 100, 100, 200, 300];
+    let mut resultMetadata = PDF417RXingResultMetadata::default();
+
+    decoded_bit_stream_parser::decodeMacroBlock(&sampleCodes, 2, &mut resultMetadata)
+        .expect("decode");
+
+    assert_eq!(0, resultMetadata.getSegmentIndex());
+    assert_eq!("100200300", resultMetadata.getFileId());
+    assert!(!resultMetadata.isLastSegment());
+    assert!(resultMetadata.getOptionalData().is_empty());
+
+    // An error correction codeword that happens to hold the optional field latch
+    // is still an error correction codeword. Reading it used to underflow the
+    // optional field length and index out of range.
+    let withTail = [7_u32, 928, 111, 100, 100, 200, 300, 923];
+    let mut tailMetadata = PDF417RXingResultMetadata::default();
+
+    decoded_bit_stream_parser::decodeMacroBlock(&withTail, 2, &mut tailMetadata).expect("decode");
+
+    assert_eq!(resultMetadata, tailMetadata);
+    assertErrorCorrectionTailIsNotPayload(&withTail);
+}
+
+/// An optional field latch on the last data codeword has no identifier, and an
+/// identifier on the last data codeword has no payload. Both used to index past
+/// the boundary, the first into the error correction tail and from there into a
+/// text compaction length that underflowed.
+#[test]
+fn testTruncatedMacroOptionalField() {
+    let truncatedVectors: [&[u32]; 4] = [
+        // latch is the last data codeword, nothing follows it at all
+        &[8, 928, 111, 100, 100, 200, 300, 923],
+        // latch is the last data codeword, an error correction codeword follows
+        &[8, 928, 111, 100, 100, 200, 300, 923, 0, 1000],
+        // segment count identifier is the last data codeword, payload is missing
+        &[9, 928, 111, 100, 100, 200, 300, 923, 1, 1000],
+        // identifier is not one of the seven defined optional fields
+        &[9, 928, 111, 100, 100, 200, 300, 923, 7, 1000],
+    ];
+
+    for sampleCodes in truncatedVectors {
+        let mut resultMetadata = PDF417RXingResultMetadata::default();
+        assert_eq!(
+            Err(Exceptions::FORMAT),
+            decoded_bit_stream_parser::decodeMacroBlock(sampleCodes, 2, &mut resultMetadata),
+            "{sampleCodes:?} has a truncated or undefined optional field"
+        );
+        assertErrorCorrectionTailIsNotPayload(sampleCodes);
+    }
+}
+
+/// A text optional field whose payload starts exactly at the declared boundary is
+/// empty rather than truncated, so it decodes with an empty value. What it must
+/// not do is continue into the error correction tail.
+#[test]
+fn testMacroOptionalFieldPayloadEndingAtDataBoundary() {
+    let sampleCodes: [u32; 9] = [9, 928, 111, 100, 100, 200, 300, 923, 0];
+    let mut resultMetadata = PDF417RXingResultMetadata::default();
+
+    assert_eq!(
+        Ok(9),
+        decoded_bit_stream_parser::decodeMacroBlock(&sampleCodes, 2, &mut resultMetadata)
+    );
+    assert_eq!("100200300", resultMetadata.getFileId());
+    assert!(resultMetadata.getFileName().is_empty());
+    assert_eq!(vec![0_u32], resultMetadata.getOptionalData().to_vec());
+
+    let withTail: [u32; 12] = [9, 928, 111, 100, 100, 200, 300, 923, 0, 477, 477, 1000];
+    let mut tailMetadata = PDF417RXingResultMetadata::default();
+
+    assert_eq!(
+        Ok(9),
+        decoded_bit_stream_parser::decodeMacroBlock(&withTail, 2, &mut tailMetadata)
+    );
+    assert_eq!(
+        resultMetadata, tailMetadata,
+        "the empty file name must not absorb error correction codewords"
+    );
+    assertErrorCorrectionTailIsNotPayload(&withTail);
+}
+
+/// Mode Shift to Byte Compaction (913) consumes the following codeword. On the
+/// last data codeword it has no operand: it used to index past the boundary, or
+/// silently promote an error correction codeword to a decoded character.
+#[test]
+fn testTruncatedModeShiftToByteCompaction() {
+    let truncatedVectors: [&[u32]; 4] = [
+        // inside a text compaction run, with and without a tail to misread
+        &[3, 477, 913],
+        &[3, 477, 913, 1000, 1000],
+        // as a control codeword of the symbol itself
+        &[4, 901, 100, 913],
+        &[4, 901, 100, 913, 1000],
+    ];
+
+    for sampleCodes in truncatedVectors {
+        assert_eq!(
+            Err(Exceptions::FORMAT),
+            decodeOutcome(sampleCodes),
+            "{sampleCodes:?} shifts to byte compaction without an operand"
+        );
+        assertErrorCorrectionTailIsNotPayload(sampleCodes);
+    }
+}
+
+/// The ECI control codewords consume one or two following codewords. On the last
+/// data codewords they have no operands: the charset form used to index past the
+/// boundary and then underflow the text compaction buffer length, and the
+/// general purpose and user defined forms used to skip operands that do not exist.
+#[test]
+fn testTruncatedEciControlSequence() {
+    let truncatedVectors: [&[u32]; 8] = [
+        // charset ECI inside a text compaction run
+        &[3, 477, 927],
+        &[3, 477, 927, 1000, 1000],
+        // charset ECI leading a byte compaction run
+        &[3, 901, 927],
+        // charset ECI inside a byte compaction run
+        &[5, 901, 100, 101, 927],
+        &[5, 901, 100, 101, 927, 1000],
+        // charset ECI as a control codeword of the symbol itself
+        &[4, 902, 100, 927],
+        // general purpose ECI needs two operands, user defined ECI needs one
+        &[4, 901, 100, 926, 1000, 1000],
+        &[4, 901, 100, 925, 1000],
+    ];
+
+    for sampleCodes in truncatedVectors {
+        assert_eq!(
+            Err(Exceptions::FORMAT),
+            decodeOutcome(sampleCodes),
+            "{sampleCodes:?} opens an ECI sequence without its operands"
+        );
+        assertErrorCorrectionTailIsNotPayload(sampleCodes);
+    }
+}
+
+/// The standard samples carry sentinel codewords past their declared boundary,
+/// so they are also evidence that a valid symbol ignores its error correction
+/// tail rather than merely tolerating it.
+#[test]
+fn testValidSamplesIgnoreTheErrorCorrectionTail() {
+    assertErrorCorrectionTailIsNotPayload(&[
+        20, 928, 111, 100, 17, 53, 923, 1, 111, 104, 923, 3, 64, 416, 34, 923, 4, 258, 446, 67,
+        1000, 1000, 1000,
+    ]);
+    assertErrorCorrectionTailIsNotPayload(&[
+        11, 928, 111, 103, 17, 53, 923, 1, 111, 104, 922, 1000, 1000, 1000,
+    ]);
+    assertErrorCorrectionTailIsNotPayload(&[7, 928, 111, 100, 100, 200, 300, 0]);
+    assertErrorCorrectionTailIsNotPayload(&[5, 927, 4, 913, 200, 1000, 1000]);
 }
 
 #[test]
