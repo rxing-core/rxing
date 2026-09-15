@@ -40,9 +40,30 @@ pub enum Eci {
     Binary = 899,
 }
 
+const ECI_8 : u64 = 0b0000_0000;
+const ECI_16 : u64 = 0b1000_0000_0000_0000;
+// const ECI_24 : u64 = 0b1100_0000_0000_0000_0000_0000;
+
 impl Eci {
     pub const fn can_encode(self) -> bool {
         (self as i32) >= 899
+    }
+
+    pub const fn get_bitwidth(self) -> u8 {
+        match self {
+            Self::Binary => 16,
+            _ => 8,
+        }
+    }
+
+    pub const fn get_qreci_encode_bits(self) -> u64 {
+        match self {
+            Self::Binary => {
+                let raw_bits = self as u64;
+                ECI_16 | raw_bits
+            },
+            _ => ECI_8 | (self as u64),
+        }
     }
 
     // pub fn try_from_i32(value: i32) -> Result<Self> {
@@ -100,7 +121,7 @@ impl From<i32> for Eci {
             34 => Eci::UTF32BE,
             35 => Eci::UTF32LE,
             170 => Eci::ASCII,
-            898 => Eci::Binary,
+            898 | 899 => Eci::Binary,
             _ => Eci::Unknown,
         }
     }
