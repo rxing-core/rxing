@@ -770,7 +770,9 @@ fn testGS1EncodationRoundTrip() {
     // A message must not start with a separator: the decoder reads a FNC1 codeword directly after
     // the leading one as an AIM application indicator instead of as a separator
     for digits in 0..40 {
-        for tail in ["", "A", "AB", "ABC", "ABCD", "abc", "A1B2", "A\u{1D}B", "AB\u{1D}"] {
+        for tail in [
+            "", "A", "AB", "ABC", "ABCD", "abc", "A1B2", "A\u{1D}B", "AB\u{1D}",
+        ] {
             let msg = format!("{}{tail}", "1".repeat(digits));
             if msg.is_empty() {
                 continue;
