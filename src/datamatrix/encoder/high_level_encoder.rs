@@ -490,9 +490,9 @@ fn lookAheadTestIntern(msg: &str, startpos: u32, currentMode: u32) -> usize {
                     return C40_ENCODATION;
                 }
                 if intCharCounts[C40_ENCODATION] == intCharCounts[X12_ENCODATION] {
-                    let mut _p = startpos + charsProcessed + 1;
-                    for tc in msg.chars() {
-                        // while (p as usize) < msg.len() {
+                    let p = startpos + charsProcessed + 1;
+                    // while (p as usize) < msg.len() {
+                    for tc in msg.chars().skip(p as usize) {
                         // let tc = msg.charAt(p);
                         if isX12TermSep(tc) {
                             return X12_ENCODATION;
@@ -500,7 +500,6 @@ fn lookAheadTestIntern(msg: &str, startpos: u32, currentMode: u32) -> usize {
                         if !isNativeX12(tc) {
                             break;
                         }
-                        _p += 1;
                     }
                     return C40_ENCODATION;
                 }

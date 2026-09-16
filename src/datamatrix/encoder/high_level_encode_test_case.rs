@@ -798,3 +798,28 @@ fn testGS1EncodationRoundTrip() {
         }
     }
 }
+
+/// When C40 and X12 encode the message in the same number of codewords, the lookahead breaks the
+/// tie by scanning ahead from the position it stopped at, for an X12 terminator that comes before
+/// a character that X12 cannot encode. Scanning from the start of the message instead answers the
+/// question for a completely different part of the input.
+#[test]
+fn testLookAheadTestX12TieBreakStartsAtLookAheadPosition() {
+    // The message is examined from position 1 onwards, only the '*' behind the run of 'A's
+    // decides the tie. A scan from position 0 stops at the '.' and never reaches it.
+    assert_eq!(
+        high_level_encoder::X12_ENCODATION,
+        high_level_encoder::lookAheadTest(
+            ".AAAAAAAAAAAAAAAAAAAA*BBBB",
+            1,
+            high_level_encoder::ASCII_ENCODATION as u32
+        )
+    );
+
+    // Same message with a character that the ASCII encoder consumes on its own, so the tie break
+    // reaches the codewords: 238 is the latch to X12, 230 would be the latch to C40
+    assert_eq!(
+        "98 238 89 191 89 191 89 191 89 191 89 191 89 191 89 178 96 40 254 67 129 118",
+        encodeHighLevelCompare("aAAAAAAAAAAAAAAAAAAAA*BBBB", false)
+    );
+}
