@@ -669,6 +669,8 @@ impl Edge {
 
         let mut size = if let Some(previous) = previous.clone() {
             previous.cachedTotalSize
+        } else if input.getFNC1Character().is_some() {
+            1
         } else {
             0
         };
