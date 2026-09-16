@@ -823,3 +823,32 @@ fn testLookAheadTestX12TieBreakStartsAtLookAheadPosition() {
         encodeHighLevelCompare("aAAAAAAAAAAAAAAAAAAAA*BBBB", false)
     );
 }
+
+/// The macro header and trailer are stripped from the message by slicing it. Character counts are
+/// not byte offsets, so a message with a non ASCII character used to slice inside a character.
+#[test]
+fn testMinimalEncoderMacroWithNonAsciiContent() {
+    let visualized = visualize(
+        &minimal_encoder::encodeHighLevelWithDetails(
+            "[)>\u{1E}05\u{1D}\u{00E9}\u{00E9}\u{00E9}\u{1E}\u{04}",
+            None,
+            None,
+            SymbolShapeHint::FORCE_NONE,
+        )
+        .expect("encode"),
+    );
+    // 236 is the 05 macro, 231 the latch to base 256 for the three encoded characters
+    assert_eq!("236 231 196 64 213 107 129 56", visualized);
+
+    let visualized = visualize(
+        &minimal_encoder::encodeHighLevelWithDetails(
+            "[)>\u{1E}06\u{1D}A\u{00E9}Z\u{1E}\u{04}",
+            None,
+            None,
+            SymbolShapeHint::FORCE_NONE,
+        )
+        .expect("encode"),
+    );
+    // 237 is the 06 macro, 235 the upper shift for the non ASCII character
+    assert_eq!("237 66 235 106 91", visualized);
+}
