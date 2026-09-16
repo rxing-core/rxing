@@ -717,7 +717,9 @@ pub fn appendKanjiBytes(content: &str, bits: &mut BitArray) -> Result<()> {
 
 fn appendECI(eci: Eci, bits: &mut BitArray) -> Result<()> {
     bits.appendBits(Mode::ECI.getBits() as BitFieldBaseType, 4)?;
-    // This is correct for values up to 127, which is all we need now.
+    // This is correct for values up to 16383, the only ECI we have over 127 is Binary.
+    // For values over 16383 (eci can reach 999999), we need to use the 3-byte encoding,
+    // which is implemented but disabled.
     bits.appendBits(eci.get_qreci_encode_bits() as BitFieldBaseType, eci.get_bitwidth() as usize)
 }
 
