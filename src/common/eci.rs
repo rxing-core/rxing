@@ -40,9 +40,9 @@ pub enum Eci {
     Binary = 899,
 }
 
-const ECI_8 : u64 = 0b0000_0000;
-const ECI_16 : u64 = 0b1000_0000_0000_0000;
-const ECI_24 : u64 = 0b1100_0000_0000_0000_0000_0000;
+const ECI_8: u64 = 0b0000_0000;
+const ECI_16: u64 = 0b1000_0000_0000_0000;
+const ECI_24: u64 = 0b1100_0000_0000_0000_0000_0000;
 
 impl Eci {
     pub const fn can_encode(self) -> bool {
@@ -50,9 +50,10 @@ impl Eci {
     }
 
     pub const fn get_bitwidth(self) -> u8 {
-        match self {
-            Self::Binary => 16,
-            _ => 8,
+        match self as u64 {
+            0..=127 => 8,
+            128..=16383 => 16,
+            _ => 24,
         }
     }
 
