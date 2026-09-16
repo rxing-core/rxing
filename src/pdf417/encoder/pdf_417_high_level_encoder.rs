@@ -299,8 +299,11 @@ pub fn encodeHighLevel(
                                 .ok()
                         };
 
-                        let bytes_ok = bytes.is_some();
-                        if (bytes_ok && b == 1) && (encodingMode == TEXT_COMPACTION) {
+                        let single_byte = match &bytes {
+                            Some(bytes) => bytes.len() == 1,
+                            None => b == 1,
+                        };
+                        if single_byte && (encodingMode == TEXT_COMPACTION) {
                             //Switch for one byte (instead of latch)
                             if autoECI {
                                 encodeMultiECIBinary(

@@ -513,6 +513,16 @@ fn testUppercaseLowercaseNumericPunctuationMix() {
 }
 
 #[test]
+fn testMultiByteCharacterTakenByTheByteShift() {
+    encodeDecodeWithAll(
+        "ABCDE\u{e9}1234567890123",
+        Some(CharacterSet::UTF8),
+        false,
+        true,
+    );
+}
+
+#[test]
 fn testBinaryData() {
     let mut bytes = [0_u8; 500];
     // let random = rand::rng();
