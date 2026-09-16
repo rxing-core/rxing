@@ -303,7 +303,7 @@ impl TelepenReader {
             i += 1;
         }
 
-        if count >= minToleratedWidth {
+        if count >= minToleratedWidth || self.counterLength == 0 {
             self.counterAppend(count);
         } else {
             // Noise from previous bar. Treat it as the
@@ -351,23 +351,45 @@ impl TelepenReader {
 
             j = 0;
 
-            let median = minBar + maxBar / 2.0;
+            // Midpoint between the narrowest and widest element in the window.
+            // Note this is `(min + max) / 2`, not `min + max / 2`: the latter
+            // sits at three quarters of the way up for a min of zero and lets
+            // genuinely wide elements pass as narrow.
+            // A window of uniform width carries no narrow/wide distinction, so
+            // both comparisons below pass vacuously and any flat run of
+            // elements -- the signature of noise rather than a symbol --
+            // matches the start pattern.
+            if maxBar <= minBar {
+                i += 1;
+                continue;
+            }
+
+            let median = (minBar + maxBar) / 2.0;
             let mut passed = true;
 
-            // First 10 items must be:
+            // The start pattern is 11 elements:
             //    N-N-N-N-N-N-N-N-N-N-W
-            while i + j < self.counterLength && j < 11 {
+            // The window must hold all 11 for the check to mean anything; a
+            // truncated tail is not a start pattern.
+            if i + 11 > self.counterLength {
+                break;
+            }
+
+            while j < 11 {
                 if j < 10 {
                     // Narrow
                     if (self.counters[i + j] as f32) > median {
                         passed = false;
                         break;
-                    } else if j == 10 {
-                        // Wide
-                        if (self.counters[i + j] as f32) < median {
-                            passed = false;
-                            break;
-                        }
+                    }
+                } else {
+                    // Wide. Previously this arm was nested inside `j < 10` as
+                    // an `else if j == 10`, which is unreachable, so the wide
+                    // element was never checked at all and any run of ten
+                    // narrow elements matched.
+                    if (self.counters[i + j] as f32) < median {
+                        passed = false;
+                        break;
                     }
                 }
 
@@ -406,12 +428,201 @@ impl TelepenReader {
 
             while i < self.counterLength {
                 if (self.counters[i] as f32) > (maxBar * (1.0 + TOLERANCE)) {
-                    return Ok((i - 1) as u32);
+                    let end = i - 1;
+                    self.checkStopPattern(start, end)?;
+                    return Ok(end as u32);
                 }
 
                 i += 1;
             }
         }
-        Ok((self.counterLength - 1) as u32)
+
+        let end = self.counterLength - 1;
+        self.checkStopPattern(start, end)?;
+        Ok(end as u32)
+    }
+
+    /// Verifies the symbol ends on something shaped like a Telepen stop.
+    ///
+    /// `findEndPattern` locates the end of the symbol by looking for a quiet
+    /// zone -- an element half again wider than anything nearby -- which any
+    /// sufficiently isolated dark run satisfies. It performs no structural
+    /// check, so on a picture with no Telepen symbol in it the end lands on
+    /// arbitrary structure and the character-level guards downstream (`_`
+    /// first, `z` last, checksum) are the only thing between noise and a
+    /// decode.
+    ///
+    /// Telepen's stop character is `z` plus the reversed start, which ends in
+    /// a run of narrow elements. That trailing run is what is checked here.
+    /// The wide elements preceding it are deliberately not: how many survive
+    /// binarisation varies with the trailing quiet zone, and requiring an
+    /// exact mirror of the start pattern rejects real symbols in
+    /// `test_resources/blackbox/telepen-1`.
+    ///
+    /// Elements are classified against the midpoint of the region being
+    /// decoded, the same rule `decode_row` applies a few lines later, so this
+    /// rejects nothing the subsequent narrow/wide categorisation would have
+    /// accepted.
+    fn checkStopPattern(&self, start: usize, end: usize) -> Result<()> {
+        // The stop elements, plus at least the 11 of the start pattern.
+        if end <= start || end - start < 21 || end >= self.counterLength {
+            return Err(Exceptions::NOT_FOUND);
+        }
+
+        let region = &self.counters[start..=end];
+        let minBar = *region.iter().min().unwrap_or(&0) as f32;
+        let maxBar = *region.iter().max().unwrap_or(&0) as f32;
+
+        // A region of uniform width carries no narrow/wide distinction at all,
+        // so there is nothing here that could be a Telepen symbol.
+        if maxBar <= minBar {
+            return Err(Exceptions::NOT_FOUND);
+        }
+
+        let median = (minBar + maxBar) / 2.0;
+
+        // Telepen's stop character ends in a run of narrow elements. Every
+        // symbol in the test corpus ends with at least nine, preceded by wide
+        // elements; the count is checked rather than the full mirror of the
+        // start pattern because the wide side varies with how the trailing
+        // quiet zone is binarised.
+        const TRAILING_NARROW: usize = 9;
+        for k in (end + 1 - TRAILING_NARROW)..=end {
+            if (self.counters[k] as f32) > median {
+                return Err(Exceptions::NOT_FOUND);
+            }
+        }
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::DecodeHints;
+
+    /// Builds a row from alternating white/black runs, starting with white.
+    fn row_from_runs(runs: &[u32]) -> BitArray {
+        let total: u32 = runs.iter().sum();
+        let mut row = BitArray::with_size(total as usize + 2);
+        let mut at = 1usize;
+        let mut black = false;
+        for run in runs {
+            if black {
+                for k in at..at + *run as usize {
+                    row.set(k);
+                }
+            }
+            at += *run as usize;
+            black = !black;
+        }
+        row
+    }
+
+    /// The start pattern is ten narrow elements followed by a wide one. The
+    /// wide check used to sit in an `else if j == 10` nested inside `if j < 10`,
+    /// which is unreachable, so only the ten narrow elements were ever tested
+    /// and any run of ten narrow elements was accepted as a start pattern.
+    ///
+    /// This row is all-narrow: there is no wide eleventh element anywhere, so
+    /// there is no start pattern in it. Before the fix `findStartPattern`
+    /// returned `Ok(0)`.
+    #[test]
+    fn uniform_narrow_run_is_not_a_start_pattern() {
+        let mut reader = TelepenReader::new();
+        reader.setCounters(&row_from_runs(&[2; 60]), 1).unwrap();
+
+        assert!(
+            matches!(
+                reader.findStartPattern(),
+                Err(Exceptions::NotFoundException(_))
+            ),
+            "a run of uniform narrow elements has no wide element to end the \
+             start pattern, so it must not match one"
+        );
+    }
+
+    /// The companion to the above: a genuine start pattern -- ten narrow then
+    /// one wide -- must still be found, at its correct offset.
+    #[test]
+    fn genuine_start_pattern_is_found() {
+        let mut runs = vec![2u32; 10];
+        runs.push(6);
+        runs.extend(std::iter::repeat(2).take(40));
+
+        let mut reader = TelepenReader::new();
+        reader.setCounters(&row_from_runs(&runs), 1).unwrap();
+
+        assert_eq!(reader.findStartPattern().unwrap(), 0);
+    }
+
+    /// `findStartPattern` classified elements against `minBar + maxBar / 2.0`,
+    /// which is the midpoint only when `minBar` is zero; otherwise it sits far
+    /// too high and admits genuinely wide elements as narrow. With min 2 and
+    /// max 6 the buggy expression gives 5.0 rather than 4.0, so an element of
+    /// width 5 -- clearly wide against a narrow width of 2 -- passed as narrow.
+    #[test]
+    fn wide_element_is_not_admitted_as_narrow_by_a_skewed_midpoint() {
+        // Nine narrow, then a wide element in the tenth narrow slot.
+        let mut runs = vec![2u32; 9];
+        runs.push(5);
+        runs.push(6);
+        runs.extend(std::iter::repeat(2).take(40));
+
+        let mut reader = TelepenReader::new();
+        reader.setCounters(&row_from_runs(&runs), 1).unwrap();
+
+        // Offset 0 must be rejected: its tenth element is wide.
+        assert_ne!(
+            reader.findStartPattern().ok(),
+            Some(0),
+            "an element of width 5 against a narrow width of 2 is wide, and \
+             must not satisfy a narrow slot of the start pattern"
+        );
+    }
+
+    /// The stop side had no structural check at all: `findEndPattern` locates
+    /// the end by looking for a quiet zone and accepts whatever precedes it.
+    /// A region that ends in wide elements is not a Telepen stop.
+    #[test]
+    fn region_not_ending_in_narrow_elements_is_rejected() {
+        // A valid-looking start, then a body that ends wide.
+        let mut runs = vec![2u32; 10];
+        runs.push(6);
+        runs.extend(std::iter::repeat(2).take(20));
+        runs.extend(std::iter::repeat(6).take(10));
+
+        let mut reader = TelepenReader::new();
+        reader.setCounters(&row_from_runs(&runs), 1).unwrap();
+
+        let start = reader.findStartPattern().unwrap() as usize;
+        assert!(
+            matches!(
+                reader.findEndPattern(start),
+                Err(Exceptions::NotFoundException(_))
+            ),
+            "a region ending in wide elements has no Telepen stop pattern"
+        );
+    }
+
+    /// Regression test: an entirely-black row makes the "move to first white
+    /// pixel" scan consume the whole row, so `setCounters` never records a
+    /// transition and `counterLength` stays 0. The final noise-merge then
+    /// evaluated `self.counters[self.counterLength - 1]`, underflowing to
+    /// `usize::MAX` and panicking with "index out of bounds". The row must be
+    /// at least 2000 wide so `minToleratedWidth` (0.1% of the width) is >= 2,
+    /// making the trailing `count` of 1 fall into the noise branch.
+    #[test]
+    fn all_black_row_returns_not_found_instead_of_panicking() {
+        let mut row = BitArray::with_size(2048);
+        for i in 0..row.get_size() {
+            row.set(i);
+        }
+
+        let mut reader = TelepenReader::new();
+        let result = reader.decode_row(0, &row, &DecodeHints::default());
+
+        assert!(matches!(result, Err(Exceptions::NotFoundException(_))));
     }
 }
