@@ -133,7 +133,8 @@ impl ECIInput for MinimalECIInput {
         if index >= self.length() as u32 {
             return Err(Exceptions::INDEX_OUT_OF_BOUNDS);
         }
-        Ok(self.bytes[index as usize] > 255) // && self.bytes[index as usize] <= u16::MAX)
+        // the upper bound excludes 1000, the sentinel for the FNC1 character
+        Ok(self.bytes[index as usize] > 255 && self.bytes[index as usize] <= 999)
     }
 
     /**

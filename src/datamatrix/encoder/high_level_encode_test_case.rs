@@ -637,3 +637,218 @@ pub fn visualize(codewords: &str) -> String {
 
     sb
 }
+
+#[test]
+fn testGS1Encodation() {
+    // Without a FNC1 character the GS separator is just another ASCII character (29 + 1)
+    let visualized = visualize(
+        &minimal_encoder::encodeHighLevelWithDetails(
+            "12\u{1D}34",
+            None,
+            None,
+            SymbolShapeHint::FORCE_NONE,
+        )
+        .expect("encode"),
+    );
+    assert_eq!("142 30 164", visualized);
+
+    // A leading FNC1 codeword (232) marks the symbol as GS1
+    let visualized = visualize(
+        &minimal_encoder::encodeHighLevelWithDetails(
+            "123456",
+            None,
+            Some(0x1D as char),
+            SymbolShapeHint::FORCE_NONE,
+        )
+        .expect("encode"),
+    );
+    assert_eq!("232 142 164 186 129", visualized);
+
+    // Occurrences of the FNC1 character become FNC1 codewords
+    let visualized = visualize(
+        &minimal_encoder::encodeHighLevelWithDetails(
+            "12\u{1D}34",
+            None,
+            Some(0x1D as char),
+            SymbolShapeHint::FORCE_NONE,
+        )
+        .expect("encode"),
+    );
+    assert_eq!("232 142 232 164 129", visualized);
+
+    // FNC1 as the first and as the last character of the input
+    let visualized = visualize(
+        &minimal_encoder::encodeHighLevelWithDetails(
+            "\u{1D}12\u{1D}",
+            None,
+            Some(0x1D as char),
+            SymbolShapeHint::FORCE_NONE,
+        )
+        .expect("encode"),
+    );
+    assert_eq!("232 232 142 232 129", visualized);
+
+    // A GS1 message with application identifiers, digit pairs and ASCII characters
+    let visualized = visualize(
+        &minimal_encoder::encodeHighLevelWithDetails(
+            "01034531200000111719112510ABCD1234",
+            None,
+            Some(0x1D as char),
+            SymbolShapeHint::FORCE_NONE,
+        )
+        .expect("encode"),
+    );
+    assert_eq!(
+        "232 131 133 175 161 150 130 130 141 147 149 141 155 140 66 67 68 69 142 164 129 118",
+        visualized
+    );
+}
+
+#[test]
+fn testGS1EncodationWithECI() {
+    // The FNC1 character must not be mistaken for an ECI: ECI 26 (UTF-8) is declared with 241 27
+    // and the two UTF-8 bytes of the Hebrew character are upper shifted with 235
+    let visualized = visualize(
+        &minimal_encoder::encodeHighLevelWithDetails(
+            "12\u{1D}\u{05D0}ABCDEF",
+            None,
+            Some(0x1D as char),
+            SymbolShapeHint::FORCE_NONE,
+        )
+        .expect("encode"),
+    );
+    assert_eq!(
+        "232 142 232 241 27 235 88 235 17 66 240 8 49 5 71 129",
+        visualized
+    );
+
+    // With a priority charset the ECI is declared before the first data codeword
+    let visualized = visualize(
+        &minimal_encoder::encodeHighLevelWithDetails(
+            "12\u{1D}\u{05D0}ABCDEF",
+            Some(CharacterSet::UTF8),
+            Some(0x1D as char),
+            SymbolShapeHint::FORCE_NONE,
+        )
+        .expect("encode"),
+    );
+    assert_eq!(
+        "232 241 27 142 232 235 88 235 17 66 240 8 49 5 71 129",
+        visualized
+    );
+}
+
+/// The leading FNC1 codeword is prepended after the solution is assembled, it still has to be
+/// accounted for while the symbol size is computed. This message is 18 codewords without the
+/// leading FNC1, exactly the capacity of an 18x18 symbol, which made the encoder believe that no
+/// unlatch from C40 was needed. The FNC1 then pushed the message into a 20x20 symbol and the
+/// padding was decoded as C40 text, appending 4 characters to the message.
+#[test]
+fn testGS1EncodationUnlatchesBeforePadding() {
+    let visualized = visualize(
+        &minimal_encoder::encodeHighLevelWithDetails(
+            "01012345678901281720010110ABC123",
+            None,
+            Some(0x1D as char),
+            SymbolShapeHint::FORCE_NONE,
+        )
+        .expect("encode"),
+    );
+    assert_eq!(
+        "232 131 131 153 175 197 219 131 158 147 150 131 131 140 66 67 68 142 52 129 223 118",
+        visualized
+    );
+}
+
+/// Every GS1 message has to survive a round trip through the bit stream parser. A message that
+/// ends in a C40, Text or X12 run has to unlatch or pad codewords are decoded as text.
+#[cfg(feature = "decoders")]
+#[test]
+fn testGS1EncodationRoundTrip() {
+    use crate::datamatrix::decoder::decoded_bit_stream_parser;
+
+    // A message must not start with a separator: the decoder reads a FNC1 codeword directly after
+    // the leading one as an AIM application indicator instead of as a separator
+    for digits in 0..40 {
+        for tail in ["", "A", "AB", "ABC", "ABCD", "abc", "A1B2", "A\u{1D}B", "AB\u{1D}"] {
+            let msg = format!("{}{tail}", "1".repeat(digits));
+            if msg.is_empty() {
+                continue;
+            }
+
+            let encoded = minimal_encoder::encodeHighLevelWithDetails(
+                &msg,
+                None,
+                Some(0x1D as char),
+                SymbolShapeHint::FORCE_NONE,
+            )
+            .expect("encode");
+            let codewords: Vec<u8> = encoded.chars().map(|c| c as u8).collect();
+
+            let decoded = decoded_bit_stream_parser::decode(&codewords, false)
+                .unwrap_or_else(|e| panic!("{msg:?} must decode: {e}, {}", visualize(&encoded)));
+
+            assert_eq!(
+                decoded.getText(),
+                msg,
+                "{msg:?} round trip, codewords: {}",
+                visualize(&encoded)
+            );
+            assert_eq!(decoded.getContentType(), "GS1", "{msg:?} content type");
+        }
+    }
+}
+
+/// When C40 and X12 encode the message in the same number of codewords, the lookahead breaks the
+/// tie by scanning ahead from the position it stopped at, for an X12 terminator that comes before
+/// a character that X12 cannot encode. Scanning from the start of the message instead answers the
+/// question for a completely different part of the input.
+#[test]
+fn testLookAheadTestX12TieBreakStartsAtLookAheadPosition() {
+    // The message is examined from position 1 onwards, only the '*' behind the run of 'A's
+    // decides the tie. A scan from position 0 stops at the '.' and never reaches it.
+    assert_eq!(
+        high_level_encoder::X12_ENCODATION,
+        high_level_encoder::lookAheadTest(
+            ".AAAAAAAAAAAAAAAAAAAA*BBBB",
+            1,
+            high_level_encoder::ASCII_ENCODATION as u32
+        )
+    );
+
+    // Same message with a character that the ASCII encoder consumes on its own, so the tie break
+    // reaches the codewords: 238 is the latch to X12, 230 would be the latch to C40
+    assert_eq!(
+        "98 238 89 191 89 191 89 191 89 191 89 191 89 191 89 178 96 40 254 67 129 118",
+        encodeHighLevelCompare("aAAAAAAAAAAAAAAAAAAAA*BBBB", false)
+    );
+}
+
+/// The macro header and trailer are stripped from the message by slicing it. Character counts are
+/// not byte offsets, so a message with a non ASCII character used to slice inside a character.
+#[test]
+fn testMinimalEncoderMacroWithNonAsciiContent() {
+    let visualized = visualize(
+        &minimal_encoder::encodeHighLevelWithDetails(
+            "[)>\u{1E}05\u{1D}\u{00E9}\u{00E9}\u{00E9}\u{1E}\u{04}",
+            None,
+            None,
+            SymbolShapeHint::FORCE_NONE,
+        )
+        .expect("encode"),
+    );
+    // 236 is the 05 macro, 231 the latch to base 256 for the three encoded characters
+    assert_eq!("236 231 196 64 213 107 129 56", visualized);
+
+    let visualized = visualize(
+        &minimal_encoder::encodeHighLevelWithDetails(
+            "[)>\u{1E}06\u{1D}A\u{00E9}Z\u{1E}\u{04}",
+            None,
+            None,
+            SymbolShapeHint::FORCE_NONE,
+        )
+        .expect("encode"),
+    );
+    // 237 is the 06 macro, 235 the upper shift for the non ASCII character
+    assert_eq!("237 66 235 106 91", visualized);
+}

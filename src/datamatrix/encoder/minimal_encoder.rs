@@ -163,13 +163,17 @@ pub fn encodeHighLevelWithDetails(
     {
         macroId = 5;
         // msg = msg.substring(high_level_encoder::MACRO_05_HEADER.len(), msg.len() - 2);
-        msg = &msg[high_level_encoder::MACRO_05_HEADER.chars().count()..(msg.chars().count() - 2)];
+        // the header and the trailer are ASCII, so their byte lengths are also their character
+        // lengths and both slice boundaries fall on character boundaries
+        msg = &msg[high_level_encoder::MACRO_05_HEADER.len()
+            ..(msg.len() - high_level_encoder::MACRO_TRAILER.len())];
     } else if msg.starts_with(high_level_encoder::MACRO_06_HEADER)
         && msg.ends_with(high_level_encoder::MACRO_TRAILER)
     {
         macroId = 6;
         // msg = msg.substring(high_level_encoder::MACRO_06_HEADER.len(), msg.len() - 2);
-        msg = &msg[high_level_encoder::MACRO_06_HEADER.chars().count()..(msg.chars().count() - 2)];
+        msg = &msg[high_level_encoder::MACRO_06_HEADER.len()
+            ..(msg.len() - high_level_encoder::MACRO_TRAILER.len())];
     }
     Ok(ISO_8859_1_ENCODER
         .decode(&encode(msg, priorityCharset, fnc1, shape, macroId)?)
@@ -669,6 +673,8 @@ impl Edge {
 
         let mut size = if let Some(previous) = previous.clone() {
             previous.cachedTotalSize
+        } else if input.getFNC1Character().is_some() {
+            1
         } else {
             0
         };
