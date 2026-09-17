@@ -79,6 +79,17 @@ pub fn decode(
                 hasFNC1second = true; // symbology detection
                 // We do little with FNC1 except alter the parsed result a bit according to the spec
                 fc1InEffect = true;
+                // ISO/IEC 18004:2015 7.4.8.3 AIM Application Indicator (FNC1 in second position), "00-99" or "A-Za-z"
+                let appInd = bits.readBits(8)?;
+                if appInd < 100 {
+                    // "00-99"
+                    result.append_string(&format!("{appInd:02}"));
+                } else if (165..=190).contains(&appInd) || (197..=222).contains(&appInd) {
+                    // "A-Za-z"
+                    result.append_char((appInd - 100) as u8 as char);
+                } else {
+                    return Err(Exceptions::format_with("Invalid AIM Application Indicator"));
+                }
             }
             Mode::STRUCTURED_APPEND => {
                 if bits.available() < 16 {
@@ -347,7 +358,6 @@ fn decodeAlphanumericSegment(
 ) -> Result<()> {
     let mut r_hld = Vec::with_capacity(count);
     // Read two characters at a time
-    let start = 0;
     let mut count = count;
     while count > 1 {
         if bits.available() < 11 {
@@ -368,20 +378,25 @@ fn decodeAlphanumericSegment(
     // See section 6.4.8.1, 6.4.8.2
     if fc1InEffect {
         // We need to massage the result a bit if in an FNC1 mode:
-        for i in start..r_hld.len() {
-            if r_hld.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == &'%' {
-                if i < result.len() - 1
-                    && r_hld.get(i + 1).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == &'%'
-                {
+        let mut massaged = Vec::with_capacity(r_hld.len());
+        let mut i = 0;
+        while i < r_hld.len() {
+            if r_hld[i] == '%' {
+                if i + 1 < r_hld.len() && r_hld[i + 1] == '%' {
                     // %% is rendered as %
-                    r_hld.remove(i + 1);
+                    massaged.push('%');
+                    i += 2;
                 } else {
                     // In alpha mode, % should be converted to FNC1 separator 0x1D
-                    r_hld[i..i + 1].copy_from_slice(&[0x1D as char]);
-                    // r_hld.replace_range(i..i + 1, "\u{1D}");
+                    massaged.push(0x1D as char);
+                    i += 1;
                 }
+            } else {
+                massaged.push(r_hld[i]);
+                i += 1;
             }
         }
+        r_hld = massaged;
     }
 
     result.append_eci(Eci::ISO8859_1);

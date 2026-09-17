@@ -133,3 +133,157 @@ fn testHanziLevel1() {
 }
 
 // TODO definitely need more tests here
+
+// Regression tests for FNC1 '%'/'%%' handling in alphanumeric mode (issue #102).
+// See ISO/IEC 18004 7.4.8.1-7.4.8.2: a single '%' is the GS1 separator (0x1D);
+// a doubled '%%' is one literal '%'. Percent signs are paired left to right.
+
+const AN: &str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:";
+
+fn idx(c: char) -> u32 {
+    AN.find(c).unwrap() as u32
+}
+
+fn writeAlphanumericSegment(b: &mut BitSourceBuilder, s: &str) {
+    b.write(0x02, 4); // alphanumeric mode
+    b.write(s.len() as u32, 9); // char count (versions 1-9)
+    let c: Vec<char> = s.chars().collect();
+    for p in c.chunks(2) {
+        if p.len() == 2 {
+            b.write(idx(p[0]) * 45 + idx(p[1]), 11);
+        } else {
+            b.write(idx(p[0]), 6);
+        }
+    }
+}
+
+fn fnc1FirstAlnum(prefixNumeric: Option<&str>, s: &str) -> crate::common::Result<String> {
+    let mut b = BitSourceBuilder::new();
+    b.write(0x05, 4); // FNC1 first position
+    if let Some(n) = prefixNumeric {
+        // 2-digit numeric segment
+        b.write(0x01, 4);
+        b.write(2, 10);
+        b.write(n.parse::<u32>().unwrap(), 7);
+    }
+    writeAlphanumericSegment(&mut b, s);
+    b.write(0, 4); // terminator
+    decoded_bit_stream_parser::decode(
+        b.asByteArray(),
+        Version::getVersionForNumber(2).unwrap(),
+        ErrorCorrectionLevel::L,
+        &DecodeHints::default(),
+    )
+    .map(|r| r.getText().to_string())
+}
+
+fn fnc1SecondAlnum(appIndicator: u32, s: &str) -> crate::common::Result<String> {
+    let mut b = BitSourceBuilder::new();
+    b.write(0x09, 4); // FNC1 second position
+    b.write(appIndicator, 8); // AIM application indicator
+    writeAlphanumericSegment(&mut b, s);
+    b.write(0, 4); // terminator
+    decoded_bit_stream_parser::decode(
+        b.asByteArray(),
+        Version::getVersionForNumber(2).unwrap(),
+        ErrorCorrectionLevel::L,
+        &DecodeHints::default(),
+    )
+    .map(|r| r.getText().to_string())
+}
+
+fn plainAlnum(s: &str) -> crate::common::Result<String> {
+    let mut b = BitSourceBuilder::new();
+    writeAlphanumericSegment(&mut b, s);
+    b.write(0, 4); // terminator
+    decoded_bit_stream_parser::decode(
+        b.asByteArray(),
+        Version::getVersionForNumber(2).unwrap(),
+        ErrorCorrectionLevel::L,
+        &DecodeHints::default(),
+    )
+    .map(|r| r.getText().to_string())
+}
+
+#[test]
+fn testFnc1AlphanumericNoPrefixSinglePercent() {
+    assert_eq!("A\u{1D}B", fnc1FirstAlnum(None, "A%B").expect("decode"));
+}
+
+#[test]
+fn testFnc1AlphanumericNoPrefixDoublePercent() {
+    assert_eq!("A%B", fnc1FirstAlnum(None, "A%%B").expect("decode"));
+}
+
+#[test]
+fn testFnc1AlphanumericNumericPrefixSinglePercent() {
+    assert_eq!(
+        "01A\u{1D}B",
+        fnc1FirstAlnum(Some("01"), "A%B").expect("decode")
+    );
+}
+
+#[test]
+fn testFnc1AlphanumericNumericPrefixDoublePercent() {
+    assert_eq!("01A%B", fnc1FirstAlnum(Some("01"), "A%%B").expect("decode"));
+}
+
+#[test]
+fn testFnc1AlphanumericTrailingDoublePercent() {
+    assert_eq!("01AB%", fnc1FirstAlnum(Some("01"), "AB%%").expect("decode"));
+}
+
+#[test]
+fn testFnc1AlphanumericLeadingDoublePercent() {
+    assert_eq!("01%AB", fnc1FirstAlnum(Some("01"), "%%AB").expect("decode"));
+}
+
+#[test]
+fn testFnc1AlphanumericFourPercent() {
+    assert_eq!(
+        "01A%%B",
+        fnc1FirstAlnum(Some("01"), "A%%%%B").expect("decode")
+    );
+}
+
+#[test]
+fn testFnc1AlphanumericDigitsThenDoublePercent() {
+    assert_eq!(
+        "01100%",
+        fnc1FirstAlnum(Some("01"), "100%%").expect("decode")
+    );
+}
+
+#[test]
+fn testFnc1AlphanumericTriplePercent() {
+    // %%% -> paired left to right: (%,%) -> '%', then lone '%' -> GS
+    assert_eq!("%\u{1D}", fnc1FirstAlnum(None, "%%%").expect("decode"));
+}
+
+#[test]
+fn testFnc1AlphanumericLoneTrailingPercent() {
+    assert_eq!("A\u{1D}", fnc1FirstAlnum(None, "A%").expect("decode"));
+}
+
+#[test]
+fn testFnc1AlphanumericOddLengthSinglePercent() {
+    // Single '%' is odd-length, so it goes through the 6-bit decode path.
+    assert_eq!("\u{1D}", fnc1FirstAlnum(None, "%").expect("decode"));
+}
+
+#[test]
+fn testFnc1AlphanumericOddLengthPairThenPercent() {
+    // "AB%" is odd-length: 'A','B' decode as a pair, '%' via the 6-bit path.
+    assert_eq!("AB\u{1D}", fnc1FirstAlnum(None, "AB%").expect("decode"));
+}
+
+#[test]
+fn testFnc1SecondPositionAlphanumericPercent() {
+    assert_eq!("01A\u{1D}B", fnc1SecondAlnum(1, "A%B").expect("decode"));
+}
+
+#[test]
+fn testAlphanumericPercentWithoutFnc1IsUnchanged() {
+    assert_eq!("A%B", plainAlnum("A%B").expect("decode"));
+    assert_eq!("A%%B", plainAlnum("A%%B").expect("decode"));
+}

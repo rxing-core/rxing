@@ -170,3 +170,59 @@ fn SymbologyIdentifier() {
     let result = DecodeBitStream(&[0x9A, 0x42, 0x00, 0x96, 0x00], version, ecLevel).unwrap();
     assert!(!result.isValid());
 }
+
+// Regression tests for FNC1 '%'/'%%' handling in alphanumeric mode (issue #102).
+// See ISO/IEC 18004 7.4.8.1-7.4.8.2: a single '%' is the GS1 separator (0x1D);
+// a doubled '%%' is one literal '%'. Percent signs are paired left to right.
+
+const AN: &str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:";
+
+fn idx(c: char) -> usize {
+    AN.find(c).unwrap()
+}
+
+fn writeAlphanumericSegment(ba: &mut BitArray, s: &str) {
+    ba.appendBits(0x02, 4).unwrap(); // alphanumeric mode
+    ba.appendBits(s.chars().count(), 9).unwrap(); // char count (versions 1-9)
+    let c: Vec<char> = s.chars().collect();
+    for p in c.chunks(2) {
+        if p.len() == 2 {
+            ba.appendBits(idx(p[0]) * 45 + idx(p[1]), 11).unwrap();
+        } else {
+            ba.appendBits(idx(p[0]), 6).unwrap();
+        }
+    }
+}
+
+fn fnc1FirstAlnum(s: &str) -> String {
+    let mut ba = BitArray::new();
+    ba.appendBits(0x05, 4).unwrap(); // FNC1 first position
+    writeAlphanumericSegment(&mut ba, s);
+    ba.appendBits(0, 4).unwrap(); // terminator
+    let bytes: Vec<u8> = ba.into();
+    DecodeBitStream(&bytes, Version::Model2(2).unwrap(), ErrorCorrectionLevel::L)
+        .expect("decode")
+        .text()
+}
+
+#[test]
+fn Fnc1AlphanumericSinglePercent() {
+    assert_eq!("A\u{1D}B", fnc1FirstAlnum("A%B"));
+}
+
+#[test]
+fn Fnc1AlphanumericDoublePercent() {
+    assert_eq!("A%B", fnc1FirstAlnum("A%%B"));
+}
+
+#[test]
+fn Fnc1AlphanumericFourPercent() {
+    // Previously caused an IndexOutOfBounds panic: removing buffer entries while
+    // iterating over a fixed 0..buffer.len() range read past the shrunk buffer.
+    assert_eq!("A%%B", fnc1FirstAlnum("A%%%%B"));
+}
+
+#[test]
+fn Fnc1AlphanumericLoneTrailingPercent() {
+    assert_eq!("A\u{1D}", fnc1FirstAlnum("A%"));
+}
