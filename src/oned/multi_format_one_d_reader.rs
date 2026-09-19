@@ -244,5 +244,12 @@ impl Reader for MultiFormatOneDReader {
     fn reset(&mut self) {
         self.rss_14_reader.reset();
         self.rss_expanded_reader.reset();
+        self.mf_upc_ean_reader.reset();
+        self.code_39_reader.reset();
+        self.code_93_reader.reset();
+        self.code_128_reader.reset();
+        self.itf_reader.reset();
+        self.coda_bar_reader.reset();
+        self.telepen_reader.reset();
     }
 }
