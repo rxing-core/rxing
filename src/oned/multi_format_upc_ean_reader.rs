@@ -35,6 +35,7 @@ use super::{OneDReader, UPCEANReader};
  *
  * @author Sean Owen
  */
+#[derive(Default)]
 pub struct MultiFormatUPCEANReader {
     possible_formats: HashSet<BarcodeFormat>,
 }

@@ -37,9 +37,17 @@ use crate::{BarcodeFormat, Binarizer, RXingResult};
 pub struct MultiFormatOneDReader {
     internal_hints: DecodeHints,
     possible_formats: HashSet<BarcodeFormat>,
-    use_code_39_check_digit: bool,
+    _use_code_39_check_digit: bool,
     rss_14_reader: RSS14Reader,
     rss_expanded_reader: RSSExpandedReader,
+
+    mf_upc_ean_reader: MultiFormatUPCEANReader,
+    code_39_reader: Code39Reader,
+    code_93_reader: Code93Reader,
+    code_128_reader: Code128Reader,
+    itf_reader: ITFReader,
+    coda_bar_reader: CodaBarReader,
+    telepen_reader: TelepenReader,
 }
 impl OneDReader for MultiFormatOneDReader {
     fn decode_row(
@@ -50,10 +58,17 @@ impl OneDReader for MultiFormatOneDReader {
     ) -> Result<RXingResult> {
         let Self {
             possible_formats,
-            use_code_39_check_digit,
+            _use_code_39_check_digit,
             internal_hints,
             rss_14_reader,
             rss_expanded_reader,
+            mf_upc_ean_reader,
+            code_39_reader,
+            code_93_reader,
+            code_128_reader,
+            itf_reader,
+            coda_bar_reader,
+            telepen_reader,
         } = self;
 
         if !possible_formats.is_empty() {
@@ -62,36 +77,32 @@ impl OneDReader for MultiFormatOneDReader {
                 || possible_formats.contains(&BarcodeFormat::EAN_8)
                 || possible_formats.contains(&BarcodeFormat::UPC_E)
             {
-                if let Ok(res) =
-                    MultiFormatUPCEANReader::new(internal_hints).decode_row(row_number, row, hints)
-                {
+                if let Ok(res) = mf_upc_ean_reader.decode_row(row_number, row, hints) {
                     return Ok(res);
                 }
             }
             if possible_formats.contains(&BarcodeFormat::CODE_39) {
-                if let Ok(res) = Code39Reader::with_use_check_digit(*use_code_39_check_digit)
-                    .decode_row(row_number, row, hints)
-                {
+                if let Ok(res) = code_39_reader.decode_row(row_number, row, hints) {
                     return Ok(res);
                 }
             }
             if possible_formats.contains(&BarcodeFormat::CODE_93) {
-                if let Ok(res) = Code93Reader::default().decode_row(row_number, row, hints) {
+                if let Ok(res) = code_93_reader.decode_row(row_number, row, hints) {
                     return Ok(res);
                 }
             }
             if possible_formats.contains(&BarcodeFormat::CODE_128) {
-                if let Ok(res) = Code128Reader.decode_row(row_number, row, hints) {
+                if let Ok(res) = code_128_reader.decode_row(row_number, row, hints) {
                     return Ok(res);
                 }
             }
             if possible_formats.contains(&BarcodeFormat::ITF) {
-                if let Ok(res) = ITFReader::default().decode_row(row_number, row, hints) {
+                if let Ok(res) = itf_reader.decode_row(row_number, row, hints) {
                     return Ok(res);
                 }
             }
             if possible_formats.contains(&BarcodeFormat::CODABAR) {
-                if let Ok(res) = CodaBarReader::default().decode_row(row_number, row, hints) {
+                if let Ok(res) = coda_bar_reader.decode_row(row_number, row, hints) {
                     return Ok(res);
                 }
             }
@@ -106,7 +117,7 @@ impl OneDReader for MultiFormatOneDReader {
                 }
             }
             if possible_formats.contains(&BarcodeFormat::TELEPEN) {
-                if let Ok(res) = TelepenReader::default().decode_row(row_number, row, hints) {
+                if let Ok(res) = telepen_reader.decode_row(row_number, row, hints) {
                     return Ok(res);
                 }
             }
@@ -116,21 +127,19 @@ impl OneDReader for MultiFormatOneDReader {
             {
                 return Ok(res);
             }
-            if let Ok(res) = Code39Reader::with_use_check_digit(*use_code_39_check_digit)
-                .decode_row(row_number, row, hints)
-            {
+            if let Ok(res) = code_39_reader.decode_row(row_number, row, hints) {
                 return Ok(res);
             }
-            if let Ok(res) = CodaBarReader::default().decode_row(row_number, row, hints) {
+            if let Ok(res) = coda_bar_reader.decode_row(row_number, row, hints) {
                 return Ok(res);
             }
-            if let Ok(res) = Code93Reader::default().decode_row(row_number, row, hints) {
+            if let Ok(res) = code_93_reader.decode_row(row_number, row, hints) {
                 return Ok(res);
             }
-            if let Ok(res) = Code128Reader.decode_row(row_number, row, hints) {
+            if let Ok(res) = code_128_reader.decode_row(row_number, row, hints) {
                 return Ok(res);
             }
-            if let Ok(res) = ITFReader::default().decode_row(row_number, row, hints) {
+            if let Ok(res) = itf_reader.decode_row(row_number, row, hints) {
                 return Ok(res);
             }
             if let Ok(res) = rss_14_reader.decode_row(row_number, row, hints) {
@@ -139,7 +148,7 @@ impl OneDReader for MultiFormatOneDReader {
             if let Ok(res) = rss_expanded_reader.decode_row(row_number, row, hints) {
                 return Ok(res);
             }
-            if let Ok(res) = TelepenReader::default().decode_row(row_number, row, hints) {
+            if let Ok(res) = telepen_reader.decode_row(row_number, row, hints) {
                 return Ok(res);
             }
         }
@@ -158,10 +167,17 @@ impl MultiFormatOneDReader {
 
         Self {
             possible_formats,
-            use_code_39_check_digit,
+            _use_code_39_check_digit: use_code_39_check_digit,
             rss_14_reader: RSS14Reader::default(),
             internal_hints: hints.clone(),
             rss_expanded_reader: RSSExpandedReader::default(),
+            mf_upc_ean_reader: MultiFormatUPCEANReader::new(&hints),
+            code_39_reader: Code39Reader::with_use_check_digit(use_code_39_check_digit),
+            code_93_reader: Code93Reader::default(),
+            code_128_reader: Code128Reader,
+            itf_reader: ITFReader::default(),
+            coda_bar_reader: CodaBarReader::default(),
+            telepen_reader: TelepenReader::default(),
         }
     }
 }
