@@ -166,3 +166,5 @@ mod bitmatrix_sources;
 
 #[cfg(feature = "decoders")]
 mod pattern_reader;
+
+pub mod bit_array_rle;
