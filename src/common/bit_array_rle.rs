@@ -12,6 +12,14 @@ impl BitArrayRLE {
     }
 }
 
+impl BitArrayRLE {
+    pub fn reverse(mut self) -> Self {
+        self.counts.reverse();
+
+        self
+    }
+}
+
 impl From<&BitArray> for BitArrayRLE {
     fn from(bit_array: &BitArray) -> Self {
         let mut counts = Vec::new();
