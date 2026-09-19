@@ -114,8 +114,8 @@ impl OneDReader for ITFReader {
         hints: &crate::DecodeHints,
     ) -> Result<crate::RXingResult> {
         // Find out where the Middle section (payload) starts & ends
-        let mut row = row.clone();
         let startRange = self.decodeStart(&row)?;
+        let mut row = row.clone();
         let endRange = self.decodeEnd(&mut row)?;
 
         let mut result = String::with_capacity(20); //new StringBuilder(20);
