@@ -75,7 +75,7 @@ impl OneDReader for CodaBarReader {
                 .push(char::from_u32(charOffset as u32).ok_or(Exceptions::PARSE)?);
             nextStart += 8;
             // Stop as soon as we see the end character.
-            if self.decodeRowRXingResult.chars().count() > 1
+            if self.decodeRowRXingResult.len() > 1
                 && STARTEND_ENCODING.contains(&ALPHABET[charOffset as usize])
             {
                 break;
