@@ -385,12 +385,10 @@ impl RSS14Reader {
                         return Ok([patternStart, x]);
                     }
                     patternStart += (counters[0] + counters[1]) as usize;
-                    counters.rotate_left(2);
-                    counters[2..3].fill(0);
-                    // counters[0] = counters[2];
-                    // counters[1] = counters[3];
-                    // counters[2] = 0;
-                    // counters[3] = 0;
+                    counters[0] = counters[2];
+                    counters[1] = counters[3];
+                    counters[2] = 0;
+                    counters[3] = 0;
                     counterPosition -= 1;
                 } else {
                     counterPosition += 1;
