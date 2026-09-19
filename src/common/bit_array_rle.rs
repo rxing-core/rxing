@@ -37,6 +37,7 @@ impl From<&BitArray> for BitArrayRLE {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct RlePattern<const N: usize> {
     pub counts: [usize; N],
     pub size: usize,
@@ -443,5 +444,291 @@ mod tests {
         assert_eq!(rle.counts.len(), size);
         assert!(rle.counts.iter().all(|&c| c == 1));
         assert_eq!(rle.counts.iter().sum::<usize>(), size);
+    }
+
+    // =========================================================================
+    // Tests for RlePattern
+    // =========================================================================
+
+    #[test]
+    fn test_rle_pattern_direct_construction() {
+        let pattern = RlePattern {
+            counts: [1, 2, 3],
+            size: 3,
+        };
+        assert_eq!(pattern.counts, [1, 2, 3]);
+        assert_eq!(pattern.size, 3);
+
+        // Pattern with custom size
+        let custom = RlePattern {
+            counts: [2, 4],
+            size: 10,
+        };
+        assert_eq!(custom.counts, [2, 4]);
+        assert_eq!(custom.size, 10);
+    }
+
+    #[test]
+    fn test_rle_pattern_from_array() {
+        let pattern = RlePattern::from([1, 3, 5, 7]);
+        assert_eq!(pattern.counts, [1, 3, 5, 7]);
+        assert_eq!(pattern.size, 4);
+
+        // Zero-length array
+        let empty = RlePattern::from([]);
+        assert_eq!(empty.counts, []);
+        assert_eq!(empty.size, 0);
+
+        // Single element
+        let single = RlePattern::from([42]);
+        assert_eq!(single.counts, [42]);
+        assert_eq!(single.size, 1);
+    }
+
+    #[test]
+    fn test_rle_pattern_into() {
+        let pattern: RlePattern<3> = [2, 4, 6].into();
+        assert_eq!(pattern.counts, [2, 4, 6]);
+        assert_eq!(pattern.size, 3);
+    }
+
+    #[test]
+    fn test_rle_pattern_clone_and_copy() {
+        let p1 = RlePattern::from([1, 2, 3]);
+        let p2 = p1; // Copy semantics
+        assert_eq!(p1, p2); // p1 is still valid because of Copy
+
+        let p3 = p1.clone(); // Clone
+        assert_eq!(p1, p3);
+    }
+
+    #[test]
+    fn test_rle_pattern_eq_and_ne() {
+        let p1 = RlePattern::from([1, 2, 3]);
+        let p2 = RlePattern::from([1, 2, 3]);
+        let p3 = RlePattern::from([1, 2, 4]);
+        let p4 = RlePattern {
+            counts: [1, 2, 3],
+            size: 99,
+        };
+
+        assert_eq!(p1, p2);
+        assert_ne!(p1, p3);
+        assert_ne!(p1, p4);
+    }
+
+    #[test]
+    fn test_rle_pattern_debug() {
+        let pattern = RlePattern::from([1, 2, 3]);
+        let debug_str = format!("{pattern:?}");
+        assert!(debug_str.contains("RlePattern"));
+        assert!(debug_str.contains("counts"));
+        assert!(debug_str.contains("[1, 2, 3]"));
+        assert!(debug_str.contains("size: 3"));
+    }
+
+    #[test]
+    fn test_rle_pattern_calculate_variance_exact_match() {
+        let pattern = RlePattern::from([1, 2, 3, 2, 1]);
+        let array = BitArrayRLE {
+            counts: vec![1, 2, 3, 2, 1],
+            size: 9,
+        };
+
+        let variance = pattern.calculate_variance(&array, 0);
+        assert_eq!(variance, 0.0);
+    }
+
+    #[test]
+    fn test_rle_pattern_calculate_variance_known_differences() {
+        // Pattern: [1, 5, 2]
+        // Array:   [2, 3, 2]
+        // Diffs: (1 - 2)^2 + (5 - 3)^2 + (2 - 2)^2 = (-1)^2 + 2^2 + 0^2 = 1 + 4 + 0 = 5.0
+        let pattern = RlePattern::from([1, 5, 2]);
+        let array = BitArrayRLE {
+            counts: vec![2, 3, 2],
+            size: 7,
+        };
+
+        let variance = pattern.calculate_variance(&array, 0);
+        assert_eq!(variance, 5.0);
+    }
+
+    #[test]
+    fn test_rle_pattern_calculate_variance_with_start_offset() {
+        let array = BitArrayRLE {
+            counts: vec![99, 100, 1, 2, 3, 50],
+            size: 255,
+        };
+        let pattern = RlePattern::from([1, 2, 3]);
+
+        // At start = 2, counts match exactly [1, 2, 3]
+        assert_eq!(pattern.calculate_variance(&array, 2), 0.0);
+
+        // At start = 0, compares with [99, 100, 1]
+        // (1 - 99)^2 + (2 - 100)^2 + (3 - 1)^2 = (-98)^2 + (-98)^2 + 2^2 = 9604 + 9604 + 4 = 19212.0
+        assert_eq!(pattern.calculate_variance(&array, 0), 19212.0);
+
+        // At start = 1, compares with [100, 1, 2]
+        // (1 - 100)^2 + (2 - 1)^2 + (3 - 2)^2 = (-99)^2 + 1^2 + 1^2 = 9801 + 1 + 1 = 9803.0
+        assert_eq!(pattern.calculate_variance(&array, 1), 9803.0);
+
+        // At start = 3, compares with [2, 3, 50]
+        // (1 - 2)^2 + (2 - 3)^2 + (3 - 50)^2 = (-1)^2 + (-1)^2 + (-47)^2 = 1 + 1 + 2209 = 2211.0
+        assert_eq!(pattern.calculate_variance(&array, 3), 2211.0);
+    }
+
+    #[test]
+    fn test_rle_pattern_calculate_variance_start_at_or_past_end() {
+        let array = BitArrayRLE {
+            counts: vec![1, 2, 3],
+            size: 6,
+        };
+        let pattern = RlePattern::from([1, 2]);
+
+        // start exactly at array.counts.len()
+        assert_eq!(pattern.calculate_variance(&array, 3), 0.0);
+
+        // start past array.counts.len()
+        assert_eq!(pattern.calculate_variance(&array, 4), 0.0);
+        assert_eq!(pattern.calculate_variance(&array, 100), 0.0);
+    }
+
+    #[test]
+    fn test_rle_pattern_calculate_variance_partial_overlap() {
+        // Pattern has 4 elements, but array only has 2 elements from start.
+        // The loop breaks when array_index reaches array.counts.len().
+        let pattern = RlePattern::from([2, 3, 4, 5]);
+        let array = BitArrayRLE {
+            counts: vec![1, 5],
+            size: 6,
+        };
+
+        // start = 0: compares pattern[0..2] with array[0..2], then breaks
+        // (2 - 1)^2 + (3 - 5)^2 = 1 + 4 = 5.0
+        assert_eq!(pattern.calculate_variance(&array, 0), 5.0);
+
+        // start = 1: compares pattern[0..1] with array[1..2], then breaks
+        // (2 - 5)^2 = 9.0
+        assert_eq!(pattern.calculate_variance(&array, 1), 9.0);
+    }
+
+    #[test]
+    fn test_rle_pattern_calculate_variance_empty_array() {
+        let pattern = RlePattern::from([1, 2, 3]);
+        let empty_array = BitArrayRLE::new();
+
+        assert_eq!(pattern.calculate_variance(&empty_array, 0), 0.0);
+        assert_eq!(pattern.calculate_variance(&empty_array, 5), 0.0);
+    }
+
+    #[test]
+    fn test_rle_pattern_calculate_variance_empty_pattern() {
+        let empty_pattern = RlePattern::<0>::from([]);
+        let array = BitArrayRLE {
+            counts: vec![1, 2, 3],
+            size: 6,
+        };
+
+        assert_eq!(empty_pattern.calculate_variance(&array, 0), 0.0);
+        assert_eq!(empty_pattern.calculate_variance(&array, 1), 0.0);
+        assert_eq!(empty_pattern.calculate_variance(&array, 5), 0.0);
+    }
+
+    #[test]
+    fn test_rle_pattern_calculate_variance_single_element() {
+        let pattern = RlePattern::from([7]);
+
+        let array_match = BitArrayRLE {
+            counts: vec![7],
+            size: 7,
+        };
+        assert_eq!(pattern.calculate_variance(&array_match, 0), 0.0);
+
+        let array_diff = BitArrayRLE {
+            counts: vec![10],
+            size: 10,
+        };
+        // (7 - 10)^2 = 9.0
+        assert_eq!(pattern.calculate_variance(&array_diff, 0), 9.0);
+    }
+
+    #[test]
+    fn test_rle_pattern_calculate_variance_symmetry_of_diffs() {
+        // Positive and negative differences should both produce squared positive variance
+        let pattern_pos = RlePattern::from([10, 4]);
+        let pattern_neg = RlePattern::from([4, 10]);
+        let array = BitArrayRLE {
+            counts: vec![7, 7],
+            size: 14,
+        };
+
+        // (10 - 7)^2 + (4 - 7)^2 = 9 + 9 = 18.0
+        assert_eq!(pattern_pos.calculate_variance(&array, 0), 18.0);
+        // (4 - 7)^2 + (10 - 7)^2 = 9 + 9 = 18.0
+        assert_eq!(pattern_neg.calculate_variance(&array, 0), 18.0);
+    }
+
+    #[test]
+    fn test_rle_pattern_calculate_variance_large_values() {
+        let pattern = RlePattern::from([10_000, 50_000, 100_000]);
+        let array = BitArrayRLE {
+            counts: vec![10_010, 49_990, 100_005],
+            size: 160_005,
+        };
+
+        // (-10)^2 + (10)^2 + (-5)^2 = 100 + 100 + 25 = 225.0
+        assert_eq!(pattern.calculate_variance(&array, 0), 225.0);
+    }
+
+    #[test]
+    fn test_rle_pattern_barcode_finder_pattern_scan() {
+        // Simulate scanning a 1D row for a QR-like 1:1:3:1:1 pattern
+        // quiet: 5 unset, pattern: 1 set, 1 unset, 3 set, 1 unset, 1 set, trailing: 6 unset
+        let finder = RlePattern::from([1, 1, 3, 1, 1]);
+
+        let mut ba = BitArray::with_size(18);
+        // 0..5 unset (count 5)
+        // 5..6 set (count 1)
+        ba.set(5);
+        // 6..7 unset (count 1)
+        // 7..10 set (count 3)
+        ba.set(7);
+        ba.set(8);
+        ba.set(9);
+        // 10..11 unset (count 1)
+        // 11..12 set (count 1)
+        ba.set(11);
+        // 12..18 unset (count 6)
+
+        let rle = BitArrayRLE::from(&ba);
+        assert_eq!(rle.counts, vec![5, 1, 1, 3, 1, 1, 6]);
+
+        // At start = 1, it should find an exact match with 0 variance
+        assert_eq!(finder.calculate_variance(&rle, 1), 0.0);
+
+        // At start = 0, compares [1, 1, 3, 1, 1] with [5, 1, 1, 3, 1]
+        // (1-5)^2 + (1-1)^2 + (3-1)^2 + (1-3)^2 + (1-1)^2 = 16 + 0 + 4 + 4 + 0 = 24.0
+        assert_eq!(finder.calculate_variance(&rle, 0), 24.0);
+
+        // At start = 2, compares [1, 1, 3, 1, 1] with [1, 3, 1, 1, 6]
+        // (1-1)^2 + (1-3)^2 + (3-1)^2 + (1-1)^2 + (1-6)^2 = 0 + 4 + 4 + 0 + 25 = 33.0
+        assert_eq!(finder.calculate_variance(&rle, 2), 33.0);
+
+        // Scan all start positions and verify start = 1 has minimum variance
+        let mut min_variance = f64::MAX;
+        let mut best_start = None;
+        for start in 0..rle.counts.len() {
+            // Only consider full windows
+            if start + finder.counts.len() <= rle.counts.len() {
+                let v = finder.calculate_variance(&rle, start);
+                if v < min_variance {
+                    min_variance = v;
+                    best_start = Some(start);
+                }
+            }
+        }
+        assert_eq!(best_start, Some(1));
+        assert_eq!(min_variance, 0.0);
     }
 }
