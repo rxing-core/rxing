@@ -134,14 +134,14 @@ impl OneDReader for Code128Reader {
                         }
                         match code {
                             CODE_FNC_1 => {
-                                if result.chars().count() == 0 {
+                                if result.is_empty() {
                                     // FNC1 at first or second character determines the symbology
                                     symbologyModifier = 1;
-                                } else if result.chars().count() == 1 {
+                                } else if result.len() == 1 {
                                     symbologyModifier = 2;
                                 }
                                 if convertFNC1 {
-                                    if result.chars().count() == 0 {
+                                    if result.is_empty() {
                                         // GS1 specification 5.4.3.7. and 5.4.6.4. If the first char after the start code
                                         // is FNC1 then this is GS1-128. We add the symbology identifier.
                                         result.push_str("]C1");
@@ -191,14 +191,14 @@ impl OneDReader for Code128Reader {
                         }
                         match code {
                             CODE_FNC_1 => {
-                                if result.chars().count() == 0 {
+                                if result.is_empty() {
                                     // FNC1 at first or second character determines the symbology
                                     symbologyModifier = 1;
-                                } else if result.chars().count() == 1 {
+                                } else if result.len() == 1 {
                                     symbologyModifier = 2;
                                 }
                                 if convertFNC1 {
-                                    if result.chars().count() == 0 {
+                                    if result.is_empty() {
                                         // GS1 specification 5.4.3.7. and 5.4.6.4. If the first char after the start code
                                         // is FNC1 then this is GS1-128. We add the symbology identifier.
                                         result.push_str("]C1");
@@ -249,14 +249,14 @@ impl OneDReader for Code128Reader {
                         }
                         match code {
                             CODE_FNC_1 => {
-                                if result.chars().count() == 0 {
+                                if result.is_empty() {
                                     // FNC1 at first or second character determines the symbology
                                     symbologyModifier = 1;
-                                } else if result.chars().count() == 1 {
+                                } else if result.len() == 1 {
                                     symbologyModifier = 2;
                                 }
                                 if convertFNC1 {
-                                    if result.chars().count() == 0 {
+                                    if result.is_empty() {
                                         // GS1 specification 5.4.3.7. and 5.4.6.4. If the first char after the start code
                                         // is FNC1 then this is GS1-128. We add the symbology identifier.
                                         result.push_str("]C1");
@@ -332,11 +332,8 @@ impl OneDReader for Code128Reader {
         let left: f32 = (startPatternInfo[1] + startPatternInfo[0]) as f32 / 2.0;
         let right: f32 = lastStart as f32 + lastPatternSize as f32 / 2.0;
 
-        let rawCodesSize = rawCodes.len();
-        let mut rawBytes = vec![0u8; rawCodesSize];
-        for (i, rawByte) in rawBytes.iter_mut().enumerate().take(rawCodesSize) {
-            *rawByte = *rawCodes.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?;
-        }
+        let rawBytes = rawCodes;
+
         let mut resultObject = RXingResult::new(
             &result,
             rawBytes,
