@@ -414,7 +414,7 @@ impl BitArray {
     pub fn reverse(&mut self) {
         // check if we've already done the rever operation once
         if self.reversed.is_some() {
-            self.bits = self.reversed.replace(self.bits.clone()).unwrap();
+            std::mem::swap(&mut self.bits, self.reversed.as_mut().unwrap());
             return;
         }
 
