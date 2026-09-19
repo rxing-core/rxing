@@ -298,7 +298,7 @@ impl RSSExpandedReader {
         if tryStackedDecode {
             // When the image is 180-rotated, then rows are sorted in wrong direction.
             // Try twice with both the directions.
-            let ps = self.checkRows(false).or(self.checkRows(true));
+            let ps = self.checkRows(false).or_else( || self.checkRows(true));
             if let Some(ps) = ps {
                 return Ok(ps);
             }
