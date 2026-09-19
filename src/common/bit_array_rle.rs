@@ -32,6 +32,8 @@ pub struct BitArrayRLE {
     pub counts: Vec<u32>,
     /// Width of the original row in pixels; equal to the sum of `counts`.
     pub size: usize,
+    /// True if the row has been reversed in place.
+    pub reversed: bool,
 }
 
 impl BitArrayRLE {
@@ -46,6 +48,18 @@ impl BitArrayRLE {
     /// odd length, so flipping it leaves white on even indices.
     pub fn reverse(&mut self) {
         self.counts.reverse();
+        self.reversed = !self.reversed;
+    }
+
+    /// Reset the row to its original orientation if it has been reversed.
+    ///
+    /// This is intended to be called after a reader has finished with a reversed row, or before
+    /// starting on a new row, to ensure that the row is in its original orientation for subsequent operations.
+    pub fn reset_reverse(&mut self) {
+        if self.reversed {
+            self.reverse();
+            self.reversed = false;
+        }
     }
 
     /// Encode `bit_array` into this buffer, reusing its existing allocation.
@@ -94,6 +108,7 @@ impl From<&BitArray> for BitArrayRLE {
             // still lands well under this.
             counts: Vec::with_capacity(64),
             size: 0,
+            reversed: false,
         };
         rle.fill_from(bit_array);
         rle
@@ -204,12 +219,14 @@ mod tests {
         let rle3 = BitArrayRLE {
             size: 10,
             counts: vec![4, 6],
+            reversed: false,
         };
         assert_ne!(rle1, rle3);
 
         let rle4 = BitArrayRLE {
             size: 11,
             counts: vec![3, 7],
+            reversed: false,
         };
         assert_ne!(rle1, rle4);
     }
@@ -219,6 +236,7 @@ mod tests {
         let rle = BitArrayRLE {
             counts: vec![2, 5],
             size: 7,
+            reversed: false,
         };
         let debug_str = format!("{rle:?}");
         assert!(debug_str.contains("BitArrayRLE"));
@@ -949,6 +967,7 @@ mod tests {
         let array = BitArrayRLE {
             counts: vec![22, 11, 22, 22, 22, 22],
             size: 121,
+            reversed: false,
         };
 
         assert_eq!(pattern.calculate_variance(&array, 0, MIV), 0.0);
@@ -965,6 +984,7 @@ mod tests {
                 let array = BitArrayRLE {
                     counts: pattern.counts.iter().map(|&c| c * k).collect(),
                     size: (pattern.counts.iter().sum::<u32>() * k) as usize,
+                    reversed: false,
                 };
                 pattern.calculate_variance(&array, 0, MIV)
             })
@@ -984,6 +1004,7 @@ mod tests {
         let array = BitArrayRLE {
             counts: vec![9, 2, 1, 2, 2],
             size: 16,
+            reversed: false,
         };
 
         assert_eq!(
@@ -999,6 +1020,7 @@ mod tests {
         let array = BitArrayRLE {
             counts: vec![1, 2, 3],
             size: 6,
+            reversed: false,
         };
 
         assert_eq!(pattern.calculate_variance(&array, 3, MIV), f32::INFINITY);
@@ -1024,6 +1046,7 @@ mod tests {
         let array = BitArrayRLE {
             counts: vec![20, 90, 20, 20, 20, 20],
             size: 190,
+            reversed: false,
         };
 
         assert_eq!(pattern.calculate_variance(&array, 0, MIV), f32::INFINITY);
@@ -1043,6 +1066,7 @@ mod tests {
         let array = BitArrayRLE {
             counts: vec![1, 1, 1, 1, 1, 1],
             size: 6,
+            reversed: false,
         };
 
         assert_eq!(pattern.calculate_variance(&array, 0, MIV), f32::INFINITY);
@@ -1054,6 +1078,7 @@ mod tests {
         let array = BitArrayRLE {
             counts: vec![4, 4, 4],
             size: 12,
+            reversed: false,
         };
 
         assert_eq!(pattern.calculate_variance(&array, 0, MIV), f32::INFINITY);
@@ -1065,10 +1090,12 @@ mod tests {
         let exact = BitArrayRLE {
             counts: vec![20, 10, 20, 20, 20, 20],
             size: 110,
+            reversed: false,
         };
         let slightly_off = BitArrayRLE {
             counts: vec![21, 10, 19, 20, 20, 20],
             size: 110,
+            reversed: false,
         };
 
         let near = pattern.calculate_variance(&exact, 0, MIV);
@@ -1092,6 +1119,7 @@ mod tests {
             let array = BitArrayRLE {
                 counts: vec![observed],
                 size: observed as usize,
+                reversed: false,
             };
             assert_eq!(pattern.calculate_variance(&array, 0, MIV), 0.0);
         }
@@ -1165,6 +1193,7 @@ mod tests {
                 let rle = BitArrayRLE {
                     counts: observed.to_vec(),
                     size: observed.iter().sum::<u32>() as usize,
+                    reversed: false,
                 };
                 let actual = RlePattern::from(pattern).calculate_variance(&rle, 0, MIV);
 
@@ -1193,6 +1222,7 @@ mod tests {
         let row = BitArrayRLE {
             counts: vec![14, 3, 9, 2, 6, 6, 18, 6, 4],
             size: 68,
+            reversed: false,
         };
 
         for start in 0..=(row.counts.len() - pattern.len()) {
