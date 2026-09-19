@@ -123,9 +123,9 @@ impl OneDReader for ITFReader {
         let resultString = result; //.toString();
 
         let allowedLengths = if let Some(al) = &hints.AllowedLengths {
-            al.clone()
+            al
         } else {
-            DEFAULT_ALLOWED_LENGTHS.to_vec()
+            DEFAULT_ALLOWED_LENGTHS.as_slice()
         };
 
         // To avoid false positives with 2D barcodes (and other patterns), make
@@ -134,11 +134,11 @@ impl OneDReader for ITFReader {
         let mut lengthOK = false;
         let mut maxAllowedLength = 0;
         for allowedLength in allowedLengths {
-            if length == allowedLength as usize {
+            if length == *allowedLength as usize {
                 lengthOK = true;
                 break;
             }
-            maxAllowedLength = std::cmp::max(allowedLength, maxAllowedLength);
+            maxAllowedLength = std::cmp::max(*allowedLength, maxAllowedLength);
         }
         if !lengthOK && length > maxAllowedLength as usize {
             lengthOK = true;
